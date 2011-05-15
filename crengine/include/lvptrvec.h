@@ -152,10 +152,9 @@ public:
         if ( pos<0 )
             return NULL;
         T * item = _list[pos];
-        for ( i=pos; i<_count; i++ )
+        for ( i=pos; i<_count-1; i++ )
         {
-            _list[i] = _list[i];
-            _list[i] = NULL;
+            _list[i] = _list[i+1];
         }
         _count--;
         return item;

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-14 17:02+0700\n"
+"POT-Creation-Date: 2011-05-15 08:53+0700\n"
 "PO-Revision-Date: 2009-11-18 22:36+0100\n"
 "Last-Translator: Tomasz Długosz <tomek3d@gmail.com>\n"
 "Language-Team: Polish\n"
@@ -62,7 +62,7 @@ msgstr "Słownik"
 msgid "Cite"
 msgstr "Cytuj"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
 msgid "Bookmarks"
 msgstr "Zakładki"
 
@@ -256,19 +256,19 @@ msgstr "Bieżąca strona: $1 z $2\n"
 msgid "Enter page number:"
 msgstr "Podaj numer strony:"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "Wolne miejsce"
 
-#: ../src/bmkdlg.cpp:50
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "Strona $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:74
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
 msgid "Go to bookmark"
 msgstr "Idź do zakładki"
 
-#: ../src/bmkdlg.cpp:78
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -276,7 +276,7 @@ msgstr ""
 "Krótkie wciśnięcie $1 - idź do zakładki,\n"
 "$2 - przejdź do trybu dodawania zakładek"
 
-#: ../src/bmkdlg.cpp:79
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -284,11 +284,11 @@ msgstr ""
 "Krótkie wciśnięcie $1 - idź do zakładki,\n"
 "przytrzymanie - dodanie zakładki"
 
-#: ../src/bmkdlg.cpp:82
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
 msgid "Set bookmark"
 msgstr "Dodaj zakładkę"
 
-#: ../src/bmkdlg.cpp:86
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -296,13 +296,17 @@ msgstr ""
 "$1 - dodaj zakładkę,\n"
 "$2 - przejdź do trybu wybierania zakładek"
 
-#: ../src/bmkdlg.cpp:87
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "Krótkie wciśnięcie $1 - ustaw zakładkę,\n"
 "przytrzymanie - idź do zakładki"
+
+#: ../src/bmkdlg.cpp:128
+msgid "Delete bookmark"
+msgstr "Usuń zakładkę"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "

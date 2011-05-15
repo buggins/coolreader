@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Spanish Translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-14 17:02+0700\n"
+"POT-Creation-Date: 2011-05-15 08:53+0700\n"
 "PO-Revision-Date: 2010-03-02 19:35+0100\n"
 "Last-Translator: \n"
 "Language-Team: jotas\n"
@@ -64,7 +64,7 @@ msgstr "Diccionario"
 msgid "Cite"
 msgstr "Cita"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
 msgid "Bookmarks"
 msgstr "Marcadores"
 
@@ -258,19 +258,19 @@ msgstr "Página actual: $1 de $2\n"
 msgid "Enter page number:"
 msgstr "Introduce el número de página"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "Casilla libre"
 
-#: ../src/bmkdlg.cpp:50
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "Página $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:74
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
 msgid "Go to bookmark"
 msgstr "Ir a marcador"
 
-#: ../src/bmkdlg.cpp:78
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -278,7 +278,7 @@ msgstr ""
 "Pulsar $1 - ir a marcador,\n"
 "$2 - cambiar a modo SET"
 
-#: ../src/bmkdlg.cpp:79
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -286,11 +286,11 @@ msgstr ""
 "Pulsar $1 - ir a marcador,\n"
 "mantener pulsado - colocar marcador"
 
-#: ../src/bmkdlg.cpp:82
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
 msgid "Set bookmark"
 msgstr "Colocar marcador"
 
-#: ../src/bmkdlg.cpp:86
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -298,13 +298,17 @@ msgstr ""
 "$1 - colocar marcador,\n"
 "$2 - cambiar a modo IR"
 
-#: ../src/bmkdlg.cpp:87
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "Pulsar $1 - colocar,\n"
 "mantener pulsado - ir a marcador"
+
+#: ../src/bmkdlg.cpp:128
+msgid "Delete bookmark"
+msgstr "Eliminar marcador"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "

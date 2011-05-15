@@ -14,6 +14,7 @@
 #include "bmkdlg.h"
 #include "mainwnd.h"
 
+
 CRBookmarkMenuItem::CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark, int page )
 : CRMenuItem(menu, shortcut, lString16(_("Empty slot")), LVImageSourceRef(), LVFontRef() ), _bookmark( bookmark ), _page(page)
 {
@@ -22,11 +23,11 @@ CRBookmarkMenuItem::CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark 
 
 void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected )
 {
+    _itemDirty = false;
     if ( !_bookmark ) {
         CRMenuItem::Draw( buf, rc, skin, valueSkin, selected );
         return;
     }
-    _itemDirty = false;
     lvRect itemBorders = skin->getBorderWidths();
     skin->draw( buf, rc );
     buf.SetTextColor( 0x000000 );
@@ -116,6 +117,24 @@ int CRBookmarkMenu::getSelectedItemIndex()
 }
 
 #ifdef CR_POCKETBOOK
+#include "cr3pocketbook.h"
+#include "inkview.h"
+
+static CRBookmarkMenu *bmkDialog = NULL;
+
+static imenu _contextMenu[] = {
+	{ITEM_ACTIVE, DCMD_BOOKMARK_SAVE_N, const_cast<char*>(_("Set bookmark")), NULL},
+	{ITEM_ACTIVE, DCMD_BOOKMARK_GO_N, const_cast<char*>(_("Go to bookmark")), NULL},
+	{ITEM_ACTIVE, PB_CMD_BOOKMARK_REMOVE, const_cast<char*>(_("Delete bookmark")), NULL},
+	{ 0, 0, NULL, NULL }
+};
+
+void handle_contextMenu(int index)
+{
+	CRLog::trace("CRBookmarkMenu handle_contextMenu(%d)", index);
+	bmkDialog->handleContextMenu(index);
+}
+
 int CRBookmarkMenu::getDefaultSelectionIndex()
 {
 	if ( _goToMode )
@@ -128,6 +147,35 @@ int CRBookmarkMenu::getDefaultSelectionIndex()
     }
     return -1;
 }
+
+void CRBookmarkMenu::showContextMenu()
+{
+	CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[_selectedItem]);
+	CRMenuSkinRef skin = getSkin();
+	CRRectSkinRef separatorSkin = skin->getSeparatorSkin();
+    int separatorHeight = 0;
+    if ( !separatorSkin.isNull() )
+        separatorHeight = separatorSkin->getMinSize().y;
+
+    lvRect clientRect;
+    getClientRect(clientRect);
+    lvPoint itemSize = getMaxItemSize();
+	_contextMenu[2].type = item->getBookmark() ? ITEM_ACTIVE : ITEM_INACTIVE;
+	int y = clientRect.top + (itemSize.y + separatorHeight) * _selectedItem + 
+			((itemSize.y + separatorHeight)/4);
+	OpenMenu(_contextMenu, 
+		_goToMode ? DCMD_BOOKMARK_GO_N : DCMD_BOOKMARK_SAVE_N,
+		ScreenWidth()/4, 
+		y, 
+		handle_contextMenu);
+}
+
+void CRBookmarkMenu::handleContextMenu(int index)
+{
+	_wm->postCommand(index, 0);
+	_wm->processPostedEvents();
+}
+
 #endif
 
 #define MIN_BOOKMARK_ITEMS 32
@@ -166,6 +214,7 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
         addItem( item );
     }
     setMode( goToMode );
+    bmkDialog = this;
 }
 
 /// returns true if command is processed
@@ -195,15 +244,35 @@ bool CRBookmarkMenu::onCommand( int command, int params )
 			closeMenu( _goToMode ? DCMD_BOOKMARK_GO_N : DCMD_BOOKMARK_SAVE_N, _selectedItem + 1 );
 		return true;
 	} else if (command == MCMD_SELECT_LONG) {
+#ifdef CR_POCKETBOOK
+		if (_selectedItem >= 0)
+			showContextMenu();
+#else
 		if (_selectedItem >= 0)
 			closeMenu( _goToMode ? DCMD_BOOKMARK_SAVE_N : DCMD_BOOKMARK_GO_N, _selectedItem + 1 );
-		return true;		
+#endif
+		return true;
 	} else if (command == MCMD_PREV_PAGE) {
 		if (_topItem == 0) {
 			closeMenu(0);
 			return true;
 		}
 	}
+#ifdef CR_POCKETBOOK
+	 else if (command == DCMD_BOOKMARK_SAVE_N || command == DCMD_BOOKMARK_GO_N) {
+		 closeMenu( command, _selectedItem + 1 );
+		 return true;
+	 } else if (command == PB_CMD_BOOKMARK_REMOVE && _selectedItem >= 0) {
+		 CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[_selectedItem]);
+		 CRBookmark *bm = item->getBookmark();
+		 if (bm && _docview->removeBookmark(bm)) {
+			 item->setBookmark(NULL);
+			 setDirty();
+			 _wm->update(false);
+		 }
+		 return true;
+	 }
+#endif	
     return CRMenu::onCommand(command, params);
     //closeMenu( 0 );
     //return true;

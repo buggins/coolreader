@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-14 17:02+0700\n"
+"POT-Creation-Date: 2011-05-15 08:53+0700\n"
 "PO-Revision-Date: 2010-02-24 21:50+0300\n"
 "Last-Translator: Stanislovas Zacharovas\n"
 "Language-Team: Lithuanian\n"
@@ -61,7 +61,7 @@ msgstr "Žodynas"
 msgid "Cite"
 msgstr "Citatos"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
 msgid "Bookmarks"
 msgstr "Žymės"
 
@@ -253,19 +253,19 @@ msgstr "Esamas puslapis: $1 of $2\n"
 msgid "Enter page number:"
 msgstr "Įveskite puslapio numerį"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "Nėra žymių"
 
-#: ../src/bmkdlg.cpp:50
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "Psl. $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:74
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
 msgid "Go to bookmark"
 msgstr "Eiti prie žymės Nr."
 
-#: ../src/bmkdlg.cpp:78
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -273,7 +273,7 @@ msgstr ""
 "Trumpas paspaudimas $1 - pereiti prie žymės,\n"
 "$2 - žymės nustatymo būsena"
 
-#: ../src/bmkdlg.cpp:79
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -281,11 +281,11 @@ msgstr ""
 "Trumpas paspaudimas $1 - pereiti prie žymės,\n"
 "ilgas paspaudimas - nustatyti žymę"
 
-#: ../src/bmkdlg.cpp:82
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
 msgid "Set bookmark"
 msgstr "Žymės nustatymas"
 
-#: ../src/bmkdlg.cpp:86
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -293,13 +293,18 @@ msgstr ""
 "$1 - nustatyti žymę,\n"
 "$2 - persijungti į perėjimo režimą"
 
-#: ../src/bmkdlg.cpp:87
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "Trumpas paspaudimas $1 - nustatyti žymę,\n"
 "ilgas paspaudimas - eiti prie žymės"
+
+#: ../src/bmkdlg.cpp:128
+#, fuzzy
+msgid "Delete bookmark"
+msgstr "Žymės nustatymas"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "

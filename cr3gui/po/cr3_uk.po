@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-14 17:02+0700\n"
+"POT-Creation-Date: 2011-05-15 08:53+0700\n"
 "PO-Revision-Date: 2010-06-17 11:48+0200\n"
 "Last-Translator: Vitaliy Stopchans'kyy <stopchan DOG gmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -61,7 +61,7 @@ msgstr "Словник"
 msgid "Cite"
 msgstr "Цитата"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
 msgid "Bookmarks"
 msgstr "Закладки"
 
@@ -253,19 +253,19 @@ msgstr "Поточна сторінка: $1 з $2\n"
 msgid "Enter page number:"
 msgstr "Вкажіть номер сторінки:"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "Немає закладок"
 
-#: ../src/bmkdlg.cpp:50
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "Сторінка $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:74
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
 msgid "Go to bookmark"
 msgstr "Відкрити закладку за номером"
 
-#: ../src/bmkdlg.cpp:78
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -273,7 +273,7 @@ msgstr ""
 "Коротке натискання $1 — до закладок,\n"
 "$2 — режим додавання закладок"
 
-#: ../src/bmkdlg.cpp:79
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -281,11 +281,11 @@ msgstr ""
 "Коротке натискання $1 — до закладок,\n"
 "довге натискання — додати закладку"
 
-#: ../src/bmkdlg.cpp:82
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
 msgid "Set bookmark"
 msgstr "Додати закладку"
 
-#: ../src/bmkdlg.cpp:86
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -293,13 +293,18 @@ msgstr ""
 "$1 — додати закладку,\n"
 "$2 — режим відкривання закладок"
 
-#: ../src/bmkdlg.cpp:87
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "Коротке натискання $1 — додати закладку,\n"
 "довге натискання — відкрити закладку"
+
+#: ../src/bmkdlg.cpp:128
+#, fuzzy
+msgid "Delete bookmark"
+msgstr "Видалити закладку"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "

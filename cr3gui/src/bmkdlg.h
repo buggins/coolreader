@@ -15,7 +15,6 @@
 
 #include "fsmenu.h"
 
-
 class CRBookmarkMenuItem : public CRMenuItem
 {
 private:
@@ -24,6 +23,8 @@ private:
 public:
     CRBookmarkMenuItem( CRMenu * menu, int shortcut, CRBookmark * bookmark, int page );
     virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
+    CRBookmark * getBookmark() { return _bookmark; }
+    void setBookmark(CRBookmark *bookmark) { _bookmark = bookmark; _itemDirty = true; }
 };
 
 class CRBookmarkMenu : public CRFullScreenMenu
@@ -38,6 +39,8 @@ public:
     CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode=false);
 #ifdef CR_POCKETBOOK
 	virtual int getDefaultSelectionIndex();
+    void showContextMenu();
+    void handleContextMenu(int index);
 #endif
     virtual bool onCommand( int command, int params );
 };

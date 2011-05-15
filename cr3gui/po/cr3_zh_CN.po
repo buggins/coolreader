@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-14 17:02+0700\n"
+"POT-Creation-Date: 2011-05-15 08:53+0700\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -59,7 +59,7 @@ msgstr "词典"
 msgid "Cite"
 msgstr "引用"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
 msgid "Bookmarks"
 msgstr "书签"
 
@@ -251,19 +251,19 @@ msgstr "当前页: $1 ，共 $2\n"
 msgid "Enter page number:"
 msgstr "输入页数"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "空的存档位置"
 
-#: ../src/bmkdlg.cpp:50
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "页 $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:74
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
 msgid "Go to bookmark"
 msgstr "跳到书签"
 
-#: ../src/bmkdlg.cpp:78
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -271,7 +271,7 @@ msgstr ""
 "短按 $1 - 跳到书签,\n"
 "$2 - 切换到设置模式"
 
-#: ../src/bmkdlg.cpp:79
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -279,11 +279,11 @@ msgstr ""
 "短按 $1 - 跳到书签,\n"
 "长按 - 设置书签"
 
-#: ../src/bmkdlg.cpp:82
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
 msgid "Set bookmark"
 msgstr "设置书签"
 
-#: ../src/bmkdlg.cpp:86
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -291,13 +291,17 @@ msgstr ""
 "$1 - 设置书签,\n"
 "$2 - 切换到跳转到模式"
 
-#: ../src/bmkdlg.cpp:87
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "短按 $1 - 设置书签,\n"
 "长按 - 跳到书签"
+
+#: ../src/bmkdlg.cpp:128
+msgid "Delete bookmark"
+msgstr "删除书签"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-14 17:02+0700\n"
+"POT-Creation-Date: 2011-05-15 08:53+0700\n"
 "PO-Revision-Date: 2011-05-08 16:02+0700\n"
 "Last-Translator: Vladimir <v@v>\n"
 "Language-Team: Russian\n"
@@ -62,7 +62,7 @@ msgstr "Словарь"
 msgid "Cite"
 msgstr "Цитатник"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
 msgid "Bookmarks"
 msgstr "Закладки"
 
@@ -254,19 +254,19 @@ msgstr "Текущая страница: $1 из $2\n"
 msgid "Enter page number:"
 msgstr "Введите номер страницы:"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "Нет закладок"
 
-#: ../src/bmkdlg.cpp:50
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "Стр. $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:74
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
 msgid "Go to bookmark"
 msgstr "Перейти на закладку по номеру"
 
-#: ../src/bmkdlg.cpp:78
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -274,7 +274,7 @@ msgstr ""
 "Короткое нажатие $1 - перейти на закладку,\n"
 "$2 - режим установки закладок"
 
-#: ../src/bmkdlg.cpp:79
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -282,11 +282,11 @@ msgstr ""
 "Короткое нажатие $1 - перейти на закладку,\n"
 "длинное нажатие - установить закладку"
 
-#: ../src/bmkdlg.cpp:82
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
 msgid "Set bookmark"
 msgstr "Установка закладки"
 
-#: ../src/bmkdlg.cpp:86
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -294,13 +294,17 @@ msgstr ""
 "$1 - установить закладку,\n"
 "$2 - переключиться в режим перехода"
 
-#: ../src/bmkdlg.cpp:87
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "Короткое нажатие $1 - установить закладку,\n"
 "длинное нажатие - перейти на закладку"
+
+#: ../src/bmkdlg.cpp:128
+msgid "Delete bookmark"
+msgstr "Удалить закладку"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -904,7 +908,7 @@ msgstr "Действие"
 
 #: ../src/cr3pocketbook.cpp:1592
 msgid "Press $1 to translate"
-msgstr "Нажмите $1 чтобы перевести"
+msgstr ""
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Введите номер страницы: "

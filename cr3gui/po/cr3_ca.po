@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Catalan translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-14 17:02+0700\n"
+"POT-Creation-Date: 2011-05-15 08:53+0700\n"
 "PO-Revision-Date: 2011-05-08 16:05+0700\n"
 "Last-Translator: Ferri64\n"
 "Language-Team: Catalan LoCo Team\n"
@@ -64,7 +64,7 @@ msgstr "Diccionari"
 msgid "Cite"
 msgstr "Cita"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:135
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
 msgid "Bookmarks"
 msgstr "Marcadors"
 
@@ -258,19 +258,19 @@ msgstr "Pàgina actual: $1 de $2\n"
 msgid "Enter page number:"
 msgstr "Introduïu el número de pàgina:"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "Casella lliure"
 
-#: ../src/bmkdlg.cpp:50
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "Pàgina  $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:74
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
 msgid "Go to bookmark"
 msgstr "Vés al marcador"
 
-#: ../src/bmkdlg.cpp:78
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -278,7 +278,7 @@ msgstr ""
 "Pulsació curta $1 - vés al marcador,\n"
 "$2 - canvia al mode establir"
 
-#: ../src/bmkdlg.cpp:79
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -286,11 +286,11 @@ msgstr ""
 "Pulsació curta $1 - vés al marcador,\n"
 "pulsació llarga - posa un marcador"
 
-#: ../src/bmkdlg.cpp:82
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
 msgid "Set bookmark"
 msgstr "Posa un marcador"
 
-#: ../src/bmkdlg.cpp:86
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -298,13 +298,17 @@ msgstr ""
 "$1 - posa un marcador,\n"
 "$2 - canvia al mode vés a"
 
-#: ../src/bmkdlg.cpp:87
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "Pulsació curta $1 - posa un marcador,\n"
 "pulsació llarga - vés al marcador"
+
+#: ../src/bmkdlg.cpp:128
+msgid "Delete bookmark"
+msgstr "Eliminar un marcador"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
