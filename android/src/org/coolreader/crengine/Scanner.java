@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.ZipEntry;
@@ -371,6 +372,8 @@ public class Scanner {
 		dir.isDirectory = true;
 		dir.pathname = pathname;
 		dir.filename = filename;
+		if ( mRoot.findItemByPathName(pathname)!=null )
+			return false; // exclude duplicates
 		if ( listIt && !listDirectory(dir) )
 			return false;
 		mRoot.addDir(dir);
@@ -422,8 +425,14 @@ public class Scanner {
 	public FileInfo findParent( FileInfo file, FileInfo root )
 	{
 		FileInfo parent = findParentInternal(file, root);
-		if ( parent==null )
-			return null;
+		if ( parent==null ) {
+			autoAddRootForFile(new File(file.pathname) );
+			parent = findParentInternal(file, root);
+			if ( parent==null ) {
+				Log.e("cr3", "Cannot find root directory for file " + file.pathname);
+				return null;
+			}
+		}
 		long maxTs = android.os.SystemClock.uptimeMillis() + MAX_DIR_LIST_TIME;
 		listSubtrees(root, mHideEmptyDirs ? 5 : 1, maxTs);
 		return parent;
@@ -498,6 +507,34 @@ public class Scanner {
 			existingResults.addFile(item);
 		return existingResults;
 	}
+
+	private void autoAddRoots( String rootPath, String[] pathsToExclude )
+	{
+		try {
+			File root = new File(rootPath);
+			File[] files = root.listFiles();
+			for ( File f : files ) {
+				if ( !f.isDirectory() )
+					continue;
+				String fullPath = f.getAbsolutePath();
+				boolean skip = false;
+				for ( String path : pathsToExclude ) {
+					if ( fullPath.startsWith(path) ) {
+						skip = true;
+						break;
+					}
+				}
+				if ( skip )
+					continue;
+				if ( !f.canWrite() )
+					continue;
+				Log.i("cr3", "Found possible mount point " + f.getAbsolutePath());
+				addRoot(f.getAbsolutePath(), f.getAbsolutePath(), true);
+			}
+		} catch ( Exception e ) {
+			Log.w("cr3", "Exception while trying to auto add roots");
+		}
+	}
 	
 	public void initRoots()
 	{
@@ -519,9 +556,27 @@ public class Scanner {
 		addRoot( "/mnt/extsd", "External SD /mnt/extsd", true);
 		// external SD card Huawei S7
 		addRoot( "/sdcard2", R.string.dir_sd_card_2, true);
-		addRoot( "/mnt/localdisk", "/mnt/localdisk", true);
+		//addRoot( "/mnt/localdisk", "/mnt/localdisk", true);
+		autoAddRoots( "/", SYSTEM_ROOT_PATHS );
+		autoAddRoots( "/mnt", new String[] {} );
 		
 	}
+	
+	public boolean autoAddRootForFile( File f ) {
+		File p = f.getParentFile();
+		for ( ;; ) {
+			if ( p.getParentFile()==null || p.getParentFile().getParentFile()==null )
+				break;
+			p = p.getParentFile();
+		}
+		if ( p!=null ) {
+			Log.i("cr3", "Found possible mount point " + p.getAbsolutePath());
+			return addRoot(p.getAbsolutePath(), p.getAbsolutePath(), true);
+		}
+		return false;
+	}
+	
+	private static final String[] SYSTEM_ROOT_PATHS = {"/system", "/data", "/mnt"};
 	
 //	public boolean scan()
 //	{
