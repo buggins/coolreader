@@ -321,7 +321,7 @@ public class FileInfo {
 				dirs.remove(i);
 	}
 	
-	private void removeChild( FileInfo item )
+	public void removeChild( FileInfo item )
 	{
 		int n = files.indexOf(item);
 		if ( n>=0 && n<files.size() )
@@ -371,6 +371,19 @@ public class FileInfo {
 			return false;
 		}
 		return new File(pathname).exists();
+	}
+	
+	/**
+	 * @return true if item (file, directory, or archive) exists
+	 */
+	public boolean exists()
+	{
+		if ( isArchive ) {
+			File f = new File(arcname);
+			return f.exists();
+		}
+		File f = new File(pathname);
+		return f.exists();
 	}
 	
 	public boolean isModified() {
