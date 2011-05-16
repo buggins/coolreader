@@ -629,11 +629,11 @@ public class FileBrowser extends ListView {
 	//						field1.setVisibility(VISIBLE);
 	//						field2.setVisibility(VISIBLE);
 	//						field3.setVisibility(VISIBLE);
-							field1.setText(formatSize(item.size) + " " + item.format.name() + " " + formatDate(item.createTime));
+							field1.setText(formatSize(item.size) + " " + item.format.name().toLowerCase() + " " + formatDate(item.createTime) + "  ");
 							//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 							Bookmark pos = mHistory.getLastPos(item);
 							if ( pos!=null ) {
-								field2.setText(formatDate(pos.getTimeStamp()) + " " + formatPercent(pos.getPercent())) ;
+								field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
 							} else {
 								field2.setText("");
 							}
