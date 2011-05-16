@@ -140,7 +140,7 @@ public class Scanner {
 					// remove item from list
 					baseDir.removeChild(item);
 				} else {
-					knownItems.add(item.pathname);
+					knownItems.add(item.getBasePath());
 				}
 			}
 		}
@@ -195,9 +195,9 @@ public class Scanner {
 					if ( f.isDirectory() ) {
 						if ( f.getName().startsWith(".") )
 							continue; // treat dirs beginning with '.' as hidden
-						if ( knownItems!=null && knownItems.contains(f.getAbsolutePath()) )
-							continue;
 						FileInfo item = new FileInfo( f );
+						if ( knownItems!=null && knownItems.contains(item.getPathName()) )
+							continue;
 						item.parent = baseDir;
 						baseDir.addDir(item);					
 					}

@@ -221,6 +221,13 @@ public class FileInfo {
 		return pathname;
 	}
 
+	public String getBasePath()
+	{
+		if ( arcname!=null )
+			return arcname;
+		return pathname;
+	}
+
 	public int dirCount()
 	{
 		return dirs!=null ? dirs.size() : 0;
@@ -323,9 +330,21 @@ public class FileInfo {
 	
 	public void removeChild( FileInfo item )
 	{
-		int n = files.indexOf(item);
-		if ( n>=0 && n<files.size() )
-			files.remove(n);
+		if ( item.isSpecialDir() )
+			return;
+		if ( files!=null ) {
+			int n = files.indexOf(item);
+			if ( n>=0 && n<files.size() ) {
+				files.remove(n);
+				return;
+			}
+		}
+		if ( dirs!=null ) {
+			int n = dirs.indexOf(item);
+			if ( n>=0 && n<dirs.size() ) {
+				dirs.remove(n);
+			}
+		}
 	}
 	
 	public boolean deleteFile()
@@ -379,6 +398,8 @@ public class FileInfo {
 	public boolean exists()
 	{
 		if ( isArchive ) {
+			if ( arcname==null )
+				return false;
 			File f = new File(arcname);
 			return f.exists();
 		}

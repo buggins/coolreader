@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
-      android:versionCode="121"
-      android:versionName="3.0.45-11"
+      android:versionCode="122"
+      android:versionName="3.0.45-12"
       android:installLocation="auto"
       >
     <supports-screens
