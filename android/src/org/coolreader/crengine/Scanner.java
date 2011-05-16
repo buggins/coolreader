@@ -1,9 +1,10 @@
 package org.coolreader.crengine;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
 import org.coolreader.CoolReader;
@@ -130,8 +131,12 @@ public class Scanner {
 	 */
 	public boolean listDirectory( FileInfo baseDir )
 	{
-		if ( baseDir.isListed )
-			return true;
+		Set<String> knownItems = null;
+		if ( baseDir.isListed ) {
+			knownItems = new HashSet<String>();
+			for ( int i=0; i<baseDir.itemCount(); i++ )
+				knownItems.add(baseDir.getItem(i).pathname);
+		}
 		try {
 			File dir = new File(baseDir.pathname);
 			File[] items = dir.listFiles();
@@ -142,6 +147,8 @@ public class Scanner {
 						if ( f.getName().startsWith(".") )
 							continue; // treat files beginning with '.' as hidden
 						String pathName = f.getAbsolutePath();
+						if ( knownItems!=null && knownItems.contains(pathName) )
+							continue;
 						boolean isZip = pathName.toLowerCase().endsWith(".zip");
 						FileInfo item = mFileList.get(pathName);
 						boolean isNew = false;
@@ -181,6 +188,8 @@ public class Scanner {
 					if ( f.isDirectory() ) {
 						if ( f.getName().startsWith(".") )
 							continue; // treat dirs beginning with '.' as hidden
+						if ( knownItems!=null && knownItems.contains(f.getAbsolutePath()) )
+							continue;
 						FileInfo item = new FileInfo( f );
 						item.parent = baseDir;
 						baseDir.addDir(item);					
@@ -513,23 +522,25 @@ public class Scanner {
 		try {
 			File root = new File(rootPath);
 			File[] files = root.listFiles();
-			for ( File f : files ) {
-				if ( !f.isDirectory() )
-					continue;
-				String fullPath = f.getAbsolutePath();
-				boolean skip = false;
-				for ( String path : pathsToExclude ) {
-					if ( fullPath.startsWith(path) ) {
-						skip = true;
-						break;
+			if ( files!=null ) {
+				for ( File f : files ) {
+					if ( !f.isDirectory() )
+						continue;
+					String fullPath = f.getAbsolutePath();
+					boolean skip = false;
+					for ( String path : pathsToExclude ) {
+						if ( fullPath.startsWith(path) ) {
+							skip = true;
+							break;
+						}
 					}
+					if ( skip )
+						continue;
+					if ( !f.canWrite() )
+						continue;
+					Log.i("cr3", "Found possible mount point " + f.getAbsolutePath());
+					addRoot(f.getAbsolutePath(), f.getAbsolutePath(), true);
 				}
-				if ( skip )
-					continue;
-				if ( !f.canWrite() )
-					continue;
-				Log.i("cr3", "Found possible mount point " + f.getAbsolutePath());
-				addRoot(f.getAbsolutePath(), f.getAbsolutePath(), true);
 			}
 		} catch ( Exception e ) {
 			Log.w("cr3", "Exception while trying to auto add roots");
