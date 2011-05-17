@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -499,7 +500,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		// apply orientation
 		keyCode = overrideKey( keyCode );
-		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
+		boolean isLongPress = false;
+		Long keyDownTs = keyDownTimestampMap.get(keyCode);
+		if ( keyDownTs!=null && System.currentTimeMillis()-keyDownTs>=LONG_KEYPRESS_TIME )
+			isLongPress = true;
 		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
 		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
 		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
@@ -606,12 +610,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private KeyEvent trackedKeyEvent = null; 
 	private ReaderAction actionToRepeat = null;
 	private boolean repeatActionActive = false;
+	private Map<Integer, Long> keyDownTimestampMap = new HashMap<Integer, Long>();
 	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
 		backKeyDownHere = false;
-		if ( event.getRepeatCount()==0 )
+		if ( event.getRepeatCount()==0 ) {
 			Log.v("cr3", "onKeyDown("+keyCode + ", " + event +")");
+			keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
+		}
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			boolean res = super.onKeyDown(keyCode, event);
