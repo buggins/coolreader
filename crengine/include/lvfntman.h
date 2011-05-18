@@ -234,6 +234,10 @@ public:
     virtual bool operator ! () const = 0;
     virtual void Clear() = 0;
     virtual ~LVFont() { }
+    /// set fallback font for this font
+    void setFallbackFont( LVFastRef<LVFont> font ) { }
+    /// get fallback font for this font
+    LVFont * getFallbackFont() { return NULL; }
 };
 
 typedef LVFastRef<LVFont> LVFontRef;
@@ -257,6 +261,12 @@ public:
     virtual void gc() = 0;
     /// returns most similar font
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface ) = 0;
+    /// set fallback font face (returns true if specified font is found)
+    virtual bool SetFallbackFontFace( lString8 face ) { return false; }
+    /// get fallback font face (returns empty string if no fallback font is set)
+    virtual lString8 GetFallbackFontFace() { return lString8::empty_str; }
+    /// returns fallback font for specified size
+    virtual LVFontRef GetFallbackFont(int size) { }
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// initializes font manager

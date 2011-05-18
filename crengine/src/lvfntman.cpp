@@ -28,6 +28,8 @@
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
 #define USE_FREETYPE 1
+#define USE_FONTCONFIG 1
+
 
 #if (USE_FREETYPE==1)
 
@@ -61,6 +63,7 @@
 
 
 LVFontManager * fontMan = NULL;
+
 
 /**
  * Max width of -/./,/!/? to use for visial alignment by width
@@ -190,7 +193,10 @@ public:
     ~LVFontDef() {}
     /// calculates difference between two fonts
     int CalcMatch( const LVFontDef & def ) const;
+    /// difference between fonts for duplicates search
     int CalcDuplicateMatch( const LVFontDef & def ) const;
+    /// calc match for fallback font search
+    int CalcFallbackMatch( lString8 face, int size ) const;
 };
 
 /// font cache item
@@ -221,6 +227,7 @@ public:
     void addInstance( const LVFontDef * def, LVFontRef ref );
     LVPtrVector< LVFontCacheItem > * getInstances() { return &_instance_list; }
     LVFontCacheItem * find( const LVFontDef * def );
+    LVFontCacheItem * findFallback( lString8 face, int size );
     LVFontCacheItem * findDuplicate( const LVFontDef * def );
     virtual void getFaceList( lString16Collection & list )
     {
@@ -229,7 +236,13 @@ public:
             lString16 name = Utf8ToUnicode( _registered_list[i]->getDef()->getTypeFace() );
             if ( !list.contains(name) )
                 list.add( name );
-            list.sort();
+        }
+        list.sort();
+    }
+    virtual void clearFallbackFonts()
+    {
+        for ( int i=0; i<_registered_list.length(); i++ ) {
+            _registered_list[i]->getFont()->setFallbackFont(LVFontRef());
         }
     }
     LVFontCache( )
@@ -486,11 +499,32 @@ protected:
     LVFontLocalGlyphCache _glyph_cache;
     bool          _drawMonochrome;
     bool          _allowKerning;
+    bool          _fallbackFontIsSet;
+    LVFontRef     _fallbackFont;
 public:
+
+    // fallback font support
+    /// set fallback font for this font
+    void setFallbackFont( LVFastRef<LVFont> font ) {
+        _fallbackFont = font;
+        _fallbackFontIsSet = !font.isNull();
+    }
+
+    /// get fallback font for this font
+    LVFont * getFallbackFont() {
+        if ( _fallbackFontIsSet )
+            return _fallbackFont.get();
+        if ( fontMan->GetFallbackFontFace()!=_faceName ) // to avoid circular link, disable fallback for fallback font
+            _fallbackFont = fontMan->GetFallbackFont(_size);
+        _fallbackFontIsSet = true;
+        return _fallbackFont.get();
+    }
+
     /// returns font weight
     virtual int getWeight() const { return _weight; }
     /// returns italic flag
     virtual int getItalic() const { return _italic; }
+    /// sets face name
     virtual void setFaceName( lString8 face ) { _faceName = face; }
 
     LVMutex & getMutex() { return _mutex; }
@@ -499,7 +533,7 @@ public:
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _weight(400), _italic(0)
-    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false)
+    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _fallbackFontIsSet(false)
     {
         _matrix.xx = 0x10000;
         _matrix.yy = 0x10000;
@@ -606,11 +640,11 @@ public:
         if ( code=='\t' )
             code = ' ';
         FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, code );
-        if ( ch_glyph_index==0 && def_char ) {
+        if ( ch_glyph_index==0 ) {
             lUInt16 replacement = getReplacementChar( code );
             if ( replacement )
                 ch_glyph_index = FT_Get_Char_Index( _face, replacement );
-            if ( ch_glyph_index==0 )
+            if ( ch_glyph_index==0 && def_char )
                 ch_glyph_index = FT_Get_Char_Index( _face, def_char );
         }
         return ch_glyph_index;
@@ -623,9 +657,19 @@ public:
     virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
     {
         LVLock lock(_mutex);
-        int glyph_index = getCharIndex( code, def_char );
-        if ( glyph_index==0 )
-            return false;
+        int glyph_index = getCharIndex( code, 0 );
+        if ( glyph_index==0 ) {
+            LVFont * fallback = getFallbackFont();
+            if ( !fallback ) {
+                // No fallback
+                glyph_index = getCharIndex( code, def_char );
+                if ( glyph_index==0 )
+                    return false;
+            } else {
+                // Fallback
+                return fallback->getGlyphInfo(code, glyph, def_char);
+            }
+        }
         updateTransform();
         int error = FT_Load_Glyph(
             _face,          /* handle to face object */
@@ -699,7 +743,7 @@ public:
             FT_UInt ch_glyph_index = (FT_UInt)-1;
             int kerning = 0;
 #if (ALLOW_KERNING==1)
-            if ( use_kerning && previous ) {
+            if ( use_kerning && previous>0  ) {
                 if ( ch_glyph_index==(FT_UInt)-1 )
                     ch_glyph_index = getCharIndex( ch, def_char );
                 if ( ch_glyph_index != 0 ) {
@@ -720,17 +764,23 @@ public:
             /* load glyph image into the slot (erase previous one) */
             int w = _wcache.get(ch);
             if ( w==0xFF ) {
-                if ( ch_glyph_index==(FT_UInt)-1 )
-                    ch_glyph_index = getCharIndex( ch, def_char );
-                error = FT_Load_Glyph( _face,          /* handle to face object */
-                        ch_glyph_index,                /* glyph index           */
-                        FT_LOAD_DEFAULT );             /* load flags, see below */
-                if ( error ) {
+                glyph_info_t glyph;
+                if ( getGlyphInfo( ch, &glyph, def_char ) ) {
+                    w = glyph.width;
+                    _wcache.put(ch, w);
+                } else {
                     widths[nchars] = prev_width;
                     continue;  /* ignore errors */
                 }
-                w = (_slot->metrics.horiAdvance >> 6);
-                _wcache.put(ch, w);
+                if ( ch_glyph_index==(FT_UInt)-1 )
+                    ch_glyph_index = getCharIndex( ch, 0 );
+//                error = FT_Load_Glyph( _face,          /* handle to face object */
+//                        ch_glyph_index,                /* glyph index           */
+//                        FT_LOAD_DEFAULT );             /* load flags, see below */
+//                if ( error ) {
+//                    widths[nchars] = prev_width;
+//                    continue;  /* ignore errors */
+//                }
             }
             widths[nchars] = prev_width + w + (kerning >> 6) + letter_spacing;
             previous = ch_glyph_index;
@@ -810,9 +860,19 @@ public:
         \return glyph pointer if glyph was found, NULL otherwise
     */
     virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
-        FT_UInt ch_glyph_index = getCharIndex( ch, def_char );
-        if ( !ch_glyph_index )
-            return NULL;
+        FT_UInt ch_glyph_index = getCharIndex( ch, 0 );
+        if ( ch_glyph_index==0 ) {
+            LVFont * fallback = getFallbackFont();
+            if ( !fallback ) {
+                // No fallback
+                ch_glyph_index = getCharIndex( ch, def_char );
+                if ( ch_glyph_index==0 )
+                    return NULL;
+            } else {
+                // Fallback
+                return fallback->getGlyph(ch, def_char);
+            }
+        }
         LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
         if ( !item ) {
 
@@ -862,16 +922,12 @@ public:
     {
         int w = _wcache.get(ch);
         if ( w==0xFF ) {
-            int ch_glyph_index = getCharIndex( ch, def_char );
-            updateTransform();
-            int error = (ch_glyph_index==0)
-                        || FT_Load_Glyph( _face,          /* handle to face object */
-                    ch_glyph_index,                /* glyph index           */
-                    FT_LOAD_DEFAULT );             /* load flags, see below */
-            if ( error )
+            glyph_info_t glyph;
+            if ( getGlyphInfo( ch, &glyph, def_char ) ) {
+                w = glyph.width;
+            } else {
                 w = 0;
-            else
-                w = (_slot->metrics.horiAdvance >> 6);
+            }
             _wcache.put(ch, w);
         }
         return w;
@@ -939,7 +995,7 @@ public:
             FT_UInt ch_glyph_index = getCharIndex( ch, def_char );
             int kerning = 0;
 #if (ALLOW_KERNING==1)
-            if ( use_kerning && previous && ch_glyph_index ) {
+            if ( use_kerning && previous>0 && ch_glyph_index>0 ) {
                 FT_Vector delta;
                 error = FT_Get_Kerning( _face,          /* handle to face object */
                               previous,          /* left glyph index      */
@@ -950,36 +1006,12 @@ public:
                     kerning = delta.x;
             }
 #endif
-            LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
-            if ( !item ) {
 
-                int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
-                /* load glyph image into the slot (erase previous one) */
-                error = FT_Load_Glyph( _face,          /* handle to face object */
-                        ch_glyph_index,                /* glyph index           */
-                        rend_flags );             /* load flags, see below */
-                if ( error ) {
-                    continue;  /* ignore errors */
-                }
-#if 0
-                {
-                    FT_Bitmap*  bitmap = &(_slot->bitmap);
-                    lUInt8 w = (lUInt8)(bitmap->width);
-                    lUInt8 h = (lUInt8)(bitmap->rows);
-                    CRLog::trace("ch=%c %d    %dx%d", ch&0x7f, ch, w, h);
-                    for ( int y=0; y<h; y++ ) {
-                        const char * chars = "01234567";
-                        lString8 s;
-                        for ( x=0; x<w; x++ ) {
-                            s << chars[bitmap->buffer[y*w+x]>>5];
-                        }
-                        CRLog::trace("> %s", s.c_str());
-                    }
-                }
-#endif
-                item = newItem( &_glyph_cache, ch, _slot ); //, _drawMonochrome
-                _glyph_cache.put( item );
-            }
+
+            LVFontGlyphCacheItem * item = getGlyph(ch, def_char);
+                    _glyph_cache.get( ch );
+            if ( !item )
+                continue;
             if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
                 int w = item->advance + (kerning >> 6);
                 buf->Draw( x + (kerning>>6) + item->origin_x,
@@ -1422,6 +1454,7 @@ class LVFreeTypeFontManager : public LVFontManager
 {
 private:
     lString8    _path;
+    lString8    _fallbackFontFace;
     LVFontCache _cache;
     FT_Library  _library;
     LVFontGlobalGlyphCache _globalCache;
@@ -1431,6 +1464,39 @@ private:
     #endif
     LVMutex   _lock;
 public:
+
+    /// set fallback font
+    virtual bool SetFallbackFontFace( lString8 face ) {
+        if ( face!=_fallbackFontFace ) {
+            _cache.clearFallbackFonts();
+            CRLog::trace("Looking for fallback font %s", face.c_str());
+            LVFontCacheItem * item = _cache.findFallback( face, -1 );
+            if ( !item )
+                face.clear();
+            _fallbackFontFace = face;
+            return !_fallbackFontFace.empty();
+        }
+    }
+
+    /// get fallback font face (returns empty string if no fallback font is set)
+    virtual lString8 GetFallbackFontFace() { return _fallbackFontFace; }
+
+    /// returns fallback font for specified size
+    virtual LVFontRef GetFallbackFont(int size) {
+        if ( _fallbackFontFace.empty() )
+            return LVFontRef();
+        // reduce number of possible distinct sizes for fallback font
+        if ( size>40 )
+            size &= 0xFFF8;
+        else if ( size>28 )
+            size &= 0xFFFC;
+        else if ( size>16 )
+            size &= 0xFFFE;
+        LVFontCacheItem * item = _cache.findFallback( _fallbackFontFace, size );
+        if ( !item->getFont().isNull() )
+            return item->getFont();
+        return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFace );
+    }
 
     bool isBitmapModeForSize( int size )
     {
@@ -1570,10 +1636,12 @@ public:
                 //case FC_WEIGHT_HEAVY:             FC_WEIGHT_BLACK
                     weight = 900;
                     break;
+#ifdef FC_WEIGHT_EXTRABLACK
                 case FC_WEIGHT_EXTRABLACK:    //    215
                 //case FC_WEIGHT_ULTRABLACK:        FC_WEIGHT_EXTRABLACK
                     weight = 900;
                     break;
+#endif
                 default:
                     weight = 400;
                     break;
@@ -1675,6 +1743,22 @@ public:
 
             FcFontSetDestroy(fontset);
             CRLog::info("FONTCONFIG: %d fonts registered", facesFound);
+
+            const char * fallback_faces [] = {
+                "Arial Unicode MS",
+                "AR PL ShanHeiSun Uni",
+                "Liberation Sans",
+                NULL
+            };
+
+            for ( int i=0; fallback_faces[i]; i++ )
+                if ( SetFallbackFontFace(lString8(fallback_faces[i])) ) {
+                    CRLog::info("Fallback font %s is found", fallback_faces[i]);
+                    break;
+                } else {
+                    CRLog::trace("Fallback font %s is not found", fallback_faces[i]);
+                }
+
             return facesFound > 0;
         }
         #else
@@ -2371,6 +2455,21 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
         + (typeface_match * 1000);
 }
 
+int LVFontDef::CalcFallbackMatch( lString8 face, int size ) const
+{
+    if (_typeface != face) {
+        CRLog::trace("'%s'' != '%s'", face.c_str(), _typeface.c_str());
+        return 0;
+    }
+    int size_match = (_size==-1 || size==-1 || _size==size) ? 256 : 0;
+    int weight_match = (_weight==-1) ? 256 : ( 256 - _weight * 256 / 800 );
+    int italic_match = _italic == 0 ? 256 : 0;
+    return
+        + (size_match     * 100)
+        + (weight_match   * 5)
+        + (italic_match   * 5);
+}
+
 
 
 
@@ -2528,6 +2627,38 @@ LVFontCacheItem * LVFontCache::findDuplicate( const LVFontDef * def )
             return _registered_list[i];
     }
     return NULL;
+}
+
+LVFontCacheItem * LVFontCache::findFallback( lString8 face, int size )
+{
+    int best_index = -1;
+    int best_match = -1;
+    int best_instance_index = -1;
+    int best_instance_match = -1;
+    int i;
+    for (i=0; i<_instance_list.length(); i++)
+    {
+        int match = _instance_list[i]->_def.CalcFallbackMatch( face, size );
+        if (match > best_instance_match)
+        {
+            best_instance_match = match;
+            best_instance_index = i;
+        }
+    }
+    for (i=0; i<_registered_list.length(); i++)
+    {
+        int match = _registered_list[i]->_def.CalcFallbackMatch( face, size );
+        if (match > best_match)
+        {
+            best_match = match;
+            best_index = i;
+        }
+    }
+    if (best_index<=0)
+        return NULL;
+    if (best_instance_match >= best_match)
+        return _instance_list[best_instance_index];
+    return _registered_list[best_index];
 }
 
 LVFontCacheItem * LVFontCache::find( const LVFontDef * fntdef )
