@@ -582,7 +582,7 @@ public class Engine {
 			return false;
 		currentHyphDict = dict;
 		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
-		mBackgroundThread.executeBackground(new Runnable() {
+		mBackgroundThread.postBackground(new Runnable() {
 			public void run() {
 				byte[] data = null;
 				if (dict.type == HYPH_DICT && dict.resource != 0) {
