@@ -273,6 +273,8 @@ public:
     virtual bool Init( lString8 path ) = 0;
     /// get count of registered fonts
     virtual int GetFontCount() = 0;
+    /// get hash of installed fonts and fallback font
+    virtual lUInt32 GetFontListHash() { return 0; }
     /// clear glyph cache
     virtual void clearGlyphCache() { }
 

@@ -27,8 +27,8 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#define USE_FREETYPE 1
-#define USE_FONTCONFIG 1
+//#define USE_FREETYPE 1
+//#define USE_FONTCONFIG 1
 
 
 #if (USE_FREETYPE==1)
@@ -175,6 +175,11 @@ public:
             && ( _index == def._index || def._index == -1 )
             ;
     }
+
+    lUInt32 getHash() {
+        return ((((_size * 31) + _weight)*31  + _italic)*31 + _family)*31 + _name.getHash();
+    }
+
     /// returns font file name
     lString8 getName() const { return _name; }
     void setName( lString8 name) {  _name = name; }
@@ -229,6 +234,14 @@ public:
     LVFontCacheItem * find( const LVFontDef * def );
     LVFontCacheItem * findFallback( lString8 face, int size );
     LVFontCacheItem * findDuplicate( const LVFontDef * def );
+    /// get hash of installed fonts and fallback font
+    virtual lUInt32 GetFontListHash() {
+        lUInt32 hash = 0;
+        for ( int i=0; i<_registered_list.length(); i++ ) {
+            hash = hash + _registered_list[i]->getDef()->getHash();
+        }
+        return 0;
+    }
     virtual void getFaceList( lString16Collection & list )
     {
         list.clear();
@@ -1464,6 +1477,9 @@ private:
     #endif
     LVMutex   _lock;
 public:
+
+    /// get hash of installed fonts and fallback font
+    virtual lUInt32 GetFontListHash() { return _cache.GetFontListHash() * 75 + _fallbackFontFace.getHash(); }
 
     /// set fallback font
     virtual bool SetFallbackFontFace( lString8 face ) {

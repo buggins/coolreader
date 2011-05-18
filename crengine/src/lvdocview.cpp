@@ -4793,7 +4793,15 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			setPageMargins(rc);
 		} else if (name == PROP_FONT_FACE) {
 			setDefaultFontFace(UnicodeToUtf8(value));
-		} else if (name == PROP_STATUS_FONT_FACE) {
+                } else if (name == PROP_FALLBACK_FONT_FACE) {
+                    lString8 oldFace = fontMan->GetFallbackFontFace();
+                    if ( UnicodeToUtf8(value)!=oldFace )
+                        fontMan->SetFallbackFontFace(UnicodeToUtf8(value));
+                    value = Utf8ToUnicode(fontMan->GetFallbackFontFace());
+                    if ( UnicodeToUtf8(value) != oldFace ) {
+                        requestRender();
+                    }
+                } else if (name == PROP_STATUS_FONT_FACE) {
 			setStatusFontFace(UnicodeToUtf8(value));
 		} else if (name == PROP_STATUS_LINE || name == PROP_SHOW_TIME
 				|| name	== PROP_SHOW_TITLE || name == PROP_SHOW_BATTERY

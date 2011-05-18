@@ -489,6 +489,7 @@ public class Engine {
 //		if (!initialized) {
 //			installLibrary();
 //		}
+		initializeStarted = true;
 		Log.i("cr3", "Engine() : scheduling init task");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			public void run() {
@@ -584,6 +585,8 @@ public class Engine {
 		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
 		mBackgroundThread.postBackground(new Runnable() {
 			public void run() {
+				if (!initialized)
+					throw new IllegalStateException("CREngine is not initialized");
 				byte[] data = null;
 				if (dict.type == HYPH_DICT && dict.resource != 0) {
 					data = loadResourceBytes(dict.resource);
@@ -710,6 +713,7 @@ public class Engine {
 	}
 
 	static private boolean initialized = false;
+	static private boolean initializeStarted = false;
 
 	private String[] findFonts() {
 		ArrayList<File> dirs = new ArrayList<File>();
@@ -731,7 +735,8 @@ public class Engine {
 						String lc = filename.toLowerCase();
 						return (lc.endsWith(".ttf") || lc.endsWith(".otf")
 								|| lc.endsWith(".pfb") || lc.endsWith(".pfa"))
-								&& !filename.endsWith("Fallback.ttf");
+//								&& !filename.endsWith("Fallback.ttf")
+								;
 					}
 				});
 				// append path
