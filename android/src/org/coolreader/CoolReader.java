@@ -357,7 +357,10 @@ public class CoolReader extends Activity
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
         mEngine.showProgress( 0, R.string.progress_starting_cool_reader );
-		
+
+        // wait until all background tasks are executed
+        mBackgroundThread.syncWithBackground();
+        
 		mEngine.setHyphenationDictionary(HyphDict.byCode(props.getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString())));
 		
 		//this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 

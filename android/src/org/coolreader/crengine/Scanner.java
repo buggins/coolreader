@@ -534,6 +534,10 @@ public class Scanner {
 					if ( !f.isDirectory() )
 						continue;
 					String fullPath = f.getAbsolutePath();
+					if ( engine.isLink(fullPath) ) {
+						Log.d("cr3", "skipping symlink " + fullPath);
+						continue;
+					}
 					boolean skip = false;
 					for ( String path : pathsToExclude ) {
 						if ( fullPath.startsWith(path) ) {

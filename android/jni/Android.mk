@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := cr3engine-45-11
+LOCAL_MODULE    := cr3engine-45-15
 
 # Generate CREngine blob with statically linked libjpeg, libpng, libfreetype, chmlib
 # TODO: build libraries using separate makefiles

@@ -30,6 +30,8 @@ public class Engine {
 
 	private final CoolReader mActivity;
 	private final BackgroundThread mBackgroundThread;
+	
+	static final private String LIBRARY_NAME = "cr3engine-45-15";
 
 	// private final View mMainView;
 	// private final ExecutorService mExecutor =
@@ -527,6 +529,14 @@ public class Engine {
 
 	private native boolean scanBookPropertiesInternal(FileInfo info);
 
+	/**
+	 * Checks whether specified directlry or file is symbolic link.
+	 * (thread-safe)
+	 * @param pathName is path to check
+	 * @return true if specified directory or file is link (symlink)
+	 */
+	public native boolean isLink(String pathName);
+	
 	private static final int HYPH_NONE = 0;
 	private static final int HYPH_ALGO = 1;
 	private static final int HYPH_DICT = 2;
@@ -751,7 +761,6 @@ public class Engine {
 		return fontPaths.toArray(new String[] {});
 	}
 
-	private String LIBRARY_NAME = "cr3engine-45-11";
 	private String SO_NAME = "lib" + LIBRARY_NAME + ".so";
 	private boolean force_install_library = false;
 

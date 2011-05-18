@@ -71,6 +71,15 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
   (JNIEnv *, jobject, jint, jbyteArray);
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    isLink
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isLink
+  (JNIEnv *, jobject, jstring);
+
+
 #ifdef __cplusplus
 }
 #endif
