@@ -595,8 +595,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private boolean isTracked( KeyEvent event ) {
-		if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime() == event.getDownTime() )
-			return true;
+        if ( trackedKeyEvent!=null) {
+            int tkeKc = trackedKeyEvent.getKeyCode();
+            int eKc = event.getKeyCode();
+            // check if tracked key and current key are the same
+            if (tkeKc == eKc) {
+                long tkeDt = trackedKeyEvent.getDownTime();
+                long eDt = event.getDownTime();
+                // empirical value (could be changed or moved to constant)
+                long delta = 300l;
+                // time difference between tracked and current event
+                long diff = eDt - tkeDt;
+                // needed for correct function on HTC Desire for CENTER_KEY
+                if (delta > diff)
+                    return true;
+            }
+            else {
+                Log.v("cr3", "isTracked( trackedKeyEvent=" + trackedKeyEvent + ", event=" + event + " )");
+            }
+        }
 		stopTracking();
 		return false;
 	}
