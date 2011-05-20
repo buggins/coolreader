@@ -873,8 +873,8 @@ public class Engine {
 					R.drawable.tx_stones),
 			new BackgroundTextureInfo("tx_stones_dark", "Stones (dark)",
 					R.drawable.tx_stones_dark), };
-	public static final String DEF_DAY_BACKGROUND_TEXTURE = "tx_fabric";
-	public static final String DEF_NIGHT_BACKGROUND_TEXTURE = "tx_metall_old_blue_dark";
+	public static final String DEF_DAY_BACKGROUND_TEXTURE = "bg_paper1";
+	public static final String DEF_NIGHT_BACKGROUND_TEXTURE = "bg_paper1_dark";
 
 	public BackgroundTextureInfo[] getAvailableTextures() {
 		ArrayList<BackgroundTextureInfo> list = new ArrayList<BackgroundTextureInfo>(

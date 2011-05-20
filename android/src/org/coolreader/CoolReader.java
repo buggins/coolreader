@@ -1105,7 +1105,6 @@ public class CoolReader extends Activity
 		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_UP, ReaderAction.LONG, ReaderAction.REPEAT),
 		new DefKeyAction(KeyEvent.KEYCODE_VOLUME_DOWN, ReaderAction.LONG, ReaderAction.REPEAT),
-		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.LONG, ReaderAction.SEARCH),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, ReaderAction.NORMAL, ReaderAction.READER_MENU),
 		new DefKeyAction(KeyEvent.KEYCODE_MENU, ReaderAction.LONG, ReaderAction.OPTIONS),
 		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, ReaderAction.NORMAL, ReaderAction.NONE),
@@ -1123,8 +1122,8 @@ public class CoolReader extends Activity
 		new DefTapAction(1, false, ReaderAction.PAGE_UP),
 		new DefTapAction(2, false, ReaderAction.PAGE_UP),
 		new DefTapAction(4, false, ReaderAction.PAGE_UP),
-		new DefTapAction(1, true, ReaderAction.PAGE_UP_10),
-		new DefTapAction(2, true, ReaderAction.PAGE_UP_10),
+		new DefTapAction(1, true, ReaderAction.GO_BACK), // back by link
+		new DefTapAction(2, true, ReaderAction.TOGGLE_DAY_NIGHT),
 		new DefTapAction(4, true, ReaderAction.PAGE_UP_10),
 		new DefTapAction(3, false, ReaderAction.PAGE_DOWN),
 		new DefTapAction(6, false, ReaderAction.PAGE_DOWN),
@@ -1135,7 +1134,7 @@ public class CoolReader extends Activity
 		new DefTapAction(6, true, ReaderAction.PAGE_DOWN_10),
 		new DefTapAction(7, true, ReaderAction.PAGE_DOWN_10),
 		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
-		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(9, true, ReaderAction.PAGE_DOWN_10),
 		new DefTapAction(5, false, ReaderAction.READER_MENU),
 		new DefTapAction(5, true, ReaderAction.OPTIONS),
 	};
@@ -1190,9 +1189,15 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, "16");
+        props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
+        props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
+        props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#808080");
+        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR, "#FFFFFF");
+        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_DAY, "#FFFFFF");
+        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, "#101010");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR, "#FF000000"); // don't use separate color
         props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_DAY, "#FF000000"); // don't use separate color
-        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, "#FF000000"); // don't use separate color
+        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, "#80000000"); // don't use separate color
         props.setProperty(ReaderView.PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
         props.setProperty(ReaderView.PROP_DISPLAY_INVERSE, "0");
         props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
@@ -1214,8 +1219,8 @@ public class CoolReader extends Activity
 		//props.applyDefault(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Fallback");
 		props.put(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback");
 		
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, "2");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, "2");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, "4");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, "4");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, "2");
 		
