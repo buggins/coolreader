@@ -410,6 +410,9 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
     {"30", "30"},
     {"50", "50"},
     {"60", "60"},
+    {"80", "80"},
+    {"100", "100"},
+    {"130", "130"},
 #else
         {"0", "0"},
 		{"5", "5"},

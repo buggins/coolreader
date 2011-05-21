@@ -15,7 +15,7 @@
 #include "cr3pocketbook.h"
 #include <inkview.h>
 
-#define PB_CR3_TRANSLATE_DELAY 1500
+#define PB_CR3_TRANSLATE_DELAY 1000
 
 #define PB_DICT_SELECT 0
 #define PB_DICT_EXIT 1
@@ -24,9 +24,6 @@
 #define PB_DICT_SEARCH 4
 
 #define PB_LINE_HEIGHT 30
-
-static int _postponedCommand = 0;
-static int _postponedParam = 0;
 
 static const char *def_menutext[9] = {
 	"@Goto_page", "@Exit", "@Search",
@@ -94,7 +91,7 @@ public:
 	}
 	void startTranslateTimer()
 	{
-		SetHardTimer(const_cast<char *>("TranslateTimer"), translate_timer, PB_CR3_TRANSLATE_DELAY);
+		SetWeakTimer(const_cast<char *>("TranslateTimer"), translate_timer, PB_CR3_TRANSLATE_DELAY);
 		_translateTimer = true;
 	}
 	void killTranslateTimer()
@@ -181,7 +178,6 @@ public:
 protected:
 	virtual void update( const lvRect & rc2, bool full )
 	{
-		CRLog::trace("CRPocketBookScreen::update() - locked %d", _locked);		
 		if ( _locked || (rc2.isEmpty() && !full) )
 			return;
 		lvRect rc = rc2;
@@ -229,7 +225,12 @@ public:
 		Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
 		PageSnapshot();
 	}
-	void setForceSoftUpdate(bool force) { _forceSoft = force; }
+	bool setForceSoftUpdate(bool force) 
+	{ 
+		bool ret = _forceSoft;
+		_forceSoft = force;
+		return ret;
+	}
 	void setScreenLocked(bool locked);
 };
 
@@ -265,7 +266,7 @@ static const struct {
 	{ "@KA_zout", DCMD_ZOOM_OUT, 0},
 	{ "@KA_hidp", GCMD_PASS_TO_PARENT, 0},
 	{ "@KA_rtte", PB_CMD_ROTATE, 0},
-	{ "@KA_mmnu", MCMD_MAIN_MENU, 0},
+	{ "@KA_mmnu", PB_CMD_MAIN_MENU, 0},
 	{ "@KA_exit", MCMD_QUIT, 0},
 	{ "@KA_mp3o", PB_CMD_MP3, 1},
 	{ "@KA_mp3p", PB_CMD_MP3, 0},
@@ -854,19 +855,26 @@ public:
 		case PB_CMD_MAIN_MENU:
 			OpenMainMenu();
 			return true;
+		case PB_CMD_UPDATE_WINDOW:
+			{
+				bool save = CRPocketBookScreen::instance->setForceSoftUpdate(true);
+				_wm->update(true, true);
+				CRPocketBookScreen::instance->setForceSoftUpdate(save);
+				return true;
+			}
 		case PB_QUICK_MENU:
 			{
 				CRPocketBookQuickMenuWindow *wnd = new CRPocketBookQuickMenuWindow(_wm,
 														getQuickMenuBitmap(), (const char **)_strings3x3);
 				_wm->activateWindow(wnd);
 			}
-			return false;
+			return true;
 		case PB_CMD_ROTATE:
 			{
 				CRPocketBookRotateWindow *wnd = new CRPocketBookRotateWindow(_wm);
 				_wm->activateWindow(wnd);
 			}
-			return false;
+			return true;
 		case PB_QUICK_MENU_SELECT:
 			return quickMenuApply(params);
 		case mm_Orientation:
@@ -901,7 +909,7 @@ public:
 				CRPocketBookPageSelectorWindow *wnd = new CRPocketBookPageSelectorWindow(_wm);
 				_wm->activateWindow(wnd);
 			}
-			return false;
+			return true;
 		case MCMD_GO_PAGE_APPLY:
 			if (params <= 0)
 				params = 1;
@@ -911,13 +919,13 @@ public:
 				_wm->update(true);
 			if (_toc)
 				freeContents() ;
-			return false;
+			return true;
 		case MCMD_DICT:
 			showDictDialog();
 			return true;
 		case PB_CMD_CONTENTS: 
 			showContents();
-			return false;
+			return true;
         case MCMD_GO_LINK:
             showLinksDialog();
             return true;
@@ -1854,12 +1862,14 @@ static void loadPocketBookKeyMaps(CRGUIWindowManager & winman)
 		if (keypress[i]) {
 			CRPocketBookWindowManager::instance->getPocketBookCommand(keypress[i], commandId, commandParam);
 			CRLog::trace("keypress[%d] = %s, cmd = %d, param=%d", i, keypress[i], commandId, commandParam);
-			pbTable.add(i, 0, commandId, commandParam);
+			if (commandId != -1)
+				pbTable.add(i, 0, commandId, commandParam);
 		}
 		if (keypresslong[i]) {
 			CRPocketBookWindowManager::instance->getPocketBookCommand(keypresslong[i], commandId, commandParam);
 			CRLog::trace("keypresslong[%d] = %s, cmd = %d, param=%d", i, keypresslong[i], commandId, commandParam);
-			pbTable.add(i, 1, commandId, commandParam);
+			if (commandId != -1)
+				pbTable.add(i, 1, commandId, commandParam);
 		}
 	}
 	CRGUIAcceleratorTableRef mainTable = winman.getAccTables().get("main");
@@ -2094,7 +2104,6 @@ const char * getEventName(int evt)
 int main_handler(int type, int par1, int par2)
 {
 	bool process_events = false;
-	bool needUpdate = false;
 	int ret = 0;
 	CRLog::trace("main_handler(%s, %d, %d)", getEventName(type), par1, par2);
 	switch (type) {
@@ -2156,12 +2165,6 @@ int main_handler(int type, int par1, int par2)
 	}
 	if (process_events)
 		CRPocketBookWindowManager::instance->processPostedEvents();
-	CRLog::trace("Event handler need update %d", needUpdate);
-	if (_postponedCommand > 0) {
-		int cmd = _postponedCommand, param = _postponedParam;
-		_postponedCommand = 0;
-		executeCommand(_postponedCommand, _postponedParam);
-	}
 	return ret;
 }
 
