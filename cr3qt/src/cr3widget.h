@@ -16,7 +16,7 @@ public:
     virtual ~PropsChangeCallback() { }
 };
 
-//#define WORD_SELECTOR_ENABLED 1
+#define WORD_SELECTOR_ENABLED 1
 
 class CR3View : public QWidget, public LVDocViewCallback
 {

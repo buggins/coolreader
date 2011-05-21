@@ -447,6 +447,29 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 	return res ? JNI_TRUE : JNI_FALSE;
 }
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    isLink
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isLink
+  (JNIEnv * env, jobject obj, jstring pathname)
+{
+	if ( !pathname )
+		return JNI_FALSE;
+	int res = JNI_FALSE;
+	jboolean iscopy;
+	const char * s = env->GetStringUTFChars( pathname, &iscopy );
+	struct stat st;
+	if ( !lstat( s, &st) ) {
+		if ( S_ISLNK(st.st_mode) )
+			res = JNI_TRUE;
+	}
+	env->ReleaseStringUTFChars(pathname, s);
+	return res;
+}
+
+
 //=====================================================================
 
 static JNINativeMethod sEngineMethods[] = {
@@ -458,6 +481,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
   {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
+  {"isLink", "(Ljava/lang/String;)Z", (void*)JNICALL Java_org_coolreader_crengine_Engine_isLink},
 };
 
 
@@ -514,14 +538,31 @@ static int jniRegisterNativeMethods(JNIEnv* env, const char* className,
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
    JNIEnv* env = NULL;
-   jint result = -1;
+   jint res = -1;
  
-   if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-      return result;
-   }
+#ifdef JNI_VERSION_1_6
+    if (res==-1 && vm->GetEnv((void**) &env, JNI_VERSION_1_6) == JNI_OK) {
+        LOGI("JNI_OnLoad: JNI_VERSION_1_6\n");
+   	    res = JNI_VERSION_1_6;
+    }
+#endif
+#ifdef JNI_VERSION_1_4
+    if (res==-1 && vm->GetEnv((void**) &env, JNI_VERSION_1_4) == JNI_OK) {
+        LOGI("JNI_OnLoad: JNI_VERSION_1_4\n");
+   	    res = JNI_VERSION_1_4;
+    }
+#endif
+#ifdef JNI_VERSION_1_2
+    if (res==-1 && vm->GetEnv((void**) &env, JNI_VERSION_1_2) == JNI_OK) {
+        LOGI("JNI_OnLoad: JNI_VERSION_1_2\n");
+   	    res = JNI_VERSION_1_2;
+    }
+#endif
+	if ( res==-1 )
+		return res;
  
-   jniRegisterNativeMethods(env, "org/coolreader/crengine/Engine", sEngineMethods, sizeof(sEngineMethods)/sizeof(JNINativeMethod));
-   jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sReaderViewMethods, sizeof(sReaderViewMethods)/sizeof(JNINativeMethod));
-   
-   return JNI_VERSION_1_4;
+    jniRegisterNativeMethods(env, "org/coolreader/crengine/Engine", sEngineMethods, sizeof(sEngineMethods)/sizeof(JNINativeMethod));
+    jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sReaderViewMethods, sizeof(sReaderViewMethods)/sizeof(JNINativeMethod));
+    LOGI("JNI_OnLoad: native methods are registered!\n");
+    return res;
 }

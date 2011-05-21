@@ -55,7 +55,51 @@
             android:ellipsize="end"
             android:layout_gravity="left" />
 
-
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|bottom"
+        android:layout_marginLeft="2dip"
+        android:layout_marginRight="5dip"
+        android:baselineAligned="false">
+	
+        <TextView android:id="@+id/browser_item_field1"
+            style="@android:style/TextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+	        android:layout_marginLeft="0dip"
+	        android:layout_marginRight="2dip"
+            android:singleLine="true"
+            android:layout_gravity="left" />
+        <TextView android:id="@+id/browser_item_field2"
+            style="@android:style/TextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+	        android:layout_marginLeft="2dip"
+	        android:layout_marginRight="0dip"
+            android:singleLine="true"
+            android:layout_gravity="right" />
+        <!-- TextView android:id="@+id/browser_item_field4"
+            style="@android:style/TextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+	        android:layout_marginLeft="2dip"
+	        android:layout_marginRight="2dip"
+            android:singleLine="true"
+            android:layout_gravity="right" />
+        <TextView android:id="@+id/browser_item_field3"
+            style="@android:style/TextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+	        android:layout_marginLeft="2dip"
+	        android:layout_marginRight="2dip"
+            android:singleLine="true"
+            android:layout_gravity="right" /-->
+	
+    </LinearLayout>
 
     </LinearLayout>
            
@@ -69,15 +113,6 @@
         android:layout_marginRight="3dip"
         android:baselineAligned="false">
 	
-        <TextView android:id="@+id/browser_item_field1"
-            style="@android:style/TextAppearance.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-	        android:layout_marginLeft="2dip"
-	        android:layout_marginRight="2dip"
-            android:singleLine="true"
-            android:layout_gravity="center_horizontal" />
 	    <ImageView android:id="@+id/book_icon"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
@@ -89,25 +124,6 @@
 	        android:maxWidth="80px"
 	        android:scaleType="fitCenter"
 	        />
-        <TextView android:id="@+id/browser_item_field2"
-            style="@android:style/TextAppearance.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-	        android:layout_marginLeft="2dip"
-	        android:layout_marginRight="2dip"
-            android:singleLine="true"
-            android:layout_gravity="center_horizontal" />
-        <TextView android:id="@+id/browser_item_field3"
-            style="@android:style/TextAppearance.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-	        android:layout_marginLeft="2dip"
-	        android:layout_marginRight="2dip"
-            android:singleLine="true"
-            android:layout_gravity="center_horizontal" />
-	
     </LinearLayout>
 
 </LinearLayout>

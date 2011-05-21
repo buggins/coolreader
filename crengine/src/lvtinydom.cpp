@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.03.07"
+#define CACHE_FILE_FORMAT_VERSION "3.03.09"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -262,6 +262,7 @@ lUInt32 calcGlobalSettingsHash()
     lUInt32 hash = 0;
     if ( fontMan->getKerning() )
         hash += 127365;
+    hash = hash * 31 + fontMan->GetFontListHash();
     if ( LVRendGetFontEmbolden() )
         hash = hash * 75 + 2384761;
     if ( gFlgFloatingPunctuationEnabled )
@@ -7118,7 +7119,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
         if ( formatCallback ) {
             int fmt = getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID,
                     doc_format_fb2);
-            if (fmt < doc_format_fb2 || fmt > doc_format_txt_bookmark)
+            if (fmt < doc_format_fb2 || fmt > doc_format_max)
                 fmt = doc_format_fb2;
             // notify about format detection, to allow setting format-specific CSS
             formatCallback->OnCacheFileFormatDetected((doc_format_t)fmt);

@@ -33,6 +33,95 @@ extern "C" {
 
 class LVDrawBuf;
 
+struct LVFontGlyphCacheItem;
+
+class LVFontGlobalGlyphCache
+{
+private:
+    LVFontGlyphCacheItem * head;
+    LVFontGlyphCacheItem * tail;
+    int size;
+    int max_size;
+public:
+    LVFontGlobalGlyphCache( int maxSize )
+        : head(NULL), tail(NULL), size(0), max_size(maxSize )
+    {
+    }
+    ~LVFontGlobalGlyphCache()
+    {
+        clear();
+    }
+    void put( LVFontGlyphCacheItem * item );
+    void remove( LVFontGlyphCacheItem * item );
+    void refresh( LVFontGlyphCacheItem * item );
+    void clear();
+};
+
+class LVFontLocalGlyphCache
+{
+private:
+    LVFontGlyphCacheItem * head;
+    LVFontGlyphCacheItem * tail;
+    LVFontGlobalGlyphCache * global_cache;
+    int size;
+public:
+    LVFontLocalGlyphCache( LVFontGlobalGlyphCache * globalCache )
+        : head(NULL), tail(NULL), global_cache( globalCache )
+    { }
+    ~LVFontLocalGlyphCache()
+    {
+        clear();
+    }
+    void clear();
+    LVFontGlyphCacheItem * get( lUInt16 ch );
+    void put( LVFontGlyphCacheItem * item );
+    void remove( LVFontGlyphCacheItem * item );
+};
+
+struct LVFontGlyphCacheItem
+{
+    LVFontGlyphCacheItem * prev_global;
+    LVFontGlyphCacheItem * next_global;
+    LVFontGlyphCacheItem * prev_local;
+    LVFontGlyphCacheItem * next_local;
+    LVFontLocalGlyphCache * local_cache;
+    lChar16 ch;
+    lUInt8 bmp_width;
+    lUInt8 bmp_height;
+    lInt8  origin_x;
+    lInt8  origin_y;
+    lUInt8 advance;
+    lUInt8 bmp[1];
+    //=======================================================================
+    int getSize()
+    {
+        return sizeof(LVFontGlyphCacheItem)
+            + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
+    }
+    static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar16 ch, int w, int h )
+    {
+        LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( sizeof(LVFontGlyphCacheItem)
+            + (w*h - 1)*sizeof(lUInt8) );
+        item->ch = ch;
+        item->bmp_width = w;
+        item->bmp_height = h;
+        item->origin_x =   0;
+        item->origin_y =   0;
+        item->advance =    0;
+        item->prev_global = NULL;
+        item->next_global = NULL;
+        item->prev_local = NULL;
+        item->next_local = NULL;
+        item->local_cache = local_cache;
+        return item;
+    }
+    static void freeItem( LVFontGlyphCacheItem * item )
+    {
+        free( item );
+    }
+};
+
+
 /** \brief base class for fonts
 
     implements single interface for font of any engine
@@ -95,12 +184,17 @@ public:
                         const lChar16 * text, int len
         ) = 0;
 
-    /** \brief get glyph image in 1 byte per pixel format
+//    /** \brief get glyph image in 1 byte per pixel format
+//        \param code is unicode character
+//        \param buf is buffer [width*height] to place glyph data
+//        \return true if glyph was found
+//    */
+//    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0) = 0;
+    /** \brief get glyph item
         \param code is unicode character
-        \param buf is buffer [width*height] to place glyph data
-        \return true if glyph was found 
+        \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0) = 0;
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) = 0;
     /// returns font baseline offset
     virtual int getBaseline() = 0;
     /// returns font height
@@ -140,6 +234,10 @@ public:
     virtual bool operator ! () const = 0;
     virtual void Clear() = 0;
     virtual ~LVFont() { }
+    /// set fallback font for this font
+    void setFallbackFont( LVFastRef<LVFont> font ) { }
+    /// get fallback font for this font
+    LVFont * getFallbackFont() { return NULL; }
 };
 
 typedef LVFastRef<LVFont> LVFontRef;
@@ -163,12 +261,20 @@ public:
     virtual void gc() = 0;
     /// returns most similar font
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface ) = 0;
+    /// set fallback font face (returns true if specified font is found)
+    virtual bool SetFallbackFontFace( lString8 face ) { return false; }
+    /// get fallback font face (returns empty string if no fallback font is set)
+    virtual lString8 GetFallbackFontFace() { return lString8::empty_str; }
+    /// returns fallback font for specified size
+    virtual LVFontRef GetFallbackFont(int size) { }
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// initializes font manager
     virtual bool Init( lString8 path ) = 0;
     /// get count of registered fonts
     virtual int GetFontCount() = 0;
+    /// get hash of installed fonts and fallback font
+    virtual lUInt32 GetFontListHash() { return 0; }
     /// clear glyph cache
     virtual void clearGlyphCache() { }
 

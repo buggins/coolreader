@@ -215,6 +215,15 @@ void MainWindow::on_actionOpen_triggered()
     if ( !ui->view->loadDocument( fileName ) ) {
         // error
     } else {
+#ifdef _DEBUG
+        LVStreamRef in = ui->view->getDocView()->getCoverPageImageStream();
+        if ( !in.isNull() ) {
+            LVStreamRef out = LVOpenFileStream("/tmp/cover.png", LVOM_WRITE);
+            if ( !out.isNull() ) {
+                LVPumpStream( out.get(), in.get() );
+            }
+        }
+#endif
         update();
     }
 }

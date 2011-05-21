@@ -3,6 +3,8 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
 import org.coolreader.CoolReader;
@@ -129,8 +131,19 @@ public class Scanner {
 	 */
 	public boolean listDirectory( FileInfo baseDir )
 	{
-		if ( baseDir.isListed )
-			return true;
+		Set<String> knownItems = null;
+		if ( baseDir.isListed ) {
+			knownItems = new HashSet<String>();
+			for ( int i=baseDir.itemCount()-1; i>=0; i-- ) {
+				FileInfo item = baseDir.getItem(i);
+				if ( !item.exists() ) {
+					// remove item from list
+					baseDir.removeChild(item);
+				} else {
+					knownItems.add(item.getBasePath());
+				}
+			}
+		}
 		try {
 			File dir = new File(baseDir.pathname);
 			File[] items = dir.listFiles();
@@ -141,6 +154,8 @@ public class Scanner {
 						if ( f.getName().startsWith(".") )
 							continue; // treat files beginning with '.' as hidden
 						String pathName = f.getAbsolutePath();
+						if ( knownItems!=null && knownItems.contains(pathName) )
+							continue;
 						boolean isZip = pathName.toLowerCase().endsWith(".zip");
 						FileInfo item = mFileList.get(pathName);
 						boolean isNew = false;
@@ -181,6 +196,8 @@ public class Scanner {
 						if ( f.getName().startsWith(".") )
 							continue; // treat dirs beginning with '.' as hidden
 						FileInfo item = new FileInfo( f );
+						if ( knownItems!=null && knownItems.contains(item.getPathName()) )
+							continue;
 						item.parent = baseDir;
 						baseDir.addDir(item);					
 					}
@@ -371,6 +388,8 @@ public class Scanner {
 		dir.isDirectory = true;
 		dir.pathname = pathname;
 		dir.filename = filename;
+		if ( mRoot.findItemByPathName(pathname)!=null )
+			return false; // exclude duplicates
 		if ( listIt && !listDirectory(dir) )
 			return false;
 		mRoot.addDir(dir);
@@ -422,8 +441,14 @@ public class Scanner {
 	public FileInfo findParent( FileInfo file, FileInfo root )
 	{
 		FileInfo parent = findParentInternal(file, root);
-		if ( parent==null )
-			return null;
+		if ( parent==null ) {
+			autoAddRootForFile(new File(file.pathname) );
+			parent = findParentInternal(file, root);
+			if ( parent==null ) {
+				Log.e("cr3", "Cannot find root directory for file " + file.pathname);
+				return null;
+			}
+		}
 		long maxTs = android.os.SystemClock.uptimeMillis() + MAX_DIR_LIST_TIME;
 		listSubtrees(root, mHideEmptyDirs ? 5 : 1, maxTs);
 		return parent;
@@ -498,6 +523,40 @@ public class Scanner {
 			existingResults.addFile(item);
 		return existingResults;
 	}
+
+	private void autoAddRoots( String rootPath, String[] pathsToExclude )
+	{
+		try {
+			File root = new File(rootPath);
+			File[] files = root.listFiles();
+			if ( files!=null ) {
+				for ( File f : files ) {
+					if ( !f.isDirectory() )
+						continue;
+					String fullPath = f.getAbsolutePath();
+					if ( engine.isLink(fullPath) ) {
+						Log.d("cr3", "skipping symlink " + fullPath);
+						continue;
+					}
+					boolean skip = false;
+					for ( String path : pathsToExclude ) {
+						if ( fullPath.startsWith(path) ) {
+							skip = true;
+							break;
+						}
+					}
+					if ( skip )
+						continue;
+					if ( !f.canWrite() )
+						continue;
+					Log.i("cr3", "Found possible mount point " + f.getAbsolutePath());
+					addRoot(f.getAbsolutePath(), f.getAbsolutePath(), true);
+				}
+			}
+		} catch ( Exception e ) {
+			Log.w("cr3", "Exception while trying to auto add roots");
+		}
+	}
 	
 	public void initRoots()
 	{
@@ -519,7 +578,27 @@ public class Scanner {
 		addRoot( "/mnt/extsd", "External SD /mnt/extsd", true);
 		// external SD card Huawei S7
 		addRoot( "/sdcard2", R.string.dir_sd_card_2, true);
+		//addRoot( "/mnt/localdisk", "/mnt/localdisk", true);
+		autoAddRoots( "/", SYSTEM_ROOT_PATHS );
+		autoAddRoots( "/mnt", new String[] {} );
+		
 	}
+	
+	public boolean autoAddRootForFile( File f ) {
+		File p = f.getParentFile();
+		for ( ;; ) {
+			if ( p.getParentFile()==null || p.getParentFile().getParentFile()==null )
+				break;
+			p = p.getParentFile();
+		}
+		if ( p!=null ) {
+			Log.i("cr3", "Found possible mount point " + p.getAbsolutePath());
+			return addRoot(p.getAbsolutePath(), p.getAbsolutePath(), true);
+		}
+		return false;
+	}
+	
+	private static final String[] SYSTEM_ROOT_PATHS = {"/system", "/data", "/mnt"};
 	
 //	public boolean scan()
 //	{

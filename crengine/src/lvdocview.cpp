@@ -758,10 +758,26 @@ void LVDocView::updatePageNumbers(LVTocItem * item) {
 /// returns cover page image stream, if any
 LVStreamRef LVDocView::getCoverPageImageStream() {
     lString16 fileName;
-    if ( m_doc_props->getString(DOC_PROP_COVER_FILE, fileName) && !fileName.empty() ) {
-        LVStreamRef stream = m_container->OpenStream(fileName.c_str(), LVOM_READ);
-        if ( stream.isNull() )
-            CRLog::error("Cannot open coverpate image from %s", LCSTR(fileName));
+    //m_doc_props
+//    for ( int i=0; i<m_doc_props->getCount(); i++ ) {
+//        CRLog::debug("%s = %s", m_doc_props->getName(i), LCSTR(m_doc_props->getValue(i)));
+//    }
+    m_doc_props->getString(DOC_PROP_COVER_FILE, fileName);
+//    CRLog::debug("coverpage = %s", LCSTR(fileName));
+    if ( !fileName.empty() ) {
+//        CRLog::debug("trying to open %s", LCSTR(fileName));
+    	LVContainerRef cont = m_doc->getContainer();
+    	if ( cont.isNull() )
+    		cont = m_container;
+        LVStreamRef stream = cont->OpenStream(fileName.c_str(), LVOM_READ);
+        if ( stream.isNull() ) {
+            CRLog::error("Cannot open coverpage image from %s", LCSTR(fileName));
+            for ( int i=0; i<cont->GetObjectCount(); i++ ) {
+                CRLog::info("item %d : %s", i+1, LCSTR(cont->GetObjectInfo(i)->GetName()));
+            }
+        } else {
+//            CRLog::debug("coverpage file %s is opened ok", LCSTR(fileName));
+        }
         return stream;
     }
 
@@ -3198,6 +3214,8 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 				}
 				return false;
 			} else {
+				m_container = m_doc->getContainer();
+				m_doc_props = m_doc->getProps();
 				setRenderProps( 0, 0 );
 				requestRender();
 				if ( m_callback ) {
@@ -4776,7 +4794,15 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			setPageMargins(rc);
 		} else if (name == PROP_FONT_FACE) {
 			setDefaultFontFace(UnicodeToUtf8(value));
-		} else if (name == PROP_STATUS_FONT_FACE) {
+                } else if (name == PROP_FALLBACK_FONT_FACE) {
+                    lString8 oldFace = fontMan->GetFallbackFontFace();
+                    if ( UnicodeToUtf8(value)!=oldFace )
+                        fontMan->SetFallbackFontFace(UnicodeToUtf8(value));
+                    value = Utf8ToUnicode(fontMan->GetFallbackFontFace());
+                    if ( UnicodeToUtf8(value) != oldFace ) {
+                        requestRender();
+                    }
+                } else if (name == PROP_STATUS_FONT_FACE) {
 			setStatusFontFace(UnicodeToUtf8(value));
 		} else if (name == PROP_STATUS_LINE || name == PROP_SHOW_TIME
 				|| name	== PROP_SHOW_TITLE || name == PROP_SHOW_BATTERY

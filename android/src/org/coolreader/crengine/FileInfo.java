@@ -221,6 +221,13 @@ public class FileInfo {
 		return pathname;
 	}
 
+	public String getBasePath()
+	{
+		if ( arcname!=null )
+			return arcname;
+		return pathname;
+	}
+
 	public int dirCount()
 	{
 		return dirs!=null ? dirs.size() : 0;
@@ -321,11 +328,23 @@ public class FileInfo {
 				dirs.remove(i);
 	}
 	
-	private void removeChild( FileInfo item )
+	public void removeChild( FileInfo item )
 	{
-		int n = files.indexOf(item);
-		if ( n>=0 && n<files.size() )
-			files.remove(n);
+		if ( item.isSpecialDir() )
+			return;
+		if ( files!=null ) {
+			int n = files.indexOf(item);
+			if ( n>=0 && n<files.size() ) {
+				files.remove(n);
+				return;
+			}
+		}
+		if ( dirs!=null ) {
+			int n = dirs.indexOf(item);
+			if ( n>=0 && n<dirs.size() ) {
+				dirs.remove(n);
+			}
+		}
 	}
 	
 	public boolean deleteFile()
@@ -371,6 +390,21 @@ public class FileInfo {
 			return false;
 		}
 		return new File(pathname).exists();
+	}
+	
+	/**
+	 * @return true if item (file, directory, or archive) exists
+	 */
+	public boolean exists()
+	{
+		if ( isArchive ) {
+			if ( arcname==null )
+				return false;
+			File f = new File(arcname);
+			return f.exists();
+		}
+		File f = new File(pathname);
+		return f.exists();
 	}
 	
 	public boolean isModified() {
@@ -483,7 +517,7 @@ public class FileInfo {
 						return 0;
 					return 1;
 				}
-				if ( p1>=str1.length() )
+				if ( p2>=str2.length() )
 					return -1;
 				char ch1 = str1.charAt(p1);
 				char ch2 = str2.charAt(p2);

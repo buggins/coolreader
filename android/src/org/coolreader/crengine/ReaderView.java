@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -55,6 +56,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_LOG_LEVEL               ="crengine.log.level";
     public static final String PROP_LOG_AUTOFLUSH           ="crengine.log.autoflush";
     public static final String PROP_FONT_SIZE               ="crengine.font.size";
+    public static final String PROP_FALLBACK_FONT_FACE      ="crengine.font.fallback.face";
     public static final String PROP_STATUS_FONT_COLOR       ="crengine.page.header.font.color";
     public static final String PROP_STATUS_FONT_COLOR_DAY   ="crengine.page.header.font.color.day";
     public static final String PROP_STATUS_FONT_COLOR_NIGHT ="crengine.page.header.font.color.night";
@@ -499,7 +501,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		// apply orientation
 		keyCode = overrideKey( keyCode );
-		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=LONG_KEYPRESS_TIME;
+		boolean isLongPress = false;
+		Long keyDownTs = keyDownTimestampMap.get(keyCode);
+		if ( keyDownTs!=null && System.currentTimeMillis()-keyDownTs>=LONG_KEYPRESS_TIME )
+			isLongPress = true;
 		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
 		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
 		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
@@ -590,8 +595,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private boolean isTracked( KeyEvent event ) {
-		if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime() == event.getDownTime() )
-			return true;
+        if ( trackedKeyEvent!=null) {
+            int tkeKc = trackedKeyEvent.getKeyCode();
+            int eKc = event.getKeyCode();
+            // check if tracked key and current key are the same
+            if (tkeKc == eKc) {
+                long tkeDt = trackedKeyEvent.getDownTime();
+                long eDt = event.getDownTime();
+                // empirical value (could be changed or moved to constant)
+                long delta = 300l;
+                // time difference between tracked and current event
+                long diff = eDt - tkeDt;
+                // needed for correct function on HTC Desire for CENTER_KEY
+                if (delta > diff)
+                    return true;
+            }
+            else {
+                Log.v("cr3", "isTracked( trackedKeyEvent=" + trackedKeyEvent + ", event=" + event + " )");
+            }
+        }
 		stopTracking();
 		return false;
 	}
@@ -606,12 +628,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private KeyEvent trackedKeyEvent = null; 
 	private ReaderAction actionToRepeat = null;
 	private boolean repeatActionActive = false;
+	private Map<Integer, Long> keyDownTimestampMap = new HashMap<Integer, Long>();
 	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
 		backKeyDownHere = false;
-		if ( event.getRepeatCount()==0 )
+		if ( event.getRepeatCount()==0 ) {
 			Log.v("cr3", "onKeyDown("+keyCode + ", " + event +")");
+			keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
+		}
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			boolean res = super.onKeyDown(keyCode, event);

@@ -229,6 +229,19 @@ public class BackgroundThread extends Thread {
     		}
     	};
     }
+    
+    
+    /**
+     * Waits until all pending background tasks are executed.
+     */
+    public void syncWithBackground() {
+    	callBackground( new Callable<Integer>() {
+			@Override
+			public Integer call() throws Exception {
+				return null;
+			}
+    	});
+    }
 	
     public <T> T callBackground( final Callable<T> srcTask )
     {

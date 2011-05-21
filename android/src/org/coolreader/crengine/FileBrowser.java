@@ -548,7 +548,7 @@ public class FileBrowser extends ListView {
 				TextView filename;
 				TextView field1;
 				TextView field2;
-				TextView field3;
+				//TextView field3;
 				void setText( TextView view, String text )
 				{
 					if ( view==null )
@@ -629,10 +629,15 @@ public class FileBrowser extends ListView {
 	//						field1.setVisibility(VISIBLE);
 	//						field2.setVisibility(VISIBLE);
 	//						field3.setVisibility(VISIBLE);
-							field1.setText(formatSize(item.size));
+							field1.setText(formatSize(item.size) + " " + item.format.name().toLowerCase() + " " + formatDate(item.createTime) + "  ");
+							//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 							Bookmark pos = mHistory.getLastPos(item);
-							field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
-							field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
+							if ( pos!=null ) {
+								field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
+							} else {
+								field2.setText("");
+							}
+							//field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
 						} 
 						
 					}
@@ -662,7 +667,7 @@ public class FileBrowser extends ListView {
 					holder.filename = (TextView)view.findViewById(R.id.book_filename);
 					holder.field1 = (TextView)view.findViewById(R.id.browser_item_field1);
 					holder.field2 = (TextView)view.findViewById(R.id.browser_item_field2);
-					holder.field3 = (TextView)view.findViewById(R.id.browser_item_field3);
+					//holder.field3 = (TextView)view.findViewById(R.id.browser_item_field3);
 					view.setTag(holder);
 				} else {
 					view = convertView;
