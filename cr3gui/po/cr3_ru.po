@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-15 08:53+0700\n"
+"POT-Creation-Date: 2011-05-21 09:25+0700\n"
 "PO-Revision-Date: 2011-05-08 16:02+0700\n"
 "Last-Translator: Vladimir <v@v>\n"
 "Language-Team: Russian\n"
@@ -42,7 +42,7 @@ msgstr "Справка"
 msgid "Main Menu"
 msgstr "Основное меню"
 
-#: ../src/mainwnd.cpp:828 ../src/viewdlg.cpp:509
+#: ../src/mainwnd.cpp:828 ../src/viewdlg.cpp:513
 msgid "About"
 msgstr "Свойства документа"
 
@@ -62,7 +62,7 @@ msgstr "Словарь"
 msgid "Cite"
 msgstr "Цитатник"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:183
+#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:188
 msgid "Bookmarks"
 msgstr "Закладки"
 
@@ -74,7 +74,7 @@ msgstr "Поиск"
 msgid "Settings"
 msgstr "Настройки"
 
-#: ../src/mainwnd.cpp:881 ../src/viewdlg.cpp:572
+#: ../src/mainwnd.cpp:881 ../src/viewdlg.cpp:591
 msgid "Keyboard layout"
 msgstr "Назначение клавиш"
 
@@ -86,155 +86,155 @@ msgstr ""
 "$1 - выберите команду\n"
 "$2, $3 - отмена"
 
-#: ../src/mainwnd.cpp:992
+#: ../src/mainwnd.cpp:996
 msgid "Current page"
 msgstr "Текущая страница"
 
-#: ../src/mainwnd.cpp:993
+#: ../src/mainwnd.cpp:997
 msgid "Total pages"
 msgstr "Всего страниц"
 
-#: ../src/mainwnd.cpp:994
+#: ../src/mainwnd.cpp:998
 msgid "Battery state"
 msgstr "Заряд батареи"
 
-#: ../src/mainwnd.cpp:994
+#: ../src/mainwnd.cpp:998
 msgid "charging..."
 msgstr "заряжается..."
 
-#: ../src/mainwnd.cpp:995
+#: ../src/mainwnd.cpp:999
 msgid "Current Time"
 msgstr "Текущее время"
 
-#: ../src/mainwnd.cpp:1000
+#: ../src/mainwnd.cpp:1004
 msgid "Current chapter"
 msgstr "Текущая глава"
 
-#: ../src/mainwnd.cpp:1003
+#: ../src/mainwnd.cpp:1007
 msgid "Status"
 msgstr "Статус"
 
-#: ../src/mainwnd.cpp:1006
+#: ../src/mainwnd.cpp:1010
 msgid "Archive name"
 msgstr "Имя файла архива"
 
-#: ../src/mainwnd.cpp:1007
+#: ../src/mainwnd.cpp:1011
 msgid "Archive path"
 msgstr "Путь к архиву"
 
-#: ../src/mainwnd.cpp:1008
+#: ../src/mainwnd.cpp:1012
 msgid "Archive size"
 msgstr "Размер архива"
 
-#: ../src/mainwnd.cpp:1009
+#: ../src/mainwnd.cpp:1013
 msgid "File name"
 msgstr "Имя файла"
 
-#: ../src/mainwnd.cpp:1010
+#: ../src/mainwnd.cpp:1014
 msgid "File path"
 msgstr "Путь к файлу"
 
-#: ../src/mainwnd.cpp:1011
+#: ../src/mainwnd.cpp:1015
 msgid "File size"
 msgstr "Размер файла"
 
-#: ../src/mainwnd.cpp:1012
+#: ../src/mainwnd.cpp:1016
 msgid "File format"
 msgstr "Формат"
 
-#: ../src/mainwnd.cpp:1013
+#: ../src/mainwnd.cpp:1017
 msgid "File info"
 msgstr "Информация о файле"
 
-#: ../src/mainwnd.cpp:1016
+#: ../src/mainwnd.cpp:1020
 msgid "Title"
 msgstr "Название"
 
-#: ../src/mainwnd.cpp:1017
+#: ../src/mainwnd.cpp:1021
 msgid "Author(s)"
 msgstr "Автор(ы)"
 
-#: ../src/mainwnd.cpp:1018
+#: ../src/mainwnd.cpp:1022
 msgid "Series name"
 msgstr "Серия"
 
-#: ../src/mainwnd.cpp:1019
+#: ../src/mainwnd.cpp:1023
 msgid "Series number"
 msgstr "Номер в серии"
 
-#: ../src/mainwnd.cpp:1020
+#: ../src/mainwnd.cpp:1024
 msgid "Date"
 msgstr "Дата"
 
-#: ../src/mainwnd.cpp:1021
+#: ../src/mainwnd.cpp:1025
 msgid "Genres"
 msgstr "Жанры"
 
-#: ../src/mainwnd.cpp:1022
+#: ../src/mainwnd.cpp:1026
 msgid "Translator"
 msgstr "Переводчик"
 
-#: ../src/mainwnd.cpp:1023
+#: ../src/mainwnd.cpp:1027
 msgid "Book info"
 msgstr "Прочая информация"
 
-#: ../src/mainwnd.cpp:1026
+#: ../src/mainwnd.cpp:1030
 msgid "Document author"
 msgstr "Автор документа"
 
-#: ../src/mainwnd.cpp:1027
+#: ../src/mainwnd.cpp:1031
 msgid "Document date"
 msgstr "Дата документа"
 
-#: ../src/mainwnd.cpp:1028
+#: ../src/mainwnd.cpp:1032
 msgid "Document source URL"
 msgstr "URL исходного документа"
 
-#: ../src/mainwnd.cpp:1029
+#: ../src/mainwnd.cpp:1033
 msgid "OCR by"
 msgstr "OCR"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1034
 msgid "Document version"
 msgstr "Версия документа"
 
-#: ../src/mainwnd.cpp:1031
+#: ../src/mainwnd.cpp:1035
 msgid "Change history"
 msgstr "История изменений"
 
-#: ../src/mainwnd.cpp:1032
+#: ../src/mainwnd.cpp:1036
 msgid "Document info"
 msgstr "Версия документа"
 
-#: ../src/mainwnd.cpp:1035
+#: ../src/mainwnd.cpp:1039
 msgid "Publication name"
 msgstr "Название издания"
 
-#: ../src/mainwnd.cpp:1036
+#: ../src/mainwnd.cpp:1040
 msgid "Publisher"
 msgstr "Издательство"
 
-#: ../src/mainwnd.cpp:1037
+#: ../src/mainwnd.cpp:1041
 msgid "Publisher city"
 msgstr "Город издания"
 
-#: ../src/mainwnd.cpp:1038
+#: ../src/mainwnd.cpp:1042
 msgid "Publication year"
 msgstr "Год издания"
 
-#: ../src/mainwnd.cpp:1039
+#: ../src/mainwnd.cpp:1043
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1040
+#: ../src/mainwnd.cpp:1044
 msgid "Publication info"
 msgstr "Название издания"
 
-#: ../src/mainwnd.cpp:1042
+#: ../src/mainwnd.cpp:1046
 msgid "Custom info"
 msgstr "Прочая информация"
 
-#: ../src/mainwnd.cpp:1157
+#: ../src/mainwnd.cpp:1161
 msgid "Loading: please wait..."
 msgstr "Открытие файла... Поожалуйста, подождите..."
 
@@ -245,6 +245,14 @@ msgid ""
 msgstr ""
 "$1 - открыть книгу\n"
 "$2, $3 - отмена"
+
+#: ../src/recentdlg.cpp:131
+msgid "Open book"
+msgstr "Открыть книгу"
+
+#: ../src/recentdlg.cpp:132
+msgid "Delete record"
+msgstr "Удалить запись"
 
 #: ../src/tocdlg.cpp:150
 msgid "Current page: $1 of $2\n"
@@ -262,9 +270,9 @@ msgstr "Нет закладок"
 msgid "Page $1 ($2%)"
 msgstr "Стр. $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:127
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:168
 msgid "Go to bookmark"
-msgstr "Перейти на закладку по номеру"
+msgstr "Перейти на закладку"
 
 #: ../src/bmkdlg.cpp:79
 msgid ""
@@ -282,7 +290,7 @@ msgstr ""
 "Короткое нажатие $1 - перейти на закладку,\n"
 "длинное нажатие - установить закладку"
 
-#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:126
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:167
 msgid "Set bookmark"
 msgstr "Установка закладки"
 
@@ -302,7 +310,7 @@ msgstr ""
 "Короткое нажатие $1 - установить закладку,\n"
 "длинное нажатие - перейти на закладку"
 
-#: ../src/bmkdlg.cpp:128
+#: ../src/bmkdlg.cpp:169
 msgid "Delete bookmark"
 msgstr "Удалить закладку"
 
@@ -794,121 +802,121 @@ msgstr "Размер шрифта"
 msgid "Page orientation settings"
 msgstr "Ориентация страницы"
 
-#: ../src/viewdlg.cpp:503
+#: ../src/viewdlg.cpp:506
 msgid "Find in Dictionary (T5)"
 msgstr "Поиск в словаре (T5)"
 
-#: ../src/viewdlg.cpp:504
+#: ../src/viewdlg.cpp:508
 msgid "Bookmark list"
 msgstr "Закладки"
 
-#: ../src/viewdlg.cpp:505
+#: ../src/viewdlg.cpp:509
 msgid "Go to bookmark..."
 msgstr "По закладкам"
 
-#: ../src/viewdlg.cpp:506
+#: ../src/viewdlg.cpp:510
 msgid "Recent books list"
 msgstr "Повторное открытие книги"
 
-#: ../src/viewdlg.cpp:507
+#: ../src/viewdlg.cpp:511
 msgid "Open recent book by number"
 msgstr "Повторное открытие книги по номеру"
 
-#: ../src/viewdlg.cpp:508
+#: ../src/viewdlg.cpp:512
 msgid "Switch to recent book"
 msgstr "Переключиться на последнюю книгу"
 
-#: ../src/viewdlg.cpp:510
+#: ../src/viewdlg.cpp:514
 msgid "Cite selection dialog"
 msgstr "Выделить цитату"
 
-#: ../src/viewdlg.cpp:511
+#: ../src/viewdlg.cpp:515
 msgid "Search dialog"
 msgstr "Поиск"
 
-#: ../src/viewdlg.cpp:512
+#: ../src/viewdlg.cpp:516
 msgid "Find in Dictionary (virtual keyboard)"
 msgstr "Поиск в словаре"
 
-#: ../src/viewdlg.cpp:513
+#: ../src/viewdlg.cpp:517
 msgid "Next keyboard layout"
 msgstr "Следующая раскладка клавиатуры"
 
-#: ../src/viewdlg.cpp:514
+#: ../src/viewdlg.cpp:518
 msgid "Previous keyboard layout"
 msgstr "Предыдущая раскладка клавиатуры"
 
-#: ../src/viewdlg.cpp:515
+#: ../src/viewdlg.cpp:519
 msgid "Show manual"
 msgstr "Руководство пользователя"
 
-#: ../src/viewdlg.cpp:516
+#: ../src/viewdlg.cpp:520
 msgid "Show key mapping"
 msgstr "Назначение клавиш"
 
-#: ../src/viewdlg.cpp:517
+#: ../src/viewdlg.cpp:521
 msgid "Go to percent..."
 msgstr "Перейти на позицию (%)..."
 
-#: ../src/viewdlg.cpp:518
+#: ../src/viewdlg.cpp:528
 msgid "Unknown command"
 msgstr "Неизвестная команда"
 
-#: ../src/viewdlg.cpp:525
+#: ../src/viewdlg.cpp:535
 msgid "Previous Page"
 msgstr "Предыдущая страница"
 
-#: ../src/viewdlg.cpp:527
+#: ../src/viewdlg.cpp:537
 msgid "Next Page"
 msgstr "Следующая страница"
 
-#: ../src/viewdlg.cpp:529
+#: ../src/viewdlg.cpp:539
 msgid "Back by 10 Pages"
 msgstr "Назад на 10 страниц"
 
-#: ../src/viewdlg.cpp:531
+#: ../src/viewdlg.cpp:541
 msgid "Forward by 10 Pages"
 msgstr "Вперед на 10 страниц"
 
-#: ../src/viewdlg.cpp:533
+#: ../src/viewdlg.cpp:543
 msgid "Next Chapter"
 msgstr "Следующая глава"
 
-#: ../src/viewdlg.cpp:535
+#: ../src/viewdlg.cpp:545
 msgid "Previous Chapter"
 msgstr "Предыдущая глава"
 
-#: ../src/viewdlg.cpp:537
+#: ../src/viewdlg.cpp:547
 msgid "Add Bookmark"
 msgstr "Добавить закладку"
 
-#: ../src/viewdlg.cpp:539
+#: ../src/viewdlg.cpp:549
 msgid "Rotate Clockwise"
 msgstr "Поворот по часовой стрелке"
 
-#: ../src/viewdlg.cpp:541
+#: ../src/viewdlg.cpp:551
 msgid "Rotate Anti-Clockwise"
 msgstr "Поворот против часовой стрелки"
 
-#: ../src/viewdlg.cpp:543
+#: ../src/viewdlg.cpp:553
 msgid "Portrait View"
 msgstr "Книжная ориентация"
 
-#: ../src/viewdlg.cpp:545
+#: ../src/viewdlg.cpp:555
 msgid "Landscape View"
 msgstr "Альбомная ориентация"
 
-#: ../src/viewdlg.cpp:560
+#: ../src/viewdlg.cpp:579
 msgid "Key"
 msgstr "Клавиша"
 
-#: ../src/viewdlg.cpp:560
+#: ../src/viewdlg.cpp:579
 msgid "Assigned function"
 msgstr "Действие"
 
-#: ../src/cr3pocketbook.cpp:1592
+#: ../src/cr3pocketbook.cpp:1735
 msgid "Press $1 to translate"
-msgstr ""
+msgstr "Нажмите чтобы перевести"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Введите номер страницы: "

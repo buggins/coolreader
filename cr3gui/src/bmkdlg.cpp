@@ -123,13 +123,13 @@ int CRBookmarkMenu::getSelectedItemIndex()
 static CRBookmarkMenu *bmkDialog = NULL;
 
 static imenu _contextMenu[] = {
-	{ITEM_ACTIVE, DCMD_BOOKMARK_SAVE_N, const_cast<char*>(_("Set bookmark")), NULL},
-	{ITEM_ACTIVE, DCMD_BOOKMARK_GO_N, const_cast<char*>(_("Go to bookmark")), NULL},
-	{ITEM_ACTIVE, PB_CMD_BOOKMARK_REMOVE, const_cast<char*>(_("Delete bookmark")), NULL},
+	{ITEM_ACTIVE, DCMD_BOOKMARK_SAVE_N, NULL, NULL},
+	{ITEM_ACTIVE, DCMD_BOOKMARK_GO_N, NULL, NULL},
+	{ITEM_ACTIVE, PB_CMD_BOOKMARK_REMOVE, NULL, NULL},
 	{ 0, 0, NULL, NULL }
 };
 
-void handle_contextMenu(int index)
+static void handle_contextMenu(int index)
 {
 	CRLog::trace("CRBookmarkMenu handle_contextMenu(%d)", index);
 	bmkDialog->handleContextMenu(index);
@@ -163,6 +163,11 @@ void CRBookmarkMenu::showContextMenu()
 	_contextMenu[2].type = item->getBookmark() ? ITEM_ACTIVE : ITEM_INACTIVE;
 	int y = clientRect.top + (itemSize.y + separatorHeight) * _selectedItem + 
 			((itemSize.y + separatorHeight)/4);
+	if (_contextMenu[0].text == NULL) {
+		_contextMenu[0].text = (char *)_("Set bookmark");
+		_contextMenu[1].text = (char *)_("Go to bookmark");
+		_contextMenu[2].text = (char *)_("Delete bookmark");
+	}
 	OpenMenu(_contextMenu, 
 		_goToMode ? DCMD_BOOKMARK_GO_N : DCMD_BOOKMARK_SAVE_N,
 		ScreenWidth()/4, 
@@ -214,7 +219,9 @@ CRBookmarkMenu::CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int
         addItem( item );
     }
     setMode( goToMode );
+#ifdef CR_POCKETBOOK
     bmkDialog = this;
+#endif
 }
 
 /// returns true if command is processed
@@ -268,7 +275,6 @@ bool CRBookmarkMenu::onCommand( int command, int params )
 		 if (bm && _docview->removeBookmark(bm)) {
 			 item->setBookmark(NULL);
 			 setDirty();
-			 _wm->update(false);
 		 }
 		 return true;
 	 }

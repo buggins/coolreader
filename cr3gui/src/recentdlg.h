@@ -27,6 +27,10 @@ public:
 
     virtual ~CRRecentBooksMenu() { }
 
+#ifdef CR_POCKETBOOK
+    void showContextMenu();
+    void handleContextMenu(int index);
+#endif
     virtual bool onCommand( int command, int params );
 };
 

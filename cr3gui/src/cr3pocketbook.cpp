@@ -25,6 +25,9 @@
 
 #define PB_LINE_HEIGHT 30
 
+static int _postponedCommand = 0;
+static int _postponedParam = 0;
+
 static const char *def_menutext[9] = {
 	"@Goto_page", "@Exit", "@Search",
 	"@Bookmarks", "@Menu", "@Rotate",
@@ -172,12 +175,14 @@ char key_buffer[KEY_BUFFER_LEN];
 class CRPocketBookScreen : public CRGUIScreenBase {
 private:
 	bool _forceSoft;
+	bool _locked;
 public:
 	static CRPocketBookScreen * instance;
 protected:
 	virtual void update( const lvRect & rc2, bool full )
 	{
-		if ( rc2.isEmpty() && !full )
+		CRLog::trace("CRPocketBookScreen::update() - locked %d", _locked);		
+		if ( _locked || (rc2.isEmpty() && !full) )
 			return;
 		lvRect rc = rc2;
 		rc.left &= ~3;
@@ -211,7 +216,7 @@ public:
 	}
 
 	CRPocketBookScreen( int width, int height )
-	:  CRGUIScreenBase( width, height, true ), _forceSoft(false)
+	:  CRGUIScreenBase( width, height, true ), _forceSoft(false), _locked(false)
 	{
 		instance = this;
 	}
@@ -225,6 +230,7 @@ public:
 		PageSnapshot();
 	}
 	void setForceSoftUpdate(bool force) { _forceSoft = force; }
+	void setScreenLocked(bool locked);
 };
 
 CRPocketBookScreen * CRPocketBookScreen::instance = NULL;
@@ -407,39 +413,161 @@ public:
 CRPocketBookWindowManager * CRPocketBookWindowManager::instance = NULL;
 V3DocViewWin * main_win = NULL;
 
-void processPostedEvents()
+void CRPocketBookScreen::setScreenLocked(bool locked)
+{ 
+	if (locked != _locked) {
+		if (locked)
+			CRPocketBookWindowManager::instance->update(false);
+		_locked = locked; 
+	}
+}
+
+void executeCommand(int commandId, int commandParam)
 {
-	bool needUpdate = CRPocketBookWindowManager::instance->processPostedEvents();
-	if (needUpdate)
-		CRPocketBookWindowManager::instance->update(false);	
+	CRPocketBookWindowManager::instance->onCommand(commandId, commandParam);
+	CRPocketBookWindowManager::instance->processPostedEvents();
 }
 
 void quickMenuHandler(int choice) 
 {
-	CRPocketBookWindowManager::instance->onCommand(PB_QUICK_MENU_SELECT, choice);
-	processPostedEvents();
+	executeCommand(PB_QUICK_MENU_SELECT, choice);
 }
 
-void rotateHandler(int angle) {
-	CRPocketBookWindowManager::instance->onCommand(PB_CMD_ROTATE_ANGLE_SET, angle);
-	processPostedEvents();
+void rotateHandler(int angle) 
+{
+	executeCommand(PB_CMD_ROTATE_ANGLE_SET, angle);
 }
 
 void pageSelector(int page) {
-	CRPocketBookWindowManager::instance->onCommand(MCMD_GO_PAGE_APPLY, page);
+	executeCommand(MCMD_GO_PAGE_APPLY, page);
 }
 
 void searchHandler(char *s)
 {
     if (s  && *s)
-		CRPocketBookWindowManager::instance->onCommand(MCMD_SEARCH_FINDFIRST, 1);
-	processPostedEvents();
+		executeCommand(MCMD_SEARCH_FINDFIRST, 1);
+	else
+		executeCommand(GCMD_PASS_TO_PARENT, 0);
 } 
 
 void tocHandler(long long position) 
 {
-	CRPocketBookWindowManager::instance->onCommand(MCMD_GO_PAGE_APPLY, position);
+	executeCommand(MCMD_GO_PAGE_APPLY, position);
 }
+
+int main_handler(int type, int par1, int par2);
+
+class CRPocketBookInkViewWindow : public CRGUIWindowBase
+{
+protected:
+    virtual void draw() 
+    {
+/*
+		iv_handler handler = GetEventHandler();
+		if (handler != main_handler)
+			SendEvent(handler, EVT_REPAINT, 0, 0);
+*/
+		CRLog::trace("CRPocketBookInkViewWindow::draw()");
+	}
+	virtual void showWindow() = 0;
+public:
+	CRPocketBookInkViewWindow( CRGUIWindowManager * wm )
+        : CRGUIWindowBase( wm )	{ 		CRPocketBookScreen::instance->setScreenLocked(true);  }
+	virtual bool onCommand( int command, int params = 0 )
+	{
+		CRLog::trace("CRPocketBookInkViewWindow::onCommand(%d, %d)", command, params);
+		switch(command) {
+		case PB_QUICK_MENU_SELECT:
+		case PB_CMD_ROTATE_ANGLE_SET:
+		case MCMD_GO_PAGE_APPLY:
+		case MCMD_SEARCH_FINDFIRST:
+		case GCMD_PASS_TO_PARENT:
+			_wm->postCommand(command, params);
+			_wm->closeWindow( this );
+			return true;
+		default:
+			CRLog::trace("CRPocketBookInkViewWindow::onCommand() - unhandled");
+		}
+		return true;
+	}
+	virtual bool onKeyPressed( int key, int flags )
+	{
+		_wm->postEvent( new CRGUIKeyDownEvent(key, flags) );
+		_wm->closeWindow( this );
+		return true;
+	}
+	virtual ~CRPocketBookInkViewWindow()
+	{
+		CRLog::trace("~CRPocketBookInkViewWindow()");
+		CRPocketBookScreen::instance->setScreenLocked(false);
+	}
+	virtual void activated() 
+	{
+		showWindow();
+	}
+};
+
+class CRPocketBookPageSelectorWindow : public CRPocketBookInkViewWindow
+{
+public:
+	CRPocketBookPageSelectorWindow( CRGUIWindowManager * wm )
+        : CRPocketBookInkViewWindow( wm )	{}
+	virtual void showWindow()
+	{
+		OpenPageSelector(pageSelector);
+	}
+};
+
+class CRPocketBookQuickMenuWindow : public CRPocketBookInkViewWindow
+{
+private:
+	ibitmap *_menuBitmap;
+	const char **_strings;
+public:
+	CRPocketBookQuickMenuWindow( CRGUIWindowManager * wm, ibitmap *menu_bitmap, const char **strings)
+        : CRPocketBookInkViewWindow( wm ), _menuBitmap(menu_bitmap), _strings(strings)	{}
+	virtual void showWindow()
+	{
+		OpenMenu3x3(_menuBitmap, _strings, quickMenuHandler);
+	}
+};
+
+class CRPocketBookRotateWindow : public CRPocketBookInkViewWindow
+{
+public:
+	CRPocketBookRotateWindow( CRGUIWindowManager * wm)
+        : CRPocketBookInkViewWindow( wm )	{}
+	virtual void showWindow()
+	{
+		OpenRotateBox(rotateHandler);
+	}
+};
+
+class CRPocketBookSearchWindow : public CRPocketBookInkViewWindow
+{
+public:
+	CRPocketBookSearchWindow( CRGUIWindowManager * wm)
+        : CRPocketBookInkViewWindow( wm )	{}
+	virtual void showWindow()
+	{
+		OpenKeyboard(const_cast<char *>("@Search"), key_buffer, KEY_BUFFER_LEN, 0, searchHandler);
+	}
+};
+
+class CRPocketBookContentsWindow : public CRPocketBookInkViewWindow
+{
+private:
+	int _curPage;
+	tocentry *_toc;
+	int _tocLength;
+public:
+	CRPocketBookContentsWindow( CRGUIWindowManager * wm, tocentry *toc, int toc_length, int cur_page)
+        : CRPocketBookInkViewWindow( wm ), _toc(toc), _tocLength(toc_length), _curPage(cur_page) {}
+	virtual void showWindow()
+	{
+		OpenContents(_toc, _tocLength, _curPage, tocHandler);
+	}
+};
 
 class CRPbDictionaryDialog;
 class CRPbDictionaryMenu;
@@ -629,7 +757,6 @@ private:
 		free(_toc);
 		_toc = NULL;
 	}
-
 protected:
 	ibitmap * getQuickMenuBitmap() {
 		if (_bm3x3 == NULL) {
@@ -724,15 +851,22 @@ public:
 	bool onCommand(int command, int params)
 	{
 		switch(command) {
-		case MCMD_MAIN_MENU:
+		case PB_CMD_MAIN_MENU:
 			OpenMainMenu();
 			return true;
 		case PB_QUICK_MENU:
-			OpenMenu3x3(getQuickMenuBitmap(), (const char**)_strings3x3, quickMenuHandler);
-			return true;
+			{
+				CRPocketBookQuickMenuWindow *wnd = new CRPocketBookQuickMenuWindow(_wm,
+														getQuickMenuBitmap(), (const char **)_strings3x3);
+				_wm->activateWindow(wnd);
+			}
+			return false;
 		case PB_CMD_ROTATE:
-			OpenRotateBox(rotateHandler);
-			return true;
+			{
+				CRPocketBookRotateWindow *wnd = new CRPocketBookRotateWindow(_wm);
+				_wm->activateWindow(wnd);
+			}
+			return false;
 		case PB_QUICK_MENU_SELECT:
 			return quickMenuApply(params);
 		case mm_Orientation:
@@ -745,8 +879,11 @@ public:
 		case PB_CMD_ROTATE_ANGLE_SET: 
 			return rotateApply(params);
 		case MCMD_SEARCH:
-			_searchPattern.clear();
-			OpenKeyboard(const_cast<char *>("@Search"), key_buffer, KEY_BUFFER_LEN, 0, searchHandler);
+			{
+				_searchPattern.clear();
+				CRPocketBookSearchWindow *wnd = new CRPocketBookSearchWindow(_wm);
+				_wm->activateWindow(wnd);
+			}
 			return true;
 		case MCMD_SEARCH_FINDFIRST:
 			_searchPattern += Utf8ToUnicode(key_buffer);
@@ -760,8 +897,11 @@ public:
 			_wm->update(false);
 			return true;
 		case MCMD_GO_PAGE:
-			OpenPageSelector(pageSelector);
-			return true;
+			{
+				CRPocketBookPageSelectorWindow *wnd = new CRPocketBookPageSelectorWindow(_wm);
+				_wm->activateWindow(wnd);
+			}
+			return false;
 		case MCMD_GO_PAGE_APPLY:
 			if (params <= 0)
 				params = 1;
@@ -771,13 +911,13 @@ public:
 				_wm->update(true);
 			if (_toc)
 				freeContents() ;
-			return true;
+			return false;
 		case MCMD_DICT:
 			showDictDialog();
 			return true;
 		case PB_CMD_CONTENTS: 
 			showContents();
-			return true;
+			return false;
         case MCMD_GO_LINK:
             showLinksDialog();
             return true;
@@ -846,7 +986,9 @@ public:
 				return;
 			}
 		}
-		OpenContents(_toc, _tocLength, _docview->getCurPage() + 1, tocHandler);			
+		CRPocketBookContentsWindow *wnd = new CRPocketBookContentsWindow(_wm, _toc, 
+											_tocLength, _docview->getCurPage() + 1);
+		_wm->activateWindow( wnd );
 	}
 	
     virtual ~CRPocketBookDocView()
@@ -1968,9 +2110,11 @@ int main_handler(int type, int par1, int par2)
 		break;
 	case EVT_PREVPAGE:
 		CRPocketBookWindowManager::instance->onCommand(DCMD_PAGEUP, 0);
+		process_events = true;
 		break;
 	case EVT_NEXTPAGE:
 		CRPocketBookWindowManager::instance->onCommand(DCMD_PAGEDOWN, 0);
+		process_events = true;
 		break;
 	case EVT_ORIENTATION:
 		onAutoRotation(par1);
@@ -1980,7 +2124,7 @@ int main_handler(int type, int par1, int par2)
 			return 0;
 		}
 		if (!CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS)) {
-			needUpdate = CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
+			CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
 			process_events = true;
 			keyPressed = par1;
 		} else
@@ -1997,9 +2141,9 @@ int main_handler(int type, int par1, int par2)
 			break;
 		}
 		if (type == EVT_KEYRELEASE && par2 == 0) {
-			needUpdate = CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
+			CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
 		} else if (type == EVT_KEYREPEAT && par2 > 0)
-			needUpdate = CRPocketBookWindowManager::instance->onKeyPressed(par1, KEY_FLAG_LONG_PRESS);
+			CRPocketBookWindowManager::instance->onKeyPressed(par1, KEY_FLAG_LONG_PRESS);
 		process_events = true;
 		keyPressed = -1;
 		ret = 1;
@@ -2011,9 +2155,13 @@ int main_handler(int type, int par1, int par2)
 		break;
 	}
 	if (process_events)
-		needUpdate = CRPocketBookWindowManager::instance->processPostedEvents() || needUpdate;
-	if (needUpdate)
-		CRPocketBookWindowManager::instance->update(false);
+		CRPocketBookWindowManager::instance->processPostedEvents();
+	CRLog::trace("Event handler need update %d", needUpdate);
+	if (_postponedCommand > 0) {
+		int cmd = _postponedCommand, param = _postponedParam;
+		_postponedCommand = 0;
+		executeCommand(_postponedCommand, _postponedParam);
+	}
 	return ret;
 }
 

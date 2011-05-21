@@ -500,7 +500,11 @@ static const char * getCommandName( int command )
 	case MCMD_SETTINGS_FONTSIZE: return _("Font size settings");
 	case MCMD_SETTINGS_ORIENTATION: return _("Page orientation settings");
 	case MCMD_GO_LINK: return _("Go to link");
+#ifdef CR_POCKETBOOK
+	case MCMD_DICT: return TR("@Dictionary");
+#else
 	case MCMD_DICT: return _("Find in Dictionary (T5)");
+#endif	
 	case MCMD_BOOKMARK_LIST: return _("Bookmark list");
     case MCMD_BOOKMARK_LIST_GO_MODE: return _("Go to bookmark...");
 	case MCMD_RECENT_BOOK_LIST: return _("Recent books list");
@@ -515,6 +519,12 @@ static const char * getCommandName( int command )
 	case MCMD_HELP: return _("Show manual");
 	case MCMD_HELP_KEYS: return _("Show key mapping");
     case MCMD_GO_PERCENT: return _("Go to percent...");
+#ifdef CR_POCKETBOOK
+	case PB_QUICK_MENU: return TR("@KA_menu");
+	case PB_CMD_ROTATE: return TR("@KA_rtte");
+	case PB_CMD_CONTENTS: return TR("@KA_cnts");
+	case PB_CMD_MAIN_MENU: return TR("@KA_mmnu");
+#endif
     default: return _("Unknown command");
 	}
 }
@@ -543,7 +553,16 @@ const char * getCommandName( int command, int param )
         return _("Portrait View");
     if ( command==DCMD_ROTATE_SET && param == 1 )
         return _("Landscape View");
-
+#ifdef CR_POCKETBOOK
+	if ( command == PB_CMD_MP3 && param == 1)
+		return TR("@KA_mp3o");
+	if ( command == PB_CMD_MP3 && param == 0)
+		return TR("@KA_mp3p");	
+	if ( command == PB_CMD_VOLUME && param == 3)
+		return TR("@KA_volp");
+	if ( command == PB_CMD_VOLUME && param == 3)
+		return TR("@KA_volm");
+#endif
     if ( !param )
 		return ::getCommandName( command );
 	static char buf[ 256 ];
