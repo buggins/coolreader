@@ -236,8 +236,10 @@ bool CRRecentBooksMenu::removeItem( int index )
             _items[i]->setItemDirty();
 		}
     }
-    if (_items.length() < last)
+    if (_items.length() < last) {
 		_pageUpdate = true;
+		_selectedItem = _items.length() -1;
+	}
     setCurPage( (_items.length()-1) /  _pageItems );
     return true;
 }
