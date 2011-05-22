@@ -172,13 +172,12 @@ char key_buffer[KEY_BUFFER_LEN];
 class CRPocketBookScreen : public CRGUIScreenBase {
 private:
 	bool _forceSoft;
-	bool _locked;
 public:
 	static CRPocketBookScreen * instance;
 protected:
 	virtual void update( const lvRect & rc2, bool full )
 	{
-		if ( _locked || (rc2.isEmpty() && !full) )
+		if (rc2.isEmpty() && !full)
 			return;
 		lvRect rc = rc2;
 		rc.left &= ~3;
@@ -212,7 +211,7 @@ public:
 	}
 
 	CRPocketBookScreen( int width, int height )
-	:  CRGUIScreenBase( width, height, true ), _forceSoft(false), _locked(false)
+	:  CRGUIScreenBase( width, height, true ), _forceSoft(false)
 	{
 		instance = this;
 	}
@@ -231,7 +230,6 @@ public:
 		_forceSoft = force;
 		return ret;
 	}
-	void setScreenLocked(bool locked);
 };
 
 CRPocketBookScreen * CRPocketBookScreen::instance = NULL;
@@ -414,15 +412,6 @@ public:
 CRPocketBookWindowManager * CRPocketBookWindowManager::instance = NULL;
 V3DocViewWin * main_win = NULL;
 
-void CRPocketBookScreen::setScreenLocked(bool locked)
-{ 
-	if (locked != _locked) {
-		if (locked)
-			CRPocketBookWindowManager::instance->update(false);
-		_locked = locked; 
-	}
-}
-
 void executeCommand(int commandId, int commandParam)
 {
 	CRPocketBookWindowManager::instance->onCommand(commandId, commandParam);
@@ -473,7 +462,7 @@ protected:
 	virtual void showWindow() = 0;
 public:
 	CRPocketBookInkViewWindow( CRGUIWindowManager * wm )
-        : CRGUIWindowBase( wm )	{ 		CRPocketBookScreen::instance->setScreenLocked(true);  }
+        : CRGUIWindowBase( wm )	{ }
 	virtual bool onCommand( int command, int params = 0 )
 	{
 		CRLog::trace("CRPocketBookInkViewWindow::onCommand(%d, %d)", command, params);
@@ -500,7 +489,6 @@ public:
 	virtual ~CRPocketBookInkViewWindow()
 	{
 		CRLog::trace("~CRPocketBookInkViewWindow()");
-		CRPocketBookScreen::instance->setScreenLocked(false);
 	}
 	virtual void activated() 
 	{
