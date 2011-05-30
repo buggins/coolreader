@@ -2251,7 +2251,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						public void drawTo(Canvas canvas) {
 				    		if ( mInitialized && mCurrentPageInfo!=null ) {
 				        		Log.d("cr3", "onDraw() -- drawing page image");
-				    			canvas.drawBitmap(mCurrentPageInfo.bitmap, rc, rc, null);
+				        		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, rc, rc);
 				    			if ( hilite ) {
 					    			Paint p = new Paint();
 					    			p.setColor(color);
@@ -2626,11 +2626,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int rowsFromImg2 = h - rowsFromImg1;
     		Rect src1 = new Rect(0, h-rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
     		Rect dst1 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg1);
-			canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 			if (image2!=null) {
 	    		Rect src2 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg2);
 	    		Rect dst2 = new Rect(0, rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
-				canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+	    		drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
 			}
 			//Log.v("cr3", "anim.drawScroll( pos=" + pointerCurrPos + ", " + src1 + "=>" + dst1 + ", " + src2 + "=>" + dst2 + " )");
 		}
@@ -2847,7 +2847,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					dstrc.right = dst.right - normaldststart;
 					dstrc.left = dst.right - normaldstend;
 				}
-				canvas.drawBitmap(bmp, srcrc, dstrc, null);
+				drawDimmedBitmap(canvas, bmp, srcrc, dstrc);
 			}
 			if ( distortdststart<distortdstend ) {
 				int n = distortdx / 5 + 1;
@@ -2876,7 +2876,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						srcrc.left = src.right - distortsrcstart - src2;
 						paints = shadePaints;
 					}
-					canvas.drawBitmap(bmp, srcrc, dstrc, null);
+					drawDimmedBitmap(canvas, bmp, srcrc, dstrc);
 					canvas.drawRect(dstrc, paints[hiliteIndex]);
 				}
 			}
@@ -3000,7 +3000,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// left - part of old page
 				    		Rect src1 = new Rect(0, 0, div, h);
 				    		Rect dst1 = new Rect(0, 0, div, h);
-							canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+				    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 							// left, resized part of new page
 				    		Rect src2 = new Rect(0, 0, w2, h);
 				    		Rect dst2 = new Rect(div, 0, w2, h);
@@ -3009,13 +3009,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// right, new page
 				    		Rect src3 = new Rect(w2, 0, w, h);
 				    		Rect dst3 = new Rect(w2, 0, w, h);
-				    		canvas.drawBitmap(image2.bitmap, src3, dst3, null);
+				    		drawDimmedBitmap(canvas, image2.bitmap, src3, dst3);
 
 						} else {
 							// left - old page
 				    		Rect src1 = new Rect(0, 0, w2, h);
 				    		Rect dst1 = new Rect(0, 0, w2, h);
-							canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+				    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 							// right, resized old page
 				    		Rect src2 = new Rect(w2, 0, w, h);
 				    		Rect dst2 = new Rect(w2, 0, div, h);
@@ -3024,7 +3024,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// right, new page
 				    		Rect src3 = new Rect(div, 0, w, h);
 				    		Rect dst3 = new Rect(div, 0, w, h);
-				    		canvas.drawBitmap(image2.bitmap, src3, dst3, null);
+				    		drawDimmedBitmap(canvas, image2.bitmap, src3, dst3);
 
 							if ( div>0 && div<w )
 								drawShadow( canvas, shadowRect );
@@ -3038,7 +3038,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    		Rect src2 = new Rect(w-currShift, 0, w, h);
 			    		Rect dst2 = new Rect(w-currShift, 0, w, h);
 			    		//Log.v("cr3", "drawing " + image1);
-			    		canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
 
 						if ( div>0 && div<w )
 							drawShadow( canvas, shadowRect );
@@ -3048,20 +3048,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    		Rect src1 = new Rect(currShift, 0, w, h);
 			    		Rect dst1 = new Rect(0, 0, w-currShift, h);
 			    		//Log.v("cr3", "drawing " + image1);
-						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 			    		Rect src2 = new Rect(0, 0, currShift, h);
 			    		Rect dst2 = new Rect(w-currShift, 0, w, h);
 			    		//Log.v("cr3", "drawing " + image1);
-						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
 					} else {
 			    		Rect src1 = new Rect(currShift, 0, w, h);
 			    		Rect dst1 = new Rect(0, 0, w-currShift, h);
 			    		//Log.v("cr3", "drawing " + image1);
-						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 			    		Rect src2 = new Rect(w-currShift, 0, w, h);
 			    		Rect dst2 = new Rect(w-currShift, 0, w, h);
 			    		//Log.v("cr3", "drawing " + image1);
-						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
 					}
 				}
 			} else {
@@ -3075,7 +3075,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// left - part of old page
 				    		Rect src1 = new Rect(0, 0, div, h);
 				    		Rect dst1 = new Rect(0, 0, div, h);
-							canvas.drawBitmap(image2.bitmap, src1, dst1, null);
+				    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
 							// left, resized part of new page
 				    		Rect src2 = new Rect(0, 0, w2, h);
 				    		Rect dst2 = new Rect(div, 0, w2, h);
@@ -3084,12 +3084,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// right, new page
 				    		Rect src3 = new Rect(w2, 0, w, h);
 				    		Rect dst3 = new Rect(w2, 0, w, h);
-				    		canvas.drawBitmap(image1.bitmap, src3, dst3, null);
+				    		drawDimmedBitmap(canvas, image1.bitmap, src3, dst3);
 						} else {
 							// left - old page
 				    		Rect src1 = new Rect(0, 0, w2, h);
 				    		Rect dst1 = new Rect(0, 0, w2, h);
-							canvas.drawBitmap(image2.bitmap, src1, dst1, null);
+				    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
 							// right, resized old page
 				    		Rect src2 = new Rect(w2, 0, w, h);
 				    		Rect dst2 = new Rect(w2, 0, div, h);
@@ -3098,7 +3098,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// right, new page
 				    		Rect src3 = new Rect(div, 0, w, h);
 				    		Rect dst3 = new Rect(div, 0, w, h);
-				    		canvas.drawBitmap(image1.bitmap, src3, dst3, null);
+				    		drawDimmedBitmap(canvas, image1.bitmap, src3, dst3);
 
 							if ( div>0 && div<w )
 								drawShadow( canvas, shadowRect );
@@ -3106,7 +3106,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					} else {
 			    		Rect src1 = new Rect(currShift, 0, w, h);
 			    		Rect dst1 = new Rect(currShift, 0, w, h);
-						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 			    		Rect src2 = new Rect(0, 0, w, h);
 			    		Rect dst2 = new Rect(0, 0, currShift, h);
 						//canvas.drawBitmap(image2.bitmap, src2, dst2, null);
@@ -3119,17 +3119,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					if ( flipTwoPages ) {
 			    		Rect src1 = new Rect(0, 0, w-currShift, h);
 			    		Rect dst1 = new Rect(currShift, 0, w, h);
-						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 			    		Rect src2 = new Rect(w-currShift, 0, w, h);
 			    		Rect dst2 = new Rect(0, 0, currShift, h);
-						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
 					} else {
 			    		Rect src1 = new Rect(currShift, 0, w, h);
 			    		Rect dst1 = new Rect(currShift, 0, w, h);
-						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
 			    		Rect src2 = new Rect(w-currShift, 0, w, h);
 			    		Rect dst2 = new Rect(0, 0, currShift, h);
-						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+		        		drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
 					}
 				}
 			}
@@ -3282,6 +3282,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private final static boolean dontStretchWhileDrawing = true;
 	private final static boolean centerPageInsteadOfResizing = true;
 	
+	private void dimRect( Canvas canvas, Rect dst ) {
+		int alpha = dimmingAlpha;
+		if ( alpha!=255 ) {
+			Paint p = new Paint();
+			p.setColor((255-alpha)<<24);
+			canvas.drawRect(dst, p);
+		}
+	}
+	
+	private void drawDimmedBitmap( Canvas canvas, Bitmap bmp, Rect src, Rect dst ) {
+		canvas.drawBitmap(bmp, src, dst, null);
+		dimRect( canvas, dst );
+	}
+	
 	protected void doDraw(Canvas canvas)
 	{
        	try {
@@ -3310,8 +3324,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        		}
         		}
         		if ( dst.width()!=canvas.getWidth() || dst.height()!=canvas.getHeight() )
-        			canvas.drawColor(Color.rgb(64, 64, 64));
-    			canvas.drawBitmap(mCurrentPageInfo.bitmap, src, dst, null);
+        			canvas.drawColor(Color.rgb(32, 32, 32));
+        		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
     		} else {
         		Log.d("cr3", "onDraw() -- drawing empty screen");
     			canvas.drawColor(Color.rgb(64, 64, 64));
@@ -3346,6 +3360,24 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //    		}
     	} catch ( Exception e ) {
     		Log.e("cr3", "exception while drawing", e);
+    	}
+    }
+    
+    private int dimmingAlpha = 255; // no dimming
+    public void setDimmingAlpha( int alpha ) {
+    	if ( alpha>255 )
+    		alpha = 255;
+    	if ( alpha<32 )
+    		alpha = 32;
+    	if ( dimmingAlpha!=alpha ) {
+    		dimmingAlpha = alpha;
+    		mEngine.execute(new Task() {
+				@Override
+				public void work() throws Exception {
+		    		draw();
+				}
+    			
+    		});
     	}
     }
 

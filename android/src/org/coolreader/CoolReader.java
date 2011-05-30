@@ -447,14 +447,25 @@ public class CoolReader extends Activity
 			        	LayoutParams attrs =  wnd.getAttributes();
 			        	boolean changed = false;
 			        	float b;
+			        	int dimmingAlpha = 255;
 			        	if ( screenBacklightBrightness>=0 ) {
-			        		b = screenBacklightBrightness / 100.0f;
-				        	if ( b<0.0f ) // BRIGHTNESS_OVERRIDE_OFF
-				        		b = 0.0f;
-				        	else if ( b>1.0f )
-				        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
+		        			float minb = 0.1f; 
+			        		if ( screenBacklightBrightness >= 10 ) {
+			        			b = (screenBacklightBrightness - 10) / 90.0f;
+			        			b = minb + b * (1-minb);
+				        		//b = (screenBacklightBrightness - 10) * 10.0f / 9.0f / 95.0f + 0.5f;
+					        	if ( b<0.0f ) // BRIGHTNESS_OVERRIDE_OFF
+					        		b = 0.0f;
+					        	else if ( b>1.0f )
+					        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
+			        		} else {
+				        		b = minb;
+				        		dimmingAlpha = 255 - (10-screenBacklightBrightness) * 255 / 10; 
+			        		}
 			        	} else
 			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
+			        	mReaderView.setDimmingAlpha(dimmingAlpha);
+			        	Log.d("cr3", "Brightness: " + b + ", dim: " + dimmingAlpha);
 			        	if ( attrs.screenBrightness != b ) {
 			        		attrs.screenBrightness = b;
 			        		changed = true;
