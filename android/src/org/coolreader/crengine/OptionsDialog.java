@@ -91,11 +91,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_controls_flick_brightness_none, R.string.options_controls_flick_brightness_left, R.string.options_controls_flick_brightness_right
 		};
 	int[] mAnimation = new int[] {
-			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, 
+			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, ReaderView.PAGE_ANIMATION_SLIDE2, 
 			ReaderView.PAGE_ANIMATION_PAPER
 		};
 	int[] mAnimationTitles = new int[] {
-			R.string.options_page_animation_none, R.string.options_page_animation_slide,
+			R.string.options_page_animation_none, R.string.options_page_animation_slide, R.string.options_page_animation_slide_2_pages,
 			R.string.options_page_animation_paperbook
 		};
 	int[] mSelectionAction = new int[] {

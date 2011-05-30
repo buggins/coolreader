@@ -1219,10 +1219,10 @@ public class CoolReader extends Activity
 		//props.applyDefault(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Fallback");
 		props.put(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback");
 		
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, "4");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, "4");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, "2");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, "2");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, densityDpi > 160 ? "10" : "4");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, densityDpi > 160 ? "10" : "4");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, densityDpi > 160 ? "8" : "2");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, densityDpi > 160 ? "8" : "2");
 		
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
         if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )

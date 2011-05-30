@@ -120,6 +120,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
     public static final int PAGE_ANIMATION_SLIDE = 2;
+    public static final int PAGE_ANIMATION_SLIDE2 = 3;
+    public static final int PAGE_ANIMATION_MAX = 3;
     
     public static final int SELECTION_ACTION_TOOLBAR = 0;
     public static final int SELECTION_ACTION_COPY = 1;
@@ -1553,7 +1555,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private boolean hiliteTapZoneOnTap = false;
 	private boolean enableVolumeKeys = true; 
-	static private final int DEF_PAGE_FLIP_MS = 500; 
+	static private final int DEF_PAGE_FLIP_MS = 700; 
 	public void applyAppSetting( String key, String value )
 	{
 		boolean flg = "1".equals(value);
@@ -1586,8 +1588,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( PROP_PAGE_ANIMATION.equals(key) ) {
         	try {
         		int n = Integer.valueOf(value);
-        		if ( n<0 || n>2 )
-        			n = 1;
+        		if ( n<0 || n>PAGE_ANIMATION_MAX )
+        			n = PAGE_ANIMATION_SLIDE2;
         		pageFlipAnimationMode = n;
         	} catch ( Exception e ) {
         		// ignore
@@ -2138,7 +2140,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private ViewAnimationControl currentAnimation = null;
 
 	private int pageFlipAnimationSpeedMs = DEF_PAGE_FLIP_MS; // if 0 : no animation
-	private int pageFlipAnimationMode = PAGE_ANIMATION_PAPER; // if 0 : no animation
+	private int pageFlipAnimationMode = PAGE_ANIMATION_SLIDE2; //PAGE_ANIMATION_PAPER; // if 0 : no animation
 	private void animatePageFlip( final int dir ) {
 		animatePageFlip(dir, null);
 	}
@@ -2448,23 +2450,24 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		//synchronized(surfaceLock) 
 		{
 			Canvas canvas = null;
+			long startTs = android.os.SystemClock.uptimeMillis();
 			try {
-				long startTs = android.os.SystemClock.uptimeMillis();
 				canvas = holder.lockCanvas(rc);
 				//Log.v("cr3", "before draw(canvas)");
 				if ( canvas!=null ) {
 					callback.drawTo(canvas);
-					if ( rc==null ) {
-						long endTs = android.os.SystemClock.uptimeMillis();
-						updateAnimationDurationStats(endTs - startTs);
-					}
 				}
 			} finally {
 				//Log.v("cr3", "exiting finally");
 				if ( canvas!=null && getHolder()!=null ) {
 					//Log.v("cr3", "before unlockCanvasAndPost");
-					if ( canvas!=null && holder!=null )
+					if ( canvas!=null && holder!=null ) {
 						holder.unlockCanvasAndPost(canvas);
+						//if ( rc==null ) {
+							long endTs = android.os.SystemClock.uptimeMillis();
+							updateAnimationDurationStats(endTs - startTs);
+						//}
+					}
 					//Log.v("cr3", "after unlockCanvasAndPost");
 				}
 			}
@@ -2495,7 +2498,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			drawCallback( new DrawCanvasCallback() {
 				@Override
 				public void drawTo(Canvas c) {
+					//long startTs = android.os.SystemClock.uptimeMillis();
 					draw(c);
+					//long endTs = android.os.SystemClock.uptimeMillis();
+					//updateAnimationDurationStats(endTs - startTs);
 				}
 				
 			}, null);
@@ -2503,6 +2509,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		abstract void draw( Canvas canvas );
 	}
 	
+	//private static final int PAGE_ANIMATION_DURATION = 3000;
 	class ScrollViewAnimation extends ViewAnimationBase {
 		int startY;
 		int maxY;
@@ -2590,7 +2597,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( delta<0 )
 					delta = -delta;
 				long avgDraw = getAvgAnimationDrawDuration();
-				int maxStep = (int)(maxY * 1500 / avgDraw);
+				//int maxStep = (int)(maxY * PAGE_ANIMATION_DURATION / avgDraw);
+				int maxStep = (int)(maxY * 1000 / avgDraw / pageFlipAnimationSpeedMs);
 				int step;
 				if ( delta > maxStep * 2 )
 					step = maxStep;
@@ -2682,6 +2690,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Paint[] shadePaints;
 		Paint[] hilitePaints;
 		private final boolean naturalPageFlip; 
+		private final boolean flipTwoPages; 
 		PageViewAnimation( int startX, int maxX, int direction )
 		{
 			super();
@@ -2691,6 +2700,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.currShift = 0;
 			this.destShift = 0;
 			this.naturalPageFlip = (pageFlipAnimationMode==PAGE_ANIMATION_PAPER);
+			this.flipTwoPages = (pageFlipAnimationMode==PAGE_ANIMATION_SLIDE2);
 			
 			long start = android.os.SystemClock.uptimeMillis();
 			Log.v("cr3", "PageViewAnimation -- creating: drawing two pages to buffer");
@@ -2952,7 +2962,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( delta<0 )
 					delta = -delta;
 				long avgDraw = getAvgAnimationDrawDuration();
-				int maxStep = (int)(maxX * 1500 / avgDraw);
+				int maxStep = (int)(maxX * 1000 / avgDraw / pageFlipAnimationSpeedMs);
 				int step;
 				if ( delta > maxStep * 2 )
 					step = maxStep;
@@ -3034,14 +3044,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							drawShadow( canvas, shadowRect );
 					}
 				} else {
-		    		Rect src1 = new Rect(currShift, 0, w, h);
-		    		Rect dst1 = new Rect(0, 0, w-currShift, h);
-		    		//Log.v("cr3", "drawing " + image1);
-					canvas.drawBitmap(image1.bitmap, src1, dst1, null);
-		    		Rect src2 = new Rect(w-currShift, 0, w, h);
-		    		Rect dst2 = new Rect(w-currShift, 0, w, h);
-		    		//Log.v("cr3", "drawing " + image1);
-					canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					if ( flipTwoPages ) {
+			    		Rect src1 = new Rect(currShift, 0, w, h);
+			    		Rect dst1 = new Rect(0, 0, w-currShift, h);
+			    		//Log.v("cr3", "drawing " + image1);
+						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		Rect src2 = new Rect(0, 0, currShift, h);
+			    		Rect dst2 = new Rect(w-currShift, 0, w, h);
+			    		//Log.v("cr3", "drawing " + image1);
+						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					} else {
+			    		Rect src1 = new Rect(currShift, 0, w, h);
+			    		Rect dst1 = new Rect(0, 0, w-currShift, h);
+			    		//Log.v("cr3", "drawing " + image1);
+						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		Rect src2 = new Rect(w-currShift, 0, w, h);
+			    		Rect dst2 = new Rect(w-currShift, 0, w, h);
+			    		//Log.v("cr3", "drawing " + image1);
+						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					}
 				}
 			} else {
 				// BACK
@@ -3095,12 +3116,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							drawShadow( canvas, shadowRect );
 					}
 				} else {
-		    		Rect src1 = new Rect(currShift, 0, w, h);
-		    		Rect dst1 = new Rect(currShift, 0, w, h);
-					canvas.drawBitmap(image1.bitmap, src1, dst1, null);
-		    		Rect src2 = new Rect(w-currShift, 0, w, h);
-		    		Rect dst2 = new Rect(0, 0, currShift, h);
-					canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					if ( flipTwoPages ) {
+			    		Rect src1 = new Rect(0, 0, w-currShift, h);
+			    		Rect dst1 = new Rect(currShift, 0, w, h);
+						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		Rect src2 = new Rect(w-currShift, 0, w, h);
+			    		Rect dst2 = new Rect(0, 0, currShift, h);
+						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					} else {
+			    		Rect src1 = new Rect(currShift, 0, w, h);
+			    		Rect dst1 = new Rect(currShift, 0, w, h);
+						canvas.drawBitmap(image1.bitmap, src1, dst1, null);
+			    		Rect src2 = new Rect(w-currShift, 0, w, h);
+			    		Rect dst2 = new Rect(0, 0, currShift, h);
+						canvas.drawBitmap(image2.bitmap, src2, dst2, null);
+					}
 				}
 			}
 			if ( div>0 && div<w ) {
@@ -3109,20 +3139,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 
-	private long sumAnimationDrawDuration = 1000;
+	private long sumAnimationDrawDuration = 100;
 	private int drawAnimationCount = 10;
 	private long getAvgAnimationDrawDuration()
 	{
 		return sumAnimationDrawDuration / drawAnimationCount; 
+//		return sumAnimationDrawDuration;// / drawAnimationCount; 
 	}
+	
 	private void updateAnimationDurationStats( long duration )
 	{
 		if ( duration<=0 )
 			duration = 1;
-		else if ( duration>1500 )
+		else if ( duration>1000 )
 			return;
+//		sumAnimationDrawDuration = (sumAnimationDrawDuration*7 + duration * 1)/8;
 		sumAnimationDrawDuration += duration;
-		if ( ++drawAnimationCount>100 ) {
+		if ( ++drawAnimationCount>20 ) {
 			drawAnimationCount /= 2;
 			sumAnimationDrawDuration /= 2;
 		}

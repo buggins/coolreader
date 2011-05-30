@@ -237,4 +237,5 @@
     <string name="dlg_about_donation_installed">Installiert</string>
     <string name="mi_book_browser_normal_mode">erweiterte Dateiliste</string>
     <string name="mi_book_browser_simple_mode">einfache Dateiliste</string>
+<string name="options_page_animation_slide_2_pages">schieben (2)</string>
 </resources>
