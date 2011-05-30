@@ -586,7 +586,7 @@ public class Scanner {
 	
 	public boolean autoAddRootForFile( File f ) {
 		File p = f.getParentFile();
-		for ( ;; ) {
+		while ( p!=null ) {
 			if ( p.getParentFile()==null || p.getParentFile().getParentFile()==null )
 				break;
 			p = p.getParentFile();
