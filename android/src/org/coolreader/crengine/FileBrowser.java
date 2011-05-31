@@ -1,8 +1,9 @@
 package org.coolreader.crengine;
 
 import java.io.File;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -424,7 +425,7 @@ public class FileBrowser extends ListView {
 		if ( url!=null ) {
 			try {
 				mActivity.showToast("Trying to open URI: " + url);
-				final URI uri = new URI(url);
+				final URL uri = new URL(url);
 				DownloadCallback callback = new DownloadCallback() {
 
 					@Override
@@ -500,8 +501,8 @@ public class FileBrowser extends ListView {
 				};
 				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(uri, callback);
 				downloadTask.run();
-			} catch ( URISyntaxException e ) {
-				Log.e("cr3", "URISyntaxException: " + url);
+			} catch (MalformedURLException e) {
+				Log.e("cr3", "MalformedURLException: " + url);
 				mActivity.showToast("Wrong URI: " + url);
 			}
 		}
@@ -686,8 +687,13 @@ public class FileBrowser extends ListView {
 							image.setImageResource(R.drawable.cr3_browser_folder);
 						setText(name, item.filename);
 
-						setText(field1, "books: " + String.valueOf(item.fileCount()));
-						setText(field2, "folders: " + String.valueOf(item.dirCount()));
+						if ( !item.isODPSDir() ) {
+							setText(field1, "books: " + String.valueOf(item.fileCount()));
+							setText(field2, "folders: " + String.valueOf(item.dirCount()));
+						} else {
+							setText(field1, "");
+							setText(field2, "");
+						}
 					} else {
 						boolean isSimple = (viewType == VIEW_TYPE_FILE_SIMPLE);
 						if ( image!=null ) {

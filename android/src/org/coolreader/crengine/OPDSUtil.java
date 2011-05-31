@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.CookieHandler;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -12,10 +16,8 @@ import java.util.Collection;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
+import javax.net.ssl.HttpsURLConnection;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -24,6 +26,7 @@ import android.net.http.AndroidHttpClient;
 import android.util.Log;
 import android.util.Xml;
 import android.util.Xml.Encoding;
+import android.webkit.CookieManager;
 
 public class OPDSUtil {
 
@@ -351,18 +354,19 @@ xml:base="http://lib.ololo.cc/opds/">
 	}
 	
 	public static class DownloadTask {
+		private URL url;
 		private DownloadCallback callback;
-		private HttpUriRequest request;
-		private HttpResponse response;
-		private AndroidHttpClient client;
+		private HttpURLConnection connection;
+		//private HttpUriRequest request;
 		private boolean cancelled;
 		//private byte[] result;
 		ODPSHandler handler;
-		public DownloadTask( URI uri, DownloadCallback callback ) {
-			request = new HttpGet(uri);
-			request.addHeader("Referer", "http://www.feedbooks.com/books/recent.atom");
+		public DownloadTask( URL url, DownloadCallback callback ) {
+			this.url = url;
 			this.callback = callback; 
-			Log.d("cr3", "Creating HTTP client");
+			//request = new HttpGet(url);
+			//request.addHeader("Referer", "http://www.feedbooks.com/books/recent.atom");
+			//Log.d("cr3", "Creating HTTP client");
 		}
 //		public byte[] getResult() {
 //			return result;
@@ -424,43 +428,57 @@ xml:base="http://lib.ololo.cc/opds/">
 			});
 		}
 		public void runInternal() {
-			client = AndroidHttpClient.newInstance("CoolReader3");
+			connection = null;
+		    
 			try {
-				Log.d("cr3", "Calling httpClient.execute( GET " + request.getURI().toString() + " )");
-				response = client.execute(request);
-				Log.d("cr3", "Checking response");
-				int status = response.getStatusLine().getStatusCode();
-				Log.d("cr3", "Status code: " + status);
-				if ( status!=200 ) {
-					onError("Error " + status);
+				URLConnection conn = url.openConnection();
+				if ( conn instanceof HttpsURLConnection ) {
+					onError("HTTPs is not supported yet");
 					return;
 				}
-				HttpEntity entity = response.getEntity();
-				if ( entity==null ) {
-					onError("Error");
+				if ( !(conn instanceof HttpURLConnection) ) {
+					onError("Only HTTP supported");
 					return;
 				}
-				Log.d("cr3", "Entity content length: " + entity.getContentLength());
-				Log.d("cr3", "Entity content type: " + entity.getContentType());
-				Log.d("cr3", "Entity content encoding: " + entity.getContentEncoding());
-				InputStream is = entity.getContent();
-				if ( entity.getContentType().getValue().startsWith("application/atom+xml") ) {
+				connection = (HttpURLConnection)conn;
+	            connection.setRequestProperty("User-Agent", "CoolReader3");
+	            connection.setInstanceFollowRedirects(true);
+	            connection.setAllowUserInteraction(false);
+	            connection.setConnectTimeout(20000);
+	            connection.setReadTimeout(40000);
+	            
+	            int response = -1;
+				
+				response = connection.getResponseCode();
+				Log.d("cr3", "Response: " + response);
+				if ( response!=200 ) {
+					onError("Error " + response);
+					return;
+				}
+				String contentType = connection.getContentType();
+				String contentEncoding = connection.getContentEncoding();
+				int contentLen = connection.getContentLength();
+				Log.d("cr3", "Entity content length: " + contentLen);
+				Log.d("cr3", "Entity content type: " + contentType);
+				Log.d("cr3", "Entity content encoding: " + contentEncoding);
+				InputStream is = connection.getInputStream();
+				if ( contentType.startsWith("application/atom+xml") ) {
 					Log.d("cr3", "Parsing feed");
 					parseFeed( is );
 				} else {
-					downloadBook( entity.getContentType().getValue(), request.getURI().toString(), is );
-//					Log.d("cr3", "Reading content");
-//					byte[] buf = new byte[512*1024]; // 512K
-//					int bytesRead = is.read(buf);
-//					Log.d("cr3", "Bytes read: " + bytesRead);
-//					result = buf;
+					downloadBook( contentType, url.toString(), is );
 				}
 			} catch (Exception e) {
-				Log.e("cr3", "Exception while trying to open URI " + request.getURI().toString(), e);
+				Log.e("cr3", "Exception while trying to open URI " + url.toString(), e);
 				cancelled = true;
 				onError("Error occured while reading OPDS catalog");
 			} finally {
-				client.close();
+				if ( connection!=null )
+					try {
+						connection.disconnect();
+					} catch ( Exception e ) {
+						// ignore
+					}
 			}
 		}
 		public void run() {
@@ -476,11 +494,10 @@ xml:base="http://lib.ololo.cc/opds/">
 			});
 		}
 		public void cancel() {
-			request.abort();
 		}
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create( URI uri, DownloadCallback callback ) {
+	public static DownloadTask create( URL uri, DownloadCallback callback ) {
 		final DownloadTask task = new DownloadTask(uri, callback);
 		currentTask = task;
 		return task;
