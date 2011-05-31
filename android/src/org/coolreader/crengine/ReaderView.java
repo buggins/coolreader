@@ -2598,7 +2598,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					delta = -delta;
 				long avgDraw = getAvgAnimationDrawDuration();
 				//int maxStep = (int)(maxY * PAGE_ANIMATION_DURATION / avgDraw);
-				int maxStep = (int)(maxY * 1000 / avgDraw / pageFlipAnimationSpeedMs);
+				int maxStep = pageFlipAnimationSpeedMs > 0 ? (int)(maxY * 1000 / avgDraw / pageFlipAnimationSpeedMs) : maxY;
 				int step;
 				if ( delta > maxStep * 2 )
 					step = maxStep;
@@ -2962,7 +2962,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( delta<0 )
 					delta = -delta;
 				long avgDraw = getAvgAnimationDrawDuration();
-				int maxStep = (int)(maxX * 1000 / avgDraw / pageFlipAnimationSpeedMs);
+				int maxStep = pageFlipAnimationSpeedMs > 0 ? (int)(maxX * 1000 / avgDraw / pageFlipAnimationSpeedMs) : maxX;
 				int step;
 				if ( delta > maxStep * 2 )
 					step = maxStep;
