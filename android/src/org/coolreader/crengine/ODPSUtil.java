@@ -118,6 +118,8 @@ xml:base="http://lib.ololo.cc/opds/">
 						docInfo.id = s;
 				} else if ( "updated".equals(currentElement) ) {
 					try {
+						if ( s.lastIndexOf(":")==s.length()-3 )
+							s = s.substring(0, s.length()-3) + s.substring(0, s.length()-2); 
 						long ts = tsFormat.parse(s).getTime();
 						if ( insideEntry )
 							entryInfo.updated = ts;
@@ -128,23 +130,23 @@ xml:base="http://lib.ololo.cc/opds/">
 						Log.e("cr3", "cannot parse timestamp " + s);
 					}
 				} else if ( "title".equals(currentElement) ) {
-					if ( insideEntry )
+					if ( !insideEntry )
 						docInfo.title = s;
 					else
 						entryInfo.title = s;
 				} else if ( "icon".equals(currentElement) ) {
-					if ( insideEntry )
+					if ( !insideEntry )
 						docInfo.icon = s;
 					else
 						entryInfo.icon = s;
 				} else if ( "link".equals(currentElement) ) {
 					// rel, type, title, href
-					if ( insideEntry )
+					if ( !insideEntry )
 						docInfo.icon = s;
 					else
 						entryInfo.icon = s;
 				} else if ( "content".equals(currentElement) ) {
-					if ( !insideEntry )
+					if ( insideEntry )
 						entryInfo.content = s;
 				} else if ( "subtitle".equals(currentElement) ) {
 					if ( !insideEntry )
