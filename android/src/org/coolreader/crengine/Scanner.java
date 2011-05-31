@@ -401,6 +401,29 @@ public class Scanner {
 		return true;
 	}
 	
+	private void addODPSRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.ODPS_LIST_TAG;
+		dir.filename = "ODPS Catalogs";
+		dir.isListed = true;
+		dir.isScanned = true;
+		mRoot.addDir(dir);
+		String[] urls = {
+				"http://213.5.65.159/opds/",
+				"http://lib.ololo.cc/opds/",
+		};
+		for ( String url : urls ) {
+			FileInfo odps = new FileInfo();
+			odps.isDirectory = true;
+			odps.pathname = FileInfo.ODPS_DIR_PREFIX + url;
+			odps.filename = "ODPS: " + url;
+			odps.isListed = true;
+			odps.isScanned = true;
+			dir.addDir(odps);
+		}
+	}
+	
 	/**
 	 * Lists all directories from root to directory of specified file, returns found directory.
 	 * @param file
@@ -582,6 +605,7 @@ public class Scanner {
 		autoAddRoots( "/", SYSTEM_ROOT_PATHS );
 		autoAddRoots( "/mnt", new String[] {} );
 		
+		addODPSRoot();
 	}
 	
 	public boolean autoAddRootForFile( File f ) {

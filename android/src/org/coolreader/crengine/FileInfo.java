@@ -13,6 +13,17 @@ import org.coolreader.R;
 import android.util.Log;
 
 public class FileInfo {
+
+	public final static String RECENT_DIR_TAG = "@recent";
+	public final static String SEARCH_RESULT_DIR_TAG = "@search";
+	public final static String ROOT_DIR_TAG = "@root";
+	public final static String ODPS_LIST_TAG = "@odps";
+	public final static String ODPS_DIR_PREFIX = "@odps:";
+	public final static String AUTHORS_TAG = "@authors";
+	public final static String AUTHOR_PREFIX = "@author:";
+	
+	
+	
 	Long id; // db id
 	String title; // book title
 	String authors; // authors, delimited with '|'
@@ -179,10 +190,6 @@ public class FileInfo {
 		return null;
 	}
 	
-	public final static String RECENT_DIR_TAG = "@recent";
-	public final static String SEARCH_RESULT_DIR_TAG = "@search";
-	public final static String ROOT_DIR_TAG = "@root";
-	
 	public boolean isRecentDir()
 	{
 		return RECENT_DIR_TAG.equals(pathname);
@@ -203,9 +210,21 @@ public class FileInfo {
 		return pathname.startsWith("@");
 	}
 	
+	public boolean isODPSDir()
+	{
+		return pathname.startsWith(ODPS_DIR_PREFIX);
+	}
+	
 	public boolean isHidden()
 	{
 		return pathname.startsWith(".");
+	}
+	
+	public String getODPSUrl()
+	{
+		if ( !pathname.startsWith(ODPS_DIR_PREFIX) )
+			return null;
+		return pathname.substring(ODPS_DIR_PREFIX.length());
 	}
 	
 	/**

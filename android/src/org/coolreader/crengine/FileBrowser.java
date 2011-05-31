@@ -1,6 +1,8 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -9,6 +11,7 @@ import java.util.TimeZone;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.Engine.EngineTask;
 
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -412,8 +415,46 @@ public class FileBrowser extends ListView {
 		dlg.onSelect();
 	}
 	
+	private void showODPSDir( FileInfo fileOrDir, FileInfo itemToSelect ) {
+		String url = fileOrDir.getODPSUrl();
+		if ( url!=null ) {
+			try {
+				mActivity.showToast("Trying to open URI: " + url);
+				final URI uri = new URI(url);
+				final ODPSUtil.DownloadTask downloadTask = ODPSUtil.create(uri);
+				mEngine.execute(new EngineTask() {
+					
+					@Override
+					public void work() throws Exception {
+						downloadTask.run();
+					}
+					
+					@Override
+					public void fail(Exception e) {
+						mActivity.showToast("Download is failed");
+					}
+					
+					@Override
+					public void done() {
+						if ( downloadTask.getResult()!=null )
+							mActivity.showToast("Download completed: " + downloadTask.getResult().length );
+						else
+							mActivity.showToast("Download failed");
+					}
+				});
+			} catch ( URISyntaxException e ) {
+				Log.e("cr3", "URISyntaxException: " + url);
+				mActivity.showToast("Wrong URI: " + url);
+			}
+		}
+	}
+	
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
+		if ( fileOrDir!=null && fileOrDir.isODPSDir() ) {
+			showODPSDir(fileOrDir, itemToSelect);
+			return;
+		}
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
 			if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
 				fileOrDir = mScanner.getRoot().getDir(0);
