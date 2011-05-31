@@ -6,12 +6,16 @@ import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.EngineTask;
+import org.coolreader.crengine.OPDSUtil.DocInfo;
+import org.coolreader.crengine.OPDSUtil.DownloadCallback;
+import org.coolreader.crengine.OPDSUtil.EntryInfo;
 
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -415,33 +419,88 @@ public class FileBrowser extends ListView {
 		dlg.onSelect();
 	}
 	
-	private void showODPSDir( FileInfo fileOrDir, FileInfo itemToSelect ) {
+	private void showODPSDir( final FileInfo fileOrDir, FileInfo itemToSelect ) {
 		String url = fileOrDir.getODPSUrl();
+		final FileInfo myCurrDirectory = currDirectory;
 		if ( url!=null ) {
 			try {
 				mActivity.showToast("Trying to open URI: " + url);
 				final URI uri = new URI(url);
-				final ODPSUtil.DownloadTask downloadTask = ODPSUtil.create(uri);
-				mEngine.execute(new EngineTask() {
-					
+				DownloadCallback callback = new DownloadCallback() {
+
 					@Override
-					public void work() throws Exception {
-						downloadTask.run();
+					public void onEntries(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void onFinish(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						if ( myCurrDirectory != currDirectory ) {
+							Log.w("cr3", "current directory has been changed: ignore downloaded items");
+							return;
+						}
+						ArrayList<FileInfo> items = new ArrayList<FileInfo>();
+						for ( EntryInfo entry : entries ) {
+							if ( entry.link.type!=null && entry.link.type.startsWith("application/atom+xml") ) {
+								FileInfo file = new FileInfo();
+								file.isDirectory = true;
+								file.pathname = FileInfo.OPDS_DIR_PREFIX + entry.link.href;
+								file.filename = entry.title;
+								file.isListed = true;
+								file.isScanned = true;
+								file.parent = fileOrDir;
+								items.add(file);
+							} else if ( entry.link.type!=null ) {
+								if ( entry.link.getPriority()>0 ) {
+									FileInfo file = new FileInfo();
+									file.isDirectory = true;
+									file.pathname = FileInfo.OPDS_DIR_PREFIX + entry.link.href;
+									file.filename = entry.title;
+									file.isListed = true;
+									file.isScanned = true;
+									file.parent = fileOrDir;
+									items.add(file);
+								}
+							}
+						}
+						if ( items.size()>0 ) {
+							fileOrDir.replaceItems(items);
+							showDirectoryInternal(fileOrDir, null);
+						} else {
+							mActivity.showToast("No OPDS entries found");
+						}
+					}
+
+					@Override
+					public void onError(String message) {
+						mActivity.showToast(message);
+					}
+
+					FileInfo downloadDir;
+					@Override
+					public File onDownloadStart(String type, String url) {
+						mActivity.showToast("Starting download of " + type + " from " + url);
+						downloadDir = mActivity.getScanner().getDownloadDirectory();
+						if ( downloadDir==null )
+							return null;
+						return new File(downloadDir.getPathName());
+					}
+
+					@Override
+					public void onDownloadEnd(String type, String url, File file) {
+						mActivity.showToast("Download is finished");
+						FileInfo fi = new FileInfo(file);
+						fi.parent = downloadDir;
+						downloadDir.addFile(fi);
+						mActivity.getReaderView().loadDocument(fi);
 					}
 					
-					@Override
-					public void fail(Exception e) {
-						mActivity.showToast("Download is failed");
-					}
-					
-					@Override
-					public void done() {
-						if ( downloadTask.getResult()!=null )
-							mActivity.showToast("Download completed: " + downloadTask.getResult().length );
-						else
-							mActivity.showToast("Download failed");
-					}
-				});
+				};
+				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(uri, callback);
+				downloadTask.run();
 			} catch ( URISyntaxException e ) {
 				Log.e("cr3", "URISyntaxException: " + url);
 				mActivity.showToast("Wrong URI: " + url);

@@ -401,25 +401,28 @@ public class Scanner {
 		return true;
 	}
 	
-	private void addODPSRoot() {
+	private void addOPDSRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
-		dir.pathname = FileInfo.ODPS_LIST_TAG;
-		dir.filename = "ODPS Catalogs";
+		dir.pathname = FileInfo.OPDS_LIST_TAG;
+		dir.filename = "OPDS Catalogs";
 		dir.isListed = true;
 		dir.isScanned = true;
+		dir.parent = mRoot;
 		mRoot.addDir(dir);
 		String[] urls = {
+				"http://www.feedbooks.com/catalog/",
 				"http://213.5.65.159/opds/",
 				"http://lib.ololo.cc/opds/",
 		};
 		for ( String url : urls ) {
 			FileInfo odps = new FileInfo();
 			odps.isDirectory = true;
-			odps.pathname = FileInfo.ODPS_DIR_PREFIX + url;
+			odps.pathname = FileInfo.OPDS_DIR_PREFIX + url;
 			odps.filename = "ODPS: " + url;
 			odps.isListed = true;
 			odps.isScanned = true;
+			odps.parent = dir;
 			dir.addDir(odps);
 		}
 	}
@@ -605,7 +608,7 @@ public class Scanner {
 		autoAddRoots( "/", SYSTEM_ROOT_PATHS );
 		autoAddRoots( "/mnt", new String[] {} );
 		
-		addODPSRoot();
+		addOPDSRoot();
 	}
 	
 	public boolean autoAddRootForFile( File f ) {
@@ -650,6 +653,30 @@ public class Scanner {
 //		return res;
 //	}
 	
+	
+	public FileInfo getDownloadDirectory() {
+		for ( int i=0; i<mRoot.dirCount(); i++ ) {
+			FileInfo item = mRoot.getDir(i);
+			if ( item.isSpecialDir() && !item.isArchive ) {
+				FileInfo books = item.findItemByPathName(item.pathname+"/Books");
+				if ( books.exists() )
+					return books;
+				File dir = new File(item.getPathName());
+				if ( dir.isDirectory() && dir.canWrite() ) {
+					File f = new File( dir, "Books" );
+					if ( f.mkdirs() ) {
+						books = new FileInfo(f);
+						books.parent = item;
+						item.addDir(books);
+						books.isScanned = true;
+						books.isListed = true;
+						return books;
+					}
+				}
+			}
+		}
+		return null;
+	}
 	
 	public FileInfo getRoot() 
 	{
