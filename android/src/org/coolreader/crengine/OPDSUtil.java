@@ -113,6 +113,8 @@ xml:base="http://lib.ololo.cc/opds/">
 				return 10;
 			if ( type.startsWith("application/epub") )
 				return 9;
+			if ( type.startsWith("application/x-mobipocket-ebook") )
+				return 8;
 			if ( type.startsWith("text/html") )
 				return 3;
 			if ( type.startsWith("text/plain") )
@@ -127,13 +129,21 @@ xml:base="http://lib.ololo.cc/opds/">
 		
 	}
 	
+	public static class AuthorInfo {
+		public String name;
+		public String uri;
+	}
+	
 	public static class EntryInfo {
 		public String id;
 		public long updated;
 		public String title="";
 		public String content="";
+		public String summary="";
 		public LinkInfo link;
 		public String icon;
+		private ArrayList<String> categories = new ArrayList<String>(); 
+		private ArrayList<AuthorInfo> authors = new ArrayList<AuthorInfo>(); 
 	}
 	
 	public static class ODPSHandler extends DefaultHandler {
@@ -142,11 +152,33 @@ xml:base="http://lib.ololo.cc/opds/">
 		private ArrayList<EntryInfo> entries = new ArrayList<EntryInfo>(); 
 		private Stack<String> elements = new Stack<String>();
 		private Attributes currentAttributes;
+		private AuthorInfo authorInfo;
 		private boolean insideFeed;
 		private boolean insideEntry;
+		private boolean singleEntry;
 		private int level = 0;
 		//2011-05-31T10:28:22+04:00
 		private static SimpleDateFormat tsFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"); 
+		private static SimpleDateFormat tsFormat2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		private long parseTimestamp( String ts ) {
+			if ( ts==null )
+				return 0;
+			ts = ts.trim();
+			try {
+				if ( ts.length()=="2010-01-10T10:01:10Z".length() )
+					return tsFormat2.parse(ts).getTime();
+				if ( ts.length()=="2011-11-11T11:11:11+67:87".length()&& ts.lastIndexOf(":")==ts.length()-3 ) {
+					ts = ts.substring(0, ts.length()-3) + ts.substring(0, ts.length()-2);
+					return tsFormat.parse(ts).getTime();
+				}
+				if ( ts.length()=="2011-11-11T11:11:11+6787".length()) {
+					return tsFormat.parse(ts).getTime();
+				}
+			} catch (ParseException e) {
+			}
+			Log.e("cr3", "cannot parse timestamp " + ts);
+			return 0;
+		}
 		@Override
 		public void characters(char[] ch, int start, int length)
 				throws SAXException {
@@ -167,26 +199,25 @@ xml:base="http://lib.ololo.cc/opds/">
 					else
 						docInfo.id = s;
 				} else if ( "updated".equals(currentElement) ) {
-					try {
-						s = s.trim();
-						if ( s.length()>="2011-11-11T11:11:11+6787".length()) {
-							if ( s.lastIndexOf(":")==s.length()-3 )
-								s = s.substring(0, s.length()-3) + s.substring(0, s.length()-2); 
-							long ts = tsFormat.parse(s).getTime();
-							if ( insideEntry )
-								entryInfo.updated = ts;
-							else
-								docInfo.updated = ts;
-						}
-					} catch (ParseException e) {
-						// invalid timestamp: ignore
-						Log.e("cr3", "cannot parse timestamp " + s);
-					}
+					long ts = parseTimestamp(s);
+					if ( insideEntry )
+						entryInfo.updated = ts;
+					else
+						docInfo.updated = ts;
 				} else if ( "title".equals(currentElement) ) {
 					if ( !insideEntry )
 						docInfo.title = s;
 					else
 						entryInfo.title = entryInfo.title + s;
+				} else if ( "summary".equals(currentElement) ) {
+					if ( insideEntry )
+						entryInfo.summary = entryInfo.summary + s;
+				} else if ( "name".equals(currentElement) ) {
+					if ( authorInfo!=null )
+						authorInfo.name = s;
+				} else if ( "uri".equals(currentElement) ) {
+					if ( authorInfo!=null )
+						authorInfo.uri = s;
 				} else if ( "icon".equals(currentElement) ) {
 					if ( !insideEntry )
 						docInfo.icon = s;
@@ -204,8 +235,6 @@ xml:base="http://lib.ololo.cc/opds/">
 				} else if ( "subtitle".equals(currentElement) ) {
 					if ( !insideEntry )
 						docInfo.subtitle = s;
-				} else if ( "author".equals(currentElement) ) {
-					
 				}
 			}
 		}
@@ -243,9 +272,18 @@ xml:base="http://lib.ololo.cc/opds/">
 			} else if ( "entry".equals(localName) ) {
 //				if ( !insideFeed || insideEntry )
 //					throw new SAXException("unexpected element " + localName);
+				if ( !insideFeed ) {
+					insideFeed = true;
+					singleEntry = true;
+				}
 				insideEntry = true;
-				insideFeed = true;
 				entryInfo = new EntryInfo();
+			} else if ( "category".equals(localName) ) {
+				if ( insideEntry ) {
+					String category = attributes.getValue("label");
+					if ( category!=null )
+						entryInfo.categories.add(category);
+				}
 			} else if ( "id".equals(localName) ) {
 				
 			} else if ( "updated".equals(localName) ) {
@@ -258,10 +296,10 @@ xml:base="http://lib.ololo.cc/opds/">
 					Log.d("cr3", tab()+link.toString());
 					if ( insideEntry ) {
 						if ( link.type!=null ) {
-							//boolean isAcquisition = link.rel!=null && link.rel.endsWith("acquisition");
+							boolean isAcquisition = link.rel!=null && link.rel.indexOf("acquisition")>=0;
 							if ( link.type.startsWith("application/atom+xml") ) {
 								entryInfo.link = link;
-							} else {
+							} else if (isAcquisition) {
 								if ( link.getPriority()>0 && (entryInfo.link==null || entryInfo.link.getPriority()<link.getPriority()) )
 									entryInfo.link = link;
 							}
@@ -274,7 +312,7 @@ xml:base="http://lib.ololo.cc/opds/">
 					}
 				}
 			} else if ( "author".equals(localName) ) {
-				
+				authorInfo = new AuthorInfo();
 			}
 		}
 		
@@ -294,7 +332,11 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 				insideEntry = false;
 				entryInfo = null;
-			}
+			} else if ( "author".equals(localName) ) {
+				if ( authorInfo!=null && authorInfo.name!=null )
+					entryInfo.authors.add(authorInfo);
+				authorInfo = null;
+			} 
 			currentAttributes = null;
 			if ( level>0 )
 				level--;
@@ -318,6 +360,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		ODPSHandler handler;
 		public DownloadTask( URI uri, DownloadCallback callback ) {
 			request = new HttpGet(uri);
+			request.addHeader("Referer", "http://www.feedbooks.com/books/recent.atom");
 			this.callback = callback; 
 			Log.d("cr3", "Creating HTTP client");
 		}
