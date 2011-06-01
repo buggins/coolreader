@@ -243,17 +243,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			synchronized(this) {
 				notify();
 			}
+			Log.d("cr3", "sync.set() returned from notify " + Thread.currentThread().getName());
 		}
 		public T get()
 		{
 			Log.d("cr3", "sync.get() called from " + Thread.currentThread().getName());
 			while ( !completed ) {
     			try {
-    				Log.d("cr3", "sync.get() before wait");
+    				Log.d("cr3", "sync.get() before wait " + Thread.currentThread().getName());
     				synchronized(this) {
-    					wait();
+    					if ( !completed )
+    						wait();
     				}
-    				Log.d("cr3", "sync.get() after wait wait");
+    				Log.d("cr3", "sync.get() after wait wait " + Thread.currentThread().getName());
+    			} catch (InterruptedException e) {
+    				Log.d("cr3", "sync.get() exception", e);
+    				// ignore
     			} catch (Exception e) {
     				Log.d("cr3", "sync.get() exception", e);
     				// ignore
@@ -272,6 +277,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	final Sync<T> sync = new Sync<T>();
     	post( new Runnable() {
     		public void run() {
+    			Log.d("cr3", "executeSync " + Thread.currentThread().getName());
     			try {
     				sync.set( task.call() );
     			} catch ( Exception e ) {

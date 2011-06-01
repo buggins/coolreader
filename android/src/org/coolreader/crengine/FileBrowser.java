@@ -484,10 +484,22 @@ public class FileBrowser extends ListView {
 					public File onDownloadStart(String type, String url) {
 						//mEngine.showProgress(0, "Downloading " + url);
 						//mActivity.showToast("Starting download of " + type + " from " + url);
+						Log.d("cr3", "onDownloadStart: called for " + type + " " + url );
 						downloadDir = mActivity.getScanner().getDownloadDirectory();
+						Log.d("cr3", "onDownloadStart: after getDownloadDirectory()" );
+						String subdir = null;
+						if ( myCurrDirectory.authors!=null ) {
+							subdir = OPDSUtil.transcribeFileName(myCurrDirectory.authors);
+						} else {
+							subdir = "NoAuthor";
+						}
 						if ( downloadDir==null )
 							return null;
-						return new File(downloadDir.getPathName());
+						File result = new File(downloadDir.getPathName());
+						result = new File(result, subdir);
+						result.mkdirs();
+						Log.d("cr3", "onDownloadStart: returning " + result.getAbsolutePath() );
+						return result;
 					}
 
 					@Override
@@ -742,7 +754,7 @@ public class FileBrowser extends ListView {
 	//						field1.setVisibility(VISIBLE);
 	//						field2.setVisibility(VISIBLE);
 	//						field3.setVisibility(VISIBLE);
-							field1.setText(formatSize(item.size) + " " + item.format.name().toLowerCase() + " " + formatDate(item.createTime) + "  ");
+							field1.setText(formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
 							//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 							Bookmark pos = mHistory.getLastPos(item);
 							if ( pos!=null ) {

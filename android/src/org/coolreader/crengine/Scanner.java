@@ -665,7 +665,7 @@ public class Scanner {
 	public FileInfo getDownloadDirectory() {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {
 			FileInfo item = mRoot.getDir(i);
-			if ( item.isSpecialDir() && !item.isArchive ) {
+			if ( !item.isSpecialDir() && !item.isArchive ) {
 				FileInfo books = item.findItemByPathName(item.pathname+"/Books");
 				if ( books.exists() )
 					return books;

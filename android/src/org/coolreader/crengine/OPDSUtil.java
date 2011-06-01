@@ -419,23 +419,56 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 			});
 		}
-		private void downloadBook( final String type, final String url, InputStream is, int contentLength ) throws Exception {
+		
+		private File generateFileName( File outDir, String fileName, String type ) {
+			DocumentFormat fmt = type!=null ? DocumentFormat.byMimeType(type) : null;
+			//DocumentFormat fmtext = fileName!=null ? DocumentFormat.byExtension(fileName) : null;
+			if ( fileName==null )
+				fileName = "noname";
+			fileName = transcribeFileName( fileName );
+			String ext = null;
+			if ( fileName.lastIndexOf(".")>0 ) {
+				ext = fileName.substring(fileName.lastIndexOf(".")+1);
+				fileName = fileName.substring(0, fileName.lastIndexOf("."));
+			}
+			if ( fmt!=null )
+				ext = fmt.getExtensions()[0].substring(1);
+			for (int i=0; i<1000; i++ ) {
+				String fn = fileName + (i==0 ? "" : "(" + i + ")") + "." + ext; 
+				File f = new File(outDir, fn);
+				if ( !f.exists() && !f.isDirectory() )
+					return f;
+			}
+			return null;
+		}
+		private void downloadBook( final String type, final String url, InputStream is, int contentLength, final String fileName ) throws Exception {
 			Log.d("cr3", "Download requested: " + type + " " + url + " " + contentLength);
-			if ( type==null || (!type.startsWith("application/epub")&&!type.startsWith("application/fb2")
-					&&!type.startsWith("application/x-mobi")&&!type.startsWith("text/html")&&!type.startsWith("text/plain")) ) {
+			DocumentFormat fmt = DocumentFormat.byMimeType(type);
+			if ( fmt==null ) {
 				Log.d("cr3", "Download: unknown type " + type);
 				throw new Exception("Unknown file type " + type);
 			}
-			final File outFile = BackgroundThread.instance().callGUI(new Callable<File>() {
+			final File outDir = BackgroundThread.instance().callGUI(new Callable<File>() {
 				@Override
 				public File call() throws Exception {
 					return callback.onDownloadStart(type, url);
 				}
 			});
-			if ( outFile==null ) {
+			if ( outDir==null ) {
 				Log.d("cr3", "Cannot find writable location for downloaded file " + url);
 				throw new Exception("Cannot save file " + url);
 			}
+			final File outFile = generateFileName( outDir, fileName, type );
+			if ( outFile==null ) {
+				Log.d("cr3", "Cannot generate file name");
+				throw new Exception("Cannot generate file name");
+			}
+			Log.d("cr3", "Creating file: " + outFile.getAbsolutePath());
+			if ( outFile.exists() || !outFile.createNewFile() ) {
+				Log.d("cr3", "Cannot create file " + outFile.getAbsolutePath());
+				throw new Exception("Cannot create file");
+			}
+			
 			Log.d("cr3", "Download started: " + outFile.getAbsolutePath());
 			long lastTs = System.currentTimeMillis(); 
 			int lastPercent = -1;
@@ -496,6 +529,14 @@ xml:base="http://lib.ololo.cc/opds/">
 	            connection.setConnectTimeout(20000);
 	            connection.setReadTimeout(40000);
 	            connection.setDoInput(true);
+	            String fileName = null;
+	            String disp = connection.getHeaderField("Content-Disposition");
+	            if ( disp!=null ) {
+	            	int p = disp.indexOf("filename=");
+	            	if ( p>0 ) {
+	            		fileName = disp.substring(p + 9);
+	            	}
+	            }
 	            //connection.setDoOutput(true);
 	            //connection.set
 	            
@@ -510,6 +551,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				String contentType = connection.getContentType();
 				String contentEncoding = connection.getContentEncoding();
 				int contentLen = connection.getContentLength();
+				//connection.getC
 				Log.d("cr3", "Entity content length: " + contentLen);
 				Log.d("cr3", "Entity content type: " + contentType);
 				Log.d("cr3", "Entity content encoding: " + contentEncoding);
@@ -519,7 +561,7 @@ xml:base="http://lib.ololo.cc/opds/">
 					parseFeed( is );
 				} else {
 					Log.d("cr3", "Downloading book: " + contentEncoding);
-					downloadBook( contentType, url.toString(), is, contentLen );
+					downloadBook( contentType, url.toString(), is, contentLen, fileName );
 				}
 			} catch (Exception e) {
 				Log.e("cr3", "Exception while trying to open URI " + url.toString(), e);
@@ -555,4 +597,17 @@ xml:base="http://lib.ololo.cc/opds/">
 		currentTask = task;
 		return task;
 	}
+
+	public static String transcribeFileName( String fileName ) {
+		StringBuilder buf = new StringBuilder(fileName.length());
+		for ( char ch : fileName.toCharArray() ) {
+			if ( ch=='\"' || ch=='\'' || ch=='/' || ch=='\\' || ch=='?' || ch<=' ')
+				ch = '_';
+			if ( !((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9') || ch=='-' || ch=='_'))
+				ch = '_';
+			buf.append(ch);
+		}
+		return buf.toString();
+	}
+	
 }
