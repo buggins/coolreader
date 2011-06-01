@@ -280,7 +280,7 @@ public class BackgroundThread extends Thread {
     	}
     	//Log.d("cr3", "executeSync called");
     	final Sync<T> sync = new Sync<T>();
-    	postBackground( new Runnable() {
+    	postGUI( new Runnable() {
     		public void run() {
     			try {
     				sync.set( task.call() );

@@ -411,15 +411,23 @@ public class Scanner {
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
 		String[] urls = {
-				"http://www.feedbooks.com/catalog/",
-				"http://213.5.65.159/opds/",
-				"http://lib.ololo.cc/opds/",
+				"http://www.feedbooks.com/catalog/", "Feedbooks",
+				"http://bookserver.archive.org/catalog/", "Internet Archive",
+				"http://m.gutenberg.org/", "Project Gutenberg", 
+				"http://ebooksearch.webfactional.com/catalog.atom", "eBookSearch", 
+				"http://bookserver.revues.org/", "Revues.org", 
+				"http://www.legimi.com/opds/root.atom", "Legimi",
+				"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
+				"http://213.5.65.159/opds/", "Flibusta", 
+				"http://lib.ololo.cc/opds/", "lib.ololo.cc",
 		};
-		for ( String url : urls ) {
+		for ( int i=0; i<urls.length-1; i+=2 ) {
+			String url = urls[i];
+			String title = urls[i+1];
 			FileInfo odps = new FileInfo();
 			odps.isDirectory = true;
 			odps.pathname = FileInfo.OPDS_DIR_PREFIX + url;
-			odps.filename = "ODPS: " + url;
+			odps.filename = title;
 			odps.isListed = true;
 			odps.isScanned = true;
 			odps.parent = dir;

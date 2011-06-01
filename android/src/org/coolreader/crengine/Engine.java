@@ -296,7 +296,7 @@ public class Engine {
 
 	private volatile int nextProgressId = 0;
 
-	private void showProgress(final int mainProgress, final String msg) {
+	public void showProgress(final int mainProgress, final String msg) {
 		final int progressId = ++nextProgressId;
 		mProgressMessage = msg;
 		mProgressPos = mainProgress;

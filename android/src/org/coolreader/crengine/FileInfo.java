@@ -211,7 +211,7 @@ public class FileInfo {
 		return pathname.startsWith("@");
 	}
 	
-	public boolean isODPSDir()
+	public boolean isOPDSDir()
 	{
 		return pathname.startsWith(OPDS_DIR_PREFIX);
 	}
@@ -650,5 +650,9 @@ public class FileInfo {
 	public String toString()
 	{
 		return pathname;
+	}
+	
+	public boolean allowSorting() {
+		return isDirectory && !isRootDir() && !isRecentDir() && !isOPDSDir();
 	}
 }

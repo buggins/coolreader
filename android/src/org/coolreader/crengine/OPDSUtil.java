@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.CookieHandler;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -18,15 +16,14 @@ import java.util.concurrent.Callable;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.coolreader.CoolReader;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import android.net.http.AndroidHttpClient;
 import android.util.Log;
 import android.util.Xml;
 import android.util.Xml.Encoding;
-import android.webkit.CookieManager;
 
 public class OPDSUtil {
 
@@ -76,6 +73,10 @@ xml:base="http://lib.ololo.cc/opds/">
 		 */
 		public File onDownloadStart( String type, String url );
 		/**
+		 * Download progress
+		 */
+		public void onDownloadProgress( String type, String url, int percent );
+		/**
 		 * Book is downloaded.
 		 */
 		public void onDownloadEnd( String type, String url, File file );
@@ -112,6 +113,8 @@ xml:base="http://lib.ololo.cc/opds/">
 		public int getPriority() {
 			if ( type==null )
 				return 0;
+			if ( rel!=null && rel.indexOf("acquisition")<0 )
+				return 0;
 			if ( type.startsWith("application/fb2") )
 				return 10;
 			if ( type.startsWith("application/epub") )
@@ -121,7 +124,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( type.startsWith("text/html") )
 				return 3;
 			if ( type.startsWith("text/plain") )
-				return 1;
+				return 2;
 			return 0;
 		}
 		@Override
@@ -144,9 +147,21 @@ xml:base="http://lib.ololo.cc/opds/">
 		public String content="";
 		public String summary="";
 		public LinkInfo link;
+		public ArrayList<LinkInfo> links = new ArrayList<LinkInfo>();
 		public String icon;
-		private ArrayList<String> categories = new ArrayList<String>(); 
-		private ArrayList<AuthorInfo> authors = new ArrayList<AuthorInfo>(); 
+		public ArrayList<String> categories = new ArrayList<String>(); 
+		public ArrayList<AuthorInfo> authors = new ArrayList<AuthorInfo>(); 
+		public LinkInfo getBestAcquisitionLink() {
+			LinkInfo best = null;
+			for ( LinkInfo link : links ) {
+				boolean isAcquisition = link.rel!=null && link.rel.indexOf("acquisition")>=0;
+				if (isAcquisition) {
+					if ( link.getPriority()>0 && (best==null || best.getPriority()<link.getPriority()) )
+						best = link;
+				}
+			}
+			return best;
+		}
 	}
 	
 	public static class ODPSHandler extends DefaultHandler {
@@ -299,6 +314,7 @@ xml:base="http://lib.ololo.cc/opds/">
 					Log.d("cr3", tab()+link.toString());
 					if ( insideEntry ) {
 						if ( link.type!=null ) {
+							entryInfo.links.add(link);
 							boolean isAcquisition = link.rel!=null && link.rel.indexOf("acquisition")>=0;
 							if ( link.type.startsWith("application/atom+xml") ) {
 								entryInfo.link = link;
@@ -354,16 +370,20 @@ xml:base="http://lib.ololo.cc/opds/">
 	}
 	
 	public static class DownloadTask {
+		private CoolReader coolReader; 
 		private URL url;
+		private String referer;
 		private DownloadCallback callback;
 		private HttpURLConnection connection;
 		//private HttpUriRequest request;
 		private boolean cancelled;
 		//private byte[] result;
 		ODPSHandler handler;
-		public DownloadTask( URL url, DownloadCallback callback ) {
+		public DownloadTask( CoolReader coolReader, URL url, String referer, DownloadCallback callback ) {
 			this.url = url;
+			this.coolReader = coolReader;
 			this.callback = callback; 
+			this.referer = referer;
 			//request = new HttpGet(url);
 			//request.addHeader("Referer", "http://www.feedbooks.com/books/recent.atom");
 			//Log.d("cr3", "Creating HTTP client");
@@ -399,27 +419,54 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 			});
 		}
-		private void downloadBook( final String type, final String url, InputStream is ) throws Exception {
-			if ( type==null || !type.equals("application/epub") )
+		private void downloadBook( final String type, final String url, InputStream is, int contentLength ) throws Exception {
+			Log.d("cr3", "Download requested: " + type + " " + url + " " + contentLength);
+			if ( type==null || (!type.startsWith("application/epub")&&!type.startsWith("application/fb2")
+					&&!type.startsWith("application/x-mobi")&&!type.startsWith("text/html")&&!type.startsWith("text/plain")) ) {
+				Log.d("cr3", "Download: unknown type " + type);
 				throw new Exception("Unknown file type " + type);
+			}
 			final File outFile = BackgroundThread.instance().callGUI(new Callable<File>() {
 				@Override
 				public File call() throws Exception {
 					return callback.onDownloadStart(type, url);
 				}
 			});
-			FileOutputStream os = new FileOutputStream(outFile);
+			if ( outFile==null ) {
+				Log.d("cr3", "Cannot find writable location for downloaded file " + url);
+				throw new Exception("Cannot save file " + url);
+			}
+			Log.d("cr3", "Download started: " + outFile.getAbsolutePath());
+			long lastTs = System.currentTimeMillis(); 
+			int lastPercent = -1;
+			FileOutputStream os = null;
 			try {
+				os = new FileOutputStream(outFile);
 				byte[] buf = new byte[16384];
-				for (;;) {
+				int totalWritten = 0;
+				while (totalWritten<contentLength || contentLength==-1) {
 					int bytesRead = is.read(buf);
 					if ( bytesRead<=0 )
 						break;
 					os.write(buf, 0, bytesRead);
+					totalWritten += bytesRead;
+					final int percent = totalWritten * 100 / contentLength;
+					long ts = System.currentTimeMillis(); 
+					if ( percent!=lastPercent && ts - lastTs > 1500 ) {
+						Log.d("cr3", "Download progress: " + percent + "%");
+						BackgroundThread.instance().postGUI(new Runnable() {
+							@Override
+							public void run() {
+								callback.onDownloadProgress(type, url, percent);
+							}
+						});
+					}
 				}
 			} finally {
-				os.close();
+				if ( os!=null )
+					os.close();
 			}
+			Log.d("cr3", "Download finished");
 			BackgroundThread.instance().executeGUI(new Runnable() {
 				@Override
 				public void run() {
@@ -441,11 +488,16 @@ xml:base="http://lib.ololo.cc/opds/">
 					return;
 				}
 				connection = (HttpURLConnection)conn;
-	            connection.setRequestProperty("User-Agent", "CoolReader3");
+	            connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
+	            if ( referer!=null )
+	            	connection.setRequestProperty("Referer", referer);
 	            connection.setInstanceFollowRedirects(true);
 	            connection.setAllowUserInteraction(false);
 	            connection.setConnectTimeout(20000);
 	            connection.setReadTimeout(40000);
+	            connection.setDoInput(true);
+	            //connection.setDoOutput(true);
+	            //connection.set
 	            
 	            int response = -1;
 				
@@ -466,7 +518,8 @@ xml:base="http://lib.ololo.cc/opds/">
 					Log.d("cr3", "Parsing feed");
 					parseFeed( is );
 				} else {
-					downloadBook( contentType, url.toString(), is );
+					Log.d("cr3", "Downloading book: " + contentEncoding);
+					downloadBook( contentType, url.toString(), is, contentLen );
 				}
 			} catch (Exception e) {
 				Log.e("cr3", "Exception while trying to open URI " + url.toString(), e);
@@ -497,8 +550,8 @@ xml:base="http://lib.ololo.cc/opds/">
 		}
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create( URL uri, DownloadCallback callback ) {
-		final DownloadTask task = new DownloadTask(uri, callback);
+	public static DownloadTask create( CoolReader coolReader, URL uri, String referer, DownloadCallback callback ) {
+		final DownloadTask task = new DownloadTask(coolReader, uri, referer, callback);
 		currentTask = task;
 		return task;
 	}

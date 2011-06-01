@@ -366,7 +366,7 @@ public class FileBrowser extends ListView {
 		if ( mSortOrder == order )
 			return;
 		mSortOrder = order!=null ? order : FileInfo.DEF_SORT_ORDER;
-		if ( currDirectory!=null && !currDirectory.isRootDir() && !currDirectory.isRecentDir() ) {
+		if ( currDirectory!=null && currDirectory.allowSorting() ) {
 			currDirectory.sort(mSortOrder);
 			showDirectory(currDirectory, null);
 			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
@@ -444,7 +444,17 @@ public class FileBrowser extends ListView {
 						}
 						ArrayList<FileInfo> items = new ArrayList<FileInfo>();
 						for ( EntryInfo entry : entries ) {
-							if ( entry.link.type!=null && entry.link.type.startsWith("application/atom+xml") ) {
+							OPDSUtil.LinkInfo acquisition = entry.getBestAcquisitionLink();
+							if ( acquisition!=null ) {
+								FileInfo file = new FileInfo();
+								file.isDirectory = true;
+								file.pathname = FileInfo.OPDS_DIR_PREFIX + acquisition.href;
+								file.filename = entry.title;
+								file.isListed = true;
+								file.isScanned = true;
+								file.parent = fileOrDir;
+								items.add(file);
+							} else if ( entry.link.type!=null && entry.link.type.startsWith("application/atom+xml") ) {
 								FileInfo file = new FileInfo();
 								file.isDirectory = true;
 								file.pathname = FileInfo.OPDS_DIR_PREFIX + entry.link.href;
@@ -453,17 +463,6 @@ public class FileBrowser extends ListView {
 								file.isScanned = true;
 								file.parent = fileOrDir;
 								items.add(file);
-							} else if ( entry.link.type!=null ) {
-								if ( entry.link.getPriority()>0 ) {
-									FileInfo file = new FileInfo();
-									file.isDirectory = true;
-									file.pathname = FileInfo.OPDS_DIR_PREFIX + entry.link.href;
-									file.filename = entry.title;
-									file.isListed = true;
-									file.isScanned = true;
-									file.parent = fileOrDir;
-									items.add(file);
-								}
 							}
 						}
 						if ( items.size()>0 ) {
@@ -476,13 +475,15 @@ public class FileBrowser extends ListView {
 
 					@Override
 					public void onError(String message) {
+						mEngine.hideProgress();
 						mActivity.showToast(message);
 					}
 
 					FileInfo downloadDir;
 					@Override
 					public File onDownloadStart(String type, String url) {
-						mActivity.showToast("Starting download of " + type + " from " + url);
+						//mEngine.showProgress(0, "Downloading " + url);
+						//mActivity.showToast("Starting download of " + type + " from " + url);
 						downloadDir = mActivity.getScanner().getDownloadDirectory();
 						if ( downloadDir==null )
 							return null;
@@ -491,15 +492,22 @@ public class FileBrowser extends ListView {
 
 					@Override
 					public void onDownloadEnd(String type, String url, File file) {
+						mEngine.hideProgress();
 						mActivity.showToast("Download is finished");
 						FileInfo fi = new FileInfo(file);
 						fi.parent = downloadDir;
 						downloadDir.addFile(fi);
-						mActivity.getReaderView().loadDocument(fi);
+						mActivity.loadDocument(fi);
+					}
+
+					@Override
+					public void onDownloadProgress(String type, String url,
+							int percent) {
+						mEngine.showProgress(percent * 100, "Downloading");
 					}
 					
 				};
-				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(uri, callback);
+				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(mActivity, uri, myCurrDirectory.getODPSUrl(), callback);
 				downloadTask.run();
 			} catch (MalformedURLException e) {
 				Log.e("cr3", "MalformedURLException: " + url);
@@ -510,7 +518,7 @@ public class FileBrowser extends ListView {
 	
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
-		if ( fileOrDir!=null && fileOrDir.isODPSDir() ) {
+		if ( fileOrDir!=null && fileOrDir.isOPDSDir() ) {
 			showODPSDir(fileOrDir, itemToSelect);
 			return;
 		}
@@ -528,7 +536,7 @@ public class FileBrowser extends ListView {
 		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
-					if ( !dir.isRootDir() && !dir.isRecentDir() )
+					if ( dir.allowSorting() )
 						dir.sort(mSortOrder);
 					showDirectoryInternal(dir, file);
 				}
@@ -687,7 +695,7 @@ public class FileBrowser extends ListView {
 							image.setImageResource(R.drawable.cr3_browser_folder);
 						setText(name, item.filename);
 
-						if ( !item.isODPSDir() ) {
+						if ( !item.isOPDSDir() ) {
 							setText(field1, "books: " + String.valueOf(item.fileCount()));
 							setText(field2, "folders: " + String.valueOf(item.dirCount()));
 						} else {

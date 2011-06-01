@@ -449,7 +449,7 @@ public class CoolReader extends Activity
 			        	float b;
 			        	int dimmingAlpha = 255;
 			        	if ( screenBacklightBrightness>=0 ) {
-		        			float minb = 0.1f; 
+		        			float minb = 1/16f; 
 			        		if ( screenBacklightBrightness >= 10 ) {
 			        			b = (screenBacklightBrightness - 10) / 90.0f;
 			        			b = minb + b * (1-minb);
@@ -460,7 +460,7 @@ public class CoolReader extends Activity
 					        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
 			        		} else {
 				        		b = minb;
-				        		dimmingAlpha = 255 - (10-screenBacklightBrightness) * 255 / 10; 
+				        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 255 / 10; 
 			        		}
 			        	} else
 			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
