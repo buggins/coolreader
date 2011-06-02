@@ -96,7 +96,10 @@ public class FileBrowser extends ListView {
 		switch (item.getItemId()) {
 		case R.id.book_open:
 			Log.d("cr3", "book_open menu item selected");
-			mActivity.loadDocument(selectedItem);
+			if ( selectedItem.isOPDSDir() )
+				showOPDSDir(selectedItem, null);
+			else
+				mActivity.loadDocument(selectedItem);
 			return true;
 		case R.id.book_sort_order:
 			mActivity.showToast("Sorry, sort order selection is not yet implemented");
@@ -177,7 +180,10 @@ public class FileBrowser extends ListView {
 			showDirectory(item, null);
 			return true;
 		}
-		mActivity.loadDocument(item);
+		if ( item.isOPDSDir() )
+			showOPDSDir(item, null);
+		else
+			mActivity.loadDocument(item);
 		return true;
 	}
 
@@ -259,6 +265,8 @@ public class FileBrowser extends ListView {
 	
 	public static String formatSize( int size )
 	{
+		if ( size==0 )
+			return "";
 		if ( size<10000 )
 			return String.valueOf(size);
 		else if ( size<1000000 )
@@ -419,8 +427,8 @@ public class FileBrowser extends ListView {
 		dlg.onSelect();
 	}
 	
-	private void showODPSDir( final FileInfo fileOrDir, FileInfo itemToSelect ) {
-		String url = fileOrDir.getODPSUrl();
+	private void showOPDSDir( final FileInfo fileOrDir, FileInfo itemToSelect ) {
+		String url = fileOrDir.getOPDSUrl();
 		final FileInfo myCurrDirectory = currDirectory;
 		if ( url!=null ) {
 			try {
@@ -447,9 +455,12 @@ public class FileBrowser extends ListView {
 							OPDSUtil.LinkInfo acquisition = entry.getBestAcquisitionLink();
 							if ( acquisition!=null ) {
 								FileInfo file = new FileInfo();
-								file.isDirectory = true;
+								file.isDirectory = false;
 								file.pathname = FileInfo.OPDS_DIR_PREFIX + acquisition.href;
-								file.filename = entry.title;
+								file.filename = entry.content;
+								file.title = entry.title;
+								file.format = DocumentFormat.byMimeType(acquisition.type);
+								file.authors = entry.getAuthors();
 								file.isListed = true;
 								file.isScanned = true;
 								file.parent = fileOrDir;
@@ -488,8 +499,8 @@ public class FileBrowser extends ListView {
 						downloadDir = mActivity.getScanner().getDownloadDirectory();
 						Log.d("cr3", "onDownloadStart: after getDownloadDirectory()" );
 						String subdir = null;
-						if ( myCurrDirectory.authors!=null ) {
-							subdir = OPDSUtil.transcribeFileName(myCurrDirectory.authors);
+						if ( fileOrDir.authors!=null ) {
+							subdir = OPDSUtil.transcribeFileName(fileOrDir.authors);
 						} else {
 							subdir = "NoAuthor";
 						}
@@ -519,7 +530,12 @@ public class FileBrowser extends ListView {
 					}
 					
 				};
-				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(mActivity, uri, myCurrDirectory.getODPSUrl(), callback);
+				String fileMimeType = fileOrDir.format!=null ? fileOrDir.format.getMimeFormat() : null;
+				String defFileName = OPDSUtil.transcribeFileName( fileOrDir.title!=null ? fileOrDir.title : fileOrDir.filename );
+				if ( fileOrDir.format!=null )
+					defFileName = defFileName + fileOrDir.format.getExtensions()[0];
+				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(mActivity, uri, defFileName, fileOrDir.isDirectory?"application/atom+xml":fileMimeType, 
+						myCurrDirectory.getOPDSUrl(), callback);
 				downloadTask.run();
 			} catch (MalformedURLException e) {
 				Log.e("cr3", "MalformedURLException: " + url);
@@ -531,7 +547,7 @@ public class FileBrowser extends ListView {
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
 		if ( fileOrDir!=null && fileOrDir.isOPDSDir() ) {
-			showODPSDir(fileOrDir, itemToSelect);
+			showOPDSDir(fileOrDir, itemToSelect);
 			return;
 		}
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {

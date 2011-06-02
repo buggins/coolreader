@@ -18,8 +18,8 @@ public class FileInfo {
 	public final static String RECENT_DIR_TAG = "@recent";
 	public final static String SEARCH_RESULT_DIR_TAG = "@search";
 	public final static String ROOT_DIR_TAG = "@root";
-	public final static String OPDS_LIST_TAG = "@odps";
-	public final static String OPDS_DIR_PREFIX = "@odps:";
+	public final static String OPDS_LIST_TAG = "@opds";
+	public final static String OPDS_DIR_PREFIX = "@opds:";
 	public final static String AUTHORS_TAG = "@authors";
 	public final static String AUTHOR_PREFIX = "@author:";
 	
@@ -221,7 +221,7 @@ public class FileInfo {
 		return pathname.startsWith(".");
 	}
 	
-	public String getODPSUrl()
+	public String getOPDSUrl()
 	{
 		if ( !pathname.startsWith(OPDS_DIR_PREFIX) )
 			return null;

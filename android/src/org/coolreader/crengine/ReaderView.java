@@ -3155,7 +3155,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 
-	private long sumAnimationDrawDuration = 100;
+	private long sumAnimationDrawDuration = 500;
 	private int drawAnimationCount = 10;
 	private long getAvgAnimationDrawDuration()
 	{

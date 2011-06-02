@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +16,8 @@ import java.util.Stack;
 import java.util.concurrent.Callable;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.coolreader.CoolReader;
 import org.xml.sax.Attributes;
@@ -22,8 +25,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import android.util.Log;
-import android.util.Xml;
-import android.util.Xml.Encoding;
 
 public class OPDSUtil {
 
@@ -101,11 +102,20 @@ xml:base="http://lib.ololo.cc/opds/">
 		public String rel;
 		public String title;
 		public String type;
-		public LinkInfo( Attributes attributes ) {
+		public LinkInfo( URL baseURL, Attributes attributes ) {
 			rel = attributes.getValue("rel");
 			type = attributes.getValue("type");
 			title = attributes.getValue("title");
-			href = attributes.getValue("href");
+			href = convertHref( baseURL, attributes.getValue("href") );
+		}
+		public static String convertHref( URL baseURL, String href ) {
+			if ( href==null )
+				return href;
+			if ( href.startsWith("/") )
+				return baseURL.getProtocol() + "://" + baseURL.getHost() + href;
+			if ( !href.startsWith("http://") )
+				return baseURL.getProtocol() + "://" + baseURL.getHost() + "/" + baseURL.getPath() + "/" + href;
+			return href;
 		}
 		public boolean isValid() {
 			return href!=null && href.length()!=0;
@@ -113,19 +123,11 @@ xml:base="http://lib.ololo.cc/opds/">
 		public int getPriority() {
 			if ( type==null )
 				return 0;
-			if ( rel!=null && rel.indexOf("acquisition")<0 )
+			DocumentFormat df = DocumentFormat.byMimeType(type);
+			if ( rel!=null && rel.indexOf("acquisition")<0 && df!=DocumentFormat.FB2 && df!=DocumentFormat.EPUB 
+					&& df!=DocumentFormat.RTF && df!=DocumentFormat.DOC)
 				return 0;
-			if ( type.startsWith("application/fb2") )
-				return 10;
-			if ( type.startsWith("application/epub") )
-				return 9;
-			if ( type.startsWith("application/x-mobipocket-ebook") )
-				return 8;
-			if ( type.startsWith("text/html") )
-				return 3;
-			if ( type.startsWith("text/plain") )
-				return 2;
-			return 0;
+			return df!=null ? df.getPriority() : 0;
 		}
 		@Override
 		public String toString() {
@@ -153,18 +155,34 @@ xml:base="http://lib.ololo.cc/opds/">
 		public ArrayList<AuthorInfo> authors = new ArrayList<AuthorInfo>(); 
 		public LinkInfo getBestAcquisitionLink() {
 			LinkInfo best = null;
+			int bestPriority = 0; 
 			for ( LinkInfo link : links ) {
-				boolean isAcquisition = link.rel!=null && link.rel.indexOf("acquisition")>=0;
-				if (isAcquisition) {
-					if ( link.getPriority()>0 && (best==null || best.getPriority()<link.getPriority()) )
+				//boolean isAcquisition = link.rel!=null && link.rel.indexOf("acquisition")>=0;
+				int priority = link.getPriority();
+				if (priority>0 && priority>bestPriority) {
+					if ( link.getPriority()>0 && (best==null || best.getPriority()<link.getPriority()) ) {
 						best = link;
+						bestPriority = priority;
+					}
 				}
 			}
 			return best;
 		}
+		public String getAuthors() {
+			if ( authors.size()==0 )
+				return null;
+			StringBuilder buf = new StringBuilder(100);
+			for ( AuthorInfo a : authors ) {
+				if ( buf.length()>0 )
+					buf.append(", ");
+				buf.append(a.name);
+			}
+			return buf.toString();
+		}
 	}
 	
-	public static class ODPSHandler extends DefaultHandler {
+	public static class OPDSHandler extends DefaultHandler {
+		private URL url;
 		private DocInfo docInfo = new DocInfo(); 
 		private EntryInfo entryInfo = new EntryInfo(); 
 		private ArrayList<EntryInfo> entries = new ArrayList<EntryInfo>(); 
@@ -178,6 +196,9 @@ xml:base="http://lib.ololo.cc/opds/">
 		//2011-05-31T10:28:22+04:00
 		private static SimpleDateFormat tsFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"); 
 		private static SimpleDateFormat tsFormat2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		public OPDSHandler( URL url ) {
+			this.url = url;
+		}
 		private long parseTimestamp( String ts ) {
 			if ( ts==null )
 				return 0;
@@ -196,6 +217,18 @@ xml:base="http://lib.ololo.cc/opds/">
 			}
 			Log.e("cr3", "cannot parse timestamp " + ts);
 			return 0;
+		}
+		
+		@Override
+		public void endPrefixMapping(String prefix) throws SAXException {
+			// TODO Auto-generated method stub
+			super.endPrefixMapping(prefix);
+		}
+		@Override
+		public void startPrefixMapping(String prefix, String uri)
+				throws SAXException {
+			// TODO Auto-generated method stub
+			super.startPrefixMapping(prefix, uri);
 		}
 		@Override
 		public void characters(char[] ch, int start, int length)
@@ -280,6 +313,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				String qName, Attributes attributes)
 				throws SAXException {
 			super.startElement(uri, localName, qName, attributes);
+			localName = qName;
 			level++;
 			Log.d("cr3", tab() + "<" + localName + ">");
 			currentAttributes = attributes;
@@ -309,18 +343,17 @@ xml:base="http://lib.ololo.cc/opds/">
 			} else if ( "title".equals(localName) ) {
 				
 			} else if ( "link".equals(localName) ) {
-				LinkInfo link = new LinkInfo(attributes);
+				LinkInfo link = new LinkInfo(url, attributes);
 				if ( link.isValid() && insideFeed ) {
 					Log.d("cr3", tab()+link.toString());
 					if ( insideEntry ) {
 						if ( link.type!=null ) {
 							entryInfo.links.add(link);
-							boolean isAcquisition = link.rel!=null && link.rel.indexOf("acquisition")>=0;
+							int priority = link.getPriority();
 							if ( link.type.startsWith("application/atom+xml") ) {
 								entryInfo.link = link;
-							} else if (isAcquisition) {
-								if ( link.getPriority()>0 && (entryInfo.link==null || entryInfo.link.getPriority()<link.getPriority()) )
-									entryInfo.link = link;
+							} else if (priority>0 && (entryInfo.link==null || entryInfo.link.getPriority()<priority)) {
+								entryInfo.link = link;
 							}
 						}
 					} else {
@@ -339,6 +372,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		public void endElement(String uri, String localName,
 				String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
+			localName = qName;
 			Log.d("cr3", tab() + "</" + localName + ">");
 			//String currentElement = elements.peek();
 			if ( insideFeed && "feed".equals(localName) ) {
@@ -346,7 +380,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			} else if ( "entry".equals(localName) ) {
 				if ( !insideFeed || !insideEntry )
 					throw new SAXException("unexpected element " + localName);
-				if ( entryInfo.link!=null ) {
+				if ( entryInfo.link!=null || entryInfo.getBestAcquisitionLink()!=null ) {
 					entries.add(entryInfo);
 				}
 				insideEntry = false;
@@ -370,20 +404,24 @@ xml:base="http://lib.ololo.cc/opds/">
 	}
 	
 	public static class DownloadTask {
-		private CoolReader coolReader; 
-		private URL url;
-		private String referer;
-		private DownloadCallback callback;
+		final private CoolReader coolReader; 
+		final private URL url;
+		final private String expectedType;
+		final private String referer;
+		final private String defaultFileName;
+		final private DownloadCallback callback;
 		private HttpURLConnection connection;
 		//private HttpUriRequest request;
 		private boolean cancelled;
 		//private byte[] result;
-		ODPSHandler handler;
-		public DownloadTask( CoolReader coolReader, URL url, String referer, DownloadCallback callback ) {
+		OPDSHandler handler;
+		public DownloadTask( CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
 			this.url = url;
 			this.coolReader = coolReader;
 			this.callback = callback; 
 			this.referer = referer;
+			this.expectedType = expectedType;
+			this.defaultFileName = defaultFileName;
 			//request = new HttpGet(url);
 			//request.addHeader("Referer", "http://www.feedbooks.com/books/recent.atom");
 			//Log.d("cr3", "Creating HTTP client");
@@ -402,8 +440,86 @@ xml:base="http://lib.ololo.cc/opds/">
 		}
 		private void parseFeed( InputStream is ) throws Exception {
 			try {
-				handler = new ODPSHandler();
-				Xml.parse(is, Encoding.UTF_8, handler);
+				handler = new OPDSHandler(url);
+				String[] namespaces = new String[] { 
+                        "access", "http://www.bloglines.com/about/specs/fac-1.0",
+                        "admin", "http://webns.net/mvcb/",
+                        "ag", "http://purl.org/rss/1.0/modules/aggregation/",
+                        "annotate", "http://purl.org/rss/1.0/modules/annotate/",
+                        "app", "http://www.w3.org/2007/app",
+                        "atom", "http://www.w3.org/2005/Atom",
+                        "audio", "http://media.tangent.org/rss/1.0/",
+                        "blogChannel", "http://backend.userland.com/blogChannelModule",
+                        "cc", "http://web.resource.org/cc/",
+                        "cf", "http://www.microsoft.com/schemas/rss/core/2005",
+                        "company", "http://purl.org/rss/1.0/modules/company",
+                        "content", "http://purl.org/rss/1.0/modules/content/",
+                        "conversationsNetwork", "http://conversationsnetwork.org/rssNamespace-1.0/",
+                        "cp", "http://my.theinfo.org/changed/1.0/rss/",
+                        "creativeCommons", "http://backend.userland.com/creativeCommonsRssModule",
+                        "dc", "http://purl.org/dc/elements/1.1/",
+                        "dcterms", "http://purl.org/dc/terms/",
+                        "email", "http://purl.org/rss/1.0/modules/email/",
+                        "ev", "http://purl.org/rss/1.0/modules/event/",
+                        "feedburner", "http://rssnamespace.org/feedburner/ext/1.0",
+                        "fh", "http://purl.org/syndication/history/1.0",
+                        "foaf", "http://xmlns.com/foaf/0.1/",
+                        "foaf", "http://xmlns.com/foaf/0.1",
+                        "geo", "http://www.w3.org/2003/01/geo/wgs84_pos#",
+                        "georss", "http://www.georss.org/georss",
+                        "geourl", "http://geourl.org/rss/module/",
+                        "g", "http://base.google.com/ns/1.0",
+                        "gml", "http://www.opengis.net/gml",
+                        "icbm", "http://postneo.com/icbm",
+                        "image", "http://purl.org/rss/1.0/modules/image/",
+                        "indexing", "urn:atom-extension:indexing",
+                        "itunes", "http://www.itunes.com/dtds/podcast-1.0.dtd",
+                        "kml20", "http://earth.google.com/kml/2.0",
+                        "kml21", "http://earth.google.com/kml/2.1",
+                        "kml22", "http://www.opengis.net/kml/2.2",
+                        "l", "http://purl.org/rss/1.0/modules/link/",
+                        "mathml", "http://www.w3.org/1998/Math/MathML",
+                        "media", "http://search.yahoo.com/mrss/",
+                        "openid", "http://openid.net/xmlns/1.0",
+                        "opensearch10", "http://a9.com/-/spec/opensearchrss/1.0/",
+                        "opensearch", "http://a9.com/-/spec/opensearch/1.1/",
+                        "opml", "http://www.opml.org/spec2",
+                        "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                        "rdfs", "http://www.w3.org/2000/01/rdf-schema#",
+                        "ref", "http://purl.org/rss/1.0/modules/reference/",
+                        "reqv", "http://purl.org/rss/1.0/modules/richequiv/",
+                        "rss090", "http://my.netscape.com/rdf/simple/0.9/",
+                        "rss091", "http://purl.org/rss/1.0/modules/rss091#",
+                        "rss1", "http://purl.org/rss/1.0/",
+                        "rss11", "http://purl.org/net/rss1.1#",
+                        "search", "http://purl.org/rss/1.0/modules/search/",
+                        "slash", "http://purl.org/rss/1.0/modules/slash/",
+                        "ss", "http://purl.org/rss/1.0/modules/servicestatus/",
+                        "str", "http://hacks.benhammersley.com/rss/streaming/",
+                        "sub", "http://purl.org/rss/1.0/modules/subscription/",
+                        "svg", "http://www.w3.org/2000/svg",
+                        "sx", "http://feedsync.org/2007/feedsync",
+                        "sy", "http://purl.org/rss/1.0/modules/syndication/",
+                        "taxo", "http://purl.org/rss/1.0/modules/taxonomy/",
+                        "thr", "http://purl.org/rss/1.0/modules/threading/",
+                        "thr", "http://purl.org/syndication/thread/1.0",
+                        "trackback", "http://madskills.com/public/xml/rss/module/trackback/",
+                        "wfw", "http://wellformedweb.org/CommentAPI/",
+                        "wiki", "http://purl.org/rss/1.0/modules/wiki/",
+                        "xhtml", "http://www.w3.org/1999/xhtml",
+                        "xlink", "http://www.w3.org/1999/xlink",
+                        "xrd", "xri://$xrd*($v*2.0)",
+                        "xrds", "xri://$xrds"
+				};
+				for ( int i=0; i<namespaces.length-1; i+=2 )
+					handler.startPrefixMapping(namespaces[i], namespaces[i+1]);
+				SAXParserFactory spf = SAXParserFactory.newInstance();
+				spf.setValidating(false);
+				spf.setNamespaceAware(true);
+				spf.setFeature("http://xml.org/sax/features/namespaces", false);
+				SAXParser sp = spf.newSAXParser();
+				//XMLReader xr = sp.getXMLReader();				
+				sp.parse(is, handler);
 			} catch (SAXException se) {
 				Log.e("SAX XML", "sax error", se);
 				throw se;
@@ -420,19 +536,23 @@ xml:base="http://lib.ololo.cc/opds/">
 			});
 		}
 		
-		private File generateFileName( File outDir, String fileName, String type ) {
+		private File generateFileName( File outDir, String fileName, String type, boolean isZip ) {
 			DocumentFormat fmt = type!=null ? DocumentFormat.byMimeType(type) : null;
 			//DocumentFormat fmtext = fileName!=null ? DocumentFormat.byExtension(fileName) : null;
 			if ( fileName==null )
 				fileName = "noname";
-			fileName = transcribeFileName( fileName );
 			String ext = null;
 			if ( fileName.lastIndexOf(".")>0 ) {
 				ext = fileName.substring(fileName.lastIndexOf(".")+1);
 				fileName = fileName.substring(0, fileName.lastIndexOf("."));
 			}
-			if ( fmt!=null )
-				ext = fmt.getExtensions()[0].substring(1);
+			fileName = transcribeFileName( fileName );
+			if ( fmt!=null ) {
+				if ( fmt==DocumentFormat.FB2 && isZip )
+					ext = ".fb2.zip";
+				else
+					ext = fmt.getExtensions()[0].substring(1);
+			}
 			for (int i=0; i<1000; i++ ) {
 				String fn = fileName + (i==0 ? "" : "(" + i + ")") + "." + ext; 
 				File f = new File(outDir, fn);
@@ -441,7 +561,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			}
 			return null;
 		}
-		private void downloadBook( final String type, final String url, InputStream is, int contentLength, final String fileName ) throws Exception {
+		private void downloadBook( final String type, final String url, InputStream is, int contentLength, final String fileName, final boolean isZip ) throws Exception {
 			Log.d("cr3", "Download requested: " + type + " " + url + " " + contentLength);
 			DocumentFormat fmt = DocumentFormat.byMimeType(type);
 			if ( fmt==null ) {
@@ -458,7 +578,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				Log.d("cr3", "Cannot find writable location for downloaded file " + url);
 				throw new Exception("Cannot save file " + url);
 			}
-			final File outFile = generateFileName( outDir, fileName, type );
+			final File outFile = generateFileName( outDir, fileName, type, isZip );
 			if ( outFile==null ) {
 				Log.d("cr3", "Cannot generate file name");
 				throw new Exception("Cannot generate file name");
@@ -506,6 +626,19 @@ xml:base="http://lib.ololo.cc/opds/">
 					callback.onDownloadEnd(type, url, outFile);
 				}
 			});
+		}
+		public static int findSubstring( byte[]buf, String str ) {
+			for ( int i=0; i<buf.length-str.length(); i++ ) {
+				boolean found = true;
+				for ( int j=0; j<str.length(); j++ )
+					if ( str.charAt(j)!=buf[i+j] ) {
+						found = false;
+						break;
+					}
+				if ( found )
+					return i;
+			}
+			return -1; // not found
 		}
 		public void runInternal() {
 			connection = null;
@@ -556,12 +689,30 @@ xml:base="http://lib.ololo.cc/opds/">
 				Log.d("cr3", "Entity content type: " + contentType);
 				Log.d("cr3", "Entity content encoding: " + contentEncoding);
 				InputStream is = connection.getInputStream();
+				final int MAX_CONTENT_LEN_TO_BUFFER = 256*1024;
+				boolean isZip = contentType!=null && contentType.equals("application/zip");
+				if ( expectedType!=null )
+					contentType = expectedType;
+				else if ( contentLen>0 && contentLen<MAX_CONTENT_LEN_TO_BUFFER) { // autodetect type
+					byte[] buf = new byte[contentLen];
+					if ( is.read(buf)!=contentLen ) {
+						onError("Wrong content length");
+						return;
+					}
+					is.close();
+					is = null;
+					is = new ByteArrayInputStream(buf);
+					if ( findSubstring(buf, "<?xml version=")>=0 && findSubstring(buf, "<feed")>=0  )
+						contentType = "application/atom+xml"; // override type
+				}
 				if ( contentType.startsWith("application/atom+xml") ) {
 					Log.d("cr3", "Parsing feed");
 					parseFeed( is );
 				} else {
+					if ( fileName==null )
+						fileName = defaultFileName;
 					Log.d("cr3", "Downloading book: " + contentEncoding);
-					downloadBook( contentType, url.toString(), is, contentLen, fileName );
+					downloadBook( contentType, url.toString(), is, contentLen, fileName, isZip );
 				}
 			} catch (Exception e) {
 				Log.e("cr3", "Exception while trying to open URI " + url.toString(), e);
@@ -576,6 +727,7 @@ xml:base="http://lib.ololo.cc/opds/">
 					}
 			}
 		}
+
 		public void run() {
 			BackgroundThread.backgroundExecutor.execute(new Runnable() {
 				@Override
@@ -588,24 +740,54 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 			});
 		}
+
 		public void cancel() {
 		}
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create( CoolReader coolReader, URL uri, String referer, DownloadCallback callback ) {
-		final DownloadTask task = new DownloadTask(coolReader, uri, referer, callback);
+	public static DownloadTask create( CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
+		final DownloadTask task = new DownloadTask(coolReader, uri, defaultFileName, expectedType, referer, callback);
 		currentTask = task;
 		return task;
 	}
 
+	private static class SubstTable {
+		private final int startChar;
+		private final String[] replacements;
+		public SubstTable( int startChar, String[] replacements ) {
+			this.startChar = startChar;
+			this.replacements = replacements;
+		}
+		boolean isInRange( char ch ) {
+			return ch>=startChar && ch<startChar + replacements.length;
+		}
+		String get( char ch ) {
+			return (ch>=startChar && ch<startChar + replacements.length) ? replacements[ch - startChar] : "";
+		}
+	}
+	
+	private final static SubstTable[] substTables = { 
+		new SubstTable(0x430, new String[]{"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "c", "ch", "sh", "sch", "'", "y", "i", "e", "yu", "ya"}),
+		new SubstTable(0x410, new String[]{"A", "B", "V", "G", "D", "E", "Zh", "Z", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "H", "C", "Ch", "Sh", "Sch", "'", "Y", "I", "E", "Yu", "Ya"}),
+	};
+	
 	public static String transcribeFileName( String fileName ) {
 		StringBuilder buf = new StringBuilder(fileName.length());
 		for ( char ch : fileName.toCharArray() ) {
-			if ( ch=='\"' || ch=='\'' || ch=='/' || ch=='\\' || ch=='?' || ch<=' ')
-				ch = '_';
-			if ( !((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9') || ch=='-' || ch=='_'))
-				ch = '_';
-			buf.append(ch);
+			boolean found = false;
+			if ( ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9') || ch=='-' || ch=='_' || ch=='(' || ch==')')) {
+				buf.append(ch);
+				continue;
+			}
+			for ( SubstTable t : substTables ) {
+				if ( t.isInRange(ch) ) {
+					buf.append(t.get(ch));
+					found = true;
+				}
+			}
+			if ( found )
+				continue;
+			buf.append("_");
 		}
 		return buf.toString();
 	}
