@@ -1032,6 +1032,9 @@ public class CoolReader extends Activity
 		case R.id.book_root:
 			mBrowser.showRootDirectory();
 			return true;
+		case R.id.book_opds_root:
+			mBrowser.showOPDSRootDirectory();
+			return true;
 		case R.id.book_recent_books:
 			mBrowser.showRecentBooks();
 			return true;

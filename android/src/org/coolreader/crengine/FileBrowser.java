@@ -110,6 +110,9 @@ public class FileBrowser extends ListView {
 		case R.id.book_recent_books:
 			showRecentBooks();
 			return true;
+		case R.id.book_opds_root:
+			showOPDSRootDirectory();
+			return true;
 		case R.id.book_root:
 			showRootDirectory();
 			return true;
@@ -369,7 +372,16 @@ public class FileBrowser extends ListView {
 
 	public void showRootDirectory()
 	{
+		log.v("showRootDirectory()");
 		showDirectory(mScanner.getRoot(), null);
+	}
+
+	public void showOPDSRootDirectory()
+	{
+		log.v("showOPDSRootDirectory()");
+		FileInfo opdsRoot = mScanner.getOPDSRoot();
+		if ( opdsRoot!=null )
+			showDirectory(opdsRoot, null);
 	}
 
 	private FileInfo.SortOrder mSortOrder = FileInfo.DEF_SORT_ORDER; 

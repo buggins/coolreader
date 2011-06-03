@@ -210,12 +210,17 @@ public class FileInfo {
 	
 	public boolean isSpecialDir()
 	{
-		return pathname.startsWith("@");
+		return pathname!=null && pathname.startsWith("@");
 	}
 	
 	public boolean isOPDSDir()
 	{
-		return pathname.startsWith(OPDS_DIR_PREFIX);
+		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX);
+	}
+	
+	public boolean isOPDSRoot()
+	{
+		return OPDS_LIST_TAG.equals(pathname);
 	}
 	
 	public boolean isHidden()

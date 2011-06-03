@@ -690,6 +690,17 @@ public class Scanner {
 	{
 		return mRoot;
 	}
+
+	public FileInfo getOPDSRoot() 
+	{
+		for ( int i=0; i<mRoot.dirCount(); i++ ) {
+			if ( mRoot.getDir(i).isOPDSRoot() )
+				return mRoot.getDir(i);
+		}
+		L.w("OPDS root directory not found!");
+		return null;
+	}
+	
 	public Scanner( CoolReader coolReader, CRDB db, Engine engine )
 	{
 		this.engine = engine;

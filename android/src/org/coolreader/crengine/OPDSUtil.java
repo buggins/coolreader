@@ -25,6 +25,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import android.R;
+
 public class OPDSUtil {
 
 	/*
@@ -409,7 +411,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			this.defaultFileName = defaultFileName;
 		}
 		private void setProgressMessage( String url, int totalSize ) {
-			progressMessage = "Downloading " + url;
+			progressMessage = coolReader.getString(org.coolreader.R.string.progress_downloading) + " " + url;
 			if ( totalSize>0 )
 				progressMessage = progressMessage + " (" + totalSize + ")";
 		}
