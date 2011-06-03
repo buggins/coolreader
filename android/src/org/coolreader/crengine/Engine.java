@@ -301,7 +301,7 @@ public class Engine {
 		mProgressMessage = msg;
 		mProgressPos = mainProgress;
 		if (mainProgress == 10000) {
-			Log.v("cr3", "mainProgress==10000 : calling hideProgress");
+			//Log.v("cr3", "mainProgress==10000 : calling hideProgress");
 			hideProgress();
 			return;
 		}
@@ -311,17 +311,17 @@ public class Engine {
 			mBackgroundThread.executeGUI(new Runnable() {
 				public void run() {
 					// show progress
-					Log.v("cr3", "showProgress() - in GUI thread");
+					//Log.v("cr3", "showProgress() - in GUI thread");
 					if (progressId != nextProgressId) {
-						Log.v("cr3",
-								"showProgress() - skipping duplicate progress event");
+						//Log.v("cr3",
+						//		"showProgress() - skipping duplicate progress event");
 						return;
 					}
 					if (mProgress == null) {
 						try {
 							if (mActivity != null && mActivity.isStarted()) {
-								Log.v("cr3",
-										"showProgress() - in GUI thread : creating progress window");
+//								Log.v("cr3",
+//										"showProgress() - in GUI thread : creating progress window");
 								if (PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL) {
 									mProgress = new ProgressDialog(mActivity);
 									mProgress
@@ -341,8 +341,8 @@ public class Engine {
 									mProgress.setMessage(msg);
 									mProgress.show();
 								} else {
-									mProgress = ProgressDialog.show(mActivity,
-											"Please Wait", msg);
+//									mProgress = ProgressDialog.show(mActivity,
+//											"Please Wait", msg);
 									mProgress.setCancelable(false);
 									mProgress.setProgress(mainProgress);
 								}
@@ -376,10 +376,10 @@ public class Engine {
 		mBackgroundThread.executeGUI(new Runnable() {
 			public void run() {
 				// hide progress
-				Log.v("cr3", "hideProgress() - in GUI thread");
+//				Log.v("cr3", "hideProgress() - in GUI thread");
 				if (progressId != nextProgressId) {
-					Log.v("cr3",
-							"hideProgress() - skipping duplicate progress event");
+//					Log.v("cr3",
+//							"hideProgress() - skipping duplicate progress event");
 					return;
 				}
 				if (mProgress != null) {
@@ -389,7 +389,7 @@ public class Engine {
 					progressIcon = null;
 					mProgress.dismiss();
 					mProgress = null;
-					Log.v("cr3", "hideProgress() - in GUI thread, finished");
+//					Log.v("cr3", "hideProgress() - in GUI thread, finished");
 				}
 			}
 		});

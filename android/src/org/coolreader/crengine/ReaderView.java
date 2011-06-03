@@ -1866,8 +1866,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private int mBatteryState = 100;
 	public void setBatteryState( int state ) {
-		mBatteryState = state;
-		drawPage();
+		if ( state!=mBatteryState ) {
+			Log.i("cr3", "Battery state changed: " + state);
+			mBatteryState = state;
+			drawPage();
+		}
+	}
+	
+	public int getBatteryState() {
+		return mBatteryState;
 	}
 	
 	private static class BitmapFactory {

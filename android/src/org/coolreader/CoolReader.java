@@ -313,7 +313,6 @@ public class CoolReader extends Activity
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.i("cr3", "Battery state changed. Intent=" + intent);
 				int level = intent.getIntExtra("level", 0);
 				if ( mReaderView!=null )
 					mReaderView.setBatteryState(level);
@@ -1004,8 +1003,13 @@ public class CoolReader extends Activity
 	
 	public void showBookmarksDialog()
 	{
-		BookmarksDlg dlg = new BookmarksDlg(this, mReaderView);
-		dlg.show();
+		BackgroundThread.instance().executeGUI(new Runnable() {
+			@Override
+			public void run() {
+				BookmarksDlg dlg = new BookmarksDlg(CoolReader.this, mReaderView);
+				dlg.show();
+			}
+		});
 	}
 	
 	@Override

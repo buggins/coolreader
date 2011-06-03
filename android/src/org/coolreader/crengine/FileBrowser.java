@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -546,6 +546,23 @@ public class FileBrowser extends ListView {
 	
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
+		if ( !BackgroundThread.instance().isGUIThread() ) {
+			try {
+				throw new Exception("showDirectory called from background thread!");
+			} catch ( Exception e ) {
+				Log.e("cr3", e.getMessage(), e);
+			}
+			final FileInfo dir = fileOrDir;
+			final FileInfo item = itemToSelect;
+			BackgroundThread.instance().callGUI(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					showDirectory( dir, item );
+					return null;
+				}
+			});
+			return;
+		}
 		if ( fileOrDir!=null && fileOrDir.isOPDSDir() ) {
 			showOPDSDir(fileOrDir, itemToSelect);
 			return;
@@ -617,9 +634,26 @@ public class FileBrowser extends ListView {
 
 	private void showDirectoryInternal( final FileInfo dir, final FileInfo file )
 	{
+		if ( !BackgroundThread.instance().isGUIThread() ) {
+			try {
+				throw new Exception("showDirectoryInternal called from background thread!");
+			} catch ( Exception e ) {
+				Log.e("cr3", e.getMessage(), e);
+			}
+			BackgroundThread.instance().callGUI(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					showDirectoryInternal( dir, file );
+					return null;
+				}
+			});
+			return;
+		}
 		currDirectory = dir;
 		if ( dir!=null )
-			Log.i("cr3", "Showing directory " + dir);
+			Log.i("cr3", "Showing directory " + dir + " " + Thread.currentThread().getName());
+		if ( !BackgroundThread.instance().isGUIThread() )
+			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
 		this.setAdapter(new ListAdapter() {
 
 			public boolean areAllItemsEnabled() {
