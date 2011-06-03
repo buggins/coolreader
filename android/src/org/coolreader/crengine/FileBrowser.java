@@ -44,6 +44,8 @@ public class FileBrowser extends ListView {
 	CoolReader mActivity;
 	LayoutInflater mInflater;
 	History mHistory;
+
+	public static final int MAX_SUBDIR_LEN = 32;
 	
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
@@ -501,6 +503,8 @@ public class FileBrowser extends ListView {
 						String subdir = null;
 						if ( fileOrDir.authors!=null ) {
 							subdir = OPDSUtil.transcribeFileName(fileOrDir.authors);
+							if ( subdir.length()>MAX_SUBDIR_LEN )
+								subdir = subdir.substring(0, MAX_SUBDIR_LEN);
 						} else {
 							subdir = "NoAuthor";
 						}
@@ -509,6 +513,7 @@ public class FileBrowser extends ListView {
 						File result = new File(downloadDir.getPathName());
 						result = new File(result, subdir);
 						result.mkdirs();
+						downloadDir.findItemByPathName(result.getAbsolutePath());
 						Log.d("cr3", "onDownloadStart: returning " + result.getAbsolutePath() );
 						return result;
 					}
@@ -518,9 +523,15 @@ public class FileBrowser extends ListView {
 						mEngine.hideProgress();
 						mActivity.showToast("Download is finished");
 						FileInfo fi = new FileInfo(file);
-						fi.parent = downloadDir;
-						downloadDir.addFile(fi);
-						mActivity.loadDocument(fi);
+						FileInfo dir = mScanner.findParent(fi, downloadDir);
+						if ( dir==null )
+							dir = downloadDir;
+						mScanner.listDirectory(dir);
+						FileInfo item = dir.findItemByPathName(file.getAbsolutePath());
+						if ( item!=null )
+							mActivity.loadDocument(item);
+						else
+							mActivity.loadDocument(fi);
 					}
 
 					@Override

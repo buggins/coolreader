@@ -2615,24 +2615,27 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( pointerDestPos != pointerCurrPos ) {
 				if ( !started )
 					started = true;
-				// TODO
-				int delta = pointerCurrPos-pointerDestPos;
-				if ( delta<0 )
-					delta = -delta;
-				long avgDraw = getAvgAnimationDrawDuration();
-				//int maxStep = (int)(maxY * PAGE_ANIMATION_DURATION / avgDraw);
-				int maxStep = pageFlipAnimationSpeedMs > 0 ? (int)(maxY * 1000 / avgDraw / pageFlipAnimationSpeedMs) : maxY;
-				int step;
-				if ( delta > maxStep * 2 )
-					step = maxStep;
-				else
-					step = (delta + 3) / 4;
-				//int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
-				if ( pointerCurrPos<pointerDestPos )
-					pointerCurrPos+=step;
-				else if ( pointerCurrPos>pointerDestPos )
-					pointerCurrPos-=step;
-				Log.d("cr3", "animate("+pointerCurrPos + " => " + pointerDestPos + "  step=" + step + ")");
+				if ( pageFlipAnimationSpeedMs==0 )
+					pointerCurrPos = pointerDestPos;
+				else {
+					int delta = pointerCurrPos-pointerDestPos;
+					if ( delta<0 )
+						delta = -delta;
+					long avgDraw = getAvgAnimationDrawDuration();
+					//int maxStep = (int)(maxY * PAGE_ANIMATION_DURATION / avgDraw);
+					int maxStep = pageFlipAnimationSpeedMs > 0 ? (int)(maxY * 1000 / avgDraw / pageFlipAnimationSpeedMs) : maxY;
+					int step;
+					if ( delta > maxStep * 2 )
+						step = maxStep;
+					else
+						step = (delta + 3) / 4;
+					//int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
+					if ( pointerCurrPos<pointerDestPos )
+						pointerCurrPos+=step;
+					else if ( pointerCurrPos>pointerDestPos )
+						pointerCurrPos-=step;
+					Log.d("cr3", "animate("+pointerCurrPos + " => " + pointerDestPos + "  step=" + step + ")");
+				}
 				//pointerCurrPos = pointerDestPos;
 				draw();
 				if ( pointerDestPos != pointerCurrPos )
@@ -2981,22 +2984,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			//Log.d("cr3", "animate() is called");
 			if ( currShift != destShift ) {
 				started = true;
-				int delta = currShift - destShift;
-				if ( delta<0 )
-					delta = -delta;
-				long avgDraw = getAvgAnimationDrawDuration();
-				int maxStep = pageFlipAnimationSpeedMs > 0 ? (int)(maxX * 1000 / avgDraw / pageFlipAnimationSpeedMs) : maxX;
-				int step;
-				if ( delta > maxStep * 2 )
-					step = maxStep;
-				else
-					step = (delta + 3) / 4;
-				//int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
-				if ( currShift < destShift )
-					currShift+=step;
-				else if ( currShift > destShift )
-					currShift-=step;
-				if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.animate("+currShift + " => " + destShift + "  step=" + step + ")");
+				if ( pageFlipAnimationSpeedMs==0 )
+					currShift = destShift;
+				else {
+					int delta = currShift - destShift;
+					if ( delta<0 )
+						delta = -delta;
+					long avgDraw = getAvgAnimationDrawDuration();
+					int maxStep = pageFlipAnimationSpeedMs > 0 ? (int)(maxX * 1000 / avgDraw / pageFlipAnimationSpeedMs) : maxX;
+					int step;
+					if ( delta > maxStep * 2 )
+						step = maxStep;
+					else
+						step = (delta + 3) / 4;
+					//int step = delta<3 ? 1 : (delta<5 ? 2 : (delta<10 ? 3 : (delta<15 ? 6 : (delta<25 ? 10 : (delta<50 ? 15 : 30))))); 
+					if ( currShift < destShift )
+						currShift+=step;
+					else if ( currShift > destShift )
+						currShift-=step;
+					if (DEBUG_ANIMATION) Log.v("cr3", "PageViewAnimation.animate("+currShift + " => " + destShift + "  step=" + step + ")");
+				}
 				//pointerCurrPos = pointerDestPos;
 				draw();
 				if ( currShift != destShift )
