@@ -378,7 +378,7 @@ public class CoolReader extends Activity
 		mDB = new CRDB(dbfile);
 		
        	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
-       	mHistory = new History(mDB);
+       	mHistory = new History(this, mDB);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
