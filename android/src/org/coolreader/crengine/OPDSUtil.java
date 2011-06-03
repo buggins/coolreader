@@ -24,8 +24,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import android.util.Log;
-
 public class OPDSUtil {
 
 	/*
@@ -215,7 +213,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 			} catch (ParseException e) {
 			}
-			Log.e("cr3", "cannot parse timestamp " + ts);
+			L.e("cannot parse timestamp " + ts);
 			return 0;
 		}
 		
@@ -239,7 +237,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			s = s.trim();
 			if (s.length()==0 || (s.length()==1 && s.charAt(0) == '\n') )
 				return; // ignore empty line
-			Log.d("cr3", tab() + "  {" + s + "}");
+			L.d(tab() + "  {" + s + "}");
 			String currentElement = elements.peek();
 			if ( currentElement==null )
 				return;
@@ -293,9 +291,9 @@ xml:base="http://lib.ololo.cc/opds/">
 		@Override
 		public void endDocument() throws SAXException {
 			super.endDocument();
-			Log.d("cr3", "endDocument: " + entries.size() + " entries parsed");
+			L.d("endDocument: " + entries.size() + " entries parsed");
 			for ( EntryInfo entry : entries ) {
-				Log.d("cr3", "   " + entry.title + " : " + entry.link.toString());
+				L.d("   " + entry.title + " : " + entry.link.toString());
 			}
 		}
 
@@ -315,7 +313,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			super.startElement(uri, localName, qName, attributes);
 			localName = qName;
 			level++;
-			Log.d("cr3", tab() + "<" + localName + ">");
+			L.d(tab() + "<" + localName + ">");
 			currentAttributes = attributes;
 			elements.push(localName);
 			//String currentElement = elements.peek();
@@ -345,7 +343,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			} else if ( "link".equals(localName) ) {
 				LinkInfo link = new LinkInfo(url, attributes);
 				if ( link.isValid() && insideFeed ) {
-					Log.d("cr3", tab()+link.toString());
+					L.d(tab()+link.toString());
 					if ( insideEntry ) {
 						if ( link.type!=null ) {
 							entryInfo.links.add(link);
@@ -373,7 +371,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
 			localName = qName;
-			Log.d("cr3", tab() + "</" + localName + ">");
+			L.d(tab() + "</" + localName + ">");
 			//String currentElement = elements.peek();
 			if ( insideFeed && "feed".equals(localName) ) {
 				insideFeed = false;
@@ -424,7 +422,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			this.defaultFileName = defaultFileName;
 			//request = new HttpGet(url);
 			//request.addHeader("Referer", "http://www.feedbooks.com/books/recent.atom");
-			//Log.d("cr3", "Creating HTTP client");
+			//L.d("Creating HTTP client");
 		}
 //		public byte[] getResult() {
 //			return result;
@@ -521,16 +519,16 @@ xml:base="http://lib.ololo.cc/opds/">
 				//XMLReader xr = sp.getXMLReader();				
 				sp.parse(is, handler);
 			} catch (SAXException se) {
-				Log.e("SAX XML", "sax error", se);
+				L.e("sax error", se);
 				throw se;
 			} catch (IOException ioe) {
-				Log.e("SAX XML", "sax parse io error", ioe);
+				L.e("sax parse io error", ioe);
 				throw ioe;
 			}
 			BackgroundThread.guiExecutor.execute(new Runnable() {
 				@Override
 				public void run() {
-					Log.d("cr3", "Parsing is finished successfully. " + handler.entries.size() + " entries found");
+					L.d("Parsing is finished successfully. " + handler.entries.size() + " entries found");
 					callback.onFinish(handler.docInfo, handler.entries);
 				}
 			});
@@ -562,10 +560,10 @@ xml:base="http://lib.ololo.cc/opds/">
 			return null;
 		}
 		private void downloadBook( final String type, final String url, InputStream is, int contentLength, final String fileName, final boolean isZip ) throws Exception {
-			Log.d("cr3", "Download requested: " + type + " " + url + " " + contentLength);
+			L.d("Download requested: " + type + " " + url + " " + contentLength);
 			DocumentFormat fmt = DocumentFormat.byMimeType(type);
 			if ( fmt==null ) {
-				Log.d("cr3", "Download: unknown type " + type);
+				L.d("Download: unknown type " + type);
 				throw new Exception("Unknown file type " + type);
 			}
 			final File outDir = BackgroundThread.instance().callGUI(new Callable<File>() {
@@ -575,21 +573,21 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 			});
 			if ( outDir==null ) {
-				Log.d("cr3", "Cannot find writable location for downloaded file " + url);
+				L.d("Cannot find writable location for downloaded file " + url);
 				throw new Exception("Cannot save file " + url);
 			}
 			final File outFile = generateFileName( outDir, fileName, type, isZip );
 			if ( outFile==null ) {
-				Log.d("cr3", "Cannot generate file name");
+				L.d("Cannot generate file name");
 				throw new Exception("Cannot generate file name");
 			}
-			Log.d("cr3", "Creating file: " + outFile.getAbsolutePath());
+			L.d("Creating file: " + outFile.getAbsolutePath());
 			if ( outFile.exists() || !outFile.createNewFile() ) {
-				Log.d("cr3", "Cannot create file " + outFile.getAbsolutePath());
+				L.d("Cannot create file " + outFile.getAbsolutePath());
 				throw new Exception("Cannot create file");
 			}
 			
-			Log.d("cr3", "Download started: " + outFile.getAbsolutePath());
+			L.d("Download started: " + outFile.getAbsolutePath());
 			long lastTs = System.currentTimeMillis(); 
 			int lastPercent = -1;
 			FileOutputStream os = null;
@@ -606,7 +604,7 @@ xml:base="http://lib.ololo.cc/opds/">
 					final int percent = totalWritten * 100 / contentLength;
 					long ts = System.currentTimeMillis(); 
 					if ( percent!=lastPercent && ts - lastTs > 1500 ) {
-						Log.d("cr3", "Download progress: " + percent + "%");
+						L.d("Download progress: " + percent + "%");
 						BackgroundThread.instance().postGUI(new Runnable() {
 							@Override
 							public void run() {
@@ -619,7 +617,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				if ( os!=null )
 					os.close();
 			}
-			Log.d("cr3", "Download finished");
+			L.d("Download finished");
 			BackgroundThread.instance().executeGUI(new Runnable() {
 				@Override
 				public void run() {
@@ -676,7 +674,7 @@ xml:base="http://lib.ololo.cc/opds/">
 	            int response = -1;
 				
 				response = connection.getResponseCode();
-				Log.d("cr3", "Response: " + response);
+				L.d("Response: " + response);
 				if ( response!=200 ) {
 					onError("Error " + response);
 					return;
@@ -685,9 +683,9 @@ xml:base="http://lib.ololo.cc/opds/">
 				String contentEncoding = connection.getContentEncoding();
 				int contentLen = connection.getContentLength();
 				//connection.getC
-				Log.d("cr3", "Entity content length: " + contentLen);
-				Log.d("cr3", "Entity content type: " + contentType);
-				Log.d("cr3", "Entity content encoding: " + contentEncoding);
+				L.d("Entity content length: " + contentLen);
+				L.d("Entity content type: " + contentType);
+				L.d("Entity content encoding: " + contentEncoding);
 				InputStream is = connection.getInputStream();
 				final int MAX_CONTENT_LEN_TO_BUFFER = 256*1024;
 				boolean isZip = contentType!=null && contentType.equals("application/zip");
@@ -706,16 +704,16 @@ xml:base="http://lib.ololo.cc/opds/">
 						contentType = "application/atom+xml"; // override type
 				}
 				if ( contentType.startsWith("application/atom+xml") ) {
-					Log.d("cr3", "Parsing feed");
+					L.d("Parsing feed");
 					parseFeed( is );
 				} else {
 					if ( fileName==null )
 						fileName = defaultFileName;
-					Log.d("cr3", "Downloading book: " + contentEncoding);
+					L.d("Downloading book: " + contentEncoding);
 					downloadBook( contentType, url.toString(), is, contentLen, fileName, isZip );
 				}
 			} catch (Exception e) {
-				Log.e("cr3", "Exception while trying to open URI " + url.toString(), e);
+				L.e("Exception while trying to open URI " + url.toString(), e);
 				cancelled = true;
 				onError("Error occured while reading OPDS catalog");
 			} finally {
@@ -735,7 +733,7 @@ xml:base="http://lib.ololo.cc/opds/">
 					try {
 						runInternal();
 					} catch ( Exception e ) {
-						Log.e("cr3", "exception while opening OPDS", e);
+						L.e("exception while opening OPDS", e);
 					}
 				}
 			});

@@ -21,7 +21,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.database.DataSetObserver;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -39,6 +38,8 @@ import android.widget.TextView;
 
 public class FileBrowser extends ListView {
 
+	public static final Logger log = L.create("fb");
+	
 	Engine mEngine;
 	Scanner mScanner;
 	CoolReader mActivity;
@@ -64,7 +65,7 @@ public class FileBrowser extends ListView {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
 					int position, long id) {
-				Log.d("cr3", "onItemLongClick("+position+")");
+				log.d("onItemLongClick("+position+")");
 				//return super.performItemClick(view, position, id);
 				if ( position==0 && currDirectory.parent!=null ) {
 					showParentDirectory();
@@ -97,7 +98,7 @@ public class FileBrowser extends ListView {
 			
 		switch (item.getItemId()) {
 		case R.id.book_open:
-			Log.d("cr3", "book_open menu item selected");
+			log.d("book_open menu item selected");
 			if ( selectedItem.isOPDSDir() )
 				showOPDSDir(selectedItem, null);
 			else
@@ -119,7 +120,7 @@ public class FileBrowser extends ListView {
 				mActivity.showToast("No book opened");
 			return true;
 		case R.id.book_delete:
-			Log.d("cr3", "book_delete menu item selected");
+			log.d("book_delete menu item selected");
 			mActivity.getReaderView().closeIfOpened(selectedItem);
 			if ( selectedItem.deleteFile() ) {
 				mHistory.removeBookInfo(selectedItem, true, true);
@@ -127,11 +128,11 @@ public class FileBrowser extends ListView {
 			showDirectory(currDirectory, null);
 			return true;
 		case R.id.book_recent_goto:
-			Log.d("cr3", "book_recent_goto menu item selected");
+			log.d("book_recent_goto menu item selected");
 			showDirectory(selectedItem, selectedItem);
 			return true;
 		case R.id.book_recent_remove:
-			Log.d("cr3", "book_recent_remove menu item selected");
+			log.d("book_recent_remove menu item selected");
 			mActivity.getHistory().removeBookInfo(selectedItem, true, false);
 			showRecentBooks();
 			return true;
@@ -141,7 +142,7 @@ public class FileBrowser extends ListView {
 	
 	@Override
 	public void createContextMenu(ContextMenu menu) {
-		Log.d("cr3", "createContextMenu()");
+		log.d("createContextMenu()");
 		menu.clear();
 	    MenuInflater inflater = mActivity.getMenuInflater();
 	    if ( isRecentDir() ) {
@@ -169,7 +170,7 @@ public class FileBrowser extends ListView {
 
 	@Override
 	public boolean performItemClick(View view, int position, long id) {
-		Log.d("cr3", "performItemClick("+position+")");
+		log.d("performItemClick("+position+")");
 		//return super.performItemClick(view, position, id);
 		if ( position==0 && currDirectory.parent!=null ) {
 			showParentDirectory();
@@ -218,7 +219,7 @@ public class FileBrowser extends ListView {
 	{
 		if ( mInitStarted )
 			return;
-		Log.e("cr3", "FileBrowser.init() called");
+		log.e("FileBrowser.init() called");
 		mInitStarted = true;
 		//mEngine.showProgress(1000, R.string.progress_scanning);
 		execute( new Task() {
@@ -226,7 +227,7 @@ public class FileBrowser extends ListView {
 				mHistory.loadFromDB(mScanner, 100);
 			}
 			public void done() {
-				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
+				log.e("Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
 				mInitialized = true;
 				//mEngine.hideProgress();
 				//mEngine.hideProgress();
@@ -238,7 +239,7 @@ public class FileBrowser extends ListView {
 				//mEngine.showProgress(9000, "Scan is failed");
 				//mEngine.hideProgress();
 				mActivity.showToast("Scan is failed");
-				Log.e("cr3", "Exception while scanning directories", e);
+				log.e("Exception while scanning directories", e);
 			}
 		});
 	}
@@ -421,7 +422,7 @@ public class FileBrowser extends ListView {
 			public void run() {
 				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
 				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
-					Log.d("cr3", "New sort order: " + newValue);
+					log.d("New sort order: " + newValue);
 					setSortOrder(newValue);
 				}
 			}
@@ -449,7 +450,7 @@ public class FileBrowser extends ListView {
 					public void onFinish(DocInfo doc,
 							Collection<EntryInfo> entries) {
 						if ( myCurrDirectory != currDirectory ) {
-							Log.w("cr3", "current directory has been changed: ignore downloaded items");
+							log.w("current directory has been changed: ignore downloaded items");
 							return;
 						}
 						ArrayList<FileInfo> items = new ArrayList<FileInfo>();
@@ -497,9 +498,9 @@ public class FileBrowser extends ListView {
 					public File onDownloadStart(String type, String url) {
 						//mEngine.showProgress(0, "Downloading " + url);
 						//mActivity.showToast("Starting download of " + type + " from " + url);
-						Log.d("cr3", "onDownloadStart: called for " + type + " " + url );
+						log.d("onDownloadStart: called for " + type + " " + url );
 						downloadDir = mActivity.getScanner().getDownloadDirectory();
-						Log.d("cr3", "onDownloadStart: after getDownloadDirectory()" );
+						log.d("onDownloadStart: after getDownloadDirectory()" );
 						String subdir = null;
 						if ( fileOrDir.authors!=null ) {
 							subdir = OPDSUtil.transcribeFileName(fileOrDir.authors);
@@ -514,7 +515,7 @@ public class FileBrowser extends ListView {
 						result = new File(result, subdir);
 						result.mkdirs();
 						downloadDir.findItemByPathName(result.getAbsolutePath());
-						Log.d("cr3", "onDownloadStart: returning " + result.getAbsolutePath() );
+						log.d("onDownloadStart: returning " + result.getAbsolutePath() );
 						return result;
 					}
 
@@ -549,7 +550,7 @@ public class FileBrowser extends ListView {
 						myCurrDirectory.getOPDSUrl(), callback);
 				downloadTask.run();
 			} catch (MalformedURLException e) {
-				Log.e("cr3", "MalformedURLException: " + url);
+				log.e("MalformedURLException: " + url);
 				mActivity.showToast("Wrong URI: " + url);
 			}
 		}
@@ -561,7 +562,7 @@ public class FileBrowser extends ListView {
 			try {
 				throw new Exception("showDirectory called from background thread!");
 			} catch ( Exception e ) {
-				Log.e("cr3", e.getMessage(), e);
+				log.e(e.getMessage(), e);
 			}
 			final FileInfo dir = fileOrDir;
 			final FileInfo item = itemToSelect;
@@ -604,7 +605,7 @@ public class FileBrowser extends ListView {
 	public void scanCurrentDirectoryRecursive() {
 		if ( currDirectory==null )
 			return;
-		Log.i("cr3", "scanCurrentDirectoryRecursive started");
+		log.i("scanCurrentDirectoryRecursive started");
 		final Scanner.ScanControl control = new Scanner.ScanControl(); 
 		final ProgressDialog dlg = ProgressDialog.show(getContext(), 
 				mActivity.getString(R.string.dlg_scan_title), 
@@ -612,14 +613,14 @@ public class FileBrowser extends ListView {
 				true, true, new OnCancelListener() {
 					@Override
 					public void onCancel(DialogInterface dialog) {
-						Log.i("cr3", "scanCurrentDirectoryRecursive : stop handler");
+						log.i("scanCurrentDirectoryRecursive : stop handler");
 						control.stop();
 					}
 		});
 		mScanner.scanDirectory(currDirectory, new Runnable() {
 			@Override
 			public void run() {
-				Log.i("cr3", "scanCurrentDirectoryRecursive : finish handler");
+				log.i("scanCurrentDirectoryRecursive : finish handler");
 				if ( dlg.isShowing() )
 					dlg.dismiss();
 			}
@@ -649,7 +650,7 @@ public class FileBrowser extends ListView {
 			try {
 				throw new Exception("showDirectoryInternal called from background thread!");
 			} catch ( Exception e ) {
-				Log.e("cr3", e.getMessage(), e);
+				log.e(e.getMessage(), e);
 			}
 			BackgroundThread.instance().callGUI(new Callable<Object>() {
 				@Override
@@ -662,7 +663,7 @@ public class FileBrowser extends ListView {
 		}
 		currDirectory = dir;
 		if ( dir!=null )
-			Log.i("cr3", "Showing directory " + dir + " " + Thread.currentThread().getName());
+			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
 		if ( !BackgroundThread.instance().isGUIThread() )
 			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
 		this.setAdapter(new ListAdapter() {
@@ -919,7 +920,7 @@ public class FileBrowser extends ListView {
 		public void fail(Exception e) {
 			// do nothing, just log exception
 			// override to do custom action
-			Log.e("cr3", "Task " + this.getClass().getSimpleName() + " is failed with exception " + e.getMessage(), e);
+			log.e("Task " + this.getClass().getSimpleName() + " is failed with exception " + e.getMessage(), e);
 		}
     }
     

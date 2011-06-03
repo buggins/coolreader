@@ -9,7 +9,6 @@ import org.coolreader.crengine.ReaderView.Sync;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 
 /**
@@ -53,7 +52,7 @@ public class BackgroundThread extends Thread {
 	public final static void ensureBackground()
 	{
 		if ( CHECK_THREAD_CONTEXT && !instance().isBackgroundThread() ) {
-			Log.e("cr3", "not in background thread", new Exception("ensureInBackgroundThread() is failed"));
+			L.e("not in background thread", new Exception("ensureInBackgroundThread() is failed"));
 			throw new RuntimeException("ensureInBackgroundThread() is failed");
 		}
 	}
@@ -64,7 +63,7 @@ public class BackgroundThread extends Thread {
 	public final static void ensureGUI()
 	{
 		if ( CHECK_THREAD_CONTEXT && instance().isBackgroundThread() ) {
-			Log.e("cr3", "not in GUI thread", new Exception("ensureGUI() is failed"));
+			L.e("not in GUI thread", new Exception("ensureGUI() is failed"));
 			throw new RuntimeException("ensureGUI() is failed");
 		}
 	}
@@ -84,7 +83,7 @@ public class BackgroundThread extends Thread {
 		if ( guiTarget!=null ) {
 			// forward already posted events
 			synchronized(postedGUI) {
-				Log.d("cr3", "Engine.setGUI: " + postedGUI.size() + " posted tasks to copy");
+				L.d("Engine.setGUI: " + postedGUI.size() + " posted tasks to copy");
 				for ( Runnable task : postedGUI )
 					guiTarget.post( task );
 			}
@@ -102,25 +101,25 @@ public class BackgroundThread extends Thread {
 
 	@Override
 	public void run() {
-		Log.i("cr3", "Entering background thread");
+		L.i("Entering background thread");
 		Looper.prepare();
 		handler = new Handler() {
 			public void handleMessage( Message message )
 			{
-				Log.d("cr3", "message: " + message);
+				L.d("message: " + message);
 			}
 		};
-		Log.i("cr3", "Background thread handler is created");
+		L.i("Background thread handler is created");
 		synchronized(posted) {
 			for ( Runnable task : posted ) {
-				Log.i("cr3", "Copying posted bg task to handler : " + task);
+				L.i("Copying posted bg task to handler : " + task);
 				handler.post(task);
 			}
 			posted.clear();
 		}
 		Looper.loop();
 		handler = null;
-		Log.i("cr3", "Exiting background thread");
+		L.i("Exiting background thread");
 	}
 
 	private final static boolean USE_LOCK = false;
@@ -144,14 +143,14 @@ public class BackgroundThread extends Thread {
 	public void postBackground( Runnable task )
 	{
 		if ( mStopped ) {
-			Log.i("cr3", "Posting task " + task + " to GUI queue since background thread is stopped");
+			L.i("Posting task " + task + " to GUI queue since background thread is stopped");
 			postGUI( task );
 			return;
 		}
 		task = guard(task);
 		if ( handler==null ) {
 			synchronized(posted) {
-				Log.i("cr3", "Adding task " + task + " to posted list since handler is not yet created");
+				L.i("Adding task " + task + " to posted list since handler is not yet created");
 				posted.add(task);
 			}
 		} else {
@@ -253,12 +252,12 @@ public class BackgroundThread extends Thread {
     			return null;
     		}
     	}
-    	//Log.d("cr3", "executeSync called");
-    	if(DBG) Log.d("cr3", "callBackground : posting Background task " + Thread.currentThread().getName());
+    	//L.d("executeSync called");
+    	if(DBG) L.d("callBackground : posting Background task " + Thread.currentThread().getName());
     	final Sync<T> sync = new Sync<T>();
     	postBackground( new Runnable() {
     		public void run() {
-    			if(DBG) Log.d("cr3", "callBackground : inside background thread " + Thread.currentThread().getName());
+    			if(DBG) L.d("callBackground : inside background thread " + Thread.currentThread().getName());
     			try {
     				sync.set( task.call() );
     			} catch ( Exception e ) {
@@ -266,10 +265,10 @@ public class BackgroundThread extends Thread {
     			}
     		}
     	});
-    	if(DBG) Log.d("cr3", "callBackground : calling get " + Thread.currentThread().getName());
+    	if(DBG) L.d("callBackground : calling get " + Thread.currentThread().getName());
     	T res = sync.get();
-    	if(DBG) Log.d("cr3", "callBackground : returned from get " + Thread.currentThread().getName());
-    	//Log.d("cr3", "executeSync done");
+    	if(DBG) L.d("callBackground : returned from get " + Thread.currentThread().getName());
+    	//L.d("executeSync done");
     	return res;
     }
 	
@@ -284,30 +283,30 @@ public class BackgroundThread extends Thread {
     			return null;
     		}
     	}
-    	if(DBG) Log.d("cr3", "callGUI : posting GUI task " + Thread.currentThread().getName());
+    	if(DBG) L.d("callGUI : posting GUI task " + Thread.currentThread().getName());
     	final Sync<T> sync = new Sync<T>();
     	postGUI( new Runnable() {
     		public void run() {
-    			if(DBG) Log.d("cr3", "callGUI : inside GUI thread " + Thread.currentThread().getName());
+    			if(DBG) L.d("callGUI : inside GUI thread " + Thread.currentThread().getName());
     	    	T result = null;
     			try {
-        	    	Log.d("cr3", "callGUI : calling source callable " + Thread.currentThread().getName());
+        	    	L.d("callGUI : calling source callable " + Thread.currentThread().getName());
     				result = task.call();
     			} catch ( Exception e ) {
-    				if(DBG) Log.e("cr3", "exception in postGUI", e);
+    				if(DBG) L.e("exception in postGUI", e);
     			}
     			try {
-    				if(DBG) Log.d("cr3", "callGUI : calling sync.set " + Thread.currentThread().getName());
+    				if(DBG) L.d("callGUI : calling sync.set " + Thread.currentThread().getName());
     				sync.set( result );
-    				if(DBG) Log.d("cr3", "callGUI : returned from sync.set " + Thread.currentThread().getName());
+    				if(DBG) L.d("callGUI : returned from sync.set " + Thread.currentThread().getName());
     			} catch ( Exception e ) {
-    				if(DBG) Log.e("cr3", "exception in postGUI", e);
+    				if(DBG) L.e("exception in postGUI", e);
     			}
     		}
     	});
-    	if(DBG) Log.d("cr3", "callGUI : calling get " + Thread.currentThread().getName());
+    	if(DBG) L.d("callGUI : calling get " + Thread.currentThread().getName());
     	T res = sync.get();
-    	if(DBG) Log.d("cr3", "callGUI : returned from get " + Thread.currentThread().getName());
+    	if(DBG) L.d("callGUI : returned from get " + Thread.currentThread().getName());
     	return res;
     }
 	

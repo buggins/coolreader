@@ -16,6 +16,7 @@ import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
+import org.coolreader.crengine.L;
 import org.coolreader.crengine.OptionsDialog;
 import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
@@ -44,7 +45,6 @@ import android.text.ClipboardManager;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -279,7 +279,7 @@ public class CoolReader extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-		Log.i("cr3", "CoolReader.onCreate() entered");
+		L.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
 		try {
@@ -288,7 +288,7 @@ public class CoolReader extends Activity
 		} catch ( NameNotFoundException e ) {
 			// ignore
 		}
-		Log.i("cr3", "CoolReader version : " + getVersion());
+		L.i("CoolReader version : " + getVersion());
 		
 		Display d = getWindowManager().getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics(); 
@@ -299,11 +299,11 @@ public class CoolReader extends Activity
 				Object v = fld.get(m);
 				if ( v!=null && v instanceof Integer ) {
 					densityDpi = ((Integer)v).intValue();
-					Log.i("cr3", "Screen density detected: " + densityDpi + "DPI");
+					L.i("Screen density detected: " + densityDpi + "DPI");
 				}
 			}
 		} catch ( Exception e ) {
-			Log.e("cr3", "Cannot find field densityDpi, using default value");
+			L.e("Cannot find field densityDpi, using default value");
 		}
 		
 		// load settings
@@ -324,7 +324,7 @@ public class CoolReader extends Activity
 		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
 
-		Log.i("cr3", "CoolReader.window=" + getWindow());
+		L.i("CoolReader.window=" + getWindow());
 		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
 		lp.alpha = 1.0f;
 		lp.dimAmount = 0.0f;
@@ -381,7 +381,7 @@ public class CoolReader extends Activity
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
 		
 		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
-		Log.i("cr3", "initializing scanner");
+		L.i("initializing scanner");
         mScanner.initRoots();
 
 		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
@@ -391,10 +391,10 @@ public class CoolReader extends Activity
 		mFrame.addView(mBrowser);
 //		mFrame.addView(startupView);
 		setContentView( mFrame );
-        Log.i("cr3", "initializing browser");
+        L.i("initializing browser");
         mBrowser.init();
 		showView(mBrowser, false);
-        Log.i("cr3", "initializing reader");
+        L.i("initializing reader");
         mBrowser.setSortOrder( props.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER));
 		mBrowser.setSimpleViewMode(props.getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
         mBrowser.showDirectory(mScanner.getRoot(), null);
@@ -411,7 +411,7 @@ public class CoolReader extends Activity
 		if ( initialBatteryState>=0 )
 			mReaderView.setBatteryState(initialBatteryState);
         
-        Log.i("cr3", "CoolReader.onCreate() exiting");
+        L.i("CoolReader.onCreate() exiting");
     }
     
     public ClipboardManager getClipboardmanager() {
@@ -464,7 +464,7 @@ public class CoolReader extends Activity
 			        	} else
 			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
 			        	mReaderView.setDimmingAlpha(dimmingAlpha);
-			        	Log.d("cr3", "Brightness: " + b + ", dim: " + dimmingAlpha);
+			        	L.d("Brightness: " + b + ", dim: " + dimmingAlpha);
 			        	if ( attrs.screenBrightness != b ) {
 			        		attrs.screenBrightness = b;
 			        		changed = true;
@@ -481,12 +481,12 @@ public class CoolReader extends Activity
 				        		//}
 				        	}
 			        	} catch ( Exception e ) {
-			        		Log.e("cr3", "WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
+			        		L.e("WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
 			        		brightnessHackError = true;
 			        	}
 			        	//attrs.buttonBrightness = 0;
 			        	if ( changed ) {
-			        		Log.d("cr3", "Window attribute changed: " + attrs);
+			        		L.d("Window attribute changed: " + attrs);
 			        		wnd.setAttributes(attrs);
 			        	}
 			        	//attrs.screenOrientation = LayoutParams.SCREEN_;
@@ -502,7 +502,7 @@ public class CoolReader extends Activity
 	@Override
 	protected void onDestroy() {
 
-		Log.i("cr3", "CoolReader.onDestroy() entered");
+		L.i("CoolReader.onDestroy() entered");
 		mDestroyed = true;
 		if ( !CLOSE_BOOK_ON_STOP )
 			mReaderView.close();
@@ -540,7 +540,7 @@ public class CoolReader extends Activity
 		mReaderView = null;
 		mEngine = null;
 		mBackgroundThread = null;
-		Log.i("cr3", "CoolReader.onDestroy() exiting");
+		L.i("CoolReader.onDestroy() exiting");
 		super.onDestroy();
 	}
 
@@ -563,9 +563,9 @@ public class CoolReader extends Activity
 	
 	@Override
 	protected void onNewIntent(Intent intent) {
-		Log.i("cr3", "onNewIntent : " + intent);
+		L.i("onNewIntent : " + intent);
 		if ( mDestroyed ) {
-			Log.e("cr3", "engine is already destroyed");
+			L.e("engine is already destroyed");
 			return;
 		}
 		String fileToOpen = null;
@@ -576,13 +576,13 @@ public class CoolReader extends Activity
 			}
 			intent.setData(null);
 		}
-		Log.v("cr3", "onNewIntent, fileToOpen=" + fileToOpen);
+		L.v("onNewIntent, fileToOpen=" + fileToOpen);
 		if ( fileToOpen!=null ) {
 			// load document
 			final String fn = fileToOpen;
 			mReaderView.loadDocument(fileToOpen, new Runnable() {
 				public void run() {
-					Log.v("cr3", "onNewIntent, loadDocument error handler called");
+					L.v("onNewIntent, loadDocument error handler called");
 					showToast("Error occured while loading " + fn);
 					mEngine.hideProgress();
 				}
@@ -597,7 +597,7 @@ public class CoolReader extends Activity
 	
 	@Override
 	protected void onPause() {
-		Log.i("cr3", "CoolReader.onPause() : saving reader state");
+		L.i("CoolReader.onPause() : saving reader state");
 		mIsStarted = false;
 		mPaused = true;
 		releaseBacklightControl();
@@ -612,33 +612,33 @@ public class CoolReader extends Activity
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
-		Log.i("cr3", "CoolReader.onPostCreate()");
+		L.i("CoolReader.onPostCreate()");
 		super.onPostCreate(savedInstanceState);
 	}
 
 	@Override
 	protected void onPostResume() {
-		Log.i("cr3", "CoolReader.onPostResume()");
+		L.i("CoolReader.onPostResume()");
 		super.onPostResume();
 	}
 
 	private boolean restarted = false;
 	@Override
 	protected void onRestart() {
-		Log.i("cr3", "CoolReader.onRestart()");
+		L.i("CoolReader.onRestart()");
 		restarted = true;
 		super.onRestart();
 	}
 
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		Log.i("cr3", "CoolReader.onRestoreInstanceState()");
+		L.i("CoolReader.onRestoreInstanceState()");
 		super.onRestoreInstanceState(savedInstanceState);
 	}
 
 	@Override
 	protected void onResume() {
-		Log.i("cr3", "CoolReader.onResume()");
+		L.i("CoolReader.onResume()");
 		mPaused = false;
 		mIsStarted = true;
 		super.onResume();
@@ -646,7 +646,7 @@ public class CoolReader extends Activity
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		Log.i("cr3", "CoolReader.onSaveInstanceState()");
+		L.i("CoolReader.onSaveInstanceState()");
 		super.onSaveInstanceState(outState);
 	}
 
@@ -658,7 +658,7 @@ public class CoolReader extends Activity
 	
 	@Override
 	protected void onStart() {
-		Log.i("cr3", "CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
+		L.i("CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
 		
 		
@@ -669,14 +669,14 @@ public class CoolReader extends Activity
 
 		if ( fileToLoadOnStart==null ) {
 			if ( mReaderView!=null && currentView==mReaderView && mReaderView.isBookLoaded() ) {
-				Log.v("cr3", "Book is already opened, showing ReaderView");
+				L.v("Book is already opened, showing ReaderView");
 				showReader();
 				return;
 			}
 			
 			//!stopped && 
 //			if ( restarted && mReaderView!=null && mReaderView.isBookLoaded() ) {
-//				Log.v("cr3", "Book is already opened, showing ReaderView");
+//				L.v("Book is already opened, showing ReaderView");
 //		        restarted = false;
 //		        return;
 //			}
@@ -685,18 +685,18 @@ public class CoolReader extends Activity
 	        mEngine.showProgress( 500, R.string.progress_starting_cool_reader );
 			//mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
 		}
-        //Log.i("cr3", "waiting for engine tasks completion");
+        //L.i("waiting for engine tasks completion");
         //engine.waitTasksCompletion();
 		restarted = false;
 		stopped = false;
 		final String fileName = fileToLoadOnStart;
 		mBackgroundThread.postGUI(new Runnable() {
 			public void run() {
-		        Log.i("cr3", "onStart, scheduled runnable: submitting task");
+		        L.i("onStart, scheduled runnable: submitting task");
 		        mEngine.execute(new LoadLastDocumentTask(fileName));
 			}
 		});
-		Log.i("cr3", "CoolReader.onStart() exiting");
+		L.i("CoolReader.onStart() exiting");
 	}
 	
 	class LoadLastDocumentTask implements Engine.EngineTask {
@@ -708,24 +708,24 @@ public class CoolReader extends Activity
 		}
 		
 		public void done() {
-	        Log.i("cr3", "onStart, scheduled task: trying to load " + fileToLoadOnStart);
+	        L.i("onStart, scheduled task: trying to load " + fileToLoadOnStart);
 			if ( fileName!=null || LOAD_LAST_DOCUMENT_ON_START ) {
 				//currentView=mReaderView;
 				if ( fileName!=null ) {
-					Log.v("cr3", "onStart() : loading " + fileName);
+					L.v("onStart() : loading " + fileName);
 					mReaderView.loadDocument(fileName, new Runnable() {
 						public void run() {
 							// cannot open recent book: load another one
-							Log.e("cr3", "Cannot open document " + fileToLoadOnStart + " starting file browser");
+							L.e("Cannot open document " + fileToLoadOnStart + " starting file browser");
 							showBrowser(null);
 						}
 					});
 				} else {
-					Log.v("cr3", "onStart() : loading last document");
+					L.v("onStart() : loading last document");
 					mReaderView.loadLastDocument(new Runnable() {
 						public void run() {
 							// cannot open recent book: load another one
-							Log.e("cr3", "Cannot open last document, starting file browser");
+							L.e("Cannot open last document, starting file browser");
 							showBrowser(null);
 						}
 					});
@@ -737,11 +737,11 @@ public class CoolReader extends Activity
 		}
 
 		public void fail(Exception e) {
-	        Log.e("cr3", "onStart, scheduled task failed", e);
+	        L.e("onStart, scheduled task failed", e);
 		}
 
 		public void work() throws Exception {
-	        Log.v("cr3", "onStart, scheduled task work()");
+	        L.v("onStart, scheduled task work()");
 		}
     }
  
@@ -750,14 +750,14 @@ public class CoolReader extends Activity
 	private boolean stopped = false;
 	@Override
 	protected void onStop() {
-		Log.i("cr3", "CoolReader.onStop() entering");
+		L.i("CoolReader.onStop() entering");
 		stopped = true;
 		mPaused = false;
 		// will close book at onDestroy()
 		if ( CLOSE_BOOK_ON_STOP )
 			mReaderView.close();
 		super.onStop();
-		Log.i("cr3", "CoolReader.onStop() exiting");
+		L.i("CoolReader.onStop() exiting");
 	}
 
 	private View currentView;
@@ -774,10 +774,10 @@ public class CoolReader extends Activity
 			}
 		});
 		if ( currentView==view ) {
-			Log.v("cr3", "showView : view " + view.getClass().getSimpleName() + " is already shown");
+			L.v("showView : view " + view.getClass().getSimpleName() + " is already shown");
 			return;
 		}
-		Log.v("cr3", "showView : showing view " + view.getClass().getSimpleName());
+		L.v("showView : showing view " + view.getClass().getSimpleName());
 		mFrame.bringChildToFront(view);
 		for ( int i=0; i<mFrame.getChildCount(); i++ ) {
 			View v = mFrame.getChildAt(i);
@@ -788,7 +788,7 @@ public class CoolReader extends Activity
 	
 	public void showReader()
 	{
-		Log.v("cr3", "showReader() is called");
+		L.v("showReader() is called");
 		showView(mReaderView);
 	}
 	
@@ -806,7 +806,7 @@ public class CoolReader extends Activity
 	
 	public void showBrowser( final FileInfo fileToShow )
 	{
-		Log.v("cr3", "showBrowser() is called");
+		L.v("showBrowser() is called");
 		if ( currentView == mReaderView )
 			mReaderView.save();
 		mEngine.runInGUI( new Runnable() {
@@ -822,7 +822,7 @@ public class CoolReader extends Activity
 
 	public void showBrowserRecentBooks()
 	{
-		Log.v("cr3", "showBrowserRecentBooks() is called");
+		L.v("showBrowserRecentBooks() is called");
 		if ( currentView == mReaderView )
 			mReaderView.save();
 		mEngine.runInGUI( new Runnable() {
@@ -835,7 +835,7 @@ public class CoolReader extends Activity
 
 	public void showBrowserRoot()
 	{
-		Log.v("cr3", "showBrowserRoot() is called");
+		L.v("showBrowserRoot() is called");
 		if ( currentView == mReaderView )
 			mReaderView.save();
 		mEngine.runInGUI( new Runnable() {
@@ -891,7 +891,7 @@ public class CoolReader extends Activity
 
 	public void showToast( String msg )
 	{
-		Log.v("cr3", "showing toast: " + msg);
+		L.v("showing toast: " + msg);
 		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
 		toast.show();
 	}
@@ -955,7 +955,7 @@ public class CoolReader extends Activity
 		orientationFromSensor = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? 1 : 0;
 		//final int orientation = newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 //		if ( orientation!=screenOrientation ) {
-//			Log.d("cr3", "Screen orientation has been changed: ask for change");
+//			L.d("Screen orientation has been changed: ask for change");
 //			AlertDialog.Builder dlg = new AlertDialog.Builder(this);
 //			dlg.setTitle(R.string.win_title_screen_orientation_change_apply);//R.string.win_title_options_apply);
 //			dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
@@ -1180,9 +1180,9 @@ public class CoolReader extends Activity
         	try {
         		FileInputStream is = new FileInputStream(propsFile);
         		props.load(is);
-        		Log.v("cr3", "" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
+        		L.v("" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
         	} catch ( Exception e ) {
-        		Log.e("cr3", "error while reading settings");
+        		L.e("error while reading settings");
         	}
         }
         
@@ -1319,12 +1319,12 @@ public class CoolReader extends Activity
 	public void saveSettings( Properties settings )
 	{
 		try {
-			Log.v("cr3", "saveSettings() " + settings);
+			L.v("saveSettings() " + settings);
     		FileOutputStream os = new FileOutputStream(propsFile);
     		settings.store(os, "Cool Reader 3 settings");
-			Log.i("cr3", "Settings successfully saved to file " + propsFile.getAbsolutePath());
+			L.i("Settings successfully saved to file " + propsFile.getAbsolutePath());
 		} catch ( Exception e ) {
-			Log.e("cr3", "exception while saving settings", e);
+			L.e("exception while saving settings", e);
 		}
 	}
 
@@ -1347,7 +1347,7 @@ public class CoolReader extends Activity
 	}
 	public static void dumpHeapAllocation() {
 		Debug.getMemoryInfo(info);
-		Log.d("cr3", "nativeHeapAlloc=" + Debug.getNativeHeapAllocatedSize() + ", nativeHeapSize=" + Debug.getNativeHeapSize() + ", info: " + dumpFields(infoFields, info));
+		L.d("nativeHeapAlloc=" + Debug.getNativeHeapAllocatedSize() + ", nativeHeapSize=" + Debug.getNativeHeapSize() + ", info: " + dumpFields(infoFields, info));
 	}
 	
 	public void showAboutDialog() {

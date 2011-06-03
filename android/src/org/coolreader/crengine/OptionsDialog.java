@@ -8,9 +8,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.DataSetObserver;
@@ -19,7 +17,6 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -1043,12 +1040,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.v("cr3", "creating OptionsDialog");
+		L.v("creating OptionsDialog");
 		CoolReader.dumpHeapAllocation();
-		Log.v("cr3", "calling gc");
+		L.v("calling gc");
 		System.gc();
 		CoolReader.dumpHeapAllocation();
-		Log.v("cr3", "creating options dialog");
+		L.v("creating options dialog");
 		setTitle(null);
         setCancelable(true);
         setCanceledOnTouchOutside(true);
@@ -1149,14 +1146,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		});
 		
 		super.onCreate(savedInstanceState);
-		Log.v("cr3", "OptionsDialog is created");
+		L.v("OptionsDialog is created");
 	}
 
 	private void askApply()
 	{
 		Properties diff = mProperties.diff(mOldProperties);
 		if ( diff.size()>0 ) {
-			Log.d("cr3", "Some properties were changed, ask user whether to apply");
+			L.d("Some properties were changed, ask user whether to apply");
 			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
 			dlg.setTitle(R.string.win_title_options_apply);
 			dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
@@ -1181,7 +1178,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	}
 	@Override
 	protected void onStop() {
-		Log.d("cr3", "OptionsDialog.onStop() : calling gc()");
+		L.d("OptionsDialog.onStop() : calling gc()");
 		System.gc();
 		super.onStop();
 	}
