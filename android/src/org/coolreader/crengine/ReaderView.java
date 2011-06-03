@@ -2373,7 +2373,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	
-	private final static boolean DEBUG_ANIMATION = false;
+	private final static boolean DEBUG_ANIMATION = true;
 	private int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
 	{
@@ -2588,7 +2588,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		@Override
 		public void move( int duration, boolean accelerated  ) {
-			if ( duration>0 ) {
+			if ( duration>0  && pageFlipAnimationSpeedMs!=0 ) {
 				int steps = (int)(duration / getAvgAnimationDrawDuration()) + 2;
 				int x0 = pointerCurrPos;
 				int x1 = pointerDestPos;
@@ -2911,7 +2911,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		@Override
 		public void move( int duration, boolean accelerated ) {
-			if ( duration > 0 ) {
+			if ( duration > 0 && pageFlipAnimationSpeedMs!=0 ) {
 				int steps = (int)(duration / getAvgAnimationDrawDuration()) + 2;
 				int x0 = currShift;
 				int x1 = destShift;
@@ -2981,7 +2981,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void animate()
 		{
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.animate("+currShift + " => " + currShift + ")");
+			if (DEBUG_ANIMATION) log.v("PageViewAnimation.animate("+currShift + " => " + destShift + ") speed=" + pageFlipAnimationSpeedMs);
 			//log.d("animate() is called");
 			if ( currShift != destShift ) {
 				started = true;
