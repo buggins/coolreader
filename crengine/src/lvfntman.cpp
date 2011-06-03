@@ -27,9 +27,13 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-//#define USE_FREETYPE 1
-//#define USE_FONTCONFIG 1
-
+#if 0
+#define USE_FREETYPE 1
+#define USE_FONTCONFIG 1
+#define DEBUG_FONT_SYNTHESIS 1
+#define DEBUG_FONT_MAN 1
+#define DEBUG_FONT_MAN_LOG_FILE "/tmp/font_man.log"
+#endif
 
 #if (USE_FREETYPE==1)
 
@@ -190,7 +194,8 @@ public:
     int getWeight() const { return _weight; }
     void setWeight( int weight ) { _weight = weight; }
     bool getItalic() const { return _italic!=0; }
-    void setItalic( bool italic ) { _italic=italic; }
+    bool isRealItalic() const { return _italic==1; }
+    void setItalic( int italic ) { _italic=italic; }
     css_font_family_t getFamily() const { return _family; }
     void getFamily( css_font_family_t family ) { _family = family; }
     lString8 getTypeFace() const { return _typeface; }
@@ -623,13 +628,14 @@ public:
             Clear();
             return false;
         }
+#if 0
         int nheight = _face->size->metrics.height;
         int targetheight = size << 6;
         error = FT_Set_Pixel_Sizes(
             _face,    /* handle to face object */
             0,        /* pixel_width           */
             (size * targetheight + nheight/2)/ nheight );  /* pixel_height          */
-
+#endif
         _size = size; //(_face->size->metrics.height >> 6);
         _baseline = _size + (_face->size->metrics.descender >> 6);
         _weight = _face->style_flags & FT_STYLE_FLAG_BOLD ? 700 : 400;
@@ -1459,9 +1465,10 @@ public:
 //    }
 //}
 
-
-#define DEBUG_FONT_MAN 0
-#define DEBUG_FONT_MAN_LOG_FILE "/tmp/font_man.log"
+static LVFontRef dumpFontRef( LVFontRef fnt ) {
+    CRLog::trace("%s %d w=%d %s", fnt->getTypeFace().c_str(), fnt->getHeight(), fnt->getWeight(), fnt->getItalic()?"italic":"" );
+    return fnt;
+};
 
 class LVFreeTypeFontManager : public LVFontManager
 {
@@ -1569,7 +1576,17 @@ public:
 
     bool initSystemFonts()
     {
-        #if (USE_FONTCONFIG==1)
+        #if (DEBUG_FONT_SYNTHESIS==1)
+            fontMan->RegisterFont(lString8("/usr/share/fonts/liberation/LiberationSans-Regular.ttf"));
+            CRLog::debug("fonts:");
+            LVFontRef fnt4 = dumpFontRef( fontMan->GetFont(24, 200, true, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
+            LVFontRef fnt1 = dumpFontRef( fontMan->GetFont(18, 200, false, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
+            LVFontRef fnt2 = dumpFontRef( fontMan->GetFont(20, 400, false, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
+            LVFontRef fnt3 = dumpFontRef( fontMan->GetFont(22, 600, false, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
+            LVFontRef fnt5 = dumpFontRef( fontMan->GetFont(26, 400, true, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
+            LVFontRef fnt6 = dumpFontRef( fontMan->GetFont(28, 600, true, css_ff_sans_serif, lString8("Arial, Helvetica") ) );
+            CRLog::debug("end of font testing");
+        #elif (USE_FONTCONFIG==1)
         {
             CRLog::info("Reading list of system fonts using FONTCONFIG");
             lString16Collection fonts;
@@ -1902,7 +1919,7 @@ public:
         //    pathname = lString8("arial.ttf");
         //}
 
-        if ( !item->getDef()->getItalic() && italic ) {
+        if ( !item->getDef()->isRealItalic() && italic ) {
             //CRLog::debug("font: fake italic");
             newDef.setItalic(true);
             italicize = true;
