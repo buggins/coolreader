@@ -298,6 +298,65 @@ public class Engine {
 
 	private volatile int nextProgressId = 0;
 
+	public class DelayedProgress {
+		private volatile boolean cancelled;
+		private volatile boolean shown;
+
+		/**
+		 * Cancel scheduled progress.
+		 */
+		public void cancel() {
+			cancelled = true;
+		}
+		/**
+		 * Cancel and hide scheduled progress.
+		 */
+		public void hide() {
+			this.cancelled = true;
+			BackgroundThread.instance().executeGUI(new Runnable() {
+				@Override
+				public void run() {
+					if ( shown )
+						hideProgress();
+					shown = false;
+				}
+				
+			});
+		}
+
+		DelayedProgress( final int percent, final String msg, final int delayMillis ) {
+			this.cancelled = false;
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					if ( !cancelled ) {
+						showProgress( percent, msg );
+						shown = true;
+					}
+				}
+				
+			}, delayMillis);
+		}
+	}
+	
+	/**
+	 * Display progress dialog after delay.
+	 * (thread-safe)
+	 * @param mainProgress is percent*100
+	 * @param msg is progress message text
+	 * @param delayMillis is delay before display of progress
+	 * @return DelayedProgress object which can be use to hide or cancel this schedule
+	 */
+	public DelayedProgress showProgressDelayed(final int mainProgress, final String msg, final int delayMillis ) {
+		return new DelayedProgress(mainProgress, msg, delayMillis);
+	}
+	
+	/**
+	 * Show progress dialog.
+	 * (thread-safe)
+	 * @param mainProgress is percent*100
+	 * @param msg is progress message
+	 */
 	public void showProgress(final int mainProgress, final String msg) {
 		final int progressId = ++nextProgressId;
 		mProgressMessage = msg;
@@ -370,6 +429,10 @@ public class Engine {
 		}
 	}
 
+	/**
+	 * Hide progress dialog (if shown).
+	 * (thread-safe)
+	 */
 	public void hideProgress() {
 		final int progressId = ++nextProgressId;
 		log.v("hideProgress() - is called : "
@@ -712,8 +775,6 @@ public class Engine {
 				}
 			}
 		});
-		// TODO:
-		// waitTasksCompletion();
 	}
 
 	protected void finalize() throws Throwable {

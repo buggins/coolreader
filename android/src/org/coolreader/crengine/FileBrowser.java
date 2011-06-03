@@ -430,12 +430,23 @@ public class FileBrowser extends ListView {
 		dlg.onSelect();
 	}
 	
-	private void showOPDSDir( final FileInfo fileOrDir, FileInfo itemToSelect ) {
+	private void showOPDSDir( final FileInfo fileOrDir, final FileInfo itemToSelect ) {
+		
+		if ( fileOrDir.fileCount()>0 || fileOrDir.dirCount()>0 ) {
+			// already downloaded
+			BackgroundThread.instance().executeGUI(new Runnable() {
+				@Override
+				public void run() {
+					showDirectoryInternal(fileOrDir, itemToSelect);					
+				}
+			});
+			return;
+		}
+		
 		String url = fileOrDir.getOPDSUrl();
 		final FileInfo myCurrDirectory = currDirectory;
 		if ( url!=null ) {
 			try {
-				mActivity.showToast("Trying to open URI: " + url);
 				final URL uri = new URL(url);
 				DownloadCallback callback = new DownloadCallback() {
 
@@ -443,7 +454,6 @@ public class FileBrowser extends ListView {
 					public void onEntries(DocInfo doc,
 							Collection<EntryInfo> entries) {
 						// TODO Auto-generated method stub
-						
 					}
 
 					@Override
@@ -467,6 +477,7 @@ public class FileBrowser extends ListView {
 								file.isListed = true;
 								file.isScanned = true;
 								file.parent = fileOrDir;
+								file.tag = entry;
 								items.add(file);
 							} else if ( entry.link.type!=null && entry.link.type.startsWith("application/atom+xml") ) {
 								FileInfo file = new FileInfo();
@@ -475,6 +486,7 @@ public class FileBrowser extends ListView {
 								file.filename = entry.title;
 								file.isListed = true;
 								file.isScanned = true;
+								file.tag = entry;
 								file.parent = fileOrDir;
 								items.add(file);
 							}
@@ -522,7 +534,7 @@ public class FileBrowser extends ListView {
 					@Override
 					public void onDownloadEnd(String type, String url, File file) {
 						mEngine.hideProgress();
-						mActivity.showToast("Download is finished");
+						//mActivity.showToast("Download is finished");
 						FileInfo fi = new FileInfo(file);
 						FileInfo dir = mScanner.findParent(fi, downloadDir);
 						if ( dir==null )

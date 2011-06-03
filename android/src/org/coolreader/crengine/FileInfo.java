@@ -49,6 +49,8 @@ public class FileInfo {
 	private ArrayList<FileInfo> dirs; // directories
 	FileInfo parent; // parent item
 	
+	Object tag; // some additional information
+	
 	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 
 	/**

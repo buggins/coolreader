@@ -20,6 +20,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.coolreader.CoolReader;
+import org.coolreader.crengine.Engine.DelayedProgress;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -218,17 +219,6 @@ xml:base="http://lib.ololo.cc/opds/">
 		}
 		
 		@Override
-		public void endPrefixMapping(String prefix) throws SAXException {
-			// TODO Auto-generated method stub
-			super.endPrefixMapping(prefix);
-		}
-		@Override
-		public void startPrefixMapping(String prefix, String uri)
-				throws SAXException {
-			// TODO Auto-generated method stub
-			super.startPrefixMapping(prefix, uri);
-		}
-		@Override
 		public void characters(char[] ch, int start, int length)
 				throws SAXException {
 			super.characters(ch, start, length);
@@ -320,8 +310,6 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( !insideFeed && "feed".equals(localName) ) {
 				insideFeed = true;
 			} else if ( "entry".equals(localName) ) {
-//				if ( !insideFeed || insideEntry )
-//					throw new SAXException("unexpected element " + localName);
 				if ( !insideFeed ) {
 					insideFeed = true;
 					singleEntry = true;
@@ -408,10 +396,9 @@ xml:base="http://lib.ololo.cc/opds/">
 		final private String referer;
 		final private String defaultFileName;
 		final private DownloadCallback callback;
+		private String progressMessage = "Dowloading...";
 		private HttpURLConnection connection;
-		//private HttpUriRequest request;
-		private boolean cancelled;
-		//private byte[] result;
+		private DelayedProgress delayedProgress;
 		OPDSHandler handler;
 		public DownloadTask( CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
 			this.url = url;
@@ -420,18 +407,21 @@ xml:base="http://lib.ololo.cc/opds/">
 			this.referer = referer;
 			this.expectedType = expectedType;
 			this.defaultFileName = defaultFileName;
-			//request = new HttpGet(url);
-			//request.addHeader("Referer", "http://www.feedbooks.com/books/recent.atom");
-			//L.d("Creating HTTP client");
 		}
-//		public byte[] getResult() {
-//			return result;
-//		}
+		private void setProgressMessage( String url, int totalSize ) {
+			progressMessage = "Downloading " + url;
+			if ( totalSize>0 )
+				progressMessage = progressMessage + " (" + totalSize + ")";
+		}
 		private void onError(final String msg) {
 			BackgroundThread.guiExecutor.execute(new Runnable() {
 				@Override
 				public void run() {
-					// TODO Auto-generated method stub
+					if ( delayedProgress!=null ) {
+						delayedProgress.cancel();
+						delayedProgress.hide();
+					}
+					coolReader.getEngine().hideProgress();
 					callback.onError(msg);
 				}
 			});
@@ -588,9 +578,10 @@ xml:base="http://lib.ololo.cc/opds/">
 			}
 			
 			L.d("Download started: " + outFile.getAbsolutePath());
-			long lastTs = System.currentTimeMillis(); 
-			int lastPercent = -1;
+//			long lastTs = System.currentTimeMillis(); 
+//			int lastPercent = -1;
 			FileOutputStream os = null;
+			boolean success = false;
 			try {
 				os = new FileOutputStream(outFile);
 				byte[] buf = new byte[16384];
@@ -601,21 +592,28 @@ xml:base="http://lib.ololo.cc/opds/">
 						break;
 					os.write(buf, 0, bytesRead);
 					totalWritten += bytesRead;
-					final int percent = totalWritten * 100 / contentLength;
-					long ts = System.currentTimeMillis(); 
-					if ( percent!=lastPercent && ts - lastTs > 1500 ) {
-						L.d("Download progress: " + percent + "%");
-						BackgroundThread.instance().postGUI(new Runnable() {
-							@Override
-							public void run() {
-								callback.onDownloadProgress(type, url, percent);
-							}
-						});
-					}
+//					final int percent = totalWritten * 100 / contentLength;
+//					long ts = System.currentTimeMillis(); 
+//					if ( percent!=lastPercent && ts - lastTs > 1500 ) {
+//						L.d("Download progress: " + percent + "%");
+//						BackgroundThread.instance().postGUI(new Runnable() {
+//							@Override
+//							public void run() {
+//								callback.onDownloadProgress(type, url, percent);
+//							}
+//						});
+//					}
 				}
+				success = true;
 			} finally {
 				if ( os!=null )
 					os.close();
+				if ( !success ) {
+					if ( outFile.exists() && outFile.isFile() ) {
+						L.w("deleting unsuccessully downloaded file " + outFile);
+						outFile.delete();
+					}
+				}
 			}
 			L.d("Download finished");
 			BackgroundThread.instance().executeGUI(new Runnable() {
@@ -642,6 +640,9 @@ xml:base="http://lib.ololo.cc/opds/">
 			connection = null;
 		    
 			try {
+				setProgressMessage( url.toString(), -1 );
+				long startTimeStamp = System.currentTimeMillis();
+				delayedProgress = coolReader.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
 				URLConnection conn = url.openConnection();
 				if ( conn instanceof HttpsURLConnection ) {
 					onError("HTTPs is not supported yet");
@@ -686,7 +687,10 @@ xml:base="http://lib.ololo.cc/opds/">
 				L.d("Entity content length: " + contentLen);
 				L.d("Entity content type: " + contentType);
 				L.d("Entity content encoding: " + contentEncoding);
+				setProgressMessage( url.toString(), contentLen );
 				InputStream is = connection.getInputStream();
+				delayedProgress.cancel();
+				is = new ProgressInputStream(is, startTimeStamp, progressMessage, contentLen, 80);
 				final int MAX_CONTENT_LEN_TO_BUFFER = 256*1024;
 				boolean isZip = contentType!=null && contentType.equals("application/zip");
 				if ( expectedType!=null )
@@ -714,7 +718,6 @@ xml:base="http://lib.ololo.cc/opds/">
 				}
 			} catch (Exception e) {
 				L.e("Exception while trying to open URI " + url.toString(), e);
-				cancelled = true;
 				onError("Error occured while reading OPDS catalog");
 			} finally {
 				if ( connection!=null )
@@ -741,6 +744,67 @@ xml:base="http://lib.ololo.cc/opds/">
 
 		public void cancel() {
 		}
+
+	
+		public class ProgressInputStream extends InputStream {
+
+			private static final int TIMEOUT = 1500;  
+			
+			private final InputStream sourceStream;
+			private final int totalSize;
+			private final String progressMessage;
+			private long lastUpdate;
+			private int lastPercent;
+			private int maxPercentToStartShowingProgress;
+			private boolean progressShown;
+			private int bytesRead;
+			
+			public ProgressInputStream( InputStream sourceStream, long startTimeStamp, String progressMessage, int totalSize, int maxPercentToStartShowingProgress ) {
+				this.sourceStream = sourceStream;
+				this.totalSize = totalSize;
+				this.maxPercentToStartShowingProgress = maxPercentToStartShowingProgress * 100;
+				this.progressMessage = progressMessage;
+				this.lastUpdate = startTimeStamp;
+				this.bytesRead = 0;
+				this.progressShown = false;
+			}
+
+			private void updateProgress() {
+				long ts = System.currentTimeMillis();
+				long delay = ts - lastUpdate;
+				if ( delay > TIMEOUT ) {
+					lastUpdate = ts;
+					int percent = 0;
+					if ( totalSize>0 ) {
+						percent = bytesRead * 100 / totalSize * 100;
+					}
+					if ( (!progressShown || percent!=lastPercent) && (progressShown || percent<maxPercentToStartShowingProgress || delay > TIMEOUT*2 ) ) {
+						coolReader.getEngine().showProgress(percent, progressMessage);
+						lastPercent = percent;
+						progressShown = true;
+					}
+				}
+					
+			}
+			
+			@Override
+			public int read() throws IOException {
+				bytesRead++;
+				updateProgress();
+				return sourceStream.read();
+			}
+
+			@Override
+			public void close() throws IOException {
+				super.close();
+				if ( progressShown )
+					coolReader.getEngine().hideProgress();
+			}
+			
+			
+			
+		}
+		
 	}
 	private static DownloadTask currentTask;
 	public static DownloadTask create( CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
@@ -790,4 +854,5 @@ xml:base="http://lib.ololo.cc/opds/">
 		return buf.toString();
 	}
 	
+	public static final int PROGRESS_DELAY_MILLIS = 1500; 
 }
