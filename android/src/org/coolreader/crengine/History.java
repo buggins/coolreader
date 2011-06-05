@@ -3,8 +3,11 @@ package org.coolreader.crengine;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 
+import org.coolreader.CoolReader;
+
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
@@ -13,10 +16,12 @@ import android.util.Log;
 public class History {
 	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
 	private final CRDB mDB;
+	private final CoolReader mCoolReader;
 	private FileInfo mRecentBooksFolder;
 	
-	public History(CRDB db)
+	public History(CoolReader cr, CRDB db)
 	{
+		this.mCoolReader = cr;
 		this.mDB = db;
 	}
 	
@@ -199,14 +204,31 @@ public class History {
 	{
 		try {
 			ByteArrayInputStream is = new ByteArrayInputStream(data);
-			BitmapDrawable drawable = new BitmapDrawable(is);
+			Bitmap srcbmp = BitmapFactory.decodeStream(is);
+			//BitmapDrawable drawable = new BitmapDrawable(mCoolReader.getResources(), is);
 			//BitmapDrawable drawable = new BitmapDrawable(null, is);
 			Bitmap bmp = Bitmap.createBitmap(coverPageWidth, coverPageHeight, Bitmap.Config.ARGB_8888);
+			bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
 			Canvas canvas = new Canvas(bmp);
-			canvas.drawBitmap(drawable.getBitmap(), new Rect(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight()),
+			canvas.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
+			canvas.drawBitmap(srcbmp, new Rect(0, 0, srcbmp.getWidth(), srcbmp.getHeight()),
 					new Rect(0, 0, coverPageWidth, coverPageHeight), null);
-    		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
+    		Log.d("cr3", "cover page format: " + srcbmp.getWidth() + "x" + srcbmp.getHeight());
     		BitmapDrawable res = new BitmapDrawable(bmp);
+
+    		
+//			BitmapDrawable drawable = new BitmapDrawable(mCoolReader.getResources(), is);
+//			//BitmapDrawable drawable = new BitmapDrawable(null, is);
+//			Bitmap bmp = Bitmap.createBitmap(coverPageWidth, coverPageHeight, Bitmap.Config.ARGB_8888);
+//			bmp.setDensity(mCoolReader.getResources().getDisplayMetrics().densityDpi); //Bitmap.DENSITY_NONE
+//			Canvas canvas = new Canvas(bmp);
+//			canvas.setDensity(mCoolReader.getResources().getDisplayMetrics().densityDpi); //Bitmap.DENSITY_NONE
+//			canvas.drawBitmap(drawable.getBitmap(), new Rect(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight()),
+//					new Rect(0, 0, coverPageWidth, coverPageHeight), null);
+//    		Log.d("cr3", "cover page format: " + drawable.getIntrinsicWidth() + "x" + drawable.getIntrinsicHeight());
+//    		BitmapDrawable res = new BitmapDrawable(bmp);
+    		
+    		
     		return res;
 		} catch ( Exception e ) {
     		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());

@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -13,6 +14,17 @@ import org.coolreader.R;
 import android.util.Log;
 
 public class FileInfo {
+
+	public final static String RECENT_DIR_TAG = "@recent";
+	public final static String SEARCH_RESULT_DIR_TAG = "@search";
+	public final static String ROOT_DIR_TAG = "@root";
+	public final static String OPDS_LIST_TAG = "@opds";
+	public final static String OPDS_DIR_PREFIX = "@opds:";
+	public final static String AUTHORS_TAG = "@authors";
+	public final static String AUTHOR_PREFIX = "@author:";
+	
+	
+	
 	Long id; // db id
 	String title; // book title
 	String authors; // authors, delimited with '|'
@@ -36,6 +48,8 @@ public class FileInfo {
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
 	FileInfo parent; // parent item
+	
+	Object tag; // some additional information
 	
 	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 
@@ -179,10 +193,6 @@ public class FileInfo {
 		return null;
 	}
 	
-	public final static String RECENT_DIR_TAG = "@recent";
-	public final static String SEARCH_RESULT_DIR_TAG = "@search";
-	public final static String ROOT_DIR_TAG = "@root";
-	
 	public boolean isRecentDir()
 	{
 		return RECENT_DIR_TAG.equals(pathname);
@@ -200,12 +210,29 @@ public class FileInfo {
 	
 	public boolean isSpecialDir()
 	{
-		return pathname.startsWith("@");
+		return pathname!=null && pathname.startsWith("@");
+	}
+	
+	public boolean isOPDSDir()
+	{
+		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX);
+	}
+	
+	public boolean isOPDSRoot()
+	{
+		return OPDS_LIST_TAG.equals(pathname);
 	}
 	
 	public boolean isHidden()
 	{
 		return pathname.startsWith(".");
+	}
+	
+	public String getOPDSUrl()
+	{
+		if ( !pathname.startsWith(OPDS_DIR_PREFIX) )
+			return null;
+		return pathname.substring(OPDS_DIR_PREFIX.length());
 	}
 	
 	/**
@@ -254,6 +281,22 @@ public class FileInfo {
 		if ( files==null )
 			files = new ArrayList<FileInfo>();
 		files.add(file);
+	}
+	public void addItems( Collection<FileInfo> items )
+	{
+		for ( FileInfo item : items ) {
+			if ( item.isDirectory )
+				addDir(item);
+			else
+				addFile(item);
+			item.parent = this;
+		}
+	}
+	public void replaceItems( Collection<FileInfo> items )
+	{
+		files = null;
+		dirs = null;
+		addItems( items );
 	}
 	public boolean isEmpty()
 	{
@@ -614,5 +657,9 @@ public class FileInfo {
 	public String toString()
 	{
 		return pathname;
+	}
+	
+	public boolean allowSorting() {
+		return isDirectory && !isRootDir() && !isRecentDir() && !isOPDSDir();
 	}
 }

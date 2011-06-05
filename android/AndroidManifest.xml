@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.45-16" android:versionCode="126">
+      android:versionName="3.0.46-5" android:versionCode="135">
     <supports-screens
         android:largeScreens="true" 
         android:normalScreens="true" 
@@ -70,7 +70,8 @@
         </activity>
     </application>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
 	<!--uses-permission android:name="archos.permission.FULLSCREEN.FULL" /-->
     <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="8" />
 </manifest> 

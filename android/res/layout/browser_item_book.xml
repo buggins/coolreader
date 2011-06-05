@@ -9,8 +9,8 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:baselineAligned="false"
-    android:layout_marginTop="3dip"
-    android:layout_marginBottom="3dip"
+    android:layout_marginTop="1dip"
+    android:layout_marginBottom="1dip"
     android:layout_marginLeft="2dip"
     android:layout_marginRight="2dip"
     >
@@ -109,8 +109,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|center"
-        android:layout_marginLeft="2dip"
-        android:layout_marginRight="3dip"
+        android:layout_marginLeft="1dip"
+        android:layout_marginRight="2dip"
         android:baselineAligned="false">
 	
 	    <ImageView android:id="@+id/book_icon"
@@ -118,10 +118,8 @@
 	        android:layout_height="wrap_content"
 	        android:layout_gravity="center_vertical|center_horizontal"
 	        android:layout_marginRight="2dip"
-	        android:layout_marginLeft="2dip"
+	        android:layout_marginLeft="1dip"
             android:layout_weight="1"
-	        android:maxHeight="60px"
-	        android:maxWidth="80px"
 	        android:scaleType="fitCenter"
 	        />
     </LinearLayout>

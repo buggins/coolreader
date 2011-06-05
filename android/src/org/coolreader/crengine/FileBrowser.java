@@ -1,20 +1,26 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.OPDSUtil.DocInfo;
+import org.coolreader.crengine.OPDSUtil.DownloadCallback;
+import org.coolreader.crengine.OPDSUtil.EntryInfo;
 
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.database.DataSetObserver;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -32,11 +38,15 @@ import android.widget.TextView;
 
 public class FileBrowser extends ListView {
 
+	public static final Logger log = L.create("fb");
+	
 	Engine mEngine;
 	Scanner mScanner;
 	CoolReader mActivity;
 	LayoutInflater mInflater;
 	History mHistory;
+
+	public static final int MAX_SUBDIR_LEN = 32;
 	
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
@@ -55,7 +65,7 @@ public class FileBrowser extends ListView {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
 					int position, long id) {
-				Log.d("cr3", "onItemLongClick("+position+")");
+				log.d("onItemLongClick("+position+")");
 				//return super.performItemClick(view, position, id);
 				if ( position==0 && currDirectory.parent!=null ) {
 					showParentDirectory();
@@ -88,14 +98,20 @@ public class FileBrowser extends ListView {
 			
 		switch (item.getItemId()) {
 		case R.id.book_open:
-			Log.d("cr3", "book_open menu item selected");
-			mActivity.loadDocument(selectedItem);
+			log.d("book_open menu item selected");
+			if ( selectedItem.isOPDSDir() )
+				showOPDSDir(selectedItem, null);
+			else
+				mActivity.loadDocument(selectedItem);
 			return true;
 		case R.id.book_sort_order:
 			mActivity.showToast("Sorry, sort order selection is not yet implemented");
 			return true;
 		case R.id.book_recent_books:
 			showRecentBooks();
+			return true;
+		case R.id.book_opds_root:
+			showOPDSRootDirectory();
 			return true;
 		case R.id.book_root:
 			showRootDirectory();
@@ -107,7 +123,7 @@ public class FileBrowser extends ListView {
 				mActivity.showToast("No book opened");
 			return true;
 		case R.id.book_delete:
-			Log.d("cr3", "book_delete menu item selected");
+			log.d("book_delete menu item selected");
 			mActivity.getReaderView().closeIfOpened(selectedItem);
 			if ( selectedItem.deleteFile() ) {
 				mHistory.removeBookInfo(selectedItem, true, true);
@@ -115,11 +131,11 @@ public class FileBrowser extends ListView {
 			showDirectory(currDirectory, null);
 			return true;
 		case R.id.book_recent_goto:
-			Log.d("cr3", "book_recent_goto menu item selected");
+			log.d("book_recent_goto menu item selected");
 			showDirectory(selectedItem, selectedItem);
 			return true;
 		case R.id.book_recent_remove:
-			Log.d("cr3", "book_recent_remove menu item selected");
+			log.d("book_recent_remove menu item selected");
 			mActivity.getHistory().removeBookInfo(selectedItem, true, false);
 			showRecentBooks();
 			return true;
@@ -129,7 +145,7 @@ public class FileBrowser extends ListView {
 	
 	@Override
 	public void createContextMenu(ContextMenu menu) {
-		Log.d("cr3", "createContextMenu()");
+		log.d("createContextMenu()");
 		menu.clear();
 	    MenuInflater inflater = mActivity.getMenuInflater();
 	    if ( isRecentDir() ) {
@@ -157,7 +173,7 @@ public class FileBrowser extends ListView {
 
 	@Override
 	public boolean performItemClick(View view, int position, long id) {
-		Log.d("cr3", "performItemClick("+position+")");
+		log.d("performItemClick("+position+")");
 		//return super.performItemClick(view, position, id);
 		if ( position==0 && currDirectory.parent!=null ) {
 			showParentDirectory();
@@ -170,7 +186,10 @@ public class FileBrowser extends ListView {
 			showDirectory(item, null);
 			return true;
 		}
-		mActivity.loadDocument(item);
+		if ( item.isOPDSDir() )
+			showOPDSDir(item, null);
+		else
+			mActivity.loadDocument(item);
 		return true;
 	}
 
@@ -203,7 +222,7 @@ public class FileBrowser extends ListView {
 	{
 		if ( mInitStarted )
 			return;
-		Log.e("cr3", "FileBrowser.init() called");
+		log.e("FileBrowser.init() called");
 		mInitStarted = true;
 		//mEngine.showProgress(1000, R.string.progress_scanning);
 		execute( new Task() {
@@ -211,7 +230,7 @@ public class FileBrowser extends ListView {
 				mHistory.loadFromDB(mScanner, 100);
 			}
 			public void done() {
-				Log.e("cr3", "Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
+				log.e("Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
 				mInitialized = true;
 				//mEngine.hideProgress();
 				//mEngine.hideProgress();
@@ -223,7 +242,7 @@ public class FileBrowser extends ListView {
 				//mEngine.showProgress(9000, "Scan is failed");
 				//mEngine.hideProgress();
 				mActivity.showToast("Scan is failed");
-				Log.e("cr3", "Exception while scanning directories", e);
+				log.e("Exception while scanning directories", e);
 			}
 		});
 	}
@@ -252,6 +271,8 @@ public class FileBrowser extends ListView {
 	
 	public static String formatSize( int size )
 	{
+		if ( size==0 )
+			return "";
 		if ( size<10000 )
 			return String.valueOf(size);
 		else if ( size<1000000 )
@@ -351,7 +372,16 @@ public class FileBrowser extends ListView {
 
 	public void showRootDirectory()
 	{
+		log.v("showRootDirectory()");
 		showDirectory(mScanner.getRoot(), null);
+	}
+
+	public void showOPDSRootDirectory()
+	{
+		log.v("showOPDSRootDirectory()");
+		FileInfo opdsRoot = mScanner.getOPDSRoot();
+		if ( opdsRoot!=null )
+			showDirectory(opdsRoot, null);
 	}
 
 	private FileInfo.SortOrder mSortOrder = FileInfo.DEF_SORT_ORDER; 
@@ -359,7 +389,7 @@ public class FileBrowser extends ListView {
 		if ( mSortOrder == order )
 			return;
 		mSortOrder = order!=null ? order : FileInfo.DEF_SORT_ORDER;
-		if ( currDirectory!=null && !currDirectory.isRootDir() && !currDirectory.isRecentDir() ) {
+		if ( currDirectory!=null && currDirectory.allowSorting() ) {
 			currDirectory.sort(mSortOrder);
 			showDirectory(currDirectory, null);
 			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
@@ -404,7 +434,7 @@ public class FileBrowser extends ListView {
 			public void run() {
 				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
 				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
-					Log.d("cr3", "New sort order: " + newValue);
+					log.d("New sort order: " + newValue);
 					setSortOrder(newValue);
 				}
 			}
@@ -412,8 +442,167 @@ public class FileBrowser extends ListView {
 		dlg.onSelect();
 	}
 	
+	private void showOPDSDir( final FileInfo fileOrDir, final FileInfo itemToSelect ) {
+		
+		if ( fileOrDir.fileCount()>0 || fileOrDir.dirCount()>0 ) {
+			// already downloaded
+			BackgroundThread.instance().executeGUI(new Runnable() {
+				@Override
+				public void run() {
+					showDirectoryInternal(fileOrDir, itemToSelect);					
+				}
+			});
+			return;
+		}
+		
+		String url = fileOrDir.getOPDSUrl();
+		final FileInfo myCurrDirectory = currDirectory;
+		if ( url!=null ) {
+			try {
+				final URL uri = new URL(url);
+				DownloadCallback callback = new DownloadCallback() {
+
+					@Override
+					public void onEntries(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						// TODO Auto-generated method stub
+					}
+
+					@Override
+					public void onFinish(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						if ( myCurrDirectory != currDirectory ) {
+							log.w("current directory has been changed: ignore downloaded items");
+							return;
+						}
+						ArrayList<FileInfo> items = new ArrayList<FileInfo>();
+						for ( EntryInfo entry : entries ) {
+							OPDSUtil.LinkInfo acquisition = entry.getBestAcquisitionLink();
+							if ( acquisition!=null ) {
+								FileInfo file = new FileInfo();
+								file.isDirectory = false;
+								file.pathname = FileInfo.OPDS_DIR_PREFIX + acquisition.href;
+								file.filename = entry.content;
+								file.title = entry.title;
+								file.format = DocumentFormat.byMimeType(acquisition.type);
+								file.authors = entry.getAuthors();
+								file.isListed = true;
+								file.isScanned = true;
+								file.parent = fileOrDir;
+								file.tag = entry;
+								items.add(file);
+							} else if ( entry.link.type!=null && entry.link.type.startsWith("application/atom+xml") ) {
+								FileInfo file = new FileInfo();
+								file.isDirectory = true;
+								file.pathname = FileInfo.OPDS_DIR_PREFIX + entry.link.href;
+								file.filename = entry.title;
+								file.isListed = true;
+								file.isScanned = true;
+								file.tag = entry;
+								file.parent = fileOrDir;
+								items.add(file);
+							}
+						}
+						if ( items.size()>0 ) {
+							fileOrDir.replaceItems(items);
+							showDirectoryInternal(fileOrDir, null);
+						} else {
+							mActivity.showToast("No OPDS entries found");
+						}
+					}
+
+					@Override
+					public void onError(String message) {
+						mEngine.hideProgress();
+						mActivity.showToast(message);
+					}
+
+					FileInfo downloadDir;
+					@Override
+					public File onDownloadStart(String type, String url) {
+						//mEngine.showProgress(0, "Downloading " + url);
+						//mActivity.showToast("Starting download of " + type + " from " + url);
+						log.d("onDownloadStart: called for " + type + " " + url );
+						downloadDir = mActivity.getScanner().getDownloadDirectory();
+						log.d("onDownloadStart: after getDownloadDirectory()" );
+						String subdir = null;
+						if ( fileOrDir.authors!=null ) {
+							subdir = OPDSUtil.transcribeFileName(fileOrDir.authors);
+							if ( subdir.length()>MAX_SUBDIR_LEN )
+								subdir = subdir.substring(0, MAX_SUBDIR_LEN);
+						} else {
+							subdir = "NoAuthor";
+						}
+						if ( downloadDir==null )
+							return null;
+						File result = new File(downloadDir.getPathName());
+						result = new File(result, subdir);
+						result.mkdirs();
+						downloadDir.findItemByPathName(result.getAbsolutePath());
+						log.d("onDownloadStart: returning " + result.getAbsolutePath() );
+						return result;
+					}
+
+					@Override
+					public void onDownloadEnd(String type, String url, File file) {
+						mEngine.hideProgress();
+						//mActivity.showToast("Download is finished");
+						FileInfo fi = new FileInfo(file);
+						FileInfo dir = mScanner.findParent(fi, downloadDir);
+						if ( dir==null )
+							dir = downloadDir;
+						mScanner.listDirectory(dir);
+						FileInfo item = dir.findItemByPathName(file.getAbsolutePath());
+						if ( item!=null )
+							mActivity.loadDocument(item);
+						else
+							mActivity.loadDocument(fi);
+					}
+
+					@Override
+					public void onDownloadProgress(String type, String url,
+							int percent) {
+						mEngine.showProgress(percent * 100, "Downloading");
+					}
+					
+				};
+				String fileMimeType = fileOrDir.format!=null ? fileOrDir.format.getMimeFormat() : null;
+				String defFileName = OPDSUtil.transcribeFileName( fileOrDir.title!=null ? fileOrDir.title : fileOrDir.filename );
+				if ( fileOrDir.format!=null )
+					defFileName = defFileName + fileOrDir.format.getExtensions()[0];
+				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(mActivity, uri, defFileName, fileOrDir.isDirectory?"application/atom+xml":fileMimeType, 
+						myCurrDirectory.getOPDSUrl(), callback);
+				downloadTask.run();
+			} catch (MalformedURLException e) {
+				log.e("MalformedURLException: " + url);
+				mActivity.showToast("Wrong URI: " + url);
+			}
+		}
+	}
+	
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
+		if ( !BackgroundThread.instance().isGUIThread() ) {
+			try {
+				throw new Exception("showDirectory called from background thread!");
+			} catch ( Exception e ) {
+				log.e(e.getMessage(), e);
+			}
+			final FileInfo dir = fileOrDir;
+			final FileInfo item = itemToSelect;
+			BackgroundThread.instance().callGUI(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					showDirectory( dir, item );
+					return null;
+				}
+			});
+			return;
+		}
+		if ( fileOrDir!=null && fileOrDir.isOPDSDir() ) {
+			showOPDSDir(fileOrDir, itemToSelect);
+			return;
+		}
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
 			if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
 				fileOrDir = mScanner.getRoot().getDir(0);
@@ -428,7 +617,7 @@ public class FileBrowser extends ListView {
 		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
-					if ( !dir.isRootDir() && !dir.isRecentDir() )
+					if ( dir.allowSorting() )
 						dir.sort(mSortOrder);
 					showDirectoryInternal(dir, file);
 				}
@@ -440,7 +629,7 @@ public class FileBrowser extends ListView {
 	public void scanCurrentDirectoryRecursive() {
 		if ( currDirectory==null )
 			return;
-		Log.i("cr3", "scanCurrentDirectoryRecursive started");
+		log.i("scanCurrentDirectoryRecursive started");
 		final Scanner.ScanControl control = new Scanner.ScanControl(); 
 		final ProgressDialog dlg = ProgressDialog.show(getContext(), 
 				mActivity.getString(R.string.dlg_scan_title), 
@@ -448,14 +637,14 @@ public class FileBrowser extends ListView {
 				true, true, new OnCancelListener() {
 					@Override
 					public void onCancel(DialogInterface dialog) {
-						Log.i("cr3", "scanCurrentDirectoryRecursive : stop handler");
+						log.i("scanCurrentDirectoryRecursive : stop handler");
 						control.stop();
 					}
 		});
 		mScanner.scanDirectory(currDirectory, new Runnable() {
 			@Override
 			public void run() {
-				Log.i("cr3", "scanCurrentDirectoryRecursive : finish handler");
+				log.i("scanCurrentDirectoryRecursive : finish handler");
 				if ( dlg.isShowing() )
 					dlg.dismiss();
 			}
@@ -481,9 +670,26 @@ public class FileBrowser extends ListView {
 
 	private void showDirectoryInternal( final FileInfo dir, final FileInfo file )
 	{
+		if ( !BackgroundThread.instance().isGUIThread() ) {
+			try {
+				throw new Exception("showDirectoryInternal called from background thread!");
+			} catch ( Exception e ) {
+				log.e(e.getMessage(), e);
+			}
+			BackgroundThread.instance().callGUI(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					showDirectoryInternal( dir, file );
+					return null;
+				}
+			});
+			return;
+		}
 		currDirectory = dir;
 		if ( dir!=null )
-			Log.i("cr3", "Showing directory " + dir);
+			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
+		if ( !BackgroundThread.instance().isGUIThread() )
+			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
 		this.setAdapter(new ListAdapter() {
 
 			public boolean areAllItemsEnabled() {
@@ -587,8 +793,13 @@ public class FileBrowser extends ListView {
 							image.setImageResource(R.drawable.cr3_browser_folder);
 						setText(name, item.filename);
 
-						setText(field1, "books: " + String.valueOf(item.fileCount()));
-						setText(field2, "folders: " + String.valueOf(item.dirCount()));
+						if ( !item.isOPDSDir() ) {
+							setText(field1, "books: " + String.valueOf(item.fileCount()));
+							setText(field2, "folders: " + String.valueOf(item.dirCount()));
+						} else {
+							setText(field1, "");
+							setText(field2, "");
+						}
 					} else {
 						boolean isSimple = (viewType == VIEW_TYPE_FILE_SIMPLE);
 						if ( image!=null ) {
@@ -629,7 +840,7 @@ public class FileBrowser extends ListView {
 	//						field1.setVisibility(VISIBLE);
 	//						field2.setVisibility(VISIBLE);
 	//						field3.setVisibility(VISIBLE);
-							field1.setText(formatSize(item.size) + " " + item.format.name().toLowerCase() + " " + formatDate(item.createTime) + "  ");
+							field1.setText(formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
 							//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 							Bookmark pos = mHistory.getLastPos(item);
 							if ( pos!=null ) {
@@ -733,7 +944,7 @@ public class FileBrowser extends ListView {
 		public void fail(Exception e) {
 			// do nothing, just log exception
 			// override to do custom action
-			Log.e("cr3", "Task " + this.getClass().getSimpleName() + " is failed with exception " + e.getMessage(), e);
+			log.e("Task " + this.getClass().getSimpleName() + " is failed with exception " + e.getMessage(), e);
 		}
     }
     

@@ -28,6 +28,8 @@ import android.util.Log;
  */
 public class Engine {
 
+	public static final Logger log = L.create("en");
+	
 	private final CoolReader mActivity;
 	private final BackgroundThread mBackgroundThread;
 	
@@ -149,20 +151,20 @@ public class Engine {
 		public void run() {
 			try {
 				if (LOG_ENGINE_TASKS)
-					Log.i("cr3", "running task.work() "
+					log.i("running task.work() "
 							+ task.getClass().getName());
 				if (!initialized)
 					throw new IllegalStateException("Engine not initialized");
 				// run task
 				task.work();
 				if (LOG_ENGINE_TASKS)
-					Log.i("cr3", "exited task.work() "
+					log.i("exited task.work() "
 							+ task.getClass().getName());
 				// post success callback
 				mBackgroundThread.postGUI(new Runnable() {
 					public void run() {
 						if (LOG_ENGINE_TASKS)
-							Log.i("cr3", "running task.done() "
+							log.i("running task.done() "
 									+ task.getClass().getName()
 									+ " in gui thread");
 						task.done();
@@ -187,12 +189,12 @@ public class Engine {
 				// });
 				// }
 			} catch (final Exception e) {
-				Log.e("cr3", "exception while running task "
+				log.e("exception while running task "
 						+ task.getClass().getName(), e);
 				// post error callback
 				mBackgroundThread.postGUI(new Runnable() {
 					public void run() {
-						Log.e("cr3", "running task.fail(" + e.getMessage()
+						log.e("running task.fail(" + e.getMessage()
 								+ ") " + task.getClass().getSimpleName()
 								+ " in gui thread ");
 						task.fail(e);
@@ -210,7 +212,7 @@ public class Engine {
 	 */
 	public void execute(final EngineTask task) {
 		if (LOG_ENGINE_TASKS)
-			Log.d("cr3", "executing task " + task.getClass().getSimpleName());
+			log.d("executing task " + task.getClass().getSimpleName());
 		TaskHandler taskHandler = new TaskHandler(task);
 		mBackgroundThread.executeBackground(taskHandler);
 	}
@@ -223,7 +225,7 @@ public class Engine {
 	 */
 	public void post(final EngineTask task) {
 		if (LOG_ENGINE_TASKS)
-			Log.d("cr3", "executing task " + task.getClass().getSimpleName());
+			log.d("executing task " + task.getClass().getSimpleName());
 		TaskHandler taskHandler = new TaskHandler(task);
 		mBackgroundThread.postBackground(taskHandler);
 	}
@@ -275,7 +277,7 @@ public class Engine {
 	// mBackgroundThread.executeGUI( new Runnable() {
 	// public void run() {
 	// // show progress
-	// Log.v("cr3", "showProgress() - in GUI thread");
+	// log.v("showProgress() - in GUI thread");
 	// if ( mProgress!=null && progressShown ) {
 	// hideProgress();
 	// progressIcon = drawable;
@@ -296,32 +298,91 @@ public class Engine {
 
 	private volatile int nextProgressId = 0;
 
-	private void showProgress(final int mainProgress, final String msg) {
+	public class DelayedProgress {
+		private volatile boolean cancelled;
+		private volatile boolean shown;
+
+		/**
+		 * Cancel scheduled progress.
+		 */
+		public void cancel() {
+			cancelled = true;
+		}
+		/**
+		 * Cancel and hide scheduled progress.
+		 */
+		public void hide() {
+			this.cancelled = true;
+			BackgroundThread.instance().executeGUI(new Runnable() {
+				@Override
+				public void run() {
+					if ( shown )
+						hideProgress();
+					shown = false;
+				}
+				
+			});
+		}
+
+		DelayedProgress( final int percent, final String msg, final int delayMillis ) {
+			this.cancelled = false;
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					if ( !cancelled ) {
+						showProgress( percent, msg );
+						shown = true;
+					}
+				}
+				
+			}, delayMillis);
+		}
+	}
+	
+	/**
+	 * Display progress dialog after delay.
+	 * (thread-safe)
+	 * @param mainProgress is percent*100
+	 * @param msg is progress message text
+	 * @param delayMillis is delay before display of progress
+	 * @return DelayedProgress object which can be use to hide or cancel this schedule
+	 */
+	public DelayedProgress showProgressDelayed(final int mainProgress, final String msg, final int delayMillis ) {
+		return new DelayedProgress(mainProgress, msg, delayMillis);
+	}
+	
+	/**
+	 * Show progress dialog.
+	 * (thread-safe)
+	 * @param mainProgress is percent*100
+	 * @param msg is progress message
+	 */
+	public void showProgress(final int mainProgress, final String msg) {
 		final int progressId = ++nextProgressId;
 		mProgressMessage = msg;
 		mProgressPos = mainProgress;
 		if (mainProgress == 10000) {
-			Log.v("cr3", "mainProgress==10000 : calling hideProgress");
+			//log.v("mainProgress==10000 : calling hideProgress");
 			hideProgress();
 			return;
 		}
-		Log.v("cr3", "showProgress(" + mainProgress + ", \"" + msg
+		log.v("showProgress(" + mainProgress + ", \"" + msg
 				+ "\") is called : " + Thread.currentThread().getName());
 		if (enable_progress) {
 			mBackgroundThread.executeGUI(new Runnable() {
 				public void run() {
 					// show progress
-					Log.v("cr3", "showProgress() - in GUI thread");
+					//log.v("showProgress() - in GUI thread");
 					if (progressId != nextProgressId) {
-						Log.v("cr3",
-								"showProgress() - skipping duplicate progress event");
+						//Log.v("cr3",
+						//		"showProgress() - skipping duplicate progress event");
 						return;
 					}
 					if (mProgress == null) {
 						try {
 							if (mActivity != null && mActivity.isStarted()) {
-								Log.v("cr3",
-										"showProgress() - in GUI thread : creating progress window");
+//								Log.v("cr3",
+//										"showProgress() - in GUI thread : creating progress window");
 								if (PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL) {
 									mProgress = new ProgressDialog(mActivity);
 									mProgress
@@ -341,8 +402,8 @@ public class Engine {
 									mProgress.setMessage(msg);
 									mProgress.show();
 								} else {
-									mProgress = ProgressDialog.show(mActivity,
-											"Please Wait", msg);
+//									mProgress = ProgressDialog.show(mActivity,
+//											"Please Wait", msg);
 									mProgress.setCancelable(false);
 									mProgress.setProgress(mainProgress);
 								}
@@ -368,18 +429,22 @@ public class Engine {
 		}
 	}
 
+	/**
+	 * Hide progress dialog (if shown).
+	 * (thread-safe)
+	 */
 	public void hideProgress() {
 		final int progressId = ++nextProgressId;
-		Log.v("cr3", "hideProgress() - is called : "
+		log.v("hideProgress() - is called : "
 				+ Thread.currentThread().getName());
-		// Log.v("cr3", "hideProgress() is called");
+		// log.v("hideProgress() is called");
 		mBackgroundThread.executeGUI(new Runnable() {
 			public void run() {
 				// hide progress
-				Log.v("cr3", "hideProgress() - in GUI thread");
+//				log.v("hideProgress() - in GUI thread");
 				if (progressId != nextProgressId) {
-					Log.v("cr3",
-							"hideProgress() - skipping duplicate progress event");
+//					Log.v("cr3",
+//							"hideProgress() - skipping duplicate progress event");
 					return;
 				}
 				if (mProgress != null) {
@@ -389,7 +454,7 @@ public class Engine {
 					progressIcon = null;
 					mProgress.dismiss();
 					mProgress = null;
-					Log.v("cr3", "hideProgress() - in GUI thread, finished");
+//					log.v("hideProgress() - in GUI thread, finished");
 				}
 			}
 		});
@@ -404,7 +469,7 @@ public class Engine {
 			InputStream is = new FileInputStream(file);
 			return loadResourceUtf8(is);
 		} catch (Exception e) {
-			Log.e("cr3", "cannot load resource from file " + file);
+			log.e("cannot load resource from file " + file);
 			return null;
 		}
 	}
@@ -414,7 +479,7 @@ public class Engine {
 			InputStream is = this.mActivity.getResources().openRawResource(id);
 			return loadResourceUtf8(is);
 		} catch (Exception e) {
-			Log.e("cr3", "cannot load resource " + id);
+			log.e("cannot load resource " + id);
 			return null;
 		}
 	}
@@ -431,7 +496,7 @@ public class Engine {
 			String utf8 = new String(buf, 0, available, "UTF8");
 			return utf8;
 		} catch (Exception e) {
-			Log.e("cr3", "cannot load resource");
+			log.e("cannot load resource");
 			return null;
 		}
 	}
@@ -441,7 +506,7 @@ public class Engine {
 			InputStream is = this.mActivity.getResources().openRawResource(id);
 			return loadResourceBytes(is);
 		} catch (Exception e) {
-			Log.e("cr3", "cannot load resource");
+			log.e("cannot load resource");
 			return null;
 		}
 	}
@@ -455,7 +520,7 @@ public class Engine {
 			byte[] res = loadResourceBytes(is);
 			return res;
 		} catch (IOException e) {
-			Log.e("cr3", "Cannot open file " + f);
+			log.e("Cannot open file " + f);
 		}
 		return null;
 	}
@@ -471,7 +536,7 @@ public class Engine {
 			is.close();
 			return buf;
 		} catch (Exception e) {
-			Log.e("cr3", "cannot load resource");
+			log.e("cannot load resource");
 			return null;
 		}
 	}
@@ -487,16 +552,16 @@ public class Engine {
 		this.mBackgroundThread = backgroundThread;
 		// this.mMainView = mainView;
 		//
-//		Log.i("cr3", "Engine() : initializing Engine in UI thread");
+//		log.i("Engine() : initializing Engine in UI thread");
 //		if (!initialized) {
 //			installLibrary();
 //		}
 		initializeStarted = true;
-		Log.i("cr3", "Engine() : scheduling init task");
+		log.i("Engine() : scheduling init task");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			public void run() {
 				try {
-					Log.i("cr3", "Engine() : running init() in engine thread");
+					log.i("Engine() : running init() in engine thread");
 					init();
 					// android.view.ViewRoot.getRunQueue().post(new Runnable() {
 					// public void run() {
@@ -504,7 +569,7 @@ public class Engine {
 					// }
 					// });
 				} catch (final Exception e) {
-					Log.e("cr3", "Exception while initializing Engine", e);
+					log.e("Exception while initializing Engine", e);
 					// handler.post(new Runnable() {
 					// public void run() {
 					// // TODO: fatal error
@@ -588,7 +653,7 @@ public class Engine {
 	private HyphDict currentHyphDict = HyphDict.NONE;
 
 	public boolean setHyphenationDictionary(final HyphDict dict) {
-		Log.i("cr3", "setHyphenationDictionary( " + dict + " ) is called");
+		log.i("setHyphenationDictionary( " + dict + " ) is called");
 		if (currentHyphDict == dict)
 			return false;
 		currentHyphDict = dict;
@@ -601,7 +666,7 @@ public class Engine {
 				if (dict.type == HYPH_DICT && dict.resource != 0) {
 					data = loadResourceBytes(dict.resource);
 				}
-				Log.i("cr3", "Setting engine's hyphenation dictionary to "
+				log.i("Setting engine's hyphenation dictionary to "
 						+ dict);
 				setHyphenationMethod(dict.type, data);
 			}
@@ -640,10 +705,10 @@ public class Engine {
 					}
 				}
 			} else {
-				Log.i("cr3", baseDir.toString() + " is read only");
+				log.i(baseDir.toString() + " is read only");
 			}
 		} else {
-			Log.i("cr3", baseDir.toString() + " is not found");
+			log.i(baseDir.toString() + " is not found");
 		}
 		return cacheDirName;
 	}
@@ -668,7 +733,7 @@ public class Engine {
 		}
 		// set cache directory for engine
 		if (cacheDirName != null) {
-			Log.i("cr3", cacheDirName
+			log.i(cacheDirName
 					+ " will be used for cache, maxCacheSize=" + CACHE_DIR_SIZE);
 			setCacheDirectoryInternal(cacheDirName, CACHE_DIR_SIZE);
 		}
@@ -688,7 +753,7 @@ public class Engine {
 
 	// public void waitTasksCompletion()
 	// {
-	// Log.i("cr3", "waiting for engine tasks completion");
+	// log.i("waiting for engine tasks completion");
 	// try {
 	// mExecutor.awaitTermination(0, TimeUnit.SECONDS);
 	// } catch (InterruptedException e) {
@@ -700,22 +765,20 @@ public class Engine {
 	 * Uninitialize engine.
 	 */
 	public void uninit() {
-		Log.i("cr3", "Engine.uninit() is called");
+		log.i("Engine.uninit() is called");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
 			public void run() {
-				Log.i("cr3", "Engine.uninit() : in background thread");
+				log.i("Engine.uninit() : in background thread");
 				if (initialized) {
 					uninitInternal();
 					initialized = false;
 				}
 			}
 		});
-		// TODO:
-		// waitTasksCompletion();
 	}
 
 	protected void finalize() throws Throwable {
-		Log.i("cr3", "Engine.finalize() is called");
+		log.i("Engine.finalize() is called");
 		// if ( initialized ) {
 		// //uninitInternal();
 		// initialized = false;
@@ -737,7 +800,7 @@ public class Engine {
 		ArrayList<String> fontPaths = new ArrayList<String>();
 		for (File fontDir : dirs) {
 			if (fontDir.isDirectory()) {
-				Log.v("cr3", "Scanning directory " + fontDir.getAbsolutePath()
+				log.v("Scanning directory " + fontDir.getAbsolutePath()
 						+ " for font files");
 				// get font names
 				String[] fileList = fontDir.list(new FilenameFilter() {
@@ -754,7 +817,7 @@ public class Engine {
 					String pathName = new File(fontDir, fileList[i])
 							.getAbsolutePath();
 					fontPaths.add(pathName);
-					Log.v("cr3", "found font: " + pathName);
+					log.v("found font: " + pathName);
 				}
 			}
 		}
@@ -769,15 +832,15 @@ public class Engine {
 			if (force_install_library)
 				throw new Exception("forcing install");
 			// try loading library w/o manual installation
-			Log.i("cr3", "trying to load library " + LIBRARY_NAME
+			log.i("trying to load library " + LIBRARY_NAME
 					+ " w/o installation");
 			System.loadLibrary(LIBRARY_NAME);
 			// try invoke native method
-			//Log.i("cr3", "trying execute native method ");
+			//log.i("trying execute native method ");
 			//setHyphenationMethod(HYPH_NONE, new byte[] {});
-			Log.i("cr3", LIBRARY_NAME + " loaded successfully");
+			log.i(LIBRARY_NAME + " loaded successfully");
 		} catch (Exception ee) {
-			Log.i("cr3", SO_NAME + " not found using standard paths, will install manually");
+			log.i(SO_NAME + " not found using standard paths, will install manually");
 			File sopath = mActivity.getDir("libs", Context.MODE_PRIVATE);
 			File soname = new File(sopath, SO_NAME);
 			try {
@@ -799,13 +862,13 @@ public class Engine {
 					is.close();
 					os.close();
 				} else {
-					Log.i("cr3", "JNI library " + soname.getAbsolutePath()
+					log.i("JNI library " + soname.getAbsolutePath()
 							+ " is up to date");
 				}
 				System.load(soname.getAbsolutePath());
 				//setHyphenationMethod(HYPH_NONE, new byte[] {});
 			} catch (Exception e) {
-				Log.e("cr3", "cannot install " + LIBRARY_NAME + " library", e);
+				log.e("cannot install " + LIBRARY_NAME + " library", e);
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader 3</string>
     <string name="mi_search">Знайти</string>
@@ -236,4 +236,7 @@
     <string name="dlg_about_donation_installed">Встановлено</string>
     <string name="mi_book_browser_normal_mode">Нормальний режим</string>
     <string name="mi_book_browser_simple_mode">Простий перелік файлів</string>
+    <string name="options_page_animation_slide_2_pages">Зсув (2)</string>
+    <string name="progress_downloading">Загружаю</string>
+    <string name="mi_book_opds_root">Онлайн-каталоги</string>
 </resources>

@@ -8,9 +8,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.DataSetObserver;
@@ -19,7 +17,6 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,10 +62,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		return bestIndex;
 	}
 	public static final int[] mBacklightLevels = new int[] {
-		-1, 1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 56, 70, 75, 80, 85, 90, 95, 100
+		-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100
 	};
 	public static final String[] mBacklightLevelsTitles = new String[] {
-			"Default", "1%", "2%", "3%", "5%", "10%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%", "55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
+			"Default", "1%", "2%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", 
+			"10%", "12%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%", "55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
 	};
 	int[] mInterlineSpaces = new int[] {
 			80, 90, 100, 110, 120, 130, 140, 150
@@ -91,11 +89,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_controls_flick_brightness_none, R.string.options_controls_flick_brightness_left, R.string.options_controls_flick_brightness_right
 		};
 	int[] mAnimation = new int[] {
-			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, 
+			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, ReaderView.PAGE_ANIMATION_SLIDE2, 
 			ReaderView.PAGE_ANIMATION_PAPER
 		};
 	int[] mAnimationTitles = new int[] {
-			R.string.options_page_animation_none, R.string.options_page_animation_slide,
+			R.string.options_page_animation_none, R.string.options_page_animation_slide, R.string.options_page_animation_slide_2_pages,
 			R.string.options_page_animation_paperbook
 		};
 	int[] mSelectionAction = new int[] {
@@ -1042,12 +1040,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.v("cr3", "creating OptionsDialog");
+		L.v("creating OptionsDialog");
 		CoolReader.dumpHeapAllocation();
-		Log.v("cr3", "calling gc");
+		L.v("calling gc");
 		System.gc();
 		CoolReader.dumpHeapAllocation();
-		Log.v("cr3", "creating options dialog");
+		L.v("creating options dialog");
 		setTitle(null);
         setCancelable(true);
         setCanceledOnTouchOutside(true);
@@ -1148,14 +1146,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		});
 		
 		super.onCreate(savedInstanceState);
-		Log.v("cr3", "OptionsDialog is created");
+		L.v("OptionsDialog is created");
 	}
 
 	private void askApply()
 	{
 		Properties diff = mProperties.diff(mOldProperties);
 		if ( diff.size()>0 ) {
-			Log.d("cr3", "Some properties were changed, ask user whether to apply");
+			L.d("Some properties were changed, ask user whether to apply");
 			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
 			dlg.setTitle(R.string.win_title_options_apply);
 			dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
@@ -1180,7 +1178,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	}
 	@Override
 	protected void onStop() {
-		Log.d("cr3", "OptionsDialog.onStop() : calling gc()");
+		L.d("OptionsDialog.onStop() : calling gc()");
 		System.gc();
 		super.onStop();
 	}
