@@ -573,6 +573,7 @@ private:
 	lString16 _word;
 	lString16 _searchPattern;
 	bool _active;
+	bool _dictsLoaded;
 	int _selectedIndex;
 	int _itemsCount;
 	LVImageSourceRef _toolBarImg;
@@ -581,6 +582,7 @@ private:
 	char *_newTranslation;
 private:
 	void searchDictinary();
+	void loadDictionaries();
 protected:
 	virtual void selectDictionary();
 	virtual void onDictionarySelect();
@@ -1002,7 +1004,8 @@ CRPocketBookDocView * CRPocketBookDocView::instance = NULL;
 
 CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDialog *parent) 
 	: CRViewDialog(wm, lString16(), lString8(), lvRect(), false, true), _parent(parent), _itemsCount(5),
-	_dictsTable(16), _active(false), _newWord(NULL), _newTranslation(NULL), _translateResult(0)
+	_dictsTable(16), _active(false), _newWord(NULL), _newTranslation(NULL), _translateResult(0),
+	_dictsLoaded(false)
 {
 	setSkinName(lString16(L"#dict"));
 	lvRect rect = _wm->getScreen()->getRect();
@@ -1019,29 +1022,39 @@ CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDi
         }
 	}
 	rect.top = rect.bottom - getDesiredHeight();
-	_dictNames = EnumDictionaries();
-	for (_dictCount = 0; _dictNames[_dictCount]; _dictCount++) {
-		_dictsTable.set(Utf8ToUnicode( lString8(_dictNames[_dictCount]) ), _dictCount);
-	}
-	CRLog::trace("_dictCount = %d", _dictCount);
 	_dictMenu = new CRPbDictionaryMenu(_wm, this);
 	setRect(rect);
 	_dictMenu->reconfigure(0);
 	CRPropRef props = CRPocketBookDocView::instance->getProps();
 	getDocView()->setVisiblePageCount(props->getIntDef(PROP_POCKETBOOK_DICT_PAGES, 1));
 	lString16 lastDict = props->getStringDef(PROP_POCKETBOOK_DICT, pbGlobals->getDictionary());
-	_dictIndex = lastDict.empty() ? 0 : _dictsTable.get(lastDict);
-	if (_dictCount > 0 && _dictIndex >= 0) {
-		int rc = OpenDictionary(_dictNames[_dictIndex]);
+	if (lastDict.empty()) {
+		loadDictionaries();
+		if (_dictCount > 0)
+			lastDict = Utf8ToUnicode(lString8(_dictNames[0]));
+	}
+	if (!lastDict.empty()) {
+		int rc = OpenDictionary((char *)UnicodeToUtf8(lastDict).c_str());
 		if (rc == 1) {
-			_caption = Utf8ToUnicode( lString8(_dictNames[_dictIndex]) );
+			_caption = lastDict;
 			getDocView()->createDefaultDocument(lString16(), Utf8ToUnicode(TR("@Word_not_found")));
 			return;
 		}
-		CRLog::error("OpenDictionary(%s) returned %d", _dictNames[_dictIndex], rc);
+		lString8 dName =  UnicodeToUtf8(lastDict);
+		CRLog::error("OpenDictionary(%s) returned %d", dName.c_str(), rc);
 	}
 	_dictIndex = -1;
-	getDocView()->createDefaultDocument(lString16(), Utf8ToUnicode(TR("@Dic_error")));	
+	getDocView()->createDefaultDocument(lString16(), Utf8ToUnicode(TR("@Dic_error")));
+}
+
+void CRPbDictionaryView::loadDictionaries()
+{
+	_dictNames = EnumDictionaries();
+	for (_dictCount = 0; _dictNames[_dictCount]; _dictCount++) {
+		_dictsTable.set(Utf8ToUnicode( lString8(_dictNames[_dictCount]) ), _dictCount);
+	}
+	CRLog::trace("_dictCount = %d", _dictCount);
+	_dictsLoaded = true;
 }
 
 CRPbDictionaryView::~CRPbDictionaryView() 
@@ -1137,12 +1150,15 @@ void CRPbDictionaryView::draw()
 void CRPbDictionaryView::selectDictionary()
 {
 	CRLog::trace("selectDictionary()");
-	LVFontRef valueFont(fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")));
+	LVFontRef valueFont(fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Liberation Sans")));
 	CRMenu * dictsMenu = new CRMenu(_wm, NULL, PB_CMD_SELECT_DICT,
 			lString16(""), LVImageSourceRef(), LVFontRef(), valueFont,
 			 CRPocketBookDocView::instance->getNewProps(), PROP_POCKETBOOK_DICT);
 	dictsMenu->setAccelerators(_wm->getAccTables().get("menu"));
 	dictsMenu->setSkinName(lString16(L"#settings"));
+	if (!_dictsLoaded) {
+		loadDictionaries();
+	}
 	for (int i = 0; i < _dictCount; i++) {
 		lString16 dictName = Utf8ToUnicode(_dictNames[i]);
 		dictsMenu->addItem( new CRMenuItem(dictsMenu, i,

@@ -12,30 +12,85 @@
 #include "bgfit.h"
 #include "citedlg.h"
 #include "citecore.h"
+#ifdef CR_POCKETBOOK
+#include "cr3pocketbook.h"
+#endif
 
 class CiteWindow : public BackgroundFitWindow
 {
     CiteSelection selector_;
 	V3DocViewWin * mainwin_;
+#ifdef CR_POCKETBOOK
+	int _selectedIndex;
+	int _itemsCount;
+
+	int getCommandFromIndex(int command) 
+	{
+		switch (_selectedIndex) {
+		case 0:
+			//move
+			if (command == MCMD_SCROLL_BACK)
+				return MCMD_SELECT_5; //up
+			else if (command == MCMD_SCROLL_FORWARD)
+				return MCMD_SELECT_6; //down
+			break;
+		case 1:
+			//grow
+			if (command == MCMD_SCROLL_BACK)
+				return MCMD_SELECT_1; //up
+			else if (command == MCMD_SCROLL_FORWARD)
+				return MCMD_SELECT_0; //down
+			break;
+		case 2:
+			//shrink
+			if (command == MCMD_SCROLL_BACK)
+				return MCMD_SELECT_9; 
+			else if (command == MCMD_SCROLL_FORWARD)
+				return MCMD_SELECT_2;
+			break;
+		case 3:
+			// grow phrase:
+			if (command == MCMD_SCROLL_BACK)
+				return MCMD_SELECT_3; // up
+			else if (command == MCMD_SCROLL_FORWARD)
+				return MCMD_SELECT_8; // down
+		case 4:
+			// Shrink phrase
+			if (command == MCMD_SCROLL_BACK)
+				return MCMD_SELECT_7;
+			else if (command == MCMD_SCROLL_FORWARD)
+				return MCMD_SELECT_4;
+			break;
+		}
+		return -1;
+	}
+#endif
 protected:
     virtual void draw()
     {
-        CRLog::info("CiteWindow::draw()\n");
         BackgroundFitWindow::draw();
         CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
         LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
         skin->draw( *buf, _rect );
-        lString16 prompt(_("Select text"));
-        buf->FillRect( _rect, 0xAAAAAA );
-        lvRect keyRect = _rect;
         lvRect borders = skin->getBorderWidths();
-        LVFontRef font = fontMan->GetFont( 20, 600, false, css_ff_sans_serif, lString8("Arial")); //skin->getFont();
-//        int margin = 4;
-        keyRect.right = _rect.right;
-        if ( !keyRect.isEmpty() ) {
-            skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
-            skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
-        }
+#ifdef CR_POCKETBOOK
+		if (_itemsCount > 0) {
+			CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
+			tbSkin->drawToolBar(*_wm->getScreen()->getCanvas(), _rect, true, _selectedIndex);
+		} else
+#endif
+		{
+			lString16 prompt(_("Select text"));
+			buf->FillRect( _rect, 0xAAAAAA );
+			lvRect keyRect = _rect;
+			LVFontRef font = fontMan->GetFont( 20, 600, false, css_ff_sans_serif, lString8("Arial")); //skin->getFont();
+	//        int margin = 4;
+			keyRect.right = _rect.right;
+			if ( !keyRect.isEmpty() ) {
+				skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
+				skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
+			}
+		}
     }
 
 public:
@@ -45,13 +100,27 @@ public:
 		selector_(*mainwin->getDocView()),
 		mainwin_(mainwin)
     {
-
-		this->setAccelerators( mainwin->getDialogAccelerators() );
+		CRGUIAcceleratorTableRef acc = _wm->getAccTables().get("cite");
+		if ( acc.isNull() )
+			this->setAccelerators( mainwin->getDialogAccelerators() );
+		else
+			setAccelerators( acc );
 		_rect = _wm->getScreen()->getRect();
 		//_rect.bottom = _rect.top;
 		_rect.top = _rect.bottom - 40;
         selector_.highlight();
         setDirty();
+#ifdef CR_POCKETBOOK
+		CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
+		if (!tbSkin.isNull()) {
+			CRButtonListRef buttons = tbSkin->getButtons();
+			if (buttons.isNull() || (_itemsCount = buttons->length()) != 5)
+				_itemsCount = 0;
+			else
+				_selectedIndex = 1;
+		} else
+			_itemsCount = 0;
+#endif
 	}
 
 	bool onCommand( int command, int params )
@@ -98,8 +167,14 @@ public:
                 setDirty();
 				break;
 			case MCMD_SCROLL_FORWARD:
-				break;
 			case MCMD_SCROLL_BACK:
+#ifdef CR_POCKETBOOK
+				{
+					int cmd = getCommandFromIndex(command);
+					if (cmd != -1)
+						_wm->postCommand(cmd, params);
+				}
+#endif			
 				break;
 			case MCMD_OK:
 				{
@@ -115,6 +190,22 @@ public:
 			case MCMD_CANCEL:
                 close();
 				break;
+#ifdef CR_POCKETBOOK
+			case PB_CMD_RIGHT:
+				if (_selectedIndex == _itemsCount -1)
+					_selectedIndex = 0;
+				else
+					_selectedIndex += 1;
+				setDirty();
+				break;
+			case PB_CMD_LEFT:
+				if (_selectedIndex == 0)
+					_selectedIndex = _itemsCount -1;
+				else
+					_selectedIndex -= 1;
+				setDirty();
+				break;
+#endif
 		}
 		return true;
 	}
