@@ -73,13 +73,17 @@ protected:
         LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
         skin->draw( *buf, _rect );
         lvRect borders = skin->getBorderWidths();
-#ifdef CR_POCKETBOOK
-		if (_itemsCount > 0) {
-			CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
-			tbSkin->drawToolBar(*_wm->getScreen()->getCanvas(), _rect, true, _selectedIndex);
+#if 0 /* def CR_POCKETBOOK */
+		CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
+		if (!tbSkin.isNull()) {
+			CRLog::trace("ToolBar skin is not NULL");
+			CRButtonListRef buttons = tbSkin->getButtons();
+			if (!(buttons.isNull() || _itemsCount != buttons->length()))
+				tbSkin->drawToolBar(*_wm->getScreen()->getCanvas(), _rect, true, _selectedIndex);
 		} else
 #endif
 		{
+			CRLog::trace("ToolBar skin is NULL");
 			lString16 prompt(_("Select text"));
 			buf->FillRect( _rect, 0xAAAAAA );
 			lvRect keyRect = _rect;
@@ -111,15 +115,8 @@ public:
         selector_.highlight();
         setDirty();
 #ifdef CR_POCKETBOOK
-		CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
-		if (!tbSkin.isNull()) {
-			CRButtonListRef buttons = tbSkin->getButtons();
-			if (buttons.isNull() || (_itemsCount = buttons->length()) != 5)
-				_itemsCount = 0;
-			else
-				_selectedIndex = 1;
-		} else
-			_itemsCount = 0;
+		_itemsCount = 5;
+		_selectedIndex = 1;
 #endif
 	}
 

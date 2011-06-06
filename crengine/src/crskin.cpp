@@ -1308,8 +1308,8 @@ void CRToolBarSkin::drawToolBar( LVDrawBuf & buf, const lvRect & rect, bool enab
 		if (i == selectedButton && enabled)
 			flags |= CRButtonSkin::SELECTED;
 		LVRef<CRButtonSkin> button = _buttons->get(i);
-		LVImageSourceRef img = button->getImage(flags);
 		if (!button.isNull()) {
+			LVImageSourceRef img = button->getImage(flags);
 			rc2.left += offsetX;
 			rc2.right = rc2.left + button->getMinSize().x;
 			if ( getVAlign()==SKIN_VALIGN_BOTTOM )
@@ -1869,6 +1869,8 @@ CRButtonListRef CRSkinContainer::readButtons( const lChar16 * path, bool * res )
         crtrace log;
         log << "CRSkinContainer::readButtons( " << path << ") - cannot read button from specified path";
 #endif
+		if ( res )
+			*res = false;
         return CRButtonListRef();
     }
     if ( res )

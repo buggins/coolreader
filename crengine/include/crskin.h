@@ -302,7 +302,9 @@ public:
     virtual void drawButton( LVDrawBuf & buf, const lvRect & rc, int flags = ENABLED );
     LVImageSourceRef getImage(int flags = ENABLED);
     CRButtonSkin();
-    virtual ~CRButtonSkin() { }
+    virtual ~CRButtonSkin() { 
+		CRLog::trace("~CRButtonSkin()");
+	}
 };
 typedef LVFastRef<CRButtonSkin> CRButtonSkinRef;
 
@@ -378,7 +380,7 @@ public:
     void add( LVRef<CRButtonSkin> button ) { _list.add( button ); }
     void add( CRButtonList & list ) { _list.add( list._list ); }
     int length() { return _list.length(); }
-    LVRef<CRButtonSkin> get(int index) { return index < _list.length() ? _list[index] : LVRef<CRButtonSkin>(); }
+    LVRef<CRButtonSkin> get(int index) { return (index >= 0 && index < _list.length()) ? _list[index] : LVRef<CRButtonSkin>(); }
     CRButtonList() { }
     virtual ~CRButtonList() {
 		CRLog::trace("~CRButtonList();");
