@@ -208,9 +208,9 @@ public class History {
 			//BitmapDrawable drawable = new BitmapDrawable(mCoolReader.getResources(), is);
 			//BitmapDrawable drawable = new BitmapDrawable(null, is);
 			Bitmap bmp = Bitmap.createBitmap(coverPageWidth, coverPageHeight, Bitmap.Config.ARGB_8888);
-			bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
+			//bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
 			Canvas canvas = new Canvas(bmp);
-			canvas.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
+			//canvas.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
 			canvas.drawBitmap(srcbmp, new Rect(0, 0, srcbmp.getWidth(), srcbmp.getHeight()),
 					new Rect(0, 0, coverPageWidth, coverPageHeight), null);
     		Log.d("cr3", "cover page format: " + srcbmp.getWidth() + "x" + srcbmp.getHeight());
