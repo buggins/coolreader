@@ -444,13 +444,8 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInter
     //CRLog::trace("getPageImageInternal calling bitmap->lock");
 	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(env, bitmap);
 	if ( drawbuf!=NULL ) {
-
-	    if ( p!=NULL && p->_docview!=NULL ) {
-		    CRLog::trace("getPageImageInternal calling Draw  drawbuf width=%d height=%d 0x%x", drawbuf->GetWidth(), drawbuf->GetHeight(), (int)p->_docview);
-	    	p->_docview->Draw( *drawbuf );
-	    } else
-	    	CRLog::error("getPageImageInternal : NO DOCVIEW CREATED!!!");
-	    CRLog::trace("getPageImageInternal calling bitmap->unlock");
+    	p->_docview->Draw( *drawbuf );
+	    //CRLog::trace("getPageImageInternal calling bitmap->unlock");
 		BitmapAccessorInterface::getInstance()->unlock(env, bitmap, drawbuf);
 	} else {
 		CRLog::error("bitmap accessor is invalid");
@@ -518,9 +513,9 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 		batteryColor = newTextColor;
 	if ( oldTextColor!=newTextColor || oldStatusColor!=newStatusColor ) { //oldNightMode!=newNightMode
 	    LVRefVec<LVImageSource> icons = getBatteryIcons( batteryColor );
-		CRLog::debug("Setting list of Battery icon bitmats");
+		//CRLog::debug("Setting list of Battery icon bitmats");
 	    p->_docview->setBatteryIcons( icons );
-		CRLog::debug("Setting list of Battery icon bitmats - done");
+		//CRLog::debug("Setting list of Battery icon bitmats - done");
 	}
     return JNI_TRUE;
 }
