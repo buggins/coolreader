@@ -138,35 +138,55 @@ DECL_DEF_CR_FONT_SIZES;
 
 #define NO_BATTERY_GAUGE 1
 
-static LVRefVec<LVImageSource> getBatteryIcons( bool nightMode )
+static void replaceColor( char * str, lUInt32 color )
 {
-	if ( !nightMode ) {
-		#define BATTERY_HEADER \
-				"28 15 5 1", \
-				"0 c #80000000", \
-				"X c #80000000", \
-				"o c #80AAAAAA", \
-				". c #80FFFFFF", \
-				"  c None",
-		#include "battery_icons.h"
-	} else {
-		#undef BATTERY_HEADER
-		#define BATTERY_HEADER \
-				"28 15 5 1", \
-				"0 c #80000000", \
-				"X c #80000000", \
-				"o c #80888888", \
-				". c #80AAAAAA", \
-				"  c None",
-		#include "battery_icons.h"
+	// in line like "0 c #80000000",
+	// replace value of color
+	for ( int i=0; i<8; i++ ) {
+		str[i+5] = toHexDigit((color>>28) & 0xF);
+		color <<= 4;
 	}
+}
+
+static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color )
+{
+	CRLog::debug("Making list of Battery icon bitmats");
+    lUInt32 cl1 = 0x00000000|(color&0xFFFFFF);
+    lUInt32 cl2 = 0x40000000|(color&0xFFFFFF);
+    lUInt32 cl3 = 0x80000000|(color&0xFFFFFF);
+    lUInt32 cl4 = 0xF0000000|(color&0xFFFFFF);
+
+    static char color1[] = "0 c #80000000";
+    static char color2[] = "X c #80000000";
+    static char color3[] = "o c #80AAAAAA";
+    static char color4[] = ". c #80FFFFFF";
+	#define BATTERY_HEADER \
+			"28 15 5 1", \
+			color1, \
+			color2, \
+			color3, \
+			color4, \
+			"  c None",
+
+	#include "battery_icons.h"
+
+	replaceColor( color1, cl1 );
+	replaceColor( color2, cl2 );
+	replaceColor( color3, cl3 );
+	replaceColor( color4, cl4 );
+
+    LVRefVec<LVImageSource> icons;
+    for ( int i=0; icon_bpm[i]; i++ )
+        icons.add( LVCreateXPMImageSource( icon_bpm[i] ) );
+
+    return icons;
 }
 
 ReaderViewNative::ReaderViewNative()
 {
 	_docview = new LVDocView(16); //16bpp
 
-    LVRefVec<LVImageSource> icons = getBatteryIcons( false );
+    LVRefVec<LVImageSource> icons = getBatteryIcons( 0x000000 );
     _docview->setBatteryIcons( icons );
 
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
@@ -425,9 +445,12 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInter
 	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(env, bitmap);
 	if ( drawbuf!=NULL ) {
 
-	    //CRLog::trace("getPageImageInternal calling Draw  drawbuf width=%d height=%d", drawbuf->GetWidth(), drawbuf->GetHeight());
-		p->_docview->Draw( *drawbuf );
-	    //CRLog::trace("getPageImageInternal calling bitmap->unlock");
+	    if ( p!=NULL && p->_docview!=NULL ) {
+		    CRLog::trace("getPageImageInternal calling Draw  drawbuf width=%d height=%d 0x%x", drawbuf->GetWidth(), drawbuf->GetHeight(), (int)p->_docview);
+	    	p->_docview->Draw( *drawbuf );
+	    } else
+	    	CRLog::error("getPageImageInternal : NO DOCVIEW CREATED!!!");
+	    CRLog::trace("getPageImageInternal calling bitmap->unlock");
 		BitmapAccessorInterface::getInstance()->unlock(env, bitmap, drawbuf);
 	} else {
 		CRLog::error("bitmap accessor is invalid");
@@ -483,13 +506,22 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 	CRPropRef props = env.fromJavaProperties(_props);
 	CRPropRef oldProps = p->_docview->propsGetCurrent();
 	p->_docview->propsUpdateDefaults( props );
-	bool oldNightMode = oldProps->getBoolDef(PROP_NIGHT_MODE, false);
-	bool newNightMode = props->getBoolDef(PROP_NIGHT_MODE, false);
-	if ( oldNightMode!=newNightMode ) {
-	    LVRefVec<LVImageSource> icons = getBatteryIcons( newNightMode );
-	    p->_docview->setBatteryIcons( icons );
-	}
+	//bool oldNightMode = oldProps->getBoolDef(PROP_NIGHT_MODE, false);
+	//bool newNightMode = props->getBoolDef(PROP_NIGHT_MODE, false);
 	p->_docview->propsApply( props );
+	bool oldTextColor = oldProps->getColorDef(PROP_FONT_COLOR, 0x000000);
+	bool newTextColor = props->getColorDef(PROP_FONT_COLOR, 0x000000);
+	bool oldStatusColor = oldProps->getColorDef(PROP_FONT_COLOR, 0x000000);
+	bool newStatusColor = props->getColorDef(PROP_FONT_COLOR, 0x000000);
+	lUInt32 batteryColor = newStatusColor;
+	if ( batteryColor==0xFF000000 )
+		batteryColor = newTextColor;
+	if ( oldTextColor!=newTextColor || oldStatusColor!=newStatusColor ) { //oldNightMode!=newNightMode
+	    LVRefVec<LVImageSource> icons = getBatteryIcons( batteryColor );
+		CRLog::debug("Setting list of Battery icon bitmats");
+	    p->_docview->setBatteryIcons( icons );
+		CRLog::debug("Setting list of Battery icon bitmats - done");
+	}
     return JNI_TRUE;
 }
 #if 0

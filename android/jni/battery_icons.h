@@ -203,20 +203,18 @@
         "   .........................",
     };
 
-    LVRefVec<LVImageSource> icons;
+    const char * * icon_bpm[] = {
+		battery_charge,
+		battery0,
+		battery1,
+		battery2,
+		battery3,
+		battery4,
+		battery5,
+		battery6,
+		battery7,
+		battery8,
+		battery_frame,
+		NULL
+    };
 
-    icons.add( LVCreateXPMImageSource( battery_charge ) );
-
-    icons.add( LVCreateXPMImageSource( battery0 ) );
-    icons.add( LVCreateXPMImageSource( battery1 ) );
-    icons.add( LVCreateXPMImageSource( battery2 ) );
-    icons.add( LVCreateXPMImageSource( battery3 ) );
-    icons.add( LVCreateXPMImageSource( battery4 ) );
-    icons.add( LVCreateXPMImageSource( battery5 ) );
-    icons.add( LVCreateXPMImageSource( battery6 ) );
-    icons.add( LVCreateXPMImageSource( battery7 ) );
-    icons.add( LVCreateXPMImageSource( battery8 ) );
-
-    icons.add( LVCreateXPMImageSource( battery_frame ) );
-
-    return icons;

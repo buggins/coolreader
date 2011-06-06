@@ -847,6 +847,13 @@ int lString16::atoi() const
     return n;
 }
 
+static const char * hex_digits = "0123456789abcdef";
+// converts 0..15 to 0..f
+char toHexDigit( int c )
+{
+    return hex_digits[c&0xf];
+}
+
 // returns 0..15 if c is hex digit, -1 otherwise
 int hexDigit( int c )
 {

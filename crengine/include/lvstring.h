@@ -67,6 +67,8 @@ void lStr_lowercase( lChar16 * str, int len );
 /// calculates CRC32 for buffer contents
 lUInt32 lStr_crc32( lUInt32 prevValue, const void * buf, int size );
 
+// converts 0..15 to 0..f
+char toHexDigit( int c );
 // returns 0..15 if c is hex digit, -1 otherwise
 int hexDigit( int c );
 // decode LEN hex digits, return decoded number, -1 if invalid
@@ -156,6 +158,8 @@ private:
 public:
     /// default constrictor
     explicit lString8() : pchunk(EMPTY_STR_8) { addref(); }
+    /// constructor of empty string with buffer of specified size
+    explicit lString8( int size ) : pchunk(EMPTY_STR_8) { addref(); reserve(size); }
     /// copy constructor
     lString8(const lString8 & str) : pchunk(str.pchunk) { addref(); }
     /// constructor from C string
