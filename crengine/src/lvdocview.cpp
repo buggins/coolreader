@@ -4628,7 +4628,7 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 }
 
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };
-static int cr_interline_spaces[] = { 100, 80, 90, 105, 110, 115, 120, 130, 140, 150, 160 };
+static int cr_interline_spaces[] = { 100, 80, 90, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200 };
 
 /// sets default property values if properties not found, checks ranges
 void LVDocView::propsUpdateDefaults(CRPropRef props) {
