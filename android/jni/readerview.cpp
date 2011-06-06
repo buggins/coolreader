@@ -503,15 +503,17 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 	p->_docview->propsUpdateDefaults( props );
 	//bool oldNightMode = oldProps->getBoolDef(PROP_NIGHT_MODE, false);
 	//bool newNightMode = props->getBoolDef(PROP_NIGHT_MODE, false);
+	lUInt32 oldTextColor = oldProps->getColorDef(PROP_FONT_COLOR, 0x000000);
+	lUInt32 newTextColor = props->getColorDef(PROP_FONT_COLOR, 0x000000);
+	lUInt32 oldStatusColor = oldProps->getColorDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
+	lUInt32 newStatusColor = props->getColorDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
+	//CRLog::debug("Text colors: %x->%x, %x->%x", oldTextColor, newTextColor, oldStatusColor, newStatusColor);
 	p->_docview->propsApply( props );
-	bool oldTextColor = oldProps->getColorDef(PROP_FONT_COLOR, 0x000000);
-	bool newTextColor = props->getColorDef(PROP_FONT_COLOR, 0x000000);
-	bool oldStatusColor = oldProps->getColorDef(PROP_FONT_COLOR, 0x000000);
-	bool newStatusColor = props->getColorDef(PROP_FONT_COLOR, 0x000000);
 	lUInt32 batteryColor = newStatusColor;
 	if ( batteryColor==0xFF000000 )
 		batteryColor = newTextColor;
-	if ( oldTextColor!=newTextColor || oldStatusColor!=newStatusColor ) { //oldNightMode!=newNightMode
+	if ( 1 || oldTextColor!=newTextColor || oldStatusColor!=newStatusColor ) { //oldNightMode!=newNightMode
+		//CRLog::debug("%x->%x, %x->%x: Setting Battery icon color = #%06x", oldTextColor, newTextColor, oldStatusColor, newStatusColor, batteryColor);
 	    LVRefVec<LVImageSource> icons = getBatteryIcons( batteryColor );
 		//CRLog::debug("Setting list of Battery icon bitmats");
 	    p->_docview->setBatteryIcons( icons );
