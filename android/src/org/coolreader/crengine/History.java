@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
@@ -200,6 +201,9 @@ public class History {
 		}
 	}
 	
+	private static Method bitmapSetDensityMethod;
+	private static Method canvasSetDensityMethod;
+	private static boolean isNewApiChecked;
 	public BitmapDrawable decodeCoverPage( byte[] data )
 	{
 		try {
@@ -207,10 +211,25 @@ public class History {
 			Bitmap srcbmp = BitmapFactory.decodeStream(is);
 			//BitmapDrawable drawable = new BitmapDrawable(mCoolReader.getResources(), is);
 			//BitmapDrawable drawable = new BitmapDrawable(null, is);
+			
+			if ( !isNewApiChecked ) {
+				isNewApiChecked = true;
+				try {
+					bitmapSetDensityMethod = Bitmap.class.getMethod("setDensity", new Class[] {int.class});
+					canvasSetDensityMethod = Canvas.class.getMethod("setDensity", new Class[] {int.class});
+				} catch ( Exception e ) {
+					L.w("No Bitmap.setDensity() method found");
+				}
+			}
+			
 			Bitmap bmp = Bitmap.createBitmap(coverPageWidth, coverPageHeight, Bitmap.Config.ARGB_8888);
-			bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
+			if ( bitmapSetDensityMethod!=null )
+				bitmapSetDensityMethod.invoke(bmp, Bitmap.DENSITY_NONE);
+			//bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
 			Canvas canvas = new Canvas(bmp);
-			canvas.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
+			if ( canvasSetDensityMethod!=null )
+				canvasSetDensityMethod.invoke(canvas, Bitmap.DENSITY_NONE);
+			//canvas.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
 			canvas.drawBitmap(srcbmp, new Rect(0, 0, srcbmp.getWidth(), srcbmp.getHeight()),
 					new Rect(0, 0, coverPageWidth, coverPageHeight), null);
     		Log.d("cr3", "cover page format: " + srcbmp.getWidth() + "x" + srcbmp.getHeight());

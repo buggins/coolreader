@@ -2491,7 +2491,7 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
 int LVFontDef::CalcFallbackMatch( lString8 face, int size ) const
 {
     if (_typeface != face) {
-        CRLog::trace("'%s'' != '%s'", face.c_str(), _typeface.c_str());
+        //CRLog::trace("'%s'' != '%s'", face.c_str(), _typeface.c_str());
         return 0;
     }
     int size_match = (_size==-1 || size==-1 || _size==size) ? 256 : 0;

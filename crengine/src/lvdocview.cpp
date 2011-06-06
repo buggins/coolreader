@@ -1082,7 +1082,7 @@ int LVDocView::GetFullHeight() {
 int LVDocView::getPageHeaderHeight() {
 	if (!getPageHeaderInfo())
 		return 0;
-	return getInfoFont()->getHeight() + HEADER_MARGIN + 3;
+	return getInfoFont()->getHeight()*12/10 + HEADER_MARGIN + 5;
 }
 
 /// calculate page header rectangle
@@ -1468,7 +1468,8 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	}
 
 	lString16 text;
-	int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
+	//int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
+	int iy = info.top + /*m_infoFont->getHeight() +*/ (info.height() - m_infoFont->getHeight()) / 2;
 
 	if (!m_pageHeaderOverride.empty()) {
 		text = m_pageHeaderOverride;
@@ -1547,9 +1548,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
                 pageinfo += L"%";
             }
             if ( batteryPercentNormalFont && m_battery_state>=0 ) {
-            	pageinfo += L"  <";
+            	pageinfo += L"  [";
                 pageinfo += lString16::itoa(m_battery_state)+L"%";
-            	pageinfo += L">";
+            	pageinfo += L"]";
             }
 		}
 		int piw = 0;
@@ -4628,7 +4629,7 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 }
 
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };
-static int cr_interline_spaces[] = { 100, 80, 90, 110, 120, 130, 140, 150 };
+static int cr_interline_spaces[] = { 100, 80, 90, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200 };
 
 /// sets default property values if properties not found, checks ranges
 void LVDocView::propsUpdateDefaults(CRPropRef props) {
@@ -4709,8 +4710,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
 	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 11);
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
-    if (fs < 10)
-        fs = 10;
+    if (fs < 8)
+        fs = 8;
     else if (fs > 32)
         fs = 32;
 	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
@@ -4879,8 +4880,8 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else if (name == PROP_STATUS_FONT_SIZE) {
 			int fontSize = props->getIntDef(PROP_STATUS_FONT_SIZE,
 					INFO_FONT_SIZE);
-			if (fontSize < 14)
-				fontSize = 14;
+			if (fontSize < 8)
+				fontSize = 8;
 			else if (fontSize > 28)
 				fontSize = 28;
 			setStatusFontSize(fontSize);//cr_font_sizes
