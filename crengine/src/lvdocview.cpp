@@ -1082,7 +1082,7 @@ int LVDocView::GetFullHeight() {
 int LVDocView::getPageHeaderHeight() {
 	if (!getPageHeaderInfo())
 		return 0;
-	return getInfoFont()->getHeight() + HEADER_MARGIN + 3;
+	return getInfoFont()->getHeight()*12/10 + HEADER_MARGIN + 3;
 }
 
 /// calculate page header rectangle
@@ -1547,9 +1547,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
                 pageinfo += L"%";
             }
             if ( batteryPercentNormalFont && m_battery_state>=0 ) {
-            	pageinfo += L"  <";
+            	pageinfo += L"  [";
                 pageinfo += lString16::itoa(m_battery_state)+L"%";
-            	pageinfo += L">";
+            	pageinfo += L"]";
             }
 		}
 		int piw = 0;
@@ -4708,8 +4708,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7 };
 	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 8);
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
-    if (fs < 10)
-        fs = 10;
+    if (fs < 8)
+        fs = 8;
     else if (fs > 32)
         fs = 32;
 	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
@@ -4878,8 +4878,8 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else if (name == PROP_STATUS_FONT_SIZE) {
 			int fontSize = props->getIntDef(PROP_STATUS_FONT_SIZE,
 					INFO_FONT_SIZE);
-			if (fontSize < 14)
-				fontSize = 14;
+			if (fontSize < 8)
+				fontSize = 8;
 			else if (fontSize > 28)
 				fontSize = 28;
 			setStatusFontSize(fontSize);//cr_font_sizes
