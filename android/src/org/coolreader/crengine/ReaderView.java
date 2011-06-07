@@ -1379,7 +1379,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			showBookInfo();
 			break;
 		case DCMD_TTS_PLAY:
-			TTSToolbarDlg.showDialog(mActivity, ReaderView.this);
+			{
+				mActivity.initTTS(new TTS.OnTTSCreatedListener() {
+					@Override
+					public void onCreated(TTS tts) {
+						TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
+					}
+				});
+			}
 			break;
 		case DCMD_TOGGLE_DOCUMENT_STYLES:
 			toggleDocumentStyles();

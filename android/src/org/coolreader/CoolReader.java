@@ -24,6 +24,7 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.TTS;
+import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 
 import android.app.Activity;
 import android.app.SearchManager;
@@ -44,9 +45,7 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
-import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
-import android.text.method.NumberKeyListener;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
@@ -54,7 +53,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -297,6 +295,52 @@ public class CoolReader extends Activity
 	
 	TTS tts;
 	boolean ttsInitialized;
+	boolean ttsError;
+	
+	public boolean initTTS(final OnTTSCreatedListener listener) {
+		if ( ttsError || !TTS.isFound() ) {
+			if ( !ttsError ) {
+				ttsError = true;
+				showToast("TTS is not available");
+			}
+			return false;
+		}
+		if ( ttsInitialized && tts!=null ) {
+			BackgroundThread.instance().executeGUI(new Runnable() {
+				@Override
+				public void run() {
+					listener.onCreated(tts);
+				}
+			});
+			return true;
+		}
+		showToast("Initializing TTS");
+    	tts = new TTS(this, new TTS.OnInitListener() {
+			@Override
+			public void onInit(int status) {
+				//tts.shutdown();
+				L.i("TTS init status: " + status);
+				if ( status==TTS.SUCCESS ) {
+					ttsInitialized = true;
+					BackgroundThread.instance().executeGUI(new Runnable() {
+						@Override
+						public void run() {
+							listener.onCreated(tts);
+						}
+					});
+				} else {
+					ttsError = true;
+					BackgroundThread.instance().executeGUI(new Runnable() {
+						@Override
+						public void run() {
+							showToast("Cannot initialize TTS");
+						}
+					});
+				}
+			}
+		});
+		return true;
+	}
 	
 	/** Called when the activity is first created. */
     @Override

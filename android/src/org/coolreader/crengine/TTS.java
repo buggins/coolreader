@@ -163,6 +163,11 @@ public class TTS {
 		void 	onUtteranceCompleted(String utteranceId);
 	}
 	
+	public interface OnTTSCreatedListener {
+		void onCreated(TTS tts);
+	}
+	
+
 	public TTS(Context context, OnInitListener listener ) {
 		if ( !classesFound ) {
 			L.e("Cannot create TTS object : TTS classes not initialized");
