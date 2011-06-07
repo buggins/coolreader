@@ -109,6 +109,7 @@ public class ReaderAction {
 		DOCUMENT_STYLES,
 		ABOUT,
 		BOOK_INFO,
+		TTS_PLAY,
 	};
 
 	public boolean isNone() {
