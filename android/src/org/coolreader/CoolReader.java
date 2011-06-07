@@ -46,6 +46,7 @@ import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
+import android.text.method.NumberKeyListener;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
@@ -53,6 +54,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -196,6 +198,16 @@ public class CoolReader extends Activity
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;
+//		{
+//			ActivityManager am = (ActivityManager)getSystemService(
+//		            Context.ACTIVITY_SERVICE);
+			//am.getDeviceConfigurationInfo().
+
+//			WindowManager wm = (WindowManager)getSystemService(
+//		            Context.WINDOW_SERVICE);
+			
+//		}
+		//getWindowManager(). //getDefaultDisplay().getMetrics(outMetrics)
 		if ( angle==4 )
 			newOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
 		else if ( (angle&1)!=0 )
@@ -206,6 +218,10 @@ public class CoolReader extends Activity
 			screenOrientation = newOrientation;
 			setRequestedOrientation(screenOrientation);
 			applyScreenOrientation(getWindow());
+//			if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE )
+//				Surface.setOrientation(Display.DEFAULT_DISPLAY, Surface.ROTATION_270);
+//			else if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT )
+//				Surface.setOrientation(Display.DEFAULT_DISPLAY, Surface.ROTATION_180);
 		}
 	}
 
@@ -965,9 +981,10 @@ public class CoolReader extends Activity
 			setTitle(title);
 	        input = new EditText(getContext());
 	        if ( isNumberEdit )
-		        input.getText().setFilters(new InputFilter[] {
-		        	new DigitsKeyListener()        
-		        });
+	        	input.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+//		        input.getText().setFilters(new InputFilter[] {
+//		        	new DigitsKeyListener()        
+//		        });
 	        setView(input);
 		}
 		@Override
