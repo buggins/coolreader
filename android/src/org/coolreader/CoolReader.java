@@ -23,6 +23,7 @@ import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
+import org.coolreader.crengine.TTS;
 
 import android.app.Activity;
 import android.app.SearchManager;
@@ -278,10 +279,43 @@ public class CoolReader extends Activity
 		return mVersion;
 	}
 	
+	TTS tts;
+	boolean ttsInitialized;
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+    	
+    	try {
+	    	tts = new TTS(this, new TTS.OnInitListener() {
+				@Override
+				public void onInit(int status) {
+					//tts.shutdown();
+					L.i("TTS init status: " + status);
+					if ( status==TTS.SUCCESS ) {
+						ttsInitialized = true;
+						tts.speak("Cool Reader is started", TTS.QUEUE_ADD, null);
+					}
+				}
+			});
+	    	tts.setOnUtteranceCompletedListener(new TTS.OnUtteranceCompletedListener() {
+				
+				@Override
+				public void onUtteranceCompleted(String utteranceId) {
+					// TODO Auto-generated method stub
+					L.i("TTS utterance completed: " + utteranceId);
+					if ( ttsInitialized ) {
+						tts.shutdown();
+						ttsInitialized = false;
+						tts = null;
+					}
+				}
+			});
+    	} catch ( Exception e ) {
+    		
+    	}
+    	
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 

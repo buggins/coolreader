@@ -18,16 +18,16 @@ import android.content.Context;
 public class TTS {
 	
 	// constants from TextToSpeech
-	public final String	ACTION_TTS_QUEUE_PROCESSING_COMPLETED="android.speech.tts.TTS_QUEUE_PROCESSING_COMPLETED";	//Broadcast Action: The TextToSpeech synthesizer has completed processing of all the text in the speech queue.
-	public final int	ERROR=1;	//Denotes a generic operation failure.
-	public final int	LANG_AVAILABLE=0;	//Denotes the language is available for the language by the locale, but not the country and variant.
-	public final int	LANG_COUNTRY_AVAILABLE=1;	//Denotes the language is available for the language and country specified by the locale, but not the variant.
-	public final int	LANG_COUNTRY_VAR_AVAILABLE=2;	//Denotes the language is available exactly as specified by the locale.
-	public final int	LANG_MISSING_DATA=-1;	//Denotes the language data is missing.
-	public final int	LANG_NOT_SUPPORTED=-2;	//Denotes the language is not supported.
-	public final int	QUEUE_ADD=1;	//Queue mode where the new entry is added at the end of the playback queue.
-	public final int	QUEUE_FLUSH=0;	//Queue mode where all entries in the playback queue (media to be played and text to be synthesized) are dropped and replaced by the new entry.
-	public final int	SUCCESS=0;  //Denotes a successful operation.
+	public final static String	ACTION_TTS_QUEUE_PROCESSING_COMPLETED="android.speech.tts.TTS_QUEUE_PROCESSING_COMPLETED";	//Broadcast Action: The TextToSpeech synthesizer has completed processing of all the text in the speech queue.
+	public final static int	ERROR=1;	//Denotes a generic operation failure.
+	public final static int	LANG_AVAILABLE=0;	//Denotes the language is available for the language by the locale, but not the country and variant.
+	public final static int	LANG_COUNTRY_AVAILABLE=1;	//Denotes the language is available for the language and country specified by the locale, but not the variant.
+	public final static int	LANG_COUNTRY_VAR_AVAILABLE=2;	//Denotes the language is available exactly as specified by the locale.
+	public final static int	LANG_MISSING_DATA=-1;	//Denotes the language data is missing.
+	public final static int	LANG_NOT_SUPPORTED=-2;	//Denotes the language is not supported.
+	public final static int	QUEUE_ADD=1;	//Queue mode where the new entry is added at the end of the playback queue.
+	public final static int	QUEUE_FLUSH=0;	//Queue mode where all entries in the playback queue (media to be played and text to be synthesized) are dropped and replaced by the new entry.
+	public final static int	SUCCESS=0;  //Denotes a successful operation.
 	
 	private static Class textToSpeechClass;
 	private static Constructor textToSpeech_constructor;
@@ -115,9 +115,9 @@ public class TTS {
 	private static boolean classesFound;
 	{
 		try {
-			onInitListenerClass = Class.forName("android.speech.tts.TextToSpeech.OnInitListener");
+			onInitListenerClass = Class.forName("android.speech.tts.TextToSpeech$OnInitListener");
 			onInitListener_onInit = onInitListenerClass.getMethod("onInit", new Class[] {int.class});
-			onUtteranceCompletedListenerClass = Class.forName("android.speech.tts.TextToSpeech.OnUtteranceCompletedListener");
+			onUtteranceCompletedListenerClass = Class.forName("android.speech.tts.TextToSpeech$OnUtteranceCompletedListener");
 			onUtteranceCompletedListener_onUtteranceCompleted = onUtteranceCompletedListenerClass.getMethod("onUtteranceCompleted", new Class[] {String.class});
 			textToSpeechClass = Class.forName("android.speech.tts.TextToSpeech");
 			textToSpeech_constructor = textToSpeechClass.getConstructor(new Class[] {Context.class, onInitListenerClass}); 
