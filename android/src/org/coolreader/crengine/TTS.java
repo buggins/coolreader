@@ -70,8 +70,9 @@ public class TTS {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args)
 					throws Throwable {
-				if ( method == onInitListener_onInit ) {
-					int status = int.class.cast(args[0]);
+                L.d("invoking OnInit - " + method.getName());
+				if ( "onInit".equals(method.getName()) ) {
+					int status = (Integer)(args[0]);
 					L.i("OnInitListener.onInit() is called: status=" + status);
 					if ( status==SUCCESS )
 						initialized = true;
@@ -97,7 +98,8 @@ public class TTS {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args)
 					throws Throwable {
-				if ( method == onUtteranceCompletedListener_onUtteranceCompleted ) {
+			    L.d("invoking OnUtteranceCompletedListener - " + method.getName());
+                if ( "onUtteranceCompleted".equals(method.getName()) ) {
 					String id = (String)(args[0]);
 					L.d("OnUtteranceCompletedListener.onUtteranceCompleted() is called: id=" + id);
 					listener.onUtteranceCompleted(id);
@@ -345,13 +347,17 @@ public class TTS {
 		}
 	}
 	// Speaks the string using the specified queuing strategy and speech parameters.
-	public int 	speak(String text, int queueMode, HashMap<String, String> params) {
-		try {
-			return (Integer)textToSpeech_speak.invoke(tts, text, queueMode, params);
-		} catch ( Exception e ) {
-			L.e("Exception while calling tts", e);
-			throw new IllegalStateException(e);
-		}
+	public int speak(String text, int queueMode, HashMap<String, String> params) {
+        try {
+            L.v("speak(" + text + ")");
+            int res = (Integer) textToSpeech_speak.invoke(tts, text, queueMode,
+                    params);
+            L.v("speak() returned " + res);
+            return res;
+        } catch (Exception e) {
+            L.e("Exception while calling tts", e);
+            throw new IllegalStateException(e);
+        }
 	}
 	// Interrupts the current utterance (whether played or rendered to file) and discards other utterances in the queue.
 	public int 	stop() {

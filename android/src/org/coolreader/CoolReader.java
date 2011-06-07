@@ -287,6 +287,7 @@ public class CoolReader extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
     	
+        if ( false )
     	try {
 	    	tts = new TTS(this, new TTS.OnInitListener() {
 				@Override
@@ -295,7 +296,6 @@ public class CoolReader extends Activity
 					L.i("TTS init status: " + status);
 					if ( status==TTS.SUCCESS ) {
 						ttsInitialized = true;
-						tts.speak("Cool Reader is started", TTS.QUEUE_ADD, null);
 					}
 				}
 			});
@@ -306,9 +306,9 @@ public class CoolReader extends Activity
 					// TODO Auto-generated method stub
 					L.i("TTS utterance completed: " + utteranceId);
 					if ( ttsInitialized ) {
-						tts.shutdown();
-						ttsInitialized = false;
-						tts = null;
+						//tts.shutdown();
+						//ttsInitialized = false;
+						//tts = null;
 					}
 				}
 			});
@@ -697,7 +697,23 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		log.i("CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
-		
+
+        BackgroundThread.instance().postBackground(new Runnable() {
+            @Override
+            public void run() {
+    		    BackgroundThread.instance().postGUI(new Runnable() {
+    
+                    @Override
+                    public void run() {
+                        if ( ttsInitialized ) {
+                            L.i("Trying TTS speak()");
+                            tts.speak("Testing text to speech engine. ", TTS.QUEUE_ADD, null);
+                        }
+                    }
+    		        
+    		    }, 4000);
+            };
+        });
 		
 		mPaused = false;
 		
