@@ -314,6 +314,10 @@ public class CoolReader extends Activity
 			});
 			return true;
 		}
+		if ( ttsInitialized && tts!=null ) {
+			showToast("TTS initialization is already called");
+			return false;
+		}
 		showToast("Initializing TTS");
     	tts = new TTS(this, new TTS.OnInitListener() {
 			@Override
@@ -347,34 +351,6 @@ public class CoolReader extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
     	
-        if ( false )
-    	try {
-	    	tts = new TTS(this, new TTS.OnInitListener() {
-				@Override
-				public void onInit(int status) {
-					//tts.shutdown();
-					L.i("TTS init status: " + status);
-					if ( status==TTS.SUCCESS ) {
-						ttsInitialized = true;
-					}
-				}
-			});
-	    	tts.setOnUtteranceCompletedListener(new TTS.OnUtteranceCompletedListener() {
-				
-				@Override
-				public void onUtteranceCompleted(String utteranceId) {
-					// TODO Auto-generated method stub
-					L.i("TTS utterance completed: " + utteranceId);
-					if ( ttsInitialized ) {
-						//tts.shutdown();
-						//ttsInitialized = false;
-						//tts = null;
-					}
-				}
-			});
-    	} catch ( Exception e ) {
-    		
-    	}
     	
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
@@ -618,9 +594,18 @@ public class CoolReader extends Activity
 		if ( mReaderView!=null ) {
 			mReaderView.destroy();
 		}
+		
+		if ( tts!=null ) {
+			tts.shutdown();
+			tts = null;
+			ttsInitialized = false;
+			ttsError = false;
+		}
+		
 		if ( mEngine!=null ) {
 			mEngine.uninit();
 		}
+
 		if ( mDB!=null ) {
 			final CRDB db = mDB;
 			mBackgroundThread.executeBackground(new Runnable() {

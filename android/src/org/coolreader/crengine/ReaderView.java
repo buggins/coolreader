@@ -1380,12 +1380,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case DCMD_TTS_PLAY:
 			{
-				mActivity.initTTS(new TTS.OnTTSCreatedListener() {
+				log.i("DCMD_TTS_PLAY: initializing TTS");
+				if ( !mActivity.initTTS(new TTS.OnTTSCreatedListener() {
 					@Override
 					public void onCreated(TTS tts) {
+						log.i("TTS created: opening TTS toolbar");
 						TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
 					}
-				});
+				}) ) {
+					log.e("Cannot initilize TTS");
+				}
 			}
 			break;
 		case DCMD_TOGGLE_DOCUMENT_STYLES:

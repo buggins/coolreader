@@ -17,6 +17,8 @@ import android.content.Context;
  */
 public class TTS {
 	
+	public static final Logger log = L.create("tts");
+	
 	// constants from TextToSpeech
 	public final static String	ACTION_TTS_QUEUE_PROCESSING_COMPLETED="android.speech.tts.TTS_QUEUE_PROCESSING_COMPLETED";	//Broadcast Action: The TextToSpeech synthesizer has completed processing of all the text in the speech queue.
 	public final static int	ERROR=1;	//Denotes a generic operation failure.
@@ -29,12 +31,12 @@ public class TTS {
 	public final static int	QUEUE_FLUSH=0;	//Queue mode where all entries in the playback queue (media to be played and text to be synthesized) are dropped and replaced by the new entry.
 	public final static int	SUCCESS=0;  //Denotes a successful operation.
 	
-	private static Class textToSpeechClass;
-	private static Constructor textToSpeech_constructor;
-	private static Class onInitListenerClass;
-	private static Method onInitListener_onInit; //	void onInit(int status)
-	private static Class onUtteranceCompletedListenerClass;
-	private static Method onUtteranceCompletedListener_onUtteranceCompleted;
+	private static Class<?> textToSpeechClass;
+	private static Constructor<?> textToSpeech_constructor;
+	private static Class<?> onInitListenerClass;
+	//private static Method onInitListener_onInit; //	void onInit(int status)
+	private static Class<?> onUtteranceCompletedListenerClass;
+	//private static Method onUtteranceCompletedListener_onUtteranceCompleted;
 	
 	private static Method textToSpeech_addEarcon; //int addEarcon(String earcon, String filename); // Adds a mapping between a string of text and a sound file.
 	private static Method textToSpeech_addEarcon2; //int 	addEarcon(String earcon, String packagename, int resourceId); // Adds a mapping between a string of text and a sound resource in a package.
@@ -70,10 +72,10 @@ public class TTS {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args)
 					throws Throwable {
-                L.d("invoking OnInit - " + method.getName());
+                log.d("invoking OnInit - " + method.getName());
 				if ( "onInit".equals(method.getName()) ) {
 					int status = (Integer)(args[0]);
-					L.i("OnInitListener.onInit() is called: status=" + status);
+					log.i("OnInitListener.onInit() is called: status=" + status);
 					if ( status==SUCCESS )
 						initialized = true;
 					listener.onInit(status);
@@ -98,10 +100,10 @@ public class TTS {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args)
 					throws Throwable {
-			    L.d("invoking OnUtteranceCompletedListener - " + method.getName());
+				log.d("invoking OnUtteranceCompletedListener - " + method.getName());
                 if ( "onUtteranceCompleted".equals(method.getName()) ) {
 					String id = (String)(args[0]);
-					L.d("OnUtteranceCompletedListener.onUtteranceCompleted() is called: id=" + id);
+					log.d("OnUtteranceCompletedListener.onUtteranceCompleted() is called: id=" + id);
 					listener.onUtteranceCompleted(id);
 				}
 				return null;
@@ -118,9 +120,9 @@ public class TTS {
 	{
 		try {
 			onInitListenerClass = Class.forName("android.speech.tts.TextToSpeech$OnInitListener");
-			onInitListener_onInit = onInitListenerClass.getMethod("onInit", new Class[] {int.class});
+			//onInitListener_onInit = onInitListenerClass.getMethod("onInit", new Class[] {int.class});
 			onUtteranceCompletedListenerClass = Class.forName("android.speech.tts.TextToSpeech$OnUtteranceCompletedListener");
-			onUtteranceCompletedListener_onUtteranceCompleted = onUtteranceCompletedListenerClass.getMethod("onUtteranceCompleted", new Class[] {String.class});
+			//onUtteranceCompletedListener_onUtteranceCompleted = onUtteranceCompletedListenerClass.getMethod("onUtteranceCompleted", new Class[] {String.class});
 			textToSpeechClass = Class.forName("android.speech.tts.TextToSpeech");
 			textToSpeech_constructor = textToSpeechClass.getConstructor(new Class[] {Context.class, onInitListenerClass}); 
 			textToSpeech_addEarcon = textToSpeechClass.getMethod("addEarcon", new Class[] {String.class, String.class}); //int addEarcon(String earcon, String filename); // Adds a mapping between a string of text and a sound file.
@@ -176,6 +178,14 @@ public class TTS {
 		try {
 			tts = textToSpeech_constructor.newInstance(context, createOnInitProxy(listener));
 			L.i("TTS object created successfully");
+	    	setOnUtteranceCompletedListener(new TTS.OnUtteranceCompletedListener() {
+				
+				@Override
+				public void onUtteranceCompleted(String utteranceId) {
+					L.i("TTS utterance completed: " + utteranceId);
+					// TODO
+				}
+			});
 		} catch ( InvocationTargetException e ) {
 			classesFound = false;
 			L.e("Cannot create TTS object", e);
@@ -227,7 +237,7 @@ public class TTS {
 	//Adds a mapping between a string of text and a sound file.
 	public int 	addSpeech(String text, String filename) {
 		try {
-			return (Integer)textToSpeech_addSpeech.invoke(tts, text, filename);
+			return (Integer)textToSpeech_addSpeech2.invoke(tts, text, filename);
 		} catch ( Exception e ) {
 			L.e("Exception while calling tts", e);
 			throw new IllegalStateException(e);
@@ -341,8 +351,10 @@ public class TTS {
 			throw new IllegalStateException(e);
 		}
 	}
+
 	// Releases the resources used by the TextToSpeech engine.
 	public void shutdown() {
+		if ( tts!=null && initialized )
 		try {
 			initialized = false;
 			textToSpeech_shutdown.invoke(tts);
@@ -351,6 +363,7 @@ public class TTS {
 			throw new IllegalStateException(e);
 		}
 	}
+
 	// Speaks the string using the specified queuing strategy and speech parameters.
 	public int speak(String text, int queueMode, HashMap<String, String> params) {
         try {
