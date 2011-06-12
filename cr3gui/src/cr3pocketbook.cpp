@@ -65,7 +65,7 @@ static void translate_timer();
 class CRPocketBookGlobals
 {
 private :
-	char *_fileName;
+	lString16 _fileName;
 	int _keepOrientation;
 	lString8  _lang;
 	lString8  _pbDictionary;
@@ -75,7 +75,8 @@ private :
 	bool _translateTimer;
 public:
     CRPocketBookGlobals(char *fileName);
-	char *getFileName() { return _fileName ; }
+	lString16 getFileName() { return _fileName ; }
+	void setFileName( lString16 fn) { _fileName = fn; }
 	int getKeepOrientation() { return _keepOrientation; }
 	const char *getLang() { return _lang.c_str(); }
 	const char *getDictionary() { return _pbDictionary.c_str(); }
@@ -85,7 +86,7 @@ public:
 	void BookReady() 
 	{
 		if (!_ready_sent) {
-			::BookReady(_fileName);
+			::BookReady(UnicodeToLocal(_fileName).c_str());
 			_ready_sent = true;
 		}
 	}
@@ -114,7 +115,7 @@ public:
 CRPocketBookGlobals::CRPocketBookGlobals(char *fileName)
 {
 	CRLog::trace("CRPocketBookGlobals(%s)", fileName);
-	_fileName = fileName;
+	_fileName = lString16(fileName);
 	_ready_sent = false;
 	_translateTimer = false;
 	iconfig *gc = OpenConfig(const_cast<char *>(GLOBALCONFIGFILE), NULL);
@@ -149,11 +150,11 @@ bool CRPocketBookGlobals::createFile(char *fName)
 
 void CRPocketBookGlobals::saveState(int cpage, int npages)
 {
-	char *af0 = GetAssociatedFile(_fileName, 0);
+	char *af0 = GetAssociatedFile(UnicodeToLocal(_fileName).c_str(), 0);
 
 	if (createFile(af0)) {
 		if (npages - cpage < 3 && cpage >= 5) {
-			char *afz = GetAssociatedFile(_fileName, 'z');
+			char *afz = GetAssociatedFile(UnicodeToLocal(_fileName).c_str(), 'z');
 			createFile(afz);
 		}
 	}
@@ -748,6 +749,19 @@ private:
 		free(_toc);
 		_toc = NULL;
 	}
+	void switchToRecentBook(int index) 
+	{
+		LVPtrVector<CRFileHistRecord> & files = _docview->getHistory()->getRecords();
+		if ( index >= 1 && index < files.length() ) {
+			CRFileHistRecord * file = files.get( index );
+			lString16 fn = file->getFilePathName();
+			if ( LVFileExists(fn) ) {
+				// Actually book opened in openRecentBook() we are in truble if it will fail
+				pbGlobals->saveState(getDocView()->getCurPage(), getDocView()->getPageCount());
+				pbGlobals->setFileName(file->getFileName());
+			}
+		}
+	}
 protected:
 	ibitmap * getQuickMenuBitmap() {
 		if (_bm3x3 == NULL) {
@@ -931,6 +945,9 @@ public:
         case PB_CMD_VOLUME:
 			SetVolume(GetVolume() + params);
 			return true;
+		case MCMD_OPEN_RECENT_BOOK:
+			switchToRecentBook(params);
+			break;
 		default:
 			break;
 		}
@@ -1380,8 +1397,8 @@ void CRPbDictionaryView::translate(const lString16 &w)
 		lString8 what = UnicodeToUtf8( s16 );
 		char *word = NULL, *translation = NULL;
 		
-		//_translateResult = LookupWord((char *)what.c_str(), &word, &translation);
-		_translateResult = LookupWordExact((char *)what.c_str(), &word, &translation);
+		_translateResult = LookupWord((char *)what.c_str(), &word, &translation);
+		//_translateResult = LookupWordExact((char *)what.c_str(), &word, &translation);
 		CRLog::trace("LookupWord(%s) returned %d", what.c_str(), _translateResult);
 		if (_translateResult != 0) {
 			if (_translateResult == 1) {
