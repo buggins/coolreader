@@ -403,8 +403,11 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 #if BIG_PAGE_MARGINS==1
     //static int def_margin[] = { 8, 0, 5, 10, 20, 30, 50, 60 };
     {"0", "0"},
+    {"1", "1"},
+    {"2", "2"},
+    {"3", "3"},
+    {"4", "4"},
     {"5", "5"},
-    {"8", "8"},
     {"10", "10"},
     {"20", "20"},
     {"30", "30"},

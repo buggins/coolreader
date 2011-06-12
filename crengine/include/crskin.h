@@ -399,11 +399,11 @@ public:
 	}    
 
     CRButtonListRef getButtons() { return _buttons; }
-    CRButtonListRef setButtons(CRButtonListRef list) { _buttons = list; }
+    void setButtons(CRButtonListRef list) { _buttons = list; }
     virtual void drawToolBar( LVDrawBuf & buf, const lvRect & rc, bool enabled, int selectedButton );
     virtual void drawButton(LVDrawBuf & buf, const lvRect & rc, int index, int flags);
 };
-typedef LVRef<CRToolBarSkin> CRToolBarSkinRef;
+typedef LVFastRef<CRToolBarSkin> CRToolBarSkinRef;
 
 class CRWindowSkin : public CRRectSkin
 {

@@ -73,28 +73,34 @@ protected:
         LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
         skin->draw( *buf, _rect );
         lvRect borders = skin->getBorderWidths();
-#if 0 /* def CR_POCKETBOOK */
+		lString16 prompt(_("Select text"));
+#ifdef CR_POCKETBOOK
+		lvRect keyRect = _rect;
+		int promptWidth = skin->measureText(prompt).x;
+		keyRect.right = keyRect.left + promptWidth + borders.left + borders.right;
+		if ( !keyRect.isEmpty() ) {
+			skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
+			skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
+		}
 		CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
 		if (!tbSkin.isNull()) {
-			CRLog::trace("ToolBar skin is not NULL");
+			keyRect.left += (borders.right + promptWidth);
+			keyRect.right = _rect.right;
 			CRButtonListRef buttons = tbSkin->getButtons();
 			if (!(buttons.isNull() || _itemsCount != buttons->length()))
-				tbSkin->drawToolBar(*_wm->getScreen()->getCanvas(), _rect, true, _selectedIndex);
-		} else
-#endif
-		{
-			CRLog::trace("ToolBar skin is NULL");
-			lString16 prompt(_("Select text"));
-			buf->FillRect( _rect, 0xAAAAAA );
-			lvRect keyRect = _rect;
-			LVFontRef font = fontMan->GetFont( 20, 600, false, css_ff_sans_serif, lString8("Arial")); //skin->getFont();
-	//        int margin = 4;
-			keyRect.right = _rect.right;
-			if ( !keyRect.isEmpty() ) {
-				skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
-				skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
-			}
+				tbSkin->drawToolBar(*_wm->getScreen()->getCanvas(), keyRect, true, _selectedIndex);
 		}
+#else
+		buf->FillRect( _rect, 0xAAAAAA );
+		lvRect keyRect = _rect;
+		LVFontRef font = fontMan->GetFont( 20, 600, false, css_ff_sans_serif, lString8("Arial")); //skin->getFont();
+//        int margin = 4;
+		keyRect.right = _rect.right;
+		if ( !keyRect.isEmpty() ) {
+			skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
+			skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
+		}
+#endif
     }
 
 public:

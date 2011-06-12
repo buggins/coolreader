@@ -6,12 +6,14 @@ SET(CMAKE_SYSTEM_NAME Linux)
 SET(CMAKE_SYSTEM_VERSION 1)
 
 # specify the cross compiler
-SET(CMAKE_C_COMPILER   /usr/bin/arm-linux-gnueabi-gcc)
-SET(CMAKE_CXX_COMPILER /usr/bin/arm-linux-gnueabi-g++)
-SET(CMAKE_STRIP /usr/local/pocketbook/bin/arm-linux-gnueabi-strip)
+SET(CMAKE_C_COMPILER   /usr/bin/arm-none-linux-gnueabi-gcc)
+SET(CMAKE_CXX_COMPILER /usr/bin/arm-none-linux-gnueabi-g++)
+SET(CMAKE_STRIP /usr/bin/arm-none-linux-gnueabi-strip)
 
 # where is the target environment 
-SET(CMAKE_FIND_ROOT_PATH  /usr/local/pocketbook_eabi)
+SET(CMAKE_FIND_ROOT_PATH  /usr/arm-none-linux-gnueabi)
+
+include_directories(/usr/arm-none-linux-gnueabi/include/c++/4.1.2)
 
 # search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

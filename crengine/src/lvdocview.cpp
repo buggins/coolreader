@@ -4833,8 +4833,8 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 				== PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
 				|| name == PROP_PAGE_MARGIN_BOTTOM) {
 			lUInt32 margin = props->getIntDef(name.c_str(), 8);
-			if (margin > 30)
-				margin = 30;
+			if (margin > 130)
+				margin = 130;
 			lvRect rc = getPageMargins();
 			if (name == PROP_PAGE_MARGIN_TOP)
 				rc.top = margin;

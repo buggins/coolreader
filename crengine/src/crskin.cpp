@@ -1289,7 +1289,7 @@ void CRToolBarSkin::drawToolBar( LVDrawBuf & buf, const lvRect & rect, bool enab
 		LVRef<CRButtonSkin> button = _buttons->get(i);
 		if (!button.isNull()) {
 			width += button->getMinSize().x;
-			int h = button->getMinSize().x;
+			int h = button->getMinSize().y;
 			if (h > rc.height())
 				return;
 		}
@@ -1321,7 +1321,7 @@ void CRToolBarSkin::drawToolBar( LVDrawBuf & buf, const lvRect & rect, bool enab
 			} else
 				rc2.bottom = rc2.top + button->getMinSize().y;
 			button->drawButton( buf, rc2, flags );
-			offsetX = rc2.right;
+			offsetX = rc2.right - rc.left;
 		}
 	}
 }
@@ -1900,13 +1900,9 @@ bool CRSkinContainer::readToolBarSkin(  const lChar16 * path, CRToolBarSkin * re
     flg = readRectSkin( path, res ) || flg;
 
     lString16 buttonspath = p + L"/button";
-    CRButtonListRef buttons;
     bool buttonsFlag = false;
-	CRLog::trace("Reading buttons");
-    buttons = readButtons( buttonspath.c_str(), &buttonsFlag);
-    CRLog::trace("Buttons have been read");
+    CRButtonListRef buttons = readButtons( buttonspath.c_str(), &buttonsFlag);
     if ( buttonsFlag ) {
-		CRLog::trace("count = %d", buttons->length());
         res->setButtons( buttons );
         flg = true;
     }
