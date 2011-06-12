@@ -601,7 +601,8 @@ lvPoint CRGUIWindowBase::getMinScrollSize( int page, int pages )
     CRRectSkinRef statusSkin = skin->getStatusSkin();
     CRScrollSkinRef sskin = skin->getScrollSkin();
     if ( !sskin.isNull() ) {
-        int h = sskin->getFontSize();
+		LVFontRef sf = sskin->getFont();
+        int h = sf.isNull() ? sskin->getFontSize() : sf->getHeight();
         int w = 0;
         bool noData = sskin->getAutohide() && pages<=1;
         lString16 label = getScrollLabel( page, pages );
@@ -1016,8 +1017,10 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
             valueSkin->drawText( buf, textRect, s );
         }
     } else {
-        textRect.top += (textRect.height() - skin->getFontSize() - itemBorders.top - itemBorders.bottom) / 2;
-        textRect.bottom = textRect.top + skin->getFontSize() + itemBorders.top + itemBorders.bottom;
+		LVFontRef skinFont = skin->getFont();
+		int fh = skinFont.isNull() ? skin->getFontSize() : skinFont->getHeight();
+        textRect.top += (textRect.height() - fh - itemBorders.top - itemBorders.bottom) / 2;
+        textRect.bottom = textRect.top + fh + itemBorders.top + itemBorders.bottom;
     }
     skin->drawText( buf, textRect, _label );
     if ( !s.empty() ) {

@@ -86,7 +86,7 @@ public:
 	void BookReady() 
 	{
 		if (!_ready_sent) {
-			::BookReady(UnicodeToLocal(_fileName).c_str());
+			::BookReady((char *)UnicodeToLocal(_fileName).c_str());
 			_ready_sent = true;
 		}
 	}
@@ -150,11 +150,11 @@ bool CRPocketBookGlobals::createFile(char *fName)
 
 void CRPocketBookGlobals::saveState(int cpage, int npages)
 {
-	char *af0 = GetAssociatedFile(UnicodeToLocal(_fileName).c_str(), 0);
+	char *af0 = GetAssociatedFile((char *)UnicodeToLocal(_fileName).c_str(), 0);
 
 	if (createFile(af0)) {
 		if (npages - cpage < 3 && cpage >= 5) {
-			char *afz = GetAssociatedFile(UnicodeToLocal(_fileName).c_str(), 'z');
+			char *afz = GetAssociatedFile((char *)UnicodeToLocal(_fileName).c_str(), 'z');
 			createFile(afz);
 		}
 	}
@@ -758,7 +758,7 @@ private:
 			if ( LVFileExists(fn) ) {
 				// Actually book opened in openRecentBook() we are in truble if it will fail
 				pbGlobals->saveState(getDocView()->getCurPage(), getDocView()->getPageCount());
-				pbGlobals->setFileName(file->getFileName());
+				pbGlobals->setFileName(file->getFilePathName());
 			}
 		}
 	}
