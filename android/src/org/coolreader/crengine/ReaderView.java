@@ -201,6 +201,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_DOCUMENT_STYLES(2018),
     	DCMD_ABOUT(2019),
     	DCMD_BOOK_INFO(2020),
+    	DCMD_TTS_PLAY(2021),
     	;
     	
     	private final int nativeId;
@@ -1376,6 +1377,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case DCMD_BOOK_INFO:
 			showBookInfo();
+			break;
+		case DCMD_TTS_PLAY:
+			{
+				log.i("DCMD_TTS_PLAY: initializing TTS");
+				if ( !mActivity.initTTS(new TTS.OnTTSCreatedListener() {
+					@Override
+					public void onCreated(TTS tts) {
+						log.i("TTS created: opening TTS toolbar");
+						TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
+					}
+				}) ) {
+					log.e("Cannot initilize TTS");
+				}
+			}
 			break;
 		case DCMD_TOGGLE_DOCUMENT_STYLES:
 			toggleDocumentStyles();

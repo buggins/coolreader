@@ -239,4 +239,5 @@
     <string name="options_page_animation_slide_2_pages">Сдвиг (2 стр.)</string>
     <string name="progress_downloading">Загружаю</string>
     <string name="mi_book_opds_root">Онлайн-каталоги</string>
+    <string name="mi_tts_play">Читать вслух</string>
 </resources>

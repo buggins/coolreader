@@ -23,6 +23,8 @@ import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
+import org.coolreader.crengine.TTS;
+import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 
 import android.app.Activity;
 import android.app.SearchManager;
@@ -43,7 +45,6 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
-import android.text.InputFilter;
 import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -195,6 +196,16 @@ public class CoolReader extends Activity
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;
+//		{
+//			ActivityManager am = (ActivityManager)getSystemService(
+//		            Context.ACTIVITY_SERVICE);
+			//am.getDeviceConfigurationInfo().
+
+//			WindowManager wm = (WindowManager)getSystemService(
+//		            Context.WINDOW_SERVICE);
+			
+//		}
+		//getWindowManager(). //getDefaultDisplay().getMetrics(outMetrics)
 		if ( angle==4 )
 			newOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
 		else if ( (angle&1)!=0 )
@@ -205,6 +216,10 @@ public class CoolReader extends Activity
 			screenOrientation = newOrientation;
 			setRequestedOrientation(screenOrientation);
 			applyScreenOrientation(getWindow());
+//			if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE )
+//				Surface.setOrientation(Display.DEFAULT_DISPLAY, Surface.ROTATION_270);
+//			else if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT )
+//				Surface.setOrientation(Display.DEFAULT_DISPLAY, Surface.ROTATION_180);
 		}
 	}
 
@@ -278,10 +293,65 @@ public class CoolReader extends Activity
 		return mVersion;
 	}
 	
+	TTS tts;
+	boolean ttsInitialized;
+	boolean ttsError;
+	
+	public boolean initTTS(final OnTTSCreatedListener listener) {
+		if ( ttsError || !TTS.isFound() ) {
+			if ( !ttsError ) {
+				ttsError = true;
+				showToast("TTS is not available");
+			}
+			return false;
+		}
+		if ( ttsInitialized && tts!=null ) {
+			BackgroundThread.instance().executeGUI(new Runnable() {
+				@Override
+				public void run() {
+					listener.onCreated(tts);
+				}
+			});
+			return true;
+		}
+		if ( ttsInitialized && tts!=null ) {
+			showToast("TTS initialization is already called");
+			return false;
+		}
+		showToast("Initializing TTS");
+    	tts = new TTS(this, new TTS.OnInitListener() {
+			@Override
+			public void onInit(int status) {
+				//tts.shutdown();
+				L.i("TTS init status: " + status);
+				if ( status==TTS.SUCCESS ) {
+					ttsInitialized = true;
+					BackgroundThread.instance().executeGUI(new Runnable() {
+						@Override
+						public void run() {
+							listener.onCreated(tts);
+						}
+					});
+				} else {
+					ttsError = true;
+					BackgroundThread.instance().executeGUI(new Runnable() {
+						@Override
+						public void run() {
+							showToast("Cannot initialize TTS");
+						}
+					});
+				}
+			}
+		});
+		return true;
+	}
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+    	
+    	
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
@@ -524,9 +594,18 @@ public class CoolReader extends Activity
 		if ( mReaderView!=null ) {
 			mReaderView.destroy();
 		}
+		
+		if ( tts!=null ) {
+			tts.shutdown();
+			tts = null;
+			ttsInitialized = false;
+			ttsError = false;
+		}
+		
 		if ( mEngine!=null ) {
 			mEngine.uninit();
 		}
+
 		if ( mDB!=null ) {
 			final CRDB db = mDB;
 			mBackgroundThread.executeBackground(new Runnable() {
@@ -663,7 +742,23 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		log.i("CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
-		
+
+        BackgroundThread.instance().postBackground(new Runnable() {
+            @Override
+            public void run() {
+    		    BackgroundThread.instance().postGUI(new Runnable() {
+    
+                    @Override
+                    public void run() {
+                        if ( ttsInitialized ) {
+                            L.i("Trying TTS speak()");
+                            tts.speak("Testing text to speech engine. ", TTS.QUEUE_ADD, null);
+                        }
+                    }
+    		        
+    		    }, 4000);
+            };
+        });
 		
 		mPaused = false;
 		
@@ -915,9 +1010,10 @@ public class CoolReader extends Activity
 			setTitle(title);
 	        input = new EditText(getContext());
 	        if ( isNumberEdit )
-		        input.getText().setFilters(new InputFilter[] {
-		        	new DigitsKeyListener()        
-		        });
+	        	input.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+//		        input.getText().setFilters(new InputFilter[] {
+//		        	new DigitsKeyListener()        
+//		        });
 	        setView(input);
 		}
 		@Override
