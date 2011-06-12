@@ -26,9 +26,6 @@ void CRSelNavigationDialog::moveBy( int delta )
         if (pageIndex == -1)
             pageIndex = _mainwin->findPagesText(_pattern, -1, -1);
     }
-	if (pageIndex >= 0) {
-		_mainwin->getDocView()->goToPage(pageIndex);
-	}
     setDirty();
     _mainwin->setDirty();
 }

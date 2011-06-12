@@ -306,6 +306,7 @@ int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
         return -1;
 	if (!(origin == 0 || origin == -1 || origin == 1 || direction == 1 || direction == -1))
 		return -1;
+    showWaitIcon();
 	int start, end;
 	if (direction < 0) {
 		//reverse search
@@ -320,7 +321,7 @@ int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
 		// direct search
 		if (origin >= 0) {
 			start = _docview->getCurPage() + origin;
-			end = _docview->getPageCount() -1; //FIXME: is it possible page count == 0?
+			end = _docview->getPageCount();
 		} else {
 			start = 0;
 			end = _docview->getCurPage();
@@ -334,6 +335,7 @@ int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
 				CRLog::debug("CRViewDialog::findPagesText: pattern found");
 				_docview->clearSelection();
 				_docview->selectWords( words );
+				_docview->goToPage(i);
 				return i;
 			}
 		}
