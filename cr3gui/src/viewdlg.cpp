@@ -300,6 +300,48 @@ bool CRViewDialog::findText( lString16 pattern, int origin, int direction )
     return false;
 }
 
+int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
+{
+    if ( pattern.empty() )
+        return -1;
+	if (!(origin == 0 || origin == -1 || origin == 1 || direction == 1 || direction == -1))
+		return -1;
+	int start, end;
+	if (direction < 0) {
+		//reverse search
+		if (origin >= 0) {
+			start = _docview->getCurPage() -origin;
+			end = -1;
+		} else {
+			start = _docview->getPageCount() -1;
+			end = _docview->getCurPage();
+		}
+	} else {
+		// direct search
+		if (origin >= 0) {
+			start = _docview->getCurPage() + origin;
+			end = _docview->getPageCount() -1; //FIXME: is it possible page count == 0?
+		} else {
+			start = 0;
+			end = _docview->getCurPage();
+		}
+	}
+	for (int i = start; i != end; i += direction) {
+		LVRef<ldomXRange> range = _docview->getPageDocumentRange( i );
+		if (!range.isNull()) {
+			LVArray<ldomWord> words;
+			if (range->findText(pattern, true, false, words, 200, 0)) {
+				CRLog::debug("CRViewDialog::findPagesText: pattern found");
+				_docview->clearSelection();
+				_docview->selectWords( words );
+				return i;
+			}
+		}
+	}
+    CRLog::debug("CRViewDialog::findPagesText: pattern not found");
+	return -1;
+}
+
 void CRViewDialog::showDictWithVKeyboard()
 {
     lvRect rc = _wm->getScreen()->getRect();

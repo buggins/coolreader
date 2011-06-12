@@ -14,29 +14,23 @@
 
 void CRSelNavigationDialog::moveBy( int delta )
 {
+	int pageIndex = -1;
     if ( delta==1 ) {
         // forward
-        if ( !_mainwin->findText(_pattern, 1, 1) )
-            _mainwin->findText(_pattern, -1, 1);
+        pageIndex = _mainwin->findPagesText(_pattern, 1, 1);
+        if (pageIndex == -1)
+            pageIndex = _mainwin->findPagesText(_pattern, -1, 1);
     } else if ( delta==-1 ) {
         // backward
-        if ( !_mainwin->findText(_pattern, 1, -1) )
-            _mainwin->findText(_pattern, -1, -1);
+        pageIndex = _mainwin->findPagesText(_pattern, 1, -1);
+        if (pageIndex == -1)
+            pageIndex = _mainwin->findPagesText(_pattern, -1, -1);
     }
-    gotoFound();
+	if (pageIndex >= 0) {
+		_mainwin->getDocView()->goToPage(pageIndex);
+	}
     setDirty();
     _mainwin->setDirty();
-}
-
-void CRSelNavigationDialog::gotoFound()
-{
-    ldomMarkedRangeList * ranges = _mainwin->getDocView()->getMarkedRanges();
-    if ( ranges ) {
-        if ( ranges->length()>0 ) {
-            int pos = ranges->get(0)->start.y;
-            _mainwin->getDocView()->SetPos(pos);
-        }
-    }
 }
 
 CRSelNavigationDialog::CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin, lString16 pattern )

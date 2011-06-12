@@ -21,7 +21,6 @@ protected:
     CRViewDialog * _mainwin;
     lString16 _pattern;
     void moveBy( int delta );
-    virtual void gotoFound();
 public:
     CRSelNavigationDialog(  CRGUIWindowManager * wm, CRViewDialog * mainwin, lString16 pattern );
 
