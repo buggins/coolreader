@@ -327,15 +327,15 @@ int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
 			end = _docview->getCurPage();
 		}
 	}
+	LVArray<ldomWord> words;
 	for (int i = start; i != end; i += direction) {
 		LVRef<ldomXRange> range = _docview->getPageDocumentRange( i );
 		if (!range.isNull()) {
-			LVArray<ldomWord> words;
-			if (range->findText(pattern, true, false, words, 200, 0)) {
+			if (range->findText(pattern, true, false, words, 200, _docview->getPageHeight(i), true)) {
 				CRLog::debug("CRViewDialog::findPagesText: pattern found");
 				_docview->clearSelection();
-				_docview->selectWords( words );
 				_docview->goToPage(i);
+				_docview->selectWords( words );
 				return i;
 			}
 		}

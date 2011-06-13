@@ -866,6 +866,8 @@ public:
     /// set vertical position of view inside document
     int SetPos( int pos, bool savePos=true );
 
+	int getPageHeight(int pageIndex);
+
     /// get number of current page
     int getCurPage();
     /// move to specified page

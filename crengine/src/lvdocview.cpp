@@ -1759,6 +1759,13 @@ void LVDocView::GetPos(lvRect & rc) {
 	}
 }
 
+int LVDocView::getPageHeight(int pageIndex)
+{
+	if (isPageMode() && _page >= 0 && _page < m_pages.length()) 
+		return m_pages[_page]->height;
+	return 0;
+}
+
 /// get vertical position of view inside document
 int LVDocView::GetPos() {
 	if (isPageMode() && _page >= 0 && _page < m_pages.length())

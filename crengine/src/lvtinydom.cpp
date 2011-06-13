@@ -5207,7 +5207,7 @@ static bool findTextRev( const lString16 & str, int & pos, const lString16 & pat
 }
 
 /// searches for specified text inside range
-bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight )
+bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight, bool checkMaxFromStart )
 {
     if ( caseInsensitive )
         pattern.lowercase();
@@ -5257,13 +5257,18 @@ bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse
         if ( !_start.isText() )
             _start.nextVisibleText();
         int firstFoundTextY = -1;
+        if (checkMaxFromStart) {
+			ldomXPointer p( _start.getNode(), _start.getOffset() );
+			firstFoundTextY = p.toPoint().y;
+		}
         while ( !isNull() ) {
             int offs = _start.getOffset();
 
             if ( firstFoundTextY!=-1 && maxHeight>0 ) {
                 ldomXPointer p( _start.getNode(), offs );
                 int currentTextY = p.toPoint().y;
-                if ( currentTextY>firstFoundTextY+maxHeight )
+                if ( (checkMaxFromStart && currentTextY>=firstFoundTextY+maxHeight) ||
+					currentTextY>firstFoundTextY+maxHeight )
                     return words.length()>0;
             }
 
@@ -5274,7 +5279,12 @@ bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse
             while ( ::findText( txt, offs, pattern ) ) {
                 if ( !words.length() && maxHeight>0 ) {
                     ldomXPointer p( _start.getNode(), offs );
-                    firstFoundTextY = p.toPoint().y;
+                    int currentTextY = p.toPoint().y;
+                    if (checkMaxFromStart) {
+						if ( currentTextY>=firstFoundTextY+maxHeight )
+							return words.length()>0;
+					} else
+						firstFoundTextY = currentTextY;
                 }
                 words.add( ldomWord(_start.getNode(), offs, offs + pattern.length() ) );
                 offs++;

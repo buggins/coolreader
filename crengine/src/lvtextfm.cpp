@@ -629,7 +629,7 @@ lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer )
                 else
                 {
                     b = (( font->getBaseline() * first_para_line->interval) >> 4);
-                    h = ( ( font->getHeight() * first_para_line->interval) >> 4) - b;
+                    h = ( ( font->getLineHeight() * first_para_line->interval) >> 4) - b;
                 }
             }
             if ( frmline->baseline < b - wy )
@@ -784,7 +784,7 @@ public:
             else
             {
                 b = (( font->getBaseline() * interval) >> 4);
-                h = ( ( font->getHeight() * interval) >> 4) - b;
+                h = ( ( font->getLineHeight() * interval) >> 4) - b;
             }
         }
         if ( frmline->baseline < b - word->y )

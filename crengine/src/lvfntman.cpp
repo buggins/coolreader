@@ -511,6 +511,7 @@ protected:
     int           _size; // height in pixels
     int           _hyphen_width;
     int           _baseline;
+    int           _lineheight;
     int            _weight;
     int            _italic;
     LVFontGlyphWidthCache _wcache;
@@ -636,7 +637,8 @@ public:
             0,        /* pixel_width           */
             (size * targetheight + nheight/2)/ nheight );  /* pixel_height          */
 #endif
-        _size = (_face->size->metrics.height >> 6);
+        _size = size;
+        _lineheight = _face->size->metrics.height >> 6;
         _baseline = _size + (_face->size->metrics.descender >> 6);
         _weight = _face->style_flags & FT_STYLE_FLAG_BOLD ? 700 : 400;
         _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
@@ -936,6 +938,10 @@ public:
         return _size;
     }
 
+	virtual int getLineHeight() const
+	{
+		return _lineheight;
+	}	
     /// returns char width
     virtual int getCharWidth( lChar16 ch, lChar16 def_char='?' )
     {
@@ -1094,6 +1100,7 @@ class LVFontBoldTransform : public LVFont
     int           _size; // height in pixels
     //int           _hyphen_width;
     int           _baseline;
+    int           _lineheight;
     LVFontLocalGlyphCache _glyph_cache;
 public:
     /// returns font weight
@@ -1117,6 +1124,7 @@ public:
         _vShift = h <= 36 ? 0 : 1;
         _size = _baseFont->getHeight();
         _baseline = _baseFont->getBaseline();
+        _lineheight = _baseFont->getLineHeight();
     }
 
     /// hyphenation character
@@ -1322,6 +1330,10 @@ public:
         return _size;
     }
 
+	virtual int getLineHeight() const
+	{
+		return _lineheight;
+	}
     /// returns char width
     virtual int getCharWidth( lChar16 ch, lChar16 def_char=0 )
     {

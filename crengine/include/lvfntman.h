@@ -199,6 +199,8 @@ public:
     virtual int getBaseline() = 0;
     /// returns font height
     virtual int getHeight() const = 0;
+    /// return lineHeight
+    virtual int getLineHeight() const = 0;
     /// returns font weight
     virtual int getWeight() const = 0;
     /// returns italic flag
