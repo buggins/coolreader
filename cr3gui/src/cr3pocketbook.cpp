@@ -978,31 +978,31 @@ public:
 	}
 
 	void showContents() {
-		if (_toc == NULL) {
-			LVPtrVector<LVTocItem, false> tocItems;
-			_docview->getFlatToc(tocItems);
-			_tocLength = tocItems.length();
+		if (_toc != NULL) 
+			freeContents();
+		LVPtrVector<LVTocItem, false> tocItems;
+		_docview->getFlatToc(tocItems);
+		_tocLength = tocItems.length();
 
-			if (_tocLength) {
-				int tocSize = (_tocLength + 1) * sizeof(tocentry);
-				_toc = (tocentry *) malloc(tocSize);
-				for (int i = 0; i < tocItems.length(); i++) {
-					LVTocItem * item = tocItems[i];
-					_toc[i].level = item->getLevel();
-					_toc[i].position = item->getPage() + 1;
-					_toc[i].page = _toc[i].position;
-					_toc[i].text = strdup(UnicodeToUtf8(item->getName()).c_str());
-					char *p = _toc[i].text;
-					while (*p) {
-						if (*p == '\r' || *p == '\n') *p = ' ';
-							p++;
-					}
+		if (_tocLength) {
+			int tocSize = (_tocLength + 1) * sizeof(tocentry);
+			_toc = (tocentry *) malloc(tocSize);
+			for (int i = 0; i < tocItems.length(); i++) {
+				LVTocItem * item = tocItems[i];
+				_toc[i].level = item->getLevel();
+				_toc[i].position = item->getPage() + 1;
+				_toc[i].page = _toc[i].position;
+				_toc[i].text = strdup(UnicodeToUtf8(item->getName()).c_str());
+				char *p = _toc[i].text;
+				while (*p) {
+					if (*p == '\r' || *p == '\n') *p = ' ';
+						p++;
 				}
-			} else {
-				Message(ICON_INFORMATION, const_cast<char*>("CoolReader"),
-						const_cast<char*>("@No_contents"), 2000);
-				return;
 			}
+		} else {
+			Message(ICON_INFORMATION, const_cast<char*>("CoolReader"),
+					const_cast<char*>("@No_contents"), 2000);
+			return;
 		}
 		CRPocketBookContentsWindow *wnd = new CRPocketBookContentsWindow(_wm, _toc, 
 											_tocLength, _docview->getCurPage() + 1);

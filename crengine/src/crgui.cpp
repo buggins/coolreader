@@ -939,8 +939,8 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectS
     if ( font.isNull() )
         font = skin->getFont();
     if ( s2.empty() ) {
-        textRect.top += (textRect.height() - font->getHeight() - itemBorders.top - itemBorders.bottom) / 2;
-        textRect.bottom = textRect.top + font->getHeight() + itemBorders.top + itemBorders.bottom;
+        textRect.top += (textRect.height() - font->getLineHeight() - itemBorders.top - itemBorders.bottom) / 2;
+        textRect.bottom = textRect.top + font->getLineHeight() + itemBorders.top + itemBorders.bottom;
     }
     skin->drawText( buf, textRect, s1, font );
     if ( !s2.empty() ) {
@@ -1018,7 +1018,7 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
         }
     } else {
 		LVFontRef skinFont = skin->getFont();
-		int fh = skinFont.isNull() ? skin->getFontSize() : skinFont->getHeight();
+		int fh = skinFont.isNull() ? skin->getFontSize() : skinFont->getLineHeight();
         textRect.top += (textRect.height() - fh - itemBorders.top - itemBorders.bottom) / 2;
         textRect.bottom = textRect.top + fh + itemBorders.top + itemBorders.bottom;
     }
@@ -1031,8 +1031,7 @@ void CRMenu::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinR
             rc2.top += rc2.height()*3/8;
             int hh = rc2.height();
             buf.SetTextColor( skin->getTextColor() );
-            _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
-
+            _valueFont->DrawTextString( &buf, rc2.right - w - ITEM_MARGIN, rc2.top + hh/2 - _valueFont->getLineHeight()/2, s.c_str(), s.length(), L'?', NULL, false, 0 );
         } else {
             valueSkin->drawText( buf, valueRect, s );
         }

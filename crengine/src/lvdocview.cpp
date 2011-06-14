@@ -4706,7 +4706,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
 			2);
 #if BIG_PAGE_MARGINS==1
-	static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 10, 20, 30, 50, 60, 80, 100, 130};
+	static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 8, 10, 12, 14, 16, 20, 30, 50, 60, 80, 100, 130};
 #else
 	static int def_margin[] = { 8, 0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30 };
 #endif

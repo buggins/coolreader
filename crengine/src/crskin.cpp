@@ -912,7 +912,7 @@ LVFontRef CRSkinnedItem::getFont()
 
 lvPoint CRSkinnedItem::measureText( lString16 text )
 {
-    int th = getFont()->getHeight();
+    int th = getFont()->getLineHeight();
     int tw = getFont()->getTextWidth( text.c_str(), text.length() );
     return lvPoint( tw, th );
 }
@@ -1010,7 +1010,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
     lvRect oldRc;
     buf.GetClipRect( &oldRc );
     buf.SetClipRect( &rc );
-    int lh = font->getHeight();
+    int lh = font->getLineHeight();
     int th = lh * lines.length();
     int ttw = tabText.empty() ? 0 : font->getTextWidth( tabText.c_str(), tabText.length() );
 
