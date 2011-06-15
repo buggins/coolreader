@@ -3476,6 +3476,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //    	}
 //    }
     
+    public Bookmark saveCurrentPositionBookmarkSync( boolean saveToDB ) {
+        Bookmark bmk = mBackThread.callBackground(new Callable<Bookmark>() {
+            @Override
+            public Bookmark call() throws Exception {
+                if ( !mOpened )
+                    return null;
+                return getCurrentPageBookmarkInternal();
+            }
+        });
+        if ( bmk!=null ) {
+            bmk.setTimeStamp(System.currentTimeMillis());
+            bmk.setType(Bookmark.TYPE_LAST_POSITION);
+            if ( mBookInfo!=null )
+                mBookInfo.setLastPosition(bmk);
+            if ( saveToDB ) {
+                mActivity.getHistory().updateRecentDir();
+                mActivity.getHistory().saveToDB();
+                mActivity.getDB().flush();
+            }
+        }
+        return bmk;
+    }
+    
     private class SavePositionTask extends Task {
 
     	Bookmark bmk;
@@ -3488,6 +3511,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		mBookInfo.setLastPosition(bmk);
 	    		mActivity.getHistory().updateRecentDir();
 	    		mActivity.getHistory().saveToDB();
+                log.i("SavePositionTask.done()");
 	    	}
 		}
 

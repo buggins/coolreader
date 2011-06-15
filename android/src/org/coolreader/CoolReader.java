@@ -245,6 +245,10 @@ public class CoolReader extends Activity
 			        | PowerManager.ON_AFTER_RELEASE,
 			        "cr3");
 			}
+			if ( !isStarted() ) {
+			    release();
+			    return;
+			}
 			if ( !wl.isHeld() )
 				wl.acquire();
 			backlightCountDown = SCREEN_BACKLIGHT_DURATION_STEPS;
@@ -253,7 +257,7 @@ public class CoolReader extends Activity
 					public void run() {
 						if ( backlightTimerTask!=this )
 							return;
-						if ( backlightCountDown<=0 )
+						if ( backlightCountDown<=0 || !isStarted())
 							release();
 						else {
 							backlightCountDown--;
@@ -683,7 +687,7 @@ public class CoolReader extends Activity
 		mIsStarted = false;
 		mPaused = true;
 		releaseBacklightControl();
-		mReaderView.save();
+		mReaderView.saveCurrentPositionBookmarkSync(true);
 		super.onPause();
 	}
 	
@@ -742,23 +746,6 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		log.i("CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
-
-        BackgroundThread.instance().postBackground(new Runnable() {
-            @Override
-            public void run() {
-    		    BackgroundThread.instance().postGUI(new Runnable() {
-    
-                    @Override
-                    public void run() {
-                        if ( ttsInitialized ) {
-                            L.i("Trying TTS speak()");
-                            tts.speak("Testing text to speech engine. ", TTS.QUEUE_ADD, null);
-                        }
-                    }
-    		        
-    		    }, 4000);
-            };
-        });
 		
 		mPaused = false;
 		
