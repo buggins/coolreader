@@ -1003,9 +1003,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return true;
 			}
 			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
-				int deltax = manualScrollStartPosX - x;
+				int movex = manualScrollStartPosX - x;
 				int deltay = manualScrollStartPosY - y;
-				deltax = deltax < 0 ? -deltax : deltax;
+				int deltax = movex < 0 ? -movex : movex;
 				deltay = deltay < 0 ? -deltay : deltay;
 				if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 					log.v("onTouchEvent: move threshold reached");
@@ -1021,11 +1021,24 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							startBrightnessControl(x, y);
 							return true;
 					} else {
+						//pageFlipAnimationSpeedMs
 						// scroll
-						isManualScrollActive = true;
-						startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
-						updateAnimation(x, y);
-						return true;
+						boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1)==1;
+						boolean startScrollEnabled = true;
+						if ( isPageMode ) {
+							if ( deltax < START_DRAG_THRESHOLD ) // check only horizontal distance
+								startScrollEnabled = false;
+							if ( movex>0 && x>dx*2/3 )
+								startScrollEnabled = false;
+							if ( movex<0 && x<dx/3 )
+								startScrollEnabled = false;
+						}
+						if ( startScrollEnabled ) {
+							isManualScrollActive = true;
+							startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
+							updateAnimation(x, y);
+							return true;
+						}
 					}
 				}
 			}
@@ -2388,8 +2401,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	
-	private final static boolean DEBUG_ANIMATION = false;
-	private int updateSerialNumber = 0;
+	private final static boolean DEBUG_ANIMATION = true;
+	private volatile int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
 	{
 		if (DEBUG_ANIMATION) log.d("updateAnimation("+x + ", " + y+")");
@@ -2963,7 +2976,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					int duration;
 					if ( moved ) {
 						destShift = maxX;
-						duration = 500; // 500 ms forward
+						duration = 300; // 500 ms forward
 					} else {
 						destShift = 0;
 						duration = 200; // 200 ms cancel
