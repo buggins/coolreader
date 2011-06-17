@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 0
+#if 1
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 #define DEBUG_FONT_SYNTHESIS 1
@@ -508,7 +508,8 @@ protected:
     FT_Face       _face;
     FT_GlyphSlot  _slot;
     FT_Matrix     _matrix;                 /* transformation matrix */
-    int           _size; // height in pixels
+    int           _size; // caracter height in pixels
+    int           _height; // full line height in pixels
     int           _hyphen_width;
     int           _baseline;
     int            _weight;
@@ -636,6 +637,7 @@ public:
             0,        /* pixel_width           */
             (size * targetheight + nheight/2)/ nheight );  /* pixel_height          */
 #endif
+        _height = _face->size->metrics.height >> 6;
         _size = size; //(_face->size->metrics.height >> 6);
         _baseline = _size + (_face->size->metrics.descender >> 6);
         _weight = _face->style_flags & FT_STYLE_FLAG_BOLD ? 700 : 400;
@@ -932,6 +934,12 @@ public:
 
     /// returns font height
     virtual int getHeight() const
+    {
+        return _size;
+    }
+
+    /// returns font character size
+    virtual int getSize() const
     {
         return _size;
     }
@@ -1319,7 +1327,13 @@ public:
     /// returns font height
     virtual int getHeight() const
     {
-        return _size;
+        return _baseFont->getHeight();
+    }
+
+    /// returns font character size
+    virtual int getSize() const
+    {
+        return _baseFont->getSize();
     }
 
     /// returns char width

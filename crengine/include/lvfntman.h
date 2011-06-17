@@ -197,8 +197,10 @@ public:
     virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) = 0;
     /// returns font baseline offset
     virtual int getBaseline() = 0;
-    /// returns font height
+    /// returns font height including normal interline space
     virtual int getHeight() const = 0;
+    /// returns font character size
+    virtual int getSize() const = 0;
     /// returns font weight
     virtual int getWeight() const = 0;
     /// returns italic flag
