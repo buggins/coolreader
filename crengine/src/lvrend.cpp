@@ -2069,7 +2069,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->white_space = type_ptr->white_space;
     }
 
-    //int baseFontSize = enode->getDocument()->getDefaultFont()->getSize();
+    int baseFontSize = enode->getDocument()->getDefaultFont()->getSize();
 
     //////////////////////////////////////////////////////
     // apply style sheet
