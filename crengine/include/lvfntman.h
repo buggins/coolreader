@@ -314,6 +314,7 @@ public:
                        lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0 );
 };
 
+#if (USE_FREETYPE!=1) && (USE_BITMAP_FONTS==1)
 /* C++ wrapper class */
 class LBitmapFont : public LVBaseFont
 {
@@ -364,8 +365,9 @@ public:
     virtual bool operator ! () const { return IsNull(); }
     virtual ~LBitmapFont() { Clear(); }
 };
+#endif
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE!=1
 class LVBaseWin32Font : public LVBaseFont
 {
 protected:

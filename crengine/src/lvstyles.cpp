@@ -25,7 +25,7 @@ lUInt32 calcHash(font_ref_t & f)
         return f->_hash;
     lUInt32 v = 31;
     v = v * 31 + (lUInt32)f->getFontFamily();
-    v = v * 31 + (lUInt32)f->getHeight();
+    v = v * 31 + (lUInt32)f->getSize();
     v = v * 31 + (lUInt32)f->getWeight();
     v = v * 31 + (lUInt32)f->getItalic();
     v = v * 31 + (lUInt32)f->getKerning();
