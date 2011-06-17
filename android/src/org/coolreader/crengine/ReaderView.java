@@ -1002,6 +1002,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
 				return true;
 			}
+			if ( touchEventIgnoreNextUp )
+				return true;
 			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
 				int movex = manualScrollStartPosX - x;
 				int deltay = manualScrollStartPosY - y;
@@ -1040,15 +1042,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 								int nx = x;
 								int ny = y;
 								if ( isPageMode )
-									nx = deltax < 0 ? (x + dx) / 2 : x / 2;
+									nx = movex < 0 ? (x + dx) / 2 : x / 2;
 								else
 									ny = (manualScrollStartPosY + y) / 2;
 								updateAnimation(nx, ny);
 								updateAnimation(x, y);
 								return true;
 							} else {
-								stopTracking();
-								if ( deltax>0 ) {
+								touchEventIgnoreNextUp = true;
+								if ( movex<0 ) {
 									// back
 									onCommand(ReaderCommand.DCMD_PAGEUP, 1);
 								} else {

@@ -77,10 +77,17 @@ public class Properties extends java.util.Properties {
 			return false;
 		return defaultValue;
 	}
+
 	public void applyDefault( String prop, String defValue )
 	{
 		if ( getProperty(prop)==null )
 			setProperty(prop, defValue);
+	}
+	
+	public void applyDefault( String prop, int defValue )
+	{
+		if ( getProperty(prop)==null )
+			setInt(prop, defValue);
 	}
 	
 	public static boolean eq(Object obj1, Object obj2)
