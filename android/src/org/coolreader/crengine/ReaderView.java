@@ -1034,10 +1034,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 								startScrollEnabled = false;
 						}
 						if ( startScrollEnabled ) {
-							isManualScrollActive = true;
-							startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
-							updateAnimation(x, y);
-							return true;
+							if ( pageFlipAnimationSpeedMs!=0 ) {
+								isManualScrollActive = true;
+								startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
+								int nx = x;
+								int ny = y;
+								if ( isPageMode )
+									nx = deltax < 0 ? (x + dx) / 2 : x / 2;
+								else
+									ny = (manualScrollStartPosY + y) / 2;
+								updateAnimation(nx, ny);
+								updateAnimation(x, y);
+								return true;
+							} else {
+								stopTracking();
+								if ( deltax>0 ) {
+									// back
+									onCommand(ReaderCommand.DCMD_PAGEUP, 1);
+								} else {
+									// forward
+									onCommand(ReaderCommand.DCMD_PAGEDOWN, 1);
+								}
+								return true;
+							}
 						}
 					}
 				}
