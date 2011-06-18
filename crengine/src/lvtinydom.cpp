@@ -2722,7 +2722,7 @@ bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, fo
     s->vertical_align = css_va_baseline;
     s->font_family = def_font->getFontFamily();
     s->font_size.type = css_val_px;
-    s->font_size.value = def_font->getHeight();
+    s->font_size.value = def_font->getSize();
     s->font_name = def_font->getTypeFace();
     s->font_weight = css_fw_400;
     s->font_style = css_fs_normal;

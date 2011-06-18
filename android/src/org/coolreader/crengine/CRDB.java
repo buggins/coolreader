@@ -833,25 +833,32 @@ public class CRDB {
 		return false;
 	}
 
+    public void flush()
+    {
+        Log.i("cr3db", "Flushing DB");
+        if ( seriesStmt!=null) {
+            seriesStmt.close();
+            seriesStmt = null;
+        }
+        if ( authorStmt!=null) {
+            authorStmt.close();
+            authorStmt = null;
+        }
+        if ( seriesSelectStmt!=null) {
+            seriesSelectStmt.close();
+            seriesSelectStmt = null;
+        }
+        if ( authorSelectStmt!=null) {
+            authorSelectStmt.close();
+            authorSelectStmt = null;
+        }
+        SQLiteDatabase.releaseMemory();
+    }
+    
 	public void close()
 	{
+	    flush();
 		Log.i("cr3db", "Closing DB");
-		if ( seriesStmt!=null) {
-			seriesStmt.close();
-			seriesStmt = null;
-		}
-		if ( authorStmt!=null) {
-			authorStmt.close();
-			authorStmt = null;
-		}
-		if ( seriesSelectStmt!=null) {
-			seriesSelectStmt.close();
-			seriesSelectStmt = null;
-		}
-		if ( authorSelectStmt!=null) {
-			authorSelectStmt.close();
-			authorSelectStmt = null;
-		}
 		if ( mDB!=null && mDB.isOpen() ) {
 			mDB.close();
 			mDB = null;
