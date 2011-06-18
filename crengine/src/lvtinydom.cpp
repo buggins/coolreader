@@ -3261,7 +3261,8 @@ void ldomElementWriter::updateTocItem()
     if ( _parent && _parent->_tocItem ) {
         lString16 title = getSectionHeader( _element );
         //CRLog::trace("TOC ITEM: %s", LCSTR(title));
-        _tocItem = _parent->_tocItem->addChild(title, ldomXPointer(_element,0), getPath() );
+        if (!title.empty())
+			_tocItem = _parent->_tocItem->addChild(title, ldomXPointer(_element,0), getPath() );
     }
     _isSection = false;
 }
