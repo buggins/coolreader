@@ -1065,7 +1065,7 @@ public:
                 buf->FillRect( x0, liney, x, liney+h, cl );
             }
             if ( flags & LTEXT_TD_LINE_THROUGH ) {
-                int liney = y + _size/2 - h/2;
+                int liney = y + _baseline - _size/4 - h/2;
                 buf->FillRect( x0, liney, x, liney+h, cl );
             }
         }
