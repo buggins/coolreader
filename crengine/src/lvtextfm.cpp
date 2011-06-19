@@ -1034,14 +1034,14 @@ public:
         wy = 0;
         if ( !flgObject && vertical_align )
         {
-            int fh = font->getHeight();
+            int fh = font->getSize();
             if ( vertical_align == LTEXT_VALIGN_SUB )
             {
-                wy += fh / 4;
+                wy += fh / 3;
             }
             else if ( vertical_align == LTEXT_VALIGN_SUPER )
             {
-                wy -= fh / 4;
+                wy -= fh / 3;
             }
         }
         flgLastParaLine = false;
