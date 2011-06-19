@@ -72,7 +72,7 @@
 #define PROP_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.filesize.min"
 #define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"
-
+#define PROP_HIGHLIGHT_COMMENT_BOOKMARKS "crengine.highlight.bookmarks"
 
 const lChar16 * getDocFormatName( doc_format_t fmt );
 
@@ -381,12 +381,14 @@ private:
     LVImageSourceRef m_backgroundImage;
     LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
+    bool m_highlightBookmarks;
 
 
 protected:
     lString16 m_last_clock;
 
     ldomMarkedRangeList m_markRanges;
+    ldomMarkedRangeList m_bmkRanges;
 
 private:
     lString16 m_filename;
@@ -644,6 +646,7 @@ public:
     LVMutex & getMutex() { return _mutex; }
     /// update selection ranges
     void updateSelections();
+    void updateBookMarksRanges();
     /// get page document range, -1 for current page
     LVRef<ldomXRange> getPageDocumentRange( int pageIndex=-1 );
     /// get page text, -1 for current page

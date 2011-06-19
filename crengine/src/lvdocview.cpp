@@ -123,6 +123,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 			 */
 			, m_stream(NULL), m_doc(NULL), m_stylesheet(def_stylesheet),
             m_backgroundTiled(true),
+            m_highlightBookmarks(true),
 			m_pageMargins(DEFAULT_PAGE_MARGIN,
 					DEFAULT_PAGE_MARGIN / 2 /*+ INFO_FONT_SIZE + 4 */,
 					DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN / 2),
@@ -1685,7 +1686,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 				DrawDocument(*drawbuf, m_doc->getRootNode(), pageRect->left
 						+ m_pageMargins.left, clip.top, pageRect->width()
 						- m_pageMargins.left - m_pageMargins.right, height, 0,
-						-start + offset, m_dy, &m_markRanges);
+                                                -start + offset, m_dy, &m_markRanges, &m_bmkRanges);
 			//CRLog::trace("Done DrawDocument() for main text");
 			// draw footnotes
 #define FOOTNOTE_MARGIN 8
@@ -1858,6 +1859,8 @@ bool LVDocView::goToPage(int page) {
 	_posBookmark = getBookmark();
 	_posIsSet = true;
 	updateScroll();
+        if (res)
+            updateBookMarksRanges();
 	return res;
 }
 
@@ -2565,6 +2568,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 	savePosToNavigationHistory();
 	ldomXPointer newPos(dest, 0);
 	goToBookmark(newPos);
+        updateBookMarksRanges();
 	return true;
 }
 
@@ -2638,6 +2642,7 @@ bool LVDocView::navigateTo(lString16 historyPath) {
 	if (bookmark.isNull())
 		return false;
 	goToBookmark(bookmark);
+        updateBookMarksRanges();
 	return true;
 }
 
@@ -2682,6 +2687,41 @@ void LVDocView::updateSelections() {
 	}
 }
 
+void LVDocView::updateBookMarksRanges()
+{
+    checkRender();
+    clearImageCache();
+    LVLock lock(getMutex());
+    ldomXRangeList ranges;
+    CRFileHistRecord * rec = m_highlightBookmarks ? getCurrentFileHistRecord() : NULL;
+    if (rec) {
+        LVRef < ldomXRange > page = getPageDocumentRange();
+        LVPtrVector < CRBookmark > &bookmarks = rec->getBookmarks();
+
+        for (int i = 0; i < bookmarks.length(); i++) {
+            CRBookmark * bmk = bookmarks[i];
+            if (bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction)
+                continue;
+            lString16 epos = bmk->getEndPos();
+            ldomXPointer ep = m_doc->createXPointer(epos);
+            if (!ep.isNull()) {
+                lString16 spos = bmk->getStartPos();
+                ldomXPointer sp = m_doc->createXPointer(spos);
+                if (!ep.isNull()) {
+                    ldomXRange bmk_range(sp, ep);
+
+                    ldomXRange *n_range = new ldomXRange(*page, bmk_range);
+                    if (!n_range->isNull())
+                        ranges.add(n_range);
+                    else
+                        delete n_range;
+                }
+            }
+        }
+    }
+    ranges.getRanges(m_bmkRanges);
+}
+
 /// set view mode (pages/scroll)
 void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
 	if (m_view_mode == view_mode && (visiblePageCount == m_pagesVisible
@@ -2695,6 +2735,7 @@ void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
 		m_pagesVisible = visiblePageCount;
 	requestRender();
 	goToBookmark( _posBookmark);
+        updateBookMarksRanges();
 }
 
 /// get view mode (pages/scroll)
@@ -2756,6 +2797,7 @@ void LVDocView::setDefaultInterlineSpace(int percent) {
 	requestRender();
 	m_def_interline_space = percent;
 	goToBookmark( _posBookmark);
+        updateBookMarksRanges();
 }
 
 /// sets new status bar font size
@@ -2911,6 +2953,7 @@ void LVDocView::Resize(int dx, int dy) {
 			requestRender();
 		}
 		goToBookmark( _posBookmark);
+                updateBookMarksRanges();
 	}
 	m_dx = dx;
 	m_dy = dy;
@@ -3003,6 +3046,7 @@ void LVDocView::restorePosition() {
 		//goToBookmark( pos );
 		CRLog::info("LVDocView::restorePosition() - last position is found");
 		_posBookmark = pos; //getBookmark();
+                updateBookMarksRanges();
 		_posIsSet = false;
 	} else {
 		CRLog::info(
@@ -3547,6 +3591,7 @@ void LVDocView::createEmptyDocument() {
 	m_doc = new ldomDocument();
 	m_cursorPos.clear();
 	m_markRanges.clear();
+        m_bmkRanges.clear();
 	_posBookmark.clear();
 	m_section_bounds.clear();
 	m_section_bounds_valid = false;
@@ -4454,6 +4499,7 @@ bool LVDocView::goToPageShortcutBookmark(int number) {
 	if (getCurPage() != getBookmarkPage(p))
 		savePosToNavigationHistory();
 	goToBookmark(p);
+        updateBookMarksRanges();
 	return true;
 }
 
@@ -4701,6 +4747,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
 	props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
+        props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, bool_options_def_true, 2);
     static int def_status_line[] = { 0, 1, 2 };
 	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
 	props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
@@ -4934,6 +4981,12 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if ( gFlgFloatingPunctuationEnabled != value ) {
                 gFlgFloatingPunctuationEnabled = value;
                 requestRender();
+            }
+        } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS) {
+            bool value = props->getBoolDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, true);
+            if (m_highlightBookmarks != value) {
+                m_highlightBookmarks = value;
+                updateBookMarksRanges();
             }
         } else if (name == PROP_PAGE_VIEW_MODE) {
 			LVDocViewMode m =

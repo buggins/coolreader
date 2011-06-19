@@ -216,6 +216,7 @@ public:
     void close() {
         CRLog::info("Closing cite");
         _mainwin->getDocView()->clearSelection();
+        _mainwin->getDocView()->updateBookMarksRanges();
         _wm->closeWindow(this);
     }
 

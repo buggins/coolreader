@@ -301,7 +301,7 @@ public:
         return m_pbuffer->frmlines[index];
     }
 
-    void Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks );
+    void Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks,  ldomMarkedRangeList *bookmarks = NULL );
 
     LFormattedText() { m_pbuffer = lvtextAllocFormatter( 0 ); }
 
