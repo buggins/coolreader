@@ -1037,11 +1037,11 @@ public:
             int fh = font->getHeight();
             if ( vertical_align == LTEXT_VALIGN_SUB )
             {
-                wy += fh / 2;
+                wy += fh / 4;
             }
             else if ( vertical_align == LTEXT_VALIGN_SUPER )
             {
-                wy -= fh / 2;
+                wy -= fh / 4;
             }
         }
         flgLastParaLine = false;
