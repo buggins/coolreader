@@ -92,7 +92,7 @@ public:
 	}
 	void startTranslateTimer()
 	{
-		SetWeakTimer(const_cast<char *>("TranslateTimer"), translate_timer, PB_CR3_TRANSLATE_DELAY);
+                SetHardTimer(const_cast<char *>("TranslateTimer"), translate_timer, PB_CR3_TRANSLATE_DELAY);
 		_translateTimer = true;
 	}
 	void killTranslateTimer()
@@ -365,7 +365,7 @@ public:
 		percent = GetBatteryPower(); // It seems that the GetBatteryPower() returns what needed here
 	}
 	
-	bool hasKeyMapping(int key, int flags) {
+        int hasKeyMapping(int key, int flags) {
 		// NOTE: orientation related key substitution is performed by inkview
 		for ( int i=_windows.length()-1; i>=0; i-- ) {
 			if ( _windows[i]->isVisible() ) {
@@ -374,11 +374,11 @@ public:
 
 				if (!accTable.isNull() && accTable->translate( key, flags, cmd, param ) ) {
 					if (cmd != GCMD_PASS_TO_PARENT ) 
-						return true;
+                                                return cmd;
 				}
 			}
 		}
-		return false;
+                return -1;
 	}
 	bool onKeyPressed( int key, int flags )
 	{
@@ -614,6 +614,8 @@ public:
 	virtual void reconfigure( int flags );
 	int getDesiredHeight();
 	virtual bool isDirty();
+        virtual void clearSelection() { _word.clear(); }
+        void noTranslation();
 };
 
 class CRPbDictionaryMenuItem : public CRMenuItem
@@ -669,8 +671,11 @@ static void translate_timer()
 	CRPocketBookWindowManager::instance->onCommand(PB_CMD_TRANSLATE, 0);
 }
 
+class CRPbDictionaryProxyWindow;
+
 class CRPbDictionaryDialog : public CRGUIWindowBase
 {
+friend class CRPbDictionaryProxyWindow;
 protected:
 	CRViewDialog * _docwin;
 	LVDocView * _docview;
@@ -687,14 +692,12 @@ protected:
     bool isWordSelection() { return _wordSelector!=NULL; }
     void onWordSelection();
     bool _docDirty;
-    static int _curPage;
-    static int _lastWordX;
-    static int _lastWordY;
+    int _curPage;
+    int _lastWordX;
+    int _lastWordY;
 public:
-	static CRPbDictionaryDialog * create( CRGUIWindowManager * wm, CRViewDialog * docwin, lString8 css );
-	CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialog * docwin,  lString8 css);
+        CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialog * docwin,  lString8 css);
 	virtual ~CRPbDictionaryDialog() {
-		CRPocketBookScreen::instance->setForceSoftUpdate(false);
 		if (_wordSelector) {
 			delete _wordSelector;
 			_wordSelector = NULL;
@@ -704,7 +707,7 @@ public:
 	}
 	/// returns true if command is processed
 	virtual bool onCommand( int command, int params );
-	void activateDictView(bool active) 
+        virtual void activateDictView(bool active)
 	{
 		if (_dictViewActive != active) {
 			_dictViewActive = active; 
@@ -714,21 +717,103 @@ public:
 			Update();
 		}
 	}
-    void startWordSelection();
+        virtual void startWordSelection();
 	virtual void Update();
-	bool isDocDirty() { return _docDirty; }
-	void setDocDirty() { _docDirty = true; }
+        virtual bool isDocDirty() { return _docDirty; }
+        virtual void setDocDirty() { _docDirty = true; }
 	virtual void reconfigure( int flags )
 	{
 		CRGUIWindowBase::reconfigure(flags);
 		_dictView->reconfigure(flags);
 	}
-	bool isSelectingWord()
+        virtual bool isSelectingWord()
 	{
 		return (!_autoTranslate && !_wordTranslated);
 	}
 };
 
+class CRPbDictionaryProxyWindow : public CRPbDictionaryDialog
+{
+private:
+    CRPbDictionaryDialog *_dictDlg;
+protected:
+    virtual void draw() { _dictDlg->draw(); }
+public:
+    CRPbDictionaryProxyWindow(CRPbDictionaryDialog * dictDialog)
+        : CRPbDictionaryDialog(dictDialog->getWindowManager(), dictDialog->_docwin, lString8() ), _dictDlg(dictDialog)
+    {
+        _dictDlg->_wordTranslated = _dictDlg->_dictViewActive = false;
+        _dictDlg->_selText.clear();
+        CRPocketBookScreen::instance->setForceSoftUpdate(true);
+
+    }
+    virtual ~CRPbDictionaryProxyWindow()
+    {
+        CRPocketBookScreen::instance->setForceSoftUpdate(false);
+    }
+    virtual void activateDictView(bool active)
+    {
+        _dictDlg->activateDictView(active);
+    }
+    virtual bool onCommand( int command, int params )
+    {
+        if (command == MCMD_CANCEL) {
+            _dictDlg->_docview->clearSelection();
+            _wm->closeWindow( this );
+            return true;
+        }
+        return _dictDlg->onCommand(command, params);
+    }
+    virtual void startWordSelection()
+    {
+        _dictDlg->setDocDirty();
+        _dictDlg->startWordSelection();
+    }
+    virtual void Update()
+    {
+        _dictDlg->Update();
+    }
+    virtual bool isDocDirty()
+    {
+        _dictDlg->isDocDirty();
+    }
+    virtual void setDocDirty()
+    {
+        _dictDlg->setDocDirty();
+    }
+    virtual void reconfigure( int flags )
+    {
+        _dictDlg->reconfigure(flags);
+    }
+    virtual bool isSelectingWord()
+    {
+        _dictDlg->isSelectingWord();
+    }
+    virtual void setDirty()
+    {
+        _dictDlg->setDirty();
+    }
+    virtual bool isDirty()
+    {
+        return _dictDlg->isDirty();
+    }
+    virtual void setVisible( bool visible )
+    {
+        _dictDlg->setVisible(visible);
+    }
+    virtual bool isVisible() const
+    {
+        return _dictDlg->isVisible();
+    }
+    virtual const lvRect & getRect()
+    {
+        return _dictDlg->getRect();
+    }
+    virtual void activated()
+    {
+        _dictDlg->activated();
+    }
+};
 
 class CRPocketBookDocView : public V3DocViewWin {
 private:
@@ -737,8 +822,7 @@ private:
 	int _quick_menuactions[9];
 	tocentry *_toc;
 	int _tocLength;
-	bool _dictCssloaded;
-	lString8 _dictCss;
+        CRPbDictionaryDialog * _dictDlg;
 
 	void freeContents() 
 	{
@@ -839,7 +923,7 @@ protected:
 public:
     static CRPocketBookDocView * instance;
     CRPocketBookDocView( CRGUIWindowManager * wm, lString16 dataDir )
-    : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _bm3x3(NULL), _dictCssloaded(false)
+    : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _bm3x3(NULL), _dictDlg(NULL)
     {
         instance = this;
     }
@@ -966,15 +1050,16 @@ public:
 
 	void showDictDialog() 
 	{
-		if (!_dictCssloaded) {
-			_dictCssloaded = true;
-			lString16 filename = L"dict.css";
-			if (_cssDir.length() > 0 && LVFileExists( _cssDir + filename ))
-				LVLoadStylesheetFile( _cssDir + filename, _dictCss );
-		}
-		CRPbDictionaryDialog * dlg = new CRPbDictionaryDialog( _wm, this, _dictCss );
-		_wm->activateWindow( dlg );
-		dlg->startWordSelection();
+            if (_dictDlg == NULL) {
+                lString16 filename = L"dict.css";
+                lString8 dictCss;
+                if (_cssDir.length() > 0 && LVFileExists( _cssDir + filename ))
+                        LVLoadStylesheetFile( _cssDir + filename, dictCss );
+                _dictDlg = new CRPbDictionaryDialog( _wm, this, dictCss );
+            }
+            CRPbDictionaryProxyWindow *dlg = new CRPbDictionaryProxyWindow(_dictDlg);
+            _wm->activateWindow( dlg );
+            dlg->startWordSelection();
 	}
 
 	void showContents() {
@@ -1012,6 +1097,8 @@ public:
     virtual ~CRPocketBookDocView()
     {
         instance = NULL;
+        if (_dictDlg != NULL)
+            delete _dictDlg;
     }
     CRPropRef getNewProps() {
 		_props = _docview->propsGetCurrent() | _props;
@@ -1054,6 +1141,7 @@ CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDi
 			lastDict = Utf8ToUnicode(lString8(_dictNames[0]));
 	}
 	if (!lastDict.empty()) {
+                _dictIndex = 0;
 		int rc = OpenDictionary((char *)UnicodeToUtf8(lastDict).c_str());
 		if (rc == 1) {
 			_caption = lastDict;
@@ -1216,13 +1304,20 @@ void CRPbDictionaryView::onDictionarySelect()
 			_dictIndex = -1;
 			CRLog::error("OpenDictionary(%s) returned %d", _dictNames[_dictIndex], rc);
 		}
-		lString16 word = _word;
-		_word.clear();
-		_caption = lastDict;
-		_parent->setDocDirty();
-		_selectedIndex = PB_DICT_DEACTIVATE;
-		translate(word);
+                _caption = lastDict;
 	}
+        lString16 word = _word;
+        _word.clear();
+        _parent->setDocDirty();
+        _selectedIndex = PB_DICT_DEACTIVATE;
+        translate(word);
+}
+
+void CRPbDictionaryView::noTranslation()
+{
+    setTranslation(CRViewDialog::makeFb2Xml(lString8()));
+    _newWord = _newTranslation = NULL;
+    setCurItem(PB_DICT_EXIT);
 }
 
 void CRPbDictionaryView::setCurItem(int index)
@@ -1412,7 +1507,8 @@ void CRPbDictionaryView::translate(const lString16 &w)
 			_newWord = word;
 			_newTranslation = translation;
 		} else {
-			body << TR("@Word_not_found");
+                    _newWord = _newTranslation = NULL;
+                    body << TR("@Word_not_found");
 		}
 	} else if (_dictCount <= 0) {
 		body << TR("@Dic_not_installed");
@@ -1597,6 +1693,7 @@ bool CRPbDictionaryMenu::onCommand( int command, int params )
 {
 	int nextItem = 0;
 
+        CRLog::trace("CRPbDictionaryMenu::onCommand( %d, %d )", command, params);
 	switch (command) {
 	case MCMD_CANCEL:
 		_parent->closeDictionary();
@@ -1609,19 +1706,25 @@ bool CRPbDictionaryMenu::onCommand( int command, int params )
 		nextItem = PB_DICT_EXIT;
 		break;
 	case PB_CMD_UP:
-		setCurItem(_selectedItem - 1);
+                if (params > 0)
+                    prevPage();
+                else
+                    setCurItem(_selectedItem - 1);
 		return true;
 	case PB_CMD_DOWN:
-		setCurItem(_selectedItem + 1);
+                if (params > 0)
+                    nextPage();
+                else
+                    setCurItem(_selectedItem + 1);
 		return true;
 	default:
 		return false;
 	}
-	if (_selectedItem >= 0 && _selectedItem < _items.length()) {
-		CRPbDictionaryMenuItem *item = static_cast<CRPbDictionaryMenuItem *>(_items[_selectedItem]);
+        if (_selectedItem >= 0 && _selectedItem < _items.length()) {
+            CRPbDictionaryMenuItem *item = static_cast<CRPbDictionaryMenuItem *>(_items[_selectedItem]);
 
-		_parent->setTranslation(CRViewDialog::makeFb2Xml(
-										_parent->createArticle(item->getWord(), item->getTranslation())));
+            _parent->setTranslation(CRViewDialog::makeFb2Xml(
+                   _parent->createArticle(item->getWord(), item->getTranslation())));
 	}
 	_parent->setCurItem(nextItem);
 	return true;
@@ -1643,12 +1746,9 @@ void CRPbDictionaryMenu::reconfigure( int flags )
 	}
 }
 
-int CRPbDictionaryDialog::_curPage = 0;
-int CRPbDictionaryDialog::_lastWordX = 0;
-int CRPbDictionaryDialog::_lastWordY = 0;
-
 CRPbDictionaryDialog::CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialog * docwin, lString8 css )
-: CRGUIWindowBase( wm ), _docwin(docwin), _docview(docwin->getDocView()), _docDirty(true)
+: CRGUIWindowBase( wm ), _docwin(docwin), _docview(docwin->getDocView()), _docDirty(true), _curPage(0),
+    _lastWordX(0), _lastWordY(0)
 {
 	_wordSelector = NULL;
 	_fullscreen = true;
@@ -1680,19 +1780,13 @@ CRPbDictionaryDialog::CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialo
 			
 		if (mainAcc->findCommandKey(DCMD_PAGEUP, 0, key, keyFlags)) {
 			if (PB_CHECK_DICT_KEYS(key, keyFlags))
-				_acceleratorTable->add(key, keyFlags, DCMD_PAGEUP, 0);
+                                _acceleratorTable->add(key, keyFlags, DCMD_PAGEUP, 0);
 		}
 		if (mainAcc->findCommandKey(DCMD_PAGEDOWN, 0, key, keyFlags)) {
 			if (PB_CHECK_DICT_KEYS(key, keyFlags))
-				_acceleratorTable->add(key, keyFlags, DCMD_PAGEDOWN, 0);
+                                _acceleratorTable->add(key, keyFlags, DCMD_PAGEDOWN, 0);
 		}
 	}
-	CRPocketBookScreen::instance->setForceSoftUpdate(true);
-}
-
-CRPbDictionaryDialog * CRPbDictionaryDialog::create( CRGUIWindowManager * wm, CRViewDialog * docwin, lString8 css )
-{
-	return new CRPbDictionaryDialog(wm, docwin, css);
 }
 
 void CRPbDictionaryDialog::startWordSelection()
@@ -1719,73 +1813,74 @@ void CRPbDictionaryDialog::endWordSelection()
 		delete _wordSelector;
 		_wordSelector = NULL;
 		_docview->clearSelection();
+                _dictView->clearSelection();
 	}
 }
 
 void CRPbDictionaryDialog::onWordSelection() 
 {
-	CRLog::trace("CRPbDictionaryDialog::onWordSelection()");
-	ldomWordEx * word = _wordSelector->getSelectedWord();
-	if ( word ) {
-		lvRect dictRc = _dictView->getRect();
-		lvRect rc(dictRc);
-		lvRect mRc = _docview->getPageMargins();
-		if (dictRc.top > 0) {
-			int y = word->getMark().end.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top + PB_LINE_HEIGHT;
-			if (y >= dictRc.top) {
-				rc.top = 0;
-				rc.bottom = _dictView->getDesiredHeight();
-				_dictView->setRect(rc);
-			}
-		} else {
-			int y = word->getMark().start.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top;
-			if (y <= dictRc.bottom) {
-				rc.bottom = _wm->getScreen()->getHeight();
-				rc.top = rc.bottom - _dictView->getDesiredHeight();
-				_dictView->setRect(rc);
-			}
-		}
-		lvPoint middle = word->getMark().getMiddlePoint();
-		_lastWordX = middle.x;
-		_lastWordY = middle.y;
-		bool firstTime = _selText.empty();
-		_selText = word->getText();
-		CRLog::trace("_selText = %s", UnicodeToUtf8( _selText).c_str());
-		if (_autoTranslate) {
-			if (!firstTime) {
-				setDocDirty();
-				Update();
-				pbGlobals->startTranslateTimer();
-			} else
-				_wm->onCommand(PB_CMD_TRANSLATE, 0);
-		} else {
-			if (_wordTranslated || firstTime) {
-				if (_prompt.empty()) {
-					int key = 0;
-					int keyFlags = 0;
-					lString16 prompt_msg = lString16(_("Press $1 to translate"));
-					if (_acceleratorTable->findCommandKey(MCMD_OK, 0, key, keyFlags))
-						prompt_msg.replaceParam(1, lString16(getKeyName(key, keyFlags)));
-					else
-						prompt_msg.replaceParam(1, lString16());
-					lString8 body;
-					body << "<p>" << UnicodeToUtf8(prompt_msg) << "</p";
-					_prompt = CRViewDialog::makeFb2Xml(body);
-				}
-				_dictView->setTranslation(_prompt);
-				_wordTranslated = false;
-			}
-			setDocDirty();
-			Update();
-		}
-	}
+    CRLog::trace("CRPbDictionaryDialog::onWordSelection()");
+    ldomWordEx * word = _wordSelector->getSelectedWord();
+    if (!word) {
+        _dictView->noTranslation();
+        _wordTranslated = false;
+        return;
+    }
+    lvRect dictRc = _dictView->getRect();
+    lvRect rc(dictRc);
+    lvRect mRc = _docview->getPageMargins();
+    if (dictRc.top > 0) {
+            int y = word->getMark().end.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top + PB_LINE_HEIGHT;
+            if (y >= dictRc.top) {
+                    rc.top = 0;
+                    rc.bottom = _dictView->getDesiredHeight();
+                    _dictView->setRect(rc);
+            }
+    } else {
+            int y = word->getMark().start.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top;
+            if (y <= dictRc.bottom) {
+                    rc.bottom = _wm->getScreen()->getHeight();
+                    rc.top = rc.bottom - _dictView->getDesiredHeight();
+                    _dictView->setRect(rc);
+            }
+    }
+    lvPoint middle = word->getMark().getMiddlePoint();
+    _lastWordX = middle.x;
+    _lastWordY = middle.y;
+    bool firstTime = _selText.empty();
+    _selText = word->getText();
+    CRLog::trace("_selText = %s", UnicodeToUtf8( _selText).c_str());
+    if (_autoTranslate) {
+            if (!firstTime) {
+                    setDocDirty();
+                    Update();
+                    pbGlobals->startTranslateTimer();
+            } else
+                    _wm->onCommand(PB_CMD_TRANSLATE, 0);
+    } else {
+            if (_wordTranslated || firstTime) {
+                    if (_prompt.empty()) {
+                            int key = 0;
+                            int keyFlags = 0;
+                            lString16 prompt_msg = lString16(_("Press $1 to translate"));
+                            if (_acceleratorTable->findCommandKey(MCMD_OK, 0, key, keyFlags))
+                                    prompt_msg.replaceParam(1, lString16(getKeyName(key, keyFlags)));
+                            else
+                                    prompt_msg.replaceParam(1, lString16());
+                            lString8 body;
+                            body << "<p>" << UnicodeToUtf8(prompt_msg) << "</p";
+                            _prompt = CRViewDialog::makeFb2Xml(body);
+                    }
+                    _dictView->setTranslation(_prompt);
+                    _wordTranslated = false;
+            }
+            setDocDirty();
+            Update();
+    }
 }
 
 bool CRPbDictionaryDialog::onCommand( int command, int params )
 {
-	if (params == 0)
-		params = 1;
-
 	MoveDirection dir = DIR_ANY;
 	int curPage;
 	bool ret;
@@ -1793,7 +1888,10 @@ bool CRPbDictionaryDialog::onCommand( int command, int params )
 	CRLog::trace("CRPbDictionaryDialog::onCommand(%d,%d) _dictActive=%d", command, params, _dictViewActive);
 	if (_dictViewActive)
 		return _dictView->onCommand(command, params);
-	
+
+        if (params == 0)
+                params = 1;
+
     switch ( command ) {
 	case DCMD_PAGEUP:
 	case DCMD_PAGEDOWN:
@@ -1839,7 +1937,7 @@ bool CRPbDictionaryDialog::onCommand( int command, int params )
 		return false;
 	}
 	CRLog::trace("Before move");
-	_wordSelector->moveBy(dir, params);
+        _wordSelector->moveBy(dir, 1);
 	onWordSelection();
 	CRLog::trace("After move");
 	return true;
@@ -2125,6 +2223,30 @@ const char * getEventName(int evt)
 	return "";
 }
 
+static bool commandCanRepeat(int command)
+{
+    switch (command) {
+    case DCMD_LINEUP:
+    case DCMD_PAGEUP:
+    case DCMD_PAGEDOWN:
+    case DCMD_LINEDOWN:
+    case MCMD_SCROLL_FORWARD_LONG:
+    case MCMD_SCROLL_BACK_LONG:
+    case MCMD_NEXT_ITEM:
+    case MCMD_PREV_ITEM:
+    case MCMD_NEXT_PAGE:
+    case MCMD_PREV_PAGE:
+    case MCMD_LONG_FORWARD:
+    case MCMD_LONG_BACK:
+    case PB_CMD_LEFT:
+    case PB_CMD_RIGHT:
+    case PB_CMD_UP:
+    case PB_CMD_DOWN:
+        return true;
+    }
+    return false;
+}
+
 int main_handler(int type, int par1, int par2)
 {
 	bool process_events = false;
@@ -2156,7 +2278,7 @@ int main_handler(int type, int par1, int par2)
 		if (par1 == KEY_POWER) {
 			return 0;
 		}
-		if (!CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS)) {
+                if (CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS) < 0) {
 			CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
 			process_events = true;
 			keyPressed = par1;
@@ -2175,8 +2297,11 @@ int main_handler(int type, int par1, int par2)
 		}
 		if (type == EVT_KEYRELEASE && par2 == 0) {
 			CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
-		} else if (type == EVT_KEYREPEAT && par2 > 0)
-			CRPocketBookWindowManager::instance->onKeyPressed(par1, KEY_FLAG_LONG_PRESS);
+                } else if (type == EVT_KEYREPEAT) {
+                    int cmd = CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS);
+                    if (par2 <= 2 || (par2 >= 3 && commandCanRepeat(cmd)))
+                        CRPocketBookWindowManager::instance->onKeyPressed(par1, KEY_FLAG_LONG_PRESS);
+                }
 		process_events = true;
 		keyPressed = -1;
 		ret = 1;
