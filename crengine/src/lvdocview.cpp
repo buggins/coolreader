@@ -419,6 +419,7 @@ void LVDocView::clearImageCache() {
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
 	m_imageCache.clear();
 #endif
+    m_section_bounds_valid = false;
 	if (m_callback != NULL)
 		m_callback->OnImageCacheClear();
 }
@@ -1284,6 +1285,7 @@ LVArray<int> & LVDocView::getSectionBounds() {
 	ldomNode * body = m_doc->nodeFromXPath(lString16(L"/FictionBook/body[1]"));
 	lUInt16 section_id = m_doc->getElementNameIndex(L"section");
 	int fh = GetFullHeight();
+    int pc = getVisiblePageCount();
 	if (body && fh > 0) {
 		int cnt = body->getChildCount();
 		for (int i = 0; i < cnt; i++) {
@@ -1291,10 +1293,21 @@ LVArray<int> & LVDocView::getSectionBounds() {
             ldomNode * l1section = body->getChildElementNode(i, section_id);
             if (!l1section)
 				continue;
-			lvRect rc;
-			l1section->getAbsRect(rc);
-			int p = (int) (((lInt64) rc.top * 10000) / fh);
-			m_section_bounds.add(p);
+
+            lvRect rc;
+            l1section->getAbsRect(rc);
+            if (getViewMode() == DVM_SCROLL) {
+                int p = (int) (((lInt64) rc.top * 10000) / fh);
+                m_section_bounds.add(p);
+            } else {
+                int fh = m_pages.length();
+                if ( (pc==2 && (fh&1)) )
+                    fh++;
+                int p = m_pages.FindNearestPage(rc.top, 0);
+                if (fh > 1)
+                    m_section_bounds.add((int) (((lInt64) p * 10000) / fh));
+            }
+
 		}
 	}
 	m_section_bounds.add(10000);
@@ -1313,8 +1326,12 @@ int LVDocView::getPosPercent() {
 		else
 			return 0;
 	} else {
-		int fh = getPageCount();
-		int p = getCurPage() + 1;
+        int fh = m_pages.length();
+        if ( (getVisiblePageCount()==2 && (fh&1)) )
+            fh++;
+        int p = getCurPage();// + 1;
+//        if ( getVisiblePageCount()>1 )
+//            p++;
 		if (fh > 0)
 			return (int) (((lInt64) p * 10000) / fh);
 		else
@@ -1425,11 +1442,11 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		//pal[0] = cl1;
 	}
 	//drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
-	drawbuf->FillRect(info.left, gpos - 2, info.left + percent_pos, gpos - 2
-			+ 1, cl1);
+    if ( leftPage )
+        drawbuf->FillRect(info.left, gpos - 2, info.right, gpos - 2	+ 1, cl1);
 	//drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
-	drawbuf->FillRect(info.left + percent_pos, gpos - 2, info.right, gpos - 2
-			+ 1, cl1); // cl3
+//	drawbuf->FillRect(info.left + percent_pos, gpos - 2, info.right, gpos - 2
+//			+ 1, cl1); // cl3
 
 	int sbound_index = 0;
 	bool enableMarks = !leftPage && (phi & PGHDR_CHAPTER_MARKS) && sbounds.length()<info.width()/5;
@@ -1452,17 +1469,19 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			cl = cl1;
 			sz = 1;
 		} else {
-			if ( x<percent_pos ) {
+            if ( x < info.left + percent_pos ) {
 				sz = 3;
 				if ( boundCategory==0 )
 					cl = cl1;
-			} else {
+                else
+                    sz = 0;
+            } else {
 				if ( boundCategory!=0 )
 					sz = 3;
 				cl = cl1;
 			}
 		}
-		if ( cl!=-1 )
+        if ( cl!=-1 && sz>0 )
 			drawbuf->FillRect(x, gpos - 2 - sz/2, x+1, gpos - 2
 					+ sz/2 + 1, cl);
 	}
