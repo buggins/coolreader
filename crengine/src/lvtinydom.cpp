@@ -5930,6 +5930,30 @@ bool ldomXPointerEx::isVisibleWordEnd()
     return false;
 }
 
+/// move to beginning of current visible text sentence
+bool ldomXPointerEx::thisSentenceStart()
+{
+	return false;
+}
+
+/// move to end of current visible text sentence
+bool ldomXPointerEx::thisSentenceEnd()
+{
+	return false;
+}
+
+/// move to beginning of next visible text sentence
+bool ldomXPointerEx::nextSentenceStart()
+{
+	return false;
+}
+
+/// move to beginning of next visible text sentence
+bool prevSentenceStart()
+{
+	return false;
+}
+
 /// if start is after end, swap start and end
 void ldomXRange::sort()
 {

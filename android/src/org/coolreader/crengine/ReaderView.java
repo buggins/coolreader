@@ -129,6 +129,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int SELECTION_ACTION_DICTIONARY = 2;
     public static final int SELECTION_ACTION_BOOKMARK = 3;
     
+    public static final int SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE = 1;
+    public static final int SEL_CMD_NEXT_SENTENCE = 2;
+    public static final int SEL_CMD_PREV_SENTENCE = 3;
+    
     
     public enum ViewMode
     {
@@ -316,6 +320,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native byte[] getCoverPageDataInternal();
     private native void setPageBackgroundTextureInternal( byte[] imageBytes, int tileFlags );
     private native void updateSelectionInternal( Selection sel );
+    private native boolean moveSelectionInternal( Selection sel, int moveCmd, int params );
     private native String checkLinkInternal( int x, int y, int delta );
     private native int goLinkInternal( String link );
     
