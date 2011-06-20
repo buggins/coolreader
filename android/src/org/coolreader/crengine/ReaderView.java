@@ -2422,7 +2422,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	
-	private final static boolean DEBUG_ANIMATION = true;
+	private final static boolean DEBUG_ANIMATION = false;
 	private volatile int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
 	{
