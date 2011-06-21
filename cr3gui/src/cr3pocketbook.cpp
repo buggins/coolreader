@@ -2076,7 +2076,6 @@ int InitDoc(const char *exename, char *fileName)
         return 0;
 
     {
-		OpenScreen();
         CRLog::trace("creating window manager...");
         CRPocketBookWindowManager * wm = new CRPocketBookWindowManager(ScreenWidth(), ScreenHeight());
 
@@ -2299,7 +2298,7 @@ int main_handler(int type, int par1, int par2)
 			CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
                 } else if (type == EVT_KEYREPEAT) {
                     int cmd = CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS);
-                    if (par2 <= 2 || (par2 >= 3 && commandCanRepeat(cmd)))
+                    if (par2 == 2 || (par2 > 2 && commandCanRepeat(cmd)))
                         CRPocketBookWindowManager::instance->onKeyPressed(par1, KEY_FLAG_LONG_PRESS);
                 }
 		process_events = true;
@@ -2326,6 +2325,7 @@ const char* TR(const char *label)
 
 int main(int argc, char **argv)
 {
+    OpenScreen();
 	if (argc < 2) {
 		Message(ICON_WARNING,  const_cast<char*>("CoolReader"), const_cast<char*>("@Cant_open_file"), 2000);
 		return 1;
