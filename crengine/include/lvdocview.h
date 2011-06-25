@@ -321,6 +321,7 @@ enum {
 
 //typedef lUInt64 LVPosBookmark;
 
+typedef LVArray<int> LVBookMarkPercentInfo;
 
 #define DEF_COLOR_BUFFER_BPP 32
 
@@ -382,7 +383,7 @@ private:
     LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
     bool m_highlightBookmarks;
-
+    LVPtrVector<LVBookMarkPercentInfo> m_bookmarksPercents;
 
 protected:
     lString16 m_last_clock;
@@ -460,6 +461,7 @@ private:
     bool ParseDocument( );
     /// format of document from cache is known
     virtual void OnCacheFileFormatDetected( doc_format_t fmt );
+    void insertBookmarkPercentInfo(int start_page, int end_y, int percent);
 
 protected:
     /// draw to specified buffer by either Y pos or page number (unused param should be -1)
