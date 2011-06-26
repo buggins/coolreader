@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-06-26 14:47+0700\n"
+"POT-Creation-Date: 2011-06-26 16:15+0700\n"
 "PO-Revision-Date: 2011-05-08 16:02+0700\n"
 "Last-Translator: Vladimir <v@v>\n"
 "Language-Team: Russian\n"
@@ -314,17 +314,21 @@ msgstr ""
 msgid "Delete bookmark"
 msgstr "Удалить закладку"
 
-#: ../src/bmkdlg.cpp:315
+#: ../src/bmkdlg.cpp:317
 msgid "Go to citation"
 msgstr "Перейти к цитате"
 
-#: ../src/bmkdlg.cpp:316
+#: ../src/bmkdlg.cpp:318
 msgid "Delete citation"
 msgstr "Удалить цитату"
 
-#: ../src/bmkdlg.cpp:330
+#: ../src/bmkdlg.cpp:332
 msgid "Citations"
 msgstr "Цитаты"
+
+#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
+msgid "Cite selection dialog"
+msgstr "Выделить цитату"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -866,10 +870,6 @@ msgstr "Повторное открытие книги по номеру"
 msgid "Switch to recent book"
 msgstr "Переключиться на последнюю книгу"
 
-#: ../src/viewdlg.cpp:559
-msgid "Cite selection dialog"
-msgstr "Выделить цитату"
-
 #: ../src/viewdlg.cpp:560
 msgid "Search dialog"
 msgstr "Поиск"
@@ -954,7 +954,7 @@ msgstr "Клавиша"
 msgid "Assigned function"
 msgstr "Действие"
 
-#: ../src/cr3pocketbook.cpp:1865
+#: ../src/cr3pocketbook.cpp:1870
 msgid "Press $1 to translate"
 msgstr "Нажмите чтобы перевести"
 

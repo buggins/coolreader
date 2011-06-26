@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-06-26 14:24+0700\n"
+"POT-Creation-Date: 2011-06-26 16:15+0700\n"
 "PO-Revision-Date: 2010-02-24 21:50+0300\n"
 "Last-Translator: Stanislovas Zacharovas\n"
 "Language-Team: Lithuanian\n"
@@ -313,18 +313,23 @@ msgstr ""
 msgid "Delete bookmark"
 msgstr "Ištrinti žymes"
 
-#: ../src/bmkdlg.cpp:315
+#: ../src/bmkdlg.cpp:317
 #, fuzzy
 msgid "Go to citation"
 msgstr "Prie pozicijos"
 
-#: ../src/bmkdlg.cpp:316
-msgid "Remove citation"
-msgstr ""
+#: ../src/bmkdlg.cpp:318
+#, fuzzy
+msgid "Delete citation"
+msgstr "Ištrinti įrašą"
 
-#: ../src/bmkdlg.cpp:330
+#: ../src/bmkdlg.cpp:332
 msgid "Citations"
 msgstr ""
+
+#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
+msgid "Cite selection dialog"
+msgstr "Išskirti citatą"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -868,10 +873,6 @@ msgstr "Vėl atversti knygą Nr."
 msgid "Switch to recent book"
 msgstr "Atversti paskutinę knygą"
 
-#: ../src/viewdlg.cpp:559
-msgid "Cite selection dialog"
-msgstr "Išskirti citatą"
-
 #: ../src/viewdlg.cpp:560
 msgid "Search dialog"
 msgstr "Paieška"
@@ -956,7 +957,7 @@ msgstr "Klavišas"
 msgid "Assigned function"
 msgstr "Priskirti veiksmą"
 
-#: ../src/cr3pocketbook.cpp:1865
+#: ../src/cr3pocketbook.cpp:1870
 msgid "Press $1 to translate"
 msgstr "Paspauskite $1 kad išversti"
 
@@ -967,7 +968,3 @@ msgstr "Paspauskite $1 kad išversti"
 #, fuzzy
 #~ msgid "Go to cite"
 #~ msgstr "Atversti puslapį"
-
-#, fuzzy
-#~ msgid "Delete cite"
-#~ msgstr "Ištrinti įrašą"

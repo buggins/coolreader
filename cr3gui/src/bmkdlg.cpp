@@ -301,6 +301,8 @@ static void handle_citesContextMenu(int index)
 void CRCitesMenu::showContextMenu()
 {
     CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[_selectedItem]);
+    if (item->getBookmark() == NULL)
+        return;
     CRMenuSkinRef skin = getSkin();
     CRRectSkinRef separatorSkin = skin->getSeparatorSkin();
     int separatorHeight = 0;
@@ -340,7 +342,7 @@ CRCitesMenu::CRCitesMenu(CRGUIWindowManager * wm, LVDocView * docview, int numIt
         _pageItems = mc;
     CRFileHistRecord * rec = docview->getCurrentFileHistRecord();
     LVPtrVector < CRBookmark > &bookmarks = rec->getBookmarks();
-    for ( int i=1; i < bookmarks.length(); i++ ) {
+    for ( int i=0; i < bookmarks.length(); i++ ) {
         CRBookmark * bmk = bookmarks[i];
         if (!bmk || ((bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction)))
             continue;
@@ -357,6 +359,8 @@ CRCitesMenu::CRCitesMenu(CRGUIWindowManager * wm, LVDocView * docview, int numIt
 #ifdef CR_POCKETBOOK
     citesDialog = this;
 #endif
+    if (_items.length() == 0)
+        createDefaultItem();
 }
 
 /// returns true if command is processed
@@ -395,6 +399,13 @@ bool CRCitesMenu::onCommand( int command, int params )
         if (bm && _docview->removeBookmark(bm)) {
             item = static_cast<CRBookmarkMenuItem *>(_items.remove(_selectedItem));
             delete item;
+            if (_selectedItem >= _items.length()) {
+                _selectedItem = _items.length() -1;
+                if (_selectedItem < 0) {
+                    createDefaultItem();
+                    _selectedItem = 0;
+                }
+            }
             setDirty();
             _pageUpdate = true;
         }
@@ -408,7 +419,10 @@ void CRCitesMenu::goToCitePage(int selecteditem)
 {
     if (selecteditem >= 0 && selecteditem < _items.length()) {
         CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[_selectedItem]);
-        closeMenu( DCMD_GO_PAGE, item->getPage() );
+        if (item->getBookmark() == NULL)
+            closeMenu(MCMD_CITE);
+        else
+            closeMenu( DCMD_GO_PAGE, item->getPage() );
     }
 }
 
@@ -422,4 +436,11 @@ int CRCitesMenu::getSelectedItemIndex()
             return i;
     }
     return -1;
+}
+
+void CRCitesMenu::createDefaultItem()
+{
+    CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, 0, NULL, 0 );
+    item->setLabel(lString16(_("Cite selection dialog")));
+    addItem( item );
 }

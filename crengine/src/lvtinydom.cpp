@@ -5453,10 +5453,10 @@ ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRe
 {
     if ( !list || list->empty() )
         return;
-    if ( list->get(0)->start.y>rc.bottom )
-        return;
-    if ( list->get( list->length()-1 )->end.y < rc.top )
-        return;
+//    if ( list->get(0)->start.y>rc.bottom )
+//        return;
+//    if ( list->get( list->length()-1 )->end.y < rc.top )
+//        return;
     for ( int i=0; i<list->length(); i++ ) {
         ldomMarkedRange * src = list->get(i);
         if ( src->start.y>=rc.bottom || src->end.y<rc.top )

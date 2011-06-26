@@ -51,6 +51,7 @@ class CRCitesMenu : public CRFullScreenMenu
 protected:
     LVDocView * _docview;
     void goToCitePage(int selecteditem);
+    void createDefaultItem();
 public:
     /// returns index of selected item, -1 if no item selected
     virtual int getSelectedItemIndex();

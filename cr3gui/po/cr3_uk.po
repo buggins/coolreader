@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-06-26 14:24+0700\n"
+"POT-Creation-Date: 2011-06-26 16:15+0700\n"
 "PO-Revision-Date: 2011-06-17 02:51+0200\n"
 "Last-Translator: Vitalii Stopchans'kyi <stopchanПЕСgmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -313,18 +313,23 @@ msgstr ""
 msgid "Delete bookmark"
 msgstr "Видалити закладку"
 
-#: ../src/bmkdlg.cpp:315
+#: ../src/bmkdlg.cpp:317
 #, fuzzy
 msgid "Go to citation"
 msgstr "Перейти на позицію"
 
-#: ../src/bmkdlg.cpp:316
-msgid "Remove citation"
-msgstr ""
+#: ../src/bmkdlg.cpp:318
+#, fuzzy
+msgid "Delete citation"
+msgstr "Видалити запис"
 
-#: ../src/bmkdlg.cpp:330
+#: ../src/bmkdlg.cpp:332
 msgid "Citations"
 msgstr ""
+
+#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
+msgid "Cite selection dialog"
+msgstr "Виділити цитату"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -868,10 +873,6 @@ msgstr "Відкрити останню книгу за номером"
 msgid "Switch to recent book"
 msgstr "Відкрити останню книгу"
 
-#: ../src/viewdlg.cpp:559
-msgid "Cite selection dialog"
-msgstr "Виділити цитату"
-
 #: ../src/viewdlg.cpp:560
 msgid "Search dialog"
 msgstr "Пошук"
@@ -956,7 +957,7 @@ msgstr "Кнопка"
 msgid "Assigned function"
 msgstr "Дія"
 
-#: ../src/cr3pocketbook.cpp:1865
+#: ../src/cr3pocketbook.cpp:1870
 msgid "Press $1 to translate"
 msgstr "Коротке натискання $1 щоб переклад"
 
@@ -967,10 +968,6 @@ msgstr "Коротке натискання $1 щоб переклад"
 #, fuzzy
 #~ msgid "Go to cite"
 #~ msgstr "Перейти на сторінку"
-
-#, fuzzy
-#~ msgid "Delete cite"
-#~ msgstr "Видалити запис"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Введіть номер сторінки: "

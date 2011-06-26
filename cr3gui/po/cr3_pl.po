@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-06-26 14:24+0700\n"
+"POT-Creation-Date: 2011-06-26 16:15+0700\n"
 "PO-Revision-Date: 2009-11-18 22:36+0100\n"
 "Last-Translator: Tomasz Długosz <tomek3d@gmail.com>\n"
 "Language-Team: Polish\n"
@@ -316,18 +316,23 @@ msgstr ""
 msgid "Delete bookmark"
 msgstr "Usuń zakładkę"
 
-#: ../src/bmkdlg.cpp:315
+#: ../src/bmkdlg.cpp:317
 #, fuzzy
 msgid "Go to citation"
 msgstr "Do położenia"
 
-#: ../src/bmkdlg.cpp:316
-msgid "Remove citation"
-msgstr ""
+#: ../src/bmkdlg.cpp:318
+#, fuzzy
+msgid "Delete citation"
+msgstr "Usuń rekord"
 
-#: ../src/bmkdlg.cpp:330
+#: ../src/bmkdlg.cpp:332
 msgid "Citations"
 msgstr ""
+
+#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
+msgid "Cite selection dialog"
+msgstr "Zaznacz cytat"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -869,10 +874,6 @@ msgstr "Otwórz ostatnio otwieraną książkę w/g numeru"
 msgid "Switch to recent book"
 msgstr "Przejdź do ostatnio otwieranych książek"
 
-#: ../src/viewdlg.cpp:559
-msgid "Cite selection dialog"
-msgstr "Zaznacz cytat"
-
 #: ../src/viewdlg.cpp:560
 msgid "Search dialog"
 msgstr "Wyszukiwanie"
@@ -958,7 +959,7 @@ msgstr "Klawisz"
 msgid "Assigned function"
 msgstr "Przypisana funkcja"
 
-#: ../src/cr3pocketbook.cpp:1865
+#: ../src/cr3pocketbook.cpp:1870
 msgid "Press $1 to translate"
 msgstr "Krótkie wciśnięcie $1 aby przetłumaczyć"
 
@@ -969,7 +970,3 @@ msgstr "Krótkie wciśnięcie $1 aby przetłumaczyć"
 #, fuzzy
 #~ msgid "Go to cite"
 #~ msgstr "Idź do strony"
-
-#, fuzzy
-#~ msgid "Delete cite"
-#~ msgstr "Usuń rekord"

@@ -172,65 +172,38 @@ char key_buffer[KEY_BUFFER_LEN];
 
 class CRPocketBookScreen : public CRGUIScreenBase {
 private:
-	bool _forceSoft;
+        bool _forceSoft;
+        CRGUIWindowBase *m_mainWindow;
 public:
-	static CRPocketBookScreen * instance;
+        static CRPocketBookScreen * instance;
 protected:
-	virtual void update( const lvRect & rc2, bool full )
-	{
-		if (rc2.isEmpty() && !full)
-			return;
-		lvRect rc = rc2;
-		rc.left &= ~3;
-		rc.right = (rc.right + 3) & ~3;
-
-		if (!_forceSoft && rc.height() > 400
-#if ENABLE_UPDATE_MODE_SETTING==1
-          		&& checkFullUpdateCounter()
-#endif
-		)
-			full = true;
-		else if (!_forceSoft)
-			full = false;
-
-		lUInt8 *screenbuf =  _front->GetScanLine(0);
-		int w = _front->GetWidth(); int h = _front->GetHeight();
-		Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
-		if ( full )
-			FullUpdate();
-		else if (rc.height() < 400) {
-			CRLog::trace("PartialUpdateBW(%d, %d, %d, %d)",
-				rc.left, rc.top, rc.width(), rc.height());
-			PartialUpdateBW(rc.left, rc.top, rc.right, rc.bottom);
-		} else
-			SoftUpdate();
-	}
+        virtual void update( const lvRect & rc2, bool full );
 public:
-	virtual ~CRPocketBookScreen()
-	{
-		instance = NULL;
-	}
+        virtual ~CRPocketBookScreen()
+        {
+                instance = NULL;
+        }
 
-	CRPocketBookScreen( int width, int height )
-	:  CRGUIScreenBase( width, height, true ), _forceSoft(false)
-	{
-		instance = this;
-	}
+        CRPocketBookScreen( int width, int height )
+        :  CRGUIScreenBase( width, height, true ), _forceSoft(false)
+        {
+                instance = this;
+        }
 
-	void MakeSnapShot() 
-	{
-		ClearScreen();
-		lUInt8 *screenbuf =  _front->GetScanLine(0);
-		int w = _front->GetWidth(); int h = _front->GetHeight();
-		Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
-		PageSnapshot();
-	}
-	bool setForceSoftUpdate(bool force) 
-	{ 
-		bool ret = _forceSoft;
-		_forceSoft = force;
-		return ret;
-	}
+        void MakeSnapShot()
+        {
+                ClearScreen();
+                lUInt8 *screenbuf =  _front->GetScanLine(0);
+                int w = _front->GetWidth(); int h = _front->GetHeight();
+                Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
+                PageSnapshot();
+        }
+        bool setForceSoftUpdate(bool force)
+        {
+                bool ret = _forceSoft;
+                _forceSoft = force;
+                return ret;
+        }
 };
 
 CRPocketBookScreen * CRPocketBookScreen::instance = NULL;
@@ -447,6 +420,38 @@ void tocHandler(long long position)
 }
 
 int main_handler(int type, int par1, int par2);
+
+void CRPocketBookScreen::update( const lvRect & rc2, bool full )
+{
+        if (rc2.isEmpty() && !full)
+                return;
+        bool isDocWnd = (main_win == CRPocketBookWindowManager::instance->getTopVisibleWindow());
+        lvRect rc = rc2;
+        rc.left &= ~3;
+        rc.right = (rc.right + 3) & ~3;
+
+
+        if (!_forceSoft && ( isDocWnd || rc.height() > 400)
+#if ENABLE_UPDATE_MODE_SETTING==1
+                && checkFullUpdateCounter()
+#endif
+        )
+                full = true;
+        else if (!_forceSoft)
+                full = false;
+
+        lUInt8 *screenbuf =  _front->GetScanLine(0);
+        int w = _front->GetWidth(); int h = _front->GetHeight();
+        Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
+        if ( full )
+                FullUpdate();
+        else if (!isDocWnd && rc.height() < 400) {
+                CRLog::trace("PartialUpdateBW(%d, %d, %d, %d)",
+                        rc.left, rc.top, rc.width(), rc.height());
+                PartialUpdateBW(rc.left, rc.top, rc.right, rc.bottom);
+        } else
+                SoftUpdate();
+}
 
 class CRPocketBookInkViewWindow : public CRGUIWindowBase
 {

@@ -1012,6 +1012,7 @@ class CRMenuItem
         void setId( int id ) { _id = id; }
         /// item label
         lString16 getLabel() { return _label; }
+        void setLabel(lString16 label) { _label = label; setItemDirty(); }
         /// item icon
         LVImageSourceRef getImage() { return _image; }
         /// item label font
