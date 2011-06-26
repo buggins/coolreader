@@ -550,6 +550,7 @@ static const char * getCommandName( int command )
 	case MCMD_DICT: return _("Find in Dictionary (T5)");
 #endif	
 	case MCMD_BOOKMARK_LIST: return _("Bookmark list");
+        case MCMD_CITES_LIST: return _("Citations list");
     case MCMD_BOOKMARK_LIST_GO_MODE: return _("Go to bookmark...");
 	case MCMD_RECENT_BOOK_LIST: return _("Recent books list");
 	case MCMD_OPEN_RECENT_BOOK: return _("Open recent book by number");

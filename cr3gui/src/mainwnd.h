@@ -92,6 +92,7 @@ enum CRMainMenuCmd
 
     MCMD_GO_PERCENT,
     MCMD_GO_PERCENT_APPLY,
+    MCMD_CITES_LIST
 };
 
 #define PROP_FILE_PROPS_FONT_SIZE "cr3.dlg.fileprops.font.size"
@@ -172,6 +173,8 @@ public:
     void showMainMenu();
 
     void showBookmarksMenu( bool goMode=false );
+
+    void showCitesMenu();
 
     void showRecentBooksMenu();
 

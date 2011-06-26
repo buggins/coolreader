@@ -284,3 +284,142 @@ bool CRBookmarkMenu::onCommand( int command, int params )
     //return true;
 }
 
+#ifdef CR_POCKETBOOK
+static CRCitesMenu *citesDialog = NULL;
+
+static imenu _cites_contextMenu[] = {
+        {ITEM_ACTIVE, DCMD_BOOKMARK_GO_N, NULL, NULL},
+        {ITEM_ACTIVE, PB_CMD_BOOKMARK_REMOVE, NULL, NULL},
+        { 0, 0, NULL, NULL }
+};
+
+static void handle_citesContextMenu(int index)
+{
+    citesDialog->handleContextMenu(index);
+}
+
+void CRCitesMenu::showContextMenu()
+{
+    CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[_selectedItem]);
+    CRMenuSkinRef skin = getSkin();
+    CRRectSkinRef separatorSkin = skin->getSeparatorSkin();
+    int separatorHeight = 0;
+    if ( !separatorSkin.isNull() )
+        separatorHeight = separatorSkin->getMinSize().y;
+    lvRect clientRect;
+    getClientRect(clientRect);
+    lvPoint itemSize = getMaxItemSize();
+    int y = clientRect.top + (itemSize.y + separatorHeight) * _selectedItem +
+                        ((itemSize.y + separatorHeight)/4);
+    if (_cites_contextMenu[0].text == NULL) {
+        _cites_contextMenu[0].text = (char *)_("Go to citation");
+        _cites_contextMenu[1].text = (char *)_("Delete citation");
+    }
+    OpenMenu(_cites_contextMenu, DCMD_BOOKMARK_GO_N, ScreenWidth()/4, y,
+                handle_citesContextMenu);
+}
+
+void CRCitesMenu::handleContextMenu(int index)
+{
+    _wm->postCommand(index, 0);
+    _wm->processPostedEvents();
+}
+#endif
+
+CRCitesMenu::CRCitesMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc)
+    : CRFullScreenMenu( wm, MCMD_CITES_LIST, lString16(_("Citations")), numItems, rc )
+    , _docview(docview)
+{
+    CRGUIAcceleratorTableRef acc = _wm->getAccTables().get("bookmarks");
+    if ( acc.isNull() )
+        acc = _wm->getAccTables().get("menu");
+    setAccelerators( acc );
+    setSkinName(lString16(L"#bookmarks"));
+    int mc = getSkin()->getMinItemCount();
+    if ( _pageItems < mc )
+        _pageItems = mc;
+    CRFileHistRecord * rec = docview->getCurrentFileHistRecord();
+    LVPtrVector < CRBookmark > &bookmarks = rec->getBookmarks();
+    for ( int i=1; i < bookmarks.length(); i++ ) {
+        CRBookmark * bmk = bookmarks[i];
+        if (!bmk || ((bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction)))
+            continue;
+        ldomXPointer p = docview->getDocument()->createXPointer( bmk->getStartPos() );
+        if ( p.isNull() )
+            continue;
+        int page = docview->getBookmarkPage( p );
+        /// get bookmark position text
+        if ( page<0 )
+            continue;
+        CRBookmarkMenuItem * item = new CRBookmarkMenuItem( this, i, bmk, page );
+        addItem( item );
+    }
+#ifdef CR_POCKETBOOK
+    citesDialog = this;
+#endif
+}
+
+/// returns true if command is processed
+bool CRCitesMenu::onCommand( int command, int params )
+{
+    if ( command>=MCMD_SELECT_1 && command<=MCMD_SELECT_9 ) {
+        int index = command - MCMD_SELECT_1 + 1;
+        if ( index >=1 && index <= _pageItems ) {
+            index += _topItem;
+            goToCitePage( index - 1);
+            return true;
+        }
+    } else if (command == MCMD_SELECT) {
+        if (_selectedItem >= 0)
+            goToCitePage(_selectedItem );
+        return true;
+    } else if (command == MCMD_SELECT_LONG) {
+#ifdef CR_POCKETBOOK
+        if (_selectedItem >= 0)
+            showContextMenu();
+#endif
+        return true;
+    } else if (command == MCMD_PREV_PAGE) {
+        if (_topItem == 0) {
+            closeMenu(0);
+            return true;
+        }
+    }
+#ifdef CR_POCKETBOOK
+    else if (command == DCMD_BOOKMARK_GO_N) {
+        goToCitePage( _selectedItem );
+        return true;
+    } else if (command == PB_CMD_BOOKMARK_REMOVE && _selectedItem >= 0) {
+        CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[_selectedItem]);
+        CRBookmark *bm = item->getBookmark();
+        if (bm && _docview->removeBookmark(bm)) {
+            item = static_cast<CRBookmarkMenuItem *>(_items.remove(_selectedItem));
+            delete item;
+            setDirty();
+            _pageUpdate = true;
+        }
+        return true;
+    }
+#endif
+    return CRMenu::onCommand(command, params);
+}
+
+void CRCitesMenu::goToCitePage(int selecteditem)
+{
+    if (selecteditem >= 0 && selecteditem < _items.length()) {
+        CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[_selectedItem]);
+        closeMenu( DCMD_GO_PAGE, item->getPage() );
+    }
+}
+
+int CRCitesMenu::getSelectedItemIndex()
+{
+    CRFileHistRecord * bookmarks = _docview->getCurrentFileHistRecord();
+    int curPage = _docview->getCurPage();
+    for (int i = 0; i < _items.length(); i++) {
+        CRBookmarkMenuItem *item = static_cast<CRBookmarkMenuItem *>(_items[i]);
+        if (item->getPage() == curPage)
+            return i;
+    }
+    return -1;
+}

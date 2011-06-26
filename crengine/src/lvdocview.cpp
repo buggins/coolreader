@@ -2720,6 +2720,7 @@ void LVDocView::updateBookMarksRanges()
 {
     checkRender();
     LVLock lock(getMutex());
+    clearImageCache();
     ldomXRangeList ranges;
     CRFileHistRecord * rec = m_bookmarksPercents.length() ? getCurrentFileHistRecord() : NULL;
     if (!rec) {
@@ -4360,16 +4361,19 @@ bool LVDocView::removeBookmark(CRBookmark * bm) {
             if (m_highlightBookmarks && bm->getType() == bmkt_comment || bm->getType() == bmkt_correction) {
                 int by = m_doc->createXPointer(bm->getStartPos()).toPoint().y;
                 int page_index = m_pages.FindNearestPage(by, 0);
+                bool updateRanges = false;
 
                 if (page_index > 0 && page_index < m_bookmarksPercents.length()) {
                     LVBookMarkPercentInfo *bmi = m_bookmarksPercents[page_index];
                     int percent = bm->getPercent();
 
                     for (int i = 0; bmi != NULL && i < bmi->length(); i++) {
-                        if (bmi->get(i) == percent)
+                        if ((updateRanges = bmi->get(i) == percent))
                             bmi->remove(i);
                     }
                 }
+                if (updateRanges)
+                    updateBookMarksRanges();
             }
             delete bm;
             return true;

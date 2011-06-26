@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-05-21 09:25+0700\n"
+"POT-Creation-Date: 2011-06-26 14:24+0700\n"
 "PO-Revision-Date: 2010-02-24 21:50+0300\n"
 "Last-Translator: Stanislovas Zacharovas\n"
 "Language-Team: Lithuanian\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
 "%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: ../src/citedlg.cpp:28
+#: ../src/citedlg.cpp:76
 msgid "Select text"
 msgstr "Išskirti tekstą"
 
@@ -33,51 +33,51 @@ msgstr "1..8"
 msgid "No manual currently available for this language, sorry!"
 msgstr "Kol kas nėra vartotojo instrukcijos lietuvių kalba."
 
-#: ../src/mainwnd.cpp:778 ../src/mainwnd.cpp:877
+#: ../src/mainwnd.cpp:778 ../src/mainwnd.cpp:884
 msgid "Help"
 msgstr "Pagalba"
 
-#: ../src/mainwnd.cpp:794
+#: ../src/mainwnd.cpp:801
 msgid "Main Menu"
 msgstr "Pagrindinis meniu"
 
-#: ../src/mainwnd.cpp:828 ../src/viewdlg.cpp:513
+#: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:558
 msgid "About"
 msgstr "Apie"
 
-#: ../src/mainwnd.cpp:838 ../src/viewdlg.cpp:478
+#: ../src/mainwnd.cpp:845 ../src/viewdlg.cpp:522
 msgid "Go to page"
 msgstr "Atversti puslapį"
 
-#: ../src/mainwnd.cpp:849 ../src/recentdlg.cpp:73
+#: ../src/mainwnd.cpp:856 ../src/recentdlg.cpp:121
 msgid "Open recent book"
 msgstr "Atversti neseniai skaitytą knygą"
 
-#: ../src/mainwnd.cpp:855 ../src/viewdlg.cpp:164
+#: ../src/mainwnd.cpp:862 ../src/viewdlg.cpp:164
 msgid "Dictionary"
 msgstr "Žodynas"
 
-#: ../src/mainwnd.cpp:860
+#: ../src/mainwnd.cpp:867
 msgid "Cite"
 msgstr "Citatos"
 
-#: ../src/mainwnd.cpp:864 ../src/bmkdlg.cpp:188
+#: ../src/mainwnd.cpp:871 ../src/bmkdlg.cpp:188
 msgid "Bookmarks"
 msgstr "Žymės"
 
-#: ../src/mainwnd.cpp:868 ../src/viewdlg.cpp:223
+#: ../src/mainwnd.cpp:875 ../src/viewdlg.cpp:223
 msgid "Search"
 msgstr "Paieška"
 
-#: ../src/mainwnd.cpp:872 ../src/settings.cpp:308
+#: ../src/mainwnd.cpp:879 ../src/settings.cpp:308
 msgid "Settings"
 msgstr "Nustatymai"
 
-#: ../src/mainwnd.cpp:881 ../src/viewdlg.cpp:591
+#: ../src/mainwnd.cpp:888 ../src/viewdlg.cpp:636
 msgid "Keyboard layout"
 msgstr "Klavišų priskyrimas"
 
-#: ../src/mainwnd.cpp:888
+#: ../src/mainwnd.cpp:895
 msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
@@ -85,173 +85,173 @@ msgstr ""
 "$1 - pasirinkti komandą\n"
 "$2, $3 - uždaryti"
 
-#: ../src/mainwnd.cpp:996
+#: ../src/mainwnd.cpp:1003
 msgid "Current page"
 msgstr "Esamas puslapis"
 
-#: ../src/mainwnd.cpp:997
+#: ../src/mainwnd.cpp:1004
 msgid "Total pages"
 msgstr "Viso puslapių"
 
-#: ../src/mainwnd.cpp:998
+#: ../src/mainwnd.cpp:1005
 msgid "Battery state"
 msgstr "Baterijos būvis"
 
-#: ../src/mainwnd.cpp:998
+#: ../src/mainwnd.cpp:1005
 msgid "charging..."
 msgstr "kraunasi..."
 
-#: ../src/mainwnd.cpp:999
+#: ../src/mainwnd.cpp:1006
 msgid "Current Time"
 msgstr "Esamas laikas"
 
-#: ../src/mainwnd.cpp:1004
+#: ../src/mainwnd.cpp:1011
 msgid "Current chapter"
 msgstr "Esamas skyrius"
 
-#: ../src/mainwnd.cpp:1007
+#: ../src/mainwnd.cpp:1014
 msgid "Status"
 msgstr "Būsena"
 
-#: ../src/mainwnd.cpp:1010
+#: ../src/mainwnd.cpp:1017
 msgid "Archive name"
 msgstr "Archyvo pavadinimas"
 
-#: ../src/mainwnd.cpp:1011
+#: ../src/mainwnd.cpp:1018
 msgid "Archive path"
 msgstr "Kelias prie archyvo"
 
-#: ../src/mainwnd.cpp:1012
+#: ../src/mainwnd.cpp:1019
 msgid "Archive size"
 msgstr "Archyvo dydis"
 
-#: ../src/mainwnd.cpp:1013
+#: ../src/mainwnd.cpp:1020
 msgid "File name"
 msgstr "Failo pavadinimas"
 
-#: ../src/mainwnd.cpp:1014
+#: ../src/mainwnd.cpp:1021
 msgid "File path"
 msgstr "Kelias prie failo"
 
-#: ../src/mainwnd.cpp:1015
+#: ../src/mainwnd.cpp:1022
 msgid "File size"
 msgstr "Failo dydis"
 
-#: ../src/mainwnd.cpp:1016
+#: ../src/mainwnd.cpp:1023
 msgid "File format"
 msgstr "Failo formatas"
 
-#: ../src/mainwnd.cpp:1017
+#: ../src/mainwnd.cpp:1024
 msgid "File info"
 msgstr "Informacija apie failą"
 
-#: ../src/mainwnd.cpp:1020
+#: ../src/mainwnd.cpp:1027
 msgid "Title"
 msgstr "Pavadinimas"
 
-#: ../src/mainwnd.cpp:1021
+#: ../src/mainwnd.cpp:1028
 msgid "Author(s)"
 msgstr "Autorius(ai)"
 
-#: ../src/mainwnd.cpp:1022
+#: ../src/mainwnd.cpp:1029
 msgid "Series name"
 msgstr "Serijos pavadinimas"
 
-#: ../src/mainwnd.cpp:1023
+#: ../src/mainwnd.cpp:1030
 msgid "Series number"
 msgstr "Numeris serijoje"
 
-#: ../src/mainwnd.cpp:1024
+#: ../src/mainwnd.cpp:1031
 msgid "Date"
 msgstr "Data"
 
-#: ../src/mainwnd.cpp:1025
+#: ../src/mainwnd.cpp:1032
 msgid "Genres"
 msgstr "Žanras"
 
-#: ../src/mainwnd.cpp:1026
+#: ../src/mainwnd.cpp:1033
 msgid "Translator"
 msgstr "Vertėjas"
 
-#: ../src/mainwnd.cpp:1027
+#: ../src/mainwnd.cpp:1034
 msgid "Book info"
 msgstr "Kita informacija"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1037
 msgid "Document author"
 msgstr "Dokumento autorius"
 
-#: ../src/mainwnd.cpp:1031
+#: ../src/mainwnd.cpp:1038
 msgid "Document date"
 msgstr "Dokumento data"
 
-#: ../src/mainwnd.cpp:1032
+#: ../src/mainwnd.cpp:1039
 msgid "Document source URL"
 msgstr "Dokumento šaltinio URL"
 
-#: ../src/mainwnd.cpp:1033
+#: ../src/mainwnd.cpp:1040
 msgid "OCR by"
 msgstr "Nuskaityta"
 
-#: ../src/mainwnd.cpp:1034
+#: ../src/mainwnd.cpp:1041
 msgid "Document version"
 msgstr "Dokumento versija"
 
-#: ../src/mainwnd.cpp:1035
+#: ../src/mainwnd.cpp:1042
 msgid "Change history"
 msgstr "Pakeitimų istorija"
 
-#: ../src/mainwnd.cpp:1036
+#: ../src/mainwnd.cpp:1043
 msgid "Document info"
 msgstr "Dokumento informacija"
 
-#: ../src/mainwnd.cpp:1039
+#: ../src/mainwnd.cpp:1046
 msgid "Publication name"
 msgstr "Leidinio pavadinimas"
 
-#: ../src/mainwnd.cpp:1040
+#: ../src/mainwnd.cpp:1047
 msgid "Publisher"
 msgstr "Leidėjas"
 
-#: ../src/mainwnd.cpp:1041
+#: ../src/mainwnd.cpp:1048
 msgid "Publisher city"
 msgstr "Leidybos miestas"
 
-#: ../src/mainwnd.cpp:1042
+#: ../src/mainwnd.cpp:1049
 msgid "Publication year"
 msgstr "Leidybos metai"
 
-#: ../src/mainwnd.cpp:1043
+#: ../src/mainwnd.cpp:1050
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1044
+#: ../src/mainwnd.cpp:1051
 msgid "Publication info"
 msgstr "Leidybinė informacija"
 
-#: ../src/mainwnd.cpp:1046
+#: ../src/mainwnd.cpp:1053
 msgid "Custom info"
 msgstr "Kita informacija"
 
-#: ../src/mainwnd.cpp:1161
+#: ../src/mainwnd.cpp:1171
 msgid "Loading: please wait..."
 msgstr "Atidaromas failas, prašome palaukti..."
 
-#: ../src/recentdlg.cpp:88
+#: ../src/recentdlg.cpp:104
+msgid "Open book"
+msgstr "Atidaryti knygą"
+
+#: ../src/recentdlg.cpp:105
+msgid "Delete record"
+msgstr "Ištrinti įrašą"
+
+#: ../src/recentdlg.cpp:139
 msgid ""
 "$1 - open book\n"
 "$2, $3 - close"
 msgstr ""
 "$1 - atidaryti knygą\n"
 "$2, $3 - uždaryti"
-
-#: ../src/recentdlg.cpp:131
-msgid "Open book"
-msgstr "Atidaryti knygą"
-
-#: ../src/recentdlg.cpp:132
-msgid "Delete record"
-msgstr "Ištrinti įrašą"
 
 #: ../src/tocdlg.cpp:150
 msgid "Current page: $1 of $2\n"
@@ -312,6 +312,19 @@ msgstr ""
 #: ../src/bmkdlg.cpp:169
 msgid "Delete bookmark"
 msgstr "Ištrinti žymes"
+
+#: ../src/bmkdlg.cpp:315
+#, fuzzy
+msgid "Go to citation"
+msgstr "Prie pozicijos"
+
+#: ../src/bmkdlg.cpp:316
+msgid "Remove citation"
+msgstr ""
+
+#: ../src/bmkdlg.cpp:330
+msgid "Citations"
+msgstr ""
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -414,174 +427,199 @@ msgid "90%"
 msgstr "90%"
 
 #: ../src/settings.cpp:393
+#, fuzzy
+msgid "95%"
+msgstr "90%"
+
+#: ../src/settings.cpp:394
 msgid "100%"
 msgstr "100%"
 
-#: ../src/settings.cpp:394
+#: ../src/settings.cpp:395
+msgid "105%"
+msgstr ""
+
+#: ../src/settings.cpp:396
 msgid "110%"
 msgstr "110%"
 
-#: ../src/settings.cpp:395
+#: ../src/settings.cpp:397
+msgid "115%"
+msgstr ""
+
+#: ../src/settings.cpp:398
 msgid "120%"
 msgstr "110%"
 
-#: ../src/settings.cpp:396
+#: ../src/settings.cpp:399
 msgid "130%"
 msgstr "130%"
 
-#: ../src/settings.cpp:397
+#: ../src/settings.cpp:400
 msgid "140%"
 msgstr "140%"
 
-#: ../src/settings.cpp:398
+#: ../src/settings.cpp:401
 msgid "150%"
 msgstr "150%"
 
-#: ../src/settings.cpp:427
+#: ../src/settings.cpp:402
+msgid "160%"
+msgstr ""
+
+#: ../src/settings.cpp:403
+msgid "180%"
+msgstr ""
+
+#: ../src/settings.cpp:404
+msgid "200%"
+msgstr ""
+
+#: ../src/settings.cpp:443
 msgid "Always use fast updates"
 msgstr "Visada greitas atnaujinimas"
 
-#: ../src/settings.cpp:428
+#: ../src/settings.cpp:444
 msgid "Don't use fast updates"
 msgstr "Nenaudoti greito atnaujinimo"
 
-#: ../src/settings.cpp:429
+#: ../src/settings.cpp:445
 msgid "Full updates every 2 pages"
 msgstr "Pilnai atnaujinti kas 2 puslapiai"
 
-#: ../src/settings.cpp:430
+#: ../src/settings.cpp:446
 msgid "Full updates every 3 pages"
 msgstr "Pilnai atnaujinti kas 3 puslapiai"
 
-#: ../src/settings.cpp:431
+#: ../src/settings.cpp:447
 msgid "Full updates every 4 pages"
 msgstr "Pilnai atnaujinti kas 4 puslapiai"
 
-#: ../src/settings.cpp:432
+#: ../src/settings.cpp:448
 msgid "Full updates every 5 pages"
 msgstr "Pilnai atnaujinti kas 5 puslapiai"
 
-#: ../src/settings.cpp:433
+#: ../src/settings.cpp:449
 msgid "Full updates every 6 pages"
 msgstr "Pilnai atnaujinti kas 6 puslapiai"
 
-#: ../src/settings.cpp:434
+#: ../src/settings.cpp:450
 msgid "Full updates every 8 pages"
 msgstr "Pilnai atnaujinti kas 8 puslapiai"
 
-#: ../src/settings.cpp:435
+#: ../src/settings.cpp:451
 msgid "Full updates every 10 pages"
 msgstr "Pilnai atnaujinti kas 10 puslapiai"
 
-#: ../src/settings.cpp:436
+#: ../src/settings.cpp:452
 msgid "Full updates every 14 pages"
 msgstr "Pilnai atnaujinti kas 14 puslapiai"
 
-#: ../src/settings.cpp:441
+#: ../src/settings.cpp:457
 msgid "Turbo mode disabled"
 msgstr "Turbo režimas išjungtas"
 
-#: ../src/settings.cpp:442
+#: ../src/settings.cpp:458
 msgid "Turbo mode enabled"
 msgstr "Turbo režimas įjungtas"
 
-#: ../src/settings.cpp:456
+#: ../src/settings.cpp:472
 msgid "Default font face"
 msgstr "Šriftas"
 
-#: ../src/settings.cpp:482
+#: ../src/settings.cpp:498
 msgid "Font weight"
 msgstr "Šrifto storis"
 
-#: ../src/settings.cpp:488
+#: ../src/settings.cpp:504
 msgid "Font antialiasing"
 msgstr "Šrifto sulyginimas"
 
-#: ../src/settings.cpp:494
+#: ../src/settings.cpp:510
 msgid "Interline space"
 msgstr "Atstumas tarp eilučių"
 
-#: ../src/settings.cpp:505
+#: ../src/settings.cpp:521
 msgid "Footnotes at page bottom"
 msgstr "Išnašos puslapio apačioje"
 
-#: ../src/settings.cpp:516
+#: ../src/settings.cpp:532
 msgid "Show time"
 msgstr "Rodyti laiką"
 
-#: ../src/settings.cpp:522
+#: ../src/settings.cpp:538
 msgid "Landscape pages"
 msgstr "Stulpeliai horizontaliame puslapyje"
 
-#: ../src/settings.cpp:528
+#: ../src/settings.cpp:544
 msgid "Preformatted text"
 msgstr "Formatuotas tekstas"
 
-#: ../src/settings.cpp:536
+#: ../src/settings.cpp:552
 msgid "Document embedded styles"
 msgstr "Naudoti dokumento stilius"
 
-#: ../src/settings.cpp:542
+#: ../src/settings.cpp:558
 msgid "Inverse display"
 msgstr "Negatyvinis vaizdas"
 
-#: ../src/settings.cpp:549
+#: ../src/settings.cpp:565
 msgid "Display update mode"
 msgstr "Ekrano atnaujinimo režimas"
 
-#: ../src/settings.cpp:556
+#: ../src/settings.cpp:572
 msgid "Turbo update mode"
 msgstr "Turbo režimas"
 
-#: ../src/settings.cpp:564
+#: ../src/settings.cpp:580
 msgid "Show bookmark icons"
 msgstr "Rodyti žymių ženkliukus"
 
-#: ../src/settings.cpp:571
+#: ../src/settings.cpp:587
 msgid "Status line"
 msgstr "Informacinė eilutė"
 
-#: ../src/settings.cpp:577
+#: ../src/settings.cpp:593
 msgid "Font kerning"
 msgstr "Šrifto suglaudinimas"
 
-#: ../src/settings.cpp:585
+#: ../src/settings.cpp:601
 msgid "[No Hyphenation]"
 msgstr "[Išjungti perkėlimus]"
 
-#: ../src/settings.cpp:586
+#: ../src/settings.cpp:602
 msgid "[Algorythmic Hyphenation]"
 msgstr "[Algoritminiai perkėlimai"
 
-#: ../src/settings.cpp:588
+#: ../src/settings.cpp:604
 msgid "Hyphenation"
 msgstr "Perkėlimai"
 
-#: ../src/settings.cpp:604
+#: ../src/settings.cpp:620
 msgid "Floating punctuation"
 msgstr "Kabanti skyryba"
 
-#: ../src/settings.cpp:612
+#: ../src/settings.cpp:628
 msgid "Page margins"
 msgstr "Puslapio laukai"
 
-#: ../src/settings.cpp:615
+#: ../src/settings.cpp:631
 msgid "Top margin"
 msgstr "Viršutinis laukas"
 
-#: ../src/settings.cpp:620
+#: ../src/settings.cpp:636
 msgid "Bottom margin"
 msgstr "Apatinis laukas"
 
-#: ../src/settings.cpp:625
+#: ../src/settings.cpp:641
 msgid "Left margin"
 msgstr "Kairysis laukas"
 
-#: ../src/settings.cpp:630
+#: ../src/settings.cpp:646
 msgid "Right margin"
 msgstr "Dešinysis laukas"
 
-#: ../src/settings.cpp:665
+#: ../src/settings.cpp:681
 msgid ""
 "Press $1 to change option\n"
 "$2 to apply, $3 to cancel"
@@ -621,298 +659,315 @@ msgstr "Įveskite puslapio numerį"
 msgid "Enter position percent"
 msgstr "Įveskite pozicija procentais"
 
-#: ../src/viewdlg.cpp:313
+#: ../src/viewdlg.cpp:357
 msgid "Find in dictionary"
 msgstr "Rasti žodyne"
 
-#: ../src/viewdlg.cpp:426
+#: ../src/viewdlg.cpp:470
 msgid "M"
 msgstr "M"
 
-#: ../src/viewdlg.cpp:428
+#: ../src/viewdlg.cpp:472
 msgid "Ok"
 msgstr "OK"
 
-#: ../src/viewdlg.cpp:430
+#: ../src/viewdlg.cpp:474
 msgid "Up"
 msgstr "Į viršų"
 
-#: ../src/viewdlg.cpp:432
+#: ../src/viewdlg.cpp:476
 msgid "Down"
 msgstr "Į apačią"
 
-#: ../src/viewdlg.cpp:434
+#: ../src/viewdlg.cpp:478
 msgid "C"
 msgstr "C"
 
-#: ../src/viewdlg.cpp:436
+#: ../src/viewdlg.cpp:480
 msgid "Left"
 msgstr "Į kairė"
 
-#: ../src/viewdlg.cpp:438
+#: ../src/viewdlg.cpp:482
 msgid "Right"
 msgstr "Į dešinę"
 
-#: ../src/viewdlg.cpp:440
+#: ../src/viewdlg.cpp:484
 msgid "Side Up"
 msgstr "Šono viršus"
 
-#: ../src/viewdlg.cpp:442
+#: ../src/viewdlg.cpp:486
 msgid "Side Down"
 msgstr "Šono apačia"
 
-#: ../src/viewdlg.cpp:444
+#: ../src/viewdlg.cpp:488
 msgid "Side Press"
 msgstr "Šono paspaudimas"
 
-#: ../src/viewdlg.cpp:446
+#: ../src/viewdlg.cpp:490
 msgid "Menu"
 msgstr "Pagrindinis meniu"
 
-#: ../src/viewdlg.cpp:448
+#: ../src/viewdlg.cpp:492
 msgid "Zoom"
 msgstr "Zumas"
 
-#: ../src/viewdlg.cpp:459
+#: ../src/viewdlg.cpp:503
 msgid "Long"
 msgstr "Ilgas"
 
-#: ../src/viewdlg.cpp:466
+#: ../src/viewdlg.cpp:510
 msgid "To first page"
 msgstr "Į pirmą puslapį"
 
-#: ../src/viewdlg.cpp:468
+#: ../src/viewdlg.cpp:512
 msgid "Back by page"
 msgstr "Puslapiu atgal"
 
-#: ../src/viewdlg.cpp:470
+#: ../src/viewdlg.cpp:514
 msgid "Forward by page"
 msgstr "Puslapiu pirmyn"
 
-#: ../src/viewdlg.cpp:471
+#: ../src/viewdlg.cpp:515
 msgid "Forward in move history"
 msgstr "Pirmyn vartymo istorija"
 
-#: ../src/viewdlg.cpp:472
+#: ../src/viewdlg.cpp:516
 msgid "Back in move history"
 msgstr "Atgal vartymo istorija"
 
-#: ../src/viewdlg.cpp:473
+#: ../src/viewdlg.cpp:517
 msgid "Next link"
 msgstr "Sekanti nuoroda"
 
-#: ../src/viewdlg.cpp:474
+#: ../src/viewdlg.cpp:518
 msgid "Previous link"
 msgstr "Prieš tai buvusi nuoroda"
 
-#: ../src/viewdlg.cpp:475 ../src/viewdlg.cpp:502
+#: ../src/viewdlg.cpp:519 ../src/viewdlg.cpp:546
 msgid "Go to link"
 msgstr "Eiti link nuorodos"
 
-#: ../src/viewdlg.cpp:476
+#: ../src/viewdlg.cpp:520
 msgid "To last page"
 msgstr "Į paskutinį puslapį"
 
-#: ../src/viewdlg.cpp:477
+#: ../src/viewdlg.cpp:521
 msgid "Go to position"
 msgstr "Prie pozicijos"
 
-#: ../src/viewdlg.cpp:479
+#: ../src/viewdlg.cpp:523
 msgid "Zoom in"
 msgstr "Padidinti šriftą"
 
-#: ../src/viewdlg.cpp:480
+#: ../src/viewdlg.cpp:524
 msgid "Zoom out"
 msgstr "Sumažinti šriftą"
 
-#: ../src/viewdlg.cpp:481
+#: ../src/viewdlg.cpp:525
 msgid "Toggle bold text"
 msgstr "Pakeisti šrifto storį"
 
-#: ../src/viewdlg.cpp:482
+#: ../src/viewdlg.cpp:526
 msgid "Toggle text format"
 msgstr "Pakeisti teksto formatavimą"
 
-#: ../src/viewdlg.cpp:483
+#: ../src/viewdlg.cpp:527
 msgid "Save bookmark by number"
 msgstr "Išsaugoti žyme numeriu"
 
-#: ../src/viewdlg.cpp:484
+#: ../src/viewdlg.cpp:528
 msgid "Go to bookmark by number"
 msgstr "Eiti prie žymės numeriu"
 
-#: ../src/viewdlg.cpp:485
+#: ../src/viewdlg.cpp:529
 msgid "Move by chapter"
 msgstr "Versti skyriais"
 
-#: ../src/viewdlg.cpp:486
+#: ../src/viewdlg.cpp:530
 msgid "First link"
 msgstr "Pirma nuoroda"
 
-#: ../src/viewdlg.cpp:487
+#: ../src/viewdlg.cpp:531
 msgid "Rotate by"
 msgstr "Pasukti kampu"
 
-#: ../src/viewdlg.cpp:488
+#: ../src/viewdlg.cpp:532
 msgid "Set rotate angle"
 msgstr "Nustatyti pasukimo kampą"
 
-#: ../src/viewdlg.cpp:489
+#: ../src/viewdlg.cpp:533
 msgid "Save history and bookmarks"
 msgstr "Išsaugoti skaitymo istorija ir žymes"
 
-#: ../src/viewdlg.cpp:490
+#: ../src/viewdlg.cpp:534
 msgid "Save document to cache"
 msgstr "Išsaugoti dokumentą laikinoje atmintyje"
 
-#: ../src/viewdlg.cpp:491
+#: ../src/viewdlg.cpp:535
 msgid "Close dialog"
 msgstr "Uždaryti langą"
 
-#: ../src/viewdlg.cpp:494
+#: ../src/viewdlg.cpp:538
 msgid "Scroll forward"
 msgstr "Slinkti į priekį"
 
-#: ../src/viewdlg.cpp:495
+#: ../src/viewdlg.cpp:539
 msgid "Scroll back"
 msgstr "Slinkti atgal"
 
-#: ../src/viewdlg.cpp:496
+#: ../src/viewdlg.cpp:540
 msgid "Close book"
 msgstr "Uždaryti knygą"
 
-#: ../src/viewdlg.cpp:497
+#: ../src/viewdlg.cpp:541
 msgid "Main menu"
 msgstr "Pagrindinis meniu"
 
-#: ../src/viewdlg.cpp:498
+#: ../src/viewdlg.cpp:542
 msgid "Go to page dialog"
 msgstr "Pereiti prie puslapio"
 
-#: ../src/viewdlg.cpp:499
+#: ../src/viewdlg.cpp:543
 msgid "Settings menu"
 msgstr "Nustatymai"
 
-#: ../src/viewdlg.cpp:500
+#: ../src/viewdlg.cpp:544
 msgid "Font size settings"
 msgstr "Šrifto dydžio nustatymai"
 
-#: ../src/viewdlg.cpp:501
+#: ../src/viewdlg.cpp:545
 msgid "Page orientation settings"
 msgstr "Puslapio orientacijos nustatymai"
 
-#: ../src/viewdlg.cpp:506
+#: ../src/viewdlg.cpp:550
 msgid "Find in Dictionary (T5)"
 msgstr "Rasti žodyne"
 
-#: ../src/viewdlg.cpp:508
+#: ../src/viewdlg.cpp:552
 msgid "Bookmark list"
 msgstr "Žymių sąrašas"
 
-#: ../src/viewdlg.cpp:509
+#: ../src/viewdlg.cpp:553
+#, fuzzy
+msgid "Citations list"
+msgstr "Citatos"
+
+#: ../src/viewdlg.cpp:554
 msgid "Go to bookmark..."
 msgstr "Eiti prie žymės"
 
-#: ../src/viewdlg.cpp:510
+#: ../src/viewdlg.cpp:555
 msgid "Recent books list"
 msgstr "Neseniai skaitytų knygų sąrašas"
 
-#: ../src/viewdlg.cpp:511
+#: ../src/viewdlg.cpp:556
 msgid "Open recent book by number"
 msgstr "Vėl atversti knygą Nr."
 
-#: ../src/viewdlg.cpp:512
+#: ../src/viewdlg.cpp:557
 msgid "Switch to recent book"
 msgstr "Atversti paskutinę knygą"
 
-#: ../src/viewdlg.cpp:514
+#: ../src/viewdlg.cpp:559
 msgid "Cite selection dialog"
 msgstr "Išskirti citatą"
 
-#: ../src/viewdlg.cpp:515
+#: ../src/viewdlg.cpp:560
 msgid "Search dialog"
 msgstr "Paieška"
 
-#: ../src/viewdlg.cpp:516
+#: ../src/viewdlg.cpp:561
 msgid "Find in Dictionary (virtual keyboard)"
 msgstr "Rasti žodyne (virtuali klaviatūra)"
 
-#: ../src/viewdlg.cpp:517
+#: ../src/viewdlg.cpp:562
 msgid "Next keyboard layout"
 msgstr "Sekanti klaviatūra"
 
-#: ../src/viewdlg.cpp:518
+#: ../src/viewdlg.cpp:563
 msgid "Previous keyboard layout"
 msgstr "Prieš tai buvusi klaviatūra"
 
-#: ../src/viewdlg.cpp:519
+#: ../src/viewdlg.cpp:564
 msgid "Show manual"
 msgstr "Vartotojo instrukcija"
 
-#: ../src/viewdlg.cpp:520
+#: ../src/viewdlg.cpp:565
 msgid "Show key mapping"
 msgstr "Klavišų priskirimas"
 
-#: ../src/viewdlg.cpp:521
+#: ../src/viewdlg.cpp:566
 msgid "Go to percent..."
 msgstr "Pereiti prie pozicijos %"
 
-#: ../src/viewdlg.cpp:528
+#: ../src/viewdlg.cpp:573
 msgid "Unknown command"
 msgstr "Nepažįstama komanda"
 
-#: ../src/viewdlg.cpp:535
+#: ../src/viewdlg.cpp:580
 msgid "Previous Page"
 msgstr "Prieš tai buvęs puslapis"
 
-#: ../src/viewdlg.cpp:537
+#: ../src/viewdlg.cpp:582
 msgid "Next Page"
 msgstr "Sekantis puslapis"
 
-#: ../src/viewdlg.cpp:539
+#: ../src/viewdlg.cpp:584
 msgid "Back by 10 Pages"
 msgstr "Atgal per 10 puslapių"
 
-#: ../src/viewdlg.cpp:541
+#: ../src/viewdlg.cpp:586
 msgid "Forward by 10 Pages"
 msgstr " Pirmyn 10 puslapių "
 
-#: ../src/viewdlg.cpp:543
+#: ../src/viewdlg.cpp:588
 msgid "Next Chapter"
 msgstr "Sekantis skyrius"
 
-#: ../src/viewdlg.cpp:545
+#: ../src/viewdlg.cpp:590
 msgid "Previous Chapter"
 msgstr "Prieš tai buvęs skyrius"
 
-#: ../src/viewdlg.cpp:547
+#: ../src/viewdlg.cpp:592
 msgid "Add Bookmark"
 msgstr "Pridėti žymę"
 
-#: ../src/viewdlg.cpp:549
+#: ../src/viewdlg.cpp:594
 msgid "Rotate Clockwise"
 msgstr "Pasukti pagal laikrodžio rodyklę"
 
-#: ../src/viewdlg.cpp:551
+#: ../src/viewdlg.cpp:596
 msgid "Rotate Anti-Clockwise"
 msgstr "Pasukti prieš laikrodžio rodyklę"
 
-#: ../src/viewdlg.cpp:553
+#: ../src/viewdlg.cpp:598
 msgid "Portrait View"
 msgstr "Vertikaliai"
 
-#: ../src/viewdlg.cpp:555
+#: ../src/viewdlg.cpp:600
 msgid "Landscape View"
 msgstr "Horizontaliai"
 
-#: ../src/viewdlg.cpp:579
+#: ../src/viewdlg.cpp:624
 msgid "Key"
 msgstr "Klavišas"
 
-#: ../src/viewdlg.cpp:579
+#: ../src/viewdlg.cpp:624
 msgid "Assigned function"
 msgstr "Priskirti veiksmą"
 
-#: ../src/cr3pocketbook.cpp:1735
+#: ../src/cr3pocketbook.cpp:1865
 msgid "Press $1 to translate"
 msgstr "Paspauskite $1 kad išversti"
+
+#, fuzzy
+#~ msgid "Cites"
+#~ msgstr "Citatos"
+
+#, fuzzy
+#~ msgid "Go to cite"
+#~ msgstr "Atversti puslapį"
+
+#, fuzzy
+#~ msgid "Delete cite"
+#~ msgstr "Ištrinti įrašą"

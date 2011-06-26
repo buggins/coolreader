@@ -25,6 +25,7 @@ public:
     virtual void Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectSkinRef valueSkin, bool selected );
     CRBookmark * getBookmark() { return _bookmark; }
     void setBookmark(CRBookmark *bookmark) { _bookmark = bookmark; _itemDirty = true; }
+    int getPage() { return _page; }
 };
 
 class CRBookmarkMenu : public CRFullScreenMenu
@@ -38,13 +39,27 @@ public:
     void setMode( bool goToMode );
     CRBookmarkMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc, bool goToMode=false);
 #ifdef CR_POCKETBOOK
-	virtual int getDefaultSelectionIndex();
+    virtual int getDefaultSelectionIndex();
     void showContextMenu();
     void handleContextMenu(int index);
 #endif
     virtual bool onCommand( int command, int params );
 };
 
-
+class CRCitesMenu : public CRFullScreenMenu
+{
+protected:
+    LVDocView * _docview;
+    void goToCitePage(int selecteditem);
+public:
+    /// returns index of selected item, -1 if no item selected
+    virtual int getSelectedItemIndex();
+    CRCitesMenu(CRGUIWindowManager * wm, LVDocView * docview, int numItems, lvRect & rc);
+#ifdef CR_POCKETBOOK
+    void showContextMenu();
+    void handleContextMenu(int index);
+#endif
+    virtual bool onCommand( int command, int params );
+};
 
 #endif

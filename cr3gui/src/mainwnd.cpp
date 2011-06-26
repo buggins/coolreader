@@ -787,6 +787,13 @@ void V3DocViewWin::showBookmarksMenu( bool goMode )
     _wm->activateWindow( menu_win );
 }
 
+void V3DocViewWin::showCitesMenu()
+{
+    lvRect rc = _wm->getScreen()->getRect();
+    CRCitesMenu * menu_win = new CRCitesMenu(_wm, _docview, 8, rc);
+    _wm->activateWindow( menu_win );
+}
+
 void V3DocViewWin::showMainMenu()
 {
     lvRect fullRc = _wm->getScreen()->getRect();
@@ -1120,6 +1127,9 @@ bool V3DocViewWin::onCommand( int command, int params )
     case DCMD_SAVE_TO_CACHE:
         _docview->swapToCache();
         _docview->getDocument()->updateMap();
+        return true;
+    case MCMD_CITES_LIST:
+        showCitesMenu();
         return true;
     case MCMD_BOOKMARK_LIST:
         showBookmarksMenu(false);
