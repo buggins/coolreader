@@ -335,7 +335,7 @@ public:
 
 	bool getBatteryStatus(int & percent, bool & charging) {
 		charging = IsCharging() > 0; // TODO: find out values returned by the IsCharging() function.
-		percent = GetBatteryPower(); // It seems that the GetBatteryPower() returns what needed here
+                percent = GetBatteryPower(); // It seems that the GetBatteryPower() returns what needed here
 	}
 	
         int hasKeyMapping(int key, int flags) {

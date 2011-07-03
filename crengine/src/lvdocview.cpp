@@ -4209,7 +4209,7 @@ void LVDocView::getCurrentPageLinks(ldomXRangeList & list) {
 						if (_list[i]->getStart().getNode() == elem)
 							return true; // don't add, duplicate found!
 					}
-					_list.add(new ldomXRange(elem));
+                                        _list.add(new ldomXRange(elem->getChildNode(0)));
 				}
 				return true;
 			}

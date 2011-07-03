@@ -1740,6 +1740,9 @@ class ldomNavigationHistory
                 _links.add( link );
                 _pos = _links.length();
                 return true;
+            } else if (_links[_pos]==link) {
+                _pos++;
+                return true;
             }
             return false;
         }
