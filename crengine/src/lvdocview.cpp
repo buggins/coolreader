@@ -2089,40 +2089,26 @@ bool LVDocView::docToWindowPoint(lvPoint & pt) {
 		pt.x += m_pageMargins.left;
 		return true;
 	} else {
-		// PAGES mode
-#if 0
-		int page = m_pages.FindNearestPage(m_pos, 0);
-		lvRect * rc = NULL;
-		lvRect page1( m_pageRects[0] );
-		int headerHeight = getPageHeaderHeight();
-		page1.left += m_pageMargins.left;
-		page1.top += m_pageMargins.top + headerHeight;
-		page1.right -= m_pageMargins.right;
-		page1.bottom -= m_pageMargins.bottom;
-		if ( page1.isPointInside( pt ) ) {
-			rc = &page1;
-		} else if ( getVisiblePageCount()==2 ) {
-			lvRect page2( m_pageRects[1] );
-			page2.left += m_pageMargins.left;
-			page2.top += m_pageMargins.top + headerHeight;
-			page2.right -= m_pageMargins.right;
-			page2.bottom -= m_pageMargins.bottom;
-			if ( page2.isPointInside( pt ) ) {
-				rc = &page2;
-				page++;
-			}
-		}
-		if ( rc && page>=0 && page<m_pages.length() ) {
-			int page_y = m_pages[page]->start;
-			pt.x -= rc->left;
-			pt.y -= rc->top;
-			if ( pt.y < m_pages[page]->height ) {
-				//CRLog::debug(" point page offset( %d, %d )", pt.x, pt.y );
-				pt.y += page_y;
-				return true;
-			}
-		}
-#endif
+            // PAGES mode
+            int page = getCurPage();
+            if (page >= 0 && page < m_pages.length() && pt.y >= m_pages[page]->start) {
+                int index = -1;
+                if (pt.y <= (m_pages[page]->start + m_pages[page]->height)) {
+                    index = 0;
+                } else if (getVisiblePageCount() == 2 && page + 1 < m_pages.length() &&
+                    pt.y <= (m_pages[page + 1]->start + m_pages[page + 1]->height)) {
+                    index = 1;
+                }
+                if (index >= 0) {
+                    int x = pt.x + m_pageRects[index].left + m_pageMargins.left;
+                    if (x < m_pageRects[index].right - m_pageMargins.right) {
+                        pt.x = x;
+                        pt.y = pt.y + getPageHeaderHeight() + m_pageMargins.top - m_pages[page + index]->start;
+                        return true;
+                    }
+                }
+            }
+            return false;
 	}
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	pt = rotatePoint( pt, false );
@@ -5104,6 +5090,13 @@ LVPageWordSelector::LVPageWordSelector( LVDocView * docview )
     LVRef<ldomXRange> range = _docview->getPageDocumentRange();
     if (!range.isNull()) {
 		_words.addRangeWords(*range, true);
+                if (true/* _docview->isPageMode()*/ && _docview->getVisiblePageCount() > 1) {
+                        // process second page
+                        int pageNumber = _docview->getCurPage();
+                        range = _docview->getPageDocumentRange(pageNumber + 1);
+                        if (!range.isNull())
+                            _words.addRangeWords(*range, true);
+                }
 		_words.selectMiddleWord();
 		updateSelection();
 	}

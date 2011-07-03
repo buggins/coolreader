@@ -445,7 +445,7 @@ void CRPocketBookScreen::update( const lvRect & rc2, bool full )
         Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
         if ( full )
                 FullUpdate();
-        else if (!isDocWnd && !_forceSoft && rc.height() < 400) {
+        else if (!isDocWnd && rc.height() < 300) {
                 CRLog::trace("PartialUpdateBW(%d, %d, %d, %d)",
                         rc.left, rc.top, rc.width(), rc.height());
                 PartialUpdateBW(rc.left, rc.top, rc.right, rc.bottom);
@@ -751,8 +751,10 @@ public:
         _dictDlg->_selText.clear();
         CRPocketBookScreen::instance->setForceSoftUpdate(true);
         lvRect rect = _wm->getScreen()->getRect();
+        _dictDlg->setRect(rect);
         rect.top = rect.bottom - _dictDlg->_dictView->getDesiredHeight();
         _dictDlg->_dictView->setRect(rect);
+        _dictDlg->_dictView->reconfigure(0);
     }
     virtual ~CRPbDictionaryProxyWindow()
     {
@@ -1835,17 +1837,17 @@ void CRPbDictionaryDialog::onWordSelection()
     }
     lvRect dictRc = _dictView->getRect();
     lvRect rc(dictRc);
-    lvRect mRc = _docview->getPageMargins();
+    lvRect wRc;
+    _docview->setCursorPos(word->getWord().getStartXPointer());
+    _docview->getCursorRect(wRc);
     if (dictRc.top > 0) {
-            int y = word->getMark().end.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top + PB_LINE_HEIGHT;
-            if (y >= dictRc.top) {
-                    rc.top = 0;
-                    rc.bottom = _dictView->getDesiredHeight();
-                    _dictView->setRect(rc);
-            }
+        if (wRc.bottom >= dictRc.top) {
+                rc.top = 0;
+                rc.bottom = _dictView->getDesiredHeight();
+                _dictView->setRect(rc);
+        }
     } else {
-            int y = word->getMark().start.y - _docview->GetPos() + _docview->getPageHeaderHeight() + mRc.top;
-            if (y <= dictRc.bottom) {
+            if (wRc.top <= dictRc.bottom) {
                     rc.bottom = _wm->getScreen()->getHeight();
                     rc.top = rc.bottom - _dictView->getDesiredHeight();
                     _dictView->setRect(rc);
