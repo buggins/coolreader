@@ -1839,7 +1839,9 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
         if ( !charging ) {
             if ( icons.length()>2 ) {
                 int numTicks = icons.length() - 1;
-                iconIndex = ((numTicks - 1) * percent + (100/numTicks/2) )/ 100 + 1;
+                int perTick = 10000/(numTicks -1);
+                //iconIndex = ((numTicks - 1) * percent + (100/numTicks/2) )/ 100 + 1;
+                iconIndex = (percent * 100 + perTick/2)/perTick + 1;
                 if ( iconIndex<1 )
                     iconIndex = 1;
                 if ( iconIndex>icons.length()-1 )

@@ -228,7 +228,7 @@ static const struct {
 	{ "@KA_nbmk", MCMD_BOOKMARK_LIST, 0},
 	{ "@KA_nnot", MCMD_CITE, 0},
 	{ "@KA_savp", GCMD_PASS_TO_PARENT, 0},
-	{ "@KA_onot", GCMD_PASS_TO_PARENT, 0},
+        { "@KA_onot", MCMD_CITES_LIST, 0},
 	{ "@KA_olnk", MCMD_GO_LINK, 0},
 	{ "@KA_blnk", DCMD_LINK_BACK , 0},
 	{ "@KA_cnts", PB_CMD_CONTENTS, 0},
@@ -445,7 +445,7 @@ void CRPocketBookScreen::update( const lvRect & rc2, bool full )
         Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
         if ( full )
                 FullUpdate();
-        else if (!isDocWnd && rc.height() < 400) {
+        else if (!isDocWnd && !_forceSoft && rc.height() < 400) {
                 CRLog::trace("PartialUpdateBW(%d, %d, %d, %d)",
                         rc.left, rc.top, rc.width(), rc.height());
                 PartialUpdateBW(rc.left, rc.top, rc.right, rc.bottom);
@@ -750,7 +750,9 @@ public:
         _dictDlg->_wordTranslated = _dictDlg->_dictViewActive = false;
         _dictDlg->_selText.clear();
         CRPocketBookScreen::instance->setForceSoftUpdate(true);
-
+        lvRect rect = _wm->getScreen()->getRect();
+        rect.top = rect.bottom - _dictDlg->_dictView->getDesiredHeight();
+        _dictDlg->_dictView->setRect(rect);
     }
     virtual ~CRPbDictionaryProxyWindow()
     {
@@ -2331,12 +2333,12 @@ const char* TR(const char *label)
 int main(int argc, char **argv)
 {
     OpenScreen();
-	if (argc < 2) {
-		Message(ICON_WARNING,  const_cast<char*>("CoolReader"), const_cast<char*>("@Cant_open_file"), 2000);
-		return 1;
-	}
+    if (argc < 2) {
+        Message(ICON_WARNING,  const_cast<char*>("CoolReader"), const_cast<char*>("@Cant_open_file"), 2000);
+        return 1;
+    }
     if (!InitDoc(argv[0], argv[1])) {
-		Message(ICON_WARNING,  const_cast<char*>("CoolReader"), const_cast<char*>("@Cant_open_file"), 2000);
+        Message(ICON_WARNING,  const_cast<char*>("CoolReader"), const_cast<char*>("@Cant_open_file"), 2000);
         return 2;
     }
     InkViewMain(main_handler);

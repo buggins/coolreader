@@ -122,7 +122,7 @@ public:
         setDirty();
 #ifdef CR_POCKETBOOK
 		_itemsCount = 5;
-		_selectedIndex = 1;
+                _selectedIndex = 0;
 #endif
 	}
 
