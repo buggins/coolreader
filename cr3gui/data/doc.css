@@ -48,7 +48,7 @@ cite p, epigraph p {
 
 v { 
    text-align: justify; 
-   text-align-last: right; 
+   text-align-last: left; 
    text-indent: 1em hanging 
   }
 
