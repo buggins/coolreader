@@ -458,7 +458,32 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {_("Turbo mode enabled"), "1"},
         {NULL, NULL},
     };
-
+#ifdef CR_POCKETBOOK
+    item_def_t rotate_mode_options[] = {
+        {"360°", "0"},
+        {"180°", "1"},
+        {_("180+slow next page"), "2"},
+        {_("180+slow prev/next page"), "3"},
+        {_("180+FAST next page"), "4"},
+        {_("180+FAST prev/next page"), "5"},
+        {_("180+FAST next/prev page"), "6"},
+        {NULL, NULL}
+    };
+    item_def_t rotate_angle_options[] = {
+        {"20°", "0"},
+        {"25°", "1"},
+        {"30°", "2"},
+        {"35°", "3"},
+        {"40°", "4"},
+        {"45°", "5"},
+        {"50°", "6"},
+        {"55°", "7"},
+        {"60°", "8"},
+        {"65°", "9"},
+        {"70°", "10"},
+        {NULL, NULL}
+    };
+#endif
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
         setSkinName(lString16(L"#settings"));
@@ -516,7 +541,18 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         CRMenu * orientationMenu = createOrientationMenu(mainMenu, props);
         mainMenu->addItem( orientationMenu );
 #endif
-
+#ifdef CR_POCKETBOOK
+        CRMenu * rotateModeMenu = new CRMenu(_wm, mainMenu, mm_rotateMode,
+                _("Rotate"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_POCKETBOOK_ROTATE_MODE );
+        addMenuItems( rotateModeMenu, rotate_mode_options );
+        mainMenu->addItem( rotateModeMenu );
+        CRMenu * rotateAngleMenu = new CRMenu(_wm, mainMenu, mm_rotateAngle,
+                _("Page turn angle"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_POCKETBOOK_ROTATE_ANGLE );
+        addMenuItems( rotateAngleMenu, rotate_angle_options );
+        mainMenu->addItem( rotateAngleMenu );
+#endif
         CRMenu * footnotesMenu = new CRMenu(_wm, mainMenu, mm_Footnotes,
                 _("Footnotes at page bottom"),
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FOOTNOTES );

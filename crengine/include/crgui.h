@@ -449,6 +449,7 @@ class CRGUIWindow
         virtual void flush() = 0;
         /// called if window gets focus
         virtual void activated() { setDirty(); }
+        virtual void reactivated() {}
         /// called if window loss focus
         virtual void covered() { }
         /// called if window is being closed

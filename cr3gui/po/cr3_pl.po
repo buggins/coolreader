@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-06-26 16:15+0700\n"
+"POT-Creation-Date: 2011-07-10 09:31+0700\n"
 "PO-Revision-Date: 2009-11-18 22:36+0100\n"
 "Last-Translator: Tomasz Długosz <tomek3d@gmail.com>\n"
 "Language-Team: Polish\n"
@@ -531,103 +531,132 @@ msgstr "Tryb turbo wyłączony"
 msgid "Turbo mode enabled"
 msgstr "Tryb turbo włączony"
 
-#: ../src/settings.cpp:472
+#: ../src/settings.cpp:465
+msgid "180+slow next page"
+msgstr ""
+
+#: ../src/settings.cpp:466
+msgid "180+slow prev/next page"
+msgstr ""
+
+#: ../src/settings.cpp:467
+msgid "180+FAST next page"
+msgstr ""
+
+#: ../src/settings.cpp:468
+msgid "180+FAST prev/next page"
+msgstr ""
+
+#: ../src/settings.cpp:469
+msgid "180+FAST next/prev page"
+msgstr ""
+
+#: ../src/settings.cpp:497
 msgid "Default font face"
 msgstr "Domyślna czcionka"
 
-#: ../src/settings.cpp:498
+#: ../src/settings.cpp:523
 msgid "Font weight"
 msgstr "Waga czcionki"
 
-#: ../src/settings.cpp:504
+#: ../src/settings.cpp:529
 msgid "Font antialiasing"
 msgstr "Wygładzanie czcionek"
 
-#: ../src/settings.cpp:510
+#: ../src/settings.cpp:535
 msgid "Interline space"
 msgstr "Interlinia"
 
-#: ../src/settings.cpp:521
+#: ../src/settings.cpp:546
+#, fuzzy
+msgid "Rotate"
+msgstr "Obróć o"
+
+#: ../src/settings.cpp:551
+msgid "Page turn angle"
+msgstr ""
+
+#: ../src/settings.cpp:557
 msgid "Footnotes at page bottom"
 msgstr "Przypisy na dole strony"
 
-#: ../src/settings.cpp:532
+#: ../src/settings.cpp:568
 msgid "Show time"
 msgstr "Pokaż zegarek"
 
-#: ../src/settings.cpp:538
+#: ../src/settings.cpp:574
 msgid "Landscape pages"
 msgstr "Strony w trybie poziomym"
 
-#: ../src/settings.cpp:544
+#: ../src/settings.cpp:580
 msgid "Preformatted text"
 msgstr "Tekst przeformatowany"
 
-#: ../src/settings.cpp:552
+#: ../src/settings.cpp:588
 msgid "Document embedded styles"
 msgstr "Wbudowane style dokumentu"
 
-#: ../src/settings.cpp:558
+#: ../src/settings.cpp:594
 msgid "Inverse display"
 msgstr "Kolory wyświetlacza"
 
-#: ../src/settings.cpp:565
+#: ../src/settings.cpp:601
 msgid "Display update mode"
 msgstr "Tryb odświeżania ekranu"
 
-#: ../src/settings.cpp:572
+#: ../src/settings.cpp:608
 msgid "Turbo update mode"
 msgstr "Tryb turbo"
 
-#: ../src/settings.cpp:580
+#: ../src/settings.cpp:616
 msgid "Show bookmark icons"
 msgstr "Pokazuj ikony zakładek"
 
-#: ../src/settings.cpp:587
+#: ../src/settings.cpp:623
 msgid "Status line"
 msgstr "Linia stanu"
 
-#: ../src/settings.cpp:593
+#: ../src/settings.cpp:629
 msgid "Font kerning"
 msgstr "Kerning czcionek"
 
-#: ../src/settings.cpp:601
+#: ../src/settings.cpp:637
 msgid "[No Hyphenation]"
 msgstr "[bez dzielenia wyrazów]"
 
-#: ../src/settings.cpp:602
+#: ../src/settings.cpp:638
 msgid "[Algorythmic Hyphenation]"
 msgstr "[dzielenie algorytem]"
 
-#: ../src/settings.cpp:604
+#: ../src/settings.cpp:640
 msgid "Hyphenation"
 msgstr "Dzielenie wyrazów"
 
-#: ../src/settings.cpp:620
+#: ../src/settings.cpp:656
 msgid "Floating punctuation"
 msgstr ""
 
-#: ../src/settings.cpp:628
+#: ../src/settings.cpp:664
 msgid "Page margins"
 msgstr "Marginesy"
 
-#: ../src/settings.cpp:631
+#: ../src/settings.cpp:667
 msgid "Top margin"
 msgstr "Górny margines"
 
-#: ../src/settings.cpp:636
+#: ../src/settings.cpp:672
 msgid "Bottom margin"
 msgstr "Dolny margines"
 
-#: ../src/settings.cpp:641
+#: ../src/settings.cpp:677
 msgid "Left margin"
 msgstr "Lewy margines"
 
-#: ../src/settings.cpp:646
+#: ../src/settings.cpp:682
 msgid "Right margin"
 msgstr "Prawy margines"
 
-#: ../src/settings.cpp:681
+#: ../src/settings.cpp:717
 msgid ""
 "Press $1 to change option\n"
 "$2 to apply, $3 to cancel"
@@ -959,7 +988,7 @@ msgstr "Klawisz"
 msgid "Assigned function"
 msgstr "Przypisana funkcja"
 
-#: ../src/cr3pocketbook.cpp:1870
+#: ../src/cr3pocketbook.cpp:2059
 msgid "Press $1 to translate"
 msgstr "Krótkie wciśnięcie $1 aby przetłumaczyć"
 

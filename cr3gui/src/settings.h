@@ -53,7 +53,11 @@ enum MainMenuItems_t {
     mm_Embolden,
     mm_FastUpdates,
     mm_TurboUpdateMode,
-    mm_FloatingPunctuation,
+    mm_FloatingPunctuation
+#ifdef CR_POCKETBOOK
+    ,mm_rotateMode,
+    mm_rotateAngle
+#endif /* CR_POCKETBOOK*/
 };
 
 

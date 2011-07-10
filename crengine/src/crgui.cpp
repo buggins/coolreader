@@ -321,6 +321,9 @@ void CRGUIWindowManager::closeWindow( CRGUIWindow * window )
     delete window;
     for ( int i=0; i<_windows.length() && (index<0 || i<index); i++ )
         _windows[i]->setDirty();
+    CRGUIWindow * gotFocus = getTopVisibleWindow();
+    if (gotFocus)
+        gotFocus->reactivated();
     fontMan->gc();
 }
 

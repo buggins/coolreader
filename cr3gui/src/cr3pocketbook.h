@@ -44,8 +44,21 @@ enum CRPbCommands {
 #define PROP_POCKETBOOK_DICT "cr3.pocketbook.dictionary"
 #define PROP_POCKETBOOK_DICT_PAGES "cr3.pocketbook.dict.pages"
 #define PROP_POCKETBOOK_DICT_AUTO_TRANSLATE "cr3.pocketbook.dict.auto"
+#define PROP_POCKETBOOK_ROTATE_MODE "cr3.pocketbook.rotate_mode"
+#define PROP_POCKETBOOK_ROTATE_ANGLE "cr3.pocketbook.rotate_angle"
 
 #define PB_CR3_CACHE_SIZE (0x100000 * 64)
+
+#define CR_PB_VERSION "0.0.5-6"
+#define CR_PB_BUILD_DATE "2011-07-10"
+
+#define PB_ROTATE_MODE_360 0
+#define PB_ROTATE_MODE_180 1
+#define PB_ROTATE_MODE_180_SLOW_NEXT 2
+#define PB_ROTATE_MODE_180_SLOW_PREV_NEXT 3
+#define PB_ROTATE_MODE_180_FAST_NEXT 4
+#define PB_ROTATE_MODE_180_FAST_PREV_NEXT 5
+#define PB_ROTATE_MODE_180_FAST_NEXT_PREV 6
 
 const char* TR(const char *label);
 #endif //CR3_POCKETBOOK_H

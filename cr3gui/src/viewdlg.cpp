@@ -70,7 +70,7 @@ static const char * def_view_css =
 "emphasis, i { font-style: italic }\n"
 "a { text-decoration: underline }\n"
 "a[type=\"note\"] { vertical-align: super; font-size: 70%; text-decoration: none }\n"
-"image { text-align: center; text-indent: 0px }\n"
+"image { text-align: center; text-indent: 0px; display: block }\n"
 "p image { display: inline }\n"
 "title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { text-align: center; text-indent: 0px }\n"
 "cite p, epigraph p { text-align: left; text-indent: 0px }\n"

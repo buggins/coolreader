@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-06-26 16:15+0700\n"
+"POT-Creation-Date: 2011-07-10 09:31+0700\n"
 "PO-Revision-Date: 2011-05-08 16:04+0700\n"
 "Last-Translator: Zlatko Petkov <zlpetkov@gmail.com>\n"
 "Language-Team: Bulgarian\n"
@@ -526,103 +526,132 @@ msgstr "Турбо-режимът е изключен"
 msgid "Turbo mode enabled"
 msgstr "Турбо-режимът е включен"
 
-#: ../src/settings.cpp:472
+#: ../src/settings.cpp:465
+msgid "180+slow next page"
+msgstr ""
+
+#: ../src/settings.cpp:466
+msgid "180+slow prev/next page"
+msgstr ""
+
+#: ../src/settings.cpp:467
+msgid "180+FAST next page"
+msgstr ""
+
+#: ../src/settings.cpp:468
+msgid "180+FAST prev/next page"
+msgstr ""
+
+#: ../src/settings.cpp:469
+msgid "180+FAST next/prev page"
+msgstr ""
+
+#: ../src/settings.cpp:497
 msgid "Default font face"
 msgstr "Шрифт"
 
-#: ../src/settings.cpp:498
+#: ../src/settings.cpp:523
 msgid "Font weight"
 msgstr "Удебеляване"
 
-#: ../src/settings.cpp:504
+#: ../src/settings.cpp:529
 msgid "Font antialiasing"
 msgstr "Заглаждане"
 
-#: ../src/settings.cpp:510
+#: ../src/settings.cpp:535
 msgid "Interline space"
 msgstr "Междуредов интервал"
 
-#: ../src/settings.cpp:521
+#: ../src/settings.cpp:546
+#, fuzzy
+msgid "Rotate"
+msgstr "Завъртане на"
+
+#: ../src/settings.cpp:551
+msgid "Page turn angle"
+msgstr ""
+
+#: ../src/settings.cpp:557
 msgid "Footnotes at page bottom"
 msgstr "Бележки под линия"
 
-#: ../src/settings.cpp:532
+#: ../src/settings.cpp:568
 msgid "Show time"
 msgstr "Показване на часовника"
 
-#: ../src/settings.cpp:538
+#: ../src/settings.cpp:574
 msgid "Landscape pages"
 msgstr "Колони в режим пейзаж"
 
-#: ../src/settings.cpp:544
+#: ../src/settings.cpp:580
 msgid "Preformatted text"
 msgstr "Преформатиран текст"
 
-#: ../src/settings.cpp:552
+#: ../src/settings.cpp:588
 msgid "Document embedded styles"
 msgstr "Вградени стилове"
 
-#: ../src/settings.cpp:558
+#: ../src/settings.cpp:594
 msgid "Inverse display"
 msgstr "Инвертирано изображение"
 
-#: ../src/settings.cpp:565
+#: ../src/settings.cpp:601
 msgid "Display update mode"
 msgstr "Режим на опресняване на екрана"
 
-#: ../src/settings.cpp:572
+#: ../src/settings.cpp:608
 msgid "Turbo update mode"
 msgstr "Турбо режим"
 
-#: ../src/settings.cpp:580
+#: ../src/settings.cpp:616
 msgid "Show bookmark icons"
 msgstr "Отбелязки в колонтитула"
 
-#: ../src/settings.cpp:587
+#: ../src/settings.cpp:623
 msgid "Status line"
 msgstr "Колонтитул"
 
-#: ../src/settings.cpp:593
+#: ../src/settings.cpp:629
 msgid "Font kerning"
 msgstr "Кърнинг"
 
-#: ../src/settings.cpp:601
+#: ../src/settings.cpp:637
 msgid "[No Hyphenation]"
 msgstr "[Без пренасяне]"
 
-#: ../src/settings.cpp:602
+#: ../src/settings.cpp:638
 msgid "[Algorythmic Hyphenation]"
 msgstr "[Алгоритмично пренасяне]"
 
-#: ../src/settings.cpp:604
+#: ../src/settings.cpp:640
 msgid "Hyphenation"
 msgstr "Пренасяне"
 
-#: ../src/settings.cpp:620
+#: ../src/settings.cpp:656
 msgid "Floating punctuation"
 msgstr "Висяща пунктуация"
 
-#: ../src/settings.cpp:628
+#: ../src/settings.cpp:664
 msgid "Page margins"
 msgstr "Полета на страница"
 
-#: ../src/settings.cpp:631
+#: ../src/settings.cpp:667
 msgid "Top margin"
 msgstr "Отгоре"
 
-#: ../src/settings.cpp:636
+#: ../src/settings.cpp:672
 msgid "Bottom margin"
 msgstr "Отдолу"
 
-#: ../src/settings.cpp:641
+#: ../src/settings.cpp:677
 msgid "Left margin"
 msgstr "Отляво"
 
-#: ../src/settings.cpp:646
+#: ../src/settings.cpp:682
 msgid "Right margin"
 msgstr "Отдясно"
 
-#: ../src/settings.cpp:681
+#: ../src/settings.cpp:717
 msgid ""
 "Press $1 to change option\n"
 "$2 to apply, $3 to cancel"
@@ -955,7 +984,7 @@ msgstr "Бутон"
 msgid "Assigned function"
 msgstr "Асоциирана команда"
 
-#: ../src/cr3pocketbook.cpp:1870
+#: ../src/cr3pocketbook.cpp:2059
 msgid "Press $1 to translate"
 msgstr "Натиснете $1 за да преведат"
 
