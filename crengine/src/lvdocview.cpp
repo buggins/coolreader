@@ -1413,7 +1413,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	bool leftPage = (getVisiblePageCount() == 2 && !(pageIndex & 1));
 	if (leftPage || !drawGauge)
 		percent = 10000;
-	int percent_pos = percent * info.width() / 10000;
+        int percent_pos = info.left + percent * info.width() / 10000;
 	//    int gh = 3; //drawGauge ? 3 : 1;
 	LVArray<int> & sbounds = getSectionBounds();
 	lvRect navBar;
@@ -1426,10 +1426,10 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		//pal[0] = cl1;
 	}
 	//drawbuf->FillRect(info.left, gpos-gh, info.left+percent_pos, gpos-gh+1, cl1 );
-	drawbuf->FillRect(info.left, gpos - 2, info.left + percent_pos, gpos - 2
-			+ 1, cl1);
+        //drawbuf->FillRect(info.left, gpos - 2, info.left + percent_pos, gpos - 2
+        //		+ 1, cl1);
 	//drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
-	drawbuf->FillRect(info.left + percent_pos, gpos - 2, info.right, gpos - 2
+        drawbuf->FillRect(info.left, gpos - 2, info.right, gpos - 2
 			+ 1, cl1); // cl3
 
 	int sbound_index = 0;
@@ -2171,7 +2171,7 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
 		ldomXPointer start = m_doc->createXPointer(lvPoint(0, page->start));
 		//ldomXPointer end = m_doc->createXPointer( lvPoint( m_dx+m_dy, page->start + page->height - 1 ) );
 		ldomXPointer end = m_doc->createXPointer(lvPoint(0, page->start
-				+ page->height));
+                                + page->height), 1);
 		if (start.isNull() || end.isNull())
 			return res;
 		res = LVRef<ldomXRange> (new ldomXRange(start, end));
