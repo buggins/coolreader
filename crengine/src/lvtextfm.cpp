@@ -1520,12 +1520,14 @@ public:
                 pos++;
             } else {
                 int len = src->t.len;
-                lStr_ncpy( m_text+pos, src->t.text, len );
+                //lStr_ncpy( m_text+pos, src->t.text, len );
                 if ( i==0 || (src->flags & LTEXT_FLAG_NEWLINE) )
                     m_flags[pos] = LCHAR_MANDATORY_NEWLINE;
                 for ( int k=0; k<len; k++ ) {
+                    m_text[pos] = src->t.text[k];
                     m_charindex[pos] = k;
-                    m_srcs[pos++] = src;
+                    m_srcs[pos] = src;
+                    pos++;
                 }
             }
         }
@@ -1664,8 +1666,8 @@ public:
         bool isSpace = false;
         bool nextIsSpace = false;
         bool space = false;
-        for ( int i=start+1; i<=end; i++ ) {
-            src_text_fragment_t * newSrc = i<end ? m_srcs[start] : NULL;
+        for ( int i=start; i<=end; i++ ) {
+            src_text_fragment_t * newSrc = i<end ? m_srcs[i] : NULL;
             if ( i<end ) {
                 isObject = (m_flags[i] & LCHAR_IS_OBJECT)!=0;
                 isSpace = (m_flags[i] & LCHAR_IS_SPACE)!=0;
@@ -1680,7 +1682,7 @@ public:
                 int b;
                 int h;
                 word->src_text_index = m_srcs[wstart]->index;
-                TR("addLine - word(%d, %d) x=%d (%d..%d)", wstart, i, frmline->width, m_widths[wstart], m_widths[i-1]);
+                TR("addLine - word(%d, %d) x=%d (%d..%d) |%s|", wstart, i, frmline->width, m_widths[wstart], m_widths[i-1], LCSTR(lString16(m_text+wstart, i-wstart)));
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object
                     word->flags = LTEXT_WORD_IS_OBJECT;
@@ -1705,7 +1707,7 @@ public:
                     word->flags = 0;
                     word->t.start = m_charindex[wstart];
                     word->t.len = i - wstart;
-                    word->width = m_widths[i<m_length? i : i-1] - m_widths[wstart];
+                    word->width = m_widths[i<m_length? i : i-1] - m_widths[wstart>0?wstart-1:wstart];
                     if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                         word->width += font->getHyphenWidth();
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
@@ -1841,9 +1843,11 @@ public:
                             if ( (m_flags[start+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0 ) {
                                 if ( widths[i]>max_width )
                                     break; // hyph is too late
-                                lastHyphWrap = start + i;
-                                TR("word is hyphenated at char %d", i);
-                                break;
+                                if ( start + i > pos+1 ) {
+                                    lastHyphWrap = start + i;
+//                                    TR("word is hyphenated at char %d", i);
+//                                    break;
+                                }
                             }
                     }
                 }
