@@ -1682,14 +1682,13 @@ public:
                 int b;
                 int h;
                 word->src_text_index = m_srcs[wstart]->index;
-                TR("addLine - word(%d, %d) x=%d (%d..%d) |%s|", wstart, i, frmline->width, m_widths[wstart], m_widths[i-1], LCSTR(lString16(m_text+wstart, i-wstart)));
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object
                     word->flags = LTEXT_WORD_IS_OBJECT;
                     b = word->o.height;
                     h = 0;
-                    if ( frmline->height < word->o.height )
-                        frmline->height = word->o.height;
+//                    if ( frmline->height < word->o.height )
+//                        frmline->height = word->o.height;
                 } else {
                     // word
                     src_text_fragment_t * srcline = m_srcs[wstart];
@@ -1707,7 +1706,9 @@ public:
                     word->flags = 0;
                     word->t.start = m_charindex[wstart];
                     word->t.len = i - wstart;
-                    word->width = m_widths[i<m_length? i : i-1] - m_widths[wstart>0?wstart-1:wstart];
+                    //word->width = m_widths[i<m_length? i : i-1] - (wstart>0 ? m_widths[wstart-1] : 0);
+                    word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
+                    TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
                     if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                         word->width += font->getHyphenWidth();
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
@@ -1717,8 +1718,8 @@ public:
                     if ( m_flags[i-1] & LCHAR_ALLOW_WRAP_AFTER )
                         word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                     word->inline_width = word->width;
-                    if ( frmline->height < fh )
-                        frmline->height = fh;
+//                    if ( frmline->height < fh )
+//                        frmline->height = fh;
 //                    lUInt8 flags = 0;
 //                    if ( isLinkStart ) {
 //                        flags |= LTEXT_WORD_IS_LINK_START;
@@ -1841,7 +1842,7 @@ public:
                     if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
                         for ( int i=0; i<len; i++ )
                             if ( (m_flags[start+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0 ) {
-                                if ( widths[i]>max_width )
+                                if ( widths[i]+_hyphen_width>max_width )
                                     break; // hyph is too late
                                 if ( start + i > pos+1 ) {
                                     lastHyphWrap = start + i;
