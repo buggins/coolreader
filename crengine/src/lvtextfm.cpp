@@ -1553,6 +1553,8 @@ public:
 //                    newFont = (LVFont *)newSrc->t.font;
 //                }
             }
+            if ( !lastFont )
+                lastFont = newFont;
             if ( i>start && (newFont!=lastFont || isObject || i>=start+MAX_TEXT_CHUNK_SIZE || (m_flags[i]&LCHAR_MANDATORY_NEWLINE)) ) {
                 // measure start..i-1 chars
                 if ( m_charindex[i-1]!=OBJECT_CHAR_INDEX ) {
@@ -1562,9 +1564,10 @@ public:
                             m_text + start,
                             len,
                             widths, flags,
-                            0x7FFF, //pbuffer->width,
+                            0x3FFF, //pbuffer->width,
+                            //300, //TODO
                             '?',
-                            0,
+                            m_srcs[start]->letter_spacing,
                             false);
                     if ( chars_measured<len ) {
                         // too long line
@@ -1598,18 +1601,18 @@ public:
 
 #define MIN_WORD_LEN_TO_HYPHENATE 4
 #define MAX_WORD_SIZE 64
-    void hyphenateWord( int wordPos, int minPos, int maxPos, int &wrapPos )
-    {
-        // wordPos is last fit character
-        int start, end;
-        lStr_findWordBounds( m_text, m_length, wordPos+1, start, end );
-        if ( start<end && start<maxPos && end<minPos && end-start>MIN_WORD_LEN_TO_HYPHENATE ) {
-            int len = end-start;
-            static lUInt8 flags[MAX_WORD_SIZE];
-            static lUInt16 widths[MAX_WORD_SIZE];
-            //HyphMan::hyphenate(m_text+start, len, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
-        }
-    }
+//    void hyphenateWord( int wordPos, int minPos, int maxPos, int &wrapPos )
+//    {
+//        // wordPos is last fit character
+//        int start, end;
+//        lStr_findWordBounds( m_text, m_length, wordPos+1, start, end );
+//        if ( start<end && start<maxPos && end<minPos && end-start>MIN_WORD_LEN_TO_HYPHENATE ) {
+//            int len = end-start;
+//            static lUInt8 flags[MAX_WORD_SIZE];
+//            static lUInt16 widths[MAX_WORD_SIZE];
+//            //HyphMan::hyphenate(m_text+start, len, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+//        }
+//    }
 
     void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last )
     {
@@ -1703,8 +1706,14 @@ public:
                     word->t.start = m_charindex[wstart];
                     word->t.len = i - wstart;
                     word->width = m_widths[i<m_length? i : i-1] - m_widths[wstart];
-                    if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER )
+                    if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                         word->width += font->getHyphenWidth();
+                        word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
+                    }
+                    if ( m_flags[i-1] & LCHAR_IS_SPACE)
+                        word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+                    if ( m_flags[i-1] & LCHAR_ALLOW_WRAP_AFTER )
+                        word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                     word->inline_width = word->width;
                     if ( frmline->height < fh )
                         frmline->height = fh;
@@ -1814,15 +1823,29 @@ public:
             if ( lastNormalWrap<m_length-1 && unusedSpace > (maxWidth>>4) && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
                 // hyphenate word
                 int start, end;
-                lStr_findWordBounds( m_text, m_length, pos+1, start, end );
+                lStr_findWordBounds( m_text, m_length, wordpos, start, end );
                 int len = end-start;
-                if ( start<end && start<wordpos && end>i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
+                if ( start<end && start<wordpos && end>=i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
                     lUInt8 * flags = m_flags + start;
                     static lUInt16 widths[MAX_WORD_SIZE];
-                    //HyphMan::hyphenate(m_text+start, len, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
-                    //TODO: add hyphenation
+                    int wordStart_w = start>0 ? m_widths[start-1] : 0;
+                    for ( int i=0; i<len; i++ ) {
+                        widths[i] = m_widths[start+i] - wordStart_w;
+                    }
+                    int max_width = maxWidth - x - (wordStart_w - w0);
+                    int _hyphen_width = ((LVFont*)m_srcs[wordpos]->t.font)->getHyphenWidth();
+                    if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
+                        for ( int i=0; i<len; i++ )
+                            if ( (m_flags[start+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0 ) {
+                                if ( widths[i]>max_width )
+                                    break; // hyph is too late
+                                lastHyphWrap = start + i;
+                                TR("word is hyphenated at char %d", i);
+                                break;
+                            }
+                    }
                 }
             }
             int wrapPos = lastHyphWrap;
