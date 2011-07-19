@@ -1543,9 +1543,13 @@ public:
 #define MAX_TEXT_CHUNK_SIZE 4096
         static lUInt16 widths[MAX_TEXT_CHUNK_SIZE+1];
         static lUInt8 flags[MAX_TEXT_CHUNK_SIZE+1];
+        int tabIndex = -1;
         for ( i=0; i<=m_length; i++ ) {
             LVFont * newFont = NULL;
             src_text_fragment_t * newSrc = NULL;
+            if ( tabIndex<0 && m_text[i]=='\t' ) {
+                tabIndex = i;
+            }
             bool isObject = false;
             if ( i<m_length ) {
                 newSrc = m_srcs[i];
@@ -1607,6 +1611,14 @@ public:
             lastFont = newFont;
             lastSrc = newSrc;
             //if ( i==m_length || )
+        }
+        if ( tabIndex>=0 ) {
+            int tabPosition = -m_srcs[0]->margin;
+            if ( tabPosition>0 && tabPosition > m_widths[tabIndex] ) {
+                int dx = tabPosition - m_widths[tabIndex];
+                for ( i=tabIndex; i<m_length; i++ )
+                    m_widths[i] += dx;
+            }
         }
 //        // debug dump
 //        lString16 buf;
