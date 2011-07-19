@@ -31,10 +31,13 @@ extern "C" {
 #define LTEXT_ALIGN_CENTER     0x0003  /**< \brief new centered paragraph */
 #define LTEXT_ALIGN_WIDTH      0x0004  /**< \brief new justified paragraph */
 
+#define LTEXT_LAST_LINE_ALIGN_SHIFT 16
+
 #define LTEXT_LAST_LINE_ALIGN_LEFT       0x00010000  /**< \brief last line of justified paragraph should be left-aligned */
 #define LTEXT_LAST_LINE_ALIGN_RIGHT      0x00020000  /**< \brief last line of justified paragraph should be right-aligned */
 #define LTEXT_LAST_LINE_ALIGN_CENTER     0x00030000  /**< \brief last line of justified paragraph should be centered */
 #define LTEXT_LAST_LINE_ALIGN_WIDTH      0x00040000  /**< \brief last line of justified paragraph should be justified */
+
 
 #define LTEXT_FLAG_NEWLINE     0x0007  /**< \brief new line flags mask */
 #define LTEXT_FLAG_OWNTEXT     0x0008  /**< \brief store local copy of text instead of pointer */
