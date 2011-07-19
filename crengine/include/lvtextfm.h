@@ -269,17 +269,7 @@ public:
             flags, interval, margin, object, (lUInt16)offset, letter_spacing );
     }
 
-    lUInt32 FormatOld(lUInt16 width, lUInt16 page_height) { return lvtextResize( m_pbuffer, width, page_height ); }
-    lUInt32 FormatNew(lUInt16 width, lUInt16 page_height);
-    lUInt32 FormatNew2(lUInt16 width, lUInt16 page_height);
-    lUInt32 FormatNewTest(lUInt16 width, lUInt16 page_height);
-
-#if (USE_NEW_FORMATTER==1)
-    lUInt32 Format(lUInt16 width, lUInt16 page_height) { return FormatNewTest( width, page_height ); }
-    //lUInt32 Format(lUInt16 width, lUInt16 page_height) { return FormatNew( width, page_height ); }
-#else
-    lUInt32 Format(lUInt16 width, lUInt16 page_height) { return FormatOld( width, page_height ); }
-#endif
+    lUInt32 Format(lUInt16 width, lUInt16 page_height);
 
     int GetSrcCount()
     {
