@@ -41,6 +41,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.PowerManager;
@@ -242,7 +243,7 @@ public class CoolReader extends Activity
 			            Context.POWER_SERVICE);
 				wl = pm.newWakeLock(
 			        PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-			        | PowerManager.ON_AFTER_RELEASE,
+			        /* | PowerManager.ON_AFTER_RELEASE */,
 			        "cr3");
 			}
 			if ( !isStarted() ) {
@@ -506,7 +507,11 @@ public class CoolReader extends Activity
     }
     
     private int screenBacklightBrightness = -1; // use default
-    private boolean brightnessHackError = false;
+    //private boolean brightnessHackError = false;
+    private boolean brightnessHackError =
+	       Build.MANUFACTURER.contentEquals("Samsung") &&
+	               (Build.MODEL.contentEquals("GT-S5830") || Build.MODEL.contentEquals("GT-S5660")); // More models?
+    	    
     public void onUserActivity()
     {
     	if ( backlightControl==null )
@@ -727,6 +732,7 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onResume()");
 		mPaused = false;
 		mIsStarted = true;
+		backlightControl.onUserActivity();
 		super.onResume();
 	}
 
