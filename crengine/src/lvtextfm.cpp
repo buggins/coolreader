@@ -1820,13 +1820,15 @@ public:
         measureText();
 
         int interval = m_srcs[0]->interval;
-
         // split paragraph into lines, export lines
         int pos = 0;
         int indent = m_srcs[0]->margin;
+        if ( indent<0 ) {
+            TR("negative indent: %d", indent);
+        }
         for (;pos<m_length;) {
             int maxWidth = m_pbuffer->width;
-            int x = indent >=0 ? indent : 0;
+            int x = indent >=0 ? (pos==0 ? indent : 0) : (pos==0 ? 0 : -indent);
             int w0 = pos>0 ? m_widths[pos-1] : 0;
             int i;
             int lastNormalWrap = -1;
@@ -1883,7 +1885,7 @@ public:
             }
             addLine(pos, wrapPos+1, x, m_srcs[pos], interval, pos==0, wrapPos>=m_length-1 );
             pos = wrapPos + 1;
-            indent = 0;
+            //indent = 0;
         }
     }
 
