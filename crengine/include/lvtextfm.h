@@ -98,8 +98,6 @@ typedef struct
    lUInt16  x;               /**< \brief 08 word x position in line */
    lInt8    y;               /**< \brief 10 baseline y position */
    lUInt8   flags;           /**< \brief 11 flags */
-   lUInt16  inline_width;    /**< \brief 12 word width, pixels when inside line */
-    // move unions bottom to simplify debugging
    union {
           /// for text word
        struct {

@@ -729,7 +729,7 @@ void LFormattedText::AddSourceObject(
         flags, interval, margin, object, letter_spacing );
 }
 
-#if 1
+#if 0
 #define TR(x...) CRLog::trace(x)
 #else
 #define TR(x...)
@@ -992,17 +992,13 @@ public:
             align = LTEXT_ALIGN_LEFT;
         if ( last && !first )
             align = (para->flags >> LTEXT_LAST_LINE_ALIGN_SHIFT) & LTEXT_FLAG_NEWLINE;
-
+        if ( !align )
+            align = LTEXT_ALIGN_LEFT;
 
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT );
 
         bool splitBySpaces = (align == LTEXT_ALIGN_WIDTH);
-//        bool addHyph = (m_flags[end-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0;
-//        int hyphWidth = 0;
-//        if ( addHyph )
-//            hyphWidth = ((LVFont*)m_srcs[end-1]->t.font)->getCharWidth(UNICODE_SOFT_HYPHEN_CODE);
-        if ( !align )
-            align = LTEXT_ALIGN_LEFT;
+
         if ( last && !first ) {
             int last_align = (para->flags>>16) & LTEXT_FLAG_NEWLINE;
             if ( last_align )
@@ -1058,7 +1054,6 @@ public:
             pscale = maxscale;
         word->o.height = lastSrc->o.height * pscale / 1000;
         word->width = lastSrc->o.width * pscale / 1000;
-        word->inline_width = word->width;
 #else
         int scale_div = 1;
         int scale_mul = 1;
@@ -1121,8 +1116,6 @@ public:
                     if ( word->t.start==0 && srcline->flags & LTEXT_IS_LINK )
                         word->flags |= LTEXT_WORD_IS_LINK_START;
 
-                    word->inline_width = word->width;
-
                     if ( visualAlignmentEnabled && lastWord ) {
                         int endp = i-1;
                         int lastc = m_text[endp];
@@ -1135,7 +1128,7 @@ public:
                         }
                         if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER )
                             word->width -= font->getHyphenWidth();
-                        else if ( lastc=='.' || lastc==',' || lastc=='!' ) {
+                        else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ) {
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
                             word->width -= w;
