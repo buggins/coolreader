@@ -1045,12 +1045,14 @@ public:
                 word->src_text_index = m_srcs[wstart]->index;
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object
+                    word->x = frmline->width;
                     word->flags = LTEXT_WORD_IS_OBJECT;
                     word->width = lastSrc->o.width;
                     word->o.height = lastSrc->o.height;
+                    int maxw = m_pbuffer->width - x;
 
 #if ARBITRARY_IMAGE_SCALE_ENABLED==1
-        int pscale_x = 1000 * m_pbuffer->width / lastSrc->o.width;
+        int pscale_x = 1000 * maxw / lastSrc->o.width;
         int pscale_y = 1000 * m_pbuffer->page_height / lastSrc->o.height;
         int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
         int maxscale = (MAX_IMAGE_SCALE_MUL>0 ? MAX_IMAGE_SCALE_MUL : 1) * 1000;
@@ -1061,17 +1063,17 @@ public:
 #else
         int scale_div = 1;
         int scale_mul = 1;
-        int div_x = (lastSrc->o.width / m_pbuffer->width) + 1;
+        int div_x = (lastSrc->o.width / maxw) + 1;
         int div_y = (lastSrc->o.height / m_pbuffer->page_height) + 1;
 #if (MAX_IMAGE_SCALE_MUL==3)
         if ( lastSrc->o.height*3 < m_pbuffer->page_height-20
-                && lastSrc->o.width*3 < m_pbuffer->width - 20 )
+                && lastSrc->o.width*3 < maxw - 20 )
             scale_mul = 3;
         else
 #endif
 #if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
             if ( lastSrc->o.height*2 < m_pbuffer->page_height-20
-                && lastSrc->o.width*2 < m_pbuffer->width - 20 )
+                && lastSrc->o.width*2 < maxw - 20 )
             scale_mul = 2;
         else
 #endif
