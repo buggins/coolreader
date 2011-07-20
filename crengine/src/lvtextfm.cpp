@@ -992,10 +992,11 @@ public:
         int align = para->flags & LTEXT_FLAG_NEWLINE;
         TR("addLine(%d, %d) y=%d  align=%d", start, end, m_y, align);
 
-        if ( align==LTEXT_ALIGN_WIDTH && last )
+        int text_align_last = (para->flags >> LTEXT_LAST_LINE_ALIGN_SHIFT) & LTEXT_FLAG_NEWLINE;
+        if ( last && !first && align==LTEXT_ALIGN_WIDTH && text_align_last!=0 )
+            align = text_align_last;
+        else if ( align==LTEXT_ALIGN_WIDTH && last )
             align = LTEXT_ALIGN_LEFT;
-        if ( last && !first )
-            align = (para->flags >> LTEXT_LAST_LINE_ALIGN_SHIFT) & LTEXT_FLAG_NEWLINE;
         if ( !align )
             align = LTEXT_ALIGN_LEFT;
 
