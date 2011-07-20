@@ -509,7 +509,7 @@ public class CoolReader extends Activity
     private int screenBacklightBrightness = -1; // use default
     //private boolean brightnessHackError = false;
     private boolean brightnessHackError =
-	       Build.MANUFACTURER.contentEquals("Samsung") &&
+	       Build.MANUFACTURER.toLowerCase().contentEquals("samsung") &&
 	               (Build.MODEL.contentEquals("GT-S5830") || Build.MODEL.contentEquals("GT-S5660")); // More models?
     	    
     public void onUserActivity()
