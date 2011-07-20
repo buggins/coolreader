@@ -1110,7 +1110,7 @@ public:
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
                     if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
-                        word->width += font->getHyphenWidth();
+                        word->width += font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE)
@@ -1132,9 +1132,9 @@ public:
                             endp--;
                             lastc = m_text[endp];
                         }
-                        if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER )
-                            word->width -= font->getHyphenWidth();
-                        else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ) {
+                        if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER ) {
+                            word->width -= font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
+                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ) {
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
                             word->width -= w;
