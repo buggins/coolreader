@@ -76,6 +76,18 @@ public class CoolReader extends Activity
 	CRDB mDB;
 	private BackgroundThread mBackgroundThread;
 	
+	public CoolReader() {
+		try {
+			String manufacturer = (String)Build.class.getField("MANUFACTURER").get(null);
+			String model = (String)Build.class.getField("MODEL").get(null);
+		    brightnessHackError =
+		    	manufacturer.toLowerCase().contentEquals("samsung") &&
+			               (model.contentEquals("GT-S5830") || model.contentEquals("GT-S5660")); // More models?
+		} catch ( Exception e ) {
+			log.d("Exception while trying to check Biuild.MANUFACTURER");
+		}
+	}
+	
 	public Scanner getScanner()
 	{
 		return mScanner;
@@ -508,9 +520,7 @@ public class CoolReader extends Activity
     
     private int screenBacklightBrightness = -1; // use default
     //private boolean brightnessHackError = false;
-    private boolean brightnessHackError =
-	       Build.MANUFACTURER.toLowerCase().contentEquals("samsung") &&
-	               (Build.MODEL.contentEquals("GT-S5830") || Build.MODEL.contentEquals("GT-S5660")); // More models?
+    private boolean brightnessHackError = false;
     	    
     public void onUserActivity()
     {
