@@ -129,6 +129,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int SELECTION_ACTION_DICTIONARY = 2;
     public static final int SELECTION_ACTION_BOOKMARK = 3;
     
+    public static final int SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE = 1;
+    public static final int SEL_CMD_NEXT_SENTENCE = 2;
+    public static final int SEL_CMD_PREV_SENTENCE = 3;
+    
     
     public enum ViewMode
     {
@@ -316,6 +320,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native byte[] getCoverPageDataInternal();
     private native void setPageBackgroundTextureInternal( byte[] imageBytes, int tileFlags );
     private native void updateSelectionInternal( Selection sel );
+    private native boolean moveSelectionInternal( Selection sel, int moveCmd, int params );
     private native String checkLinkInternal( int x, int y, int delta );
     private native int goLinkInternal( String link );
     
@@ -1002,10 +1007,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
 				return true;
 			}
+			if ( touchEventIgnoreNextUp )
+				return true;
 			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
-				int deltax = manualScrollStartPosX - x;
+				int movex = manualScrollStartPosX - x;
 				int deltay = manualScrollStartPosY - y;
-				deltax = deltax < 0 ? -deltax : deltax;
+				int deltax = movex < 0 ? -movex : movex;
 				deltay = deltay < 0 ? -deltay : deltay;
 				if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 					log.v("onTouchEvent: move threshold reached");
@@ -1021,11 +1028,43 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							startBrightnessControl(x, y);
 							return true;
 					} else {
+						//pageFlipAnimationSpeedMs
 						// scroll
-						isManualScrollActive = true;
-						startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
-						updateAnimation(x, y);
-						return true;
+						boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1)==1;
+						boolean startScrollEnabled = true;
+						if ( isPageMode ) {
+							if ( deltax < START_DRAG_THRESHOLD ) // check only horizontal distance
+								startScrollEnabled = false;
+							if ( movex>0 && x>dx*2/3 )
+								startScrollEnabled = false;
+							if ( movex<0 && x<dx/3 )
+								startScrollEnabled = false;
+						}
+						if ( startScrollEnabled ) {
+							if ( pageFlipAnimationSpeedMs!=0 ) {
+								isManualScrollActive = true;
+								startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
+								int nx = x;
+								int ny = y;
+								if ( isPageMode )
+									nx = movex < 0 ? (x + dx) / 2 : x / 2;
+								else
+									ny = (manualScrollStartPosY + y) / 2;
+								updateAnimation(nx, ny);
+								updateAnimation(x, y);
+								return true;
+							} else {
+								touchEventIgnoreNextUp = true;
+								if ( movex<0 ) {
+									// back
+									onCommand(ReaderCommand.DCMD_PAGEUP, 1);
+								} else {
+									// forward
+									onCommand(ReaderCommand.DCMD_PAGEDOWN, 1);
+								}
+								return true;
+							}
+						}
 					}
 				}
 			}
@@ -2389,7 +2428,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	
 	private final static boolean DEBUG_ANIMATION = false;
-	private int updateSerialNumber = 0;
+	private volatile int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
 	{
 		if (DEBUG_ANIMATION) log.d("updateAnimation("+x + ", " + y+")");
@@ -2963,7 +3002,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					int duration;
 					if ( moved ) {
 						destShift = maxX;
-						duration = 500; // 500 ms forward
+						duration = 300; // 500 ms forward
 					} else {
 						destShift = 0;
 						duration = 200; // 200 ms cancel
@@ -3476,6 +3515,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //    	}
 //    }
     
+    public Bookmark saveCurrentPositionBookmarkSync( boolean saveToDB ) {
+        Bookmark bmk = mBackThread.callBackground(new Callable<Bookmark>() {
+            @Override
+            public Bookmark call() throws Exception {
+                if ( !mOpened )
+                    return null;
+                return getCurrentPageBookmarkInternal();
+            }
+        });
+        if ( bmk!=null ) {
+            bmk.setTimeStamp(System.currentTimeMillis());
+            bmk.setType(Bookmark.TYPE_LAST_POSITION);
+            if ( mBookInfo!=null )
+                mBookInfo.setLastPosition(bmk);
+            if ( saveToDB ) {
+                mActivity.getHistory().updateRecentDir();
+                mActivity.getHistory().saveToDB();
+                mActivity.getDB().flush();
+            }
+        }
+        return bmk;
+    }
+    
     private class SavePositionTask extends Task {
 
     	Bookmark bmk;
@@ -3488,6 +3550,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		mBookInfo.setLastPosition(bmk);
 	    		mActivity.getHistory().updateRecentDir();
 	    		mActivity.getHistory().saveToDB();
+                log.i("SavePositionTask.done()");
 	    	}
 		}
 

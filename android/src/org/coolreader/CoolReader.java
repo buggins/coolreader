@@ -41,6 +41,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.PowerManager;
@@ -242,8 +243,12 @@ public class CoolReader extends Activity
 			            Context.POWER_SERVICE);
 				wl = pm.newWakeLock(
 			        PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-			        | PowerManager.ON_AFTER_RELEASE,
+			        /* | PowerManager.ON_AFTER_RELEASE */,
 			        "cr3");
+			}
+			if ( !isStarted() ) {
+			    release();
+			    return;
 			}
 			if ( !wl.isHeld() )
 				wl.acquire();
@@ -253,7 +258,7 @@ public class CoolReader extends Activity
 					public void run() {
 						if ( backlightTimerTask!=this )
 							return;
-						if ( backlightCountDown<=0 )
+						if ( backlightCountDown<=0 || !isStarted())
 							release();
 						else {
 							backlightCountDown--;
@@ -282,7 +287,7 @@ public class CoolReader extends Activity
 		return densityDpi / 3; // 1/3"
 	}
 	
-	private int densityDpi = 160;
+	private int densityDpi = 120;
 	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;
@@ -502,7 +507,11 @@ public class CoolReader extends Activity
     }
     
     private int screenBacklightBrightness = -1; // use default
-    private boolean brightnessHackError = false;
+    //private boolean brightnessHackError = false;
+    private boolean brightnessHackError =
+	       Build.MANUFACTURER.contentEquals("Samsung") &&
+	               (Build.MODEL.contentEquals("GT-S5830") || Build.MODEL.contentEquals("GT-S5660")); // More models?
+    	    
     public void onUserActivity()
     {
     	if ( backlightControl==null )
@@ -683,7 +692,7 @@ public class CoolReader extends Activity
 		mIsStarted = false;
 		mPaused = true;
 		releaseBacklightControl();
-		mReaderView.save();
+		mReaderView.saveCurrentPositionBookmarkSync(true);
 		super.onPause();
 	}
 	
@@ -723,6 +732,7 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onResume()");
 		mPaused = false;
 		mIsStarted = true;
+		backlightControl.onUserActivity();
 		super.onResume();
 	}
 
@@ -742,23 +752,6 @@ public class CoolReader extends Activity
 	protected void onStart() {
 		log.i("CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
-
-        BackgroundThread.instance().postBackground(new Runnable() {
-            @Override
-            public void run() {
-    		    BackgroundThread.instance().postGUI(new Runnable() {
-    
-                    @Override
-                    public void run() {
-                        if ( ttsInitialized ) {
-                            L.i("Trying TTS speak()");
-                            tts.speak("Testing text to speech engine. ", TTS.QUEUE_ADD, null);
-                        }
-                    }
-    		        
-    		    }, 4000);
-            };
-        });
 		
 		mPaused = false;
 		
@@ -1326,7 +1319,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
 		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "4");
-		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, "1");
+		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());

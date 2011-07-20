@@ -7,15 +7,14 @@ msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
 "POT-Creation-Date: 2011-01-25 01:56+0300\n"
-"PO-Revision-Date: 2010-06-17 11:48+0200\n"
-"Last-Translator: Vitaliy Stopchans'kyy <stopchan DOG gmail.com>\n"
+"PO-Revision-Date: 2011-06-17 02:51+0200\n"
+"Last-Translator: Vitalii Stopchans'kyi <stopchanПЕСgmail.com>\n"
 "Language-Team: Ukrainian\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/citedlg.cpp:28
 msgid "Select text"
@@ -33,7 +32,8 @@ msgstr "1..8"
 msgid "No manual currently available for this language, sorry!"
 msgstr "Вибачте, інструкції на обраній Вами мові не існує."
 
-#: ../src/mainwnd.cpp:766 ../src/mainwnd.cpp:865
+#: ../src/mainwnd.cpp:766
+#: ../src/mainwnd.cpp:865
 msgid "Help"
 msgstr "Довідка"
 
@@ -41,19 +41,23 @@ msgstr "Довідка"
 msgid "Main Menu"
 msgstr "Головне меню"
 
-#: ../src/mainwnd.cpp:816 ../src/viewdlg.cpp:468
+#: ../src/mainwnd.cpp:816
+#: ../src/viewdlg.cpp:468
 msgid "About"
 msgstr "Інформація..."
 
-#: ../src/mainwnd.cpp:826 ../src/viewdlg.cpp:438
+#: ../src/mainwnd.cpp:826
+#: ../src/viewdlg.cpp:438
 msgid "Go to page"
 msgstr "Перейти на сторінку"
 
-#: ../src/mainwnd.cpp:837 ../src/recentdlg.cpp:73
+#: ../src/mainwnd.cpp:837
+#: ../src/recentdlg.cpp:73
 msgid "Open recent book"
 msgstr "Відкрити останню книгу"
 
-#: ../src/mainwnd.cpp:843 ../src/viewdlg.cpp:160
+#: ../src/mainwnd.cpp:843
+#: ../src/viewdlg.cpp:160
 msgid "Dictionary"
 msgstr "Словник"
 
@@ -61,19 +65,23 @@ msgstr "Словник"
 msgid "Cite"
 msgstr "Цитата"
 
-#: ../src/mainwnd.cpp:852 ../src/bmkdlg.cpp:114
+#: ../src/mainwnd.cpp:852
+#: ../src/bmkdlg.cpp:114
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: ../src/mainwnd.cpp:856 ../src/viewdlg.cpp:219
+#: ../src/mainwnd.cpp:856
+#: ../src/viewdlg.cpp:219
 msgid "Search"
 msgstr "Пошук"
 
-#: ../src/mainwnd.cpp:860 ../src/settings.cpp:300
+#: ../src/mainwnd.cpp:860
+#: ../src/settings.cpp:300
 msgid "Settings"
 msgstr "Налаштування"
 
-#: ../src/mainwnd.cpp:869 ../src/viewdlg.cpp:531
+#: ../src/mainwnd.cpp:869
+#: ../src/viewdlg.cpp:531
 msgid "Keyboard layout"
 msgstr "Призначення кнопок"
 
@@ -82,7 +90,7 @@ msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
 msgstr ""
-"$1 — выберите команду\n"
+"$1 — оберіть команду\n"
 "$2, $3 — закрити"
 
 #: ../src/mainwnd.cpp:980
@@ -263,7 +271,7 @@ msgstr "Сторінка $1 ($2%)"
 
 #: ../src/bmkdlg.cpp:68
 msgid "Go to bookmark"
-msgstr "Відкрити закладку за номером"
+msgstr "Відкрити закладку з номером"
 
 #: ../src/bmkdlg.cpp:72
 msgid ""
@@ -357,19 +365,30 @@ msgstr "Для усіх шрифтів"
 msgid "On for big fonts only"
 msgstr "Лише для великих шрифтів"
 
-#: ../src/settings.cpp:311 ../src/settings.cpp:317 ../src/settings.cpp:323
-#: ../src/settings.cpp:329 ../src/settings.cpp:335 ../src/settings.cpp:341
-#: ../src/settings.cpp:347 ../src/settings.cpp:353 ../src/settings.cpp:378
+#: ../src/settings.cpp:311
+#: ../src/settings.cpp:317
+#: ../src/settings.cpp:323
+#: ../src/settings.cpp:329
+#: ../src/settings.cpp:335
+#: ../src/settings.cpp:341
+#: ../src/settings.cpp:347
+#: ../src/settings.cpp:353
+#: ../src/settings.cpp:378
 msgid "Off"
 msgstr "Вимк."
 
-#: ../src/settings.cpp:316 ../src/settings.cpp:322 ../src/settings.cpp:328
-#: ../src/settings.cpp:334 ../src/settings.cpp:340 ../src/settings.cpp:346
+#: ../src/settings.cpp:316
+#: ../src/settings.cpp:322
+#: ../src/settings.cpp:328
+#: ../src/settings.cpp:334
+#: ../src/settings.cpp:340
+#: ../src/settings.cpp:346
 #: ../src/settings.cpp:352
 msgid "On"
 msgstr "Увімк."
 
-#: ../src/settings.cpp:358 ../src/settings.cpp:364
+#: ../src/settings.cpp:358
+#: ../src/settings.cpp:364
 msgid "Normal"
 msgstr "Звичайне"
 
@@ -499,7 +518,7 @@ msgstr "Використовувати стилі документу"
 
 #: ../src/settings.cpp:531
 msgid "Inverse display"
-msgstr "Інвертувати"
+msgstr "Інвертування кольорів"
 
 #: ../src/settings.cpp:538
 msgid "Display update mode"
@@ -535,7 +554,7 @@ msgstr "Переноси"
 
 #: ../src/settings.cpp:593
 msgid "Floating punctuation"
-msgstr "Висячая пунктуация"
+msgstr "Нависаюча пунктуація"
 
 #: ../src/settings.cpp:601
 msgid "Page margins"
@@ -567,7 +586,7 @@ msgstr ""
 
 #: ../src/viewdlg.cpp:155
 msgid "No dictionaries found"
-msgstr "Жодного словника не знайдено!"
+msgstr "Не знайдено жодного словника!"
 
 #: ../src/viewdlg.cpp:156
 msgid "Place dictionaries to directory 'dict' of SD card."
@@ -578,12 +597,8 @@ msgid "Dictionaries in standard unix .dict format are supported."
 msgstr "Підтримуються словники у форматі .dict (стандарт систем Unix)."
 
 #: ../src/viewdlg.cpp:158
-msgid ""
-"For each dictionary, pair of files should be provided: data file (with .dict "
-"or .dict.dz extension, and index file with .index extension"
-msgstr ""
-"Кожен словник складається з файлу даних (.dict або .dict.dz) та файлу "
-"індексу слів (.index)."
+msgid "For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension"
+msgstr "Кожен словник складається з файлу даних (.dict або .dict.dz) та файлу індексу слів (.index)."
 
 #: ../src/viewdlg.cpp:173
 msgid "Table of contents"
@@ -681,7 +696,8 @@ msgstr "Наступне посилання"
 msgid "Previous link"
 msgstr "Попереднє посилання"
 
-#: ../src/viewdlg.cpp:435 ../src/viewdlg.cpp:461
+#: ../src/viewdlg.cpp:435
+#: ../src/viewdlg.cpp:461
 msgid "Go to link"
 msgstr "Перейти за посиланням"
 
@@ -711,15 +727,15 @@ msgstr "Змінити автоформатування"
 
 #: ../src/viewdlg.cpp:443
 msgid "Save bookmark by number"
-msgstr "Зберегти закладку за номером"
+msgstr "Зберегти закладку з номером"
 
 #: ../src/viewdlg.cpp:444
 msgid "Go to bookmark by number"
-msgstr "Відкрити закладку за номером"
+msgstr "Відкрити закладку з номером"
 
 #: ../src/viewdlg.cpp:445
 msgid "Move by chapter"
-msgstr "Перехід по главам"
+msgstr "Перехід по розділах"
 
 #: ../src/viewdlg.cpp:446
 msgid "First link"
@@ -891,18 +907,14 @@ msgstr "Дія"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Введіть номер сторінки: "
-
 #~ msgid "About..."
 #~ msgstr "Інформація"
-
 #~ msgid "Open recent book..."
 #~ msgstr "Останні книги"
-
 #~ msgid "Dictionary..."
 #~ msgstr "Словник"
-
 #~ msgid "Search..."
 #~ msgstr "Пошук"
-
 #~ msgid "Settings..."
 #~ msgstr "Налаштування"
+

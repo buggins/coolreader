@@ -117,7 +117,7 @@ public class TTS {
 	}
 	
 	private static boolean classesFound;
-	{
+	static {
 		try {
 			onInitListenerClass = Class.forName("android.speech.tts.TextToSpeech$OnInitListener");
 			//onInitListener_onInit = onInitListenerClass.getMethod("onInit", new Class[] {int.class});

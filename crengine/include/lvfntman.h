@@ -197,8 +197,10 @@ public:
     virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) = 0;
     /// returns font baseline offset
     virtual int getBaseline() = 0;
-    /// returns font height
+    /// returns font height including normal interline space
     virtual int getHeight() const = 0;
+    /// returns font character size
+    virtual int getSize() const = 0;
     /// returns font weight
     virtual int getWeight() const = 0;
     /// returns italic flag
@@ -312,6 +314,7 @@ public:
                        lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0 );
 };
 
+#if (USE_FREETYPE!=1) && (USE_BITMAP_FONTS==1)
 /* C++ wrapper class */
 class LBitmapFont : public LVBaseFont
 {
@@ -362,8 +365,9 @@ public:
     virtual bool operator ! () const { return IsNull(); }
     virtual ~LBitmapFont() { Clear(); }
 };
+#endif
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE!=1
 class LVBaseWin32Font : public LVBaseFont
 {
 protected:

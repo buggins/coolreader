@@ -583,7 +583,7 @@ public:
                 }
                 // padding
                 RenderRectAccessor fmt( cell->elem );
-                int em = cell->elem->getFont()->getHeight();
+                int em = cell->elem->getFont()->getSize();
                 int width = fmt.getWidth();
                 cell->padding_left = (short)lengthToPx( cell->elem->getStyle()->padding[0], width, em );
                 cell->padding_right = (short)lengthToPx( cell->elem->getStyle()->padding[1], width, em );
@@ -602,7 +602,7 @@ public:
         // render caption
         if ( caption ) {
             RenderRectAccessor fmt( caption );
-            int em = caption->getFont()->getHeight();
+            int em = caption->getFont()->getSize();
             int w = width - TABLE_BORDER_WIDTH*2;
             int padding_left = lengthToPx( caption->getStyle()->padding[0], width, em );
             int padding_right = lengthToPx( caption->getStyle()->padding[1], width, em );
@@ -1256,7 +1256,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 ident = len.value;
                 break;
             case css_val_em:
-                ident = len.value * enode->getFont()->getHeight() / 256;
+                ident = len.value * enode->getFont()->getSize() / 256;
                 break;
             default:
                 ident = 0;
@@ -1489,13 +1489,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             switch( len.type )
             {
             case css_val_percent:
-                letter_spacing = (lInt8)(font->getHeight() * len.value / 100);
+                letter_spacing = (lInt8)(font->getSize() * len.value / 100);
                 break;
             case css_val_px:
                 letter_spacing = (lInt8)(len.value);
                 break;
             case css_val_em:
-                letter_spacing = (lInt8)(len.value * font->getHeight() / 256);
+                letter_spacing = (lInt8)(len.value * font->getSize() / 256);
                 break;
             default:
                 letter_spacing = 0;
@@ -1687,7 +1687,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         //    crFatalError();
         if ( enode->getNodeId() == el_empty_line )
             x = x;
-        int em = enode->getFont()->getHeight();
+        int em = enode->getFont()->getSize();
         int margin_left = lengthToPx( enode->getStyle()->margin[0], width, em ) + DEBUG_TREE_DRAW;
         int margin_right = lengthToPx( enode->getStyle()->margin[1], width, em ) + DEBUG_TREE_DRAW;
         int margin_top = lengthToPx( enode->getStyle()->margin[2], width, em ) + DEBUG_TREE_DRAW;
@@ -1885,7 +1885,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         RenderRectAccessor fmt( enode );
         doc_x += fmt.getX();
         doc_y += fmt.getY();
-        int em = enode->getFont()->getHeight();
+        int em = enode->getFont()->getSize();
         int width = fmt.getWidth();
         int height = fmt.getHeight();
         bool draw_padding_bg = true; //( enode->getRendMethod()==erm_final );
@@ -2069,7 +2069,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->white_space = type_ptr->white_space;
     }
 
-    int baseFontSize = enode->getDocument()->getDefaultFont()->getHeight();
+    int baseFontSize = enode->getDocument()->getDefaultFont()->getSize();
 
     //////////////////////////////////////////////////////
     // apply style sheet

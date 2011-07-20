@@ -897,6 +897,38 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionIn
 
 }
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    moveSelectionInternal
+ * Signature: (Lorg/coolreader/crengine/Selection;II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_moveSelectionInternal
+  (JNIEnv * _env, jobject _this, jobject _sel, jint _cmd, jint _param)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    CRObjectAccessor sel(_env, _sel);
+    CRStringField sel_startPos(sel, "startPos");
+    CRStringField sel_endPos(sel, "endPos");
+    CRStringField sel_text(sel, "text");
+    CRStringField sel_chapter(sel, "chapter");
+    CRIntField sel_startX(sel, "startX");
+    CRIntField sel_startY(sel, "startY");
+    CRIntField sel_endX(sel, "endX");
+    CRIntField sel_endY(sel, "endY");
+    CRIntField sel_percent(sel, "percent");
+    if ( _cmd == SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE ) {
+    	ldomXPointer bmp = p->_docview->getBookmark();
+    	if ( bmp.isNull() )
+    		return JNI_FALSE;
+    	ldomXRange range(bmp, bmp);
+    	range.getStart().nextVisibleText();
+    	return JNI_TRUE;
+    }
+    return JNI_FALSE;
+}
+
+
 lString16 ReaderViewNative::getLink( int x, int y, int r )
 {
 	int step = 5;

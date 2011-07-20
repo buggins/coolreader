@@ -303,7 +303,8 @@ xml:base="http://lib.ololo.cc/opds/">
 				String qName, Attributes attributes)
 				throws SAXException {
 			super.startElement(uri, localName, qName, attributes);
-			localName = qName;
+			if ( qName!=null && qName.length()>0 )
+				localName = qName;
 			level++;
 			L.d(tab() + "<" + localName + ">");
 			currentAttributes = attributes;
@@ -360,7 +361,8 @@ xml:base="http://lib.ololo.cc/opds/">
 		public void endElement(String uri, String localName,
 				String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
-			localName = qName;
+			if ( qName!=null && qName.length()>0 )
+				localName = qName;
 			L.d(tab() + "</" + localName + ">");
 			//String currentElement = elements.peek();
 			if ( insideFeed && "feed".equals(localName) ) {
@@ -505,8 +507,8 @@ xml:base="http://lib.ololo.cc/opds/">
 					handler.startPrefixMapping(namespaces[i], namespaces[i+1]);
 				SAXParserFactory spf = SAXParserFactory.newInstance();
 				spf.setValidating(false);
-				spf.setNamespaceAware(true);
-				spf.setFeature("http://xml.org/sax/features/namespaces", false);
+//				spf.setNamespaceAware(true);
+//				spf.setFeature("http://xml.org/sax/features/namespaces", false);
 				SAXParser sp = spf.newSAXParser();
 				//XMLReader xr = sp.getXMLReader();				
 				sp.parse(is, handler);
