@@ -207,6 +207,18 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_checkLinkInter
 JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_goLinkInternal
   (JNIEnv *, jobject, jstring);
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    moveSelectionInternal
+ * Signature: (Lorg/coolreader/crengine/Selection;II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_moveSelectionInternal
+  (JNIEnv *, jobject, jobject, jint, jint);
+
+#define SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE 1
+#define SEL_CMD_NEXT_SENTENCE 2
+#define SEL_CMD_PREV_SENTENCE 3
+
 #ifdef __cplusplus
 }
 #endif

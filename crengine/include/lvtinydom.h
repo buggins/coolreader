@@ -1312,6 +1312,7 @@ public:
     bool nextVisibleText();
     /// move to previous visible text node
     bool prevVisibleText();
+
     /// move to previous visible word beginning
     bool prevVisibleWordStart();
     /// move to previous visible word end
@@ -1320,6 +1321,16 @@ public:
     bool nextVisibleWordStart();
     /// move to next visible word end
     bool nextVisibleWordEnd();
+
+    /// move to beginning of current visible text sentence
+    bool thisSentenceStart();
+    /// move to end of current visible text sentence
+    bool thisSentenceEnd();
+    /// move to beginning of next visible text sentence
+    bool nextSentenceStart();
+    /// move to beginning of next visible text sentence
+    bool prevSentenceStart();
+
     /// returns true if current position is visible word beginning
     bool isVisibleWordStart();
     /// returns true if current position is visible word end

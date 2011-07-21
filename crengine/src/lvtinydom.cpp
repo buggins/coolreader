@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.03.10"
+#define CACHE_FILE_FORMAT_VERSION "3.03.11"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -5944,6 +5944,30 @@ bool ldomXPointerEx::isVisibleWordEnd()
     if ( canWrapWordAfter(currCh) || !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh) )
         return true;
     return false;
+}
+
+/// move to beginning of current visible text sentence
+bool ldomXPointerEx::thisSentenceStart()
+{
+	return false;
+}
+
+/// move to end of current visible text sentence
+bool ldomXPointerEx::thisSentenceEnd()
+{
+	return false;
+}
+
+/// move to beginning of next visible text sentence
+bool ldomXPointerEx::nextSentenceStart()
+{
+	return false;
+}
+
+/// move to beginning of next visible text sentence
+bool prevSentenceStart()
+{
+	return false;
 }
 
 /// if start is after end, swap start and end

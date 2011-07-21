@@ -88,6 +88,7 @@ private slots:
     void on_cbWindowFullscreen_stateChanged(int );
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
+    void on_cbFloatingPunctuation_stateChanged(int );
 };
 
 #endif // SETTINGSDLG_H

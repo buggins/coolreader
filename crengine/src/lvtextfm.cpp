@@ -729,698 +729,15 @@ void LFormattedText::AddSourceObject(
         flags, interval, margin, object, letter_spacing );
 }
 
-class LVFormLine {
-public:
-    formatted_text_fragment_t * m_pbuffer;
-    formatted_line_t * frmline;
-    lUInt32             widths_buf_size;
-    LVArray<lUInt16>  widths_buf;
-    LVArray<lUInt8>   flags_buf;
-    int srcIndex;
-    src_text_fragment_t * srcline;
-    src_text_fragment_t * first_para_line;
-    int interval;
-    LVFont * font;
-    bool flgObject;
-    bool isLinkStart;
-    int text_offset;
-    int line_flags;
-    int wy;
-    int vertical_align;
-    int frmline_wrap_pos;
-    int align;
-    int align_last;
-    lInt8 letter_spacing;
-    bool flgLastParaLine;
-    bool flgCanBreakBeforeNextLine;
-    void newLine()
-    {
-        frmline = lvtextAddFormattedLine( m_pbuffer );
-    }
-
-    /**
-     * Set proper Y coordinate of word
-     */
-    void updateY(formatted_word_t * word)
-    {
-        /* update Y positions of line */
-        int b;
-        int h;
-        src_text_fragment_t * src = &m_pbuffer->srctext[word->src_text_index];
-        if (src->flags & LTEXT_SRC_IS_OBJECT)
-        {
-            b = word->o.height;
-            h = 0;
-        }
-        else
-        {
-            LVFont * font = (LVFont*) src->t.font;
-            if (word->y!=0)
-            {
-                // subscript or superscript
-                b = font->getBaseline();
-                h = font->getHeight() - b;
-            }
-            else
-            {
-                b = (( font->getBaseline() * interval) >> 4);
-                h = ( ( font->getHeight() * interval) >> 4) - b;
-            }
-        }
-        if ( frmline->baseline < b - word->y )
-            frmline->baseline = (lUInt16) (b - word->y);
-        if ( frmline->height < frmline->baseline + h )
-            frmline->height = (lUInt16) ( frmline->baseline + h );
-    }
-
-    /**
-     * Update current formatted line word wrap position
-     * @param wordsToCommit is max number of words to commit, -1 == commit all words
-     * @returns frmline word wrap position (index of word to be wrapped)
-     */
-    int updateWrapPos( int wordsToCommit=-1 )
-    {
-        if ( wordsToCommit<0 )
-            wordsToCommit = frmline->word_count; // by default, commit maximum available number of words
-        else if ( wordsToCommit==0 )
-            wordsToCommit = 1; // at least commit one word
-        // search for available wrap position
-        for ( frmline_wrap_pos = wordsToCommit-1; frmline_wrap_pos>0; frmline_wrap_pos-- ) {
-            if ( (frmline->words[frmline_wrap_pos].flags & LTEXT_WORD_CAN_BREAK_LINE_AFTER) )
-                break;
-            if ( (frmline->words[frmline_wrap_pos].flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) )
-                break;
-        }
-        return frmline_wrap_pos + 1;
-    }
-
-    /**
-     * save part of words to final formatted line
-     * @param wordsToCommit is max number of words to commit, -1 == commit all words
-     * @returns frmline word wrap position (index of word to be wrapped)
-     */
-    void commit( int wordsToCommit=-1 )
-    {
-        if ( !frmline->word_count )
-            return; // empty line, nothing to do
-        // current src line is finished
-        bool srcFinished = !srcline || flgObject || text_offset>=(int)(srcline->t.offset+srcline->t.len);
-        // create new formatted line, if not last
-        bool createNewLine = (srcIndex < (int)m_pbuffer->srctextlen) || !srcFinished;
-        // search for line break
-        int wordCount = updateWrapPos( wordsToCommit );
-
-        if ( wordCount>0 && (int)frmline->word_count >= wordCount ) {
-            formatted_line_t * newline = NULL;
-            int extraWords = 0;
-            if ( createNewLine ) {
-                extraWords = frmline->word_count - wordCount;
-                if ( extraWords > 0 ) {
-                    // copy rest of words to new line
-                    newline = lvtextAddFormattedLineCopy( m_pbuffer, frmline->words + wordCount, extraWords );
-                } else {
-                    // empty line: no words wrapped
-                    newline = lvtextAddFormattedLine( m_pbuffer );
-                }
-            }
-            frmline->word_count = wordCount;
-            frmline->width = 0;
-            if ( srcline && srcline->margin<0 ) { //LVE???
-                //frmline->x = -srcline->margin;
-            }
-            int i;
-            for ( i=0; i<wordCount; i++ ) {
-                formatted_word_t * word = &frmline->words[i];
-                // update X for each word
-                word->x = frmline->width;
-                if ( i== wordCount-1 )
-                    frmline->width += word->width;
-                else
-                    frmline->width += word->inline_width;
-                // update Y of each word
-                updateY( word );
-            }
-
-            // search for next uncommitted source object
-            // last committed word
-            formatted_word_t * lastword = &frmline->words[frmline->word_count-1];
-            int lastSrcIndex = lastword->src_text_index; // last word index
-            int nextSrcIndex = lastSrcIndex + 1;
-            int nextSrcPos = 0;
-            bool eol = false;;
-            if ( lastword->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
-                eol = true;
-            if ( !(lastword->flags & LTEXT_WORD_IS_OBJECT) ) {
-                src_text_fragment_t * lastline = &m_pbuffer->srctext[lastSrcIndex];
-                if ( lastword->t.start + lastword->t.len < lastline->t.offset + lastline->t.len ) {
-                    // check whether last src line is finished
-                    nextSrcPos = lastword->t.start + lastword->t.len;
-                    nextSrcIndex = lastSrcIndex;
-                    //lChar16 nextCh = lastline->t.text[nextSrcPos];
-                    //if ( nextCh=='\r' || nextCh=='\n' ) {
-                    //    nextSrcPos++;
-                    //    eol = true;
-                    //}
-                }
-            }
-            if (lastword->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
-                lastword->t.len--; // remove CR or LF character
-
-            // don't spread last line of paragraph
-            int nalign = align;
-            if ( nalign==LTEXT_ALIGN_WIDTH && ((!extraWords && srcFinished) || eol) )
-                nalign = align_last; //LTEXT_ALIGN_LEFT
-
-            int width = m_pbuffer->width;
-            int delta = width - frmline->width - frmline->x;
-            if ( delta<0 )
-                delta = 0;
-
-            // horizontal alignment
-            if (nalign == LTEXT_ALIGN_CENTER)
-                delta /= 2;
-            if ( nalign == LTEXT_ALIGN_CENTER || nalign == LTEXT_ALIGN_RIGHT ) {
-                frmline->x += delta;
-            } else if (nalign == LTEXT_ALIGN_WIDTH) {
-                // spread to fill width
-                int expand_count = 0;
-                for (i=0; i<(int)frmline->word_count-1; i++)
-                {
-                    if (frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER)
-                        expand_count++;
-                }
-                if (expand_count)
-                {
-                    int expand_dx = delta / expand_count;
-                    int expand_dd = delta % expand_count;
-                    delta = 0;
-                    for (i=0; i<(int)frmline->word_count-1; i++)
-                    {
-                        if (frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER)
-                        {
-                            delta += expand_dx;
-                            if (expand_dd>0)
-                            {
-                                delta++;
-                                expand_dd--;
-                            }
-                        }
-                        if ( i<(int)frmline->word_count-1 ) {
-                            frmline->words[i+1].x += delta;
-                        }
-                    }
-                    frmline->width += delta;
-                }
-            }
-
-            setSrcLine( nextSrcIndex, nextSrcPos );
-
-            if ( createNewLine ) {
-                newline->y = frmline->y + frmline->height;
-                if ( first_para_line->margin<0 )
-                    newline->x = -first_para_line->margin;
-            }
-            // go to new line
-            frmline = newline;
-        }
-    }
-
-    void setParagraphProperties( int index )
-    {
-        first_para_line = &m_pbuffer->srctext[index];
-        align = (lUInt8)(first_para_line->flags & LTEXT_FLAG_NEWLINE);
-        if ( !align )
-            align = LTEXT_ALIGN_LEFT;
-        align_last = (lUInt8)((first_para_line->flags >> 16) & LTEXT_FLAG_NEWLINE);
-        if ( align!=LTEXT_ALIGN_WIDTH && !align_last )
-            align_last = align;
-
-        interval = first_para_line->interval;
-        //
-        if ( frmline->word_count == 0 ) {
-            // set margin
-            frmline->x = first_para_line->margin>0?first_para_line->margin:0;
-        }
-    }
-
-    /**
-     * Move to specified source line.
-     * @param index is index of source line to go
-     * @param pos is character position inside source line to go
-     *
-     */
-    void setSrcLine( int index, int pos )
-    {
-        if ( index >= (int)m_pbuffer->srctextlen ) {
-            // last source line passed, no more lines
-            srcline = NULL;
-            return;
-        }
-        // leave on the same line
-        if ( srcIndex == index ) {
-            text_offset = pos;
-            isLinkStart = ((line_flags & LTEXT_IS_LINK) != 0) && (pos==0); // first word of link
-            return;
-        } if ( index < srcIndex ) {
-            // handle backward direction: update last paragraph properties
-            int i;
-            for ( i=index; i>0; i-- )
-                if ( m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE )
-                    break;
-            // set first_para_line, align, interval, margin, etc
-            setParagraphProperties( i );
-        }
-
-        // update current line variables
-        srcIndex = index;
-        text_offset = pos;
-        srcline = &m_pbuffer->srctext[srcIndex];
-        letter_spacing = srcline->letter_spacing;
-
-        line_flags = srcline->flags;
-        isLinkStart = ((line_flags & LTEXT_IS_LINK) != 0) && (pos==0); // first word of link
-        flgObject = (line_flags & LTEXT_SRC_IS_OBJECT) != 0; // object (e.g. image)
-        if ( !flgObject )
-        {
-            font = (LVFont*)srcline->t.font;
-        }
-
 #if 0
-        if ( !flgObject ) {
-            lString16 srctext( srcline->t.text, srcline->t.len);
-            lString8 srctext8 = UnicodeToUtf8(srctext);
-            const char * srctxt = srctext8.c_str();
-            if ( srctext8 == "Testing " ) {
-                srctxt += 0;
-            }
-        }
-#endif
-
-        if ( srcIndex==0 && !(line_flags & LTEXT_FLAG_NEWLINE) )
-            line_flags |= LTEXT_ALIGN_LEFT; /* first paragraph -- left by default */
-        // update new paragraph properties
-        if ( srcIndex==0 || (line_flags & LTEXT_FLAG_NEWLINE) ) {
-            setParagraphProperties( srcIndex );
-        }
-        // check buffers size
-        if (!flgObject && (int)widths_buf_size < (int)srcline->t.len + 64) //
-        {
-            widths_buf_size = srcline->t.len + 256;
-            widths_buf.reserve( widths_buf_size );
-            flags_buf.reserve( widths_buf_size );
-        }
-
-        vertical_align = srcline->flags & LTEXT_VALIGN_MASK;
-        wy = 0;
-        if ( !flgObject && vertical_align )
-        {
-            int fh = font->getSize();
-            if ( vertical_align == LTEXT_VALIGN_SUB )
-            {
-                wy += fh / 3;
-            }
-            else if ( vertical_align == LTEXT_VALIGN_SUPER )
-            {
-                wy -= fh / 3;
-            }
-        }
-        flgLastParaLine = false;
-        if (srcIndex==(int)m_pbuffer->srctextlen-1 || m_pbuffer->srctext[srcIndex+1].flags & LTEXT_FLAG_NEWLINE)
-            flgLastParaLine = true;
-        flgCanBreakBeforeNextLine = flgLastParaLine;
-        if (!flgCanBreakBeforeNextLine) {
-            src_text_fragment_t * nextline = &m_pbuffer->srctext[srcIndex + 1];
-            if ( nextline->flags & LTEXT_SRC_IS_OBJECT )
-                flgCanBreakBeforeNextLine = true;
-            else {
-                lChar16 firstChar = nextline->t.text[0];
-                if ( lGetCharProps(firstChar) & CH_PROP_SPACE )
-                    flgCanBreakBeforeNextLine = true;
-            }
-        }
-    }
-
-    /**
-     * Add new word to formatted line.
-     * @param firstch is index of first measured character of word
-     * @param lastch is index of last measured character of word
-     * @returns added word pointer
-     */
-    formatted_word_t * addWord( int firstch, int lastch )
-    {
-        formatted_word_t * word = lvtextAddFormattedWord( frmline );
-        word->src_text_index = srcIndex;
-        word->t.len = lastch - firstch + 1;
-        int wpos = firstch>0 ? widths_buf[firstch-1] : 0;
-        word->width = widths_buf[lastch] - wpos;
-        if ( firstch>0 && (flags_buf[firstch-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER) )
-            word->width += font->getHyphenWidth();
-        word->inline_width = word->width;
-        word->t.start = text_offset + firstch;
-        lUInt8 flags = 0;
-        if ( isLinkStart ) {
-            flags |= LTEXT_WORD_IS_LINK_START;
-            isLinkStart = 0;
-        }
-        word->y = wy;
-
-        // set word flags
-        lUInt16 lastchar = flags_buf[lastch];
-        lChar16 lastc = srcline->t.text[text_offset+lastch];
-        if (lastchar & LCHAR_ALLOW_WRAP_AFTER)
-            flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
-        if (lastchar & LCHAR_IS_EOL) {
-            flags |= LTEXT_WORD_MUST_BREAK_LINE_AFTER;
-        }
-        if (lastchar & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
-            flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
-            word->inline_width = word->width - font->getHyphenWidth();
-            if ( word->inline_width > 1000 ) {
-                word->inline_width += 0;
-            }
-        }
-        if ( text_offset+lastch == srcline->t.len-1 && flgLastParaLine)
-        {
-            /* last char of src fragment */
-            flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
-        }
-        bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
-        if ( lastc=='\t' ) {
-            // tab
-            if ( frmline->word_count==1 && frmline->x==0 && first_para_line->margin<0 ) {
-                if ( word->width<-first_para_line->margin ) {
-                    word->width = -first_para_line->margin;
-                    word->inline_width = -first_para_line->margin;
-                }
-            }
-            //if ( word->t.len>0 )
-            //    word->t.len--;
-        } else if (lastchar & LCHAR_IS_SPACE) {
-            flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-            if ( firstch<lastch ) {
-                word->width = widths_buf[lastch-1] - wpos;
-            }
-            if ( lastch>firstch )
-                lastc = srcline->t.text[text_offset+lastch-1];
-        }
-        if ( visualAlignmentEnabled ) {
-        int wAlign = font->getVisualAligmentWidth();
-        word->width += wAlign;
-        if ( flags&LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER )
-            word->width -= font->getHyphenWidth();
-        else if ( lastc=='.' || lastc==',' || lastc=='!' )
-            word->width -= font->getCharWidth(lastc);
-        }
-
-        word->flags = flags;
-        frmline->width += word->inline_width; //!!!
-        if ( word->t.len==0 ) {
-            //
-            CRLog::error("Added word of length 0!!!");
-        }
-        return word;
-    }
-
-    /**
-     * Add new object (image) from current source to formatted line
-     * @returns added object pointer
-     */
-    formatted_word_t * addObject()
-    {
-        formatted_word_t * word = lvtextAddFormattedWord( frmline );
-        word->flags = 0;
-        word->src_text_index = srcIndex;
-#if ARBITRARY_IMAGE_SCALE_ENABLED==1
-        int pscale_x = 1000 * m_pbuffer->width / srcline->o.width;
-        int pscale_y = 1000 * m_pbuffer->page_height / srcline->o.height;
-        int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
-        int maxscale = (MAX_IMAGE_SCALE_MUL>0 ? MAX_IMAGE_SCALE_MUL : 1) * 1000;
-        if ( pscale>maxscale )
-            pscale = maxscale;
-        word->o.height = srcline->o.height * pscale / 1000;
-        word->width = srcline->o.width * pscale / 1000;
-        word->inline_width = srcline->o.width * pscale / 1000;
+#define TR(x...) CRLog::trace(x)
 #else
-        int scale_div = 1;
-        int scale_mul = 1;
-        int div_x = (srcline->o.width / m_pbuffer->width) + 1;
-        int div_y = (srcline->o.height / m_pbuffer->page_height) + 1;
-#if (MAX_IMAGE_SCALE_MUL==3)
-        if ( srcline->o.height*3 < m_pbuffer->page_height-20
-                && srcline->o.width*3 < m_pbuffer->width - 20 )
-            scale_mul = 3;
-        else
+#ifdef _WIN32
+#define TR(x)
+#else
+#define TR(x...)
 #endif
-#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
-            if ( srcline->o.height*2 < m_pbuffer->page_height-20
-                && srcline->o.width*2 < m_pbuffer->width - 20 )
-            scale_mul = 2;
-        else
 #endif
-        if (div_x>1 || div_y>1) {
-            if (div_x>div_y)
-                scale_div = div_x;
-            else
-                scale_div = div_y;
-        }
-        word->o.height = srcline->o.height * scale_mul / scale_div;
-        word->width = srcline->o.width * scale_mul / scale_div;
-        word->inline_width = srcline->o.width * scale_mul / scale_div;
-#endif
-        word->flags |= LTEXT_WORD_IS_OBJECT;
-        word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
-        if ( srcIndex==m_pbuffer->srctextlen-1 || (m_pbuffer->srctext[srcIndex+1].flags&LTEXT_FLAG_NEWLINE) )
-            word->flags |= LTEXT_WORD_MUST_BREAK_LINE_AFTER;
-        word->y = 0;
-
-        frmline->width += word->width;
-        return word;
-    }
-
-    /**
-     * @returns space left in current formatted line
-     */
-    inline int spaceLeft()
-    {
-        return m_pbuffer->width - (frmline->x + frmline->width);
-    }
-
-    /**
-     * Format all data.
-     */
-    int format()
-    {
-        // start from first source line
-        setSrcLine( 0, 0 );
-        // until there is any source line left
-        while ( srcline ) { //&& srcIndex < (int)m_pbuffer->srctextlen
-            if ( flgObject ) {
-                // try to insert object
-                formatted_word_t * w = addObject();
-                int space_left = spaceLeft();
-                if ( space_left<=0 ) {
-                    commit( frmline->word_count-1 );
-                } else if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER ) {
-                    commit();
-                } else {
-                    setSrcLine( srcIndex+1, 0 );
-                }
-            } else {
-                // try to insert text
-                int space_left = spaceLeft();
-                int chars_left = srcline->t.len - text_offset;
-                if ( chars_left < 0 ) {
-                    chars_left = 0;
-                }
-                int chars_measured = font->measureText(
-                        srcline->t.text + text_offset,
-                        chars_left,
-                        widths_buf.get(), flags_buf.get(),
-                        space_left, //pbuffer->width,
-                        '?',
-                        letter_spacing);
-//                CRLog::trace("measure text: %d chars measured", chars_measured);
-                int j;
-                int last_fit = -1;
-                int last_hyph = -1;
-                //lChar16 nextCh = srcline->t.text[chars_measured + text_offset];
-                //bool eol = (nextCh=='\r' || nextCh=='\n');
-                /* try to find good place for line break */
-                if ( srcIndex>=(int)m_pbuffer->srctextlen || flgLastParaLine || flgCanBreakBeforeNextLine )
-                        flags_buf[chars_left-1] |= LCHAR_ALLOW_WRAP_AFTER;
-                for (j = 0; j<chars_left && j<chars_measured; j++)
-                {
-                    if (widths_buf[j] > space_left) {
-//                        if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
-//                            CRLog::trace("Hyphenation char doesn't fit!");
-//                        }
-//                        CRLog::("Break on char %d, chars_measured=%d, width=%d, space_left=%d", j, chars_measured, widths_buf[j], space_left);
-                        break;
-                    }
-                    if (flags_buf[j] & LCHAR_ALLOW_WRAP_AFTER) {
-                        last_fit = j;
-                        if ( flags_buf[j] & LCHAR_IS_EOL )
-                            break;
-                    }
-                    if (flags_buf[j] & LCHAR_ALLOW_HYPH_WRAP_AFTER) {
-                        last_hyph = j;
-//                        if ( widths_buf[j]>space_left)
-//                            CRLog::trace("Hyphenation outside line bounds!");
-                    }
-                }
-
-                if ( last_hyph!=-1 ) {
-                    if ( line_flags & LTEXT_HYPHENATE )
-                        last_fit = last_hyph; // always hyphenate if enabled
-                    else if ( last_fit==-1 && !frmline->word_count )
-                        last_fit = last_hyph; // try to hyphenate if single word only
-                    {
-                        lString16 s;
-                        for ( int i=0; i<=last_hyph; i++ )
-                            s += srcline->t.text[ text_offset + i];
-                        s << L"-";
-//                        CRLog::trace("%s  width=%d space_left=%d", LCSTR(s), widths_buf[last_hyph], space_left);
-                    }
-                }
-
-//                CRLog::trace("lastFit=%d, lastHyph=%d", last_fit, last_hyph);
-
-                if ( last_fit==-1 ) {
-
-                    int existingWrapPos = updateWrapPos( );
-                    if ( existingWrapPos==0 ) {
-                        //
-                        /* try to find deprecated place for line break if good is not found */
-                        for (j = 0; j<chars_left && j<chars_measured; j++)
-                        {
-                            if (widths_buf[j] > space_left)
-                                break;
-                            if ( flags_buf[j] & LCHAR_DEPRECATED_WRAP_AFTER )
-                                last_fit = j;
-                        }
-                        if (last_fit==-1) {
-                            /* try to wrap in the middle of word */
-                            for (j = 0; j<chars_left && j<chars_measured; j++)
-                            {
-                                if (widths_buf[j] > space_left)
-                                    break;
-                            }
-                            if (j)
-                                last_fit = j - 1;
-                            else
-                                last_fit = 0;
-                        }
-                    }
-                }
-                if ( last_fit==-1 ) {
-                    // doesn't fit, commit already added words then try again from beginning of line
-                    if ( chars_measured < chars_left )
-                        commit();
-                    else {
-                        formatted_word_t * w = addWord(0, chars_measured-1);
-                            //text_offset += chars_measured - (last_fit+1);
-                        if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER )
-                            commit();
-                        else
-                            setSrcLine( srcIndex+1, 0 );
-                    }
-                } else {
-//                    if ( last_hyph!=-1 && last_fit !=last_hyph )
-//                        CRLog::trace("Hyphenation not used");
-                    // add words
-                    if ( align == LTEXT_ALIGN_WIDTH ) {
-                        //
-                        int wstart, wpos;
-                        bool eol = false;
-                        for (j=0, wstart=0, wpos=0; j<=last_fit && srcline; j++)
-                        {
-                            if (flags_buf[j] & LCHAR_IS_SPACE || j==last_fit) /* LCHAR_ALLOW_WRAP_AFTER */
-                            {
-                                formatted_word_t * w = addWord( wstart, j );
-//                                if ( j==last_fit && j>0 && j<chars_left) {
-//                                    commit();
-//                                    eol = true;
-//                                    break;
-//                                }
-                                if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER) {
-                                    commit();
-                                    eol = true;
-                                    break;
-                                }
-                                wstart = j+1;
-                            }
-                        }
-                        if ( eol )
-                            continue;
-                    } else {
-                        // add as single word
-                        formatted_word_t * w = addWord( 0, last_fit );
-                        if ( w->flags & LTEXT_WORD_MUST_BREAK_LINE_AFTER ) {
-                            commit();
-                            continue;
-                        }
-                    }
-
-                    // check rest of line
-                    if ( last_fit<chars_left-1 ) {
-                        // not all characters of source string fit into line
-                        if ( chars_measured<chars_left ) {
-                            // line is too wide
-                            text_offset += last_fit + 1;
-                            commit();
-                        } else {
-                            // line fits, but wrap is not allowed
-                            addWord(last_fit + 1, chars_measured-1 );
-                            setSrcLine( srcIndex+1, 0 );
-                        }
-                    } else if ( last_fit + 1 >= chars_left ) {
-                        // all chars fit ok
-                        if ( flgLastParaLine ) {
-                            // if last paragraph line, commit
-                            text_offset += last_fit + 1;
-                            commit();
-                        } else {
-                            setSrcLine( srcIndex+1, 0 );
-                        }
-                    } else {
-                        // not all chars fit
-                        text_offset += last_fit + 1;
-                    }
-                }
-                //
-            }
-        }
-        commit();
-        // remove empty trailing line
-        if ( m_pbuffer->frmlinecount ) {
-            formatted_line_t   * frmline2 = m_pbuffer->frmlines[m_pbuffer->frmlinecount-1];
-            if ( frmline2->word_count == 0 ) {
-                lvtextFreeFormattedLine( m_pbuffer->frmlines[m_pbuffer->frmlinecount-1] );
-                m_pbuffer->frmlinecount--;
-				frmline = m_pbuffer->frmlinecount > 0 ? m_pbuffer->frmlines[m_pbuffer->frmlinecount-1] : NULL;
-            }
-        }
-        //===========================
-		return frmline ? frmline->y + frmline->height : 0;
-    }
-
-    LVFormLine( formatted_text_fragment_t * buffer )
-    : m_pbuffer(buffer)
-    , widths_buf_size(512)
-    , widths_buf( widths_buf_size, 0 )
-    , flags_buf( widths_buf_size, 0 )
-    , srcIndex(-1)
-    {
-        newLine();
-    }
-
-    ~LVFormLine()
-    {
-        // explicit clear to test memory corruption
-        flags_buf.clear();
-        widths_buf.clear();
-    }
-};
 
 class LVFormatter {
 public:
@@ -1428,30 +745,38 @@ public:
     //LVArray<lUInt8>   flags_buf;
     formatted_text_fragment_t * m_pbuffer;
     int       m_length;
+    int       m_size;
     bool      m_staticBufs;
     lChar16 * m_text;
     lUInt8 *  m_flags;
     src_text_fragment_t * * m_srcs;
     lUInt16 * m_charindex;
     int *     m_widths;
+    int m_y;
 
 #define OBJECT_CHAR_INDEX ((lUInt16)0xFFFF)
 
     LVFormatter(formatted_text_fragment_t * pbuffer)
-    : m_pbuffer(pbuffer), m_length(0), m_staticBufs(true)
+    : m_pbuffer(pbuffer), m_length(0), m_size(0), m_staticBufs(true), m_y(0)
     {
+        m_text = NULL;
+        m_flags = NULL;
+        m_srcs = NULL;
+        m_charindex = NULL;
+        m_widths = NULL;
     }
 
     ~LVFormatter()
     {
     }
 
-    void allocate()
+    /// allocate buffers for paragraph
+    void allocate( int start, int end )
     {
         int pos = 0;
         unsigned i;
         // PASS 1: calculate total length (characters + objects)
-        for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
+        for ( i=start; i<end; i++ ) {
             src_text_fragment_t * src = &m_pbuffer->srctext[i];
             if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                 pos++;
@@ -1462,13 +787,21 @@ public:
 
         // allocate buffers
         m_length = pos;
-#define STATIC_BUFS_SIZE 16384
-        if ( m_length>STATIC_BUFS_SIZE-1 ) {
-            m_text = new lChar16[m_length+1];
-            m_flags = new lUInt8[m_length+1];
-            m_charindex = new lUInt16[m_length];
-            m_srcs = new src_text_fragment_t * [m_length];
-            m_widths = new int[m_length];
+
+        TR("allocate(%d)", m_length);
+
+#define STATIC_BUFS_SIZE 8192
+#define ITEMS_RESERVED 16
+        if ( !m_staticBufs || m_length>STATIC_BUFS_SIZE-1 ) {
+            if ( m_length+ITEMS_RESERVED>m_size ) {
+                // realloc
+                m_size = m_length+ITEMS_RESERVED;
+                m_text = (lChar16*)realloc(m_text, sizeof(lChar16)*m_size);
+                m_flags = (lUInt8*)realloc(m_flags, sizeof(lUInt8)*m_size);
+                m_charindex = (lUInt16*)realloc(m_charindex, sizeof(lUInt16)*m_size);
+                m_srcs = (src_text_fragment_t **)realloc(m_srcs, sizeof(src_text_fragment_t *)*m_size);
+                m_widths = (int*)realloc(m_widths, sizeof(int)*m_size);
+            }
             m_staticBufs = false;
         } else {
             // static buffer space
@@ -1488,11 +821,11 @@ public:
         pos = 0;
     }
 
-    void copyText()
+    void copyText( int start, int end )
     {
         int pos = 0;
         unsigned i;
-        for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
+        for ( i=start; i<end; i++ ) {
             src_text_fragment_t * src = &m_pbuffer->srctext[i];
             if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                 m_text[pos] = 0;
@@ -1502,12 +835,14 @@ public:
                 pos++;
             } else {
                 int len = src->t.len;
-                lStr_ncpy( m_text+pos, src->t.text, len );
+                //lStr_ncpy( m_text+pos, src->t.text, len );
                 if ( i==0 || (src->flags & LTEXT_FLAG_NEWLINE) )
                     m_flags[pos] = LCHAR_MANDATORY_NEWLINE;
                 for ( int k=0; k<len; k++ ) {
+                    m_text[pos] = src->t.text[k];
                     m_charindex[pos] = k;
-                    m_srcs[pos++] = src;
+                    m_srcs[pos] = src;
+                    pos++;
                 }
             }
         }
@@ -1523,17 +858,24 @@ public:
 #define MAX_TEXT_CHUNK_SIZE 4096
         static lUInt16 widths[MAX_TEXT_CHUNK_SIZE+1];
         static lUInt8 flags[MAX_TEXT_CHUNK_SIZE+1];
+        int tabIndex = -1;
         for ( i=0; i<=m_length; i++ ) {
             LVFont * newFont = NULL;
             src_text_fragment_t * newSrc = NULL;
+            if ( tabIndex<0 && m_text[i]=='\t' ) {
+                tabIndex = i;
+            }
             bool isObject = false;
             if ( i<m_length ) {
                 newSrc = m_srcs[i];
-                isObject = m_charindex[i]!=OBJECT_CHAR_INDEX;
-                if ( isObject ) {
-                    newFont = (LVFont *)newSrc->t.font;
-                }
+                newFont = (LVFont *)newSrc->t.font;
+                isObject = m_charindex[i]==OBJECT_CHAR_INDEX;
+//                if ( isObject ) {
+//                    newFont = (LVFont *)newSrc->t.font;
+//                }
             }
+            if ( !lastFont )
+                lastFont = newFont;
             if ( i>start && (newFont!=lastFont || isObject || i>=start+MAX_TEXT_CHUNK_SIZE || (m_flags[i]&LCHAR_MANDATORY_NEWLINE)) ) {
                 // measure start..i-1 chars
                 if ( m_charindex[i-1]!=OBJECT_CHAR_INDEX ) {
@@ -1544,8 +886,9 @@ public:
                             len,
                             widths, flags,
                             0x7FFF, //pbuffer->width,
+                            //300, //TODO
                             '?',
-                            0,
+                            m_srcs[start]->letter_spacing,
                             false);
                     if ( chars_measured<len ) {
                         // too long line
@@ -1553,11 +896,20 @@ public:
                         i = start + newlen;
                         len = newlen;
                     }
+
                     for ( int k=0; k<len; k++ ) {
                         m_widths[start + k] = lastWidth + widths[k];
                         m_flags[start + k] |= flags[k];
                     }
-                    lastWidth += widths[len];
+
+//                    // debug dump
+//                    lString16 buf;
+//                    for ( int k=0; k<len; k++ ) {
+//                        buf << L"_" << lChar16(m_text[start+k]) << L"_" << lString16::itoa(widths[k]);
+//                    }
+//                    TR("       %s", LCSTR(buf));
+
+                    lastWidth += widths[len-1]; //len<m_length ? len : len-1];
                     m_flags[len] = 0;
                     // TODO: letter spacing letter_spacing
                 } else {
@@ -1575,62 +927,98 @@ public:
             lastSrc = newSrc;
             //if ( i==m_length || )
         }
+        if ( tabIndex>=0 ) {
+            int tabPosition = -m_srcs[0]->margin;
+            if ( tabPosition>0 && tabPosition > m_widths[tabIndex] ) {
+                int dx = tabPosition - m_widths[tabIndex];
+                for ( i=tabIndex; i<m_length; i++ )
+                    m_widths[i] += dx;
+            }
+        }
+//        // debug dump
+//        lString16 buf;
+//        for ( int i=0; i<m_length; i++ ) {
+//            buf << L" " << lChar16(m_text[i]) << L" " << lString16::itoa(m_widths[i]);
+//        }
+//        TR("%s", LCSTR(buf));
     }
 
 #define MIN_WORD_LEN_TO_HYPHENATE 4
 #define MAX_WORD_SIZE 64
-    void hyphenateWord( int wordPos, int minPos, int maxPos, int &wrapPos )
-    {
-        // wordPos is last fit character
-        int start, end;
-        lStr_findWordBounds( m_text, m_length, wordPos+1, start, end );
-        if ( start<end && start<maxPos && end<minPos && end-start>MIN_WORD_LEN_TO_HYPHENATE ) {
-            int len = end-start;
-            static lUInt8 flags[MAX_WORD_SIZE];
-            static lUInt16 widths[MAX_WORD_SIZE];
-            //HyphMan::hyphenate(m_text+start, len, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+
+    void alignLine( formatted_line_t * frmline, int width, int alignment ) {
+        if ( alignment==LTEXT_ALIGN_LEFT )
+            return; // no additional alignment necessary
+        else if ( alignment==LTEXT_ALIGN_CENTER ) {
+            // centering, ignoring first line margin
+            frmline->x = (width - frmline->width) / 2;
+        } else if ( alignment==LTEXT_ALIGN_RIGHT ) {
+            // right align
+            frmline->x = (width - frmline->width);
+        } else {
+            // LTEXT_ALIGN_WIDTH
+            int extraSpace = width - frmline->x - frmline->width;
+            if ( extraSpace<=0 )
+                return; // no space to distribute
+            int addSpacePoints = 0;
+            int i;
+            for ( i=0; i<frmline->word_count-1; i++ ) {
+                if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
+                    addSpacePoints++;
+            }
+            if ( addSpacePoints>0 ) {
+                int addSpaceDiv = extraSpace / addSpacePoints;
+                int addSpaceMod = extraSpace % addSpacePoints;
+                int delta = 0;
+                for ( i=0; i<frmline->word_count; i++ ) {
+                    frmline->words[i].x += delta;
+                    if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
+                        delta += addSpaceDiv;
+                        if ( addSpaceMod>0 ) {
+                            addSpaceMod--;
+                            delta++;
+                        }
+                    }
+                }
+                frmline->width += extraSpace;
+            }
         }
     }
 
-    void addLine( int start, int end, int x, src_text_fragment_t * para, bool first, bool last )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last )
     {
-        // setup line properties
         int maxWidth = m_pbuffer->width;
-        int w0 = start>0 ? m_widths[start-1] : 0;
+        //int w0 = start>0 ? m_widths[start-1] : 0;
         int align = para->flags & LTEXT_FLAG_NEWLINE;
-        bool addHyph = (m_flags[end] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0;
-        int hyphWidth = 0;
-        if ( addHyph )
-            hyphWidth = ((LVFont*)m_srcs[end]->t.font)->getCharWidth(UNICODE_SOFT_HYPHEN_CODE);
+        TR("addLine(%d, %d) y=%d  align=%d", start, end, m_y, align);
+
+        int text_align_last = (para->flags >> LTEXT_LAST_LINE_ALIGN_SHIFT) & LTEXT_FLAG_NEWLINE;
+        if ( last && !first && align==LTEXT_ALIGN_WIDTH && text_align_last!=0 )
+            align = text_align_last;
+        else if ( align==LTEXT_ALIGN_WIDTH && last )
+            align = LTEXT_ALIGN_LEFT;
         if ( !align )
             align = LTEXT_ALIGN_LEFT;
+
+        bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT );
+
+        bool splitBySpaces = (align == LTEXT_ALIGN_WIDTH);
+
         if ( last && !first ) {
             int last_align = (para->flags>>16) & LTEXT_FLAG_NEWLINE;
             if ( last_align )
                 align = last_align;
         }
-        int width = m_widths[end] - w0 + hyphWidth;
-        int addSpacePoints = 0;
-        int addSpaceDiv = 0;
-        int addSpaceMod = 0;
-        int extraSpace = maxWidth - width;
+
         int lastnonspace = 0;
-        bool addSpace = false;
-        // justify alignment calculations
-        if ( align==LTEXT_ALIGN_WIDTH && extraSpace>0 ) {
-            for ( int i=start; i<end; i++ ) {
-                if ( (m_flags[i] & LCHAR_IS_SPACE) && !(m_flags[i] & LCHAR_IS_OBJECT) )
-                    addSpacePoints++;
-                else
+        if ( align==LTEXT_ALIGN_WIDTH ) {
+            for ( int i=start; i<end; i++ )
+                if ( !((m_flags[i] & LCHAR_IS_SPACE) && !(m_flags[i] & LCHAR_IS_OBJECT)) )
                     lastnonspace = i;
-            }
-            if ( addSpacePoints>0 ) {
-                addSpaceMod = extraSpace % addSpacePoints;
-                addSpaceDiv = extraSpace / addSpacePoints;
-                addSpace = true;
-            }
         }
+
         formatted_line_t * frmline =  lvtextAddFormattedLine( m_pbuffer );
+        frmline->y = m_y;
         frmline->x = x;
         src_text_fragment_t * lastSrc = m_srcs[start];
         int wstart = start;
@@ -1640,87 +1028,247 @@ public:
         bool isSpace = false;
         bool nextIsSpace = false;
         bool space = false;
-        for ( int i=start+1; i<=end; i++ ) {
-            src_text_fragment_t * newSrc = i<end ? m_srcs[start] : 0;
+        for ( int i=start; i<=end; i++ ) {
+            src_text_fragment_t * newSrc = i<end ? m_srcs[i] : NULL;
             if ( i<end ) {
                 isObject = (m_flags[i] & LCHAR_IS_OBJECT)!=0;
                 isSpace = (m_flags[i] & LCHAR_IS_SPACE)!=0;
                 nextIsSpace = i<end-1 && (m_flags[i+1] & LCHAR_IS_SPACE);
-                space = addSpace && lastIsSpace && !isSpace && i<lastnonspace;
+                space = splitBySpaces && lastIsSpace && !isSpace && i<lastnonspace;
             } else {
                 lastWord = true;
             }
             if ( i>wstart && (newSrc!=lastSrc || space || lastWord) ) {
                 // create and add new word
                 formatted_word_t * word = lvtextAddFormattedWord(frmline);
+                int b;
+                int h;
+                word->src_text_index = m_srcs[wstart]->index;
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object
+                    word->x = frmline->width;
                     word->flags = LTEXT_WORD_IS_OBJECT;
+                    word->width = lastSrc->o.width;
+                    word->o.height = lastSrc->o.height;
+                    int maxw = m_pbuffer->width - x;
+
+#if ARBITRARY_IMAGE_SCALE_ENABLED==1
+        int pscale_x = 1000 * maxw / lastSrc->o.width;
+        int pscale_y = 1000 * m_pbuffer->page_height / lastSrc->o.height;
+        int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
+        int maxscale = (MAX_IMAGE_SCALE_MUL>0 ? MAX_IMAGE_SCALE_MUL : 1) * 1000;
+        if ( pscale>maxscale )
+            pscale = maxscale;
+        word->o.height = lastSrc->o.height * pscale / 1000;
+        word->width = lastSrc->o.width * pscale / 1000;
+#else
+        int scale_div = 1;
+        int scale_mul = 1;
+        int div_x = (lastSrc->o.width / maxw) + 1;
+        int div_y = (lastSrc->o.height / m_pbuffer->page_height) + 1;
+#if (MAX_IMAGE_SCALE_MUL==3)
+        if ( lastSrc->o.height*3 < m_pbuffer->page_height-20
+                && lastSrc->o.width*3 < maxw - 20 )
+            scale_mul = 3;
+        else
+#endif
+#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
+            if ( lastSrc->o.height*2 < m_pbuffer->page_height-20
+                && lastSrc->o.width*2 < maxw - 20 )
+            scale_mul = 2;
+        else
+#endif
+        if (div_x>1 || div_y>1) {
+            if (div_x>div_y)
+                scale_div = div_x;
+            else
+                scale_div = div_y;
+        }
+        word->o.height = lastSrc->o.height * scale_mul / scale_div;
+        word->width = lastSrc->o.width * scale_mul / scale_div;
+        word->inline_width = word->width;
+#endif
+
+                    b = word->o.height;
+                    h = 0;
                 } else {
                     // word
+                    src_text_fragment_t * srcline = m_srcs[wstart];
+                    LVFont * font = (LVFont*)srcline->t.font;
+                    int vertical_align = srcline->flags & LTEXT_VALIGN_MASK;
+                    int fh = font->getHeight();
+                    int wy = 0;
+                    if ( vertical_align )  {
+                        if ( vertical_align == LTEXT_VALIGN_SUB )
+                            wy += fh / 2;
+                        else if ( vertical_align == LTEXT_VALIGN_SUPER )
+                            wy -= fh / 2;
+                    }
+                    word->x = frmline->width;
                     word->flags = 0;
+                    word->t.start = m_charindex[wstart];
+                    word->t.len = i - wstart;
+                    word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
+                    TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
+                    if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
+                        word->width += font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
+                        word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
+                    }
+                    if ( m_flags[i-1] & LCHAR_IS_SPACE)
+                        word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+                    else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
+                        frmline->words[frmline->word_count-2].flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+                    if ( m_flags[i-1] & LCHAR_ALLOW_WRAP_AFTER )
+                        word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
+                    if ( word->t.start==0 && srcline->flags & LTEXT_IS_LINK )
+                        word->flags |= LTEXT_WORD_IS_LINK_START;
+
+                    if ( visualAlignmentEnabled && lastWord ) {
+                        int endp = i-1;
+                        int lastc = m_text[endp];
+                        int wAlign = font->getVisualAligmentWidth();
+                        word->width += wAlign;
+                        if ( lastc==' ' && endp>0 ) {
+                            word->width -= m_widths[endp] - m_widths[endp-1];
+                            endp--;
+                            lastc = m_text[endp];
+                        }
+                        if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER ) {
+                            word->width -= font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
+                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ) {
+                            int w = font->getCharWidth(lastc);
+                            TR("floating: %c w=%d", lastc, w);
+                            word->width -= w;
+                        }
+                    }
+
+                    word->y = wy;
+
+                    if (word->y!=0) {
+                        // subscript or superscript
+                        b = font->getBaseline();
+                        h = font->getHeight() - b;
+                    }  else  {
+                        b = (( font->getBaseline() * interval) >> 4);
+                        h = ( ( font->getHeight() * interval) >> 4) - b;
+                    }
+
                 }
+
+                if ( frmline->baseline < b - word->y )
+                    frmline->baseline = (lUInt16) (b - word->y);
+                if ( frmline->height < frmline->baseline + h )
+                    frmline->height = (lUInt16) ( frmline->baseline + h );
+
+                frmline->width += word->width;
+
                 lastSrc = newSrc;
                 wstart = i;
             }
             lastIsSpace = isSpace;
         }
+
+        alignLine( frmline, maxWidth, align );
+
+        m_y += frmline->height;
+        m_pbuffer->height = m_y;
     }
 
     void processParagraph( int start, int end )
     {
-        src_text_fragment_t * paraStartSrc = m_srcs[start];
-        // TODO: split paragraph into lines, export lines
-        int pos = start;
-        int maxWidth = m_pbuffer->width;
-        int indent = paraStartSrc->margin;
-        int x = indent >=0 ? indent : 0;
-        int w0 = pos>0 ? m_widths[pos-1] : 0;
-        int i;
-        int lastNormalWrap = -1;
-        int lastHyphWrap = -1;
-        for ( i=pos; i<end; i++ ) {
-            if ( x + m_widths[i]-w0 > maxWidth )
-                break;
-            lUInt8 flags = m_flags[i];
-            if ( flags & LCHAR_ALLOW_WRAP_AFTER )
-                lastNormalWrap = i;
-            else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
-                lastHyphWrap = i;
-        }
-        if ( i<=pos )
-            i = pos + 1; // allow at least one character to be shown on line
-        int wordpos = i-1;
-        int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
-        int unusedSpace = maxWidth - normalWrapWidth;
-        if ( unusedSpace > (maxWidth>>4) && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
-            // hyphenate word
-            int start, end;
-            lStr_findWordBounds( m_text, m_length, pos+1, start, end );
-            int len = end-start;
-            if ( start<end && start<wordpos && end>i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
-                if ( len > MAX_WORD_SIZE )
-                    len = MAX_WORD_SIZE;
-                lUInt8 * flags = m_flags + start;
-                static lUInt16 widths[MAX_WORD_SIZE];
-                //HyphMan::hyphenate(m_text+start, len, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
-                //TODO: add hyphenation
-            }
-        }
-        int wrapPos = lastHyphWrap;
-        if ( wrapPos<lastNormalWrap )
-            wrapPos = lastNormalWrap;
-        if ( wrapPos<0 ) {
-            wrapPos = i-1;
-        }
+        TR("processParagraph(%d, %d)", start, end);
+        // ensure buffer size is ok for paragraph
+        allocate( start, end );
+        // copy paragraph text to buffer
+        copyText( start, end );
+        // measure paragraph text
+        measureText();
 
+        int maxWidth = m_pbuffer->width;
+#if 0
+        // reservation of space for floating punctuation
+        bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
+        int visialAlignmentWidth = 0;
+        if ( visualAlignmentEnabled ) {
+            LVFont * font = NULL;
+            for ( int i=start; i<=end; i++ ) {
+                if ( !(m_srcs[i]->flags & LTEXT_SRC_IS_OBJECT) ) {
+                    font = (LVFont*)m_srcs[i]->t.font;
+                    int dx = font->getVisualAligmentWidth();
+                    if ( dx>visialAlignmentWidth )
+                        visialAlignmentWidth = dx;
+                }
+            }
+            maxWidth -= visialAlignmentWidth;
+        }
+#endif
+        int interval = m_srcs[0]->interval;
+        // split paragraph into lines, export lines
+        int pos = 0;
+        int indent = m_srcs[0]->margin;
+        for (;pos<m_length;) {
+            int x = indent >=0 ? (pos==0 ? indent : 0) : (pos==0 ? 0 : -indent);
+            int w0 = pos>0 ? m_widths[pos-1] : 0;
+            int i;
+            int lastNormalWrap = -1;
+            int lastHyphWrap = -1;
+            for ( i=pos; i<m_length; i++ ) {
+                if ( x + m_widths[i]-w0 > maxWidth )
+                    break;
+                lUInt8 flags = m_flags[i];
+                if ( flags & LCHAR_ALLOW_WRAP_AFTER || i==m_length-1)
+                    lastNormalWrap = i;
+                else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
+                    lastHyphWrap = i;
+            }
+            if ( i<=pos )
+                i = pos + 1; // allow at least one character to be shown on line
+            int wordpos = i-1;
+            int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
+            int unusedSpace = maxWidth - normalWrapWidth;
+            if ( lastNormalWrap<m_length-1 && unusedSpace > (maxWidth>>4) && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
+                // hyphenate word
+                int start, end;
+                lStr_findWordBounds( m_text, m_length, wordpos, start, end );
+                int len = end-start;
+                if ( start<end && start<wordpos && end>=i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
+                    if ( len > MAX_WORD_SIZE )
+                        len = MAX_WORD_SIZE;
+                    lUInt8 * flags = m_flags + start;
+                    static lUInt16 widths[MAX_WORD_SIZE];
+                    int wordStart_w = start>0 ? m_widths[start-1] : 0;
+                    for ( int i=0; i<len; i++ ) {
+                        widths[i] = m_widths[start+i] - wordStart_w;
+                    }
+                    int max_width = maxWidth - x - (wordStart_w - w0);
+                    int _hyphen_width = ((LVFont*)m_srcs[wordpos]->t.font)->getHyphenWidth();
+                    if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
+                        for ( int i=0; i<len; i++ )
+                            if ( (m_flags[start+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0 ) {
+                                if ( widths[i]+_hyphen_width>max_width )
+                                    break; // hyph is too late
+                                if ( start + i > pos+1 )
+                                    lastHyphWrap = start + i;
+                            }
+                    }
+                }
+            }
+            int wrapPos = lastHyphWrap;
+            if ( wrapPos<lastNormalWrap )
+                wrapPos = lastNormalWrap;
+            if ( wrapPos<0 )
+                wrapPos = i-1;
+            addLine(pos, wrapPos+1, x, m_srcs[0], interval, pos==0, wrapPos>=m_length-1 );
+            pos = wrapPos + 1;
+        }
     }
 
+    /// split lines into paragraphs
     void splitParagraphs()
     {
         int start = 0;
-        for ( int i=0; i<=m_length; i++ ) {
-            if ( i>start && ((m_flags[i] & LCHAR_MANDATORY_NEWLINE) || i==m_length) ) {
+        for ( int i=1; i<=m_pbuffer->srctextlen; i++ ) {
+            if ( (m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) || i==m_pbuffer->srctextlen ) {
                 processParagraph( start, i );
                 start = i;
             }
@@ -1730,29 +1278,28 @@ public:
     void dealloc()
     {
         if ( !m_staticBufs ) {
-            delete[] m_text;
-            delete[] m_flags;
-            delete[] m_srcs;
-            delete[] m_charindex;
-            delete[] m_widths;
+            free( m_text );
+            free( m_flags );
+            free( m_srcs );
+            free( m_charindex );
+            free( m_widths );
+            m_text = NULL;
+            m_flags = NULL;
+            m_srcs = NULL;
+            m_charindex = NULL;
+            m_widths = NULL;
+            m_staticBufs = true;
         }
     }
 
     int format()
     {
-        // PASS 1: calculate total length (characters + objects), allocate buffers
-        allocate();
-        // PASS 2: copy text and fill char indexes
-        copyText();
-        // PASS 3: measure text
-        measureText();
-        // PASS 4: split/export paragraphs
+        // split and process all paragraphs
         splitParagraphs();
-
         // cleanup
         dealloc();
-
-        return 0;
+        TR("format() finished: h=%d  lines=%d", m_y, m_pbuffer->frmlinecount);
+        return m_y;
     }
 };
 
@@ -1772,7 +1319,7 @@ static void freeFrmLines( formatted_text_fragment_t * m_pbuffer )
 }
 
 // experimental formatter
-lUInt32 LFormattedText::FormatNew2(lUInt16 width, lUInt16 page_height)
+lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
 {
     // clear existing formatted data, if any
     freeFrmLines( m_pbuffer );
@@ -1784,22 +1331,6 @@ lUInt32 LFormattedText::FormatNew2(lUInt16 width, lUInt16 page_height)
     LVFormatter formatter( m_pbuffer );
 
     return formatter.format();
-}
-
-lUInt32 LFormattedText::FormatNew(lUInt16 width, lUInt16 page_height)
-{
-    // clear existing formatted data, if any
-    freeFrmLines( m_pbuffer );
-    // setup new page size
-    m_pbuffer->width = width;
-    m_pbuffer->height = 0;
-    m_pbuffer->page_height = page_height;
-    // format text
-
-    // text measurement buffer
-    LVFormLine frmLine( m_pbuffer );
-
-    return frmLine.format();
 }
 
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks, ldomMarkedRangeList *bookmarks )
