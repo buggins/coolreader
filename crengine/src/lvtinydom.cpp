@@ -10577,6 +10577,7 @@ void runBasicTinyDomUnitTests()
 
 void runCHMUnitTest()
 {
+#if CHM_SUPPORT_ENABLED==1
 #if BUILD_LITE!=1
     LVStreamRef stream = LVOpenFileStream("/home/lve/src/test/mysql.chm", LVOM_READ);
     MYASSERT ( !stream.isNull(), "container stream opened" );
@@ -10600,6 +10601,7 @@ void runCHMUnitTest()
     MYASSERT( bytesRead==1000, "Read() -- bytesRead 2" );
     buf[999] = 0;
     CRLog::trace("CHM/index.html Contents 0: %s", buf);
+#endif
 #endif
 }
 

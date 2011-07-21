@@ -1288,7 +1288,8 @@ public:
         m_fd = open( fn8.c_str(), flags, (mode_t)0666);
         if (m_fd == -1) {
 #ifndef ANDROID
-            CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );
+            CRLog::error( "Error opening file %s for %s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write" );
+            //CRLog::error( "Error opening file %s for %s, errno=%d, msg=%s", fn8.c_str(), (mode==LVOM_READ) ? "reading" : "read/write",  (int)errno, strerror(errno) );
 #endif
             return LVERR_FAIL;
         }
