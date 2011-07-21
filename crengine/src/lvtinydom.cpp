@@ -4839,7 +4839,7 @@ void ldomXPointerEx::initIndex()
 /// move to sibling #
 bool ldomXPointerEx::sibling( int index )
 {
-    if ( _level < 1 )
+    if ( _level <= 1 )
         return false;
     ldomNode * p = getNode()->getParentNode();
     if ( !p || index < 0 || index >= (int)p->getChildCount() )
@@ -4859,17 +4859,19 @@ bool ldomXPointerEx::nextSibling()
 /// move to previous sibling
 bool ldomXPointerEx::prevSibling()
 {
+    if ( _level <= 1 )
+        return false;
     return sibling( _indexes[_level-1] - 1 );
 }
 
 /// move to next sibling element
 bool ldomXPointerEx::nextSiblingElement()
 {
-    if ( _level < 1 )
+    if ( _level <= 1 )
         return false;
     ldomNode * node = getNode();
     ldomNode * p = node->getParentNode();
-    for ( int i=_indexes[_level-1] + 1; i<(int)node->getChildCount(); i++ ) {
+    for ( int i=_indexes[_level-1] + 1; i<(int)p->getChildCount(); i++ ) {
         if ( p->getChildNode( i )->isElement() )
             return sibling( i );
     }
@@ -4879,7 +4881,7 @@ bool ldomXPointerEx::nextSiblingElement()
 /// move to previous sibling element
 bool ldomXPointerEx::prevSiblingElement()
 {
-    if ( _level < 1 )
+    if ( _level <= 1 )
         return false;
     ldomNode * node = getNode();
     ldomNode * p = node->getParentNode();
@@ -5525,8 +5527,11 @@ bool ldomXPointerEx::ensureElement()
     ldomNode * node = getNode();
     if ( !node )
         return false;
-    if ( node->isText() && !parent() )
-        return false;
+    if ( node->isText()) {
+        if (!parent())
+            return false;
+        node = getNode();
+    }
     if ( !node || !node->isElement() )
         return false;
     return true;

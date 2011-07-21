@@ -30,7 +30,14 @@ point_to_end(ldomXPointerEx& xp) {
         xp.setOffset(text.length());
     };
     if(p->isElement()) {
-        xp.setOffset(p->getChildCount());
+        xp.lastChild();
+        if (!xp.isText())
+            xp.nextVisibleText();
+        if (xp.isText()) {
+            ldomNode * p = xp.getNode();
+            lString16 text = p->getText();
+            xp.setOffset(text.length());
+        }
     }
 };
 
@@ -52,53 +59,65 @@ contains(const lString16& s, const lString16::value_type c) {
 }
 
 ldomXPointerEx
-upper_phrase_bound(ldomXPointer& p, const lString16 bounds) {
+upper_phrase_bound(ldomXPointer& p, const lString16 bounds, bool skip = false) {
     ldomXPointerEx xp(p);
-    ldomNode * n = xp.getNode();
-    if(!n->isText())
-        return p;
-    int offset = p.getOffset();
-    lString16 text(n->getText());
+    bool moved = false;
     while(1) {
-        while(offset > 0) {
+        if (moved || !xp.isText()) {
+            if (!xp.prevVisibleText()) {
+                xp.setOffset(0);
+                return xp;
+            }
+            moved = true;
+        }
+        ldomNode *n = xp.getNode();
+        lString16 text = n -> getText();
+        int offset = !moved ? xp.getOffset() : text.length();
+        while (offset > 0) {
             --offset;
-            if(contains(bounds, text[offset])){
+            if ((skip && !contains(bounds, text[offset])) || (!skip && contains(bounds, text[offset]))) {
                 xp.setOffset(offset);
                 return xp;
             }
         }
-        if(!xp.prevVisibleText())
-            return p;
-        n = xp.getNode();
-        text = n -> getText();
-        offset = text.length();
+        moved = true;
     };
 }
 
 ldomXPointerEx
-lower_phrase_bound(ldomXPointer& p, const lString16 bounds) {
+lower_phrase_bound(ldomXPointer& p, const lString16 bounds, bool skip = false) {
     ldomXPointerEx xp(p);
-    ldomNode * n = xp.getNode();
-    if(!n->isText())
-        return p;
-    unsigned int offset = p.getOffset();
-    lString16 text(n->getText());
+    bool moved = false;
     while(1) {
+        if (moved || !xp.isText()) {
+            if (!xp.nextVisibleText())
+                return p;
+        }
+        ldomNode *n = xp.getNode();
+        lString16 text = n -> getText();
+        int offset = xp.getOffset();
         while(offset < text.length()) {
             ++offset;  
-            if(contains(bounds, text[offset])){
+            if ((skip && !contains(bounds, text[offset])) || (!skip && contains(bounds, text[offset]))) {
                 xp.setOffset(offset);
                 return xp;
             }
         };
-        if(!xp.nextVisibleText()) 
-            return p;
-        n = xp.getNode();
-        text = n->getText();
-        offset = 0;
+        moved = true;
     };
 }
 
+
+bool is_at_bound(ldomXPointer& p, const lString16 bounds) {
+    ldomXPointerEx xp(p);
+    if (xp.isText()) {
+        lString16 text = xp.getText();
+        int offset = xp.getOffset();
+        if (offset < text.length())
+            return contains(bounds, text[offset]);
+    }
+    return false;
+}
 
 class CiteSelection {
     last_move_type last_move_;
@@ -123,11 +142,11 @@ public:
         return ldomXRange(start_, end_);
     }
 
-	void getRange( ldomXRange & range )
-	{
-		range.setStart( start_ );
-		range.setEnd( end_ );
-	}
+    void getRange( ldomXRange & range )
+    {
+            range.setStart( start_ );
+            range.setEnd( end_ );
+    }
 
     void
     highlight() {
@@ -165,70 +184,133 @@ public:
 
     void growUp() {
         CRLog::info("grow up\n");
-        start_.prevVisibleText();
-        point_to_begin(start_);
-        move_to_upper_bound();
+        ldomXPointerEx ptr(start_);
+        if(prevPara(ptr)){
+            start_ = ptr;
+            point_to_begin(start_);
+            move_to_upper_bound();
+        };
     }
 
     void shrinkDown() {
         CRLog::info("shrink down\n");
-        ldomXPointerEx tmpptr(start_);
-        tmpptr.nextVisibleText();
-        if (end_.compare(tmpptr) >= 0) {
-            start_ = tmpptr;
-        };
-        point_to_begin(start_);
-        move_to_upper_bound();
+        ldomXPointerEx ptr(start_);
+        if (nextPara(ptr)) {
+            if (end_.compare(ptr) >= 0)
+                start_ = ptr;
+            point_to_begin(start_);
+            move_to_upper_bound();
+        }
     }
 
     void shrinkUp() {
         CRLog::info("shrink up\n");
-        ldomXPointerEx tmpptr(end_);
-        tmpptr.prevVisibleText();
-        if(start_.compare(tmpptr) <= 0) {
-            end_ = tmpptr;
+        ldomXPointerEx ptr(end_);
+        if (prevPara(ptr)) {
+            if (start_.compare(ptr) <= 0)
+                end_ = ptr;
+            point_to_end(end_);
+            move_to_lower_bound();
         };
-        point_to_end(end_);
-        move_to_lower_bound();
     }
 
     void growDown() {
         CRLog::info("grow down\n");
-        end_.nextVisibleText();
-        point_to_end(end_);
-        move_to_lower_bound();
+        ldomXPointerEx ptr(end_);
+        if (nextPara(ptr)) {
+            end_ = ptr;
+            point_to_end(end_);
+            move_to_lower_bound();
+        }
     }
 
     void growUpPhrase() {
-        start_ = upper_phrase_bound(start_, lString16(L".?!"));
+        lString16 bounds(L".?!");
+        ldomXPointerEx pptr(start_);
+        bool pp = prevPara(pptr);
+        ldomXPointerEx xp = upper_phrase_bound(start_, bounds);        
+        xp = upper_phrase_bound(xp, bounds, true);
+        xp = upper_phrase_bound(xp, bounds);
+        ldomXPointerEx ptr(xp);
+        if (ptr.nextVisibleWordStart())
+            xp = ptr;
+        if (pp && xp.compare(pptr) < 0)
+            start_ = pptr;
+        else
+            start_ = xp;
         move_to_upper_bound();
     }
 
     void shrinkDownPhrase() {
-        ldomXPointerEx xp = lower_phrase_bound(start_, lString16(L".?!"));
+        lString16 bounds(L".?!");
+        ldomXPointerEx pptr(start_);
+        bool np = nextPara(pptr);
+        ldomXPointerEx xp = lower_phrase_bound(start_, bounds);
+        ldomXPointerEx ptr(xp);
+        if (ptr.nextVisibleWordStart())
+            xp = ptr;
+        if (np && xp.compare(pptr) > 0)
+            start_ = pptr;
+        else
+            start_ = xp;
         if (end_.compare(xp) >= 0) {
             start_ = xp;
         };
         move_to_upper_bound();
     }
 
+
     void shrinkUpPhrase() {
-        ldomXPointerEx xp = upper_phrase_bound(end_, lString16(L".?!"));
-        if(start_.compare(xp) <= 0) {
+        lString16 bounds(L".?!");
+        ldomXPointerEx xp(end_);
+        if (is_at_bound(xp, bounds))
+            xp = upper_phrase_bound(xp, bounds, true);
+        else
+            xp = upper_phrase_bound(xp, bounds);
+        xp = upper_phrase_bound(xp, bounds);
+        ldomXPointerEx ptr(xp);
+        if (ptr.nextVisibleWordStart())
+            xp = ptr;
+        if (start_.compare(xp) <= 0) {
             end_ = xp;
         };
         move_to_lower_bound();
     }
 
     void growDownPhrase() {
-        end_ = lower_phrase_bound(end_, lString16(L".?!"));
+        lString16 bounds(L".?!");
+        ldomXPointerEx pptr(end_);
+        bool np = nextPara(pptr);
+        ldomXPointerEx xp(end_);
+        if (is_at_bound(xp, bounds))
+            lower_phrase_bound(xp, bounds, true);
+        xp = lower_phrase_bound(xp, bounds);
+        xp = lower_phrase_bound(xp, bounds, true);
+        if (np && xp.compare(pptr) > 0)
+            end_ = pptr;
+        else
+            end_ = xp;
         move_to_lower_bound();
     }
 
 
+    bool prevPara(ldomXPointerEx &ptr) {
+        if (ptr.isVisibleFinal())
+            return ptr.prevVisibleFinal();
+        return (ptr.ensureFinal() && ptr.prevVisibleFinal());
+    }
+
+    bool nextPara(ldomXPointerEx &ptr) {
+        if (ptr.isVisibleFinal())
+            return ptr.nextVisibleFinal();
+        return (ptr.ensureFinal() && ptr.nextVisibleFinal());
+    }
+
     void moveUp() {
-        if(start_.prevVisibleText()){
-            end_.prevVisibleText();
+        ldomXPointerEx ptr(start_);
+        if (prevPara(ptr)) {
+            start_ = ptr;
+            end_ = start_;
             point_to_begin(start_);
             point_to_end(end_);
             move_to_upper_bound();
@@ -236,8 +318,10 @@ public:
     };
 
     void moveDown() {
-        if(end_.nextVisibleText()){
-            start_.nextVisibleText();
+        ldomXPointerEx ptr(start_);
+        if (nextPara(ptr)) {
+            start_ = ptr;
+            end_ = start_;
             point_to_begin(start_);
             point_to_end(end_);
             move_to_lower_bound();
