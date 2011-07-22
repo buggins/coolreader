@@ -704,7 +704,8 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
             png_set_palette_to_rgb(png_ptr);
 
         if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-#if PNG_LIBPNG_VER_RELEASE==7
+//#if PNG_LIBPNG_VER_RELEASE==7
+#if (PNG_LIBPNG_VER_MAJOR == 1) && (PNG_LIBPNG_VER_MINOR < 4)
             png_set_gray_1_2_4_to_8(png_ptr);
 #else
             png_set_expand_gray_1_2_4_to_8(png_ptr);

@@ -3378,8 +3378,8 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 				return true;
 			}
 		}
-#if CHM_SUPPORT_ENABLED == 1
-		if ( DetectCHMFormat( m_stream ) ) {
+#if CHM_SUPPORT_ENABLED==1
+        if ( DetectCHMFormat( m_stream ) ) {
 			// CHM
 			CRLog::info("CHM format detected");
 			createEmptyDocument();

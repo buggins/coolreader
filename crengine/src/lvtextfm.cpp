@@ -732,7 +732,7 @@ void LFormattedText::AddSourceObject(
 #if 0
 #define TR(x...) CRLog::trace(x)
 #else
-#ifdef _WIN32
+#ifdef _MSC_VER
 #define TR(x)
 #else
 #define TR(x...)
