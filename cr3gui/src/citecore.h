@@ -59,7 +59,7 @@ contains(const lString16& s, const lString16::value_type c) {
 }
 
 ldomXPointerEx
-upper_phrase_bound(ldomXPointer& p, const lString16 bounds, bool skip = false) {
+upper_phrase_bound(ldomXPointerEx& p, const lString16 bounds, bool skip = false) {
     ldomXPointerEx xp(p);
     bool moved = false;
     while(1) {
@@ -85,7 +85,7 @@ upper_phrase_bound(ldomXPointer& p, const lString16 bounds, bool skip = false) {
 }
 
 ldomXPointerEx
-lower_phrase_bound(ldomXPointer& p, const lString16 bounds, bool skip = false) {
+lower_phrase_bound(ldomXPointerEx& p, const lString16 bounds, bool skip = false) {
     ldomXPointerEx xp(p);
     bool moved = false;
     while(1) {
@@ -279,11 +279,13 @@ public:
 
     void growDownPhrase() {
         lString16 bounds(L".?!");
-        ldomXPointerEx pptr(end_);
-        bool np = nextPara(pptr);
         ldomXPointerEx xp(end_);
-        if (is_at_bound(xp, bounds))
-            lower_phrase_bound(xp, bounds, true);
+        if (!xp.nextVisibleWordStart()) {
+            CRLog::trace("growDownPhrase(): nextVisibleWordStart() failed");
+            return;
+        }
+        ldomXPointerEx pptr(xp);
+        bool np = nextPara(pptr);
         xp = lower_phrase_bound(xp, bounds);
         xp = lower_phrase_bound(xp, bounds, true);
         if (np && xp.compare(pptr) > 0)
