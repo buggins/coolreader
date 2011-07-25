@@ -23,7 +23,9 @@
 #include "../include/lvtinydom.h"
 #endif
 
+#ifndef ARBITRARY_IMAGE_SCALE_ENABLED
 #define ARBITRARY_IMAGE_SCALE_ENABLED 1
+#endif
 
 #ifndef MAX_IMAGE_SCALE_MUL
 #define MAX_IMAGE_SCALE_MUL 2
@@ -1086,7 +1088,6 @@ public:
         }
         word->o.height = lastSrc->o.height * scale_mul / scale_div;
         word->width = lastSrc->o.width * scale_mul / scale_div;
-        word->inline_width = word->width;
 #endif
 
                     b = word->o.height;
