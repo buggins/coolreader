@@ -1237,6 +1237,19 @@ public class CoolReader extends Activity
 		new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 		new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+//	    public static final int KEYCODE_PAGE_BOTTOMLEFT = 0x5d; // fwd
+//	    public static final int KEYCODE_PAGE_BOTTOMRIGHT = 0x5f; // fwd
+//	    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back
+//	    public static final int KEYCODE_PAGE_TOPRIGHT = 0x5e; // back
+		
 	};
 	private static DefTapAction[] DEF_TAP_ACTIONS = {
 		new DefTapAction(1, false, ReaderAction.PAGE_UP),

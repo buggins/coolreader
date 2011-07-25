@@ -38,6 +38,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int NOOK_KEY_NEXT_RIGHT = 97;    
     public static final int NOOK_KEY_SHIFT_UP = 101;
     public static final int NOOK_KEY_SHIFT_DOWN = 100;
+    // Nook touch buttons
+    public static final int KEYCODE_PAGE_BOTTOMLEFT = 0x5d; // fwd
+    public static final int KEYCODE_PAGE_BOTTOMRIGHT = 0x5f; // fwd
+    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back
+    public static final int KEYCODE_PAGE_TOPRIGHT = 0x5e; // back
     
     public static final String PROP_PAGE_BACKGROUND_IMAGE       ="background.image";
     public static final String PROP_PAGE_BACKGROUND_IMAGE_DAY   ="background.image.day";
