@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Catalan translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-10 09:31+0700\n"
+"POT-Creation-Date: 2011-07-25 21:23+0700\n"
 "PO-Revision-Date: 2011-05-08 16:05+0700\n"
 "Last-Translator: Ferri64\n"
 "Language-Team: Catalan LoCo Team\n"
@@ -20,7 +20,28 @@ msgstr ""
 "X-Poedit-Country: SPAIN\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: ../src/citedlg.cpp:76
+#: ../src/citedlg.cpp:80
+#, fuzzy
+msgid "Move selection"
+msgstr "Quadre de selecció de cites"
+
+#: ../src/citedlg.cpp:83
+msgid "Increase selection by paragraph"
+msgstr ""
+
+#: ../src/citedlg.cpp:86
+msgid "Decrease selection by paragraph"
+msgstr ""
+
+#: ../src/citedlg.cpp:89
+msgid "Increase selection by phrase"
+msgstr ""
+
+#: ../src/citedlg.cpp:92
+msgid "Decrease selection by phrase"
+msgstr ""
+
+#: ../src/citedlg.cpp:112
 msgid "Select text"
 msgstr "Selecciona text"
 
@@ -238,7 +259,19 @@ msgstr "Informació de l'edició"
 msgid "Custom info"
 msgstr "Informació personalitzada"
 
-#: ../src/mainwnd.cpp:1171
+#: ../src/mainwnd.cpp:1056
+msgid "CoolReader for PocketBook"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1057
+msgid "Build date"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1058
+msgid "About program"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1175
 msgid "Loading: please wait..."
 msgstr "S'està carregant..."
 

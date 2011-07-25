@@ -73,24 +73,43 @@ protected:
         LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
         skin->draw( *buf, _rect );
         lvRect borders = skin->getBorderWidths();
-		lString16 prompt(_("Select text"));
 #ifdef CR_POCKETBOOK
-		lvRect keyRect = _rect;
-		int promptWidth = skin->measureText(prompt).x;
-		keyRect.right = keyRect.left + promptWidth + borders.left + borders.right;
-		if ( !keyRect.isEmpty() ) {
-			skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
-			skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
-		}
-		CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
-		if (!tbSkin.isNull()) {
-			keyRect.left += (borders.right + promptWidth);
-			keyRect.right = _rect.right;
-			CRButtonListRef buttons = tbSkin->getButtons();
-			if (!(buttons.isNull() || _itemsCount != buttons->length()))
-				tbSkin->drawToolBar(*_wm->getScreen()->getCanvas(), keyRect, true, _selectedIndex);
-		}
+        lString16 prompt;
+        switch (_selectedIndex) {
+        case 0:
+            prompt = lString16(_("Move selection"));
+            break;
+        case 1:
+            prompt = lString16(_("Increase selection by paragraph"));
+            break;
+        case 2:
+            prompt = lString16(_("Decrease selection by paragraph"));
+            break;
+        case 3:
+            prompt = lString16(_("Increase selection by phrase"));
+            break;
+        case 4:
+            prompt = lString16(_("Decrease selection by phrase"));
+            break;
+
+        }
+        lvRect keyRect = _rect;
+        int promptWidth = skin->measureText(prompt).x;
+        keyRect.right = keyRect.left + promptWidth + borders.left + borders.right;
+        if ( !keyRect.isEmpty() ) {
+            skin->draw( *_wm->getScreen()->getCanvas(), keyRect );
+            skin->drawText( *_wm->getScreen()->getCanvas(), keyRect, prompt );
+        }
+        CRToolBarSkinRef tbSkin = _wm->getSkin()->getToolBarSkin( L"#cite-toolbar" );
+        if (!tbSkin.isNull()) {
+            keyRect.left += (borders.right + _wm->getScreen()->getWidth() * 2/3/*promptWidth*/);
+            keyRect.right = _rect.right;
+            CRButtonListRef buttons = tbSkin->getButtons();
+            if (!(buttons.isNull() || _itemsCount != buttons->length()))
+                tbSkin->drawToolBar(*_wm->getScreen()->getCanvas(), keyRect, true, _selectedIndex);
+        }
 #else
+                lString16 prompt(_("Select text"));
 		buf->FillRect( _rect, 0xAAAAAA );
 		lvRect keyRect = _rect;
 		LVFontRef font = fontMan->GetFont( 20, 600, false, css_ff_sans_serif, lString8("Arial")); //skin->getFont();
