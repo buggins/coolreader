@@ -837,13 +837,20 @@ public:
                 pos++;
             } else {
                 int len = src->t.len;
+                bool isPreFormatted = (src->flags & LTEXT_FLAG_PREFORMATTED) != 0;
                 //lStr_ncpy( m_text+pos, src->t.text, len );
                 if ( i==0 || (src->flags & LTEXT_FLAG_NEWLINE) )
                     m_flags[pos] = LCHAR_MANDATORY_NEWLINE;
                 for ( int k=0; k<len; k++ ) {
-                    m_text[pos] = src->t.text[k];
+                    lChar16 ch = src->t.text[k];
                     m_charindex[pos] = k;
                     m_srcs[pos] = src;
+                    if ( ch=='\r' || ch=='\n' ) {
+                        if ( isPreFormatted )
+                            m_flags[pos] |= LCHAR_MANDATORY_NEWLINE;
+                        ch = ' ';
+                    }
+                    m_text[pos] = ch;
                     pos++;
                 }
             }
@@ -1129,7 +1136,7 @@ public:
                         int lastc = m_text[endp];
                         int wAlign = font->getVisualAligmentWidth();
                         word->width += wAlign;
-                        if ( lastc==' ' && endp>0 ) {
+                        while ( (lastc==' ') && endp>0 ) { // || lastc=='\r' || lastc=='\n'
                             word->width -= m_widths[endp] - m_widths[endp-1];
                             endp--;
                             lastc = m_text[endp];

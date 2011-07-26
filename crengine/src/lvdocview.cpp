@@ -4761,7 +4761,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         }
     currSel.setEnd(currSel.getStart());
     currSel.getEnd().thisSentenceEnd();
-    currSel.setFlags(2);
+    currSel.setFlags(1);
     selectRange(currSel);
     goToBookmark(currSel.getStart());
     CRLog::debug("Sel: %s", LCSTR(currSel.getRangeText()));

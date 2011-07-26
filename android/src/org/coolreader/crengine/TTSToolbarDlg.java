@@ -1,7 +1,10 @@
 package org.coolreader.crengine;
 
+import java.util.HashMap;
+
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.ReaderView.ReaderCommand;
 
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
@@ -18,7 +21,7 @@ import android.view.WindowManager;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
 
-public class TTSToolbarDlg {
+public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	PopupWindow mWindow;
 	View mAnchor;
 	CoolReader mCoolReader;
@@ -44,20 +47,88 @@ public class TTSToolbarDlg {
 		BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
 			public void run() {
-				if ( mTTS!=null )
-					mTTS.stop();
+				stop();
+				restoreReaderMode();
 				mReaderView.clearSelection();
 				mWindow.dismiss();
 			}
 		});
 	}
 	
+	private void setReaderMode()
+	{
+		moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
+	}
+	
+	private void restoreReaderMode()
+	{
+		
+	}
+	
+	private Selection currentSelection;
+	
+	private void moveSelection( ReaderCommand cmd )
+	{
+		mReaderView.moveSelection(cmd, new ReaderView.MoveSelectionCallback() {
+			
+			@Override
+			public void onNewSelection(Selection selection) {
+				Log.d("cr3", "onNewSelection: " + selection.text);
+				currentSelection = selection;
+				if ( isSpeaking )
+					say( currentSelection );
+			}
+			
+			@Override
+			public void onFail() {
+				Log.d("cr3", "fail()");
+				stop();
+				//currentSelection = null;
+			}
+		});
+	}
+	
+	private void say( Selection selection ) {
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put(TTS.KEY_PARAM_UTTERANCE_ID, "cr3UtteranceId");
+		mTTS.speak(selection.text, TTS.QUEUE_ADD, params);
+	}
+	
+	private void start() {
+		if ( currentSelection==null )
+			return;
+		isSpeaking = true;
+		say( currentSelection );
+	}
+	
+	private boolean isSpeaking; 
+	private void stop() {
+		isSpeaking = false;
+		if ( mTTS.isSpeaking() )
+			mTTS.stop();
+	}
+	
+	private void toggleStartStop() {
+		if ( isSpeaking )
+			stop();
+		else
+			start();
+	}
+	
+	@Override
+	public void onUtteranceCompleted(String utteranceId) {
+		Log.d("cr3", "onUtteranceCompleted " + utteranceId);
+		if ( isSpeaking )
+			moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
+	}
+
 	public TTSToolbarDlg( CoolReader coolReader, ReaderView readerView, TTS tts )
 	{
 		mCoolReader = coolReader;
 		mReaderView = readerView;
 		mAnchor = readerView;
 		mTTS = tts;
+		mTTS.setOnUtteranceCompletedListener(this);
 
 		View panel = (LayoutInflater.from(coolReader.getApplicationContext()).inflate(R.layout.tts_toolbar, null));
 		panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -66,7 +137,6 @@ public class TTSToolbarDlg {
 		
 		mWindow = new PopupWindow( mAnchor.getContext() );
 		mWindow.setTouchInterceptor(new OnTouchListener() {
-			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
@@ -80,22 +150,21 @@ public class TTSToolbarDlg {
 		mPanel = panel;
 		mPanel.findViewById(R.id.tts_play_pause).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-//				mReaderView.copyToClipboard(selection.text);
-//				mReaderView.clearSelection();
-				mWindow.dismiss();
+				toggleStartStop();
 			}
 		});
 		mPanel.findViewById(R.id.tts_back).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-//				mCoolReader.findInDictionary( sel.text );
-//				mReaderView.clearSelection();
-				mWindow.dismiss();
+				if ( isSpeaking )
+					mTTS.stop();
+				moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
 			}
 		});
 		mPanel.findViewById(R.id.tts_forward).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-//				mReaderView.showNewBookmarkDialog(sel);
-				mWindow.dismiss();
+				if ( isSpeaking )
+					mTTS.stop();
+				moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
 			}
 		});
 		mPanel.findViewById(R.id.tts_stop).setOnClickListener(new OnClickListener() {
@@ -111,7 +180,7 @@ public class TTSToolbarDlg {
 					switch ( keyCode ) {
 					case KeyEvent.KEYCODE_BACK:
 						mReaderView.clearSelection();
-						mWindow.dismiss();
+						stopAndClose();
 						return true;
 //					case KeyEvent.KEYCODE_DPAD_LEFT:
 //					case KeyEvent.KEYCODE_DPAD_UP:
@@ -170,7 +239,8 @@ public class TTSToolbarDlg {
 //		if ( mWindow.isShowing() )
 //			mWindow.update(mAnchor, 50, 50);
 		//dlg.mWindow.showAsDropDown(dlg.mAnchor);
-	
+		
+		setReaderMode();
 	}
 	
 }
