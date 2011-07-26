@@ -59,6 +59,10 @@
                 <data android:mimeType="application/epub+zip"/>
                 <data android:mimeType="application/x-chm"/>
                 <data android:mimeType="application/msword"/>
+                <data android:mimeType="application/fb2"/>
+                <data android:mimeType="application/fb2.zip"/>
+                <data android:mimeType="application/epub"/>
+                <data android:mimeType="application/x-fictionbook"/>
                 <data android:mimeType="application/doc"/>
                 <data android:mimeType="application/vnd.msword"/> 
                 <data android:mimeType="application/vnd.ms-word"/>
