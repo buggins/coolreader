@@ -1312,7 +1312,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void setSetting( String name, String value ) {
 		Properties settings = getSettings();
 		settings.put(name, value);
-		setSettings(settings, null);
+		setSettings(settings, null, false);
 		invalidImages = true;
 	}
 	
@@ -1477,11 +1477,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             break;
 		case DCMD_ZOOM_OUT:
             doEngineCommand( ReaderCommand.DCMD_ZOOM_OUT, param);
-            syncViewSettings(getSettings());
+            syncViewSettings(getSettings(), true);
             break;
 		case DCMD_ZOOM_IN:
             doEngineCommand( ReaderCommand.DCMD_ZOOM_IN, param);
-            syncViewSettings(getSettings());
+            syncViewSettings(getSettings(), true);
             break;
 		case DCMD_PAGEDOWN:
 			if ( param==1 )
@@ -1582,7 +1582,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		updateBookInfoInternal( mBookInfo );
 	}
 	
-	private void applySettings( Properties props )
+	private void applySettings( Properties props, boolean save )
 	{
 		BackgroundThread.ensureBackground();
 		log.v("applySettings() " + props);
@@ -1594,7 +1594,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			setBackgroundTexture(backgroundImageId);
 		props.remove(PROP_EMBEDDED_STYLES);
         applySettingsInternal(props);
-        syncViewSettings(props);
+        syncViewSettings(props, save);
         drawPage();
 	}
 	
@@ -1615,7 +1615,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	/**
 	 * Read JNI view settings, update and save if changed 
 	 */
-	private void syncViewSettings( final Properties currSettings )
+	private void syncViewSettings( final Properties currSettings, final boolean save )
 	{
 		post( new Task() {
 			Properties props;
@@ -1631,7 +1631,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        		currSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
 		        }
 	        	mSettings = currSettings;
-	        	saveSettings(currSettings);
+	        	if ( save )
+	        		saveSettings(currSettings);
 			}
 		});
 	}
@@ -1780,6 +1781,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	 */
 	public void setSettings(Properties newSettings, Properties oldSettings)
 	{
+		setSettings(newSettings, oldSettings, true);
+	}
+
+	/**
+     * Change settings.
+	 * @param newSettings are new settings
+	 * @param oldSettings are old settings, null to use mSettings
+	 * @param save is true to save settings to file, false to skip saving
+	 */
+	public void setSettings(Properties newSettings, Properties oldSettings, final boolean save)
+	{
 		log.v("setSettings() " + newSettings.toString());
 		BackgroundThread.ensureGUI();
 		if ( oldSettings==null )
@@ -1790,7 +1802,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		currSettings.setAll(changedSettings);
     	mBackThread.executeBackground(new Runnable() {
     		public void run() {
-    			applySettings(currSettings);
+    			applySettings(currSettings, save);
     		}
     	});
 //        }
@@ -1848,7 +1860,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        String css = mEngine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
        			setStylesheetInternal(css);
-   			applySettings(props);
+   			applySettings(props, false);
    			mInitialized = true;
 		}
 		public void done() {

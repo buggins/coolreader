@@ -11,16 +11,16 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	PopupWindow mWindow;
@@ -46,6 +46,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	public void stopAndClose() {
 		if (closed)
 			return;
+		isSpeaking = false;
 		closed = true;
 		BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
@@ -148,21 +149,22 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		View panel = (LayoutInflater.from(coolReader.getApplicationContext()).inflate(R.layout.tts_toolbar, null));
 		playPauseButton = (ImageButton)panel.findViewById(R.id.tts_play_pause);
 		playPauseButton.setImageResource(android.R.drawable.ic_media_play);
-		panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		//panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		panel.measure(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		
 		//mReaderView.getS
 		
 		mWindow = new PopupWindow( mAnchor.getContext() );
-		mWindow.setTouchInterceptor(new OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-					stopAndClose();
-					return true;
-				}
-				return false;
-			}
-		});
+//		mWindow.setTouchInterceptor(new OnTouchListener() {
+//			@Override
+//			public boolean onTouch(View v, MotionEvent event) {
+//				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
+//					stopAndClose();
+//					return true;
+//				}
+//				return false;
+//			}
+//		});
 		//super(panel);
 		mPanel = panel;
 		mPanel.findViewById(R.id.tts_play_pause).setOnClickListener(new OnClickListener() {
@@ -201,6 +203,10 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
 				if ( event.getAction()==KeyEvent.ACTION_UP ) {
 					switch ( keyCode ) {
+					case KeyEvent.KEYCODE_VOLUME_DOWN:
+					case KeyEvent.KEYCODE_VOLUME_UP:
+						Log.d("cr3", "tts: skipping volume keys handling");
+						return false;
 					case KeyEvent.KEYCODE_BACK:
 						mReaderView.clearSelection();
 						stopAndClose();
@@ -215,17 +221,15 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 //						return true;
 					}
 				} else if ( event.getAction()==KeyEvent.ACTION_DOWN ) {
-						switch ( keyCode ) {
-//						case KeyEvent.KEYCODE_BACK:
-//						case KeyEvent.KEYCODE_DPAD_LEFT:
-//						case KeyEvent.KEYCODE_DPAD_UP:
-//						case KeyEvent.KEYCODE_DPAD_RIGHT:
-//						case KeyEvent.KEYCODE_DPAD_DOWN:
-//							return true;
-						}
+					switch ( keyCode ) {
+					case KeyEvent.KEYCODE_VOLUME_DOWN:
+					case KeyEvent.KEYCODE_VOLUME_UP:
+						Log.d("cr3", "tts: skipping volume keys handling");
+						return false;
 					}
-				if ( keyCode == KeyEvent.KEYCODE_BACK) {
-					return true;
+					if ( keyCode == KeyEvent.KEYCODE_BACK) {
+						return true;
+					}
 				}
 				return false;
 			}
@@ -241,7 +245,8 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		
 		mWindow.setBackgroundDrawable(new BitmapDrawable());
 		//mWindow.setAnimationStyle(android.R.style.Animation_Toast);
-		mWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
+		//mWindow.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
+		mWindow.setWidth(WindowManager.LayoutParams.FILL_PARENT);
 		mWindow.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
 //		setWidth(panel.getWidth());
 //		setHeight(panel.getHeight());
@@ -264,6 +269,33 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		//dlg.mWindow.showAsDropDown(dlg.mAnchor);
 		
 		setReaderMode();
+		
+		SeekBar sbSpeed = (SeekBar)mPanel.findViewById(R.id.tts_sb_speed);
+		sbSpeed.setMax(100);
+		sbSpeed.setProgress(50);
+		SeekBar sbVolume = (SeekBar)mPanel.findViewById(R.id.tts_sb_volume);
+		sbVolume.setMax(100);
+		sbVolume.setProgress(50);
+		sbSpeed.setOnSeekBarChangeListener( new OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				float rate = 1.0f;
+				if ( progress<50 )
+					rate = 0.3f + 0.7f * progress / 50f;
+				else
+					rate = 1.0f + 1.5f * (progress-50) / 50f;
+				mTTS.setSpeechRate(rate);
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+			}
+		});
 	}
 	
 }
