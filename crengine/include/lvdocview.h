@@ -267,6 +267,11 @@ enum LVDocCmd
     DCMD_GO_PAGE_DONT_SAVE_HISTORY,
     DCMD_SET_INTERNAL_STYLES, // set internal styles option
 
+    // selection by sentences
+    DCMD_SELECT_FIRST_SENTENCE, // select first sentence on page
+    DCMD_SELECT_NEXT_SENTENCE, // nove selection to next sentence
+    DCMD_SELECT_PREV_SENTENCE, // nove selection to next sentence
+
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,
     DCMD_EDIT_CURSOR_RIGHT,
@@ -591,6 +596,10 @@ public:
     virtual void selectWords( const LVArray<ldomWord> & words );
     /// clears selection
     virtual void clearSelection();
+    /// update selection -- command handler
+    int onSelectionCommand( int cmd, int param );
+
+
     /// navigation history
     ldomNavigationHistory & getNavigationHistory() { return _navigationHistory; }
     /// get list of links

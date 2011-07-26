@@ -5959,15 +5959,15 @@ ldomNode * ldomXPointerEx::getThisBlockNode()
             return NULL;
         lvdom_element_render_method rm = node->getRendMethod();
         switch ( rm ) {
-        erm_runin: // treat as separate block
-        erm_block:
-        erm_final:
-        erm_mixed:
-        erm_list_item:
-        erm_table:
-        erm_table_row_group:
-        erm_table_row:
-        erm_table_caption:
+        case erm_runin: // treat as separate block
+        case erm_block:
+        case erm_final:
+        case erm_mixed:
+        case erm_list_item:
+        case erm_table:
+        case erm_table_row_group:
+        case erm_table_row:
+        case erm_table_caption:
             return node;
         default:
             break; // ignore
@@ -6113,7 +6113,7 @@ bool ldomXPointerEx::nextSentenceStart()
     if ( !isSentenceStart() && !thisSentenceEnd() )
         return false;
     for (;;) {
-        if ( !nextVisibleWordStart(true) )
+        if ( !nextVisibleWordStart() )
             return false;
         if ( isSentenceStart() )
             return true;
@@ -6126,7 +6126,7 @@ bool ldomXPointerEx::prevSentenceStart()
     if ( !thisSentenceStart() )
         return false;
     for (;;) {
-        if ( !prevVisibleWordStart(true) )
+        if ( !prevVisibleWordStart() )
             return false;
         if ( isSentenceStart() )
             return true;
@@ -6147,7 +6147,7 @@ bool ldomXPointerEx::prevSentenceEnd()
     if ( !thisSentenceStart() )
         return false;
     for (;;) {
-        if ( !prevVisibleWordEnd(true) )
+        if ( !prevVisibleWordEnd() )
             return false;
         if ( isSentenceEnd() )
             return true;

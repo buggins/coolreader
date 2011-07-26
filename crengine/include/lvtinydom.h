@@ -1473,6 +1473,13 @@ public:
             return true;
         return false;
     }
+    /// makes range empty
+    void clear()
+    {
+        _start.clear();
+        _end.clear();
+        _flags = 0;
+    }
     /// returns true if pointer position is inside range
     bool isInside( const ldomXPointerEx & p ) const
     {
