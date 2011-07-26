@@ -1308,6 +1308,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public String getSetting( String name ) {
 		return mSettings.getProperty(name);
 	}
+
+	public void setSetting( String name, String value ) {
+		Properties settings = getSettings();
+		settings.put(name, value);
+		setSettings(settings, null);
+		invalidImages = true;
+	}
+	
 	public void saveSetting( String name, String value ) {
 		mSettings.setProperty(name, value);
 		mActivity.saveSettings(mSettings);

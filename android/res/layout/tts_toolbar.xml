@@ -6,7 +6,7 @@
     android:id="@+id/tts_toolbar_body"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:background="#80808080"
+    android:background="#D0808080"
     android:layout_marginTop="3dip"
     android:layout_marginBottom="3dip"
     android:baselineAligned="true" android:layout_height="wrap_content">
@@ -22,7 +22,7 @@
 	    <ImageButton android:id="@+id/tts_play_pause"
             android:layout_width="0dip" android:layout_weight="1"
 	        android:layout_height="wrap_content"
-	        android:src="@android:drawable/ic_media_play"
+	        android:src="@drawable/ic_media_play"
 	        android:layout_marginTop="5dip"
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
@@ -35,7 +35,7 @@
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
-	        android:src="@android:drawable/ic_media_rew"
+	        android:src="@drawable/ic_media_rew"
 	        />
 	    <ImageButton android:id="@+id/tts_forward"
             android:layout_width="0dip" android:layout_weight="1"
@@ -44,7 +44,7 @@
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
-	        android:src="@android:drawable/ic_media_ff"
+	        android:src="@drawable/ic_media_ff"
 	        />
 	    <ImageButton android:id="@+id/tts_stop"
             android:layout_width="0dip" android:layout_weight="1"
@@ -53,7 +53,7 @@
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
-	        android:src="@android:drawable/ic_media_next"
+	        android:src="@drawable/ic_media_stop"
 	        />
 	</LinearLayout>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

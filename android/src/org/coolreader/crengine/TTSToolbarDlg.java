@@ -18,6 +18,7 @@ import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
 
@@ -28,6 +29,8 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	ReaderView mReaderView;
 	View mPanel;
 	TTS mTTS;
+	ImageButton playPauseButton; 
+	
 	static public void showDialog( CoolReader coolReader, ReaderView readerView, TTS tts)
 	{
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, tts);
@@ -55,14 +58,22 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		});
 	}
 	
+	private boolean changedPageMode;
 	private void setReaderMode()
 	{
+		String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
+		if ( "1".equals(oldViewSetting) ) {
+			changedPageMode = true;
+			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+		}
 		moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
 	}
 	
 	private void restoreReaderMode()
 	{
-		
+		if ( changedPageMode ) {
+			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
+		}
 	}
 	
 	private Selection currentSelection;
@@ -104,15 +115,19 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	private boolean isSpeaking; 
 	private void stop() {
 		isSpeaking = false;
-		if ( mTTS.isSpeaking() )
+		if ( mTTS.isSpeaking() ) {
 			mTTS.stop();
+		}
 	}
 	
 	private void toggleStartStop() {
-		if ( isSpeaking )
+		if ( isSpeaking ) {
+			playPauseButton.setImageResource(R.drawable.ic_media_play);
 			stop();
-		else
+		} else {
+			playPauseButton.setImageResource(R.drawable.ic_media_pause);
 			start();
+		}
 	}
 	
 	@Override
@@ -131,6 +146,8 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		mTTS.setOnUtteranceCompletedListener(this);
 
 		View panel = (LayoutInflater.from(coolReader.getApplicationContext()).inflate(R.layout.tts_toolbar, null));
+		playPauseButton = (ImageButton)panel.findViewById(R.id.tts_play_pause);
+		playPauseButton.setImageResource(android.R.drawable.ic_media_play);
 		panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		
 		//mReaderView.getS
@@ -155,15 +172,21 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		});
 		mPanel.findViewById(R.id.tts_back).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if ( isSpeaking )
+				if ( isSpeaking ) {
+					isSpeaking = false;
 					mTTS.stop();
+					isSpeaking = true;
+				}
 				moveSelection( ReaderCommand.DCMD_SELECT_PREV_SENTENCE );
 			}
 		});
 		mPanel.findViewById(R.id.tts_forward).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if ( isSpeaking )
+				if ( isSpeaking ) {
+					isSpeaking = false;
 					mTTS.stop();
+					isSpeaking = true;
+				}
 				moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
 			}
 		});
