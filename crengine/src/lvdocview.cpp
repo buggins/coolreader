@@ -3137,6 +3137,28 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 	if (LoadDocument(stream)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
+
+#define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
+#if DUMP_OPENED_DOCUMENT_SENTENCES==1
+        LVStreamRef out = LVOpenFileStream("/tmp/sentences.txt", LVOM_WRITE);
+        if ( !out.isNull() ) {
+            checkRender();
+            ldomXPointerEx ptr( m_doc->getRootNode(), 0);
+            //ptr.nextVisibleText();
+            if ( ptr.thisSentenceStart() ) {
+                while ( 1 ) {
+                    ldomXPointerEx ptr2(ptr);
+                    ptr2.thisSentenceEnd();
+                    ldomXRange range(ptr, ptr2);
+                    lString16 str = range.getRangeText();
+                    *out << "sentence: " << UnicodeToUtf8(str) << "\n";
+                    if ( !ptr.nextSentenceStart() )
+                        break;
+                }
+            }
+        }
+#endif
+
 		return true;
 	}
 	m_stream.Clear();

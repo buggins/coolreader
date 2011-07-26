@@ -5605,10 +5605,15 @@ bool ldomXPointerEx::isVisibleFinal()
 /// move to next visible text node
 bool ldomXPointerEx::nextVisibleText( bool thisBlockOnly )
 {
+    ldomXPointerEx backup;
+    if ( thisBlockOnly )
+        backup = *this;
     while ( nextText(thisBlockOnly) ) {
         if ( isVisible() )
             return true;
     }
+    if ( thisBlockOnly )
+        *this = backup;
     return false;
 }
 
@@ -5638,7 +5643,7 @@ bool ldomXPointerEx::nextText( bool thisBlockOnly )
     setOffset( 0 );
     while ( firstChild() ) {
         if ( isText() )
-            return true;
+            return (!thisBlockOnly || getThisBlockNode()==block);
     }
     for (;;) {
         while ( nextSibling() ) {
@@ -5678,9 +5683,14 @@ bool ldomXPointerEx::prevText( bool thisBlockOnly )
 /// move to previous visible text node
 bool ldomXPointerEx::prevVisibleText( bool thisBlockOnly )
 {
+    ldomXPointerEx backup;
+    if ( thisBlockOnly )
+        backup = *this;
     while ( prevText( thisBlockOnly ) )
         if ( isVisible() )
             return true;
+    if ( thisBlockOnly )
+        *this = backup;
     return false;
 }
 
@@ -5949,6 +5959,7 @@ ldomNode * ldomXPointerEx::getThisBlockNode()
             return NULL;
         lvdom_element_render_method rm = node->getRendMethod();
         switch ( rm ) {
+        erm_runin: // treat as separate block
         erm_block:
         erm_final:
         erm_mixed:
@@ -6069,10 +6080,14 @@ bool ldomXPointerEx::isSentenceEnd()
 /// move to beginning of current visible text sentence
 bool ldomXPointerEx::thisSentenceStart()
 {
+    if ( isNull() )
+        return false;
+    if ( !isText() && !nextVisibleText() && !prevVisibleText() )
+        return false;
     for (;;) {
         if ( isSentenceStart() )
             return true;
-        if ( !prevVisibleWordStart() )
+        if ( !prevVisibleWordStart(true) )
             return false;
     }
 }
@@ -6080,10 +6095,14 @@ bool ldomXPointerEx::thisSentenceStart()
 /// move to end of current visible text sentence
 bool ldomXPointerEx::thisSentenceEnd()
 {
+    if ( isNull() )
+        return false;
+    if ( !isText() && !nextVisibleText() && !prevVisibleText() )
+        return false;
     for (;;) {
         if ( isSentenceEnd() )
             return true;
-        if ( !nextVisibleWordEnd() )
+        if ( !nextVisibleWordEnd(true) )
             return false;
     }
 }
@@ -6091,10 +6110,10 @@ bool ldomXPointerEx::thisSentenceEnd()
 /// move to beginning of next visible text sentence
 bool ldomXPointerEx::nextSentenceStart()
 {
-    if ( !thisSentenceEnd() )
+    if ( !isSentenceStart() && !thisSentenceEnd() )
         return false;
     for (;;) {
-        if ( !nextVisibleWordStart() )
+        if ( !nextVisibleWordStart(true) )
             return false;
         if ( isSentenceStart() )
             return true;
@@ -6107,7 +6126,7 @@ bool ldomXPointerEx::prevSentenceStart()
     if ( !thisSentenceStart() )
         return false;
     for (;;) {
-        if ( !prevVisibleWordStart() )
+        if ( !prevVisibleWordStart(true) )
             return false;
         if ( isSentenceStart() )
             return true;
@@ -6128,7 +6147,7 @@ bool ldomXPointerEx::prevSentenceEnd()
     if ( !thisSentenceStart() )
         return false;
     for (;;) {
-        if ( !prevVisibleWordEnd() )
+        if ( !prevVisibleWordEnd(true) )
             return false;
         if ( isSentenceEnd() )
             return true;
