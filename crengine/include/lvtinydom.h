@@ -1305,22 +1305,22 @@ public:
     /// returns true if current node is visible element or text
     bool isVisible();
     /// move to next text node
-    bool nextText();
+    bool nextText( bool thisBlockOnly = false );
     /// move to previous text node
-    bool prevText();
+    bool prevText( bool thisBlockOnly = false );
     /// move to next visible text node
-    bool nextVisibleText();
+    bool nextVisibleText( bool thisBlockOnly = false );
     /// move to previous visible text node
-    bool prevVisibleText();
+    bool prevVisibleText( bool thisBlockOnly = false );
 
     /// move to previous visible word beginning
-    bool prevVisibleWordStart();
+    bool prevVisibleWordStart( bool thisBlockOnly = false );
     /// move to previous visible word end
-    bool prevVisibleWordEnd();
+    bool prevVisibleWordEnd( bool thisBlockOnly = false );
     /// move to next visible word beginning
-    bool nextVisibleWordStart();
+    bool nextVisibleWordStart( bool thisBlockOnly = false );
     /// move to next visible word end
-    bool nextVisibleWordEnd();
+    bool nextVisibleWordEnd( bool thisBlockOnly = false );
 
     /// move to beginning of current visible text sentence
     bool thisSentenceStart();
@@ -1330,6 +1330,22 @@ public:
     bool nextSentenceStart();
     /// move to beginning of next visible text sentence
     bool prevSentenceStart();
+    /// move to end of next visible text sentence
+    bool nextSentenceEnd();
+    /// move to end of prev visible text sentence
+    bool prevSentenceEnd();
+    /// returns true if points to beginning of sentence
+    bool isSentenceStart();
+    /// returns true if points to end of sentence
+    bool isSentenceEnd();
+
+    /// returns true if points to last visible text inside block element
+    bool isLastVisibleTextInBlock();
+    /// returns true if points to first visible text inside block element
+    bool isFirstVisibleTextInBlock();
+
+    /// returns block owner node of current node (or current node if it's block)
+    ldomNode * getThisBlockNode();
 
     /// returns true if current position is visible word beginning
     bool isVisibleWordStart();
