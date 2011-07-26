@@ -22,11 +22,13 @@
 	    <ImageButton android:id="@+id/tts_play_pause"
             android:layout_width="0dip" android:layout_weight="1"
 	        android:layout_height="wrap_content"
-	        android:src="@drawable/ic_media_play"
 	        android:layout_marginTop="5dip"
 	        android:layout_marginBottom="5dip"
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
+            android:src="@drawable/ic_media_play"
+	        android:focusable="false"
+            android:focusableInTouchMode="false"
 	        />
 	    <ImageButton android:id="@+id/tts_back"
             android:layout_width="0dip" android:layout_weight="1"
@@ -36,6 +38,8 @@
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
 	        android:src="@drawable/ic_media_rew"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
 	        />
 	    <ImageButton android:id="@+id/tts_forward"
             android:layout_width="0dip" android:layout_weight="1"
@@ -45,6 +49,8 @@
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
 	        android:src="@drawable/ic_media_ff"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
 	        />
 	    <ImageButton android:id="@+id/tts_stop"
             android:layout_width="0dip" android:layout_weight="1"
@@ -54,6 +60,8 @@
 	        android:layout_marginLeft="2dip"
 	        android:layout_marginRight="2dip"
 	        android:src="@drawable/ic_media_stop"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
 	        />
 	</LinearLayout>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

@@ -40,6 +40,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -363,6 +364,31 @@ public class CoolReader extends Activity
 		return true;
 	}
 	
+	private AudioManager am;
+	private int maxVolume;
+	public AudioManager getAudioManager() {
+		if ( am==null ) {
+			am = (AudioManager)getSystemService(AUDIO_SERVICE);
+			maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+		}
+		return am;
+	}
+	
+	public int getVolume() {
+		AudioManager am = getAudioManager();
+		if (am!=null) {
+			return am.getStreamVolume(AudioManager.STREAM_MUSIC) * 100 / maxVolume;
+		}
+		return 0;
+	}
+	
+	public void setVolume( int volume ) {
+		AudioManager am = getAudioManager();
+		if (am!=null) {
+			am.setStreamVolume(AudioManager.STREAM_MUSIC, volume * maxVolume / 100, 0);
+		}
+	}
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -372,6 +398,8 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
 		try {
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
 			mVersion = pi.versionName;
