@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Spanish Translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-25 21:23+0700\n"
+"POT-Creation-Date: 2011-07-27 20:29+0700\n"
 "PO-Revision-Date: 2010-03-02 19:35+0100\n"
 "Last-Translator: \n"
 "Language-Team: jotas\n"
@@ -19,24 +19,24 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 
 #: ../src/citedlg.cpp:80
-msgid "Move selection"
-msgstr "Mueve la selección"
+msgid "Select next/prev paragraph"
+msgstr ""
 
 #: ../src/citedlg.cpp:83
-msgid "Increase selection by paragraph"
-msgstr "Aumentar la selección en el párrafo"
+msgid "Select one more paragraph"
+msgstr ""
 
 #: ../src/citedlg.cpp:86
-msgid "Decrease selection by paragraph"
-msgstr "Disminución de la selección en el párrafo"
+msgid "Deselect paragraph"
+msgstr ""
 
 #: ../src/citedlg.cpp:89
-msgid "Increase selection by phrase"
-msgstr "Aumentar la selección por frase"
+msgid "Select one more phrase"
+msgstr ""
 
 #: ../src/citedlg.cpp:92
-msgid "Decrease selection by phrase"
-msgstr "Disminución de la selección por frase"
+msgid "Deselect phrase"
+msgstr ""
 
 #: ../src/citedlg.cpp:112
 msgid "Select text"
@@ -566,23 +566,23 @@ msgstr "Modo turbo activado"
 
 #: ../src/settings.cpp:465
 msgid "180+slow next page"
-msgstr "Lento- Pasar solo página siguiente"
+msgstr ""
 
 #: ../src/settings.cpp:466
 msgid "180+slow prev/next page"
-msgstr "Lento- Pasar solo página anterior y siguiente"
+msgstr ""
 
 #: ../src/settings.cpp:467
 msgid "180+FAST next page"
-msgstr "Rápido - Pasar solo página siguiente"
+msgstr ""
 
 #: ../src/settings.cpp:468
 msgid "180+FAST prev/next page"
-msgstr "Rápido- Pasar solo página anterior y siguiente"
+msgstr ""
 
 #: ../src/settings.cpp:469
 msgid "180+FAST next/prev page"
-msgstr "Rápido- Pasar solo página anterior y siguiente (invertido)"
+msgstr ""
 
 #: ../src/settings.cpp:497
 msgid "Default font face"
@@ -601,12 +601,13 @@ msgid "Interline space"
 msgstr "Interlineado"
 
 #: ../src/settings.cpp:546
+#, fuzzy
 msgid "Rotate"
-msgstr "Modo paso de página con giro"
+msgstr "Rotar por"
 
 #: ../src/settings.cpp:551
 msgid "Page turn angle"
-msgstr "Ángulo de giro para paso de página"
+msgstr ""
 
 #: ../src/settings.cpp:557
 msgid "Footnotes at page bottom"
@@ -1024,6 +1025,10 @@ msgstr "Función asignada"
 #: ../src/cr3pocketbook.cpp:2059
 msgid "Press $1 to translate"
 msgstr "pulse $1 para traducir"
+
+#, fuzzy
+#~ msgid "Remove phrase from selection"
+#~ msgstr "Seleccionar y marcar texto"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Introduce el número de página dónde ir : "

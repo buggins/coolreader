@@ -77,19 +77,19 @@ protected:
         lString16 prompt;
         switch (_selectedIndex) {
         case 0:
-            prompt = lString16(_("Move selection"));
+            prompt = lString16(_("Select next/prev paragraph"));
             break;
         case 1:
-            prompt = lString16(_("Increase selection by paragraph"));
+            prompt = lString16(_("Select one more paragraph"));
             break;
         case 2:
-            prompt = lString16(_("Decrease selection by paragraph"));
+            prompt = lString16(_("Deselect paragraph"));
             break;
         case 3:
-            prompt = lString16(_("Increase selection by phrase"));
+            prompt = lString16(_("Select one more phrase"));
             break;
         case 4:
-            prompt = lString16(_("Decrease selection by phrase"));
+            prompt = lString16(_("Deselect phrase"));
             break;
 
         }

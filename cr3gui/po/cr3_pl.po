@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-25 21:23+0700\n"
+"POT-Creation-Date: 2011-07-27 20:29+0700\n"
 "PO-Revision-Date: 2009-11-18 22:36+0100\n"
 "Last-Translator: Tomasz Długosz <tomek3d@gmail.com>\n"
 "Language-Team: Polish\n"
@@ -19,24 +19,23 @@ msgstr ""
 "|| n%100>=20) ? 1 : 2);\n"
 
 #: ../src/citedlg.cpp:80
-#, fuzzy
-msgid "Move selection"
-msgstr "Zaznacz cytat"
+msgid "Select next/prev paragraph"
+msgstr ""
 
 #: ../src/citedlg.cpp:83
-msgid "Increase selection by paragraph"
+msgid "Select one more paragraph"
 msgstr ""
 
 #: ../src/citedlg.cpp:86
-msgid "Decrease selection by paragraph"
+msgid "Deselect paragraph"
 msgstr ""
 
 #: ../src/citedlg.cpp:89
-msgid "Increase selection by phrase"
+msgid "Select one more phrase"
 msgstr ""
 
 #: ../src/citedlg.cpp:92
-msgid "Decrease selection by phrase"
+msgid "Deselect phrase"
 msgstr ""
 
 #: ../src/citedlg.cpp:112
@@ -1024,6 +1023,10 @@ msgstr "Przypisana funkcja"
 #: ../src/cr3pocketbook.cpp:2059
 msgid "Press $1 to translate"
 msgstr "Krótkie wciśnięcie $1 aby przetłumaczyć"
+
+#, fuzzy
+#~ msgid "Remove phrase from selection"
+#~ msgstr "Zaznacz cytat"
 
 #, fuzzy
 #~ msgid "Cites"

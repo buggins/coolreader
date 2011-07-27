@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-25 21:23+0700\n"
+"POT-Creation-Date: 2011-07-27 20:29+0700\n"
 "PO-Revision-Date: 2011-06-17 02:51+0200\n"
 "Last-Translator: Vitalii Stopchans'kyi <stopchanПЕСgmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -18,24 +18,23 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/citedlg.cpp:80
-#, fuzzy
-msgid "Move selection"
-msgstr "Виділити цитату"
+msgid "Select next/prev paragraph"
+msgstr ""
 
 #: ../src/citedlg.cpp:83
-msgid "Increase selection by paragraph"
+msgid "Select one more paragraph"
 msgstr ""
 
 #: ../src/citedlg.cpp:86
-msgid "Decrease selection by paragraph"
+msgid "Deselect paragraph"
 msgstr ""
 
 #: ../src/citedlg.cpp:89
-msgid "Increase selection by phrase"
+msgid "Select one more phrase"
 msgstr ""
 
 #: ../src/citedlg.cpp:92
-msgid "Decrease selection by phrase"
+msgid "Deselect phrase"
 msgstr ""
 
 #: ../src/citedlg.cpp:112
@@ -598,8 +597,9 @@ msgid "Interline space"
 msgstr "Міжрядковий інтервал"
 
 #: ../src/settings.cpp:546
+#, fuzzy
 msgid "Rotate"
-msgstr "Поворот"
+msgstr "Поворот на"
 
 #: ../src/settings.cpp:551
 msgid "Page turn angle"
@@ -914,6 +914,7 @@ msgid "Bookmark list"
 msgstr "Закладки"
 
 #: ../src/viewdlg.cpp:553
+#, fuzzy
 msgid "Citations list"
 msgstr "Цитата"
 
@@ -1020,6 +1021,10 @@ msgstr "Дія"
 #: ../src/cr3pocketbook.cpp:2059
 msgid "Press $1 to translate"
 msgstr "Коротке натискання $1 щоб переклад"
+
+#, fuzzy
+#~ msgid "Remove phrase from selection"
+#~ msgstr "Виділити цитату"
 
 #, fuzzy
 #~ msgid "Cites"

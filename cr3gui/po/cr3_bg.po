@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-25 21:23+0700\n"
+"POT-Creation-Date: 2011-07-27 20:29+0700\n"
 "PO-Revision-Date: 2011-05-08 16:04+0700\n"
 "Last-Translator: Zlatko Petkov <zlpetkov@gmail.com>\n"
 "Language-Team: Bulgarian\n"
@@ -17,24 +17,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../src/citedlg.cpp:80
-#, fuzzy
-msgid "Move selection"
-msgstr "Избор на цитат"
+msgid "Select next/prev paragraph"
+msgstr ""
 
 #: ../src/citedlg.cpp:83
-msgid "Increase selection by paragraph"
+msgid "Select one more paragraph"
 msgstr ""
 
 #: ../src/citedlg.cpp:86
-msgid "Decrease selection by paragraph"
+msgid "Deselect paragraph"
 msgstr ""
 
 #: ../src/citedlg.cpp:89
-msgid "Increase selection by phrase"
+msgid "Select one more phrase"
 msgstr ""
 
 #: ../src/citedlg.cpp:92
-msgid "Decrease selection by phrase"
+msgid "Deselect phrase"
 msgstr ""
 
 #: ../src/citedlg.cpp:112
@@ -1020,6 +1019,10 @@ msgstr "Асоциирана команда"
 #: ../src/cr3pocketbook.cpp:2059
 msgid "Press $1 to translate"
 msgstr "Натиснете $1 за да преведат"
+
+#, fuzzy
+#~ msgid "Remove phrase from selection"
+#~ msgstr "Избор на цитат"
 
 #~ msgid "Remove citation"
 #~ msgstr "Изтриете на цитати"
