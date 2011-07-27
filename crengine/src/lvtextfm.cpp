@@ -1056,6 +1056,7 @@ public:
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object
                     word->x = frmline->width;
+                    word->y = 0;
                     word->flags = LTEXT_WORD_IS_OBJECT;
                     word->width = lastSrc->o.width;
                     word->o.height = lastSrc->o.height;
