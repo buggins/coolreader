@@ -30,6 +30,7 @@ public class TTS {
 	public final static int	QUEUE_ADD=1;	//Queue mode where the new entry is added at the end of the playback queue.
 	public final static int	QUEUE_FLUSH=0;	//Queue mode where all entries in the playback queue (media to be played and text to be synthesized) are dropped and replaced by the new entry.
 	public final static int	SUCCESS=0;  //Denotes a successful operation.
+	public final static String KEY_PARAM_UTTERANCE_ID = "utteranceId";
 	
 	private static Class<?> textToSpeechClass;
 	private static Constructor<?> textToSpeech_constructor;
@@ -178,14 +179,14 @@ public class TTS {
 		try {
 			tts = textToSpeech_constructor.newInstance(context, createOnInitProxy(listener));
 			L.i("TTS object created successfully");
-	    	setOnUtteranceCompletedListener(new TTS.OnUtteranceCompletedListener() {
-				
-				@Override
-				public void onUtteranceCompleted(String utteranceId) {
-					L.i("TTS utterance completed: " + utteranceId);
-					// TODO
-				}
-			});
+//	    	setOnUtteranceCompletedListener(new TTS.OnUtteranceCompletedListener() {
+//				
+//				@Override
+//				public void onUtteranceCompleted(String utteranceId) {
+//					L.i("TTS utterance completed: " + utteranceId);
+//					// TODO
+//				}
+//			});
 		} catch ( InvocationTargetException e ) {
 			classesFound = false;
 			L.e("Cannot create TTS object", e);

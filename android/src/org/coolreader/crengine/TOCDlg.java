@@ -100,15 +100,19 @@ public class TOCDlg extends BaseDialog {
 			}
 
 			public int getItemViewType(int position) {
-				return 0;
+				TOCItem item = mItems.get(position);
+				boolean isCurrentItem = item==mCurrentPageItem;
+				return isCurrentItem ? 0 : 1;
 			}
 
 			
 			public View getView(int position, View convertView, ViewGroup parent) {
 				View view;
+				TOCItem item = mItems.get(position);
+				boolean isCurrentItem = item==mCurrentPageItem;
 				if ( convertView==null ) {
 					//view = new TextView(getContext());
-					view = mInflater.inflate(R.layout.toc_item, null);
+					view = mInflater.inflate(isCurrentItem ? R.layout.toc_item_current : R.layout.toc_item, null);
 				} else {
 					view = (View)convertView;
 				}
@@ -116,7 +120,6 @@ public class TOCDlg extends BaseDialog {
 				TextView titleTextView = (TextView)view.findViewById(R.id.toc_title);
 				TextView marginTextView = (TextView)view.findViewById(R.id.toc_level_margin);
 				ImageView expandImageView = (ImageView)view.findViewById(R.id.toc_expand_icon);
-				TOCItem item = mItems.get(position);
 				StringBuilder buf = new StringBuilder(item.getLevel()*2);
 				for ( int i=1; i<item.getLevel(); i++ )
 					buf.append("  ");
@@ -136,7 +139,7 @@ public class TOCDlg extends BaseDialog {
 			}
 
 			public int getViewTypeCount() {
-				return 1;
+				return 2;
 			}
 
 			public boolean hasStableIds() {

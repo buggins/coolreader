@@ -917,13 +917,38 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_moveSelection
     CRIntField sel_endX(sel, "endX");
     CRIntField sel_endY(sel, "endY");
     CRIntField sel_percent(sel, "percent");
-    if ( _cmd == SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE ) {
-    	ldomXPointer bmp = p->_docview->getBookmark();
-    	if ( bmp.isNull() )
-    		return JNI_FALSE;
-    	ldomXRange range(bmp, bmp);
-    	range.getStart().nextVisibleText();
-    	return JNI_TRUE;
+    int res = p->_docview->doCommand( (LVDocCmd)_cmd, (int)_param );
+    if ( res ) {
+        ldomXRangeList & sel = p->_docview->getDocument()->getSelections();
+        if ( sel.length()>0 ) {
+            ldomXRange currSel;
+            currSel = *sel[0];
+            if ( !currSel.isNull() ) {
+                sel_startPos.set( currSel.getStart().toString() );
+                sel_endPos.set( currSel.getEnd().toString() );
+                lvPoint startpt ( currSel.getStart().toPoint() );
+                lvPoint endpt ( currSel.getEnd().toPoint() );
+                sel_startX.set( startpt.x );
+                sel_startY.set( startpt.y );
+                sel_endX.set( endpt.x );
+                sel_endY.set( endpt.y );
+
+                int page = p->_docview->getBookmarkPage(currSel.getStart());
+                int pages = p->_docview->getPageCount();
+                lString16 titleText;
+                lString16 posText;
+                p->_docview->getBookmarkPosText(currSel.getStart(), titleText, posText);
+                int percent = 0;
+                if ( pages>1 )
+                	percent = 10000 * page/(pages-1);
+                lString16 selText = currSel.getRangeText( '\n', 8192 );
+                sel_percent.set(percent);
+            	sel_text.set(selText);
+            	sel_chapter.set(titleText);
+
+            	return JNI_TRUE;
+            }
+        }
     }
     return JNI_FALSE;
 }

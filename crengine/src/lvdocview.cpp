@@ -3210,6 +3210,49 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 	if (LoadDocument(stream)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
+
+#define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
+#if DUMP_OPENED_DOCUMENT_SENTENCES==1
+        LVStreamRef out = LVOpenFileStream("/tmp/sentences.txt", LVOM_WRITE);
+        if ( !out.isNull() ) {
+            checkRender();
+            {
+                ldomXPointerEx ptr( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
+                *out << "FORWARD ORDER:\n\n";
+                //ptr.nextVisibleText();
+                ptr.prevVisibleWordEnd();
+                if ( ptr.thisSentenceStart() ) {
+                    while ( 1 ) {
+                        ldomXPointerEx ptr2(ptr);
+                        ptr2.thisSentenceEnd();
+                        ldomXRange range(ptr, ptr2);
+                        lString16 str = range.getRangeText();
+                        *out << ">sentence: " << UnicodeToUtf8(str) << "\n";
+                        if ( !ptr.nextSentenceStart() )
+                            break;
+                    }
+                }
+            }
+            {
+                ldomXPointerEx ptr( m_doc->getRootNode(), 1);
+                *out << "\n\nBACKWARD ORDER:\n\n";
+                while ( ptr.lastChild() )
+                    ;// do nothing
+                if ( ptr.thisSentenceStart() ) {
+                    while ( 1 ) {
+                        ldomXPointerEx ptr2(ptr);
+                        ptr2.thisSentenceEnd();
+                        ldomXRange range(ptr, ptr2);
+                        lString16 str = range.getRangeText();
+                        *out << "<sentence: " << UnicodeToUtf8(str) << "\n";
+                        if ( !ptr.prevSentenceStart() )
+                            break;
+                    }
+                }
+            }
+        }
+#endif
+
 		return true;
 	}
 	m_stream.Clear();
@@ -4749,11 +4792,88 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 		return moveByChapter(param);
 	}
 		break;
+    case DCMD_SELECT_FIRST_SENTENCE:
+    case DCMD_SELECT_NEXT_SENTENCE:
+    case DCMD_SELECT_PREV_SENTENCE:
+        return onSelectionCommand( cmd, param );
+
+    /*
+                ldomXPointerEx ptr( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
+                *out << "FORWARD ORDER:\n\n";
+                //ptr.nextVisibleText();
+                ptr.prevVisibleWordEnd();
+                if ( ptr.thisSentenceStart() ) {
+                    while ( 1 ) {
+                        ldomXPointerEx ptr2(ptr);
+                        ptr2.thisSentenceEnd();
+                        ldomXRange range(ptr, ptr2);
+                        lString16 str = range.getRangeText();
+                        *out << ">sentence: " << UnicodeToUtf8(str) << "\n";
+                        if ( !ptr.nextSentenceStart() )
+                            break;
+                    }
+                }
+    */
 	default:
 		// DO NOTHING
 		break;
 	}
 	return 1;
+}
+
+int LVDocView::onSelectionCommand( int cmd, int param )
+{
+    checkRender();
+    LVRef<ldomXRange> pageRange = getPageDocumentRange();
+    ldomXPointerEx pos( getBookmark() );
+    ldomXRangeList & sel = getDocument()->getSelections();
+    ldomXRange currSel;
+    if ( sel.length()>0 )
+        currSel = *sel[0];
+    bool moved = false;
+    if ( !currSel.isNull() && !pageRange->isInside(currSel.getStart()) && !pageRange->isInside(currSel.getEnd()) )
+        currSel.clear();
+    if ( currSel.isNull() || currSel.getStart().isNull() ) {
+        // select first sentence on page
+        if ( pos.isNull() ) {
+            clearSelection();
+            return 0;
+        }
+        if ( pos.thisSentenceStart() )
+            currSel.setStart(pos);
+        moved = true;
+    }
+    if ( currSel.getStart().isNull() ) {
+        clearSelection();
+        return 0;
+    }
+    // selection start doesn't match sentence bounds
+    if ( !currSel.getStart().isSentenceStart() ) {
+        currSel.getStart().thisSentenceStart();
+        moved = true;
+    }
+    // update sentence end
+    if ( !moved )
+        switch ( cmd ) {
+        case DCMD_SELECT_NEXT_SENTENCE:
+            if ( !currSel.getStart().nextSentenceStart() )
+                return 0;
+            break;
+        case DCMD_SELECT_PREV_SENTENCE:
+            if ( !currSel.getStart().prevSentenceStart() )
+                return 0;
+            break;
+        case DCMD_SELECT_FIRST_SENTENCE:
+        default: // unknown action
+            break;
+        }
+    currSel.setEnd(currSel.getStart());
+    currSel.getEnd().thisSentenceEnd();
+    currSel.setFlags(1);
+    selectRange(currSel);
+    goToBookmark(currSel.getStart());
+    CRLog::debug("Sel: %s", LCSTR(currSel.getRangeText()));
+    return 1;
 }
 
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };

@@ -1126,6 +1126,23 @@ void CR3View::setBookmarksDir( QString dirname )
 
 void CR3View::keyPressEvent ( QKeyEvent * event )
 {
+#if 0
+    // testing sentence navigation/selection
+    switch ( event->key() ) {
+    case Qt::Key_Z:
+        _docview->doCommand(DCMD_SELECT_FIRST_SENTENCE);
+        update();
+        return;
+    case Qt::Key_X:
+        _docview->doCommand(DCMD_SELECT_NEXT_SENTENCE);
+        update();
+        return;
+    case Qt::Key_C:
+        _docview->doCommand(DCMD_SELECT_PREV_SENTENCE);
+        update();
+        return;
+    }
+#endif
 #if WORD_SELECTOR_ENABLED==1
     if ( isWordSelection() ) {
         MoveDirection dir = DIR_ANY;
