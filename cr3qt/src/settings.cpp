@@ -190,11 +190,14 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     //PROP_HYPHENATION_DICT
     QString v = QString("%1").arg(m_props->getIntDef(PROP_INTERLINE_SPACE, 100)) + "%";
     QStringList isitems;
+    isitems.append("80%");
     isitems.append("90%");
+    isitems.append("95%");
     isitems.append("100%");
     isitems.append("110%");
     isitems.append("120%");
     isitems.append("140%");
+    isitems.append("150%");
     m_ui->cbInterlineSpace->addItems(isitems);
     int isi = m_ui->cbInterlineSpace->findText(v);
     m_ui->cbInterlineSpace->setCurrentIndex(isi>=0 ? isi : 1);
@@ -487,7 +490,7 @@ void SettingsDlg::on_cbInterlineSpace_currentIndexChanged(int index)
 {
     if ( !initDone )
         return;
-    static int n[] = {90,100,110,120,140};
+    static int n[] = {80,90,95,100,110,120,140,150};
     m_props->setInt( PROP_INTERLINE_SPACE, n[index] );
     updateStyleSample();
 }

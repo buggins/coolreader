@@ -1078,12 +1078,12 @@ int LVDocView::GetFullHeight() {
 	return (rd.getHeight() + rd.getY());
 }
 
-#define HEADER_MARGIN 4
+#define HEADER_MARGIN 3
 /// calculate page header height
 int LVDocView::getPageHeaderHeight() {
 	if (!getPageHeaderInfo())
 		return 0;
-	return getInfoFont()->getHeight()*12/10 + HEADER_MARGIN + 5;
+        return getInfoFont()->getHeight() + HEADER_MARGIN;
 }
 
 /// calculate page header rectangle

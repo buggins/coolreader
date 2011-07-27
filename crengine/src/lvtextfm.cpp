@@ -421,10 +421,8 @@ public:
                 if ( i==0 || (src->flags & LTEXT_FLAG_NEWLINE) )
                     m_flags[pos] = LCHAR_MANDATORY_NEWLINE;
                 for ( int k=0; k<len; k++ ) {
-                    //lChar16 ch = src->t.text[k];
                     m_charindex[pos] = k;
                     m_srcs[pos] = src;
-                    //m_text[pos] = ch;
                     pos++;
                 }
             }
@@ -453,9 +451,6 @@ public:
                 newSrc = m_srcs[i];
                 newFont = (LVFont *)newSrc->t.font;
                 isObject = m_charindex[i]==OBJECT_CHAR_INDEX;
-//                if ( isObject ) {
-//                    newFont = (LVFont *)newSrc->t.font;
-//                }
             }
             if ( !lastFont )
                 lastFont = newFont;
@@ -508,7 +503,6 @@ public:
             //
             lastFont = newFont;
             lastSrc = newSrc;
-            //if ( i==m_length || )
         }
         if ( tabIndex>=0 ) {
             int tabPosition = -m_srcs[0]->margin;
@@ -679,11 +673,15 @@ public:
                     src_text_fragment_t * srcline = m_srcs[wstart];
                     LVFont * font = (LVFont*)srcline->t.font;
                     int vertical_align = srcline->flags & LTEXT_VALIGN_MASK;
-                    int fh = font->getHeight();
+                    int fh = font->getSize();
                     int wy = 0;
+                    if ( interval>16 )
+                        wy = -((font->getSize() * (interval-16)) >> 4) >> 1;
+                    else if ( interval<16 )
+                        wy = ((font->getSize() * (16-interval)) >> 4) >> 1;
                     if ( vertical_align )  {
                         if ( vertical_align == LTEXT_VALIGN_SUB )
-                            wy += fh / 2;
+                            wy += fh / 3;
                         else if ( vertical_align == LTEXT_VALIGN_SUPER )
                             wy -= fh / 2;
                     }
@@ -727,14 +725,14 @@ public:
 
                     word->y = wy;
 
-                    if (word->y!=0) {
-                        // subscript or superscript
+//                    if (word->y!=0) {
+//                        // subscript or superscript
                         b = font->getBaseline();
                         h = font->getHeight() - b;
-                    }  else  {
-                        b = (( font->getBaseline() * interval) >> 4);
-                        h = ( ( font->getHeight() * interval) >> 4) - b;
-                    }
+//                    }  else  {
+//                        b = (( font->getBaseline() * interval) >> 4);
+//                        h = ( ( font->getHeight() * interval) >> 4) - b;
+//                    }
 
                 }
 
