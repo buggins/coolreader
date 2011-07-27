@@ -13,7 +13,7 @@
     >
 
     <TextView android:id="@+id/toc_level_margin"
-        style="@android:style/TextAppearance_Medium_Inverse"
+        style="@android:style/TextAppearance.Medium"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 		android:text="    " 
@@ -39,7 +39,7 @@
 	    android:layout_gravity="center"-->
 
 	    <TextView android:id="@+id/toc_title"
-	        style="@android:style/TextAppearance.Small"
+	        style="@android:style/TextAppearance.Medium"
 	        android:textStyle="bold"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
 	         />
     <!-- /LinearLayout-->
 	    <TextView android:id="@+id/toc_page"
-	        style="@android:style/TextAppearance.Small"
+	        style="@android:style/TextAppearance.Medium"
             android:textStyle="bold"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
