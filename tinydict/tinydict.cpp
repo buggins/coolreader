@@ -720,7 +720,7 @@ bool TinyDictZStream::open( FILE * file )
 const char * TinyDictDataFile::read( const TinyDictWord * w )
 {
     if ( !f || !w || w->getStart() + w->getSize() > size ) {
-        printf("article is out of file range (%d)\n", size);
+        printf("article is out of file range (%d)\n", (int)size);
         return NULL;
     }
 
