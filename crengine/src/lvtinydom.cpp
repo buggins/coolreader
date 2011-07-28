@@ -3892,7 +3892,7 @@ void ldomDocumentWriter::OnText( const lChar16 * text, int len, lUInt32 flags )
     if (_currNode)
     {
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
-             && IsEmptySpace(text, len) )
+             && IsEmptySpace(text, len)  && !(flags & TXTFLG_PRE))
              return;
         if (_currNode->_allowText)
             _currNode->onText( text, len, flags );
