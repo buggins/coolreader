@@ -1973,6 +1973,7 @@ class ldomElementWriter
     bool _isSection;
     bool _stylesheetIsSet;
     bool _bodyEnterCalled;
+    lUInt32 _flags;
     lUInt32 getFlags();
     void updateTocItem();
     void onBodyEnter();

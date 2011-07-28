@@ -427,6 +427,7 @@ public:
                 }
             }
         }
+        TR("%s", LCSTR(lString16(m_text, m_length)));
     }
 
     void measureText()

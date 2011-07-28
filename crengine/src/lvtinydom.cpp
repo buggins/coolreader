@@ -14,6 +14,8 @@
 /// change in case of incompatible changes in swap/cache file format
 #define CACHE_FILE_FORMAT_VERSION "3.03.11"
 
+#define TRACE_AUTOBOX 1
+
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
 #define DOC_DATA_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
@@ -3165,6 +3167,9 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
 {
     //logfile << "{c";
     _typeDef = _document->getElementTypePtr( id );
+    _flags = 0;
+    if ( (_typeDef && _typeDef->white_space==css_ws_pre) || (_parent && _parent->getFlags()&TXTFLG_PRE) )
+        _flags |= TXTFLG_PRE;
     _isSection = (id==el_section);
     _allowText = _typeDef ? _typeDef->allow_text : (_parent?true:false);
     if (_parent)
@@ -3182,10 +3187,7 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
 
 lUInt32 ldomElementWriter::getFlags()
 {
-    lUInt32 flags = 0;
-    if ( _typeDef && _typeDef->white_space==css_ws_pre )
-        flags |= TXTFLG_PRE;
-    return flags;
+    return _flags;
 }
 
 static bool isBlockNode( ldomNode * node )
@@ -3301,26 +3303,31 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex )
 #if BUILD_LITE!=1
     if ( !isElement() )
         return;
+    css_style_ref_t style = getStyle();
+    bool pre = ( style->white_space==css_ws_pre );
     int firstNonEmpty = startIndex;
     int lastNonEmpty = endIndex;
-    while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
-        lString16 s = getChildNode(firstNonEmpty)->getText();
-        if ( !IsEmptySpace(s.c_str(), s.length() ) )
-            break;
-        firstNonEmpty++;
-    }
-    while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
-        lString16 s = getChildNode(lastNonEmpty)->getText();
-        if ( !IsEmptySpace(s.c_str(), s.length() ) )
-            break;
-        lastNonEmpty--;
-    }
 
-    bool hasInline = false;
-    for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
-        ldomNode * node = getChildNode(i);
-        if ( isInlineNode( node ) )
-            hasInline = true;
+    bool hasInline = pre;
+    if ( !pre ) {
+        while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
+            lString16 s = getChildNode(firstNonEmpty)->getText();
+            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+                break;
+            firstNonEmpty++;
+        }
+        while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
+            lString16 s = getChildNode(lastNonEmpty)->getText();
+            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+                break;
+            lastNonEmpty--;
+        }
+
+        for ( int i=firstNonEmpty; i<=lastNonEmpty; i++ ) {
+            ldomNode * node = getChildNode(i);
+            if ( isInlineNode( node ) )
+                hasInline = true;
+        }
     }
 
     if ( hasInline ) { //&& firstNonEmpty<=lastNonEmpty
@@ -3653,7 +3660,7 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     {
         // normal mode: store text copy
         // add text node, if not first empty space string of block node
-        if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) )
+        if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) || (_flags&TXTFLG_PRE) )
             _element->insertChildText(lString16(text, len));
         else {
             //CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
@@ -7121,7 +7128,7 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
     {
         AutoClose( _currNode->_element->getNodeId(), false );
         if ( (_flags & XML_FLAG_NO_SPACE_TEXT)
-             && IsEmptySpace(text, len) )
+             && IsEmptySpace(text, len) && !(flags & TXTFLG_PRE))
              return;
         bool autoPara = _libRuDocumentDetected && (flags & TXTFLG_PRE);
         if (_currNode->_allowText) {
