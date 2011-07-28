@@ -4,17 +4,15 @@
 
    lvtinydom.cpp: fast and compact XML DOM tree
 
-   (c) Vadim Lopatin, 2000-2009
+   (c) Vadim Lopatin, 2000-2011
    This source code is distributed under the terms of
    GNU General Public License
    See LICENSE file for details
 
 *******************************************************/
 
-/// change in case of incompatible changes in swap/cache file format
-#define CACHE_FILE_FORMAT_VERSION "3.03.11"
-
-#define TRACE_AUTOBOX 1
+/// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
+#define CACHE_FILE_FORMAT_VERSION "3.03.12"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)

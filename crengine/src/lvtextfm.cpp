@@ -4,7 +4,7 @@
 
    lvtextfm.cpp:  Text formatter
 
-   (c) Vadim Lopatin, 2000-2006
+   (c) Vadim Lopatin, 2000-2011
    This source code is distributed under the terms of
    GNU General Public License
    See LICENSE file for details
@@ -403,6 +403,7 @@ public:
         pos = 0;
     }
 
+    /// copy text of current paragraph to buffers
     void copyText( int start, int end )
     {
         int pos = 0;
@@ -430,6 +431,7 @@ public:
         TR("%s", LCSTR(lString16(m_text, m_length)));
     }
 
+    /// measure text of current paragraph
     void measureText()
     {
         int i;
@@ -524,6 +526,7 @@ public:
 #define MIN_WORD_LEN_TO_HYPHENATE 4
 #define MAX_WORD_SIZE 64
 
+    /// align line
     void alignLine( formatted_line_t * frmline, int width, int alignment ) {
         if ( alignment==LTEXT_ALIGN_LEFT )
             return; // no additional alignment necessary
@@ -563,6 +566,7 @@ public:
         }
     }
 
+    /// split line into words, add space for width alignment
     void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last )
     {
         int maxWidth = m_pbuffer->width;
@@ -756,15 +760,27 @@ public:
         m_pbuffer->height = m_y;
     }
 
+    /// Split paragraph into lines
     void processParagraph( int start, int end )
     {
         TR("processParagraph(%d, %d)", start, end);
+
         // ensure buffer size is ok for paragraph
         allocate( start, end );
         // copy paragraph text to buffer
         copyText( start, end );
         // measure paragraph text
         measureText();
+
+        src_text_fragment_t * para = &m_pbuffer->srctext[start];
+        for ( int i=start; i<end; i++ ) {
+            if ( !(m_pbuffer->srctext[i].flags & LTEXT_RUNIN_FLAG) ) {
+                para = &m_pbuffer->srctext[i];
+                break;
+            }
+        }
+
+        //
 
         int maxWidth = m_pbuffer->width;
 #if 0
@@ -849,20 +865,31 @@ public:
                 if ( wrapPos<0 )
                     wrapPos = i-1;
             }
-            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, m_srcs[0], interval, pos==0, wrapPos>=m_length-1 );
+            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1 );
             pos = wrapPos + 1;
         }
     }
 
-    /// split lines into paragraphs
+    /// split source data into paragraphs
     void splitParagraphs()
     {
         int start = 0;
-        for ( int i=1; i<=m_pbuffer->srctextlen; i++ ) {
-            if ( (m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) || i==m_pbuffer->srctextlen ) {
+        int i;
+//        TR("==== splitParagraphs() ====");
+//        for ( i=0; i<m_pbuffer->srctextlen; i++ ) {
+//            int flg = m_pbuffer->srctext[i].flags;
+//            if ( (flg & LTEXT_RUNIN_FLAG) )
+//                TR("run-in found");
+//            TR("  %d: flg=%04x al=%d ri=%d '%s'", i, flg, (flg & LTEXT_FLAG_NEWLINE), (flg & LTEXT_RUNIN_FLAG)?1:0, (flg&LTEXT_SRC_IS_OBJECT ? "<image>" : LCSTR(lString16(m_pbuffer->srctext[i].t.text, m_pbuffer->srctext[i].t.len)) ) );
+//        }
+//        TR("============================");
+        bool prevRunIn = m_pbuffer->srctextlen>0 && (m_pbuffer->srctext[0].flags & LTEXT_RUNIN_FLAG);
+        for ( i=1; i<=m_pbuffer->srctextlen; i++ ) {
+            if ( ((m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) && !prevRunIn) || i==m_pbuffer->srctextlen ) {
                 processParagraph( start, i );
                 start = i;
             }
+            prevRunIn = (i<m_pbuffer->srctextlen) && (m_pbuffer->srctext[i].flags & LTEXT_RUNIN_FLAG);
         }
     }
 
@@ -883,6 +910,7 @@ public:
         }
     }
 
+    /// format source data
     int format()
     {
         // split and process all paragraphs
