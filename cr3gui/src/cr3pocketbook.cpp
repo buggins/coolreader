@@ -2475,7 +2475,7 @@ int main_handler(int type, int par1, int par2)
             CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
         } else if (type == EVT_KEYREPEAT) {
             int cmd = CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS);
-            if (par2 == 2 || (par2 > 2 && commandCanRepeat(cmd)))
+            if (par2 == 1 || (par2 > 1 && commandCanRepeat(cmd)))
                 CRPocketBookWindowManager::instance->onKeyPressed(par1, KEY_FLAG_LONG_PRESS);
         }
         process_events = true;

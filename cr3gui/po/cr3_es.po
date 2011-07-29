@@ -566,23 +566,23 @@ msgstr "Modo turbo activado"
 
 #: ../src/settings.cpp:465
 msgid "180+slow next page"
-msgstr ""
+msgstr "Lento- Pasar solo página siguiente"
 
 #: ../src/settings.cpp:466
 msgid "180+slow prev/next page"
-msgstr ""
+msgstr "Lento- Pasar solo página anterior y siguiente"
 
 #: ../src/settings.cpp:467
 msgid "180+FAST next page"
-msgstr ""
+msgstr "Rápido - Pasar solo página siguiente"
 
 #: ../src/settings.cpp:468
 msgid "180+FAST prev/next page"
-msgstr ""
+msgstr "Rápido- Pasar solo página anterior y siguiente"
 
 #: ../src/settings.cpp:469
 msgid "180+FAST next/prev page"
-msgstr ""
+msgstr "Rápido- Pasar solo página anterior y siguiente (invertido)"
 
 #: ../src/settings.cpp:497
 msgid "Default font face"
@@ -601,13 +601,12 @@ msgid "Interline space"
 msgstr "Interlineado"
 
 #: ../src/settings.cpp:546
-#, fuzzy
 msgid "Rotate"
-msgstr "Rotar por"
+msgstr "Modo paso de página con giro"
 
 #: ../src/settings.cpp:551
 msgid "Page turn angle"
-msgstr ""
+msgstr "Ángulo de giro para paso de página"
 
 #: ../src/settings.cpp:557
 msgid "Footnotes at page bottom"

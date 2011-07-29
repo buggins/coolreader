@@ -97,7 +97,7 @@
         <client>
             <background color="#FFFFFF"/>
             <border widths="8,8,8,8"/>
-            <text color="#000000" face="Liberation Sans, DejaVu Sans" size="28" bold="false" italic="false" valign="center" halign="center"/>
+            <text color="#000000" face="Liberation Sans, DejaVu Sans" size="20" bold="false" italic="false" valign="center" halign="center"/>
         </client>
         <scroll base="#titlescroll"/>
   </window>

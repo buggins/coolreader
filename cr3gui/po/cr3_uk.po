@@ -914,9 +914,8 @@ msgid "Bookmark list"
 msgstr "Закладки"
 
 #: ../src/viewdlg.cpp:553
-#, fuzzy
 msgid "Citations list"
-msgstr "Цитата"
+msgstr "Цитати"
 
 #: ../src/viewdlg.cpp:554
 msgid "Go to bookmark..."
@@ -924,7 +923,7 @@ msgstr "До закладок..."
 
 #: ../src/viewdlg.cpp:555
 msgid "Recent books list"
-msgstr "Список останніх книг"
+msgstr "Повторно відкрити книгу"
 
 #: ../src/viewdlg.cpp:556
 msgid "Open recent book by number"

@@ -924,7 +924,8 @@ public:
                 } else {
                     // measure object
                     // assume i==start+1
-                    int objectWidth = DUMMY_IMAGE_SIZE; // TODO: real object width
+                    int objectWidth = m_srcs[i-1]->o.width;  // FXME: will work with no scaling.
+                    //DUMMY_IMAGE_SIZE;  TODO: real object width
                     lastWidth += objectWidth;
                     m_widths[start] = lastWidth;
                 }

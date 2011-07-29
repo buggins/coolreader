@@ -560,23 +560,23 @@ msgstr "Турбо режим включен"
 
 #: ../src/settings.cpp:465
 msgid "180+slow next page"
-msgstr ""
+msgstr "180°+вперед медленно"
 
 #: ../src/settings.cpp:466
 msgid "180+slow prev/next page"
-msgstr ""
+msgstr "180°+вперед/назад медленно"
 
 #: ../src/settings.cpp:467
 msgid "180+FAST next page"
-msgstr ""
+msgstr "180°+вперед быстро"
 
 #: ../src/settings.cpp:468
 msgid "180+FAST prev/next page"
-msgstr ""
+msgstr "180°+вперед/назад быстро"
 
 #: ../src/settings.cpp:469
 msgid "180+FAST next/prev page"
-msgstr ""
+msgstr "180°+назад/вперед быстро"
 
 #: ../src/settings.cpp:497
 msgid "Default font face"
@@ -595,13 +595,12 @@ msgid "Interline space"
 msgstr "Межстрочный интервал"
 
 #: ../src/settings.cpp:546
-#, fuzzy
 msgid "Rotate"
-msgstr "Повернуть на"
+msgstr "Поворот"
 
 #: ../src/settings.cpp:551
 msgid "Page turn angle"
-msgstr ""
+msgstr "Наклон для перелистывания"
 
 #: ../src/settings.cpp:557
 msgid "Footnotes at page bottom"
