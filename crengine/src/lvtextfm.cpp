@@ -543,7 +543,7 @@ public:
                 return; // no space to distribute
             int addSpacePoints = 0;
             int i;
-            for ( i=0; i<frmline->word_count-1; i++ ) {
+            for ( i=0; i<(int)frmline->word_count-1; i++ ) {
                 if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
                     addSpacePoints++;
             }
@@ -551,7 +551,7 @@ public:
                 int addSpaceDiv = extraSpace / addSpacePoints;
                 int addSpaceMod = extraSpace % addSpacePoints;
                 int delta = 0;
-                for ( i=0; i<frmline->word_count; i++ ) {
+                for ( i=0; i<(int)frmline->word_count; i++ ) {
                     frmline->words[i].x += delta;
                     if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
                         delta += addSpaceDiv;
