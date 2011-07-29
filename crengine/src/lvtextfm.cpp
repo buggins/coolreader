@@ -431,6 +431,46 @@ public:
         TR("%s", LCSTR(lString16(m_text, m_length)));
     }
 
+    void resizeImage( int & width, int & height, int maxw, int maxh )
+    {
+        resizeImage( width, height, maxw, maxh, ARBITRARY_IMAGE_SCALE_ENABLED==1, MAX_IMAGE_SCALE_MUL );
+    }
+
+    void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
+    {
+        if ( maxScaleMult<1 )
+            maxScaleMult = 1;
+        if ( arbitraryImageScaling ) {
+            int pscale_x = 1000 * maxw / width;
+            int pscale_y = 1000 * maxh / height;
+            int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
+            int maxscale = (MAX_IMAGE_SCALE_MUL>0 ? MAX_IMAGE_SCALE_MUL : 1) * 1000;
+            if ( pscale>maxscale )
+                pscale = maxscale;
+            height = height * pscale / 1000;
+            width = width * pscale / 1000;
+        } else {
+            int scale_div = 1;
+            int scale_mul = 1;
+            int div_x = (width / maxw) + 1;
+            int div_y = (height / maxh) + 1;
+            if ( maxScaleMult>=3 && height*3 < maxh - 20
+                    && width*3 < maxw - 20 ) {
+                scale_mul = 3;
+            } else if ( maxScaleMult>=2 && height * 2 < maxh - 20
+                    && width * 2 < maxw - 20 ) {
+                scale_mul = 2;
+            } else if (div_x>1 || div_y>1) {
+                if (div_x>div_y)
+                    scale_div = div_x;
+                else
+                    scale_div = div_y;
+            }
+            height = height * scale_mul / scale_div;
+            width = width * scale_mul / scale_div;
+        }
+    }
+
     /// measure text of current paragraph
     void measureText()
     {
@@ -496,9 +536,10 @@ public:
                 } else {
                     // measure object
                     // assume i==start+1
-                    int objectWidth = m_srcs[i-1]->o.width;  // FXME: will work with no scaling.
-                    //DUMMY_IMAGE_SIZE;  TODO: real object width
-                    lastWidth += objectWidth;
+                    int width = m_srcs[start]->o.width;
+                    int height = m_srcs[start]->o.height;
+                    resizeImage( width, height, m_pbuffer->width, m_pbuffer->page_height );
+                    lastWidth += width;
                     m_widths[start] = lastWidth;
                 }
                 start = i;
@@ -544,7 +585,7 @@ public:
                 return; // no space to distribute
             int addSpacePoints = 0;
             int i;
-            for ( i=0; i<frmline->word_count-1; i++ ) {
+            for ( i=0; i<(int)frmline->word_count-1; i++ ) {
                 if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
                     addSpacePoints++;
             }
@@ -552,7 +593,7 @@ public:
                 int addSpaceDiv = extraSpace / addSpacePoints;
                 int addSpaceMod = extraSpace % addSpacePoints;
                 int delta = 0;
-                for ( i=0; i<frmline->word_count; i++ ) {
+                for ( i=0; i<(int)frmline->word_count; i++ ) {
                     frmline->words[i].x += delta;
                     if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
                         delta += addSpaceDiv;
@@ -636,41 +677,11 @@ public:
                     word->o.height = lastSrc->o.height;
                     int maxw = m_pbuffer->width - x;
 
-#if ARBITRARY_IMAGE_SCALE_ENABLED==1
-        int pscale_x = 1000 * maxw / lastSrc->o.width;
-        int pscale_y = 1000 * m_pbuffer->page_height / lastSrc->o.height;
-        int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
-        int maxscale = (MAX_IMAGE_SCALE_MUL>0 ? MAX_IMAGE_SCALE_MUL : 1) * 1000;
-        if ( pscale>maxscale )
-            pscale = maxscale;
-        word->o.height = lastSrc->o.height * pscale / 1000;
-        word->width = lastSrc->o.width * pscale / 1000;
-#else
-        int scale_div = 1;
-        int scale_mul = 1;
-        int div_x = (lastSrc->o.width / maxw) + 1;
-        int div_y = (lastSrc->o.height / m_pbuffer->page_height) + 1;
-#if (MAX_IMAGE_SCALE_MUL==3)
-        if ( lastSrc->o.height*3 < m_pbuffer->page_height-20
-                && lastSrc->o.width*3 < maxw - 20 )
-            scale_mul = 3;
-        else
-#endif
-#if (MAX_IMAGE_SCALE_MUL==2) || (MAX_IMAGE_SCALE_MUL==3)
-            if ( lastSrc->o.height*2 < m_pbuffer->page_height-20
-                && lastSrc->o.width*2 < maxw - 20 )
-            scale_mul = 2;
-        else
-#endif
-        if (div_x>1 || div_y>1) {
-            if (div_x>div_y)
-                scale_div = div_x;
-            else
-                scale_div = div_y;
-        }
-        word->o.height = lastSrc->o.height * scale_mul / scale_div;
-        word->width = lastSrc->o.width * scale_mul / scale_div;
-#endif
+                    int width = lastSrc->o.width;
+                    int height = lastSrc->o.height;
+                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height );
+                    word->width = width;
+                    word->o.height = height;
 
                     b = word->o.height;
                     h = 0;

@@ -25,7 +25,7 @@ namespace Ui {
 #define PROP_WINDOW_STYLE           "window.style"
 #define PROP_APP_START_ACTION       "cr3.app.start.action"
 
-#define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 14, 18, 20, 22, 24, 26, 28, 32, 38, 42, 48, 56, 64, 72 }
+#define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 28, 32, 38, 42, 48, 56, 64, 72 }
 
 class CR3View;
 class SettingsDlg : public QDialog {
