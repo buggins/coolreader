@@ -202,20 +202,6 @@ void lvtextAddSourceObject(
    lInt8           letter_spacing
                          );
 
-/** Formats source lines stored in buffer into formatted lines
-
-   \return height (in pixels) of formatted text
-*/
-lUInt32 lvtextFormat( formatted_text_fragment_t * pbuffer );
-
-/** Reformats source lines stored in buffer into formatted lines
-
-   \return height (in pixels) of formatted text
-*/
-lUInt32 lvtextResize( formatted_text_fragment_t * pbuffer, int width, int page_height );
-
-/** \brief Draws formatted text to draw buffer (C API) */
-void lvtextDraw( formatted_text_fragment_t * text, draw_buf_t * buf, int x, int y );
 
 #ifdef __cplusplus
 }

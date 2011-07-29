@@ -2970,6 +2970,7 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_tabl
     bool pre_para_splitting = (flags & TXTFLG_PRE_PARA_SPLITTING)!=0;
     if ( pre_para_splitting )
         pre = false;
+    //CRLog::trace("before: '%s' %s", LCSTR(s), pre ? "pre ":" ");
     int tabCount = 0;
     int j = 0;
     for (int i=0; i<len; ++i )
@@ -3090,6 +3091,7 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_tabl
         }
         s = buf;
     }
+    //CRLog::trace(" after: '%s'", LCSTR(s));
 }
 
 void LVTextFileBase::clearCharBuffer()
