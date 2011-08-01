@@ -860,6 +860,10 @@ public:
         lUInt32 * line = new lUInt32[w];
         int transp_color = m_pImage->m_transparent_color;
         lUInt32 * pColorTable = GetColorTable();
+        int interlacePos = 0;
+        int interlaceTable[] = {8, 0, 8, 4, 4, 2, 2, 1, 1, 1}; // pairs: step, offset
+        int dy = interlaceTable[interlacePos];
+        int y = 0;
         for ( int i=0; i<h; i++ ) {
             for ( int j=0; j<w; j++ ) {
                 line[j] = 0xFFFFFFFF; // transparent
@@ -873,7 +877,17 @@ public:
                     }
                 }
             }
-            callback->OnLineDecoded( m_pImage, i, line );
+            callback->OnLineDecoded( m_pImage, y, line );
+            if ( m_flg_interlaced ) {
+                y += dy;
+                if ( y>=m_cy ) {
+                    interlacePos += 2;
+                    dy = interlaceTable[interlacePos];
+                    y = interlaceTable[interlacePos+1];
+                }
+            } else {
+                y++;
+            }
         }
         delete[] line;
         callback->OnEndDecode( m_pImage, false );
@@ -935,8 +949,8 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
 
         m_global_color_table = new lUInt32[m_color_count];
         for (int i=0; i<m_color_count; i++) {
-            //m_global_color_table[i] = RGB(p[i*3],p[i*3+1],p[i*3+2]);
-            m_global_color_table[i] = lRGB(p[i*3+2],p[i*3+1],p[i*3+0]);
+            m_global_color_table[i] = lRGB(p[i*3],p[i*3+1],p[i*3+2]);
+            //m_global_color_table[i] = lRGB(p[i*3+2],p[i*3+1],p[i*3+0]);
         }
 
         // next
@@ -1260,6 +1274,7 @@ int LVGifFrame::DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_
         m_local_color_table = new lUInt32[m_color_count];
         for (int i=0; i<m_color_count; i++) {
             m_local_color_table[i] = lRGB(p[i*3],p[i*3+1],p[i*3+2]);
+            //m_local_color_table[i] = lRGB(p[i*3+2],p[i*3+1],p[i*3+0]);
         }
         // next
         p+=(m_color_count * 3);
