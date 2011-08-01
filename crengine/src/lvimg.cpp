@@ -665,7 +665,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
             png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         }
         if ( row )
-            delete row;
+            delete [] row;
         if (callback)
             callback->OnEndDecode(this, true); // error!
         return false;

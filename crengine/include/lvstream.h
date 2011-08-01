@@ -188,7 +188,7 @@ public:
 
     virtual lverror_t GetSize( lvsize_t * pSize )
     {
-        *pSize = LVStream::GetSize();
+        *pSize = GetSize();
         return LVERR_OK;
     }
 

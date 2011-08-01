@@ -238,6 +238,8 @@ public:
     /// destructor
     virtual ~CRHistoryFileParserCallback()
     {
+        if ( _curr_file )
+            delete _curr_file;
     }
 };
 
