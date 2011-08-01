@@ -897,7 +897,7 @@ public:
 //        TR("============================");
         bool prevRunIn = m_pbuffer->srctextlen>0 && (m_pbuffer->srctext[0].flags & LTEXT_RUNIN_FLAG);
         for ( i=1; i<=m_pbuffer->srctextlen; i++ ) {
-            if ( ((m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) && !prevRunIn) || i==m_pbuffer->srctextlen ) {
+            if ( (i==m_pbuffer->srctextlen) || ((m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) && !prevRunIn) ) {
                 processParagraph( start, i );
                 start = i;
             }
