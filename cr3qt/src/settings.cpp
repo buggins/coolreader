@@ -96,7 +96,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     }
     m_ui->cbPageSkin->clear();
     m_ui->cbPageSkin->addItems( bgFileLabels );
-    m_ui->cbPageSkin->setCurrentIndex(bgIndex);
+    m_ui->cbPageSkin->setCurrentIndex(bgIndex+1);
 
     optionToUi( PROP_WINDOW_FULLSCREEN, m_ui->cbWindowFullscreen );
     optionToUi( PROP_WINDOW_SHOW_MENU, m_ui->cbWindowShowMenu );

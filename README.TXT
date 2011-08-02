@@ -170,7 +170,8 @@ Run Qt SDK / Qt Command Prompt. Execute:
 > make install
 
 cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 9 2008" -D USE_QT_ZLIB=1 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1500000 -D CMAKE_INSTALL_PREFIX=dist ..
-
+cmake -D GUI=QT -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 10" -D USE_QT_ZLIB=1  -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1500000 -D CMAKE_INSTALL_PREFIX=dist ..
+to disable console, use /SUBSYSTEM:WINDOWS linker option instead of /SUBSYSTEM:CONSOLE
 
 It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
 You need also add following DLLs to this directory in order to get cr3.exe working:
