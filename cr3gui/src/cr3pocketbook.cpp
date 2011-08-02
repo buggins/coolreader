@@ -209,8 +209,8 @@ static const struct {
     { "@KA_menu", PB_QUICK_MENU, 0},
     { "@KA_prev", DCMD_PAGEUP, 0},
     { "@KA_next", DCMD_PAGEDOWN, 0},
-    { "@KA_pr10", DCMD_PAGEUP, 10},
-    { "@KA_nx10", DCMD_PAGEDOWN, 10},
+    { "@KA_pr10", PB_CMD_PAGEUP_REPEAT, 10},
+    { "@KA_nx10", PB_CMD_PAGEDOWN_REPEAT, 10},
     { "@KA_goto", MCMD_GO_PAGE, 0},
     { "@KA_frst", DCMD_BEGIN, 0},
     { "@KA_last", DCMD_END, 0},
@@ -828,6 +828,7 @@ private:
     bool _lastturn;
     int _pausedRotation;
     bool _pauseRotationTimer;
+    int  m_goToPage;
 
     void freeContents()
     {
@@ -924,11 +925,53 @@ protected:
                          PB_QUICK_MENU_SELECT, params);
         return true;
     }
+
+    void draw()
+    {
+        V3DocViewWin::draw();
+        if (m_goToPage != -1) {
+            CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
+            LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
+            lString16 text = lString16::itoa(m_goToPage + 1);
+            lvPoint text_size = skin->measureText(text);
+            lvRect rc;
+            rc.left = _wm->getScreen()->getWidth() - 65;
+            rc.top = _wm->getScreen()->getHeight() - text_size.y - 30;
+            rc.right = rc.left + 60;
+            rc.bottom = rc.top + text_size.y * 3/2;
+            buf->FillRect(rc, _docview->getBackgroundColor());
+            buf->Rect(rc, _docview->getTextColor());
+            rc.shrink(1);
+            buf->Rect(rc, _docview->getTextColor());
+            skin->drawText(*buf, rc, text);
+        }
+    }
+
+    bool incrementPage(int delta)
+    {
+        if (m_goToPage == -1)
+            m_goToPage = _docview->getCurPage();
+        m_goToPage = m_goToPage + delta * _docview->getVisiblePageCount();
+        bool res = true;
+        int page_count = _docview->getPageCount();
+        if (m_goToPage >= page_count) {
+            m_goToPage = page_count - 1;
+            res = false;
+        }
+        if (m_goToPage < 0) {
+            m_goToPage = 0;
+            res = false;
+        }
+        if (res)
+            setDirty();
+        return res;
+    }
+
 public:
     static CRPocketBookDocView * instance;
     CRPocketBookDocView( CRGUIWindowManager * wm, lString16 dataDir )
         : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _bm3x3(NULL), _dictDlg(NULL), _rotatetimerset(false),
-        _lastturn(true), _pauseRotationTimer(false)
+        _lastturn(true), _pauseRotationTimer(false), m_goToPage(-1)
     {
         instance = this;
     }
@@ -1037,6 +1080,21 @@ public:
             return true;
         case MCMD_OPEN_RECENT_BOOK:
             switchToRecentBook(params);
+            break;
+        case PB_CMD_PAGEUP_REPEAT:
+            if (params < 1)
+                params = 1;
+            return incrementPage(-params);
+        case PB_CMD_PAGEDOWN_REPEAT:
+            if (params < 1)
+                params = 1;
+            return incrementPage(params);
+        case PB_CMD_REPEAT_FINISH:
+            if (m_goToPage != -1) {
+                bool ret = _docview->goToPage(m_goToPage);
+                m_goToPage = -1;
+                return ret;
+            }
             break;
         default:
             break;
@@ -1972,7 +2030,7 @@ CRPbDictionaryDialog::CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialo
         (!((key == upKey && flags == upFlags) || (key = downKey && flags == downFlags) ||\
            (key == leftKey && flags == leftFlags) || (key == rightKey && flags == rightFlags)))
 
-		if (mainAcc->findCommandKey(DCMD_PAGEUP, 0, key, keyFlags)) {
+        if (mainAcc->findCommandKey(DCMD_PAGEUP, 0, key, keyFlags)) {
             if (PB_CHECK_DICT_KEYS(key, keyFlags))
                 _acceleratorTable->add(key, keyFlags, DCMD_PAGEUP, 0);
         }
@@ -2403,8 +2461,8 @@ static bool commandCanRepeat(int command)
 {
     switch (command) {
     case DCMD_LINEUP:
-    case DCMD_PAGEUP:
-    case DCMD_PAGEDOWN:
+    case PB_CMD_PAGEUP_REPEAT:
+    case PB_CMD_PAGEDOWN_REPEAT:
     case DCMD_LINEDOWN:
     case MCMD_SCROLL_FORWARD_LONG:
     case MCMD_SCROLL_BACK_LONG:
@@ -2471,8 +2529,11 @@ int main_handler(int type, int par1, int par2)
             keyPressed = -1;
             break;
         }
-        if (type == EVT_KEYRELEASE && par2 == 0) {
-            CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
+        if (type == EVT_KEYRELEASE) {
+            if (par2 == 0)
+                CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
+            else if (par2 > 1)
+                CRPocketBookWindowManager::instance->postCommand(PB_CMD_REPEAT_FINISH, 0);
         } else if (type == EVT_KEYREPEAT) {
             int cmd = CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS);
             if (par2 == 1 || (par2 > 1 && commandCanRepeat(cmd)))
