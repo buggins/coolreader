@@ -609,7 +609,7 @@ public:
     }
 
     /// split line into words, add space for width alignment
-    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly )
     {
         int maxWidth = m_pbuffer->width;
         //int w0 = start>0 ? m_widths[start-1] : 0;
@@ -621,7 +621,7 @@ public:
             align = text_align_last;
         else if ( align==LTEXT_ALIGN_WIDTH && last )
             align = LTEXT_ALIGN_LEFT;
-        if ( !align )
+        if ( preFormattedOnly || !align )
             align = LTEXT_ALIGN_LEFT;
 
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT );
@@ -784,17 +784,36 @@ public:
         // measure paragraph text
         measureText();
 
+        // run-in detection
         src_text_fragment_t * para = &m_pbuffer->srctext[start];
-        for ( int i=start; i<end; i++ ) {
+        int i;
+        for ( i=start; i<end; i++ ) {
             if ( !(m_pbuffer->srctext[i].flags & LTEXT_RUNIN_FLAG) ) {
                 para = &m_pbuffer->srctext[i];
                 break;
             }
         }
 
-        //
+        // detect case with inline preformatted text inside block with line feeds -- override align=left for this case
+        bool preFormattedOnly = true;
+        for ( i=start; i<end; i++ ) {
+            if ( !(m_pbuffer->srctext[i].flags & LTEXT_FLAG_PREFORMATTED) ) {
+                preFormattedOnly = false;
+                break;
+            }
+        }
+        bool lfFound = false;
+        for ( i=0; i<m_length; i++ ) {
+            if ( m_text[i]=='\n' ) {
+                lfFound = true;
+                break;
+            }
+        }
+        preFormattedOnly = preFormattedOnly && lfFound;
 
+        int interval = m_srcs[0]->interval;
         int maxWidth = m_pbuffer->width;
+
 #if 0
         // reservation of space for floating punctuation
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
@@ -812,7 +831,7 @@ public:
             maxWidth -= visialAlignmentWidth;
         }
 #endif
-        int interval = m_srcs[0]->interval;
+
         // split paragraph into lines, export lines
         int pos = 0;
         int indent = m_srcs[0]->margin;
@@ -877,7 +896,7 @@ public:
                 if ( wrapPos<0 )
                     wrapPos = i-1;
             }
-            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1 );
+            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly );
             pos = wrapPos + 1;
         }
     }
@@ -897,7 +916,7 @@ public:
 //        TR("============================");
         bool prevRunIn = m_pbuffer->srctextlen>0 && (m_pbuffer->srctext[0].flags & LTEXT_RUNIN_FLAG);
         for ( i=1; i<=m_pbuffer->srctextlen; i++ ) {
-            if ( ((m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) && !prevRunIn) || i==m_pbuffer->srctextlen ) {
+            if ( (i==m_pbuffer->srctextlen) || ((m_pbuffer->srctext[i].flags & LTEXT_FLAG_NEWLINE) && !prevRunIn) ) {
                 processParagraph( start, i );
                 start = i;
             }
