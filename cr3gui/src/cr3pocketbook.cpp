@@ -187,7 +187,7 @@ public:
         ClearScreen();
         lUInt8 *screenbuf =  _front->GetScanLine(0);
         int w = _front->GetWidth(); int h = _front->GetHeight();
-        Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
+        Stretch(screenbuf, PB_BUFFER_GRAYS, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
         PageSnapshot();
     }
     bool setForceSoftUpdate(bool force)
@@ -304,7 +304,7 @@ public:
                 ( _orientation &1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
         LVImageSourceRef img = getSkin()->getImage(imgname);
         if ( !img.isNull() ) {
-            _screen->getCanvas()->Draw(img, 0, 0, _screen->getWidth(), _screen->getHeight(),  false );
+            _screen->getCanvas()->Draw(img, 0, 0, _screen->getWidth(), _screen->getHeight());
         } else {
             _screen->getCanvas()->Clear(0xFFFFFF);
         }
@@ -432,17 +432,18 @@ void CRPocketBookScreen::update( const lvRect & rc2, bool full )
     else if (!_forceSoft)
         full = false;
 
-    lUInt8 *screenbuf =  _front->GetScanLine(0);
-    int w = _front->GetWidth(); int h = _front->GetHeight();
-    Stretch(screenbuf, IMAGE_GRAY2, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
-    if ( full )
+    if ( full ) {
+        Stretch(_front->GetScanLine(0), PB_BUFFER_GRAYS, _front->GetWidth(), _front->GetHeight(), _front->GetRowSize(),
+                0, 0, _front->GetWidth(), _front->GetHeight(), 0);
         FullUpdate();
-    else if (!isDocWnd && rc.height() < 300) {
-        CRLog::trace("PartialUpdateBW(%d, %d, %d, %d)",
-                     rc.left, rc.top, rc.width(), rc.height());
-        PartialUpdateBW(rc.left, rc.top, rc.right, rc.bottom);
-    } else
-        SoftUpdate();
+    } else {
+        Stretch(_front->GetScanLine(rc.top), PB_BUFFER_GRAYS, _front->GetWidth(), rc.height(), _front->GetRowSize(),
+                0, rc.top, _front->GetWidth(), rc.height(), 0);
+        if (!isDocWnd && rc.height() < 300)
+            PartialUpdateBW(rc.left, rc.top, rc.right, rc.bottom);
+        else
+            SoftUpdate();
+    }
 }
 
 class CRPocketBookInkViewWindow : public CRGUIWindowBase
@@ -928,7 +929,6 @@ protected:
 
     void draw()
     {
-        V3DocViewWin::draw();
         if (m_goToPage != -1) {
             CRRectSkinRef skin = _wm->getSkin()->getWindowSkin( L"#dialog" )->getClientSkin();
             LVDrawBuf * buf = _wm->getScreen()->getCanvas().get();
@@ -944,7 +944,8 @@ protected:
             rc.shrink(1);
             buf->Rect(rc, _docview->getTextColor());
             skin->drawText(*buf, rc, text);
-        }
+        } else
+            V3DocViewWin::draw();
     }
 
     bool incrementPage(int delta)
@@ -1091,9 +1092,10 @@ public:
             return incrementPage(params);
         case PB_CMD_REPEAT_FINISH:
             if (m_goToPage != -1) {
-                bool ret = _docview->goToPage(m_goToPage);
+                int page = m_goToPage;
                 m_goToPage = -1;
-                return ret;
+                _docview->goToPage(page);
+                return true;
             }
             break;
         default:
@@ -2532,7 +2534,7 @@ int main_handler(int type, int par1, int par2)
         if (type == EVT_KEYRELEASE) {
             if (par2 == 0)
                 CRPocketBookWindowManager::instance->onKeyPressed(par1, 0);
-            else if (par2 > 1)
+            else
                 CRPocketBookWindowManager::instance->postCommand(PB_CMD_REPEAT_FINISH, 0);
         } else if (type == EVT_KEYREPEAT) {
             int cmd = CRPocketBookWindowManager::instance->hasKeyMapping(par1, KEY_FLAG_LONG_PRESS);

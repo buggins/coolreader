@@ -64,5 +64,14 @@ enum CRPbCommands {
 #define PB_ROTATE_MODE_180_FAST_NEXT_PREV 6
 
 const char* TR(const char *label);
+
+#if GRAY_BACKBUFFER_BITS == 2
+#define PB_BUFFER_GRAYS IMAGE_GRAY2
+#elif GRAY_BACKBUFFER_BITS == 8
+#define PB_BUFFER_GRAYS IMAGE_GRAY8
+#else
+#error "Unsupported GRAY_BACKBUFFER_BITS"
+#endif
+
 #endif //CR3_POCKETBOOK_H
 
