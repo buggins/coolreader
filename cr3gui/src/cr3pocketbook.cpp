@@ -830,7 +830,7 @@ private:
     int _pausedRotation;
     bool _pauseRotationTimer;
     int  m_goToPage;
-
+    bool _restore_globOrientation;
     void freeContents()
     {
         for (int i = 0; i < _tocLength; i++) {
@@ -972,7 +972,7 @@ public:
     static CRPocketBookDocView * instance;
     CRPocketBookDocView( CRGUIWindowManager * wm, lString16 dataDir )
         : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _bm3x3(NULL), _dictDlg(NULL), _rotatetimerset(false),
-        _lastturn(true), _pauseRotationTimer(false), m_goToPage(-1)
+        _lastturn(true), _pauseRotationTimer(false), m_goToPage(-1), _restore_globOrientation(false)
     {
         instance = this;
     }
@@ -982,6 +982,10 @@ public:
         pbGlobals->saveState(getDocView()->getCurPage(), getDocView()->getPageCount());
         CRLog::trace("V3DocViewWin::closing();");
         readingOff();
+        if (_restore_globOrientation) {
+            SetGlobalOrientation(-1);
+            _restore_globOrientation = false;
+        }
         V3DocViewWin::closing();
         if (!exiting)
             CloseApp();
@@ -1287,8 +1291,11 @@ public:
         cr_rotate_angle_t newOrientation = pocketbook_orientations[GetOrientation()];
         if ((oldOrientation & 1) == (newOrientation & 1))
             _wm->reconfigure(dx, dy, newOrientation);
-        else
+        else {
+            SetGlobalOrientation(_pausedRotation);
+            _restore_globOrientation = true;
             _wm->reconfigure(dy, dx, newOrientation);
+        }
         _wm->update(true);
     }
 
@@ -1347,6 +1354,14 @@ public:
                 SetWeakTimer("RotatePage", paused_rotate_timer, 400);
                 _pauseRotationTimer = true;
             }
+        }
+    }
+    void OnFormatEnd()
+    {
+        V3DocViewWin::OnFormatEnd();
+        if (_restore_globOrientation) {
+            SetGlobalOrientation(-1);
+            _restore_globOrientation = false;
         }
     }
 };

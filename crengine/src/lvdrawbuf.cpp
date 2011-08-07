@@ -773,10 +773,10 @@ void LVGrayDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
     if (x0>=x1 || y0>=y1)
         return;
 
-	lUInt8 * line = GetScanLine(y0) + (x0 >> 2);
 	if (_bpp==1) {
 		; //TODO: implement for 1 bit
 	} else if (_bpp==2) {
+                lUInt8 * line = GetScanLine(y0) + (x0 >> 2);
 		lUInt16 before = 4 - (x0 & 3); // number of pixels before byte boundary
 		if (before == 4)
 			before = 0;
@@ -802,7 +802,19 @@ void LVGrayDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
 			}
 			line += _rowsize;
 		}
+        } else  if (_bpp == 8) {
+            lUInt8 * line = GetScanLine(y0);
+            for (int y=y0; y<y1; y++) {
+                for (int x=x0; x<x1; x++) {
+                    if (line[x] > 192)
+                        line[x] = 0;
+                    else if (line[x] < 64)
+                        line[x] = 0xFF;
+                }
+                line += _rowsize;
+            }
 	}  else { // 3, 4, 8
+            lUInt8 * line = GetScanLine(y0);
 		for (int y=y0; y<y1; y++) {
             for (int x=x0; x<x1; x++)
                 line[x] = ~line[x];
