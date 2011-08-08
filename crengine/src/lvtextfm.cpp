@@ -446,8 +446,8 @@ public:
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_inline == 2;
                 maxScale = m_pbuffer->img_zoom_in_scale_inline;
             } else {
-                if ( m_pbuffer->img_zoom_out_mode_inline==0 )
-                    return; // no zoom
+//                if ( m_pbuffer->img_zoom_out_mode_inline==0 )
+//                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_inline == 2;
                 maxScale = m_pbuffer->img_zoom_out_scale_inline;
             }
@@ -458,8 +458,8 @@ public:
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_block == 2;
                 maxScale = m_pbuffer->img_zoom_in_scale_block;
             } else {
-                if ( m_pbuffer->img_zoom_out_mode_block==0 )
-                    return; // no zoom
+//                if ( m_pbuffer->img_zoom_out_mode_block==0 )
+//                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_block == 2;
                 maxScale = m_pbuffer->img_zoom_out_scale_block;
             }

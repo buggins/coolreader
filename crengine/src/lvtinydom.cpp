@@ -2529,6 +2529,7 @@ LFormattedText * lxmlDocBase::createFormattedText()
 {
     LFormattedText * p = new LFormattedText();
     p->setImageScalingOptions(&_imgScalingOptions);
+    return p;
 }
 
 /// returns main element (i.e. FictionBook for FB2)
@@ -2705,11 +2706,11 @@ ldomDocument::~ldomDocument()
 #if BUILD_LITE!=1
 
 /// renders (formats) document in memory
-bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
+bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
     bool changed = false;
     _renderedBlockCache.clear();
-    changed = _imgScalingOptions.update(getProps(), def_font->getSize()) || changed;
+    changed = _imgScalingOptions.update(props, def_font->getSize()) || changed;
     css_style_ref_t s( new css_style_rec_t );
     s->display = css_d_block;
     s->white_space = css_ws_normal;
@@ -2863,7 +2864,7 @@ void ldomDocument::applyDocumentStyleSheet()
 }
 
 
-int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
+int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
     CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
     CRLog::trace("initializing default style...");
@@ -2873,7 +2874,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
 //        styleHash = styleHash * 31 + calcGlobalSettingsHash();
 //        CRLog::debug("Style hash before setRenderProps: %x", styleHash);
 //    } //bool propsChanged =
-    setRenderProps( width, dy, showCover, y0, def_font, def_interline_space );
+    setRenderProps( width, dy, showCover, y0, def_font, def_interline_space, props );
 
     // update styles
 //    if ( getRootNode()->getStyle().isNull() || getRootNode()->getFont().isNull()
@@ -4263,6 +4264,8 @@ static bool updateScalingOption( img_scaling_option_t & v, CRPropRef props, int 
         updated = true;
         v.mode = (img_scaling_mode_t)currMode;
     }
+    props->setIntDef(propNameMode.c_str(), currMode);
+    props->setIntDef(propNameScale.c_str(), currScale);
     return updated;
 }
 
@@ -10204,7 +10207,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
         //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
         return fmt->getHeight();
     }
-    f = new LFormattedText();
+    f = getDocument()->createFormattedText();
     if ( (rm != erm_final && rm != erm_list_item && rm != erm_table_caption) )
         return 0;
     //RenderRectAccessor fmt( this );

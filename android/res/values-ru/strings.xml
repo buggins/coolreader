@@ -240,4 +240,16 @@
     <string name="progress_downloading">Загружаю</string>
     <string name="mi_book_opds_root">Онлайн-каталоги</string>
     <string name="mi_tts_play">Читать вслух</string>
+    <string name="options_format_image_scaling_block_scale">Макс. увеличение для обычных картинок</string>
+    <string name="options_format_image_scaling_mode_integer_factor">В целое число раз</string>
+    <string name="options_format_image_scaling_block_mode">Режим для обычных картинок</string>
+    <string name="options_format_image_scaling_mode_disabled">Не масштабировать (1:1)</string>
+    <string name="options_format_image_scaling_mode_arbitrary">Произвольное масштабирование</string>
+    <string name="options_format_image_scaling">Масштабирование картинок</string>
+    <string name="options_format_image_scaling_inline_mode">Режим для inline картинок</string>
+    <string name="options_format_image_scaling_inline_scale">Макс. увеличение для inline картинок</string>
+    <string name="options_format_image_scaling_scale_auto">Авто</string>
+    <string name="options_format_image_scaling_scale_3">*3</string>
+    <string name="options_format_image_scaling_scale_2">*2</string>
+    <string name="options_format_image_scaling_scale_1">*1</string>
 </resources>
