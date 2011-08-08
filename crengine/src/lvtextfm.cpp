@@ -709,12 +709,14 @@ public:
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
                     if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
-                        word->width += font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
+                        word->width += font->getHyphenWidth();
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
-                    if ( m_flags[i-1] & LCHAR_IS_SPACE)
+                    if ( m_flags[i-1] & LCHAR_IS_SPACE) {
                         word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-                    else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
+                        if ( !visualAlignmentEnabled )
+                            word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
+                    } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
                         frmline->words[frmline->word_count-2].flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
                     if ( m_flags[i-1] & LCHAR_ALLOW_WRAP_AFTER )
                         word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
@@ -732,7 +734,7 @@ public:
                             lastc = m_text[endp];
                         }
                         if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER ) {
-                            word->width -= font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
+                            word->width -= font->getHyphenWidth(); // TODO: strange fix - need some other solution
                         } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ) {
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
@@ -814,7 +816,7 @@ public:
         int interval = m_srcs[0]->interval;
         int maxWidth = m_pbuffer->width;
 
-#if 0
+#if 1
         // reservation of space for floating punctuation
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
         int visialAlignmentWidth = 0;

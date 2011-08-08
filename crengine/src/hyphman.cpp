@@ -672,7 +672,7 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
         int nw = widths[p]+hyphCharWidth;
         if ( (mask[p+2]&1) && nw <= maxWidth ) {
             if ( checkHyphenRules( word+1, len, p ) ) {
-                widths[p] += hyphCharWidth;
+                //widths[p] += hyphCharWidth; // don't add hyph width
                 flags[p] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
                 if ( bestp<0 || mask[p+2]>bestm ) {
                     bestp = p;
@@ -720,7 +720,7 @@ bool AlgoHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8
                                 if ( nw<maxWidth )
                                 {
                                     flags[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
-                                    widths[i] = nw;
+                                    //widths[i] = nw; // don't add hyph width
                                 }
                             }
                             break;
