@@ -7727,6 +7727,7 @@ lUInt32 tinyNodeCollection::calcStyleHash()
             }
         }
     }
+    res = res * 31 + _imgScalingOptions.getHash();
     res = (res * 31 + globalHash) * 31 + docFlags;
 //    CRLog::info("Calculated style hash = %08x", res);
     return res;

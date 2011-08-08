@@ -372,6 +372,9 @@ protected:
     bool _mapped;
     bool _maperror;
 
+    img_scaling_options_t _imgScalingOptions;
+
+
     int calcFinalBlocks();
     void dropStyles();
 #endif
@@ -1019,8 +1022,6 @@ protected:
 #if BUILD_LITE!=1
     SerialBuf _pagesData;
 #endif
-
-    img_scaling_options_t _imgScalingOptions;
 
 };
 
