@@ -1379,6 +1379,15 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 		//props.applyDefault(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Fallback");
 		props.put(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback");
+
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, "0");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE, "0");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, "0");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, "0");
 		
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, densityDpi > 160 ? "10" : "4");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, densityDpi > 160 ? "10" : "4");

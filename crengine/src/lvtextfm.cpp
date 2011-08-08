@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "../include/crsetup.h"
 #include "../include/lvfnt.h"
 #include "../include/lvtextfm.h"
 #include "../include/lvdrawbuf.h"
@@ -21,14 +22,6 @@
 #ifdef __cplusplus
 #include "../include/lvimg.h"
 #include "../include/lvtinydom.h"
-#endif
-
-#ifndef ARBITRARY_IMAGE_SCALE_ENABLED
-#define ARBITRARY_IMAGE_SCALE_ENABLED 1
-#endif
-
-#ifndef MAX_IMAGE_SCALE_MUL
-#define MAX_IMAGE_SCALE_MUL 2
 #endif
 
 #define FRM_ALLOC_SIZE 16
@@ -95,6 +88,16 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     formatted_text_fragment_t * pbuffer = (formatted_text_fragment_t*)malloc( sizeof(formatted_text_fragment_t) );
     memset( pbuffer, 0, sizeof(formatted_text_fragment_t));
     pbuffer->width = width;
+    int defMode = MAX_IMAGE_SCALE_MUL > 1 ? (ARBITRARY_IMAGE_SCALE_ENABLED==1 ? 2 : 1) : 0;
+    int defMult = MAX_IMAGE_SCALE_MUL;
+    pbuffer->img_zoom_in_mode_block = defMode; /**< can zoom in block images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_in_scale_block = defMult; /**< max scale for block images zoom in: 1, 2, 3 */
+    pbuffer->img_zoom_in_mode_inline = defMode; /**< can zoom in inline images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_in_scale_inline = defMult; /**< max scale for inline images zoom in: 1, 2, 3 */
+    pbuffer->img_zoom_out_mode_block = defMode; /**< can zoom out block images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_out_scale_block = defMult; /**< max scale for block images zoom out: 1, 2, 3 */
+    pbuffer->img_zoom_out_mode_inline = defMode; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_out_scale_inline = defMult; /**< max scale for inline images zoom out: 1, 2, 3 */
     return pbuffer;
 }
 
@@ -431,9 +434,37 @@ public:
         TR("%s", LCSTR(lString16(m_text, m_length)));
     }
 
-    void resizeImage( int & width, int & height, int maxw, int maxh )
+    void resizeImage( int & width, int & height, int maxw, int maxh, bool isInline )
     {
-        resizeImage( width, height, maxw, maxh, ARBITRARY_IMAGE_SCALE_ENABLED==1, MAX_IMAGE_SCALE_MUL );
+        bool arbitraryImageScaling = false;
+        int maxScale = 1;
+        bool zoomIn = width<maxw && height<maxh;
+        if ( isInline ) {
+            if ( zoomIn ) {
+                if ( m_pbuffer->img_zoom_in_mode_inline==0 )
+                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_inline == 2;
+                maxScale = m_pbuffer->img_zoom_in_scale_inline;
+            } else {
+//                if ( m_pbuffer->img_zoom_out_mode_inline==0 )
+//                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_inline == 2;
+                maxScale = m_pbuffer->img_zoom_out_scale_inline;
+            }
+        } else {
+            if ( zoomIn ) {
+                if ( m_pbuffer->img_zoom_in_mode_block==0 )
+                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_block == 2;
+                maxScale = m_pbuffer->img_zoom_in_scale_block;
+            } else {
+//                if ( m_pbuffer->img_zoom_out_mode_block==0 )
+//                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_block == 2;
+                maxScale = m_pbuffer->img_zoom_out_scale_block;
+            }
+        }
+        resizeImage( width, height, maxw, maxh, arbitraryImageScaling, maxScale );
     }
 
     void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
@@ -538,7 +569,7 @@ public:
                     // assume i==start+1
                     int width = m_srcs[start]->o.width;
                     int height = m_srcs[start]->o.height;
-                    resizeImage( width, height, m_pbuffer->width, m_pbuffer->page_height );
+                    resizeImage( width, height, m_pbuffer->width, m_pbuffer->page_height, m_length>1 );
                     lastWidth += width;
                     m_widths[start] = lastWidth;
                 }
@@ -679,7 +710,7 @@ public:
 
                     int width = lastSrc->o.width;
                     int height = lastSrc->o.height;
-                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height );
+                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1 );
                     word->width = width;
                     word->o.height = height;
 
@@ -709,12 +740,14 @@ public:
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
                     if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
-                        word->width += font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
+                        word->width += font->getHyphenWidth();
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
-                    if ( m_flags[i-1] & LCHAR_IS_SPACE)
+                    if ( m_flags[i-1] & LCHAR_IS_SPACE) {
                         word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-                    else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
+                        if ( !visualAlignmentEnabled )
+                            word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
+                    } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
                         frmline->words[frmline->word_count-2].flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
                     if ( m_flags[i-1] & LCHAR_ALLOW_WRAP_AFTER )
                         word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
@@ -732,7 +765,7 @@ public:
                             lastc = m_text[endp];
                         }
                         if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER ) {
-                            word->width -= font->getHyphenWidth()*2; // TODO: strange fix - need some other solution
+                            word->width -= font->getHyphenWidth(); // TODO: strange fix - need some other solution
                         } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ) {
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
@@ -814,7 +847,7 @@ public:
         int interval = m_srcs[0]->interval;
         int maxWidth = m_pbuffer->width;
 
-#if 0
+#if 1
         // reservation of space for floating punctuation
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
         int visialAlignmentWidth = 0;
@@ -981,6 +1014,18 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
     LVFormatter formatter( m_pbuffer );
 
     return formatter.format();
+}
+
+void LFormattedText::setImageScalingOptions( img_scaling_options_t * options )
+{
+    m_pbuffer->img_zoom_in_mode_block = options->zoom_in_block.mode;
+    m_pbuffer->img_zoom_in_scale_block = options->zoom_in_block.max_scale;
+    m_pbuffer->img_zoom_in_mode_inline = options->zoom_in_inline.mode;
+    m_pbuffer->img_zoom_in_scale_inline = options->zoom_in_inline.max_scale;
+    m_pbuffer->img_zoom_out_mode_block = options->zoom_out_block.mode;
+    m_pbuffer->img_zoom_out_scale_block = options->zoom_out_block.max_scale;
+    m_pbuffer->img_zoom_out_mode_inline = options->zoom_out_inline.mode;
+    m_pbuffer->img_zoom_out_scale_inline = options->zoom_out_inline.max_scale;
 }
 
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks )

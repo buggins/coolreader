@@ -82,6 +82,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90 //, R.string.options_page_orientation_180, R.string.options_page_orientation_270
 			,R.string.options_page_orientation_sensor
 		};
+	int[] mImageScalingModes = new int[] {
+			0, 1, 2
+		};
+	int[] mImageScalingModesTitles = new int[] {
+			R.string.options_format_image_scaling_mode_disabled, R.string.options_format_image_scaling_mode_integer_factor, R.string.options_format_image_scaling_mode_arbitrary
+		};
+	int[] mImageScalingFactors = new int[] {
+			0, 1, 2, 3
+		};
+	int[] mImageScalingFactorsTitles = new int[] {
+			R.string.options_format_image_scaling_scale_auto, R.string.options_format_image_scaling_scale_1, R.string.options_format_image_scaling_scale_2, R.string.options_format_image_scaling_scale_3
+		};
 	int[] mFlickBrightness = new int[] {
 			0, 1, 2
 		};
@@ -405,6 +417,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
 			addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
+//			addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -435,6 +448,36 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			dlg.show();
 		}
 
+		public String getValueLabel() { return ">"; }
+	}
+	
+	class ImageScalingOption extends ListOption {
+		public ImageScalingOption( OptionOwner owner, String label ) {
+			super(owner, label, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
+		}
+		public void onSelect() {
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
+			OptionsListView listView = new OptionsListView(getContext());
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_mode), ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_scale), ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_mode), ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_scale), ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
+			dlg.setTitle(label);
+			dlg.setView(listView);
+			dlg.show();
+		}
+
+		private void copyProperty( String to, String from ) {
+			mProperties.put(to, mProperties.get(from));
+		}
+
+		protected void closed() {
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE);
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE);
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE);
+		}
+		
 		public String getValueLabel() { return ">"; }
 	}
 	
@@ -1075,11 +1118,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), ReaderView.PROP_FLOATING_PUNCTUATION).setDefaultValue("1"));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), ReaderView.PROP_FONT_KERNING_ENABLED).setDefaultValue("0"));
+		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
-		mOptionsPage.add( new StatusBarOption(this, getString(R.string.options_page_titlebar)));
+		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));

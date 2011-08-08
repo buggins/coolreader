@@ -73,6 +73,17 @@
 #define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"
 
+// image scaling settings
+// mode: 0=disabled, 1=integer scaling factors, 2=free scaling
+// scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
+#define PROP_IMG_SCALING_ZOOMIN_INLINE_MODE  "crengine.image.scaling.zoomin.inline.mode"
+#define PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE  "crengine.image.scaling.zoomin.inline.scale"
+#define PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE "crengine.image.scaling.zoomout.inline.mode"
+#define PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE "crengine.image.scaling.zoomout.inline.scale"
+#define PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE  "crengine.image.scaling.zoomin.block.mode"
+#define PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE  "crengine.image.scaling.zoomin.block.scale"
+#define PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE "crengine.image.scaling.zoomout.block.mode"
+#define PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE "crengine.image.scaling.zoomout.block.scale"
 
 const lChar16 * getDocFormatName( doc_format_t fmt );
 

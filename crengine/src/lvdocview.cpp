@@ -2233,7 +2233,7 @@ void LVDocView::setRenderProps(int dx, int dy) {
 	if (!m_font || !m_infoFont)
 		return;
 	m_doc->setRenderProps(dx, dy, m_showCover, m_showCover ? dy
-			+ m_pageMargins.bottom * 4 : 0, m_font, m_def_interline_space);
+            + m_pageMargins.bottom * 4 : 0, m_font, m_def_interline_space, m_props);
 }
 
 void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
@@ -2262,7 +2262,7 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 		//CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
 		m_doc->render(pages, isDocumentOpened() ? m_callback : NULL, dx, dy,
 				m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
-				m_font, m_def_interline_space);
+                m_font, m_def_interline_space, m_props);
 
 #if 0
 		FILE * f = fopen("pagelist.log", "wt");
@@ -4878,6 +4878,16 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
     props->setStringDef(PROP_EMBEDDED_STYLES, "1");
     props->setStringDef(PROP_FLOATING_PUNCTUATION, "1");
+
+    img_scaling_option_t defImgScaling;
+    props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, defImgScaling.max_scale);
+    props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, 0); //auto
+    props->setIntDef(PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE, defImgScaling.max_scale);
+    props->setIntDef(PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, 0); // auto
+    props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, defImgScaling.mode);
+    props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, defImgScaling.mode);
+    props->setIntDef(PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, defImgScaling.mode);
+    props->setIntDef(PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, defImgScaling.mode);
 }
 
 #define H_MARGIN 8
@@ -4946,7 +4956,14 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 					false);
 			setTextFormatOptions(preformatted ? txt_format_pre
 					: txt_format_auto);
-		} else if (name == PROP_FONT_COLOR || name == PROP_BACKGROUND_COLOR
+        } else if (name == PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE || name == PROP_IMG_SCALING_ZOOMIN_INLINE_MODE
+                   || name == PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE || name == PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE
+                   || name == PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE || name == PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE
+                   || name == PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE || name == PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE
+                   ) {
+            m_props->setString(name.c_str(), value);
+            requestRender();
+        } else if (name == PROP_FONT_COLOR || name == PROP_BACKGROUND_COLOR
 				|| name == PROP_DISPLAY_INVERSE || name==PROP_STATUS_FONT_COLOR) {
 			// update current value in properties
 			m_props->setString(name.c_str(), value);
