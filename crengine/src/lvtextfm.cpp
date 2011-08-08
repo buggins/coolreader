@@ -95,6 +95,16 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     formatted_text_fragment_t * pbuffer = (formatted_text_fragment_t*)malloc( sizeof(formatted_text_fragment_t) );
     memset( pbuffer, 0, sizeof(formatted_text_fragment_t));
     pbuffer->width = width;
+    int defMode = MAX_IMAGE_SCALE_MUL > 1 ? (ARBITRARY_IMAGE_SCALE_ENABLED==1 ? 2 : 1) : 0;
+    int defMult = MAX_IMAGE_SCALE_MUL;
+    pbuffer->img_zoom_in_mode_block = defMode; /**< can zoom in block images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_in_scale_block = defMult; /**< max scale for block images zoom in: 1, 2, 3 */
+    pbuffer->img_zoom_in_mode_inline = defMode; /**< can zoom in inline images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_in_scale_inline = defMult; /**< max scale for inline images zoom in: 1, 2, 3 */
+    pbuffer->img_zoom_out_mode_block = defMode; /**< can zoom out block images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_out_scale_block = defMult; /**< max scale for block images zoom out: 1, 2, 3 */
+    pbuffer->img_zoom_out_mode_inline = defMode; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
+    pbuffer->img_zoom_out_scale_inline = defMult; /**< max scale for inline images zoom out: 1, 2, 3 */
     return pbuffer;
 }
 
@@ -431,9 +441,37 @@ public:
         TR("%s", LCSTR(lString16(m_text, m_length)));
     }
 
-    void resizeImage( int & width, int & height, int maxw, int maxh )
+    void resizeImage( int & width, int & height, int maxw, int maxh, bool isInline )
     {
-        resizeImage( width, height, maxw, maxh, ARBITRARY_IMAGE_SCALE_ENABLED==1, MAX_IMAGE_SCALE_MUL );
+        bool arbitraryImageScaling = false;
+        int maxScale = 1;
+        bool zoomIn = width<maxw && height<maxh;
+        if ( isInline ) {
+            if ( zoomIn ) {
+                if ( m_pbuffer->img_zoom_in_mode_inline==0 )
+                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_inline == 2;
+                maxScale = m_pbuffer->img_zoom_in_scale_inline;
+            } else {
+                if ( m_pbuffer->img_zoom_out_mode_inline==0 )
+                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_inline == 2;
+                maxScale = m_pbuffer->img_zoom_out_scale_inline;
+            }
+        } else {
+            if ( zoomIn ) {
+                if ( m_pbuffer->img_zoom_in_mode_block==0 )
+                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_block == 2;
+                maxScale = m_pbuffer->img_zoom_in_scale_block;
+            } else {
+                if ( m_pbuffer->img_zoom_out_mode_block==0 )
+                    return; // no zoom
+                arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_block == 2;
+                maxScale = m_pbuffer->img_zoom_out_scale_block;
+            }
+        }
+        resizeImage( width, height, maxw, maxh, arbitraryImageScaling, maxScale );
     }
 
     void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
@@ -538,7 +576,7 @@ public:
                     // assume i==start+1
                     int width = m_srcs[start]->o.width;
                     int height = m_srcs[start]->o.height;
-                    resizeImage( width, height, m_pbuffer->width, m_pbuffer->page_height );
+                    resizeImage( width, height, m_pbuffer->width, m_pbuffer->page_height, m_length>1 );
                     lastWidth += width;
                     m_widths[start] = lastWidth;
                 }
@@ -679,7 +717,7 @@ public:
 
                     int width = lastSrc->o.width;
                     int height = lastSrc->o.height;
-                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height );
+                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1 );
                     word->width = width;
                     word->o.height = height;
 

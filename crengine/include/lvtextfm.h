@@ -151,7 +151,15 @@ typedef struct
    lUInt32               frmlinecount;  /**< formatted lines count*/
    lUInt32               height;        /**< height of text fragment */
    lUInt16               width;         /**< width of text fragment */
-   lUInt16               page_height;   /**< width of text fragment */
+   lUInt16               page_height;   /**< max page height */
+   lInt32                img_zoom_in_mode_block; /**< can zoom in block images: 0=disabled, 1=integer scale, 2=free scale */
+   lInt32                img_zoom_in_scale_block; /**< max scale for block images zoom in: 1, 2, 3 */
+   lInt32                img_zoom_in_mode_inline; /**< can zoom in inline images: 0=disabled, 1=integer scale, 2=free scale */
+   lInt32                img_zoom_in_scale_inline; /**< max scale for inline images zoom in: 1, 2, 3 */
+   lInt32                img_zoom_out_mode_block; /**< can zoom out block images: 0=disabled, 1=integer scale, 2=free scale */
+   lInt32                img_zoom_out_scale_block; /**< max scale for block images zoom out: 1, 2, 3 */
+   lInt32                img_zoom_out_mode_inline; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
+   lInt32                img_zoom_out_scale_inline; /**< max scale for inline images zoom out: 1, 2, 3 */
 } formatted_text_fragment_t;
 
 /**  Alloc & init formatted text buffer
