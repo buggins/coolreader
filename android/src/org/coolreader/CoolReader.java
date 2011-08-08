@@ -11,6 +11,7 @@ import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.CRDB;
+import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.FileBrowser;
@@ -77,16 +78,10 @@ public class CoolReader extends Activity
 	CRDB mDB;
 	private BackgroundThread mBackgroundThread;
 	
+	
+	
 	public CoolReader() {
-		try {
-			String manufacturer = (String)Build.class.getField("MANUFACTURER").get(null);
-			String model = (String)Build.class.getField("MODEL").get(null);
-		    brightnessHackError =
-		    	manufacturer.toLowerCase().contentEquals("samsung") &&
-			               (model.contentEquals("GT-S5830") || model.contentEquals("GT-S5660")); // More models?
-		} catch ( Exception e ) {
-			log.d("Exception while trying to check Biuild.MANUFACTURER");
-		}
+	    brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	}
 	
 	public Scanner getScanner()
