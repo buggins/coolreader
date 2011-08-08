@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "../include/crsetup.h"
 #include "../include/lvfnt.h"
 #include "../include/lvtextfm.h"
 #include "../include/lvdrawbuf.h"
@@ -21,14 +22,6 @@
 #ifdef __cplusplus
 #include "../include/lvimg.h"
 #include "../include/lvtinydom.h"
-#endif
-
-#ifndef ARBITRARY_IMAGE_SCALE_ENABLED
-#define ARBITRARY_IMAGE_SCALE_ENABLED 1
-#endif
-
-#ifndef MAX_IMAGE_SCALE_MUL
-#define MAX_IMAGE_SCALE_MUL 2
 #endif
 
 #define FRM_ALLOC_SIZE 16
@@ -1021,6 +1014,18 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height)
     LVFormatter formatter( m_pbuffer );
 
     return formatter.format();
+}
+
+void LFormattedText::setImageScalingOptions( img_scaling_options_t * options )
+{
+    m_pbuffer->img_zoom_in_mode_block = options->zoom_in_block.mode;
+    m_pbuffer->img_zoom_in_scale_block = options->zoom_in_block.max_scale;
+    m_pbuffer->img_zoom_in_mode_inline = options->zoom_in_inline.mode;
+    m_pbuffer->img_zoom_in_scale_inline = options->zoom_in_inline.max_scale;
+    m_pbuffer->img_zoom_out_mode_block = options->zoom_out_block.mode;
+    m_pbuffer->img_zoom_out_scale_block = options->zoom_out_block.max_scale;
+    m_pbuffer->img_zoom_out_mode_inline = options->zoom_out_inline.mode;
+    m_pbuffer->img_zoom_out_scale_inline = options->zoom_out_inline.max_scale;
 }
 
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks )

@@ -216,6 +216,7 @@ void lvtextAddSourceObject(
 
 class LVDrawBuf;
 class ldomMarkedRangeList;
+struct img_scaling_options_t;
 
 /* C++ wrapper class */
 class LFormattedText
@@ -225,6 +226,8 @@ private:
     formatted_text_fragment_t * m_pbuffer;
 public:
     formatted_text_fragment_t * GetBuffer() { return m_pbuffer; }
+
+    void setImageScalingOptions( img_scaling_options_t * options );
 
     void Clear()
     { 

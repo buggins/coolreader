@@ -107,6 +107,36 @@ typedef enum {
 } xpath_step_t;
 xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index );
 
+/// type of image scaling
+typedef enum {
+    IMG_NO_SCALE, /// scaling is disabled
+    IMG_INTEGER_SCALING, /// integer multipier/divisor scaling -- *2, *3 only
+    IMG_FREE_SCALING, /// free scaling, non-integer factor
+} img_scaling_mode_t;
+
+/// image scaling option
+struct img_scaling_option_t {
+    img_scaling_mode_t mode;
+    int max_scale;
+    int getHash() { return (int)mode * 33 + max_scale; }
+    // creates default option value
+    img_scaling_option_t();
+};
+
+/// set of images scaling options for different kind of images
+struct img_scaling_options_t {
+    img_scaling_option_t zoom_in_inline;
+    img_scaling_option_t zoom_in_block;
+    img_scaling_option_t zoom_out_inline;
+    img_scaling_option_t zoom_out_block;
+    /// returns hash value
+    int getHash() { return (((zoom_in_inline.getHash()*33 + zoom_in_block.getHash())*33 + zoom_out_inline.getHash())*33 + zoom_out_block.getHash()); }
+    /// creates default options
+    img_scaling_options_t();
+    /// returns true if any changes occured
+    bool update( CRPropRef props, int fontSize );
+};
+
 //#if BUILD_LITE!=1
 struct DataStorageItemHeader;
 struct TextDataStorageItem;
@@ -953,6 +983,9 @@ public:
 #endif
 
 
+    /// create formatted text object with options set
+    LFormattedText * createFormattedText();
+
 protected:
 #if BUILD_LITE!=1
     struct DocFileHeader {
@@ -986,6 +1019,8 @@ protected:
 #if BUILD_LITE!=1
     SerialBuf _pagesData;
 #endif
+
+    img_scaling_options_t _imgScalingOptions;
 
 };
 
