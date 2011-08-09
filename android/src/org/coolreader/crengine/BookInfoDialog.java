@@ -9,9 +9,7 @@ import org.coolreader.R;
 
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.TabHost.TabContentFactory;
 import android.widget.TableLayout;
-import android.widget.TableLayout.LayoutParams;
 import android.widget.TableRow;
 import android.widget.TextView;
 
