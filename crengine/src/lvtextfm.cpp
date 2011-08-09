@@ -670,7 +670,7 @@ public:
     }
 
     /// split line into words, add space for width alignment
-    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace )
     {
         int maxWidth = m_pbuffer->width;
         //int w0 = start>0 ? m_widths[start-1] : 0;
@@ -687,7 +687,7 @@ public:
 
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT );
 
-        bool splitBySpaces = (align == LTEXT_ALIGN_WIDTH);
+        bool splitBySpaces = (align == LTEXT_ALIGN_WIDTH) || needReduceSpace;
 
         if ( last && !first ) {
             int last_align = (para->flags>>16) & LTEXT_FLAG_NEWLINE;
@@ -906,10 +906,9 @@ public:
             int lastDeprecatedWrap = -1;
             int lastHyphWrap = -1;
             int lastMandatoryWrap = -1;
-            int spaceReduceCount = 0; // max number of spaces which can be reduced
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             for ( i=pos; i<m_length; i++ ) {
-                if ( x + m_widths[i]-w0 > maxWidth )
+                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth )
                     break;
                 lUInt8 flags = m_flags[i];
                 if ( m_text[i]=='\n' ) {
@@ -922,6 +921,9 @@ public:
                     lastDeprecatedWrap = i;
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
+                if ( i<m_length-1 && m_text[i]==' ' && m_text[i+1]!=' ' ) {
+                    spaceReduceWidth += (m_widths[i] - m_widths[i-1]) / 2;
+                }
             }
             if ( i<=pos )
                 i = pos + 1; // allow at least one character to be shown on line
@@ -944,7 +946,7 @@ public:
                     for ( int i=0; i<len; i++ ) {
                         widths[i] = m_widths[start+i] - wordStart_w;
                     }
-                    int max_width = maxWidth - x - (wordStart_w - w0);
+                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0);
                     int _hyphen_width = ((LVFont*)m_srcs[wordpos]->t.font)->getHyphenWidth();
                     if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
                         for ( int i=0; i<len; i++ )
@@ -966,7 +968,8 @@ public:
                 if ( wrapPos<0 )
                     wrapPos = i-1;
             }
-            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly );
+            bool needReduceSpace = true; // todo: calculate whether space reducing required
+            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace );
             pos = wrapPos + 1;
         }
     }
