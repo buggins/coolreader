@@ -8,12 +8,14 @@ public class DeviceInfo {
 	public final static String MANUFACTURER;
 	public final static String MODEL;
 	public final static boolean SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
+	public final static boolean EINK_SCREEN;
 	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
 		MODEL = getBuildField("MODEL");
 		SAMSUNG_BUTTONS_HIGHLIGHT_PATCH = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
 		               (MODEL.contentEquals("GT-S5830") || MODEL.contentEquals("GT-S5660")); // More models?
+		EINK_SCREEN = false; // TODO: set to true for eink devices like Nook Touch
 	}
 	
 	private static String getBuildField(String fieldName) {

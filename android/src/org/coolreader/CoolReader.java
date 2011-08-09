@@ -1339,9 +1339,22 @@ public class CoolReader extends Activity
         		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
         }
         
+        if ( DeviceInfo.EINK_SCREEN ) {
+    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_NONE);
+        } else {
+    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
+        }
+        
         props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "0");
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
-        props.applyDefault(ReaderView.PROP_FONT_SIZE, "20");
+        // autodetect best initial font size based on display resolution
+        int screenWidth = getWindowManager().getDefaultDisplay().getWidth();
+        int fontSize = 20;
+        if ( screenWidth>=400 )
+        	fontSize = 24;
+        else if ( screenWidth>=600 )
+        	fontSize = 28;
+        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, "16");
@@ -1365,7 +1378,6 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
 		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "4");
-		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
