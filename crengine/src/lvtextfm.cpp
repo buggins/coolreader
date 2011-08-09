@@ -601,7 +601,35 @@ public:
 
     /// align line
     void alignLine( formatted_line_t * frmline, int width, int alignment ) {
-        if ( alignment==LTEXT_ALIGN_LEFT )
+        if ( frmline->x + frmline->width > width ) {
+            // line is too wide
+            // reduce spaces to fit line
+            int extraSpace = frmline->x + frmline->width - width;
+            if ( extraSpace<=0 )
+                return; // no space to distribute
+            int addSpacePoints = 0;
+            int i;
+            for ( i=0; i<(int)frmline->word_count-1; i++ ) {
+                if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
+                    addSpacePoints++;
+            }
+            if ( addSpacePoints>0 ) {
+                int addSpaceDiv = extraSpace / addSpacePoints;
+                int addSpaceMod = extraSpace % addSpacePoints;
+                int delta = 0;
+                for ( i=0; i<(int)frmline->word_count; i++ ) {
+                    frmline->words[i].x -= delta;
+                    if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
+                        delta += addSpaceDiv;
+                        if ( addSpaceMod>0 ) {
+                            addSpaceMod--;
+                            delta++;
+                        }
+                    }
+                }
+                frmline->width -= extraSpace;
+            }
+        } else if ( alignment==LTEXT_ALIGN_LEFT )
             return; // no additional alignment necessary
         else if ( alignment==LTEXT_ALIGN_CENTER ) {
             // centering, ignoring first line margin
@@ -745,6 +773,10 @@ public:
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE) {
                         word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+                        if ( !lastWord ) {
+                            spaceReduceCount++;
+                            spaceReduceWidth += (m_widths[i-1]-m_widths[i-2]) / 2; // can reduce up to half of space
+                        }
                         if ( !visualAlignmentEnabled && lastWord )
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
@@ -875,6 +907,8 @@ public:
             int lastNormalWrap = -1;
             int lastHyphWrap = -1;
             int lastMandatoryWrap = -1;
+            int spaceReduceCount = 0; // max number of spaces which can be reduced
+            int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             for ( i=pos; i<m_length; i++ ) {
                 if ( x + m_widths[i]-w0 > maxWidth )
                     break;
