@@ -745,7 +745,7 @@ public:
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE) {
                         word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-                        if ( !visualAlignmentEnabled )
+                        if ( !visualAlignmentEnabled && lastWord )
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
                         frmline->words[frmline->word_count-2].flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
