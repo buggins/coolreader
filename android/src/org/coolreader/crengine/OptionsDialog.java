@@ -417,7 +417,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
 			addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
-//			addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
+			addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
+			if ( DeviceInfo.NOOK_NAVIGATION_KEYS ) {
+				addKey(listView, ReaderView.KEYCODE_PAGE_TOPLEFT, "Top left navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMLEFT, "Bottom left navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_TOPRIGHT, "Top right navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
+			}
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
