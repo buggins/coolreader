@@ -427,6 +427,8 @@ public:
                 for ( int k=0; k<len; k++ ) {
                     m_charindex[pos] = k;
                     m_srcs[pos] = src;
+                    if ( m_text[pos] == '-' || m_text[pos] == '.' || m_text[pos] == '+' )
+                        m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
                     pos++;
                 }
             }
@@ -773,10 +775,6 @@ public:
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE) {
                         word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-                        if ( !lastWord ) {
-                            spaceReduceCount++;
-                            spaceReduceWidth += (m_widths[i-1]-m_widths[i-2]) / 2; // can reduce up to half of space
-                        }
                         if ( !visualAlignmentEnabled && lastWord )
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
@@ -905,6 +903,7 @@ public:
             int w0 = pos>0 ? m_widths[pos-1] : 0;
             int i;
             int lastNormalWrap = -1;
+            int lastDeprecatedWrap = -1;
             int lastHyphWrap = -1;
             int lastMandatoryWrap = -1;
             int spaceReduceCount = 0; // max number of spaces which can be reduced
@@ -919,15 +918,19 @@ public:
                 }
                 if ( flags & LCHAR_ALLOW_WRAP_AFTER || i==m_length-1)
                     lastNormalWrap = i;
+                else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER )
+                    lastDeprecatedWrap = i;
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
             }
             if ( i<=pos )
                 i = pos + 1; // allow at least one character to be shown on line
             int wordpos = i-1;
+            if ( lastNormalWrap<0 && lastDeprecatedWrap>=0 )
+                lastNormalWrap = lastDeprecatedWrap;
             int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
             int unusedSpace = maxWidth - normalWrapWidth;
-            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedSpace > (maxWidth>>4) && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
+            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedSpace > maxWidth/10 && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
                 // hyphenate word
                 int start, end;
                 lStr_findWordBounds( m_text, m_length, wordpos, start, end );
