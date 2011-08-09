@@ -74,6 +74,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mMargins = new int[] {
 			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30
 		};
+	int[] mScreenUpdateModes = new int[] {
+			0, 1//, 2, 3
+		};
+	int[] mScreenUpdateModesTitles = new int[] {
+			R.string.options_screen_update_mode_quality, R.string.options_screen_update_mode_fast
+		};
 	int[] mOrientations = new int[] {
 			0, 1//, 2, 3
 			,4
@@ -1135,6 +1141,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
+		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED )
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), ReaderView.PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));

@@ -135,6 +135,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
     public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
 
+    public static final String PROP_APP_SCREEN_UPDATE_MODE  ="app.screen.update.mode";
+    
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
     public static final int PAGE_ANIMATION_SLIDE = 2;
@@ -1653,6 +1655,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		return new Properties(mSettings);
 	}
+	
+	static public int stringToInt( String value, int defValue ) {
+		if ( value==null )
+			return defValue;
+		try {
+			return Integer.valueOf(value);
+		} catch ( NumberFormatException e ) {
+			return defValue;
+		}
+	}
 
 	private boolean hiliteTapZoneOnTap = false;
 	private boolean enableVolumeKeys = true; 
@@ -1673,6 +1685,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		mActivity.getBrowser().setSimpleViewMode(flg);
         } else if ( key.equals(PROP_NIGHT_MODE) ) {
 			mActivity.setNightMode(flg);
+        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_MODE) ) {
+			mActivity.setScreenUpdateMode(stringToInt(value, 0));
         } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_DICTIONARY) ) {

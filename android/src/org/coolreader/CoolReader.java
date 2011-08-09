@@ -128,6 +128,15 @@ public class CoolReader extends Activity
 		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
 	}
 	
+	private int mScreenUpdateMode = 0;
+	public int getScreenUpdateMode() {
+		return mScreenUpdateMode;
+	}
+	public void setScreenUpdateMode( int screenUpdateMode ) {
+		mScreenUpdateMode = screenUpdateMode;
+		// TODO: add setting of EPD driver parameter here
+	}
+
 	private boolean mNightMode = false;
 	public boolean isNightMode() {
 		return mNightMode;
@@ -135,6 +144,7 @@ public class CoolReader extends Activity
 	public void setNightMode( boolean nightMode ) {
 		mNightMode = nightMode;
 	}
+
 	private boolean mFullscreen = false;
 	public boolean isFullscreen() {
 		return mFullscreen;
@@ -1401,6 +1411,8 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, densityDpi > 160 ? "8" : "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, densityDpi > 160 ? "8" : "2");
 		
+        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
+        
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
         if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
         	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);

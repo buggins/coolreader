@@ -252,4 +252,7 @@
     <string name="options_format_image_scaling_scale_3">*3</string>
     <string name="options_format_image_scaling_scale_2">*2</string>
     <string name="options_format_image_scaling_scale_1">*1</string>
+    <string name="options_screen_update_mode_fast">Быстрый</string>
+    <string name="options_screen_update_mode">Режим обновления экрана</string>
+    <string name="options_screen_update_mode_quality">Качественный</string>
 </resources>
