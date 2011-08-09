@@ -98,7 +98,7 @@ void CRRecentBooksMenu::showContextMenu()
     lvRect clientRect;
     getClientRect(clientRect);
     lvPoint itemSize = getMaxItemSize();
-	int y = clientRect.top + (itemSize.y + separatorHeight) * _selectedItem + 
+        int y = clientRect.top + (itemSize.y + separatorHeight) * (_selectedItem - _topItem) +
 			((itemSize.y + separatorHeight)/4);
 	if (_contextMenu[0].text == NULL) {
 		_contextMenu[0].text = (char *)_("Open book");

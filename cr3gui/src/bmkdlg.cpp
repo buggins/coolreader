@@ -161,7 +161,7 @@ void CRBookmarkMenu::showContextMenu()
     getClientRect(clientRect);
     lvPoint itemSize = getMaxItemSize();
 	_contextMenu[2].type = item->getBookmark() ? ITEM_ACTIVE : ITEM_INACTIVE;
-	int y = clientRect.top + (itemSize.y + separatorHeight) * _selectedItem + 
+        int y = clientRect.top + (itemSize.y + separatorHeight) * (_selectedItem - _topItem) +
 			((itemSize.y + separatorHeight)/4);
 	if (_contextMenu[0].text == NULL) {
 		_contextMenu[0].text = (char *)_("Set bookmark");
@@ -311,7 +311,7 @@ void CRCitesMenu::showContextMenu()
     lvRect clientRect;
     getClientRect(clientRect);
     lvPoint itemSize = getMaxItemSize();
-    int y = clientRect.top + (itemSize.y + separatorHeight) * _selectedItem +
+    int y = clientRect.top + (itemSize.y + separatorHeight) * (_selectedItem - _topItem) +
                         ((itemSize.y + separatorHeight)/4);
     if (_cites_contextMenu[0].text == NULL) {
         _cites_contextMenu[0].text = (char *)_("Go to citation");
