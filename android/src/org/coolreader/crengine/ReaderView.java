@@ -136,6 +136,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
 
     public static final String PROP_APP_SCREEN_UPDATE_MODE  ="app.screen.update.mode";
+    public static final String PROP_APP_SCREEN_UPDATE_INTERVAL  ="app.screen.update.interval";
     
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
@@ -1687,6 +1688,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.setNightMode(flg);
         } else if ( key.equals(PROP_APP_SCREEN_UPDATE_MODE) ) {
 			mActivity.setScreenUpdateMode(stringToInt(value, 0));
+        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL) ) {
+			mActivity.setScreenUpdateInterval(stringToInt(value, 10));
         } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_DICTIONARY) ) {

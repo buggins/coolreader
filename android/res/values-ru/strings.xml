@@ -255,4 +255,5 @@
     <string name="options_screen_update_mode_fast">Быстрый</string>
     <string name="options_screen_update_mode">Режим обновления экрана</string>
     <string name="options_screen_update_mode_quality">Качественный</string>
+    <string name="options_screen_update_interval">Интервал полного обновления</string>
 </resources>

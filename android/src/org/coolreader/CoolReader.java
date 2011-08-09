@@ -137,6 +137,15 @@ public class CoolReader extends Activity
 		// TODO: add setting of EPD driver parameter here
 	}
 
+	private int mScreenUpdateInterval = 0;
+	public int getScreenUpdateInterval() {
+		return mScreenUpdateInterval;
+	}
+	public void setScreenUpdateInterval( int screenUpdateInterval ) {
+		mScreenUpdateInterval = screenUpdateInterval;
+		// TODO: add setting of EPD driver parameter here
+	}
+
 	private boolean mNightMode = false;
 	public boolean isNightMode() {
 		return mNightMode;
@@ -1412,6 +1421,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, densityDpi > 160 ? "8" : "2");
 		
         props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
+        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
         
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
         if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )

@@ -255,4 +255,5 @@
     <string name="options_screen_update_mode_fast">Fast</string>
     <string name="options_screen_update_mode">Screen update mode</string>
     <string name="options_screen_update_mode_quality">Quality</string>
+    <string name="options_screen_update_interval">Full screen update interval</string>
 </resources>
