@@ -639,7 +639,7 @@ public:
 #endif
         _height = _face->size->metrics.height >> 6;
         _size = size; //(_face->size->metrics.height >> 6);
-        _baseline = _height + ((_face->size->metrics.descender - 63) >> 6);
+        _baseline = _height + (_face->size->metrics.descender >> 6);
         _weight = _face->style_flags & FT_STYLE_FLAG_BOLD ? 700 : 400;
         _italic = _face->style_flags & FT_STYLE_FLAG_ITALIC ? 1 : 0;
 

@@ -831,6 +831,7 @@ private:
     bool _pauseRotationTimer;
     int  m_goToPage;
     bool _restore_globOrientation;
+    bool m_skipEvent;
     void freeContents()
     {
         for (int i = 0; i < _tocLength; i++) {
@@ -972,7 +973,7 @@ public:
     static CRPocketBookDocView * instance;
     CRPocketBookDocView( CRGUIWindowManager * wm, lString16 dataDir )
         : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _bm3x3(NULL), _dictDlg(NULL), _rotatetimerset(false),
-        _lastturn(true), _pauseRotationTimer(false), m_goToPage(-1), _restore_globOrientation(false)
+        _lastturn(true), _pauseRotationTimer(false), m_goToPage(-1), _restore_globOrientation(false), m_skipEvent(false)
     {
         instance = this;
     }
@@ -1087,17 +1088,28 @@ public:
             switchToRecentBook(params);
             break;
         case PB_CMD_PAGEUP_REPEAT:
+            if (m_skipEvent) {
+                m_skipEvent = false;
+                return false;
+            }
+            m_skipEvent = true;
             if (params < 1)
                 params = 1;
             return incrementPage(-params);
         case PB_CMD_PAGEDOWN_REPEAT:
+            if (m_skipEvent) {
+                m_skipEvent = false;
+                return false;
+            }
             if (params < 1)
                 params = 1;
+            m_skipEvent = true;
             return incrementPage(params);
         case PB_CMD_REPEAT_FINISH:
             if (m_goToPage != -1) {
                 int page = m_goToPage;
                 m_goToPage = -1;
+                m_skipEvent = false;
                 _docview->goToPage(page);
                 return true;
             }
@@ -1142,19 +1154,28 @@ public:
         if (_tocLength) {
             int tocSize = (_tocLength + 1) * sizeof(tocentry);
             _toc = (tocentry *) malloc(tocSize);
+            int j = 0;
             for (int i = 0; i < tocItems.length(); i++) {
                 LVTocItem * item = tocItems[i];
-                _toc[i].level = item->getLevel();
-                _toc[i].position = item->getPage() + 1;
-                _toc[i].page = _toc[i].position;
-                _toc[i].text = strdup(UnicodeToUtf8(item->getName()).c_str());
-                char *p = _toc[i].text;
+                if (item->getName().empty())
+                    continue;
+                _toc[j].level = item->getLevel();
+                _toc[j].position = item->getPage() + 1;
+                _toc[j].page = _toc[j].position;
+                _toc[j].text = strdup(UnicodeToUtf8(item->getName()).c_str());
+                char *p = _toc[j++].text;
                 while (*p) {
                     if (*p == '\r' || *p == '\n') *p = ' ';
                     p++;
                 }
             }
-        } else {
+            _tocLength = j;
+            if (j == 0) {
+                free(_toc);
+                _toc = NULL;
+            }
+        }
+        if (!_tocLength) {
             Message(ICON_INFORMATION, const_cast<char*>("CoolReader"),
                     const_cast<char*>("@No_contents"), 2000);
             return;
