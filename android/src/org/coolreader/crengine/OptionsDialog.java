@@ -74,6 +74,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mMargins = new int[] {
 			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30
 		};
+	int[] mScreenFullUpdateInterval = new int[] {
+			0, 1, 2, 3, 4, 5, 7, 10, 15, 20
+		};
+	int[] mScreenUpdateModes = new int[] {
+			0, 1//, 2, 3
+		};
+	int[] mScreenUpdateModesTitles = new int[] {
+			R.string.options_screen_update_mode_quality, R.string.options_screen_update_mode_fast
+		};
 	int[] mOrientations = new int[] {
 			0, 1//, 2, 3
 			,4
@@ -81,6 +90,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mOrientationsTitles = new int[] {
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90 //, R.string.options_page_orientation_180, R.string.options_page_orientation_270
 			,R.string.options_page_orientation_sensor
+		};
+	int[] mImageScalingModes = new int[] {
+			0, 1, 2
+		};
+	int[] mImageScalingModesTitles = new int[] {
+			R.string.options_format_image_scaling_mode_disabled, R.string.options_format_image_scaling_mode_integer_factor, R.string.options_format_image_scaling_mode_arbitrary
+		};
+	int[] mImageScalingFactors = new int[] {
+			0, 1, 2, 3
+		};
+	int[] mImageScalingFactorsTitles = new int[] {
+			R.string.options_format_image_scaling_scale_auto, R.string.options_format_image_scaling_scale_1, R.string.options_format_image_scaling_scale_2, R.string.options_format_image_scaling_scale_3
 		};
 	int[] mFlickBrightness = new int[] {
 			0, 1, 2
@@ -405,6 +426,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
 			addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
+			addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
+			if ( DeviceInfo.NOOK_NAVIGATION_KEYS ) {
+				addKey(listView, ReaderView.KEYCODE_PAGE_TOPLEFT, "Top left navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMLEFT, "Bottom left navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_TOPRIGHT, "Top right navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
+			}
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -435,6 +463,36 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			dlg.show();
 		}
 
+		public String getValueLabel() { return ">"; }
+	}
+	
+	class ImageScalingOption extends ListOption {
+		public ImageScalingOption( OptionOwner owner, String label ) {
+			super(owner, label, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
+		}
+		public void onSelect() {
+			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
+			OptionsListView listView = new OptionsListView(getContext());
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_mode), ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_scale), ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_mode), ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_scale), ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
+			dlg.setTitle(label);
+			dlg.setView(listView);
+			dlg.show();
+		}
+
+		private void copyProperty( String to, String from ) {
+			mProperties.put(to, mProperties.get(from));
+		}
+
+		protected void closed() {
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE);
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE);
+			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE);
+		}
+		
 		public String getValueLabel() { return ">"; }
 	}
 	
@@ -1067,24 +1125,32 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new NightModeOption(this, getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
 		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
 		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
-		mOptionsStyles.add(new TextureOptions(this, getString(R.string.options_background_texture)));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsStyles.add(new TextureOptions(this, getString(R.string.options_background_texture)));
 
 		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
 		//
 		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), ReaderView.PROP_FLOATING_PUNCTUATION).setDefaultValue("1"));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), ReaderView.PROP_FONT_KERNING_ENABLED).setDefaultValue("0"));
+		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
-		mOptionsPage.add( new StatusBarOption(this, getString(R.string.options_page_titlebar)));
+		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
+		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED ) {
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), ReaderView.PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL).add(mScreenFullUpdateInterval).setDefaultValue("10"));
+		}
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_selection_action), ReaderView.PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
@@ -1102,8 +1168,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
-		mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), ReaderView.PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), ReaderView.PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0"));
 		
 		mOptionsStyles.refresh();

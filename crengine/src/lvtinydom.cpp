@@ -119,6 +119,7 @@ enum CacheFileBlockType {
 
 #include <stdlib.h>
 #include <string.h>
+#include "../include/crsetup.h"
 #include "../include/lvstring.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
@@ -2523,6 +2524,14 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
 }
 
 
+/// create formatted text object with options set
+LFormattedText * lxmlDocBase::createFormattedText()
+{
+    LFormattedText * p = new LFormattedText();
+    p->setImageScalingOptions(&_imgScalingOptions);
+    return p;
+}
+
 /// returns main element (i.e. FictionBook for FB2)
 ldomNode * lxmlDocBase::getRootNode()
 {
@@ -2697,10 +2706,11 @@ ldomDocument::~ldomDocument()
 #if BUILD_LITE!=1
 
 /// renders (formats) document in memory
-bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
+bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
     bool changed = false;
     _renderedBlockCache.clear();
+    changed = _imgScalingOptions.update(props, def_font->getSize()) || changed;
     css_style_ref_t s( new css_style_rec_t );
     s->display = css_d_block;
     s->white_space = css_ws_normal;
@@ -2854,7 +2864,7 @@ void ldomDocument::applyDocumentStyleSheet()
 }
 
 
-int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space )
+int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
     CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
     CRLog::trace("initializing default style...");
@@ -2864,7 +2874,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
 //        styleHash = styleHash * 31 + calcGlobalSettingsHash();
 //        CRLog::debug("Style hash before setRenderProps: %x", styleHash);
 //    } //bool propsChanged =
-    setRenderProps( width, dy, showCover, y0, def_font, def_interline_space );
+    setRenderProps( width, dy, showCover, y0, def_font, def_interline_space, props );
 
     // update styles
 //    if ( getRootNode()->getStyle().isNull() || getRootNode()->getFont().isNull()
@@ -4208,6 +4218,67 @@ public:
     }
 };
 
+img_scaling_option_t::img_scaling_option_t()
+{
+    mode = (MAX_IMAGE_SCALE_MUL>1) ? (ARBITRARY_IMAGE_SCALE_ENABLED==1 ? IMG_FREE_SCALING : IMG_INTEGER_SCALING) : IMG_NO_SCALE;
+    max_scale = (MAX_IMAGE_SCALE_MUL>1) ? MAX_IMAGE_SCALE_MUL : 1;
+}
+
+img_scaling_options_t::img_scaling_options_t()
+{
+    img_scaling_option_t option;
+    zoom_in_inline = option;
+    zoom_in_block = option;
+    zoom_out_inline = option;
+    zoom_out_block = option;
+}
+
+#define FONT_SIZE_BIG 32
+#define FONT_SIZE_VERY_BIG 50
+static bool updateScalingOption( img_scaling_option_t & v, CRPropRef props, int fontSize, bool zoomin, bool isInline )
+{
+    lString8 propName("crengine.image.scaling.");
+    propName << (zoomin ? "zoomin." : "zoomout.");
+    propName << (isInline ? "inline." : "block.");
+    lString8 propNameMode = propName + "mode";
+    lString8 propNameScale = propName + "scale";
+    img_scaling_option_t def;
+    int currMode = props->getIntDef(propNameMode.c_str(), (int)def.mode);
+    int currScale = props->getIntDef(propNameScale.c_str(), (int)def.max_scale);
+    if ( currScale==0 ) {
+        if ( fontSize>=FONT_SIZE_VERY_BIG )
+            currScale = 3;
+        else if ( fontSize>=FONT_SIZE_BIG )
+            currScale = 2;
+        else
+            currScale = 1;
+    }
+    if ( currScale==1 )
+        currMode = 0;
+    int updated = false;
+    if ( v.max_scale!=currScale ) {
+        updated = true;
+        v.max_scale = currScale;
+    }
+    if ( v.mode!=(img_scaling_mode_t)currMode ) {
+        updated = true;
+        v.mode = (img_scaling_mode_t)currMode;
+    }
+    props->setIntDef(propNameMode.c_str(), currMode);
+    props->setIntDef(propNameScale.c_str(), currScale);
+    return updated;
+}
+
+/// returns true if any changes occured
+bool img_scaling_options_t::update( CRPropRef props, int fontSize )
+{
+    bool updated = false;
+    updated = updateScalingOption( zoom_in_inline, props, fontSize, true, true ) || updated;
+    updated = updateScalingOption( zoom_in_block, props, fontSize, true, false ) || updated;
+    updated = updateScalingOption( zoom_out_inline, props, fontSize, false, true ) || updated;
+    updated = updateScalingOption( zoom_out_block, props, fontSize, false, false ) || updated;
+    return updated;
+}
 
 xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & index )
 {
@@ -7674,6 +7745,7 @@ lUInt32 tinyNodeCollection::calcStyleHash()
             }
         }
     }
+    res = res * 31 + _imgScalingOptions.getHash();
     res = (res * 31 + globalHash) * 31 + docFlags;
 //    CRLog::info("Calculated style hash = %08x", res);
     return res;
@@ -10150,7 +10222,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
         //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
         return fmt->getHeight();
     }
-    f = new LFormattedText();
+    f = getDocument()->createFormattedText();
     if ( (rm != erm_final && rm != erm_list_item && rm != erm_table_caption) )
         return 0;
     //RenderRectAccessor fmt( this );

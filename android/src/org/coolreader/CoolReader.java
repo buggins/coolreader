@@ -11,6 +11,7 @@ import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.CRDB;
+import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.FileBrowser;
@@ -42,7 +43,6 @@ import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.PowerManager;
@@ -77,16 +77,10 @@ public class CoolReader extends Activity
 	CRDB mDB;
 	private BackgroundThread mBackgroundThread;
 	
+	
+	
 	public CoolReader() {
-		try {
-			String manufacturer = (String)Build.class.getField("MANUFACTURER").get(null);
-			String model = (String)Build.class.getField("MODEL").get(null);
-		    brightnessHackError =
-		    	manufacturer.toLowerCase().contentEquals("samsung") &&
-			               (model.contentEquals("GT-S5830") || model.contentEquals("GT-S5660")); // More models?
-		} catch ( Exception e ) {
-			log.d("Exception while trying to check Biuild.MANUFACTURER");
-		}
+	    brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	}
 	
 	public Scanner getScanner()
@@ -133,6 +127,24 @@ public class CoolReader extends Activity
 		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
 	}
 	
+	private int mScreenUpdateMode = 0;
+	public int getScreenUpdateMode() {
+		return mScreenUpdateMode;
+	}
+	public void setScreenUpdateMode( int screenUpdateMode ) {
+		mScreenUpdateMode = screenUpdateMode;
+		// TODO: add setting of EPD driver parameter here
+	}
+
+	private int mScreenUpdateInterval = 0;
+	public int getScreenUpdateInterval() {
+		return mScreenUpdateInterval;
+	}
+	public void setScreenUpdateInterval( int screenUpdateInterval ) {
+		mScreenUpdateInterval = screenUpdateInterval;
+		// TODO: add setting of EPD driver parameter here
+	}
+
 	private boolean mNightMode = false;
 	public boolean isNightMode() {
 		return mNightMode;
@@ -140,6 +152,7 @@ public class CoolReader extends Activity
 	public void setNightMode( boolean nightMode ) {
 		mNightMode = nightMode;
 	}
+
 	private boolean mFullscreen = false;
 	public boolean isFullscreen() {
 		return mFullscreen;
@@ -1344,9 +1357,22 @@ public class CoolReader extends Activity
         		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
         }
         
+        if ( DeviceInfo.EINK_SCREEN ) {
+    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_NONE);
+        } else {
+    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
+        }
+        
         props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "0");
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
-        props.applyDefault(ReaderView.PROP_FONT_SIZE, "20");
+        // autodetect best initial font size based on display resolution
+        int screenWidth = getWindowManager().getDefaultDisplay().getWidth();
+        int fontSize = 20;
+        if ( screenWidth>=400 )
+        	fontSize = 24;
+        else if ( screenWidth>=600 )
+        	fontSize = 28;
+        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, "16");
@@ -1370,7 +1396,6 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
 		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "4");
-		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
@@ -1379,12 +1404,24 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 		//props.applyDefault(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Fallback");
 		props.put(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback");
+
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, "1");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, "0");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE, "0");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, "0");
+		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, "0");
 		
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, densityDpi > 160 ? "10" : "4");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, densityDpi > 160 ? "10" : "4");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, densityDpi > 160 ? "8" : "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, densityDpi > 160 ? "8" : "2");
 		
+        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
+        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
+        
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
         if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
         	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);

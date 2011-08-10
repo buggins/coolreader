@@ -240,4 +240,20 @@
     <string name="progress_downloading">Downloading</string>
     <string name="mi_book_opds_root">Online catalogs</string>
     <string name="mi_tts_play">Read Aloud</string>
+    <string name="options_format_image_scaling_block_scale">Block image max zoom</string>
+    <string name="options_format_image_scaling_mode_integer_factor">Integer scale</string>
+    <string name="options_format_image_scaling_block_mode">Block image scaling mode</string>
+    <string name="options_format_image_scaling_mode_disabled">Disabled (1:1)</string>
+    <string name="options_format_image_scaling_mode_arbitrary">Arbitrary scale</string>
+    <string name="options_format_image_scaling">Image scaling</string>
+    <string name="options_format_image_scaling_inline_mode">Inline image scaling mode</string>
+    <string name="options_format_image_scaling_inline_scale">Inline image max zoom</string>
+    <string name="options_format_image_scaling_scale_auto">Auto</string>
+    <string name="options_format_image_scaling_scale_3">*3</string>
+    <string name="options_format_image_scaling_scale_2">*2</string>
+    <string name="options_format_image_scaling_scale_1">*1</string>
+    <string name="options_screen_update_mode_fast">Fast</string>
+    <string name="options_screen_update_mode">Screen update mode</string>
+    <string name="options_screen_update_mode_quality">Quality</string>
+    <string name="options_screen_update_interval">Full screen update interval</string>
 </resources>

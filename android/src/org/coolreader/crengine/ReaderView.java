@@ -97,6 +97,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
     public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
 
+	 // image scaling settings
+	 // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
+	 // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
+    public static final String PROP_IMG_SCALING_ZOOMIN_INLINE_MODE = "crengine.image.scaling.zoomin.inline.mode";
+    public static final String PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE = "crengine.image.scaling.zoomin.inline.scale";
+    public static final String PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE = "crengine.image.scaling.zoomout.inline.mode";
+    public static final String PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE = "crengine.image.scaling.zoomout.inline.scale";
+    public static final String PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE = "crengine.image.scaling.zoomin.block.mode";
+    public static final String PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE = "crengine.image.scaling.zoomin.block.scale";
+    public static final String PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE = "crengine.image.scaling.zoomout.block.mode";
+    public static final String PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE = "crengine.image.scaling.zoomout.block.scale";
+    
     public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
     public static final String PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.forced.filesize.min";
     public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
@@ -123,6 +135,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
     public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
 
+    public static final String PROP_APP_SCREEN_UPDATE_MODE  ="app.screen.update.mode";
+    public static final String PROP_APP_SCREEN_UPDATE_INTERVAL  ="app.screen.update.interval";
+    
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
     public static final int PAGE_ANIMATION_SLIDE = 2;
@@ -1641,6 +1656,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		return new Properties(mSettings);
 	}
+	
+	static public int stringToInt( String value, int defValue ) {
+		if ( value==null )
+			return defValue;
+		try {
+			return Integer.valueOf(value);
+		} catch ( NumberFormatException e ) {
+			return defValue;
+		}
+	}
 
 	private boolean hiliteTapZoneOnTap = false;
 	private boolean enableVolumeKeys = true; 
@@ -1661,6 +1686,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		mActivity.getBrowser().setSimpleViewMode(flg);
         } else if ( key.equals(PROP_NIGHT_MODE) ) {
 			mActivity.setNightMode(flg);
+        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_MODE) ) {
+			mActivity.setScreenUpdateMode(stringToInt(value, 0));
+        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL) ) {
+			mActivity.setScreenUpdateInterval(stringToInt(value, 10));
         } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_DICTIONARY) ) {

@@ -1063,7 +1063,7 @@ void V3DocViewWin::showAboutDialog()
     txt = CRViewDialog::makeFb2Xml(txt);
     CRViewDialog * dlg = new CRViewDialog( _wm, title, txt, lvRect(), true, true );
     dlg->getDocView()->setVisiblePageCount(1);
-    int fs = _props->getIntDef( PROP_FILE_PROPS_FONT_SIZE, 26 );
+    int fs = _props->getIntDef( PROP_FILE_PROPS_FONT_SIZE, 22 );
     dlg->getDocView()->setFontSize(fs);
     _wm->activateWindow( dlg );
 }

@@ -95,8 +95,6 @@ enum CRMainMenuCmd
     MCMD_CITES_LIST
 };
 
-#define PROP_FILE_PROPS_FONT_SIZE "cr3.dlg.fileprops.font.size"
-
 class V3DocViewWin : public CRViewDialog, public LVDocViewCallback
 {
 protected:
