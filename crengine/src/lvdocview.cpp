@@ -1078,12 +1078,16 @@ int LVDocView::GetFullHeight() {
 	return (rd.getHeight() + rd.getY());
 }
 
-#define HEADER_MARGIN 3
+#define HEADER_MARGIN 4
 /// calculate page header height
 int LVDocView::getPageHeaderHeight() {
 	if (!getPageHeaderInfo())
 		return 0;
-        return getInfoFont()->getHeight() + HEADER_MARGIN;
+        int h = getInfoFont()->getHeight();
+        int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() * 11/10 + HEADER_MARGIN / 2 : 0;
+        if ( bh>h )
+            h = bh;
+        return h + HEADER_MARGIN;
 }
 
 /// calculate page header rectangle
@@ -1488,7 +1492,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 
 	lString16 text;
 	//int iy = info.top; // + (info.height() - m_infoFont->getHeight()) * 2 / 3;
-	int iy = info.top + /*m_infoFont->getHeight() +*/ (info.height() - m_infoFont->getHeight()) / 2;
+        int iy = info.top + /*m_infoFont->getHeight() +*/ (info.height() - m_infoFont->getHeight()) / 2 - HEADER_MARGIN/2;
 
 	if (!m_pageHeaderOverride.empty()) {
 		text = m_pageHeaderOverride;

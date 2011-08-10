@@ -313,6 +313,7 @@ CR3View::CR3View( QWidget *parent)
 
     _docview->setBatteryIcons( getBatteryIcons(0x000000) );
     _docview->setBatteryState( -2 ); // don't show battery
+    //_docview->setBatteryState( 75 ); // 75%
 //    LVStreamRef stream;
 //    stream = LVOpenFileStream("/home/lve/.cr3/textures/old_paper.png", LVOM_READ);
     //stream = LVOpenFileStream("/home/lve/.cr3/textures/tx_wood.jpg", LVOM_READ);
