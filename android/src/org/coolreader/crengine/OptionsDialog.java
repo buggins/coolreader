@@ -74,6 +74,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mMargins = new int[] {
 			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30
 		};
+	int[] mScreenFullUpdateInterval = new int[] {
+			0, 1, 2, 3, 4, 5, 7, 10, 15, 20
+		};
+	int[] mScreenUpdateModes = new int[] {
+			0, 1//, 2, 3
+		};
+	int[] mScreenUpdateModesTitles = new int[] {
+			R.string.options_screen_update_mode_quality, R.string.options_screen_update_mode_fast
+		};
 	int[] mOrientations = new int[] {
 			0, 1//, 2, 3
 			,4
@@ -417,7 +426,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
 			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
 			addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
-//			addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
+			addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
+			if ( DeviceInfo.NOOK_NAVIGATION_KEYS ) {
+				addKey(listView, ReaderView.KEYCODE_PAGE_TOPLEFT, "Top left navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMLEFT, "Bottom left navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_TOPRIGHT, "Top right navigation button");
+				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
+			}
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -1110,10 +1125,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new NightModeOption(this, getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
 		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
 		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
-		mOptionsStyles.add(new TextureOptions(this, getString(R.string.options_background_texture)));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsStyles.add(new TextureOptions(this, getString(R.string.options_background_texture)));
 
 		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
 		//
 		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), ReaderView.PROP_FLOATING_PUNCTUATION).setDefaultValue("1"));
@@ -1127,8 +1144,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
+		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED ) {
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), ReaderView.PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL).add(mScreenFullUpdateInterval).setDefaultValue("10"));
+		}
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_selection_action), ReaderView.PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
@@ -1146,8 +1168,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
-		mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), ReaderView.PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), ReaderView.PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0"));
 		
 		mOptionsStyles.refresh();

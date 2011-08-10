@@ -24,6 +24,17 @@
 #include "../include/lvtinydom.h"
 #endif
 
+// to debug formatter
+#if 0
+#define TR(x...) CRLog::trace(x)
+#else
+#ifdef _MSC_VER
+#define TR(x)
+#else
+#define TR(x...)
+#endif
+#endif
+
 #define FRM_ALLOC_SIZE 16
 
 formatted_line_t * lvtextAllocFormattedLine( )
@@ -314,16 +325,6 @@ void LFormattedText::AddSourceObject(
         flags, interval, margin, object, letter_spacing );
 }
 
-#if 0
-#define TR(x...) CRLog::trace(x)
-#else
-#ifdef _MSC_VER
-#define TR(x)
-#else
-#define TR(x...)
-#endif
-#endif
-
 class LVFormatter {
 public:
     //LVArray<lUInt16>  widths_buf;
@@ -427,6 +428,8 @@ public:
                 for ( int k=0; k<len; k++ ) {
                     m_charindex[pos] = k;
                     m_srcs[pos] = src;
+                    if ( m_text[pos] == '-' || m_text[pos] == '.' || m_text[pos] == '+' )
+                        m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
                     pos++;
                 }
             }
@@ -601,7 +604,35 @@ public:
 
     /// align line
     void alignLine( formatted_line_t * frmline, int width, int alignment ) {
-        if ( alignment==LTEXT_ALIGN_LEFT )
+        if ( frmline->x + frmline->width > width ) {
+            // line is too wide
+            // reduce spaces to fit line
+            int extraSpace = frmline->x + frmline->width - width;
+            if ( extraSpace<=0 )
+                return; // no space to distribute
+            int addSpacePoints = 0;
+            int i;
+            for ( i=0; i<(int)frmline->word_count-1; i++ ) {
+                if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
+                    addSpacePoints++;
+            }
+            if ( addSpacePoints>0 ) {
+                int addSpaceDiv = extraSpace / addSpacePoints;
+                int addSpaceMod = extraSpace % addSpacePoints;
+                int delta = 0;
+                for ( i=0; i<(int)frmline->word_count; i++ ) {
+                    frmline->words[i].x -= delta;
+                    if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
+                        delta += addSpaceDiv;
+                        if ( addSpaceMod>0 ) {
+                            addSpaceMod--;
+                            delta++;
+                        }
+                    }
+                }
+                frmline->width -= extraSpace;
+            }
+        } else if ( alignment==LTEXT_ALIGN_LEFT )
             return; // no additional alignment necessary
         else if ( alignment==LTEXT_ALIGN_CENTER ) {
             // centering, ignoring first line margin
@@ -640,7 +671,7 @@ public:
     }
 
     /// split line into words, add space for width alignment
-    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace )
     {
         int maxWidth = m_pbuffer->width;
         //int w0 = start>0 ? m_widths[start-1] : 0;
@@ -657,7 +688,7 @@ public:
 
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT );
 
-        bool splitBySpaces = (align == LTEXT_ALIGN_WIDTH);
+        bool splitBySpaces = (align == LTEXT_ALIGN_WIDTH) || needReduceSpace;
 
         if ( last && !first ) {
             int last_align = (para->flags>>16) & LTEXT_FLAG_NEWLINE;
@@ -745,7 +776,7 @@ public:
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE) {
                         word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-                        if ( !visualAlignmentEnabled )
+                        if ( !visualAlignmentEnabled && lastWord )
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
                         frmline->words[frmline->word_count-2].flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
@@ -853,7 +884,7 @@ public:
         int visialAlignmentWidth = 0;
         if ( visualAlignmentEnabled ) {
             LVFont * font = NULL;
-            for ( int i=start; i<=end; i++ ) {
+            for ( int i=start; i<end; i++ ) {
                 if ( !(m_srcs[i]->flags & LTEXT_SRC_IS_OBJECT) ) {
                     font = (LVFont*)m_srcs[i]->t.font;
                     int dx = font->getVisualAligmentWidth();
@@ -873,10 +904,12 @@ public:
             int w0 = pos>0 ? m_widths[pos-1] : 0;
             int i;
             int lastNormalWrap = -1;
+            int lastDeprecatedWrap = -1;
             int lastHyphWrap = -1;
             int lastMandatoryWrap = -1;
+            int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             for ( i=pos; i<m_length; i++ ) {
-                if ( x + m_widths[i]-w0 > maxWidth )
+                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth )
                     break;
                 lUInt8 flags = m_flags[i];
                 if ( m_text[i]=='\n' ) {
@@ -885,19 +918,28 @@ public:
                 }
                 if ( flags & LCHAR_ALLOW_WRAP_AFTER || i==m_length-1)
                     lastNormalWrap = i;
+                else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER )
+                    lastDeprecatedWrap = i;
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
+                if ( i<m_length-1 && m_text[i]==' ' && m_text[i+1]!=' ' ) {
+                    spaceReduceWidth += (m_widths[i] - m_widths[i-1]) / 2;
+                }
             }
             if ( i<=pos )
                 i = pos + 1; // allow at least one character to be shown on line
             int wordpos = i-1;
+            if ( lastNormalWrap<0 && lastDeprecatedWrap>=0 )
+                lastNormalWrap = lastDeprecatedWrap;
             int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
             int unusedSpace = maxWidth - normalWrapWidth;
-            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedSpace > (maxWidth>>4) && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
+            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedSpace > maxWidth/10 && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
                 // hyphenate word
                 int start, end;
                 lStr_findWordBounds( m_text, m_length, wordpos, start, end );
                 int len = end-start;
+                if ( len>0 )
+                    TR("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
                 if ( start<end && start<wordpos && end>=i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
@@ -907,16 +949,20 @@ public:
                     for ( int i=0; i<len; i++ ) {
                         widths[i] = m_widths[start+i] - wordStart_w;
                     }
-                    int max_width = maxWidth - x - (wordStart_w - w0);
+                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0);
                     int _hyphen_width = ((LVFont*)m_srcs[wordpos]->t.font)->getHyphenWidth();
                     if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
                         for ( int i=0; i<len; i++ )
                             if ( (m_flags[start+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0 ) {
-                                if ( widths[i]+_hyphen_width>max_width )
+                                if ( widths[i]+_hyphen_width>max_width ) {
+                                    TR("hyphen found, but max width reached at char %d", i);
                                     break; // hyph is too late
+                                }
                                 if ( start + i > pos+1 )
                                     lastHyphWrap = start + i;
                             }
+                    } else {
+                        TR("no hyphen found - max_width=%d", max_width);
                     }
                 }
             }
@@ -929,7 +975,8 @@ public:
                 if ( wrapPos<0 )
                     wrapPos = i-1;
             }
-            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly );
+            bool needReduceSpace = true; // todo: calculate whether space reducing required
+            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace );
             pos = wrapPos + 1;
         }
     }
