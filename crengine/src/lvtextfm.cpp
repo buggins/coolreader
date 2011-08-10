@@ -24,6 +24,17 @@
 #include "../include/lvtinydom.h"
 #endif
 
+// to debug formatter
+#if 0
+#define TR(x...) CRLog::trace(x)
+#else
+#ifdef _MSC_VER
+#define TR(x)
+#else
+#define TR(x...)
+#endif
+#endif
+
 #define FRM_ALLOC_SIZE 16
 
 formatted_line_t * lvtextAllocFormattedLine( )
@@ -313,16 +324,6 @@ void LFormattedText::AddSourceObject(
         width, height,
         flags, interval, margin, object, letter_spacing );
 }
-
-#if 0
-#define TR(x...) CRLog::trace(x)
-#else
-#ifdef _MSC_VER
-#define TR(x)
-#else
-#define TR(x...)
-#endif
-#endif
 
 class LVFormatter {
 public:
@@ -937,6 +938,8 @@ public:
                 int start, end;
                 lStr_findWordBounds( m_text, m_length, wordpos, start, end );
                 int len = end-start;
+                if ( len>0 )
+                    TR("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
                 if ( start<end && start<wordpos && end>=i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
@@ -951,11 +954,15 @@ public:
                     if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
                         for ( int i=0; i<len; i++ )
                             if ( (m_flags[start+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER)!=0 ) {
-                                if ( widths[i]+_hyphen_width>max_width )
+                                if ( widths[i]+_hyphen_width>max_width ) {
+                                    TR("hyphen found, but max width reached at char %d", i);
                                     break; // hyph is too late
+                                }
                                 if ( start + i > pos+1 )
                                     lastHyphWrap = start + i;
                             }
+                    } else {
+                        TR("no hyphen found - max_width=%d", max_width);
                     }
                 }
             }
