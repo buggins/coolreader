@@ -415,7 +415,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
-.			if ( DeviceInfo.NOOK_NAVIGATION_KEYS ) {
+			if ( DeviceInfo.NOOK_NAVIGATION_KEYS ) {
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPLEFT, "Top left navigation button");
 				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMLEFT, "Bottom left navigation button");
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPRIGHT, "Top right navigation button");
