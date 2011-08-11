@@ -1,7 +1,8 @@
 SET (PNG_SOURCES 
 pngerror.c  pngget.c  pngpread.c  
 pngrio.c    pngrutil.c  
-pngtest.c   pngvcrd.c  
+#pngtest.c   
+pngvcrd.c  
 #pngwrite.c  
 pngwutil.c
 png.c      pnggccrd.c  pngmem.c  pngread.c   

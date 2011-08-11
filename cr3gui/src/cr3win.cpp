@@ -106,16 +106,20 @@ public:
        int x=0;
        int y=0;
        lUInt32 flags = 0;
+	   int cxscreen = GetSystemMetrics(SM_CXSCREEN);
+	   int cyscreen = GetSystemMetrics(SM_CYSCREEN);
+        dx = 600 + GetSystemMetrics(SM_CXDLGFRAME)*2
+            + GetSystemMetrics(SM_CXVSCROLL);
+        dy = 800 + GetSystemMetrics(SM_CYDLGFRAME)*2
+            + GetSystemMetrics(SM_CYCAPTION);
+		if ( dx>cxscreen )
+			dx = cxscreen;
+		if ( dy>cyscreen )
+			dy = cyscreen;
     #ifdef FIXED_JINKE_SIZE
           flags = WS_DLGFRAME | WS_MINIMIZEBOX | WS_SYSMENU | WS_VSCROLL; //WS_OVERLAPPEDWINDOW
-          dx = 600 + GetSystemMetrics(SM_CXDLGFRAME)*2
-               + GetSystemMetrics(SM_CXVSCROLL);
-          dy = 800 + GetSystemMetrics(SM_CYDLGFRAME)*2
-               + GetSystemMetrics(SM_CYCAPTION);
     #else
           flags = WS_OVERLAPPEDWINDOW;// | WS_VSCROLL; //
-          dx = 600;
-          dy = 750;
     #endif
 
        _hWnd = CreateWindowW(
@@ -194,7 +198,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
 					RECT rect;
 					::GetClientRect(hWnd, &rect );
-					CRWin32WindowManager::instance->setSize( rect.right-rect.left, rect.bottom-rect.top );
+					CRWin32WindowManager::instance->reconfigure( rect.right-rect.left, rect.bottom-rect.top, CR_ROTATE_ANGLE_0 );
                     needUpdate = true;
                 }
             }

@@ -1343,6 +1343,14 @@ void LVGrayDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette
     static lUInt32 def_pal_1bpp[2] = {0x000000, 0xFFFFFF};
     static lUInt32 def_pal_2bpp[4] = {0x000000, 0x555555, 0xAAAAAA, 0xFFFFFF};
 #endif
+	lUInt32 pal[256];
+	if ( _bpp<=8 ) {
+		int n = 1<<_bpp;
+		for ( int i=0; i<n; i++ ) {
+			int c = 255 * i / (n-1);
+			pal[i] = c | (c<<8) | (c<<16);
+		}
+	}
     if (!palette)
         palette = (_bpp==1) ? def_pal_1bpp : def_pal_2bpp;
     for (int yy=0; yy<_dy; yy++)
@@ -1366,7 +1374,7 @@ void LVGrayDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette
             else // 3,4,8
             {
                 int index = (src[xx] >> (8-_bpp)) & ((1<<_bpp)-1);
-                dst[xx] = palette[ index ];
+                dst[xx] = pal[ index ];
             }
         }
         BitBlt( dc, x, y+yy, _dx, 1, buf.GetDC(), 0, 0, SRCCOPY );

@@ -79,7 +79,6 @@ public class CoolReader extends Activity
 	private BackgroundThread mBackgroundThread;
 	
 	
-	
 	public CoolReader() {
 	    brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	}
