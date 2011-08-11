@@ -30,7 +30,7 @@
 	<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge" 
             style="@android:style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
-	<TextView android:text="Third party components used: zlib, libpng, libjpeg, freetype, chmlib" 
+	<TextView android:text="Third party components used: zlib, libpng, libjpeg, freetype, chmlib, antiword, Nook EPD utils by DairyKnight" 
 			android:id="@+id/thirdparty" 
             style="@android:style/TextAppearance.Small"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>

@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
+import org.coolreader.crengine.EinkScreen;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -2590,6 +2591,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			try {
 				canvas = holder.lockCanvas(rc);
 				//log.v("before draw(canvas)");
+				if (DeviceInfo.EINK_SCREEN) {
+					EinkScreen.PrepareController();
+				}
 				if ( canvas!=null ) {
 					callback.drawTo(canvas);
 				}
