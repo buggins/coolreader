@@ -1,7 +1,9 @@
 package org.coolreader.crengine;
 
+import android.R.drawable;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -48,6 +50,7 @@ public class ProgressDialog extends AlertDialog {
     
     public ProgressDialog(Context context) {
         super(context);
+        //super(context, android.R.style.Theme_Light);
         mContext = context;
     }
 
@@ -95,8 +98,13 @@ public class ProgressDialog extends AlertDialog {
             };
             View view = inflater.inflate(R.layout.alert_dialog_progress, null);
             mProgress = (ProgressBar) view.findViewById(R.id.progress);
+            //view.setBackgroundColor(Color.WHITE);
             setView(view);
-        } else {
+//    		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+//    			//getWindow() setTheme(android.R.style.Theme_Light);
+//    			getWindow().setBackgroundDrawableResource(drawable.editbox_background);
+//    		}
+       } else {
             View view = inflater.inflate(R.layout.progress_dialog, null);
             mProgress = (ProgressBar) view.findViewById(R.id.progress);
             mMessageView = (TextView) view.findViewById(R.id.message);

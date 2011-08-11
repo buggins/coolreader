@@ -13,6 +13,7 @@ public class DeviceInfo {
 	public final static boolean EINK_SCREEN_UPDATE_MODES_SUPPORTED;
 	public final static boolean NOOK_NAVIGATION_KEYS;
 	public final static boolean EINK_NOOK;
+	public final static boolean FORCE_LIGHT_THEME;
 	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
@@ -25,6 +26,7 @@ public class DeviceInfo {
 		EINK_SCREEN = EINK_NOOK; // TODO: set to true for eink devices like Nook Touch
 		NOOK_NAVIGATION_KEYS = EINK_NOOK; // TODO: add autodetect
 		EINK_SCREEN_UPDATE_MODES_SUPPORTED = EINK_SCREEN && EINK_NOOK; // TODO: add autodetect
+		FORCE_LIGHT_THEME = EINK_SCREEN;
 	}
 	
 	private static String getBuildField(String fieldName) {

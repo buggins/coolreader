@@ -19,7 +19,7 @@ public class BaseDialog extends Dialog {
 	View layoutView;
 	ViewGroup buttonsLayout;
 	ViewGroup contentsLayout;
-	public static final boolean DARK_THEME = true;
+	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
 	public BaseDialog( CoolReader activity, int positiveButtonText, int negativeButtonText, boolean windowed )
 	{
 		this( activity, positiveButtonText, negativeButtonText, activity.isFullscreen(), activity.isNightMode(), windowed );

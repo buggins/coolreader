@@ -28,6 +28,7 @@ import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.EinkScreen;
 
+import android.R.drawable;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
@@ -41,6 +42,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -514,6 +516,15 @@ public class CoolReader extends Activity
        	mHistory = new History(this, mDB);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
+//		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+//			setTheme(android.R.style.Theme_Light);
+//			getWindow().setBackgroundDrawableResource(drawable.editbox_background);
+//		}
+		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+			mFrame.setBackgroundColor( Color.WHITE );
+			setTheme(R.style.Dialog_Fullscreen_Day);
+		}
+		
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
 		
 		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
