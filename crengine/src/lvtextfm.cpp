@@ -25,7 +25,7 @@
 #endif
 
 // to debug formatter
-#if 0
+#if 1
 #define TR(x...) CRLog::trace(x)
 #else
 #ifdef _MSC_VER
@@ -697,7 +697,7 @@ public:
         }
 
         int lastnonspace = 0;
-        if ( align==LTEXT_ALIGN_WIDTH ) {
+        if ( align==LTEXT_ALIGN_WIDTH || splitBySpaces ) {
             for ( int i=start; i<end; i++ )
                 if ( !((m_flags[i] & LCHAR_IS_SPACE) && !(m_flags[i] & LCHAR_IS_OBJECT)) )
                     lastnonspace = i;
