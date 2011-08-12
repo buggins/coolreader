@@ -171,6 +171,8 @@ static bool skip_spaces( const char * & str )
         while ( *str && str[1] && (str[0]!='*' || str[1]!='/') )
             str++;
     }
+    while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
+        str++;
     return *str != 0;
 }
 
