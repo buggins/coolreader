@@ -29,9 +29,9 @@ enum css_decl_code {
     cssd_text_align_last,
     cssd_text_decoration,
     cssd_hyphenate, // hyphenate
-    cssd_hyphenate, // -webkit-hyphens
-    cssd_hyphenate, // adobe-hyphenate
-    cssd_hyphenate, // adobe-text-layout
+    cssd_hyphenate2, // -webkit-hyphens
+    cssd_hyphenate3, // adobe-hyphenate
+    cssd_hyphenate4, // adobe-text-layout
     cssd_color,
     cssd_background_color,
     cssd_vertical_align,
@@ -564,6 +564,10 @@ bool LVCssDeclaration::parse( const char * &decl )
                 n = parse_name( decl, css_td_names, -1 );
                 break;
             case cssd_hyphenate:
+            case cssd_hyphenate2:
+            case cssd_hyphenate3:
+            case cssd_hyphenate4:
+            	prop_code = cssd_hyphenate;
                 n = parse_name( decl, css_hyph_names, -1 );
                 if ( n==-1 )
                     n = parse_name( decl, css_hyph_names2, -1 );
