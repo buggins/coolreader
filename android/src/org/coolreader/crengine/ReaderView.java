@@ -3710,7 +3710,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( file.exists() ) {
 				String css = mEngine.loadFileUtf8(file);
 				if ( css!=null ) {
-					css = css.replaceFirst(DEFAULT_CSS_IMPORT_PATTERN, "\n" + defaultCss + "\n");
+					int p1 = css.indexOf("@import");
+					if ( p1<0 )
+						p1 = css.indexOf("@include");
+					int p2 = css.indexOf("\";");
+					if (p1 >= 0 && p2 >= 0 && p1 < p2 ) {
+						css = css.substring(0, p1) + "\n" + defaultCss + "\n" + css.substring(p2+2);
+					}
 					return css;
 				}
 			} 
