@@ -428,7 +428,8 @@ public:
                 for ( int k=0; k<len; k++ ) {
                     m_charindex[pos] = k;
                     m_srcs[pos] = src;
-                    if ( m_text[pos] == '-' || m_text[pos] == '.' || m_text[pos] == '+' )
+                    lChar16 ch = m_text[pos];
+                    if ( ch == '-' || ch == 0x2010 || ch == '.' || ch == '+' )
                         m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
                     pos++;
                 }
