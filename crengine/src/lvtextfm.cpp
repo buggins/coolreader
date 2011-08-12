@@ -940,7 +940,7 @@ public:
                 int len = end-start;
                 if ( len>0 )
                     TR("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
-                if ( start<end && start<wordpos && end>=i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
+                if ( start<end && start<wordpos && end>=wordpos && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
                     lUInt8 * flags = m_flags + start;
