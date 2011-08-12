@@ -1,25 +1,21 @@
-body { text-align: left; text-indent: 0px }
-p { text-align: justify; text-indent: 1.2em; margin-top:0em; margin-bottom: 0em }
+body { text-align: left; margin: 0; text-indent: 0px; /* justify */ }
+
+p { text-align: justify; text-indent: 1.2em; margin-top: 0em; margin-bottom: 0em } 
 
 empty-line { height: 1em }
 
-hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em }
+hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em; /* 2px */ }
 
-sub { vertical-align: sub; font-size: 70% }
-sup { vertical-align: super; font-size: 70% }
-strong, b { font-weight: bold }
-emphasis, i { font-style: italic }
-
-a { text-decoration: underline }
+a { display: inline; text-decoration: underline; }
 a[type="note"] { vertical-align: super; font-size: 70%; text-decoration: none }
 
 image { text-align: center; text-indent: 0px; display: block }
 p image { display: inline }
+
 li { display: list-item; text-indent: 0em;  }
 ul { display: block; list-style-type: disc; margin-left: 1em }
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
-title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { text-align: center; text-indent: 0px }
 cite p, epigraph p { text-align: left; text-indent: 0px }
 v { text-align: left; text-align-last: right; text-indent: 1em hanging }
 
@@ -30,23 +26,65 @@ text-author { font-weight: bold; font-style: italic; margin-left: 5%}
 epigraph { margin-left: 15%; margin-right: 1em; text-align: left; text-indent: 1em; font-style: italic; margin-top: 15px; margin-bottom: 25px }
 cite { font-style: italic; margin-left: 5%; margin-right: 5%; text-align: justify; margin-top: 20px; margin-bottom: 20px }
 
-title, h1, h2 { text-align: center; text-indent: 0px; font-weight: bold; hyphenate: none; page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }
-subtitle, h3, h4, h5, h6 { text-align: center; text-indent: 0px; font-weight: bold; hyphenate: none; page-break-inside: avoid; page-break-after: avoid; }
-title { font-size: 110%; margin-top: 0.7em; margin-bottom: 0.5em }
-subtitle { font-style: italic; margin-top: 0.3em; margin-bottom: 0.3em }
+title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { 
+	text-align: center; 
+	text-indent: 0px 
+}
+title, h1, h2, h3, h4, h5, h6, subtitle { 
+	text-align: center; 
+	text-indent: 0px; 
+	font-weight: bold; 
+	hyphenate: none; 
+}
+h1, h2, h3, h4, h5, h6 {    
+	display: block; 
+   	margin-top: 0.5em; 
+   	margin-bottom: 0.3em; 
+     	padding: 10px ; 
+     	margin-top: 0.5em; 
+     	margin-bottom: 0.5em; 
+}
+title, h1, h2 { 
+	page-break-before: always; 
+	page-break-inside: avoid; 
+	page-break-after: avoid; 
+}
+subtitle, h3, h4, h5, h6 { 
+	page-break-inside: avoid; 
+	page-break-after: avoid; 
+}
+title { 
+	font-size: 110%; 
+	margin-top: 0.7em; 
+	margin-bottom: 0.5em 
+}
+subtitle { 
+	font-style: italic; 
+	margin-top: 0.3em; 
+	margin-bottom: 0.3em 
+}
 h1 { font-size: 150% }
 h2 { font-size: 140% }
 h3 { font-size: 130% }
 h4 { font-size: 120% }
 h5 { font-size: 110% }
 
-
 table { font-size: 80% }
 td, th { text-indent: 0px; padding: 3px }
-th {  font-weight: bold; background-color: #DDD  }
-table > caption { text-indent: 0px; padding: 4px; background-color: #EEE }
+th {  font-weight: bold; text-align: center; background-color: #DDD  } 
+/* #808080; */
+table caption { text-indent: 0px; padding: 4px; background-color: #EEE }
 
-code, pre { display: block; white-space: pre; text-align: left; font-family: "Courier New", "Courier", monospace; text-align: left }
+tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
+code, pre { 
+	display: block; 
+   	margin-top: 0.5em; 
+   	margin-bottom: 0.5em; 
+	white-space: pre; 
+	text-align: left; 
+	text-align: left;
+  /* background-color: #BFBFBF; */ 
+}
 
 body[name="notes"] { font-size: 70%; }
 body[name="notes"] section title { display: run-in; text-align: left; font-size: 110%; font-weight: bold; page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
@@ -70,68 +108,26 @@ coverpage { display: none }
 
 head, form, script { display: none; } 
 
-body { margin: 0; text-align: justify; } 
-
-hr { 
-   height: 2px; 
-   background-color: #808080; 
-   margin-top: 0.5em; 
-   margin-bottom: 0.5em; 
-   } 
-
 b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
    display: inline; 
-   } 
+} 
 
-b,strong { font-weight: bold; } 
-i,em,dfn,var { font-style: italic; } 
+sub { vertical-align: sub; font-size: 70% }
+sup { vertical-align: super; font-size: 70% }
 
+strong, b { font-weight: bold }
+emphasis, i, em, dfn, var { font-style: italic }
 u { text-decoration: underline; } 
-del,s,strike,strikethrough { text-decoration: line-through; } 
+del, s, strike, strikethrough { text-decoration: line-through; } 
+
 small { font-size: 80%; } 
 big { font-size: 130%; } 
-sub { vertical-align: sub; font-size: 70% } 
-sup { vertical-align: super; font-size: 70% } 
-tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
-pre { display: block; 
-   margin-top: 0.5em; 
-   margin-bottom: 0.5em; 
-   white-space: pre; 
-   text-align: left; 
-  /* background-color: #BFBFBF; */ 
-   } 
 
 nobr { display: inline; hyphenate: none; white-space: nowrap; } 
-
-h1,h2,h3,h4,h5,h6 { 
-   display: block; 
-   margin-top: 0.5em; 
-   margin-bottom: 0.3em; 
-   font-weight: bold; 
-   text-align: left; 
-   } 
-h1 { font-size: 150%; 
-/*     color: #FFFFFF; background-color: #000000; */ 
-     padding: 10px ; 
-     margin-top: 0.5em; 
-     margin-bottom: 0.5em; 
-   } 
-h2 { font-size: 135%; 
-/*     color: #FFFFFF; background-color: #808080;   */ 
-     padding: 10px ; 
-     margin-top: 0.5em; 
-     margin-bottom: 0.5em; 
-   } 
-h3 { font-size: 125% } 
-h4 { font-size: 125%; font-style: italic; } 
-h5 { font-size: 115%; font-style: italic; } 
-h6 { font-size: 105%; font-style: italic; } 
 
 dl { margin-left: 0em; } 
 dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 
 dd { display: block; margin-left: 1.3em; } 
-
-a { display:inline; text-decoration: underline;  } 
 
 img { 
    margin: 0.5em; 
@@ -139,9 +135,4 @@ img {
    text-indent: 0em; 
    border-style: solid; 
    border-width: medium; 
-   } 
-
-table { font-size: 100% } 
-td, th { text-indent: 0px; padding: 3px } 
-th { font-weight: bold; text-align: center; background-color: #808080; } 
-table caption { text-indent: 0px; padding: 4px; }
+} 
