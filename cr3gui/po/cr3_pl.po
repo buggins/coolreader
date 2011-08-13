@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-27 20:29+0700\n"
+"POT-Creation-Date: 2011-08-13 15:21+0700\n"
 "PO-Revision-Date: 2009-11-18 22:36+0100\n"
 "Last-Translator: Tomasz Długosz <tomek3d@gmail.com>\n"
 "Language-Team: Polish\n"
@@ -964,6 +964,11 @@ msgstr "Pokaż mapowanie klawiatury"
 msgid "Go to percent..."
 msgstr "Idź do strony"
 
+#: ../src/viewdlg.cpp:571
+#, fuzzy
+msgid "PocketBook Main menu"
+msgstr "Główne menu"
+
 #: ../src/viewdlg.cpp:573
 msgid "Unknown command"
 msgstr "Nieznana komenda"
@@ -1020,7 +1025,7 @@ msgstr "Klawisz"
 msgid "Assigned function"
 msgstr "Przypisana funkcja"
 
-#: ../src/cr3pocketbook.cpp:2059
+#: ../src/cr3pocketbook.cpp:2155
 msgid "Press $1 to translate"
 msgstr "Krótkie wciśnięcie $1 aby przetłumaczyć"
 

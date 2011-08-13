@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-27 20:29+0700\n"
+"POT-Creation-Date: 2011-08-13 15:21+0700\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -986,6 +986,11 @@ msgstr ""
 msgid "Go to percent..."
 msgstr "跳转到页..."
 
+#: ../src/viewdlg.cpp:571
+#, fuzzy
+msgid "PocketBook Main menu"
+msgstr "主菜单"
+
 #: ../src/viewdlg.cpp:573
 msgid "Unknown command"
 msgstr ""
@@ -1044,7 +1049,7 @@ msgstr ""
 msgid "Assigned function"
 msgstr ""
 
-#: ../src/cr3pocketbook.cpp:2059
+#: ../src/cr3pocketbook.cpp:2155
 msgid "Press $1 to translate"
 msgstr ""
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-27 21:26+0700\n"
+"POT-Creation-Date: 2011-08-13 15:21+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -940,6 +940,10 @@ msgstr ""
 msgid "Go to percent..."
 msgstr ""
 
+#: ../src/viewdlg.cpp:571
+msgid "PocketBook Main menu"
+msgstr ""
+
 #: ../src/viewdlg.cpp:573
 msgid "Unknown command"
 msgstr ""
@@ -996,6 +1000,6 @@ msgstr ""
 msgid "Assigned function"
 msgstr ""
 
-#: ../src/cr3pocketbook.cpp:2059
+#: ../src/cr3pocketbook.cpp:2155
 msgid "Press $1 to translate"
 msgstr ""

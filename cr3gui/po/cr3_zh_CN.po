@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-27 20:29+0700\n"
+"POT-Creation-Date: 2011-08-13 15:21+0700\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -960,6 +960,11 @@ msgstr "显示键映射"
 msgid "Go to percent..."
 msgstr "跳到百分比……"
 
+#: ../src/viewdlg.cpp:571
+#, fuzzy
+msgid "PocketBook Main menu"
+msgstr "主菜单"
+
 #: ../src/viewdlg.cpp:573
 msgid "Unknown command"
 msgstr "未知命令"
@@ -1016,7 +1021,7 @@ msgstr "键"
 msgid "Assigned function"
 msgstr "分配的功能"
 
-#: ../src/cr3pocketbook.cpp:2059
+#: ../src/cr3pocketbook.cpp:2155
 msgid "Press $1 to translate"
 msgstr "按 $1 翻譯"
 

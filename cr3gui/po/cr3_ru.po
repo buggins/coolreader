@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-27 20:29+0700\n"
+"POT-Creation-Date: 2011-08-13 15:21+0700\n"
 "PO-Revision-Date: 2011-05-08 16:02+0700\n"
 "Last-Translator: Vladimir <v@v>\n"
 "Language-Team: Russian\n"
@@ -64,7 +64,7 @@ msgstr "Основное меню"
 
 #: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:558
 msgid "About"
-msgstr "Свойства документа"
+msgstr "Информация о книге"
 
 #: ../src/mainwnd.cpp:845 ../src/viewdlg.cpp:522
 msgid "Go to page"
@@ -260,11 +260,11 @@ msgstr ""
 
 #: ../src/mainwnd.cpp:1057
 msgid "Build date"
-msgstr ""
+msgstr "Дата создания"
 
 #: ../src/mainwnd.cpp:1058
 msgid "About program"
-msgstr ""
+msgstr "О программе"
 
 #: ../src/mainwnd.cpp:1175
 msgid "Loading: please wait..."
@@ -360,7 +360,7 @@ msgstr "Цитаты"
 
 #: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
 msgid "Cite selection dialog"
-msgstr "Выделить цитату"
+msgstr "Новая цитата"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -376,7 +376,7 @@ msgstr "выберите команду"
 
 #: ../src/settings.cpp:100
 msgid "Controls"
-msgstr "Назначение клавиш"
+msgstr "Функции клавиш"
 
 #: ../src/settings.cpp:171
 msgid "[Command is not assigned]"
@@ -920,7 +920,7 @@ msgstr "По закладкам"
 
 #: ../src/viewdlg.cpp:555
 msgid "Recent books list"
-msgstr "Повторное открытие книги"
+msgstr "Последние открытые"
 
 #: ../src/viewdlg.cpp:556
 msgid "Open recent book by number"
@@ -952,11 +952,15 @@ msgstr "Руководство пользователя"
 
 #: ../src/viewdlg.cpp:565
 msgid "Show key mapping"
-msgstr "Назначение клавиш"
+msgstr "Функции клавиш"
 
 #: ../src/viewdlg.cpp:566
 msgid "Go to percent..."
 msgstr "Перейти на позицию (%)..."
+
+#: ../src/viewdlg.cpp:571
+msgid "PocketBook Main menu"
+msgstr "Главное меню устройства"
 
 #: ../src/viewdlg.cpp:573
 msgid "Unknown command"
@@ -1014,13 +1018,9 @@ msgstr "Клавиша"
 msgid "Assigned function"
 msgstr "Действие"
 
-#: ../src/cr3pocketbook.cpp:2059
+#: ../src/cr3pocketbook.cpp:2155
 msgid "Press $1 to translate"
 msgstr "Нажмите чтобы перевести"
-
-#, fuzzy
-#~ msgid "Remove phrase from selection"
-#~ msgstr "Выделить цитату"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Введите номер страницы: "

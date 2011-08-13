@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-07-27 20:29+0700\n"
+"POT-Creation-Date: 2011-08-13 15:21+0700\n"
 "PO-Revision-Date: 2011-06-17 02:51+0200\n"
 "Last-Translator: Vitalii Stopchans'kyi <stopchanПЕСgmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -63,7 +63,7 @@ msgstr "Головне меню"
 
 #: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:558
 msgid "About"
-msgstr "Інформація..."
+msgstr "Інформація про книгу"
 
 #: ../src/mainwnd.cpp:845 ../src/viewdlg.cpp:522
 msgid "Go to page"
@@ -95,7 +95,7 @@ msgstr "Налаштування"
 
 #: ../src/mainwnd.cpp:888 ../src/viewdlg.cpp:636
 msgid "Keyboard layout"
-msgstr "Призначення кнопок"
+msgstr "Функції клавіш"
 
 #: ../src/mainwnd.cpp:895
 msgid ""
@@ -303,14 +303,14 @@ msgstr "Сторінка $1 ($2%)"
 
 #: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:168
 msgid "Go to bookmark"
-msgstr "Відкрити закладку з номером"
+msgstr "Відкрити закладку"
 
 #: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
 msgstr ""
-"Коротке натискання $1 — до закладок,\n"
+"$1 — відкрити поточну закладку,\n"
 "$2 — режим додавання закладок"
 
 #: ../src/bmkdlg.cpp:80
@@ -318,7 +318,7 @@ msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
 msgstr ""
-"Коротке натискання $1 — до закладок,\n"
+"Коротке натискання $1 — відкрити поточну закладку,\n"
 "довге натискання — додати закладку"
 
 #: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:167
@@ -346,22 +346,20 @@ msgid "Delete bookmark"
 msgstr "Видалити закладку"
 
 #: ../src/bmkdlg.cpp:317
-#, fuzzy
 msgid "Go to citation"
 msgstr "Перейти на позицію"
 
 #: ../src/bmkdlg.cpp:318
-#, fuzzy
 msgid "Delete citation"
 msgstr "Видалити запис"
 
 #: ../src/bmkdlg.cpp:332
 msgid "Citations"
-msgstr ""
+msgstr "Цитати"
 
 #: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
 msgid "Cite selection dialog"
-msgstr "Виділити цитату"
+msgstr "Нова цитата"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -405,7 +403,7 @@ msgstr "Орієнтація сторінки"
 
 #: ../src/settings.cpp:222
 msgid "Default font size"
-msgstr "Розмір шрифту (пікселі)"
+msgstr "Розмір шрифту (в пікселях)"
 
 #: ../src/settings.cpp:280
 msgid "The quick brown fox jumps over lazy dog"
@@ -433,7 +431,7 @@ msgstr "Увімк."
 
 #: ../src/settings.cpp:366 ../src/settings.cpp:372
 msgid "Normal"
-msgstr "Звичайне"
+msgstr "Звичайний"
 
 #: ../src/settings.cpp:367
 msgid "Inverse"
@@ -464,9 +462,8 @@ msgid "90%"
 msgstr "90%"
 
 #: ../src/settings.cpp:393
-#, fuzzy
 msgid "95%"
-msgstr "90%"
+msgstr "95%"
 
 #: ../src/settings.cpp:394
 msgid "100%"
@@ -474,7 +471,7 @@ msgstr "100%"
 
 #: ../src/settings.cpp:395
 msgid "105%"
-msgstr ""
+msgstr "105%"
 
 #: ../src/settings.cpp:396
 msgid "110%"
@@ -482,7 +479,7 @@ msgstr "110%"
 
 #: ../src/settings.cpp:397
 msgid "115%"
-msgstr ""
+msgstr "115%"
 
 #: ../src/settings.cpp:398
 msgid "120%"
@@ -502,15 +499,15 @@ msgstr "150%"
 
 #: ../src/settings.cpp:402
 msgid "160%"
-msgstr ""
+msgstr "160%"
 
 #: ../src/settings.cpp:403
 msgid "180%"
-msgstr ""
+msgstr "180%"
 
 #: ../src/settings.cpp:404
 msgid "200%"
-msgstr ""
+msgstr "200%"
 
 #: ../src/settings.cpp:443
 msgid "Always use fast updates"
@@ -582,7 +579,7 @@ msgstr ""
 
 #: ../src/settings.cpp:497
 msgid "Default font face"
-msgstr "Шрифт"
+msgstr "Шрифт за замовчуванням"
 
 #: ../src/settings.cpp:523
 msgid "Font weight"
@@ -597,9 +594,8 @@ msgid "Interline space"
 msgstr "Міжрядковий інтервал"
 
 #: ../src/settings.cpp:546
-#, fuzzy
 msgid "Rotate"
-msgstr "Поворот на"
+msgstr "Поворот"
 
 #: ../src/settings.cpp:551
 msgid "Page turn angle"
@@ -615,11 +611,11 @@ msgstr "Показувати годинник"
 
 #: ../src/settings.cpp:574
 msgid "Landscape pages"
-msgstr "Колонок в альбомній сторінці"
+msgstr "Колонок в альбомній орієнтації"
 
 #: ../src/settings.cpp:580
 msgid "Preformatted text"
-msgstr "Форматований текст"
+msgstr "Попередньо форматований текст"
 
 #: ../src/settings.cpp:588
 msgid "Document embedded styles"
@@ -663,7 +659,7 @@ msgstr "Переноси"
 
 #: ../src/settings.cpp:656
 msgid "Floating punctuation"
-msgstr "Нависаюча пунктуація"
+msgstr "Висяча пунктуація"
 
 #: ../src/settings.cpp:664
 msgid "Page margins"
@@ -690,8 +686,8 @@ msgid ""
 "Press $1 to change option\n"
 "$2 to apply, $3 to cancel"
 msgstr ""
-"Натисніть $1, щоб змінити\n"
-"$2 — застосувати, $3 — скасувати"
+"$1 — щоб змінити, $2 — застосувати\n"
+"$3 — скасувати"
 
 #: ../src/viewdlg.cpp:159
 msgid "No dictionaries found"
@@ -863,11 +859,11 @@ msgstr "Встановити кут повороту"
 
 #: ../src/viewdlg.cpp:533
 msgid "Save history and bookmarks"
-msgstr "Зберігати історію та закладки"
+msgstr "Зберегти історію/закладки"
 
 #: ../src/viewdlg.cpp:534
 msgid "Save document to cache"
-msgstr "Зберігати документ у кеші"
+msgstr "Зберегти книгу в кеш"
 
 #: ../src/viewdlg.cpp:535
 msgid "Close dialog"
@@ -923,7 +919,7 @@ msgstr "До закладок..."
 
 #: ../src/viewdlg.cpp:555
 msgid "Recent books list"
-msgstr "Повторно відкрити книгу"
+msgstr "Останні відкриті"
 
 #: ../src/viewdlg.cpp:556
 msgid "Open recent book by number"
@@ -951,15 +947,19 @@ msgstr "Попереднє призначення кнопок"
 
 #: ../src/viewdlg.cpp:564
 msgid "Show manual"
-msgstr "Показати довідку"
+msgstr "Посібник з використання"
 
 #: ../src/viewdlg.cpp:565
 msgid "Show key mapping"
-msgstr "Призначення кнопок"
+msgstr "Функції клавіш"
 
 #: ../src/viewdlg.cpp:566
 msgid "Go to percent..."
 msgstr "Перейти на позицiю (%)"
+
+#: ../src/viewdlg.cpp:571
+msgid "PocketBook Main menu"
+msgstr "Головне меню пристрою"
 
 #: ../src/viewdlg.cpp:573
 msgid "Unknown command"
@@ -1017,21 +1017,9 @@ msgstr "Кнопка"
 msgid "Assigned function"
 msgstr "Дія"
 
-#: ../src/cr3pocketbook.cpp:2059
+#: ../src/cr3pocketbook.cpp:2155
 msgid "Press $1 to translate"
 msgstr "Коротке натискання $1 щоб переклад"
-
-#, fuzzy
-#~ msgid "Remove phrase from selection"
-#~ msgstr "Виділити цитату"
-
-#, fuzzy
-#~ msgid "Cites"
-#~ msgstr "Цитата"
-
-#, fuzzy
-#~ msgid "Go to cite"
-#~ msgstr "Перейти на сторінку"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Введіть номер сторінки: "
