@@ -67,6 +67,8 @@ const char* TR(const char *label);
 
 #if GRAY_BACKBUFFER_BITS == 2
 #define PB_BUFFER_GRAYS IMAGE_GRAY2
+#elif GRAY_BACKBUFFER_BITS == 4
+#define PB_BUFFER_GRAYS IMAGE_GRAY4
 #elif GRAY_BACKBUFFER_BITS == 8
 #define PB_BUFFER_GRAYS IMAGE_GRAY8
 #else

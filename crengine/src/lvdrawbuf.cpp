@@ -118,9 +118,10 @@ lUInt32 DitherNBitColor( lUInt32 color, lUInt32 x, lUInt32 y, int bits )
     //int cl = ((((color>>16) & 255) + ((color>>(8-1)) & (255<<1)) + ((color) & 255)) >> 2) & 255;
     int cl = ((((color>>16) & 255) + ((color>>(8-1)) & (255<<1)) + ((color) & 255)) >> 2) & 255;
     int white = (1<<bits) - 1;
-    if (cl < bits)
+    int precision = white;
+    if (cl<precision)
         return 0;
-    else if (cl>=white-bits)
+    else if (cl>=255-precision)
         return mask;
     //int d = dither_2bpp_4x4[(x&3) | ( (y&3) << 2 )] - 1;
     // dither = 0..63
@@ -490,7 +491,7 @@ public:
                     }
 
                     lUInt8 dcl;
-                    if ( dither ) {
+                    if ( dither && bpp < 8) {
 #if (GRAY_INVERSE==1)
                         dcl = (lUInt8)DitherNBitColor( cl^0xFFFFFF, x, yy, bpp );
 #else
@@ -802,25 +803,14 @@ void LVGrayDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
 			}
 			line += _rowsize;
 		}
-        } else  if (_bpp == 8) {
+        } else { // 3, 4, 8
             lUInt8 * line = GetScanLine(y0);
             for (int y=y0; y<y1; y++) {
-                for (int x=x0; x<x1; x++) {
-                    if (line[x] > 192)
-                        line[x] = 0;
-                    else if (line[x] < 64)
-                        line[x] = 0xFF;
-                }
+                for (int x=x0; x<x1; x++)
+                    line[x] = ~line[x];
                 line += _rowsize;
             }
-	}  else { // 3, 4, 8
-            lUInt8 * line = GetScanLine(y0);
-		for (int y=y0; y<y1; y++) {
-            for (int x=x0; x<x1; x++)
-                line[x] = ~line[x];
-            line += _rowsize;
-		}
-    }
+        }
 }
 
 void LVGrayDrawBuf::Resize( int dx, int dy )

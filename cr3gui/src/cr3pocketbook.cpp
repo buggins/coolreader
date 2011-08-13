@@ -166,28 +166,39 @@ class CRPocketBookScreen : public CRGUIScreenBase {
 private:
     bool _forceSoft;
     CRGUIWindowBase *m_mainWindow;
+#if GRAY_BACKBUFFER_BITS == 4
+    lUInt8 *_buf4bpp;
+#endif
 public:
     static CRPocketBookScreen * instance;
 protected:
+    virtual void draw(int x, int y, int w, int h);
     virtual void update( const lvRect & rc2, bool full );
 public:
     virtual ~CRPocketBookScreen()
     {
         instance = NULL;
+#if GRAY_BACKBUFFER_BITS == 4
+        delete [] _buf4bpp;
+#endif
     }
 
     CRPocketBookScreen( int width, int height )
         :  CRGUIScreenBase( width, height, true ), _forceSoft(false)
     {
         instance = this;
+#if GRAY_BACKBUFFER_BITS == 4
+        if (width > height)
+            _buf4bpp = new lUInt8[ (width + 1)/2 * width ];
+        else
+            _buf4bpp = new lUInt8[ (height + 1)/2 * height ];
+#endif
     }
 
     void MakeSnapShot()
     {
         ClearScreen();
-        lUInt8 *screenbuf =  _front->GetScanLine(0);
-        int w = _front->GetWidth(); int h = _front->GetHeight();
-        Stretch(screenbuf, PB_BUFFER_GRAYS, w, h, _front->GetRowSize(), 0, 0, w, h, 0);
+        draw(0, 0, _front->GetWidth(), _front->GetHeight());
         PageSnapshot();
     }
     bool setForceSoftUpdate(bool force)
@@ -413,6 +424,30 @@ void tocHandler(long long position)
 
 int main_handler(int type, int par1, int par2);
 
+void CRPocketBookScreen::draw(int x, int y, int w, int h)
+{
+#if (GRAY_BACKBUFFER_BITS == 4)
+    lUInt8 * line = _front->GetScanLine(y);
+    lUInt8 *dest = _buf4bpp;
+    int limit = x + w -1;
+    int scanline = (w + 1)/2;
+
+    for (int yy = 0; yy < h; yy++) {
+        int sx = x;
+        for (int xx = 0; xx < scanline; xx++) {
+            dest[xx] = line[sx++] & 0xF0;
+            if (sx < limit)
+                dest[xx] |= (line[sx++] >> 4);
+        }
+        line += _front->GetRowSize();
+        dest += scanline;
+    }
+    Stretch(_buf4bpp, IMAGE_GRAY4, w, h, scanline, x, y, w, h, 0);
+#else
+    Stretch(_front->GetScanLine(y), PB_BUFFER_GRAYS, w, h, _front->GetRowSize(), x, y, w, h, 0);
+#endif
+}
+
 void CRPocketBookScreen::update( const lvRect & rc2, bool full )
 {
     if (rc2.isEmpty() && !full)
@@ -433,12 +468,10 @@ void CRPocketBookScreen::update( const lvRect & rc2, bool full )
         full = false;
 
     if ( full ) {
-        Stretch(_front->GetScanLine(0), PB_BUFFER_GRAYS, _front->GetWidth(), _front->GetHeight(), _front->GetRowSize(),
-                0, 0, _front->GetWidth(), _front->GetHeight(), 0);
+        draw(0, 0, _front->GetWidth(), _front->GetHeight());
         FullUpdate();
     } else {
-        Stretch(_front->GetScanLine(rc.top), PB_BUFFER_GRAYS, _front->GetWidth(), rc.height(), _front->GetRowSize(),
-                0, rc.top, _front->GetWidth(), rc.height(), 0);
+        draw(0, rc.top, _front->GetWidth(), rc.height());
         if (!isDocWnd && rc.height() < 300)
             PartialUpdateBW(rc.left, rc.top, rc.right, rc.bottom);
         else
