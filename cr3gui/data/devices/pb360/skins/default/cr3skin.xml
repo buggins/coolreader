@@ -253,13 +253,13 @@
   <window id="about" base="#dialog">
   </window>
   <menu id="main" min-item-count="8" max-item-count="8" show-shortcuts="false" fullscreen="true" >
-        <text color="#FFFFFF" face="Liberation Sans, DejaVu Sans" size="34" bold="true" italic="false" valign="center" halign="center"/>
+        <text color="#FFFFFF" face="Liberation Sans, DejaVu Sans" size="28" bold="true" italic="false" valign="center" halign="center"/>
         <background color="#AAAAAA"/>
         <border widths="0,0,0,0"/>
         <!--icon image="filename" valign="" halign=""/-->
         <title id="title-main">
             <size minvalue="0,56" maxvalue="0,56"/>
-            <text color="#FFFFFF" face="Liberation Sans, DejaVu Sans" size="34" bold="true" italic="false" valign="center" halign="left"/>
+            <text color="#FFFFFF" face="Liberation Sans, DejaVu Sans" size="28" bold="true" italic="false" valign="center" halign="left"/>
             <background color="#555555"/>
             <background color="#FFFFFF" pos="0,-7" size="100%,2"/>
             <background color="#FFFFFF" pos="0,-5" size="100%,5"/>

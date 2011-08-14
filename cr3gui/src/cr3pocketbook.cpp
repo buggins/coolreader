@@ -2081,6 +2081,8 @@ CRPbDictionaryDialog::CRPbDictionaryDialog( CRGUIWindowManager * wm, CRViewDialo
     _dictView = new CRPbDictionaryView(wm, this);
     if (!css.empty())
         _dictView->getDocView()->setStyleSheet(css);
+    int fs = _docview->getDocProps()->getIntDef( PROP_FONT_SIZE, 22 );
+    _dictView->getDocView()->setFontSize(fs);
     setAccelerators( acc );
     CRPropRef props = CRPocketBookDocView::instance->getProps();
     _autoTranslate = props->getBoolDef(PROP_POCKETBOOK_DICT_AUTO_TRANSLATE, true);
