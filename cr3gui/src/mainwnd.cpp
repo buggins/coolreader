@@ -778,6 +778,8 @@ void V3DocViewWin::showHelpDialog()
 	//lString8 help = UnicodeToUtf8( LVReadTextFile( _helpFile ) );
 	if ( !help.empty() ) {
 		CRViewDialog * dlg = new CRViewDialog( _wm, lString16(_("Help")), help, lvRect(), true, true );
+                int fs = _props->getIntDef( PROP_FONT_SIZE, 22 );
+                dlg->getDocView()->setFontSize(fs);
 		_wm->activateWindow( dlg );
 	}
 }
