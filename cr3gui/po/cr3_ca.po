@@ -469,9 +469,8 @@ msgid "90%"
 msgstr "90%"
 
 #: ../src/settings.cpp:393
-#, fuzzy
 msgid "95%"
-msgstr "90%"
+msgstr "95%"
 
 #: ../src/settings.cpp:394
 msgid "100%"
@@ -479,7 +478,7 @@ msgstr "100%"
 
 #: ../src/settings.cpp:395
 msgid "105%"
-msgstr ""
+msgstr "105%"
 
 #: ../src/settings.cpp:396
 msgid "110%"
@@ -487,7 +486,7 @@ msgstr "110%"
 
 #: ../src/settings.cpp:397
 msgid "115%"
-msgstr ""
+msgstr "115%"
 
 #: ../src/settings.cpp:398
 msgid "120%"
@@ -507,15 +506,15 @@ msgstr "150%"
 
 #: ../src/settings.cpp:402
 msgid "160%"
-msgstr ""
+msgstr "160%"
 
 #: ../src/settings.cpp:403
 msgid "180%"
-msgstr ""
+msgstr "180%"
 
 #: ../src/settings.cpp:404
 msgid "200%"
-msgstr ""
+msgstr "200%"
 
 #: ../src/settings.cpp:443
 msgid "Always use fast updates"
