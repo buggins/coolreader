@@ -531,7 +531,7 @@ void V3DocViewWin::closing()
 	_dict = NULL;
     _docview->savePosition();
     CRLog::trace("after docview->savePosition()");
-    saveHistory( lString16() );
+    saveHistory( lString16(), _props->getBoolDef( PROP_AUTOSAVE_BOOKMARKS, true ) );
 }
 
 bool V3DocViewWin::loadDocument( lString16 filename )
@@ -545,7 +545,7 @@ bool V3DocViewWin::loadDocument( lString16 filename )
     return true;
 }
 
-bool V3DocViewWin::saveHistory( lString16 filename )
+bool V3DocViewWin::saveHistory( lString16 filename, bool exportBookmarks )
 {
     crtrace log;
     if ( filename.empty() )
@@ -554,8 +554,10 @@ bool V3DocViewWin::saveHistory( lString16 filename )
         CRLog::info("Cannot write history file - no file name specified");
         return false;
     }
-    CRLog::debug("Exporting bookmarks to %s", UnicodeToUtf8(_bookmarkDir).c_str());
-    _docview->exportBookmarks(_bookmarkDir); //use default filename
+    if (exportBookmarks) {
+        CRLog::debug("Exporting bookmarks to %s", UnicodeToUtf8(_bookmarkDir).c_str());
+        _docview->exportBookmarks(_bookmarkDir); //use default filename
+    }
     _historyFileName = filename;
     log << "V3DocViewWin::saveHistory(" << filename << ")";
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );

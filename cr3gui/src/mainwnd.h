@@ -119,7 +119,7 @@ public:
     bool loadSettings( lString16 filename );
     bool saveSettings( lString16 filename );
     bool loadHistory( lString16 filename );
-    bool saveHistory( lString16 filename );
+    bool saveHistory( lString16 filename, bool exportBookmarks = true );
     bool loadHistory( LVStreamRef stream );
     bool saveHistory( LVStreamRef stream );
     bool loadDictConfig( lString16 filename );
