@@ -428,7 +428,8 @@ public:
                 for ( int k=0; k<len; k++ ) {
                     m_charindex[pos] = k;
                     m_srcs[pos] = src;
-                    if ( m_text[pos] == '-' || m_text[pos] == '.' || m_text[pos] == '+' )
+                    lChar16 ch = m_text[pos];
+                    if ( ch == '-' || ch == 0x2010 || ch == '.' || ch == '+' )
                         m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
                     pos++;
                 }
@@ -697,7 +698,7 @@ public:
         }
 
         int lastnonspace = 0;
-        if ( align==LTEXT_ALIGN_WIDTH ) {
+        if ( align==LTEXT_ALIGN_WIDTH || splitBySpaces ) {
             for ( int i=start; i<end; i++ )
                 if ( !((m_flags[i] & LCHAR_IS_SPACE) && !(m_flags[i] & LCHAR_IS_OBJECT)) )
                     lastnonspace = i;
@@ -940,7 +941,7 @@ public:
                 int len = end-start;
                 if ( len>0 )
                     TR("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
-                if ( start<end && start<wordpos && end>=i && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
+                if ( start<end && start<wordpos && end>=wordpos && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
                     lUInt8 * flags = m_flags + start;

@@ -32,6 +32,7 @@
 #define DICTD_CONF_ALT "/mnt/ext2/system/share/cr3/dict"
 #elif _WIN32
 #define DICTD_CONF "C:\\dict\\"
+#define DICTD_CONF_ALT ".\\dict\\"
 #else
 #ifdef CR_USE_JINKE
 #define DICTD_CONF "/root/abook/dict"

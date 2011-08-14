@@ -16,6 +16,8 @@
 // set to 0 for old hyphenation, 1 for new algorithm
 #define NEW_HYPHENATION 1
 
+// set to 1 for debug dump
+#define DUMP_HYPHENATION_WORDS 0
 
 #include "../include/crsetup.h"
 
@@ -638,7 +640,6 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     if ( !found )
         return false;
 
-#define DUMP_HYPHENATION_WORDS 0
 #if DUMP_HYPHENATION_WORDS==1
     lString16 buf;
     lString16 buf2;
@@ -681,6 +682,9 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
             }
         }
     }
+#if DUMP_HYPHENATION_WORDS==1
+    CRLog::trace("bestp=%d", bestp);
+#endif
     if ( bestp>=0 ) {
 //        widths[bestp] += hyphCharWidth;
 //        flags[bestp] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;

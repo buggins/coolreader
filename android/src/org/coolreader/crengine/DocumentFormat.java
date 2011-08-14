@@ -14,9 +14,6 @@ public enum DocumentFormat {
 	TXT("txt.css", R.raw.txt, R.drawable.cr3_browser_book_txt, false, 3, 
 			new String[] {".txt", ".tcr", ".pml"},
 			new String[] {"text/plain"}), // doc_format_txt,
-	PDB("htm.css", R.raw.htm, R.drawable.cr3_browser_book_pdb, false, 4, 
-			new String[] {".pdb", ".prc", ".mobi", ".azw"},
-			new String[] {}), // doc_format_txt/html/...,
 	RTF("rtf.css", R.raw.rtf, R.drawable.cr3_browser_book_rtf, false, 7, 
 			new String[] {".rtf"},
 			new String[] {}), // doc_format_rtf,
@@ -34,7 +31,10 @@ public enum DocumentFormat {
 			new String[] {}), //  doc_format_chm,
 	DOC("doc.css", R.raw.doc, R.drawable.cr3_browser_book_doc, false, 5, 
 			new String[] {".doc"},
-			new String[] {}); // doc_format_doc,
+			new String[] {}), // doc_format_doc,
+	PDB("htm.css", R.raw.htm, R.drawable.cr3_browser_book_pdb, false, 4, 
+			new String[] {".pdb", ".prc", ".mobi", ".azw"},
+			new String[] {}); // doc_format_txt/html/...,
     // don't forget update getDocFormatName() when changing this enum
 	//} doc_format_t;
 	

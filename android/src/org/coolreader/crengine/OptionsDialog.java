@@ -415,24 +415,26 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
-			addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
-			addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
-			addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Up");
-			addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Down");
-			addKey(listView, KeyEvent.KEYCODE_DPAD_CENTER, "Center");
-			addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
-			addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
-			addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
-			addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
-			addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
-			addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
-			addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
 			if ( DeviceInfo.NOOK_NAVIGATION_KEYS ) {
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPLEFT, "Top left navigation button");
 				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMLEFT, "Bottom left navigation button");
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPRIGHT, "Top right navigation button");
 				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
+			} else {
+				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
+				addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
+				addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
+				addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Up");
+				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Down");
+				addKey(listView, KeyEvent.KEYCODE_DPAD_CENTER, "Center");
+				addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
+				addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
+				addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
+				addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
+				addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
+				addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
 			}
+
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -1163,10 +1165,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), ReaderView.PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));

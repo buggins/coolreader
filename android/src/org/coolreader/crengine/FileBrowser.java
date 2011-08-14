@@ -20,6 +20,7 @@ import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.database.DataSetObserver;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -55,6 +56,9 @@ public class FileBrowser extends ListView {
 		this.mScanner = scanner;
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
+		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+			setBackgroundColor(Color.WHITE);
+		}
         setFocusable(true);
         setFocusableInTouchMode(true);
         setLongClickable(true);
@@ -892,6 +896,9 @@ public class FileBrowser extends ListView {
 					parentItem = currDirectory;
 				}
 				holder.setItem(item, parentItem);
+				if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+					view.setBackgroundColor(Color.WHITE);
+				}
 				return view;
 			}
 

@@ -26,7 +26,9 @@ import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
+import org.coolreader.crengine.EinkScreen;
 
+import android.R.drawable;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
@@ -40,6 +42,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -76,7 +79,6 @@ public class CoolReader extends Activity
 	History mHistory;
 	CRDB mDB;
 	private BackgroundThread mBackgroundThread;
-	
 	
 	
 	public CoolReader() {
@@ -133,7 +135,10 @@ public class CoolReader extends Activity
 	}
 	public void setScreenUpdateMode( int screenUpdateMode ) {
 		mScreenUpdateMode = screenUpdateMode;
-		// TODO: add setting of EPD driver parameter here
+		if (EinkScreen.UpdateMode != screenUpdateMode) {
+			EinkScreen.UpdateMode = screenUpdateMode;
+			EinkScreen.ResetController(2);
+		}
 	}
 
 	private int mScreenUpdateInterval = 0;
@@ -142,7 +147,9 @@ public class CoolReader extends Activity
 	}
 	public void setScreenUpdateInterval( int screenUpdateInterval ) {
 		mScreenUpdateInterval = screenUpdateInterval;
-		// TODO: add setting of EPD driver parameter here
+		if (EinkScreen.UpdateModeInterval != screenUpdateInterval) {
+			EinkScreen.UpdateModeInterval = screenUpdateInterval;
+		}
 	}
 
 	private boolean mNightMode = false;
@@ -509,6 +516,15 @@ public class CoolReader extends Activity
        	mHistory = new History(this, mDB);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
+//		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+//			setTheme(android.R.style.Theme_Light);
+//			getWindow().setBackgroundDrawableResource(drawable.editbox_background);
+//		}
+		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+			mFrame.setBackgroundColor( Color.WHITE );
+			setTheme(R.style.Dialog_Fullscreen_Day);
+		}
+		
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
 		
 		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
@@ -1130,6 +1146,10 @@ public class CoolReader extends Activity
 				mBackgroundThread.executeGUI(new Runnable() {
 					public void run() {
 						OptionsDialog dlg = new OptionsDialog(_this, mReaderView, mFontFaces);
+						// reset controller if EINK
+						if (DeviceInfo.EINK_SCREEN) {
+							EinkScreen.ResetController(2);
+						}
 						dlg.show();
 					}
 				});
@@ -1278,14 +1298,14 @@ public class CoolReader extends Activity
 		new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 		new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
+		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
 //	    public static final int KEYCODE_PAGE_BOTTOMLEFT = 0x5d; // fwd
 //	    public static final int KEYCODE_PAGE_BOTTOMRIGHT = 0x5f; // fwd
 //	    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back
@@ -1423,10 +1443,14 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
         
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
-        if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
-        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
-        else
-        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
+        if (DeviceInfo.EINK_SCREEN) {
+        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+        } else {
+        	if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
+        		props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
+        	else
+        		props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
+        }
         props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
         props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
         

@@ -28,7 +28,10 @@ enum css_decl_code {
     cssd_text_align,
     cssd_text_align_last,
     cssd_text_decoration,
-    cssd_hyphenate,
+    cssd_hyphenate, // hyphenate
+    cssd_hyphenate2, // -webkit-hyphens
+    cssd_hyphenate3, // adobe-hyphenate
+    cssd_hyphenate4, // adobe-text-layout
     cssd_color,
     cssd_background_color,
     cssd_vertical_align,
@@ -70,6 +73,9 @@ static const char * css_decl_name[] = {
     "text-align-last",
     "text-decoration",
     "hyphenate",
+    "-webkit-hyphens",
+    "adobe-hyphenate",
+    "adobe-text-layout",
     "color",
     "background-color",
     "vertical-align",
@@ -165,6 +171,8 @@ static bool skip_spaces( const char * & str )
         while ( *str && str[1] && (str[0]!='*' || str[1]!='/') )
             str++;
     }
+    while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
+        str++;
     return *str != 0;
 }
 
@@ -409,7 +417,23 @@ static const char * css_hyph_names[] =
     NULL
 };
 
-static const char * css_pb_names[] = 
+static const char * css_hyph_names2[] =
+{
+    "inherit",
+    "optimizeSpeed",
+    "optimizeQuality",
+    NULL
+};
+
+static const char * css_hyph_names3[] =
+{
+    "inherit",
+    "none",
+    "explicit",
+    NULL
+};
+
+static const char * css_pb_names[] =
 {
     "inherit",
     "auto",
@@ -542,7 +566,15 @@ bool LVCssDeclaration::parse( const char * &decl )
                 n = parse_name( decl, css_td_names, -1 );
                 break;
             case cssd_hyphenate:
+            case cssd_hyphenate2:
+            case cssd_hyphenate3:
+            case cssd_hyphenate4:
+            	prop_code = cssd_hyphenate;
                 n = parse_name( decl, css_hyph_names, -1 );
+                if ( n==-1 )
+                    n = parse_name( decl, css_hyph_names2, -1 );
+                if ( n==-1 )
+                    n = parse_name( decl, css_hyph_names3, -1 );
                 break;
             case cssd_page_break_before:
                 n = parse_name( decl, css_pb_names, -1 );

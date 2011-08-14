@@ -2920,15 +2920,43 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     int hwStart, hwEnd;
     const lChar16 maxchar = sizeof(char_props) / sizeof( lUInt16 );
 
-    for (hwStart=pos-1; hwStart>0; hwStart--)
+//    // skip spaces
+//    for (hwStart=pos-1; hwStart>0; hwStart--)
+//    {
+//        lChar16 ch = str[hwStart];
+//        if ( ch<(int)maxchar ) {
+//            lUInt16 props = char_props[ch];
+//            if ( !(props & CH_PROP_SPACE) )
+//                break;
+//        }
+//    }
+//    // skip punctuation signs and digits
+//    for (; hwStart>0; hwStart--)
+//    {
+//        lChar16 ch = str[hwStart];
+//        if ( ch<(int)maxchar ) {
+//            lUInt16 props = char_props[ch];
+//            if ( !(props & (CH_PROP_PUNCT|CH_PROP_DIGIT)) )
+//                break;
+//        }
+//    }
+    // skip until first alpha
+    for (hwStart = pos-1; hwStart > 0; hwStart--)
     {
         lChar16 ch = str[hwStart];
         if ( ch<(int)maxchar ) {
             lUInt16 props = char_props[ch];
-            if ( !(props & (CH_PROP_PUNCT|CH_PROP_DIGIT)) )
+            if ( props & CH_PROP_ALPHA )
                 break;
         }
     }
+    if ( hwStart<0 ) {
+        // no alphas found
+        start = end = pos;
+        return;
+    }
+    hwEnd = hwStart+1;
+    // skipping while alpha
     for (; hwStart>0; hwStart--)
     {
         lChar16 ch = str[hwStart];
@@ -2939,11 +2967,12 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
             hwStart++;
             break;
         }
-        if ( lastAlpha<0 ) {
-            start = end = pos;
-            return;
-        }
     }
+//    if ( lastAlpha<0 ) {
+//        // no alphas found
+//        start = end = pos;
+//        return;
+//    }
     for (hwEnd=hwStart+1; hwEnd<sz; hwEnd++) // 20080404
     {
         lChar16 ch = str[hwEnd];

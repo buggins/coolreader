@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
+import org.coolreader.crengine.EinkScreen;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -2590,6 +2591,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			try {
 				canvas = holder.lockCanvas(rc);
 				//log.v("before draw(canvas)");
+				if (DeviceInfo.EINK_SCREEN) {
+					EinkScreen.PrepareController();
+				}
 				if ( canvas!=null ) {
 					callback.drawTo(canvas);
 				}
@@ -3694,7 +3698,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.d("View.onDetachedFromWindow() is called");
 	}
 
-    public final static String DEFAULT_CSS_IMPORT_PATTERN = "@include \"default.css\"\\;";
 	private String getCSSForFormat( DocumentFormat fileFormat )
 	{
 		if ( fileFormat==null )
@@ -3706,7 +3709,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( file.exists() ) {
 				String css = mEngine.loadFileUtf8(file);
 				if ( css!=null ) {
-					css = css.replaceFirst(DEFAULT_CSS_IMPORT_PATTERN, "\n" + defaultCss + "\n");
+					int p1 = css.indexOf("@import");
+					if ( p1<0 )
+						p1 = css.indexOf("@include");
+					int p2 = css.indexOf("\";");
+					if (p1 >= 0 && p2 >= 0 && p1 < p2 ) {
+						css = css.substring(0, p1) + "\n" + defaultCss + "\n" + css.substring(p2+2);
+					}
 					return css;
 				}
 			} 

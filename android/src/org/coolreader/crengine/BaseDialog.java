@@ -4,6 +4,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.graphics.PixelFormat;
 import android.util.Log;
 import android.view.Gravity;
@@ -19,7 +20,7 @@ public class BaseDialog extends Dialog {
 	View layoutView;
 	ViewGroup buttonsLayout;
 	ViewGroup contentsLayout;
-	public static final boolean DARK_THEME = true;
+	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
 	public BaseDialog( CoolReader activity, int positiveButtonText, int negativeButtonText, boolean windowed )
 	{
 		this( activity, positiveButtonText, negativeButtonText, activity.isFullscreen(), activity.isNightMode(), windowed );
@@ -51,6 +52,13 @@ public class BaseDialog extends Dialog {
 		getWindow().setAttributes(lp);
 		Log.i("cr3", "BaseDialog.window=" + getWindow());
         setCancelable(true);
+        setOnDismissListener(new OnDismissListener() {
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				onClose();
+			}
+        });
+        onCreate();
 	}
 
 	public void setView( View view )
@@ -140,6 +148,14 @@ public class BaseDialog extends Dialog {
         contentsLayout =  (ViewGroup)layout.findViewById(R.id.base_dialog_content_view);
         contentsLayout.addView(view);
 		return layout;
+	}
+	
+	protected void onCreate() {
+		// when dialog is created
+	}
+	
+	protected void onClose() {
+		// when dialog is closed
 	}
 
 	protected int mPositiveButtonText = 0;
