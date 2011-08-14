@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-08-13 15:21+0700\n"
+"POT-Creation-Date: 2011-08-14 11:15+0700\n"
 "PO-Revision-Date: 2011-06-17 02:51+0200\n"
 "Last-Translator: Vitalii Stopchans'kyi <stopchanПЕСgmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -61,11 +61,11 @@ msgstr "Довідка"
 msgid "Main Menu"
 msgstr "Головне меню"
 
-#: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:558
+#: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:559
 msgid "About"
 msgstr "Інформація про книгу"
 
-#: ../src/mainwnd.cpp:845 ../src/viewdlg.cpp:522
+#: ../src/mainwnd.cpp:845 ../src/viewdlg.cpp:523
 msgid "Go to page"
 msgstr "Перейти на сторінку"
 
@@ -73,7 +73,7 @@ msgstr "Перейти на сторінку"
 msgid "Open recent book"
 msgstr "Відкрити останню книгу"
 
-#: ../src/mainwnd.cpp:862 ../src/viewdlg.cpp:164
+#: ../src/mainwnd.cpp:862 ../src/viewdlg.cpp:165
 msgid "Dictionary"
 msgstr "Словник"
 
@@ -85,7 +85,7 @@ msgstr "Цитата"
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: ../src/mainwnd.cpp:875 ../src/viewdlg.cpp:223
+#: ../src/mainwnd.cpp:875 ../src/viewdlg.cpp:224
 msgid "Search"
 msgstr "Пошук"
 
@@ -93,7 +93,7 @@ msgstr "Пошук"
 msgid "Settings"
 msgstr "Налаштування"
 
-#: ../src/mainwnd.cpp:888 ../src/viewdlg.cpp:636
+#: ../src/mainwnd.cpp:888 ../src/viewdlg.cpp:637
 msgid "Keyboard layout"
 msgstr "Функції клавіш"
 
@@ -357,7 +357,7 @@ msgstr "Видалити запис"
 msgid "Citations"
 msgstr "Цитати"
 
-#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
+#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:560
 msgid "Cite selection dialog"
 msgstr "Нова цитата"
 
@@ -577,111 +577,159 @@ msgstr ""
 msgid "180+FAST next/prev page"
 msgstr ""
 
+#: ../src/settings.cpp:489
+msgid "Disabled (1:1)"
+msgstr "Не масштабировать (1:1)"
+
+#: ../src/settings.cpp:490
+msgid "Integer scale"
+msgstr "В целое число раз"
+
+#: ../src/settings.cpp:491
+msgid "Arbitrary scale"
+msgstr "Произвольное масштабирование"
+
+#: ../src/settings.cpp:496
+msgid "Auto"
+msgstr "Авто"
+
 #: ../src/settings.cpp:497
+msgid "*1"
+msgstr "*1"
+
+#: ../src/settings.cpp:498
+msgid "*2"
+msgstr "*2"
+
+#: ../src/settings.cpp:499
+msgid "*3"
+msgstr "*3"
+
+#: ../src/settings.cpp:513
 msgid "Default font face"
 msgstr "Шрифт за замовчуванням"
 
-#: ../src/settings.cpp:523
+#: ../src/settings.cpp:539
 msgid "Font weight"
 msgstr "Насиченість шрифту"
 
-#: ../src/settings.cpp:529
+#: ../src/settings.cpp:545
 msgid "Font antialiasing"
 msgstr "Згладжування літер"
 
-#: ../src/settings.cpp:535
+#: ../src/settings.cpp:551
 msgid "Interline space"
 msgstr "Міжрядковий інтервал"
 
-#: ../src/settings.cpp:546
+#: ../src/settings.cpp:562
 msgid "Rotate"
 msgstr "Поворот"
 
-#: ../src/settings.cpp:551
+#: ../src/settings.cpp:567
 msgid "Page turn angle"
 msgstr ""
 
-#: ../src/settings.cpp:557
+#: ../src/settings.cpp:573
 msgid "Footnotes at page bottom"
 msgstr "Примітки внизу сторінки"
 
-#: ../src/settings.cpp:568
+#: ../src/settings.cpp:584
 msgid "Show time"
 msgstr "Показувати годинник"
 
-#: ../src/settings.cpp:574
+#: ../src/settings.cpp:590
 msgid "Landscape pages"
 msgstr "Колонок в альбомній орієнтації"
 
-#: ../src/settings.cpp:580
+#: ../src/settings.cpp:596
 msgid "Preformatted text"
 msgstr "Попередньо форматований текст"
 
-#: ../src/settings.cpp:588
+#: ../src/settings.cpp:604
 msgid "Document embedded styles"
 msgstr "Використовувати стилі документу"
 
-#: ../src/settings.cpp:594
+#: ../src/settings.cpp:610
 msgid "Inverse display"
 msgstr "Інвертування кольорів"
 
-#: ../src/settings.cpp:601
+#: ../src/settings.cpp:617
 msgid "Display update mode"
 msgstr "Режим оновлення екрану"
 
-#: ../src/settings.cpp:608
+#: ../src/settings.cpp:624
 msgid "Turbo update mode"
 msgstr "Турбо режим оновлення"
 
-#: ../src/settings.cpp:616
+#: ../src/settings.cpp:632
 msgid "Show bookmark icons"
 msgstr "Показати значки закладок"
 
-#: ../src/settings.cpp:623
+#: ../src/settings.cpp:639
 msgid "Status line"
 msgstr "Смуга стану"
 
-#: ../src/settings.cpp:629
+#: ../src/settings.cpp:645
 msgid "Font kerning"
 msgstr "Кернінг шрифту"
 
-#: ../src/settings.cpp:637
+#: ../src/settings.cpp:653
 msgid "[No Hyphenation]"
 msgstr "Без переносів"
 
-#: ../src/settings.cpp:638
+#: ../src/settings.cpp:654
 msgid "[Algorythmic Hyphenation]"
 msgstr "Автоматичні переноси"
 
-#: ../src/settings.cpp:640
+#: ../src/settings.cpp:656
 msgid "Hyphenation"
 msgstr "Переноси"
 
-#: ../src/settings.cpp:656
+#: ../src/settings.cpp:672
 msgid "Floating punctuation"
 msgstr "Висяча пунктуація"
 
-#: ../src/settings.cpp:664
+#: ../src/settings.cpp:680
 msgid "Page margins"
 msgstr "Поля сторінки"
 
-#: ../src/settings.cpp:667
+#: ../src/settings.cpp:683
 msgid "Top margin"
 msgstr "Вгорі"
 
-#: ../src/settings.cpp:672
+#: ../src/settings.cpp:688
 msgid "Bottom margin"
 msgstr "Знизу"
 
-#: ../src/settings.cpp:677
+#: ../src/settings.cpp:693
 msgid "Left margin"
 msgstr "Ліворуч"
 
-#: ../src/settings.cpp:682
+#: ../src/settings.cpp:698
 msgid "Right margin"
 msgstr "Праворуч"
 
-#: ../src/settings.cpp:717
+#: ../src/settings.cpp:721
+msgid "Image scaling"
+msgstr "Масштабирование картинок"
+
+#: ../src/settings.cpp:723
+msgid "Block image scaling mode"
+msgstr "Режим для обычных картинок"
+
+#: ../src/settings.cpp:728
+msgid "Block image max zoom"
+msgstr "Макс. увеличение для обычных картинок"
+
+#: ../src/settings.cpp:734
+msgid "Inline image scaling mode"
+msgstr "Режим для inline картинок"
+
+#: ../src/settings.cpp:739
+msgid "Inline image max zoom"
+msgstr "Макс. увеличение для inline картинок"
+
+#: ../src/settings.cpp:761
 msgid ""
 "Press $1 to change option\n"
 "$2 to apply, $3 to cancel"
@@ -689,19 +737,19 @@ msgstr ""
 "$1 — щоб змінити, $2 — застосувати\n"
 "$3 — скасувати"
 
-#: ../src/viewdlg.cpp:159
+#: ../src/viewdlg.cpp:160
 msgid "No dictionaries found"
 msgstr "Не знайдено жодного словника!"
 
-#: ../src/viewdlg.cpp:160
+#: ../src/viewdlg.cpp:161
 msgid "Place dictionaries to directory 'dict' of SD card."
 msgstr "Розташуйте словники у теці «dict» на картці пам'яті."
 
-#: ../src/viewdlg.cpp:161
+#: ../src/viewdlg.cpp:162
 msgid "Dictionaries in standard unix .dict format are supported."
 msgstr "Підтримуються словники у форматі .dict (стандарт систем Unix)."
 
-#: ../src/viewdlg.cpp:162
+#: ../src/viewdlg.cpp:163
 msgid ""
 "For each dictionary, pair of files should be provided: data file (with .dict "
 "or .dict.dz extension, and index file with .index extension"
@@ -709,315 +757,315 @@ msgstr ""
 "Кожен словник складається з файлу даних (.dict або .dict.dz) та файлу "
 "індексу слів (.index)."
 
-#: ../src/viewdlg.cpp:177
+#: ../src/viewdlg.cpp:178
 msgid "Table of contents"
 msgstr "Зміст"
 
-#: ../src/viewdlg.cpp:182
+#: ../src/viewdlg.cpp:183
 msgid "Enter page number"
 msgstr "Вкажіть номер сторінки"
 
-#: ../src/viewdlg.cpp:196
+#: ../src/viewdlg.cpp:197
 msgid "Enter position percent"
 msgstr "Введiть позицiю (%)"
 
-#: ../src/viewdlg.cpp:357
+#: ../src/viewdlg.cpp:358
 msgid "Find in dictionary"
 msgstr "Пошук у словнику"
 
-#: ../src/viewdlg.cpp:470
+#: ../src/viewdlg.cpp:471
 msgid "M"
 msgstr "М"
 
-#: ../src/viewdlg.cpp:472
+#: ../src/viewdlg.cpp:473
 msgid "Ok"
 msgstr "ОК"
 
-#: ../src/viewdlg.cpp:474
+#: ../src/viewdlg.cpp:475
 msgid "Up"
 msgstr "Вгору"
 
-#: ../src/viewdlg.cpp:476
+#: ../src/viewdlg.cpp:477
 msgid "Down"
 msgstr "Вниз"
 
-#: ../src/viewdlg.cpp:478
+#: ../src/viewdlg.cpp:479
 msgid "C"
 msgstr "С"
 
-#: ../src/viewdlg.cpp:480
+#: ../src/viewdlg.cpp:481
 msgid "Left"
 msgstr "Ліворуч"
 
-#: ../src/viewdlg.cpp:482
+#: ../src/viewdlg.cpp:483
 msgid "Right"
 msgstr "Праворуч"
 
-#: ../src/viewdlg.cpp:484
+#: ../src/viewdlg.cpp:485
 msgid "Side Up"
 msgstr "Вгору (коліщатко)"
 
-#: ../src/viewdlg.cpp:486
+#: ../src/viewdlg.cpp:487
 msgid "Side Down"
 msgstr "Вниз (коліщатко)"
 
-#: ../src/viewdlg.cpp:488
+#: ../src/viewdlg.cpp:489
 msgid "Side Press"
 msgstr "Натиснути (коліщатко)"
 
-#: ../src/viewdlg.cpp:490
+#: ../src/viewdlg.cpp:491
 msgid "Menu"
 msgstr "Меню"
 
-#: ../src/viewdlg.cpp:492
+#: ../src/viewdlg.cpp:493
 msgid "Zoom"
 msgstr "Змінити розмір шрифту"
 
-#: ../src/viewdlg.cpp:503
+#: ../src/viewdlg.cpp:504
 msgid "Long"
 msgstr "Довге натискання"
 
-#: ../src/viewdlg.cpp:510
+#: ../src/viewdlg.cpp:511
 msgid "To first page"
 msgstr "До першої сторінки"
 
-#: ../src/viewdlg.cpp:512
+#: ../src/viewdlg.cpp:513
 msgid "Back by page"
 msgstr "Попередня сторінка"
 
-#: ../src/viewdlg.cpp:514
+#: ../src/viewdlg.cpp:515
 msgid "Forward by page"
 msgstr "Наступна сторінка"
 
-#: ../src/viewdlg.cpp:515
+#: ../src/viewdlg.cpp:516
 msgid "Forward in move history"
 msgstr "Вперед по історії переміщень"
 
-#: ../src/viewdlg.cpp:516
+#: ../src/viewdlg.cpp:517
 msgid "Back in move history"
 msgstr "Назад по історії переміщень"
 
-#: ../src/viewdlg.cpp:517
+#: ../src/viewdlg.cpp:518
 msgid "Next link"
 msgstr "Наступне посилання"
 
-#: ../src/viewdlg.cpp:518
+#: ../src/viewdlg.cpp:519
 msgid "Previous link"
 msgstr "Попереднє посилання"
 
-#: ../src/viewdlg.cpp:519 ../src/viewdlg.cpp:546
+#: ../src/viewdlg.cpp:520 ../src/viewdlg.cpp:547
 msgid "Go to link"
 msgstr "Перейти за посиланням"
 
-#: ../src/viewdlg.cpp:520
+#: ../src/viewdlg.cpp:521
 msgid "To last page"
 msgstr "До останньої сторінки"
 
-#: ../src/viewdlg.cpp:521
+#: ../src/viewdlg.cpp:522
 msgid "Go to position"
 msgstr "Перейти на позицію"
 
-#: ../src/viewdlg.cpp:523
+#: ../src/viewdlg.cpp:524
 msgid "Zoom in"
 msgstr "Збільшити шрифт"
 
-#: ../src/viewdlg.cpp:524
+#: ../src/viewdlg.cpp:525
 msgid "Zoom out"
 msgstr "Зменшити шрифт"
 
-#: ../src/viewdlg.cpp:525
+#: ../src/viewdlg.cpp:526
 msgid "Toggle bold text"
 msgstr "Змінити жирність шрифту"
 
-#: ../src/viewdlg.cpp:526
+#: ../src/viewdlg.cpp:527
 msgid "Toggle text format"
 msgstr "Змінити автоформатування"
 
-#: ../src/viewdlg.cpp:527
+#: ../src/viewdlg.cpp:528
 msgid "Save bookmark by number"
 msgstr "Зберегти закладку з номером"
 
-#: ../src/viewdlg.cpp:528
+#: ../src/viewdlg.cpp:529
 msgid "Go to bookmark by number"
 msgstr "Відкрити закладку з номером"
 
-#: ../src/viewdlg.cpp:529
+#: ../src/viewdlg.cpp:530
 msgid "Move by chapter"
 msgstr "Перехід по розділах"
 
-#: ../src/viewdlg.cpp:530
+#: ../src/viewdlg.cpp:531
 msgid "First link"
 msgstr "Перше посилання"
 
-#: ../src/viewdlg.cpp:531
+#: ../src/viewdlg.cpp:532
 msgid "Rotate by"
 msgstr "Поворот на"
 
-#: ../src/viewdlg.cpp:532
+#: ../src/viewdlg.cpp:533
 msgid "Set rotate angle"
 msgstr "Встановити кут повороту"
 
-#: ../src/viewdlg.cpp:533
+#: ../src/viewdlg.cpp:534
 msgid "Save history and bookmarks"
 msgstr "Зберегти історію/закладки"
 
-#: ../src/viewdlg.cpp:534
+#: ../src/viewdlg.cpp:535
 msgid "Save document to cache"
 msgstr "Зберегти книгу в кеш"
 
-#: ../src/viewdlg.cpp:535
+#: ../src/viewdlg.cpp:536
 msgid "Close dialog"
 msgstr "Закрити діалог"
 
-#: ../src/viewdlg.cpp:538
+#: ../src/viewdlg.cpp:539
 msgid "Scroll forward"
 msgstr "Перегорнути вперед"
 
-#: ../src/viewdlg.cpp:539
+#: ../src/viewdlg.cpp:540
 msgid "Scroll back"
 msgstr "Перегорнути назад"
 
-#: ../src/viewdlg.cpp:540
+#: ../src/viewdlg.cpp:541
 msgid "Close book"
 msgstr "Закрити книгу"
 
-#: ../src/viewdlg.cpp:541
+#: ../src/viewdlg.cpp:542
 msgid "Main menu"
 msgstr "Головне меню"
 
-#: ../src/viewdlg.cpp:542
+#: ../src/viewdlg.cpp:543
 msgid "Go to page dialog"
 msgstr "Перейти на сторінку"
 
-#: ../src/viewdlg.cpp:543
+#: ../src/viewdlg.cpp:544
 msgid "Settings menu"
 msgstr "Меню налаштувань"
 
-#: ../src/viewdlg.cpp:544
+#: ../src/viewdlg.cpp:545
 msgid "Font size settings"
 msgstr "Налаштування розмір шрифту"
 
-#: ../src/viewdlg.cpp:545
+#: ../src/viewdlg.cpp:546
 msgid "Page orientation settings"
 msgstr "Орієнтація сторінки"
 
-#: ../src/viewdlg.cpp:550
+#: ../src/viewdlg.cpp:551
 msgid "Find in Dictionary (T5)"
 msgstr "Пошук у словнику"
 
-#: ../src/viewdlg.cpp:552
+#: ../src/viewdlg.cpp:553
 msgid "Bookmark list"
 msgstr "Закладки"
 
-#: ../src/viewdlg.cpp:553
+#: ../src/viewdlg.cpp:554
 msgid "Citations list"
 msgstr "Цитати"
 
-#: ../src/viewdlg.cpp:554
+#: ../src/viewdlg.cpp:555
 msgid "Go to bookmark..."
 msgstr "До закладок..."
 
-#: ../src/viewdlg.cpp:555
+#: ../src/viewdlg.cpp:556
 msgid "Recent books list"
 msgstr "Останні відкриті"
 
-#: ../src/viewdlg.cpp:556
+#: ../src/viewdlg.cpp:557
 msgid "Open recent book by number"
 msgstr "Відкрити останню книгу за номером"
 
-#: ../src/viewdlg.cpp:557
+#: ../src/viewdlg.cpp:558
 msgid "Switch to recent book"
 msgstr "Відкрити останню книгу"
 
-#: ../src/viewdlg.cpp:560
+#: ../src/viewdlg.cpp:561
 msgid "Search dialog"
 msgstr "Пошук"
 
-#: ../src/viewdlg.cpp:561
+#: ../src/viewdlg.cpp:562
 msgid "Find in Dictionary (virtual keyboard)"
 msgstr "Пошук у словнику"
 
-#: ../src/viewdlg.cpp:562
+#: ../src/viewdlg.cpp:563
 msgid "Next keyboard layout"
 msgstr "Наступне призначення кнопок"
 
-#: ../src/viewdlg.cpp:563
+#: ../src/viewdlg.cpp:564
 msgid "Previous keyboard layout"
 msgstr "Попереднє призначення кнопок"
 
-#: ../src/viewdlg.cpp:564
+#: ../src/viewdlg.cpp:565
 msgid "Show manual"
 msgstr "Посібник з використання"
 
-#: ../src/viewdlg.cpp:565
+#: ../src/viewdlg.cpp:566
 msgid "Show key mapping"
 msgstr "Функції клавіш"
 
-#: ../src/viewdlg.cpp:566
+#: ../src/viewdlg.cpp:567
 msgid "Go to percent..."
 msgstr "Перейти на позицiю (%)"
 
-#: ../src/viewdlg.cpp:571
+#: ../src/viewdlg.cpp:572
 msgid "PocketBook Main menu"
 msgstr "Головне меню пристрою"
 
-#: ../src/viewdlg.cpp:573
+#: ../src/viewdlg.cpp:574
 msgid "Unknown command"
 msgstr "Невідома команда"
 
-#: ../src/viewdlg.cpp:580
+#: ../src/viewdlg.cpp:581
 msgid "Previous Page"
 msgstr "Попередня сторінка"
 
-#: ../src/viewdlg.cpp:582
+#: ../src/viewdlg.cpp:583
 msgid "Next Page"
 msgstr "Наступна сторінка"
 
-#: ../src/viewdlg.cpp:584
+#: ../src/viewdlg.cpp:585
 msgid "Back by 10 Pages"
 msgstr "На 10 сторінок назад"
 
-#: ../src/viewdlg.cpp:586
+#: ../src/viewdlg.cpp:587
 msgid "Forward by 10 Pages"
 msgstr "На 10 сторінок вперед"
 
-#: ../src/viewdlg.cpp:588
+#: ../src/viewdlg.cpp:589
 msgid "Next Chapter"
 msgstr "Наступна глава"
 
-#: ../src/viewdlg.cpp:590
+#: ../src/viewdlg.cpp:591
 msgid "Previous Chapter"
 msgstr "Попередня глава"
 
-#: ../src/viewdlg.cpp:592
+#: ../src/viewdlg.cpp:593
 msgid "Add Bookmark"
 msgstr "Додати закладку"
 
-#: ../src/viewdlg.cpp:594
+#: ../src/viewdlg.cpp:595
 msgid "Rotate Clockwise"
 msgstr "За годинниковою стрілкою"
 
-#: ../src/viewdlg.cpp:596
+#: ../src/viewdlg.cpp:597
 msgid "Rotate Anti-Clockwise"
 msgstr "Проти годинникової стрілки"
 
-#: ../src/viewdlg.cpp:598
+#: ../src/viewdlg.cpp:599
 msgid "Portrait View"
 msgstr "Книжкова"
 
-#: ../src/viewdlg.cpp:600
+#: ../src/viewdlg.cpp:601
 msgid "Landscape View"
 msgstr "Альбомна"
 
-#: ../src/viewdlg.cpp:624
+#: ../src/viewdlg.cpp:625
 msgid "Key"
 msgstr "Кнопка"
 
-#: ../src/viewdlg.cpp:624
+#: ../src/viewdlg.cpp:625
 msgid "Assigned function"
 msgstr "Дія"
 
-#: ../src/cr3pocketbook.cpp:2155
+#: ../src/cr3pocketbook.cpp:2188
 msgid "Press $1 to translate"
 msgstr "Коротке натискання $1 щоб переклад"
 

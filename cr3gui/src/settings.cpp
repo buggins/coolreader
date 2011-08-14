@@ -484,6 +484,22 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {NULL, NULL}
     };
 #endif
+
+    item_def_t image_scaling_modes[] = {
+        {_("Disabled (1:1)"), "0"},
+        {_("Integer scale"), "1"},
+        {_("Arbitrary scale"), "2"},
+        {NULL, NULL}
+    };
+
+    item_def_t image_scaling_factors[] = {
+        {_("Auto"), "0"},
+        {_("*1"), "1"},
+        {_("*2"), "2"},
+        {_("*3"), "3"},
+        {NULL, NULL}
+    };
+
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
 
         setSkinName(lString16(L"#settings"));
@@ -700,6 +716,34 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         mainMenu->addItem( controlsMenu );
 #endif
 
+        //====== Image scaling ==============
+        CRMenu * scalingMenu = new CRMenu(_wm, mainMenu, mm_ImageScaling,
+                _("Image scaling"), LVImageSourceRef(), LVFontRef(), valueFont, props );
+        CRMenu * blockImagesZoominModeMenu = new CRMenu(_wm, scalingMenu, mm_blockImagesZoominMode,
+                _("Block image scaling mode"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE );
+        addMenuItems( blockImagesZoominModeMenu, image_scaling_modes );
+        scalingMenu->addItem( blockImagesZoominModeMenu );
+        CRMenu * blockImagesZoominScaleMenu = new CRMenu(_wm, scalingMenu, mm_blockImagesZoominScale,
+                _("Block image max zoom"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE );
+        addMenuItems( blockImagesZoominScaleMenu, image_scaling_factors );
+        scalingMenu->addItem( blockImagesZoominScaleMenu );
+
+        CRMenu * inlineImagesZoominModeMenu = new CRMenu(_wm, scalingMenu, mm_inlineImagesZoominMode,
+                _("Inline image scaling mode"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_INLINE_MODE );
+        addMenuItems( inlineImagesZoominModeMenu, image_scaling_modes );
+        scalingMenu->addItem( inlineImagesZoominModeMenu );
+        CRMenu * inlineImagesZoominScaleMenu = new CRMenu(_wm, scalingMenu, mm_inlineImagesZoominScale,
+                _("Inline image max zoom"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE );
+        addMenuItems( inlineImagesZoominScaleMenu, image_scaling_factors );
+        scalingMenu->addItem( inlineImagesZoominScaleMenu );
+        scalingMenu->setAccelerators( _menuAccelerators );
+        scalingMenu->setSkinName(lString16(L"#settings"));
+        scalingMenu->reconfigure( 0 );
+        mainMenu->addItem( scalingMenu );
         reconfigure(0);
 }
 

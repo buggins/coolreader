@@ -58,6 +58,11 @@ enum MainMenuItems_t {
     ,mm_rotateMode,
     mm_rotateAngle
 #endif /* CR_POCKETBOOK*/
+    ,mm_ImageScaling = 350,
+    mm_blockImagesZoominMode,
+    mm_blockImagesZoominScale,
+    mm_inlineImagesZoominMode,
+    mm_inlineImagesZoominScale
 };
 
 
