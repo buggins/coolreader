@@ -74,6 +74,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mMargins = new int[] {
 			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30
 		};
+	double[] mGammas = new double[] {
+			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
+		};
 	int[] mScreenFullUpdateInterval = new int[] {
 			0, 1, 2, 3, 4, 5, 7, 10, 15, 20
 		};
@@ -586,6 +589,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public ListOption add(String[]values) {
 			for ( String item : values ) {
 				add(item, item);
+			}
+			return this;
+		}
+		public ListOption add(double[]values) {
+			for ( double item : values ) {
+				String s = String.valueOf(item); 
+				add(s, s);
 			}
 			return this;
 		}
@@ -1138,6 +1148,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), ReaderView.PROP_FLOATING_PUNCTUATION).setDefaultValue("1"));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), ReaderView.PROP_FONT_KERNING_ENABLED).setDefaultValue("0"));
 		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), ReaderView.PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0"));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());
