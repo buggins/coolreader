@@ -851,6 +851,21 @@
            </property>
            <item>
             <property name="text">
+             <string>0.5</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>0.55</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>0.6</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>0.65</string>
             </property>
            </item>
@@ -932,6 +947,21 @@
            <item>
             <property name="text">
              <string>1.35</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1.4</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1.45</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>1.5</string>
             </property>
            </item>
           </widget>
