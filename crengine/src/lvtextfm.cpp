@@ -937,7 +937,7 @@ public:
             int deprecatedWrapWidth = lastDeprecatedWrap > 0 ? x + m_widths[lastDeprecatedWrap]-w0 : 0;
             int unusedSpace = maxWidth - normalWrapWidth;
             int unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
-            if ( deprecatedWrapWidth>normalWrapWidth && unusedPercent>10 ) {
+            if ( deprecatedWrapWidth>normalWrapWidth && unusedPercent>7 ) {
                 lastNormalWrap = lastDeprecatedWrap;
             }
             unusedSpace = maxWidth - normalWrapWidth;
@@ -947,9 +947,14 @@ public:
                 int start, end;
                 lStr_findWordBounds( m_text, m_length, wordpos, start, end );
                 int len = end-start;
+                if ( len<4 ) {
+                    // too short word found, find next one
+                    lStr_findWordBounds( m_text, m_length, end-1, start, end );
+                    len = end-start;
+                }
                 if ( len>0 )
                     TR("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
-                if ( start<end && start<wordpos && end>=wordpos && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
+                if ( start<end && start<wordpos && end>=lastNormalWrap && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
                     lUInt8 * flags = m_flags + start;
