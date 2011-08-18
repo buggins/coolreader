@@ -195,7 +195,10 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     //PROP_HYPHENATION_DICT
     QString v = QString("%1").arg(m_props->getIntDef(PROP_INTERLINE_SPACE, 100)) + "%";
     QStringList isitems;
+    isitems.append("70%");
+    isitems.append("75%");
     isitems.append("80%");
+    isitems.append("85%");
     isitems.append("90%");
     isitems.append("95%");
     isitems.append("100%");

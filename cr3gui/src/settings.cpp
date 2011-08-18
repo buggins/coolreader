@@ -380,8 +380,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 	};
 
 	item_def_t interline_spaces[] = {
+        {_("70%"), "70"},
+        {_("75%"), "75"},
         {_("80%"), "80"},
+        {_("85%"), "85"},
         {_("90%"), "90"},
+        {_("95%"), "95"},
 		{_("100%"), "100"},
 		{_("110%"), "110"},
 		{_("120%"), "120"},
