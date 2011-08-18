@@ -738,7 +738,7 @@ public:
                     word->flags = LTEXT_WORD_IS_OBJECT;
                     word->width = lastSrc->o.width;
                     word->o.height = lastSrc->o.height;
-                    int maxw = m_pbuffer->width - x;
+                    //int maxw = m_pbuffer->width - x;
 
                     int width = lastSrc->o.width;
                     int height = lastSrc->o.height;
@@ -771,6 +771,9 @@ public:
                     word->t.len = i - wstart;
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
+//                    lChar16 lastch = m_text[i-1];
+//                    if ( lastch==UNICODE_NO_BREAK_SPACE )
+//                        CRLog::trace("last char is UNICODE_NO_BREAK_SPACE");
                     if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                         word->width += font->getHyphenWidth();
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
