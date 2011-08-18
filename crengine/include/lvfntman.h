@@ -296,6 +296,17 @@ public:
     virtual ~LVFontManager() { }
     /// returns available typefaces
     virtual void getFaceList( lString16Collection & ) { }
+
+    /// fills array with list of available gamma levels
+    void GetGammaLevels(LVArray<double> dst);
+    /// returns current gamma level index
+    int  GetGammaIndex();
+    /// sets current gamma level index
+    void SetGammaIndex( int gammaIndex );
+    /// returns current gamma level
+    double GetGamma();
+    /// sets current gamma level
+    void SetGamma( double gamma );
 };
 
 class LVBaseFont : public LVFont

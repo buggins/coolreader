@@ -4941,7 +4941,15 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
 			fontMan->SetAntialiasMode(antialiasingMode);
 			requestRender();
-		} else if (name == PROP_LANDSCAPE_PAGES) {
+        } else if (name == PROP_FONT_GAMMA) {
+            double gamma = 1.0;
+            lString16 s = props->getStringDef(PROP_FONT_GAMMA, "1.0");
+            lString8 s8 = UnicodeToUtf8(s);
+            if ( sscanf(s8.c_str(), "%lf", &gamma)==1 ) {
+                fontMan->SetGamma(gamma);
+                clearImageCache();
+            }
+        } else if (name == PROP_LANDSCAPE_PAGES) {
 			int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 0);
 			setVisiblePageCount(pages);
 			requestRender();

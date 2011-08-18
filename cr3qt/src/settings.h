@@ -41,6 +41,7 @@ protected:
 
     void setCheck( const char * optionName, int checkState );
     void optionToUi( const char * optionName, QCheckBox * cb );
+    void optionToUiString( const char * optionName, QComboBox * cb );
     void setCheckInversed( const char * optionName, int checkState );
     void optionToUiInversed( const char * optionName, QCheckBox * cb );
     void fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo, const char * defFontFace );
@@ -89,6 +90,7 @@ private slots:
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
     void on_cbFloatingPunctuation_stateChanged(int );
+    void on_cbFontGamma_currentIndexChanged(QString );
 };
 
 #endif // SETTINGSDLG_H

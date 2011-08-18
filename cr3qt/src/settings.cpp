@@ -111,6 +111,11 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUi( PROP_FLOATING_PUNCTUATION, m_ui->cbFloatingPunctuation );
 
+    QString gamma = m_props->getStringDef(PROP_FONT_GAMMA, "");
+    if ( gamma=="" )
+        m_props->setString(PROP_FONT_GAMMA, "1.0");
+    optionToUiString(PROP_FONT_GAMMA, m_ui->cbFontGamma);
+
     optionToUiInversed( PROP_STATUS_LINE, m_ui->cbShowPageHeader );
 
     bool b = m_props->getIntDef( PROP_STATUS_LINE, 0 )==0;
@@ -269,6 +274,21 @@ void SettingsDlg::optionToUi( const char * optionName, QCheckBox * cb )
     int state = ( m_props->getIntDef( optionName, 1 ) != 0 ) ? 1 : 0;
     CRLog::debug("optionToUI(%s,%d)", optionName, state);
     cb->setCheckState( state ? Qt::Checked : Qt::Unchecked );
+}
+
+void SettingsDlg::optionToUiString( const char * optionName, QComboBox * cb )
+{
+    QString value = m_props->getStringDef( optionName, "" );
+    int index = -1;
+    for ( int i=0; i<cb->count(); i++ ) {
+        if ( cb->itemText(i)==value ) {
+            index = i;
+            break;
+        }
+    }
+    if ( index<0 )
+        index = 0;
+    cb->setCurrentIndex( index );
 }
 
 void SettingsDlg::optionToUiInversed( const char * optionName, QCheckBox * cb )
@@ -530,4 +550,9 @@ void SettingsDlg::on_cbPageSkin_currentIndexChanged(int index)
 void SettingsDlg::on_cbFloatingPunctuation_stateChanged(int s)
 {
     setCheck( PROP_FLOATING_PUNCTUATION, s );
+}
+
+void SettingsDlg::on_cbFontGamma_currentIndexChanged(QString s)
+{
+    m_props->setString( PROP_FONT_GAMMA, s );
 }
