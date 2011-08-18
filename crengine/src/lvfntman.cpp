@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 1
+#if 0
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 #define DEBUG_FONT_SYNTHESIS 1
@@ -556,7 +556,10 @@ static lUInt16 char_flags[] = {
 };
 
 #define GET_CHAR_FLAGS(ch) \
-     (ch<48?char_flags[ch]:(ch==UNICODE_SOFT_HYPHEN_CODE?LCHAR_ALLOW_WRAP_AFTER:0))
+     (ch<48?char_flags[ch]: \
+        (ch==UNICODE_SOFT_HYPHEN_CODE?LCHAR_ALLOW_WRAP_AFTER: \
+        (ch==UNICODE_NO_BREAK_SPACE?LCHAR_DEPRECATED_WRAP_AFTER: \
+        (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER:0))))
 
 class LVFreeTypeFace : public LVFont
 {

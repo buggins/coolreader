@@ -428,9 +428,9 @@ public:
                 for ( int k=0; k<len; k++ ) {
                     m_charindex[pos] = k;
                     m_srcs[pos] = src;
-                    lChar16 ch = m_text[pos];
-                    if ( ch == '-' || ch == 0x2010 || ch == '.' || ch == '+' )
-                        m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
+//                    lChar16 ch = m_text[pos];
+//                    if ( ch == '-' || ch == 0x2010 || ch == '.' || ch == '+' || ch==UNICODE_NO_BREAK_SPACE )
+//                        m_flags[pos] |= LCHAR_DEPRECATED_WRAP_AFTER;
                     pos++;
                 }
             }
@@ -930,11 +930,16 @@ public:
             if ( i<=pos )
                 i = pos + 1; // allow at least one character to be shown on line
             int wordpos = i-1;
-            if ( lastNormalWrap<0 && lastDeprecatedWrap>=0 )
-                lastNormalWrap = lastDeprecatedWrap;
             int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
+            int deprecatedWrapWidth = lastDeprecatedWrap > 0 ? x + m_widths[lastDeprecatedWrap]-w0 : 0;
             int unusedSpace = maxWidth - normalWrapWidth;
-            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedSpace > maxWidth/10 && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
+            int unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
+            if ( deprecatedWrapWidth>normalWrapWidth && unusedPercent>10 ) {
+                lastNormalWrap = lastDeprecatedWrap;
+            }
+            unusedSpace = maxWidth - normalWrapWidth;
+            unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
+            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedPercent > 10 && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
                 // hyphenate word
                 int start, end;
                 lStr_findWordBounds( m_text, m_length, wordpos, start, end );
