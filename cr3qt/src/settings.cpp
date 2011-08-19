@@ -48,6 +48,7 @@ static void findBackgrounds( lString16Collection & baseDirs, lString16Collection
     }
 }
 
+static int interline_spaces[] = {75, 80, 85, 90, 95, 100, 110, 120, 140, 150};
 
 SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
@@ -195,20 +196,11 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     //PROP_HYPHENATION_DICT
     QString v = QString("%1").arg(m_props->getIntDef(PROP_INTERLINE_SPACE, 100)) + "%";
     QStringList isitems;
-    isitems.append("70%");
-    isitems.append("75%");
-    isitems.append("80%");
-    isitems.append("85%");
-    isitems.append("90%");
-    isitems.append("95%");
-    isitems.append("100%");
-    isitems.append("110%");
-    isitems.append("120%");
-    isitems.append("140%");
-    isitems.append("150%");
+    for ( int i=0; i<sizeof(interline_spaces)/sizeof(int); i++ )
+        isitems.append(QString("%1").arg(interline_spaces[i]) + "%");
     m_ui->cbInterlineSpace->addItems(isitems);
     int isi = m_ui->cbInterlineSpace->findText(v);
-    m_ui->cbInterlineSpace->setCurrentIndex(isi>=0 ? isi : 1);
+    m_ui->cbInterlineSpace->setCurrentIndex(isi>=0 ? isi : 6);
 
     int hi = -1;
     v = m_props->getStringDef(PROP_HYPHENATION_DICT,"@algorithm"); //HYPH_DICT_ID_ALGORITHM;
@@ -513,8 +505,7 @@ void SettingsDlg::on_cbInterlineSpace_currentIndexChanged(int index)
 {
     if ( !initDone )
         return;
-    static int n[] = {80,90,95,100,110,120,140,150};
-    m_props->setInt( PROP_INTERLINE_SPACE, n[index] );
+    m_props->setInt( PROP_INTERLINE_SPACE, interline_spaces[index] );
     updateStyleSample();
 }
 
