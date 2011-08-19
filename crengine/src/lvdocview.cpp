@@ -4842,11 +4842,11 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
 	props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
 			2);
-#if BIG_PAGE_MARGINS==1
-	static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 10, 20, 30, 50, 60};
-#else
-	static int def_margin[] = { 8, 0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30 };
-#endif
+//#if BIG_PAGE_MARGINS==1
+    static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 60};
+//#else
+//	static int def_margin[] = { 8, 0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30 };
+//#endif
 	props->limitValueList(PROP_PAGE_MARGIN_TOP, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_LEFT, def_margin, sizeof(def_margin)/sizeof(int));
