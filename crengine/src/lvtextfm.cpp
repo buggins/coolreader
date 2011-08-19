@@ -753,12 +753,14 @@ public:
                     src_text_fragment_t * srcline = m_srcs[wstart];
                     LVFont * font = (LVFont*)srcline->t.font;
                     int vertical_align = srcline->flags & LTEXT_VALIGN_MASK;
-                    int fh = font->getSize();
-                    int wy = 0;
-                    if ( interval>16 )
-                        wy = -((font->getSize() * (interval-16)) >> 4) >> 1;
-                    else if ( interval<16 )
-                        wy = ((font->getSize() * (16-interval)) >> 4) >> 1;
+                    int fh = font->getHeight();
+                    int fhWithInterval = (fh * interval) >> 4; // font height + interline space
+                    int fhInterval = fhWithInterval - fh;      // interline space only (negative for intervals < 100%)
+                    int wy = 0; //fhInterval / 2;
+//                    if ( interval>16 )
+//                        wy = -((font->getSize() * (interval-16)) >> 4) >> 1;
+//                    else if ( interval<16 )
+//                        wy = ((font->getSize() * (16-interval)) >> 4) >> 1;
                     if ( vertical_align )  {
                         if ( vertical_align == LTEXT_VALIGN_SUB )
                             wy += fh / 3;
@@ -812,8 +814,8 @@ public:
 
 //                    if (word->y!=0) {
 //                        // subscript or superscript
-                        b = font->getBaseline();
-                        h = font->getHeight() - b;
+                        b = font->getBaseline() + fhInterval/2;
+                        h = fhWithInterval - b;
 //                    }  else  {
 //                        b = (( font->getBaseline() * interval) >> 4);
 //                        h = ( ( font->getHeight() * interval) >> 4) - b;
