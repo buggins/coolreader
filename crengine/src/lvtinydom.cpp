@@ -483,6 +483,7 @@ bool CacheFile::flush( bool )
     if ( !writeIndex() )
         return false;
     setDirtyFlag(false);
+	return true;
 }
 
 // reads all blocks of index and checks CRCs

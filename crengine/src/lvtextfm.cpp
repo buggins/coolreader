@@ -954,8 +954,9 @@ public:
                     lStr_findWordBounds( m_text, m_length, end-1, start, end );
                     len = end-start;
                 }
-                if ( len>0 )
+                if ( len>0 ) {
                     TR("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
+				}
                 if ( start<end && start<wordpos && end>=lastNormalWrap && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
