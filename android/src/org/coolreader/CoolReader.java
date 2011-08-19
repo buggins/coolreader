@@ -925,6 +925,8 @@ public class CoolReader extends Activity
 	}
 	public void showView( View view, boolean hideProgress )
 	{
+		if ( mBackgroundThread==null )
+			return;
 		if ( hideProgress )
 		mBackgroundThread.postGUI(new Runnable() {
 			public void run() {
