@@ -59,6 +59,8 @@ public:
     virtual void GetClipRect( lvRect * clipRect ) = 0;
     /// sets clip rect
     virtual void SetClipRect( const lvRect * clipRect ) = 0;
+    /// set to true for drawing in Paged mode, false for Scroll mode
+    virtual void setHidePartialGlyphs( bool hide ) = 0;
     /// invert image
     virtual void  Invert() = 0;
     /// get buffer width, pixels
@@ -150,7 +152,9 @@ protected:
     unsigned char * _data;
     lUInt32 _backgroundColor;
     lUInt32 _textColor;
+    bool _hidePartialGlyphs;
 public:
+    virtual void setHidePartialGlyphs( bool hide ) { _hidePartialGlyphs = hide; }
     /// returns current background color
     virtual lUInt32 GetBackgroundColor() { return _backgroundColor; }
     /// sets current background color
@@ -179,7 +183,7 @@ public:
     /// draws formatted text
     //virtual void DrawFormattedText( formatted_text_fragment_t * text, int x, int y );
     
-    LVBaseDrawBuf() : _dx(0), _dy(0), _rowsize(0), _data(NULL) { }
+    LVBaseDrawBuf() : _dx(0), _dy(0), _rowsize(0), _data(NULL), _hidePartialGlyphs(true) { }
     virtual ~LVBaseDrawBuf() { }
 };
 

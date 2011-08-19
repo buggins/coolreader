@@ -1647,6 +1647,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	lvRect fullRect(0, 0, drawbuf->GetWidth(), drawbuf->GetHeight());
 	if (!pageRect)
 		pageRect = &fullRect;
+    drawbuf->setHidePartialGlyphs(getViewMode()==DVM_PAGES);
 	//int offset = (pageRect->height() - m_pageMargins.top - m_pageMargins.bottom - height) / 3;
 	//if (offset>16)
 	//    offset = 16;
