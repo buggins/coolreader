@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.03.13"
+#define CACHE_FILE_FORMAT_VERSION "3.04.01"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -333,26 +333,37 @@ struct CacheFileItem
 };
 
 
-struct CacheFileHeader
+struct SimpleCacheFileHeader
 {
     char _magic[CACHE_FILE_MAGIC_SIZE]; // magic
+    lUInt32 _dirty;
+    SimpleCacheFileHeader( lUInt32 dirtyFlag ) {
+        memset( _magic, 0, sizeof(_magic));
+        memcpy( _magic, CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE );
+        _dirty = dirtyFlag;
+    }
+};
+
+struct CacheFileHeader : public SimpleCacheFileHeader
+{
     lUInt32 _fsize;
     CacheFileItem _indexBlock; // index array block parameters,
     // duplicate of one of index records which contains
-
     bool validate()
     {
         if ( memcmp( _magic, CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE ) ) {
             CRLog::error("CacheFileHeader::validate: magic doesn't match");
             return false;
         }
+        if ( _dirty!=0 ) {
+            CRLog::error("CacheFileHeader::validate: dirty flag is set");
+            return false;
+        }
         return true;
     }
-    CacheFileHeader( CacheFileItem * indexRec, int fsize )
-    : _indexBlock(0,0)
+    CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt32 dirtyFlag )
+    : SimpleCacheFileHeader(dirtyFlag), _indexBlock(0,0)
     {
-        memset( _magic, 0, sizeof(_magic));
-        memcpy( _magic, CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE );
         if ( indexRec )
             memcpy( &_indexBlock, indexRec, sizeof(CacheFileItem));
         else
@@ -369,6 +380,7 @@ class CacheFile
     int _sectorSize; // block position and size granularity
     int _size;
     bool _indexChanged;
+    bool _dirty;
     LVStreamRef _stream; // file stream
     LVPtrVector<CacheFileItem, true> _index; // full file block index
     LVPtrVector<CacheFileItem, false> _freeIndex; // free file block index
@@ -423,6 +435,8 @@ public:
         return read(type, 0, buf);
     }
 
+    /// sets dirty flag value, returns true if value is changed
+    bool setDirtyFlag( bool dirty );
     // flushes index
     bool flush( bool sync );
     int roundSector( int n )
@@ -434,7 +448,7 @@ public:
 
 // create uninitialized cache file, call open or create to initialize
 CacheFile::CacheFile()
-: _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _map(1024)
+: _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _dirty(false), _map(1024)
 {
 }
 
@@ -445,12 +459,30 @@ CacheFile::~CacheFile()
         flush( true );
 }
 
-// flushes index
-bool CacheFile::flush( bool sync )
+/// sets dirty flag value, returns true if value is changed
+bool CacheFile::setDirtyFlag( bool dirty )
 {
+    if ( _dirty==dirty )
+        return false;
+    if ( !dirty )
+        _stream->Flush(true);
+    SimpleCacheFileHeader hdr(_dirty?1:0);
+    _stream->SetPos(0);
+    lvsize_t bytesWritten = 0;
+    _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
+    if ( bytesWritten!=sizeof(hdr) )
+        return false;
+    _stream->Flush(true);
+    return true;
+}
+
+// flushes index
+bool CacheFile::flush( bool )
+{
+    setDirtyFlag(true);
     if ( !writeIndex() )
         return false;
-    return _stream->Flush( sync )==LVERR_OK;
+    setDirtyFlag(false);
 }
 
 // reads all blocks of index and checks CRCs
@@ -473,7 +505,7 @@ bool CacheFile::validateContents()
 // reads index from file
 bool CacheFile::readIndex()
 {
-    CacheFileHeader hdr(NULL, _size);
+    CacheFileHeader hdr(NULL, _size, 0);
     _stream->SetPos(0);
     lvsize_t bytesRead = 0;
     _stream->Read(&hdr, sizeof(hdr), &bytesRead );
@@ -570,7 +602,7 @@ bool CacheFile::writeIndex()
 // writes file header
 bool CacheFile::updateHeader( CacheFileItem * indexItem )
 {
-    CacheFileHeader hdr(indexItem, _size);
+    CacheFileHeader hdr(indexItem, _size, _dirty?1:0);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
@@ -754,6 +786,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 // writes block to file
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress )
 {
+    setDirtyFlag(true);
     // check whether data is changed
     lUInt64 newhash = calcHash64( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
