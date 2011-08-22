@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="cr3res.qrc">
-    <normaloff>:/icons/action/icons/coolreader.png</normaloff>:/icons/action/icons/coolreader.png</iconset>
+    <normaloff>:/icons/icons/cr3.png</normaloff>:/icons/icons/cr3.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="minimumSize">

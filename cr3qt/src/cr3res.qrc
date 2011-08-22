@@ -1,5 +1,8 @@
 <RCC>
-    <qresource prefix="/icons/action" >
+  <qresource prefix="/icons" >
+        <file>icons/cr3.png</file>
+  </qresource>
+  <qresource prefix="/icons/action" >
         <file>icons/back.png</file>
         <file>icons/forward.png</file>
         <file>icons/fileopen.png</file>

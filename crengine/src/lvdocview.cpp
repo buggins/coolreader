@@ -3892,7 +3892,7 @@ ContinuousOperationResult LVDocView::swapToCache(CRTimerUtil & maxTime)
     // TODO
     int mfs = 30000; //m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
     if (fs < mfs)
-        return DONE;
+        return CR_DONE;
     return m_doc->swapToCache( maxTime );
 }
 

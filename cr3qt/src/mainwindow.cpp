@@ -31,6 +31,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->view->setScrollBar( ui->scroll );
 
+	//QIcon icon = QIcon(":/icons/icons/cr3.png");
+	//CRLog::warn("\n\n\n*** ######### application icon %s\n\n\n", icon.isNull() ? "null" : "found");
+	//setWindowIcon(icon);
+
     addAction(ui->actionOpen);
     addAction(ui->actionRecentBooks);
     addAction(ui->actionTOC);

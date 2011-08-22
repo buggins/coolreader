@@ -341,11 +341,11 @@ public:
 class ldomNode;
 
 /// return value for continuous operations
-enum ContinuousOperationResult {
-    DONE,    ///< operation is finished successfully
-    TIMEOUT, ///< operation is incomplete - interrupted by timeout
-    ERROR,   ///< error while executing operation
-};
+typedef enum {
+    CR_DONE,    ///< operation is finished successfully
+    CR_TIMEOUT, ///< operation is incomplete - interrupted by timeout
+    CR_ERROR   ///< error while executing operation
+} ContinuousOperationResult;
 
 #define TNC_PART_COUNT 1024
 #define TNC_PART_SHIFT 10
