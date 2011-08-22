@@ -3884,26 +3884,22 @@ bool LVDocView::ParseDocument() {
 	return true;
 }
 
-void LVDocView::swapToCache() {
-	if (m_swapDone)
-		return;
-	int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE, 0);
-	// minimum file size to swap, even if forced
-	// TODO
-	int mfs = 30000; //m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
+/// save document to cache file, with timeout option
+ContinuousOperationResult LVDocView::swapToCache(CRTimerUtil & maxTime)
+{
+    int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE, 0);
+    // minimum file size to swap, even if forced
+    // TODO
+    int mfs = 30000; //m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
+    if (fs < mfs)
+        return DONE;
+    return m_doc->swapToCache( maxTime );
+}
 
-	if (fs < mfs)
-		return;
-	{
-		// try swapping to cache
-		//lString16 fn( m_stream->GetName() );
-		//fn = LVExtractFilename( fn );
-		//lUInt32 crc = 0;
-		//m_stream->crc32( crc );
-		m_doc->swapToCache();
-		m_doc->updateMap();
-		m_swapDone = true;
-	}
+void LVDocView::swapToCache() {
+    CRTimerUtil infinite;
+    swapToCache(infinite);
+    m_swapDone = true;
 }
 
 bool LVDocView::LoadDocument(const char * fname) {

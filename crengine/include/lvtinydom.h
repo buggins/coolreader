@@ -231,7 +231,7 @@ public:
     /// type
     lUInt16 cacheType();
     /// saves all unsaved chunks to cache file
-    bool save();
+    bool save( CRTimerUtil & maxTime );
     /// load chunk index from cache file
     bool load();
     /// sets cache file
@@ -340,6 +340,13 @@ public:
 // forward declaration
 class ldomNode;
 
+/// return value for continuous operations
+enum ContinuousOperationResult {
+    DONE,    ///< operation is finished successfully
+    TIMEOUT, ///< operation is incomplete - interrupted by timeout
+    ERROR,   ///< error while executing operation
+};
+
 #define TNC_PART_COUNT 1024
 #define TNC_PART_SHIFT 10
 #define TNC_PART_INDEX_SHIFT (TNC_PART_SHIFT+4)
@@ -428,12 +435,17 @@ public:
     bool validateDocument();
 
 #if BUILD_LITE!=1
+    /// swaps to cache file or saves changes, limited by time interval (can be called again to continue after TIMEOUT)
+    virtual ContinuousOperationResult swapToCache(CRTimerUtil & maxTime) = 0;
     /// try opening from cache file, find by source file name (w/o path) and crc32
     virtual bool openFromCache( CacheLoadingCallback * formatCallback ) = 0;
-    /// swap to cache file, find by source file name (w/o path) and crc32
-    virtual bool swapToCache( lUInt32 reservedDataSize=0 ) = 0;
+    /// saves recent changes to mapped file, with timeout (can be called again to continue after TIMEOUT)
+    virtual ContinuousOperationResult updateMap(CRTimerUtil & maxTime) = 0;
     /// saves recent changes to mapped file
-    virtual bool updateMap() = 0;
+    virtual bool updateMap() {
+        CRTimerUtil infinite;
+        return updateMap(infinite)!=ERROR;
+    }
 
     bool swapToCacheIfNecessary();
 
@@ -480,7 +492,7 @@ public:
 
 #if BUILD_LITE!=1
     /// put all object into persistent storage
-    virtual void persist();
+    virtual void persist( CRTimerUtil & maxTime );
 #endif
 
 
@@ -1875,6 +1887,8 @@ private:
 
     /// save changes to cache file
     bool saveChanges();
+    /// saves changes to cache file, limited by time interval (can be called again to continue after TIMEOUT)
+    virtual ContinuousOperationResult saveChanges( CRTimerUtil & maxTime );
 #endif
 
 protected:
@@ -1918,10 +1932,15 @@ public:
 #if BUILD_LITE!=1
     /// try opening from cache file, find by source file name (w/o path) and crc32
     virtual bool openFromCache( CacheLoadingCallback * formatCallback );
-    /// swap to cache file, find by source file name (w/o path) and crc32
-    virtual bool swapToCache( lUInt32 reservedDataSize=0 );
     /// saves recent changes to mapped file
-    virtual bool updateMap();
+    virtual ContinuousOperationResult updateMap(CRTimerUtil & maxTime);
+    /// swaps to cache file or saves changes, limited by time interval
+    virtual ContinuousOperationResult swapToCache( CRTimerUtil & maxTime );
+    /// saves recent changes to mapped file
+    virtual bool updateMap() {
+        CRTimerUtil infinite;
+        return updateMap(infinite)!=ERROR;
+    }
 #endif
 
 

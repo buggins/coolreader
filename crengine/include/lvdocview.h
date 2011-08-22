@@ -528,6 +528,8 @@ public:
     void setCursorPos( ldomXPointer ptr ) { m_cursorPos = ptr; }
     /// try swappping of document to cache, if size is big enough, and no swapping attempt yet done
     void swapToCache();
+    /// save document to cache file, with timeout option
+    ContinuousOperationResult swapToCache(CRTimerUtil & maxTime);
 
     /// returns selected (marked) ranges
     ldomMarkedRangeList * getMarkedRanges() { return &m_markRanges; }

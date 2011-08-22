@@ -1648,7 +1648,7 @@ tinyNodeCollection::~tinyNodeCollection()
 
 #if BUILD_LITE!=1
 /// put all objects into persistent storage
-void tinyNodeCollection::persist()
+void tinyNodeCollection::persist( CRTimerUtil & maxTime )
 {
     CRLog::info("lxmlDocBase::persist() invoked - converting all nodes to persistent objects");
     // elements
@@ -1698,15 +1698,20 @@ void tinyNodeCollection::persist()
 
 
 /// saves all unsaved chunks to cache file
-bool ldomDataStorageManager::save()
+bool ldomDataStorageManager::save( CRTimerUtil & maxTime )
 {
     bool res = true;
 #if BUILD_LITE!=1
     if ( !_cache )
         return true;
-    for ( int i=0; i<_chunks.length(); i++ )
-        if ( !_chunks[i]->save() )
+    for ( int i=0; i<_chunks.length(); i++ ) {
+        if ( !_chunks[i]->save() ) {
             res = false;
+            break;
+        }
+        if ( (i&3)==3 &&  maxTime.expired() )
+            return res;
+    }
     if ( !res )
         return false;
     // save chunk index
@@ -7563,75 +7568,82 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
 
 static const char * styles_magic = "CRSTYLES";
 
-/// save changes to cache file, @see loadCacheFileContent()
-bool ldomDocument::saveChanges()
+#define CHECK_EXPIRATION(s) \
+    if ( maxTime.expired() ) { CRLog::info("timer expired while " s); return TIMEOUT; }
+
+/// saves changes to cache file, limited by time interval (can be called again to continue after TIMEOUT)
+ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
 {
-    bool res = true;
+    ContinuousOperationResult res = DONE;
     if ( !_cacheFile )
-        return true;
+        return DONE;
     CRLog::trace("ldomDocument::saveChanges()");
-    persist();
+    persist( maxTime );
+    CHECK_EXPIRATION("persisting of node data")
     CRLog::trace("ldomDocument::saveChanges() - element storage");
-    if ( !_elemStorage.save() ) {
+    if ( !_elemStorage.save(maxTime) ) {
         CRLog::error("Error while saving element data");
-        res = false;
+        return ERROR;
     }
+    CHECK_EXPIRATION("saving element storate")
     CRLog::trace("ldomDocument::saveChanges() - text storage");
-    if ( !_textStorage.save() ) {
+    if ( !_textStorage.save(maxTime) ) {
         CRLog::error("Error while saving text data");
-        res = false;
+        return ERROR;
     }
+    CHECK_EXPIRATION("saving text storate")
     CRLog::trace("ldomDocument::saveChanges() - rect storage");
-    if ( !_rectStorage.save() ) {
+    if ( !_rectStorage.save(maxTime) ) {
         CRLog::error("Error while saving rect data");
-        res = false;
+        return ERROR;
     }
+    CHECK_EXPIRATION("saving rect storate")
     CRLog::trace("ldomDocument::saveChanges() - node style storage");
-    if ( !_styleStorage.save() ) {
+    if ( !_styleStorage.save(maxTime) ) {
         CRLog::error("Error while saving node style data");
-        res = false;
+        return ERROR;
     }
-
-
+    CHECK_EXPIRATION("saving node style storage")
     CRLog::trace("ldomDocument::saveChanges() - misc data");
     SerialBuf propsbuf(4096);
     getProps()->serialize( propsbuf );
     if ( !_cacheFile->write( CBT_PROP_DATA, propsbuf, COMPRESS_MISC_DATA ) ) {
         CRLog::error("Error while saving props data");
-        res = false;
+        return ERROR;
     }
-
+    CHECK_EXPIRATION("saving props data")
     SerialBuf idbuf(4096);
     serializeMaps( idbuf );
     if ( !_cacheFile->write( CBT_MAPS_DATA, idbuf, COMPRESS_MISC_DATA ) ) {
         CRLog::error("Error while saving Id data");
-        res = false;
+        return ERROR;
     }
-
+    CHECK_EXPIRATION("saving ID data")
     if ( _pagesData.pos() ) {
         CRLog::trace("ldomDocument::saveChanges() - page data (%d bytes)", _pagesData.pos());
         if ( !_cacheFile->write( CBT_PAGE_DATA, _pagesData, COMPRESS_PAGES_DATA  ) ) {
             CRLog::error("Error while saving pages data");
-            res = false;
+            return ERROR;
         }
     } else {
         CRLog::trace("ldomDocument::saveChanges() - no page data");
     }
+    CHECK_EXPIRATION("saving page data")
 
     CRLog::trace("ldomDocument::saveChanges() - node data");
     if ( !saveNodeData() ) {
         CRLog::error("Error while node instance data");
-        res = false;
+        return ERROR;
     }
 
     CRLog::trace("ldomDocument::saveChanges() - render info");
     SerialBuf hdrbuf(0,true);
     if ( !_hdr.serialize(hdrbuf) ) {
         CRLog::error("Header data serialization is failed");
-        res = false;
+        return ERROR;
     } else if ( !_cacheFile->write( CBT_REND_PARAMS, hdrbuf, false ) ) {
         CRLog::error("Error while writing header data");
-        res = false;
+        return ERROR;
     }
     CRLog::info("Saving render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
                 _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
@@ -7641,27 +7653,37 @@ bool ldomDocument::saveChanges()
     SerialBuf tocbuf(0,true);
     if ( !m_toc.serialize(tocbuf) ) {
         CRLog::error("TOC data serialization is failed");
-        res = false;
+        return ERROR;
     } else if ( !_cacheFile->write( CBT_TOC_DATA, tocbuf, COMPRESS_TOC_DATA ) ) {
         CRLog::error("Error while writing TOC data");
-        res = false;
+        return ERROR;
     }
+    CHECK_EXPIRATION("saving TOC data")
 
     if ( !saveStylesData() ) {
-            CRLog::error("Error while writing style data");
-            res = false;
+        CRLog::error("Error while writing style data");
+        return ERROR;
     }
-
+    CHECK_EXPIRATION("saving style data")
     if ( res ) {
         CRLog::trace("ldomDocument::saveChanges() - flush");
         if ( !_cacheFile->flush(true) ) {
             CRLog::error("Error while updating index of cache file");
-            res = false;
+            return ERROR;
         }
     }
-
     CRLog::trace("ldomDocument::saveChanges() - done %s", (res?"successfully":"with error"));
-    return res;
+    return DONE;
+}
+
+/// save changes to cache file, @see loadCacheFileContent()
+bool ldomDocument::saveChanges()
+{
+    if ( !_cacheFile )
+        return true;
+    CRTimerUtil timerNoLimit;
+    ContinuousOperationResult res = saveChanges(timerNoLimit);
+    return res!=ERROR;
 }
 
 bool tinyNodeCollection::saveStylesData()
@@ -7898,48 +7920,53 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
     return res;
 }
 
-bool ldomDocument::swapToCache( lUInt32 reservedSize )
+/// swaps to cache file or saves changes, limited by time interval
+ContinuousOperationResult ldomDocument::swapToCache( CRTimerUtil & maxTime )
 {
     if ( _maperror )
-        return false;
-    if ( _mapped ) {
-        return true;
+        return ERROR;
+    if ( !_mapped ) {
+        if ( !createCacheFile() ) {
+            CRLog::error("ldomDocument::swapToCache: failed: cannot create cache file");
+            _maperror = true;
+            return ERROR;
+        }
     }
-    if ( !createCacheFile() ) {
-        CRLog::error("ldomDocument::swapToCache: failed: cannot create cache file");
-        _maperror = true;
-        return false;
-    }
-
-    if ( !saveChanges() )
+    ContinuousOperationResult res = saveChanges(maxTime);
+    if ( res==ERROR )
     {
         CRLog::error("Error while saving changes to cache file");
         _maperror = true;
-        return false;
+        return ERROR;
     }
 
     _mapped = true;
 
-    CRLog::info("Successfully saved document to cache file: %dK", _cacheFile->getSize()/1024 );
-    return true;
+    if ( res==TIMEOUT )
+        CRLog::info("Timeout while saving document to cache file" );
+    else
+        CRLog::info("Successfully saved document to cache file: %dK", _cacheFile->getSize()/1024 );
+    return res;
 }
 
 /// saves recent changes to mapped file
-bool ldomDocument::updateMap()
+ContinuousOperationResult ldomDocument::updateMap(CRTimerUtil & maxTime)
 {
     if ( !_cacheFile || !_mapped )
-        return false;
+        return DONE;
 
-    if ( !saveChanges() )
+    ContinuousOperationResult res = saveChanges(maxTime);
+    if ( res==ERROR )
     {
         CRLog::error("Error while saving changes to cache file");
-        return false;
+        return ERROR;
     }
 
-    CRLog::info("Cache file updated successfully");
-    dumpStatistics();
-
-    return true;
+    if ( res==DONE ) {
+        CRLog::info("Cache file updated successfully");
+        dumpStatistics();
+    }
+    return res;
 }
 
 #endif
@@ -10845,7 +10872,8 @@ void runBasicTinyDomUnitTests()
     }
 
     CRLog::info("* convert to persistent");
-    doc->persist();
+    CRTimerUtil infinite;
+    doc->persist(infinite);
     doc->dumpStatistics();
 
     MYASSERT(el21->getFirstChild()==NULL,"first child - no children");
@@ -10863,7 +10891,8 @@ void runBasicTinyDomUnitTests()
     MYASSERT(el211->getChildCount()==2, "child count, in persistent");
     el211->modify();
     MYASSERT(el211->getChildCount()==2, "child count, in mutable again");
-    doc->persist();
+    CRTimerUtil infinite2;
+    doc->persist(infinite2);
 
     ldomNode * f1 = root->findChildElement(path1);
     MYASSERT(f1->getNodeId()==el_p, "find 1");
