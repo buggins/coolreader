@@ -379,6 +379,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     GetModuleFileNameW( NULL, exe_fn16, MAX_PATH );
 	lString16 exedir = LVExtractPath(lString16(exe_fn16));	
 	lString8 exedir8 = UnicodeToUtf8( exedir );
+	CRLog::debug("exedir=%s", exedir8.c_str());
 
 	CRMoFileTranslator * translator = new CRMoFileTranslator();
 	translator->openMoFile(exedir + L"/po/ru.mo");
@@ -414,6 +415,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         "timesi.ttf",
         "timesb.ttf",
         "timesbi.ttf",
+#if 0
         "comic.ttf",
         "comicbd.ttf",
         "verdana.ttf",
@@ -424,7 +426,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         "bookosi.ttf",
         "bookosb.ttf",
         "bookosbi.ttf",
-#if 1
+#endif
+#if 0
         "calibri.ttf",
         "calibrii.ttf",
         "calibrib.ttf",
@@ -485,8 +488,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         main_win->getDocView()->setFontSize( 20 );
 		main_win->loadCSS( exedir + L"fb2.css" );
 		main_win->loadSettings( exedir + L"cr3.ini" );
+		main_win->saveSettings(lString16());
 		main_win->setHelpFile( exedir + L"cr3-manual-ru.fb2" );
-		HyphMan::initDictionaries( exedir + L"hyph" );
+		HyphMan::initDictionaries( exedir + L"hyph\\" );
 		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
 		main_win->setBookmarkDir(lString16("c:\\cr3\\bookmarks\\"));
 		lString8 exedir8 = UnicodeToUtf8( exedir );

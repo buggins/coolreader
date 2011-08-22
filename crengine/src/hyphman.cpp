@@ -17,7 +17,11 @@
 #define NEW_HYPHENATION 1
 
 // set to 1 for debug dump
+#ifdef _DEBUG
+#define DUMP_HYPHENATION_WORDS 1
+#else
 #define DUMP_HYPHENATION_WORDS 0
+#endif
 
 #include "../include/crsetup.h"
 
@@ -253,7 +257,7 @@ bool HyphDictionaryList::open( lString16 hyphDirectory )
 	if ( !container.isNull() ) {
 		int len = container->GetObjectCount();
         int count = 0;
-        CRLog::info("%d items found in hyph directory");
+        CRLog::info("%d items found in hyph directory", len);
 		for ( int i=0; i<len; i++ ) {
 			const LVContainerItemInfo * item = container->GetObjectInfo( i );
 			lString16 name = item->GetName();
@@ -279,8 +283,10 @@ bool HyphDictionaryList::open( lString16 hyphDirectory )
 			_list.add( new HyphDictionary( t, title, id, filename ) );
             count++;
 		}
-        CRLog::info("%d dictionaries added to list");
+		CRLog::info("%d dictionaries added to list", _list.length());
 		return true;
+	} else {
+        CRLog::info("no hyphenation dictionary items found in hyph directory %s", LCSTR(hyphDirectory));
 	}
 	return false;
 }

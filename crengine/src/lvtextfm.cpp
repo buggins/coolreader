@@ -25,8 +25,12 @@
 #endif
 
 // to debug formatter
-#if 0
+#ifdef _DEBUG
+#ifdef _MSC_VER
+#define TR(...) CRLog::trace(__VA_ARGS__)
+#else
 #define TR(x...) CRLog::trace(x)
+#endif
 #else
 #ifdef _MSC_VER
 #define TR(x)

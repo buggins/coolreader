@@ -595,9 +595,11 @@ void V3DocViewWin::flush()
 
 bool V3DocViewWin::loadSettings( lString16 filename )
 {
+	CRLog::debug("loading settings from %s", LCSTR(filename));
     _settingsFileName = filename;
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
     if ( stream.isNull() ) {
+		CRLog::debug("settings file not found: %s", LCSTR(filename));
         _docview->propsUpdateDefaults( _props );
         _docview->propsApply( _props );
         _wm->getScreen()->setFullUpdateInterval(_props->getIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1));
