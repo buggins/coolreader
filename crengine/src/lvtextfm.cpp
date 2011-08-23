@@ -25,7 +25,7 @@
 #endif
 
 // to debug formatter
-#ifdef _DEBUG
+#if defined(_DEBUG) && 0
 #ifdef _MSC_VER
 #define TR(...) CRLog::trace(__VA_ARGS__)
 #else
@@ -510,6 +510,23 @@ public:
         }
     }
 
+    /// checks whether to add more space after italic character
+    int getAdditionalCharWidth( int pos, int maxpos ) {
+        if (m_text[pos]==0) // object
+            return 0; // no additional space
+        LVFont * font = (LVFont*)m_srcs[pos]->t.font;
+        if ( !font->getItalic() )
+            return 0; // not italic
+        if ( pos<maxpos-1 && m_srcs[pos+1]==m_srcs[pos] )
+            return 0; // the same font, non-last char
+        // need to measure
+        LVFont::glyph_info_t glyph;
+        if ( !font->getGlyphInfo(m_text[pos], &glyph, '?') )
+            return 0;
+        int delta = glyph.originX + glyph.blackBoxX - glyph.width;
+        return delta > 0 ? delta : 0;
+    }
+
     /// measure text of current paragraph
     void measureText()
     {
@@ -568,6 +585,11 @@ public:
 //                        buf << L"_" << lChar16(m_text[start+k]) << L"_" << lString16::itoa(widths[k]);
 //                    }
 //                    TR("       %s", LCSTR(buf));
+                    int dw = getAdditionalCharWidth(i-1, m_length);
+                    if ( dw ) {
+                        m_widths[i-1] += dw;
+                        lastWidth += dw;
+                    }
 
                     lastWidth += widths[len-1]; //len<m_length ? len : len-1];
                     m_flags[len] = 0;
@@ -997,7 +1019,20 @@ public:
                     wrapPos = i-1;
             }
             bool needReduceSpace = true; // todo: calculate whether space reducing required
-            addLine(pos, wrapPos+(lastMandatoryWrap<0 ? 1 : 0), x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace );
+            int endp = wrapPos+(lastMandatoryWrap<0 ? 1 : 0);
+            int lastnonspace = endp-1;
+            for ( int k=endp-1; k>=start; k-- ) {
+                if ( !((m_flags[k] & LCHAR_IS_SPACE) && !(m_flags[k] & LCHAR_IS_OBJECT)) ) {
+                    lastnonspace = k;
+                    break;
+                }
+            }
+            int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) : 0;
+            if (dw) {
+                TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
+                m_widths[lastnonspace] += dw;
+            }
+            addLine(pos, endp, x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace );
             pos = wrapPos + 1;
         }
     }
