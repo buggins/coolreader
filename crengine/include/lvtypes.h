@@ -301,6 +301,9 @@ public:
     lInt64 elapsed() {
         return getSystemTimeMillis() - _start;
     }
+    int interval() {
+        return (int)_interval;
+    }
 };
 
 

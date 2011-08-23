@@ -78,11 +78,11 @@ void LVFileParserBase::updateProgress()
     }
     if ( t == m_lastProgressTime )
         return;
-    m_lastProgressTime = t;
     int p = getProgressPercent();
     if ( p!= m_progressLastPercent ) {
         m_progressCallback->OnLoadFileProgress( p );
         m_progressLastPercent = p;
+        m_lastProgressTime = t;
     }
 }
 

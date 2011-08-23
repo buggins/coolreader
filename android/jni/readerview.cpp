@@ -1016,6 +1016,20 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateIn
     p->_docview->setBatteryState(state);
 }
 
+/*
+ * Class:     org_coolreader_crengine_ReaderView
+ * Method:    swapToCacheInternal
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_swapToCacheInternal
+(JNIEnv * _env, jobject _this)
+{
+    CRJNIEnv env(_env);
+    ReaderViewNative * p = getNative(_env, _this);
+    CRTimerUtil timeout(2000); // 2 seconds
+    return p->_docview->swapToCache(timeout);
+}
+
 
 /*
  * Class:     org_coolreader_crengine_ReaderView
