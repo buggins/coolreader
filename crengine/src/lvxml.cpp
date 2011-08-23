@@ -57,8 +57,10 @@ LVDocViewCallback * LVFileParserBase::getProgressCallback()
 /// call to send progress update to callback, if timeout expired
 void LVFileParserBase::updateProgress()
 {
+    //CRLog::trace("LVFileParserBase::updateProgress() is called");
     if ( m_progressCallback == NULL )
         return;
+    //CRLog::trace("LVFileParserBase::updateProgress() is called - 2");
     /// first page is loaded from file an can be formatted for preview
     if ( m_firstPageTextCounter>=0 ) {
         m_firstPageTextCounter--;
@@ -78,17 +80,18 @@ void LVFileParserBase::updateProgress()
     }
     if ( t == m_lastProgressTime )
         return;
-    m_lastProgressTime = t;
     int p = getProgressPercent();
     if ( p!= m_progressLastPercent ) {
         m_progressCallback->OnLoadFileProgress( p );
         m_progressLastPercent = p;
+        m_lastProgressTime = t;
     }
 }
 
 /// sets pointer to loading progress callback object
 void LVFileParserBase::setProgressCallback( LVDocViewCallback * callback )
 {
+    //CRLog::debug("LVFileParserBase::setProgressCallback is called");
     m_progressCallback = callback;
 }
 

@@ -100,7 +100,7 @@ static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
 LVDocView::LVDocView(int bitsPerPixel) :
 	m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0),
-			_posIsSet(false), m_battery_state(-2)
+			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY)
 #if (LBOOK==1)
 			, m_font_size(32)
 #elif defined(__SYMBIAN32__)
@@ -1118,7 +1118,7 @@ lString16 LVDocView::getTimeString() {
 /// draw battery state to buffer
 void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 		bool isVertical) {
-	if (m_battery_state == -2)
+	if (m_battery_state == CR_BATTERY_STATE_NO_BATTERY)
 		return;
 	LVDrawStateSaver saver(*drawbuf);
 	int textColor = drawbuf->GetBackgroundColor();
@@ -1142,7 +1142,7 @@ void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
 			icons.add(m_batteryIcons[0]);
 	}
 	LVDrawBatteryIcon(drawbuf, batteryRc, m_battery_state, m_battery_state
-			== -1, icons, drawPercent ? m_batteryFont.get() : NULL);
+			== CR_BATTERY_STATE_CHARGING, icons, drawPercent ? m_batteryFont.get() : NULL);
 #if 0
 	if ( m_batteryIcons.length()>1 ) {
 		int iconIndex = ((m_batteryIcons.length() - 1 ) * m_battery_state + (100/m_batteryIcons.length()/2) )/ 100;
@@ -1528,7 +1528,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		}
 
 		bool batteryPercentNormalFont = false; // PROP_SHOW_BATTERY_PERCENT
-		if ((phi & PGHDR_BATTERY) && m_battery_state >= -1) {
+		if ((phi & PGHDR_BATTERY) && m_battery_state >= CR_BATTERY_STATE_CHARGING) {
 			batteryPercentNormalFont = m_props->getBoolDef(PROP_SHOW_BATTERY_PERCENT, true) || m_batteryIcons.size()<=2;
 			if ( !batteryPercentNormalFont ) {
 				lvRect brc = info;
@@ -2295,8 +2295,10 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 					"Check whether to swap: file size = %d, min size to cache = %d",
 					fs, mfs);
 			if (fs >= mfs) {
-				swapToCache();
-			}
+                CRTimerUtil timeout(100); // 0.1 seconds
+                swapToCache(timeout);
+                m_swapDone = true;
+            }
 		}
 	}
 }
@@ -3192,6 +3194,8 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 }
 
 void LVDocView::close() {
+    if ( m_doc )
+        m_doc->updateMap();
 	createDefaultDocument(lString16(L""), lString16(L""));
 }
 
