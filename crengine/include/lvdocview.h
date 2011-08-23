@@ -96,6 +96,12 @@ typedef enum {
     txt_format_auto  // autodetect format
 } txt_format_t;
 
+/// no battery
+#define CR_BATTERY_STATE_NO_BATTERY -2
+/// battery is charging
+#define CR_BATTERY_STATE_CHARGING -1
+// values 0..100 -- battery life percent
+
 #ifndef CR_ENABLE_PAGE_IMAGE_CACHE
 #ifdef ANDROID
 #define CR_ENABLE_PAGE_IMAGE_CACHE 0

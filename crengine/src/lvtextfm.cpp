@@ -33,7 +33,7 @@
 #endif
 #else
 #ifdef _MSC_VER
-#define TR(x)
+#define TR(...)
 #else
 #define TR(x...)
 #endif
