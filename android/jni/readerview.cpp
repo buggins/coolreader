@@ -8,6 +8,7 @@ static jfieldID gNativeObjectID = 0;
 class DocViewCallback : public LVDocViewCallback {
 	CRJNIEnv _env;
 	LVDocView * _docview;
+	LVDocViewCallback * _oldcallback;
 	jclass _class;
 	jobject _obj;
 	jmethodID _OnLoadFileStart;
@@ -44,11 +45,11 @@ public:
 	    GET_METHOD(OnLoadFileError,"(Ljava/lang/String;)V");
 	    GET_METHOD(OnExternalLink,"(Ljava/lang/String;Ljava/lang/String;)V");
 	    GET_METHOD(OnImageCacheClear,"()V");
-		_docview->setCallback( this );
+	    _oldcallback = _docview->setCallback( this );
 	}
 	virtual ~DocViewCallback()
 	{
-		_docview->setCallback( NULL );
+		_docview->setCallback( _oldcallback );
 	}
     /// on starting file loading
     virtual void OnLoadFileStart( lString16 filename )
