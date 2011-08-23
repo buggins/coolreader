@@ -807,14 +807,22 @@ public:
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE) {
-                        if ( word->t.len!=2 || !(lGetCharProps(m_text[wstart]) & CH_PROP_DASH) ) {
-                            word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+                        // condition for "- " at beginning of paragraph
+                        if ( wstart!=0 || word->t.len!=2 || !(lGetCharProps(m_text[wstart]) & CH_PROP_DASH) ) {
+                            // condition for double nbsp after run-in footnote title
+                            if ( !(word->t.len>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE && m_text[i-2]==UNICODE_NO_BREAK_SPACE)
+                                    && !( m_text[i]==UNICODE_NO_BREAK_SPACE && m_text[i+1]==UNICODE_NO_BREAK_SPACE) )
+                                word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
                         }
                         if ( !visualAlignmentEnabled && lastWord )
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
-                    } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE )
+                    } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE ) {
+                        //if ( word->t.len<2 || m_text[i-1]!=UNICODE_NO_BREAK_SPACE || m_text[i-2]!=UNICODE_NO_BREAK_SPACE)
+//                        if ( m_text[wstart]==UNICODE_NO_BREAK_SPACE && m_text[wstart+1]==UNICODE_NO_BREAK_SPACE)
+//                            CRLog::trace("Double nbsp text[-1]=%04x", m_text[wstart-1]);
+//                        else
                         frmline->words[frmline->word_count-2].flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-                    if ( m_flags[i-1] & LCHAR_ALLOW_WRAP_AFTER )
+                    } if ( m_flags[i-1] & LCHAR_ALLOW_WRAP_AFTER )
                         word->flags |= LTEXT_WORD_CAN_BREAK_LINE_AFTER;
                     if ( word->t.start==0 && srcline->flags & LTEXT_IS_LINK )
                         word->flags |= LTEXT_WORD_IS_LINK_START;
@@ -957,10 +965,18 @@ public:
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
                 if ( i<m_length-1 && m_text[i]==' ' && m_text[i+1]!=' ' ) {
-                    spaceReduceWidth += (m_widths[i] - m_widths[i-1]) / 2;
+                    int dw = (m_widths[i] - m_widths[i-1]) / 2;
+                    if ( dw>0 ) {
+                        // typographic rule: don't use spaces narrower than 1/4 of font size
+                        LVFont * fnt = (LVFont *)m_srcs[i]->t.font;
+                        int fntBasedSpaceWidthDiv2 = fnt->getSize() / 2 / 2;
+                        if ( dw>fntBasedSpaceWidthDiv2 )
+                            dw = fntBasedSpaceWidthDiv2;
+                        spaceReduceWidth += dw;
+                    }
                 }
             }
-            if ( i<=pos )
+            if (i<=pos)
                 i = pos + 1; // allow at least one character to be shown on line
             int wordpos = i-1;
             int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
