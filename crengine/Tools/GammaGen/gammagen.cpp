@@ -14,7 +14,7 @@ void genTable( FILE * out, double gamma, int index ) {
     fprintf(out, "static const unsigned char gamma_table_%d[256] = { // gamma=%f\n    ", index, gamma);
     for ( int i=0; i<=255; i++ ) {
         double v = i / 255.0;
-        v = pow(v, gamma);
+        v = pow(v, 1/gamma);
         int n = (int)round(v * 255);
 	fprintf(out, "%3d, ", n);
 	if ( i%22==21 )

@@ -349,6 +349,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native boolean moveSelectionInternal( Selection sel, int moveCmd, int params );
     private native String checkLinkInternal( int x, int y, int delta );
     private native int goLinkInternal( String link );
+
+    public static final int SWAP_DONE=0;
+    public static final int SWAP_TIMEOUT=1;
+    public static final int SWAP_ERROR=2;
+    /// returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR 
+    private native int swapToCacheInternal();
     
     
     protected int mNativeObject; // used from JNI
@@ -3642,6 +3648,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	log.i("ReaderView.close() is called");
     	if ( !mOpened )
     		return;
+		cancelSwapTask();
 		//save();
     	post( new Task() {
     		public void work() {
@@ -3740,6 +3747,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    	log.d("readerCallback.OnFormatEnd");
 			//mEngine.hideProgress();
 			drawPage();
+			scheduleSwapTask();
 		}
 		public boolean OnFormatProgress(final int percent) {
 			BackgroundThread.ensureBackground();
@@ -3809,6 +3817,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return true;
 		}
 		public void OnLoadFileStart(String filename) {
+			cancelSwapTask();
 			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnLoadFileStart " + filename);
 		}
@@ -3818,6 +3827,51 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    	clearImageCache();
 	    }
     };
+    
+    private volatile SwapToCacheTask currentSwapTask;
+	private void scheduleSwapTask() {
+		currentSwapTask = new SwapToCacheTask();
+		currentSwapTask.reschedule();
+	}
+	private void cancelSwapTask() {
+		currentSwapTask = null;
+	}
+    private class SwapToCacheTask extends Task {
+    	boolean isTimeout;
+    	long startTime;
+    	public SwapToCacheTask() {
+    		startTime = System.currentTimeMillis();
+    	}
+    	public void reschedule() {
+    		if ( this!=currentSwapTask )
+    			return;
+			BackgroundThread.instance().postGUI( new Runnable() {
+				@Override
+				public void run() {
+					post(SwapToCacheTask.this);
+				}
+			}, 2000);
+    	}
+		@Override
+		public void work() throws Exception {
+    		if ( this!=currentSwapTask )
+    			return;
+			int res = swapToCacheInternal();
+			isTimeout = res==SWAP_TIMEOUT;
+			if ( !isTimeout ) {
+				long duration = System.currentTimeMillis() - startTime;
+				log.i("SwapToCacheTask is finished with result " + res + " in " + duration + " ms");
+			} else {
+				log.d("swapToCacheInternal exited by TIMEOUT: rescheduling");
+			}
+		}
+		@Override
+		public void done() {
+			if ( isTimeout )
+				reschedule();
+		}
+		
+    }
     
     private boolean invalidImages = true;
     private void clearImageCache()

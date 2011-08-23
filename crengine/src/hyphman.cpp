@@ -17,7 +17,7 @@
 #define NEW_HYPHENATION 1
 
 // set to 1 for debug dump
-#ifdef _DEBUG
+#if defined(_DEBUG) && 0
 #define DUMP_HYPHENATION_WORDS 1
 #else
 #define DUMP_HYPHENATION_WORDS 0

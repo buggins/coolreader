@@ -444,7 +444,7 @@ public:
     /// saves recent changes to mapped file
     virtual bool updateMap() {
         CRTimerUtil infinite;
-        return updateMap(infinite)!=ERROR;
+        return updateMap(infinite)!=CR_ERROR;
     }
 
     bool swapToCacheIfNecessary();
@@ -1939,7 +1939,7 @@ public:
     /// saves recent changes to mapped file
     virtual bool updateMap() {
         CRTimerUtil infinite;
-        return updateMap(infinite)!=ERROR;
+        return updateMap(infinite)!=CR_ERROR;
     }
 #endif
 

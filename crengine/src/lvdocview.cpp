@@ -2295,8 +2295,10 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 					"Check whether to swap: file size = %d, min size to cache = %d",
 					fs, mfs);
 			if (fs >= mfs) {
-				swapToCache();
-			}
+                CRTimerUtil timeout(100); // 0.1 seconds
+                swapToCache(timeout);
+                m_swapDone = true;
+            }
 		}
 	}
 }
@@ -3192,6 +3194,8 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 }
 
 void LVDocView::close() {
+    if ( m_doc )
+        m_doc->updateMap();
 	createDefaultDocument(lString16(L""), lString16(L""));
 }
 

@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.04.01"
+#define CACHE_FILE_FORMAT_VERSION "3.04.02"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -438,7 +438,7 @@ public:
     /// sets dirty flag value, returns true if value is changed
     bool setDirtyFlag( bool dirty );
     // flushes index
-    bool flush( bool sync );
+    bool flush( bool clearDirtyFlag );
     int roundSector( int n )
     {
         return (n + (_sectorSize-1)) & ~(_sectorSize-1);
@@ -477,13 +477,16 @@ bool CacheFile::setDirtyFlag( bool dirty )
 }
 
 // flushes index
-bool CacheFile::flush( bool )
+bool CacheFile::flush( bool clearDirtyFlag )
 {
     setDirtyFlag(true);
     if ( !writeIndex() )
         return false;
-    setDirtyFlag(false);
-	return true;
+    if ( clearDirtyFlag )
+        setDirtyFlag(false);
+    else
+        _stream->Flush(true);
+    return true;
 }
 
 // reads all blocks of index and checks CRCs
@@ -1661,6 +1664,9 @@ void tinyNodeCollection::persist( CRTimerUtil & maxTime )
                     part[i].persist();
         }
     }
+    _cacheFile->flush(false); // intermediate flush
+    if ( maxTime.expired() )
+        return;
     // texts
     for ( int partindex = 0; partindex<=(_textCount>>TNC_PART_SHIFT); partindex++ ) {
         ldomNode * part = _textList[partindex];
@@ -1671,6 +1677,7 @@ void tinyNodeCollection::persist( CRTimerUtil & maxTime )
                     part[i].persist();
         }
     }
+    _cacheFile->flush(false); // intermediate flush
 }
 #endif
 
@@ -1712,6 +1719,9 @@ bool ldomDataStorageManager::save( CRTimerUtil & maxTime )
         if ( (i&3)==3 &&  maxTime.expired() )
             return res;
     }
+    _cache->flush(false); // intermediate flush
+    if ( maxTime.expired() )
+        return res;
     if ( !res )
         return false;
     // save chunk index
@@ -2987,7 +2997,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         _pagesData.reset();
         pages->serialize( _pagesData );
 
-        saveChanges();
+        //saveChanges();
 
         //persist();
         dumpStatistics();
@@ -7574,10 +7584,9 @@ static const char * styles_magic = "CRSTYLES";
 /// saves changes to cache file, limited by time interval (can be called again to continue after TIMEOUT)
 ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
 {
-    ContinuousOperationResult res = CR_DONE;
     if ( !_cacheFile )
         return CR_DONE;
-    CRLog::trace("ldomDocument::saveChanges()");
+    CRLog::trace("ldomDocument::saveChanges(timeout=%d)", maxTime.interval());
     persist( maxTime );
     CHECK_EXPIRATION("persisting of node data")
     CRLog::trace("ldomDocument::saveChanges() - element storage");
@@ -7603,6 +7612,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         CRLog::error("Error while saving node style data");
         return CR_ERROR;
     }
+    _cacheFile->flush(false); // intermediate flush
     CHECK_EXPIRATION("saving node style storage")
     CRLog::trace("ldomDocument::saveChanges() - misc data");
     SerialBuf propsbuf(4096);
@@ -7611,6 +7621,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         CRLog::error("Error while saving props data");
         return CR_ERROR;
     }
+    _cacheFile->flush(false); // intermediate flush
     CHECK_EXPIRATION("saving props data")
     SerialBuf idbuf(4096);
     serializeMaps( idbuf );
@@ -7618,6 +7629,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         CRLog::error("Error while saving Id data");
         return CR_ERROR;
     }
+    _cacheFile->flush(false); // intermediate flush
     CHECK_EXPIRATION("saving ID data")
     if ( _pagesData.pos() ) {
         CRLog::trace("ldomDocument::saveChanges() - page data (%d bytes)", _pagesData.pos());
@@ -7628,6 +7640,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
     } else {
         CRLog::trace("ldomDocument::saveChanges() - no page data");
     }
+    _cacheFile->flush(false); // intermediate flush
     CHECK_EXPIRATION("saving page data")
 
     CRLog::trace("ldomDocument::saveChanges() - node data");
@@ -7635,6 +7648,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         CRLog::error("Error while node instance data");
         return CR_ERROR;
     }
+    _cacheFile->flush(false); // intermediate flush
+    CHECK_EXPIRATION("saving node data")
 
     CRLog::trace("ldomDocument::saveChanges() - render info");
     SerialBuf hdrbuf(0,true);
@@ -7658,6 +7673,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         CRLog::error("Error while writing TOC data");
         return CR_ERROR;
     }
+    _cacheFile->flush(false); // intermediate flush
     CHECK_EXPIRATION("saving TOC data")
 
     if ( !saveStylesData() ) {
@@ -7665,14 +7681,12 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         return CR_ERROR;
     }
     CHECK_EXPIRATION("saving style data")
-    if ( res ) {
-        CRLog::trace("ldomDocument::saveChanges() - flush");
-        if ( !_cacheFile->flush(true) ) {
-            CRLog::error("Error while updating index of cache file");
-            return CR_ERROR;
-        }
+    CRLog::trace("ldomDocument::saveChanges() - flush");
+    if ( !_cacheFile->flush(true) ) {
+        CRLog::error("Error while updating index of cache file");
+        return CR_ERROR;
     }
-    CRLog::trace("ldomDocument::saveChanges() - done %s", (res?"successfully":"with error"));
+    CRLog::trace("ldomDocument::saveChanges() - done");
     return CR_DONE;
 }
 
@@ -7681,9 +7695,10 @@ bool ldomDocument::saveChanges()
 {
     if ( !_cacheFile )
         return true;
+    CRLog::debug("ldomDocument::saveChanges() - infinite");
     CRTimerUtil timerNoLimit;
     ContinuousOperationResult res = saveChanges(timerNoLimit);
-    return res!=ERROR;
+    return res!=CR_ERROR;
 }
 
 bool tinyNodeCollection::saveStylesData()

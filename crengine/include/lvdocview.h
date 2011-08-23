@@ -597,7 +597,7 @@ public:
 
     // callback functions
     /// set callback
-    void setCallback( LVDocViewCallback * callback ) { m_callback = callback; }
+    LVDocViewCallback * setCallback( LVDocViewCallback * callback ) { LVDocViewCallback * old = m_callback; m_callback = callback; return old; }
     /// get callback
     LVDocViewCallback * getCallback( ) { return m_callback; }
 
