@@ -7683,7 +7683,7 @@ bool ldomDocument::saveChanges()
         return true;
     CRTimerUtil timerNoLimit;
     ContinuousOperationResult res = saveChanges(timerNoLimit);
-    return res!=ERROR;
+    return res!=CR_ERROR;
 }
 
 bool tinyNodeCollection::saveStylesData()
