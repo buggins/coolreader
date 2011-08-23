@@ -527,6 +527,21 @@ public:
         return delta > 0 ? delta : 0;
     }
 
+    /// checks whether to add more space on left before italic character
+    int getAdditionalCharWidthOnLeft( int pos ) {
+        if (m_text[pos]==0) // object
+            return 0; // no additional space
+        LVFont * font = (LVFont*)m_srcs[pos]->t.font;
+        if ( !font->getItalic() )
+            return 0; // not italic
+        // need to measure
+        LVFont::glyph_info_t glyph;
+        if ( !font->getGlyphInfo(m_text[pos], &glyph, '?') )
+            return 0;
+        int delta = -glyph.originX;
+        return delta > 0 ? delta : 0;
+    }
+
     /// measure text of current paragraph
     void measureText()
     {
@@ -940,8 +955,9 @@ public:
             int lastHyphWrap = -1;
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
+            int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
             for ( i=pos; i<m_length; i++ ) {
-                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth )
+                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin)
                     break;
                 lUInt8 flags = m_flags[i];
                 if ( m_text[i]=='\n' ) {
@@ -992,7 +1008,7 @@ public:
                     for ( int i=0; i<len; i++ ) {
                         widths[i] = m_widths[start+i] - wordStart_w;
                     }
-                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0);
+                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0) - firstCharMargin;
                     int _hyphen_width = ((LVFont*)m_srcs[wordpos]->t.font)->getHyphenWidth();
                     if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
                         for ( int i=0; i<len; i++ )
@@ -1032,7 +1048,7 @@ public:
                 TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
                 m_widths[lastnonspace] += dw;
             }
-            addLine(pos, endp, x, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace );
+            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace );
             pos = wrapPos + 1;
         }
     }
