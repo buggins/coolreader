@@ -78,6 +78,12 @@ cd armbuild
 cmake -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-oi.cmake -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_XCB -D USE_EXTERNAL_EDICT_DICTIONARY=1 ..
 make
 
+# Building i386 version, Qt backend V3 simulation:
+mkdir qt-v3
+cd qt-v3
+cmake -D DEVICE_NAME=v3 -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_BUILD_TYPE=Debug -D USE_STATIC_ZLIB=1 -Wdev -D ENABLE_ANTIWORD=1 -D CMAKE_INSTALL_PREFIX=dest -D GUI=CRGUI_QT -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x500000 ..
+make
+
 # Building i386 version (for OpenInkpot), V3 simulation:
 mkdir xcb-v3
 cd xcb-v3

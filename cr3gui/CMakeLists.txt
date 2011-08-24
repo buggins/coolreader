@@ -90,6 +90,28 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
     INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}${CMAKE_DATA_DIR}/i18n/ DESTINATION share/locale
       FILES_MATCHING PATTERN "*.mo" )
 
+elseif ( ${GUI} STREQUAL CRGUI_QT )
+
+    FIND_PACKAGE( Qt4 REQUIRED )
+    INCLUDE(${QT_USE_FILE})
+    
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3qt.cpp)
+    SET (EXTRA_LIBS ${QT_LIBRARIES} ${STD_LIBS} )
+
+    INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins/default/ DESTINATION root/crengine/skin )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION root/crengine )
+    INSTALL( DIRECTORY data/manual/ DESTINATION root/crengine/manual )
+
+    FOREACH(LANGUAGE ${LANGUAGES})
+        SET(MO_FILE "${CMAKE_BINARY_DIR}/i18n/${LANGUAGE}/LC_MESSAGES/cr3.mo")
+        INSTALL(FILES ${MO_FILE} DESTINATION root/crengine/i18n RENAME ${LANGUAGE}.mo)
+    ENDFOREACH(LANGUAGE ${LANGUAGES})
+
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
 
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3nanox.cpp)
