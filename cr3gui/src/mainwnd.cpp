@@ -1058,10 +1058,12 @@ void V3DocViewWin::showAboutDialog()
 
     addPropLine( txt, _("Custom info"), getDocText( getDocView()->getDocument(), "/FictionBook/description/custom-info", " " ) );
 
+#if defined(CR_PB_VERSION) && defined(CR_PB_BUILD_DATE)
     lString8 progInfo;
     addPropLine( progInfo, _("CoolReader for PocketBook"), Utf8ToUnicode(lString8(CR_PB_VERSION)));
     addPropLine( progInfo, _("Build date"), Utf8ToUnicode(lString8(CR_PB_BUILD_DATE)));
     addInfoSection( txt, progInfo, _("About program") );
+#endif
     txt << "</table>\n";
 
     //CRLog::trace(txt.c_str());
