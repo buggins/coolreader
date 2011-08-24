@@ -92,6 +92,7 @@ enum CRMainMenuCmd
 
     MCMD_GO_PERCENT,
     MCMD_GO_PERCENT_APPLY,
+    MCMD_CITES_LIST
 };
 
 class V3DocViewWin : public CRViewDialog, public LVDocViewCallback
@@ -118,7 +119,7 @@ public:
     bool loadSettings( lString16 filename );
     bool saveSettings( lString16 filename );
     bool loadHistory( lString16 filename );
-    bool saveHistory( lString16 filename );
+    bool saveHistory( lString16 filename, bool exportBookmarks = true );
     bool loadHistory( LVStreamRef stream );
     bool saveHistory( LVStreamRef stream );
     bool loadDictConfig( lString16 filename );
@@ -161,7 +162,7 @@ public:
 
     void showSettingsMenu();
 
-#if CR_INTERNAL_PAGE_ORIENTATION==1
+#if CR_INTERNAL_PAGE_ORIENTATION==1 || defined(CR_POCKETBOOK)
     void showOrientationMenu();
 #endif
 
@@ -170,6 +171,8 @@ public:
     void showMainMenu();
 
     void showBookmarksMenu( bool goMode=false );
+
+    void showCitesMenu();
 
     void showRecentBooksMenu();
 

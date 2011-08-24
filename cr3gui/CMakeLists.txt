@@ -22,7 +22,6 @@ INCLUDE(${KWWidgets_CMAKE_DIR}KWWidgetsInternationalizationMacros.cmake)
 SET (LANGUAGES ru uk de bg es ca pl lt zh_CN zh_TW)
 message( "Languages: ${LANGUAGES}" )
 
-
 SET (CR3_SOURCES 
   src/bgfit.cpp
   src/citedlg.cpp 
@@ -45,6 +44,10 @@ SET (CR3_SOURCES
 SET (CR3_STYLES
   data/epub.css  data/fb2.css  data/htm.css  data/rtf.css  data/txt.css data/chm.css
 )
+
+if (${GUI} STREQUAL CRGUI_PB)
+    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3pocketbook.cpp)
+endif (${GUI} STREQUAL CRGUI_PB)
 
 #   
 KWWidgets_CREATE_GETTEXT_TARGETS(
@@ -152,6 +155,33 @@ elseif ( ${GUI} STREQUAL CRGUI_WIN32 )
       FILES_MATCHING PATTERN "*.mo" )
     SET (CR3_BIN_DESTINATION .)
 
+elseif (${GUI} STREQUAL CRGUI_PB)
+#    SET(CR3_SOURCES ${CR3_SOURCES} src/cr3pocketbook.cpp)
+    FIND_LIBRARY(INKVIEW_LIB inkview)
+    IF (INKVIEW_LIB)
+	IF (DEFINED POCKETBOOK_EMU_GTK)
+	    FIND_PACKAGE (GTK2 REQUIRED)
+	    FIND_PACKAGE (CURL REQUIRED)
+	ENDIF (DEFINED POCKETBOOK_EMU_GTK)
+	SET (EXTRA_LIBS ${INKVIEW_LIB} ${GTK2_LIBRARIES} ${CURL_LIBRARIES})
+    ELSE (INKVIEW_LIB)
+	  message("libinkview library not found!")
+    ENDIF (INKVIEW_LIB)
+
+    INSTALL( FILES ${CR3_STYLES} DESTINATION system/share/cr3)
+    INSTALL( DIRECTORY data/hyph/ DESTINATION system/share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pdb" )
+    INSTALL( DIRECTORY data/hyph/ DESTINATION system/share/cr3/hyph
+      FILES_MATCHING PATTERN "*.pattern" )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/skins/default/ DESTINATION system/share/cr3/skin )
+    INSTALL( DIRECTORY data/devices/${DEVICE_NAME}/keymaps/ DESTINATION system/share/cr3/keymaps )
+    INSTALL( DIRECTORY data/manual/ DESTINATION system/share/cr3/manual )
+
+    FOREACH(LANGUAGE ${LANGUAGES})
+        SET(MO_FILE "${CMAKE_BINARY_DIR}/i18n/${LANGUAGE}/LC_MESSAGES/cr3.mo")
+        INSTALL(FILES ${MO_FILE} DESTINATION system/share/cr3/i18n RENAME ${LANGUAGE}.mo)
+    ENDFOREACH(LANGUAGE ${LANGUAGES})
+
 endif ( ${GUI} STREQUAL CRGUI_XCB )
 
 
@@ -163,6 +193,14 @@ if ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
        EXECUTE_PROCESS( COMMAND ${CMAKE_STRIP} ${CMAKE_BINARY_DIR}/cr3gui/libfb2.so )
     endif (DEFINED CMAKE_STRIP)
     INSTALL( TARGETS fb2 LIBRARY DESTINATION ${CR3_BIN_DESTINATION} )
+elseif (${GUI} STREQUAL CRGUI_PB)
+    ADD_EXECUTABLE(cr3-pb.app ${CR3_SOURCES})
+    TARGET_LINK_LIBRARIES(cr3-pb.app crengine tinydict ${EXTRA_LIBS} ${STD_LIBS})
+    if (DEFINED CMAKE_STRIP)
+       MESSAGE("Strip command:  ${CMAKE_STRIP} ${CMAKE_BINARY_DIR}/cr3gui/cr3-pb.app" )
+       EXECUTE_PROCESS( COMMAND ${CMAKE_STRIP} ${CMAKE_BINARY_DIR}/cr3gui/cr3-pb.app )
+    endif (DEFINED CMAKE_STRIP)
+    INSTALL( TARGETS cr3-pb.app RUNTIME DESTINATION ${CR3_BIN_DESTINATION} )
 else()
     ADD_EXECUTABLE(cr3 ${CR3_SOURCES})
     TARGET_LINK_LIBRARIES(cr3 crengine tinydict ${EXTRA_LIBS} ${STD_LIBS})

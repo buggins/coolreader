@@ -25,8 +25,12 @@
 #include <cri18n.h>
 #include "selnavig.h"
 
-
-#ifdef _WIN32
+#ifdef CR_POCKETBOOK
+#include "cr3pocketbook.h"
+#include "inkview.h"
+#define DICTD_CONF DIRPREFIX "/mnt/ext1/system/share/cr3/dict"
+#define DICTD_CONF_ALT "/mnt/ext2/system/share/cr3/dict"
+#elif _WIN32
 #define DICTD_CONF "C:\\dict\\"
 #define DICTD_CONF_ALT ".\\dict\\"
 #else
@@ -67,7 +71,7 @@ static const char * def_view_css =
 "emphasis, i { font-style: italic }\n"
 "a { text-decoration: underline }\n"
 "a[type=\"note\"] { vertical-align: super; font-size: 70%; text-decoration: none }\n"
-"image { text-align: center; text-indent: 0px }\n"
+"image { text-align: center; text-indent: 0px; display: block }\n"
 "p image { display: inline }\n"
 "title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { text-align: center; text-indent: 0px }\n"
 "cite p, epigraph p { text-align: left; text-indent: 0px }\n"
@@ -297,6 +301,50 @@ bool CRViewDialog::findText( lString16 pattern, int origin, int direction )
     return false;
 }
 
+int CRViewDialog::findPagesText( lString16 pattern, int origin, int direction )
+{
+    if ( pattern.empty() )
+        return -1;
+	if (!(origin == 0 || origin == -1 || origin == 1 || direction == 1 || direction == -1))
+		return -1;
+    showWaitIcon();
+	int start, end;
+	if (direction < 0) {
+		//reverse search
+		if (origin >= 0) {
+			start = _docview->getCurPage() -origin;
+			end = -1;
+		} else {
+			start = _docview->getPageCount() -1;
+			end = _docview->getCurPage();
+		}
+	} else {
+		// direct search
+		if (origin >= 0) {
+			start = _docview->getCurPage() + origin;
+			end = _docview->getPageCount();
+		} else {
+			start = 0;
+			end = _docview->getCurPage();
+		}
+	}
+	LVArray<ldomWord> words;
+	for (int i = start; i != end; i += direction) {
+		LVRef<ldomXRange> range = _docview->getPageDocumentRange( i );
+		if (!range.isNull()) {
+			if (range->findText(pattern, true, false, words, 200, _docview->getPageHeight(i), true)) {
+				CRLog::debug("CRViewDialog::findPagesText: pattern found");
+				_docview->clearSelection();
+				_docview->goToPage(i);
+				_docview->selectWords( words );
+				return i;
+			}
+		}
+	}
+    CRLog::debug("CRViewDialog::findPagesText: pattern not found");
+	return -1;
+}
+
 void CRViewDialog::showDictWithVKeyboard()
 {
     lvRect rc = _wm->getScreen()->getRect();
@@ -379,6 +427,42 @@ const char * getKeyName( int keyCode )
 		return name;
 	}
 	switch ( keyCode ) {
+#ifdef CR_POCKETBOOK
+// FIXME: It would be more correct to map KEY_* to XK_* but PB people 
+// already got used to these key definitions
+	case KEY_BACK:
+		return TR("@Key_back");
+	case KEY_DELETE:
+		return TR("@Key_delete");
+	case KEY_OK:
+		return TR("@Key_ok");
+	case KEY_UP:
+		return TR("@Key_up");
+	case KEY_DOWN:
+		return TR("@Key_down");
+	case KEY_LEFT:
+		return TR("@Key_left");
+	case KEY_RIGHT:
+		return TR("@Key_right");
+	case KEY_MINUS:
+		return TR("@Key_minus");
+	case KEY_PLUS:
+		return TR("@Key_plus");
+	case KEY_MENU:
+		return TR("@Key_plus");
+	case KEY_MUSIC:
+		return TR("@Key_music");
+	case KEY_POWER:
+		return TR("@Key_power");
+	case KEY_PREV:
+		return TR("@Key_prev");
+	case KEY_NEXT:
+		return TR("@Key_next");
+	case KEY_PREV2:
+		return TR("@Key_prev2");
+	case KEY_NEXT2:
+		return TR("@Key_next2");
+#endif
 	case XK_KP_Add:
 		return "'+'";
 	case XK_KP_Subtract:
@@ -451,6 +535,7 @@ static const char * getCommandName( int command )
     case DCMD_SAVE_TO_CACHE: return _("Save document to cache");
     case MCMD_CANCEL: return _("Close dialog");
 	case MCMD_OK: return ("Ok");
+	case MCMD_SELECT: return ("Ok");
 	case MCMD_SCROLL_FORWARD: return _("Scroll forward");
 	case MCMD_SCROLL_BACK: return _("Scroll back");
 	case MCMD_QUIT: return _("Close book");
@@ -460,8 +545,13 @@ static const char * getCommandName( int command )
 	case MCMD_SETTINGS_FONTSIZE: return _("Font size settings");
 	case MCMD_SETTINGS_ORIENTATION: return _("Page orientation settings");
 	case MCMD_GO_LINK: return _("Go to link");
+#ifdef CR_POCKETBOOK
+	case MCMD_DICT: return TR("@Dictionary");
+#else
 	case MCMD_DICT: return _("Find in Dictionary (T5)");
+#endif	
 	case MCMD_BOOKMARK_LIST: return _("Bookmark list");
+        case MCMD_CITES_LIST: return _("Citations list");
     case MCMD_BOOKMARK_LIST_GO_MODE: return _("Go to bookmark...");
 	case MCMD_RECENT_BOOK_LIST: return _("Recent books list");
 	case MCMD_OPEN_RECENT_BOOK: return _("Open recent book by number");
@@ -475,6 +565,12 @@ static const char * getCommandName( int command )
 	case MCMD_HELP: return _("Show manual");
 	case MCMD_HELP_KEYS: return _("Show key mapping");
     case MCMD_GO_PERCENT: return _("Go to percent...");
+#ifdef CR_POCKETBOOK
+	case PB_QUICK_MENU: return TR("@KA_menu");
+	case PB_CMD_ROTATE: return TR("@KA_rtte");
+	case PB_CMD_CONTENTS: return TR("@KA_cnts");
+        case PB_CMD_MAIN_MENU: return _("PocketBook Main menu");
+#endif
     default: return _("Unknown command");
 	}
 }
@@ -503,7 +599,16 @@ const char * getCommandName( int command, int param )
         return _("Portrait View");
     if ( command==DCMD_ROTATE_SET && param == 1 )
         return _("Landscape View");
-
+#ifdef CR_POCKETBOOK
+	if ( command == PB_CMD_MP3 && param == 1)
+		return TR("@KA_mp3o");
+	if ( command == PB_CMD_MP3 && param == 0)
+		return TR("@KA_mp3p");	
+	if ( command == PB_CMD_VOLUME && param == 3)
+		return TR("@KA_volp");
+	if ( command == PB_CMD_VOLUME && param == 3)
+		return TR("@KA_volm");
+#endif
     if ( !param )
 		return ::getCommandName( command );
 	static char buf[ 256 ];
@@ -564,7 +669,6 @@ void CRViewDialog::draw( int pageOffset )
             clientSkin->draw( *drawbuf, clientRect );
         _skin->draw( *drawbuf, _rect );
     }
-
     if ( _showFrame ) {
         drawTitleBar();
         drawStatusBar();

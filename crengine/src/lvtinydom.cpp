@@ -4963,7 +4963,7 @@ void ldomXPointerEx::initIndex()
 /// move to sibling #
 bool ldomXPointerEx::sibling( int index )
 {
-    if ( _level < 1 )
+    if ( _level <= 1 )
         return false;
     ldomNode * p = getNode()->getParentNode();
     if ( !p || index < 0 || index >= (int)p->getChildCount() )
@@ -4983,17 +4983,19 @@ bool ldomXPointerEx::nextSibling()
 /// move to previous sibling
 bool ldomXPointerEx::prevSibling()
 {
+    if ( _level <= 1 )
+        return false;
     return sibling( _indexes[_level-1] - 1 );
 }
 
 /// move to next sibling element
 bool ldomXPointerEx::nextSiblingElement()
 {
-    if ( _level < 1 )
+    if ( _level <= 1 )
         return false;
     ldomNode * node = getNode();
     ldomNode * p = node->getParentNode();
-    for ( int i=_indexes[_level-1] + 1; i<(int)node->getChildCount(); i++ ) {
+    for ( int i=_indexes[_level-1] + 1; i<(int)p->getChildCount(); i++ ) {
         if ( p->getChildNode( i )->isElement() )
             return sibling( i );
     }
@@ -5003,7 +5005,7 @@ bool ldomXPointerEx::nextSiblingElement()
 /// move to previous sibling element
 bool ldomXPointerEx::prevSiblingElement()
 {
-    if ( _level < 1 )
+    if ( _level <= 1 )
         return false;
     ldomNode * node = getNode();
     ldomNode * p = node->getParentNode();
@@ -5332,7 +5334,7 @@ static bool findTextRev( const lString16 & str, int & pos, const lString16 & pat
 }
 
 /// searches for specified text inside range
-bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight )
+bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight, bool checkMaxFromStart )
 {
     if ( caseInsensitive )
         pattern.lowercase();
@@ -5382,13 +5384,18 @@ bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse
         if ( !_start.isText() )
             _start.nextVisibleText();
         int firstFoundTextY = -1;
+        if (checkMaxFromStart) {
+			ldomXPointer p( _start.getNode(), _start.getOffset() );
+			firstFoundTextY = p.toPoint().y;
+		}
         while ( !isNull() ) {
             int offs = _start.getOffset();
 
             if ( firstFoundTextY!=-1 && maxHeight>0 ) {
                 ldomXPointer p( _start.getNode(), offs );
                 int currentTextY = p.toPoint().y;
-                if ( currentTextY>firstFoundTextY+maxHeight )
+                if ( (checkMaxFromStart && currentTextY>=firstFoundTextY+maxHeight) ||
+					currentTextY>firstFoundTextY+maxHeight )
                     return words.length()>0;
             }
 
@@ -5399,7 +5406,12 @@ bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse
             while ( ::findText( txt, offs, pattern ) ) {
                 if ( !words.length() && maxHeight>0 ) {
                     ldomXPointer p( _start.getNode(), offs );
-                    firstFoundTextY = p.toPoint().y;
+                    int currentTextY = p.toPoint().y;
+                    if (checkMaxFromStart) {
+						if ( currentTextY>=firstFoundTextY+maxHeight )
+							return words.length()>0;
+					} else
+						firstFoundTextY = currentTextY;
                 }
                 words.add( ldomWord(_start.getNode(), offs, offs + pattern.length() ) );
                 offs++;
@@ -5567,10 +5579,10 @@ ldomMarkedRangeList::ldomMarkedRangeList( const ldomMarkedRangeList * list, lvRe
 {
     if ( !list || list->empty() )
         return;
-    if ( list->get(0)->start.y>rc.bottom )
-        return;
-    if ( list->get( list->length()-1 )->end.y < rc.top )
-        return;
+//    if ( list->get(0)->start.y>rc.bottom )
+//        return;
+//    if ( list->get( list->length()-1 )->end.y < rc.top )
+//        return;
     for ( int i=0; i<list->length(); i++ ) {
         ldomMarkedRange * src = list->get(i);
         if ( src->start.y>=rc.bottom || src->end.y<rc.top )
@@ -5639,8 +5651,11 @@ bool ldomXPointerEx::ensureElement()
     ldomNode * node = getNode();
     if ( !node )
         return false;
-    if ( node->isText() && !parent() )
-        return false;
+    if ( node->isText()) {
+        if (!parent())
+            return false;
+        node = getNode();
+    }
     if ( !node || !node->isElement() )
         return false;
     return true;

@@ -61,6 +61,8 @@ public:
 
     bool findText( lString16 pattern, int origin, int direction );
 
+    int findPagesText( lString16 pattern, int origin, int direction );
+
 	bool findInDictionary( lString16 pattern );
 
     void showKeymapDialog();

@@ -53,13 +53,26 @@ enum MainMenuItems_t {
     mm_Embolden,
     mm_FastUpdates,
     mm_TurboUpdateMode,
-    mm_FloatingPunctuation,
+    mm_FloatingPunctuation
+#ifdef CR_POCKETBOOK
+    ,mm_rotateMode,
+    mm_rotateAngle
+#endif /* CR_POCKETBOOK*/
+    ,mm_ImageScaling = 350,
+    mm_blockImagesZoominMode,
+    mm_blockImagesZoominScale,
+    mm_inlineImagesZoominMode,
+    mm_inlineImagesZoominScale
 };
 
 
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
- { 16, 18, 20, 22, 24, 26, 28, 30, \
-   32, 34, 36, 38, 40, 42, 48, 56 }
+{ 16, 17, 18, 19, 20, 21, 22, 23, \
+  24, 25, 26, 27, 28, 29, 30, 31, \
+  32, 33, 34, 35, 36, 38, 39, 40, \
+  42, 44, 46, 48, 50, 54, 58, 62 }
+// { 16, 18, 20, 22, 24, 26, 28, 30, \
+//   32, 34, 36, 38, 40, 42, 48, 56 }
 // { 20, 22, 24, 26, 28, 32, 36, 42, 48, 56 }
  //{ 18, 20, 22, 24, 26, 28, 32, 36, 42, 48 }
 //    2    2   2   4   4   4   6   6   8
@@ -76,7 +89,7 @@ class CRSettingsMenu : public CRFullScreenMenu
         lString16 getStatusText();
     public:
         CRMenu * createFontSizeMenu( CRGUIWindowManager * wm, CRMenu * mainMenu, CRPropRef props );
-#if CR_INTERNAL_PAGE_ORIENTATION==1
+#if CR_INTERNAL_PAGE_ORIENTATION==1 || defined(CR_POCKETBOOK)
         CRMenu * createOrientationMenu( CRMenu * mainMenu, CRPropRef props );
 #endif
         CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef props, int id, LVFontRef font, CRGUIAcceleratorTableRef menuAccelerators, lvRect & rc );

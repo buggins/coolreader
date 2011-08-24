@@ -15,6 +15,9 @@
 #include "viewdlg.h"
 #include "mainwnd.h"
 //#include "fsmenu.h"
+#ifdef CR_POCKETBOOK
+#include "cr3pocketbook.h"
+#endif
 
 #include <cri18n.h>
 
@@ -182,7 +185,7 @@ bool CRSettingsMenu::onCommand( int command, int params )
     }
 }
 
-#if CR_INTERNAL_PAGE_ORIENTATION==1
+#if CR_INTERNAL_PAGE_ORIENTATION==1 || defined(CR_POCKETBOOK)
 CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef props )
 {
 	item_def_t page_orientations[] = {
@@ -194,9 +197,14 @@ CRMenu * CRSettingsMenu::createOrientationMenu( CRMenu * mainMenu, CRPropRef pro
 	};
 
     LVFontRef valueFont( fontMan->GetFont( VALUE_FONT_SIZE, 400, true, css_ff_sans_serif, lString8("Arial")) );
+#ifdef CR_POCKETBOOK
+	const char * propName = PROP_POCKETBOOK_ORIENTATION;
+#else
+	const char * propName = PROP_ROTATE_ANGLE;
+#endif
     CRMenu * orientationMenu = new CRMenu(_wm, mainMenu, mm_Orientation,
             lString16(_("Page orientation")),
-                            LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_ROTATE_ANGLE );
+                            LVImageSourceRef(), LVFontRef(), valueFont, props,  propName);
     addMenuItems( orientationMenu, page_orientations );
     orientationMenu->reconfigure( 0 );
 
@@ -386,12 +394,20 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {_("85%"), "85"},
         {_("90%"), "90"},
         {_("95%"), "95"},
-		{_("100%"), "100"},
-		{_("110%"), "110"},
-		{_("120%"), "120"},
+        {_("100%"), "100"},
+        {_("105%"), "105"},
+        {_("110%"), "110"},
+        {_("115%"), "115"},
+        {_("120%"), "120"},
+        {_("125%"), "125"},
         {_("130%"), "130"},
+        {_("135%"), "135"},
         {_("140%"), "140"},
+        {_("145%"), "145"},
         {_("150%"), "150"},
+        {_("160%"), "160"},
+        {_("180%"), "180"},
+        {_("200%"), "200"},
         {NULL, NULL},
 	};
 
@@ -399,13 +415,23 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 #if BIG_PAGE_MARGINS==1
     //static int def_margin[] = { 8, 0, 5, 10, 20, 30, 50, 60 };
     {"0", "0"},
+    {"1", "1"},
+    {"2", "2"},
+    {"3", "3"},
+    {"4", "4"},
     {"5", "5"},
     {"8", "8"},
     {"10", "10"},
+    {"12", "12"},
+    {"14", "14"},
+    {"16", "16"},
     {"20", "20"},
     {"30", "30"},
     {"50", "50"},
     {"60", "60"},
+    {"80", "80"},
+    {"100", "100"},
+    {"130", "130"},
 #else
         {"0", "0"},
 		{"5", "5"},
@@ -427,6 +453,9 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {_("Full updates every 4 pages"), "4"},
         {_("Full updates every 5 pages"), "5"},
         {_("Full updates every 6 pages"), "6"},
+        {_("Full updates every 8 pages"), "8"},
+        {_("Full updates every 10 pages"), "10"},
+        {_("Full updates every 14 pages"), "14"},
         {NULL, NULL},
     };
 
@@ -434,6 +463,47 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         {_("Turbo mode disabled"), "0"},
         {_("Turbo mode enabled"), "1"},
         {NULL, NULL},
+    };
+#ifdef CR_POCKETBOOK
+    item_def_t rotate_mode_options[] = {
+        {"360°", "0"},
+        {"180°", "1"},
+        {_("180+slow next page"), "2"},
+        {_("180+slow prev/next page"), "3"},
+        {_("180+FAST next page"), "4"},
+        {_("180+FAST prev/next page"), "5"},
+        {_("180+FAST next/prev page"), "6"},
+        {NULL, NULL}
+    };
+    item_def_t rotate_angle_options[] = {
+        {"20°", "0"},
+        {"25°", "1"},
+        {"30°", "2"},
+        {"35°", "3"},
+        {"40°", "4"},
+        {"45°", "5"},
+        {"50°", "6"},
+        {"55°", "7"},
+        {"60°", "8"},
+        {"65°", "9"},
+        {"70°", "10"},
+        {NULL, NULL}
+    };
+#endif
+
+    item_def_t image_scaling_modes[] = {
+        {_("Disabled (1:1)"), "0"},
+        {_("Integer scale"), "1"},
+        {_("Arbitrary scale"), "2"},
+        {NULL, NULL}
+    };
+
+    item_def_t image_scaling_factors[] = {
+        {_("Auto"), "0"},
+        {_("*1"), "1"},
+        {_("*2"), "2"},
+        {_("*3"), "3"},
+        {NULL, NULL}
     };
 
 	CRLog::trace("showSettingsMenu() - %d property values found", props->getCount() );
@@ -489,11 +559,22 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         addMenuItems( interlineSpaceMenu, interline_spaces );
         mainMenu->addItem( interlineSpaceMenu );
 
-#if CR_INTERNAL_PAGE_ORIENTATION==1
+#if CR_INTERNAL_PAGE_ORIENTATION==1 || defined(CR_POCKETBOOK)
         CRMenu * orientationMenu = createOrientationMenu(mainMenu, props);
         mainMenu->addItem( orientationMenu );
 #endif
-
+#ifdef CR_POCKETBOOK
+        CRMenu * rotateModeMenu = new CRMenu(_wm, mainMenu, mm_rotateMode,
+                _("Rotate"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_POCKETBOOK_ROTATE_MODE );
+        addMenuItems( rotateModeMenu, rotate_mode_options );
+        mainMenu->addItem( rotateModeMenu );
+        CRMenu * rotateAngleMenu = new CRMenu(_wm, mainMenu, mm_rotateAngle,
+                _("Page turn angle"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_POCKETBOOK_ROTATE_ANGLE );
+        addMenuItems( rotateAngleMenu, rotate_angle_options );
+        mainMenu->addItem( rotateAngleMenu );
+#endif
         CRMenu * footnotesMenu = new CRMenu(_wm, mainMenu, mm_Footnotes,
                 _("Footnotes at page bottom"),
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FOOTNOTES );
@@ -631,6 +712,7 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         marginsMenu->reconfigure( 0 );
         mainMenu->addItem( marginsMenu );
 
+#ifndef CR_POCKETBOOK
         CRControlsMenu * controlsMenu =
                 new CRControlsMenu(this, mm_Controls, props, lString16("main"), 8, _rect);
         controlsMenu->setAccelerators( _menuAccelerators );
@@ -638,7 +720,36 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
         controlsMenu->setValueFont(valueFont);
         controlsMenu->reconfigure( 0 );
         mainMenu->addItem( controlsMenu );
+#endif
 
+        //====== Image scaling ==============
+        CRMenu * scalingMenu = new CRMenu(_wm, mainMenu, mm_ImageScaling,
+                _("Image scaling"), LVImageSourceRef(), LVFontRef(), valueFont, props );
+        CRMenu * blockImagesZoominModeMenu = new CRMenu(_wm, scalingMenu, mm_blockImagesZoominMode,
+                _("Block image scaling mode"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE );
+        addMenuItems( blockImagesZoominModeMenu, image_scaling_modes );
+        scalingMenu->addItem( blockImagesZoominModeMenu );
+        CRMenu * blockImagesZoominScaleMenu = new CRMenu(_wm, scalingMenu, mm_blockImagesZoominScale,
+                _("Block image max zoom"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE );
+        addMenuItems( blockImagesZoominScaleMenu, image_scaling_factors );
+        scalingMenu->addItem( blockImagesZoominScaleMenu );
+
+        CRMenu * inlineImagesZoominModeMenu = new CRMenu(_wm, scalingMenu, mm_inlineImagesZoominMode,
+                _("Inline image scaling mode"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_INLINE_MODE );
+        addMenuItems( inlineImagesZoominModeMenu, image_scaling_modes );
+        scalingMenu->addItem( inlineImagesZoominModeMenu );
+        CRMenu * inlineImagesZoominScaleMenu = new CRMenu(_wm, scalingMenu, mm_inlineImagesZoominScale,
+                _("Inline image max zoom"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE );
+        addMenuItems( inlineImagesZoominScaleMenu, image_scaling_factors );
+        scalingMenu->addItem( inlineImagesZoominScaleMenu );
+        scalingMenu->setAccelerators( _menuAccelerators );
+        scalingMenu->setSkinName(lString16(L"#settings"));
+        scalingMenu->reconfigure( 0 );
+        mainMenu->addItem( scalingMenu );
         reconfigure(0);
 }
 
@@ -654,7 +765,11 @@ lString16 CRSettingsMenu::getStatusText()
         || !_acceleratorTable->findCommandKey( MCMD_CANCEL, 0, cancelKey, cancelFlags ) )
         return _statusText;
     lString16 pattern(_("Press $1 to change option\n$2 to apply, $3 to cancel"));
+#ifdef CR_POCKETBOOK
+	pattern.replaceParam(1, getCommandKeyName(MCMD_SELECT) );
+#else
     pattern.replaceParam(1, getItemNumberKeysName());
+#endif
     pattern.replaceParam(2, getCommandKeyName(MCMD_OK) );
     pattern.replaceParam(3, getCommandKeyName(MCMD_CANCEL) );
     return pattern;

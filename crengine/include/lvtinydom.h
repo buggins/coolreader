@@ -1565,7 +1565,7 @@ public:
     ldomNode * getNearestCommonParent();
 
     /// searches for specified text inside range
-    bool findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight );
+    bool findText( lString16 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight, bool checkMaxFromStart = false );
 };
 
 class ldomMarkedText
@@ -1821,6 +1821,9 @@ class ldomNavigationHistory
                 clearTail();
                 _links.add( link );
                 _pos = _links.length();
+                return true;
+            } else if (_links[_pos]==link) {
+                _pos++;
                 return true;
             }
             return false;

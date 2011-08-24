@@ -1599,7 +1599,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
     return 0;
 }
 
-void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks )
+void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks,
+                   ldomMarkedRangeList *bookmarks)
 {
     if ( enode->isElement() )
     {
@@ -1652,7 +1653,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 for (int i=0; i<cnt; i++)
                 {
                     ldomNode * child = enode->getChildNode( i );
-                    DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height, marks ); //+fmt->getX() +fmt->getY()
+                    DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height, marks, bookmarks ); //+fmt->getX() +fmt->getY()
                 }
 #if (DEBUG_TREE_DRAW!=0)
                 drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+1, color );
@@ -1684,19 +1685,24 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 enode->renderFinalBlock( txform, &fmt, fmt.getWidth() - padding_left - padding_right );
                 fmt.push();
                 {
+                    lvRect rc;
+                    enode->getAbsRect( rc );
+                    ldomMarkedRangeList *nbookmarks = NULL;
+                    if ( bookmarks && bookmarks->length()) {
+                        nbookmarks = new ldomMarkedRangeList( bookmarks, rc );
+                    }
                     if ( marks && marks->length() ) {
-                        lvRect rc;
-                        enode->getAbsRect( rc );
                         //rc.left -= doc_x;
                         //rc.right -= doc_x;
                         //rc.top -= doc_y;
                         //rc.bottom -= doc_y;
                         ldomMarkedRangeList nmarks( marks, rc );
-                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, &nmarks );
-
+                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, &nmarks, nbookmarks );
                     } else {
-                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, marks );
+                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, marks, nbookmarks );
                     }
+                    if (nbookmarks)
+                        delete nbookmarks;
                 }
 #if (DEBUG_TREE_DRAW!=0)
                 drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+1, color );

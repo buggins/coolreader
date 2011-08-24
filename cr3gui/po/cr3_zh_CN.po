@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr3 3.0.17\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2011-01-25 01:56+0300\n"
+"POT-Creation-Date: 2011-08-14 17:25+0700\n"
 "PO-Revision-Date: 2009-03-05 15:24+0300\n"
 "Last-Translator: LVE <vadim.lopatin@coolreader.org>\n"
 "Language-Team: Chinese\n"
@@ -15,7 +15,27 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/citedlg.cpp:28
+#: ../src/citedlg.cpp:80
+msgid "Select next/prev paragraph"
+msgstr ""
+
+#: ../src/citedlg.cpp:83
+msgid "Select one more paragraph"
+msgstr ""
+
+#: ../src/citedlg.cpp:86
+msgid "Deselect paragraph"
+msgstr ""
+
+#: ../src/citedlg.cpp:89
+msgid "Select one more phrase"
+msgstr ""
+
+#: ../src/citedlg.cpp:92
+msgid "Deselect phrase"
+msgstr ""
+
+#: ../src/citedlg.cpp:112
 msgid "Select text"
 msgstr "选择文本"
 
@@ -27,55 +47,55 @@ msgstr ""
 msgid "1..8"
 msgstr ""
 
-#: ../src/mainwnd.cpp:755
+#: ../src/mainwnd.cpp:769
 msgid "No manual currently available for this language, sorry!"
 msgstr "抱歉，当前没有中文用户指南！"
 
-#: ../src/mainwnd.cpp:766 ../src/mainwnd.cpp:865
+#: ../src/mainwnd.cpp:780 ../src/mainwnd.cpp:888
 msgid "Help"
 msgstr "帮助"
 
-#: ../src/mainwnd.cpp:782
+#: ../src/mainwnd.cpp:805
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: ../src/mainwnd.cpp:816 ../src/viewdlg.cpp:468
+#: ../src/mainwnd.cpp:839 ../src/viewdlg.cpp:559
 msgid "About"
 msgstr "关于"
 
-#: ../src/mainwnd.cpp:826 ../src/viewdlg.cpp:438
+#: ../src/mainwnd.cpp:849 ../src/viewdlg.cpp:523
 msgid "Go to page"
 msgstr "跳转到页"
 
-#: ../src/mainwnd.cpp:837 ../src/recentdlg.cpp:73
+#: ../src/mainwnd.cpp:860 ../src/recentdlg.cpp:121
 msgid "Open recent book"
 msgstr "打开最近的书籍"
 
-#: ../src/mainwnd.cpp:843 ../src/viewdlg.cpp:160
+#: ../src/mainwnd.cpp:866 ../src/viewdlg.cpp:165
 msgid "Dictionary"
 msgstr "词典"
 
-#: ../src/mainwnd.cpp:848
+#: ../src/mainwnd.cpp:871
 msgid "Cite"
 msgstr "引用"
 
-#: ../src/mainwnd.cpp:852 ../src/bmkdlg.cpp:114
+#: ../src/mainwnd.cpp:875 ../src/bmkdlg.cpp:188
 msgid "Bookmarks"
 msgstr "书签"
 
-#: ../src/mainwnd.cpp:856 ../src/viewdlg.cpp:219
+#: ../src/mainwnd.cpp:879 ../src/viewdlg.cpp:224
 msgid "Search"
 msgstr "查找"
 
-#: ../src/mainwnd.cpp:860 ../src/settings.cpp:300
+#: ../src/mainwnd.cpp:883 ../src/settings.cpp:308
 msgid "Settings"
 msgstr "设置"
 
-#: ../src/mainwnd.cpp:869 ../src/viewdlg.cpp:531
+#: ../src/mainwnd.cpp:892 ../src/viewdlg.cpp:637
 msgid "Keyboard layout"
 msgstr "键盘布局"
 
-#: ../src/mainwnd.cpp:876
+#: ../src/mainwnd.cpp:899
 msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
@@ -83,160 +103,179 @@ msgstr ""
 "$1 - 选择命令\n"
 "$2, $3 - 关闭"
 
-
-#: ../src/mainwnd.cpp:980
+#: ../src/mainwnd.cpp:1007
 msgid "Current page"
 msgstr "当前页"
 
-#: ../src/mainwnd.cpp:981
+#: ../src/mainwnd.cpp:1008
 msgid "Total pages"
 msgstr "总页数"
 
-#: ../src/mainwnd.cpp:982
+#: ../src/mainwnd.cpp:1009
 msgid "Battery state"
 msgstr "电池状态"
 
-#: ../src/mainwnd.cpp:982
+#: ../src/mainwnd.cpp:1009
 msgid "charging..."
 msgstr "充电中……"
 
-#: ../src/mainwnd.cpp:983
+#: ../src/mainwnd.cpp:1010
 msgid "Current Time"
 msgstr "当前时间"
 
-#: ../src/mainwnd.cpp:988
+#: ../src/mainwnd.cpp:1015
 msgid "Current chapter"
 msgstr "当前章"
 
-#: ../src/mainwnd.cpp:991
+#: ../src/mainwnd.cpp:1018
 msgid "Status"
 msgstr "状态"
 
-#: ../src/mainwnd.cpp:994
+#: ../src/mainwnd.cpp:1021
 msgid "Archive name"
 msgstr "存档名称"
 
-#: ../src/mainwnd.cpp:995
+#: ../src/mainwnd.cpp:1022
 msgid "Archive path"
 msgstr "存档路径"
 
-#: ../src/mainwnd.cpp:996
+#: ../src/mainwnd.cpp:1023
 msgid "Archive size"
 msgstr "存档大小"
 
-#: ../src/mainwnd.cpp:997
+#: ../src/mainwnd.cpp:1024
 msgid "File name"
 msgstr "文件名"
 
-#: ../src/mainwnd.cpp:998
+#: ../src/mainwnd.cpp:1025
 msgid "File path"
 msgstr "文件路径"
 
-#: ../src/mainwnd.cpp:999
+#: ../src/mainwnd.cpp:1026
 msgid "File size"
 msgstr "文件大小"
 
-#: ../src/mainwnd.cpp:1000
+#: ../src/mainwnd.cpp:1027
 msgid "File format"
 msgstr "文件格式"
 
-#: ../src/mainwnd.cpp:1001
+#: ../src/mainwnd.cpp:1028
 msgid "File info"
 msgstr "文件信息"
 
-#: ../src/mainwnd.cpp:1004
+#: ../src/mainwnd.cpp:1031
 msgid "Title"
 msgstr "标题"
 
-#: ../src/mainwnd.cpp:1005
+#: ../src/mainwnd.cpp:1032
 msgid "Author(s)"
 msgstr "作者"
 
-#: ../src/mainwnd.cpp:1006
+#: ../src/mainwnd.cpp:1033
 msgid "Series name"
 msgstr "系列名称"
 
-#: ../src/mainwnd.cpp:1007
+#: ../src/mainwnd.cpp:1034
 msgid "Series number"
 msgstr "序列号"
 
-#: ../src/mainwnd.cpp:1008
+#: ../src/mainwnd.cpp:1035
 msgid "Date"
 msgstr "日期"
 
-#: ../src/mainwnd.cpp:1009
+#: ../src/mainwnd.cpp:1036
 msgid "Genres"
 msgstr "类型"
 
-#: ../src/mainwnd.cpp:1010
+#: ../src/mainwnd.cpp:1037
 msgid "Translator"
 msgstr "翻译"
 
-#: ../src/mainwnd.cpp:1011
+#: ../src/mainwnd.cpp:1038
 msgid "Book info"
 msgstr "书籍信息"
 
-#: ../src/mainwnd.cpp:1014
+#: ../src/mainwnd.cpp:1041
 msgid "Document author"
 msgstr "文档作者"
 
-#: ../src/mainwnd.cpp:1015
+#: ../src/mainwnd.cpp:1042
 msgid "Document date"
 msgstr "文档日期"
 
-#: ../src/mainwnd.cpp:1016
+#: ../src/mainwnd.cpp:1043
 msgid "Document source URL"
 msgstr "文档源URL"
 
-#: ../src/mainwnd.cpp:1017
+#: ../src/mainwnd.cpp:1044
 msgid "OCR by"
 msgstr "OCR"
 
-#: ../src/mainwnd.cpp:1018
+#: ../src/mainwnd.cpp:1045
 msgid "Document version"
 msgstr "文档版本"
 
-#: ../src/mainwnd.cpp:1019
+#: ../src/mainwnd.cpp:1046
 msgid "Change history"
 msgstr "变动历史"
 
-#: ../src/mainwnd.cpp:1020
+#: ../src/mainwnd.cpp:1047
 msgid "Document info"
 msgstr "文档信息"
 
-#: ../src/mainwnd.cpp:1023
+#: ../src/mainwnd.cpp:1050
 msgid "Publication name"
 msgstr "发行商名称"
 
-#: ../src/mainwnd.cpp:1024
+#: ../src/mainwnd.cpp:1051
 msgid "Publisher"
 msgstr "出版社"
 
-#: ../src/mainwnd.cpp:1025
+#: ../src/mainwnd.cpp:1052
 msgid "Publisher city"
 msgstr "出版社城市"
 
-#: ../src/mainwnd.cpp:1026
+#: ../src/mainwnd.cpp:1053
 msgid "Publication year"
 msgstr "出版日期"
 
-#: ../src/mainwnd.cpp:1027
+#: ../src/mainwnd.cpp:1054
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1028
+#: ../src/mainwnd.cpp:1055
 msgid "Publication info"
 msgstr "发行商信息"
 
-#: ../src/mainwnd.cpp:1030
+#: ../src/mainwnd.cpp:1057
 msgid "Custom info"
 msgstr "用户信息"
 
-#: ../src/mainwnd.cpp:1145
+#: ../src/mainwnd.cpp:1060
+msgid "CoolReader for PocketBook"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1061
+msgid "Build date"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1062
+msgid "About program"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1179
 msgid "Loading: please wait..."
 msgstr "正在装入，请等待……"
 
-#: ../src/recentdlg.cpp:88
+#: ../src/recentdlg.cpp:104
+msgid "Open book"
+msgstr "打开书籍"
+
+#: ../src/recentdlg.cpp:105
+msgid "Delete record"
+msgstr "刪除記錄"
+
+#: ../src/recentdlg.cpp:139
 msgid ""
 "$1 - open book\n"
 "$2, $3 - close"
@@ -252,19 +291,19 @@ msgstr "当前页: $1 ，共 $2\n"
 msgid "Enter page number:"
 msgstr "输入页数"
 
-#: ../src/bmkdlg.cpp:18
+#: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
 msgstr "空的存档位置"
 
-#: ../src/bmkdlg.cpp:49
+#: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
 msgstr "页 $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:68
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:168
 msgid "Go to bookmark"
 msgstr "跳到书签"
 
-#: ../src/bmkdlg.cpp:72
+#: ../src/bmkdlg.cpp:79
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "$2 - switch to SET mode"
@@ -272,7 +311,7 @@ msgstr ""
 "短按 $1 - 跳到书签,\n"
 "$2 - 切换到设置模式"
 
-#: ../src/bmkdlg.cpp:73
+#: ../src/bmkdlg.cpp:80
 msgid ""
 "Short press $1 - go to bookmark,\n"
 "long press - set bookmark"
@@ -280,11 +319,11 @@ msgstr ""
 "短按 $1 - 跳到书签,\n"
 "长按 - 设置书签"
 
-#: ../src/bmkdlg.cpp:76
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:167
 msgid "Set bookmark"
 msgstr "设置书签"
 
-#: ../src/bmkdlg.cpp:80
+#: ../src/bmkdlg.cpp:87
 msgid ""
 "$1 - set bookmark,\n"
 "$2 - switch to GO mode"
@@ -292,13 +331,35 @@ msgstr ""
 "$1 - 设置书签,\n"
 "$2 - 切换到跳转到模式"
 
-#: ../src/bmkdlg.cpp:81
+#: ../src/bmkdlg.cpp:88
 msgid ""
 "Short press $1 - set bookmark,\n"
 "long press - go to bookmark"
 msgstr ""
 "短按 $1 - 设置书签,\n"
 "长按 - 跳到书签"
+
+#: ../src/bmkdlg.cpp:169
+msgid "Delete bookmark"
+msgstr "删除书签"
+
+#: ../src/bmkdlg.cpp:317
+#, fuzzy
+msgid "Go to citation"
+msgstr "跳到位置"
+
+#: ../src/bmkdlg.cpp:318
+#, fuzzy
+msgid "Delete citation"
+msgstr "刪除記錄"
+
+#: ../src/bmkdlg.cpp:332
+msgid "Citations"
+msgstr ""
+
+#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:560
+msgid "Cite selection dialog"
+msgstr "引用选择对话框"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
@@ -308,255 +369,389 @@ msgstr "在词典查找"
 msgid "[cannot read article]"
 msgstr "[无法阅读此项]"
 
-#: ../src/settings.cpp:79
+#: ../src/settings.cpp:82
 msgid "choose command"
 msgstr "选择命令"
 
-#: ../src/settings.cpp:97
+#: ../src/settings.cpp:100
 msgid "Controls"
 msgstr "控制"
 
-#: ../src/settings.cpp:168
+#: ../src/settings.cpp:171
 msgid "[Command is not assigned]"
 msgstr "[命令尚未分配]"
 
-#: ../src/settings.cpp:189
+#: ../src/settings.cpp:192
 msgid "0` (Portrait)"
 msgstr "0` (竖屏)"
 
-#: ../src/settings.cpp:190
+#: ../src/settings.cpp:193
 msgid "90 `"
 msgstr "90 `"
 
-#: ../src/settings.cpp:191
+#: ../src/settings.cpp:194
 msgid "180 `"
 msgstr "180 `"
 
-#: ../src/settings.cpp:192
+#: ../src/settings.cpp:195
 msgid "270 `"
 msgstr "270 `"
 
-#: ../src/settings.cpp:198
+#: ../src/settings.cpp:206
 msgid "Page orientation"
 msgstr "屏幕方向"
 
-#: ../src/settings.cpp:214
+#: ../src/settings.cpp:222
 msgid "Default font size"
 msgstr "默认字体大小"
 
-#: ../src/settings.cpp:272
+#: ../src/settings.cpp:280
 msgid "The quick brown fox jumps over lazy dog"
 msgstr ""
 
-#: ../src/settings.cpp:309
+#: ../src/settings.cpp:317
 msgid "On for all fonts"
 msgstr "支持所有字体"
 
-#: ../src/settings.cpp:310
+#: ../src/settings.cpp:318
 msgid "On for big fonts only"
 msgstr "只支持大字体"
 
-#: ../src/settings.cpp:311 ../src/settings.cpp:317 ../src/settings.cpp:323
-#: ../src/settings.cpp:329 ../src/settings.cpp:335 ../src/settings.cpp:341
-#: ../src/settings.cpp:347 ../src/settings.cpp:353 ../src/settings.cpp:378
+#: ../src/settings.cpp:319 ../src/settings.cpp:325 ../src/settings.cpp:331
+#: ../src/settings.cpp:337 ../src/settings.cpp:343 ../src/settings.cpp:349
+#: ../src/settings.cpp:355 ../src/settings.cpp:361 ../src/settings.cpp:386
 msgid "Off"
 msgstr "关闭"
 
-#: ../src/settings.cpp:316 ../src/settings.cpp:322 ../src/settings.cpp:328
-#: ../src/settings.cpp:334 ../src/settings.cpp:340 ../src/settings.cpp:346
-#: ../src/settings.cpp:352
+#: ../src/settings.cpp:324 ../src/settings.cpp:330 ../src/settings.cpp:336
+#: ../src/settings.cpp:342 ../src/settings.cpp:348 ../src/settings.cpp:354
+#: ../src/settings.cpp:360
 msgid "On"
 msgstr "打开"
 
-#: ../src/settings.cpp:358 ../src/settings.cpp:364
+#: ../src/settings.cpp:366 ../src/settings.cpp:372
 msgid "Normal"
 msgstr "正常"
 
-#: ../src/settings.cpp:359
+#: ../src/settings.cpp:367
 msgid "Inverse"
 msgstr "反转"
 
-#: ../src/settings.cpp:365
+#: ../src/settings.cpp:373
 msgid "Bold"
 msgstr "粗体"
 
-#: ../src/settings.cpp:370
+#: ../src/settings.cpp:378
 msgid "One"
 msgstr "一"
 
-#: ../src/settings.cpp:371
+#: ../src/settings.cpp:379
 msgid "Two"
 msgstr "二"
 
-#: ../src/settings.cpp:376
+#: ../src/settings.cpp:384
 msgid "Top"
 msgstr "顶部"
 
-#: ../src/settings.cpp:383
+#: ../src/settings.cpp:391
+msgid "70%"
+msgstr "70%"
+
+#: ../src/settings.cpp:392
+msgid "75%"
+msgstr "75%"
+
+#: ../src/settings.cpp:393
 msgid "80%"
 msgstr "80%"
 
-#: ../src/settings.cpp:384
+#: ../src/settings.cpp:394
 msgid "90%"
 msgstr "90%"
 
-#: ../src/settings.cpp:385
+#: ../src/settings.cpp:395
+msgid "95%"
+msgstr "95%"
+
+#: ../src/settings.cpp:396
 msgid "100%"
 msgstr "100%"
 
-#: ../src/settings.cpp:386
+#: ../src/settings.cpp:397
+msgid "105%"
+msgstr "105%"
+
+#: ../src/settings.cpp:398
 msgid "110%"
 msgstr "110%"
 
-#: ../src/settings.cpp:387
+#: ../src/settings.cpp:399
+msgid "115%"
+msgstr "115%"
+
+#: ../src/settings.cpp:400
 msgid "120%"
 msgstr "120%"
 
-#: ../src/settings.cpp:388
+#: ../src/settings.cpp:401
+msgid "125%"
+msgstr "125%"
+
+#: ../src/settings.cpp:402
 msgid "130%"
 msgstr "130%"
 
-#: ../src/settings.cpp:389
+#: ../src/settings.cpp:403
+msgid "135%"
+msgstr "135%"
+
+#: ../src/settings.cpp:404
 msgid "140%"
 msgstr "140%"
 
-#: ../src/settings.cpp:390
+#: ../src/settings.cpp:405
+msgid "145%"
+msgstr "145%"
+
+#: ../src/settings.cpp:406
 msgid "150%"
 msgstr "150%"
 
-#: ../src/settings.cpp:419
+#: ../src/settings.cpp:407
+msgid "160%"
+msgstr "160%"
+
+#: ../src/settings.cpp:408
+msgid "180%"
+msgstr "180%"
+
+#: ../src/settings.cpp:409
+msgid "200%"
+msgstr "200%"
+
+#: ../src/settings.cpp:448
 msgid "Always use fast updates"
 msgstr "始终使用快速刷新"
 
-#: ../src/settings.cpp:420
+#: ../src/settings.cpp:449
 msgid "Don't use fast updates"
 msgstr "不使用快速刷新"
 
-#: ../src/settings.cpp:421
+#: ../src/settings.cpp:450
 msgid "Full updates every 2 pages"
 msgstr "每2页整体刷新"
 
-#: ../src/settings.cpp:422
+#: ../src/settings.cpp:451
 msgid "Full updates every 3 pages"
 msgstr "每3页整体刷新"
 
-#: ../src/settings.cpp:423
+#: ../src/settings.cpp:452
 msgid "Full updates every 4 pages"
 msgstr "每4页整体刷新"
 
-#: ../src/settings.cpp:424
+#: ../src/settings.cpp:453
 msgid "Full updates every 5 pages"
 msgstr "每5页整体刷新"
 
-#: ../src/settings.cpp:425
+#: ../src/settings.cpp:454
 msgid "Full updates every 6 pages"
 msgstr "每6页整体刷新"
 
-#: ../src/settings.cpp:430
+#: ../src/settings.cpp:455
+msgid "Full updates every 8 pages"
+msgstr "每8页整体刷新"
+
+#: ../src/settings.cpp:456
+msgid "Full updates every 10 pages"
+msgstr "每10页整体刷新"
+
+#: ../src/settings.cpp:457
+msgid "Full updates every 14 pages"
+msgstr "每14页整体刷新"
+
+#: ../src/settings.cpp:462
 msgid "Turbo mode disabled"
 msgstr "加速模式禁用"
 
-#: ../src/settings.cpp:431
+#: ../src/settings.cpp:463
 msgid "Turbo mode enabled"
 msgstr "加速模式启用"
 
-#: ../src/settings.cpp:445
+#: ../src/settings.cpp:470
+msgid "180+slow next page"
+msgstr ""
+
+#: ../src/settings.cpp:471
+msgid "180+slow prev/next page"
+msgstr ""
+
+#: ../src/settings.cpp:472
+msgid "180+FAST next page"
+msgstr ""
+
+#: ../src/settings.cpp:473
+msgid "180+FAST prev/next page"
+msgstr ""
+
+#: ../src/settings.cpp:474
+msgid "180+FAST next/prev page"
+msgstr ""
+
+#: ../src/settings.cpp:494
+msgid "Disabled (1:1)"
+msgstr ""
+
+#: ../src/settings.cpp:495
+#, fuzzy
+msgid "Integer scale"
+msgstr "行间距"
+
+#: ../src/settings.cpp:496
+msgid "Arbitrary scale"
+msgstr ""
+
+#: ../src/settings.cpp:501
+msgid "Auto"
+msgstr ""
+
+#: ../src/settings.cpp:502
+msgid "*1"
+msgstr ""
+
+#: ../src/settings.cpp:503
+msgid "*2"
+msgstr ""
+
+#: ../src/settings.cpp:504
+msgid "*3"
+msgstr ""
+
+#: ../src/settings.cpp:518
 msgid "Default font face"
 msgstr "默认字体"
 
-#: ../src/settings.cpp:471
+#: ../src/settings.cpp:544
 msgid "Font weight"
 msgstr "字体粗细"
 
-#: ../src/settings.cpp:477
+#: ../src/settings.cpp:550
 msgid "Font antialiasing"
 msgstr "字体平滑"
 
-#: ../src/settings.cpp:483
+#: ../src/settings.cpp:556
 msgid "Interline space"
 msgstr "行间距"
 
-#: ../src/settings.cpp:494
+#: ../src/settings.cpp:567
+#, fuzzy
+msgid "Rotate"
+msgstr "按旋转"
+
+#: ../src/settings.cpp:572
+msgid "Page turn angle"
+msgstr ""
+
+#: ../src/settings.cpp:578
 msgid "Footnotes at page bottom"
 msgstr "页底标注"
 
-#: ../src/settings.cpp:505
+#: ../src/settings.cpp:589
 msgid "Show time"
 msgstr "显示时间"
 
-#: ../src/settings.cpp:511
+#: ../src/settings.cpp:595
 msgid "Landscape pages"
 msgstr "横屏页数"
 
-#: ../src/settings.cpp:517
+#: ../src/settings.cpp:601
 msgid "Preformatted text"
 msgstr "预格式化文本"
 
-#: ../src/settings.cpp:525
+#: ../src/settings.cpp:609
 msgid "Document embedded styles"
 msgstr "文档内嵌风格"
 
-#: ../src/settings.cpp:531
+#: ../src/settings.cpp:615
 msgid "Inverse display"
 msgstr "反转显示"
 
-#: ../src/settings.cpp:538
+#: ../src/settings.cpp:622
 msgid "Display update mode"
 msgstr "显示刷新模式"
 
-#: ../src/settings.cpp:545
+#: ../src/settings.cpp:629
 msgid "Turbo update mode"
 msgstr "加速刷新模式"
 
-#: ../src/settings.cpp:553
+#: ../src/settings.cpp:637
 msgid "Show bookmark icons"
 msgstr "显示书签图标"
 
-#: ../src/settings.cpp:560
+#: ../src/settings.cpp:644
 msgid "Status line"
 msgstr "状态行"
 
-#: ../src/settings.cpp:566
+#: ../src/settings.cpp:650
 msgid "Font kerning"
 msgstr "字体字距调整"
 
-#: ../src/settings.cpp:574
+#: ../src/settings.cpp:658
 msgid "[No Hyphenation]"
 msgstr "不使用断字"
 
-#: ../src/settings.cpp:575
+#: ../src/settings.cpp:659
 msgid "[Algorythmic Hyphenation]"
 msgstr "算法断字"
 
-#: ../src/settings.cpp:577
+#: ../src/settings.cpp:661
 msgid "Hyphenation"
 msgstr "断字"
 
-#: ../src/settings.cpp:593
+#: ../src/settings.cpp:677
 msgid "Floating punctuation"
 msgstr "浮动标点符号"
 
-#: ../src/settings.cpp:601
+#: ../src/settings.cpp:685
 msgid "Page margins"
 msgstr "页边距"
 
-#: ../src/settings.cpp:604
+#: ../src/settings.cpp:688
 msgid "Top margin"
 msgstr "上边距"
 
-#: ../src/settings.cpp:609
+#: ../src/settings.cpp:693
 msgid "Bottom margin"
 msgstr "下边距"
 
-#: ../src/settings.cpp:614
+#: ../src/settings.cpp:698
 msgid "Left margin"
 msgstr "左边距"
 
-#: ../src/settings.cpp:619
+#: ../src/settings.cpp:703
 msgid "Right margin"
 msgstr "右边距"
 
-#: ../src/settings.cpp:652
+#: ../src/settings.cpp:726
+msgid "Image scaling"
+msgstr ""
+
+#: ../src/settings.cpp:728
+msgid "Block image scaling mode"
+msgstr ""
+
+#: ../src/settings.cpp:733
+msgid "Block image max zoom"
+msgstr ""
+
+#: ../src/settings.cpp:739
+msgid "Inline image scaling mode"
+msgstr ""
+
+#: ../src/settings.cpp:744
+msgid "Inline image max zoom"
+msgstr ""
+
+#: ../src/settings.cpp:766
 msgid ""
 "Press $1 to change option\n"
 "$2 to apply, $3 to cancel"
@@ -564,329 +759,351 @@ msgstr ""
 "按 $1 改变选项\n"
 "$2 应用, $3 取消"
 
-#: ../src/viewdlg.cpp:155
+#: ../src/viewdlg.cpp:160
 msgid "No dictionaries found"
 msgstr "找不到词典"
 
-#: ../src/viewdlg.cpp:156
+#: ../src/viewdlg.cpp:161
 msgid "Place dictionaries to directory 'dict' of SD card."
 msgstr "请放置词典到SD卡dict目录下"
 
-#: ../src/viewdlg.cpp:157
+#: ../src/viewdlg.cpp:162
 msgid "Dictionaries in standard unix .dict format are supported."
 msgstr "支持标准的UNIX .dict格式词典."
 
-#: ../src/viewdlg.cpp:158
+#: ../src/viewdlg.cpp:163
 msgid ""
 "For each dictionary, pair of files should be provided: data file (with .dict "
 "or .dict.dz extension, and index file with .index extension"
 msgstr ""
-"每个词典需要提供2个文件：数据文件(以.dict或.dict.dz作扩展名),索引文件(以.index作"
-"扩展名)"
+"每个词典需要提供2个文件：数据文件(以.dict或.dict.dz作扩展名),索引文件(以."
+"index作扩展名)"
 
-#: ../src/viewdlg.cpp:173
+#: ../src/viewdlg.cpp:178
 msgid "Table of contents"
 msgstr "目录表"
 
-#: ../src/viewdlg.cpp:178
+#: ../src/viewdlg.cpp:183
 msgid "Enter page number"
 msgstr "输入页数"
 
-#: ../src/viewdlg.cpp:192
+#: ../src/viewdlg.cpp:197
 msgid "Enter position percent"
 msgstr "输入位置百分比"
 
-#: ../src/viewdlg.cpp:309
+#: ../src/viewdlg.cpp:358
 msgid "Find in dictionary"
 msgstr "在词典查找"
 
-#: ../src/viewdlg.cpp:386
+#: ../src/viewdlg.cpp:471
 msgid "M"
 msgstr ""
 
-#: ../src/viewdlg.cpp:388
+#: ../src/viewdlg.cpp:473
 msgid "Ok"
 msgstr ""
 
-#: ../src/viewdlg.cpp:390
+#: ../src/viewdlg.cpp:475
 msgid "Up"
 msgstr ""
 
-#: ../src/viewdlg.cpp:392
+#: ../src/viewdlg.cpp:477
 msgid "Down"
 msgstr ""
 
-#: ../src/viewdlg.cpp:394
+#: ../src/viewdlg.cpp:479
 msgid "C"
 msgstr ""
 
-#: ../src/viewdlg.cpp:396
+#: ../src/viewdlg.cpp:481
 msgid "Left"
 msgstr ""
 
-#: ../src/viewdlg.cpp:398
+#: ../src/viewdlg.cpp:483
 msgid "Right"
 msgstr ""
 
-#: ../src/viewdlg.cpp:400
+#: ../src/viewdlg.cpp:485
 msgid "Side Up"
 msgstr ""
 
-#: ../src/viewdlg.cpp:402
+#: ../src/viewdlg.cpp:487
 msgid "Side Down"
 msgstr ""
 
-#: ../src/viewdlg.cpp:404
+#: ../src/viewdlg.cpp:489
 msgid "Side Press"
 msgstr ""
 
-#: ../src/viewdlg.cpp:406
+#: ../src/viewdlg.cpp:491
 msgid "Menu"
 msgstr "菜单"
 
-#: ../src/viewdlg.cpp:408
+#: ../src/viewdlg.cpp:493
 msgid "Zoom"
 msgstr "缩放"
 
-#: ../src/viewdlg.cpp:419
+#: ../src/viewdlg.cpp:504
 msgid "Long"
 msgstr "长按"
 
-#: ../src/viewdlg.cpp:426
+#: ../src/viewdlg.cpp:511
 msgid "To first page"
 msgstr "跳到第一页"
 
-#: ../src/viewdlg.cpp:428
+#: ../src/viewdlg.cpp:513
 msgid "Back by page"
 msgstr "后退一页"
 
-#: ../src/viewdlg.cpp:430
+#: ../src/viewdlg.cpp:515
 msgid "Forward by page"
 msgstr "前进一页"
 
-#: ../src/viewdlg.cpp:431
+#: ../src/viewdlg.cpp:516
 msgid "Forward in move history"
 msgstr "按翻页历史前进"
 
-#: ../src/viewdlg.cpp:432
+#: ../src/viewdlg.cpp:517
 msgid "Back in move history"
 msgstr "按翻页历史后退"
 
-#: ../src/viewdlg.cpp:433
+#: ../src/viewdlg.cpp:518
 msgid "Next link"
 msgstr "下一个链接"
 
-#: ../src/viewdlg.cpp:434
+#: ../src/viewdlg.cpp:519
 msgid "Previous link"
 msgstr "上一个链接"
 
-#: ../src/viewdlg.cpp:435 ../src/viewdlg.cpp:461
+#: ../src/viewdlg.cpp:520 ../src/viewdlg.cpp:547
 msgid "Go to link"
 msgstr "跳转到链接"
 
-#: ../src/viewdlg.cpp:436
+#: ../src/viewdlg.cpp:521
 msgid "To last page"
 msgstr "跳到最后一页"
 
-#: ../src/viewdlg.cpp:437
+#: ../src/viewdlg.cpp:522
 msgid "Go to position"
 msgstr "跳到位置"
 
-#: ../src/viewdlg.cpp:439
+#: ../src/viewdlg.cpp:524
 msgid "Zoom in"
 msgstr "放大"
 
-#: ../src/viewdlg.cpp:440
+#: ../src/viewdlg.cpp:525
 msgid "Zoom out"
 msgstr "缩小"
 
-#: ../src/viewdlg.cpp:441
+#: ../src/viewdlg.cpp:526
 msgid "Toggle bold text"
 msgstr "切换粗体文本"
 
-#: ../src/viewdlg.cpp:442
+#: ../src/viewdlg.cpp:527
 msgid "Toggle text format"
 msgstr "切换文本格式"
 
-#: ../src/viewdlg.cpp:443
+#: ../src/viewdlg.cpp:528
 msgid "Save bookmark by number"
 msgstr "按数保存书签"
 
-#: ../src/viewdlg.cpp:444
+#: ../src/viewdlg.cpp:529
 msgid "Go to bookmark by number"
 msgstr "按数跳到书签"
 
-#: ../src/viewdlg.cpp:445
+#: ../src/viewdlg.cpp:530
 msgid "Move by chapter"
 msgstr "按章翻页"
 
-#: ../src/viewdlg.cpp:446
+#: ../src/viewdlg.cpp:531
 msgid "First link"
 msgstr "第一个链接"
 
-#: ../src/viewdlg.cpp:447
+#: ../src/viewdlg.cpp:532
 msgid "Rotate by"
 msgstr "按旋转"
 
-#: ../src/viewdlg.cpp:448
+#: ../src/viewdlg.cpp:533
 msgid "Set rotate angle"
 msgstr "设置旋转角度"
 
-#: ../src/viewdlg.cpp:449
+#: ../src/viewdlg.cpp:534
 msgid "Save history and bookmarks"
 msgstr "保存历史和书签"
 
-#: ../src/viewdlg.cpp:450
+#: ../src/viewdlg.cpp:535
 msgid "Save document to cache"
 msgstr "保存文档到缓存"
 
-#: ../src/viewdlg.cpp:451
+#: ../src/viewdlg.cpp:536
 msgid "Close dialog"
 msgstr "关闭对话框"
 
-#: ../src/viewdlg.cpp:453
+#: ../src/viewdlg.cpp:539
 msgid "Scroll forward"
 msgstr "前滚"
 
-#: ../src/viewdlg.cpp:454
+#: ../src/viewdlg.cpp:540
 msgid "Scroll back"
 msgstr "后滚"
 
-#: ../src/viewdlg.cpp:455
+#: ../src/viewdlg.cpp:541
 msgid "Close book"
 msgstr "关闭书籍"
 
-#: ../src/viewdlg.cpp:456
+#: ../src/viewdlg.cpp:542
 msgid "Main menu"
 msgstr "主菜单"
 
-#: ../src/viewdlg.cpp:457
+#: ../src/viewdlg.cpp:543
 msgid "Go to page dialog"
 msgstr "跳页"
 
-#: ../src/viewdlg.cpp:458
+#: ../src/viewdlg.cpp:544
 msgid "Settings menu"
 msgstr "设置菜单"
 
-#: ../src/viewdlg.cpp:459
+#: ../src/viewdlg.cpp:545
 msgid "Font size settings"
 msgstr "字体大小设置"
 
-#: ../src/viewdlg.cpp:460
+#: ../src/viewdlg.cpp:546
 msgid "Page orientation settings"
 msgstr "屏幕方向设置"
 
-#: ../src/viewdlg.cpp:462
+#: ../src/viewdlg.cpp:551
 msgid "Find in Dictionary (T5)"
 msgstr "在词典查找(T5)"
 
-#: ../src/viewdlg.cpp:463
+#: ../src/viewdlg.cpp:553
 msgid "Bookmark list"
 msgstr "书签列表"
 
-#: ../src/viewdlg.cpp:464
+#: ../src/viewdlg.cpp:554
+#, fuzzy
+msgid "Citations list"
+msgstr "引用"
+
+#: ../src/viewdlg.cpp:555
 msgid "Go to bookmark..."
 msgstr "跳到书签..."
 
-#: ../src/viewdlg.cpp:465
+#: ../src/viewdlg.cpp:556
 msgid "Recent books list"
 msgstr "打开最近的书籍"
 
-#: ../src/viewdlg.cpp:466
+#: ../src/viewdlg.cpp:557
 msgid "Open recent book by number"
 msgstr "按数打开最近的书籍"
 
-#: ../src/viewdlg.cpp:467
+#: ../src/viewdlg.cpp:558
 msgid "Switch to recent book"
 msgstr "打开最近的书籍"
 
-#: ../src/viewdlg.cpp:469
-msgid "Cite selection dialog"
-msgstr "引用选择对话框"
-
-#: ../src/viewdlg.cpp:470
+#: ../src/viewdlg.cpp:561
 msgid "Search dialog"
 msgstr "查找"
 
-#: ../src/viewdlg.cpp:471
+#: ../src/viewdlg.cpp:562
 msgid "Find in Dictionary (virtual keyboard)"
 msgstr "在词典查找(虚拟键盘)"
 
-#: ../src/viewdlg.cpp:472
+#: ../src/viewdlg.cpp:563
 msgid "Next keyboard layout"
 msgstr "下一个键盘布局"
 
-#: ../src/viewdlg.cpp:473
+#: ../src/viewdlg.cpp:564
 msgid "Previous keyboard layout"
 msgstr "上一个键盘布局"
 
-#: ../src/viewdlg.cpp:474
+#: ../src/viewdlg.cpp:565
 msgid "Show manual"
 msgstr "显示用户指南"
 
-#: ../src/viewdlg.cpp:475
+#: ../src/viewdlg.cpp:566
 msgid "Show key mapping"
 msgstr "显示键映射"
 
-#: ../src/viewdlg.cpp:476
+#: ../src/viewdlg.cpp:567
 msgid "Go to percent..."
 msgstr "跳到百分比……"
 
-#: ../src/viewdlg.cpp:477
+#: ../src/viewdlg.cpp:572
+#, fuzzy
+msgid "PocketBook Main menu"
+msgstr "主菜单"
+
+#: ../src/viewdlg.cpp:574
 msgid "Unknown command"
 msgstr "未知命令"
 
-#: ../src/viewdlg.cpp:484
+#: ../src/viewdlg.cpp:581
 msgid "Previous Page"
 msgstr "上页"
 
-#: ../src/viewdlg.cpp:486
+#: ../src/viewdlg.cpp:583
 msgid "Next Page"
 msgstr "下页"
 
-#: ../src/viewdlg.cpp:488
+#: ../src/viewdlg.cpp:585
 msgid "Back by 10 Pages"
 msgstr "后退10页"
 
-#: ../src/viewdlg.cpp:490
+#: ../src/viewdlg.cpp:587
 msgid "Forward by 10 Pages"
 msgstr "前进10页"
 
-#: ../src/viewdlg.cpp:492
+#: ../src/viewdlg.cpp:589
 msgid "Next Chapter"
 msgstr "下一章"
 
-#: ../src/viewdlg.cpp:494
+#: ../src/viewdlg.cpp:591
 msgid "Previous Chapter"
 msgstr "上一章"
 
-#: ../src/viewdlg.cpp:496
+#: ../src/viewdlg.cpp:593
 msgid "Add Bookmark"
 msgstr "添加书签"
 
-#: ../src/viewdlg.cpp:498
+#: ../src/viewdlg.cpp:595
 msgid "Rotate Clockwise"
 msgstr "顺时针旋转"
 
-#: ../src/viewdlg.cpp:500
+#: ../src/viewdlg.cpp:597
 msgid "Rotate Anti-Clockwise"
 msgstr "逆时针旋转"
 
-#: ../src/viewdlg.cpp:502
+#: ../src/viewdlg.cpp:599
 msgid "Portrait View"
 msgstr "竖屏观看"
 
-#: ../src/viewdlg.cpp:504
+#: ../src/viewdlg.cpp:601
 msgid "Landscape View"
 msgstr "横屏观看"
 
-#: ../src/viewdlg.cpp:519
+#: ../src/viewdlg.cpp:625
 msgid "Key"
 msgstr "键"
 
-#: ../src/viewdlg.cpp:519
+#: ../src/viewdlg.cpp:625
 msgid "Assigned function"
 msgstr "分配的功能"
+
+#: ../src/cr3pocketbook.cpp:2188
+msgid "Press $1 to translate"
+msgstr "按 $1 翻譯"
+
+#, fuzzy
+#~ msgid "Remove phrase from selection"
+#~ msgstr "引用选择对话框"
+
+#, fuzzy
+#~ msgid "Cites"
+#~ msgstr "引用"
+
+#, fuzzy
+#~ msgid "Go to cite"
+#~ msgstr "跳转到页"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr "输入跳转的页数: "

@@ -140,11 +140,16 @@ cmake -D DEVICE_NAME=v5 -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_TOOLCHAIN_FILE=../tool
 
 make
 
-# Building Jinke/LBook V3+ simulator for Win32 (cr3):
-mkdir v3abuild
-cd v3abuild
-cmake -D DEVICE_NAME=v3a -D MAX_IMAGE_SCALE_MUL=2 -D GUI=CRGUI_WIN32 -D GRAY_BACKBUFFER_BITS=4 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dest -D DOC_DATA_COMPRESSION_LEVEL=1 -D DOC_BUFFER_SIZE=0x800000 ..
+# Building ARM version for PocketBook:
+mkdir pb360
+cd pb360
+cmake -D DEVICE_NAME=pb360 -D CMAKE_INSTALL_PREFIX=/usr/local/pocketbook/mnt/ext1 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-pocketbook.cmake -D CMAKE_CXX_FLAGS_RELEASE:STRING="-fomit-frame-pointer -O1" -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_BUILD_TYPE=Release -D GUI=CRGUI_PB -D ENABLE_CHM=1 -D ENABLE_ANTIWORD=1 ..
 make
+
+# Building ARM version for PocketBook Pro
+mkdir pbPro
+cd pbPro
+cmake -D DEVICE_NAME=pb360 -D CMAKE_INSTALL_PREFIX=/usr/local/pocketbook/mnt/ext1 -D CMAKE_TOOLCHAIN_FILE=../tools/toolchain-arm-gnu-eabi-pocketbook.cmake -D MAX_IMAGE_SCALE_MUL=2 -D CMAKE_BUILD_TYPE=Release -D ENABLE_CHM=1 -D ENABLE_ANTIWORD=1 -D GUI=CRGUI_PB -D POCKETBOOK_PRO=1 ..
 
 # Building Jinke/LBook V3+ simulator for Win32 (cr3):
 mkdir v3win32

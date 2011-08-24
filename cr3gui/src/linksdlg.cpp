@@ -196,8 +196,8 @@ CRLinksDialog::CRLinksDialog( CRGUIWindowManager * wm, CRViewDialog * docwin )
 {
     _invalidateRect.left = 0;
     _invalidateRect.top = 0;
-    _invalidateRect.right = 600;
-    _invalidateRect.bottom = 800;
+    _invalidateRect.right = _wm->getScreen()->getWidth();
+    _invalidateRect.bottom = _wm->getScreen()->getHeight();
     ldomXRangeList list;
     _docview->getCurrentPageLinks( list );
     _linkCount = list.length();
@@ -347,8 +347,8 @@ void CRLinksDialog::invalidateCurrentSelection()
 #if 1
         _invalidateRect.left = 0;
         _invalidateRect.top = 0;
-        _invalidateRect.right = 600;
-        _invalidateRect.bottom = 800;
+        _invalidateRect.right = _wm->getScreen()->getWidth();
+        _invalidateRect.bottom = _wm->getScreen()->getHeight();
 #else
         lvPoint topLeft = rc.topLeft();
         lvPoint bottomRight = rc.bottomRight();

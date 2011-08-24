@@ -15,7 +15,6 @@
 
 #include <crgui.h>
 
-
 class CRFullScreenMenu : public CRMenu
 {
 public:
@@ -30,7 +29,6 @@ public:
     virtual lString16 getItemNumberKeysName();
 
     virtual lString16 getCommandKeyName( int cmd, int param=0 );
-
 
     //virtual void Draw( LVDrawBuf & buf, int x, int y );
 

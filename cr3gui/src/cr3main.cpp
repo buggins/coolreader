@@ -19,7 +19,7 @@ bool loadKeymaps( CRGUIWindowManager & winman, const char * locations[] )
 		lString8 location( locations[i] );
 		char lastChar = location[ location.length() - 1 ];
 		if ( lastChar!='/' && lastChar!='\\' )
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__WINE__)
 			location << "\\";
 #else
 			location << "/";
