@@ -13,9 +13,10 @@ static const double gamma_levels[GAMMA_LEVELS] = { 0.3, 0.35, 0.4, 0.45, 0.5, 0.
 void genTable( FILE * out, double gamma, int index ) {
     fprintf(out, "static const unsigned char gamma_table_%d[256] = { // gamma=%f\n    ", index, gamma);
     for ( int i=0; i<=255; i++ ) {
-        double v = i / 255.0;
-        v = pow(v, 1/gamma);
+        double v = (255-i) / 255.0;
+        v = pow(v, gamma);
         int n = (int)round(v * 255);
+        n = 255 - n;
 	fprintf(out, "%3d, ", n);
 	if ( i%22==21 )
 	    fprintf(out, "\n    ", n);
