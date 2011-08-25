@@ -448,7 +448,7 @@ public:
 
 // create uninitialized cache file, call open or create to initialize
 CacheFile::CacheFile()
-: _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _dirty(false), _map(1024)
+: _sectorSize( CACHE_FILE_SECTOR_SIZE ), _size(0), _indexChanged(false), _dirty(true), _map(1024)
 {
 }
 
@@ -465,27 +465,28 @@ bool CacheFile::setDirtyFlag( bool dirty )
     if ( _dirty==dirty )
         return false;
     if ( !dirty )
-        _stream->Flush(true);
+        _stream->Flush(false);
     SimpleCacheFileHeader hdr(_dirty?1:0);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
     if ( bytesWritten!=sizeof(hdr) )
         return false;
-    _stream->Flush(true);
+    _stream->Flush(false);
     return true;
 }
 
 // flushes index
 bool CacheFile::flush( bool clearDirtyFlag )
 {
-    setDirtyFlag(true);
-    if ( !writeIndex() )
-        return false;
-    if ( clearDirtyFlag )
+    if ( clearDirtyFlag ) {
+        setDirtyFlag(true);
+        if ( !writeIndex() )
+            return false;
         setDirtyFlag(false);
-    else
-        _stream->Flush(true);
+    } else {
+        _stream->Flush(false);
+    }
     return true;
 }
 

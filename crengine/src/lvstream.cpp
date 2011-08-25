@@ -979,12 +979,13 @@ public:
     virtual lverror_t Flush( bool sync )
     {
 #ifdef _WIN32
-		if ( m_hFile==INVALID_HANDLE_VALUE || !FlushFileBuffers( m_hFile ) )
+        if ( m_hFile==INVALID_HANDLE_VALUE || !FlushFileBuffers( m_hFile ) )
             return LVERR_FAIL;
 #else
         if ( m_fd==-1 )
             return LVERR_FAIL;
-        fsync( m_fd );
+        if ( sync )
+            fsync( m_fd );
 #endif
         return LVERR_OK;
     }
