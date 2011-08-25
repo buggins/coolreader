@@ -319,6 +319,10 @@ public:
         _start = getSystemTimeMillis();
         _interval = expirationIntervalMillis;
     }
+    /// returns true if timeout is infinite
+    bool infinite() {
+        return _interval==-1;
+    }
     /// returns true if expirationIntervalMillis is expired
     bool expired() {
         if ( _interval==-1 )

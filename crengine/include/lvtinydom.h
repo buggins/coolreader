@@ -378,6 +378,7 @@ protected:
     CacheFile * _cacheFile;
     bool _mapped;
     bool _maperror;
+    int  _mapSavingStage;
 
     img_scaling_options_t _imgScalingOptions;
 

@@ -3975,6 +3975,12 @@ bool LVDocView::ParseDocument() {
 	return true;
 }
 
+/// save unsaved data to cache file (if one is created), with timeout option
+ContinuousOperationResult LVDocView::updateCache(CRTimerUtil & maxTime)
+{
+    return m_doc->updateMap(maxTime);
+}
+
 /// save document to cache file, with timeout option
 ContinuousOperationResult LVDocView::swapToCache(CRTimerUtil & maxTime)
 {

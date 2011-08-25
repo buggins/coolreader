@@ -542,6 +542,8 @@ public:
     void swapToCache();
     /// save document to cache file, with timeout option
     ContinuousOperationResult swapToCache(CRTimerUtil & maxTime);
+    /// save unsaved data to cache file (if one is created), with timeout option
+    ContinuousOperationResult updateCache(CRTimerUtil & maxTime);
 
     /// returns selected (marked) ranges
     ldomMarkedRangeList * getMarkedRanges() { return &m_markRanges; }
