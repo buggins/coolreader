@@ -424,6 +424,8 @@ void V3DocViewWin::OnFormatEnd()
     time_t t = time((time_t)0);
     if ( t - _loadFileStart >= SECONDS_BEFORE_PROGRESS_BAR )
         _wm->showProgress(lString16("cr3_wait_icon.png"), 100);
+    CRTimerUtil infinite;
+    _docview->updateCache(infinite);
 }
 
 /// format progress, called with values 0..100
