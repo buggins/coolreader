@@ -135,6 +135,7 @@ public:
     virtual lverror_t SetMode( lvopen_mode_t ) { return LVERR_NOTIMPL; }
     /// flushes unsaved data from buffers to file, with optional flush of OS buffers
     virtual lverror_t Flush( bool sync ) { return LVERR_OK; }
+    virtual lverror_t Flush( bool sync, CRTimerUtil & timeout ) { return Flush(sync); }
 
     /// Seek (change file pos)
     /**
@@ -264,6 +265,9 @@ public:
     /// calculate crc32 code for stream, returns 0 for error or empty stream
     inline lUInt32 crc32() { lUInt32 res = 0; crc32( res ); return res; }
 
+    /// set write bytes limit to call flush(true) automatically after writing of each sz bytes
+    virtual void setAutoSyncSize(lvsize_t sz) { }
+
     /// Constructor
     LVStream() { }
 
@@ -341,8 +345,22 @@ protected:
     lvopen_mode_t          m_mode;
     lUInt32 _crc;
     bool _crcFailed;
+    lvsize_t _autosyncLimit;
+    lvsize_t _bytesWritten;
+    virtual void handleAutoSync(lvsize_t bytesWritten) {
+        _bytesWritten += bytesWritten;
+        if (_autosyncLimit==0)
+            return;
+        if (_bytesWritten>_autosyncLimit) {
+            Flush(true);
+            _bytesWritten = 0;
+        }
+    }
+
 public:
-    LVNamedStream() : _crc(0), _crcFailed(false) { }
+    LVNamedStream() : _crc(0), _crcFailed(false), _autosyncLimit(0), _bytesWritten(0) { }
+    /// set write bytes limit to call flush(true) automatically after writing of each sz bytes
+    virtual void setAutoSyncSize(lvsize_t sz) { _autosyncLimit = sz; }
     /// returns stream/container name, may be NULL if unknown
     virtual const lChar16 * GetName();
     /// sets stream/container name, may be not implemented for some objects

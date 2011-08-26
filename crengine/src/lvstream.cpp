@@ -886,6 +886,7 @@ public:
         lvsize_t sz = fwrite( buf, 1, count, m_file );
         if (nBytesWritten)
             *nBytesWritten = sz;
+        handleAutoSync(sz);
         if (sz < count)
         {
             return LVERR_FAIL;
@@ -984,8 +985,12 @@ public:
 #else
         if ( m_fd==-1 )
             return LVERR_FAIL;
-        if ( sync )
+        if ( sync ) {
+            CRTimerUtil timer;
+            CRLog::trace("calling fsync");
             fsync( m_fd );
+            CRLog::trace("fsync took %d ms", (int)timer.elapsed());
+        }
 #endif
         return LVERR_OK;
     }
@@ -1104,7 +1109,8 @@ public:
             m_pos += dwBytesWritten;
             if ( m_size < m_pos )
                 m_size = m_pos;
-	        return LVERR_OK;
+            handleAutoSync(dwBytesWritten);
+            return LVERR_OK;
         }
         if (nBytesWritten)
             *nBytesWritten = 0;
@@ -1120,6 +1126,7 @@ public:
             m_pos += res;
             if ( m_size < m_pos )
                 m_size = m_pos;
+            handleAutoSync(res);
             return LVERR_OK;
         }
         if (nBytesWritten)
@@ -4421,6 +4428,13 @@ class LVBlockWriteStream : public LVNamedStream
     Block * _firstBlock;
     int _count;
 
+    /// set write bytes limit to call flush(true) automatically after writing of each sz bytes
+    void setAutoSyncSize(lvsize_t sz) {
+        _baseStream->setAutoSyncSize(sz);
+        handleAutoSync(0);
+    }
+
+
     /// fills block with data existing in file
     lverror_t readBlock( Block * block )
     {
@@ -4571,8 +4585,12 @@ class LVBlockWriteStream : public LVNamedStream
 
 
 public:
+    virtual lverror_t Flush( bool sync ) {
+        CRTimerUtil infinite;
+        return Flush(sync, infinite);
+    }
     /// flushes unsaved data from buffers to file, with optional flush of OS buffers
-    virtual lverror_t Flush( bool sync )
+    virtual lverror_t Flush( bool sync, CRTimerUtil & timeout )
     {
 #if TRACE_BLOCK_WRITE_STREAM
         CRLog::trace("flushing unsaved blocks");
@@ -4584,6 +4602,12 @@ public:
                 res = LVERR_FAIL;
             p = p->next;
             delete tmp;
+            if (!sync && timeout.expired()) {
+                CRLog::trace("LVBlockWriteStream::flush - timeout expired");
+                _firstBlock = p;
+                return LVERR_OK;
+            }
+
         }
         _firstBlock = NULL;
         _baseStream->Flush( sync );

@@ -1027,7 +1027,7 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_swapToCacheIntern
 {
     CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
-    CRTimerUtil timeout(2000); // 2 seconds
+    CRTimerUtil timeout(1000); // 1 seconds
     return p->_docview->updateCache(timeout);
 }
 

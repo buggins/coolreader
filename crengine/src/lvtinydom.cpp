@@ -19,6 +19,10 @@
 #define DOC_DATA_COMPRESSION_LEVEL 1 // 0, 1, 3 (0=no compression)
 #endif
 
+#ifndef STREAM_AUTO_SYNC_SIZE
+#define STREAM_AUTO_SYNC_SIZE 300000
+#endif //STREAM_AUTO_SYNC_SIZE
+
 //=====================================================
 // Document data caching parameters
 //=====================================================
@@ -438,10 +442,13 @@ public:
     /// sets dirty flag value, returns true if value is changed
     bool setDirtyFlag( bool dirty );
     // flushes index
-    bool flush( bool clearDirtyFlag );
+    bool flush( bool clearDirtyFlag, CRTimerUtil & maxTime );
     int roundSector( int n )
     {
         return (n + (_sectorSize-1)) & ~(_sectorSize-1);
+    }
+    void setAutoSyncSize(int sz) {
+        _stream->setAutoSyncSize(sz);
     }
 };
 
@@ -455,8 +462,10 @@ CacheFile::CacheFile()
 // free resources
 CacheFile::~CacheFile()
 {
-    if ( !_stream.isNull() )
-        flush( true );
+    if ( !_stream.isNull() ) {
+        CRTimerUtil infinite;
+        flush( true, infinite );
+    }
 }
 
 /// sets dirty flag value, returns true if value is changed
@@ -464,20 +473,23 @@ bool CacheFile::setDirtyFlag( bool dirty )
 {
     if ( _dirty==dirty )
         return false;
-    if ( !dirty )
-        _stream->Flush(false);
+    if ( !dirty ) {
+        CRLog::info("CacheFile::clearing Dirty flag");
+        _stream->Flush(true);
+    }
+    _dirty = dirty;
     SimpleCacheFileHeader hdr(_dirty?1:0);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
     if ( bytesWritten!=sizeof(hdr) )
         return false;
-    _stream->Flush(false);
+    _stream->Flush(!dirty);
     return true;
 }
 
 // flushes index
-bool CacheFile::flush( bool clearDirtyFlag )
+bool CacheFile::flush( bool clearDirtyFlag, CRTimerUtil & maxTime )
 {
     if ( clearDirtyFlag ) {
         setDirtyFlag(true);
@@ -485,7 +497,9 @@ bool CacheFile::flush( bool clearDirtyFlag )
             return false;
         setDirtyFlag(false);
     } else {
-        _stream->Flush(false);
+        CRTimerUtil timer;
+        _stream->Flush(false, maxTime);
+        CRLog::trace("CacheFile->flush() took %d ms ", (int)timer.elapsed());
     }
     return true;
 }
@@ -900,11 +914,14 @@ bool CacheFile::open( lString16 filename )
     }
     return open(stream);
 }
+
+
 // try open existing cache file
 bool CacheFile::open( LVStreamRef stream )
 {
     _stream = stream;
     _size = _stream->GetSize();
+    //_stream->setAutoSyncSize(STREAM_AUTO_SYNC_SIZE);
 
     if ( !readIndex() ) {
         CRLog::error("CacheFile::open : cannot read index from file");
@@ -932,6 +949,7 @@ bool CacheFile::create( lString16 filename )
 bool CacheFile::create( LVStreamRef stream )
 {
     _stream = stream;
+    //_stream->setAutoSyncSize(STREAM_AUTO_SYNC_SIZE);
     if ( _stream->SetPos(0)!=0 ) {
         CRLog::error( "CacheFile::create: cannot seek file");
         _stream.Clear();
@@ -1663,11 +1681,14 @@ void tinyNodeCollection::persist( CRTimerUtil & maxTime )
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
             for ( int i=0; i<TNC_PART_LEN && n0+i<=_elemCount; i++ )
-                if ( !part[i].isNull() && !part[i].isPersistent() )
+                if ( !part[i].isNull() && !part[i].isPersistent() ) {
                     part[i].persist();
+                    if (maxTime.expired())
+                        return;
+                }
         }
     }
-    _cacheFile->flush(false); // intermediate flush
+    //_cacheFile->flush(false); // intermediate flush
     if ( maxTime.expired() )
         return;
     // texts
@@ -1676,11 +1697,16 @@ void tinyNodeCollection::persist( CRTimerUtil & maxTime )
         if ( part ) {
             int n0 = TNC_PART_LEN * partindex;
             for ( int i=0; i<TNC_PART_LEN && n0+i<=_textCount; i++ )
-                if ( !part[i].isNull() && !part[i].isPersistent() )
+                if ( !part[i].isNull() && !part[i].isPersistent() ) {
+                    //CRLog::trace("before persist");
                     part[i].persist();
+                    //CRLog::trace("after persist");
+                    if (maxTime.expired())
+                        return;
+                }
         }
     }
-    _cacheFile->flush(false); // intermediate flush
+    //_cacheFile->flush(false); // intermediate flush
 }
 #endif
 
@@ -1719,13 +1745,13 @@ bool ldomDataStorageManager::save( CRTimerUtil & maxTime )
             res = false;
             break;
         }
-        CRLog::trace("time elapsed: %d", (int)maxTime.elapsed());
+        //CRLog::trace("time elapsed: %d", (int)maxTime.elapsed());
         if (maxTime.expired())
             return res;
 //        if ( (i&3)==3 &&  maxTime.expired() )
 //            return res;
     }
-    _cache->flush(false); // intermediate flush
+    _cache->flush(false, maxTime); // intermediate flush
     if ( maxTime.expired() )
         return res;
     if ( !res )
@@ -7608,8 +7634,14 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
     if ( !_cacheFile )
         return CR_DONE;
 
-    if (maxTime.infinite())
+    if (maxTime.infinite()) {
         _mapSavingStage = 0; // all stages from the beginning
+        _cacheFile->setAutoSyncSize(0);
+    } else {
+        CRLog::trace("setting autosync");
+        _cacheFile->setAutoSyncSize(STREAM_AUTO_SYNC_SIZE);
+        CRLog::trace("setting autosync - done");
+    }
 
     CRLog::trace("ldomDocument::saveChanges(timeout=%d stage=%d)", maxTime.interval(), _mapSavingStage);
 
@@ -7658,7 +7690,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             CRLog::error("Error while saving node style data");
             return CR_ERROR;
         }
-        _cacheFile->flush(false); // intermediate flush
+        _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving node style storage")
         // fall through
     case 5:
@@ -7672,7 +7704,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 return CR_ERROR;
             }
         }
-        _cacheFile->flush(false); // intermediate flush
+        _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving props data")
         // fall through
     case 6:
@@ -7685,7 +7717,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 return CR_ERROR;
             }
         }
-        _cacheFile->flush(false); // intermediate flush
+        _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving ID data")
         // fall through
     case 7:
@@ -7699,7 +7731,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         } else {
             CRLog::trace("ldomDocument::saveChanges() - no page data");
         }
-        _cacheFile->flush(false); // intermediate flush
+        _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving page data")
         // fall through
     case 8:
@@ -7710,7 +7742,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             CRLog::error("Error while node instance data");
             return CR_ERROR;
         }
-        _cacheFile->flush(false); // intermediate flush
+        _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving node data")
         // fall through
     case 9:
@@ -7741,7 +7773,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 return CR_ERROR;
             }
         }
-        _cacheFile->flush(false); // intermediate flush
+        _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving TOC data")
         // fall through
     case 10:
@@ -7752,9 +7784,12 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             return CR_ERROR;
         }
         CRLog::trace("ldomDocument::saveChanges() - flush");
-        if ( !_cacheFile->flush(true) ) {
-            CRLog::error("Error while updating index of cache file");
-            return CR_ERROR;
+        {
+            CRTimerUtil infinite;
+            if ( !_cacheFile->flush(true, infinite) ) {
+                CRLog::error("Error while updating index of cache file");
+                return CR_ERROR;
+            }
         }
         // fall through
     case 11:
