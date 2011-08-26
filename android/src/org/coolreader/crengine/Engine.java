@@ -697,7 +697,7 @@ public class Engine {
 					baseDir.mkdir();
 				}
 				if (baseDir.exists() && baseDir.canWrite()) {
-					File cacheDir = new File(baseDir, ".cache");
+					File cacheDir = new File(baseDir, "cache");
 					if (cacheDir.exists() || cacheDir.mkdirs()) {
 						if (cacheDir.canWrite()) {
 							cacheDirName = cacheDir.getAbsolutePath();
