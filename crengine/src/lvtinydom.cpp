@@ -476,6 +476,8 @@ bool CacheFile::setDirtyFlag( bool dirty )
     if ( !dirty ) {
         CRLog::info("CacheFile::clearing Dirty flag");
         _stream->Flush(true);
+    } else {
+        CRLog::info("CacheFile::setting Dirty flag");
     }
     _dirty = dirty;
     SimpleCacheFileHeader hdr(_dirty?1:0);
