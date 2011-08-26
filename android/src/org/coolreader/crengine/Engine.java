@@ -713,15 +713,23 @@ public class Engine {
 		return cacheDirName;
 	}
 
+	
+	
+	public final static String CACHE_BASE_DIR_NAME = ".cr3"; // "Books"
 	private void initCacheDirectory() {
 		String cacheDirName = null;
 		// SD card
 		cacheDirName = createCacheDir(
-				Environment.getExternalStorageDirectory(), "Books");
-		// internal SD card on Nook
-		if (cacheDirName == null)
-			cacheDirName = createCacheDir(new File("/system/media/sdcard"),
-					"Books");
+				Environment.getExternalStorageDirectory(), CACHE_BASE_DIR_NAME);
+		// non-standard SD mount points
+		if (cacheDirName == null) {
+			for ( String dirname : Scanner.SD_MOUNT_POINTS ) {
+				cacheDirName = createCacheDir(new File(dirname),
+						CACHE_BASE_DIR_NAME);
+				if ( cacheDirName!=null )
+					break;
+			}
+		}
 		// internal flash
 		if (cacheDirName == null) {
 			File cacheDir = mActivity.getCacheDir();

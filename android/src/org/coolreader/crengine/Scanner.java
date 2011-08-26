@@ -592,6 +592,17 @@ public class Scanner {
 		}
 	}
 	
+	public static final String[] SD_MOUNT_POINTS = {
+		"/system/media/sdcard",
+		"/media",
+		"/nand",
+		"/PocketBook701",
+		"/mnt/extsd",
+		"/mnt/ext.sd",
+		"/ext.sd",
+		"/sdcard2",
+	};
+	
 	public void initRoots()
 	{
 		mRoot.clear();
