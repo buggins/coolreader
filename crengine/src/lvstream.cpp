@@ -986,10 +986,10 @@ public:
         if ( m_fd==-1 )
             return LVERR_FAIL;
         if ( sync ) {
-            CRTimerUtil timer;
-            CRLog::trace("calling fsync");
+//            CRTimerUtil timer;
+//            CRLog::trace("calling fsync");
             fsync( m_fd );
-            CRLog::trace("fsync took %d ms", (int)timer.elapsed());
+//            CRLog::trace("fsync took %d ms", (int)timer.elapsed());
         }
 #endif
         return LVERR_OK;
@@ -4403,9 +4403,10 @@ class LVBlockWriteStream : public LVNamedStream
                 lUInt8 ch2 = ptr[i];
                 if ( pos+i>block_end || ch1!=ch2 ) {
                     buf[offset+i] = ptr[i];
-                    if ( modified_start==(lvpos_t)-1 )
-                        modified_start = modified_end = pos + i;
-                    else {
+                    if ( modified_start==(lvpos_t)-1 ) {
+                        modified_start = pos + i;
+                        modified_end = modified_start + 1;
+                    } else {
                         if ( modified_start>pos+i )
                             modified_start = pos+i;
                         if ( modified_end<pos+i+1)
@@ -4603,7 +4604,7 @@ public:
             p = p->next;
             delete tmp;
             if (!sync && timeout.expired()) {
-                CRLog::trace("LVBlockWriteStream::flush - timeout expired");
+                //CRLog::trace("LVBlockWriteStream::flush - timeout expired");
                 _firstBlock = p;
                 return LVERR_OK;
             }

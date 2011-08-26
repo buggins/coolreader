@@ -3858,11 +3858,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			return;
 			int res = swapToCacheInternal();
 			isTimeout = res==SWAP_TIMEOUT;
+			long duration = System.currentTimeMillis() - startTime;
 			if ( !isTimeout ) {
-				long duration = System.currentTimeMillis() - startTime;
-				log.i("SwapToCacheTask is finished with result " + res + " in " + duration + " ms");
+				log.i("swapToCacheInternal is finished with result " + res + " in " + duration + " ms");
 			} else {
-				log.d("swapToCacheInternal exited by TIMEOUT: rescheduling");
+				log.d("swapToCacheInternal exited by TIMEOUT in " + duration + " ms: rescheduling");
 			}
 		}
 		@Override

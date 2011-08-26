@@ -463,8 +463,9 @@ CacheFile::CacheFile()
 CacheFile::~CacheFile()
 {
     if ( !_stream.isNull() ) {
-        CRTimerUtil infinite;
-        flush( true, infinite );
+        // don't flush -- leave file dirty
+        //CRTimerUtil infinite;
+        //flush( true, infinite );
     }
 }
 
@@ -486,7 +487,8 @@ bool CacheFile::setDirtyFlag( bool dirty )
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
     if ( bytesWritten!=sizeof(hdr) )
         return false;
-    _stream->Flush(!dirty);
+    _stream->Flush(true);
+    //CRLog::trace("setDirtyFlag : hdr is saved with Dirty flag = %d", hdr._dirty);
     return true;
 }
 
@@ -494,14 +496,14 @@ bool CacheFile::setDirtyFlag( bool dirty )
 bool CacheFile::flush( bool clearDirtyFlag, CRTimerUtil & maxTime )
 {
     if ( clearDirtyFlag ) {
-        setDirtyFlag(true);
+        //setDirtyFlag(true);
         if ( !writeIndex() )
             return false;
         setDirtyFlag(false);
     } else {
         CRTimerUtil timer;
         _stream->Flush(false, maxTime);
-        CRLog::trace("CacheFile->flush() took %d ms ", (int)timer.elapsed());
+        //CRLog::trace("CacheFile->flush() took %d ms ", (int)timer.elapsed());
     }
     return true;
 }
@@ -532,6 +534,7 @@ bool CacheFile::readIndex()
     _stream->Read(&hdr, sizeof(hdr), &bytesRead );
     if ( bytesRead!=sizeof(hdr) )
         return false;
+    CRLog::info("Header read: DirtyFlag=%d", hdr._dirty);
     if ( !hdr.validate() )
         return false;
     if ( (int)hdr._fsize > _size + 4096-1 ) {
@@ -629,6 +632,7 @@ bool CacheFile::updateHeader( CacheFileItem * indexItem )
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
     if ( bytesWritten!=sizeof(hdr) )
         return false;
+    //CRLog::trace("updateHeader finished: Dirty flag = %d", hdr._dirty);
     return true;
 }
 
@@ -2782,7 +2786,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayo
 ldomDocument::~ldomDocument()
 {
 #if BUILD_LITE!=1
-    updateMap();
+    //updateMap();
 #endif
 }
 
@@ -7640,9 +7644,9 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         _mapSavingStage = 0; // all stages from the beginning
         _cacheFile->setAutoSyncSize(0);
     } else {
-        CRLog::trace("setting autosync");
+        //CRLog::trace("setting autosync");
         _cacheFile->setAutoSyncSize(STREAM_AUTO_SYNC_SIZE);
-        CRLog::trace("setting autosync - done");
+        //CRLog::trace("setting autosync - done");
     }
 
     CRLog::trace("ldomDocument::saveChanges(timeout=%d stage=%d)", maxTime.interval(), _mapSavingStage);
@@ -8058,6 +8062,7 @@ ContinuousOperationResult ldomDocument::swapToCache( CRTimerUtil & maxTime )
             return CR_ERROR;
         }
     }
+    _mapped = true;
     if (!maxTime.infinite()) {
         CRLog::info("Cache file is created, but document saving is postponed");
         return CR_TIMEOUT;
@@ -8069,13 +8074,7 @@ ContinuousOperationResult ldomDocument::swapToCache( CRTimerUtil & maxTime )
         _maperror = true;
         return CR_ERROR;
     }
-
-    _mapped = true;
-
-    if ( res==CR_TIMEOUT )
-        CRLog::info("Timeout while saving document to cache file" );
-    else
-        CRLog::info("Successfully saved document to cache file: %dK", _cacheFile->getSize()/1024 );
+    CRLog::info("Successfully saved document to cache file: %dK", _cacheFile->getSize()/1024 );
     return res;
 }
 
