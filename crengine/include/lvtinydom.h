@@ -2121,6 +2121,8 @@ public:
     ldomElementWriter * pop( ldomElementWriter * obj, lUInt16 id );
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags );
+    /// add named BLOB data to document
+    bool addBlob(lString16 name, const lUInt8 * data, int size) { return _document->addBlob(name, data, size); }
     /// constructor
     ldomDocumentWriter(ldomDocument * document, bool headerOnly=false );
     /// destructor

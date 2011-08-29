@@ -29,6 +29,7 @@ extern "C" {
 
 static ldomDocumentWriter * writer = NULL;
 static ldomDocument * doc = NULL;
+static int image_index = 0;
 static bool inside_p = false;
 static bool inside_table = false;
 static int table_col_count = 0;
@@ -635,6 +636,86 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
     return TRUE;
 } /* end of bReadBytes */
 
+/*
+ * bTranslateImage - translate the image
+ *
+ * This function reads the type of the given image and and gets it translated.
+ *
+ * return TRUE when sucessful, otherwise FALSE
+ */
+BOOL
+bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
+        ULONG ulFileOffsetImage, const imagedata_type *pImg)
+{
+    options_type    tOptions;
+
+    DBG_MSG("bTranslateImage");
+
+    fail(pDiag == NULL);
+    fail(pFile == NULL);
+    fail(ulFileOffsetImage == FC_INVALID);
+    fail(pImg == NULL);
+    fail(pImg->iHorSizeScaled <= 0);
+    fail(pImg->iVerSizeScaled <= 0);
+
+    vGetOptions(&tOptions);
+    fail(tOptions.eImageLevel == level_no_images);
+
+    if (bMinimalInformation) {
+        return bAddDummyImage(pDiag, pImg);
+    }
+
+    switch (pImg->eImageType) {
+    case imagetype_is_jpeg:
+    case imagetype_is_png:
+        {
+            lUInt32 offset = ulFileOffsetImage + pImg->tPosition;
+            lUInt32 len = pImg->tLength - pImg->tPosition;
+
+            if (!bSetDataOffset(pFile, offset)) {
+                return FALSE;
+            }
+
+            lUInt8 *pucJpeg, *pucTmp;
+            size_t  tLen;
+            int     iByte;
+
+            pucJpeg = (lUInt8*)malloc(len);
+            for (pucTmp = pucJpeg, tLen = 0; tLen < len; pucTmp++, tLen++) {
+                iByte = iNextByte(pFile);
+                if (iByte == EOF) {
+                        return FALSE;
+                }
+                *pucTmp = (UCHAR)iByte;
+            }
+
+            // add Image BLOB
+            lString16 name(L"@blob#image");
+            name << image_index;
+            name << (pImg->eImageType==imagetype_is_jpeg ? L".jpg" : L".png");
+            writer->addBlob(name, pucJpeg, len);
+            writer->OnTagOpen(LXML_NS_NONE, name.c_str());
+            writer->OnAttribute(LXML_NS_NONE, L"src", name.c_str());
+            writer->OnTagClose(LXML_NS_NONE, name.c_str());
+
+            free(pucJpeg);
+            return TRUE;
+        }
+     case imagetype_is_dib:
+     case imagetype_is_emf:
+     case imagetype_is_wmf:
+     case imagetype_is_pict:
+     case imagetype_is_external:
+         /* FIXME */
+         return bAddDummyImage(pDiag, pImg);
+     case imagetype_is_unknown:
+     default:
+         DBG_DEC(pImg->eImageType);
+         return bAddDummyImage(pDiag, pImg);
+     }
+} /* end of bTranslateImage */
+
+
 bool DetectWordFormat( LVStreamRef stream )
 {
     AntiwordStreamGuard file(stream);
@@ -703,6 +784,7 @@ bool ImportWordDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     ldomDocumentWriter w(m_doc);
     writer = &w;
     doc = m_doc;
+    image_index = 0;
 
 
 
