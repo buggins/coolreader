@@ -701,6 +701,7 @@ public class Engine {
 					if (cacheDir.exists() || cacheDir.mkdirs()) {
 						if (cacheDir.canWrite()) {
 							cacheDirName = cacheDir.getAbsolutePath();
+							CR3_SETTINGS_DIR_NAME = baseDir.getAbsolutePath(); 
 						}
 					}
 				}
@@ -712,8 +713,74 @@ public class Engine {
 		}
 		return cacheDirName;
 	}
-
 	
+	public static String getExternalSettingsDirName() {
+		return CR3_SETTINGS_DIR_NAME;
+	}
+	
+	public static File getExternalSettingsDir() {
+		return CR3_SETTINGS_DIR_NAME!=null ? new File(CR3_SETTINGS_DIR_NAME) : null;
+	}
+	
+	public static boolean moveFile( File oldPlace, File newPlace ) {
+		boolean removeNewFile = true;
+		log.i("Moving file " + oldPlace.getAbsolutePath() + " to " + newPlace.getAbsolutePath());
+		if ( !oldPlace.exists() ) {
+			log.e("File " + oldPlace.getAbsolutePath() + " does not exist!");
+			return false;
+		}
+		try {
+			if ( !newPlace.createNewFile() )
+				return false; // cannot create file
+			FileOutputStream os = new FileOutputStream(newPlace);
+			FileInputStream is = new FileInputStream(oldPlace);
+			byte[] buf = new byte[0x10000];
+			for (;;) {
+				int bytesRead = is.read(buf);
+				if ( bytesRead<=0 )
+					break;
+				os.write(buf, 0, bytesRead);
+			}
+			removeNewFile = false;
+			oldPlace.delete();
+			return true;
+		} catch ( IOException e ) {
+			return false;
+		} finally {
+			if ( removeNewFile )
+				newPlace.delete();
+		}
+	}
+	
+	/**
+	 * Checks whether file under old path exists, and moves it to better place when necessary.
+	 * Can be slow if big file is being moved. 
+	 * @param bestPlace is desired directory for file (e.g. new place after migration)
+	 * @param oldPlace is old (obsolete) directory for file (e.g. location from older releases)
+	 * @param filename is name of file
+	 * @return file to use (from old or new place)
+	 */
+	public static File checkOrMoveFile( File bestPlace, File oldPlace, String filename ) {
+		if ( !bestPlace.exists() ) {
+			bestPlace.mkdirs();
+		}
+		File oldFile = new File(oldPlace, filename);
+		if ( bestPlace.isDirectory() && bestPlace.canWrite() ) {
+			File bestFile = new File(bestPlace, filename);
+			if (bestFile.exists())
+				return bestFile; // already exists
+			if (oldFile.exists() && oldFile.isFile()) {
+				// move file
+				if (moveFile(oldFile, bestFile))
+					return bestFile;
+				return oldFile;
+			}
+			return bestFile;
+		}
+		return oldFile;
+	}
+
+	private static String CR3_SETTINGS_DIR_NAME;
 	
 	public final static String CACHE_BASE_DIR_NAME = ".cr3"; // "Books"
 	private void initCacheDirectory() {
@@ -735,9 +802,10 @@ public class Engine {
 			File cacheDir = mActivity.getCacheDir();
 			if (!cacheDir.isDirectory())
 				cacheDir.mkdir();
+			cacheDirName = createCacheDir(cacheDir, null);
 			// File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
-			if (cacheDir.isDirectory() && cacheDir.canWrite())
-				cacheDirName = cacheDir.getAbsolutePath();
+//			if (cacheDir.isDirectory() && cacheDir.canWrite())
+//				cacheDirName = cacheDir.getAbsolutePath();
 		}
 		// set cache directory for engine
 		if (cacheDirName != null) {

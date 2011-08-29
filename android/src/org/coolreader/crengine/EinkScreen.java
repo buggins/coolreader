@@ -3,7 +3,7 @@ package org.coolreader.crengine;
 
 public class EinkScreen {
 
-	public static int UpdateMode;
+	public static int UpdateMode = -1;
 	public static int UpdateModeInterval;
 	public static int RefreshNumber = 0;
 	

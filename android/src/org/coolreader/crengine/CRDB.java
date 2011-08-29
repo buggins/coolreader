@@ -17,6 +17,7 @@ public class CRDB {
 	File mDBFile;
 	protected boolean open( File dbfile )
 	{
+		L.i("Opening database from " + dbfile.getAbsolutePath());
 		mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
 		this.mDBFile = dbfile;
 		return true;
