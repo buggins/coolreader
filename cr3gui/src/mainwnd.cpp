@@ -1110,11 +1110,13 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
     case MCMD_OPEN_RECENT_BOOK:
         _docview->swapToCache();
+        _docview->updateCache();
         _docview->getDocument()->updateMap();
         openRecentBook( params );
         return true;
     case MCMD_SWITCH_TO_RECENT_BOOK:
         _docview->swapToCache();
+        _docview->updateCache();
         _docview->getDocument()->updateMap();
         openRecentBook( 1 );
         return true;
@@ -1145,6 +1147,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         return true;
     case DCMD_SAVE_TO_CACHE:
         _docview->swapToCache();
+        _docview->updateCache();
         _docview->getDocument()->updateMap();
         return true;
     case MCMD_CITES_LIST:

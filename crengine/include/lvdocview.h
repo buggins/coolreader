@@ -544,6 +544,8 @@ public:
     ContinuousOperationResult swapToCache(CRTimerUtil & maxTime);
     /// save unsaved data to cache file (if one is created), with timeout option
     ContinuousOperationResult updateCache(CRTimerUtil & maxTime);
+    /// save unsaved data to cache file (if one is created), w/o timeout
+    ContinuousOperationResult updateCache();
 
     /// returns selected (marked) ranges
     ldomMarkedRangeList * getMarkedRanges() { return &m_markRanges; }
