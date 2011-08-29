@@ -250,7 +250,6 @@ protected:
     int _chunkSize;
     char _type;       /// type, to show in log
     ldomTextStorageChunk * getChunk( lUInt32 address );
-    /// checks buffer sizes, compacts most unused chunks
 public:
     /// type
     lUInt16 cacheType();
@@ -416,6 +415,9 @@ protected:
 
     LVHashTable<lUInt16, lUInt16> _fontMap; // style index to font index
 
+    /// checks buffer sizes, compacts most unused chunks
+    ldomBlobCache _blobCache;
+
     /// uniquie id of file format parsing option (usually 0, but 1 for preformatted text files)
     int getPersistenceFlags();
 
@@ -446,8 +448,12 @@ protected:
 
     tinyNodeCollection( tinyNodeCollection & v );
 
-
 public:
+
+    /// add named BLOB data to document
+    bool addBlob(lString16 name, const lUInt8 * data, int size) { return _blobCache.addBlob(data, size, name); }
+    /// get BLOB by name
+    LVStreamRef getBlob(lString16 name) { return _blobCache.getBlob(name); }
 
     /// called on document loading end
     bool validateDocument();

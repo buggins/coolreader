@@ -1487,6 +1487,7 @@ bool tinyNodeCollection::openCacheFile()
     _elemStorage.setCache( f );
     _rectStorage.setCache( f );
     _styleStorage.setCache( f );
+    _blobCache.setCacheFile( f );
     return true;
 }
 
@@ -1532,6 +1533,7 @@ bool tinyNodeCollection::createCacheFile()
     _elemStorage.setCache( f );
     _rectStorage.setCache( f );
     _styleStorage.setCache( f );
+    _blobCache.setCacheFile( f );
     return true;
 }
 
@@ -7860,6 +7862,17 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             return CR_ERROR;
         }
         CHECK_EXPIRATION("saving rect storate")
+        // fall through
+    case 41:
+        _mapSavingStage = 41;
+        CRLog::trace("ldomDocument::saveChanges() - blob storage data");
+
+        if ( _blobCache.saveToCache(maxTime) == CR_ERROR ) {
+            CRLog::error("Error while saving blob storage data");
+            return CR_ERROR;
+        }
+        _cacheFile->flush(false, maxTime); // intermediate flush
+        CHECK_EXPIRATION("saving blob storage data")
         // fall through
     case 4:
         _mapSavingStage = 4;
