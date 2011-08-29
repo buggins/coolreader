@@ -107,6 +107,13 @@ typedef enum {
 } xpath_step_t;
 xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index );
 
+/// return value for continuous operations
+typedef enum {
+    CR_DONE,    ///< operation is finished successfully
+    CR_TIMEOUT, ///< operation is incomplete - interrupted by timeout
+    CR_ERROR   ///< error while executing operation
+} ContinuousOperationResult;
+
 /// type of image scaling
 typedef enum {
     IMG_NO_SCALE, /// scaling is disabled
@@ -210,6 +217,23 @@ struct ldomNodeStyleInfo
 {
     lUInt16 _fontIndex;
     lUInt16 _styleIndex;
+};
+
+class ldomBlobItem;
+
+class ldomBlobCache
+{
+    CacheFile * _cacheFile;
+    LVPtrVector<ldomBlobItem> _list;
+    bool _changed;
+    bool loadIndex();
+    bool saveIndex();
+public:
+    ldomBlobCache();
+    void setCacheFile( CacheFile * cacheFile );
+    ContinuousOperationResult saveToCache(CRTimerUtil & timeout);
+    bool addBlob( const lUInt8 * data, int size, lString16 name );
+    LVStreamRef getBlob( lString16 name );
 };
 
 class ldomDataStorageManager
@@ -339,13 +363,6 @@ public:
 
 // forward declaration
 class ldomNode;
-
-/// return value for continuous operations
-typedef enum {
-    CR_DONE,    ///< operation is finished successfully
-    CR_TIMEOUT, ///< operation is incomplete - interrupted by timeout
-    CR_ERROR   ///< error while executing operation
-} ContinuousOperationResult;
 
 #define TNC_PART_COUNT 1024
 #define TNC_PART_SHIFT 10

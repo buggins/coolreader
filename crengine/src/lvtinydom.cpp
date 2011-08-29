@@ -118,6 +118,8 @@ enum CacheFileBlockType {
     CBT_REND_PARAMS,
     CBT_TOC_DATA,
     CBT_STYLE_DATA,
+    CBT_BLOB_INDEX,
+    CBT_BLOB_DATA,
 };
 
 
@@ -438,6 +440,8 @@ public:
     {
         return read(type, 0, buf);
     }
+    /// reads block as a stream
+    LVStreamRef readStream(lUInt16 type, lUInt16 index);
 
     /// sets dirty flag value, returns true if value is changed
     bool setDirtyFlag( bool dirty );
@@ -645,6 +649,16 @@ void CacheFile::freeBlock( CacheFileItem * block )
     block->_dataType = 0;
     block->_dataSize = 0;
     _freeIndex.add( block );
+}
+
+/// reads block as a stream
+LVStreamRef CacheFile::readStream(lUInt16 type, lUInt16 index)
+{
+    CacheFileItem * block = findBlock(type, index);
+    if (block && block->_dataSize) {
+        return LVStreamRef(new LVStreamFragment(_stream, block->_blockFilePos, block->_dataSize));
+    }
+    return LVStreamRef();
 }
 
 // searches for existing block
@@ -976,6 +990,165 @@ bool CacheFile::create( LVStreamRef stream )
         return false;
     }
     return true;
+}
+
+// BLOB storage
+
+class ldomBlobItem {
+    int _storageIndex;
+    lString16 _name;
+    int _size;
+    lUInt8 * _data;
+public:
+    ldomBlobItem( lString16 name ) : _storageIndex(-1), _name(name), _size(0), _data(NULL) {
+
+    }
+    ~ldomBlobItem() {
+        if ( _data )
+            delete[] _data;
+    }
+    int getSize() { return _size; }
+    int getIndex() { return _storageIndex; }
+    lUInt8 * getData() { return _data; }
+    lString16 getName() { return _name; }
+    void setIndex(int index, int size) {
+        if ( _data )
+            delete[] _data;
+        _data = NULL;
+        _storageIndex = index;
+        _size = size;
+    }
+    void setData( const lUInt8 * data, int size ) {
+        if ( _data )
+            delete[] _data;
+        if (data && size>0) {
+            _data = new lUInt8[size];
+            memcpy(_data, data, size);
+            _size = size;
+        } else {
+            _data = NULL;
+            _size = -1;
+        }
+    }
+};
+
+ldomBlobCache::ldomBlobCache() : _cacheFile(NULL), _changed(false)
+{
+
+}
+
+#define BLOB_INDEX_MAGIC "BLOBINDX"
+
+bool ldomBlobCache::loadIndex()
+{
+    bool res = true;
+    SerialBuf buf(0,true);
+    res = _cacheFile->read(CBT_BLOB_INDEX, buf);
+    if (!res) {
+        _list.clear();
+        return true; // missing blob index: treat as empty list of blobs
+    }
+    if (!buf.checkMagic(BLOB_INDEX_MAGIC))
+        return false;
+    lUInt32 len;
+    buf >> len;
+    for ( lUInt32 i = 0; i<len; i++ ) {
+        lString16 name;
+        buf >> name;
+        lUInt32 size;
+        buf >> size;
+        if (buf.error())
+            break;
+        ldomBlobItem * item = new ldomBlobItem(name);
+        item->setIndex(i, size);
+        _list.add(item);
+    }
+    res = !buf.error();
+    return res;
+}
+
+bool ldomBlobCache::saveIndex()
+{
+    bool res = true;
+    SerialBuf buf(0,true);
+    buf.putMagic(BLOB_INDEX_MAGIC);
+    lUInt32 len = _list.length();
+    buf << len;
+    for ( lUInt32 i = 0; i<len; i++ ) {
+        ldomBlobItem * item = _list[i];
+        buf << item->getName();
+        buf << (lUInt32)item->getSize();
+    }
+    res = _cacheFile->write( CBT_BLOB_INDEX, buf, false );
+    return res;
+}
+
+ContinuousOperationResult ldomBlobCache::saveToCache(CRTimerUtil & timeout)
+{
+    if (_list.length() || !_changed || _cacheFile==NULL)
+        return CR_DONE;
+    bool res = true;
+    for ( int i=0; i<_list.length(); i++ ) {
+        ldomBlobItem * item = _list[i];
+        if ( item->getData() ) {
+            res = _cacheFile->write(CBT_BLOB_DATA, i, item->getData(), item->getSize(), false) && res;
+            if (res)
+                item->setIndex(i, item->getSize());
+        }
+        if (timeout.expired())
+            return CR_TIMEOUT;
+    }
+    res = saveIndex() && res;
+    if ( res )
+        _changed = false;
+    return res ? CR_DONE : CR_ERROR;
+}
+
+void ldomBlobCache::setCacheFile( CacheFile * cacheFile )
+{
+    _cacheFile = cacheFile;
+    if (_list.empty())
+        loadIndex();
+//    else
+//        saveToCache();
+}
+
+bool ldomBlobCache::addBlob( const lUInt8 * data, int size, lString16 name )
+{
+    int index = _list.length();
+    ldomBlobItem * item = new ldomBlobItem(name);
+    if (_cacheFile != NULL) {
+        _cacheFile->write(CBT_BLOB_DATA, index, data, size, false);
+        item->setIndex(index, size);
+    } else {
+        item->setData(data, size);
+    }
+    _list.add(item);
+    _changed = true;
+    return true;
+}
+
+LVStreamRef ldomBlobCache::getBlob( lString16 name )
+{
+    ldomBlobItem * item = NULL;
+    lUInt16 index = 0;
+    for ( int i=0; i<_list.length(); i++ ) {
+        if (_list[i]->getName() == name) {
+            item = _list[i];
+            index = i;
+            break;
+        }
+    }
+    if (item) {
+        if (item->getData()) {
+            // RAM
+            return LVCreateMemoryStream(item->getData(), item->getSize(), true);
+        } else {
+            // CACHE FILE
+            _cacheFile->readStream(CBT_BLOB_DATA, index);
+        }
+    }
+    return LVStreamRef();
 }
 
 #if BUILD_LITE!=1
