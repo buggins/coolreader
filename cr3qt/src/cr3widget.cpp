@@ -1140,6 +1140,7 @@ void CR3View::OnFormatStart()
 void CR3View::OnFormatEnd()
 {
     setCursor( _normalCursor );
+    _docview->updateCache(); // save to cache
 }
 
 /// set bookmarks dir
