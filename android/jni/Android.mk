@@ -177,7 +177,6 @@ ANTIWORD_SRC_FILES := \
     ../../thirdparty/antiword/chartrans.c \
     ../../thirdparty/antiword/datalist.c \
     ../../thirdparty/antiword/depot.c \
-    ../../thirdparty/antiword/dib2eps.c \
     ../../thirdparty/antiword/doclist.c \
     ../../thirdparty/antiword/fail.c \
     ../../thirdparty/antiword/finddata.c \
@@ -187,8 +186,6 @@ ANTIWORD_SRC_FILES := \
     ../../thirdparty/antiword/fonts_u.c \
     ../../thirdparty/antiword/hdrftrlist.c \
     ../../thirdparty/antiword/imgexam.c \
-    ../../thirdparty/antiword/imgtrans.c \
-    ../../thirdparty/antiword/jpeg2eps.c \
     ../../thirdparty/antiword/listlist.c \
     ../../thirdparty/antiword/misc.c \
     ../../thirdparty/antiword/notes.c \
@@ -196,7 +193,6 @@ ANTIWORD_SRC_FILES := \
     ../../thirdparty/antiword/out2window.c \
     ../../thirdparty/antiword/pdf.c \
     ../../thirdparty/antiword/pictlist.c \
-    ../../thirdparty/antiword/png2eps.c \
     ../../thirdparty/antiword/prop0.c \
     ../../thirdparty/antiword/prop2.c \
     ../../thirdparty/antiword/prop6.c \
