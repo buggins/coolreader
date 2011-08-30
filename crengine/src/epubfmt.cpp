@@ -234,7 +234,6 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                         if ( !img.isNull() ) {
                             CRLog::info("EPUB coverpage image is correct: %d x %d", img->GetWidth(), img->GetHeight() );
                             m_doc_props->setString(DOC_PROP_COVER_FILE, coverFileName);
-                            m_doc_props->setString("test.prop", coverFileName);
                         }
                     }
                 }

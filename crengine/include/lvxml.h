@@ -71,6 +71,8 @@ public:
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
     /// add named BLOB data to document
     virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) = 0;
+    /// call to set document property
+    virtual void OnDocProperty(const char * name, lString8 value) { }
     /// destructor
     virtual ~LVXMLParserCallback() {}
 };

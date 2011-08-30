@@ -660,6 +660,7 @@ public:
                         lString16 name = lString16(MOBI_IMAGE_NAME_PREFIX) + lString16::itoa(index-preamble.firstImageIndex);
                         //CRLog::debug("Adding image %s [%d] %s", LCSTR(name), _records[index].size, fmt);
                         container->addItem( new LVPDBRegionContainerItem( stream, this, name, _records[index].offset, _records[index].size ) );
+                        // TODO: set coverpage
                     }
                 }
             }
