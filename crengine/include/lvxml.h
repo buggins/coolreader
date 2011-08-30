@@ -69,6 +69,8 @@ public:
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) = 0;
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
+    /// add named BLOB data to document
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) = 0;
     /// destructor
     virtual ~LVXMLParserCallback() {}
 };

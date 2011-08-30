@@ -1115,6 +1115,7 @@ void ldomBlobCache::setCacheFile( CacheFile * cacheFile )
 
 bool ldomBlobCache::addBlob( const lUInt8 * data, int size, lString16 name )
 {
+    CRLog::debug("ldomBlobCache::addBlob( %s, size=%d, [%02x,%02x,%02x,%02x] )", LCSTR(name), size, data[0], data[1], data[2], data[3]);
     int index = _list.length();
     ldomBlobItem * item = new ldomBlobItem(name);
     if (_cacheFile != NULL) {

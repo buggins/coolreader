@@ -2122,7 +2122,7 @@ public:
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags );
     /// add named BLOB data to document
-    bool addBlob(lString16 name, const lUInt8 * data, int size) { return _document->addBlob(name, data, size); }
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return _document->addBlob(name, data, size); }
     /// constructor
     ldomDocumentWriter(ldomDocument * document, bool headerOnly=false );
     /// destructor
@@ -2239,6 +2239,8 @@ public:
         if ( insideTag )
             parent->OnText( text, len, flags );
     }
+    /// add named BLOB data to document
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { }
     /// constructor
     ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString16 baseTagName, lString16 baseTagReplacementName, lString16 fragmentFilePath )
     : parent(parentWriter), baseTag(baseTagName), baseTagReplacement(baseTagReplacementName),
