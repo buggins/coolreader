@@ -558,7 +558,9 @@ vGetDocumentData(FILE *pFile, const pps_info_type *pPPS,
 	if (!bHasImages ||
 	    tOptions.eConversionType == conversion_text ||
 	    tOptions.eConversionType == conversion_fmt_text ||
-	    tOptions.eConversionType == conversion_xml ||
+#if CR3_ANTIWORD_PATCH!=1
+        tOptions.eConversionType == conversion_xml ||
+#endif
 	    tOptions.eImageLevel == level_no_images) {
 		/*
 		 * No images in the document or text-only output or

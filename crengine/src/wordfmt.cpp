@@ -690,13 +690,14 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
             }
 
             // add Image BLOB
-            lString16 name(L"@blob#image");
-            name << image_index;
+            lString16 name(BLOB_NAME_PREFIX); // L"@blob#"
+            name << L"image";
+            name << image_index++;
             name << (pImg->eImageType==imagetype_is_jpeg ? L".jpg" : L".png");
             writer->addBlob(name, pucJpeg, len);
-            writer->OnTagOpen(LXML_NS_NONE, name.c_str());
+            writer->OnTagOpen(LXML_NS_NONE, L"img");
             writer->OnAttribute(LXML_NS_NONE, L"src", name.c_str());
-            writer->OnTagClose(LXML_NS_NONE, name.c_str());
+            writer->OnTagClose(LXML_NS_NONE, L"img");
 
             free(pucJpeg);
             return TRUE;

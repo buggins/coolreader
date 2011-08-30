@@ -220,7 +220,7 @@ struct ldomNodeStyleInfo
 };
 
 class ldomBlobItem;
-
+#define BLOB_NAME_PREFIX L"@blob#"
 class ldomBlobCache
 {
     CacheFile * _cacheFile;

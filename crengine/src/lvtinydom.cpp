@@ -10505,7 +10505,9 @@ LVImageSourceRef ldomNode::getObjectImageSource()
 LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
 {
     LVStreamRef ref;
-    if ( refName[0]!='#' ) {
+    if ( refName.startsWith(lString16(BLOB_NAME_PREFIX)) ) {
+        return _blobCache.getBlob(refName);
+    } if ( refName[0]!='#' ) {
         if ( !getContainer().isNull() ) {
             lString16 name = refName;
             if ( !getCodeBase().empty() )
