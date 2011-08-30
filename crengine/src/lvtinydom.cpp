@@ -656,7 +656,14 @@ LVStreamRef CacheFile::readStream(lUInt16 type, lUInt16 index)
 {
     CacheFileItem * block = findBlock(type, index);
     if (block && block->_dataSize) {
+#if 0
+        lUInt8 * buf = NULL;
+        int size = 0;
+        if (read(type, index, buf, size))
+            return LVCreateMemoryStream(buf, size);
+#else
         return LVStreamRef(new LVStreamFragment(_stream, block->_blockFilePos, block->_dataSize));
+#endif
     }
     return LVStreamRef();
 }
@@ -1085,7 +1092,7 @@ bool ldomBlobCache::saveIndex()
 
 ContinuousOperationResult ldomBlobCache::saveToCache(CRTimerUtil & timeout)
 {
-    if (_list.length() || !_changed || _cacheFile==NULL)
+    if (!_list.length() || !_changed || _cacheFile==NULL)
         return CR_DONE;
     bool res = true;
     for ( int i=0; i<_list.length(); i++ ) {
@@ -1107,10 +1114,11 @@ ContinuousOperationResult ldomBlobCache::saveToCache(CRTimerUtil & timeout)
 void ldomBlobCache::setCacheFile( CacheFile * cacheFile )
 {
     _cacheFile = cacheFile;
+    CRTimerUtil infinite;
     if (_list.empty())
         loadIndex();
-//    else
-//        saveToCache();
+    else
+        saveToCache(infinite);
 }
 
 bool ldomBlobCache::addBlob( const lUInt8 * data, int size, lString16 name )
@@ -1146,7 +1154,7 @@ LVStreamRef ldomBlobCache::getBlob( lString16 name )
             return LVCreateMemoryStream(item->getData(), item->getSize(), true);
         } else {
             // CACHE FILE
-            _cacheFile->readStream(CBT_BLOB_DATA, index);
+            return _cacheFile->readStream(CBT_BLOB_DATA, index);
         }
     }
     return LVStreamRef();
