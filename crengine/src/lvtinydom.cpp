@@ -10465,14 +10465,31 @@ lString16 ldomNode::getObjectImageRefName()
         return lString16();
     lUInt16 hrefId = getDocument()->getAttrNameIndex(L"href");
     lUInt16 srcId = getDocument()->getAttrNameIndex(L"src");
+    lUInt16 recIndexId = getDocument()->getAttrNameIndex(L"recindex");
     lString16 refName = getAttributeValue( getDocument()->getNsNameIndex(L"xlink"),
         hrefId );
+
     if ( refName.empty() )
         refName = getAttributeValue( getDocument()->getNsNameIndex(L"l"), hrefId );
     if ( refName.empty() )
         refName = getAttributeValue( LXML_NS_ANY, hrefId ); //LXML_NS_NONE
     if ( refName.empty() )
         refName = getAttributeValue( LXML_NS_ANY, srcId ); //LXML_NS_NONE
+    if (refName.empty()) {
+        lString16 recindex = getAttributeValue( LXML_NS_ANY, recIndexId );
+        if (!recindex.empty()) {
+            int n;
+            if (recindex.atoi(n)) {
+                refName = lString16(MOBI_IMAGE_NAME_PREFIX) + lString16::itoa(n);
+                //CRLog::debug("get mobi image %s", LCSTR(refName));
+            }
+        }
+//        else {
+//            for (int k=0; k<getAttrCount(); k++) {
+//                CRLog::debug("attr %s=%s", LCSTR(getAttributeName(k)), LCSTR(getAttributeValue(getAttributeName(k).c_str())));
+//            }
+//        }
+    }
     if ( refName.length()<2 )
         return lString16();
     refName = DecodeHTMLUrlString(refName);

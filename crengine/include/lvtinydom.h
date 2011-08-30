@@ -221,6 +221,7 @@ struct ldomNodeStyleInfo
 
 class ldomBlobItem;
 #define BLOB_NAME_PREFIX L"@blob#"
+#define MOBI_IMAGE_NAME_PREFIX L"mobi_image_"
 class ldomBlobCache
 {
     CacheFile * _cacheFile;

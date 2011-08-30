@@ -182,7 +182,8 @@ struct MobiPreamble : public PalmDocPreamble
         }
         if ( compression!=1 && compression!=2 )
             return false;
-        if ( mobiType!=2 && mobiType!=3 && mobiType!=517 && mobiType!=518 )
+        if ( mobiType!=2 && mobiType!=3 && mobiType!=517 && mobiType!=518
+                 && mobiType!=257 && mobiType!=258 && mobiType!=259 )
             return false; // unsupported type
         if ( mobiEncryption!=0 )
             return false; // encryption is not supported
@@ -641,6 +642,27 @@ public:
                 _compression = 0;
             _textSize = preamble.textLength;
             _recordCount = preamble.firstNonBookIndex - 1;
+            if ( container ) {
+                for ( int index=preamble.firstImageIndex; index<_records.length(); index++ ) {
+                    _records[index].offset;
+                    stream->SetPos(_records[index].offset);
+                    lUInt8 buf[256];
+                    stream->Read(buf, 16, NULL);
+                    //CRLog::debug("Image record %d [%02x %02x %02x %02x %02x]", index, buf[0], buf[1], buf[2], buf[3], buf[4]);
+                    const char * fmt = NULL;
+                    if (buf[0]==0xff && buf[1]==0xd8 && buf[2]==0xFF && buf[3]==0xe0)
+                        fmt = "jpeg";
+                    if (buf[0]==0x89 && buf[1]=='P' && buf[2]=='N' && buf[3]=='G')
+                        fmt = "png";
+                    if (buf[0]=='G' && buf[1]=='I' && buf[2]=='F')
+                        fmt = "gif";
+                    if (fmt) {
+                        lString16 name = lString16(MOBI_IMAGE_NAME_PREFIX) + lString16::itoa(index-preamble.firstImageIndex);
+                        //CRLog::debug("Adding image %s [%d] %s", LCSTR(name), _records[index].size, fmt);
+                        container->addItem( new LVPDBRegionContainerItem( stream, this, name, _records[index].offset, _records[index].size ) );
+                    }
+                }
+            }
         } else if (_format==PALMDOC ) {
             if ( _records[0].size<sizeof(PalmDocPreamble) )
                 return false;
