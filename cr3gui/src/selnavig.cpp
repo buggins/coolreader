@@ -14,7 +14,8 @@
 
 void CRSelNavigationDialog::moveBy( int delta )
 {
-	int pageIndex = -1;
+#if CR_POCKETBOOK==1
+    int pageIndex = -1;
     if ( delta==1 ) {
         // forward
         pageIndex = _mainwin->findPagesText(_pattern, 1, 1);
@@ -26,6 +27,24 @@ void CRSelNavigationDialog::moveBy( int delta )
         if (pageIndex == -1)
             pageIndex = _mainwin->findPagesText(_pattern, -1, -1);
     }
+#else
+    if ( delta==1 ) {
+        // forward
+        if ( !_mainwin->findText(_pattern, 1, 1) )
+            _mainwin->findText(_pattern, -1, 1);
+    } else if ( delta==-1 ) {
+        // backward
+        if ( !_mainwin->findText(_pattern, 1, -1) )
+            _mainwin->findText(_pattern, -1, -1);
+    }
+    ldomMarkedRangeList * ranges = _mainwin->getDocView()->getMarkedRanges();
+    if ( ranges ) {
+        if ( ranges->length()>0 ) {
+            int pos = ranges->get(0)->start.y;
+            _mainwin->getDocView()->SetPos(pos);
+        }
+    }
+#endif
     setDirty();
     _mainwin->setDirty();
 }
