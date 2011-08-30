@@ -566,7 +566,11 @@ bExaminePNG(FILE *pFile, imagedata_type *pImg)
 		return  FALSE;
 	}
 
-	if (pImg->iComponents != 1 && pImg->iComponents != 3) {
+        if (pImg->iComponents != 1 && pImg->iComponents != 3
+#if CR3_ANTIWORD_PATCH==1
+                 && pImg->iComponents != 2  && pImg->iComponents != 4
+#endif
+                ) {
 		/* Not supported */
 		DBG_DEC(pImg->iComponents);
 		return FALSE;
