@@ -68,7 +68,7 @@ public:
     {
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { }
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return true; }
     /// called on opening tag
     virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
