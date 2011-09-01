@@ -4869,7 +4869,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     }
     if (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS || cmd==DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS) {
         int dir = param>0 ? 1 : -1;
-        int distance = oaram>0 ? param : -param;
+        int distance = param>0 ? param : -param;
         if (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS) {
             // DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS
             for (int i=0; i<distance; i++)
