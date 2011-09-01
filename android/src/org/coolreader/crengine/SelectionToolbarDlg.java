@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.ReaderView.ReaderCommand;
 
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
@@ -26,7 +27,7 @@ public class SelectionToolbarDlg {
 	CoolReader mCoolReader;
 	ReaderView mReaderView;
 	View mPanel;
-	final Selection selection;
+	Selection selection;
 	static public void showDialog( CoolReader coolReader, ReaderView readerView, final Selection selection )
 	{
 		SelectionToolbarDlg dlg = new SelectionToolbarDlg(coolReader, readerView, selection);
@@ -37,9 +38,41 @@ public class SelectionToolbarDlg {
 		//dlg.showAsDropDown(readerView);
 		//dlg.update();
 	}
+
+	private boolean changedPageMode;
+	private void setReaderMode()
+	{
+		String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
+		if ( "1".equals(oldViewSetting) ) {
+			changedPageMode = true;
+			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+		}
+	}
+	
+	private void restoreReaderMode()
+	{
+		if ( changedPageMode ) {
+			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
+		}
+	}
 	
 	private void changeSelectionBound(boolean start, int delta) {
 		L.d("changeSelectionBound(" + (start?"start":"end") + ", " + delta + ")");
+		ReaderCommand cmd = start ? ReaderCommand.DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS : ReaderCommand.DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS; 
+		mReaderView.moveSelection(cmd, delta, new ReaderView.MoveSelectionCallback() {
+			
+			@Override
+			public void onNewSelection(Selection selection) {
+				Log.d("cr3", "onNewSelection: " + selection.text);
+				SelectionToolbarDlg.this.selection = selection;
+			}
+			
+			@Override
+			public void onFail() {
+				Log.d("cr3", "fail()");
+				//currentSelection = null;
+			}
+		});
 	}
 	
 	private final static int SELECTION_CONTROL_STEP = 10; 
@@ -89,6 +122,7 @@ public class SelectionToolbarDlg {
 		panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		
 		//mReaderView.getS
+		setReaderMode();
 		
 		mWindow = new PopupWindow( mAnchor.getContext() );
 		mWindow.setTouchInterceptor(new OnTouchListener() {
@@ -97,6 +131,7 @@ public class SelectionToolbarDlg {
 			public boolean onTouch(View v, MotionEvent event) {
 				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
 					mReaderView.clearSelection();
+					restoreReaderMode();
 					mWindow.dismiss();
 					return true;
 				}
@@ -109,6 +144,7 @@ public class SelectionToolbarDlg {
 			public void onClick(View v) {
 				mReaderView.copyToClipboard(selection.text);
 				mReaderView.clearSelection();
+				restoreReaderMode();
 				mWindow.dismiss();
 			}
 		});
@@ -117,6 +153,7 @@ public class SelectionToolbarDlg {
 				//mReaderView.findNext(pattern, false, caseInsensitive);
 				mCoolReader.findInDictionary( sel.text );
 				mReaderView.clearSelection();
+				restoreReaderMode();
 				mWindow.dismiss();
 			}
 		});
@@ -124,12 +161,21 @@ public class SelectionToolbarDlg {
 			public void onClick(View v) {
 				//mReaderView.findNext(pattern, false, caseInsensitive);
 				mReaderView.showNewBookmarkDialog(sel);
+				restoreReaderMode();
+				mWindow.dismiss();
+			}
+		});
+		mPanel.findViewById(R.id.selection_email).setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				// TODO: send email
+				restoreReaderMode();
 				mWindow.dismiss();
 			}
 		});
 		mPanel.findViewById(R.id.selection_cancel).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mReaderView.clearSelection();
+				restoreReaderMode();
 				mWindow.dismiss();
 			}
 		});
@@ -143,6 +189,7 @@ public class SelectionToolbarDlg {
 					switch ( keyCode ) {
 					case KeyEvent.KEYCODE_BACK:
 						mReaderView.clearSelection();
+						restoreReaderMode();
 						mWindow.dismiss();
 						return true;
 //					case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -175,6 +222,7 @@ public class SelectionToolbarDlg {
 		mWindow.setOnDismissListener(new OnDismissListener() {
 			@Override
 			public void onDismiss() {
+				restoreReaderMode();
 				mReaderView.clearSelection();
 			}
 		});
