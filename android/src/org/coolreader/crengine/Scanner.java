@@ -599,6 +599,7 @@ public class Scanner {
 		"/PocketBook701",
 		"/mnt/extsd",
 		"/mnt/ext.sd",
+		"/mnt/external1",
 		"/ext.sd",
 		"/sdcard2",
 	};
@@ -621,6 +622,8 @@ public class Scanner {
 		addRoot( "/PocketBook701", R.string.dir_internal_sd_card, true);
 		// external SD
 		addRoot( "/mnt/extsd", "External SD /mnt/extsd", true);
+		// external SD
+		addRoot( "/mnt/external1", "External SD /mnt/external1", true);
 		// external SD / Galaxy S
 		addRoot( "/mnt/ext.sd", "External SD /mnt/ext.sd", true);
 		addRoot( "/ext.sd", "External SD /ext.sd", true);
