@@ -2021,7 +2021,7 @@ lString16 lString16::itoa( unsigned int n )
 // constructs string representation of integer
 lString16 lString16::itoa( lUInt64 n )
 {
-    lChar16 buf[16];
+    lChar16 buf[24];
     int i=0;
     if (n==0)
         return lString16("0");
