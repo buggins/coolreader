@@ -4870,24 +4870,34 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     if (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS || cmd==DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS) {
         int dir = param>0 ? 1 : -1;
         int distance = param>0 ? param : -param;
+        CRLog::debug("Changing selection by words: bound=%s dir=%d distance=%d", (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS?"left":"right"), dir, distance);
+        bool res;
         if (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS) {
             // DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS
-            for (int i=0; i<distance; i++)
-                if (dir>0)
-                    currSel.getStart().nextVisibleWordStart();
-                else
-                    currSel.getStart().prevVisibleWordStart();
+            for (int i=0; i<distance; i++) {
+                if (dir>0) {
+                    res = currSel.getStart().nextVisibleWordStart();
+                    CRLog::debug("nextVisibleWordStart returned %s", res?"true":"false");
+                } else {
+                    res = currSel.getStart().prevVisibleWordStart();
+                    CRLog::debug("prevVisibleWordStart returned %s", res?"true":"false");
+                }
+            }
             if (currSel.isNull()) {
                 currSel.setEnd(currSel.getStart());
                 currSel.getEnd().nextVisibleWordEnd();
             }
         } else {
             // DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS
-            for (int i=0; i<distance; i++)
-                if (dir>0)
-                    currSel.getEnd().nextVisibleWordEnd();
-                else
-                    currSel.getEnd().prevVisibleWordEnd();
+            for (int i=0; i<distance; i++) {
+                if (dir>0) {
+                    res = currSel.getEnd().nextVisibleWordEnd();
+                    CRLog::debug("nextVisibleWordEnd returned %s", res?"true":"false");
+                } else {
+                    res = currSel.getEnd().prevVisibleWordEnd();
+                    CRLog::debug("prevVisibleWordEnd returned %s", res?"true":"false");
+                }
+            }
             if (currSel.isNull()) {
                 currSel.setStart(currSel.getEnd());
                 currSel.getStart().prevVisibleWordStart();
@@ -4915,9 +4925,9 @@ int LVDocView::onSelectionCommand( int cmd, int param )
             default: // unknown action
                 break;
         }
+        currSel.setEnd(currSel.getStart());
+        currSel.getEnd().thisSentenceEnd();
     }
-    currSel.setEnd(currSel.getStart());
-    currSel.getEnd().thisSentenceEnd();
     currSel.setFlags(1);
     selectRange(currSel);
     goToBookmark(currSel.getStart());

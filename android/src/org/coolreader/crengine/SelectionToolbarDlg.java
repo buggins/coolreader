@@ -159,7 +159,6 @@ public class SelectionToolbarDlg {
 		});
 		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				//mReaderView.findNext(pattern, false, caseInsensitive);
 				mReaderView.showNewBookmarkDialog(sel);
 				restoreReaderMode();
 				mWindow.dismiss();
@@ -167,7 +166,8 @@ public class SelectionToolbarDlg {
 		});
 		mPanel.findViewById(R.id.selection_email).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				// TODO: send email
+				mReaderView.sendQuotationInEmail(sel);
+				mReaderView.clearSelection();
 				restoreReaderMode();
 				mWindow.dismiss();
 			}

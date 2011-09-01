@@ -13,9 +13,9 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
-import org.coolreader.crengine.EinkScreen;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -872,6 +872,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		bmk.setTitleText(sel.chapter);
 		BookmarkEditDialog dlg = new BookmarkEditDialog(mActivity, this, mBookInfo, bmk, true);
 		dlg.show();
+	}
+	
+	public void sendQuotationInEmail( Selection sel ) {
+        final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+        emailIntent.setType("plain/text");
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{ });
+        StringBuilder buf = new StringBuilder();
+        if (mBookInfo.getFileInfo().authors!=null)
+        	buf.append(mBookInfo.getFileInfo().authors + "\n");
+        if (mBookInfo.getFileInfo().title!=null)
+        	buf.append(mBookInfo.getFileInfo().title + "\n");
+        if (sel.chapter!=null && sel.chapter.length()>0)
+        	buf.append(sel.chapter + "\n");
+    	buf.append(sel.text + "\n");
+    	emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, mBookInfo.getFileInfo().authors + " " + mBookInfo.getFileInfo().title);
+        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, buf.toString());
+		mActivity.startActivity(Intent.createChooser(emailIntent, "Send quotation..."));	
 	}
 	
 	public void copyToClipboard( String text ) {
@@ -3946,13 +3963,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	public void onFail();
     }
     
-    public void moveSelection( final ReaderCommand command, int param, final MoveSelectionCallback callback ) {
+    public void moveSelection( final ReaderCommand command, final int param, final MoveSelectionCallback callback ) {
     	post( new Task() {
     		private boolean res;
     		private Selection selection = new Selection();
 			@Override
 			public void work() throws Exception {
-				res = moveSelectionInternal(selection, command.nativeId, 0);
+				res = moveSelectionInternal(selection, command.nativeId, param);
 			}
 
 			@Override
