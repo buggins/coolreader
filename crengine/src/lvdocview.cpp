@@ -4813,6 +4813,8 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
     case DCMD_SELECT_FIRST_SENTENCE:
     case DCMD_SELECT_NEXT_SENTENCE:
     case DCMD_SELECT_PREV_SENTENCE:
+    case DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS: // move selection start by words
+    case DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS: // move selection end by words
         return onSelectionCommand( cmd, param );
 
     /*
@@ -4865,26 +4867,55 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         clearSelection();
         return 0;
     }
-    // selection start doesn't match sentence bounds
-    if ( !currSel.getStart().isSentenceStart() ) {
-        currSel.getStart().thisSentenceStart();
-        moved = true;
-    }
-    // update sentence end
-    if ( !moved )
-        switch ( cmd ) {
-        case DCMD_SELECT_NEXT_SENTENCE:
-            if ( !currSel.getStart().nextSentenceStart() )
-                return 0;
-            break;
-        case DCMD_SELECT_PREV_SENTENCE:
-            if ( !currSel.getStart().prevSentenceStart() )
-                return 0;
-            break;
-        case DCMD_SELECT_FIRST_SENTENCE:
-        default: // unknown action
-            break;
+    if (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS || cmd==DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS) {
+        int dir = param>0 ? 1 : -1;
+        int distance = oaram>0 ? param : -param;
+        if (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS) {
+            // DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS
+            for (int i=0; i<distance; i++)
+                if (dir>0)
+                    currSel.getStart().nextVisibleWordStart();
+                else
+                    currSel.getStart().prevVisibleWordStart();
+            if (currSel.isNull()) {
+                currSel.setEnd(currSel.getStart());
+                currSel.getEnd().nextVisibleWordEnd();
+            }
+        } else {
+            // DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS
+            for (int i=0; i<distance; i++)
+                if (dir>0)
+                    currSel.getEnd().nextVisibleWordEnd();
+                else
+                    currSel.getEnd().prevVisibleWordEnd();
+            if (currSel.isNull()) {
+                currSel.setStart(currSel.getEnd());
+                currSel.getStart().prevVisibleWordStart();
+            }
         }
+        moved = true;
+    } else {
+        // selection start doesn't match sentence bounds
+        if ( !currSel.getStart().isSentenceStart() ) {
+            currSel.getStart().thisSentenceStart();
+            moved = true;
+        }
+        // update sentence end
+        if ( !moved )
+            switch ( cmd ) {
+            case DCMD_SELECT_NEXT_SENTENCE:
+                if ( !currSel.getStart().nextSentenceStart() )
+                    return 0;
+                break;
+            case DCMD_SELECT_PREV_SENTENCE:
+                if ( !currSel.getStart().prevSentenceStart() )
+                    return 0;
+                break;
+            case DCMD_SELECT_FIRST_SENTENCE:
+            default: // unknown action
+                break;
+        }
+    }
     currSel.setEnd(currSel.getStart());
     currSel.getEnd().thisSentenceEnd();
     currSel.setFlags(1);

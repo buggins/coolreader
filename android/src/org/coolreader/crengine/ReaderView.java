@@ -203,8 +203,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_SET_INTERNAL_STYLES(130),
     	
         DCMD_SELECT_FIRST_SENTENCE(131), // select first sentence on page
-        DCMD_SELECT_NEXT_SENTENCE(132), // nove selection to next sentence
-        DCMD_SELECT_PREV_SENTENCE(133), // nove selection to next sentence
+        DCMD_SELECT_NEXT_SENTENCE(132), // move selection to next sentence
+        DCMD_SELECT_PREV_SENTENCE(133), // move selection to next sentence
+        DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS(134), // move selection start by words 
+        DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS(135), // move selection end by words 
     	
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
@@ -3944,7 +3946,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	public void onFail();
     }
     
-    public void moveSelection( final ReaderCommand command, final MoveSelectionCallback callback ) {
+    public void moveSelection( final ReaderCommand command, int param, final MoveSelectionCallback callback ) {
     	post( new Task() {
     		private boolean res;
     		private Selection selection = new Selection();

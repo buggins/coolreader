@@ -293,6 +293,8 @@ enum LVDocCmd
     DCMD_SELECT_FIRST_SENTENCE, // select first sentence on page
     DCMD_SELECT_NEXT_SENTENCE, // nove selection to next sentence
     DCMD_SELECT_PREV_SENTENCE, // nove selection to next sentence
+    DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS, // move selection start by words
+    DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS, // move selection end by words
 
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,

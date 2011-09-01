@@ -84,7 +84,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	
 	private void moveSelection( ReaderCommand cmd )
 	{
-		mReaderView.moveSelection(cmd, new ReaderView.MoveSelectionCallback() {
+		mReaderView.moveSelection(cmd, 0, new ReaderView.MoveSelectionCallback() {
 			
 			@Override
 			public void onNewSelection(Selection selection) {

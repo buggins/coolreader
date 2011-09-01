@@ -42,6 +42,7 @@ public class SelectionToolbarDlg {
 		L.d("changeSelectionBound(" + (start?"start":"end") + ", " + delta + ")");
 	}
 	
+	private final static int SELECTION_CONTROL_STEP = 10; 
 	private class BoundControlListener implements OnSeekBarChangeListener {
 
 		public BoundControlListener(SeekBar sb, boolean start) {
@@ -69,10 +70,10 @@ public class SelectionToolbarDlg {
 				boolean fromUser) {
 			if (!fromUser)
 				return;
-			int diff = (progress - lastProgress) / 10 * 10;
+			int diff = (progress - lastProgress) / SELECTION_CONTROL_STEP * SELECTION_CONTROL_STEP;
 			if (diff!=0) {
 				lastProgress += diff;
-				changeSelectionBound(start, diff);
+				changeSelectionBound(start, diff/SELECTION_CONTROL_STEP);
 			}
 		}
 	};
