@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class SelectionToolbarDlg {
 	PopupWindow mWindow;
@@ -35,6 +37,46 @@ public class SelectionToolbarDlg {
 		//dlg.showAsDropDown(readerView);
 		//dlg.update();
 	}
+	
+	private void changeSelectionBound(boolean start, int delta) {
+		L.d("changeSelectionBound(" + (start?"start":"end") + ", " + delta + ")");
+	}
+	
+	private class BoundControlListener implements OnSeekBarChangeListener {
+
+		public BoundControlListener(SeekBar sb, boolean start) {
+			this.start = start;
+			this.sb = sb;
+			sb.setOnSeekBarChangeListener(this);
+		}
+		final boolean start;
+		final SeekBar sb;
+		int lastProgress = 50;
+		
+		@Override
+		public void onStopTrackingTouch(SeekBar seekBar) {
+			sb.setProgress(50);
+			lastProgress = 50;
+		}
+		
+		@Override
+		public void onStartTrackingTouch(SeekBar seekBar) {
+			sb.setProgress(50);
+		}
+		
+		@Override
+		public void onProgressChanged(SeekBar seekBar, int progress,
+				boolean fromUser) {
+			if (!fromUser)
+				return;
+			int diff = (progress - lastProgress) / 10 * 10;
+			if (diff!=0) {
+				lastProgress += diff;
+				changeSelectionBound(start, diff);
+			}
+		}
+	};
+	
 	public SelectionToolbarDlg( CoolReader coolReader, ReaderView readerView, final Selection sel )
 	{
 		this.selection = sel;
@@ -90,6 +132,8 @@ public class SelectionToolbarDlg {
 				mWindow.dismiss();
 			}
 		});
+		new BoundControlListener((SeekBar)mPanel.findViewById(R.id.selection_left_bound_control), true);
+		new BoundControlListener((SeekBar)mPanel.findViewById(R.id.selection_right_bound_control), false);
 		mPanel.setFocusable(true);
 		mPanel.setOnKeyListener( new OnKeyListener() {
 
