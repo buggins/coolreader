@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 
@@ -94,6 +95,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		public String icon;
 		public LinkInfo selfLink;
 		public LinkInfo alternateLink;
+		public LinkInfo nextLink;
 	}
 	
 	public static class LinkInfo {
@@ -196,6 +198,9 @@ xml:base="http://lib.ololo.cc/opds/">
 		private static SimpleDateFormat tsFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"); 
 		private static SimpleDateFormat tsFormat2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 		public OPDSHandler( URL url ) {
+			this.url = url;
+		}
+		public void setUrl(URL url) {
 			this.url = url;
 		}
 		private long parseTimestamp( String ts ) {
@@ -348,6 +353,8 @@ xml:base="http://lib.ololo.cc/opds/">
 							docInfo.selfLink = link;
 						else if ( "alternate".equals(link.rel) )
 							docInfo.alternateLink = link;
+						else if ( "next".equals(link.rel) )
+							docInfo.nextLink = link;
 					}
 				}
 			} else if ( "author".equals(localName) ) {
@@ -393,7 +400,7 @@ xml:base="http://lib.ololo.cc/opds/">
 	
 	public static class DownloadTask {
 		final private CoolReader coolReader; 
-		final private URL url;
+		private URL url;
 		final private String expectedType;
 		final private String referer;
 		final private String defaultFileName;
@@ -430,7 +437,10 @@ xml:base="http://lib.ololo.cc/opds/">
 		}
 		private void parseFeed( InputStream is ) throws Exception {
 			try {
-				handler = new OPDSHandler(url);
+				if (handler==null)
+					handler = new OPDSHandler(url);
+				else
+					handler.setUrl(url); // download next part
 				String[] namespaces = new String[] { 
                         "access", "http://www.bloglines.com/about/specs/fac-1.0",
                         "admin", "http://webns.net/mvcb/",
@@ -517,13 +527,6 @@ xml:base="http://lib.ololo.cc/opds/">
 				L.e("sax parse io error", ioe);
 				throw ioe;
 			}
-			BackgroundThread.guiExecutor.execute(new Runnable() {
-				@Override
-				public void run() {
-					L.d("Parsing is finished successfully. " + handler.entries.size() + " entries found");
-					callback.onFinish(handler.docInfo, handler.entries);
-				}
-			});
 		}
 		
 		private File generateFileName( File outDir, String fileName, String type, boolean isZip ) {
@@ -640,9 +643,15 @@ xml:base="http://lib.ololo.cc/opds/">
 		}
 		public void runInternal() {
 			connection = null;
-		    
+			
+			boolean itemsLoadedPartially = false;
+			boolean loadNext = false;
+			HashSet<URL> visited = new HashSet<URL>();
+
+			do {
 			try {
 				setProgressMessage( url.toString(), -1 );
+				visited.add(url);
 				long startTimeStamp = System.currentTimeMillis();
 				delayedProgress = coolReader.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
 				URLConnection conn = url.openConnection();
@@ -712,14 +721,29 @@ xml:base="http://lib.ololo.cc/opds/">
 				if ( contentType.startsWith("application/atom+xml") ) {
 					L.d("Parsing feed");
 					parseFeed( is );
+					itemsLoadedPartially = true;
+					if (handler.docInfo.nextLink!=null && handler.docInfo.nextLink.type.startsWith("application/atom+xml;profile=opds-catalog")) {
+						url = new URL(handler.docInfo.nextLink.href);
+						loadNext = !visited.contains(url);
+						L.d("continue with next part: " + url);
+					} else {
+						loadNext = false;
+					}
+						
 				} else {
 					if ( fileName==null )
 						fileName = defaultFileName;
 					L.d("Downloading book: " + contentEncoding);
 					downloadBook( contentType, url.toString(), is, contentLen, fileName, isZip );
+					if ( progressShown )
+						coolReader.getEngine().hideProgress();
+					loadNext = false;
+					itemsLoadedPartially = false;
 				}
 			} catch (Exception e) {
 				L.e("Exception while trying to open URI " + url.toString(), e);
+				if ( progressShown )
+					coolReader.getEngine().hideProgress();
 				onError("Error occured while reading OPDS catalog");
 			} finally {
 				if ( connection!=null )
@@ -729,6 +753,17 @@ xml:base="http://lib.ololo.cc/opds/">
 						// ignore
 					}
 			}
+			} while (loadNext);
+			if ( progressShown )
+				coolReader.getEngine().hideProgress();
+			if (itemsLoadedPartially)
+				BackgroundThread.guiExecutor.execute(new Runnable() {
+					@Override
+					public void run() {
+						L.d("Parsing is finished successfully. " + handler.entries.size() + " entries found");
+						callback.onFinish(handler.docInfo, handler.entries);
+					}
+				});
 		}
 
 		public void run() {
@@ -747,6 +782,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		public void cancel() {
 		}
 
+		private boolean progressShown = false;
 	
 		public class ProgressInputStream extends InputStream {
 
@@ -758,7 +794,6 @@ xml:base="http://lib.ololo.cc/opds/">
 			private long lastUpdate;
 			private int lastPercent;
 			private int maxPercentToStartShowingProgress;
-			private boolean progressShown;
 			private int bytesRead;
 			
 			public ProgressInputStream( InputStream sourceStream, long startTimeStamp, String progressMessage, int totalSize, int maxPercentToStartShowingProgress ) {
@@ -768,7 +803,6 @@ xml:base="http://lib.ololo.cc/opds/">
 				this.progressMessage = progressMessage;
 				this.lastUpdate = startTimeStamp;
 				this.bytesRead = 0;
-				this.progressShown = false;
 			}
 
 			private void updateProgress() {
@@ -799,12 +833,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			@Override
 			public void close() throws IOException {
 				super.close();
-				if ( progressShown )
-					coolReader.getEngine().hideProgress();
 			}
-			
-			
-			
 		}
 		
 	}
@@ -856,5 +885,5 @@ xml:base="http://lib.ololo.cc/opds/">
 		return buf.toString();
 	}
 	
-	public static final int PROGRESS_DELAY_MILLIS = 1500; 
+	public static final int PROGRESS_DELAY_MILLIS = 2000; 
 }
