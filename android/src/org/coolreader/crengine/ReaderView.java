@@ -1388,13 +1388,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (mBookInfo==null)
 			return;
 		final StringBuilder buf = new StringBuilder();
-		if (mActivity.isFullscreen()) {
-			SimpleDateFormat fmt = new SimpleDateFormat("HH:mm");
-			final String time = fmt.format(new Date());
-			buf.append(time + " ");
-			if (mBatteryState>=0)
-	 			buf.append(" [" + mBatteryState + "%]\n");
-		}
+//		if (mActivity.isFullscreen()) {
+		SimpleDateFormat fmt = new SimpleDateFormat("HH:mm");
+		final String time = fmt.format(new Date());
+		buf.append(time + " ");
+		if (mBatteryState>=0)
+ 			buf.append(" [" + mBatteryState + "%]\n");
+//		}
 		execute( new Task() {
 			Bookmark bm;
 			@Override
@@ -1423,7 +1423,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void toggleTitlebar()
 	{
 		boolean newBool = "1".equals(getSetting(PROP_STATUS_LINE));
-		String newValue = newBool ? "1" : "0";
+		String newValue = !newBool ? "1" : "0";
 		Properties settings = new Properties();
 		settings.setProperty(PROP_STATUS_LINE, newValue);
 		setSettings(settings, null, true);

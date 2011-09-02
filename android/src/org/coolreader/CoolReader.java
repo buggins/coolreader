@@ -472,6 +472,13 @@ public class CoolReader extends Activity
 		lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
 		getWindow().setAttributes(lp);
 		
+		// testing background thread
+    	mBackgroundThread = BackgroundThread.instance();
+		mFrame = new FrameLayout(this);
+		mEngine = new Engine(this, mBackgroundThread);
+		mBackgroundThread.setGUI(mFrame);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
 		// load settings
 		Properties props = loadSettings();
 		
@@ -484,13 +491,6 @@ public class CoolReader extends Activity
 		if ( backlight<-1 || backlight>100 )
 			backlight = -1;
 		setScreenBacklightLevel(backlight);
-		
-		// testing background thread
-    	mBackgroundThread = BackgroundThread.instance();
-		mFrame = new FrameLayout(this);
-		mEngine = new Engine(this, mBackgroundThread);
-		mBackgroundThread.setGUI(mFrame);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
         mEngine.showProgress( 0, R.string.progress_starting_cool_reader );
 
@@ -1366,6 +1366,7 @@ public class CoolReader extends Activity
 			propsFile = new File( propsDir, SETTINGS_FILE_NAME);
 			File dataDir = Engine.getExternalSettingsDir();
 			if ( dataDir!=null ) {
+				log.d("external settings dir: " + dataDir);
 				propsFile = Engine.checkOrMoveFile(dataDir, propsDir, SETTINGS_FILE_NAME);
 			} else {
 				propsDir.mkdirs();
