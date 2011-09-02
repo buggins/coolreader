@@ -234,6 +234,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_ABOUT(2019),
     	DCMD_BOOK_INFO(2020),
     	DCMD_TTS_PLAY(2021),
+    	DCMD_TOGGLE_TITLEBAR(2022),
     	;
     	
     	private final int nativeId;
@@ -1379,6 +1380,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.setFullscreen(newBool);
 	}
 	
+	public void toggleTitlebar()
+	{
+		boolean newBool = "1".equals(getSetting(PROP_STATUS_LINE));
+		String newValue = newBool ? "1" : "0";
+		Properties settings = new Properties();
+		settings.setProperty(PROP_STATUS_LINE, newValue);
+		setSettings(settings, null, true);
+	}
+	
 	public void toggleDocumentStyles()
 	{
 		if ( mOpened && mBookInfo!=null ) {
@@ -1501,6 +1511,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case DCMD_TOGGLE_FULLSCREEN:
 			toggleFullscreen();
+			break;
+		case DCMD_TOGGLE_TITLEBAR:
+			toggleTitlebar();
 			break;
 		case DCMD_TOGGLE_SELECTION_MODE:
 			toggleSelectionMode();
