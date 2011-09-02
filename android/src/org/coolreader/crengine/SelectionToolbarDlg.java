@@ -111,7 +111,13 @@ public class SelectionToolbarDlg {
 		}
 	};
 	
-	public SelectionToolbarDlg( CoolReader coolReader, ReaderView readerView, final Selection sel )
+	private void closeDialog() {
+		mReaderView.clearSelection();
+		restoreReaderMode();
+		mWindow.dismiss();
+	}
+	
+	public SelectionToolbarDlg( CoolReader coolReader, ReaderView readerView, Selection sel )
 	{
 		this.selection = sel;
 		mCoolReader = coolReader;
@@ -130,9 +136,7 @@ public class SelectionToolbarDlg {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-					mReaderView.clearSelection();
-					restoreReaderMode();
-					mWindow.dismiss();
+					closeDialog();
 					return true;
 				}
 				return false;
@@ -143,40 +147,30 @@ public class SelectionToolbarDlg {
 		mPanel.findViewById(R.id.selection_copy).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mReaderView.copyToClipboard(selection.text);
-				mReaderView.clearSelection();
-				restoreReaderMode();
-				mWindow.dismiss();
+				closeDialog();
 			}
 		});
 		mPanel.findViewById(R.id.selection_dict).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				//mReaderView.findNext(pattern, false, caseInsensitive);
-				mCoolReader.findInDictionary( sel.text );
-				mReaderView.clearSelection();
-				restoreReaderMode();
-				mWindow.dismiss();
+				mCoolReader.findInDictionary( selection.text );
+				closeDialog();
 			}
 		});
 		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				mReaderView.showNewBookmarkDialog(sel);
-				restoreReaderMode();
-				mWindow.dismiss();
+				mReaderView.showNewBookmarkDialog(selection);
+				closeDialog();
 			}
 		});
 		mPanel.findViewById(R.id.selection_email).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				mReaderView.sendQuotationInEmail(sel);
-				mReaderView.clearSelection();
-				restoreReaderMode();
-				mWindow.dismiss();
+				mReaderView.sendQuotationInEmail(selection);
+				closeDialog();
 			}
 		});
 		mPanel.findViewById(R.id.selection_cancel).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				mReaderView.clearSelection();
-				restoreReaderMode();
-				mWindow.dismiss();
+				closeDialog();
 			}
 		});
 		new BoundControlListener((SeekBar)mPanel.findViewById(R.id.selection_left_bound_control), true);
@@ -188,9 +182,7 @@ public class SelectionToolbarDlg {
 				if ( event.getAction()==KeyEvent.ACTION_UP ) {
 					switch ( keyCode ) {
 					case KeyEvent.KEYCODE_BACK:
-						mReaderView.clearSelection();
-						restoreReaderMode();
-						mWindow.dismiss();
+						closeDialog();
 						return true;
 //					case KeyEvent.KEYCODE_DPAD_LEFT:
 //					case KeyEvent.KEYCODE_DPAD_UP:
