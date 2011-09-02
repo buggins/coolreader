@@ -1579,4 +1579,15 @@ public class CoolReader extends Activity
 		AboutDialog dlg = new AboutDialog(this);
 		dlg.show();
 	}
+	
+	public void openURL(String url) {
+		try {
+			Intent i = new Intent(Intent.ACTION_VIEW);  
+			i.setData(Uri.parse(url));  
+			startActivity(i);
+		} catch (Exception e) {
+			log.e("Exception " + e + " while trying to open URL " + url);
+			showToast("Cannot open URL " + url);
+		}
+	}
 }

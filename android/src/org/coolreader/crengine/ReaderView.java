@@ -946,10 +946,48 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				}
 			}
 			public void done() {
-				if ( link==null )
+				if ( link==null ) {
 					onTapZone( zone, true );
-				else if (!link.startsWith("#")) {
-					mActivity.showToast("External links are not yet supported");
+				} else if (!link.startsWith("#")) {
+					log.d("external link " + link);
+					if (link.startsWith("http://")||link.startsWith("https://")) {
+						mActivity.openURL(link);
+					} else {
+						// absolute path to file
+						FileInfo fi = new FileInfo(link);
+						if (fi.exists()) {
+							mActivity.loadDocument(fi);
+							return;
+						}
+						File baseDir = null;
+						if (mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
+							if (!mBookInfo.getFileInfo().isArchive) {
+								// relatively to base directory
+								File f = new File(mBookInfo.getFileInfo().getBasePath());
+								baseDir = f.getParentFile();
+								String url = link;
+								while (baseDir!=null && url!=null && url.startsWith("../")) {
+									baseDir = baseDir.getParentFile();
+									url = url.substring(3);
+								}
+								if (baseDir!=null && url!=null && url.length()>0) {
+									fi = new FileInfo(baseDir.getAbsolutePath()+"/"+url);
+									if (fi.exists()) {
+										mActivity.loadDocument(fi);
+										return;
+									}
+								}
+							} else {
+								// from archive
+								fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
+								if (fi.exists()) {
+									mActivity.loadDocument(fi);
+									return;
+								}
+							}
+						}
+						mActivity.showToast("Cannot open link " + link);
+					}
 				}
 			}
 		});
