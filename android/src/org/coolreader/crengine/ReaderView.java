@@ -58,6 +58,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_FONT_ANTIALIASING       ="font.antialiasing.mode";
     public static final String PROP_FONT_FACE               ="font.face.default";
     public static final String PROP_FONT_GAMMA              ="font.gamma";
+    public static final String PROP_FONT_GAMMA_DAY          ="font.gamma.day";
+    public static final String PROP_FONT_GAMMA_NIGHT        ="font.gamma.night";
     public static final String PROP_FONT_WEIGHT_EMBOLDEN    ="font.face.weight.embolden";
     public static final String PROP_TXT_OPTION_PREFORMATTED ="crengine.file.txt.preformatted";
     public static final String PROP_LOG_FILENAME            ="crengine.log.filename";

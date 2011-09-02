@@ -346,12 +346,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR, 0xFFFFFF));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
+			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA_NIGHT, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA, "1.0"));
 		} else {
 			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0x000000));
 			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
+			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA_DAY, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA, "1.0"));
 		}
 	}
 	static public void restoreColor( Properties mProperties,  boolean night )
@@ -362,12 +364,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_NIGHT, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, 0xFFFFFF));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, 70));
+			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA_NIGHT, "1.0"));
 		} else {
 			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, "(NONE)"));
 			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, 0xFFFFFF));
 			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_DAY, 0x000000));
 			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR_DAY, 0x000000));
 			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
+			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA_DAY, "1.0"));
 		}
 	}
 
