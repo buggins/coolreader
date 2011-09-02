@@ -258,4 +258,5 @@
     <string name="options_screen_update_interval">Интервал полного обновления</string>
     <string name="options_render_font_gamma">Гамма-коррекция шрифта</string>
     <string name="action_toggle_titlebar">Вкл/выкл колонтитул</string>
+    <string name="action_show_position_info">Информация о позиции</string>
 </resources>

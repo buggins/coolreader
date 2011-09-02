@@ -237,6 +237,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_BOOK_INFO(2020),
     	DCMD_TTS_PLAY(2021),
     	DCMD_TOGGLE_TITLEBAR(2022),
+    	DCMD_SHOW_POSITION_INFO_POPUP(2023),
     	;
     	
     	private final int nativeId;
@@ -1382,6 +1383,43 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.setFullscreen(newBool);
 	}
 	
+	public void showReadingPositionPopup()
+	{
+		if (mBookInfo==null)
+			return;
+		final StringBuilder buf = new StringBuilder();
+		if (mActivity.isFullscreen()) {
+			SimpleDateFormat fmt = new SimpleDateFormat("HH:mm");
+			final String time = fmt.format(new Date());
+			buf.append(time + " ");
+			if (mBatteryState>=0)
+	 			buf.append(" [" + mBatteryState + "%]\n");
+		}
+		execute( new Task() {
+			Bookmark bm;
+			@Override
+			public void work() {
+				bm = getCurrentPageBookmarkInternal();
+				if ( bm!=null ) {
+					PositionProperties prop = getPositionPropsInternal(bm.getStartPos());
+					if ( prop.pageMode!=0 ) {
+						buf.append("" + (prop.pageNumber+1) + " / " + prop.pageCount + "   ");
+					}
+					int percent = (int)(10000 * (long)prop.y / prop.fullHeight);
+					buf.append("" + (percent/100) + "." + (percent%100) + "%" );
+					String chapter = bm.getTitleText();
+					if (chapter!=null && chapter.length()>100)
+						chapter = chapter.substring(0, 100) + "...";
+					if (chapter!=null)
+			 			buf.append("\n" + chapter);
+				}
+			}
+			public void done() {
+				mActivity.showToast(buf.toString());
+			}
+		});
+	}
+
 	public void toggleTitlebar()
 	{
 		boolean newBool = "1".equals(getSetting(PROP_STATUS_LINE));
@@ -1516,6 +1554,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case DCMD_TOGGLE_TITLEBAR:
 			toggleTitlebar();
+			break;
+		case DCMD_SHOW_POSITION_INFO_POPUP:
+			showReadingPositionPopup();
 			break;
 		case DCMD_TOGGLE_SELECTION_MODE:
 			toggleSelectionMode();
