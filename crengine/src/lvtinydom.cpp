@@ -110,7 +110,7 @@ enum CacheFileBlockType {
     CBT_RECT_DATA,
     CBT_ELEM_STYLE_DATA,
     CBT_MAPS_DATA,
-    CBT_PAGE_DATA,
+    CBT_PAGE_DATA, //7
     CBT_PROP_DATA,
     CBT_NODE_INDEX,
     CBT_ELEM_NODE,
@@ -118,7 +118,7 @@ enum CacheFileBlockType {
     CBT_REND_PARAMS,
     CBT_TOC_DATA,
     CBT_STYLE_DATA,
-    CBT_BLOB_INDEX,
+    CBT_BLOB_INDEX, //15
     CBT_BLOB_DATA,
 };
 
