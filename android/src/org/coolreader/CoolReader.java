@@ -28,7 +28,6 @@ import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.EinkScreen;
 
-import android.R.drawable;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
@@ -133,11 +132,10 @@ public class CoolReader extends Activity
 	public int getScreenUpdateMode() {
 		return mScreenUpdateMode;
 	}
-	public void setScreenUpdateMode( int screenUpdateMode ) {
-		mScreenUpdateMode = screenUpdateMode;
-		if (EinkScreen.UpdateMode != screenUpdateMode) {
-			EinkScreen.UpdateMode = screenUpdateMode;
-			EinkScreen.ResetController(2);
+	public void setScreenUpdateMode( int screenUpdateMode, View view ) {
+		if (mReaderView != null) {
+			mScreenUpdateMode = screenUpdateMode;
+			EinkScreen.ResetController(screenUpdateMode, view);
 		}
 	}
 
@@ -145,10 +143,11 @@ public class CoolReader extends Activity
 	public int getScreenUpdateInterval() {
 		return mScreenUpdateInterval;
 	}
-	public void setScreenUpdateInterval( int screenUpdateInterval ) {
+	public void setScreenUpdateInterval( int screenUpdateInterval, View view ) {
 		mScreenUpdateInterval = screenUpdateInterval;
 		if (EinkScreen.UpdateModeInterval != screenUpdateInterval) {
 			EinkScreen.UpdateModeInterval = screenUpdateInterval;
+			EinkScreen.ResetController(mScreenUpdateMode, view);
 		}
 	}
 
@@ -763,7 +762,7 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onPause() : saving reader state");
 		mIsStarted = false;
 		mPaused = true;
-		EinkScreen.UpdateMode = -1;
+		setScreenUpdateMode(-1, mReaderView);
 		releaseBacklightControl();
 		mReaderView.saveCurrentPositionBookmarkSync(true);
 		super.onPause();
@@ -806,7 +805,7 @@ public class CoolReader extends Activity
 		mPaused = false;
 		mIsStarted = true;
 		Properties props = mReaderView.getSettings();
-		setScreenUpdateMode(props.getInt(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, 0)); 
+		setScreenUpdateMode(props.getInt(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, 0), mReaderView);
 		
 		backlightControl.onUserActivity();
 		super.onResume();
@@ -1157,10 +1156,6 @@ public class CoolReader extends Activity
 				mBackgroundThread.executeGUI(new Runnable() {
 					public void run() {
 						OptionsDialog dlg = new OptionsDialog(_this, mReaderView, mFontFaces);
-						// reset controller if EINK
-						if (DeviceInfo.EINK_SCREEN) {
-							EinkScreen.ResetController(2);
-						}
 						dlg.show();
 					}
 				});
@@ -1487,17 +1482,20 @@ public class CoolReader extends Activity
 		public final String packageName;
 		public final String className;
 		public final String action;
-		public DictInfo ( String id, String name, String packageName, String className, String action ) {
+		public final Integer internal;
+		public DictInfo ( String id, String name, String packageName, String className, String action, Integer internal ) {
 			this.id = id;
 			this.name = name;
 			this.packageName = packageName;
 			this.className = className;
 			this.action = action;
+			this.internal = internal;
 		}
 	}
 	private static final DictInfo dicts[] = {
-		new DictInfo("Fora", "Fora Dictionary", "com.ngc.fora", "com.ngc.fora.ForaDictionary", Intent.ACTION_SEARCH),	
-		new DictInfo("ColorDict", "ColorDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH),	
+		new DictInfo("Fora", "Fora Dictionary", "com.ngc.fora", "com.ngc.fora.ForaDictionary", Intent.ACTION_SEARCH, 0),
+		new DictInfo("ColorDict", "ColorDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 0),
+		new DictInfo("ColorDictApi", "ColorDict (new)", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 1),
 	};
 
 	public DictInfo[] getDictList() {
@@ -1528,14 +1526,40 @@ public class CoolReader extends Activity
 			}
 			if ( s.length()>0 ) {
 				//
-				Intent intent = new Intent(currentDict.action).setComponent(new ComponentName(
+				switch (currentDict.internal) {
+				case 0:
+					Intent intent0 = new Intent(currentDict.action).setComponent(new ComponentName(
 						currentDict.packageName, currentDict.className
 						)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				intent.putExtra(SearchManager.QUERY, s);
-				try {
-					startActivity( intent );
-				} catch ( ActivityNotFoundException e ) {
-					showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+					intent0.putExtra(SearchManager.QUERY, s);
+					try {
+						startActivity( intent0 );
+					} catch ( ActivityNotFoundException e ) {
+						showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+					}
+					break;
+				case 1:
+					final String SEARCH_ACTION  = "colordict.intent.action.SEARCH";
+					final String EXTRA_QUERY   = "EXTRA_QUERY";
+					final String EXTRA_FULLSCREEN = "EXTRA_FULLSCREEN";
+					final String EXTRA_HEIGHT  = "EXTRA_HEIGHT";
+					final String EXTRA_WIDTH   = "EXTRA_WIDTH";
+					final String EXTRA_GRAVITY  = "EXTRA_GRAVITY";
+					final String EXTRA_MARGIN_LEFT = "EXTRA_MARGIN_LEFT";
+					final String EXTRA_MARGIN_TOP  = "EXTRA_MARGIN_TOP";
+					final String EXTRA_MARGIN_BOTTOM = "EXTRA_MARGIN_BOTTOM";
+					final String EXTRA_MARGIN_RIGHT = "EXTRA_MARGIN_RIGHT";
+
+					Intent intent1 = new Intent(SEARCH_ACTION);
+					intent1.putExtra(EXTRA_QUERY, s); //Search Query
+					intent1.putExtra(EXTRA_FULLSCREEN, true); //
+					try
+					{
+						startActivity(intent1);
+					} catch ( ActivityNotFoundException e ) {
+						showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+					}
+					break;
 				}
 			}
 		}

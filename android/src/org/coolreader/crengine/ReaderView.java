@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
+import org.coolreader.crengine.DeviceInfo;
 
 import android.content.Context;
 import android.content.Intent;
@@ -1808,9 +1809,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_NIGHT_MODE) ) {
 			mActivity.setNightMode(flg);
         } else if ( key.equals(PROP_APP_SCREEN_UPDATE_MODE) ) {
-			mActivity.setScreenUpdateMode(stringToInt(value, 0));
+			mActivity.setScreenUpdateMode(stringToInt(value, 0), this);
         } else if ( key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL) ) {
-			mActivity.setScreenUpdateInterval(stringToInt(value, 10));
+			mActivity.setScreenUpdateInterval(stringToInt(value, 10), this);
         } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_DICTIONARY) ) {
@@ -2711,11 +2712,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			try {
 				canvas = holder.lockCanvas(rc);
 				//log.v("before draw(canvas)");
-				if (DeviceInfo.EINK_SCREEN) {
-					EinkScreen.PrepareController();
-				}
 				if ( canvas!=null ) {
 					callback.drawTo(canvas);
+					if (DeviceInfo.EINK_SCREEN){
+						EinkScreen.PrepareController(this);
+					}
 				}
 			} finally {
 				//log.v("exiting finally");
