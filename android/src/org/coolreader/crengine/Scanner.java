@@ -627,6 +627,8 @@ public class Scanner {
 		// external SD / Galaxy S
 		addRoot( "/mnt/ext.sd", "External SD /mnt/ext.sd", true);
 		addRoot( "/ext.sd", "External SD /ext.sd", true);
+		// Asus EEE PAD Transformer
+		addRoot( "/Removable/MicroSD", "MicroSD", true);
 		// external SD card Huawei S7
 		addRoot( "/sdcard2", R.string.dir_sd_card_2, true);
 		//addRoot( "/mnt/localdisk", "/mnt/localdisk", true);
