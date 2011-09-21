@@ -1102,7 +1102,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			if ( touchEventIgnoreNextUp )
 				return true;
-			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
+			if ( !isManualScrollActive && !isBrightnessControlActive && !DeviceInfo.EINK_SCREEN && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
 				int movex = manualScrollStartPosX - x;
 				int deltay = manualScrollStartPosY - y;
 				int deltax = movex < 0 ? -movex : movex;
@@ -1836,7 +1836,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pageFlipAnimationSpeedMs = pageFlipAnimationMode!=PAGE_ANIMATION_NONE ? DEF_PAGE_FLIP_MS : 0; 
         } else if ( PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) ) {
         	enableVolumeKeys = flg;
-        } else if ( PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
+        } else if ( !DeviceInfo.EINK_SCREEN && PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
         	try {
         		final int n = Integer.valueOf(value);
         		// delay before setting brightness
