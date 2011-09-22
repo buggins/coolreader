@@ -1,16 +1,16 @@
 # SOME DESCRIPTIVE TITLE.
 # This file is put in the public domain.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
-# Ferri64 <>, 2011.
+#
+# Ferri64 <frius64@hotmail.com>, 2011.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Catalan translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
 "POT-Creation-Date: 2011-07-27 20:29+0700\n"
-"PO-Revision-Date: 2011-05-08 16:05+0700\n"
-"Last-Translator: Ferri64\n"
+"PO-Revision-Date: 2011-09-15 17:53+0100\n"
+"Last-Translator: Ferran Rius Riu <friusriu@infonegocio.com>\n"
 "Language-Team: Catalan LoCo Team\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -22,23 +22,23 @@ msgstr ""
 
 #: ../src/citedlg.cpp:80
 msgid "Select next/prev paragraph"
-msgstr ""
+msgstr "Selecciona el paràgraf següent/anterior"
 
 #: ../src/citedlg.cpp:83
 msgid "Select one more paragraph"
-msgstr ""
+msgstr "Selecciona un paràgraf més"
 
 #: ../src/citedlg.cpp:86
 msgid "Deselect paragraph"
-msgstr ""
+msgstr "Desfés la selecció de paràgraf"
 
 #: ../src/citedlg.cpp:89
 msgid "Select one more phrase"
-msgstr ""
+msgstr "Selecciona una frase més"
 
 #: ../src/citedlg.cpp:92
 msgid "Deselect phrase"
-msgstr ""
+msgstr "Desfés la selecció de frase"
 
 #: ../src/citedlg.cpp:112
 msgid "Select text"
@@ -56,7 +56,8 @@ msgstr "1..8"
 msgid "No manual currently available for this language, sorry!"
 msgstr "Ho sento, no hi ha manual per al català."
 
-#: ../src/mainwnd.cpp:778 ../src/mainwnd.cpp:884
+#: ../src/mainwnd.cpp:778
+#: ../src/mainwnd.cpp:884
 msgid "Help"
 msgstr "Ajuda"
 
@@ -64,19 +65,23 @@ msgstr "Ajuda"
 msgid "Main Menu"
 msgstr "Menú principal"
 
-#: ../src/mainwnd.cpp:835 ../src/viewdlg.cpp:558
+#: ../src/mainwnd.cpp:835
+#: ../src/viewdlg.cpp:558
 msgid "About"
-msgstr "Quant a"
+msgstr "Quant a..."
 
-#: ../src/mainwnd.cpp:845 ../src/viewdlg.cpp:522
+#: ../src/mainwnd.cpp:845
+#: ../src/viewdlg.cpp:522
 msgid "Go to page"
 msgstr "Vés a la pàgina"
 
-#: ../src/mainwnd.cpp:856 ../src/recentdlg.cpp:121
+#: ../src/mainwnd.cpp:856
+#: ../src/recentdlg.cpp:121
 msgid "Open recent book"
 msgstr "Obre un dels darrers llibres"
 
-#: ../src/mainwnd.cpp:862 ../src/viewdlg.cpp:164
+#: ../src/mainwnd.cpp:862
+#: ../src/viewdlg.cpp:164
 msgid "Dictionary"
 msgstr "Diccionari"
 
@@ -84,29 +89,32 @@ msgstr "Diccionari"
 msgid "Cite"
 msgstr "Cita"
 
-#: ../src/mainwnd.cpp:871 ../src/bmkdlg.cpp:188
+#: ../src/mainwnd.cpp:871
+#: ../src/bmkdlg.cpp:188
 msgid "Bookmarks"
 msgstr "Marcadors"
 
-#: ../src/mainwnd.cpp:875 ../src/viewdlg.cpp:223
+#: ../src/mainwnd.cpp:875
+#: ../src/viewdlg.cpp:223
 msgid "Search"
 msgstr "Cerca"
 
-#: ../src/mainwnd.cpp:879 ../src/settings.cpp:308
+#: ../src/mainwnd.cpp:879
+#: ../src/settings.cpp:308
 msgid "Settings"
-msgstr "Paràmetres"
+msgstr "Configuració"
 
-#: ../src/mainwnd.cpp:888 ../src/viewdlg.cpp:636
+#: ../src/mainwnd.cpp:888
+#: ../src/viewdlg.cpp:636
 msgid "Keyboard layout"
-msgstr "Dsiposició de teclat"
+msgstr "Disposició de teclat"
 
 #: ../src/mainwnd.cpp:895
-#, fuzzy
 msgid ""
 "$1 - choose command\n"
 "$2, $3 - close"
 msgstr ""
-"$1 - obre el llibre\n"
+"$1 - trieu un comandament\n"
 "$2, $3 - tanca"
 
 #: ../src/mainwnd.cpp:1003
@@ -119,7 +127,7 @@ msgstr "Total de pàgines"
 
 #: ../src/mainwnd.cpp:1005
 msgid "Battery state"
-msgstr "Estat de la bateria"
+msgstr "Càrrega"
 
 #: ../src/mainwnd.cpp:1005
 msgid "charging..."
@@ -163,11 +171,11 @@ msgstr "Mida del fitxer"
 
 #: ../src/mainwnd.cpp:1023
 msgid "File format"
-msgstr "Format del fitxer"
+msgstr "Format"
 
 #: ../src/mainwnd.cpp:1024
 msgid "File info"
-msgstr "Informació del fitxer"
+msgstr "Quant al fitxer"
 
 #: ../src/mainwnd.cpp:1027
 msgid "Title"
@@ -199,7 +207,7 @@ msgstr "Traductor"
 
 #: ../src/mainwnd.cpp:1034
 msgid "Book info"
-msgstr "Informació del llibre"
+msgstr "Quant al llibre"
 
 #: ../src/mainwnd.cpp:1037
 msgid "Document author"
@@ -222,13 +230,12 @@ msgid "Document version"
 msgstr "Versió del document"
 
 #: ../src/mainwnd.cpp:1042
-#, fuzzy
 msgid "Change history"
-msgstr "Retrocedeix a l'historial de moviment"
+msgstr "Canvia l'historial"
 
 #: ../src/mainwnd.cpp:1043
 msgid "Document info"
-msgstr "Informació del document"
+msgstr "Quant al document"
 
 #: ../src/mainwnd.cpp:1046
 msgid "Publication name"
@@ -252,7 +259,7 @@ msgstr "ISBN"
 
 #: ../src/mainwnd.cpp:1051
 msgid "Publication info"
-msgstr "Informació de l'edició"
+msgstr "Quant a l'edició"
 
 #: ../src/mainwnd.cpp:1053
 msgid "Custom info"
@@ -260,15 +267,15 @@ msgstr "Informació personalitzada"
 
 #: ../src/mainwnd.cpp:1056
 msgid "CoolReader for PocketBook"
-msgstr ""
+msgstr "CoolReader per al PocketBook"
 
 #: ../src/mainwnd.cpp:1057
 msgid "Build date"
-msgstr ""
+msgstr "Data de compilació"
 
 #: ../src/mainwnd.cpp:1058
 msgid "About program"
-msgstr ""
+msgstr "Quant al programa"
 
 #: ../src/mainwnd.cpp:1175
 msgid "Loading: please wait..."
@@ -280,7 +287,7 @@ msgstr "Obre el llibre"
 
 #: ../src/recentdlg.cpp:105
 msgid "Delete record"
-msgstr "Eliminar registre"
+msgstr "Suprimeix el registre"
 
 #: ../src/recentdlg.cpp:139
 msgid ""
@@ -306,7 +313,8 @@ msgstr "Casella lliure"
 msgid "Page $1 ($2%)"
 msgstr "Pàgina  $1 ($2%)"
 
-#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:168
+#: ../src/bmkdlg.cpp:75
+#: ../src/bmkdlg.cpp:168
 msgid "Go to bookmark"
 msgstr "Vés al marcador"
 
@@ -326,7 +334,8 @@ msgstr ""
 "Pulsació curta $1 - vés al marcador,\n"
 "pulsació llarga - posa un marcador"
 
-#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:167
+#: ../src/bmkdlg.cpp:83
+#: ../src/bmkdlg.cpp:167
 msgid "Set bookmark"
 msgstr "Posa un marcador"
 
@@ -348,23 +357,22 @@ msgstr ""
 
 #: ../src/bmkdlg.cpp:169
 msgid "Delete bookmark"
-msgstr "Eliminar un marcador"
+msgstr "Suprimeix un marcador"
 
 #: ../src/bmkdlg.cpp:317
-#, fuzzy
 msgid "Go to citation"
-msgstr "Vé a la posició"
+msgstr "Vés a la cita"
 
 #: ../src/bmkdlg.cpp:318
-#, fuzzy
 msgid "Delete citation"
-msgstr "Eliminar registre"
+msgstr "Suprimeix la cita"
 
 #: ../src/bmkdlg.cpp:332
 msgid "Citations"
-msgstr ""
+msgstr "Cites"
 
-#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:559
+#: ../src/bmkdlg.cpp:444
+#: ../src/viewdlg.cpp:559
 msgid "Cite selection dialog"
 msgstr "Quadre de selecció de cites"
 
@@ -374,7 +382,7 @@ msgstr "Des del diccionari"
 
 #: ../src/dictdlg.cpp:89
 msgid "[cannot read article]"
-msgstr "[no es pot llegir l'article}"
+msgstr "[no es pot llegir l'article]"
 
 #: ../src/settings.cpp:82
 msgid "choose command"
@@ -390,19 +398,19 @@ msgstr "[Comandament no assignat]"
 
 #: ../src/settings.cpp:192
 msgid "0` (Portrait)"
-msgstr "0` (Retrat)"
+msgstr "0º (Retrat)"
 
 #: ../src/settings.cpp:193
 msgid "90 `"
-msgstr "90 `"
+msgstr "90º"
 
 #: ../src/settings.cpp:194
 msgid "180 `"
-msgstr "180 `"
+msgstr "180º"
 
 #: ../src/settings.cpp:195
 msgid "270 `"
-msgstr "270 `"
+msgstr "270º"
 
 #: ../src/settings.cpp:206
 msgid "Page orientation"
@@ -410,7 +418,7 @@ msgstr "Orientació de la pàgina"
 
 #: ../src/settings.cpp:222
 msgid "Default font size"
-msgstr "Mida de font per defecte"
+msgstr "Mida de lletra per defecte"
 
 #: ../src/settings.cpp:280
 msgid "The quick brown fox jumps over lazy dog"
@@ -418,25 +426,36 @@ msgstr "Setze jutges d'un jutjat mengen fetge d'un penjat"
 
 #: ../src/settings.cpp:317
 msgid "On for all fonts"
-msgstr "Activat per a totes les fonts"
+msgstr "Activat per a totes les lletres"
 
 #: ../src/settings.cpp:318
 msgid "On for big fonts only"
-msgstr "Activat només per a les fonts grans"
+msgstr "Activat només per a les lletres grans"
 
-#: ../src/settings.cpp:319 ../src/settings.cpp:325 ../src/settings.cpp:331
-#: ../src/settings.cpp:337 ../src/settings.cpp:343 ../src/settings.cpp:349
-#: ../src/settings.cpp:355 ../src/settings.cpp:361 ../src/settings.cpp:386
+#: ../src/settings.cpp:319
+#: ../src/settings.cpp:325
+#: ../src/settings.cpp:331
+#: ../src/settings.cpp:337
+#: ../src/settings.cpp:343
+#: ../src/settings.cpp:349
+#: ../src/settings.cpp:355
+#: ../src/settings.cpp:361
+#: ../src/settings.cpp:386
 msgid "Off"
 msgstr "Desactivat"
 
-#: ../src/settings.cpp:324 ../src/settings.cpp:330 ../src/settings.cpp:336
-#: ../src/settings.cpp:342 ../src/settings.cpp:348 ../src/settings.cpp:354
+#: ../src/settings.cpp:324
+#: ../src/settings.cpp:330
+#: ../src/settings.cpp:336
+#: ../src/settings.cpp:342
+#: ../src/settings.cpp:348
+#: ../src/settings.cpp:354
 #: ../src/settings.cpp:360
 msgid "On"
 msgstr "Activat"
 
-#: ../src/settings.cpp:366 ../src/settings.cpp:372
+#: ../src/settings.cpp:366
+#: ../src/settings.cpp:372
 msgid "Normal"
 msgstr "Normal"
 
@@ -566,23 +585,23 @@ msgstr "Mode turbo activat"
 
 #: ../src/settings.cpp:465
 msgid "180+slow next page"
-msgstr ""
+msgstr "180+pàgina següent lent"
 
 #: ../src/settings.cpp:466
 msgid "180+slow prev/next page"
-msgstr ""
+msgstr "180+pàgina anterior/següent lent"
 
 #: ../src/settings.cpp:467
 msgid "180+FAST next page"
-msgstr ""
+msgstr "180+pàgina següent RÀPID"
 
 #: ../src/settings.cpp:468
 msgid "180+FAST prev/next page"
-msgstr ""
+msgstr "180+pàgina anterior/següent RÀPID"
 
 #: ../src/settings.cpp:469
 msgid "180+FAST next/prev page"
-msgstr ""
+msgstr "180+pàgina següent/anterior RÀPID"
 
 #: ../src/settings.cpp:497
 msgid "Default font face"
@@ -594,20 +613,19 @@ msgstr "Gruix de la lletra"
 
 #: ../src/settings.cpp:529
 msgid "Font antialiasing"
-msgstr "Antiàlies de les fonts"
+msgstr "Antiàlies de les lletres"
 
 #: ../src/settings.cpp:535
 msgid "Interline space"
 msgstr "Interlineat"
 
 #: ../src/settings.cpp:546
-#, fuzzy
 msgid "Rotate"
-msgstr "Rota per"
+msgstr "Rota"
 
 #: ../src/settings.cpp:551
 msgid "Page turn angle"
-msgstr ""
+msgstr "Angle de gir de la pàgina"
 
 #: ../src/settings.cpp:557
 msgid "Footnotes at page bottom"
@@ -651,7 +669,7 @@ msgstr "Línia d'estat"
 
 #: ../src/settings.cpp:629
 msgid "Font kerning"
-msgstr "Interlletratge de les fonts"
+msgstr "Interlletratge"
 
 #: ../src/settings.cpp:637
 msgid "[No Hyphenation]"
@@ -667,7 +685,7 @@ msgstr "Partició de mots"
 
 #: ../src/settings.cpp:656
 msgid "Floating punctuation"
-msgstr ""
+msgstr "Puntuació flotant"
 
 #: ../src/settings.cpp:664
 msgid "Page margins"
@@ -707,16 +725,11 @@ msgstr "Poseu els diccionaris a la carpeta «dict» de la targeta SD."
 
 #: ../src/viewdlg.cpp:161
 msgid "Dictionaries in standard unix .dict format are supported."
-msgstr ""
-"Són compatibles els diccionaris en el format estàndard de l'unix .dict."
+msgstr "Són compatibles els diccionaris en el format estàndard de l'unix .dict."
 
 #: ../src/viewdlg.cpp:162
-msgid ""
-"For each dictionary, pair of files should be provided: data file (with .dict "
-"or .dict.dz extension, and index file with .index extension"
-msgstr ""
-"Cal donar una parella de fitxers per diccionari: fitxer de dades (amb "
-"extensió .dict o .dict.dz), i fitxer d'índex amb extensió .index"
+msgid "For each dictionary, pair of files should be provided: data file (with .dict or .dict.dz extension, and index file with .index extension"
+msgstr "Cal donar una parella de fitxers per diccionari: fitxer de dades (amb extensió .dict o .dict.dz), i fitxer d'índex amb extensió .index"
 
 #: ../src/viewdlg.cpp:177
 msgid "Table of contents"
@@ -728,7 +741,7 @@ msgstr "Introduïu el número de pàgina"
 
 #: ../src/viewdlg.cpp:196
 msgid "Enter position percent"
-msgstr ""
+msgstr "Introduïu el percentatge de posició"
 
 #: ../src/viewdlg.cpp:357
 msgid "Find in dictionary"
@@ -740,7 +753,7 @@ msgstr "M"
 
 #: ../src/viewdlg.cpp:472
 msgid "Ok"
-msgstr "D'acord"
+msgstr "Ok"
 
 #: ../src/viewdlg.cpp:474
 msgid "Up"
@@ -814,7 +827,8 @@ msgstr "Proper enllaç"
 msgid "Previous link"
 msgstr "Enllaç anterior"
 
-#: ../src/viewdlg.cpp:519 ../src/viewdlg.cpp:546
+#: ../src/viewdlg.cpp:519
+#: ../src/viewdlg.cpp:546
 msgid "Go to link"
 msgstr "Vés a l'enllaç"
 
@@ -824,7 +838,7 @@ msgstr "A la darrera pàgina"
 
 #: ../src/viewdlg.cpp:521
 msgid "Go to position"
-msgstr "Vé a la posició"
+msgstr "Vés a la posició"
 
 #: ../src/viewdlg.cpp:523
 msgid "Zoom in"
@@ -900,15 +914,15 @@ msgstr "Quadre de selecció de pàgina"
 
 #: ../src/viewdlg.cpp:543
 msgid "Settings menu"
-msgstr "Paràmetres"
+msgstr "Configuració"
 
 #: ../src/viewdlg.cpp:544
 msgid "Font size settings"
-msgstr "Paràmetres de mida de font"
+msgstr "Configuració de la mida de lletra"
 
 #: ../src/viewdlg.cpp:545
 msgid "Page orientation settings"
-msgstr "Paràmetres d'orientació de pàgina"
+msgstr "Configuració de l'orientació de pàgina"
 
 #: ../src/viewdlg.cpp:550
 msgid "Find in Dictionary (T5)"
@@ -919,9 +933,8 @@ msgid "Bookmark list"
 msgstr "Llista de marcadors"
 
 #: ../src/viewdlg.cpp:553
-#, fuzzy
 msgid "Citations list"
-msgstr "Cita"
+msgstr "Llista de cites"
 
 #: ../src/viewdlg.cpp:554
 msgid "Go to bookmark..."
@@ -953,7 +966,7 @@ msgstr "Disposició de teclat següent"
 
 #: ../src/viewdlg.cpp:563
 msgid "Previous keyboard layout"
-msgstr "Disposició de teclat anterio"
+msgstr "Disposició de teclat anterior"
 
 #: ../src/viewdlg.cpp:564
 msgid "Show manual"
@@ -964,9 +977,8 @@ msgid "Show key mapping"
 msgstr "Mostra l'ús de les tecles"
 
 #: ../src/viewdlg.cpp:566
-#, fuzzy
 msgid "Go to percent..."
-msgstr "Vés a la pàgina"
+msgstr "Vés al percentatge..."
 
 #: ../src/viewdlg.cpp:573
 msgid "Unknown command"
@@ -1039,3 +1051,5 @@ msgstr "Premeu $1 per traduir"
 #, fuzzy
 #~ msgid "Go to cite"
 #~ msgstr "Vés a la pàgina"
+
+
