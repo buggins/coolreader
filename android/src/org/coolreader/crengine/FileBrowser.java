@@ -344,6 +344,12 @@ public class FileBrowser extends ListView {
 		showDirectory(null, null);
 	}
 
+	public boolean isBookShownInRecentList(FileInfo book) {
+		if (currDirectory==null || !currDirectory.isRecentDir())
+			return false;
+		return currDirectory.findItemByPathName(book.getPathName())!=null;
+	}
+	
 	public void showLastDirectory()
 	{
 		if ( currDirectory==null || currDirectory==mScanner.getRoot() )

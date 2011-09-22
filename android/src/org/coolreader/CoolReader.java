@@ -980,7 +980,7 @@ public class CoolReader extends Activity
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
 				showView(mBrowser);
-		        if ( fileToShow==null )
+		        if (fileToShow==null || mBrowser.isBookShownInRecentList(fileToShow))
 		        	mBrowser.showLastDirectory();
 		        else
 		        	mBrowser.showDirectory(fileToShow, fileToShow);
