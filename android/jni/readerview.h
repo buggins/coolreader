@@ -32,4 +32,7 @@ public:
     lString16 getLink( int x, int y, int r );
 };
 
+extern CRTimerUtil _timeoutControl;
+
+
 #endif

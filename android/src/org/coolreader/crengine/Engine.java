@@ -594,7 +594,13 @@ public class Engine {
 
 	private native boolean scanBookPropertiesInternal(FileInfo info);
 
-    public native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
+    private static native void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
+    
+    public static void suspendLongOperation() {
+    	if (isInitialized()) {
+    		suspendLongOperationInternal();
+    	}
+    }
 	
 	/**
 	 * Checks whether specified directlry or file is symbolic link.
@@ -863,6 +869,10 @@ public class Engine {
 		// }
 	}
 
+	public static boolean isInitialized() {
+		return initialized;
+	}
+	
 	static private boolean initialized = false;
 	static private boolean initializeStarted = false;
 

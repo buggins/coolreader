@@ -142,7 +142,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public void postBackground( Runnable task )
 	{
-		Engine.suspendLongOperationInternal();
+		Engine.suspendLongOperation();
 		if ( mStopped ) {
 			L.i("Posting task " + task + " to GUI queue since background thread is stopped");
 			postGUI( task );
@@ -193,7 +193,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public void executeBackground( Runnable task )
 	{
-		Engine.suspendLongOperationInternal();
+		Engine.suspendLongOperation();
 		task = guard(task);
 		if ( isBackgroundThread() || mStopped )
 			task.run(); // run in this thread
@@ -316,7 +316,7 @@ public class BackgroundThread extends Thread {
 	
 	public void waitForBackgroundCompletion()
 	{
-		Engine.suspendLongOperationInternal();
+		Engine.suspendLongOperation();
 		callBackground(new Callable<Object>() {
 			public Object call() {
 				return null;

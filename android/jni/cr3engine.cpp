@@ -472,6 +472,17 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isLink
 }
 
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    suspendLongOperationInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationInternal
+  (JNIEnv *, jclass)
+{
+	_timeoutControl.cancel();
+}
+
 //=====================================================================
 
 static JNINativeMethod sEngineMethods[] = {

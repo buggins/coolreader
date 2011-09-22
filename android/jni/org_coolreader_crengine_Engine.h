@@ -87,7 +87,6 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isLink
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationInternal
   (JNIEnv *, jclass);
 
-
 #ifdef __cplusplus
 }
 #endif

@@ -131,7 +131,7 @@ public:
     }
 };
 
-static CRTimerUtil _timeoutControl;
+CRTimerUtil _timeoutControl;
 
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
  { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 28, 30, \
@@ -1259,16 +1259,5 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_goLinkInternal
     lString16 link = env.fromJavaString(_link);
     bool res = p->_docview->goLink( link, true );
     return res ? 1 : 0;
-}
-
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    suspendLongOperationInternal
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationInternal
-  (JNIEnv *, jclass)
-{
-	_timeoutControl.cancel();
 }
 
