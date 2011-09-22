@@ -41,15 +41,13 @@ int LVRendPageList::FindNearestPage( int y, int direction )
 
 LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight)
     : callback(NULL), totalFinalBlocks(0)
-    , renderedFinalBlocks(0), lastSentProgress(0), lastPercent(-1), page_list(pageList), page_h(pageHeight), footNotes(64), curr_note(NULL)
+    , renderedFinalBlocks(0), lastPercent(-1), page_list(pageList), page_h(pageHeight), footNotes(64), curr_note(NULL)
 {
     if ( callback ) {
         callback->OnFormatStart();
     }
 }
 
-#define RENDER_PROGRESS_INTERVAL_SECONDS 2
-#define RENDER_PROGRESS_INTERVAL_PERCENT 2
 bool LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
 {
     renderedFinalBlocks += numFinalBlocksRendered;
@@ -59,10 +57,9 @@ bool LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
     if ( percent>100 )
         percent = 100;
     if ( callback && percent>lastPercent+RENDER_PROGRESS_INTERVAL_PERCENT ) {
-        time_t t = time((time_t)0);
-        if ( t>lastSentProgress+RENDER_PROGRESS_INTERVAL_SECONDS ) {
+        if ( progressTimeout.expired() ) {
             callback->OnFormatProgress(percent);
-            lastSentProgress = t;
+            progressTimeout.restart(RENDER_PROGRESS_INTERVAL_MILLIS);
             lastPercent = percent;
             return true;
         }

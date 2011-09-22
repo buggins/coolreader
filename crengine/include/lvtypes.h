@@ -320,6 +320,15 @@ public:
         _interval = expirationIntervalMillis;
     }
 
+    void restart() {
+        _start = getSystemTimeMillis();
+    }
+
+    void restart(lInt64 expirationIntervalMillis) {
+        _start = getSystemTimeMillis();
+        _interval = expirationIntervalMillis;
+    }
+
     CRTimerUtil & operator = (const CRTimerUtil & t) {
     	_start = t._start;
     	_interval = t._interval;
