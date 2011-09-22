@@ -734,12 +734,15 @@ public class CRDB {
 
 	synchronized public boolean save( BookInfo bookInfo )
 	{
-		Log.d("cr3db", "saving Book info id=" + bookInfo.getFileInfo().id);
 		if ( mDB==null ) {
 			Log.e("cr3db", "cannot save book info : DB is closed");
 			return false;
 		}
-		boolean res = save(bookInfo.getFileInfo());
+		boolean res = true;
+		if (bookInfo.getFileInfo().isModified) {
+			res = save(bookInfo.getFileInfo()) && res;
+			Log.d("cr3db", "saving Book info id=" + bookInfo.getFileInfo().id);
+		}
 		for ( int i=0; i<bookInfo.getBookmarkCount(); i++ ) {
 			 Bookmark bmk  = bookInfo.getBookmark(i);
 			 if (bmk.isModified())
