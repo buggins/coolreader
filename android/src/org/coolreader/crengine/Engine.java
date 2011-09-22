@@ -594,6 +594,8 @@ public class Engine {
 
 	private native boolean scanBookPropertiesInternal(FileInfo info);
 
+    public native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
+	
 	/**
 	 * Checks whether specified directlry or file is symbolic link.
 	 * (thread-safe)

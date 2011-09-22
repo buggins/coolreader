@@ -356,7 +356,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private native boolean moveSelectionInternal( Selection sel, int moveCmd, int params );
     private native String checkLinkInternal( int x, int y, int delta );
     private native int goLinkInternal( String link );
-
+    
     public static final int SWAP_DONE=0;
     public static final int SWAP_TIMEOUT=1;
     public static final int SWAP_ERROR=2;

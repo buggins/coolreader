@@ -131,6 +131,8 @@ public:
     }
 };
 
+static CRTimerUtil _timeoutControl;
+
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = \
  { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 28, 30, \
    32, 34, 36, 38, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72 }
@@ -1027,8 +1029,9 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_swapToCacheIntern
 {
     CRJNIEnv env(_env);
     ReaderViewNative * p = getNative(_env, _this);
-    CRTimerUtil timeout(1000); // 1 seconds
-    return p->_docview->updateCache(timeout);
+    CRTimerUtil timeout(60000); // 1 minute, can be cancelled by Engine.suspendContinuousOperationInternal()
+    _timeoutControl = timeout;
+    return p->_docview->updateCache(_timeoutControl);
 }
 
 
@@ -1256,5 +1259,16 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_goLinkInternal
     lString16 link = env.fromJavaString(_link);
     bool res = p->_docview->goLink( link, true );
     return res ? 1 : 0;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    suspendLongOperationInternal
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationInternal
+  (JNIEnv *, jclass)
+{
+	_timeoutControl.cancel();
 }
 

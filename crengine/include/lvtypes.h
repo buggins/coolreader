@@ -294,7 +294,7 @@ public:
 /// timer to interval expiration, in milliseconds
 class CRTimerUtil {
     lInt64 _start;
-    lInt64 _interval;
+    volatile lInt64 _interval;
 public:
     static lInt64 getSystemTimeMillis() {
 #ifdef _WIN32
@@ -319,6 +319,17 @@ public:
         _start = getSystemTimeMillis();
         _interval = expirationIntervalMillis;
     }
+
+    CRTimerUtil & operator = (const CRTimerUtil & t) {
+    	_start = t._start;
+    	_interval = t._interval;
+    	return *this;
+    }
+
+    void cancel() {
+    	_interval = 0;
+    }
+
     /// returns true if timeout is infinite
     bool infinite() {
         return _interval==-1;

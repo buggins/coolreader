@@ -3,6 +3,7 @@
 
 #include "cr3java.h"
 #include "org_coolreader_crengine_ReaderView.h"
+#include "org_coolreader_crengine_Engine.h"
 #include "lvdocview.h"
 
 #define READERVIEW_DCMD_START 2000
