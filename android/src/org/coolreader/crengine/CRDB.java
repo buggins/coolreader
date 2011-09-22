@@ -15,11 +15,16 @@ public class CRDB {
 	static final boolean DROP_TABLES = false; // for debug purposes
 	SQLiteDatabase mDB;
 	File mDBFile;
+	SQLiteDatabase mCoverpageDB;
+	File mCoverpageDBFile;
 	protected boolean open( File dbfile )
 	{
 		L.i("Opening database from " + dbfile.getAbsolutePath());
-		mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+		this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
 		this.mDBFile = dbfile;
+		File coverFile = new File(dbfile.getAbsolutePath().replace(".sqlite", "_cover.sqlite"));
+		this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
+		this.mCoverpageDBFile = coverFile;
 		return true;
 	}
 	protected void dropTables()
@@ -29,6 +34,7 @@ public class CRDB {
 		};
 		for ( String name : tableNames )
 			mDB.execSQL("DROP TABLE IF EXISTS " + name);
+		mCoverpageDB.execSQL("DROP TABLE IF EXISTS coverpage");
 	}
 	
 	private void execSQLIgnoreErrors( String... sqls )
@@ -39,6 +45,18 @@ public class CRDB {
 			} catch ( SQLException e ) {
 				// ignore
 				Log.w("cr3", "query failed, ignoring: " + sql);
+			}
+		}
+	}
+
+	private void execSQLCoverpageIgnoreErrors( String... sqls )
+	{
+		for ( String sql : sqls ) {
+			try { 
+				mCoverpageDB.execSQL(sql);
+			} catch ( SQLException e ) {
+				// ignore
+				Log.w("cr3", "cp query failed, ignoring: " + sql);
 			}
 		}
 	}
@@ -56,6 +74,19 @@ public class CRDB {
 		}
 	}
 
+	private void execCoverpageSQL( String... sqls )
+	{
+		for ( String sql : sqls ) {
+			try { 
+				mCoverpageDB.execSQL(sql);
+			} catch ( SQLException e ) {
+				// ignore
+				Log.w("cr3", "cp query failed: " + sql);
+				throw e;
+			}
+		}
+	}
+
 	private final static String[] COVERPAGE_SCHEMA = new String[] {
 		"CREATE TABLE IF NOT EXISTS coverpage (" +
 		"book_fk INTEGER NOT NULL REFERENCES book (id)," +
@@ -63,7 +94,7 @@ public class CRDB {
 		")"
 	};
 	
-	public final int DB_VERSION = 4;
+	public final int DB_VERSION = 5;
 	protected boolean updateSchema()
 	{
 		if (DROP_TABLES)
@@ -136,7 +167,7 @@ public class CRDB {
 				")");
 		execSQL("CREATE INDEX IF NOT EXISTS " +
 		"bookmark_book_index ON bookmark (book_fk) ");
-		execSQL(COVERPAGE_SCHEMA);
+		execCoverpageSQL(COVERPAGE_SCHEMA);
 		int currentVersion = mDB.getVersion();
 		// version 1 updates ====================================================================
 		if ( currentVersion<1 )
@@ -145,12 +176,49 @@ public class CRDB {
 			execSQLIgnoreErrors(COVERPAGE_SCHEMA);
 		if ( currentVersion<4 )
 			execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN flags INTEGER DEFAULT 0");
+		if ( currentVersion>0 && currentVersion<5 )
+			migrateCoverpages();
 		// version 2 updates ====================================================================
 		// TODO: add more updates here
 		// set current version
 		if ( currentVersion<DB_VERSION )
 			mDB.setVersion(DB_VERSION);
 		return true;
+	}
+	
+	private void migrateCoverpages() {
+		Thread migrationThread = new Thread() {
+			@Override
+			public void run() {
+				Log.i("cr3", "Migration thread is started");
+				try {
+					String sql = "SELECT book_fk, imagedata FROM coverpage";
+					Cursor rs = null;
+					try {
+						rs = mDB.rawQuery(sql, null);
+						if ( rs.moveToFirst() ) {
+							do {
+								long id = rs.getLong(0);
+								byte[] data = rs.getBlob(1);
+								if (data!=null && data.length>0) {
+									Log.i("cr3", "Moving coverpage for bookId=" + id + " (" + data.length + " bytes)");
+									saveBookCoverpage(id, data);
+								}
+							} while (rs.moveToNext());
+							execSQLIgnoreErrors("DROP TABLE IF EXISTS coverpage");
+						}
+					} finally {
+						if (rs!=null)
+							rs.close();
+					}
+				} catch (Exception e) {
+					Log.e("cr3", "Exception while moving cover pages", e);
+				}
+				Log.i("cr3", "Migration thread is finished");
+			}
+			
+		};
+		migrationThread.start();
 	}
 	
 	public CRDB( File dbfile )
@@ -397,15 +465,26 @@ public class CRDB {
 		}
 	}
 	
-	public void saveBookCoverpage( long bookId, byte[] data )
+	private Long longCoverpageQuery( String sql )
+	{
+		SQLiteStatement stmt = mCoverpageDB.compileStatement(sql);
+		try {
+			return stmt.simpleQueryForLong();
+		} catch ( Exception e ) {
+			// not found or error
+			return null;
+		}
+	}
+	
+	synchronized public void saveBookCoverpage( long bookId, byte[] data )
 	{
 		if ( data==null )
 			return;
 		SQLiteStatement stmt = null;
 		try { 
-			Long existing = longQuery("SELECT book_fk FROM coverpage WHERE book_fk=" + bookId);
+			Long existing = longCoverpageQuery("SELECT book_fk FROM coverpage WHERE book_fk=" + bookId);
 			if ( existing==null ) {
-				stmt = mDB.compileStatement("INSERT INTO coverpage (book_fk, imagedata) VALUES ("+bookId+", ?)");
+				stmt = mCoverpageDB.compileStatement("INSERT INTO coverpage (book_fk, imagedata) VALUES ("+bookId+", ?)");
 				stmt.bindBlob(1, data);
 				stmt.execute();
 				Log.v("cr3", "db: saved " + data.length + " bytes of cover page for book " + bookId);
@@ -417,11 +496,11 @@ public class CRDB {
 				stmt.close();
 		}
 	}
-	public byte[] loadBookCoverpage( long bookId )
+	synchronized public byte[] loadBookCoverpage( long bookId )
 	{
 		Cursor rs = null;
 		try {
-			rs = mDB.rawQuery("SELECT imagedata FROM coverpage WHERE book_fk=" + bookId, null);
+			rs = mCoverpageDB.rawQuery("SELECT imagedata FROM coverpage WHERE book_fk=" + bookId, null);
 			if ( rs.moveToFirst() ) {
 				return rs.getBlob(0);
 			}
@@ -442,7 +521,7 @@ public class CRDB {
 				 + longQuery("SELECT count(*) FROM book") + " books, "
 				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks"
 				 + longQuery("SELECT count(*) FROM folder") + " folders"
-				 + longQuery("SELECT count(*) FROM coverpage") + " coverpages"
+				 + longCoverpageQuery("SELECT count(*) FROM coverpage") + " coverpages"
 				 );
 	}
 
@@ -867,6 +946,9 @@ public class CRDB {
 			mDB.close();
 			mDB = null;
 		}
-		
+		if ( mCoverpageDB!=null && mCoverpageDB.isOpen() ) {
+			mCoverpageDB.close();
+			mCoverpageDB = null;
+		}
 	}
 }
