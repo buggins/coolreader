@@ -2174,6 +2174,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			bitmap = null;
 			position = null;
 		}
+		boolean isReleased() {
+			return bitmap == null;
+		}
 		@Override
 		public String toString() {
 			return "BitmapInfo [position=" + position + "]";
@@ -2779,6 +2782,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int pointerStartPos;
 		int pointerDestPos;
 		int pointerCurrPos;
+		BitmapInfo image1;
+		BitmapInfo image2;
 		ScrollViewAnimation( int startY, int maxY )
 		{
 			super();
@@ -2794,8 +2799,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pointerStartPos = pos;
 			pointerCurrPos = pos;
 			pointerDestPos = startY;
-			BitmapInfo image1;
-			BitmapInfo image2;
 			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
 			image1 = preparePageImage(0);
 			image2 = preparePageImage(image1.position.pageHeight);
@@ -2885,8 +2888,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void draw(Canvas canvas)
 		{
-			BitmapInfo image1 = mCurrentPageInfo;
-			BitmapInfo image2 = mNextPageInfo;
+//			BitmapInfo image1 = mCurrentPageInfo;
+//			BitmapInfo image2 = mNextPageInfo;
+			if (image1.isReleased() || image2.isReleased())
+				return;
 			int h = image1.position.pageHeight;
 			int rowsFromImg1 = image1.position.y + h - pointerCurrPos;
 			int rowsFromImg2 = h - rowsFromImg1;
@@ -2957,6 +2962,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Paint[] hilitePaints;
 		private final boolean naturalPageFlip; 
 		private final boolean flipTwoPages; 
+
+		BitmapInfo image1;
+		BitmapInfo image2;
+		
 		PageViewAnimation( int startX, int maxX, int direction )
 		{
 			super();
@@ -2981,8 +2990,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return;
 			}
 			this.pageCount = currPos.pageMode;
-			BitmapInfo image1 = preparePageImage(0);
-			BitmapInfo image2 = preparePageImage(direction);
+			image1 = preparePageImage(0);
+			image2 = preparePageImage(direction);
 			if ( image1==null || image2==null ) {
 				log.v("PageViewAnimation -- cannot start animation: page image is null");
 				return;
@@ -3254,8 +3263,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void draw(Canvas canvas)
 		{
 			if (DEBUG_ANIMATION) log.v("PageViewAnimation.draw("+currShift + ")");
-			BitmapInfo image1 = mCurrentPageInfo;
-			BitmapInfo image2 = mNextPageInfo;
+//			BitmapInfo image1 = mCurrentPageInfo;
+//			BitmapInfo image2 = mNextPageInfo;
+			if (image1.isReleased() || image2.isReleased())
+				return;
 			int w = image1.bitmap.getWidth(); 
 			int h = image1.bitmap.getHeight();
 			int div;
