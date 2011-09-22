@@ -505,7 +505,7 @@ public class CRDB {
 				return rs.getBlob(0);
 			}
 			return null;
-		} catch ( SQLException e ) {
+		} catch ( Exception e ) {
 			Log.e("cr3", "error while reading coverpage for book " + bookId + ": " + e.getMessage());
 			return null;
 		} finally {
