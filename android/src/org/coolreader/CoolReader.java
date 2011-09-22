@@ -683,7 +683,7 @@ public class CoolReader extends Activity
 		}
 		
 		if ( mEngine!=null ) {
-			mEngine.uninit();
+			//mEngine.uninit();
 		}
 
 		if ( mDB!=null ) {

@@ -817,6 +817,8 @@ public class CRDB {
 			Log.e("cr3db", "cannot save book info : DB is closed");
 			return false;
 		}
+		if (bookInfo==null || bookInfo.getFileInfo()==null)
+			return false;
 		boolean res = true;
 		if (bookInfo.getFileInfo().isModified) {
 			res = save(bookInfo.getFileInfo()) && res;
