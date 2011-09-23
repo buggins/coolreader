@@ -732,7 +732,17 @@ bool AlgoHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8
                                 lUInt16 nw = widths[i] + hyphCharWidth;
                                 if ( nw<maxWidth )
                                 {
-                                    flags[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+                                    bool disabled = false;
+                                    const char * dblSequences[] = {
+                                        "sh", "th", "ph", "ch", NULL
+                                    };
+                                    for (int k=0; dblSequences[k]; k++)
+                                        if (str[i]==dblSequences[k][0] && str[i+1]==dblSequences[k][1]) {
+                                            disabled = true;
+                                            break;
+                                        }
+                                    if (!disabled)
+                                        flags[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
                                     //widths[i] = nw; // don't add hyph width
                                 }
                             }
