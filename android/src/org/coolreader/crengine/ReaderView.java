@@ -881,19 +881,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void sendQuotationInEmail( Selection sel ) {
         final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-        emailIntent.setType("plain/text");
-        //emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{ });
+        emailIntent.setType("text/plain");
         StringBuilder buf = new StringBuilder();
         if (mBookInfo.getFileInfo().authors!=null)
-        	buf.append(mBookInfo.getFileInfo().authors + "\n");
+        	buf.append("|" + mBookInfo.getFileInfo().authors + "\n");
         if (mBookInfo.getFileInfo().title!=null)
-        	buf.append(mBookInfo.getFileInfo().title + "\n");
+        	buf.append("|" + mBookInfo.getFileInfo().title + "\n");
         if (sel.chapter!=null && sel.chapter.length()>0)
-        	buf.append(sel.chapter + "\n");
+        	buf.append("|" + sel.chapter + "\n");
     	buf.append(sel.text + "\n");
     	emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, mBookInfo.getFileInfo().authors + " " + mBookInfo.getFileInfo().title);
         emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, buf.toString());
-		mActivity.startActivity(Intent.createChooser(emailIntent, "Send quotation..."));	
+		mActivity.startActivity(Intent.createChooser(emailIntent, null));	
 	}
 	
 	public void copyToClipboard( String text ) {
