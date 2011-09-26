@@ -1569,12 +1569,12 @@ public class CoolReader extends Activity
 				BackgroundThread.instance().executeBackground(new Runnable() {
 					@Override
 					public void run() {
-						BackgroundThread.instance().executeGUI(new Runnable() {
+						BackgroundThread.instance().postGUI(new Runnable() {
 							@Override
 							public void run() {
 								findInDictionaryInternal(pattern);
 							}
-						});
+						}, 100);
 					}
 				});
 			}
