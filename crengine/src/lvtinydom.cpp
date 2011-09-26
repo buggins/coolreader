@@ -35,7 +35,7 @@
 // cache memory sizes
 //--------------------------------------------------------
 #ifndef ENABLED_BLOCK_WRITE_CACHE
-#define ENABLED_BLOCK_WRITE_CACHE 1
+#define ENABLED_BLOCK_WRITE_CACHE 0
 #endif
 
 #define WRITE_CACHE_TOTAL_SIZE    (10*DOC_BUFFER_SIZE/100)
