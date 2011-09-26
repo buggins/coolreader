@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.04.02"
+#define CACHE_FILE_FORMAT_VERSION "3.04.03"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -35,7 +35,7 @@
 // cache memory sizes
 //--------------------------------------------------------
 #ifndef ENABLED_BLOCK_WRITE_CACHE
-#define ENABLED_BLOCK_WRITE_CACHE 0
+#define ENABLED_BLOCK_WRITE_CACHE 1
 #endif
 
 #define WRITE_CACHE_TOTAL_SIZE    (10*DOC_BUFFER_SIZE/100)

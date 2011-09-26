@@ -25,7 +25,14 @@
 #endif
 
 // to debug formatter
+
 #if defined(_DEBUG) && 0
+#define TRACE_LINE_SPLITTING 1
+#else
+#define TRACE_LINE_SPLITTING 0
+#endif
+
+#if TRACE_LINE_SPLITTING==1
 #ifdef _MSC_VER
 #define TR(...) CRLog::trace(__VA_ARGS__)
 #else
@@ -999,12 +1006,12 @@ public:
             int deprecatedWrapWidth = lastDeprecatedWrap > 0 ? x + m_widths[lastDeprecatedWrap]-w0 : 0;
             int unusedSpace = maxWidth - normalWrapWidth;
             int unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
-            if ( deprecatedWrapWidth>normalWrapWidth && unusedPercent>7 ) {
+            if ( deprecatedWrapWidth>normalWrapWidth && unusedPercent>3 ) {
                 lastNormalWrap = lastDeprecatedWrap;
             }
             unusedSpace = maxWidth - normalWrapWidth;
             unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
-            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedPercent > 10 && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
+            if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedPercent > 5 && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
                 // hyphenate word
                 int start, end;
                 lStr_findWordBounds( m_text, m_length, wordpos, start, end );
@@ -1014,9 +1021,12 @@ public:
                     lStr_findWordBounds( m_text, m_length, end-1, start, end );
                     len = end-start;
                 }
+#if TRACE_LINE_SPLITTING==1
                 if ( len>0 ) {
+                    CRLog::trace("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
                     TR("wordBounds(%s) unusedSpace=%d wordWidth=%d", LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
 				}
+#endif
                 if ( start<end && start<wordpos && end>=lastNormalWrap && len>=MIN_WORD_LEN_TO_HYPHENATE ) {
                     if ( len > MAX_WORD_SIZE )
                         len = MAX_WORD_SIZE;
