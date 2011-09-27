@@ -638,6 +638,16 @@ public class Scanner {
 		addOPDSRoot();
 	}
 	
+	public File[] getMountedRootsList() {
+		ArrayList<File> list = new ArrayList<File>();
+		for (int i=0; i<mRoot.dirCount(); i++) {
+			FileInfo dir = mRoot.getDir(i);
+			if (!dir.isSpecialDir())
+				list.add(new File(dir.getPathName()));
+		}
+		return list.toArray(new File[list.size()]);
+	}
+	
 	public boolean autoAddRootForFile( File f ) {
 		File p = f.getParentFile();
 		while ( p!=null ) {

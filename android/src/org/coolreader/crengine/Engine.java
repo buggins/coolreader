@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -32,6 +34,7 @@ public class Engine {
 	
 	private final CoolReader mActivity;
 	private final BackgroundThread mBackgroundThread;
+	private final File[] mountedRootsList;
 	
 	static final private String LIBRARY_NAME = "cr3engine-45-15";
 
@@ -44,24 +47,13 @@ public class Engine {
 	 * 
 	 * @return array of r/w storage roots
 	 */
-	public static File[] getStorageDirectories(boolean writableOnly) {
-		ArrayList<File> res = new ArrayList<File>(2);
-		File dir = Environment.getExternalStorageDirectory();
-		if (dir.isDirectory() && (!writableOnly || dir.canWrite()))
-			res.add(dir);
-		File dir2 = new File("/system/media/sdcard");
-		if (dir2.isDirectory() && (!writableOnly || dir2.canWrite()))
-			res.add(dir2);
-		File dir22 = new File("/sdcard2");
-		if (dir22.isDirectory() && (!writableOnly || dir22.canWrite()))
-			res.add(dir22);
-		File dir3 = new File("/nand");
-		if (dir3.isDirectory() && (!writableOnly || dir3.canWrite()))
-			res.add(dir3);
-		File dir4 = new File("/PocketBook701");
-		if (dir4.isDirectory() && (!writableOnly || dir4.canWrite()))
-			res.add(dir4);
-		return res.toArray(new File[] {});
+	public File[] getStorageDirectories(boolean writableOnly) {
+		Collection<File> res = new HashSet<File>(2);
+		for (File dir : mountedRootsList) {
+			if (dir.isDirectory() && (!writableOnly || dir.canWrite()))
+				res.add(dir);
+		}
+		return res.toArray(new File[res.size()]);
 	}
 
 	/**
@@ -97,7 +89,7 @@ public class Engine {
 	 * @param createIfNotExists
 	 * @return
 	 */
-	public static File[] getDataDirectories(String subdir,
+	public File[] getDataDirectories(String subdir,
 			boolean createIfNotExists, boolean writableOnly) {
 		File[] roots = getStorageDirectories(writableOnly);
 		ArrayList<File> res = new ArrayList<File>(roots.length);
@@ -547,9 +539,10 @@ public class Engine {
 	 * @param fontList
 	 *            is array of .ttf font pathnames to load
 	 */
-	public Engine(CoolReader activity, BackgroundThread backgroundThread) {
+	public Engine(CoolReader activity, BackgroundThread backgroundThread, File[] mountedRootsList) {
 		this.mActivity = activity;
 		this.mBackgroundThread = backgroundThread;
+		this.mountedRootsList = mountedRootsList;
 		// this.mMainView = mainView;
 		//
 //		log.i("Engine() : initializing Engine in UI thread");
@@ -629,32 +622,87 @@ public class Engine {
 		return list;
 	}
 
-	public enum HyphDict {
-		NONE(HYPH_NONE, 0, "[None]"), ALGORITHM(HYPH_ALGO, 0, "[Algorythmic]"), RUSSIAN(
-				HYPH_DICT, R.raw.russian_enus_hyphen, "Russian"), ENGLISH(
-				HYPH_DICT, R.raw.english_us_hyphen, "English US"), GERMAN(
-				HYPH_DICT, R.raw.german_hyphen, "German"), UKRAINIAN(HYPH_DICT,
-				R.raw.ukrain_hyphen, "Ukrainian"), SPANISH(HYPH_DICT,
-				R.raw.spanish_hyphen, "Spanish"), FRENCH(HYPH_DICT,
-				R.raw.french_hyphen, "French"), BULGARIAN(HYPH_DICT,
-				R.raw.bulgarian_hyphen, "Bulgarian"), SWEDISH(HYPH_DICT,
-				R.raw.swedish_hyphen, "Swedish"), POLISH(HYPH_DICT,
-				R.raw.polish_hyphen, "Polish"), ;
+	public static class HyphDict {
+		public final static HyphDict NONE = new HyphDict("NONE", HYPH_NONE, 0, "[None]");
+		public final static HyphDict ALGORITHM = new HyphDict("ALGORITHM", HYPH_ALGO, 0, "[Algorythmic]"); 
+		public final static HyphDict RUSSIAN = new HyphDict("RUSSIAN", HYPH_DICT, R.raw.russian_enus_hyphen, "Russian"); 
+		public final static HyphDict ENGLISH = new HyphDict("ENGLISH", HYPH_DICT, R.raw.english_us_hyphen, "English US"); 
+		public final static HyphDict GERMAN = new HyphDict("GERMAN", HYPH_DICT, R.raw.german_hyphen, "German"); 
+		public final static HyphDict UKRAINIAN = new HyphDict("UKRAINIAN", HYPH_DICT,R.raw.ukrain_hyphen, "Ukrainian"); 
+		public final static HyphDict SPANISH = new HyphDict("SPANISH", HYPH_DICT,R.raw.spanish_hyphen, "Spanish"); 
+		public final static HyphDict FRENCH = new HyphDict("FRENCH", HYPH_DICT,R.raw.french_hyphen, "French"); 
+		public final static HyphDict BULGARIAN = new HyphDict("BULGARIAN", HYPH_DICT, R.raw.bulgarian_hyphen, "Bulgarian"); 
+		public final static HyphDict SWEDISH = new HyphDict("SWEDISH", HYPH_DICT, R.raw.swedish_hyphen, "Swedish"); 
+		public final static HyphDict POLISH = new HyphDict("POLISH", HYPH_DICT, R.raw.polish_hyphen, "Polish");
+		
+		public final String code;
 		public final int type;
 		public final int resource;
 		public final String name;
+		public final File file;
 
-		private HyphDict(int type, int resource, String name) {
+		private static HyphDict[] values = {
+		};
+		
+		public static HyphDict[] values() {
+			return values;
+		}
+
+		private static void add(HyphDict dict) {
+			HyphDict[] list = Arrays.copyOf(values, values.length+1);
+			list[list.length-1] = dict;
+			values = list;
+		}
+		
+		private HyphDict(String code, int type, int resource, String name) {
 			this.type = type;
 			this.resource = resource;
 			this.name = name;
+			this.file = null;
+			this.code = code;
+			// register in list
+			add(this);
+		}
+
+		private HyphDict(File file) {
+			this.type = HYPH_DICT;
+			this.resource = 0;
+			this.name = file.getName();
+			this.file = file;
+			this.code = this.name;
+			// register in list
+			add(this);
 		}
 
 		public static HyphDict byCode(String code) {
-			for (HyphDict dict : values())
+			for (HyphDict dict : values)
 				if (dict.toString().equals(code))
 					return dict;
 			return NONE;
+		}
+
+		public static HyphDict byFileName(String fileName) {
+			for (HyphDict dict : values)
+				if (dict.file!=null && dict.file.getName().equals(fileName))
+					return dict;
+			return NONE;
+		}
+
+		@Override
+		public String toString() {
+			return code;
+		}
+		
+		public static boolean fromFile(File file) {
+			if (file==null || !file.exists() || !file.isFile() || !file.canRead())
+				return false;
+			String fn = file.getName();
+			if (!fn.toLowerCase().endsWith(".pdb") && !fn.toLowerCase().endsWith(".pattern"))
+				return false; // wrong file name
+			if (byFileName(file.getName())!=null)
+				return false; // already registered
+			new HyphDict(file);
+			return true;
 		}
 	};
 
@@ -671,8 +719,12 @@ public class Engine {
 				if (!initialized)
 					throw new IllegalStateException("CREngine is not initialized");
 				byte[] data = null;
-				if (dict.type == HYPH_DICT && dict.resource != 0) {
-					data = loadResourceBytes(dict.resource);
+				if (dict.type == HYPH_DICT) {
+					if (dict.resource!=0) {
+						data = loadResourceBytes(dict.resource);
+					} else if (dict.file!=null) {
+						data = loadResourceBytes(dict.file);
+					}
 				}
 				log.i("Setting engine's hyphenation dictionary to "
 						+ dict);
@@ -828,6 +880,7 @@ public class Engine {
 			throw new IllegalStateException("Already initialized");
 		installLibrary();
 		String[] fonts = findFonts();
+		findExternalHyphDictionaries();
 		if (!initInternal(fonts))
 			throw new IOException("Cannot initialize CREngine JNI");
 		// Initialization of cache directory
@@ -1035,6 +1088,28 @@ public class Engine {
 		for (int i = 1; i < internalTextures.length; i++)
 			list.add(internalTextures[i]);
 		return list.toArray(new BackgroundTextureInfo[] {});
+	}
+
+	public void findHyphDictionariesFromDirectory(File dir) {
+		for (File f : dir.listFiles()) {
+			if (!f.isDirectory()) {
+				if (HyphDict.fromFile(f))
+					log.i("Registered external hyphenation dict " + f.getAbsolutePath());
+			}
+		}
+	}
+
+	public void findExternalHyphDictionaries() {
+		for (File d : getStorageDirectories(false)) {
+			File base = new File(d, ".cr3");
+			if (!base.isDirectory())
+				base = new File(d, "cr3");
+			if (!base.isDirectory())
+				continue;
+			File subdir = new File(base, "hyph");
+			if (subdir.isDirectory())
+				findHyphDictionariesFromDirectory(subdir);
+		}
 	}
 
 	public void findTexturesFromDirectory(File dir,

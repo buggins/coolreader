@@ -474,7 +474,11 @@ public class CoolReader extends Activity
 		// testing background thread
     	mBackgroundThread = BackgroundThread.instance();
 		mFrame = new FrameLayout(this);
-		mEngine = new Engine(this, mBackgroundThread);
+       	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
+		log.i("initializing scanner");
+        mScanner.initRoots();
+        File[] rootDirs = mScanner.getMountedRootsList();
+		mEngine = new Engine(this, mBackgroundThread, rootDirs);
 		mBackgroundThread.setGUI(mFrame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -516,7 +520,6 @@ public class CoolReader extends Activity
 		}
 		mDB = new CRDB(dbfile);
 		
-       	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
        	mHistory = new History(this, mDB);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
@@ -530,11 +533,9 @@ public class CoolReader extends Activity
 		}
 		
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
-		
-		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
-		log.i("initializing scanner");
-        mScanner.initRoots();
 
+		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
+		
 		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
 
 		
@@ -1345,7 +1346,7 @@ public class CoolReader extends Activity
 	{
         Properties props = new Properties();
 
-		File[] dataDirs = Engine.getDataDirectories(null, false, true);
+		File[] dataDirs = mEngine.getDataDirectories(null, false, true);
 		File existingFile = null;
 		for ( File dir : dataDirs ) {
 			File f = new File(dir, SETTINGS_FILE_NAME);
