@@ -3838,7 +3838,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		if ( fileFormat==null )
 			fileFormat = DocumentFormat.FB2;
-		File[] dataDirs = Engine.getDataDirectories(null, false, false);
+		File[] dataDirs = mEngine.getDataDirectories(null, false, false);
 		String defaultCss = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
 		for ( File dir : dataDirs ) {
 			File file = new File( dir, fileFormat.getCssName() );
