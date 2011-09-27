@@ -3563,6 +3563,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private final static boolean centerPageInsteadOfResizing = true;
 	
 	private void dimRect( Canvas canvas, Rect dst ) {
+		if (DeviceInfo.EINK_SCREEN)
+			return; // no backlight
 		int alpha = dimmingAlpha;
 		if ( alpha!=255 ) {
 			Paint p = new Paint();
