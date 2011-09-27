@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.51-14" android:versionCode="204">
+      android:versionName="3.0.51-15" android:versionCode="205">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -13,7 +13,7 @@
     />
     <application android:label="@string/app_name" 
         android:icon="@drawable/cr3_logo"
-        android:debuggable="false"
+        android:debuggable="true"
         android:allowClearUserData="true"
         >
         <activity android:name=".CoolReader" 

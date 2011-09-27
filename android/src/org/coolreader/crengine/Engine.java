@@ -623,6 +623,7 @@ public class Engine {
 	}
 
 	public static class HyphDict {
+		private static HyphDict[] values = new HyphDict[] {};
 		public final static HyphDict NONE = new HyphDict("NONE", HYPH_NONE, 0, "[None]");
 		public final static HyphDict ALGORITHM = new HyphDict("ALGORITHM", HYPH_ALGO, 0, "[Algorythmic]"); 
 		public final static HyphDict RUSSIAN = new HyphDict("RUSSIAN", HYPH_DICT, R.raw.russian_enus_hyphen, "Russian"); 
@@ -641,8 +642,6 @@ public class Engine {
 		public final String name;
 		public final File file;
 
-		private static HyphDict[] values = {
-		};
 		
 		public static HyphDict[] values() {
 			return values;
@@ -706,7 +705,7 @@ public class Engine {
 		}
 	};
 
-	private HyphDict currentHyphDict = HyphDict.NONE;
+	private HyphDict currentHyphDict = null;
 
 	public boolean setHyphenationDictionary(final HyphDict dict) {
 		log.i("setHyphenationDictionary( " + dict + " ) is called");
