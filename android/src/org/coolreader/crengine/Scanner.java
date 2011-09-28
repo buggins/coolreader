@@ -737,7 +737,7 @@ public class Scanner {
 		this.coolReader = coolReader;
 		mRoot = new FileInfo();
 		mRoot.path = FileInfo.ROOT_DIR_TAG;	
-		mRoot.filename = "File Manager";	
+		mRoot.filename = "File Manager";
 		mRoot.pathname = FileInfo.ROOT_DIR_TAG;
 		mRoot.isListed = true;
 		mRoot.isScanned = true;

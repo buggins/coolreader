@@ -820,7 +820,7 @@ public class CRDB {
 		if (bookInfo==null || bookInfo.getFileInfo()==null)
 			return false;
 		boolean res = true;
-		if (bookInfo.getFileInfo().isModified) {
+		if (bookInfo.getFileInfo().isModified || bookInfo.getFileInfo().id==null) {
 			res = save(bookInfo.getFileInfo()) && res;
 			Log.d("cr3db", "saving Book info id=" + bookInfo.getFileInfo().id);
 		}
