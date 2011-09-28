@@ -648,7 +648,10 @@ public class Engine {
 		}
 
 		private static void add(HyphDict dict) {
-			HyphDict[] list = Arrays.copyOf(values, values.length+1);
+			// Arrays.copyOf(values, values.length+1); -- absent until API level 9
+			HyphDict[] list = new HyphDict[values.length+1];
+			for (int i=0; i<values.length; i++)
+				list[i] = values[i];
 			list[list.length-1] = dict;
 			values = list;
 		}
