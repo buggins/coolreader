@@ -8,9 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -34,7 +35,8 @@ public class Engine {
 	
 	private final CoolReader mActivity;
 	private final BackgroundThread mBackgroundThread;
-	private final File[] mountedRootsList;
+	private File[] mountedRootsList;
+	private Map<String, String> mountedRootsMap;
 	
 	static final private String LIBRARY_NAME = "cr3engine-45-15";
 
@@ -54,6 +56,10 @@ public class Engine {
 				res.add(dir);
 		}
 		return res.toArray(new File[res.size()]);
+	}
+	
+	public Map<String, String> getMountedRootsMap() {
+		return mountedRootsMap;
 	}
 
 	/**
@@ -539,10 +545,10 @@ public class Engine {
 	 * @param fontList
 	 *            is array of .ttf font pathnames to load
 	 */
-	public Engine(CoolReader activity, BackgroundThread backgroundThread, File[] mountedRootsList) {
+	public Engine(CoolReader activity, BackgroundThread backgroundThread) {
 		this.mActivity = activity;
 		this.mBackgroundThread = backgroundThread;
-		this.mountedRootsList = mountedRootsList;
+		initMountRoots();
 		// this.mMainView = mainView;
 		//
 //		log.i("Engine() : initializing Engine in UI thread");
@@ -877,6 +883,102 @@ public class Engine {
 		}
 	}
 
+	private boolean addMountRoot(Map<String, String> list, String pathname, int resourceId)
+	{
+		return addMountRoot(list, pathname, mActivity.getResources().getString(resourceId));
+	}
+	
+	private boolean addMountRoot(Map<String, String> list, String path, String name) {
+		if (list.containsKey(path))
+			return false;
+		try {
+			File dir = new File(path);
+			if (dir.exists() && dir.isDirectory()) {
+				String[] d = dir.list();
+				if (d!=null && d.length>0) {
+					log.i("Adding FS root: " + path + " " + name);
+					list.put(path, name);
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+		return false;
+	}
+	
+	private static final String[] SYSTEM_ROOT_PATHS = {"/system", "/data", "/mnt"};
+	private void autoAddRoots(Map<String, String> list, String rootPath, String[] pathsToExclude)
+	{
+		try {
+			File root = new File(rootPath);
+			File[] files = root.listFiles();
+			if ( files!=null ) {
+				for ( File f : files ) {
+					if ( !f.isDirectory() )
+						continue;
+					String fullPath = f.getAbsolutePath();
+					if ( isLink(fullPath) ) {
+						L.d("skipping symlink " + fullPath);
+						continue;
+					}
+					boolean skip = false;
+					for ( String path : pathsToExclude ) {
+						if ( fullPath.startsWith(path) ) {
+							skip = true;
+							break;
+						}
+					}
+					if ( skip )
+						continue;
+					if ( !f.canWrite() )
+						continue;
+					L.i("Found possible mount point " + f.getAbsolutePath());
+					addMountRoot(list, f.getAbsolutePath(), f.getAbsolutePath());
+				}
+			}
+		} catch ( Exception e ) {
+			L.w("Exception while trying to auto add roots");
+		}
+	}
+	
+	private void initMountRoots() {
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		String sdpath = Environment.getExternalStorageDirectory().getAbsolutePath();
+		if ( "/nand".equals(sdpath) && new File("/sdcard").isDirectory() )
+			sdpath = "/sdcard";
+		addMountRoot(map, sdpath, R.string.dir_sd_card);
+		// internal SD card on Nook
+		addMountRoot(map, "/system/media/sdcard", R.string.dir_internal_sd_card);
+		// internal memory
+		addMountRoot(map, "/media", R.string.dir_internal_memory);
+		addMountRoot(map, "/nand", R.string.dir_internal_memory);
+		// internal SD card on PocketBook 701 IQ
+		addMountRoot(map, "/PocketBook701", R.string.dir_internal_sd_card);
+		// external SD
+		addMountRoot(map, "/mnt/extsd", "External SD /mnt/extsd");
+		// external SD
+		addMountRoot(map, "/mnt/external1", "External SD /mnt/external1");
+		// external SD / Galaxy S
+		addMountRoot(map, "/mnt/ext.sd", "External SD /mnt/ext.sd");
+		addMountRoot(map, "/ext.sd", "External SD /ext.sd");
+		// Asus EEE PAD Transformer
+		addMountRoot(map, "/Removable/MicroSD", "MicroSD");
+		// external SD card Huawei S7
+		addMountRoot(map, "/sdcard2", R.string.dir_sd_card_2);
+		
+		// auto detection
+		autoAddRoots(map, "/", SYSTEM_ROOT_PATHS);
+		autoAddRoots(map, "/mnt", new String[] {});
+		
+		mountedRootsMap = map;
+		Collection<File> list = new ArrayList<File>();
+		for (String f : map.keySet()) {
+			list.add(new File(f));
+		}
+		mountedRootsList = list.toArray(new File[] {});
+	}
+	
 	private void init() throws IOException {
 		if (initialized)
 			throw new IllegalStateException("Already initialized");

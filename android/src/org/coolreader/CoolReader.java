@@ -474,11 +474,10 @@ public class CoolReader extends Activity
 		// testing background thread
     	mBackgroundThread = BackgroundThread.instance();
 		mFrame = new FrameLayout(this);
-       	mScanner = new Scanner(this, mDB, mEngine); //, Environment.getExternalStorageDirectory(), "SD"
 		log.i("initializing scanner");
-        mScanner.initRoots();
-        File[] rootDirs = mScanner.getMountedRootsList();
-		mEngine = new Engine(this, mBackgroundThread, rootDirs);
+		mEngine = new Engine(this, mBackgroundThread);
+       	mScanner = new Scanner(this, mDB, mEngine);
+       	mScanner.initRoots(mEngine.getMountedRootsMap());
 		mBackgroundThread.setGUI(mFrame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
