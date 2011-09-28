@@ -548,6 +548,7 @@ public class Engine {
 	public Engine(CoolReader activity, BackgroundThread backgroundThread) {
 		this.mActivity = activity;
 		this.mBackgroundThread = backgroundThread;
+		installLibrary();
 		initMountRoots();
 		// this.mMainView = mainView;
 		//
@@ -707,7 +708,7 @@ public class Engine {
 			String fn = file.getName();
 			if (!fn.toLowerCase().endsWith(".pdb") && !fn.toLowerCase().endsWith(".pattern"))
 				return false; // wrong file name
-			if (byFileName(file.getName())!=null)
+			if (byFileName(file.getName())!=NONE)
 				return false; // already registered
 			new HyphDict(file);
 			return true;
@@ -982,7 +983,6 @@ public class Engine {
 	private void init() throws IOException {
 		if (initialized)
 			throw new IllegalStateException("Already initialized");
-		installLibrary();
 		String[] fonts = findFonts();
 		findExternalHyphDictionaries();
 		if (!initInternal(fonts))
