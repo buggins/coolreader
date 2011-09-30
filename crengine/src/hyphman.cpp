@@ -704,8 +704,8 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
 #endif
 
     int p=0;
-    int bestp = -1;
-    int bestm = '0';
+//    int bestp = -1;
+//    int bestm = '0';
     for ( p=len-3; p>=1; p-- ) {
         // hyphenate
         //00010030100
@@ -713,23 +713,23 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
         if ( (mask[p+2]&1) && nw <= maxWidth ) {
             if ( checkHyphenRules( word+1, len, p ) ) {
                 //widths[p] += hyphCharWidth; // don't add hyph width
-                //flags[p] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
-                if ( bestp<0 || mask[p+2]>bestm ) {
-                    bestp = p;
-                    bestm = mask[p+2];
-                }
+                flags[p] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+//                if ( bestp<0 || mask[p+2]>bestm ) {
+//                    bestp = p;
+//                    bestm = mask[p+2];
+//                }
             }
         }
     }
 //#if DUMP_HYPHENATION_WORDS==1
 //    CRLog::trace("bestp=%d", bestp);
 //#endif
-    if ( bestp>=0 ) {
-//        widths[bestp] += hyphCharWidth;
-        flags[bestp] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
-#if DUMP_HYPHENATION_WORDS==1
-        CRLog::trace("bestp=%d  %s-%s", bestp, LCSTR(lString16(str, bestp+1)), LCSTR(lString16(str+bestp+1, len-bestp-1)));
-#endif
+//    if ( bestp>=0 ) {
+////        widths[bestp] += hyphCharWidth;
+//        flags[bestp] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+//#if DUMP_HYPHENATION_WORDS==1
+//        CRLog::trace("bestp=%d  %s-%s", bestp, LCSTR(lString16(str, bestp+1)), LCSTR(lString16(str+bestp+1, len-bestp-1)));
+//#endif
         return true;
     }
     return false;
