@@ -252,9 +252,10 @@
     <string name="options_format_image_scaling_scale_3">*3</string>
     <string name="options_format_image_scaling_scale_2">*2</string>
     <string name="options_format_image_scaling_scale_1">*1</string>
-    <string name="options_screen_update_mode_fast">Rýchlo</string>
     <string name="options_screen_update_mode">Režimu obnovovania</string>
     <string name="options_screen_update_mode_quality">Kvalita</string>
+    <string name="options_screen_update_mode_fast">Rýchlo</string>
+    <string name="options_screen_update_mode_fast2">Rýchlo 2</string>
     <string name="options_screen_update_interval">Interval aktualizácie na celú obrazovku</string>
     <string name="options_render_font_gamma">Gamma korekcia písma</string>
     <string name="action_toggle_titlebar">Zap. / Vyp hlavičku</string>
