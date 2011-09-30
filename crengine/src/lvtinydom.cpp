@@ -6304,8 +6304,8 @@ bool ldomXPointerEx::isVisibleWordEnd()
     lString16 text = node->getText();
     int textLen = text.length();
     int i = _data->getOffset();
-    lChar16 currCh = i<textLen ? text[i] : 0;
-    lChar16 nextCh = i<textLen-1 ? text[i+1] : 0;
+    lChar16 currCh = i>0 ? text[i-1] : 0;
+    lChar16 nextCh = i<textLen ? text[i] : 0;
     if ( canWrapWordAfter(currCh) || !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh) )
         return true;
     return false;

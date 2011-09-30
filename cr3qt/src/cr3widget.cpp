@@ -935,11 +935,17 @@ bool CR3View::updateSelection( ldomXPointer p )
         return false;
     r.sort();
     if ( !_editMode ) {
-        if ( !r.getStart().isVisibleWordStart() )
+        if ( !r.getStart().isVisibleWordStart() ) {
+            //CRLog::trace("calling prevVisibleWordStart : %s", LCSTR(r.getStart().toString()));
             r.getStart().prevVisibleWordStart();
+            //CRLog::trace("updated : %s", LCSTR(r.getStart().toString()));
+        }
         //lString16 start = r.getStart().toString();
-        if ( !r.getEnd().isVisibleWordEnd() )
+        if ( !r.getEnd().isVisibleWordEnd() ) {
+            //CRLog::trace("calling nextVisibleWordEnd : %s", LCSTR(r.getEnd().toString()));
             r.getEnd().nextVisibleWordEnd();
+            //CRLog::trace("updated : %s", LCSTR(r.getEnd().toString()));
+        }
     }
     if ( r.isNull() )
         return false;
