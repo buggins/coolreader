@@ -259,6 +259,20 @@ struct EReaderHeader
     }
 };
 
+struct PluckerPreamble {
+    lUInt32 signature; // 	4 	Numeric 	Must contain the value 0x6C6E6368.
+    lUInt16 hdrVersion; // 	2 	Numeric 	Must have the value 3.
+    lUInt16 hdrEncoding; // 	2 	Numeric 	Must have the value 0.
+    lUInt16 verStrWords; // 	2 	Numeric 	The number of two-byte words following, containing the version string.
+//    char  	2 * verStrWords 	String 	NUL-terminated ISO Latin-1 string, padded at end if necessary with a zero byte to an even-byte boundary, containing a version string to display to the user containing version information for the document.
+//    pqaTitleWords 	2 	Numeric 	The number of two-byte words in the following pqaTitleStr.
+//    pqaTitleStr 	2 * pqaTitleWords 	String 	NUL-terminated ISO Latin-1 string, padded at end if necessary with a zero byte to an even-byte boundary, containing a title string for iconic display of the document.
+//    iconWords 	2 	Numeric 	Number of two-byte words in the following icon image.
+//    icon 	2 * iconWords 	Image 	Image (32x32) in Palm image format to be used as an icon to represent the document on a desktop-style display. The image may not use a custom color map.
+//    smIconWords 	2 	Numeric 	Number of two-byte words in the following icon image.
+//    smIcon 	2 * smIconWords 	Image 	Small image (15x9) in Palm image format to be used as an icon to represent the document on a desktop-style display. The image may not use a custom color map.
+};
+
 /// unpack data from _compbuf to _buf
 bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  );
 
@@ -568,8 +582,8 @@ public:
             _format = EREADER;
         if ( hdr.checkType("BOOK") && hdr.checkCreator("MOBI") )
             _format = MOBI;
-//        if ( hdr.checkType("Data") && hdr.checkCreator("Plkr") )
-//            _format = PLUCKER;
+        if ( hdr.checkType("Data") && hdr.checkCreator("Plkr") )
+            _format = PLUCKER;
 //        if ( hdr.checkType("ToGo") && hdr.checkCreator("ToGo") )
 //            _format = ISILO;
         if ( _format==UNKNOWN )
@@ -678,6 +692,9 @@ public:
                 _compression = 0;
             _textSize = preamble.textLength;
             _recordCount = preamble.recordCount;
+        } else if (_format==PLUCKER ) {
+            // TODO
+            return false;
         }
 
         detectFormat( contentFormat );
