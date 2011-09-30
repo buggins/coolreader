@@ -252,9 +252,10 @@
     <string name="options_format_image_scaling_scale_3">*3</string>
     <string name="options_format_image_scaling_scale_2">*2</string>
     <string name="options_format_image_scaling_scale_1">*1</string>
-    <string name="options_screen_update_mode_fast">Veloce</string>
     <string name="options_screen_update_mode">Modalità aggiornamento schermo</string>
     <string name="options_screen_update_mode_quality">Qualità</string>
+    <string name="options_screen_update_mode_fast">Veloce</string>
+    <string name="options_screen_update_mode_fast2">Veloce 2</string>
     <string name="options_screen_update_interval">Intervallo aggiornamento fullscreen</string>
     <string name="options_render_font_gamma">Gamma caratteri</string>
     <string name="action_toggle_titlebar">Attiva/disattiva barra titolo</string>

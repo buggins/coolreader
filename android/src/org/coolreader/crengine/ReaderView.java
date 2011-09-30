@@ -821,7 +821,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					invalidImages = true;
 					BitmapInfo bi = preparePageImage(0);
 					if ( bi!=null ) {
-						draw();
+						draw(true);
 					}
 				}
 			}
@@ -1269,7 +1269,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
-				drawPage();
+//				drawPage();
+				drawPage(true);
 			}
 		});
     }
@@ -1285,7 +1286,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
-				drawPage();
+//				drawPage();
+				drawPage(true);
 			}
 		});
     }
@@ -1687,7 +1689,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			public void done() {
 				if ( res )
-					drawPage( doneHandler );
+					drawPage( doneHandler, false );
 			}
 		});
 	}
@@ -2321,10 +2323,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		final int id;
 		BitmapInfo bi;
 		Runnable doneHandler;
-		DrawPageTask(Runnable doneHandler)
+		boolean isPartially;
+		DrawPageTask(Runnable doneHandler, boolean isPartially)
 		{
 			this.id = ++lastDrawTaskId;
 			this.doneHandler = doneHandler;
+			this.isPartially = isPartially;
 		}
 		public void work() {
 			BackgroundThread.ensureBackground();
@@ -2340,7 +2344,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.e("DrawPageTask.work("+internalDX+","+internalDY+")");
 			bi = preparePageImage(0);
 			if ( bi!=null ) {
-				draw();
+				draw(isPartially);
 			}
 		}
 		@Override
@@ -2529,7 +2533,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				    		}
 						}
 						
-					}, rc);
+					}, rc, false);
 				}
 			}
 			
@@ -2700,7 +2704,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private interface DrawCanvasCallback {
 		public void drawTo( Canvas c );
 	}
-	private void drawCallback( DrawCanvasCallback callback, Rect rc )
+	private void drawCallback( DrawCanvasCallback callback, Rect rc, boolean isPartially )
 	{
 		if ( !mSurfaceCreated )
 			return;
@@ -2719,7 +2723,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( canvas!=null ) {
 					callback.drawTo(canvas);
 					if (DeviceInfo.EINK_SCREEN){
-						EinkScreen.PrepareController(this);
+						EinkScreen.PrepareController(this, isPartially);
 					}
 				}
 			} finally {
@@ -2769,7 +2773,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					//updateAnimationDurationStats(endTs - startTs);
 				}
 				
-			}, null);
+			}, null, false);
+		}
+		public void draw(boolean isPartially)
+		{
+			drawCallback( new DrawCanvasCallback() {
+				@Override
+				public void drawTo(Canvas c) {
+				//	long startTs = android.os.SystemClock.uptimeMillis();
+					draw(c);
+				}
+			}, null, isPartially);
 		}
 		abstract void draw( Canvas canvas );
 	}
@@ -3443,14 +3457,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private void drawPage()
 	{
-		drawPage(null);
+		drawPage(null, false);
 	}
-	private void drawPage( Runnable doneHandler )
+	private void drawPage(boolean isPartially)
+	{
+		drawPage(null, isPartially);
+	}
+	private void drawPage( Runnable doneHandler, boolean isPartially )
 	{
 		if ( !mInitialized || !mOpened )
 			return;
 		log.v("drawPage() : submitting DrawPageTask");
-		post( new DrawPageTask(doneHandler) );
+		post( new DrawPageTask(doneHandler, isPartially) );
 	}
 	
 	private int internalDX = 0;
@@ -3527,7 +3545,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( mActivity.getHistory()!=null ) {
 	    		mActivity.getHistory().updateBookAccess(mBookInfo);
 	    		mActivity.getHistory().saveToDB();
-		        if ( coverPageBytes!=null && coverPageDrawable!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null ) {
+		        if (mBookInfo.getFileInfo().id!=null && coverPageBytes!=null && coverPageDrawable!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
 		        	//mEngine.setProgressDrawable(coverPageDrawable);
 		        }
@@ -3624,7 +3642,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void drawTo(Canvas c) {
 				doDraw(c);
 			}
-		}, null);
+		}, null, false);
+	}
+	protected void draw(boolean isPartially)
+	{
+		drawCallback(new DrawCanvasCallback() {
+			@Override
+			public void drawTo(Canvas c) {
+				doDraw(c);
+			}
+		}, null, isPartially);
 	}
 	
     @Override 

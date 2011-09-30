@@ -252,9 +252,10 @@
     <string name="options_format_image_scaling_scale_3">*3</string>
     <string name="options_format_image_scaling_scale_2">*2</string>
     <string name="options_format_image_scaling_scale_1">*1</string>
-    <string name="options_screen_update_mode_fast">Быстрый</string>
     <string name="options_screen_update_mode">Режим обновления экрана</string>
     <string name="options_screen_update_mode_quality">Качественный</string>
+    <string name="options_screen_update_mode_fast">Быстрый</string>
+    <string name="options_screen_update_mode_fast2">Быстрый 2</string>
     <string name="options_screen_update_interval">Интервал полного обновления</string>
     <string name="options_render_font_gamma">Гамма-коррекция шрифта</string>
     <string name="action_toggle_titlebar">Вкл/выкл колонтитул</string>
