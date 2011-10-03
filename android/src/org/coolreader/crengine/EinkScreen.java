@@ -40,7 +40,7 @@ public class EinkScreen {
 				RefreshNumber = 0;
 			}
 			if (UpdateMode > 0 && (UpdateModeInterval > 0 || UpdateMode == 1)) {
-				if (RefreshNumber == 0 || UpdateMode == cmodeOneshot) {
+				if (RefreshNumber == 0 || (UpdateMode == cmodeOneshot && RefreshNumber < UpdateModeInterval)) {
 					switch (UpdateMode) {
 						case cmodeActive:
 							SetMode(view, cmodeActive);
@@ -49,7 +49,7 @@ public class EinkScreen {
 							SetMode(view, cmodeOneshot);
 							break;
 					}
-				} else if (UpdateModeInterval == RefreshNumber) {
+				} else if (UpdateModeInterval <= RefreshNumber) {
 					SetMode(view, cmodeClear);
 					RefreshNumber = -1;
 				}

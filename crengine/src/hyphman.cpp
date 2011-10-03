@@ -730,8 +730,8 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
 //#if DUMP_HYPHENATION_WORDS==1
 //        CRLog::trace("bestp=%d  %s-%s", bestp, LCSTR(lString16(str, bestp+1)), LCSTR(lString16(str+bestp+1, len-bestp-1)));
 //#endif
-        return true;
-    }
+//        return true;
+//    }
     return false;
 }
 
