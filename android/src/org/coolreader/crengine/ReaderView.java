@@ -1792,7 +1792,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private boolean hiliteTapZoneOnTap = false;
 	private boolean enableVolumeKeys = true; 
-	static private final int DEF_PAGE_FLIP_MS = 700; 
+	static private final int DEF_PAGE_FLIP_MS = 500; 
 	public void applyAppSetting( String key, String value )
 	{
 		boolean flg = "1".equals(value);
@@ -3433,12 +3433,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 
-	private long sumAnimationDrawDuration = 500;
-	private int drawAnimationCount = 10;
+	private int drawAnimationPos = 0;
+	private Long[] drawAnimationStats = new Long[8];
+	private long avgDrawAnimationDuration = 200;
 	private long getAvgAnimationDrawDuration()
 	{
-		return sumAnimationDrawDuration / drawAnimationCount; 
-//		return sumAnimationDrawDuration;// / drawAnimationCount; 
+		return avgDrawAnimationDuration; 
 	}
 	
 	private void updateAnimationDurationStats( long duration )
@@ -3447,12 +3447,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			duration = 1;
 		else if ( duration>1000 )
 			return;
-//		sumAnimationDrawDuration = (sumAnimationDrawDuration*7 + duration * 1)/8;
-		sumAnimationDrawDuration += duration;
-		if ( ++drawAnimationCount>20 ) {
-			drawAnimationCount /= 2;
-			sumAnimationDrawDuration /= 2;
+		int pos = drawAnimationPos + 1;
+		if (pos >= drawAnimationStats.length)
+			pos = 0;
+		drawAnimationStats[pos] = duration;
+		drawAnimationPos = pos;
+		long sum = 0;
+		int count = 0;
+		for (Long item : drawAnimationStats) {
+			if (item != null) {
+				sum += item;
+				count++;
+			}
 		}
+		avgDrawAnimationDuration = sum / count;
 	}
 	
 	private void drawPage()
