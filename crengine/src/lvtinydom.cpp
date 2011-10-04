@@ -1419,6 +1419,7 @@ tinyNodeCollection::tinyNodeCollection()
 , _mapped(false)
 , _maperror(false)
 , _mapSavingStage(0)
+, _minSpaceCondensingPercent(DEF_MIN_SPACE_CONDENSING_PERCENT)
 #endif
 , _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
@@ -1448,6 +1449,7 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 , _mapped(false)
 , _maperror(false)
 , _mapSavingStage(0)
+, _minSpaceCondensingPercent(DEF_MIN_SPACE_CONDENSING_PERCENT)
 #endif
 , _textStorage(this, 't', TEXT_CACHE_UNPACKED_SPACE, TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
 , _elemStorage(this, 'e', ELEM_CACHE_UNPACKED_SPACE, ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
@@ -2803,6 +2805,7 @@ LFormattedText * lxmlDocBase::createFormattedText()
 {
     LFormattedText * p = new LFormattedText();
     p->setImageScalingOptions(&_imgScalingOptions);
+    p->setMinSpaceCondensingPercent(_minSpaceCondensingPercent);
     return p;
 }
 
@@ -8115,6 +8118,7 @@ lUInt32 tinyNodeCollection::calcStyleHash()
         }
     }
     res = res * 31 + _imgScalingOptions.getHash();
+    res = res * 31 + _minSpaceCondensingPercent;
     res = (res * 31 + globalHash) * 31 + docFlags;
 //    CRLog::info("Calculated style hash = %08x", res);
     return res;

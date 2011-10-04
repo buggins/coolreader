@@ -5053,6 +5053,13 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, defImgScaling.mode);
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, defImgScaling.mode);
 
+    int p = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
+    if (p<25)
+        p = 25;
+    if (p>100)
+        p = 100;
+    props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
+
     props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
 }
 
@@ -5259,6 +5266,10 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 gFlgFloatingPunctuationEnabled = value;
                 requestRender();
             }
+        } else if (name == PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT) {
+            int value = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
+            if (getDocument()->setMinSpaceCondensingPercent(value))
+                requestRender();
         } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS) {
             bool value = props->getBoolDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, true);
             if (m_highlightBookmarks != value) {

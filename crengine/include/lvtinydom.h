@@ -89,6 +89,8 @@
 #define DOC_PROP_CODE_BASE       "doc.file.code.base"
 #define DOC_PROP_COVER_FILE      "doc.cover.file"
 
+#define DEF_MIN_SPACE_CONDENSING_PERCENT 50
+
 //#if BUILD_LITE!=1
 /// final block cache
 typedef LVRef<LFormattedText> LFormattedTextRef;
@@ -398,6 +400,7 @@ protected:
     int  _mapSavingStage;
 
     img_scaling_options_t _imgScalingOptions;
+    int  _minSpaceCondensingPercent;
 
 
     int calcFinalBlocks();
@@ -450,6 +453,13 @@ protected:
     tinyNodeCollection( tinyNodeCollection & v );
 
 public:
+
+    bool setMinSpaceCondensingPercent(int minSpaceCondensingPercent) {
+        if (minSpaceCondensingPercent == _minSpaceCondensingPercent)
+            return false;
+        _minSpaceCondensingPercent = minSpaceCondensingPercent;
+        return true;
+    }
 
     /// add named BLOB data to document
     bool addBlob(lString16 name, const lUInt8 * data, int size) { return _blobCache.addBlob(data, size, name); }

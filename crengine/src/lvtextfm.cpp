@@ -24,6 +24,8 @@
 #include "../include/lvtinydom.h"
 #endif
 
+#define MIN_SPACE_CONDENSING_PERCENT 50
+
 // to debug formatter
 
 #if defined(_DEBUG) && 0
@@ -120,7 +122,7 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->img_zoom_out_scale_block = defMult; /**< max scale for block images zoom out: 1, 2, 3 */
     pbuffer->img_zoom_out_mode_inline = defMode; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
     pbuffer->img_zoom_out_scale_inline = defMult; /**< max scale for inline images zoom out: 1, 2, 3 */
-    pbuffer->min_space_condensing_percent = 25; // 50%
+    pbuffer->min_space_condensing_percent = MIN_SPACE_CONDENSING_PERCENT; // 50%
     return pbuffer;
 }
 
