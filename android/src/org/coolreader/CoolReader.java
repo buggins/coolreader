@@ -478,8 +478,6 @@ public class CoolReader extends Activity
 		mFrame = new FrameLayout(this);
 		log.i("initializing scanner");
 		mEngine = new Engine(this, mBackgroundThread);
-       	mScanner = new Scanner(this, mDB, mEngine);
-       	mScanner.initRoots(mEngine.getMountedRootsMap());
 		mBackgroundThread.setGUI(mFrame);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -520,6 +518,9 @@ public class CoolReader extends Activity
 			dbfile = Engine.checkOrMoveFile(externalDir, dbdir, SQLITE_DB_NAME);
 		}
 		mDB = new CRDB(dbfile);
+
+       	mScanner = new Scanner(this, mDB, mEngine);
+       	mScanner.initRoots(mEngine.getMountedRootsMap());
 		
        	mHistory = new History(this, mDB);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));

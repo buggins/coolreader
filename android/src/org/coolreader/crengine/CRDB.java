@@ -456,23 +456,31 @@ public class CRDB {
 	
 	private Long longQuery( String sql )
 	{
-		SQLiteStatement stmt = mDB.compileStatement(sql);
+		SQLiteStatement stmt = null;
 		try {
+			stmt = mDB.compileStatement(sql);
 			return stmt.simpleQueryForLong();
 		} catch ( Exception e ) {
 			// not found or error
 			return null;
+		} finally {
+			if (stmt != null)
+				stmt.close();
 		}
 	}
 	
 	private Long longCoverpageQuery( String sql )
 	{
-		SQLiteStatement stmt = mCoverpageDB.compileStatement(sql);
+		SQLiteStatement stmt = null;
 		try {
+			stmt = mCoverpageDB.compileStatement(sql);
 			return stmt.simpleQueryForLong();
 		} catch ( Exception e ) {
 			// not found or error
 			return null;
+		} finally {
+			if (stmt != null)
+				stmt.close();
 		}
 	}
 	
