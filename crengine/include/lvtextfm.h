@@ -101,14 +101,16 @@ typedef struct
    union {
           /// for text word
        struct {
-           lUInt16  start;           /**< \brief 02 position of word in source text */
-           lUInt16  len;             /**< \brief 04 number of chars in word */
+           lUInt16  start;           /**< \brief 12 position of word in source text */
+           lUInt16  len;             /**< \brief 14 number of chars in word */
        } t;
        /// for object
        struct {
-           lUInt16  height;           /**< \brief 02 height of image */
+           lUInt16  height;           /**< \brief 12 height of image */
        } o;
    };
+   lUInt16 min_width;        /**< \brief 16 index of source text line */
+   lUInt16 padding;          /**< \brief 18 not used */
 } formatted_word_t;
 
 /// can add space after this word
@@ -160,6 +162,7 @@ typedef struct
    lInt32                img_zoom_out_scale_block; /**< max scale for block images zoom out: 1, 2, 3 */
    lInt32                img_zoom_out_mode_inline; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
    lInt32                img_zoom_out_scale_inline; /**< max scale for inline images zoom out: 1, 2, 3 */
+   lInt32                min_space_condensing_percent; /**< min size of space (relative to normal size) to allow fitting line by reducing of spaces */
 } formatted_text_fragment_t;
 
 /**  Alloc & init formatted text buffer
@@ -227,7 +230,11 @@ private:
 public:
     formatted_text_fragment_t * GetBuffer() { return m_pbuffer; }
 
+    /// set image scaling options
     void setImageScalingOptions( img_scaling_options_t * options );
+
+    /// set space condensing line fitting option (25..100%)
+    void setMinSpaceCondensingPercent(int minSpaceWidthPercent);
 
     void Clear()
     { 

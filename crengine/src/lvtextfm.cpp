@@ -120,6 +120,7 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->img_zoom_out_scale_block = defMult; /**< max scale for block images zoom out: 1, 2, 3 */
     pbuffer->img_zoom_out_mode_inline = defMode; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
     pbuffer->img_zoom_out_scale_inline = defMult; /**< max scale for inline images zoom out: 1, 2, 3 */
+    pbuffer->min_space_condensing_percent = 25; // 50%
     return pbuffer;
 }
 
@@ -219,93 +220,6 @@ void lvtextAddSourceObject(
     pline->letter_spacing = letter_spacing;
 }
 
-int lvtextFinalizeLine( formatted_line_t * frmline, int width, int align,
-        lUInt16 * pSrcIndex, lUInt16 * pSrcOffset )
-{
-    int margin = frmline->x;
-    int delta = 0;
-    unsigned int i;
-    unsigned short w = 0;
-    int expand_count = 0;
-    int expand_dx, expand_dd;
-    int flgRollback = 0;
-
-    if (pSrcIndex!=NULL)
-    {
-        /* check whether words rollback is necessary */
-        for (i=frmline->word_count-1; i>0; i--)
-        {
-            if ( (frmline->words[i].flags & LTEXT_WORD_CAN_BREAK_LINE_AFTER) )
-                break;
-            if ( (frmline->words[i].flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) )
-                break;
-        }
-        if (/*i > 0 && */i < frmline->word_count-1)
-        {
-            /* rollback */
-            *pSrcIndex = frmline->words[i+1].src_text_index;
-            *pSrcOffset = frmline->words[i+1].t.start;
-            frmline->word_count = i+1;
-            flgRollback = 1;
-        }
-    }
-
-
-    frmline->width = 0;
-    for (i=0; i<frmline->word_count; i++)
-    {
-        //if (i == frmline->word_count-1)
-        //    w = frmline->words[i].x;
-        //else
-        w = frmline->words[i].width;
-        frmline->words[i].x = frmline->width;
-        frmline->width += w;
-    }
-
-    if (align == LTEXT_ALIGN_LEFT)
-        return flgRollback;
-
-    delta = width - frmline->width - margin;
-
-    if (align == LTEXT_ALIGN_CENTER)
-        delta /= 2;
-    if ( align == LTEXT_ALIGN_CENTER || align == LTEXT_ALIGN_RIGHT )
-    {
-        frmline->x += delta;
-    }
-    else
-    {
-        /* LTEXT_ALIGN_WIDTH */
-        for (i=0; i<frmline->word_count-1; i++)
-        {
-            if (frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER)
-                expand_count++;
-        }
-        if (expand_count)
-        {
-            expand_dx = delta / expand_count;
-            expand_dd = delta % expand_count;
-            delta = 0;
-            for (i=0; i<frmline->word_count-1; i++)
-            {
-                if (frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER)
-                {
-                    delta += expand_dx;
-                    if (expand_dd>0)
-                    {
-                        delta++;
-                        expand_dd--;
-                    }
-                }
-                if ( i<frmline->word_count-1 ) {
-                    frmline->words[i+1].x += delta;
-                }
-            }
-            frmline->width = frmline->words[frmline->word_count-1].x + frmline->words[frmline->word_count-1].width;
-        }
-    }
-    return flgRollback;
-}
 
 #define DEPRECATED_LINE_BREAK_WORD_COUNT    3
 #define DEPRECATED_LINE_BREAK_SPACE_LIMIT   64
@@ -657,29 +571,33 @@ public:
             // line is too wide
             // reduce spaces to fit line
             int extraSpace = frmline->x + frmline->width - width;
-            if ( extraSpace<=0 )
-                return; // no space to distribute
-            int addSpacePoints = 0;
+            int totalSpace = 0;
             int i;
             for ( i=0; i<(int)frmline->word_count-1; i++ ) {
-                if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
-                    addSpacePoints++;
+                if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
+                    int dw = frmline->words[i].width - frmline->words[i].min_width;
+                    if (dw>0) {
+                        totalSpace += dw;
+                    }
+                }
             }
-            if ( addSpacePoints>0 ) {
-                int addSpaceDiv = extraSpace / addSpacePoints;
-                int addSpaceMod = extraSpace % addSpacePoints;
+            if ( totalSpace>0 ) {
+//                int addSpaceDiv = extraSpace / addSpacePoints;
+//                int addSpaceMod = extraSpace % addSpacePoints;
                 int delta = 0;
                 for ( i=0; i<(int)frmline->word_count; i++ ) {
                     frmline->words[i].x -= delta;
                     if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
-                        delta += addSpaceDiv;
-                        if ( addSpaceMod>0 ) {
-                            addSpaceMod--;
-                            delta++;
+                        int dw = frmline->words[i].width - frmline->words[i].min_width;
+                        if (dw>0 && totalSpace>0) {
+                            int n = dw * extraSpace / totalSpace;
+                            totalSpace -= dw;
+                            extraSpace -= n;
+                            delta += n;
+                            frmline->width -= n;
                         }
                     }
                 }
-                frmline->width -= extraSpace;
             }
         } else if ( alignment==LTEXT_ALIGN_LEFT )
             return; // no additional alignment necessary
@@ -785,6 +703,7 @@ public:
                     word->y = 0;
                     word->flags = LTEXT_WORD_IS_OBJECT;
                     word->width = lastSrc->o.width;
+                    word->min_width = word->width;
                     word->o.height = lastSrc->o.height;
                     //int maxw = m_pbuffer->width - x;
 
@@ -820,12 +739,14 @@ public:
                     word->t.start = m_charindex[wstart];
                     word->t.len = i - wstart;
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
+                    word->min_width = word->width;
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
 //                    lChar16 lastch = m_text[i-1];
 //                    if ( lastch==UNICODE_NO_BREAK_SPACE )
 //                        CRLog::trace("last char is UNICODE_NO_BREAK_SPACE");
                     if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                         word->width += font->getHyphenWidth();
+                        word->min_width = word->width;
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE) {
@@ -833,11 +754,18 @@ public:
                         if ( wstart!=0 || word->t.len!=2 || !(lGetCharProps(m_text[wstart]) & CH_PROP_DASH) ) {
                             // condition for double nbsp after run-in footnote title
                             if ( !(word->t.len>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE && m_text[i-2]==UNICODE_NO_BREAK_SPACE)
-                                    && !( m_text[i]==UNICODE_NO_BREAK_SPACE && m_text[i+1]==UNICODE_NO_BREAK_SPACE) )
+                                    && !( m_text[i]==UNICODE_NO_BREAK_SPACE && m_text[i+1]==UNICODE_NO_BREAK_SPACE) ) {
                                 word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+                                int dw = getMaxCondensedSpaceTruncation(i-1);
+                                if (dw>0) {
+                                    word->min_width = word->width - dw;
+                                }
+                            }
                         }
-                        if ( !visualAlignmentEnabled && lastWord )
+                        if ( !visualAlignmentEnabled && lastWord ) {
                             word->width = m_widths[i>1 ? i-2 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
+                            word->min_width = word->width;
+                        }
                     } else if ( frmline->word_count>1 && m_flags[wstart] & LCHAR_IS_SPACE ) {
                         //if ( word->t.len<2 || m_text[i-1]!=UNICODE_NO_BREAK_SPACE || m_text[i-2]!=UNICODE_NO_BREAK_SPACE)
 //                        if ( m_text[wstart]==UNICODE_NO_BREAK_SPACE && m_text[wstart+1]==UNICODE_NO_BREAK_SPACE)
@@ -866,6 +794,7 @@ public:
                             TR("floating: %c w=%d", lastc, w);
                             word->width -= w;
                         }
+                        word->min_width = word->width;
                     }
 
                     word->y = wy;
@@ -898,6 +827,24 @@ public:
 
         m_y += frmline->height;
         m_pbuffer->height = m_y;
+    }
+
+    int getMaxCondensedSpaceTruncation(int pos) {
+        if (pos<0 || pos>m_length || m_text[pos]!=' ')
+            return 0;
+        if (m_pbuffer->min_space_condensing_percent==100)
+            return 0;
+        int w = (m_widths[pos] - m_widths[pos-1]);
+        int dw = w * (100 - m_pbuffer->min_space_condensing_percent) / 100;
+        if ( dw>0 ) {
+            // typographic rule: don't use spaces narrower than 1/4 of font size
+            LVFont * fnt = (LVFont *)m_srcs[pos]->t.font;
+            int fntBasedSpaceWidthDiv2 = fnt->getSize() * 3 / 4;
+            if ( dw>fntBasedSpaceWidthDiv2 )
+                dw = fntBasedSpaceWidthDiv2;
+            return dw;
+        }
+        return 0;
     }
 
     /// Split paragraph into lines
@@ -987,16 +934,10 @@ public:
                     lastDeprecatedWrap = i;
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
-                if ( i<m_length-1 && m_text[i]==' ' && m_text[i+1]!=' ' ) {
-                    int dw = (m_widths[i] - m_widths[i-1]) / 2;
-                    if ( dw>0 ) {
-                        // typographic rule: don't use spaces narrower than 1/4 of font size
-                        LVFont * fnt = (LVFont *)m_srcs[i]->t.font;
-                        int fntBasedSpaceWidthDiv2 = fnt->getSize() / 2 / 2;
-                        if ( dw>fntBasedSpaceWidthDiv2 )
-                            dw = fntBasedSpaceWidthDiv2;
+                if (m_pbuffer->min_space_condensing_percent!=100 && i<m_length-1 && m_text[i]==' ' && (i==m_length-1 || m_text[i+1]!=' ')) {
+                    int dw = getMaxCondensedSpaceTruncation(i);
+                    if ( dw>0 )
                         spaceReduceWidth += dw;
-                    }
                 }
             }
             if (i<=pos)
@@ -1173,6 +1114,12 @@ void LFormattedText::setImageScalingOptions( img_scaling_options_t * options )
     m_pbuffer->img_zoom_out_scale_block = options->zoom_out_block.max_scale;
     m_pbuffer->img_zoom_out_mode_inline = options->zoom_out_inline.mode;
     m_pbuffer->img_zoom_out_scale_inline = options->zoom_out_inline.max_scale;
+}
+
+void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
+{
+    if (minSpaceWidthPercent>=25 && minSpaceWidthPercent<=100)
+        m_pbuffer->min_space_condensing_percent = minSpaceWidthPercent;
 }
 
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks, ldomMarkedRangeList *bookmarks )
