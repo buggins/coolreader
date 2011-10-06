@@ -412,15 +412,15 @@ public class Scanner {
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
 		String[] urls = {
-				"http://www.feedbooks.com/catalog/", "Feedbooks",
+				"http://www.feedbooks.com/catalog.atom", "Feedbooks",
 				"http://bookserver.archive.org/catalog/", "Internet Archive",
 				"http://m.gutenberg.org/", "Project Gutenberg", 
-				"http://ebooksearch.webfactional.com/catalog.atom", "eBookSearch", 
+//				"http://ebooksearch.webfactional.com/catalog.atom", "eBookSearch", 
 				"http://bookserver.revues.org/", "Revues.org", 
 				"http://www.legimi.com/opds/root.atom", "Legimi",
 				"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
 				"http://flibusta.net/opds/", "Flibusta", 
-				"http://lib.ololo.cc/opds/", "lib.ololo.cc",
+//				"http://lib.ololo.cc/opds/", "lib.ololo.cc",
 		};
 		for ( int i=0; i<urls.length-1; i+=2 ) {
 			String url = urls[i];
