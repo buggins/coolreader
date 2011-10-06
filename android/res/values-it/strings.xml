@@ -50,7 +50,7 @@
     <string name="tab_options_controls">Controlli</string>
     <string name="options_font_size">Dimensione carattere</string>
     <string name="options_font_face">Font face</string>
-    <string name="options_font_embolden">Embolden font</string>           
+    <string name="options_font_embolden">Embolden font</string>
     <string name="options_font_antialias">Antialiasing</string>
     <string name="options_font_antialias_off">Nessun antialias</string>
     <string name="options_font_antialias_on_for_big">Per caratteri grandi</string>
@@ -96,7 +96,7 @@
     <string name="options_controls_enable_volume_keys">Usa tasti volume per la navigazione</string>
     <string name="options_app_backlight_screen">Luminosità retroilluminazione schermo</string>
     <string name="options_app_backlight_screen_default">Predefinita</string>
-    <string name="options_app_tapzones_normal">Azioni zona tocco</string> 
+    <string name="options_app_tapzones_normal">Azioni zona tocco</string>
     <string name="options_app_key_actions">Tasti azione</string>
     <string name="options_app_trackball_disable">Disattiva trackball</string>
     <string name="dir_sd_card_2">Scheda SD 2</string>
@@ -120,7 +120,7 @@
     <string name="action_options">Opzioni</string>
     <string name="action_toggle_day_night">Giorno / notte</string>
     <string name="action_reader_menu">Menù lettura</string>
-    <string name="options_app_tap_action_short">Azione tocco</string> 
+    <string name="options_app_tap_action_short">Azione tocco</string>
     <string name="options_app_tap_action_long">Azione tocco prolungato</string>
     <string name="action_touch_screen_toggle_lock">Blocca/sblocca touch screen</string>
     <string name="action_touch_screen_disabled_toast">Il touch screen è bloccato</string>
@@ -129,14 +129,14 @@
     <string name="options_app_scan_book_props">Scansiona proprietà di tutti i libri nella cartella</string>
     <string name="options_app_backlight_lock_enabled">Sovrascrivi timeout retroilluminazione del sistema</string>
     <string name="options_page_titlebar">Opzioni barra titolo</string>
-    <string name="options_page_show_titlebar_chapter_marks">Chapter bound marks</string>         
+    <string name="options_page_show_titlebar_chapter_marks">Chapter bound marks</string>
     <string name="options_page_show_titlebar_battery_percent">Carica batteria come percentuale</string>
     <string name="options_page_titlebar_font_size">Dimensione carattere</string>
-    <string name="options_page_titlebar_font_face">Font face</string>        
+    <string name="options_page_titlebar_font_face">Font face</string>
     <string name="options_page_titlebar_font_color">Colore carattere</string>
     <string name="options_page_show_titlebar_title">Mostra titolo libro</string>
     <string name="options_app_tapzone_hilite">Evidenzia zona tocco su tocco</string>
-    <string name="options_page_animation_paperbook">Paperbook</string>              
+    <string name="options_page_animation_paperbook">Paperbook</string>
     <string name="options_page_animation_none">Nessuna animazione</string>
     <string name="options_page_animation_slide">Slide</string>
     <string name="options_app_key_long_press">(pressione prolungata)</string>
@@ -158,18 +158,18 @@
     <string name="options_page_show_titlebar_page_count">Conteggio pagina</string>
     <string name="options_show_titlebar_page_number">Numero pagina</string>
     <string name="options_controls_flick_brightness">Controllo luminosità con un colpetto</string>
-    <string name="options_controls_flick_brightness_right">Bordo destro</string> 
+    <string name="options_controls_flick_brightness_right">Bordo destro</string>
     <string name="options_controls_flick_brightness_left">Bordo sinistro</string>
     <string name="options_controls_flick_brightness_none">Disabilitato</string>
     <string name="options_page_show_titlebar_page_number">Numero pagina</string>
     <string name="options_app_dictionary">Dizionario</string>
     <string name="action_zoom_in">Aumenta dimensione carattere</string>
-    <string name="options_font_kerning">Font kerning</string>      
+    <string name="options_font_kerning">Font kerning</string>
     <string name="action_zoom_out">Diminuisci dimensione carattere</string>
     <string name="options_style_floating_punctuation">Punteggiatura mobile</string>
     <string name="action_toggle_document_styles">Attiva/disattiva stile documento</string>
-    <string name="options_style_document_embedded_styles">Stili incorporati documento</string> 
-    <string name="options_selection_action_toolbar">Mostra toolbar di selezione</string>  
+    <string name="options_style_document_embedded_styles">Stili incorporati documento</string>
+    <string name="options_selection_action_toolbar">Mostra toolbar di selezione</string>
     <string name="options_selection_action">Azione selezionata</string>
     <string name="options_selection_action_bookmark">Aggiungi segnalibro</string>
     <string name="options_selection_action_dictionary">Trova nel dizionario</string>
@@ -260,4 +260,6 @@
     <string name="options_render_font_gamma">Gamma caratteri</string>
     <string name="action_toggle_titlebar">Attiva/disattiva barra titolo</string>
     <string name="action_show_position_info">Mostra posizione popup</string>
+    <string name="action_show_dictionary">Show dictionary</string>
+    <string name="action_open_last_book">Switch to previous book</string>
 </resources>

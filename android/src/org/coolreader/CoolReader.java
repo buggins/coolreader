@@ -1525,7 +1525,8 @@ public class CoolReader extends Activity
 			Intent intent0 = new Intent(currentDict.action).setComponent(new ComponentName(
 				currentDict.packageName, currentDict.className
 				)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			intent0.putExtra(SearchManager.QUERY, s);
+			if (s!=null)
+				intent0.putExtra(SearchManager.QUERY, s);
 			try {
 				startActivity( intent0 );
 			} catch ( ActivityNotFoundException e ) {
@@ -1545,7 +1546,8 @@ public class CoolReader extends Activity
 			final String EXTRA_MARGIN_RIGHT = "EXTRA_MARGIN_RIGHT";
 
 			Intent intent1 = new Intent(SEARCH_ACTION);
-			intent1.putExtra(EXTRA_QUERY, s); //Search Query
+			if (s!=null)
+				intent1.putExtra(EXTRA_QUERY, s); //Search Query
 			intent1.putExtra(EXTRA_FULLSCREEN, true); //
 			try
 			{
@@ -1556,9 +1558,12 @@ public class CoolReader extends Activity
 			break;
 		}
 	}
+
+	public void showDictionary() {
+		findInDictionaryInternal(null);
+	}
 	
 	public void findInDictionary( String s ) {
-		
 		if ( s!=null && s.length()!=0 ) {
 			s = s.trim();
 			for ( ;s.length()>0; ) {

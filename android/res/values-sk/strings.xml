@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool reader</string>
     <string name="mi_search">Hľadať</string>
@@ -260,4 +260,6 @@
     <string name="options_render_font_gamma">Gamma korekcia písma</string>
     <string name="action_toggle_titlebar">Zap. / Vyp hlavičku</string>
     <string name="action_show_position_info">Informácie o polohe</string>
+    <string name="action_show_dictionary">Show dictionary</string>
+    <string name="action_open_last_book">Switch to previous book</string>
 </resources>

@@ -239,6 +239,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TTS_PLAY(2021),
     	DCMD_TOGGLE_TITLEBAR(2022),
     	DCMD_SHOW_POSITION_INFO_POPUP(2023),
+    	DCMD_SHOW_DICTIONARY(2024),
+    	DCMD_OPEN_PREVIOUS_BOOK(2025),
     	;
     	
     	private final int nativeId;
@@ -1563,6 +1565,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case DCMD_ABOUT:
 			mActivity.showAboutDialog();
 			break;
+		case DCMD_SHOW_DICTIONARY:
+			mActivity.showDictionary();
+			break;
+		case DCMD_OPEN_PREVIOUS_BOOK:
+			loadPreviousDocument(new Runnable() {
+				@Override
+				public void run() {
+					// do nothing
+				}
+			});
+			break;
 		case DCMD_BOOK_INFO:
 			showBookInfo();
 			break;
@@ -2052,6 +2065,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
 		log.i("loadLastDocument() is called, lastBookName = " + lastBookName);
 		return loadDocument( lastBookName, errorHandler );
+	}
+	
+	/**
+	 * When current book is opened, switch to previous book.
+	 * @param errorHandler
+	 * @return
+	 */
+	public boolean loadPreviousDocument( final Runnable errorHandler )
+	{
+		BackgroundThread.ensureGUI();
+		BookInfo bi = mActivity.getHistory().getPreviousBook();
+		if (bi!=null && bi.getFileInfo()!=null) {
+			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
+			return loadDocument( bi.getFileInfo().getPathName(), errorHandler );
+		}
+		errorHandler.run();
+		return false;
 	}
 	
 	public boolean loadDocument( String fileName, final Runnable errorHandler )

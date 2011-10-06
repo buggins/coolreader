@@ -260,4 +260,6 @@
     <string name="options_render_font_gamma">Font Gamma</string>
     <string name="action_toggle_titlebar">Toggle Title Bar</string>
     <string name="action_show_position_info">Show position popup</string>
+    <string name="action_show_dictionary">Show dictionary</string>
+    <string name="action_open_last_book">Switch to previous book</string>
 </resources>
