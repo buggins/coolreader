@@ -419,7 +419,7 @@ public class Scanner {
 				"http://bookserver.revues.org/", "Revues.org", 
 				"http://www.legimi.com/opds/root.atom", "Legimi",
 				"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
-				"http://213.5.65.159/opds/", "Flibusta", 
+				"http://flibusta.net/opds/", "Flibusta", 
 				"http://lib.ololo.cc/opds/", "lib.ololo.cc",
 		};
 		for ( int i=0; i<urls.length-1; i+=2 ) {
