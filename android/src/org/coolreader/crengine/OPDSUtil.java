@@ -28,6 +28,8 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class OPDSUtil {
 
+    public static final int CONNECT_TIMEOUT = 60000;
+    public static final int READ_TIMEOUT = 60000;
 	/*
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:relevance="http://a9.com/-/opensearch/extensions/relevance/1.0/" 
@@ -669,8 +671,8 @@ xml:base="http://lib.ololo.cc/opds/">
 	            	connection.setRequestProperty("Referer", referer);
 	            connection.setInstanceFollowRedirects(true);
 	            connection.setAllowUserInteraction(false);
-	            connection.setConnectTimeout(20000);
-	            connection.setReadTimeout(40000);
+	            connection.setConnectTimeout(CONNECT_TIMEOUT);
+	            connection.setReadTimeout(READ_TIMEOUT);
 	            connection.setDoInput(true);
 	            String fileName = null;
 	            String disp = connection.getHeaderField("Content-Disposition");
