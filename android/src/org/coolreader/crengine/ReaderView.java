@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,7 +14,6 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
-import org.coolreader.crengine.DeviceInfo;
 
 import android.content.Context;
 import android.content.Intent;
@@ -4139,6 +4139,72 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		
     	});
     }
+
+    private final static String NOOK_TOUCH_COVERPAGE_DIR = "/media/screensavers/currentbook";
+	private void updateNookTouchCoverpage(String bookFileName,
+			byte[] coverpageBytes) {
+		try {
+			String imageFileName;
+			int lastSlash = bookFileName.lastIndexOf("/");
+			// exclude path and extension
+			if (lastSlash >= 0 && lastSlash < bookFileName.length()) {
+				imageFileName = bookFileName.substring(lastSlash);
+			} else {
+				imageFileName = bookFileName;
+			}
+			int lastDot = imageFileName.lastIndexOf(".");
+			if (lastDot > 0) {
+				imageFileName = imageFileName.substring(0, lastDot);
+			}
+			// guess image type
+			if (coverpageBytes.length > 8 // PNG signature length
+					&& coverpageBytes[0] == 0x89 // PNG signature start 4 bytes
+					&& coverpageBytes[1] == 0x50
+					&& coverpageBytes[2] == 0x4E
+					&& coverpageBytes[3] == 0x47) {
+				imageFileName += ".png";
+			} else if (coverpageBytes.length > 3 // Checking only the first 3
+													// bytes of JPEG header
+					&& coverpageBytes[0] == 0xFF
+					&& coverpageBytes[1] == 0xD8
+					&& coverpageBytes[2] == 0xFF) {
+				imageFileName += ".jpg";
+			} else if (coverpageBytes.length > 3 // Checking only the first 3
+													// bytes of GIF header
+					&& coverpageBytes[0] == 0x47
+					&& coverpageBytes[1] == 0x49
+					&& coverpageBytes[2] == 0x46) {
+				imageFileName += ".gif";
+			} else if (coverpageBytes.length > 2 // Checking only the first 2
+													// bytes of BMP signature
+					&& coverpageBytes[0] == 0x42 && coverpageBytes[1] == 0x4D) {
+				imageFileName += ".bmp";
+			} else {
+				imageFileName += ".jpg"; // default image type
+			}
+			// create directory if it does not exist
+			File d = new File(NOOK_TOUCH_COVERPAGE_DIR);
+			if (!d.exists()) {
+				d.mkdir();
+			}
+			// create file only if file with same name does not exist
+			File f = new File(d, imageFileName);
+			if (!f.exists()) {
+				// delete other files in directory so that only current cover is
+				// shown all the time
+				File[] files = d.listFiles();
+				for (File oldFile : files) {
+					oldFile.delete();
+				}
+				// write the image file
+				FileOutputStream fos = new FileOutputStream(f);
+				fos.write(coverpageBytes);
+				fos.close();
+			}
+		} catch (Exception ex) {
+			log.e("Error writing cover page: ", ex);
+		}
+	}
     
     @Override
     public void finalize()
