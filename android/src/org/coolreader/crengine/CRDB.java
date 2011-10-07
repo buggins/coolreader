@@ -94,7 +94,7 @@ public class CRDB {
 		")"
 	};
 	
-	public final int DB_VERSION = 6;
+	public final int DB_VERSION = 7;
 	protected boolean updateSchema()
 	{
 		if (DROP_TABLES)
@@ -178,21 +178,23 @@ public class CRDB {
 			execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN flags INTEGER DEFAULT 0");
 		if ( currentVersion>0 && currentVersion<5 )
 			migrateCoverpages();
-		if ( currentVersion<5 )
+		if ( currentVersion<6 )
 			execSQL("CREATE TABLE IF NOT EXISTS opds_catalog (" +
 					"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
 					"name VARCHAR NOT NULL COLLATE NOCASE, " +
 					"url VARCHAR NOT NULL COLLATE NOCASE" +
 					")");
-		// version 2 updates ====================================================================
+		if ( currentVersion<7 )
+			addOPDSCatalogs(DEF_OPDS_URLS1);
 		// TODO: add more updates here
+			
 		// set current version
 		if ( currentVersion<DB_VERSION )
 			mDB.setVersion(DB_VERSION);
 		return true;
 	}
 	
-	String[] def_opds_urls_1 = {
+	private final static String[] DEF_OPDS_URLS1 = {
 			"http://www.feedbooks.com/catalog.atom", "Feedbooks",
 			"http://bookserver.archive.org/catalog/", "Internet Archive",
 			"http://m.gutenberg.org/", "Project Gutenberg", 
@@ -250,8 +252,9 @@ public class CRDB {
 		}
 		return true;
 	}
-	
+
 	public boolean loadOPDSCatalogs(FileInfo parent) {
+		Log.i("cr3", "loadOPDSCatalogs()");
 		boolean found = false;
 		Cursor rs = null;
 		try {
@@ -262,20 +265,20 @@ public class CRDB {
 				parent.clear();
 				// read DB
 				do {
-					Long id = rs.getLong(1);
-					String name = rs.getString(2);
-					String url = rs.getString(3);
-					FileInfo odps = new FileInfo();
-					odps.isDirectory = true;
-					odps.pathname = FileInfo.OPDS_DIR_PREFIX + url;
-					odps.filename = name;
-					odps.isListed = true;
-					odps.isScanned = true;
-					odps.parent = parent;
-					odps.id = id;
-					parent.addDir(odps);
+					Long id = rs.getLong(0);
+					String name = rs.getString(1);
+					String url = rs.getString(2);
+					FileInfo opds = new FileInfo();
+					opds.isDirectory = true;
+					opds.pathname = FileInfo.OPDS_DIR_PREFIX + url;
+					opds.filename = name;
+					opds.isListed = true;
+					opds.isScanned = true;
+					opds.parent = parent;
+					opds.id = id;
+					parent.addDir(opds);
 					found = true;
-				} while ( rs.moveToNext() );
+				} while (rs.moveToNext());
 			}
 		} catch (Exception e) {
 			Log.e("cr3", "exception while loading list of OPDS catalogs", e);
