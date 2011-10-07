@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+>
+<LinearLayout
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content">
+<TextView 
+    android:id="@+id/lbl_catalog_name"
+       style="@android:style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+    android:text="@string/dlg_catalog_edit_name" 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>
+<EditText 
+    android:id="@+id/catalog_name" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:text="New catalog name" 
+    style="@android:style/TextAppearance.Widget.EditText"
+    android:editable="true" android:singleLine="true"
+/>
+<TextView 
+    android:id="@+id/lbl_catalog_url"
+       style="@android:style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+    android:text="@string/dlg_catalog_edit_url" 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>
+<EditText 
+    android:id="@+id/catalog_url" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:text="http://" 
+    style="@android:style/TextAppearance.Widget.EditText"
+    android:editable="true" android:singleLine="true"
+/>
+</LinearLayout>
+</ScrollView>

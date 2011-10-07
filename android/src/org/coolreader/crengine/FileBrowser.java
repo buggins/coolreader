@@ -78,7 +78,7 @@ public class FileBrowser extends ListView {
 				FileInfo item = (FileInfo) getAdapter().getItem(position);
 				if ( item==null )
 					return false;
-				if ( item.isDirectory ) {
+				if (item.isDirectory && !item.isOPDSDir()) {
 					showDirectory(item, null);
 					return true;
 				}
@@ -97,7 +97,7 @@ public class FileBrowser extends ListView {
 	
 	public boolean onContextItemSelected(MenuItem item) {
 		
-		if ( selectedItem==null || selectedItem.isDirectory )
+		if ( selectedItem==null || (selectedItem.isDirectory && !selectedItem.isOPDSDir()) )
 			return false;
 			
 		switch (item.getItemId()) {
@@ -145,6 +145,7 @@ public class FileBrowser extends ListView {
 			return true;
 		case R.id.catalog_add:
 			log.d("catalog_add menu item selected");
+			editOPDSCatalog(null);
 			return true;
 		case R.id.catalog_delete:
 			log.d("catalog_delete menu item selected");
@@ -155,6 +156,7 @@ public class FileBrowser extends ListView {
 			return true;
 		case R.id.catalog_edit:
 			log.d("catalog_edit menu item selected");
+			editOPDSCatalog(selectedItem);
 			return true;
 		case R.id.catalog_open:
 			log.d("catalog_open menu item selected");
@@ -162,6 +164,25 @@ public class FileBrowser extends ListView {
 			return true;
 		}
 		return false;
+	}
+	
+	private void editOPDSCatalog(FileInfo opds) {
+		if (opds==null) {
+			opds = new FileInfo();
+			opds.isDirectory = true;
+			opds.pathname = FileInfo.OPDS_DIR_PREFIX + "http://";
+			opds.filename = "New Catalog";
+			opds.isListed = true;
+			opds.isScanned = true;
+			opds.parent = mScanner.getOPDSRoot();
+		}
+		OPDSCatalogEditDialog dlg = new OPDSCatalogEditDialog(mActivity, opds, new Runnable() {
+			@Override
+			public void run() {
+				refreshOPDSRootDirectory();
+			}
+		});
+		dlg.show();
 	}
 	
 	private void refreshOPDSRootDirectory() {
