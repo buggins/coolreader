@@ -410,15 +410,17 @@ public class CoolReader extends Activity
 		}
 	}
 	
+	private boolean isFirstStart = true;
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-    	
-    	
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
+    	isFirstStart = true;
+		
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
 		try {
@@ -838,7 +840,10 @@ public class CoolReader extends Activity
 		
 		backlightControl.onUserActivity();
 		
-
+		if (!isFirstStart)
+			return;
+		isFirstStart = false;
+		
 		if ( fileToLoadOnStart==null ) {
 			if ( mReaderView!=null && currentView==mReaderView && mReaderView.isBookLoaded() ) {
 				log.v("Book is already opened, showing ReaderView");
@@ -854,8 +859,7 @@ public class CoolReader extends Activity
 //			}
 		}
 		if ( !stopped ) {
-	        mEngine.showProgress( 500, R.string.progress_starting_cool_reader );
-			//mEngine.setHyphenationDictionary( HyphDict.RUSSIAN );
+			mEngine.showProgress( 500, R.string.progress_starting_cool_reader );
 		}
         //log.i("waiting for engine tasks completion");
         //engine.waitTasksCompletion();
