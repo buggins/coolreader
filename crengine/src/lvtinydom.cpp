@@ -1946,7 +1946,8 @@ bool ldomDataStorageManager::save( CRTimerUtil & maxTime )
 //        if ( (i&3)==3 &&  maxTime.expired() )
 //            return res;
     }
-    _cache->flush(false, maxTime); // intermediate flush
+    if (!maxTime.infinite())
+        _cache->flush(false, maxTime); // intermediate flush
     if ( maxTime.expired() )
         return res;
     if ( !res )
@@ -7886,7 +7887,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             CRLog::error("Error while saving blob storage data");
             return CR_ERROR;
         }
-        _cacheFile->flush(false, maxTime); // intermediate flush
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving blob storage data")
         // fall through
     case 4:
@@ -7897,7 +7899,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             CRLog::error("Error while saving node style data");
             return CR_ERROR;
         }
-        _cacheFile->flush(false, maxTime); // intermediate flush
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving node style storage")
         // fall through
     case 5:
@@ -7911,7 +7914,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 return CR_ERROR;
             }
         }
-        _cacheFile->flush(false, maxTime); // intermediate flush
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving props data")
         // fall through
     case 6:
@@ -7924,7 +7928,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 return CR_ERROR;
             }
         }
-        _cacheFile->flush(false, maxTime); // intermediate flush
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving ID data")
         // fall through
     case 7:
@@ -7938,7 +7943,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         } else {
             CRLog::trace("ldomDocument::saveChanges() - no page data");
         }
-        _cacheFile->flush(false, maxTime); // intermediate flush
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving page data")
         // fall through
     case 8:
@@ -7949,7 +7955,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             CRLog::error("Error while node instance data");
             return CR_ERROR;
         }
-        _cacheFile->flush(false, maxTime); // intermediate flush
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving node data")
         // fall through
     case 9:
@@ -7980,7 +7987,8 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 return CR_ERROR;
             }
         }
-        _cacheFile->flush(false, maxTime); // intermediate flush
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime); // intermediate flush
         CHECK_EXPIRATION("saving TOC data")
         // fall through
     case 10:
