@@ -267,4 +267,8 @@
     <string name="mi_catalog_delete">Удалить каталог</string>
     <string name="mi_catalog_open">Открыть каталог</string>
     <string name="menu_title_catalog">Каталог OPDS</string>
+    <string name="dlg_catalog_edit_name">Название</string>
+    <string name="dlg_catalog_edit_url">URL</string>
+    <string name="dlg_catalog_edit_title">Каталог OPDS</string>
+    <string name="dlg_catalog_add_title">Добавить каталог</string>
 </resources>

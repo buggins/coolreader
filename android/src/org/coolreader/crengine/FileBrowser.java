@@ -148,16 +148,28 @@ public class FileBrowser extends ListView {
 			return true;
 		case R.id.catalog_delete:
 			log.d("catalog_delete menu item selected");
+			if (selectedItem!=null && selectedItem.isOPDSDir()) {
+				mActivity.getDB().removeOPDSCatalog(selectedItem.id);
+				refreshOPDSRootDirectory();
+			}
 			return true;
 		case R.id.catalog_edit:
 			log.d("catalog_edit menu item selected");
 			return true;
 		case R.id.catalog_open:
 			log.d("catalog_open menu item selected");
-			showDirectory(selectedItem, selectedItem);
+			showOPDSDir(selectedItem, null);
 			return true;
 		}
 		return false;
+	}
+	
+	private void refreshOPDSRootDirectory() {
+		FileInfo opdsRoot = mScanner.getOPDSRoot();
+		if ( opdsRoot!=null ) {
+			mActivity.getDB().loadOPDSCatalogs(opdsRoot);
+			showDirectory(opdsRoot, null);
+		}
 	}
 	
 	@Override

@@ -267,4 +267,8 @@
     <string name="mi_catalog_delete">Delete Catalog</string>
     <string name="mi_catalog_open">Open Catalog</string>
     <string name="menu_title_catalog">OPDS Catalog</string>
+    <string name="dlg_catalog_edit_name">Name</string>
+    <string name="dlg_catalog_edit_url">URL</string>
+    <string name="dlg_catalog_edit_title">OPDS Catalog</string>
+    <string name="dlg_catalog_add_title">Add Catalog</string>
 </resources>

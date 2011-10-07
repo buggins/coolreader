@@ -288,6 +288,11 @@ public class CRDB {
 		}
 		return found;
 	}
+	
+	public void removeOPDSCatalog(Long id) {
+		Log.i("cr3", "removeOPDSCatalog(" + id + ")");
+		execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE id = " + id);
+	}
 
 	private void migrateCoverpages() {
 		Thread migrationThread = new Thread() {
