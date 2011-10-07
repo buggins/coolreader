@@ -38,7 +38,7 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 	@Override
 	protected void onPositiveButtonClick() {
 		mCoolReader.getDB().saveOPDSCatalog(mItem.id,
-				nameEdit.getText().toString(), urlEdit.getText().toString());
+				urlEdit.getText().toString(), nameEdit.getText().toString());
 		mOnUpdate.run();
 		super.onPositiveButtonClick();
 	}
