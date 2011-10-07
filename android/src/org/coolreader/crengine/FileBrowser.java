@@ -143,6 +143,19 @@ public class FileBrowser extends ListView {
 			mActivity.getHistory().removeBookInfo(selectedItem, true, false);
 			showRecentBooks();
 			return true;
+		case R.id.catalog_add:
+			log.d("catalog_add menu item selected");
+			return true;
+		case R.id.catalog_delete:
+			log.d("catalog_delete menu item selected");
+			return true;
+		case R.id.catalog_edit:
+			log.d("catalog_edit menu item selected");
+			return true;
+		case R.id.catalog_open:
+			log.d("catalog_open menu item selected");
+			showDirectory(selectedItem, selectedItem);
+			return true;
 		}
 		return false;
 	}
@@ -155,6 +168,9 @@ public class FileBrowser extends ListView {
 	    if ( isRecentDir() ) {
 		    inflater.inflate(R.menu.cr3_file_browser_recent_context_menu, menu);
 		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_recent_book));
+	    } else if (selectedItem!=null && selectedItem.isOPDSDir()) {
+		    inflater.inflate(R.menu.cr3_file_browser_opds_context_menu, menu);
+		    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
 	    } else if (selectedItem!=null && selectedItem.isDirectory) {
 		    inflater.inflate(R.menu.cr3_file_browser_folder_context_menu, menu);
 		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));

@@ -262,4 +262,9 @@
     <string name="action_show_position_info">Информация о позиции</string>
     <string name="action_show_dictionary">Показать словарь</string>
     <string name="action_open_last_book">Предыдущая книга</string>
+    <string name="mi_catalog_edit">Редактировать</string>
+    <string name="mi_catalog_add">Новый каталог</string>
+    <string name="mi_catalog_delete">Удалить каталог</string>
+    <string name="mi_catalog_open">Открыть каталог</string>
+    <string name="menu_title_catalog">Каталог OPDS</string>
 </resources>
