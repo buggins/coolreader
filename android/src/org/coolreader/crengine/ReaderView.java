@@ -856,7 +856,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case SELECTION_ACTION_DICTIONARY:
 			mActivity.findInDictionary( sel.text );
-			clearSelection();
+			//clearSelection();
 			break;
 		case SELECTION_ACTION_BOOKMARK:
 			clearSelection();

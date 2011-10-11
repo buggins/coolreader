@@ -77,8 +77,8 @@ public class ReaderAction {
 	public final static ReaderAction TTS_PLAY = new ReaderAction("TTS_PLAY", R.string.mi_tts_play, ReaderCommand.DCMD_TTS_PLAY, 0, R.id.cr3_mi_tts_play );
 	public final static ReaderAction TOGGLE_TITLEBAR = new ReaderAction("TOGGLE_TITLEBAR", R.string.action_toggle_titlebar, ReaderCommand.DCMD_TOGGLE_TITLEBAR, 0 );
 	public final static ReaderAction SHOW_POSITION_INFO_POPUP = new ReaderAction("SHOW_POSITION_INFO_POPUP", R.string.action_show_position_info, ReaderCommand.DCMD_SHOW_POSITION_INFO_POPUP, 0 );
-	public final static ReaderAction SHOW_DICTIONARY = new ReaderAction("SHOW_DICTIONARY", R.string.action_show_dictionary, ReaderCommand.DCMD_SHOW_DICTIONARY, 0 );
-	public final static ReaderAction OPEN_PREVIOUS_BOOK = new ReaderAction("OPEN_PREVIOUS_BOOK", R.string.action_open_last_book, ReaderCommand.DCMD_OPEN_PREVIOUS_BOOK, 0 );
+	public final static ReaderAction SHOW_DICTIONARY = new ReaderAction("SHOW_DICTIONARY", R.string.action_show_dictionary, ReaderCommand.DCMD_SHOW_DICTIONARY, 0);
+	public final static ReaderAction OPEN_PREVIOUS_BOOK = new ReaderAction("OPEN_PREVIOUS_BOOK", R.string.action_open_last_book, ReaderCommand.DCMD_OPEN_PREVIOUS_BOOK, 0, R.id.cr3_go_previous_book);
 	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit );
 	
 	
