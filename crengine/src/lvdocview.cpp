@@ -3699,8 +3699,9 @@ void LVDocView::createEmptyDocument() {
 			PROP_FOOTNOTES, true));
 	m_doc->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, m_props->getBoolDef(
 			PROP_EMBEDDED_STYLES, true));
+    m_doc->setMinSpaceCondensingPercent(m_props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, 50));
 
-	m_doc->setContainer(m_container);
+    m_doc->setContainer(m_container);
 	m_doc->setNodeTypes(fb2_elem_table);
 	m_doc->setAttributeTypes(fb2_attr_table);
 	m_doc->setNameSpaceTypes(fb2_ns_table);
