@@ -2077,6 +2077,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		BookInfo bi = mActivity.getHistory().getPreviousBook();
 		if (bi!=null && bi.getFileInfo()!=null) {
+			save();
+			close();
 			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
 			return loadDocument( bi.getFileInfo().getPathName(), errorHandler );
 		}
