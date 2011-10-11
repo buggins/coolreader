@@ -415,6 +415,8 @@ protected:
     CRPropRef _docProps;
     lUInt32 _docFlags; // document flags
 
+    int _styleIndex;
+
     LVStyleSheet  _stylesheet;
 
     LVHashTable<lUInt16, lUInt16> _fontMap; // style index to font index

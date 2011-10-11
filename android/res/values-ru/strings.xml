@@ -271,4 +271,5 @@
     <string name="dlg_catalog_edit_url">URL</string>
     <string name="dlg_catalog_edit_title">Каталог OPDS</string>
     <string name="dlg_catalog_add_title">Добавить каталог</string>
+    <string name="options_format_min_space_width_percent">Мин. ширина пробела</string>
 </resources>

@@ -71,6 +71,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mInterlineSpaces = new int[] {
 			80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200
 		};
+	int[] mMinSpaceWidths = new int[] {
+			50, 60, 70, 80, 90, 100
+		};
 	int[] mMargins = new int[] {
 			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100
 		};
@@ -1153,6 +1156,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), ReaderView.PROP_FONT_KERNING_ENABLED).setDefaultValue("0"));
 		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), ReaderView.PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), ReaderView.PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50"));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());
