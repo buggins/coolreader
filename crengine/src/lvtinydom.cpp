@@ -28,14 +28,14 @@
 //=====================================================
 
 #ifndef DOC_BUFFER_SIZE
-#define DOC_BUFFER_SIZE 0x400000 // default buffer size
+#define DOC_BUFFER_SIZE 0x800000 // default buffer size
 #endif
 
 //--------------------------------------------------------
 // cache memory sizes
 //--------------------------------------------------------
 #ifndef ENABLED_BLOCK_WRITE_CACHE
-#define ENABLED_BLOCK_WRITE_CACHE 0
+#define ENABLED_BLOCK_WRITE_CACHE 1
 #endif
 
 #define WRITE_CACHE_TOTAL_SIZE    (10*DOC_BUFFER_SIZE/100)
