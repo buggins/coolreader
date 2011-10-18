@@ -111,8 +111,9 @@ public class SelectionToolbarDlg {
 		}
 	};
 	
-	private void closeDialog() {
-		mReaderView.clearSelection();
+	private void closeDialog(boolean clearSelection) {
+		if (clearSelection)
+			mReaderView.clearSelection();
 		restoreReaderMode();
 		mWindow.dismiss();
 	}
@@ -136,7 +137,7 @@ public class SelectionToolbarDlg {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-					closeDialog();
+					closeDialog(true);
 					return true;
 				}
 				return false;
@@ -147,30 +148,30 @@ public class SelectionToolbarDlg {
 		mPanel.findViewById(R.id.selection_copy).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mReaderView.copyToClipboard(selection.text);
-				closeDialog();
+				closeDialog(true);
 			}
 		});
 		mPanel.findViewById(R.id.selection_dict).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mCoolReader.findInDictionary( selection.text );
-				closeDialog();
+				closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
 			}
 		});
 		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mReaderView.showNewBookmarkDialog(selection);
-				closeDialog();
+				closeDialog(true);
 			}
 		});
 		mPanel.findViewById(R.id.selection_email).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mReaderView.sendQuotationInEmail(selection);
-				closeDialog();
+				closeDialog(true);
 			}
 		});
 		mPanel.findViewById(R.id.selection_cancel).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				closeDialog();
+				closeDialog(true);
 			}
 		});
 		new BoundControlListener((SeekBar)mPanel.findViewById(R.id.selection_left_bound_control), true);
@@ -182,7 +183,7 @@ public class SelectionToolbarDlg {
 				if ( event.getAction()==KeyEvent.ACTION_UP ) {
 					switch ( keyCode ) {
 					case KeyEvent.KEYCODE_BACK:
-						closeDialog();
+						closeDialog(true);
 						return true;
 //					case KeyEvent.KEYCODE_DPAD_LEFT:
 //					case KeyEvent.KEYCODE_DPAD_UP:
