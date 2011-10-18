@@ -2909,9 +2909,67 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
 		}
 
+		public static final int MAX_PROGRESS = 10000;
+		public static final int START_ANIMATION_PROGRESS = 8000;
 		@Override
 		void draw(Canvas canvas) {
-			// TODO Auto-generated method stub
+			if (DEBUG_ANIMATION) log.v("AutoScrollAnimation.draw(" + progress + ")");
+			if (progress<START_ANIMATION_PROGRESS)
+				return; // don't draw page w/o started animation
+			int scrollPercent = 10000 * (progress - START_ANIMATION_PROGRESS) / (MAX_PROGRESS - START_ANIMATION_PROGRESS);
+			int w = image1.bitmap.getWidth(); 
+			int h = image1.bitmap.getHeight();
+			int div;
+			if (isScrollView) {
+				// scroll
+				div = h * scrollPercent / 10000;
+	    		Rect src1 = new Rect(0, 0, w, div);
+	    		Rect dst1 = new Rect(0, 0, w, div);
+	    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+	    		Rect src2 = new Rect(0, div, w, h);
+	    		Rect dst2 = new Rect(0, div, w, h);
+	    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+			} else {
+				if (image1.isReleased() || image2.isReleased())
+					return;
+				if (pageCount==2) {
+					if (scrollPercent<5000) {
+						// < 50%
+						div = h * scrollPercent / 5000;
+			    		Rect src1 = new Rect(0, 0, w/2, div);
+			    		Rect dst1 = new Rect(0, 0, w/2, div);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+			    		Rect src2 = new Rect(0, div, w/2, h);
+			    		Rect dst2 = new Rect(0, div, w/2, h);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+			    		Rect src3 = new Rect(w/2, 0, w, h);
+			    		Rect dst3 = new Rect(w/2, 0, w, h);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src3, dst3);
+					} else {
+						// >=50%
+						div = h * (scrollPercent - 5000) / 5000;
+			    		Rect src1 = new Rect(w/2, 0, w/2, div);
+			    		Rect dst1 = new Rect(w/2, 0, w/2, div);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+			    		Rect src2 = new Rect(w/2, div, w/2, h);
+			    		Rect dst2 = new Rect(w/2, div, w/2, h);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+			    		Rect src3 = new Rect(0, 0, w/2, h);
+			    		Rect dst3 = new Rect(0, 0, w/2, h);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src3, dst3);
+					}
+				} else {
+					div = h * scrollPercent / 10000;
+		    		Rect src1 = new Rect(0, 0, w, div);
+		    		Rect dst1 = new Rect(0, 0, w, div);
+		    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+		    		Rect src2 = new Rect(0, div, w, h);
+		    		Rect dst2 = new Rect(0, div, w, h);
+		    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+					//Rect shadowRect = new Rect(0, div, w, div + h/16);
+					//drawShadow( canvas, shadowRect );
+				}
+			}
 			
 		}
 		
