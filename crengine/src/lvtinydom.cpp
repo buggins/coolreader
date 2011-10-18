@@ -508,7 +508,6 @@ bool CacheFile::flush( bool clearDirtyFlag, CRTimerUtil & maxTime )
             return false;
         setDirtyFlag(false);
     } else {
-        CRTimerUtil timer;
         _stream->Flush(false, maxTime);
         //CRLog::trace("CacheFile->flush() took %d ms ", (int)timer.elapsed());
     }
