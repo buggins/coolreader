@@ -272,4 +272,5 @@
     <string name="dlg_catalog_edit_title">OPDS Catalog</string>
     <string name="dlg_catalog_add_title">Add Catalog</string>
     <string name="options_format_min_space_width_percent">Min space width %</string>
+    <string name="options_selection_keep_selection_after_dictionary">Keep selection after dictionary</string>
 </resources>

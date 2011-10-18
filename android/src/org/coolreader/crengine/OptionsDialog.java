@@ -1176,6 +1176,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_selection_action), ReaderView.PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), ReaderView.PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
 		
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));

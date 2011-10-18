@@ -139,6 +139,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
     public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
     public static final String PROP_APP_SELECTION_ACTION = "app.selection.action";
+    public static final String PROP_APP_SELECTION_PERSIST = "app.selection.persist";
     public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
     public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
 
@@ -856,7 +857,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case SELECTION_ACTION_DICTIONARY:
 			mActivity.findInDictionary( sel.text );
-			//clearSelection();
+			if (!getSettings().getBool(PROP_APP_SELECTION_PERSIST, false))
+				clearSelection();
 			break;
 		case SELECTION_ACTION_BOOKMARK:
 			clearSelection();
@@ -2080,7 +2082,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BookInfo bi = mActivity.getHistory().getPreviousBook();
 		if (bi!=null && bi.getFileInfo()!=null) {
 			save();
-			close();
 			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
 			return loadDocument( bi.getFileInfo().getPathName(), errorHandler );
 		}
@@ -2363,6 +2364,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.id = ++lastDrawTaskId;
 			this.doneHandler = doneHandler;
 			this.isPartially = isPartially;
+			cancelGc();
 		}
 		public void work() {
 			BackgroundThread.ensureBackground();
@@ -2789,6 +2791,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		ViewAnimationBase()
 		{
 			startTimeStamp = android.os.SystemClock.uptimeMillis();
+			cancelGc();
 		}
 		public void close()
 		{
@@ -4272,6 +4275,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
     public static void scheduleGc() {
     	GcScheduleTask.scheduleGc();
+    }
+    public static void cancelGc() {
+    	++gcCounter;
     }
 
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread, Properties props ) 

@@ -272,4 +272,5 @@
     <string name="dlg_catalog_edit_title">Каталог OPDS</string>
     <string name="dlg_catalog_add_title">Добавить каталог</string>
     <string name="options_format_min_space_width_percent">Мин. ширина пробела</string>
+    <string name="options_selection_keep_selection_after_dictionary">Сохранять выделение после словаря</string>
 </resources>

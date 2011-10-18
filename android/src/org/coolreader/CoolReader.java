@@ -1406,6 +1406,7 @@ public class CoolReader extends Activity
     		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
         }
         
+        props.applyDefault(ReaderView.PROP_APP_SELECTION_PERSIST, "0");
         props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "0");
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
         // autodetect best initial font size based on display resolution
