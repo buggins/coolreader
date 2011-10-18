@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDiskIOException;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
@@ -17,16 +18,46 @@ public class CRDB {
 	File mDBFile;
 	SQLiteDatabase mCoverpageDB;
 	File mCoverpageDBFile;
+
+	private boolean moveToBackup(File f) {
+		Log.e("cr3", "Moving corrupted DB file to backup.");
+		File f2 = null;
+		for (int i=2; i<100; i++) {
+			f2 = new File(f.getAbsoluteFile() + ".bak." + i);
+			if (!f2.exists())
+				break;
+		}
+		if (!f.renameTo(f2)) {
+			Log.e("cr3", "Cannot rename DB file " + f + " to " + f2);
+			if (!f.delete()) {
+				Log.e("cr3", "Cannot remove DB file " + f);
+				return false;
+			}
+		}
+		return true;
+	}
+
 	protected boolean open( File dbfile )
 	{
 		L.i("Opening database from " + dbfile.getAbsolutePath());
-		this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+		try {
+			this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+		} catch (SQLiteDiskIOException e) {
+			moveToBackup(dbfile);
+			this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+		}
 		this.mDBFile = dbfile;
 		File coverFile = new File(dbfile.getAbsolutePath().replace(".sqlite", "_cover.sqlite"));
-		this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
+		try {
+			this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
+		} catch (SQLiteDiskIOException e) {
+			moveToBackup(coverFile);
+			this.mDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
+		}
 		this.mCoverpageDBFile = coverFile;
 		return true;
 	}
+
 	protected void dropTables()
 	{
 		String[] tableNames = new String[] {
