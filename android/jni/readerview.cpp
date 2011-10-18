@@ -956,6 +956,8 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
     CRIntField(v,"pageNumber").set(p->_docview->getCurPage());
     CRIntField(v,"pageCount").set(p->_docview->getPageCount());
     CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? p->_docview->getVisiblePageCount() : 0);
+    CRIntField(v,"charCount").set(p->_docview->getCurrentPageCharCount());
+    CRIntField(v,"imageCount").set(p->_docview->getCurrentPageImageCount());
 	return obj;
 }
 

@@ -2202,6 +2202,44 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
 	return res;
 }
 
+/// returns number of non-space characters on current page
+int LVDocView::getCurrentPageCharCount()
+{
+    lString16 text = getPageText(true);
+    int count = 0;
+    for (int i=0; i<text.length(); i++) {
+        lChar16 ch = text[i];
+        if (ch>='0')
+            count++;
+    }
+    return count;
+}
+
+/// returns number of images on current page
+int LVDocView::getCurrentPageImageCount()
+{
+    checkRender();
+    LVRef<ldomXRange> range = getPageDocumentRange(-1);
+    class ImageCounter : public ldomNodeCallback {
+        int count;
+    public:
+        int get() { return count; }
+        ImageCounter() : count(0) { }
+        /// called for each found text fragment in range
+        virtual void onText(ldomXRange *) { }
+        /// called for each found node in range
+        virtual bool onElement(ldomXPointerEx * ptr) {
+            lString16 nodeName = ptr->getNode()->getNodeName();
+            if (nodeName == L"img" || nodeName == L"image")
+                count++;
+        }
+
+    };
+    ImageCounter cnt;
+    range->forEach(&cnt);
+    return cnt.get();
+}
+
 /// get page text, -1 for current page
 lString16 LVDocView::getPageText(bool, int pageIndex) {
 	LVLock lock(getMutex());
