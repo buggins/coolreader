@@ -1106,7 +1106,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			if ( touchEventIgnoreNextUp )
 				return true;
-			if ( !isManualScrollActive && !isBrightnessControlActive && !DeviceInfo.EINK_SCREEN && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
+			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
 				int movex = manualScrollStartPosX - x;
 				int deltay = manualScrollStartPosY - y;
 				int deltax = movex < 0 ? -movex : movex;
@@ -1114,12 +1114,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( deltax + deltay > START_DRAG_THRESHOLD ) {
 					log.v("onTouchEvent: move threshold reached");
 					longTouchId++;
-					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==1 ) {
+					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==1 && !DeviceInfo.EINK_SCREEN) {
 						// brightness
 						isBrightnessControlActive = true;
 						startBrightnessControl(x, y);
 						return true;
-					} else if ( manualScrollStartPosX > dx - START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==2 ) {
+					} else if ( manualScrollStartPosX > dx - START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==2 && !DeviceInfo.EINK_SCREEN) {
 							// brightness
 							isBrightnessControlActive = true;
 							startBrightnessControl(x, y);
