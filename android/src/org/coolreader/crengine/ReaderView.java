@@ -2651,6 +2651,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
+	private void startAutoScroll(final int startProgress)
+	{
+		if (DEBUG_ANIMATION) log.d("startAutoScroll()");
+		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				BackgroundThread.ensureBackground();
+				new AutoScrollAnimation(startProgress);
+				if ( currentAnimation!=null ) {
+					nextHiliteId++;
+					hiliteRect = null;
+				}
+			}
+			
+		});
+	}
+
 	
 	private final static boolean DEBUG_ANIMATION = false;
 	private volatile int updateSerialNumber = 0;
@@ -2827,6 +2844,79 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		abstract void draw( Canvas canvas );
 	}
 	
+	class AutoScrollAnimation extends ViewAnimationBase {
+
+		boolean isScrollView;
+		BitmapInfo image1;
+		BitmapInfo image2;
+		PositionProperties currPos;
+		int progress;
+		int pageCount;
+		
+		public AutoScrollAnimation(int startProgress) {
+			long start = android.os.SystemClock.uptimeMillis();
+			progress = startProgress;
+			currPos = getPositionPropsInternal(null);
+			pageCount = currPos.pageMode;
+			isScrollView = currPos.pageMode == 0;
+			if (isScrollView) {
+				
+			} else {
+				int page1 = currPos.pageNumber;
+				int page2 = currPos.pageNumber + 1;
+				if ( page2<0 || page2>=currPos.pageCount) {
+					currentAnimation = null;
+					return;
+				}
+				image1 = preparePageImage(0);
+				image2 = preparePageImage(1);
+				if ( page1==page2 ) {
+					log.v("PageViewAnimation -- cannot start animation: not moved");
+					return;
+				}
+				if ( image1==null || image2==null ) {
+					log.v("PageViewAnimation -- cannot start animation: page image is null");
+					return;
+				}
+				
+				long duration = android.os.SystemClock.uptimeMillis() - start;
+				log.v("AutoScrollAnimation -- created in " + duration + " millis");
+				currentAnimation = this;
+			}
+		}
+
+		@Override
+		public void update(int x, int y) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void stop(int x, int y) {
+			// TODO: decide whether to turn page
+			close();
+		}
+
+		@Override
+		public void animate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void move(int duration, boolean accelerated) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		void draw(Canvas canvas) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+
 	//private static final int PAGE_ANIMATION_DURATION = 3000;
 	class ScrollViewAnimation extends ViewAnimationBase {
 		int startY;
