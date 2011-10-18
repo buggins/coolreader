@@ -1477,7 +1477,7 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
         props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
         
-        props.applyDefault(ReaderView.PROP_FONT_GAMMA, "1.0");
+        props.applyDefault(ReaderView.PROP_FONT_GAMMA, DeviceInfo.EINK_SONY ? "1.5" : "1.0");
 		
 		props.setProperty(ReaderView.PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
 		props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
