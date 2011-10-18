@@ -2394,6 +2394,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
    			mEngine.hideProgress();
    			if ( doneHandler!=null )
    				doneHandler.run();
+   			scheduleGc();
 		}
 		@Override
 		public void fail(Exception e) {
@@ -2792,6 +2793,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void close()
 		{
 			currentAnimation = null;
+			scheduleGc();
 		}
 
 		
@@ -4247,6 +4249,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     {
     	log.w("ReaderView.finalize() is called");
     	//destroyInternal();
+    }
+
+    private static volatile int gcCounter = 0;
+    private static final int GC_INTERVAL = 5000; // 5 ms
+    private static class GcScheduleTask implements Runnable {
+    	public static void scheduleGc() {
+    		BackgroundThread.instance().postGUI(new GcScheduleTask(), GC_INTERVAL);
+    	}
+    	private final int myCounter;
+    	private GcScheduleTask() {
+    		myCounter = ++gcCounter;
+    	}
+		@Override
+		public void run() {
+			if (myCounter == gcCounter) {
+				log.v("Initiating garbage collection");
+				System.gc();
+				++gcCounter;
+			}
+		}
+    }
+    public static void scheduleGc() {
+    	GcScheduleTask.scheduleGc();
     }
 
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread, Properties props ) 
