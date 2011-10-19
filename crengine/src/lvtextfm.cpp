@@ -406,7 +406,7 @@ public:
             int pscale_x = 1000 * maxw / width;
             int pscale_y = 1000 * maxh / height;
             int pscale = pscale_x < pscale_y ? pscale_x : pscale_y;
-            int maxscale = (MAX_IMAGE_SCALE_MUL>0 ? MAX_IMAGE_SCALE_MUL : 1) * 1000;
+            int maxscale = maxScaleMult * 1000;
             if ( pscale>maxscale )
                 pscale = maxscale;
             height = height * pscale / 1000;
