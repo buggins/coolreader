@@ -1558,6 +1558,31 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 		});
 	}
+
+	private int autoScrollSpeed = 120; // chars / minute
+	private int autoScrollNotificationId = 0;
+	
+	private void toggleAutoScroll() {
+		// TODO:
+	}
+	
+	private void changeAutoScrollSpeed(int delta) {
+		if (autoScrollSpeed<60)
+			delta *= 5;
+		else if (autoScrollSpeed<120)
+			delta *= 10;
+		else
+			delta *= 20;
+		autoScrollSpeed += delta;
+		final int myId = ++autoScrollNotificationId;
+		final String msg = mActivity.getString(R.string.lbl_autoscroll_speed).replace("$1", String.valueOf(autoScrollSpeed));
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				if (myId == autoScrollNotificationId)
+					mActivity.showToast(msg);
+			}}, 1000);
+	}
 	
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
@@ -1573,7 +1598,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.showAboutDialog();
 			break;
 		case DCMD_TOGGLE_AUTOSCROLL:
-			// TODO:
+			toggleAutoScroll();
+			break;
+		case DCMD_AUTOSCROLL_SPEED_INCREASE:
+			changeAutoScrollSpeed(1);
+			break;
+		case DCMD_AUTOSCROLL_SPEED_DECREASE:
+			changeAutoScrollSpeed(-1);
 			break;
 		case DCMD_SHOW_DICTIONARY:
 			mActivity.showDictionary();
