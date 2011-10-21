@@ -274,4 +274,7 @@
     <string name="options_format_min_space_width_percent">Мин. ширина пробела</string>
     <string name="options_selection_keep_selection_after_dictionary">Сохранять выделение после словаря</string>
     <string name="action_toggle_autoscroll">Автолистание</string>
+    <string name="lbl_autoscroll_speed">Скорость: $1 знаков/мин</string>
+    <string name="action_autoscroll_speed_increase">Увеличить скорость автолистания</string>
+    <string name="action_autoscroll_speed_decrease">Уменьшить скорость автолистания</string>
 </resources>

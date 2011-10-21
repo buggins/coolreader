@@ -245,6 +245,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_SHOW_DICTIONARY(2024),
     	DCMD_OPEN_PREVIOUS_BOOK(2025),
     	DCMD_TOGGLE_AUTOSCROLL(2026),
+    	DCMD_AUTOSCROLL_SPEED_INCREASE(2027),
+    	DCMD_AUTOSCROLL_SPEED_DECREASE(2028),
     	;
     	
     	private final int nativeId;

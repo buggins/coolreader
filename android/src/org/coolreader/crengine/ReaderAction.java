@@ -80,6 +80,8 @@ public class ReaderAction {
 	public final static ReaderAction SHOW_DICTIONARY = new ReaderAction("SHOW_DICTIONARY", R.string.action_show_dictionary, ReaderCommand.DCMD_SHOW_DICTIONARY, 0);
 	public final static ReaderAction OPEN_PREVIOUS_BOOK = new ReaderAction("OPEN_PREVIOUS_BOOK", R.string.action_open_last_book, ReaderCommand.DCMD_OPEN_PREVIOUS_BOOK, 0, R.id.cr3_go_previous_book);
 	public final static ReaderAction TOGGLE_AUTOSCROLL = new ReaderAction("TOGGLE_AUTOSCROLL", R.string.action_toggle_autoscroll, ReaderCommand.DCMD_TOGGLE_AUTOSCROLL, 0, R.id.cr3_mi_toggle_autoscroll);
+	public final static ReaderAction AUTOSCROLL_SPEED_INCREASE = new ReaderAction("AUTOSCROLL_SPEED_INCREASE", R.string.action_autoscroll_speed_increase, ReaderCommand.DCMD_AUTOSCROLL_SPEED_INCREASE, 0);
+	public final static ReaderAction AUTOSCROLL_SPEED_DECREASE = new ReaderAction("AUTOSCROLL_SPEED_DECREASE", R.string.action_autoscroll_speed_decrease, ReaderCommand.DCMD_AUTOSCROLL_SPEED_DECREASE, 0);
 	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit );
 	
 	
