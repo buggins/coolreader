@@ -7,7 +7,7 @@
 <item android:numericShortcut="3" android:id="@+id/cr3_go_toc" android:title="@string/mi_goto_toc" android:titleCondensed="@string/mi_goto_toc"></item>
 <item android:numericShortcut="4" android:id="@+id/cr3_go_back" android:title="@string/action_go_back" android:titleCondensed="@string/action_go_back"></item>
 <item android:numericShortcut="5" android:id="@+id/cr3_go_forward" android:title="@string/action_go_forward" android:titleCondensed="@string/action_go_forward"></item>
-<item android:numericShortcut="5" android:id="@+id/cr3_go_previous_book" android:title="@string/action_open_last_book" android:titleCondensed="@string/action_open_last_book"></item>
+<item android:numericShortcut="6" android:id="@+id/cr3_go_previous_book" android:title="@string/action_open_last_book" android:titleCondensed="@string/action_open_last_book"></item>
 </menu>
 </item>
 <item android:title="@string/mi_bookmarks" android:id="@+id/cr3_mi_bookmarks" android:numericShortcut="3" android:orderInCategory="3" android:icon="@drawable/ic_menu_mark"></item>
@@ -19,5 +19,6 @@
 <item android:title="@string/mi_tts_play" android:id="@+id/cr3_mi_tts_play" android:numericShortcut="6" android:titleCondensed="@string/dlg_about" android:orderInCategory="10"></item>
 <item android:title="@string/dlg_about" android:id="@+id/cr3_mi_about" android:numericShortcut="6" android:titleCondensed="@string/dlg_about" android:orderInCategory="11"></item>
 <item android:title="@string/dlg_book_info" android:id="@+id/cr3_mi_book_info" android:numericShortcut="6" android:titleCondensed="@string/dlg_book_info" android:orderInCategory="12"></item>
-<item android:title="@string/mi_exit" android:titleCondensed="@string/mi_exit" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="13" android:numericShortcut="8"></item>
+<item android:title="@string/action_toggle_autoscroll" android:id="@+id/cr3_mi_toggle_autoscroll" android:numericShortcut="7" android:titleCondensed="@string/action_toggle_autoscroll" android:orderInCategory="13"></item>
+<item android:title="@string/mi_exit" android:titleCondensed="@string/mi_exit" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="14" android:numericShortcut="8"></item>
 </menu>

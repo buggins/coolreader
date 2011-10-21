@@ -244,6 +244,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_SHOW_POSITION_INFO_POPUP(2023),
     	DCMD_SHOW_DICTIONARY(2024),
     	DCMD_OPEN_PREVIOUS_BOOK(2025),
+    	DCMD_TOGGLE_AUTOSCROLL(2026),
     	;
     	
     	private final int nativeId;
@@ -1569,6 +1570,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case DCMD_ABOUT:
 			mActivity.showAboutDialog();
 			break;
+		case DCMD_TOGGLE_AUTOSCROLL:
+			// TODO:
+			break;
 		case DCMD_SHOW_DICTIONARY:
 			mActivity.showDictionary();
 			break;
@@ -2820,17 +2824,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void draw()
 		{
-			drawCallback( new DrawCanvasCallback() {
-				@Override
-				public void drawTo(Canvas c) {
-					//long startTs = android.os.SystemClock.uptimeMillis();
-					draw(c);
-					//long endTs = android.os.SystemClock.uptimeMillis();
-					//updateAnimationDurationStats(endTs - startTs);
-				}
-				
-			}, null, false);
+			draw(false);
 		}
+
 		public void draw(boolean isPartially)
 		{
 			drawCallback( new DrawCanvasCallback() {
