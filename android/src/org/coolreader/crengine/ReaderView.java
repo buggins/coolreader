@@ -293,7 +293,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		        internalDX = w;
 	    		        internalDY = h;
 	    				log.d("ResizeTask: resizeInternal("+w+","+h+")");
-	    		        doc.resizeInternal(w, h);
+	    		        doc.resize(w, h);
 //	    		        if ( mOpened ) {
 //	    					log.d("ResizeTask: done, drawing page");
 //	    			        drawPage();
@@ -692,7 +692,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void work() throws Exception {
 				if ( myId != nextUpdateId && !isUpdateEnd )
 					return;
-				doc.updateSelectionInternal(sel);
+				doc.updateSelection(sel);
 				if ( !sel.isEmpty() ) {
 					invalidImages = true;
 					BitmapInfo bi = preparePageImage(0);
@@ -813,11 +813,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			String link;
 			public void work() {
-				link = doc.checkLinkInternal(x, y, mActivity.getPalmTipPixels() / 2 );
+				link = doc.checkLink(x, y, mActivity.getPalmTipPixels() / 2 );
 				if ( link!=null ) {
 					if ( link.startsWith("#") ) {
 						log.d("go to " + link);
-						doc.goLinkInternal(link);
+						doc.goLink(link);
 						drawPage();
 					}
 				}
@@ -1080,8 +1080,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			PositionProperties pos;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				toc = doc.getTOCInternal();
-				pos = doc.getPositionPropsInternal(null);
+				toc = doc.getTOC();
+				pos = doc.getPositionProps(null);
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
@@ -1109,11 +1109,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				boolean res = doc.findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
+				boolean res = doc.findText( pattern, 1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res )
-					res = doc.findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
+					res = doc.findText( pattern, -1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res ) {
-					doc.clearSelectionInternal();
+					doc.clearSelection();
 					throw new Exception("pattern not found");
 				}
 			}
@@ -1136,11 +1136,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				boolean res = doc.findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
+				boolean res = doc.findText( pattern, 1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res )
-					res = doc.findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
+					res = doc.findText( pattern, -1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res ) {
-					doc.clearSelectionInternal();
+					doc.clearSelection();
 					throw new Exception("pattern not found");
 				}
 			}
@@ -1158,7 +1158,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.post(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				doc.clearSelectionInternal();
+				doc.clearSelection();
 				invalidImages = true;
 			}
 			public void done() {
@@ -1176,7 +1176,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() {
 				BackgroundThread.ensureBackground();
-				doc.goToPositionInternal(pos);
+				doc.goToPosition(pos);
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
@@ -1211,7 +1211,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void work() {
 				BackgroundThread.ensureBackground();
 				if ( mBookInfo!=null ) {
-					bm = doc.getCurrentPageBookmarkInternal();
+					bm = doc.getCurrentPageBookmark();
 					bm.setShortcut(shortcut);
 				}
 			}
@@ -1316,9 +1316,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Bookmark bm;
 			@Override
 			public void work() {
-				bm = doc.getCurrentPageBookmarkInternal();
+				bm = doc.getCurrentPageBookmark();
 				if ( bm!=null ) {
-					PositionProperties prop = doc.getPositionPropsInternal(bm.getStartPos());
+					PositionProperties prop = doc.getPositionProps(bm.getStartPos());
 					if ( prop.pageMode!=0 ) {
 						buf.append("" + (prop.pageNumber+1) + " / " + prop.pageCount + "   ");
 					}
@@ -1393,9 +1393,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Bookmark bm;
 			@Override
 			public void work() {
-				bm = doc.getCurrentPageBookmarkInternal();
+				bm = doc.getCurrentPageBookmark();
 				if ( bm!=null ) {
-					PositionProperties prop = doc.getPositionPropsInternal(bm.getStartPos());
+					PositionProperties prop = doc.getPositionProps(bm.getStartPos());
 					items.add("section=section.position");
 					if ( prop.pageMode!=0 ) {
 						items.add("position.page=" + (prop.pageNumber+1) + " / " + prop.pageCount);
@@ -1607,7 +1607,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			boolean res;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				res = doc.doCommandInternal(cmd.nativeId, param);
+				res = doc.doCommand(cmd.nativeId, param);
 			}
 			public void done() {
 				if ( res )
@@ -1620,7 +1620,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		log.d("doCommandFromBackgroundThread("+cmd + ", " + param +")");
 		BackgroundThread.ensureBackground();
-		boolean res = doc.doCommandInternal(cmd.nativeId, param);
+		boolean res = doc.doCommand(cmd.nativeId, param);
 		if ( res ) {
 			BackgroundThread.guiExecutor.execute(new Runnable() {
 				public void run() {
@@ -1639,7 +1639,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureBackground();
 		// get title, authors, etc.
-		doc.updateBookInfoInternal( mBookInfo );
+		doc.updateBookInfo( mBookInfo );
 	}
 	
 	private void applySettings( Properties props, boolean save )
@@ -1653,7 +1653,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( backgroundImageId!=null )
 			setBackgroundTexture(backgroundImageId);
 		props.remove(PROP_EMBEDDED_STYLES);
-		doc.applySettingsInternal(props);
+		doc.applySettings(props);
         syncViewSettings(props, save);
         drawPage();
 	}
@@ -1681,7 +1681,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Properties props;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				java.util.Properties internalProps = doc.getSettingsInternal(); 
+				java.util.Properties internalProps = doc.getSettings(); 
 				props = new Properties(internalProps);
 				props.remove(PROP_EMBEDDED_STYLES);
 			}
@@ -1898,7 +1898,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.d("setBackgroundTexture( " + texture + " )");
 			currentBackgroundTexture = texture;
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
-			doc.setPageBackgroundTextureInternal(data, texture.tiled ? 1 : 0);
+			doc.setPageBackgroundTexture(data, texture.tiled ? 1 : 0);
 		}
 	}
 	
@@ -1919,7 +1919,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			BackgroundTextureInfo[] textures = mEngine.getAvailableTextures();
 //			byte[] data = mEngine.getImageData(textures[3]);
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
-			doc.setPageBackgroundTextureInternal(data, currentBackgroundTexture.tiled?1:0);
+			doc.setPageBackgroundTexture(data, currentBackgroundTexture.tiled?1:0);
 			
 			//File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
@@ -1933,7 +1933,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			//}
 	        String css = mEngine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
-	        	doc.setStylesheetInternal(css);
+	        	doc.setStylesheet(css);
    			applySettings(props, false);
    			mInitialized = true;
 		}
@@ -2153,10 +2153,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( internalDX==0 || internalDY==0 ) {
 			internalDX=200;
 			internalDY=300;
-			doc.resizeInternal(internalDX, internalDY);
+			doc.resize(internalDX, internalDY);
 		}
 		
-		PositionProperties currpos = doc.getPositionPropsInternal(null);
+		PositionProperties currpos = doc.getPositionProps(null);
 		
 		boolean isPageView = currpos.pageMode!=0;
 		
@@ -2184,8 +2184,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BitmapInfo bi = new BitmapInfo();
 	        bi.position = currpos;
 			bi.bitmap = factory.get(internalDX, internalDY);
-			doc.setBatteryStateInternal(mBatteryState);
-			doc.getPageImageInternal(bi.bitmap);
+			doc.setBatteryState(mBatteryState);
+			doc.getPageImage(bi.bitmap);
 	        mCurrentPageInfo = bi;
 	        //log.v("Prepared new current page image " + mCurrentPageInfo);
 	        return mCurrentPageInfo;
@@ -2196,9 +2196,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int cmd2 = offset > 0 ? ReaderCommand.DCMD_PAGEUP.nativeId : ReaderCommand.DCMD_PAGEDOWN.nativeId;
 			if ( offset<0 )
 				offset = -offset;
-			if ( doc.doCommandInternal(cmd1, offset) ) {
+			if ( doc.doCommand(cmd1, offset) ) {
 				// can move to next page
-				PositionProperties nextpos = doc.getPositionPropsInternal(null);
+				PositionProperties nextpos = doc.getPositionProps(null);
 				BitmapInfo nextposBitmap = null;
 				if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(nextpos) )
 					nextposBitmap = mCurrentPageInfo;
@@ -2212,14 +2212,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					BitmapInfo bi = new BitmapInfo();
 			        bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-					doc.setBatteryStateInternal(mBatteryState);
-					doc.getPageImageInternal(bi.bitmap);
+					doc.setBatteryState(mBatteryState);
+					doc.getPageImage(bi.bitmap);
 			        mNextPageInfo = bi;
 			        nextposBitmap = bi;
 			        //log.v("Prepared new current page image " + mNextPageInfo);
 				}
 				// return back to previous page
-				doc.doCommandInternal(cmd2, offset);
+				doc.doCommand(cmd2, offset);
 				return nextposBitmap;
 			} else {
 				// cannot move to page: out of document range
@@ -2228,8 +2228,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		} else {
 			// SCROLL next or prev page requested, with pixel offset specified
 			int y = currpos.y + offset;
-			if ( doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, y) ) {
-				PositionProperties nextpos = doc.getPositionPropsInternal(null);
+			if ( doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, y) ) {
+				PositionProperties nextpos = doc.getPositionProps(null);
 				BitmapInfo nextposBitmap = null;
 				if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(nextpos) )
 					nextposBitmap = mCurrentPageInfo;
@@ -2243,13 +2243,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					BitmapInfo bi = new BitmapInfo();
 			        bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-					doc.setBatteryStateInternal(mBatteryState);
-					doc.getPageImageInternal(bi.bitmap);
+					doc.setBatteryState(mBatteryState);
+					doc.getPageImage(bi.bitmap);
 			        mNextPageInfo = bi;
 			        nextposBitmap = bi;
 				}
 				// return back to prev position
-				doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, currpos.y);
+				doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, currpos.y);
 				return nextposBitmap;
 			} else {
 				return null;
@@ -2359,7 +2359,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void run() {
 				BackgroundThread.ensureBackground();
 				if ( currentAnimation==null ) {
-					PositionProperties currPos = doc.getPositionPropsInternal(null);
+					PositionProperties currPos = doc.getPositionProps(null);
 					if ( currPos==null )
 						return;
 					int w = currPos.pageWidth;
@@ -2536,7 +2536,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			@Override
 			public void run() {
 				BackgroundThread.ensureBackground();
-				PositionProperties currPos = doc.getPositionPropsInternal(null);
+				PositionProperties currPos = doc.getPositionProps(null);
 				if ( currPos!=null && currPos.pageMode!=0 ) {
 					//int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
 					int dir = startX > maxX/2 ? 1 : -1;
@@ -2753,7 +2753,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public AutoScrollAnimation(int startProgress) {
 			long start = android.os.SystemClock.uptimeMillis();
 			progress = startProgress;
-			currPos = doc.getPositionPropsInternal(null);
+			currPos = doc.getPositionProps(null);
 			pageCount = currPos.pageMode;
 			isScrollView = currPos.pageMode == 0;
 			if (isScrollView) {
@@ -2888,7 +2888,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.maxY = maxY;
 			long start = android.os.SystemClock.uptimeMillis();
 			log.v("ScrollViewAnimation -- creating: drawing two pages to buffer");
-			PositionProperties currPos = doc.getPositionPropsInternal(null);
+			PositionProperties currPos = doc.getPositionProps(null);
 			int pos = currPos.y;
 			int pos0 = pos - (maxY - startY);
 			if ( pos0<0 )
@@ -2896,12 +2896,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pointerStartPos = pos;
 			pointerCurrPos = pos;
 			pointerDestPos = startY;
-			doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
+			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
 			image1 = preparePageImage(0);
 			image2 = preparePageImage(image1.position.pageHeight);
 //			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
 //			image2 = preparePageImage(0);
-			doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
+			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos);
 			if ( image1==null || image2==null ) {
 				log.v("ScrollViewAnimation -- not started: image is null");
 				return;
@@ -2920,7 +2920,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				}
 				pointerDestPos = pointerCurrPos;
 				draw();
-				doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
+				doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
 			//}
 			close();
 		}
@@ -3079,7 +3079,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
 			PositionProperties currPos = mCurrentPageInfo.position;
 			if ( currPos==null )
-				currPos = doc.getPositionPropsInternal(null);
+				currPos = doc.getPositionProps(null);
 			page1 = currPos.pageNumber;
 			page2 = currPos.pageNumber + direction;
 			if ( page2<0 || page2>=currPos.pageCount) {
@@ -3302,7 +3302,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				} else {
 					moved = true;
 				}
-				doc.doCommandInternal(ReaderCommand.DCMD_GO_PAGE_DONT_SAVE_HISTORY.nativeId, moved ? page2 : page1);
+				doc.doCommand(ReaderCommand.DCMD_GO_PAGE_DONT_SAVE_HISTORY.nativeId, moved ? page2 : page1);
 			//}
 			close();
 			// preparing images for next page flip
@@ -3572,7 +3572,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
     	log.d("document is loaded succesfull, checking coverpage data");
     	if ( mActivity.getHistory().getCoverPagesEnabled() ) {
-	    	byte[] coverpageBytes = doc.getCoverPageDataInternal();
+	    	byte[] coverpageBytes = doc.getCoverPageData();
 	    	if ( coverpageBytes!=null ) {
 	    		log.d("Found cover page data: " + coverpageBytes.length + " bytes");
 	    		BitmapDrawable drawable = mActivity.getHistory().decodeCoverPage(coverpageBytes);
@@ -3611,7 +3611,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			coverPageBytes = null;
 			coverPageDrawable = null;
 			log.i("Loading document " + filename);
-	        boolean success = doc.loadDocumentInternal(filename);
+	        boolean success = doc.loadDocument(filename);
 	        if ( success ) {
 				log.v("loadDocumentInternal completed successfully");
 	        	findCoverPage();
@@ -3789,7 +3789,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureBackground();
     	if ( pos!=null ) {
 			BackgroundThread.ensureBackground();
-			doc.goToPositionInternal( pos );
+			doc.goToPosition( pos );
     		preparePageImage(0);
     	}
     }
@@ -3839,7 +3839,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             public Bookmark call() throws Exception {
                 if ( !mOpened )
                     return null;
-                return doc.getCurrentPageBookmarkInternal();
+                return doc.getCurrentPageBookmark();
             }
         });
         if ( bmk!=null ) {
@@ -3876,7 +3876,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 	    	if ( !mOpened )
 	    		return;
-	    	bmk = doc.getCurrentPageBookmarkInternal();
+	    	bmk = doc.getCurrentPageBookmark();
 	    	if ( bmk!=null )
 	    		log.d("saving position, bmk=" + bmk.getStartPos());
 	    	else
@@ -3905,7 +3905,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			if ( mOpened ) {
 	    			mOpened = false;
 					log.i("ReaderView().close() : closing current document");
-					doc.doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
+					doc.doCommand(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}
     		public void done() {
@@ -3938,7 +3938,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         			BackgroundThread.ensureBackground();
         	    	if ( mInitialized ) {
         	        	log.i("ReaderView.destroyInternal() calling");
-        	        	doc.destroyInternal();
+        	        	doc.destroy();
         	    		mInitialized = false;
         	    		currentBackgroundTexture = Engine.NO_TEXTURE;
         	    	}
@@ -4046,7 +4046,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			});
 			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG)? 0 : 1; 
 			log.d("internalStyles: " + internalStyles);
-			doc.doCommandInternal(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles);
+			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles);
 			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
@@ -4105,7 +4105,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void work() throws Exception {
     		if ( this!=currentSwapTask )
     			return;
-			int res = doc.swapToCacheInternal();
+			int res = doc.swapToCache();
 			isTimeout = res==DocView.SWAP_TIMEOUT;
 			long duration = System.currentTimeMillis() - startTime;
 			if ( !isTimeout ) {
@@ -4138,7 +4138,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         if ( css!=null && css.length()>0 ) {
         	post(new Task() {
         		public void work() {
-        			doc.setStylesheetInternal(css);
+        			doc.setStylesheet(css);
         		}
         	});
         }
@@ -4157,7 +4157,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		post(new Task() {
 			public void work() {
 				BackgroundThread.ensureBackground();
-				doc.doCommandInternal(ReaderCommand.DCMD_SCROLL_BY.nativeId, delta);
+				doc.doCommand(ReaderCommand.DCMD_SCROLL_BY.nativeId, delta);
 			}
 			public void done() {
 				drawPage();
@@ -4177,7 +4177,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	if ( percent>=0 && percent<=100 )
 	    	post( new Task() {
 	    		public void work() {
-	    			PositionProperties pos = doc.getPositionPropsInternal(null);
+	    			PositionProperties pos = doc.getPositionProps(null);
 	    			if ( pos!=null && pos.pageCount>0) {
 	    				int pageNumber = pos.pageCount * percent / 100; 
 						doCommandFromBackgroundThread(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
@@ -4199,7 +4199,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		private Selection selection = new Selection();
 			@Override
 			public void work() throws Exception {
-				res = doc.moveSelectionInternal(selection, command.nativeId, param);
+				res = doc.moveSelection(selection, command.nativeId, param);
 			}
 
 			@Override
@@ -4296,7 +4296,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void finalize()
     {
     	log.w("ReaderView.finalize() is called");
-    	//destroyInternal();
+    	//destroy();
     }
 
     private static volatile int gcCounter = 0;
@@ -4345,7 +4345,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			@Override
 			public void run() {
 				log.d("ReaderView - in background thread: calling createInternal()");
-				doc.createInternal();
+				doc.create();
 				mInitialized = true;
 			}
         	
