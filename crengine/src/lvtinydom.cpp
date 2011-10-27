@@ -110,7 +110,7 @@ enum CacheFileBlockType {
     CBT_INDEX = 1,
     CBT_TEXT_DATA,
     CBT_ELEM_DATA,
-    CBT_RECT_DATA,
+    CBT_RECT_DATA, //4
     CBT_ELEM_STYLE_DATA,
     CBT_MAPS_DATA,
     CBT_PAGE_DATA, //7
@@ -118,7 +118,7 @@ enum CacheFileBlockType {
     CBT_NODE_INDEX,
     CBT_ELEM_NODE,
     CBT_TEXT_NODE,
-    CBT_REND_PARAMS,
+    CBT_REND_PARAMS, //12
     CBT_TOC_DATA,
     CBT_STYLE_DATA,
     CBT_BLOB_INDEX, //15
@@ -595,6 +595,7 @@ bool CacheFile::readIndex()
         CRLog::error("CacheFile::readIndex: index block info doesn't match header");
         return false;
     }
+    _dirty = hdr._dirty;
     return true;
 }
 
@@ -617,7 +618,19 @@ bool CacheFile::writeIndex()
     for ( int i=0; i<_index.length(); i++ ) {
         memcpy( &index[i], _index[i], sizeof(CacheFileItem) );
     }
+    _indexChanged = false;
     bool res = write( CBT_INDEX, 0, (const lUInt8*)index, _index.length()*sizeof(CacheFileItem), false );
+    // repeat saving to store updated index
+    {
+        CacheFileItem * index = new CacheFileItem[_index.length()];
+        memset( index, 0, sizeof(CacheFileItem)*_index.length());
+        for ( int i=0; i<_index.length(); i++ ) {
+            memcpy( &index[i], _index[i], sizeof(CacheFileItem) );
+        }
+        _indexChanged = false;
+        res = write( CBT_INDEX, 0, (const lUInt8*)index, _index.length()*sizeof(CacheFileItem), false );
+        delete[] index;
+    }
     CacheFileItem * indexItem = findBlock( CBT_INDEX, 0 );
     delete[] index;
     if ( !res || !indexItem ) {
@@ -834,13 +847,21 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 // writes block to file
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress )
 {
-    setDirtyFlag(true);
     // check whether data is changed
     lUInt64 newhash = calcHash64( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
-    if ( existingblock && (int)existingblock->_uncompressedSize==size && existingblock->_dataHash==newhash ) {
-        return true;
+    if (existingblock) {
+        bool sameSize = ((int)existingblock->_uncompressedSize==size) || (existingblock->_uncompressedSize==0 && (int)existingblock->_dataSize==size);
+        if (sameSize && existingblock->_dataHash==newhash )
+            return true;
     }
+
+#if 1
+    if (existingblock)
+        CRLog::trace("*    oldsz=%d oldhash=%08x", (int)existingblock->_uncompressedSize, (int)existingblock->_dataHash);
+    CRLog::trace("* wr block t=%d[%d] sz=%d hash=%08x", type, dataIndex, size, newhash);
+#endif
+    setDirtyFlag(true);
 
     lUInt32 uncompressedSize = 0;
     lUInt64 newpackedhash = newhash;
