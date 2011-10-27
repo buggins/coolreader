@@ -12,7 +12,7 @@
 *******************************************************/
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
-#define CACHE_FILE_FORMAT_VERSION "3.04.03"
+#define CACHE_FILE_FORMAT_VERSION "3.04.06"
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -28,7 +28,7 @@
 //=====================================================
 
 #ifndef DOC_BUFFER_SIZE
-#define DOC_BUFFER_SIZE 0x800000 // default buffer size
+#define DOC_BUFFER_SIZE 0xA00000 // default buffer size
 #endif
 
 //--------------------------------------------------------

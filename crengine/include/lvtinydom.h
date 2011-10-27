@@ -1229,7 +1229,7 @@ public:
     /// returns true for NULL pointer
 	bool isNull() const
 	{
-		return _data->isNull();
+        return !this || !_data || _data->isNull();
 	}
     /// returns true if object is pointer
 	bool isPointer() const
