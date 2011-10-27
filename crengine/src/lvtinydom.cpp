@@ -370,12 +370,15 @@ struct CacheFileHeader : public SimpleCacheFileHeader
         }
         return true;
     }
-    CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt32 dirtyFlag )
+    CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt64 crc, lUInt32 dirtyFlag )
     : SimpleCacheFileHeader(dirtyFlag), _indexBlock(0,0)
     {
-        if ( indexRec )
-            memcpy( &_indexBlock, indexRec, sizeof(CacheFileItem));
-        else
+        if ( indexRec ) {
+            CacheFileItem item = *indexRec;
+            item._dataHash = crc;
+            item._packedHash = crc;
+            memcpy( &_indexBlock, &item, sizeof(CacheFileItem));
+        } else
             memset( &_indexBlock, 0, sizeof(CacheFileItem));
         _fsize = fsize;
     }
@@ -401,7 +404,7 @@ class CacheFile
     // mark block as free, for later reusing
     void freeBlock( CacheFileItem * block );
     // writes file header
-    bool updateHeader( CacheFileItem * indexItem );
+    bool updateHeader();
     // writes index block
     bool writeIndex();
     // reads index from file
@@ -534,7 +537,7 @@ bool CacheFile::validateContents()
 // reads index from file
 bool CacheFile::readIndex()
 {
-    CacheFileHeader hdr(NULL, _size, 0);
+    CacheFileHeader hdr(NULL, _size, 0, 0);
     _stream->SetPos(0);
     lvsize_t bytesRead = 0;
     _stream->Read(&hdr, sizeof(hdr), &bytesRead );
@@ -604,48 +607,51 @@ bool CacheFile::writeIndex()
 {
     if ( !_indexChanged )
         return true; // no changes: no writes
+
     if ( _index.length()==0 )
-        return updateHeader( 0 );
+        return updateHeader();
+
     // create copy of index in memory
-    bool indexItemFound = findBlock( CBT_INDEX, 0 )!=NULL;
     int count = _index.length();
-    if ( !indexItemFound ) {
-        count++;
-        allocBlock( CBT_INDEX, 0, sizeof(CacheFileItem)*count );
+    CacheFileItem * indexItem = findBlock(CBT_INDEX, 0);
+    if (!indexItem) {
+        allocBlock(CBT_INDEX, 0, sizeof(CacheFileItem) * (count + 1));
+        indexItem = findBlock(CBT_INDEX, 0);
+        count = _index.length();
     }
-    CacheFileItem * index = new CacheFileItem[_index.length()];
-    memset( index, 0, sizeof(CacheFileItem)*_index.length());
-    for ( int i=0; i<_index.length(); i++ ) {
+    CacheFileItem * index = new CacheFileItem[count];
+    int sz = count * sizeof(CacheFileItem);
+    memset(index, 0, sz);
+    for ( int i = 0; i < count; i++ ) {
         memcpy( &index[i], _index[i], sizeof(CacheFileItem) );
     }
-    _indexChanged = false;
-    bool res = write( CBT_INDEX, 0, (const lUInt8*)index, _index.length()*sizeof(CacheFileItem), false );
-    // repeat saving to store updated index
-    {
-        CacheFileItem * index = new CacheFileItem[_index.length()];
-        memset( index, 0, sizeof(CacheFileItem)*_index.length());
-        for ( int i=0; i<_index.length(); i++ ) {
-            memcpy( &index[i], _index[i], sizeof(CacheFileItem) );
-        }
-        _indexChanged = false;
-        res = write( CBT_INDEX, 0, (const lUInt8*)index, _index.length()*sizeof(CacheFileItem), false );
-        delete[] index;
-    }
-    CacheFileItem * indexItem = findBlock( CBT_INDEX, 0 );
+    bool res = write(CBT_INDEX, 0, (const lUInt8*)index, sz, false);
     delete[] index;
+
+    indexItem = findBlock(CBT_INDEX, 0);
     if ( !res || !indexItem ) {
         CRLog::error("CacheFile::writeIndex: error while writing index!!!");
         return false;
     }
-    updateHeader( indexItem );
+
+    updateHeader();
     _indexChanged = false;
     return true;
 }
 
 // writes file header
-bool CacheFile::updateHeader( CacheFileItem * indexItem )
+bool CacheFile::updateHeader()
 {
-    CacheFileHeader hdr(indexItem, _size, _dirty?1:0);
+    CacheFileItem * indexItem = NULL;
+    lUInt64 crc = 0;
+    lUInt8 * buf;
+    int sz;
+    if (read(CBT_INDEX, 0, buf, sz) && buf && sz) {
+        crc = calcHash64(buf, sz);
+        free(buf);
+        indexItem = findBlock(CBT_INDEX, 0);
+    }
+    CacheFileHeader hdr(indexItem, _size, crc, _dirty?1:0);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
@@ -833,7 +839,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 
     // check CRC
     lUInt64 hash = calcHash64( buf, size );
-    if ( hash!=block->_dataHash ) {
+    if ((type != CBT_INDEX) && (hash != block->_dataHash)) {
         CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d", type, dataIndex, (int)size);
         free(buf);
         buf = NULL;
@@ -848,12 +854,24 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress )
 {
     // check whether data is changed
-    lUInt64 newhash = calcHash64( buf, size );
+    lUInt64 newhash = (type == CBT_INDEX) ? 0 : calcHash64( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
+
     if (existingblock) {
         bool sameSize = ((int)existingblock->_uncompressedSize==size) || (existingblock->_uncompressedSize==0 && (int)existingblock->_dataSize==size);
-        if (sameSize && existingblock->_dataHash==newhash )
-            return true;
+        if (sameSize && existingblock->_dataHash == newhash ) {
+            if (type != CBT_INDEX)
+                return true;
+            lUInt8 * tmpbuf;
+            int tmpsz;
+            bool res = false;
+            if (read(type, dataIndex, tmpbuf, tmpsz) && (tmpsz == size) && (memcmp(tmpbuf, buf, size) == 0))
+                res = true;
+            if (tmpbuf)
+                free(tmpbuf);
+            if (res)
+                return true; // index record matches!
+        }
     }
 
 #if 1
@@ -1015,7 +1033,7 @@ bool CacheFile::create( LVStreamRef stream )
         _stream.Clear();
         return false;
     }
-    if ( !updateHeader( NULL ) ) {
+    if (!updateHeader()) {
         _stream.Clear();
         return false;
     }
@@ -3245,6 +3263,10 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         updateRenderContext();
         _pagesData.reset();
         pages->serialize( _pagesData );
+
+        if ( callback ) {
+            callback->OnFormatEnd();
+        }
 
         //saveChanges();
 

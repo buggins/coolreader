@@ -400,9 +400,6 @@ void LVRendPageContext::split()
 void LVRendPageContext::Finalize()
 {
     split();
-    if ( callback ) {
-        callback->OnFormatEnd();
-    }
     lines.clear();
     footNotes.clear();
 }
