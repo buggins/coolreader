@@ -2,7 +2,7 @@
 #define READERVIEW_H_INCLUDED
 
 #include "cr3java.h"
-#include "org_coolreader_crengine_ReaderView.h"
+#include "org_coolreader_crengine_DocView.h"
 #include "org_coolreader_crengine_Engine.h"
 #include "lvdocview.h"
 
@@ -14,12 +14,12 @@
 //==========================================================
 #define READERVIEW_DCMD_END DCMD_RESTORE_POSITION
 
-class ReaderViewNative {
+class DocViewNative {
 	lString16 historyFileName;
 	lString16 _lastPattern;
 public:
 	LVDocView * _docview;
-	ReaderViewNative();
+	DocViewNative();
 	bool openRecentBook();
 	bool closeBook();
 	bool loadHistory( lString16 filename );

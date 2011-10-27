@@ -219,7 +219,7 @@ ANTIWORD_SRC_FILES := \
 JNI_SRC_FILES := \
     cr3engine.cpp \
     cr3java.cpp \
-    readerview.cpp
+    docview.cpp
 
 LOCAL_SRC_FILES := \
     $(JNI_SRC_FILES) \

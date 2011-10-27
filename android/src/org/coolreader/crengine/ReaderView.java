@@ -29,122 +29,28 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback {
+public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
 
 	public static final Logger log = L.create("rv");
+
+	private DocView doc;
 	
     // additional key codes for Nook
     public static final int NOOK_KEY_PREV_LEFT = 96;
     public static final int NOOK_KEY_PREV_RIGHT = 98;
-    public static final int NOOK_KEY_NEXT_LEFT = 95;
     public static final int NOOK_KEY_NEXT_RIGHT = 97;    
     public static final int NOOK_KEY_SHIFT_UP = 101;
     public static final int NOOK_KEY_SHIFT_DOWN = 100;
+
+    // nook 1 & 2
+    public static final int NOOK_12_KEY_NEXT_LEFT = 95;
+   
     // Nook touch buttons
-    public static final int KEYCODE_PAGE_BOTTOMLEFT = 0x5d; // fwd
-    public static final int KEYCODE_PAGE_BOTTOMRIGHT = 0x5f; // fwd
-    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back
-    public static final int KEYCODE_PAGE_TOPRIGHT = 0x5e; // back
+    public static final int KEYCODE_PAGE_BOTTOMLEFT = 0x5d; // fwd = 93 (
+    //    public static final int KEYCODE_PAGE_BOTTOMRIGHT = 158; // 0x5f; // fwd = 95
+    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back = 92
+    public static final int KEYCODE_PAGE_TOPRIGHT = 0x5e; // back = 94
     
-    public static final String PROP_PAGE_BACKGROUND_IMAGE       ="background.image";
-    public static final String PROP_PAGE_BACKGROUND_IMAGE_DAY   ="background.image.day";
-    public static final String PROP_PAGE_BACKGROUND_IMAGE_NIGHT ="background.image.night";
-    public static final String PROP_NIGHT_MODE              ="crengine.night.mode";
-    public static final String PROP_FONT_COLOR_DAY          ="font.color.day";
-    public static final String PROP_BACKGROUND_COLOR_DAY    ="background.color.day";
-    public static final String PROP_FONT_COLOR_NIGHT        ="font.color.night";
-    public static final String PROP_BACKGROUND_COLOR_NIGHT  ="background.color.night";
-    public static final String PROP_FONT_COLOR              ="font.color.default";
-    public static final String PROP_BACKGROUND_COLOR        ="background.color.default";
-    public static final String PROP_FONT_ANTIALIASING       ="font.antialiasing.mode";
-    public static final String PROP_FONT_FACE               ="font.face.default";
-    public static final String PROP_FONT_GAMMA              ="font.gamma";
-    public static final String PROP_FONT_GAMMA_DAY          ="font.gamma.day";
-    public static final String PROP_FONT_GAMMA_NIGHT        ="font.gamma.night";
-    public static final String PROP_FONT_WEIGHT_EMBOLDEN    ="font.face.weight.embolden";
-    public static final String PROP_TXT_OPTION_PREFORMATTED ="crengine.file.txt.preformatted";
-    public static final String PROP_LOG_FILENAME            ="crengine.log.filename";
-    public static final String PROP_LOG_LEVEL               ="crengine.log.level";
-    public static final String PROP_LOG_AUTOFLUSH           ="crengine.log.autoflush";
-    public static final String PROP_FONT_SIZE               ="crengine.font.size";
-    public static final String PROP_FALLBACK_FONT_FACE      ="crengine.font.fallback.face";
-    public static final String PROP_STATUS_FONT_COLOR       ="crengine.page.header.font.color";
-    public static final String PROP_STATUS_FONT_COLOR_DAY   ="crengine.page.header.font.color.day";
-    public static final String PROP_STATUS_FONT_COLOR_NIGHT ="crengine.page.header.font.color.night";
-    public static final String PROP_STATUS_FONT_FACE        ="crengine.page.header.font.face";
-    public static final String PROP_STATUS_FONT_SIZE        ="crengine.page.header.font.size";
-    public static final String PROP_STATUS_CHAPTER_MARKS    ="crengine.page.header.chapter.marks";
-    public static final String PROP_PAGE_MARGIN_TOP         ="crengine.page.margin.top";
-    public static final String PROP_PAGE_MARGIN_BOTTOM      ="crengine.page.margin.bottom";
-    public static final String PROP_PAGE_MARGIN_LEFT        ="crengine.page.margin.left";
-    public static final String PROP_PAGE_MARGIN_RIGHT       ="crengine.page.margin.right";
-    public static final String PROP_PAGE_VIEW_MODE          ="crengine.page.view.mode"; // pages/scroll
-    public static final String PROP_PAGE_ANIMATION          ="crengine.page.animation";
-    public static final String PROP_INTERLINE_SPACE         ="crengine.interline.space";
-    public static final String PROP_ROTATE_ANGLE            ="window.rotate.angle";
-    public static final String PROP_EMBEDDED_STYLES         ="crengine.doc.embedded.styles.enabled";
-    public static final String PROP_DISPLAY_INVERSE         ="crengine.display.inverse";
-//    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
-//    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
-    public static final String PROP_STATUS_LINE             ="window.status.line";
-    public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";
-    public static final String PROP_FOOTNOTES               ="crengine.footnotes";
-    public static final String PROP_SHOW_TIME               ="window.status.clock";
-    public static final String PROP_SHOW_TITLE              ="window.status.title";
-    public static final String PROP_SHOW_BATTERY            ="window.status.battery";
-    public static final String PROP_SHOW_BATTERY_PERCENT    ="window.status.battery.percent";
-    public static final String PROP_SHOW_POS_PERCENT        ="window.status.pos.percent";
-    public static final String PROP_SHOW_PAGE_COUNT         ="window.status.pos.page.count";
-    public static final String PROP_SHOW_PAGE_NUMBER        ="window.status.pos.page.number";
-    public static final String PROP_FONT_KERNING_ENABLED    ="font.kerning.enabled";
-    public static final String PROP_FLOATING_PUNCTUATION    ="crengine.style.floating.punctuation.enabled";
-    public static final String PROP_LANDSCAPE_PAGES         ="window.landscape.pages";
-    public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
-    public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
-
-	 // image scaling settings
-	 // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
-	 // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
-    public static final String PROP_IMG_SCALING_ZOOMIN_INLINE_MODE = "crengine.image.scaling.zoomin.inline.mode";
-    public static final String PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE = "crengine.image.scaling.zoomin.inline.scale";
-    public static final String PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE = "crengine.image.scaling.zoomout.inline.mode";
-    public static final String PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE = "crengine.image.scaling.zoomout.inline.scale";
-    public static final String PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE = "crengine.image.scaling.zoomin.block.mode";
-    public static final String PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE = "crengine.image.scaling.zoomin.block.scale";
-    public static final String PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE = "crengine.image.scaling.zoomout.block.mode";
-    public static final String PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE = "crengine.image.scaling.zoomout.block.scale";
-    
-    public static final String PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT = "crengine.style.space.condensing.percent";
-    
-    public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
-    public static final String PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.forced.filesize.min";
-    public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
-
-    public static final String PROP_CONTROLS_ENABLE_VOLUME_KEYS ="app.controls.volume.keys.enabled";
-    
-    public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
-    public static final String PROP_APP_BOOK_PROPERTY_SCAN_ENABLED ="app.browser.fileprops.scan.enabled";
-    public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
-    public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
-    public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
-    public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";
-    public static final String PROP_APP_SCREEN_BACKLIGHT_NIGHT ="app.screen.backlight.night";
-    public static final String PROP_APP_DOUBLE_TAP_SELECTION     ="app.controls.doubletap.selection";
-    public static final String PROP_APP_TAP_ZONE_ACTIONS_TAP     ="app.tapzone.action.tap";
-    public static final String PROP_APP_KEY_ACTIONS_PRESS     ="app.key.action.press";
-    public static final String PROP_APP_TRACKBALL_DISABLED    ="app.trackball.disabled";
-    public static final String PROP_APP_SCREEN_BACKLIGHT_LOCK    ="app.screen.backlight.lock.enabled";
-    public static final String PROP_APP_TAP_ZONE_HILIGHT     ="app.tapzone.hilight";
-    public static final String PROP_APP_FLICK_BACKLIGHT_CONTROL = "app.screen.backlight.control.flick";
-    public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
-    public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
-    public static final String PROP_APP_SELECTION_ACTION = "app.selection.action";
-    public static final String PROP_APP_SELECTION_PERSIST = "app.selection.persist";
-    public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
-    public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
-
-    public static final String PROP_APP_SCREEN_UPDATE_MODE  ="app.screen.update.mode";
-    public static final String PROP_APP_SCREEN_UPDATE_INTERVAL  ="app.screen.update.interval";
     
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
@@ -336,44 +242,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return res;
     }
     
-    // Native functions
-    /* implementend by libcr3engine.so */
-    
-    // get current page image
-    private native void getPageImageInternal(Bitmap bitmap);
-    // constructor's native part
-    private native void createInternal();
-    private native void destroyInternal();
-    private native boolean loadDocumentInternal( String fileName );
-    private native java.util.Properties getSettingsInternal();
-    private native boolean applySettingsInternal( java.util.Properties settings );
-    private native void setStylesheetInternal( String stylesheet );
-    private native void resizeInternal( int dx, int dy );
-    private native boolean doCommandInternal( int command, int param );
-    private native Bookmark getCurrentPageBookmarkInternal();
-    private native boolean goToPositionInternal(String xPath);
-    private native PositionProperties getPositionPropsInternal(String xPath);
-    private native void updateBookInfoInternal( BookInfo info );
-    private native TOCItem getTOCInternal();
-    private native void clearSelectionInternal();
-    private native boolean findTextInternal( String pattern, int origin, int reverse, int caseInsensitive );
-    private native void setBatteryStateInternal( int state );
-    private native byte[] getCoverPageDataInternal();
-    private native void setPageBackgroundTextureInternal( byte[] imageBytes, int tileFlags );
-    private native void updateSelectionInternal( Selection sel );
-    private native boolean moveSelectionInternal( Selection sel, int moveCmd, int params );
-    private native String checkLinkInternal( int x, int y, int delta );
-    private native int goLinkInternal( String link );
-    
-    public static final int SWAP_DONE=0;
-    public static final int SWAP_TIMEOUT=1;
-    public static final int SWAP_ERROR=2;
-    /// returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR 
-    private native int swapToCacheInternal();
-    
-    
-    protected int mNativeObject; // used from JNI
-    
 	private final CoolReader mActivity;
     private final Engine mEngine;
     private final BackgroundThread mBackThread;
@@ -425,7 +293,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		        internalDX = w;
 	    		        internalDY = h;
 	    				log.d("ResizeTask: resizeInternal("+w+","+h+")");
-	    		        resizeInternal(w, h);
+	    		        doc.resizeInternal(w, h);
 //	    		        if ( mOpened ) {
 //	    					log.d("ResizeTask: done, drawing page");
 //	    			        drawPage();
@@ -824,7 +692,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void work() throws Exception {
 				if ( myId != nextUpdateId && !isUpdateEnd )
 					return;
-				updateSelectionInternal(sel);
+				doc.updateSelectionInternal(sel);
 				if ( !sel.isEmpty() ) {
 					invalidImages = true;
 					BitmapInfo bi = preparePageImage(0);
@@ -945,11 +813,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			String link;
 			public void work() {
-				link = checkLinkInternal(x, y, mActivity.getPalmTipPixels() / 2 );
+				link = doc.checkLinkInternal(x, y, mActivity.getPalmTipPixels() / 2 );
 				if ( link!=null ) {
 					if ( link.startsWith("#") ) {
 						log.d("go to " + link);
-						goLinkInternal(link);
+						doc.goLinkInternal(link);
 						drawPage();
 					}
 				}
@@ -1212,8 +1080,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			PositionProperties pos;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				toc = getTOCInternal();
-				pos = getPositionPropsInternal(null);
+				toc = doc.getTOCInternal();
+				pos = doc.getPositionPropsInternal(null);
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
@@ -1241,11 +1109,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				boolean res = findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
+				boolean res = doc.findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res )
-					res = findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
+					res = doc.findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res ) {
-					clearSelectionInternal();
+					doc.clearSelectionInternal();
 					throw new Exception("pattern not found");
 				}
 			}
@@ -1268,11 +1136,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				boolean res = findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
+				boolean res = doc.findTextInternal( pattern, 1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res )
-					res = findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
+					res = doc.findTextInternal( pattern, -1, reverse?1:0, caseInsensitive?1:0);
 				if ( !res ) {
-					clearSelectionInternal();
+					doc.clearSelectionInternal();
 					throw new Exception("pattern not found");
 				}
 			}
@@ -1290,7 +1158,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.post(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				clearSelectionInternal();
+				doc.clearSelectionInternal();
 				invalidImages = true;
 			}
 			public void done() {
@@ -1308,7 +1176,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() {
 				BackgroundThread.ensureBackground();
-				goToPositionInternal(pos);
+				doc.goToPositionInternal(pos);
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
@@ -1343,7 +1211,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void work() {
 				BackgroundThread.ensureBackground();
 				if ( mBookInfo!=null ) {
-					bm = getCurrentPageBookmarkInternal();
+					bm = doc.getCurrentPageBookmarkInternal();
 					bm.setShortcut(shortcut);
 				}
 			}
@@ -1448,9 +1316,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Bookmark bm;
 			@Override
 			public void work() {
-				bm = getCurrentPageBookmarkInternal();
+				bm = doc.getCurrentPageBookmarkInternal();
 				if ( bm!=null ) {
-					PositionProperties prop = getPositionPropsInternal(bm.getStartPos());
+					PositionProperties prop = doc.getPositionPropsInternal(bm.getStartPos());
 					if ( prop.pageMode!=0 ) {
 						buf.append("" + (prop.pageNumber+1) + " / " + prop.pageCount + "   ");
 					}
@@ -1525,9 +1393,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Bookmark bm;
 			@Override
 			public void work() {
-				bm = getCurrentPageBookmarkInternal();
+				bm = doc.getCurrentPageBookmarkInternal();
 				if ( bm!=null ) {
-					PositionProperties prop = getPositionPropsInternal(bm.getStartPos());
+					PositionProperties prop = doc.getPositionPropsInternal(bm.getStartPos());
 					items.add("section=section.position");
 					if ( prop.pageMode!=0 ) {
 						items.add("position.page=" + (prop.pageNumber+1) + " / " + prop.pageCount);
@@ -1739,7 +1607,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			boolean res;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				res = doCommandInternal(cmd.nativeId, param);
+				res = doc.doCommandInternal(cmd.nativeId, param);
 			}
 			public void done() {
 				if ( res )
@@ -1752,7 +1620,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		log.d("doCommandFromBackgroundThread("+cmd + ", " + param +")");
 		BackgroundThread.ensureBackground();
-		boolean res = doCommandInternal(cmd.nativeId, param);
+		boolean res = doc.doCommandInternal(cmd.nativeId, param);
 		if ( res ) {
 			BackgroundThread.guiExecutor.execute(new Runnable() {
 				public void run() {
@@ -1771,7 +1639,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureBackground();
 		// get title, authors, etc.
-		updateBookInfoInternal( mBookInfo );
+		doc.updateBookInfoInternal( mBookInfo );
 	}
 	
 	private void applySettings( Properties props, boolean save )
@@ -1785,7 +1653,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( backgroundImageId!=null )
 			setBackgroundTexture(backgroundImageId);
 		props.remove(PROP_EMBEDDED_STYLES);
-        applySettingsInternal(props);
+		doc.applySettingsInternal(props);
         syncViewSettings(props, save);
         drawPage();
 	}
@@ -1813,7 +1681,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			Properties props;
 			public void work() {
 				BackgroundThread.ensureBackground();
-				java.util.Properties internalProps = getSettingsInternal(); 
+				java.util.Properties internalProps = doc.getSettingsInternal(); 
 				props = new Properties(internalProps);
 				props.remove(PROP_EMBEDDED_STYLES);
 			}
@@ -2030,7 +1898,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.d("setBackgroundTexture( " + texture + " )");
 			currentBackgroundTexture = texture;
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
-			setPageBackgroundTextureInternal(data, texture.tiled ? 1 : 0);
+			doc.setPageBackgroundTextureInternal(data, texture.tiled ? 1 : 0);
 		}
 	}
 	
@@ -2051,7 +1919,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			BackgroundTextureInfo[] textures = mEngine.getAvailableTextures();
 //			byte[] data = mEngine.getImageData(textures[3]);
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
-			setPageBackgroundTextureInternal(data, currentBackgroundTexture.tiled?1:0);
+			doc.setPageBackgroundTextureInternal(data, currentBackgroundTexture.tiled?1:0);
 			
 			//File historyDir = activity.getDir("settings", Context.MODE_PRIVATE);
 			//File historyDir = new File(Environment.getExternalStorageDirectory(), ".cr3");
@@ -2065,7 +1933,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			//}
 	        String css = mEngine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
-       			setStylesheetInternal(css);
+	        	doc.setStylesheetInternal(css);
    			applySettings(props, false);
    			mInitialized = true;
 		}
@@ -2285,10 +2153,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( internalDX==0 || internalDY==0 ) {
 			internalDX=200;
 			internalDY=300;
-	        resizeInternal(internalDX, internalDY);
+			doc.resizeInternal(internalDX, internalDY);
 		}
 		
-		PositionProperties currpos = getPositionPropsInternal(null);
+		PositionProperties currpos = doc.getPositionPropsInternal(null);
 		
 		boolean isPageView = currpos.pageMode!=0;
 		
@@ -2316,8 +2184,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BitmapInfo bi = new BitmapInfo();
 	        bi.position = currpos;
 			bi.bitmap = factory.get(internalDX, internalDY);
-	        setBatteryStateInternal(mBatteryState);
-	        getPageImageInternal(bi.bitmap);
+			doc.setBatteryStateInternal(mBatteryState);
+			doc.getPageImageInternal(bi.bitmap);
 	        mCurrentPageInfo = bi;
 	        //log.v("Prepared new current page image " + mCurrentPageInfo);
 	        return mCurrentPageInfo;
@@ -2328,9 +2196,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			int cmd2 = offset > 0 ? ReaderCommand.DCMD_PAGEUP.nativeId : ReaderCommand.DCMD_PAGEDOWN.nativeId;
 			if ( offset<0 )
 				offset = -offset;
-			if ( doCommandInternal(cmd1, offset) ) {
+			if ( doc.doCommandInternal(cmd1, offset) ) {
 				// can move to next page
-				PositionProperties nextpos = getPositionPropsInternal(null);
+				PositionProperties nextpos = doc.getPositionPropsInternal(null);
 				BitmapInfo nextposBitmap = null;
 				if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(nextpos) )
 					nextposBitmap = mCurrentPageInfo;
@@ -2344,14 +2212,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					BitmapInfo bi = new BitmapInfo();
 			        bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-			        setBatteryStateInternal(mBatteryState);
-			        getPageImageInternal(bi.bitmap);
+					doc.setBatteryStateInternal(mBatteryState);
+					doc.getPageImageInternal(bi.bitmap);
 			        mNextPageInfo = bi;
 			        nextposBitmap = bi;
 			        //log.v("Prepared new current page image " + mNextPageInfo);
 				}
 				// return back to previous page
-				doCommandInternal(cmd2, offset);
+				doc.doCommandInternal(cmd2, offset);
 				return nextposBitmap;
 			} else {
 				// cannot move to page: out of document range
@@ -2360,8 +2228,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		} else {
 			// SCROLL next or prev page requested, with pixel offset specified
 			int y = currpos.y + offset;
-			if ( doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, y) ) {
-				PositionProperties nextpos = getPositionPropsInternal(null);
+			if ( doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, y) ) {
+				PositionProperties nextpos = doc.getPositionPropsInternal(null);
 				BitmapInfo nextposBitmap = null;
 				if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(nextpos) )
 					nextposBitmap = mCurrentPageInfo;
@@ -2375,13 +2243,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					BitmapInfo bi = new BitmapInfo();
 			        bi.position = nextpos;
 					bi.bitmap = factory.get(internalDX, internalDY);
-			        setBatteryStateInternal(mBatteryState);
-			        getPageImageInternal(bi.bitmap);
+					doc.setBatteryStateInternal(mBatteryState);
+					doc.getPageImageInternal(bi.bitmap);
 			        mNextPageInfo = bi;
 			        nextposBitmap = bi;
 				}
 				// return back to prev position
-				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, currpos.y);
+				doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, currpos.y);
 				return nextposBitmap;
 			} else {
 				return null;
@@ -2491,7 +2359,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void run() {
 				BackgroundThread.ensureBackground();
 				if ( currentAnimation==null ) {
-					PositionProperties currPos = getPositionPropsInternal(null);
+					PositionProperties currPos = doc.getPositionPropsInternal(null);
 					if ( currPos==null )
 						return;
 					int w = currPos.pageWidth;
@@ -2668,7 +2536,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			@Override
 			public void run() {
 				BackgroundThread.ensureBackground();
-				PositionProperties currPos = getPositionPropsInternal(null);
+				PositionProperties currPos = doc.getPositionPropsInternal(null);
 				if ( currPos!=null && currPos.pageMode!=0 ) {
 					//int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
 					int dir = startX > maxX/2 ? 1 : -1;
@@ -2885,7 +2753,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public AutoScrollAnimation(int startProgress) {
 			long start = android.os.SystemClock.uptimeMillis();
 			progress = startProgress;
-			currPos = getPositionPropsInternal(null);
+			currPos = doc.getPositionPropsInternal(null);
 			pageCount = currPos.pageMode;
 			isScrollView = currPos.pageMode == 0;
 			if (isScrollView) {
@@ -3020,7 +2888,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.maxY = maxY;
 			long start = android.os.SystemClock.uptimeMillis();
 			log.v("ScrollViewAnimation -- creating: drawing two pages to buffer");
-			PositionProperties currPos = getPositionPropsInternal(null);
+			PositionProperties currPos = doc.getPositionPropsInternal(null);
 			int pos = currPos.y;
 			int pos0 = pos - (maxY - startY);
 			if ( pos0<0 )
@@ -3028,12 +2896,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pointerStartPos = pos;
 			pointerCurrPos = pos;
 			pointerDestPos = startY;
-			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
+			doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
 			image1 = preparePageImage(0);
 			image2 = preparePageImage(image1.position.pageHeight);
 //			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
 //			image2 = preparePageImage(0);
-			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
+			doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos);
 			if ( image1==null || image2==null ) {
 				log.v("ScrollViewAnimation -- not started: image is null");
 				return;
@@ -3052,7 +2920,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				}
 				pointerDestPos = pointerCurrPos;
 				draw();
-				doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
+				doc.doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pointerDestPos);
 			//}
 			close();
 		}
@@ -3211,7 +3079,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
 			PositionProperties currPos = mCurrentPageInfo.position;
 			if ( currPos==null )
-				currPos = getPositionPropsInternal(null);
+				currPos = doc.getPositionPropsInternal(null);
 			page1 = currPos.pageNumber;
 			page2 = currPos.pageNumber + direction;
 			if ( page2<0 || page2>=currPos.pageCount) {
@@ -3434,7 +3302,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				} else {
 					moved = true;
 				}
-				doCommandInternal(ReaderCommand.DCMD_GO_PAGE_DONT_SAVE_HISTORY.nativeId, moved ? page2 : page1);
+				doc.doCommandInternal(ReaderCommand.DCMD_GO_PAGE_DONT_SAVE_HISTORY.nativeId, moved ? page2 : page1);
 			//}
 			close();
 			// preparing images for next page flip
@@ -3704,7 +3572,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
     	log.d("document is loaded succesfull, checking coverpage data");
     	if ( mActivity.getHistory().getCoverPagesEnabled() ) {
-	    	byte[] coverpageBytes = getCoverPageDataInternal();
+	    	byte[] coverpageBytes = doc.getCoverPageDataInternal();
 	    	if ( coverpageBytes!=null ) {
 	    		log.d("Found cover page data: " + coverpageBytes.length + " bytes");
 	    		BitmapDrawable drawable = mActivity.getHistory().decodeCoverPage(coverpageBytes);
@@ -3743,7 +3611,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			coverPageBytes = null;
 			coverPageDrawable = null;
 			log.i("Loading document " + filename);
-	        boolean success = loadDocumentInternal(filename);
+	        boolean success = doc.loadDocumentInternal(filename);
 	        if ( success ) {
 				log.v("loadDocumentInternal completed successfully");
 	        	findCoverPage();
@@ -3921,7 +3789,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureBackground();
     	if ( pos!=null ) {
 			BackgroundThread.ensureBackground();
-    		goToPositionInternal( pos );
+			doc.goToPositionInternal( pos );
     		preparePageImage(0);
     	}
     }
@@ -3971,7 +3839,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             public Bookmark call() throws Exception {
                 if ( !mOpened )
                     return null;
-                return getCurrentPageBookmarkInternal();
+                return doc.getCurrentPageBookmarkInternal();
             }
         });
         if ( bmk!=null ) {
@@ -4008,7 +3876,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 	    	if ( !mOpened )
 	    		return;
-	    	bmk = getCurrentPageBookmarkInternal();
+	    	bmk = doc.getCurrentPageBookmarkInternal();
 	    	if ( bmk!=null )
 	    		log.d("saving position, bmk=" + bmk.getStartPos());
 	    	else
@@ -4037,7 +3905,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			if ( mOpened ) {
 	    			mOpened = false;
 					log.i("ReaderView().close() : closing current document");
-					doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
+					doc.doCommandInternal(ReaderCommand.DCMD_CLOSE_BOOK.nativeId, 0);
     			}
     		}
     		public void done() {
@@ -4070,7 +3938,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         			BackgroundThread.ensureBackground();
         	    	if ( mInitialized ) {
         	        	log.i("ReaderView.destroyInternal() calling");
-        	    		destroyInternal();
+        	        	doc.destroyInternal();
         	    		mInitialized = false;
         	    		currentBackgroundTexture = Engine.NO_TEXTURE;
         	    	}
@@ -4178,7 +4046,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			});
 			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG)? 0 : 1; 
 			log.d("internalStyles: " + internalStyles);
-			doCommandInternal(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles);
+			doc.doCommandInternal(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles);
 			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
@@ -4237,8 +4105,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void work() throws Exception {
     		if ( this!=currentSwapTask )
     			return;
-			int res = swapToCacheInternal();
-			isTimeout = res==SWAP_TIMEOUT;
+			int res = doc.swapToCacheInternal();
+			isTimeout = res==DocView.SWAP_TIMEOUT;
 			long duration = System.currentTimeMillis() - startTime;
 			if ( !isTimeout ) {
 				log.i("swapToCacheInternal is finished with result " + res + " in " + duration + " ms");
@@ -4270,7 +4138,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         if ( css!=null && css.length()>0 ) {
         	post(new Task() {
         		public void work() {
-        			setStylesheetInternal(css);
+        			doc.setStylesheetInternal(css);
         		}
         	});
         }
@@ -4289,7 +4157,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		post(new Task() {
 			public void work() {
 				BackgroundThread.ensureBackground();
-				doCommandInternal(ReaderCommand.DCMD_SCROLL_BY.nativeId, delta);
+				doc.doCommandInternal(ReaderCommand.DCMD_SCROLL_BY.nativeId, delta);
 			}
 			public void done() {
 				drawPage();
@@ -4309,7 +4177,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	if ( percent>=0 && percent<=100 )
 	    	post( new Task() {
 	    		public void work() {
-	    			PositionProperties pos = getPositionPropsInternal(null);
+	    			PositionProperties pos = doc.getPositionPropsInternal(null);
 	    			if ( pos!=null && pos.pageCount>0) {
 	    				int pageNumber = pos.pageCount * percent / 100; 
 						doCommandFromBackgroundThread(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
@@ -4331,7 +4199,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		private Selection selection = new Selection();
 			@Override
 			public void work() throws Exception {
-				res = moveSelectionInternal(selection, command.nativeId, param);
+				res = doc.moveSelectionInternal(selection, command.nativeId, param);
 			}
 
 			@Override
@@ -4460,6 +4328,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread, Properties props ) 
     {
         super(activity);
+        doc = new DocView();
+        doc.setReaderCallback(readerCallback);
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
         
@@ -4475,7 +4345,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			@Override
 			public void run() {
 				log.d("ReaderView - in background thread: calling createInternal()");
-				createInternal();
+				doc.createInternal();
 				mInitialized = true;
 			}
         	

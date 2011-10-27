@@ -34,7 +34,7 @@ import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 
-public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner {
+public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
 	ReaderView mReaderView;
 	CoolReader mActivity;
@@ -257,11 +257,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			ColorPickerDialog dlg = new ColorPickerDialog(mActivity, new OnColorChangedListener() {
 				public void colorChanged(int color) {
 					mProperties.setColor(property, color);
-					if ( property.equals(ReaderView.PROP_BACKGROUND_COLOR) ) {
-						String texture = mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+					if ( property.equals(PROP_BACKGROUND_COLOR) ) {
+						String texture = mProperties.getProperty(PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
 						if ( texture!=null && !texture.equals(Engine.NO_TEXTURE.id) ) {
 							// reset background image
-							mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
+							mProperties.setProperty(PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
 							// TODO: show notification?
 						}
 					}
@@ -344,46 +344,46 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	static public void saveColor( Properties mProperties, boolean night )
 	{
 		if ( night ) {
-			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
-			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0x000000));
-			mProperties.setColor(ReaderView.PROP_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0xFFFFFF));
-			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR, 0xFFFFFF));
-			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
-			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA_NIGHT, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA, "1.0"));
+			mProperties.setProperty(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, mProperties.getProperty(PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
+			mProperties.setColor(PROP_BACKGROUND_COLOR_NIGHT, mProperties.getColor(PROP_BACKGROUND_COLOR, 0x000000));
+			mProperties.setColor(PROP_FONT_COLOR_NIGHT, mProperties.getColor(PROP_FONT_COLOR, 0xFFFFFF));
+			mProperties.setColor(PROP_STATUS_FONT_COLOR_NIGHT, mProperties.getColor(PROP_STATUS_FONT_COLOR, 0xFFFFFF));
+			mProperties.setInt(PROP_APP_SCREEN_BACKLIGHT_NIGHT, mProperties.getInt(PROP_APP_SCREEN_BACKLIGHT, -1));
+			mProperties.setProperty(PROP_FONT_GAMMA_NIGHT, mProperties.getProperty(PROP_FONT_GAMMA, "1.0"));
 		} else {
-			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
-			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
-			mProperties.setColor(ReaderView.PROP_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_FONT_COLOR, 0x000000));
-			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR_DAY, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
-			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1));
-			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA_DAY, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA, "1.0"));
+			mProperties.setProperty(PROP_PAGE_BACKGROUND_IMAGE_DAY, mProperties.getProperty(PROP_PAGE_BACKGROUND_IMAGE, "(NONE)"));
+			mProperties.setColor(PROP_BACKGROUND_COLOR_DAY, mProperties.getColor(PROP_BACKGROUND_COLOR, 0xFFFFFF));
+			mProperties.setColor(PROP_FONT_COLOR_DAY, mProperties.getColor(PROP_FONT_COLOR, 0x000000));
+			mProperties.setColor(PROP_STATUS_FONT_COLOR_DAY, mProperties.getColor(PROP_STATUS_FONT_COLOR, 0x000000));
+			mProperties.setInt(PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(PROP_APP_SCREEN_BACKLIGHT, -1));
+			mProperties.setProperty(PROP_FONT_GAMMA_DAY, mProperties.getProperty(PROP_FONT_GAMMA, "1.0"));
 		}
 	}
 	static public void restoreColor( Properties mProperties,  boolean night )
 	{
 		if ( night ) {
-			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "(NONE)"));
-			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, 0x000000));
-			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_NIGHT, 0xFFFFFF));
-			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, 0xFFFFFF));
-			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_NIGHT, 70));
-			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA_NIGHT, "1.0"));
+			mProperties.setProperty(PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(PROP_PAGE_BACKGROUND_IMAGE_NIGHT, "(NONE)"));
+			mProperties.setColor(PROP_BACKGROUND_COLOR, mProperties.getColor(PROP_BACKGROUND_COLOR_NIGHT, 0x000000));
+			mProperties.setColor(PROP_FONT_COLOR, mProperties.getColor(PROP_FONT_COLOR_NIGHT, 0xFFFFFF));
+			mProperties.setColor(PROP_STATUS_FONT_COLOR, mProperties.getColor(PROP_STATUS_FONT_COLOR_NIGHT, 0xFFFFFF));
+			mProperties.setInt(PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(PROP_APP_SCREEN_BACKLIGHT_NIGHT, 70));
+			mProperties.setProperty(PROP_FONT_GAMMA, mProperties.getProperty(PROP_FONT_GAMMA_NIGHT, "1.0"));
 		} else {
-			mProperties.setProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, "(NONE)"));
-			mProperties.setColor(ReaderView.PROP_BACKGROUND_COLOR, mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR_DAY, 0xFFFFFF));
-			mProperties.setColor(ReaderView.PROP_FONT_COLOR, mProperties.getColor(ReaderView.PROP_FONT_COLOR_DAY, 0x000000));
-			mProperties.setColor(ReaderView.PROP_STATUS_FONT_COLOR, mProperties.getColor(ReaderView.PROP_STATUS_FONT_COLOR_DAY, 0x000000));
-			mProperties.setInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
-			mProperties.setProperty(ReaderView.PROP_FONT_GAMMA, mProperties.getProperty(ReaderView.PROP_FONT_GAMMA_DAY, "1.0"));
+			mProperties.setProperty(PROP_PAGE_BACKGROUND_IMAGE, mProperties.getProperty(PROP_PAGE_BACKGROUND_IMAGE_DAY, "(NONE)"));
+			mProperties.setColor(PROP_BACKGROUND_COLOR, mProperties.getColor(PROP_BACKGROUND_COLOR_DAY, 0xFFFFFF));
+			mProperties.setColor(PROP_FONT_COLOR, mProperties.getColor(PROP_FONT_COLOR_DAY, 0x000000));
+			mProperties.setColor(PROP_STATUS_FONT_COLOR, mProperties.getColor(PROP_STATUS_FONT_COLOR_DAY, 0x000000));
+			mProperties.setInt(PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
+			mProperties.setProperty(PROP_FONT_GAMMA, mProperties.getProperty(PROP_FONT_GAMMA_DAY, "1.0"));
 		}
 	}
 
 	static public void toggleDayNightMode( Properties mProperties ) {
-		boolean oldMode = mProperties.getBool(ReaderView.PROP_NIGHT_MODE, false);
+		boolean oldMode = mProperties.getBool(PROP_NIGHT_MODE, false);
 		saveColor(mProperties, oldMode);
 		boolean newMode = !oldMode;
 		restoreColor(mProperties, newMode);
-		mProperties.setBool(ReaderView.PROP_NIGHT_MODE, newMode);
+		mProperties.setBool(PROP_NIGHT_MODE, newMode);
 	}
 
 	class NightModeOption extends BoolOption {
@@ -412,7 +412,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 	class KeyMapOption extends ListOption {
 		public KeyMapOption( OptionOwner owner, String label ) {
-			super(owner, label, ReaderView.PROP_APP_KEY_ACTIONS_PRESS);
+			super(owner, label, PROP_APP_KEY_ACTIONS_PRESS);
 		}
 		private void addKey( OptionsListView list, int keyCode, String keyName ) {
 			final String propName = ReaderAction.getKeyProp(keyCode, ReaderAction.NORMAL);
@@ -429,7 +429,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPLEFT, "Top left navigation button");
 				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMLEFT, "Bottom left navigation button");
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPRIGHT, "Top right navigation button");
-				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
+				addKey(listView, ReaderView.NOOK_12_KEY_NEXT_LEFT, "Bottom right navigation button");
+//				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
 			} else if ( DeviceInfo.SONY_NAVIGATION_KEYS ) {
 					addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Prev button");
 					addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Next button");
@@ -458,21 +459,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	class StatusBarOption extends ListOption {
 		public StatusBarOption( OptionOwner owner, String label ) {
-			super(owner, label, ReaderView.PROP_SHOW_TITLE);
+			super(owner, label, PROP_SHOW_TITLE);
 		}
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar), ReaderView.PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
-			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), ReaderView.PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), ReaderView.PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
-			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), ReaderView.PROP_STATUS_FONT_COLOR, 0x000000));
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), ReaderView.PROP_SHOW_TITLE).setDefaultValue("1"));
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_number), ReaderView.PROP_SHOW_PAGE_NUMBER).setDefaultValue("1"));
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_count), ReaderView.PROP_SHOW_PAGE_COUNT).setDefaultValue("1"));
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_percent), ReaderView.PROP_SHOW_POS_PERCENT).setDefaultValue("0"));
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_chapter_marks), ReaderView.PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_battery_percent), ReaderView.PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
+			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), PROP_STATUS_FONT_COLOR, 0x000000));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), PROP_SHOW_TITLE).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_number), PROP_SHOW_PAGE_NUMBER).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_count), PROP_SHOW_PAGE_COUNT).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_percent), PROP_SHOW_POS_PERCENT).setDefaultValue("0"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_chapter_marks), PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
+			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_battery_percent), PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -483,15 +484,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	class ImageScalingOption extends ListOption {
 		public ImageScalingOption( OptionOwner owner, String label ) {
-			super(owner, label, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
+			super(owner, label, PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
 		}
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
-			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_mode), ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
-			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_scale), ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
-			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_mode), ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
-			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_scale), ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_mode), PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_scale), PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_mode), PROP_IMG_SCALING_ZOOMIN_INLINE_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_scale), PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
 			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
@@ -502,10 +503,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 
 		protected void closed() {
-			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
-			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE);
-			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE);
-			copyProperty(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE);
+			copyProperty(PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
+			copyProperty(PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, PROP_IMG_SCALING_ZOOMIN_INLINE_MODE);
+			copyProperty(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE);
+			copyProperty(PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE);
 		}
 		
 		public String getValueLabel() { return ">"; }
@@ -810,7 +811,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	{
 		public DictOptions( OptionOwner owner, String label )
 		{
-			super( owner, label, ReaderView.PROP_APP_DICTIONARY );
+			super( owner, label, PROP_APP_DICTIONARY );
 			CoolReader.DictInfo[] dicts = mActivity.getDictList();
 			setDefaultValue(dicts[0].id);
 			for ( CoolReader.DictInfo dict : dicts )
@@ -822,7 +823,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	{
 		public HyphenationOptions( OptionOwner owner, String label )
 		{
-			super( owner, label, ReaderView.PROP_HYPHENATION_DICT );
+			super( owner, label, PROP_HYPHENATION_DICT );
 			setDefaultValue("RUSSIAN");
 			Engine.HyphDict[] dicts = Engine.HyphDict.values();
 			for ( Engine.HyphDict dict : dicts )
@@ -943,7 +944,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	{
 		public TextureOptions( OptionOwner owner, String label )
 		{
-			super( owner, label, ReaderView.PROP_PAGE_BACKGROUND_IMAGE );
+			super( owner, label, PROP_PAGE_BACKGROUND_IMAGE );
 			setDefaultValue("(NONE)");
 			BackgroundTextureInfo[] textures = mReaderView.getEngine().getAvailableTextures();
 			for ( BackgroundTextureInfo item : textures )
@@ -961,7 +962,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		protected void updateItemContents( final View layout, final Pair item, final ListView listView, final int position ) {
 			super.updateItemContents(layout, item, listView, position);
 			ImageView img = (ImageView)layout.findViewById(R.id.option_value_image);
-			int cl = mProperties.getColor(ReaderView.PROP_BACKGROUND_COLOR, Color.WHITE);
+			int cl = mProperties.getColor(PROP_BACKGROUND_COLOR, Color.WHITE);
 			BackgroundTextureInfo texture = mReaderView.getEngine().getTextureInfoById(item.value);
 			img.setBackgroundColor(cl);
 			if ( texture.resourceId!=0 ) {
@@ -1036,10 +1037,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				}
 
 				public boolean isEnabled(int position) {
-					boolean isPageMode = mProperties.getBool(ReaderView.PROP_PAGE_VIEW_MODE, true);
+					boolean isPageMode = mProperties.getBool(PROP_PAGE_VIEW_MODE, true);
 					OptionBase option = mOptions.get(position);
 					String prop = option.property;
-					if ( prop.equals(ReaderView.PROP_STATUS_LINE) || prop.equals(ReaderView.PROP_FOOTNOTES) )
+					if ( prop.equals(PROP_STATUS_LINE) || prop.equals(PROP_FOOTNOTES) )
 						return isPageMode;
 					return true;
 				}
@@ -1138,68 +1139,68 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mTabs.setup();
 		//new TabHost(getContext());
 		mOptionsStyles = new OptionsListView(getContext());
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), ReaderView.PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), ReaderView.PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), ReaderView.PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
-		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), ReaderView.PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), ReaderView.PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2"));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), ReaderView.PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
-		mOptionsStyles.add(new NightModeOption(this, getString(R.string.options_inverse_view), ReaderView.PROP_NIGHT_MODE));
-		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_text), ReaderView.PROP_FONT_COLOR, 0x000000));
-		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_background), ReaderView.PROP_BACKGROUND_COLOR, 0xFFFFFF));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
+		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
+		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
+		mOptionsStyles.add(new NightModeOption(this, getString(R.string.options_inverse_view), PROP_NIGHT_MODE));
+		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_text), PROP_FONT_COLOR, 0x000000));
+		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_background), PROP_BACKGROUND_COLOR, 0xFFFFFF));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsStyles.add(new TextureOptions(this, getString(R.string.options_background_texture)));
 
 		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), ReaderView.PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
+			mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
 		//
 		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), ReaderView.PROP_FLOATING_PUNCTUATION).setDefaultValue("1"));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), ReaderView.PROP_FONT_KERNING_ENABLED).setDefaultValue("0"));
+		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), PROP_FLOATING_PUNCTUATION).setDefaultValue("1"));
+		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), PROP_FONT_KERNING_ENABLED).setDefaultValue("0"));
 		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), ReaderView.PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0"));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), ReaderView.PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50"));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), ReaderView.PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
 		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
-		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), ReaderView.PROP_FOOTNOTES).setDefaultValue("1"));
-		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), ReaderView.PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), ReaderView.PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), PROP_FOOTNOTES).setDefaultValue("1"));
+		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
 		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED ) {
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), ReaderView.PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL).add(mScreenFullUpdateInterval).setDefaultValue("10"));
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add(mScreenFullUpdateInterval).setDefaultValue("10"));
 		}
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), ReaderView.PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), ReaderView.PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_selection_action), ReaderView.PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
-		mOptionsPage.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), ReaderView.PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
 		
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), ReaderView.PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), ReaderView.PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), ReaderView.PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), ReaderView.PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
 		mOptionsApplication = new OptionsListView(getContext());
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_fullscreen), ReaderView.PROP_APP_FULLSCREEN));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_fullscreen), PROP_APP_FULLSCREEN));
 		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)));
-		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP));
+		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), ReaderView.PROP_APP_SHOW_COVERPAGES));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES));
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), ReaderView.PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), ReaderView.PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
+			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), ReaderView.PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
+			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
+			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), ReaderView.PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0"));
+			mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0"));
 		
 		mOptionsStyles.refresh();
 		mOptionsPage.refresh();

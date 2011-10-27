@@ -1,4 +1,4 @@
-#include "readerview.h"
+#include "docview.h"
 #include "lvdocview.h"
 
 
@@ -404,7 +404,7 @@ static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color )
     return icons;
 }
 
-ReaderViewNative::ReaderViewNative()
+DocViewNative::DocViewNative()
 {
 	_docview = new LVDocView(16); //16bpp
 
@@ -420,12 +420,12 @@ ReaderViewNative::ReaderViewNative()
 	_docview->createDefaultDocument(lString16("Welcome to CoolReader"), lString16("Please select file to open"));
 }
 
-static ReaderViewNative * getNative(JNIEnv * env, jobject _this)
+static DocViewNative * getNative(JNIEnv * env, jobject _this)
 {
-    return (ReaderViewNative *)env->GetIntField(_this, gNativeObjectID); 
+    return (DocViewNative *)env->GetIntField(_this, gNativeObjectID);
 }
 
-bool ReaderViewNative::loadDocument( lString16 filename )
+bool DocViewNative::loadDocument( lString16 filename )
 {
 	CRLog::info("Loading document %s", LCSTR(filename));
 	bool res = _docview->LoadDocument(filename.c_str());
@@ -433,12 +433,12 @@ bool ReaderViewNative::loadDocument( lString16 filename )
     return res;
 }
 
-bool ReaderViewNative::openRecentBook()
+bool DocViewNative::openRecentBook()
 {
-	CRLog::debug("ReaderViewNative::openRecentBook()");
+	CRLog::debug("DocViewNative::openRecentBook()");
 	int index = 0;
 	if ( _docview->isDocumentOpened() ) {
-		CRLog::debug("ReaderViewNative::openRecentBook() : saving previous document state");
+		CRLog::debug("DocViewNative::openRecentBook() : saving previous document state");
 		_docview->swapToCache();
         _docview->getDocument()->updateMap();
 	    _docview->savePosition();
@@ -446,11 +446,11 @@ bool ReaderViewNative::openRecentBook()
 	    index = 1;
 	}
     LVPtrVector<CRFileHistRecord> & files = _docview->getHistory()->getRecords();
-    CRLog::info("ReaderViewNative::openRecentBook() : %d files found in history, startIndex=%d", files.length(), index);
+    CRLog::info("DocViewNative::openRecentBook() : %d files found in history, startIndex=%d", files.length(), index);
     if ( index < files.length() ) {
         CRFileHistRecord * file = files.get( index );
         lString16 fn = file->getFilePathName();
-        CRLog::info("ReaderViewNative::openRecentBook() : checking file %s", LCSTR(fn));
+        CRLog::info("DocViewNative::openRecentBook() : checking file %s", LCSTR(fn));
         // TODO: check error
         if ( LVFileExists(fn) ) {
             return loadDocument( fn );
@@ -460,12 +460,12 @@ bool ReaderViewNative::openRecentBook()
         }
         //_docview->swapToCache();
     } else {
-        CRLog::info("ReaderViewNative::openRecentBook() : no recent book found in history");
+        CRLog::info("DocViewNative::openRecentBook() : no recent book found in history");
     }
     return false;
 }
 
-bool ReaderViewNative::closeBook()
+bool DocViewNative::closeBook()
 {
 	if ( _docview->isDocumentOpened() ) {
 	    _docview->savePosition();
@@ -477,12 +477,12 @@ bool ReaderViewNative::closeBook()
 	return false;
 }
 
-void ReaderViewNative::clearSelection()
+void DocViewNative::clearSelection()
 {
     _docview->clearSelection();
 }
 
-bool ReaderViewNative::findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive )
+bool DocViewNative::findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive )
 {
     if ( pattern.empty() )
         return false;
@@ -541,7 +541,7 @@ bool ReaderViewNative::findText( lString16 pattern, int origin, bool reverse, bo
 
 
 
-bool ReaderViewNative::loadHistory( lString16 filename )
+bool DocViewNative::loadHistory( lString16 filename )
 {
     CRFileHist * hist = _docview->getHistory();
 	if ( !filename.empty() )
@@ -565,14 +565,14 @@ bool ReaderViewNative::loadHistory( lString16 filename )
     return res;
 }
 
-bool ReaderViewNative::saveHistory( lString16 filename )
+bool DocViewNative::saveHistory( lString16 filename )
 {
 	if ( !filename.empty() )
 		historyFileName = filename;
     if ( historyFileName.empty() )
     	return false;
 	if ( _docview->isDocumentOpened() ) {
-		CRLog::debug("ReaderViewNative::saveHistory() : saving position");
+		CRLog::debug("DocViewNative::saveHistory() : saving position");
 	    _docview->savePosition();
 	}
 	CRLog::info("Trying to save history to file %s", LCSTR(historyFileName));
@@ -587,7 +587,7 @@ bool ReaderViewNative::saveHistory( lString16 filename )
     return hist->saveToStream( stream.get() );
 }
 
-int ReaderViewNative::doCommand( int cmd, int param )
+int DocViewNative::doCommand( int cmd, int param )
 {
 	switch (cmd) {
     case DCMD_OPEN_RECENT_BOOK:
@@ -615,34 +615,34 @@ int ReaderViewNative::doCommand( int cmd, int param )
 
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    createInternal
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_createInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_createInternal
   (JNIEnv * env, jobject _this)
 {
 	CRLog::info("createInternal: Creating new RenderView");
-    jclass rvClass = env->FindClass("org/coolreader/crengine/ReaderView");
+    jclass rvClass = env->FindClass("org/coolreader/crengine/DocView");
     gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
-    ReaderViewNative * obj = new ReaderViewNative();
+    DocViewNative * obj = new DocViewNative();
     env->SetIntField(_this, gNativeObjectID, (jint)obj);
     obj->_docview->setFontSize(24); 
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    destroyInternal
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_destroyInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_destroyInternal
   (JNIEnv * env, jobject view)
 {
-    ReaderViewNative * p = getNative(env, view);
+    DocViewNative * p = getNative(env, view);
     if ( p!=NULL ) {
 		CRLog::info("Destroying RenderView");
     	delete p;
-	    jclass rvClass = env->FindClass("org/coolreader/crengine/ReaderView");
+	    jclass rvClass = env->FindClass("org/coolreader/crengine/DocView");
 	    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
 	    env->SetIntField(view, gNativeObjectID, 0);
 	} else {
@@ -651,15 +651,15 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_destroyInternal
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getPageImageInternal
  * Signature: (Landroid/graphics/Bitmap;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
   (JNIEnv * env, jobject view, jobject bitmap)
 {
     CRLog::trace("getPageImageInternal entered");
-    ReaderViewNative * p = getNative(env, view);
+    DocViewNative * p = getNative(env, view);
     //CRLog::info("Initialize callback");
 	DocViewCallback callback( env, p->_docview, view );	
     //CRLog::info("Initialized callback");
@@ -676,15 +676,15 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_getPageImageInter
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    loadDocument
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentInternal
   (JNIEnv * _env, jobject _this, jstring s)
 {
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	DocViewCallback callback( _env, p->_docview, _this );
 	lString16 str = env.fromJavaString(s);
     bool res = p->loadDocument(str);
@@ -692,16 +692,16 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_loadDocumentI
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getSettings
  * Signature: ()Ljava/util/Properties;
  */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInternal
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getSettingsInternal
   (JNIEnv * _env, jobject _this)
 {
-	CRLog::trace("ReaderView_getSettingsInternal");
+	CRLog::trace("DocView_getSettingsInternal");
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	CRPropRef props = p->_docview->propsGetCurrent();
     return env.toJavaProperties(props);
 }
@@ -709,16 +709,16 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getSettingsInt
 #define PROP_NIGHT_MODE "crengine.night.mode"
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    applySettingsInternal
  * Signature: (Ljava/util/Properties;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettingsInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_applySettingsInternal
   (JNIEnv * _env, jobject _this, jobject _props)
 {
-	CRLog::trace("ReaderView_applySettingsInternal");
+	CRLog::trace("DocView_applySettingsInternal");
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	DocViewCallback callback( _env, p->_docview, _this );
 	CRPropRef props = env.fromJavaProperties(_props);
 	CRPropRef oldProps = p->_docview->propsGetCurrent();
@@ -745,60 +745,60 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_applySettings
 }
 #if 0
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    readHistory
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_readHistoryInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_readHistoryInternal
   (JNIEnv * _env, jobject _this, jstring jFilename)
 {
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     bool res = p->loadHistory( env.fromJavaString(jFilename) );
     return res?JNI_TRUE:JNI_FALSE;
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    writeHistory
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_writeHistoryInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_writeHistoryInternal
   (JNIEnv * _env, jobject _this, jstring jFilename)
 {
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     bool res = p->saveHistory( env.fromJavaString(jFilename) );
     return res?JNI_TRUE:JNI_FALSE;
 }
 #endif
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    setStylesheet
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setStylesheetInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_setStylesheetInternal
   (JNIEnv * _env, jobject _view, jstring jcss)
 {
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _view);
+    DocViewNative * p = getNative(_env, _view);
 	DocViewCallback callback( _env, p->_docview, _view );
     lString8 css8 = UnicodeToUtf8(env.fromJavaString(jcss));
     p->_docview->setStyleSheet(css8);
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    resize
  * Signature: (II)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_resizeInternal
   (JNIEnv * _env, jobject _this, jint dx, jint dy)
 {
 	CRJNIEnv env(_env);
 	CRLog::debug("resizeInternal(%d, %d) is called", dx, dy);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	DocViewCallback callback( _env, p->_docview, _this );
     p->_docview->Resize(dx, dy);
     CRLog::trace("resizeInternal() is finished");
@@ -806,14 +806,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_resizeInternal
   
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    doCommandInternal
  * Signature: (II)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_doCommandInternal
   (JNIEnv * _env, jobject _this, jint cmd, jint param)
 {
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	DocViewCallback callback( _env, p->_docview, _this );	
     if ( cmd>=READERVIEW_DCMD_START && cmd<=READERVIEW_DCMD_END) {
     	return p->doCommand(cmd, param)?JNI_TRUE:JNI_FALSE;
@@ -823,15 +823,15 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_doCommandInte
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getCurrentPageBookmarkInternal
  * Signature: ()Lorg/coolreader/crengine/Bookmark;
  */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getCurrentPageBookmarkInternal
   (JNIEnv *_env, jobject _this)
 {
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return NULL;
 	DocViewCallback callback( _env, p->_docview, _this );
@@ -876,15 +876,15 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getCurrentPage
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    updateBookInfoInternal
  * Signature: (Lorg/coolreader/crengine/BookInfo;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoInternal
   (JNIEnv * _env, jobject _this, jobject _info)
 {
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return;
 	DocViewCallback callback( _env, p->_docview, _this );
@@ -896,15 +896,15 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateBookInfoInt
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    goToPositionInternal
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInternal
   (JNIEnv * _env, jobject _this, jstring jstr)
 {
 	CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return JNI_FALSE;
 	DocViewCallback callback( _env, p->_docview, _this );
@@ -917,15 +917,15 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_goToPositionI
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getPositionPropsInternal
- * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/ReaderView/PositionProperties;
+ * Signature: (Ljava/lang/String;)Lorg/coolreader/crengine/DocView/PositionProperties;
  */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsInternal
     (JNIEnv * _env, jobject _this, jstring _path)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return NULL;
 	DocViewCallback callback( _env, p->_docview, _this );
@@ -962,15 +962,15 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getPositionPro
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getTOCInternal
  * Signature: ()Lorg/coolreader/crengine/TOCItem;
  */
-JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getTOCInternal
+JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getTOCInternal
   (JNIEnv * _env, jobject _this)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 	if ( !p->_docview->isDocumentOpened() )
 		return NULL;
 	DocViewCallback callback( _env, p->_docview, _this );
@@ -979,58 +979,58 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_ReaderView_getTOCInternal
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    clearSelectionInternal
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_clearSelectionInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_clearSelectionInternal
   (JNIEnv * _env, jobject _this)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     if ( !p->_docview->isDocumentOpened() )
         return;
     p->clearSelection();
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    findTextInternal
  * Signature: (Ljava/lang/String;III)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_findTextInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_findTextInternal
   (JNIEnv * _env, jobject _this, jstring jpattern, jint origin, jint reverse, jint caseInsensitive)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     if ( !p->_docview->isDocumentOpened() )
         return JNI_FALSE;
     return p->findText(env.fromJavaString(jpattern), origin, reverse, caseInsensitive);
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    setBatteryStateInternal
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_setBatteryStateInternal
   (JNIEnv * _env, jobject _this, jint state)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     p->_docview->setBatteryState(state);
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    swapToCacheInternal
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_swapToCacheInternal
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_swapToCacheInternal
 (JNIEnv * _env, jobject _this)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     CRTimerUtil timeout(60000); // 1 minute, can be cancelled by Engine.suspendContinuousOperationInternal()
     _timeoutControl = timeout;
     return p->_docview->updateCache(_timeoutControl);
@@ -1038,15 +1038,15 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_swapToCacheIntern
 
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getCoverPageDataInternal
  * Signature: ()[B
  */
-JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPageDataInternal
+JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_DocView_getCoverPageDataInternal
   (JNIEnv * _env, jobject _this)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
 //	CRLog::trace("getCoverPageDataInternal() : requesting cover image stream");
     LVStreamRef stream = p->_docview->getCoverPageImageStream();
 //	CRLog::trace("getCoverPageDataInternal() : converting stream to byte array");
@@ -1059,15 +1059,15 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_ReaderView_getCoverPag
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    setPageBackgroundTextureInternal
  * Signature: ([BI)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_setPageBackgroundTextureInternal
   (JNIEnv * _env, jobject _this, jbyteArray jdata, jint tileFlags )
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     LVImageSourceRef img;
     if ( jdata!=NULL ) {
         LVStreamRef stream = env.jbyteArrayToStream( jdata );
@@ -1079,15 +1079,15 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_setPageBackground
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    updateSelectionInternal
  * Signature: (Lorg/coolreader/crengine/Selection;)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionInternal
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateSelectionInternal
   (JNIEnv * _env, jobject _this, jobject _sel)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     CRObjectAccessor sel(_env, _sel);
     CRStringField sel_startPos(sel, "startPos");
     CRStringField sel_endPos(sel, "endPos");
@@ -1137,15 +1137,15 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_ReaderView_updateSelectionIn
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    moveSelectionInternal
  * Signature: (Lorg/coolreader/crengine/Selection;II)Z
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_moveSelectionInternal
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInternal
   (JNIEnv * _env, jobject _this, jobject _sel, jint _cmd, jint _param)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     CRObjectAccessor sel(_env, _sel);
     CRStringField sel_startPos(sel, "startPos");
     CRStringField sel_endPos(sel, "endPos");
@@ -1193,7 +1193,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_ReaderView_moveSelection
 }
 
 
-lString16 ReaderViewNative::getLink( int x, int y, int r )
+lString16 DocViewNative::getLink( int x, int y, int r )
 {
 	int step = 5;
 	int n = r / step;
@@ -1220,7 +1220,7 @@ lString16 ReaderViewNative::getLink( int x, int y, int r )
 	return lString16::empty_str;
 }
 
-lString16 ReaderViewNative::getLink( int x, int y )
+lString16 DocViewNative::getLink( int x, int y )
 {
 	ldomXPointer p = _docview->getNodeByPoint( lvPoint(x, y) );
 	if ( p.isNull() )
@@ -1230,15 +1230,15 @@ lString16 ReaderViewNative::getLink( int x, int y )
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    checkLinkInternal
  * Signature: (III)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_checkLinkInternal
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_DocView_checkLinkInternal
   (JNIEnv * _env, jobject _this, jint x, jint y, jint delta)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     lString16 link;
     for ( int r=0; r<=delta; r+=5 ) {
     	link = p->getLink(x, y, r);
@@ -1249,15 +1249,15 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_ReaderView_checkLinkInter
 }
 
 /*
- * Class:     org_coolreader_crengine_ReaderView
+ * Class:     org_coolreader_crengine_DocView
  * Method:    goLinkInternal
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_org_coolreader_crengine_ReaderView_goLinkInternal
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_goLinkInternal
   (JNIEnv * _env, jobject _this, jstring _link)
 {
     CRJNIEnv env(_env);
-    ReaderViewNative * p = getNative(_env, _this);
+    DocViewNative * p = getNative(_env, _this);
     lString16 link = env.fromJavaString(_link);
     bool res = p->_docview->goLink( link, true );
     return res ? 1 : 0;

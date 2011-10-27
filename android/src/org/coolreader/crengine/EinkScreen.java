@@ -96,7 +96,14 @@ public class EinkScreen {
 			default:
 				RefreshNumber = -1;
 		}
+		
 		UpdateMode = mode;
+	}
+	public static void ResetController(View view) {
+		if (!DeviceInfo.EINK_NOOK) { return; }
+		System.err.println("+++ResetController ");
+		SetMode(view, cmodeClear);
+		RefreshNumber = 0;
 	}
 
 	public static void SleepController(boolean toSleep, View view) {

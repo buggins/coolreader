@@ -9,11 +9,11 @@
 #include <stdlib.h>
 
 #include "org_coolreader_crengine_Engine.h"
-#include "org_coolreader_crengine_ReaderView.h"
+#include "org_coolreader_crengine_DocView.h"
 
 #include "cr3java.h"
 #include "cr3version.h"
-#include "readerview.h"
+#include "docview.h"
 #include "crengine.h"
 #include "epubfmt.h"
 #include "lvstream.h"
@@ -499,32 +499,32 @@ static JNINativeMethod sEngineMethods[] = {
 };
 
 
-static JNINativeMethod sReaderViewMethods[] = {
+static JNINativeMethod sDocViewMethods[] = {
   /* name, signature, funcPtr */
-  {"createInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_createInternal},
-  {"destroyInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_destroyInternal},
-  {"getPageImageInternal", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_ReaderView_getPageImageInternal},
-  {"loadDocumentInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_loadDocumentInternal},
-  {"getSettingsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_ReaderView_getSettingsInternal},
-  {"applySettingsInternal", "(Ljava/util/Properties;)Z", (void*)Java_org_coolreader_crengine_ReaderView_applySettingsInternal},
-  {"setStylesheetInternal", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_ReaderView_setStylesheetInternal},
-  {"resizeInternal", "(II)V", (void*)Java_org_coolreader_crengine_ReaderView_resizeInternal},
-  {"doCommandInternal", "(II)Z", (void*)Java_org_coolreader_crengine_ReaderView_doCommandInternal},
-  {"getCurrentPageBookmarkInternal", "()Lorg/coolreader/crengine/Bookmark;", (void*)Java_org_coolreader_crengine_ReaderView_getCurrentPageBookmarkInternal},
-  {"goToPositionInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_ReaderView_goToPositionInternal},
-  {"getPositionPropsInternal", "(Ljava/lang/String;)Lorg/coolreader/crengine/PositionProperties;", (void*)Java_org_coolreader_crengine_ReaderView_getPositionPropsInternal},
-  {"updateBookInfoInternal", "(Lorg/coolreader/crengine/BookInfo;)V", (void*)Java_org_coolreader_crengine_ReaderView_updateBookInfoInternal},
-  {"getTOCInternal", "()Lorg/coolreader/crengine/TOCItem;", (void*)Java_org_coolreader_crengine_ReaderView_getTOCInternal},
-  {"clearSelectionInternal", "()V", (void*)Java_org_coolreader_crengine_ReaderView_clearSelectionInternal},
-  {"findTextInternal", "(Ljava/lang/String;III)Z", (void*)Java_org_coolreader_crengine_ReaderView_findTextInternal},
-  {"setBatteryStateInternal", "(I)V", (void*)Java_org_coolreader_crengine_ReaderView_setBatteryStateInternal},
-  {"getCoverPageDataInternal", "()[B", (void*)Java_org_coolreader_crengine_ReaderView_getCoverPageDataInternal},
-  {"setPageBackgroundTextureInternal", "([BI)V", (void*)Java_org_coolreader_crengine_ReaderView_setPageBackgroundTextureInternal},
-  {"updateSelectionInternal", "(Lorg/coolreader/crengine/Selection;)V", (void*)Java_org_coolreader_crengine_ReaderView_updateSelectionInternal},
-  {"checkLinkInternal", "(III)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_ReaderView_checkLinkInternal},
-  {"goLinkInternal", "(Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_ReaderView_goLinkInternal},
-  {"moveSelectionInternal", "(Lorg/coolreader/crengine/Selection;II)Z", (void*)Java_org_coolreader_crengine_ReaderView_moveSelectionInternal},
-  {"swapToCacheInternal", "()I", (void*)Java_org_coolreader_crengine_ReaderView_swapToCacheInternal},
+  {"createInternal", "()V", (void*)Java_org_coolreader_crengine_DocView_createInternal},
+  {"destroyInternal", "()V", (void*)Java_org_coolreader_crengine_DocView_destroyInternal},
+  {"getPageImageInternal", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_DocView_getPageImageInternal},
+  {"loadDocumentInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_DocView_loadDocumentInternal},
+  {"getSettingsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_DocView_getSettingsInternal},
+  {"applySettingsInternal", "(Ljava/util/Properties;)Z", (void*)Java_org_coolreader_crengine_DocView_applySettingsInternal},
+  {"setStylesheetInternal", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_DocView_setStylesheetInternal},
+  {"resizeInternal", "(II)V", (void*)Java_org_coolreader_crengine_DocView_resizeInternal},
+  {"doCommandInternal", "(II)Z", (void*)Java_org_coolreader_crengine_DocView_doCommandInternal},
+  {"getCurrentPageBookmarkInternal", "()Lorg/coolreader/crengine/Bookmark;", (void*)Java_org_coolreader_crengine_DocView_getCurrentPageBookmarkInternal},
+  {"goToPositionInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_DocView_goToPositionInternal},
+  {"getPositionPropsInternal", "(Ljava/lang/String;)Lorg/coolreader/crengine/PositionProperties;", (void*)Java_org_coolreader_crengine_DocView_getPositionPropsInternal},
+  {"updateBookInfoInternal", "(Lorg/coolreader/crengine/BookInfo;)V", (void*)Java_org_coolreader_crengine_DocView_updateBookInfoInternal},
+  {"getTOCInternal", "()Lorg/coolreader/crengine/TOCItem;", (void*)Java_org_coolreader_crengine_DocView_getTOCInternal},
+  {"clearSelectionInternal", "()V", (void*)Java_org_coolreader_crengine_DocView_clearSelectionInternal},
+  {"findTextInternal", "(Ljava/lang/String;III)Z", (void*)Java_org_coolreader_crengine_DocView_findTextInternal},
+  {"setBatteryStateInternal", "(I)V", (void*)Java_org_coolreader_crengine_DocView_setBatteryStateInternal},
+  {"getCoverPageDataInternal", "()[B", (void*)Java_org_coolreader_crengine_DocView_getCoverPageDataInternal},
+  {"setPageBackgroundTextureInternal", "([BI)V", (void*)Java_org_coolreader_crengine_DocView_setPageBackgroundTextureInternal},
+  {"updateSelectionInternal", "(Lorg/coolreader/crengine/Selection;)V", (void*)Java_org_coolreader_crengine_DocView_updateSelectionInternal},
+  {"checkLinkInternal", "(III)Ljava/lang/String;", (void*)Java_org_coolreader_crengine_DocView_checkLinkInternal},
+  {"goLinkInternal", "(Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_DocView_goLinkInternal},
+  {"moveSelectionInternal", "(Lorg/coolreader/crengine/Selection;II)Z", (void*)Java_org_coolreader_crengine_DocView_moveSelectionInternal},
+  {"swapToCacheInternal", "()I", (void*)Java_org_coolreader_crengine_DocView_swapToCacheInternal},
 };
 
 /*
@@ -578,7 +578,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 		return res;
  
     jniRegisterNativeMethods(env, "org/coolreader/crengine/Engine", sEngineMethods, sizeof(sEngineMethods)/sizeof(JNINativeMethod));
-    jniRegisterNativeMethods(env, "org/coolreader/crengine/ReaderView", sReaderViewMethods, sizeof(sReaderViewMethods)/sizeof(JNINativeMethod));
+    jniRegisterNativeMethods(env, "org/coolreader/crengine/DocView", sDocViewMethods, sizeof(sDocViewMethods)/sizeof(JNINativeMethod));
     LOGI("JNI_OnLoad: native methods are registered!\n");
     return res;
 }

@@ -208,6 +208,10 @@ public class CoolReader extends Activity
 			WindowManager.LayoutParams attrs = wnd.getAttributes();
 			attrs.screenOrientation = screenOrientation;
 			wnd.setAttributes(attrs);
+			if (DeviceInfo.EINK_SCREEN){
+				EinkScreen.ResetController(mReaderView);
+			}
+			
 		}
 	}
 
@@ -251,6 +255,7 @@ public class CoolReader extends Activity
 			screenOrientation = newOrientation;
 			setRequestedOrientation(screenOrientation);
 			applyScreenOrientation(getWindow());
+			
 //			if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE )
 //				Surface.setOrientation(Display.DEFAULT_DISPLAY, Surface.ROTATION_270);
 //			else if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT )
@@ -1308,18 +1313,22 @@ public class CoolReader extends Activity
 		new DefKeyAction(KeyEvent.KEYCODE_CAMERA, ReaderAction.LONG, ReaderAction.NONE),
 		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.NORMAL, ReaderAction.SEARCH),
 		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.LONG, ReaderAction.TOGGLE_SELECTION_MODE),
-		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		
 		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 		new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+
+		new DefKeyAction(ReaderView.NOOK_12_KEY_NEXT_LEFT, ReaderAction.NORMAL, (DeviceInfo.EINK_NOOK ? ReaderAction.PAGE_UP : ReaderAction.PAGE_DOWN)),
+		new DefKeyAction(ReaderView.NOOK_12_KEY_NEXT_LEFT, ReaderAction.LONG, (DeviceInfo.EINK_NOOK ? ReaderAction.PAGE_UP_10 : ReaderAction.PAGE_DOWN_10)),
+		
 		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+//		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
-		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+//		new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
 		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
 		new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
 
@@ -1419,7 +1428,7 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
-        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, "16");
+        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : "16");
         props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
         props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
         props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#808080");
@@ -1439,7 +1448,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
-		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "4");
+		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, DeviceInfo.EINK_SCREEN ? "0" : "4");
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
@@ -1458,8 +1467,8 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, "0");
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, "0");
 		
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, densityDpi > 160 ? "10" : "4");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, densityDpi > 160 ? "10" : "4");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, densityDpi > 160 ? "10" : DeviceInfo.EINK_NOOK ? "20" : "4");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, densityDpi > 160 ? "10" : DeviceInfo.EINK_NOOK ? "20" : "4");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, densityDpi > 160 ? "8" : "2");
 		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, densityDpi > 160 ? "8" : "2");
 		
