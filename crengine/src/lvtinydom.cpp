@@ -2976,7 +2976,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayo
 ldomDocument::~ldomDocument()
 {
 #if BUILD_LITE!=1
-    //updateMap();
+    updateMap();
 #endif
 }
 
@@ -7844,6 +7844,10 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
     switch (_mapSavingStage) {
     default:
     case 0:
+
+        if (!maxTime.infinite())
+            _cacheFile->flush(false, maxTime);
+        CHECK_EXPIRATION("flushing of stream")
 
         persist( maxTime );
         CHECK_EXPIRATION("persisting of node data")
