@@ -4402,18 +4402,6 @@ class LVBlockWriteStream : public LVNamedStream
             }
             for ( unsigned i=0; i<len; i++ ) {
                 lUInt8 ch1 = buf[offset+i];
-                //lUInt8 ch2 = ptr[i];
-                int t = 0;
-                if (pos==13)
-                    t++;
-                if (i==13)
-                    t++;
-                if (block_end==13)
-                    t++;
-                if (ch1==13)
-                    t++;
-                if (ptr[i]==13)
-                    t++;
                 if ( pos+i>block_end || ch1!=ptr[i] ) {
                     buf[offset+i] = ptr[i];
                     if ( modified_start==(lvpos_t)-1 ) {

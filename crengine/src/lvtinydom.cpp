@@ -915,11 +915,19 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
 #if CACHE_FILE_WRITE_BLOCK_PADDING==1
     int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
-        if ( block->_blockFilePos+block->_dataSize >= (int)_stream->GetSize() - _sectorSize ) {
+        if ((int)block->_blockFilePos + (int)block->_dataSize >= (int)_stream->GetSize() - _sectorSize) {
             LASSERT(size + paddingSize == block->_blockSize );
+//            if (paddingSize > 16384) {
+//                CRLog::error("paddingSize > 16384");
+//            }
+//            LASSERT(paddingSize <= 16384);
             lUInt8 tmp[16384];//paddingSize];
-            memset(tmp, 0xFF, paddingSize );
-            _stream->Write(tmp, paddingSize, &bytesWritten );
+            memset(tmp, 0xFF, paddingSize < 16384 ? paddingSize : 16384);
+            do {
+                int blkSize = paddingSize < 16384 ? paddingSize : 16384;
+                _stream->Write(tmp, blkSize, &bytesWritten );
+                paddingSize -= blkSize;
+            } while (paddingSize > 0);
         }
     }
 #endif
