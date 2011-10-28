@@ -370,14 +370,11 @@ struct CacheFileHeader : public SimpleCacheFileHeader
         }
         return true;
     }
-    CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt64 crc, lUInt32 dirtyFlag )
+    CacheFileHeader( CacheFileItem * indexRec, int fsize, lUInt32 dirtyFlag )
     : SimpleCacheFileHeader(dirtyFlag), _indexBlock(0,0)
     {
         if ( indexRec ) {
-            CacheFileItem item = *indexRec;
-            item._dataHash = crc;
-            item._packedHash = crc;
-            memcpy( &_indexBlock, &item, sizeof(CacheFileItem));
+            memcpy( &_indexBlock, indexRec, sizeof(CacheFileItem));
         } else
             memset( &_indexBlock, 0, sizeof(CacheFileItem));
         _fsize = fsize;
@@ -537,7 +534,7 @@ bool CacheFile::validateContents()
 // reads index from file
 bool CacheFile::readIndex()
 {
-    CacheFileHeader hdr(NULL, _size, 0, 0);
+    CacheFileHeader hdr(NULL, _size, 0);
     _stream->SetPos(0);
     lvsize_t bytesRead = 0;
     _stream->Read(&hdr, sizeof(hdr), &bytesRead );
@@ -574,11 +571,13 @@ bool CacheFile::readIndex()
     // check CRC
     lUInt64 hash = calcHash64( (lUInt8*)index, sz );
     if ( hdr._indexBlock._dataHash!=hash ) {
-        CRLog::error("CacheFile::readIndex: CRC doesn't match");
+        CRLog::error("CacheFile::readIndex: CRC doesn't match found %08x expected %08x", hash, hdr._indexBlock._dataHash);
         delete[] index;
         return false;
     }
     for ( int i=0; i<count; i++ ) {
+        if (index[i]._dataType == CBT_INDEX)
+            index[i] = hdr._indexBlock;
         if ( !index[i].validate(_size) ) {
             delete[] index;
             return false;
@@ -615,7 +614,8 @@ bool CacheFile::writeIndex()
     int count = _index.length();
     CacheFileItem * indexItem = findBlock(CBT_INDEX, 0);
     if (!indexItem) {
-        allocBlock(CBT_INDEX, 0, sizeof(CacheFileItem) * (count + 1));
+        int sz = sizeof(CacheFileItem) * (count * 2 + 100);
+        allocBlock(CBT_INDEX, 0, sz);
         indexItem = findBlock(CBT_INDEX, 0);
         count = _index.length();
     }
@@ -624,6 +624,11 @@ bool CacheFile::writeIndex()
     memset(index, 0, sz);
     for ( int i = 0; i < count; i++ ) {
         memcpy( &index[i], _index[i], sizeof(CacheFileItem) );
+        if (index[i]._dataType == CBT_INDEX) {
+            index[i]._dataHash = 0;
+            index[i]._packedHash = 0;
+            index[i]._dataSize = 0;
+        }
     }
     bool res = write(CBT_INDEX, 0, (const lUInt8*)index, sz, false);
     delete[] index;
@@ -643,15 +648,8 @@ bool CacheFile::writeIndex()
 bool CacheFile::updateHeader()
 {
     CacheFileItem * indexItem = NULL;
-    lUInt64 crc = 0;
-    lUInt8 * buf;
-    int sz;
-    if (read(CBT_INDEX, 0, buf, sz) && buf && sz) {
-        crc = calcHash64(buf, sz);
-        free(buf);
-        indexItem = findBlock(CBT_INDEX, 0);
-    }
-    CacheFileHeader hdr(indexItem, _size, crc, _dirty?1:0);
+    indexItem = findBlock(CBT_INDEX, 0);
+    CacheFileHeader hdr(indexItem, _size, _dirty?1:0);
     _stream->SetPos(0);
     lvsize_t bytesWritten = 0;
     _stream->Write(&hdr, sizeof(hdr), &bytesWritten );
@@ -839,7 +837,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 
     // check CRC
     lUInt64 hash = calcHash64( buf, size );
-    if ((type != CBT_INDEX) && (hash != block->_dataHash)) {
+    if (hash != block->_dataHash) {
         CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d", type, dataIndex, (int)size);
         free(buf);
         buf = NULL;
@@ -854,23 +852,13 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress )
 {
     // check whether data is changed
-    lUInt64 newhash = (type == CBT_INDEX) ? 0 : calcHash64( buf, size );
+    lUInt64 newhash = calcHash64( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
 
     if (existingblock) {
         bool sameSize = ((int)existingblock->_uncompressedSize==size) || (existingblock->_uncompressedSize==0 && (int)existingblock->_dataSize==size);
         if (sameSize && existingblock->_dataHash == newhash ) {
-            if (type != CBT_INDEX)
-                return true;
-            lUInt8 * tmpbuf;
-            int tmpsz;
-            bool res = false;
-            if (read(type, dataIndex, tmpbuf, tmpsz) && (tmpsz == size) && (memcmp(tmpbuf, buf, size) == 0))
-                res = true;
-            if (tmpbuf)
-                free(tmpbuf);
-            if (res)
-                return true; // index record matches!
+            return true;
         }
     }
 
@@ -7966,6 +7954,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         // fall through
     case 6:
         _mapSavingStage = 6;
+        CRLog::trace("ldomDocument::saveChanges() - ID data");
         {
             SerialBuf idbuf(4096);
             serializeMaps( idbuf );
