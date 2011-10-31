@@ -432,8 +432,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				addKey(listView, ReaderView.NOOK_12_KEY_NEXT_LEFT, "Bottom right navigation button");
 //				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
 			} else if ( DeviceInfo.SONY_NAVIGATION_KEYS ) {
-					addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Prev button");
-					addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Next button");
+//				addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Prev button");
+//				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Next button");
+				addKey(listView, ReaderView.SONY_DPAD_UP_SCANCODE, "Prev button");
+				addKey(listView, ReaderView.SONY_DPAD_DOWN_SCANCODE, "Next button");
 			} else {
 				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
