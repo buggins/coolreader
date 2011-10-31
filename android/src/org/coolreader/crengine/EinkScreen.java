@@ -100,10 +100,10 @@ public class EinkScreen {
 		UpdateMode = mode;
 	}
 	public static void ResetController(View view) {
-		if (!DeviceInfo.EINK_NOOK) { return; }
-		System.err.println("+++ResetController ");
+		if (!DeviceInfo.EINK_NOOK || UpdateMode == cmodeClear) { return; }
+		System.err.println("+++Soft reset Controller ");
 		SetMode(view, cmodeClear);
-		RefreshNumber = 0;
+		RefreshNumber = -1;
 	}
 
 	public static void SleepController(boolean toSleep, View view) {
@@ -133,17 +133,20 @@ public class EinkScreen {
 		case cmodeClear:	
 			N2EpdController.setMode(N2EpdController.REGION_APP_3,
 				N2EpdController.WAVE_GL16,
-				N2EpdController.MODE_CLEAR, view);
+				N2EpdController.MODE_CLEAR);
+//				N2EpdController.MODE_CLEAR, view);
 			break;
 		case cmodeOneshot:	
 			N2EpdController.setMode(N2EpdController.REGION_APP_3,
 					N2EpdController.WAVE_GU,
-					N2EpdController.MODE_ONESHOT_ALL, view);
+					N2EpdController.MODE_ONESHOT_ALL);
+//			N2EpdController.MODE_ONESHOT_ALL, view);
 			break;
 		case cmodeActive:	
 			N2EpdController.setMode(N2EpdController.REGION_APP_3,
 				N2EpdController.WAVE_GL16,
-				N2EpdController.MODE_ACTIVE_ALL, view);
+				N2EpdController.MODE_ACTIVE_ALL);
+//			N2EpdController.MODE_ACTIVE_ALL, view);
 			break;
 		}  
 	}	

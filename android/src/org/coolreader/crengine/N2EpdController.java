@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import android.view.View;
 //import java.lang.reflect.InvocationTargetException;
 
@@ -35,6 +36,7 @@ public class N2EpdController {
 	public static String strN2EpdInit = " N2EpdInit: ";
 	
 	private static Method mtSetRegion = null;
+	private static Constructor RegionParamsConstructor= null;
 
 	private static Object[] enumsWave 	= null;
 	private static Object[] enumsRegion	= null;
@@ -48,14 +50,21 @@ public class N2EpdController {
 				Class clEpdControllerMode 	= Class.forName("android.hardware.EpdController$Mode");
 				Class clEpdControllerRegion = Class.forName("android.hardware.EpdController$Region");
 
+				Class clEpdControllerRegionParams = Class.forName("android.hardware.EpdController$RegionParams");
+				
 				enumsWave = clEpdControllerWave.getEnumConstants();
 
 				enumsMode = clEpdControllerMode.getEnumConstants();
 
 				enumsRegion = clEpdControllerRegion.getEnumConstants();
 
-				mtSetRegion = clEpdController.getMethod("setRegion", String.class, clEpdControllerRegion, View.class,
-								clEpdControllerWave, clEpdControllerMode);
+//				mtSetRegion = clEpdController.getMethod("setRegion", String.class, clEpdControllerRegion, View.class,
+//								clEpdControllerWave, clEpdControllerMode);
+				RegionParamsConstructor = clEpdControllerRegionParams.getConstructor(
+						new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, clEpdControllerWave});
+				mtSetRegion = clEpdController.getMethod("setRegion", String.class, clEpdControllerRegion, 
+						clEpdControllerRegionParams, clEpdControllerMode);
+				
 				strN2EpdInit += "Ok!";
 			} catch (Exception e) {
 				System.err.println("Failed to init refresh EPD");
@@ -66,10 +75,13 @@ public class N2EpdController {
 		}
 	}
 
-	public static void setMode(int region, int wave, int mode, View view) {
+//	public static void setMode(int region, int wave, int mode, View view) {
+	public static void setMode(int region, int wave, int mode) {
 		if (mtSetRegion != null) {
 			try {
-				mtSetRegion.invoke(null, "CoolReader", enumsRegion[region], view, enumsWave[wave], enumsMode[mode]);
+				Object regionParams =  RegionParamsConstructor.newInstance(new Object[] { 0, 0, 600, 800, enumsWave[wave]});
+//				mtSetRegion.invoke(null, "CoolReader", enumsRegion[region], view, enumsWave[wave], enumsMode[mode]);
+				mtSetRegion.invoke(null, "CoolReader", enumsRegion[region], regionParams, enumsMode[mode]);
 			} catch (Exception e) {
 				System.err.println("Failed: SetMode");
 				System.err.println(e.toString());
