@@ -26,6 +26,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import android.util.Log;
+
 public class OPDSUtil {
 
     public static final int CONNECT_TIMEOUT = 60000;
@@ -100,6 +102,13 @@ xml:base="http://lib.ololo.cc/opds/">
 		public LinkInfo nextLink;
 	}
 	
+	public static String dirPath(String filePath) {
+		int pos = filePath.lastIndexOf("/");
+		if (pos < 0)
+			return filePath;
+		return filePath.substring(0, pos+1);
+	}
+	
 	public static class LinkInfo {
 		public String href;
 		public String rel;
@@ -116,8 +125,9 @@ xml:base="http://lib.ololo.cc/opds/">
 				return href;
 			if ( href.startsWith("/") )
 				return baseURL.getProtocol() + "://" + baseURL.getHost() + href;
-			if ( !href.startsWith("http://") )
-				return baseURL.getProtocol() + "://" + baseURL.getHost() + "/" + baseURL.getPath() + "/" + href;
+			if ( !href.startsWith("http://") ) {
+				return baseURL.getProtocol() + "://" + baseURL.getHost() + dirPath(baseURL.getPath()) + "/" + href;
+			}
 			return href;
 		}
 		public boolean isValid() {
@@ -418,6 +428,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			this.referer = referer;
 			this.expectedType = expectedType;
 			this.defaultFileName = defaultFileName;
+			Log.d("cr3", "Created DownloadTask for " + url);
 		}
 		private void setProgressMessage( String url, int totalSize ) {
 			progressMessage = coolReader.getString(org.coolreader.R.string.progress_downloading) + " " + url;
