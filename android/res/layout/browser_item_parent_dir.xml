@@ -39,6 +39,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="3"
+	        android:layout_marginTop="15dip"
+	        android:layout_marginBottom="15dip"
             android:ellipsize="start"
             android:singleLine="true"
             android:layout_gravity="left" />
