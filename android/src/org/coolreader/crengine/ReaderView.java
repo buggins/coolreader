@@ -61,11 +61,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int PAGE_ANIMATION_SLIDE2 = 3;
     public static final int PAGE_ANIMATION_MAX = 3;
     
-    public static final int SELECTION_ACTION_TOOLBAR = 0;
-    public static final int SELECTION_ACTION_COPY = 1;
-    public static final int SELECTION_ACTION_DICTIONARY = 2;
-    public static final int SELECTION_ACTION_BOOKMARK = 3;
-    
     public static final int SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE = 1;
     public static final int SEL_CMD_NEXT_SENTENCE = 2;
     public static final int SEL_CMD_PREV_SENTENCE = 3;
@@ -156,6 +151,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_TOGGLE_AUTOSCROLL(2026),
     	DCMD_AUTOSCROLL_SPEED_INCREASE(2027),
     	DCMD_AUTOSCROLL_SPEED_DECREASE(2028),
+    	DCMD_START_SELECTION(2029),
     	;
     	
     	private final int nativeId;
@@ -336,33 +332,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int overrideKey( int keyCode )
 	{
 		return keyCode;
-/*		
-		
-		int angle = getOrientation();
-		int[] subst = new int[] {
-			1, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_LEFT,
-			1, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT,
-			1, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_DOWN,
-			1, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP,
-			1, 	KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN,
-			1, 	KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP,
-//			2, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
-//			2, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP,
-//			2, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
-//			2, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_LEFT,
-//			2, 	KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN,
-//			2, 	KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP,
-//			3, 	KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_RIGHT,
-//			3, 	KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT,
-//			3, 	KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_UP,
-//			3, 	KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_DOWN,
-		};
-		for ( int i=0; i<subst.length; i+=3 ) {
-			if ( angle==subst[i] && keyCode==subst[i+1] )
-				return subst[i+2];
-		}
-		return keyCode;
-*/
 	}
 	
 	public int getTapZone( int x, int y, int dx, int dy )
@@ -397,17 +366,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return zone;
 	}
 	
-	public void onTapZone( int zone, boolean isLongPress )
-	{
-		ReaderAction action;
-		if ( !isLongPress )
+	public ReaderAction findTapZoneAction(int zone, int tapActionType) {
+		ReaderAction action = ReaderAction.NONE;
+		boolean isSecondaryAction = (secondaryTapActionType == tapActionType);
+		if (tapActionType == TAP_ACTION_TYPE_SHORT) {
 			action = ReaderAction.findForTap(zone, mSettings);
-		else
-			action = ReaderAction.findForLongTap(zone, mSettings);
-		if ( action.isNone() )
-			return;
-		log.d("onTapZone : action " + action.id + " is found for tap zone " + zone + (isLongPress ? " (long)":""));
-		onAction( action );
+		} else {
+			if (isSecondaryAction)
+				action = ReaderAction.findForLongTap(zone, mSettings);
+			else if (doubleTapSelectionEnabled || tapActionType == TAP_ACTION_TYPE_LONGPRESS)
+				action = ReaderAction.START_SELECTION;
+		}
+		return action;
 	}
 	
 	public FileInfo getOpenedFileInfo()
@@ -514,8 +484,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	boolean VOLUME_KEYS_ZOOM = false;
 	
 	private boolean backKeyDownHere = false;
-
-	
 	
 	@Override
 	protected void onFocusChanged(boolean gainFocus, int direction,
@@ -537,6 +505,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		trackedKeyEvent = null;
 		actionToRepeat = null;
 		repeatActionActive = false;
+		if (currentTapHandler != null)
+			currentTapHandler.cancel();
 	}
 
 	private boolean isTracked( KeyEvent event ) {
@@ -788,27 +758,28 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	private void cancelSelection() {
-		//
-		selectionInProgress = false;
-		clearSelection();
-	}
+//	private void cancelSelection() {
+//		//
+//		selectionInProgress = false;
+//		clearSelection();
+//	}
 
 	private int isBacklightControlFlick = 1;
 	private boolean isTouchScreenEnabled = true;
-	private boolean isManualScrollActive = false;
-	private boolean isBrightnessControlActive = false;
-	private int manualScrollStartPosX = -1;
-	private int manualScrollStartPosY = -1;
-	volatile private boolean touchEventIgnoreNextUp = false;
-	volatile private int longTouchId = 0;
-	volatile private long currentDoubleTapActionStart = 0;
-	private boolean selectionInProgress = false;
-	private int selectionStartX = 0;
-	private int selectionStartY = 0;
-	private int selectionEndX = 0;
-	private int selectionEndY = 0;
+//	private boolean isManualScrollActive = false;
+//	private boolean isBrightnessControlActive = false;
+//	private int manualScrollStartPosX = -1;
+//	private int manualScrollStartPosY = -1;
+//	volatile private boolean touchEventIgnoreNextUp = false;
+//	volatile private int longTouchId = 0;
+//	volatile private long currentDoubleTapActionStart = 0;
+//	private boolean selectionInProgress = false;
+//	private int selectionStartX = 0;
+//	private int selectionStartY = 0;
+//	private int selectionEndX = 0;
+//	private int selectionEndY = 0;
 	private boolean doubleTapSelectionEnabled = false;
+	private int secondaryTapActionType = TAP_ACTION_TYPE_LONGPRESS;
 	private boolean selectionModeActive = false;
 	
 	public void toggleSelectionMode() {
@@ -816,65 +787,358 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.showToast( selectionModeActive ? R.string.action_toggle_selection_mode_on : R.string.action_toggle_selection_mode_off);
 	}
 	
-	public void onLongTap( final int x, final int y, final int zone ) {
-		mEngine.execute(new Task() {
-			String link;
-			public void work() {
-				link = doc.checkLink(x, y, mActivity.getPalmTipPixels() / 2 );
-				if ( link!=null ) {
-					if ( link.startsWith("#") ) {
-						log.d("go to " + link);
-						doc.goLink(link);
-						drawPage();
+//	public void onLongTap( final int x, final int y, final int zone ) {
+//		mEngine.execute(new Task() {
+//			String link;
+//			public void work() {
+//				link = doc.checkLink(x, y, mActivity.getPalmTipPixels() / 2 );
+//				if ( link!=null ) {
+//					if ( link.startsWith("#") ) {
+//						log.d("go to " + link);
+//						doc.goLink(link);
+//						drawPage();
+//					}
+//				}
+//			}
+//			public void done() {
+//				if ( link==null ) {
+//					onTapZone(zone, TAP_ACTION_TYPE_LONGPRESS);
+//				} else if (!link.startsWith("#")) {
+//					log.d("external link " + link);
+//					if (link.startsWith("http://")||link.startsWith("https://")) {
+//						mActivity.openURL(link);
+//					} else {
+//						// absolute path to file
+//						FileInfo fi = new FileInfo(link);
+//						if (fi.exists()) {
+//							mActivity.loadDocument(fi);
+//							return;
+//						}
+//						File baseDir = null;
+//						if (mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
+//							if (!mBookInfo.getFileInfo().isArchive) {
+//								// relatively to base directory
+//								File f = new File(mBookInfo.getFileInfo().getBasePath());
+//								baseDir = f.getParentFile();
+//								String url = link;
+//								while (baseDir!=null && url!=null && url.startsWith("../")) {
+//									baseDir = baseDir.getParentFile();
+//									url = url.substring(3);
+//								}
+//								if (baseDir!=null && url!=null && url.length()>0) {
+//									fi = new FileInfo(baseDir.getAbsolutePath()+"/"+url);
+//									if (fi.exists()) {
+//										mActivity.loadDocument(fi);
+//										return;
+//									}
+//								}
+//							} else {
+//								// from archive
+//								fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
+//								if (fi.exists()) {
+//									mActivity.loadDocument(fi);
+//									return;
+//								}
+//							}
+//						}
+//						mActivity.showToast("Cannot open link " + link);
+//					}
+//				}
+//			}
+//		});
+//	}
+
+	public static long timeStamp() {
+		return android.os.SystemClock.uptimeMillis();
+	}
+	
+	public static long timeInterval(long startTime) {
+		return android.os.SystemClock.uptimeMillis() - startTime;
+	}
+	
+	private TapHandler currentTapHandler = null;
+	public class TapHandler {
+
+		private final static int STATE_INITIAL = 0; // no events yet
+		private final static int STATE_DOWN_1 = 1; // down first time
+		private final static int STATE_SELECTION = 3; // selection is started
+		private final static int STATE_FLIPPING = 4; // flipping is in progress
+		private final static int STATE_WAIT_FOR_DOUBLE_CLICK = 5; // flipping is in progress
+		private final static int STATE_DONE = 6; // done: no more tracking
+		private final static int STATE_BRIGHTNESS = 7; // brightness change in progress
+		
+		private final static int EXPIRATION_TIME_MS = 180000;
+		
+		int state = STATE_INITIAL;
+		
+		int start_x = 0;
+		int start_y = 0;
+		int width = 0;
+		int height = 0;
+		ReaderAction shortTapAction = ReaderAction.NONE;
+		ReaderAction longTapAction = ReaderAction.NONE;
+		ReaderAction doubleTapAction = ReaderAction.NONE;
+		long firstDown;
+		
+		/// handle unexpected event for state: stop tracking
+		private boolean unexpectedEvent() {
+			cancel();
+			return true; // ignore
+		}
+		
+		public void checkExpiration() {
+			if (state != STATE_INITIAL && timeInterval(firstDown) > EXPIRATION_TIME_MS)
+				cancel();
+		}
+		
+		/// cancel current action and reset touch tracking state
+		private boolean cancel() {
+			if (state == STATE_INITIAL)
+				return true;
+			switch (state) {
+			case STATE_DOWN_1:
+			case STATE_SELECTION:
+				clearSelection();
+				break;
+			case STATE_FLIPPING:
+				stopAnimation(-1, -1);
+				break;
+			case STATE_WAIT_FOR_DOUBLE_CLICK:
+			case STATE_DONE:
+			case STATE_BRIGHTNESS:
+				stopBrightnessControl(-1, -1);
+				break;
+			}
+			state = STATE_DONE;
+			unhiliteTapZone(); 
+			currentTapHandler = new TapHandler();
+			return true;
+		}
+
+		/// perform action and reset touch tracking state
+		private boolean performAction(final ReaderAction action, boolean checkForLinks) {
+			log.d("performAction on touch: " + action);
+			state = STATE_DONE;
+
+			currentTapHandler = new TapHandler();
+
+			if (!checkForLinks) {
+				onAction(action);
+				return true;
+			}
+			
+			// check link before executing action
+			mEngine.execute(new Task() {
+				String link;
+				public void work() {
+					link = doc.checkLink(start_x, start_y, mActivity.getPalmTipPixels() / 2 );
+					if ( link!=null ) {
+						if ( link.startsWith("#") ) {
+							log.d("go to " + link);
+							doc.goLink(link);
+							drawPage();
+						}
 					}
 				}
-			}
-			public void done() {
-				if ( link==null ) {
-					onTapZone( zone, true );
-				} else if (!link.startsWith("#")) {
-					log.d("external link " + link);
-					if (link.startsWith("http://")||link.startsWith("https://")) {
-						mActivity.openURL(link);
-					} else {
-						// absolute path to file
-						FileInfo fi = new FileInfo(link);
-						if (fi.exists()) {
-							mActivity.loadDocument(fi);
-							return;
-						}
-						File baseDir = null;
-						if (mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
-							if (!mBookInfo.getFileInfo().isArchive) {
-								// relatively to base directory
-								File f = new File(mBookInfo.getFileInfo().getBasePath());
-								baseDir = f.getParentFile();
-								String url = link;
-								while (baseDir!=null && url!=null && url.startsWith("../")) {
-									baseDir = baseDir.getParentFile();
-									url = url.substring(3);
-								}
-								if (baseDir!=null && url!=null && url.length()>0) {
-									fi = new FileInfo(baseDir.getAbsolutePath()+"/"+url);
+				public void done() {
+					if ( link==null ) {
+						onAction(action);
+					} else if (!link.startsWith("#")) {
+						log.d("external link " + link);
+						if (link.startsWith("http://")||link.startsWith("https://")) {
+							mActivity.openURL(link);
+						} else {
+							// absolute path to file
+							FileInfo fi = new FileInfo(link);
+							if (fi.exists()) {
+								mActivity.loadDocument(fi);
+								return;
+							}
+							File baseDir = null;
+							if (mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
+								if (!mBookInfo.getFileInfo().isArchive) {
+									// relatively to base directory
+									File f = new File(mBookInfo.getFileInfo().getBasePath());
+									baseDir = f.getParentFile();
+									String url = link;
+									while (baseDir!=null && url!=null && url.startsWith("../")) {
+										baseDir = baseDir.getParentFile();
+										url = url.substring(3);
+									}
+									if (baseDir!=null && url!=null && url.length()>0) {
+										fi = new FileInfo(baseDir.getAbsolutePath()+"/"+url);
+										if (fi.exists()) {
+											mActivity.loadDocument(fi);
+											return;
+										}
+									}
+								} else {
+									// from archive
+									fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
 									if (fi.exists()) {
 										mActivity.loadDocument(fi);
 										return;
 									}
 								}
-							} else {
-								// from archive
-								fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
-								if (fi.exists()) {
-									mActivity.loadDocument(fi);
-									return;
-								}
 							}
+							mActivity.showToast("Cannot open link " + link);
 						}
-						mActivity.showToast("Cannot open link " + link);
 					}
 				}
+			});
+			return true;
+		}
+		
+		private boolean startSelection() {
+			state = STATE_SELECTION;
+			updateSelection( start_x, start_y, start_x, start_y, false );
+			return true;
+		}
+		
+		private boolean trackDoubleTap() {
+			state = STATE_WAIT_FOR_DOUBLE_CLICK;
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					if (currentTapHandler == TapHandler.this && state == STATE_WAIT_FOR_DOUBLE_CLICK)
+						performAction(shortTapAction, false);
+				}
+			}, DOUBLE_CLICK_INTERVAL);
+			return true;
+		}
+		
+		private boolean trackLongTap() {
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					if (currentTapHandler == TapHandler.this && state == STATE_DOWN_1) {
+						if (longTapAction == ReaderAction.START_SELECTION)
+							startSelection();
+						else
+							performAction(longTapAction, true);
+					}
+				}
+			}, LONG_KEYPRESS_TIME);
+			return true;
+		}
+		
+		public boolean onTouchEvent(MotionEvent event) {
+			int x = (int)event.getX();
+			int y = (int)event.getY();
+			
+
+			if (state == STATE_INITIAL && event.getAction() != MotionEvent.ACTION_DOWN)
+				return unexpectedEvent(); // ignore unexpected event
+			
+			if (event.getAction() == MotionEvent.ACTION_UP) {
+				long duration = timeInterval(firstDown);
+				switch (state) {
+				case STATE_DOWN_1:
+					if ( hiliteTapZoneOnTap ) {
+						hiliteTapZone( true, x, y, width, height );
+						scheduleUnhilite( LONG_KEYPRESS_TIME );
+					}
+					if (duration > LONG_KEYPRESS_TIME) {
+						if (longTapAction == ReaderAction.START_SELECTION)
+							return startSelection();
+						return performAction(longTapAction, true);
+					}
+					if (doubleTapAction.isNone())
+						return performAction(shortTapAction, false);
+					// start possible double tap tracking
+					return trackDoubleTap();
+				case STATE_FLIPPING:
+					stopAnimation(x, y);
+					state = STATE_DONE;
+					return cancel();
+				case STATE_BRIGHTNESS:
+					stopBrightnessControl(x, y);
+					state = STATE_DONE;
+					return cancel();
+				case STATE_SELECTION:
+					updateSelection( start_x, start_y, x, y, true );
+					selectionModeActive = false;
+					state = STATE_DONE;
+					return cancel();
+				}
+			} else if (event.getAction() == MotionEvent.ACTION_DOWN) {
+				switch (state) {
+				case STATE_INITIAL:
+					start_x = x;
+					start_y = y;
+					width = getWidth();
+					height = getHeight();
+					int zone = getTapZone(x, y, width, height);
+					shortTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_SHORT);
+					longTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_LONGPRESS);
+					doubleTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_DOUBLE);
+					firstDown = timeStamp();
+					if (selectionModeActive) {
+						startSelection();
+					} else {
+						state = STATE_DOWN_1;
+						trackLongTap();
+					}
+					return true;
+				case STATE_DOWN_1:
+				case STATE_BRIGHTNESS:
+				case STATE_FLIPPING:
+				case STATE_SELECTION:
+					return unexpectedEvent();
+				case STATE_WAIT_FOR_DOUBLE_CLICK:
+					if (doubleTapAction == ReaderAction.START_SELECTION)
+						return startSelection();
+					return performAction(doubleTapAction, true);
+				}
+			} else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+				int dx = x - start_x;
+				int dy = y - start_y;
+				int adx = dx > 0 ? dx : -dx;
+				int ady = dy > 0 ? dy : -dy;
+				int distance = adx + ady;
+				int dragThreshold = mActivity.getPalmTipPixels();
+				switch (state) {
+				case STATE_DOWN_1:
+					if (distance < dragThreshold)
+						return true;
+					if (!DeviceInfo.EINK_SCREEN && isBacklightControlFlick != BACKLIGHT_CONTROL_FLICK_NONE && ady > adx) {
+						// backlight control enabled
+						if (start_x < dragThreshold * 170 / 100 && isBacklightControlFlick == 1
+								|| start_x > width - dragThreshold * 170 / 100 && isBacklightControlFlick == 2) {
+							// brightness
+							state = STATE_BRIGHTNESS;
+							startBrightnessControl(start_x, start_y);
+							return true;
+						}
+					}
+					boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1) == 1;
+					int dir = isPageMode ? x - start_x : y - start_y;
+					if (pageFlipAnimationSpeedMs == 0 || DeviceInfo.EINK_SCREEN) {
+						// no animation
+						return performAction(dir < 0 ? ReaderAction.PAGE_DOWN : ReaderAction.PAGE_UP, false);
+					}
+					startAnimation(start_x, start_y, width, height);
+					updateAnimation(x, y);
+					state = STATE_FLIPPING;
+					return true;
+				case STATE_FLIPPING:
+					updateAnimation(x, y);
+					return true;
+				case STATE_BRIGHTNESS:
+					updateBrightnessControl(x, y);
+					return true;
+				case STATE_WAIT_FOR_DOUBLE_CLICK:
+					return true;
+				case STATE_SELECTION:
+					updateSelection( start_x, start_y, x, y, false );
+					break;
+				}
+				
+			} else if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
+				return unexpectedEvent();
 			}
-		});
+			return true;
+		}
 	}
 	
 	@Override
@@ -883,189 +1147,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( !isTouchScreenEnabled ) {
 			return true;
 		}
-		
-		int x = (int)event.getX();
-		int y = (int)event.getY();
-		int dx = getWidth();
-		int dy = getHeight();
-		int START_DRAG_THRESHOLD = mActivity.getPalmTipPixels();
-		final int zone = getTapZone(x, y, dx, dy);
-		
-		if ( event.getAction()==MotionEvent.ACTION_UP ) {
-			longTouchId++;
-			if ( selectionInProgress ) {
-				log.v("touch ACTION_UP: selection finished");
-				selectionEndX = x;
-				selectionEndY = y;
-				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, true );
-				selectionInProgress = false;
-				selectionModeActive = false; // TODO: multiple selection mode
-				return true;
-			}
-			if ( touchEventIgnoreNextUp )
-				return true;
-			mActivity.onUserActivity();
-			unhiliteTapZone(); 
-			boolean isLongPress = (event.getEventTime()-event.getDownTime())>LONG_KEYPRESS_TIME;
-			stopAnimation(x, y);
-			stopBrightnessControl(x, y);
-			if ( isManualScrollActive || isBrightnessControlActive ) {
-				isManualScrollActive = false;
-				isBrightnessControlActive = false;
-				manualScrollStartPosX = manualScrollStartPosY = -1;
-				return true;
-			}
-			if ( isLongPress || !doubleTapSelectionEnabled ) {
-				currentDoubleTapActionStart = 0;
-				if ( !isLongPress )
-					onTapZone( zone, isLongPress );
-				else {
-					onLongTap( x, y, zone );
-				}
-			} else {
-				currentDoubleTapActionStart = android.os.SystemClock.uptimeMillis();
-				final long myStart = currentDoubleTapActionStart;
-				BackgroundThread.instance().postGUI(new Runnable() {
-					@Override
-					public void run() {
-						if ( currentDoubleTapActionStart == myStart ) {
-							onTapZone( zone, false );
-						}
-						currentDoubleTapActionStart = 0;
-					}
-				}, DOUBLE_CLICK_INTERVAL);
-			}
-			return true;
-		} else if ( event.getAction()==MotionEvent.ACTION_DOWN ) {
-			touchEventIgnoreNextUp = false;
-			if ( selectionModeActive || currentDoubleTapActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
-				log.v("touch ACTION_DOWN: double tap: starting selection");
-				// double tap started
-				selectionInProgress = true;
-				longTouchId++;
-				selectionStartX = x;
-				selectionStartY = y;
-				selectionEndX = x;
-				selectionEndY = y;
-				currentDoubleTapActionStart = 0;
-				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
-				return true;
-			}
-			currentDoubleTapActionStart = 0;
-			selectionInProgress = false;
-			manualScrollStartPosX = x;
-			manualScrollStartPosY = y;
-			currentDoubleTapActionStart = 0;
-			if ( hiliteTapZoneOnTap ) {
-				hiliteTapZone( true, x, y, dx, dy );
-				scheduleUnhilite( LONG_KEYPRESS_TIME );
-			}
-			final int myId = ++longTouchId;
-			mBackThread.postGUI( new Runnable() {
-				@Override
-				public void run() {
-					log.v("onTouchEvent: long tap delayed event myId=" + myId + ", currentId=" + longTouchId);
-					if ( myId==longTouchId ) {
-						touchEventIgnoreNextUp = true;
-						isBrightnessControlActive = false;
-						isManualScrollActive = false;
-						onLongTap( manualScrollStartPosX, manualScrollStartPosY, zone );
-						manualScrollStartPosX = manualScrollStartPosY = -1;
-					}
-				}
-				
-			}, LONG_KEYPRESS_TIME);
-			return true;
-		} else if ( event.getAction()==MotionEvent.ACTION_MOVE) {
-			if ( selectionInProgress ) {
-				log.v("touch ACTION_MOVE: updating selection");
-				selectionEndX = x;
-				selectionEndY = y;
-				updateSelection( selectionStartX, selectionStartY, selectionEndX, selectionEndY, false );
-				return true;
-			}
-			if ( touchEventIgnoreNextUp )
-				return true;
-			if ( !isManualScrollActive && !isBrightnessControlActive && manualScrollStartPosX>=0 && manualScrollStartPosY>=0 ) {
-				int movex = manualScrollStartPosX - x;
-				int deltay = manualScrollStartPosY - y;
-				int deltax = movex < 0 ? -movex : movex;
-				deltay = deltay < 0 ? -deltay : deltay;
-				if ( deltax + deltay > START_DRAG_THRESHOLD ) {
-					log.v("onTouchEvent: move threshold reached");
-					longTouchId++;
-					if ( manualScrollStartPosX < START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==1 && !DeviceInfo.EINK_SCREEN) {
-						// brightness
-						isBrightnessControlActive = true;
-						startBrightnessControl(x, y);
-						return true;
-					} else if ( manualScrollStartPosX > dx - START_DRAG_THRESHOLD * 170 / 100 && deltay>deltax && isBacklightControlFlick==2 && !DeviceInfo.EINK_SCREEN) {
-							// brightness
-							isBrightnessControlActive = true;
-							startBrightnessControl(x, y);
-							return true;
-					} else {
-						//pageFlipAnimationSpeedMs
-						// scroll
-						boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1)==1;
-						boolean startScrollEnabled = true;
-						if ( isPageMode ) {
-							if ( deltax < START_DRAG_THRESHOLD ) // check only horizontal distance
-								startScrollEnabled = false;
-							if ( movex>0 && x>dx*2/3 )
-								startScrollEnabled = false;
-							if ( movex<0 && x<dx/3 )
-								startScrollEnabled = false;
-						}
-						if ( startScrollEnabled ) {
-							if ( pageFlipAnimationSpeedMs!=0 ) {
-								isManualScrollActive = true;
-								startAnimation(manualScrollStartPosX, manualScrollStartPosY, dx, dy);
-								int nx = x;
-								int ny = y;
-								if ( isPageMode )
-									nx = movex < 0 ? (x + dx) / 2 : x / 2;
-								else
-									ny = (manualScrollStartPosY + y) / 2;
-								updateAnimation(nx, ny);
-								updateAnimation(x, y);
-								return true;
-							} else {
-								touchEventIgnoreNextUp = true;
-								if ( movex<0 ) {
-									// back
-									onCommand(ReaderCommand.DCMD_PAGEUP, 1);
-								} else {
-									// forward
-									onCommand(ReaderCommand.DCMD_PAGEDOWN, 1);
-								}
-								return true;
-							}
-						}
-					}
-				}
-			}
-			if ( isManualScrollActive )
-				updateAnimation(x, y);
-			else if ( isBrightnessControlActive ) 
-				updateBrightnessControl(x, y);
-			return true;
-		} else if ( event.getAction()==MotionEvent.ACTION_OUTSIDE ) {
-			if ( selectionInProgress ) {
-				// cancel selection
-				cancelSelection();
-			}
-			isManualScrollActive = false;
-			isBrightnessControlActive = false;
-			selectionModeActive = false;
-			currentDoubleTapActionStart = 0;
-			longTouchId++;
-			stopAnimation(-1, -1);
-			stopBrightnessControl(-1, -1);
-			hiliteTapZone( false, x, y, dx, dy ); 
-		}
-		return true;
-		//return super.onTouchEvent(event);
+		if (currentTapHandler == null)
+			currentTapHandler = new TapHandler();
+		currentTapHandler.checkExpiration();
+		return currentTapHandler.onTouchEvent(event);
 	}
 
 	@Override
@@ -1748,6 +1833,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	mActivity.setDict(value);
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
+        } else if ( key.equals(PROP_APP_SECONDARY_TAP_ACTION_TYPE) ) {
+        	secondaryTapActionType = flg ? TAP_ACTION_TYPE_DOUBLE : TAP_ACTION_TYPE_LONGPRESS;
         } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
         	mActivity.getScanner().setHideEmptyDirs(flg);
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {

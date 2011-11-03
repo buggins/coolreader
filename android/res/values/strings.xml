@@ -277,4 +277,7 @@
     <string name="lbl_autoscroll_speed">Speed: $1 chars/minute</string>
     <string name="action_autoscroll_speed_increase">Increase autoscroll speed</string>
     <string name="action_autoscroll_speed_decrease">Decrease autoscroll speed</string>
+    <string name="options_controls_tap_secondary_action_type">Tap secondary action type</string>
+    <string name="options_controls_tap_type_double">Double tap</string>
+    <string name="options_controls_tap_type_long">Long tap</string>
 </resources>

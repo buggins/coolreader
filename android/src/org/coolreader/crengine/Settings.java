@@ -100,4 +100,21 @@ public interface Settings {
 
     public static final String PROP_APP_SCREEN_UPDATE_MODE  ="app.screen.update.mode";
     public static final String PROP_APP_SCREEN_UPDATE_INTERVAL  ="app.screen.update.interval";
+    public static final String PROP_APP_SECONDARY_TAP_ACTION_TYPE  ="app.touch.secondary.action.type";
+
+    // available options for PROP_APP_SELECTION_ACTION setting
+    public static final int SELECTION_ACTION_TOOLBAR = 0;
+    public static final int SELECTION_ACTION_COPY = 1;
+    public static final int SELECTION_ACTION_DICTIONARY = 2;
+    public static final int SELECTION_ACTION_BOOKMARK = 3;
+    
+    // available options for PROP_APP_SECONDARY_TAP_ACTION_TYPE setting
+    public static final int TAP_ACTION_TYPE_LONGPRESS = 0;
+    public static final int TAP_ACTION_TYPE_DOUBLE = 1;
+    public static final int TAP_ACTION_TYPE_SHORT = 2;
+
+    // available options for PROP_APP_FLICK_BACKLIGHT_CONTROL setting
+    public static final int BACKLIGHT_CONTROL_FLICK_NONE = 0;
+    public static final int BACKLIGHT_CONTROL_FLICK_LEFT = 1;
+    public static final int BACKLIGHT_CONTROL_FLICK_RIGHT = 2;
 }

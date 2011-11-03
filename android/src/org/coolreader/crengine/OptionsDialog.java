@@ -115,6 +115,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mFlickBrightnessTitles = new int[] {
 			R.string.options_controls_flick_brightness_none, R.string.options_controls_flick_brightness_left, R.string.options_controls_flick_brightness_right
 		};
+	int[] mTapSecondaryActionType = new int[] {
+			TAP_ACTION_TYPE_LONGPRESS, TAP_ACTION_TYPE_DOUBLE
+		};
+	int[] mTapSecondaryActionTypeTitles = new int[] {
+			R.string.options_controls_tap_type_long, R.string.options_controls_tap_type_double
+		};
 	int[] mAnimation = new int[] {
 			ReaderView.PAGE_ANIMATION_NONE, ReaderView.PAGE_ANIMATION_SLIDE, ReaderView.PAGE_ANIMATION_SLIDE2, 
 			ReaderView.PAGE_ANIMATION_PAPER
@@ -1188,12 +1194,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_fullscreen), PROP_APP_FULLSCREEN));
 		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)));
-		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP));
 		mOptionsApplication.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)));
+		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP));
+		mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
