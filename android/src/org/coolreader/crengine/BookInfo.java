@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -118,6 +119,34 @@ public class BookInfo {
 		});
 	}
 	
+	synchronized public String getBookmarksExportText() {
+		StringBuilder buf = new StringBuilder();
+		File pathname = new File(fileInfo.getPathName());
+		buf.append("# file name: " + pathname.getName() + "\n");
+		buf.append("# file path: " + pathname.getParent() + "\n");
+		buf.append("# book title: " + fileInfo.title + "\n");
+		buf.append("# author: " + fileInfo.authors + "\n");
+		buf.append("\n");
+		for ( Bookmark bm : bookmarks ) {
+			if ( bm.getType()!=Bookmark.TYPE_COMMENT && bm.getType()!=Bookmark.TYPE_CORRECTION )
+				continue;
+			int percent = bm.getPercent();
+			String ps = String.valueOf(percent%100);
+			if ( ps.length()<2 )
+				ps = "0" + ps;
+			ps = String.valueOf(percent/100) + "." + ps  + "%";
+			buf.append("## " + ps + " - " + (bm.getType()!=Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\n");
+			if ( bm.getTitleText()!=null )
+				buf.append("## " + bm.getTitleText() + "\n");
+			if ( bm.getPosText()!=null )
+				buf.append("<< " + bm.getPosText() + "\n");
+			if ( bm.getCommentText()!=null )
+				buf.append(">> " + bm.getCommentText() + "\n");
+			buf.append("\n");
+		}
+		return buf.toString();
+	}
+
 	synchronized public boolean exportBookmarks( String fileName ) {
 		Log.i("cr3", "Exporting bookmarks to file " + fileName);
 		try { 

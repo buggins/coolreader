@@ -6,4 +6,5 @@
 <item android:title="@string/mi_bookmark_edit" android:titleCondensed="@string/mi_bookmark_edit" android:id="@+id/bookmark_edit"></item>
 <item android:title="@string/mi_bookmark_delete" android:titleCondensed="@string/mi_bookmark_delete" android:id="@+id/bookmark_delete"></item>
 <item android:title="@string/mi_bookmark_export" android:titleCondensed="@string/mi_bookmark_export" android:id="@+id/bookmark_export"></item>
+<item android:title="@string/mi_bookmark_send" android:titleCondensed="@string/mi_bookmark_send" android:id="@+id/bookmark_send"></item>
 </menu>

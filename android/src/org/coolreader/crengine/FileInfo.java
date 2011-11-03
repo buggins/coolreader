@@ -458,6 +458,14 @@ public class FileInfo {
 		this.isModified = isModified;
 	}
 
+	public String getAuthors() {
+		return authors;
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+
 	public void clear()
 	{
 		dirs = null;

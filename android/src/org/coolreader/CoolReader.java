@@ -14,6 +14,7 @@ import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.Engine.HyphDict;
+import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
@@ -1665,5 +1666,13 @@ public class CoolReader extends Activity
 			log.e("Exception " + e + " while trying to open URL " + url);
 			showToast("Cannot open URL " + url);
 		}
+	}
+	
+	public void sendBookFragment(BookInfo bookInfo, String text) {
+        final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+        emailIntent.setType("text/plain");
+    	emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, bookInfo.getFileInfo().getAuthors() + " " + bookInfo.getFileInfo().getTitle());
+        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, text);
+		startActivity(Intent.createChooser(emailIntent, null));	
 	}
 }

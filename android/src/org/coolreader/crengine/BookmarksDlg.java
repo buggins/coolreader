@@ -276,7 +276,7 @@ public class BookmarksDlg  extends BaseDialog {
 		mList = new BookmarkList(activity, false);
 		body.addView(mList);
 		setView(frame);
-		setFlingHandlers(body, new Runnable() {
+		setFlingHandlers(mList, new Runnable() {
 			@Override
 			public void run() {
 				// cancel
@@ -361,6 +361,13 @@ public class BookmarksDlg  extends BaseDialog {
 					mCoolReader.showToast( getContext().getString(R.string.toast_bookmark_export_ok) + " " + s);
 				else
 					mCoolReader.showToast(getContext().getString(R.string.toast_bookmark_export_failed) + " " + s);
+			}
+			dismiss();
+			return true;
+		case R.id.bookmark_send:
+			if ( mBookInfo.getBookmarkCount()>0 ) {
+				String s = mBookInfo.getBookmarksExportText();
+				mCoolReader.sendBookFragment(mBookInfo, s);
 			}
 			dismiss();
 			return true;
