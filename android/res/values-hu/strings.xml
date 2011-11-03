@@ -30,7 +30,7 @@
     <string name="mi_book_sort_order_title">Cím szerint</string>
     <string name="mi_book_sort_order_title_desc">Cím szerint (csökkenő)</string>
     <string name="mi_bookmark_set">Könyvjelző megadása</string>
-    <string name="mi_bookmark_goto">Ugrás knyvjelzőre</string>
+    <string name="mi_bookmark_goto">Ugrás könyvjelzőre</string>
     <string name="mi_goto_page">Oldalszámhoz #</string>
     <string name="mi_goto_percent">Pozícióhoz %</string>
     <string name="mi_goto_toc">Tartalomjegyzékhez</string>
