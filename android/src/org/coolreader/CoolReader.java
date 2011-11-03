@@ -326,6 +326,11 @@ public class CoolReader extends Activity
 		return densityDpi / 3; // 1/3"
 	}
 	
+	public int getDensityDpi()
+	{
+		return densityDpi;
+	}
+	
 	private int densityDpi = 120;
 	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
@@ -622,7 +627,7 @@ public class CoolReader extends Activity
 					        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
 			        		} else {
 				        		b = minb;
-				        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 255 / 10; 
+				        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 224 / 10; 
 			        		}
 			        	} else
 			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE

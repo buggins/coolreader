@@ -7,9 +7,13 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.PixelFormat;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -20,6 +24,7 @@ public class BaseDialog extends Dialog {
 	View layoutView;
 	ViewGroup buttonsLayout;
 	ViewGroup contentsLayout;
+	CoolReader activity;
 	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
 	public BaseDialog( CoolReader activity, int positiveButtonText, int negativeButtonText, boolean windowed )
 	{
@@ -36,6 +41,7 @@ public class BaseDialog extends Dialog {
 				: (	dark||DARK_THEME ? R.style.Dialog_Normal_Night : R.style.Dialog_Normal_Day )
 				));
 		setOwnerActivity(activity);
+		this.activity = activity;
 		this.mPositiveButtonText = positiveButtonText;
 		this.mNegativeButtonText = negativeButtonText;
 //		requestWindowFeature(Window.FEATURE_OPTIONS_PANEL);
@@ -157,7 +163,64 @@ public class BaseDialog extends Dialog {
 	protected void onClose() {
 		// when dialog is closed
 	}
+	
+	/**
+	 * Set View's gesture handlers for LTR and RTL horizontal fling
+	 * @param view
+	 * @param ltrHandler
+	 * @param rtlHandler
+	 */
+	public void setFlingHandlers(View view, Runnable ltrHandler, Runnable rtlHandler) {
+		final GestureDetector detector = new GestureDetector(new MyGestureListener(ltrHandler, rtlHandler));
+		view.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				return detector.onTouchEvent(event);
+			}
+		});
+	}
 
+	private class MyGestureListener extends SimpleOnGestureListener {
+		Runnable ltrHandler;
+		Runnable rtlHandler;
+		
+		public MyGestureListener(Runnable ltrHandler, Runnable rtlHandler) {
+			this.ltrHandler = ltrHandler;
+			this.rtlHandler = rtlHandler;
+		}
+
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+				float velocityY) {
+			int thresholdDistance = activity.getPalmTipPixels() * 2;
+			int thresholdVelocity = activity.getPalmTipPixels();
+			int x1 = (int)e1.getX();
+			int x2 = (int)e2.getX();
+			int dist = x2 - x1;
+			int adist = dist > 0 ? dist : -dist;
+			int vel = (int)velocityX;
+			if (vel<0)
+				vel = -vel;
+			if (vel > thresholdVelocity && adist > thresholdDistance) {
+				if (dist > 0) {
+					Log.d("cr3", "LTR fling detected");
+					if (ltrHandler != null) {
+						ltrHandler.run();
+						return true;
+					}
+				} else {
+					Log.d("cr3", "RTL fling detected");
+					if (rtlHandler != null) {
+						rtlHandler.run();
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		
+	}
+	
 	protected int mPositiveButtonText = 0;
 	protected int mNegativeButtonText = 0;
 	protected View view;

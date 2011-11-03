@@ -9,7 +9,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -23,11 +22,14 @@ import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
@@ -719,6 +721,13 @@ public class FileBrowser extends ListView {
 			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
 		if ( !BackgroundThread.instance().isGUIThread() )
 			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
+		final GestureDetector detector = new GestureDetector(new MyGestureListener());
+		this.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				return detector.onTouchEvent(event);
+			}
+		});
 		this.setAdapter(new ListAdapter() {
 
 			public boolean areAllItemsEnabled() {
@@ -962,6 +971,36 @@ public class FileBrowser extends ListView {
 		invalidate();
 	}
 
+	private class MyGestureListener extends SimpleOnGestureListener {
+
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+				float velocityY) {
+			int thresholdDistance = mActivity.getPalmTipPixels() * 2;
+			int thresholdVelocity = mActivity.getPalmTipPixels();
+			int x1 = (int)e1.getX();
+			int x2 = (int)e2.getX();
+			int dist = x2 - x1;
+			int adist = dist > 0 ? dist : -dist;
+			int vel = (int)velocityX;
+			if (vel<0)
+				vel = -vel;
+			if (vel > thresholdVelocity && adist > thresholdDistance) {
+				if (dist > 0) {
+					log.d("LTR fling detected: moving to parent");
+					showParentDirectory();
+					return true;
+				} else {
+					log.d("RTL fling detected: show menu");
+					mActivity.openOptionsMenu();
+					return true;
+				}
+			}
+			return false;
+		}
+		
+	}
+	
 	private void execute( Engine.EngineTask task )
     {
     	mEngine.execute(task);

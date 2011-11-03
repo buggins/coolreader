@@ -276,6 +276,20 @@ public class BookmarksDlg  extends BaseDialog {
 		mList = new BookmarkList(activity, false);
 		body.addView(mList);
 		setView(frame);
+		setFlingHandlers(body, new Runnable() {
+			@Override
+			public void run() {
+				// cancel
+				BookmarksDlg.this.dismiss();
+			}
+		}, new Runnable() {
+			@Override
+			public void run() {
+				// add bookmark
+				BookmarksDlg.this.dismiss();
+				mReaderView.addBookmark(0);
+			}
+		});
 	}
 
 	@Override
