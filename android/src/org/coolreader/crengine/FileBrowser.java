@@ -976,16 +976,22 @@ public class FileBrowser extends ListView {
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 				float velocityY) {
+			if (e1 == null || e2 == null)
+				return false;
 			int thresholdDistance = mActivity.getPalmTipPixels() * 2;
 			int thresholdVelocity = mActivity.getPalmTipPixels();
 			int x1 = (int)e1.getX();
 			int x2 = (int)e2.getX();
+			int y1 = (int)e1.getY();
+			int y2 = (int)e2.getY();
 			int dist = x2 - x1;
 			int adist = dist > 0 ? dist : -dist;
+			int ydist = y2 - y1;
+			int aydist = ydist > 0 ? ydist : -ydist;
 			int vel = (int)velocityX;
 			if (vel<0)
 				vel = -vel;
-			if (vel > thresholdVelocity && adist > thresholdDistance) {
+			if (vel > thresholdVelocity && adist > thresholdDistance && adist > aydist * 2) {
 				if (dist > 0) {
 					log.d("LTR fling detected: moving to parent");
 					showParentDirectory();
