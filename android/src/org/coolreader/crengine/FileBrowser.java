@@ -648,6 +648,11 @@ public class FileBrowser extends ListView {
 			showOPDSDir(fileOrDir, itemToSelect);
 			return;
 		}
+		if (fileOrDir!=null && fileOrDir.isSearchShortcut()) {
+			showFindBookDialog();
+			return;
+		}
+		
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
 			if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
 				fileOrDir = mScanner.getRoot().getDir(0);

@@ -22,6 +22,7 @@ public class FileInfo {
 	public final static String OPDS_DIR_PREFIX = "@opds:";
 	public final static String AUTHORS_TAG = "@authors";
 	public final static String AUTHOR_PREFIX = "@author:";
+	public final static String SEARCH_TAG = "@search";
 	
 	
 	
@@ -221,6 +222,11 @@ public class FileInfo {
 	public boolean isOPDSRoot()
 	{
 		return OPDS_LIST_TAG.equals(pathname);
+	}
+	
+	public boolean isSearchShortcut()
+	{
+		return SEARCH_TAG.equals(pathname);
 	}
 	
 	public boolean isHidden()

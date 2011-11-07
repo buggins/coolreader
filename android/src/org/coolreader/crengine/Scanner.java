@@ -406,12 +406,23 @@ public class Scanner {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.OPDS_LIST_TAG;
-		dir.filename = "OPDS Catalogs";
+		dir.filename = coolReader.getString(R.string.mi_book_opds_root);
 		dir.isListed = true;
 		dir.isScanned = true;
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
 		db.loadOPDSCatalogs(dir);
+	}
+	
+	private void addSearchRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.SEARCH_TAG;
+		dir.filename = coolReader.getString(R.string.mi_book_search);
+		dir.isListed = true;
+		dir.isScanned = true;
+		dir.parent = mRoot;
+		mRoot.addDir(dir);
 	}
 	
 	/**
@@ -595,6 +606,9 @@ public class Scanner {
 
 		// create OPDS dir
 		addOPDSRoot();
+		
+		// create search dir
+		addSearchRoot();
 	}
 	
 	public boolean autoAddRootForFile( File f ) {
