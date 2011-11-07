@@ -844,14 +844,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //		});
 //	}
 
-	public static long timeStamp() {
-		return android.os.SystemClock.uptimeMillis();
-	}
-	
-	public static long timeInterval(long startTime) {
-		return android.os.SystemClock.uptimeMillis() - startTime;
-	}
-	
 	private TapHandler currentTapHandler = null;
 	public class TapHandler {
 
@@ -883,7 +875,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		
 		public void checkExpiration() {
-			if (state != STATE_INITIAL && timeInterval(firstDown) > EXPIRATION_TIME_MS)
+			if (state != STATE_INITIAL && Utils.timeInterval(firstDown) > EXPIRATION_TIME_MS)
 				cancel();
 		}
 		
@@ -1027,7 +1019,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return unexpectedEvent(); // ignore unexpected event
 			
 			if (event.getAction() == MotionEvent.ACTION_UP) {
-				long duration = timeInterval(firstDown);
+				long duration = Utils.timeInterval(firstDown);
 				switch (state) {
 				case STATE_DOWN_1:
 					if ( hiliteTapZoneOnTap ) {
@@ -1068,7 +1060,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					shortTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_SHORT);
 					longTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_LONGPRESS);
 					doubleTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_DOUBLE);
-					firstDown = timeStamp();
+					firstDown = Utils.timeStamp();
 					if (selectionModeActive) {
 						startSelection();
 					} else {

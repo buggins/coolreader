@@ -26,6 +26,7 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.TTS;
+import org.coolreader.crengine.Utils;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.EinkScreen;
 
@@ -264,18 +265,18 @@ public class CoolReader extends Activity
 		}
 	}
 
-	private Runnable backlightTimerTask = null; 
+	private Runnable backlightTimerTask = null;
+	private static long lastUserActivityTime;
 	private class ScreenBacklightControl
 	{
 		PowerManager.WakeLock wl = null;
 		public ScreenBacklightControl()
 		{
 		}
-		public static final int SCREEN_BACKLIGHT_DURATION_STEPS = 3;
-		public static final int SCREEN_BACKLIGHT_TIMER_STEP = 60*1000;
-		int backlightCountDown = 0; 
+		public static final int SCREEN_BACKLIGHT_TIMER_INTERVAL = 3 * 60 * 1000;
 		public void onUserActivity()
 		{
+			lastUserActivityTime = Utils.timeStamp();
 			if ( !isWakeLockEnabled() )
 				return;
 			if ( wl==null ) {
@@ -285,28 +286,34 @@ public class CoolReader extends Activity
 			        PowerManager.SCREEN_BRIGHT_WAKE_LOCK
 			        /* | PowerManager.ON_AFTER_RELEASE */,
 			        "cr3");
+				log.d("ScreenBacklightControl: WakeLock created");
 			}
 			if ( !isStarted() ) {
+				log.d("ScreenBacklightControl: user activity while not started");
 			    release();
 			    return;
 			}
-			if ( !wl.isHeld() )
+
+			if ( !wl.isHeld() ) {
+				log.d("ScreenBacklightControl: acquiring WakeLock");
 				wl.acquire();
-			backlightCountDown = SCREEN_BACKLIGHT_DURATION_STEPS;
-			if ( backlightTimerTask==null ) {
+			}
+
+			if (backlightTimerTask == null) {
 				backlightTimerTask = new Runnable() {
 					public void run() {
-						if ( backlightTimerTask!=this )
-							return;
-						if ( backlightCountDown<=0 || !isStarted())
+						long interval = Utils.timeInterval(lastUserActivityTime); 
+						log.v("ScreenBacklightControl: timer task, lastActivityMillis = " + interval);
+						if ( interval > SCREEN_BACKLIGHT_TIMER_INTERVAL || !isStarted()) {
+							log.d("ScreenBacklightControl: interval is expired");
 							release();
-						else {
-							backlightCountDown--;
-							BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_STEP);
+						} else {
+							BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_INTERVAL / 5);
 						}
 					}
 				};
-				BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_STEP);
+				log.v("ScreenBacklightControl: timer task started");
+				BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_INTERVAL / 5);
 			}
 		}
 		public boolean isHeld()
@@ -315,8 +322,10 @@ public class CoolReader extends Activity
 		}
 		public void release()
 		{
-			if ( wl!=null && wl.isHeld() )
+			if ( wl!=null && wl.isHeld() ) {
+				log.d("ScreenBacklightControl: wl.release()");
 				wl.release();
+			}
 			backlightTimerTask = null;
 		}
 	}
