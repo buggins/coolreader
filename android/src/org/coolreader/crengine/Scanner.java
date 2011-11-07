@@ -417,7 +417,7 @@ public class Scanner {
 	private void addSearchRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
-		dir.pathname = FileInfo.SEARCH_TAG;
+		dir.pathname = FileInfo.SEARCH_SHORTCUT_TAG;
 		dir.filename = coolReader.getString(R.string.mi_book_search);
 		dir.isListed = true;
 		dir.isScanned = true;

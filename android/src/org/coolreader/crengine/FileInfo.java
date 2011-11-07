@@ -16,13 +16,13 @@ import android.util.Log;
 public class FileInfo {
 
 	public final static String RECENT_DIR_TAG = "@recent";
-	public final static String SEARCH_RESULT_DIR_TAG = "@search";
+	public final static String SEARCH_RESULT_DIR_TAG = "@searchResults";
 	public final static String ROOT_DIR_TAG = "@root";
 	public final static String OPDS_LIST_TAG = "@opds";
 	public final static String OPDS_DIR_PREFIX = "@opds:";
 	public final static String AUTHORS_TAG = "@authors";
 	public final static String AUTHOR_PREFIX = "@author:";
-	public final static String SEARCH_TAG = "@search";
+	public final static String SEARCH_SHORTCUT_TAG = "@search";
 	
 	
 	
@@ -226,7 +226,7 @@ public class FileInfo {
 	
 	public boolean isSearchShortcut()
 	{
-		return SEARCH_TAG.equals(pathname);
+		return SEARCH_SHORTCUT_TAG.equals(pathname);
 	}
 	
 	public boolean isHidden()
