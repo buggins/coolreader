@@ -267,6 +267,7 @@ public class CoolReader extends Activity
 
 	private Runnable backlightTimerTask = null;
 	private static long lastUserActivityTime;
+	private static long lastUserActivityScheduleTime;
 	private class ScreenBacklightControl
 	{
 		PowerManager.WakeLock wl = null;
@@ -299,9 +300,12 @@ public class CoolReader extends Activity
 				wl.acquire();
 			}
 
-			if (backlightTimerTask == null) {
+			if (Utils.timeInterval(lastUserActivityScheduleTime) > 30000) {
+				lastUserActivityScheduleTime = Utils.timeStamp();
 				backlightTimerTask = new Runnable() {
 					public void run() {
+						if (backlightTimerTask != this)
+							return;
 						long interval = Utils.timeInterval(lastUserActivityTime); 
 						log.v("ScreenBacklightControl: timer task, lastActivityMillis = " + interval);
 						if ( interval > SCREEN_BACKLIGHT_TIMER_INTERVAL || !isStarted()) {
