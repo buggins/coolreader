@@ -297,7 +297,8 @@ public class CoolReader extends Activity
 				wl.acquire();
 			}
 
-			log.v("ScreenBacklightControl: timer task started");
+			if (backlightTimerTask == null)
+				log.v("ScreenBacklightControl: timer task started");
 			backlightTimerTask = new BacklightTimerTask();
 			BackgroundThread.instance().postGUI(backlightTimerTask,
 					SCREEN_BACKLIGHT_TIMER_INTERVAL);
