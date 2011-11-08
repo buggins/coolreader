@@ -1830,7 +1830,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
         	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
-			int orientation = "1".equals(value) ? 1 : ("4".equals(value) ? 4 : 0);
+        	int orientation = 0;
+        	try {
+        		orientation = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
         	mActivity.setScreenOrientation(orientation);
         } else if ( PROP_PAGE_ANIMATION.equals(key) ) {
         	try {

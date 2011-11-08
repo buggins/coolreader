@@ -187,6 +187,30 @@ public class CoolReader extends Activity
 		}
 	}
 	
+	private int sdkInt = 0;
+	public int getSDKLevel() {
+		if (sdkInt > 0)
+			return sdkInt;
+		// hack for Android 1.5
+		sdkInt = 3;
+		Field fld;
+		try {
+			Class<?> cl = android.os.Build.VERSION.class;
+			fld = cl.getField("SDK_INT");
+			sdkInt = fld.getInt(cl);
+			log.i("API LEVEL " + sdkInt + " detected");
+		} catch (SecurityException e) {
+			// ignore
+		} catch (NoSuchFieldException e) {
+			// ignore
+		} catch (IllegalArgumentException e) {
+			// ignore
+		} catch (IllegalAccessException e) {
+			// ignore
+		}
+		return sdkInt;
+	}
+	
 	private boolean mWakeLockEnabled = false;
 	public boolean isWakeLockEnabled() {
 		return mWakeLockEnabled;
@@ -224,6 +248,10 @@ public class CoolReader extends Activity
 			return 0;
 		case ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE:
 			return 1;
+		case ActivityInfo_SCREEN_ORIENTATION_REVERSE_PORTRAIT:
+			return 2;
+		case ActivityInfo_SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
+			return 3;
 		default:
 			return orientationFromSensor;
 		}
@@ -231,37 +259,42 @@ public class CoolReader extends Activity
 
 	public boolean isLandscape()
 	{
-		return screenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+		return screenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE || screenOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
 	}
+
+	// support pre API LEVEL 9
+	final static public int ActivityInfo_SCREEN_ORIENTATION_SENSOR_PORTRAIT = 7;
+	final static public int ActivityInfo_SCREEN_ORIENTATION_SENSOR_LANDSCAPE = 6;
+	final static public int ActivityInfo_SCREEN_ORIENTATION_REVERSE_PORTRAIT = 9;
+	final static public int ActivityInfo_SCREEN_ORIENTATION_REVERSE_LANDSCAPE = 8;
+	final static public int ActivityInfo_SCREEN_ORIENTATION_FULL_SENSOR = 10;
 
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;
-//		{
-//			ActivityManager am = (ActivityManager)getSystemService(
-//		            Context.ACTIVITY_SERVICE);
-			//am.getDeviceConfigurationInfo().
-
-//			WindowManager wm = (WindowManager)getSystemService(
-//		            Context.WINDOW_SERVICE);
-			
-//		}
-		//getWindowManager(). //getDefaultDisplay().getMetrics(outMetrics)
-		if ( angle==4 )
-			newOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
-		else if ( (angle&1)!=0 )
-			newOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-		else
-			newOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-		if ( newOrientation!=screenOrientation ) {
+		boolean level9 = getSDKLevel() >= 9;
+		switch (angle) {
+		case 0:
+			newOrientation = level9 ? ActivityInfo_SCREEN_ORIENTATION_SENSOR_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+			break;
+		case 1:
+			newOrientation = level9 ? ActivityInfo_SCREEN_ORIENTATION_SENSOR_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+			break;
+		case 2:
+			newOrientation = level9 ? ActivityInfo_SCREEN_ORIENTATION_REVERSE_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+			break;
+		case 3:
+			newOrientation = level9 ? ActivityInfo_SCREEN_ORIENTATION_REVERSE_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+			break;
+		case 4:
+			newOrientation = level9 ? ActivityInfo_SCREEN_ORIENTATION_FULL_SENSOR : ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+			break;
+		}
+		if (newOrientation != screenOrientation) {
+			log.d("setScreenOrientation(" + angle + ")");
 			screenOrientation = newOrientation;
 			setRequestedOrientation(screenOrientation);
 			applyScreenOrientation(getWindow());
-			
-//			if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE )
-//				Surface.setOrientation(Display.DEFAULT_DISPLAY, Surface.ROTATION_270);
-//			else if ( newOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT )
-//				Surface.setOrientation(Display.DEFAULT_DISPLAY, Surface.ROTATION_180);
 		}
 	}
 
@@ -514,7 +547,7 @@ public class CoolReader extends Activity
 		
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
 		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, (DeviceInfo.EINK_SCREEN?0:4));
-		if ( orientation!=1 && orientation!=4 )
+		if ( orientation < 0 || orientation > 4 )
 			orientation = 0;
 		setScreenOrientation(orientation);
 		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
