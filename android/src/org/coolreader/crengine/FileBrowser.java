@@ -268,6 +268,10 @@ public class FileBrowser extends ListView {
 			showParentDirectory();
 			return true;
 		}
+		if (keyCode==KeyEvent.KEYCODE_SEARCH) {
+			showFindBookDialog();
+			return true;
+		}
 		return super.onKeyDown(keyCode, event);
 	}
 
