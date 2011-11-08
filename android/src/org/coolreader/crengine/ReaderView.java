@@ -1135,6 +1135,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( !isTouchScreenEnabled ) {
 			return true;
 		}
+		mActivity.onUserActivity();
 		if (currentTapHandler == null)
 			currentTapHandler = new TapHandler();
 		currentTapHandler.checkExpiration();
@@ -1148,6 +1149,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.d("trackball is disabled in settings");
 			return true;
 		}
+		mActivity.onUserActivity();
 		return super.onTrackballEvent(event);
 	}
 	

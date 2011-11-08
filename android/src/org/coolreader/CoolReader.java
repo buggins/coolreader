@@ -267,72 +267,73 @@ public class CoolReader extends Activity
 
 	private Runnable backlightTimerTask = null;
 	private static long lastUserActivityTime;
-	private static long lastUserActivityScheduleTime;
-	private class ScreenBacklightControl
-	{
+
+	private class ScreenBacklightControl {
 		PowerManager.WakeLock wl = null;
-		public ScreenBacklightControl()
-		{
+
+		public ScreenBacklightControl() {
 		}
+
 		public static final int SCREEN_BACKLIGHT_TIMER_INTERVAL = 3 * 60 * 1000;
-		public void onUserActivity()
-		{
+
+		public void onUserActivity() {
 			lastUserActivityTime = Utils.timeStamp();
-			if ( !isWakeLockEnabled() )
+			if (!isWakeLockEnabled())
 				return;
-			if ( wl==null ) {
-				PowerManager pm = (PowerManager)getSystemService(
-			            Context.POWER_SERVICE);
-				wl = pm.newWakeLock(
-			        PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-			        /* | PowerManager.ON_AFTER_RELEASE */,
-			        "cr3");
+			if (wl == null) {
+				PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+				wl = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK
+				/* | PowerManager.ON_AFTER_RELEASE */, "cr3");
 				log.d("ScreenBacklightControl: WakeLock created");
 			}
-			if ( !isStarted() ) {
+			if (!isStarted()) {
 				log.d("ScreenBacklightControl: user activity while not started");
-			    release();
-			    return;
+				release();
+				return;
 			}
 
-			if ( !wl.isHeld() ) {
+			if (!isHeld()) {
 				log.d("ScreenBacklightControl: acquiring WakeLock");
 				wl.acquire();
 			}
 
-			if (Utils.timeInterval(lastUserActivityScheduleTime) > 30000) {
-				lastUserActivityScheduleTime = Utils.timeStamp();
-				backlightTimerTask = new Runnable() {
-					public void run() {
-						if (backlightTimerTask != this)
-							return;
-						long interval = Utils.timeInterval(lastUserActivityTime); 
-						log.v("ScreenBacklightControl: timer task, lastActivityMillis = " + interval);
-						if ( interval > SCREEN_BACKLIGHT_TIMER_INTERVAL || !isStarted()) {
-							log.d("ScreenBacklightControl: interval is expired");
-							release();
-						} else {
-							BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_INTERVAL / 5);
-						}
-					}
-				};
-				log.v("ScreenBacklightControl: timer task started");
-				BackgroundThread.instance().postGUI(backlightTimerTask, SCREEN_BACKLIGHT_TIMER_INTERVAL / 5);
-			}
+			log.v("ScreenBacklightControl: timer task started");
+			backlightTimerTask = new BacklightTimerTask();
+			BackgroundThread.instance().postGUI(backlightTimerTask,
+					SCREEN_BACKLIGHT_TIMER_INTERVAL);
 		}
-		public boolean isHeld()
-		{
-			return wl!=null && wl.isHeld();
+
+		public boolean isHeld() {
+			return wl != null && wl.isHeld();
 		}
-		public void release()
-		{
-			if ( wl!=null && wl.isHeld() ) {
+
+		public void release() {
+			if (wl != null && wl.isHeld()) {
 				log.d("ScreenBacklightControl: wl.release()");
 				wl.release();
 			}
 			backlightTimerTask = null;
 		}
+
+		private class BacklightTimerTask implements Runnable {
+
+			@Override
+			public void run() {
+				if (backlightTimerTask != this)
+					return;
+				long interval = Utils.timeInterval(lastUserActivityTime);
+				log.v("ScreenBacklightControl: timer task, lastActivityMillis = "
+						+ interval);
+				if (interval > SCREEN_BACKLIGHT_TIMER_INTERVAL) {
+					log.v("ScreenBacklightControl: interval is expired");
+					release();
+				}
+			}
+
+		};
+
 	}
+
 	ScreenBacklightControl backlightControl = new ScreenBacklightControl();
 	
 	public int getPalmTipPixels()
