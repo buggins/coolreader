@@ -21,6 +21,7 @@ public class FileInfo {
 	public final static String OPDS_LIST_TAG = "@opds";
 	public final static String OPDS_DIR_PREFIX = "@opds:";
 	public final static String AUTHORS_TAG = "@authors";
+	public final static String AUTHOR_GROUP_PREFIX = "@authorGroup:";
 	public final static String AUTHOR_PREFIX = "@author:";
 	public final static String SEARCH_SHORTCUT_TAG = "@search";
 	
@@ -227,6 +228,27 @@ public class FileInfo {
 	public boolean isSearchShortcut()
 	{
 		return SEARCH_SHORTCUT_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByAuthorRoot()
+	{
+		return AUTHORS_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByAuthorDir()
+	{
+		return pathname!=null && pathname.startsWith(AUTHOR_PREFIX);
+	}
+	
+	public long getAuthorId()
+	{
+		if (!isBooksByAuthorDir())
+			return 0;
+		try {
+			return Long.parseLong(pathname.substring(AUTHOR_PREFIX.length()));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
 	}
 	
 	public boolean isHidden()

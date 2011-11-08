@@ -656,6 +656,15 @@ public class FileBrowser extends ListView {
 			showFindBookDialog();
 			return;
 		}
+		if (fileOrDir!=null && fileOrDir.isBooksByAuthorRoot()) {
+			// refresh authors list
+			log.d("Updating authors list");
+			mActivity.getDB().loadAuthorsList(fileOrDir);
+		}
+		if (fileOrDir!=null && fileOrDir.isBooksByAuthorDir()) {
+			log.d("Updating author book list");
+			mActivity.getDB().loadAuthorBooks(fileOrDir);
+		}
 		
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
 			if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
@@ -832,7 +841,13 @@ public class FileBrowser extends ListView {
 						return;
 					}
 					if ( item.isDirectory ) {
-						if ( item.isRecentDir() )
+						if (item.isBooksByAuthorRoot())
+							image.setImageResource(R.drawable.cr3_browser_folder_authors);
+						else if (item.isOPDSRoot() || item.isOPDSDir())
+							image.setImageResource(R.drawable.cr3_browser_folder_opds);
+						else if (item.isSearchShortcut())
+							image.setImageResource(R.drawable.cr3_browser_find);
+						else if ( item.isRecentDir() )
 							image.setImageResource(R.drawable.cr3_browser_folder_recent);
 						else if ( item.isArchive )
 							image.setImageResource(R.drawable.cr3_browser_folder_zip);
@@ -840,7 +855,15 @@ public class FileBrowser extends ListView {
 							image.setImageResource(R.drawable.cr3_browser_folder);
 						setText(name, item.filename);
 
-						if ( !item.isOPDSDir() ) {
+						if ( item.isBooksByAuthorDir() ) {
+							int bookCount = 0;
+							if (item.fileCount() > 0)
+								bookCount = item.fileCount();
+							else if (item.tag != null && item.tag instanceof Integer)
+								bookCount = (Integer)item.tag;
+							setText(field1, "books: " + String.valueOf(bookCount));
+							setText(field2, "folders: 0");
+						} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && (!item.isBooksByAuthorRoot() || item.dirCount()>0)) {
 							setText(field1, "books: " + String.valueOf(item.fileCount()));
 							setText(field2, "folders: " + String.valueOf(item.dirCount()));
 						} else {
