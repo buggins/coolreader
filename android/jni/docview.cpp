@@ -651,10 +651,10 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_destroyInternal
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    getPageImageInternal
- * Signature: (Landroid/graphics/Bitmap;)V
+ * Signature: (Landroid/graphics/Bitmap;I)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
-  (JNIEnv * env, jobject view, jobject bitmap)
+  (JNIEnv * env, jobject view, jobject bitmap, jint bpp)
 {
     CRLog::trace("getPageImageInternal entered");
     DocViewNative * p = getNative(env, view);
@@ -664,7 +664,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
     //CRLog::trace("getPageImageInternal calling bitmap->lock");
 	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(env, bitmap);
 	if ( drawbuf!=NULL ) {
-    	p->_docview->Draw( *drawbuf );
+		if (bpp >= 16) {
+			// native resolution
+			p->_docview->Draw( *drawbuf );
+		} else {
+			LVGrayDrawBuf grayBuf(drawbuf->GetWidth(), drawbuf->GetHeight(), bpp);
+			p->_docview->Draw(grayBuf);
+			grayBuf.DrawTo(drawbuf, 0, 0, 0, NULL);
+		}
 	    //CRLog::trace("getPageImageInternal calling bitmap->unlock");
 		BitmapAccessorInterface::getInstance()->unlock(env, bitmap, drawbuf);
 	} else {

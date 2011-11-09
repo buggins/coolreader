@@ -226,14 +226,14 @@ public class DocView {
 	 * @param bitmap is buffer to put data to.
 	 */
 	public void getPageImage(Bitmap bitmap) {
-		getPageImageInternal(bitmap);
+		getPageImageInternal(bitmap, DeviceInfo.EINK_SCREEN ? 4 : 32);
 	}
 	
 	//========================================================================================
 	// Native functions
 	/* implementend by libcr3engine.so */
 	//========================================================================================
-	private native void getPageImageInternal(Bitmap bitmap);
+	private native void getPageImageInternal(Bitmap bitmap, int bpp);
 
 	private native void createInternal();
 

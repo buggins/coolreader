@@ -34,10 +34,10 @@ extern "C" {
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    getPageImageInternal
- * Signature: (Landroid/graphics/Bitmap;)V
+ * Signature: (Landroid/graphics/Bitmap;I)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jint);
 
 /*
  * Class:     org_coolreader_crengine_DocView

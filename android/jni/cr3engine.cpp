@@ -503,7 +503,7 @@ static JNINativeMethod sDocViewMethods[] = {
   /* name, signature, funcPtr */
   {"createInternal", "()V", (void*)Java_org_coolreader_crengine_DocView_createInternal},
   {"destroyInternal", "()V", (void*)Java_org_coolreader_crengine_DocView_destroyInternal},
-  {"getPageImageInternal", "(Landroid/graphics/Bitmap;)V", (void*)Java_org_coolreader_crengine_DocView_getPageImageInternal},
+  {"getPageImageInternal", "(Landroid/graphics/Bitmap;I)V", (void*)Java_org_coolreader_crengine_DocView_getPageImageInternal},
   {"loadDocumentInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_DocView_loadDocumentInternal},
   {"getSettingsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_DocView_getSettingsInternal},
   {"applySettingsInternal", "(Ljava/util/Properties;)Z", (void*)Java_org_coolreader_crengine_DocView_applySettingsInternal},
