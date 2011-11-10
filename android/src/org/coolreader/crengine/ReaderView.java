@@ -396,6 +396,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int currentDoubleClickActionKeyCode = 0;
 	@Override
 	public boolean onKeyUp(int keyCode, final KeyEvent event) {
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyUp(keyCode, event);
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
@@ -547,6 +549,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
+		
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyDown(keyCode, event);
+
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		backKeyDownHere = false;
@@ -782,80 +788,59 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		selectionModeActive = !selectionModeActive;
 		mActivity.showToast( selectionModeActive ? R.string.action_toggle_selection_mode_on : R.string.action_toggle_selection_mode_off);
 	}
-	
-//	public void onLongTap( final int x, final int y, final int zone ) {
-//		mEngine.execute(new Task() {
-//			String link;
-//			public void work() {
-//				link = doc.checkLink(x, y, mActivity.getPalmTipPixels() / 2 );
-//				if ( link!=null ) {
-//					if ( link.startsWith("#") ) {
-//						log.d("go to " + link);
-//						doc.goLink(link);
-//						drawPage();
-//					}
-//				}
-//			}
-//			public void done() {
-//				if ( link==null ) {
-//					onTapZone(zone, TAP_ACTION_TYPE_LONGPRESS);
-//				} else if (!link.startsWith("#")) {
-//					log.d("external link " + link);
-//					if (link.startsWith("http://")||link.startsWith("https://")) {
-//						mActivity.openURL(link);
-//					} else {
-//						// absolute path to file
-//						FileInfo fi = new FileInfo(link);
-//						if (fi.exists()) {
-//							mActivity.loadDocument(fi);
-//							return;
-//						}
-//						File baseDir = null;
-//						if (mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
-//							if (!mBookInfo.getFileInfo().isArchive) {
-//								// relatively to base directory
-//								File f = new File(mBookInfo.getFileInfo().getBasePath());
-//								baseDir = f.getParentFile();
-//								String url = link;
-//								while (baseDir!=null && url!=null && url.startsWith("../")) {
-//									baseDir = baseDir.getParentFile();
-//									url = url.substring(3);
-//								}
-//								if (baseDir!=null && url!=null && url.length()>0) {
-//									fi = new FileInfo(baseDir.getAbsolutePath()+"/"+url);
-//									if (fi.exists()) {
-//										mActivity.loadDocument(fi);
-//										return;
-//									}
-//								}
-//							} else {
-//								// from archive
-//								fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
-//								if (fi.exists()) {
-//									mActivity.loadDocument(fi);
-//									return;
-//								}
-//							}
-//						}
-//						mActivity.showToast("Cannot open link " + link);
-//					}
-//				}
-//			}
-//		});
-//	}
 
-	private ImageInfo currentImage;
-	private void startImageViewer(ImageInfo image) {
-		currentImage = image;
-	}
+	private ImageViewer currentImageViewer;
+	private class ImageViewer {
+		private ImageInfo currentImage;
+		public ImageViewer(ImageInfo image) {
+			currentImage = image;
+			drawPage();
+		}
 
-	private boolean isImageViewMode() {
-		return currentImage != null;
-	}
+		public void zoomIn() {
+			
+		}
+		
+		public void zoomOut() {
+			
+		}
+		
+		public boolean onKeyDown(int keyCode, final KeyEvent event) {
+			if (keyCode == 0)
+				keyCode = event.getScanCode();
+			switch (keyCode) {
+			case KeyEvent.KEYCODE_VOLUME_UP:
+				zoomIn();
+				return true;
+			case KeyEvent.KEYCODE_VOLUME_DOWN:
+				zoomOut();
+				return true;
+			case KeyEvent.KEYCODE_BACK:
+			case KeyEvent.KEYCODE_ENDCALL:
+				close();
+				return true;
+			}
+			return false;
+		}
 
-	private void stopImageViewer() {
-		if (currentImage != null) {
-			currentImage = null;
+		public boolean onKeyUp(int keyCode, final KeyEvent event) {
+			if (keyCode == 0)
+				keyCode = event.getScanCode();
+			switch (keyCode) {
+			case KeyEvent.KEYCODE_BACK:
+			case KeyEvent.KEYCODE_ENDCALL:
+				close();
+				return true;
+			}
+			return false;
+		}
+
+		public boolean onTouchEvent(MotionEvent event) {
+			return false;
+		}
+		
+		public void close() {
+			currentImageViewer = null;
 			BackgroundThread.instance().executeBackground(new Runnable() {
 				@Override
 				public void run() {
@@ -863,6 +848,39 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				}
 			});
 		}
+		
+		public BitmapInfo prepareImage() {
+			currentImage.bufWidth = internalDX;
+			currentImage.bufHeight = internalDY;
+			if (mCurrentPageInfo != null) {
+				if (currentImage.equals(mCurrentPageInfo.imageInfo))
+					return mCurrentPageInfo;
+				mCurrentPageInfo.recycle();
+				mCurrentPageInfo = null;
+			}
+			BitmapInfo bi = new BitmapInfo();
+	        bi.imageInfo = new ImageInfo(currentImage);
+			bi.bitmap = factory.get(internalDX, internalDY);
+			doc.drawImage(bi.bitmap, bi.imageInfo);
+	        mCurrentPageInfo = bi;
+	        return mCurrentPageInfo;
+		}
+		
+	}
+
+	private void startImageViewer(ImageInfo image) {
+		image.bufHeight = internalDY;
+		image.bufWidth = internalDX;
+		currentImageViewer = new ImageViewer(image);
+	}
+
+	private boolean isImageViewMode() {
+		return currentImageViewer != null;
+	}
+
+	private void stopImageViewer() {
+		if (currentImageViewer != null)
+			currentImageViewer.close();
 	}
 
 	private TapHandler currentTapHandler = null;
@@ -1165,6 +1183,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return true;
 		}
 		mActivity.onUserActivity();
+		
+		if (currentImageViewer != null)
+			return currentImageViewer.onTouchEvent(event);
+		
 		if (currentTapHandler == null)
 			currentTapHandler = new TapHandler();
 		currentTapHandler.checkExpiration();
@@ -2245,23 +2267,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 	}
 	
-	private BitmapInfo prepareShowImage() {
-		currentImage.bufWidth = internalDX;
-		currentImage.bufHeight = internalDY;
-		if (mCurrentPageInfo != null) {
-			if (currentImage.equals(mCurrentPageInfo.imageInfo))
-				return mCurrentPageInfo;
-			mCurrentPageInfo.recycle();
-			mCurrentPageInfo = null;
-		}
-		BitmapInfo bi = new BitmapInfo();
-        bi.imageInfo = new ImageInfo(currentImage);
-		bi.bitmap = factory.get(internalDX, internalDY);
-		doc.drawImage(bi.bitmap, bi.imageInfo);
-        mCurrentPageInfo = bi;
-        return mCurrentPageInfo;
-	}
-	
     private BitmapInfo mCurrentPageInfo;
     private BitmapInfo mNextPageInfo;
 	/**
@@ -2293,8 +2298,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doc.resize(internalDX, internalDY);
 		}
 		
-		if (isImageViewMode())
-			return prepareShowImage();
+		if (currentImageViewer != null)
+			return currentImageViewer.prepareImage();
 
 		PositionProperties currpos = doc.getPositionProps(null);
 		
