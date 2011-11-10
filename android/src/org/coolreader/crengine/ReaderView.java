@@ -794,7 +794,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private class ImageViewer extends SimpleOnGestureListener {
 		private ImageInfo currentImage;
 		final GestureDetector detector;
+		int oldOrientation;
 		public ImageViewer(ImageInfo image) {
+			lockOrientation();
 			detector = new GestureDetector(this);
 			if (image.bufHeight / image.height >= 2 && image.bufWidth / image.width >= 2) {
 				image.scaledHeight *= 2;
@@ -802,6 +804,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			centerIfLessThanScreen(image);
 			currentImage = image;
+		}
+		
+		private void lockOrientation() {
+			oldOrientation = mActivity.getScreenOrientation();
+			if (oldOrientation == 4)
+				mActivity.setScreenOrientation(mActivity.getOrientationFromSensor());
+		}
+
+		private void unlockOrientation() {
+			if (oldOrientation == 4)
+				mActivity.setScreenOrientation(oldOrientation);
 		}
 
 		private void centerIfLessThanScreen(ImageInfo image) {
@@ -959,6 +972,34 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
 			log.v("onSingleTapConfirmed()");
+			ImageInfo image = new ImageInfo(currentImage);
+			
+			int x = (int)e.getX();
+			int y = (int)e.getY();
+
+			int zone = 0;
+			int zw = mActivity.getDensityDpi() / 2;
+			int w = image.bufWidth;
+			int h = image.bufHeight;
+			if (image.rotation == 0) {
+				if (x < zw && y > h - zw)
+					zone = 1;
+				if (x > w - zw && y > h - zw)
+					zone = 2;
+			} else {
+				if (x < zw && y < zw)
+					zone = 1;
+				if (x < zw && y > h - zw)
+					zone = 2;
+			}
+			if (zone != 0) {
+				if (zone == 1)
+					zoomIn();
+				else
+					zoomOut();
+				return true;
+			}
+			
 			close();
 			return super.onSingleTapConfirmed(e);
 		}
@@ -972,6 +1013,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if (currentImageViewer == null)
 				return;
 			currentImageViewer = null;
+			unlockOrientation();
 			BackgroundThread.instance().executeBackground(new Runnable() {
 				@Override
 				public void run() {
@@ -1005,8 +1047,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private void startImageViewer(ImageInfo image) {
-		image.bufHeight = internalDY;
-		image.bufWidth = internalDX;
 		currentImageViewer = new ImageViewer(image);
 		drawPage();
 	}
@@ -1097,6 +1137,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				ImageInfo image;
 				public void work() {
 					image = new ImageInfo();
+					image.bufWidth = internalDX;
+					image.bufHeight = internalDY;
+					image.bufDpi = mActivity.getDensityDpi();
 					if (doc.checkImage(start_x, start_y, image)) {
 						return;
 					}

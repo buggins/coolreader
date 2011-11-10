@@ -32,9 +32,11 @@ public:
     lString16 getLink( int x, int y );
     lString16 getLink( int x, int y, int r );
     // checks whether point belongs to image: if found, returns true, and _currentImage is set to image
-    bool checkImage(int x, int y, int &dx, int &dy);
+    bool checkImage(int x, int y, int bufWidth, int bufHeight, int &dx, int &dy, bool & needRotate);
     // draws current image to buffer (scaled, panned)
     bool drawImage(LVDrawBuf * buf, int x, int y, int dx, int dy);
+    // draws icon to buffer
+    bool drawIcon(LVDrawBuf * buf, lvRect & rc, int type);
     // sets current image to null
     bool closeImage();
 };

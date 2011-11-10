@@ -694,9 +694,13 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageIntern
 	CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, view);
     int dx, dy;
-	if (!p->checkImage(x, y, dx, dy))
-		return JNI_FALSE;
+    bool needRotate = false;
     CRObjectAccessor acc(_env, imageInfo);
+    int width = CRIntField(acc,"bufWidth").get();
+    int height = CRIntField(acc,"bufHeight").get();
+	if (!p->checkImage(x, y, width, height, dx, dy, needRotate))
+		return JNI_FALSE;
+    CRIntField(acc,"rotation").set(needRotate ? 1 : 0);
     CRIntField(acc,"width").set(dx);
     CRIntField(acc,"height").set(dy);
     CRIntField(acc,"scaledWidth").set(dx);
@@ -722,15 +726,38 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_drawImageInterna
     int dy = CRIntField(acc,"scaledHeight").get();
     int x = CRIntField(acc,"x").get();
     int y = CRIntField(acc,"y").get();
+    int rotation = CRIntField(acc,"rotation").get();
+    int dpi = CRIntField(acc,"bufDpi").get();
 	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(_env, bitmap);
 	bool res = false;
 	if ( drawbuf!=NULL ) {
+
+	    lvRect full(0, 0, drawbuf->GetWidth(), drawbuf->GetHeight());
+	    lvRect zoomInRect(full);
+	    lvRect zoomOutRect(full);
+	    int zoomSize = dpi * 4 / 10;
+	    if (rotation == 0) {
+	    	zoomInRect.right = zoomInRect.left + zoomSize;
+	    	zoomInRect.top = zoomInRect.bottom - zoomSize;
+	    	zoomOutRect.left = zoomOutRect.right - zoomSize;
+	    	zoomOutRect.top = zoomOutRect.bottom - zoomSize;
+	    } else {
+	    	zoomInRect.right = zoomInRect.left + zoomSize;
+	    	zoomInRect.bottom = zoomInRect.top + zoomSize;
+	    	zoomOutRect.right = zoomOutRect.left + zoomSize;
+	    	zoomOutRect.top = zoomOutRect.bottom - zoomSize;
+	    }
+
 		if (bpp >= 16) {
 			// native resolution
 			res = p->drawImage(drawbuf, x, y, dx, dy);
+			p->drawIcon(drawbuf, zoomInRect, 0);
+			p->drawIcon(drawbuf, zoomOutRect, rotation ? 2 : 1);
 		} else {
 			LVGrayDrawBuf grayBuf(drawbuf->GetWidth(), drawbuf->GetHeight(), bpp);
 			res = p->drawImage(&grayBuf, x, y, dx, dy);
+			p->drawIcon(&grayBuf, zoomInRect, 0);
+			p->drawIcon(&grayBuf, zoomOutRect, rotation ? 2 : 1);
 			grayBuf.DrawTo(drawbuf, 0, 0, 0, NULL);
 		}
 	    //CRLog::trace("getPageImageInternal calling bitmap->unlock");
@@ -1308,8 +1335,10 @@ lString16 DocViewNative::getLink( int x, int y )
 	return href;
 }
 
+#define MAX_IMAGE_BUF_SIZE 1200000
+
 // checks whether point belongs to image: if found, returns true, and _currentImage is set to image
-bool DocViewNative::checkImage(int x, int y, int &dx, int &dy)
+bool DocViewNative::checkImage(int x, int y, int bufWidth, int bufHeight, int &dx, int &dy, bool & needRotate)
 {
 	_currentImage = _docview->getImageByPoint(lvPoint(x, y));
 	if (_currentImage.isNull())
@@ -1320,6 +1349,30 @@ bool DocViewNative::checkImage(int x, int y, int &dx, int &dy)
 		_currentImage.Clear();
 		return JNI_FALSE;
 	}
+	needRotate = false;
+	if (bufWidth <= bufHeight) {
+		// screen == portrait
+		needRotate = 8 * dx > 10 * dy;
+	} else {
+		// screen == landscape
+		needRotate = 10 * dx < 8 * dy;
+	}
+	int scale = 1;
+	if (dx * dy > MAX_IMAGE_BUF_SIZE) {
+		scale = dx * dy /  MAX_IMAGE_BUF_SIZE;
+		dx /= scale;
+		dy /= scale;
+	}
+	LVColorDrawBuf * buf = new LVColorDrawBuf(dx, dy);
+	buf->Clear(0xFF000000); // transparent
+	buf->Draw(_currentImage, 0, 0, dx, dy, false);
+	if (needRotate) {
+		int c = dx;
+		dx = dy;
+		dy = c;
+		buf->Rotate(CR_ROTATE_ANGLE_90);
+	}
+	_currentImage = LVCreateDrawBufImageSource(buf, true);
 	return true;
 }
 
@@ -1329,6 +1382,55 @@ bool DocViewNative::drawImage(LVDrawBuf * buf, int x, int y, int dx, int dy)
 	if (_currentImage.isNull())
 		return false;
 	return _docview->drawImage(buf, _currentImage, x, y, dx, dy);
+}
+
+// draws icon to buffer
+bool DocViewNative::drawIcon(LVDrawBuf * buf, lvRect & rc, int type) {
+	rc.shrink(rc.width() / 7);
+	lUInt32 light = 0x80FFFFFF;
+	lUInt32 dark = 0x80606060;
+	lUInt32 colors[2];
+	colors[0] = dark;
+	colors[1] = light;
+	// x0  x1  x2  x3
+	int x0 = rc.left;
+	int x1 = rc.left + rc.width() * 4 / 10;
+	int x2 = rc.right -  + rc.width() * 4 / 10;
+	int x3 = rc.right;
+	int y0 = rc.top;
+	int y1 = rc.top + rc.width() * 4 / 10;
+	int y2 = rc.bottom -  + rc.height() * 4 / 10;
+	int y3 = rc.bottom;
+	for (int w = 1; w>=0; w--) {
+		if (type == 1) {
+			// horizontal minus
+			buf->FillRect(x0-w, y1-w, x3+w, y1+w, colors[w]);
+			buf->FillRect(x0-w, y2-w, x3+w, y2+w, colors[w]);
+			buf->FillRect(x0-w, y1-w, x0+w, y2+w, colors[w]);
+			buf->FillRect(x3-w, y1-w, x3+w, y2+w, colors[w]);
+		} else if (type == 2) {
+			// vertical minus
+			buf->FillRect(x1-w, y0-w, x1+w, y3+w, colors[w]);
+			buf->FillRect(x2-w, y0-w, x2+w, y3+w, colors[w]);
+			buf->FillRect(x1-w, y0-w, x2+w, y0+w, colors[w]);
+			buf->FillRect(x1-w, y3-w, x2+w, y3+w, colors[w]);
+		} else {
+			// plus
+			buf->FillRect(x0-w, y1-w, x1+w, y1+w, colors[w]);
+			buf->FillRect(x1-w, y0-w, x1+w, y1+w, colors[w]);
+			buf->FillRect(x0-w, y1-w, x0+w, y2+w, colors[w]);
+			buf->FillRect(x1-w, y0-w, x2+w, y0+w, colors[w]);
+			buf->FillRect(x2-w, y0-w, x2+w, y1+w, colors[w]);
+			buf->FillRect(x2-w, y1-w, x3+w, y1+w, colors[w]);
+			buf->FillRect(x3-w, y1-w, x3+w, y2+w, colors[w]);
+			buf->FillRect(x2-w, y2-w, x3+w, y2+w, colors[w]);
+			buf->FillRect(x2-w, y2-w, x2+w, y3+w, colors[w]);
+			buf->FillRect(x1-w, y3-w, x2+w, y3+w, colors[w]);
+			buf->FillRect(x1-w, y2-w, x1+w, y3+w, colors[w]);
+			buf->FillRect(x0-w, y2-w, x1+w, y2+w, colors[w]);
+		}
+	}
+	return true;
 }
 
 // sets current image to null

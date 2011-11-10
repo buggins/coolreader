@@ -2168,10 +2168,9 @@ bool LVDocView::drawImage(LVDrawBuf * buf, LVImageSourceRef img, int x, int y, i
 {
     if (img.isNull() || !buf)
         return false;
-    if (x>0 || y>0 || x + dx < buf->GetWidth() || y + dy < buf->GetHeight()) {
-        // clear background
-        drawPageBackground(*buf, 0, 0);
-    }
+    // clear background
+    drawPageBackground(*buf, 0, 0);
+    // draw image
     buf->Draw(img, x, y, dx, dy, true);
     return true;
 }

@@ -9,6 +9,8 @@ public class ImageInfo {
 	int y;
 	int bufWidth;
 	int bufHeight;
+	int bufDpi;
+	int rotation;
 
 	public ImageInfo() {
 		
@@ -23,6 +25,8 @@ public class ImageInfo {
 		y = v.y;
 		bufWidth = v.bufWidth;
 		bufHeight = v.bufHeight;
+		rotation = v.rotation;
+		bufDpi = v.bufDpi;
 	}
 	
 	@Override
@@ -37,6 +41,8 @@ public class ImageInfo {
 		result = prime * result + width;
 		result = prime * result + x;
 		result = prime * result + y;
+		result = prime * result + rotation;
+		result = prime * result + bufDpi;
 		return result;
 	}
 
@@ -64,6 +70,10 @@ public class ImageInfo {
 		if (x != other.x)
 			return false;
 		if (y != other.y)
+			return false;
+		if (bufDpi != other.bufDpi)
+			return false;
+		if (rotation != other.rotation)
 			return false;
 		return true;
 	}
