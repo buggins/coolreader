@@ -1206,7 +1206,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		private boolean startSelection() {
 			state = STATE_SELECTION;
-			updateSelection( start_x, start_y, start_x, start_y, false );
+			// check link before executing action
+			mEngine.execute(new Task() {
+				ImageInfo image;
+				public void work() {
+					image = new ImageInfo();
+					image.bufWidth = internalDX;
+					image.bufHeight = internalDY;
+					image.bufDpi = mActivity.getDensityDpi();
+					doc.checkImage(start_x, start_y, image);
+				}
+				public void done() {
+					if (image != null) {
+						cancel();
+						startImageViewer(image);
+					} else {
+						updateSelection( start_x, start_y, start_x, start_y, false );
+					}
+				}
+			});
 			return true;
 		}
 		

@@ -1387,7 +1387,7 @@ bool DocViewNative::drawImage(LVDrawBuf * buf, int x, int y, int dx, int dy)
 // draws icon to buffer
 bool DocViewNative::drawIcon(LVDrawBuf * buf, lvRect & rc, int type) {
 	rc.shrink(rc.width() / 7);
-	lUInt32 light = 0x80FFFFFF;
+	lUInt32 light = 0x60C0C0C0;
 	lUInt32 dark = 0x80606060;
 	lUInt32 colors[2];
 	colors[0] = dark;
@@ -1404,30 +1404,30 @@ bool DocViewNative::drawIcon(LVDrawBuf * buf, lvRect & rc, int type) {
 	for (int w = 1; w>=0; w--) {
 		if (type == 1) {
 			// horizontal minus
-			buf->FillRect(x0-w, y1-w, x3+w, y1+w, colors[w]);
-			buf->FillRect(x0-w, y2-w, x3+w, y2+w, colors[w]);
-			buf->FillRect(x0-w, y1-w, x0+w, y2+w, colors[w]);
-			buf->FillRect(x3-w, y1-w, x3+w, y2+w, colors[w]);
+			buf->FillRect(x0-w, y1-w, x3+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x0-w, y2-w, x3+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x0-w, y1-w, x0+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x3-w, y1-w, x3+w+1, y2+w+1, colors[w]);
 		} else if (type == 2) {
 			// vertical minus
-			buf->FillRect(x1-w, y0-w, x1+w, y3+w, colors[w]);
-			buf->FillRect(x2-w, y0-w, x2+w, y3+w, colors[w]);
-			buf->FillRect(x1-w, y0-w, x2+w, y0+w, colors[w]);
-			buf->FillRect(x1-w, y3-w, x2+w, y3+w, colors[w]);
+			buf->FillRect(x1-w, y0-w, x1+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x2-w, y0-w, x2+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x1-w, y0-w, x2+w+1, y0+w+1, colors[w]);
+			buf->FillRect(x1-w, y3-w, x2+w+1, y3+w+1, colors[w]);
 		} else {
 			// plus
-			buf->FillRect(x0-w, y1-w, x1+w, y1+w, colors[w]);
-			buf->FillRect(x1-w, y0-w, x1+w, y1+w, colors[w]);
-			buf->FillRect(x0-w, y1-w, x0+w, y2+w, colors[w]);
-			buf->FillRect(x1-w, y0-w, x2+w, y0+w, colors[w]);
-			buf->FillRect(x2-w, y0-w, x2+w, y1+w, colors[w]);
-			buf->FillRect(x2-w, y1-w, x3+w, y1+w, colors[w]);
-			buf->FillRect(x3-w, y1-w, x3+w, y2+w, colors[w]);
-			buf->FillRect(x2-w, y2-w, x3+w, y2+w, colors[w]);
-			buf->FillRect(x2-w, y2-w, x2+w, y3+w, colors[w]);
-			buf->FillRect(x1-w, y3-w, x2+w, y3+w, colors[w]);
-			buf->FillRect(x1-w, y2-w, x1+w, y3+w, colors[w]);
-			buf->FillRect(x0-w, y2-w, x1+w, y2+w, colors[w]);
+			buf->FillRect(x0-w, y1-w, x1+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x1-w, y0-w, x1+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x0-w, y1-w, x0+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x1-w, y0-w, x2+w+1, y0+w+1, colors[w]);
+			buf->FillRect(x2-w, y0-w, x2+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x2-w, y1-w, x3+w+1, y1+w+1, colors[w]);
+			buf->FillRect(x3-w, y1-w, x3+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x2-w, y2-w, x3+w+1, y2+w+1, colors[w]);
+			buf->FillRect(x2-w, y2-w, x2+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x1-w, y3-w, x2+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x1-w, y2-w, x1+w+1, y3+w+1, colors[w]);
+			buf->FillRect(x0-w, y2-w, x1+w+1, y2+w+1, colors[w]);
 		}
 	}
 	return true;
