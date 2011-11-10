@@ -863,7 +863,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				image.scaledWidth = image.width * scale;
 			} else {
 				int scale = image.height / image.scaledHeight;
-				if (image.scaledHeight <= image.bufHeight || image.scaledWidth <= image.bufWidth)
+				if (image.scaledHeight > image.bufHeight || image.scaledWidth > image.bufWidth)
 					scale++;
 				image.scaledHeight = image.height / scale;
 				image.scaledWidth = image.width / scale;
@@ -943,14 +943,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 				float velocityY) {
 			log.v("onFling()");
-			return super.onFling(e1, e2, velocityX, velocityY);
+			return true;
 		}
 
 		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2,
 				float distanceX, float distanceY) {
 			log.v("onScroll() " + distanceX + ", " + distanceY);
-			return super.onScroll(e1, e2, distanceX, distanceY);
+			int dx = (int)distanceX;
+			int dy = (int)distanceY;
+			moveBy(-dx, -dy);
+			return true;
 		}
 
 		@Override
@@ -958,6 +961,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("onSingleTapConfirmed()");
 			close();
 			return super.onSingleTapConfirmed(e);
+		}
+		
+		@Override
+		public boolean onDown(MotionEvent e) {
+			return true;
 		}
 
 		public void close() {
