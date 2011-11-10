@@ -967,6 +967,10 @@ void CR3View::mousePressEvent ( QMouseEvent * event )
     //bool mid = event->button() == Qt::MidButton;
     lvPoint pt (event->x(), event->y());
     ldomXPointer p = _docview->getNodeByPoint( pt );
+    // test imageByPoint
+    LVImageSourceRef img = _docview->getImageByPoint(pt);
+    if (!img.isNull())
+        CRLog::debug("Image %d x %d found", img->GetWidth(), img->GetHeight());
     lString16 path;
     lString16 href;
     if ( !p.isNull() ) {

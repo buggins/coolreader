@@ -16,7 +16,6 @@ import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -24,6 +23,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.text.ClipboardManager;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -790,19 +791,99 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private ImageViewer currentImageViewer;
-	private class ImageViewer {
+	private class ImageViewer extends SimpleOnGestureListener {
 		private ImageInfo currentImage;
+		final GestureDetector detector;
 		public ImageViewer(ImageInfo image) {
+			detector = new GestureDetector(this);
+			if (image.bufHeight / image.height >= 2 && image.bufWidth / image.width >= 2) {
+				image.scaledHeight *= 2;
+				image.scaledWidth *= 2;
+			}
+			centerIfLessThanScreen(image);
 			currentImage = image;
-			drawPage();
 		}
 
+		private void centerIfLessThanScreen(ImageInfo image) {
+			if (image.scaledHeight < image.bufHeight)
+				image.y = (image.bufHeight - image.scaledHeight) / 2;
+			if (image.scaledWidth < image.bufWidth)
+				image.x = (image.bufWidth - image.scaledWidth) / 2;
+		}
+		
+		private void fixScreenBounds(ImageInfo image) {
+			if (image.scaledHeight > image.bufHeight) {
+				if (image.y < image.bufHeight - image.scaledHeight)
+					image.y = image.bufHeight - image.scaledHeight;
+				if (image.y > 0)
+					image.y = 0;
+			}
+			if (image.scaledWidth > image.bufWidth) {
+				if (image.x < image.bufWidth - image.scaledWidth)
+					image.x = image.bufWidth - image.scaledWidth;
+				if (image.x > 0)
+					image.x = 0;
+			}
+		}
+		
+		private void updateImage(ImageInfo image) {
+			centerIfLessThanScreen(image);
+			fixScreenBounds(image);
+			if (!currentImage.equals(image)) {
+				currentImage = image;
+				drawPage();
+			}
+		}
+		
 		public void zoomIn() {
-			
+			ImageInfo image = new ImageInfo(currentImage);
+			if (image.scaledHeight >= image.height) {
+				int scale = image.scaledHeight / image.height;
+				if (scale < 4)
+					scale++;
+				image.scaledHeight = image.height * scale;
+				image.scaledWidth = image.width * scale;
+			} else {
+				int scale = image.height / image.scaledHeight;
+				if (scale > 1)
+					scale--;
+				image.scaledHeight = image.height / scale;
+				image.scaledWidth = image.width / scale;
+			}
+			updateImage(image);
 		}
 		
 		public void zoomOut() {
-			
+			ImageInfo image = new ImageInfo(currentImage);
+			if (image.scaledHeight > image.height) {
+				int scale = image.scaledHeight / image.height;
+				if (scale > 1)
+					scale--;
+				image.scaledHeight = image.height * scale;
+				image.scaledWidth = image.width * scale;
+			} else {
+				int scale = image.height / image.scaledHeight;
+				if (image.scaledHeight <= image.bufHeight || image.scaledWidth <= image.bufWidth)
+					scale++;
+				image.scaledHeight = image.height / scale;
+				image.scaledWidth = image.width / scale;
+			}
+			updateImage(image);
+		}
+		
+		public int getStep() {
+			ImageInfo image = currentImage;
+			int max = image.bufHeight;
+			if (max < image.bufWidth)
+				max = image.bufWidth;
+			return max / 10;
+		}
+		
+		public void moveBy(int dx, int dy) {
+			ImageInfo image = new ImageInfo(currentImage);
+			image.x += dx;
+			image.y += dy;
+			updateImage(image);
 		}
 		
 		public boolean onKeyDown(int keyCode, final KeyEvent event) {
@@ -815,9 +896,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			case KeyEvent.KEYCODE_VOLUME_DOWN:
 				zoomOut();
 				return true;
+			case KeyEvent.KEYCODE_DPAD_CENTER:
 			case KeyEvent.KEYCODE_BACK:
 			case KeyEvent.KEYCODE_ENDCALL:
 				close();
+				return true;
+			case KeyEvent.KEYCODE_DPAD_LEFT:
+				moveBy(getStep(), 0);
+				return true;
+			case KeyEvent.KEYCODE_DPAD_RIGHT:
+				moveBy(-getStep(), 0);
+				return true;
+			case KeyEvent.KEYCODE_DPAD_UP:
+				moveBy(0, getStep());
+				return true;
+			case KeyEvent.KEYCODE_DPAD_DOWN:
+				moveBy(0, -getStep());
 				return true;
 			}
 			return false;
@@ -836,10 +930,39 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 
 		public boolean onTouchEvent(MotionEvent event) {
-			return false;
+//			int aindex = event.getActionIndex();
+//			if (event.getAction() == MotionEvent.ACTION_POINTER_DOWN) {
+//				log.v("ACTION_POINTER_DOWN");
+//			}
+			return detector.onTouchEvent(event);
 		}
 		
+		
+		
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+				float velocityY) {
+			log.v("onFling()");
+			return super.onFling(e1, e2, velocityX, velocityY);
+		}
+
+		@Override
+		public boolean onScroll(MotionEvent e1, MotionEvent e2,
+				float distanceX, float distanceY) {
+			log.v("onScroll() " + distanceX + ", " + distanceY);
+			return super.onScroll(e1, e2, distanceX, distanceY);
+		}
+
+		@Override
+		public boolean onSingleTapConfirmed(MotionEvent e) {
+			log.v("onSingleTapConfirmed()");
+			close();
+			return super.onSingleTapConfirmed(e);
+		}
+
 		public void close() {
+			if (currentImageViewer == null)
+				return;
 			currentImageViewer = null;
 			BackgroundThread.instance().executeBackground(new Runnable() {
 				@Override
@@ -847,20 +970,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					doc.closeImage();
 				}
 			});
+			drawPage();
 		}
 		
 		public BitmapInfo prepareImage() {
-			currentImage.bufWidth = internalDX;
-			currentImage.bufHeight = internalDY;
+			// called from background thread
+			ImageInfo img = currentImage;
+			img.bufWidth = internalDX;
+			img.bufHeight = internalDY;
 			if (mCurrentPageInfo != null) {
-				if (currentImage.equals(mCurrentPageInfo.imageInfo))
+				if (img.equals(mCurrentPageInfo.imageInfo))
 					return mCurrentPageInfo;
 				mCurrentPageInfo.recycle();
 				mCurrentPageInfo = null;
 			}
+			PositionProperties currpos = doc.getPositionProps(null);
 			BitmapInfo bi = new BitmapInfo();
-	        bi.imageInfo = new ImageInfo(currentImage);
+	        bi.imageInfo = new ImageInfo(img);
 			bi.bitmap = factory.get(internalDX, internalDY);
+			bi.position = currpos;
 			doc.drawImage(bi.bitmap, bi.imageInfo);
 	        mCurrentPageInfo = bi;
 	        return mCurrentPageInfo;
@@ -872,6 +1000,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		image.bufHeight = internalDY;
 		image.bufWidth = internalDX;
 		currentImageViewer = new ImageViewer(image);
+		drawPage();
 	}
 
 	private boolean isImageViewMode() {
@@ -2306,9 +2435,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		boolean isPageView = currpos.pageMode!=0;
 		
 		BitmapInfo currposBitmap = null;
-		if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(currpos) )
+		if ( mCurrentPageInfo!=null && mCurrentPageInfo.position.equals(currpos) && mCurrentPageInfo.imageInfo == null)
 			currposBitmap = mCurrentPageInfo;
-		else if ( mNextPageInfo!=null && mNextPageInfo.position.equals(currpos) )
+		else if ( mNextPageInfo!=null && mNextPageInfo.position.equals(currpos) && mNextPageInfo.imageInfo == null )
 			currposBitmap = mNextPageInfo;
 		if ( offset==0 ) {
 			// Current page requested

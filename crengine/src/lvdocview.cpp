@@ -2157,6 +2157,7 @@ LVImageSourceRef LVDocView::getImageByPoint(lvPoint pt) {
     ldomXPointer ptr = getNodeByPoint(pt);
     if (ptr.isNull())
         return res;
+    //CRLog::debug("node: %s", LCSTR(ptr.toString()));
     res = ptr.getNode()->getObjectImageSource();
     if (!res.isNull())
         CRLog::debug("getImageByPoint(%d, %d) : found image %d x %d", pt.x, pt.y, res->GetWidth(), res->GetHeight());

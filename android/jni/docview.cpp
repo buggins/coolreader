@@ -1316,6 +1316,10 @@ bool DocViewNative::checkImage(int x, int y, int &dx, int &dy)
 		return false;
 	dx = _currentImage->GetWidth();
 	dy = _currentImage->GetHeight();
+	if (dx < 8 && dy < 8) {
+		_currentImage.Clear();
+		return JNI_FALSE;
+	}
 	return true;
 }
 

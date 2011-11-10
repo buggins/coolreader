@@ -4754,8 +4754,13 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
                     continue;
                 if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object (image)
+#if 1
+                    // return image object itself
+                    return ldomXPointer(node, 0);
+#else
                     return ldomXPointer( node->getParentNode(),
                         node->getNodeIndex() + (( x < word->x + word->width/2 ) ? 0 : 1) );
+#endif
                 }
                 LVFont * font = (LVFont *) src->t.font;
                 lUInt16 w[512];
