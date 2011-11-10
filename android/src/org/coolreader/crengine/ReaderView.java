@@ -844,6 +844,27 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //		});
 //	}
 
+	private ImageInfo currentImage;
+	private void startImageViewer(ImageInfo image) {
+		currentImage = image;
+	}
+
+	private boolean isImageViewMode() {
+		return currentImage != null;
+	}
+
+	private void stopImageViewer() {
+		if (currentImage != null) {
+			currentImage = null;
+			BackgroundThread.instance().executeBackground(new Runnable() {
+				@Override
+				public void run() {
+					doc.closeImage();
+				}
+			});
+		}
+	}
+
 	private TapHandler currentTapHandler = null;
 	public class TapHandler {
 
@@ -918,7 +939,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			// check link before executing action
 			mEngine.execute(new Task() {
 				String link;
+				ImageInfo image;
 				public void work() {
+					image = new ImageInfo();
+					if (doc.checkImage(start_x, start_y, image)) {
+						return;
+					}
+					image = null;
 					link = doc.checkLink(start_x, start_y, mActivity.getPalmTipPixels() / 2 );
 					if ( link!=null ) {
 						if ( link.startsWith("#") ) {
@@ -929,8 +956,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					}
 				}
 				public void done() {
-					if ( link==null ) {
+					if (link == null && image == null) {
 						onAction(action);
+					} else if (image != null) {
+						startImageViewer(image);
 					} else if (!link.startsWith("#")) {
 						log.d("external link " + link);
 						if (link.startsWith("http://")||link.startsWith("https://")) {
@@ -2198,11 +2227,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	class BitmapInfo {
 		Bitmap bitmap;
 		PositionProperties position;
+		ImageInfo imageInfo;
 		void recycle()
 		{
 			factory.release(bitmap);
 			bitmap = null;
 			position = null;
+			imageInfo = null;
 		}
 		boolean isReleased() {
 			return bitmap == null;
@@ -2212,6 +2243,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return "BitmapInfo [position=" + position + "]";
 		}
 		
+	}
+	
+	private BitmapInfo prepareShowImage() {
+		currentImage.bufWidth = internalDX;
+		currentImage.bufHeight = internalDY;
+		if (mCurrentPageInfo != null) {
+			if (currentImage.equals(mCurrentPageInfo.imageInfo))
+				return mCurrentPageInfo;
+			mCurrentPageInfo.recycle();
+			mCurrentPageInfo = null;
+		}
+		BitmapInfo bi = new BitmapInfo();
+        bi.imageInfo = new ImageInfo(currentImage);
+		bi.bitmap = factory.get(internalDX, internalDY);
+		doc.drawImage(bi.bitmap, bi.imageInfo);
+        mCurrentPageInfo = bi;
+        return mCurrentPageInfo;
 	}
 	
     private BitmapInfo mCurrentPageInfo;
@@ -2245,6 +2293,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doc.resize(internalDX, internalDY);
 		}
 		
+		if (isImageViewMode())
+			return prepareShowImage();
+
 		PositionProperties currpos = doc.getPositionProps(null);
 		
 		boolean isPageView = currpos.pageMode!=0;
@@ -3987,6 +4038,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	if ( !mOpened )
     		return;
 		cancelSwapTask();
+		stopImageViewer();
 		//save();
     	post( new Task() {
     		public void work() {

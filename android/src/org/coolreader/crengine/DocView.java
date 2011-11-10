@@ -245,12 +245,11 @@ public class DocView {
 	/**
 	 * Draws currently opened image to bitmap.
 	 * @param bitmap is destination bitmap
-	 * @param bpp is color resolution
-	 * @param dstImage contains image position and scaling parameters.
+	 * @param imageInfo contains image position and scaling parameters.
 	 * @return true if current image is drawn successfully.
 	 */
-	public boolean drawImage(Bitmap bitmap, int bpp, ImageInfo dstImage) {
-		return drawImageInternal(bitmap, DeviceInfo.EINK_SCREEN ? 4 : 32, dstImage);
+	public boolean drawImage(Bitmap bitmap, ImageInfo imageInfo) {
+		return drawImageInternal(bitmap, DeviceInfo.EINK_SCREEN ? 4 : 32, imageInfo);
 	}
 
 	/**
