@@ -17,6 +17,7 @@
 class DocViewNative {
 	lString16 historyFileName;
 	lString16 _lastPattern;
+	LVImageSourceRef _currentImage;
 public:
 	LVDocView * _docview;
 	DocViewNative();
@@ -30,6 +31,12 @@ public:
     void clearSelection();
     lString16 getLink( int x, int y );
     lString16 getLink( int x, int y, int r );
+    // checks whether point belongs to image: if found, returns true, and _currentImage is set to image
+    bool checkImage(int x, int y, int &dx, int &dy);
+    // draws current image to buffer (scaled, panned)
+    bool drawImage(LVDrawBuf * buf, int x, int y, int dx, int dy);
+    // sets current image to null
+    bool closeImage();
 };
 
 extern CRTimerUtil _timeoutControl;

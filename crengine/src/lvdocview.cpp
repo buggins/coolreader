@@ -2151,6 +2151,30 @@ ldomXPointer LVDocView::getNodeByPoint(lvPoint pt) {
 	return ldomXPointer();
 }
 
+/// returns image source for specified window point, if point is inside image
+LVImageSourceRef LVDocView::getImageByPoint(lvPoint pt) {
+    LVImageSourceRef res = LVImageSourceRef();
+    ldomXPointer ptr = getNodeByPoint(pt);
+    if (ptr.isNull())
+        return res;
+    res = ptr.getNode()->getObjectImageSource();
+    if (!res.isNull())
+        CRLog::debug("getImageByPoint(%d, %d) : found image %d x %d", pt.x, pt.y, res->GetWidth(), res->GetHeight());
+    return res;
+}
+
+bool LVDocView::drawImage(LVDrawBuf * buf, LVImageSourceRef img, int x, int y, int dx, int dy)
+{
+    if (img.isNull() || !buf)
+        return false;
+    if (x>0 || y>0 || x + dx < buf->GetWidth() || y + dy < buf->GetHeight()) {
+        // clear background
+        drawPageBackground(*buf, 0, 0);
+    }
+    buf->Draw(img, x, y, dx, dy, true);
+    return true;
+}
+
 void LVDocView::updateLayout() {
 	lvRect rc(0, 0, m_dx, m_dy);
 	m_pageRects[0] = rc;

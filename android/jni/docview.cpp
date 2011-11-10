@@ -465,6 +465,7 @@ bool DocViewNative::openRecentBook()
 
 bool DocViewNative::closeBook()
 {
+	closeImage();
 	if ( _docview->isDocumentOpened() ) {
 	    _docview->savePosition();
         _docview->getDocument()->updateMap();
@@ -687,8 +688,22 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
  * Signature: (IILorg/coolreader/crengine/ImageInfo;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageInternal
-  (JNIEnv *, jobject, jint, jint, jobject) {
-	return JNI_FALSE;
+  (JNIEnv * _env, jobject view, jint x, jint y, jobject imageInfo)
+{
+    CRLog::trace("checkImageInternal entered");
+	CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, view);
+    int dx, dy;
+	if (!p->checkImage(x, y, dx, dy))
+		return JNI_FALSE;
+    CRObjectAccessor acc(_env, imageInfo);
+    CRIntField(acc,"width").set(dx);
+    CRIntField(acc,"height").set(dy);
+    CRIntField(acc,"scaledWidth").set(dx);
+    CRIntField(acc,"scaledHeight").set(dy);
+    CRIntField(acc,"x").set(0);
+    CRIntField(acc,"y").set(0);
+	return JNI_TRUE;
 }
 
 /*
@@ -697,8 +712,33 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageIntern
  * Signature: (Landroid/graphics/Bitmap;ILorg/coolreader/crengine/ImageInfo;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_drawImageInternal
-  (JNIEnv *, jobject, jobject, jint, jobject) {
-	return JNI_FALSE;
+  (JNIEnv * _env, jobject view, jobject bitmap, jint bpp, jobject imageInfo)
+{
+    CRLog::trace("checkImageInternal entered");
+	CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, view);
+    CRObjectAccessor acc(_env, imageInfo);
+    int dx = CRIntField(acc,"scaledWidth").get();
+    int dy = CRIntField(acc,"scaledHeight").get();
+    int x = CRIntField(acc,"x").get();
+    int y = CRIntField(acc,"y").get();
+	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(_env, bitmap);
+	bool res = false;
+	if ( drawbuf!=NULL ) {
+		if (bpp >= 16) {
+			// native resolution
+			res = p->drawImage(drawbuf, x, y, dx, dy);
+		} else {
+			LVGrayDrawBuf grayBuf(drawbuf->GetWidth(), drawbuf->GetHeight(), bpp);
+			res = p->drawImage(&grayBuf, x, y, dx, dy);
+			grayBuf.DrawTo(drawbuf, 0, 0, 0, NULL);
+		}
+	    //CRLog::trace("getPageImageInternal calling bitmap->unlock");
+		BitmapAccessorInterface::getInstance()->unlock(_env, bitmap, drawbuf);
+	} else {
+		CRLog::error("bitmap accessor is invalid");
+	}
+	return res ? JNI_TRUE : JNI_FALSE;
 }
 
 /*
@@ -707,8 +747,11 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_drawImageInterna
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_closeImageInternal
-  (JNIEnv *, jobject) {
-	return JNI_FALSE;
+  (JNIEnv * env, jobject view)
+{
+    CRLog::trace("checkImageInternal entered");
+    DocViewNative * p = getNative(env, view);
+	return p->closeImage() ? JNI_TRUE : JNI_FALSE;
 }
 
 /*
@@ -1263,6 +1306,33 @@ lString16 DocViewNative::getLink( int x, int y )
 		return lString16::empty_str;
 	lString16 href = p.getHRef();
 	return href;
+}
+
+// checks whether point belongs to image: if found, returns true, and _currentImage is set to image
+bool DocViewNative::checkImage(int x, int y, int &dx, int &dy)
+{
+	_currentImage = _docview->getImageByPoint(lvPoint(x, y));
+	if (_currentImage.isNull())
+		return false;
+	dx = _currentImage->GetWidth();
+	dy = _currentImage->GetHeight();
+	return true;
+}
+
+// draws current image to buffer (scaled, panned)
+bool DocViewNative::drawImage(LVDrawBuf * buf, int x, int y, int dx, int dy)
+{
+	if (_currentImage.isNull())
+		return false;
+	return _docview->drawImage(buf, _currentImage, x, y, dx, dy);
+}
+
+// sets current image to null
+bool DocViewNative::closeImage() {
+	if (_currentImage.isNull())
+		return false;
+	_currentImage.Clear();
+	return true;
 }
 
 /*

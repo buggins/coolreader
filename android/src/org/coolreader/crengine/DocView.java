@@ -228,6 +228,40 @@ public class DocView {
 	public void getPageImage(Bitmap bitmap) {
 		getPageImageInternal(bitmap, DeviceInfo.EINK_SCREEN ? 4 : 32);
 	}
+
+	/**
+	 * Check whether point of current document contains image.
+	 * If image is found, image becomes current image to be drawn by drawImage(), dstImage fields are set to image dimension.
+	 *  
+	 * @param x is X coordinate in document window
+	 * @param y is Y coordinate in document window
+	 * @param dstImage is to place found image dimensions to
+	 * @return true if point belongs to image
+	 */
+	public boolean checkImage(int x, int y, ImageInfo dstImage) {
+		return checkImageInternal(x, y, dstImage);
+	}
+
+	/**
+	 * Draws currently opened image to bitmap.
+	 * @param bitmap is destination bitmap
+	 * @param bpp is color resolution
+	 * @param dstImage contains image position and scaling parameters.
+	 * @return true if current image is drawn successfully.
+	 */
+	public boolean drawImage(Bitmap bitmap, int bpp, ImageInfo dstImage) {
+		return drawImageInternal(bitmap, DeviceInfo.EINK_SCREEN ? 4 : 32, dstImage);
+	}
+
+	/**
+	 * Close currently opened image, free resources.
+	 * @return true if there was opened current image, and it's now closed 
+	 */
+	public boolean closeImage() {
+		return closeImageInternal();
+	}
+	
+
 	
 	//========================================================================================
 	// Native functions

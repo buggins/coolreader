@@ -807,6 +807,10 @@ public:
 
     /// returns xpointer for specified window point
     ldomXPointer getNodeByPoint( lvPoint pt );
+    /// returns image source for specified window point, if point is inside image
+    LVImageSourceRef getImageByPoint(lvPoint pt);
+    /// draws scaled image into buffer, clear background according to current settings
+    bool drawImage(LVDrawBuf * buf, LVImageSourceRef img, int x, int y, int dx, int dy);
     /// converts point from window to document coordinates, returns true if success
     bool windowToDocPoint( lvPoint & pt );
     /// converts point from documsnt to window coordinates, returns true if success
