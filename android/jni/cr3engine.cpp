@@ -525,6 +525,9 @@ static JNINativeMethod sDocViewMethods[] = {
   {"goLinkInternal", "(Ljava/lang/String;)I", (void*)Java_org_coolreader_crengine_DocView_goLinkInternal},
   {"moveSelectionInternal", "(Lorg/coolreader/crengine/Selection;II)Z", (void*)Java_org_coolreader_crengine_DocView_moveSelectionInternal},
   {"swapToCacheInternal", "()I", (void*)Java_org_coolreader_crengine_DocView_swapToCacheInternal},
+  {"checkImageInternal", "(IILorg/coolreader/crengine/ImageInfo;)Z", (void*)Java_org_coolreader_crengine_DocView_checkImageInternal},
+  {"drawImageInternal", "(Landroid/graphics/Bitmap;ILorg/coolreader/crengine/ImageInfo;)Z", (void*)Java_org_coolreader_crengine_DocView_drawImageInternal},
+  {"closeImageInternal", "()Z", (void*)Java_org_coolreader_crengine_DocView_closeImageInternal},
 };
 
 /*

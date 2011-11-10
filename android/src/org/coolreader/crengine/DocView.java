@@ -281,6 +281,12 @@ public class DocView {
 
 	private native String checkLinkInternal(int x, int y, int delta);
 
+	private native boolean checkImageInternal(int x, int y, ImageInfo dstImage);
+
+	private native boolean drawImageInternal(Bitmap bitmap, int bpp, ImageInfo dstImage);
+
+	private native boolean closeImageInternal();
+
 	private native int goLinkInternal(String link);
 
 	// / returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR

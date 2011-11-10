@@ -201,6 +201,30 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_DocView_checkLinkInternal
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    checkImageInternal
+ * Signature: (IILorg/coolreader/crengine/ImageInfo;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageInternal
+  (JNIEnv *, jobject, jint, jint, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    drawImageInternal
+ * Signature: (Landroid/graphics/Bitmap;ILorg/coolreader/crengine/ImageInfo;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_drawImageInternal
+  (JNIEnv *, jobject, jobject, jint, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    closeImageInternal
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_closeImageInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    goLinkInternal
  * Signature: (Ljava/lang/String;)I
  */
