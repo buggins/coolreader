@@ -1214,7 +1214,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					image.bufWidth = internalDX;
 					image.bufHeight = internalDY;
 					image.bufDpi = mActivity.getDensityDpi();
-					doc.checkImage(start_x, start_y, image);
+					if (!doc.checkImage(start_x, start_y, image))
+						image = null;
 				}
 				public void done() {
 					if (image != null) {

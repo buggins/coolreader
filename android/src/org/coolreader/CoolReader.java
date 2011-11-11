@@ -676,7 +676,7 @@ public class CoolReader extends Activity
 					        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
 			        		} else {
 				        		b = minb;
-				        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 224 / 10; 
+				        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 180 / 10; 
 			        		}
 			        	} else
 			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
