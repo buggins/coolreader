@@ -3024,10 +3024,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				canvas = holder.lockCanvas(rc);
 				//log.v("before draw(canvas)");
 				if ( canvas!=null ) {
-					callback.drawTo(canvas);
 					if (DeviceInfo.EINK_SCREEN){
 						EinkScreen.PrepareController(this, isPartially);
 					}
+					callback.drawTo(canvas);
 				}
 			} finally {
 				//log.v("exiting finally");
