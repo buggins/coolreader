@@ -1761,11 +1761,206 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private int autoScrollSpeed = 120; // chars / minute
 	private int autoScrollNotificationId = 0;
+	private AutoScrollAnimation currentAutoScrollAnimation = null;
 	
-	private void toggleAutoScroll() {
-		// TODO:
+	private boolean isAutoScrollActive() {
+		return currentAutoScrollAnimation != null;
 	}
 	
+	private void stopAutoScroll() {
+		if (!isAutoScrollActive())
+			return;
+		currentAutoScrollAnimation.stop();
+	}
+	
+	private void startAutoScroll() {
+		if (isAutoScrollActive())
+			return;
+		currentAutoScrollAnimation = new AutoScrollAnimation(0);
+	}
+	
+	private void toggleAutoScroll() {
+		if (isAutoScrollActive())
+			stopAutoScroll();
+		else
+			startAutoScroll();
+	}
+	
+	class AutoScrollAnimation {
+
+		boolean isScrollView;
+		BitmapInfo image1;
+		BitmapInfo image2;
+		PositionProperties currPos;
+		int progress;
+		int pageCount;
+		int charCount;
+		long pageTurnStart;
+		
+		public AutoScrollAnimation(final int startProgress) {
+			BackgroundThread.instance().postBackground(new Runnable() {
+				@Override
+				public void run() {
+					initPageTurn(startProgress, false);
+				}
+			});
+		}
+		
+		private void initPageTurn(int startProgress, boolean doDraw) {
+			cancelGc();
+			pageTurnStart = android.os.SystemClock.uptimeMillis();
+			progress = startProgress;
+			currPos = doc.getPositionProps(null);
+			charCount = currPos.charCount;
+			pageCount = currPos.pageMode;
+			isScrollView = currPos.pageMode == 0;
+			if (isScrollView) {
+				
+			} else {
+				int page1 = currPos.pageNumber;
+				int page2 = currPos.pageNumber + 1;
+				if ( page2<0 || page2>=currPos.pageCount) {
+					currentAnimation = null;
+					return;
+				}
+				image1 = preparePageImage(0);
+				image2 = preparePageImage(1);
+				if ( page1==page2 ) {
+					log.v("PageViewAnimation -- cannot start animation: not moved");
+					return;
+				}
+				if ( image1==null || image2==null ) {
+					log.v("PageViewAnimation -- cannot start animation: page image is null");
+					return;
+				}
+				
+				long duration = android.os.SystemClock.uptimeMillis() - pageTurnStart;
+				log.v("AutoScrollAnimation -- page turn initialized in " + duration + " millis");
+				currentAutoScrollAnimation = this;
+			}
+		}
+		
+		private boolean donePageTurn(boolean turnPage) {
+			if (turnPage)
+				doCommandFromBackgroundThread(ReaderCommand.DCMD_PAGEDOWN, 1);
+			progress = 0;
+			draw();
+			return currPos.canMoveToNextPage();
+		}
+
+		public void draw()
+		{
+			draw(false);
+		}
+
+		public void draw(boolean isPartially)
+		{
+			drawCallback( new DrawCanvasCallback() {
+				@Override
+				public void drawTo(Canvas c) {
+				//	long startTs = android.os.SystemClock.uptimeMillis();
+					draw(c);
+				}
+			}, null, isPartially);
+		}
+		
+		public void update(int x, int y) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void stop() {
+			currentAutoScrollAnimation = null;
+			BackgroundThread.instance().executeBackground(new Runnable() {
+				@Override
+				public void run() {
+					if (wantPageTurn())
+						doCommandFromBackgroundThread(ReaderCommand.DCMD_PAGEDOWN, 1);
+					draw();
+				}
+			});
+			scheduleGc();
+		}
+
+		public void animate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void move(int duration, boolean accelerated) {
+			// TODO Auto-generated method stub
+			
+		}
+
+	    private boolean wantPageTurn() {
+	    	return (progress > (START_ANIMATION_PROGRESS + MAX_PROGRESS) / 2);
+	    }
+		
+		public static final int MAX_PROGRESS = 10000;
+		public static final int START_ANIMATION_PROGRESS = 8000;
+		void draw(Canvas canvas) {
+			if (DEBUG_ANIMATION) log.v("AutoScrollAnimation.draw(" + progress + ")");
+			if (progress<START_ANIMATION_PROGRESS)
+				return; // don't draw page w/o started animation
+			int scrollPercent = 10000 * (progress - START_ANIMATION_PROGRESS) / (MAX_PROGRESS - START_ANIMATION_PROGRESS);
+			int w = image1.bitmap.getWidth(); 
+			int h = image1.bitmap.getHeight();
+			int div;
+			if (isScrollView) {
+				// scroll
+				div = h * scrollPercent / 10000;
+	    		Rect src1 = new Rect(0, 0, w, div);
+	    		Rect dst1 = new Rect(0, 0, w, div);
+	    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+	    		Rect src2 = new Rect(0, div, w, h);
+	    		Rect dst2 = new Rect(0, div, w, h);
+	    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+			} else {
+				if (image1.isReleased() || image2.isReleased())
+					return;
+				if (pageCount==2) {
+					if (scrollPercent<5000) {
+						// < 50%
+						div = h * scrollPercent / 5000;
+			    		Rect src1 = new Rect(0, 0, w/2, div);
+			    		Rect dst1 = new Rect(0, 0, w/2, div);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+			    		Rect src2 = new Rect(0, div, w/2, h);
+			    		Rect dst2 = new Rect(0, div, w/2, h);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+			    		Rect src3 = new Rect(w/2, 0, w, h);
+			    		Rect dst3 = new Rect(w/2, 0, w, h);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src3, dst3);
+					} else {
+						// >=50%
+						div = h * (scrollPercent - 5000) / 5000;
+			    		Rect src1 = new Rect(w/2, 0, w/2, div);
+			    		Rect dst1 = new Rect(w/2, 0, w/2, div);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+			    		Rect src2 = new Rect(w/2, div, w/2, h);
+			    		Rect dst2 = new Rect(w/2, div, w/2, h);
+			    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+			    		Rect src3 = new Rect(0, 0, w/2, h);
+			    		Rect dst3 = new Rect(0, 0, w/2, h);
+			    		drawDimmedBitmap(canvas, image2.bitmap, src3, dst3);
+					}
+				} else {
+					div = h * scrollPercent / 10000;
+		    		Rect src1 = new Rect(0, 0, w, div);
+		    		Rect dst1 = new Rect(0, 0, w, div);
+		    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
+		    		Rect src2 = new Rect(0, div, w, h);
+		    		Rect dst2 = new Rect(0, div, w, h);
+		    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
+					//Rect shadowRect = new Rect(0, div, w, div + h/16);
+					//drawShadow( canvas, shadowRect );
+				}
+			}
+			
+		}
+		
+	}
+
 	private void changeAutoScrollSpeed(int delta) {
 		if (autoScrollSpeed<60)
 			delta *= 5;
@@ -3085,137 +3280,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		abstract void draw( Canvas canvas );
 	}
 	
-	class AutoScrollAnimation extends ViewAnimationBase {
-
-		boolean isScrollView;
-		BitmapInfo image1;
-		BitmapInfo image2;
-		PositionProperties currPos;
-		int progress;
-		int pageCount;
-		
-		public AutoScrollAnimation(int startProgress) {
-			long start = android.os.SystemClock.uptimeMillis();
-			progress = startProgress;
-			currPos = doc.getPositionProps(null);
-			pageCount = currPos.pageMode;
-			isScrollView = currPos.pageMode == 0;
-			if (isScrollView) {
-				
-			} else {
-				int page1 = currPos.pageNumber;
-				int page2 = currPos.pageNumber + 1;
-				if ( page2<0 || page2>=currPos.pageCount) {
-					currentAnimation = null;
-					return;
-				}
-				image1 = preparePageImage(0);
-				image2 = preparePageImage(1);
-				if ( page1==page2 ) {
-					log.v("PageViewAnimation -- cannot start animation: not moved");
-					return;
-				}
-				if ( image1==null || image2==null ) {
-					log.v("PageViewAnimation -- cannot start animation: page image is null");
-					return;
-				}
-				
-				long duration = android.os.SystemClock.uptimeMillis() - start;
-				log.v("AutoScrollAnimation -- created in " + duration + " millis");
-				currentAnimation = this;
-			}
-		}
-
-		@Override
-		public void update(int x, int y) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void stop(int x, int y) {
-			// TODO: decide whether to turn page
-			close();
-		}
-
-		@Override
-		public void animate() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void move(int duration, boolean accelerated) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		public static final int MAX_PROGRESS = 10000;
-		public static final int START_ANIMATION_PROGRESS = 8000;
-		@Override
-		void draw(Canvas canvas) {
-			if (DEBUG_ANIMATION) log.v("AutoScrollAnimation.draw(" + progress + ")");
-			if (progress<START_ANIMATION_PROGRESS)
-				return; // don't draw page w/o started animation
-			int scrollPercent = 10000 * (progress - START_ANIMATION_PROGRESS) / (MAX_PROGRESS - START_ANIMATION_PROGRESS);
-			int w = image1.bitmap.getWidth(); 
-			int h = image1.bitmap.getHeight();
-			int div;
-			if (isScrollView) {
-				// scroll
-				div = h * scrollPercent / 10000;
-	    		Rect src1 = new Rect(0, 0, w, div);
-	    		Rect dst1 = new Rect(0, 0, w, div);
-	    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
-	    		Rect src2 = new Rect(0, div, w, h);
-	    		Rect dst2 = new Rect(0, div, w, h);
-	    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
-			} else {
-				if (image1.isReleased() || image2.isReleased())
-					return;
-				if (pageCount==2) {
-					if (scrollPercent<5000) {
-						// < 50%
-						div = h * scrollPercent / 5000;
-			    		Rect src1 = new Rect(0, 0, w/2, div);
-			    		Rect dst1 = new Rect(0, 0, w/2, div);
-			    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
-			    		Rect src2 = new Rect(0, div, w/2, h);
-			    		Rect dst2 = new Rect(0, div, w/2, h);
-			    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
-			    		Rect src3 = new Rect(w/2, 0, w, h);
-			    		Rect dst3 = new Rect(w/2, 0, w, h);
-			    		drawDimmedBitmap(canvas, image1.bitmap, src3, dst3);
-					} else {
-						// >=50%
-						div = h * (scrollPercent - 5000) / 5000;
-			    		Rect src1 = new Rect(w/2, 0, w/2, div);
-			    		Rect dst1 = new Rect(w/2, 0, w/2, div);
-			    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
-			    		Rect src2 = new Rect(w/2, div, w/2, h);
-			    		Rect dst2 = new Rect(w/2, div, w/2, h);
-			    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
-			    		Rect src3 = new Rect(0, 0, w/2, h);
-			    		Rect dst3 = new Rect(0, 0, w/2, h);
-			    		drawDimmedBitmap(canvas, image2.bitmap, src3, dst3);
-					}
-				} else {
-					div = h * scrollPercent / 10000;
-		    		Rect src1 = new Rect(0, 0, w, div);
-		    		Rect dst1 = new Rect(0, 0, w, div);
-		    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
-		    		Rect src2 = new Rect(0, div, w, h);
-		    		Rect dst2 = new Rect(0, div, w, h);
-		    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
-					//Rect shadowRect = new Rect(0, div, w, div + h/16);
-					//drawShadow( canvas, shadowRect );
-				}
-			}
-			
-		}
-		
-	}
-
 	//private static final int PAGE_ANIMATION_DURATION = 3000;
 	class ScrollViewAnimation extends ViewAnimationBase {
 		int startY;

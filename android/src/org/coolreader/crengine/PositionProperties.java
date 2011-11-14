@@ -12,7 +12,12 @@ public class PositionProperties {
 	public int charCount;
 	public int imageCount;
 	
-	
+	public boolean canMoveToNextPage() {
+		if (pageMode == 0) {
+			return fullHeight > pageHeight && y < fullHeight - pageHeight;
+		}
+		return pageNumber < pageCount - pageMode;
+	}
 	
 	@Override
 	public String toString() {
