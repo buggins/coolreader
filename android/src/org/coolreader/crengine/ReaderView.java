@@ -1815,14 +1815,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		currentAutoScrollAnimation.stop();
 	}
 	
-	public static final int AUTOSCROLL_START_ANIMATION_PERCENT = 10; 
+	public static final int AUTOSCROLL_START_ANIMATION_PERCENT = 15; 
 	
 	private void startAutoScroll() {
 		if (isAutoScrollActive())
 			return;
 		log.d("startAutoScroll()");
 		currentAutoScrollAnimation = new AutoScrollAnimation(AUTOSCROLL_START_ANIMATION_PERCENT * 100);
-		notifyAutoscrollSpeed();
+		nextHiliteId++;
+		hiliteRect = null;
 	}
 	
 	private void toggleAutoScroll() {
@@ -1861,6 +1862,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		else
 			delta *= 200;
 		autoScrollSpeed += delta;
+		if (autoScrollSpeed < 200)
+			autoScrollSpeed = 200;
+		if (autoScrollSpeed > 10000)
+			autoScrollSpeed = 10000;
 		notifyAutoscrollSpeed();
 	}
 	
@@ -1882,7 +1887,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		final int startAnimationProgress;
 		
 		public static final int MAX_PROGRESS = 10000;
-		public final static int ANIMATION_INTERVAL_NORMAL = 50;
+		public final static int ANIMATION_INTERVAL_NORMAL = 30;
 		public final static int ANIMATION_INTERVAL_EINK = 5000;
 		
 		public AutoScrollAnimation(final int startProgress) {
@@ -1890,7 +1895,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			startAnimationProgress = AUTOSCROLL_START_ANIMATION_PERCENT * 100;
 			currentAutoScrollAnimation = this;
 
-			final int numPaints = 24;
+			final int numPaints = 32;
 			shadePaints = new Paint[numPaints];
 			hilitePaints = new Paint[numPaints];
 			for ( int i=0; i<numPaints; i++ ) {
@@ -1991,8 +1996,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currPos = doc.getPositionProps(null);
 			charCount = currPos.charCount;
 			pageCount = currPos.pageMode;
-			if (charCount < 100)
-				charCount = 100;
+			if (charCount < 150)
+				charCount = 150;
 			isScrollView = currPos.pageMode == 0;
 			log.v("initPageTurn(charCount = " + charCount + ")");
 			if (isScrollView) {
@@ -2074,6 +2079,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    }
 		
 		private void drawGradient( Canvas canvas, Rect rc, Paint[] paints, int startIndex, int endIndex ) {
+			log.v("drawShadow");
 			int n = (startIndex<endIndex) ? endIndex-startIndex+1 : startIndex-endIndex + 1;
 			int dir = (startIndex<endIndex) ? 1 : -1;
 			int dx = rc.bottom - rc.top;
@@ -2082,38 +2088,41 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				int index = startIndex + i*dir;
 				int x1 = rc.top + dx*i/n;
 				int x2 = rc.top + dx*(i+1)/n;
-				if ( x2>rc.bottom )
-					x2 = rc.bottom;
-				if (x1 >= canvas.getHeight() || x2 < 0)
-					continue;
+				if (x1 < 0)
+					x1 = 0;
+				if (x2 > canvas.getHeight())
+					x2 = canvas.getHeight();
 				rect.top = x1;
 				rect.bottom = x2;
 				if ( x2>x1 ) {
+					log.v("drawShadow : " + x1 + ", " + x2 + ", " + index);
 					canvas.drawRect(rect, paints[index]);
 				}
 			}
 		}
 		
 		private void drawShadow( Canvas canvas, Rect rc ) {
-			drawGradient(canvas, rc, shadePaints, shadePaints.length * 2 / 3, shadePaints.length/10);
+			drawGradient(canvas, rc, shadePaints, shadePaints.length * 3 / 4, 0);
 		}
 		
 	    void drawPageProgress(Canvas canvas, int scrollPercent, Rect dst, Rect src) {
 	    	int shadowHeight = 32;
 			int h = dst.height();
 			int div = (h + shadowHeight) * scrollPercent / 10000 - shadowHeight;
-			if (div < h) {
-	    		Rect src1 = new Rect(src.left, src.top, src.right, div);
-	    		Rect dst1 = new Rect(dst.left, dst.top, dst.right, div);
+			//log.v("drawPageProgress() div = " + div + ", percent = " + scrollPercent);
+			int d = div >= 0 ? div : 0; 
+			if (d > 0) {
+	    		Rect src1 = new Rect(src.left, src.top, src.right, src.top + d);
+	    		Rect dst1 = new Rect(dst.left, dst.top, dst.right, dst.top + d);
 	    		drawDimmedBitmap(canvas, image2.bitmap, src1, dst1);
 			}
-			if (div > 0) {
-	    		Rect src2 = new Rect(src.left, div, src.right, src.bottom);
-	    		Rect dst2 = new Rect(dst.left, div, dst.right, dst.bottom);
+			if (d < h) {
+	    		Rect src2 = new Rect(src.left, src.top + d, src.right, src.bottom);
+	    		Rect dst2 = new Rect(dst.left, dst.top + d, dst.right, dst.bottom);
 	    		drawDimmedBitmap(canvas, image1.bitmap, src2, dst2);
 			}
-    		if (scrollPercent > 0 && div + 3 < h) {
-				Rect shadowRect = new Rect(src.left, div, src.right, div + 16);
+    		if (scrollPercent > 0 && scrollPercent < 10000) {
+				Rect shadowRect = new Rect(src.left, src.top + div, src.right, src.top + div + shadowHeight);
 				drawShadow(canvas, shadowRect);
     		}
 	    }
@@ -3305,24 +3314,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
-	private void startAutoScroll(final int startProgress)
-	{
-		if (DEBUG_ANIMATION) log.d("startAutoScroll()");
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
-			@Override
-			public void run() {
-				BackgroundThread.ensureBackground();
-				new AutoScrollAnimation(startProgress);
-				if ( currentAnimation!=null ) {
-					nextHiliteId++;
-					hiliteRect = null;
-				}
-			}
-			
-		});
-	}
-
-	
 	private final static boolean DEBUG_ANIMATION = false;
 	private volatile int updateSerialNumber = 0;
 	private void updateAnimation( final int x, final int y )
