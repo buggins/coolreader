@@ -401,9 +401,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return currentImageViewer.onKeyUp(keyCode, event);
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
-		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP )
+		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP ) {
+    		if (isAutoScrollActive())
+    			return true;
 			if ( !enableVolumeKeys )
 				return super.onKeyUp(keyCode, event);
+		}
+		if (isAutoScrollActive()) {
+			stopAutoScroll();
+			return true;
+		}
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			return false;
@@ -568,12 +575,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return res;
 		}
 
-    	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN )
+    	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN ) {
+    		if (isAutoScrollActive()) {
+    			if (keyCode==KeyEvent.KEYCODE_VOLUME_UP)
+    				changeAutoScrollSpeed(1);
+    			else
+    				changeAutoScrollSpeed(-1);
+    			return true;
+    		}
     		if (!enableVolumeKeys) {
     			boolean res = super.onKeyDown(keyCode, event);
     			mActivity.onUserActivity();
     			return res;
     		}
+    	}
+    	
+		if (isAutoScrollActive())
+			return true; // autoscroll will be stopped in onKeyUp
     	
 		mActivity.onUserActivity();
 		keyCode = overrideKey( keyCode );
@@ -1386,6 +1404,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (currentImageViewer != null)
 			return currentImageViewer.onTouchEvent(event);
 		
+		if (isAutoScrollActive()) {
+			if (event.getAction() == MotionEvent.ACTION_UP)
+				stopAutoScroll();
+			return true;
+		}
+		
 		if (currentTapHandler == null)
 			currentTapHandler = new TapHandler();
 		currentTapHandler.checkExpiration();
@@ -1777,6 +1801,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (isAutoScrollActive())
 			return;
 		currentAutoScrollAnimation = new AutoScrollAnimation(0);
+		notifyAutoscrollSpeed();
 	}
 	
 	private void toggleAutoScroll() {
@@ -1784,6 +1809,28 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			stopAutoScroll();
 		else
 			startAutoScroll();
+	}
+	
+	private void notifyAutoscrollSpeed() {
+		final int myId = ++autoScrollNotificationId;
+		final String msg = mActivity.getString(R.string.lbl_autoscroll_speed).replace("$1", String.valueOf(autoScrollSpeed));
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				if (myId == autoScrollNotificationId)
+					mActivity.showToast(msg);
+			}}, 1000);
+	}
+	
+	private void changeAutoScrollSpeed(int delta) {
+		if (autoScrollSpeed<60)
+			delta *= 5;
+		else if (autoScrollSpeed<120)
+			delta *= 10;
+		else
+			delta *= 20;
+		autoScrollSpeed += delta;
+		notifyAutoscrollSpeed();
 	}
 	
 	class AutoScrollAnimation {
@@ -1795,25 +1842,97 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int progress;
 		int pageCount;
 		int charCount;
+		int timerInterval;
 		long pageTurnStart;
 		
+		final int startAnimationProgress;
+		
+		public static final int MAX_PROGRESS = 10000;
+		public final static int ANIMATION_INTERVAL_NORMAL = 200;
+		public final static int ANIMATION_INTERVAL_EINK = 5000;
+		
 		public AutoScrollAnimation(final int startProgress) {
+			startAnimationProgress = 8000;
+			currentAutoScrollAnimation = this;
 			BackgroundThread.instance().postBackground(new Runnable() {
 				@Override
 				public void run() {
 					initPageTurn(startProgress, false);
+					timerInterval = DeviceInfo.EINK_SCREEN ? ANIMATION_INTERVAL_EINK : ANIMATION_INTERVAL_NORMAL;
+					startTimer(timerInterval);
 				}
 			});
 		}
 		
+		private int calcProgressPercent() {
+			long duration = Utils.timeInterval(pageTurnStart);
+			long estimatedFullDuration = 60000 * charCount / autoScrollSpeed; 
+			int percent = (int)(10000 * duration / estimatedFullDuration);
+			if (duration > estimatedFullDuration - timerInterval / 3)
+				percent = 10000;
+			if (percent < 10000)
+				percent = 0;
+			return percent;
+		}
+		
+		private boolean onTimer() {
+			int newProgress = calcProgressPercent();
+			log.v("onTimer(progress = " + newProgress + ")");
+			mActivity.onUserActivity();
+			if (newProgress / 10 == progress / 10)
+				return true;
+			progress = newProgress;
+			draw();
+			if (progress >= 10000) {
+				if (!donePageTurn(true)) {
+					stop();
+					return false;
+				}
+				initPageTurn(0, true);
+			} else {
+				draw();
+			}
+			return true;
+		}
+		
+		class AutoscrollTimerTask implements Runnable {
+			final long interval;
+			public AutoscrollTimerTask(long interval) {
+				this.interval = interval;
+				mActivity.onUserActivity();
+				BackgroundThread.instance().postGUI(this, interval);
+			}
+			@Override
+			public void run() {
+				if (currentAutoScrollAnimation != AutoScrollAnimation.this)
+					return;
+				BackgroundThread.instance().postBackground(new Runnable() {
+					@Override
+					public void run() {
+						if (currentAutoScrollAnimation != AutoScrollAnimation.this)
+							return;
+						if (onTimer())
+							BackgroundThread.instance().postGUI(this, interval);
+					}
+				});
+			}
+		}
+		
+		private void startTimer(final int interval) {
+			new AutoscrollTimerTask(interval);
+		}
+		
 		private void initPageTurn(int startProgress, boolean doDraw) {
 			cancelGc();
-			pageTurnStart = android.os.SystemClock.uptimeMillis();
+			pageTurnStart = Utils.timeStamp();
 			progress = startProgress;
 			currPos = doc.getPositionProps(null);
 			charCount = currPos.charCount;
 			pageCount = currPos.pageMode;
+			if (charCount < 20)
+				charCount = 20;
 			isScrollView = currPos.pageMode == 0;
+			log.v("initPageTurn(charCount = " + charCount + ")");
 			if (isScrollView) {
 				
 			} else {
@@ -1841,6 +1960,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		
 		private boolean donePageTurn(boolean turnPage) {
+			log.v("donePageTurn()");
 			if (turnPage)
 				doCommandFromBackgroundThread(ReaderCommand.DCMD_PAGEDOWN, 1);
 			progress = 0;
@@ -1864,11 +1984,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}, null, isPartially);
 		}
 		
-		public void update(int x, int y) {
-			// TODO Auto-generated method stub
-			
-		}
-
 		public void stop() {
 			currentAutoScrollAnimation = null;
 			BackgroundThread.instance().executeBackground(new Runnable() {
@@ -1882,27 +1997,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			scheduleGc();
 		}
 
-		public void animate() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		public void move(int duration, boolean accelerated) {
-			// TODO Auto-generated method stub
-			
-		}
-
 	    private boolean wantPageTurn() {
-	    	return (progress > (START_ANIMATION_PROGRESS + MAX_PROGRESS) / 2);
+	    	return (progress > (startAnimationProgress + MAX_PROGRESS) / 2);
 	    }
 		
-		public static final int MAX_PROGRESS = 10000;
-		public static final int START_ANIMATION_PROGRESS = 8000;
 		void draw(Canvas canvas) {
 			if (DEBUG_ANIMATION) log.v("AutoScrollAnimation.draw(" + progress + ")");
-			if (progress<START_ANIMATION_PROGRESS)
+			if (progress<startAnimationProgress)
 				return; // don't draw page w/o started animation
-			int scrollPercent = 10000 * (progress - START_ANIMATION_PROGRESS) / (MAX_PROGRESS - START_ANIMATION_PROGRESS);
+			int scrollPercent = 10000 * (progress - startAnimationProgress) / (MAX_PROGRESS - startAnimationProgress);
 			int w = image1.bitmap.getWidth(); 
 			int h = image1.bitmap.getHeight();
 			int div;
@@ -1961,24 +2064,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 	}
 
-	private void changeAutoScrollSpeed(int delta) {
-		if (autoScrollSpeed<60)
-			delta *= 5;
-		else if (autoScrollSpeed<120)
-			delta *= 10;
-		else
-			delta *= 20;
-		autoScrollSpeed += delta;
-		final int myId = ++autoScrollNotificationId;
-		final String msg = mActivity.getString(R.string.lbl_autoscroll_speed).replace("$1", String.valueOf(autoScrollSpeed));
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				if (myId == autoScrollNotificationId)
-					mActivity.showToast(msg);
-			}}, 1000);
-	}
-	
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
 		onCommand( cmd, param, null );

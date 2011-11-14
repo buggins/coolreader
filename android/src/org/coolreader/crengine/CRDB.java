@@ -234,9 +234,8 @@ public class CRDB {
 			"http://www.legimi.com/opds/root.atom", "Legimi",
 			"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
 			"http://flibusta.net/opds/", "Flibusta", 
-//			"http://lib.ololo.cc/opds/", "lib.ololo.cc",
 	};
-	
+
 	private void addOPDSCatalogs(String[] catalogs) {
 		for (int i=0; i<catalogs.length-1; i+=2) {
 			String url = catalogs[i];
