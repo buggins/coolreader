@@ -2000,6 +2000,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				log.v("AutoScrollAnimation -- page turn initialized in " + duration + " millis");
 				currentAutoScrollAnimation = this;
 			}
+			draw();
 		}
 		
 		private boolean donePageTurn(boolean turnPage) {
@@ -2007,7 +2008,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if (turnPage)
 				doc.doCommand(ReaderCommand.DCMD_PAGEDOWN.nativeId, 1);
 			progress = 0;
-			draw();
+			//draw();
 			return currPos.canMoveToNextPage();
 		}
 
