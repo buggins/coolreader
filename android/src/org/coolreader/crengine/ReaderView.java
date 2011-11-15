@@ -1834,6 +1834,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	private void notifyAutoscroll(final String msg) {
+		if (DeviceInfo.EINK_SCREEN)
+			return; // disable toast for eink
 		final int myId = ++autoScrollNotificationId;
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
@@ -1880,6 +1882,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int charCount;
 		int timerInterval;
 		long pageTurnStart;
+		int nextPos;
 		
 		Paint[] shadePaints;
 		Paint[] hilitePaints;
@@ -2002,7 +2005,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("initPageTurn(charCount = " + charCount + ")");
 			if (isScrollView) {
 				image1 = preparePageImage(0);
-				image2 = preparePageImage(1);
+				int pos0 = image1.position.y;
+				int pos1 = pos0 + image1.position.pageHeight * 7/8;
+				if (pos1 > image1.position.fullHeight - image1.position.pageHeight)
+					pos1 = image1.position.fullHeight - image1.position.pageHeight;
+				if (pos1 < 0)
+					pos1 = 0;
+				nextPos = pos1; 
+				image2 = preparePageImage(pos1 - pos0);
 				if ( image1==null || image2==null ) {
 					log.v("ScrollViewAnimation -- not started: image is null");
 					return;
@@ -2035,10 +2045,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			draw();
 		}
 		
+		
 		private boolean donePageTurn(boolean turnPage) {
 			log.v("donePageTurn()");
-			if (turnPage)
-				doc.doCommand(ReaderCommand.DCMD_PAGEDOWN.nativeId, 1);
+			if (turnPage) {
+				if (isScrollView)
+					doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, nextPos);
+				else
+					doc.doCommand(ReaderCommand.DCMD_PAGEDOWN.nativeId, 1);
+			}
 			progress = 0;
 			//draw();
 			return currPos.canMoveToNextPage();
@@ -2065,9 +2080,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.instance().executeBackground(new Runnable() {
 				@Override
 				public void run() {
-					if (wantPageTurn())
-						doc.doCommand(ReaderCommand.DCMD_PAGEDOWN.nativeId, 1);
-					progress = 0;
+					donePageTurn(wantPageTurn());
 					redraw();
 				}
 			});

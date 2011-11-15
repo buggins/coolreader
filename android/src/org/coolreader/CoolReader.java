@@ -1409,7 +1409,7 @@ public class CoolReader extends Activity
 		new DefTapAction(7, false, ReaderAction.PAGE_DOWN),
 		new DefTapAction(8, false, ReaderAction.PAGE_DOWN),
 		new DefTapAction(9, false, ReaderAction.PAGE_DOWN),
-		new DefTapAction(3, true, ReaderAction.PAGE_DOWN_10),
+		new DefTapAction(3, true, ReaderAction.TOGGLE_AUTOSCROLL),
 		new DefTapAction(6, true, ReaderAction.PAGE_DOWN_10),
 		new DefTapAction(7, true, ReaderAction.PAGE_DOWN_10),
 		new DefTapAction(8, true, ReaderAction.PAGE_DOWN_10),
