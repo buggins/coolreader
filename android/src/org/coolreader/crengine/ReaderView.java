@@ -2006,7 +2006,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if (isScrollView) {
 				image1 = preparePageImage(0);
 				int pos0 = image1.position.y;
-				int pos1 = pos0 + image1.position.pageHeight * 7/8;
+				int pos1 = pos0 + image1.position.pageHeight * 9/10;
 				if (pos1 > image1.position.fullHeight - image1.position.pageHeight)
 					pos1 = image1.position.fullHeight - image1.position.pageHeight;
 				if (pos1 < 0)
