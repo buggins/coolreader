@@ -282,4 +282,5 @@
     <string name="options_controls_tap_type_long">Long tap</string>
     <string name="mi_bookmark_send">Send</string>
     <string name="folder_name_books_by_author">Books by author</string>
+    <string name="options_view_bookmarks_highlight">Highlight bookmarks</string>
 </resources>

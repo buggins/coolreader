@@ -282,4 +282,5 @@
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
     <string name="mi_bookmark_send">Отправить</string>
     <string name="folder_name_books_by_author">Книги по авторам</string>
+    <string name="options_view_bookmarks_highlight">Подсвечивать закладки</string>
 </resources>
