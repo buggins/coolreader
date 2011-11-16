@@ -318,6 +318,7 @@ public class BookmarksDlg  extends BaseDialog {
 						mCoolReader.getDB().deleteBookmark(removed);
 						mList.setShortcutMode(mList.isShortcutMode());
 					}
+					mReaderView.updateBookmarks();
 					return true;
 				case R.id.bookmark_shortcut_goto:
 					mReaderView.goToBookmark(shortcut+1);
@@ -338,6 +339,7 @@ public class BookmarksDlg  extends BaseDialog {
 				mCoolReader.getDB().deleteBookmark(removed);
 				mList.setShortcutMode(mList.isShortcutMode());
 			}
+			mReaderView.updateBookmarks();
 			return true;
 		case R.id.bookmark_goto:
 			if ( bm!=null )

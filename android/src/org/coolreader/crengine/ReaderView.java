@@ -1530,6 +1530,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
     	if (mBookInfo == null || !isBookLoaded())
     		return;
+		mEngine.post(new Task() {
+			public void work() throws Exception {
+				BackgroundThread.ensureBackground();
+				doc.clearSelection();
+				invalidImages = true;
+			}
+			public void done() {
+				BackgroundThread.ensureGUI();
+//				drawPage();
+				drawPage(true);
+			}
+		});
+    }
+    
+    public void updateBookmarks() {
     	int count = mBookInfo.getBookmarkCount();
     	final Bookmark[] list = (count > 0 && flgHighlightBookmarks) ? new Bookmark[count] : null; 
     	for (int i=0; i<count && flgHighlightBookmarks; i++)
@@ -1537,15 +1552,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.post(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				if (list == null)
-					doc.clearSelection();
-				else
-			    	doc.hilightBookmarks(list);
+		    	doc.hilightBookmarks(list);
 				invalidImages = true;
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
-//				drawPage();
 				drawPage(true);
 			}
 		});
@@ -1612,6 +1623,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						s.replace("$1", String.valueOf(shortcut));
 					}
 					mActivity.showToast(s);
+			        updateBookmarks();
 				}
 			}
 		});
@@ -4318,7 +4330,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        }
 		        mOpened = true;
 		        
-		        clearSelection();
+		        updateBookmarks();
 		        
 		        drawPage();
 		        mBackThread.postGUI(new Runnable() {

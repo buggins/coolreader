@@ -91,6 +91,7 @@ public class BookmarkEditDialog extends BaseDialog {
 			if ( mOriginalBookmark.setCommentText(mBookmark.getCommentText()) )
 				mOriginalBookmark.setTimeStamp(System.currentTimeMillis());
 		}
+		mReaderView.updateBookmarks();
 		super.onPositiveButtonClick();
 	}
 
