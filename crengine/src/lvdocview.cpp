@@ -4532,6 +4532,7 @@ CRBookmark * LVDocView::saveRangeBookmark(ldomXRange & range, bmk_type type,
 	bmk->setCommentText(comment);
 	bmk->setTitleText(CRBookmark::getChapterName(range.getStart()));
 	rec->getBookmarks().add(bmk);
+        updateBookMarksRanges();
 #if 0
         if (m_highlightBookmarks && !range.getEnd().isNull())
             insertBookmarkPercentInfo(m_pages.FindNearestPage(p, 0),
@@ -4759,6 +4760,7 @@ CRBookmark * LVDocView::saveCurrentPageBookmark(lString16 comment) {
 	bm->setPercent(percent);
 	bm->setCommentText(comment);
 	rec->getBookmarks().add(bm);
+        updateBookMarksRanges();
 	return bm;
 }
 
@@ -4779,6 +4781,72 @@ bool LVDocView::goToPageShortcutBookmark(int number) {
 	goToBookmark(p);
         updateBookMarksRanges();
 	return true;
+}
+
+inline int myabs(int n) { return n < 0 ? -n : n; }
+
+static int calcBookmarkMatch(lvPoint pt, lvRect & rc1, lvRect & rc2, int type) {
+    if (pt.y < rc1.top || pt.y >= rc2.bottom)
+        return -1;
+    if (type == bmkt_pos) {
+        return myabs(pt.x - 0);
+    }
+    if (rc1.top == rc2.top) {
+        // single line
+        if (pt.y >= rc1.top && pt.y < rc2.bottom && pt.x >= rc1.left && pt.x < rc2.right) {
+            return myabs(pt.x - (rc1.left + rc2.right) / 2);
+        }
+        return -1;
+    } else {
+        // first line
+        if (pt.y >= rc1.top && pt.y < rc1.bottom && pt.x >= rc1.left) {
+            return myabs(pt.x - (rc1.left + rc1.right) / 2);
+        }
+        // last line
+        if (pt.y >= rc2.top && pt.y < rc2.bottom && pt.x < rc2.right) {
+            return myabs(pt.x - (rc2.left + rc2.right) / 2);
+        }
+        // middle line
+        return myabs(pt.y - (rc1.top + rc2.bottom) / 2);
+    }
+}
+
+/// find bookmark by window point, return NULL if point doesn't belong to any bookmark
+CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
+    CRFileHistRecord * rec = getCurrentFileHistRecord();
+    if (!rec)
+        return false;
+    if (!windowToDocPoint(pt))
+        return NULL;
+    LVPtrVector<CRBookmark>  & bookmarks = rec->getBookmarks();
+    CRBookmark * best = NULL;
+    int bestMatch = -1;
+    for (int i=0; i<bookmarks.length(); i++) {
+        CRBookmark * bmk = bookmarks[i];
+        int t = bmk->getType();
+        if (t == bmkt_lastpos)
+            continue;
+        ldomXPointer p = m_doc->createXPointer(bmk->getStartPos());
+        if (p.isNull())
+            continue;
+        lvRect rc;
+        if (!p.getRect(rc))
+            continue;
+        ldomXPointer ep = (t == bmkt_pos) ? p : m_doc->createXPointer(bmk->getEndPos());
+        if (ep.isNull())
+            continue;
+        lvRect erc;
+        if (!ep.getRect(erc))
+            continue;
+        int match = calcBookmarkMatch(pt, rc, erc, t);
+        if (match < 0)
+            continue;
+        if (match < bestMatch || bestMatch == -1) {
+            bestMatch = match;
+            best = bmk;
+        }
+    }
+    return best;
 }
 
 // execute command

@@ -6,7 +6,7 @@ static bool initialized = false;
 
 bool AddBookmarkDialog::editBookmark( QWidget * parent, CR3View * docView, CRBookmark * bm )
 {
-    AddBookmarkDialog * dlg = new AddBookmarkDialog( parent, docView, NULL );
+    AddBookmarkDialog * dlg = new AddBookmarkDialog( parent, docView, bm );
     if ( !dlg->_bm ) {
         delete dlg;
         return false;
@@ -40,7 +40,7 @@ AddBookmarkDialog::AddBookmarkDialog(QWidget *parent, CR3View * docView, CRBookm
         }
         m_ui->edPositionText->setPlainText( cr2qt(_bm->getPosText()) );
         m_ui->edPositionText->setReadOnly( true );
-        m_ui->edComment->setPlainText( QString() );
+        m_ui->edComment->setPlainText( cr2qt(bm->getCommentText()) );
         m_ui->edComment->setReadOnly( false );
         m_ui->lblPosition->setText( crpercent(_bm->getPercent()) );
         m_ui->lblTitle->setText( cr2qt(_bm->getTitleText()) );
@@ -94,7 +94,7 @@ void AddBookmarkDialog::on_buttonBox_accepted()
 
 void AddBookmarkDialog::on_buttonBox_rejected()
 {
-    if ( !_docview->getDocView()->removeBookmark( _bm ) && !_edit )
+    if (!_edit && !_docview->getDocView()->removeBookmark( _bm ))
         delete _bm;
     close();
 }

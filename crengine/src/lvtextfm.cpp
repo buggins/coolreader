@@ -1126,8 +1126,8 @@ void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
 
 void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int x1, int y, int style) {
     lUInt32 cl = drawbuf.GetTextColor();
-    cl = (cl & 0xFFFFFF) | 0x60000000; // semitransparent
-    lUInt32 cl2 = (cl & 0xFFFFFF) | 0xA0000000; // semitransparent
+    cl = (cl & 0xFFFFFF) | 0x20000000; // semitransparent
+    lUInt32 cl2 = (cl & 0xFFFFFF) | 0x40000000; // semitransparent
     int step = 4;
     int index = 0;
     for (int x = x0; x < x1; x += step ) {

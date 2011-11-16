@@ -583,6 +583,8 @@ public:
     void setBookmarkList(LVPtrVector<CRBookmark> & bookmarks);
     /// restores page using bookmark by numbered shortcut
 	bool goToPageShortcutBookmark( int number );
+    /// find bookmark by window point, return NULL if point doesn't belong to any bookmark
+    CRBookmark * findBookmarkByPoint(lvPoint pt);
     /// returns true if coverpage display is on
     bool getShowCover() { return  m_showCover; }
     /// sets coverpage display flag

@@ -5,6 +5,7 @@
 #include "crqtutil.h"
 #include "qpainter.h"
 #include "settings.h"
+#include "addbookmarkdlg.h"
 #include <QtGui/QResizeEvent>
 #include <QtGui/QScrollBar>
 #include <QtGui/QMenu>
@@ -964,13 +965,19 @@ void CR3View::mousePressEvent ( QMouseEvent * event )
 {
     bool left = event->button() == Qt::LeftButton;
     //bool right = event->button() == Qt::RightButton;
-    //bool mid = event->button() == Qt::MidButton;
+    bool mid = event->button() == Qt::MidButton;
     lvPoint pt (event->x(), event->y());
     ldomXPointer p = _docview->getNodeByPoint( pt );
     // test imageByPoint
     LVImageSourceRef img = _docview->getImageByPoint(pt);
     if (!img.isNull())
         CRLog::debug("Image %d x %d found", img->GetWidth(), img->GetHeight());
+    CRBookmark * bmk = _docview->findBookmarkByPoint(pt);
+    if (bmk!=NULL) {
+        CRLog::trace("Found bookmark of type %d", bmk->getType());
+        if (mid)
+            AddBookmarkDialog::editBookmark((QWidget*)parent(), this, bmk);
+    }
     lString16 path;
     lString16 href;
     if ( !p.isNull() ) {
