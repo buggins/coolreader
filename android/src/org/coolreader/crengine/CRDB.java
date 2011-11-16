@@ -44,7 +44,11 @@ public class CRDB {
 			this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
 		} catch (SQLiteDiskIOException e) {
 			moveToBackup(dbfile);
-			this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+			try {
+				this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+			} catch (SQLiteDiskIOException e2) {
+				throw new SQLiteDiskIOException("can't open DB " + dbfile + ": " + e2.getMessage());
+			}
 		}
 		this.mDBFile = dbfile;
 		File coverFile = new File(dbfile.getAbsolutePath().replace(".sqlite", "_cover.sqlite"));
@@ -52,7 +56,12 @@ public class CRDB {
 			this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
 		} catch (SQLiteDiskIOException e) {
 			moveToBackup(coverFile);
-			this.mDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
+			this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
+			try {
+				this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
+			} catch (SQLiteDiskIOException e2) {
+				throw new SQLiteDiskIOException("can't open DB " + coverFile + ": " + e2.getMessage());
+			}
 		}
 		this.mCoverpageDBFile = coverFile;
 		return true;
