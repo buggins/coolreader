@@ -1524,13 +1524,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
     }
     
+    private boolean flgHighlightBookmarks = false;
     public void clearSelection()
     {
 		BackgroundThread.ensureGUI();
+    	if (mBookInfo == null || !isBookLoaded())
+    		return;
+    	int count = mBookInfo.getBookmarkCount();
+    	final Bookmark[] list = (count > 0 && flgHighlightBookmarks) ? new Bookmark[count] : null; 
+    	for (int i=0; i<count && flgHighlightBookmarks; i++)
+    		list[i] = mBookInfo.getBookmark(i);
 		mEngine.post(new Task() {
 			public void work() throws Exception {
 				BackgroundThread.ensureBackground();
-				doc.clearSelection();
+				if (list == null)
+					doc.clearSelection();
+				else
+			    	doc.hilightBookmarks(list);
 				invalidImages = true;
 			}
 			public void done() {
@@ -2508,6 +2518,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	mActivity.getScanner().setHideEmptyDirs(flg);
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
         	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
+        } else if (PROP_APP_HIGHLIGHT_BOOKMARKS.equals(key)) {
+        	flgHighlightBookmarks = flg;
+        	clearSelection();
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
         	int orientation = 0;
         	try {
@@ -4304,6 +4317,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        	//mEngine.setProgressDrawable(coverPageDrawable);
 		        }
 		        mOpened = true;
+		        
+		        clearSelection();
+		        
 		        drawPage();
 		        mBackThread.postGUI(new Runnable() {
 		        	public void run() {
@@ -4896,7 +4912,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		
     	});
     }
-
+    
     private final static String NOOK_TOUCH_COVERPAGE_DIR = "/media/screensavers/currentbook";
 	private void updateNookTouchCoverpage(String bookFileName,
 			byte[] coverpageBytes) {

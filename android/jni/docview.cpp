@@ -1475,3 +1475,15 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_goLinkInternal
     return res ? 1 : 0;
 }
 
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    hilightBookmarksInternal
+ * Signature: ([Lorg/coolreader/crengine/Bookmark;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInternal
+  (JNIEnv * _env, jobject _this, jobjectArray list) {
+    CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, _this);
+    // TODO:
+}
+

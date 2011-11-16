@@ -260,7 +260,14 @@ public class DocView {
 		return closeImageInternal();
 	}
 	
-
+	/**
+	 * Highlight bookmarks.
+	 * Remove highlight using clearSelection().
+	 * @params bookmarks is array of bookmarks to highlight 
+	 */
+	public void hilightBookmarks(Bookmark[] bookmarks) {
+		hilightBookmarksInternal(bookmarks);
+	}
 	
 	//========================================================================================
 	// Native functions
@@ -321,6 +328,8 @@ public class DocView {
 	private native boolean closeImageInternal();
 
 	private native int goLinkInternal(String link);
+
+	private native void hilightBookmarksInternal(Bookmark[] bookmarks);
 
 	// / returns either SWAP_DONE, SWAP_TIMEOUT or SWAP_ERROR
 	private native int swapToCacheInternal();

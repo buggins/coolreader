@@ -247,6 +247,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInt
 JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_swapToCacheInternal
   (JNIEnv *, jobject);
 
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    hilightBookmarksInternal
+ * Signature: ([Lorg/coolreader/crengine/Bookmark;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInternal
+  (JNIEnv *, jobject, jobjectArray list);
+
 #define SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE 1
 #define SEL_CMD_NEXT_SENTENCE 2
 #define SEL_CMD_PREV_SENTENCE 3
