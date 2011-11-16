@@ -84,6 +84,19 @@ static void ApplyAlphaRGB( lUInt32 &dst, lUInt32 src, lUInt32 alpha )
     }
 }
 
+static void ApplyAlphaRGB565( lUInt16 &dst, lUInt16 src, lUInt32 alpha )
+{
+    if ( alpha==0 )
+        dst = src;
+    else if ( alpha<255 ) {
+        lUInt32 opaque = 256 - alpha;
+        lUInt32 r = (((dst & 0xF800) * alpha + (src & 0xF800) * opaque) >> 8) & 0xF800;
+        lUInt32 g = (((dst & 0x07E0) * alpha + (src & 0x7E00) * opaque) >> 8) & 0x07E0;
+        lUInt32 b = (((dst & 0x0018) * alpha + (src & 0x0018) * opaque) >> 8) & 0x0018;
+        dst = (lUInt16)(r | g | b);
+    }
+}
+
 static void ApplyAlphaGray( lUInt8 &dst, lUInt8 src, lUInt32 alpha, int bpp )
 {
     if ( alpha==0 )
@@ -1205,6 +1218,7 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
         y1 = _clip.bottom;
     if (x0>=x1 || y0>=y1)
         return;
+    int alpha = (color >> 24) & 0xFF;
     if ( _bpp==16 ) {
         lUInt16 cl16 = rgb888to565(color);
         for (int y=y0; y<y1; y++)
@@ -1212,7 +1226,10 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
             lUInt16 * line = (lUInt16 *)GetScanLine(y);
             for (int x=x0; x<x1; x++)
             {
-                line[x] = cl16;
+                if (alpha)
+                    ApplyAlphaRGB565(line[x], color, alpha);
+                else
+                    line[x] = cl16;
             }
         }
     } else {
@@ -1221,7 +1238,10 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
             lUInt32 * line = (lUInt32 *)GetScanLine(y);
             for (int x=x0; x<x1; x++)
             {
-                line[x] = color;
+                if (alpha)
+                    ApplyAlphaRGB(line[x], color, alpha);
+                else
+                    line[x] = color;
             }
         }
     }

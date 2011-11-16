@@ -1484,6 +1484,20 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInte
   (JNIEnv * _env, jobject _this, jobjectArray list) {
     CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
-    // TODO:
+    LVPtrVector<CRBookmark> bookmarks;
+    if (list) {
+    	int len = _env->GetArrayLength(list);
+    	for (int i=0; i<len; i++) {
+    		jobject obj = _env->GetObjectArrayElement(list, i);
+    	    CRObjectAccessor bmk(_env, obj);
+    	    CRStringField startPos(bmk, "startPos");
+    	    CRStringField endPos(bmk, "endPos");
+    	    CRIntField type(bmk, "type");
+    	    CRBookmark * bookmark = new CRBookmark(startPos.get(), endPos.get());
+    	    bookmark->setType(type.get());
+    	    bookmarks.add(bookmark);
+    	}
+    }
+    p->_docview->setBookmarkList(bookmarks);
 }
 

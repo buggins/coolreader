@@ -1124,6 +1124,30 @@ void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
         m_pbuffer->min_space_condensing_percent = minSpaceWidthPercent;
 }
 
+void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int x1, int y, int style) {
+    lUInt32 cl = drawbuf.GetTextColor();
+    cl = (cl & 0xFFFFFF) | 0x60000000; // semitransparent
+    lUInt32 cl2 = (cl & 0xFFFFFF) | 0xA0000000; // semitransparent
+    int step = 4;
+    int index = 0;
+    for (int x = x0; x < x1; x += step ) {
+        int x2 = x + step;
+        if (x2 > x1)
+            x2 = x1;
+        if (style & 8) {
+            // correction
+            int yy = (index & 1) ? y - 1 : y;
+            drawbuf.FillRect(x, yy-1, x+1, yy, cl2);
+            drawbuf.FillRect(x+1, yy-1, x2-1, yy, cl);
+            drawbuf.FillRect(x2-1, yy-1, x2, yy, cl2);
+        } else if (style & 4) {
+            if (index & 1)
+                drawbuf.FillRect(x, y-1, x2 + 1, y, cl);
+        }
+        index++;
+    }
+}
+
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks, ldomMarkedRangeList *bookmarks )
 {
     lUInt32 i, j;
@@ -1186,6 +1210,17 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     if ( range->intersects( lineRect, mark ) ) {
                         //
                         buf->FillRect( mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, 0xAAAAAA );
+                    }
+                }
+            }
+            if (bookmarks!=NULL && bookmarks->length()>0) {
+                lvRect lineRect( frmline->x, frmline->y, frmline->x + frmline->width, frmline->y + frmline->height );
+                for ( int i=0; i<bookmarks->length(); i++ ) {
+                    lvRect mark;
+                    ldomMarkedRange * range = bookmarks->get(i);
+                    if ( range->intersects( lineRect, mark ) ) {
+                        //
+                        DrawBookmarkTextUnderline(*buf, mark.left + x, mark.right + x, mark.bottom + y - 2, range->flags);
                     }
                 }
             }

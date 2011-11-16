@@ -579,6 +579,8 @@ public:
     CRBookmark * saveCurrentPageBookmark( lString16 comment );
     /// removes bookmark from list, and deletes it, false if not found
     bool removeBookmark( CRBookmark * bm );
+    /// sets new list of bookmarks, removes old values
+    void setBookmarkList(LVPtrVector<CRBookmark> & bookmarks);
     /// restores page using bookmark by numbered shortcut
 	bool goToPageShortcutBookmark( int number );
     /// returns true if coverpage display is on
@@ -629,6 +631,8 @@ public:
     virtual void selectRange( const ldomXRange & range );
     /// sets selection for list of words, clears previous selection
     virtual void selectWords( const LVArray<ldomWord> & words );
+    /// sets selections for ranges, clears previous selections
+    virtual void selectRanges(ldomXRangeList & ranges);
     /// clears selection
     virtual void clearSelection();
     /// update selection -- command handler

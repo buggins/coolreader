@@ -2021,7 +2021,7 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 		}
 		DrawDocument(drawbuf, m_doc->getRootNode(), m_pageMargins.left, 0, m_dx
 				- m_pageMargins.left - m_pageMargins.right, m_dy, 0, -position,
-				m_dy, &m_markRanges);
+                m_dy, &m_markRanges, &m_bmkRanges);
 	} else {
 		int pc = getVisiblePageCount();
 		//CRLog::trace("searching for page with offset=%d", position);
@@ -2357,35 +2357,8 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
                 m_swapDone = true;
             }
 		}
-                m_bookmarksPercents.clear();
-                if (m_highlightBookmarks) {
-                    CRFileHistRecord * rec = getCurrentFileHistRecord();
-                    if (rec) {
-                        LVPtrVector < CRBookmark > &bookmarks = rec->getBookmarks();
 
-                        m_bookmarksPercents.reserve(m_pages.length());
-                        for (int i = 0; i < bookmarks.length(); i++) {
-                            CRBookmark * bmk = bookmarks[i];
-                            if (bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction)
-                                continue;
-                            lString16 pos = bmk->getStartPos();
-                            ldomXPointer p = m_doc->createXPointer(pos);
-                            if (p.isNull())
-                                continue;
-                            lvPoint pt = p.toPoint();
-                            if (pt.y < 0)
-                                continue;
-                            ldomXPointer ep = m_doc->createXPointer(bmk->getEndPos());
-                            if (ep.isNull())
-                                continue;
-                            lvPoint ept = ep.toPoint();
-                            if (ept.y < 0)
-                                continue;
-                            insertBookmarkPercentInfo(m_pages.FindNearestPage(pt.y, 0),
-                                                      ept.y, bmk->getPercent());
-                        }
-                    }
-                }
+        updateBookMarksRanges();
 	}
 }
 
@@ -2403,6 +2376,19 @@ void LVDocView::selectWords(const LVArray<ldomWord> & words) {
 	sel.clear();
 	sel.addWords(words);
 	updateSelections();
+}
+
+/// sets selections for ranges, clears previous selections
+void LVDocView::selectRanges(ldomXRangeList & ranges) {
+    ldomXRangeList & sel = getDocument()->getSelections();
+    if (sel.empty() && ranges.empty())
+        return;
+    sel.clear();
+    for (int i=0; i<ranges.length(); i++) {
+        ldomXRange * item = ranges[i];
+        sel.add(new ldomXRange(*item));
+    }
+    updateSelections();
 }
 
 /// sets selection for range, clears previous selection
@@ -2744,7 +2730,7 @@ bool LVDocView::navigateTo(lString16 historyPath) {
 	if (bookmark.isNull())
 		return false;
 	goToBookmark(bookmark);
-        updateBookMarksRanges();
+    updateBookMarksRanges();
 	return true;
 }
 
@@ -2775,17 +2761,17 @@ void LVDocView::updateSelections() {
     CRLog::trace("updateSelections() : selection count = %d", m_doc->getSelections().length());
 	ranges.getRanges(m_markRanges);
 	if (m_markRanges.length() > 0) {
-		crtrace trace;
-		trace << "LVDocView::updateSelections() - " << "selections: "
-				<< m_doc->getSelections().length() << ", ranges: "
-				<< ranges.length() << ", marked ranges: "
-				<< m_markRanges.length() << " ";
-		for (int i = 0; i < m_markRanges.length(); i++) {
-			ldomMarkedRange * item = m_markRanges[i];
-			trace << "(" << item->start.x << "," << item->start.y << "--"
-					<< item->end.x << "," << item->end.y << " #" << item->flags
-					<< ") ";
-		}
+//		crtrace trace;
+//		trace << "LVDocView::updateSelections() - " << "selections: "
+//				<< m_doc->getSelections().length() << ", ranges: "
+//				<< ranges.length() << ", marked ranges: "
+//				<< m_markRanges.length() << " ";
+//		for (int i = 0; i < m_markRanges.length(); i++) {
+//			ldomMarkedRange * item = m_markRanges[i];
+//			trace << "(" << item->start.x << "," << item->start.y << "--"
+//					<< item->end.x << "," << item->end.y << " #" << item->flags
+//					<< ") ";
+//		}
 	}
 }
 
@@ -2794,6 +2780,76 @@ void LVDocView::updateBookMarksRanges()
     checkRender();
     LVLock lock(getMutex());
     clearImageCache();
+
+    ldomXRangeList ranges;
+    CRFileHistRecord * rec = m_highlightBookmarks ? getCurrentFileHistRecord() : NULL;
+    if (rec) {
+        LVPtrVector<CRBookmark> &bookmarks = rec->getBookmarks();
+        for (int i = 0; i < bookmarks.length(); i++) {
+            CRBookmark * bmk = bookmarks[i];
+            int t = bmk->getType();
+            if (t != bmkt_lastpos) {
+                ldomXPointer p = m_doc->createXPointer(bmk->getStartPos());
+                if (p.isNull())
+                    continue;
+                lvPoint pt = p.toPoint();
+                if (pt.y < 0)
+                    continue;
+                ldomXPointer ep = (t == bmkt_pos) ? p : m_doc->createXPointer(bmk->getEndPos());
+                if (ep.isNull())
+                    continue;
+                lvPoint ept = ep.toPoint();
+                if (ept.y < 0)
+                    continue;
+                ldomXRange *n_range = new ldomXRange(p, ep);
+                if (!n_range->isNull()) {
+                    int flags = 1;
+                    if (t == bmkt_pos)
+                        flags = 2;
+                    if (t == bmkt_comment)
+                        flags = 4;
+                    if (t == bmkt_correction)
+                        flags = 8;
+                    n_range->setFlags(flags);
+                    ranges.add(n_range);
+                } else
+                    delete n_range;
+            }
+        }
+    }
+    ranges.getRanges(m_bmkRanges);
+#if 0
+
+    m_bookmarksPercents.clear();
+    if (m_highlightBookmarks) {
+        CRFileHistRecord * rec = getCurrentFileHistRecord();
+        if (rec) {
+            LVPtrVector < CRBookmark > &bookmarks = rec->getBookmarks();
+
+            m_bookmarksPercents.reserve(m_pages.length());
+            for (int i = 0; i < bookmarks.length(); i++) {
+                CRBookmark * bmk = bookmarks[i];
+                if (bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction)
+                    continue;
+                lString16 pos = bmk->getStartPos();
+                ldomXPointer p = m_doc->createXPointer(pos);
+                if (p.isNull())
+                    continue;
+                lvPoint pt = p.toPoint();
+                if (pt.y < 0)
+                    continue;
+                ldomXPointer ep = m_doc->createXPointer(bmk->getEndPos());
+                if (ep.isNull())
+                    continue;
+                lvPoint ept = ep.toPoint();
+                if (ept.y < 0)
+                    continue;
+                insertBookmarkPercentInfo(m_pages.FindNearestPage(pt.y, 0),
+                                          ept.y, bmk->getPercent());
+            }
+        }
+    }
+
     ldomXRangeList ranges;
     CRFileHistRecord * rec = m_bookmarksPercents.length() ? getCurrentFileHistRecord() : NULL;
     if (!rec) {
@@ -2830,6 +2886,7 @@ void LVDocView::updateBookMarksRanges()
         }
     }
     ranges.getRanges(m_bmkRanges);
+#endif
 }
 
 /// set view mode (pages/scroll)
@@ -3784,6 +3841,7 @@ void LVDocView::OnCacheFileFormatDetected( doc_format_t fmt )
 
 void LVDocView::insertBookmarkPercentInfo(int start_page, int end_y, int percent)
 {
+#if 0
     for (int j = start_page; j < m_pages.length(); j++) {
         if (m_pages[j]->start > end_y)
             break;
@@ -3794,6 +3852,7 @@ void LVDocView::insertBookmarkPercentInfo(int start_page, int end_y, int percent
         } else
             bmi->add(percent);
     }
+#endif
 }
 
 bool LVDocView::ParseDocument() {
@@ -4473,10 +4532,26 @@ CRBookmark * LVDocView::saveRangeBookmark(ldomXRange & range, bmk_type type,
 	bmk->setCommentText(comment);
 	bmk->setTitleText(CRBookmark::getChapterName(range.getStart()));
 	rec->getBookmarks().add(bmk);
+#if 0
         if (m_highlightBookmarks && !range.getEnd().isNull())
             insertBookmarkPercentInfo(m_pages.FindNearestPage(p, 0),
                                   range.getEnd().toPoint().y, percent);
+#endif
 	return bmk;
+}
+
+/// sets new list of bookmarks, removes old values
+void LVDocView::setBookmarkList(LVPtrVector<CRBookmark> & bookmarks)
+{
+    CRFileHistRecord * rec = getCurrentFileHistRecord();
+    if (!rec)
+        return;
+    LVPtrVector<CRBookmark>  & v = rec->getBookmarks();
+    v.clear();
+    for (int i=0; i<bookmarks.length(); i++) {
+        v.add(new CRBookmark(*bookmarks[i]));
+    }
+    updateBookMarksRanges();
 }
 
 /// removes bookmark from list, and deletes it, false if not found
@@ -4486,6 +4561,9 @@ bool LVDocView::removeBookmark(CRBookmark * bm) {
 		return false;
 	bm = rec->getBookmarks().remove(bm);
 	if (bm) {
+        updateBookMarksRanges();
+        delete bm;
+#if 0
             if (m_highlightBookmarks && bm->getType() == bmkt_comment || bm->getType() == bmkt_correction) {
                 int by = m_doc->createXPointer(bm->getStartPos()).toPoint().y;
                 int page_index = m_pages.FindNearestPage(by, 0);
@@ -4505,6 +4583,7 @@ bool LVDocView::removeBookmark(CRBookmark * bm) {
             }
             delete bm;
             return true;
+#endif
 	} else {
 		return false;
 	}

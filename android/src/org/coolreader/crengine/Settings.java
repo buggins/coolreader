@@ -95,7 +95,7 @@ public interface Settings {
     public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
     public static final String PROP_APP_SELECTION_ACTION = "app.selection.action";
     public static final String PROP_APP_SELECTION_PERSIST = "app.selection.persist";
-    public static final String PROP_APP_HIGHLIGHT_BOOKMARKS = "app.bookmarks.hightlight";
+    public static final String PROP_APP_HIGHLIGHT_BOOKMARKS = "crengine.highlight.bookmarks";
     public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
     public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
 
