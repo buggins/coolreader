@@ -112,6 +112,8 @@ public class BookSearchDialog extends BaseDialog {
 		BackgroundThread.instance().executeBackground( new Runnable() {
 			@Override
 			public void run() {
+				if (mCoolReader == null || mCoolReader.getDB() == null)
+					return;
 				final FileInfo[] results = mCoolReader.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename);
 				BackgroundThread.instance().executeGUI( new Runnable() {
 					@Override

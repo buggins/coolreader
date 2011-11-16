@@ -764,7 +764,7 @@ public class CoolReader extends Activity
 			
 		mDB = null;
 		mReaderView = null;
-		mEngine = null;
+		//mEngine = null;
 		mBackgroundThread = null;
 		log.i("CoolReader.onDestroy() exiting");
 		super.onDestroy();

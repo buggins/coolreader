@@ -444,7 +444,13 @@ public class CRDB {
 	public CRDB( File dbfile )
 	{
 		open(dbfile);
-		updateSchema();
+
+		try {
+			updateSchema();
+		} catch (SQLiteDiskIOException e) {
+			throw (SQLiteDiskIOException)new SQLiteDiskIOException("error updating schema " + mDBFile + ": " + e.getMessage()).initCause(e);
+		}
+
 		dumpStatistics();
 	}
 	
@@ -1140,34 +1146,38 @@ public class CRDB {
 	synchronized public boolean save( FileInfo fileInfo )
 	{
 		boolean authorsChanged = true;
-		if ( fileInfo.id!=null ) {
-			// update
-			FileInfo oldValue = new FileInfo();
-			oldValue.id = fileInfo.id;
-			if ( findById(oldValue) ) {
-				// found, updating
-				QueryHelper h = new QueryHelper(fileInfo, oldValue);
-				h.update(fileInfo.id);
-				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+		try {
+			if ( fileInfo.id!=null ) {
+				// update
+				FileInfo oldValue = new FileInfo();
+				oldValue.id = fileInfo.id;
+				if ( findById(oldValue) ) {
+					// found, updating
+					QueryHelper h = new QueryHelper(fileInfo, oldValue);
+					h.update(fileInfo.id);
+					authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+				} else {
+					oldValue = new FileInfo();
+					QueryHelper h = new QueryHelper(fileInfo, oldValue);
+					fileInfo.id = h.insert();
+				}
 			} else {
-				oldValue = new FileInfo();
+				FileInfo oldValue = new FileInfo();
 				QueryHelper h = new QueryHelper(fileInfo, oldValue);
 				fileInfo.id = h.insert();
 			}
-		} else {
-			FileInfo oldValue = new FileInfo();
-			QueryHelper h = new QueryHelper(fileInfo, oldValue);
-			fileInfo.id = h.insert();
-		}
-		fileInfo.setModified(false);
-		if ( fileInfo.id!=null ) {
-			if ( authorsChanged ) {
-				Long[] authorIds = getAuthorIds(fileInfo.authors);
-				saveBookAuthors(fileInfo.id, authorIds);
+			fileInfo.setModified(false);
+			if ( fileInfo.id!=null ) {
+				if ( authorsChanged ) {
+					Long[] authorIds = getAuthorIds(fileInfo.authors);
+					saveBookAuthors(fileInfo.id, authorIds);
+				}
+				return true;
 			}
-			return true;
+			return false;
+		} catch (SQLiteDiskIOException e) {
+			throw new SQLiteDiskIOException("error while writing to DB " + mDBFile + ": " + e.getMessage());
 		}
-		return false;
 	}
 
     public void flush()

@@ -3829,6 +3829,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( dx < maxdx ) {
 				// start
 				int index = dx>=0 ? dx * SIN_TABLE_SIZE / maxdx : 0;
+				if (index > DST_TABLE.length)
+					index = DST_TABLE.length;
 				int dstv = DST_TABLE[index] * maxdistortdx / SIN_TABLE_SCALE;
 				distortdststart = distortsrcstart = dstdx - dstv;
 				distortsrcend = srcdx;

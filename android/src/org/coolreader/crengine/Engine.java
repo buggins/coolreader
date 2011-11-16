@@ -450,7 +450,8 @@ public class Engine {
 					// mProgress.hide();
 					progressShown = false;
 					progressIcon = null;
-					mProgress.dismiss();
+					if (mProgress.isShowing())
+						mProgress.dismiss();
 					mProgress = null;
 //					log.v("hideProgress() - in GUI thread, finished");
 				}
