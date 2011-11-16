@@ -250,7 +250,7 @@ public class FileBrowser extends ListView {
 
 	protected void showParentDirectory()
 	{
-		if ( currDirectory.parent!=null ) {
+		if (currDirectory != null && currDirectory.parent != null) {
 			showDirectory(currDirectory.parent, currDirectory);
 		}
 	}
