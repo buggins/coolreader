@@ -102,6 +102,9 @@ public interface Settings {
     public static final String PROP_APP_SCREEN_UPDATE_INTERVAL  ="app.screen.update.interval";
     public static final String PROP_APP_SECONDARY_TAP_ACTION_TYPE  ="app.touch.secondary.action.type";
 
+    public static final String PROP_APP_VIEW_AUTOSCROLL_SPEED  ="app.view.autoscroll.speed";
+    public static final String PROP_APP_VIEW_AUTOSCROLL_TYPE  ="app.view.autoscroll.type";
+    
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;
     public static final int SELECTION_ACTION_COPY = 1;

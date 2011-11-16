@@ -1644,16 +1644,36 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return mSettings.getProperty(name);
 	}
 
-	public void setSetting( String name, String value ) {
+	private int lastSaveSettingsRequestId = 0;
+	
+	public void scheduleSaveSettings(int delayMillis) {
+		final int mySaveSettingsRequestId = ++lastSaveSettingsRequestId;
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				if (mySaveSettingsRequestId == lastSaveSettingsRequestId)
+					mActivity.saveSettings(mSettings);
+			}
+		});
+	}
+	
+	public void setSetting(String name, String value, boolean invalidateImages, boolean save) {
 		Properties settings = getSettings();
 		settings.put(name, value);
 		setSettings(settings, null, false);
-		invalidImages = true;
+		if (invalidateImages)
+			invalidImages = true;
+		if (save) {
+			scheduleSaveSettings(3000);
+		}
+	}
+	
+	public void setSetting( String name, String value ) {
+		setSetting(name, value, true, false);
 	}
 	
 	public void saveSetting( String name, String value ) {
-		mSettings.setProperty(name, value);
-		mActivity.saveSettings(mSettings);
+		setSetting(name, value, true, true);
 	}
 	
 	public void toggleScreenOrientation()
@@ -1833,16 +1853,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			startAutoScroll();
 	}
 	
+	private final static boolean AUTOSCROLL_SPEED_NOTIFICATION_ENABLED = false;
 	private void notifyAutoscroll(final String msg) {
 		if (DeviceInfo.EINK_SCREEN)
 			return; // disable toast for eink
-		final int myId = ++autoScrollNotificationId;
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				if (myId == autoScrollNotificationId)
-					mActivity.showToast(msg);
-			}}, 1000);
+		if (AUTOSCROLL_SPEED_NOTIFICATION_ENABLED) {
+			final int myId = ++autoScrollNotificationId;
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					if (myId == autoScrollNotificationId)
+						mActivity.showToast(msg);
+				}}, 1000);
+		}
 	}
 	
 	private void notifyAutoscrollSpeed() {
@@ -1851,23 +1874,24 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	private void changeAutoScrollSpeed(int delta) {
-		if (autoScrollSpeed<200)
-			delta *= 5;
-		else if (autoScrollSpeed<500)
+		if (autoScrollSpeed<300)
 			delta *= 10;
-		else if (autoScrollSpeed<1000)
+		else if (autoScrollSpeed<500)
 			delta *= 20;
+		else if (autoScrollSpeed<1000)
+			delta *= 40;
 		else if (autoScrollSpeed<2000)
-			delta *= 50;
+			delta *= 80;
 		else if (autoScrollSpeed<5000)
-			delta *= 100;
-		else
 			delta *= 200;
+		else
+			delta *= 300;
 		autoScrollSpeed += delta;
 		if (autoScrollSpeed < 200)
 			autoScrollSpeed = 200;
 		if (autoScrollSpeed > 10000)
 			autoScrollSpeed = 10000;
+		setSetting(PROP_APP_VIEW_AUTOSCROLL_SPEED, String.valueOf(autoScrollSpeed), false, true);
 		notifyAutoscrollSpeed();
 	}
 	
@@ -2492,6 +2516,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		// ignore
         	}
         	mActivity.setScreenOrientation(orientation);
+        } else if (PROP_APP_VIEW_AUTOSCROLL_SPEED.equals(key)) {
+        	int n = 1500;
+        	try {
+        		n = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+        	if (n < 200)
+        		n = 200;
+        	if (n > 10000)
+        		n = 10000;
+        	autoScrollSpeed = n;
         } else if ( PROP_PAGE_ANIMATION.equals(key) ) {
         	try {
         		int n = Integer.valueOf(value);
