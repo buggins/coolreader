@@ -670,11 +670,15 @@ public class Scanner {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {
 			FileInfo item = mRoot.getDir(i);
 			if ( !item.isSpecialDir() && !item.isArchive ) {
-				FileInfo books = item.findItemByPathName(item.pathname+"/Books");
-				if ( books.exists() )
+				FileInfo books = item.findItemByPathName(item.pathname + "/Books");
+				if (books == null)
+					books = item.findItemByPathName(item.pathname + "/books");
+				if (books != null && books.exists())
 					return books;
 				File dir = new File(item.getPathName());
-				if ( dir.isDirectory() && dir.canWrite() ) {
+				if (dir.isDirectory()) {
+					if (!dir.canWrite())
+						Log.w("cr3", "Directory " + dir + " is readonly");
 					File f = new File( dir, "Books" );
 					if ( f.mkdirs() ) {
 						books = new FileInfo(f);

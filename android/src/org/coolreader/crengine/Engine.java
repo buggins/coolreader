@@ -934,8 +934,10 @@ public class Engine {
 					}
 					if ( skip )
 						continue;
-					if ( !f.canWrite() )
+					if ( !f.canWrite() ) {
+						L.i("Path is readonly: " + f.getAbsolutePath());
 						continue;
+					}
 					L.i("Found possible mount point " + f.getAbsolutePath());
 					addMountRoot(list, f.getAbsolutePath(), f.getAbsolutePath());
 				}
