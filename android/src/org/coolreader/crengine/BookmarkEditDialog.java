@@ -19,10 +19,9 @@ public class BookmarkEditDialog extends BaseDialog {
 	private final Bookmark mOriginalBookmark;
 	private final Bookmark mBookmark;
 	private final boolean mIsNew;
-	private final BookInfo mBookInfo;
 	final EditText commentEdit;
 	
-	public BookmarkEditDialog( CoolReader activity, ReaderView readerView, BookInfo bookInfo, Bookmark bookmark, boolean isNew)
+	public BookmarkEditDialog( CoolReader activity, ReaderView readerView, Bookmark bookmark, boolean isNew)
 	{
 		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, false);
 		mCoolReader = activity;
@@ -33,7 +32,6 @@ public class BookmarkEditDialog extends BaseDialog {
 			mBookmark = new Bookmark(bookmark);
 		else
 			mBookmark = bookmark;
-		mBookInfo = bookInfo;
 		boolean isComment = bookmark.getType()==Bookmark.TYPE_COMMENT;
 		setTitle(mCoolReader.getString( mIsNew ? R.string.dlg_bookmark_create : R.string.dlg_bookmark_edit));
 		mInflater = LayoutInflater.from(getContext());
@@ -86,10 +84,12 @@ public class BookmarkEditDialog extends BaseDialog {
 	protected void onPositiveButtonClick() {
 		if ( mIsNew ) {
 			mBookmark.setCommentText( commentEdit.getText().toString() );
-			mBookInfo.addBookmark(mBookmark);
+			mReaderView.addBookmark(mBookmark);
 		} else {
-			if ( mOriginalBookmark.setCommentText(mBookmark.getCommentText()) )
+			if ( mOriginalBookmark.setCommentText(mBookmark.getCommentText()) ) {
 				mOriginalBookmark.setTimeStamp(System.currentTimeMillis());
+				mReaderView.updateBookmark(mBookmark);
+			}
 		}
 		super.onPositiveButtonClick();
 	}

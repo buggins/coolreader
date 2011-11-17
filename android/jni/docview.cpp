@@ -690,7 +690,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageInternal
   (JNIEnv * _env, jobject view, jint x, jint y, jobject imageInfo)
 {
-    CRLog::trace("checkImageInternal entered");
+    //CRLog::trace("checkImageInternal entered");
 	CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, view);
     int dx, dy;
@@ -709,6 +709,27 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageIntern
     CRIntField(acc,"y").set(0);
 	return JNI_TRUE;
 }
+
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    checkBookmarkInternal
+ * Signature: (IILorg/coolreader/crengine/Bookmark;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkBookmarkInternal
+  (JNIEnv * _env, jobject view, jint x, jint y, jobject bmk) {
+    //CRLog::trace("checkBookmarkInternal entered");
+	CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, view);
+    CRObjectAccessor acc(_env, bmk);
+    CRBookmark * found = p->_docview->findBookmarkByPoint(lvPoint(x, y));
+    if (!found)
+		return JNI_FALSE;
+    CRIntField(acc,"type").set(found->getType());
+    CRStringField(acc,"startPos").set(found->getStartPos());
+    CRStringField(acc,"endPos").set(found->getEndPos());
+	return JNI_TRUE;
+}
+
 
 /*
  * Class:     org_coolreader_crengine_DocView

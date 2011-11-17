@@ -26,9 +26,12 @@ public class Bookmark {
 	public int getType() {
 		return type;
 	}
-	public void setType(int type) {
+	public boolean setType(int type) {
+		if (this.type == type)
+			return false;
 		this.type = type;
 		modified = true;
+		return true;
 	}
 	public int getPercent() {
 		return percent;
