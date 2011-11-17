@@ -1243,6 +1243,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			// check link before executing action
 			mEngine.execute(new Task() {
 				ImageInfo image;
+				Bookmark bookmark;
 				public void work() {
 					image = new ImageInfo();
 					image.bufWidth = internalDX;
@@ -1250,11 +1251,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					image.bufDpi = mActivity.getDensityDpi();
 					if (!doc.checkImage(start_x, start_y, image))
 						image = null;
+					bookmark = doc.checkBookmark(start_x, start_y);
+					if (bookmark != null && bookmark.getType() == Bookmark.TYPE_POSITION)
+						bookmark = null;
 				}
 				public void done() {
+					if (bookmark != null)
+						bookmark = mBookInfo.findBookmark(bookmark);
 					if (image != null) {
 						cancel();
 						startImageViewer(image);
+					} else if (bookmark != null) {
+						cancel();
+						BookmarkEditDialog dlg = new BookmarkEditDialog(mActivity, ReaderView.this, bookmark, false);
+						dlg.show();
 					} else {
 						updateSelection( start_x, start_y, start_x, start_y, false );
 					}

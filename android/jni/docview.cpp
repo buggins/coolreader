@@ -717,13 +717,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageIntern
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkBookmarkInternal
   (JNIEnv * _env, jobject view, jint x, jint y, jobject bmk) {
-    //CRLog::trace("checkBookmarkInternal entered");
 	CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, view);
     CRObjectAccessor acc(_env, bmk);
+    //CRLog::trace("checkBookmarkInternal(%d, %d)", x, y);
     CRBookmark * found = p->_docview->findBookmarkByPoint(lvPoint(x, y));
     if (!found)
 		return JNI_FALSE;
+    //CRLog::trace("checkBookmarkInternal - found bookmark of type %d", found->getType());
     CRIntField(acc,"type").set(found->getType());
     CRStringField(acc,"startPos").set(found->getStartPos());
     CRStringField(acc,"endPos").set(found->getEndPos());
