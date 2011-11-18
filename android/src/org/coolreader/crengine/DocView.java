@@ -243,6 +243,22 @@ public class DocView {
 	}
 
 	/**
+	 * Check whether point of current document belongs to bookmark.
+	 *  
+	 * @param x is X coordinate in document window
+	 * @param y is Y coordinate in document window
+	 * @return bookmark if point belongs to bookmark, null otherwise
+	 */
+	public Bookmark checkBookmark(int x, int y) {
+		Bookmark dstBookmark = new Bookmark();
+		if (checkBookmarkInternal(x, y, dstBookmark)) {
+			return dstBookmark;
+		}
+		return null;
+	}
+	
+	
+	/**
 	 * Draws currently opened image to bitmap.
 	 * @param bitmap is destination bitmap
 	 * @param imageInfo contains image position and scaling parameters.
@@ -322,6 +338,8 @@ public class DocView {
 	private native String checkLinkInternal(int x, int y, int delta);
 
 	private native boolean checkImageInternal(int x, int y, ImageInfo dstImage);
+
+	private native boolean checkBookmarkInternal(int x, int y, Bookmark dstBookmark);
 
 	private native boolean drawImageInternal(Bitmap bitmap, int bpp, ImageInfo dstImage);
 

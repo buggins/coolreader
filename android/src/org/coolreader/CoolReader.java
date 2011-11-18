@@ -1129,7 +1129,7 @@ public class CoolReader extends Activity
 	public void showToast( String msg )
 	{
 		log.v("showing toast: " + msg);
-		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
+		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
 		toast.show();
 	}
 

@@ -209,6 +209,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageIntern
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    checkBookmarkInternal
+ * Signature: (IILorg/coolreader/crengine/Bookmark;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkBookmarkInternal
+  (JNIEnv *, jobject, jint, jint, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    drawImageInternal
  * Signature: (Landroid/graphics/Bitmap;ILorg/coolreader/crengine/ImageInfo;)Z
  */

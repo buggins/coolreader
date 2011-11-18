@@ -171,6 +171,8 @@ static lChar16 getReplacementChar( lUInt16 code ) {
     case 0x201d:
     case 0x201e:
     case 0x201f:
+    case 0x00ab:
+    case 0x00bb:
         return '\"';
     case 0x2039:
         return '<';

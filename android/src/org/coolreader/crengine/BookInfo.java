@@ -84,21 +84,65 @@ public class BookInfo {
 		return bookmarks.get(index);
 	}
 
-	synchronized public Bookmark removeBookmark( Bookmark bm )
+	synchronized public Bookmark findBookmark(Bookmark bm)
 	{
 		if ( bm==null )
 			return null;
+		int index = findBookmarkIndex(bm);
+		if (index < 0)
+			return null;
+		return bookmarks.get(index);
+	}
+
+	private int findBookmarkIndex(Bookmark bm)
+	{
+		if ( bm==null )
+			return -1;
 		int index = -1;
 		for ( int i=0; i<bookmarks.size(); i++ ) {
-			if ( bm.getShortcut()>0 && bookmarks.get(0).getShortcut()==bm.getShortcut() ) {
+			Bookmark item = bookmarks.get(i);
+			if ( bm.getShortcut()>0 && item.getShortcut()==bm.getShortcut() ) {
 				index = i;
 				break;
 			}
-			if ( bm.getStartPos()!=null && bm.getStartPos().equals(bookmarks.get(i).getStartPos())) {
-				index = i;
-				break;
+			if ( bm.getStartPos()!=null && bm.getStartPos().equals(item.getStartPos())) {
+				if (bm.getType() == Bookmark.TYPE_POSITION) {
+					index = i;
+					break;
+				}
+				if (bm.getEndPos()!=null && bm.getEndPos().equals(item.getEndPos())) {
+					if (item.getId() != null && bm.getId() != null && bm.getId() != item.getId())
+						continue; // another bookmark with same pos
+					index = i;
+					break;
+				}
 			}
 		}
+		return index;
+	}
+
+	synchronized public Bookmark updateBookmark(Bookmark bm)
+	{
+		if ( bm==null )
+			return null;
+		int index = findBookmarkIndex(bm);
+		if ( index<0 ) {
+			Log.e("cr3", "cannot find bookmark " + bm);
+			return null;
+		}
+		Bookmark item = bookmarks.get(index);
+		item.setTimeStamp(bm.getTimeStamp());
+		item.setPosText(bm.getPosText());
+		item.setCommentText(bm.getCommentText());
+		if (!item.isModified())
+			return null;
+		return item;
+	}
+	synchronized public Bookmark removeBookmark(Bookmark bm)
+	{
+		if ( bm==null )
+			return null;
+		int index = findBookmarkIndex(bm);
 		if ( index<0 ) {
 			Log.e("cr3", "cannot find bookmark " + bm);
 			return null;

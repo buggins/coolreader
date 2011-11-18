@@ -757,7 +757,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		bmk.setEndPos(sel.endPos);
 		bmk.setPercent(sel.percent);
 		bmk.setTitleText(sel.chapter);
-		BookmarkEditDialog dlg = new BookmarkEditDialog(mActivity, this, mBookInfo, bmk, true);
+		BookmarkEditDialog dlg = new BookmarkEditDialog(mActivity, this, bmk, true);
 		dlg.show();
 	}
 	
@@ -1159,6 +1159,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mEngine.execute(new Task() {
 				String link;
 				ImageInfo image;
+				Bookmark bookmark;
 				public void work() {
 					image = new ImageInfo();
 					image.bufWidth = internalDX;
@@ -1175,13 +1176,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							doc.goLink(link);
 							drawPage();
 						}
-					}
+						return;
+					} 
+					bookmark = doc.checkBookmark(start_x, start_y);
+					if (bookmark != null && bookmark.getType() == Bookmark.TYPE_POSITION)
+						bookmark = null;
 				}
 				public void done() {
-					if (link == null && image == null) {
+					if (bookmark != null)
+						bookmark = mBookInfo.findBookmark(bookmark);
+					if (link == null && image == null && bookmark == null) {
 						onAction(action);
 					} else if (image != null) {
 						startImageViewer(image);
+					} else if (bookmark != null) {
+						BookmarkEditDialog dlg = new BookmarkEditDialog(mActivity, ReaderView.this, bookmark, false);
+						dlg.show();
 					} else if (!link.startsWith("#")) {
 						log.d("external link " + link);
 						if (link.startsWith("http://")||link.startsWith("https://")) {
@@ -1233,6 +1243,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			// check link before executing action
 			mEngine.execute(new Task() {
 				ImageInfo image;
+				Bookmark bookmark;
 				public void work() {
 					image = new ImageInfo();
 					image.bufWidth = internalDX;
@@ -1240,11 +1251,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					image.bufDpi = mActivity.getDensityDpi();
 					if (!doc.checkImage(start_x, start_y, image))
 						image = null;
+					bookmark = doc.checkBookmark(start_x, start_y);
+					if (bookmark != null && bookmark.getType() == Bookmark.TYPE_POSITION)
+						bookmark = null;
 				}
 				public void done() {
+					if (bookmark != null)
+						bookmark = mBookInfo.findBookmark(bookmark);
 					if (image != null) {
 						cancel();
 						startImageViewer(image);
+					} else if (bookmark != null) {
+						cancel();
+						BookmarkEditDialog dlg = new BookmarkEditDialog(mActivity, ReaderView.this, bookmark, false);
+						dlg.show();
 					} else {
 						updateSelection( start_x, start_y, start_x, start_y, false );
 					}
@@ -1532,32 +1552,32 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		return;
 		mEngine.post(new Task() {
 			public void work() throws Exception {
-				BackgroundThread.ensureBackground();
 				doc.clearSelection();
 				invalidImages = true;
 			}
 			public void done() {
-				BackgroundThread.ensureGUI();
-//				drawPage();
-				drawPage(true);
+				if (isShown())
+					drawPage(true);
 			}
 		});
     }
     
-    public void updateBookmarks() {
+    public void highlightBookmarks() {
+		BackgroundThread.ensureGUI();
+    	if (mBookInfo == null || !isBookLoaded())
+    		return;
     	int count = mBookInfo.getBookmarkCount();
     	final Bookmark[] list = (count > 0 && flgHighlightBookmarks) ? new Bookmark[count] : null; 
     	for (int i=0; i<count && flgHighlightBookmarks; i++)
     		list[i] = mBookInfo.getBookmark(i);
 		mEngine.post(new Task() {
 			public void work() throws Exception {
-				BackgroundThread.ensureBackground();
 		    	doc.hilightBookmarks(list);
 				invalidImages = true;
 			}
 			public void done() {
-				BackgroundThread.ensureGUI();
-				drawPage(true);
+				if (isShown())
+					drawPage(true);
 			}
 		});
     }
@@ -1595,6 +1615,32 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return false;
 	}
 	
+	public Bookmark removeBookmark(final Bookmark bookmark) {
+		Bookmark removed = mBookInfo.removeBookmark(bookmark);
+		if (removed != null) {
+			if ( removed.getId()!=null ) {
+				mActivity.getDB().deleteBookmark(removed);
+			}
+			highlightBookmarks();
+		}
+		return removed;
+	}
+
+	public Bookmark updateBookmark(final Bookmark bookmark) {
+		Bookmark bm = mBookInfo.updateBookmark(bookmark);
+		if (bm != null) {
+			if (mBookInfo.getFileInfo().id != null)
+				mActivity.getDB().save(mBookInfo);
+	        highlightBookmarks();
+		}
+		return bm;
+	}
+	
+	public void addBookmark(final Bookmark bookmark) {
+		mBookInfo.addBookmark(bookmark);
+        highlightBookmarks();
+	}
+	
 	public void addBookmark( final int shortcut )
 	{
 		BackgroundThread.ensureGUI();
@@ -1622,8 +1668,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						s = mActivity.getString(R.string.toast_shortcut_bookmark_is_set);
 						s.replace("$1", String.valueOf(shortcut));
 					}
+			        highlightBookmarks();
 					mActivity.showToast(s);
-			        updateBookmarks();
 				}
 			}
 		});
@@ -4330,7 +4376,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        }
 		        mOpened = true;
 		        
-		        updateBookmarks();
+		        highlightBookmarks();
 		        
 		        drawPage();
 		        mBackThread.postGUI(new Runnable() {

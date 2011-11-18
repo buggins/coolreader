@@ -286,8 +286,8 @@ public class BookmarksDlg  extends BaseDialog {
 			@Override
 			public void run() {
 				// add bookmark
-				BookmarksDlg.this.dismiss();
 				mReaderView.addBookmark(0);
+				BookmarksDlg.this.dismiss();
 			}
 		});
 	}
@@ -300,6 +300,11 @@ public class BookmarksDlg  extends BaseDialog {
 		super.onCreate(savedInstanceState);
 		registerForContextMenu(mList);
 	}
+	
+	private void listUpdated() {
+		mList.setShortcutMode(mList.isShortcutMode());
+	}
+	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		
@@ -310,15 +315,12 @@ public class BookmarksDlg  extends BaseDialog {
 				switch (item.getItemId()) {
 				case R.id.bookmark_shortcut_add:
 					mReaderView.addBookmark(shortcut+1);
+					listUpdated();
 					dismiss();
 					return true;
 				case R.id.bookmark_delete:
-					Bookmark removed = mBookInfo.removeBookmark(bm);
-					if ( removed.getId()!=null ) {
-						mCoolReader.getDB().deleteBookmark(removed);
-						mList.setShortcutMode(mList.isShortcutMode());
-					}
-					mReaderView.updateBookmarks();
+					if (mReaderView.removeBookmark(bm) != null)
+						listUpdated();
 					return true;
 				case R.id.bookmark_shortcut_goto:
 					mReaderView.goToBookmark(shortcut+1);
@@ -331,15 +333,12 @@ public class BookmarksDlg  extends BaseDialog {
 		switch (item.getItemId()) {
 		case R.id.bookmark_add:
 			mReaderView.addBookmark(0);
+			listUpdated();
 			dismiss();
 			return true;
 		case R.id.bookmark_delete:
-			Bookmark removed = mBookInfo.removeBookmark(bm);
-			if ( removed.getId()!=null ) {
-				mCoolReader.getDB().deleteBookmark(removed);
-				mList.setShortcutMode(mList.isShortcutMode());
-			}
-			mReaderView.updateBookmarks();
+			if (mReaderView.removeBookmark(bm) != null)
+				listUpdated();
 			return true;
 		case R.id.bookmark_goto:
 			if ( bm!=null )
@@ -348,7 +347,7 @@ public class BookmarksDlg  extends BaseDialog {
 			return true;
 		case R.id.bookmark_edit:
 			if ( bm!=null && (bm.getType()==Bookmark.TYPE_COMMENT || bm.getType()==Bookmark.TYPE_CORRECTION)) {
-				BookmarkEditDialog dlg = new BookmarkEditDialog(mCoolReader, mReaderView, mBookInfo, bm, false);
+				BookmarkEditDialog dlg = new BookmarkEditDialog(mCoolReader, mReaderView, bm, false);
 				dlg.show();
 			}
 			dismiss();
