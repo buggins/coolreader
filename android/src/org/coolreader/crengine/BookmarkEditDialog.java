@@ -91,7 +91,6 @@ public class BookmarkEditDialog extends BaseDialog {
 				mReaderView.updateBookmark(mBookmark);
 			}
 		}
-		mReaderView.updateBookmarks();
 		super.onPositiveButtonClick();
 	}
 

@@ -443,7 +443,8 @@ xml:base="http://lib.ololo.cc/opds/">
 						delayedProgress.cancel();
 						delayedProgress.hide();
 					}
-					coolReader.getEngine().hideProgress();
+					if (coolReader.getEngine() != null)
+						coolReader.getEngine().hideProgress();
 					callback.onError(msg);
 				}
 			});
