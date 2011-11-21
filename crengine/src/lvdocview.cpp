@@ -5352,6 +5352,8 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
 			fontMan->SetAntialiasMode(antialiasingMode);
 			requestRender();
+        } else if (name.startsWith(lString8("styles."))) {
+            requestRender();
         } else if (name == PROP_FONT_GAMMA) {
             double gamma = 1.0;
             lString16 s = props->getStringDef(PROP_FONT_GAMMA, "1.0");
