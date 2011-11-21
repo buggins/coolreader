@@ -390,17 +390,22 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
             bool err = false;
             for (; *s2 && *s2 != ';' && *s2 != '}' &&  *s2 != ' '; s2++) {
                 char ch = *s2;
-                if (ch != '.' && (ch < 'a' || ch > 'z')) {
+                if (ch != '.' && ch != '-' && (ch < 'a' || ch > 'z')) {
                     err = true;
                 }
             }
             if (!err) {
                 // substitute variable
-                lString8 prop(s, s2 - s);
+                lString8 prop(s + 1, s2 - s - 1);
                 lString16 v;
                 props->getString(prop.c_str(), v);
-                if (!v.empty())
+                if (!v.empty()) {
+                    if (v.lastChar() != ';')
+                        v.append(1, ';');
+                    if (v.lastChar() != ' ')
+                        v.append(1, ' ');
                     res.append(UnicodeToUtf8(v));
+                }
             }
             s = s2;
         } else {
@@ -418,7 +423,7 @@ void LVDocView::setStyleSheet(lString8 css_text) {
 }
 
 void LVDocView::updateDocStyleSheet() {
-    CRPropRef p = m_props->getSubProps("styles");
+    CRPropRef p = m_props->getSubProps("styles.");
     m_doc->setStyleSheet(substituteCssMacros(m_stylesheet, p).c_str(), true);
 }
 
@@ -3593,7 +3598,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			setDocFormat( doc_format_chm );
 			if ( m_callback )
 			m_callback->OnLoadFileFormatDetected(doc_format_chm);
-			m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+            updateDocStyleSheet();
             bool res = ImportCHMDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
@@ -5305,6 +5310,11 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
 
     props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
+
+    // default paragraph alignment
+    props->setStringDef("styles.def.align", "text-align: justify");
+    // default paragraph delimiter
+    props->setStringDef("styles.def.delim", "text-indent: 1.2em; margin-top: 0em; margin-bottom: 0em");
 }
 
 #define H_MARGIN 8
