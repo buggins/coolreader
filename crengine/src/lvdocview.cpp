@@ -381,11 +381,45 @@ void LVDocView::setPageHeaderInfo(int hdrFlags) {
 	}
 }
 
+lString8 substituteCssMacros(lString8 src, CRPropRef props) {
+    lString8 res = lString8(src.length());
+    const char * s = src.c_str();
+    for (; *s; s++) {
+        if (*s == '$') {
+            const char * s2 = s + 1;
+            bool err = false;
+            for (; *s2 && *s2 != ';' && *s2 != '}' &&  *s2 != ' '; s2++) {
+                char ch = *s2;
+                if (ch != '.' && (ch < 'a' || ch > 'z')) {
+                    err = true;
+                }
+            }
+            if (!err) {
+                // substitute variable
+                lString8 prop(s, s2 - s);
+                lString16 v;
+                props->getString(prop.c_str(), v);
+                if (!v.empty())
+                    res.append(UnicodeToUtf8(v));
+            }
+            s = s2;
+        } else {
+            res.append(1, *s);
+        }
+    }
+    return res;
+}
+
 /// set document stylesheet text
 void LVDocView::setStyleSheet(lString8 css_text) {
 	LVLock lock(getMutex());
 	requestRender();
-	m_stylesheet = css_text;
+    m_stylesheet = css_text;
+}
+
+void LVDocView::updateDocStyleSheet() {
+    CRPropRef p = m_props->getSubProps("styles");
+    m_doc->setStyleSheet(substituteCssMacros(m_stylesheet, p).c_str(), true);
 }
 
 void LVDocView::Clear() {
@@ -3436,7 +3470,7 @@ void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
 	writer.OnTagClose(NULL, L"FictionBook");
 
 	// set stylesheet
-	m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+    updateDocStyleSheet();
 	//m_doc->getStyleSheet()->clear();
 	//m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
@@ -3488,7 +3522,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             setDocFormat( pdbFormat );
             if ( m_callback )
                 m_callback->OnLoadFileFormatDetected(pdbFormat);
-            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+            updateDocStyleSheet();
             doc_format_t contentFormat = doc_format_none;
             bool res = ImportPDBDocument( m_stream, m_doc, m_callback, this, contentFormat );
             if ( !res ) {
@@ -3515,12 +3549,12 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			// EPUB
 			CRLog::info("EPUB format detected");
 			createEmptyDocument();
-			m_doc->setProps( m_doc_props );
+            m_doc->setProps( m_doc_props );
 			setRenderProps( 0, 0 ); // to allow apply styles and rend method while loading
 			setDocFormat( doc_format_epub );
 			if ( m_callback )
                 m_callback->OnLoadFileFormatDetected(doc_format_epub);
-            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+            updateDocStyleSheet();
             bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
@@ -3592,7 +3626,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             setDocFormat( doc_format_doc );
             if ( m_callback )
                 m_callback->OnLoadFileFormatDetected(doc_format_doc);
-            m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+            updateDocStyleSheet();
             bool res = ImportWordDocument( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
@@ -3836,7 +3870,7 @@ void LVDocView::OnCacheFileFormatDetected( doc_format_t fmt )
         m_callback->OnLoadFileFormatDetected(getDocFormat());
     }
     // set stylesheet
-    m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+    updateDocStyleSheet();
 }
 
 void LVDocView::insertBookmarkPercentInfo(int start_page, int end_y, int percent)
@@ -3872,7 +3906,7 @@ bool LVDocView::ParseDocument() {
 				UnicodeToUtf8(fn).c_str(), crc);
 
 		// set stylesheet
-		m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+        updateDocStyleSheet();
 		//m_doc->getStyleSheet()->clear();
 		//m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
@@ -3979,7 +4013,7 @@ bool LVDocView::ParseDocument() {
 		if (m_callback) {
 			m_callback->OnLoadFileFormatDetected(getDocFormat());
 		}
-		m_doc->setStyleSheet(m_stylesheet.c_str(), true);
+        updateDocStyleSheet();
 		setRenderProps(0, 0);
 
 		// set stylesheet

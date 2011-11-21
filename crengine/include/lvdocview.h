@@ -491,6 +491,8 @@ private:
     virtual void OnCacheFileFormatDetected( doc_format_t fmt );
     void insertBookmarkPercentInfo(int start_page, int end_y, int percent);
 
+    void updateDocStyleSheet();
+
 protected:
     /// draw to specified buffer by either Y pos or page number (unused param should be -1)
     void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate );
