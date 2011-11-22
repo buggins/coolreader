@@ -2333,7 +2333,10 @@ void LVDocView::setRenderProps(int dx, int dy) {
 			DEFAULT_FONT_FAMILY, m_statusFontFace);
 	if (!m_font || !m_infoFont)
 		return;
-	m_doc->setRenderProps(dx, dy, m_showCover, m_showCover ? dy
+
+    updateDocStyleSheet();
+
+    m_doc->setRenderProps(dx, dy, m_showCover, m_showCover ? dy
             + m_pageMargins.bottom * 4 : 0, m_font, m_def_interline_space, m_props);
 }
 

@@ -27,6 +27,49 @@ namespace Ui {
 
 #define DECL_DEF_CR_FONT_SIZES static int cr_font_sizes[] = { 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 28, 32, 38, 42, 48, 56, 64, 72 }
 
+
+struct StyleItem {
+    QString paramName;
+    QStringList values;
+    QStringList titles;
+    int currentIndex;
+    QComboBox * cb;
+    PropsRef props;
+    bool updating;
+    void init(QString param, const char * defValue, const char * styleValues[], QString styleTitles[], bool allowFirstItem, PropsRef props, QComboBox * cb) {
+        updating = true;
+        paramName = param;
+        this->cb = cb;
+        this->props = props;
+        currentIndex = -1;
+        values.clear();
+        titles.clear();
+
+        QString currentValue = props->getStringDef(param.toUtf8().constData(), defValue);
+
+        for (int i=allowFirstItem ? 0 : 1; styleValues[i]; i++) {
+            if (currentValue == styleValues[i])
+                currentIndex = allowFirstItem ? i : i-1;
+            values.append(styleValues[i]);
+            titles.append(styleTitles[i]);
+        }
+        if (currentIndex == -1)
+            currentIndex = 0;
+        cb->clear();
+        cb->addItems(titles);
+        cb->setCurrentIndex(currentIndex);
+        props->setString(param.toUtf8().constData(), values.at(currentIndex).toUtf8().constData());
+        updating = false;
+    }
+    void update(int newIndex) {
+        if (updating)
+            return;
+        currentIndex = newIndex;
+        const char * pname = paramName.toUtf8().constData();
+        props->setString(pname, values.at(currentIndex).toUtf8().constData());
+    }
+};
+
 class CR3View;
 class SettingsDlg : public QDialog {
     Q_OBJECT
@@ -46,6 +89,8 @@ protected:
     void optionToUiInversed( const char * optionName, QCheckBox * cb );
     void fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo, const char * defFontFace );
 
+    void initStyleControls(const char * styleName);
+
     QColor getColor( const char * optionName, unsigned def );
     void setColor( const char * optionName, QColor cl );
     void colorDialog( const char * optionName, QString title );
@@ -59,6 +104,10 @@ private:
     PropsRef m_props;
     QString m_oldHyph;
     QStringList m_backgroundFiles;
+    QString m_styleName;
+    StyleItem m_styleItemAlignment;
+    StyleItem m_styleItemDelim;
+    QStringList m_styleNames;
 
 private slots:
     void on_cbPageSkin_currentIndexChanged(int index);
@@ -91,6 +140,9 @@ private slots:
     void on_buttonBox_rejected();
     void on_cbFloatingPunctuation_stateChanged(int );
     void on_cbFontGamma_currentIndexChanged(QString );
+    void on_cbDefAlignment_currentIndexChanged(int index);
+    void on_cbDefDelimiters_currentIndexChanged(int index);
+    void on_cbStyleName_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDLG_H

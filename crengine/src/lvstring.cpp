@@ -956,7 +956,7 @@ bool lString16::atoi( lInt64 &n ) const
     return *s=='\0' || *s==' ' || *s=='\t';
 }
 
-#define STRING_HASH_MULT 75317
+#define STRING_HASH_MULT 31
 lUInt32 lString16::getHash() const
 {
     lUInt32 res = 0;

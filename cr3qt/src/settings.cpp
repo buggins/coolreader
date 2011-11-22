@@ -13,7 +13,6 @@ DECL_DEF_CR_FONT_SIZES;
 
 static bool initDone = false;
 
-
 static void findImagesFromDirectory( lString16 dir, lString16Collection & files ) {
     LVAppendPathDelimiter(dir);
     if ( !LVDirectoryExists(dir) )
@@ -47,6 +46,12 @@ static void findBackgrounds( lString16Collection & baseDirs, lString16Collection
         findImagesFromDirectory( baseDir + L"textures", files );
     }
 }
+
+static const char * styleNames[] = {
+    "def",
+    "title",
+    NULL
+};
 
 static int interline_spaces[] = {75, 80, 85, 90, 95, 100, 110, 120, 140, 150};
 
@@ -225,6 +230,15 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->crSample->getDocView()->createDefaultDocument( lString16(), qt2cr(testPhrase+testPhrase+testPhrase) );
 
     updateStyleSample();
+
+    m_styleNames.clear();
+    m_styleNames.append(tr("Default paragraph style"));
+    m_styleNames.append(tr("Titles"));
+    m_ui->cbStyleName->clear();
+    m_ui->cbStyleName->addItems(m_styleNames);
+    m_ui->cbStyleName->setCurrentIndex(0);
+    initStyleControls("def");
+
     initDone = true;
 
     //m_ui->cbPageSkin->addItem(QString("[None]"), QVariant());
@@ -269,6 +283,45 @@ void SettingsDlg::optionToUi( const char * optionName, QCheckBox * cb )
     int state = ( m_props->getIntDef( optionName, 1 ) != 0 ) ? 1 : 0;
     CRLog::debug("optionToUI(%s,%d)", optionName, state);
     cb->setCheckState( state ? Qt::Checked : Qt::Unchecked );
+}
+
+void SettingsDlg::initStyleControls(const char * styleName) {
+    m_styleName = styleName;
+    QString prefix = QString("styles.") + styleName + ".";
+    bool enableInherited = strcmp(styleName, "def") != 0;
+    static const char * alignmentStyles[] = {
+        "", // inherited
+        "text-align: justify",
+        "text-align: left",
+        "text-align: center",
+        "text-align: right",
+        NULL,
+    };
+
+    QString alignmentStyleNames[] = {
+        tr("[Inherited]"),
+        tr("Justify"),
+        tr("Left"),
+        tr("Center"),
+        tr("Right"),
+    };
+    m_styleItemAlignment.init(prefix + "align", enableInherited ? "" : "text-align: justify", alignmentStyles, alignmentStyleNames, enableInherited, m_props, m_ui->cbDefAlignment);
+
+    static const char * delimStyles[] = {
+        "", // inherited
+        "text-indent: 1.2em; margin-top: 0em; margin-bottom: 0em",
+        "text-indent: 0em; margin-top: 0.5em; margin-bottom: 0.5em",
+        "text-indent: 1.2em; margin-top: 0.5em; margin-bottom: 0.5em",
+        NULL,
+    };
+
+    QString delimStyleNames[] = {
+        tr("[Inherited]"),
+        tr("First line indent"),
+        tr("Space"),
+        tr("Indent and space"),
+    };
+    m_styleItemDelim.init(prefix + "delim", NULL, delimStyles, delimStyleNames, enableInherited, m_props, m_ui->cbDefDelimiters);
 }
 
 void SettingsDlg::optionToUiString( const char * optionName, QComboBox * cb )
@@ -549,4 +602,20 @@ void SettingsDlg::on_cbFloatingPunctuation_stateChanged(int s)
 void SettingsDlg::on_cbFontGamma_currentIndexChanged(QString s)
 {
     m_props->setString( PROP_FONT_GAMMA, s );
+}
+
+void SettingsDlg::on_cbDefAlignment_currentIndexChanged(int index)
+{
+    m_styleItemAlignment.update(index);
+}
+
+void SettingsDlg::on_cbDefDelimiters_currentIndexChanged(int index)
+{
+    m_styleItemDelim.update(index);
+}
+
+void SettingsDlg::on_cbStyleName_currentIndexChanged(int index)
+{
+    if (index >= 0 && initDone)
+        initStyleControls(styleNames[index]);
 }
