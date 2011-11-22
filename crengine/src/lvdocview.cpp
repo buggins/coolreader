@@ -5190,6 +5190,25 @@ int LVDocView::onSelectionCommand( int cmd, int param )
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };
 static int cr_interline_spaces[] = { 100, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 160, 180, 200 };
 
+static const char * def_style_macros[] = {
+    "styles.def.align", "text-align: justify",
+    "styles.def.text-indent", "text-indent: 1.2em",
+    "styles.def.margin-top", "margin-top: 0em",
+    "styles.def.margin-bottom", "margin-bottom: 0em",
+    "styles.def.margin-left", "margin-left: 0em",
+    "styles.def.margin-right", "margin-right: 0em",
+    "styles.title.align", "text-align: center",
+    "styles.title.text-indent", "text-indent: 0em",
+    "styles.title.margin-top", "margin-top: 0.2em",
+    "styles.title.margin-bottom", "margin-bottom: 0.2em",
+    "styles.title.margin-left", "margin-left: 0em",
+    "styles.title.margin-right", "margin-right: 0em",
+    "styles.title.font-size", "font-size: 120%",
+    "styles.title.font-weight", "font-weight: bolder",
+    NULL,
+    NULL,
+};
+
 /// sets default property values if properties not found, checks ranges
 void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	lString16Collection list;
@@ -5314,10 +5333,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 
     props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
 
-    // default paragraph alignment
-    props->setStringDef("styles.def.align", "text-align: justify");
-    // default paragraph delimiter
-    props->setStringDef("styles.def.delim", "text-indent: 1.2em; margin-top: 0em; margin-bottom: 0em");
+    for (int i=0; def_style_macros[i*2]; i++)
+        props->setStringDef(def_style_macros[i * 2], def_style_macros[i * 2 + 1]);
 }
 
 #define H_MARGIN 8

@@ -1,6 +1,6 @@
 body { text-align: left; margin: 0; text-indent: 0px; /* justify */ }
 
-p { $def.align $def.delim } 
+p { $def.align $def.text-indent $def.margin-left $def.margin-right $def.margin-top $def.margin-bottom } 
 
 empty-line { height: 1em }
 
@@ -27,6 +27,7 @@ epigraph { margin-left: 15%; margin-right: 1em; text-align: left; text-indent: 1
 cite { font-style: italic; margin-left: 5%; margin-right: 5%; text-align: justify; margin-top: 20px; margin-bottom: 20px }
 
 title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { 
+    $title.align $title.text-indent $title.margin-left $title.margin-right $title.margin-top $title.margin-bottom
 	text-align: center; 
 	text-indent: 0px 
 }

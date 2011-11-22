@@ -872,6 +872,16 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
     }
 }
 
+lUInt32 LVCssDeclaration::getHash() {
+    if (!_data)
+        return 0;
+    int * p = _data;
+    lUInt32 hash = 0;
+    for (;*p != cssd_stop;p++)
+        hash = hash * 31 + *p;
+    return hash;
+}
+
 static bool parse_ident( const char * &str, char * ident )
 {
     *ident = 0;
@@ -1347,6 +1357,8 @@ lUInt32 LVCssSelector::getHash()
         hash = hash * 31 + ruleHash;
     }
     hash = hash * 31 + nextHash;
+    if (!_decl.isNull())
+        hash = hash * 31 + _decl->getHash();
     return hash;
 }
 

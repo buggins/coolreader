@@ -163,10 +163,9 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     if ( index >=0 )
         m_ui->cbLookAndFeel->setCurrentIndex( index );
 
-    QStringList faceList;
-    crGetFontFaceList( faceList );
-    m_ui->cbTextFontFace->addItems( faceList );
-    m_ui->cbTitleFontFace->addItems( faceList );
+    crGetFontFaceList( m_faceList );
+    m_ui->cbTextFontFace->addItems( m_faceList );
+    m_ui->cbTitleFontFace->addItems( m_faceList );
     QStringList sizeList;
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     for ( int i=0; i<sizes.length(); i++ )
@@ -183,10 +182,10 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         NULL
     };
     for ( int i=0; goodFonts[i]; i++ ) {
-	if ( faceList.indexOf(QString(goodFonts[i]))>=0 ) {
-	    defFontFace = goodFonts[i];
-	    break;
-	}
+        if ( m_faceList.indexOf(QString(goodFonts[i]))>=0 ) {
+            defFontFace = goodFonts[i];
+            break;
+        }
     }
 
     fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize, defFontFace );
@@ -288,7 +287,7 @@ void SettingsDlg::optionToUi( const char * optionName, QCheckBox * cb )
 void SettingsDlg::initStyleControls(const char * styleName) {
     m_styleName = styleName;
     QString prefix = QString("styles.") + styleName + ".";
-    bool enableInherited = strcmp(styleName, "def") != 0;
+    bool hideInherited = strcmp(styleName, "def") == 0;
     static const char * alignmentStyles[] = {
         "", // inherited
         "text-align: justify",
@@ -305,23 +304,174 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         tr("Center"),
         tr("Right"),
     };
-    m_styleItemAlignment.init(prefix + "align", enableInherited ? "" : "text-align: justify", alignmentStyles, alignmentStyleNames, enableInherited, m_props, m_ui->cbDefAlignment);
+    m_styleItemAlignment.init(prefix + "align", NULL, alignmentStyles, alignmentStyleNames, hideInherited, m_props, m_ui->cbDefAlignment);
 
-    static const char * delimStyles[] = {
+    static const char * indentStyles[] = {
         "", // inherited
-        "text-indent: 1.2em; margin-top: 0em; margin-bottom: 0em",
-        "text-indent: 0em; margin-top: 0.5em; margin-bottom: 0.5em",
-        "text-indent: 1.2em; margin-top: 0.5em; margin-bottom: 0.5em",
+        "text-indent: 0em",
+        "text-indent: 1.2em",
+        "text-indent: 2em",
+        "text-indent: -1.2em",
+        "text-indent: -2em",
         NULL,
     };
 
-    QString delimStyleNames[] = {
-        tr("[Inherited]"),
-        tr("First line indent"),
-        tr("Space"),
-        tr("Indent and space"),
+    QString indentStyleNames[] = {
+        tr(""),
+        tr("No indent"),
+        tr("Small Indent"),
+        tr("Big Indent"),
+        tr("Small Outdent"),
+        tr("Big Outdent"),
     };
-    m_styleItemDelim.init(prefix + "delim", NULL, delimStyles, delimStyleNames, enableInherited, m_props, m_ui->cbDefDelimiters);
+
+    m_styleItemIndent.init(prefix + "text-indent", NULL, indentStyles, indentStyleNames, hideInherited, m_props, m_ui->cbDefFirstLine);
+
+    static const char * marginTopStyles[] = {
+        "", // inherited
+        "margin-top: 0em",
+        "margin-top: 0.2em",
+        "margin-top: 0.5em",
+        "margin-top: 1em",
+        "margin-top: 2em",
+        NULL,
+    };
+
+    static const char * marginBottomStyles[] = {
+        "", // inherited
+        "margin-bottom: 0em",
+        "margin-bottom: 0.2em",
+        "margin-bottom: 0.5em",
+        "margin-bottom: 1em",
+        "margin-bottom: 2em",
+        NULL,
+    };
+
+    QString marginTopBottomStyleNames[] = {
+        tr(""),
+        tr("0"),
+        tr("20% of line height"),
+        tr("50% of line height"),
+        tr("100% of line height"),
+        tr("150% of line height"),
+    };
+
+    static const char * marginLeftStyles[] = {
+        "", // inherited
+        "margin-left: 0em",
+        "margin-left: 0.5em",
+        "margin-left: 1em",
+        "margin-left: 1.5em",
+        "margin-left: 2em",
+        "margin-left: 4em",
+        "margin-left: 10%",
+        "margin-left: 20%",
+        "margin-left: 30%",
+        NULL,
+    };
+
+    static const char * marginRightStyles[] = {
+        "", // inherited
+        "margin-right: 0em",
+        "margin-right: 0.5em",
+        "margin-right: 1em",
+        "margin-right: 1.5em",
+        "margin-right: 2em",
+        "margin-right: 4em",
+        "margin-right: 10%",
+        "margin-right: 20%",
+        "margin-right: 30%",
+        NULL,
+    };
+
+    QString marginLeftRightStyleNames[] = {
+        tr(""),
+        tr("0"),
+        tr("50% of line height"),
+        tr("100% of line height"),
+        tr("150% of line height"),
+        tr("200% of line height"),
+        tr("400% of line height"),
+        tr("10% of line width"),
+        tr("20% of line width"),
+        tr("30% of line width"),
+    };
+
+    m_styleItemMarginBefore.init(prefix + "margin-top", NULL, marginTopStyles, marginTopBottomStyleNames, hideInherited, m_props, m_ui->cbDefMarginBefore);
+    m_styleItemMarginAfter.init(prefix + "margin-bottom", NULL, marginBottomStyles, marginTopBottomStyleNames, hideInherited, m_props, m_ui->cbDefMarginAfter);
+    m_styleItemMarginLeft.init(prefix + "margin-left", NULL, marginLeftStyles, marginLeftRightStyleNames, false, m_props, m_ui->cbDefMarginLeft);
+    m_styleItemMarginRight.init(prefix + "margin-right", NULL, marginRightStyles, marginLeftRightStyleNames, false, m_props, m_ui->cbDefMarginRight);
+
+
+    static const char * fontWeightStyles[] = {
+        "", // inherited
+        "font-weight: normal",
+        "text-weight: bold",
+        "text-weight: bolder",
+        "text-weight: lighter",
+        NULL,
+    };
+    QString fontWeightStyleNames[] = {
+        tr(""),
+        tr("Normal"),
+        tr("Bold"),
+        tr("Bolder"),
+        tr("Lighter"),
+    };
+    m_styleFontWeight.init(prefix + "font-weight", NULL, fontWeightStyles, fontWeightStyleNames, false, m_props, m_ui->cbDefFontWeight);
+
+    static const char * fontSizeStyles[] = {
+        "", // inherited
+        "font-size: 110%",
+        "text-size: 120%",
+        "text-size: 150%",
+        "text-size: 90%",
+        "text-size: 80%",
+        "text-size: 70%",
+        "text-size: 60%",
+        NULL,
+    };
+    QString fontSizeStyleNames[] = {
+        tr(""),
+        tr("Increase: 110%"),
+        tr("Increase: 120%"),
+        tr("Increase: 150%"),
+        tr("Decrease: 90%"),
+        tr("Decrease: 80%"),
+        tr("Decrease: 70%"),
+        tr("Decrease: 60%"),
+    };
+    m_styleFontSize.init(prefix + "font-size", NULL, fontSizeStyles, fontSizeStyleNames, false, m_props, m_ui->cbDefFontSize);
+
+    static const char * fontStyleStyles[] = {
+        "", // inherited
+        "font-style: normal",
+        "text-style: italic",
+        NULL,
+    };
+    QString fontStyleStyleNames[] = {
+        tr(""),
+        tr("Normal"),
+        tr("Italic"),
+    };
+    m_styleFontStyle.init(prefix + "font-style", NULL, fontStyleStyles, fontStyleStyleNames, false, m_props, m_ui->cbDefFontStyle);
+
+    QStringList faces;
+    QStringList faceValues;
+    faces.append("");
+    faceValues.append("");
+    faces.append(tr("[Default Sans Serif]"));
+    faceValues.append("font-face: sans-serif");
+    faces.append(tr("[Default Serif]"));
+    faceValues.append("font-face: serif");
+    faces.append(tr("[Default Monospace]"));
+    faceValues.append("font-face: monospace");
+    for (int i=0; i<m_faceList.length(); i++) {
+        QString face = m_faceList.at(i);
+        faces.append(face);
+        faceValues.append(QString("font-face: " + face));
+    }
+    m_styleFontFace.init(prefix + "font-face", faceValues, faces, m_props, m_ui->cbDefFontFace);
 }
 
 void SettingsDlg::optionToUiString( const char * optionName, QComboBox * cb )
@@ -604,18 +754,58 @@ void SettingsDlg::on_cbFontGamma_currentIndexChanged(QString s)
     m_props->setString( PROP_FONT_GAMMA, s );
 }
 
+void SettingsDlg::on_cbStyleName_currentIndexChanged(int index)
+{
+    if (index >= 0 && initDone)
+        initStyleControls(styleNames[index]);
+}
+
 void SettingsDlg::on_cbDefAlignment_currentIndexChanged(int index)
 {
     m_styleItemAlignment.update(index);
 }
 
-void SettingsDlg::on_cbDefDelimiters_currentIndexChanged(int index)
+void SettingsDlg::on_cbDefFirstLine_currentIndexChanged(int index)
 {
-    m_styleItemDelim.update(index);
+    m_styleItemIndent.update(index);
 }
 
-void SettingsDlg::on_cbStyleName_currentIndexChanged(int index)
+void SettingsDlg::on_cbDefMarginBefore_currentIndexChanged(int index)
 {
-    if (index >= 0 && initDone)
-        initStyleControls(styleNames[index]);
+    m_styleItemMarginBefore.update(index);
+}
+
+void SettingsDlg::on_cbDefMarginAfter_currentIndexChanged(int index)
+{
+    m_styleItemMarginAfter.update(index);
+}
+
+void SettingsDlg::on_cbDefMarginLeft_currentIndexChanged(int index)
+{
+    m_styleItemMarginLeft.update(index);
+}
+
+void SettingsDlg::on_cbDefMarginRight_currentIndexChanged(int index)
+{
+    m_styleItemMarginRight.update(index);
+}
+
+void SettingsDlg::on_cbDefFontSize_currentIndexChanged(int index)
+{
+    m_styleFontSize.update(index);
+}
+
+void SettingsDlg::on_cbDefFontFace_currentIndexChanged(int index)
+{
+    m_styleFontFace.update(index);
+}
+
+void SettingsDlg::on_cbDefFontWeight_currentIndexChanged(int index)
+{
+    m_styleFontWeight.update(index);
+}
+
+void SettingsDlg::on_cbDefFontStyle_currentIndexChanged(int index)
+{
+    m_styleFontStyle.update(index);
 }

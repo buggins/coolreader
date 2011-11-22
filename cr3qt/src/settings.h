@@ -30,13 +30,13 @@ namespace Ui {
 
 struct StyleItem {
     QString paramName;
+    bool updating;
     QStringList values;
     QStringList titles;
     int currentIndex;
     QComboBox * cb;
     PropsRef props;
-    bool updating;
-    void init(QString param, const char * defValue, const char * styleValues[], QString styleTitles[], bool allowFirstItem, PropsRef props, QComboBox * cb) {
+    void init(QString param, const char * defValue, const char * styleValues[], QString styleTitles[], bool hideFirstItem, PropsRef props, QComboBox * cb) {
         updating = true;
         paramName = param;
         this->cb = cb;
@@ -44,12 +44,13 @@ struct StyleItem {
         currentIndex = -1;
         values.clear();
         titles.clear();
+        //CRLog::trace("StyleItem::init %s", paramName.toUtf8().constData());
 
         QString currentValue = props->getStringDef(param.toUtf8().constData(), defValue);
 
-        for (int i=allowFirstItem ? 0 : 1; styleValues[i]; i++) {
+        for (int i=!hideFirstItem ? 0 : 1; styleValues[i]; i++) {
             if (currentValue == styleValues[i])
-                currentIndex = allowFirstItem ? i : i-1;
+                currentIndex = !hideFirstItem ? i : i-1;
             values.append(styleValues[i]);
             titles.append(styleTitles[i]);
         }
@@ -59,9 +60,38 @@ struct StyleItem {
         cb->addItems(titles);
         cb->setCurrentIndex(currentIndex);
         props->setString(param.toUtf8().constData(), values.at(currentIndex).toUtf8().constData());
+        //CRLog::trace("StyleItem::init %s done", paramName.toUtf8().constData());
         updating = false;
     }
+
+    void init(QString param, QStringList & styleValues, QStringList & styleTitles, PropsRef props, QComboBox * cb) {
+        updating = true;
+        paramName = param;
+        this->cb = cb;
+        this->props = props;
+        currentIndex = -1;
+        values.clear();
+        titles.clear();
+        values.append(styleValues);
+        titles.append(styleTitles);
+
+        QString currentValue = props->getStringDef(param.toUtf8().constData(), "");
+
+        for (int i=0; i < styleValues.length(); i++) {
+            if (currentValue == styleValues.at(i))
+                currentIndex = i;
+        }
+        if (currentIndex == -1)
+            currentIndex = 0;
+        cb->clear();
+        cb->addItems(titles);
+        cb->setCurrentIndex(currentIndex);
+        props->setString(param.toUtf8().constData(), values.at(currentIndex).toUtf8().constData());
+        updating = false;
+    }
+
     void update(int newIndex) {
+        //CRLog::trace("StyleItem::update %s %s", paramName.toUtf8().constData(), updating ? "updating" : "");
         if (updating)
             return;
         currentIndex = newIndex;
@@ -104,9 +134,18 @@ private:
     PropsRef m_props;
     QString m_oldHyph;
     QStringList m_backgroundFiles;
+    QStringList m_faceList;
     QString m_styleName;
     StyleItem m_styleItemAlignment;
-    StyleItem m_styleItemDelim;
+    StyleItem m_styleItemIndent;
+    StyleItem m_styleItemMarginBefore;
+    StyleItem m_styleItemMarginAfter;
+    StyleItem m_styleItemMarginLeft;
+    StyleItem m_styleItemMarginRight;
+    StyleItem m_styleFontFace;
+    StyleItem m_styleFontSize;
+    StyleItem m_styleFontWeight;
+    StyleItem m_styleFontStyle;
     QStringList m_styleNames;
 
 private slots:
@@ -140,9 +179,17 @@ private slots:
     void on_buttonBox_rejected();
     void on_cbFloatingPunctuation_stateChanged(int );
     void on_cbFontGamma_currentIndexChanged(QString );
-    void on_cbDefAlignment_currentIndexChanged(int index);
-    void on_cbDefDelimiters_currentIndexChanged(int index);
     void on_cbStyleName_currentIndexChanged(int index);
+    void on_cbDefAlignment_currentIndexChanged(int index);
+    void on_cbDefFirstLine_currentIndexChanged(int index);
+    void on_cbDefMarginBefore_currentIndexChanged(int index);
+    void on_cbDefMarginAfter_currentIndexChanged(int index);
+    void on_cbDefMarginLeft_currentIndexChanged(int index);
+    void on_cbDefMarginRight_currentIndexChanged(int index);
+    void on_cbDefFontSize_currentIndexChanged(int index);
+    void on_cbDefFontFace_currentIndexChanged(int index);
+    void on_cbDefFontWeight_currentIndexChanged(int index);
+    void on_cbDefFontStyle_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDLG_H
