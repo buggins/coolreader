@@ -51,6 +51,10 @@ static const char * styleNames[] = {
     "def",
     "title",
     "subtitle",
+    "pre",
+    "cite",
+    "epigraph",
+    "poem",
     NULL
 };
 
@@ -235,6 +239,10 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_styleNames.append(tr("Default paragraph style"));
     m_styleNames.append(tr("Title"));
     m_styleNames.append(tr("Subtitle"));
+    m_styleNames.append(tr("Preformatted text"));
+    m_styleNames.append(tr("Cite / quotation"));
+    m_styleNames.append(tr("Epigraph"));
+    m_styleNames.append(tr("Poem"));
     m_ui->cbStyleName->clear();
     m_ui->cbStyleName->addItems(m_styleNames);
     m_ui->cbStyleName->setCurrentIndex(0);
@@ -383,7 +391,9 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         "margin-right: 1.5em",
         "margin-right: 2em",
         "margin-right: 4em",
+        "margin-right: 5%",
         "margin-right: 10%",
+        "margin-right: 15%",
         "margin-right: 20%",
         "margin-right: 30%",
         NULL,
@@ -397,7 +407,9 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         tr("150% of line height"),
         tr("200% of line height"),
         tr("400% of line height"),
+        tr("5% of line width"),
         tr("10% of line width"),
+        tr("15% of line width"),
         tr("20% of line width"),
         tr("30% of line width"),
     };
@@ -470,7 +482,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     faces.append(tr("[Default Serif]"));
     faceValues.append("font-family: serif");
     faces.append(tr("[Default Monospace]"));
-    faceValues.append("font-family: monospace");
+    faceValues.append("font-family: \"Courier New\", \"Courier\", monospace");
     for (int i=0; i<m_faceList.length(); i++) {
         QString face = m_faceList.at(i);
         faces.append(face);

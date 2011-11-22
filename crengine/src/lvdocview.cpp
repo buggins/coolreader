@@ -381,6 +381,22 @@ void LVDocView::setPageHeaderInfo(int hdrFlags) {
 	}
 }
 
+lString16 mergeCssMacros(CRPropRef props) {
+    lString8 res = lString8();
+    for (int i=0; i<props->getCount(); i++) {
+        lString16 v = props->getValue(i);
+        if (!v.empty()) {
+            if (v.lastChar() != ';')
+                v.append(1, ';');
+            if (v.lastChar() != ' ')
+                v.append(1, ' ');
+            res.append(UnicodeToUtf8(v));
+        }
+    }
+    //CRLog::trace("merged: %s", res.c_str());
+    return Utf8ToUnicode(res);
+}
+
 lString8 substituteCssMacros(lString8 src, CRPropRef props) {
     lString8 res = lString8(src.length());
     const char * s = src.c_str();
@@ -388,7 +404,7 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
         if (*s == '$') {
             const char * s2 = s + 1;
             bool err = false;
-            for (; *s2 && *s2 != ';' && *s2 != '}' &&  *s2 != ' '; s2++) {
+            for (; *s2 && *s2 != ';' && *s2 != '}' &&  *s2 != ' ' &&  *s2 != '\r' &&  *s2 != '\n' &&  *s2 != '\t'; s2++) {
                 char ch = *s2;
                 if (ch != '.' && ch != '-' && (ch < 'a' || ch > 'z')) {
                     err = true;
@@ -398,13 +414,25 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
                 // substitute variable
                 lString8 prop(s + 1, s2 - s - 1);
                 lString16 v;
-                props->getString(prop.c_str(), v);
+                // $styles.stylename.all will merge all properties like styles.stylename.*
+                if (prop.endsWith(".all")) {
+                    // merge whole branch
+                    v = mergeCssMacros(props->getSubProps(prop.substr(0, prop.length() - 3).c_str()));
+                    CRLog::trace("merged %s = %s", prop.c_str(), LCSTR(v));
+                } else {
+                    // single property
+                    props->getString(prop.c_str(), v);
+                    if (!v.empty()) {
+                        if (v.lastChar() != ';')
+                            v.append(1, ';');
+                        if (v.lastChar() != ' ')
+                            v.append(1, ' ');
+                    }
+                }
                 if (!v.empty()) {
-                    if (v.lastChar() != ';')
-                        v.append(1, ';');
-                    if (v.lastChar() != ' ')
-                        v.append(1, ' ');
                     res.append(UnicodeToUtf8(v));
+                } else {
+                    CRLog::trace("CSS macro not found: %s", prop.c_str());
                 }
             }
             s = s2;
@@ -5210,6 +5238,34 @@ static const char * def_style_macros[] = {
     "styles.subtitle.margin-top", "margin-top: 0.2em",
     "styles.subtitle.margin-bottom", "margin-bottom: 0.2em",
     "styles.subtitle.font-style", "font-style: italic",
+    "styles.cite.align", "text-align: justify",
+    "styles.cite.text-indent", "text-indent: 1.2em",
+    "styles.cite.margin-top", "margin-top: 0.3em",
+    "styles.cite.margin-bottom", "margin-bottom: 0.3em",
+    "styles.cite.margin-left", "margin-left: 1em",
+    "styles.cite.margin-right", "margin-right: 1em",
+    "styles.cite.font-style", "font-style: italic",
+    "styles.epigraph.align", "text-align: left",
+    "styles.epigraph.text-indent", "text-indent: 1.2em",
+    "styles.epigraph.margin-top", "margin-top: 0.3em",
+    "styles.epigraph.margin-bottom", "margin-bottom: 0.3em",
+    "styles.epigraph.margin-left", "margin-left: 15%",
+    "styles.epigraph.margin-right", "margin-right: 1em",
+    "styles.epigraph.font-style", "font-style: italic",
+    "styles.pre.align", "text-align: left",
+    "styles.pre.text-indent", "text-indent: 0em",
+    "styles.pre.margin-top", "margin-top: 0em",
+    "styles.pre.margin-bottom", "margin-bottom: 0em",
+    "styles.pre.margin-left", "margin-left: 0em",
+    "styles.pre.margin-right", "margin-right: 0em",
+    "styles.pre.font-face", "font-family: \"Courier New\", \"Courier\", monospace",
+    "styles.stanza.align", "text-align: left",
+    "styles.stanza.text-indent", "text-indent: 0em",
+    "styles.stanza.margin-top", "margin-top: 0.3em",
+    "styles.stanza.margin-bottom", "margin-bottom: 0.3em",
+    "styles.stanza.margin-left", "margin-left: 15%",
+    "styles.stanza.margin-right", "margin-right: 1em",
+    "styles.stanza.font-style", "font-style: italic",
     NULL,
     NULL,
 };
