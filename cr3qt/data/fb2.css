@@ -1,6 +1,7 @@
 body { text-align: left; margin: 0; text-indent: 0px; /* justify */ }
 
-p { $def.align $def.text-indent $def.margin-left $def.margin-right $def.margin-top $def.margin-bottom } 
+p { $def.align $def.text-indent $def.margin-left $def.margin-right $def.margin-top $def.margin-bottom 
+    $def.color $def.font-face $def.font-size $def.font-weight $def.font-style } 
 
 empty-line { height: 1em }
 
@@ -28,13 +29,8 @@ cite { font-style: italic; margin-left: 5%; margin-right: 5%; text-align: justif
 
 title p, subtitle p, h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { 
     $title.align $title.text-indent $title.margin-left $title.margin-right $title.margin-top $title.margin-bottom
-	text-align: center; 
-	text-indent: 0px 
-}
+    $title.color $title.font-face $title.font-size $title.font-weight $title.font-style
 title, h1, h2, h3, h4, h5, h6, subtitle { 
-	text-align: center; 
-	text-indent: 0px; 
-	font-weight: bold; 
 	hyphenate: none; 
 }
 h1, h2, h3, h4, h5, h6 {    
@@ -51,18 +47,10 @@ title, h1, h2 {
 	page-break-after: avoid; 
 }
 subtitle, h3, h4, h5, h6 { 
+    $subtitle.align $subtitle.text-indent $subtitle.margin-left $subtitle.margin-right $subtitle.margin-top $subtitle.margin-bottom
+    $subtitle.color $subtitle.font-face $subtitle.font-size $subtitle.font-weight $subtitle.font-style
 	page-break-inside: avoid; 
 	page-break-after: avoid; 
-}
-title { 
-	font-size: 110%; 
-	margin-top: 0.7em; 
-	margin-bottom: 0.5em 
-}
-subtitle { 
-	font-style: italic; 
-	margin-top: 0.3em; 
-	margin-bottom: 0.3em 
 }
 h1 { font-size: 150% }
 h2 { font-size: 140% }

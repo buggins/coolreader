@@ -50,6 +50,7 @@ static void findBackgrounds( lString16Collection & baseDirs, lString16Collection
 static const char * styleNames[] = {
     "def",
     "title",
+    "subtitle",
     NULL
 };
 
@@ -232,7 +233,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
 
     m_styleNames.clear();
     m_styleNames.append(tr("Default paragraph style"));
-    m_styleNames.append(tr("Titles"));
+    m_styleNames.append(tr("Title"));
+    m_styleNames.append(tr("Subtitle"));
     m_ui->cbStyleName->clear();
     m_ui->cbStyleName->addItems(m_styleNames);
     m_ui->cbStyleName->setCurrentIndex(0);
@@ -331,6 +333,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         "", // inherited
         "margin-top: 0em",
         "margin-top: 0.2em",
+        "margin-top: 0.3em",
         "margin-top: 0.5em",
         "margin-top: 1em",
         "margin-top: 2em",
@@ -341,6 +344,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         "", // inherited
         "margin-bottom: 0em",
         "margin-bottom: 0.2em",
+        "margin-bottom: 0.3em",
         "margin-bottom: 0.5em",
         "margin-bottom: 1em",
         "margin-bottom: 2em",
@@ -351,6 +355,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         tr(""),
         tr("0"),
         tr("20% of line height"),
+        tr("30% of line height"),
         tr("50% of line height"),
         tr("100% of line height"),
         tr("150% of line height"),
@@ -406,9 +411,9 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     static const char * fontWeightStyles[] = {
         "", // inherited
         "font-weight: normal",
-        "text-weight: bold",
-        "text-weight: bolder",
-        "text-weight: lighter",
+        "font-weight: bold",
+        "font-weight: bolder",
+        "font-weight: lighter",
         NULL,
     };
     QString fontWeightStyleNames[] = {
@@ -423,12 +428,12 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     static const char * fontSizeStyles[] = {
         "", // inherited
         "font-size: 110%",
-        "text-size: 120%",
-        "text-size: 150%",
-        "text-size: 90%",
-        "text-size: 80%",
-        "text-size: 70%",
-        "text-size: 60%",
+        "font-size: 120%",
+        "font-size: 150%",
+        "font-size: 90%",
+        "font-size: 80%",
+        "font-size: 70%",
+        "font-size: 60%",
         NULL,
     };
     QString fontSizeStyleNames[] = {
@@ -446,7 +451,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     static const char * fontStyleStyles[] = {
         "", // inherited
         "font-style: normal",
-        "text-style: italic",
+        "font-style: italic",
         NULL,
     };
     QString fontStyleStyleNames[] = {
@@ -461,17 +466,59 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     faces.append("");
     faceValues.append("");
     faces.append(tr("[Default Sans Serif]"));
-    faceValues.append("font-face: sans-serif");
+    faceValues.append("font-family: sans-serif");
     faces.append(tr("[Default Serif]"));
-    faceValues.append("font-face: serif");
+    faceValues.append("font-family: serif");
     faces.append(tr("[Default Monospace]"));
-    faceValues.append("font-face: monospace");
+    faceValues.append("font-family: monospace");
     for (int i=0; i<m_faceList.length(); i++) {
         QString face = m_faceList.at(i);
         faces.append(face);
-        faceValues.append(QString("font-face: " + face));
+        faceValues.append(QString("font-family: " + face));
     }
     m_styleFontFace.init(prefix + "font-face", faceValues, faces, m_props, m_ui->cbDefFontFace);
+
+    static const char * fontColorStyles[] = {
+        "", // inherited
+        "color: black",
+        "color: green",
+        "color: silver",
+        "color: lime",
+        "color: gray",
+        "color: olive",
+        "color: white",
+        "color: yellow",
+        "color: maroon",
+        "color: navy",
+        "color: red",
+        "color: blue",
+        "color: purple",
+        "color: teal",
+        "color: fuchsia",
+        "color: aqua",
+        NULL,
+    };
+    QString fontColorStyleNames[] = {
+        tr(""),
+        tr("Black"),
+        tr("Green"),
+        tr("Silver"),
+        tr("Lime"),
+        tr("Gray"),
+        tr("Olive"),
+        tr("White"),
+        tr("Yellow"),
+        tr("Maroon"),
+        tr("Navy"),
+        tr("Red"),
+        tr("Blue"),
+        tr("Purple"),
+        tr("Teal"),
+        tr("Fuchsia"),
+        tr("Aqua"),
+    };
+    m_styleFontColor.init(prefix + "color", NULL, fontColorStyles, fontColorStyleNames, false, m_props, m_ui->cbDefFontColor);
+
 }
 
 void SettingsDlg::optionToUiString( const char * optionName, QComboBox * cb )
@@ -808,4 +855,9 @@ void SettingsDlg::on_cbDefFontWeight_currentIndexChanged(int index)
 void SettingsDlg::on_cbDefFontStyle_currentIndexChanged(int index)
 {
     m_styleFontStyle.update(index);
+}
+
+void SettingsDlg::on_cbDefFontColor_currentIndexChanged(int index)
+{
+    m_styleFontColor.update(index);
 }

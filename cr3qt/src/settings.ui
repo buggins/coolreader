@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
-    <height>482</height>
+    <width>433</width>
+    <height>498</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1027,7 +1027,7 @@
          <x>0</x>
          <y>10</y>
          <width>401</width>
-         <height>381</height>
+         <height>410</height>
         </rect>
        </property>
        <layout class="QFormLayout" name="formLayout_5">
@@ -1040,26 +1040,6 @@
         <property name="formAlignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
         </property>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_20">
-          <property name="text">
-           <string>Alignment</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QComboBox" name="cbDefAlignment"/>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_21">
-          <property name="text">
-           <string>First line</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QComboBox" name="cbDefFirstLine"/>
-        </item>
         <item row="0" column="1">
          <widget class="QComboBox" name="cbStyleName">
           <item>
@@ -1069,90 +1049,120 @@
           </item>
          </widget>
         </item>
-        <item row="8" column="0">
+        <item row="10" column="0">
          <widget class="QLabel" name="label_22">
           <property name="text">
            <string>Before</string>
           </property>
          </widget>
         </item>
-        <item row="8" column="1">
+        <item row="10" column="1">
          <widget class="QComboBox" name="cbDefMarginBefore"/>
         </item>
-        <item row="9" column="0">
+        <item row="11" column="0">
          <widget class="QLabel" name="label_23">
           <property name="text">
            <string>After</string>
           </property>
          </widget>
         </item>
-        <item row="9" column="1">
+        <item row="11" column="1">
          <widget class="QComboBox" name="cbDefMarginAfter"/>
         </item>
-        <item row="10" column="1">
+        <item row="12" column="1">
          <widget class="QComboBox" name="cbDefMarginLeft"/>
         </item>
-        <item row="11" column="1">
+        <item row="13" column="1">
          <widget class="QComboBox" name="cbDefMarginRight"/>
         </item>
-        <item row="10" column="0">
+        <item row="12" column="0">
          <widget class="QLabel" name="label_24">
           <property name="text">
            <string>Left</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="0">
+        <item row="13" column="0">
          <widget class="QLabel" name="label_25">
           <property name="text">
            <string>Right</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
+        <item row="9" column="1">
          <widget class="QLabel" name="label_26">
           <property name="text">
            <string>Margins:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="3" column="1">
          <widget class="QComboBox" name="cbDefFontSize"/>
         </item>
-        <item row="1" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="label_27">
           <property name="text">
            <string>Font size</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="5" column="1">
          <widget class="QComboBox" name="cbDefFontWeight"/>
         </item>
-        <item row="3" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="label_28">
           <property name="text">
            <string>Font weight</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="6" column="1">
          <widget class="QComboBox" name="cbDefFontStyle"/>
         </item>
-        <item row="4" column="0">
+        <item row="6" column="0">
          <widget class="QLabel" name="label_29">
           <property name="text">
            <string>Font style</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="4" column="1">
          <widget class="QComboBox" name="cbDefFontFace"/>
         </item>
-        <item row="2" column="0">
+        <item row="4" column="0">
          <widget class="QLabel" name="label_30">
           <property name="text">
            <string>Font face</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="cbDefAlignment"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_20">
+          <property name="text">
+           <string>Alignment</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QComboBox" name="cbDefFirstLine"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_21">
+          <property name="text">
+           <string>First line</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QComboBox" name="cbDefFontColor"/>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_31">
+          <property name="text">
+           <string>Font color</string>
           </property>
          </widget>
         </item>

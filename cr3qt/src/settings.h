@@ -46,12 +46,13 @@ struct StyleItem {
         titles.clear();
         //CRLog::trace("StyleItem::init %s", paramName.toUtf8().constData());
 
-        QString currentValue = props->getStringDef(param.toUtf8().constData(), defValue);
+        QString currentValue = props->getStringDef(paramName.toUtf8().constData(), defValue);
 
         for (int i=!hideFirstItem ? 0 : 1; styleValues[i]; i++) {
-            if (currentValue == styleValues[i])
+            QString value = styleValues[i];
+            if (currentValue == value)
                 currentIndex = !hideFirstItem ? i : i-1;
-            values.append(styleValues[i]);
+            values.append(value);
             titles.append(styleTitles[i]);
         }
         if (currentIndex == -1)
@@ -59,7 +60,8 @@ struct StyleItem {
         cb->clear();
         cb->addItems(titles);
         cb->setCurrentIndex(currentIndex);
-        props->setString(param.toUtf8().constData(), values.at(currentIndex).toUtf8().constData());
+        lString8 pname(paramName.toUtf8().constData());
+        props->setString(pname.c_str(), values.at(currentIndex));
         //CRLog::trace("StyleItem::init %s done", paramName.toUtf8().constData());
         updating = false;
     }
@@ -75,7 +77,7 @@ struct StyleItem {
         values.append(styleValues);
         titles.append(styleTitles);
 
-        QString currentValue = props->getStringDef(param.toUtf8().constData(), "");
+        QString currentValue = props->getStringDef(paramName.toUtf8().constData(), "");
 
         for (int i=0; i < styleValues.length(); i++) {
             if (currentValue == styleValues.at(i))
@@ -86,7 +88,8 @@ struct StyleItem {
         cb->clear();
         cb->addItems(titles);
         cb->setCurrentIndex(currentIndex);
-        props->setString(param.toUtf8().constData(), values.at(currentIndex).toUtf8().constData());
+        lString8 pname(paramName.toUtf8().constData());
+        props->setString(pname.c_str(), values.at(currentIndex));
         updating = false;
     }
 
@@ -95,8 +98,9 @@ struct StyleItem {
         if (updating)
             return;
         currentIndex = newIndex;
-        const char * pname = paramName.toUtf8().constData();
-        props->setString(pname, values.at(currentIndex).toUtf8().constData());
+        lString8 pname(paramName.toUtf8().constData());
+        props->setString(pname.c_str(), values.at(currentIndex));
+        //CRLog::trace("StyleItem::update '%s' = '%s'", pname, pvalue);
     }
 };
 
@@ -146,6 +150,7 @@ private:
     StyleItem m_styleFontSize;
     StyleItem m_styleFontWeight;
     StyleItem m_styleFontStyle;
+    StyleItem m_styleFontColor;
     QStringList m_styleNames;
 
 private slots:
@@ -190,6 +195,7 @@ private slots:
     void on_cbDefFontFace_currentIndexChanged(int index);
     void on_cbDefFontWeight_currentIndexChanged(int index);
     void on_cbDefFontStyle_currentIndexChanged(int index);
+    void on_cbDefFontColor_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDLG_H
