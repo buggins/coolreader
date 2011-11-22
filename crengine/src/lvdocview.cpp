@@ -418,7 +418,7 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
                 if (prop.endsWith(".all")) {
                     // merge whole branch
                     v = mergeCssMacros(props->getSubProps(prop.substr(0, prop.length() - 3).c_str()));
-                    CRLog::trace("merged %s = %s", prop.c_str(), LCSTR(v));
+                    //CRLog::trace("merged %s = %s", prop.c_str(), LCSTR(v));
                 } else {
                     // single property
                     props->getString(prop.c_str(), v);
@@ -432,7 +432,7 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
                 if (!v.empty()) {
                     res.append(UnicodeToUtf8(v));
                 } else {
-                    CRLog::trace("CSS macro not found: %s", prop.c_str());
+                    //CRLog::trace("CSS macro not found: %s", prop.c_str());
                 }
             }
             s = s2;
