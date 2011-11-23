@@ -169,6 +169,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	Properties mProperties;
 	Properties mOldProperties;
 	OptionsListView mOptionsStyles;
+	OptionsListView mOptionsStylesMore;
 	OptionsListView mOptionsPage;
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
@@ -1121,6 +1122,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			return mOptionsApplication;
 		else if ( "Styles".equals(tag) )
 			return mOptionsStyles;
+		else if ( "More Styles".equals(tag) )
+			return mOptionsStylesMore;
 		else if ( "Controls".equals(tag) )
 			return mOptionsControls;
 		else if ( "Page".equals(tag))
@@ -1131,6 +1134,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	private String getString( int resourceId )
 	{
 		return getContext().getResources().getString(resourceId); 
+	}
+	
+	private ListOption createStyleEditor(String styleCode, String title) {
+		ListOption res = new ListOption(this, title, styleCode);
+		res.add(new String[] {"sample 1", "sample 2", "sample 3"});
+		return res;
+	}
+	
+	private void fillStyleEditorOptions() {
+		mOptionsStylesMore = new OptionsListView(getContext());
+		mOptionsStylesMore.add(createStyleEditor("def", "Default paragraph style"));
+		mOptionsStylesMore.add(createStyleEditor("title", "Title"));
+		mOptionsStylesMore.add(createStyleEditor("subtitle", "Subtitle"));
+		mOptionsStylesMore.add(createStyleEditor("pre", "Preformatted text"));
+		mOptionsStylesMore.add(createStyleEditor("cite", "Cite / quotation"));
+		mOptionsStylesMore.add(createStyleEditor("epigraph", "Epigraph"));
+		mOptionsStylesMore.add(createStyleEditor("stanza", "Poem"));
 	}
 	
 	@Override
@@ -1152,6 +1172,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		//mTabs = (TabHost)findViewById(android.R.id.tabhost); 
 		mTabs.setup();
 		//new TabHost(getContext());
+		
 		mOptionsStyles = new OptionsListView(getContext());
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
@@ -1221,7 +1242,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0"));
 		
+		fillStyleEditorOptions();
+		
 		mOptionsStyles.refresh();
+		mOptionsStylesMore.refresh();
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
 		
@@ -1232,6 +1256,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				getContext().getResources().getDrawable(android.R.drawable.ic_menu_view)); //R.drawable.cr3_option_style
 		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
+		TabHost.TabSpec tsStylesMore = mTabs.newTabSpec("More Styles");
+		tsStylesMore.setIndicator("", //getContext().getResources().getString(R.string.tab_options_styles) 
+				getContext().getResources().getDrawable(android.R.drawable.ic_menu_view)); //R.drawable.cr3_option_style
+		tsStylesMore.setContent(this);
+		mTabs.addTab(tsStylesMore);
 		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
 		//getContext().getResources().getString(R.string.tab_options_page)
 		tsPage.setIndicator("", getContext().getResources().getDrawable(android.R.drawable.ic_menu_crop)); //R.drawable.cr3_option_page
