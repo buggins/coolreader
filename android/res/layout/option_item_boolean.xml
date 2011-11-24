@@ -7,8 +7,8 @@
     android:id="@+id/option_item_body"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="15dip"
-    android:layout_marginBottom="15dip"
+    android:layout_marginTop="18dip"
+    android:layout_marginBottom="18dip"
     android:layout_marginLeft="0dip"
     android:layout_marginRight="7dip"
     >
