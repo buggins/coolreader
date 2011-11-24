@@ -2,48 +2,43 @@
 <!--
    Option item layout for CR3 options dialog
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/option_item_body"
-    android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:baselineAligned="false"
-    android:layout_marginTop="5dip"
-    android:layout_marginBottom="5dip"
-    android:layout_marginLeft="2dip"
-    android:layout_marginRight="2dip"
+    android:layout_marginTop="15dip"
+    android:layout_marginBottom="15dip"
+    android:layout_marginLeft="0dip"
+    android:layout_marginRight="7dip"
     >
-
-    <LinearLayout android:id="@+id/option_item_text_body"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
+    <ImageView android:id="@+id/option_icon"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_gravity="center_vertical|fill_horizontal"
-        android:layout_marginTop="4dip"
-        android:layout_marginBottom="2dip"
-        android:layout_marginLeft="2dip"
-        android:layout_marginRight="8dip"
-        android:baselineAligned="false">
-
-
-        <TextView android:id="@+id/option_label"
-            style="@android:style/TextAppearance.Medium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Sample"
-            android:singleLine="false"
-            android:maxLines="3"
-            android:layout_gravity="left|center_vertical" />
-        <CheckBox android:id="@+id/option_value_cb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="2dip"
-            android:focusable="false"
-            android:clickable="false"
-            android:layout_gravity="right|center_vertical" 
-            />
-    </LinearLayout>
-
-</LinearLayout>
+        android:layout_gravity="center_vertical|left"
+        android:layout_marginRight="6dip"
+        android:layout_marginLeft="0dip"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        />
+    
+    <TextView android:id="@+id/option_label"
+        style="@android:style/TextAppearance.Medium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="false"
+        android:layout_toRightOf="@id/option_icon"
+        android:layout_centerVertical="true"
+        />
+    
+    <CheckBox android:id="@+id/option_value_cb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="7dip"
+        android:focusable="false"
+        android:clickable="false"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        />
+    
+</RelativeLayout>

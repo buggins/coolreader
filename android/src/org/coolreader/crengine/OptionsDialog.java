@@ -26,6 +26,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -169,7 +170,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	Properties mProperties;
 	Properties mOldProperties;
 	OptionsListView mOptionsStyles;
-	OptionsListView mOptionsStylesMore;
+	OptionsListView mOptionsCSS;
 	OptionsListView mOptionsPage;
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
@@ -249,8 +250,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			TextView valueView = (TextView)view.findViewById(R.id.option_value);
 			labelView.setText(label);
 			valueView.setText(getValueLabel());
-//			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-//			icon.setImageResource(iconId);
+			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+			if (icon != null)
+				icon.setImageResource(iconId);
 			return view;
 		}
 
@@ -346,8 +348,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //						refreshList();
 					}
 				});
-//			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-//			icon.setImageResource(iconId);
+			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+			if (icon != null)
+				icon.setImageResource(iconId);
 //			view.setClickable(true);
 //			view.setFocusable(true);
 			return view;
@@ -1014,7 +1017,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	public OptionsDialog( CoolReader activity, ReaderView readerView, String[] fontFaces )
 	{
-		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, false);
+		super(activity, 0, 0, false);
 		
 		mActivity = activity;
 		mReaderView = readerView;
@@ -1122,8 +1125,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			return mOptionsApplication;
 		else if ( "Styles".equals(tag) )
 			return mOptionsStyles;
-		else if ( "More Styles".equals(tag) )
-			return mOptionsStylesMore;
+		else if ( "CSS".equals(tag) )
+			return mOptionsCSS;
 		else if ( "Controls".equals(tag) )
 			return mOptionsControls;
 		else if ( "Page".equals(tag))
@@ -1143,14 +1146,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	}
 	
 	private void fillStyleEditorOptions() {
-		mOptionsStylesMore = new OptionsListView(getContext());
-		mOptionsStylesMore.add(createStyleEditor("def", "Default paragraph style"));
-		mOptionsStylesMore.add(createStyleEditor("title", "Title"));
-		mOptionsStylesMore.add(createStyleEditor("subtitle", "Subtitle"));
-		mOptionsStylesMore.add(createStyleEditor("pre", "Preformatted text"));
-		mOptionsStylesMore.add(createStyleEditor("cite", "Cite / quotation"));
-		mOptionsStylesMore.add(createStyleEditor("epigraph", "Epigraph"));
-		mOptionsStylesMore.add(createStyleEditor("stanza", "Poem"));
+		mOptionsCSS = new OptionsListView(getContext());
+		mOptionsCSS.add(createStyleEditor("def", "Default paragraph style"));
+		mOptionsCSS.add(createStyleEditor("title", "Title"));
+		mOptionsCSS.add(createStyleEditor("subtitle", "Subtitle"));
+		mOptionsCSS.add(createStyleEditor("pre", "Preformatted text"));
+		mOptionsCSS.add(createStyleEditor("cite", "Cite / quotation"));
+		mOptionsCSS.add(createStyleEditor("epigraph", "Epigraph"));
+		mOptionsCSS.add(createStyleEditor("stanza", "Poem"));
 	}
 	
 	@Override
@@ -1178,106 +1181,107 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2"));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100"));
-		mOptionsStyles.add(new NightModeOption(this, getString(R.string.options_inverse_view), PROP_NIGHT_MODE));
-		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_text), PROP_FONT_COLOR, 0x000000));
-		mOptionsStyles.add(new ColorOption(this, getString(R.string.options_color_background), PROP_BACKGROUND_COLOR, 0xFFFFFF));
-		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsStyles.add(new TextureOptions(this, getString(R.string.options_background_texture)));
-
-		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
-		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsStyles.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_other));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100").setIconId(R.drawable.cr3_option_line_spacing));
 		//
-		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), PROP_FLOATING_PUNCTUATION).setDefaultValue("1"));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), PROP_FONT_KERNING_ENABLED).setDefaultValue("0"));
-		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0"));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50"));
+		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)).setIconId(R.drawable.cr3_option_text_other));
+		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), PROP_FLOATING_PUNCTUATION).setDefaultValue("1").setIconId(R.drawable.cr3_option_text_other));
+		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), PROP_FONT_KERNING_ENABLED).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_kerning));
+		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)).setIconId(R.drawable.cr3_option_images));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconId(R.drawable.cr3_option_text_other));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconId(R.drawable.cr3_option_text_width));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_app_fullscreen), PROP_APP_FULLSCREEN));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1"));
-		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
-		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), PROP_FOOTNOTES).setDefaultValue("1"));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		if (mActivity.getSDKLevel() >= 9)
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), PROP_APP_SCREEN_ORIENTATION).add(mOrientations_API9, mOrientationsTitles_API9).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
 		else
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_orientation), PROP_APP_SCREEN_ORIENTATION).add(mOrientations, mOrientationsTitles).setDefaultValue("0").setIconId(android.R.drawable.ic_menu_always_landscape_portrait));
+		mOptionsPage.add(new NightModeOption(this, getString(R.string.options_inverse_view), PROP_NIGHT_MODE));
+		mOptionsPage.add(new ColorOption(this, getString(R.string.options_color_text), PROP_FONT_COLOR, 0x000000));
+		mOptionsPage.add(new ColorOption(this, getString(R.string.options_color_background), PROP_BACKGROUND_COLOR, 0xFFFFFF));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsPage.add(new TextureOptions(this, getString(R.string.options_background_texture)));
 		if ( DeviceInfo.EINK_SCREEN_UPDATE_MODES_SUPPORTED ) {
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add(mScreenFullUpdateInterval).setDefaultValue("10"));
 		}
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_landscape_pages), PROP_LANDSCAPE_PAGES).add(mLandscapePages, mLandscapePagesTitles).setDefaultValue("1"));
-		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
-		mOptionsPage.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
-		mOptionsPage.add(new BoolOption(this, getString(R.string.options_view_bookmarks_highlight), PROP_APP_HIGHLIGHT_BOOKMARKS).setDefaultValue("1"));
 		
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5"));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5"));
+		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), PROP_FOOTNOTES).setDefaultValue("1"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_view_bookmarks_highlight), PROP_APP_HIGHLIGHT_BOOKMARKS).setDefaultValue("1"));
+
+		mOptionsControls = new OptionsListView(getContext());
+		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)));
+		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP));
+		mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)));
+		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsControls.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
+		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
+		if ( !DeviceInfo.EINK_SCREEN )
+			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
+		mOptionsControls.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
+		
 		mOptionsApplication = new OptionsListView(getContext());
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_fullscreen), PROP_APP_FULLSCREEN));
-		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)));
-		mOptionsApplication.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)));
-		mOptionsApplication.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP));
-		mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES));
-		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_controls_enable_volume_keys), PROP_CONTROLS_ENABLE_VOLUME_KEYS).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_tapzone_hilite), PROP_APP_TAP_ZONE_HILIGHT).setDefaultValue("0"));
-		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
+		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
+			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
+		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES));
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0"));
 		
 		fillStyleEditorOptions();
 		
 		mOptionsStyles.refresh();
-		mOptionsStylesMore.refresh();
+		mOptionsCSS.refresh();
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
 		
-//		mOptionsControls = new OptionsListView(getContext());
-//		mOptionsControls.add(new BoolOption(mProperties, "Sample option", "controls.sample"));
+		
 		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
 		tsStyles.setIndicator("", //getContext().getResources().getString(R.string.tab_options_styles) 
-				getContext().getResources().getDrawable(android.R.drawable.ic_menu_view)); //R.drawable.cr3_option_style
+				getContext().getResources().getDrawable(R.drawable.cr3_tab_style)); //R.drawable.cr3_option_style
 		tsStyles.setContent(this);
 		mTabs.addTab(tsStyles);
-		TabHost.TabSpec tsStylesMore = mTabs.newTabSpec("More Styles");
-		tsStylesMore.setIndicator("", //getContext().getResources().getString(R.string.tab_options_styles) 
-				getContext().getResources().getDrawable(android.R.drawable.ic_menu_view)); //R.drawable.cr3_option_style
-		tsStylesMore.setContent(this);
-		mTabs.addTab(tsStylesMore);
+
+		TabHost.TabSpec tsCSS = mTabs.newTabSpec("CSS");
+		tsCSS.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_css)); //R.drawable.cr3_option_style
+		tsCSS.setContent(this);
+		mTabs.addTab(tsCSS);
+
 		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
-		//getContext().getResources().getString(R.string.tab_options_page)
-		tsPage.setIndicator("", getContext().getResources().getDrawable(android.R.drawable.ic_menu_crop)); //R.drawable.cr3_option_page
+		tsPage.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_page)); //R.drawable.cr3_option_page
 		tsPage.setContent(this);
 		mTabs.addTab(tsPage);
+
+		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
+		tsControls.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_controls));
+		tsControls.setContent(this);
+		mTabs.addTab(tsControls);
+
+
 		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
-		//tsApp.setIndicator(null, getContext().getResources().getDrawable(R.drawable.cr3_option_));
-		tsApp.setIndicator("", //getContext().getResources().getString(R.string.tab_options_app), 
-				getContext().getResources().getDrawable(android.R.drawable.ic_menu_manage));
+		tsApp.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_application));
 		tsApp.setContent(this);
 		mTabs.addTab(tsApp);
 		
-		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
-		tsControls.setIndicator(getContext().getResources().getString(R.string.tab_options_controls), getContext().getResources().getDrawable(android.R.drawable.ic_menu_manage));
-		tsControls.setContent(this);
-		//mTabs.addTab(tsControls);
-
 		setView(mTabs);
 		
 		mOldProperties = new Properties(mProperties);
@@ -1288,6 +1292,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				askApply();
 			}
 		});
+
+		ImageButton positiveButton = (ImageButton)mTabs.findViewById(R.id.options_btn_back);
+		positiveButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				onPositiveButtonClick();
+			}
+		});
+		
+//		ImageButton negativeButton = (ImageButton)mTabs.findViewById(R.id.options_btn_cancel);
+//		negativeButton.setOnClickListener(new View.OnClickListener() {
+//			public void onClick(View v) {
+//				onNegativeButtonClick();
+//			}
+//		});
 		
 		super.onCreate(savedInstanceState);
 		L.v("OptionsDialog is created");
