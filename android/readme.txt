@@ -7,7 +7,7 @@ RESOURCES
 
 
 ===============================================================================
-Some icons are from FatCow Free Icons set
+Some icons are from FatCow Free Icons set "Farm-Fresh Web Icons""
 
 Terms of Use
 
