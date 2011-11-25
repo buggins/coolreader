@@ -1201,11 +1201,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			ArrayList<String> faceValues = new ArrayList<String>(); 
 		    faces.add("-");
 		    faceValues.add("");
-		    faces.add("[Default Sans Serif]");
+		    faces.add(getString(R.string.options_css_font_face_sans_serif));
 		    faceValues.add("font-family: sans-serif");
-		    faces.add("[Default Serif]");
+		    faces.add(getString(R.string.options_css_font_face_serif));
 		    faceValues.add("font-family: serif");
-		    faces.add("[Default Monospace]");
+		    faces.add(getString(R.string.options_css_font_face_monospace));
 		    faceValues.add("font-family: \"Courier New\", \"Courier\", monospace");
 		    for (String face : mFontFaces) {
 			    faces.add(face);
@@ -1223,15 +1223,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "font-size: 70%",
 		        "font-size: 60%",
 		    };
-		    String[] fontSizeStyleNames = {
-		        "-",
-		        "Increase: 110%",
-		        "Increase: 120%",
-		        "Increase: 150%",
-		        "Decrease: 90%",
-		        "Decrease: 80%",
-		        "Decrease: 70%",
-		        "Decrease: 60%",
+		    int[] fontSizeStyleNames = {
+			    R.string.options_css_inherited,
+			    R.string.options_css_font_size_110p,
+			    R.string.options_css_font_size_120p,
+			    R.string.options_css_font_size_150p,
+			    R.string.options_css_font_size_90p,
+			    R.string.options_css_font_size_80p,
+			    R.string.options_css_font_size_70p,
+			    R.string.options_css_font_size_60p,
 		    };
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_size), prefix + ".font-size").add(fontSizeStyles, fontSizeStyleNames).setIconId(R.drawable.cr3_option_font_size));
 
@@ -1242,12 +1242,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "font-weight: bolder",
 		        "font-weight: lighter",
 		    };
-		    String[] fontWeightStyleNames = {
-		        "-",
-		        "Normal",
-		        "Bold",
-		        "Bolder",
-		        "Lighter",
+		    int[] fontWeightStyleNames = {
+		        R.string.options_css_inherited,
+		        R.string.options_css_font_weight_normal,
+		        R.string.options_css_font_weight_bold,
+		        R.string.options_css_font_weight_bolder,
+		        R.string.options_css_font_weight_lighter,
 		    };
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_weight), prefix + ".font-weight").add(fontWeightStyles, fontWeightStyleNames).setIconId(R.drawable.cr3_option_text_bold));
 
@@ -1256,10 +1256,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "font-style: normal",
 		        "font-style: italic",
 		    };
-		    String[] fontStyleStyleNames = {
-		        "-",
-		        "Normal",
-		        "Italic",
+		    int[] fontStyleStyleNames = {
+		    	R.string.options_css_inherited,
+		    	R.string.options_css_font_style_normal,
+		    	R.string.options_css_font_style_italic,
 		    };
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_style), prefix + ".font-style").add(fontStyleStyles, fontStyleStyleNames).setIconId(R.drawable.cr3_option_text_italic));
 
@@ -1300,12 +1300,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		            "text-decoration: line-through",
 		            "text-decoration: overline",
 			    };
-		    String[] textDecorationStyleNames = {
-			        "-",
-			        "None",
-			        "Underline",
-			        "Line through",
-			        "Overline",
+		    int[] textDecorationStyleNames = {
+			    	R.string.options_css_inherited,
+			    	R.string.options_css_text_decoration_none,
+			    	R.string.options_css_text_decoration_underline,
+			    	R.string.options_css_text_decoration_line_through,
+			    	R.string.options_css_text_decoration_overlineline,
 			    };
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_decoration), prefix + ".text-decoration").add(textDecorationStyles, textDecorationStyleNames).setIconId(R.drawable.cr3_option_text_underline));
 
@@ -1315,11 +1315,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		            "vertical-align: sub",
 		            "vertical-align: super",
 			    };
-		    String[] verticalAlignStyleNames = {
-			        "-",
-			        "Baseline",
-			        "Subscript",
-			        "Superscript",
+		    int[] verticalAlignStyleNames = {
+			    	R.string.options_css_inherited,
+			    	R.string.options_css_text_valign_baseline,
+			    	R.string.options_css_text_valign_subscript,
+			    	R.string.options_css_text_valign_superscript,
 			    };
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_valign), prefix + ".vertical-align").add(verticalAlignStyles, verticalAlignStyleNames).setIconId(R.drawable.cr3_option_text_superscript));
 
@@ -1377,13 +1377,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "margin-bottom: 0.5em",
 			        "margin-bottom: 1em",
 			        "margin-bottom: 2em"};
-			String[] marginTopBottomOptionNames = {"-",
-			        "0",
-			        "20% of line height",
-			        "30% of line height",
-			        "50% of line height",
-			        "100% of line height",
-			        "150% of line height"};
+			int[] marginTopBottomOptionNames = {
+			    	R.string.options_css_inherited,
+			    	R.string.options_css_margin_0,
+			    	R.string.options_css_margin_02em,
+			    	R.string.options_css_margin_03em,
+			    	R.string.options_css_margin_05em,
+			    	R.string.options_css_margin_1em,
+			    	R.string.options_css_margin_15em,
+			        };
 			String[] marginLeftOptions = {
 					"", // inherited
 			        "margin-left: 0em",
@@ -1392,7 +1394,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "margin-left: 1.5em",
 			        "margin-left: 2em",
 			        "margin-left: 4em",
+			        "margin-left: 5%",
 			        "margin-left: 10%",
+			        "margin-left: 15%",
 			        "margin-left: 20%",
 			        "margin-left: 30%"};
 			String[] marginRightOptions = {
@@ -1408,19 +1412,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "margin-right: 15%",
 			        "margin-right: 20%",
 			        "margin-right: 30%"};
-			String[] marginLeftRightOptionNames = {
-					"-",
-			        "0",
-			        "50% of line height",
-			        "100% of line height",
-			        "150% of line height",
-			        "200% of line height",
-			        "400% of line height",
-			        "5% of line width",
-			        "10% of line width",
-			        "15% of line width",
-			        "20% of line width",
-			        "30% of line width"};
+			int[] marginLeftRightOptionNames = {
+			    	R.string.options_css_inherited,
+			    	R.string.options_css_margin_0,
+			    	R.string.options_css_margin_05em,
+			    	R.string.options_css_margin_1em,
+			    	R.string.options_css_margin_15em,
+			    	R.string.options_css_margin_2em,
+			    	R.string.options_css_margin_4em,
+			    	R.string.options_css_margin_5p,
+			    	R.string.options_css_margin_10p,
+			    	R.string.options_css_margin_15p,
+			    	R.string.options_css_margin_20p,
+			    	R.string.options_css_margin_30p,
+			};
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_top), prefix + ".margin-top").add(marginTopOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_bottom), prefix + ".margin-bottom").add(marginBottomOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_left), prefix + ".margin-left").add(marginLeftOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margins));
