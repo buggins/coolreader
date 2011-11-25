@@ -75,7 +75,7 @@ public class BookInfoDialog extends BaseDialog {
 	
 	public BookInfoDialog( CoolReader activity, Collection<String> items)
 	{
-		super(activity, 0, 0, false);
+		super(activity);
 		mCoolReader = activity;
 		setTitle(mCoolReader.getString(R.string.dlg_book_info));
 		fillMap();

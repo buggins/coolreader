@@ -23,7 +23,7 @@ public class BookmarkEditDialog extends BaseDialog {
 	
 	public BookmarkEditDialog( CoolReader activity, ReaderView readerView, Bookmark bookmark, boolean isNew)
 	{
-		super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, false);
+		super(activity, "", true, false);
 		mCoolReader = activity;
 		mReaderView = readerView;
 		mIsNew = isNew;

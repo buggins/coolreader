@@ -440,7 +440,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			list.add(new ActionOption(mOwner, keyName + " " + getContext().getString(R.string.options_app_key_double_press), dblPropName, false, false));
 		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			if ( DeviceInfo.NOOK_NAVIGATION_KEYS ) {
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPLEFT, "Top left navigation button");
@@ -468,7 +468,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
 			}
 
-			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
 		}
@@ -481,7 +480,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			super(owner, label, PROP_SHOW_TITLE);
 		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
@@ -493,7 +492,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_percent), PROP_SHOW_POS_PERCENT).setDefaultValue("0"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_chapter_marks), PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_battery_percent), PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
-			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
 		}
@@ -506,13 +504,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			super(owner, label, PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
 		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_mode), PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_block_scale), PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_mode), PROP_IMG_SCALING_ZOOMIN_INLINE_MODE).add(mImageScalingModes, mImageScalingModesTitles).setDefaultValue("2"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_format_image_scaling_inline_scale), PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE).add(mImageScalingFactors, mImageScalingFactorsTitles).setDefaultValue("2"));
-			dlg.setTitle(label);
 			dlg.setView(listView);
 			dlg.show();
 		}
@@ -582,7 +579,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 		public String getValueLabel() { return ">"; }
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			grid = (View)mInflater.inflate(R.layout.options_tap_zone_grid, null);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell1), 1);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell2), 2);
@@ -593,7 +590,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell7), 7);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell8), 8);
 			initTapZone(grid.findViewById(R.id.tap_zone_grid_cell9), 9);
-			dlg.setTitle(label);
 			dlg.setView(grid);
 			dlg.show();
 		}
@@ -727,9 +723,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String getValueLabel() { return findValueLabel(mProperties.getProperty(property)); }
 		
 		public void onSelect() {
-			final BaseDialog dlg = new BaseDialog(mActivity, 0, 0, false);
-			//AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
-			dlg.setTitle(label);
+			final BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 
 			final ListView listView = new ListView(mActivity);
 			
@@ -919,8 +913,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				if ( is==null )
 					return null;
 				BitmapDrawable src = new BitmapDrawable(is);
-				if ( src==null )
-					return null;
 				Item item = new Item();
 				item.id = resourceId;
 				Bitmap bmp = Bitmap.createScaledBitmap(src.getBitmap(), dx, dy, true);
@@ -1026,7 +1018,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	public OptionsDialog( CoolReader activity, ReaderView readerView, String[] fontFaces )
 	{
-		super(activity, 0, 0, false);
+		super(activity, null, false, false);
 		
 		mActivity = activity;
 		mReaderView = readerView;
@@ -1157,7 +1149,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			this.prefix = prefix;
 		}
 		public void onSelect() {
-			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			String[] firstLineOptions = {"", "text-align: justify", "text-align: left", "text-align: center", "text-align: right", };
 			String[] firstLineOptionNames = {"-", "Justify", "Left", "Center", "Right", };
@@ -1441,7 +1433,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		System.gc();
 		CoolReader.dumpHeapAllocation();
 		L.v("creating options dialog");
-		setTitle(null);
         setCancelable(true);
         setCanceledOnTouchOutside(true);
         mInflater = LayoutInflater.from(getContext());
@@ -1566,7 +1557,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		setOnCancelListener(new OnCancelListener() {
 
 			public void onCancel(DialogInterface dialog) {
-				askApply();
+				onPositiveButtonClick();
 			}
 		});
 
@@ -1588,26 +1579,26 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		L.v("OptionsDialog is created");
 	}
 
-	private void askApply()
-	{
-		Properties diff = mProperties.diff(mOldProperties);
-		if ( diff.size()>0 ) {
-			L.d("Some properties were changed, ask user whether to apply");
-			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
-			dlg.setTitle(R.string.win_title_options_apply);
-			dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
-				public void onClick(DialogInterface arg0, int arg1) {
-					onPositiveButtonClick();
-				}
-			});
-			dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
-				public void onClick(DialogInterface arg0, int arg1) {
-					onNegativeButtonClick();
-				}
-			});
-			dlg.show();
-		}
-	}
+//	private void askApply()
+//	{
+//		Properties diff = mProperties.diff(mOldProperties);
+//		if ( diff.size()>0 ) {
+//			L.d("Some properties were changed, ask user whether to apply");
+//			AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
+//			dlg.setTitle(R.string.win_title_options_apply);
+//			dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
+//				public void onClick(DialogInterface arg0, int arg1) {
+//					onPositiveButtonClick();
+//				}
+//			});
+//			dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
+//				public void onClick(DialogInterface arg0, int arg1) {
+//					onNegativeButtonClick();
+//				}
+//			});
+//			dlg.show();
+//		}
+//	}
 	
 	@Override
 	protected void onPositiveButtonClick() {

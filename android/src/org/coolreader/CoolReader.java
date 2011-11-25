@@ -1144,9 +1144,8 @@ public class CoolReader extends Activity
 		private EditText input;
 		public InputDialog( CoolReader activity, final String title, boolean isNumberEdit, final InputHandler handler )
 		{
-			super(activity, R.string.dlg_button_ok, R.string.dlg_button_cancel, true);
+			super(activity, title, true, true);
 			this.handler = handler;
-			setTitle(title);
 	        input = new EditText(getContext());
 	        if ( isNumberEdit )
 	        	input.setKeyListener(DigitsKeyListener.getInstance("0123456789."));

@@ -249,48 +249,36 @@ public class BookmarksDlg  extends BaseDialog {
 	
 	public BookmarksDlg( CoolReader activity, ReaderView readerView )
 	{
-		super(activity, 0, 0, false);
+		super(activity);
 		mThis = this; // for inner classes
         mInflater = LayoutInflater.from(getContext());
 		mCoolReader = activity;
 		mReaderView = readerView;
 		mBookInfo = mReaderView.getBookInfo();
-		setTitle(null);
+		setPositiveButtonImage(R.drawable.cr3_button_add);
 		View frame = mInflater.inflate(R.layout.bookmark_list_dialog, null);
-		ImageButton btnClose = (ImageButton)frame.findViewById(R.id.bookmark_close);
-		btnClose.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				BookmarksDlg.this.dismiss();
-			}
-		});
-		ImageButton btnAdd = (ImageButton)frame.findViewById(R.id.bookmark_add);
-		btnAdd.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				BookmarksDlg.this.dismiss();
-				mReaderView.addBookmark(0);
-			}
-		});
 		ViewGroup body = (ViewGroup)frame.findViewById(R.id.bookmark_list);
 		mList = new BookmarkList(activity, false);
 		body.addView(mList);
 		setView(frame);
-		setFlingHandlers(mList, new Runnable() {
-			@Override
-			public void run() {
-				// cancel
-				BookmarksDlg.this.dismiss();
-			}
-		}, new Runnable() {
-			@Override
-			public void run() {
-				// add bookmark
-				mReaderView.addBookmark(0);
-				BookmarksDlg.this.dismiss();
-			}
-		});
+		setFlingHandlers(mList, null, null);
 	}
+	
+	
+
+	@Override
+	protected void onPositiveButtonClick() {
+		// add bookmark
+		mReaderView.addBookmark(0);
+		BookmarksDlg.this.dismiss();
+	}
+
+	@Override
+	protected void onNegativeButtonClick() {
+		BookmarksDlg.this.dismiss();
+	}
+
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

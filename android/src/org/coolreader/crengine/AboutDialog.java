@@ -55,9 +55,8 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	
 	public AboutDialog( CoolReader activity)
 	{
-		super(activity, 0, 0, false);
+		super(activity);
 		mCoolReader = activity;
-		setTitle(null); //mCoolReader.getString(R.string.dlg_about));
 		LayoutInflater inflater = LayoutInflater.from(getContext());
 		TabHost tabs = (TabHost)inflater.inflate(R.layout.about_dialog, null);
 		mAppTab = (View)inflater.inflate(R.layout.about_dialog_app, null);
