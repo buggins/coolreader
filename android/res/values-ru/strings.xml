@@ -283,4 +283,15 @@
     <string name="mi_bookmark_send">Отправить</string>
     <string name="folder_name_books_by_author">Книги по авторам</string>
     <string name="options_view_bookmarks_highlight">Подсвечивать закладки</string>
+    <string name="options_css_footnotetitle">Заголовок сноски</string>
+    <string name="options_css_subtitle">Подзаголовок</string>
+    <string name="options_css_poem">Стихи</string>
+    <string name="options_css_textauthor">Автор текста / эпиграфа</string>
+    <string name="options_css_footnote">Сноска</string>
+    <string name="options_css_pre">Преформатированный текст / код</string>
+    <string name="options_css_epigraph">Эпиграф</string>
+    <string name="options_css_link">Ссылка</string>
+    <string name="options_css_footnotelink">Ссылка на сноску</string>
+    <string name="options_css_title">Заголовок</string>
+    <string name="options_css_def">Формат параграфа по умолчанию</string>
 </resources>

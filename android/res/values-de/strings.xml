@@ -283,4 +283,16 @@
     <string name="mi_bookmark_send">Send</string>
     <string name="folder_name_books_by_author">Books by author</string>
     <string name="options_view_bookmarks_highlight">Highlight bookmarks</string>
+    <string name="options_css_footnotetitle">Footnote title</string>
+    <string name="options_css_subtitle">Subtitle</string>
+    <string name="options_css_textauthor">Text / Cite / Epigraph author</string>
+    <string name="options_css_poem">Poem</string>
+    <string name="options_css_footnote">Footnote</string>
+    <string name="options_css_pre">Preformatted text / code</string>
+    <string name="options_css_epigraph">Epigraph</string>
+    <string name="options_css_link">Link</string>
+    <string name="options_css_cite">Cite / quotation</string>
+    <string name="options_css_footnotelink">Footnote link</string>
+    <string name="options_css_title">Title</string>
+    <string name="options_css_def">Default paragraph formatting</string>
 </resources>

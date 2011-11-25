@@ -1408,21 +1408,26 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	}
 	
 	
-	private ListOption createStyleEditor(String styleCode, String title) {
-		ListOption res = new StyleEditorOption(this, title, "styles." + styleCode);
+	private ListOption createStyleEditor(String styleCode, int titleId) {
+		ListOption res = new StyleEditorOption(this, getString(titleId), "styles." + styleCode);
 		res.setIconId(R.drawable.cr3_option_text_other);
 		return res;
 	}
 	
 	private void fillStyleEditorOptions() {
 		mOptionsCSS = new OptionsListView(getContext());
-		mOptionsCSS.add(createStyleEditor("def", "Default paragraph style"));
-		mOptionsCSS.add(createStyleEditor("title", "Title"));
-		mOptionsCSS.add(createStyleEditor("subtitle", "Subtitle"));
-		mOptionsCSS.add(createStyleEditor("pre", "Preformatted text"));
-		mOptionsCSS.add(createStyleEditor("cite", "Cite / quotation"));
-		mOptionsCSS.add(createStyleEditor("epigraph", "Epigraph"));
-		mOptionsCSS.add(createStyleEditor("stanza", "Poem"));
+		mOptionsCSS.add(createStyleEditor("def", R.string.options_css_def));
+		mOptionsCSS.add(createStyleEditor("title", R.string.options_css_title));
+		mOptionsCSS.add(createStyleEditor("subtitle", R.string.options_css_subtitle));
+		mOptionsCSS.add(createStyleEditor("pre", R.string.options_css_pre));
+		mOptionsCSS.add(createStyleEditor("cite", R.string.options_css_cite));
+		mOptionsCSS.add(createStyleEditor("epigraph", R.string.options_css_epigraph));
+		mOptionsCSS.add(createStyleEditor("poem", R.string.options_css_poem));
+		mOptionsCSS.add(createStyleEditor("text-author", R.string.options_css_textauthor));
+		mOptionsCSS.add(createStyleEditor("link", R.string.options_css_link));
+		mOptionsCSS.add(createStyleEditor("footnote", R.string.options_css_footnote));
+		mOptionsCSS.add(createStyleEditor("footnote-link", R.string.options_css_footnotelink));
+		mOptionsCSS.add(createStyleEditor("footnote-title", R.string.options_css_footnotetitle));
 	}
 	
 	@Override
