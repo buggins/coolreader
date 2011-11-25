@@ -1181,7 +1181,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			OptionsListView listView = new OptionsListView(getContext());
 			String[] firstLineOptions = {"", "text-align: justify", "text-align: left", "text-align: center", "text-align: right", };
 			String[] firstLineOptionNames = {"-", "Justify", "Left", "Center", "Right", };
-			listView.add(new ListOption(mOwner, "Text alignment", prefix + ".align").add(firstLineOptions, firstLineOptionNames).setIconId(R.drawable.cr3_option_text_align));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_align), prefix + ".align").add(firstLineOptions, firstLineOptionNames).setIconId(R.drawable.cr3_option_text_align));
 			
 			String[] identOptions = {"", // inherited
 			        "text-indent: 0em",
@@ -1195,7 +1195,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "Big Indent",
 			        "Small Outdent",
 			        "Big Outdent"};
-			listView.add(new ListOption(mOwner, "First line indent", prefix + ".text-indent").add(identOptions, identOptionNames).setIconId(R.drawable.cr3_option_text_indent));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_indent), prefix + ".text-indent").add(identOptions, identOptionNames).setIconId(R.drawable.cr3_option_text_indent));
 
 			ArrayList<String> faces = new ArrayList<String>(); 
 			ArrayList<String> faceValues = new ArrayList<String>(); 
@@ -1211,7 +1211,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			    faces.add(face);
 			    faceValues.add("font-family: " + face);
 		    }
-			listView.add(new ListOption(mOwner, "Font face", prefix + ".font-face").add(faceValues.toArray(new String[]{}), faces.toArray(new String[]{})).setIconId(R.drawable.cr3_option_font_face));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_face), prefix + ".font-face").add(faceValues.toArray(new String[]{}), faces.toArray(new String[]{})).setIconId(R.drawable.cr3_option_font_face));
 			
 		    String[] fontSizeStyles = {
 		        "", // inherited
@@ -1233,7 +1233,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "Decrease: 70%",
 		        "Decrease: 60%",
 		    };
-			listView.add(new ListOption(mOwner, "Font size", prefix + ".font-size").add(fontSizeStyles, fontSizeStyleNames).setIconId(R.drawable.cr3_option_font_size));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_size), prefix + ".font-size").add(fontSizeStyles, fontSizeStyleNames).setIconId(R.drawable.cr3_option_font_size));
 
 		    String[] fontWeightStyles = {
 		        "", // inherited
@@ -1249,7 +1249,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "Bolder",
 		        "Lighter",
 		    };
-			listView.add(new ListOption(mOwner, "Font weight", prefix + ".font-weight").add(fontWeightStyles, fontWeightStyleNames).setIconId(R.drawable.cr3_option_text_bold));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_weight), prefix + ".font-weight").add(fontWeightStyles, fontWeightStyleNames).setIconId(R.drawable.cr3_option_text_bold));
 
 		    String[] fontStyleStyles = {
 		        "", // inherited
@@ -1261,7 +1261,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "Normal",
 		        "Italic",
 		    };
-			listView.add(new ListOption(mOwner, "Font style", prefix + ".font-style").add(fontStyleStyles, fontStyleStyleNames).setIconId(R.drawable.cr3_option_text_italic));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_style), prefix + ".font-style").add(fontStyleStyles, fontStyleStyleNames).setIconId(R.drawable.cr3_option_text_italic));
 
 		    String[] lineHeightStyles = {
 			        "", // inherited
@@ -1291,7 +1291,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "140%",
 			        "150%",
 			    };
-			listView.add(new ListOption(mOwner, "Line spacing", prefix + ".line-height").add(lineHeightStyles, lineHeightStyleNames).setIconId(R.drawable.cr3_option_line_spacing));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_interline_space), prefix + ".line-height").add(lineHeightStyles, lineHeightStyleNames).setIconId(R.drawable.cr3_option_line_spacing));
 
 		    String[] textDecorationStyles = {
 		    		"", // inherited
@@ -1307,7 +1307,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "Line through",
 			        "Overline",
 			    };
-			listView.add(new ListOption(mOwner, "Text decoration", prefix + ".text-decoration").add(textDecorationStyles, textDecorationStyleNames).setIconId(R.drawable.cr3_option_text_underline));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_decoration), prefix + ".text-decoration").add(textDecorationStyles, textDecorationStyleNames).setIconId(R.drawable.cr3_option_text_underline));
 
 		    String[] verticalAlignStyles = {
 		    		"", // inherited
@@ -1321,7 +1321,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "Subscript",
 			        "Superscript",
 			    };
-			listView.add(new ListOption(mOwner, "Vertical align", prefix + ".vertical-align").add(verticalAlignStyles, verticalAlignStyleNames).setIconId(R.drawable.cr3_option_text_superscript));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_valign), prefix + ".vertical-align").add(verticalAlignStyles, verticalAlignStyleNames).setIconId(R.drawable.cr3_option_text_superscript));
 
 		    String[] fontColorStyles = {
 		        "", // inherited
@@ -1361,7 +1361,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "Fuchsia",
 		        "Aqua",
 		    };
-			listView.add(new ListOption(mOwner, "Font color", prefix + ".color").add(fontColorStyles, fontColorStyleNames).setIconId(R.drawable.cr3_option_font_color));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_color), prefix + ".color").add(fontColorStyles, fontColorStyleNames).setIconId(R.drawable.cr3_option_font_color));
 			
 			String[] marginTopOptions = {"", // inherited
 			        "margin-top: 0em",
@@ -1421,10 +1421,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "15% of line width",
 			        "20% of line width",
 			        "30% of line width"};
-			listView.add(new ListOption(mOwner, "Margin before", prefix + ".margin-top").add(marginTopOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
-			listView.add(new ListOption(mOwner, "Margin after", prefix + ".margin-bottom").add(marginBottomOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
-			listView.add(new ListOption(mOwner, "Left margin", prefix + ".margin-left").add(marginLeftOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margins));
-			listView.add(new ListOption(mOwner, "Right margin", prefix + ".margin-right").add(marginRightOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margins));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_top), prefix + ".margin-top").add(marginTopOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_bottom), prefix + ".margin-bottom").add(marginBottomOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_left), prefix + ".margin-left").add(marginLeftOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margins));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_right), prefix + ".margin-right").add(marginRightOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margins));
 			
 
 			dlg.setTitle(label);

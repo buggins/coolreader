@@ -295,4 +295,18 @@
     <string name="options_css_footnotelink">Footnote link</string>
     <string name="options_css_title">Title</string>
     <string name="options_css_def">Default paragraph formatting</string>
+    <string name="options_css_font_size">Font size</string>
+    <string name="options_css_margin_bottom">Margin after</string>
+    <string name="options_css_text_color">Text color</string>
+    <string name="options_css_font_face">Font face</string>
+    <string name="options_css_margin_left">Margin left</string>
+    <string name="options_css_font_decoration">Font decoration</string>
+    <string name="options_css_interline_space">Interline space</string>
+    <string name="options_css_font_style">Font style</string>
+    <string name="options_css_font_weight">Font weight</string>
+    <string name="options_css_text_valign">Text vertical alignment</string>
+    <string name="options_css_text_align">Text alignment</string>
+    <string name="options_css_text_indent">First line indent</string>
+    <string name="options_css_margin_right">Margin right</string>
+    <string name="options_css_margin_top">Margin before</string>
 </resources>

@@ -294,4 +294,19 @@
     <string name="options_css_footnotelink">Ссылка на сноску</string>
     <string name="options_css_title">Заголовок</string>
     <string name="options_css_def">Формат параграфа по умолчанию</string>
+    <string name="options_css_font_size">Размер шрифта</string>
+    <string name="options_css_margin_bottom">Отступ после</string>
+    <string name="options_css_text_color">Цвет текста</string>
+    <string name="options_css_cite">Цитата</string>
+    <string name="options_css_font_face">Гарнитура шрифта</string>
+    <string name="options_css_margin_left">Отступ слева</string>
+    <string name="options_css_font_decoration">Подчеркивание</string>
+    <string name="options_css_interline_space">Межстрочный интервал</string>
+    <string name="options_css_font_style">Стиль шрифта</string>
+    <string name="options_css_font_weight">Жирность шрифта</string>
+    <string name="options_css_text_valign">Надстрочные / подстрочные индексы</string>
+    <string name="options_css_text_align">Выравнивание текста</string>
+    <string name="options_css_text_indent">Отступ первой строки</string>
+    <string name="options_css_margin_right">Отступ справа</string>
+    <string name="options_css_margin_top">Отступ до</string>
 </resources>
