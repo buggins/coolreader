@@ -379,32 +379,23 @@ public class Engine {
 					if (mProgress == null) {
 						try {
 							if (mActivity != null && mActivity.isStarted()) {
-//								Log.v("cr3",
-//										"showProgress() - in GUI thread : creating progress window");
-								if (PROGRESS_STYLE == ProgressDialog.STYLE_HORIZONTAL) {
-									mProgress = new ProgressDialog(mActivity);
-									mProgress
-											.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-									if (progressIcon != null)
-										mProgress.setIcon(progressIcon);
-									else
-										mProgress.setIcon(R.drawable.cr3_logo);
-									mProgress.setMax(10000);
-									mProgress.setCancelable(false);
-									mProgress.setProgress(mainProgress);
-									mProgress
-											.setTitle(mActivity
-													.getResources()
-													.getString(
-															R.string.progress_please_wait));
-									mProgress.setMessage(msg);
-									mProgress.show();
-								} else {
-//									mProgress = ProgressDialog.show(mActivity,
-//											"Please Wait", msg);
-									mProgress.setCancelable(false);
-									mProgress.setProgress(mainProgress);
-								}
+								mProgress = new ProgressDialog(mActivity);
+								mProgress
+										.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+								if (progressIcon != null)
+									mProgress.setIcon(progressIcon);
+								else
+									mProgress.setIcon(R.drawable.cr3_logo);
+								mProgress.setMax(10000);
+								mProgress.setCancelable(false);
+								mProgress.setProgress(mainProgress);
+								mProgress
+										.setTitle(mActivity
+												.getResources()
+												.getString(
+														R.string.progress_please_wait));
+								mProgress.setMessage(msg);
+								mProgress.show();
 								progressShown = true;
 							}
 						} catch (Exception e) {
@@ -757,7 +748,7 @@ public class Engine {
 		return getFontFaceListInternal();
 	}
 
-	final int CACHE_DIR_SIZE = 32000000;
+	final static int CACHE_DIR_SIZE = 32000000;
 
 	private String createCacheDir(File baseDir, String subDir) {
 		String cacheDirName = null;
@@ -800,11 +791,13 @@ public class Engine {
 			log.e("File " + oldPlace.getAbsolutePath() + " does not exist!");
 			return false;
 		}
+		FileOutputStream os = null;
+		FileInputStream is = null;
 		try {
 			if ( !newPlace.createNewFile() )
 				return false; // cannot create file
-			FileOutputStream os = new FileOutputStream(newPlace);
-			FileInputStream is = new FileInputStream(oldPlace);
+			os = new FileOutputStream(newPlace);
+			is = new FileInputStream(oldPlace);
 			byte[] buf = new byte[0x10000];
 			for (;;) {
 				int bytesRead = is.read(buf);
@@ -818,6 +811,18 @@ public class Engine {
 		} catch ( IOException e ) {
 			return false;
 		} finally {
+			try {
+				if (os != null)
+					os.close();
+			} catch (IOException ee) {
+				// ignore
+			}
+			try {
+				if (is != null)
+					is.close();
+			} catch (IOException ee) {
+				// ignore
+			}
 			if ( removeNewFile )
 				newPlace.delete();
 		}

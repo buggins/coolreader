@@ -34,10 +34,10 @@ public class BookmarksDlg  extends BaseDialog {
 	BookmarkList mList;
 	BookmarksDlg mThis;
 
-	private final int ITEM_POSITION=0;
-	private final int ITEM_COMMENT=1;
-	private final int ITEM_CORRECTION=2;
-	private final int ITEM_SHORTCUT=3;
+	public final static int ITEM_POSITION=0;
+	public final static int ITEM_COMMENT=1;
+	public final static int ITEM_CORRECTION=2;
+	public final static int ITEM_SHORTCUT=3;
 	
 	class BookmarkListAdapter implements ListAdapter {
 		public boolean areAllItemsEnabled() {
@@ -245,7 +245,7 @@ public class BookmarksDlg  extends BaseDialog {
 		
 	}
 	
-	final int SHORTCUT_COUNT = 10;
+	final static int SHORTCUT_COUNT = 10;
 	
 	public BookmarksDlg( CoolReader activity, ReaderView readerView )
 	{

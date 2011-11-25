@@ -21,7 +21,7 @@ import android.widget.PopupWindow.OnDismissListener;
 public class FindNextDlg {
 	PopupWindow mWindow;
 	View mAnchor;
-	CoolReader mCoolReader;
+	//CoolReader mCoolReader;
 	ReaderView mReaderView;
 	View mPanel;
 	final String pattern;
@@ -40,7 +40,7 @@ public class FindNextDlg {
 	{
 		this.pattern = pattern;
 		this.caseInsensitive = caseInsensitive;
-		mCoolReader = coolReader;
+		//mCoolReader = coolReader;
 		mReaderView = readerView;
 		mAnchor = readerView;
 

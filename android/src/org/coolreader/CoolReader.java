@@ -682,7 +682,10 @@ public class CoolReader extends Activity
 			        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
 			        	mReaderView.setDimmingAlpha(dimmingAlpha);
 			        	log.d("Brightness: " + b + ", dim: " + dimmingAlpha);
-			        	if ( attrs.screenBrightness != b ) {
+			        	float delta = attrs.screenBrightness - b;
+			        	if (delta < 0)
+			        		delta = -delta;
+			        	if (delta > 0.0001) {
 			        		attrs.screenBrightness = b;
 			        		changed = true;
 			        	}
@@ -691,7 +694,7 @@ public class CoolReader extends Activity
 			        	try {
 				        	Field bb = attrs.getClass().getField("buttonBrightness");
 				        	if ( bb!=null ) {
-				        		Float oldValue = (Float)bb.get(attrs);
+				        		//Float oldValue = (Float)bb.get(attrs);
 				        		//if ( oldValue==null || oldValue.floatValue()!=0 ) {
 				        			bb.set(attrs, Float.valueOf(0.0f));
 					        		changed = true;
@@ -849,11 +852,11 @@ public class CoolReader extends Activity
 		super.onPostResume();
 	}
 
-	private boolean restarted = false;
+//	private boolean restarted = false;
 	@Override
 	protected void onRestart() {
 		log.i("CoolReader.onRestart()");
-		restarted = true;
+		//restarted = true;
 		super.onRestart();
 	}
 
@@ -922,7 +925,7 @@ public class CoolReader extends Activity
 		}
         //log.i("waiting for engine tasks completion");
         //engine.waitTasksCompletion();
-		restarted = false;
+//		restarted = false;
 		stopped = false;
 		final String fileName = fileToLoadOnStart;
 		mBackgroundThread.postGUI(new Runnable() {

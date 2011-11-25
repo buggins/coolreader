@@ -417,13 +417,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return false;
 		}
 		boolean tracked = isTracked(event);
-		if ( keyCode!=KeyEvent.KEYCODE_BACK )
-			backKeyDownHere = false;
+//		if ( keyCode!=KeyEvent.KEYCODE_BACK )
+//			backKeyDownHere = false;
 		mActivity.onUserActivity();
 
 		if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
 			return true;
-		backKeyDownHere = false;
+		//backKeyDownHere = false;
 		
 		// apply orientation
 		keyCode = overrideKey( keyCode );
@@ -492,9 +492,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return super.onKeyUp(keyCode, event);
 	}
 
-	boolean VOLUME_KEYS_ZOOM = false;
+//	boolean VOLUME_KEYS_ZOOM = false;
 	
-	private boolean backKeyDownHere = false;
+	//private boolean backKeyDownHere = false;
 	
 	@Override
 	protected void onFocusChanged(boolean gainFocus, int direction,
@@ -566,7 +566,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
-		backKeyDownHere = false;
+//		backKeyDownHere = false;
 		if ( event.getRepeatCount()==0 ) {
 			log.v("onKeyDown("+keyCode + ", " + event +")");
 			keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
@@ -2097,6 +2097,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("initPageTurn(charCount = " + charCount + ")");
 			if (isScrollView) {
 				image1 = preparePageImage(0);
+				if (image1 == null) {
+					log.v("ScrollViewAnimation -- not started: image is null");
+					return;
+				}
 				int pos0 = image1.position.y;
 				int pos1 = pos0 + image1.position.pageHeight * 9/10;
 				if (pos1 > image1.position.fullHeight - image1.position.pageHeight)
@@ -2105,7 +2109,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					pos1 = 0;
 				nextPos = pos1; 
 				image2 = preparePageImage(pos1 - pos0);
-				if ( image1==null || image2==null ) {
+				if (image2 == null) {
 					log.v("ScrollViewAnimation -- not started: image is null");
 					return;
 				}
@@ -2854,7 +2858,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			errorHandler.run();
 			return false;
 		}
-		BookInfo book = fileName!=null ? mActivity.getHistory().getBookInfo(fileName) : null;
+		BookInfo book = mActivity.getHistory().getBookInfo(fileName);
 		if ( book!=null )
 			log.v("loadDocument() : found book in history : " + book);
 		FileInfo fi = null;
@@ -3181,7 +3185,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	};
 	
-	class ReaderSurfaceView extends SurfaceView {
+	static class ReaderSurfaceView extends SurfaceView {
 		public ReaderSurfaceView( Context context )
 		{
 			super(context);
@@ -3221,9 +3225,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private int pageFlipAnimationSpeedMs = DEF_PAGE_FLIP_MS; // if 0 : no animation
 	private int pageFlipAnimationMode = PAGE_ANIMATION_SLIDE2; //PAGE_ANIMATION_PAPER; // if 0 : no animation
-	private void animatePageFlip( final int dir ) {
-		animatePageFlip(dir, null);
-	}
+//	private void animatePageFlip( final int dir ) {
+//		animatePageFlip(dir, null);
+//	}
 	private void animatePageFlip( final int dir, final Runnable onFinishHandler )
 	{
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
@@ -3249,14 +3253,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						int fromX = dir2>0 ? w : 0;
 						int toX = dir2>0 ? 0 : w;
 						new PageViewAnimation(fromX, w, dir2);
-						if ( currentAnimation!=null ) {
-							if ( currentAnimation!=null ) {
+						if (currentAnimation != null) {
+							if (currentAnimation != null) {
 								nextHiliteId++;
 								hiliteRect = null;
+								currentAnimation.update(toX, h/2);
+								currentAnimation.move(speed, true);
+								currentAnimation.stop(-1, -1);
 							}
-							currentAnimation.update(toX, h/2);
-							currentAnimation.move(speed, true);
-							currentAnimation.stop(-1, -1);
 							if ( onFinishHandler!=null )
 								BackgroundThread.guiExecutor.execute(onFinishHandler);
 						}
@@ -3265,15 +3269,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						int fromY = dir>0 ? h*7/8 : 0;
 						int toY = dir>0 ? 0 : h*7/8;
 						new ScrollViewAnimation(fromY, h);
-						if ( currentAnimation!=null ) {
-							if ( currentAnimation!=null ) {
+						if (currentAnimation != null) {
+							if (currentAnimation != null) {
 								nextHiliteId++;
 								hiliteRect = null;
-								
+								currentAnimation.update(w/2, toY);
+								currentAnimation.move(speed, true);
+								currentAnimation.stop(-1, -1);
 							}
-							currentAnimation.update(w/2, toY);
-							currentAnimation.move(speed, true);
-							currentAnimation.stop(-1, -1);
 							if ( onFinishHandler!=null )
 								BackgroundThread.guiExecutor.execute(onFinishHandler);
 						}
@@ -3397,9 +3400,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			mSettings.setInt(PROP_APP_SCREEN_BACKLIGHT, OptionsDialog.mBacklightLevels[currentBrightnessValueIndex]);
 			OptionsDialog.mBacklightLevelsTitles[0] = mActivity.getString(R.string.options_app_backlight_screen_default);
-			String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
-			if ( showBrightnessFlickToast )
+			if ( showBrightnessFlickToast ) {
+				String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 				mActivity.showToast(s);
+			}
 			mActivity.saveSettings(mSettings);
 			currentBrightnessValueIndex = -1;
 		}
@@ -3498,7 +3502,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		abstract void draw( Canvas canvas );
 	}
 
-	private Object surfaceLock = new Object(); 
+//	private Object surfaceLock = new Object(); 
 
 	private static final int[] accelerationShape = new int[] {
 		0, 6, 24, 54, 95, 146, 206, 273, 345, 421, 500, 578, 654, 726, 793, 853, 904, 945, 975, 993, 1000  
@@ -3565,7 +3569,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	abstract class ViewAnimationBase implements ViewAnimationControl {
-		long startTimeStamp;
+		//long startTimeStamp;
 		boolean started;
 		public boolean isStarted()
 		{
@@ -3573,7 +3577,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		ViewAnimationBase()
 		{
-			startTimeStamp = android.os.SystemClock.uptimeMillis();
+			//startTimeStamp = android.os.SystemClock.uptimeMillis();
 			cancelGc();
 		}
 		public void close()
@@ -3627,11 +3631,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pointerDestPos = startY;
 			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos0);
 			image1 = preparePageImage(0);
+			if (image1 == null) {
+				log.v("ScrollViewAnimation -- not started: image is null");
+				return;
+			}
 			image2 = preparePageImage(image1.position.pageHeight);
-//			doCommandInternal(ReaderCommand.DCMD_GO_POS.nativeId, pos0 + image1.position.pageHeight);
-//			image2 = preparePageImage(0);
 			doc.doCommand(ReaderCommand.DCMD_GO_POS.nativeId, pos);
-			if ( image1==null || image2==null ) {
+			if (image2 == null) {
 				log.v("ScrollViewAnimation -- not started: image is null");
 				return;
 			}
@@ -3716,7 +3722,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 //			BitmapInfo image1 = mCurrentPageInfo;
 //			BitmapInfo image2 = mNextPageInfo;
-			if (image1.isReleased() || image2.isReleased())
+			if (image1 == null || image1.isReleased() || image2 == null || image2.isReleased())
 				return;
 			int h = image1.position.pageHeight;
 			int rowsFromImg1 = image1.position.y + h - pointerCurrPos;
@@ -3724,7 +3730,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		Rect src1 = new Rect(0, h-rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
     		Rect dst1 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg1);
     		drawDimmedBitmap(canvas, image1.bitmap, src1, dst1);
-			if (image2!=null) {
+			if (image2 != null) {
 	    		Rect src2 = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), rowsFromImg2);
 	    		Rect dst2 = new Rect(0, rowsFromImg1, mCurrentPageInfo.bitmap.getWidth(), h);
 	    		drawDimmedBitmap(canvas, image2.bitmap, src2, dst2);
@@ -3876,7 +3882,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			drawGradient(canvas, rc, shadePaints, shadePaints.length/2, shadePaints.length/10);
 		}
 		
-		private final int DISTORT_PART_PERCENT = 30;
+		private final static int DISTORT_PART_PERCENT = 30;
 		private void drawDistorted( Canvas canvas, Bitmap bmp, Rect src, Rect dst, int dir) {
 			int srcdx = src.width();
 			int dstdx = dst.width();
@@ -4781,9 +4787,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				public String call() {
 					BackgroundThread.ensureGUI();
 					log.i("readerCallback.OnLoadFileFormatDetected " + fileFormat);
-					if ( fileFormat!=null ) {
+					if (fileFormat != null) {
 						String s = getCSSForFormat(fileFormat);
-						log.i("setting .css for file format " + fileFormat + " from resource " + (fileFormat!=null?fileFormat.getCssName():"[NONE]"));
+						log.i("setting .css for file format " + fileFormat + " from resource " + fileFormat.getCssName());
 						return s;
 					}
 			    	return null;
@@ -4989,16 +4995,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			// guess image type
 			if (coverpageBytes.length > 8 // PNG signature length
-					&& coverpageBytes[0] == 0x89 // PNG signature start 4 bytes
+					&& coverpageBytes[0] == (byte)0x89 // PNG signature start 4 bytes
 					&& coverpageBytes[1] == 0x50
 					&& coverpageBytes[2] == 0x4E
 					&& coverpageBytes[3] == 0x47) {
 				imageFileName += ".png";
 			} else if (coverpageBytes.length > 3 // Checking only the first 3
 													// bytes of JPEG header
-					&& coverpageBytes[0] == 0xFF
-					&& coverpageBytes[1] == 0xD8
-					&& coverpageBytes[2] == 0xFF) {
+					&& coverpageBytes[0] == (byte)0xFF
+					&& coverpageBytes[1] == (byte)0xD8
+					&& coverpageBytes[2] == (byte)0xFF) {
 				imageFileName += ".jpg";
 			} else if (coverpageBytes.length > 3 // Checking only the first 3
 													// bytes of GIF header
@@ -5037,13 +5043,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
     
-    @Override
-    public void finalize()
-    {
-    	log.w("ReaderView.finalize() is called");
-    	//destroy();
-    }
-
     private static volatile int gcCounter = 0;
     private static final int GC_INTERVAL = 5000; // 5 ms
     private static class GcScheduleTask implements Runnable {

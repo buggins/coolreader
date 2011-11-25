@@ -19,7 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class TOCDlg extends BaseDialog {
-	CoolReader mCoolReader;
+	//CoolReader mCoolReader;
 	ReaderView mReaderView;
 	TOCItem mTOC;
 	ListView mListView;
@@ -166,7 +166,7 @@ public class TOCDlg extends BaseDialog {
 	{
 		super(coolReader, coolReader.getResources().getString(R.string.win_title_toc), false, false);
         setCancelable(true);
-		this.mCoolReader = coolReader;
+//		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
 		this.mTOC = toc;
 		this.mCurrentPage = currentPage;

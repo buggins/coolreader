@@ -17,7 +17,7 @@ public class CRDB {
 	SQLiteDatabase mDB;
 	File mDBFile;
 	SQLiteDatabase mCoverpageDB;
-	File mCoverpageDBFile;
+	//File mCoverpageDBFile;
 
 	private boolean moveToBackup(File f) {
 		Log.e("cr3", "Moving corrupted DB file to backup.");
@@ -37,21 +37,7 @@ public class CRDB {
 		return true;
 	}
 
-	protected boolean open( File dbfile )
-	{
-		L.i("Opening database from " + dbfile.getAbsolutePath());
-		try {
-			this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
-		} catch (SQLiteDiskIOException e) {
-			moveToBackup(dbfile);
-			try {
-				this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
-			} catch (SQLiteDiskIOException e2) {
-				throw new SQLiteDiskIOException("can't open DB " + dbfile + ": " + e2.getMessage());
-			}
-		}
-		this.mDBFile = dbfile;
-		File coverFile = new File(dbfile.getAbsolutePath().replace(".sqlite", "_cover.sqlite"));
+	private void openCoverpageDB(File coverFile) {
 		try {
 			this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
 		} catch (SQLiteDiskIOException e) {
@@ -63,7 +49,36 @@ public class CRDB {
 				throw new SQLiteDiskIOException("can't open DB " + coverFile + ": " + e2.getMessage());
 			}
 		}
-		this.mCoverpageDBFile = coverFile;
+	}
+	
+	synchronized protected boolean open( File dbfile )
+	{
+		File coverFile = new File(dbfile.getAbsolutePath().replace(".sqlite", "_cover.sqlite"));
+		L.i("Opening database from " + dbfile.getAbsolutePath());
+		try {
+			this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+			openCoverpageDB(coverFile);
+			try {
+				updateSchema();
+			} catch (SQLiteDiskIOException e) {
+				throw (SQLiteDiskIOException)new SQLiteDiskIOException("error updating schema " + mDBFile + ": " + e.getMessage()).initCause(e);
+			}
+		} catch (SQLiteDiskIOException e) {
+			moveToBackup(dbfile);
+			moveToBackup(coverFile);
+			try {
+				this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+				openCoverpageDB(coverFile);
+			} catch (SQLiteDiskIOException e2) {
+				throw (SQLiteDiskIOException)new SQLiteDiskIOException("can't open DB " + dbfile + ": " + e2.getMessage()).initCause(e2);
+			}
+			try {
+				updateSchema();
+			} catch (SQLiteDiskIOException e2) {
+				throw (SQLiteDiskIOException)new SQLiteDiskIOException("error updating schema " + mDBFile + ": " + e2.getMessage()).initCause(e2);
+			}
+		}
+		this.mDBFile = dbfile;
 		return true;
 	}
 
@@ -365,7 +380,7 @@ public class CRDB {
 		return true;
 	}
 
-	public boolean loadOPDSCatalogs(FileInfo parent) {
+	synchronized public boolean loadOPDSCatalogs(FileInfo parent) {
 		Log.i("cr3", "loadOPDSCatalogs()");
 		boolean found = false;
 		Cursor rs = null;
@@ -444,12 +459,6 @@ public class CRDB {
 	public CRDB( File dbfile )
 	{
 		open(dbfile);
-
-		try {
-			updateSchema();
-		} catch (SQLiteDiskIOException e) {
-			throw (SQLiteDiskIOException)new SQLiteDiskIOException("error updating schema " + mDBFile + ": " + e.getMessage()).initCause(e);
-		}
 
 		dumpStatistics();
 	}
@@ -772,7 +781,7 @@ public class CRDB {
 		}
 	}
 	
-	public void dumpStatistics()
+	synchronized public void dumpStatistics()
 	{
 		Log.i("cr3db", "DB: " + longQuery("SELECT count(*) FROM author") + " authors, "
 				 + longQuery("SELECT count(*) FROM series") + " series, "
@@ -1180,7 +1189,7 @@ public class CRDB {
 		}
 	}
 
-    public void flush()
+	synchronized public void flush()
     {
         Log.i("cr3db", "Flushing DB");
         if ( seriesStmt!=null) {
@@ -1202,7 +1211,7 @@ public class CRDB {
         SQLiteDatabase.releaseMemory();
     }
     
-	public void close()
+	synchronized public void close()
 	{
 	    flush();
 		Log.i("cr3db", "Closing DB");

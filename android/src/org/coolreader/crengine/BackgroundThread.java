@@ -25,8 +25,10 @@ public class BackgroundThread extends Thread {
 	{
 		if ( instance==null ) {
 			synchronized( LOCK ) {
-				if ( instance==null )
-					instance = new BackgroundThread(); 
+				if ( instance==null ) {
+					instance = new BackgroundThread();
+					instance.start();
+				}
 			}
 		}
 		return instance;
@@ -96,7 +98,6 @@ public class BackgroundThread extends Thread {
 	private BackgroundThread() {
 		super();
 		setName("BackgroundThread" + Integer.toHexString(hashCode()));
-		start();
 	}
 
 	@Override
@@ -296,6 +297,7 @@ public class BackgroundThread extends Thread {
     				result = task.call();
     			} catch ( Exception e ) {
     				if(DBG) L.e("exception in postGUI", e);
+    				throw new RuntimeException(e);
     			}
     			try {
     				if(DBG) L.d("callGUI : calling sync.set " + Thread.currentThread().getName());
@@ -303,6 +305,7 @@ public class BackgroundThread extends Thread {
     				if(DBG) L.d("callGUI : returned from sync.set " + Thread.currentThread().getName());
     			} catch ( Exception e ) {
     				if(DBG) L.e("exception in postGUI", e);
+    				throw new RuntimeException(e);
     			}
     		}
     	});

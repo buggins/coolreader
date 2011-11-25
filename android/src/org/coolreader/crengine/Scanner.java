@@ -18,7 +18,7 @@ import android.util.Log;
 public class Scanner {
 	
 	HashMap<String, FileInfo> mFileList = new HashMap<String, FileInfo>();
-	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
+//	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
 	FileInfo mRoot;
 	
 	boolean mHideEmptyDirs = true;

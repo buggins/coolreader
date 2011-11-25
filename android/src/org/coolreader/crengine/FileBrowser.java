@@ -276,7 +276,7 @@ public class FileBrowser extends ListView {
 	}
 
 	boolean mInitStarted = false;
-	boolean mInitialized = false;
+//	boolean mInitialized = false;
 	public void init()
 	{
 		if ( mInitStarted )
@@ -290,7 +290,7 @@ public class FileBrowser extends ListView {
 			}
 			public void done() {
 				log.e("Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
-				mInitialized = true;
+				//mInitialized = true;
 				//mEngine.hideProgress();
 				//mEngine.hideProgress();
 				showDirectory( mScanner.mRoot, null );
@@ -352,8 +352,20 @@ public class FileBrowser extends ListView {
 			return name;
 	}
 	
-	static private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yy", Locale.getDefault());
-	static private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+	static private ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>(); 
+	static private ThreadLocal<SimpleDateFormat> timeFormatThreadLocal = new ThreadLocal<SimpleDateFormat>();
+	static private SimpleDateFormat dateFormat() {
+		if (dateFormatThreadLocal.get() == null)
+			dateFormatThreadLocal.set(new SimpleDateFormat("dd.MM.yy", Locale.getDefault()));
+		return dateFormatThreadLocal.get();
+	}
+	
+	static private SimpleDateFormat timeFormat() {
+		if (timeFormatThreadLocal.get() == null)
+			timeFormatThreadLocal.set(new SimpleDateFormat("HH:mm", Locale.getDefault()));
+		return timeFormatThreadLocal.get();
+	}
+	
 	public static String formatDate( long timeStamp )
 	{
 		if ( timeStamp<5000*60*60*24*1000 )
@@ -367,11 +379,11 @@ public class FileBrowser extends ListView {
 		if ( c.get(Calendar.YEAR)==now.get(Calendar.YEAR)
 				&& c.get(Calendar.MONTH)==now.get(Calendar.MONTH)
 				&& c.get(Calendar.DAY_OF_MONTH)==now.get(Calendar.DAY_OF_MONTH)) {
-			timeFormat.setTimeZone(tz);
-			return timeFormat.format(c.getTime());
+			timeFormat().setTimeZone(tz);
+			return timeFormat().format(c.getTime());
 		} else {
-			dateFormat.setTimeZone(tz);
-			return dateFormat.format(c.getTime());
+			dateFormat().setTimeZone(tz);
+			return dateFormat().format(c.getTime());
 		}
 	}
 
@@ -686,7 +698,7 @@ public class FileBrowser extends ListView {
 				}
 			}, false, new Scanner.ScanControl() );
 		} else
-			showDirectoryInternal(dir, file);
+			showDirectoryInternal(null, file);
 	}
 	
 	public void scanCurrentDirectoryRecursive() {
