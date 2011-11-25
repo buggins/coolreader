@@ -116,20 +116,24 @@ public class BaseDialog extends Dialog {
 		ImageButton backButton = (ImageButton)layout.findViewById(R.id.base_dlg_btn_back);
 		if (positiveButtonImage != 0) {
 			positiveButton.setImageResource(positiveButtonImage);
-			backButton.setImageResource(positiveButtonImage);
+			//backButton.setImageResource(positiveButtonImage);
 		}
-		if (negativeButtonImage != 0)
+		if (negativeButtonImage != 0) {
 			negativeButton.setImageResource(negativeButtonImage);
+			backButton.setImageResource(negativeButtonImage);
+		}
 		if (needCancelButton) {
-			layout.removeView(backButton);
+			//layout.removeView(backButton);
+			layout.removeView(negativeButton);
 			positiveButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 					onPositiveButtonClick();
 				}
 			});
-			negativeButton.setOnClickListener(new View.OnClickListener() {
+			//negativeButton.setOnClickListener(new View.OnClickListener() {
+			backButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-					onPositiveButtonClick();
+					onNegativeButtonClick();
 				}
 			});
 		} else {
@@ -148,6 +152,27 @@ public class BaseDialog extends Dialog {
 		}
 		if (title != null)
 			setTitle(title);
+		if (buttonsLayout != null) {
+			buttonsLayout.setOnTouchListener(new OnTouchListener() {
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					if (event.getAction() == MotionEvent.ACTION_DOWN) {
+						int x = (int)event.getX();
+						int dx = v.getWidth();
+						if (x < dx / 2) {
+							if (needCancelButton)
+								onNegativeButtonClick();
+							else
+								onPositiveButtonClick();
+						} else {
+							onPositiveButtonClick();
+						}
+						return true;
+					}
+					return false;
+				}
+			});
+		}
 	}
 
 	@Override

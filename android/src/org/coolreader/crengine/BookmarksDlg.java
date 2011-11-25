@@ -249,7 +249,7 @@ public class BookmarksDlg  extends BaseDialog {
 	
 	public BookmarksDlg( CoolReader activity, ReaderView readerView )
 	{
-		super(activity);
+		super(activity, activity.getResources().getString(R.string.win_title_bookmarks), true, false);
 		mThis = this; // for inner classes
         mInflater = LayoutInflater.from(getContext());
 		mCoolReader = activity;
@@ -263,8 +263,6 @@ public class BookmarksDlg  extends BaseDialog {
 		setView(frame);
 		setFlingHandlers(mList, null, null);
 	}
-	
-	
 
 	@Override
 	protected void onPositiveButtonClick() {

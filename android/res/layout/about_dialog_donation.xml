@@ -50,4 +50,9 @@
 				android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
 		/>
 	</LinearLayout>
+    <TextView android:text="PayPal: coolreader.org@gmail.com" 
+            style="@android:style/TextAppearance.Medium"
+            android:maxLines="6" 
+            android:layout_margin="8dip" 
+            android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 </LinearLayout>

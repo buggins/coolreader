@@ -34,4 +34,8 @@
 			android:id="@+id/thirdparty" 
             style="@android:style/TextAppearance.Small"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+    <TextView android:text="Farm-Fresh icon set from http://www.fatcow.com/free-icons" 
+            android:id="@+id/thirdparty2" 
+            style="@android:style/TextAppearance.Small"
+            android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 </LinearLayout>
