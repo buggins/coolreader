@@ -1,9 +1,9 @@
 head, style, form, script { display: none; } 
 
-body { margin: 0; text-align: justify; } 
+body { $def.all } 
 
-p { margin-top: 0em; margin-bottom:0em; text-indent: 1.3em; text-align: justify } 
-*.justindent { text-align: justify; text-indent: 1.3em; margin-top:0em; margin-bottom: 0em }
+p { $def.all } 
+*.justindent { text-align: justify; text-indent: 1.2em; margin-top:0em; margin-bottom: 0em }
 
 empty-line { height: 0.2em; } 
 
@@ -38,29 +38,20 @@ pre { display: block;
 
 nobr { display: inline; hyphenate: none; white-space: nowrap; } 
 
-h1,h2,h3,h4,h5,h6 { 
+h1,h2 { 
    display: block; 
-   margin-top: 0.5em; 
-   margin-bottom: 0.3em; 
-   font-weight: bold; 
-   text-align: left; 
+   $title.all
    } 
-h1 { font-size: 150%; 
-/*     color: #FFFFFF; background-color: #000000; */ 
-     padding: 10px ; 
-     margin-top: 0.5em; 
-     margin-bottom: 0.5em; 
+h3,h4,h5,h6 { 
+   display: block; 
+   $subtitle.all
    } 
-h2 { font-size: 135%; 
-/*     color: #FFFFFF; background-color: #808080;   */ 
-     padding: 10px ; 
-     margin-top: 0.5em; 
-     margin-bottom: 0.5em; 
-   } 
+h1 { font-size: 150% } 
+h2 { font-size: 135% } 
 h3 { font-size: 125% } 
-h4 { font-size: 125%; font-style: italic; } 
-h5 { font-size: 115%; font-style: italic; } 
-h6 { font-size: 105%; font-style: italic; } 
+h4 { font-size: 125% } 
+h5 { font-size: 115% } 
+h6 { font-size: 105% } 
 
 ul, ol, dl { 
    display: block; 

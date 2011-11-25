@@ -151,6 +151,9 @@ private:
     StyleItem m_styleFontWeight;
     StyleItem m_styleFontStyle;
     StyleItem m_styleFontColor;
+    StyleItem m_styleLineHeight;
+    StyleItem m_styleTextDecoration;
+    StyleItem m_verticalAlignDecoration;
     QStringList m_styleNames;
 
 private slots:

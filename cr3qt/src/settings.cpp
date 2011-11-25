@@ -55,6 +55,11 @@ static const char * styleNames[] = {
     "cite",
     "epigraph",
     "poem",
+    "text-author",
+    "link",
+    "footnote-link",
+    "footnote",
+    "footnote-title",
     NULL
 };
 
@@ -243,6 +248,11 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_styleNames.append(tr("Cite / quotation"));
     m_styleNames.append(tr("Epigraph"));
     m_styleNames.append(tr("Poem"));
+    m_styleNames.append(tr("Text author"));
+    m_styleNames.append(tr("Link"));
+    m_styleNames.append(tr("Footnote link"));
+    m_styleNames.append(tr("Footnote"));
+    m_styleNames.append(tr("Footnote title"));
     m_ui->cbStyleName->clear();
     m_ui->cbStyleName->addItems(m_styleNames);
     m_ui->cbStyleName->setCurrentIndex(0);
@@ -308,7 +318,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     };
 
     QString alignmentStyleNames[] = {
-        tr("[Inherited]"),
+        tr("-"),
         tr("Justify"),
         tr("Left"),
         tr("Center"),
@@ -327,7 +337,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     };
 
     QString indentStyleNames[] = {
-        tr(""),
+        tr("-"),
         tr("No indent"),
         tr("Small Indent"),
         tr("Big Indent"),
@@ -360,7 +370,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     };
 
     QString marginTopBottomStyleNames[] = {
-        tr(""),
+        tr("-"),
         tr("0"),
         tr("20% of line height"),
         tr("30% of line height"),
@@ -378,6 +388,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         "margin-left: 2em",
         "margin-left: 4em",
         "margin-left: 10%",
+        "margin-left: 15%",
         "margin-left: 20%",
         "margin-left: 30%",
         NULL,
@@ -400,7 +411,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
     };
 
     QString marginLeftRightStyleNames[] = {
-        tr(""),
+        tr("-"),
         tr("0"),
         tr("50% of line height"),
         tr("100% of line height"),
@@ -429,7 +440,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         NULL,
     };
     QString fontWeightStyleNames[] = {
-        tr(""),
+        tr("-"),
         tr("Normal"),
         tr("Bold"),
         tr("Bolder"),
@@ -449,7 +460,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         NULL,
     };
     QString fontSizeStyleNames[] = {
-        tr(""),
+        tr("-"),
         tr("Increase: 110%"),
         tr("Increase: 120%"),
         tr("Increase: 150%"),
@@ -467,7 +478,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         NULL,
     };
     QString fontStyleStyleNames[] = {
-        tr(""),
+        tr("-"),
         tr("Normal"),
         tr("Italic"),
     };
@@ -475,7 +486,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
 
     QStringList faces;
     QStringList faceValues;
-    faces.append("");
+    faces.append("-");
     faceValues.append("");
     faces.append(tr("[Default Sans Serif]"));
     faceValues.append("font-family: sans-serif");
@@ -511,7 +522,7 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         NULL,
     };
     QString fontColorStyleNames[] = {
-        tr(""),
+        tr("-"),
         tr("Black"),
         tr("Green"),
         tr("Silver"),
@@ -530,6 +541,69 @@ void SettingsDlg::initStyleControls(const char * styleName) {
         tr("Aqua"),
     };
     m_styleFontColor.init(prefix + "color", NULL, fontColorStyles, fontColorStyleNames, false, m_props, m_ui->cbDefFontColor);
+
+    static const char * lineHeightStyles[] = {
+        "", // inherited
+        "line-height: 75%",
+        "line-height: 80%",
+        "line-height: 85%",
+        "line-height: 90%",
+        "line-height: 95%",
+        "line-height: 100%",
+        "line-height: 110%",
+        "line-height: 120%",
+        "line-height: 130%",
+        "line-height: 140%",
+        "line-height: 150%",
+        NULL,
+    };
+    QString lineHeightStyleNames[] = {
+        "-",
+        "75%",
+        "80%",
+        "85%",
+        "90%",
+        "95%",
+        "100%",
+        "110%",
+        "120%",
+        "130%",
+        "140%",
+        "150%",
+    };
+    m_styleLineHeight.init(prefix + "line-height", NULL, lineHeightStyles, lineHeightStyleNames, false, m_props, m_ui->cbDefLineHeight);
+
+    static const char * textDecorationStyles[] = {
+        "", // inherited
+        "text-decoration: none",
+        "text-decoration: underline",
+        "text-decoration: line-through",
+        "text-decoration: overline",
+        NULL,
+    };
+    QString textDecorationStyleNames[] = {
+        tr("-"),
+        tr("None"),
+        tr("Underline"),
+        tr("Line through"),
+        tr("Overline"),
+    };
+    m_styleTextDecoration.init(prefix + "text-decoration", NULL, textDecorationStyles, textDecorationStyleNames, false, m_props, m_ui->cbDefTextDecoration);
+
+    static const char * verticalAlignStyles[] = {
+        "", // inherited
+        "vertical-align: baseline",
+        "vertical-align: sub",
+        "vertical-align: super",
+        NULL,
+    };
+    QString verticalAlignStyleNames[] = {
+        tr("-"),
+        tr("Baseline"),
+        tr("Subscript"),
+        tr("Superscript"),
+    };
+    m_verticalAlignDecoration.init(prefix + "vertical-align", NULL, verticalAlignStyles, verticalAlignStyleNames, false, m_props, m_ui->cbDefVerticalAlign);
 
 }
 

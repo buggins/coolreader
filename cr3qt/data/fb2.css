@@ -6,8 +6,8 @@ empty-line { height: 1em }
 
 hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em; /* 2px */ }
 
-a { display: inline; text-decoration: underline; }
-a[type="note"] { vertical-align: super; font-size: 70%; text-decoration: none }
+a { display: inline; $footnote.all }
+a[type="note"] { $link-footnote.all }
 
 image { text-align: center; text-indent: 0px; display: block }
 p image { display: inline }
@@ -21,7 +21,7 @@ v { text-align: left; text-align-last: right; text-indent: 1em hanging }
 stanza { $stanza.all }
 stanza + stanza { margin-top: 1em; }
 poem { margin-top: 1em; margin-bottom: 1em; text-indent: 0px }
-text-author { font-weight: bold; font-style: italic; margin-left: 5%}
+text-author { $text-author.all }
 
 epigraph, epigraph p { $epigraph.all }
 cite, cite p { $cite.all }
@@ -74,8 +74,8 @@ code, pre {
     $pre.all
 }
 
-body[name="notes"] { font-size: 70%; }
-body[name="notes"] section title { display: run-in; text-align: left; font-size: 110%; font-weight: bold; page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
+body[name="notes"] { $footnote.all }
+body[name="notes"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
 body[name="notes"] section title p { display: inline }
 
 description { display: block; }

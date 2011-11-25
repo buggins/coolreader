@@ -1160,7 +1160,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			BaseDialog dlg = new BaseDialog(mActivity, R.string.dlg_button_ok, 0, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			String[] firstLineOptions = {"", "text-align: justify", "text-align: left", "text-align: center", "text-align: right", };
-			String[] firstLineOptionNames = {"", "Justify", "Left", "Center", "Right", };
+			String[] firstLineOptionNames = {"-", "Justify", "Left", "Center", "Right", };
 			listView.add(new ListOption(mOwner, "Text alignment", prefix + ".align").add(firstLineOptions, firstLineOptionNames).setIconId(R.drawable.cr3_option_text_align));
 			
 			String[] identOptions = {"", // inherited
@@ -1179,7 +1179,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 			ArrayList<String> faces = new ArrayList<String>(); 
 			ArrayList<String> faceValues = new ArrayList<String>(); 
-		    faces.add("");
+		    faces.add("-");
 		    faceValues.add("");
 		    faces.add("[Default Sans Serif]");
 		    faceValues.add("font-family: sans-serif");
@@ -1204,7 +1204,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "font-size: 60%",
 		    };
 		    String[] fontSizeStyleNames = {
-		        "",
+		        "-",
 		        "Increase: 110%",
 		        "Increase: 120%",
 		        "Increase: 150%",
@@ -1223,7 +1223,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "font-weight: lighter",
 		    };
 		    String[] fontWeightStyleNames = {
-		        "",
+		        "-",
 		        "Normal",
 		        "Bold",
 		        "Bolder",
@@ -1237,11 +1237,71 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "font-style: italic",
 		    };
 		    String[] fontStyleStyleNames = {
-		        "",
+		        "-",
 		        "Normal",
 		        "Italic",
 		    };
 			listView.add(new ListOption(mOwner, "Font style", prefix + ".font-style").add(fontStyleStyles, fontStyleStyleNames).setIconId(R.drawable.cr3_option_text_italic));
+
+		    String[] lineHeightStyles = {
+			        "", // inherited
+			        "line-height: 75%",
+			        "line-height: 80%",
+			        "line-height: 85%",
+			        "line-height: 90%",
+			        "line-height: 95%",
+			        "line-height: 100%",
+			        "line-height: 110%",
+			        "line-height: 120%",
+			        "line-height: 130%",
+			        "line-height: 140%",
+			        "line-height: 150%",
+			    };
+		    String[] lineHeightStyleNames = {
+			        "-",
+			        "75%",
+			        "80%",
+			        "85%",
+			        "90%",
+			        "95%",
+			        "100%",
+			        "110%",
+			        "120%",
+			        "130%",
+			        "140%",
+			        "150%",
+			    };
+			listView.add(new ListOption(mOwner, "Line spacing", prefix + ".line-height").add(lineHeightStyles, lineHeightStyleNames).setIconId(R.drawable.cr3_option_line_spacing));
+
+		    String[] textDecorationStyles = {
+		    		"", // inherited
+		            "text-decoration: none",
+		            "text-decoration: underline",
+		            "text-decoration: line-through",
+		            "text-decoration: overline",
+			    };
+		    String[] textDecorationStyleNames = {
+			        "-",
+			        "None",
+			        "Underline",
+			        "Line through",
+			        "Overline",
+			    };
+			listView.add(new ListOption(mOwner, "Text decoration", prefix + ".text-decoration").add(textDecorationStyles, textDecorationStyleNames).setIconId(R.drawable.cr3_option_text_underline));
+
+		    String[] verticalAlignStyles = {
+		    		"", // inherited
+		            "vertical-align: baseline",
+		            "vertical-align: sub",
+		            "vertical-align: super",
+			    };
+		    String[] verticalAlignStyleNames = {
+			        "-",
+			        "Baseline",
+			        "Subscript",
+			        "Superscript",
+			    };
+			listView.add(new ListOption(mOwner, "Vertical align", prefix + ".vertical-align").add(verticalAlignStyles, verticalAlignStyleNames).setIconId(R.drawable.cr3_option_text_superscript));
 
 		    String[] fontColorStyles = {
 		        "", // inherited
@@ -1263,7 +1323,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		        "color: aqua",
 		    };
 		    String[] fontColorStyleNames = {
-		        "",
+		        "-",
 		        "Black",
 		        "Green",
 		        "Silver",
@@ -1297,7 +1357,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "margin-bottom: 0.5em",
 			        "margin-bottom: 1em",
 			        "margin-bottom: 2em"};
-			String[] marginTopBottomOptionNames = {"",
+			String[] marginTopBottomOptionNames = {"-",
 			        "0",
 			        "20% of line height",
 			        "30% of line height",
@@ -1329,7 +1389,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "margin-right: 20%",
 			        "margin-right: 30%"};
 			String[] marginLeftRightOptionNames = {
-					"",
+					"-",
 			        "0",
 			        "50% of line height",
 			        "100% of line height",
@@ -1553,8 +1613,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	protected void onPositiveButtonClick() {
         mReaderView.setSettings(mProperties, mOldProperties);
         dismiss();
-        //super.onPositiveButtonClick();
 	}
+
+	@Override
+	protected void onNegativeButtonClick() {
+		onPositiveButtonClick();
+	}
+
 	@Override
 	protected void onStop() {
 		L.d("OptionsDialog.onStop() : calling gc()");
