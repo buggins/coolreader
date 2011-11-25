@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
+import org.coolreader.crengine.OptionsDialog.ThumbnailCache.Item;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -178,6 +179,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
 	public final static int OPTION_VIEW_TYPE_COLOR = 2;
+	public final static int OPTION_VIEW_TYPE_SUBMENU = 3;
 	//public final static int OPTION_VIEW_TYPE_COUNT = 3;
 
 	public CoolReader getActivity() { return mActivity; }
@@ -427,7 +429,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 	}
 
-	class KeyMapOption extends ListOption {
+	class KeyMapOption extends SubmenuOption {
 		public KeyMapOption( OptionOwner owner, String label ) {
 			super(owner, label, PROP_APP_KEY_ACTIONS_PRESS);
 		}
@@ -475,7 +477,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String getValueLabel() { return ">"; }
 	}
 	
-	class StatusBarOption extends ListOption {
+	class StatusBarOption extends SubmenuOption {
 		public StatusBarOption( OptionOwner owner, String label ) {
 			super(owner, label, PROP_SHOW_TITLE);
 		}
@@ -499,7 +501,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String getValueLabel() { return ">"; }
 	}
 	
-	class ImageScalingOption extends ListOption {
+	class ImageScalingOption extends SubmenuOption {
 		public ImageScalingOption( OptionOwner owner, String label ) {
 			super(owner, label, PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE);
 		}
@@ -604,6 +606,32 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 	}
 
+	public static class SubmenuOption extends ListOption {
+		public SubmenuOption( OptionOwner owner, String label, String property ) {
+			super(owner, label, property);
+		}
+		public int getItemViewType() {
+			return OPTION_VIEW_TYPE_SUBMENU; 
+		}
+		public View getView(View convertView, ViewGroup parent) {
+			View view;
+			convertView = myView;
+			if ( convertView==null ) {
+				//view = new TextView(getContext());
+				view = mInflater.inflate(R.layout.option_item_submenu, null);
+			} else {
+				view = (View)convertView;
+			}
+			myView = view;
+			TextView labelView = (TextView)view.findViewById(R.id.option_label);
+			labelView.setText(label);
+			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
+			if (icon != null)
+				icon.setImageResource(iconId);
+			return view;
+		}
+	}
+	
 	public static class ListOption extends OptionBase {
 		private ArrayList<Pair> list = new ArrayList<Pair>();
 		public ListOption( OptionOwner owner, String label, String property ) {
@@ -1140,7 +1168,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		return getContext().getResources().getString(resourceId); 
 	}
 
-	class StyleEditorOption extends ListOption {
+	class StyleEditorOption extends SubmenuOption {
 		
 		private final String prefix;
 		
