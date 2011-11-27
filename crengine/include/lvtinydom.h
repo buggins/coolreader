@@ -305,13 +305,13 @@ class ldomTextStorageChunk
 {
     friend class ldomDataStorageManager;
     ldomDataStorageManager * _manager;
+    ldomTextStorageChunk * _nextRecent;
+    ldomTextStorageChunk * _prevRecent;
     lUInt8 * _buf;     /// buffer for uncompressed data
     lUInt32 _bufsize;  /// _buf (uncompressed) area size, bytes
     lUInt32 _bufpos;  /// _buf (uncompressed) data write position (for appending of new data)
     lUInt16 _index;  /// ? index of chunk in storage
     char _type;       /// type, to show in log
-    ldomTextStorageChunk * _nextRecent;
-    ldomTextStorageChunk * _prevRecent;
     bool _saved;
 
     void setunpacked( const lUInt8 * buf, int bufsize );
@@ -1841,8 +1841,8 @@ class ldomNavigationHistory
         int _pos;
         void clearTail()
         {
-            if ( _links.length()-_pos > 0 )
-                _links.erase(_pos, _links.length()-_pos);
+            if (_links.length() > _pos)
+                _links.erase(_pos, _links.length() - _pos);
         }
     public:
         void clear()

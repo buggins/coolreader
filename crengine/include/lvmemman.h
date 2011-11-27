@@ -151,9 +151,9 @@ struct ldomMemManStorage
         // alloc new slice
         if (slice_count >= MAX_SLICE_COUNT)
             THROW_MEM_MAN_EXCEPTION;
-        slices[slice_count++] = 
+        slices[slice_count] = 
             new ldomMemSlice(block_size, FIRST_SLICE_SIZE << (slice_count+1));
-        return slices[slice_count-1]->alloc_block();
+        return slices[slice_count++]->alloc_block();
     }
     void free( ldomMemBlock * pBlock )
     {

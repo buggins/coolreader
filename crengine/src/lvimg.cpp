@@ -233,7 +233,7 @@ cr_jpeg_src (j_decompress_ptr cinfo, LVStream * stream)
      * manager serially with the same JPEG object.  Caveat programmer.
      */
     if (cinfo->src == NULL) { /* first time for this JPEG object? */
-        src = (cr_jpeg_source_mgr *) new cr_jpeg_source_mgr;
+        src = new cr_jpeg_source_mgr();
         cinfo->src = (struct jpeg_source_mgr *) src;
         src->buffer = new JOCTET[INPUT_BUF_SIZE];
     }

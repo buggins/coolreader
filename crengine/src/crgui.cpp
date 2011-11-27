@@ -494,7 +494,7 @@ void CRGUIScreenBase::flush( bool full )
             if ( y>=0 && y<_height ) {
                 void * line1 = _canvas->GetScanLine( y );
                 void * line2 = _front->GetScanLine( y );
-                if ( memcmp( line1, line2, sz ) ) {
+                if (memcmp( line1, line2, sz ) != 0) {
                     // line content is different
                     lineRect.top = y;
                     lineRect.bottom = y+1;

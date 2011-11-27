@@ -1534,7 +1534,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             if ( context.getPageList() != NULL ) {
 
                 css_page_break_t before, inside, after;
-                before = inside = after = css_pb_auto;
+                //before = inside = after = css_pb_auto;
                 before = getPageBreakBefore( enode );
                 after = getPageBreakAfter( enode );
                 inside = getPageBreakInside( enode );

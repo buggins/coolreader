@@ -30,7 +30,7 @@ title p, h1 p, h2 p {
     $title.all
 }
 
-subtitle p, h3 p, h4 p, h5 p, h6 p { 
+subtitle, subtitle p, h3 p, h4 p, h5 p, h6 p { 
     $subtitle.all
 }
 

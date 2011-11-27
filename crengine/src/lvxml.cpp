@@ -640,7 +640,7 @@ static const lChar16 * heading_chapter[] = {
     NULL
 };
 
-static bool startsWithOneOf( const lString16 s, const lChar16 * list[] )
+static bool startsWithOneOf( const lString16 & s, const lChar16 * list[] )
 {
     lString16 str = s;
     str.lowercase();
@@ -1263,7 +1263,7 @@ public:
                 isHeader = true;
             if ( startline==endline && get(startline)->isHeading() )
                 isHeader = true;
-            if ( startline==endline && (formatFlags & tftCenteredHeaders) && startline==endline && isCentered( get(startline) ) )
+            if ( startline==endline && (formatFlags & tftCenteredHeaders) && isCentered( get(startline) ) )
                 isHeader = true;
             int hlevel = DetectHeadingLevelByText( str );
             if ( hlevel>0 )
@@ -2623,7 +2623,8 @@ bool LVXMLParser::Parse()
                 if ( ch=='=' )
                 {
                     // read attribute value
-                    ch = PeekNextCharFromBuffer();
+                    //PeekNextCharFromBuffer();
+                    ReadCharFromBuffer(); // skip '='
                     SkipSpaces();
                     lChar16 qChar = 0;
                     ch = PeekCharFromBuffer();

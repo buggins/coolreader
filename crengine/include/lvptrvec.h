@@ -248,12 +248,13 @@ protected:
 public:
     LVMatrix<_Ty> () : numcols(0), numrows(0), rows(NULL) {}
     void Clear() {
-        if (numrows && numcols) {
-            for (int i=0; i<numrows; i++)
-                free( rows[i] );
-        }
-        if (rows)
+        if (rows) {
+			if (numrows && numcols) {
+				for (int i=0; i<numrows; i++)
+					free( rows[i] );
+			}
             free( rows );
+		}
         rows = NULL;
         numrows = 0;
         numcols = 0;

@@ -2141,10 +2141,11 @@ bool LVDocView::windowToDocPoint(lvPoint & pt) {
 		page1.top += m_pageMargins.top + headerHeight;
 		page1.right -= m_pageMargins.right;
 		page1.bottom -= m_pageMargins.bottom;
+		lvRect page2;
 		if (page1.isPointInside(pt)) {
 			rc = &page1;
 		} else if (getVisiblePageCount() == 2) {
-			lvRect page2(m_pageRects[1]);
+			page2 = m_pageRects[1];
 			page2.left += m_pageMargins.left;
 			page2.top += m_pageMargins.top + headerHeight;
 			page2.right -= m_pageMargins.right;
@@ -5547,7 +5548,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			setStatusFontFace(UnicodeToUtf8(value));
 		} else if (name == PROP_STATUS_LINE || name == PROP_SHOW_TIME
 				|| name	== PROP_SHOW_TITLE || name == PROP_SHOW_BATTERY
-                || name == PROP_SHOW_BATTERY || name == PROP_STATUS_CHAPTER_MARKS || name == PROP_SHOW_POS_PERCENT
+                || name == PROP_STATUS_CHAPTER_MARKS || name == PROP_SHOW_POS_PERCENT
                 || name == PROP_SHOW_PAGE_COUNT || name == PROP_SHOW_PAGE_NUMBER) {
 			m_props->setString(name.c_str(), value);
 			setStatusMode(m_props->getIntDef(PROP_STATUS_LINE, 0),
@@ -5671,7 +5672,7 @@ LVPageWordSelector::LVPageWordSelector( LVDocView * docview )
     LVRef<ldomXRange> range = _docview->getPageDocumentRange();
     if (!range.isNull()) {
 		_words.addRangeWords(*range, true);
-                if (true/* _docview->isPageMode()*/ && _docview->getVisiblePageCount() > 1) {
+                if (_docview->getVisiblePageCount() > 1) { // _docview->isPageMode() &&
                         // process second page
                         int pageNumber = _docview->getCurPage();
                         range = _docview->getPageDocumentRange(pageNumber + 1);

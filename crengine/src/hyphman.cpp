@@ -325,7 +325,7 @@ static int isCorrectHyphFile(LVStream * stream)
     if (dw!=78 || w>0xff) 
         w = 0;
 
-    if (strncmp((const char*)&HDR.type, "HypHAlR4", 8)) 
+    if (strncmp((const char*)&HDR.type, "HypHAlR4", 8) != 0) 
         w = 0;
         
     return w;

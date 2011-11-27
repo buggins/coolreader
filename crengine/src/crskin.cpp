@@ -711,7 +711,7 @@ lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrnam
     bool b1=false;
     bool b2=false;
     p.x = toSkinPercent( s1, defValue.x, &b1 );
-    p.y = toSkinPercent( s2, defValue.x, &b2 );
+    p.y = toSkinPercent( s2, defValue.y, &b2 );
     if ( b1 && b2 ) {
         if ( res )
             *res = true;
@@ -1689,7 +1689,7 @@ bool CRSkinContainer::readPageSkin(  const lChar16 * path, CRPageSkin * res )
     if ( !name.empty() )
         res->setName(name);
 
-    flg = readRectSkin( (p + L"scroll-skin").c_str(),  res->getSkin( PAGE_SKIN_SCROLL ).get() ) || res;
+    flg = readRectSkin( (p + L"scroll-skin").c_str(),  res->getSkin( PAGE_SKIN_SCROLL ).get() ) || flg;
     flg = readRectSkin( (p + L"left-page-skin").c_str(),  res->getSkin( PAGE_SKIN_LEFT_PAGE ).get() ) || flg;
     flg = readRectSkin( (p + L"right-page-skin").c_str(),  res->getSkin( PAGE_SKIN_RIGHT_PAGE ).get() ) || flg;
     flg = readRectSkin( (p + L"single-page-skin").c_str(),  res->getSkin( PAGE_SKIN_SINGLE_PAGE ).get() ) || flg;

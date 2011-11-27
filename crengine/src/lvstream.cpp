@@ -742,7 +742,7 @@ public:
             m_size |= (((lvsize_t)hw)<<32);
 #endif
 
-        if ( minSize>=0 && mode == LVOM_APPEND && m_size < minSize ) {
+        if ( mode == LVOM_APPEND && m_size < minSize ) {
             if ( SetSize( minSize ) != LVERR_OK ) {
                 CRLog::error( "Cannot set file size for %s", fn8.c_str() );
                 return error();
@@ -3862,7 +3862,7 @@ public:
         if ( stream->Read(buf, 9, &bytesRead)!=LVERR_OK
             || bytesRead!=9 )
             return res;
-        if ( memcmp(signature, buf, 9) )
+        if (memcmp(signature, buf, 9) != 0)
             return res;
         LVTCRStream * decoder = new LVTCRStream( stream );
         if ( !decoder->init() ) {
@@ -4396,8 +4396,8 @@ class LVBlockWriteStream : public LVNamedStream
 #if TRACE_BLOCK_WRITE_STREAM
             CRLog::trace("block %x save %x, %x", (int)block_start, (int)pos, (int)len);
 #endif
-            lvpos_t offset = (int)(pos - block_start);
-            if ( offset>(lvpos_t)size || offset<0 || len > (lvpos_t)size || offset+len > (lvpos_t)size ) {
+            int offset = (int)(pos - block_start);
+            if ( offset>size || (int)offset < 0 || len > size || (int)offset + (int)len > size ) {
                 CRLog::error("Unaligned access to block %x", (int)block_start);
             }
             for ( unsigned i=0; i<len; i++ ) {

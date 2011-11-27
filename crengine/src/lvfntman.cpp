@@ -1469,7 +1469,7 @@ public:
             if ( item ) {
                 // avoid soft hyphens inside text string
                 w = item->advance;
-                if ( item->bmp_height && item->bmp_height && (!isHyphen || i>=len-1) ) {
+                if ( item->bmp_width && item->bmp_height && (!isHyphen || i>=len-1) ) {
                     buf->Draw( x + item->origin_x,
                         y + _baseline - item->origin_y,
                         item->bmp,
@@ -2544,7 +2544,7 @@ int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
     bool weight_match = (_weight==-1 || def._weight==-1) ? true 
         : (def._weight == _weight);
     bool italic_match = (_italic == def._italic || _italic==-1 || def._italic==-1);
-    bool family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == def._family);
+    bool family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == _family);
     bool typeface_match = (_typeface == def._typeface);
     return size_match && weight_match && italic_match && family_match && typeface_match;
 }
@@ -2563,7 +2563,7 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
     int italic_match = (_italic == def._italic || _italic==-1 || def._italic==-1) ? 256 : 0;
     if ( (_italic==2 || def._italic==2) && _italic>0 && def._italic>0 )
         italic_match = 128;
-    int family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == def._family) 
+    int family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == _family) 
         ? 256 
         : ( (_family==css_ff_monospace)==(def._family==css_ff_monospace) ? 64 : 0 );
     int typeface_match = (_typeface == def._typeface) ? 256 : 0;
@@ -2615,7 +2615,7 @@ void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
           if ( item ) {
               // avoid soft hyphens inside text string
               w = item->advance;
-              if ( item->bmp_height && item->bmp_height ) {
+              if ( item->bmp_width && item->bmp_height ) {
                   buf->Draw( x + item->origin_x,
                       y + baseline - item->origin_y,
                       item->bmp,

@@ -291,7 +291,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     }
 #endif
 
-    lUInt32 saveFlags = m_doc ? m_doc->getDocFlags() : DOC_FLAG_DEFAULTS;
+    lUInt32 saveFlags = m_doc->getDocFlags();
     m_doc->setDocFlags( saveFlags );
     m_doc->setContainer( m_arc );
 

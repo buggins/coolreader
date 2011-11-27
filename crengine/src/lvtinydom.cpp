@@ -360,7 +360,7 @@ struct CacheFileHeader : public SimpleCacheFileHeader
     // duplicate of one of index records which contains
     bool validate()
     {
-        if ( memcmp( _magic, CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE ) ) {
+        if (memcmp(_magic, CACHE_FILE_MAGIC, CACHE_FILE_MAGIC_SIZE) != 0) {
             CRLog::error("CacheFileHeader::validate: magic doesn't match");
             return false;
         }
@@ -1085,7 +1085,7 @@ ldomBlobCache::ldomBlobCache() : _cacheFile(NULL), _changed(false)
 
 bool ldomBlobCache::loadIndex()
 {
-    bool res = true;
+    bool res;
     SerialBuf buf(0,true);
     res = _cacheFile->read(CBT_BLOB_INDEX, buf);
     if (!res) {
@@ -1113,7 +1113,7 @@ bool ldomBlobCache::loadIndex()
 
 bool ldomBlobCache::saveIndex()
 {
-    bool res = true;
+    bool res;
     SerialBuf buf(0,true);
     buf.putMagic(BLOB_INDEX_MAGIC);
     lUInt32 len = _list.length();
@@ -2403,8 +2403,8 @@ void ldomTextStorageChunk::setRaw( int offset, int size, const lUInt8 * buf )
     if ( !_buf || offset+size>(int)_bufpos || offset+size>(int)_bufsize )
         crFatalError(123, "ldomTextStorageChunk: Invalid raw data buffer position");
 #endif
-    if ( memcmp( _buf+offset, buf, size ) ) {
-        memcpy( _buf+offset, buf, size );
+    if (memcmp(_buf+offset, buf, size) != 0) {
+        memcpy(_buf+offset, buf, size);
         modified();
     }
 }

@@ -1475,7 +1475,7 @@ bool LVProcessStyleSheetImport( const char * &str, lString8 & import_file )
     if ( *p !='@' )
         return false;
     p++;
-    if ( strncmp(p, "import", 6) )
+    if (strncmp(p, "import", 6) != 0)
         return false;
     p+=6;
     skip_spaces( p );
