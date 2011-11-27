@@ -336,7 +336,7 @@ public class CoolReader extends Activity
 				log.v("ScreenBacklightControl: timer task started");
 			backlightTimerTask = new BacklightTimerTask();
 			BackgroundThread.instance().postGUI(backlightTimerTask,
-					SCREEN_BACKLIGHT_TIMER_INTERVAL);
+					SCREEN_BACKLIGHT_TIMER_INTERVAL/10);
 		}
 
 		public boolean isHeld() {
@@ -355,7 +355,7 @@ public class CoolReader extends Activity
 
 			@Override
 			public void run() {
-				if (backlightTimerTask != this)
+				if (backlightTimerTask == null)
 					return;
 				long interval = Utils.timeInterval(lastUserActivityTime);
 				log.v("ScreenBacklightControl: timer task, lastActivityMillis = "
@@ -363,6 +363,9 @@ public class CoolReader extends Activity
 				if (interval > SCREEN_BACKLIGHT_TIMER_INTERVAL) {
 					log.v("ScreenBacklightControl: interval is expired");
 					release();
+				} else {
+					BackgroundThread.instance().postGUI(backlightTimerTask,
+							SCREEN_BACKLIGHT_TIMER_INTERVAL/10);
 				}
 			}
 
