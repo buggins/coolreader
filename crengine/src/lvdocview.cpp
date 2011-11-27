@@ -2323,6 +2323,7 @@ int LVDocView::getCurrentPageImageCount()
             lString16 nodeName = ptr->getNode()->getNodeName();
             if (nodeName == L"img" || nodeName == L"image")
                 count++;
+			return true;
         }
 
     };
@@ -4634,6 +4635,7 @@ bool LVDocView::removeBookmark(CRBookmark * bm) {
 	if (bm) {
         updateBookMarksRanges();
         delete bm;
+		return true;
 #if 0
             if (m_highlightBookmarks && bm->getType() == bmkt_comment || bm->getType() == bmkt_correction) {
                 int by = m_doc->createXPointer(bm->getStartPos()).toPoint().y;
