@@ -56,10 +56,12 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -227,7 +229,7 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
 	public void applyScreenOrientation( Window wnd )
 	{
 		if ( wnd!=null ) {
@@ -1149,13 +1151,16 @@ public class CoolReader extends Activity
 		{
 			super(activity, title, true, true);
 			this.handler = handler;
-	        input = new EditText(getContext());
+	        LayoutInflater mInflater = LayoutInflater.from(getContext());
+	        ViewGroup layout = (ViewGroup)mInflater.inflate(R.layout.line_edit_dlg, null);
+	        input = (EditText)layout.findViewById(R.id.input_field);
+	        //input = new EditText(getContext());
 	        if ( isNumberEdit )
 	        	input.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
 //		        input.getText().setFilters(new InputFilter[] {
 //		        	new DigitsKeyListener()        
 //		        });
-	        setView(input);
+	        setView(layout);
 		}
 		@Override
 		protected void onNegativeButtonClick() {

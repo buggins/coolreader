@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:minWidth="1200dip"
+    android:layout_marginTop="20dip"
+    android:layout_marginBottom="20dip"
+    android:layout_marginLeft="20dip"
+    android:layout_marginRight="20dip"
+    >
+	<EditText 
+	    android:id="@+id/input_field" 
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="10dip"
+	    android:layout_marginBottom="10dip"
+	    android:layout_marginLeft="10dip"
+	    android:layout_marginRight="10dip"
+	    style="@android:style/TextAppearance.Widget.EditText"
+	    android:editable="true" android:singleLine="true"
+	/>
+</LinearLayout>

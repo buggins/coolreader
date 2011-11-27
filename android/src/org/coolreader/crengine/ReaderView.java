@@ -2010,9 +2010,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.instance().postBackground(new Runnable() {
 				@Override
 				public void run() {
-					initPageTurn(startProgress);
-					timerInterval = DeviceInfo.EINK_SCREEN ? ANIMATION_INTERVAL_EINK : ANIMATION_INTERVAL_NORMAL;
-					startTimer(timerInterval);
+					if (initPageTurn(startProgress)) {
+						timerInterval = DeviceInfo.EINK_SCREEN ? ANIMATION_INTERVAL_EINK : ANIMATION_INTERVAL_NORMAL;
+						startTimer(timerInterval);
+					} else {
+						currentAutoScrollAnimation = null;
+					}
 				}
 			});
 		}
@@ -2036,9 +2039,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.onUserActivity();
 			progress = newProgress;
 			if (progress == 0 || progress >= startAnimationProgress) {
-				if (image1.isReleased() || image2.isReleased())
+				if (image1 != null && image2 != null && image1.isReleased() || image2.isReleased()) {
 					initPageTurn(progress);
-				draw();
+					draw();
+				}
 			}
 			if (progress >= 10000) {
 				if (!donePageTurn(true)) {
@@ -2083,7 +2087,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			new AutoscrollTimerTask(interval);
 		}
 		
-		private void initPageTurn(int startProgress) {
+		private boolean initPageTurn(int startProgress) {
 			cancelGc();
 			log.v("initPageTurn(startProgress = " + startProgress + ")");
 			pageTurnStart = Utils.timeStamp();
@@ -2099,7 +2103,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				image1 = preparePageImage(0);
 				if (image1 == null) {
 					log.v("ScrollViewAnimation -- not started: image is null");
-					return;
+					return false;
 				}
 				int pos0 = image1.position.y;
 				int pos1 = pos0 + image1.position.pageHeight * 9/10;
@@ -2111,7 +2115,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				image2 = preparePageImage(pos1 - pos0);
 				if (image2 == null) {
 					log.v("ScrollViewAnimation -- not started: image is null");
-					return;
+					return false;
 				}
 				long duration = android.os.SystemClock.uptimeMillis() - pageTurnStart;
 				log.v("AutoScrollAnimation -- page turn initialized in " + duration + " millis");
@@ -2121,17 +2125,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				int page2 = currPos.pageNumber + 1;
 				if ( page2<0 || page2>=currPos.pageCount) {
 					currentAnimation = null;
-					return;
+					return false;
 				}
 				image1 = preparePageImage(0);
 				image2 = preparePageImage(1);
 				if ( page1==page2 ) {
 					log.v("PageViewAnimation -- cannot start animation: not moved");
-					return;
+					return false;
 				}
 				if ( image1==null || image2==null ) {
 					log.v("PageViewAnimation -- cannot start animation: page image is null");
-					return;
+					return false;
 				}
 				
 				long duration = android.os.SystemClock.uptimeMillis() - pageTurnStart;
@@ -2139,6 +2143,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				currentAutoScrollAnimation = this;
 			}
 			draw();
+			return true;
 		}
 		
 		

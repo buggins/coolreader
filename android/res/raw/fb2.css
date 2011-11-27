@@ -7,7 +7,7 @@ empty-line { height: 1em }
 hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em; /* 2px */ }
 
 a { display: inline; $footnote.all }
-a[type="note"] { $link-footnote.all }
+a[type="note"] { $footnote-link.all }
 
 image { text-align: center; text-indent: 0px; display: block }
 p image { display: inline }
