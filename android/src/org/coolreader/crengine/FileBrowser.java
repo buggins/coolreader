@@ -73,7 +73,7 @@ public class FileBrowser extends ListView {
 					int position, long id) {
 				log.d("onItemLongClick("+position+")");
 				//return super.performItemClick(view, position, id);
-				if ( position==0 && currDirectory.parent!=null ) {
+				if (position == 0 && currDirectory.parent != null) {
 					showParentDirectory();
 					return true;
 				}
@@ -230,7 +230,7 @@ public class FileBrowser extends ListView {
 	public boolean performItemClick(View view, int position, long id) {
 		log.d("performItemClick("+position+")");
 		//return super.performItemClick(view, position, id);
-		if ( position==0 && currDirectory.parent!=null ) {
+		if (position == 0 && currDirectory.parent != null) {
 			showParentDirectory();
 			return true;
 		}
@@ -743,6 +743,247 @@ public class FileBrowser extends ListView {
 	}
 	private boolean isSimpleViewMode = true;
 
+	private FileListAdapter currentListAdapter;
+	
+	private class FileListAdapter extends BaseListAdapter {
+		public boolean areAllItemsEnabled() {
+			return true;
+		}
+
+		public boolean isEnabled(int arg0) {
+			return true;
+		}
+
+		public int getCount() {
+			if (currDirectory == null)
+				return 0;
+			return currDirectory.fileCount() + currDirectory.dirCount() + (currDirectory.parent!=null ? 1 : 0);
+		}
+
+		public Object getItem(int position) {
+			if (currDirectory == null)
+				return null;
+			if ( position<0 )
+				return null;
+			int start = (currDirectory.parent!=null ? 1 : 0);
+			if ( position<start )
+				return currDirectory.parent;
+			return currDirectory.getItem(position-start);
+		}
+
+		public long getItemId(int position) {
+			if (currDirectory == null)
+				return 0;
+			return position;
+		}
+
+		public final int VIEW_TYPE_LEVEL_UP = 0;
+		public final int VIEW_TYPE_DIRECTORY = 1;
+		public final int VIEW_TYPE_FILE = 2;
+		public final int VIEW_TYPE_FILE_SIMPLE = 3;
+		public final int VIEW_TYPE_COUNT = 4;
+		public int getItemViewType(int position) {
+			if (currDirectory == null)
+				return 0;
+			if (position < 0)
+				return Adapter.IGNORE_ITEM_VIEW_TYPE;
+			int start = (currDirectory.parent!=null ? 1 : 0);
+			if (position<start)
+				return VIEW_TYPE_LEVEL_UP;
+			if (position<start + currDirectory.dirCount())
+				return VIEW_TYPE_DIRECTORY;
+			start += currDirectory.dirCount();
+			position -= start;
+			if (position < currDirectory.fileCount())
+				return isSimpleViewMode ? VIEW_TYPE_FILE_SIMPLE : VIEW_TYPE_FILE;
+			return Adapter.IGNORE_ITEM_VIEW_TYPE;
+		}
+
+		class ViewHolder {
+			int viewType;
+			ImageView image;
+			TextView name;
+			TextView author;
+			TextView series;
+			TextView filename;
+			TextView field1;
+			TextView field2;
+			//TextView field3;
+			void setText( TextView view, String text )
+			{
+				if ( view==null )
+					return;
+				if ( text!=null && text.length()>0 ) {
+					view.setText(text);
+					view.setVisibility(VISIBLE);
+				} else {
+					view.setText(null);
+					view.setVisibility(INVISIBLE);
+				}
+			}
+			void setItem(FileInfo item, FileInfo parentItem)
+			{
+				if ( item==null ) {
+					image.setImageResource(R.drawable.cr3_browser_back);
+					String thisDir = "";
+					if ( parentItem!=null ) {
+						if ( parentItem.pathname.startsWith("@") )
+							thisDir = "/" + parentItem.filename;
+//						else if ( parentItem.isArchive )
+//							thisDir = parentItem.arcname;
+						else
+							thisDir = parentItem.pathname;
+						//parentDir = parentItem.path;
+					}
+					name.setText(thisDir);
+					return;
+				}
+				if ( item.isDirectory ) {
+					if (item.isBooksByAuthorRoot())
+						image.setImageResource(R.drawable.cr3_browser_folder_authors);
+					else if (item.isOPDSRoot() || item.isOPDSDir())
+						image.setImageResource(R.drawable.cr3_browser_folder_opds);
+					else if (item.isSearchShortcut())
+						image.setImageResource(R.drawable.cr3_browser_find);
+					else if ( item.isRecentDir() )
+						image.setImageResource(R.drawable.cr3_browser_folder_recent);
+					else if ( item.isArchive )
+						image.setImageResource(R.drawable.cr3_browser_folder_zip);
+					else
+						image.setImageResource(R.drawable.cr3_browser_folder);
+					setText(name, item.filename);
+
+					if ( item.isBooksByAuthorDir() ) {
+						int bookCount = 0;
+						if (item.fileCount() > 0)
+							bookCount = item.fileCount();
+						else if (item.tag != null && item.tag instanceof Integer)
+							bookCount = (Integer)item.tag;
+						setText(field1, "books: " + String.valueOf(bookCount));
+						setText(field2, "folders: 0");
+					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && (!item.isBooksByAuthorRoot() || item.dirCount()>0)) {
+						setText(field1, "books: " + String.valueOf(item.fileCount()));
+						setText(field2, "folders: " + String.valueOf(item.dirCount()));
+					} else {
+						setText(field1, "");
+						setText(field2, "");
+					}
+				} else {
+					boolean isSimple = (viewType == VIEW_TYPE_FILE_SIMPLE);
+					if ( image!=null ) {
+						if ( isSimple ) {
+							image.setImageResource(item.format.getIconResourceId());
+						} else {
+							Drawable drawable = null;
+							if ( item.id!=null )
+								drawable = mHistory.getBookCoverpageImage(null, item.id);
+							if ( drawable!=null ) {
+								image.setImageDrawable(drawable);
+							} else {
+								int resId = item.format!=null ? item.format.getIconResourceId() : 0;
+								if ( resId!=0 )
+									image.setImageResource(item.format.getIconResourceId());
+							}
+						}
+					}
+					if ( isSimple ) {
+						String fn = item.getFileNameToDisplay();
+						setText( filename, fn );
+					} else {
+						setText( author, formatAuthors(item.authors) );
+						String seriesName = formatSeries(item.series, item.seriesNumber);
+						String title = item.title;
+						String filename1 = item.filename;
+						String filename2 = item.isArchive /*&& !item.isDirectory */
+								? new File(item.arcname).getName() : null;
+						if ( title==null || title.length()==0 ) {
+							title = filename1;
+							if (seriesName==null) 
+								seriesName = filename2;
+						} else if (seriesName==null) 
+							seriesName = filename1;
+						setText( name, title );
+						setText( series, seriesName );
+
+//						field1.setVisibility(VISIBLE);
+//						field2.setVisibility(VISIBLE);
+//						field3.setVisibility(VISIBLE);
+						field1.setText(formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
+						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
+						Bookmark pos = mHistory.getLastPos(item);
+						if ( pos!=null ) {
+							field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
+						} else {
+							field2.setText("");
+						}
+						//field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
+					} 
+					
+				}
+			}
+		}
+		
+		public View getView(int position, View convertView, ViewGroup parent) {
+			if (currDirectory == null)
+				return null;
+			View view;
+			ViewHolder holder;
+			int vt = getItemViewType(position);
+			if (convertView == null) {
+				if ( vt==VIEW_TYPE_LEVEL_UP )
+					view = mInflater.inflate(R.layout.browser_item_parent_dir, null);
+				else if ( vt==VIEW_TYPE_DIRECTORY )
+					view = mInflater.inflate(R.layout.browser_item_folder, null);
+				else if ( vt==VIEW_TYPE_FILE_SIMPLE )
+					view = mInflater.inflate(R.layout.browser_item_book_simple, null);
+				else
+					view = mInflater.inflate(R.layout.browser_item_book, null);
+				holder = new ViewHolder();
+				holder.image = (ImageView)view.findViewById(R.id.book_icon);
+				holder.name = (TextView)view.findViewById(R.id.book_name);
+				holder.author = (TextView)view.findViewById(R.id.book_author);
+				holder.series = (TextView)view.findViewById(R.id.book_series);
+				holder.filename = (TextView)view.findViewById(R.id.book_filename);
+				holder.field1 = (TextView)view.findViewById(R.id.browser_item_field1);
+				holder.field2 = (TextView)view.findViewById(R.id.browser_item_field2);
+				//holder.field3 = (TextView)view.findViewById(R.id.browser_item_field3);
+				view.setTag(holder);
+			} else {
+				view = convertView;
+				holder = (ViewHolder)view.getTag();
+			}
+			holder.viewType = vt;
+			FileInfo item = (FileInfo)getItem(position);
+			FileInfo parentItem = null;//item!=null ? item.parent : null;
+			if ( vt == VIEW_TYPE_LEVEL_UP ) {
+				item = null;
+				parentItem = currDirectory;
+			}
+			holder.setItem(item, parentItem);
+			if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+				view.setBackgroundColor(Color.WHITE);
+			}
+			return view;
+		}
+
+		public int getViewTypeCount() {
+			if (currDirectory == null)
+				return 1;
+			return VIEW_TYPE_COUNT;
+		}
+
+		public boolean hasStableIds() {
+			return true;
+		}
+
+		public boolean isEmpty() {
+			if (currDirectory == null)
+				return true;
+			return mScanner.mFileList.size()==0;
+		}
+
+	}
+	
 	private void showDirectoryInternal( final FileInfo dir, final FileInfo file )
 	{
 		BackgroundThread.ensureGUI();
@@ -758,255 +999,12 @@ public class FileBrowser extends ListView {
 				return detector.onTouchEvent(event);
 			}
 		});
-		this.setAdapter(new ListAdapter() {
-
-			public boolean areAllItemsEnabled() {
-				return true;
-			}
-
-			public boolean isEnabled(int arg0) {
-				return true;
-			}
-
-			public int getCount() {
-				if ( dir==null )
-					return 0;
-				return dir.fileCount() + dir.dirCount() + (dir.parent!=null ? 1 : 0);
-			}
-
-			public Object getItem(int position) {
-				if ( dir==null )
-					return null;
-				if ( position<0 )
-					return null;
-				int start = (dir.parent!=null ? 1 : 0);
-				if ( position<start )
-					return dir.parent;
-				return dir.getItem(position-start);
-			}
-
-			public long getItemId(int position) {
-				if ( dir==null )
-					return 0;
-				return position;
-			}
-
-			public final int VIEW_TYPE_LEVEL_UP = 0;
-			public final int VIEW_TYPE_DIRECTORY = 1;
-			public final int VIEW_TYPE_FILE = 2;
-			public final int VIEW_TYPE_FILE_SIMPLE = 3;
-			public final int VIEW_TYPE_COUNT = 4;
-			public int getItemViewType(int position) {
-				if ( dir==null )
-					return 0;
-				if ( position<0 )
-					return Adapter.IGNORE_ITEM_VIEW_TYPE;
-				int start = (dir.parent!=null ? 1 : 0);
-				if ( position<start )
-					return VIEW_TYPE_LEVEL_UP;
-				if ( position<start + dir.dirCount() )
-					return VIEW_TYPE_DIRECTORY;
-				start += dir.dirCount();
-				position -= start;
-				if ( position<dir.fileCount() )
-					return isSimpleViewMode ? VIEW_TYPE_FILE_SIMPLE : VIEW_TYPE_FILE;
-				return Adapter.IGNORE_ITEM_VIEW_TYPE;
-			}
-
-			class ViewHolder {
-				int viewType;
-				ImageView image;
-				TextView name;
-				TextView author;
-				TextView series;
-				TextView filename;
-				TextView field1;
-				TextView field2;
-				//TextView field3;
-				void setText( TextView view, String text )
-				{
-					if ( view==null )
-						return;
-					if ( text!=null && text.length()>0 ) {
-						view.setText(text);
-						view.setVisibility(VISIBLE);
-					} else {
-						view.setText(null);
-						view.setVisibility(INVISIBLE);
-					}
-				}
-				void setItem(FileInfo item, FileInfo parentItem)
-				{
-					if ( item==null ) {
-						image.setImageResource(R.drawable.cr3_browser_back);
-						String thisDir = "";
-						if ( parentItem!=null ) {
-							if ( parentItem.pathname.startsWith("@") )
-								thisDir = "/" + parentItem.filename;
-//							else if ( parentItem.isArchive )
-//								thisDir = parentItem.arcname;
-							else
-								thisDir = parentItem.pathname;
-							//parentDir = parentItem.path;
-						}
-						name.setText(thisDir);
-						return;
-					}
-					if ( item.isDirectory ) {
-						if (item.isBooksByAuthorRoot())
-							image.setImageResource(R.drawable.cr3_browser_folder_authors);
-						else if (item.isOPDSRoot() || item.isOPDSDir())
-							image.setImageResource(R.drawable.cr3_browser_folder_opds);
-						else if (item.isSearchShortcut())
-							image.setImageResource(R.drawable.cr3_browser_find);
-						else if ( item.isRecentDir() )
-							image.setImageResource(R.drawable.cr3_browser_folder_recent);
-						else if ( item.isArchive )
-							image.setImageResource(R.drawable.cr3_browser_folder_zip);
-						else
-							image.setImageResource(R.drawable.cr3_browser_folder);
-						setText(name, item.filename);
-
-						if ( item.isBooksByAuthorDir() ) {
-							int bookCount = 0;
-							if (item.fileCount() > 0)
-								bookCount = item.fileCount();
-							else if (item.tag != null && item.tag instanceof Integer)
-								bookCount = (Integer)item.tag;
-							setText(field1, "books: " + String.valueOf(bookCount));
-							setText(field2, "folders: 0");
-						} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && (!item.isBooksByAuthorRoot() || item.dirCount()>0)) {
-							setText(field1, "books: " + String.valueOf(item.fileCount()));
-							setText(field2, "folders: " + String.valueOf(item.dirCount()));
-						} else {
-							setText(field1, "");
-							setText(field2, "");
-						}
-					} else {
-						boolean isSimple = (viewType == VIEW_TYPE_FILE_SIMPLE);
-						if ( image!=null ) {
-							if ( isSimple ) {
-								image.setImageResource(item.format.getIconResourceId());
-							} else {
-								Drawable drawable = null;
-								if ( item.id!=null )
-									drawable = mHistory.getBookCoverpageImage(null, item.id);
-								if ( drawable!=null ) {
-									image.setImageDrawable(drawable);
-								} else {
-									int resId = item.format!=null ? item.format.getIconResourceId() : 0;
-									if ( resId!=0 )
-										image.setImageResource(item.format.getIconResourceId());
-								}
-							}
-						}
-						if ( isSimple ) {
-							String fn = item.getFileNameToDisplay();
-							setText( filename, fn );
-						} else {
-							setText( author, formatAuthors(item.authors) );
-							String seriesName = formatSeries(item.series, item.seriesNumber);
-							String title = item.title;
-							String filename1 = item.filename;
-							String filename2 = item.isArchive /*&& !item.isDirectory */
-									? new File(item.arcname).getName() : null;
-							if ( title==null || title.length()==0 ) {
-								title = filename1;
-								if (seriesName==null) 
-									seriesName = filename2;
-							} else if (seriesName==null) 
-								seriesName = filename1;
-							setText( name, title );
-							setText( series, seriesName );
-	
-	//						field1.setVisibility(VISIBLE);
-	//						field2.setVisibility(VISIBLE);
-	//						field3.setVisibility(VISIBLE);
-							field1.setText(formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
-							//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
-							Bookmark pos = mHistory.getLastPos(item);
-							if ( pos!=null ) {
-								field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
-							} else {
-								field2.setText("");
-							}
-							//field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
-						} 
-						
-					}
-				}
-			}
-			
-			public View getView(int position, View convertView, ViewGroup parent) {
-				if ( dir==null )
-					return null;
-				View view;
-				ViewHolder holder;
-				int vt = getItemViewType(position);
-				if ( convertView==null ) {
-					if ( vt==VIEW_TYPE_LEVEL_UP )
-						view = mInflater.inflate(R.layout.browser_item_parent_dir, null);
-					else if ( vt==VIEW_TYPE_DIRECTORY )
-						view = mInflater.inflate(R.layout.browser_item_folder, null);
-					else if ( vt==VIEW_TYPE_FILE_SIMPLE )
-						view = mInflater.inflate(R.layout.browser_item_book_simple, null);
-					else
-						view = mInflater.inflate(R.layout.browser_item_book, null);
-					holder = new ViewHolder();
-					holder.image = (ImageView)view.findViewById(R.id.book_icon);
-					holder.name = (TextView)view.findViewById(R.id.book_name);
-					holder.author = (TextView)view.findViewById(R.id.book_author);
-					holder.series = (TextView)view.findViewById(R.id.book_series);
-					holder.filename = (TextView)view.findViewById(R.id.book_filename);
-					holder.field1 = (TextView)view.findViewById(R.id.browser_item_field1);
-					holder.field2 = (TextView)view.findViewById(R.id.browser_item_field2);
-					//holder.field3 = (TextView)view.findViewById(R.id.browser_item_field3);
-					view.setTag(holder);
-				} else {
-					view = convertView;
-					holder = (ViewHolder)view.getTag();
-				}
-				holder.viewType = vt;
-				FileInfo item = (FileInfo)getItem(position);
-				FileInfo parentItem = null;//item!=null ? item.parent : null;
-				if ( vt == VIEW_TYPE_LEVEL_UP ) {
-					item = null;
-					parentItem = currDirectory;
-				}
-				holder.setItem(item, parentItem);
-				if ( DeviceInfo.FORCE_LIGHT_THEME ) {
-					view.setBackgroundColor(Color.WHITE);
-				}
-				return view;
-			}
-
-			public int getViewTypeCount() {
-				if ( dir==null )
-					return 1;
-				return VIEW_TYPE_COUNT;
-			}
-
-			public boolean hasStableIds() {
-				return true;
-			}
-
-			public boolean isEmpty() {
-				if ( dir==null )
-					return true;
-				return mScanner.mFileList.size()==0;
-			}
-
-			private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();
-			
-			public void registerDataSetObserver(DataSetObserver observer) {
-				observers.add(observer);
-			}
-
-			public void unregisterDataSetObserver(DataSetObserver observer) {
-				observers.remove(observer);
-			}
-			
-		});
+		if (currentListAdapter == null) {
+			currentListAdapter = new FileListAdapter();
+			this.setAdapter(currentListAdapter);
+		} else {
+			currentListAdapter.notifyDataSetChanged();
+		}
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
 		if ( dir!=null && !dir.isRootDir() )
 			index++;
