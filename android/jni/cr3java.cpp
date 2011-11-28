@@ -70,6 +70,8 @@ jobject CRJNIEnv::toJavaProperties( CRPropRef props )
     	jstring key = toJavaString(lString16(props->getName(i)));
     	jstring value = toJavaString(lString16(props->getValue(i)));
     	p_setProperty.callObj(key, value);
+		env->DeleteLocalRef(key);
+		env->DeleteLocalRef(value);
     }
 	return obj;
 }
