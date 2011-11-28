@@ -29,11 +29,7 @@ sub { vertical-align: sub; font-size: 70% }
 sup { vertical-align: super; font-size: 70% } 
 tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
 pre { display: block; 
-   margin-top: 0.5em; 
-   margin-bottom: 0.5em; 
-   white-space: pre; 
-   text-align: left; 
-  /* background-color: #BFBFBF; */ 
+   $pre.all
    } 
 
 nobr { display: inline; hyphenate: none; white-space: nowrap; } 
@@ -72,7 +68,7 @@ dl { margin-left: 0em; list-style-type: disc }
 dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 
 dd { display: block; margin-left: 1.3em } 
 
-a { display:inline; text-decoration: underline;  } 
+a { display:inline; $link.all } 
 
 span { display: inline; } 
 

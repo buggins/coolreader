@@ -6,7 +6,7 @@ empty-line { height: 1em }
 
 hr { height: 1px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0.5em; /* 2px */ }
 
-a { display: inline; $footnote.all }
+a { display: inline; $link.all }
 a[type="note"] { $footnote-link.all }
 
 image { text-align: center; text-indent: 0px; display: block }
@@ -77,6 +77,10 @@ code, pre {
 body[name="notes"] { $footnote.all }
 body[name="notes"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
 body[name="notes"] section title p { display: inline }
+
+body[name="comments"] { $footnote.all }
+body[name="comments"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
+body[name="comments"] section title p { display: inline }
 
 description { display: block; }
 title-info { display: block; }

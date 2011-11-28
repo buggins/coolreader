@@ -51,7 +51,7 @@ img {
 .coverpage { text-align: center; }
 p image { display: inline }
 
-a { display:inline; text-decoration: underline; color: gray; }
+a { display:inline; $link.all }
 p { $def.all }
 
 .empty-line { height: 1em }

@@ -73,11 +73,11 @@ dl { margin-left: 0em; }
 dt { display: block; margin-left: 0em; margin-top:0.3em; font-weight: bold; } 
 dd { display: block; text-indent: 1.3em; } 
 
-a { display:inline; text-decoration: underline;  } 
+a { display:inline; $link.all } 
 
 span { display: inline; } 
 
-cite { display: inline; font-style: italic;} 
+cite { display: inline; $cite.all } 
 div { display: block; } 
 blockquote { display: block; 
    margin-left: 1.5em; 

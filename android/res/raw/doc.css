@@ -10,7 +10,7 @@ sup { vertical-align: super; font-size: 70% }
 strong, b { font-weight: bold }
 emphasis, i { font-style: italic }
 
-a { text-decoration: underline }
+a { display: inline; $link.all }
 a[type="note"] { vertical-align: super; font-size: 70%; text-decoration: none }
 
 image { text-align: center; text-indent: 0px; display: block }
@@ -104,12 +104,13 @@ pre { display: block;
 
 nobr { display: inline; hyphenate: none; white-space: nowrap; } 
 
-h1,h2,h3,h4,h5,h6 { 
+h1,h2 { 
+   display: block;
+   $title.all
+   } 
+h3,h4,h5,h6 { 
    display: block; 
-   margin-top: 0.5em; 
-   margin-bottom: 0.3em; 
-   font-weight: bold; 
-   text-align: left; 
+   $subtitle.all
    } 
 h1 { font-size: 150%; 
 /*     color: #FFFFFF; background-color: #000000; */ 
