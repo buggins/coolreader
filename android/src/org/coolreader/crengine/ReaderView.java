@@ -1810,9 +1810,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		if ( mOpened && mBookInfo!=null ) {
 			log.d("toggleDocumentStyles()");
-			boolean flg = !mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
-			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, flg);
-            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, flg ? 0 : 1);
+			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
+			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
+			internalStyles ^= 1;
+			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, internalStyles == 0);
+            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, internalStyles | txtReflow);
+            doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
+		}
+	}
+	
+	public void toggleTextReflow()
+	{
+		if ( mOpened && mBookInfo!=null ) {
+			log.d("toggleTextReflow()");
+			if (mBookInfo.getFileInfo().format != DocumentFormat.TXT && mBookInfo.getFileInfo().format != DocumentFormat.HTML)
+				return;
+			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
+			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
+			txtReflow ^= 2;
+			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG, txtReflow == 0);
+            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, internalStyles | txtReflow);
             doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
 		}
 	}
@@ -4805,9 +4822,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    	return null;
 				}
 			});
-			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG)? 0 : 1; 
+			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
+			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
 			log.d("internalStyles: " + internalStyles);
-			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles);
+			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles | txtReflow);
 			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
