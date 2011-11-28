@@ -673,7 +673,9 @@ public class CoolReader extends Activity
 	    	boolean changed = false;
 	    	if (b < 0) {
 	    		log.d("dimming screen by " + (int)((1 + b)*100) + "%");
-	    		b = (-b) * attrs.screenBrightness;
+	    		b = -b * attrs.screenBrightness;
+	    		if (b < 0.15)
+	    			return;
 	    	}
 	    	float delta = attrs.screenBrightness - b;
 	    	if (delta < 0)
