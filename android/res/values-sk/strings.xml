@@ -127,7 +127,6 @@
     <string name="action_touch_screen_enabled_toast">Dotyková obrazovka je odomknutý</string>
     <string name="action_repeat">(Autom. opakovanie)</string>
     <string name="options_app_scan_book_props">Skenovanie vlastností všetkých kníh v priečinku</string>
-    <string name="options_app_backlight_lock_enabled">Predĺžiť dobu podsvietenia</string>
     <string name="options_page_titlebar">Možnosti hlavičky</string>
     <string name="options_page_show_titlebar_chapter_marks">Zobraziť značky kapitol</string>
     <string name="options_page_show_titlebar_battery_percent">Zobraziť stav batérie v %</string>
@@ -352,4 +351,12 @@
     <string name="options_css_font_size_90p">Smaller (90%)</string>
     <string name="options_css_font_size_70p">Smaller (70%)</string>
     <string name="options_css_font_size_80p">Smaller (80%)</string>
+    <string name="options_app_backlight_timeout_6">6 minutes</string>
+    <string name="options_app_backlight_timeout_5">5 minutes</string>
+    <string name="options_app_backlight_timeout_4">4 minutes</string>
+    <string name="options_app_backlight_timeout_3">3 minutes</string>
+    <string name="options_app_backlight_timeout_2">2 minutes</string>
+    <string name="options_app_backlight_timeout_0">Use system default</string>
+    <string name="options_app_backlight_timeout">Screen backlight timeout</string>
+    <string name="options_css_annotation">Annotation</string>
 </resources>

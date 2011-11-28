@@ -127,7 +127,6 @@
     <string name="action_touch_screen_enabled_toast">Lietimui jautrus ekranas atrakintas</string>
     <string name="action_repeat">(automatinis pakartojimas)</string>
     <string name="options_app_scan_book_props">Skanuoti vis&#371; aplanko knyg&#371; s&#261;vybes</string>
-    <string name="options_app_backlight_lock_enabled">Nepaisyti sistemos pa&#353;vietimo laiko apribojim&#371;</string>
     <string name="options_page_titlebar">Informacin&#279;s eilut&#279;s nustatymai</string>
     <string name="options_page_show_titlebar_chapter_marks">Skyri&#371; rib&#371; &#382;ym&#279;s</string>
     <string name="options_page_show_titlebar_battery_percent">Baterijos &#303;krovimas procentais</string>
@@ -352,4 +351,12 @@
     <string name="options_css_font_size_90p">Smaller (90%)</string>
     <string name="options_css_font_size_70p">Smaller (70%)</string>
     <string name="options_css_font_size_80p">Smaller (80%)</string>
+    <string name="options_app_backlight_timeout_6">6 minutes</string>
+    <string name="options_app_backlight_timeout_5">5 minutes</string>
+    <string name="options_app_backlight_timeout_4">4 minutes</string>
+    <string name="options_app_backlight_timeout_3">3 minutes</string>
+    <string name="options_app_backlight_timeout_2">2 minutes</string>
+    <string name="options_app_backlight_timeout_0">Use system default</string>
+    <string name="options_app_backlight_timeout">Screen backlight timeout</string>
+    <string name="options_css_annotation">Annotation</string>
 </resources>

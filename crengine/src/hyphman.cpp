@@ -14,7 +14,7 @@
 */
 
 // set to 1 for debug dump
-#if 1
+#if 0
 #define DUMP_HYPHENATION_WORDS 1
 #define DUMP_PATTERNS 1
 #else

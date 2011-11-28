@@ -84,7 +84,7 @@ body[name="comments"] section title p { display: inline }
 
 description { display: block; }
 title-info { display: block; }
-annotation { margin-left: 5%; margin-right: 5%; font-size: 80%; font-style: italic; text-align: justify; text-indent: 1em }
+annotation { $annotation.all }
 date { display: block; font-size: 80%; font-style: italic; text-align: center }
 genre { display: none; }
 author { display: none; }

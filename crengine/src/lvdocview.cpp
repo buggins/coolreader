@@ -384,6 +384,9 @@ void LVDocView::setPageHeaderInfo(int hdrFlags) {
 lString16 mergeCssMacros(CRPropRef props) {
     lString8 res = lString8();
     for (int i=0; i<props->getCount(); i++) {
+    	lString8 n(props->getName(i));
+    	if (n.endsWith(".day") || n.endsWith(".night"))
+    		continue;
         lString16 v = props->getValue(i);
         if (!v.empty()) {
             if (v.lastChar() != ';')
@@ -5280,6 +5283,12 @@ static const char * def_style_macros[] = {
     "styles.footnote-link.vertical-align", "vertical-align: super",
     "styles.footnote", "font-size: 70%",
     "styles.footnote-title", "font-size: 110%",
+    "styles.annotation.font-size", "font-size: 90%",
+    "styles.annotation.margin-left", "margin-left: 1em",
+    "styles.annotation.margin-right", "margin-right: 1em",
+    "styles.annotation.font-style", "font-style: italic",
+    "styles.annotation.align", "text-align: justify",
+    "styles.annotation.text-indent", "text-indent: 1.2em",
     NULL,
     NULL,
 };

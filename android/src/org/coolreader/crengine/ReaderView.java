@@ -1903,7 +1903,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		currentAutoScrollAnimation.stop();
 	}
 	
-	public static final int AUTOSCROLL_START_ANIMATION_PERCENT = 15; 
+	public static final int AUTOSCROLL_START_ANIMATION_PERCENT = 10; 
 	
 	private void startAutoScroll() {
 		if (isAutoScrollActive())
@@ -2011,6 +2011,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				@Override
 				public void run() {
 					if (initPageTurn(startProgress)) {
+						log.d("AutoScrollAnimation: starting autoscroll timer");
 						timerInterval = DeviceInfo.EINK_SCREEN ? ANIMATION_INTERVAL_EINK : ANIMATION_INTERVAL_NORMAL;
 						startTimer(timerInterval);
 					} else {
@@ -2039,8 +2040,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.onUserActivity();
 			progress = newProgress;
 			if (progress == 0 || progress >= startAnimationProgress) {
-				if (image1 != null && image2 != null && image1.isReleased() || image2.isReleased()) {
-					initPageTurn(progress);
+				if (image1 != null && image2 != null) {
+					if (image1.isReleased() || image2.isReleased())
+						initPageTurn(progress);
 					draw();
 				}
 			}
@@ -2117,9 +2119,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					log.v("ScrollViewAnimation -- not started: image is null");
 					return false;
 				}
-				long duration = android.os.SystemClock.uptimeMillis() - pageTurnStart;
-				log.v("AutoScrollAnimation -- page turn initialized in " + duration + " millis");
-				currentAutoScrollAnimation = this;
 			} else {
 				int page1 = currPos.pageNumber;
 				int page2 = currPos.pageNumber + 1;
@@ -2138,10 +2137,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					return false;
 				}
 				
-				long duration = android.os.SystemClock.uptimeMillis() - pageTurnStart;
-				log.v("AutoScrollAnimation -- page turn initialized in " + duration + " millis");
-				currentAutoScrollAnimation = this;
 			}
+			long duration = android.os.SystemClock.uptimeMillis() - pageTurnStart;
+			log.v("AutoScrollAnimation -- page turn initialized in " + duration + " millis");
+			currentAutoScrollAnimation = this;
 			draw();
 			return true;
 		}
@@ -2193,7 +2192,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    }
 		
 		private void drawGradient( Canvas canvas, Rect rc, Paint[] paints, int startIndex, int endIndex ) {
-			log.v("drawShadow");
+			//log.v("drawShadow");
 			int n = (startIndex<endIndex) ? endIndex-startIndex+1 : startIndex-endIndex + 1;
 			int dir = (startIndex<endIndex) ? 1 : -1;
 			int dx = rc.bottom - rc.top;
@@ -2209,7 +2208,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				rect.top = x1;
 				rect.bottom = x2;
 				if ( x2>x1 ) {
-					log.v("drawShadow : " + x1 + ", " + x2 + ", " + index);
+					//log.v("drawShadow : " + x1 + ", " + x2 + ", " + index);
 					canvas.drawRect(rect, paints[index]);
 				}
 			}
@@ -2563,7 +2562,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
 			mActivity.getScanner().setDirScanEnabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
-			mActivity.setWakeLockEnabled(flg);
+        	int n = 0;
+        	try {
+        		n = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+			mActivity.setScreenBacklightDuration(n);
         } else if ( key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE) ) {
         	if ( mActivity.getBrowser()!=null )
         		mActivity.getBrowser().setSimpleViewMode(flg);

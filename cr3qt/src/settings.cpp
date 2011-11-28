@@ -52,14 +52,15 @@ static const char * styleNames[] = {
     "title",
     "subtitle",
     "pre",
+    "link",
     "cite",
     "epigraph",
     "poem",
     "text-author",
-    "link",
     "footnote-link",
     "footnote",
     "footnote-title",
+    "annotation",
     NULL
 };
 
@@ -245,14 +246,15 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_styleNames.append(tr("Title"));
     m_styleNames.append(tr("Subtitle"));
     m_styleNames.append(tr("Preformatted text"));
+    m_styleNames.append(tr("Link"));
     m_styleNames.append(tr("Cite / quotation"));
     m_styleNames.append(tr("Epigraph"));
     m_styleNames.append(tr("Poem"));
     m_styleNames.append(tr("Text author"));
-    m_styleNames.append(tr("Link"));
     m_styleNames.append(tr("Footnote link"));
     m_styleNames.append(tr("Footnote"));
     m_styleNames.append(tr("Footnote title"));
+    m_styleNames.append(tr("Annotation"));
     m_ui->cbStyleName->clear();
     m_ui->cbStyleName->addItems(m_styleNames);
     m_ui->cbStyleName->setCurrentIndex(0);

@@ -127,7 +127,6 @@
     <string name="action_touch_screen_enabled_toast">Érintőképernyő feloldva</string>
     <string name="action_repeat">(automatikus ismétlés)</string>
     <string name="options_app_scan_book_props">A mappában lévő összes könyv tulajdonságainak elemzése</string>
-    <string name="options_app_backlight_lock_enabled">A rendszer fényerő felülbírálása</string>
     <string name="options_page_titlebar">Állapotsor beállítások</string>
     <string name="options_page_show_titlebar_chapter_marks">Fejezet jelölők</string>
     <string name="options_page_show_titlebar_battery_percent">Akku töltöttség százalékban</string>
@@ -352,4 +351,12 @@
     <string name="options_css_font_size_90p">Kisebb (90%)</string>
     <string name="options_css_font_size_70p">Kisebb (70%)</string>
     <string name="options_css_font_size_80p">Kisebb (80%)</string>
+    <string name="options_app_backlight_timeout_6">6 minutes</string>
+    <string name="options_app_backlight_timeout_5">5 minutes</string>
+    <string name="options_app_backlight_timeout_4">4 minutes</string>
+    <string name="options_app_backlight_timeout_3">3 minutes</string>
+    <string name="options_app_backlight_timeout_2">2 minutes</string>
+    <string name="options_app_backlight_timeout_0">Use system default</string>
+    <string name="options_app_backlight_timeout">Screen backlight timeout</string>
+    <string name="options_css_annotation">Annotation</string>
 </resources>

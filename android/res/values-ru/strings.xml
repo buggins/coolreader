@@ -127,7 +127,6 @@
     <string name="action_touch_screen_enabled_toast">Сенсорный экран включен</string>
     <string name="action_repeat">(автоповтор)</string>
     <string name="options_app_scan_book_props">Сканировать свойства книг в директории</string>
-    <string name="options_app_backlight_lock_enabled">Увеличить длительность подсветки</string>
     <string name="options_page_titlebar">Настройки колонтитула</string>
     <string name="options_page_show_titlebar_chapter_marks">Метки глав</string>
     <string name="options_page_show_titlebar_battery_percent">Заряд батареи в %</string>
@@ -352,4 +351,12 @@
     <string name="options_css_font_size_90p">Уменьшить (90%)</string>
     <string name="options_css_font_size_70p">Уменьшить (70%)</string>
     <string name="options_css_font_size_80p">Уменьшить (80%)</string>
+    <string name="options_app_backlight_timeout_6">6 минут</string>
+    <string name="options_app_backlight_timeout_5">5 минут</string>
+    <string name="options_app_backlight_timeout_4">4 минуты</string>
+    <string name="options_app_backlight_timeout_3">3 минуты</string>
+    <string name="options_app_backlight_timeout_2">2 минуты</string>
+    <string name="options_app_backlight_timeout_0">Установленная в системе</string>
+    <string name="options_app_backlight_timeout">Длительность подсветки экрана</string>
+    <string name="options_css_annotation">Аннотация</string>
 </resources>

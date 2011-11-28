@@ -7,9 +7,7 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
-import org.coolreader.crengine.OptionsDialog.ThumbnailCache.Item;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.DataSetObserver;
@@ -122,6 +120,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		};
 	int[] mFlickBrightnessTitles = new int[] {
 			R.string.options_controls_flick_brightness_none, R.string.options_controls_flick_brightness_left, R.string.options_controls_flick_brightness_right
+		};
+	int[] mBacklightTimeout = new int[] {
+			0, 2, 3, 4, 5, 6
+		};
+	int[] mBacklightTimeoutTitles = new int[] {
+			R.string.options_app_backlight_timeout_0, R.string.options_app_backlight_timeout_2, R.string.options_app_backlight_timeout_3, R.string.options_app_backlight_timeout_4, R.string.options_app_backlight_timeout_5, R.string.options_app_backlight_timeout_6
 		};
 	int[] mTapSecondaryActionType = new int[] {
 			TAP_ACTION_TYPE_LONGPRESS, TAP_ACTION_TYPE_DOUBLE
@@ -377,6 +381,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mProperties.setInt(PROP_APP_SCREEN_BACKLIGHT_DAY, mProperties.getInt(PROP_APP_SCREEN_BACKLIGHT, -1));
 			mProperties.setProperty(PROP_FONT_GAMMA_DAY, mProperties.getProperty(PROP_FONT_GAMMA, "1.0"));
 		}
+		for (String code : styleCodes) {
+			String styleName = "styles." + code + ".color";
+			if ( night )
+				mProperties.setProperty(styleName + ".night", mProperties.getProperty(styleName, null));
+			else
+				mProperties.setProperty(styleName + ".day", mProperties.getProperty(styleName, null));
+		}
 	}
 	static public void restoreColor( Properties mProperties,  boolean night )
 	{
@@ -394,6 +405,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mProperties.setColor(PROP_STATUS_FONT_COLOR, mProperties.getColor(PROP_STATUS_FONT_COLOR_DAY, 0x000000));
 			mProperties.setInt(PROP_APP_SCREEN_BACKLIGHT, mProperties.getInt(PROP_APP_SCREEN_BACKLIGHT_DAY, 80));
 			mProperties.setProperty(PROP_FONT_GAMMA, mProperties.getProperty(PROP_FONT_GAMMA_DAY, "1.0"));
+		}
+		for (String code : styleCodes) {
+			String styleName = "styles." + code + ".color";
+			if ( night )
+				mProperties.setProperty(styleName, mProperties.getProperty(styleName + ".night", null));
+			else
+				mProperties.setProperty(styleName, mProperties.getProperty(styleName + ".day", null));
 		}
 	}
 
@@ -1446,21 +1464,43 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		res.setIconId(R.drawable.cr3_option_text_other);
 		return res;
 	}
+
+	final static private String[] styleCodes = {
+		"def",
+		"title",
+		"subtitle",
+		"pre",
+		"link",
+		"cite",
+		"epigraph",
+		"poem",
+		"text-author",
+		"footnote",
+		"footnote-link",
+		"footnote-title",
+		"annotation",
+	};
+	
+	final static private int[] styleTitles = {
+		R.string.options_css_def,
+		R.string.options_css_title,
+		R.string.options_css_subtitle,
+		R.string.options_css_pre,
+		R.string.options_css_link,
+		R.string.options_css_cite,
+		R.string.options_css_epigraph,
+		R.string.options_css_poem,
+		R.string.options_css_textauthor,
+		R.string.options_css_footnote,
+		R.string.options_css_footnotelink,
+		R.string.options_css_footnotetitle,
+		R.string.options_css_annotation,
+	};
 	
 	private void fillStyleEditorOptions() {
 		mOptionsCSS = new OptionsListView(getContext());
-		mOptionsCSS.add(createStyleEditor("def", R.string.options_css_def));
-		mOptionsCSS.add(createStyleEditor("title", R.string.options_css_title));
-		mOptionsCSS.add(createStyleEditor("subtitle", R.string.options_css_subtitle));
-		mOptionsCSS.add(createStyleEditor("pre", R.string.options_css_pre));
-		mOptionsCSS.add(createStyleEditor("cite", R.string.options_css_cite));
-		mOptionsCSS.add(createStyleEditor("epigraph", R.string.options_css_epigraph));
-		mOptionsCSS.add(createStyleEditor("poem", R.string.options_css_poem));
-		mOptionsCSS.add(createStyleEditor("text-author", R.string.options_css_textauthor));
-		mOptionsCSS.add(createStyleEditor("link", R.string.options_css_link));
-		mOptionsCSS.add(createStyleEditor("footnote", R.string.options_css_footnote));
-		mOptionsCSS.add(createStyleEditor("footnote-link", R.string.options_css_footnotelink));
-		mOptionsCSS.add(createStyleEditor("footnote-title", R.string.options_css_footnotetitle));
+		for (int i=0; i<styleCodes.length; i++)
+			mOptionsCSS.add(createStyleEditor(styleCodes[i], styleTitles[i]));
 	}
 	
 	@Override
@@ -1544,7 +1584,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		
 		mOptionsApplication = new OptionsListView(getContext());
 		if ( !DeviceInfo.EINK_SCREEN )
-			mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_backlight_lock_enabled), PROP_APP_SCREEN_BACKLIGHT_LOCK).setDefaultValue("0"));
+			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_timeout), PROP_APP_SCREEN_BACKLIGHT_LOCK).add(mBacklightTimeout, mBacklightTimeoutTitles).setDefaultValue("3"));
 		mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
