@@ -332,11 +332,12 @@ public class CoolReader extends Activity
 				wl.acquire();
 			}
 
-			if (backlightTimerTask == null)
+			if (backlightTimerTask == null) {
 				log.v("ScreenBacklightControl: timer task started");
-			backlightTimerTask = new BacklightTimerTask();
-			BackgroundThread.instance().postGUI(backlightTimerTask,
-					SCREEN_BACKLIGHT_TIMER_INTERVAL/10);
+				backlightTimerTask = new BacklightTimerTask();
+				BackgroundThread.instance().postGUI(backlightTimerTask,
+						SCREEN_BACKLIGHT_TIMER_INTERVAL/10);
+			}
 		}
 
 		public boolean isHeld() {
