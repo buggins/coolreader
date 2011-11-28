@@ -384,9 +384,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		for (String code : styleCodes) {
 			String styleName = "styles." + code + ".color";
 			if ( night )
-				mProperties.setProperty(styleName + ".night", mProperties.getProperty(styleName, null));
+				mProperties.setProperty(styleName + ".night", mProperties.getProperty(styleName, ""));
 			else
-				mProperties.setProperty(styleName + ".day", mProperties.getProperty(styleName, null));
+				mProperties.setProperty(styleName + ".day", mProperties.getProperty(styleName, ""));
 		}
 	}
 	static public void restoreColor( Properties mProperties,  boolean night )
@@ -409,9 +409,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		for (String code : styleCodes) {
 			String styleName = "styles." + code + ".color";
 			if ( night )
-				mProperties.setProperty(styleName, mProperties.getProperty(styleName + ".night", null));
+				mProperties.setProperty(styleName, mProperties.getProperty(styleName + ".night", ""));
 			else
-				mProperties.setProperty(styleName, mProperties.getProperty(styleName + ".day", null));
+				mProperties.setProperty(styleName, mProperties.getProperty(styleName + ".day", ""));
 		}
 	}
 
