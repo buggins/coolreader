@@ -24,7 +24,7 @@
 				android:id="@+id/preview"
 			/>
   	       <TextView android:id="@+id/value_label"
-    	        style="@android:style/TextAppearance.Small"
+    	        style="@style/TextAppearance.Small"
 	            android:layout_width="wrap_content"
 	            android:layout_weight="2"
 	            android:layout_height="wrap_content"

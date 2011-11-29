@@ -4,7 +4,7 @@
 	> 
 	<TableLayout 
 	    android:id="@+id/table"
-        style="@android:style/TextAppearance.Small"
+        style="@style/TextAppearance.Small"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content">
 	</TableLayout>

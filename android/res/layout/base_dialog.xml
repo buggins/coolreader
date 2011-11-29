@@ -14,7 +14,7 @@
         android:layout_marginBottom="2dip"
         android:layout_marginLeft="0dip"
         android:layout_marginRight="0dip"
-        android:background="#80808080"
+        android:background="#40808080"
         >
         <ImageButton android:id="@+id/base_dlg_btn_back"
             android:layout_width="wrap_content"
@@ -31,7 +31,7 @@
             android:background="@null"
             />
 	    <TextView android:id="@+id/base_dlg_title"
-	        style="@android:style/TextAppearance.Medium"
+	        style="@style/TextAppearance.Medium"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_marginTop="4dip"

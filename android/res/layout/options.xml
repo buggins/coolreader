@@ -16,6 +16,7 @@
             android:layout_marginBottom="2dip"
             android:layout_marginLeft="0dip"
             android:layout_marginRight="0dip"
+            android:background="#20808080"
             >
 	        <ImageButton android:id="@+id/options_btn_back"
 	            android:layout_width="wrap_content"
@@ -36,6 +37,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content" 
                 android:layout_toRightOf="@id/options_btn_back"
+                android:background="@null"
             />
         </RelativeLayout>
         <FrameLayout

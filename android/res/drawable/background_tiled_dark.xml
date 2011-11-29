@@ -1,0 +1,4 @@
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/tx_wood_dark"
+android:tileMode="repeat"/>
+        

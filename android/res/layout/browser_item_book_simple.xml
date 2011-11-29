@@ -27,7 +27,7 @@
         />
 
     <TextView android:id="@+id/book_filename"
-        style="@android:style/TextAppearance.Medium"
+        style="@style/TextAppearance.Medium"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="5"

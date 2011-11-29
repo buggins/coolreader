@@ -1,11 +1,81 @@
 <resources>
-    <style name="Theme.Light" parent="@android:style/Theme.Light">
+
+    <style name="TextAppearance" parent="@android:style/TextAppearance">
     </style>
+        
+    <style name="TextAppearance.Medium" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="TextAppearance.Small" parent="@android:style/TextAppearance.Small">
+        <item name="android:textSize">14sp</item>
+        <!--item name="android:textColor">?textColorSecondary</item-->
+    </style>
+
+    <style name="TextAppearance.Large" parent="@android:style/TextAppearance.Large">
+        <item name="android:textSize">22sp</item>
+    </style>
+        
+    <style name="TextAppearance.Widget.EditText" parent="@android:style/TextAppearance.Widget.EditText">
+    </style>
+        
+    <style name="ListView">
+    </style>
+    <style name="ListView.Dark" parent="@style/Theme.Dark">
+        <item name="android:scrollbars">vertical</item>
+        <item name="android:fadingEdge">vertical</item>
+        <item name="android:listSelector">@null</item>
+        <item name="android:divider">@drawable/divider_horizontal_dark_opaque</item>
+    </style>
+        
+    <style name="ListView.Light" parent="@style/Theme.Light">
+        <item name="android:scrollbars">vertical</item>
+        <item name="android:fadingEdge">vertical</item>
+        <item name="android:listSelector">@null</item>
+        <item name="android:divider">@drawable/divider_horizontal_bright_opaque</item>
+    </style>
+        
+    <style name="ListView.Black" parent="@style/Theme.Black">
+        <item name="android:scrollbars">vertical</item>
+        <item name="android:fadingEdge">vertical</item>
+        <item name="android:listSelector">@null</item>
+        <item name="android:divider">@drawable/divider_horizontal_dark_opaque</item>
+    </style>
+        
+    <style name="ListView.White" parent="@style/Theme.White">
+        <item name="android:scrollbars">vertical</item>
+        <item name="android:fadingEdge">vertical</item>
+        <item name="android:listSelector">@null</item>
+        <item name="android:divider">@drawable/divider_horizontal_bright_opaque</item>
+    </style>
+        
+    <style name="Theme.Light" parent="@android:style/Theme.Light">
+        <item name="android:windowBackground">@drawable/background_tiled_light</item>
+        <item name="android:colorBackground">#ffe0e0e0</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:listViewStyle">@style/ListView.Light</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
+        </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
+        <item name="android:windowBackground">@drawable/background_tiled_dark</item>
+        <item name="android:colorBackground">#ff302030</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:listViewStyle">@style/ListView.Dark</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:colorBackground">@android:color/white</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:listViewStyle">@style/ListView.White</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.White</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:listViewStyle">@style/ListView.Black</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
     </style>
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">
         <item name="android:windowFullscreen">false</item>
@@ -93,29 +163,5 @@
         <item name="android:gravity">center_vertical|center_horizontal</item>
         <item name="android:padding">2dip</item>
         <item name="android:layout_margin">2dip</item>
-    </style>
-    <style name="Dialog_Fullscreen_Day" parent="@android:style/Theme.Light">
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:layout_width">fill_parent</item>
-        <item name="android:layout_height">fill_parent</item>
-    </style>
-    <style name="Dialog_Normal_Day" parent="@android:style/Theme.Light">
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-    </style>
-    <style name="Dialog_Fullscreen_Night" parent="@android:style/Theme.Black">
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:layout_width">fill_parent</item>
-        <item name="android:layout_height">fill_parent</item>
-    </style>
-    <style name="Dialog_Normal_Night" parent="@android:style/Theme.Black">
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
     </style>
 </resources>

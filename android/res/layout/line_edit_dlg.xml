@@ -18,7 +18,7 @@
 	    android:layout_marginBottom="10dip"
 	    android:layout_marginLeft="10dip"
 	    android:layout_marginRight="10dip"
-	    style="@android:style/TextAppearance.Widget.EditText"
+	    style="@style/TextAppearance.Widget.EditText"
 	    android:editable="true" android:singleLine="true"
 	/>
 </LinearLayout>

@@ -11,7 +11,7 @@
     >
 
     <ImageButton android:id="@+id/search_btn_prev"
-        style="@android:style/TextAppearance.Small"
+        style="@style/TextAppearance.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/cr3_find_prev"

@@ -16,10 +16,9 @@ import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.database.DataSetObserver;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
@@ -35,11 +34,11 @@ import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class FileBrowser extends ListView {
+public class FileBrowser extends LinearLayout {
 
 	public static final Logger log = L.create("fb");
 	
@@ -48,8 +47,126 @@ public class FileBrowser extends ListView {
 	CoolReader mActivity;
 	LayoutInflater mInflater;
 	History mHistory;
+	ListView mListView;
 
 	public static final int MAX_SUBDIR_LEN = 32;
+	
+	private class FileBrowserListView extends ListView {
+
+		public FileBrowserListView(Context context) {
+			super(context);
+	        setFocusable(true);
+	        setFocusableInTouchMode(true);
+	        setLongClickable(true);
+	        //registerForContextMenu(this);
+	        //final FileBrowser _this = this;
+	        setOnItemLongClickListener(new OnItemLongClickListener() {
+
+				@Override
+				public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+						int position, long id) {
+					log.d("onItemLongClick("+position+")");
+					//return super.performItemClick(view, position, id);
+					if (position == 0 && currDirectory.parent != null) {
+						showParentDirectory();
+						return true;
+					}
+					FileInfo item = (FileInfo) getAdapter().getItem(position);
+					if ( item==null )
+						return false;
+					if (item.isDirectory && !item.isOPDSDir()) {
+						showDirectory(item, null);
+						return true;
+					}
+					//openContextMenu(_this);
+					//mActivity.loadDocument(item);
+					selectedItem = item;
+					showContextMenu();
+					return true;
+				}
+			});
+			setChoiceMode(CHOICE_MODE_SINGLE);
+		}
+		
+		@Override
+		public void createContextMenu(ContextMenu menu) {
+			log.d("createContextMenu()");
+			menu.clear();
+		    MenuInflater inflater = mActivity.getMenuInflater();
+		    if ( isRecentDir() ) {
+			    inflater.inflate(R.menu.cr3_file_browser_recent_context_menu, menu);
+			    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_recent_book));
+		    } else if (selectedItem!=null && selectedItem.isOPDSDir()) {
+			    inflater.inflate(R.menu.cr3_file_browser_opds_context_menu, menu);
+			    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
+		    } else if (selectedItem!=null && selectedItem.isDirectory) {
+			    inflater.inflate(R.menu.cr3_file_browser_folder_context_menu, menu);
+			    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
+		    } else {
+			    inflater.inflate(R.menu.cr3_file_browser_context_menu, menu);
+			    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
+		    }
+		    for ( int i=0; i<menu.size(); i++ ) {
+		    	menu.getItem(i).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem item) {
+						onContextItemSelected(item);
+						return true;
+					}
+				});
+		    }
+		    return;
+		}
+
+
+
+		@Override
+		public boolean performItemClick(View view, int position, long id) {
+			log.d("performItemClick("+position+")");
+			//return super.performItemClick(view, position, id);
+			if (position == 0 && currDirectory.parent != null) {
+				showParentDirectory();
+				return true;
+			}
+			FileInfo item = (FileInfo) getAdapter().getItem(position);
+			if ( item==null )
+				return false;
+			if ( item.isDirectory ) {
+				showDirectory(item, null);
+				return true;
+			}
+			if ( item.isOPDSDir() )
+				showOPDSDir(item, null);
+			else
+				mActivity.loadDocument(item);
+			return true;
+		}
+
+		@Override
+		public boolean onKeyDown(int keyCode, KeyEvent event) {
+			if ( keyCode==KeyEvent.KEYCODE_BACK && mActivity.isBookOpened() ) {
+				if ( isRootDir() ) {
+					if ( mActivity.isBookOpened() ) {
+						mActivity.showReader();
+						return true;
+					} else
+						return super.onKeyDown(keyCode, event);
+				}
+				showParentDirectory();
+				return true;
+			}
+			if (keyCode==KeyEvent.KEYCODE_SEARCH) {
+				showFindBookDialog();
+				return true;
+			}
+			return super.onKeyDown(keyCode, event);
+		}
+
+		@Override
+		public void setSelection(int position) {
+			super.setSelection(position);
+		}
+		
+	}
 	
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
@@ -58,41 +175,35 @@ public class FileBrowser extends ListView {
 		this.mScanner = scanner;
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
-		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
-			setBackgroundColor(Color.WHITE);
-		}
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-        setLongClickable(true);
-        //registerForContextMenu(this);
-        //final FileBrowser _this = this;
-        setOnItemLongClickListener(new OnItemLongClickListener() {
-
+		setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+		createListView(true);
+		showDirectory( null, null );
+	}
+	
+	private void createListView(boolean recreateAdapter) {
+		mListView = new FileBrowserListView(mActivity);
+		final GestureDetector detector = new GestureDetector(new MyGestureListener());
+		mListView.setOnTouchListener(new ListView.OnTouchListener() {
 			@Override
-			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-					int position, long id) {
-				log.d("onItemLongClick("+position+")");
-				//return super.performItemClick(view, position, id);
-				if (position == 0 && currDirectory.parent != null) {
-					showParentDirectory();
-					return true;
-				}
-				FileInfo item = (FileInfo) getAdapter().getItem(position);
-				if ( item==null )
-					return false;
-				if (item.isDirectory && !item.isOPDSDir()) {
-					showDirectory(item, null);
-					return true;
-				}
-				//openContextMenu(_this);
-				//mActivity.loadDocument(item);
-				selectedItem = item;
-				showContextMenu();
-				return true;
+			public boolean onTouch(View v, MotionEvent event) {
+				return detector.onTouchEvent(event);
 			}
 		});
-		setChoiceMode(CHOICE_MODE_SINGLE);
-		showDirectory( null, null );
+		if (currentListAdapter == null || recreateAdapter) {
+			currentListAdapter = new FileListAdapter();
+			mListView.setAdapter(currentListAdapter);
+		} else {
+			currentListAdapter.notifyDataSetChanged();
+		}
+		mListView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+		removeAllViews();
+		addView(mListView);
+		mListView.setVisibility(VISIBLE);
+	}
+	
+	public void onThemeChanged() {
+		createListView(true);
+		currentListAdapter.notifyDataSetChanged();
 	}
 	
 	FileInfo selectedItem = null;
@@ -195,58 +306,6 @@ public class FileBrowser extends ListView {
 		}
 	}
 	
-	@Override
-	public void createContextMenu(ContextMenu menu) {
-		log.d("createContextMenu()");
-		menu.clear();
-	    MenuInflater inflater = mActivity.getMenuInflater();
-	    if ( isRecentDir() ) {
-		    inflater.inflate(R.menu.cr3_file_browser_recent_context_menu, menu);
-		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_recent_book));
-	    } else if (selectedItem!=null && selectedItem.isOPDSDir()) {
-		    inflater.inflate(R.menu.cr3_file_browser_opds_context_menu, menu);
-		    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
-	    } else if (selectedItem!=null && selectedItem.isDirectory) {
-		    inflater.inflate(R.menu.cr3_file_browser_folder_context_menu, menu);
-		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
-	    } else {
-		    inflater.inflate(R.menu.cr3_file_browser_context_menu, menu);
-		    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
-	    }
-	    for ( int i=0; i<menu.size(); i++ ) {
-	    	menu.getItem(i).setOnMenuItemClickListener(new OnMenuItemClickListener() {
-				public boolean onMenuItemClick(MenuItem item) {
-					onContextItemSelected(item);
-					return true;
-				}
-			});
-	    }
-	    return;
-	}
-
-
-
-	@Override
-	public boolean performItemClick(View view, int position, long id) {
-		log.d("performItemClick("+position+")");
-		//return super.performItemClick(view, position, id);
-		if (position == 0 && currDirectory.parent != null) {
-			showParentDirectory();
-			return true;
-		}
-		FileInfo item = (FileInfo) getAdapter().getItem(position);
-		if ( item==null )
-			return false;
-		if ( item.isDirectory ) {
-			showDirectory(item, null);
-			return true;
-		}
-		if ( item.isOPDSDir() )
-			showOPDSDir(item, null);
-		else
-			mActivity.loadDocument(item);
-		return true;
-	}
 
 	protected void showParentDirectory()
 	{
@@ -255,26 +314,6 @@ public class FileBrowser extends ListView {
 		}
 	}
 	
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if ( keyCode==KeyEvent.KEYCODE_BACK && mActivity.isBookOpened() ) {
-			if ( isRootDir() ) {
-				if ( mActivity.isBookOpened() ) {
-					mActivity.showReader();
-					return true;
-				} else
-					return super.onKeyDown(keyCode, event);
-			}
-			showParentDirectory();
-			return true;
-		}
-		if (keyCode==KeyEvent.KEYCODE_SEARCH) {
-			showFindBookDialog();
-			return true;
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-
 	boolean mInitStarted = false;
 //	boolean mInitialized = false;
 	public void init()
@@ -294,7 +333,7 @@ public class FileBrowser extends ListView {
 				//mEngine.hideProgress();
 				//mEngine.hideProgress();
 				showDirectory( mScanner.mRoot, null );
-				setSelection(0);
+				mListView.setSelection(0);
 			}
 			public void fail(Exception e )
 			{
@@ -304,11 +343,6 @@ public class FileBrowser extends ListView {
 				log.e("Exception while scanning directories", e);
 			}
 		});
-	}
-	
-	@Override
-	public void setSelection(int position) {
-		super.setSelection(position);
 	}
 	
 	public static String formatAuthors( String authors ) {
@@ -706,7 +740,7 @@ public class FileBrowser extends ListView {
 			return;
 		log.i("scanCurrentDirectoryRecursive started");
 		final Scanner.ScanControl control = new Scanner.ScanControl(); 
-		final ProgressDialog dlg = ProgressDialog.show(getContext(), 
+		final ProgressDialog dlg = ProgressDialog.show(mActivity, 
 				mActivity.getString(R.string.dlg_scan_title), 
 				mActivity.getString(R.string.dlg_scan_message),
 				true, true, new OnCancelListener() {
@@ -815,10 +849,10 @@ public class FileBrowser extends ListView {
 					return;
 				if ( text!=null && text.length()>0 ) {
 					view.setText(text);
-					view.setVisibility(VISIBLE);
+					view.setVisibility(ViewGroup.VISIBLE);
 				} else {
 					view.setText(null);
-					view.setVisibility(INVISIBLE);
+					view.setVisibility(ViewGroup.INVISIBLE);
 				}
 			}
 			void setItem(FileInfo item, FileInfo parentItem)
@@ -908,13 +942,16 @@ public class FileBrowser extends ListView {
 //						field1.setVisibility(VISIBLE);
 //						field2.setVisibility(VISIBLE);
 //						field3.setVisibility(VISIBLE);
-						field1.setText(formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
+						if (field1 != null)
+							field1.setText(formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
-						Bookmark pos = mHistory.getLastPos(item);
-						if ( pos!=null ) {
-							field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
-						} else {
-							field2.setText("");
+						if (field2 != null) {
+							Bookmark pos = mHistory.getLastPos(item);
+							if ( pos!=null ) {
+								field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
+							} else {
+								field2.setText("");
+							}
 						}
 						//field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
 					} 
@@ -960,9 +997,9 @@ public class FileBrowser extends ListView {
 				parentItem = currDirectory;
 			}
 			holder.setItem(item, parentItem);
-			if ( DeviceInfo.FORCE_LIGHT_THEME ) {
-				view.setBackgroundColor(Color.WHITE);
-			}
+//			if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+//				view.setBackgroundColor(Color.WHITE);
+//			}
 			return view;
 		}
 
@@ -992,25 +1029,13 @@ public class FileBrowser extends ListView {
 			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
 		if ( !BackgroundThread.instance().isGUIThread() )
 			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
-		final GestureDetector detector = new GestureDetector(new MyGestureListener());
-		this.setOnTouchListener(new OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				return detector.onTouchEvent(event);
-			}
-		});
-		if (currentListAdapter == null) {
-			currentListAdapter = new FileListAdapter();
-			this.setAdapter(currentListAdapter);
-		} else {
-			currentListAdapter.notifyDataSetChanged();
-		}
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
 		if ( dir!=null && !dir.isRootDir() )
 			index++;
-		setSelection(index);
-		setChoiceMode(CHOICE_MODE_SINGLE);
-		invalidate();
+		currentListAdapter.notifyDataSetChanged();
+		mListView.setSelection(index);
+		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+		mListView.invalidate();
 	}
 
 	private class MyGestureListener extends SimpleOnGestureListener {

@@ -35,7 +35,7 @@
 
 
         <TextView android:id="@+id/book_name"
-            style="@android:style/TextAppearance.Medium"
+            style="@style/TextAppearance.Medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="3"
@@ -56,7 +56,7 @@
         android:baselineAligned="false">
 
         <TextView android:id="@+id/browser_item_field1"
-            style="@android:style/TextAppearance.Small"
+            style="@style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -64,7 +64,7 @@
             android:singleLine="true"
             android:layout_gravity="right" />
         <TextView android:id="@+id/browser_item_field2"
-            style="@android:style/TextAppearance.Small"
+            style="@style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 	        android:layout_marginRight="8dip"

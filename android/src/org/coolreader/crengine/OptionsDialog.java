@@ -1602,8 +1602,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
 		
 		mOptionsApplication = new OptionsListView(getContext());
+		if ( !DeviceInfo.FORCE_LIGHT_THEME ) {
+			mOptionsApplication.add(new ThemeOptions(this, getString(R.string.options_app_ui_theme)));
+		}
 		if ( !DeviceInfo.EINK_SCREEN ) {
-			mOptionsStyles.add(new ThemeOptions(this, getString(R.string.options_app_ui_theme)));
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_timeout), PROP_APP_SCREEN_BACKLIGHT_LOCK).add(mBacklightTimeout, mBacklightTimeoutTitles).setDefaultValue("3"));
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));

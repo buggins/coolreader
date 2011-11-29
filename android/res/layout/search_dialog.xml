@@ -9,7 +9,7 @@
     android:layout_width="fill_parent" 
     android:layout_height="wrap_content"
 	android:text="" 
-    style="@android:style/TextAppearance.Widget.EditText"
+    style="@style/TextAppearance.Widget.EditText"
 	android:editable="true" android:hint="@string/dlg_search_hint" android:singleLine="true"
 />
 <CheckBox android:text="@string/dlg_search_case_sensitive" android:id="@+id/search_case_sensitive" android:layout_width="fill_parent" android:layout_height="wrap_content"></CheckBox>

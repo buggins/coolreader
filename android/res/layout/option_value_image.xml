@@ -23,7 +23,7 @@
         android:focusableInTouchMode="false"
     />
     <TextView
-      style="@android:style/TextAppearance.Medium"
+      style="@style/TextAppearance.Medium"
       android:id="@+id/option_value_text"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"

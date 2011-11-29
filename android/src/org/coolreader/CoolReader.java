@@ -9,12 +9,13 @@ import java.lang.reflect.Field;
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseDialog;
+import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.DeviceInfo;
+import org.coolreader.crengine.EinkScreen;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.Engine.HyphDict;
-import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
@@ -27,9 +28,8 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.TTS;
-import org.coolreader.crengine.Utils;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
-import org.coolreader.crengine.EinkScreen;
+import org.coolreader.crengine.Utils;
 
 import android.app.Activity;
 import android.app.SearchManager;
@@ -44,8 +44,9 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
-import android.graphics.Color;
+import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -54,6 +55,7 @@ import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -174,14 +176,29 @@ public class CoolReader extends Activity
 
 	public void setCurrentTheme(String themeCode) {
 		InterfaceTheme theme = InterfaceTheme.findByCode(themeCode);
-		if (theme != null)
+		if (theme != null) {
 			setCurrentTheme(theme);
+		}
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
+		if (mFrame != null) {
+			TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
+			int bgRes = a.getResourceId(0, 0);
+			//int clText = a.getColor(1, 0);
+			int clBackground = a.getColor(2, 0);
+			//int clForeground = a.getColor(3, 0);
+			a.recycle();
+			if (clBackground != 0)
+				mFrame.setBackgroundColor(clBackground);
+			if (bgRes != 0)
+				mFrame.setBackgroundResource(bgRes);
+		}
+		if (mBrowser != null)
+			mBrowser.onThemeChanged();
 	}
 
 	private boolean mFullscreen = false;
@@ -574,15 +591,19 @@ public class CoolReader extends Activity
 		
 		// testing background thread
     	mBackgroundThread = BackgroundThread.instance();
-		mFrame = new FrameLayout(this);
-		log.i("initializing scanner");
+    	
 		mEngine = new Engine(this, mBackgroundThread);
-		mBackgroundThread.setGUI(mFrame);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-
+		
 		// load settings
 		Properties props = loadSettings();
-		
+		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+		setCurrentTheme(theme);
+    	
+		mFrame = new FrameLayout(this);
+		mBackgroundThread.setGUI(mFrame);
+
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
 		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 0); //(DeviceInfo.EINK_SCREEN?0:4)
 		if ( orientation < 0 || orientation > 4 )
@@ -592,7 +613,7 @@ public class CoolReader extends Activity
 		if ( backlight<-1 || backlight>100 )
 			backlight = -1;
 		setScreenBacklightLevel(backlight);
-		
+
         mEngine.showProgress( 0, R.string.progress_starting_cool_reader );
 
         // wait until all background tasks are executed
@@ -628,10 +649,10 @@ public class CoolReader extends Activity
 //			setTheme(android.R.style.Theme_Light);
 //			getWindow().setBackgroundDrawableResource(drawable.editbox_background);
 //		}
-		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
-			mFrame.setBackgroundColor( Color.WHITE );
-			setTheme(R.style.Dialog_Fullscreen_Day);
-		}
+//		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+//			mFrame.setBackgroundColor( Color.WHITE );
+//			setTheme(R.style.Dialog_Fullscreen_Day);
+//		}
 		
 		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
 

@@ -32,7 +32,7 @@
 
 
      <TextView android:id="@+id/bookmark_item_title"
-         style="@android:style/TextAppearance.Small"
+         style="@style/TextAppearance.Small"
          android:text="10% Title Text" 
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
@@ -40,7 +40,7 @@
          android:ellipsize="end"
          android:layout_gravity="left" />
      <TextView android:id="@+id/bookmark_item_pos_text"
-         style="@android:style/TextAppearance.Small"
+         style="@style/TextAppearance.Small"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:text="Position text bla bla bla bla bla..." 
@@ -50,7 +50,7 @@
          android:ellipsize="end"
          android:layout_gravity="left" />
      <TextView android:id="@+id/bookmark_item_comment_text"
-         style="@android:style/TextAppearance.Small"
+         style="@style/TextAppearance.Small"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:singleLine="false"
