@@ -2599,6 +2599,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	hiliteTapZoneOnTap = flg;
         } else if ( key.equals(PROP_APP_DICTIONARY) ) {
         	mActivity.setDict(value);
+        } else if ( key.equals(PROP_APP_THEME) ) {
+        	mActivity.setCurrentTheme(value);
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
         } else if ( key.equals(PROP_APP_SECONDARY_TAP_ACTION_TYPE) ) {

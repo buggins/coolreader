@@ -18,6 +18,7 @@ import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
+import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.OptionsDialog;
@@ -163,6 +164,24 @@ public class CoolReader extends Activity
 	}
 	public void setNightMode( boolean nightMode ) {
 		mNightMode = nightMode;
+	}
+	
+	private InterfaceTheme currentTheme = DeviceInfo.FORCE_LIGHT_THEME ? InterfaceTheme.WHITE : InterfaceTheme.LIGHT;
+	
+	public InterfaceTheme getCurrentTheme() {
+		return currentTheme;
+	}
+
+	public void setCurrentTheme(String themeCode) {
+		InterfaceTheme theme = InterfaceTheme.findByCode(themeCode);
+		if (theme != null)
+			setCurrentTheme(theme);
+	}
+
+	public void setCurrentTheme(InterfaceTheme theme) {
+		currentTheme = theme;
+		getApplication().setTheme(theme.getThemeId());
+		setTheme(theme.getThemeId());
 	}
 
 	private boolean mFullscreen = false;
@@ -1506,6 +1525,9 @@ public class CoolReader extends Activity
     		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
         }
         
+        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_LIGHT_THEME ? "BLACK" : "DARK");
         props.applyDefault(ReaderView.PROP_APP_SELECTION_PERSIST, "0");
         props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
         if ("1".equals(props.getProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK)))

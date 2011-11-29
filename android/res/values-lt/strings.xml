@@ -359,4 +359,9 @@
     <string name="options_app_backlight_timeout_0">Use system default</string>
     <string name="options_app_backlight_timeout">Screen backlight timeout</string>
     <string name="options_css_annotation">Annotation</string>
+    <string name="options_app_ui_theme">Interface Theme</string>
+    <string name="options_app_ui_theme_white">White</string>
+    <string name="options_app_ui_theme_dark">Dark</string>
+    <string name="options_app_ui_theme_black">Black</string>
+    <string name="options_app_ui_theme_light">Light</string>
 </resources>

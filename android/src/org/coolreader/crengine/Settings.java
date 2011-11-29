@@ -105,6 +105,10 @@ public interface Settings {
 
     public static final String PROP_APP_VIEW_AUTOSCROLL_SPEED  ="app.view.autoscroll.speed";
     public static final String PROP_APP_VIEW_AUTOSCROLL_TYPE  ="app.view.autoscroll.type";
+
+    public static final String PROP_APP_THEME  ="app.ui.theme";
+    public static final String PROP_APP_THEME_DAY  ="app.ui.theme.day";
+    public static final String PROP_APP_THEME_NIGHT  ="app.ui.theme.night";
     
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;

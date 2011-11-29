@@ -359,4 +359,9 @@
     <string name="options_app_backlight_timeout_0">Установленная в системе</string>
     <string name="options_app_backlight_timeout">Длительность подсветки экрана</string>
     <string name="options_css_annotation">Аннотация</string>
+    <string name="options_app_ui_theme">Тема оформления</string>
+    <string name="options_app_ui_theme_white">Белая</string>
+    <string name="options_app_ui_theme_dark">Темная</string>
+    <string name="options_app_ui_theme_black">Черная</string>
+    <string name="options_app_ui_theme_light">Светлая</string>
 </resources>

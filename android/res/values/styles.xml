@@ -1,4 +1,60 @@
 <resources>
+    <style name="Theme.Light" parent="@android:style/Theme.Light">
+    </style>
+    <style name="Theme.Dark" parent="@android:style/Theme">
+    </style>
+    <style name="Theme.White" parent="@android:style/Theme.Light">
+    </style>
+    <style name="Theme.Black" parent="@android:style/Theme">
+    </style>
+    <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="Theme.Light.Dialog.Fullscreen" parent="@style/Theme.Light">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Theme.Dark.Dialog.Normal" parent="@style/Theme.Dark">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="Theme.Dark.Dialog.Fullscreen" parent="@style/Theme.Dark">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Theme.Black.Dialog.Normal" parent="@style/Theme.Black">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="Theme.Black.Dialog.Fullscreen" parent="@style/Theme.Black">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Theme.White.Dialog.Normal" parent="@style/Theme.White">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="Theme.White.Dialog.Fullscreen" parent="@style/Theme.White">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
     <style name="TapZoneGridItem">
         <item name="android:layout_width">fill_parent</item>
         <item name="android:layout_height">fill_parent</item>

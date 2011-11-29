@@ -52,10 +52,10 @@ public class BaseDialog extends Dialog {
 		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : R.style.Dialog_Normal);
 		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : android.R.style.Theme_Dialog); //android.R.style.Theme_Light_NoTitleBar_Fullscreen : android.R.style.Theme_Light
 		super(activity,
-				windowed ? (dark||DARK_THEME ? android.R.style.Theme_Dialog : android.R.style.Theme_Dialog) :
+				windowed ? activity.getCurrentTheme().getDialogThemeId() :
 				(fullscreen
-				? (	dark||DARK_THEME ? R.style.Dialog_Fullscreen_Night : R.style.Dialog_Fullscreen_Day )
-				: (	dark||DARK_THEME ? R.style.Dialog_Normal_Night : R.style.Dialog_Normal_Day )
+				? activity.getCurrentTheme().getFullscreenDialogThemeId()
+				: activity.getCurrentTheme().getDialogThemeId()
 				));
 		setOwnerActivity(activity);
 		this.activity = activity;
