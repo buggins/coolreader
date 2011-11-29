@@ -404,8 +404,8 @@ public class CoolReader extends Activity
 						+ interval);
 				int nextTimerInterval = screenBacklightDuration / 20;
 				boolean dim = false;
-				if (interval > screenBacklightDuration * 9 / 10) {
-					nextTimerInterval = nextTimerInterval / 7;
+				if (interval > screenBacklightDuration * 8 / 10) {
+					nextTimerInterval = nextTimerInterval / 8;
 					dim = true;
 				}
 				if (interval > screenBacklightDuration) {

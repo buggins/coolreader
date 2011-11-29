@@ -1725,10 +1725,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 	
-	public void setSetting(String name, String value, boolean invalidateImages, boolean save) {
-		Properties settings = getSettings();
+	public void setSetting(String name, String value, boolean invalidateImages, boolean save, boolean apply) {
+		Properties settings = new Properties(); //getSettings();
 		settings.put(name, value);
-		setSettings(settings, null, false);
+		setSettings(settings, null, false, apply);
 		if (invalidateImages)
 			invalidImages = true;
 		if (save) {
@@ -1737,11 +1737,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	public void setSetting( String name, String value ) {
-		setSetting(name, value, true, false);
+		setSetting(name, value, true, false, true);
 	}
 	
 	public void saveSetting( String name, String value ) {
-		setSetting(name, value, true, true);
+		setSetting(name, value, true, true, true);
 	}
 	
 	public void toggleScreenOrientation()
@@ -1803,7 +1803,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		String newValue = !newBool ? "1" : "0";
 		Properties settings = new Properties();
 		settings.setProperty(PROP_STATUS_LINE, newValue);
-		setSettings(settings, null, true);
+		setSettings(settings, null, true, true);
 	}
 	
 	public void toggleDocumentStyles()
@@ -1920,7 +1920,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		currentAutoScrollAnimation.stop();
 	}
 	
-	public static final int AUTOSCROLL_START_ANIMATION_PERCENT = 10; 
+	public static final int AUTOSCROLL_START_ANIMATION_PERCENT = 5; 
 	
 	private void startAutoScroll() {
 		if (isAutoScrollActive())
@@ -1976,7 +1976,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			autoScrollSpeed = 200;
 		if (autoScrollSpeed > 10000)
 			autoScrollSpeed = 10000;
-		setSetting(PROP_APP_VIEW_AUTOSCROLL_SPEED, String.valueOf(autoScrollSpeed), false, true);
+		setSetting(PROP_APP_VIEW_AUTOSCROLL_SPEED, String.valueOf(autoScrollSpeed), false, true, false);
 		notifyAutoscrollSpeed();
 	}
 	
@@ -2058,8 +2058,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			progress = newProgress;
 			if (progress == 0 || progress >= startAnimationProgress) {
 				if (image1 != null && image2 != null) {
-					if (image1.isReleased() || image2.isReleased())
+					if (image1.isReleased() || image2.isReleased()) {
+						log.d("Images lost! Recreating images...");
 						initPageTurn(progress);
+					}
 					draw();
 				}
 			}
@@ -2568,7 +2570,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private boolean hiliteTapZoneOnTap = false;
 	private boolean enableVolumeKeys = true; 
-	static private final int DEF_PAGE_FLIP_MS = 500; 
+	static private final int DEF_PAGE_FLIP_MS = 300; 
 	public void applyAppSetting( String key, String value )
 	{
 		boolean flg = "1".equals(value);
@@ -2739,7 +2741,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	 */
 	public void setSettings(Properties newSettings, Properties oldSettings)
 	{
-		setSettings(newSettings, oldSettings, true);
+		setSettings(newSettings, oldSettings, true, true);
 	}
 
 	/**
@@ -2748,7 +2750,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	 * @param oldSettings are old settings, null to use mSettings
 	 * @param save is true to save settings to file, false to skip saving
 	 */
-	public void setSettings(Properties newSettings, Properties oldSettings, final boolean save)
+	public void setSettings(Properties newSettings, Properties oldSettings, final boolean save, final boolean apply)
 	{
 		log.v("setSettings() " + newSettings.toString());
 		BackgroundThread.ensureGUI();
@@ -2760,7 +2762,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		currSettings.setAll(changedSettings);
     	mBackThread.executeBackground(new Runnable() {
     		public void run() {
-    			applySettings(currSettings, save);
+    			if (apply)
+    				applySettings(currSettings, save);
+    			else
+    				mSettings = currSettings;
     		}
     	});
 //        }
