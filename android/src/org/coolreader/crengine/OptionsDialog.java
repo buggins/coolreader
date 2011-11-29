@@ -32,6 +32,7 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
+import android.widget.TabWidget;
 import android.widget.TextView;
 
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
@@ -1539,6 +1540,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		//setContentView(R.layout.options);
 		//mTabs = (TabHost)findViewById(android.R.id.tabhost); 
 		mTabs.setup();
+		
+		TabWidget tabWidget = (TabWidget)mTabs.findViewById(android.R.id.tabs);
+		//tabWidget.
 		//new TabHost(getContext());
 		
 		mOptionsStyles = new OptionsListView(getContext());
