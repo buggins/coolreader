@@ -25,28 +25,28 @@
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
-        <item name="android:divider">@drawable/divider_horizontal_dark_opaque</item>
+        <item name="android:divider">@drawable/divider_horizontal_bright_opaque</item>
     </style>
         
     <style name="ListView.Light" parent="@style/Theme.Light">
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
-        <item name="android:divider">@drawable/divider_horizontal_bright_opaque</item>
+        <item name="android:divider">@drawable/divider_horizontal_dark_opaque</item>
     </style>
         
     <style name="ListView.Black" parent="@style/Theme.Black">
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
-        <item name="android:divider">@drawable/divider_horizontal_dark_opaque</item>
+        <item name="android:divider">@drawable/divider_horizontal_bright_opaque</item>
     </style>
         
     <style name="ListView.White" parent="@style/Theme.White">
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
-        <item name="android:divider">@drawable/divider_horizontal_bright_opaque</item>
+        <item name="android:divider">@drawable/divider_horizontal_dark_opaque</item>
     </style>
         
     <style name="Theme.Light" parent="@android:style/Theme.Light">

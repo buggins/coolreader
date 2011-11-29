@@ -1032,6 +1032,7 @@ public class FileBrowser extends LinearLayout {
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
 		if ( dir!=null && !dir.isRootDir() )
 			index++;
+		mListView.setAdapter(currentListAdapter);
 		currentListAdapter.notifyDataSetChanged();
 		mListView.setSelection(index);
 		mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);

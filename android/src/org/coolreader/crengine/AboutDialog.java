@@ -92,8 +92,6 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		setView( tabs );
 	}
 
-
-
 	@Override
 	public View createTabContent(String tag) {
 		if ( "App".equals(tag) )
@@ -104,4 +102,5 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			return mDonationTab;
 		return null;
 	}
+	
 }

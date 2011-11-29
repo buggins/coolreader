@@ -21,4 +21,10 @@ public abstract class BaseListAdapter implements ListAdapter {
 			observer.onChanged();
 		}
 	}
+
+	public void notifyInvalidated() {
+		for (DataSetObserver observer : observers) {
+			observer.onInvalidated();
+		}
+	}
 }
