@@ -1,24 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
     android:id="@+id/option_item_body"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="18dip"
-    android:layout_marginBottom="18dip"
-    android:layout_marginLeft="0dip"
-    android:layout_marginRight="7dip"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:gravity="center_vertical"
+    android:paddingRight="?android:attr/scrollbarSize"
     >
 
     <RadioButton
         android:id="@+id/option_value_check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="1dip"
-        android:layout_marginBottom="1dip"
-        android:layout_marginLeft="1dip"
-        android:layout_marginRight="1dip"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
+        android:layout_gravity="center"
         android:focusable="false"
         android:focusableInTouchMode="false"
     />
@@ -27,11 +21,11 @@
       android:id="@+id/option_value_text"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-        android:layout_marginTop="12dip"
-        android:layout_marginBottom="12dip"
-        android:layout_marginLeft="10dip"
-        android:layout_marginRight="10dip"
-        android:layout_centerVertical="true"
-        android:layout_toRightOf="@+id/option_value_check"
+      android:layout_weight="1"
+      android:singleLine="false"
+      android:textAppearance="?android:attr/textAppearanceLarge"
+      android:maxLines="2" 
+      android:layout_centerVertical="true"
     />
-</RelativeLayout>
+    
+</LinearLayout>

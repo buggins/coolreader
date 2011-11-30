@@ -215,6 +215,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			this.iconId = id;
 			return this;
 		}
+		public OptionBase noIcon() {
+			this.iconId = 0;
+			return this;
+		}
 		public OptionBase setDefaultValue(String value) {
 			this.defaultValue = value;
 			if ( mProperties.getProperty(property)==null )
@@ -256,10 +260,26 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			TextView labelView = (TextView)view.findViewById(R.id.option_label);
 			TextView valueView = (TextView)view.findViewById(R.id.option_value);
 			labelView.setText(label);
-			valueView.setText(getValueLabel());
+			if (valueView != null) {
+				String valueLabel = getValueLabel();
+				if (valueLabel != null && valueLabel.length() > 0) {
+					valueView.setText(valueLabel);
+					valueView.setVisibility(View.VISIBLE);
+				} else {
+					valueView.setText("");
+					valueView.setVisibility(View.INVISIBLE);
+				}
+			}
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null)
-				icon.setImageResource(iconId);
+			if (icon != null) {
+				if (iconId != 0) {
+					icon.setVisibility(View.VISIBLE);
+					icon.setImageResource(iconId);
+				} else {
+					icon.setImageResource(0);
+					icon.setVisibility(View.INVISIBLE);
+				}
+			}
 			return view;
 		}
 
@@ -557,7 +577,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String getValueLabel() { return ">"; }
 	}
 	
-	class TapZoneOption extends OptionBase {
+	class TapZoneOption extends SubmenuOption {
 		public TapZoneOption( OptionOwner owner, String label, String property ) {
 			super( owner, label, property);
 		}
@@ -1218,7 +1238,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			String[] firstLineOptions = {"", "text-align: justify", "text-align: left", "text-align: center", "text-align: right", };
-			String[] firstLineOptionNames = {"-", "Justify", "Left", "Center", "Right", };
+			int[] firstLineOptionNames = {
+					R.string.options_css_inherited,
+					R.string.options_css_text_align_justify,
+					R.string.options_css_text_align_left,
+					R.string.options_css_text_align_center,
+					R.string.options_css_text_align_right,
+			};
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_align), prefix + ".align").add(firstLineOptions, firstLineOptionNames).setIconId(R.drawable.cr3_option_text_align));
 			
 			String[] identOptions = {"", // inherited
@@ -1227,12 +1253,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			        "text-indent: 2em",
 			        "text-indent: -1.2em",
 			        "text-indent: -2em"};
-			String[] identOptionNames = {"",
-			        "No indent",
-			        "Small Indent",
-			        "Big Indent",
-			        "Small Outdent",
-			        "Big Outdent"};
+			int[] identOptionNames = {
+					R.string.options_css_inherited,
+					R.string.options_css_text_indent_no_indent,
+					R.string.options_css_text_indent_small_indent,
+					R.string.options_css_text_indent_big_indent,
+					R.string.options_css_text_indent_small_outdent,
+					R.string.options_css_text_indent_big_outdent};
 			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_indent), prefix + ".text-indent").add(identOptions, identOptionNames).setIconId(R.drawable.cr3_option_text_indent));
 
 			ArrayList<String> faces = new ArrayList<String>(); 
@@ -1481,7 +1508,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	private ListOption createStyleEditor(String styleCode, int titleId) {
 		ListOption res = new StyleEditorOption(this, getString(titleId), "styles." + styleCode);
-		res.setIconId(R.drawable.cr3_option_text_other);
+		res.noIcon();
 		return res;
 	}
 
@@ -1607,17 +1634,17 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		
 		mOptionsApplication = new OptionsListView(getContext());
 		if ( !DeviceInfo.FORCE_LIGHT_THEME ) {
-			mOptionsApplication.add(new ThemeOptions(this, getString(R.string.options_app_ui_theme)));
+			mOptionsApplication.add(new ThemeOptions(this, getString(R.string.options_app_ui_theme)).noIcon());
 		}
 		if ( !DeviceInfo.EINK_SCREEN ) {
-			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_timeout), PROP_APP_SCREEN_BACKLIGHT_LOCK).add(mBacklightTimeout, mBacklightTimeoutTitles).setDefaultValue("3"));
+			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_timeout), PROP_APP_SCREEN_BACKLIGHT_LOCK).add(mBacklightTimeout, mBacklightTimeoutTitles).setDefaultValue("3").noIcon());
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
-			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1"));
+			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
 		}
-		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1"));
-		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0"));
+		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)).noIcon());
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES).noIcon());
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
 		
 		fillStyleEditorOptions();
 		

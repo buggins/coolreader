@@ -3,46 +3,50 @@
    Option item layout for CR3 options dialog
 -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
     android:id="@+id/option_item_body"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="18dip"
-    android:layout_marginBottom="18dip"
-    android:layout_marginLeft="0dip"
-    android:layout_marginRight="7dip"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:gravity="center_vertical"
+    android:paddingRight="?android:attr/scrollbarSize"
     >
-    <ImageView android:id="@+id/option_icon"
+
+    <ImageView
+        android:id="@+id/option_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|left"
+        android:layout_gravity="center"
+        />
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dip"
         android:layout_marginRight="6dip"
-        android:layout_marginLeft="0dip"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        />
-    
-    <TextView android:id="@+id/option_label"
-        style="@style/TextAppearance.Medium"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dip"
-        android:layout_marginBottom="12dip"
-        android:layout_marginLeft="1dip"
-        android:layout_marginRight="32dip"
-        android:singleLine="false"
-        android:layout_toRightOf="@id/option_icon"
-        android:layout_centerVertical="true"
-        />
-    
+        android:layout_marginTop="6dip"
+        android:layout_marginBottom="6dip"
+        android:layout_weight="1">
+
+        <TextView android:id="@+id/option_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="false"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:maxLines="2" 
+            />
+        <!--android:ellipsize="marquee"
+            android:fadingEdge="horizontal"
+         -->
+
+    </RelativeLayout>
     <CheckBox android:id="@+id/option_value_cb"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="7dip"
+        android:layout_marginRight="0dip"
         android:focusable="false"
         android:clickable="false"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         />
-    
-</RelativeLayout>
+</LinearLayout>

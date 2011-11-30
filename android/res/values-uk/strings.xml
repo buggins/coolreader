@@ -364,4 +364,8 @@
     <string name="options_app_ui_theme_dark">Темная</string>
     <string name="options_app_ui_theme_black">Черная</string>
     <string name="options_app_ui_theme_light">Светлая</string>
+    <string name="options_css_text_align_center">По центру</string>
+    <string name="options_css_text_align_justify">По ширине</string>
+    <string name="options_css_text_align_left">По левому краю</string>
+    <string name="options_css_text_align_right">По правому краю</string>
 </resources>
