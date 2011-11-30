@@ -29,6 +29,7 @@ import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
+import org.coolreader.crengine.ToastView;
 import org.coolreader.crengine.Utils;
 
 import android.app.Activity;
@@ -46,7 +47,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -55,7 +55,6 @@ import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -1198,9 +1197,15 @@ public class CoolReader extends Activity
 
 	public void showToast( String msg )
 	{
-		log.v("showing toast: " + msg);
-		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
-		toast.show();
+        log.v("showing toast: " + msg);
+        // TODO: enable custom toast
+//        if (DeviceInfo.EINK_NOOK) {
+//            ToastView.showToast(mReaderView, msg, Toast.LENGTH_LONG);
+//        } else {
+            //classic Toast
+            Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
+            toast.show();
+//        }
 	}
 
 	public interface InputHandler {
