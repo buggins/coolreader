@@ -1491,10 +1491,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			    	R.string.options_css_margin_20p,
 			    	R.string.options_css_margin_30p,
 			};
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_top), prefix + ".margin-top").add(marginTopOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_bottom), prefix + ".margin-bottom").add(marginBottomOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margins));
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_left), prefix + ".margin-left").add(marginLeftOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margins));
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_right), prefix + ".margin-right").add(marginRightOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margins));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_top), prefix + ".margin-top").add(marginTopOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margin_top));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_bottom), prefix + ".margin-bottom").add(marginBottomOptions, marginTopBottomOptionNames).setIconId(R.drawable.cr3_option_text_margin_bottom));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_left), prefix + ".margin-left").add(marginLeftOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margin_left));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_margin_right), prefix + ".margin-right").add(marginRightOptions, marginLeftRightOptionNames).setIconId(R.drawable.cr3_option_text_margin_right));
 			
 
 			dlg.setTitle(label);
@@ -1577,7 +1577,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_other));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_antialias));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_interline_space), PROP_INTERLINE_SPACE).addPercents(mInterlineSpaces).setDefaultValue("100").setIconId(R.drawable.cr3_option_line_spacing));
 		//
 		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)).setIconId(R.drawable.cr3_option_text_hyphenation));
@@ -1606,10 +1606,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_mode), PROP_APP_SCREEN_UPDATE_MODE).add(mScreenUpdateModes, mScreenUpdateModesTitles).setDefaultValue("0"));
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_screen_update_interval), PROP_APP_SCREEN_UPDATE_INTERVAL).add(mScreenFullUpdateInterval).setDefaultValue("10"));
 		}
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margins));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margins));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margins));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margins));
 
 		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), PROP_FOOTNOTES).setDefaultValue("1"));
@@ -1617,6 +1613,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1"));
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_view_bookmarks_highlight), PROP_APP_HIGHLIGHT_BOOKMARKS).setDefaultValue("1"));
 
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_left));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_right));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_top));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_bottom));
+		
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconId(R.drawable.cr3_option_controls_keys));
 		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconId(R.drawable.cr3_option_controls_tapzones));
