@@ -26,7 +26,6 @@
         android:layout_marginTop="6dip"
         android:layout_marginBottom="6dip"
         android:layout_weight="1"
-        android:gravity="center_vertical"
         >
 
         <TextView android:id="@+id/option_label"
@@ -54,7 +53,6 @@
      android:layout_width="20dip"
      android:layout_height="20dip"
      android:layout_margin="8dip"
-     android:gravity="center"
      android:background="#FFFFFF"
      android:layout_centerVertical="true"
      android:layout_alignParentRight="true"
