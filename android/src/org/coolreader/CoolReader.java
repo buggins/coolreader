@@ -27,9 +27,9 @@ import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
+import org.coolreader.crengine.Settings;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
-import org.coolreader.crengine.ToastView;
 import org.coolreader.crengine.Utils;
 
 import android.app.Activity;
@@ -1494,38 +1494,13 @@ public class CoolReader extends Activity
 		new DefTapAction(5, false, ReaderAction.READER_MENU),
 		new DefTapAction(5, true, ReaderAction.OPTIONS),
 	};
-	File propsFile;
-	private static final String SETTINGS_FILE_NAME = "cr3.ini";
-	private static boolean DEBUG_RESET_OPTIONS = false;
-	private Properties loadSettings()
-	{
+	
+	public Properties loadSettings(File file) {
         Properties props = new Properties();
 
-		File[] dataDirs = mEngine.getDataDirectories(null, false, true);
-		File existingFile = null;
-		for ( File dir : dataDirs ) {
-			File f = new File(dir, SETTINGS_FILE_NAME);
-			if ( f.exists() && f.isFile() ) {
-				existingFile = f;
-				break;
-			}
-		}
-        if ( existingFile!=null )
-        	propsFile = existingFile;
-        else {
-	        File propsDir = getDir("settings", Context.MODE_PRIVATE);
-			propsFile = new File( propsDir, SETTINGS_FILE_NAME);
-			File dataDir = Engine.getExternalSettingsDir();
-			if ( dataDir!=null ) {
-				log.d("external settings dir: " + dataDir);
-				propsFile = Engine.checkOrMoveFile(dataDir, propsDir, SETTINGS_FILE_NAME);
-			} else {
-				propsDir.mkdirs();
-			}
-        }
-        if ( propsFile.exists() && !DEBUG_RESET_OPTIONS ) {
+        if ( file.exists() && !DEBUG_RESET_OPTIONS ) {
         	try {
-        		FileInputStream is = new FileInputStream(propsFile);
+        		FileInputStream is = new FileInputStream(file);
         		props.load(is);
         		log.v("" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
         	} catch ( Exception e ) {
@@ -1637,6 +1612,47 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 		
 		props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");
+        
+        return props;
+	}
+	
+	public File getSettingsFile(int profile) {
+		if (profile == 0)
+			return propsFile;
+		return new File(propsFile.getAbsolutePath() + ".profile" + profile);
+	}
+	
+	File propsFile;
+	private static final String SETTINGS_FILE_NAME = "cr3.ini";
+	private static boolean DEBUG_RESET_OPTIONS = false;
+	private Properties loadSettings()
+	{
+		File[] dataDirs = mEngine.getDataDirectories(null, false, true);
+		File existingFile = null;
+		for ( File dir : dataDirs ) {
+			File f = new File(dir, SETTINGS_FILE_NAME);
+			if ( f.exists() && f.isFile() ) {
+				existingFile = f;
+				break;
+			}
+		}
+        if ( existingFile!=null )
+        	propsFile = existingFile;
+        else {
+	        File propsDir = getDir("settings", Context.MODE_PRIVATE);
+			propsFile = new File( propsDir, SETTINGS_FILE_NAME);
+			File dataDir = Engine.getExternalSettingsDir();
+			if ( dataDir!=null ) {
+				log.d("external settings dir: " + dataDir);
+				propsFile = Engine.checkOrMoveFile(dataDir, propsDir, SETTINGS_FILE_NAME);
+			} else {
+				propsDir.mkdirs();
+			}
+        }
+        
+        Properties props = loadSettings(propsFile);
+        
+        
 		
 		return props;
 	}
@@ -1753,16 +1769,38 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	public void saveSettings( Properties settings )
+	public Properties loadSettings(int profile) {
+		File f = getSettingsFile(profile);
+		if (!f.exists() && profile != 0)
+			f = getSettingsFile(0);
+		Properties res = loadSettings(f);
+		if (profile != 0)
+			res.setInt(Settings.PROP_PROFILE_NUMBER, profile);
+		return res;
+	}
+	
+	public void saveSettings(int profile, Properties settings) {
+		File f = getSettingsFile(profile);
+		if (profile != 0)
+			settings.setInt(Settings.PROP_PROFILE_NUMBER, profile);
+		saveSettings(f, settings);
+	}
+	
+	public void saveSettings(File f, Properties settings)
 	{
 		try {
 			log.v("saveSettings() " + settings);
-    		FileOutputStream os = new FileOutputStream(propsFile);
+    		FileOutputStream os = new FileOutputStream(f);
     		settings.store(os, "Cool Reader 3 settings");
-			log.i("Settings successfully saved to file " + propsFile.getAbsolutePath());
+			log.i("Settings successfully saved to file " + f.getAbsolutePath());
 		} catch ( Exception e ) {
 			log.e("exception while saving settings", e);
 		}
+	}
+
+	public void saveSettings(Properties settings)
+	{
+		saveSettings(propsFile, settings);
 	}
 
 	private static Debug.MemoryInfo info = new Debug.MemoryInfo();

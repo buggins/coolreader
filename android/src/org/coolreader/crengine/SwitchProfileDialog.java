@@ -28,7 +28,7 @@ public class SwitchProfileDialog extends BaseDialog {
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
 		this.mListView = new ListView(getContext());
-		currentProfile = 1; // TODO: get from settings
+		currentProfile = mReaderView.getCurrentProfile(); // TODO: get from settings
 		mListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> listview, View view,
@@ -68,7 +68,6 @@ public class SwitchProfileDialog extends BaseDialog {
 		mListView.setAdapter(new ProfileListAdapter());
 	}
 
-	public final static int MAX_PROFILES = 7;
 	
 	private String[] profileNames = {
 		"Profile 1",
@@ -90,7 +89,7 @@ public class SwitchProfileDialog extends BaseDialog {
 		}
 
 		public int getCount() {
-			return MAX_PROFILES;
+			return Settings.MAX_PROFILES;
 		}
 
 		public Object getItem(int position) {

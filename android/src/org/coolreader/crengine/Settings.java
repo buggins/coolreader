@@ -57,6 +57,9 @@ public interface Settings {
     public static final String PROP_HYPHENATION_DICT        ="crengine.hyphenation.dictionary.code"; // non-crengine
     public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
 
+    public static final String PROP_PROFILE_NUMBER          ="crengine.profile.number"; // current settings profile number
+
+    
 	 // image scaling settings
 	 // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
 	 // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
@@ -125,4 +128,7 @@ public interface Settings {
     public static final int BACKLIGHT_CONTROL_FLICK_NONE = 0;
     public static final int BACKLIGHT_CONTROL_FLICK_LEFT = 1;
     public static final int BACKLIGHT_CONTROL_FLICK_RIGHT = 2;
+
+	public final static int MAX_PROFILES = 6;
+
 }

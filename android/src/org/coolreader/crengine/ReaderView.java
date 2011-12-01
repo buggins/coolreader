@@ -5021,15 +5021,31 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		dlg.show();
 	}
 	
-	private int currentProfile = 1;
+	private int currentProfile = 0;
 	public int getCurrentProfile() {
+		if (currentProfile == 0) {
+			currentProfile = mSettings.getInt(PROP_PROFILE_NUMBER, 1);
+			if (currentProfile < 1 || currentProfile > MAX_PROFILES)
+				currentProfile = 1;
+		}
 		return currentProfile;
 	}
+
 	public void setCurrentProfile(int profile) {
-		if (profile == currentProfile)
+		if (profile == getCurrentProfile())
 			return;
 		log.i("Switching from profile " + currentProfile + " to " + profile);
-		// TODO: actually switch profile
+		mActivity.saveSettings(currentProfile, mSettings);
+		final Properties newSettings = mActivity.loadSettings(profile);
+		mActivity.saveSettings(0, mSettings); // save to default
+		currentProfile = profile;
+		BackgroundThread.instance().executeBackground(new Runnable() {
+			@Override
+			public void run() {
+				applySettings(newSettings, false);
+				log.i("Switching done");
+			}
+		});
 	}
     
     private final static String NOOK_TOUCH_COVERPAGE_DIR = "/media/screensavers/currentbook";
