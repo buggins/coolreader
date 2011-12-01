@@ -154,6 +154,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_AUTOSCROLL_SPEED_INCREASE(2027),
     	DCMD_AUTOSCROLL_SPEED_DECREASE(2028),
     	DCMD_START_SELECTION(2029),
+    	DCMD_SWITCH_PROFILE(2030),
     	;
     	
     	private final int nativeId;
@@ -2320,6 +2321,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		switch ( cmd ) {
 		case DCMD_ABOUT:
 			mActivity.showAboutDialog();
+			break;
+		case DCMD_SWITCH_PROFILE:
+			showSwitchProfileDialog();
 			break;
 		case DCMD_TOGGLE_AUTOSCROLL:
 			toggleAutoScroll();
@@ -5011,6 +5015,22 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		
     	});
     }
+
+	private void showSwitchProfileDialog() {
+		SwitchProfileDialog dlg = new SwitchProfileDialog(mActivity, this);
+		dlg.show();
+	}
+	
+	private int currentProfile = 1;
+	public int getCurrentProfile() {
+		return currentProfile;
+	}
+	public void setCurrentProfile(int profile) {
+		if (profile == currentProfile)
+			return;
+		log.i("Switching from profile " + currentProfile + " to " + profile);
+		// TODO: actually switch profile
+	}
     
     private final static String NOOK_TOUCH_COVERPAGE_DIR = "/media/screensavers/currentbook";
 	private void updateNookTouchCoverpage(String bookFileName,
