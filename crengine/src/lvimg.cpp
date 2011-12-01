@@ -657,7 +657,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
     if ( !png_ptr )
         return false;
 
-    if (setjmp( png_ptr->jmpbuf )) {
+    if (setjmp(png_jmpbuf(png_ptr))) {
         _width = 0;
         _height = 0;
         if (png_ptr)
@@ -676,7 +676,7 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
     if (!info_ptr)
         lvpng_error_func(png_ptr, "cannot create png info struct");
     png_set_read_fn(png_ptr,
-        (voidp)this, lvpng_read_func);
+        (void*)this, lvpng_read_func);
     png_read_info( png_ptr, info_ptr );
 
 
