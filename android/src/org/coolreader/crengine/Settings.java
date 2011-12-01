@@ -58,6 +58,7 @@ public interface Settings {
     public static final String PROP_AUTOSAVE_BOOKMARKS      ="crengine.autosave.bookmarks";
 
     public static final String PROP_PROFILE_NUMBER          ="crengine.profile.number"; // current settings profile number
+    public static final String PROP_APP_SETTINGS_SHOW_ICONS ="app.settings.show.icons";
 
     
 	 // image scaling settings

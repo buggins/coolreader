@@ -369,4 +369,5 @@
     <string name="options_css_text_align_left">Left</string>
     <string name="options_css_text_align_right">Right</string>
     <string name="action_switch_settings_profile">Switch profile</string>
+<string name="options_app_settings_icons">Icons in settings</string>
 </resources>

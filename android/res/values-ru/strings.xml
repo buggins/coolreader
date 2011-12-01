@@ -369,4 +369,5 @@
     <string name="options_css_text_align_left">По левому краю</string>
     <string name="options_css_text_align_right">По правому краю</string>
     <string name="action_switch_settings_profile">Профиль настроек</string>
+<string name="options_app_settings_icons">Пиктограммы в настройках</string>
 </resources>

@@ -272,7 +272,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
 			if (icon != null) {
-				if (iconId != 0) {
+				if (iconId != 0 && showIcons) {
 					icon.setVisibility(View.VISIBLE);
 					icon.setImageResource(iconId);
 				} else {
@@ -331,12 +331,35 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			int cl = mProperties.getColor(property, defColor);
 			valueView.setBackgroundColor(cl);
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null)
-				icon.setImageResource(iconId);
+			if (icon != null) {
+				if (iconId != 0 && showIcons) {
+					icon.setVisibility(View.VISIBLE);
+					icon.setImageResource(iconId);
+				} else {
+					icon.setImageResource(0);
+					icon.setVisibility(View.INVISIBLE);
+				}
+			}
 			return view;
 		}
 	}
 	
+	private static boolean showIcons = true;
+	
+	class IconsBoolOption extends BoolOption {
+		public IconsBoolOption( OptionOwner owner, String label, String property ) {
+			super(owner, label, property);
+		}
+		public void onSelect() {
+			mProperties.setProperty(property, "1".equals(mProperties.getProperty(property)) ? "0" : "1");
+			showIcons = mProperties.getBool(property, true);
+			mOptionsStyles.refresh();
+			mOptionsCSS.refresh();
+			mOptionsPage.refresh();
+			mOptionsApplication.refresh();
+			mOptionsControls.refresh();
+		}
+	}
 	class BoolOption extends OptionBase {
 		private boolean inverse = false;
 		public BoolOption( OptionOwner owner, String label, String property ) {
@@ -377,8 +400,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					}
 				});
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null)
-				icon.setImageResource(iconId);
+			if (icon != null) {
+				if (iconId != 0 && showIcons) {
+					icon.setVisibility(View.VISIBLE);
+					icon.setImageResource(iconId);
+				} else {
+					icon.setImageResource(0);
+					icon.setVisibility(View.INVISIBLE);
+				}
+			}
 //			view.setClickable(true);
 //			view.setFocusable(true);
 			return view;
@@ -673,8 +703,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			TextView labelView = (TextView)view.findViewById(R.id.option_label);
 			labelView.setText(label);
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null)
-				icon.setImageResource(iconId);
+			if (icon != null) {
+				if (iconId != 0 && showIcons) {
+					icon.setVisibility(View.VISIBLE);
+					icon.setImageResource(iconId);
+				} else {
+					icon.setImageResource(0);
+					icon.setVisibility(View.INVISIBLE);
+				}
+			}
 			return view;
 		}
 	}
@@ -1110,6 +1147,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
 		mProperties = readerView.getSettings();
+		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
 
 		//fakeLongArrayForDebug = new byte[2000000]; // 2M
 		//CoolReader.dumpHeapAllocation();
@@ -1642,6 +1680,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
 		}
+		mOptionsApplication.add(new IconsBoolOption(this, getString(R.string.options_app_settings_icons), PROP_APP_SETTINGS_SHOW_ICONS).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
