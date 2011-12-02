@@ -39,6 +39,7 @@ SET (FREETYPE_SOURCES
   src/type1/type1.c 
   src/cid/type1cid.c 
   src/type42/type42.c 
+  bzip2/ftbzip2.c
 )
 
 if (WIN32)
