@@ -2704,8 +2704,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		} else if ( PROP_PAGE_VIEW_MODE.equals(key) ) {
     			boolean flg = "1".equals(value);
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
-    		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) || PROP_PAGE_ANIMATION.equals(key)
-    				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) || PROP_APP_SHOW_COVERPAGES.equals(key) 
+    		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) 
+    				|| PROP_PAGE_ANIMATION.equals(key)
+    				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) 
+    				|| PROP_APP_SHOW_COVERPAGES.equals(key) 
     				|| PROP_APP_SCREEN_BACKLIGHT.equals(key) 
     				|| PROP_APP_BOOK_PROPERTY_SCAN_ENABLED.equals(key)
     				|| PROP_APP_SCREEN_BACKLIGHT_LOCK.equals(key)

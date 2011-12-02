@@ -1,11 +1,8 @@
 package org.coolreader.crengine;
 
-import java.util.ArrayList;
-
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
-import android.database.DataSetObserver;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
