@@ -297,6 +297,10 @@ enum LVDocCmd
     DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS, // move selection start by words
     DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS, // move selection end by words
 
+    // 136
+    DCMD_SET_TEXT_FORMAT, // set text format, param=1 to autoformat, 0 for preformatted
+
+
     //=======================================
     DCMD_EDIT_CURSOR_LEFT,
     DCMD_EDIT_CURSOR_RIGHT,

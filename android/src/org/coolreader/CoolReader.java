@@ -1107,7 +1107,7 @@ public class CoolReader extends Activity
 	{
 		//showView(readerView);
 		//setContentView(readerView);
-		mReaderView.loadDocument(item);
+		mReaderView.loadDocument(item, null);
 	}
 	
 	public void showBrowser( final FileInfo fileToShow )
@@ -1163,6 +1163,13 @@ public class CoolReader extends Activity
 	    	item = menu.findItem(R.id.cr3_mi_toggle_day_night);
 	    	if ( item!=null )
 	    		item.setTitle(mReaderView.isNightMode() ? R.string.mi_night_mode_disable : R.string.mi_night_mode_enable);
+	    	item = menu.findItem(R.id.cr3_mi_toggle_text_autoformat);
+	    	if ( item!=null ) {
+	    		if (mReaderView.isTextFormat())
+	    			item.setTitle(mReaderView.isTextAutoformatEnabled() ? R.string.mi_text_autoformat_disable : R.string.mi_text_autoformat_enable);
+	    		else
+	    			menu.removeItem(item.getItemId());
+	    	}
 	    } else {
 	    	inflater.inflate(R.menu.cr3_browser_menu, menu);
 	    	if ( !isBookOpened() ) {

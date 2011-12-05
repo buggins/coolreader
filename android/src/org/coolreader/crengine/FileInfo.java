@@ -61,6 +61,9 @@ public class FileInfo {
 	 */
 	public static final String ARC_SEPARATOR = "@/";
 	
+	public static final int PROFILE_ID_SHIFT = 16;
+	public static final int PROFILE_ID_MASK = 0x0F;
+	
 	
 	public void setFlag( int flag, boolean value ) {
 		flags = flags & (~flag) | (value? flag : 0);
@@ -68,6 +71,14 @@ public class FileInfo {
 	
 	public boolean getFlag( int flag ) {
 		return (flags & flag)!=0;
+	}
+	
+	public int getProfileId() {
+		return (flags >> PROFILE_ID_SHIFT) & PROFILE_ID_MASK; 
+	}
+	
+	public void setProfileId(int id) {
+		flags = (flags & ~(PROFILE_ID_MASK << PROFILE_ID_SHIFT)) | ((id & PROFILE_ID_MASK) << PROFILE_ID_SHIFT); 
 	}
 	
 	/**

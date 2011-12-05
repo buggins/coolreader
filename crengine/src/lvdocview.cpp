@@ -4929,8 +4929,10 @@ CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
 int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	switch (cmd) {
     case DCMD_SET_INTERNAL_STYLES:
+        CRLog::trace("DCMD_SET_INTERNAL_STYLES(%d)", param);
         m_props->setBool(PROP_EMBEDDED_STYLES, (param&1)!=0);
         getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, param!=0);
+        requestRender();
         break;
     case DCMD_REQUEST_RENDER:
 		requestRender();
@@ -5079,7 +5081,13 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 			setTextFormatOptions( txt_format_auto);
 	}
 		break;
-	case DCMD_BOOKMARK_SAVE_N: {
+    case DCMD_SET_TEXT_FORMAT: {
+        CRLog::trace("DCMD_SET_TEXT_FORMAT(%d)", param);
+        setTextFormatOptions(param ? txt_format_auto : txt_format_pre);
+        requestRender();
+    }
+        break;
+    case DCMD_BOOKMARK_SAVE_N: {
 		// save current page bookmark under spicified number
 		saveCurrentPageShortcutBookmark(param);
 	}

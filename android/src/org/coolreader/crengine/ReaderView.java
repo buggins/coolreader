@@ -119,7 +119,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         DCMD_SELECT_PREV_SENTENCE(133), // move selection to next sentence
         DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS(134), // move selection start by words 
         DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS(135), // move selection end by words 
-    	
+
+    	DCMD_SET_TEXT_FORMAT(136),
+        
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
     	DCMD_CLOSE_BOOK(2001),
@@ -1807,31 +1809,44 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		setSettings(settings, null, true, true);
 	}
 	
-	public void toggleDocumentStyles()
-	{
+	public void toggleDocumentStyles() {
 		if ( mOpened && mBookInfo!=null ) {
 			log.d("toggleDocumentStyles()");
-			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
-			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
-			internalStyles ^= 1;
-			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, internalStyles == 0);
-            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, internalStyles | txtReflow);
+			boolean disableInternalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
+			disableInternalStyles = !disableInternalStyles;
+			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, disableInternalStyles);
+            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, disableInternalStyles ? 0 : 1);
             doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
+    		mActivity.getDB().save(mBookInfo);
 		}
 	}
 	
-	public void toggleTextReflow()
-	{
+	public boolean isTextAutoformatEnabled() {
 		if ( mOpened && mBookInfo!=null ) {
-			log.d("toggleTextReflow()");
-			if (mBookInfo.getFileInfo().format != DocumentFormat.TXT && mBookInfo.getFileInfo().format != DocumentFormat.HTML)
+			boolean disableTextReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
+			return !disableTextReflow;
+		}
+		return true;
+	}
+	
+	public boolean isTextFormat() {
+		if ( mOpened && mBookInfo!=null ) {
+			DocumentFormat fmt = mBookInfo.getFileInfo().format;
+			return fmt == DocumentFormat.TXT || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB;
+		}
+		return false;
+	}
+
+	public void toggleTextFormat() {
+		if ( mOpened && mBookInfo!=null ) {
+			log.d("toggleDocumentStyles()");
+			if (!isTextFormat())
 				return;
-			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
-			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
-			txtReflow ^= 2;
-			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG, txtReflow == 0);
-            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, internalStyles | txtReflow);
-            doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
+			boolean disableTextReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
+			disableTextReflow = !disableTextReflow;
+			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG, disableTextReflow);
+    		mActivity.getDB().save(mBookInfo);
+			reloadDocument();
 		}
 	}
 	
@@ -2507,6 +2522,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureBackground();
 		log.v("applySettings() " + props);
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false );
+		props.remove(PROP_EMBEDDED_STYLES);
+		props.remove(PROP_TXT_OPTION_PREFORMATTED);
 		props.setBool(PROP_SHOW_BATTERY, isFullScreen); 
 		props.setBool(PROP_SHOW_TIME, isFullScreen);
 		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
@@ -2763,6 +2780,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( oldSettings==null )
 			oldSettings = mSettings;
 		final Properties currSettings = new Properties(oldSettings);
+		newSettings.remove(PROP_EMBEDDED_STYLES);
 		setAppSettings( newSettings, currSettings );
 		Properties changedSettings = newSettings.diff(currSettings);
 		currSettings.setAll(changedSettings);
@@ -2850,16 +2868,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			close();
 		}
 	}
+
+	public boolean reloadDocument() {
+		if (this.mBookInfo!=null && this.mBookInfo.getFileInfo() != null) {
+			save(); // save current position
+			post(new LoadDocumentTask(this.mBookInfo.getFileInfo(), null));
+			return true;
+		}
+		return false;
+	}
 	
-	public void loadDocument( final FileInfo fileInfo )
+	public boolean loadDocument( final FileInfo fileInfo, Runnable errorHandler )
 	{
 		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
 			log.d("trying to load already opened document");
 			mActivity.showReader();
 			drawPage();
-			return;
+			return false;
 		}
-		post(new LoadDocumentTask(fileInfo, null));
+		post(new LoadDocumentTask(fileInfo, errorHandler));
+		return true;
 	}
 
 	public boolean loadLastDocument( final Runnable errorHandler )
@@ -2924,9 +2952,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			fi = book.getFileInfo();
 			log.v("loadDocument() : item from history : " + fi);
 		}
-		post( new LoadDocumentTask(fi, errorHandler) );
-		log.v("loadDocument: LoadDocumentTask(" + fi + ") is posted");
-		return true;
+		return loadDocument(fi, errorHandler);
 	}
 	
 	public BookInfo getBookInfo() {
@@ -4366,6 +4392,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		String filename;
 		Runnable errorHandler;
 		String pos;
+		int profileNumber;
+		boolean disableInternalStyles;
+		boolean disableTextAutoformat;
+		Properties props;
 		LoadDocumentTask( FileInfo fileInfo, Runnable errorHandler )
 		{
 			log.v("LoadDocumentTask for " + fileInfo);
@@ -4374,20 +4404,41 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
+			disableInternalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
+			disableTextAutoformat = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
+			profileNumber = mBookInfo.getFileInfo().getProfileId();
+			props = prepareProfileChange(profileNumber);
 	    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null )
 	    		pos = mBookInfo.getLastPosition().getStartPos();
 			log.v("LoadDocumentTask : book info " + mBookInfo);
 			log.v("LoadDocumentTask : last position = " + pos);
+			
     		//mBitmap = null;
-	        mEngine.showProgress( 1000, R.string.progress_loading );
+	        mEngine.showProgress(1000, R.string.progress_loading);
 	        //init();
+	        // close existing document
+			log.v("LoadDocumentTask : closing current book");
+	        close();
+	        if (props != null) {
+	    		BackgroundThread.instance().executeBackground(new Runnable() {
+	    			@Override
+	    			public void run() {
+	    				log.v("LoadDocumentTask : switching current profile");
+	    				applySettings(props, false);
+	    				log.i("Switching done");
+	    			}
+	    		});
+	        }
 		}
 
+		@Override
 		public void work() throws IOException {
 			BackgroundThread.ensureBackground();
 			coverPageBytes = null;
 			coverPageDrawable = null;
 			log.i("Loading document " + filename);
+			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, disableInternalStyles ? 0 : 1);
+			doc.doCommand(ReaderCommand.DCMD_SET_TEXT_FORMAT.nativeId, disableTextAutoformat ? 0 : 1);
 	        boolean success = doc.loadDocument(filename);
 	        if ( success ) {
 				log.v("loadDocumentInternal completed successfully");
@@ -4407,6 +4458,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				throw new IOException("Cannot read document");
 	        }
 		}
+
+		@Override
 		public void done()
 		{
 			BackgroundThread.ensureGUI();
@@ -5033,18 +5086,30 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return currentProfile;
 	}
 
-	public void setCurrentProfile(int profile) {
-		if (profile == getCurrentProfile())
-			return;
+	public Properties prepareProfileChange(int profile) {
+		if (profile == 0 || profile == getCurrentProfile())
+			return null;
 		log.i("Switching from profile " + currentProfile + " to " + profile);
 		mActivity.saveSettings(currentProfile, mSettings);
 		final Properties newSettings = mActivity.loadSettings(profile);
 		mActivity.saveSettings(0, mSettings); // save to default
 		currentProfile = profile;
+		return newSettings;
+	}
+	
+	public void setCurrentProfile(int profile) {
+		final Properties props = prepareProfileChange(profile);
+		if (props == null)
+			return;
+		if (mBookInfo != null && mBookInfo.getFileInfo() != null) {
+			mBookInfo.getFileInfo().setProfileId(profile);
+    		mActivity.getDB().save(mBookInfo);
+		}
+		log.i("Apply new profile settings");
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
-				applySettings(newSettings, false);
+				applySettings(props, false);
 				log.i("Switching done");
 			}
 		});

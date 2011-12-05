@@ -369,5 +369,8 @@
     <string name="options_css_text_align_left">Left</string>
     <string name="options_css_text_align_right">Right</string>
     <string name="action_switch_settings_profile">Switch profile</string>
-<string name="options_app_settings_icons">Icons in settings</string>
+    <string name="options_app_settings_icons">Icons in settings</string>
+    <string name="mi_text_autoformat_enable">Enable text autoformat</string>
+    <string name="mi_text_autoformat_disable">Disable text autoformat</string>
+    <string name="action_toggle_text_autoformat">Toggle text autoformat</string>
 </resources>

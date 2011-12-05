@@ -369,5 +369,8 @@
     <string name="options_css_text_align_left">По левому краю</string>
     <string name="options_css_text_align_right">По правому краю</string>
     <string name="action_switch_settings_profile">Профиль настроек</string>
-<string name="options_app_settings_icons">Пиктограммы в настройках</string>
+    <string name="options_app_settings_icons">Пиктограммы в настройках</string>
+    <string name="mi_text_autoformat_enable">Разрешить автоформатирование текста</string>
+    <string name="mi_text_autoformat_disable">Запретить автоформатирование текста</string>
+    <string name="action_toggle_text_autoformat">Переключить автоформатирование текста</string>
 </resources>

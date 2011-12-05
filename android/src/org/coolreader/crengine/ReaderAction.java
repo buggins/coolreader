@@ -53,6 +53,7 @@ public class ReaderAction {
 	public final static ReaderAction ZOOM_IN = new ReaderAction("ZOOM_IN", R.string.action_zoom_in, ReaderCommand.DCMD_ZOOM_IN, 2 );
 	public final static ReaderAction ZOOM_OUT = new ReaderAction("ZOOM_OUT", R.string.action_zoom_out, ReaderCommand.DCMD_ZOOM_OUT, 2 );
 	public final static ReaderAction DOCUMENT_STYLES = new ReaderAction("DOCUMENT_STYLES", R.string.action_toggle_document_styles, ReaderCommand.DCMD_TOGGLE_DOCUMENT_STYLES, 0, R.id.cr3_mi_toggle_document_styles );
+	public final static ReaderAction TEXT_AUTOFORMAT = new ReaderAction("TEXT_AUTOFORMAT", R.string.action_toggle_document_styles, ReaderCommand.DCMD_TOGGLE_DOCUMENT_STYLES, 0, R.id.cr3_mi_toggle_text_autoformat );
 	public final static ReaderAction BOOKMARKS = new ReaderAction("BOOKMARKS", R.string.action_bookmarks, ReaderCommand.DCMD_BOOKMARKS, 0, R.id.cr3_mi_bookmarks );
 	public final static ReaderAction ABOUT = new ReaderAction("ABOUT", R.string.dlg_about, ReaderCommand.DCMD_ABOUT, 0, R.id.cr3_mi_about );
 	public final static ReaderAction BOOK_INFO = new ReaderAction("BOOK_INFO", R.string.dlg_book_info, ReaderCommand.DCMD_BOOK_INFO, 0, R.id.cr3_mi_book_info );
@@ -125,8 +126,9 @@ public class ReaderAction {
 		OPEN_PREVIOUS_BOOK,
 		TOGGLE_AUTOSCROLL,
 		SWITCH_PROFILE,
-		AUTOSCROLL_SPEED_INCREASE,
-		AUTOSCROLL_SPEED_DECREASE,
+		TEXT_AUTOFORMAT,
+//		AUTOSCROLL_SPEED_INCREASE,
+//		AUTOSCROLL_SPEED_DECREASE,
 	};
 
 	public boolean isNone() {

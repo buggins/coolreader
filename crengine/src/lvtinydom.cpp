@@ -4001,6 +4001,9 @@ bool ldomNode::applyNodeStylesheet()
 #ifndef DISABLE_STYLESHEET_REL
     if ( getNodeId()!=el_DocFragment || !hasAttribute(attr_StyleSheet) )
         return false;
+    if (!getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES))
+        return false; // internal styles are disabled
+
     lString16 v = getAttributeValue(attr_StyleSheet);
     if ( v.empty() )
         return false;
@@ -7307,6 +7310,9 @@ void ldomDocumentWriterFilter::appendStyle( const lChar16 * style )
     if ( _styleAttrId==0 ) {
         _styleAttrId = _document->getAttrNameIndex(L"style");
     }
+    if (!_document->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES))
+        return; // disabled
+
     lString16 oldStyle = node->getAttributeValue(_styleAttrId);
     if ( !oldStyle.empty() && oldStyle.at(oldStyle.length()-1)!=';' )
         oldStyle << L"; ";
