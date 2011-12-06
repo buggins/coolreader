@@ -526,6 +526,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
     {
         // based on ICONV code, gbk.h
         for ( ; count<maxsize; count++ ) {
+            if (m_buf_pos >= m_buf_len) {
+                checkEof();
+                return count;
+            }
             lUInt16 ch = m_buf[m_buf_pos++];
             int twoBytes = ch >= 0x81 && ch < 0xFF ? 1 : 0;
             if ( m_buf_pos + twoBytes>=m_buf_len ) {
@@ -574,6 +578,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
     {
         // based on ICONV code, gbk.h
         for ( ; count < maxsize - 1; count++ ) {
+            if (m_buf_pos >= m_buf_len) {
+                checkEof();
+                return count;
+            }
             lUInt16 ch = m_buf[m_buf_pos++];
             lUInt16 res = 0;
             if (ch < 0x80) {
@@ -709,6 +717,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
     {
         // based on ICONV code, gbk.h
         for ( ; count < maxsize - 1; count++ ) {
+            if (m_buf_pos >= m_buf_len) {
+                checkEof();
+                return count;
+            }
             lUInt16 ch = m_buf[m_buf_pos++];
             lUInt16 res = 0;
             /* Code set 0 (ASCII) */
@@ -790,6 +802,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
     {
         // based on ICONV code, gbk.h
         for ( ; count < maxsize - 1; count++ ) {
+            if (m_buf_pos >= m_buf_len) {
+                checkEof();
+                return count;
+            }
             lUInt16 ch = m_buf[m_buf_pos++];
             lUInt16 res = 0;
 
