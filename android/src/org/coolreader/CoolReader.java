@@ -693,13 +693,13 @@ public class CoolReader extends Activity
     	return (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
     }
     
-    private boolean keyBacklightDisabled = true;
+    private boolean keyBacklightControlOff = true;
     public boolean isKeyBacklightDisabled() {
-    	return keyBacklightDisabled;
+    	return keyBacklightControlOff;
     }
     
     public void setKeyBacklightDisabled(boolean disabled) {
-    	keyBacklightDisabled = disabled;
+    	keyBacklightControlOff = disabled;
     }
     
     public void setScreenBacklightLevel( int percent )
@@ -735,7 +735,7 @@ public class CoolReader extends Activity
 	    		changed = true;
 	    	}
 	    	// hack to set buttonBrightness field
-	    	if (!brightnessHackError && !keyBacklightDisabled)
+	    	if (!brightnessHackError && keyBacklightControlOff)
 	    	try {
 	        	Field bb = attrs.getClass().getField("buttonBrightness");
 	        	if ( bb!=null ) {
