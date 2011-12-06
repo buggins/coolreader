@@ -754,6 +754,8 @@ public class CoolReader extends Activity
 	    	}
         }
     }
+
+    private final static int MIN_BACKLIGHT_LEVEL_PERCENT = 12;
     
     public void onUserActivity()
     {
@@ -769,12 +771,12 @@ public class CoolReader extends Activity
 		        	float b;
 		        	int dimmingAlpha = 255;
 		        	if ( screenBacklightBrightness>=0 ) {
-	        			float minb = 1/16f; 
-		        		if ( screenBacklightBrightness >= 10 ) {
-		        			b = (screenBacklightBrightness - 10) / 90.0f;
+	        			float minb = MIN_BACKLIGHT_LEVEL_PERCENT / 100.0f; 
+		        		if ( screenBacklightBrightness >= MIN_BACKLIGHT_LEVEL_PERCENT ) {
+		        			b = (screenBacklightBrightness - MIN_BACKLIGHT_LEVEL_PERCENT) / (100.0f - MIN_BACKLIGHT_LEVEL_PERCENT);
 		        			b = minb + b * (1-minb);
-				        	if (b < 0.0f ) // BRIGHTNESS_OVERRIDE_OFF
-				        		b = 0.0f;
+				        	if (b < minb ) // BRIGHTNESS_OVERRIDE_OFF
+				        		b = minb;
 				        	else if ( b>1.0f )
 				        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
 		        		} else {
