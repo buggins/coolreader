@@ -5094,10 +5094,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return null;
 		log.i("Switching from profile " + currentProfile + " to " + profile);
 		mActivity.saveSettings(currentProfile, mSettings);
-		final Properties newSettings = mActivity.loadSettings(profile);
+		final Properties loadedSettings = mActivity.loadSettings(profile);
+		mSettings.setAll(loadedSettings);
 		mActivity.saveSettings(0, mSettings); // save to default
 		currentProfile = profile;
-		return newSettings;
+		return mSettings;
 	}
 	
 	public void setCurrentProfile(int profile) {

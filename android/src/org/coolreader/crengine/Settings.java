@@ -133,4 +133,32 @@ public interface Settings {
 
 	public final static int MAX_PROFILES = 6;
 
+	// settings which depend on profile
+	public final static String[] PROFILE_SETTINGS = {
+	    "background.*",
+	    PROP_NIGHT_MODE,
+	    "font.*",
+	    "crengine.page.*",
+	    PROP_INTERLINE_SPACE,
+	    PROP_STATUS_LINE,
+	    PROP_FOOTNOTES,
+	    "window.status.*",
+	    PROP_FLOATING_PUNCTUATION,
+	    PROP_LANDSCAPE_PAGES,
+	    PROP_HYPHENATION_DICT,
+	    "crengine.image.*",
+	    PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT,
+	    PROP_APP_FULLSCREEN,
+	    "app.screen.*",
+	    PROP_APP_DICTIONARY,
+	    PROP_APP_SELECTION_ACTION,
+	    PROP_APP_SELECTION_PERSIST,
+	    PROP_APP_HIGHLIGHT_BOOKMARKS,
+
+	    PROP_APP_VIEW_AUTOSCROLL_SPEED,
+	    PROP_APP_VIEW_AUTOSCROLL_TYPE,
+
+	    "app.ui.theme*",
+	};
+	
 }

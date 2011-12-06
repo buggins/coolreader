@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.Set;
 
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
@@ -1798,15 +1800,47 @@ public class CoolReader extends Activity
 		if (!f.exists() && profile != 0)
 			f = getSettingsFile(0);
 		Properties res = loadSettings(f);
-		if (profile != 0)
+		if (profile != 0) {
+			res = filterProfileSettings(res);
 			res.setInt(Settings.PROP_PROFILE_NUMBER, profile);
+		}
+		return res;
+	}
+	
+	public static Properties filterProfileSettings(Properties settings) {
+		Properties res = new Properties();
+		res.entrySet();
+		for (Object k : settings.keySet()) {
+			String key = (String)k;
+			String value = settings.getProperty(key);
+			boolean found = false;
+			for (String pattern : Settings.PROFILE_SETTINGS) {
+				if (pattern.endsWith("*")) {
+					if (key.startsWith(pattern.substring(0, pattern.length()-1))) {
+						found = true;
+						break;
+					}
+				} else if (pattern.equalsIgnoreCase(key)) {
+					found = true;
+					break;
+				} else if (key.startsWith("styles.")) {
+					found = true;
+					break;
+				}
+			}
+			if (found) {
+				res.setProperty(key, value);
+			}
+		}
 		return res;
 	}
 	
 	public void saveSettings(int profile, Properties settings) {
 		File f = getSettingsFile(profile);
-		if (profile != 0)
+		if (profile != 0) {
+			settings = filterProfileSettings(settings);
 			settings.setInt(Settings.PROP_PROFILE_NUMBER, profile);
+		}
 		saveSettings(f, settings);
 	}
 	
