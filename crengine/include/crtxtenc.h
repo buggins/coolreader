@@ -17,6 +17,9 @@
 #include <stdio.h>
 #include "lvstring.h"
 
+#ifndef GBK_ENCODING_SUPPORT
+#define GBK_ENCODING_SUPPORT 1
+#endif
 
 enum char_encoding_type {
     ce_unknown = 0,
@@ -26,6 +29,9 @@ enum char_encoding_type {
     ce_utf32_be = 4,
     ce_utf32_le = 5,
     ce_8bit_cp = 6,
+#if GBK_ENCODING_SUPPORT == 1
+    ce_gbk = 7,
+#endif
 };
 
 #define CRENC_ID_UNKNOWN      ce_unknown

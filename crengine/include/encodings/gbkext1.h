@@ -824,30 +824,3 @@ static const unsigned short gbkext1_2uni_page81[6080] = {
   0x72c7, 0x72c9, 0x72ca, 0x72cb, 0x72cc, 0x72cf, 0x72d1, 0x72d3,
   0x72d4, 0x72d5, 0x72d6, 0x72d8, 0x72da, 0x72db,
 };
-
-static int
-gbkext1_mbtowc (conv_t conv, ucs4_t *pwc, const unsigned char *s, int n)
-{
-  unsigned char c1 = s[0];
-  if ((c1 >= 0x81 && c1 <= 0xa0)) {
-    if (n >= 2) {
-      unsigned char c2 = s[1];
-      if ((c2 >= 0x40 && c2 < 0x7f) || (c2 >= 0x80 && c2 < 0xff)) {
-        unsigned int i = 190 * (c1 - 0x81) + (c2 - (c2 >= 0x80 ? 0x41 : 0x40));
-        unsigned short wc = 0xfffd;
-        {
-          if (i < 6080)
-            wc = gbkext1_2uni_page81[i];
-        }
-        if (wc != 0xfffd) {
-          *pwc = (ucs4_t) wc;
-          return 2;
-        }
-      }
-      return RET_ILSEQ;
-    }
-    return RET_TOOFEW(0);
-  }
-  return RET_ILSEQ;
-}
-

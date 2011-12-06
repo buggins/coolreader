@@ -15,7 +15,16 @@
 #include "../include/crtxtenc.h"
 #include "../include/fb2def.h"
 #include "../include/lvdocview.h"
-
+#if GBK_ENCODING_SUPPORT == 1
+typedef struct {
+   unsigned short indx; /* index into big table */
+   unsigned short used; /* bitmask of used entries */
+} Summary16;
+#include "../include/encodings/gbkext1.h"
+#include "../include/encodings/gbkext2.h"
+#include "../include/encodings/gb2312.h"
+#include "../include/encodings/cp936ext.h"
+#endif
 
 #define BUF_SIZE_INCREMENT 4096
 #define MIN_BUF_DATA_SIZE 4096
@@ -259,6 +268,68 @@ void LVTextFileBase::checkEof()
         //m_buf_pos = m_buf_len = m_stream_size - (m_buf_fpos+m_buf_len);
 }
 
+static lChar16 cr3_gb2312_mbtowc(const unsigned char *s)
+{
+    unsigned char c1 = s[0];
+    if ((c1 >= 0x21 && c1 <= 0x29) || (c1 >= 0x30 && c1 <= 0x77)) {
+        unsigned char c2 = s[1];
+        if (c2 >= 0x21 && c2 < 0x7f) {
+            unsigned int i = 94 * (c1 - 0x21) + (c2 - 0x21);
+            if (i < 1410) {
+                if (i < 831)
+                    return gb2312_2uni_page21[i];
+            } else {
+                if (i < 8178)
+                    return gb2312_2uni_page30[i-1410];
+            }
+        }
+    }
+    return 0;
+}
+
+static lChar16 cr3_cp936ext_mbtowc (const unsigned char *s)
+{
+    unsigned char c1 = s[0];
+    if ((c1 == 0xa6) || (c1 == 0xa8)) {
+        unsigned char c2 = s[1];
+        if ((c2 >= 0x40 && c2 < 0x7f) || (c2 >= 0x80 && c2 < 0xff)) {
+            unsigned int i = 190 * (c1 - 0x81) + (c2 - (c2 >= 0x80 ? 0x41 : 0x40));
+            if (i < 7410) {
+                if (i >= 7189 && i < 7211)
+                    return cp936ext_2uni_pagea6[i-7189];
+            } else {
+                if (i >= 7532 && i < 7538)
+                    return cp936ext_2uni_pagea8[i-7532];
+            }
+        }
+    }
+    return 0;
+}
+
+static lChar16 cr3_gbkext1_mbtowc (lChar16 c1, lChar16 c2)
+{
+    if ((c1 >= 0x81 && c1 <= 0xa0)) {
+        if ((c2 >= 0x40 && c2 < 0x7f) || (c2 >= 0x80 && c2 < 0xff)) {
+        unsigned int i = 190 * (c1 - 0x81) + (c2 - (c2 >= 0x80 ? 0x41 : 0x40));
+        if (i < 6080)
+            return gbkext1_2uni_page81[i];
+        }
+    }
+    return 0;
+}
+
+static lChar16 cr3_gbkext2_mbtowc(lChar16 c1, lChar16 c2)
+{
+    if ((c1 >= 0xa8 && c1 <= 0xfe)) {
+        if ((c2 >= 0x40 && c2 < 0x7f) || (c2 >= 0x80 && c2 < 0xa1)) {
+            unsigned int i = 96 * (c1 - 0x81) + (c2 - (c2 >= 0x80 ? 0x41 : 0x40));
+            if (i < 12016)
+                return gbkext2_2uni_pagea8[i-3744];
+        }
+    }
+    return 0;
+}
+
 
 /// reads several characters from buffer
 int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
@@ -351,6 +422,54 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
             }
             return count;
         }
+#if GBK_ENCODING_SUPPORT == 1
+    case ce_gbk:
+    {
+        // based on ICONV code, gbk.h
+        for ( ; count<maxsize; count++ ) {
+            lUInt16 ch = m_buf[m_buf_pos++];
+            int twoBytes = ch >= 0x81 && ch < 0xFF ? 1 : 0;
+            if ( m_buf_pos + twoBytes>=m_buf_len ) {
+                checkEof();
+                return count;
+            }
+            lUInt16 ch2 = 0;
+            if (twoBytes)
+                ch2 = m_buf[m_buf_pos++];
+            lUInt16 res = twoBytes ? 0 : ch;
+            if (res == 0 && ch >= 0xa1 && ch <= 0xf7) {
+                if (ch == 0xa1) {
+                    if (ch2 == 0xa4) {
+                        res = 0x00b7;
+                    }
+                    if (ch2 == 0xaa) {
+                        res = 0x2014;
+                    }
+                }
+                if (ch2 >= 0xa1 && ch2 < 0xff) {
+                    unsigned char buf[2];
+                    buf[0] = ch - 0x80; buf[1] = ch2 - 0x80;
+                    res = cr3_gb2312_mbtowc(buf);
+                    if (!res)
+                        res = cr3_cp936ext_mbtowc(buf);
+                }
+            }
+            if (res == 0 && ch >= 0x81 && ch <= 0xa0)
+                res = cr3_gbkext1_mbtowc(ch, ch2);
+            if (res == 0 && ch >= 0xa8 && ch <= 0xfe)
+                res = cr3_gbkext2_mbtowc(ch, ch2);
+            if (res == 0 && ch == 0xa2) {
+                if (ch2 >= 0xa1 && ch2 <= 0xaa) {
+                    res = 0x2170 + (ch2 - 0xa1);
+                }
+            }
+            if (res == 0)
+                res = '?'; // replace invalid chars with ?
+            buf[count] = res;
+        }
+        return count;
+    }
+#endif
     case ce_utf16_le:
         {
             for ( ; count<maxsize; count++ ) {
@@ -579,6 +698,11 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
     } else if ( m_encoding_name == L"utf-16" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
+#if GBK_ENCODING_SUPPORT == 1
+    } else if ( m_encoding_name == L"gbk" || m_encoding_name == L"cp936" || m_encoding_name == L"cp-936") {
+        m_enc_type = ce_gbk;
+        SetCharsetTable( NULL );
+#endif
     } else if ( m_encoding_name == L"utf-16le" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
