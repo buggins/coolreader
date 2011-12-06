@@ -373,4 +373,5 @@
     <string name="mi_text_autoformat_enable">Enable text autoformat</string>
     <string name="mi_text_autoformat_disable">Disable text autoformat</string>
     <string name="action_toggle_text_autoformat">Toggle text autoformat</string>
+<string name="options_app_key_backlight_off">Turn off key backlight</string>
 </resources>

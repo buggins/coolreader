@@ -157,6 +157,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_AUTOSCROLL_SPEED_DECREASE(2028),
     	DCMD_START_SELECTION(2029),
     	DCMD_SWITCH_PROFILE(2030),
+    	DCMD_TOGGLE_TEXT_AUTOFORMAT(2031),
     	;
     	
     	private final int nativeId;
@@ -2601,6 +2602,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.getHistory().setCoverPagesEnabled(flg);
         } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
 			mActivity.getScanner().setDirScanEnabled(flg);
+        } else if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
+			mActivity.setKeyBacklightDisabled(flg);
         } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
         	int n = 0;
         	try {

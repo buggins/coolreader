@@ -59,6 +59,7 @@ public interface Settings {
 
     public static final String PROP_PROFILE_NUMBER          ="crengine.profile.number"; // current settings profile number
     public static final String PROP_APP_SETTINGS_SHOW_ICONS ="app.settings.show.icons";
+    public static final String PROP_APP_KEY_BACKLIGHT_OFF   ="app.key.backlight.disabled";
 
     
 	 // image scaling settings

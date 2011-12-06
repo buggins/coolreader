@@ -87,7 +87,7 @@ public class CoolReader extends Activity
 	
 	
 	public CoolReader() {
-	    brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
+	    brightnessHackError = false; //DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	}
 	
 	public Scanner getScanner()
@@ -691,6 +691,15 @@ public class CoolReader extends Activity
     	return (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
     }
     
+    private boolean keyBacklightDisabled = true;
+    public boolean isKeyBacklightDisabled() {
+    	return keyBacklightDisabled;
+    }
+    
+    public void setKeyBacklightDisabled(boolean disabled) {
+    	keyBacklightDisabled = disabled;
+    }
+    
     public void setScreenBacklightLevel( int percent )
     {
     	if ( percent<-1 )
@@ -724,7 +733,7 @@ public class CoolReader extends Activity
 	    		changed = true;
 	    	}
 	    	// hack to set buttonBrightness field
-	    	if ( !brightnessHackError )
+	    	if (!brightnessHackError && !keyBacklightDisabled)
 	    	try {
 	        	Field bb = attrs.getClass().getField("buttonBrightness");
 	        	if ( bb!=null ) {
@@ -1541,6 +1550,7 @@ public class CoolReader extends Activity
         if ("1".equals(props.getProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK)))
             props.setProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
+        props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
         // autodetect best initial font size based on display resolution
         int screenWidth = getWindowManager().getDefaultDisplay().getWidth();
         int fontSize = 20;
