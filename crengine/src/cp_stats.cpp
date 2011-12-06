@@ -1483,7 +1483,7 @@ cp_stat_t cp_stat_table[] = {
 {ch_stat_cp1257_lit1,dbl_ch_stat_cp1257_lit1,"cp1257","lit"}, 
 {ch_stat_cp1257_lat1,dbl_ch_stat_cp1257_lat1,"cp1257","lat"}, 
 {ch_stat_cp1250_sr1,dbl_ch_stat_cp1250_sr1,"cp1250","sr"},
-{ch_stat_cp1250_hu1,dbl_ch_stat_cp1250_hu1,"cp1250","hu"},
+{ch_stat_cp1250_hu1,dbl_ch_stat_cp1250_hu1,"iso8859_1","hu"}, //"cp1250"
 {ch_stat_cp1252_it1,dbl_ch_stat_cp1252_it1,"cp1252","it"},
 {ch_stat_cp1254_tr1,dbl_ch_stat_cp1254_tr1,"cp1254","tr"},
 {NULL, NULL, NULL, NULL}
