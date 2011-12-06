@@ -770,21 +770,26 @@ public class CoolReader extends Activity
 				try {
 		        	float b;
 		        	int dimmingAlpha = 255;
-		        	if ( screenBacklightBrightness>=0 ) {
+		        	// screenBacklightBrightness is 0..100
+		        	if (screenBacklightBrightness >= 0) {
 	        			float minb = MIN_BACKLIGHT_LEVEL_PERCENT / 100.0f; 
-		        		if ( screenBacklightBrightness >= MIN_BACKLIGHT_LEVEL_PERCENT ) {
-		        			b = (screenBacklightBrightness - MIN_BACKLIGHT_LEVEL_PERCENT) / (100.0f - MIN_BACKLIGHT_LEVEL_PERCENT);
-		        			b = minb + b * (1-minb);
-				        	if (b < minb ) // BRIGHTNESS_OVERRIDE_OFF
+		        		if ( screenBacklightBrightness >= 10 ) {
+		        			// real brightness control, no colors dimming
+		        			b = (screenBacklightBrightness - 10) / (100.0f - 10.0f); // 0..1
+		        			b = minb + b * (1-minb); // minb..1
+				        	if (b < minb) // BRIGHTNESS_OVERRIDE_OFF
 				        		b = minb;
-				        	else if ( b>1.0f )
+				        	else if (b > 1.0f)
 				        		b = 1.0f; //BRIGHTNESS_OVERRIDE_FULL
 		        		} else {
+			        		// minimal brightness with colors dimming
 			        		b = minb;
 			        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 180 / 10; 
 		        		}
-		        	} else
+		        	} else {
+		        		// system
 		        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
+		        	}
 		        	mReaderView.setDimmingAlpha(dimmingAlpha);
 			    	log.d("Brightness: " + b + ", dim: " + dimmingAlpha);
 			    	updateBacklightBrightness(b);
