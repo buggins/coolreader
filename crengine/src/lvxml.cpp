@@ -796,7 +796,7 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
             /* Code set 0 (ASCII or KS C 5636-1993) */
             if (ch < 0x80)
                 res = ch;
-            else if (c >= 0xa1 && c < 0xff) {
+            else if (ch >= 0xa1 && ch < 0xff) {
                 if (m_buf_pos + 1 >= m_buf_len) {
                     checkEof();
                     return count;
@@ -1050,7 +1050,7 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
         SetCharsetTable( NULL );
 #endif
 #if JIS_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"shift-jis" || m_encoding_name == L"shift_jis" || m_encoding_name == L"sjis" || m_encoding_name == L"ms_kanji" || m_encoding_name == L"csshiftjis" || m_encoding_name == L"shift_jisx0213" || m_encoding_name == L"shift_jis-2004") {
+    } else if ( m_encoding_name == L"shift-jis" || m_encoding_name == L"shift_jis" || m_encoding_name == L"sjis" || m_encoding_name == L"ms_kanji" || m_encoding_name == L"csshiftjis" || m_encoding_name == L"shift_jisx0213" || m_encoding_name == L"shift_jis-2004" || m_encoding_name == L"cp932") {
         m_enc_type = ce_shift_jis;
         SetCharsetTable( NULL );
     } else if (m_encoding_name == L"euc-jisx0213" ||  m_encoding_name == L"euc-jis-2004" ||  m_encoding_name == L"euc-jis" ||  m_encoding_name == L"euc-jp" ||  m_encoding_name == L"eucjp") {
@@ -1058,12 +1058,12 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
         SetCharsetTable( NULL );
 #endif
 #if BIG5_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"big5" || m_encoding_name == L"big5-2003" || m_encoding_name == L"big-5" || m_encoding_name == L"big-five" || m_encoding_name == L"bigfive" || m_encoding_name == L"cn-big5" || m_encoding_name == L"csbig5") {
+    } else if ( m_encoding_name == L"big5" || m_encoding_name == L"big5-2003" || m_encoding_name == L"big-5" || m_encoding_name == L"big-five" || m_encoding_name == L"bigfive" || m_encoding_name == L"cn-big5" || m_encoding_name == L"csbig5" || m_encoding_name == L"cp950") {
         m_enc_type = ce_big5;
         SetCharsetTable( NULL );
 #endif
 #if EUC_KR_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"euc_kr" || m_encoding_name == L"euc-kr" || m_encoding_name == L"euckr" || m_encoding_name == L"cseuckr" || m_encoding_name == L"cp51949") {
+    } else if ( m_encoding_name == L"euc_kr" || m_encoding_name == L"euc-kr" || m_encoding_name == L"euckr" || m_encoding_name == L"cseuckr" || m_encoding_name == L"cp51949" || m_encoding_name == L"cp949") {
         m_enc_type = ce_euc_kr;
         SetCharsetTable( NULL );
 #endif
