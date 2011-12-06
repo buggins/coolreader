@@ -345,6 +345,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	}
 	
 	private static boolean showIcons = true;
+	private static boolean isTextFormat = false;
 	
 	class IconsBoolOption extends BoolOption {
 		public IconsBoolOption( OptionOwner owner, String label, String property ) {
@@ -1147,7 +1148,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
 		mProperties = readerView.getSettings();
+		mOldProperties = new Properties(mProperties);
+		mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
+		mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
+		isTextFormat = readerView.isTextFormat();
 
 		//fakeLongArrayForDebug = new byte[2000000]; // 2M
 		//CoolReader.dumpHeapAllocation();
@@ -1584,6 +1589,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	private void fillStyleEditorOptions() {
 		mOptionsCSS = new OptionsListView(getContext());
+		//mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
+		//mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
+		mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_book_styles_enable), PROP_EMBEDDED_STYLES).setDefaultValue("1").noIcon());
+		if (isTextFormat) {
+			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
+		}
 		for (int i=0; i<styleCodes.length; i++)
 			mOptionsCSS.add(createStyleEditor(styleCodes[i], styleTitles[i]));
 	}
@@ -1724,8 +1735,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		
 		setView(mTabs);
 		
-		mOldProperties = new Properties(mProperties);
-		
 		setOnCancelListener(new OnCancelListener() {
 
 			public void onCancel(DialogInterface dialog) {
@@ -1772,9 +1781,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //		}
 //	}
 	
+	protected void apply() {
+		if (mProperties.getBool(PROP_TXT_OPTION_PREFORMATTED, true) != mReaderView.isTextAutoformatEnabled()) {
+			mReaderView.toggleTextFormat();
+		}
+		if (mProperties.getBool(PROP_EMBEDDED_STYLES, true) != mReaderView.getDocumentStylesEnabled()) {
+			mReaderView.toggleDocumentStyles();
+		}
+		mProperties.remove(PROP_EMBEDDED_STYLES);
+		mProperties.remove(PROP_TXT_OPTION_PREFORMATTED);
+        mReaderView.setSettings(mProperties, mOldProperties);
+	}
+	
 	@Override
 	protected void onPositiveButtonClick() {
-        mReaderView.setSettings(mProperties, mOldProperties);
+		apply();
         dismiss();
 	}
 
