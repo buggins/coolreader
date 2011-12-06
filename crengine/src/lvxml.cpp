@@ -35,6 +35,9 @@ typedef unsigned int ucs4_t;
 #include "../include/encodings/big5.h"
 #include "../include/encodings/big5_2003.h"
 #endif
+#if EUC_KR_ENCODING_SUPPORT == 1
+#include "../include/encodings/ksc5601.h"
+#endif
 
 #define BUF_SIZE_INCREMENT 4096
 #define MIN_BUF_DATA_SIZE 4096
@@ -399,6 +402,31 @@ static lUInt16 cr3_big5_mbtowc(lChar16 c1, lChar16 c2)
 }
 
 #endif
+#if EUC_KR_ENCODING_SUPPORT == 1
+static lChar16 cr3_ksc5601_mbtowc(lChar16 c1, lChar16 c2)
+{
+    if ((c1 >= 0x21 && c1 <= 0x2c) || (c1 >= 0x30 && c1 <= 0x48) || (c1 >= 0x4a && c1 <= 0x7d)) {
+        if (c2 >= 0x21 && c2 < 0x7f) {
+            unsigned int i = 94 * (c1 - 0x21) + (c2 - 0x21);
+            unsigned short wc = 0xfffd;
+            if (i < 1410) {
+                if (i < 1115)
+                    wc = ksc5601_2uni_page21[i];
+            } else if (i < 3854) {
+                if (i < 3760)
+                    wc = ksc5601_2uni_page30[i-1410];
+            } else {
+                if (i < 8742)
+                    wc = ksc5601_2uni_page4a[i-3854];
+            }
+            if (wc != 0xfffd) {
+                return wc;
+            }
+        }
+    }
+    return 0;
+}
+#endif
 
 
 /// reads several characters from buffer
@@ -757,6 +785,36 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
         return count;
     }
 #endif
+#if EUC_KR_ENCODING_SUPPORT == 1
+    case ce_euc_kr:
+    {
+        // based on ICONV code, gbk.h
+        for ( ; count < maxsize - 1; count++ ) {
+            lUInt16 ch = m_buf[m_buf_pos++];
+            lUInt16 res = 0;
+
+            /* Code set 0 (ASCII or KS C 5636-1993) */
+            if (ch < 0x80)
+                res = ch;
+            else if (c >= 0xa1 && c < 0xff) {
+                if (m_buf_pos + 1 >= m_buf_len) {
+                    checkEof();
+                    return count;
+                }
+                /* Code set 1 (KS C 5601-1992, now KS X 1001:2002) */
+                lUInt16 ch2 = m_buf[m_buf_pos++];
+                if (ch2 >= 0xa1 && ch2 < 0xff) {
+                    res = cr3_ksc5601_mbtowc(ch-0x80, ch2-0x80);
+                }
+            }
+
+            if (res == 0)
+                res = '?'; // replace invalid chars with ?
+            buf[count] = res;
+        }
+        return count;
+    }
+#endif
 
     case ce_utf16_le:
         {
@@ -1002,6 +1060,11 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
 #if BIG5_ENCODING_SUPPORT == 1
     } else if ( m_encoding_name == L"big5" || m_encoding_name == L"big5-2003" || m_encoding_name == L"big-5" || m_encoding_name == L"big-five" || m_encoding_name == L"bigfive" || m_encoding_name == L"cn-big5" || m_encoding_name == L"csbig5") {
         m_enc_type = ce_big5;
+        SetCharsetTable( NULL );
+#endif
+#if EUC_KR_ENCODING_SUPPORT == 1
+    } else if ( m_encoding_name == L"euc_kr" || m_encoding_name == L"euc-kr" || m_encoding_name == L"euckr" || m_encoding_name == L"cseuckr" || m_encoding_name == L"cp51949") {
+        m_enc_type = ce_euc_kr;
         SetCharsetTable( NULL );
 #endif
     } else if ( m_encoding_name == L"utf-16le" ) {
