@@ -517,7 +517,7 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
     case ce_shift_jis:
     {
         // based on ICONV code, gbk.h
-        for ( ; count<maxsize; count++ ) {
+        for ( ; count < maxsize - 1; count++ ) {
             lUInt16 ch = m_buf[m_buf_pos++];
             lUInt16 res = 0;
             if (ch < 0x80) {
@@ -579,6 +579,67 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                 }
             }
 
+
+            if (res == 0)
+                res = '?'; // replace invalid chars with ?
+            buf[count] = res;
+        }
+        return count;
+    }
+    case ce_euc_jis:
+    {
+        // based on ICONV code, gbk.h
+        for ( ; count < maxsize-1; count++ ) {
+            lUInt16 ch = m_buf[m_buf_pos++];
+            lUInt16 res = 0;
+            if (ch < 0x80) {
+                /* Plain ASCII character. */
+                res = ch;
+            } else {
+                if ((ch >= 0xa1 && ch <= 0xfe) || ch == 0x8e || ch == 0x8f) {
+                    /* Two byte character. */
+                    if (m_buf_pos + 1 >= m_buf_len) {
+                        checkEof();
+                        return count;
+                    }
+                    lUInt16 ch2 = m_buf[m_buf_pos++];
+                    if (ch2 >= 0xa1 && ch2 <= 0xfe && ch == 0x8f && m_buf_pos + 2 >= m_buf_len) {
+                        checkEof();
+                        return count;
+                    }
+
+                    if (ch2 >= 0xa1 && ch2 <= 0xfe) {
+                        if (ch == 0x8e) {
+                            /* Half-width katakana. */
+                            if (ch2 <= 0xdf) {
+                              res = ch2 + 0xfec0;
+                            }
+                        } else {
+                            lChar16 wc;
+                            if (ch == 0x8f) {
+                                /* JISX 0213 plane 2. */
+                                lUInt16 ch3 = m_buf[m_buf_pos++];
+                                wc = cr3_jisx0213_to_ucs4(0x200-0x80+ch2,ch3^0x80);
+                            } else {
+                                /* JISX 0213 plane 1. */
+                                wc = cr3_jisx0213_to_ucs4(0x100-0x80+ch,ch2^0x80);
+                            }
+                            if (wc) {
+                                if (wc < 0x80) {
+                                    /* It's a combining character. */
+                                    ucs4_t wc1 = jisx0213_to_ucs_combining[wc - 1][0];
+                                    ucs4_t wc2 = jisx0213_to_ucs_combining[wc - 1][1];
+                                    /* We cannot output two Unicode characters at once. So,
+                                       output the first character and buffer the second one. */
+                                    buf[count++] = wc1;
+                                    res = wc2;
+                                } else
+                                    res = wc;
+                            }
+                        }
+                    }
+                }
+            }
 
             if (res == 0)
                 res = '?'; // replace invalid chars with ?
@@ -824,7 +885,7 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
     } else if ( m_encoding_name == L"shift-jis" || m_encoding_name == L"shift_jis" || m_encoding_name == L"sjis" || m_encoding_name == L"ms_kanji" || m_encoding_name == L"csshiftjis" || m_encoding_name == L"shift_jisx0213" || m_encoding_name == L"shift_jis-2004") {
         m_enc_type = ce_shift_jis;
         SetCharsetTable( NULL );
-    } else if (m_encoding_name == L"euc-jisx0213" ||  m_encoding_name == L"euc-jis-2004" ||  m_encoding_name == L"euc-jis") {
+    } else if (m_encoding_name == L"euc-jisx0213" ||  m_encoding_name == L"euc-jis-2004" ||  m_encoding_name == L"euc-jis" ||  m_encoding_name == L"euc-jp" ||  m_encoding_name == L"eucjp") {
         m_enc_type = ce_euc_jis;
         SetCharsetTable( NULL );
 #endif
