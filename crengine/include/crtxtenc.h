@@ -23,6 +23,9 @@
 #ifndef JIS_ENCODING_SUPPORT
 #define JIS_ENCODING_SUPPORT 1
 #endif
+#ifndef BIG5_ENCODING_SUPPORT
+#define BIG5_ENCODING_SUPPORT 1
+#endif
 
 enum char_encoding_type {
     ce_unknown = 0,
@@ -38,6 +41,9 @@ enum char_encoding_type {
 #if JIS_ENCODING_SUPPORT == 1
     ce_euc_jis = 8,
     ce_shift_jis = 9,
+#endif
+#if JIS_ENCODING_SUPPORT == 1
+    ce_big5 = 10,
 #endif
 };
 

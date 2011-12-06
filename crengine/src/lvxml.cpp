@@ -31,6 +31,10 @@ typedef unsigned int ucs4_t;
 #if JIS_ENCODING_SUPPORT == 1
 #include "../include/encodings/jisx0213.h"
 #endif
+#if BIG5_ENCODING_SUPPORT == 1
+#include "../include/encodings/big5.h"
+#include "../include/encodings/big5_2003.h"
+#endif
 
 #define BUF_SIZE_INCREMENT 4096
 #define MIN_BUF_DATA_SIZE 4096
@@ -372,6 +376,30 @@ static lChar16 cr3_jisx0213_to_ucs4(unsigned int row, unsigned int col)
 }
 #endif
 
+#if BIG5_ENCODING_SUPPORT == 1
+static lUInt16 cr3_big5_mbtowc(lChar16 c1, lChar16 c2)
+{
+    if ((c1 >= 0xa1 && c1 <= 0xc7) || (c1 >= 0xc9 && c1 <= 0xf9)) {
+        if ((c2 >= 0x40 && c2 < 0x7f) || (c2 >= 0xa1 && c2 < 0xff)) {
+            unsigned int i = 157 * (c1 - 0xa1) + (c2 - (c2 >= 0xa1 ? 0x62 : 0x40));
+            unsigned short wc = 0xfffd;
+            if (i < 6280) {
+                if (i < 6121)
+                    wc = big5_2uni_pagea1[i];
+            } else {
+                if (i < 13932)
+                    wc = big5_2uni_pagec9[i-6280];
+            }
+            if (wc != 0xfffd) {
+                return wc;
+            }
+        }
+    }
+    return 0;
+}
+
+#endif
+
 
 /// reads several characters from buffer
 int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
@@ -648,6 +676,88 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
         return count;
     }
 #endif
+#if BIG5_ENCODING_SUPPORT == 1
+    case ce_big5:
+    {
+        // based on ICONV code, gbk.h
+        for ( ; count < maxsize - 1; count++ ) {
+            lUInt16 ch = m_buf[m_buf_pos++];
+            lUInt16 res = 0;
+            /* Code set 0 (ASCII) */
+            if (ch < 0x80) {
+                res = ch;
+            } else if (ch >= 0x81 && ch < 0xff) {
+                /* Code set 1 (BIG5 extended) */
+                {
+                    if (m_buf_pos + 1 >= m_buf_len) {
+                        checkEof();
+                        return count;
+                    }
+                    lUInt16 ch2 = m_buf[m_buf_pos++];
+                    if ((ch2 >= 0x40 && ch2 < 0x7f) || (ch2 >= 0xa1 && ch2 < 0xff)) {
+                        if (ch >= 0xa1) {
+                            if (ch < 0xa3) {
+                                unsigned int i = 157 * (ch - 0xa1) + (ch2 - (ch2 >= 0xa1 ? 0x62 : 0x40));
+                                lChar16 wc = big5_2003_2uni_pagea1[i];
+                                if (wc != 0xfffd) {
+                                    res = wc;
+                                }
+                            }
+                            if (!((ch == 0xc6 && ch2 >= 0xa1) || ch == 0xc7)) {
+                                if (!(ch == 0xc2 && ch2 == 0x55)) {
+                                    res = cr3_big5_mbtowc(ch, ch2);
+                                    if (!res) {
+                                        if (ch == 0xa3) {
+                                            if (ch2 >= 0xc0 && ch2 <= 0xe1) {
+                                                res = (ch2 == 0xe1 ? 0x20ac : ch2 == 0xe0 ? 0x2421 : 0x2340 + ch2);
+                                            }
+                                        } else if (ch == 0xf9) {
+                                            if (ch2 >= 0xd6) {
+                                                res = big5_2003_2uni_pagef9[ch2-0xd6];
+                                            }
+                                        } else if (ch >= 0xfa) {
+                                            res = 0xe000 + 157 * (ch - 0xfa) + (ch2 - (ch2 >= 0xa1 ? 0x62 : 0x40));
+                                        }
+                                    }
+                                } else {
+                                    /* c == 0xc2 && c2 == 0x55. */
+                                    res = 0x5f5e;
+                                }
+                            } else {
+                                /* (c == 0xc6 && c2 >= 0xa1) || c == 0xc7. */
+                                unsigned int i = 157 * (ch - 0xc6) + (ch2 - (ch2 >= 0xa1 ? 0x62 : 0x40));
+                                if (i < 133) {
+                                    /* 63 <= i < 133. */
+                                    lChar16 wc = big5_2003_2uni_pagec6[i-63];
+                                    if (wc != 0xfffd) {
+                                        res = wc;
+                                    }
+                                } else if (i < 216) {
+                                    /* 133 <= i < 216. Hiragana. */
+                                    res = 0x3041 - 133 + i;
+                                } else if (i < 302) {
+                                    /* 216 <= i < 302. Katakana. */
+                                    res = 0x30a1 - 216 + i;
+                                }
+                            }
+                        } else {
+                            /* 0x81 <= c < 0xa1. */
+                            res = (ch >= 0x8e ? 0xdb18 : 0xeeb8) + 157 * (ch - 0x81)
+                                    + (ch2 - (ch2 >= 0xa1 ? 0x62 : 0x40));
+                        }
+                    }
+                }
+            }
+
+
+            if (res == 0)
+                res = '?'; // replace invalid chars with ?
+            buf[count] = res;
+        }
+        return count;
+    }
+#endif
+
     case ce_utf16_le:
         {
             for ( ; count<maxsize; count++ ) {
@@ -887,6 +997,11 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
         SetCharsetTable( NULL );
     } else if (m_encoding_name == L"euc-jisx0213" ||  m_encoding_name == L"euc-jis-2004" ||  m_encoding_name == L"euc-jis" ||  m_encoding_name == L"euc-jp" ||  m_encoding_name == L"eucjp") {
         m_enc_type = ce_euc_jis;
+        SetCharsetTable( NULL );
+#endif
+#if BIG5_ENCODING_SUPPORT == 1
+    } else if ( m_encoding_name == L"big5" || m_encoding_name == L"big5-2003" || m_encoding_name == L"big-5" || m_encoding_name == L"big-five" || m_encoding_name == L"bigfive" || m_encoding_name == L"cn-big5" || m_encoding_name == L"csbig5") {
+        m_enc_type = ce_big5;
         SetCharsetTable( NULL );
 #endif
     } else if ( m_encoding_name == L"utf-16le" ) {
