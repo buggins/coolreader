@@ -20,6 +20,9 @@
 #ifndef GBK_ENCODING_SUPPORT
 #define GBK_ENCODING_SUPPORT 1
 #endif
+#ifndef JIS_ENCODING_SUPPORT
+#define JIS_ENCODING_SUPPORT 1
+#endif
 
 enum char_encoding_type {
     ce_unknown = 0,
@@ -31,6 +34,10 @@ enum char_encoding_type {
     ce_8bit_cp = 6,
 #if GBK_ENCODING_SUPPORT == 1
     ce_gbk = 7,
+#endif
+#if JIS_ENCODING_SUPPORT == 1
+    ce_euc_jis = 8,
+    ce_shift_jis = 9,
 #endif
 };
 

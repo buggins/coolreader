@@ -15,15 +15,21 @@
 #include "../include/crtxtenc.h"
 #include "../include/fb2def.h"
 #include "../include/lvdocview.h"
-#if GBK_ENCODING_SUPPORT == 1
+
 typedef struct {
    unsigned short indx; /* index into big table */
    unsigned short used; /* bitmask of used entries */
 } Summary16;
+
+typedef unsigned int ucs4_t;
+#if GBK_ENCODING_SUPPORT == 1
 #include "../include/encodings/gbkext1.h"
 #include "../include/encodings/gbkext2.h"
 #include "../include/encodings/gb2312.h"
 #include "../include/encodings/cp936ext.h"
+#endif
+#if JIS_ENCODING_SUPPORT == 1
+#include "../include/encodings/jisx0213.h"
 #endif
 
 #define BUF_SIZE_INCREMENT 4096
@@ -268,6 +274,7 @@ void LVTextFileBase::checkEof()
         //m_buf_pos = m_buf_len = m_stream_size - (m_buf_fpos+m_buf_len);
 }
 
+#if GBK_ENCODING_SUPPORT == 1
 static lChar16 cr3_gb2312_mbtowc(const unsigned char *s)
 {
     unsigned char c1 = s[0];
@@ -329,6 +336,41 @@ static lChar16 cr3_gbkext2_mbtowc(lChar16 c1, lChar16 c2)
     }
     return 0;
 }
+#endif
+
+
+#if JIS_ENCODING_SUPPORT == 1
+static lChar16 cr3_jisx0213_to_ucs4(unsigned int row, unsigned int col)
+{
+    lChar16 val;
+
+    if (row >= 0x121 && row <= 0x17e)
+        row -= 289;
+    else if (row == 0x221)
+        row -= 451;
+    else if (row >= 0x223 && row <= 0x225)
+        row -= 452;
+    else if (row == 0x228)
+        row -= 454;
+    else if (row >= 0x22c && row <= 0x22f)
+        row -= 457;
+    else if (row >= 0x26e && row <= 0x27e)
+        row -= 519;
+    else
+        return 0x0000;
+
+    if (col >= 0x21 && col <= 0x7e)
+        col -= 0x21;
+    else
+        return 0x0000;
+
+    val = jisx0213_to_ucs_main[row * 94 + col];
+    val = jisx0213_to_ucs_pagestart[val >> 8] + (val & 0xff);
+    if (val == 0xfffd)
+        val = 0x0000;
+    return val;
+}
+#endif
 
 
 /// reads several characters from buffer
@@ -422,6 +464,7 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
             }
             return count;
         }
+
 #if GBK_ENCODING_SUPPORT == 1
     case ce_gbk:
     {
@@ -463,6 +506,80 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                     res = 0x2170 + (ch2 - 0xa1);
                 }
             }
+            if (res == 0)
+                res = '?'; // replace invalid chars with ?
+            buf[count] = res;
+        }
+        return count;
+    }
+#endif
+#if JIS_ENCODING_SUPPORT == 1
+    case ce_shift_jis:
+    {
+        // based on ICONV code, gbk.h
+        for ( ; count<maxsize; count++ ) {
+            lUInt16 ch = m_buf[m_buf_pos++];
+            lUInt16 res = 0;
+            if (ch < 0x80) {
+                /* Plain ISO646-JP character. */
+                if (ch == 0x5c)
+                    res = 0x00a5;
+                else if (ch == 0x7e)
+                    res = 0x203e;
+                else
+                    res = ch;
+            } else if (ch >= 0xa1 && ch <= 0xdf) {
+                res = ch + 0xfec0;
+            } else {
+                if ((ch >= 0x81 && ch <= 0x9f) || (ch >= 0xe0 && ch <= 0xfc)) {
+                    /* Two byte character. */
+                    if (m_buf_pos + 1 >= m_buf_len) {
+                        checkEof();
+                        return count;
+                    }
+                    lUInt16 ch2 = 0;
+                    ch2 = m_buf[m_buf_pos++];
+                    if ((ch2 >= 0x40 && ch2 <= 0x7e) || (ch2 >= 0x80 && ch2 <= 0xfc)) {
+                        lChar16 ch1;
+                        /* Convert to row and column. */
+                        if (ch < 0xe0)
+                            ch -= 0x81;
+                        else
+                            ch -= 0xc1;
+                        if (ch2 < 0x80)
+                            ch2 -= 0x40;
+                        else
+                            ch2 -= 0x41;
+                        /* Now 0 <= ch <= 0x3b, 0 <= ch2 <= 0xbb. */
+                        ch1 = 2 * ch;
+                        if (ch2 >= 0x5e)
+                            ch2 -= 0x5e, ch1++;
+                        ch2 += 0x21;
+                        if (ch1 >= 0x5e) {
+                            /* Handling of JISX 0213 plane 2 rows. */
+                            if (ch1 >= 0x67)
+                                ch1 += 230;
+                            else if (ch1 >= 0x63 || ch1 == 0x5f)
+                                ch1 += 168;
+                            else
+                                ch1 += 162;
+                        }
+                        lChar16 wc = cr3_jisx0213_to_ucs4(0x121+ch1, ch2);
+                        if (wc) {
+                            if (wc < 0x80) {
+                                /* It's a combining character. */
+                                lChar16 wc1 = jisx0213_to_ucs_combining[wc - 1][0];
+                                lChar16 wc2 = jisx0213_to_ucs_combining[wc - 1][1];
+                                buf[count++] = wc1;
+                                res = wc2;
+                            } else
+                                res = wc;
+                        }
+                    }
+                }
+            }
+
+
             if (res == 0)
                 res = '?'; // replace invalid chars with ?
             buf[count] = res;
@@ -701,6 +818,14 @@ void LVTextFileBase::SetCharset( const lChar16 * name )
 #if GBK_ENCODING_SUPPORT == 1
     } else if ( m_encoding_name == L"gbk" || m_encoding_name == L"cp936" || m_encoding_name == L"cp-936") {
         m_enc_type = ce_gbk;
+        SetCharsetTable( NULL );
+#endif
+#if JIS_ENCODING_SUPPORT == 1
+    } else if ( m_encoding_name == L"shift-jis" || m_encoding_name == L"shift_jis" || m_encoding_name == L"sjis" || m_encoding_name == L"ms_kanji" || m_encoding_name == L"csshiftjis" || m_encoding_name == L"shift_jisx0213" || m_encoding_name == L"shift_jis-2004") {
+        m_enc_type = ce_shift_jis;
+        SetCharsetTable( NULL );
+    } else if (m_encoding_name == L"euc-jisx0213" ||  m_encoding_name == L"euc-jis-2004" ||  m_encoding_name == L"euc-jis") {
+        m_enc_type = ce_euc_jis;
         SetCharsetTable( NULL );
 #endif
     } else if ( m_encoding_name == L"utf-16le" ) {
