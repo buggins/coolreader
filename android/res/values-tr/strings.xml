@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Ara</string>
@@ -262,7 +262,7 @@
     <string name="action_show_position_info">Açılır durum penceresi göster</string>
     <string name="action_show_dictionary">Sözlüğü göster</string>
     <string name="action_open_last_book">Önceki kitaba geçiş yap</string>
-    <string name="mi_catalog_edit"Yeni kütüphane</string>
+    <string name="mi_catalog_edit">Yeni kütüphane</string>
     <string name="mi_catalog_delete">Kütüphaneyi sil</string>
     <string name="mi_catalog_open">Kütüphane aç</string>
     <string name="menu_title_catalog">OPDS Catalog</string>
@@ -272,7 +272,7 @@
     <string name="dlg_catalog_add_title">Kütüphane ekle</string>
     <string name="options_format_min_space_width_percent">Minimum boşluk width %</string>
     <string name="options_selection_keep_selection_after_dictionary">Seçilen metni sözlük dışında da hatırla</string>
-    <string name="action_toggle_autoscroll">Otomatik sayfa akışı</string> m
+    <string name="action_toggle_autoscroll">Otomatik sayfa akışı</string>
     <string name="lbl_autoscroll_speed">Hız: $1 karakter/dakika</string>
     <string name="action_autoscroll_speed_increase">Sayfa akışını hızlandır</string>
     <string name="action_autoscroll_speed_decrease">Sayfa akışını yavaşlat</string>
@@ -351,4 +351,28 @@
     <string name="options_css_font_size_90p">Küçült (90%)</string>
     <string name="options_css_font_size_70p">Küçült (70%)</string>
     <string name="options_css_font_size_80p">Küçült (80%)</string>
+    <string name="options_app_backlight_timeout_6">6 minutes</string>
+    <string name="options_app_backlight_timeout_5">5 minutes</string>
+    <string name="options_app_backlight_timeout_4">4 minutes</string>
+    <string name="options_app_backlight_timeout_3">3 minutes</string>
+    <string name="options_app_backlight_timeout_2">2 minutes</string>
+    <string name="options_app_backlight_timeout_0">Use system default</string>
+    <string name="options_css_text_align_center">Center</string>
+    <string name="options_css_annotation">Annotation</string>
+    <string name="options_app_ui_theme_white">White</string>
+    <string name="mi_text_autoformat_enable">Enable text autoformat</string>
+    <string name="options_app_settings_icons">Icons in settings</string>
+    <string name="options_css_text_align_justify">Justify</string>
+    <string name="options_app_key_backlight_off">Turn off key backlight</string>
+    <string name="options_app_ui_theme_dark">Dark</string>
+    <string name="options_css_text_align_left">Left</string>
+    <string name="action_switch_settings_profile">Switch profile</string>
+    <string name="mi_text_autoformat_disable">Disable text autoformat</string>
+    <string name="options_app_ui_theme">Interface theme</string>
+    <string name="options_app_ui_theme_black">Black</string>
+    <string name="options_css_text_align_right">Right</string>
+    <string name="options_app_ui_theme_light">Light</string>
+    <string name="mi_catalog_add">New Catalog</string>
+    <string name="action_toggle_text_autoformat">Toggle text autoformat</string>
+    <string name="options_app_backlight_timeout">Screen backlight timeout</string>
 </resources>
