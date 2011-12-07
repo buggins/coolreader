@@ -2706,7 +2706,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         //
 	}
 	
-	public void setAppSettings( Properties newSettings, Properties oldSettings )
+	public void setAppSettings(Properties newSettings, Properties oldSettings)
 	{
 		log.v("setAppSettings() " + newSettings.toString());
 		BackgroundThread.ensureGUI();
@@ -2783,7 +2783,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( oldSettings==null )
 			oldSettings = mSettings;
 		final Properties currSettings = new Properties(oldSettings);
-		newSettings.remove(PROP_EMBEDDED_STYLES);
 		setAppSettings( newSettings, currSettings );
 		Properties changedSettings = newSettings.diff(currSettings);
 		currSettings.setAll(changedSettings);
@@ -4410,6 +4409,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			disableInternalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
 			disableTextAutoformat = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
 			profileNumber = mBookInfo.getFileInfo().getProfileId();
+			Properties oldSettings = new Properties(mSettings);
 			props = prepareProfileChange(profileNumber);
 	    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null )
 	    		pos = mBookInfo.getLastPosition().getStartPos();
@@ -4423,6 +4423,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("LoadDocumentTask : closing current book");
 	        close();
 	        if (props != null) {
+		        setAppSettings(props, oldSettings);
 	    		BackgroundThread.instance().executeBackground(new Runnable() {
 	    			@Override
 	    			public void run() {
@@ -5102,6 +5103,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	public void setCurrentProfile(int profile) {
+		Properties oldSettings = new Properties(mSettings);
 		final Properties props = prepareProfileChange(profile);
 		if (props == null)
 			return;
@@ -5110,6 +5112,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		mActivity.getDB().save(mBookInfo);
 		}
 		log.i("Apply new profile settings");
+		setAppSettings(props, oldSettings);
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
