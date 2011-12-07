@@ -214,66 +214,6 @@ lChar16 LVTextFileBase::ReadRtfChar( int, const lChar16 * conv_table )
     return ' ';
 }
 
-#if 0
-lChar16 LVTextFileBase::ReadChar()
-{
-    lUInt16 ch = m_buf[m_buf_pos++];
-    switch ( m_enc_type ) {
-    case ce_8bit_cp:
-    case ce_utf8:
-        if ( (ch & 0x80) == 0 )
-            return ch;
-        if (m_conv_table)
-        {
-            return m_conv_table[ch&0x7F];
-        }
-        else
-        {
-            // support only 11 and 16 bit UTF8 chars
-            if ( (ch & 0xE0) == 0xC0 )
-            {
-                // 11 bits
-                return ((lUInt16)(ch&0x1F)<<6)
-                    | ((lUInt16)m_buf[m_buf_pos++]&0x3F);
-            } else {
-                // 16 bits
-                ch = (ch&0x0F);
-                lUInt16 ch2 = (m_buf[m_buf_pos++]&0x3F);
-                lUInt16 ch3 = (m_buf[m_buf_pos++]&0x3F);
-                return (ch<<12) | (ch2<<6) | ch3;
-            }
-        }
-    case ce_utf16_be:
-        {
-            lUInt16 ch2 = m_buf[m_buf_pos++];
-            return (ch << 8) | ch2;
-        }
-    case ce_utf16_le:
-        {
-            lUInt16 ch2 = m_buf[m_buf_pos++];
-            return (ch2 << 8) | ch;
-        }
-    case ce_utf32_be:
-        // support 16 bits only
-        m_buf_pos++;
-        {
-            lUInt16 ch3 = m_buf[m_buf_pos++];
-            lUInt16 ch4 = m_buf[m_buf_pos++];
-            return (ch3 << 8) | ch4;
-        }
-    case ce_utf32_le:
-        // support 16 bits only
-        {
-            lUInt16 ch2 = m_buf[m_buf_pos++];
-            m_buf_pos+=2;
-            return (ch << 8) | ch2;
-        }
-    default:
-        return 0;
-    }
-}
-#endif
-
 void LVTextFileBase::checkEof()
 {
     if ( m_buf_fpos+m_buf_len >= this->m_stream_size-4 )
@@ -282,6 +222,7 @@ void LVTextFileBase::checkEof()
 }
 
 #if GBK_ENCODING_SUPPORT == 1
+// based on code from libiconv
 static lChar16 cr3_gb2312_mbtowc(const unsigned char *s)
 {
     unsigned char c1 = s[0];
@@ -301,6 +242,7 @@ static lChar16 cr3_gb2312_mbtowc(const unsigned char *s)
     return 0;
 }
 
+// based on code from libiconv
 static lChar16 cr3_cp936ext_mbtowc (const unsigned char *s)
 {
     unsigned char c1 = s[0];
@@ -320,6 +262,7 @@ static lChar16 cr3_cp936ext_mbtowc (const unsigned char *s)
     return 0;
 }
 
+// based on code from libiconv
 static lChar16 cr3_gbkext1_mbtowc (lChar16 c1, lChar16 c2)
 {
     if ((c1 >= 0x81 && c1 <= 0xa0)) {
@@ -332,6 +275,7 @@ static lChar16 cr3_gbkext1_mbtowc (lChar16 c1, lChar16 c2)
     return 0;
 }
 
+// based on code from libiconv
 static lChar16 cr3_gbkext2_mbtowc(lChar16 c1, lChar16 c2)
 {
     if ((c1 >= 0xa8 && c1 <= 0xfe)) {
@@ -345,8 +289,8 @@ static lChar16 cr3_gbkext2_mbtowc(lChar16 c1, lChar16 c2)
 }
 #endif
 
-
 #if JIS_ENCODING_SUPPORT == 1
+// based on code from libiconv
 static lChar16 cr3_jisx0213_to_ucs4(unsigned int row, unsigned int col)
 {
     lChar16 val;
@@ -380,6 +324,7 @@ static lChar16 cr3_jisx0213_to_ucs4(unsigned int row, unsigned int col)
 #endif
 
 #if BIG5_ENCODING_SUPPORT == 1
+// based on code from libiconv
 static lUInt16 cr3_big5_mbtowc(lChar16 c1, lChar16 c2)
 {
     if ((c1 >= 0xa1 && c1 <= 0xc7) || (c1 >= 0xc9 && c1 <= 0xf9)) {
@@ -402,7 +347,9 @@ static lUInt16 cr3_big5_mbtowc(lChar16 c1, lChar16 c2)
 }
 
 #endif
+
 #if EUC_KR_ENCODING_SUPPORT == 1
+// based on code from libiconv
 static lChar16 cr3_ksc5601_mbtowc(lChar16 c1, lChar16 c2)
 {
     if ((c1 >= 0x21 && c1 <= 0x2c) || (c1 >= 0x30 && c1 <= 0x48) || (c1 >= 0x4a && c1 <= 0x7d)) {
