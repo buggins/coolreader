@@ -857,6 +857,7 @@ public:
     /// Constructor
     PDBFile() {
         //_container.AddRef();
+        _bufIndex = -1;
     }
 
     /// Destructor
