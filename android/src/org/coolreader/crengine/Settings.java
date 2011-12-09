@@ -139,6 +139,8 @@ public interface Settings {
 	    PROP_NIGHT_MODE,
 	    "font.*",
 	    "crengine.page.*",
+	    PROP_FONT_SIZE,
+	    PROP_FALLBACK_FONT_FACE,
 	    PROP_INTERLINE_SPACE,
 	    PROP_STATUS_LINE,
 	    PROP_FOOTNOTES,
