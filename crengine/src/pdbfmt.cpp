@@ -373,6 +373,16 @@ static bool pattern_cmp( const lUInt8 * buf, const char * pattern ) {
 }
 
 class PDBFile : public LVNamedStream {
+public:
+    enum Format {
+        UNKNOWN,
+        PALMDOC,
+        EREADER,
+        PLUCKER,
+        MOBI,
+    };
+private:
+
     struct Record {
         lUInt32 offset;
         lUInt32 size;
@@ -381,13 +391,6 @@ class PDBFile : public LVNamedStream {
     };
     LVArray<Record> _records;
     LVStreamRef _stream;
-    enum Format {
-        UNKNOWN,
-        PALMDOC,
-        EREADER,
-        PLUCKER,
-        MOBI,
-    };
     Format _format;
     int _compression;
     lUInt32 _textSize;
@@ -854,6 +857,8 @@ public:
         return _pos>=_textSize;
     }
 
+    Format getFormat() { return _format; }
+
     /// Constructor
     PDBFile() {
         //_container.AddRef();
@@ -913,12 +918,13 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
         {
             ldomDocumentWriterFilter writerFilter(doc, false,
                     HTML_AUTOCLOSE_TABLE);
-
             LVHTMLParser parser(stream, &writerFilter);
             parser.setProgressCallback(progressCallback);
             if ( !parser.CheckFormat() ) {
                 return false;
             } else {
+                if (pdb->getFormat()==PDBFile::MOBI)
+                    parser.SetCharset(L"utf-8");
                 if (!parser.Parse()) {
                     return false;
                 }
