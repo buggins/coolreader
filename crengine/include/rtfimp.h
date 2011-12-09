@@ -162,6 +162,7 @@ public:
     virtual void OnAction( int action ) = 0;
     virtual void OnControlWord( const char * control, int param ) = 0;
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
+    virtual void SetCharsetTable(const lChar16 * table);
     virtual ~LVRtfDestination() { }
 };
 
@@ -181,7 +182,7 @@ public:
     {
         sp = 0;
         memset(props, 0, sizeof(props) );
-        props[pi_ansicpg].p = (void*)GetCharsetByte2UnicodeTable( 1251 ); //
+        props[pi_ansicpg].p = (void*)GetCharsetByte2UnicodeTable( 1254 ); //
     }
     ~LVRtfValueStack()
     {
@@ -259,14 +260,18 @@ public:
             stack[sp].index = index;
             if ( index==pi_ansicpg ) {
                 stack[sp++].value.p = props[index].p;
-                props[index].p = (void*)GetCharsetByte2UnicodeTable( value );
+                const lChar16 * table = GetCharsetByte2UnicodeTable( value );
+                props[index].p = (void*)table;
+                //this->getDestination()->SetCharsetTable(table);
             } else {
                 stack[sp++].value.i = props[index].i;
                 props[index].i = value;
-                if ( index==pi_lang ) {
-                    set( pi_ansicpg, langToCodepage( value ) );
-                } else if ( index==pi_deflang ) {
-                    set( pi_ansicpg, langToCodepage( value ) );
+                if (value != 1024 && value != 0) {
+                    if ( index==pi_lang ) {
+                        set( pi_ansicpg, langToCodepage( value ) );
+                    } else if ( index==pi_deflang ) {
+                        set( pi_ansicpg, langToCodepage( value ) );
+                    }
                 }
             }
         }
@@ -324,6 +329,10 @@ public:
             } else {
                 sp--;
                 props[i] = stack[sp].value;
+//                if (i == pi_ansicpg) {
+//                    const lChar16 * table = (const lChar16 *)props[i].p;
+//                    this->getDestination()->SetCharsetTable(table);
+//                }
             }
         }
         return !error;

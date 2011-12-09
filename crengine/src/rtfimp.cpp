@@ -70,6 +70,10 @@ static const rtf_control_word * findControlWord( const char * name )
     }
 }
 
+void LVRtfDestination::SetCharsetTable(const lChar16 * table) {
+    m_parser.SetCharsetTable(table);
+}
+
 class LVRtfDefDestination : public LVRtfDestination
 {
 protected:
