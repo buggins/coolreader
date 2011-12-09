@@ -757,7 +757,7 @@ public class CoolReader extends Activity
         }
     }
 
-    private final static int MIN_BACKLIGHT_LEVEL_PERCENT = 12;
+    private final static int MIN_BACKLIGHT_LEVEL_PERCENT = 16;
     
     public void onUserActivity()
     {

@@ -149,7 +149,7 @@ public class CRDB {
 		")"
 	};
 	
-	public final int DB_VERSION = 7;
+	public final int DB_VERSION = 8;
 	protected boolean updateSchema()
 	{
 		if (DROP_TABLES)
@@ -241,6 +241,8 @@ public class CRDB {
 					")");
 		if ( currentVersion<7 )
 			addOPDSCatalogs(DEF_OPDS_URLS1);
+		if ( currentVersion<8 )
+			addOPDSCatalogs(DEF_OPDS_URLS2);
 		// TODO: add more updates here
 			
 		// set current version
@@ -259,6 +261,10 @@ public class CRDB {
 			"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
 			"http://flibusta.net/opds/", "Flibusta", 
 	};
+
+	private final static String[] DEF_OPDS_URLS2 = {
+		"http://www.shucang.com/s/index.php", "ShuCang.com",
+    };
 
 	private void addOPDSCatalogs(String[] catalogs) {
 		for (int i=0; i<catalogs.length-1; i+=2) {
