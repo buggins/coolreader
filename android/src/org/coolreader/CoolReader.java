@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
-import java.util.Map;
-import java.util.Set;
 
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
@@ -32,6 +30,7 @@ import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Settings;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
+import org.coolreader.crengine.ToastView;
 import org.coolreader.crengine.Utils;
 
 import android.app.Activity;
@@ -1213,24 +1212,29 @@ public class CoolReader extends Activity
 	    return true;
 	}
 
-	public void showToast( int stringResourceId )
-	{
-		String s = getString(stringResourceId);
-		if ( s!=null )
-			showToast(s);
+	public void showToast(int stringResourceId) {
+		showToast(stringResourceId, Toast.LENGTH_LONG);
 	}
 
-	public void showToast( String msg )
-	{
-        log.v("showing toast: " + msg);
-        // TODO: enable custom toast
-//        if (DeviceInfo.EINK_NOOK) {
-//            ToastView.showToast(mReaderView, msg, Toast.LENGTH_LONG);
-//        } else {
-            //classic Toast
-            Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
-            toast.show();
-//        }
+	public void showToast(int stringResourceId, int duration) {
+		String s = getString(stringResourceId);
+		if (s != null)
+			showToast(s, duration);
+	}
+
+	public void showToast(String msg) {
+		showToast(msg, Toast.LENGTH_LONG);
+	}
+
+	public void showToast(String msg, int duration) {
+		log.v("showing toast: " + msg);
+		if (DeviceInfo.USE_CUSTOM_TOAST) {
+			ToastView.showToast(mReaderView, msg, Toast.LENGTH_LONG);
+		} else {
+			// classic Toast
+			Toast toast = Toast.makeText(this, msg, duration);
+			toast.show();
+		}
 	}
 
 	public interface InputHandler {

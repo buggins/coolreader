@@ -16,6 +16,7 @@ public class DeviceInfo {
 	public final static boolean FORCE_LIGHT_THEME;
 	public final static boolean EINK_SONY;
 	public final static boolean SONY_NAVIGATION_KEYS;
+	public final static boolean USE_CUSTOM_TOAST;
 	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
@@ -32,6 +33,7 @@ public class DeviceInfo {
 		SONY_NAVIGATION_KEYS = EINK_SONY;
 		EINK_SCREEN_UPDATE_MODES_SUPPORTED = EINK_SCREEN && EINK_NOOK; // TODO: add autodetect
 		FORCE_LIGHT_THEME = EINK_SCREEN;
+		USE_CUSTOM_TOAST = EINK_SCREEN;
 	}
 	
 	private static String getBuildField(String fieldName) {

@@ -79,10 +79,9 @@ public class ToastView {
         ll.setGravity(Gravity.CENTER);
         ll.addView(tv);*/
         LayoutInflater inflater = (LayoutInflater) t.anchor.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        // TODO: uncomment this
-//        window.setContentView(inflater.inflate(R.layout.custom_toast, null, true));
-//        TextView tv = (TextView) window.getContentView().findViewById(R.id.toast);
-//        tv.setText(t.msg);
+        window.setContentView(inflater.inflate(R.layout.custom_toast, null, true));
+        TextView tv = (TextView) window.getContentView().findViewById(R.id.toast);
+        tv.setText(t.msg);
         window.showAtLocation(t.anchor, Gravity.NO_GRAVITY, 0, 0);
         mHandler.postDelayed(handleDismiss, t.duration == 0 ? 2000 : 3000);
     }
