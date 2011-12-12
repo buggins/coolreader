@@ -692,13 +692,14 @@ public class CoolReader extends Activity
     	return (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
     }
     
-    private boolean keyBacklightControlOff = true;
+    private boolean keyBacklightOff = true;
     public boolean isKeyBacklightDisabled() {
-    	return keyBacklightControlOff;
+    	return keyBacklightOff;
     }
     
     public void setKeyBacklightDisabled(boolean disabled) {
-    	keyBacklightControlOff = disabled;
+    	keyBacklightOff = disabled;
+    	onUserActivity();
     }
     
     public void setScreenBacklightLevel( int percent )
@@ -734,15 +735,16 @@ public class CoolReader extends Activity
 	    		changed = true;
 	    	}
 	    	// hack to set buttonBrightness field
-	    	if (!brightnessHackError && keyBacklightControlOff)
+	    	float buttonBrightness = keyBacklightOff ? 0.0f : -1.0f;
+	    	if (!brightnessHackError)
 	    	try {
 	        	Field bb = attrs.getClass().getField("buttonBrightness");
 	        	if ( bb!=null ) {
-	        		//Float oldValue = (Float)bb.get(attrs);
-	        		//if ( oldValue==null || oldValue.floatValue()!=0 ) {
-	        			bb.set(attrs, Float.valueOf(0.0f));
+	        		Float oldValue = (Float)bb.get(attrs);
+	        		if ( oldValue==null || oldValue.floatValue()!=0 ) {
+	        			bb.set(attrs, buttonBrightness);
 		        		changed = true;
-	        		//}
+	        		}
 	        	}
 	    	} catch ( Exception e ) {
 	    		log.e("WindowManager.LayoutParams.buttonBrightness field is not found, cannot turn buttons backlight off");
@@ -756,7 +758,7 @@ public class CoolReader extends Activity
         }
     }
 
-    private final static int MIN_BACKLIGHT_LEVEL_PERCENT = 16;
+    private final static int MIN_BACKLIGHT_LEVEL_PERCENT = DeviceInfo.AMOLED_SCREEN ? 2 : 16;
     
     public void onUserActivity()
     {

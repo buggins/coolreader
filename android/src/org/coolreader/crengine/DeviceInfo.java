@@ -17,13 +17,16 @@ public class DeviceInfo {
 	public final static boolean EINK_SONY;
 	public final static boolean SONY_NAVIGATION_KEYS;
 	public final static boolean USE_CUSTOM_TOAST;
+	public final static boolean AMOLED_SCREEN;
 	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
 		MODEL = getBuildField("MODEL");
 		DEVICE = getBuildField("DEVICE");
 		SAMSUNG_BUTTONS_HIGHLIGHT_PATCH = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
-		               (MODEL.contentEquals("GT-S5830") || MODEL.contentEquals("GT-S5660")); // More models?
+		        (MODEL.contentEquals("GT-S5830") || MODEL.contentEquals("GT-S5660")); // More models?
+		AMOLED_SCREEN = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
+        		(MODEL.toLowerCase().startsWith("gt-i")); // AMOLED screens: GT-IXXXX
 		EINK_NOOK = MANUFACTURER.toLowerCase().contentEquals("barnesandnoble") && MODEL.contentEquals("NOOK") &&
 				DEVICE.toLowerCase().contentEquals("zoom2");
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.contentEquals("PRS-T1");
