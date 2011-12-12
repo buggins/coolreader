@@ -4345,15 +4345,15 @@ private:
                             bytesRead += 2;
                         }
                         // stop!!!
-                        m_text_pos--;
+                        //m_text_pos--;
+                        m_iteration = 0;
                         flgEof = true;
                         break;
                     }
                     else
                     {
                         int k = base64_decode_table[ch];
-                        if ( !(k & 0x80) )
-                        {
+                        if ( !(k & 0x80) ) {
                             // next base-64 digit
                             m_value = (m_value << 6) | (k);
                             m_iteration++;
@@ -4367,6 +4367,8 @@ private:
                                 m_value = 0;
                                 bytesRead+=3;
                             }
+                        } else {
+                            //m_text_pos++;
                         }
                     }
                 }
