@@ -331,7 +331,7 @@
     <string name="options_css_text_indent_big_outdent">Büyük çıkıntı</string>
     <string name="options_css_font_face_sans_serif">[Varsayılan sans-serif font]</string>
     <string name="options_css_margin_05em">0.5 satır yükselt</string>
-    <string name="options_css_margin_10p">10% satır genişlet/string>
+    <string name="options_css_margin_10p">10% satır genişlet</string>
     <string name="options_css_margin_20p">20% satır genişlet</string>
     <string name="options_css_margin_30p">30% satır genişlet</string>
     <string name="options_css_margin_0">0</string>
@@ -366,7 +366,7 @@
     <string name="options_app_ui_theme_light">Aydınlık</string>
     <string name="options_css_text_align_center">Ortala</string>
     <string name="options_css_text_align_justify">İki yana yasla</string>
-    <string name="options_css_text_align_left">Sola yasla/string>
+    <string name="options_css_text_align_left">Sola yasla</string>
     <string name="options_css_text_align_right">Sağa yasla</string>
     <string name="action_switch_settings_profile">Profili değiştir</string>
     <string name="options_app_settings_icons">Ayar ikonları</string>
