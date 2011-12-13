@@ -87,6 +87,16 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isLink
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationInternal
   (JNIEnv *, jclass);
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setKeyBacklightInternal
+ * Signature: (I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightInternal
+  (JNIEnv *, jobject, jint);
+
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -483,6 +483,24 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationI
 	_timeoutControl.cancel();
 }
 
+
+#define BUTTON_BACKLIGHT_CONTROL_PATH "/sys/class/leds/button-backlight/brightness"
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setKeyBacklightInternal
+ * Signature: (I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightInternal
+  (JNIEnv *, jobject, jint n)
+{
+	FILE * f = fopen(BUTTON_BACKLIGHT_CONTROL_PATH, "wb");
+	if (!f)
+		return JNI_FALSE;
+	fwrite(n ? "1" : "0", 1, 1, f);
+	fclose(f);
+	return JNI_TRUE;
+}
+
 //=====================================================================
 
 static JNINativeMethod sEngineMethods[] = {
@@ -496,6 +514,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
   {"isLink", "(Ljava/lang/String;)Z", (void*)JNICALL Java_org_coolreader_crengine_Engine_isLink},
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},
+  {"setKeyBacklightInternal", "(I)Z", (void*)Java_org_coolreader_crengine_Engine_setKeyBacklightInternal},
 };
 
 

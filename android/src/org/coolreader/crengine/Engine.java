@@ -582,6 +582,8 @@ public class Engine {
 																		// pathname,
 																		// size
 
+	private native boolean setKeyBacklightInternal(int value);
+
 	private native boolean setCacheDirectoryInternal(String dir, int size);
 
 	private native boolean scanBookPropertiesInternal(FileInfo info);
@@ -748,6 +750,10 @@ public class Engine {
 		return getFontFaceListInternal();
 	}
 
+	public boolean setKeyBacklight(int value) {
+		return setKeyBacklightInternal(value);
+	}
+	
 	final static int CACHE_DIR_SIZE = 32000000;
 
 	private String createCacheDir(File baseDir, String subDir) {

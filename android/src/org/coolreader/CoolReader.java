@@ -715,7 +715,26 @@ public class CoolReader extends Activity
     private int screenBacklightBrightness = -1; // use default
     //private boolean brightnessHackError = false;
     private boolean brightnessHackError = false;
-    	    
+
+    private void turnOffKeyBacklight() {
+    	if (!isStarted())
+    		return;
+    	// repeat again in short interval
+    	if (!mEngine.setKeyBacklight(0)) {
+    		log.w("Cannot control key backlight directly");
+    		return;
+    	}
+    	// repeat again in short interval
+    	BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+		    	if (!isStarted())
+		    		return;
+		    	if (!mEngine.setKeyBacklight(0))
+		    		log.w("Cannot control key backlight directly (delayed)");
+			} }, 10);
+    }
+    
     private void updateBacklightBrightness(float b) {
         Window wnd = getWindow();
         if (wnd != null) {
@@ -755,6 +774,8 @@ public class CoolReader extends Activity
 	    		log.d("Window attribute changed: " + attrs);
 	    		wnd.setAttributes(attrs);
 	    	}
+	    	if (keyBacklightOff)
+	    		turnOffKeyBacklight();
         }
     }
 
