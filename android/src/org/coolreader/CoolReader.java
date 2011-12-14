@@ -725,14 +725,17 @@ public class CoolReader extends Activity
     		return;
     	}
     	// repeat again in short interval
-    	BackgroundThread.instance().postGUI(new Runnable() {
+    	Runnable task = new Runnable() {
 			@Override
 			public void run() {
 		    	if (!isStarted())
 		    		return;
 		    	if (!mEngine.setKeyBacklight(0))
 		    		log.w("Cannot control key backlight directly (delayed)");
-			} }, 10);
+			}
+		};
+		BackgroundThread.instance().postGUI(task, 1);
+		BackgroundThread.instance().postGUI(task, 10);
     }
     
     private void updateBacklightBrightness(float b) {

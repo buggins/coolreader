@@ -952,6 +952,21 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_doCommandInterna
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    isRenderedInternal
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isRenderedInternal
+(JNIEnv *_env, jobject _this)
+{
+	CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, _this);
+	if ( !p->_docview->isDocumentOpened() )
+		return JNI_FALSE;
+	return p->_docview->IsRendered() ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getCurrentPageBookmarkInternal
  * Signature: ()Lorg/coolreader/crengine/Bookmark;
  */

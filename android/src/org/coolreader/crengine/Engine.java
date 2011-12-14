@@ -612,7 +612,10 @@ public class Engine {
 
 	public ArrayList<ZipEntry> getArchiveItems(String zipFileName) {
 		final int itemsPerEntry = 2;
-		String[] in = getArchiveItemsInternal(zipFileName);
+		String[] in;
+		synchronized(this) {
+		    in = getArchiveItemsInternal(zipFileName);
+		}
 		ArrayList<ZipEntry> list = new ArrayList<ZipEntry>();
 		for (int i = 0; i <= in.length - itemsPerEntry; i += itemsPerEntry) {
 			ZipEntry e = new ZipEntry(in[i]);
@@ -741,16 +744,21 @@ public class Engine {
 	public boolean scanBookProperties(FileInfo info) {
 		if (!initialized)
 			throw new IllegalStateException("CREngine is not initialized");
-		return scanBookPropertiesInternal(info);
+		synchronized(this) {
+			return scanBookPropertiesInternal(info);
+		}
 	}
 
 	public String[] getFontFaceList() {
 		if (!initialized)
 			throw new IllegalStateException("CREngine is not initialized");
-		return getFontFaceListInternal();
+		synchronized(this) {
+			return getFontFaceListInternal();
+		}
 	}
 
 	public boolean setKeyBacklight(int value) {
+		// thread safe
 		return setKeyBacklightInternal(value);
 	}
 	
@@ -893,7 +901,9 @@ public class Engine {
 		if (cacheDirName != null) {
 			log.i(cacheDirName
 					+ " will be used for cache, maxCacheSize=" + CACHE_DIR_SIZE);
-			setCacheDirectoryInternal(cacheDirName, CACHE_DIR_SIZE);
+			synchronized(this) {
+				setCacheDirectoryInternal(cacheDirName, CACHE_DIR_SIZE);
+			}
 		}
 	}
 
@@ -1000,8 +1010,10 @@ public class Engine {
 			throw new IllegalStateException("Already initialized");
 		String[] fonts = findFonts();
 		findExternalHyphDictionaries();
-		if (!initInternal(fonts))
-			throw new IOException("Cannot initialize CREngine JNI");
+		synchronized(this) {
+			if (!initInternal(fonts))
+				throw new IOException("Cannot initialize CREngine JNI");
+		}
 		// Initialization of cache directory
 		initCacheDirectory();
 		initialized = true;
@@ -1026,7 +1038,9 @@ public class Engine {
 			public void run() {
 				log.i("Engine.uninit() : in background thread");
 				if (initialized) {
-					uninitInternal();
+					synchronized(this) {
+						uninitInternal();
+					}
 					initialized = false;
 				}
 			}

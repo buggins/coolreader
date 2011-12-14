@@ -57,8 +57,11 @@ public class BookInfo {
 	public void setLastPosition( Bookmark position )
 	{
 		synchronized (this) {
-			if ( lastPosition!=null )
+			if ( lastPosition!=null ) {
+				if (position.getStartPos()!=null && position.getStartPos().equals(lastPosition.getStartPos()))
+					return; // not changed
 				position.setId(lastPosition.getId());
+			}
 			lastPosition = position;
 			lastPosition.setModified(true);
 			fileInfo.lastAccessTime = lastPosition.getTimeStamp();

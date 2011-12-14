@@ -1624,6 +1624,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (removed != null) {
 			if ( removed.getId()!=null ) {
 				mActivity.getDB().deleteBookmark(removed);
+				mActivity.getDB().flush();
 			}
 			highlightBookmarks();
 		}
@@ -1633,8 +1634,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public Bookmark updateBookmark(final Bookmark bookmark) {
 		Bookmark bm = mBookInfo.updateBookmark(bookmark);
 		if (bm != null) {
-			if (mBookInfo.getFileInfo().id != null)
+			if (mBookInfo.getFileInfo().id != null) {
 				mActivity.getDB().save(mBookInfo);
+				mActivity.getDB().flush();
+			} else {
+		        scheduleSaveCurrentPositionBookmark(10000);
+			}
 	        highlightBookmarks();
 		}
 		return bm;
@@ -1643,7 +1648,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void addBookmark(final Bookmark bookmark) {
 		mBookInfo.addBookmark(bookmark);
         highlightBookmarks();
-	}
+        scheduleSaveCurrentPositionBookmark(10000);
+    }
 	
 	public void addBookmark( final int shortcut )
 	{
@@ -1674,6 +1680,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					}
 			        highlightBookmarks();
 					mActivity.showToast(s);
+			        scheduleSaveCurrentPositionBookmark(10000);
 				}
 			}
 		});
@@ -2488,6 +2495,27 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void done() {
 				if ( res )
 					drawPage( doneHandler, false );
+				switch (cmd) {
+					case DCMD_BEGIN:
+					case DCMD_LINEUP:
+					case DCMD_PAGEUP:
+					case DCMD_PAGEDOWN:
+					case DCMD_LINEDOWN:
+					case DCMD_LINK_FORWARD:
+					case DCMD_LINK_BACK:
+					case DCMD_LINK_NEXT:
+					case DCMD_LINK_PREV:
+					case DCMD_LINK_GO:
+					case DCMD_END:
+					case DCMD_GO_POS:
+					case DCMD_GO_PAGE:
+					case DCMD_MOVE_BY_CHAPTER:
+					case DCMD_GO_SCROLL_POS:
+					case DCMD_LINK_FIRST:
+					case DCMD_SCROLL_BY:
+			    		scheduleSaveCurrentPositionBookmark(10000);
+						break;
+				}
 			}
 		});
 	}
@@ -3647,6 +3675,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void close()
 		{
 			currentAnimation = null;
+			scheduleSaveCurrentPositionBookmark(10000);
 			scheduleGc();
 		}
 
@@ -4361,6 +4390,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( !mInitialized || !mOpened )
 			return;
 		log.v("drawPage() : submitting DrawPageTask");
+		scheduleSaveCurrentPositionBookmark(10000);
 		post( new DrawPageTask(doneHandler, isPartially) );
 	}
 	
@@ -4676,7 +4706,32 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //    	}
 //    }
     
-    public Bookmark saveCurrentPositionBookmarkSync( boolean saveToDB ) {
+    private int lastSavePositionTaskId = 0;
+    
+    private void scheduleSaveCurrentPositionBookmark(int delayMillis) {
+    	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
+    	// update position, don't save to DB
+    	saveCurrentPositionBookmarkSync(false);
+    	BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				if (mylastSavePositionTaskId == lastSavePositionTaskId) {
+					if (mBookInfo != null) {
+				    	Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
+				    	if (bmk != null) {
+				            bmk.setTimeStamp(System.currentTimeMillis());
+				            bmk.setType(Bookmark.TYPE_LAST_POSITION);
+			                mBookInfo.setLastPosition(bmk);
+				    	}
+		                mActivity.getDB().save(mBookInfo);
+		                mActivity.getDB().flush();
+					}
+				}
+			}}, delayMillis);
+    }
+    
+    public Bookmark saveCurrentPositionBookmarkSync( final boolean saveToDB ) {
+    	++lastSavePositionTaskId;
         Bookmark bmk = mBackThread.callBackground(new Callable<Bookmark>() {
             @Override
             public Bookmark call() throws Exception {
@@ -5213,7 +5268,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread, Properties props ) 
     {
         super(activity);
-        doc = new DocView();
+        doc = new DocView(engine);
         doc.setReaderCallback(readerCallback);
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
