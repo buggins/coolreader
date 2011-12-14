@@ -85,6 +85,8 @@ public class ReaderAction {
 	public final static ReaderAction AUTOSCROLL_SPEED_DECREASE = new ReaderAction("AUTOSCROLL_SPEED_DECREASE", R.string.action_autoscroll_speed_decrease, ReaderCommand.DCMD_AUTOSCROLL_SPEED_DECREASE, 0);
 	public final static ReaderAction START_SELECTION = new ReaderAction("START_SELECTION", R.string.action_toggle_selection_mode, ReaderCommand.DCMD_START_SELECTION, 0);
 	public final static ReaderAction SWITCH_PROFILE = new ReaderAction("SWITCH_PROFILE", R.string.action_switch_settings_profile, ReaderCommand.DCMD_SWITCH_PROFILE, 0);
+	public final static ReaderAction NEXT_CHAPTER = new ReaderAction("NEXT_CHAPTER", R.string.action_chapter_next, ReaderCommand.DCMD_MOVE_BY_CHAPTER, 1);
+	public final static ReaderAction PREV_CHAPTER = new ReaderAction("PREV_CHAPTER", R.string.action_chapter_prev, ReaderCommand.DCMD_MOVE_BY_CHAPTER, -1);
 	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit );
 	
 	
@@ -96,6 +98,8 @@ public class ReaderAction {
 		PAGE_UP_10,
 		FIRST_PAGE,
 		LAST_PAGE,
+		NEXT_CHAPTER,
+		PREV_CHAPTER,
 		TOC,
 		GO_PAGE,
 		GO_PERCENT,

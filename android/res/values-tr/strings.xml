@@ -374,4 +374,6 @@
     <string name="mi_text_autoformat_disable">Otomatik metin biçimi devre dışı</string>
     <string name="action_toggle_text_autoformat">Otomatik metin biçimini değiştir</string>
     <string name="options_app_key_backlight_off">Işık kapama düğmesi</string>
+    <string name="action_chapter_next">Next chapter</string>
+    <string name="action_chapter_prev">Previous chapter</string>
 </resources>

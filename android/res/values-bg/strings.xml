@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Търсене</string>
@@ -373,4 +373,6 @@
     <string name="mi_text_autoformat_enable">Разрешаване автоформатирането на текста</string>
     <string name="mi_text_autoformat_disable">Забраняване автоформатирането на текста</string>
     <string name="action_toggle_text_autoformat">Превключване автоформатирането на текста</string>
+    <string name="action_chapter_next">Next chapter</string>
+    <string name="action_chapter_prev">Previous chapter</string>
 </resources>

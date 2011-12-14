@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Search</string>
@@ -373,5 +373,7 @@
     <string name="mi_text_autoformat_enable">Enable text autoformat</string>
     <string name="mi_text_autoformat_disable">Disable text autoformat</string>
     <string name="action_toggle_text_autoformat">Toggle text autoformat</string>
-<string name="options_app_key_backlight_off">Turn off key backlight</string>
+    <string name="options_app_key_backlight_off">Turn off key backlight</string>
+    <string name="action_chapter_next">Next chapter</string>
+    <string name="action_chapter_prev">Previous chapter</string>
 </resources>
