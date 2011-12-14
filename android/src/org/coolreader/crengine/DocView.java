@@ -129,8 +129,6 @@ public class DocView {
 	 * @return
 	 */
 	public boolean applySettings(java.util.Properties settings) {
-		settings.remove(Settings.PROP_EMBEDDED_STYLES);
-		settings.remove(Settings.PROP_TXT_OPTION_PREFORMATTED);
 		return applySettingsInternal(settings);
 	}
 

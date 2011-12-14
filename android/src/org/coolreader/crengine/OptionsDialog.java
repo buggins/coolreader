@@ -1788,8 +1788,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if (mProperties.getBool(PROP_EMBEDDED_STYLES, true) != mReaderView.getDocumentStylesEnabled()) {
 			mReaderView.toggleDocumentStyles();
 		}
-		mProperties.remove(PROP_EMBEDDED_STYLES);
-		mProperties.remove(PROP_TXT_OPTION_PREFORMATTED);
         mReaderView.setSettings(mProperties, mOldProperties);
 	}
 	

@@ -1,6 +1,8 @@
 package org.coolreader.crengine;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class Properties extends java.util.Properties {
@@ -124,4 +126,15 @@ public class Properties extends java.util.Properties {
 		return super.setProperty(name, value);
 	}
 
+	@Override
+	public synchronized Object remove(Object key) {
+		return super.remove(key);
+	}
+
+	@Override
+	public synchronized Set<java.util.Map.Entry<Object, Object>> entrySet() {
+		Set<java.util.Map.Entry<Object, Object>> res = new HashSet<java.util.Map.Entry<Object, Object>>();
+		res.addAll(super.entrySet());
+		return res;
+	}
 }

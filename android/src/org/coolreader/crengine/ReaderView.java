@@ -2523,14 +2523,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureBackground();
 		log.v("applySettings() " + props);
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false );
-		props.remove(PROP_EMBEDDED_STYLES);
-		props.remove(PROP_TXT_OPTION_PREFORMATTED);
 		props.setBool(PROP_SHOW_BATTERY, isFullScreen); 
 		props.setBool(PROP_SHOW_TIME, isFullScreen);
 		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
 		if ( backgroundImageId!=null )
 			setBackgroundTexture(backgroundImageId);
-		props.remove(PROP_EMBEDDED_STYLES);
 		doc.applySettings(props);
         syncViewSettings(props, save);
         drawPage();
@@ -2561,7 +2558,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				BackgroundThread.ensureBackground();
 				java.util.Properties internalProps = doc.getSettings(); 
 				props = new Properties(internalProps);
-				props.remove(PROP_EMBEDDED_STYLES);
 			}
 			public void done() {
 				Properties changedSettings = props.diff(currSettings);
