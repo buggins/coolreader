@@ -134,7 +134,7 @@
     <string name="options_page_titlebar_font_face">Font face</string>
     <string name="options_page_titlebar_font_color">Font color</string>
     <string name="options_page_show_titlebar_title">Show book title</string>
-    <string name="options_app_tapzone_hilite">Hilight tap zone on tap</string>
+    <string name="options_app_tapzone_hilite">Highlight tap zone on tap</string>
     <string name="options_page_animation_paperbook">Paperbook</string>
     <string name="options_page_animation_none">No animation</string>
     <string name="options_page_animation_slide">Slide</string>
