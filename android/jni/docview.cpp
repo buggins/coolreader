@@ -858,7 +858,8 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_applySettingsInt
 	lUInt32 oldStatusColor = oldProps->getColorDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
 	lUInt32 newStatusColor = props->getColorDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
 	//CRLog::debug("Text colors: %x->%x, %x->%x", oldTextColor, newTextColor, oldStatusColor, newStatusColor);
-	p->_docview->propsApply( props );
+	CRPropRef diff = oldProps ^ props;
+	CRPropRef unknown = p->_docview->propsApply(diff);
 	lUInt32 batteryColor = newStatusColor;
 	if ( batteryColor==0xFF000000 )
 		batteryColor = newTextColor;
@@ -869,6 +870,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_applySettingsInt
 	    p->_docview->setBatteryIcons( icons );
 		//CRLog::debug("Setting list of Battery icon bitmats - done");
 	}
+	CRLog::trace("DocView_applySettingsInternal - done");
     return JNI_TRUE;
 }
 #if 0
@@ -929,6 +931,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_resizeInternal
     DocViewNative * p = getNative(_env, _this);
 	DocViewCallback callback( _env, p->_docview, _this );
     p->_docview->Resize(dx, dy);
+    //p->_docview->checkRender();
     CRLog::trace("resizeInternal() is finished");
 }  
   

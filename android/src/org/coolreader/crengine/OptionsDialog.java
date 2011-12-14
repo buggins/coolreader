@@ -1804,8 +1804,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 	@Override
 	protected void onStop() {
-		L.d("OptionsDialog.onStop() : calling gc()");
-		System.gc();
+		//L.d("OptionsDialog.onStop() : calling gc()");
+		//System.gc();
 		super.onStop();
 	}
 

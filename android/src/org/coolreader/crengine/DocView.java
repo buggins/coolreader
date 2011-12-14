@@ -213,9 +213,9 @@ public class DocView {
 	 * @return bookmark for current page, null if cannot be determined fast
 	 */
 	public Bookmark getCurrentPageBookmarkNoRender() {
+		if (!isRenderedInternal())
+			return null;
 		synchronized(mutex) {
-			if (!isRenderedInternal())
-				return null;
 			return getCurrentPageBookmarkInternal();
 		}
 	}
@@ -225,9 +225,8 @@ public class DocView {
 	 * @return true if document is rendered, and e.g. retrieving of page image will not cause long activity (formatting etc.)
 	 */
 	public boolean isRendered() {
-		synchronized(mutex) {
-			return isRenderedInternal();
-		}
+		// thread safe
+		return isRenderedInternal();
 	}
 
 	/**

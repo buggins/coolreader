@@ -306,14 +306,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    			}
 	    			public void done() {
 	    				clearImageCache();
-	    				invalidate();
+	    				drawPage(null, false);
+	    				//redraw();
 	    			}
 	    		});
 	    	}
 	    };
 	    if ( mOpened ) {
 	    	log.d("scheduling delayed resize task id="+thisId);
-	    	BackgroundThread.instance().postGUI( task, 1500);
+	    	BackgroundThread.instance().postGUI( task, 500);
 	    } else {
 	    	log.d("executing resize without delay");
 	    	task.run();
@@ -2224,7 +2225,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				@Override
 				public void run() {
 					donePageTurn(wantPageTurn());
-					redraw();
+					//redraw();
+					drawPage(null, false);
 				}
 			});
 			scheduleGc();
@@ -2322,11 +2324,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private void redraw() {
+		//BackgroundThread.instance().executeBackground(new Runnable() {
 		BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
 			public void run() {
 				invalidate();
 				invalidImages = true;
+				//preparePageImage(0);
 				draw();
 			}
 		});
@@ -2548,6 +2552,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private void applySettings( Properties props, boolean save )
 	{
+		props = new Properties(props); // make a copy
+		props.remove(PROP_TXT_OPTION_PREFORMATTED);
+		props.remove(PROP_EMBEDDED_STYLES);
 		BackgroundThread.ensureBackground();
 		log.v("applySettings() " + props);
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false );
@@ -3113,6 +3120,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			internalDX=200;
 			internalDY=300;
 			doc.resize(internalDX, internalDY);
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					log.d("invalidating view due to resize");
+					//ReaderView.this.invalidate();
+					drawPage(null, false);
+					//redraw();
+				}
+			});
 		}
 		
 		if (currentImageViewer != null)
