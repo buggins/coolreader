@@ -753,8 +753,20 @@ public class CoolReader extends Activity
 	    		attrs.screenBrightness = b;
 	    		changed = true;
 	    	}
+	    	if ( changed ) {
+	    		log.d("Window attribute changed: " + attrs);
+	    		wnd.setAttributes(attrs);
+	    	}
+        }
+    }
+
+    private void updateButtonsBrightness(float buttonBrightness) {
+        Window wnd = getWindow();
+        if (wnd != null) {
+	    	LayoutParams attrs =  wnd.getAttributes();
+	    	boolean changed = false;
 	    	// hack to set buttonBrightness field
-	    	float buttonBrightness = keyBacklightOff ? 0.0f : -1.0f;
+	    	//float buttonBrightness = keyBacklightOff ? 0.0f : -1.0f;
 	    	if (!brightnessHackError)
 	    	try {
 	        	Field bb = attrs.getClass().getField("buttonBrightness");
@@ -783,9 +795,8 @@ public class CoolReader extends Activity
     
     public void onUserActivity()
     {
-    	if ( backlightControl==null )
-    		return;
-    	backlightControl.onUserActivity();
+    	if (backlightControl != null)
+      	    backlightControl.onUserActivity();
     	// Hack
     	//if ( backlightControl.isHeld() )
     	BackgroundThread.guiExecutor.execute(new Runnable() {
@@ -817,6 +828,7 @@ public class CoolReader extends Activity
 		        	mReaderView.setDimmingAlpha(dimmingAlpha);
 			    	log.d("Brightness: " + b + ", dim: " + dimmingAlpha);
 			    	updateBacklightBrightness(b);
+			    	updateButtonsBrightness(keyBacklightOff ? 0.0f : -1.0f);
 				} catch ( Exception e ) {
 					// ignore
 				}
