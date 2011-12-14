@@ -934,7 +934,7 @@ public:
     /// get number of current page
     int getCurPage();
     /// move to specified page
-    bool goToPage( int page );
+    bool goToPage(int page, bool updatePosBookmark = true);
     /// returns page count
     int getPageCount();
 

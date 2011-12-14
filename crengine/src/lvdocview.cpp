@@ -530,7 +530,7 @@ void LVDocView::checkPos() {
 	} else {
 		if (isPageMode()) {
 			int p = getBookmarkPage(_posBookmark);
-			goToPage(p);
+            goToPage(p, false);
 		} else {
 			//CRLog::trace("checkPos() _posBookmark node=%08X offset=%d", (unsigned)_posBookmark.getNode(), (int)_posBookmark.getOffset());
 			lvPoint pt = _posBookmark.toPoint();
@@ -1913,7 +1913,7 @@ int LVDocView::getCurPage() {
 	return m_pages.FindNearestPage(_pos, 0);
 }
 
-bool LVDocView::goToPage(int page) {
+bool LVDocView::goToPage(int page, bool updatePosBookmark) {
 	LVLock lock(getMutex());
 	checkRender();
 	if (!m_pages.length())
@@ -1949,11 +1949,13 @@ bool LVDocView::goToPage(int page) {
 			res = false;
 		}
 	}
-	_posBookmark = getBookmark();
+    if (updatePosBookmark) {
+        _posBookmark = getBookmark();
+    }
 	_posIsSet = true;
 	updateScroll();
-        if (res)
-            updateBookMarksRanges();
+    if (res)
+        updateBookMarksRanges();
 	return res;
 }
 
