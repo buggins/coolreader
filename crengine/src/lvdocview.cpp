@@ -3016,12 +3016,13 @@ int LVDocView::getVisiblePageCount() {
 void LVDocView::setVisiblePageCount(int n) {
 	clearImageCache();
 	LVLock lock(getMutex());
-	if (n == 2)
-		m_pagesVisible = 2;
-	else
-		m_pagesVisible = 1;
+    int newCount = (n == 2) ? 2 : 1;
+    if (m_pagesVisible == newCount)
+        return;
+    m_pagesVisible = newCount;
 	updateLayout();
     REQUEST_RENDER("setVisiblePageCount")
+    _posIsSet = false;
 }
 
 static int findBestFit(LVArray<int> & v, int n, bool rollCyclic = false) {
@@ -5502,7 +5503,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_LANDSCAPE_PAGES) {
 			int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 0);
 			setVisiblePageCount(pages);
-            REQUEST_RENDER("propsApply - landscape pages")
 		} else if (name == PROP_FONT_KERNING_ENABLED) {
 			bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);
 			fontMan->setKerning(kerning);
