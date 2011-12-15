@@ -571,10 +571,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
+		
 //		backKeyDownHere = false;
 		if ( event.getRepeatCount()==0 ) {
 			log.v("onKeyDown("+keyCode + ", " + event +")");
 			keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
+			
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
+				// force saving position on BACK key press
+				scheduleSaveCurrentPositionBookmark(1);
+			}
 		}
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
