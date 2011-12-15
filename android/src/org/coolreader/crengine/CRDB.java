@@ -8,7 +8,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDiskIOException;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
@@ -40,13 +40,13 @@ public class CRDB {
 	private void openCoverpageDB(File coverFile) {
 		try {
 			this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
-		} catch (SQLiteDiskIOException e) {
+		} catch (SQLiteException e) {
 			moveToBackup(coverFile);
 			this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
 			try {
 				this.mCoverpageDB = SQLiteDatabase.openOrCreateDatabase(coverFile, null);
-			} catch (SQLiteDiskIOException e2) {
-				throw new SQLiteDiskIOException("can't open DB " + coverFile + ": " + e2.getMessage());
+			} catch (SQLiteException e2) {
+				throw new SQLiteException("can't open DB " + coverFile + ": " + e2.getMessage());
 			}
 		}
 	}
@@ -60,22 +60,22 @@ public class CRDB {
 			openCoverpageDB(coverFile);
 			try {
 				updateSchema();
-			} catch (SQLiteDiskIOException e) {
-				throw (SQLiteDiskIOException)new SQLiteDiskIOException("error updating schema " + mDBFile + ": " + e.getMessage()).initCause(e);
+			} catch (SQLiteException e) {
+				throw (SQLiteException)new SQLiteException("error updating schema " + mDBFile + ": " + e.getMessage()).initCause(e);
 			}
-		} catch (SQLiteDiskIOException e) {
+		} catch (SQLiteException e) {
 			moveToBackup(dbfile);
 			moveToBackup(coverFile);
 			try {
 				this.mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
 				openCoverpageDB(coverFile);
-			} catch (SQLiteDiskIOException e2) {
-				throw (SQLiteDiskIOException)new SQLiteDiskIOException("can't open DB " + dbfile + ": " + e2.getMessage()).initCause(e2);
+			} catch (SQLiteException e2) {
+				throw (SQLiteException)new SQLiteException("can't open DB " + dbfile + ": " + e2.getMessage()).initCause(e2);
 			}
 			try {
 				updateSchema();
-			} catch (SQLiteDiskIOException e2) {
-				throw (SQLiteDiskIOException)new SQLiteDiskIOException("error updating schema " + mDBFile + ": " + e2.getMessage()).initCause(e2);
+			} catch (SQLiteException e2) {
+				throw (SQLiteException)new SQLiteException("error updating schema " + mDBFile + ": " + e2.getMessage()).initCause(e2);
 			}
 		}
 		this.mDBFile = dbfile;
@@ -1190,8 +1190,8 @@ public class CRDB {
 				return true;
 			}
 			return false;
-		} catch (SQLiteDiskIOException e) {
-			throw new SQLiteDiskIOException("error while writing to DB " + mDBFile + ": " + e.getMessage());
+		} catch (SQLiteException e) {
+			throw new SQLiteException("error while writing to DB " + mDBFile + ": " + e.getMessage());
 		}
 	}
 
