@@ -4575,12 +4575,15 @@ bool LVDocView::moveByChapter(int delta) {
 	int cp = getCurPage();
 	int prevPage = -1;
 	int nextPage = -1;
+    int vcp = getVisiblePageCount();
+    if (vcp < 1 || vcp > 2)
+        vcp = 1;
 	for (int i = 0; i < items.length(); i++) {
 		LVTocItem * item = items[i];
 		int p = item->getPage();
 		if (p < cp && (prevPage == -1 || prevPage < p))
 			prevPage = p;
-		if (p > cp && (nextPage == -1 || nextPage > p))
+        if (p >= cp + vcp && (nextPage == -1 || nextPage > p))
 			nextPage = p;
 	}
 	if (prevPage < 0)
@@ -4590,7 +4593,7 @@ bool LVDocView::moveByChapter(int delta) {
 	int page = delta < 0 ? prevPage : nextPage;
 	if (getCurPage() != page) {
 		savePosToNavigationHistory();
-		goToPage(page);
+        goToPage(page);
 	}
 	return true;
 }
