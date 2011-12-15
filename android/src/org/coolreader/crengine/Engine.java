@@ -372,11 +372,11 @@ public class Engine {
 					// show progress
 					//log.v("showProgress() - in GUI thread");
 					if (progressId != nextProgressId) {
-						//Log.v("cr3",
-						//		"showProgress() - skipping duplicate progress event");
+						//log.v("showProgress() - skipping duplicate progress event");
 						return;
 					}
 					if (mProgress == null) {
+						//log.v("showProgress() - creating progress window");
 						try {
 							if (mActivity != null && mActivity.isStarted()) {
 								mProgress = new ProgressDialog(mActivity);

@@ -4727,7 +4727,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private void scheduleSaveCurrentPositionBookmark(int delayMillis) {
     	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
     	// update position, don't save to DB
-    	saveCurrentPositionBookmarkSync(false);
+    	//saveCurrentPositionBookmarkSync(false);
     	BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
