@@ -1639,7 +1639,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				mActivity.getDB().save(mBookInfo);
 				mActivity.getDB().flush();
 			} else {
-		        scheduleSaveCurrentPositionBookmark(10000);
+		        scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			}
 	        highlightBookmarks();
 		}
@@ -1649,7 +1649,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void addBookmark(final Bookmark bookmark) {
 		mBookInfo.addBookmark(bookmark);
         highlightBookmarks();
-        scheduleSaveCurrentPositionBookmark(10000);
+        scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
     }
 	
 	public void addBookmark( final int shortcut )
@@ -1681,7 +1681,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					}
 			        highlightBookmarks();
 					mActivity.showToast(s);
-			        scheduleSaveCurrentPositionBookmark(10000);
+			        scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 				}
 			}
 		});
@@ -2517,7 +2517,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					case DCMD_GO_SCROLL_POS:
 					case DCMD_LINK_FIRST:
 					case DCMD_SCROLL_BY:
-			    		scheduleSaveCurrentPositionBookmark(10000);
+			    		scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 						break;
 				}
 			}
@@ -3691,7 +3691,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void close()
 		{
 			currentAnimation = null;
-			scheduleSaveCurrentPositionBookmark(10000);
+			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			scheduleGc();
 		}
 
@@ -4406,7 +4406,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( !mInitialized || !mOpened )
 			return;
 		log.v("drawPage() : submitting DrawPageTask");
-		scheduleSaveCurrentPositionBookmark(10000);
+		scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 		post( new DrawPageTask(doneHandler, isPartially) );
 	}
 	
@@ -4724,6 +4724,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
     private int lastSavePositionTaskId = 0;
     
+    private final static int DEF_SAVE_POSITION_INTERVAL = 40000;
     private void scheduleSaveCurrentPositionBookmark(int delayMillis) {
     	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
     	// update position, don't save to DB
