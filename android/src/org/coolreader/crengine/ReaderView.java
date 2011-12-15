@@ -2436,6 +2436,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             doEngineCommand( ReaderCommand.DCMD_ZOOM_IN, param);
             syncViewSettings(getSettings(), true);
             break;
+		case DCMD_MOVE_BY_CHAPTER:
+			doEngineCommand(cmd, param, onFinishHandler);
+            drawPage();
+			break;
 		case DCMD_PAGEDOWN:
 			if ( param==1 )
 				animatePageFlip(1, onFinishHandler);
