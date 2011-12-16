@@ -1719,9 +1719,7 @@ public class CoolReader extends Activity
         }
         
         Properties props = loadSettings(propsFile);
-        
-        
-		
+
 		return props;
 	}
 

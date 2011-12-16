@@ -2977,6 +2977,7 @@ void LVDocView::updateBookMarksRanges()
 
 /// set view mode (pages/scroll)
 void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
+    //CRLog::trace("setViewMode(%d, %d) currMode=%d currPages=%d", (int)view_mode, visiblePageCount, m_view_mode, m_pagesVisible);
 	if (m_view_mode == view_mode && (visiblePageCount == m_pagesVisible
 			|| visiblePageCount < 1))
 		return;
@@ -2984,8 +2985,10 @@ void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
 	LVLock lock(getMutex());
 	m_view_mode = view_mode;
 	m_props->setInt(PROP_PAGE_VIEW_MODE, m_view_mode == DVM_PAGES ? 1 : 0);
-	if (visiblePageCount == 1 || visiblePageCount == 2)
+    if (visiblePageCount == 1 || visiblePageCount == 2) {
 		m_pagesVisible = visiblePageCount;
+        m_props->setInt(PROP_LANDSCAPE_PAGES, m_pagesVisible);
+    }
     REQUEST_RENDER("setViewMode")
     _posIsSet = false;
 
@@ -3014,7 +3017,8 @@ int LVDocView::getVisiblePageCount() {
 
 /// set window visible page count (1 or 2)
 void LVDocView::setVisiblePageCount(int n) {
-	clearImageCache();
+    //CRLog::trace("setVisiblePageCount(%d) currPages=%d", n, m_pagesVisible);
+    clearImageCache();
 	LVLock lock(getMutex());
     int newCount = (n == 2) ? 2 : 1;
     if (m_pagesVisible == newCount)
@@ -5374,7 +5378,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int bool_options_def_false[] = { 0, 1 };
 
 	props->limitValueList(PROP_FONT_WEIGHT_EMBOLDEN, bool_options_def_false, 2);
-	static int int_options_1_2[] = { 1, 2 };
+    static int int_options_1_2[] = { 2, 1 };
 	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
 	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
 	props->limitValueList(PROP_FOOTNOTES, bool_options_def_true, 2);
@@ -5504,7 +5508,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 clearImageCache();
             }
         } else if (name == PROP_LANDSCAPE_PAGES) {
-			int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 0);
+            int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
 			setVisiblePageCount(pages);
 		} else if (name == PROP_FONT_KERNING_ENABLED) {
 			bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);
