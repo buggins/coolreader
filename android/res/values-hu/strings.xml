@@ -376,4 +376,8 @@
     <string name="options_app_key_backlight_off">Billentyuzet hattervilagitas ki</string>
     <string name="action_chapter_next">Kovetkezo fejezet</string>
     <string name="action_chapter_prev">Elozo fejezet</string>
+    <string name="options_font_hinting_bytecode">Use bytecode</string>
+    <string name="options_font_hinting">Font hinting</string>
+    <string name="options_font_hinting_disabled">Disabled</string>
+    <string name="options_font_hinting_auto">Autohinting</string>
 </resources>
