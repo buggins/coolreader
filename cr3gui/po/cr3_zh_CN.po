@@ -17,23 +17,23 @@ msgstr ""
 
 #: ../src/citedlg.cpp:80
 msgid "Select next/prev paragraph"
-msgstr ""
+msgstr "选择下/上一段"
 
 #: ../src/citedlg.cpp:83
 msgid "Select one more paragraph"
-msgstr ""
+msgstr "选择更多段落"
 
 #: ../src/citedlg.cpp:86
 msgid "Deselect paragraph"
-msgstr ""
+msgstr "取消选择段落"
 
 #: ../src/citedlg.cpp:89
 msgid "Select one more phrase"
-msgstr ""
+msgstr "选择更多短语"
 
 #: ../src/citedlg.cpp:92
 msgid "Deselect phrase"
-msgstr ""
+msgstr "取消选择短语"
 
 #: ../src/citedlg.cpp:112
 msgid "Select text"
@@ -49,7 +49,7 @@ msgstr ""
 
 #: ../src/mainwnd.cpp:769
 msgid "No manual currently available for this language, sorry!"
-msgstr "抱歉，当前没有中文用户指南！"
+msgstr "抱歉，当前没有中文指南！"
 
 #: ../src/mainwnd.cpp:780 ../src/mainwnd.cpp:888
 msgid "Help"
@@ -177,7 +177,7 @@ msgstr "系列名称"
 
 #: ../src/mainwnd.cpp:1034
 msgid "Series number"
-msgstr "序列号"
+msgstr "系列号"
 
 #: ../src/mainwnd.cpp:1035
 msgid "Date"
@@ -257,15 +257,15 @@ msgstr ""
 
 #: ../src/mainwnd.cpp:1061
 msgid "Build date"
-msgstr ""
+msgstr "编译日期"
 
 #: ../src/mainwnd.cpp:1062
 msgid "About program"
-msgstr ""
+msgstr "关于程序"
 
 #: ../src/mainwnd.cpp:1179
 msgid "Loading: please wait..."
-msgstr "正在装入，请等待……"
+msgstr "正在加载，请等待……"
 
 #: ../src/recentdlg.cpp:104
 msgid "Open book"
@@ -273,7 +273,7 @@ msgstr "打开书籍"
 
 #: ../src/recentdlg.cpp:105
 msgid "Delete record"
-msgstr "刪除記錄"
+msgstr "删除记录"
 
 #: ../src/recentdlg.cpp:139
 msgid ""
@@ -289,11 +289,11 @@ msgstr "当前页: $1 ，共 $2\n"
 
 #: ../src/tocdlg.cpp:153
 msgid "Enter page number:"
-msgstr "输入页数"
+msgstr "输入页码:"
 
 #: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
-msgstr "空的存档位置"
+msgstr "空位"
 
 #: ../src/bmkdlg.cpp:51
 msgid "Page $1 ($2%)"
@@ -344,18 +344,16 @@ msgid "Delete bookmark"
 msgstr "删除书签"
 
 #: ../src/bmkdlg.cpp:317
-#, fuzzy
 msgid "Go to citation"
-msgstr "跳到位置"
+msgstr "跳到引用"
 
 #: ../src/bmkdlg.cpp:318
-#, fuzzy
 msgid "Delete citation"
-msgstr "刪除記錄"
+msgstr "删除引用"
 
 #: ../src/bmkdlg.cpp:332
 msgid "Citations"
-msgstr ""
+msgstr "引用"
 
 #: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:560
 msgid "Cite selection dialog"
@@ -363,7 +361,7 @@ msgstr "引用选择对话框"
 
 #: ../src/dictdlg.cpp:80
 msgid "From dictionary "
-msgstr "在词典查找"
+msgstr "从词典"
 
 #: ../src/dictdlg.cpp:89
 msgid "[cannot read article]"
@@ -579,40 +577,39 @@ msgstr "加速模式启用"
 
 #: ../src/settings.cpp:470
 msgid "180+slow next page"
-msgstr ""
+msgstr "180+慢 下一页"
 
 #: ../src/settings.cpp:471
 msgid "180+slow prev/next page"
-msgstr ""
+msgstr "180+慢 上/下一页"
 
 #: ../src/settings.cpp:472
 msgid "180+FAST next page"
-msgstr ""
+msgstr "180+快 下一页"
 
 #: ../src/settings.cpp:473
 msgid "180+FAST prev/next page"
-msgstr ""
+msgstr "180+快 上/下一页"
 
 #: ../src/settings.cpp:474
 msgid "180+FAST next/prev page"
-msgstr ""
+msgstr "180+快 下/上一页"
 
 #: ../src/settings.cpp:494
 msgid "Disabled (1:1)"
-msgstr ""
+msgstr "禁用(1:1)"
 
 #: ../src/settings.cpp:495
-#, fuzzy
 msgid "Integer scale"
-msgstr "行间距"
+msgstr "整数比例"
 
 #: ../src/settings.cpp:496
 msgid "Arbitrary scale"
-msgstr ""
+msgstr "任意比例"
 
 #: ../src/settings.cpp:501
 msgid "Auto"
-msgstr ""
+msgstr "自动"
 
 #: ../src/settings.cpp:502
 msgid "*1"
@@ -643,17 +640,16 @@ msgid "Interline space"
 msgstr "行间距"
 
 #: ../src/settings.cpp:567
-#, fuzzy
 msgid "Rotate"
-msgstr "按旋转"
+msgstr "旋转"
 
 #: ../src/settings.cpp:572
 msgid "Page turn angle"
-msgstr ""
+msgstr "页旋转角度"
 
 #: ../src/settings.cpp:578
 msgid "Footnotes at page bottom"
-msgstr "页底标注"
+msgstr "脚注"
 
 #: ../src/settings.cpp:589
 msgid "Show time"
@@ -733,23 +729,23 @@ msgstr "右边距"
 
 #: ../src/settings.cpp:726
 msgid "Image scaling"
-msgstr ""
+msgstr "图像缩放比例"
 
 #: ../src/settings.cpp:728
 msgid "Block image scaling mode"
-msgstr ""
+msgstr "块图像缩放模式"
 
 #: ../src/settings.cpp:733
 msgid "Block image max zoom"
-msgstr ""
+msgstr "块图像最大缩放"
 
 #: ../src/settings.cpp:739
 msgid "Inline image scaling mode"
-msgstr ""
+msgstr "内嵌图像缩放模式"
 
 #: ../src/settings.cpp:744
 msgid "Inline image max zoom"
-msgstr ""
+msgstr "内嵌图像最大缩放"
 
 #: ../src/settings.cpp:766
 msgid ""
@@ -781,15 +777,15 @@ msgstr ""
 
 #: ../src/viewdlg.cpp:178
 msgid "Table of contents"
-msgstr "目录表"
+msgstr "目录"
 
 #: ../src/viewdlg.cpp:183
 msgid "Enter page number"
-msgstr "输入页数"
+msgstr "输入页码"
 
 #: ../src/viewdlg.cpp:197
 msgid "Enter position percent"
-msgstr "输入位置百分比"
+msgstr "输入位置的百分数"
 
 #: ../src/viewdlg.cpp:358
 msgid "Find in dictionary"
@@ -805,11 +801,11 @@ msgstr ""
 
 #: ../src/viewdlg.cpp:475
 msgid "Up"
-msgstr ""
+msgstr "上"
 
 #: ../src/viewdlg.cpp:477
 msgid "Down"
-msgstr ""
+msgstr "下"
 
 #: ../src/viewdlg.cpp:479
 msgid "C"
@@ -817,23 +813,23 @@ msgstr ""
 
 #: ../src/viewdlg.cpp:481
 msgid "Left"
-msgstr ""
+msgstr "左"
 
 #: ../src/viewdlg.cpp:483
 msgid "Right"
-msgstr ""
+msgstr "右"
 
 #: ../src/viewdlg.cpp:485
 msgid "Side Up"
-msgstr ""
+msgstr "侧面上"
 
 #: ../src/viewdlg.cpp:487
 msgid "Side Down"
-msgstr ""
+msgstr "侧面下"
 
 #: ../src/viewdlg.cpp:489
 msgid "Side Press"
-msgstr ""
+msgstr "侧面按"
 
 #: ../src/viewdlg.cpp:491
 msgid "Menu"
@@ -849,7 +845,7 @@ msgstr "长按"
 
 #: ../src/viewdlg.cpp:511
 msgid "To first page"
-msgstr "跳到第一页"
+msgstr "到第一页"
 
 #: ../src/viewdlg.cpp:513
 msgid "Back by page"
@@ -881,7 +877,7 @@ msgstr "跳转到链接"
 
 #: ../src/viewdlg.cpp:521
 msgid "To last page"
-msgstr "跳到最后一页"
+msgstr "到最后一页"
 
 #: ../src/viewdlg.cpp:522
 msgid "Go to position"
@@ -980,9 +976,8 @@ msgid "Bookmark list"
 msgstr "书签列表"
 
 #: ../src/viewdlg.cpp:554
-#, fuzzy
 msgid "Citations list"
-msgstr "引用"
+msgstr "引用列表"
 
 #: ../src/viewdlg.cpp:555
 msgid "Go to bookmark..."
@@ -990,7 +985,7 @@ msgstr "跳到书签..."
 
 #: ../src/viewdlg.cpp:556
 msgid "Recent books list"
-msgstr "打开最近的书籍"
+msgstr "最近书籍列表"
 
 #: ../src/viewdlg.cpp:557
 msgid "Open recent book by number"
@@ -998,7 +993,7 @@ msgstr "按数打开最近的书籍"
 
 #: ../src/viewdlg.cpp:558
 msgid "Switch to recent book"
-msgstr "打开最近的书籍"
+msgstr "转到最近的书籍"
 
 #: ../src/viewdlg.cpp:561
 msgid "Search dialog"
@@ -1018,7 +1013,7 @@ msgstr "上一个键盘布局"
 
 #: ../src/viewdlg.cpp:565
 msgid "Show manual"
-msgstr "显示用户指南"
+msgstr "显示指南"
 
 #: ../src/viewdlg.cpp:566
 msgid "Show key mapping"
@@ -1026,12 +1021,11 @@ msgstr "显示键映射"
 
 #: ../src/viewdlg.cpp:567
 msgid "Go to percent..."
-msgstr "跳到百分比……"
+msgstr "跳到百分数……"
 
 #: ../src/viewdlg.cpp:572
-#, fuzzy
 msgid "PocketBook Main menu"
-msgstr "主菜单"
+msgstr "PocketBook 主菜单"
 
 #: ../src/viewdlg.cpp:574
 msgid "Unknown command"
@@ -1039,11 +1033,11 @@ msgstr "未知命令"
 
 #: ../src/viewdlg.cpp:581
 msgid "Previous Page"
-msgstr "上页"
+msgstr "上一页"
 
 #: ../src/viewdlg.cpp:583
 msgid "Next Page"
-msgstr "下页"
+msgstr "下一页"
 
 #: ../src/viewdlg.cpp:585
 msgid "Back by 10 Pages"
@@ -1091,22 +1085,19 @@ msgstr "分配的功能"
 
 #: ../src/cr3pocketbook.cpp:2188
 msgid "Press $1 to translate"
-msgstr "按 $1 翻譯"
+msgstr "按 $1 翻译"
 
-#, fuzzy
 #~ msgid "Remove phrase from selection"
-#~ msgstr "引用选择对话框"
+#~ msgstr "从选择中除掉短语"
 
-#, fuzzy
 #~ msgid "Cites"
 #~ msgstr "引用"
 
-#, fuzzy
 #~ msgid "Go to cite"
-#~ msgstr "跳转到页"
+#~ msgstr "跳转到引用"
 
 #~ msgid "Enter page number to go: "
-#~ msgstr "输入跳转的页数: "
+#~ msgstr "输入跳转的页码: "
 
 #~ msgid "About..."
 #~ msgstr "关于..."
@@ -1115,7 +1106,7 @@ msgstr "按 $1 翻譯"
 #~ msgstr "打开最近的书籍"
 
 #~ msgid "Dictionary..."
-#~ msgstr "词典"
+#~ msgstr "词典..."
 
 #~ msgid "Search..."
 #~ msgstr "查找..."
