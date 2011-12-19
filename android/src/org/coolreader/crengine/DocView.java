@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import org.coolreader.crengine.ReaderView.ReaderCommand;
+
 import android.graphics.Bitmap;
 
 public class DocView {
@@ -173,6 +175,10 @@ public class DocView {
 		synchronized(mutex) {
 			setStylesheetInternal(stylesheet);
 		}
+	}
+	
+	public void requestRender() {
+		doCommand(ReaderCommand.DCMD_REQUEST_RENDER.getNativeId(), 0);
 	}
 
 	/**

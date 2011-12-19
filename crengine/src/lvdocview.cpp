@@ -5507,6 +5507,12 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 fontMan->SetGamma(gamma);
                 clearImageCache();
             }
+        } else if (name == PROP_FONT_HINTING) {
+            int mode = props->getIntDef(PROP_LANDSCAPE_PAGES, (int)HINTING_MODE_AUTOHINT);
+            if ((int)fontMan->GetHintingMode() != mode && mode>=0 && mode<=2) {
+                fontMan->SetHintingMode((hinting_mode_t)mode);
+                requestRender();
+            }
         } else if (name == PROP_LANDSCAPE_PAGES) {
             int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
 			setVisiblePageCount(pages);

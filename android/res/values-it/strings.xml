@@ -376,4 +376,7 @@
     <string name="options_app_key_backlight_off">Turn off key backlight</string>
     <string name="action_chapter_next">Next chapter</string>
     <string name="action_chapter_prev">Previous chapter</string>
+    <string name="options_font_hinting_bytecode">Use bytecode</string>
+    <string name="options_font_hinting_disabled">Disabled</string>
+    <string name="options_font_hinting_auto">Autohinting</string>
 </resources>

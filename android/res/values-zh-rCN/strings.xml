@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">搜索</string>
@@ -373,5 +373,9 @@
     <string name="mi_text_autoformat_enable">启动文本自动套用格式</string>
     <string name="mi_text_autoformat_disable">禁止文本自动套用格式</string>
     <string name="action_toggle_text_autoformat">切换文本自动套用格式</string>
-<string name="options_app_key_backlight_off">关闭按键背光灯</string>
+    <string name="options_app_key_backlight_off">关闭按键背光灯</string>
+    <string name="options_font_hinting_bytecode">Use bytecode</string>
+    <string name="options_font_hinting">Font hinting</string>
+    <string name="options_font_hinting_disabled">Disabled</string>
+    <string name="options_font_hinting_auto">Autohinting</string>
 </resources>

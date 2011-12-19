@@ -376,4 +376,8 @@
     <string name="options_app_key_backlight_off">Отключать подсветку кнопок</string>
     <string name="action_chapter_next">Следующая глава</string>
     <string name="action_chapter_prev">Предыдущая глава</string>
+    <string name="options_font_hinting_bytecode">Использовать байт-код</string>
+    <string name="options_font_hinting">Хинтинг шрифта</string>
+    <string name="options_font_hinting_disabled">Отключен</string>
+    <string name="options_font_hinting_auto">Автохинтинг</string>
 </resources>

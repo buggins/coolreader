@@ -165,6 +165,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	{
     		this.nativeId = nativeId;
     	}
+    	
+    	public int getNativeId() {
+    		return nativeId;
+    	}
     }
     
     private void execute( Engine.EngineTask task )
@@ -4498,6 +4502,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        boolean success = doc.loadDocument(filename);
 	        if ( success ) {
 				log.v("loadDocumentInternal completed successfully");
+				
+				doc.requestRender();
+				
 	        	findCoverPage();
 				log.v("requesting page image, to render");
 	        	preparePageImage(0);
