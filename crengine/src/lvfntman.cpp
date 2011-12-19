@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 1
+#if 0
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 //#define DEBUG_FONT_SYNTHESIS 1
@@ -1658,6 +1658,7 @@ public:
     virtual void SetHintingMode(hinting_mode_t mode) {
         if (_hintingMode == mode)
             return;
+        CRLog::debug("Hinting mode is changed: %d", (int)mode);
         _hintingMode = mode;
         gc();
         clearGlyphCache();

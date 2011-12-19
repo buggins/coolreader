@@ -90,6 +90,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mScreenUpdateModesTitles = new int[] {
 			R.string.options_screen_update_mode_quality, R.string.options_screen_update_mode_fast, R.string.options_screen_update_mode_fast2
 		};
+	int[] mHinting = new int[] {
+			0, 1, 2
+		};
+	int[] mHintingTitles = new int[] {
+			R.string.options_font_hinting_disabled, R.string.options_font_hinting_bytecode, 
+			R.string.options_font_hinting_auto
+		};
 	int[] mOrientations = new int[] {
 			0, 1, 4
 		};
@@ -1635,6 +1642,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)).setIconId(R.drawable.cr3_option_images));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconId(R.drawable.cr3_option_font_gamma));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconId(R.drawable.cr3_option_text_width));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").noIcon());
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());

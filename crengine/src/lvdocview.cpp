@@ -5508,8 +5508,9 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 clearImageCache();
             }
         } else if (name == PROP_FONT_HINTING) {
-            int mode = props->getIntDef(PROP_LANDSCAPE_PAGES, (int)HINTING_MODE_AUTOHINT);
+            int mode = props->getIntDef(PROP_FONT_HINTING, (int)HINTING_MODE_AUTOHINT);
             if ((int)fontMan->GetHintingMode() != mode && mode>=0 && mode<=2) {
+                //CRLog::debug("Setting hinting mode to %d", mode);
                 fontMan->SetHintingMode((hinting_mode_t)mode);
                 requestRender();
             }
