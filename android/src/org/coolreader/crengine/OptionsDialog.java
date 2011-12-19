@@ -1643,6 +1643,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconId(R.drawable.cr3_option_font_gamma));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconId(R.drawable.cr3_option_text_width));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").noIcon());
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_fallback_face), PROP_FALLBACK_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());

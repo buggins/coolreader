@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">CoolReader 3</string>
     <string name="mi_search">Знайти</string>
@@ -380,4 +380,5 @@
     <string name="options_font_hinting">Хинтинг шрифта</string>
     <string name="options_font_hinting_disabled">Отключен</string>
     <string name="options_font_hinting_auto">Автохинтинг</string>
+<string name="options_font_fallback_face">Дополнительный шрифт</string>
 </resources>

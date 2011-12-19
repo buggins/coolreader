@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Suche</string>
@@ -380,4 +380,5 @@
     <string name="options_font_hinting">Font hinting</string>
     <string name="options_font_hinting_disabled">Disabled</string>
     <string name="options_font_hinting_auto">Autohinting</string>
+<string name="options_font_fallback_face">Fallback font</string>
 </resources>
