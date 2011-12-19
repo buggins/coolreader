@@ -769,11 +769,17 @@ public:
                 return fallback->getGlyphInfo(code, glyph, def_char);
             }
         }
+        int flags = FT_LOAD_DEFAULT;
+        flags |= (!_drawMonochrome ? FT_LOAD_TARGET_NORMAL : FT_LOAD_TARGET_MONO);
+        if (_hintingMode == HINTING_MODE_AUTOHINT)
+            flags |= FT_LOAD_FORCE_AUTOHINT;
+        else if (_hintingMode == HINTING_MODE_DISABLED)
+            flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         updateTransform();
         int error = FT_Load_Glyph(
             _face,          /* handle to face object */
             glyph_index,   /* glyph index           */
-            FT_LOAD_DEFAULT );  /* load flags, see below */
+            flags );  /* load flags, see below */
         if ( error )
             return false;
         glyph->blackBoxX = (lUInt8)(_slot->metrics.width >> 6);
@@ -978,8 +984,8 @@ public:
             int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
             if (_hintingMode == HINTING_MODE_AUTOHINT)
                 rend_flags |= FT_LOAD_FORCE_AUTOHINT;
-            if (_hintingMode == HINTING_MODE_DISABLED)
-                rend_flags |= FT_LOAD_NO_AUTOHINT;
+            else if (_hintingMode == HINTING_MODE_DISABLED)
+                rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
             /* load glyph image into the slot (erase previous one) */
 
             updateTransform();
