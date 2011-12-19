@@ -122,6 +122,13 @@ struct LVFontGlyphCacheItem
 };
 
 
+enum hinting_mode_t {
+    HINTING_MODE_DISABLED,
+    HINTING_MODE_BYTECODE_INTERPRETOR,
+    HINTING_MODE_AUTOHINT,
+};
+
+
 /** \brief base class for fonts
 
     implements single interface for font of any engine
@@ -231,6 +238,11 @@ public:
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning( bool ) { }
 
+    /// sets current hinting mode
+    virtual void setHintingMode(hinting_mode_t mode) { }
+    /// returns current hinting mode
+    virtual hinting_mode_t  getHintingMode() const { return HINTING_MODE_AUTOHINT; }
+
     /// returns true if font is empty
     virtual bool IsNull() const = 0;
     virtual bool operator ! () const = 0;
@@ -258,6 +270,7 @@ class LVFontManager
 protected:
     int _antialiasMode;
     bool _allowKerning;
+    hinting_mode_t _hintingMode;
 public:
     /// garbage collector frees unused fonts
     virtual void gc() = 0;
@@ -291,7 +304,7 @@ public:
     virtual void setKerning( bool kerningEnabled ) { _allowKerning = kerningEnabled; gc(); clearGlyphCache(); }
 
     /// constructor
-    LVFontManager() : _antialiasMode(font_aa_all), _allowKerning(false) { }
+    LVFontManager() : _antialiasMode(font_aa_all), _allowKerning(false), _hintingMode(HINTING_MODE_AUTOHINT) { }
     /// destructor
     virtual ~LVFontManager() { }
     /// returns available typefaces
@@ -307,6 +320,11 @@ public:
     double GetGamma();
     /// sets current gamma level
     void SetGamma( double gamma );
+
+    /// sets current hinting mode
+    virtual void SetHintingMode(hinting_mode_t mode) { }
+    /// returns current hinting mode
+    virtual hinting_mode_t  GetHintingMode() { return HINTING_MODE_AUTOHINT; }
 };
 
 class LVBaseFont : public LVFont

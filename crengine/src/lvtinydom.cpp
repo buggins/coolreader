@@ -275,6 +275,7 @@ lUInt32 calcGlobalSettingsHash()
     if ( fontMan->getKerning() )
         hash += 127365;
     hash = hash * 31 + fontMan->GetFontListHash();
+    hash = hash * 31 + (int)fontMan->GetHintingMode();
     if ( LVRendGetFontEmbolden() )
         hash = hash * 75 + 2384761;
     if ( gFlgFloatingPunctuationEnabled )

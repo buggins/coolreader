@@ -27,12 +27,12 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 0
+#if 1
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
-#define DEBUG_FONT_SYNTHESIS 1
-#define DEBUG_FONT_MAN 1
-#define DEBUG_FONT_MAN_LOG_FILE "/tmp/font_man.log"
+//#define DEBUG_FONT_SYNTHESIS 1
+//#define DEBUG_FONT_MAN 1
+//#define DEBUG_FONT_MAN_LOG_FILE "/tmp/font_man.log"
 #endif
 
 #define GAMMA_TABLES_IMPL
@@ -584,6 +584,7 @@ protected:
     LVFontLocalGlyphCache _glyph_cache;
     bool          _drawMonochrome;
     bool          _allowKerning;
+    hinting_mode_t _hintingMode;
     bool          _fallbackFontIsSet;
     LVFontRef     _fallbackFont;
 public:
@@ -618,7 +619,7 @@ public:
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _weight(400), _italic(0)
-    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _fallbackFontIsSet(false)
+    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _hintingMode(HINTING_MODE_AUTOHINT), _fallbackFontIsSet(false)
     {
         _matrix.xx = 0x10000;
         _matrix.yy = 0x10000;
@@ -643,6 +644,17 @@ public:
     virtual bool getKerning() const { return _allowKerning; }
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning( bool kerningEnabled ) { _allowKerning = kerningEnabled; }
+
+    /// sets current hinting mode
+    virtual void setHintingMode(hinting_mode_t mode) {
+        if (_hintingMode == mode)
+            return;
+        _hintingMode = mode;
+        _glyph_cache.clear();
+        _wcache.clear();
+    }
+    /// returns current hinting mode
+    virtual hinting_mode_t  getHintingMode() const { return _hintingMode; }
 
     /// get bitmap mode (true=bitmap, false=antialiased)
     virtual bool getBitmapMode() { return _drawMonochrome; }
@@ -964,6 +976,10 @@ public:
         if ( !item ) {
 
             int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
+            if (_hintingMode == HINTING_MODE_AUTOHINT)
+                rend_flags |= FT_LOAD_FORCE_AUTOHINT;
+            if (_hintingMode == HINTING_MODE_DISABLED)
+                rend_flags |= FT_LOAD_NO_AUTOHINT;
             /* load glyph image into the slot (erase previous one) */
 
             updateTransform();
@@ -1511,6 +1527,11 @@ public:
         _baseFont->setBitmapMode( m );
     }
 
+    /// sets current hinting mode
+    virtual void setHintingMode(hinting_mode_t mode) { _baseFont->setHintingMode(mode); }
+    /// returns current hinting mode
+    virtual hinting_mode_t  getHintingMode() const { return _baseFont->getHintingMode(); }
+
     /// get kerning mode: true==ON, false=OFF
     virtual bool getKerning() const { return _baseFont->getKerning(); }
 
@@ -1633,12 +1654,30 @@ public:
         }
     }
 
+    /// sets current gamma level
+    virtual void SetHintingMode(hinting_mode_t mode) {
+        if (_hintingMode == mode)
+            return;
+        _hintingMode = mode;
+        gc();
+        clearGlyphCache();
+        LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
+        for ( int i=0; i<fonts->length(); i++ ) {
+            fonts->get(i)->getFont()->setHintingMode(mode);
+        }
+    }
+
+    /// sets current gamma level
+    virtual hinting_mode_t  GetHintingMode() {
+        return _hintingMode;
+    }
+
     /// set antialiasing mode
     virtual void setKerning( bool kerning )
     {
     
         _allowKerning = kerning; 
-        gc(); 
+        gc();
         clearGlyphCache();
         LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
         for ( int i=0; i<fonts->length(); i++ ) {
@@ -3542,6 +3581,8 @@ bool operator == (const LVFont & r1, const LVFont & r2)
             && r1.getItalic()==r2.getItalic()
             && r1.getFontFamily()==r2.getFontFamily()
             && r1.getTypeFace()==r2.getTypeFace()
-            && r1.getKerning()==r2.getKerning();
+            && r1.getKerning()==r2.getKerning()
+            && r1.getHintingMode()==r2.getHintingMode()
+            ;
 }
 
