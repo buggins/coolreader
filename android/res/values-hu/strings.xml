@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Kereses</string>
@@ -82,7 +82,7 @@
     <string name="options_view_mode">Olvasasi mod</string>
     <string name="options_view_mode_pages">Oldalak</string>
     <string name="options_view_mode_scroll">Gorgetes</string>
-    <string name="options_app_fullscreen">Teljes-kepernyos mod</string>
+    <string name="options_app_fullscreen">Teljeskepernyos mod</string>
     <string name="options_app_show_cover_pages">Boritok a bongeszoben</string>
     <string name="options_value_on">Be</string>
     <string name="options_value_off">Ki</string>
@@ -376,9 +376,9 @@
     <string name="options_app_key_backlight_off">Billentyuzet hattervilagitas ki</string>
     <string name="action_chapter_next">Kovetkezo fejezet</string>
     <string name="action_chapter_prev">Elozo fejezet</string>
-    <string name="options_font_hinting_bytecode">Use bytecode</string>
-    <string name="options_font_hinting">Font hinting</string>
-    <string name="options_font_hinting_disabled">Disabled</string>
-    <string name="options_font_hinting_auto">Autohinting</string>
-<string name="options_font_fallback_face">Fallback font</string>
+    <string name="options_font_hinting_bytecode">Bajtkod hasznalata</string>
+    <string name="options_font_hinting">Betu olvashatosag javitasa</string>
+    <string name="options_font_hinting_disabled">Letiltva</string>
+    <string name="options_font_hinting_auto">Automatikus javitas</string>
+<string name="options_font_fallback_face">Masodlagos betutipus</string>
 </resources>
