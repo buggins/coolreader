@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>433</width>
-    <height>509</height>
+    <height>546</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -762,52 +762,52 @@
          <item row="7" column="1">
           <widget class="QComboBox" name="cbHyphenation"/>
          </item>
-         <item row="9" column="0">
+         <item row="13" column="0">
           <widget class="QLabel" name="label_13">
            <property name="text">
             <string>Interline spacing</string>
            </property>
           </widget>
          </item>
-         <item row="9" column="1">
+         <item row="13" column="1">
           <widget class="QComboBox" name="cbInterlineSpace"/>
          </item>
-         <item row="10" column="0">
+         <item row="14" column="0">
           <widget class="QLabel" name="label_18">
            <property name="text">
             <string>Floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="10" column="1">
+         <item row="14" column="1">
           <widget class="QCheckBox" name="cbFloatingPunctuation">
            <property name="text">
             <string>Enable floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="label_17">
            <property name="text">
             <string>.TXT files</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="1">
+         <item row="15" column="1">
           <widget class="QCheckBox" name="cbTxtPreFormatted">
            <property name="text">
             <string>Disable automatic formatting</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="0">
+         <item row="16" column="0">
           <widget class="QLabel" name="label_15">
            <property name="text">
             <string>Sample</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="1">
+         <item row="16" column="1">
           <widget class="CR3View" name="crSample" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1013,6 +1013,73 @@
            </property>
           </widget>
          </item>
+         <item row="12" column="0">
+          <widget class="QLabel" name="label_35">
+           <property name="text">
+            <string>Font hinting</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1">
+          <widget class="QComboBox" name="cbFontHinting">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>60</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>60</width>
+             <height>0</height>
+            </size>
+           </property>
+           <item>
+            <property name="text">
+             <string>No hinting</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Use bytecode</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Autohinting</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="11" column="0">
+          <widget class="QLabel" name="label_36">
+           <property name="text">
+            <string>Fallback font</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <widget class="QComboBox" name="cbFallbackFontFace">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -1042,9 +1109,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-72</y>
-              <width>372</width>
-              <height>475</height>
+              <y>0</y>
+              <width>373</width>
+              <height>505</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
