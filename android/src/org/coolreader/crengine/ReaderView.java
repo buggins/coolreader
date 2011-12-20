@@ -407,10 +407,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int currentDoubleClickActionKeyCode = 0;
 	@Override
 	public boolean onKeyUp(int keyCode, final KeyEvent event) {
-		if (currentImageViewer != null)
-			return currentImageViewer.onKeyUp(keyCode, event);
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
+		keyCode = translateKeyCode(keyCode);
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyUp(keyCode, event);
 		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP ) {
     		if (isAutoScrollActive())
     			return true;
@@ -567,15 +568,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private boolean repeatActionActive = false;
 	private Map<Integer, Long> keyDownTimestampMap = new HashMap<Integer, Long>();
 	
+	private int translateKeyCode(int keyCode) {
+		if (DeviceInfo.REVERT_LANDSCAPE_VOLUME_KEYS && (mActivity.getScreenOrientation() & 1) != 0) {
+			if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+				return KeyEvent.KEYCODE_VOLUME_UP;
+			if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+				return KeyEvent.KEYCODE_VOLUME_DOWN;
+		}
+		return keyCode;
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
+		
+		if (keyCode == 0)
+			keyCode = event.getScanCode();
+		keyCode = translateKeyCode(keyCode);
 		
 		if (currentImageViewer != null)
 			return currentImageViewer.onKeyDown(keyCode, event);
 
-		if (keyCode == 0)
-			keyCode = event.getScanCode();
-		
 //		backKeyDownHere = false;
 		if ( event.getRepeatCount()==0 ) {
 			log.v("onKeyDown("+keyCode + ", " + event +")");

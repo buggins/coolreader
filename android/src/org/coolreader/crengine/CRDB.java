@@ -239,8 +239,11 @@ public class CRDB {
 					"name VARCHAR NOT NULL COLLATE NOCASE, " +
 					"url VARCHAR NOT NULL COLLATE NOCASE" +
 					")");
-		if ( currentVersion<7 )
+		if ( currentVersion<7 ) {
 			addOPDSCatalogs(DEF_OPDS_URLS1);
+			if (!DeviceInfo.NOFLIBUSTA)
+				addOPDSCatalogs(DEF_OPDS_URLS1A);
+		}
 		if ( currentVersion<8 )
 			addOPDSCatalogs(DEF_OPDS_URLS2);
 		// TODO: add more updates here
@@ -259,8 +262,11 @@ public class CRDB {
 			"http://bookserver.revues.org/", "Revues.org", 
 			"http://www.legimi.com/opds/root.atom", "Legimi",
 			"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
-			"http://flibusta.net/opds/", "Flibusta", 
 	};
+
+	private final static String[] DEF_OPDS_URLS1A = {
+		"http://flibusta.net/opds/", "Flibusta", 
+};
 
 	private final static String[] DEF_OPDS_URLS2 = {
 		"http://www.shucang.com/s/index.php", "ShuCang.com",

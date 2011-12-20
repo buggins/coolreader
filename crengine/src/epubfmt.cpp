@@ -177,15 +177,15 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     if (EpubIsEncrypted(m_arc)) {
         ldomDocumentWriter writer(m_doc);
         writer.OnTagOpenNoAttr(NULL, L"body");
-        writer.OnTagOpenAndClose(NULL, L"hr");
         writer.OnTagOpenNoAttr(NULL, L"h3");
         lString16 hdr(L"Encrypted content");
         writer.OnText(hdr.c_str(), hdr.length(), 0);
         writer.OnTagClose(NULL, L"h3");
+
         writer.OnTagOpenAndClose(NULL, L"hr");
 
         writer.OnTagOpenNoAttr(NULL, L"p");
-        lString16 txt(L"Unfortunately, this document is encrypted (has DRM protection).");
+        lString16 txt(L"This document is encrypted (has DRM protection).");
         writer.OnText(txt.c_str(), txt.length(), 0);
         writer.OnTagClose(NULL, L"p");
 
@@ -193,12 +193,22 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         lString16 txt2(L"Cool Reader doesn't support reading of DRM protected books.");
         writer.OnText(txt2.c_str(), txt2.length(), 0);
         writer.OnTagClose(NULL, L"p");
+
         writer.OnTagOpenNoAttr(NULL, L"p");
         lString16 txt3(L"To read this book, please use software recommended by book seller.");
         writer.OnText(txt3.c_str(), txt3.length(), 0);
         writer.OnTagClose(NULL, L"p");
+
         writer.OnTagOpenAndClose(NULL, L"hr");
+
+        writer.OnTagOpenNoAttr(NULL, L"p");
+        lString16 txt4(L"");
+        writer.OnText(txt4.c_str(), txt4.length(), 0);
+        writer.OnTagClose(NULL, L"p");
+
         writer.OnTagClose(NULL, L"body");
+
+
         return true;
     }
 
