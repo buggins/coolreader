@@ -134,7 +134,7 @@ public:
 
     /// return true if reload will be processed by external code, false to let internal code process it
     virtual bool OnRequestReload() {
-    	_env->CallVoidMethod(_obj, _OnRequestReload);
+    	_env->CallBooleanMethod(_obj, _OnRequestReload);
     	return true;
     }
 

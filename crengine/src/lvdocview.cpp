@@ -194,7 +194,7 @@ void LVDocView::setPageSkin(CRPageSkinRef skin) {
 
 /// get text format options
 txt_format_t LVDocView::getTextFormatOptions() {
-	return m_doc->getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ? txt_format_pre
+    return m_doc && m_doc->getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ? txt_format_pre
 			: txt_format_auto;
 }
 
@@ -3343,6 +3343,8 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 		return false;
 
 	Clear();
+
+    CRLog::debug("LoadDocument(%s) textMode=%s", LCSTR(lString16(fname)), getTextFormatOptions()==txt_format_pre ? "pre" : "autoformat");
 
 	// split file path and name
 	lString16 filename16(fname);
