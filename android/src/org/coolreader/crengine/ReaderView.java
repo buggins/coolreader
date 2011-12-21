@@ -2626,8 +2626,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        		currSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
 		        }
 	        	mSettings = currSettings;
-	        	if ( save )
+	        	if ( save ) {
+	        		++lastSaveSettingsRequestId;
 	        		saveSettings(currSettings);
+	        	}
 			}
 		});
 	}
