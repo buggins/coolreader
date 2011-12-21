@@ -1160,9 +1160,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
 		isTextFormat = readerView.isTextFormat();
-
-		//fakeLongArrayForDebug = new byte[2000000]; // 2M
-		//CoolReader.dumpHeapAllocation();
 	}
 	
 	class OptionsListView extends ListView {

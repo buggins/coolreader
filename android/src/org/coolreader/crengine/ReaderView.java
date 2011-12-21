@@ -1754,7 +1754,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			@Override
 			public void run() {
 				if (mySaveSettingsRequestId == lastSaveSettingsRequestId)
-					mActivity.saveSettings(mSettings);
+					saveSettings(mSettings);
 			}
 		});
 	}
@@ -1766,7 +1766,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (invalidateImages)
 			invalidImages = true;
 		if (save) {
-			scheduleSaveSettings(3000);
+			scheduleSaveSettings(1);
 		}
 	}
 	
@@ -2605,7 +2605,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	public void saveSettings( Properties settings )
 	{
-		mActivity.saveSettings(settings);
+		mActivity.saveSettings(new Properties(settings));
 	}
 	
 	/**
@@ -3538,7 +3538,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 				mActivity.showToast(s);
 			}
-			mActivity.saveSettings(mSettings);
+			saveSettings(mSettings);
 			currentBrightnessValueIndex = -1;
 		}
 	}

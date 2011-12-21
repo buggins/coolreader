@@ -625,6 +625,7 @@ public:
         _matrix.yy = 0x10000;
         _matrix.xy = 0;
         _matrix.yx = 0;
+        _hintingMode = fontMan->GetHintingMode();
     }
 
     virtual ~LVFreeTypeFace()
@@ -670,6 +671,7 @@ public:
 
     bool loadFromFile( const char * fname, int index, int size, css_font_family_t fontFamily, bool monochrome, bool italicize )
     {
+        _hintingMode = fontMan->GetHintingMode();
         _drawMonochrome = monochrome;
         _fontFamily = fontFamily;
         if ( fname )
