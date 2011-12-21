@@ -25,4 +25,6 @@ public interface ReaderCallback {
     void OnExternalLink( String url, String nodeXPath );
     /// Override to handle external links
     void OnImageCacheClear();
+    /// Override to handle reload request, return true if request is processed
+    boolean OnRequestReload();
 }

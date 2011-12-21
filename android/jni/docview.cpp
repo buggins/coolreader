@@ -23,6 +23,7 @@ class DocViewCallback : public LVDocViewCallback {
     jmethodID _OnLoadFileError;
     jmethodID _OnExternalLink;
     jmethodID _OnImageCacheClear;
+    jmethodID _OnRequestReload;
 public:
 	DocViewCallback( JNIEnv * env, LVDocView * docview, jobject obj )
 	: _env(env), _docview(docview)
@@ -42,6 +43,7 @@ public:
 	    GET_METHOD(OnFormatEnd,"()V");
 	    GET_METHOD(OnFormatProgress,"(I)Z");
 	    GET_METHOD(OnExportProgress,"(I)Z");
+	    GET_METHOD(OnRequestReload,"()Z");
 	    GET_METHOD(OnLoadFileError,"(Ljava/lang/String;)V");
 	    GET_METHOD(OnExternalLink,"(Ljava/lang/String;Ljava/lang/String;)V");
 	    GET_METHOD(OnImageCacheClear,"()V");
@@ -129,6 +131,13 @@ public:
 		//CRLog::info("DocViewCallback::OnImageCacheClear() called");
     	_env->CallVoidMethod(_obj, _OnImageCacheClear);
     }
+
+    /// return true if reload will be processed by external code, false to let internal code process it
+    virtual bool OnRequestReload() {
+    	_env->CallVoidMethod(_obj, _OnRequestReload);
+    	return true;
+    }
+
 };
 
 CRTimerUtil _timeoutControl;

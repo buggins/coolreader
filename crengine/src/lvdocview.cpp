@@ -223,7 +223,11 @@ void LVDocView::requestReload() {
 	if (getDocFormat() != doc_format_txt)
 		return; // supported for text files only
 	if (m_callback) {
-		m_callback->OnLoadFileStart(m_doc_props->getStringDef(
+        if (m_callback->OnRequestReload()) {
+            CRLog::info("LVDocView::requestReload() : reload request will be processed by external code");
+            return;
+        }
+        m_callback->OnLoadFileStart(m_doc_props->getStringDef(
 				DOC_PROP_FILE_NAME, ""));
 	}
 	if (m_stream.isNull() && isDocumentOpened()) {

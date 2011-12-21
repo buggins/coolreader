@@ -197,6 +197,8 @@ public:
     virtual void OnExternalLink( lString16 url, ldomNode * node ) { }
     /// Called when page images should be invalidated (clearImageCache() called in LVDocView)
     virtual void OnImageCacheClear() { }
+    /// return true if reload will be processed by external code, false to let internal code process it
+    virtual bool OnRequestReload() { return false; }
     /// destructor
     virtual ~LVDocViewCallback() { }
 };

@@ -5021,6 +5021,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    	//log.d("readerCallback.OnImageCacheClear");
 	    	clearImageCache();
 	    }
+	    public boolean OnRequestReload() {
+	    	//reloadDocument();
+	    	return true;
+	    }
+
     };
     
     private volatile SwapToCacheTask currentSwapTask;

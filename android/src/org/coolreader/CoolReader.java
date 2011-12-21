@@ -1888,7 +1888,7 @@ public class CoolReader extends Activity
 	public void saveSettings(File f, Properties settings)
 	{
 		try {
-			log.v("saveSettings() " + settings);
+			log.v("saveSettings()");
     		FileOutputStream os = new FileOutputStream(f);
     		settings.store(os, "Cool Reader 3 settings");
 			log.i("Settings successfully saved to file " + f.getAbsolutePath());
