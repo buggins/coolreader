@@ -123,6 +123,9 @@ int main(int argc, char *argv[])
         //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
         //fontDirs.add( lString16(L"/mnt/fonts") );
         fontDirs.add(homefonts);
+#if MAC==1
+        fontDirs.add( lString16(L"/Library/Fonts") );
+#endif
 #if 0
         fontDirs.add( exefontpath );
         fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
@@ -149,7 +152,10 @@ int main(int argc, char *argv[])
         //}
         {
             QApplication a(argc, argv);
-#ifdef _WIN32
+#if MAC == 1
+            QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/Contents/Resources/"); //QDir::separator();
+            QString translations = exeDir + "i18n";
+#elseif defined(_WIN32)
             QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
             QString translations = exeDir + "i18n";
 #else

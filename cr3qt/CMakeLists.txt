@@ -39,7 +39,12 @@ SET (CR3_SOURCES
   src/searchdlg.cpp
 )
 
-IF (UNIX)
+if(MAC)
+    ADD_DEFINITIONS(-DCR3_DATA_DIR=""
+          -DUSE_FONTCONFIG=0
+    ${CARBON_CFLAGS}
+    )
+ELSEIF (UNIX)
     ADD_DEFINITIONS(-DCR3_DATA_DIR="${CMAKE_INSTALL_PREFIX}/share/cr3/" 
           -DUSE_FONTCONFIG=1 
     )
@@ -47,7 +52,7 @@ ELSE()
     ADD_DEFINITIONS(-DCR3_DATA_DIR=""
           -DUSE_FONTCONFIG=0
     )
-ENDIF(UNIX)
+ENDIF(MAC)
 
 #IF (WIN32)
 #IF(NOT ${CMAKE_BUILD_TYPE} STREQUALS Debug)
@@ -145,15 +150,37 @@ endif(WIN32)
 
 
 
-IF (UNIX)
+IF(MAC)
+    SET(FRAMEWORKS "-framework ApplicationServices -framework Carbon -framework AppKit")
+    SET (EXTRA_LIBS ${QT_LIBRARIES} ${FRAMEWORKS} ${STD_LIBS} )
+ELSEIF (UNIX)
     SET (EXTRA_LIBS ${QT_LIBRARIES} fontconfig ${STD_LIBS} )
 ELSE()
     SET (EXTRA_LIBS ${QT_LIBRARIES} ${STD_LIBS} )
-ENDIF(UNIX)
+ENDIF(MAC)
 TARGET_LINK_LIBRARIES(cr3 crengine tinydict ${EXTRA_LIBS})
 
 
-IF (UNIX)
+IF (MAC)
+
+INSTALL( TARGETS cr3 RUNTIME DESTINATION . )
+INSTALL( DIRECTORY data/ DESTINATION Contents/Resources 
+   FILES_MATCHING PATTERN "*.css" PATTERN "skins" EXCLUDE PATTERN "docs" EXCLUDE)
+INSTALL( DIRECTORY data/hyph DESTINATION Contents/Resources 
+   FILES_MATCHING PATTERN "*.pdb" )
+INSTALL( DIRECTORY data/hyph DESTINATION Contents/Resources 
+   FILES_MATCHING PATTERN "*.pattern" )
+#INSTALL( DIRECTORY data/skins DESTINATION share/cr3/skins )
+INSTALL( DIRECTORY data/textures DESTINATION Contents/Resources )
+INSTALL( DIRECTORY data/backgrounds DESTINATION Contents/Resources )
+#INSTALL( FILES ${CR3_MAN_PAGES} DESTINATION share/doc/cr3 )
+INSTALL( FILES ${QM_FILES} DESTINATION Contents/Resources/i18n )
+INSTALL( DIRECTORY ${QT_INCLUDE_DIR}/../src/gui/mac/qt_menu.nib DESTINATION Contents/Resources )
+#INSTALL( FILES src/desktop/cr3.desktop DESTINATION share/applications )
+#INSTALL( FILES src/desktop/cr3.png DESTINATION share/pixmaps )
+#INSTALL( FILES src/desktop/cr3.xpm DESTINATION share/pixmaps )
+
+ELSEIF (UNIX)
 
 
 INSTALL(FILES ${man_gz}
@@ -191,4 +218,4 @@ INSTALL( FILES ${QM_FILES} DESTINATION i18n )
 INSTALL( DIRECTORY data/textures DESTINATION . )
 INSTALL( DIRECTORY data/backgrounds DESTINATION . )
 
-ENDIF(UNIX)
+ENDIF(MAC)

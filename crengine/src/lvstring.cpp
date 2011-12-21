@@ -20,7 +20,9 @@
 #include <time.h>
 #ifdef LINUX
 #include <sys/time.h>
+#if !defined(__APPLE__)
 #include <malloc.h>
+#endif
 #endif
 
 #if (USE_ZLIB==1)
