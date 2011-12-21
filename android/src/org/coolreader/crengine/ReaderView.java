@@ -407,10 +407,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int currentDoubleClickActionKeyCode = 0;
 	@Override
 	public boolean onKeyUp(int keyCode, final KeyEvent event) {
-		if (currentImageViewer != null)
-			return currentImageViewer.onKeyUp(keyCode, event);
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
+		keyCode = translateKeyCode(keyCode);
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyUp(keyCode, event);
 		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP ) {
     		if (isAutoScrollActive())
     			return true;
@@ -567,15 +568,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private boolean repeatActionActive = false;
 	private Map<Integer, Long> keyDownTimestampMap = new HashMap<Integer, Long>();
 	
+	private int translateKeyCode(int keyCode) {
+		if (DeviceInfo.REVERT_LANDSCAPE_VOLUME_KEYS && (mActivity.getScreenOrientation() & 1) != 0) {
+			if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+				return KeyEvent.KEYCODE_VOLUME_UP;
+			if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+				return KeyEvent.KEYCODE_VOLUME_DOWN;
+		}
+		return keyCode;
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
+		
+		if (keyCode == 0)
+			keyCode = event.getScanCode();
+		keyCode = translateKeyCode(keyCode);
 		
 		if (currentImageViewer != null)
 			return currentImageViewer.onKeyDown(keyCode, event);
 
-		if (keyCode == 0)
-			keyCode = event.getScanCode();
-		
 //		backKeyDownHere = false;
 		if ( event.getRepeatCount()==0 ) {
 			log.v("onKeyDown("+keyCode + ", " + event +")");
@@ -1742,7 +1754,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			@Override
 			public void run() {
 				if (mySaveSettingsRequestId == lastSaveSettingsRequestId)
-					mActivity.saveSettings(mSettings);
+					saveSettings(mSettings);
 			}
 		});
 	}
@@ -1754,7 +1766,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (invalidateImages)
 			invalidImages = true;
 		if (save) {
-			scheduleSaveSettings(3000);
+			scheduleSaveSettings(1);
 		}
 	}
 	
@@ -2593,7 +2605,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	public void saveSettings( Properties settings )
 	{
-		mActivity.saveSettings(settings);
+		mActivity.saveSettings(new Properties(settings));
 	}
 	
 	/**
@@ -2614,8 +2626,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        		currSettings.setProperty((String)entry.getKey(), (String)entry.getValue());
 		        }
 	        	mSettings = currSettings;
-	        	if ( save )
+	        	if ( save ) {
+	        		++lastSaveSettingsRequestId;
 	        		saveSettings(currSettings);
+	        	}
 			}
 		});
 	}
@@ -3526,7 +3540,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				String s = OptionsDialog.mBacklightLevelsTitles[currentBrightnessValueIndex];
 				mActivity.showToast(s);
 			}
-			mActivity.saveSettings(mSettings);
+			saveSettings(mSettings);
 			currentBrightnessValueIndex = -1;
 		}
 	}
@@ -4977,10 +4991,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    	return null;
 				}
 			});
-			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
-			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
-			log.d("internalStyles: " + internalStyles);
-			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles | txtReflow);
+//			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
+//			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
+//			log.d("internalStyles: " + internalStyles);
+//			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles | txtReflow);
 			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
@@ -5009,6 +5023,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    	//log.d("readerCallback.OnImageCacheClear");
 	    	clearImageCache();
 	    }
+	    public boolean OnRequestReload() {
+	    	//reloadDocument();
+	    	return true;
+	    }
+
     };
     
     private volatile SwapToCacheTask currentSwapTask;

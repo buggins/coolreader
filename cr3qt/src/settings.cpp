@@ -150,6 +150,9 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_ui->cbViewMode->setCurrentIndex( 2 );
     else
         m_ui->cbViewMode->setCurrentIndex( lp==1 ? 0 : 1 );
+    int hinting = m_props->getIntDef(PROP_FONT_HINTING, 2);
+    m_ui->cbFontHinting->setCurrentIndex(hinting);
+
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
     int mi = 0;
@@ -177,6 +180,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     crGetFontFaceList( m_faceList );
     m_ui->cbTextFontFace->addItems( m_faceList );
     m_ui->cbTitleFontFace->addItems( m_faceList );
+    m_ui->cbFallbackFontFace->addItems( m_faceList );
     QStringList sizeList;
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     for ( int i=0; i<sizes.length(); i++ )
@@ -201,6 +205,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
 
     fontToUi( PROP_FONT_FACE, PROP_FONT_SIZE, m_ui->cbTextFontFace, m_ui->cbTextFontSize, defFontFace );
     fontToUi( PROP_STATUS_FONT_FACE, PROP_STATUS_FONT_SIZE, m_ui->cbTitleFontFace, m_ui->cbTitleFontSize, defFontFace );
+    fontToUi( PROP_FALLBACK_FONT_FACE, PROP_FALLBACK_FONT_FACE, m_ui->cbFallbackFontFace, NULL, defFontFace );
 
 //		{_("90%"), "90"},
 //		{_("100%"), "100"},
@@ -830,13 +835,15 @@ void SettingsDlg::on_cbTextFontSize_currentIndexChanged(QString s)
 void SettingsDlg::fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo, const char * defFontFace )
 {
     QString faceName =  m_props->getStringDef( faceOptionName, defFontFace );
-    QString sizeName =  m_props->getStringDef( sizeOptionName, sizeCombo->itemText(4).toUtf8().data() );
     int faceIndex = faceCombo->findText( faceName );
     if ( faceIndex>=0 )
         faceCombo->setCurrentIndex( faceIndex );
-    int sizeIndex = sizeCombo->findText( sizeName );
-    if ( sizeIndex>=0 )
-        sizeCombo->setCurrentIndex( sizeIndex );
+    if (sizeCombo) {
+        QString sizeName =  m_props->getStringDef( sizeOptionName, sizeCombo->itemText(4).toUtf8().data() );
+        int sizeIndex = sizeCombo->findText( sizeName );
+        if ( sizeIndex>=0 )
+            sizeCombo->setCurrentIndex( sizeIndex );
+    }
 }
 
 void SettingsDlg::on_cbInterlineSpace_currentIndexChanged(int index)
@@ -948,4 +955,17 @@ void SettingsDlg::on_cbDefFontStyle_currentIndexChanged(int index)
 void SettingsDlg::on_cbDefFontColor_currentIndexChanged(int index)
 {
     m_styleFontColor.update(index);
+}
+
+void SettingsDlg::on_cbFontHinting_currentIndexChanged(int index)
+{
+    m_props->setInt(PROP_FONT_HINTING, index);
+}
+
+void SettingsDlg::on_cbFallbackFontFace_currentIndexChanged(const QString &s)
+{
+    if ( !initDone )
+        return;
+    m_props->setString(PROP_FALLBACK_FONT_FACE, s);
+    updateStyleSample();
 }

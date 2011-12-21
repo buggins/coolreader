@@ -199,6 +199,8 @@ private slots:
     void on_cbDefFontWeight_currentIndexChanged(int index);
     void on_cbDefFontStyle_currentIndexChanged(int index);
     void on_cbDefFontColor_currentIndexChanged(int index);
+    void on_cbFontHinting_currentIndexChanged(int index);
+    void on_cbFallbackFontFace_currentIndexChanged(const QString &arg1);
 };
 
 #endif // SETTINGSDLG_H

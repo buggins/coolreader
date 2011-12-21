@@ -129,7 +129,13 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
     }
 }
 
-lString16 EpubGetRootFilePath( LVContainerRef m_arc )
+static bool EpubIsEncrypted(LVContainerRef & m_arc)
+{
+    LVStreamRef container_stream = m_arc->OpenStream(L"META-INF/encryption.xml", LVOM_READ);
+    return !container_stream.isNull();
+}
+
+lString16 EpubGetRootFilePath(LVContainerRef m_arc)
 {
     // check root media type
     lString16 rootfilePath;
@@ -167,6 +173,44 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     	return false;
 
     m_doc->setContainer(m_arc);
+
+    if (EpubIsEncrypted(m_arc)) {
+        ldomDocumentWriter writer(m_doc);
+        writer.OnTagOpenNoAttr(NULL, L"body");
+        writer.OnTagOpenNoAttr(NULL, L"h3");
+        lString16 hdr(L"Encrypted content");
+        writer.OnText(hdr.c_str(), hdr.length(), 0);
+        writer.OnTagClose(NULL, L"h3");
+
+        writer.OnTagOpenAndClose(NULL, L"hr");
+
+        writer.OnTagOpenNoAttr(NULL, L"p");
+        lString16 txt(L"This document is encrypted (has DRM protection).");
+        writer.OnText(txt.c_str(), txt.length(), 0);
+        writer.OnTagClose(NULL, L"p");
+
+        writer.OnTagOpenNoAttr(NULL, L"p");
+        lString16 txt2(L"Cool Reader doesn't support reading of DRM protected books.");
+        writer.OnText(txt2.c_str(), txt2.length(), 0);
+        writer.OnTagClose(NULL, L"p");
+
+        writer.OnTagOpenNoAttr(NULL, L"p");
+        lString16 txt3(L"To read this book, please use software recommended by book seller.");
+        writer.OnText(txt3.c_str(), txt3.length(), 0);
+        writer.OnTagClose(NULL, L"p");
+
+        writer.OnTagOpenAndClose(NULL, L"hr");
+
+        writer.OnTagOpenNoAttr(NULL, L"p");
+        lString16 txt4(L"");
+        writer.OnText(txt4.c_str(), txt4.length(), 0);
+        writer.OnTagClose(NULL, L"p");
+
+        writer.OnTagClose(NULL, L"body");
+
+
+        return true;
+    }
 
     // read content.opf
     EpubItems epubItems;

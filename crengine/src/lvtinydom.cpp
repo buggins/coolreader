@@ -13,7 +13,7 @@
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.04.09"
+#define CACHE_FILE_FORMAT_VERSION "3.04.11"
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0002
 
@@ -7708,8 +7708,9 @@ void tinyNodeCollection::setDocFlags( lUInt32 value )
 
 int tinyNodeCollection::getPersistenceFlags()
 {
-    int format = getProps()->getIntDef(DOC_PROP_FILE_FORMAT, 0);
+    int format = 2; //getProps()->getIntDef(DOC_PROP_FILE_FORMAT, 0);
     int flag = ( format==2 && getDocFlag(DOC_FLAG_PREFORMATTED_TEXT) ) ? 1 : 0;
+    CRLog::trace("getPersistenceFlags() returned %d", flag);
     return flag;
 }
 
@@ -8590,6 +8591,7 @@ public:
     LVStreamRef openExisting( lString16 filename, lUInt32 crc, lUInt32 docFlags )
     {
         lString16 fn = makeFileName( filename, crc, docFlags );
+        CRLog::debug("ldomDocCache::openExisting(%s)", LCSTR(fn));
         LVStreamRef res;
         if ( findFileIndex( fn ) < 0 ) {
             CRLog::error( "ldomDocCache::openExisting - File %s is not found in cache index", UnicodeToUtf8(fn).c_str() );

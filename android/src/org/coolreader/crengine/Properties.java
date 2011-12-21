@@ -17,7 +17,9 @@ public class Properties extends java.util.Properties {
 	}
 
 	public Properties(java.util.Properties props) {
-		setAll(props);
+		synchronized(props) {
+			setAll(props);
+		}
 	}
 
 	private static int revBytes(int color) {
