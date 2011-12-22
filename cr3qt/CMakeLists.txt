@@ -152,7 +152,7 @@ endif(WIN32)
 
 IF(MAC)
     SET(FRAMEWORKS "-framework ApplicationServices -framework Carbon -framework AppKit")
-    SET (EXTRA_LIBS ${QT_LIBRARIES} ${FRAMEWORKS} ${STD_LIBS} )
+    SET (EXTRA_LIBS ${QT_LIBRARIES} /Developer/Qt/lib/libQtCore.a /Developer/Qt/lib/libQtGui.a ${FRAMEWORKS} ${STD_LIBS} )
 ELSEIF (UNIX)
     SET (EXTRA_LIBS ${QT_LIBRARIES} fontconfig ${STD_LIBS} )
 ELSE()

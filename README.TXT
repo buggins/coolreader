@@ -201,12 +201,12 @@ You need also add following DLLs to this directory in order to get cr3.exe worki
 ==============================
 #configure and make Qt as static libraries
 #Inside Qt source root:
-./configure -prefix /Developer/Qt -opensource -static -arch x86 -arch x86_64 \
+./configure -prefix /Developer/Qt -opensource -static -release -universal \
 -no-accessibility -no-stl -no-qt3support -qt-zlib -no-gif -no-libtiff -qt-libpng -no-libmng -qt-libjpeg -no-nis -no-cups -no-iconv -no-pch -no-dbus \
 -no-xmlpatterns -no-multimedia -no-phonon -no-phonon-backend -no-audio-backend -no-openssl \
 -no-gtkstyle -no-svg -no-webkit -no-javascript-jit -no-script -no-scripttools -no-declarative 
 #make Core and GUI libraries
-make sub-libcore sub-libgui
+make sub-src
 #make symlinks from `pad` to /Developer/Qt for bin, include, lib, src dirs
 #É
 
@@ -214,6 +214,6 @@ make sub-libcore sub-libgui
 #configure using cmake
 mkdir macbuild
 cd macbuild
-cmake -G "Unix Makefiles" -D GUI=QT -D CMAKE_BUILD_TYPE=Release -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=cr3.app ..
+cmake -G "Unix Makefiles" -D GUI=QT -D QT_QMAKE_EXECUTABLE=/Developer/Qt/bin/qmake -D CMAKE_BUILD_TYPE=Release -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=cr3.app ..
 make
 make install

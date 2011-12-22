@@ -155,12 +155,14 @@ int main(int argc, char *argv[])
 #if MAC == 1
             QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/Contents/Resources/"); //QDir::separator();
             QString translations = exeDir + "i18n";
-#elseif defined(_WIN32)
+#else
+#if defined(_WIN32)
             QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
             QString translations = exeDir + "i18n";
 #else
             QString exeDir = cr2qt(datadir);
             QString translations = exeDir + "i18n/";
+#endif
 #endif
              QTranslator qtTranslator;
              if (qtTranslator.load("qt_" + QLocale::system().name(),
