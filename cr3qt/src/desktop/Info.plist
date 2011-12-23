@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.1">
+<dict>
+	<key>CFBundleName</key>
+	<string>CoolReader3</string>
+	<key>CFBundleDisplayName</key>
+	<string>Cool Reader 3</string>
+	<key>CFBundleVersion</key>
+	<string>3.0.54</string>
+	<key>CFBundleIconFile</key>
+	<string>cr3.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.coolreader.cr3</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+        <key>CFBundleGetInfoString</key>
+	<string>Created by Qt/QMake</string>
+	<key>CFBundleSignature</key>
+	<string>crdr</string>
+	<key>CFBundleExecutable</key>
+	<string>cr3</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>(c)2011 Vadim Lopatin</string>
+</dict>
+</plist>

@@ -83,7 +83,9 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
 #else
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/cr3/");
 #endif
-#ifdef _LINUX
+#if MAC==1
+    QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/../Resources/"); //QDir::separator();
+#elif _LINUX
     QString exeDir = QString(CR3_DATA_DIR);
 #else
     QString exeDir = QDir::toNativeSeparators(qApp->applicationDirPath() + "/"); //QDir::separator();
