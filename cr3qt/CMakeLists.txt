@@ -151,8 +151,10 @@ endif(WIN32)
 
 
 IF(MAC)
-    SET(FRAMEWORKS "-framework ApplicationServices -framework Carbon -framework AppKit")
-    SET (EXTRA_LIBS /Developer/Qt/lib/libQtCore.a /Developer/Qt/lib/libQtGui.a ${FRAMEWORKS} ${STD_LIBS} )
+    message("Qt libs = ${QT_LIBRARIES}")
+#    SET(FRAMEWORKS "-framework ApplicationServices -framework Carbon -framework AppKit")
+#/Developer/Qt/lib/libQtCore.a /Developer/Qt/lib/libQtGui.a ${FRAMEWORKS} 
+    SET (EXTRA_LIBS ${QT_LIBRARIES} ${STD_LIBS} )
 #${QT_LIBRARIES} 
 ELSEIF (UNIX)
     SET (EXTRA_LIBS ${QT_LIBRARIES} fontconfig ${STD_LIBS} )

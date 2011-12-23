@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define USE_UNRAR 1
+//#define USE_UNRAR 1
 
 #if (USE_ZLIB==1)
 #include <zlib.h>

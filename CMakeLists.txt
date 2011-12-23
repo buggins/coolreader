@@ -108,7 +108,7 @@ SET(QT_3RDPARTY_DIR ${QT_INCLUDE_DIR}/../src/3rdparty)
 endif( ${GUI} STREQUAL QT )
 
 #UNRAR support
-if(NOT DEFINED NO_UNRAR)
+if(DEFINED USE_UNRAR)
   message("Will build static UNRAR library")
   SET(USE_UNRAR 1)
   SET(UNRAR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/unrar)
