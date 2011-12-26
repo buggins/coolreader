@@ -5268,13 +5268,13 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     int y1 = y0 + h;
     if (makeSelStartVisible) {
         // make start of selection visible
-        if (startPoint.y < y0 + m_font_size * 2)
+        if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4)
             SetPos(startPoint.y - m_font_size * 2);
         //goToBookmark(currSel.getStart());
     } else {
         // make end of selection visible
-        if (endPoint.y > y1 - m_font_size * 2)
-            SetPos(endPoint.y - h + m_font_size * 2, false);
+        if (endPoint.y > y0 + h * 3/4 - m_font_size * 2)
+            SetPos(endPoint.y - h * 3/4 + m_font_size * 2, false);
     }
     CRLog::debug("Sel: %s", LCSTR(currSel.getRangeText()));
     return 1;

@@ -380,5 +380,5 @@
     <string name="options_font_hinting">Font hinting</string>
     <string name="options_font_hinting_disabled">Disabled</string>
     <string name="options_font_hinting_auto">Autohinting</string>
-<string name="options_font_fallback_face">Fallback font</string>
+    <string name="options_font_fallback_face">Fallback font</string>
 </resources>
