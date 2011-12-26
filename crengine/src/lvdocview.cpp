@@ -372,11 +372,15 @@ lvPoint LVDocView::rotatePoint(lvPoint & pt, bool winToDoc) {
 /// sets page margins
 void LVDocView::setPageMargins(const lvRect & rc) {
 	if (m_pageMargins.left + m_pageMargins.right != rc.left + rc.right
-			|| m_pageMargins.top + m_pageMargins.bottom != rc.top + rc.bottom)
+            || m_pageMargins.top + m_pageMargins.bottom != rc.top + rc.bottom) {
+
+        m_pageMargins = rc;
+        updateLayout();
         REQUEST_RENDER("setPageMargins")
-	else
+    } else {
 		clearImageCache();
-	m_pageMargins = rc;
+        m_pageMargins = rc;
+    }
 }
 
 void LVDocView::setPageHeaderInfo(int hdrFlags) {
