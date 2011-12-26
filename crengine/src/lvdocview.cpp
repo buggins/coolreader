@@ -5178,6 +5178,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     if ( sel.length()>0 )
         currSel = *sel[0];
     bool moved = false;
+    bool makeSelStartVisible = true; // true: start, false: end
     if ( !currSel.isNull() && !pageRange->isInside(currSel.getStart()) && !pageRange->isInside(currSel.getEnd()) )
         currSel.clear();
     if ( currSel.isNull() || currSel.getStart().isNull() ) {
@@ -5195,6 +5196,8 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         return 0;
     }
     if (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS || cmd==DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS) {
+        if (cmd==DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS)
+            makeSelStartVisible = false;
         int dir = param>0 ? 1 : -1;
         int distance = param>0 ? param : -param;
         CRLog::debug("Changing selection by words: bound=%s dir=%d distance=%d", (cmd==DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS?"left":"right"), dir, distance);
@@ -5257,7 +5260,22 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     }
     currSel.setFlags(1);
     selectRange(currSel);
-    goToBookmark(currSel.getStart());
+    lvPoint startPoint = currSel.getStart().toPoint();
+    lvPoint endPoint = currSel.getEnd().toPoint();
+    int y0 = GetPos();
+    int h = m_pageRects[0].height() - m_pageMargins.top
+            - m_pageMargins.bottom - getPageHeaderHeight();
+    int y1 = y0 + h;
+    if (makeSelStartVisible) {
+        // make start of selection visible
+        if (startPoint.y < y0 + m_font_size * 2)
+            SetPos(startPoint.y - m_font_size * 2);
+        //goToBookmark(currSel.getStart());
+    } else {
+        // make end of selection visible
+        if (endPoint.y > y1 - m_font_size * 2)
+            SetPos(endPoint.y - h + m_font_size * 2, false);
+    }
     CRLog::debug("Sel: %s", LCSTR(currSel.getRangeText()));
     return 1;
 }
