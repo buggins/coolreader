@@ -1512,6 +1512,13 @@ public class CoolReader extends Activity
 		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.NORMAL, ReaderAction.SEARCH),
 		new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.LONG, ReaderAction.TOGGLE_SELECTION_MODE),
 		
+		new DefKeyAction(ReaderView.SONY_MENU_SCANCODE, ReaderAction.NORMAL, ReaderAction.READER_MENU),
+		new DefKeyAction(ReaderView.SONY_HOME_SCANCODE, ReaderAction.NORMAL, ReaderAction.HOME_SCREEN),
+		new DefKeyAction(ReaderView.SONY_BACK_SCANCODE, ReaderAction.NORMAL, ReaderAction.FILE_BROWSER),
+		new DefKeyAction(ReaderView.SONY_MENU_SCANCODE, ReaderAction.LONG, ReaderAction.OPTIONS),
+		new DefKeyAction(ReaderView.SONY_HOME_SCANCODE, ReaderAction.LONG, ReaderAction.HOME_SCREEN),
+		new DefKeyAction(ReaderView.SONY_BACK_SCANCODE, ReaderAction.LONG, ReaderAction.EXIT),
+
 		new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 		new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),

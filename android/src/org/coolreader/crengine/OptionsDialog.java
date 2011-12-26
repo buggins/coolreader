@@ -540,6 +540,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Next button");
 				addKey(listView, ReaderView.SONY_DPAD_UP_SCANCODE, "Prev button");
 				addKey(listView, ReaderView.SONY_DPAD_DOWN_SCANCODE, "Next button");
+				addKey(listView, ReaderView.SONY_MENU_SCANCODE, "Menu");
+				addKey(listView, ReaderView.SONY_BACK_SCANCODE, "Back");
+				addKey(listView, ReaderView.SONY_HOME_SCANCODE, "Home");
 			} else {
 				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
