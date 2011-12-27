@@ -1904,6 +1904,8 @@ void lStr_uppercase( lChar16 * str, int len )
             str[i] = ch - 0x20;
         } else if ( ch>=0x430 && ch<=0x44F ) {
             str[i] = ch - 0x20;
+        } else if ( ch>=0x3b0 && ch<=0x3cF ) {
+            str[i] = ch - 0x20;
         }
     }
 }
@@ -1917,6 +1919,8 @@ void lStr_lowercase( lChar16 * str, int len )
         } else if ( ch>=0xC0 && ch<=0xDF ) {
             str[i] = ch + 0x20;
         } else if ( ch>=0x410 && ch<=0x42F ) {
+            str[i] = ch + 0x20;
+        } else if ( ch>=0x390 && ch<=0x3aF ) {
             str[i] = ch + 0x20;
         }
     }

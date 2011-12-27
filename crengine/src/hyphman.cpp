@@ -14,7 +14,7 @@
 */
 
 // set to 1 for debug dump
-#if 1
+#if 0
 #define DUMP_HYPHENATION_WORDS 1
 #define DUMP_PATTERNS 1
 #else
@@ -419,11 +419,13 @@ public:
             lChar16 ch = s[i];
             if ( ch>='0' && ch<='9' ) {
                 attr[n] = (char)ch;
+//                if (n>0)
+//                    attr[n-1] = (char)ch;
             } else {
                 word[n++] = ch;
             }
             if (i==(int)s.length()-1)
-                attr[i] = 0;
+                attr[n+1] = 0;
         }
     }
 
@@ -604,6 +606,7 @@ bool TexHyph::load( LVStreamRef stream )
         if ( !data.length() )
             return false;
         for ( int i=0; i<(int)data.length(); i++ ) {
+            data[i].lowercase();
             TexPattern * pattern = new TexPattern( data[i] );
 #if DUMP_PATTERNS==1
             CRLog::debug("Pattern: (%s) '%s' - %s", LCSTR(data[i]), LCSTR(lString16(pattern->word)), pattern->attr);
@@ -681,6 +684,11 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
     word[len+2] = 0;
     word[len+3] = 0;
     word[len+4] = 0;
+
+#if DUMP_HYPHENATION_WORDS==1
+    CRLog::trace("word to hyphenate: '%s'", LCSTR(lString16(word)));
+#endif
+
     memset( mask, '0', len+3 );
     mask[len+3] = 0;
     bool found = false;
