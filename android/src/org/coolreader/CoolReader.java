@@ -1662,7 +1662,7 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
         
         props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
-        if (DeviceInfo.EINK_SCREEN) {
+        if (DeviceInfo.FORCE_LIGHT_THEME) {
         	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
         } else {
         	if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
