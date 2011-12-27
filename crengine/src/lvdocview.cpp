@@ -5654,7 +5654,8 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			// hyphenation dictionary
 			lString16 id = props->getStringDef(PROP_HYPHENATION_DICT,
 					DEF_HYPHENATION_DICT);
-			HyphDictionaryList * list = HyphMan::getDictList();
+            CRLog::debug("PROP_HYPHENATION_DICT = %s", LCSTR(id));
+            HyphDictionaryList * list = HyphMan::getDictList();
 			HyphDictionary * curr = HyphMan::getSelectedDictionary();
 			if (list) {
 				if (!curr || curr->getId() != id) {

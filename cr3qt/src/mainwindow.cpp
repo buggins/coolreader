@@ -79,20 +79,22 @@ MainWindow::MainWindow(QWidget *parent)
     QString bookmarksDir = homeDir + "bookmarks";
     QString histFile = exeDir + "cr3hist.bmk";
     QString histFile2 = homeDir + "cr3hist.bmk";
-    QString iniFile = exeDir + "cr3.ini";
-    QString iniFile2 = homeDir + "cr3.ini";
+    QString iniFile2 = exeDir + "cr3.ini";
+    QString iniFile = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
     QString cssFile2 = exeDir + "fb2.css";
     //QString translations = exeDir + "i18n";
     //CRLog::info("Translations directory: %s", LCSTR(qt2cr(translations)) );
     QString hyphDir = exeDir + "hyph" + QDir::separator();
+    ui->view->setHyphDir(hyphDir);
+    ui->view->setHyphDir(homeDir + "hyph" + QDir::separator(), false);
+
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
     if ( !ui->view->loadSettings( iniFile ) )
         ui->view->loadSettings( iniFile2 );
     if ( !ui->view->loadHistory( histFile ) )
         ui->view->loadHistory( histFile2 );
-    ui->view->setHyphDir( hyphDir );
     if ( !ui->view->loadCSS( cssFile ) )
         ui->view->loadCSS( cssFile2 );
 #if ENABLE_BOOKMARKS_DIR==1

@@ -386,15 +386,16 @@ QString CR3View::endWordSelection() {
 }
 #endif
 
-void CR3View::setHyphDir( QString dirname )
+void CR3View::setHyphDir(QString dirname, bool clear)
 {
-    HyphMan::initDictionaries( qt2cr( dirname) );
+    HyphMan::initDictionaries(qt2cr( dirname), clear);
     _hyphDicts.clear();
     for ( int i=0; i<HyphMan::getDictList()->length(); i++ ) {
         HyphDictionary * item = HyphMan::getDictList()->get( i );
-        QString fn = cr2qt( item->getFilename() );
+        QString fn = cr2qt(item->getId()); //item->getFilename() );
         _hyphDicts.append( fn );
     }
+    //_hyphDicts.sort();
 }
 
 const QStringList & CR3View::getHyphDicts()

@@ -69,7 +69,7 @@ public:
 	int length() { return _list.length(); }
 	HyphDictionary * get( int index ) { return (index>=0 && index<+_list.length()) ? _list[index] : NULL; }
 	HyphDictionaryList() { addDefault(); }
-	bool open( lString16 hyphDirectory );
+    bool open(lString16 hyphDirectory, bool clear = true);
 	HyphDictionary * find( lString16 id );
 	bool activate( lString16 id );
 };
@@ -92,7 +92,7 @@ public:
     static bool activateDictionaryFromStream( LVStreamRef stream );
 	static HyphDictionaryList * getDictList() { return _dictList; }
     static bool activateDictionary( lString16 id ) { return _dictList->activate(id); }
-	static bool initDictionaries( lString16 dir );
+    static bool initDictionaries(lString16 dir, bool clear = true);
 	static HyphDictionary * getSelectedDictionary() { return _selectedDictionary; }
 
     HyphMan();

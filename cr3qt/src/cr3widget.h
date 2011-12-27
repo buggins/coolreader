@@ -65,7 +65,7 @@ class CR3View : public QWidget, public LVDocViewCallback
         /// save history to file
         bool saveHistory( QString filename );
 
-        void setHyphDir( QString dirname );
+        void setHyphDir(QString dirname, bool clear = true);
         const QStringList & getHyphDicts();
 
         /// load fb2.css file
