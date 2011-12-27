@@ -56,9 +56,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int SONY_DPAD_UP_SCANCODE = 105;
     public static final int SONY_DPAD_DOWN_SCANCODE = 106;
     
-    public static final int SONY_MENU_SCANCODE = 357;
-    public static final int SONY_BACK_SCANCODE = 158;
-    public static final int SONY_HOME_SCANCODE = 102;
+//    public static final int SONY_MENU_SCANCODE = 357;
+//    public static final int SONY_BACK_SCANCODE = 158;
+//    public static final int SONY_HOME_SCANCODE = 102;
     
     public static final int PAGE_ANIMATION_NONE = 0;
     public static final int PAGE_ANIMATION_PAPER = 1;
