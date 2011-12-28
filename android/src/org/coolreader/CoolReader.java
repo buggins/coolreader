@@ -1605,10 +1605,21 @@ public class CoolReader extends Activity
         // autodetect best initial font size based on display resolution
         int screenWidth = getWindowManager().getDefaultDisplay().getWidth();
         int fontSize = 20;
-        if ( screenWidth>=400 )
-        	fontSize = 24;
-        else if ( screenWidth>=600 )
-        	fontSize = 28;
+        String hmargin = "4";
+        String vmargin = "2";
+        if ( screenWidth>=400 ) {
+        	fontSize = 26;
+            hmargin = "10";
+            vmargin = "4";
+        } else if ( screenWidth>=600 ) {
+        	fontSize = 32;
+            hmargin = "20";
+            vmargin = "10";
+        } else if ( screenWidth>=768 ) {
+        	fontSize = 36;
+            hmargin = "80";
+            vmargin = "25";
+        }
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
@@ -1653,10 +1664,10 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, "0");
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, "0");
 		
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, densityDpi > 160 ? "10" : DeviceInfo.EINK_NOOK ? "20" : "4");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, densityDpi > 160 ? "10" : DeviceInfo.EINK_NOOK ? "20" : "4");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, densityDpi > 160 ? "8" : "2");
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, densityDpi > 160 ? "8" : "2");
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, hmargin);
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, hmargin);
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, vmargin);
+		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, vmargin);
 		
         props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
         props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
