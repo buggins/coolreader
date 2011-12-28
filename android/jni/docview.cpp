@@ -868,7 +868,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_applySettingsInt
 	lUInt32 newStatusColor = props->getColorDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
 	//CRLog::debug("Text colors: %x->%x, %x->%x", oldTextColor, newTextColor, oldStatusColor, newStatusColor);
 	CRPropRef diff = oldProps ^ props;
-	CRPropRef unknown = p->_docview->propsApply(diff);
+	CRPropRef unknown = p->_docview->propsApply(props); //diff
 	lUInt32 batteryColor = newStatusColor;
 	if ( batteryColor==0xFF000000 )
 		batteryColor = newTextColor;
