@@ -21,7 +21,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -185,7 +184,7 @@ public class BookmarksDlg  extends BaseDialog {
 		}
 	}
 	
-	class BookmarkList extends ListView {
+	class BookmarkList extends BaseListView {
 		private ListAdapter mAdapter;
 		private boolean mShortcutMode = false;
 		

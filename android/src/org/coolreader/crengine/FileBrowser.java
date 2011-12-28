@@ -51,12 +51,10 @@ public class FileBrowser extends LinearLayout {
 
 	public static final int MAX_SUBDIR_LEN = 32;
 	
-	private class FileBrowserListView extends ListView {
+	private class FileBrowserListView extends BaseListView {
 
 		public FileBrowserListView(Context context) {
 			super(context);
-	        setFocusable(true);
-	        setFocusableInTouchMode(true);
 	        setLongClickable(true);
 	        //registerForContextMenu(this);
 	        //final FileBrowser _this = this;

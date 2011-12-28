@@ -170,7 +170,7 @@ public class TOCDlg extends BaseDialog {
 		this.mReaderView = readerView;
 		this.mTOC = toc;
 		this.mCurrentPage = currentPage;
-		this.mListView = new ListView(getContext());
+		this.mListView = new BaseListView(getContext());
 		mListView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override

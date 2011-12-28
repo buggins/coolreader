@@ -541,6 +541,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
 				addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
 				
+				addKey(listView, KeyEvent.KEYCODE_HOME, "Home");
+				
 			} else if ( DeviceInfo.SONY_NAVIGATION_KEYS ) {
 //				addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Prev button");
 //				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Next button");
@@ -551,6 +553,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //				addKey(listView, ReaderView.SONY_HOME_SCANCODE, "Home");
 				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
 				addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
+
+				addKey(listView, KeyEvent.KEYCODE_HOME, "Home");
 			} else {
 				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
@@ -856,7 +860,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			final BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 
-			final ListView listView = new ListView(mActivity);
+			final ListView listView = new BaseListView(mActivity);
 			
 			
 			ListAdapter listAdapter = new ListAdapter() {
@@ -1173,7 +1177,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		isTextFormat = readerView.isTextFormat();
 	}
 	
-	class OptionsListView extends ListView {
+	class OptionsListView extends BaseListView {
 		private ArrayList<OptionBase> mOptions = new ArrayList<OptionBase>();
 		private ListAdapter mAdapter;
 		public void refresh()
