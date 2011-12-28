@@ -19,20 +19,21 @@ public class BaseListView  extends ListView {
 		if (keyCode == ReaderView.NOOK_KEY_PREV_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == ReaderView.NOOK_KEY_SHIFT_UP)
 			dir = -1;
 		if (dir != 0) {
+			int top = 0; //getTop();
 			if (dir > 0) {
 				// scroll down
-				int bottompos = pointToPosition(this.getWidth() / 2, getHeight() / 2);
+				int bottompos = pointToPosition(this.getWidth() / 2, getHeight() * 4/5);
 				if (bottompos != INVALID_POSITION) {
-					this.setSelectionFromTop(bottompos, 0);
+					this.setSelectionFromTop(bottompos, top + 0);
 				}
 			} else {
 				// scroll up
-				int toppos = pointToPosition(this.getWidth() / 2, 20);
+				int toppos = getFirstVisiblePosition();//  pointToPosition(this.getWidth() / 2, 20);
 				if (toppos != INVALID_POSITION) {
-					this.setSelectionFromTop(toppos, getHeight() / 2);
-					toppos = pointToPosition(this.getWidth() / 2, 20);
+					this.setSelectionFromTop(toppos, top + getHeight() * 4/5);
+					toppos = getFirstVisiblePosition(); //pointToPosition(this.getWidth() / 2, 20);
 					if (toppos != INVALID_POSITION) {
-						this.setSelectionFromTop(toppos, 0);
+						this.setSelectionFromTop(toppos, top + 0);
 					}
 				}
 			}
