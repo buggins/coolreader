@@ -535,6 +535,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				addKey(listView, ReaderView.KEYCODE_PAGE_TOPRIGHT, "Top right navigation button");
 				addKey(listView, ReaderView.NOOK_12_KEY_NEXT_LEFT, "Bottom right navigation button");
 //				addKey(listView, ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, "Bottom right navigation button");
+
+				// on rooted Nook, side navigation keys may be reassigned on some standard android keycode
+				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
+				addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
+				addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
+				
 			} else if ( DeviceInfo.SONY_NAVIGATION_KEYS ) {
 //				addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Prev button");
 //				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Next button");
@@ -982,7 +988,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public ThemeOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_THEME );
-			setDefaultValue(DeviceInfo.EINK_SCREEN ? "WHITE" : "LIGHT");
+			setDefaultValue(DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
 			for (InterfaceTheme theme : InterfaceTheme.allThemes)
 				add(theme.getCode(), getString(theme.getDisplayNameResourceId()));
 		}

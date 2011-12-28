@@ -1746,6 +1746,7 @@ public class CoolReader extends Activity
 		new DictInfo("ColorDictApi", "ColorDict new / GoldenDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 1),
 		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
 		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
+		new DictInfo("Dictan", "Dictan Dictionary", "", "", Intent.ACTION_VIEW, 2),
 	};
 
 	public DictInfo[] getDictList() {
@@ -1763,6 +1764,12 @@ public class CoolReader extends Activity
 		}
 	}
 
+	private final static int DICTAN_ARTICLE_REQUEST_CODE = 100;
+	
+	private final static String DICTAN_ARTICLE_WORD = "article.word";
+	
+	private final static String DICTAN_ERROR_MESSAGE = "error.message";
+	
 	private void findInDictionaryInternal(String s) {
 		switch (currentDict.internal) {
 		case 0:
@@ -1800,9 +1807,55 @@ public class CoolReader extends Activity
 				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
 			}
 			break;
+		case 2:
+			// Dictan support
+			Intent intent2 = new Intent("android.intent.action.VIEW");
+			// Add custom category to run the Dictan external dispatcher
+            intent2.addCategory("info.softex.dictan.EXTERNAL_DISPATCHER");
+            
+   	        // Don't include the dispatcher in activity  
+            // because it doesn't have any content view.	      
+            intent2.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+		  
+	        intent2.putExtra(DICTAN_ARTICLE_WORD, s);
+			  
+	        try {
+	        	startActivityForResult(intent2, DICTAN_ARTICLE_REQUEST_CODE);
+	        } catch (ActivityNotFoundException e) {
+				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+	        }
+			break;
 		}
 	}
 
+	@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == DICTAN_ARTICLE_REQUEST_CODE) {
+	       	switch (resultCode) {
+	        	
+	        	// The article has been shown, the intent is never expected null
+			case RESULT_OK:
+				break;
+					
+			// Error occured
+			case RESULT_CANCELED: 
+				String errMessage = "Unknown Error.";
+				if (intent != null) {
+					errMessage = "The Requested Word: " + 
+					intent.getStringExtra(DICTAN_ARTICLE_WORD) + 
+					". Error: " + intent.getStringExtra(DICTAN_ERROR_MESSAGE);
+				}
+				showToast(errMessage);
+				break;
+					
+			// Must never occur
+			default: 
+				showToast("Unknown Result Code: " + resultCode);
+				break;
+			}
+        }
+    }
+	
 	public void showDictionary() {
 		findInDictionaryInternal(null);
 	}
