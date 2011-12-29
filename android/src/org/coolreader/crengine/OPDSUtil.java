@@ -742,9 +742,14 @@ xml:base="http://lib.ololo.cc/opds/">
 					parseFeed( is );
 					itemsLoadedPartially = true;
 					if (handler.docInfo.nextLink!=null && handler.docInfo.nextLink.type.startsWith("application/atom+xml;profile=opds-catalog")) {
-						url = new URL(handler.docInfo.nextLink.href);
-						loadNext = !visited.contains(url.toString());
-						L.d("continue with next part: " + url);
+						if (handler.entries.size() < MAX_OPDS_ITEMS) {
+							url = new URL(handler.docInfo.nextLink.href);
+							loadNext = !visited.contains(url.toString());
+							L.d("continue with next part: " + url);
+						} else {
+							L.d("max item count reached: " + handler.entries.size());
+							loadNext = false;
+						}
 					} else {
 						loadNext = false;
 					}
@@ -904,5 +909,6 @@ xml:base="http://lib.ololo.cc/opds/">
 		return buf.toString();
 	}
 	
-	public static final int PROGRESS_DELAY_MILLIS = 2000; 
+	public static final int PROGRESS_DELAY_MILLIS = 2000;
+	public static final int MAX_OPDS_ITEMS = 1000;
 }

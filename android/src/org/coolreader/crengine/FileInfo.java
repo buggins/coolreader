@@ -229,7 +229,7 @@ public class FileInfo {
 	
 	public boolean isOPDSDir()
 	{
-		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX) && getOPDSEntryInfo() != null && getOPDSEntryInfo().getBestAcquisitionLink() == null;
+		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX) && (getOPDSEntryInfo() == null || getOPDSEntryInfo().getBestAcquisitionLink() == null);
 	}
 	
 	public boolean isOPDSBook()

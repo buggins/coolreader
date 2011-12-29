@@ -138,7 +138,7 @@ public class FileBrowser extends LinearLayout {
 				showDirectory(item, null);
 				return true;
 			}
-			if ( item.isOPDSDir() )
+			if (item.isOPDSDir() || item.isOPDSBook())
 				showOPDSDir(item, null);
 			else
 				mActivity.loadDocument(item);
