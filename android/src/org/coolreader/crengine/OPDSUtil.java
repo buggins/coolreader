@@ -124,10 +124,14 @@ xml:base="http://lib.ololo.cc/opds/">
 		public static String convertHref( URL baseURL, String href ) {
 			if ( href==null )
 				return href;
+			String port = "";
+			if (baseURL.getPort() != 80)
+				port = ":" + baseURL.getPort();
+			String hostPort = baseURL.getHost() + port;
 			if ( href.startsWith("/") )
-				return baseURL.getProtocol() + "://" + baseURL.getHost() + href;
+				return baseURL.getProtocol() + "://" + hostPort + href;
 			if ( !href.startsWith("http://") ) {
-				return baseURL.getProtocol() + "://" + baseURL.getHost() + dirPath(baseURL.getPath()) + "/" + href;
+				return baseURL.getProtocol() + "://" + hostPort + dirPath(baseURL.getPath()) + "/" + href;
 			}
 			return href;
 		}
