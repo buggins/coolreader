@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Търсене</string>
@@ -379,5 +379,8 @@
     <string name="options_font_hinting">Font hinting</string>
     <string name="options_font_hinting_disabled">Disabled</string>
     <string name="options_font_hinting_auto">Autohinting</string>
-<string name="options_font_fallback_face">Fallback font</string>
+    <string name="options_font_fallback_face">Fallback font</string>
+    <string name="win_title_confirm_catalog_delete">Do you really want to delete this catalog?</string>
+    <string name="win_title_confirm_history_record_delete">Do you really want to remove this book from recent list?</string>
+    <string name="win_title_confirm_book_delete">Do you really want to delete this book?</string>
 </resources>

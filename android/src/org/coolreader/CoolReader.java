@@ -34,14 +34,17 @@ import org.coolreader.crengine.ToastView;
 import org.coolreader.crengine.Utils;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -2010,5 +2013,21 @@ public class CoolReader extends Activity
     	emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, bookInfo.getFileInfo().getAuthors() + " " + bookInfo.getFileInfo().getTitle());
         emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, text);
 		startActivity(Intent.createChooser(emailIntent, null));	
+	}
+
+	public void askConfirmation(int questionResourceId, final Runnable action) {
+		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
+		dlg.setTitle(questionResourceId);
+		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+				action.run();
+			}
+		});
+		dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+				// do nothing
+			}
+		});
+		dlg.show();
 	}
 }

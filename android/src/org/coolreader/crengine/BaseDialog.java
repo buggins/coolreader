@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.PixelFormat;
@@ -17,7 +18,6 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -290,6 +290,7 @@ public class BaseDialog extends Dialog {
 		}
 		
 	}
+	
 	
 	protected View view;
 }

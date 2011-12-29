@@ -239,11 +239,7 @@ public class FileBrowser extends LinearLayout {
 			return true;
 		case R.id.book_delete:
 			log.d("book_delete menu item selected");
-			mActivity.getReaderView().closeIfOpened(selectedItem);
-			if ( selectedItem.deleteFile() ) {
-				mHistory.removeBookInfo(selectedItem, true, true);
-			}
-			showDirectory(currDirectory, null);
+			askDeleteBook();
 			return true;
 		case R.id.book_recent_goto:
 			log.d("book_recent_goto menu item selected");
@@ -251,8 +247,7 @@ public class FileBrowser extends LinearLayout {
 			return true;
 		case R.id.book_recent_remove:
 			log.d("book_recent_remove menu item selected");
-			mActivity.getHistory().removeBookInfo(selectedItem, true, false);
-			showRecentBooks();
+			askDeleteRecent();
 			return true;
 		case R.id.catalog_add:
 			log.d("catalog_add menu item selected");
@@ -260,10 +255,7 @@ public class FileBrowser extends LinearLayout {
 			return true;
 		case R.id.catalog_delete:
 			log.d("catalog_delete menu item selected");
-			if (selectedItem!=null && selectedItem.isOPDSDir()) {
-				mActivity.getDB().removeOPDSCatalog(selectedItem.id);
-				refreshOPDSRootDirectory();
-			}
+			askDeleteCatalog();
 			return true;
 		case R.id.catalog_edit:
 			log.d("catalog_edit menu item selected");
@@ -275,6 +267,44 @@ public class FileBrowser extends LinearLayout {
 			return true;
 		}
 		return false;
+	}
+	
+	private void askDeleteBook()
+	{
+		mActivity.askConfirmation(R.string.win_title_confirm_book_delete, new Runnable() {
+			@Override
+			public void run() {
+				mActivity.getReaderView().closeIfOpened(selectedItem);
+				if ( selectedItem.deleteFile() ) {
+					mHistory.removeBookInfo(selectedItem, true, true);
+				}
+				showDirectory(currDirectory, null);
+			}
+		});
+	}
+	
+	private void askDeleteRecent()
+	{
+		mActivity.askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
+			@Override
+			public void run() {
+				mActivity.getHistory().removeBookInfo(selectedItem, true, false);
+				showRecentBooks();
+			}
+		});
+	}
+	
+	private void askDeleteCatalog()
+	{
+		mActivity.askConfirmation(R.string.win_title_confirm_catalog_delete, new Runnable() {
+			@Override
+			public void run() {
+				if (selectedItem!=null && selectedItem.isOPDSDir()) {
+					mActivity.getDB().removeOPDSCatalog(selectedItem.id);
+					refreshOPDSRootDirectory();
+				}
+			}
+		});
 	}
 	
 	private void editOPDSCatalog(FileInfo opds) {

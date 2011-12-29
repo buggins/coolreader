@@ -14,9 +14,9 @@ public class BaseListView  extends ListView {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		int dir = 0;
-		if (keyCode == ReaderView.NOOK_KEY_NEXT_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT || keyCode == ReaderView.NOOK_KEY_SHIFT_DOWN)
+		if (keyCode == ReaderView.SONY_DPAD_DOWN_SCANCODE || keyCode == ReaderView.NOOK_KEY_NEXT_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT || keyCode == ReaderView.NOOK_KEY_SHIFT_DOWN)
 			dir = 1;
-		if (keyCode == ReaderView.NOOK_KEY_PREV_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == ReaderView.NOOK_KEY_SHIFT_UP)
+		if (keyCode == ReaderView.SONY_DPAD_UP_SCANCODE || keyCode == ReaderView.NOOK_KEY_PREV_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == ReaderView.NOOK_KEY_SHIFT_UP)
 			dir = -1;
 		if (dir != 0) {
 			int top = 0; //getTop();

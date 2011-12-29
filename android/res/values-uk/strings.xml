@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">CoolReader 3</string>
     <string name="mi_search">Знайти</string>
@@ -380,5 +380,8 @@
     <string name="options_font_hinting">Хинтинг шрифта</string>
     <string name="options_font_hinting_disabled">Отключен</string>
     <string name="options_font_hinting_auto">Автохинтинг</string>
-<string name="options_font_fallback_face">Дополнительный шрифт</string>
+    <string name="options_font_fallback_face">Дополнительный шрифт</string>
+    <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
+    <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту кгнигу из списка последних книг?</string>
+    <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу?</string>
 </resources>
