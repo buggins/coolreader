@@ -3289,7 +3289,6 @@ void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props )
 void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int & end )
 {
     int hwStart, hwEnd;
-    const lChar16 maxchar = sizeof(char_props) / sizeof( lUInt16 );
 
 //    // skip spaces
 //    for (hwStart=pos-1; hwStart>0; hwStart--)
@@ -3315,11 +3314,9 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     for (hwStart = pos-1; hwStart > 0; hwStart--)
     {
         lChar16 ch = str[hwStart];
-        if ( ch<(int)maxchar ) {
-            lUInt16 props = char_props[ch];
-            if ( props & CH_PROP_ALPHA )
-                break;
-        }
+        lUInt16 props = getCharProp(ch);
+        if ( props & CH_PROP_ALPHA )
+            break;
     }
     if ( hwStart<0 ) {
         // no alphas found
@@ -3332,7 +3329,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     {
         lChar16 ch = str[hwStart];
         int lastAlpha = -1;
-        if ( ((ch<(int)maxchar) && (char_props[ch] & CH_PROP_ALPHA)) ) {
+        if (getCharProp(ch) & CH_PROP_ALPHA) {
             lastAlpha = hwStart;
         } else {
             hwStart++;
@@ -3347,7 +3344,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     for (hwEnd=hwStart+1; hwEnd<sz; hwEnd++) // 20080404
     {
         lChar16 ch = str[hwEnd];
-        if ( !((ch<(int)maxchar) && (char_props[ch] & CH_PROP_ALPHA)) )
+        if (!(getCharProp(ch) & CH_PROP_ALPHA))
             break;
         ch = str[hwEnd-1];
         if ( (ch==' ' || ch==UNICODE_SOFT_HYPHEN_CODE) )
@@ -3369,8 +3366,7 @@ void  lString16::limit( size_type sz )
 
 lUInt16 lGetCharProps( lChar16 ch )
 {
-    const lChar16 maxchar = sizeof(char_props) / sizeof( lUInt16 );
-    return (ch<maxchar) ? char_props[ch] : (ch>=0x2012 && ch<=0x2015 ? CH_PROP_DASH|CH_PROP_SIGN : 0);
+    return getCharProp(ch);
 }
 
 
