@@ -1606,7 +1606,9 @@ public class CoolReader extends Activity
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
         props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
         // autodetect best initial font size based on display resolution
-        int screenWidth = getWindowManager().getDefaultDisplay().getWidth();
+        DisplayMetrics m = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(m);
+        int screenWidth = m.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();
         int fontSize = 20;
         String hmargin = "4";
         String vmargin = "2";

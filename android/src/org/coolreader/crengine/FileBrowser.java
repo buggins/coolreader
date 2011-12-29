@@ -94,8 +94,14 @@ public class FileBrowser extends LinearLayout {
 		    if ( isRecentDir() ) {
 			    inflater.inflate(R.menu.cr3_file_browser_recent_context_menu, menu);
 			    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_recent_book));
-		    } else if (selectedItem!=null && selectedItem.isOPDSDir()) {
+		    } else if (selectedItem!=null && selectedItem.isOPDSRoot()) {
 			    inflater.inflate(R.menu.cr3_file_browser_opds_context_menu, menu);
+			    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
+		    } else if (selectedItem!=null && selectedItem.isOPDSDir()) {
+			    inflater.inflate(R.menu.cr3_file_browser_opds_dir_context_menu, menu);
+			    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
+		    } else if (selectedItem!=null && selectedItem.isOPDSBook()) {
+			    inflater.inflate(R.menu.cr3_file_browser_opds_book_context_menu, menu);
 			    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
 		    } else if (selectedItem!=null && selectedItem.isDirectory) {
 			    inflater.inflate(R.menu.cr3_file_browser_folder_context_menu, menu);
@@ -621,7 +627,7 @@ public class FileBrowser extends LinearLayout {
 								FileInfo file = new FileInfo();
 								file.isDirectory = false;
 								file.pathname = FileInfo.OPDS_DIR_PREFIX + acquisition.href;
-								file.filename = entry.content;
+								file.filename = Utils.cleanupHtmlTags(entry.content);
 								file.title = entry.title;
 								file.format = DocumentFormat.byMimeType(acquisition.type);
 								file.authors = entry.getAuthors();
@@ -843,7 +849,8 @@ public class FileBrowser extends LinearLayout {
 		public final int VIEW_TYPE_DIRECTORY = 1;
 		public final int VIEW_TYPE_FILE = 2;
 		public final int VIEW_TYPE_FILE_SIMPLE = 3;
-		public final int VIEW_TYPE_COUNT = 4;
+		public final int VIEW_TYPE_OPDS_BOOK = 4;
+		public final int VIEW_TYPE_COUNT = 5;
 		public int getItemViewType(int position) {
 			if (currDirectory == null)
 				return 0;
@@ -856,8 +863,15 @@ public class FileBrowser extends LinearLayout {
 				return VIEW_TYPE_DIRECTORY;
 			start += currDirectory.dirCount();
 			position -= start;
-			if (position < currDirectory.fileCount())
+			if (position < currDirectory.fileCount()) {
+				Object itm = getItem(position);
+				if (itm instanceof FileInfo) {
+					FileInfo fi = (FileInfo)itm;
+					if (fi.isOPDSBook())
+						return VIEW_TYPE_OPDS_BOOK;
+				}
 				return isSimpleViewMode ? VIEW_TYPE_FILE_SIMPLE : VIEW_TYPE_FILE;
+			}
 			return Adapter.IGNORE_ITEM_VIEW_TYPE;
 		}
 
@@ -1001,6 +1015,8 @@ public class FileBrowser extends LinearLayout {
 					view = mInflater.inflate(R.layout.browser_item_folder, null);
 				else if ( vt==VIEW_TYPE_FILE_SIMPLE )
 					view = mInflater.inflate(R.layout.browser_item_book_simple, null);
+				else if (vt == VIEW_TYPE_OPDS_BOOK)
+					view = mInflater.inflate(R.layout.browser_item_opds_book, null);
 				else
 					view = mInflater.inflate(R.layout.browser_item_book, null);
 				holder = new ViewHolder();

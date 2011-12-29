@@ -9,4 +9,19 @@ public class Utils {
 		return android.os.SystemClock.uptimeMillis() - startTime;
 	}
 	
+	public static String cleanupHtmlTags(String src) {
+		StringBuilder buf = new StringBuilder();
+		boolean insideTag = false;
+		for (char ch : src.toCharArray()) {
+			if (ch=='<') {
+				insideTag = true;
+			} else if (ch=='>') {
+				insideTag = false;
+				buf.append(' ');
+			} else if (!insideTag) {
+				buf.append(ch);
+			}
+		}
+		return buf.toString();
+	}
 }

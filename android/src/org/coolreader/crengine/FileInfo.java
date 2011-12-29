@@ -229,7 +229,18 @@ public class FileInfo {
 	
 	public boolean isOPDSDir()
 	{
-		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX);
+		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX) && getOPDSEntryInfo() != null && getOPDSEntryInfo().getBestAcquisitionLink() == null;
+	}
+	
+	public boolean isOPDSBook()
+	{
+		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX) && getOPDSEntryInfo() != null && getOPDSEntryInfo().getBestAcquisitionLink() != null;
+	}
+	
+	private OPDSUtil.EntryInfo getOPDSEntryInfo() {
+		if (tag !=null && tag instanceof OPDSUtil.EntryInfo)
+			return (OPDSUtil.EntryInfo)tag;
+		return null;
 	}
 	
 	public boolean isOPDSRoot()
