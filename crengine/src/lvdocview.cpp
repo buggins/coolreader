@@ -5418,8 +5418,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
         props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, bool_options_def_true, 2);
     static int def_status_line[] = { 0, 1, 2 };
 	props->limitValueList(PROP_STATUS_LINE, def_status_line, 3);
-//	props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
-//			2);
     static int def_margin[] = {8, 0, 1, 2, 3, 4, 5, 8, 10, 12, 14, 15, 16, 20, 25, 30, 40, 50, 60, 80, 100, 130};
 	props->limitValueList(PROP_PAGE_MARGIN_TOP, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, def_margin, sizeof(def_margin)/sizeof(int));
@@ -5454,8 +5452,15 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setStringDef(PROP_SHOW_PAGE_NUMBER, "1");
     props->setStringDef(PROP_SHOW_POS_PERCENT, "0");
     props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
-    //props->setStringDef(PROP_EMBEDDED_STYLES, "1");
     props->setStringDef(PROP_FLOATING_PUNCTUATION, "1");
+
+#ifndef ANDROID
+    props->setStringDef(PROP_EMBEDDED_STYLES, "1");
+    props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
+    props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
+            2);
+#endif
+
 
     img_scaling_option_t defImgScaling;
     props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, defImgScaling.max_scale);
