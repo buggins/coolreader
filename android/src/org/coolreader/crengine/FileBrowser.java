@@ -94,7 +94,7 @@ public class FileBrowser extends LinearLayout {
 		    if ( isRecentDir() ) {
 			    inflater.inflate(R.menu.cr3_file_browser_recent_context_menu, menu);
 			    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_recent_book));
-		    } else if (selectedItem!=null && selectedItem.isOPDSRoot()) {
+		    } else if (currDirectory.isOPDSRoot()) {
 			    inflater.inflate(R.menu.cr3_file_browser_opds_context_menu, menu);
 			    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
 		    } else if (selectedItem!=null && selectedItem.isOPDSDir()) {
