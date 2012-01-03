@@ -40,12 +40,13 @@ SET (FREETYPE_SOURCES
   src/cid/type1cid.c 
   src/type42/type42.c 
   src/bzip2/ftbzip2.c
+  src/winfonts/winfnt.c
 )
 
 if (WIN32)
 SET (FREETYPE_SOURCES ${FREETYPE_SOURCES}
   builds/win32/ftdebug.c 
-  src/winfonts/winfnt.c
+#  src/winfonts/winfnt.c
 )
 endif(WIN32)
 
