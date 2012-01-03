@@ -76,6 +76,7 @@ public class History {
 				mDB.deleteBook(fileInfo);
 			else if ( removeRecentAccessFromDB )
 				mDB.deleteRecentPosition(fileInfo);
+			updateRecentDir();
 		}
 	}
 	
