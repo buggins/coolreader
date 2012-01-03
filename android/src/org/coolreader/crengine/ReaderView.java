@@ -2587,7 +2587,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.remove(PROP_TXT_OPTION_PREFORMATTED);
 		props.remove(PROP_EMBEDDED_STYLES);
 		BackgroundThread.ensureBackground();
-		log.v("applySettings() " + props);
+		log.v("applySettings()");
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false );
 		props.setBool(PROP_SHOW_BATTERY, isFullScreen); 
 		props.setBool(PROP_SHOW_TIME, isFullScreen);
@@ -2772,7 +2772,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void setAppSettings(Properties newSettings, Properties oldSettings)
 	{
-		log.v("setAppSettings() " + newSettings.toString());
+		log.v("setAppSettings()"); //|| keyCode == KeyEvent.KEYCODE_DPAD_LEFT 
 		BackgroundThread.ensureGUI();
 		if ( oldSettings==null )
 			oldSettings = mSettings;
