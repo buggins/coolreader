@@ -603,7 +603,8 @@ public class Scanner {
 		"/mnt/external1",
 		"/ext.sd",
 		"/sdcard2",
-	};
+		"/mnt/sdcard2",
+		};
 	
 	public void initRoots(Map<String, String> fsRoots)
 	{
