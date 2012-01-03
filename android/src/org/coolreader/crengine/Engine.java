@@ -986,6 +986,8 @@ public class Engine {
 		addMountRoot(map, "/mnt/extsd", "External SD /mnt/extsd");
 		// external SD
 		addMountRoot(map, "/mnt/external1", "External SD /mnt/external1");
+		// external SD
+		addMountRoot(map, "/mnt/sdcard2", "External SD /mnt/sdcard2");
 		// external SD / Galaxy S
 		addMountRoot(map, "/mnt/ext.sd", "External SD /mnt/ext.sd");
 		addMountRoot(map, "/ext.sd", "External SD /ext.sd");
