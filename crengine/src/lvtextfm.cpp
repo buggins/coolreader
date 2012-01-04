@@ -309,11 +309,11 @@ public:
             if ( m_length+ITEMS_RESERVED>m_size ) {
                 // realloc
                 m_size = m_length+ITEMS_RESERVED;
-                m_text = (lChar16*)realloc(m_text, sizeof(lChar16)*m_size);
-                m_flags = (lUInt8*)realloc(m_flags, sizeof(lUInt8)*m_size);
-                m_charindex = (lUInt16*)realloc(m_charindex, sizeof(lUInt16)*m_size);
-                m_srcs = (src_text_fragment_t **)realloc(m_srcs, sizeof(src_text_fragment_t *)*m_size);
-                m_widths = (int*)realloc(m_widths, sizeof(int)*m_size);
+                m_text = (lChar16*)realloc(m_staticBufs ? NULL : m_text, sizeof(lChar16)*m_size);
+                m_flags = (lUInt8*)realloc(m_staticBufs ? NULL : m_flags, sizeof(lUInt8)*m_size);
+                m_charindex = (lUInt16*)realloc(m_staticBufs ? NULL : m_charindex, sizeof(lUInt16)*m_size);
+                m_srcs = (src_text_fragment_t **)realloc(m_staticBufs ? NULL : m_srcs, sizeof(src_text_fragment_t *)*m_size);
+                m_widths = (int*)realloc(m_staticBufs ? NULL : m_widths, sizeof(int)*m_size);
             }
             m_staticBufs = false;
         } else {
