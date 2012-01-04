@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 0
+#if 1
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 //#define DEBUG_FONT_SYNTHESIS 1
@@ -68,6 +68,8 @@
 
 //DEFINE_NULL_REF( LVFont )
 
+
+inline int myabs(int n) { return n < 0 ? -n : n; }
 
 LVFontManager * fontMan = NULL;
 
@@ -425,7 +427,7 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
     }
     item->origin_x =   (lInt8)slot->bitmap_left;
     item->origin_y =   (lInt8)slot->bitmap_top;
-    item->advance =    (lUInt8)(slot->metrics.horiAdvance >> 6);
+    item->advance =    (lUInt8)(myabs(slot->metrics.horiAdvance) >> 6);
     return item;
 }
 
@@ -788,7 +790,7 @@ public:
         glyph->blackBoxY = (lUInt8)(_slot->metrics.height >> 6);
         glyph->originX =   (lInt8)(_slot->metrics.horiBearingX >> 6);
         glyph->originY =   (lInt8)(_slot->metrics.horiBearingY >> 6);
-        glyph->width =     (lUInt8)(_slot->metrics.horiAdvance >> 6);
+        glyph->width =     (lUInt8)(myabs(_slot->metrics.horiAdvance) >> 6);
         return true;
     }
 /*
