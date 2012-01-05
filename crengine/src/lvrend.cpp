@@ -1175,7 +1175,29 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         //***********************************
         baseflags = f; // to allow blocks in one level with inlines
         if ( enode->getNodeId()==el_br ) {
-            baseflags |= LTEXT_ALIGN_LEFT;
+            // use the same alignment
+            //baseflags |= LTEXT_ALIGN_LEFT;
+            switch (style->text_align) {
+            case css_ta_left:
+                baseflags |= LTEXT_ALIGN_LEFT;
+                break;
+            case css_ta_right:
+                baseflags |= LTEXT_ALIGN_RIGHT;
+                break;
+            case css_ta_center:
+                baseflags |= LTEXT_ALIGN_CENTER;
+                break;
+            case css_ta_justify:
+                baseflags |= LTEXT_ALIGN_WIDTH;
+                ident = 0;
+                break;
+            case css_ta_inherit:
+                break;
+            }
+//            baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
+//            LVFont * font = enode->getFont().get();
+//            txform->AddSourceLine( L"\n", 1, 0, 0, font, baseflags | LTEXT_FLAG_OWNTEXT,
+//                line_h, 0, enode, 0, 0 );
         } else {
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
