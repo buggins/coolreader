@@ -3032,7 +3032,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( state!=mBatteryState ) {
 			log.i("Battery state changed: " + state);
 			mBatteryState = state;
-			if (!DeviceInfo.EINK_SCREEN) {
+			if (!DeviceInfo.EINK_SCREEN && !isAutoScrollActive()) {
 				drawPage();
 			}
 		}
