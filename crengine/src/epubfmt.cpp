@@ -129,12 +129,6 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
     }
 }
 
-static bool EpubIsEncrypted(LVContainerRef & m_arc)
-{
-    LVStreamRef container_stream = m_arc->OpenStream(L"META-INF/encryption.xml", LVOM_READ);
-    return !container_stream.isNull();
-}
-
 lString16 EpubGetRootFilePath(LVContainerRef m_arc)
 {
     // check root media type
@@ -161,56 +155,280 @@ lString16 EpubGetRootFilePath(LVContainerRef m_arc)
     return rootfilePath;
 }
 
+/// encrypted font demangling proxy: XORs first 1024 bytes of source stream with key
+class FontDemanglingStream : public StreamProxy {
+    LVArray<lUInt8> & _key;
+public:
+    FontDemanglingStream(LVStreamRef baseStream, LVArray<lUInt8> & key) : StreamProxy(baseStream), _key(key) {
+    }
+
+    virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead ) {
+        lvpos_t pos = _base->GetPos();
+        lverror_t res = _base->Read(buf, count, nBytesRead);
+        if (pos < 1024 && _key.length() == 16) {
+            for (int i=0; i + pos < 1024; i++) {
+                int keyPos = (i + pos) & 15;
+                ((lUInt8*)buf)[i] ^= _key[keyPos];
+            }
+        }
+        return res;
+    }
+
+};
+
+class EncryptedItem {
+public:
+    lString16 _uri;
+    lString16 _method;
+    EncryptedItem(lString16 uri, lString16 method) : _uri(uri), _method(method) {
+
+    }
+};
+
+class EncryptedItemCallback {
+public:
+    virtual void addEncryptedItem(EncryptedItem * item) = 0;
+};
+
+
+class EncCallback : public LVXMLParserCallback {
+    bool insideEncryption;
+    bool insideEncryptedData;
+    bool insideEncryptionMethod;
+    bool insideCipherData;
+    bool insideCipherReference;
+public:
+    /// called on opening tag <
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) {
+        if (!lStr_cmp(tagname, L"encryption"))
+            insideEncryption = true;
+        else if (!lStr_cmp(tagname, L"EncryptedData"))
+            insideEncryptedData = true;
+        else if (!lStr_cmp(tagname, L"EncryptionMethod"))
+            insideEncryptionMethod = true;
+        else if (!lStr_cmp(tagname, L"CipherData"))
+            insideCipherData = true;
+        else if (!lStr_cmp(tagname, L"CipherReference"))
+            insideCipherReference = true;
+    }
+    /// called on tag close
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) {
+        if (!lStr_cmp(tagname, L"encryption"))
+            insideEncryption = false;
+        else if (!lStr_cmp(tagname, L"EncryptedData") && insideEncryptedData) {
+            if (!algorithm.empty() && !uri.empty()) {
+                _container->addEncryptedItem(new EncryptedItem(uri, algorithm));
+            }
+            insideEncryptedData = false;
+        } else if (!lStr_cmp(tagname, L"EncryptionMethod"))
+            insideEncryptionMethod = false;
+        else if (!lStr_cmp(tagname, L"CipherData"))
+            insideCipherData = false;
+        else if (!lStr_cmp(tagname, L"CipherReference"))
+            insideCipherReference = false;
+    }
+    /// called on element attribute
+    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) {
+        if (!lStr_cmp(attrname, L"URI") && insideCipherReference)
+            insideEncryption = false;
+        else if (!lStr_cmp(attrname, L"Algorithm") && insideEncryptionMethod)
+            insideEncryptedData = false;
+    }
+    /// called on text
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) {
+
+    }
+    /// add named BLOB data to document
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { }
+
+    virtual void OnStop() { }
+    /// called after > of opening tag (when entering tag body)
+    virtual void OnTagBody() { }
+
+    EncryptedItemCallback * _container;
+    lString16 algorithm;
+    lString16 uri;
+    /// destructor
+    EncCallback(EncryptedItemCallback * container) : _container(container) {
+        insideEncryption = false;
+        insideEncryptedData = false;
+        insideEncryptionMethod = false;
+        insideCipherData = false;
+        insideCipherReference = false;
+    }
+    virtual ~EncCallback() {}
+};
+
+class EncryptedDataContainer : public LVContainer, public EncryptedItemCallback {
+    LVContainerRef _container;
+    LVPtrVector<EncryptedItem> _list;
+public:
+    EncryptedDataContainer(LVContainerRef baseContainer) : _container(baseContainer) {
+
+    }
+
+    virtual LVContainer * GetParentContainer() { return _container->GetParentContainer(); }
+    //virtual const LVContainerItemInfo * GetObjectInfo(const wchar_t * pname);
+    virtual const LVContainerItemInfo * GetObjectInfo(int index) { return _container->GetObjectInfo(index); }
+    virtual int GetObjectCount() const { return _container->GetObjectCount(); }
+    /// returns object size (file size or directory entry count)
+    virtual lverror_t GetSize( lvsize_t * pSize ) { return _container->GetSize(pSize); }
+
+
+    virtual LVStreamRef OpenStream( const lChar16 * fname, lvopen_mode_t mode ) {
+
+        LVStreamRef res = _container->OpenStream(fname, mode);
+        if (res.isNull())
+            return res;
+        if (isEncryptedItem(fname))
+            return LVStreamRef(new FontDemanglingStream(res, _fontManglingKey));
+        return res;
+    }
+
+    /// returns stream/container name, may be NULL if unknown
+    virtual const lChar16 * GetName()
+    {
+        return _container->GetName();
+    }
+    /// sets stream/container name, may be not implemented for some objects
+    virtual void SetName(const lChar16 * name)
+    {
+        _container->SetName(name);
+    }
+
+
+    virtual void addEncryptedItem(EncryptedItem * item) {
+        _list.add(item);
+    }
+
+    EncryptedItem * findEncryptedItem(const lChar16 * name) {
+        lString16 n;
+        if (name[0] != '/' && name[0] != '\\')
+            n << L"/";
+        n << name;
+        for (int i=0; i<_list.length(); i++) {
+            lString16 s = _list[i]->_uri;
+            if (s[0]!='/' && s[i]!='\\')
+                s = lString16(L"/") + s;
+            if (_list[i]->_uri == s)
+                return _list[i];
+        }
+        return NULL;
+    }
+
+    bool isEncryptedItem(const lChar16 * name) {
+        return findEncryptedItem(name);
+    }
+
+    LVArray<lUInt8> _fontManglingKey;
+
+    bool setManglingKey(lString16 key) {
+        if (key.startsWith(lString16(L"urn:uuid:")))
+            key = key.substr(9);
+        _fontManglingKey.clear();
+        _fontManglingKey.reserve(16);
+        lUInt8 b = 0;
+        int n = 0;
+        for (int i=0; i<key.length(); i++) {
+            int d = hexDigit(key[i]);
+            if (d>=0) {
+                b = (b << 4) | d;
+                if (++n > 1) {
+                    _fontManglingKey.add(b);
+                    n = 0;
+                    b = 0;
+                }
+            }
+        }
+        return _fontManglingKey.length() == 16;
+    }
+
+    bool hasUnsupportedEncryption() {
+        for (int i=0; i<_list.length(); i++) {
+            lString16 method = _list[i]->_method;
+            if (method != L"http://ns.adobe.com/pdf/enc#RC") {
+                CRLog::debug("unsupported encryption method: %s", LCSTR(method));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool open() {
+        LVStreamRef stream = _container->OpenStream(L"META-INF/encryption.xml", LVOM_READ);
+        if (stream.isNull())
+            return false;
+        EncCallback enccallback(this);
+        LVXMLParser parser(stream, &enccallback, false, false);
+        if (!parser.Parse())
+            return false;
+        if (_list.length())
+            return true;
+        return false;
+    }
+};
+
+void createEncryptedEpubWarningDocument(ldomDocument * m_doc) {
+    CRLog::error("EPUB document contains encrypted items");
+    ldomDocumentWriter writer(m_doc);
+    writer.OnTagOpenNoAttr(NULL, L"body");
+    writer.OnTagOpenNoAttr(NULL, L"h3");
+    lString16 hdr(L"Encrypted content");
+    writer.OnText(hdr.c_str(), hdr.length(), 0);
+    writer.OnTagClose(NULL, L"h3");
+
+    writer.OnTagOpenAndClose(NULL, L"hr");
+
+    writer.OnTagOpenNoAttr(NULL, L"p");
+    lString16 txt(L"This document is encrypted (has DRM protection).");
+    writer.OnText(txt.c_str(), txt.length(), 0);
+    writer.OnTagClose(NULL, L"p");
+
+    writer.OnTagOpenNoAttr(NULL, L"p");
+    lString16 txt2(L"Cool Reader doesn't support reading of DRM protected books.");
+    writer.OnText(txt2.c_str(), txt2.length(), 0);
+    writer.OnTagClose(NULL, L"p");
+
+    writer.OnTagOpenNoAttr(NULL, L"p");
+    lString16 txt3(L"To read this book, please use software recommended by book seller.");
+    writer.OnText(txt3.c_str(), txt3.length(), 0);
+    writer.OnTagClose(NULL, L"p");
+
+    writer.OnTagOpenAndClose(NULL, L"hr");
+
+    writer.OnTagOpenNoAttr(NULL, L"p");
+    lString16 txt4(L"");
+    writer.OnText(txt4.c_str(), txt4.length(), 0);
+    writer.OnTagClose(NULL, L"p");
+
+    writer.OnTagClose(NULL, L"body");
+}
+
 bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
 {
-    LVContainerRef m_arc = LVOpenArchieve( stream );
-    if ( m_arc.isNull() )
+    LVContainerRef arc = LVOpenArchieve( stream );
+    if ( arc.isNull() )
         return false; // not a ZIP archive
 
     // check root media type
-    lString16 rootfilePath = EpubGetRootFilePath(m_arc);
+    lString16 rootfilePath = EpubGetRootFilePath(arc);
     if ( rootfilePath.empty() )
     	return false;
 
-    m_doc->setContainer(m_arc);
+    EncryptedDataContainer * decryptor = new EncryptedDataContainer(arc);
+    if (decryptor->open()) {
+        CRLog::debug("EPUB: encrypted items detected");
+    }
 
-    if (EpubIsEncrypted(m_arc)) {
-        ldomDocumentWriter writer(m_doc);
-        writer.OnTagOpenNoAttr(NULL, L"body");
-        writer.OnTagOpenNoAttr(NULL, L"h3");
-        lString16 hdr(L"Encrypted content");
-        writer.OnText(hdr.c_str(), hdr.length(), 0);
-        writer.OnTagClose(NULL, L"h3");
+    LVContainerRef m_arc = LVContainerRef(decryptor);
 
-        writer.OnTagOpenAndClose(NULL, L"hr");
-
-        writer.OnTagOpenNoAttr(NULL, L"p");
-        lString16 txt(L"This document is encrypted (has DRM protection).");
-        writer.OnText(txt.c_str(), txt.length(), 0);
-        writer.OnTagClose(NULL, L"p");
-
-        writer.OnTagOpenNoAttr(NULL, L"p");
-        lString16 txt2(L"Cool Reader doesn't support reading of DRM protected books.");
-        writer.OnText(txt2.c_str(), txt2.length(), 0);
-        writer.OnTagClose(NULL, L"p");
-
-        writer.OnTagOpenNoAttr(NULL, L"p");
-        lString16 txt3(L"To read this book, please use software recommended by book seller.");
-        writer.OnText(txt3.c_str(), txt3.length(), 0);
-        writer.OnTagClose(NULL, L"p");
-
-        writer.OnTagOpenAndClose(NULL, L"hr");
-
-        writer.OnTagOpenNoAttr(NULL, L"p");
-        lString16 txt4(L"");
-        writer.OnText(txt4.c_str(), txt4.length(), 0);
-        writer.OnTagClose(NULL, L"p");
-
-        writer.OnTagClose(NULL, L"body");
-
-
+    if (decryptor->hasUnsupportedEncryption()) {
+        // DRM!!!
+        createEncryptedEpubWarningDocument(m_doc);
         return true;
     }
+
+    m_doc->setContainer(m_arc);
 
     // read content.opf
     EpubItems epubItems;
@@ -244,6 +462,18 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         lString16 title = doc->textFromXPath( lString16(L"package/metadata/title"));
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_AUTHORS, author );
+
+        for ( int i=1; i<50; i++ ) {
+            ldomNode * item = doc->nodeFromXPath( lString16(L"package/metadata/identifier[") + lString16::itoa(i) + L"]" );
+            if (!item)
+                break;
+            lString16 key = item->getText();
+            if (decryptor->setManglingKey(key)) {
+                CRLog::debug("Using font mangling key %s", LCSTR(key));
+                break;
+            }
+        }
+
         CRLog::info("Author: %s Title: %s", LCSTR(author), LCSTR(title));
         for ( int i=1; i<20; i++ ) {
             ldomNode * item = doc->nodeFromXPath( lString16(L"package/metadata/meta[") + lString16::itoa(i) + L"]" );
