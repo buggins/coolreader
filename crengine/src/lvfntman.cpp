@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 1
+#if 0
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 //#define DEBUG_FONT_SYNTHESIS 1
