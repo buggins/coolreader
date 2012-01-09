@@ -486,8 +486,8 @@ public:
             bool isObject = false;
             if ( i<m_length ) {
                 newSrc = m_srcs[i];
-                newFont = (LVFont *)newSrc->t.font;
                 isObject = m_charindex[i]==OBJECT_CHAR_INDEX;
+                newFont = isObject ? NULL : (LVFont *)newSrc->t.font;
             }
             if ( !lastFont )
                 lastFont = newFont;
@@ -545,7 +545,8 @@ public:
             }
 
             //
-            lastFont = newFont;
+            if (newFont)
+                lastFont = newFont;
             lastSrc = newSrc;
         }
         if ( tabIndex>=0 ) {
