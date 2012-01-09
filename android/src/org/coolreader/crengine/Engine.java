@@ -746,7 +746,11 @@ public class Engine {
 		if (!initialized)
 			throw new IllegalStateException("CREngine is not initialized");
 		synchronized(this) {
-			return scanBookPropertiesInternal(info);
+			long start = android.os.SystemClock.uptimeMillis();
+			boolean res = scanBookPropertiesInternal(info);
+			long duration = android.os.SystemClock.uptimeMillis() - start;
+			L.v("scanBookProperties took " + duration + " ms for " + info.getPathName());
+			return res;
 		}
 	}
 

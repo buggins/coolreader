@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import android.database.Cursor;
@@ -79,6 +80,8 @@ public class CRDB {
 			}
 		}
 		this.mDBFile = dbfile;
+		mDB.setLockingEnabled(false);
+		mCoverpageDB.setLockingEnabled(false);
 		return true;
 	}
 
@@ -1090,7 +1093,7 @@ public class CRDB {
 		return res;
 	}
 
-	synchronized public boolean save( BookInfo bookInfo )
+	private boolean saveBookInternal( BookInfo bookInfo )
 	{
 		if ( mDB==null ) {
 			Log.e("cr3db", "cannot save book info : DB is closed");
@@ -1110,6 +1113,48 @@ public class CRDB {
 		}
 		if ( bookInfo.getLastPosition()!=null && bookInfo.getLastPosition().isModified() )
 			res = save(bookInfo.getLastPosition(), bookInfo.getFileInfo().id) || res;
+		return res;
+	}
+
+	synchronized public boolean save(BookInfo bookInfo)
+	{
+		if ( mDB==null ) {
+			Log.e("cr3db", "cannot save book info : DB is closed");
+			return false;
+		}
+		return saveBookInternal(bookInfo);
+	}
+
+	synchronized public boolean save(Collection<BookInfo> list)
+	{
+		Log.v("cr3db", "save BookInfo collection: " + list.size() + " items");
+		if ( mDB==null ) {
+			Log.e("cr3db", "cannot save book info : DB is closed");
+			return false;
+		}
+		boolean res = true;
+		int updateCount = 0;
+		try {
+			mDB.beginTransaction();
+			for (BookInfo bookInfo : list) {
+				if (saveBookInternal(bookInfo))
+					updateCount++;
+			}
+			mDB.setTransactionSuccessful();
+		} catch (SQLiteException e) {
+			L.e("Exception while saving to DB", e);
+			res = false;
+		} finally {
+			try {
+				Log.v("cr3db", "BookInfo : committing " + updateCount + " updated books");
+				long start = android.os.SystemClock.uptimeMillis();
+				mDB.endTransaction();
+				long duration = android.os.SystemClock.uptimeMillis() - start;
+				Log.v("cr3db", "BookInfo collection saved: " + updateCount + " items in " + duration + " ms");
+			} catch (Exception e) {
+				L.e("Exception while committing transaction", e);
+			}
+		}
 		return res;
 	}
 
@@ -1199,6 +1244,39 @@ public class CRDB {
 		} catch (SQLiteException e) {
 			throw new SQLiteException("error while writing to DB " + mDBFile + ": " + e.getMessage());
 		}
+	}
+
+	synchronized public boolean saveFileInfos(Collection<FileInfo> list)
+	{
+		Log.v("cr3db", "save BookInfo collection: " + list.size() + " items");
+		if ( mDB==null ) {
+			Log.e("cr3db", "cannot save book info : DB is closed");
+			return false;
+		}
+		boolean res = true;
+		int updateCount = 0;
+		try {
+			mDB.beginTransaction();
+			for (FileInfo fileInfo : list) {
+				if (save(fileInfo))
+					updateCount++;
+			}
+			mDB.setTransactionSuccessful();
+		} catch (SQLiteException e) {
+			L.e("Exception while saving to DB", e);
+			res = false;
+		} finally {
+			try {
+				Log.v("cr3db", "BookInfo : committing " + updateCount + " updated books");
+				long start = android.os.SystemClock.uptimeMillis();
+				mDB.endTransaction();
+				long duration = android.os.SystemClock.uptimeMillis() - start;
+				Log.v("cr3db", "BookInfo collection saved: " + updateCount + " items in " + duration + " ms");
+			} catch (Exception e) {
+				L.e("Exception while committing transaction", e);
+			}
+		}
+		return res;
 	}
 
 	synchronized public void flush()

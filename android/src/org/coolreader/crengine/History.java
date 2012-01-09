@@ -336,8 +336,7 @@ public class History {
 	{
 		Log.v("cr3", "History.saveToDB()");
 		try {
-			for ( BookInfo book : mBooks )
-				mDB.save(book);
+			mDB.save(mBooks);
 			return true;
 		} catch ( Exception e ) {
 			Log.e("cr3", "error while saving file history " + e.getMessage(), e);

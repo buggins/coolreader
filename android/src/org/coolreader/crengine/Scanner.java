@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -12,7 +13,6 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.EngineTask;
 
-import android.os.Environment;
 import android.util.Log;
 
 public class Scanner {
@@ -240,6 +240,7 @@ public class Scanner {
 		engine.execute(new EngineTask() {
 			long nextProgressTime = startTime + 2000;
 			boolean progressShown = false;
+			final Collection<FileInfo> booksToSave = new ArrayList<FileInfo>();
 			void progress( int percent )
 			{
 				if ( recursiveScan )
@@ -257,6 +258,7 @@ public class Scanner {
 				if ( progressShown )
 					engine.hideProgress();
 				readyCallback.run();
+				
 			}
 
 			public void fail(Exception e) {
@@ -311,8 +313,7 @@ public class Scanner {
 						return;
 					FileInfo item = filesForParsing.get(i);
 					engine.scanBookProperties(item);
-					db.save(item);
-					Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
+					booksToSave.add(item);
 					progress( 5000 + 5000 * i / count );
 				}
 				if ( recursiveScan ) {
@@ -327,6 +328,7 @@ public class Scanner {
 				// scan (list) directories
 				nextProgressTime = startTime + 1500;
 				scan( baseDir );
+				db.saveFileInfos(booksToSave);
 			}
 		});
 	}
