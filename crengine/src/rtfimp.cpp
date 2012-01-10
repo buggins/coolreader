@@ -536,8 +536,8 @@ bool LVRtfParser::Parse()
                 // \uN -- unicode character
                 if ( cwi==1 && cwname[0]=='u' ) {
                     AddChar( (lChar16) (param & 0xFFFF) );
-                    if ( m_stack.getInt( pi_skip_ch_count )==0 )
-                        m_stack.set( pi_skip_ch_count, 1 );
+//                    if ( m_stack.getInt( pi_skip_ch_count )==0 )
+//                        m_stack.set( pi_skip_ch_count, 1 );
                 } else {
                     // usual control word
                     OnControlWord( cwname, param, asteriskFlag );
