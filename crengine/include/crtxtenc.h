@@ -95,7 +95,7 @@ int langToCodepage( int lang );
 
     \return non-zero on success
 */
-int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name );
+int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, char * lang_name, bool skipHtml);
 /**
     \brief Autodetects encoding of text data in buffer, only using ByteOrderMark or Utf-8 validity detection.
 
@@ -103,10 +103,13 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
     \param buf_size is size of data in buffer, bytes
     \param cp_name is buffer to store autodetected name of encoding, i.e. "utf-8", "windows-1251"
     \param lang_name is buffer to store autodetected name of language, i.e. "en", "ru"
+    \param skipHtml if true, skip HTML/XML tags
 
     \return non-zero on success
 */
 int AutodetectCodePageUtf( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name );
+
+bool hasXmlTags(const lUInt8 * buf, int size);
 
 /**
     \brief checks whether data buffer is valid utf-8 stream

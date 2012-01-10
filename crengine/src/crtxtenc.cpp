@@ -1438,14 +1438,30 @@ bool isValidUtf8Data( const unsigned char * buf, int buf_size )
     }
     return true;
 }
-void MakeDblCharStat( const unsigned char * buf, int buf_size, dbl_char_stat_t * stat, int stat_len )
+
+void MakeDblCharStat(const unsigned char * buf, int buf_size, dbl_char_stat_t * stat, int stat_len, bool skipHtml)
 {
    CDoubleCharStat2 maker;
    unsigned char ch1=' ';
    unsigned char ch2=' ';
+   bool insideTag = false;
    for ( int i=1; i<buf_size; i++) {
+      lChar16 ch = buf[i];
+      if (insideTag)
+          continue;
+      if (skipHtml) {
+          if (ch == '<') {
+              insideTag = true;
+              continue;
+          } else if (ch == '>') {
+              insideTag = false;
+              ch = ' ';
+          }
+      }
+      if (insideTag)
+          continue;
       ch1 = ch2;
-      ch2 = buf[i];
+      ch2 = ch;
       if ( ch2<128 && ch2!='\'' && !( (ch2>='a' && ch2<='z') || (ch2>='A' && ch2<='Z')) )
          ch2 = ' ';
       //if (i>0)
@@ -1454,14 +1470,27 @@ void MakeDblCharStat( const unsigned char * buf, int buf_size, dbl_char_stat_t *
    maker.GetData( stat, stat_len );
 }
 
-void MakeCharStat( const unsigned char * buf, int buf_size, short stat_table[256] )
+void MakeCharStat(const unsigned char * buf, int buf_size, short stat_table[256], bool skipHtml)
 {
    int stat[256];
    memset( stat, 0, sizeof(int)*256 );
    int total=0;
    unsigned char ch;
+   bool insideTag = false;
    for (int i=0; i<buf_size; i++) {
       ch = buf[i];
+      if (skipHtml) {
+          if (ch == '<') {
+              insideTag = true;
+              continue;
+          }
+          if (ch == '>') {
+              insideTag = false;
+              continue;
+          }
+      }
+      if (insideTag)
+          continue;
       if ( ch>127 || (ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || ch=='\'') {
          stat[ch]++;
          total++;
@@ -1582,7 +1611,7 @@ int AutodetectCodePageUtf( const unsigned char * buf, int buf_size, char * cp_na
    return 0;
 }
 
-int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name, char * lang_name )
+int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, char * lang_name, bool skipHtml)
 {
     int res = AutodetectCodePageUtf( buf, buf_size, cp_name, lang_name );
     if ( res )
@@ -1590,8 +1619,8 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
     // use character statistics
    short char_stat[256];
    dbl_char_stat_t dbl_char_stat[DBL_CHAR_STAT_SIZE];
-   MakeCharStat( buf, buf_size, char_stat );
-   MakeDblCharStat( buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE );
+   MakeCharStat(buf, buf_size, char_stat, skipHtml);
+   MakeDblCharStat(buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE, skipHtml);
    int bestn = 0;
    double bestq = 1000000;
    for (int i=0; cp_stat_table[i].ch_stat; i++) {
@@ -1613,6 +1642,26 @@ int AutodetectCodePage( const unsigned char * buf, int buf_size, char * cp_name,
    CRLog::debug("Detected codepage:%s lang:%s", cp_name, lang_name);
    return 1;
 }
+
+bool hasXmlTags(const lUInt8 * buf, int size) {
+    int openCount = 0;
+    int closeCount = 0;
+    for (int i=0; i<size; i++) {
+        if (buf[i]=='<')
+            openCount++;
+        else if (buf[i]=='>')
+            closeCount++;
+    }
+    if (openCount > 2 && closeCount > 2) {
+        int diff = openCount - closeCount;
+        if (diff<0)
+            diff = -diff;
+        if (diff < 2)
+            return true;
+    }
+    return false;
+}
+
 void MakeStatsForFile( const char * fname, const char * cp_name, const char * lang_name, int index, FILE * f, lString8 & list )
 {
    FILE * in = fopen( fname, "rb" );
@@ -1625,8 +1674,9 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    fread(buf, 1, buf_size, in);
    short char_stat[256];
    dbl_char_stat_t dbl_char_stat[DBL_CHAR_STAT_SIZE];
-   MakeCharStat( buf, buf_size, char_stat );
-   MakeDblCharStat( buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE );
+   bool skipHtml = hasXmlTags(buf, buf_size);
+   MakeCharStat(buf, buf_size, char_stat, skipHtml);
+   MakeDblCharStat(buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE, skipHtml);
    fprintf(f, "\n\nstatic const short ch_stat_%s_%s%d[256]={\n", cp_name, lang_name, index);
    int i;
    for (i=0; i<16; i++)

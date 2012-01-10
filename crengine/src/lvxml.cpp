@@ -850,10 +850,11 @@ bool LVTextFileBase::AutodetectEncoding( bool utfOnly )
     }
 
     int res = 0;
+    bool hasTags = hasXmlTags(buf, sz);
     if ( utfOnly )
-        res = AutodetectCodePageUtf( buf, sz, enc_name, lang_name );
+        res = AutodetectCodePageUtf(buf, sz, enc_name, lang_name);
     else
-        res = AutodetectCodePage( buf, sz, enc_name, lang_name );
+        res = AutodetectCodePage(buf, sz, enc_name, lang_name, hasTags);
     delete[] buf;
     m_stream->SetPos( oldpos );
     if ( res) {
