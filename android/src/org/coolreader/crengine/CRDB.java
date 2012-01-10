@@ -749,12 +749,12 @@ public class CRDB {
 			hasCondition = true;
 		}
 		if ( series!=null && series.length()>0 ) {
-			String seriesIds = findSeries(maxCount, author);
+			String seriesIds = findSeries(maxCount, series);
 			if (seriesIds == null || seriesIds.length() == 0)
 				return new FileInfo[0];
 			if ( buf.length()>0 )
 				buf.append(" AND ");
-			buf.append(" b.series_fk IN " + seriesIds + ") ");
+			buf.append(" b.series_fk IN (" + seriesIds + ") ");
 			hasCondition = true;
 		}
 		if ( title!=null && title.length()>0 ) {
@@ -769,8 +769,6 @@ public class CRDB {
 		String condition = buf.length()==0 ? "" : " WHERE " + buf.toString();
 		String sql = READ_FILEINFO_SQL + condition;
 		Log.d("cr3", "sql: " + sql );
-		if ( condition.length()==0 )
-			return new FileInfo[] { };
 		Cursor rs = null;
 		try { 
 			rs = mDB.rawQuery(sql, null);
