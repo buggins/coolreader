@@ -105,8 +105,8 @@ public class BookSearchDialog extends BaseDialog {
 	
 	private final static int MAX_RESULTS = 50; 
 	protected void find( final SearchCallback cb ) {
-		final String author = addWildcard(authorEdit.getText().toString().trim(), false, true);
-		final String series = addWildcard(seriesEdit.getText().toString().trim(), false, true);
+		final String author = addWildcard(authorEdit.getText().toString().trim(), true, true);
+		final String series = addWildcard(seriesEdit.getText().toString().trim(), true, true);
 		final String title = addWildcard(titleEdit.getText().toString().trim(), true, true);
 		final String filename = addWildcard(filenameEdit.getText().toString().trim(), true, true);
 		BackgroundThread.instance().executeBackground( new Runnable() {
