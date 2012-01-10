@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -82,6 +83,7 @@ public class CRDB {
 		this.mDBFile = dbfile;
 		mDB.setLockingEnabled(false);
 		mCoverpageDB.setLockingEnabled(false);
+		//mDB.setLocale(Locale.getDefault());
 		return true;
 	}
 
@@ -619,43 +621,152 @@ public class CRDB {
 		return found;
 	}
 
+	private String convertCaseForSearch(String text) {
+		if (text == null)
+			return null;
+		return text.toLowerCase();
+	}
+	
+	private final static String LATIN_C0 =
+		// 0xC0 .. 0xFF
+		  "aaaaaaaceeeeiiiidnoooooxouuuuyps" 
+		+ "aaaaaaaceeeeiiiidnoooooxouuuuypy";
+	
+	private char convertCharCaseForSearch(char ch) {
+		if (ch >= 'A' && ch <= 'Z')
+			return (char)(ch - 'A' + 'a');
+		if ( ch>=0xC0 && ch<=0xFF )
+			return LATIN_C0.charAt(ch - 0xC0);
+    	if ( ch>=0x410 && ch<=0x42F )
+    		return (char)(ch + 0x20);
+    	if ( ch>=0x390 && ch<=0x3aF )
+    		return (char)(ch + 0x20);
+    	if ( (ch >> 8)==0x1F ) { // greek
+	        int n = ch & 255;
+	        if (n<0x70) {
+	            return (char)(ch & (~8));
+	        } else if (n<0x80) {
+	
+	        } else if (n<0xF0) {
+	            return (char)(ch & (~8));
+	        }
+	    }
+		return ch;
+	}
+	
+	private boolean matchPattern(String text, String pattern) {
+		if (pattern == null)
+			return true;
+		if (text == null)
+			return false;
+		int textlen = text.length();
+		int patternlen = pattern.length();
+		if (textlen < patternlen)
+			return false;
+		for (int i=0; i <= textlen - patternlen; i++) {
+			boolean eq = true;
+			for (int j=0; j<patternlen; j++) {
+				if (convertCharCaseForSearch(text.charAt(i+j)) != convertCharCaseForSearch(pattern.charAt(j))) {
+					eq = false;
+					break;
+				}
+			}
+			if (eq)
+				return true;
+		}
+		return false;
+	}
+	
+	private String findAuthors(int maxCount, String authorPattern) {
+		StringBuilder buf = new StringBuilder();
+		String sql = "SELECT id, name FROM author";
+		Cursor rs = null;
+		int count = 0;
+		try {
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					long id = rs.getLong(0);
+					String name = rs.getString(1);
+					if (matchPattern(name, authorPattern)) {
+						if (buf.length() != 0)
+							buf.append(",");
+						buf.append(id);
+						count++;
+						if (count >= maxCount)
+							break;
+					}
+				} while (rs.moveToNext());
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return buf.toString();
+	}
+	
+	private String findSeries(int maxCount, String seriesPattern) {
+		StringBuilder buf = new StringBuilder();
+		String sql = "SELECT id, name FROM series";
+		Cursor rs = null;
+		int count = 0;
+		try {
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					long id = rs.getLong(0);
+					String name = rs.getString(1);
+					if (matchPattern(name, seriesPattern)) {
+						if (buf.length() != 0)
+							buf.append(",");
+						buf.append(id);
+						count++;
+						if (count >= maxCount)
+							break;
+					}
+				} while (rs.moveToNext());
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return buf.toString();
+	}
+	
 	synchronized public FileInfo[] findByPatterns( int maxCount, String author, String title, String series, String filename )
 	{
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 		
 		StringBuilder buf = new StringBuilder();
+		boolean hasCondition = false;
 		if ( author!=null && author.length()>0 ) {
+			String authorIds = findAuthors(maxCount, author);
+			if (authorIds == null || authorIds.length() == 0)
+				return new FileInfo[0];
 			if ( buf.length()>0 )
 				buf.append(" AND ");
-			buf.append(" b.id IN (SELECT ba.book_fk FROM author a JOIN book_author ba ON a.id=ba.author_fk WHERE a.name LIKE ");
-			DatabaseUtils.appendValueToSql(buf, author);
-			buf.append(") ");
+			buf.append(" b.id IN (SELECT ba.book_fk FROM book_author ba WHERE ba.author_fk IN (" + authorIds + ")) ");
+			hasCondition = true;
 		}
 		if ( series!=null && series.length()>0 ) {
+			String seriesIds = findSeries(maxCount, author);
+			if (seriesIds == null || seriesIds.length() == 0)
+				return new FileInfo[0];
 			if ( buf.length()>0 )
 				buf.append(" AND ");
-			buf.append(" b.series_fk IN (SELECT s.name FROM series s WHERE s.name LIKE ");
-			DatabaseUtils.appendValueToSql(buf, series);
-			buf.append(") ");
+			buf.append(" b.series_fk IN " + seriesIds + ") ");
+			hasCondition = true;
 		}
 		if ( title!=null && title.length()>0 ) {
-			if ( buf.length()>0 )
-				buf.append(" AND ");
-			buf.append(" b.title LIKE ");
-			DatabaseUtils.appendValueToSql(buf, title);
-			buf.append(" ");
+			hasCondition = true;
 		}
 		if ( filename!=null && filename.length()>0 ) {
-			if ( buf.length()>0 )
-				buf.append(" AND ");
-			buf.append(" b.filename LIKE ");
-			DatabaseUtils.appendValueToSql(buf, filename);
-			buf.append(" ");
+			hasCondition = true;
 		}
-		if ( buf.length()==0 )
+		if (!hasCondition)
 			return new FileInfo[0];
 		
-		String condition = " WHERE " + buf.toString();
+		String condition = buf.length()==0 ? "" : " WHERE " + buf.toString();
 		String sql = READ_FILEINFO_SQL + condition;
 		Log.d("cr3", "sql: " + sql );
 		if ( condition.length()==0 )
@@ -666,6 +777,12 @@ public class CRDB {
 			if ( rs.moveToFirst() ) {
 				int count = 0;
 				do {
+					if ( title!=null && title.length()>0 )
+						if (!matchPattern(rs.getString(5), title))
+							continue;
+					if ( filename!=null && filename.length()>0 )
+						if (!matchPattern(rs.getString(3), filename))
+							continue;
 					FileInfo fi = new FileInfo(); 
 					readFileInfoFromCursor( fi, rs );
 					list.add(fi);

@@ -93,22 +93,22 @@ public class BookSearchDialog extends BaseDialog {
 		public void done( FileInfo[] results );
 	}
 
-	private static String addWildcard( String s, boolean before, boolean after ) {
-		if ( s==null || s.length()==0 )
-			return s;
-		if ( before )
-			s = "%" + s;
-		if ( after )
-			s = s + "%";
-		return s;
-	}
+//	private static String addWildcard( String s, boolean before, boolean after ) {
+//		if ( s==null || s.length()==0 )
+//			return s;
+//		if ( before )
+//			s = "%" + s;
+//		if ( after )
+//			s = s + "%";
+//		return s;
+//	}
 	
 	private final static int MAX_RESULTS = 50; 
 	protected void find( final SearchCallback cb ) {
-		final String author = addWildcard(authorEdit.getText().toString().trim(), true, true);
-		final String series = addWildcard(seriesEdit.getText().toString().trim(), true, true);
-		final String title = addWildcard(titleEdit.getText().toString().trim(), true, true);
-		final String filename = addWildcard(filenameEdit.getText().toString().trim(), true, true);
+		final String author = authorEdit.getText().toString().trim();
+		final String series = seriesEdit.getText().toString().trim();
+		final String title = titleEdit.getText().toString().trim();
+		final String filename = filenameEdit.getText().toString().trim();
 		BackgroundThread.instance().executeBackground( new Runnable() {
 			@Override
 			public void run() {
