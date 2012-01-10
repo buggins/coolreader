@@ -23,6 +23,9 @@ public class FileInfo {
 	public final static String AUTHORS_TAG = "@authors";
 	public final static String AUTHOR_GROUP_PREFIX = "@authorGroup:";
 	public final static String AUTHOR_PREFIX = "@author:";
+	public final static String SERIES_TAG = "@series";
+	public final static String SERIES_GROUP_PREFIX = "@seriesGroup:";
+	public final static String SERIES_PREFIX = "@series:";
 	public final static String SEARCH_SHORTCUT_TAG = "@search";
 	
 	
@@ -258,9 +261,19 @@ public class FileInfo {
 		return AUTHORS_TAG.equals(pathname);
 	}
 	
+	public boolean isBooksBySeriesRoot()
+	{
+		return SERIES_TAG.equals(pathname);
+	}
+	
 	public boolean isBooksByAuthorDir()
 	{
 		return pathname!=null && pathname.startsWith(AUTHOR_PREFIX);
+	}
+	
+	public boolean isBooksBySeriesDir()
+	{
+		return pathname!=null && pathname.startsWith(SERIES_PREFIX);
 	}
 	
 	public long getAuthorId()
@@ -269,6 +282,17 @@ public class FileInfo {
 			return 0;
 		try {
 			return Long.parseLong(pathname.substring(AUTHOR_PREFIX.length()));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+	
+	public long getSeriesId()
+	{
+		if (!isBooksBySeriesDir())
+			return 0;
+		try {
+			return Long.parseLong(pathname.substring(SERIES_PREFIX.length()));
 		} catch (NumberFormatException e) {
 			return 0;
 		}

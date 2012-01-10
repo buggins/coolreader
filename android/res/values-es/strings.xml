@@ -282,4 +282,6 @@
     <string name="options_controls_tap_type_long">Hosszú érintés</string>
     <string name="mi_bookmark_send">Küldés</string>
     <string name="folder_name_books_by_author">Könyvek szerzők szerint</string>
+<string name="folder_name_books_by_series">Books by series</string>
+    <string name="folder_name_books_by_title">Books by title</string>
 </resources>
