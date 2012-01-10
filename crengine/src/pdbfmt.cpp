@@ -416,11 +416,13 @@ private:
                 b = src[pos];
                 pos++;
                 if (b > 0 && b < 9) {
+                    // 1..8 bytes follow
                     for (int i=0; i<(int)b; i++)
                         dst.add(src[pos++]);
                 } else if (b < 128) {
+                    // unmodified single byte
                     dst.add((lUInt8)b);
-                } else if (b > 0xc0) {
+                } else if (b >= 0xc0) {
                     dst.add(' ');
                     dst.add(b & 0x7f);
                 } else {
@@ -430,8 +432,9 @@ private:
                     pos++;
                     int m = (z & 0x3fff) >> 3;
                     int n = (z & 7) + 3;
+                    int pos = dst.length() - m;
                     for (int i=0; i<n; i++)
-                        dst.add(dst[dst.length()-m]);
+                        dst.add(dst[pos++]);
                 }
             }
         } else if ( _compression==10 ) {
@@ -724,8 +727,11 @@ public:
         }
         if ( _textSize==-1 )
             _textSize = unpoffset;
-        else if ( unpoffset<_textSize )
-            return false; // text size does not match
+        else if ( unpoffset<_textSize ) {
+            CRLog::warn("PDB: Unpacked text size is %d but expected %d", unpoffset, _textSize);
+            _textSize = unpoffset;
+            //return false; // text size does not match
+        }
 
 
         _bufIndex = -1;
