@@ -3,8 +3,9 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Locale;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -323,48 +324,110 @@ public class CRDB {
 		return found;
 	}
 
-	public boolean loadAuthorsList(FileInfo parent) {
-		Log.i("cr3", "loadAuthorsList()");
-		parent.clear();
+	/// add items range to parent dir
+	private void addItems(FileInfo parent, ArrayList<FileInfo> items, int start, int end) {
+		for (int i=start; i<end; i++) {
+			items.get(i).parent = parent;
+			parent.addDir(items.get(i));
+		}
+	}
+
+	private String getItemFirstLetters(FileInfo item, int level) {
+		String name = item.filename;
+		int l = name == null ? 0 : (name.length() < level ? name.length() : level);  
+		return l > 0 ? name.substring(0, l).toUpperCase() : "_";
+	}
+	
+	private FileInfo createItemGroup(String groupPrefix, String groupPrefixTag) {
+		FileInfo groupDir = new FileInfo();
+		groupDir.isDirectory = true;
+		groupDir.pathname = groupPrefixTag + groupPrefix;
+		groupDir.filename = groupPrefix + "...";
+		groupDir.isListed = true;
+		groupDir.isScanned = true;
+		groupDir.id = 0l;
+		return groupDir;
+	}
+	
+	private void sortItems(ArrayList<FileInfo> items) {
+		Collections.sort(items, new Comparator<FileInfo>() {
+			@Override
+			public int compare(FileInfo lhs, FileInfo rhs) {
+				String l = lhs.filename != null ? lhs.filename.toUpperCase() : "";
+				String r = rhs.filename != null ? rhs.filename.toUpperCase() : "";
+				return l.compareTo(r);
+			}
+		});
+	}
+	
+	private void addGroupedItems(FileInfo parent, ArrayList<FileInfo> items, int start, int end, String groupPrefixTag, int level) {
+		int itemCount = end - start;
+		if (itemCount < 1)
+			return;
+		// for nested level (>1), create base subgroup, otherwise use parent 
+		if (level > 1 && itemCount > 1) {
+			String baseFirstLetter = getItemFirstLetters(items.get(start), level - 1);
+			FileInfo newGroup = createItemGroup(baseFirstLetter, groupPrefixTag);
+			newGroup.parent = parent;
+			parent.addDir(newGroup);
+			parent = newGroup;
+		}
+		
+		// check group count
+		int topLevelGroupsCount = 0;
+		String lastFirstLetter = "";
+		for (int i=start; i<end; i++) {
+			String firstLetter = getItemFirstLetters(items.get(i), level);
+			if (!firstLetter.equals(lastFirstLetter)) {
+				topLevelGroupsCount++;
+				lastFirstLetter = firstLetter;
+			}
+		}
+		if (itemCount <= topLevelGroupsCount * 11 / 10 || itemCount < 8) {
+			// small number of items: add as is
+			addItems(parent, items, start, end); 
+			return;
+		}
+
+		// divide items into groups
+		for (int i=start; i<end; ) {
+			String firstLetter = getItemFirstLetters(items.get(i), level);
+			int groupEnd = i + 1;
+			for (; groupEnd < end; groupEnd++) {
+				String firstLetter2 = groupEnd < end ? getItemFirstLetters(items.get(groupEnd), level) : "";
+				if (!firstLetter.equals(firstLetter2))
+					break;
+			}
+			// group is i..groupEnd
+			addGroupedItems(parent, items, i, groupEnd, groupPrefixTag, level + 1);
+			i = groupEnd;
+		}
+	}
+	
+	private boolean loadItemList(ArrayList<FileInfo> list, String sql, String groupPrefixTag) {
 		boolean found = false;
 		Cursor rs = null;
-		FileInfo letterDir = null;
-		String lastAuthorFirstLetter = null;
 		try {
-			String sql = "SELECT author.id, author.name, count(*) as book_count FROM author INNER JOIN book_author ON book_author.author_fk = author.id GROUP BY author.id, author.name ORDER BY author.name";
 			rs = mDB.rawQuery(sql, null);
 			if ( rs.moveToFirst() ) {
-				// remove existing entries
-				parent.clear();
 				// read DB
 				do {
 					long id = rs.getLong(0);
 					String name = rs.getString(1);
+					if (FileInfo.AUTHOR_PREFIX.equals(groupPrefixTag))
+						name = Utils.authorNameFileAs(name);
 					Integer bookCount = rs.getInt(2);
-					String firstLetter = (name!=null && name.length()>0) ? name.substring(0, 1).toUpperCase() : "_";
-					if (letterDir == null || !firstLetter.equals(lastAuthorFirstLetter)) {
-						letterDir = new FileInfo();
-						letterDir.isDirectory = true;
-						letterDir.pathname = FileInfo.AUTHOR_GROUP_PREFIX + firstLetter;
-						letterDir.filename = firstLetter + "...";
-						letterDir.isListed = true;
-						letterDir.isScanned = true;
-						letterDir.parent = parent;
-						letterDir.id = id;
-						lastAuthorFirstLetter = firstLetter;
-						parent.addDir(letterDir);
-						found = true;
-					}
-					FileInfo author = new FileInfo();
-					author.isDirectory = true;
-					author.pathname = FileInfo.AUTHOR_PREFIX + id;
-					author.filename = name;
-					author.isListed = true;
-					author.isScanned = true;
-					author.parent = parent;
-					author.id = id;
-					author.tag = bookCount;
-					letterDir.addDir(author);
+					
+					FileInfo item = new FileInfo();
+					item.isDirectory = true;
+					item.pathname = groupPrefixTag + id;
+					item.filename = name;
+					item.isListed = true;
+					item.isScanned = true;
+					item.id = id;
+					item.tag = bookCount;
+					
+					list.add(item);
 					found = true;
 				} while (rs.moveToNext());
 			}
@@ -374,60 +437,27 @@ public class CRDB {
 			if ( rs!=null )
 				rs.close();
 		}
+		sortItems(list);
 		return found;
 	}
 	
+	public boolean loadAuthorsList(FileInfo parent) {
+		Log.i("cr3", "loadAuthorsList()");
+		parent.clear();
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		String sql = "SELECT author.id, author.name, count(*) as book_count FROM author INNER JOIN book_author ON  book_author.author_fk = author.id GROUP BY author.name, author.id ORDER BY author.name";
+		boolean found = loadItemList(list, sql, FileInfo.AUTHOR_PREFIX);
+		addGroupedItems(parent, list, 0, list.size(), FileInfo.AUTHOR_GROUP_PREFIX, 1);
+		return found;
+	}
+
 	public boolean loadSeriesList(FileInfo parent) {
 		Log.i("cr3", "loadSeriesList()");
 		parent.clear();
-		boolean found = false;
-		Cursor rs = null;
-		FileInfo letterDir = null;
-		String lastAuthorFirstLetter = null;
-		try {
-			String sql = "SELECT series.id, series.name, count(*) as book_count FROM series INNER JOIN book ON book.series_fk = series.id GROUP BY series.id, series.name ORDER BY series.name";
-			rs = mDB.rawQuery(sql, null);
-			if ( rs.moveToFirst() ) {
-				// remove existing entries
-				parent.clear();
-				// read DB
-				do {
-					long id = rs.getLong(0);
-					String name = rs.getString(1);
-					Integer bookCount = rs.getInt(2);
-					String firstLetter = (name!=null && name.length()>0) ? name.substring(0, 1).toUpperCase() : "_";
-					if (letterDir == null || !firstLetter.equals(lastAuthorFirstLetter)) {
-						letterDir = new FileInfo();
-						letterDir.isDirectory = true;
-						letterDir.pathname = FileInfo.SERIES_GROUP_PREFIX + firstLetter;
-						letterDir.filename = firstLetter + "...";
-						letterDir.isListed = true;
-						letterDir.isScanned = true;
-						letterDir.parent = parent;
-						letterDir.id = id;
-						lastAuthorFirstLetter = firstLetter;
-						parent.addDir(letterDir);
-						found = true;
-					}
-					FileInfo author = new FileInfo();
-					author.isDirectory = true;
-					author.pathname = FileInfo.SERIES_PREFIX + id;
-					author.filename = name;
-					author.isListed = true;
-					author.isScanned = true;
-					author.parent = parent;
-					author.id = id;
-					author.tag = bookCount;
-					letterDir.addDir(author);
-					found = true;
-				} while (rs.moveToNext());
-			}
-		} catch (Exception e) {
-			Log.e("cr3", "exception while loading list of authors", e);
-		} finally {
-			if ( rs!=null )
-				rs.close();
-		}
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		String sql = "SELECT series.id, series.name, count(*) as book_count FROM series INNER JOIN book ON book.series_fk = series.id GROUP BY series.name, series.id ORDER BY series.name";
+		boolean found = loadItemList(list, sql, FileInfo.SERIES_PREFIX);
+		addGroupedItems(parent, list, 0, list.size(), FileInfo.SERIES_GROUP_PREFIX, 1);
 		return found;
 	}
 	

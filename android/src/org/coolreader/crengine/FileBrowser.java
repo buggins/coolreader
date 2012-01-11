@@ -387,11 +387,12 @@ public class FileBrowser extends LinearLayout {
 		for ( String a : list ) {
 			if ( buf.length()>0 )
 				buf.append(", ");
-			String[] items = a.split(" ");
-			if ( items.length==3 && items[1]!=null && items[1].length()>=1 )
-				buf.append(items[0] + " " + items[1].charAt(0) + ". " + items[2]);
-			else
-				buf.append(a);
+			buf.append(Utils.authorNameFileAs(a));
+//			String[] items = a.split(" ");
+//			if ( items.length==3 && items[1]!=null && items[1].length()>=1 )
+//				buf.append(items[0] + " " + items[1].charAt(0) + ". " + items[2]);
+//			else
+//				buf.append(a);
 		}
 		return buf.toString();
 	}
@@ -956,7 +957,7 @@ public class FileBrowser extends LinearLayout {
 							bookCount = (Integer)item.tag;
 						setText(field1, "books: " + String.valueOf(bookCount));
 						setText(field2, "folders: 0");
-					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isBooksByAuthorRoot() && !!item.isBooksBySeriesRoot()) || item.dirCount()>0)) {
+					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot()) || item.dirCount()>0)) {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {

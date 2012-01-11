@@ -280,22 +280,14 @@ public class FileInfo {
 	{
 		if (!isBooksByAuthorDir())
 			return 0;
-		try {
-			return Long.parseLong(pathname.substring(AUTHOR_PREFIX.length()));
-		} catch (NumberFormatException e) {
-			return 0;
-		}
+		return id;
 	}
 	
 	public long getSeriesId()
 	{
 		if (!isBooksBySeriesDir())
 			return 0;
-		try {
-			return Long.parseLong(pathname.substring(SERIES_PREFIX.length()));
-		} catch (NumberFormatException e) {
-			return 0;
-		}
+		return id;
 	}
 	
 	public boolean isHidden()
