@@ -351,7 +351,7 @@ void testFormatting()
     t.addLine( L"One more sentence. Second sentence.", LTEXT_FLAG_OWNTEXT, font1 );
     int i;
 #endif
-    t.txt.FormatNew( 300, 400 );
+//    t.txt.FormatNew( 300, 400 );
     t.dump();
 #if 0
     printf("Running performance test\n");
