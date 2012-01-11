@@ -747,15 +747,19 @@ public class FileBrowser extends LinearLayout {
 			log.d("Updating series list");
 			mActivity.getDB().loadSeriesList(fileOrDir);
 		}
+		if (fileOrDir!=null && fileOrDir.isBooksByTitleRoot()) {
+			// refresh authors list
+			log.d("Updating title list");
+			mActivity.getDB().loadTitleList(fileOrDir);
+		}
 		if (fileOrDir!=null && fileOrDir.isBooksByAuthorDir()) {
 			log.d("Updating author book list");
 			mActivity.getDB().loadAuthorBooks(fileOrDir);
 		}
 		if (fileOrDir!=null && fileOrDir.isBooksBySeriesDir()) {
-			log.d("Updating author book list");
+			log.d("Updating series book list");
 			mActivity.getDB().loadSeriesBooks(fileOrDir);
 		}
-		
 		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
 			if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
 				fileOrDir = mScanner.getRoot().getDir(0);
@@ -929,6 +933,8 @@ public class FileBrowser extends LinearLayout {
 						image.setImageResource(R.drawable.cr3_browser_folder_authors);
 					else if (item.isBooksBySeriesRoot())
 						image.setImageResource(R.drawable.cr3_browser_folder_authors);
+					else if (item.isBooksByTitleRoot())
+						image.setImageResource(R.drawable.cr3_browser_folder_authors);
 					else if (item.isOPDSRoot() || item.isOPDSDir())
 						image.setImageResource(R.drawable.cr3_browser_folder_opds);
 					else if (item.isSearchShortcut())
@@ -957,7 +963,7 @@ public class FileBrowser extends LinearLayout {
 							bookCount = (Integer)item.tag;
 						setText(field1, "books: " + String.valueOf(bookCount));
 						setText(field2, "folders: 0");
-					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot()) || item.dirCount()>0)) {
+					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0)) {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {

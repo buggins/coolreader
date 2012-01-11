@@ -449,6 +449,17 @@ public class Scanner {
 		mRoot.addDir(dir);
 	}
 	
+	private void addTitleRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.TITLE_TAG;
+		dir.filename = coolReader.getString(R.string.folder_name_books_by_title);
+		dir.isListed = true;
+		dir.isScanned = true;
+		dir.parent = mRoot;
+		mRoot.addDir(dir);
+	}
+	
 	/**
 	 * Lists all directories from root to directory of specified file, returns found directory.
 	 * @param file
@@ -639,6 +650,8 @@ public class Scanner {
 		addAuthorsRoot();
 		// create books by series root
 		addSeriesRoot();
+		// create books by title root
+		addTitleRoot();
 	}
 	
 	public boolean autoAddRootForFile( File f ) {

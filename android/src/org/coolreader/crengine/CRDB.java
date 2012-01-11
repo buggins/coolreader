@@ -196,7 +196,7 @@ public class CRDB {
 				")");
 		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_folder_index ON book (folder_fk) ");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
+		execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
 				"book_pathname_index ON book (pathname) ");
 		execSQL("CREATE INDEX IF NOT EXISTS " +
 				"book_filename_index ON book (filename) ");
@@ -332,10 +332,28 @@ public class CRDB {
 		}
 	}
 
-	private String getItemFirstLetters(FileInfo item, int level) {
-		String name = item.filename;
-		int l = name == null ? 0 : (name.length() < level ? name.length() : level);  
-		return l > 0 ? name.substring(0, l).toUpperCase() : "_";
+	
+	private static abstract class ItemGroupExtractor {
+		public abstract String getComparisionField(FileInfo item);
+		public String getItemFirstLetters(FileInfo item, int level) {
+			String name = getComparisionField(item); //.filename;
+			int l = name == null ? 0 : (name.length() < level ? name.length() : level);  
+			return l > 0 ? name.substring(0, l).toUpperCase() : "_";
+		}
+	}
+
+	private static class ItemGroupFilenameExtractor extends ItemGroupExtractor {
+		@Override
+		public String getComparisionField(FileInfo item) {
+			return item.filename;
+		}
+	}
+
+	private static class ItemGroupTitleExtractor extends ItemGroupExtractor {
+		@Override
+		public String getComparisionField(FileInfo item) {
+			return item.title;
+		}
 	}
 	
 	private FileInfo createItemGroup(String groupPrefix, String groupPrefixTag) {
@@ -349,24 +367,24 @@ public class CRDB {
 		return groupDir;
 	}
 	
-	private void sortItems(ArrayList<FileInfo> items) {
+	private void sortItems(ArrayList<FileInfo> items, final ItemGroupExtractor extractor) {
 		Collections.sort(items, new Comparator<FileInfo>() {
 			@Override
 			public int compare(FileInfo lhs, FileInfo rhs) {
-				String l = lhs.filename != null ? lhs.filename.toUpperCase() : "";
-				String r = rhs.filename != null ? rhs.filename.toUpperCase() : "";
+				String l = extractor.getComparisionField(lhs) != null ? extractor.getComparisionField(lhs).toUpperCase() : "";
+				String r = extractor.getComparisionField(rhs) != null ? extractor.getComparisionField(rhs).toUpperCase() : "";
 				return l.compareTo(r);
 			}
 		});
 	}
 	
-	private void addGroupedItems(FileInfo parent, ArrayList<FileInfo> items, int start, int end, String groupPrefixTag, int level) {
+	private void addGroupedItems(FileInfo parent, ArrayList<FileInfo> items, int start, int end, String groupPrefixTag, int level, final ItemGroupExtractor extractor) {
 		int itemCount = end - start;
 		if (itemCount < 1)
 			return;
 		// for nested level (>1), create base subgroup, otherwise use parent 
 		if (level > 1 && itemCount > 1) {
-			String baseFirstLetter = getItemFirstLetters(items.get(start), level - 1);
+			String baseFirstLetter = extractor.getItemFirstLetters(items.get(start), level - 1);
 			FileInfo newGroup = createItemGroup(baseFirstLetter, groupPrefixTag);
 			newGroup.parent = parent;
 			parent.addDir(newGroup);
@@ -377,7 +395,7 @@ public class CRDB {
 		int topLevelGroupsCount = 0;
 		String lastFirstLetter = "";
 		for (int i=start; i<end; i++) {
-			String firstLetter = getItemFirstLetters(items.get(i), level);
+			String firstLetter = extractor.getItemFirstLetters(items.get(i), level);
 			if (!firstLetter.equals(lastFirstLetter)) {
 				topLevelGroupsCount++;
 				lastFirstLetter = firstLetter;
@@ -391,15 +409,15 @@ public class CRDB {
 
 		// divide items into groups
 		for (int i=start; i<end; ) {
-			String firstLetter = getItemFirstLetters(items.get(i), level);
+			String firstLetter = extractor.getItemFirstLetters(items.get(i), level);
 			int groupEnd = i + 1;
 			for (; groupEnd < end; groupEnd++) {
-				String firstLetter2 = groupEnd < end ? getItemFirstLetters(items.get(groupEnd), level) : "";
+				String firstLetter2 = groupEnd < end ? extractor.getItemFirstLetters(items.get(groupEnd), level) : "";
 				if (!firstLetter.equals(firstLetter2))
 					break;
 			}
 			// group is i..groupEnd
-			addGroupedItems(parent, items, i, groupEnd, groupPrefixTag, level + 1);
+			addGroupedItems(parent, items, i, groupEnd, groupPrefixTag, level + 1, extractor);
 			i = groupEnd;
 		}
 	}
@@ -437,7 +455,7 @@ public class CRDB {
 			if ( rs!=null )
 				rs.close();
 		}
-		sortItems(list);
+		sortItems(list, new ItemGroupFilenameExtractor());
 		return found;
 	}
 	
@@ -447,7 +465,7 @@ public class CRDB {
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 		String sql = "SELECT author.id, author.name, count(*) as book_count FROM author INNER JOIN book_author ON  book_author.author_fk = author.id GROUP BY author.name, author.id ORDER BY author.name";
 		boolean found = loadItemList(list, sql, FileInfo.AUTHOR_PREFIX);
-		addGroupedItems(parent, list, 0, list.size(), FileInfo.AUTHOR_GROUP_PREFIX, 1);
+		addGroupedItems(parent, list, 0, list.size(), FileInfo.AUTHOR_GROUP_PREFIX, 1, new ItemGroupFilenameExtractor());
 		return found;
 	}
 
@@ -457,7 +475,29 @@ public class CRDB {
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 		String sql = "SELECT series.id, series.name, count(*) as book_count FROM series INNER JOIN book ON book.series_fk = series.id GROUP BY series.name, series.id ORDER BY series.name";
 		boolean found = loadItemList(list, sql, FileInfo.SERIES_PREFIX);
-		addGroupedItems(parent, list, 0, list.size(), FileInfo.SERIES_GROUP_PREFIX, 1);
+		addGroupedItems(parent, list, 0, list.size(), FileInfo.SERIES_GROUP_PREFIX, 1, new ItemGroupFilenameExtractor());
+		return found;
+	}
+	
+	public boolean loadTitleList(FileInfo parent) {
+		Log.i("cr3", "loadTitleList()");
+		parent.clear();
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		String sql = READ_FILEINFO_SQL + " WHERE b.title IS NOT NULL AND b.title != '' ORDER BY b.title";
+		boolean found = findBooks(sql, list);
+		sortItems(list, new ItemGroupTitleExtractor());
+		// remove duplicate titles
+		for (int i=list.size() - 1; i>0; i--) {
+			String title = list.get(i).title; 
+			if (title == null) {
+				list.remove(i);
+				continue;
+			}
+			String prevTitle = list.get(i - 1).title;
+			if (title.equals(prevTitle))
+				list.remove(i);
+		}
+		addGroupedItems(parent, list, 0, list.size(), FileInfo.TITLE_GROUP_PREFIX, 1, new ItemGroupTitleExtractor());
 		return found;
 	}
 	

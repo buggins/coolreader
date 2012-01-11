@@ -20,12 +20,14 @@ public class FileInfo {
 	public final static String ROOT_DIR_TAG = "@root";
 	public final static String OPDS_LIST_TAG = "@opds";
 	public final static String OPDS_DIR_PREFIX = "@opds:";
-	public final static String AUTHORS_TAG = "@authors";
+	public final static String AUTHORS_TAG = "@authorsRoot";
 	public final static String AUTHOR_GROUP_PREFIX = "@authorGroup:";
 	public final static String AUTHOR_PREFIX = "@author:";
-	public final static String SERIES_TAG = "@series";
+	public final static String SERIES_TAG = "@seriesRoot";
 	public final static String SERIES_GROUP_PREFIX = "@seriesGroup:";
 	public final static String SERIES_PREFIX = "@series:";
+	public final static String TITLE_TAG = "@titlesRoot";
+	public final static String TITLE_GROUP_PREFIX = "@titleGroup:";
 	public final static String SEARCH_SHORTCUT_TAG = "@search";
 	
 	
@@ -264,6 +266,11 @@ public class FileInfo {
 	public boolean isBooksBySeriesRoot()
 	{
 		return SERIES_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByTitleRoot()
+	{
+		return TITLE_TAG.equals(pathname);
 	}
 	
 	public boolean isBooksByAuthorDir()
