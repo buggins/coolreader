@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Найти</string>
@@ -384,4 +384,6 @@
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту кгнигу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу?</string>
+<string name="folder_name_books_by_series">Книги по сериям</string>
+    <string name="folder_name_books_by_title">Книги по названию</string>
 </resources>

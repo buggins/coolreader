@@ -304,6 +304,25 @@ public class CRDB {
 		return found;
 	}
 
+	public boolean loadSeriesBooks(FileInfo parent) {
+		Log.i("cr3", "loadSeriesBooks()");
+		parent.clear();
+		boolean found = false;
+		if (!parent.isBooksBySeriesDir())
+			return false;
+		long id = parent.getSeriesId();
+		if (id == 0)
+			return false;
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		if (findSeriesBooks(list, id)) {
+			for (FileInfo file : list) {
+				file.parent = parent;
+				parent.addFile(file);
+			}
+		}
+		return found;
+	}
+
 	public boolean loadAuthorsList(FileInfo parent) {
 		Log.i("cr3", "loadAuthorsList()");
 		parent.clear();
@@ -339,6 +358,60 @@ public class CRDB {
 					FileInfo author = new FileInfo();
 					author.isDirectory = true;
 					author.pathname = FileInfo.AUTHOR_PREFIX + id;
+					author.filename = name;
+					author.isListed = true;
+					author.isScanned = true;
+					author.parent = parent;
+					author.id = id;
+					author.tag = bookCount;
+					letterDir.addDir(author);
+					found = true;
+				} while (rs.moveToNext());
+			}
+		} catch (Exception e) {
+			Log.e("cr3", "exception while loading list of authors", e);
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return found;
+	}
+	
+	public boolean loadSeriesList(FileInfo parent) {
+		Log.i("cr3", "loadSeriesList()");
+		parent.clear();
+		boolean found = false;
+		Cursor rs = null;
+		FileInfo letterDir = null;
+		String lastAuthorFirstLetter = null;
+		try {
+			String sql = "SELECT series.id, series.name, count(*) as book_count FROM series INNER JOIN book ON book.series_fk = series.id GROUP BY series.id, series.name ORDER BY series.name";
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				// remove existing entries
+				parent.clear();
+				// read DB
+				do {
+					long id = rs.getLong(0);
+					String name = rs.getString(1);
+					Integer bookCount = rs.getInt(2);
+					String firstLetter = (name!=null && name.length()>0) ? name.substring(0, 1).toUpperCase() : "_";
+					if (letterDir == null || !firstLetter.equals(lastAuthorFirstLetter)) {
+						letterDir = new FileInfo();
+						letterDir.isDirectory = true;
+						letterDir.pathname = FileInfo.SERIES_GROUP_PREFIX + firstLetter;
+						letterDir.filename = firstLetter + "...";
+						letterDir.isListed = true;
+						letterDir.isScanned = true;
+						letterDir.parent = parent;
+						letterDir.id = id;
+						lastAuthorFirstLetter = firstLetter;
+						parent.addDir(letterDir);
+						found = true;
+					}
+					FileInfo author = new FileInfo();
+					author.isDirectory = true;
+					author.pathname = FileInfo.SERIES_PREFIX + id;
 					author.filename = name;
 					author.isListed = true;
 					author.isScanned = true;
@@ -621,12 +694,6 @@ public class CRDB {
 		return found;
 	}
 
-	private String convertCaseForSearch(String text) {
-		if (text == null)
-			return null;
-		return text.toLowerCase();
-	}
-	
 	private final static String LATIN_C0 =
 		// 0xC0 .. 0xFF
 		  "aaaaaaaceeeeiiiidnoooooxouuuuyps" 
@@ -664,9 +731,11 @@ public class CRDB {
 		if (textlen < patternlen)
 			return false;
 		for (int i=0; i <= textlen - patternlen; i++) {
+			if (i > 0 && text.charAt(i-1) != ' ')
+				continue; // match only beginning of words
 			boolean eq = true;
 			for (int j=0; j<patternlen; j++) {
-				if (convertCharCaseForSearch(text.charAt(i+j)) != convertCharCaseForSearch(pattern.charAt(j))) {
+				if (convertCharCaseForSearch(text.charAt(i + j)) != convertCharCaseForSearch(pattern.charAt(j))) {
 					eq = false;
 					break;
 				}
@@ -749,12 +818,12 @@ public class CRDB {
 			hasCondition = true;
 		}
 		if ( series!=null && series.length()>0 ) {
-			String seriesIds = findSeries(maxCount, author);
+			String seriesIds = findSeries(maxCount, series);
 			if (seriesIds == null || seriesIds.length() == 0)
 				return new FileInfo[0];
 			if ( buf.length()>0 )
 				buf.append(" AND ");
-			buf.append(" b.series_fk IN " + seriesIds + ") ");
+			buf.append(" b.series_fk IN (" + seriesIds + ") ");
 			hasCondition = true;
 		}
 		if ( title!=null && title.length()>0 ) {
@@ -769,8 +838,6 @@ public class CRDB {
 		String condition = buf.length()==0 ? "" : " WHERE " + buf.toString();
 		String sql = READ_FILEINFO_SQL + condition;
 		Log.d("cr3", "sql: " + sql );
-		if ( condition.length()==0 )
-			return new FileInfo[] { };
 		Cursor rs = null;
 		try { 
 			rs = mDB.rawQuery(sql, null);
@@ -821,9 +888,7 @@ public class CRDB {
 		return found;
 	}
 	
-	synchronized public boolean findAuthorBooks(ArrayList<FileInfo> list, long authorId)
-	{
-		String sql = READ_FILEINFO_SQL + " LEFT JOIN book_author ON book_author.book_fk = b.id WHERE book_author.author_fk = " + authorId + " ORDER BY b.title";
+	private boolean findBooks(String sql, ArrayList<FileInfo> list) {
 		Cursor rs = null;
 		boolean found = false;
 		try {
@@ -843,6 +908,18 @@ public class CRDB {
 				rs.close();
 		}
 		return found;
+	}
+
+	synchronized public boolean findAuthorBooks(ArrayList<FileInfo> list, long authorId)
+	{
+		String sql = READ_FILEINFO_SQL + " INNER JOIN book_author ON book_author.book_fk = b.id WHERE book_author.author_fk = " + authorId + " ORDER BY b.title";
+		return findBooks(sql, list);
+	}
+	
+	synchronized public boolean findSeriesBooks(ArrayList<FileInfo> list, long seriesId)
+	{
+		String sql = READ_FILEINFO_SQL + " INNER JOIN series ON series.id = b.series_fk WHERE series.id = " + seriesId + " ORDER BY b.title";
+		return findBooks(sql, list);
 	}
 	
 	private Long longQuery( String sql )
