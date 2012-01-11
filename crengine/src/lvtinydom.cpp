@@ -5210,7 +5210,7 @@ lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
     lString16 res;
     ldomNode * series = doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
     if ( series ) {
-        lString16 sname = series->getAttributeValue(attr_name).trim();
+        lString16 sname = lString16(series->getAttributeValue(attr_name)).trim();
         lString16 snumber = series->getAttributeValue(attr_number);
         if ( !sname.empty() ) {
             if ( pSeriesNumber ) {
