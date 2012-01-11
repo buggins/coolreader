@@ -107,8 +107,8 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
         t = fs.st_mtime;
     }
 
-    lString16 author = doc->textFromXPath( lString16(L"package/metadata/creator"));
-    lString16 title = doc->textFromXPath( lString16(L"package/metadata/title"));
+    lString16 author = doc->textFromXPath( lString16(L"package/metadata/creator")).trim();
+    lString16 title = doc->textFromXPath( lString16(L"package/metadata/title")).trim();
 
     pBookProps->author = author;
     pBookProps->title = title;
@@ -120,9 +120,9 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
         lString16 name = item->getAttributeValue(L"name");
         lString16 content = item->getAttributeValue(L"content");
         if ( name==L"calibre:series" )
-        	pBookProps->series = content;
+        	pBookProps->series = content.trim();
         else if ( name==L"calibre:series_index" )
-        	pBookProps->seriesNumber = content.atoi();
+        	pBookProps->seriesNumber = content.trim().atoi();
     }
 
     pBookProps->filesize = (long)stream->GetSize();

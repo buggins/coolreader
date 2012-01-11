@@ -5182,9 +5182,9 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
             //CRLog::trace( "xpath not found: %s", UnicodeToUtf8(path).c_str() );
             break;
         }
-        lString16 firstName = pauthor.relative( L"/first-name" ).getText();
-        lString16 lastName = pauthor.relative( L"/last-name" ).getText();
-        lString16 middleName = pauthor.relative( L"/middle-name" ).getText();
+        lString16 firstName = pauthor.relative( L"/first-name" ).getText().trim();
+        lString16 lastName = pauthor.relative( L"/last-name" ).getText().trim();
+        lString16 middleName = pauthor.relative( L"/middle-name" ).getText().trim();
         lString16 author = firstName;
         if ( !author.empty() )
             author += L" ";
@@ -5202,7 +5202,7 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
 
 lString16 extractDocTitle( ldomDocument * doc )
 {
-    return doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText();
+    return doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText().trim();
 }
 
 lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
@@ -5210,8 +5210,8 @@ lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
     lString16 res;
     ldomNode * series = doc->createXPointer(L"/FictionBook/description/title-info/sequence").getNode();
     if ( series ) {
-        lString16 sname = series->getAttributeValue( attr_name );
-        lString16 snumber = series->getAttributeValue( attr_number );
+        lString16 sname = series->getAttributeValue(attr_name).trim();
+        lString16 snumber = series->getAttributeValue(attr_number);
         if ( !sname.empty() ) {
             if ( pSeriesNumber ) {
                 *pSeriesNumber = snumber.atoi();
