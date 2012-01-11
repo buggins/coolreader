@@ -13,19 +13,11 @@
     </message>
     <message>
         <source>...</source>
-        <translation>...</translation>
-    </message>
-    <message>
-        <source>Cool Reader 3.0.21</source>
-        <translation type="obsolete">CoolReader 3.0.21</translation>
-    </message>
-    <message>
-        <source>20-09-2009</source>
-        <translation>20.09.2009</translation>
+        <translation>…</translation>
     </message>
     <message>
         <source>License</source>
-        <translation type="unfinished">Ліцензія</translation>
+        <translation>Ліцензія</translation>
     </message>
     <message>
         <source>		    GNU GENERAL PUBLIC LICENSE
@@ -602,26 +594,6 @@ POSSIBILITY OF SUCH DAMAGES.
         <translation>Джерельний код</translation>
     </message>
     <message>
-        <source>Source code may be downloaded from sourceforge crengine project page.
-
-Latest source code is available from CVS:
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
-cd cr3qt
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</source>
-        <translation type="unfinished">Сирці можна завантажити з сторінки проекту sourceforge crengine.
-
-Найновіші сирці доступні на CVS:
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
-cd cr3qt
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</translation>
-    </message>
-    <message>
-        <source>(c) 1998-2009 Vadim Lopatin</source>
-        <translation>© 1998-2009 Вадім Лопатін</translation>
-    </message>
-    <message>
         <source>About</source>
         <translation>Про</translation>
     </message>
@@ -635,7 +607,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader is free open source e-book viewer based on CoolReader engine.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Source code is avaliable at SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Source code is available at SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;under the terms of GNU GPL2 license.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Third party components used:&lt;/span&gt;&lt;/p&gt;
@@ -650,22 +622,36 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader є безкоштовною вільною (open source) читалкою електронних текстів, що базується на двигуні CoolReader.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader є безкоштовною вільною (open source) читалкою електронних текстів, що базується на рушії CoolReader.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Сирці (джерельний код) доступні на SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Сирці розповсюджуються згідно умов ліцензії GNU GPL2.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;згідно умов ліцензії GNU GPL2.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Використані компоненти сторонніх розробників:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 - як бібліотеку GUI&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;FreeType - двигун шрифту&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;ZLib - бібліотека архівації&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libpng - підтримка зображень формату PNG&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - підтримка зображень формату JPEG&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Словники переносів - взято з AlReader&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 — як бібліотеку ГКІ&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;FreeType —  шрифтовий рушій&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;ZLib — бібліотека архівації&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libpng — підтримка зображень формату PNG&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg — підтримка зображень формату JPEG&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Словники переносів — взято з AlReader&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Cool Reader 3.0.22</source>
-        <translation type="unfinished">CoolReader 3.0.22</translation>
+        <source>Source code may be downloaded from sourceforge crengine project page:
+http://sourceforge.net/projects/crengine/
+
+Latest source code is available from GIT repository:
+&gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+See README.TXT at root directory of project for build instructions.
+</source>
+        <translation>Джерельний код можна отримати зі сторінки проекту crengine на sourceforge:
+http://sourceforge.net/projects/crengine/
+
+Останній джерельний код доступний в GIT сховищі:
+&gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+Інструкція по складанню знаходиться у файлі README.TXT, що в кореневому каталозі.
+</translation>
     </message>
 </context>
 <context>
@@ -798,7 +784,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Loading: please wait...</source>
-        <translation>Відкривається. Зачекайте...</translation>
+        <translation>Завантажується: зачекайте…</translation>
     </message>
 </context>
 <context>
@@ -809,7 +795,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Export is in progress...</source>
-        <translation>Триває експорт...</translation>
+        <translation>Триває експорт…</translation>
     </message>
 </context>
 <context>
@@ -978,20 +964,8 @@ p, li { white-space: pre-wrap; }
         <translation>Відкриття файлу книги</translation>
     </message>
     <message>
-        <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
-        <translation>Усі, що підтримуються (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2-книги (*.fb2 *.fb2.zip);;Текстові файли (*.txt);;RTF-документи (*.rtf);;HTML-файли (*.htm *.html);;ePub-файли (*.epub);;ZIP-архіви (*.zip)</translation>
-    </message>
-    <message>
-        <source>Not implemented</source>
-        <translation>Ще не впроваджено</translation>
-    </message>
-    <message>
-        <source>Search is not implemented yet</source>
-        <translation>Пошук ще не впроваджено</translation>
-    </message>
-    <message>
         <source>Export document to</source>
-        <translation>Експортування документу до</translation>
+        <translation>Експорт документу до</translation>
     </message>
     <message>
         <source>WOL book (*.wol)</source>
@@ -999,7 +973,11 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Export to WOL format</source>
-        <translation>Експортувати у формат WOL</translation>
+        <translation>Експорт у WOL формат</translation>
+    </message>
+    <message>
+        <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;MS Word document (*.doc);;HTML files (*.htm *.html);;EPUB files (*.epub);;CHM files (*.chm);;MOBI files (*.mobi *.prc *.azw);;PalmDOC files (*.pdb *.pml);;ZIP archives (*.zip)</source>
+        <translation>Всі формати, які підтримуються (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;FB2 книги (*.fb2 *.fb2.zip);;Текстові файли (*.txt);;Rich text (*.rtf);;MS Word документи (*.doc);;HTML файли (*.htm *.html);;EPUB файли (*.epub);;CHM файли (*.chm);;MOBI файли (*.mobi *.prc *.azw);;PalmDOC файли (*.pdb *.pml);;ZIP архіви (*.zip)</translation>
     </message>
 </context>
 <context>
@@ -1018,7 +996,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Navigation</source>
-        <translation>Навіґація</translation>
+        <translation>Навігація</translation>
     </message>
     <message>
         <source>Help</source>
@@ -1026,7 +1004,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Open...</source>
-        <translation>Відкрити...</translation>
+        <translation>Відкрити…</translation>
     </message>
     <message>
         <source>Open file</source>
@@ -1138,7 +1116,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Back in navigation history</source>
-        <translation>Перейти назад по історії навіґації</translation>
+        <translation>Перейти назад по історії навігації</translation>
     </message>
     <message>
         <source>Backspace</source>
@@ -1150,7 +1128,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Go to the next position in navigation history</source>
-        <translation>Перейти на наступну позицію в історії навіґації</translation>
+        <translation>Перейти на наступну позицію в історії навігації</translation>
     </message>
     <message>
         <source>Shift+Backspace</source>
@@ -1218,7 +1196,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Table of Contents...</source>
-        <translation>Зміст...</translation>
+        <translation>Зміст…</translation>
     </message>
     <message>
         <source>Show table of contents</source>
@@ -1242,7 +1220,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Settings...</source>
-        <translation>Налаштування...</translation>
+        <translation>Налаштування…</translation>
     </message>
     <message>
         <source>Settings dialog</source>
@@ -1298,7 +1276,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Bookmark List...</source>
-        <translation>Список закладок...</translation>
+        <translation>Список закладок…</translation>
     </message>
     <message>
         <source>Show bookmarks list</source>
@@ -1310,7 +1288,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>File Properties...</source>
-        <translation>Властивості файлу...</translation>
+        <translation>Властивості файлу…</translation>
     </message>
     <message>
         <source>Show file properties</source>
@@ -1330,7 +1308,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Find text...</source>
-        <translation>Знайти текст...</translation>
+        <translation>Знайти текст…</translation>
     </message>
     <message>
         <source>Find text</source>
@@ -1346,11 +1324,11 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Toggle Edit Mode</source>
-        <translation>Режим редагування увімк./вимк.</translation>
+        <translation>Перемкнути режим редагування</translation>
     </message>
     <message>
         <source>Toggle edit mode</source>
-        <translation>Режим редагування увімк./вимк.</translation>
+        <translation>Перемкнути режим редагування</translation>
     </message>
     <message>
         <source>Ctrl+E</source>
@@ -1367,6 +1345,26 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>Ctrl+S</source>
         <translation>Ctrl+S</translation>
+    </message>
+    <message>
+        <source>Next Page</source>
+        <translation>Наступна сторінка</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Праворуч</translation>
+    </message>
+    <message>
+        <source>Previous Page</source>
+        <translation>Попередня сторінка</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Ліворуч</translation>
+    </message>
+    <message>
+        <source>Space</source>
+        <translation>Пропуск</translation>
     </message>
 </context>
 <context>
@@ -1413,6 +1411,45 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
+    <name>SearchDialog</name>
+    <message>
+        <source>Search</source>
+        <translation>Пошук</translation>
+    </message>
+    <message>
+        <source>Text</source>
+        <translation>Текст</translation>
+    </message>
+    <message>
+        <source>Case Sensitive</source>
+        <translation>З урахуванням регістру</translation>
+    </message>
+    <message>
+        <source>Search forward</source>
+        <translation>Шукати вперед</translation>
+    </message>
+    <message>
+        <source>Search backward</source>
+        <translation>Шукати назад</translation>
+    </message>
+    <message>
+        <source>Find Next</source>
+        <translation>Знайти наступне</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрити</translation>
+    </message>
+    <message>
+        <source>Not found</source>
+        <translation>Не знайдено</translation>
+    </message>
+    <message>
+        <source>Search pattern is not found in document</source>
+        <translation>Пошуковий шаблон не знайдено в документі</translation>
+    </message>
+</context>
+<context>
     <name>SettingsDlg</name>
     <message>
         <source>[No hyphenation]</source>
@@ -1424,7 +1461,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>The quick brown fox jumps over the lazy dog. </source>
-        <translation>У ґаздині є їжак.</translation>
+        <translation>У ґаздині є їжак. </translation>
     </message>
     <message>
         <source>Text color</source>
@@ -1496,7 +1533,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Fullscreen display</source>
-        <translation>Відображення на весь екран</translation>
+        <translation>Повноекранний режим</translation>
     </message>
     <message>
         <source>Page</source>
@@ -1614,12 +1651,516 @@ p, li { white-space: pre-wrap; }
         <source>Disable automatic formatting</source>
         <translation>Вимкнути автоматичне форматування</translation>
     </message>
+    <message>
+        <source>Floating punctuation</source>
+        <translation>Висяча пунктуація</translation>
+    </message>
+    <message>
+        <source>Enable floating punctuation</source>
+        <translation>Дозволити висячу пунктуацію</translation>
+    </message>
+    <message>
+        <source>0.3</source>
+        <translation>0.3</translation>
+    </message>
+    <message>
+        <source>0.35</source>
+        <translation>0.35</translation>
+    </message>
+    <message>
+        <source>0.4</source>
+        <translation>0.4</translation>
+    </message>
+    <message>
+        <source>0.45</source>
+        <translation>0.45</translation>
+    </message>
+    <message>
+        <source>0.5</source>
+        <translation>0.5</translation>
+    </message>
+    <message>
+        <source>0.55</source>
+        <translation>0.55</translation>
+    </message>
+    <message>
+        <source>0.6</source>
+        <translation>0.6</translation>
+    </message>
+    <message>
+        <source>0.65</source>
+        <translation>0.65</translation>
+    </message>
+    <message>
+        <source>0.7</source>
+        <translation>0.7</translation>
+    </message>
+    <message>
+        <source>0.75</source>
+        <translation>0.75</translation>
+    </message>
+    <message>
+        <source>0.8</source>
+        <translation>0.8</translation>
+    </message>
+    <message>
+        <source>0.85</source>
+        <translation>0.85</translation>
+    </message>
+    <message>
+        <source>0.9</source>
+        <translation>0.9</translation>
+    </message>
+    <message>
+        <source>0.95</source>
+        <translation>0.95</translation>
+    </message>
+    <message>
+        <source>0.98</source>
+        <translation>0.98</translation>
+    </message>
+    <message>
+        <source>1.0</source>
+        <translation>1.0</translation>
+    </message>
+    <message>
+        <source>1.02</source>
+        <translation>1.02</translation>
+    </message>
+    <message>
+        <source>1.05</source>
+        <translation>1.05</translation>
+    </message>
+    <message>
+        <source>1.1</source>
+        <translation>1.1</translation>
+    </message>
+    <message>
+        <source>1.15</source>
+        <translation>1.15</translation>
+    </message>
+    <message>
+        <source>1.2</source>
+        <translation>1.2</translation>
+    </message>
+    <message>
+        <source>1.25</source>
+        <translation>1.25</translation>
+    </message>
+    <message>
+        <source>1.3</source>
+        <translation>1.3</translation>
+    </message>
+    <message>
+        <source>1.35</source>
+        <translation>1.35</translation>
+    </message>
+    <message>
+        <source>1.4</source>
+        <translation>1.4</translation>
+    </message>
+    <message>
+        <source>1.45</source>
+        <translation>1.45</translation>
+    </message>
+    <message>
+        <source>1.5</source>
+        <translation>1.5</translation>
+    </message>
+    <message>
+        <source>1.6</source>
+        <translation>1.6</translation>
+    </message>
+    <message>
+        <source>1.7</source>
+        <translation>1.7</translation>
+    </message>
+    <message>
+        <source>1.8</source>
+        <translation>1.8</translation>
+    </message>
+    <message>
+        <source>1.9</source>
+        <translation>1.9</translation>
+    </message>
+    <message>
+        <source>Font Gamma</source>
+        <translation>Гамма шрифту</translation>
+    </message>
+    <message>
+        <source>Font hinting</source>
+        <translation>Хінтинг шрифтів</translation>
+    </message>
+    <message>
+        <source>No hinting</source>
+        <translation>Без хінтингу</translation>
+    </message>
+    <message>
+        <source>Use bytecode</source>
+        <translation>Використовувати байт-код</translation>
+    </message>
+    <message>
+        <source>Autohinting</source>
+        <translation>Автохінтинг</translation>
+    </message>
+    <message>
+        <source>Fallback font</source>
+        <translation>Допоміжний шрифт</translation>
+    </message>
+    <message>
+        <source>Stylesheet</source>
+        <translation>Таблиця стилів</translation>
+    </message>
+    <message>
+        <source>Default paragraph style</source>
+        <translation>Типовий стиль абзацу</translation>
+    </message>
+    <message>
+        <source>Alignment</source>
+        <translation>Вирівнювання</translation>
+    </message>
+    <message>
+        <source>First line</source>
+        <translation>Перший рядок</translation>
+    </message>
+    <message>
+        <source>Font size</source>
+        <translation>Розмір шрифту</translation>
+    </message>
+    <message>
+        <source>Font face</source>
+        <translation>Накреслення шрифту</translation>
+    </message>
+    <message>
+        <source>Font weight</source>
+        <translation>Насиченість шрифту</translation>
+    </message>
+    <message>
+        <source>Font style</source>
+        <translation>Стиль шрифту</translation>
+    </message>
+    <message>
+        <source>Font color</source>
+        <translation>Колір шрифту</translation>
+    </message>
+    <message>
+        <source>Margins:</source>
+        <translation>Відступи:</translation>
+    </message>
+    <message>
+        <source>Before</source>
+        <translation>Перед</translation>
+    </message>
+    <message>
+        <source>After</source>
+        <translation>Після</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Ліворуч</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Праворуч</translation>
+    </message>
+    <message>
+        <source>Interline space</source>
+        <translation>Міжрядковий інтервал</translation>
+    </message>
+    <message>
+        <source>Text decoration</source>
+        <translation>Оформлення тексту</translation>
+    </message>
+    <message>
+        <source>Vertical align</source>
+        <translation>Вертикальне вирівнювання</translation>
+    </message>
+    <message>
+        <source>Title</source>
+        <translation>Заголовок</translation>
+    </message>
+    <message>
+        <source>Subtitle</source>
+        <translation>Підзаголовок</translation>
+    </message>
+    <message>
+        <source>Preformatted text</source>
+        <translation>Форматований текст</translation>
+    </message>
+    <message>
+        <source>Link</source>
+        <translation>Посилання</translation>
+    </message>
+    <message>
+        <source>Cite / quotation</source>
+        <translation>Цитата</translation>
+    </message>
+    <message>
+        <source>Epigraph</source>
+        <translation>Епіграф</translation>
+    </message>
+    <message>
+        <source>Poem</source>
+        <translation>Вірш</translation>
+    </message>
+    <message>
+        <source>Text author</source>
+        <translation>Автор тексту</translation>
+    </message>
+    <message>
+        <source>Footnote link</source>
+        <translation>Посилання виноски</translation>
+    </message>
+    <message>
+        <source>Footnote</source>
+        <translation>Виноска</translation>
+    </message>
+    <message>
+        <source>Footnote title</source>
+        <translation>Заголовок виноски</translation>
+    </message>
+    <message>
+        <source>Annotation</source>
+        <translation>Анотація</translation>
+    </message>
+    <message>
+        <source>-</source>
+        <translation>-</translation>
+    </message>
+    <message>
+        <source>Justify</source>
+        <translation>Вирівняти з заповненням</translation>
+    </message>
+    <message>
+        <source>Center</source>
+        <translation>По центру</translation>
+    </message>
+    <message>
+        <source>No indent</source>
+        <translation>Без відступу</translation>
+    </message>
+    <message>
+        <source>Small Indent</source>
+        <translation>Малий відступ</translation>
+    </message>
+    <message>
+        <source>Big Indent</source>
+        <translation>Великий відступ</translation>
+    </message>
+    <message>
+        <source>Small Outdent</source>
+        <translation>Малий відступ вліво</translation>
+    </message>
+    <message>
+        <source>Big Outdent</source>
+        <translation>Великий відступ вліво</translation>
+    </message>
+    <message>
+        <source>20% of line height</source>
+        <translation>20% від висоти рядка</translation>
+    </message>
+    <message>
+        <source>30% of line height</source>
+        <translation>30% від висоти рядка</translation>
+    </message>
+    <message>
+        <source>50% of line height</source>
+        <translation>50% від висоти рядка</translation>
+    </message>
+    <message>
+        <source>100% of line height</source>
+        <translation>100% від висоти рядка</translation>
+    </message>
+    <message>
+        <source>150% of line height</source>
+        <translation>150% від висоти рядка</translation>
+    </message>
+    <message>
+        <source>200% of line height</source>
+        <translation>200% від висоти рядка</translation>
+    </message>
+    <message>
+        <source>400% of line height</source>
+        <translation>400% від висоти рядка</translation>
+    </message>
+    <message>
+        <source>5% of line width</source>
+        <translation>5% від ширини рядка</translation>
+    </message>
+    <message>
+        <source>10% of line width</source>
+        <translation>10% від ширини рядка</translation>
+    </message>
+    <message>
+        <source>15% of line width</source>
+        <translation>15% від ширини рядка</translation>
+    </message>
+    <message>
+        <source>20% of line width</source>
+        <translation>20% від ширини рядка</translation>
+    </message>
+    <message>
+        <source>30% of line width</source>
+        <translation>30% від ширини рядка</translation>
+    </message>
+    <message>
+        <source>Normal</source>
+        <translation>Звичайний</translation>
+    </message>
+    <message>
+        <source>Bold</source>
+        <translation>Напівжирний</translation>
+    </message>
+    <message>
+        <source>Bolder</source>
+        <translation>Жирний</translation>
+    </message>
+    <message>
+        <source>Lighter</source>
+        <translation>Тонкий</translation>
+    </message>
+    <message>
+        <source>Increase: 110%</source>
+        <translation>Збільшений: 110%</translation>
+    </message>
+    <message>
+        <source>Increase: 120%</source>
+        <translation>Збільшений: 120%</translation>
+    </message>
+    <message>
+        <source>Increase: 150%</source>
+        <translation>Збільшений: 150%</translation>
+    </message>
+    <message>
+        <source>Decrease: 90%</source>
+        <translation>Зменшений: 90%</translation>
+    </message>
+    <message>
+        <source>Decrease: 80%</source>
+        <translation>Зменшений: 80%</translation>
+    </message>
+    <message>
+        <source>Decrease: 70%</source>
+        <translation>Зменшений: 70%</translation>
+    </message>
+    <message>
+        <source>Decrease: 60%</source>
+        <translation>Зменшений: 60%</translation>
+    </message>
+    <message>
+        <source>Italic</source>
+        <translation>Курсив</translation>
+    </message>
+    <message>
+        <source>[Default Sans Serif]</source>
+        <translation>[Типовий Sans Serif]</translation>
+    </message>
+    <message>
+        <source>[Default Serif]</source>
+        <translation>[Типовий Serif]</translation>
+    </message>
+    <message>
+        <source>[Default Monospace]</source>
+        <translation>[Типовий Monospace]</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Чорний</translation>
+    </message>
+    <message>
+        <source>Green</source>
+        <translation>Зелений</translation>
+    </message>
+    <message>
+        <source>Silver</source>
+        <translation>Срібний</translation>
+    </message>
+    <message>
+        <source>Lime</source>
+        <translation>Лимонний</translation>
+    </message>
+    <message>
+        <source>Gray</source>
+        <translation>Сірий</translation>
+    </message>
+    <message>
+        <source>Olive</source>
+        <translation>Оливковий</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation>Білий</translation>
+    </message>
+    <message>
+        <source>Yellow</source>
+        <translation>Жовтий</translation>
+    </message>
+    <message>
+        <source>Maroon</source>
+        <translation>Каштановий</translation>
+    </message>
+    <message>
+        <source>Navy</source>
+        <translation>Темно-синій</translation>
+    </message>
+    <message>
+        <source>Red</source>
+        <translation>Червоний</translation>
+    </message>
+    <message>
+        <source>Blue</source>
+        <translation>Синій</translation>
+    </message>
+    <message>
+        <source>Purple</source>
+        <translation>Бузковий</translation>
+    </message>
+    <message>
+        <source>Teal</source>
+        <translation>Синьо-зелений</translation>
+    </message>
+    <message>
+        <source>Fuchsia</source>
+        <translation>Фуксія</translation>
+    </message>
+    <message>
+        <source>Aqua</source>
+        <translation>Зеленувато-блакитний</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Немає</translation>
+    </message>
+    <message>
+        <source>Underline</source>
+        <translation>Підкреслений</translation>
+    </message>
+    <message>
+        <source>Line through</source>
+        <translation>Перекреслений</translation>
+    </message>
+    <message>
+        <source>Overline</source>
+        <translation>Надкреслений</translation>
+    </message>
+    <message>
+        <source>Baseline</source>
+        <translation>По основі</translation>
+    </message>
+    <message>
+        <source>Subscript</source>
+        <translation>Нижній індекс</translation>
+    </message>
+    <message>
+        <source>Superscript</source>
+        <translation>Верхній індекс</translation>
+    </message>
 </context>
 <context>
     <name>TocDlg</name>
     <message>
         <source>Title</source>
-        <translation>Назва</translation>
+        <translation>Заголовок</translation>
     </message>
     <message>
         <source>Page</source>
@@ -1628,10 +2169,6 @@ p, li { white-space: pre-wrap; }
     <message>
         <source>Table of Contents</source>
         <translation>Зміст</translation>
-    </message>
-    <message>
-        <source>1</source>
-        <translation type="obsolete">1</translation>
     </message>
 </context>
 <context>
@@ -1642,7 +2179,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <source>Bits per pixel</source>
-        <translation>Бітів на піксель</translation>
+        <translation>Біт на піксель</translation>
     </message>
     <message>
         <source>1</source>
