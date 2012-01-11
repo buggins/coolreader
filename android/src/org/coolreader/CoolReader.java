@@ -1612,15 +1612,19 @@ public class CoolReader extends Activity
         int fontSize = 20;
         String hmargin = "4";
         String vmargin = "2";
-        if ( screenWidth>=400 ) {
+        if ( screenWidth<=320 ) {
+        	fontSize = 20;
+            hmargin = "4";
+            vmargin = "2";
+        } else if ( screenWidth<=400 ) {
         	fontSize = 26;
             hmargin = "10";
             vmargin = "4";
-        } else if ( screenWidth>=600 ) {
+        } else if ( screenWidth<=600 ) {
         	fontSize = 32;
             hmargin = "20";
             vmargin = "10";
-        } else if ( screenWidth>=768 ) {
+        } else {
         	fontSize = 36;
             hmargin = "80";
             vmargin = "25";

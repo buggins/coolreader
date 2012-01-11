@@ -57,4 +57,10 @@ public class DeviceInfo {
 			return "";
 		}
 	}
+	
+	static {
+		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE);
+		Log.i("cr3", "DeviceInfo: EINK_SCREEN=" + EINK_SCREEN + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
+	}
+	
 }
