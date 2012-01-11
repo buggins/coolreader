@@ -40,7 +40,7 @@ AddBookmarkDialog::AddBookmarkDialog(QWidget *parent, CR3View * docView, CRBookm
         }
         m_ui->edPositionText->setPlainText( cr2qt(_bm->getPosText()) );
         m_ui->edPositionText->setReadOnly( true );
-        m_ui->edComment->setPlainText( cr2qt(bm->getCommentText()) );
+        m_ui->edComment->setPlainText( cr2qt(_bm->getCommentText()) );
         m_ui->edComment->setReadOnly( false );
         m_ui->lblPosition->setText( crpercent(_bm->getPercent()) );
         m_ui->lblTitle->setText( cr2qt(_bm->getTitleText()) );
