@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Найти</string>
@@ -386,8 +386,9 @@
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу?</string>
     <string name="folder_name_books_by_series">Книги по сериям</string>
     <string name="folder_name_books_by_title">Книги по названию</string>
-    <string name="dlg_about_donation_vip">$100: VIP пожертвование</string>
+    
     <string name="dlg_about_donation_platinum">$30: купить Платиновую монету Cool Reader</string>
-    <string name="dlg_about_donation_iron">$0.3: купить Железную монетку Cool Reader</string>
+    
     <string name="mi_donation">Пожертвовать</string>
+<string name="dlg_about_donation_inapp_purchase">Cool Reader - бесплатная свободная программа, и всегда будет оставаться такой. Вы можете поддержать развитие проекта с помощью Android Market:</string>
 </resources>

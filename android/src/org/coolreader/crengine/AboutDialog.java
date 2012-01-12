@@ -4,6 +4,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
@@ -53,15 +54,22 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
-	private void setupInAppDonationButton( final Button btn, final String itemName ) {
+	private void setupInAppDonationButton( final Button btn, final double amount ) {
+		btn.setText("$" + amount);
 		btn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mCoolReader.makeDonation(itemName);
+				mCoolReader.makeDonation(amount);
 			}
 		});
 	}
 	
+	private void updateTotalDonations() {
+		TextView text = ((TextView)mDonationTab.findViewById(R.id.btn_about_donation_total));
+		if (text != null)
+			text.setText(mCoolReader.getString(R.string.dlg_about_donation_total) + " $" + mCoolReader.getTotalDonations());
+	}
+
 	public AboutDialog( CoolReader activity)
 	{
 		super(activity);
@@ -78,12 +86,25 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		mDonationTab = (View)inflater.inflate(billingSupported ? R.layout.about_dialog_donation2 : R.layout.about_dialog_donation, null);
 
 		if (billingSupported) {
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_vip), "donation100");
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_platinum), "donation30");
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "donation10");
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "donation3");
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "donation1");
-			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_vip), "donation0.3");
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_vip), 100);
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_platinum), 30);
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), 10);
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), 3);
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), 1);
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_iron), 0.3);
+			updateTotalDonations();
+			mCoolReader.setDonationListener(new CoolReader.DonationListener() {
+				@Override
+		    	public void onDonationTotalChanged(double total) {
+		    		updateTotalDonations();
+		    	}
+		    });
+			setOnDismissListener(new OnDismissListener() {
+				@Override
+				public void onDismiss(DialogInterface dialog) {
+					mCoolReader.setDonationListener(null);
+				}
+			});
 		} else {
 			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
 			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
@@ -112,6 +133,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		setView( tabs );
 	}
 
+	
 	@Override
 	public View createTabContent(String tag) {
 		if ( "App".equals(tag) )
