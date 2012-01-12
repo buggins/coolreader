@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">CoolReader 3</string>
     <string name="mi_search">Знайти</string>
@@ -384,6 +384,10 @@
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту кгнигу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу?</string>
-<string name="folder_name_books_by_series">Книги по сериям</string>
+    <string name="folder_name_books_by_series">Книги по сериям</string>
     <string name="folder_name_books_by_title">Книги по названию</string>
+    <string name="dlg_about_donation_vip">$100: VIP пожертвование</string>
+    <string name="dlg_about_donation_platinum">$30: купить Платиновую монету Cool Reader</string>
+    <string name="dlg_about_donation_iron">$0.3: купить Железную монетку Cool Reader</string>
+    <string name="mi_donation">Пожертвовать</string>
 </resources>

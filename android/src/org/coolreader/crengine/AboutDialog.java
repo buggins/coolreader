@@ -53,10 +53,20 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		}
 	}
 	
+	private void setupInAppDonationButton( final Button btn, final String itemName ) {
+		btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mCoolReader.makeDonation(itemName);
+			}
+		});
+	}
+	
 	public AboutDialog( CoolReader activity)
 	{
 		super(activity);
 		mCoolReader = activity;
+		setTitle(R.string.dlg_about);
 		LayoutInflater inflater = LayoutInflater.from(getContext());
 		TabHost tabs = (TabHost)inflater.inflate(R.layout.about_dialog, null);
 		mAppTab = (View)inflater.inflate(R.layout.about_dialog_app, null);
@@ -64,11 +74,21 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		mLicenseTab = (View)inflater.inflate(R.layout.about_dialog_license, null);
 		String license = mCoolReader.getEngine().loadResourceUtf8(R.raw.license);
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
-		mDonationTab = (View)inflater.inflate(R.layout.about_dialog_donation, null);
+		boolean billingSupported = mCoolReader.isDonationSupported();
+		mDonationTab = (View)inflater.inflate(billingSupported ? R.layout.about_dialog_donation2 : R.layout.about_dialog_donation, null);
 
-		setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
-		setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
-		setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
+		if (billingSupported) {
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_vip), "donation100");
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_platinum), "donation30");
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "donation10");
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "donation3");
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "donation1");
+			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_vip), "donation0.3");
+		} else {
+			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_gold), "org.coolreader.donation.gold");
+			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_silver), "org.coolreader.donation.silver");
+			setupDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), "org.coolreader.donation.bronze");
+		}
 		
 		tabs.setup();
 		TabHost.TabSpec tsApp = tabs.newTabSpec("App");

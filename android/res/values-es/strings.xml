@@ -384,4 +384,8 @@
     <string name="win_title_confirm_catalog_delete">¿Quieres eliminar este catálogo?</string>
     <string name="win_title_confirm_history_record_delete">¿Quieres eliminar este libro de la lista de libros recientes?</string>
     <string name="win_title_confirm_book_delete">¿Quieres eliminar este libro?</string>
+    <string name="dlg_about_donation_vip">$100: buy Cool Reader VIP Donation</string>
+    <string name="dlg_about_donation_platinum">$30: buy Cool Reader Platinum Donation</string>
+    <string name="dlg_about_donation_iron">$0.3: buy Cool Reader Iron Donation</string>
+    <string name="mi_donation">Donate</string>
 </resources>

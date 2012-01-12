@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Keresés</string>
@@ -386,4 +386,8 @@
     <string name="win_title_confirm_book_delete">Biztosan törli ezt a könyvet?</string>
     <string name="folder_name_books_by_series">Könyvek sorozat szerint rendezve</string>
     <string name="folder_name_books_by_title">Könyvek cím szerint rendezve</string>
+    <string name="dlg_about_donation_vip">$100: buy Cool Reader VIP Donation</string>
+    <string name="dlg_about_donation_platinum">$30: buy Cool Reader Platinum Donation</string>
+    <string name="dlg_about_donation_iron">$0.3: buy Cool Reader Iron Donation</string>
+    <string name="mi_donation">Donate</string>
 </resources>

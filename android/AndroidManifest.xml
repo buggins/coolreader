@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.55-2" android:versionCode="502">
+      android:versionName="3.0.55-3" android:versionCode="503">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -73,10 +73,22 @@
                 <data android:mimeType="application/x-msword"/>
             </intent-filter>
         </activity>
+        
+        <!-- Donations support -->
+        <service android:name="BillingService" />
+        <receiver android:name="BillingReceiver">
+            <intent-filter>
+                <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
+                <action android:name="com.android.vending.billing.RESPONSE_CODE" />
+                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
     </application>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 	<uses-permission android:name="android.permission.INTERNET"/>
-	<!--uses-permission android:name="archos.permission.FULLSCREEN.FULL" /-->
+    <!--uses-permission android:name="archos.permission.FULLSCREEN.FULL" /-->
+	<!-- Required permission to use in-app billing. -->
+    <uses-permission android:name="com.android.vending.BILLING" />
     <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="9" />
 </manifest> 
