@@ -1,0 +1,19 @@
+<resources>
+
+    <style name="TextAppearance" parent="@android:style/TextAppearance">
+    </style>
+        
+    <style name="TextAppearance.Medium" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="TextAppearance.Small" parent="@android:style/TextAppearance.Small">
+        <item name="android:textSize">14sp</item>
+        <!--item name="android:textColor">?textColorSecondary</item-->
+    </style>
+
+    <style name="TextAppearance.Large" parent="@android:style/TextAppearance.Large">
+        <item name="android:textSize">22sp</item>
+    </style>
+        
+</resources>
