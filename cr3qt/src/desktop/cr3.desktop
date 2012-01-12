@@ -7,6 +7,7 @@ GenericName[de]=E-Book lesen
 GenericName[hu]=E-könyv olvasó
 GenericName[pl]=Czytnik e-booków
 GenericName[ru]=Чтение электронных книг
+GenericName[uk]=Читання єлектронних книг
 GenericName[zh]=电子书阅读器
 TryExec=cr3
 Exec=cr3 %F
