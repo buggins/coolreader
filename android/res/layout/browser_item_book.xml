@@ -11,6 +11,7 @@
     android:baselineAligned="false"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:paddingRight="?android:attr/scrollbarSize"
+    android:paddingLeft="2dip"
     android:layout_marginTop="1dip"
     android:layout_marginBottom="1dip"
     android:layout_marginLeft="2dip"
@@ -124,8 +125,7 @@
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_gravity="center_vertical|center_horizontal"
-	        android:layout_marginRight="2dip"
-	        android:layout_marginLeft="1dip"
+            android:padding="3dip"
             android:layout_weight="1"
 	        android:scaleType="fitCenter"
 	        />
