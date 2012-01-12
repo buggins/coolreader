@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import java.util.Random;
+
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
@@ -131,7 +133,13 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		tabs.addTab(tsDonation);
 		
 		setView( tabs );
+
+		// 50% chance to show Donations tab
+		if (rnd.nextBoolean())
+			tabs.setCurrentTab(2);
+		
 	}
+	private static Random rnd = new Random(android.os.SystemClock.uptimeMillis()); 
 
 	
 	@Override
