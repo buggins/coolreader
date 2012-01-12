@@ -2149,7 +2149,9 @@ public:
         if ( name.pos( lString8(".ttf") ) < 0 && name.pos( lString8(".TTF") ) < 0 )
             return false; // load ttf fonts only
 #endif
+        //CRLog::trace("RegisterFont(%s)", name.c_str());
         lString8 fname = makeFontFileName( name );
+        //CRLog::trace("font file name : %s", fname.c_str());
     #if (DEBUG_FONT_MAN==1)
         if ( _log ) {
             fprintf(_log, "RegisterFont( %s ) path=%s\n",
@@ -2166,8 +2168,12 @@ public:
         // for all faces in file
         for ( ;; index++ ) {
             int error = FT_New_Face( _library, fname.c_str(), index, &face ); /* create face object */
-            if ( error )
+            if ( error ) {
+                if (index == 0) {
+                    CRLog::error("FT_New_Face returned error %d", error);
+                }
                 break;
+            }
             bool scal = FT_IS_SCALABLE( face );
             bool charset = checkCharSet( face );
             //bool monospaced = isMonoSpaced( face );
@@ -2210,8 +2216,10 @@ public:
             );
         }
     #endif
-            if ( _cache.findDuplicate( &def ) )
+            if ( _cache.findDuplicate( &def ) ) {
+                CRLog::trace("font definition is duplicate");
                 return false;
+            }
             _cache.update( &def, LVFontRef(NULL) );
             if ( scal && !def.getItalic() ) {
                 LVFontDef newDef( def );
