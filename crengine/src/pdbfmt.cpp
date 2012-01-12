@@ -896,6 +896,30 @@ bool DetectPDBFormat( LVStreamRef stream, doc_format_t & contentFormat )
     return true;
 }
 
+bool isCorrectUtf8Text(LVStreamRef & stream) {
+    char enc_name[32];
+    char lang_name[32];
+    lvpos_t oldpos = stream->GetPos();
+    unsigned sz = 16384;
+    stream->SetPos( 0 );
+    if ( sz>stream->GetSize() )
+        sz = stream->GetSize();
+    if (sz < 8)
+        return false;
+    unsigned char * buf = new unsigned char[ sz ];
+    lvsize_t bytesRead = 0;
+    if ( stream->Read( buf, sz, &bytesRead )!=LVERR_OK ) {
+        delete[] buf;
+        stream->SetPos( oldpos );
+        return false;
+    }
+
+    int res = 0;
+    res = AutodetectCodePageUtf(buf, sz, enc_name, lang_name);
+    delete[] buf;
+    return res != 0;
+}
+
 bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback, doc_format_t & contentFormat )
 {
     contentFormat = doc_format_none;
@@ -922,6 +946,7 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
     case doc_format_html:
         // HTML
         {
+
             ldomDocumentWriterFilter writerFilter(doc, false,
                     HTML_AUTOCLOSE_TABLE);
             LVHTMLParser parser(stream, &writerFilter);
@@ -929,7 +954,7 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
             if ( !parser.CheckFormat() ) {
                 return false;
             } else {
-                if (pdb->getFormat()==PDBFile::MOBI)
+                if (pdb->getFormat()==PDBFile::MOBI && isCorrectUtf8Text(stream))
                     parser.SetCharset(L"utf-8");
                 if (!parser.Parse()) {
                     return false;
