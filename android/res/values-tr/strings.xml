@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Kitap ara</string>
@@ -386,8 +386,10 @@
     <string name="win_title_confirm_book_delete">Do you really want to delete this book?</string>
     <string name="folder_name_books_by_series">Books by series</string>
     <string name="folder_name_books_by_title">Books by title</string>
-    <string name="dlg_about_donation_vip">$100: buy Cool Reader VIP Donation</string>
+    
     <string name="dlg_about_donation_platinum">$30: buy Cool Reader Platinum Donation</string>
-    <string name="dlg_about_donation_iron">$0.3: buy Cool Reader Iron Donation</string>
+    
     <string name="mi_donation">Donate</string>
+<string name="dlg_about_donation_inapp_purchase">Cool Reader is free and will always be free. If you want to support development of this project, you can make donation using Android Market in-app purchase:</string>
+    <string name="dlg_about_donation_total">Total donations from you:</string>
 </resources>

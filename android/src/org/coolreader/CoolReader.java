@@ -2118,12 +2118,24 @@ public class CoolReader extends Activity
     private CRPurchaseObserver mPurchaseObserver;
     private BillingService mBillingService;
     private Handler mHandler;
+    private DonationListener mDonationListener = null;
     private boolean billingSupported = false;
+    private double mTotalDonations = 0;
     
     public boolean isDonationSupported() {
     	return billingSupported;
     }
-    public boolean makeDonation(String itemName) {
+    public void setDonationListener(DonationListener listener) {
+    	mDonationListener = listener;
+    }
+    public static interface DonationListener {
+    	void onDonationTotalChanged(double total);
+    }
+    public double getTotalDonations() {
+    	return mTotalDonations;
+    }
+    public boolean makeDonation(double amount) {
+		final String itemName = "donation" + amount;
     	log.i("makeDonation is called, itemName=" + itemName);
     	if (!billingSupported)
     		return false;
@@ -2135,6 +2147,9 @@ public class CoolReader extends Activity
     	return true;
     }
     
+
+	private static String DONATIONS_PREF_FILE = "cr3donations";
+	private static String DONATIONS_PREF_TOTAL_AMOUNT = "total";
     /**
      * A {@link PurchaseObserver} is used to get callbacks when Android Market sends
      * messages to this application so that we can update the UI.
@@ -2153,6 +2168,8 @@ public class CoolReader extends Activity
             }
             if (supported) {
             	billingSupported = true;
+        		SharedPreferences pref = getSharedPreferences(DONATIONS_PREF_FILE, 0);
+        		mTotalDonations = pref.getFloat(DONATIONS_PREF_TOTAL_AMOUNT, 0.0f);
             	// TODO:
 //                restoreDatabase();
 //                mBuyButton.setEnabled(true);
@@ -2176,6 +2193,20 @@ public class CoolReader extends Activity
             }
 
             if (purchaseState == PurchaseState.PURCHASED) {
+            	double amount = 0;
+            	try {
+	            	if (itemId.startsWith("donation"))
+	            		amount = Double.parseDouble(itemId.substring(8));
+            	} catch (NumberFormatException e) {
+            		//
+            	}
+
+            	mTotalDonations += amount;
+        		SharedPreferences pref = getSharedPreferences(DONATIONS_PREF_FILE, 0);
+        		pref.edit().putString(DONATIONS_PREF_TOTAL_AMOUNT, String.valueOf(mTotalDonations)).commit();
+
+            	if (mDonationListener != null)
+            		mDonationListener.onDonationTotalChanged(mTotalDonations);
                 //mOwnedItems.add(itemId);
             }
 //            mCatalogAdapter.setOwnedItems(mOwnedItems);

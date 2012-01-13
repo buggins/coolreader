@@ -4,16 +4,16 @@
     </style>
         
     <style name="TextAppearance.Medium" parent="@android:style/TextAppearance.Medium">
-        <item name="android:textSize">26sp</item>
+        <item name="android:textSize">24px</item>
     </style>
 
     <style name="TextAppearance.Small" parent="@android:style/TextAppearance.Small">
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">18px</item>
         <!--item name="android:textColor">?textColorSecondary</item-->
     </style>
 
     <style name="TextAppearance.Large" parent="@android:style/TextAppearance.Large">
-        <item name="android:textSize">30sp</item>
+        <item name="android:textSize">28px</item>
     </style>
         
 </resources>
