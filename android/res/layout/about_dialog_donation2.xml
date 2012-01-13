@@ -22,11 +22,10 @@
             android:layout_gravity="center_vertical|left"
             />
         <Button android:id="@+id/btn_about_donation_install_iron" 
-                style="@style/TextAppearance.Medium"
                 android:text="@null"
                 android:layout_marginRight="8dip"
                 android:layout_gravity="center_vertical|left"
-                android:layout_margin="2dip" android:minWidth="110dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
         />
         <ImageView 
             android:layout_width="wrap_content" android:layout_height="wrap_content" 
@@ -36,10 +35,10 @@
             android:layout_gravity="center_vertical|left"
             />
         <Button android:id="@+id/btn_about_donation_install_bronze" 
-                style="@style/TextAppearance.Medium"
                 android:text="@null"
+                android:layout_marginRight="8dip"
                 android:layout_gravity="center_vertical|left"
-                android:layout_margin="2dip" android:minWidth="110dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
         />
     </TableRow>
     <TableRow>
@@ -51,11 +50,10 @@
             android:layout_gravity="center_vertical|left"
             />
         <Button android:id="@+id/btn_about_donation_install_silver" 
-                style="@style/TextAppearance.Medium"
                 android:text="@null"
                 android:layout_marginRight="8dip"
                 android:layout_gravity="center_vertical|left"
-                android:layout_margin="2dip" android:minWidth="110dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
         />
         <ImageView 
             android:layout_width="wrap_content" android:layout_height="wrap_content" 
@@ -65,10 +63,10 @@
             android:layout_gravity="center_vertical|left"
             />
         <Button android:id="@+id/btn_about_donation_install_gold" 
-                style="@style/TextAppearance.Medium"
                 android:text="@null"
+                android:layout_marginRight="8dip"
                 android:layout_gravity="center_vertical|left"
-                android:layout_margin="2dip" android:minWidth="110dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
         />
     </TableRow>
     <TableRow>
@@ -80,11 +78,10 @@
             android:layout_gravity="center_vertical|left"
             />
         <Button android:id="@+id/btn_about_donation_install_platinum" 
-                style="@style/TextAppearance.Medium"
                 android:text="@null"
                 android:layout_marginRight="8dip"
                 android:layout_gravity="center_vertical|left"
-                android:layout_margin="2dip" android:minWidth="110dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
         />
         <ImageView 
             android:layout_width="wrap_content" android:layout_height="wrap_content" 
@@ -94,10 +91,10 @@
             android:layout_gravity="center_vertical|left"
             />
         <Button android:id="@+id/btn_about_donation_install_vip" 
-                style="@style/TextAppearance.Medium"
                 android:text="@null"
+                android:layout_marginRight="8dip"
                 android:layout_gravity="center_vertical|left"
-                android:layout_margin="2dip" android:minWidth="110dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_margin="2dip" android:layout_width="wrap_content" android:layout_height="wrap_content"
         />
     </TableRow>
     
