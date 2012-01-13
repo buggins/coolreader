@@ -2135,7 +2135,7 @@ public class CoolReader extends Activity
     	return mTotalDonations;
     }
     public boolean makeDonation(double amount) {
-		final String itemName = "donation" + amount;
+		final String itemName = "donation" + (amount >= 1 ? String.valueOf((int)amount) : String.valueOf(amount));
     	log.i("makeDonation is called, itemName=" + itemName);
     	if (!billingSupported)
     		return false;
