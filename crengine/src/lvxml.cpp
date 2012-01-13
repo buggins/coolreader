@@ -1503,7 +1503,7 @@ public:
         int ident_lines_percent = ident_lines * 100 / non_empty_lines;
         int center_lines_percent = center_lines * 100 / non_empty_lines;
         int empty_lines_percent = empty_lines * 100 / length();
-        if ( empty_lines_percent > 5 && maxLineSize < 80)
+        if ( empty_lines_percent > 5 && max_right < 80)
             formatFlags |= tftEmptyLineDelimPara;
         if ( ident_lines_percent > 5 && ident_lines_percent<55 ) {
             formatFlags |= tftParaIdents;
