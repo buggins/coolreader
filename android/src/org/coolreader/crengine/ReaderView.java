@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -23,7 +24,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.text.ClipboardManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
@@ -4467,6 +4467,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private class LoadDocumentTask extends Task
 	{
 		String filename;
+		String path;
 		Runnable errorHandler;
 		String pos;
 		int profileNumber;
@@ -4478,6 +4479,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("LoadDocumentTask for " + fileInfo);
 			BackgroundThread.ensureGUI();
 			this.filename = fileInfo.getPathName();
+			this.path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
 			this.errorHandler = errorHandler;
 			//FileInfo fileInfo = new FileInfo(filename);
 			mBookInfo = mActivity.getHistory().getOrCreateBookInfo( fileInfo );
@@ -4554,6 +4556,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        	if (DeviceInfo.EINK_NOOK)
 		        		updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
 		        	//mEngine.setProgressDrawable(coverPageDrawable);
+		        }
+		        if (DeviceInfo.EINK_SONY) {
+		            SonyBookSelector selector = new SonyBookSelector(mActivity);
+		            long l = selector.getContentId(path);
+		            if(l != 0) {
+		                 selector.setReadingTime(l);
+		                 selector.requestBookSelection(l);
+		            }		        	
 		        }
 		        mOpened = true;
 		        
