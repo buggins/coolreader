@@ -67,9 +67,16 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	}
 	
 	private void updateTotalDonations() {
+		double amount = mCoolReader.getTotalDonations();
+		if (isPackageInstalled("org.coolreader.donation.gold"))
+			amount += 10.0;
+		if (isPackageInstalled("org.coolreader.donation.silver"))
+			amount += 3.0;
+		if (isPackageInstalled("org.coolreader.donation.bronze"))
+			amount += 1.0;
 		TextView text = ((TextView)mDonationTab.findViewById(R.id.btn_about_donation_total));
 		if (text != null)
-			text.setText(mCoolReader.getString(R.string.dlg_about_donation_total) + " $" + mCoolReader.getTotalDonations());
+			text.setText(mCoolReader.getString(R.string.dlg_about_donation_total) + " $" + amount);
 	}
 
 	public AboutDialog( CoolReader activity)

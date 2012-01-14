@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.55-8" android:versionCode="508">
+      android:versionName="3.0.55-9" android:versionCode="509">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -75,8 +75,8 @@
         </activity>
         
         <!-- Donations support -->
-        <service android:name="BillingService" />
-        <receiver android:name="BillingReceiver">
+        <service android:name="org.coolreader.donations.BillingService" />
+        <receiver android:name="org.coolreader.donations.BillingReceiver">
             <intent-filter>
                 <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
                 <action android:name="com.android.vending.billing.RESPONSE_CODE" />
