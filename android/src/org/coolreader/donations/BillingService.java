@@ -188,7 +188,14 @@ public class BillingService extends Service implements ServiceConnection {
         @Override
         protected long run() throws RemoteException {
             Bundle request = makeRequestBundle("CHECK_BILLING_SUPPORTED");
-            Bundle response = mService.sendBillingRequest(request);
+            Bundle response = null;
+            try {
+            	response = mService.sendBillingRequest(request);
+            } catch (Exception e) {
+            	Log.e(TAG, "exception while sending billing request", e);
+                ResponseHandler.checkBillingSupportedResponse(false);
+                return Consts.BILLING_RESPONSE_INVALID_REQUEST_ID;
+            }
             int responseCode = response.getInt(Consts.BILLING_RESPONSE_RESPONSE_CODE);
             if (Consts.DEBUG) {
                 Log.i(TAG, "CheckBillingSupported response code: " +

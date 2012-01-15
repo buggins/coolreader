@@ -2169,13 +2169,13 @@ public class CoolReader extends Activity
             if (supported) {
             	billingSupported = true;
         		SharedPreferences pref = getSharedPreferences(DONATIONS_PREF_FILE, 0);
-        		mTotalDonations = pref.getFloat(DONATIONS_PREF_TOTAL_AMOUNT, 0.0f);
+        		try {
+        			mTotalDonations = pref.getFloat(DONATIONS_PREF_TOTAL_AMOUNT, 0.0f);
+        		} catch (Exception e) {
+        			log.e("exception while reading total donations from preferences", e);
+        		}
             	// TODO:
 //                restoreDatabase();
-//                mBuyButton.setEnabled(true);
-//                mEditPayloadButton.setEnabled(true);
-            } else {
-                //showDialog(DIALOG_BILLING_NOT_SUPPORTED_ID);
             }
         }
 
