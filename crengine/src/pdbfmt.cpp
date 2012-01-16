@@ -147,8 +147,8 @@ struct MobiPreamble : public PalmDocPreamble
     lUInt32 drmFlags; //    176	4	DRM Flags	Some flags concerning the DRM info.
 
 
-    bool read( LVStreamRef stream ) {
-        // TODO: byte order support
+    bool read( LVStreamRef stream, lUInt16 & extraDataFlags ) {
+        extraDataFlags = 0;
         lvsize_t bytesRead = 0;
         if ( stream->Read(this, sizeof(MobiPreamble), &bytesRead )!=LVERR_OK )
             return false;
@@ -190,6 +190,15 @@ struct MobiPreamble : public PalmDocPreamble
             return false; // unsupported type
         if ( mobiEncryption!=0 )
             return false; // encryption is not supported
+        if (hederLength == 0xE4 || hederLength == 0xE8) {
+            stream->Seek(242-180, LVSEEK_CUR, NULL);
+            stream->Read(&extraDataFlags);
+            if ( cnv.lsf() )
+                cnv.rev(&extraDataFlags);
+            if (extraDataFlags) {
+                CRLog::trace("extraDataFlags=%04x", (int)extraDataFlags);
+            }
+        }
         return true;
     }
 };
@@ -394,17 +403,18 @@ private:
     Format _format;
     int _compression;
     lUInt32 _textSize;
-    int _recordCount;
+    int _recordCount; // text record count
     // read buffer
     LVArray<lUInt8> _buf;
     int     _bufIndex;
     lvpos_t _bufOffset;
     lvsize_t _bufSize;
     lvpos_t _pos;
+    lUInt16 _mobiExtraDataFlags;
     //LVPDBContainer * _container;
     bool unpack( LVArray<lUInt8> & dst, LVArray<lUInt8> & src ) {
         int srclen = src.length();
-        dst.clear();
+        dst.reset();
         dst.reserve(srclen);
 
         if ( _compression==2 ) {
@@ -417,6 +427,8 @@ private:
                 pos++;
                 if (b > 0 && b < 9) {
                     // 1..8 bytes follow
+                    if (pos + b > srclen)
+                        break;
                     for (int i=0; i<(int)b; i++)
                         dst.add(src[pos++]);
                 } else if (b < 128) {
@@ -428,13 +440,19 @@ private:
                 } else {
                     if (pos >= srclen)
                         break;
-                    int z = ((int)b << 8) | src[pos];
+                    lUInt32 z = ((b & 0x3f) << 8) + src[pos];
                     pos++;
-                    int m = (z & 0x3fff) >> 3;
-                    int n = (z & 7) + 3;
-                    int pos = dst.length() - m;
-                    for (int i=0; i<n; i++)
-                        dst.add(dst[pos++]);
+                    int offset = z >> 3;
+                    int size = (z & 7) + 3;
+                    int srcpos = dst.length() - offset;
+                    for (int i = 0; i < size; i++) {
+                        if (srcpos >= 0) {
+                            dst.add(dst[srcpos++]);
+                        } else {
+                            dst.add('?');
+                            //CRLog::trace("wrong offset");
+                        }
+                    }
                 }
             }
         } else if ( _compression==10 ) {
@@ -448,6 +466,7 @@ private:
             free(dstbuf);
         } else if ( _compression==17480 ) {
             // zlib
+            // TODO: shouldn't it be HUFFMAN unpacker?
             /// unpack data from _compbuf to _buf
             lUInt8 * dstbuf;
             lUInt32 dstsize;
@@ -459,20 +478,56 @@ private:
         return true;
     }
 
+    void removeExtraData(int index, LVArray<lUInt8> & buf) {
+        if (index >= _records.length() || !_mobiExtraDataFlags)
+            return;
+        for (int flag = 0x8000; flag; flag >>= 1) {
+            if (!(_mobiExtraDataFlags & flag))
+                continue;
+            lUInt32 n = buf[buf.length()-1];
+            if (flag == 1) {
+                n &= 3;
+                n++;
+            } else {
+                if (!(n & 0x80)) {
+                    lUInt32 n2 = buf[buf.length()-2];
+                    n = (n & 0x7F) | ((n2 & 0x7F) << 16);
+                } else {
+                    n = n & 0x7F;
+                }
+            }
+            if (n && buf.length() >= n) {
+                _records[index].size -= n;
+                buf.erase(buf.length()-n, n);
+            }
+        }
+    }
+
+    bool readRecordNoUnpack(int index, LVArray<lUInt8> * dstbuf) {
+        if (index >= _records.length())
+            return false;
+        dstbuf->reset();
+        dstbuf->addSpace(_records[index].size);
+        lvsize_t bytesRead = 0;
+        _stream->SetPos(_records[index].offset);
+        if (_stream->Read(dstbuf->get(), _records[index].size, &bytesRead) != LVERR_OK)
+            return false;
+        if (bytesRead != _records[index].size)
+            return false;
+        return true;
+    }
     bool readRecord( int index, LVArray<lUInt8> * dstbuf ) {
-        if ( index>=_records.length() )
+        if (index >= _records.length())
             return false;
         LVArray<lUInt8> srcbuf;
         LVArray<lUInt8> * buf = _compression ? &srcbuf : dstbuf;
-        buf->clear();
-        buf->addSpace(_records[index].size);
-        lvsize_t bytesRead = 0;
-        _stream->SetPos(_records[index].offset);
-        if ( _stream->Read(buf->get(), _records[index].size, &bytesRead )!=LVERR_OK )
+        if (!readRecordNoUnpack(index, buf))
             return false;
-        if ( bytesRead!=_records[index].size )
-            return false;
-        if ( !_compression )
+
+        if (_mobiExtraDataFlags)
+            removeExtraData(index, *buf);
+
+        if (!_compression)
             return true;
         // unpack
         return unpack(*dstbuf, srcbuf);
@@ -656,7 +711,7 @@ public:
                 return false;
             MobiPreamble preamble;
             stream->SetPos(_records[0].offset);
-            if ( !preamble.read(stream) )
+            if ( !preamble.read(stream, _mobiExtraDataFlags) )
                 return false; // invalid preamble
             if ( preamble.recordCount>=_records.length() )
                 return false;
@@ -706,6 +761,40 @@ public:
             return false;
         }
 
+//        if (_mobiExtraDataFlag) {
+//            // remove extra data
+//            for ( int k=1; k<_recordCount; k++ )
+//                _records[k+1].size -= 6;
+//        }
+
+//#ifdef DUMP_PDB_CONTENTS
+//        int unpoffset2 = 0;
+//        FILE * out = fopen("/tmp/pdbout.txt", "wb");
+//        int k;
+//        for (k=1; k <= _recordCount && unpoffset2 < this->_textSize; k++) {
+//            LVArray<lUInt8> dst;
+//            readRecordNoUnpack(k, &_buf);
+//            if (_mobiExtraDataFlags) {
+//                removeExtraData(k, _buf);
+////                    int b = _buf[_buf.length()-1];
+////                    CRLog::trace("Extra data: %d bytes", b);
+////                    _records[k].size -= b;
+////                    _buf.erase(_buf.length()-1-b, b);
+//            }
+//            if (_compression == 2) {
+//                unpack(dst, _buf);
+//                _records[k].unpoffset = unpoffset2;
+//                _records[k].unpsize = dst.length();
+//                unpoffset2 += dst.length();
+//                fwrite(dst.get(), dst.length(), 1, out);
+//                fprintf(out, "\n[block %d end]\n", k);
+//            }
+//            CRLog::trace("record[%d] : %06x %06x -  %06x %06x", k, _records[k].offset, _records[k].size, _records[k].unpoffset, _records[k].unpsize);
+//        }
+//        fclose(out);
+//        CRLog::trace("totalUncompSizeHdr=%06x realUncompSize=%06x %d blocks of %d", this->_textSize, unpoffset2, k, _records.length());
+//#endif
+
         detectFormat( contentFormat );
 
         if ( !validateContent )
@@ -714,17 +803,15 @@ public:
         LVArray<lUInt8> buf;
         lUInt32 unpoffset = 0;
         _crc = 0;
-        for ( int k=0; k<_recordCount; k++ ) {
+        for ( int k=0; k<_recordCount-1; k++ ) {
+
             readRecord(k+1, &buf);
             _records[k+1].unpoffset = unpoffset;
             _records[k+1].unpsize = buf.length();
             unpoffset += buf.length();
             _crc = lStr_crc32( _crc, buf.get(), buf.length() );
-//            if ( unpoffset>=_textSize ) {
-//                _recordCount = k;
-//                break;
-//            }
         }
+        _mobiExtraDataFlags = 0;
         if ( _textSize==-1 )
             _textSize = unpoffset;
         else if ( unpoffset<_textSize ) {
@@ -869,6 +956,7 @@ public:
     PDBFile() {
         //_container.AddRef();
         _bufIndex = -1;
+        _mobiExtraDataFlags = 0;
     }
 
     /// Destructor
