@@ -487,7 +487,23 @@ private:
             lUInt32 n = buf[buf.length()-1];
             if (flag == 1) {
                 n &= 3;
-                n++;
+
+                _records[index].size -= 1;
+                buf.erase(buf.length()-1, 1);
+
+                if (n>0) {
+                    //CRLog::trace("block %d: removing %d bytes of multibyte character", index, n);
+
+                    for (int i=n; i>0; i--) {
+                        n = buf[buf.length() - 1];
+                        if (!(n & 0x80))
+                            break;
+                        buf.erase(buf.length() - 1, 1);
+                        if ((n & 0xC0) != 0x80)
+                            break;
+                    }
+                }
+
             } else {
                 if (!(n & 0x80)) {
                     lUInt32 n2 = buf[buf.length()-2];
@@ -495,11 +511,29 @@ private:
                 } else {
                     n = n & 0x7F;
                 }
+                if (n > 0 && buf.length() >= n) {
+                    //CRLog::trace("block %d: removing %d bytes of extra data type %d", index, n, flag);
+                    _records[index].size -= n;
+                    buf.erase(buf.length()-n, n);
+                }
             }
-            if (n && buf.length() >= n) {
-                _records[index].size -= n;
-                buf.erase(buf.length()-n, n);
-            }
+//            if (n && buf.length() >= n) {
+//                _records[index].size -= n;
+//                buf.erase(buf.length()-n, n);
+
+//                if (flag == 1 && n > 1) {
+//                    CRLog::trace("block %d: removing %d bytes of multibyte character", index, n - 1);
+//                    // remove extra utf-8 points
+//                    while (buf.length()) {
+//                        n = buf[buf.length() - 1];
+//                        if (!(n & 0x80))
+//                            break;
+//                        buf.erase(buf.length() - 1, 1);
+//                        if ((n & 0xC0) != 0x80)
+//                            break;
+//                    }
+//                }
+//            }
         }
     }
 
@@ -524,7 +558,7 @@ private:
         if (!readRecordNoUnpack(index, buf))
             return false;
 
-        if (_mobiExtraDataFlags)
+        if (_mobiExtraDataFlags && index < _recordCount)
             removeExtraData(index, *buf);
 
         if (!_compression)
@@ -795,15 +829,10 @@ public:
 //        CRLog::trace("totalUncompSizeHdr=%06x realUncompSize=%06x %d blocks of %d", this->_textSize, unpoffset2, k, _records.length());
 //#endif
 
-        detectFormat( contentFormat );
-
-        if ( !validateContent )
-            return true; // for simple format check
-
         LVArray<lUInt8> buf;
         lUInt32 unpoffset = 0;
         _crc = 0;
-        for ( int k=0; k<_recordCount-1; k++ ) {
+        for ( int k=0; k<_recordCount; k++ ) {
 
             readRecord(k+1, &buf);
             _records[k+1].unpoffset = unpoffset;
@@ -812,6 +841,44 @@ public:
             _crc = lStr_crc32( _crc, buf.get(), buf.length() );
         }
         _mobiExtraDataFlags = 0;
+
+
+        detectFormat( contentFormat );
+
+        if ( !validateContent )
+            return true; // for simple format check
+
+
+        #ifdef DUMP_PDB_CONTENTS
+        {
+                int unpoffset2 = 0;
+                FILE * out = fopen("/tmp/pdbout.txt", "wb");
+                int k;
+                for (k=1; k <= _recordCount && unpoffset2 < this->_textSize; k++) {
+                    LVArray<lUInt8> dst;
+                    readRecordNoUnpack(k, &_buf);
+//                    if (_mobiExtraDataFlags) {
+//                        removeExtraData(k, _buf);
+        //                    int b = _buf[_buf.length()-1];
+        //                    CRLog::trace("Extra data: %d bytes", b);
+        //                    _records[k].size -= b;
+        //                    _buf.erase(_buf.length()-1-b, b);
+//                    }
+                    if (_compression == 2) {
+                        unpack(dst, _buf);
+                        _records[k].unpoffset = unpoffset2;
+                        _records[k].unpsize = dst.length();
+                        unpoffset2 += dst.length();
+                        fwrite(dst.get(), dst.length(), 1, out);
+                        fprintf(out, "\n[block %d end]\n", k);
+                    }
+                    CRLog::trace("record[%d] : %06x %06x -  %06x %06x", k, _records[k].offset, _records[k].size, _records[k].unpoffset, _records[k].unpsize);
+                }
+                fclose(out);
+                CRLog::trace("totalUncompSizeHdr=%06x realUncompSize=%06x %d blocks of %d", this->_textSize, unpoffset2, k, _records.length());
+        }
+        #endif
+
         if ( _textSize==-1 )
             _textSize = unpoffset;
         else if ( unpoffset<_textSize ) {
