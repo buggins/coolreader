@@ -26,7 +26,7 @@ public class SonyBookSelector
     private final static String m_extsd    = "/mnt/extsd";      // Environment.getExternalExtSDStorageDirectory().getPath()
     private final static String m_sdcard   = "/mnt/sdcard";     // Environment.getExternalSDStorageDirectory().getPath()
 
-    SonyBookSelector(Activity activity)
+    public SonyBookSelector(Activity activity)
     {
         m_activity = activity;
     }
