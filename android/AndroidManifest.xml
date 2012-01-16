@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.55-12" android:versionCode="512">
+      android:versionName="3.0.55-13" android:versionCode="513">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -87,7 +87,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 	<uses-permission android:name="android.permission.INTERNET"/>
-    <!--uses-permission android:name="archos.permission.FULLSCREEN.FULL" /-->
+    <uses-permission android:name="archos.permission.FULLSCREEN.FULL"/>
 	<!-- Required permission to use in-app billing. -->
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="9" />
