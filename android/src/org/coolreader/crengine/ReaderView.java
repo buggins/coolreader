@@ -5,8 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -126,6 +128,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS(135), // move selection end by words 
 
     	DCMD_SET_TEXT_FORMAT(136),
+
+		DCMD_FONT_NEXT(137),
+		DCMD_FONT_PREVIOUS(138),
         
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
@@ -2456,6 +2461,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		case DCMD_ZOOM_IN:
             doEngineCommand( ReaderCommand.DCMD_ZOOM_IN, param);
             syncViewSettings(getSettings(), true);
+            break;
+		case DCMD_FONT_NEXT:
+			switchFontFace(1);
+            break;
+		case DCMD_FONT_PREVIOUS:
+			switchFontFace(-1);
             break;
 		case DCMD_MOVE_BY_CHAPTER:
 			doEngineCommand(cmd, param, onFinishHandler);
@@ -5362,5 +5373,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         post(new CreateViewTask( props ));
 
     }
+	
+	private void switchFontFace(int direction) {
+		String currentFontFace = mSettings.getProperty(PROP_FONT_FACE, "");
+		String[] mFontFaces = mEngine.getFontFaceList();
+		int index = 0;
+		int countFaces = mFontFaces.length;
+		for (int i = 0; i < countFaces; i++) {
+			if (mFontFaces[i].equals(currentFontFace)) {
+				index = i;
+				break;
+			}
+		}
+		index += direction;
+		if (index < 0)
+			index = countFaces - 1;
+		else if (index >= countFaces)
+			index = 0;
+		saveSetting(PROP_FONT_FACE, mFontFaces[index]);
+        syncViewSettings(getSettings(), true);
+	}
 
 }
