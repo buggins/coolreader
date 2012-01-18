@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Suchen</string>
@@ -386,10 +386,12 @@
     <string name="win_title_confirm_book_delete">Do you really want to delete this book?</string>
     <string name="folder_name_books_by_series">Books by series</string>
     <string name="folder_name_books_by_title">Books by title</string>
-    
     <string name="dlg_about_donation_platinum">$30: buy Cool Reader Platinum Donation</string>
-    
     <string name="mi_donation">Donate</string>
-<string name="dlg_about_donation_inapp_purchase">Cool Reader is free and will always be free. If you want to support development of this project, you can make donation using Android Market in-app purchase:</string>
+    <string name="dlg_about_donation_inapp_purchase">Cool Reader is free and will always be free. If you want to support development of this project, you can make donation using Android Market in-app purchase:</string>
     <string name="dlg_about_donation_total">Total donations from you:</string>
+    <string name="mi_font_next">Next font</string>
+    <string name="mi_font_size_decrease">Decrease font size</string>
+    <string name="mi_font_size_increase">Increase font size</string>
+    <string name="mi_font_previous">Previous font</string>
 </resources>

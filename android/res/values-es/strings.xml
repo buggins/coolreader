@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Buscar</string>
@@ -390,4 +390,8 @@
     <string name="win_title_confirm_catalog_delete">¿Quieres eliminar este catálogo?</string>
     <string name="win_title_confirm_history_record_delete">¿Quieres eliminar este libro de la lista de libros recientes?</string>
     <string name="win_title_confirm_book_delete">¿Quieres eliminar este libro?</string>
+    <string name="mi_font_next">Next font</string>
+    <string name="mi_font_size_decrease">Decrease font size</string>
+    <string name="mi_font_size_increase">Increase font size</string>
+    <string name="mi_font_previous">Previous font</string>
 </resources>

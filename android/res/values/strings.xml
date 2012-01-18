@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Search</string>
@@ -7,6 +7,10 @@
     <string name="mi_bookmarks">Bookmarks</string>
     <string name="mi_file_open">Open file</string>
     <string name="mi_options">Options</string>
+    <string name="mi_font_size_increase">Increase font size</string>
+    <string name="mi_font_size_decrease">Decrease font size</string>
+    <string name="mi_font_previous">Previous font</string>
+    <string name="mi_font_next">Next font</string>
     <string name="progress_please_wait">Please wait</string>
     <string name="progress_starting_cool_reader">Starting Cool Reader</string>
     <string name="progress_loading">Loading document</string>
@@ -387,10 +391,8 @@
     <string name="folder_name_books_by_series">Books by series</string>
     <string name="folder_name_books_by_title">Books by title</string>
     <string name="options_app_backlight_lock_enabled"/>
-    
     <string name="dlg_about_donation_platinum">$30: buy Cool Reader Platinum Donation</string>
-    
     <string name="mi_donation">Donate</string>
-<string name="dlg_about_donation_inapp_purchase">Cool Reader is free and will always be free. If you want to support development of this project, you can make donation using Android Market in-app purchase:</string>
+    <string name="dlg_about_donation_inapp_purchase">Cool Reader is free and will always be free. If you want to support development of this project, you can make donation using Android Market in-app purchase:</string>
     <string name="dlg_about_donation_total">Total donations from you:</string>
 </resources>
