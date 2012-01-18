@@ -234,8 +234,6 @@
     <string name="dlg_about_donation_gold">$10: compra la donación de oro de Cool Reader</string>
     <string name="dlg_about_donation_installed">Instalada</string>
     <string name="dlg_about_donation_platinum">$30: compra la Donación Platinum de Cool Reader</string>
-    <string name="dlg_about_donation_vip">$100: compra la Donación VIP de Cool Reader</string>
-    <string name="dlg_about_donation_iron">$100: compra la Donación de hierro de Cool Reader</string>
     <string name="mi_donation">Donar</string>
     <string name="dlg_about_donation_inapp_purchase">Cool Reader is free and will always be free. If you want to support development of this project, you can make donation using Android Market in-app purchase:</string>
     <string name="dlg_about_donation_total">Total donations from you:</string>
