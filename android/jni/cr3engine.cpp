@@ -272,14 +272,15 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 	CRJNIEnv env(_env);
 	lString16 path = env.fromJavaString(_path);
 	CRLog::debug("scanBookCoverInternal(%s) called", LCSTR(path));
-	lString16 arc, item;
+	lString16 arcname, item;
     LVStreamRef res;
     jbyteArray array = NULL;
-	if (!LVSplitArcName(path, arc, item)) {
+    LVContainerRef arc;
+	if (!LVSplitArcName(path, arcname, item)) {
 		// not in archive
 		LVStreamRef stream = LVOpenFileStream(path.c_str(), LVOM_READ);
 		if (!stream.isNull()) {
-			LVContainerRef arc = LVOpenArchieve(stream);
+			arc = LVOpenArchieve(stream);
 			if (!arc.isNull()) {
 				if (DetectEpubFormat(stream)) {
 					// extract coverpage from epub
@@ -288,7 +289,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 			}
 		}
 	}
-	if (res.isNull())
+	if (!res.isNull())
 		array = env.streamToJByteArray(res);
     if (array != NULL)
     	CRLog::debug("scanBookCoverInternal() : returned cover page array");

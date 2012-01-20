@@ -450,7 +450,6 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
             if ( !item )
                 break;
             lString16 href = item->getAttributeValue(L"href");
-            lString16 mediaType = item->getAttributeValue(L"media-type");
             lString16 id = item->getAttributeValue(L"id");
             if ( !href.empty() && !id.empty() ) {
                 if (id == coverId) {

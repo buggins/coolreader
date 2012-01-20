@@ -4563,7 +4563,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		mActivity.getHistory().updateBookAccess(mBookInfo);
 	    		mActivity.getHistory().saveToDB();
 		        if (mBookInfo.getFileInfo().id!=null && coverPageBytes!=null && coverPageDrawable!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
-		        	mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
+		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching())
+		        		mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
 		        	if (DeviceInfo.EINK_NOOK)
 		        		updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
 		        	//mEngine.setProgressDrawable(coverPageDrawable);

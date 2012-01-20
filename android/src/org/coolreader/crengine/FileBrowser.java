@@ -978,7 +978,7 @@ public class FileBrowser extends LinearLayout {
 						} else {
 							Drawable drawable = null;
 							if ( item.id!=null )
-								drawable = mHistory.getBookCoverpageImage(null, item.id);
+								drawable = mHistory.getBookCoverpageImage(null, item);
 							if ( drawable!=null ) {
 								image.setImageDrawable(drawable);
 							} else {

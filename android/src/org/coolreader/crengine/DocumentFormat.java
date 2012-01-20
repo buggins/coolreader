@@ -78,6 +78,11 @@ public enum DocumentFormat {
 		return canParseProperties;
 	}
 	
+	public boolean needCoverPageCaching()
+	{
+		return this == FB2;
+	}
+	
 	public static DocumentFormat byId( int i )
 	{
 		if ( i>=0 && i<DocumentFormat.values().length )

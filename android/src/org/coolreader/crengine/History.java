@@ -294,6 +294,7 @@ public class History {
 			mDB.saveBookCoverpage(bookId, coverpageData);
 		}
 	}
+
 	public void updateCoverPageSize( int screenDX, int screenDY )
 	{
 		int min = screenDX<screenDY ? screenDX : screenDY;
@@ -301,25 +302,31 @@ public class History {
 		coverPageWidth = coverPageHeight * 3 / 4;
 		coverPageCache.invalidateImages();
 	}
-	public byte[] getBookCoverpageData(long bookId)
+
+	public byte[] getBookCoverpageData(FileInfo item)
 	{
+		long bookId = item.id != null ? item.id : 0;
 		if ( bookId==0 )
 			return null;
 		byte[] data = coverPageCache.get(bookId);
-		if ( data==null ) {
-			data = mDB.loadBookCoverpage(bookId);
-			if ( data==null )
+		if (data == null) {
+			if (item.format.needCoverPageCaching())
+				data = mDB.loadBookCoverpage(bookId);
+			else
+				data = mCoolReader.getEngine().scanBookCover(item.pathname);
+			if (data == null)
 				data = new byte[] {};
 			coverPageCache.put(bookId, data);
 		}
 		return data.length>0 ? data : null;
 	}
-	public BitmapDrawable getBookCoverpageImage(Resources resources, long bookId)
+	public BitmapDrawable getBookCoverpageImage(Resources resources, FileInfo item)
 	{
-		byte[] data = getBookCoverpageData(bookId);
+		long bookId = item.id != null ? item.id : 0;
+		byte[] data = getBookCoverpageData(item);
 		if ( data==null )
 			return null;
-		return coverPageCache.getImage( bookId );
+		return coverPageCache.getImage(bookId);
 	}
 	public boolean loadFromDB( Scanner scanner, int maxItems )
 	{
