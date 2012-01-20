@@ -7,9 +7,9 @@
     <string name="mi_bookmarks">Könyvjelzők</string>
     <string name="mi_file_open">Megnyitás</string>
     <string name="mi_options">Beállítások</string>
-    <string name="progress_please_wait">Kérem, várjon</string>
+    <string name="progress_please_wait">Kérem várjon...</string>
     <string name="progress_starting_cool_reader">A Cool Reader indítása</string>
-    <string name="progress_loading">Dokumentum betöltése</string>
+    <string name="progress_loading">Dokumentum betöltése...</string>
     <string name="progress_formatting">Dokumentum formázása</string>
     <string name="progress_scanning">Keresés a mappában</string>
     <string name="context_menu_title_bookmark">Könyvjelző</string>
@@ -390,8 +390,8 @@
     <string name="mi_donation">Támogatás</string>
     <string name="dlg_about_donation_inapp_purchase">A Cool Reader ingyenes és az is marad. Ha támogatni kívánja a fejlesztést, akkor az Android Market alkalmazáson belüli vásárlási lehetőségét kihasználva választhat a különböző támogatási csomagok közül:</string>
     <string name="dlg_about_donation_total">Az Ön által eddig vásárolt támogatások összesen:</string>
-    <string name="mi_font_next">Next font</string>
-    <string name="mi_font_size_decrease">Decrease font size</string>
-    <string name="mi_font_size_increase">Increase font size</string>
-    <string name="mi_font_previous">Previous font</string>
+    <string name="mi_font_next">Következő betűtípus</string>
+    <string name="mi_font_size_decrease">Betűméret csökkentése</string>
+    <string name="mi_font_size_increase">Betűméret növelése</string>
+    <string name="mi_font_previous">Előző betűtípus</string>
 </resources>
