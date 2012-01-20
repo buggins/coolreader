@@ -16,6 +16,7 @@
 #include "docview.h"
 #include "crengine.h"
 #include "epubfmt.h"
+#include "pdbfmt.h"
 #include "lvstream.h"
 
 
