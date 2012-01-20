@@ -1832,5 +1832,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		super.onStop();
 	}
 
-	
+	@Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (((OptionsListView)mTabs.getCurrentView()).onKeyDown(keyCode, event))
+        	return true;
+        return super.onKeyDown(keyCode, event);
+    }	
 }
