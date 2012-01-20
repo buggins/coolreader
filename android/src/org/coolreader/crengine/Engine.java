@@ -756,6 +756,16 @@ public class Engine {
 		}
 	}
 
+	public byte[] scanBookCover(String path) {
+		synchronized(this) {
+			long start = android.os.SystemClock.uptimeMillis();
+			byte[] res = scanBookCoverInternal(path);
+			long duration = android.os.SystemClock.uptimeMillis() - start;
+			L.v("scanBookCover took " + duration + " ms for " + path);
+			return res;
+		}
+	}
+
 	public String[] getFontFaceList() {
 		if (!initialized)
 			throw new IllegalStateException("CREngine is not initialized");
