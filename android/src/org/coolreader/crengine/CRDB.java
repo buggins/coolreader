@@ -1375,7 +1375,7 @@ public class CRDB {
 			 if (bmk.isModified())
 			 	res = save(bmk, bookInfo.getFileInfo().id) || res;
 		}
-		if ( bookInfo.getLastPosition()!=null && bookInfo.getLastPosition().isModified() )
+		if ( bookInfo.getLastPosition()!=null && bookInfo.getLastPosition().isModified() && bookInfo.getFileInfo().id != null )
 			res = save(bookInfo.getLastPosition(), bookInfo.getFileInfo().id) || res;
 		return res;
 	}
