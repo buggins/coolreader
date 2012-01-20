@@ -9,6 +9,7 @@
 
 bool DetectPDBFormat( LVStreamRef stream, doc_format_t & contentFormat );
 bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback, doc_format_t & contentFormat );
+LVStreamRef GetPDBCoverpage(LVContainerRef arc);
 
 
 #endif // PDBFMT_H

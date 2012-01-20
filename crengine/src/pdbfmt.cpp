@@ -1075,6 +1075,25 @@ bool isCorrectUtf8Text(LVStreamRef & stream) {
     return res != 0;
 }
 
+LVStreamRef GetPDBCoverpage(LVContainerRef arc)
+{
+    doc_format_t contentFormat = doc_format_none;
+    PDBFile * pdb = new PDBFile();
+    LVPDBContainer * container = new LVPDBContainer();
+    LVStreamRef stream = LVStreamRef(pdb);
+    LVContainerRef cnt(container);
+    if ( !pdb->open(stream, container, true, contentFormat) ) {
+        return LVStreamRef();
+    }
+    container->setStream(stream);
+    LVStreamRef coverStream;
+    if (!coverStream.isNull()) {
+        CRLog::trace("Found PDB coverpage image");
+        return LVCreateMemoryStream(coverStream);
+    }
+    return LVStreamRef();
+ }
+
 bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback, doc_format_t & contentFormat )
 {
     contentFormat = doc_format_none;

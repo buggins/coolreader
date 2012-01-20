@@ -282,9 +282,16 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 		if (!stream.isNull()) {
 			arc = LVOpenArchieve(stream);
 			if (!arc.isNull()) {
+				// ZIP-based format
 				if (DetectEpubFormat(stream)) {
+					// EPUB
 					// extract coverpage from epub
 					res = GetEpubCoverpage(arc);
+				}
+			} else {
+				doc_format_t fmt;
+				if (DetectPDBFormat(stream, fmt)) {
+					res = GetPDBCoverpage(stream);
 				}
 			}
 		}
