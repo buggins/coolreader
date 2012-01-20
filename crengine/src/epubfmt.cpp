@@ -404,6 +404,69 @@ void createEncryptedEpubWarningDocument(ldomDocument * m_doc) {
     writer.OnTagClose(NULL, L"body");
 }
 
+LVStreamRef GetEpubCoverpage(LVContainerRef arc)
+{
+    // check root media type
+    lString16 rootfilePath = EpubGetRootFilePath(arc);
+    if ( rootfilePath.empty() )
+        return LVStreamRef();
+
+    EncryptedDataContainer * decryptor = new EncryptedDataContainer(arc);
+    if (decryptor->open()) {
+        CRLog::debug("EPUB: encrypted items detected");
+    }
+
+    LVContainerRef m_arc = LVContainerRef(decryptor);
+
+    lString16 codeBase = LVExtractPath(rootfilePath, false);
+    CRLog::trace("codeBase=%s", LCSTR(codeBase));
+
+    LVStreamRef content_stream = m_arc->OpenStream(rootfilePath.c_str(), LVOM_READ);
+    if ( content_stream.isNull() )
+        return LVStreamRef();
+
+
+    LVStreamRef coverPageImageStream;
+    // reading content stream
+    {
+        lString16 coverId;
+        ldomDocument * doc = LVParseXMLStream( content_stream );
+        if ( !doc )
+            return LVStreamRef();
+
+        for ( int i=1; i<20; i++ ) {
+            ldomNode * item = doc->nodeFromXPath( lString16(L"package/metadata/meta[") + lString16::itoa(i) + L"]" );
+            if ( !item )
+                break;
+            lString16 name = item->getAttributeValue(L"name");
+            lString16 content = item->getAttributeValue(L"content");
+            if (name == L"cover")
+                coverId = content;
+        }
+
+        // items
+        for ( int i=1; i<50000; i++ ) {
+            ldomNode * item = doc->nodeFromXPath( lString16(L"package/manifest/item[") + lString16::itoa(i) + L"]" );
+            if ( !item )
+                break;
+            lString16 href = item->getAttributeValue(L"href");
+            lString16 mediaType = item->getAttributeValue(L"media-type");
+            lString16 id = item->getAttributeValue(L"id");
+            if ( !href.empty() && !id.empty() ) {
+                if (id == coverId) {
+                    // coverpage file
+                    lString16 coverFileName = codeBase + href;
+                    CRLog::info("EPUB coverpage file: %s", LCSTR(coverFileName));
+                    coverPageImageStream = m_arc->OpenStream(coverFileName.c_str(), LVOM_READ);
+                }
+            }
+        }
+        delete doc;
+    }
+
+    return coverPageImageStream;
+}
+
 bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
 {
     LVContainerRef arc = LVOpenArchieve( stream );

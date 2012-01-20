@@ -588,6 +588,8 @@ public class Engine {
 
 	private native boolean scanBookPropertiesInternal(FileInfo info);
 
+	private native byte[] scanBookCoverInternal(String path);
+
     private static native void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
     
     public static void suspendLongOperation() {

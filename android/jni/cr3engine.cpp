@@ -264,6 +264,41 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    scanBookCoverInternal
+ * Signature: (Ljava/lang/String;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverInternal
+  (JNIEnv * _env, jobject _engine, jstring _path) {
+	CRJNIEnv env(_env);
+	lString16 path = env.fromJavaString(_path);
+	CRLog::debug("scanBookCoverInternal(%s) called", LCSTR(path));
+	lString16 arc, item;
+    LVStreamRef res;
+    jbyteArray array = NULL;
+	if (!LVSplitArcName(path, arc, item)) {
+		// not in archive
+		LVStreamRef stream = LVOpenFileStream(path.c_str(), LVOM_READ);
+		if (!stream.isNull()) {
+			LVContainerRef arc = LVOpenArchieve(stream);
+			if (!arc.isNull()) {
+				if (DetectEpubFormat(stream)) {
+					// extract coverpage from epub
+					res = GetEpubCoverpage(arc);
+				}
+			}
+		}
+	}
+	if (res.isNull())
+		array = env.streamToJByteArray(res);
+    if (array != NULL)
+    	CRLog::debug("scanBookCoverInternal() : returned cover page array");
+    else
+    	CRLog::debug("scanBookCoverInternal() : cover page data not found");
+    return array;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    getArchiveItemsInternal
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */
@@ -515,6 +550,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"isLink", "(Ljava/lang/String;)Z", (void*)JNICALL Java_org_coolreader_crengine_Engine_isLink},
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},
   {"setKeyBacklightInternal", "(I)Z", (void*)Java_org_coolreader_crengine_Engine_setKeyBacklightInternal},
+  {"scanBookCoverInternal", "(Ljava/lang/String;)[B", (void*)Java_org_coolreader_crengine_Engine_scanBookCoverInternal},
 };
 
 
