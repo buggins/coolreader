@@ -1587,6 +1587,10 @@ public class CoolReader extends Activity
 		new DefKeyAction(ReaderView.SONY_DPAD_DOWN_SCANCODE, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
 		new DefKeyAction(ReaderView.SONY_DPAD_UP_SCANCODE, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
 
+		
+		new DefKeyAction(ReaderView.KEYCODE_ESCAPE, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+		new DefKeyAction(ReaderView.KEYCODE_ESCAPE, ReaderAction.LONG, ReaderAction.REPEAT),
+		
 //	    public static final int KEYCODE_PAGE_BOTTOMLEFT = 0x5d; // fwd
 //	    public static final int KEYCODE_PAGE_BOTTOMRIGHT = 0x5f; // fwd
 //	    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back

@@ -60,7 +60,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int SONY_DPAD_LEFT_SCANCODE = 125;
     public static final int SONY_DPAD_RIGHT_SCANCODE = 126;
     
-//    public static final int SONY_MENU_SCANCODE = 357;
+    public static final int KEYCODE_ESCAPE = 111; // KeyEvent constant since API 11
+
+    //    public static final int SONY_MENU_SCANCODE = 357;
 //    public static final int SONY_BACK_SCANCODE = 158;
 //    public static final int SONY_HOME_SCANCODE = 102;
     

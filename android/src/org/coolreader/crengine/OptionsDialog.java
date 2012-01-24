@@ -570,6 +570,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
 				addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
 				addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
+				addKey(listView, ReaderView.KEYCODE_ESCAPE, "Escape");
 			}
 
 			dlg.setView(listView);
