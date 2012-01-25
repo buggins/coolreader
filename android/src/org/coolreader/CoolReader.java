@@ -1842,13 +1842,15 @@ public class CoolReader extends Activity
 	private final static String DICTAN_ARTICLE_WORD = "article.word";
 	
 	private final static String DICTAN_ERROR_MESSAGE = "error.message";
+
+	private final static int FLAG_ACTIVITY_CLEAR_TASK = 0x00008000;
 	
 	private void findInDictionaryInternal(String s) {
 		switch (currentDict.internal) {
 		case 0:
 			Intent intent0 = new Intent(currentDict.action).setComponent(new ComponentName(
 				currentDict.packageName, currentDict.className
-				)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				)).addFlags(android.os.Build.VERSION.SDK_INT >= 11 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (s!=null)
 				intent0.putExtra(SearchManager.QUERY, s);
 			try {
