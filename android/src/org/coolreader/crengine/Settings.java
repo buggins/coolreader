@@ -160,6 +160,9 @@ public interface Settings {
 
 	    PROP_APP_VIEW_AUTOSCROLL_SPEED,
 	    PROP_APP_VIEW_AUTOSCROLL_TYPE,
+	    
+	    "app.tapzone.*",
+	    PROP_APP_DOUBLE_TAP_SELECTION,
 
 	    "app.ui.theme*",
 	};
