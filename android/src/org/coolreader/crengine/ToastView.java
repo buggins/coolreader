@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+
 import org.coolreader.R;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -32,6 +33,7 @@ public class ToastView {
     }
 
 
+	private static ReaderView mReaderView;
     private static LinkedBlockingQueue<Toast> queue = new LinkedBlockingQueue<Toast>();
     private static AtomicBoolean showing = new AtomicBoolean(false);
     private static Handler mHandler = new Handler();
@@ -47,7 +49,8 @@ public class ToastView {
         }
     };
 
-    public static void showToast(View anchor, String msg, int duration) {
+    public static void showToast(ReaderView anchor, String msg, int duration) {
+    	mReaderView = anchor;
         try {
             queue.put(new Toast(anchor, msg, duration));
         } catch (InterruptedException e) {
@@ -81,6 +84,7 @@ public class ToastView {
         LayoutInflater inflater = (LayoutInflater) t.anchor.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         window.setContentView(inflater.inflate(R.layout.custom_toast, null, true));
         TextView tv = (TextView) window.getContentView().findViewById(R.id.toast);
+        tv.setTextSize(Integer.valueOf( mReaderView.getSetting(ReaderView.PROP_FONT_SIZE) ) );
         tv.setText(t.msg);
         window.showAtLocation(t.anchor, Gravity.NO_GRAVITY, 0, 0);
         mHandler.postDelayed(handleDismiss, t.duration == 0 ? 2000 : 3000);
