@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <string name="app_name">Cool reader</string>
     <string name="mi_search">Hľadať</string>
@@ -390,4 +390,5 @@
     <string name="mi_donation">Podpora projektu</string>
     <string name="dlg_about_donation_inapp_purchase">Cool Reader je bezplatný a vždy aj ostane. Ak chcete podporiť vývoj tohto projektu, môžete si kúpiť balíček na podporu projektu z Android Marketu:</string>
     <string name="dlg_about_donation_total">Celková podpora od Vás:</string>
+    <string name="options_multi_selection_action">Multi Selection action</string>
 </resources>

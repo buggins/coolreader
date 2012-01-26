@@ -150,11 +150,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_page_animation_paperbook
 		};
 	int[] mSelectionAction = new int[] {
-			ReaderView.SELECTION_ACTION_TOOLBAR, ReaderView.SELECTION_ACTION_COPY, 
+			ReaderView.SELECTION_ACTION_TOOLBAR,
+			ReaderView.SELECTION_ACTION_COPY, 
 			ReaderView.SELECTION_ACTION_DICTIONARY,
 			ReaderView.SELECTION_ACTION_BOOKMARK
 		};
 	int[] mSelectionActionTitles = new int[] {
+			R.string.options_selection_action_toolbar, 
+			R.string.options_selection_action_copy, 
+			R.string.options_selection_action_dictionary, 
+			R.string.options_selection_action_bookmark, 
+		};
+	int[] mMultiSelectionAction = new int[] {
+			ReaderView.SELECTION_ACTION_TOOLBAR,
+			ReaderView.SELECTION_ACTION_COPY, 
+			ReaderView.SELECTION_ACTION_DICTIONARY,
+			ReaderView.SELECTION_ACTION_BOOKMARK
+		};
+	int[] mMultiSelectionActionTitles = new int[] {
 			R.string.options_selection_action_toolbar, 
 			R.string.options_selection_action_copy, 
 			R.string.options_selection_action_dictionary, 
@@ -1704,6 +1717,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
+		mOptionsControls.add(new ListOption(this, getString(R.string.options_multi_selection_action), PROP_APP_MULTI_SELECTION_ACTION).add(mMultiSelectionAction, mMultiSelectionActionTitles).setDefaultValue("0"));
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
 		
 		mOptionsApplication = new OptionsListView(getContext());

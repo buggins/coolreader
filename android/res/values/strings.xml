@@ -173,7 +173,8 @@
     <string name="action_toggle_document_styles">Toggle document styles</string>
     <string name="options_style_document_embedded_styles">Document embedded styles</string>
     <string name="options_selection_action_toolbar">Show selection toolbar</string>
-    <string name="options_selection_action">Selection action</string>
+    <string name="options_selection_action">Single Selection action</string>
+    <string name="options_multi_selection_action">Multi Selection action</string>
     <string name="options_selection_action_bookmark">Add bookmark</string>
     <string name="options_selection_action_dictionary">Find in dictionary</string>
     <string name="options_selection_action_copy">Copy to clipboard</string>

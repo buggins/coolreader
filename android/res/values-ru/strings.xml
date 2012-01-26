@@ -393,4 +393,5 @@
     <string name="mi_font_size_decrease">Уменьшить шрифт</string>
     <string name="mi_font_size_increase">Увеличить шрифт</string>
     <string name="mi_font_previous">Предыдущий шрифт</string>
+    <string name="options_multi_selection_action">Действие для нескольких выделенных слов</string>
 </resources>

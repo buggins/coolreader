@@ -760,9 +760,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
+	public static boolean isMultiSelection(Selection sel){
+		String str = sel.text;
+	    if(str != null){
+	        for(int i = 0; i < str.length(); i++){
+	            if(Character.isWhitespace(str.charAt(i))){
+	                return true;
+	            }
+	        }
+	    }
+	    return false;
+	}	
+	
 	private int mSelectionAction = SELECTION_ACTION_TOOLBAR;
+	private int mMultiSelectionAction = SELECTION_ACTION_TOOLBAR;
 	private void onSelectionComplete( Selection sel ) {
-		switch ( mSelectionAction ) {
+		int iSelectionAction;
+		iSelectionAction = isMultiSelection(sel) ? mMultiSelectionAction : mSelectionAction;
+		
+		switch ( iSelectionAction ) {
 		case SELECTION_ACTION_TOOLBAR:
 			SelectionToolbarDlg.showDialog(mActivity, ReaderView.this, sel);
 			break;
@@ -2776,6 +2792,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	try {
         		int n = Integer.valueOf(value);
         		mSelectionAction = n;
+        	} catch ( Exception e ) {
+        		// ignore
+        	}
+        } else if ( PROP_APP_MULTI_SELECTION_ACTION.equals(key) ) {
+        	try {
+        		int n = Integer.valueOf(value);
+        		mMultiSelectionAction = n;
         	} catch ( Exception e ) {
         		// ignore
         	}
@@ -5105,7 +5128,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
     
     private boolean invalidImages = true;
-    private void clearImageCache()
+    public void clearImageCache()
     {
     	BackgroundThread.instance().postBackground( new Runnable() {
     		public void run() {
