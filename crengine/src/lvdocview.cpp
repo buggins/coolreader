@@ -4960,6 +4960,7 @@ CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
 
 // execute command
 int LVDocView::doCommand(LVDocCmd cmd, int param) {
+	CRLog::trace("doCommand(%d, %d)", (int)cmd, param);
 	switch (cmd) {
     case DCMD_SET_INTERNAL_STYLES:
         CRLog::trace("DCMD_SET_INTERNAL_STYLES(%d)", param);
@@ -5082,7 +5083,10 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 		break;
 	case DCMD_SCROLL_BY: {
 		if (m_view_mode == DVM_SCROLL) {
+			CRLog::trace("DCMD_SCROLL_BY %d", param);
 			return SetPos(GetPos() + param);
+		} else {
+			CRLog::trace("DCMD_SCROLL_BY ignored: not in SCROLL mode");
 		}
 	}
 		break;

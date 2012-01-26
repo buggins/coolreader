@@ -39,14 +39,20 @@ public class SelectionToolbarDlg {
 		//dlg.update();
 	}
 
+	private boolean pageModeSet;
 	private boolean changedPageMode;
 	private void setReaderMode()
 	{
+		if (pageModeSet)
+			return;
+		//if (DeviceInfo.EINK_SCREEN) { return; } // switching to scroll view doesn't work well on eink screens
+		
 		String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
 		if ( "1".equals(oldViewSetting) ) {
 			changedPageMode = true;
 			mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
 		}
+		pageModeSet = true;
 	}
 	
 	private void restoreReaderMode()
@@ -58,6 +64,7 @@ public class SelectionToolbarDlg {
 	
 	private void changeSelectionBound(boolean start, int delta) {
 		L.d("changeSelectionBound(" + (start?"start":"end") + ", " + delta + ")");
+		setReaderMode();
 		ReaderCommand cmd = start ? ReaderCommand.DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS : ReaderCommand.DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS; 
 		mReaderView.moveSelection(cmd, delta, new ReaderView.MoveSelectionCallback() {
 			
@@ -129,7 +136,6 @@ public class SelectionToolbarDlg {
 		panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 		
 		//mReaderView.getS
-		setReaderMode();
 		
 		mWindow = new PopupWindow( mAnchor.getContext() );
 		mWindow.setTouchInterceptor(new OnTouchListener() {
@@ -239,11 +245,25 @@ public class SelectionToolbarDlg {
 		//mWindow.setWidth(mPanel.getWidth());
 		//mWindow.setHeight(mPanel.getHeight());
 
-		mWindow.showAtLocation(mAnchor, Gravity.TOP | Gravity.CENTER_HORIZONTAL, location[0], location[1] + mAnchor.getHeight() - mPanel.getHeight());
+		int popupY = location[1] + mAnchor.getHeight() - mPanel.getHeight();
+		mWindow.showAtLocation(mAnchor, Gravity.TOP | Gravity.CENTER_HORIZONTAL, location[0], popupY);
 //		if ( mWindow.isShowing() )
 //			mWindow.update(mAnchor, 50, 50);
 		//dlg.mWindow.showAsDropDown(dlg.mAnchor);
-	
+		int y = sel.startY;
+		if (y > sel.endY)
+			y = sel.endY;
+		int maxy = mReaderView.getHeight() * 4 / 5; 
+		if (y > maxy) {
+			setReaderMode(); // selection is overlapped by toolbar: set scroll mode and move
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					mReaderView.doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
+					mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getHeight() / 3);
+				}
+			});
+		}
 	}
 	
 }
