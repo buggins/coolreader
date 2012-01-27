@@ -3152,6 +3152,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			for ( int i=freeList.size()-1; i>=0; i-- ) {
 				Bitmap bmp = freeList.remove(i);
+				runtime.trackAlloc(bmp.getWidth() * bmp.getHeight() * 2);
 				//log.d("Recycling free bitmap "+bmp.getWidth()+"x"+bmp.getHeight());
 				//bmp.recycle(); //20110109 
 			}
