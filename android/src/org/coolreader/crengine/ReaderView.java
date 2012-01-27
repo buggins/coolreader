@@ -3,12 +3,12 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -3078,6 +3078,63 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return mBatteryState;
 	}
 	
+	static class VMRuntimeHack {
+		private Object runtime = null;
+		private Method trackAllocation = null;
+		private Method trackFree = null;
+		
+		public boolean trackAlloc(long size) {
+			if (runtime == null)
+				return false;
+			try {
+				return (Boolean)trackAllocation.invoke(runtime, Long.valueOf(size));
+			} catch (IllegalArgumentException e) {
+				return false;
+			} catch (IllegalAccessException e) {
+				return false;
+			} catch (InvocationTargetException e) {
+				return false;
+			}
+		}
+		public boolean trackFree(long size) {
+			if (runtime == null)
+				return false;
+			try {
+				return (Boolean)trackFree.invoke(runtime, Long.valueOf(size));
+			} catch (IllegalArgumentException e) {
+				return false;
+			} catch (IllegalAccessException e) {
+				return false;
+			} catch (InvocationTargetException e) {
+				return false;
+			}
+		}
+		public VMRuntimeHack() {
+			boolean success = false;
+			try {
+				Class cl = Class.forName("dalvik.system.VMRuntime");
+				Method getRt = cl.getMethod("getRuntime", new Class[0]);
+				runtime = getRt.invoke(null, new Object[0]);
+				trackAllocation = cl.getMethod("trackExternalAllocation", new Class[] {long.class});
+				trackFree = cl.getMethod("trackExternalFree", new Class[] {long.class});
+				success = true;
+			} catch (ClassNotFoundException e) {
+			} catch (SecurityException e) {
+			} catch (NoSuchMethodException e) {
+			} catch (IllegalArgumentException e) {
+			} catch (IllegalAccessException e) {
+			} catch (InvocationTargetException e) {
+			}
+			if (!success) {
+				log.i("VMRuntime hack does not work!");
+				runtime = null;
+				trackAllocation = null;
+				trackFree = null;
+			}
+		}
+	}
+	private static final VMRuntimeHack runtime = new VMRuntimeHack();
+	
 	private static class BitmapFactory {
 		public static final int MAX_FREE_LIST_SIZE=2;
 		ArrayList<Bitmap> freeList = new ArrayList<Bitmap>(); 
@@ -3099,6 +3156,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				//bmp.recycle(); //20110109 
 			}
 			Bitmap bmp = Bitmap.createBitmap(dx, dy, Bitmap.Config.RGB_565);
+			runtime.trackFree(dx*dy*2);
 			//bmp.setDensity(0);
 			usedList.add(bmp);
 			//log.d("Created new bitmap "+dx+"x"+dy+". New bitmap list size = " + usedList.size());
@@ -3107,7 +3165,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public synchronized void compact() {
 			while ( freeList.size()>0 ) {
 				//freeList.get(0).recycle();//20110109
-				freeList.remove(0);
+				Bitmap bmp = freeList.remove(0);
+				runtime.trackAlloc(bmp.getWidth() * bmp.getHeight() * 2);
 			}
 		}
 		public synchronized void release( Bitmap bmp ) {
@@ -3117,7 +3176,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					usedList.remove(i);
 					while ( freeList.size()>MAX_FREE_LIST_SIZE ) {
 						//freeList.get(0).recycle(); //20110109
-						freeList.remove(0);
+						Bitmap b = freeList.remove(0);
+						runtime.trackAlloc(b.getWidth() * b.getHeight() * 2);
+						//b.recycle();
 					}
 					log.d("BitmapFactory: bitmap released, used size = " + usedList.size() + ", free size=" + freeList.size());
 					return;
