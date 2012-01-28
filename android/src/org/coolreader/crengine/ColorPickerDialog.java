@@ -171,6 +171,12 @@ public class ColorPickerDialog extends BaseDialog implements OnSeekBarChangeList
 		super.onPositiveButtonClick();
 	}
 
+	@Override
+	protected void onNegativeButtonClick() {
+		mListener.colorChanged(mColor);
+		super.onPositiveButtonClick();
+	}
+
 //	@Override
 //	protected void onNegativeButtonClick() {
 //		onPositiveButtonClick();

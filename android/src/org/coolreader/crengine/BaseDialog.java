@@ -212,6 +212,8 @@ public class BaseDialog extends Dialog {
 		// when dialog is closed
 	}
 	
+	
+	
 	/**
 	 * Set View's gesture handlers for LTR and RTL horizontal fling
 	 * @param view
@@ -293,6 +295,10 @@ public class BaseDialog extends Dialog {
 	
 	@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			onNegativeButtonClick();
+			return true;
+		}
         if( this.view != null ) {
             if (this.view.onKeyDown(keyCode, event))
             	return true;
