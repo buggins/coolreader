@@ -41,7 +41,7 @@ typedef unsigned int ucs4_t;
 
 #define BUF_SIZE_INCREMENT 4096
 #define MIN_BUF_DATA_SIZE 4096
-#define CP_AUTODETECT_BUF_SIZE 0x10000
+#define CP_AUTODETECT_BUF_SIZE 0x20000
 
 
 /// virtual destructor
