@@ -122,6 +122,7 @@ public interface Settings {
     public static final int SELECTION_ACTION_COPY = 1;
     public static final int SELECTION_ACTION_DICTIONARY = 2;
     public static final int SELECTION_ACTION_BOOKMARK = 3;
+    public static final int SELECTION_ACTION_FIND = 4;
     
     // available options for PROP_APP_SECONDARY_TAP_ACTION_TYPE setting
     public static final int TAP_ACTION_TYPE_LONGPRESS = 0;

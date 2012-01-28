@@ -153,13 +153,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			ReaderView.SELECTION_ACTION_TOOLBAR,
 			ReaderView.SELECTION_ACTION_COPY, 
 			ReaderView.SELECTION_ACTION_DICTIONARY,
-			ReaderView.SELECTION_ACTION_BOOKMARK
+			ReaderView.SELECTION_ACTION_BOOKMARK,
+			ReaderView.SELECTION_ACTION_FIND
 		};
 	int[] mSelectionActionTitles = new int[] {
 			R.string.options_selection_action_toolbar, 
 			R.string.options_selection_action_copy, 
 			R.string.options_selection_action_dictionary, 
 			R.string.options_selection_action_bookmark, 
+			R.string.mi_search, 
 		};
 	int[] mMultiSelectionAction = new int[] {
 			ReaderView.SELECTION_ACTION_TOOLBAR,

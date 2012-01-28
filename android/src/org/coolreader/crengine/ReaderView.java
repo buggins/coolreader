@@ -795,6 +795,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			clearSelection();
 			showNewBookmarkDialog( sel );
 			break;
+		case SELECTION_ACTION_FIND:
+			clearSelection();
+			showSearchDialog(sel.text);
+			break;
 		default:
 			clearSelection();
 			break;
@@ -1542,10 +1546,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 	
-	public void showSearchDialog()
+	public void showSearchDialog(String initialText)
 	{
+		if (initialText != null && initialText.length() > 40)
+			initialText = initialText.substring(0, 40);
 		BackgroundThread.ensureGUI();
-		SearchDlg dlg = new SearchDlg( mActivity, this );
+		SearchDlg dlg = new SearchDlg( mActivity, this, initialText);
 		dlg.show();
 	}
 
@@ -2510,7 +2516,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.showBrowserRecentBooks();
 			break;
 		case DCMD_SEARCH:
-			showSearchDialog();
+			showSearchDialog(null);
 			break;
 		case DCMD_EXIT:
 			mActivity.finish();

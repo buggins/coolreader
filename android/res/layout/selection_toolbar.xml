@@ -54,7 +54,16 @@
             android:layout_marginRight="1dip"
             android:src="@drawable/ic_menu_compose"
             />
-	    <ImageButton android:id="@+id/selection_cancel"
+        <ImageButton android:id="@+id/selection_find"
+            android:layout_width="0dip" android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dip"
+            android:layout_marginBottom="2dip"
+            android:layout_marginLeft="1dip"
+            android:layout_marginRight="1dip"
+            android:src="@android:drawable/ic_menu_search"
+            />
+        <ImageButton android:id="@+id/selection_cancel"
             android:layout_width="0dip" android:layout_weight="1"
 	        android:layout_height="wrap_content"
 	        android:layout_marginTop="2dip"

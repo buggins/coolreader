@@ -38,7 +38,7 @@ public class SearchDlg  extends BaseDialog {
 	}
 
 	
-	public SearchDlg( CoolReader coolReader, ReaderView readerView )
+	public SearchDlg(CoolReader coolReader, ReaderView readerView, String initialText)
 	{
 		super(coolReader, coolReader.getResources().getString(R.string.win_title_search), true, false);
         setCancelable(true);
@@ -48,6 +48,8 @@ public class SearchDlg  extends BaseDialog {
         mInflater = LayoutInflater.from(getContext());
         mDialogView = mInflater.inflate(R.layout.search_dialog, null);
     	mEditView = (EditText)mDialogView.findViewById(R.id.search_text);
+    	if (initialText != null)
+    		mEditView.setText(initialText);
     	mCaseSensitive = (CheckBox)mDialogView.findViewById(R.id.search_case_sensitive);
     	mReverse = (CheckBox)mDialogView.findViewById(R.id.search_reverse);
 		// setup buttons

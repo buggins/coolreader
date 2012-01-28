@@ -175,6 +175,12 @@ public class SelectionToolbarDlg {
 				closeDialog(true);
 			}
 		});
+		mPanel.findViewById(R.id.selection_find).setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				mReaderView.showSearchDialog(selection.text.trim());
+				closeDialog(true);
+			}
+		});
 		mPanel.findViewById(R.id.selection_cancel).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				closeDialog(true);
