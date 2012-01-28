@@ -2373,7 +2373,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 	}
 
-	private void redraw() {
+	public void redraw() {
 		//BackgroundThread.instance().executeBackground(new Runnable() {
 		BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
@@ -2557,8 +2557,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				res = doc.doCommand(cmd.nativeId, param);
 			}
 			public void done() {
-				if ( res )
+				if (res) {
+					invalidImages = true;
 					drawPage( doneHandler, false );
+				}
 				switch (cmd) {
 					case DCMD_BEGIN:
 					case DCMD_LINEUP:
@@ -3087,7 +3089,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if (runtime == null)
 				return false;
 			try {
-				return (Boolean)trackAllocation.invoke(runtime, Long.valueOf(size));
+				Object res = trackAllocation.invoke(runtime, Long.valueOf(size));
+				return (res instanceof Boolean) ? (Boolean)res : true;
 			} catch (IllegalArgumentException e) {
 				return false;
 			} catch (IllegalAccessException e) {
@@ -3100,7 +3103,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if (runtime == null)
 				return false;
 			try {
-				return (Boolean)trackFree.invoke(runtime, Long.valueOf(size));
+				Object res = trackFree.invoke(runtime, Long.valueOf(size));
+				return (res instanceof Boolean) ? (Boolean)res : true;
 			} catch (IllegalArgumentException e) {
 				return false;
 			} catch (IllegalAccessException e) {
@@ -4680,7 +4684,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void fail( Exception e )
 		{
 			BackgroundThread.ensureGUI();
-			log.e("LoadDocumentTask failed for " + mBookInfo);
+			log.e("LoadDocumentTask failed for " + mBookInfo, e);
 			mActivity.getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
 			mBookInfo = null;
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());
