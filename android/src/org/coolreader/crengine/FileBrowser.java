@@ -641,6 +641,7 @@ public class FileBrowser extends LinearLayout {
 								FileInfo file = new FileInfo();
 								file.isDirectory = true;
 								file.pathname = FileInfo.OPDS_DIR_PREFIX + entry.link.href;
+								file.title = Utils.cleanupHtmlTags(entry.content);
 								file.filename = entry.title;
 								file.isListed = true;
 								file.isScanned = true;
@@ -963,6 +964,9 @@ public class FileBrowser extends LinearLayout {
 							bookCount = (Integer)item.tag;
 						setText(field1, "books: " + String.valueOf(bookCount));
 						setText(field2, "folders: 0");
+					} else  if (item.isOPDSDir()) {
+						setText(field1, item.title);
+						setText(field2, "");
 					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0)) {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));

@@ -286,10 +286,10 @@ xml:base="http://lib.ololo.cc/opds/">
 						entryInfo.icon = s;
 				} else if ( "link".equals(currentElement) ) {
 					// rel, type, title, href
-					if ( !insideEntry )
-						docInfo.icon = s;
-					else
-						entryInfo.icon = s;
+//					if ( !insideEntry )
+//						docInfo.icon = s;
+//					else
+//						entryInfo.icon = s;
 				} else if ( "content".equals(currentElement) ) {
 					if ( insideEntry )
 						entryInfo.content = entryInfo.content + s;
@@ -360,7 +360,8 @@ xml:base="http://lib.ololo.cc/opds/">
 							entryInfo.links.add(link);
 							int priority = link.getPriority();
 							if ( link.type.startsWith("application/atom+xml") ) {
-								entryInfo.link = link;
+								if (entryInfo.link == null || !entryInfo.link.type.startsWith("application/atom+xml"))
+									entryInfo.link = link;
 							} else if (priority>0 && (entryInfo.link==null || entryInfo.link.getPriority()<priority)) {
 								entryInfo.link = link;
 							}
@@ -398,8 +399,10 @@ xml:base="http://lib.ololo.cc/opds/">
 				insideEntry = false;
 				entryInfo = null;
 			} else if ( "author".equals(localName) ) {
-				if ( authorInfo!=null && authorInfo.name!=null )
-					entryInfo.authors.add(authorInfo);
+				if (insideEntry) {
+					if ( authorInfo!=null && authorInfo.name!=null )
+						entryInfo.authors.add(authorInfo);
+				}
 				authorInfo = null;
 			} 
 			//currentAttributes = null;
@@ -769,6 +772,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				if ( progressShown )
 					coolReader.getEngine().hideProgress();
 				onError("Error occured while reading OPDS catalog");
+				break;
 			} finally {
 				if ( connection!=null )
 					try {

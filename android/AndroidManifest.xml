@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.55-26" android:versionCode="526">
+      android:versionName="3.0.55-28" android:versionCode="528">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
