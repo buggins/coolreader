@@ -259,8 +259,19 @@ public class SelectionToolbarDlg {
 			BackgroundThread.instance().postGUI(new Runnable() {
 				@Override
 				public void run() {
-					mReaderView.doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
-					mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getHeight() / 3);
+					//mReaderView.doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 0);
+					BackgroundThread.instance().postBackground(new Runnable() {
+						@Override
+						public void run() {
+							BackgroundThread.instance().postGUI(new Runnable() {
+								@Override
+								public void run() {
+									mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getHeight() / 3);
+									mReaderView.redraw();
+								}
+							});
+						}
+					});
 				}
 			});
 		}
