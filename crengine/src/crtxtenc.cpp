@@ -1660,24 +1660,25 @@ int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, 
    MakeCharStat(buf, buf_size, char_stat, skipHtml);
    MakeDblCharStat(buf, buf_size, dbl_char_stat, DBL_CHAR_STAT_SIZE, skipHtml);
    int bestn = 0;
-   double bestq = 1000000;
+   double bestq = 0; //1000000;
    for (int i=0; cp_stat_table[i].ch_stat; i++) {
 	   double q12, q11;
 	   double q22, q21;
 	   double q1 = CompareCharStats( cp_stat_table[i].ch_stat, char_stat, q11, q12 );
 	   double q2 = CompareDblCharStats( cp_stat_table[i].dbl_ch_stat, dbl_char_stat, DBL_CHAR_STAT_SIZE, q21, q22 );
-	   double q_1 = q11 + 3*q12;
-	   double q_2 = q21 + 5*q22;
-	   double q_ = q_1 * q_2;
-	   double q = (q_>0) ? (q1*2+q2*7) / (q_) : 1000000;
-	   if (q<bestq) {
+       //CRLog::debug("%d %10s %4s : %lf %lf %lf - %lf %lf %lf", i, cp_stat_table[i].cp_name, cp_stat_table[i].lang_name, q1, q11, q12, q2, q21, q22);
+//       double q_1 = q11 + 3*q12;
+//	   double q_2 = q21 + 5*q22;
+//	   double q_ = q_1 * q_2;
+       double q = q1 + q2 * 3; //(q_>0) ? (q1*2+q2*7) / (q_) : 1000000;
+       if (q > bestq) {
 		   bestn = i;
 		   bestq = q;
 	   }
    }
    strcpy(cp_name, cp_stat_table[bestn].cp_name);
    strcpy(lang_name, cp_stat_table[bestn].lang_name);
-   CRLog::debug("Detected codepage:%s lang:%s", cp_name, lang_name);
+   CRLog::debug("Detected codepage:%s lang:%s index:%d %s", cp_name, lang_name, bestn, skipHtml ? "(skipHtml)" : "");
    return 1;
 }
 

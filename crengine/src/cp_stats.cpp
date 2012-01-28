@@ -2189,7 +2189,7 @@ cp_stat_t cp_stat_table[] = {
 {ch_stat_cp1251_ru6,dbl_ch_stat_cp1251_ru6,"cp1251","ru"},
 {ch_stat_cp1251_ru7,dbl_ch_stat_cp1251_ru7,"cp1251","ru"},
 {ch_stat_cp866_ru1,dbl_ch_stat_cp866_ru1,"cp866","ru"},
-{ch_stat_koi8r_ru1,dbl_ch_stat_koi8r_ru1,"koi8r","ru"}, 
+{ch_stat_koi8r_ru1,dbl_ch_stat_koi8r_ru1,"koi8r","ru"},
 {ch_stat_koi8_ru8,dbl_ch_stat_koi8_ru8,"koi8r","ru"},
 {ch_stat_utf8_ru1,dbl_ch_stat_utf8_ru1,"utf8","ru"},
 {ch_stat_cp1251_ru2,dbl_ch_stat_cp1251_ru2,"cp1251","ru"}, 
