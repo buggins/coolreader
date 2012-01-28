@@ -2417,7 +2417,7 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 				m_font_size);
 		//CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
 		m_doc->render(pages, isDocumentOpened() ? m_callback : NULL, dx, dy,
-				m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
+                m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
                 m_font, m_def_interline_space, m_props);
 
 #if 0
@@ -5605,8 +5605,9 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 				== PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
 				|| name == PROP_PAGE_MARGIN_BOTTOM) {
 			lUInt32 margin = props->getIntDef(name.c_str(), 8);
-			if (margin > 130)
-				margin = 130;
+            int maxmargin = (name == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT) ? m_dx / 3 : m_dy / 3;
+            if (margin > maxmargin)
+                margin = maxmargin;
 			lvRect rc = getPageMargins();
 			if (name == PROP_PAGE_MARGIN_TOP)
 				rc.top = margin;
