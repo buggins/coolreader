@@ -1670,17 +1670,17 @@ public class CoolReader extends Activity
             hmargin = "4";
             vmargin = "2";
         } else if ( screenWidth<=400 ) {
-        	fontSize = 26;
+        	fontSize = 24;
             hmargin = "10";
             vmargin = "4";
         } else if ( screenWidth<=600 ) {
-        	fontSize = 32;
+        	fontSize = 28;
             hmargin = "20";
-            vmargin = "10";
+            vmargin = "8";
         } else {
-        	fontSize = 36;
-            hmargin = "80";
-            vmargin = "25";
+        	fontSize = 32;
+            hmargin = "40";
+            vmargin = "15";
         }
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
         props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
