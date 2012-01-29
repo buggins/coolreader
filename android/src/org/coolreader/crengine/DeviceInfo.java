@@ -8,6 +8,7 @@ public class DeviceInfo {
 	public final static String MANUFACTURER;
 	public final static String MODEL;
 	public final static String DEVICE;
+	public final static int MIN_SCREEN_BRIGHTNESS_PERCENT;
 	public final static boolean SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	public final static boolean EINK_SCREEN;
 	public final static boolean EINK_SCREEN_UPDATE_MODES_SUPPORTED;
@@ -22,6 +23,12 @@ public class DeviceInfo {
 	public final static boolean NOFLIBUSTA;
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
+
+	// minimal screen backlight level percent for different devices
+	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
+		"LGE;LG-P500", "6", // LG Optimus One
+		// TODO: more devices here
+	};
 	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
@@ -46,6 +53,7 @@ public class DeviceInfo {
 		NOFLIBUSTA = POCKETBOOK;
 		NAVIGATE_LEFTRIGHT = POCKETBOOK && DEVICE.startsWith("EP10");
 		REVERT_LANDSCAPE_VOLUME_KEYS = POCKETBOOK && DEVICE.startsWith("EP5A");
+		MIN_SCREEN_BRIGHTNESS_PERCENT = getMinBrightness(AMOLED_SCREEN ? 2 : 16);
 	}
 	
 	private static String getBuildField(String fieldName) {
@@ -58,9 +66,77 @@ public class DeviceInfo {
 		}
 	}
 	
+	
 	static {
 		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE);
 		Log.i("cr3", "DeviceInfo: EINK_SCREEN=" + EINK_SCREEN + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
+	}
+
+	// multiple patterns divided by |, * wildcard can be placed at beginning and/or end of pattern
+	// samples: "samsung", "p500|p510", "sgs*|sgh*"
+	private static boolean match(String value, String pattern) {
+		if (pattern == null || pattern.length() == 0 || "*".equals(pattern))
+			return true; // matches any value
+		if (value == null || value.length() == 0)
+			return false;
+		value = value.toLowerCase();
+		pattern = pattern.toLowerCase();
+		String[] patterns = pattern.split("|");
+		for (String p : patterns) {
+			boolean startingWildcard = false;
+			boolean endingWildcard = false;
+			if (p.startsWith("*")) {
+				startingWildcard = true;
+				p = p.substring(1);
+			}
+			if (p.endsWith("*")) {
+				endingWildcard = true;
+				p = p.substring(0, p.length()-1);
+			}
+			if (startingWildcard && endingWildcard) {
+				if (value.indexOf(p) < 0)
+					return false;
+			} else if (startingWildcard) {
+				if (!value.endsWith(p))
+					return false;
+			} else if (endingWildcard) {
+				if (!value.startsWith(p))
+					return false;
+			} else {
+				if (!value.equals(p))
+					return false;
+			}
+		}
+		return true;
+	}
+
+	// delimited by ;
+	// "manufacturer;model;device" or "manufacturer;model" or "manufacturer" 
+	private static boolean matchDevice(String pattern) {
+		String[] patterns = pattern.split(";");
+		if (patterns.length >= 1)
+			if (!match(MANUFACTURER, patterns[0]))
+				return false;
+		if (patterns.length >= 2)
+			if (!match(MODEL, patterns[1]))
+				return false;
+		if (patterns.length >= 3)
+			if (!match(DEVICE, patterns[2]))
+				return false;
+		return true;
+	}
+
+	private static int getMinBrightness(int defValue) {
+		try {
+			for (int i=0; i<MIN_SCREEN_BRIGHTNESS_DB.length - 1; i+=2) {
+				if (matchDevice(MIN_SCREEN_BRIGHTNESS_DB[i])) {
+					return Integer.valueOf(MIN_SCREEN_BRIGHTNESS_DB[i+1]);
+				}
+			}
+		} catch (NumberFormatException e) {
+			// ignore
+		}
+		return defValue;
 	}
 	
 }

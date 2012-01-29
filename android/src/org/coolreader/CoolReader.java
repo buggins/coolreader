@@ -829,7 +829,7 @@ public class CoolReader extends Activity
         }
     }
 
-    private final static int MIN_BACKLIGHT_LEVEL_PERCENT = DeviceInfo.AMOLED_SCREEN ? 2 : 16;
+    private final static int MIN_BACKLIGHT_LEVEL_PERCENT = DeviceInfo.MIN_SCREEN_BRIGHTNESS_PERCENT;
     
     public void onUserActivity()
     {
