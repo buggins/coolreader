@@ -1177,6 +1177,7 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
         delete pdb;
         return false;
     }
+    pdb->getDocProps()->set(doc->getProps());
     stream = LVStreamRef(pdb);
     container->setStream(stream);
     doc->setContainer(LVContainerRef(container));

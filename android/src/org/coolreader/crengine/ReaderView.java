@@ -4690,7 +4690,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void fail( Exception e )
 		{
 			BackgroundThread.ensureGUI();
-			log.e("LoadDocumentTask failed for " + mBookInfo, e);
+			log.v("LoadDocumentTask failed for " + mBookInfo, e);
 			mActivity.getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
 			mBookInfo = null;
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());

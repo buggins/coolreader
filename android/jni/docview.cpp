@@ -1081,8 +1081,15 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
 {
     CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
-	if ( !p->_docview->isDocumentOpened() )
-		return NULL;
+
+    jclass cls = _env->FindClass("org/coolreader/crengine/PositionProperties");
+    jmethodID mid = _env->GetMethodID(cls, "<init>", "()V");
+    jobject obj = _env->NewObject(cls, mid);
+
+    if (!p->_docview->isDocumentOpened()) {
+		CRLog::debug("getPositionPropsInternal: document is not opened");
+		return obj;
+	}
 	DocViewCallback callback( _env, p->_docview, _this );
     lString16 str = env.fromJavaString(_path);
     ldomXPointer bm;
@@ -1098,9 +1105,6 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
             }
         }
     }
-    jclass cls = _env->FindClass("org/coolreader/crengine/PositionProperties");
-    jmethodID mid = _env->GetMethodID(cls, "<init>", "()V");
-    jobject obj = _env->NewObject(cls, mid);
     CRObjectAccessor v(_env, obj);
     lvPoint pt = !bm.isNull() ? bm.toPoint() : lvPoint(0, p->_docview->GetPos());
     CRIntField(v,"x").set(pt.x);
