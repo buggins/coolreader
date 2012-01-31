@@ -5,7 +5,7 @@
 #include "../include/chmfmt.h"
 #include "../../thirdparty/chmlib/src/chm_lib.h"
 
-//#define DUMP_CHM_DOC 1
+#define DUMP_CHM_DOC 1
 
 struct crChmExternalFileStream : public chmExternalFileStream {
     /** returns file size, in bytes, if opened successfully */
@@ -911,6 +911,44 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString16 defEncodingNa
     return doc;
 }
 
+static int filename_comparator(lString16 & _s1, lString16 & _s2) {
+    lString16 s1 = _s1.substr(1);
+    lString16 s2 = _s2.substr(1);
+    if (s1.endsWith(L".htm"))
+        s1.erase(s1.length()-4, 4);
+    else if (s1.endsWith(L".html"))
+        s1.erase(s1.length()-5, 5);
+    if (s2.endsWith(L".htm"))
+        s2.erase(s2.length()-4, 4);
+    else if (s2.endsWith(L".html"))
+        s2.erase(s2.length()-5, 5);
+    if (s1 == L"index")
+        return -1;
+    else if (s2 == L"index")
+        return 1;
+    if (s1 == L"bookindex")
+        return -1;
+    else if (s2 == L"bookindex")
+        return 1;
+    int d1 = 0;
+    int d2 = 0;
+    s1.atoi(d1);
+    s2.atoi(d2);
+    if (d1 || d2) {
+        if (d1 && d2) {
+            if (d1 < d2)
+                return -1;
+            else if (d1 > d2)
+                return 1;
+            return 0;
+        } else if (d1) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+    return s1.compare(s2);
+}
 
 class CHMTOCReader {
     LVContainerRef _cont;
@@ -996,8 +1034,32 @@ public:
 
     bool init( LVContainerRef cont, lString16 hhcName, lString16 defEncodingName, lString16Collection & urlList, lString16 mainPageName )
     {
-        if ( hhcName.empty() && urlList.length()==0 )
-            return false;
+        if ( hhcName.empty() && urlList.length()==0 ) {
+            lString16Collection htms;
+            for (int i=0; i<cont->GetObjectCount(); i++) {
+                const LVContainerItemInfo * item = cont->GetObjectInfo(i);
+                if (item->IsContainer())
+                    continue;
+                lString16 name = item->GetName();
+                //CRLog::trace("item %d : %s", i, LCSTR(name));
+                if (name.endsWith(L".htm") || name.endsWith(L".html"))
+                    htms.add(name);
+            }
+            if (!htms.length())
+                return false;
+//            {
+//                for (int j=0; j<htms.length(); j++) {
+//                    CRLog::trace("unsorted %d : %s", j, LCSTR(htms[j]));
+//                }
+//            }
+            htms.sort(filename_comparator);
+//            {
+//                for (int j=0; j<htms.length(); j++) {
+//                    CRLog::trace("sorted %d : %s", j, LCSTR(htms[j]));
+//                }
+//            }
+            urlList.addAll(htms);
+        }
         _defEncodingName = defEncodingName;
 
         if ( !mainPageName.empty() )
@@ -1008,10 +1070,12 @@ public:
             for ( unsigned i=0; i<urlList.length(); i++ ) {
                 //lString16 name = lString16::itoa(i+1);
                 lString16 name = urlList[i];
-                if ( name.endsWith(lString16(L".htm")) )
+                if ( name.endsWith(L".htm") )
                     name = name.substr(0, name.length()-4);
-                else if ( name.endsWith(lString16(L".html")) )
+                else if ( name.endsWith(L".html") )
                     name = name.substr(0, name.length()-5);
+                if (name.startsWith(L"/"))
+                    name = name.substr(1);
                 addTocItem( name, urlList[i], 0 );
             }
             return true;

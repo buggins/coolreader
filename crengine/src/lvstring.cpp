@@ -985,6 +985,20 @@ static int (str16_comparator)(const void * n1, const void * n2)
     return lStr_cmp( (*s1)->data16(), (*s2)->data16() );
 }
 
+static int(*custom_lstr16_comparator_ptr)(lString16 & s1, lString16 & s2);
+static int (str16_custom_comparator)(const void * n1, const void * n2)
+{
+    lString16 s1(*((lstring_chunk_t **)n1));
+    lString16 s2(*((lstring_chunk_t **)n2));
+    return custom_lstr16_comparator_ptr(s1, s2);
+}
+
+void lString16Collection::sort(int(comparator)(lString16 & s1, lString16 & s2))
+{
+    custom_lstr16_comparator_ptr = comparator;
+    qsort(chunks,count,sizeof(lstring_chunk_t*), str16_custom_comparator);
+}
+
 void lString16Collection::sort()
 {
     qsort(chunks,count,sizeof(lstring_chunk_t*), str16_comparator);
@@ -1680,6 +1694,28 @@ int lString8::pos(lString8 subStr) const
         int flg = 1;
         for (int j=0; j<l; j++)
             if (pchunk->buf8[i+j]!=subStr.pchunk->buf8[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, right to left, return -1 if not found
+int lString16::rpos(lString16 subStr) const
+{
+    if (subStr.length()>length())
+        return -1;
+    int l = subStr.length();
+    int dl = length() - l;
+    for (int i=dl; i>=0; i++)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf16[i+j]!=subStr.pchunk->buf16[j])
             {
                 flg = 0;
                 break;

@@ -901,9 +901,11 @@ public:
             for ( int i=start; i<end; i++ ) {
                 if ( !(m_srcs[i]->flags & LTEXT_SRC_IS_OBJECT) ) {
                     font = (LVFont*)m_srcs[i]->t.font;
-                    int dx = font->getVisualAligmentWidth();
-                    if ( dx>visialAlignmentWidth )
-                        visialAlignmentWidth = dx;
+                    if (font) {
+                        int dx = font->getVisualAligmentWidth();
+                        if ( dx>visialAlignmentWidth )
+                            visialAlignmentWidth = dx;
+                    }
                 }
             }
             maxWidth -= visialAlignmentWidth;

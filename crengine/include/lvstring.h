@@ -354,8 +354,8 @@ private:
     void free();
     inline void addref() const { ++pchunk->nref; }
     inline void release() { if (--pchunk->nref==0) free(); }
-    explicit lString16(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
 public:
+    explicit lString16(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
     /// empty string constructor
     explicit lString16() : pchunk(EMPTY_STR_16) { addref(); }
     /// copy constructor
@@ -442,6 +442,9 @@ public:
 
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;
+
+    /// find position of substring inside string, right to left, return -1 if not found
+    int rpos(lString16 subStr) const;
 
     /// append single character
     lString16 & operator << (value_type ch) { return append(1, ch); }
@@ -593,6 +596,7 @@ public:
         return false;
     }
     void sort();
+    void sort(int(comparator)(lString16 & s1, lString16 & s2));
     ~lString16Collection()
     {
         clear();
