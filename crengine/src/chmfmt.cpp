@@ -5,7 +5,7 @@
 #include "../include/chmfmt.h"
 #include "../../thirdparty/chmlib/src/chm_lib.h"
 
-#define DUMP_CHM_DOC 1
+#define DUMP_CHM_DOC 0
 
 struct crChmExternalFileStream : public chmExternalFileStream {
     /** returns file size, in bytes, if opened successfully */
@@ -926,9 +926,9 @@ static int filename_comparator(lString16 & _s1, lString16 & _s2) {
         return -1;
     else if (s2 == L"index")
         return 1;
-    if (s1 == L"bookindex")
+    if (s1 == L"header")
         return -1;
-    else if (s2 == L"bookindex")
+    else if (s2 == L"header")
         return 1;
     int d1 = 0;
     int d2 = 0;
@@ -1041,6 +1041,8 @@ public:
                 if (item->IsContainer())
                     continue;
                 lString16 name = item->GetName();
+                if (name == L"/bookindex.htm" || name == L"/headerindex.htm")
+                    continue;
                 //CRLog::trace("item %d : %s", i, LCSTR(name));
                 if (name.endsWith(L".htm") || name.endsWith(L".html"))
                     htms.add(name);
