@@ -27,6 +27,15 @@
 #include <sys/stat.h>
 
 
+#ifdef _DEBUG
+// missing in system ZLIB with DEBUG option turned off
+int z_verbose=0;
+extern "C" void z_error(char * msg);
+void z_error(char * msg) {
+	fprintf(stderr, "%s\n", msg);
+	exit(1);
+}
+#endif
 /// returns current time representation string
 static lString16 getDateTimeString( time_t t )
 {

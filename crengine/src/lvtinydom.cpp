@@ -10938,7 +10938,7 @@ bool LVTocItem::deserialize( ldomDocument * doc, SerialBuf & buf )
 
 
 
-#if defined(_DEBUG) 
+#if 0 && defined(_DEBUG)
 
 #define TEST_FILE_NAME "/tmp/test-cache-file.dat"
 

@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
         }
 
 		if ( argc>=2 && !strcmp(argv[1], "unittest") ) {
-#ifdef _DEBUG
+#ifdef 0 && _DEBUG
 			runTinyDomUnitTests();
 #endif
 			CRLog::info("UnitTests finished: exiting");
