@@ -1446,6 +1446,7 @@ bool isValidUtf8Data( const unsigned char * buf, int buf_size )
         lUInt8 ch = *buf++;
         if ( (ch & 0x80) == 0 ) {
         } else if ( (ch & 0xC0) == 0x80 ) {
+            CRLog::trace("unexpected char %02x at position %x, str=%s", ch, (buf-1-start), lString8((const char *)(buf-1), 32).c_str());
             return false;
         } else if ( (ch & 0xE0) == 0xC0 ) {
             ch = *buf++;
@@ -1669,7 +1670,12 @@ int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, 
 //       double q_1 = q11 + 3*q12;
 //	   double q_2 = q21 + 5*q22;
 //	   double q_ = q_1 * q_2;
-       double q = q11 + q21 * 5; //(q_>0) ? (q1*2+q2*7) / (q_) : 1000000;
+       if (q1 < 0.00001)
+           q1 = 0.00001;
+       if (q2 < 0.00001)
+           q2 = 0.00001;
+       double q = q11 * 1 + q12 * 2 + q21 * 3 + q22 * 4; //(q_>0) ? (q1*2+q2*7) / (q_) : 1000000;
+       q = q / (q1 + q2);
        //CRLog::debug("%d %10s %4s : %lf %lf %lf - %lf %lf %lf  :  %lf", i, cp_stat_table[i].cp_name, cp_stat_table[i].lang_name, q1, q11, q12, q2, q21, q22, q);
        if (q > bestq) {
 		   bestn = i;
