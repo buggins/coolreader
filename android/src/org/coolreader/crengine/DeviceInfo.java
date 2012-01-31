@@ -27,6 +27,7 @@ public class DeviceInfo {
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
 		"LGE;LG-P500", "6", // LG Optimus One
+		"samsung;GT-I9003", "6", // Samsung i9003
 		// TODO: more devices here
 	};
 	
