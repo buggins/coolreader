@@ -1278,7 +1278,8 @@ public class CoolReader extends Activity
 	    			menu.removeItem(item.getItemId());
 	    	}
 	    } else {
-	    	inflater.inflate(R.menu.cr3_browser_menu, menu);
+	    	FileInfo currDir = mBrowser.getCurrentDir();
+	    	inflater.inflate(currDir!=null && currDir.isOPDSRoot() ? R.menu.cr3_browser_menu : R.menu.cr3_browser_menu, menu);
 	    	if ( !isBookOpened() ) {
 	    		MenuItem item = menu.findItem(R.id.book_back_to_reading);
 	    		if ( item!=null )
@@ -1465,6 +1466,9 @@ public class CoolReader extends Activity
 			return true;
 		case R.id.book_opds_root:
 			mBrowser.showOPDSRootDirectory();
+			return true;
+		case R.id.catalog_add:
+			mBrowser.editOPDSCatalog(null);
 			return true;
 		case R.id.book_recent_books:
 			mBrowser.showRecentBooks();

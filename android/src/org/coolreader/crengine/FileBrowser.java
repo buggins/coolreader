@@ -25,6 +25,7 @@ import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -313,7 +314,7 @@ public class FileBrowser extends LinearLayout {
 		});
 	}
 	
-	private void editOPDSCatalog(FileInfo opds) {
+	public void editOPDSCatalog(FileInfo opds) {
 		if (opds==null) {
 			opds = new FileInfo();
 			opds.isDirectory = true;
@@ -1166,5 +1167,8 @@ public class FileBrowser extends LinearLayout {
 			log.e("Task " + this.getClass().getSimpleName() + " is failed with exception " + e.getMessage(), e);
 		}
     }
-    
+
+    public FileInfo getCurrentDir() {
+    	return currDirectory;
+    }
 }

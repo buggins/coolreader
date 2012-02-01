@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/cr3_mi_goto" android:numericShortcut="1" android:titleCondensed="@string/mi_goto" android:orderInCategory="2" android:icon="@drawable/ic_menu_goto" android:title="@string/mi_goto">
+<menu>
+<item android:title="@string/mi_book_root" android:titleCondensed="@null" android:id="@+id/book_root" android:icon="@drawable/ic_menu_home"></item>
+<item android:title="@string/mi_book_recent_books" android:titleCondensed="@null" android:id="@+id/book_recent_books" android:icon="@drawable/ic_menu_star"></item>
+<item android:title="@string/mi_book_opds_root" android:titleCondensed="@string/mi_book_opds_root" android:id="@+id/book_opds_root"></item>
+</menu>
+</item>
+<item android:title="@string/mi_book_back_to_reading" android:numericShortcut="2" android:titleCondensed="@null" android:id="@+id/book_back_to_reading" android:icon="@android:drawable/ic_menu_view"></item>
+<item android:title="@string/mi_options" android:numericShortcut="3" android:titleCondensed="@string/mi_options" android:orderInCategory="3" android:icon="@android:drawable/ic_menu_preferences">
+<menu>
+<item android:title="@string/mi_book_sort_order" android:titleCondensed="@null" android:id="@+id/book_sort_order" android:icon="@android:drawable/ic_menu_sort_alphabetically"></item>
+<item android:title="@string/mi_book_browser_simple_mode" android:titleCondensed="@null" android:id="@+id/book_toggle_simple_mode" android:icon="@drawable/ic_menu_star"></item>
+</menu>
+</item>
+<item android:title="@string/mi_catalog_add" android:titleCondensed="@string/mi_catalog_add" android:id="@+id/catalog_add" android:icon="@android:drawable/ic_menu_add" android:orderInCategory="4" android:numericShortcut="4"></item>
+<item android:title="@string/mi_exit" android:titleCondensed="@null" android:id="@+id/cr3_mi_exit" android:icon="@android:drawable/ic_menu_close_clear_cancel" android:orderInCategory="5" android:numericShortcut="5"></item>
+</menu>
