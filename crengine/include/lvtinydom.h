@@ -504,6 +504,11 @@ public:
         return _docFlags;
     }
 
+    inline int getDocIndex()
+    {
+        return _docIndex;
+    }
+
     void setDocFlags( lUInt32 value );
 
 

@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 1
+#if 0
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 //#define DEBUG_FONT_SYNTHESIS 1
@@ -2228,6 +2228,7 @@ public:
     /// registers document font
     virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name) {
         lString8 name8 = UnicodeToUtf8(name);
+        CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, name8.c_str());
         if (_cache.findDocumentFontDuplicate(documentId, name8)) {
             return false;
         }
