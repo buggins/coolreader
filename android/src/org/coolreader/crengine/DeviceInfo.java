@@ -28,8 +28,9 @@ public class DeviceInfo {
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
 		"LGE;LG-P500", "6", // LG Optimus One
 		"samsung;GT-I9003", "6", // Samsung i9003
-		"HTC;HTC EVO 3D X5*", "1", // HTC EVO
+		"HTC;HTC EVO 3D*", "1", // HTC EVO
 		"Archos;A70S", "1", // Archos
+		"HTC;HTC Desire", "6", // HTC Desire
 		// TODO: more devices here
 	};
 	

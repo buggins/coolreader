@@ -328,6 +328,8 @@ public:
     {
         list.clear();
         for ( int i=0; i<_registered_list.length(); i++ ) {
+            if (_registered_list[i]->getDef()->getDocumentId() != -1)
+                continue;
             lString16 name = Utf8ToUnicode( _registered_list[i]->getDef()->getTypeFace() );
             if ( !list.contains(name) )
                 list.add( name );
@@ -2233,6 +2235,8 @@ public:
             return false;
         }
         LVStreamRef stream = container->OpenStream(name.c_str(), LVOM_READ);
+        if (stream.isNull())
+            return false;
         int size = (int)stream->GetSize();
         if (size < 100 || size > 5000000)
             return false;
