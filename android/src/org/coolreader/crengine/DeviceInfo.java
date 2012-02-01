@@ -29,6 +29,7 @@ public class DeviceInfo {
 		"LGE;LG-P500", "6", // LG Optimus One
 		"samsung;GT-I9003", "6", // Samsung i9003
 		"HTC;HTC EVO 3D X5*", "1", // HTC EVO
+		"Archos;A70S", "1", // Archos
 		// TODO: more devices here
 	};
 	
