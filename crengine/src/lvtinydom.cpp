@@ -3014,6 +3014,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayo
 
 ldomDocument::~ldomDocument()
 {
+    fontMan->UnregisterDocumentFonts(_docIndex);
 #if BUILD_LITE!=1
     updateMap();
 #endif

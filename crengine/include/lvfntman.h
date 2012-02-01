@@ -284,6 +284,10 @@ public:
     virtual LVFontRef GetFallbackFont(int size) { return LVFontRef(); }
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
+    /// registers document font
+    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name) { return false; }
+    /// unregisters all document fonts
+    virtual void UnregisterDocumentFonts(int documentId) { }
     /// initializes font manager
     virtual bool Init( lString8 path ) = 0;
     /// get count of registered fonts
@@ -325,6 +329,7 @@ public:
     virtual void SetHintingMode(hinting_mode_t mode) { }
     /// returns current hinting mode
     virtual hinting_mode_t  GetHintingMode() { return HINTING_MODE_AUTOHINT; }
+
 };
 
 class LVBaseFont : public LVFont

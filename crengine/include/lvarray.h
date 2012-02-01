@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include "lvref.h"
 
 /** \brief template which implements vector of pointer
 
@@ -292,6 +293,7 @@ public:
     }
 };
 
-
+typedef LVArray<lUInt8> LVByteArray;
+typedef LVRef<LVByteArray> LVByteArrayRef;
 
 #endif
