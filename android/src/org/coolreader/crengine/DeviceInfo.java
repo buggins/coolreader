@@ -26,11 +26,18 @@ public class DeviceInfo {
 
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
-		"LGE;LG-P500", "6", // LG Optimus One
-		"samsung;GT-I9003", "6", // Samsung i9003
-		"HTC;HTC EVO 3D*", "1", // HTC EVO
-		"Archos;A70S", "1", // Archos
-		"HTC;HTC Desire", "6", // HTC Desire
+		"LGE;LG-P500",       "6", // LG Optimus One
+		"samsung;GT-I9003",  "6", // Samsung i9003
+		"HTC;HTC EVO 3D*",   "1", // HTC EVO
+		"Archos;A70S",       "1", // Archos
+		"HTC;HTC Desire",    "6", // HTC Desire
+		"HTC;HTC Desire S",  "6",
+		"HTC;Legend",        "6",
+		"LGE;LG-E510",       "6",
+		"*;Kindle Fire",     "6",
+		"Samsung;GT-S5830",  "6",
+		"HUAWEI;U8800",      "6",
+		"Motorola;Milestone XT720", "6",
 		// TODO: more devices here
 	};
 	
