@@ -2285,7 +2285,7 @@ public:
     */
 
     /// registers document font
-    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name) {
+    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name, lString8 faceName, bool bold, bool italic) {
         lString8 name8 = UnicodeToUtf8(name);
         CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, name8.c_str());
         if (_cache.findDocumentFontDuplicate(documentId, name8)) {
@@ -2338,15 +2338,18 @@ public:
             css_font_family_t fontFamily = css_ff_sans_serif;
             if ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH )
                 fontFamily = css_ff_monospace;
-            lString8 familyName( ::familyName(face) );
+            lString8 familyName(!faceName.empty() ? faceName : ::familyName(face));
             if ( familyName=="Times" || familyName=="Times New Roman" )
                 fontFamily = css_ff_serif;
+
+            bool boldFlag = !faceName.empty() ? bold : (face->style_flags & FT_STYLE_FLAG_BOLD);
+            bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC);
 
             LVFontDef def(
                 name8,
                 -1, // height==-1 for scalable fonts
-                ( face->style_flags & FT_STYLE_FLAG_BOLD ) ? 700 : 400,
-                ( face->style_flags & FT_STYLE_FLAG_ITALIC ) ? true : false,
+                boldFlag ? 700 : 400,
+                italicFlag,
                 fontFamily,
                 familyName,
                 index,

@@ -312,7 +312,7 @@ public:
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers document font
-    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name) { return false; }
+    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name, lString8 face, bool bold, bool italic) { return false; }
     /// unregisters all document fonts
     virtual void UnregisterDocumentFonts(int documentId) { }
     /// initializes font manager

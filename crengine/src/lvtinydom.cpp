@@ -126,6 +126,7 @@ enum CacheFileBlockType {
     CBT_STYLE_DATA,
     CBT_BLOB_INDEX, //15
     CBT_BLOB_DATA,
+    CBT_FONT_DATA, //17
 };
 
 
@@ -7721,6 +7722,8 @@ void ldomDocument::clear()
     clearRendBlockCache();
     _rendered = false;
     _urlImageMap.clear();
+    _fontList.clear();
+    fontMan->UnregisterDocumentFonts(_docIndex);
 #endif
     //TODO: implement clear
     //_elemStorage.
@@ -7803,6 +7806,19 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
         CRLog::info("%d pages read from cache file", pages.length());
         //_pagesData.setPos( 0 );
 
+        {
+            SerialBuf buf(0, true);
+            if ( !_cacheFile->read(CBT_FONT_DATA, buf)) {
+                CRLog::error("Error while reading font data");
+                return false;
+            }
+            if (!_fontList.deserialize(buf)) {
+                CRLog::error("Error while parsing font data");
+                return CR_ERROR;
+            }
+            registerEmbeddedFonts();
+        }
+
         DocFileHeader h;
         memset(&h, 0, sizeof(h));
         SerialBuf hdrbuf(0,true);
@@ -7816,7 +7832,6 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
         _hdr = h;
         CRLog::info("Loaded render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
                 _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
-
     }
 
     CRLog::trace("ldomDocument::loadCacheFileContent() - node data");
@@ -8071,6 +8086,18 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
         // fall through
     case 11:
         _mapSavingStage = 11;
+        CRLog::trace("ldomDocument::saveChanges() - embedded fonts");
+        {
+            SerialBuf buf(4096);
+            _fontList.serialize(buf);
+            if (!_cacheFile->write(CBT_FONT_DATA, buf, COMPRESS_MISC_DATA) ) {
+                CRLog::error("Error while saving embedded font data");
+                return CR_ERROR;
+            }
+        }
+        // fall through
+    case 12:
+        _mapSavingStage = 12;
     }
     CRLog::trace("ldomDocument::saveChanges() - done");
     return CR_DONE;
@@ -10609,6 +10636,15 @@ LVImageSourceRef ldomNode::getObjectImageSource()
 
     getDocument()->_urlImageMap.set( refName, ref );
     return ref;
+}
+
+/// register embedded document fonts in font manager, if any exist in document
+void ldomDocument::registerEmbeddedFonts()
+{
+    for (int i=0; i<_fontList.length(); i++) {
+        LVEmbeddedFontDef * item =  _fontList.get(i);
+        fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic());
+    }
 }
 
 /// returns object image stream

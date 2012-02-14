@@ -584,7 +584,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 if (mediaType == L"application/vnd.ms-opentype"
                         || mediaType == L"application/x-font-otf"
                         || mediaType == L"application/x-font-ttf") { // TODO: more media types?
-                    fontMan->RegisterDocumentFont(m_doc->getDocIndex(), m_arc, codeBase + href);
+                    // TODO:
+                    fontMan->RegisterDocumentFont(m_doc->getDocIndex(), m_arc, codeBase + href, lString8(), false, false);
                 }
             }
 //            if ( mediaType==L"text/css" ) {

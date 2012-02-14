@@ -540,7 +540,6 @@ public:
 #endif
 
 
-
     /// creates empty collection
     tinyNodeCollection();
     /// destroys collection
@@ -1927,6 +1926,8 @@ private:
 
     LVHashTable<lUInt32, ListNumberingPropsRef> lists;
 
+    LVEmbeddedFontList _fontList;
+
 
 #if BUILD_LITE!=1
     /// load document cache file content
@@ -1964,6 +1965,11 @@ public:
     {
         return !_def_style.isNull();
     }
+
+    /// return document's embedded font list
+    LVEmbeddedFontList & getEmbeddedFontList() { return _fontList; }
+    /// register embedded document fonts in font manager, if any exist in document
+    void registerEmbeddedFonts();
 #endif
 
     /// returns pointer to TOC root node
