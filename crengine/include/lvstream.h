@@ -294,7 +294,7 @@ public:
         \return lverror_t status: LVERR_OK if success
     */
     virtual lverror_t Seek( lvoffset_t offset, lvseek_origin_t origin, lvpos_t * pNewPos ) {
-        _base->Seek(offset, origin, pNewPos);
+        return _base->Seek(offset, origin, pNewPos);
     }
 
     /// Tell current file position

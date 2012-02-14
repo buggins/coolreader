@@ -210,6 +210,7 @@ public:
             insideCipherData = true;
         else if (!lStr_cmp(tagname, L"CipherReference"))
             insideCipherReference = true;
+		return NULL;
     }
     /// called on tag close
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) {
@@ -239,7 +240,7 @@ public:
 
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { }
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return false; }
 
     virtual void OnStop() { }
     /// called after > of opening tag (when entering tag body)
@@ -317,7 +318,7 @@ public:
     }
 
     bool isEncryptedItem(const lChar16 * name) {
-        return findEncryptedItem(name);
+        return findEncryptedItem(name) != NULL;
     }
 
     LVArray<lUInt8> _fontManglingKey;
