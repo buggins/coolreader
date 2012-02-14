@@ -174,7 +174,7 @@ bool LVEmbeddedFontList::deserialize(SerialBuf & buf) {
         return false;
     for (lUInt32 i = 0; i < count; i++) {
         LVEmbeddedFontDef * item = new LVEmbeddedFontDef();
-        if (!item->deserialize()) {
+        if (!item->deserialize(buf)) {
             delete item;
             return false;
         }
