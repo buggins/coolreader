@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 0
+#if 1
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 //#define DEBUG_FONT_SYNTHESIS 1
@@ -127,6 +127,63 @@ void LVFontManager::SetGamma( double gamma ) {
         clearGlyphCache();
     }
 }
+
+
+////////////////////////////////////////////////////////////////////
+
+static const char * EMBEDDED_FONT_LIST_MAGIC = "FNTL";
+static const char * EMBEDDED_FONT_DEF_MAGIC = "FNTD";
+
+////////////////////////////////////////////////////////////////////
+// LVEmbeddedFontDef
+////////////////////////////////////////////////////////////////////
+bool LVEmbeddedFontDef::serialize(SerialBuf & buf) {
+    buf.putMagic(EMBEDDED_FONT_DEF_MAGIC);
+    buf << _url << _face << _bold << _italic;
+    return !buf.error();
+}
+
+bool LVEmbeddedFontDef::deserialize(SerialBuf & buf) {
+    if (!buf.checkMagic(EMBEDDED_FONT_DEF_MAGIC))
+        return false;
+    buf >> _url >> _face >> _bold >> _italic;
+    return !buf.error();
+}
+
+////////////////////////////////////////////////////////////////////
+// LVEmbeddedFontList
+////////////////////////////////////////////////////////////////////
+bool LVEmbeddedFontList::serialize(SerialBuf & buf) {
+    buf.putMagic(EMBEDDED_FONT_LIST_MAGIC);
+    lUInt32 count = length();
+    buf << count;
+    for (lUInt32 i = 0; i < count; i++) {
+        get(i)->serialize(buf);
+        if (buf.error())
+            return false;
+    }
+    return !buf.error();
+}
+
+bool LVEmbeddedFontList::deserialize(SerialBuf & buf) {
+    if (!buf.checkMagic(EMBEDDED_FONT_LIST_MAGIC))
+        return false;
+    lUInt32 count = 0;
+    buf >> count;
+    if (buf.error())
+        return false;
+    for (lUInt32 i = 0; i < count; i++) {
+        LVEmbeddedFontDef * item = new LVEmbeddedFontDef();
+        if (!item->deserialize()) {
+            delete item;
+            return false;
+        }
+        add(item);
+    }
+    return !buf.error();
+}
+
+////////////////////////////////////////////////////////////////////
 
 
 /**

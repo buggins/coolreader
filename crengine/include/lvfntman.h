@@ -264,6 +264,33 @@ enum font_antialiasing_t
     font_aa_all
 };
 
+class LVEmbeddedFontDef {
+    lString16 _url;
+    lString8 _face;
+    bool _bold;
+    bool _italic;
+public:
+    LVEmbeddedFontDef(lString16 url, lString8 face, bool bold, bool italic) :
+        _url(url), _face(face), _bold(bold), _italic(italic)
+    {
+    }
+    LVEmbeddedFontDef() : _bold(false), _italic(false) {
+    }
+
+    const lString16 & getUrl() { return _url; }
+    const lString8 & getFace() { return _face; }
+    bool getBold() { return _bold; }
+    bool getItalic() { return _italic; }
+    bool serialize(SerialBuf & buf);
+    bool deserialize(SerialBuf & buf);
+};
+
+class LVEmbeddedFontList : public LVPtrVector<LVEmbeddedFontDef> {
+public:
+    bool serialize(SerialBuf & buf);
+    bool deserialize(SerialBuf & buf);
+};
+
 /// font manager interface class
 class LVFontManager
 {
