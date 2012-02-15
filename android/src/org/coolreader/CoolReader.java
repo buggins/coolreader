@@ -239,29 +239,6 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	private int sdkInt = 0;
-	public int getSDKLevel() {
-		if (sdkInt > 0)
-			return sdkInt;
-		// hack for Android 1.5
-		sdkInt = 3;
-		Field fld;
-		try {
-			Class<?> cl = android.os.Build.VERSION.class;
-			fld = cl.getField("SDK_INT");
-			sdkInt = fld.getInt(cl);
-			log.i("API LEVEL " + sdkInt + " detected");
-		} catch (SecurityException e) {
-			// ignore
-		} catch (NoSuchFieldException e) {
-			// ignore
-		} catch (IllegalArgumentException e) {
-			// ignore
-		} catch (IllegalAccessException e) {
-			// ignore
-		}
-		return sdkInt;
-	}
 	
 	public boolean isWakeLockEnabled() {
 		return screenBacklightDuration > 0;
@@ -328,7 +305,7 @@ public class CoolReader extends Activity
 	public void setScreenOrientation( int angle )
 	{
 		int newOrientation = screenOrientation;
-		boolean level9 = getSDKLevel() >= 9;
+		boolean level9 = DeviceInfo.getSDKLevel() >= 9;
 		switch (angle) {
 		case 0:
 			newOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT; // level9 ? ActivityInfo_SCREEN_ORIENTATION_SENSOR_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -1868,7 +1845,7 @@ public class CoolReader extends Activity
 		case 0:
 			Intent intent0 = new Intent(currentDict.action).setComponent(new ComponentName(
 				currentDict.packageName, currentDict.className
-				)).addFlags(getSDKLevel() >= 11 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
+				)).addFlags(DeviceInfo.getSDKLevel() >= 11 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (s!=null)
 				intent0.putExtra(SearchManager.QUERY, s);
 			try {

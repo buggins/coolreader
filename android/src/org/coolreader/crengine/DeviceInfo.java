@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import java.lang.reflect.Field;
+
 import android.os.Build;
 import android.util.Log;
 
@@ -40,6 +42,32 @@ public class DeviceInfo {
 		"Motorola;Milestone XT720", "6",
 		// TODO: more devices here
 	};
+
+	public final static int ICE_CREAM_SANDWICH = 14;
+
+	private static int sdkInt = 0;
+	public static int getSDKLevel() {
+		if (sdkInt > 0)
+			return sdkInt;
+		// hack for Android 1.5
+		sdkInt = 3;
+		Field fld;
+		try {
+			Class<?> cl = android.os.Build.VERSION.class;
+			fld = cl.getField("SDK_INT");
+			sdkInt = fld.getInt(cl);
+			Log.i("cr3", "API LEVEL " + sdkInt + " detected");
+		} catch (SecurityException e) {
+			// ignore
+		} catch (NoSuchFieldException e) {
+			// ignore
+		} catch (IllegalArgumentException e) {
+			// ignore
+		} catch (IllegalAccessException e) {
+			// ignore
+		}
+		return sdkInt;
+	}
 	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
