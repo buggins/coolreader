@@ -281,12 +281,21 @@ public:
     const lString8 & getFace() { return _face; }
     bool getBold() { return _bold; }
     bool getItalic() { return _italic; }
+    void setFace(const lString8 &  face) { _face = face; }
+    void setBold(bool bold) { _bold = bold; }
+    void setItalic(bool italic) { _italic = italic; }
     bool serialize(SerialBuf & buf);
     bool deserialize(SerialBuf & buf);
 };
 
 class LVEmbeddedFontList : public LVPtrVector<LVEmbeddedFontDef> {
 public:
+    LVEmbeddedFontDef * findByUrl(lString16 url);
+    void add(LVEmbeddedFontDef * def) { LVPtrVector<LVEmbeddedFontDef>::add(def); }
+    bool add(lString16 url, lString8 face, bool bold, bool italic);
+    bool add(lString16 url) { return add(url, lString8(), false, false); }
+    bool addAll(LVEmbeddedFontList & list);
+    void set(LVEmbeddedFontList & list) { clear(); addAll(list); }
     bool serialize(SerialBuf & buf);
     bool deserialize(SerialBuf & buf);
 };

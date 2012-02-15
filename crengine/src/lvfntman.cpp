@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 1
+#if 0
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 //#define DEBUG_FONT_SYNTHESIS 1
@@ -153,6 +153,45 @@ bool LVEmbeddedFontDef::deserialize(SerialBuf & buf) {
 ////////////////////////////////////////////////////////////////////
 // LVEmbeddedFontList
 ////////////////////////////////////////////////////////////////////
+LVEmbeddedFontDef * LVEmbeddedFontList::findByUrl(lString16 url) {
+    for (int i=0; i<length(); i++) {
+        if (get(i)->getUrl() == url)
+            return get(i);
+    }
+    return NULL;
+}
+
+bool LVEmbeddedFontList::addAll(LVEmbeddedFontList & list) {
+    bool changed = false;
+    for (int i=0; i<list.length(); i++) {
+        LVEmbeddedFontDef * def = list.get(i);
+        changed = add(def->getUrl(), def->getFace(), def->getBold(), def->getItalic()) || changed;
+    }
+    return changed;
+}
+
+bool LVEmbeddedFontList::add(lString16 url, lString8 face, bool bold, bool italic) {
+    LVEmbeddedFontDef * def = findByUrl(url);
+    if (def) {
+        bool changed = false;
+        if (def->getFace() != face) {
+            def->setFace(face);
+            changed = true;
+        }
+        if (def->getBold() != bold) {
+            def->setBold(bold);
+            changed = true;
+        }
+        if (def->getItalic() != italic) {
+            def->setItalic(italic);
+            changed = true;
+        }
+        return changed;
+    }
+    def = new LVEmbeddedFontDef(url, face, bold, italic);
+    add(def);
+}
+
 bool LVEmbeddedFontList::serialize(SerialBuf & buf) {
     buf.putMagic(EMBEDDED_FONT_LIST_MAGIC);
     lUInt32 count = length();

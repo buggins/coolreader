@@ -514,6 +514,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     lString16 ncxHref;
     lString16 coverId;
 
+    LVEmbeddedFontList fontList;
+
     // reading content stream
     {
         ldomDocument * doc = LVParseXMLStream( content_stream );
@@ -585,7 +587,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                         || mediaType == L"application/x-font-otf"
                         || mediaType == L"application/x-font-ttf") { // TODO: more media types?
                     // TODO:
-                    fontMan->RegisterDocumentFont(m_doc->getDocIndex(), m_arc, codeBase + href, lString8(), false, false);
+                    fontList.add(codeBase + href);
                 }
             }
 //            if ( mediaType==L"text/css" ) {
@@ -677,6 +679,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 }
             }
         }
+    }
+
+    // TODO: fill font properties from CSS @font
+
+    if (!fontList.empty()) {
+        // set document font list, and register fonts
+        m_doc->getEmbeddedFontList().set(fontList);
+        m_doc->registerEmbeddedFonts();
     }
 
     ldomDocument * ncxdoc = NULL;
