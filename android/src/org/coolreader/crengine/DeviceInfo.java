@@ -34,6 +34,7 @@ public class DeviceInfo {
 		"Archos;A70S",       "1", // Archos
 		"HTC;HTC Desire",    "6", // HTC Desire
 		"HTC;HTC Desire S",  "6",
+		"HTC;HTC Incredible*","6",// HTC Incredible, HTC Incredible S
 		"HTC;Legend",        "6",
 		"LGE;LG-E510",       "6",
 		"*;Kindle Fire",     "6",
