@@ -4,6 +4,8 @@
 
 package org.koekak.android.ebookdownloader;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -14,8 +16,8 @@ import android.util.Log;
 //import android.os.Environment;
 
 /**
-  * @author Michael Berganovsky [mike0berg at gmail.com] 
-  */
+ * @author Michael Berganovsky [mike0berg at gmail.com]
+ */
 
 public class SonyBookSelector
 {
@@ -31,14 +33,29 @@ public class SonyBookSelector
         m_activity = activity;
     }
 
-    public long getContentId(String fname)
+    public long getContentId(String filename)
     {
         long res = 0;
         Cursor cursor = null;
         String name = null;
         String src = "";
 
-        Log.d(packageTag, "getContentId: file name = " + fname);
+        Log.d(packageTag, "getContentId: file name = " + filename);
+
+        File f = new File(filename);
+        if( !f.exists() ) {
+            Log.w(packageTag, "getContentId: file does not exist in fs - " + filename);
+            return res;
+        }
+
+        String fname = f.getAbsolutePath();
+        try {
+            fname = f.getCanonicalPath();
+        } catch( Exception e ) {
+            Log.e(packageTag, "getContentId", e);
+        }
+
+        Log.d(packageTag, "getContentId: canonical file name = " + fname);
 
         try {
             if( fname.startsWith(m_extsd) ) {
@@ -57,16 +74,14 @@ public class SonyBookSelector
                     if( cursor.moveToFirst() ) {
                         res = cursor.getLong(cursor.getColumnIndex("_id"));
                         Log.w(packageTag, "getContentId: id = " + res);
-                    }
-                    else {
-                        Log.w(packageTag, "getContentId: file not found - " + fname);                    
+                    } else {
+                        Log.w(packageTag, "getContentId: file not found - " + fname);
                     }
                     cursor.close();
+                } else {
+                    Log.w(packageTag, "getContentId: file not found - " + fname);
                 }
-                else {
-                    Log.w(packageTag, "getContentId: file not found - " + fname);                    
-                }
-                    
+
             } else {
                 Log.w(packageTag, "getContentId: wrong file requested - " + fname);
             }

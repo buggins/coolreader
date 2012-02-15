@@ -40,6 +40,7 @@ import org.coolreader.donations.Consts.PurchaseState;
 import org.coolreader.donations.Consts.ResponseCode;
 import org.coolreader.donations.PurchaseObserver;
 import org.coolreader.donations.ResponseHandler;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -1039,6 +1040,18 @@ public class CoolReader extends Activity
 		
 		if (DeviceInfo.EINK_SCREEN) {
 			setScreenUpdateMode(props.getInt(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, 0), mReaderView);
+            if (DeviceInfo.EINK_SONY) {
+                SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+                String res = pref.getString(PREF_LAST_BOOK, null);
+                if( res != null && res.length() > 0 ) {
+                    SonyBookSelector selector = new SonyBookSelector(this);
+                    long l = selector.getContentId(res);
+                    if(l != 0) {
+                       selector.setReadingTime(l);
+                       selector.requestBookSelection(l);
+                    }
+                }
+            }
 		}
 		
 		backlightControl.onUserActivity();
@@ -1683,7 +1696,7 @@ public class CoolReader extends Activity
             vmargin = "8";
         } else {
         	fontSize = 32;
-            hmargin = "40";
+            hmargin = "25";
             vmargin = "15";
         }
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
