@@ -738,22 +738,25 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 epubItem->mediaType = mediaType;
                 epubItems.add( epubItem );
 
-                // register embedded document fonts
-                if (mediaType == L"application/vnd.ms-opentype"
-                        || mediaType == L"application/x-font-otf"
-                        || mediaType == L"application/x-font-ttf") { // TODO: more media types?
-                    // TODO:
-                    fontList.add(codeBase + href);
+//                // register embedded document fonts
+//                if (mediaType == L"application/vnd.ms-opentype"
+//                        || mediaType == L"application/x-font-otf"
+//                        || mediaType == L"application/x-font-ttf") { // TODO: more media types?
+//                    // TODO:
+//                    fontList.add(codeBase + href);
+//                }
+            }
+            if ( mediaType==L"text/css" ) {
+                lString16 name = LVCombinePaths(codeBase, href);
+                LVStreamRef cssStream = m_arc->OpenStream(name.c_str(), LVOM_READ);
+                if (!cssStream.isNull()) {
+                    lString8 cssFile = UnicodeToUtf8(LVReadTextFile(cssStream));
+                    lString16 base = name;
+                    LVExtractLastPathElement(base);
+                    //CRLog::trace("style: %s", cssFile.c_str());
+                    styleParser.parse(base, cssFile);
                 }
             }
-//            if ( mediaType==L"text/css" ) {
-//                lString16 name = codeBase + href;
-//                LVStreamRef cssStream = m_arc->OpenStream(name.c_str(), LVOM_READ);
-//                if ( !cssStream.isNull() ) {
-//                    css << L"\n";
-//                    css << LVReadTextFile( cssStream );
-//                }
-//            }
         }
 
         // spine == itemrefs
