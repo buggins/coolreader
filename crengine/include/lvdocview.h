@@ -49,6 +49,7 @@
 #define PROP_ROTATE_ANGLE            "window.rotate.angle"
 #endif
 #define PROP_EMBEDDED_STYLES         "crengine.doc.embedded.styles.enabled"
+#define PROP_EMBEDDED_FONTS          "crengine.doc.embedded.fonts.enabled"
 #define PROP_DISPLAY_INVERSE         "crengine.display.inverse"
 #define PROP_DISPLAY_FULL_UPDATE_INTERVAL "crengine.display.full.update.interval"
 #define PROP_DISPLAY_TURBO_UPDATE_MODE "crengine.display.turbo.update"
@@ -300,6 +301,8 @@ enum LVDocCmd
 
     // 136
     DCMD_SET_TEXT_FORMAT, // set text format, param=1 to autoformat, 0 for preformatted
+    // 137
+    DCMD_SET_DOC_FONTS, // set embedded fonts option (1=enabled, 0=disabled)
 
 
     //=======================================

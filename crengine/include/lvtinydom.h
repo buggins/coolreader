@@ -52,8 +52,10 @@
 #define DOC_FLAG_ENABLE_FOOTNOTES       2
 /// docFlag mask, enable paperbook-like footnotes
 #define DOC_FLAG_PREFORMATTED_TEXT      4
+/// docFlag mask, enable document embedded fonts (EPUB)
+#define DOC_FLAG_ENABLE_DOC_FONTS       8
 /// default docFlag set
-#define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES)
+#define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES|DOC_FLAG_ENABLE_DOC_FONTS)
 
 
 
@@ -507,6 +509,11 @@ public:
     inline int getDocIndex()
     {
         return _docIndex;
+    }
+
+    inline int getFontContextDocIndex()
+    {
+        return (_docFlags & DOC_FLAG_ENABLE_DOC_FONTS) ? _docIndex : -1;
     }
 
     void setDocFlags( lUInt32 value );

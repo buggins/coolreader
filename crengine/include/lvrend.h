@@ -21,7 +21,7 @@ bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 );
 /// removes format data from node
 void freeFormatData( ldomNode * node );
 /// returns best suitable font for style
-LVFontRef getFont( css_style_rec_t * style );
+LVFontRef getFont(css_style_rec_t * style, int documentId);
 /// initializes format data for node
 void initFormatData( ldomNode * node );
 /// initializes rendering method for node

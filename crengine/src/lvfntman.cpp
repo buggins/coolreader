@@ -27,7 +27,7 @@
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
 // DEBUG ONLY
-#if 0
+#if 1
 #define USE_FREETYPE 1
 #define USE_FONTCONFIG 1
 //#define DEBUG_FONT_SYNTHESIS 1
@@ -1807,7 +1807,7 @@ public:
         LVFontCacheItem * item = _cache.findFallback( _fallbackFontFace, size );
         if ( !item->getFont().isNull() )
             return item->getFont();
-        return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFace );
+        return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFace, -1);
     }
 
     bool isBitmapModeForSize( int size )
@@ -2156,7 +2156,7 @@ public:
         _cache.getFaceList( list );
     }
 
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
     #if (DEBUG_FONT_MAN==1)
         if ( _log ) {
@@ -2571,7 +2571,7 @@ public:
         filename << name;
         return filename;
     }
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface )
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
         LVFontDef * def = new LVFontDef( 
             lString8(),
@@ -2579,7 +2579,8 @@ public:
             weight,
             italic,
             family,
-            typeface
+            typeface,
+            documentId
         );
         //fprintf( _log, "GetFont: %s %d %s %s\n",
         //    typeface.c_str(),

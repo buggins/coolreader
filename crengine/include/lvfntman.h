@@ -311,7 +311,7 @@ public:
     /// garbage collector frees unused fonts
     virtual void gc() = 0;
     /// returns most similar font
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface ) = 0;
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId = -1) = 0;
     /// set fallback font face (returns true if specified font is found)
     virtual bool SetFallbackFontFace( lString8 face ) { return false; }
     /// get fallback font face (returns empty string if no fallback font is set)

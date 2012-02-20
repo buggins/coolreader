@@ -8298,7 +8298,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                     if ( !s.isNull() ) {
                         lUInt16 fntIndex = _fontMap.get( style );
                         if ( fntIndex==0 ) {
-                            LVFontRef fnt = getFont( s.get() );
+                            LVFontRef fnt = getFont(s.get(), getFontContextDocIndex());
                             fntIndex = _fonts.cache( fnt );
                             if ( fnt.isNull() ) {
                                 CRLog::error("font not found for style!");
@@ -10062,7 +10062,7 @@ bool ldomNode::initNodeFont()
             CRLog::error("style not found for index %d", style);
             s = getDocument()->_styles.get( style );
         }
-        LVFontRef fnt = ::getFont( s.get() );
+        LVFontRef fnt = ::getFont(s.get(), getDocument()->getFontContextDocIndex());
         fntIndex = getDocument()->_fonts.cache( fnt );
         if ( fnt.isNull() ) {
             CRLog::error("font not found for style!");

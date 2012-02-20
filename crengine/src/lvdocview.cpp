@@ -3923,6 +3923,8 @@ void LVDocView::createEmptyDocument() {
 			PROP_FOOTNOTES, true));
 	m_doc->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, m_props->getBoolDef(
 			PROP_EMBEDDED_STYLES, true));
+    m_doc->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, m_props->getBoolDef(
+            PROP_EMBEDDED_FONTS, true));
     m_doc->setMinSpaceCondensingPercent(m_props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, 50));
 
     m_doc->setContainer(m_container);
@@ -4962,6 +4964,12 @@ CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
 int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	CRLog::trace("doCommand(%d, %d)", (int)cmd, param);
 	switch (cmd) {
+    case DCMD_SET_DOC_FONTS:
+        CRLog::trace("DCMD_SET_DOC_FONTS(%d)", param);
+        m_props->setBool(PROP_EMBEDDED_FONTS, (param&1)!=0);
+        getDocument()->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, param!=0);
+        REQUEST_RENDER("doCommand-set embedded doc fonts")
+        break;
     case DCMD_SET_INTERNAL_STYLES:
         CRLog::trace("DCMD_SET_INTERNAL_STYLES(%d)", param);
         m_props->setBool(PROP_EMBEDDED_STYLES, (param&1)!=0);
@@ -5692,7 +5700,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			bool value = props->getBoolDef(PROP_EMBEDDED_STYLES, true);
 			getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, value);
             REQUEST_RENDER("propsApply embedded styles")
-		} else if (name == PROP_FOOTNOTES) {
+        } else if (name == PROP_EMBEDDED_FONTS) {
+            bool value = props->getBoolDef(PROP_EMBEDDED_FONTS, true);
+            getDocument()->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, value);
+            REQUEST_RENDER("propsApply doc fonts")
+        } else if (name == PROP_FOOTNOTES) {
 			bool value = props->getBoolDef(PROP_FOOTNOTES, true);
 			getDocument()->setDocFlag(DOC_FLAG_ENABLE_FOOTNOTES, value);
             REQUEST_RENDER("propsApply footnotes")

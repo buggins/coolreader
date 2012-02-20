@@ -829,7 +829,7 @@ int LVRendGetFontEmbolden()
     return rend_font_embolden;
 }
 
-LVFontRef getFont( css_style_rec_t * style )
+LVFontRef getFont(css_style_rec_t * style, int documentId)
 {
     int sz = style->font_size.value;
     if ( style->font_size.type != css_val_px && style->font_size.type != css_val_percent )
@@ -851,7 +851,8 @@ LVFontRef getFont( css_style_rec_t * style )
         fw,
         style->font_style==css_fs_italic,
         style->font_family,
-        lString8(style->font_name.c_str()) );
+        lString8(style->font_name.c_str()),
+        documentId);
     //fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
     return fnt;
 }
