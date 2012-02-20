@@ -2215,8 +2215,14 @@ private:
     ldomNode * baseElement;
     ldomNode * lastBaseElement;
 
+    lString8 headStyleText;
+    int headStyleState;
 
 public:
+
+    /// return content of html/head/style element
+    lString8 getHeadStyleText() { return headStyleText; }
+
     ldomNode * getBaseElement() { return lastBaseElement; }
 
     lString16 convertId( lString16 id );
@@ -2240,6 +2246,8 @@ public:
     virtual void OnStart(LVFileFormatParser *)
     {
         insideTag = false;
+        headStyleText.clear();
+        headStyleState = 0;
     }
     /// called on parsing end
     virtual void OnStop()
@@ -2265,6 +2273,10 @@ public:
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
     {
+        if (headStyleState == 1) {
+            headStyleText << UnicodeToUtf8(lString16(text));
+            return;
+        }
         if ( insideTag )
             parent->OnText( text, len, flags );
     }
@@ -2275,7 +2287,7 @@ public:
     /// constructor
     ldomDocumentFragmentWriter( LVXMLParserCallback * parentWriter, lString16 baseTagName, lString16 baseTagReplacementName, lString16 fragmentFilePath )
     : parent(parentWriter), baseTag(baseTagName), baseTagReplacement(baseTagReplacementName),
-    insideTag(false), styleDetectionState(0), pathSubstitutions(100), baseElement(NULL), lastBaseElement(NULL)
+    insideTag(false), styleDetectionState(0), pathSubstitutions(100), baseElement(NULL), lastBaseElement(NULL), headStyleState(0)
     {
         setCodeBase( fragmentFilePath );
     }

@@ -7246,6 +7246,8 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
     } else {
         if ( !lStr_cmp(tagname, L"link") )
             styleDetectionState = 1;
+        if ( !lStr_cmp(tagname, L"style") )
+            headStyleState = 1;
     }
     if ( !insideTag && baseTag==tagname ) {
         insideTag = true;
@@ -7268,7 +7270,7 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
 /// called on closing tag
 void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
 {
-    styleDetectionState = 0;
+    styleDetectionState = headStyleState = 0;
     if ( insideTag && baseTag==tagname ) {
         insideTag = false;
         if ( !baseTagReplacement.empty() ) {

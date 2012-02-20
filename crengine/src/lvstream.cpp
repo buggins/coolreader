@@ -3573,6 +3573,8 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
     if ( newPath[0]=='/' || newPath[0]=='\\' || (newPath.length()>0 && newPath[1]==':' && newPath[2]=='\\') )
         return newPath; // absolute path
     lChar16 separator = 0;
+    if (!basePath.empty())
+        LVAppendPathDelimiter(basePath);
     for ( unsigned i=0; i<basePath.length(); i++ ) {
         if ( basePath[i]=='/' || basePath[i]=='\\' ) {
             separator = basePath[i];
