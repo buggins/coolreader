@@ -1700,6 +1700,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_SHOW_PAGE_COUNT, "1"); 
 		props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
+		props.applyDefault(ReaderView.PROP_APP_GESTURE_PAGE_FLIPPING, "1");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
 		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "0"); // DeviceInfo.EINK_SCREEN ? "0" : "4"
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");

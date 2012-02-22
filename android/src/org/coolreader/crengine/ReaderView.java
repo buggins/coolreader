@@ -866,6 +866,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //	private int selectionEndX = 0;
 //	private int selectionEndY = 0;
 	private boolean doubleTapSelectionEnabled = false;
+	private boolean gesturePageFlippingEnabled = true;
 	private int secondaryTapActionType = TAP_ACTION_TYPE_LONGPRESS;
 	private boolean selectionModeActive = false;
 	
@@ -1458,9 +1459,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						// no animation
 						return performAction(dir < 0 ? ReaderAction.PAGE_DOWN : ReaderAction.PAGE_UP, false);
 					}
-					startAnimation(start_x, start_y, width, height);
-					updateAnimation(x, y);
-					state = STATE_FLIPPING;
+					if (gesturePageFlippingEnabled) {
+						startAnimation(start_x, start_y, width, height);
+						updateAnimation(x, y);
+						state = STATE_FLIPPING;
+					}
 					return true;
 				case STATE_FLIPPING:
 					updateAnimation(x, y);
@@ -2763,6 +2766,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	mActivity.setCurrentTheme(value);
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
+        } else if ( key.equals(PROP_APP_GESTURE_PAGE_FLIPPING) ) {
+        	gesturePageFlippingEnabled = flg;
         } else if ( key.equals(PROP_APP_SECONDARY_TAP_ACTION_TYPE) ) {
         	secondaryTapActionType = flg ? TAP_ACTION_TYPE_DOUBLE : TAP_ACTION_TYPE_LONGPRESS;
         } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
@@ -2879,6 +2884,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS.equals(key)
     				|| PROP_APP_SELECTION_ACTION.equals(key)
     				|| PROP_APP_FILE_BROWSER_SIMPLE_MODE.equals(key)
+    				|| PROP_APP_GESTURE_PAGE_FLIPPING.equals(key)
     				// TODO: redesign all this mess!
     				) {
     			newSettings.setProperty(key, value);

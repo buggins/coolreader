@@ -107,9 +107,10 @@ public interface Settings {
     public static final String PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS = "app.browser.hide.empty.folders";
     public static final String PROP_APP_FILE_BROWSER_SIMPLE_MODE = "app.browser.simple.mode";
 
-    public static final String PROP_APP_SCREEN_UPDATE_MODE  ="app.screen.update.mode";
-    public static final String PROP_APP_SCREEN_UPDATE_INTERVAL  ="app.screen.update.interval";
-    public static final String PROP_APP_SECONDARY_TAP_ACTION_TYPE  ="app.touch.secondary.action.type";
+    public static final String PROP_APP_SCREEN_UPDATE_MODE = "app.screen.update.mode";
+    public static final String PROP_APP_SCREEN_UPDATE_INTERVAL = "app.screen.update.interval";
+    public static final String PROP_APP_SECONDARY_TAP_ACTION_TYPE = "app.touch.secondary.action.type";
+    public static final String PROP_APP_GESTURE_PAGE_FLIPPING = "app.touch.gesture.page.flipping";
 
     public static final String PROP_APP_VIEW_AUTOSCROLL_SPEED  ="app.view.autoscroll.speed";
     public static final String PROP_APP_VIEW_AUTOSCROLL_TYPE  ="app.view.autoscroll.type";
