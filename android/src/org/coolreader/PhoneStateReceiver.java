@@ -1,0 +1,45 @@
+package org.coolreader;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+
+public class PhoneStateReceiver extends BroadcastReceiver {
+
+	public static class CustomPhoneStateListener extends PhoneStateListener {
+
+		@Override
+		public void onCallStateChanged(int state, String incomingNumber){
+		        Log.v("cr3", "onCallStateChange");
+		        switch(state){
+	                case TelephonyManager.CALL_STATE_RINGING:
+                        Log.d("cr3", "RINGING");
+                        if (onPhoneActivityStartedHandler != null)
+                        	onPhoneActivityStartedHandler.run();
+                        break;
+	                case TelephonyManager.CALL_STATE_OFFHOOK:
+                        Log.d("cr3", "OFFHOOK");
+                        if (onPhoneActivityStartedHandler != null)
+                        	onPhoneActivityStartedHandler.run();
+                        break;
+		        }       
+		}
+	}
+	
+	@Override
+	public void onReceive(Context context, Intent intent) {
+	    TelephonyManager telephony = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+        CustomPhoneStateListener customPhoneListener = new CustomPhoneStateListener();
+
+        telephony.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
+	}
+	
+	public static void setPhoneActivityHandler(Runnable handler) {
+		onPhoneActivityStartedHandler = handler;
+	}
+	private static Runnable onPhoneActivityStartedHandler;
+
+}

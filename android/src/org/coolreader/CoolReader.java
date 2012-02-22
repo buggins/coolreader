@@ -974,6 +974,7 @@ public class CoolReader extends Activity
 //		setScreenUpdateMode(-1, mReaderView);
 		releaseBacklightControl();
 		mReaderView.saveCurrentPositionBookmarkSync(true);
+		mReaderView.onAppPause();
 		super.onPause();
 	}
 	
@@ -1055,6 +1056,14 @@ public class CoolReader extends Activity
 		mPaused = false;
 		
 		backlightControl.onUserActivity();
+		
+		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
+			@Override
+			public void run() {
+				if (tts != null)
+					tts.stop();
+			}
+		});
 
 		// Donations support code
 		if (billingSupported)
