@@ -271,12 +271,12 @@ static lUInt64 calcHash64( const lUInt8 * s, int len )
     return hval;
 }
 
-lUInt32 calcGlobalSettingsHash()
+lUInt32 calcGlobalSettingsHash(int documentId)
 {
     lUInt32 hash = FORMATTING_VERSION_ID;
     if ( fontMan->getKerning() )
         hash += 127365;
-    hash = hash * 31 + fontMan->GetFontListHash();
+    hash = hash * 31 + fontMan->GetFontListHash(documentId);
     hash = hash * 31 + (int)fontMan->GetHintingMode();
     if ( LVRendGetFontEmbolden() )
         hash = hash * 75 + 2384761;
@@ -867,7 +867,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         }
     }
 
-#if 1
+#if 0
     if (existingblock)
         CRLog::trace("*    oldsz=%d oldhash=%08x", (int)existingblock->_uncompressedSize, (int)existingblock->_dataHash);
     CRLog::trace("* wr block t=%d[%d] sz=%d hash=%08x", type, dataIndex, size, newhash);
@@ -3184,7 +3184,7 @@ void ldomDocument::applyDocumentStyleSheet()
 
 int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
-    CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s", width, dy, def_font->getTypeFace().c_str() );
+    CRLog::info("Render is called for width %d, pageHeight=%d, fontFace=%s, docFlags=%d", width, dy, def_font->getTypeFace().c_str(), getDocFlags() );
     CRLog::trace("initializing default style...");
     //persist();
 //    {
@@ -8190,7 +8190,7 @@ lUInt32 tinyNodeCollection::calcStyleHash()
 //    int maxlog = 20;
     int count = ((_elemCount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
     lUInt32 res = 0; //_elemCount;
-    lUInt32 globalHash = calcGlobalSettingsHash();
+    lUInt32 globalHash = calcGlobalSettingsHash(getFontContextDocIndex());
     lUInt32 docFlags = getDocFlags();
     //CRLog::info("Calculating style hash...  elemCount=%d, globalHash=%08x, docFlags=%08x", _elemCount, globalHash, docFlags);
     for ( int i=0; i<count; i++ ) {

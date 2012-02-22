@@ -128,6 +128,10 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     optionToUi( PROP_SHOW_TIME, m_ui->cbShowClock );
     optionToUi( PROP_SHOW_TITLE, m_ui->cbShowBookName );
     optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
+    optionToUi( PROP_EMBEDDED_STYLES, m_ui->cbEnableDocumentStyles );
+    optionToUi( PROP_EMBEDDED_FONTS, m_ui->cbEnableEmbeddedFonts );
+    m_ui->cbEnableEmbeddedFonts->setEnabled(m_props->getBoolDef(PROP_EMBEDDED_STYLES, true) ? Qt::Checked : Qt::Unchecked);
+    optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUi( PROP_FLOATING_PUNCTUATION, m_ui->cbFloatingPunctuation );
 
     QString gamma = m_props->getStringDef(PROP_FONT_GAMMA, "");
@@ -970,4 +974,15 @@ void SettingsDlg::on_cbFallbackFontFace_currentIndexChanged(const QString &s)
         return;
     m_props->setString(PROP_FALLBACK_FONT_FACE, s);
     updateStyleSample();
+}
+
+void SettingsDlg::on_cbEnableEmbeddedFonts_toggled(bool checked)
+{
+    setCheck(PROP_EMBEDDED_FONTS, checked ? Qt::Checked : Qt::Unchecked);
+}
+
+void SettingsDlg::on_cbEnableDocumentStyles_toggled(bool checked)
+{
+    setCheck(PROP_EMBEDDED_STYLES, checked ? Qt::Checked : Qt::Unchecked);
+    m_ui->cbEnableEmbeddedFonts->setEnabled(checked);
 }

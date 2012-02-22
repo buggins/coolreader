@@ -412,10 +412,11 @@ public:
     LVFontCacheItem * findDuplicate( const LVFontDef * def );
     LVFontCacheItem * findDocumentFontDuplicate(int documentId, lString8 name);
     /// get hash of installed fonts and fallback font
-    virtual lUInt32 GetFontListHash() {
+    virtual lUInt32 GetFontListHash(int documentId) {
         lUInt32 hash = 0;
         for ( int i=0; i<_registered_list.length(); i++ ) {
-            if (_registered_list[i]->getDef()->getDocumentId() == -1) // skip document fonts
+            int doc = _registered_list[i]->getDef()->getDocumentId();
+            if (doc == -1 || doc == documentId) // skip document fonts
                 hash = hash + _registered_list[i]->getDef()->getHash();
         }
         return 0;
@@ -1775,7 +1776,7 @@ private:
 public:
 
     /// get hash of installed fonts and fallback font
-    virtual lUInt32 GetFontListHash() { return _cache.GetFontListHash() * 75 + _fallbackFontFace.getHash(); }
+    virtual lUInt32 GetFontListHash(int documentId) { return _cache.GetFontListHash(documentId) * 75 + _fallbackFontFace.getHash(); }
 
     /// set fallback font
     virtual bool SetFallbackFontFace( lString8 face ) {
@@ -2172,7 +2173,8 @@ public:
             italic,
             family,
             typeface,
-            -1
+            -1,
+            documentId
         );
     #if (DEBUG_FONT_MAN==1)
         if ( _log )
@@ -2898,6 +2900,8 @@ int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
 
 int LVFontDef::CalcMatch( const LVFontDef & def ) const
 {
+    if (_documentId != -1 && _documentId != def._documentId)
+        return 0;
     int size_match = (_size==-1 || def._size==-1) ? 256 
         : (def._size>_size ? _size*256/def._size : def._size*256/_size );
     int weight_diff = def._weight - _weight;

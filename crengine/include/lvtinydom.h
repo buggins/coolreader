@@ -513,7 +513,7 @@ public:
 
     inline int getFontContextDocIndex()
     {
-        return (_docFlags & DOC_FLAG_ENABLE_DOC_FONTS) ? _docIndex : -1;
+        return (_docFlags & DOC_FLAG_ENABLE_DOC_FONTS) && (_docFlags & DOC_FLAG_ENABLE_INTERNAL_STYLES) ? _docIndex : -1;
     }
 
     void setDocFlags( lUInt32 value );
