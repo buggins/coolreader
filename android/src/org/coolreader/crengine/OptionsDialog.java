@@ -368,6 +368,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	private static boolean showIcons = true;
 	private static boolean isTextFormat = false;
+	private static boolean isEpubFormat = false;
 	
 	class IconsBoolOption extends BoolOption {
 		public IconsBoolOption( OptionOwner owner, String label, String property ) {
@@ -1191,8 +1192,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOldProperties = new Properties(mProperties);
 		mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
 		mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
+		mProperties.setBool(PROP_EMBEDDED_FONTS, mReaderView.getDocumentFontsEnabled());
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
 		isTextFormat = readerView.isTextFormat();
+		isEpubFormat = readerView.isFormatWithEmbeddedFonts();
 	}
 	
 	class OptionsListView extends BaseListView {
@@ -1629,6 +1632,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		//mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
 		//mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
 		mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_book_styles_enable), PROP_EMBEDDED_STYLES).setDefaultValue("1").noIcon());
+		if (isEpubFormat) {
+			mOptionsCSS.add(new BoolOption(this, getString(R.string.options_font_embedded_document_font_enabled), PROP_EMBEDDED_FONTS).setDefaultValue("1").noIcon());
+		}
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
 		}
@@ -1827,6 +1833,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 		if (mProperties.getBool(PROP_EMBEDDED_STYLES, true) != mReaderView.getDocumentStylesEnabled()) {
 			mReaderView.toggleDocumentStyles();
+		}
+		if (mProperties.getBool(PROP_EMBEDDED_FONTS, true) != mReaderView.getDocumentFontsEnabled()) {
+			mReaderView.toggleEmbeddedFonts();
 		}
         mReaderView.setSettings(mProperties, mOldProperties);
 	}

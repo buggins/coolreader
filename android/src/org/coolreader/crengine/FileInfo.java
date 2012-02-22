@@ -60,6 +60,7 @@ public class FileInfo {
 	
 	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 	public static final int DONT_REFLOW_TXT_FILES_FLAG = 2;
+	public static final int DONT_USE_DOCUMENT_FONTS_FLAG = 4;
 
 	/**
 	 * To separate archive name from file name inside archive.

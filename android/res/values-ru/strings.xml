@@ -394,4 +394,6 @@
     <string name="mi_font_size_increase">Увеличить шрифт</string>
     <string name="mi_font_previous">Предыдущий шрифт</string>
     <string name="options_multi_selection_action">Действие для нескольких выделенных слов</string>
+    <string name="dlg_about_donation_total">Всего: </string>
+    <string name="options_font_embedded_document_font_enabled">Встроенные шрифты документа</string>
 </resources>

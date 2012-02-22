@@ -394,4 +394,6 @@
     <string name="mi_font_size_increase">Increase font size</string>
     <string name="mi_font_previous">Previous font</string>
     <string name="options_multi_selection_action">Multi Selection action</string>
+    <string name="option_controls_gesture_page_flipping_enabled">Gesture page flipping</string>
+    <string name="options_font_embedded_document_font_enabled">Document embedded fonts</string>
 </resources>

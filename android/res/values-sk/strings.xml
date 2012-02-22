@@ -391,4 +391,6 @@
     <string name="dlg_about_donation_inapp_purchase">Cool Reader je bezplatný a vždy aj ostane. Ak chcete podporiť vývoj tohto projektu, môžete si kúpiť balíček na podporu projektu z Android Marketu:</string>
     <string name="dlg_about_donation_total">Celková podpora od Vás:</string>
     <string name="options_multi_selection_action">Multi Selection action</string>
+    <string name="option_controls_gesture_page_flipping_enabled">Gesture page flipping</string>
+    <string name="options_font_embedded_document_font_enabled">Document embedded fonts</string>
 </resources>

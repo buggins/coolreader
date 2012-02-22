@@ -53,6 +53,11 @@ public:
     {
         return _ref->getIntDef(prop, defValue);
     }
+    virtual bool  getBoolDef( const char * prop, bool defValue )
+    {
+        return _ref->getBoolDef(prop, defValue);
+    }
+
     virtual void setHex( const char * propName, int value )
     {
         _ref->setHex( propName, value );

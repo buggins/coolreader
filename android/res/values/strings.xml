@@ -395,4 +395,6 @@
     <string name="mi_donation">Donate</string>
     <string name="dlg_about_donation_inapp_purchase">Cool Reader is free and will always be free. If you want to support development of this project, you can make donation using Android Market in-app purchase:</string>
     <string name="dlg_about_donation_total">Total donations from you:</string>
+    <string name="option_controls_gesture_page_flipping_enabled">Gesture page flipping</string>
+    <string name="options_font_embedded_document_font_enabled">Document embedded fonts</string>
 </resources>

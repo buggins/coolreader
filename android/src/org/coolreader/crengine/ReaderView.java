@@ -131,9 +131,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
     	DCMD_SET_TEXT_FORMAT(136),
 
-		DCMD_FONT_NEXT(137),
-		DCMD_FONT_PREVIOUS(138),
+    	DCMD_SET_DOC_FONTS(137),
+
         
+		
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
     	DCMD_CLOSE_BOOK(2001),
@@ -170,6 +171,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_START_SELECTION(2029),
     	DCMD_SWITCH_PROFILE(2030),
     	DCMD_TOGGLE_TEXT_AUTOFORMAT(2031),
+
+    	DCMD_FONT_NEXT(2032),
+		DCMD_FONT_PREVIOUS(2033),
     	;
     	
     	private final int nativeId;
@@ -1886,6 +1890,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
+	public void toggleEmbeddedFonts() {
+		if ( mOpened && mBookInfo!=null ) {
+			log.d("toggleEmbeddedFonts()");
+			boolean disableInternalFonts = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG);
+			disableInternalFonts = !disableInternalFonts;
+			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG, disableInternalFonts);
+            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, disableInternalFonts ? 0 : 1);
+            doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
+    		mActivity.getDB().save(mBookInfo);
+		}
+	}
+	
 	public boolean isTextAutoformatEnabled() {
 		if ( mOpened && mBookInfo!=null ) {
 			boolean disableTextReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
@@ -1898,6 +1914,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( mOpened && mBookInfo!=null ) {
 			DocumentFormat fmt = mBookInfo.getFileInfo().format;
 			return fmt == DocumentFormat.TXT || fmt == DocumentFormat.HTML || fmt == DocumentFormat.PDB;
+		}
+		return false;
+	}
+
+	public boolean isFormatWithEmbeddedFonts() {
+		if ( mOpened && mBookInfo!=null ) {
+			DocumentFormat fmt = mBookInfo.getFileInfo().format;
+			return fmt == DocumentFormat.EPUB;
 		}
 		return false;
 	}
@@ -1918,6 +1942,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public boolean getDocumentStylesEnabled() {
 		if ( mOpened && mBookInfo!=null ) {
 			boolean flg = !mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
+			return flg;
+		}
+		return true;
+	}
+	
+	public boolean getDocumentFontsEnabled() {
+		if ( mOpened && mBookInfo!=null ) {
+			boolean flg = !mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG);
 			return flg;
 		}
 		return true;
@@ -2623,6 +2655,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props = new Properties(props); // make a copy
 		props.remove(PROP_TXT_OPTION_PREFORMATTED);
 		props.remove(PROP_EMBEDDED_STYLES);
+		props.remove(PROP_EMBEDDED_FONTS);
 		BackgroundThread.ensureBackground();
 		log.v("applySettings()");
 		boolean isFullScreen = props.getBool(PROP_APP_FULLSCREEN, false );
