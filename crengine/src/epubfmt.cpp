@@ -485,7 +485,7 @@ public:
         //10,11: src:
         //   10   11    12   13
         //   src   :   url    (
-        CRLog::trace("state==%d: %c ", _state, token);
+        //CRLog::trace("state==%d: %c ", _state, token);
         switch (token) {
         case ':':
             if (_state < 2) {
@@ -538,7 +538,7 @@ public:
             return;
         lString8 t = token;
         token.clear();
-        CRLog::trace("state==%d: %s", _state, t.c_str());
+        //CRLog::trace("state==%d: %s", _state, t.c_str());
         if (t == "@font-face") {
             if (_state == 0)
                 _state = 1; // right after @font
@@ -574,7 +574,7 @@ public:
         }
     }
     void onQuotedText(lString8 & token) {
-        CRLog::trace("state==%d: \"%s\"", _state, token.c_str());
+        //CRLog::trace("state==%d: \"%s\"", _state, token.c_str());
         if (_state == 11 || _state == 13) {
             if (!token.empty()) {
                 _url = LVCombinePaths(_basePath, Utf8ToUnicode(token));
@@ -849,14 +849,6 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
     }
 
-    // TODO: fill font properties from CSS @font
-
-    if (!fontList.empty()) {
-        // set document font list, and register fonts
-        m_doc->getEmbeddedFontList().set(fontList);
-        m_doc->registerEmbeddedFonts();
-    }
-
     ldomDocument * ncxdoc = NULL;
     if ( !ncxHref.empty() ) {
         LVStreamRef stream = m_arc->OpenStream(ncxHref.c_str(), LVOM_READ);
@@ -878,6 +870,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     writer.OnTagClose(L"", L"body");
     writer.OnStop();
     CRLog::debug("EPUB: %d documents merged", fragmentCount);
+
+    if (!fontList.empty()) {
+        // set document font list, and register fonts
+        m_doc->getEmbeddedFontList().set(fontList);
+        m_doc->registerEmbeddedFonts();
+        m_doc->forceReinitStyles();
+    }
 
     if ( fragmentCount==0 )
         return false;

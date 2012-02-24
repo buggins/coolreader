@@ -1956,6 +1956,12 @@ protected:
 
 public:
 
+    void forceReinitStyles() {
+        dropStyles();
+        _hdr.render_style_hash = 0;
+        _rendered = false;
+    }
+
 #if BUILD_LITE!=1
     ListNumberingPropsRef getNodeNumberingProps( lUInt32 nodeDataIndex );
     void setNodeNumberingProps( lUInt32 nodeDataIndex, ListNumberingPropsRef v );

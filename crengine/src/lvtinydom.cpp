@@ -8799,12 +8799,17 @@ void ldomDocument::updateRenderContext()
 /// check document formatting parameters before render - whether we need to reformat; returns false if render is necessary
 bool ldomDocument::checkRenderContext()
 {
+    bool res = true;
+    ldomNode * node = getRootNode();
+    if (node != NULL && node->getFont().isNull()) {
+        CRLog::info("checkRenderContext: style is not set for root node");
+        res = false;
+    }
     int dx = _page_width;
     int dy = _page_height;
     lUInt32 styleHash = calcStyleHash();
     lUInt32 stylesheetHash = (((_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
     //calcStyleHash( getRootNode(), styleHash );
-    bool res = true;
     if ( styleHash != _hdr.render_style_hash ) {
         CRLog::info("checkRenderContext: Style hash doesn't match %x!=%x", styleHash, _hdr.render_style_hash);
         res = false;
@@ -10657,6 +10662,8 @@ LVImageSourceRef ldomNode::getObjectImageSource()
 /// register embedded document fonts in font manager, if any exist in document
 void ldomDocument::registerEmbeddedFonts()
 {
+    if (_fontList.empty())
+        return;
     for (int i=0; i<_fontList.length(); i++) {
         LVEmbeddedFontDef * item =  _fontList.get(i);
         if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
