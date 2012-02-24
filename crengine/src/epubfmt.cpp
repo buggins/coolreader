@@ -467,6 +467,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
     return coverPageImageStream;
 }
 
+
 class EmbeddedFontStyleParser {
     LVEmbeddedFontList & _fontList;
     lString16 _basePath;
@@ -484,21 +485,21 @@ public:
         //10,11: src:
         //   10   11    12   13
         //   src   :   url    (
-        //CRLog::trace("state==%d: %c ", _state, token);
+        CRLog::trace("state==%d: %c ", _state, token);
         switch (token) {
         case ':':
             if (_state < 2) {
                 _state = 0;
             } else if (_state == 4 || _state == 6 || _state == 8 || _state == 10) {
                 _state++;
-            } else {
+            } else if (_state != 3) {
                 _state = 2;
             }
             break;
         case ';':
             if (_state < 2) {
                 _state = 0;
-            } else {
+            } else if (_state != 3) {
                 _state = 2;
             }
             break;
@@ -526,7 +527,7 @@ public:
             if (_state == 12) {
                 _state = 13;
             } else {
-                if (_state > 2)
+                if (_state > 3)
                     _state = 2;
             }
             break;
@@ -537,7 +538,7 @@ public:
             return;
         lString8 t = token;
         token.clear();
-        //CRLog::trace("state==%d: %s", _state, t.c_str());
+        CRLog::trace("state==%d: %s", _state, t.c_str());
         if (t == "@font-face") {
             if (_state == 0)
                 _state = 1; // right after @font
@@ -573,7 +574,7 @@ public:
         }
     }
     void onQuotedText(lString8 & token) {
-        //CRLog::trace("state==%d: \"%s\"", _state, token.c_str());
+        CRLog::trace("state==%d: \"%s\"", _state, token.c_str());
         if (_state == 11 || _state == 13) {
             if (!token.empty()) {
                 _url = LVCombinePaths(_basePath, Utf8ToUnicode(token));
@@ -602,14 +603,16 @@ public:
                     if (_state == 13)
                         onToken(ch);
                 } else {
-                    if (ch != ' ' || _state != 13)
+                    if (_state == 13 && token.empty() && (ch == '\'' || ch=='\"')) {
+                        insideQuotes = ch;
+                    } else if (ch != ' ' || _state != 13)
                         token << ch;
                 }
                 continue;
             }
             if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
                 onToken(token);
-            } else if (ch == '@' || ch=='-' || ch>='a' && ch <='z' || ch>='A' && ch <='Z') {
+            } else if (ch == '@' || ch=='-' || ch=='_' || ch=='.' || ch>='a' && ch <='z' || ch>='A' && ch <='Z' || ch>='0' && ch <='9') {
                 token << ch;
             } else if (ch == ':' || ch=='{' || ch == '}' || ch=='(' || ch == ')' || ch == ';') {
                 onToken(token);
@@ -753,7 +756,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     lString8 cssFile = UnicodeToUtf8(LVReadTextFile(cssStream));
                     lString16 base = name;
                     LVExtractLastPathElement(base);
-                    //CRLog::trace("style: %s", cssFile.c_str());
+                    CRLog::trace("style: %s", cssFile.c_str());
                     styleParser.parse(base, cssFile);
                 }
             }

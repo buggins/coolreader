@@ -13,7 +13,7 @@
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.04.32"
+#define CACHE_FILE_FORMAT_VERSION "3.04.33"
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x0003
 
@@ -10645,7 +10645,9 @@ void ldomDocument::registerEmbeddedFonts()
 {
     for (int i=0; i<_fontList.length(); i++) {
         LVEmbeddedFontDef * item =  _fontList.get(i);
-        fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic());
+        if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
+            CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
+        }
     }
 }
 
