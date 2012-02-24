@@ -1868,7 +1868,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					String chapter = bm.getTitleText();
 					if (chapter!=null && chapter.length()>100)
 						chapter = chapter.substring(0, 100) + "...";
-					if (chapter!=null)
+					if (chapter != null && chapter.length() > 0)
 			 			buf.append("\n" + chapter);
 				}
 			}
