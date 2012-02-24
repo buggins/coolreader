@@ -1020,7 +1020,7 @@ public class FileBrowser extends LinearLayout {
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 						if (field2 != null) {
 							Bookmark pos = mHistory.getLastPos(item);
-							if ( pos!=null ) {
+							if ( pos!=null && pos.getPercent() > 0 && pos.getTimeStamp() > 0) {
 								field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
 							} else {
 								field2.setText("");
