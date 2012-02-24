@@ -1905,7 +1905,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			boolean disableInternalFonts = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG);
 			disableInternalFonts = !disableInternalFonts;
 			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG, disableInternalFonts);
-            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, disableInternalFonts ? 0 : 1);
+            doEngineCommand( ReaderCommand.DCMD_SET_DOC_FONTS, disableInternalFonts ? 0 : 1);
             doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
     		mActivity.getDB().save(mBookInfo);
 		}
