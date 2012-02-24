@@ -5004,20 +5004,28 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
             // element of type 'name' with 'index'        /elemname[N]/
             {
                 lUInt16 id = getElementNameIndex( name.c_str() );
-                ldomNode * foundItem = NULL;
-                int foundCount = 0;
-                for (unsigned i=0; i<currNode->getChildCount(); i++) {
-                    ldomNode * p = currNode->getChildNode(i);
-                    //CRLog::trace( "        node[%d] = %d %s", i, p->getNodeId(), LCSTR(p->getNodeName()) );
-                    if ( p && p->isElement() && p->getNodeId()==id ) {
-                        foundCount++;
-                        if ( foundCount==index || index==-1 ) {
-                            foundItem = p;
-                            break; // DON'T CHECK WHETHER OTHER ELEMENTS EXIST
-                        }
-                    }
+                ldomNode * foundItem = currNode->findChildElement(LXML_NS_ANY, id, index > 0 ? index - 1 : -1);
+                if (foundItem == NULL && currNode->getChildCount() == 1) {
+                    // make saved pointers work properly even after moving of some part of path one element deeper
+                    foundItem = currNode->getChildNode(0)->findChildElement(LXML_NS_ANY, id, index > 0 ? index - 1 : -1);
                 }
-                if ( foundItem==NULL || (index==-1 && foundCount>1) ) {
+//                int foundCount = 0;
+//                for (unsigned i=0; i<currNode->getChildCount(); i++) {
+//                    ldomNode * p = currNode->getChildNode(i);
+//                    //CRLog::trace( "        node[%d] = %d %s", i, p->getNodeId(), LCSTR(p->getNodeName()) );
+//                    if ( p && p->isElement() && p->getNodeId()==id ) {
+//                        foundCount++;
+//                        if ( foundCount==index || index==-1 ) {
+//                            foundItem = p;
+//                            break; // DON'T CHECK WHETHER OTHER ELEMENTS EXIST
+//                        }
+//                    }
+//                }
+//                if ( foundItem==NULL || (index==-1 && foundCount>1) ) {
+//                    //CRLog::trace("    Element %d is not found. foundCount=%d", id, foundCount);
+//                    return ldomXPointer(); // node not found
+//                }
+                if (foundItem == NULL) {
                     //CRLog::trace("    Element %d is not found. foundCount=%d", id, foundCount);
                     return ldomXPointer(); // node not found
                 }
@@ -7261,6 +7269,9 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
             if ( !codeBasePrefix.empty() )
                 parent->OnAttribute(L"", L"id", codeBasePrefix.c_str() );
             parent->OnTagBody();
+            // add base tag, too (e.g., in CSS, styles are often defined for body tag"
+            parent->OnTagOpen(L"", baseTag.c_str());
+            parent->OnTagBody();
             return baseElement;
         }
     }
@@ -7274,6 +7285,7 @@ void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar
     if ( insideTag && baseTag==tagname ) {
         insideTag = false;
         if ( !baseTagReplacement.empty() ) {
+            parent->OnTagClose(L"", baseTag.c_str());
             parent->OnTagClose(L"", baseTagReplacement.c_str());
         }
         baseElement = NULL;
@@ -10371,12 +10383,14 @@ ldomNode * ldomNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
             continue;
         if ( p->getNodeId() == id && ( (p->getNodeNsId() == nsid) || (nsid==LXML_NS_ANY) ) )
         {
-            if ( k==index || index==-1 )
+            if ( k==index || index==-1 ) {
                 res = p;
+                break;
+            }
             k++;
         }
     }
-    if ( !res || (index==-1 && k>1) )
+    if (!res) //  || (index==-1 && k>1)  // DON'T CHECK WHETHER OTHER ELEMENTS EXIST
         return NULL;
     return res;
 }
