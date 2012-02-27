@@ -15,6 +15,7 @@ import org.coolreader.R;
 import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
+import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -693,6 +694,10 @@ public class FileBrowser extends LinearLayout {
 
 					@Override
 					public void onDownloadEnd(String type, String url, File file) {
+                        if (DeviceInfo.EINK_SONY) {
+                            SonyBookSelector selector = new SonyBookSelector(mActivity);
+                            selector.notifyScanner(file.getAbsolutePath());
+                        }
 						mEngine.hideProgress();
 						//mActivity.showToast("Download is finished");
 						FileInfo fi = new FileInfo(file);

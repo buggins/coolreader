@@ -5,15 +5,15 @@
 package org.koekak.android.ebookdownloader;
 
 import java.io.File;
+import java.lang.reflect.*;
 
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
-
-//import android.os.Environment;
 
 /**
  * @author Michael Berganovsky [mike0berg at gmail.com]
@@ -21,12 +21,36 @@ import android.util.Log;
 
 public class SonyBookSelector
 {
-
     public final static String  packageTag = "SonyBookSelector";
 
     private Activity            m_activity;
-    private final static String m_extsd    = "/mnt/extsd";      // Environment.getExternalExtSDStorageDirectory().getPath()
-    private final static String m_sdcard   = "/mnt/sdcard";     // Environment.getExternalSDStorageDirectory().getPath()
+    
+    final private static String m_extsd    = getExtSDDir();
+    final private static String m_sdcard   = getSDDir();
+
+    private static String getExtSDDir()
+    {
+        try {
+            Method getExternalExtSDStorageDirectory = Class.forName("android.os.Environment").getMethod("getExternalExtSDStorageDirectory", (Class[])null);
+            File dir = (File)getExternalExtSDStorageDirectory.invoke(null,(Object[])null);
+            return dir.getPath();
+        } catch(Exception e) {
+            Log.e(packageTag, "getExtSDDir", e);
+        }
+        return "/mnt/extsd"; 
+    }
+    
+    private static String getSDDir()
+    {
+        try {
+            Method getExternalSDStorageDirectory = Class.forName("android.os.Environment").getMethod("getExternalSDStorageDirectory", (Class[])null);
+            File dir = (File)getExternalSDStorageDirectory.invoke(null,(Object[])null);
+            return dir.getPath();
+        } catch(Exception e) {
+            Log.e(packageTag, "getSDDir", e);
+        }
+        return "/mnt/sdcard"; 
+    }
 
     public SonyBookSelector(Activity activity)
     {
@@ -75,13 +99,12 @@ public class SonyBookSelector
                         res = cursor.getLong(cursor.getColumnIndex("_id"));
                         Log.w(packageTag, "getContentId: id = " + res);
                     } else {
-                        Log.w(packageTag, "getContentId: file not found - " + fname);
+                        Log.w(packageTag, "getContentId: database error - " + fname);
                     }
                     cursor.close();
                 } else {
-                    Log.w(packageTag, "getContentId: file not found - " + fname);
+                    Log.w(packageTag, "getContentId: database error - " + fname);
                 }
-
             } else {
                 Log.w(packageTag, "getContentId: wrong file requested - " + fname);
             }
@@ -92,6 +115,26 @@ public class SonyBookSelector
             Log.e(packageTag, "getContentId", e);
         }
         return res;
+    }
+
+    public void notifyScanner(String filename)
+    {
+        File f = new File(filename);
+        if( f.exists() ) {
+            String fname = f.getAbsolutePath();
+            try {
+                fname = f.getCanonicalPath();
+            } catch( Exception e ) {
+                Log.e(packageTag, "notifyScanner", e);
+            }
+            Intent intent = new Intent("com.sony.drbd.ebook.mediascanner.MediaScannerService");
+            Bundle bundle = new Bundle();
+            bundle.putString("file_path", fname);
+            // bundle.putString("mime_type", "");
+            intent.putExtras(bundle);
+            m_activity.startService(intent);
+            Log.d(packageTag, "notifyScanner: " + fname);
+        }
     }
 
     public void setReadingTime(long id)

@@ -1,7 +1,9 @@
 package org.coolreader.crengine;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.ListView;
 
 public class BaseListView  extends ListView {
@@ -12,7 +14,7 @@ public class BaseListView  extends ListView {
 	}
 
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
         int dir = 0;
         if (keyCode == 0)
             keyCode = event.getScanCode();
@@ -27,14 +29,31 @@ public class BaseListView  extends ListView {
             if (keyCode == ReaderView.NOOK_KEY_PREV_RIGHT || keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == ReaderView.NOOK_KEY_SHIFT_UP)
                 dir = -1;
         }
-        if (dir != 0) {
-            int willFit = getChildCount();
-            int currentPos = getFirstVisiblePosition();
-            int nextPos = ( dir > 0 ) ? Math.min(currentPos + willFit, getCount() - 1) : Math.max(0, currentPos - willFit);
+        if (dir != 0) {            
+            int firstPos = getFirstVisiblePosition();
+            int lastPos  = getLastVisiblePosition();
+            int count    = getCount();
+            
+            int delta = 1;
+            if( dir < 0 ) {
+                View v = getChildAt(0);
+                if( v != null ) {
+                    int fh = v.getHeight();
+                    Rect r = new Rect(0,0,v.getWidth(),fh);
+                    getChildVisibleRect(v, r, null);
+                    delta = (r.height() < fh) ? 1 : 0;
+                }
+            }
+                      
+            int nextPos = ( dir > 0 ) ? Math.min(lastPos, count - 1) : Math.max(0, firstPos - (lastPos - firstPos) + delta);
+            
+            // Log.w("CoolReader", "first =" + firstPos + " last = " + lastPos + " next = " + nextPos + " count = " + count);
+            
             setSelection(nextPos);  
-            clearFocus();       
+            clearFocus();
+            
             return true;
         }
         return super.onKeyDown(keyCode, event);
-	}
+    }
 }
