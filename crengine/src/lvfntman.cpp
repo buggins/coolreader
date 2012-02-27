@@ -190,6 +190,7 @@ bool LVEmbeddedFontList::add(lString16 url, lString8 face, bool bold, bool itali
     }
     def = new LVEmbeddedFontDef(url, face, bold, italic);
     add(def);
+	return false;
 }
 
 bool LVEmbeddedFontList::serialize(SerialBuf & buf) {
