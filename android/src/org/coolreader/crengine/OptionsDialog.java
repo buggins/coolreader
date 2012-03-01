@@ -516,6 +516,17 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 	}
 	
+	class LangOption extends ListOption {
+		public LangOption(OptionOwner owner) {
+			super(owner, getString(R.string.options_app_locale), PROP_APP_LOCALE);
+			for (Lang lang : Lang.values()) {
+				add(lang.code, getString(lang.nameId));
+			}
+			if ( mProperties.getProperty(property)==null )
+				mProperties.setProperty(property, Lang.DEFAULT.code);
+		}
+	}
+
 	class ActionOption extends ListOption {
 		public ActionOption( OptionOwner owner, String label, String property, boolean isTap, boolean allowRepeat ) {
 			super(owner, label, property);
@@ -1730,6 +1741,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
 		
 		mOptionsApplication = new OptionsListView(getContext());
+		mOptionsApplication.add(new LangOption(this).noIcon());
 		if ( !DeviceInfo.FORCE_LIGHT_THEME ) {
 			mOptionsApplication.add(new ThemeOptions(this, getString(R.string.options_app_ui_theme)).noIcon());
 		}

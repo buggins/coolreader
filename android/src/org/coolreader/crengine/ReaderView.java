@@ -2741,6 +2741,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		boolean flg = "1".equals(value);
         if ( key.equals(PROP_APP_FULLSCREEN) ) {
 			this.mActivity.setFullscreen( "1".equals(value) );
+        } else if ( key.equals(PROP_APP_LOCALE) ) {
+			mActivity.setLanguage(value);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
 			mActivity.getHistory().setCoverPagesEnabled(flg);
         } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {

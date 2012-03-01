@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import org.coolreader.R;
+
 public interface Settings {
     public static final String PROP_PAGE_BACKGROUND_IMAGE       ="background.image";
     public static final String PROP_PAGE_BACKGROUND_IMAGE_DAY   ="background.image.day";
@@ -118,6 +120,8 @@ public interface Settings {
     public static final String PROP_APP_THEME  ="app.ui.theme";
     public static final String PROP_APP_THEME_DAY  ="app.ui.theme.day";
     public static final String PROP_APP_THEME_NIGHT  ="app.ui.theme.night";
+
+    public static final String PROP_APP_LOCALE = "app.locale.name";
     
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;
@@ -136,6 +140,39 @@ public interface Settings {
     public static final int BACKLIGHT_CONTROL_FLICK_LEFT = 1;
     public static final int BACKLIGHT_CONTROL_FLICK_RIGHT = 2;
 
+    public enum Lang {
+    	DEFAULT("system", R.string.options_app_locale_system),
+    	EN("en", R.string.options_app_locale_en),
+    	DE("de", R.string.options_app_locale_de),
+    	ES("es", R.string.options_app_locale_es),
+    	RU("ru", R.string.options_app_locale_ru),
+    	UK("uk", R.string.options_app_locale_uk),
+    	BG("bg", R.string.options_app_locale_bg),
+    	SK("sk", R.string.options_app_locale_sk),
+    	TR("tr", R.string.options_app_locale_tr),
+    	LT("lt", R.string.options_app_locale_lt),
+    	IT("it", R.string.options_app_locale_it),
+    	HU("hu", R.string.options_app_locale_hu),
+    	NL("nl", R.string.options_app_locale_nl),
+    	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn),
+    	;
+    	
+    	static public Lang byCode(String code) {
+    		for (Lang lang : values())
+    			if (lang.code.equals(code))
+    				return lang;
+    		return DEFAULT;
+    	}
+    	
+    	private Lang(String code, int nameResId) {
+    		this.code = code;
+    		nameId = nameResId;
+    	}
+    	public final String code;
+    	public final int nameId;
+    };
+    
+    
 	public final static int MAX_PROFILES = 6;
 
 	// settings which depend on profile

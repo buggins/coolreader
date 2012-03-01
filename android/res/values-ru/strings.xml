@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Найти</string>
@@ -396,4 +396,6 @@
     <string name="options_multi_selection_action">Действие для нескольких выделенных слов</string>
     <string name="dlg_about_donation_total">Всего: </string>
     <string name="options_font_embedded_document_font_enabled">Встроенные шрифты документа</string>
+    <string name="options_app_locale_system">Системный</string>
+    <string name="options_app_locale">язык интерфейса</string>
 </resources>

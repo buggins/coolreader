@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Търсене</string>
@@ -396,4 +396,6 @@
     <string name="options_multi_selection_action">Multi Selection action</string>
     <string name="option_controls_gesture_page_flipping_enabled">Gesture page flipping</string>
     <string name="options_font_embedded_document_font_enabled">Document embedded fonts</string>
+    <string name="options_app_locale_system">System</string>
+    <string name="options_app_locale">Interface language</string>
 </resources>

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
+import java.util.Locale;
 
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
@@ -28,6 +29,7 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Settings;
+import org.coolreader.crengine.Settings.Lang;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.ToastView;
@@ -58,6 +60,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
@@ -588,7 +591,9 @@ public class CoolReader extends Activity
 		// load settings
 		Properties props = loadSettings();
 		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 		setCurrentTheme(theme);
+		setLanguage(lang);
     	
 		mFrame = new FrameLayout(this);
 		mBackgroundThread.setGUI(mFrame);
@@ -1651,6 +1656,8 @@ public class CoolReader extends Activity
         } else {
     		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
         }
+
+        props.applyDefault(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
         
         props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
         props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
@@ -2097,6 +2104,25 @@ public class CoolReader extends Activity
 		dlg.show();
 	}
 
+	public void setLanguage(String lang) {
+		setLanguage(Lang.byCode(lang));
+	}
+	
+	public void setLanguage(Lang lang) {
+		try {
+			Resources res = getResources();
+		    // Change locale settings in the app.
+		    DisplayMetrics dm = res.getDisplayMetrics();
+		    android.content.res.Configuration conf = res.getConfiguration();
+		    conf.locale = (lang == Lang.DEFAULT) ? defaultLocale : new Locale(lang.code);
+		    res.updateConfiguration(conf, dm);
+		} catch (Exception e) {
+			log.e("error while setting locale " + lang, e);
+		}
+	}
+	
+	private static final Locale defaultLocale = Locale.getDefault();
+	
 	//==============================================================
 	// 
 	// Donations related code
