@@ -397,5 +397,5 @@
     <string name="dlg_about_donation_total">Всего: </string>
     <string name="options_font_embedded_document_font_enabled">Встроенные шрифты документа</string>
     <string name="options_app_locale_system">Системный</string>
-    <string name="options_app_locale">язык интерфейса</string>
+    <string name="options_app_locale">Язык интерфейса</string>
 </resources>
