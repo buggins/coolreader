@@ -85,13 +85,17 @@ public class HelpFileGenerator {
 	}
 	
 	private static MacroInfo detectMacro(String s, int start) {
-		if (start + 11 < s.length())
+		if (start + 11 > s.length())
 			return null;
 		if (s.charAt(start + 0) != '<' 
 			|| s.charAt(start + 1) != '!'
-			|| s.charAt(start + 2) != '-'
+			)
+			return null;
+		if (s.charAt(start + 2) != '-'
 			|| s.charAt(start + 3) != '-'
-			|| s.charAt(start + 4) != 'c'
+			)
+			return null;
+		if (s.charAt(start + 4) != 'c'
      		|| s.charAt(start + 5) != 'r'
 			|| s.charAt(start + 6) != '3'
 			|| s.charAt(start + 7) != ':'
@@ -145,14 +149,33 @@ public class HelpFileGenerator {
 		return "1".equals(prop);
 	}
 
+	private static class ImageRes {
+		public String name;
+		public int resourceId;
+		ImageRes(String name, int resourceId) {
+			this.name = name;
+			this.resourceId = resourceId;
+		}
+	}
+	private static final ImageRes[] images = {
+		new ImageRes("cr3_logo", R.drawable.cr3_logo),
+		new ImageRes("open_file", R.drawable.ic_menu_archive),
+		new ImageRes("goto", R.drawable.ic_menu_goto),
+		new ImageRes("bookmarks", R.drawable.ic_menu_mark),
+		new ImageRes("select", android.R.drawable.ic_menu_edit),
+		new ImageRes("options", android.R.drawable.ic_menu_preferences),
+		new ImageRes("search", android.R.drawable.ic_menu_search),
+	};
+	
 	private static int findImageResIdByName(String name) {
-		if ("cr3_logo".equals(name))
-			return R.drawable.cr3_logo;
-		// TODO: more image resources to support
+		for (ImageRes image : images) {
+			if (image.name.equalsIgnoreCase(name))
+				return image.resourceId;
+		}
 		return 0;
 	}
 	
-	private static final byte ENCODE[] = {
+	private static final char ENCODE[] = {
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
         'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
         'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
@@ -167,6 +190,8 @@ public class HelpFileGenerator {
             buf.append(ENCODE[(v >> 12) & 0x3f]);
             buf.append(ENCODE[(v >> 6) & 0x3f]);
             buf.append(ENCODE[v & 0x3f]);
+            if (i / 3 % 16 == 15)
+            	buf.append("\n");
 		}
 		int tail = data.length - i;
 		if (tail == 1) {
@@ -196,6 +221,22 @@ public class HelpFileGenerator {
 		encodeImage(binBuf, data);
 		binBuf.append("</binary>");
 		return true;
+	}
+	
+	private String getActionName(String actionId) {
+		ReaderAction a = ReaderAction.findById(actionId);
+		return context.getString(a.nameId);
+	}
+	
+	private String getSettingValueName(String name) {
+		String v = settings.getProperty(name);
+		if (v == null || v.length() == 0)
+			return null;
+		if (name.startsWith(Settings.PROP_APP_TAP_ZONE_ACTIONS_TAP))
+			return getActionName(v);
+		if (name.startsWith(Settings.PROP_APP_KEY_ACTIONS_PRESS))
+			return getActionName(v);
+		return v;
 	}
 	
 	private String filterTemplate(String template) {
@@ -235,7 +276,9 @@ public class HelpFileGenerator {
 				case SETTING:
 					if (ifState) {
 						// TODO: show param value name here
-						buf.append(macro.param1 + "=" + settings.getProperty(macro.param1));
+						String value = getSettingValueName(macro.param1);
+						if (value != null)
+							buf.append(getSettingValueName(macro.param1));
 					}
 					break;
 				}

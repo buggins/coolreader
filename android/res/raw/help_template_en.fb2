@@ -7,31 +7,62 @@
 		</title-info>
 	</description>
 	<body>
-		<!--cr3:image cr3_logo-->
 		<title>
-			<p>Welcome to Cool Reader</p>
+			<p>Welcome to Cool Reader<br/><!--cr3:image cr3_logo--></p>
 		</title>
 		<section>
 			<title>
 				<p>Navigation while reading</p>
 			</title>
-			<p>You can move to next / previous page using several methods</p>
+			<p>You can move to next / previous page using several methods:</p>
 			<ul>
 				<li>Touch screen: flick right to left for next page, left to right for previous</li>
 				<li>Touch screen: tap right side of screen for next page, left side for previous page</li>
-				<li>Turn pages using Volume keys</li>
-				<li>Turn pages using hardware joystick or navigation keys</li>
-				<li>Turn pages using hardware joystick or navigation keys</li>
+				<!--cr3:if app.controls.volume.keys.enabled--><li>Turn pages using Volume keys</li><!--cr3:endif-->
+				<li>Using hardware joystick or navigation keys</li>
+				<!--cr3:if app.trackball.disabled--><li>Turn pages using hardware joystick or navigation keys</li><!--cr3:endif-->
 			</ul>
 			<p>To navigate by link, long tap on link. To return back, press Back key or tap top left corner of screen</p>
 		</section>
 		<section>
 			<title>
-				<p>Accessing menu</p>
+				<p>Menu</p>
 			</title>
+			<p>To access menu:</p>
 			<ul>
 				<li>Keys: short press menu key</li>
 				<li>Touch screen: tap center of screen</li>
+			</ul>
+			<p>Menu items:</p>
+			<ul>
+				<li><!--cr3:image open_file--> Open file using file browser</li>
+				<li><!--cr3:image goto--> Go to... submenu:</li>
+				<ul>
+					<li>Page number...</li>
+					<li>Position percent...</li>
+					<li>Toggle automatic page flip</li>
+					<li>Table if contents</li>
+					<li>Back in navigation history</li>
+					<li>Forward in navigation history</li>
+					<li>Open previous book</li>
+				</ul>
+				<li><!--cr3:image bookmarks--> Bookmarks</li>
+				<li><!--cr3:image select--> Select text</li>
+				<li><!--cr3:image options--> Options</li>
+				<li><!--cr3:image search--> Search text</li>
+				<li>More items submenu:</li>
+				<ul>
+					<li>Toggle day / night mode</li>
+					<li>Toggle document styles</li>
+					<li>Toggle text autoformat (for TXT files)</li>
+					<li>Read aloud (text-to-speech)</li>
+					<li>Open previous book</li>
+					<li>Toggle automatic page flipping</li>
+					<li>Exit program</li>
+					<li>About Cool Reader</li>
+					<li>About current book</li>
+					<li>Show user manual</li>
+				</ul>
 			</ul>
 		</section>
 		<section>
@@ -43,6 +74,32 @@
 				<li>Touch screen: long tap center of screen</li>
 				<li>Main menu: select Options item from main menu</li>
 			</ul>
+		</section>
+		<section>
+			<title>
+				<p>Tap zones</p>
+			</title>
+			<p>Screen is divided into grid 3x3 cells called tap zones.</p>
+			<p>You can two actions for each tap zone, for short tap (primary action) and <!--cr3:if app.touch.secondary.action.type=0-->long<!--cr3:else-->double<!--cr3:endif--> tap (secondary action).</p>
+			<p>Type of secondary action can be selected as long tap or double tap.</p>
+			<p>Currently selected actions (<b>primary</b> / secondary):</p>
+			<table><col width="30%"/><col width="30%"/><col width="30%"/>
+			<tr>
+				<td><b><!--cr3:setting app.tapzone.action.tap.1--></b><br/><!--cr3:setting app.tapzone.action.tap.long.1--></td>
+				<td><b><!--cr3:setting app.tapzone.action.tap.2--></b><br/><!--cr3:setting app.tapzone.action.tap.long.2--></td>
+				<td><b><!--cr3:setting app.tapzone.action.tap.3--></b><br/><!--cr3:setting app.tapzone.action.tap.long.3--></td>
+			</tr>
+			<tr>
+				<td><b><!--cr3:setting app.tapzone.action.tap.4--></b><br/><!--cr3:setting app.tapzone.action.tap.long.4--></td>
+				<td><b><!--cr3:setting app.tapzone.action.tap.5--></b><br/><!--cr3:setting app.tapzone.action.tap.long.5--></td>
+				<td><b><!--cr3:setting app.tapzone.action.tap.6--></b><br/><!--cr3:setting app.tapzone.action.tap.long.6--></td>
+			</tr>
+			<tr>
+				<td><b><!--cr3:setting app.tapzone.action.tap.7--></b><br/><!--cr3:setting app.tapzone.action.tap.long.7--></td>
+				<td><b><!--cr3:setting app.tapzone.action.tap.8--></b><br/><!--cr3:setting app.tapzone.action.tap.long.8--></td>
+				<td><b><!--cr3:setting app.tapzone.action.tap.9--></b><br/><!--cr3:setting app.tapzone.action.tap.long.9--></td>
+			</tr>
+			</table>
 		</section>
 	</body>
 </FictionBook>
