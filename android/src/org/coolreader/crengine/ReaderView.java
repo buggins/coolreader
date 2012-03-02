@@ -174,7 +174,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
     	DCMD_FONT_NEXT(2032),
 		DCMD_FONT_PREVIOUS(2033),
-    	;
+
+    	DCMD_USER_MANUAL(2034),
+		;
     	
     	private final int nativeId;
     	private ReaderCommand( int nativeId )
@@ -2471,6 +2473,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case DCMD_BOOK_INFO:
 			showBookInfo();
+			break;
+		case DCMD_USER_MANUAL:
+			showManual();
 			break;
 		case DCMD_TTS_PLAY:
 			{

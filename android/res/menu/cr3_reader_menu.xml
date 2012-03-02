@@ -27,4 +27,5 @@
 <item android:title="@string/mi_exit" android:titleCondensed="@string/mi_exit" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="14" android:numericShortcut="8"></item>
 <item android:title="@string/dlg_about" android:id="@+id/cr3_mi_about" android:numericShortcut="6" android:titleCondensed="@string/dlg_about" android:orderInCategory="11"></item>
 <item android:title="@string/dlg_book_info" android:id="@+id/cr3_mi_book_info" android:numericShortcut="6" android:titleCondensed="@string/dlg_book_info" android:orderInCategory="12"></item>
+<item android:title="@string/mi_goto_manual" android:id="@+id/cr3_mi_user_manual" android:numericShortcut="6" android:titleCondensed="@string/mi_goto_manual" android:orderInCategory="13"></item>
 </menu>

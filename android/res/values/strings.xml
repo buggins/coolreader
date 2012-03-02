@@ -412,4 +412,5 @@
     <string name="options_app_locale_sk">Slovak</string>
     <string name="options_app_locale_nl">Dutch</string>
     <string name="options_app_locale_lt">Lithuanian</string>
+    <string name="mi_goto_manual">Show manual</string>
 </resources>

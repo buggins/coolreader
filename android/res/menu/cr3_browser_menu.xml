@@ -15,5 +15,6 @@
 </item>
 <item android:title="@string/mi_book_search" android:titleCondensed="@null" android:id="@+id/book_find" android:icon="@android:drawable/ic_menu_search"></item>
 <item android:title="@string/mi_book_scan_recursive" android:titleCondensed="@null" android:id="@+id/book_scan_recursive" android:icon="@drawable/ic_menu_refresh"></item>
+<item android:title="@string/mi_goto_manual" android:id="@+id/cr3_mi_user_manual" android:numericShortcut="6" android:titleCondensed="@string/mi_goto_manual" android:orderInCategory="13"></item>
 <item android:title="@string/mi_exit" android:titleCondensed="@null" android:id="@+id/cr3_mi_exit" android:icon="@android:drawable/ic_menu_close_clear_cancel" android:orderInCategory="6" android:numericShortcut="6"></item>
 </menu>

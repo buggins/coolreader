@@ -152,8 +152,36 @@ public class HelpFileGenerator {
 		return 0;
 	}
 	
+	private static final byte ENCODE[] = {
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+        'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+        'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+        'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/',
+    };	
+
 	private void encodeImage(StringBuilder buf, byte[] data) {
-		// TODO:
+		int i = 0;
+		for (; i <= data.length-3; i += 3) {
+			int v = ((data[i] & 0xFF) << 16) | ((data[i+1] & 0xFF) << 8) | (data[i+2] & 0xFF);
+            buf.append(ENCODE[(v >> 18) & 0x3f]);
+            buf.append(ENCODE[(v >> 12) & 0x3f]);
+            buf.append(ENCODE[(v >> 6) & 0x3f]);
+            buf.append(ENCODE[v & 0x3f]);
+		}
+		int tail = data.length - i;
+		if (tail == 1) {
+            int v = (data[i] & 0xff) << 4;
+            buf.append(ENCODE[(v >> 6) & 0x3f]);
+            buf.append(ENCODE[v & 0x3f]);
+            buf.append('=');
+            buf.append('=');
+		} else if (tail == 2) {
+            int v = ((data[i] & 0xff) << 10) | ((data[i] & 0xff) << 2);
+            buf.append(ENCODE[(v >> 12) & 0x3f]);
+            buf.append(ENCODE[(v >> 6) & 0x3f]);
+            buf.append(ENCODE[v & 0x3f]);
+            buf.append('=');
+		}
 	}
 	
 	private boolean appendImage(String name, StringBuilder mainBuf, StringBuilder binBuf) {

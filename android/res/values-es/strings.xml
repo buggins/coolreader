@@ -396,4 +396,5 @@
     <string name="option_controls_gesture_page_flipping_enabled">Gesture page flipping</string>
     <string name="options_font_embedded_document_font_enabled">Document embedded fonts</string>
     <string name="options_app_locale">Interface language</string>
+    <string name="mi_goto_manual">Show manual</string>
 </resources>

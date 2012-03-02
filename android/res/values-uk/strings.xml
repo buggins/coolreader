@@ -398,4 +398,5 @@
     <string name="options_font_embedded_document_font_enabled">Встроенные шрифты документа</string>
     <string name="options_app_locale_system">Системный</string>
     <string name="options_app_locale">Язык интерфейса</string>
+    <string name="mi_goto_manual">Руководство пользователя</string>
 </resources>
