@@ -2733,6 +2733,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 
+	/**
+	 * Generate help file and show it.
+	 * @return
+	 */
+	public boolean showManual() {
+		HelpFileGenerator generator = new HelpFileGenerator(mActivity, mEngine, getSettings(), mActivity.getCurrentLanguage());
+		File bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
+		File manual = generator.generateHelpFile(bookDir);
+		if (manual != null)
+			return loadDocument(manual.getAbsolutePath(), null);
+		return false;
+	}
+	
 	private boolean hiliteTapZoneOnTap = false;
 	private boolean enableVolumeKeys = true; 
 	static private final int DEF_PAGE_FLIP_MS = 300; 

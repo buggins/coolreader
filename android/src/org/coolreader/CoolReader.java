@@ -2104,6 +2104,13 @@ public class CoolReader extends Activity
 		dlg.show();
 	}
 
+	
+	private String currentLanguage;
+	
+	public String getCurrentLanguage() {
+		return currentLanguage;
+	}
+	
 	public void setLanguage(String lang) {
 		setLanguage(Lang.byCode(lang));
 	}
@@ -2115,6 +2122,7 @@ public class CoolReader extends Activity
 		    DisplayMetrics dm = res.getDisplayMetrics();
 		    android.content.res.Configuration conf = res.getConfiguration();
 		    conf.locale = (lang == Lang.DEFAULT) ? defaultLocale : new Locale(lang.code);
+		    currentLanguage = (lang == Lang.DEFAULT) ? defaultLocale.getLanguage() : lang.code;
 		    res.updateConfiguration(conf, dm);
 		} catch (Exception e) {
 			log.e("error while setting locale " + lang, e);

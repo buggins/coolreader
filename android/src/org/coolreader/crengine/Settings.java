@@ -141,20 +141,20 @@ public interface Settings {
     public static final int BACKLIGHT_CONTROL_FLICK_RIGHT = 2;
 
     public enum Lang {
-    	DEFAULT("system", R.string.options_app_locale_system),
-    	EN("en", R.string.options_app_locale_en),
-    	DE("de", R.string.options_app_locale_de),
-    	ES("es", R.string.options_app_locale_es),
-    	RU("ru", R.string.options_app_locale_ru),
-    	UK("uk", R.string.options_app_locale_uk),
-    	BG("bg", R.string.options_app_locale_bg),
-    	SK("sk", R.string.options_app_locale_sk),
-    	TR("tr", R.string.options_app_locale_tr),
-    	LT("lt", R.string.options_app_locale_lt),
-    	IT("it", R.string.options_app_locale_it),
-    	HU("hu", R.string.options_app_locale_hu),
-    	NL("nl", R.string.options_app_locale_nl),
-    	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn),
+    	DEFAULT("system", R.string.options_app_locale_system, R.raw.help_template_en),
+    	EN("en", R.string.options_app_locale_en, R.raw.help_template_en),
+    	DE("de", R.string.options_app_locale_de, 0),
+    	ES("es", R.string.options_app_locale_es, 0),
+    	RU("ru", R.string.options_app_locale_ru, 0),
+    	UK("uk", R.string.options_app_locale_uk, 0),
+    	BG("bg", R.string.options_app_locale_bg, 0),
+    	SK("sk", R.string.options_app_locale_sk, 0),
+    	TR("tr", R.string.options_app_locale_tr, 0),
+    	LT("lt", R.string.options_app_locale_lt, 0),
+    	IT("it", R.string.options_app_locale_it, 0),
+    	HU("hu", R.string.options_app_locale_hu, 0),
+    	NL("nl", R.string.options_app_locale_nl, 0),
+    	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, 0),
     	;
     	
     	static public Lang byCode(String code) {
@@ -164,12 +164,14 @@ public interface Settings {
     		return DEFAULT;
     	}
     	
-    	private Lang(String code, int nameResId) {
+    	private Lang(String code, int nameResId, int helpFileResId) {
     		this.code = code;
-    		nameId = nameResId;
+    		this.nameId = nameResId;
+    		this.helpFileResId = helpFileResId;
     	}
     	public final String code;
     	public final int nameId;
+    	public final int helpFileResId;
     };
     
     

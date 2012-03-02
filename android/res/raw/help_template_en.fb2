@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template for CoolReader3/Android help file -->
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<description>
+		<title-info>
+			<book-title>Cool Reader Manual</book-title>
+		</title-info>
+	</description>
+	<body>
+		<!--cr3:image cr3_logo-->
+		<title>
+			<p>Welcome to Cool Reader</p>
+		</title>
+		<section>
+			<title>
+				<p>Navigation while reading</p>
+			</title>
+			<p>You can move to next / previous page using several methods</p>
+			<ul>
+				<li>Touch screen: flick right to left for next page, left to right for previous</li>
+				<li>Touch screen: tap right side of screen for next page, left side for previous page</li>
+				<li>Turn pages using Volume keys</li>
+				<li>Turn pages using hardware joystick or navigation keys</li>
+				<li>Turn pages using hardware joystick or navigation keys</li>
+			</ul>
+			<p>To navigate by link, long tap on link. To return back, press Back key or tap top left corner of screen</p>
+		</section>
+		<section>
+			<title>
+				<p>Accessing menu</p>
+			</title>
+			<ul>
+				<li>Keys: short press menu key</li>
+				<li>Touch screen: tap center of screen</li>
+			</ul>
+		</section>
+		<section>
+			<title>
+				<p>Settings</p>
+			</title>
+			<ul>
+				<li>Keys: long press menu key</li>
+				<li>Touch screen: long tap center of screen</li>
+				<li>Main menu: select Options item from main menu</li>
+			</ul>
+		</section>
+	</body>
+</FictionBook>
