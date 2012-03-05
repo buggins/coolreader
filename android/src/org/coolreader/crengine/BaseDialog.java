@@ -295,6 +295,7 @@ public class BaseDialog extends Dialog {
 	
 	@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+		activity.onUserActivity();
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 			onNegativeButtonClick();
 			return true;

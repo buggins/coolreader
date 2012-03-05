@@ -427,6 +427,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public boolean onKeyUp(int keyCode, final KeyEvent event) {
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
+		mActivity.onUserActivity();
 		keyCode = translateKeyCode(keyCode);
 		if (currentImageViewer != null)
 			return currentImageViewer.onKeyUp(keyCode, event);
@@ -447,7 +448,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		boolean tracked = isTracked(event);
 //		if ( keyCode!=KeyEvent.KEYCODE_BACK )
 //			backKeyDownHere = false;
-		mActivity.onUserActivity();
 
 		if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
 			return true;
@@ -608,6 +608,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		keyCode = translateKeyCode(keyCode);
+
+		mActivity.onUserActivity();
 		
 		if (currentImageViewer != null)
 			return currentImageViewer.onKeyDown(keyCode, event);
@@ -625,7 +627,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
 			mActivity.releaseBacklightControl();
 			boolean res = super.onKeyDown(keyCode, event);
-			mActivity.onUserActivity();
 			return res;
 		}
 
@@ -639,7 +640,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		}
     		if (!enableVolumeKeys) {
     			boolean res = super.onKeyDown(keyCode, event);
-    			mActivity.onUserActivity();
     			return res;
     		}
     	}
@@ -647,7 +647,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (isAutoScrollActive())
 			return true; // autoscroll will be stopped in onKeyUp
     	
-		mActivity.onUserActivity();
 		keyCode = overrideKey( keyCode );
 		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
 		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
