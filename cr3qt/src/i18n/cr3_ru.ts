@@ -9,58 +9,27 @@
     </message>
     <message>
         <source>License</source>
-        <translation type="unfinished">Лицензия</translation>
+        <translation>Лицензия</translation>
     </message>
     <message>
         <source>Source Code</source>
-        <translation type="unfinished">Исходный код</translation>
-    </message>
-    <message>
-        <source>(c) 1998-2009 Vadim Lopatin</source>
-        <translation type="unfinished">(c) 1998-2009 Вадим Лопатин</translation>
+        <translation>Исходный код</translation>
     </message>
     <message>
         <source>About</source>
-        <translation type="unfinished">О программе</translation>
+        <translation>О программе</translation>
     </message>
     <message>
         <source>About Cool Reader</source>
-        <translation type="unfinished">О программе CoolReader</translation>
+        <translation>О программе CoolReader</translation>
     </message>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Диалог</translation>
     </message>
     <message>
         <source>...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Cool Reader 3.0.22</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>20-09-2009</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader is free open source e-book viewer based on CoolReader engine.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Source code is avaliable at SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;under the terms of GNU GPL2 license.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Third party components used:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 - as GUI library&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;FreeType - font engine&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;ZLib - ompressing library&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libpng - PNG image format support&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - JPEG image format support&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Hyphenation dictionaries - from AlReader&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>...</translation>
     </message>
     <message>
         <source>		    GNU GENERAL PUBLIC LICENSE
@@ -347,14 +316,40 @@ POSSIBILITY OF SUCH DAMAGES.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Source code may be downloaded from sourceforge crengine project page.
-
-Latest source code is available from CVS:
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P cr3qt
-cd cr3qt
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/crengine co -P crengine
-cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -P tinydict</source>
+        <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;CoolReader is free open source e-book viewer based on CoolReader engine.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Source code is available at SourceForge &lt;/span&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;http://sourceforge.net/projects/crengine &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;under the terms of GNU GPL2 license.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt; text-decoration: underline;&quot;&gt;Third party components used:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Qt4.5 - as GUI library&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;FreeType - font engine&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;ZLib - ompressing library&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libpng - PNG image format support&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;libjpeg - JPEG image format support&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;Hyphenation dictionaries - from AlReader&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;DejaVu Sans&apos;; font-size:9pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source code may be downloaded from sourceforge crengine project page:
+http://sourceforge.net/projects/crengine/
+
+Latest source code is available from GIT repository:
+&gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+See README.TXT at root directory of project for build instructions.
+</source>
+        <translation>Исходный код доступен на странице проекта crengine:
+http://sourceforge.net/projects/crengine/
+
+Исходный код доступен из GIT репозитория:
+&gt; git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+Инструкция по сборке находится в файле README.TXT корневого каталога.</translation>
     </message>
 </context>
 <context>
@@ -369,11 +364,11 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Bookmark type</source>
-        <translation type="unfinished">Тип закладки</translation>
+        <translation>Тип закладки</translation>
     </message>
     <message>
         <source>Title</source>
-        <translation type="unfinished">Название</translation>
+        <translation>Название</translation>
     </message>
     <message>
         <source>Position</source>
@@ -381,7 +376,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Position text</source>
-        <translation type="unfinished">Текст</translation>
+        <translation>Позиция текста</translation>
     </message>
     <message>
         <source>Comment</source>
@@ -389,15 +384,15 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Диалог</translation>
     </message>
     <message>
         <source>Page 1/10 10%</source>
-        <translation type="unfinished"></translation>
+        <translation>Страница 1/10 10%</translation>
     </message>
     <message>
         <source>sample title</source>
-        <translation type="unfinished"></translation>
+        <translation>пример заголовка</translation>
     </message>
 </context>
 <context>
@@ -408,97 +403,97 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Position</source>
-        <translation type="unfinished">Позиция</translation>
+        <translation>Позиция</translation>
     </message>
     <message>
         <source>Type</source>
         <comment>bookmark type</comment>
-        <translation type="unfinished">Тип</translation>
+        <translation>Тип закладки</translation>
     </message>
     <message>
         <source>Text</source>
-        <translation type="unfinished">Текст</translation>
+        <translation>Текст</translation>
     </message>
     <message>
         <source>Comment</source>
-        <translation type="unfinished">Комментарии</translation>
+        <translation>Комментарии</translation>
     </message>
     <message>
         <source>P</source>
         <comment>Bookmark type first letter - Position</comment>
-        <translation type="unfinished">П</translation>
+        <translation>П</translation>
     </message>
     <message>
         <source>C</source>
         <comment>Bookmark type first letter - Comment</comment>
-        <translation type="unfinished">К</translation>
+        <translation>К</translation>
     </message>
     <message>
         <source>E</source>
         <comment>Bookmark type first letter - Correction/Edit</comment>
-        <translation type="unfinished">И</translation>
+        <translation>И</translation>
     </message>
     <message>
         <source>Go to Bookmark</source>
-        <translation type="unfinished">Перейти к закладке</translation>
+        <translation>Перейти к закладке</translation>
     </message>
     <message>
         <source>Remove Bookmark</source>
-        <translation type="unfinished">Удалить закладку</translation>
+        <translation>Удалить закладку</translation>
     </message>
     <message>
         <source>Remove ALL Bookmarks</source>
-        <translation type="unfinished">Удалить все закладки</translation>
+        <translation>Удалить все закладки</translation>
     </message>
     <message>
         <source>Edit Bookmark</source>
-        <translation type="unfinished">Редактировать закладку</translation>
+        <translation>Редактировать закладку</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished">Закрыть</translation>
+        <translation>Закрыть</translation>
     </message>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Диалог</translation>
     </message>
     <message>
         <source>Return</source>
-        <translation type="unfinished"></translation>
+        <translation>Return</translation>
     </message>
     <message>
         <source>Del</source>
-        <translation type="unfinished"></translation>
+        <translation>Del</translation>
     </message>
     <message>
         <source>F4</source>
-        <translation type="unfinished"></translation>
+        <translation>F4</translation>
     </message>
     <message>
         <source>Esc</source>
-        <translation type="unfinished"></translation>
+        <translation>Esc</translation>
     </message>
 </context>
 <context>
     <name>CR3View</name>
     <message>
         <source>Error while opening document </source>
-        <translation type="unfinished">Ошибка открытия документа </translation>
+        <translation>Ошибка открытия документа </translation>
     </message>
     <message>
         <source>Loading: please wait...</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузка: подождите...</translation>
     </message>
 </context>
 <context>
     <name>ExportProgressDlg</name>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Диалог</translation>
     </message>
     <message>
         <source>Export is in progress...</source>
-        <translation type="unfinished"></translation>
+        <translation>Идет экспорт...</translation>
     </message>
 </context>
 <context>
@@ -657,7 +652,7 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Диалог</translation>
     </message>
 </context>
 <context>
@@ -667,371 +662,363 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
         <translation>Открыть книгу</translation>
     </message>
     <message>
-        <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;HTML files (*.htm *.html);;EPUB files (*.epub);;ZIP archives (*.zip)</source>
-        <translation>Все форматы (*.fb2 *.txt *.tcr *.rtf *.epub *.html *.htm *.zip);;Книги FB2 (*.fb2 *.fb2.zip);;Текстовые файлы (*.txt);;Текст RTF (*.rtf);;HTML (*.htm *.html);;EPUB (*.epub);;Архивы ZIP (*.zip)</translation>
-    </message>
-    <message>
-        <source>Not implemented</source>
-        <translation type="unfinished">Функция недоступна</translation>
-    </message>
-    <message>
-        <source>Search is not implemented yet</source>
-        <translation type="unfinished">Извините, поиск по тексту пока не реализован.</translation>
-    </message>
-    <message>
         <source>Export document to</source>
-        <translation type="unfinished"></translation>
+        <translation>Экспортировать документ в</translation>
     </message>
     <message>
         <source>WOL book (*.wol)</source>
-        <translation type="unfinished"></translation>
+        <translation>Книга WOL (.wol)</translation>
     </message>
     <message>
         <source>Export to WOL format</source>
-        <translation type="unfinished"></translation>
+        <translation>Экспортировать в WOL формат</translation>
+    </message>
+    <message>
+        <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;MS Word document (*.doc);;HTML files (*.htm *.html);;EPUB files (*.epub);;CHM files (*.chm);;MOBI files (*.mobi *.prc *.azw);;PalmDOC files (*.pdb *.pml);;ZIP archives (*.zip)</source>
+        <translation>Все поддерживаемые форматы (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;Книги FB2 (*.fb2 *.fb2.zip);;Текстовые файлы (*.txt);;Rich text (*.rtf);;Документы MS Word (*.doc);;Файлы HTML (*.htm *.html);;Файлы EPUB (*.epub);;Файлы CHM (*.chm);;Файлы MOBI (*.mobi *.prc *.azw);;Файлы PalmDOC (*.pdb *.pml);;ZIP архивы (*.zip)</translation>
     </message>
 </context>
 <context>
     <name>MainWindowClass</name>
     <message>
         <source>File</source>
-        <translation type="unfinished">Файл</translation>
+        <translation>Файл</translation>
     </message>
     <message>
         <source>View</source>
-        <translation type="unfinished">Вид</translation>
+        <translation>Вид</translation>
     </message>
     <message>
         <source>Navigation</source>
-        <translation type="unfinished">Навигация</translation>
+        <translation>Навигация</translation>
     </message>
     <message>
         <source>Help</source>
-        <translation type="unfinished">Справка</translation>
+        <translation>Справка</translation>
     </message>
     <message>
         <source>Open...</source>
-        <translation type="unfinished">Открыть...</translation>
+        <translation>Открыть...</translation>
     </message>
     <message>
         <source>Open file</source>
-        <translation type="unfinished">Открыть файл</translation>
+        <translation>Открыть файл</translation>
     </message>
     <message>
         <source>Toggle Pages/Scroll</source>
-        <translation type="unfinished">Переключить Страница/Свиток</translation>
+        <translation>Переключить вид Страница/Свиток</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished">Закрыть</translation>
+        <translation>Закрыть</translation>
     </message>
     <message>
         <source>Minimize</source>
-        <translation type="unfinished">Свернуть</translation>
+        <translation>Свернуть</translation>
     </message>
     <message>
         <source>Page Down</source>
-        <translation type="unfinished">На страницу вниз</translation>
+        <translation>На страницу вниз</translation>
     </message>
     <message>
         <source>Page Up</source>
-        <translation type="unfinished">На страницу вверх</translation>
+        <translation>На страницу вверх</translation>
     </message>
     <message>
         <source>Line Down</source>
-        <translation type="unfinished">На строку вниз</translation>
+        <translation>На строку вниз</translation>
     </message>
     <message>
         <source>Line Up</source>
-        <translation type="unfinished">На строку вверх</translation>
+        <translation>На строку вверх</translation>
     </message>
     <message>
         <source>First Page</source>
-        <translation type="unfinished">Первая страница</translation>
+        <translation>Первая страница</translation>
     </message>
     <message>
         <source>Go to first page</source>
-        <translation type="unfinished">Первая страница</translation>
+        <translation>Перейти на первую страницу</translation>
     </message>
     <message>
         <source>Last Page</source>
-        <translation type="unfinished">Последняя страница</translation>
+        <translation>Последняя страница</translation>
     </message>
     <message>
         <source>End</source>
-        <translation type="unfinished">End</translation>
+        <translation>End</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished">На предыдущую позицию</translation>
+        <translation>Назад</translation>
     </message>
     <message>
         <source>Forward</source>
-        <translation type="unfinished">На следующую позицию</translation>
+        <translation>Вперед</translation>
     </message>
     <message>
         <source>Next Chapter</source>
-        <translation type="unfinished">Следующая глава</translation>
+        <translation>Следующая глава</translation>
     </message>
     <message>
         <source>Previous Chapter</source>
-        <translation type="unfinished">Предыдущая глава</translation>
+        <translation>Предыдущая глава</translation>
     </message>
     <message>
         <source>Toggle Full Screen</source>
-        <translation type="unfinished">Полноэкранный режим</translation>
+        <translation>Полно-экранный режим</translation>
     </message>
     <message>
         <source>Toggle Full Screen mode</source>
-        <translation type="unfinished">Полноэкранный режим</translation>
+        <translation>Полно-экранный режим</translation>
     </message>
     <message>
         <source>Zoom In</source>
-        <translation type="unfinished">Увеличить шрифт</translation>
+        <translation>Увеличить</translation>
     </message>
     <message>
         <source>Increase font size</source>
-        <translation type="unfinished">Увеличить размер шрифта</translation>
+        <translation>Увеличить размер шрифта</translation>
     </message>
     <message>
         <source>Zoom Out</source>
-        <translation type="unfinished">Уменьшить шрифт</translation>
+        <translation>Уменьшить</translation>
     </message>
     <message>
         <source>Decrease font size</source>
-        <translation type="unfinished">Уменьшить размер шрифта</translation>
+        <translation>Уменьшить размер шрифта</translation>
     </message>
     <message>
         <source>Table of Contents...</source>
-        <translation type="unfinished">Содержание...</translation>
+        <translation>Содержание...</translation>
     </message>
     <message>
         <source>Show table of contents</source>
-        <translation type="unfinished">Показать содержание</translation>
+        <translation>Показать содержание</translation>
     </message>
     <message>
         <source>Recent Books</source>
-        <translation type="unfinished">Последние книги</translation>
+        <translation>Последние книги</translation>
     </message>
     <message>
         <source>Show recent books list</source>
-        <translation type="unfinished">Показать список последних книг</translation>
+        <translation>Показать список последних книг</translation>
     </message>
     <message>
         <source>Settings...</source>
-        <translation type="unfinished">Настройки...</translation>
+        <translation>Настройки...</translation>
     </message>
     <message>
         <source>Settings dialog</source>
-        <translation type="unfinished">Диалог настроек</translation>
+        <translation>Диалог настроек</translation>
     </message>
     <message>
         <source>Copy</source>
-        <translation type="unfinished">Копировать</translation>
+        <translation>Копировать</translation>
     </message>
     <message>
         <source>Copy selected text</source>
-        <translation type="unfinished">Копировать выделение</translation>
+        <translation>Копировать выделение</translation>
     </message>
     <message>
         <source>About Qt</source>
-        <translation type="unfinished">О Qt</translation>
+        <translation>О Qt</translation>
     </message>
     <message>
         <source>About CoolReader</source>
-        <translation type="unfinished">О программе CoolReader</translation>
+        <translation>О программе CoolReader</translation>
     </message>
     <message>
         <source>Add Bookmark</source>
-        <translation type="unfinished">Добавить закладку</translation>
+        <translation>Добавить закладку</translation>
     </message>
     <message>
         <source>Add bookmark</source>
-        <translation type="unfinished">Добавить закладку</translation>
+        <translation>Добавить закладку</translation>
     </message>
     <message>
         <source>Bookmark List...</source>
-        <translation type="unfinished">Список закладок...</translation>
+        <translation>Список закладок...</translation>
     </message>
     <message>
         <source>Show bookmarks list</source>
-        <translation type="unfinished">Показать список закладок</translation>
+        <translation>Показать список закладок</translation>
     </message>
     <message>
         <source>File Properties...</source>
-        <translation type="unfinished">Свойства документа...</translation>
+        <translation>Свойства документа...</translation>
     </message>
     <message>
         <source>Show file properties</source>
-        <translation type="unfinished">Свойства документа</translation>
+        <translation>Свойства документа</translation>
     </message>
     <message>
         <source>Rotate</source>
-        <translation type="unfinished">Поворот страницы</translation>
+        <translation>Поворот страницы</translation>
     </message>
     <message>
         <source>Find text...</source>
-        <translation type="unfinished">Найти текст...</translation>
+        <translation>Найти текст...</translation>
     </message>
     <message>
         <source>Find text</source>
-        <translation type="unfinished">Найти текст</translation>
+        <translation>Найти текст</translation>
     </message>
     <message>
         <source>CoolReader</source>
-        <translation type="unfinished"></translation>
+        <translation>CoolReader</translation>
     </message>
     <message>
         <source>F3</source>
-        <translation type="unfinished"></translation>
+        <translation>F3</translation>
     </message>
     <message>
         <source>Ctrl+P</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+P</translation>
     </message>
     <message>
         <source>F12</source>
-        <translation type="unfinished"></translation>
+        <translation>F12</translation>
     </message>
     <message>
         <source>Esc</source>
-        <translation type="unfinished"></translation>
+        <translation>Esc</translation>
     </message>
     <message>
         <source>Go to next page</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти на следующую страницу</translation>
     </message>
     <message>
         <source>PgDown</source>
-        <translation type="unfinished"></translation>
+        <translation>PgDown</translation>
     </message>
     <message>
         <source>Back by page</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад на страницу</translation>
     </message>
     <message>
         <source>PgUp</source>
-        <translation type="unfinished"></translation>
+        <translation>PgUp</translation>
     </message>
     <message>
         <source>Forward by one line</source>
-        <translation type="unfinished"></translation>
+        <translation>Вперед на одну линию</translation>
     </message>
     <message>
         <source>Down</source>
-        <translation type="unfinished"></translation>
+        <translation>Down</translation>
     </message>
     <message>
         <source>Back by line</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад на линию</translation>
     </message>
     <message>
         <source>Up</source>
-        <translation type="unfinished"></translation>
+        <translation>Up</translation>
     </message>
     <message>
         <source>Home</source>
-        <translation type="unfinished"></translation>
+        <translation>Home</translation>
     </message>
     <message>
         <source>Go to last page</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти у последней странице</translation>
     </message>
     <message>
         <source>Back in navigation history</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад по истории навигации</translation>
     </message>
     <message>
         <source>Backspace</source>
-        <translation type="unfinished"></translation>
+        <translation>Backspace</translation>
     </message>
     <message>
         <source>Go to the next position in navigation history</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти к следующей позиции і истории навигации</translation>
     </message>
     <message>
         <source>Shift+Backspace</source>
-        <translation type="unfinished"></translation>
+        <translation>Shift+Backspace</translation>
     </message>
     <message>
         <source>Go to next chapter</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти к следующей главе</translation>
     </message>
     <message>
         <source>Alt+Down</source>
-        <translation type="unfinished"></translation>
+        <translation>Alt+Down</translation>
     </message>
     <message>
         <source>Go to previous chapter</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти к предыдущей главе</translation>
     </message>
     <message>
         <source>Alt+Up</source>
-        <translation type="unfinished"></translation>
+        <translation>Alt+Up</translation>
     </message>
     <message>
         <source>Alt+Return</source>
-        <translation type="unfinished"></translation>
+        <translation>Alt+Return</translation>
     </message>
     <message>
         <source>+</source>
-        <translation type="unfinished"></translation>
+        <translation>+</translation>
     </message>
     <message>
         <source>-</source>
-        <translation type="unfinished"></translation>
+        <translation>-</translation>
     </message>
     <message>
         <source>F4</source>
-        <translation type="unfinished"></translation>
+        <translation>F4</translation>
     </message>
     <message>
         <source>F5</source>
-        <translation type="unfinished"></translation>
+        <translation>F5</translation>
     </message>
     <message>
         <source>F9</source>
-        <translation type="unfinished"></translation>
+        <translation>F9</translation>
     </message>
     <message>
         <source>Ctrl+C</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+C</translation>
     </message>
     <message>
         <source>copy2</source>
-        <translation type="unfinished"></translation>
+        <translation>копия2</translation>
     </message>
     <message>
         <source>Copy alternative shortcut</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать альтернативную ссылку</translation>
     </message>
     <message>
         <source>Ctrl+Ins</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+Ins</translation>
     </message>
     <message>
         <source>F1</source>
-        <translation type="unfinished"></translation>
+        <translation>F1</translation>
     </message>
     <message>
         <source>Ctrl+B</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+B</translation>
     </message>
     <message>
         <source>F6</source>
-        <translation type="unfinished"></translation>
+        <translation>F6</translation>
     </message>
     <message>
         <source>Ctrl+F1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+F1</translation>
     </message>
     <message>
         <source>Ctrl+R</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+R</translation>
     </message>
     <message>
         <source>Ctrl+F</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+F</translation>
     </message>
     <message>
         <source>Toggle Edit Mode</source>
@@ -1043,26 +1030,46 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Ctrl+E</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+E</translation>
     </message>
     <message>
         <source>Export</source>
-        <translation type="unfinished"></translation>
+        <translation>Экспорт</translation>
     </message>
     <message>
         <source>Export document</source>
-        <translation type="unfinished"></translation>
+        <translation>Экспортировать документ</translation>
     </message>
     <message>
         <source>Ctrl+S</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+S</translation>
+    </message>
+    <message>
+        <source>Next Page</source>
+        <translation>Следующая страница</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Вправо</translation>
+    </message>
+    <message>
+        <source>Previous Page</source>
+        <translation>Предыдущая страница</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Влево</translation>
+    </message>
+    <message>
+        <source>Space</source>
+        <translation>Пробел</translation>
     </message>
 </context>
 <context>
     <name>RecentBooksDlg</name>
     <message>
         <source>#</source>
-        <translation type="unfinished"></translation>
+        <translation>№п/п</translation>
     </message>
     <message>
         <source>Author</source>
@@ -1086,30 +1093,69 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Recent Books</source>
-        <translation type="unfinished">Последние книги</translation>
+        <translation>Последние книги</translation>
     </message>
     <message>
         <source>Remove Item</source>
-        <translation type="unfinished">Удалить запись</translation>
+        <translation>Удалить запись</translation>
     </message>
     <message>
         <source>Clear All</source>
-        <translation type="unfinished">Очистить весь список</translation>
+        <translation>Очистить весь список</translation>
     </message>
     <message>
         <source>Del</source>
-        <translation type="unfinished"></translation>
+        <translation>Del</translation>
+    </message>
+</context>
+<context>
+    <name>SearchDialog</name>
+    <message>
+        <source>Not found</source>
+        <translation>Не найдено</translation>
+    </message>
+    <message>
+        <source>Search pattern is not found in document</source>
+        <translation>Искомый шаблон не найден в документе</translation>
+    </message>
+    <message>
+        <source>Search</source>
+        <translation>Поиск</translation>
+    </message>
+    <message>
+        <source>Text</source>
+        <translation>Текст</translation>
+    </message>
+    <message>
+        <source>Case Sensitive</source>
+        <translation>Чувствительность к регистру</translation>
+    </message>
+    <message>
+        <source>Search forward</source>
+        <translation>Искать вперед</translation>
+    </message>
+    <message>
+        <source>Search backward</source>
+        <translation>Искать назад</translation>
+    </message>
+    <message>
+        <source>Find Next</source>
+        <translation>Найти следующий</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрыть</translation>
     </message>
 </context>
 <context>
     <name>SettingsDlg</name>
     <message>
         <source>[No hyphenation]</source>
-        <translation type="unfinished">[Без переносов]</translation>
+        <translation>[Без переносов]</translation>
     </message>
     <message>
         <source>[Algorythmic hyphenation]</source>
-        <translation type="unfinished">[Алгоритмические переносы]</translation>
+        <translation>[Алгоритмические переносы]</translation>
     </message>
     <message>
         <source>The quick brown fox jumps over the lazy dog. </source>
@@ -1129,179 +1175,699 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Settings</source>
-        <translation type="unfinished">Настройки</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <source>Window options</source>
-        <translation type="unfinished">Окно</translation>
+        <translation>Настройки окна</translation>
     </message>
     <message>
         <source>Window</source>
-        <translation type="unfinished">Окно</translation>
+        <translation>Окно</translation>
     </message>
     <message>
         <source>Look &amp; feel</source>
-        <translation type="unfinished">Стиль интерфеса</translation>
+        <translation>Стиль интерфейса</translation>
     </message>
     <message>
         <source>Startup action</source>
-        <translation type="unfinished">Действие при старте</translation>
+        <translation>Действие при старте</translation>
     </message>
     <message>
         <source>Open recent book</source>
-        <translation type="unfinished">Открыть последнюю книгу</translation>
+        <translation>Открыть последнюю книгу</translation>
     </message>
     <message>
         <source>Show list of recent books</source>
-        <translation type="unfinished">Показать список последних книг</translation>
+        <translation>Показать список последних книг</translation>
     </message>
     <message>
         <source>Show File Open dialog</source>
-        <translation type="unfinished">Показать диалог открытия файла</translation>
+        <translation>Показать диалог открытия файла</translation>
     </message>
     <message>
         <source>Do nothing</source>
-        <translation type="unfinished">Ничего не делать</translation>
+        <translation>Ничего не делать</translation>
     </message>
     <message>
         <source>Controls</source>
-        <translation type="unfinished">Инструменты</translation>
+        <translation>Управление</translation>
     </message>
     <message>
         <source>Show toolbar</source>
-        <translation type="unfinished">Панель инструментов</translation>
+        <translation>Показать панель инструментов</translation>
     </message>
     <message>
         <source>Show menu</source>
-        <translation type="unfinished">Меню</translation>
+        <translation>Показать меню</translation>
     </message>
     <message>
         <source>Show scroll bar</source>
-        <translation type="unfinished">Полоса прокрутки</translation>
+        <translation>Показать полосу прокрутки</translation>
     </message>
     <message>
         <source>Show status bar</source>
-        <translation type="unfinished">Строка состояния</translation>
+        <translation>Показать строку состояния</translation>
     </message>
     <message>
         <source>Fullscreen display</source>
-        <translation type="unfinished">Полноэкранный режим</translation>
+        <translation>Полно-экранный режим</translation>
     </message>
     <message>
         <source>Page</source>
-        <translation type="unfinished">Страница</translation>
+        <translation>Страница</translation>
     </message>
     <message>
         <source>One page</source>
-        <translation type="unfinished">Одна страница</translation>
+        <translation>Одна страница</translation>
     </message>
     <message>
         <source>Two pages</source>
-        <translation type="unfinished">Две страницы</translation>
+        <translation>Две страницы</translation>
     </message>
     <message>
         <source>Scroll View</source>
-        <translation type="unfinished">Свиток</translation>
+        <translation>Свиток</translation>
     </message>
     <message>
         <source>Vew Mode</source>
-        <translation type="unfinished">Режим просмотра</translation>
+        <translation>Режим просмотра</translation>
     </message>
     <message>
         <source>Page margins</source>
-        <translation type="unfinished">Отступы страницы</translation>
+        <translation>Отступы страницы</translation>
     </message>
     <message>
         <source>Show page header</source>
-        <translation type="unfinished">Показывать колонтитул</translation>
+        <translation>Показывать заголовок страницы</translation>
     </message>
     <message>
         <source>Book name</source>
-        <translation type="unfinished">Название</translation>
+        <translation>Название книги</translation>
     </message>
     <message>
         <source>Clock</source>
-        <translation type="unfinished">Часы</translation>
+        <translation>Часы</translation>
     </message>
     <message>
         <source>Battery status</source>
-        <translation type="unfinished">Состояние батареи</translation>
+        <translation>Состояние батареи</translation>
     </message>
     <message>
         <source>Header font</source>
-        <translation type="unfinished">Шрифт колонтитула</translation>
+        <translation>Шрифт заголовка</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation type="unfinished">Изменить</translation>
+        <translation>Изменить</translation>
     </message>
     <message>
         <source>Show footnotes at bottom of page</source>
-        <translation type="unfinished">Сноски внизу страницы</translation>
+        <translation>Показывать сноски внизу страницы</translation>
     </message>
     <message>
         <source>Styles</source>
-        <translation type="unfinished">Стили</translation>
+        <translation>Стили</translation>
     </message>
     <message>
         <source>Text font</source>
-        <translation type="unfinished">Шрифт</translation>
+        <translation>Шрифт текста</translation>
     </message>
     <message>
         <source>Hyphenation</source>
-        <translation type="unfinished">Переносы</translation>
+        <translation>Переносы</translation>
     </message>
     <message>
         <source>Interline spacing</source>
-        <translation type="unfinished">Межстрочный интервал</translation>
+        <translation>Междустрочный интервал</translation>
     </message>
     <message>
         <source>Page skin</source>
-        <translation type="unfinished">Стиль фона</translation>
+        <translation>Стиль страницы</translation>
     </message>
     <message>
         <source>Sample</source>
-        <translation type="unfinished">Образец</translation>
+        <translation>Образец</translation>
     </message>
     <message>
         <source>.TXT files</source>
-        <translation type="unfinished">.TXT файлы</translation>
+        <translation>.TXT файлы</translation>
     </message>
     <message>
         <source>Disable automatic formatting</source>
-        <translation type="unfinished">Отключить автоформатирование</translation>
+        <translation>Отключить авто форматирование</translation>
     </message>
     <message>
         <source>0</source>
-        <translation type="unfinished"></translation>
+        <translation>0</translation>
     </message>
     <message>
         <source>5</source>
-        <translation type="unfinished"></translation>
+        <translation>5</translation>
     </message>
     <message>
         <source>8</source>
-        <translation type="unfinished"></translation>
+        <translation>8</translation>
     </message>
     <message>
         <source>10</source>
-        <translation type="unfinished"></translation>
+        <translation>10</translation>
     </message>
     <message>
         <source>15</source>
-        <translation type="unfinished"></translation>
+        <translation>15</translation>
     </message>
     <message>
         <source>20</source>
-        <translation type="unfinished"></translation>
+        <translation>20</translation>
     </message>
     <message>
         <source>25</source>
-        <translation type="unfinished"></translation>
+        <translation>25</translation>
     </message>
     <message>
         <source>30</source>
-        <translation type="unfinished"></translation>
+        <translation>30</translation>
+    </message>
+    <message>
+        <source>Default paragraph style</source>
+        <translation>Стиль параграфа</translation>
+    </message>
+    <message>
+        <source>Title</source>
+        <translation>Заголовок</translation>
+    </message>
+    <message>
+        <source>Subtitle</source>
+        <translation>Подзаголовок</translation>
+    </message>
+    <message>
+        <source>Preformatted text</source>
+        <translation>Пред-форматированный текст</translation>
+    </message>
+    <message>
+        <source>Link</source>
+        <translation>Ссылка</translation>
+    </message>
+    <message>
+        <source>Cite / quotation</source>
+        <translation>Цитата</translation>
+    </message>
+    <message>
+        <source>Epigraph</source>
+        <translation>Эпиграф</translation>
+    </message>
+    <message>
+        <source>Poem</source>
+        <translation>Поэма</translation>
+    </message>
+    <message>
+        <source>Text author</source>
+        <translation>Автор текста</translation>
+    </message>
+    <message>
+        <source>Footnote link</source>
+        <translation>Ссылка на сноску</translation>
+    </message>
+    <message>
+        <source>Footnote</source>
+        <translation>Сноска</translation>
+    </message>
+    <message>
+        <source>Footnote title</source>
+        <translation>Заголовок сноски</translation>
+    </message>
+    <message>
+        <source>Annotation</source>
+        <translation>Аннотация</translation>
+    </message>
+    <message>
+        <source>-</source>
+        <translation>-</translation>
+    </message>
+    <message>
+        <source>Justify</source>
+        <translation>Выравнивание</translation>
+    </message>
+    <message>
+        <source>Left</source>
+        <translation>Слева</translation>
+    </message>
+    <message>
+        <source>Center</source>
+        <translation>По центру</translation>
+    </message>
+    <message>
+        <source>Right</source>
+        <translation>Справа</translation>
+    </message>
+    <message>
+        <source>No indent</source>
+        <translation>Без отступа</translation>
+    </message>
+    <message>
+        <source>Small Indent</source>
+        <translation>Маленький отступ</translation>
+    </message>
+    <message>
+        <source>Big Indent</source>
+        <translation>Большой отступ</translation>
+    </message>
+    <message>
+        <source>Small Outdent</source>
+        <translation>Маленький выступ</translation>
+    </message>
+    <message>
+        <source>Big Outdent</source>
+        <translation>Большой выступ</translation>
+    </message>
+    <message>
+        <source>20% of line height</source>
+        <translation>20% от высоты строки</translation>
+    </message>
+    <message>
+        <source>30% of line height</source>
+        <translation>30% от высоты строки</translation>
+    </message>
+    <message>
+        <source>50% of line height</source>
+        <translation>50% от высоты строки</translation>
+    </message>
+    <message>
+        <source>100% of line height</source>
+        <translation>100% от высоты строки</translation>
+    </message>
+    <message>
+        <source>150% of line height</source>
+        <translation>150% от высоты строки</translation>
+    </message>
+    <message>
+        <source>200% of line height</source>
+        <translation>200% от высоты строки</translation>
+    </message>
+    <message>
+        <source>400% of line height</source>
+        <translation>400% от высоты строки</translation>
+    </message>
+    <message>
+        <source>5% of line width</source>
+        <translation>5% от ширины строки</translation>
+    </message>
+    <message>
+        <source>10% of line width</source>
+        <translation>10% от ширины строки</translation>
+    </message>
+    <message>
+        <source>15% of line width</source>
+        <translation>15% от ширины строки</translation>
+    </message>
+    <message>
+        <source>20% of line width</source>
+        <translation>20% от ширины строки</translation>
+    </message>
+    <message>
+        <source>30% of line width</source>
+        <translation>30% от ширины строки</translation>
+    </message>
+    <message>
+        <source>Normal</source>
+        <translation>Обычный</translation>
+    </message>
+    <message>
+        <source>Bold</source>
+        <translation>Полужирный</translation>
+    </message>
+    <message>
+        <source>Bolder</source>
+        <translation>Жирный</translation>
+    </message>
+    <message>
+        <source>Lighter</source>
+        <translation>Тонкий</translation>
+    </message>
+    <message>
+        <source>Increase: 110%</source>
+        <translation>Увеличить: 110%</translation>
+    </message>
+    <message>
+        <source>Increase: 120%</source>
+        <translation>Увеличить: 120%</translation>
+    </message>
+    <message>
+        <source>Increase: 150%</source>
+        <translation>Увеличить: 150%</translation>
+    </message>
+    <message>
+        <source>Decrease: 90%</source>
+        <translation>Уменьшить: 90%</translation>
+    </message>
+    <message>
+        <source>Decrease: 80%</source>
+        <translation>Уменьшить: 80%</translation>
+    </message>
+    <message>
+        <source>Decrease: 70%</source>
+        <translation>Уменьшить: 70%</translation>
+    </message>
+    <message>
+        <source>Decrease: 60%</source>
+        <translation>Уменьшить: 60%</translation>
+    </message>
+    <message>
+        <source>Italic</source>
+        <translation>Курсив</translation>
+    </message>
+    <message>
+        <source>[Default Sans Serif]</source>
+        <translation>[рубленый шрифт без засечек]</translation>
+    </message>
+    <message>
+        <source>[Default Serif]</source>
+        <translation>[рубленый шрифт с засечками]</translation>
+    </message>
+    <message>
+        <source>[Default Monospace]</source>
+        <translation>[моноширинный шрифт]</translation>
+    </message>
+    <message>
+        <source>Black</source>
+        <translation>Чёрный</translation>
+    </message>
+    <message>
+        <source>Green</source>
+        <translation>Зелёный</translation>
+    </message>
+    <message>
+        <source>Silver</source>
+        <translation>Серебристый</translation>
+    </message>
+    <message>
+        <source>Lime</source>
+        <translation>Лимоновый</translation>
+    </message>
+    <message>
+        <source>Gray</source>
+        <translation>Серый</translation>
+    </message>
+    <message>
+        <source>Olive</source>
+        <translation>Оливковый</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation>Белый</translation>
+    </message>
+    <message>
+        <source>Yellow</source>
+        <translation>Жёлтый</translation>
+    </message>
+    <message>
+        <source>Maroon</source>
+        <translation>Каштановый</translation>
+    </message>
+    <message>
+        <source>Navy</source>
+        <translation>Темно-синий</translation>
+    </message>
+    <message>
+        <source>Red</source>
+        <translation>Красный</translation>
+    </message>
+    <message>
+        <source>Blue</source>
+        <translation>Синий</translation>
+    </message>
+    <message>
+        <source>Purple</source>
+        <translation>Пурпурный</translation>
+    </message>
+    <message>
+        <source>Teal</source>
+        <translation>Сине-зелёный</translation>
+    </message>
+    <message>
+        <source>Fuchsia</source>
+        <translation>Фуксия</translation>
+    </message>
+    <message>
+        <source>Aqua</source>
+        <translation>Зеленовато-голубой</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Underline</source>
+        <translation>Подчеркнутый</translation>
+    </message>
+    <message>
+        <source>Line through</source>
+        <translation>Перечеркнутый</translation>
+    </message>
+    <message>
+        <source>Overline</source>
+        <translation>Надчеркнутый</translation>
+    </message>
+    <message>
+        <source>Baseline</source>
+        <translation>По снованию</translation>
+    </message>
+    <message>
+        <source>Subscript</source>
+        <translation>Нижний индекс</translation>
+    </message>
+    <message>
+        <source>Superscript</source>
+        <translation>Верхний индекс</translation>
+    </message>
+    <message>
+        <source>Floating punctuation</source>
+        <translation>Висячая пунктуация</translation>
+    </message>
+    <message>
+        <source>Enable floating punctuation</source>
+        <translation>Разрешить висячую пунктуацию</translation>
+    </message>
+    <message>
+        <source>0.3</source>
+        <translation>0.3</translation>
+    </message>
+    <message>
+        <source>0.35</source>
+        <translation>0.35</translation>
+    </message>
+    <message>
+        <source>0.4</source>
+        <translation>0.4</translation>
+    </message>
+    <message>
+        <source>0.45</source>
+        <translation>0.45</translation>
+    </message>
+    <message>
+        <source>0.5</source>
+        <translation>0.5</translation>
+    </message>
+    <message>
+        <source>0.55</source>
+        <translation>0.55</translation>
+    </message>
+    <message>
+        <source>0.6</source>
+        <translation>0.6</translation>
+    </message>
+    <message>
+        <source>0.65</source>
+        <translation>0.65</translation>
+    </message>
+    <message>
+        <source>0.7</source>
+        <translation>0.7</translation>
+    </message>
+    <message>
+        <source>0.75</source>
+        <translation>0.75</translation>
+    </message>
+    <message>
+        <source>0.8</source>
+        <translation>0.8</translation>
+    </message>
+    <message>
+        <source>0.85</source>
+        <translation>0.85</translation>
+    </message>
+    <message>
+        <source>0.9</source>
+        <translation>0.9</translation>
+    </message>
+    <message>
+        <source>0.95</source>
+        <translation>0.95</translation>
+    </message>
+    <message>
+        <source>0.98</source>
+        <translation>0.98</translation>
+    </message>
+    <message>
+        <source>1.0</source>
+        <translation>1.0</translation>
+    </message>
+    <message>
+        <source>1.02</source>
+        <translation>1.02</translation>
+    </message>
+    <message>
+        <source>1.05</source>
+        <translation>1.05</translation>
+    </message>
+    <message>
+        <source>1.1</source>
+        <translation>1.1</translation>
+    </message>
+    <message>
+        <source>1.15</source>
+        <translation>1.15</translation>
+    </message>
+    <message>
+        <source>1.2</source>
+        <translation>1.2</translation>
+    </message>
+    <message>
+        <source>1.25</source>
+        <translation>1.25</translation>
+    </message>
+    <message>
+        <source>1.3</source>
+        <translation>1.3</translation>
+    </message>
+    <message>
+        <source>1.35</source>
+        <translation>1.35</translation>
+    </message>
+    <message>
+        <source>1.4</source>
+        <translation>1.4</translation>
+    </message>
+    <message>
+        <source>1.45</source>
+        <translation>1.45</translation>
+    </message>
+    <message>
+        <source>1.5</source>
+        <translation>1.5</translation>
+    </message>
+    <message>
+        <source>1.6</source>
+        <translation>1.6</translation>
+    </message>
+    <message>
+        <source>1.7</source>
+        <translation>1.7</translation>
+    </message>
+    <message>
+        <source>1.8</source>
+        <translation>1.8</translation>
+    </message>
+    <message>
+        <source>1.9</source>
+        <translation>1.9</translation>
+    </message>
+    <message>
+        <source>Font Gamma</source>
+        <translation>Гамма шрифта</translation>
+    </message>
+    <message>
+        <source>Font hinting</source>
+        <translation>Хинтинг</translation>
+    </message>
+    <message>
+        <source>No hinting</source>
+        <translation>Без хинтинга</translation>
+    </message>
+    <message>
+        <source>Use bytecode</source>
+        <translation>Использовать байт-код</translation>
+    </message>
+    <message>
+        <source>Autohinting</source>
+        <translation>Автохинтинг</translation>
+    </message>
+    <message>
+        <source>Fallback font</source>
+        <translation>Дополнительный шрифт</translation>
+    </message>
+    <message>
+        <source>Enable documetn internal styles</source>
+        <translation>Разрешить встроенные стили</translation>
+    </message>
+    <message>
+        <source>Internal CSS</source>
+        <translation>Внутренние таблицы стилей</translation>
+    </message>
+    <message>
+        <source>Enable document embedded fonts</source>
+        <translation>Разрешить встроенные шрифты</translation>
+    </message>
+    <message>
+        <source>.EPUB</source>
+        <translation>Для файлов .EPUB</translation>
+    </message>
+    <message>
+        <source>Alignment</source>
+        <translation>Выравнивание</translation>
+    </message>
+    <message>
+        <source>First line</source>
+        <translation>Первая строка</translation>
+    </message>
+    <message>
+        <source>Font size</source>
+        <translation>Размер шрифта</translation>
+    </message>
+    <message>
+        <source>Font face</source>
+        <translation>Начертание шрифта</translation>
+    </message>
+    <message>
+        <source>Font weight</source>
+        <translation>Насыщенность шрифта</translation>
+    </message>
+    <message>
+        <source>Font style</source>
+        <translation>Стиль шрифта</translation>
+    </message>
+    <message>
+        <source>Font color</source>
+        <translation>Цвет шрифта</translation>
+    </message>
+    <message>
+        <source>Margins:</source>
+        <translation>Отступы:</translation>
+    </message>
+    <message>
+        <source>Before</source>
+        <translation>Перед</translation>
+    </message>
+    <message>
+        <source>After</source>
+        <translation>После</translation>
+    </message>
+    <message>
+        <source>Interline space</source>
+        <translation>Междустрочный интервал</translation>
+    </message>
+    <message>
+        <source>Text decoration</source>
+        <translation>Оформление текста</translation>
+    </message>
+    <message>
+        <source>Vertical align</source>
+        <translation>Вертикальное выравнивание</translation>
+    </message>
+    <message>
+        <source>Stylesheet</source>
+        <translation>Таблицы стилей</translation>
     </message>
 </context>
 <context>
@@ -1316,34 +1882,34 @@ cvs -z3 -d:pserver:anonymous@crengine.cvs.sourceforge.net:/cvsroot/tinydict co -
     </message>
     <message>
         <source>Table of Contents</source>
-        <translation type="unfinished">Содержание</translation>
+        <translation>Содержание</translation>
     </message>
 </context>
 <context>
     <name>WolExportDlg</name>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Диалог</translation>
     </message>
     <message>
         <source>Bits per pixel</source>
-        <translation type="unfinished"></translation>
+        <translation>Бит на пиксель</translation>
     </message>
     <message>
         <source>1</source>
-        <translation type="unfinished"></translation>
+        <translation>1</translation>
     </message>
     <message>
         <source>2</source>
-        <translation type="unfinished"></translation>
+        <translation>2</translation>
     </message>
     <message>
         <source>Table of Contents levels</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровней заголовка</translation>
     </message>
     <message>
         <source>3</source>
-        <translation type="unfinished"></translation>
+        <translation>3</translation>
     </message>
 </context>
 </TS>

@@ -2155,6 +2155,22 @@ http://sourceforge.net/projects/crengine/
         <source>Superscript</source>
         <translation>Верхній індекс</translation>
     </message>
+    <message>
+        <source>Enable documetn internal styles</source>
+        <translation>Дозволити вбудовані стилі</translation>
+    </message>
+    <message>
+        <source>Internal CSS</source>
+        <translation>Внутрішні CSS</translation>
+    </message>
+    <message>
+        <source>Enable document embedded fonts</source>
+        <translation>Дозволити вбудовані шрифти</translation>
+    </message>
+    <message>
+        <source>.EPUB</source>
+        <translation>Для файлів .EPUB</translation>
+    </message>
 </context>
 <context>
     <name>TocDlg</name>
