@@ -6,21 +6,27 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.content.Context;
 import android.util.Log;
 
 public class HelpFileGenerator {
+
+	private static final int MANUAL_VERSION = 4;
+	
 	private final Context context;
 	private final Engine engine;
 	private final String langCode;
 	private final Properties settings;
-	public HelpFileGenerator(Context context, Engine engine, Properties props, String langCode) {
+	private final String version;
+	public HelpFileGenerator(CoolReader context, Engine engine, Properties props, String langCode) {
 		this.context = context;
 		this.engine = engine;
 		this.langCode = langCode;
 		this.settings = props;
+		this.version = context.getVersion();
 	}
 	
 	private static final String[] settingsUsedInManual = {
@@ -57,15 +63,19 @@ public class HelpFileGenerator {
 	 * @return hash value
 	 */
 	public int getSettingsHash() {
-		int res = 12335;
+		int res = MANUAL_VERSION;
 		for (String setting : settingsUsedInManual)
 			res = res * 31 + getSettingHash(setting);
 		return res;
 	}
 	
-	public File getHelpFileName(File dir) {
-		File fn = new File(dir, "cr3_manual_" + langCode + ".fb2");
+	public static File getHelpFileName(File dir, String lang) {
+		File fn = new File(dir, "cr3_manual_" + lang + ".fb2");
 		return fn;
+	}
+	
+	public File getHelpFileName(File dir) {
+		return getHelpFileName(dir, langCode);
 	}
 	
 	public File generateHelpFile(File dir) {
@@ -274,6 +284,8 @@ public class HelpFileGenerator {
 	}
 	
 	private String getSettingValueName(String name) {
+		if ("version".equals(name))
+			return version;
 		String v = settings.getProperty(name);
 		if (v == null || v.length() == 0)
 			return null;

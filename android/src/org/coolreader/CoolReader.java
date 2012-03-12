@@ -1113,6 +1113,7 @@ public class CoolReader extends Activity
         //engine.waitTasksCompletion();
 //		restarted = false;
 		stopped = false;
+		
 		final String fileName = fileToLoadOnStart;
 		mBackgroundThread.postGUI(new Runnable() {
 			public void run() {

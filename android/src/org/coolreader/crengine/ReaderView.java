@@ -2737,11 +2737,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 
-	/**
-	 * Generate help file (if necessary) and show it.
-	 * @return true if opened successfully
-	 */
-	public boolean showManual() {
+	private String getManualFileName() {
+		File bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
+		return HelpFileGenerator.getHelpFileName(bookDir, mActivity.getCurrentLanguage()).getAbsolutePath();
+	}
+	
+	private File generateManual() {
 		HelpFileGenerator generator = new HelpFileGenerator(mActivity, mEngine, getSettings(), mActivity.getCurrentLanguage());
 		File bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
 		int settingsHash = generator.getSettingsHash();
@@ -2753,9 +2754,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.setLastGeneratedHelpFileSignature(helpFileContentId);
 			manual = generator.generateHelpFile(bookDir);
 		}
-		if (manual != null)
-			return loadDocument(manual.getAbsolutePath(), null);
-		return false;
+		return manual;
+	}
+	
+	/**
+	 * Generate help file (if necessary) and show it.
+	 * @return true if opened successfully
+	 */
+	public boolean showManual() {
+		return loadDocument(getManualFileName(), null);
 	}
 	
 	private boolean hiliteTapZoneOnTap = false;
@@ -3077,6 +3084,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		//BookInfo book = mActivity.getHistory().getLastBook();
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
+		if (lastBookName == null && mActivity.getHistory().getLastBook() == null)
+			lastBookName = getManualFileName();
 		log.i("loadLastDocument() is called, lastBookName = " + lastBookName);
 		return loadDocument( lastBookName, errorHandler );
 	}
@@ -3107,6 +3116,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("loadDocument() : no filename specified");
 			errorHandler.run();
 			return false;
+		}
+		if (fileName.equals(getManualFileName())) {
+			// ensure manual file is up to date
+			if (generateManual() == null) {
+				log.v("loadDocument() : no filename specified");
+				errorHandler.run();
+				return false;
+			}
 		}
 		BookInfo book = mActivity.getHistory().getBookInfo(fileName);
 		if ( book!=null )

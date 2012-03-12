@@ -7,13 +7,13 @@
 		</title-info>
 	</description>
 	<body>
-		<title>
-			<p>Welcome to Cool Reader<br/><!--cr3:image cr3_logo--></p>
-		</title>
 		<section>
-			<title>
-				<p>Navigation while reading</p>
-			</title>
+            <title>
+                <p>Welcome to Cool Reader <!--cr3:setting version--><br/><!--cr3:image cr3_logo--></p>
+            </title>
+            <p>This is a program to read electronic books in a number of formats: EPUB, FB2, RTF, TXT, HTML, CHM, PDB, MOBI, TCR</p>
+            <p>Save books to read on SD card, or download them from online catalogs (OPDS) directly in CoolReader.</p>
+			<subtitle>Navigation while reading</subtitle>
 			<p>You can move to next / previous page using several methods:</p>
 			<ul>
 				<li>Touch screen: flick right to left for next page, left to right for previous</li>
@@ -22,9 +22,12 @@
 				<li>Using hardware joystick or navigation keys</li>
 				<!--cr3:if app.trackball.disabled--><li>Turn pages using hardware joystick or navigation keys</li><!--cr3:endif-->
 			</ul>
-			<p>To navigate by link, long tap on link. To return back, press Back key or tap top left corner of screen</p>
+            <p></p>
+			<p>To navigate by link, long tap on link. To return back, press Back key or long tap top left corner of screen</p>
+            <p>Links to sections of manual: <a href="#menu">Menu</a> | 
+                <a href="#settings">Settings</a> | <a href="#tapzones">Tap zones</a> | <a href="#bookmarks">Bookmarks</a></p>
 		</section>
-		<section>
+		<section id="menu">
 			<title>
 				<p>Menu</p>
 			</title>
@@ -50,7 +53,7 @@
 				<li><!--cr3:image select--> Select text</li>
 				<li><!--cr3:image options--> Options</li>
 				<li><!--cr3:image search--> Search text</li>
-				<li>More items submenu:</li>
+				<li>"More" submenu:</li>
 				<ul>
 					<li>Toggle day / night mode</li>
 					<li>Toggle document styles</li>
@@ -65,17 +68,33 @@
 				</ul>
 			</ul>
 		</section>
-		<section>
+		<section id="settings">
 			<title>
 				<p>Settings</p>
 			</title>
+            <p>To access Settings, use one of following methods:</p>
 			<ul>
 				<li>Keys: long press menu key</li>
 				<li>Touch screen: long tap center of screen</li>
 				<li>Main menu: select Options item from main menu</li>
 			</ul>
+            <p>Settings window has a few tabs</p>
+            <ul>
+                <li><a href="#settings-text">Text settings</a></li>
+                <li><a href="#settings-css">Style/CSS settings</a></li>
+                <li><a href="#settings-page">Page layout</a></li>
+                <li><a href="#settings-controls">Controls</a></li>
+                <li><a href="#settings-application">Application</a></li>
+            </ul>
+            <subtitle>Setting profiles</subtitle>
+            <p>You can use several setting profiles, with fast switching between them. Assign "Switch profile" action on some tap zone or key</p>
+            <subtitle id="settings-text">Text settings</subtitle>
+            <subtitle id="settings-css">Stylesheet settings</subtitle>
+            <subtitle id="settings-page">Page layout settings</subtitle>
+            <subtitle id="settings-controls">Controls settings</subtitle>
+            <subtitle id="settings-application">Application settings</subtitle>
 		</section>
-		<section>
+		<section id="tapzones">
 			<title>
 				<p>Tap zones</p>
 			</title>
@@ -102,14 +121,14 @@
 			</table>
 		</section>
         <section>
-            <title>
+            <title id="bookmarks">
                 <p>Bookmarks</p>
             </title>
-            <p>Coolreader supports 3 types of bookmarks</p>
+            <p>Coolreader supports 3 types of bookmarks:</p>
             <ul>
-                <li>Position bookmark: when created, anchor is associated with top line of current page</li>
-                <li>Comment bookmark: you can add comments for selected text range</li>
-                <li>Comment bookmark: you can specify corrected text for selected text range (useful for proofreading)</li>
+                <li><b>Position</b> bookmark: when created, anchor is associated with top line of current page</li>
+                <li><b>Comment</b> bookmark: you can add comments for selected text range</li>
+                <li><b>Correction</b> bookmark: you can specify corrected text for selected text range (useful for proofreading)</li>
             </ul>
             <!--cr3:if crengine.highlight.bookmarks-->
                 <p>Comment and Correction bookmarks are highlighted</p>
@@ -163,6 +182,27 @@
                 <li>Export - save list of bookmarks to text file</li>
                 <li>Send - send list of bookmarks in text format in email, etc.</li>
             </ul>
+        </section>
+        <section id="advanced">
+            <title>
+                <p>Advanced configuration</p>
+            </title>
+            <subtitle>Additional fonts</subtitle>
+            <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
+            <subtitle>External styles, CSS</subtitle>
+            <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
+            <p>For fine tuning of styles, you can change Cascading Style Sheet definition for format. CSS files for different formats (fb2.css, epub.css, htm.css, rtf.css, txt.css, chm.css) can be placed to /.cr3/ directory of SD card. In this case they override internal style in package. As a base, styles from GIT repository of CoolReader (crengine) SourceForge project can be used.</p> 
+            <subtitle>Additional background images</subtitle>
+            <p>To use your own images (.jpg, .png) as page background in tile mode, place them to /.cr3/textures/ directory of SD card.</p>
+            <p>Instead of /.cr3/ directory (with period) you can use directory name w/o period (/cr3/) Instead of external SD card, you can use internal storage or internal SD card (if presens in your device)</p> 
+        </section>
+        <section id="links">
+            <title>
+                <p>Useful links</p>
+            </title>
+            <p>(will be opened in external browser)</p>
+            <p><a href="http://www.coolreader.org/">Project page on SourceForge</a></p>
+            <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Project's Wiki on SourceForge</a></p>
         </section>
 	</body>
 </FictionBook>
