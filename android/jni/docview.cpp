@@ -1549,6 +1549,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInte
     	    CRBookmark * bookmark = new CRBookmark(startPos.get(), endPos.get());
     	    bookmark->setType(type.get());
     	    bookmarks.add(bookmark);
+    	    env->DeleteLocalRef(obj);
     	}
     }
     p->_docview->setBookmarkList(bookmarks);

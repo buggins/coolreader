@@ -1127,13 +1127,23 @@ void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
         m_pbuffer->min_space_condensing_percent = minSpaceWidthPercent;
 }
 
-void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int x1, int y, int style) {
+void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int style) {
+    // solid fill
+    lUInt32 cl3 = 0;
+    if (style & 8)
+        cl3 = 0xC0FF8040; // red semi-transparent
+    else if (style & 4)
+        cl3 = 0xC0FF8000; // yellow semi-transparent
+    if (cl3 != 0)
+        drawbuf.FillRect(x0, y0, x1, y1, cl3);
+    // underline
     lUInt32 cl = drawbuf.GetTextColor();
     cl = (cl & 0xFFFFFF) | 0x20000000; // semitransparent
     lUInt32 cl2 = (cl & 0xFFFFFF) | 0x40000000; // semitransparent
     int step = 4;
     int index = 0;
     for (int x = x0; x < x1; x += step ) {
+
         int x2 = x + step;
         if (x2 > x1)
             x2 = x1;
@@ -1223,7 +1233,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     ldomMarkedRange * range = bookmarks->get(i);
                     if ( range->intersects( lineRect, mark ) ) {
                         //
-                        DrawBookmarkTextUnderline(*buf, mark.left + x, mark.right + x, mark.bottom + y - 2, range->flags);
+                        DrawBookmarkTextUnderline(*buf, mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, mark.bottom + y - 2, range->flags);
                     }
                 }
             }

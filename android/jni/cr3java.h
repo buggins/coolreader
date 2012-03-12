@@ -154,7 +154,12 @@ public:
 	: CRFieldAccessor( acc, fieldName, "Ljava/lang/String;" ) 
 	{
 	}
-	lString16 get() { return objacc.fromJavaString((jstring)objacc->GetObjectField(objacc.getObject(), fieldid)); } 
+	lString16 get() {
+		jstring str = (jstring)objacc->GetObjectField(objacc.getObject(), fieldid);
+		lString16 res = objacc.fromJavaString(str);
+		objacc.env->DeleteLocalRef(str);
+		return res;
+	}
 	void set( const lString16& str) { objacc->SetObjectField(objacc.getObject(), fieldid, objacc.toJavaString(str)); } 
 };
 
