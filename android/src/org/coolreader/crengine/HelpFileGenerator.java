@@ -33,6 +33,18 @@ public class HelpFileGenerator {
 		"app.tapzone.action.tap.long.7",
 		"app.tapzone.action.tap.long.8",
 		"app.tapzone.action.tap.long.9",
+	    Settings.PROP_APP_DOUBLE_TAP_SELECTION,
+	    Settings.PROP_APP_TAP_ZONE_ACTIONS_TAP,
+	    Settings.PROP_APP_KEY_ACTIONS_PRESS,
+	    Settings.PROP_APP_TRACKBALL_DISABLED,
+	    Settings.PROP_APP_FLICK_BACKLIGHT_CONTROL,
+	    Settings.PROP_APP_SELECTION_ACTION,
+	    Settings.PROP_APP_MULTI_SELECTION_ACTION,
+	    Settings.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS,
+	    Settings.PROP_APP_FILE_BROWSER_SIMPLE_MODE,
+	    Settings.PROP_APP_SECONDARY_TAP_ACTION_TYPE,
+	    Settings.PROP_APP_GESTURE_PAGE_FLIPPING,
+	    Settings.PROP_APP_HIGHLIGHT_BOOKMARKS,
 	};
 	
 	private int getSettingHash(String name) {
@@ -40,11 +52,20 @@ public class HelpFileGenerator {
 		return value == null ? 0 : value.hashCode();
 	}
 	
+	/**
+	 * Calculate hash for current values of settings which may be affect help file content generation.
+	 * @return hash value
+	 */
 	public int getSettingsHash() {
 		int res = 12335;
 		for (String setting : settingsUsedInManual)
 			res = res * 31 + getSettingHash(setting);
 		return res;
+	}
+	
+	public File getHelpFileName(File dir) {
+		File fn = new File(dir, "cr3_manual_" + langCode + ".fb2");
+		return fn;
 	}
 	
 	public File generateHelpFile(File dir) {
@@ -58,7 +79,7 @@ public class HelpFileGenerator {
 		} catch (UnsupportedEncodingException e1) {
 			return null;
 		}
-		File fn = new File(dir, "cr3_manual_" + langCode + ".fb2");
+		File fn = getHelpFileName(dir);
 		try {
 			FileOutputStream os = new FileOutputStream(fn);
 			os.write(data);

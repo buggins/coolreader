@@ -101,5 +101,68 @@
 			</tr>
 			</table>
 		</section>
+        <section>
+            <title>
+                <p>Bookmarks</p>
+            </title>
+            <p>Coolreader supports 3 types of bookmarks</p>
+            <ul>
+                <li>Position bookmark: when created, anchor is associated with top line of current page</li>
+                <li>Comment bookmark: you can add comments for selected text range</li>
+                <li>Comment bookmark: you can specify corrected text for selected text range (useful for proofreading)</li>
+            </ul>
+            <!--cr3:if crengine.highlight.bookmarks-->
+                <p>Comment and Correction bookmarks are highlighted</p>
+            <!--cr3:else-->
+                <p>Comment and Correction bookmarks can be highlighted if corresponding option is enabled in settings</p>
+            <!--cr3:endif-->
+            <p>To add position bookmark, open Bookmarks window using Menu / Bookmarks, then press Plus sign in window header. 
+                Current page will be bookmarked, and next time Bookmarks window is opened, you will see it in list of bookmarks. 
+                Press on bookmark item in list to move on bookmarked page</p>
+            <p>To add comment or position bookmark, you have to select text range.</p>
+            <!--cr3:if app.controls.doubletap.selection-->
+                <!--cr3:if app.touch.secondary.action.type=0-->
+                    <p>Double click on word to start selection, then move your finger to select text range.</p>
+                <!--cr3:else-->
+                    <p>Long click on word to start selection, then move your finger to select text range.</p>
+                <!--cr3:endif-->
+                <p>Alternatively, you can use Menu / Selection to enter selection mode. Then select range of text with finger.</p>
+            <!--cr3:else-->
+                <p>Use Menu / Selection to enter selection mode. Then select range of text with finger.</p>
+            <!--cr3:endif-->
+            <!--cr3:if app.selection.action=0-->
+                <!--cr3:if app.multyselection.action=0-->
+                    <p>When selection is completed, Selection Toolbar appears. Press Bookmark button to add bookmark for selection.</p>
+                <!--cr3:else-->
+                    <p>When selection is completed, and the only one word is selected, Selection Toolbar appears. Press Bookmark button to add bookmark for selection.</p>
+                    <p>According to current settings, for multiple word selection, no Selection Toolbar will appear. Instead, action assigned in "Multiselection action" setting will be invoked instantly. You can change this behavior in Settings.</p>
+                <!--cr3:endif-->
+            <!--cr3:endif-->
+            <!--cr3:if app.selection.action=3-->
+                <!--cr3:if app.multyselection.action=3-->
+                    <p>When selection is completed, Add Bookmark window will appear instantly. (Alternatively, you can choose another behavior in Settings / Selection Action)</p>
+                <!--cr3:else-->
+                    <p>When selection is completed, and the only one word is selected, Add Bookmark window will appear instantly.</p>
+                    <p>According to current settings, for multiple word selection, different behavior is assigned. no Selection Toolbar will appear. You can change this behavior in Settings / Multiselection action.</p>
+                <!--cr3:endif-->
+            <!--cr3:endif-->
+            <p>Add Bookmark window allows you to select type of bookmark, and specify comment (for Comment Bookmark) or corrected text (for Correction Bookmark). Press Plus sign at window title to add bookmark, Back button to cancel.</p>
+            <!--cr3:if crengine.highlight.bookmarks-->
+                <p>Comment and Correction bookmarks are highlighted in text.</p>
+            <!--cr3:else-->
+                <p>Comment and Correction bookmarks may be highlighted in text if corresponding option is checked in Settings</p>
+            <!--cr3:endif-->
+            <p>To open list of bookmarks, use Menu / Bookmarks. List of bookmarks for current book appears.</p>
+            <p>Short tap on list item instantly moves reading position to selected bookmark.</p>
+            <p>Long tap on list item opens context menu for bookmark:</p>
+            <ul>
+                <li>Goto - move to bookmark position in text</li>
+                <li>Add - add position bookmark for current page</li>
+                <li>Edit - change comment or correction text</li>
+                <li>Remove</li>
+                <li>Export - save list of bookmarks to text file</li>
+                <li>Send - send list of bookmarks in text format in email, etc.</li>
+            </ul>
+        </section>
 	</body>
 </FictionBook>

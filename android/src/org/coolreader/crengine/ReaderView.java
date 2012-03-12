@@ -2738,13 +2738,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	/**
-	 * Generate help file and show it.
-	 * @return
+	 * Generate help file (if necessary) and show it.
+	 * @return true if opened successfully
 	 */
 	public boolean showManual() {
 		HelpFileGenerator generator = new HelpFileGenerator(mActivity, mEngine, getSettings(), mActivity.getCurrentLanguage());
 		File bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
-		File manual = generator.generateHelpFile(bookDir);
+		int settingsHash = generator.getSettingsHash();
+		String helpFileContentId = mActivity.getCurrentLanguage() + settingsHash + "v" + mActivity.getVersion();
+		String lastHelpFileContentId = mActivity.getLastGeneratedHelpFileSignature();
+		File manual = generator.getHelpFileName(bookDir); 
+		if (!manual.exists() || lastHelpFileContentId == null || !lastHelpFileContentId.equals(helpFileContentId)) {
+			log.d("Generating help file " + manual.getAbsolutePath());
+			mActivity.setLastGeneratedHelpFileSignature(helpFileContentId);
+			manual = generator.generateHelpFile(bookDir);
+		}
 		if (manual != null)
 			return loadDocument(manual.getAbsolutePath(), null);
 		return false;

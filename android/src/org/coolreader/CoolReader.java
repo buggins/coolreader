@@ -138,6 +138,7 @@ public class CoolReader extends Activity
 	
 	private static String PREF_FILE = "CR3LastBook";
 	private static String PREF_LAST_BOOK = "LastBook";
+	private static String PREF_HELP_FILE = "HelpFile";
 	public String getLastSuccessfullyOpenedBook()
 	{
 		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
@@ -150,6 +151,19 @@ public class CoolReader extends Activity
 	{
 		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
 		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
+	}
+	
+	public String getLastGeneratedHelpFileSignature()
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		String res = pref.getString(PREF_HELP_FILE, null);
+		return res;
+	}
+	
+	public void setLastGeneratedHelpFileSignature(String v)
+	{
+		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
+		pref.edit().putString(PREF_HELP_FILE, v).commit();
 	}
 	
 	private int mScreenUpdateMode = 0;
