@@ -1130,10 +1130,10 @@ void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
 void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int style) {
     // solid fill
     lUInt32 cl3 = 0;
-    if (style & 8)
-        cl3 = 0xC0FF8040; // red semi-transparent
-    else if (style & 4)
-        cl3 = 0xC0FF8000; // yellow semi-transparent
+    if (style & 4)
+        cl3 = 0xE0FF4040; // red semi-transparent
+    else if (style & 8)
+        cl3 = 0xE0FFB060; // yellow semi-transparent
     if (cl3 != 0)
         drawbuf.FillRect(x0, y0, x1, y1, cl3);
     // underline
