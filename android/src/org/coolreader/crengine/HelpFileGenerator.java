@@ -23,6 +23,30 @@ public class HelpFileGenerator {
 		this.settings = props;
 	}
 	
+	private static final String[] settingsUsedInManual = {
+		"app.tapzone.action.tap.long.1",
+		"app.tapzone.action.tap.long.2",
+		"app.tapzone.action.tap.long.3",
+		"app.tapzone.action.tap.long.4",
+		"app.tapzone.action.tap.long.5",
+		"app.tapzone.action.tap.long.6",
+		"app.tapzone.action.tap.long.7",
+		"app.tapzone.action.tap.long.8",
+		"app.tapzone.action.tap.long.9",
+	};
+	
+	private int getSettingHash(String name) {
+		String value = settings.getProperty(name);
+		return value == null ? 0 : value.hashCode();
+	}
+	
+	public int getSettingsHash() {
+		int res = 12335;
+		for (String setting : settingsUsedInManual)
+			res = res * 31 + getSettingHash(setting);
+		return res;
+	}
+	
 	public File generateHelpFile(File dir) {
 		String template = readTemplate();
 		if (template == null || template.length() == 0)
