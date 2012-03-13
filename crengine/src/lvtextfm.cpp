@@ -123,6 +123,10 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->img_zoom_out_mode_inline = defMode; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
     pbuffer->img_zoom_out_scale_inline = defMult; /**< max scale for inline images zoom out: 1, 2, 3 */
     pbuffer->min_space_condensing_percent = MIN_SPACE_CONDENSING_PERCENT; // 50%
+    pbuffer->selection_color = 0x80AAAAAA; /**< color to highlight selection range */
+    pbuffer->bookmark_comment_color = 0xC0FFFF00; /**< color to highlight comment bookmark */
+    pbuffer->bookmark_correction_color = 0xC0FF8000; /**< color to highlight correction bookmark */
+
     return pbuffer;
 }
 
@@ -1135,8 +1139,17 @@ void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
         m_pbuffer->min_space_condensing_percent = minSpaceWidthPercent;
 }
 
-void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int style) {
-    lUInt32 cl = drawbuf.GetTextColor();
+/// set colors for selection and bookmarks
+void LFormattedText::setSelectionColors(lUInt32 selColor, lUInt32 commentColor, lUInt32 correctionColor)
+{
+    m_pbuffer->selection_color = selColor;
+    m_pbuffer->bookmark_comment_color = commentColor;
+    m_pbuffer->bookmark_correction_color = correctionColor;
+}
+
+
+void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int style, lUInt32 color) {
+    lUInt32 cl = color;
     // solid fill
     lUInt32 cl3 = 0;
     if (style & 4)
@@ -1232,9 +1245,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     ldomMarkedRange * range = marks->get(i);
                     if ( range->intersects( lineRect, mark ) ) {
                         //
-                        lUInt32 cl = (buf->GetTextColor() & 0xFFFFFF) | 0x90000000;
-                        buf->FillRect( mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, 0xAAAAAAAA );
-                        buf->FillRect( mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, cl );
+                        buf->FillRect(mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, m_pbuffer->selection_color);
                     }
                 }
             }
@@ -1245,7 +1256,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     ldomMarkedRange * range = bookmarks->get(i);
                     if ( range->intersects( lineRect, mark ) ) {
                         //
-                        DrawBookmarkTextUnderline(*buf, mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, mark.bottom + y - 2, range->flags);
+                        DrawBookmarkTextUnderline(*buf, mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, mark.bottom + y - 2, range->flags,
+                                                  (range->flags & 4) ? m_pbuffer->bookmark_comment_color : m_pbuffer->bookmark_correction_color);
                     }
                 }
             }

@@ -163,6 +163,9 @@ typedef struct
    lInt32                img_zoom_out_mode_inline; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
    lInt32                img_zoom_out_scale_inline; /**< max scale for inline images zoom out: 1, 2, 3 */
    lInt32                min_space_condensing_percent; /**< min size of space (relative to normal size) to allow fitting line by reducing of spaces */
+   lInt32                selection_color; /**< color to highlight selection range */
+   lInt32                bookmark_comment_color; /**< color to highlight comment bookmark */
+   lInt32                bookmark_correction_color; /**< color to highlight correction bookmark */
 } formatted_text_fragment_t;
 
 /**  Alloc & init formatted text buffer
@@ -235,6 +238,9 @@ public:
 
     /// set space condensing line fitting option (25..100%)
     void setMinSpaceCondensingPercent(int minSpaceWidthPercent);
+
+    /// set colors for selection and bookmarks
+    void setSelectionColors(lUInt32 selColor, lUInt32 commentColor, lUInt32 correctionColor);
 
     void Clear()
     { 
