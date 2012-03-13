@@ -11,6 +11,7 @@ a[type="note"] { vertical-align: super; font-size: 70%; text-decoration: none }
 
 image { text-align: center; text-indent: 0px; display: block }
 p image { display: inline }
+li image { display: inline }
 
 li { display: list-item; text-indent: 0em;  }
 ul { display: block; list-style-type: disc; margin-left: 1em }

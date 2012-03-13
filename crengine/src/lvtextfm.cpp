@@ -484,14 +484,17 @@ public:
                 tabIndex = i;
             }
             bool isObject = false;
+            bool prevCharIsObject = false;
             if ( i<m_length ) {
                 newSrc = m_srcs[i];
-                isObject = m_charindex[i]==OBJECT_CHAR_INDEX;
+                isObject = m_charindex[i] == OBJECT_CHAR_INDEX;
                 newFont = isObject ? NULL : (LVFont *)newSrc->t.font;
             }
+            if (i > 0)
+                prevCharIsObject = m_charindex[i - 1] == OBJECT_CHAR_INDEX;
             if ( !lastFont )
                 lastFont = newFont;
-            if ( i>start && (newFont!=lastFont || isObject || i>=start+MAX_TEXT_CHUNK_SIZE || (m_flags[i]&LCHAR_MANDATORY_NEWLINE)) ) {
+            if ( i>start && (newFont!=lastFont || isObject || prevCharIsObject || i>=start+MAX_TEXT_CHUNK_SIZE || (m_flags[i]&LCHAR_MANDATORY_NEWLINE)) ) {
                 // measure start..i-1 chars
                 if ( m_charindex[i-1]!=OBJECT_CHAR_INDEX ) {
                     // measure text
@@ -530,14 +533,17 @@ public:
                     }
 
                     lastWidth += widths[len-1]; //len<m_length ? len : len-1];
-                    m_flags[len] = 0;
+
+                    // ?????? WTF
+                    //m_flags[len] = 0;
                     // TODO: letter spacing letter_spacing
                 } else {
                     // measure object
                     // assume i==start+1
                     int width = m_srcs[start]->o.width;
                     int height = m_srcs[start]->o.height;
-                    resizeImage( width, height, m_pbuffer->width, m_pbuffer->page_height, m_length>1 );
+                    bool isInline = m_pbuffer->srctextlen > 1; // single image
+                    resizeImage(width, height, m_pbuffer->width, m_pbuffer->page_height, m_length>1, isInline);
                     lastWidth += width;
                     m_widths[start] = lastWidth;
                 }
@@ -712,12 +718,14 @@ public:
 
                     int width = lastSrc->o.width;
                     int height = lastSrc->o.height;
-                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1 );
+                    bool isInline = m_pbuffer->srctextlen > 1; // single image
+                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1, isInline );
                     word->width = width;
                     word->o.height = height;
 
                     b = word->o.height;
                     h = 0;
+                    //frmline->width += width;
                 } else {
                     // word
                     src_text_fragment_t * srcline = m_srcs[wstart];

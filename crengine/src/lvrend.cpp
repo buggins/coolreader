@@ -970,7 +970,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         int flags = styleToTextFmtFlags( enode->getStyle(), baseflags );
         int width = fmt->getWidth();
         css_style_rec_t * style = enode->getStyle().get();
-        if (flags & LTEXT_FLAG_NEWLINE)
+        if (flags & LTEXT_FLAG_NEWLINE && rm != erm_inline)
         {
             css_length_t len = style->text_indent;
             switch( len.type )

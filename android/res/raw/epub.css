@@ -50,6 +50,7 @@ img {
 .section_image { text-align: center; }
 .coverpage { text-align: center; }
 p image { display: inline }
+li image { display: inline }
 
 a { display:inline; $link.all }
 p { $def.all }
