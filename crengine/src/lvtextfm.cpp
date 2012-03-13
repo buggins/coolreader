@@ -1140,12 +1140,12 @@ void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int 
     // solid fill
     lUInt32 cl3 = 0;
     if (style & 4)
-        cl3 = (cl & 0xFFFFFF) | 0xC0000000;
+        cl3 = (cl & 0xFFFFFF) | 0xD0000000;
     else if (style & 8)
-        cl3 = (cl & 0xFFFFFF) | 0xC0000000;
+        cl3 = (cl & 0xFFFFFF) | 0xD0000000;
     if (cl3 != 0) {
         drawbuf.FillRect(x0, y0, x1, y1, cl3);
-        drawbuf.FillRect(x0, y0, x1, y1, (style & 8) ? 0xC0FF6060 : 0xD0FFFF00);
+        drawbuf.FillRect(x0, y0, x1, y1, (style & 8) ? 0xE0FF6060 : 0xF0FFFF00);
     }
     // underline
     cl = (cl & 0xFFFFFF) | 0x30000000; // semitransparent
