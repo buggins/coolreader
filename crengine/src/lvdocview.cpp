@@ -5404,6 +5404,9 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	if (list.length() > 0 && !list.contains(props->getStringDef(PROP_FONT_FACE,
 			defFontFace.c_str())))
 		props->setString(PROP_FONT_FACE, list[0]);
+	props->setStringDef(PROP_FALLBACK_FONT_FACE, props->getStringDef(PROP_FONT_FACE,
+                        defFontFace.c_str()));
+
 	props->setIntDef(PROP_FONT_SIZE,
 			m_font_sizes[m_font_sizes.length() * 2 / 3]);
 	props->limitValueList(PROP_FONT_SIZE, m_font_sizes.ptr(),
@@ -5418,6 +5421,12 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int bool_options_def_false[] = { 0, 1 };
 
 	props->limitValueList(PROP_FONT_WEIGHT_EMBOLDEN, bool_options_def_false, 2);
+#ifndef ANDROID
+	props->limitValueList(PROP_EMBEDDED_STYLES, bool_options_def_true, 2);
+	props->limitValueList(PROP_EMBEDDED_FONTS, bool_options_def_true, 2);
+#endif
+	static int int_option_hinting[] = { 0, 1, 2 };
+	props->limitValueList(PROP_FONT_HINTING, int_option_hinting, 3);
     static int int_options_1_2[] = { 2, 1 };
 	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
 	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
@@ -5455,24 +5464,24 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 					HYPH_DICT_ID_ALGORITHM));
 	}
 #endif
-	props->setStringDef(PROP_STATUS_LINE, "0");
-	props->setStringDef(PROP_SHOW_TITLE, "1");
-	props->setStringDef(PROP_SHOW_TIME, "1");
-	props->setStringDef(PROP_SHOW_BATTERY, "1");
-    props->setStringDef(PROP_SHOW_BATTERY_PERCENT, "0");
-    props->setStringDef(PROP_SHOW_PAGE_COUNT, "1");
-    props->setStringDef(PROP_SHOW_PAGE_NUMBER, "1");
-    props->setStringDef(PROP_SHOW_POS_PERCENT, "0");
-    props->setStringDef(PROP_STATUS_CHAPTER_MARKS, "1");
-    props->setStringDef(PROP_FLOATING_PUNCTUATION, "1");
+	props->setIntDef(PROP_STATUS_LINE, 0);
+	props->setIntDef(PROP_SHOW_TITLE, 1);
+	props->setIntDef(PROP_SHOW_TIME, 1);
+	props->setIntDef(PROP_SHOW_BATTERY, 1);
+    props->setIntDef(PROP_SHOW_BATTERY_PERCENT, 0);
+    props->setIntDef(PROP_SHOW_PAGE_COUNT, 1);
+    props->setIntDef(PROP_SHOW_PAGE_NUMBER, 1);
+    props->setIntDef(PROP_SHOW_POS_PERCENT, 0);
+    props->setIntDef(PROP_STATUS_CHAPTER_MARKS, 1);
+    props->setIntDef(PROP_FLOATING_PUNCTUATION, 1);
 
 #ifndef ANDROID
-    props->setStringDef(PROP_EMBEDDED_STYLES, "1");
+    props->setIntDef(PROP_EMBEDDED_STYLES, 1);
+    props->setIntDef(PROP_EMBEDDED_FONTS, 1);
     props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
     props->limitValueList(PROP_TXT_OPTION_PREFORMATTED, bool_options_def_false,
             2);
 #endif
-
 
     img_scaling_option_t defImgScaling;
     props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, defImgScaling.max_scale);
