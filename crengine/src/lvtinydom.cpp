@@ -10173,10 +10173,10 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     default:
         // treat default as disc
     case css_lst_disc:
-        marker = L"\x25CF";
+        marker = L"\x2022"; //L"\x25CF"; // 25e6
         break;
     case css_lst_circle:
-        marker = L"\x25CB";
+        marker = L"\x2022"; //L"\x25CB";
         break;
     case css_lst_square:
         marker = L"\x25A0";

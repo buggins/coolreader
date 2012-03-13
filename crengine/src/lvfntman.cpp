@@ -279,6 +279,10 @@ static lChar16 getReplacementChar( lUInt16 code ) {
         return '>';
     case 0x2044:
         return '/';
+    case 0x2022: // css_lst_disc:
+        return '*';
+    case 0x26AA: // css_lst_disc:
+    case 0x25E6: // css_lst_disc:
     case 0x25CF: // css_lst_disc:
         return 'o';
     case 0x25CB: // css_lst_circle:
