@@ -1128,18 +1128,20 @@ void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
 }
 
 void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int style) {
+    lUInt32 cl = drawbuf.GetTextColor();
     // solid fill
     lUInt32 cl3 = 0;
     if (style & 4)
-        cl3 = 0xE0FF4040; // red semi-transparent
+        cl3 = (cl & 0xFFFFFF) | 0xC0000000;
     else if (style & 8)
-        cl3 = 0xE0FFB060; // yellow semi-transparent
-    if (cl3 != 0)
+        cl3 = (cl & 0xFFFFFF) | 0xC0000000;
+    if (cl3 != 0) {
         drawbuf.FillRect(x0, y0, x1, y1, cl3);
+        drawbuf.FillRect(x0, y0, x1, y1, (style & 8) ? 0xC0FF6060 : 0xD0FFFF00);
+    }
     // underline
-    lUInt32 cl = drawbuf.GetTextColor();
-    cl = (cl & 0xFFFFFF) | 0x20000000; // semitransparent
-    lUInt32 cl2 = (cl & 0xFFFFFF) | 0x40000000; // semitransparent
+    cl = (cl & 0xFFFFFF) | 0x30000000; // semitransparent
+    lUInt32 cl2 = (cl & 0xFFFFFF) | 0x80000000; // semitransparent
     int step = 4;
     int index = 0;
     for (int x = x0; x < x1; x += step ) {
@@ -1222,7 +1224,9 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     ldomMarkedRange * range = marks->get(i);
                     if ( range->intersects( lineRect, mark ) ) {
                         //
-                        buf->FillRect( mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, 0xAAAAAA );
+                        lUInt32 cl = (buf->GetTextColor() & 0xFFFFFF) | 0x90000000;
+                        buf->FillRect( mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, 0xAAAAAAAA );
+                        buf->FillRect( mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, cl );
                     }
                 }
             }
