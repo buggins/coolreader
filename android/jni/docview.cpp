@@ -1287,8 +1287,8 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateSelectionInter
         	percent = 10000 * page/(pages-1);
         lString16 selText = r.getRangeText( '\n', 8192 );
         sel_percent.set(percent);
-    	sel_startPos.set( startp.toString() );
-    	sel_endPos.set( endp.toString() );
+    	sel_startPos.set( r.getStart().toString() );
+    	sel_endPos.set( r.getEnd().toString() );
     	sel_text.set(selText);
     	sel_chapter.set(titleText);
     }

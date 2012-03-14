@@ -91,8 +91,8 @@ static void ApplyAlphaRGB565( lUInt16 &dst, lUInt16 src, lUInt32 alpha )
     else if ( alpha<255 ) {
         lUInt32 opaque = 256 - alpha;
         lUInt32 r = (((dst & 0xF800) * alpha + (src & 0xF800) * opaque) >> 8) & 0xF800;
-        lUInt32 g = (((dst & 0x07E0) * alpha + (src & 0x7E00) * opaque) >> 8) & 0x07E0;
-        lUInt32 b = (((dst & 0x0018) * alpha + (src & 0x0018) * opaque) >> 8) & 0x0018;
+        lUInt32 g = (((dst & 0x07E0) * alpha + (src & 0x07E0) * opaque) >> 8) & 0x07E0;
+        lUInt32 b = (((dst & 0x001F) * alpha + (src & 0x001F) * opaque) >> 8) & 0x001F;
         dst = (lUInt16)(r | g | b);
     }
 }
@@ -1227,7 +1227,7 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
             for (int x=x0; x<x1; x++)
             {
                 if (alpha)
-                    ApplyAlphaRGB565(line[x], color, alpha);
+                    ApplyAlphaRGB565(line[x], cl16, alpha);
                 else
                     line[x] = cl16;
             }
