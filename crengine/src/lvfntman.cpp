@@ -1942,7 +1942,7 @@ public:
                 lString8 fn( (const char *)s );
                 lString16 fn16( fn.c_str() );
                 fn16.lowercase();
-                if ( !fn16.endsWith(L".ttf") && !fn16.endsWith(L".odf") && !fn16.endsWith(L".pfb") && !fn16.endsWith(L".pfa")  ) {
+                if ( !fn16.endsWith(L".ttf") && !fn16.endsWith(L".odf") && !fn16.endsWith(L".otf") && !fn16.endsWith(L".pfb") && !fn16.endsWith(L".pfa")  ) {
                     continue;
                 }
                 int weight = FC_WEIGHT_MEDIUM;
