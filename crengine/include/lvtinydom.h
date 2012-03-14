@@ -1051,6 +1051,12 @@ public:
     /// create formatted text object with options set
     LFormattedText * createFormattedText();
 
+#if BUILD_LITE!=1
+    void setHightlightOptions(text_highlight_options_t & options) {
+        _highlightOptions = options;
+    }
+#endif
+
 protected:
 #if BUILD_LITE!=1
     struct DocFileHeader {
@@ -1067,6 +1073,7 @@ protected:
         }
     };
     DocFileHeader _hdr;
+    text_highlight_options_t _highlightOptions;
 #endif
 
     LDOMNameIdMap _elementNameTable;    // Element Name<->Id map

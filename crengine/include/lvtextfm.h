@@ -143,6 +143,29 @@ typedef struct
    lUInt8             align;       /**< alignment */
 } formatted_line_t;
 
+/** \brief Bookmark highlight modes.
+*/
+enum {
+    highlight_mode_none = 0,
+    highlight_mode_solid = 1,
+    highlight_mode_underline = 2,
+};
+
+/** \brief Text highlight options for selection, bookmarks, etc.
+*/
+struct text_highlight_options_t {
+    lUInt32 selectionColor;    /**< selection color */
+    lUInt32 commentColor;      /**< comment bookmark color */
+    lUInt32 correctionColor;   /**< correction bookmark color */
+    int bookmarkHighlightMode; /**< bookmark highlight mode: 0=no highlight, 1=solid fill, 2=underline */
+    text_highlight_options_t() {
+        selectionColor = 0x80AAAAAA;
+        commentColor = 0xC0FFFF00;
+        correctionColor = 0xC0FF8000;
+        bookmarkHighlightMode = highlight_mode_solid;
+    }
+};
+
 /** \brief Text formatter container
 */
 typedef struct
@@ -163,9 +186,7 @@ typedef struct
    lInt32                img_zoom_out_mode_inline; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
    lInt32                img_zoom_out_scale_inline; /**< max scale for inline images zoom out: 1, 2, 3 */
    lInt32                min_space_condensing_percent; /**< min size of space (relative to normal size) to allow fitting line by reducing of spaces */
-   lInt32                selection_color; /**< color to highlight selection range */
-   lInt32                bookmark_comment_color; /**< color to highlight comment bookmark */
-   lInt32                bookmark_correction_color; /**< color to highlight correction bookmark */
+   text_highlight_options_t highlight_options; /**< options for selection/bookmark highlighting */
 } formatted_text_fragment_t;
 
 /**  Alloc & init formatted text buffer
@@ -240,7 +261,7 @@ public:
     void setMinSpaceCondensingPercent(int minSpaceWidthPercent);
 
     /// set colors for selection and bookmarks
-    void setSelectionColors(lUInt32 selColor, lUInt32 commentColor, lUInt32 correctionColor);
+    void setHighlightOptions(text_highlight_options_t * options);
 
     void Clear()
     { 

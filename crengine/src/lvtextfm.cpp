@@ -123,9 +123,6 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->img_zoom_out_mode_inline = defMode; /**< can zoom out inline images: 0=disabled, 1=integer scale, 2=free scale */
     pbuffer->img_zoom_out_scale_inline = defMult; /**< max scale for inline images zoom out: 1, 2, 3 */
     pbuffer->min_space_condensing_percent = MIN_SPACE_CONDENSING_PERCENT; // 50%
-    pbuffer->selection_color = 0x80AAAAAA; /**< color to highlight selection range */
-    pbuffer->bookmark_comment_color = 0xC0FFFF00; /**< color to highlight comment bookmark */
-    pbuffer->bookmark_correction_color = 0xC0FF8000; /**< color to highlight correction bookmark */
 
     return pbuffer;
 }
@@ -1140,47 +1137,49 @@ void LFormattedText::setMinSpaceCondensingPercent(int minSpaceWidthPercent)
 }
 
 /// set colors for selection and bookmarks
-void LFormattedText::setSelectionColors(lUInt32 selColor, lUInt32 commentColor, lUInt32 correctionColor)
+void LFormattedText::setHighlightOptions(text_highlight_options_t * v)
 {
-    m_pbuffer->selection_color = selColor;
-    m_pbuffer->bookmark_comment_color = commentColor;
-    m_pbuffer->bookmark_correction_color = correctionColor;
+    m_pbuffer->highlight_options.selectionColor = v->selectionColor;
+    m_pbuffer->highlight_options.commentColor = v->commentColor;
+    m_pbuffer->highlight_options.correctionColor = v->correctionColor;
+    m_pbuffer->highlight_options.bookmarkHighlightMode = v->bookmarkHighlightMode;
 }
 
 
-void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int style, lUInt32 color) {
-    lUInt32 cl = color;
-    // solid fill
-    lUInt32 cl3 = 0;
-    if (style & 4)
-        cl3 = (cl & 0xFFFFFF) | 0xD0000000;
-    else if (style & 8)
-        cl3 = (cl & 0xFFFFFF) | 0xD0000000;
-    if (cl3 != 0) {
-        drawbuf.FillRect(x0, y0, x1, y1, cl3);
-        drawbuf.FillRect(x0, y0, x1, y1, (style & 8) ? 0xE0FF6060 : 0xF0FFFF00);
-    }
-    // underline
-    cl = (cl & 0xFFFFFF) | 0x30000000; // semitransparent
-    lUInt32 cl2 = (cl & 0xFFFFFF) | 0x80000000; // semitransparent
-    int step = 4;
-    int index = 0;
-    for (int x = x0; x < x1; x += step ) {
+void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int flags, text_highlight_options_t * options) {
+    if (!(flags & (4 | 8)))
+        return;
+    lUInt32 cl = (flags & 4) ? options->commentColor : options->correctionColor;
+    if (options->bookmarkHighlightMode == highlight_mode_none)
+        return;
 
-        int x2 = x + step;
-        if (x2 > x1)
-            x2 = x1;
-        if (style & 8) {
-            // correction
-            int yy = (index & 1) ? y - 1 : y;
-            drawbuf.FillRect(x, yy-1, x+1, yy, cl2);
-            drawbuf.FillRect(x+1, yy-1, x2-1, yy, cl);
-            drawbuf.FillRect(x2-1, yy-1, x2, yy, cl2);
-        } else if (style & 4) {
-            if (index & 1)
-                drawbuf.FillRect(x, y-1, x2 + 1, y, cl);
+    if (options->bookmarkHighlightMode == highlight_mode_solid) {
+        // solid fill
+        drawbuf.FillRect(x0, y0, x1, y1, cl);
+    }
+
+    if (options->bookmarkHighlightMode == highlight_mode_underline) {
+        // underline
+        lUInt32 cl2 = (cl & 0xFFFFFF) | 0x80000000;
+        int step = 4;
+        int index = 0;
+        for (int x = x0; x < x1; x += step ) {
+
+            int x2 = x + step;
+            if (x2 > x1)
+                x2 = x1;
+            if (flags & 8) {
+                // correction
+                int yy = (index & 1) ? y - 1 : y;
+                drawbuf.FillRect(x, yy-1, x+1, yy, cl2);
+                drawbuf.FillRect(x+1, yy-1, x2-1, yy, cl);
+                drawbuf.FillRect(x2-1, yy-1, x2, yy, cl2);
+            } else if (flags & 4) {
+                if (index & 1)
+                    drawbuf.FillRect(x, y-1, x2 + 1, y, cl);
+            }
+            index++;
         }
-        index++;
     }
 }
 
@@ -1245,7 +1244,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     ldomMarkedRange * range = marks->get(i);
                     if ( range->intersects( lineRect, mark ) ) {
                         //
-                        buf->FillRect(mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, m_pbuffer->selection_color);
+                        buf->FillRect(mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, m_pbuffer->highlight_options.selectionColor);
                     }
                 }
             }
@@ -1257,7 +1256,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     if ( range->intersects( lineRect, mark ) ) {
                         //
                         DrawBookmarkTextUnderline(*buf, mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, mark.bottom + y - 2, range->flags,
-                                                  (range->flags & 4) ? m_pbuffer->bookmark_comment_color : m_pbuffer->bookmark_correction_color);
+                                                  &m_pbuffer->highlight_options);
                     }
                 }
             }

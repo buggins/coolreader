@@ -2846,11 +2846,7 @@ LFormattedText * lxmlDocBase::createFormattedText()
     LFormattedText * p = new LFormattedText();
     p->setImageScalingOptions(&_imgScalingOptions);
     p->setMinSpaceCondensingPercent(_minSpaceCondensingPercent);
-    // TODO: set proper colors HERE
-    lUInt32 selColor = 0x80AAAAAA; /**< color to highlight selection range */
-    lUInt32 commentColor = 0xC0FFFF00; /**< color to highlight comment bookmark */
-    lUInt32 correctionColor = 0xC0FF8000; /**< color to highlight correction bookmark */
-    p->setSelectionColors(selColor, commentColor, correctionColor);
+    p->setHighlightOptions(&_highlightOptions);
     return p;
 }
 
