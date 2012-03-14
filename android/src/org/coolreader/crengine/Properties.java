@@ -47,6 +47,11 @@ public class Properties extends java.util.Properties {
 				cl = revBytes(cl);
 				return cl | 0xFF000000;
 			}
+			if (value != null && value.length() > 1 && value.startsWith("#")) {
+				int cl = Integer.parseInt(value.substring(1), 16);
+				cl = revBytes(cl);
+				return cl | 0xFF000000;
+			}
 		} catch (Exception e) {
 		}
 		return revBytes(defColor) | 0xFF000000;

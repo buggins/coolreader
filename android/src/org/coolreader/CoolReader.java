@@ -1784,7 +1784,23 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 		
-		props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");
+		if (!DeviceInfo.EINK_SCREEN) {
+			props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR, "#CCCCCC");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, "#FFFF40");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, "#FF8000");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR_DAY, "#CCCCCC");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_DAY, "#FFFF40");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_DAY, "#FF8000");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR_NIGHT, "#CCCCCC");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_NIGHT, "#808000");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_NIGHT, "#804000");
+		} else {
+			props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "2");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR, "#808080");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, "#000000");
+			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, "#000000");
+		}
         
         return props;
 	}

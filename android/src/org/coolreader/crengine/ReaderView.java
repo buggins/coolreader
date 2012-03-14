@@ -2925,6 +2925,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				|| PROP_APP_SELECTION_ACTION.equals(key)
     				|| PROP_APP_FILE_BROWSER_SIMPLE_MODE.equals(key)
     				|| PROP_APP_GESTURE_PAGE_FLIPPING.equals(key)
+    				|| PROP_APP_HIGHLIGHT_BOOKMARKS.equals(key)
+    				|| PROP_HIGHLIGHT_SELECTION_COLOR.equals(key)
+    				|| PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT.equals(key)
+    				|| PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION.equals(key)
     				// TODO: redesign all this mess!
     				) {
     			newSettings.setProperty(key, value);

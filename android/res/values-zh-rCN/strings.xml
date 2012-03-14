@@ -398,4 +398,10 @@
     <string name="options_app_locale_system">System</string>
     <string name="options_app_locale">Interface language</string>
     <string name="mi_goto_manual">Show manual</string>
+    <string name="options_view_bookmarks_highlight_underline">Underline</string>
+    <string name="options_view_color_selection">Selection color</string>
+    <string name="options_view_color_bookmark_comment">Comment color</string>
+    <string name="options_view_bookmarks_highlight_none">None</string>
+    <string name="options_view_color_bookmark_correction">Correction color</string>
+    <string name="options_view_bookmarks_highlight_solid">Solid color</string>
 </resources>
