@@ -79,6 +79,9 @@
 #define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"
 #define PROP_HIGHLIGHT_COMMENT_BOOKMARKS "crengine.highlight.bookmarks"
+#define PROP_HIGHLIGHT_SELECTION_COLOR "crengine.highlight.selection.color"
+#define PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT "crengine.highlight.bookmarks.color.comment"
+#define PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION "crengine.highlight.bookmarks.color.correction"
 // image scaling settings
 // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
 // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3

@@ -358,6 +358,13 @@ void CRPropAccessor::setColor( const char * propName, lUInt32 value )
     setString( propName, lString16( s ) );
 }
 
+/// set argb color (#xxxxxx) property by name, if not set
+void CRPropAccessor::setColorDef( const char * propName, lUInt32 defValue ) {
+    lUInt32 v = 0;
+    if (!getColor(propName, v))
+        setColor(propName, defValue);
+}
+
 /// get rect property by name, returns false if not found
 bool CRPropAccessor::getRect( const char * propName, lvRect &result ) const
 {

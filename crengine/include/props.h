@@ -102,6 +102,8 @@ public:
     virtual bool getColor( const char * propName, lUInt32 &result ) const;
     /// get argb color (#xxxxxx) property by name, returns default value if not found
     virtual lUInt32 getColorDef( const char * propName, lUInt32 defValue=0 ) const;
+    /// set argb color (#xxxxxx) property by name, if not set
+    virtual void setColorDef( const char * propName, lUInt32 defValue );
     /// set argb color (#xxxxxx) property by name
     virtual void setColor( const char * propName, lUInt32 value );
 
