@@ -33,6 +33,7 @@ enum MainMenuItems_t {
     mm_FontSize,
     mm_FontAntiAliasing,
     mm_FontHinting,
+    mm_FontGamma,
     mm_InterlineSpace,
     mm_Orientation,
     mm_EmbeddedStyles,

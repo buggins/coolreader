@@ -5483,6 +5483,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
             2);
 #endif
 
+    props->setStringDef(PROP_FONT_GAMMA, "1.00");
+
     img_scaling_option_t defImgScaling;
     props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, defImgScaling.max_scale);
     props->setIntDef(PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, 0); //auto

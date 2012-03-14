@@ -344,6 +344,41 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
                 {NULL, NULL},
         };
 
+        item_def_t fontgamma_list[] = {
+                {("0.30"), "0.30"},
+                {("0.35"), "0.35"},
+                {("0.40"), "0.40"},
+                {("0.45"), "0.45"},
+                {("0.50"), "0.50"},
+                {("0.55"), "0.55"},
+                {("0.60"), "0.60"},
+                {("0.65"), "0.65"},
+                {("0.70"), "0.70"},
+                {("0.75"), "0.75"},
+                {("0.80"), "0.80"},
+                {("0.85"), "0.85"},
+                {("0.90"), "0.90"},
+                {("0.95"), "0.95"},
+                {("0.98"), "0.98"},
+                {("1.00"), "1.00"},
+                {("1.02"), "1.02"},
+                {("1.05"), "1.05"},
+                {("1.10"), "1.10"},
+                {("1.15"), "1.15"},
+                {("1.20"), "1.20"},
+                {("1.25"), "1.25"},
+                {("1.30"), "1.30"},
+                {("1.35"), "1.35"},
+                {("1.40"), "1.40"},
+                {("1.45"), "1.45"},
+                {("1.50"), "1.50"},
+                {("1.60"), "1.60"},
+                {("1.70"), "1.70"},
+                {("1.80"), "1.80"},
+                {("1.90"), "1.90"},
+                {NULL, NULL},
+        };
+
 	item_def_t bookmark_icons[] = {
 		{_("On"), "1"},
 		{_("Off"), "0"},
@@ -593,6 +628,12 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
                                 LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_HINTING );
         addMenuItems( fontHintingMenu, fonthinting_modes );
         mainMenu->addItem( fontHintingMenu );
+
+        CRMenu * fontGammaMenu = new CRMenu(_wm, mainMenu, mm_FontGamma,
+                _("Font Gamma"),
+                                LVImageSourceRef(), LVFontRef(), valueFont, props, PROP_FONT_GAMMA );
+        addMenuItems( fontGammaMenu, fontgamma_list );
+        mainMenu->addItem( fontGammaMenu );
 
         CRMenu * interlineSpaceMenu = new CRMenu(_wm, mainMenu, mm_InterlineSpace,
                 _("Interline space"),
