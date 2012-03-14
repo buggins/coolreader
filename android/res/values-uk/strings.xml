@@ -21,8 +21,8 @@
     <string name="mi_book_recent_remove">Видалити зі списку</string>
     <string name="mi_book_recent_goto">Перейти до теки</string>
     <string name="mi_book_sort_order">Сортувати</string>
-    <string name="mi_book_sort_order_filename">За ім\'ям файлу (А-Я)</string>
-    <string name="mi_book_sort_order_filename_desc">За ім\'ям файлу (Я-А)</string>
+    <string name="mi_book_sort_order_filename">За ім’ям файлу (А-Я)</string>
+    <string name="mi_book_sort_order_filename_desc">За ім’ям файлу (Я-А)</string>
     <string name="mi_book_sort_order_timestamp">За датою файлу (0-9)</string>
     <string name="mi_book_sort_order_timestamp_desc">За датою файлу (9-0)</string>
     <string name="mi_book_sort_order_author">За автором (А-Я)</string>
@@ -37,7 +37,7 @@
     <string name="dir_recent_books">Останні книги</string>
     <string name="dir_sd_card">SD-картка</string>
     <string name="dir_internal_sd_card">Внутр. SD-картка</string>
-    <string name="dir_internal_memory">Внутр. пам\'ять</string>
+    <string name="dir_internal_memory">Внутр. пам’ять</string>
     <string name="win_title_bookmarks">Закладки</string>
     <string name="win_title_toc">Зміст</string>
     <string name="win_title_options">Налаштування</string>
@@ -221,7 +221,7 @@
     <string name="dlg_book_search">Пошук книги</string>
     <string name="dlg_book_search_title">Назва</string>
     <string name="dlg_book_search_series">Серія</string>
-    <string name="dlg_book_search_filename">Ім\'я файлу</string>
+    <string name="dlg_book_search_filename">Ім’я файлу</string>
     <string name="dlg_book_search_author">Автор</string>
     <string name="dlg_book_search_found">Знайдено книжок:</string>
     <string name="dlg_book_search_prompt">Вкажіть параметри пошуку:</string>
