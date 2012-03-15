@@ -8643,9 +8643,19 @@ public:
     // dir/filename.{crc32}.cr3
     lString16 makeFileName( lString16 filename, lUInt32 crc, lUInt32 docFlags )
     {
+        lString16 fn;
+        for (int i=0; i<filename.length(); i++) {
+            lChar16 ch = filename[i];
+            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '.' || ch == '-')
+                fn << ch;
+            else
+                fn << L"_";
+        }
+        if (fn.length() > 25)
+            fn = fn.substr(0, 12) + L"-" + fn.substr(fn.length()-12, 12);
         char s[16];
         sprintf(s, ".%08x.%d.cr3", (unsigned)crc, (int)docFlags);
-        return filename + lString16( s ); //_cacheDir + 
+        return fn + lString16( s ); //_cacheDir +
     }
 
     /// open existing cache file stream
