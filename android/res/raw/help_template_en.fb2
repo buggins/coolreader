@@ -22,10 +22,22 @@
 				<li>Using hardware joystick or navigation keys</li>
 				<!--cr3:if app.trackball.disabled--><li>Turn pages using hardware joystick or navigation keys</li><!--cr3:endif-->
 			</ul>
-            <p></p>
 			<p>To navigate by link, long tap on link. To return back, press Back key or long tap top left corner of screen</p>
-            <p>Links to sections of manual: <a href="#menu">Menu</a> | 
-                <a href="#settings">Settings</a> | <a href="#tapzones">Tap zones</a> | <a href="#bookmarks">Bookmarks</a></p>
+            <p>Links to sections of manual: <a href="#menu">Menu</a> 
+                | <a href="#settings">Settings</a> 
+                | <a href="#filebrowser">File browser</a>
+                | <a href="#tapzones">Tap zones</a> 
+                | <a href="#bookmarks">Bookmarks</a>
+                | <a href="#dict">Dictionaries</a>
+                | <a href="#tts">Read Aloud</a>
+                | <a href="#autoscroll">Automatic page flipping</a>
+                | <a href="#imageview">Zoom images</a>
+                | <a href="#advanced">Advanced configuration</a>
+                | <a href="#links">Useful links</a>
+                </p>
+            <p>You can navigate to specific page by its number using Menu / Goto / Page Number.</p>
+            <p>You can navigate to percentage position using Menu / Goto / Position percent.</p>
+            <p>Use Table of Context to navigate by chapters: Menu / Goto / Table of contents.</p>
 		</section>
 		<section id="menu">
 			<title>
@@ -183,6 +195,58 @@
                 <li>Send - send list of bookmarks in text format in email, etc.</li>
             </ul>
         </section>
+        <section>
+            <title id="dict">
+                <p>Dictionary support</p>
+            </title>
+            <p>Cool Reader can invoke external dictionaries to translate selected word.</p>
+            <p>Supported dictionary applications (can be installed from Market):</p>
+            <ul>
+                <li>Fora</li>
+                <li>Color Dict</li>
+                <li>Color Dict New / Golden Dict</li>
+                <li>Aard</li>
+                <li>Dictan</li>
+            </ul>
+            <p>Select dictionary application you want to use in Settings / Application / Dictionary.</p>
+            <p>Select word you need to translate, then press Dictionary icon in opened selection toolbar.</p>
+            <p>For convenient use, you can assign Dictionary action on selection, instead of toolbar: Settings / Controls / Selection Action or Multiselection action.</p>
+        </section>
+        <section>
+            <title id="tts">
+                <p>Read Aloud</p>
+            </title>
+            <p>Cool Reader supports reading of text using Text To Speech engine.</p>
+            <p>It uses speech engine and voice set in Android system settings as default.</p>
+            <p>To start reading, use Menu / More / Read Aloud (for faster access, you can assign Read Aloud action to some tap zone or key).</p>
+            <p>Control panel appears which will let you control reading position, start/stop reading, change pitch and speed.</p>
+        </section>
+        <section>
+            <title id="autoscroll">
+                <p>Automatic page flipping</p>
+            </title>
+            <p>You can use automatic page flipping. To start, use Menu / Goto / Autoscroll (you can assign this action on some tap zone or key for convenient use).</p>
+            <p>Adjust speed using volume keys or by pressing lower left and right bottom corners of screen.</p>
+            <p>To stop autoscroll, tap any place on screen, except bottom left and right corners.</p>
+        </section>
+        <section>
+            <title id="viewimages">
+                <p>Zoom pictures</p>
+            </title>
+            <p>Long press on picture to open it in internal image viewer.</p>
+            <p>Change zoom using + and - icons or using volume keys. Scroll using finger sliding.</p>
+            <p>To close viewer, press Back key or tap any place of screen except zoom icons.</p>
+        </section>
+        <section id="filebrowser">
+            <title>
+                <p>File Browser</p>
+            </title>
+            <p>To select book to read, use embedded file browser.</p>
+            <p>You can go to file browser from reading mode using Menu / Open Book. (To return back into reading mode, you can use Menu / Current book or just open book)</p>
+            <p>File browser allow accessing filesystem tree, list of recent books, books by author/series/title, online OPDS catalogs to download books. Root folder of file browser contains links to all of these sections.</p>
+            <p>At any place inside File Browser, you can use Menu / Goto items to navigate to browser root page, recent books list, online catalogs.</p>
+            <p>You need to place your books to internal storage or SD card to read them using Cool Reader.</p>
+        </section>
         <section id="advanced">
             <title>
                 <p>Advanced configuration</p>
@@ -195,6 +259,11 @@
             <subtitle>Additional background images</subtitle>
             <p>To use your own images (.jpg, .png) as page background in tile mode, place them to /.cr3/textures/ directory of SD card.</p>
             <p>Instead of /.cr3/ directory (with period) you can use directory name w/o period (/cr3/) Instead of external SD card, you can use internal storage or internal SD card (if presens in your device)</p> 
+            <subtitle>Howto reset settings</subtitle>
+            <p>Settings are stored in *.ini files inside /.cr3/ directory on SD card or internal storage (note that .cr3 directory name is started with point, and might be invisible in browser unless "show hidden files" option is enabled)</p>
+            <p>To reset settings, just remove all files with extension .ini from this directory.</p>
+            <subtitle>Cache directory cleaning</subtitle>
+            <p>Possible reason of application crash on book opening is corrupted cache file for the book. You can try to cleanup cache directory manually. Cache files are placed in /.cr3/cache directory on SD card or internal storage (note that .cr3 directory name is started with point, and might be invisible in browser unless "show hidden files" option is enabled). Remove cache directory to resolve problem.</p>
         </section>
         <section id="links">
             <title>
@@ -202,7 +271,8 @@
             </title>
             <p>(will be opened in external browser)</p>
             <p><a href="http://www.coolreader.org/">Project page on SourceForge</a></p>
-            <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Project's Wiki on SourceForge</a></p>
+            <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Project's Wiki</a> on SourceForge</p>
+            <p><a href="https://sourceforge.net/project/project_donations.php?group_id=191284">Project's Donations page</a> on SourceForge</p>
         </section>
 	</body>
 </FictionBook>
