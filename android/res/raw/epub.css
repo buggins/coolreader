@@ -66,6 +66,9 @@ li { display: list-item; text-indent: 0em;  }
 ul { display: block; list-style-type: disc; margin-left: 1em }
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
+span { display: inline }
+div { display: block }
+
 .citation p { $cite.all }
 .epigraph p { $epigraph.all }
 .v { text-align: left; text-align-last: right; text-indent: 1em hanging }

@@ -4839,6 +4839,11 @@ bool ldomXPointer::getRect(lvRect & rect) const
     if ( finalNode!=NULL ) {
         lvRect rc;
         finalNode->getAbsRect( rc );
+        if (rc.height() == 0 && rc.width() > 0) {
+            rect = rc;
+            rect.bottom++;
+            return true;
+        }
         RenderRectAccessor r( finalNode );
         //if ( !r )
         //    return false;
@@ -7171,6 +7176,17 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
     if ( href.pos(L"://")>=0 )
         return href; // fully qualified href: no conversion
 
+    //CRLog::trace("convertHref(%s, codeBase=%s, filePathName=%s)", LCSTR(href), LCSTR(codeBase), LCSTR(filePathName));
+
+    if (href[0] == '#') {
+        lString16 replacement = pathSubstitutions.get(filePathName);
+        if (replacement.empty())
+            return href;
+        lString16 p = lString16("#") + replacement + L"_" + href.substr(1);
+        //CRLog::trace("href %s -> %s", LCSTR(href), LCSTR(p));
+        return p;
+    }
+
     href = LVCombinePaths(codeBase, href);
 
     // resolve relative links
@@ -7178,11 +7194,13 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
     if ( !href.split2(lString16("#"), p, id) )
         p = href;
     if ( p.empty() ) {
+        //CRLog::trace("codebase = %s -> href = %s", LCSTR(codeBase), LCSTR(href));
         if ( codeBasePrefix.empty() )
             return href;
         p = codeBasePrefix;
     } else {
         lString16 replacement = pathSubstitutions.get(p);
+        //CRLog::trace("href %s -> %s", LCSTR(p), LCSTR(replacement));
         if ( !replacement.empty() )
             p = replacement;
         else

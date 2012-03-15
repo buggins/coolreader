@@ -756,7 +756,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     lString8 cssFile = UnicodeToUtf8(LVReadTextFile(cssStream));
                     lString16 base = name;
                     LVExtractLastPathElement(base);
-                    CRLog::trace("style: %s", cssFile.c_str());
+                    //CRLog::trace("style: %s", cssFile.c_str());
                     styleParser.parse(base, cssFile);
                 }
             }
@@ -819,7 +819,9 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     for ( int i=0; i<spineItems.length(); i++ ) {
         if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
             lString16 name = codeBase + spineItems[i]->href;
-            appender.addPathSubstitution( name, lString16(L"_doc_fragment_") + lString16::itoa(i) );
+            lString16 subst = lString16(L"_doc_fragment_") + lString16::itoa(i);
+            appender.addPathSubstitution( name, subst );
+            //CRLog::trace("subst: %s => %s", LCSTR(name), LCSTR(subst));
         }
     }
     for ( int i=0; i<spineItems.length(); i++ ) {
@@ -917,6 +919,10 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         m_doc->compact();
         m_doc->dumpStatistics();
     }
+
+    // save compound XML document, for testing:
+    //m_doc->saveToStream(LVOpenFileStream("/tmp/epub_dump.xml", LVOM_WRITE), NULL, true);
+
     return true;
 
 }
