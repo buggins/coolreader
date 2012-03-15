@@ -55,6 +55,7 @@ enum propIndex {
     pi_ch_underline,
     pi_skip_ch_count,
     pi_skip_ansi,
+    pi_uc_count,
     pi_ansicpg,
     pi_lang,
     pi_deflang,
@@ -196,6 +197,7 @@ public:
             props[pi_ch_sub].i = 0;
             props[pi_ch_super].i = 0;
             props[pi_intbl].i = 0;
+            props[pi_uc_count].i = 1;
             props[pi_ch_underline].i = 0;
             props[pi_align].i = ha_left;
             set( pi_lang, props[pi_deflang].i );
