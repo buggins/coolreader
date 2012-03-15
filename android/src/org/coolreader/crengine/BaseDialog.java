@@ -31,11 +31,15 @@ public class BaseDialog extends Dialog {
 	boolean needCancelButton;
 	int positiveButtonImage;
 	int negativeButtonImage;
+	int thirdButtonImage;
 	public void setPositiveButtonImage(int id) {
 		positiveButtonImage = id;
 	}
 	public void setNegativeButtonImage(int id) {
 		negativeButtonImage = id;
+	}
+	public void setThirdButtonImage(int id) {
+		thirdButtonImage = id;
 	}
 	
 	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
@@ -108,6 +112,12 @@ public class BaseDialog extends Dialog {
 		dismiss();
 	}
 
+	protected void onThirdButtonClick()
+	{
+		// override it
+		dismiss();
+	}
+
 	protected void createButtonsPane( ViewGroup parent, ViewGroup layout )
 	{
 		//getWindow().getDecorView().getWidth()
@@ -118,13 +128,25 @@ public class BaseDialog extends Dialog {
 			positiveButton.setImageResource(positiveButtonImage);
 			//backButton.setImageResource(positiveButtonImage);
 		}
+		if (thirdButtonImage != 0) {
+			negativeButton.setImageResource(thirdButtonImage);
+		}
 		if (negativeButtonImage != 0) {
-			negativeButton.setImageResource(negativeButtonImage);
+			if (thirdButtonImage == 0)
+				negativeButton.setImageResource(negativeButtonImage);
 			backButton.setImageResource(negativeButtonImage);
 		}
 		if (needCancelButton) {
 			//layout.removeView(backButton);
-			layout.removeView(negativeButton);
+			if (thirdButtonImage == 0) {
+				layout.removeView(negativeButton);
+			} else {
+				negativeButton.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						onThirdButtonClick();
+					}
+				});
+			}
 			positiveButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 					onPositiveButtonClick();

@@ -28,10 +28,13 @@ public class BookmarkEditDialog extends BaseDialog {
 		mReaderView = readerView;
 		mIsNew = isNew;
 		mOriginalBookmark = bookmark;
-		if ( !isNew )
+		//if ( !isNew )
 			mBookmark = new Bookmark(bookmark);
-		else
-			mBookmark = bookmark;
+		//else
+		//	mBookmark = bookmark;
+		if (!isNew) {
+			setThirdButtonImage(R.drawable.cr3_button_remove);
+		}
 		boolean isComment = bookmark.getType()==Bookmark.TYPE_COMMENT;
 		setTitle(mCoolReader.getString( mIsNew ? R.string.dlg_bookmark_create : R.string.dlg_bookmark_edit));
 		mInflater = LayoutInflater.from(getContext());
@@ -86,9 +89,9 @@ public class BookmarkEditDialog extends BaseDialog {
 			mBookmark.setCommentText( commentEdit.getText().toString() );
 			mReaderView.addBookmark(mBookmark);
 		} else {
-			if ( mOriginalBookmark.setCommentText(mBookmark.getCommentText()) ) {
+			if ( mOriginalBookmark.setCommentText(commentEdit.getText().toString()) ) {
 				mOriginalBookmark.setTimeStamp(System.currentTimeMillis());
-				mReaderView.updateBookmark(mBookmark);
+				mReaderView.updateBookmark(mOriginalBookmark);
 			}
 		}
 		super.onPositiveButtonClick();
@@ -97,6 +100,17 @@ public class BookmarkEditDialog extends BaseDialog {
 	@Override
 	protected void onNegativeButtonClick() {
 		super.onNegativeButtonClick();
+	}
+
+	@Override
+	protected void onThirdButtonClick() {
+		mCoolReader.askConfirmation(R.string.win_title_confirm_bookmark_delete, new Runnable() {
+			@Override
+			public void run() {
+				mReaderView.removeBookmark(mBookmark);
+				onNegativeButtonClick();
+			}
+		});
 	}
 
 	

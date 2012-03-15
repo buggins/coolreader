@@ -405,4 +405,5 @@
     <string name="options_view_bookmarks_highlight_none">None</string>
     <string name="options_view_color_bookmark_correction">Correction color</string>
     <string name="options_view_bookmarks_highlight_solid">Solid color</string>
+    <string name="win_title_confirm_bookmark_delete">Do you really want to delete this bookmark?</string>
 </resources>
