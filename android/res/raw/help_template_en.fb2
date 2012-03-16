@@ -11,8 +11,8 @@
             <title>
                 <p>Welcome to Cool Reader <!--cr3:setting version--><br/><!--cr3:image cr3_logo--></p>
             </title>
-            <p>This is a program to read electronic books in a number of formats: EPUB, FB2, RTF, TXT, HTML, CHM, PDB, MOBI, TCR</p>
-            <p>Save books to read on SD card, or download them from online catalogs (OPDS) directly in CoolReader.</p>
+            <p>This is a program to read <b><i>electronic books</i></b> in a number of formats: EPUB, FB2, RTF, TXT, HTML, CHM, PDB, MOBI, TCR</p>
+            <p>Save books to read on SD card and open them using internal <a href="#filebrowser">File Browser</a>, or download them from <a href="#opds">online catalogs</a> (OPDS) directly in CoolReader.</p>
 			<subtitle>Navigation while reading</subtitle>
 			<p>You can move to next / previous page using several methods:</p>
 			<ul>
@@ -31,221 +31,368 @@
                 | <a href="#dict">Dictionaries</a>
                 | <a href="#tts">Read Aloud</a>
                 | <a href="#autoscroll">Automatic page flipping</a>
-                | <a href="#imageview">Zoom images</a>
+                | <a href="#viewimages">Zoom images</a>
                 | <a href="#advanced">Advanced configuration</a>
                 | <a href="#links">Useful links</a>
                 </p>
             <p>You can navigate to specific page by its number using Menu / Goto / Page Number.</p>
             <p>You can navigate to percentage position using Menu / Goto / Position percent.</p>
             <p>Use Table of Context to navigate by chapters: Menu / Goto / Table of contents.</p>
-		</section>
-		<section id="menu">
-			<title>
-				<p>Menu</p>
-			</title>
-			<p>To access menu:</p>
-			<ul>
-				<li>Keys: short press menu key</li>
-				<li>Touch screen: tap center of screen</li>
-			</ul>
-			<p>Menu items:</p>
-			<ul>
-				<li><!--cr3:image open_file--> Open file using file browser</li>
-				<li><!--cr3:image goto--> Go to... submenu:</li>
-				<ul>
-					<li>Page number...</li>
-					<li>Position percent...</li>
-					<li>Toggle automatic page flip</li>
-					<li>Table if contents</li>
-					<li>Back in navigation history</li>
-					<li>Forward in navigation history</li>
-					<li>Open previous book</li>
-				</ul>
-				<li><!--cr3:image bookmarks--> Bookmarks</li>
-				<li><!--cr3:image select--> Select text</li>
-				<li><!--cr3:image options--> Options</li>
-				<li><!--cr3:image search--> Search text</li>
-				<li>"More" submenu:</li>
-				<ul>
-					<li>Toggle day / night mode</li>
-					<li>Toggle document styles</li>
-					<li>Toggle text autoformat (for TXT files)</li>
-					<li>Read aloud (text-to-speech)</li>
-					<li>Open previous book</li>
-					<li>Toggle automatic page flipping</li>
-					<li>Exit program</li>
-					<li>About Cool Reader</li>
-					<li>About current book</li>
-					<li>Show user manual</li>
-				</ul>
-			</ul>
-		</section>
-		<section id="settings">
-			<title>
-				<p>Settings</p>
-			</title>
-            <p>To access Settings, use one of following methods:</p>
-			<ul>
-				<li>Keys: long press menu key</li>
-				<li>Touch screen: long tap center of screen</li>
-				<li>Main menu: select Options item from main menu</li>
-			</ul>
-            <p>Settings window has a few tabs</p>
-            <ul>
-                <li><a href="#settings-text">Text settings</a></li>
-                <li><a href="#settings-css">Style/CSS settings</a></li>
-                <li><a href="#settings-page">Page layout</a></li>
-                <li><a href="#settings-controls">Controls</a></li>
-                <li><a href="#settings-application">Application</a></li>
-            </ul>
-            <subtitle>Setting profiles</subtitle>
-            <p>You can use several setting profiles, with fast switching between them. Assign "Switch profile" action on some tap zone or key</p>
-            <subtitle id="settings-text">Text settings</subtitle>
-            <subtitle id="settings-css">Stylesheet settings</subtitle>
-            <subtitle id="settings-page">Page layout settings</subtitle>
-            <subtitle id="settings-controls">Controls settings</subtitle>
-            <subtitle id="settings-application">Application settings</subtitle>
-		</section>
-		<section id="tapzones">
-			<title>
-				<p>Tap zones</p>
-			</title>
-			<p>Screen is divided into grid 3x3 cells called tap zones.</p>
-			<p>You can two actions for each tap zone, for short tap (primary action) and <!--cr3:if app.touch.secondary.action.type=0-->long<!--cr3:else-->double<!--cr3:endif--> tap (secondary action).</p>
-			<p>Type of secondary action can be selected as long tap or double tap.</p>
-			<p>Currently selected actions (<b>primary</b> / secondary):</p>
-			<table><col width="30%"/><col width="30%"/><col width="30%"/>
-			<tr>
-				<td><b><!--cr3:setting app.tapzone.action.tap.1--></b><br/><!--cr3:setting app.tapzone.action.tap.long.1--></td>
-				<td><b><!--cr3:setting app.tapzone.action.tap.2--></b><br/><!--cr3:setting app.tapzone.action.tap.long.2--></td>
-				<td><b><!--cr3:setting app.tapzone.action.tap.3--></b><br/><!--cr3:setting app.tapzone.action.tap.long.3--></td>
-			</tr>
-			<tr>
-				<td><b><!--cr3:setting app.tapzone.action.tap.4--></b><br/><!--cr3:setting app.tapzone.action.tap.long.4--></td>
-				<td><b><!--cr3:setting app.tapzone.action.tap.5--></b><br/><!--cr3:setting app.tapzone.action.tap.long.5--></td>
-				<td><b><!--cr3:setting app.tapzone.action.tap.6--></b><br/><!--cr3:setting app.tapzone.action.tap.long.6--></td>
-			</tr>
-			<tr>
-				<td><b><!--cr3:setting app.tapzone.action.tap.7--></b><br/><!--cr3:setting app.tapzone.action.tap.long.7--></td>
-				<td><b><!--cr3:setting app.tapzone.action.tap.8--></b><br/><!--cr3:setting app.tapzone.action.tap.long.8--></td>
-				<td><b><!--cr3:setting app.tapzone.action.tap.9--></b><br/><!--cr3:setting app.tapzone.action.tap.long.9--></td>
-			</tr>
-			</table>
-		</section>
-        <section>
-            <title id="bookmarks">
-                <p>Bookmarks</p>
-            </title>
-            <p>Coolreader supports 3 types of bookmarks:</p>
-            <ul>
-                <li><b>Position</b> bookmark: when created, anchor is associated with top line of current page</li>
-                <li><b>Comment</b> bookmark: you can add comments for selected text range</li>
-                <li><b>Correction</b> bookmark: you can specify corrected text for selected text range (useful for proofreading)</li>
-            </ul>
-            <!--cr3:if crengine.highlight.bookmarks-->
-                <p>Comment and Correction bookmarks are highlighted</p>
-            <!--cr3:else-->
-                <p>Comment and Correction bookmarks can be highlighted if corresponding option is enabled in settings</p>
-            <!--cr3:endif-->
-            <p>To add position bookmark, open Bookmarks window using Menu / Bookmarks, then press Plus sign in window header. 
-                Current page will be bookmarked, and next time Bookmarks window is opened, you will see it in list of bookmarks. 
-                Press on bookmark item in list to move on bookmarked page</p>
-            <p>To add comment or position bookmark, you have to select text range.</p>
-            <!--cr3:if app.controls.doubletap.selection-->
-                <!--cr3:if app.touch.secondary.action.type=0-->
-                    <p>Double click on word to start selection, then move your finger to select text range.</p>
+    		<section id="menu">
+    			<title>
+    				<p>Menu</p>
+    			</title>
+    			<p>To access menu:</p>
+    			<ul>
+    				<li>Keys: short press menu key</li>
+    				<li>Touch screen: tap center of screen</li>
+    			</ul>
+    			<p>Menu items:</p>
+    			<ul>
+    				<li><!--cr3:image open_file--> Open file using file browser</li>
+    				<li><!--cr3:image goto--> Go to... submenu:</li>
+    				<ul>
+    					<li>Page number...</li>
+    					<li>Position percent...</li>
+    					<li>Toggle automatic page flip</li>
+    					<li>Table if contents</li>
+    					<li>Back in navigation history</li>
+    					<li>Forward in navigation history</li>
+    					<li>Open previous book</li>
+    				</ul>
+    				<li><!--cr3:image bookmarks--> Bookmarks</li>
+    				<li><!--cr3:image select--> Select text</li>
+    				<li><!--cr3:image options--> Options</li>
+    				<li><!--cr3:image search--> Search text</li>
+    				<li>"More" submenu:</li>
+    				<ul>
+    					<li>Toggle day / night mode</li>
+    					<li>Toggle document styles</li>
+    					<li>Toggle text autoformat (for TXT files)</li>
+    					<li>Read aloud (text-to-speech)</li>
+    					<li>Open previous book</li>
+    					<li>Toggle automatic page flipping</li>
+    					<li>Exit program</li>
+    					<li>About Cool Reader</li>
+    					<li>About current book</li>
+    					<li>Show user manual</li>
+    				</ul>
+    			</ul>
+    		</section>
+    		<section id="settings">
+    			<title>
+    				<p>Settings</p>
+    			</title>
+                <p>To access <a href="#settings">Settings</a>, use one of following methods:</p>
+    			<ul>
+    				<li>Keys: long press menu key</li>
+    				<li>Touch screen: long tap center of screen</li>
+    				<li><a href="#menu">Main menu</a>: select Options item from main menu</li>
+    			</ul>
+                <p>Settings window has a few tabs</p>
+                <ul>
+                    <li><a href="#settings-text">Text settings</a></li>
+                    <li><a href="#settings-css">Style/CSS settings</a></li>
+                    <li><a href="#settings-page">Page layout</a></li>
+                    <li><a href="#settings-controls">Controls</a></li>
+                    <li><a href="#settings-application">Application</a></li>
+                </ul>
+                <subtitle>Setting profiles</subtitle>
+                <p>You can use several setting profiles, with fast switching between them. Assign "Switch profile" action on some tap zone or key</p>
+                <subtitle id="settings-text">Text settings</subtitle>
+                <ul>
+                    <li>Font Face</li>
+                    <li>Font Size</li>
+                    <li>Embolden font - make text bolder</li>
+                    <li>Font antialiasing - smooth edges of font glyphs</li>
+                    <li>Interline space - vertical space between lines of text</li>
+                    <li>Hyphenation dictionary - choose dictionary by languages, algoryphmic mode, or turned off.</li>
+                    <li>Floating punctuation - align visually rigth side of width-aligned text, by placing of some narrow punctuation signs outside of align bound.</li>
+                    <li>Font kerning - inter-character distance correction depending on pair of characters</li>
+                    <li>Image scaling options - allow to control usual and inlined in text images scaling</li>
+                    <li>Gamma correction - can change character glyph weight slightly lighter or bolder, and tune antialiasing better for particular font.</li>
+                    <li>Minimum space width - when trying to fit as much text as possible into single line, this option controls whether it's possible to try narrowing spaces to fit more text, and what is minimal width for space between words (in percents of usual space widths, select 100% to disable this feature).</li>
+                    <li>Font hinting - controls behavior of fitting of vector glyph into raster grid. For different fonts, different hinting modes give better result.</li>
+                    <li>Fallback font - font which should be used to show characters missing in main font</li>
+                </ul>
+                <subtitle id="settings-css">Stylesheet settings</subtitle>
+                <ul>
+                    <li>Enable document styles - controls whether to use styles defined inside document</li>
+                    <li>Enable document embedded fonts - controls whether to use fonts embedded inside document</li>
+                    <li>Enable text autoformat - controls whether to autoformat (reflow) text or leave as is (and show with monospace font as preformatted text)</li>
+                    <li>Items to change default style sheet for different items in document (normal paragraph, title, subtitle, preformatted text, hyperlink, quotation, etc). You can specify a lot of properties of corresponding elements like font face, style, color, interline space, margins, etc. Actually, these options generate default CSS (cascading style sheet) for documents. Google for CSS manual to learn more about these settings.</li>
+                </ul>
+                <subtitle id="settings-page">Page layout settings</subtitle>
+                <ul>
+                    <li>Fullscreen mode - hide status bar. This option may not work on Android 3.0 and 4.0</li>
+                    <li>View Mode - book pages or scroll. I would recommend using Book view.</li>
+                    <li>Page orientation - you can choose portrait, landscape or sensor.</li>
+                    <li>Number of pages (columns) in landscape mode.</li>
+                    <li>Day/Night profile switch (switches between two stored set of properties, like colors, etc.). Night mode uses light text on dark background.</li>
+                    <li>Background color - allows to select solid background color.</li>
+                    <li>Background texture - select some image or texture for background.</li>
+                    <li>Title bar options - change appearance on title bar above page.</li>
+                    <li>Footnotes at bottom of screen (currently works for FB2 format only).</li>
+                    <li>Page turning animation mode</li>
+                    <li>Highlight style for bookmarks (disable, solid background, or underline).</li>
+                    <li>Color for text selection highlight</li>
+                    <li>Colors for Comment and Correction bookmarks</li>
+                    <li>Page margins</li>
+                </ul>
+                <subtitle id="settings-controls">Controls settings</subtitle>
+                <ul>
+                    <li>Keys actions -- allows to select actions for normal, long or double press of some keys.</li>
+                    <li><a href="#tapzones">Tap zone</a> actions -- allows to select actions for normal and long/double tap on each of 3x3 tap zones.</li>
+                    <li><a href="#tapzones">Tap zone</a> secondary action type (long tap or double tap)</li>
+                    <li>Start selection on double tap (or long tap, depending on previous option).</li>
+                    <li>Use volume keys to navigate book</li>
+                    <li>Highlight tap zone on activation</li>
+                    <li>Turn off trackball</li>
+                    <li>Brightness control using left or right screen side flick (disabled, left side, right side).</li>
+                    <li>Gesture page flipping (enable/disable page flipping by finger flick gesture).</li>
+                    <li>Action for single word selection (selection toolbar, copy to clipboard, find in dictionary, add bookmark, find text).</li>
+                    <li>Action for multiple word selection (selection toolbar, copy to clipboard, find in dictionary, add bookmark, find text). Often it's feasible to assign Dictionary for single word selection, and Add Bookmark for multiselection.</li>
+                    <li>Keep selection after dictionary invocation (helps not to forget last reading position).</li>
+                </ul>
+                <subtitle id="settings-application">Application settings</subtitle>
+                <ul>
+                    <li>Interface languages - you may use the same language as set in system, or choose different one.</li>
+                    <li>Interface theme (color theme for program interface).</li>
+                    <li>Backlight interval - you can use system setting, or specify your own interval.</li>
+                    <li>Screen backlight brightness - you can select it here, or, may use flick on screen side (if enabled in Settings).</li>
+                    <li>Turn off key backlight - useful for reading in dark.</li>
+                    <li>Show icons for Settings items</li>
+                    <li>Dictionary - select dictionary to use when word is selected, and Find in Dictionary action is chosen.</li>
+                    <li>Covers in file browser.</li>
+                    <li>Scan book properties when entering folder.</li>
+                    <li>Hide directories w/o books.</li>
+                </ul>
+    		</section>
+    		<section id="tapzones">
+    			<title>
+    				<p>Tap zones</p>
+    			</title>
+    			<p>Screen is divided into grid 3x3 cells called tap zones.</p>
+    			<p>You can specify two actions for each tap zone, for short tap (primary action) and <!--cr3:if app.touch.secondary.action.type=0-->long<!--cr3:else-->double<!--cr3:endif--> tap (secondary action).</p>
+    			<p>Type of secondary action can be selected as long tap or double tap in <a href="#settings-controls">settings</a>.</p>
+    			<p>Currently selected actions (<b>primary</b> / secondary):</p>
+    			<table><col width="30%"/><col width="30%"/><col width="30%"/>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.1--></b><br/><!--cr3:setting app.tapzone.action.tap.long.1--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.2--></b><br/><!--cr3:setting app.tapzone.action.tap.long.2--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.3--></b><br/><!--cr3:setting app.tapzone.action.tap.long.3--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.4--></b><br/><!--cr3:setting app.tapzone.action.tap.long.4--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.5--></b><br/><!--cr3:setting app.tapzone.action.tap.long.5--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.6--></b><br/><!--cr3:setting app.tapzone.action.tap.long.6--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.7--></b><br/><!--cr3:setting app.tapzone.action.tap.long.7--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.8--></b><br/><!--cr3:setting app.tapzone.action.tap.long.8--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.9--></b><br/><!--cr3:setting app.tapzone.action.tap.long.9--></td>
+    			</tr>
+    			</table>
+    		</section>
+            <section>
+                <title id="bookmarks">
+                    <p>Bookmarks</p>
+                </title>
+                <p>Coolreader supports 3 types of bookmarks:</p>
+                <ul>
+                    <li><b>Position</b> bookmark: when created, anchor is associated with top line of current page</li>
+                    <li><b>Comment</b> bookmark: you can add comments for selected text range</li>
+                    <li><b>Correction</b> bookmark: you can specify corrected text for selected text range (useful for proofreading)</li>
+                </ul>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>Comment and Correction bookmarks are highlighted</p>
                 <!--cr3:else-->
-                    <p>Long click on word to start selection, then move your finger to select text range.</p>
+                    <p>Comment and Correction bookmarks can be highlighted if corresponding option is enabled in settings</p>
                 <!--cr3:endif-->
-                <p>Alternatively, you can use Menu / Selection to enter selection mode. Then select range of text with finger.</p>
-            <!--cr3:else-->
-                <p>Use Menu / Selection to enter selection mode. Then select range of text with finger.</p>
-            <!--cr3:endif-->
-            <!--cr3:if app.selection.action=0-->
-                <!--cr3:if app.multyselection.action=0-->
-                    <p>When selection is completed, Selection Toolbar appears. Press Bookmark button to add bookmark for selection.</p>
+                <p>To add position bookmark, open Bookmarks window using Menu / Bookmarks, then press Plus sign in window header. 
+                    Current page will be bookmarked, and next time Bookmarks window is opened, you will see it in list of bookmarks. 
+                    Press on bookmark item in list to move on bookmarked page</p>
+                <p>To add comment or position bookmark, you have to select text range.</p>
+                <!--cr3:if app.controls.doubletap.selection-->
+                    <!--cr3:if app.touch.secondary.action.type=0-->
+                        <p>Double click on word to start selection, then move your finger to select text range.</p>
+                    <!--cr3:else-->
+                        <p>Long click on word to start selection, then move your finger to select text range.</p>
+                    <!--cr3:endif-->
+                    <p>Alternatively, you can use Menu / Selection to enter selection mode. Then select range of text with finger.</p>
                 <!--cr3:else-->
-                    <p>When selection is completed, and the only one word is selected, Selection Toolbar appears. Press Bookmark button to add bookmark for selection.</p>
-                    <p>According to current settings, for multiple word selection, no Selection Toolbar will appear. Instead, action assigned in "Multiselection action" setting will be invoked instantly. You can change this behavior in Settings.</p>
+                    <p>Use Menu / Selection to enter selection mode. Then select range of text with finger.</p>
                 <!--cr3:endif-->
-            <!--cr3:endif-->
-            <!--cr3:if app.selection.action=3-->
-                <!--cr3:if app.multyselection.action=3-->
-                    <p>When selection is completed, Add Bookmark window will appear instantly. (Alternatively, you can choose another behavior in Settings / Selection Action)</p>
+                <!--cr3:if app.selection.action=0-->
+                    <!--cr3:if app.multyselection.action=0-->
+                        <p>When selection is completed, Selection Toolbar appears. Press Bookmark button to add bookmark for selection.</p>
+                    <!--cr3:else-->
+                        <p>When selection is completed, and the only one word is selected, Selection Toolbar appears. Press Bookmark button to add bookmark for selection.</p>
+                        <p>According to current settings, for multiple word selection, no Selection Toolbar will appear. Instead, action assigned in "Multiselection action" setting will be invoked instantly. You can change this behavior in Settings.</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <!--cr3:if app.selection.action=3-->
+                    <!--cr3:if app.multyselection.action=3-->
+                        <p>When selection is completed, Add Bookmark window will appear instantly. (Alternatively, you can choose another behavior in Settings / Selection Action)</p>
+                    <!--cr3:else-->
+                        <p>When selection is completed, and the only one word is selected, Add Bookmark window will appear instantly.</p>
+                        <p>According to current settings, for multiple word selection, different behavior is assigned. no Selection Toolbar will appear. You can change this behavior in Settings / Multiselection action.</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <p>Add Bookmark window allows you to select type of bookmark, and specify comment (for Comment Bookmark) or corrected text (for Correction Bookmark). Press Plus sign at window title to add bookmark, Back button to cancel.</p>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>Comment and Correction bookmarks are highlighted in text.</p>
                 <!--cr3:else-->
-                    <p>When selection is completed, and the only one word is selected, Add Bookmark window will appear instantly.</p>
-                    <p>According to current settings, for multiple word selection, different behavior is assigned. no Selection Toolbar will appear. You can change this behavior in Settings / Multiselection action.</p>
+                    <p>Comment and Correction bookmarks may be highlighted in text if corresponding option is checked in Settings</p>
                 <!--cr3:endif-->
-            <!--cr3:endif-->
-            <p>Add Bookmark window allows you to select type of bookmark, and specify comment (for Comment Bookmark) or corrected text (for Correction Bookmark). Press Plus sign at window title to add bookmark, Back button to cancel.</p>
-            <!--cr3:if crengine.highlight.bookmarks-->
-                <p>Comment and Correction bookmarks are highlighted in text.</p>
-            <!--cr3:else-->
-                <p>Comment and Correction bookmarks may be highlighted in text if corresponding option is checked in Settings</p>
-            <!--cr3:endif-->
-            <p>To open list of bookmarks, use Menu / Bookmarks. List of bookmarks for current book appears.</p>
-            <p>Short tap on list item instantly moves reading position to selected bookmark.</p>
-            <p>Long tap on list item opens context menu for bookmark:</p>
-            <ul>
-                <li>Goto - move to bookmark position in text</li>
-                <li>Add - add position bookmark for current page</li>
-                <li>Edit - change comment or correction text</li>
-                <li>Remove</li>
-                <li>Export - save list of bookmarks to text file</li>
-                <li>Send - send list of bookmarks in text format in email, etc.</li>
-            </ul>
-        </section>
-        <section>
-            <title id="dict">
-                <p>Dictionary support</p>
-            </title>
-            <p>Cool Reader can invoke external dictionaries to translate selected word.</p>
-            <p>Supported dictionary applications (can be installed from Market):</p>
-            <ul>
-                <li>Fora</li>
-                <li>Color Dict</li>
-                <li>Color Dict New / Golden Dict</li>
-                <li>Aard</li>
-                <li>Dictan</li>
-            </ul>
-            <p>Select dictionary application you want to use in Settings / Application / Dictionary.</p>
-            <p>Select word you need to translate, then press Dictionary icon in opened selection toolbar.</p>
-            <p>For convenient use, you can assign Dictionary action on selection, instead of toolbar: Settings / Controls / Selection Action or Multiselection action.</p>
-        </section>
-        <section>
-            <title id="tts">
-                <p>Read Aloud</p>
-            </title>
-            <p>Cool Reader supports reading of text using Text To Speech engine.</p>
-            <p>It uses speech engine and voice set in Android system settings as default.</p>
-            <p>To start reading, use Menu / More / Read Aloud (for faster access, you can assign Read Aloud action to some tap zone or key).</p>
-            <p>Control panel appears which will let you control reading position, start/stop reading, change pitch and speed.</p>
-        </section>
-        <section>
-            <title id="autoscroll">
-                <p>Automatic page flipping</p>
-            </title>
-            <p>You can use automatic page flipping. To start, use Menu / Goto / Autoscroll (you can assign this action on some tap zone or key for convenient use).</p>
-            <p>Adjust speed using volume keys or by pressing lower left and right bottom corners of screen.</p>
-            <p>To stop autoscroll, tap any place on screen, except bottom left and right corners.</p>
-        </section>
-        <section>
-            <title id="viewimages">
-                <p>Zoom pictures</p>
-            </title>
-            <p>Long press on picture to open it in internal image viewer.</p>
-            <p>Change zoom using + and - icons or using volume keys. Scroll using finger sliding.</p>
-            <p>To close viewer, press Back key or tap any place of screen except zoom icons.</p>
+                <p>To open list of bookmarks, use Menu / Bookmarks. List of bookmarks for current book appears.</p>
+                <p>Short tap on list item instantly moves reading position to selected bookmark.</p>
+                <p>Long tap on list item opens context menu for bookmark:</p>
+                <ul>
+                    <li>Goto - move to bookmark position in text</li>
+                    <li>Add - add position bookmark for current page</li>
+                    <li>Edit - change comment or correction text</li>
+                    <li>Remove</li>
+                    <li>Export - save list of bookmarks to text file</li>
+                    <li>Send - send list of bookmarks in text format in email, etc.</li>
+                </ul>
+            </section>
+            <section>
+                <title id="dict">
+                    <p>Dictionary support</p>
+                </title>
+                <p>Cool Reader can invoke external dictionaries to translate selected word.</p>
+                <p>Supported dictionary applications (can be installed from Market):</p>
+                <ul>
+                    <li>Fora</li>
+                    <li>Color Dict</li>
+                    <li>Color Dict New / Golden Dict</li>
+                    <li>Aard</li>
+                    <li>Dictan</li>
+                </ul>
+                <p>Select dictionary application you want to use in Settings / Application / Dictionary.</p>
+                <p>Select word you need to translate, then press Dictionary icon in opened selection toolbar.</p>
+                <p>For convenient use, you can assign Dictionary action on selection, instead of toolbar: Settings / Controls / Selection Action or Multiselection action.</p>
+            </section>
+            <section>
+                <title id="tts">
+                    <p>Read Aloud</p>
+                </title>
+                <p>Cool Reader supports reading of text using Text To Speech engine.</p>
+                <p>It uses speech engine and voice set in Android system settings as default.</p>
+                <p>To start reading, use Menu / More / Read Aloud (for faster access, you can assign Read Aloud action to some tap zone or key).</p>
+                <p>Control panel appears which will let you control reading position, start/stop reading, change pitch and speed.</p>
+            </section>
+            <section>
+                <title id="autoscroll">
+                    <p>Automatic page flipping</p>
+                </title>
+                <p>You can use automatic page flipping. To start, use Menu / Goto / Autoscroll (you can assign this action on some tap zone or key for convenient use).</p>
+                <p>Adjust speed using volume keys or by pressing lower left and right bottom corners of screen.</p>
+                <p>To stop autoscroll, tap any place on screen, except bottom left and right corners.</p>
+            </section>
+            <section>
+                <title id="viewimages">
+                    <p>Zoom pictures</p>
+                </title>
+                <p>Long press on picture to open it in internal image viewer.</p>
+                <p>Change zoom using + and - icons or using volume keys. Scroll using finger sliding.</p>
+                <p>To close viewer, press Back key or tap any place of screen except zoom icons.</p>
+            </section>
         </section>
         <section id="filebrowser">
             <title>
                 <p>File Browser</p>
             </title>
             <p>To select book to read, use embedded file browser.</p>
-            <p>You can go to file browser from reading mode using Menu / Open Book. (To return back into reading mode, you can use Menu / Current book or just open book)</p>
+            <p>You can go to file browser from reading mode using Menu / Open Book. (To return back into reading mode, you can use Menu / Current book or tap on book file)</p>
             <p>File browser allow accessing filesystem tree, list of recent books, books by author/series/title, online OPDS catalogs to download books. Root folder of file browser contains links to all of these sections.</p>
-            <p>At any place inside File Browser, you can use Menu / Goto items to navigate to browser root page, recent books list, online catalogs.</p>
+            <p>At any place inside File Browser, you can use Menu / Goto items to navigate to browser root page, <a href="#recent">recent books</a> list, online catalogs.</p>
             <p>You need to place your books to internal storage or SD card to read them using Cool Reader.</p>
+            <p>Cool Reader stores metadata (author, title, series, filename, etc) for books, last reading positions, and bookmarks using internal database.</p>
+            <p>To import book into database, you have to either enter book's directory or invoke Menu / Scan directory on some directory.</p>
+            <p>File Browser Topics: 
+                <a href="#filesystem">File system</a> 
+                | <a href="#recent">Recent Books</a>
+                | <a href="#opds">Online Catalogs</a>
+                | <a href="#categories">Books by authors/series/titles</a>
+                | <a href="#fbmenu">File Browser Menu</a> 
+                | <a href="#fbsettings">File Browser Settings</a> 
+                </p>
+            <section id="filesystem">
+                <title>
+                    <p>Browsing file system</p>
+                </title>
+                <p>Usual way of opening books is to select it directly in file system tree.</p>
+                <p>In file browser root, you can see items for internal storage and/or external SD card.</p>
+                <p>Navigate by directories by tapping on them. Return one level up by pressing of upper item.</p>
+                <p>Long tap on book offers useful actions in context menu: you can open book, delete it, change sorting order, and navigate to file browser root, online catalogs, or recent books.</p>
+                <p>Menu key allows some additional operations: go back to currently opened book, find book in database, scan file system for book properties, change settings like sorting order or browsing mode (normal or simple), exit application.</p>
+                <p>There are two modes: normal view (with book metadata like author, title, series, coverpages, etc.) and simple file view (which shows file names only).</p>
+                <p>Book covers are shown in normal mode only. You can toggle coverpage display in reader mode Settings / Application dialog.</p>
+                <p>Only for EPUB and MOBY books covers are shown instantly once you enter directory. For FB2 books, cover image will be shown only after opening of book.</p>
+                <p>Menu / Search allows to find book in database by its metadata (filename, title, author, series name). As well, book catalogs by authors, series, titles are accessible from file browser tree.</p>
+            </section>
+            <section id="recent">
+                <title>
+                    <p>Recent books list</p>
+                </title>
+                <p>Cool Reader holds list of recently opened books.</p>
+                <p>To enter Recent Books section from File Browser root, choose "Recent Books" item, or use <a href="#fbmenu">Menu</a> / Goto / Recent books from any place.</p>
+                <p>You will see list of available catalogs.</p>
+                <p>Tap on book in list to reopen it. Last reading position will be restored.</p>
+                <p>By long tapping on recent book item, context menu offers some useful actions: go to book folder in filesystem, remove book from list of recent books, remove book completely, opening of book.</p>
+            </section>
+            <section id="opds">
+                <title>
+                    <p>OPDS Catalogs</p>
+                </title>
+                <p>Cool Reader allows downloading of books from OPDS online catalogs.</p>
+                <p>To enter Online Catalogs section from File Browser root, choose "Online Catalogs" item, or use <a href="#fbmenu">Menu</a> / Goto / Online catalogs from any place.</p>
+                <p>You will see list of available catalogs.</p>
+                <p>You add, remove, and edit catalog items, by long tap on some item.</p>
+                <p>Choose one of catalogs, then go through its hierarchy to find some book you need. By pressing on book item, you will start download of this book. Once book is downloaded, it will be opened for reading.</p>
+                <p>Downloaded files are being stored in Books directory on SD card or internal memory, in subdirectories by authors.</p>
+                <p>NOTE: secure connections (SSL) are not supported yet.</p>
+            </section>
+            <section id="categories">
+                <title>
+                    <p>Books by Author / Title / Series</p>
+                </title>
+                <p>Cool Reader provides categorised access to books database sorted by book metadata: author, title, series name. You can see corresponding items in file browser root.</p>
+                <p>Tap on corresponding category item (e.g. "Books by authors" to divide books by author name).</p>
+                <p>Inside, you can see either category prefix (e.g. first letter(s) of author's name), full category name (e.g. full author name), or book itself.</p>
+                <p>Cool reader can create subfolders by one, two, etc. first letters of category name, if list would be too long otherwise. (E.g. while there are only 10 authors, you will see all of them directly in list. But if there are 100 authors in database, they will be grouped by first letter (s))</p>
+                <p>Only books from scanned folders are added into database.</p>
+                <p>To import book into database, you have to either enter book's directory or invoke Menu / Scan directory on some directory.</p>
+            </section>
+            <section id="fbmenu">
+                <title>
+                    <p>File browser menu</p>
+                </title>
+                <p>Menu items are:</p>
+                <ul>
+                    <li>Currently opened book -- back to reading</li>
+                    <li>Find book -- find book by its properties in database</li>
+                    <li>Scan directory -- scan book properties from current directory and deeper</li>
+                    <li>Goto -- navigate to file browser root, recent books, or online catalogs.</li>
+                    <li><a href="#fbsettings">Settings</a> -- change some settings (sort order, book item mode).</li>
+                    <li>More: close program, open user manual</li>
+                </ul>
+            </section>
+            <section id="fbsettings">
+                <title>
+                    <p>File browser settings</p>
+                </title>
+                <p>Press menu/settings to reach file browser settings menu. Using Settings, you can change book sorting options, and change browser mode from normal to simple and back.</p>
+                <p>In simple mode, only file names are shown for books. In normal mode, book titles, authors, series name, file name, cover are shown, if available.</p>
+                <p>More settings can be found in Reading Mode / Settings dialog. On Application settings tab, you can find following options:</p>
+                <ul>
+                    <li>Show book covers in file browser</li>
+                    <li>Scan bok properties on directory enter</li>
+                    <li>Hide directories w/o books</li>
+                </ul>
+            </section>
         </section>
         <section id="advanced">
             <title>

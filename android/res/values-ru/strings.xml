@@ -406,4 +406,5 @@
     <string name="options_view_color_bookmark_correction">Цвет исправления</string>
     <string name="options_view_bookmarks_highlight_solid">Цвет фона</string>
     <string name="win_title_confirm_bookmark_delete">Вы действительно хотите удалить эту закладку?</string>
+    <string name="option_controls_gesture_page_flipping_enabled">Листание жестами</string>
 </resources>
