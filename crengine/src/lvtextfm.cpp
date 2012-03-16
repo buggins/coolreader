@@ -1155,7 +1155,7 @@ void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int 
 
     if (options->bookmarkHighlightMode == highlight_mode_solid) {
         // solid fill
-        lUInt32 cl2 = (cl & 0xFFFFFF) | 0x40000000;
+        lUInt32 cl2 = (cl & 0xFFFFFF) | 0xC0000000;
         drawbuf.FillRect(x0, y0, x1, y1, cl2);
     }
 

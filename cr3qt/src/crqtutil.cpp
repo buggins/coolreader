@@ -53,6 +53,10 @@ public:
     {
         return _ref->getIntDef(prop, defValue);
     }
+    virtual unsigned getColorDef( const char * prop, unsigned defValue )
+    {
+        return _ref->getColorDef(prop, defValue);
+    }
     virtual bool  getBoolDef( const char * prop, bool defValue )
     {
         return _ref->getBoolDef(prop, defValue);

@@ -158,6 +158,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_ui->cbViewMode->setCurrentIndex( lp==1 ? 0 : 1 );
     int hinting = m_props->getIntDef(PROP_FONT_HINTING, 2);
     m_ui->cbFontHinting->setCurrentIndex(hinting);
+    int highlight = m_props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, 1);
+    m_ui->cbBookmarkHighlightMode->setCurrentIndex(highlight);
 
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
@@ -750,9 +752,15 @@ void SettingsDlg::updateStyleSample()
     QColor txtColor = getColor( PROP_FONT_COLOR, 0x000000 );
     QColor bgColor = getColor( PROP_BACKGROUND_COLOR, 0xFFFFFF );
     QColor headerColor = getColor( PROP_STATUS_FONT_COLOR, 0xFFFFFF );
+    QColor selectionColor = getColor( PROP_HIGHLIGHT_SELECTION_COLOR, 0xC0C0C0 );
+    QColor commentColor = getColor( PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, 0xC0C000 );
+    QColor correctionColor = getColor( PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xC00000 );
     setBackground( m_ui->frmTextColor, txtColor );
     setBackground( m_ui->frmBgColor, bgColor );
     setBackground( m_ui->frmHeaderTextColor, headerColor );
+    setBackground( m_ui->frmSelectionColor, selectionColor );
+    setBackground( m_ui->frmCommentColor, commentColor );
+    setBackground( m_ui->frmCorrectionColor, correctionColor );
 
     m_ui->crSample->setOptions( m_props );
     m_ui->crSample->getDocView()->setShowCover( false );
@@ -765,7 +773,7 @@ void SettingsDlg::updateStyleSample()
 
 QColor SettingsDlg::getColor( const char * optionName, unsigned def )
 {
-    lvColor cr( m_props->getIntDef( optionName, def ) );
+    lvColor cr( m_props->getColorDef( optionName, def ) );
     return QColor( cr.r(), cr.g(), cr.b() );
 }
 
@@ -985,4 +993,26 @@ void SettingsDlg::on_cbEnableDocumentStyles_toggled(bool checked)
 {
     setCheck(PROP_EMBEDDED_STYLES, checked ? Qt::Checked : Qt::Unchecked);
     m_ui->cbEnableEmbeddedFonts->setEnabled(checked);
+}
+
+void SettingsDlg::on_btnSelectionColor_clicked()
+{
+    colorDialog( PROP_HIGHLIGHT_SELECTION_COLOR, tr("Selection color") );
+}
+
+void SettingsDlg::on_btnCommentColor_clicked()
+{
+    colorDialog( PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, tr("Comment bookmark color") );
+}
+
+void SettingsDlg::on_btnCorrectionColor_clicked()
+{
+    colorDialog( PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, tr("Correction bookmark color") );
+}
+
+void SettingsDlg::on_cbBookmarkHighlightMode_currentIndexChanged(int index)
+{
+    if ( !initDone )
+        return;
+    m_props->setInt(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, index);
 }

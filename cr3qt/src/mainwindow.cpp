@@ -215,7 +215,17 @@ void MainWindow::on_actionOpen_triggered()
     }
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open book file"),
          lastPath,
-         tr("All supported formats (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;MS Word document (*.doc);;HTML files (*.htm *.html);;EPUB files (*.epub);;CHM files (*.chm);;MOBI files (*.mobi *.prc *.azw);;PalmDOC files (*.pdb *.pml);;ZIP archives (*.zip)"));
+         QString(tr("All supported formats")) + QString(" (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.shtml *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;")
+                + QString(tr("FB2 books")) + QString(" (*.fb2 *.fb2.zip);;")
+                + QString(tr("Text files")) + QString(" (*.txt);;")
+                + QString(tr("Rich text")) + QString(" (*.rtf);;")
+                + QString(tr("MS Word document")) + QString(" (*.doc);;")
+                + QString(tr("HTML files")) + QString(" (*.shtml *.htm *.html);;")
+                + QString(tr("EPUB files")) + QString(" (*.epub);;")
+                + QString(tr("CHM files")) + QString(" (*.chm);;")
+                + QString(tr("MOBI files")) + QString(" (*.mobi *.prc *.azw);;")
+                + QString(tr("PalmDOC files")) + QString(" (*.pdb *.pml);;")
+                + QString(tr("ZIP archives")) + QString(" (*.zip)"));
     if ( fileName.length()==0 )
         return;
     if ( !ui->view->loadDocument( fileName ) ) {

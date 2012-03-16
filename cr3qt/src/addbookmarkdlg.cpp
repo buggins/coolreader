@@ -89,6 +89,8 @@ void AddBookmarkDialog::changeEvent(QEvent *e)
 void AddBookmarkDialog::on_buttonBox_accepted()
 {
     _bm->setCommentText( qt2cr(m_ui->edComment->toPlainText()) );
+    _docview->getDocView()->clearImageCache();
+    _docview->update();
     close();
 }
 

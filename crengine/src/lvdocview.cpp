@@ -5582,6 +5582,8 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 fontMan->SetHintingMode((hinting_mode_t)mode);
                 requestRender();
             }
+        } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS || name == PROP_HIGHLIGHT_SELECTION_COLOR || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT || name == PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT) {
+            REQUEST_RENDER("propsApply - highlight")
         } else if (name == PROP_LANDSCAPE_PAGES) {
             int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
 			setVisiblePageCount(pages);

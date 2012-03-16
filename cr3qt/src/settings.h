@@ -203,6 +203,10 @@ private slots:
     void on_cbFallbackFontFace_currentIndexChanged(const QString &arg1);
     void on_cbEnableEmbeddedFonts_toggled(bool checked);
     void on_cbEnableDocumentStyles_toggled(bool checked);
+    void on_btnSelectionColor_clicked();
+    void on_btnCommentColor_clicked();
+    void on_btnCorrectionColor_clicked();
+    void on_cbBookmarkHighlightMode_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDLG_H
