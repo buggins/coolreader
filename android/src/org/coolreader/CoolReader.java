@@ -359,9 +359,13 @@ public class CoolReader extends Activity
 		public ScreenBacklightControl() {
 		}
 
-
+		long lastUpdateTimeStamp;
+		
 		public void onUserActivity() {
 			lastUserActivityTime = Utils.timeStamp();
+			if (Utils.timeInterval(lastUpdateTimeStamp) < 5000)
+				return;
+			lastUpdateTimeStamp = android.os.SystemClock.uptimeMillis();
 			if (!isWakeLockEnabled())
 				return;
 			if (wl == null) {
@@ -399,6 +403,7 @@ public class CoolReader extends Activity
 				wl.release();
 			}
 			backlightTimerTask = null;
+			lastUpdateTimeStamp = 0;
 		}
 
 		private class BacklightTimerTask implements Runnable {
