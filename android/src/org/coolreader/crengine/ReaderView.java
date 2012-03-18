@@ -1904,10 +1904,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void toggleEmbeddedFonts() {
 		if ( mOpened && mBookInfo!=null ) {
 			log.d("toggleEmbeddedFonts()");
-			boolean disableInternalFonts = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG);
-			disableInternalFonts = !disableInternalFonts;
-			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG, disableInternalFonts);
-            doEngineCommand( ReaderCommand.DCMD_SET_DOC_FONTS, disableInternalFonts ? 0 : 1);
+			boolean enableInternalFonts = mBookInfo.getFileInfo().getFlag(FileInfo.USE_DOCUMENT_FONTS_FLAG);
+			enableInternalFonts = !enableInternalFonts;
+			mBookInfo.getFileInfo().setFlag(FileInfo.USE_DOCUMENT_FONTS_FLAG, enableInternalFonts);
+            doEngineCommand( ReaderCommand.DCMD_SET_DOC_FONTS, enableInternalFonts ? 1 : 0);
             doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
     		mActivity.getDB().save(mBookInfo);
 		}
@@ -1960,7 +1960,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public boolean getDocumentFontsEnabled() {
 		if ( mOpened && mBookInfo!=null ) {
-			boolean flg = !mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_FONTS_FLAG);
+			boolean flg = mBookInfo.getFileInfo().getFlag(FileInfo.USE_DOCUMENT_FONTS_FLAG);
 			return flg;
 		}
 		return true;
@@ -2756,8 +2756,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private String getManualFileName() {
-		File bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
-		return HelpFileGenerator.getHelpFileName(bookDir, mActivity.getCurrentLanguage()).getAbsolutePath();
+		Scanner s = mActivity.getScanner();
+		if (s != null) {
+			FileInfo fi = s.getDownloadDirectory();
+			if (fi != null) {
+				File bookDir = new File(fi.getPathName());
+				return HelpFileGenerator.getHelpFileName(bookDir, mActivity.getCurrentLanguage()).getAbsolutePath();
+			}
+		}
+		return "/sdcard/books/manual_ru.fb2";
 	}
 	
 	private File generateManual() {
