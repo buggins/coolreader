@@ -1161,7 +1161,8 @@ void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int 
 
     if (options->bookmarkHighlightMode == highlight_mode_underline) {
         // underline
-        lUInt32 cl2 = (cl & 0xFFFFFF) | 0x80000000;
+        cl = (cl & 0xFFFFFF);
+        lUInt32 cl2 = cl | 0x80000000;
         int step = 4;
         int index = 0;
         for (int x = x0; x < x1; x += step ) {

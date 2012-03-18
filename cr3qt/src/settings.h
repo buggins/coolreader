@@ -119,6 +119,7 @@ protected:
     void setCheck( const char * optionName, int checkState );
     void optionToUi( const char * optionName, QCheckBox * cb );
     void optionToUiString( const char * optionName, QComboBox * cb );
+    void optionToUiIndex( const char * optionName, QComboBox * cb );
     void setCheckInversed( const char * optionName, int checkState );
     void optionToUiInversed( const char * optionName, QCheckBox * cb );
     void fontToUi( const char * faceOptionName, const char * sizeOptionName, QComboBox * faceCombo, QComboBox * sizeCombo, const char * defFontFace );
@@ -207,6 +208,14 @@ private slots:
     void on_btnCommentColor_clicked();
     void on_btnCorrectionColor_clicked();
     void on_cbBookmarkHighlightMode_currentIndexChanged(int index);
+    void on_cbImageInlineZoominMode_currentIndexChanged(int index);
+    void on_cbImageInlineZoominScale_currentIndexChanged(int index);
+    void on_cbImageInlineZoomoutMode_currentIndexChanged(int index);
+    void on_cbImageInlineZoomoutScale_currentIndexChanged(int index);
+    void on_cbImageBlockZoominMode_currentIndexChanged(int index);
+    void on_cbImageBlockZoominScale_currentIndexChanged(int index);
+    void on_cbImageBlockZoomoutMode_currentIndexChanged(int index);
+    void on_cbImageBlockZoomoutScale_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDLG_H
