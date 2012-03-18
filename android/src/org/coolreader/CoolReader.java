@@ -1084,8 +1084,10 @@ public class CoolReader extends Activity
 		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
 			@Override
 			public void run() {
-				if (tts != null)
-					tts.stop();
+				if (mReaderView != null) {
+					mReaderView.stopTTS();
+					mReaderView.save();
+				}
 			}
 		});
 

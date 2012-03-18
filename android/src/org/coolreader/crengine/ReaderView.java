@@ -2484,7 +2484,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					@Override
 					public void onCreated(TTS tts) {
 						log.i("TTS created: opening TTS toolbar");
-						TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
+						ttsToolbar = TTSToolbarDlg.showDialog(mActivity, ReaderView.this, tts);
+						ttsToolbar.setOnCloseListener(new Runnable() {
+							@Override
+							public void run() {
+								ttsToolbar = null;
+							}
+						});
 					}
 				}) ) {
 					log.e("Cannot initilize TTS");
@@ -2592,6 +2598,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			toggleDayNightMode();
 			break;
 		}
+	}
+	
+	
+	private TTSToolbarDlg ttsToolbar;
+	public void stopTTS() {
+		if (ttsToolbar != null)
+			ttsToolbar.pause();
 	}
 	
 	public void doEngineCommand( final ReaderCommand cmd, final int param )

@@ -33,7 +33,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	SeekBar sbSpeed;
 	SeekBar sbVolume;
 	
-	static public void showDialog( CoolReader coolReader, ReaderView readerView, TTS tts)
+	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTS tts)
 	{
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, tts);
 		//dlg.mWindow.update(dlg.mAnchor, width, height)
@@ -42,6 +42,12 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		//dlg.showAtLocation(readerView, Gravity.LEFT|Gravity.TOP, readerView.getLeft()+50, readerView.getTop()+50);
 		//dlg.showAsDropDown(readerView);
 		//dlg.update();
+		return dlg;
+	}
+	
+	private Runnable onCloseListener;
+	public void setOnCloseListener(Runnable handler) {
+		onCloseListener = handler;
 	}
 
 	private boolean closed; 
@@ -56,8 +62,11 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 				stop();
 				restoreReaderMode();
 				mReaderView.clearSelection();
+				if (onCloseListener != null)
+					onCloseListener.run();
 				if ( mWindow.isShowing() )
 					mWindow.dismiss();
+				mReaderView.save();
 			}
 		});
 	}
@@ -122,6 +131,11 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		if ( mTTS.isSpeaking() ) {
 			mTTS.stop();
 		}
+	}
+	
+	public void pause() {
+		if (isSpeaking)
+			toggleStartStop();
 	}
 	
 	private void toggleStartStop() {
