@@ -368,6 +368,7 @@ public:
 
     void resizeImage( int & width, int & height, int maxw, int maxh, bool isInline )
     {
+        //CRLog::trace("Resize image (%dx%d) max %dx%d %s", width, height, maxw, maxh, isInline ? "inline" : "block");
         bool arbitraryImageScaling = false;
         int maxScale = 1;
         bool zoomIn = width<maxw && height<maxh;
@@ -401,6 +402,7 @@ public:
 
     void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
     {
+        //CRLog::trace("Resize image (%dx%d) max %dx%d %s  *%d", width, height, maxw, maxh, arbitraryImageScaling ? "arbitrary" : "integer", maxScaleMult);
         if ( maxScaleMult<1 )
             maxScaleMult = 1;
         if ( arbitraryImageScaling ) {
@@ -543,8 +545,7 @@ public:
                     // assume i==start+1
                     int width = m_srcs[start]->o.width;
                     int height = m_srcs[start]->o.height;
-                    bool isInline = m_pbuffer->srctextlen > 1; // single image
-                    resizeImage(width, height, m_pbuffer->width, m_pbuffer->page_height, m_length>1, isInline);
+                    resizeImage(width, height, m_pbuffer->width, m_pbuffer->page_height, m_length>1);
                     lastWidth += width;
                     m_widths[start] = lastWidth;
                 }
@@ -719,8 +720,7 @@ public:
 
                     int width = lastSrc->o.width;
                     int height = lastSrc->o.height;
-                    bool isInline = m_pbuffer->srctextlen > 1; // single image
-                    resizeImage( width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1, isInline );
+                    resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
                     word->width = width;
                     word->o.height = height;
 
