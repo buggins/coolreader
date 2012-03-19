@@ -304,122 +304,124 @@
             <title>
                 <p>Браузер файлов</p>
             </title>
-            <p>To select book to read, use embedded file browser.</p>
-            <p>You can go to file browser from reading mode using Menu / Open Book. (To return back into reading mode, you can use Menu / Current book or tap on book file)</p>
-            <p>File browser allow accessing filesystem tree, list of recent books, books by author/series/title, online OPDS catalogs to download books. Root folder of file browser contains links to all of these sections.</p>
-            <p>At any place inside File Browser, you can use Menu / Goto items to navigate to browser root page, <a href="#recent">recent books</a> list, online catalogs.</p>
-            <p>You need to place your books to internal storage or SD card to read them using Cool Reader.</p>
-            <p>Cool Reader stores metadata (author, title, series, filename, etc) for books, last reading positions, and bookmarks using internal database.</p>
-            <p>To import book into database, you have to either enter book's directory or invoke Menu / Scan directory on some directory.</p>
-            <p>File Browser Topics: 
-                <a href="#filesystem">File system</a> 
-                | <a href="#recent">Recent Books</a>
-                | <a href="#opds">Online Catalogs</a>
-                | <a href="#categories">Books by authors/series/titles</a>
-                | <a href="#fbmenu">File Browser Menu</a> 
-                | <a href="#fbsettings">File Browser Settings</a> 
+            <p>Для выбора книги для чтения удобно пользоваться встроенным браузером файлов.</p>
+            <p>Вы можете перейти в браузер файлов из режима чтения с помощью Меню / Открыть книгу. (Для возврата обратно в режим чтения можно будет воспользоваться Меню / Текущая книга или просто открыть другую книгу)</p>
+            <p>Браузер файлов позволяет просматривать файлы и папки файловой системы, открыть книгу из списка последних книг, выбор книг из встроенной базы данных по автору/названию/серии, загружать книги из сетевых каталогов (OPDS). "Корневая папка" браузера файлов содержит ссылки на вышеописанные разделы.</p>
+            <p>Из любого места в браузере файлов с помощью Меню / Перейти можно быстро перейти в корневую папку, список <a href="#recent">последних открытых книг</a>, сетевые каталоги.</p>
+            <p>Перед чтением книги в CoolReader ее нужно поместить в какую-нибудь директорию SD карты или встроенной памяти.</p>
+            <p>Cool Reader сохраняет метаданные книги (автора, название, серию, и т.д.), последнюю позицию, закладки и некоторые настройки во встроенной базе данных. Поиск по метаданным возможен только после занесения сведений о книге в базу данных.</p>
+            <p>Для импорта сведений о книгах в папке в базу данных нужно или зафти в эту папку вручную, или выбрать Меню / Еще / Сканировать папку - для чтения сведений о книгах в текущей папке и всех вложенных папках.</p>
+            <p>Ссылки на подробную информацию по разделам браузера файлов: 
+                <a href="#filesystem">Доступ к файловой системе</a> 
+                | <a href="#recent">Последние книги</a>
+                | <a href="#opds">Сетевые каталоги книг</a>
+                | <a href="#categories">Книги по авторам / сериям / названиям</a>
+                | <a href="#fbmenu">Меню браузера файлов</a> 
+                | <a href="#fbsettings">Настройки браузера файлов</a> 
                 </p>
             <section id="filesystem">
                 <title>
                     <p>Просмотр файловой системы</p>
                 </title>
-                <p>Usual way of opening books is to select it directly in file system tree.</p>
-                <p>In file browser root, you can see items for internal storage and/or external SD card.</p>
-                <p>Navigate by directories by tapping on them. Return one level up by pressing of upper item.</p>
-                <p>Long tap on book offers useful actions in context menu: you can open book, delete it, change sorting order, and navigate to file browser root, online catalogs, or recent books.</p>
-                <p>Menu key allows some additional operations: go back to currently opened book, find book in database, scan file system for book properties, change settings like sorting order or browsing mode (normal or simple), exit application.</p>
-                <p>There are two modes: normal view (with book metadata like author, title, series, coverpages, etc.) and simple file view (which shows file names only).</p>
-                <p>Book covers are shown in normal mode only. You can toggle coverpage display in reader mode Settings / Application dialog.</p>
-                <p>Only for EPUB and MOBY books covers are shown instantly once you enter directory. For FB2 books, cover image will be shown only after opening of book.</p>
-                <p>Menu / Search allows to find book in database by its metadata (filename, title, author, series name). As well, book catalogs by authors, series, titles are accessible from file browser tree.</p>
+                <p>Обычный способ открытия книг - выбор файлов в дереве файловой системы SD карты или встроенной памяти.</p>
+                <p>В корневой папке файл-браузера доступны пункты для просмотра файловой системы внутренней памяти и/или SD карты.</p>
+                <p>При просмотре файловой системы можно увидеть список вложенных папок для текущей открытой папки и список книг в ней. Переход по директориям - нажатием на директории - элементре списка. Вернуться на уровень выше - первый пункт списка папок/книг. Открытие книги - коротким нажатием.</p>
+                <p>По длинному нажатию на книге можно вызвать контекстное меню: с помощью него можно открыть книгу, удалить ее, изменить порядок сортировки книг, а также быстро перейти в корневую папку, список последних книг или сетевые каталоги.</p>
+                <p>С помощью кнопки Меню доступны следующие действия: перейти обратно к чтению текущей открытой книги, найти книгу в базе данных, сканировать свойства книг во вложенных папках, изменить настройки сортировки и режима показа книг в списке (обычный - с автором, названием, и т.п. или упрощенный - только имена файлов), выйти из программы.</p>
+                <p>Можно использовать два режима просмотра: обычный (с показом свойств книги - автора, названия, серии, обложки) и простой вид (показывать только имена файлов).</p>
+                <p>Обложки показываются только в нормальном режиме. Показ обложек можно отключить в настройках, доступных из режима чтения, Настройки / Приложение.</p>
+                <p>Только для книг в форматах EPUB и MOBY обложки показываются сразу при входе в директорию. Для FB2 обложка будет показана только после первого открытия книги.</p>
+                <p>Меню / Поиск позволяет найти книгу в базе данных по ее свойствам (метаданным - имени файла, автору, названию, серии). Также список книг из базы данных, сгруппированный по авторам, названиям или сериям доступен из корневой папки.</p>
             </section>
             <section id="recent">
                 <title>
                     <p>Список последних книг</p>
                 </title>
-                <p>Cool Reader holds list of recently opened books.</p>
-                <p>To enter Recent Books section from File Browser root, choose "Recent Books" item, or use <a href="#fbmenu">Menu</a> / Goto / Recent books from any place.</p>
-                <p>You will see list of available catalogs.</p>
-                <p>Tap on book in list to reopen it. Last reading position will be restored.</p>
-                <p>By long tapping on recent book item, context menu offers some useful actions: go to book folder in filesystem, remove book from list of recent books, remove book completely, opening of book.</p>
+                <p>Cool Reader хранит список недавно открывавшихся книг.</p>
+                <p>Чтобы посмотреть список последних книг, выберите пункт "Последние книги" в корневой папке браузера файлов или используйте <a href="#fbmenu">Меню</a> / Перейти / Последние книги из либой папки браузера файлов.</p>
+                <p>Короткое нажатие на книге из списка откроет ее. Книга откроется на том месте, в котором вы отложили ее чтение.</p>
+                <p>Длинным нажатием можно вызвать контекстное меню со следующими пунктами: перейти к папке с этой книгой в файловой системе, удалить книгу из списка последних, полностью удалить книгу, открыть книгу.</p>
             </section>
             <section id="opds">
                 <title>
                     <p>Сетевые каталоги (OPDS)</p>
                 </title>
-                <p>Cool Reader allows downloading of books from OPDS online catalogs.</p>
-                <p>To enter Online Catalogs section from File Browser root, choose "Online Catalogs" item, or use <a href="#fbmenu">Menu</a> / Goto / Online catalogs from any place.</p>
-                <p>You will see list of available catalogs.</p>
-                <p>You add, remove, and edit catalog items, by long tap on some item.</p>
-                <p>Choose one of catalogs, then go through its hierarchy to find some book you need. By pressing on book item, you will start download of this book. Once book is downloaded, it will be opened for reading.</p>
-                <p>Downloaded files are being stored in Books directory on SD card or internal memory, in subdirectories by authors.</p>
-                <p>NOTE: secure connections (SSL) are not supported yet.</p>
+                <p>Cool Reader позволяет просматривать сетевые каталоги книг стандарта OPDS и загружать из них книги.</p>
+                <p>Для перехода в список сетевых каталогов нажмите строку "Сетевые каталоги" в корневой папке или используйте <a href="#fbmenu">Меню</a> / Перейти / Сетевые каталоги из любой папки браузера файлов.</p>
+                <p>Вы увидите список сетевых каталогов.</p>
+                <p>Вы можете добавлять, удалять и редактировать элементы списка - с помощью контекстного меню по длинному нажатию на элементе списка.</p>
+                <p>Выберите каталог, затем пройдите по иерархии папок в каталоге (обычно это классификация по авторам, названию, времени добавления, популярности), и выберите нужную вам книгу. По нажатию на книге начнется загрузка. Когда книга загрузится, она будет сразу открыта для чтения.</p>
+                <p>Загруденные книги сохраняются в папке Books на SD карте, в подпапках по имени автора.</p>
+                <p>ПРИМЕЧАНИЕ: защищенное соединение (SSL) пока не поддерживается.</p>
             </section>
             <section id="categories">
                 <title>
                     <p>Книги по авторам / сериям / названиям</p>
                 </title>
-                <p>Cool Reader provides categorised access to books database sorted by book metadata: author, title, series name. You can see corresponding items in file browser root.</p>
-                <p>Tap on corresponding category item (e.g. "Books by authors" to divide books by author name).</p>
-                <p>Inside, you can see either category prefix (e.g. first letter(s) of author's name), full category name (e.g. full author name), or book itself.</p>
-                <p>Cool reader can create subfolders by one, two, etc. first letters of category name, if list would be too long otherwise. (E.g. while there are only 10 authors, you will see all of them directly in list. But if there are 100 authors in database, they will be grouped by first letter (s))</p>
-                <p>Only books from scanned folders are added into database.</p>
-                <p>To import book into database, you have to either enter book's directory or invoke Menu / Scan directory on some directory.</p>
+                <p>Cool Reader позволяет просматривать список книг из базы данных, сгруппированный по метаданным: автору, названию, серии. Соответствующие пункты доступны в корневой папке браузера файлов.</p>
+                <p>Нажмите на нужный вид классификации (например, "Книги по авторам" - для того, чтобы просмотреть список книг, сгруппированный по авторам).</p>
+                <p>Войдя в категорию, вы можете увидеть список префиксов категорий (например, первые буквы имени автора), список категорий (список авторов), а внутри папок-категорий - сами книги (например, все книги данного автора).</p>
+                <p>Cool Reader создает группы автоматически, а зависимости от количества элементов в списке.</p>
+                <p>Только те книги, свойства которых были отсканированы и добавлены в базу будут доступны в списках по категориям или в поиске.</p>
+                <p>Для импорта книг из папки файловой системы и всех вложенных подпапок используйте Меню / Сканировать свойства книг в папке</p>
             </section>
             <section id="fbmenu">
                 <title>
-                    <p>File browser menu</p>
+                    <p>Меню браузера файлов</p>
                 </title>
-                <p>Menu items are:</p>
+                <p>Пункты меню:</p>
                 <ul>
-                    <li>Currently opened book -- back to reading</li>
-                    <li>Find book -- find book by its properties in database</li>
-                    <li>Scan directory -- scan book properties from current directory and deeper</li>
-                    <li>Goto -- navigate to file browser root, recent books, or online catalogs.</li>
-                    <li><a href="#fbsettings">Settings</a> -- change some settings (sort order, book item mode).</li>
-                    <li>More: close program, open user manual</li>
+                    <li>Открытая книга -- вернуться к чтению текущей открытой книги</li>
+                    <li>Найти книгу -- поиск книги по ее свойствам в базе данных</li>
+                    <li>Сканировать папку -- прочитать свойства всех книг в данной директории и всех вложенных поддиректориях и занести в базу данных</li>
+                    <li>Перейти -- подменю для быстрого перехода в корневую папку, список последних книг, или сетевые каталоги.</li>
+                    <li><a href="#fbsettings">Настройки</a> -- изменений некоторых настроек браузера файлов (сортировка, режим показа книг в списке).</li>
+                    <li>Ещё: закрыть программу, показать руководство пользователя</li>
                 </ul>
             </section>
             <section id="fbsettings">
                 <title>
-                    <p>File browser settings</p>
+                    <p>Настройки браузера файлов</p>
                 </title>
-                <p>Press menu/settings to reach file browser settings menu. Using Settings, you can change book sorting options, and change browser mode from normal to simple and back.</p>
-                <p>In simple mode, only file names are shown for books. In normal mode, book titles, authors, series name, file name, cover are shown, if available.</p>
-                <p>More settings can be found in Reading Mode / Settings dialog. On Application settings tab, you can find following options:</p>
+                <p>Нажмите Меню / Настройки в браузере файлов чтобы изменить некоторые настройки. Вы можете менять порядок сортировки и переключать режим показа книг в списках - обычный или сокращенный (только имя файла).</p>
+                <p>Можно использовать два режима просмотра: обычный (с показом свойств книги - автора, названия, серии, обложки) и простой вид (показывать только имена файлов).</p>
+                <p>Дополнительные настройки находятся в диалоге настроек в режиме чтения. На закладке "Настройки приложения" доступны следующие настройки:</p>
                 <ul>
-                    <li>Show book covers in file browser</li>
-                    <li>Scan bok properties on directory enter</li>
-                    <li>Hide directories w/o books</li>
+                    <li>Показывать обложки в списке книг</li>
+                    <li>Сканировать свойства книг в папке при входе в папку</li>
+                    <li>Спрятать директории без книг</li>
                 </ul>
             </section>
         </section>
         <section id="advanced">
             <title>
-                <p>Advanced configuration</p>
+                <p>Дополнительные настройки</p>
             </title>
-            <subtitle>Additional fonts</subtitle>
-            <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
-            <subtitle>External styles, CSS</subtitle>
-            <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
-            <p>For fine tuning of styles, you can change Cascading Style Sheet definition for format. CSS files for different formats (fb2.css, epub.css, htm.css, rtf.css, txt.css, chm.css) can be placed to /.cr3/ directory of SD card. In this case they override internal style in package. As a base, styles from GIT repository of CoolReader (crengine) SourceForge project can be used.</p> 
-            <subtitle>Additional background images</subtitle>
-            <p>To use your own images (.jpg, .png) as page background in tile mode, place them to /.cr3/textures/ directory of SD card.</p>
-            <p>Instead of /.cr3/ directory (with period) you can use directory name w/o period (/cr3/) Instead of external SD card, you can use internal storage or internal SD card (if presens in your device)</p> 
-            <subtitle>Howto reset settings</subtitle>
-            <p>Settings are stored in *.ini files inside /.cr3/ directory on SD card or internal storage (note that .cr3 directory name is started with point, and might be invisible in browser unless "show hidden files" option is enabled)</p>
-            <p>To reset settings, just remove all files with extension .ini from this directory.</p>
-            <subtitle>Cache directory cleaning</subtitle>
-            <p>Possible reason of application crash on book opening is corrupted cache file for the book. You can try to cleanup cache directory manually. Cache files are placed in /.cr3/cache directory on SD card or internal storage (note that .cr3 directory name is started with point, and might be invisible in browser unless "show hidden files" option is enabled). Remove cache directory to resolve problem.</p>
+            <subtitle>Установка дополнительных шрифтов</subtitle>
+            <p>Вы можете положить дополнительные шрифты *.ttf в папку Fonts на SD карте или внутренней памяти. Добавленные шрифты появятся в списке только после рестарта программы.</p>
+            <subtitle>Внешние файлы стилей CSS</subtitle>
+            <p>Для тонкой настройки стилей отображения документа можно подложить исправленные файлы каскадных таблиц стилей (CSS) в директорию /.cr3/ на SD карте. Имена файлов - в соответствии с форматом (fb2.css, epub.css, htm.css, rtf.css, txt.css, chm.css). В этом случае эти стили будут использоваться вместо встроенных в программу. За основу можно взять .css файлы из репозитория GIT с исходным кодом  CoolReader (crengine) на странице проекта на SourceForge.</p> 
+            <subtitle>Дополнительные фоновые картинки</subtitle>
+            <p>Для использования своих фоновых картинок (.jpg, .png) в качестве фона страницы в режиме "замостить" положите из в папку /.cr3/textures/ на SD карте.</p>
+            <p>Для использования своих фоновых картинок в режиме "растянуть" положите их в папку /.cr3/backgrounds</p>
+            <subtitle>Как сбросить настройки в значения по умолчанию</subtitle>
+            <p>Настройки хранятся в *.ini файлах в папке /.cr3/ на SD карте или встроенной памяти (так как имя папки .cr3 начинается с точки, она может быть невидима в файл-менеджерах, пока не разрешить показ скрытых файлов)</p>
+            <p>Для сброса настроек удалите .ini файлы из этой папки.</p>
+            <subtitle>Очистка кэша последних открытых книг</subtitle>
+            <p>Возможная причина падения программы при повторном открытии недавно успешно открывавшейся книги - повреждение ее кэш-файла. Вы можете исправить проблему, почистив кэш-файлы вручную. Кэш файлы расположены в папке /.cr3/cache на SD карте или внутренней памяти устройства (так как имя папки .cr3 начинается с точки, она может быть невидима в файл-менеджерах, пока не разрешить показ скрытых файлов). Удалите папку cache для очистки.</p>
         </section>
         <section id="links">
             <title>
-                <p>Useful links</p>
+                <p>Полезные ссылки</p>
             </title>
-            <p>(will be opened in external browser)</p>
-            <p><a href="http://www.coolreader.org/">Project page on SourceForge</a></p>
-            <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Project's Wiki</a> on SourceForge</p>
-            <p><a href="https://sourceforge.net/project/project_donations.php?group_id=191284">Project's Donations page</a> on SourceForge</p>
+            <p>(будут открыты во внешнем браузере)</p>
+            <p><a href="http://www.coolreader.org/">Страница проекта</a></p>
+            <p><a href="https://sourceforge.net/projects/crengine/">Страница проекта на SourceForge</a></p>
+            <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Wiki</a> проекта на SourceForge</p>
+            <p><a href="https://sourceforge.net/project/project_donations.php?group_id=191284">Помощь проекту</a> на SourceForge</p>
+            <p><a href="http://4pda.ru/forum/index.php?showtopic=191747&st=8380">Тема на форуме 4PDA</a></p>
+            <p>Вы можете поддержать развитие проекта пожертвованием с помощью покупки "пакета-монетки"  ("Cool Reader Gold Donation", "Cool Reader Silver Donation", "Cool Reader Bronze Donation") на Маркете или покупкой монетки прямо в приложении - на третьей вкладке диалога "О программе"</p>
+            <p>Присылайте сообщения об ошибках и свои пожелания на buggins@fromru.com Не забудьте указать модель устройства и версию Android. В случае падения программы могут сильно помочь системные логи. Логи можно сохранить в файл с помощью программы Android System Info (доступна на Маркете). Если не удается открыть какую-то книгу, хотя остальные книги открываютс нормально, или вы столкнулись с неправильным определением кодировки файла, было бы полезным приложить файл с книгой к письму.</p>
         </section>
 	</body>
 </FictionBook>

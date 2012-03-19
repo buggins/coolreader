@@ -340,7 +340,6 @@
                 </title>
                 <p>Cool Reader holds list of recently opened books.</p>
                 <p>To enter Recent Books section from File Browser root, choose "Recent Books" item, or use <a href="#fbmenu">Menu</a> / Goto / Recent books from any place.</p>
-                <p>You will see list of available catalogs.</p>
                 <p>Tap on book in list to reopen it. Last reading position will be restored.</p>
                 <p>By long tapping on recent book item, context menu offers some useful actions: go to book folder in filesystem, remove book from list of recent books, remove book completely, opening of book.</p>
             </section>
@@ -385,12 +384,12 @@
                 <title>
                     <p>File browser settings</p>
                 </title>
-                <p>Press menu/settings to reach file browser settings menu. Using Settings, you can change book sorting options, and change browser mode from normal to simple and back.</p>
+                <p>Press menu/settings to reach file browser settings menu. Using Settings, you can change book sorting options, and change browser mode from normal to simple and back. You need to restart program to see new fonts in settings.</p>
                 <p>In simple mode, only file names are shown for books. In normal mode, book titles, authors, series name, file name, cover are shown, if available.</p>
                 <p>More settings can be found in Reading Mode / Settings dialog. On Application settings tab, you can find following options:</p>
                 <ul>
                     <li>Show book covers in file browser</li>
-                    <li>Scan bok properties on directory enter</li>
+                    <li>Scan book properties on directory enter</li>
                     <li>Hide directories w/o books</li>
                 </ul>
             </section>
@@ -402,7 +401,6 @@
             <subtitle>Additional fonts</subtitle>
             <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
             <subtitle>External styles, CSS</subtitle>
-            <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
             <p>For fine tuning of styles, you can change Cascading Style Sheet definition for format. CSS files for different formats (fb2.css, epub.css, htm.css, rtf.css, txt.css, chm.css) can be placed to /.cr3/ directory of SD card. In this case they override internal style in package. As a base, styles from GIT repository of CoolReader (crengine) SourceForge project can be used.</p> 
             <subtitle>Additional background images</subtitle>
             <p>To use your own images (.jpg, .png) as page background in tile mode, place them to /.cr3/textures/ directory of SD card.</p>
@@ -418,9 +416,11 @@
                 <p>Useful links</p>
             </title>
             <p>(will be opened in external browser)</p>
-            <p><a href="http://www.coolreader.org/">Project page on SourceForge</a></p>
+            <p><a href="http://sourceforge.net/projects/crengine/">Project page on SourceForge</a></p>
             <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Project's Wiki</a> on SourceForge</p>
             <p><a href="https://sourceforge.net/project/project_donations.php?group_id=191284">Project's Donations page</a> on SourceForge</p>
+            <p>To support project, you can make donations. Easy way to donate project is to buy donation package on Market ("Cool Reader Gold Donation", "Cool Reader Silver Donation", "Cool Reader Bronze Donation"), or buy donation items directly in CoolReader - on third tab of "About Cool Reader" menu item</p>
+            <p>Send your bug reports to buggins@fromru.com Don't forget to specify your device model, Android version. In case of crash, system logs may help a lot. You can get system logs using Android System Info app (available on market). If some books is failed to open, but other books are being opened ok, or you see that wrong encoding is used to show your book, you can attach book file to bug report email, to simplify investigation.</p>
         </section>
 	</body>
 </FictionBook>
