@@ -431,16 +431,15 @@ msgstr "关闭"
 
 #: ../src/settings.cpp:324
 msgid "Autohinting"
-msgstr ""
+msgstr "自动微调"
 
 #: ../src/settings.cpp:325
 msgid "Use bytecode"
-msgstr ""
+msgstr "使用字节码"
 
 #: ../src/settings.cpp:326
-#, fuzzy
 msgid "Disable"
-msgstr "禁用(1:1)"
+msgstr "禁用"
 
 #: ../src/settings.cpp:419 ../src/settings.cpp:425
 msgid "Normal"
@@ -479,9 +478,8 @@ msgid "80%"
 msgstr "80%"
 
 #: ../src/settings.cpp:447
-#, fuzzy
 msgid "85%"
-msgstr "75%"
+msgstr "85%"
 
 #: ../src/settings.cpp:448
 msgid "90%"
@@ -648,9 +646,8 @@ msgid "Default font face"
 msgstr "默认字体"
 
 #: ../src/settings.cpp:595
-#, fuzzy
 msgid "Fallback font face"
-msgstr "默认字体"
+msgstr "后备字体"
 
 #: ../src/settings.cpp:615
 msgid "Font weight"
@@ -661,13 +658,12 @@ msgid "Font antialiasing"
 msgstr "字体平滑"
 
 #: ../src/settings.cpp:627
-#, fuzzy
 msgid "Font hinting"
-msgstr "字体字距调整"
+msgstr "字体微调"
 
 #: ../src/settings.cpp:633
 msgid "Font Gamma"
-msgstr ""
+msgstr "字体伽玛"
 
 #: ../src/settings.cpp:639
 msgid "Interline space"
@@ -702,9 +698,8 @@ msgid "Document embedded styles"
 msgstr "文档内嵌风格"
 
 #: ../src/settings.cpp:698
-#, fuzzy
 msgid "Document embedded fonts"
-msgstr "文档内嵌风格"
+msgstr "文档内嵌字体"
 
 #: ../src/settings.cpp:704
 msgid "Inverse display"
@@ -723,9 +718,8 @@ msgid "Show bookmark icons"
 msgstr "显示书签图标"
 
 #: ../src/settings.cpp:733
-#, fuzzy
 msgid "Highlight bookmarks"
-msgstr "删除书签"
+msgstr "高亮书签"
 
 #: ../src/settings.cpp:739
 msgid "Status line"
@@ -953,11 +947,11 @@ msgstr "切换文本格式"
 
 #: ../src/viewdlg.cpp:528
 msgid "Save bookmark by number"
-msgstr "按数保存书签"
+msgstr "以数字保存书签"
 
 #: ../src/viewdlg.cpp:529
 msgid "Go to bookmark by number"
-msgstr "按数跳到书签"
+msgstr "以数字跳到书签"
 
 #: ../src/viewdlg.cpp:530
 msgid "Move by chapter"
@@ -1129,7 +1123,7 @@ msgstr "横屏观看"
 
 #: ../src/viewdlg.cpp:625
 msgid "Assigned function"
-msgstr "分配的功能"
+msgstr "已分配的功能"
 
 #: ../src/viewdlg.cpp:625
 msgid "Key"

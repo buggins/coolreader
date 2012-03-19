@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template for CoolReader3/Android help file -->
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<description>
+		<title-info>
+			<book-title>Cool Reader 指南</book-title>
+		</title-info>
+	</description>
+	<body>
+		<section>
+            <title>
+                <p>欢迎使用 Cool Reader <!--cr3:setting version--><br/><!--cr3:image cr3_logo--></p>
+            </title>
+            <p>这是一款电子书<b><i>阅读软件，</i></b> 支持多种格式：EPUB, FB2, RTF, TXT, HTML, CHM, PDB, MOBI, TCR。</p>
+            <p>把图书保存在SD卡上，用内建的<a href="#filebrowser">文件浏览器</a>打开并阅读，或者在CoolReader里直接从<a href="#opds">在线书库</a> (OPDS)下载图书。</p>
+			<subtitle>翻页</subtitle>
+			<p>可用多种方法移到下/上一页：</p>
+			<ul>
+				<li>触摸屏：从右向左划动为下一页，从左向右划动为上一页</li>
+				<li>触摸屏：点击屏幕右侧为下一页，左侧为上一页</li>
+				<!--cr3:if app.controls.volume.keys.enabled--><li>使用音量键翻页</li><!--cr3:endif-->
+				<li>使用硬件操纵杆或导航键</li>
+				<!--cr3:if app.trackball.disabled--><li>使用硬件操纵杆或导航键翻页</li><!--cr3:endif-->
+			</ul>
+			<p>通过链接跳页：长按链接。返回：按返回键或长按屏幕左上角。</p>
+            <p>本指南内部链接：<a href="#menu">菜单</a> 
+                | <a href="#settings">设置</a> 
+                | <a href="#filebrowser">文件浏览器</a>
+                | <a href="#tapzones">点击区域</a> 
+                | <a href="#bookmarks">书签</a>
+                | <a href="#dict">词典</a>
+                | <a href="#tts">朗读</a>
+                | <a href="#autoscroll">自动翻页</a>
+                | <a href="#viewimages">图像缩放</a>
+                | <a href="#advanced">高级配置</a>
+                | <a href="#links">有用的链接</a>
+                </p>
+            <p>可用页码来翻到指定页：菜单 / 转到 / 页码</p>
+            <p>可翻页到百分比位置：菜单 / 转到 / 位置百分比</p>
+            <p>使用目录按章翻页：菜单 / 转到 / 目录</p>
+    		<section id="menu">
+    			<title>
+    				<p>菜单</p>
+    			</title>
+    			<p>访问菜单：</p>
+    			<ul>
+    				<li>按键：短按菜单键</li>
+    				<li>触摸屏：点击屏幕中央</li>
+    			</ul>
+    			<p>菜单项：</p>
+    			<ul>
+    				<li><!--cr3:image open_file--> 用文件浏览器打开文件</li>
+    				<li><!--cr3:image goto--> “转到……”子菜单：</li>
+    				<ul>
+    					<li>页码……</li>
+    					<li>位置百分比……</li>
+    					<li>切换自动翻页</li>
+    					<li>目录</li>
+    					<li>在翻页历史内后退</li>
+    					<li>在翻页历史内前进</li>
+    					<li>打开前一本书</li>
+    				</ul>
+    				<li><!--cr3:image bookmarks--> 书签</li>
+    				<li><!--cr3:image select--> 选择文本</li>
+    				<li><!--cr3:image options--> 选项</li>
+    				<li><!--cr3:image search--> 搜索文本</li>
+    				<li>“更多”子菜单：</li>
+    				<ul>
+    					<li>切换白天/夜间模式</li>
+    					<li>切换文档样式</li>
+    					<li>切换文本自动套用格式（用于TXT文件）</li>
+    					<li>朗读 (text-to-speech)</li>
+    					<li>打开前一本书</li>
+    					<li>切换自动翻页</li>
+    					<li>退出程序</li>
+    					<li>关于Cool Reader</li>
+    					<li>关于当前书</li>
+    					<li>显示用户指南</li>
+    				</ul>
+    			</ul>
+    		</section>
+    		<section id="settings">
+    			<title>
+    				<p>设置</p>
+    			</title>
+                <p>要访问<a href="#settings">设置</a>, 使用下列方法之一：</p>
+    			<ul>
+    				<li>按键：长按菜单键</li>
+    				<li>触摸屏：长按屏幕中央</li>
+    				<li><a href="#menu">主菜单</a>: 从主菜单选择项目</li>
+    			</ul>
+                <p>设置窗口的几个选项卡</p>
+                <ul>
+                    <li><a href="#settings-text">本文设置</a></li>
+                    <li><a href="#settings-css">样式/CSS设置</a></li>
+                    <li><a href="#settings-page">页面布局</a></li>
+                    <li><a href="#settings-controls">操作</a></li>
+                    <li><a href="#settings-application">应用程序</a></li>
+                </ul>
+                <subtitle>设置项</subtitle>
+                <p>你可使用多种设置项，在它们之间快速切换。把“切换设置项”的操作分配给一些点击区域或按键</p>
+                <subtitle id="settings-text">文本设置</subtitle>
+                <ul>
+                    <li>字体</li>
+                    <li>字号</li>
+                    <li>加粗字体——使文本加粗</li>
+                    <li>字体反锯齿——平滑字体轮廓的边缘</li>
+                    <li>行间距——文本行之间的垂直间距</li>
+                    <li>断字词典——按语言选择词典，算法断字，或关闭</li>
+                    <li>浮动标点——通过把一些窄标点放在边界外面，来排列按行宽排列的文本的视觉右边界。</li>
+                    <li>字体字距调整——字符间距调整依赖成对的字符</li>
+                    <li>图像缩放选项——允许控制通常的和行内嵌图像的缩放比例</li>
+                    <li>伽玛校正——可轻微改变字符轮廓的粗细，对特定字体更好地调整平滑。</li>
+                    <li>最小间隔宽度——如果想在一行内容纳尽可能多的文本，此选项控制是否缩小间距来容纳更多文本，以及字符的最小间距（用通常间距的百分比，选择100%禁用此功能）</li>
+                    <li>字体微调（hinting）——控制矢量轮廓适应栅格的行为。对不同的字体，要由不同的模式带来更好的效果。</li>
+                    <li>后备字体——主要字体缺失时用来显示字符</li>
+                </ul>
+                <subtitle id="settings-css">样式表设置</subtitle>
+                <ul>
+                    <li>启用文档样式——是否使用文档内部定义的样式</li>
+                    <li>启用文档内嵌字体——是否使用文档内嵌的字体</li>
+                    <li>启用文本自动套用格式——文本是否自动套用格式（重排）或保持原样（并且用等宽字体显示预格式化的文本）</li>
+                    <li>通过改变默认样式表中的项目来改变文档内的不同项目（普通段落、书名、副标题、预格式化文本、超链接、引用，等等）。你可指定对应元素（如字体、样式、颜色、行间距、页边距等等）的非常多的属性。事实上，这些选项为文档建立默认的CSS（cascading style sheet，层叠样式表）。用Google搜索CSS手册以了解这些设置的更多内容。</li>
+                </ul>
+                <subtitle id="settings-page">页面布局设置</subtitle>
+                <ul>
+                    <li>全屏模式——隐藏状态栏。此选项在Android 3.0和4.0中也许不起作用。</li>
+                    <li>阅读模式——页面模式或卷轴模式。建议使用页面模式。</li>
+                    <li>页面方向——可选纵向、横向或自动感应。</li>
+                    <li>横向模式的页（栏）数</li>
+                    <li>白天/夜间模式切换（在两组存储的属性设置之间切换，如颜色等）。夜间模式使用暗底亮字。</li>
+                    <li>背景颜色——允许使用纯背景色。</li>
+                    <li>背景纹理——选择一些图像或纹理作为背景。</li>
+                    <li>标题栏选项——改变页面上方标题栏的外观。</li>
+                    <li>屏幕底部脚注（当前只对FB2格式有效）</li>
+                    <li>翻页动画模式</li>
+                    <li>书签高亮风格（禁用、纯背景或下划线）</li>
+                    <li>文本选择高亮颜色</li>
+                    <li>评论和校正书签颜色</li>
+                    <li>页边距</li>
+                </ul>
+                <subtitle id="settings-controls">操作设置</subtitle>
+                <ul>
+                    <li>按键行为——允许选择某些按键点击、长按或双击时的行为。</li>
+                    <li><a href="#tapzones">点击区域</a> 行为——允许为在每个3x3的点击区域点击、长按、双击选择行为。</li>
+                    <li><a href="#tapzones">点击区域</a> 从属动作类型（长按或双击）</li>
+                    <li>双击选中文本（或长按，与前项设置有关）。</li>
+                    <li>使用音量键翻页</li>
+                    <li>点击时高亮点击区域</li>
+                    <li>禁用轨迹球</li>
+                    <li>在屏幕左侧或右侧划动调节亮度（禁用、左侧、右侧）。</li>
+                    <li>手势翻页（启用/禁用手指划动翻页）。</li>
+                    <li>单个字词选择动作（选取栏、复制到剪贴板、在词典查找、添加书签、查找文本）</li>
+                    <li>多字词选择动作（选取栏、复制到剪贴板、在词典查找、添加书签、查找文本）。通常为词典分配单个字词选取，为添加书签分配多选。 </li>
+                    <li>查询词典后保持文本选中状态（便于记住上次阅读的位置）。</li>
+                </ul>
+                <subtitle id="settings-application">应用程序设置</subtitle>
+                <ul>
+                    <li>界面语言——可以使用与系统设置相同的语言，或者选用不同的语言。</li>
+                    <li>界面主题（程序界面的颜色主题）</li>
+                    <li>关闭背光间隔——可使用系统的设置，或另外设置间隔时间。</li>
+                    <li>屏幕背光亮度——可在这里选择，或在屏幕侧面划动（需在设置中启用）。</li>
+                    <li>关掉按键背光——对黑暗中阅读有用。</li>
+                    <li>为设置项显示图标。</li>
+                    <li>词典——当选中字词，并且“查找词典”被选择时，使用哪部词典。</li>
+                    <li>文件浏览器的封面。</li>
+                    <li>进入文件夹时扫描图书信息。</li>
+                    <li>隐藏没有图书的文件夹</li>
+                </ul>
+    		</section>
+    		<section id="tapzones">
+    			<title>
+    				<p>点击区域</p>
+    			</title>
+    			<p>屏幕划分为3x3的单元格称之为点击区域</p>
+    			<p>可为每个点击区指定两种操作，短按（主要操作）和<!--cr3:if app.touch.secondary.action.type=0-->长按<!--cr3:else-->双击<!--cr3:endif-->（从属操作）。</p>
+    			<p>从属操作的类型可在<a href="#settings-controls">设置</a>中选为长按或双击。</p>
+    			<p>当前选择的操作（<b>主要的</b> / 从属的）：</p>
+    			<table><col width="30%"/><col width="30%"/><col width="30%"/>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.1--></b><br/><!--cr3:setting app.tapzone.action.tap.long.1--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.2--></b><br/><!--cr3:setting app.tapzone.action.tap.long.2--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.3--></b><br/><!--cr3:setting app.tapzone.action.tap.long.3--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.4--></b><br/><!--cr3:setting app.tapzone.action.tap.long.4--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.5--></b><br/><!--cr3:setting app.tapzone.action.tap.long.5--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.6--></b><br/><!--cr3:setting app.tapzone.action.tap.long.6--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.7--></b><br/><!--cr3:setting app.tapzone.action.tap.long.7--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.8--></b><br/><!--cr3:setting app.tapzone.action.tap.long.8--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.9--></b><br/><!--cr3:setting app.tapzone.action.tap.long.9--></td>
+    			</tr>
+    			</table>
+    		</section>
+            <section>
+                <title id="bookmarks">
+                    <p>书签</p>
+                </title>
+                <p>Coolreader支持3种类型的书签：</p>
+                <ul>
+                    <li><b>位置</b> 书签：建立后，记录当前页面的顶行。</li>
+                    <li><b>评论</b> 书签：可为选中的文本范围添加评论。</li>
+                    <li><b>校正</b> 书签：可为选中的文本范围指定校正的文本（校对时很有用）</li>
+                </ul>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>评论和校正书签是高亮的</p>
+                <!--cr3:else-->
+                    <p>如果设置中的相应选项被启用，评论和校正书签可以是高亮的</p>
+                <!--cr3:endif-->
+                <p>添加位置书签，请使用“菜单/书签”打开书签窗口，然后按窗口标题的加号。
+				当前页将被置书签，下次打开书签窗口时，会在书签列表中看到它。
+                    短按列表中的书签项前往相应的页面</p>
+                <p>添加评论或校正书签需选取文本范围。</p>
+                <!--cr3:if app.controls.doubletap.selection-->
+                    <!--cr3:if app.touch.secondary.action.type=0-->
+                        <p>在字词上双击开始选取，然后移动手指选择文本范围。</p>
+                    <!--cr3:else-->
+                        <p>在字词上长按开始选取，然后移动手指选择文本范围。</p>
+                    <!--cr3:endif-->
+                    <p>另外，可以使用“菜单/选择”进入选择模式，然后用手指选择文本范围。</p>
+                <!--cr3:else-->
+                    <p>使用“菜单/选择”进入选择模式，然后用手指选择文本范围。</p>
+                <!--cr3:endif-->
+                <!--cr3:if app.selection.action=0-->
+                    <!--cr3:if app.multyselection.action=0-->
+                        <p>选取完成后，会出现选取工具栏。按书签按钮为选取的内容添加书签。</p>
+                    <!--cr3:else-->
+                        <p>选取完成后，只有一个字词被选中，出现选取工具栏。按书签按钮为选取的内容添加书签。</p>
+                        <p>依照当前的设置，对于多字词选择不会出现选取工具栏，而会执行“多选操作”设置中指定的操作。可在设置中改变这一行为。</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <!--cr3:if app.selection.action=3-->
+                    <!--cr3:if app.multyselection.action=3-->
+                        <p>选取完成，会立即出现添加书签窗口（另外，可在“设置/选择操作”中选择其他的行为）。</p>
+                    <!--cr3:else-->
+                        <p>选取完成，只有一个字词被选中，会立即出现添加书签窗口。</p>
+                        <p>依照当前的设置，对于多字词选择指派了不同的行为，不会出现选取工具栏。可在“设置/多选操作”中改变这一行为。</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <p>添加书签窗口允许你选择书签的类型，输入评论（评论书签）或校正文本（校正书签）。按窗口标题的加号添加书签，按返回按钮取消。</p>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>评论和校正书签的文本是高亮的。</p>
+                <!--cr3:else-->
+                    <p>如果设置中的相应选项被选，那么评论和校正书签的文本可能是高亮的。</p>
+                <!--cr3:endif-->
+                <p>要想打开书签列表，使用“菜单/书签”。当前书的书签列表会出现。</p>
+                <p>在列表项目上短按会立即把阅读位置移到所选的书签。</p>
+                <p>在列表项目上长按会打开书签的相关菜单：</p>
+                <ul>
+                    <li>转到——移到书签位置的文本</li>
+                    <li>添加——为当前页添加位置书签</li>
+                    <li>编辑——修改评论或校正文本</li>
+                    <li>移除</li>
+                    <li>导出——把书签列表保存到文本文件</li>
+                    <li>发送——用email等以文本格式发送书签列表</li>
+                </ul>
+            </section>
+            <section>
+                <title id="dict">
+                    <p>词典支持</p>
+                </title>
+                <p>Cool Reader能够调用外部词典来翻译选定的字词。</p>
+                <p>支持的词典软件（可从市场安装）：</p>
+                <ul>
+                    <li>Fora</li>
+                    <li>Color Dict</li>
+                    <li>Color Dict New / Golden Dict</li>
+                    <li>Aard</li>
+                    <li>Dictan</li>
+                </ul>
+                <p>在“设置/应用程序/词典”里选择你要使用的词典软件。</p>
+                <p>选中你要翻译的字词，然后在打开的选取工具栏里按词典图标。</p>
+                <p>为方便起见，你可为选取分配词典功能，而不是工具栏：“菜单/操作/选择或多选操作</p>
+            </section>
+            <section>
+                <title id="tts">
+                    <p>朗读</p>
+                </title>
+                <p>Cool Reader使用TTS引擎支持文本朗读。</p>
+                <p>它默认使用安卓系统设置中的语音引擎和声音设置。</p>
+                <p>要开始朗读，使用“菜单/更多/朗读”（为了快速调用，你可把朗读功能分配到某些点击区域或按键）。</p>
+                <p>控制面板会出现，允许你控制朗读的位置、开始或停止朗读、改变音量和速度。</p>
+            </section>
+            <section>
+                <title id="autoscroll">
+                    <p>自动翻页</p>
+                </title>
+                <p>你可使用自动翻页。要开始，使用“菜单/转到/自动翻页”（你可把此功能分配到某些点击区域或按键以方便使用）。</p>
+                <p>使用音量键或按屏幕的左下角和右下角来调节速度。</p>
+                <p>要停止自动滚屏，点击除左下角和右下角以外的屏幕任意位置。</p>
+            </section>
+            <section>
+                <title id="viewimages">
+                    <p>图像缩放</p>
+                </title>
+                <p>长按图片将会用内部的图像查看器打开它。</p>
+                <p>使用+和-图标或音量键改变缩放。用手指划动来滚动。</p>
+                <p>要关闭查看器，按返回键或点击屏幕除缩放图标以外的任意位置。</p>
+            </section>
+        </section>
+        <section id="filebrowser">
+            <title>
+                <p>文件浏览器</p>
+            </title>
+            <p>要选择图书阅读，使用内嵌的文件浏览器。</p>
+            <p>可在阅读模式下用“菜单/打开图书”进入文件浏览器（要返回到阅读模式，可使用“菜单/当前图书”或点击图书文件）。</p>
+            <p>文件浏览器允许访问文件系统树、最近阅读、按作者/丛书系列/书名排列的图书、在线书库用以下载图书。文件浏览器的根文件夹包括所有这些部分的链接。</p>
+            <p>在文件浏览器的任意位置，可以使用“菜单/转到”的项目转到浏览器的根页面、 <a href="#recent">最近阅读</a> 、在线书库。</p>
+            <p>你需要把图书放到内置存储或SD卡上以便用Cool Reader来阅读。</p>
+            <p>Cool Reader使用内部数据库来存储图书的相关数据（作者、书名、丛书系列、文件名等等）、最后阅读位置和书签。</p>
+            <p>要想把图书导入数据库，需要进入图书的目录或在某些目录上调用“菜单/扫描目录”。</p>
+            <p>文件浏览器主题： 
+                <a href="#filesystem">文件系统</a> 
+                | <a href="#recent">最近阅读</a>
+                | <a href="#opds">在线书库</a>
+                | <a href="#categories">按作者、丛书系列、书名排列的书</a>
+                | <a href="#fbmenu">文件浏览器菜单</a> 
+                | <a href="#fbsettings">文件浏览器设置</a> 
+                </p>
+            <section id="filesystem">
+                <title>
+                    <p>浏览文件系统</p>
+                </title>
+                <p>打开图书的通常方法是直接在文件系统树中选择它。</p>
+                <p>在文件浏览器的根目录，可以看到有关内置存储和（或）外部SD卡的项目。</p>
+                <p>在目录上点击以便进入。点击顶端的项目返回上一层。</p>
+                <p>在书上长按会出现关联菜单项目，提供有用的操作：打开、删除图书、改变排列次序，以及进入文件系统的根目录、在线书库或最近阅读。</p>
+                <p>菜单键提供一些附加的操作：返回当前打开的书、在数据库里查找图书、扫描文件系统获取图书信息、改变诸如排列次序或浏览模式（普通或简单）的设置、退出应用程序。</p>
+                <p>有两种模式：普通查看（含图书元数据，如作者、书名、丛书系列、封面等等）和简单文件查看（仅显示文件名）。</p>
+                <p>图书封面仅在普通模式显示。可在阅读模式的“设置/应用程序”对话框切换封面显示。</p>
+                <p>只有EPUB和MOBI书籍封面会进入目录就立即显示。对FB2书籍，封面图片仅在打开书后才会显示出来。</p>
+                <p>“菜单/搜索”允许通过元数据（文件名、书名、作者、丛书名）来查找图书。同样，在文件浏览器的树目录里，按作者、丛书、书名排列的图书目录也可访问。</p>
+            </section>
+            <section id="recent">
+                <title>
+                    <p>最近阅读</p>
+                </title>
+                <p>Cool Reader保存最近打开的书籍列表</p>
+                <p>从文件浏览器的根目录进入“最近阅读”区，请选择“最近阅读”项，或从任何位置使用“<a href="#fbmenu">菜单</a> / 转到 / 最近阅读”。</p>
+                <p>你将会看到可用的列表。</p>
+                <p>点击列表中的书重新打开它。上次阅读的位置将被恢复。</p>
+                <p>长按最近阅读项目，关联菜单提供了一些有用的操作：转到文件系统的图书文件夹、从最近阅读列表中移除图书、彻底删除图书、打开图书。</p>
+            </section>
+            <section id="opds">
+                <title>
+                    <p>在线书库</p>
+                </title>
+                <p>Cool Reader允许从在线书库下载图书</p>
+                <p>要从文件浏览器的根目录进入在线书库，选择“在线书库”项，或从任意位置使用“<a href="#fbmenu">菜单</a> / 转到 / 在线书库”。</p>
+                <p>你会看到可用的目录列表。</p>
+                <p>通过在项目上长按，你可以添加、删除、编辑目录项。</p>
+                <p>选择一个目录，然后按层寻找你需要的图书。点击图书，将会下载这本书。下载完毕即会被打开以便阅读。 </p>
+                <p>下载的文件被存储在内置存储或SD卡的Books目录内，在以作者命名的子目录内。</p>
+                <p>注意：暂不支持安全连接（SSL）。</p>
+            </section>
+            <section id="categories">
+                <title>
+                    <p>按作者/书名/丛书排列图书</p>
+                </title>
+                <p>Cool Reader可以按图书的元数据：作者、书名、丛书名排列分类访问图书数据库。你可在文件浏览器的根目录看到相应的项目。</p>
+                <p>点击相应的分类项目（例如“按作者排列”就会以作者的名字归类图书）。</p>
+                <p>在里面，你可以看到分类的前缀（例如作者名字的第一个字母）、分类全名（例如作者的全名）或书籍本身。</p>
+                <p>Cool reader能够按一、二……分类名的首字母建立子文件夹——如果列表太长的话（例如只有10个作者，你会直接在列表中看到他们全部。但是如果在数据库中有100个作者，他们就会被按首字母分组）。</p>
+                <p>只有扫描过的文件夹里的图书才会加入数据库。</p>
+                <p>要想把图书加入数据库，需要进入图书的目录或在一些目录上调用“菜单/扫描目录”。</p>
+            </section>
+            <section id="fbmenu">
+                <title>
+                    <p>文件浏览器菜单</p>
+                </title>
+                <p>菜单项目：</p>
+                <ul>
+                    <li>当前打开的书——返回阅读</li>
+                    <li>查找书——按它在数据库的属性查找书</li>
+                    <li>扫描目录——从当前目录以及深层扫描图书属性</li>
+                    <li>转到——进入文件浏览器根目录、最近阅读或在线书库。</li>
+                    <li><a href="#fbsettings">设置</a> ——改变一些设置（排序顺序、图书列表模式）。</li>
+                    <li>更多：关闭程序、打开用户指南</li>
+                </ul>
+            </section>
+            <section id="fbsettings">
+                <title>
+                    <p>文件浏览器设置</p>
+                </title>
+                <p>按“菜单/设置”打开文件浏览器设置菜单。使用设置，你可以改变图书排序选项，把浏览模式从普通改为简单，或者相反。</p>
+                <p>在简单模式，只显示图书的文件名。在普通模式，会显示书名、作者、丛书名、文件名和封面——如果有的话。</p>
+                <p>更多设置可在阅读模式/设置对话框找到。在应用程序设置选项卡，可找到下列选项：</p>
+                <ul>
+                    <li>在文件浏览器显示图书封面</li>
+                    <li>进入目录时扫描图书属性</li>
+                    <li>隐藏没有书的目录</li>
+                </ul>
+            </section>
+        </section>
+        <section id="advanced">
+            <title>
+                <p>高级配置</p>
+            </title>
+            <subtitle>更多的字体</subtitle>
+            <p>你可以通过把.ttf文件放入SD卡的Fonts目录来添加更多的字体。</p>
+            <subtitle>外部样式，CSS</subtitle>
+            <p> </p>
+            <p>为了更好地调节样式，你可改变层叠样式表（Cascading Style Sheet）对格式的定义。不同格式的CSS文件（fb2.css, epub.css, htm.css, rtf.css, txt.css, chm.css）可以放到SD卡的/.cr3/目录。在这种情况下它们将忽略包里的内部样式。 作为基础，可以使用来自CoolReader （crengine）SourceForge项目GIT仓库的样式。</p> 
+            <subtitle>更多的背景图像</subtitle>
+            <p>要把自己的图像（.jpg,.png）用作平铺模式的背景图像，可把它们放入SD卡的/.cr3/textures/目录。</p>
+            <p>你可以用没有圆点的目录名(/cr3/)代替有圆点的目录/.cr3/。可以用内置存储或内置SD卡（如果设备提供）代替外部SD卡。</p> 
+            <subtitle>如何重置设置</subtitle>
+            <p>设置存储于SD卡或内置存储/.cr3/目录里的*.ini文件内（注意.cr3目录名是以圆点开头的，也许在文件管理器里看不到，除非启用“显示隐藏文件”选项）。</p>
+            <p>要重置设置，只需把这个目录里以.ini为扩展名的全部文件移除。</p>
+            <subtitle>缓存目录清除</subtitle>
+            <p>可能由于打开图书时程序崩溃的原因破坏图书的缓存文件。你可尝试手工清除缓存目录。缓存文件存放于SD卡或内置存储的/.cr3/cache目录内（注意.cr3目录名是以圆点开头的，也许在文件管理器里看不到，除非启用“显示隐藏文件”选项）。移除cache目录来解决问题。</p>
+        </section>
+        <section id="links">
+            <title>
+                <p>有用的链接</p>
+            </title>
+            <p>（将用外部浏览器打开）</p>
+            <p><a href="http://www.coolreader.org/">SourceForge上的项目页</a></p>
+            <p>SourceForge上的<a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">项目Wiki</a></p>
+            <p>SourceForge上的<a href="https://sourceforge.net/project/project_donations.php?group_id=191284">项目捐赠页</a></p>
+        </section>
+	</body>
+</FictionBook>

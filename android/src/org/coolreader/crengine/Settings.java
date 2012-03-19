@@ -167,7 +167,7 @@ public interface Settings {
     	IT("it", R.string.options_app_locale_it, 0),
     	HU("hu", R.string.options_app_locale_hu, 0),
     	NL("nl", R.string.options_app_locale_nl, 0),
-    	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, 0),
+    	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, R.raw.help_template_zh_cn),
     	;
     	
     	static public Lang byCode(String code) {
