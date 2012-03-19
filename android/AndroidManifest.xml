@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.56-5" android:versionCode="565">
+      android:versionName="3.0.56-6" android:versionCode="566">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -86,11 +86,11 @@
             </intent-filter>
         </receiver>
         <!-- Stop TTS on incoming call -->
-  		<!-- receiver android:name="org.coolreader.PhoneStateReceiver">
+  		<receiver android:name="org.coolreader.PhoneStateReceiver">
 	        <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />     
 	        </intent-filter>
-		</receiver-->
+		</receiver>
     </application>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -98,7 +98,7 @@
     <!-- Stop TTS on incoming call -->
 	<!-- uses-permission android:name="android.permission.READ_PHONE_STATE"/-->
     <!-- Hide Android3 soft buttons on Archos -->
-    <!-- uses-permission android:name="archos.permission.FULLSCREEN.FULL"/-->
+    <uses-permission android:name="archos.permission.FULLSCREEN.FULL"/>
 	<!-- Required permission to use in-app billing. -->
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="9" />

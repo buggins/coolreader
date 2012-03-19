@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template for CoolReader3/Android help file -->
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<description>
+		<title-info>
+			<book-title>Руководство пользователя Cool Reader</book-title>
+		</title-info>
+	</description>
+	<body>
+		<section>
+            <title>
+                <p>Добро пожаловать в Cool Reader <!--cr3:setting version--><br/><!--cr3:image cr3_logo--></p>
+            </title>
+            <p>Это программа для чтения <b><i>электронных книг</i></b> в большом количестве форматов: EPUB, FB2, RTF, TXT, HTML, CHM, PDB, MOBI, TCR</p>
+            <p>Чтобы открыть книгу в программе, вначале ее нужно сохранить на SD карту или встроенную память. После этого ее можно открыть из встроенного <a href="#filebrowser">Браузера Файлов</a>. Также можно скачать книги из <a href="#opds">R.raw.help_template_en</a> (OPDS) прямо в CoolReader.</p>
+			<subtitle>Навигация по книге</subtitle>
+			<p>Перелистывать на следующую и предыдущую страницу можно разными способами:</p>
+			<ul>
+				<li>Сенсорный экран: проведите по экрану справа налево для перехода на следующую страницу, слева направо - на предыдущую.</li>
+				<li>Сенсорный экран: нажмите в правой части экрана для перехода  на следующую страницу, в левой части - на предыдущую.</li>
+				<!--cr3:if app.controls.volume.keys.enabled--><li>Используйте для листания кнопки регулировки громкости.</li><!--cr3:endif-->
+				<li>Листайте с помощью навигационных кнопок или джойстика (если есть на устройстве).</li>
+				<!--cr3:if app.trackball.disabled--><li>Листайте с помощью трекболла (если есть на устройстве)</li><!--cr3:endif-->
+			</ul>
+			<p>Для перехода по ссылке - длинное нажатие на ссылке. Для возврата назад - кнопка назад, длинное нажатие в левом верхнем углу экрана, или Меню / Перейти / Назад</p>
+            <p>Ссылки на разделы руководства: <a href="#menu">Меню чтения</a> 
+                | <a href="#settings">Настройки</a> 
+                | <a href="#filebrowser">Браузер файлов</a>
+                | <a href="#tapzones">Тап зоны</a> 
+                | <a href="#bookmarks">Закладки</a>
+                | <a href="#dict">Словари</a>
+                | <a href="#tts">Чтение вслух</a>
+                | <a href="#autoscroll">Автолистание</a>
+                | <a href="#viewimages">Просмотр иллюстрации</a>
+                | <a href="#advanced">Дополнительные настройки</a>
+                | <a href="#links">Полезные ссылки</a>
+                </p>
+            <p>Можно перейти на страницу по ее номеру с помощью Меню / Перейти / На страницу №</p>
+            <p>Можно перейти на страницу по % Меню / Перейти / На позицию %</p>
+            <p>Используйте содержание книги для перехода на главу: Меню / Перейти / Содержание</p>
+    		<section id="menu">
+    			<title>
+    				<p>Меню в режиме чтения книги</p>
+    			</title>
+    			<p>Для доступа к меню используйте один из методов:</p>
+    			<ul>
+    				<li>нажмите кнопку "меню"</li>
+    				<li>короткое нажатие в центре экрана</li>
+    			</ul>
+    			<p>Пункты меню чтения:</p>
+    			<ul>
+    				<li><!--cr3:image open_file--> Открыть книгу - с помощью браузера файлов</li>
+    				<li><!--cr3:image goto--> Подменю "Перейти...":</li>
+    				<ul>
+    					<li>На страницу № - ввести номер страницы для перехода</li>
+    					<li>На позицию % - ввести позицию, в процентах</li>
+    					<li>Автолистание (скорость регулируется кнопками громкости или нажатием в нижнем правом или левом углах экрана)</li>
+    					<li>Содержание - выберите нужную главу из содержания книги</li>
+    					<li>Назад - перейти назад по истории переходов (например, вернуться после перехода по ссылке, номеру страницы и т.д.)</li>
+    					<li>Вперед - вернуться вперед после возврата назад</li>
+    					<li>Открыть последнюю книгу - удобно для быстрого переключения между двумя книгами</li>
+    				</ul>
+    				<li><!--cr3:image bookmarks--> Закладки - открыть список закладок</li>
+    				<li><!--cr3:image select--> Выделить текст - для поиска в словаре, копирования в буфер, отправки, и т.п.</li>
+    				<li><!--cr3:image options--> Настройки</li>
+    				<li><!--cr3:image search--> Поиск текста</li>
+    				<li>Подменю "Еще":</li>
+    				<ul>
+    					<li>Переключить дневной/ночной режим</li>
+    					<li>Включить/выключить встроенные стили документа</li>
+    					<li>Включить/выключить автоформатирование текста (только для файлов TXT)</li>
+    					<li>Начать чтение вслух TTS (нужные голосовой движок и голос должны быть установлены в системных настройках по умолчанию)</li>
+    					<li>Открыть предыдущую книгу</li>
+    					<li>Автолистание</li>
+    					<li>Выход из программы</li>
+    					<li>О программе Cool Reader</li>
+    					<li>Свойства текущей книги</li>
+    					<li>Руководство пользователя</li>
+    				</ul>
+    			</ul>
+    		</section>
+    		<section id="settings">
+    			<title>
+    				<p>Настройки</p>
+    			</title>
+                <p>Для доступа к <a href="#settings">Настройкам</a>, используйте один из методов:</p>
+    			<ul>
+    				<li>длинное нажатие на кнопку "Меню"</li>
+    				<li>длинное нажатие в центре экрана</li>
+    				<li>короткое нажатие <a href="#menu">Меню</a> / Настройки</li>
+    			</ul>
+                <p>Все настройки распределены на несколько вкладок</p>
+                <ul>
+                    <li><a href="#settings-text">Настройки текста</a></li>
+                    <li><a href="#settings-css">Стили / CSS</a></li>
+                    <li><a href="#settings-page">Страница</a></li>
+                    <li><a href="#settings-controls">Управление</a></li>
+                    <li><a href="#settings-application">Приложение</a></li>
+                </ul>
+                <subtitle>Профили настроек</subtitle>
+                <p>Вы можете сохранить несколько наборов настроек, с возможностью быстрого переключения между ними. Назначьте действие "Профиль настроек" на какую-нибудь кнопку или тап-зону.</p>
+                <subtitle id="settings-text">Настройки текста</subtitle>
+                <ul>
+                    <li>Шрифт (выбор гарнитуры, дополнительные шрифты можно установить в директорию Fonts на SD карту)</li>
+                    <li>Размер шрифта</li>
+                    <li>Жирный шрифт</li>
+                    <li>Сглаживание шрифтов</li>
+                    <li>Межстрочный интервал</li>
+                    <li>Словарь переносов</li>
+                    <li>Висячая пунктуяция (для визуального выравнивания правой границы текста узкие знаки препинания можно вынести правее границы выравнивания)</li>
+                    <li>Кернинг шрифта (подгонка расстояния между соседними символами для лучшего восприятия)</li>
+                    <li>Настройки масштабирования иллюстраций</li>
+                    <li>Гамма-коррекция - можно сделать шрифт немного легче или тяжелее</li>
+                    <li>Минимальная ширина пробела - насколько можно сузить пробел в попытке уместить как можно больше текста в строке</li>
+                    <li>Хинтинг (инструментирование) шрифта - для разных шрифтов разные варианты настройки хинтинга выглядят лучше</li>
+                    <li>Дополнительный шрифт - при отсутствии символа в основном шрифте, он будет браться из дополнительного</li>
+                </ul>
+                <subtitle id="settings-css">Настройки стилей / CSS</subtitle>
+                <ul>
+                    <li>Разрешить/запретить встроенные стили документа. Эта настройка сохраняется отдельно для каждой книги.</li>
+                    <li>Разрешить/запретить встроенные шрифты EPUB. Эта настройка сохраняется отдельно для каждой книги.</li>
+                    <li>Автоформатирование текста (переразбиение на абзацы, распознавание заголовков) - только для текстовых файлов. При запрещенном автоформатировании текст отображается моноширинным шрифтом. Эта настройка сохраняется отдельно для каждой книги.</li>
+                    <li>Далее следуют опции для изменения таблицы стилей по умолчанию. Для хорошего результата изменения настроек желательно представлять себе механизм работы каскадных таблиц стилей (CSS).</li>
+                </ul>
+                <subtitle id="settings-page">Параметры страницы</subtitle>
+                <ul>
+                    <li>Полноэкранный режим. Не работает на Android 3.0 и 4.0</li>
+                    <li>Резим отображения: страницы или свиток. Рекомендуется использование страничного режима</li>
+                    <li>Ориентация страницы: книжная, альбомная, по сенсору</li>
+                    <li>Количество страниц (колонок) в альбомном режиме</li>
+                    <li>Переключение ночного/дневного режимов. Цветовые настройки хранятся отдельно для дневного и ночного режимов. Быстрое переключение в режиме чтения - длинное нажатие в верхней средней части экрана.</li>
+                    <li>Цвет текста</li>
+                    <li>Цвет фона - выбор одноцветной заливки фона</li>
+                    <li>Фоновая текстура - фон в виде текстуры</li>
+                    <li>Настройки статус-строки</li>
+                    <li>Сноски внизу страницы (пока только для формата FB2)</li>
+                    <li>Анимация листания</li>
+                    <li>Стиль подсвечивания закладок (запретить, выделение цветом фона, подчеркивание).</li>
+                    <li>Цвет для выделения фрагмента текста</li>
+                    <li>Цвета для подсвечивания закладок - Комментариев и Исправлений</li>
+                    <li>Отступы страницы</li>
+                </ul>
+                <subtitle id="settings-controls">Настройки управления</subtitle>
+                <ul>
+                    <li>Действия по нажатию кнопок - можно задать отдельное действие для короткого, длинного и двойного нажатия</li>
+                    <li>Действия для зон <a href="#tapzones">сенсорного экрана</a> можно задать отдельные действия для основного (короткого) и дополнительного (длинного или двойного, в зависимости от настроек) нажатия для каждой из 9 зон экрана. (Экран разбит на 9 клеток 3x3).</li>
+                    <li>Тип дополнительного действия для <a href="#tapzones">сенсорного экрана</a> (длинное нажатие или двойное нажатие)</li>
+                    <li>Начинать выделение текста по двойному нажатию (или по длинному нажатию, в зависимости от предыдущей настройки).</li>
+                    <li>Разрешить/запретить листание кнопками громкости</li>
+                    <li>Подсвечивать зону экрана при нажатии</li>
+                    <li>Отключить трекболл</li>
+                    <li>Регулировка яркости подсветки скольжением по краю экрана (запрет, левый край, правый край).</li>
+                    <li>Разрешить листание жестами.</li>
+                    <li>Действие при выделении одного слова (панель инструментов, копирование в буфер обмена, поиск в словаре, добавление закладки, поиск текста).</li>
+                    <li>Действие при выделении нескольких слов (панель инструментов, копирование в буфер обмена, поиск в словаре, добавление закладки, поиск текста). Часто бывает удобно назначить вызов словаря для одиночного выделения и добавление закладки для целой фразы.</li>
+                    <li>Сохранять выделение после поиска в словаре.</li>
+                </ul>
+                <subtitle id="settings-application">Настройки приложения</subtitle>
+                <ul>
+                    <li>Язык интерфейса - можно использовать текущий язык системы или выбрать один из списка</li>
+                    <li>Тема интерфейса (цветовая схема)</li>
+                    <li>Длительность подсветки</li>
+                    <li>Яркость подсветки</li>
+                    <li>Отключать подсветку кнопок (полезно для чтения в темноте, работает не на всех моделях устройств)</li>
+                    <li>Показывать пиктограммы в диалоге настроек</li>
+                    <li>Выбор программы-словаря для использования при поиске выделенного слова</li>
+                    <li>Показывать обложки книг в брайзере файлов</li>
+                    <li>Сканировать свойства книг при заходе в папку</li>
+                    <li>Прятать директории без книг</li>
+                </ul>
+    		</section>
+    		<section id="tapzones">
+    			<title>
+    				<p>Зоны сенсорного экрана</p>
+    			</title>
+    			<p>Экран условно разделен на 9 зон - в виде сетки 3x3 клетки.</p>
+    			<p>Вы можете выбрать различные действия по обычному (короткому) нажатию (основное действие) и <!--cr3:if app.touch.secondary.action.type=0-->длинному<!--cr3:else-->двойному<!--cr3:endif--> нажатию (дополнительное действие).</p>
+    			<p>Тип дополнительного действия - длинное или двойное нажатие - может быть выбран в <a href="#settings-controls">настройках</a>.</p>
+    			<p>Выбранные действия (<b>основное</b> / дополнительное):</p>
+    			<table><col width="30%"/><col width="30%"/><col width="30%"/>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.1--></b><br/><!--cr3:setting app.tapzone.action.tap.long.1--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.2--></b><br/><!--cr3:setting app.tapzone.action.tap.long.2--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.3--></b><br/><!--cr3:setting app.tapzone.action.tap.long.3--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.4--></b><br/><!--cr3:setting app.tapzone.action.tap.long.4--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.5--></b><br/><!--cr3:setting app.tapzone.action.tap.long.5--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.6--></b><br/><!--cr3:setting app.tapzone.action.tap.long.6--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.7--></b><br/><!--cr3:setting app.tapzone.action.tap.long.7--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.8--></b><br/><!--cr3:setting app.tapzone.action.tap.long.8--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.9--></b><br/><!--cr3:setting app.tapzone.action.tap.long.9--></td>
+    			</tr>
+    			</table>
+    		</section>
+            <section>
+                <title id="bookmarks">
+                    <p>Работа с закладками</p>
+                </title>
+                <p>CoolReader поддерживает 3 типа закладок:</p>
+                <ul>
+                    <li><b>Позиция</b>: при создании привязывается к первой строке текущей страницы</li>
+                    <li><b>Комментарий</b>: создается для фрагмента текста, можно написать текст комментария</li>
+                    <li><b>Исправление</b>: создается для фрагмента текста, можно исправить выделенный фрагмент (удобно для вычитки/проверки текста)</li>
+                </ul>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>Закладки - комментарии и исправления подсвечиваются в тексте, в соответствии с настройками</p>
+                <!--cr3:else-->
+                    <p>Закладки - комментарии и исправления могут подсвечиваться в тексте, если разрешить в настройках</p>
+                <!--cr3:endif-->
+                <p>Для добавления закладки на позицию в тексте, откройте список закладок (Меню / Закладки) и нажмите кнопку добавления в верхнем правом углу окна. Текущая страница будет добавлена в список закладок. В следующий раз после открытия списка закладок вы можете перейти к нужной, нажав на нее в списке.</p>
+                <p>Для добавления закладки на фрагмент текста - комментария или исправления - нужно вначале выделить фрагмент текста.</p>
+                <!--cr3:if app.controls.doubletap.selection-->
+                    <!--cr3:if app.touch.secondary.action.type=0-->
+                        <p>Начните выделение двойным нажатием на первом слове, затем движением пальца выделите весь фрагмент.</p>
+                    <!--cr3:else-->
+                        <p>Начните выделение длинным нажатием на первом слове, затем движением пальца выделите весь фрагмент.</p>
+                    <!--cr3:endif-->
+                    <p>Также Вы можете использовать Меню / Выделить для входа в режим выделения. После этого просто выделите нужный фрагмент движением пальца.</p>
+                <!--cr3:else-->
+                    <p>Используйте Меню / Выделить для входа в режим выделения. После этого просто выделите нужный фрагмент движением пальца.</p>
+                <!--cr3:endif-->
+                <!--cr3:if app.selection.action=0-->
+                    <!--cr3:if app.multyselection.action=0-->
+                        <p>Когда выделение завершено, появляется панель инструментов - с вариантами действия по выделению, и элементами управления для перемещения начала и конца выделения. Нажмите кнопку "Закладка" на панели.</p>
+                    <!--cr3:else-->
+                        <p>Когда выделение завершено, и выделено только одно слово, появляется панель инструментов - с вариантами действия по выделению, и элементами управления для перемещения начала и конца выделения. Нажмите кнопку "Закладка" на панели.</p>
+                        <p>В соответствии с текущими настройками для выделения нескольких слов панель инструментов не показывается. Вместо этого будет сразу выполнено действие, назначенное в пункте настроек "Действие для нескольких выделенных слов". Это поведение можно поменять в настройках.</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <!--cr3:if app.selection.action=3-->
+                    <!--cr3:if app.multyselection.action=3-->
+                        <p>Когда выделение завершено, сразу появится окно добавления закладки. (Так указано в настройках. Вы можете поменять это поведение в Настройках / Управление / Действие по выделению и Действие для нескольких слов)</p>
+                    <!--cr3:else-->
+                        <p>Когда выделение завершено, и выбрано только одно слово, сразу появится окно добавления закладки. (Так указано в настройках. Вы можете поменять это поведение в Настройках / Управление / Действие по выделению и Действие для нескольких слов)</p>
+                        <p>В данный момент в настройках указано другое действие для нескольких выделенных слов. (Вы можете поменять это поведение в Настройках / Управление / Действие по выделению и Действие для нескольких слов)</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <p>Окно "Добавить закладку" позволяет указать тип закладки (комментарий или исправление), а также указать текст комментария (для закладки-комментария) или исправленный текст (для закладки - исправления). Для сохранения закладки нажмите кнопку плюс в правом верхнем углу окна.</p>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>Комментарии и Исправления подсвечены в тексте.</p>
+                <!--cr3:else-->
+                    <p>Комментарии и Исправления могут быть подсвечены в тексте, если это разрешить в настройках.</p>
+                <!--cr3:endif-->
+                <p>Для открытия списка закладок, нажмите Меню / Закладки. Появится список закладок.</p>
+                <p>По короткому нажатию на закладке из списка произойдет переход на позицию в тексте с этой закладкой.</p>
+                <p>Длинное нажатие на закладке откроет контекстное меню:</p>
+                <ul>
+                    <li>Перейти - переход на позицию в тексте с этой закладкой</li>
+                    <li>Добавить - добавить закладку типа Позиция для текущей странице в тексте</li>
+                    <li>Редактировать - только для Комментариев и Исправлений - изменить текст</li>
+                    <li>Удалить закладку</li>
+                    <li>Экспортировать - сохранить все закладки в текстовый файл</li>
+                    <li>Отправить - послать список закладок в текстовом виде как email, sms, и т.п.</li>
+                </ul>
+            </section>
+            <section>
+                <title id="dict">
+                    <p>Поддержка словарей</p>
+                </title>
+                <p>Cool Reader может вызывать внешние программы-словари для перевода слов.</p>
+                <p>Поддерживаемые словари (могут быть установлены из Market):</p>
+                <ul>
+                    <li>Fora</li>
+                    <li>Color Dict</li>
+                    <li>Color Dict New / Golden Dict</li>
+                    <li>Aard</li>
+                    <li>Dictan</li>
+                </ul>
+                <p>Выберите программу, которую хотите использовать из списка - в Настройках / Приложение / Словарь. Не забудьте установить его в системе.</p>
+                <p>Выделите слово для перевода (описание выделения смотрите в разделе про закладки). В зависимости от настроек, после окончания выделения может появиться панель инструментов. Из нее нужно выбрать пункт Словарь.</p>
+                <p>Для удобного частого использования словаря назначьте Словарь в Настройках / Управление / Действие для выделения</p>
+            </section>
+            <section>
+                <title id="tts">
+                    <p>Чтение вслух</p>
+                </title>
+                <p>Cool Reader поддерживает чтение вслух с использованием системного Text To Speech engine (TTS)</p>
+                <p>Он использует движок TTS и голос, выбранные в системе по умолчанию.</p>
+                <p>Для Русского языка можно установить движок SVOX и один из русских голосов к нему. Не забудьте в системныз настройках выбрать этот движок и голос для использования по умолчанию.</p>
+                <p>Для начала чтения вслух нажмите Меню / Еще / Чтение вслух (для более удобного использования соответствующее действие можно назначить на кнопку или тап-зону экрана).</p>
+                <p>Появляется панель управления чтением вслух. Она позволяет начинать / приостанавливать чтение, передвигать позицию, и т.п.</p>
+            </section>
+            <section>
+                <title id="autoscroll">
+                    <p>Автолистание</p>
+                </title>
+                <p>Вы можете использовать автоматическое листание. Для начала, нажмите Меню / Перейти / Автолистание (для более удобного использования соответствующее действие можно назначить на кнопку или тап-зону экрана).</p>
+                <p>Изменить скорость листания можно кнопками громкости или нажатием в нижних левом и правом углах.</p>
+                <p>Для остановки листания нажмите в любом месте экрана кроме нижних левого и правого углов.</p>
+            </section>
+            <section>
+                <title id="viewimages">
+                    <p>Просмотр иллюстраций</p>
+                </title>
+                <p>Вы можете посмотреть иллюстрацию в увеличенном виде. Этот режим активируется длинным нажатием на иллюстрации.</p>
+                <p>Изменяйте масштаб кнопками громкости или экранными кнопками +/-. Паронамирование - скольжением пальца.</p>
+                <p>Чтобы выйти из режима просмотра иллюстрации, нажмите кнопку Назад или ткните в любое место экрана.</p>
+            </section>
+        </section>
+        <section id="filebrowser">
+            <title>
+                <p>Браузер файлов</p>
+            </title>
+            <p>To select book to read, use embedded file browser.</p>
+            <p>You can go to file browser from reading mode using Menu / Open Book. (To return back into reading mode, you can use Menu / Current book or tap on book file)</p>
+            <p>File browser allow accessing filesystem tree, list of recent books, books by author/series/title, online OPDS catalogs to download books. Root folder of file browser contains links to all of these sections.</p>
+            <p>At any place inside File Browser, you can use Menu / Goto items to navigate to browser root page, <a href="#recent">recent books</a> list, online catalogs.</p>
+            <p>You need to place your books to internal storage or SD card to read them using Cool Reader.</p>
+            <p>Cool Reader stores metadata (author, title, series, filename, etc) for books, last reading positions, and bookmarks using internal database.</p>
+            <p>To import book into database, you have to either enter book's directory or invoke Menu / Scan directory on some directory.</p>
+            <p>File Browser Topics: 
+                <a href="#filesystem">File system</a> 
+                | <a href="#recent">Recent Books</a>
+                | <a href="#opds">Online Catalogs</a>
+                | <a href="#categories">Books by authors/series/titles</a>
+                | <a href="#fbmenu">File Browser Menu</a> 
+                | <a href="#fbsettings">File Browser Settings</a> 
+                </p>
+            <section id="filesystem">
+                <title>
+                    <p>Просмотр файловой системы</p>
+                </title>
+                <p>Usual way of opening books is to select it directly in file system tree.</p>
+                <p>In file browser root, you can see items for internal storage and/or external SD card.</p>
+                <p>Navigate by directories by tapping on them. Return one level up by pressing of upper item.</p>
+                <p>Long tap on book offers useful actions in context menu: you can open book, delete it, change sorting order, and navigate to file browser root, online catalogs, or recent books.</p>
+                <p>Menu key allows some additional operations: go back to currently opened book, find book in database, scan file system for book properties, change settings like sorting order or browsing mode (normal or simple), exit application.</p>
+                <p>There are two modes: normal view (with book metadata like author, title, series, coverpages, etc.) and simple file view (which shows file names only).</p>
+                <p>Book covers are shown in normal mode only. You can toggle coverpage display in reader mode Settings / Application dialog.</p>
+                <p>Only for EPUB and MOBY books covers are shown instantly once you enter directory. For FB2 books, cover image will be shown only after opening of book.</p>
+                <p>Menu / Search allows to find book in database by its metadata (filename, title, author, series name). As well, book catalogs by authors, series, titles are accessible from file browser tree.</p>
+            </section>
+            <section id="recent">
+                <title>
+                    <p>Список последних книг</p>
+                </title>
+                <p>Cool Reader holds list of recently opened books.</p>
+                <p>To enter Recent Books section from File Browser root, choose "Recent Books" item, or use <a href="#fbmenu">Menu</a> / Goto / Recent books from any place.</p>
+                <p>You will see list of available catalogs.</p>
+                <p>Tap on book in list to reopen it. Last reading position will be restored.</p>
+                <p>By long tapping on recent book item, context menu offers some useful actions: go to book folder in filesystem, remove book from list of recent books, remove book completely, opening of book.</p>
+            </section>
+            <section id="opds">
+                <title>
+                    <p>Сетевые каталоги (OPDS)</p>
+                </title>
+                <p>Cool Reader allows downloading of books from OPDS online catalogs.</p>
+                <p>To enter Online Catalogs section from File Browser root, choose "Online Catalogs" item, or use <a href="#fbmenu">Menu</a> / Goto / Online catalogs from any place.</p>
+                <p>You will see list of available catalogs.</p>
+                <p>You add, remove, and edit catalog items, by long tap on some item.</p>
+                <p>Choose one of catalogs, then go through its hierarchy to find some book you need. By pressing on book item, you will start download of this book. Once book is downloaded, it will be opened for reading.</p>
+                <p>Downloaded files are being stored in Books directory on SD card or internal memory, in subdirectories by authors.</p>
+                <p>NOTE: secure connections (SSL) are not supported yet.</p>
+            </section>
+            <section id="categories">
+                <title>
+                    <p>Книги по авторам / сериям / названиям</p>
+                </title>
+                <p>Cool Reader provides categorised access to books database sorted by book metadata: author, title, series name. You can see corresponding items in file browser root.</p>
+                <p>Tap on corresponding category item (e.g. "Books by authors" to divide books by author name).</p>
+                <p>Inside, you can see either category prefix (e.g. first letter(s) of author's name), full category name (e.g. full author name), or book itself.</p>
+                <p>Cool reader can create subfolders by one, two, etc. first letters of category name, if list would be too long otherwise. (E.g. while there are only 10 authors, you will see all of them directly in list. But if there are 100 authors in database, they will be grouped by first letter (s))</p>
+                <p>Only books from scanned folders are added into database.</p>
+                <p>To import book into database, you have to either enter book's directory or invoke Menu / Scan directory on some directory.</p>
+            </section>
+            <section id="fbmenu">
+                <title>
+                    <p>File browser menu</p>
+                </title>
+                <p>Menu items are:</p>
+                <ul>
+                    <li>Currently opened book -- back to reading</li>
+                    <li>Find book -- find book by its properties in database</li>
+                    <li>Scan directory -- scan book properties from current directory and deeper</li>
+                    <li>Goto -- navigate to file browser root, recent books, or online catalogs.</li>
+                    <li><a href="#fbsettings">Settings</a> -- change some settings (sort order, book item mode).</li>
+                    <li>More: close program, open user manual</li>
+                </ul>
+            </section>
+            <section id="fbsettings">
+                <title>
+                    <p>File browser settings</p>
+                </title>
+                <p>Press menu/settings to reach file browser settings menu. Using Settings, you can change book sorting options, and change browser mode from normal to simple and back.</p>
+                <p>In simple mode, only file names are shown for books. In normal mode, book titles, authors, series name, file name, cover are shown, if available.</p>
+                <p>More settings can be found in Reading Mode / Settings dialog. On Application settings tab, you can find following options:</p>
+                <ul>
+                    <li>Show book covers in file browser</li>
+                    <li>Scan bok properties on directory enter</li>
+                    <li>Hide directories w/o books</li>
+                </ul>
+            </section>
+        </section>
+        <section id="advanced">
+            <title>
+                <p>Advanced configuration</p>
+            </title>
+            <subtitle>Additional fonts</subtitle>
+            <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
+            <subtitle>External styles, CSS</subtitle>
+            <p>You can add more fonts by placing .ttf files to Fonts directory on SD card.</p>
+            <p>For fine tuning of styles, you can change Cascading Style Sheet definition for format. CSS files for different formats (fb2.css, epub.css, htm.css, rtf.css, txt.css, chm.css) can be placed to /.cr3/ directory of SD card. In this case they override internal style in package. As a base, styles from GIT repository of CoolReader (crengine) SourceForge project can be used.</p> 
+            <subtitle>Additional background images</subtitle>
+            <p>To use your own images (.jpg, .png) as page background in tile mode, place them to /.cr3/textures/ directory of SD card.</p>
+            <p>Instead of /.cr3/ directory (with period) you can use directory name w/o period (/cr3/) Instead of external SD card, you can use internal storage or internal SD card (if presens in your device)</p> 
+            <subtitle>Howto reset settings</subtitle>
+            <p>Settings are stored in *.ini files inside /.cr3/ directory on SD card or internal storage (note that .cr3 directory name is started with point, and might be invisible in browser unless "show hidden files" option is enabled)</p>
+            <p>To reset settings, just remove all files with extension .ini from this directory.</p>
+            <subtitle>Cache directory cleaning</subtitle>
+            <p>Possible reason of application crash on book opening is corrupted cache file for the book. You can try to cleanup cache directory manually. Cache files are placed in /.cr3/cache directory on SD card or internal storage (note that .cr3 directory name is started with point, and might be invisible in browser unless "show hidden files" option is enabled). Remove cache directory to resolve problem.</p>
+        </section>
+        <section id="links">
+            <title>
+                <p>Useful links</p>
+            </title>
+            <p>(will be opened in external browser)</p>
+            <p><a href="http://www.coolreader.org/">Project page on SourceForge</a></p>
+            <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Project's Wiki</a> on SourceForge</p>
+            <p><a href="https://sourceforge.net/project/project_donations.php?group_id=191284">Project's Donations page</a> on SourceForge</p>
+        </section>
+	</body>
+</FictionBook>

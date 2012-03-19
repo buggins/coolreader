@@ -20,7 +20,7 @@
 				<li>Touch screen: tap right side of screen for next page, left side for previous page</li>
 				<!--cr3:if app.controls.volume.keys.enabled--><li>Turn pages using Volume keys</li><!--cr3:endif-->
 				<li>Using hardware joystick or navigation keys</li>
-				<!--cr3:if app.trackball.disabled--><li>Turn pages using hardware joystick or navigation keys</li><!--cr3:endif-->
+				<!--cr3:if app.trackball.disabled--><li>Turn pages trackball (if present on device).</li><!--cr3:endif-->
 			</ul>
 			<p>To navigate by link, long tap on link. To return back, press Back key or long tap top left corner of screen</p>
             <p>Links to sections of manual: <a href="#menu">Menu</a> 
@@ -54,7 +54,7 @@
     				<ul>
     					<li>Page number...</li>
     					<li>Position percent...</li>
-    					<li>Toggle automatic page flip</li>
+    					<li>Toggle automatic page flip (speed can be changed using volume keys or by tapping on bottom left or bottom right corners of screen)</li>
     					<li>Table if contents</li>
     					<li>Back in navigation history</li>
     					<li>Forward in navigation history</li>
@@ -129,6 +129,7 @@
                     <li>Page orientation - you can choose portrait, landscape or sensor.</li>
                     <li>Number of pages (columns) in landscape mode.</li>
                     <li>Day/Night profile switch (switches between two stored set of properties, like colors, etc.). Night mode uses light text on dark background.</li>
+                    <li>Text color - allows to select solid background color.</li>
                     <li>Background color - allows to select solid background color.</li>
                     <li>Background texture - select some image or texture for background.</li>
                     <li>Title bar options - change appearance on title bar above page.</li>
