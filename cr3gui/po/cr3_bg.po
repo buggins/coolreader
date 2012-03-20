@@ -42,7 +42,7 @@ msgid ""
 "long press - set bookmark"
 msgstr ""
 "Късо натискане $1 - преход към отбелязка,\n"
-"дълго натискане - поставяне на отбелязка"
+"Дълго натискане - поставяне на отбелязка"
 
 #: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:167
 msgid "Set bookmark"
@@ -62,11 +62,11 @@ msgid ""
 "long press - go to bookmark"
 msgstr ""
 "Късо натискане $1 - поставяне на отбелязка,\n"
-"дълго натискане - преход към отбелязка"
+"Дълго натискане - преход към отбелязка"
 
 #: ../src/bmkdlg.cpp:169
 msgid "Delete bookmark"
-msgstr "Изтриете на отбелязка"
+msgstr "Изтрване на отбелязка"
 
 #: ../src/bmkdlg.cpp:188 ../src/mainwnd.cpp:884
 msgid "Bookmarks"
@@ -74,16 +74,15 @@ msgstr "Отбелязки"
 
 #: ../src/bmkdlg.cpp:317
 msgid "Go to citation"
-msgstr "Преход на цитати"
+msgstr "Преход към цитати"
 
 #: ../src/bmkdlg.cpp:318
-#, fuzzy
 msgid "Delete citation"
-msgstr "Изтриване на запис"
+msgstr "Изтриване на цитат"
 
 #: ../src/bmkdlg.cpp:332
 msgid "Citations"
-msgstr ""
+msgstr "Цитат"
 
 #: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:560
 msgid "Cite selection dialog"
@@ -91,23 +90,23 @@ msgstr "Избор на цитат"
 
 #: ../src/citedlg.cpp:80
 msgid "Select next/prev paragraph"
-msgstr ""
+msgstr "Избор на предходен/следващ параграф"
 
 #: ../src/citedlg.cpp:83
 msgid "Select one more paragraph"
-msgstr ""
+msgstr "Избор на още един параграф"
 
 #: ../src/citedlg.cpp:86
 msgid "Deselect paragraph"
-msgstr ""
+msgstr "Демаркиране на параграф"
 
 #: ../src/citedlg.cpp:89
 msgid "Select one more phrase"
-msgstr ""
+msgstr "Избор на още една фраза"
 
 #: ../src/citedlg.cpp:92
 msgid "Deselect phrase"
-msgstr ""
+msgstr "Демаркиране на фраза"
 
 #: ../src/citedlg.cpp:112
 msgid "Select text"
@@ -115,7 +114,7 @@ msgstr "Изберете текст"
 
 #: ../src/cr3pocketbook.cpp:2190
 msgid "Press $1 to translate"
-msgstr "Натиснете $1 за да преведат"
+msgstr "Натиснете $1 за превод"
 
 #: ../src/cr3qt.cpp:323 ../src/cr3xcb.cpp:1314 ../src/settings.cpp:331
 #: ../src/settings.cpp:337 ../src/settings.cpp:342 ../src/settings.cpp:383
@@ -294,7 +293,7 @@ msgstr "Автор"
 
 #: ../src/mainwnd.cpp:1051
 msgid "Document date"
-msgstr "Дата"
+msgstr "Дата на документа"
 
 #: ../src/mainwnd.cpp:1052
 msgid "Document source URL"
@@ -309,7 +308,6 @@ msgid "Document version"
 msgstr "Версия"
 
 #: ../src/mainwnd.cpp:1055
-#, fuzzy
 msgid "Change history"
 msgstr "Напред в историята на преместване"
 
@@ -347,15 +345,15 @@ msgstr "Допълнителна информация"
 
 #: ../src/mainwnd.cpp:1070
 msgid "CoolReader for PocketBook"
-msgstr ""
+msgstr "CoolReader за PocketBook"
 
 #: ../src/mainwnd.cpp:1071
 msgid "Build date"
-msgstr ""
+msgstr "Дата на създаване"
 
 #: ../src/mainwnd.cpp:1072
 msgid "About program"
-msgstr ""
+msgstr "За програмата"
 
 #: ../src/mainwnd.cpp:1193
 msgid "Loading: please wait..."
@@ -411,7 +409,7 @@ msgstr "Ориентация на страниците"
 
 #: ../src/settings.cpp:222
 msgid "Default font size"
-msgstr "Размер"
+msgstr "Размер на шрифта"
 
 #: ../src/settings.cpp:280
 msgid "The quick brown fox jumps over lazy dog"
@@ -434,15 +432,15 @@ msgstr "Не"
 
 #: ../src/settings.cpp:324
 msgid "Autohinting"
-msgstr ""
+msgstr "Автохинтинг"
 
 #: ../src/settings.cpp:325
 msgid "Use bytecode"
-msgstr ""
+msgstr "Изполвай bytecode"
 
 #: ../src/settings.cpp:326
 msgid "Disable"
-msgstr ""
+msgstr "Отмяна"
 
 #: ../src/settings.cpp:419 ../src/settings.cpp:425
 msgid "Normal"
@@ -469,21 +467,18 @@ msgid "Top"
 msgstr "Горе"
 
 #: ../src/settings.cpp:444
-#, fuzzy
 msgid "70%"
 msgstr "80%"
 
 #: ../src/settings.cpp:445
-#, fuzzy
 msgid "75%"
-msgstr "95%"
+msgstr "75%"
 
 #: ../src/settings.cpp:446
 msgid "80%"
 msgstr "80%"
 
 #: ../src/settings.cpp:447
-#, fuzzy
 msgid "85%"
 msgstr "80%"
 
@@ -517,7 +512,7 @@ msgstr "120%"
 
 #: ../src/settings.cpp:455
 msgid "125%"
-msgstr ""
+msgstr "125%"
 
 #: ../src/settings.cpp:456
 msgid "130%"
@@ -525,7 +520,7 @@ msgstr "130%"
 
 #: ../src/settings.cpp:457
 msgid "135%"
-msgstr ""
+msgstr "135%"
 
 #: ../src/settings.cpp:458
 msgid "140%"
@@ -533,7 +528,7 @@ msgstr "140%"
 
 #: ../src/settings.cpp:459
 msgid "145%"
-msgstr ""
+msgstr "145%"
 
 #: ../src/settings.cpp:460
 msgid "150%"
@@ -601,61 +596,59 @@ msgstr "Турбо-режимът е включен"
 
 #: ../src/settings.cpp:524
 msgid "180+slow next page"
-msgstr ""
+msgstr "180+бавно следв. страница"
 
 #: ../src/settings.cpp:525
 msgid "180+slow prev/next page"
-msgstr ""
+msgstr "180+бавно предх/следв. страница"
 
 #: ../src/settings.cpp:526
 msgid "180+FAST next page"
-msgstr ""
+msgstr "180+бързо следв. страница"
 
 #: ../src/settings.cpp:527
 msgid "180+FAST prev/next page"
-msgstr ""
+msgstr "180+бързо предх/следв. страница"
 
 #: ../src/settings.cpp:528
 msgid "180+FAST next/prev page"
-msgstr ""
+msgstr "180+бързо следв/прех. страница"
 
 #: ../src/settings.cpp:548
 msgid "Disabled (1:1)"
-msgstr ""
+msgstr "Отменено(1:1)"
 
 #: ../src/settings.cpp:549
-#, fuzzy
 msgid "Integer scale"
-msgstr "Междуредов интервал"
+msgstr "Целочислено мащабиране"
 
 #: ../src/settings.cpp:550
 msgid "Arbitrary scale"
-msgstr ""
+msgstr "Произволно мащабиране"
 
 #: ../src/settings.cpp:555
 msgid "Auto"
-msgstr ""
+msgstr "Авто"
 
 #: ../src/settings.cpp:556
 msgid "*1"
-msgstr ""
+msgstr "*1"
 
 #: ../src/settings.cpp:557
 msgid "*2"
-msgstr ""
+msgstr "*2"
 
 #: ../src/settings.cpp:558
 msgid "*3"
-msgstr ""
+msgstr "*3"
 
 #: ../src/settings.cpp:572
 msgid "Default font face"
 msgstr "Шрифт"
 
 #: ../src/settings.cpp:595
-#, fuzzy
 msgid "Fallback font face"
-msgstr "Шрифт"
+msgstr "Fallback шрифт"
 
 #: ../src/settings.cpp:615
 msgid "Font weight"
@@ -666,26 +659,24 @@ msgid "Font antialiasing"
 msgstr "Заглаждане"
 
 #: ../src/settings.cpp:627
-#, fuzzy
 msgid "Font hinting"
 msgstr "Кърнинг"
 
 #: ../src/settings.cpp:633
 msgid "Font Gamma"
-msgstr ""
+msgstr "Гама корекция"
 
 #: ../src/settings.cpp:639
 msgid "Interline space"
 msgstr "Междуредов интервал"
 
 #: ../src/settings.cpp:650
-#, fuzzy
 msgid "Rotate"
 msgstr "Завъртане на"
 
 #: ../src/settings.cpp:655
 msgid "Page turn angle"
-msgstr ""
+msgstr "Ъгъл на завъртане"
 
 #: ../src/settings.cpp:661
 msgid "Footnotes at page bottom"
@@ -708,7 +699,6 @@ msgid "Document embedded styles"
 msgstr "Вградени стилове"
 
 #: ../src/settings.cpp:698
-#, fuzzy
 msgid "Document embedded fonts"
 msgstr "Вградени стилове"
 
@@ -729,9 +719,8 @@ msgid "Show bookmark icons"
 msgstr "Отбелязки в колонтитула"
 
 #: ../src/settings.cpp:733
-#, fuzzy
 msgid "Highlight bookmarks"
-msgstr "Изтриете на отбелязка"
+msgstr "Подчетаване на отбелязка"
 
 #: ../src/settings.cpp:739
 msgid "Status line"
@@ -779,23 +768,23 @@ msgstr "Отдясно"
 
 #: ../src/settings.cpp:821
 msgid "Image scaling"
-msgstr ""
+msgstr "Мащабиране на картинки"
 
 #: ../src/settings.cpp:823
 msgid "Block image scaling mode"
-msgstr ""
+msgstr "Забрана мащабиране на картинки"
 
 #: ../src/settings.cpp:828
 msgid "Block image max zoom"
-msgstr ""
+msgstr "Макс. уголемяване на картинки"
 
 #: ../src/settings.cpp:834
 msgid "Inline image scaling mode"
-msgstr ""
+msgstr "Режим на inline мащабиране на картинки"
 
 #: ../src/settings.cpp:839
 msgid "Inline image max zoom"
-msgstr ""
+msgstr "Макс. inline мащабиране"
 
 #: ../src/settings.cpp:861
 msgid ""
@@ -950,9 +939,8 @@ msgid "Zoom out"
 msgstr "Намаляване на шрифта"
 
 #: ../src/viewdlg.cpp:526
-#, fuzzy
 msgid "Toggle bold text"
-msgstr "Превключва автоформатирането на текста"
+msgstr "Превключва удебеляване на текста"
 
 #: ../src/viewdlg.cpp:527
 msgid "Toggle text format"
@@ -968,7 +956,7 @@ msgstr "Преход към отбелязка по номер"
 
 #: ../src/viewdlg.cpp:530
 msgid "Move by chapter"
-msgstr "Преход по глави"
+msgstr "Преход към глави"
 
 #: ../src/viewdlg.cpp:531
 msgid "First link"
@@ -1083,9 +1071,8 @@ msgid "Go to percent..."
 msgstr "Преход към позиция (процент)"
 
 #: ../src/viewdlg.cpp:572
-#, fuzzy
 msgid "PocketBook Main menu"
-msgstr "Главно меню"
+msgstr "PocketBook главно меню"
 
 #: ../src/viewdlg.cpp:574
 msgid "Unknown command"
@@ -1143,20 +1130,17 @@ msgstr "Асоциирана команда"
 msgid "Key"
 msgstr "Бутон"
 
-#, fuzzy
 #~ msgid "Remove phrase from selection"
-#~ msgstr "Избор на цитат"
+#~ msgstr "Премахване на фраза от цитат"
 
 #~ msgid "Remove citation"
-#~ msgstr "Изтриете на цитати"
+#~ msgstr "Изтриване на цитат"
 
-#, fuzzy
 #~ msgid "Cites"
 #~ msgstr "Цитати"
 
-#, fuzzy
 #~ msgid "Go to cite"
-#~ msgstr "Преход към страница"
+#~ msgstr "Преход към цитат"
 
 #~ msgid "Enter page number to go: "
 #~ msgstr " Въведете номер на страница:"
