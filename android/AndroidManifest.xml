@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.56-8" android:versionCode="568">
+      android:versionName="3.0.56-9" android:versionCode="569">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -86,11 +86,11 @@
             </intent-filter>
         </receiver>
         <!-- Stop TTS on incoming call -->
-  		<!-- receiver android:name="org.coolreader.PhoneStateReceiver">
+  		<receiver android:name="org.coolreader.PhoneStateReceiver">
 	        <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />     
 	        </intent-filter>
-		</receiver-->
+		</receiver>
     </application>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
