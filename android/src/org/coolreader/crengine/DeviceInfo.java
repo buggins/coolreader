@@ -45,6 +45,7 @@ public class DeviceInfo {
 	};
 
 	public final static int ICE_CREAM_SANDWICH = 14;
+	public final static int HONEYCOMB = 11;
 
 	private static int sdkInt = 0;
 	public static int getSDKLevel() {

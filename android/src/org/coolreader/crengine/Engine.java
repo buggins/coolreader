@@ -781,7 +781,7 @@ public class Engine {
 	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 	public boolean setKeyBacklight(int value) {
 		// Try ICS way
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH) {
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
 			View view = mActivity.getReaderView();
 			Method m;
 			try {
