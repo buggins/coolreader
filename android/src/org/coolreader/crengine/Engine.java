@@ -777,17 +777,18 @@ public class Engine {
 		}
 	}
 
-	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
-	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
-	public boolean setKeyBacklight(int value) {
-		// Try ICS way
+	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			if (DeviceInfo.getSDKLevel() < DeviceInfo.ICE_CREAM_SANDWICH)
+				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
 			View view = mActivity.getReaderView();
+			if (view == null)
+				return false;
 			Method m;
 			try {
 				m = view.getClass().getMethod("setSystemUiVisibility", int.class);
-				m.invoke(view, value == 0 ? SYSTEM_UI_FLAG_LOW_PROFILE :
-					SYSTEM_UI_FLAG_VISIBLE);
+				m.invoke(view, value);
+				return true;
 			} catch (SecurityException e) {
 				// ignore
 			} catch (NoSuchMethodException e) {
@@ -799,7 +800,33 @@ public class Engine {
 			} catch (InvocationTargetException e) {
 				// ignore
 			}
+		}
+		return false;
+	}
+
+	public boolean setSystemUiVisibility() {
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			int flags = 0;
+			if (currentKeyBacklightLevel == 0)
+				flags |= SYSTEM_UI_FLAG_LOW_PROFILE;
+			if (mActivity.isFullscreen())
+				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+			setSystemUiVisibility(flags);
 			return true;
+		}
+		return false;
+	}
+	
+	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
+	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
+	
+	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
+	private int currentKeyBacklightLevel = 1;
+	public boolean setKeyBacklight(int value) {
+		currentKeyBacklightLevel = value;
+		// Try ICS way
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			return setSystemUiVisibility();
 		}
 
 		// thread safe

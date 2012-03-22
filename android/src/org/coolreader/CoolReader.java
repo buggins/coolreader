@@ -247,6 +247,7 @@ public class CoolReader extends Activity
 			wnd.setFlags(0, 
 			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		}
+		mEngine.setSystemUiVisibility();
 	}
 	public void setFullscreen( boolean fullscreen )
 	{
