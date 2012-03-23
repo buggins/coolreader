@@ -621,7 +621,7 @@ public class CoolReader extends Activity
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
-		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 0); //(DeviceInfo.EINK_SCREEN?0:4)
+		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4); //(DeviceInfo.EINK_SCREEN?0:4)
 		if ( orientation < 0 || orientation > 4 )
 			orientation = 0;
 		setScreenOrientation(orientation);
@@ -1745,7 +1745,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_GESTURE_PAGE_FLIPPING, "1");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
-		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, "0"); // DeviceInfo.EINK_SCREEN ? "0" : "4"
+		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, DeviceInfo.EINK_SCREEN ? "0" : "4"); // "0"
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
