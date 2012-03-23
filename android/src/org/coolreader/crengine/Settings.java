@@ -1,6 +1,10 @@
 package org.coolreader.crengine;
 
+import java.util.Locale;
+
 import org.coolreader.R;
+
+import android.util.Log;
 
 public interface Settings {
     public static final String PROP_PAGE_BACKGROUND_IMAGE       ="background.image";
@@ -170,10 +174,30 @@ public interface Settings {
     	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, R.raw.help_template_zh_cn),
     	;
     	
+    	public Locale getLocale() {
+   			return getLocale(code);
+    	}
+    	
+    	static public Locale getLocale(String code) {
+    		if (code.length() == 2)
+    			return new Locale(code);
+    		if (code.length() == 5)
+    			return new Locale(code.substring(0, 2), code.substring(3, 5));
+    		return null;
+    	}
+
+    	static public String getCode(Locale locale) {
+    		String country = locale.getCountry();
+    		if (country == null || country.length()==0)
+    			return locale.getLanguage();
+			return locale.getLanguage() + "_" + country;
+    	}
+    	
     	static public Lang byCode(String code) {
     		for (Lang lang : values())
     			if (lang.code.equals(code))
     				return lang;
+    		Log.w("cr3", "language not found by code " + code);
     		return DEFAULT;
     	}
     	

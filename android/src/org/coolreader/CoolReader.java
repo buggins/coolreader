@@ -2164,14 +2164,15 @@ public class CoolReader extends Activity
 		    // Change locale settings in the app.
 		    DisplayMetrics dm = res.getDisplayMetrics();
 		    android.content.res.Configuration conf = res.getConfiguration();
-		    conf.locale = (lang == Lang.DEFAULT) ? defaultLocale : new Locale(lang.code);
-		    currentLanguage = (lang == Lang.DEFAULT) ? defaultLocale.getLanguage() : lang.code;
+		    conf.locale = (lang == Lang.DEFAULT) ? defaultLocale : lang.getLocale();
+		    currentLanguage = (lang == Lang.DEFAULT) ? Lang.getCode(defaultLocale) : lang.code;
 		    res.updateConfiguration(conf, dm);
 		} catch (Exception e) {
 			log.e("error while setting locale " + lang, e);
 		}
 	}
 	
+	// Store system locale here, on class creation
 	private static final Locale defaultLocale = Locale.getDefault();
 	
 	//==============================================================
