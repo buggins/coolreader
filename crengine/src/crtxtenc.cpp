@@ -1650,6 +1650,86 @@ int AutodetectCodePageUtf( const unsigned char * buf, int buf_size, char * cp_na
    return 0;
 }
 
+int strincmp(const unsigned char * buf, const char * pattern, int len)
+{
+    for (int i=0; i<len && pattern[i] && buf[i]; i++) {
+        int ch = buf[i];
+        if (ch >= 'A' && ch<='Z')
+            ch += 'a' - 'A';
+        int ch2 = pattern[i];
+        if (ch2 >= 'A' && ch2<='Z')
+            ch2 += 'a' - 'A';
+        if (ch < ch2)
+            return -1;
+        if (ch > ch2)
+            return 1;
+    }
+    return 0;
+}
+
+int strnstr(const unsigned char * buf, int buf_len, const char * pattern)
+{
+    int plen = strlen(pattern);
+    for (int i=0; i<=buf_len - plen; i++) {
+        if (!strincmp(buf + i, pattern, plen)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int rstrnstr(const unsigned char * buf, int buf_len, const char * pattern)
+{
+    int plen = strlen(pattern);
+    for (int i=buf_len - plen; i>=0; i--) {
+        if (!strincmp(buf + i, pattern, plen)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+bool detectXmlHtmlEncoding(const unsigned char * buf, int buf_len, char * html_enc_name)
+{
+    int xml_p = strnstr(buf, buf_len, "<?xml");
+    int xml_end_p = strnstr(buf, buf_len, "?>");
+    if (xml_p >= 0 && xml_end_p > xml_p) {
+        // XML
+        int enc_p = strnstr(buf, buf_len, "encoding=\"");
+        if (enc_p < xml_p || enc_p > xml_end_p)
+            return false;
+        enc_p += 10;
+        int enc_end_p = strnstr(buf + enc_p, xml_end_p - enc_p, "\"");
+        if (enc_end_p < 0 || enc_end_p > 20)
+            return false;
+        strncpy(html_enc_name, (char *)(buf + enc_p), enc_end_p);
+        html_enc_name[enc_end_p] = 0;
+        CRLog::debug("XML header encoding detected: %s", html_enc_name);
+        return true;
+    }
+    int content_type_p = strnstr(buf, buf_len, "http-equiv=\"Content-Type\"");
+    if (content_type_p >= 0) {
+        int meta_p = rstrnstr(buf, content_type_p, "<meta");
+        if (meta_p < 0)
+            return false;
+        int meta_end_p = strnstr(buf + meta_p, buf_len - meta_p, ">");
+        if (meta_end_p < 0)
+            return false;
+        int charset_p = strnstr(buf + meta_p, meta_end_p, "charset=");
+        if (charset_p < 0)
+            return false;
+        charset_p += 8;
+        int charset_end_p = strnstr(buf + meta_p + charset_p, meta_end_p - charset_p, "\"");
+        if (charset_end_p < 0)
+            return false;
+        strncpy(html_enc_name, (char *)(buf + meta_p + charset_p), charset_end_p);
+        html_enc_name[charset_end_p] = 0;
+        CRLog::debug("HTML header meta encoding detected: %s", html_enc_name);
+        return true;
+    }
+    return false;
+}
+
 int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, char * lang_name, bool skipHtml)
 {
     int res = AutodetectCodePageUtf( buf, buf_size, cp_name, lang_name );
@@ -1674,7 +1754,7 @@ int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, 
            q1 = 0.00001;
        if (q2 < 0.00001)
            q2 = 0.00001;
-       double q = q11 * 1 + q12 * 2 + q21 * 3 + q22 * 4; //(q_>0) ? (q1*2+q2*7) / (q_) : 1000000;
+       double q = q11 * 0 + q12 * 2 + q21 * 0 + q22 * 6; //(q_>0) ? (q1*2+q2*7) / (q_) : 1000000;
        q = q / (q1 + q2);
        //CRLog::debug("%d %10s %4s : %lf %lf %lf - %lf %lf %lf  :  %lf", i, cp_stat_table[i].cp_name, cp_stat_table[i].lang_name, q1, q11, q12, q2, q21, q22, q);
        if (q > bestq) {
@@ -1685,6 +1765,11 @@ int AutodetectCodePage(const unsigned char * buf, int buf_size, char * cp_name, 
    strcpy(cp_name, cp_stat_table[bestn].cp_name);
    strcpy(lang_name, cp_stat_table[bestn].lang_name);
    CRLog::debug("Detected codepage:%s lang:%s index:%d %s", cp_name, lang_name, bestn, skipHtml ? "(skipHtml)" : "");
+   if (skipHtml) {
+       if (detectXmlHtmlEncoding(buf, buf_size, cp_name)) {
+           CRLog::debug("Encoding parsed from XML/HTML: %s", cp_name);
+       }
+   }
    return 1;
 }
 
