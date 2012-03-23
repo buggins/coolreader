@@ -122,7 +122,7 @@ public class DeviceInfo {
 			return false;
 		value = value.toLowerCase();
 		pattern = pattern.toLowerCase();
-		String[] patterns = pattern.split("|");
+		String[] patterns = pattern.split("\\|");
 		for (String p : patterns) {
 			boolean startingWildcard = false;
 			boolean endingWildcard = false;
@@ -166,6 +166,28 @@ public class DeviceInfo {
 				return false;
 		return true;
 	}
+
+//	// TEST
+//	private static boolean testMatchDevice(String manufacturer, String model, String device, String pattern) {
+//		String[] patterns = pattern.split(";");
+//		if (patterns.length >= 1)
+//			if (!match(manufacturer, patterns[0]))
+//				return false;
+//		if (patterns.length >= 2)
+//			if (!match(model, patterns[1]))
+//				return false;
+//		if (patterns.length >= 3)
+//			if (!match(device, patterns[2]))
+//				return false;
+//		Log.v("cr3", "matched : " + pattern + " == " + manufacturer + "," + model + "," + device);
+//		return true;
+//	}
+//	
+//	static {
+//		testMatchDevice("Archos", "A70S", "A70S", "Archos;A70S");
+//		testMatchDevice("MegaMan", "A70S", "A70S", "mega*;A70*");
+//		testMatchDevice("MegaMan", "A70", "A70S", "*man;A70*");
+//	}
 
 	private static int getMinBrightness(int defValue) {
 		try {
