@@ -2764,12 +2764,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return HelpFileGenerator.getHelpFileName(bookDir, mActivity.getCurrentLanguage()).getAbsolutePath();
 			}
 		}
+		log.e("cannot get manual file name!");
 		return "/sdcard/books/manual_ru.fb2";
 	}
 	
 	private File generateManual() {
 		HelpFileGenerator generator = new HelpFileGenerator(mActivity, mEngine, getSettings(), mActivity.getCurrentLanguage());
-		File bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
+		FileInfo downloadDir = mActivity.getScanner().getDownloadDirectory();
+		File bookDir;
+		if (downloadDir != null)
+			bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
+		else {
+			log.e("cannot download directory file name!");
+			bookDir = new File("/tmp/");
+		}
 		int settingsHash = generator.getSettingsHash();
 		String helpFileContentId = mActivity.getCurrentLanguage() + settingsHash + "v" + mActivity.getVersion();
 		String lastHelpFileContentId = mActivity.getLastGeneratedHelpFileSignature();

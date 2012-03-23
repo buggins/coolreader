@@ -617,21 +617,9 @@ public class Scanner {
 		}
 	}
 	
-	public static final String[] SD_MOUNT_POINTS = {
-		"/system/media/sdcard",
-		"/media",
-		"/nand",
-		"/PocketBook701",
-		"/mnt/extsd",
-		"/mnt/ext.sd",
-		"/mnt/external1",
-		"/ext.sd",
-		"/sdcard2",
-		"/mnt/sdcard2",
-		};
-	
 	public void initRoots(Map<String, String> fsRoots)
 	{
+		Log.d("cr3", "Scanner.initRoots(" + fsRoots + ")");
 		mRoot.clear();
 		// create recent books dir
 		addRoot( FileInfo.RECENT_DIR_TAG, R.string.dir_recent_books, false);
@@ -699,6 +687,8 @@ public class Scanner {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {
 			FileInfo item = mRoot.getDir(i);
 			if ( !item.isSpecialDir() && !item.isArchive ) {
+				if (!item.isListed)
+					listDirectory(item);
 				FileInfo books = item.findItemByPathName(item.pathname + "/Books");
 				if (books == null)
 					books = item.findItemByPathName(item.pathname + "/books");
@@ -709,7 +699,7 @@ public class Scanner {
 					if (!dir.canWrite())
 						Log.w("cr3", "Directory " + dir + " is readonly");
 					File f = new File( dir, "Books" );
-					if ( f.mkdirs() ) {
+					if ( f.mkdirs() || f.isDirectory() ) {
 						books = new FileInfo(f);
 						books.parent = item;
 						item.addDir(books);
@@ -719,6 +709,11 @@ public class Scanner {
 					}
 				}
 			}
+		}
+		try {
+			throw new Exception("download directory not found and cannot be created");
+		} catch (Exception e) {
+			Log.e("cr3", "download directory is not found!!!", e);
 		}
 		return null;
 	}

@@ -951,7 +951,7 @@ public class Engine {
 				Environment.getExternalStorageDirectory(), CACHE_BASE_DIR_NAME);
 		// non-standard SD mount points
 		if (cacheDirName == null) {
-			for ( String dirname : Scanner.SD_MOUNT_POINTS ) {
+			for (String dirname : mountedRootsMap.keySet()) {
 				cacheDirName = createCacheDir(new File(dirname),
 						CACHE_BASE_DIR_NAME);
 				if ( cacheDirName!=null )
@@ -986,6 +986,10 @@ public class Engine {
 	private boolean addMountRoot(Map<String, String> list, String path, String name) {
 		if (list.containsKey(path))
 			return false;
+		for (String key : list.keySet()) {
+			if (path.startsWith(key + "/"))
+				return false; // duplicate subpath
+		}
 		try {
 			File dir = new File(path);
 			if (dir.exists() && dir.isDirectory()) {
@@ -1041,10 +1045,45 @@ public class Engine {
 	
 	private void initMountRoots() {
 		Map<String, String> map = new LinkedHashMap<String, String>();
+
+		// standard external directory
 		String sdpath = Environment.getExternalStorageDirectory().getAbsolutePath();
+		// dirty fix
 		if ( "/nand".equals(sdpath) && new File("/sdcard").isDirectory() )
 			sdpath = "/sdcard";
+		// main storage
 		addMountRoot(map, sdpath, R.string.dir_sd_card);
+
+		// retrieve list of mount points from system
+		{
+			String s = loadFileUtf8(new File("/etc/vold.conf"));
+			if (s == null)
+				s = loadFileUtf8(new File("/etc/vold.fstab"));
+			//Log.v("cr3", "mount points: " + s);
+			if ( s!= null) {
+				String[] rows = s.split("\n");
+				for (String row : rows) {
+					if (row != null && row.startsWith("dev_mount")) {
+						String[] cols = row.split(" ");
+						if (cols.length > 3) {
+							String name = cols[1];
+							String point = cols[2];
+							if (name!=null && point!=null && name.length()>0 && point.length()>0) {
+								Log.v("cr3", "mount point configured: " + name + " = " + point);
+								if (!point.equals(sdpath)) {
+									// external SD
+									addMountRoot(map, point, "External SD " + point);
+								}
+							}
+						}
+					}
+				}
+			}
+//			String mounted = loadFileUtf8(new File("/proc/mounts"));
+//			Log.v("cr3", "/proc/mounts = " + mounted);
+		}
+
+		// TODO: probably, hardcoded list is not necessary after /etc/vold parsing 
 		// internal SD card on Nook
 		addMountRoot(map, "/system/media/sdcard", R.string.dir_internal_sd_card);
 		// internal memory
@@ -1067,8 +1106,8 @@ public class Engine {
 		addMountRoot(map, "/sdcard2", R.string.dir_sd_card_2);
 		
 		// auto detection
-		autoAddRoots(map, "/", SYSTEM_ROOT_PATHS);
-		autoAddRoots(map, "/mnt", new String[] {});
+		//autoAddRoots(map, "/", SYSTEM_ROOT_PATHS);
+		//autoAddRoots(map, "/mnt", new String[] {});
 		
 		mountedRootsMap = map;
 		Collection<File> list = new ArrayList<File>();
@@ -1076,6 +1115,7 @@ public class Engine {
 			list.add(new File(f));
 		}
 		mountedRootsList = list.toArray(new File[] {});
+		Log.i("cr3", "Root list: " + mountedRootsList);
 	}
 	
 	private void init() throws IOException {
