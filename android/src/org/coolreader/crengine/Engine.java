@@ -777,11 +777,21 @@ public class Engine {
 		}
 	}
 
+	private int lastSystemUiVisibility = -1;
 	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			if (DeviceInfo.getSDKLevel() < DeviceInfo.ICE_CREAM_SANDWICH)
+			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
+			if (value == lastSystemUiVisibility)// && a4)
+				return false;
+			lastSystemUiVisibility = value;
+			if (!a4)
 				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
-			View view = mActivity.getReaderView();
+			View view;
+			//if (a4)
+				view = mActivity.getWindow().getDecorView(); // getReaderView();
+			//else
+			//	view = mActivity.getContentView(); // getReaderView();
+			
 			if (view == null)
 				return false;
 			Method m;

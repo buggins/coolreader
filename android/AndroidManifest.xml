@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.56-12" android:versionCode="572">
+      android:versionName="3.0.56-13" android:versionCode="573">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -11,9 +11,10 @@
         android:smallScreens="true"
         android:anyDensity="true"
     />
+    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="10" />
     <application android:label="@string/app_name" 
         android:icon="@drawable/cr3_logo"
-        android:debuggable="false"
+        android:debuggable="true"
         android:allowClearUserData="true"
         >
         <activity android:name=".CoolReader" 
@@ -101,5 +102,4 @@
     <uses-permission android:name="archos.permission.FULLSCREEN.FULL"/>
 	<!-- Required permission to use in-app billing. -->
     <uses-permission android:name="com.android.vending.BILLING" />
-    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="9" />
 </manifest> 

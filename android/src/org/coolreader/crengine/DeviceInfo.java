@@ -41,6 +41,7 @@ public class DeviceInfo {
 		"Samsung;GT-S5830",  "6",
 		"HUAWEI;U8800",      "6",
 		"Motorola;Milestone XT720", "6",
+		"Foxconn;PocketBook A10", "3",
 		// TODO: more devices here
 	};
 

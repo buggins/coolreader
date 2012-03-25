@@ -538,6 +538,10 @@ public class CoolReader extends Activity
 		}
 	}
 	
+	public View getContentView() {
+		return mFrame;
+	}
+	
 	private boolean isFirstStart = true;
 	
 	/** Called when the activity is first created. */
