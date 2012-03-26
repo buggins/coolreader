@@ -2,7 +2,7 @@ package org.coolreader.sync;
 
 import org.coolreader.crengine.Bookmark;
 
-public class ChangeInfo {
+public class ChangeInfo implements Comparable<ChangeInfo> {
 	public Bookmark bookmark;
 	public String fileName;
 	public boolean deleted;
@@ -181,5 +181,13 @@ public class ChangeInfo {
 			return null;
 		}
 		return ci;
+	}
+	@Override
+	public int compareTo(ChangeInfo another) {
+		if (timestamp < another.timestamp)
+			return -1;
+		if (timestamp > another.timestamp)
+			return 1;
+		return 0;
 	}
 }
