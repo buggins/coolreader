@@ -116,6 +116,16 @@ public class Bookmark {
 	public void setModified(boolean modified) {
 		this.modified = modified;
 	}
+	
+	public boolean isValid() {
+		if (startPos == null || startPos.length() == 0)
+			return false;
+		if (type < TYPE_LAST_POSITION || type > TYPE_CORRECTION)
+			return false;
+		if ((endPos == null || endPos.length() == 0) && (type == TYPE_COMMENT || type == TYPE_CORRECTION))
+			return false;
+		return true;
+	}
 
 	public static final int TYPE_LAST_POSITION = 0;
 	public static final int TYPE_POSITION = 1;
