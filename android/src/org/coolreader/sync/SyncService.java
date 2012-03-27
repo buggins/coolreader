@@ -8,12 +8,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
+import org.coolreader.crengine.Bookmark;
 import org.coolreader.crengine.DeviceInfo;
 
 import android.app.Service;
@@ -26,6 +29,7 @@ import android.util.Log;
 public class SyncService extends Service {
 
 	private final static String TAG = "cr3sync";
+    public final static String SYNC_LOG_DIR_NAME = ".cr3sync"; 
 	
 		
     @Override
@@ -92,7 +96,7 @@ public class SyncService extends Service {
     }
 
     private boolean setSyncDirectory(File dir) {
-    	File configDir = new File(dir, ".cr3sync");
+    	File configDir = new File(dir, SYNC_LOG_DIR_NAME);
     	if (!configDir.isDirectory())
     		if (!configDir.mkdirs())
     			return false;
@@ -107,16 +111,32 @@ public class SyncService extends Service {
     	return thisDeviceName + fmt.format(new Date());
     }
     
-    private boolean saveBookmark(ChangeInfo ci) {
+    synchronized public boolean saveBookmarks(Collection<ChangeInfo> src) {
+    	if (thisDeviceName == null)
+    		return false;
+    	// filter file names, cut directory name
+    	Collection<ChangeInfo> list = new ArrayList<ChangeInfo>(src.size());
+    	String prefix = syncDir + "/";
+    	for (ChangeInfo ci : src) {
+    		if (ci.fileName.startsWith(prefix)) {
+    			ci.fileName = ci.fileName.substring(prefix.length());
+    			list.add(ci);
+    		}
+    	}
+    	if (list.size() == 0)
+    		return true;
+    	// save
     	File f = new File(syncLogDir, getCurrentLogFileName());
     	try {
 			FileOutputStream os = new FileOutputStream(f, true);
-			String data = ci.toString();
-			try {
-				byte[] bytes = data.getBytes("UTF8");
-				os.write(bytes);
-			} catch (UnsupportedEncodingException e) {
-				return false;
+			for (ChangeInfo ci : list) {
+				String data = ci.toString();
+				try {
+					byte[] bytes = data.getBytes("UTF8");
+					os.write(bytes);
+				} catch (UnsupportedEncodingException e) {
+					return false;
+				}
 			}
 			os.close();
 		} catch (FileNotFoundException e) {
@@ -142,6 +162,10 @@ public class SyncService extends Service {
 				break;
 		}
 		Collections.sort(changes);
+		// add directory prefix
+		for (ChangeInfo ci : changes) {
+			ci.fileName = syncDir + "/" + ci.fileName;
+		}
 	}
 	
 	public final static int MAX_RECORDS_NUMBER = 10000;
@@ -242,11 +266,18 @@ public class SyncService extends Service {
     	}
 
     	private int parseChanges(byte[] buf, int len, List<ChangeInfo> changes) {
-    		int bytesParsed = 0;
-    		// TODO: implement parsing
-			if (changes.size() >= MAX_RECORDS_NUMBER)
-				return bytesParsed;
-    		return bytesParsed;
+    		int pos = 0;
+    		for (;;) {
+				if (changes.size() >= MAX_RECORDS_NUMBER)
+					return pos;
+	    		int[] found = ChangeInfo.findNextRecordBounds(buf, pos, len);
+	    		if (found == null)
+	    			return pos;
+	    		ChangeInfo ci = ChangeInfo.fromBytes(buf, found[0], found[1]);
+	    		if (ci != null)
+	    			changes.add(ci);
+	    		pos = found[1];
+    		}
     	}
 
     	private boolean isFileChanged() {
@@ -275,6 +306,76 @@ public class SyncService extends Service {
 
     }
 
+    
+    public static void test() {
+    	
+    	// remove directory
+    	File dir = new File("/mnt/sdcard/Books/" + SYNC_LOG_DIR_NAME);
+    	File[] files = dir.listFiles();
+    	if (files != null)
+    		for (File f : files)
+    			f.delete();
+    	dir.delete();
+    	
+    	SyncService svc = new SyncService();
+    	svc.setSyncDirectory(new File("/mnt/sdcard/Books"));
+    	
+    	
+    	Log.i(TAG, "generating test data");
+    	svc.thisDeviceName = "test1dev";
+    	Collection<ChangeInfo> data1 = genChanges(200);
+    	svc.saveBookmarks(data1);
+    	svc.thisDeviceName = "test2dev";
+    	Collection<ChangeInfo> data2 = genChanges(100);
+    	svc.saveBookmarks(data2);
+    	svc.thisDeviceName = "test3dev";
+    	Collection<ChangeInfo> data3 = genChanges(300);
+    	svc.saveBookmarks(data3);
+    	svc.thisDeviceName = "mydevice";
+    	Log.i(TAG, "test: 600 records written");
+
+    	List<ChangeInfo> changes = new ArrayList<ChangeInfo>();
+    	svc.sync(changes);
+    	Log.i(TAG, "test: " + changes.size() + " records read");
+    }
+    
+    private static Random rnd = new Random();
+    private static Collection<ChangeInfo> genChanges(int count) {
+    	ArrayList<ChangeInfo> list = new ArrayList<ChangeInfo>();
+    	for (int i=0; i<count; i++) {
+    		long ts = System.currentTimeMillis() - rnd.nextInt(60000);
+    		Bookmark bmk = new Bookmark();
+			bmk.setTitleText("bla bla title " + rnd.nextInt(1000000));
+			bmk.setPosText("pos text " + rnd.nextInt(1000000));
+			bmk.setCommentText("comment text " + rnd.nextInt(1000000));
+			bmk.setTimeStamp(ts);
+    		switch (rnd.nextInt(4)) {
+    		case 0:
+    			bmk.setType(0);
+    			bmk.setStartPos("/test/start/pos/last/position/" + rnd.nextInt(5));
+    			break;
+    		case 1:
+    			bmk.setType(1);
+    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
+    			break;
+    		case 2:
+    			bmk.setType(1);
+    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
+    			bmk.setStartPos("/test/end/pos" + rnd.nextInt(5));
+    			break;
+    		case 3:
+    			bmk.setType(1);
+    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
+    			bmk.setStartPos("/test/end/pos" + rnd.nextInt(5));
+    			break;
+    		}
+    		String fn = "/mnt/sdcard/Books/test1/book" + rnd.nextInt(30) + ".txt";
+    		ChangeInfo ci = new ChangeInfo(bmk, fn, false);
+    		list.add(ci);
+    	}
+    	return list;
+    }
+    
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();

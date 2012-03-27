@@ -1,5 +1,7 @@
 package org.coolreader.sync;
 
+import java.io.UnsupportedEncodingException;
+
 import org.coolreader.crengine.Bookmark;
 
 public class ChangeInfo implements Comparable<ChangeInfo> {
@@ -25,6 +27,8 @@ public class ChangeInfo implements Comparable<ChangeInfo> {
 	
 	public final static String START_TAG = "# start record";
 	public final static String END_TAG = "# end record";
+	public final static byte[] START_TAG_BYTES = (START_TAG + "\n").getBytes();
+	public final static byte[] END_TAG_BYTES = (END_TAG + "\n").getBytes();
 	public final static String ACTION_TAG = "ACTION"; 
 	public final static String ACTION_DELETE_TAG = "DELETE"; 
 	public final static String ACTION_UPDATE_TAG = "UPDATE"; 
@@ -182,6 +186,41 @@ public class ChangeInfo implements Comparable<ChangeInfo> {
 		}
 		return ci;
 	}
+
+	public static ChangeInfo fromBytes(byte[] buf, int start, int end) {
+		try {
+			String s = new String(buf, start, end - start, "UTF8");
+			return fromString(s);
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
+	}
+
+	public static int[] findNextRecordBounds(byte[] buf, int start, int end) {
+		int startTagPos = findBytes(buf, start, end, START_TAG_BYTES);
+		if (startTagPos < 0)
+			return null;
+		int endTagPos = findBytes(buf, startTagPos, end, END_TAG_BYTES);
+		if (endTagPos < 0)
+			return null;
+		int[] res = {startTagPos, endTagPos + END_TAG_BYTES.length};
+		return res;
+	}
+
+	private static int findBytes(byte[] buf, int start, int end, byte[] pattern) {
+		int len = pattern.length;
+		for (int i = start; i < end - len; i++) {
+			int j = 0;
+			for (; j < len; j++) {
+				if (buf[i+j] != pattern[j])
+					break;
+			}
+			if (j == len)
+				return i;
+		}
+		return -1;
+	}
+	
 	@Override
 	public int compareTo(ChangeInfo another) {
 		if (timestamp < another.timestamp)
