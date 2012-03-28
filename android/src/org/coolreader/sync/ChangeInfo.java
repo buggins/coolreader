@@ -209,7 +209,7 @@ public class ChangeInfo implements Comparable<ChangeInfo> {
 
 	private static int findBytes(byte[] buf, int start, int end, byte[] pattern) {
 		int len = pattern.length;
-		for (int i = start; i < end - len; i++) {
+		for (int i = start; i <= end - len; i++) {
 			int j = 0;
 			for (; j < len; j++) {
 				if (buf[i+j] != pattern[j])

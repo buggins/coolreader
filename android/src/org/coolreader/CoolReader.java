@@ -42,6 +42,7 @@ import org.coolreader.donations.Consts.PurchaseState;
 import org.coolreader.donations.Consts.ResponseCode;
 import org.coolreader.donations.PurchaseObserver;
 import org.coolreader.donations.ResponseHandler;
+import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.app.Activity;
@@ -550,6 +551,7 @@ public class CoolReader extends Activity
     {
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		mSyncService = new SyncServiceAccessor(this);
 
     	isFirstStart = true;
 		
@@ -728,6 +730,13 @@ public class CoolReader extends Activity
         }
 		
         log.i("CoolReader.onCreate() exiting");
+        
+        mSyncService.bind();
+    }
+    
+    private SyncServiceAccessor mSyncService;
+    public SyncServiceAccessor getSyncService() {
+    	return mSyncService;
     }
     
     public ClipboardManager getClipboardmanager() {
@@ -942,6 +951,7 @@ public class CoolReader extends Activity
 		
 		log.i("CoolReader.onDestroy() exiting");
 		super.onDestroy();
+		mSyncService.unbind();
 	}
 
 	private String extractFileName( Uri uri )

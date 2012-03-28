@@ -29,8 +29,7 @@ import android.util.Log;
 public class SyncService extends Service {
 
 	private final static String TAG = "cr3sync";
-    public final static String SYNC_LOG_DIR_NAME = ".cr3sync"; 
-	
+    public final static String SYNC_LOG_DIR_NAME = "cr3.sync"; // TODO: move dot at beginning 
 		
     @Override
     public void onCreate() {
@@ -42,6 +41,7 @@ public class SyncService extends Service {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
+        readSettings();
         return START_STICKY;
     }
 
@@ -56,7 +56,7 @@ public class SyncService extends Service {
      * IPC.
      */
     public class LocalBinder extends Binder {
-        SyncService getService() {
+        public SyncService getService() {
             return SyncService.this;
         }
     }
@@ -95,7 +95,7 @@ public class SyncService extends Service {
     	return res.toString();
     }
 
-    private boolean setSyncDirectory(File dir) {
+    public synchronized boolean setSyncDirectory(File dir) {
     	File configDir = new File(dir, SYNC_LOG_DIR_NAME);
     	if (!configDir.isDirectory())
     		if (!configDir.mkdirs())
@@ -106,9 +106,10 @@ public class SyncService extends Service {
     }
     
     private static final String PART_SUFFIX_FORMAT = "yyyyMM";
+    private static final String PART_SUFFIX_DELIMITER = "-";
     private String getCurrentLogFileName() {
     	SimpleDateFormat fmt = new SimpleDateFormat(PART_SUFFIX_FORMAT);
-    	return thisDeviceName + fmt.format(new Date());
+    	return thisDeviceName + PART_SUFFIX_DELIMITER + fmt.format(new Date());
     }
     
     synchronized public boolean saveBookmarks(Collection<ChangeInfo> src) {
@@ -149,16 +150,18 @@ public class SyncService extends Service {
 		return true;
     }
 
-	public void sync(List<ChangeInfo> changes) {
+	public void sync(List<ChangeInfo> changes, int maxRecords) {
+		Log.v(TAG, "sync readers");
 		syncReaders();
 		ArrayList<LogReader> readers = new ArrayList<LogReader>();
 		synchronized(readerMap) {
 			readers.addAll(readerMap.values());
 		}
 		Collections.sort(readers);
+		Log.v(TAG, "sync data for " + readers.size() + " readers");
 		for (LogReader reader : readers) {
-			reader.sync(changes);
-			if (changes.size() >= MAX_RECORDS_NUMBER)
+			reader.sync(changes, maxRecords);
+			if (changes.size() >= maxRecords)
 				break;
 		}
 		Collections.sort(changes);
@@ -182,18 +185,19 @@ public class SyncService extends Service {
     		String name = f.getName();
     		if (name == null || name.startsWith(thisDeviceName))
     			continue;
-    		int p = name.lastIndexOf('-');
-    		if (p != name.length() - PART_SUFFIX_FORMAT.length() - 1)
+    		int p = name.lastIndexOf(PART_SUFFIX_DELIMITER);
+    		if (p != name.length() - PART_SUFFIX_FORMAT.length() - PART_SUFFIX_DELIMITER.length())
     			continue;
     		String deviceId = name.substring(0, p); // unique device id 
     		String partSuffix = name.substring(p + 1); // year+month suffix
-			Date minDate = new Date(System.currentTimeMillis() - 1000*60*60*24*30*3); // -3 months
+			Date minDate = new Date(System.currentTimeMillis() - 1000L*60*60*24*30*3); // -3 months
 			String minPart = fmt.format(minDate);
 			if (minPart.compareTo(partSuffix) > 0) {
 				Log.i(TAG, "will remove obsolete log file " + name);
 				f.delete();
 				continue;
 			}
+			Log.v(TAG, "checking log file " + name + " deviceId=" + deviceId + ", part=" + partSuffix);
 			syncReader(deviceId, partSuffix, f);
     	}
     	
@@ -223,14 +227,19 @@ public class SyncService extends Service {
     		String suffix = "." + logfile.getName();
     		lastReadPosition = pref.getLong(PREF_LAST_POSITION_PREFIX + suffix, 0);
     		lastSeenFileSize = pref.getLong(PREF_LAST_SIZE_PREFIX + suffix, 0);
+    		if (lastReadPosition > 0 || lastSeenFileSize > 0)
+    			Log.i(TAG, deviceId + ": resuming reading position " + lastReadPosition);
+    		else
+    			Log.i(TAG, deviceId + ": new log file found");
     	}
 
-    	public void sync(List<ChangeInfo> changes) {
+    	public void sync(List<ChangeInfo> changes, int maxRecords) {
     		if (!isFileChanged())
     			return;
     		Log.i(TAG, "file is changed: " + logfile);
     		long newSeenFileSize = logfile.length();
     		long newReadPosition = lastReadPosition;
+    		int lastRecordCount = changes.size();
     		try {
 				FileInputStream is = new FileInputStream(logfile);
 				long pos = 0;
@@ -244,7 +253,7 @@ public class SyncService extends Service {
 						avail = 0x40000;
 					byte[] buf = new byte[avail];
 					int bytesRead = is.read(buf);
-					int bytesParsed = parseChanges(buf, bytesRead, changes);
+					int bytesParsed = parseChanges(buf, bytesRead, changes, maxRecords);
 					if (bytesParsed > 0) {
 						newReadPosition += bytesParsed;
 					}
@@ -256,6 +265,8 @@ public class SyncService extends Service {
 	    		Log.i(TAG, "error while reading file: " + logfile);
 			}
 			if (newReadPosition != lastReadPosition || newSeenFileSize != lastSeenFileSize) {
+				int recordsRead = changes.size() - lastRecordCount;
+				Log.i(TAG, deviceId + ": read " + recordsRead + " (" + (newReadPosition-lastReadPosition) + " bytes)");
 				lastReadPosition = newReadPosition;
 				lastSeenFileSize = newSeenFileSize;
 	    		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
@@ -265,10 +276,10 @@ public class SyncService extends Service {
 			}
     	}
 
-    	private int parseChanges(byte[] buf, int len, List<ChangeInfo> changes) {
+    	private int parseChanges(byte[] buf, int len, List<ChangeInfo> changes, int maxRecords) {
     		int pos = 0;
     		for (;;) {
-				if (changes.size() >= MAX_RECORDS_NUMBER)
+				if (changes.size() >= maxRecords)
 					return pos;
 	    		int[] found = ChangeInfo.findNextRecordBounds(buf, pos, len);
 	    		if (found == null)
@@ -307,74 +318,74 @@ public class SyncService extends Service {
     }
 
     
-    public static void test() {
-    	
-    	// remove directory
-    	File dir = new File("/mnt/sdcard/Books/" + SYNC_LOG_DIR_NAME);
-    	File[] files = dir.listFiles();
-    	if (files != null)
-    		for (File f : files)
-    			f.delete();
-    	dir.delete();
-    	
-    	SyncService svc = new SyncService();
-    	svc.setSyncDirectory(new File("/mnt/sdcard/Books"));
-    	
-    	
-    	Log.i(TAG, "generating test data");
-    	svc.thisDeviceName = "test1dev";
-    	Collection<ChangeInfo> data1 = genChanges(200);
-    	svc.saveBookmarks(data1);
-    	svc.thisDeviceName = "test2dev";
-    	Collection<ChangeInfo> data2 = genChanges(100);
-    	svc.saveBookmarks(data2);
-    	svc.thisDeviceName = "test3dev";
-    	Collection<ChangeInfo> data3 = genChanges(300);
-    	svc.saveBookmarks(data3);
-    	svc.thisDeviceName = "mydevice";
-    	Log.i(TAG, "test: 600 records written");
-
-    	List<ChangeInfo> changes = new ArrayList<ChangeInfo>();
-    	svc.sync(changes);
-    	Log.i(TAG, "test: " + changes.size() + " records read");
-    }
-    
-    private static Random rnd = new Random();
-    private static Collection<ChangeInfo> genChanges(int count) {
-    	ArrayList<ChangeInfo> list = new ArrayList<ChangeInfo>();
-    	for (int i=0; i<count; i++) {
-    		long ts = System.currentTimeMillis() - rnd.nextInt(60000);
-    		Bookmark bmk = new Bookmark();
-			bmk.setTitleText("bla bla title " + rnd.nextInt(1000000));
-			bmk.setPosText("pos text " + rnd.nextInt(1000000));
-			bmk.setCommentText("comment text " + rnd.nextInt(1000000));
-			bmk.setTimeStamp(ts);
-    		switch (rnd.nextInt(4)) {
-    		case 0:
-    			bmk.setType(0);
-    			bmk.setStartPos("/test/start/pos/last/position/" + rnd.nextInt(5));
-    			break;
-    		case 1:
-    			bmk.setType(1);
-    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
-    			break;
-    		case 2:
-    			bmk.setType(1);
-    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
-    			bmk.setStartPos("/test/end/pos" + rnd.nextInt(5));
-    			break;
-    		case 3:
-    			bmk.setType(1);
-    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
-    			bmk.setStartPos("/test/end/pos" + rnd.nextInt(5));
-    			break;
-    		}
-    		String fn = "/mnt/sdcard/Books/test1/book" + rnd.nextInt(30) + ".txt";
-    		ChangeInfo ci = new ChangeInfo(bmk, fn, false);
-    		list.add(ci);
-    	}
-    	return list;
-    }
+//    public void test() {
+//    	
+//    	// remove directory
+//    	File dir = new File("/mnt/sdcard/Books/" + SYNC_LOG_DIR_NAME);
+//    	File[] files = dir.listFiles();
+//    	if (files != null)
+//    		for (File f : files)
+//    			f.delete();
+//    	dir.delete();
+//    	
+//    	SyncService svc = this; //new SyncService();
+//    	svc.setSyncDirectory(new File("/mnt/sdcard/Books"));
+//    	
+//    	
+//    	Log.i(TAG, "generating test data");
+//    	svc.thisDeviceName = "test1dev";
+//    	Collection<ChangeInfo> data1 = genChanges(200);
+//    	svc.saveBookmarks(data1);
+//    	svc.thisDeviceName = "test2dev";
+//    	Collection<ChangeInfo> data2 = genChanges(100);
+//    	svc.saveBookmarks(data2);
+//    	svc.thisDeviceName = "test3dev";
+//    	Collection<ChangeInfo> data3 = genChanges(300);
+//    	svc.saveBookmarks(data3);
+//    	svc.thisDeviceName = "mydevice";
+//    	Log.i(TAG, "test: 600 records written");
+//
+//    	List<ChangeInfo> changes = new ArrayList<ChangeInfo>();
+//    	svc.sync(changes, 10000);
+//    	Log.i(TAG, "test: " + changes.size() + " records read");
+//    }
+//    
+//    private static Random rnd = new Random();
+//    private static Collection<ChangeInfo> genChanges(int count) {
+//    	ArrayList<ChangeInfo> list = new ArrayList<ChangeInfo>();
+//    	for (int i=0; i<count; i++) {
+//    		long ts = System.currentTimeMillis() - rnd.nextInt(60000);
+//    		Bookmark bmk = new Bookmark();
+//			bmk.setTitleText("bla bla title " + rnd.nextInt(1000000));
+//			bmk.setPosText("pos text " + rnd.nextInt(1000000));
+//			bmk.setCommentText("comment text " + rnd.nextInt(1000000));
+//			bmk.setTimeStamp(ts);
+//    		switch (rnd.nextInt(4)) {
+//    		case 0:
+//    			bmk.setType(0);
+//    			bmk.setStartPos("/test/start/pos/last/position/" + rnd.nextInt(5));
+//    			break;
+//    		case 1:
+//    			bmk.setType(1);
+//    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
+//    			break;
+//    		case 2:
+//    			bmk.setType(1);
+//    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
+//    			bmk.setStartPos("/test/end/pos" + rnd.nextInt(5));
+//    			break;
+//    		case 3:
+//    			bmk.setType(1);
+//    			bmk.setStartPos("/test/start/pos" + rnd.nextInt(5));
+//    			bmk.setStartPos("/test/end/pos" + rnd.nextInt(5));
+//    			break;
+//    		}
+//    		String fn = "/mnt/sdcard/Books/test1/book" + rnd.nextInt(30) + ".txt";
+//    		ChangeInfo ci = new ChangeInfo(bmk, fn, false);
+//    		list.add(ci);
+//    	}
+//    	return list;
+//    }
     
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
