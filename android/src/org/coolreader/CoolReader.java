@@ -732,6 +732,7 @@ public class CoolReader extends Activity
         log.i("CoolReader.onCreate() exiting");
         
         mSyncService.bind();
+        mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
     }
     
     private SyncServiceAccessor mSyncService;

@@ -284,6 +284,7 @@ public class FileBrowser extends LinearLayout {
 			public void run() {
 				mActivity.getReaderView().closeIfOpened(selectedItem);
 				if ( selectedItem.deleteFile() ) {
+					mActivity.getSyncService().removeFile(selectedItem.getPathName());
 					mHistory.removeBookInfo(selectedItem, true, true);
 				}
 				showDirectory(currDirectory, null);
@@ -297,6 +298,7 @@ public class FileBrowser extends LinearLayout {
 			@Override
 			public void run() {
 				mActivity.getHistory().removeBookInfo(selectedItem, true, false);
+				mActivity.getSyncService().removeFileLastPosition(selectedItem.getPathName());
 				showRecentBooks();
 			}
 		});

@@ -1693,6 +1693,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public Bookmark removeBookmark(final Bookmark bookmark) {
 		Bookmark removed = mBookInfo.removeBookmark(bookmark);
 		if (removed != null) {
+            mActivity.getSyncService().removeBookmark(mBookInfo.getFileInfo().getPathName(), removed);
 			if ( removed.getId()!=null ) {
 				mActivity.getDB().deleteBookmark(removed);
 				mActivity.getDB().flush();
@@ -1718,6 +1719,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void addBookmark(final Bookmark bookmark) {
 		mBookInfo.addBookmark(bookmark);
+		mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bookmark);
         highlightBookmarks();
         scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
     }
@@ -1741,6 +1743,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						mBookInfo.addBookmark(bm);
 					else
 						mBookInfo.setShortcutBookmark(shortcut, bm);
+					mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm);
 					mActivity.getDB().save(mBookInfo);
 					String s;
 					if ( shortcut==0 )
@@ -5005,7 +5008,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
     private int lastSavePositionTaskId = 0;
     
-    private final static int DEF_SAVE_POSITION_INTERVAL = 40000;
+    private final static int DEF_SAVE_POSITION_INTERVAL = 120000;
     private void scheduleSaveCurrentPositionBookmark(int delayMillis) {
     	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
     	// update position, don't save to DB
@@ -5020,6 +5023,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				            bmk.setTimeStamp(System.currentTimeMillis());
 				            bmk.setType(Bookmark.TYPE_LAST_POSITION);
 			                mBookInfo.setLastPosition(bmk);
+			                mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk);
 				    	}
 		                mActivity.getDB().save(mBookInfo);
 		                mActivity.getDB().flush();

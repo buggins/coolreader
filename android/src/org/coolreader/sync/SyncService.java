@@ -29,7 +29,7 @@ import android.util.Log;
 public class SyncService extends Service {
 
 	private final static String TAG = "cr3sync";
-    public final static String SYNC_LOG_DIR_NAME = "cr3.sync"; // TODO: move dot at beginning 
+    public final static String SYNC_LOG_DIR_NAME = "cr3.sync2"; // TODO: move dot at beginning 
 		
     @Override
     public void onCreate() {

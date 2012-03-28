@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.coolreader.crengine.BackgroundThread;
+import org.coolreader.crengine.Bookmark;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -85,6 +86,29 @@ public class SyncServiceAccessor {
     	});
     }
 
+    public void saveBookmark(String fileName, Bookmark bookmark) {
+    	ChangeInfo change = new ChangeInfo(bookmark, fileName, false);
+    	save(change);
+    }
+    
+    public void removeBookmark(String fileName, Bookmark bookmark) {
+    	ChangeInfo change = new ChangeInfo(bookmark, fileName, true);
+    	save(change);
+    }
+    
+    public void removeFile(String fileName) {
+    	ChangeInfo change = new ChangeInfo(null, fileName, true);
+    	save(change);
+    }
+    
+    public void removeFileLastPosition(String fileName) {
+    	Bookmark bmk = new Bookmark();
+    	bmk.setType(Bookmark.TYPE_LAST_POSITION);
+    	bmk.setStartPos("no_position");
+    	ChangeInfo change = new ChangeInfo(bmk, fileName, true);
+    	save(change);
+    }
+    
     public void save(ChangeInfo change) {
     	save(Collections.singleton(change), null);
     }

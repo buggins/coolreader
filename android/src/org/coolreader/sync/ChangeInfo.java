@@ -22,7 +22,7 @@ public class ChangeInfo implements Comparable<ChangeInfo> {
 		this.bookmark = bookmark;
 		this.fileName = fileName;
 		this.deleted = deleted;
-		timestamp = System.currentTimeMillis();
+		timestamp = bookmark != null && bookmark.getTimeStamp() > 0 ? bookmark.getTimeStamp() : System.currentTimeMillis();
 	}
 	
 	public final static String START_TAG = "# start record";
@@ -78,6 +78,8 @@ public class ChangeInfo implements Comparable<ChangeInfo> {
 	}
 	
 	public static String encodeText(String text) {
+		if (text == null || text.length() == 0)
+			return "";
 		StringBuilder buf = new StringBuilder();
 		for (char ch : text.toCharArray()) {
 			switch (ch) {
@@ -105,6 +107,8 @@ public class ChangeInfo implements Comparable<ChangeInfo> {
 	}
 	
 	public static String decodeText(String text) {
+		if (text == null || text.length() == 0)
+			return "";
 		StringBuilder buf = new StringBuilder();
 		boolean lastControl = false;
 		for (char ch : text.toCharArray()) {
