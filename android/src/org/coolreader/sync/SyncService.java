@@ -14,9 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
-import org.coolreader.crengine.Bookmark;
 import org.coolreader.crengine.DeviceInfo;
 
 import android.app.Service;
@@ -29,11 +27,12 @@ import android.util.Log;
 public class SyncService extends Service {
 
 	private final static String TAG = "cr3sync";
-    public final static String SYNC_LOG_DIR_NAME = "cr3.sync2"; // TODO: move dot at beginning 
+    public final static String SYNC_LOG_DIR_NAME = ".cr3sync"; 
 		
     @Override
     public void onCreate() {
     	Log.i(TAG, "onCreate()");
+        readSettings();
     }
 
     @Override
@@ -41,7 +40,6 @@ public class SyncService extends Service {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
-        readSettings();
         return START_STICKY;
     }
 

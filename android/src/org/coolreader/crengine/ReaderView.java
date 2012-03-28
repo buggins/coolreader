@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -16,6 +17,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
+import org.coolreader.sync.ChangeInfo;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
@@ -1719,7 +1721,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void addBookmark(final Bookmark bookmark) {
 		mBookInfo.addBookmark(bookmark);
-		mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bookmark);
+		mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bookmark, false);
         highlightBookmarks();
         scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
     }
@@ -1743,7 +1745,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						mBookInfo.addBookmark(bm);
 					else
 						mBookInfo.setShortcutBookmark(shortcut, bm);
-					mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm);
+					mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm, false);
 					mActivity.getDB().save(mBookInfo);
 					String s;
 					if ( shortcut==0 )
@@ -2677,7 +2679,148 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureBackground();
 		// get title, authors, etc.
-		doc.updateBookInfo( mBookInfo );
+		doc.updateBookInfo(mBookInfo);
+		// check whether current book properties updated on another devices
+		syncUpdater.syncExternalChanges(mBookInfo);
+	}
+	
+	private class SyncExternalChangesUpdater {
+		
+		private long lastUpdateId = 0;
+		private void scheduleExternalChangesUpdate(long interval) {
+			final long mySyncId = ++lastUpdateId;
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					if (mySyncId == lastUpdateId)
+						processExternalChanges();
+				}}, 60000);
+		}
+
+		private long lastSyncId = 0;
+		private void scheduleExternalChangesSync(long interval) {
+			final long mySyncId = ++lastSyncId;
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					if (mySyncId == lastSyncId)
+						syncExternalChanges(mBookInfo);
+				}}, interval);
+		}
+	
+		private void syncExternalChanges(BookInfo book) {
+			if (book == null)
+				return;
+			String fn = book.getFileInfo().getPathName();
+			if (fn == null)
+				return;
+			int LIMIT = 5000;
+			List<ChangeInfo> changes = mActivity.getSyncService().checkChangesSync(LIMIT);
+			if (changes == null)
+				return;
+			ArrayList<ChangeInfo> thisBookChanges = new ArrayList<ChangeInfo>();
+			ArrayList<ChangeInfo> anotherBookChanges = new ArrayList<ChangeInfo>();
+			for (ChangeInfo ci : changes) {
+				if (fn.equalsIgnoreCase(ci.getFileName()))
+					thisBookChanges.add(ci);
+				else
+					anotherBookChanges.add(ci);
+			}
+			// update current book's parameters
+			for (ChangeInfo ci : thisBookChanges) {
+				processCurrentBookChange(book, ci);
+			}
+			if (anotherBookChanges.size() > 0)
+				addExternalChangesToProcess(anotherBookChanges);
+			scheduleExternalChangesUpdate(120000);
+			if (changes.size() == LIMIT)
+				scheduleExternalChangesSync(120000);
+		}
+	
+		private void processCurrentBookChange(BookInfo book, ChangeInfo ci) {
+			if (ci.isDeleted() && ci.getBookmark() == null)
+				return; // ignore REMOVE BOOK events
+			if (ci.isDeleted()) {
+				book.removeBookmark(ci.getBookmark());
+			} else {
+				book.syncBookmark(ci.getBookmark());
+			}
+		}
+		
+		private void processExternalBookChange(ChangeInfo ci) {
+			FileInfo file = new FileInfo(ci.getFileName());
+			if (!file.fileExists()) {
+				log.w("Ignoring sync change for not existing file " + ci.getFileName());
+				return;
+			}
+			if (ci.isDeleted() && ci.getBookmark() == null) {
+				mActivity.getHistory().removeBookInfo(file, true, true);
+				return; // ignore REMOVE BOOK events
+			}
+			BookInfo book = mActivity.getHistory().getOrCreateBookInfo(file);
+			if (ci.isDeleted()) {
+				book.removeBookmark(ci.getBookmark());
+			} else {
+				book.syncBookmark(ci.getBookmark());
+			}
+		}
+		
+		private void addExternalChangesToProcess(ArrayList<ChangeInfo> changes) {
+			synchronized(externalChangesToProcess) {
+				externalChangesToProcess.addAll(changes);
+			}
+		}
+	
+		private void processExternalChanges() {
+			if (externalChangesToProcess.size() == 0)
+				return;
+			final ArrayList<ChangeInfo> changes = new ArrayList<ChangeInfo>();
+			synchronized(externalChangesToProcess) {
+				int count = 100;
+				if (count > externalChangesToProcess.size())
+					count = externalChangesToProcess.size();
+				changes.addAll(externalChangesToProcess.subList(0, count));
+				for (int i = count - 1; i >= 0; i--)
+					externalChangesToProcess.remove(i);
+			}
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					String currentBook = mBookInfo != null ? mBookInfo.getFileInfo().getPathName() : "";
+					boolean currentBookChanged = false;
+					boolean lastPosChanged = false;
+					for (ChangeInfo ci : changes) {
+						if (currentBook.equals(ci.getFileName())) {
+							processCurrentBookChange(mBookInfo, ci);
+							currentBookChanged = true;
+						} else {
+							processExternalBookChange(ci);
+						}
+						if (ci.getBookmark().getType() == Bookmark.TYPE_LAST_POSITION)
+							lastPosChanged = true;
+					}
+					if (currentBookChanged)
+						notifyCurrentBookBookmarksChanged();
+					if (lastPosChanged)
+						notifyRecentBooksDirectoryChanged();
+				}
+			});
+		}
+		
+		private void notifyCurrentBookBookmarksChanged() {
+			// TODO: update UI?
+		}
+	
+		private void notifyRecentBooksDirectoryChanged() {
+			// TODO: update UI?
+		}
+	
+		private final ArrayList<ChangeInfo> externalChangesToProcess = new ArrayList<ChangeInfo>();
+	}
+	private final SyncExternalChangesUpdater syncUpdater = new SyncExternalChangesUpdater();
+
+	public void syncExternalChanges() {
+		syncUpdater.scheduleExternalChangesSync(10000);
 	}
 	
 	private void applySettings( Properties props, boolean save, boolean saveDelayed )
@@ -5009,7 +5152,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private int lastSavePositionTaskId = 0;
     
     private final static int DEF_SAVE_POSITION_INTERVAL = 120000;
-    private void scheduleSaveCurrentPositionBookmark(int delayMillis) {
+    private void scheduleSaveCurrentPositionBookmark(final int delayMillis) {
     	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
     	// update position, don't save to DB
     	//saveCurrentPositionBookmarkSync(false);
@@ -5023,7 +5166,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				            bmk.setTimeStamp(System.currentTimeMillis());
 				            bmk.setType(Bookmark.TYPE_LAST_POSITION);
 			                mBookInfo.setLastPosition(bmk);
-			                mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk);
+			                if (delayMillis <= 1)
+			                	mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk, true);
 				    	}
 		                mActivity.getDB().save(mBookInfo);
 		                mActivity.getDB().flush();
@@ -5099,6 +5243,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		return;
 		cancelSwapTask();
 		stopImageViewer();
+        scheduleSaveCurrentPositionBookmark(0);
 		//save();
     	post( new Task() {
     		public void work() {

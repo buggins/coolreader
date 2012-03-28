@@ -22,6 +22,7 @@ public class SyncServiceAccessor {
 	private Activity mActivity;
     private SyncService mSyncService;
     private boolean mSyncServiceBound;
+    private File syncDirectory;
 
     public interface ChangeInfoReceiver {
     	void onChanges(Collection<ChangeInfo> list);
@@ -51,20 +52,20 @@ public class SyncServiceAccessor {
     }
     
     public void setSyncDirectory(final File dir) {
-    	BackgroundThread.instance().executeBackground(new Runnable() {
+    	BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
 		    	if (!mSyncServiceBound || mSyncService == null) {
-		    		Log.e(TAG, "setSyncDirectory: service is not bound");
-		    		return;
+		    		syncDirectory = dir;
+		    	} else {
+		    		mSyncService.setSyncDirectory(dir);
 		    	}
-		    	mSyncService.setSyncDirectory(dir);
 			}
     	});
     }
 
     public void checkChanges(final ChangeInfoReceiver callback) {
-    	BackgroundThread.instance().executeBackground(new Runnable() {
+    	BackgroundThread.instance().postBackground(new Runnable() {
 			@Override
 			public void run() {
 		    	if (!mSyncServiceBound || mSyncService == null) {
@@ -86,19 +87,36 @@ public class SyncServiceAccessor {
     	});
     }
 
-    public void saveBookmark(String fileName, Bookmark bookmark) {
+    /**
+     * Retrieve remote changes synchronously.
+     * @param maxRecords is limit of record number
+     * @return list with read records, null if no updates received
+     */
+    public List<ChangeInfo> checkChangesSync(int maxRecords) {
+    	if (!mSyncServiceBound || mSyncService == null) {
+    		Log.e(TAG, "checkChanges: service is not bound");
+    		return null;
+    	}
+    	final List<ChangeInfo> list = new ArrayList<ChangeInfo>();
+    	mSyncService.sync(list, maxRecords);
+    	if (list.size() == 0)
+    		return null;
+    	return list;
+    }
+
+    public void saveBookmark(String fileName, Bookmark bookmark, boolean sync) {
     	ChangeInfo change = new ChangeInfo(bookmark, fileName, false);
-    	save(change);
+    	save(change, sync);
     }
     
     public void removeBookmark(String fileName, Bookmark bookmark) {
     	ChangeInfo change = new ChangeInfo(bookmark, fileName, true);
-    	save(change);
+    	save(change, false);
     }
     
     public void removeFile(String fileName) {
     	ChangeInfo change = new ChangeInfo(null, fileName, true);
-    	save(change);
+    	save(change, false);
     }
     
     public void removeFileLastPosition(String fileName) {
@@ -106,11 +124,22 @@ public class SyncServiceAccessor {
     	bmk.setType(Bookmark.TYPE_LAST_POSITION);
     	bmk.setStartPos("no_position");
     	ChangeInfo change = new ChangeInfo(bmk, fileName, true);
-    	save(change);
+    	save(change, false);
     }
     
-    public void save(ChangeInfo change) {
-    	save(Collections.singleton(change), null);
+    public void save(ChangeInfo change, boolean sync) {
+    	if (sync)
+    		saveSync(Collections.singleton(change));
+    	else
+    		save(Collections.singleton(change), null);
+    }
+
+    public void saveSync(final Collection<ChangeInfo> list) {
+    	if (!mSyncServiceBound || mSyncService == null) {
+    		Log.e(TAG, "setSyncDirectory: service is not bound");
+    		return;
+    	}
+    	mSyncService.saveBookmarks(list);
     }
 
     public void save(final Collection<ChangeInfo> list, final Runnable doneHandler) {
@@ -139,6 +168,10 @@ public class SyncServiceAccessor {
         public void onServiceConnected(ComponentName className, IBinder service) {
         	mSyncService = ((SyncService.LocalBinder)service).getService();
         	Log.i(TAG, "connected to SyncService");
+        	if (syncDirectory != null) {
+            	Log.i(TAG, "setting sync directory " + syncDirectory);
+        		mSyncService.setSyncDirectory(syncDirectory);
+        	}
             // DEBUG
 //            if (mSyncService != null)
 //            	mSyncService.test();
