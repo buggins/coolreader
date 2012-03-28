@@ -76,6 +76,7 @@ public class SyncService extends Service {
 			thisDeviceName = generateThisDeviceName();
 			pref.edit().putString(PREF_THIS_DEVICE_ID, thisDeviceName);
 		}
+		Log.i(TAG, "My device name: " + thisDeviceName);
 	}
 	
     private String generateThisDeviceName() {
@@ -100,6 +101,8 @@ public class SyncService extends Service {
     			return false;
     	syncDir = dir.getAbsolutePath();
     	syncLogDir = configDir.getAbsolutePath();
+		Log.i(TAG, "Sync directory: " + syncDir);
+		Log.i(TAG, "Sync logs directory: " + syncLogDir);
     	return true;
     }
     
