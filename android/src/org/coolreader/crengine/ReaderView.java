@@ -5378,23 +5378,30 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		public String OnLoadFileFormatDetected(final DocumentFormat fileFormat) {
 			BackgroundThread.ensureBackground();
-			String res = executeSync( new Callable<String>() {
-				public String call() {
-					BackgroundThread.ensureGUI();
-					log.i("readerCallback.OnLoadFileFormatDetected " + fileFormat);
-					if (fileFormat != null) {
-						String s = getCSSForFormat(fileFormat);
-						log.i("setting .css for file format " + fileFormat + " from resource " + fileFormat.getCssName());
-						return s;
-					}
-			    	return null;
-				}
-			});
-//			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
-//			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
-//			log.d("internalStyles: " + internalStyles);
-//			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles | txtReflow);
-			return res;
+			log.i("readerCallback.OnLoadFileFormatDetected " + fileFormat);
+			if (fileFormat != null) {
+				String s = getCSSForFormat(fileFormat);
+				return s;
+			}
+			return null;
+//
+//			String res = executeSync( new Callable<String>() {
+//				public String call() {
+//					BackgroundThread.ensureGUI();
+//					log.i("readerCallback.OnLoadFileFormatDetected " + fileFormat);
+//					if (fileFormat != null) {
+//						String s = getCSSForFormat(fileFormat);
+//						log.i("setting .css for file format " + fileFormat + " from resource " + fileFormat.getCssName());
+//						return s;
+//					}
+//			    	return null;
+//				}
+//			});
+////			int internalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG) ? 0 : 1;
+////			int txtReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG) ? 0 : 2;
+////			log.d("internalStyles: " + internalStyles);
+////			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, internalStyles | txtReflow);
+//			return res;
 		}
 		public boolean OnLoadFileProgress(final int percent) {
 			BackgroundThread.ensureBackground();
