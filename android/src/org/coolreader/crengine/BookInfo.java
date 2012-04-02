@@ -243,7 +243,7 @@ public class BookInfo {
 				if ( ps.length()<2 )
 					ps = "0" + ps;
 				ps = String.valueOf(percent/100) + "." + ps  + "%";
-				writer.write("## " + ps + " - " + (bm.getType()!=Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\r\n");
+				writer.write("## " + ps + " - " + (bm.getType()==Bookmark.TYPE_COMMENT ? "comment" : "correction")  + "\r\n");
 				if ( bm.getTitleText()!=null )
 					writer.write("## " + bm.getTitleText() + "\r\n");
 				if ( bm.getPosText()!=null )
