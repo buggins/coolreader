@@ -999,14 +999,14 @@ public:
         if (nodeName == "object") {
             if ( level>0 ) {
                 // process object
-                if (node->getAttributeValue(L"type") == "text/sitemap") {
+                if (node->getAttributeValue("type") == "text/sitemap") {
                     lString16 name, local;
                     int cnt = node->getChildCount();
                     for ( int i=0; i<cnt; i++ ) {
                         ldomNode * child = node->getChildElementNode(i, paramElemId);
                         if ( child ) {
-                            lString16 paramName = child->getAttributeValue(L"name");
-                            lString16 paramValue = child->getAttributeValue(L"value");
+                            lString16 paramName = child->getAttributeValue("name");
+                            lString16 paramValue = child->getAttributeValue("value");
                             if (paramName == "Name")
                                 name = paramValue;
                             else if (paramName == "Local")

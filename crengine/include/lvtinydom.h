@@ -730,8 +730,15 @@ public:
     {
         return getAttributeValue( NULL, attrName );
     }
+    /// returns attribute value by attribute name
+    inline const lString16 & getAttributeValue( const lChar8 * attrName ) const
+    {
+        return getAttributeValue( NULL, attrName );
+    }
     /// returns attribute value by attribute name and namespace
     const lString16 & getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const;
+    /// returns attribute value by attribute name and namespace
+    const lString16 & getAttributeValue( const lChar8 * nsName, const lChar8 * attrName ) const;
     /// returns attribute by index
     const lxmlAttribute * getAttribute( lUInt32 ) const;
     /// returns true if element node has attribute with specified name id and namespace id
@@ -756,6 +763,8 @@ public:
     void setNodeId( lUInt16 );
     /// returns element name
     const lString16 & getNodeName() const;
+    /// compares node name with value, returns true if matches
+    bool isNodeName(const char * name) const;
     /// returns element namespace name
     const lString16 & getNodeNsName() const;
 
@@ -924,6 +933,13 @@ public:
     */
     lUInt16 getNsNameIndex( const lChar16 * name );
 
+    /// Get namespace id by name
+    /**
+        \param name is string value of namespace (ASCII only)
+        \return id of namespace
+    */
+    lUInt16 getNsNameIndex( const lChar8 * name );
+
     /// Get attribute name by id
     /**
         \param id is numeric value of attribute
@@ -940,6 +956,13 @@ public:
         \return id of attribute
     */
     lUInt16 getAttrNameIndex( const lChar16 * name );
+
+    /// Get attribute id by name
+    /**
+        \param name is string value of attribute (8bit ASCII only)
+        \return id of attribute
+    */
+    lUInt16 getAttrNameIndex( const lChar8 * name );
 
     /// helper: returns attribute value
     inline const lString16 & getAttrValue( lUInt16 index ) const
@@ -975,6 +998,20 @@ public:
         \return id of element
     */
     lUInt16 getElementNameIndex( const lChar16 * name );
+
+    /// Get element id by name
+    /**
+        \param name is string value of element name (8bit ASCII only)
+        \return id of element, allocates new ID if not found
+    */
+    lUInt16 getElementNameIndex( const lChar8 * name );
+
+    /// Get element id by name
+    /**
+        \param name is string value of element name (8bit ASCII only)
+        \return id of element, 0 if not found
+    */
+    lUInt16 findElementNameIndex( const lChar8 * name );
 
     /// Get element type properties structure by id
     /**

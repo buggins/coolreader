@@ -2821,7 +2821,25 @@ lUInt16 lxmlDocBase::getNsNameIndex( const lChar16 * name )
     return _nextUnknownNsId++;
 }
 
+lUInt16 lxmlDocBase::getNsNameIndex( const lChar8 * name )
+{
+    const LDOMNameIdMapItem * item = _nsNameTable.findItem( name );
+    if (item)
+        return item->id;
+    _nsNameTable.AddItem( _nextUnknownNsId, lString16(name), NULL );
+    return _nextUnknownNsId++;
+}
+
 lUInt16 lxmlDocBase::getAttrNameIndex( const lChar16 * name )
+{
+    const LDOMNameIdMapItem * item = _attrNameTable.findItem( name );
+    if (item)
+        return item->id;
+    _attrNameTable.AddItem( _nextUnknownAttrId, lString16(name), NULL );
+    return _nextUnknownAttrId++;
+}
+
+lUInt16 lxmlDocBase::getAttrNameIndex( const lChar8 * name )
 {
     const LDOMNameIdMapItem * item = _attrNameTable.findItem( name );
     if (item)
@@ -2839,6 +2857,22 @@ lUInt16 lxmlDocBase::getElementNameIndex( const lChar16 * name )
     return _nextUnknownElementId++;
 }
 
+lUInt16 lxmlDocBase::findElementNameIndex( const lChar8 * name )
+{
+    const LDOMNameIdMapItem * item = _elementNameTable.findItem( name );
+    if (item)
+        return item->id;
+    return 0;
+}
+
+lUInt16 lxmlDocBase::getElementNameIndex( const lChar8 * name )
+{
+    const LDOMNameIdMapItem * item = _elementNameTable.findItem( name );
+    if (item)
+        return item->id;
+    _elementNameTable.AddItem( _nextUnknownElementId, lString16(name), NULL );
+    return _nextUnknownElementId++;
+}
 
 /// create formatted text object with options set
 LFormattedText * lxmlDocBase::createFormattedText()
@@ -4172,11 +4206,11 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
     }
     if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link") ) {
         // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName() == "link" &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName() == "head" &&
-             _currNode->getElement()->getAttributeValue(L"rel") == "stylesheet" &&
-             _currNode->getElement()->getAttributeValue(L"type") == "text/css" ) {
-            lString16 href = _currNode->getElement()->getAttributeValue(L"href");
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->isNodeName("link") &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->isNodeName("head") &&
+             _currNode->getElement()->getAttributeValue("rel") == "stylesheet" &&
+             _currNode->getElement()->getAttributeValue("type") == "text/css" ) {
+            lString16 href = _currNode->getElement()->getAttributeValue("href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
             _document->setDocStylesheetFileName(stylesheetFile);
@@ -7072,7 +7106,7 @@ lString16 ldomXPointer::getHRef()
     if ( !node )
         return lString16::empty_str;
     lString16 ref = node->getAttributeValue( LXML_NS_ANY, attr_href );
-    if ( !ref.empty() && ref[0]!='#' )
+    if (!ref.empty() && ref[0] != '#')
         ref = DecodeHTMLUrlString(ref);
     return ref;
 }
@@ -7521,11 +7555,11 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
 
     if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link")) {
         // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName() == "link" &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName() == "head" &&
-             _currNode->getElement()->getAttributeValue(L"rel") == "stylesheet" &&
-             _currNode->getElement()->getAttributeValue(L"type") == "text/css" ) {
-            lString16 href = _currNode->getElement()->getAttributeValue(L"href");
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->isNodeName("link") &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->isNodeName("head") &&
+             _currNode->getElement()->getAttributeValue("rel") == "stylesheet" &&
+             _currNode->getElement()->getAttributeValue("type") == "text/css" ) {
+            lString16 href = _currNode->getElement()->getAttributeValue("href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
             _document->setDocStylesheetFileName(stylesheetFile);
@@ -9408,7 +9442,16 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
 const lString16 & ldomNode::getAttributeValue( const lChar16 * nsName, const lChar16 * attrName ) const
 {
     ASSERT_NODE_NOT_NULL;
-    lUInt16 nsId = (nsName&&nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
+    lUInt16 nsId = (nsName && nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
+    lUInt16 attrId = getDocument()->getAttrNameIndex( attrName );
+    return getAttributeValue( nsId, attrId );
+}
+
+/// returns attribute value by attribute name and namespace
+const lString16 & ldomNode::getAttributeValue( const lChar8 * nsName, const lChar8 * attrName ) const
+{
+    ASSERT_NODE_NOT_NULL;
+    lUInt16 nsId = (nsName && nsName[0]) ? getDocument()->getNsNameIndex( nsName ) : LXML_NS_ANY;
     lUInt16 attrId = getDocument()->getAttrNameIndex( attrName );
     return getAttributeValue( nsId, attrId );
 }
@@ -9599,6 +9642,29 @@ const lString16 & ldomNode::getNodeName() const
         // persistent element
         ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
         return getDocument()->getElementName(me->id);
+    }
+#endif
+}
+
+/// returns element name
+bool ldomNode::isNodeName(const char * s) const
+{
+    ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return false;
+    lUInt16 index = getDocument()->findElementNameIndex(s);
+    if (!index)
+        return false;
+#if BUILD_LITE!=1
+    if ( !isPersistent() ) {
+        // element
+#endif
+        return index == NPELEM->_id;
+#if BUILD_LITE!=1
+    } else {
+        // persistent element
+        ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
+        return index == me->id;
     }
 #endif
 }
@@ -10624,14 +10690,14 @@ lString16 ldomNode::getObjectImageRefName()
     const css_elem_def_props_t * et = getDocument()->getElementTypePtr(getNodeId());
     if (!et || !et->is_object)
         return lString16::empty_str;
-    lUInt16 hrefId = getDocument()->getAttrNameIndex(L"href");
-    lUInt16 srcId = getDocument()->getAttrNameIndex(L"src");
-    lUInt16 recIndexId = getDocument()->getAttrNameIndex(L"recindex");
-    lString16 refName = getAttributeValue( getDocument()->getNsNameIndex(L"xlink"),
+    lUInt16 hrefId = getDocument()->getAttrNameIndex("href");
+    lUInt16 srcId = getDocument()->getAttrNameIndex("src");
+    lUInt16 recIndexId = getDocument()->getAttrNameIndex("recindex");
+    lString16 refName = getAttributeValue( getDocument()->getNsNameIndex("xlink"),
         hrefId );
 
     if ( refName.empty() )
-        refName = getAttributeValue( getDocument()->getNsNameIndex(L"l"), hrefId );
+        refName = getAttributeValue( getDocument()->getNsNameIndex("l"), hrefId );
     if ( refName.empty() )
         refName = getAttributeValue( LXML_NS_ANY, hrefId ); //LXML_NS_NONE
     if ( refName.empty() )

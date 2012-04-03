@@ -111,8 +111,8 @@ class CRFileProperties {
                 if ( doc ) {
                     ldomNode * rootfile = doc->nodeFromXPath( lString16("container/rootfiles/rootfile") );
                     if ( rootfile && rootfile->isElement() ) {
-                        rootfilePath = rootfile->getAttributeValue(L"full-path");
-                        rootfileMediaType = rootfile->getAttributeValue(L"media-type");
+                        rootfilePath = rootfile->getAttributeValue("full-path");
+                        rootfileMediaType = rootfile->getAttributeValue("media-type");
                     }
                     delete doc;
                 }

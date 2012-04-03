@@ -253,8 +253,8 @@ lString16 CRSkinContainer::getBasePath( const lChar16 * path )
         return res;
     if ( !p.getNode()->isElement() )
         return res;
-    lString16 value = p.getNode()->getAttributeValue( L"base" );
-    if ( value.empty() || value[0]!=L'#' )
+    lString16 value = p.getNode()->getAttributeValue("base");
+    if (value.empty() || value[0] != '#')
         return res;
     res = pathById( value.c_str() + 1 );
     crtrace log;
@@ -517,7 +517,7 @@ lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * att
         return lString16::empty_str;
 	//lString16 pnname = ptr.getNode()->getParentNode()->getNodeName();
 	//lString16 nname = ptr.getNode()->getNodeName();
-    lString16 value = ptr.getNode()->getAttributeValue( attrname );
+    lString16 value = ptr.getNode()->getAttributeValue(attrname);
 	if ( res )
 		*res = true;
     return value;
@@ -1685,7 +1685,7 @@ bool CRSkinContainer::readPageSkin(  const lChar16 * path, CRPageSkin * res )
         return false;
     }
 
-    lString16 name = ptr.getNode()->getAttributeValue(ptr.getNode()->getDocument()->getAttrNameIndex(L"name"));
+    lString16 name = ptr.getNode()->getAttributeValue(ptr.getNode()->getDocument()->getAttrNameIndex("name"));
     if ( !name.empty() )
         res->setName(name);
 

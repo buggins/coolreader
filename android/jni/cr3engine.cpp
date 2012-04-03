@@ -127,8 +127,8 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
         ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
         if ( !item )
             break;
-        lString16 name = item->getAttributeValue(L"name");
-        lString16 content = item->getAttributeValue(L"content");
+        lString16 name = item->getAttributeValue("name");
+        lString16 content = item->getAttributeValue("content");
         if (name == "calibre:series")
         	pBookProps->series = content.trim();
         else if (name == "calibre:series_index")

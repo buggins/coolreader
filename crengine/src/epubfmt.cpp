@@ -110,7 +110,7 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
         ldomNode * content = navPoint->findChildElement(LXML_NS_ANY, content_id, -1);
         if ( !content )
             continue;
-        lString16 href = content->getAttributeValue(L"src");
+        lString16 href = content->getAttributeValue("src");
         lString16 title = text->getText(' ');
         title.trimDoubleSpaces(false, false, false);
         if ( href.empty() || title.empty() )
@@ -142,8 +142,8 @@ lString16 EpubGetRootFilePath(LVContainerRef m_arc)
             if ( doc ) {
                 ldomNode * rootfile = doc->nodeFromXPath( lString16("container/rootfiles/rootfile") );
                 if ( rootfile && rootfile->isElement() ) {
-                    rootfilePath = rootfile->getAttributeValue(L"full-path");
-                    rootfileMediaType = rootfile->getAttributeValue(L"media-type");
+                    rootfilePath = rootfile->getAttributeValue("full-path");
+                    rootfileMediaType = rootfile->getAttributeValue("media-type");
                 }
                 delete doc;
             }
@@ -439,8 +439,8 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
             ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
-            lString16 name = item->getAttributeValue(L"name");
-            lString16 content = item->getAttributeValue(L"content");
+            lString16 name = item->getAttributeValue("name");
+            lString16 content = item->getAttributeValue("content");
             if (name == "cover")
                 coverId = content;
         }
@@ -450,8 +450,8 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
             ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
-            lString16 href = item->getAttributeValue(L"href");
-            lString16 id = item->getAttributeValue(L"id");
+            lString16 href = item->getAttributeValue("href");
+            lString16 id = item->getAttributeValue("id");
             if ( !href.empty() && !id.empty() ) {
                 if (id == coverId) {
                     // coverpage file
@@ -703,8 +703,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
-            lString16 name = item->getAttributeValue(L"name");
-            lString16 content = item->getAttributeValue(L"content");
+            lString16 name = item->getAttributeValue("name");
+            lString16 content = item->getAttributeValue("content");
             if (name == "cover")
                 coverId = content;
             else if (name == "calibre:series")
@@ -718,9 +718,9 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
-            lString16 href = item->getAttributeValue(L"href");
-            lString16 mediaType = item->getAttributeValue(L"media-type");
-            lString16 id = item->getAttributeValue(L"id");
+            lString16 href = item->getAttributeValue("href");
+            lString16 mediaType = item->getAttributeValue("media-type");
+            lString16 id = item->getAttributeValue("id");
             if ( !href.empty() && !id.empty() ) {
                 if ( id==coverId ) {
                     // coverpage file
@@ -767,7 +767,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             ldomNode * spine = doc->nodeFromXPath( lString16("package/spine") );
             if ( spine ) {
 
-                EpubItem * ncx = epubItems.findById( spine->getAttributeValue(L"toc") ); //TODO
+                EpubItem * ncx = epubItems.findById( spine->getAttributeValue("toc") ); //TODO
                 //EpubItem * ncx = epubItems.findById(lString16("ncx"));
                 if ( ncx!=NULL )
                     ncxHref = codeBase + ncx->href;
@@ -776,7 +776,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     ldomNode * item = doc->nodeFromXPath( lString16("package/spine/itemref[") << fmt::decimal(i) << "]" );
                     if ( !item )
                         break;
-                    EpubItem * epubItem = epubItems.findById( item->getAttributeValue(L"idref") );
+                    EpubItem * epubItem = epubItems.findById( item->getAttributeValue("idref") );
                     if ( epubItem ) {
                         // TODO: add to document
                         spineItems.add( epubItem );
