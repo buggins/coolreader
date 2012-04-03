@@ -335,18 +335,18 @@
     <string name="options_css_text_indent_big_outdent">Gran sangría</string>
     <string name="options_css_font_face_sans_serif">[Fuente sans-serif por defecto]</string>
     <string name="options_css_margin_05em">0.5 del ancho de la línea</string>
-    <string name="options_css_margin_10p">10% del ancho de la línea</string>
-    <string name="options_css_margin_20p">20% del ancho de la línea</string>
-    <string name="options_css_margin_30p">30% del ancho de la línea</string>
+    <string name="options_css_margin_10p" formatted="false">10% del ancho de la línea</string>
+    <string name="options_css_margin_20p" formatted="false">20% del ancho de la línea</string>
+    <string name="options_css_margin_30p" formatted="false">30% del ancho de la línea</string>
     <string name="options_css_margin_0">0</string>
     <string name="options_css_margin_03em">0.3 líneas de altura</string>
-    <string name="options_css_margin_15p">15% del ancho de la línea</string>
+    <string name="options_css_margin_15p" formatted="false">15% del ancho de la línea</string>
     <string name="options_css_margin_02em">0.2 líneas de altura</string>
     <string name="options_css_margin_4em">4 líneas de altura</string>
     <string name="options_css_margin_1em">1 línea de altura</string>
     <string name="options_css_margin_2em">2 del ancho de la línea</string>
     <string name="options_css_margin_15em">1.5 del ancho de la línea</string>
-    <string name="options_css_margin_5p">5% del ancho de la línea</string>
+    <string name="options_css_margin_5p" formatted="false">5% del ancho de la línea</string>
     <string name="options_css_font_size_130p">Mayor (130%)</string>
     <string name="options_css_font_size_120p">Mayor (120%)</string>
     <string name="options_css_font_size_110p">Mayor (110%)</string>

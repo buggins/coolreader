@@ -336,18 +336,18 @@
     <string name="options_css_text_indent_big_outdent">大幅悬挂缩进</string>
     <string name="options_css_font_face_sans_serif">【默认无衬线字体】</string>
     <string name="options_css_margin_05em">0.5行高</string>
-    <string name="options_css_margin_10p">10% 线宽</string>
-    <string name="options_css_margin_20p">20% 线宽</string>
-    <string name="options_css_margin_30p">30% 线宽</string>
+    <string formatted="false" name="options_css_margin_10p">10% 线宽</string>
+    <string formatted="false" name="options_css_margin_20p">20% 线宽</string>
+    <string formatted="false" name="options_css_margin_30p">30% 线宽</string>
     <string name="options_css_margin_0">0</string>
     <string name="options_css_margin_03em">0.3 行高</string>
-    <string name="options_css_margin_15p">15% 线宽</string>
+    <string formatted="false" name="options_css_margin_15p">15% 线宽</string>
     <string name="options_css_margin_02em">0.2 行高</string>
     <string name="options_css_margin_4em">4 行高</string>
     <string name="options_css_margin_1em">1 行高</string>
     <string name="options_css_margin_2em">2 行高</string>
     <string name="options_css_margin_15em">1.5 行高</string>
-    <string name="options_css_margin_5p">5% 线宽</string>
+    <string formatted="false" name="options_css_margin_5p">5% 线宽</string>
     <string name="options_css_font_size_130p">加大(130%)</string>
     <string name="options_css_font_size_120p">加大(120%)</string>
     <string name="options_css_font_size_110p">加大(110%)</string>

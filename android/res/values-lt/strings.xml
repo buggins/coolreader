@@ -314,9 +314,9 @@
     <string name="options_css_text_decoration_overlineline">Overline</string>
     <string name="options_css_font_face_serif">[Default serif font]</string>
     <string name="options_css_margin_05em">0.5 of line height</string>
-    <string name="options_css_margin_10p">10% of line width</string>
-    <string name="options_css_margin_20p">20% of line width</string>
-    <string name="options_css_margin_30p">30% of line width</string>
+    <string name="options_css_margin_10p" formatted="false">10% of line width</string>
+    <string name="options_css_margin_20p" formatted="false">20% of line width</string>
+    <string name="options_css_margin_30p" formatted="false">30% of line width</string>
     <string name="options_css_font_weight_bold">Bold</string>
     <string name="options_css_text_indent_small_outdent">Small outdent</string>
     <string name="options_css_font_weight_bolder">Bolder</string>
@@ -330,7 +330,7 @@
     <string name="options_css_text_valign_subscript">Subscript</string>
     <string name="options_css_margin_03em">0.3 of line height</string>
     <string name="options_css_font_style_italic">Italic</string>
-    <string name="options_css_margin_15p">15% of line width</string>
+    <string name="options_css_margin_15p" formatted="false">15% of line width</string>
     <string name="options_css_font_face_monospace">[Default monospace font]</string>
     <string name="options_css_font_weight_lighter">Lighter</string>
     <string name="options_css_font_weight_normal">Normal</string>
@@ -342,7 +342,7 @@
     <string name="options_css_text_indent_big_outdent">Big outdent</string>
     <string name="options_css_font_face_sans_serif">[Default sans-serif font]</string>
     <string name="options_css_margin_15em">1.5 of line height</string>
-    <string name="options_css_margin_5p">5% of line width</string>
+    <string name="options_css_margin_5p" formatted="false">5% of line width</string>
     <string name="options_css_font_size_130p">Bigger (130%)</string>
     <string name="options_css_font_size_120p">Bigger (120%)</string>
     <string name="options_css_font_size_110p">Bigger (110%)</string>

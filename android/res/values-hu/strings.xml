@@ -314,9 +314,9 @@
     <string name="options_css_text_decoration_overlineline">Felülhúzás</string>
     <string name="options_css_font_face_serif">[Alapértelmezett serif betű]</string>
     <string name="options_css_margin_05em">Sormagasság 0.5-szerese</string>
-    <string name="options_css_margin_10p">Sormagasság 10%-a</string>
-    <string name="options_css_margin_20p">Sormagasság 20%-a</string>
-    <string name="options_css_margin_30p">Sormagasság 30%-a</string>
+    <string name="options_css_margin_10p" formatted="false">Sormagasság 10%-a</string>
+    <string name="options_css_margin_20p" formatted="false">Sormagasság 20%-a</string>
+    <string name="options_css_margin_30p" formatted="false">Sormagasság 30%-a</string>
     <string name="options_css_font_weight_bold">Félkövér</string>
     <string name="options_css_text_indent_small_outdent">Kis kihúzás</string>
     <string name="options_css_font_weight_bolder">Kövérebb</string>
@@ -330,7 +330,7 @@
     <string name="options_css_text_valign_subscript">Alsó index</string>
     <string name="options_css_margin_03em">Sormagasság 0.3-szerese</string>
     <string name="options_css_font_style_italic">Dőlt</string>
-    <string name="options_css_margin_15p">Sormagasság 15%-a</string>
+    <string name="options_css_margin_15p" formatted="false">Sormagasság 15%-a</string>
     <string name="options_css_font_face_monospace">[Alapértelmezett monospace betű]</string>
     <string name="options_css_font_weight_lighter">Vékonyabb</string>
     <string name="options_css_font_weight_normal">Normál</string>
@@ -342,7 +342,7 @@
     <string name="options_css_text_indent_big_outdent">Nagy kihúzás</string>
     <string name="options_css_font_face_sans_serif">[Alapértelmezett sans-serif betű]</string>
     <string name="options_css_margin_15em">Sormagasság 1.5-szerese</string>
-    <string name="options_css_margin_5p">Sormagasság 5%-a</string>
+    <string name="options_css_margin_5p" formatted="false">Sormagasság 5%-a</string>
     <string name="options_css_font_size_130p">Nagyobb (130%)</string>
     <string name="options_css_font_size_120p">Nagyobb (120%)</string>
     <string name="options_css_font_size_110p">Nagyobb (110%)</string>

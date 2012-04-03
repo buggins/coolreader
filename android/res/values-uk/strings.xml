@@ -314,9 +314,9 @@
     <string name="options_css_text_decoration_overlineline">Надкреслений</string>
     <string name="options_css_font_face_serif">[Шрифт із засічками]</string>
     <string name="options_css_margin_05em">0.5 висоти рядка</string>
-    <string name="options_css_margin_10p">10% ширини рядка</string>
-    <string name="options_css_margin_20p">20% ширини рядка</string>
-    <string name="options_css_margin_30p">30% ширини рядка</string>
+    <string name="options_css_margin_10p" formatted="false">10% ширини рядка</string>
+    <string name="options_css_margin_20p" formatted="false">20% ширини рядка</string>
+    <string name="options_css_margin_30p" formatted="false">30% ширини рядка</string>
     <string name="options_css_font_weight_bold">Жирний</string>
     <string name="options_css_text_indent_small_outdent">Маленький відступ вліво</string>
     <string name="options_css_font_weight_bolder">Жирніше</string>
@@ -330,7 +330,7 @@
     <string name="options_css_text_valign_subscript">Верхній індекс</string>
     <string name="options_css_margin_03em">0.3 висоти рядка</string>
     <string name="options_css_font_style_italic">Похилий</string>
-    <string name="options_css_margin_15p">15% ширини рядка</string>
+    <string name="options_css_margin_15p" formatted="false">15% ширини рядка</string>
     <string name="options_css_font_face_monospace">[Моноширинний шрифт]</string>
     <string name="options_css_font_weight_lighter">Тьмяніше</string>
     <string name="options_css_font_weight_normal">Нормальний</string>
@@ -342,7 +342,7 @@
     <string name="options_css_text_indent_big_outdent">Великий відступ вліво</string>
     <string name="options_css_font_face_sans_serif">[Шрифт без засічок]</string>
     <string name="options_css_margin_15em">1.5 висоти рядка</string>
-    <string name="options_css_margin_5p">5% ширини рядка</string>
+    <string name="options_css_margin_5p" formatted="false">5%% ширини рядка</string>
     <string name="options_css_font_size_130p">Збільшити (130%)</string>
     <string name="options_css_font_size_120p">Збільшити (120%)</string>
     <string name="options_css_font_size_110p">Збільшити (110%)</string>
