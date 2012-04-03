@@ -1052,7 +1052,7 @@ bool lString16::atoi( lInt64 &n ) const
 lUInt32 lString16::getHash() const
 {
     lUInt32 res = 0;
-    for (lUInt32 i=0; i<pchunk->len; i++)
+    for (lInt32 i=0; i<pchunk->len; i++)
         res = res * STRING_HASH_MULT + pchunk->buf16[i];
     return res;
 }
@@ -1277,7 +1277,7 @@ bool lString16HashedCollection::deserialize( SerialBuf & buf )
     clear();
     int start = buf.pos();
     buf.putMagic( str_hash_magic );
-    lUInt32 count = 0;
+    lInt32 count = 0;
     buf >> count;
     for ( int i=0; i<count; i++ ) {
         lString16 s;
@@ -1372,11 +1372,11 @@ int lString16HashedCollection::find( const lChar16 * s )
 
 void lString16HashedCollection::reHash( int newSize )
 {
-    if ( hashSize == (lUInt32)newSize )
+    if (hashSize == newSize)
         return;
     clearHash();
     hashSize = newSize;
-    if ( hashSize>0 ) {
+    if (hashSize > 0) {
         hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
         for ( int i=0; i<hashSize; i++ )
             hash[i].clear();
@@ -2116,11 +2116,11 @@ lString8 & lString8::pack()
 lString8 & lString8::trim()
 {
     //
-    size_t firstns;
+    int firstns;
     for (firstns = 0;
-            firstns<pchunk->len &&
-            (pchunk->buf8[firstns]==' ' ||
-            pchunk->buf8[firstns]=='\t');
+            firstns < pchunk->len &&
+            (pchunk->buf8[firstns] == ' ' ||
+            pchunk->buf8[firstns] == '\t');
             ++firstns)
         ;
     if (firstns >= pchunk->len)
@@ -2134,7 +2134,7 @@ lString8 & lString8::trim()
             (pchunk->buf8[lastns]==' ' || pchunk->buf8[lastns]=='\t');
             --lastns)
         ;
-    size_t newlen = lastns-firstns+1;
+    int newlen = lastns-firstns+1;
     if (newlen == pchunk->len)
         return *this;
     if (pchunk->nref == 1)
@@ -2472,7 +2472,7 @@ lString16 lString16::itoa( lUInt64 n )
 lUInt32 lString8::getHash() const
 {
     lUInt32 res = 0;
-    for (lUInt32 i=0; i<pchunk->len; i++)
+    for (int i=0; i < pchunk->len; i++)
         res = res * STRING_HASH_MULT + pchunk->buf8[i];
     return res;
 }

@@ -42,7 +42,7 @@ protected:
         in_series,
         in_filename,
         in_filepath,
-        in_filesize,
+        in_filesize
     };
     state_t state;
 public:
@@ -388,7 +388,7 @@ int CRFileHistRecord::getLastShortcutBookmark()
 /// returns first available placeholder for new bookmark, -1 if no more space
 int CRFileHistRecord::getFirstFreeShortcutBookmark()
 {
-    int last = -1;
+    //int last = -1;
     char flags[MAX_SHORTCUT_BOOKMARKS+1];
     memset( flags, 0, sizeof(flags) );
     for ( int i=0; i<_bookmarks.length(); i++ ) {

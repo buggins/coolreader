@@ -318,7 +318,7 @@ enum LVDocCmd
     DCMD_EDIT_HOME,
     DCMD_EDIT_END,
     DCMD_EDIT_INSERT_CHAR,
-    DCMD_EDIT_REPLACE_CHAR,
+    DCMD_EDIT_REPLACE_CHAR
 };
 #define LVDOCVIEW_COMMANDS_END DCMD_TOGGLE_BOLD
 
@@ -326,7 +326,7 @@ enum LVDocCmd
 enum LVDocViewMode
 {
     DVM_SCROLL,
-    DVM_PAGES,
+    DVM_PAGES
 };
 
 /// document scroll position info
@@ -354,7 +354,7 @@ enum {
     PGHDR_CLOCK=16,
     PGHDR_BATTERY=32,
     PGHDR_CHAPTER_MARKS=64,
-    PGHDR_PERCENT=128,
+    PGHDR_PERCENT=128
 };
 
 

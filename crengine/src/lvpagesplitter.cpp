@@ -433,7 +433,7 @@ bool LVRendPageList::deserialize( SerialBuf & buf )
     buf >> len;
     clear();
     reserve(len);
-    for ( int i=0; i<len; i++ ) {
+    for (lUInt32 i = 0; i < len; i++) {
         LVRendPageInfo * item = new LVRendPageInfo();
         item->deserialize( buf );
         item->index = i;

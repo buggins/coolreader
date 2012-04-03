@@ -1760,10 +1760,12 @@ public:
 //    }
 //}
 
+#if (DEBUG_FONT_SYNTHESIS==1)
 static LVFontRef dumpFontRef( LVFontRef fnt ) {
     CRLog::trace("%s %d (%d) w=%d %s", fnt->getTypeFace().c_str(), fnt->getSize(), fnt->getHeight(), fnt->getWeight(), fnt->getItalic()?"italic":"" );
     return fnt;
-};
+}
+#endif
 
 class LVFreeTypeFontManager : public LVFontManager
 {
@@ -2340,7 +2342,7 @@ public:
         LVStreamRef stream = container->OpenStream(name.c_str(), LVOM_READ);
         if (stream.isNull())
             return false;
-        int size = (int)stream->GetSize();
+        lUInt32 size = (lUInt32)stream->GetSize();
         if (size < 100 || size > 5000000)
             return false;
         LVByteArrayRef buf(new LVByteArray(size, 0));
@@ -2957,8 +2959,8 @@ void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
                    const lChar16 * text, int len, 
                    lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 , int )
 {
-    static lUInt8 glyph_buf[16384];
-    LVFont::glyph_info_t info;
+    //static lUInt8 glyph_buf[16384];
+    //LVFont::glyph_info_t info;
     int baseline = getBaseline();
     while (len>=(addHyphen?0:1))
     {

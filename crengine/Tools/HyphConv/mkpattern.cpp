@@ -17,7 +17,7 @@ public:
     }
     ~Convertor() {
         fprintf(out, "</HyphenationDescription>\n");
-        fclose(out);
+        //fclose(out);
     }
     void processLine(lString16 & line) {
         if (line.lastChar()=='\r' || line.lastChar()=='\n')
@@ -89,5 +89,6 @@ int main(int argc, char* argv[])
         cnv.processLine(line);
     }
     fclose(src);
+    fclose(out);
     return 0;
 }

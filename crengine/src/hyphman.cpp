@@ -649,25 +649,26 @@ bool TexHyph::match( const lChar16 * str, char * mask )
     return found;
 }
 
-/// returns false if there is rule disabling hyphenation at specified point
-static bool checkHyphenRules( const lChar16 * str, int len, int pos )
-{
-    if ( pos<1 || pos>len-3 )
-        return false;
-    lUInt16 props[2] = { 0, 0 };
-    lStr_getCharProps( str+pos+1, 1, props);
-    if ( props[0]&CH_PROP_ALPHA_SIGN )
-        return false;
-    if ( pos==len-3 ) {
-        lStr_getCharProps( str+len-2, 2, props);
-        return (props[0]&CH_PROP_VOWEL) || (props[1]&CH_PROP_VOWEL);
-    }
-    if ( pos==1 ) {
-        lStr_getCharProps( str, 2, props);
-        return (props[0]&CH_PROP_VOWEL) || (props[1]&CH_PROP_VOWEL);
-    }
-    return true;
-}
+//TODO: do we need it?
+///// returns false if there is rule disabling hyphenation at specified point
+//static bool checkHyphenRules( const lChar16 * str, int len, int pos )
+//{
+//    if ( pos<1 || pos>len-3 )
+//        return false;
+//    lUInt16 props[2] = { 0, 0 };
+//    lStr_getCharProps( str+pos+1, 1, props);
+//    if ( props[0]&CH_PROP_ALPHA_SIGN )
+//        return false;
+//    if ( pos==len-3 ) {
+//        lStr_getCharProps( str+len-2, 2, props);
+//        return (props[0]&CH_PROP_VOWEL) || (props[1]&CH_PROP_VOWEL);
+//    }
+//    if ( pos==1 ) {
+//        lStr_getCharProps( str, 2, props);
+//        return (props[0]&CH_PROP_VOWEL) || (props[1]&CH_PROP_VOWEL);
+//    }
+//    return true;
+//}
 
 bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth )
 {

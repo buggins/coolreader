@@ -133,7 +133,7 @@ typedef struct
 typedef struct
 {
    formatted_word_t * words;       /**< array of words */
-   lUInt32            word_count;  /**< number of words */
+   lInt32             word_count;  /**< number of words */
    lUInt32            y;           /**< start y position of line */
    lUInt16            x;           /**< start x position */
    lUInt16            width;       /**< width */
@@ -148,7 +148,7 @@ typedef struct
 enum {
     highlight_mode_none = 0,
     highlight_mode_solid = 1,
-    highlight_mode_underline = 2,
+    highlight_mode_underline = 2
 };
 
 /** \brief Text highlight options for selection, bookmarks, etc.
@@ -171,9 +171,9 @@ struct text_highlight_options_t {
 typedef struct
 {
    src_text_fragment_t * srctext;       /**< source text lines */
-   lUInt32               srctextlen;    /**< number of source text lines */
+   lInt32                srctextlen;    /**< number of source text lines */
    formatted_line_t   ** frmlines;      /**< formatted lines */
-   lUInt32               frmlinecount;  /**< formatted lines count*/
+   lInt32                frmlinecount;  /**< formatted lines count*/
    lUInt32               height;        /**< height of text fragment */
    lUInt16               width;         /**< width of text fragment */
    lUInt16               page_height;   /**< max page height */

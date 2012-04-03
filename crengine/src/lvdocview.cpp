@@ -1512,7 +1512,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 //        CRLog::trace("Status color = TRANSPARENT, textColor=%06x", getTextColor());
 //    }
 	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
-	lUInt32 cl2 = getBackgroundColor();
+    //lUInt32 cl2 = getBackgroundColor();
 	lUInt32 cl3 = 0xD0D0D0;
 	lUInt32 cl4 = 0xC0C0C0;
 	drawbuf->SetTextColor(cl1);
@@ -4809,7 +4809,7 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 		if (newContent.length() > 0)
 			if (os->Write(newContent.c_str(), newContent.length(),
 					&bytesWritten) != LVERR_OK || bytesWritten
-					!= newContent.length())
+                    != (lUInt32)newContent.length())
 				return false;
 	}
 	return true;
@@ -5273,7 +5273,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     int y0 = GetPos();
     int h = m_pageRects[0].height() - m_pageMargins.top
             - m_pageMargins.bottom - getPageHeaderHeight();
-    int y1 = y0 + h;
+    //int y1 = y0 + h;
     if (makeSelStartVisible) {
         // make start of selection visible
         if (startPoint.y < y0 + m_font_size * 2 || startPoint.y > y0 + h * 3/4)
@@ -5627,7 +5627,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else if (name == PROP_PAGE_MARGIN_TOP || name
 				== PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
 				|| name == PROP_PAGE_MARGIN_BOTTOM) {
-			lUInt32 margin = props->getIntDef(name.c_str(), 8);
+            int margin = props->getIntDef(name.c_str(), 8);
             int maxmargin = (name == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT) ? m_dx / 3 : m_dy / 3;
             if (margin > maxmargin)
                 margin = maxmargin;

@@ -325,7 +325,7 @@ enum CRGUIEventType {
 
     CREV_WM_EVENTS_START=100,
     CREV_UPDATE = 100,
-    CREV_RESIZE,
+    CREV_RESIZE
 
 };
 
@@ -367,7 +367,7 @@ class CRGUIScreen
         // for turbo updates
         enum UpdateMode {
             NormalMode,
-            PrepareMode,
+            PrepareMode
         };
         virtual void setTurboUpdateEnabled( bool flg ) { }
         virtual bool getTurboUpdateEnabled() {  return false; }
@@ -990,7 +990,7 @@ enum CRMenuControlCmd {
 };
 
 enum CRGUICmd {
-	GCMD_PASS_TO_PARENT = 550,
+    GCMD_PASS_TO_PARENT = 550
 };
 
 class CRMenu;

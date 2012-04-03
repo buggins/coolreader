@@ -28,7 +28,7 @@ enum rtf_control_word_type {
     CWT_IPROP, /// integer property
     CWT_DEST,  /// destination
     CWT_ACT,   /// destination
-    CWT_TPROP, /// table property
+    CWT_TPROP  /// table property
 };
 
 typedef struct  {
@@ -42,7 +42,7 @@ typedef struct  {
 enum rtfImageFormat {
     rtf_img_unknown,
     rtf_img_png,
-    rtf_img_jpeg,
+    rtf_img_jpeg
 };
 
 enum propIndex {
@@ -86,7 +86,7 @@ enum hAlign {
     ha_justified,
     ha_right,
     ha_distributed,
-    ha_thai,
+    ha_thai
 };
 
 enum rtfDestination {
@@ -108,7 +108,7 @@ enum rtfTblState {
     tbls_none=0,
     tbls_intable,
     tbls_inrow,
-    tbls_incell,
+    tbls_incell
 };
 
 enum rtf_cmd_id {
@@ -127,6 +127,7 @@ enum rtf_cmd_id {
 #define RTF_CHR( character, name, index ) \
     RTF_##name,
 #include "../include/rtfcmd.h"
+    RTF_max // to fix 'comma at end of enumerator list' error in pedantic mode
 };
 
 class LVRtfDestination;
@@ -156,7 +157,7 @@ public:
         RA_PARA,
         RA_PARD,
         RA_PAGE,
-        RA_SECTION,
+        RA_SECTION
     };
     LVRtfDestination( LVRtfParser & parser );
     virtual void OnTblProp( int id, int param ) = 0;

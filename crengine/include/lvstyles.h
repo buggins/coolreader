@@ -125,7 +125,7 @@ enum lvdom_element_render_method
     erm_table_column, ///< table column
     erm_table_cell, ///< table cell
     erm_table_caption, ///< table caption
-    erm_runin,         ///< run-in
+    erm_runin          ///< run-in
 };
 
 /// node format record

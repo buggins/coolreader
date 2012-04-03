@@ -1765,7 +1765,7 @@ private:
         //if ( m_stream->SetPos( item->start )==(lvpos_t)(~0) )
         if ( m_stream->SetPos( item->start )!=(lvpos_t)item->start )
             return false;
-        int streamSize=m_stream->GetSize(); int bytesLeft = m_stream->GetSize() - m_stream->GetPos();
+        //int streamSize=m_stream->GetSize(); int bytesLeft = m_stream->GetSize() - m_stream->GetPos();
         lvsize_t bytesRead = 0;
         if ( m_stream->Read( item->buf, item->size, &bytesRead )!=LVERR_OK || bytesRead!=item->size )
             return false;
@@ -3831,10 +3831,10 @@ class LVBlockWriteStream : public LVNamedStream
             CRLog::trace("block %x save %x, %x", (int)block_start, (int)pos, (int)len);
 #endif
             int offset = (int)(pos - block_start);
-            if ( offset>size || (int)offset < 0 || len > size || (int)offset + (int)len > size ) {
+            if (offset > size || offset < 0 || (int)len > size || offset + (int)len > size) {
                 CRLog::error("Unaligned access to block %x", (int)block_start);
             }
-            for ( unsigned i=0; i<len; i++ ) {
+            for (unsigned i = 0; i < len; i++ ) {
                 lUInt8 ch1 = buf[offset+i];
                 if ( pos+i>block_end || ch1!=ptr[i] ) {
                     buf[offset+i] = ptr[i];

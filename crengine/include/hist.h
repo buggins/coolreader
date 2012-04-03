@@ -19,7 +19,7 @@ enum bmk_type {
     bmkt_lastpos,
     bmkt_pos,
     bmkt_comment,
-    bmkt_correction,
+    bmkt_correction
 };
 
 class CRBookmark {

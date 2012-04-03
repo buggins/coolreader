@@ -444,8 +444,8 @@ public:
                 }
                 if ( *src == '#' ) {
                     src++;
-                    int c;
-                    if ( sscanf( src, "%x", &c )!=1 ) {
+                    unsigned c;
+                    if ( sscanf(src, "%x", &c) != 1 ) {
                         err = true;
                         break;
                     }

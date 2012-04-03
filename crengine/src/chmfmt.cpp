@@ -285,7 +285,7 @@ public:
     CHMBinaryReader( LVStreamRef stream ) : _stream(stream) {
     }
     bool setPos( int offset ) {
-        return _stream->SetPos(offset) == offset;
+        return (int)_stream->SetPos(offset) == offset;
     }
     bool eof() {
         return _stream->Eof();
@@ -327,9 +327,9 @@ public:
         bytes.clear();
         bytes.reserve(length);
         if ( offset>=0 )
-            if ( _stream->SetPos(offset)!=offset )
+            if ((int)_stream->SetPos(offset) != offset)
                 return false;
-        for ( int i=0; i<length; i++ ) {
+        for (int i = 0; i < length; i++) {
             int b = _stream->ReadByte();
             if ( b==-1 )
                 return false;
@@ -343,7 +343,7 @@ public:
         if ( length==0 )
             return lString8::empty_str;
         if ( offset>=0 )
-            if ( _stream->SetPos(offset)!=offset )
+            if ((int)_stream->SetPos(offset) != offset)
                 return lString8::empty_str;
         lString8 res;
         if ( length>0 )
@@ -366,7 +366,7 @@ public:
         if ( length==0 )
             return lString16::empty_str;
         if ( offset>=0 )
-            if ( _stream->SetPos(offset)!=offset )
+            if ((int)_stream->SetPos(offset) != offset)
                 return lString16::empty_str;
         lString16 res;
         if ( length>0 )
@@ -438,8 +438,10 @@ class CHMUrlStr {
         const lUInt8 * maxdata = ptr + size;
         while ( data + 8 < maxdata ) {
             lUInt32 offset = blockOffset + (data - ptr);
-            lUInt32 urlOffset = readInt32(data);
-            lUInt32 frameOffset = readInt32(data);
+            //lUInt32 urlOffset =
+            readInt32(data);
+            //lUInt32 frameOffset =
+            readInt32(data);
             if ( data < maxdata ) { //urlOffset > offset ) {
                 CHMUrlStrEntry * item = new CHMUrlStrEntry();
                 item->offset = offset;

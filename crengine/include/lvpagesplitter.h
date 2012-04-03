@@ -49,7 +49,7 @@
 
 enum page_type_t {
     PAGE_TYPE_NORMAL = 0,
-    PAGE_TYPE_COVER = 1,
+    PAGE_TYPE_COVER = 1
 };
 
 /// footnote fragment inside page

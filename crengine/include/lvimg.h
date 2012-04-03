@@ -51,7 +51,7 @@ enum ImageTransform {
     IMG_TRANSFORM_NONE,    // just draw w/o any resizing/tiling
     IMG_TRANSFORM_SPLIT,   // split at specified pixel, fill extra middle space with value of this pixel
     IMG_TRANSFORM_STRETCH, // stretch image proportionally to fill whole area
-    IMG_TRANSFORM_TILE,    // tile image
+    IMG_TRANSFORM_TILE     // tile image
 };
 
 /// creates image which stretches source image by filling center with pixels at splitX, splitY

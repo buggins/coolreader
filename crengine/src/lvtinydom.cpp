@@ -126,7 +126,7 @@ enum CacheFileBlockType {
     CBT_STYLE_DATA,
     CBT_BLOB_INDEX, //15
     CBT_BLOB_DATA,
-    CBT_FONT_DATA, //17
+    CBT_FONT_DATA  //17
 };
 
 
@@ -754,7 +754,7 @@ CacheFileItem * CacheFile::allocBlock( lUInt16 type, lUInt16 index, int size )
 bool CacheFile::validate( CacheFileItem * block )
 {
     lUInt8 * buf = NULL;
-    int size = 0;
+    unsigned size = 0;
 
     if ( (int)_stream->SetPos( block->_blockFilePos )!=block->_blockFilePos ) {
         CRLog::error("CacheFile::validate: Cannot set position for block %d:%d of size %d", block->_dataType, block->_dataIndex, (int)size);
@@ -1690,7 +1690,7 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
         if ( !_cacheFile->read( type, i, p, buflen ) )
             return false;
         ldomNode * buf = (ldomNode *)p;
-        if ( !buf || (int)buflen != sizeof(ldomNode)*sz )
+        if (!buf || (unsigned)buflen != sizeof(ldomNode)*sz )
             return false;
         list[i] = buf;
         for ( int j=0; j<sz; j++ ) {
@@ -2026,7 +2026,7 @@ bool ldomDataStorageManager::load()
     _chunks.clear();
     lUInt32 compsize = 0;
     lUInt32 uncompsize = 0;
-    for ( int i=0; i<n; i++ ) {
+    for (lUInt32 i=0; i<n; i++ ) {
         buf >> uncompsize;
         if ( buf.error() ) {
             _chunks.clear();
@@ -2291,26 +2291,26 @@ ldomDataStorageManager::~ldomDataStorageManager()
 /// create chunk to be read from cache file
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize )
 : _manager(manager)
+, _nextRecent(NULL)
+, _prevRecent(NULL)
 , _buf(NULL)   /// buffer for uncompressed data
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
 , _type( manager->_type )
-, _nextRecent(NULL)
-, _prevRecent(NULL)
 , _saved(true)
 {
 }
 
 ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
 : _manager(manager)
+, _nextRecent(NULL)
+, _prevRecent(NULL)
 , _buf(NULL)   /// buffer for uncompressed data
 , _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
 , _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
 , _type( manager->_type )
-, _nextRecent(NULL)
-, _prevRecent(NULL)
 , _saved(false)
 {
     _buf = (lUInt8*)malloc(preAllocSize);
@@ -2320,13 +2320,13 @@ ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageMan
 
 ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
 : _manager(manager)
+, _nextRecent(NULL)
+, _prevRecent(NULL)
 , _buf(NULL)   /// buffer for uncompressed data
 , _bufsize(0)    /// _buf (uncompressed) area size, bytes
 , _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
 , _index(index)      /// ? index of chunk in storage
 , _type( manager->_type )
-, _nextRecent(NULL)
-, _prevRecent(NULL)
 , _saved(false)
 {
 }
@@ -2929,6 +2929,7 @@ lxmlDocBase::lxmlDocBase( lxmlDocBase & doc )
 /// creates empty document which is ready to be copy target of doc partial contents
 ldomDocument::ldomDocument( ldomDocument & doc )
 : lxmlDocBase(doc)
+, m_toc(this)
 #if BUILD_LITE!=1
 , _def_font(doc._def_font) // default font
 , _def_style(doc._def_style)
@@ -2938,7 +2939,6 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 #endif
 , _container(doc._container)
 , lists(100)
-, m_toc(this)
 {
 }
 
@@ -4957,7 +4957,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
-                bool lastWord = (l==txtform->GetLineCount()-1 && w==frmline->word_count-1);
+                bool lastWord = (l == txtform->GetLineCount() - 1 && w == frmline->word_count - 1);
                 if ( word->src_text_index>=srcIndex || lastWord ) {
                     // found word from same src line
                     if ( word->src_text_index>srcIndex || offset<=word->t.start ) {
@@ -6797,6 +6797,8 @@ int ldomMarkedRange::calcDistance( int x, int y, MoveDirection dir ) {
     case DIR_UP:
     case DIR_DOWN:
         return dx + dy*100;
+    case DIR_ANY:
+        return dx + dy;
     }
 
 
@@ -6954,6 +6956,11 @@ ldomWordEx * ldomWordExList::findNearestWord( int x, int y, MoveDirection dir ) 
                     nextLineWord = item; // first word of next line
                 if ( middle.x<=x )
                     continue;
+                break;
+            case DIR_UP:
+            case DIR_DOWN:
+            case DIR_ANY:
+                // none
                 break;
             }
             if ( middle.y!=thisLineY )
@@ -8532,7 +8539,7 @@ public:
             lUInt32 start = buf.pos();
             lUInt32 count;
             buf >> count;
-            for ( int i=0; i<count && !buf.error(); i++ ) {
+            for (lUInt32 i=0; i < count && !buf.error(); i++) {
                 FileItem * item = new FileItem();
                 _files.add( item );
                 buf >> item->filename;
@@ -9359,7 +9366,7 @@ ldomNode * ldomNode::getChildNode( lUInt32 index ) const
 }
 
 /// returns element child count
-lUInt32 ldomNode::getChildCount() const
+int ldomNode::getChildCount() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -9387,7 +9394,7 @@ lUInt32 ldomNode::getChildCount() const
 }
 
 /// returns element attribute count
-lUInt32 ldomNode::getAttrCount() const
+int ldomNode::getAttrCount() const
 {
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
@@ -9740,8 +9747,8 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
     case NT_PELEMENT:
         {
             lString8 txt;
-            unsigned cc = getChildCount();
-            for ( unsigned i=0; i<cc; i++ ) {
+            int cc = getChildCount();
+            for (int i = 0; i < cc; i++) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText8(blockDelimiter, maxSize);
                 if (maxSize != 0 && txt.length() > maxSize)
@@ -10285,7 +10292,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
             // calculate counter
             ldomNode * parent = getParentNode();
             counterValue = 0;
-            for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
+            for (int i = 0; i < parent->getChildCount(); i++) {
                 ldomNode * child = parent->getChildNode(i);
                 css_style_ref_t cs = child->getStyle();
                 if ( cs.isNull() )
@@ -10311,19 +10318,19 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
         static const char * lower_roman[] = {"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix",
                                              "x", "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix",
                                          "xx", "xxi", "xxii", "xxiii"};
-        if ( counterValue>0 ) {
+        if (counterValue > 0) {
             switch (st) {
             case css_lst_decimal:
                 marker = lString16::itoa(counterValue);
                 break;
             case css_lst_lower_roman:
-                if ( counterValue-1<sizeof(lower_roman)/sizeof(lower_roman[0]) )
+                if (counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
                     marker = lString16(lower_roman[counterValue-1]);
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple counter
                 break;
             case css_lst_upper_roman:
-                if ( counterValue-1<sizeof(lower_roman)/sizeof(lower_roman[0]) )
+                if (counterValue - 1 < (int)(sizeof(lower_roman) / sizeof(lower_roman[0])))
                     marker = lString16(lower_roman[counterValue-1]);
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple digital counter
@@ -10340,6 +10347,13 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
                     marker.append(1, 'A' + counterValue-1);
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple digital counter
+                break;
+            case css_lst_disc:
+            case css_lst_circle:
+            case css_lst_square:
+            case css_lst_none:
+            case css_lst_inherit:
+                // do nothing
                 break;
             }
         }

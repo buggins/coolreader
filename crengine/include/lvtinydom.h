@@ -115,14 +115,14 @@ xpath_step_t ParseXPathStep( const lChar8 * &path, lString8 & name, int & index 
 typedef enum {
     CR_DONE,    ///< operation is finished successfully
     CR_TIMEOUT, ///< operation is incomplete - interrupted by timeout
-    CR_ERROR   ///< error while executing operation
+    CR_ERROR    ///< error while executing operation
 } ContinuousOperationResult;
 
 /// type of image scaling
 typedef enum {
-    IMG_NO_SCALE, /// scaling is disabled
+    IMG_NO_SCALE,        /// scaling is disabled
     IMG_INTEGER_SCALING, /// integer multipier/divisor scaling -- *2, *3 only
-    IMG_FREE_SCALING, /// free scaling, non-integer factor
+    IMG_FREE_SCALING     /// free scaling, non-integer factor
 } img_scaling_mode_t;
 
 /// image scaling option
@@ -210,6 +210,7 @@ class CacheLoadingCallback
 public:
     /// called when format of document being loaded from cache became known
     virtual void OnCacheFileFormatDetected( doc_format_t ) = 0;
+    virtual ~CacheLoadingCallback() { }
 };
 
 
@@ -611,10 +612,11 @@ private:
     // types for _handle._type
     enum {
         NT_TEXT=0,       // mutable text node
-        NT_ELEMENT=1,    // mutable element node
+        NT_ELEMENT=1    // mutable element node
 #if BUILD_LITE!=1
+        ,
         NT_PTEXT=2,      // immutable (persistent) text node
-        NT_PELEMENT=3,   // immutable (persistent) element node
+        NT_PELEMENT=3   // immutable (persistent) element node
 #endif
     };
 
@@ -720,9 +722,9 @@ public:
     inline bool hasAttributes() const { return getAttrCount()!=0; }
 
     /// returns element child count
-    lUInt32 getChildCount() const;
+    int getChildCount() const;
     /// returns element attribute count
-    lUInt32 getAttrCount() const;
+    int getAttrCount() const;
     /// returns attribute value by attribute name id and namespace id
     const lString16 & getAttributeValue( lUInt16 nsid, lUInt16 id ) const;
     /// returns attribute value by attribute name
@@ -1685,7 +1687,7 @@ enum MoveDirection {
     DIR_LEFT,
     DIR_RIGHT,
     DIR_UP,
-    DIR_DOWN,
+    DIR_DOWN
 };
 
 /// range in document, marked with specified flags
@@ -1736,7 +1738,7 @@ class ldomWordEx : public ldomWord
     lString16 _text;
 public:
     ldomWordEx( ldomWord & word )
-        :  _word(word), _range(word), _mark(word)
+        :  _word(word), _mark(word), _range(word)
     {
         _text = _word.getText();
     }
@@ -1961,10 +1963,11 @@ class ldomDocument : public lxmlDocBase
     friend class ldomDocumentWriter;
     friend class ldomDocumentWriterFilter;
 private:
+    LVTocItem m_toc;
 #if BUILD_LITE!=1
     font_ref_t _def_font; // default font
     css_style_ref_t _def_style;
-    int _last_docflags;
+    lUInt32 _last_docflags;
     int _page_height;
     int _page_width;
     bool _rendered;
@@ -1991,8 +1994,6 @@ private:
 #endif
 
 protected:
-
-    LVTocItem m_toc;
 
 #if BUILD_LITE!=1
     void applyDocumentStyleSheet();

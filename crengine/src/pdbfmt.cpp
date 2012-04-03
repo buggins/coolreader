@@ -388,7 +388,7 @@ public:
         PALMDOC,
         EREADER,
         PLUCKER,
-        MOBI,
+        MOBI
     };
 private:
 
@@ -421,7 +421,7 @@ private:
         if ( _compression==2 ) {
             // PalmDOC
             int pos = 0;
-            lUInt32 b;
+            lInt32 b;
 
             while (pos<srclen) {
                 b = src[pos];
@@ -485,7 +485,7 @@ private:
         for (int flag = 0x8000; flag; flag >>= 1) {
             if (!(_mobiExtraDataFlags & flag))
                 continue;
-            lUInt32 n = buf[buf.length()-1];
+            lInt32 n = buf[buf.length()-1];
             if (flag == 1) {
                 n &= 3;
 
@@ -778,7 +778,7 @@ public:
                         cnv.rev(&recCount);
                     }
                     LVArray<lUInt8> buf;
-                    for (int i=0; i<recCount; i++) {
+                    for (lUInt32 i=0; i<recCount; i++) {
                         lUInt32 recType = 0;
                         lUInt32 recLen = 0;
                         stream->Read(&recType);
@@ -834,7 +834,7 @@ public:
                         lString16 name = lString16(MOBI_IMAGE_NAME_PREFIX) + fmt::decimal((int)(index-preamble.firstImageIndex));
                         //CRLog::debug("Adding image %s [%d] %s", LCSTR(name), _records[index].size, fmt);
                         container->addItem( new LVPDBRegionContainerItem( stream, this, name, _records[index].offset, _records[index].size ) );
-                        if (index == preamble.firstImageIndex + coverOffset) {
+                        if ((unsigned)index == preamble.firstImageIndex + coverOffset) {
                             m_doc_props->setString(DOC_PROP_COVER_FILE, name);
                             CRLog::trace("MOBI COVER: %s", LCSTR(name));
                         }
@@ -945,9 +945,9 @@ public:
         }
         #endif
 
-        if ( _textSize==-1 )
+        if (_textSize == (lUInt32)-1)
             _textSize = unpoffset;
-        else if ( unpoffset<_textSize ) {
+        else if (unpoffset < _textSize) {
             CRLog::warn("PDB: Unpacked text size is %d but expected %d", unpoffset, _textSize);
             _textSize = unpoffset;
             //return false; // text size does not match

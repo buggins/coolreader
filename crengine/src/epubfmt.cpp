@@ -34,26 +34,26 @@ public:
     }
 };
 
-static void dumpZip( LVContainerRef arc ) {
-    lString16 arcName = LVExtractFilenameWithoutExtension( arc->GetName() );
-    if ( arcName.empty() )
-        arcName = "unziparc";
-    lString16 outDir = lString16("/tmp/") + arcName;
-    LVCreateDirectory(outDir);
-    for ( int i=0; i<arc->GetObjectCount(); i++ ) {
-        const LVContainerItemInfo * info = arc->GetObjectInfo(i);
-        if ( !info->IsContainer() ) {
-            lString16 outFileName = outDir + "/" + info->GetName();
-            LVCreateDirectory(LVExtractPath(outFileName));
-            LVStreamRef in = arc->OpenStream(info->GetName(), LVOM_READ);
-            LVStreamRef out = LVOpenFileStream(outFileName.c_str(), LVOM_WRITE);
-            if ( !in.isNull() && !out.isNull() ) {
-                CRLog::trace("Writing %s", LCSTR(outFileName));
-                LVPumpStream(out.get(), in.get());
-            }
-        }
-    }
-}
+//static void dumpZip( LVContainerRef arc ) {
+//    lString16 arcName = LVExtractFilenameWithoutExtension( arc->GetName() );
+//    if ( arcName.empty() )
+//        arcName = "unziparc";
+//    lString16 outDir = lString16("/tmp/") + arcName;
+//    LVCreateDirectory(outDir);
+//    for ( int i=0; i<arc->GetObjectCount(); i++ ) {
+//        const LVContainerItemInfo * info = arc->GetObjectInfo(i);
+//        if ( !info->IsContainer() ) {
+//            lString16 outFileName = outDir + "/" + info->GetName();
+//            LVCreateDirectory(LVExtractPath(outFileName));
+//            LVStreamRef in = arc->OpenStream(info->GetName(), LVOM_READ);
+//            LVStreamRef out = LVOpenFileStream(outFileName.c_str(), LVOM_WRITE);
+//            if ( !in.isNull() && !out.isNull() ) {
+//                CRLog::trace("Writing %s", LCSTR(outFileName));
+//                LVPumpStream(out.get(), in.get());
+//            }
+//        }
+//    }
+//}
 
 bool DetectEpubFormat( LVStreamRef stream )
 {
@@ -188,6 +188,7 @@ public:
 class EncryptedItemCallback {
 public:
     virtual void addEncryptedItem(EncryptedItem * item) = 0;
+    virtual ~EncryptedItemCallback() {}
 };
 
 
@@ -851,7 +852,6 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
     }
 
-    ldomDocument * ncxdoc = NULL;
     if ( !ncxHref.empty() ) {
         LVStreamRef stream = m_arc->OpenStream(ncxHref.c_str(), LVOM_READ);
         lString16 codeBase = LVExtractPath( ncxHref );

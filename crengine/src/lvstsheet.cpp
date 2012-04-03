@@ -62,7 +62,7 @@ enum css_decl_code {
     cssd_list_style_type,
     cssd_list_style_position,
     cssd_list_style_image,
-    cssd_stop,
+    cssd_stop
 };
 
 static const char * css_decl_name[] = {

@@ -143,7 +143,7 @@ bool CRMoFileTranslator::openMoFile( lString16 fileName )
 		return false;
 	if ( stream->Read( dstTable.get(), count*2 * sizeof(lUInt32), &bytesRead )!=LVERR_OK || bytesRead!=count*2 * sizeof(lUInt32) )
 		return false;
-    int i;
+    lUInt32 i;
 	if ( rev ) {
 		for ( i=0; i<count*2; i++ ) {
 			reverse( srcTable[i] );

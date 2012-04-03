@@ -64,7 +64,7 @@ enum text_selection_cmd_t {
     CMD_SEL_CUR_BACK_BY_WORD,       // move selection depending on current mode (start/end/both) - back by word
     CMD_SEL_CUR_BACK_BY_SENTENCE,   // move selection depending on current mode (start/end/both) - back by sentence
     CMD_SEL_CUR_BACK_BY_PARA,       // move selection depending on current mode (start/end/both) - back by paragraph
-    CMD_SEL_CUR_BACK_BY_INTERVAL,   // move selection depending on current mode (start/end/both) - back by interval (word/sentence/para)
+    CMD_SEL_CUR_BACK_BY_INTERVAL    // move selection depending on current mode (start/end/both) - back by interval (word/sentence/para)
 };
 
 /// text selection tool
@@ -73,16 +73,16 @@ public:
     enum interval_t {
         WORD,
         SENTENCE,
-        PARA,
+        PARA
     };
     enum direction_t {
         FORWARD,
-        BACK,
+        BACK
     };
     enum origin_t {
         START,
         END,
-        ALL,
+        ALL
     };
 private:
     ldomXRange _initialRange;

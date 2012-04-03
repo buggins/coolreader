@@ -2849,7 +2849,7 @@ enum parser_state_t {
     ps_bof,
     ps_lt,
     ps_attr,     // waiting for attributes or end of tag
-    ps_text,
+    ps_text
 };
 
 

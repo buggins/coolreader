@@ -99,7 +99,7 @@ enum LVCssSelectorRuleType
     cssrt_attrhas,       // E[foo~="value"]
     cssrt_attrstarts,    // E[foo|="value"]
     cssrt_id,            // E#id
-    cssrt_class,         // E.class
+    cssrt_class          // E.class
 };
 
 class LVCssSelectorRule

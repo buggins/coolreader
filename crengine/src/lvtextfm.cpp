@@ -76,7 +76,7 @@ void lvtextFreeFormattedLine( formatted_line_t * pline )
 
 formatted_word_t * lvtextAddFormattedWord( formatted_line_t * pline )
 {
-    lUInt32 size = (pline->word_count + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
+    int size = (pline->word_count + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pline->word_count >= size)
     {
         size += FRM_ALLOC_SIZE;
@@ -87,8 +87,8 @@ formatted_word_t * lvtextAddFormattedWord( formatted_line_t * pline )
 
 formatted_line_t * lvtextAddFormattedLine( formatted_text_fragment_t * pbuffer )
 {
-    lUInt32 size = (pbuffer->frmlinecount + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
-    if ( pbuffer->frmlinecount >= size)
+    int size = (pbuffer->frmlinecount + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
+    if (pbuffer->frmlinecount >= size)
     {
         size += FRM_ALLOC_SIZE;
         pbuffer->frmlines = (formatted_line_t**)realloc( pbuffer->frmlines, sizeof(formatted_line_t*)*(size) );
@@ -98,7 +98,7 @@ formatted_line_t * lvtextAddFormattedLine( formatted_text_fragment_t * pbuffer )
 
 formatted_line_t * lvtextAddFormattedLineCopy( formatted_text_fragment_t * pbuffer, formatted_word_t * words, int words_count )
 {
-    lUInt32 size = (pbuffer->frmlinecount + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
+    int size = (pbuffer->frmlinecount + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->frmlinecount >= size)
     {
         size += FRM_ALLOC_SIZE;
@@ -131,7 +131,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
 {
     if (pbuffer->srctext)
     {
-        for (lUInt32 i=0; i<pbuffer->srctextlen; i++)
+        for (int i=0; i<pbuffer->srctextlen; i++)
         {
             if (pbuffer->srctext[i].flags & LTEXT_FLAG_OWNTEXT)
                 free( (void*)pbuffer->srctext[i].t.text );
@@ -140,7 +140,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
     }
     if (pbuffer->frmlines)
     {
-        for (lUInt32 i=0; i<pbuffer->frmlinecount; i++)
+        for (int i=0; i<pbuffer->frmlinecount; i++)
         {
             lvtextFreeFormattedLine( pbuffer->frmlines[i] );
         }
@@ -164,7 +164,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lInt8           letter_spacing
                          )
 {
-    lUInt32 srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
+    int srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->srctextlen >= srctextsize)
     {
         srctextsize += FRM_ALLOC_SIZE;
@@ -206,7 +206,7 @@ void lvtextAddSourceObject(
    lInt8           letter_spacing
                          )
 {
-    lUInt32 srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
+    int srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->srctextlen >= srctextsize)
     {
         srctextsize += FRM_ALLOC_SIZE;
@@ -1093,7 +1093,7 @@ static void freeFrmLines( formatted_text_fragment_t * m_pbuffer )
     // clear existing formatted data, if any
     if (m_pbuffer->frmlines)
     {
-        for (lUInt32 i=0; i<m_pbuffer->frmlinecount; i++)
+        for (int i=0; i<m_pbuffer->frmlinecount; i++)
         {
             lvtextFreeFormattedLine( m_pbuffer->frmlines[i] );
         }
@@ -1187,7 +1187,7 @@ void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int 
 
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks, ldomMarkedRangeList *bookmarks )
 {
-    lUInt32 i, j;
+    int i, j;
     formatted_line_t * frmline;
     src_text_fragment_t * srcline;
     formatted_word_t * word;
@@ -1205,7 +1205,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
         {
             // process background
 
-            lUInt32 bgcl = buf->GetBackgroundColor();
+            //lUInt32 bgcl = buf->GetBackgroundColor();
             //buf->FillRect( x+frmline->x, y + frmline->y, x+frmline->x + frmline->width, y + frmline->y + frmline->height, bgcl );
 
             // draw background for each word

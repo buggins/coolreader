@@ -125,7 +125,7 @@ struct LVFontGlyphCacheItem
 enum hinting_mode_t {
     HINTING_MODE_DISABLED,
     HINTING_MODE_BYTECODE_INTERPRETOR,
-    HINTING_MODE_AUTOHINT,
+    HINTING_MODE_AUTOHINT
 };
 
 

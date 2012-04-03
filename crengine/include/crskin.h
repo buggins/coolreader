@@ -253,7 +253,7 @@ enum page_skin_type_t {
     PAGE_SKIN_SCROLL,
     PAGE_SKIN_LEFT_PAGE,
     PAGE_SKIN_RIGHT_PAGE,
-    PAGE_SKIN_SINGLE_PAGE,
+    PAGE_SKIN_SINGLE_PAGE
 };
 
 class CRPageSkin : public CRSkinnedItem
@@ -314,7 +314,7 @@ class CRScrollSkin : public CRRectSkin
 public:
     enum Location {
         Title,
-        Status,
+        Status
     };
 
 protected:

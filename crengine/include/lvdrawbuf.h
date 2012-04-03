@@ -32,7 +32,7 @@ enum cr_rotate_angle_t {
     CR_ROTATE_ANGLE_0 = 0,
     CR_ROTATE_ANGLE_90,
     CR_ROTATE_ANGLE_180,
-    CR_ROTATE_ANGLE_270,
+    CR_ROTATE_ANGLE_270
 };
 
 class LVFont;
@@ -228,7 +228,7 @@ enum DrawBufPixelFormat
     DRAW_BUF_4_BPP = 4, /// 4 bpp, 1 pixel per byte, higher 4 bits are significant
     DRAW_BUF_8_BPP = 8, /// 8 bpp, 1 pixel per byte, all 8 bits are significant
     DRAW_BUF_16_BPP = 16, /// color 16bit RGB 565
-    DRAW_BUF_32_BPP = 32, /// color 32bit RGB 888
+    DRAW_BUF_32_BPP = 32  /// color 32bit RGB 888
 };
 
 /**

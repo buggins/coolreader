@@ -35,7 +35,7 @@ enum HyphDictType
 	HDT_NONE,      // disable hyphenation
 	HDT_ALGORITHM, // universal
 	HDT_DICT_ALAN, // tex/alreader
-	HDT_DICT_TEX,  // tex/fbreader
+    HDT_DICT_TEX   // tex/fbreader
 };
 
 class HyphDictionary
@@ -53,6 +53,7 @@ public:
 	lString16 getFilename() { return _filename; }
 	bool activate();
 	virtual lUInt32 getHash() { return getTitle().getHash(); }
+    virtual ~HyphDictionary() { }
 };
 
 #define HYPH_DICT_ID_NONE L"@none"

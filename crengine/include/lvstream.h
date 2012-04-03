@@ -58,7 +58,7 @@ enum lverror_t {
     LVERR_FAIL,         ///< failed (unknown error)
     LVERR_EOF,          ///< end of file reached
     LVERR_NOTFOUND,     ///< file not found
-    LVERR_NOTIMPL,      ///< method is not implemented
+    LVERR_NOTIMPL       ///< method is not implemented
 };
 
 /// File open modes enum

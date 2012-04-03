@@ -172,8 +172,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
     int mi = 0;
-    for ( int i=0; i<MAX_MARGIN_INDEX; i++ ) {
-        if ( n <= def_margins[i] ) {
+    for (int i=0; i <  (int)MAX_MARGIN_INDEX; i++) {
+        if (n <= def_margins[i]) {
             mi = i;
             break;
         }
@@ -232,7 +232,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     //PROP_HYPHENATION_DICT
     QString v = QString("%1").arg(m_props->getIntDef(PROP_INTERLINE_SPACE, 100)) + "%";
     QStringList isitems;
-    for ( int i=0; i<sizeof(interline_spaces)/sizeof(int); i++ )
+    for (int i = 0; i < (int)(sizeof(interline_spaces) / sizeof(int)); i++)
         isitems.append(QString("%1").arg(interline_spaces[i]) + "%");
     m_ui->cbInterlineSpace->addItems(isitems);
     int isi = m_ui->cbInterlineSpace->findText(v);

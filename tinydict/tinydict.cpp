@@ -453,7 +453,7 @@ bool TinyDictIndexFile::open( const char * filename )
 enum { 
     DICT_TEXT,
     DICT_GZIP,
-    DICT_DZIP,
+    DICT_DZIP
 };
 
 bool TinyDictZStream::zinit( unsigned char * next_in, unsigned avail_in, unsigned char * next_out, unsigned avail_out )

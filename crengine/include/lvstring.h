@@ -113,8 +113,8 @@ public:
     const lChar16 * data16() const { return buf16; }
     const lChar8 * data8() const { return buf8; }
 private:
-    lUInt32 size;   // 0 for free chunk
-    lUInt32 len;    // count of chars in string
+    lInt32 size;   // 0 for free chunk
+    lInt32 len;    // count of chars in string
     int nref;      // reference counter
     union {
         lstring_chunk_t * nextfree;
@@ -144,7 +144,7 @@ namespace fmt {
         explicit hex(lInt64 v) : value(v) { }
         lUInt64 get() const { return value; }
     };
-};
+}
 
 /**
     \brief lChar8 string
@@ -664,11 +664,11 @@ public:
     void parse( lString16 string, lString16 delimiter, bool flgTrim );
     void reserve(int space);
     int add( const lString16 & str );
-    int add(const lChar16 * str) { add(lString16(str)); }
-    int add(const lChar8 * str) { add(lString16(str)); }
+    int add(const lChar16 * str) { return add(lString16(str)); }
+    int add(const lChar8 * str) { return add(lString16(str)); }
     void addAll( const lString16Collection & v )
 	{
-		for ( unsigned i=0; i<v.length(); i++ )
+        for (int i=0; i<v.length(); i++)
 			add( v[i] );
 	}
     void erase(int offset, int count);
@@ -688,8 +688,8 @@ public:
     void clear();
     bool contains( lString16 value )
     {
-        for ( unsigned i=0; i<count; i++ )
-            if ( value.compare(at(i))==0 )
+        for (int i = 0; i < count; i++)
+            if (value.compare(at(i)) == 0)
                 return true;
         return false;
     }
@@ -1028,7 +1028,7 @@ public:
         LL_WARN,
         LL_INFO,
         LL_DEBUG,
-        LL_TRACE,
+        LL_TRACE
     };
     /// set current log level
     static void setLogLevel( log_level level );

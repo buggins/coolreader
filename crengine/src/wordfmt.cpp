@@ -316,7 +316,7 @@ vSubstring2Diagram(diagram_type *pDiag,
 extern "C" {
     void vStoreStyle(diagram_type *pDiag, output_type *pOutput,
         const style_block_type *pStyle);
-};
+}
 
 /*
  * vStoreStyle - store a style
@@ -723,7 +723,6 @@ bool DetectWordFormat( LVStreamRef stream )
 
     setOptions();
 
-    BOOL bResult = 0;
     lUInt32 lFilesize = (lUInt32)stream->GetSize();
     int iWordVersion = iGuessVersionNumber(file, lFilesize);
     if (iWordVersion < 0 || iWordVersion == 3) {
