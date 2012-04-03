@@ -294,7 +294,7 @@ static void dumpRendMethods( ldomNode * node, lString16 prefix )
     else
         name << "<" << node->getNodeName() << ">   " << fmt::decimal(node->getRendMethod());
     CRLog::trace( "%s ",LCSTR(name) );
-    for ( unsigned i=0; i<node->getChildCount(); i++ ) {
+    for ( int i=0; i<node->getChildCount(); i++ ) {
         dumpRendMethods( node->getChildNode(i), prefix + "   ");
     }
 }
@@ -2026,7 +2026,7 @@ bool ldomDataStorageManager::load()
     _chunks.clear();
     lUInt32 compsize = 0;
     lUInt32 uncompsize = 0;
-    for ( unsigned i=0; i<n; i++ ) {
+    for ( int i=0; i<n; i++ ) {
         buf >> uncompsize;
         if ( buf.error() ) {
             _chunks.clear();
@@ -5078,7 +5078,7 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
             {
                 ldomNode * foundItem = NULL;
                 int foundCount = 0;
-                for (unsigned i=0; i<currNode->getChildCount(); i++) {
+                for (int i=0; i<currNode->getChildCount(); i++) {
                     ldomNode * p = currNode->getChildNode(i);
                     if ( p->isText() ) {
                         foundCount++;
@@ -5173,7 +5173,7 @@ lString16 ldomXPointer::toString()
                 return "/" + name + path;
             int index = -1;
             int count = 0;
-            for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
+            for ( int i=0; i<parent->getChildCount(); i++ ) {
                 ldomNode * node = parent->getChildElementNode( i, id );
                 if ( node ) {
                     count++;
@@ -5191,7 +5191,7 @@ lString16 ldomXPointer::toString()
                 return lString16("/text()") + path;
             int index = -1;
             int count = 0;
-            for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
+            for ( int i=0; i<parent->getChildCount(); i++ ) {
                 ldomNode * node = parent->getChildNode( i );
                 if ( node->isText() ) {
                     count++;
@@ -6852,7 +6852,7 @@ ldomWordEx * ldomWordExList::findWordByPattern()
         lString16 text = item->getText();
         text.lowercase();
         bool flg = true;
-        for ( unsigned j=0; j<pattern.length(); j++ ) {
+        for ( int j=0; j<pattern.length(); j++ ) {
             if ( j>=text.length() ) {
                 flg = false;
                 break;
@@ -6860,7 +6860,7 @@ ldomWordEx * ldomWordExList::findWordByPattern()
             lString16 chars = pattern[j];
             chars.lowercase();
             bool charFound = false;
-            for ( unsigned k=0; k<chars.length(); k++ ) {
+            for ( int k=0; k<chars.length(); k++ ) {
                 if ( chars[k]==text[j] ) {
                     charFound = true;
                     break;
@@ -7188,7 +7188,7 @@ ldomDocument * LVParseHTMLStream( LVStreamRef stream,
 #if 0
 static lString16 escapeDocPath( lString16 path )
 {
-    for ( unsigned i=0; i<path.length(); i++ ) {
+    for ( int i=0; i<path.length(); i++ ) {
         lChar16 ch = path[i];
         if ( ch=='/' || ch=='\\')
             path[i] = '_';
@@ -8497,9 +8497,9 @@ public:
         buf.putMagic( doccache_magic );
 
         lUInt32 start = buf.pos();
-        lUInt32 count = _files.length();
+        int count = _files.length();
         buf << count;
-        for ( unsigned i=0; i<count && !buf.error(); i++ ) {
+        for ( int i=0; i<count && !buf.error(); i++ ) {
             FileItem * item = _files[i];
             buf << item->filename;
             buf << item->size;
@@ -8532,7 +8532,7 @@ public:
             lUInt32 start = buf.pos();
             lUInt32 count;
             buf >> count;
-            for ( unsigned i=0; i<count && !buf.error(); i++ ) {
+            for ( int i=0; i<count && !buf.error(); i++ ) {
                 FileItem * item = new FileItem();
                 _files.add( item );
                 buf >> item->filename;
@@ -9706,9 +9706,9 @@ lString16 ldomNode::getText( lChar16 blockDelimiter, int maxSize ) const
             for ( unsigned i=0; i<cc; i++ ) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText(blockDelimiter, maxSize);
-                if ( maxSize!=0 && txt.length()>(unsigned)maxSize )
+                if (maxSize != 0 && txt.length() > maxSize)
                     break;
-                if ( i>=cc-1 )
+                if (i >= cc - 1)
                     break;
 #if BUILD_LITE!=1
                 if ( blockDelimiter && child->isElement() ) {
@@ -9744,9 +9744,9 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
             for ( unsigned i=0; i<cc; i++ ) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText8(blockDelimiter, maxSize);
-                if ( maxSize!=0 && txt.length()>(unsigned)maxSize )
+                if (maxSize != 0 && txt.length() > maxSize)
                     break;
-                if ( i>=getChildCount()-1 )
+                if (i >= getChildCount() - 1)
                     break;
                 if ( blockDelimiter && child->isElement() ) {
                     if ( child->getStyle()->display == css_d_block )
@@ -9991,7 +9991,7 @@ ldomNode * ldomNode::getFirstTextChild(bool skipEmpty)
             return this;
         lString16 txt = getText();
         bool nonSpaceFound = false;
-        for ( unsigned i=0; i<txt.length(); i++ ) {
+        for ( int i=0; i<txt.length(); i++ ) {
             lChar16 ch = txt[i];
             if ( ch!=' ' && ch!='\t' && ch!='\r' && ch!='\n' ) {
                 nonSpaceFound = true;

@@ -227,7 +227,7 @@ public:
             return 0;
         int colindex = 0;
         int tdindex = 0;
-        for (unsigned i=0; i<el->getChildCount(); i++) {
+        for (int i=0; i<el->getChildCount(); i++) {
             ldomNode * item = el->getChildElementNode(i);
             if ( item ) {
                 // for each child element
@@ -1053,7 +1053,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 int counterValue = 0;
                 ldomNode * parent = enode->getParentNode();
                 int maxWidth = 0;
-                for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
+                for ( int i=0; i<parent->getChildCount(); i++ ) {
                     lString16 marker;
                     int markerWidth = 0;
                     ldomNode * child = parent->getChildElementNode(i);
@@ -1109,7 +1109,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, lString16("\\n"), true);
-                    for ( unsigned i=0; i<lines.length(); i++ )
+                    for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
                 txform->AddSourceObject(flags, line_h, ident, enode );
@@ -1117,14 +1117,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, lString16("\\n"), true);
-                    for ( unsigned i=0; i<lines.length(); i++ )
+                    for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
                 title = enode->getAttributeValue(attr_title);
                 if ( !title.empty() ) {
                     lString16Collection lines;
                     lines.parse(title, lString16("\\n"), true);
-                    for ( unsigned i=0; i<lines.length(); i++ )
+                    for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
             } else {
@@ -1250,7 +1250,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 int flags = baseflags | tflags;
                 lString16Collection lines;
                 SplitLines( txt, lines );
-                for ( unsigned k=0; k<lines.length(); k++ ) {
+                for ( int k=0; k<lines.length(); k++ ) {
                     lString16 str = lines[k];
                     txform->AddSourceLine( str.c_str(), str.length(), cl, bgcl,
                         font, flags, line_h, 0, node, 0, letter_spacing );
@@ -1263,7 +1263,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             int offs = 0;
             if ( txform->GetSrcCount()==0 && style->white_space!=css_ws_pre ) {
                 // clear leading spaces for first text of paragraph
-                unsigned i=0;
+                int i=0;
                 for ( ;txt.length()>i && (txt[i]==' ' || txt[i]=='\t'); i++ )
                     ;
                 if ( i>0 ) {
@@ -1588,7 +1588,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
 
                     // footnote links analysis
                     if ( !isFootNoteBody && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
-                        for ( unsigned w=0; w<line->word_count; w++ ) {
+                        for ( int w=0; w<line->word_count; w++ ) {
                             // check link start flag for every word
                             if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
                                 const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );

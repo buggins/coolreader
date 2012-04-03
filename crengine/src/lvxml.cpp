@@ -131,7 +131,7 @@ lString16 LVFileParserBase::getFileName()
         return lString16::empty_str;
     lString16 name( m_stream->GetName() );
     int lastPathDelim = -1;
-    for ( unsigned i=0; i<name.length(); i++ ) {
+    for ( int i=0; i<name.length(); i++ ) {
         if ( name[i]=='\\' || name[i]=='/' ) {
             lastPathDelim = i;
         }
@@ -1125,7 +1125,7 @@ int DetectHeadingLevelByText( const lString16 & str )
         return 3;
     lChar16 ch = str[0];
     if ( ch>='0' && ch<='9' ) {
-        unsigned i;
+        int i;
         int point_count = 0;
         for ( i=1; i<str.length(); i++ ) {
             ch = str[i];
@@ -1619,7 +1619,7 @@ public:
         if ( !bookAuthors.empty() )
             author_list.parse( bookAuthors, ',', true );
 
-        unsigned i;
+        int i;
         for ( i=0; i<author_list.length(); i++ ) {
             lString16Collection name_list;
             name_list.parse( author_list[i], ' ', true );
@@ -1810,7 +1810,7 @@ public:
         }
 
         int styleTagPos(lChar16 ch) {
-            for ( unsigned i=0; i<styleTags.length(); i++ )
+            for ( int i=0; i<styleTags.length(); i++ )
                 if ( styleTags[i]==ch )
                     return i;
             return -1;
@@ -1849,7 +1849,7 @@ public:
         }
 
         void openStyleTags() {
-            for ( unsigned i=0; i<styleTags.length(); i++ )
+            for ( int i=0; i<styleTags.length(); i++ )
                 openStyleTag(styleTags[i], false);
         }
 
@@ -2421,10 +2421,10 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
         ch = ReadCharFromBuffer();
         //if ( ch==0xFEFF && fpos==0 && res.empty() ) {
         //} else 
-        if ( ch!='\r' && ch!='\n' ) {
+        if (ch != '\r' && ch != '\n') {
             res.append( 1, ch );
-            if ( ch==' ' || ch=='\t' ) {
-                if ( res.length()>=(unsigned)maxLineSize )
+            if (ch == ' ' || ch == '\t') {
+                if (res.length() >= maxLineSize )
                     break;
             }
         } else {
@@ -2459,7 +2459,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
             }
         } else if ( ch=='-' || ch=='*' || ch=='=' ) {
             bool sameChars = true;
-            for ( unsigned i=firstNs; i<res.length(); i++ ) {
+            for ( int i=firstNs; i<res.length(); i++ ) {
                 lChar16 ch2 = res[i];
                 if ( ch2!=' ' && ch2!='\t' && ch2!=ch ) {
                     sameChars = false;

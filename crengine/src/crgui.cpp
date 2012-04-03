@@ -1728,7 +1728,7 @@ static bool readNextLine( const LVStreamRef & stream, lString16 & dst )
 static bool splitLine( lString16 line, const lString16 & delimiter, lString16 & key, lString16 & value )
 {
     if ( !line.empty() ) {
-        unsigned n = line.pos(delimiter);
+        int n = line.pos(delimiter);
         value.clear();
         key = line;
         if ( n>0 && n <line.length()-1 ) {
@@ -1758,7 +1758,7 @@ static int decodeKey( lString16 name )
     if ( name.length() == 1 )
         key = name[0];
     if ( key == 0 && name.length()>=4 && name[0]=='0' && name[1]=='x' ) {
-        for ( unsigned i=2; i<name.length(); i++ ) {
+        for ( int i=2; i<name.length(); i++ ) {
             lChar16 ch = name[i];
             if ( ch>='0' && ch<='9' )
                 key = key*16 + (ch-'0');

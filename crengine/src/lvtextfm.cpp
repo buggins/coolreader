@@ -288,7 +288,7 @@ public:
     void allocate( int start, int end )
     {
         int pos = 0;
-        unsigned i;
+        int i;
         // PASS 1: calculate total length (characters + objects)
         for ( i=start; i<end; i++ ) {
             src_text_fragment_t * src = &m_pbuffer->srctext[i];
@@ -339,7 +339,7 @@ public:
     void copyText( int start, int end )
     {
         int pos = 0;
-        unsigned i;
+        int i;
         for ( i=start; i<end; i++ ) {
             src_text_fragment_t * src = &m_pbuffer->srctext[i];
             if ( src->flags & LTEXT_SRC_IS_OBJECT ) {

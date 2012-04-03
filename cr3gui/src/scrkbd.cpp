@@ -44,9 +44,9 @@ bool CRScreenKeyboard::digitEntered( lChar16 c )
 void CRScreenKeyboard::setLayout( CRKeyboardLayoutRef layout )
 {
 	_keymap.clear();
-	unsigned maxcols = 0;
+    int maxcols = 0;
 	if ( !layout.isNull() ) {
-		for ( unsigned i=1; i<layout->vKeyboard->getItems().length(); i++ ) {
+        for ( int i=1; i<layout->vKeyboard->getItems().length(); i++ ) {
 			lString16 s = layout->vKeyboard->get( i );
 			if ( !s.empty() )
 				_keymap.add( s );

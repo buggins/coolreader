@@ -706,7 +706,7 @@ bool LVCssDeclaration::parse( const char * &decl )
                     // font names
                     buf[buf_pos++] = cssd_font_names;
                     buf[buf_pos++] = strValue.length();
-                    for (unsigned i=0; i<strValue.length(); i++)
+                    for (int i=0; i < strValue.length(); i++)
                         buf[buf_pos++] = strValue[i];
                 }
             }

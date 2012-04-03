@@ -70,7 +70,7 @@ void CRMoFileTranslator::sort()
 
 const char * CRMoFileTranslator::getText( const char * src )
 {
-	unsigned len = _list.length();
+    int len = _list.length();
 	if ( len == 0 )
 		return src;
 	int a = 0;
@@ -143,7 +143,7 @@ bool CRMoFileTranslator::openMoFile( lString16 fileName )
 		return false;
 	if ( stream->Read( dstTable.get(), count*2 * sizeof(lUInt32), &bytesRead )!=LVERR_OK || bytesRead!=count*2 * sizeof(lUInt32) )
 		return false;
-	unsigned i;
+    int i;
 	if ( rev ) {
 		for ( i=0; i<count*2; i++ ) {
 			reverse( srcTable[i] );

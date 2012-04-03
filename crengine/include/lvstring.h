@@ -29,31 +29,31 @@
 
 
 /// strlen for lChar16
-size_t lStr_len(const lChar16 * str);
+int lStr_len(const lChar16 * str);
 /// strlen for lChar8
-size_t lStr_len(const lChar8 * str);
+int lStr_len(const lChar8 * str);
 /// strnlen for lChar16
-size_t lStr_nlen(const lChar16 * str, size_t maxcount);
+int lStr_nlen(const lChar16 * str, int maxcount);
 /// strnlen for lChar8
-size_t lStr_nlen(const lChar8 * str, size_t maxcount);
+int lStr_nlen(const lChar8 * str, int maxcount);
 /// strcpy for lChar16
-size_t lStr_cpy(lChar16 * dst, const lChar16 * src);
+int lStr_cpy(lChar16 * dst, const lChar16 * src);
 /// strcpy for lChar16 -> lChar8
-size_t lStr_cpy(lChar16 * dst, const lChar8 * src);
+int lStr_cpy(lChar16 * dst, const lChar8 * src);
 /// strcpy for lChar8
-size_t lStr_cpy(lChar8 * dst, const lChar8 * src);
+int lStr_cpy(lChar8 * dst, const lChar8 * src);
 /// strncpy for lChar16
-size_t lStr_ncpy(lChar16 * dst, const lChar16 * src, size_t maxcount);
+int lStr_ncpy(lChar16 * dst, const lChar16 * src, int maxcount);
 /// strncpy for lChar8
-size_t lStr_ncpy(lChar8 * dst, const lChar8 * src, size_t maxcount);
+int lStr_ncpy(lChar8 * dst, const lChar8 * src, int maxcount);
 /// memcpy for lChar16
-void   lStr_memcpy(lChar16 * dst, const lChar16 * src, size_t count);
+void   lStr_memcpy(lChar16 * dst, const lChar16 * src, int count);
 /// memcpy for lChar8
-void   lStr_memcpy(lChar8 * dst, const lChar8 * src, size_t count);
+void   lStr_memcpy(lChar8 * dst, const lChar8 * src, int count);
 /// memset for lChar16
-void   lStr_memset(lChar16 * dst, lChar16 value, size_t count);
+void   lStr_memset(lChar16 * dst, lChar16 value, int count);
 /// memset for lChar8
-void   lStr_memset(lChar8 * dst, lChar8 value, size_t count);
+void   lStr_memset(lChar8 * dst, lChar8 value, int count);
 /// strcmp for lChar16
 int    lStr_cmp(const lChar16 * str1, const lChar16 * str2);
 /// strcmp for lChar16 <> lChar8
@@ -159,7 +159,7 @@ class lString8
 public:
     // typedefs for STL compatibility
     typedef lChar8              value_type;      ///< character type
-    typedef size_t              size_type;       ///< size type
+    typedef int                 size_type;       ///< size type
     typedef int                 difference_type; ///< difference type
     typedef value_type *        pointer;         ///< pointer to char type
     typedef value_type &        reference;       ///< reference to char type
@@ -392,7 +392,7 @@ class lString16
 public:
     // typedefs for STL compatibility
     typedef lChar16             value_type;
-    typedef size_t              size_type;
+    typedef int                 size_type;
     typedef int                 difference_type;
     typedef value_type *        pointer;
     typedef value_type &        reference;
@@ -652,8 +652,8 @@ class lString16Collection
 {
 private:
     lstring_chunk_t * * chunks;
-    size_t count;
-    size_t size;
+    int count;
+    int size;
 public:
     lString16Collection()
         : chunks(NULL), count(0), size(0)
@@ -662,29 +662,29 @@ public:
     void parse( lString16 string, lChar16 delimiter, bool flgTrim );
     /// parse delimiter-separated string
     void parse( lString16 string, lString16 delimiter, bool flgTrim );
-    void reserve( size_t space );
-    size_t add( const lString16 & str );
-    size_t add(const lChar16 * str) { add(lString16(str)); }
-    size_t add(const lChar8 * str) { add(lString16(str)); }
+    void reserve(int space);
+    int add( const lString16 & str );
+    int add(const lChar16 * str) { add(lString16(str)); }
+    int add(const lChar8 * str) { add(lString16(str)); }
     void addAll( const lString16Collection & v )
 	{
 		for ( unsigned i=0; i<v.length(); i++ )
 			add( v[i] );
 	}
     void erase(int offset, int count);
-    const lString16 & at( size_t index )
+    const lString16 & at(int index)
     {
         return ((lString16 *)chunks)[index];
     }
-    const lString16 & operator [] ( size_t index ) const
+    const lString16 & operator [] (int index) const
     {
         return ((lString16 *)chunks)[index];
     }
-    lString16 & operator [] ( size_t index )
+    lString16 & operator [] (int index)
     {
         return ((lString16 *)chunks)[index];
     }
-    size_t length() const { return count; }
+    int length() const { return count; }
     void clear();
     bool contains( lString16 value )
     {
@@ -706,8 +706,8 @@ class lString8Collection
 {
 private:
     lstring_chunk_t * * chunks;
-    size_t count;
-    size_t size;
+    int count;
+    int size;
 public:
     lString8Collection()
         : chunks(NULL), count(0), size(0)
@@ -717,24 +717,24 @@ public:
     {
         split(str, delimiter);
     }
-    void reserve( size_t space );
-    size_t add(const lString8 & str);
+    void reserve(int space);
+    int add(const lString8 & str);
     /// split string by delimiters, and add all substrings to collection
     void split(const lString8 & str, const lString8 & delimiter);
     void erase(int offset, int count);
-    const lString8 & at( size_t index )
+    const lString8 & at(int index)
     {
         return ((lString8 *)chunks)[index];
     }
-    const lString8 & operator [] ( size_t index ) const
+    const lString8 & operator [] (int index) const
     {
         return ((lString8 *)chunks)[index];
     }
-    lString8 & operator [] ( size_t index )
+    lString8 & operator [] (int index)
     {
         return ((lString8 *)chunks)[index];
     }
-    size_t length() const { return count; }
+    int length() const { return count; }
     void clear();
     ~lString8Collection()
     {
@@ -751,7 +751,7 @@ class SerialBuf;
 class lString16HashedCollection : public lString16Collection
 {
 private:
-    size_t hashSize;
+    int hashSize;
     struct HashPair {
         int index;
         HashPair * next;
@@ -771,8 +771,8 @@ public:
     lString16HashedCollection( lString16HashedCollection & v );
     lString16HashedCollection( lUInt32 hashSize );
     ~lString16HashedCollection();
-    size_t add( const lChar16 * s );
-    size_t find( const lChar16 * s );
+    int add( const lChar16 * s );
+    int find( const lChar16 * s );
 };
 
 /// returns true if two wide strings are equal

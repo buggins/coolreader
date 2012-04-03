@@ -824,7 +824,7 @@ VIEWER_MENU_4ABOUT=About...
 	CRGUIAcceleratorTableRef menuItems = _wm->getAccTables().get(lString16("mainMenuItems"));
 	if ( !menuItems.isNull() && menuItems->length()>1 ) {
 		// get menu from file
-		for ( unsigned i=0; i<menuItems->length(); i++ ) {
+        for ( int i=0; i<menuItems->length(); i++ ) {
 			const CRGUIAccelerator * acc = menuItems->get( i );
 			int cmd = acc->commandId;
 			int param = acc->commandParam;

@@ -263,7 +263,7 @@ void testHyphen( const char * str )
     HyphMan::hyphenate( s16.c_str(), s16.length(), widths, flags, 1, 15 );
     lString8 buf( str );
     buf << " = ";
-    for ( unsigned i=0; i<s16.length(); i++ ) {
+    for ( int i=0; i<s16.length(); i++ ) {
         buf << str[i];
         if ( flags[i] & LCHAR_ALLOW_HYPH_WRAP_AFTER )
             buf << '-';
@@ -383,7 +383,7 @@ ResourceContainer * resources = NULL;
 
 static lChar16 detectSlash( lString16 path )
 {
-    for ( unsigned i=0; i<path.length(); i++ )
+    for ( int i=0; i<path.length(); i++ )
         if ( path[i]=='\\' || path[i]=='/' )
             return path[i];
 #ifdef _WIN32
@@ -538,7 +538,7 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16
 {
     int foundCount = 0;
     lString16 path;
-    for ( unsigned di=0; di<pathList.length();di++ ) {
+    for ( int di=0; di<pathList.length();di++ ) {
         path = pathList[di];
         LVContainerRef dir = LVOpenDirectory(path.c_str());
         if ( !dir.isNull() ) {
@@ -714,7 +714,7 @@ cr3app::OnInit()
     // load fonts from file
     CRLog::debug("%d font files found", fonts.length());
     if (!fontMan->GetFontCount()) {
-        for ( unsigned fi=0; fi<fonts.length(); fi++ ) {
+        for ( int fi=0; fi<fonts.length(); fi++ ) {
             lString8 fn = UnicodeToLocal(fonts[fi]);
             CRLog::trace("loading font: %s", fn.c_str());
             if ( !fontMan->RegisterFont(fn) ) {

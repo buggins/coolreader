@@ -312,7 +312,7 @@ void CRPropAccessor::setInt( const char * propName, int value )
 /// get color (#xxxxxx) property by name, returns false if not found
 bool CRPropAccessor::getColor( const char * propName, lUInt32 &result ) const
 {
-    unsigned n = 0;
+    int n = 0;
     lString16 value;
     if ( !getString( propName, value ) ) {
         //CRLog::debug("%s is not found", propName);
@@ -322,7 +322,7 @@ bool CRPropAccessor::getColor( const char * propName, lUInt32 &result ) const
 //        CRLog::debug("%s = %s", propName, LCSTR(value));
         return false;
     }
-    for ( unsigned i=value[0]=='#' ? 1 : 2; i<value.length(); i++ ) {
+    for ( int i=value[0]=='#' ? 1 : 2; i<value.length(); i++ ) {
         lChar16 ch = value[i];
         if ( ch>='0' && ch<='9' )
             n = (n << 4) | (ch - '0');
@@ -491,7 +491,7 @@ CRPropAccessor::~CRPropAccessor()
 
 static lString8 addBackslashChars( lString8 str )
 {
-    unsigned i;
+    int i;
     bool found = false;
     for ( i=0; i<str.length(); i++ ) {
         char ch = str[i];
@@ -528,7 +528,7 @@ static lString8 addBackslashChars( lString8 str )
 
 static lString8 removeBackslashChars( lString8 str )
 {
-    unsigned i;
+    int i;
     bool found = false;
     for ( i=0; i<str.length(); i++ ) {
         char ch = str[i];

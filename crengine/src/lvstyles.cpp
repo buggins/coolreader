@@ -219,7 +219,7 @@ lString8 joinPropertyValueList( const lString8Collection & list )
     lString8 res;
     res.reserve(100);
     
-    for (unsigned i=0; i<list.length(); i++)
+    for (int i=0; i<list.length(); i++)
     {
         if (i>0)
             res << ", ";

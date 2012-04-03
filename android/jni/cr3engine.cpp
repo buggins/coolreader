@@ -456,7 +456,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 		if ( !fontMan->RegisterFont( fontName ) )
 			CRLog::error("cannot load font %s", fontName.c_str());
 	}
-	CRLog::info("%d fonts registered", (int)fontMan->GetFontCount());
+    CRLog::info("%d fonts registered", fontMan->GetFontCount());
 	return fontMan->GetFontCount() ? JNI_TRUE : JNI_FALSE;
 }
 

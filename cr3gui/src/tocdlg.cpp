@@ -50,9 +50,9 @@ void CRTOCDialog::draw()
     tocRect.shrinkBy(borders);
     int curPage = _docview->getCurPage();
     // draw toc
-    for ( int i=0; i<_pageItems && i+_topItem<(int)_items.length(); i++ ) {
+    for (int i=0; i < _pageItems && i + _topItem < _items.length(); i++) {
         LVTocItem * item = _items[ i + _topItem];
-        LVTocItem * nextitem = (i+_topItem+1)<(int)_items.length()
+        LVTocItem * nextitem = (i+_topItem+1) < _items.length()
                                ? _items[ i + _topItem + 1] : NULL;
 
         //lvRect margins( 10, 10, 10, 10 );
@@ -144,7 +144,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     int curItem = getCurItemIndex();
     _topItem = curItem>=0 ? curItem / _pageItems * _pageItems : 0;
     _page = _topItem / _pageItems + 1;
-    _pages = (_items.length()+(_pageItems-1))/ _pageItems;
+    _pages = (_items.length() + (_pageItems - 1)) / _pageItems;
     int curPage = _docview->getCurPage();
     int docPages = _docview->getPageCount();
     lString16 pageString(_("Current page: $1 of $2\n"));
@@ -174,7 +174,7 @@ int CRTOCDialog::getCurItemIndex()
     int curPage = _docview->getCurPage();
     for ( int i=0; i<_items.length(); i++ ) {
         LVTocItem * item = _items[ i ];
-        LVTocItem * nextitem = (i+1)<(int)_items.length()
+        LVTocItem * nextitem = (i+1) < _items.length()
                                ? _items[ i + 1] : NULL;
         bool isSelected = true;
         if ( curPage < item->getPage() )

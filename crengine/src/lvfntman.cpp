@@ -1456,7 +1456,7 @@ public:
                         letter_spacing
                      );
         int w = 0;
-        for ( unsigned i=0; i<res; i++ ) {
+        for ( int i=0; i<res; i++ ) {
             w += _hShift;
             widths[i] += w;
         }
@@ -2285,7 +2285,7 @@ public:
         // TODO: check existance of required characters (e.g. cyrillic)
         if (face==NULL)
             return false; // invalid face
-        for ( unsigned i=0; i<_requiredChars.length(); i++ ) {
+        for ( int i=0; i<_requiredChars.length(); i++ ) {
             lChar16 ch = _requiredChars[i];
             FT_UInt ch_glyph_index = FT_Get_Char_Index( face, ch );
             if ( ch_glyph_index==0 ) {
@@ -3156,7 +3156,7 @@ LVFontCacheItem * LVFontCache::find( const LVFontDef * fntdef )
     LVFontDef def(*fntdef);
     lString8Collection list;
     splitPropertyValueList( fntdef->getTypeFace().c_str(), list );
-    for (unsigned nindex=0; nindex==0 || nindex<list.length(); nindex++)
+    for (int nindex=0; nindex==0 || nindex<list.length(); nindex++)
     {
         if ( nindex<list.length() )
             def.setTypeFace( list[nindex] );

@@ -266,7 +266,7 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16Collection & ex
 {
     int foundCount = 0;
     lString16 path;
-    for ( unsigned di=0; di<pathList.length();di++ ) {
+    for ( int di=0; di<pathList.length();di++ ) {
         path = pathList[di];
         LVContainerRef dir = LVOpenDirectory(path.c_str());
         if ( !dir.isNull() ) {
@@ -280,7 +280,7 @@ bool getDirectoryFonts( lString16Collection & pathList, lString16Collection & ex
                     bool found = false;
                     lString16 lc = fileName;
                     lc.lowercase();
-                    for ( unsigned j=0; j<ext.length(); j++ ) {
+                    for ( int j=0; j<ext.length(); j++ ) {
                         if ( lc.endsWith(ext[j]) ) {
                             found = true;
                             break;
@@ -409,7 +409,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     // load fonts from file
     CRLog::debug("%d font files found", fonts.length());
     //if (!fontMan->GetFontCount()) {
-	for ( unsigned fi=0; fi<fonts.length(); fi++ ) {
+    for ( int fi=0; fi<fonts.length(); fi++ ) {
 	    lString8 fn = UnicodeToLocal(fonts[fi]);
 	    CRLog::trace("loading font: %s", fn.c_str());
 	    if ( !fontMan->RegisterFont(fn) ) {

@@ -623,7 +623,7 @@ void CRViewDialog::showKeymapDialog()
 	lString8 txt;
 	txt << "<table><tr><th>";
 	txt << "<b>" << _("Key") << "</b></th><th><b>"<< _("Assigned function") <<"</b></th></tr>";
-	for ( unsigned i=0; i<_acceleratorTable->length(); i++ ) {
+    for ( int i=0; i<_acceleratorTable->length(); i++ ) {
 		const CRGUIAccelerator * acc = _acceleratorTable->get( i );
 		txt << "<tr><td>";
 		txt << getKeyName( acc->keyCode, acc->keyFlags );

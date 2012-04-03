@@ -3472,7 +3472,7 @@ LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream )
 lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
 {
     int last_delim_pos = -1;
-    for ( unsigned i=0; i<pathName.length(); i++ )
+    for ( int i=0; i<pathName.length(); i++ )
         if ( pathName[i]=='/' || pathName[i]=='\\' )
             last_delim_pos = i;
     if ( last_delim_pos==-1 )
@@ -3488,7 +3488,7 @@ lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
 lString16 LVExtractFilename( lString16 pathName )
 {
     int last_delim_pos = -1;
-    for ( unsigned i=0; i<pathName.length(); i++ )
+    for ( int i=0; i<pathName.length(); i++ )
         if ( pathName[i]=='/' || pathName[i]=='\\' )
             last_delim_pos = i;
     if ( last_delim_pos==-1 )
@@ -3501,7 +3501,7 @@ lString16 LVExtractFilenameWithoutExtension( lString16 pathName )
 {
     lString16 s = LVExtractFilename( pathName );
     int lastDot = -1;
-    for ( unsigned i=0; i<s.length(); i++ )
+    for ( int i=0; i<s.length(); i++ )
         if ( s[i]=='.' )
             lastDot = i;
     if ( lastDot<=0 || lastDot<(int)s.length()-7 )
@@ -3533,7 +3533,7 @@ lString16 LVExtractFirstPathElement( lString16 & pathName )
     if ( pathName[0]=='/' || pathName[0]=='\\' )
         pathName.erase(0, 1);
     int first_delim_pos = -1;
-    for ( unsigned i=0; i<pathName.length(); i++ )
+    for ( int i=0; i<pathName.length(); i++ )
         if ( pathName[i]=='/' || pathName[i]=='\\' ) {
             first_delim_pos = i;
             break;
@@ -3575,14 +3575,14 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
     lChar16 separator = 0;
     if (!basePath.empty())
         LVAppendPathDelimiter(basePath);
-    for ( unsigned i=0; i<basePath.length(); i++ ) {
+    for ( int i=0; i<basePath.length(); i++ ) {
         if ( basePath[i]=='/' || basePath[i]=='\\' ) {
             separator = basePath[i];
             break;
         }
     }
     if ( separator == 0 )
-        for ( unsigned i=0; i<newPath.length(); i++ ) {
+        for ( int i=0; i<newPath.length(); i++ ) {
             if ( newPath[i]=='/' || newPath[i]=='\\' ) {
                 separator = newPath[i];
                 break;
@@ -3633,7 +3633,7 @@ lString16 LVExtractLastPathElement( lString16 & pathName )
     if ( pathName[l-1]=='/' || pathName[l-1]=='\\' )
         pathName.erase(l-1, 1);
     int last_delim_pos = -1;
-    for ( unsigned i=0; i<pathName.length(); i++ )
+    for ( int i=0; i<pathName.length(); i++ )
         if ( pathName[i]=='/' || pathName[i]=='\\' )
             last_delim_pos = i;
     if ( last_delim_pos==-1 ) {
@@ -3649,7 +3649,7 @@ lString16 LVExtractLastPathElement( lString16 & pathName )
 /// returns path delimiter character
 lChar16 LVDetectPathDelimiter( lString16 pathName )
 {
-    for ( unsigned i=0; i<pathName.length(); i++ )
+    for ( int i=0; i<pathName.length(); i++ )
         if ( pathName[i]=='/' || pathName[i]=='\\' )
             return pathName[i];
 #ifdef _LINUX

@@ -34,7 +34,7 @@ static void findImagesFromDirectory( lString16 dir, lString16Collection & files 
 }
 
 static void findBackgrounds( lString16Collection & baseDirs, lString16Collection & files ) {
-	unsigned i;
+    int i;
     for ( i=0; i<baseDirs.length(); i++ ) {
         lString16 baseDir = baseDirs[i];
         LVAppendPathDelimiter(baseDir);
@@ -104,7 +104,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_backgroundFiles.append("[NONE]");
     bgFileLabels.append("[NONE]");
     QString bgFile = m_props->getStringDef(PROP_BACKGROUND_IMAGE, "");
-    for ( unsigned i=0; i<bgFiles.length(); i++ ) {
+    for ( int i=0; i<bgFiles.length(); i++ ) {
         lString16 fn = bgFiles[i];
         QString f = cr2qt(fn);
         if ( f==bgFile )
@@ -172,7 +172,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
 
     int n = m_props->getIntDef( PROP_PAGE_MARGIN_LEFT, 8 );
     int mi = 0;
-    for ( unsigned i=0; i<MAX_MARGIN_INDEX; i++ ) {
+    for ( int i=0; i<MAX_MARGIN_INDEX; i++ ) {
         if ( n <= def_margins[i] ) {
             mi = i;
             break;
