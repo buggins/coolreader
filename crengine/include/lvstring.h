@@ -130,6 +130,22 @@ private:
 
 };
 
+namespace fmt {
+    class decimal {
+        lInt64 value;
+    public:
+        explicit decimal(lInt64 v) : value(v) { }
+        lInt64 get() const { return value; }
+    };
+
+    class hex {
+        lUInt64 value;
+    public:
+        explicit hex(lInt64 v) : value(v) { }
+        lUInt64 get() const { return value; }
+    };
+};
+
 /**
     \brief lChar8 string
 
@@ -149,6 +165,20 @@ public:
     typedef value_type &        reference;       ///< reference to char type
     typedef const value_type *  const_pointer;   ///< pointer to const char type
     typedef const value_type &  const_reference; ///< reference to const char type
+
+    class decimal {
+        lInt64 value;
+    public:
+        explicit decimal(lInt64 v) : value(v) { }
+        lInt64 get() { return value; }
+    };
+
+    class hex {
+        lUInt64 value;
+    public:
+        explicit hex(lInt64 v) : value(v) { }
+        lUInt64 get() { return value; }
+    };
 
 private:
     lstring_chunk_t * pchunk;
@@ -209,6 +239,10 @@ public:
     lString8 & append(const lString8 & str, size_type offset, size_type count);
     /// append repeated character
     lString8 & append(size_type count, value_type ch);
+    /// append decimal number
+    lString8 & appendDecimal(lInt64 v);
+    /// append hex number
+    lString8 & appendHex(lUInt64 v);
     /// insert C-string
     lString8 & insert(size_type p0, const value_type * str);
     /// insert C-string fragment
@@ -242,10 +276,18 @@ public:
     /// compare part of string with C-string fragment
     int compare(size_type p0, size_type n0, const value_type *s, size_type pos) const;
     /// find position of substring inside string, -1 if not found
-    int pos(lString8 subStr) const;
+    int pos(const lString8 & subStr) const;
+    /// find position of substring inside string, -1 if not found
+    int pos(const char * subStr) const;
+    /// find position of substring inside string starting from specified position, -1 if not found
+    int pos(const lString8 & subStr, int startPos) const;
+    /// find position of substring inside string starting from specified position, -1 if not found
+    int pos(const char * subStr, int startPos) const;
 
     /// substring
     lString8 substr(size_type pos, size_type n) const;
+    /// substring from position to end of string
+    lString8 substr(size_type pos) const { return substr(pos, length() - pos); }
 
     /// append single character
     lString8 & operator << (value_type ch) { return append(1, ch); }
@@ -253,6 +295,10 @@ public:
     lString8 & operator << (const value_type * str) { return append(str); }
     /// append string
     lString8 & operator << (const lString8 & str) { return append(str); }
+    /// append decimal number
+    lString8 & operator << (const fmt::decimal & v) { return appendDecimal(v.get()); }
+    /// append hex number
+    lString8 & operator << (const fmt::hex & v) { return appendHex(v.get()); }
 
     /// returns true if string starts with specified substring
     bool startsWith ( const lString8 & substring ) const;
@@ -302,6 +348,8 @@ public:
     lString8 & trim();
     /// convert to integer
     int atoi() const;
+    /// convert to 64 bit integer
+    lInt64 atoi64() const;
 
     /// returns C-string
     const value_type * c_str() const { return pchunk->buf8; }
@@ -614,8 +662,15 @@ public:
     lString8Collection()
         : chunks(NULL), count(0), size(0)
     { }
+    lString8Collection(const lString8 & str, const lString8 & delimiter)
+        : chunks(NULL), count(0), size(0)
+    {
+        split(str, delimiter);
+    }
     void reserve( size_t space );
-    size_t add( const lString8 & str );
+    size_t add(const lString8 & str);
+    /// split string by delimiters, and add all substrings to collection
+    void split(const lString8 & str, const lString8 & delimiter);
     void erase(int offset, int count);
     const lString8 & at( size_t index )
     {

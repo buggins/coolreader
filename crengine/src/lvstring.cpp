@@ -1044,6 +1044,19 @@ void lString16Collection::erase(int offset, int cnt)
         clear();
 }
 
+void lString8Collection::split( const lString8 & str, const lString8 & delimiter )
+{
+    if (str.empty())
+        return;
+    for (int startpos = 0; startpos < str.length(); ) {
+        int pos = str.pos(delimiter, startpos);
+        if (pos < 0)
+            pos = str.length();
+        add(str.substr(startpos, pos - startpos));
+        startpos = pos + delimiter.length();
+    }
+}
+
 void lString8Collection::erase(int offset, int cnt)
 {
     if (count<=0)
@@ -1618,6 +1631,47 @@ lString8 & lString8::append(const lChar8 * str)
     return *this;
 }
 
+lString8 & lString8::appendDecimal(lInt64 n)
+{
+    lChar8 buf[24];
+    int i=0;
+    int negative = 0;
+    if (n==0)
+        return append(1, '0');
+    else if (n<0)
+    {
+        negative = 1;
+        n = -n;
+    }
+    for ( ; n; n/=10 )
+    {
+        buf[i++] = '0' + (n % 10);
+    }
+    reserve(length() + i + negative);
+    if (negative)
+        append(1, '-');
+    for (int j=i-1; j>=0; j--)
+        append(1, buf[j]);
+    return *this;
+}
+
+lString8 & lString8::appendHex(lUInt64 n)
+{
+    if (n == 0)
+        return append(1, '0');
+    reserve(length() + 16);
+    bool foundNz = false;
+    for (int i=0; i<16; i++) {
+        int digit = (n >> 60) & 0x0F;
+        if (digit)
+            foundNz = true;
+        if (foundNz)
+            append(1, (lChar8)toHexDigit(digit));
+        n >>= 4;
+    }
+    return *this;
+}
+
 lString8 & lString8::append(const lChar8 * str, size_type count)
 {
     size_type len = _lStr_nlen(str, count);
@@ -1683,7 +1737,7 @@ lString8 lString8::substr(size_type pos, size_type n) const
     return lString8( pchunk->buf8+pos, n );
 }
 
-int lString8::pos(lString8 subStr) const
+int lString8::pos(const lString8 & subStr) const
 {
     if (subStr.length()>length())
         return -1;
@@ -1694,6 +1748,73 @@ int lString8::pos(lString8 subStr) const
         int flg = 1;
         for (int j=0; j<l; j++)
             if (pchunk->buf8[i+j]!=subStr.pchunk->buf8[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, -1 if not found
+int lString8::pos(const char * subStr) const
+{
+    if (!subStr || !subStr[0])
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length())
+        return -1;
+    int dl = length() - l;
+    for (int i=0; i<=dl; i++)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf8[i+j] != subStr[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+int lString8::pos(const lString8 & subStr, int startPos) const
+{
+    if (subStr.length() > length() - startPos)
+        return -1;
+    int l = subStr.length();
+    int dl = length() - l;
+    for (int i = startPos; i <= dl; i++) {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf8[i+j]!=subStr.pchunk->buf8[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, -1 if not found
+int lString8::pos(const char * subStr, int startPos) const
+{
+    if (!subStr || !subStr[0])
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length() - startPos)
+        return -1;
+    int dl = length() - l;
+    for (int i = startPos; i <= dl; i++) {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf8[i+j] != subStr[j])
             {
                 flg = 0;
                 break;
@@ -1828,6 +1949,29 @@ int lString8::atoi() const
         n = n * 10 + ( (*s)-'0' );
     }
     return (sgn>0)?n:-n;
+}
+
+lInt64 lString8::atoi64() const
+{
+    int sgn = 1;
+    lInt64 n = 0;
+    const lChar8 * s = c_str();
+    while (*s == ' ' || *s == '\t')
+        s++;
+    if (*s == '-')
+    {
+        sgn = -1;
+        s++;
+    }
+    else if (*s == '+')
+    {
+        s++;
+    }
+    while (*s>='0' && *s<='9')
+    {
+        n = n * 10 + ( (*s)-'0' );
+    }
+    return (sgn>0) ? n : -n;
 }
 
 // constructs string representation of integer
