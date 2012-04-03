@@ -407,4 +407,17 @@
     <string name="options_view_color_bookmark_correction">Correction color</string>
     <string name="options_view_bookmarks_highlight_solid">Solid color</string>
     <string name="win_title_confirm_bookmark_delete">Do you really want to delete this bookmark?</string>
+<string name="options_app_locale_bg">Bulgarian</string>
+    <string name="options_app_locale_hu">Hungarian</string>
+    <string name="options_app_locale_de">German</string>
+    <string name="options_app_locale_es">Spanish</string>
+    <string name="options_app_locale_en">English</string>
+    <string name="options_app_locale_zh_cn">Chinese</string>
+    <string name="options_app_locale_uk">Ukrainian</string>
+    <string name="options_app_locale_tr">Turkish</string>
+    <string name="options_app_locale_it">Italian</string>
+    <string name="options_app_locale_ru">Russian</string>
+    <string name="options_app_locale_sk">Slovak</string>
+    <string name="options_app_locale_nl">Dutch</string>
+    <string name="options_app_locale_lt">Lithuanian</string>
 </resources>

@@ -407,4 +407,17 @@
     <string name="options_view_bookmarks_highlight_solid">Цвет фона</string>
     <string name="win_title_confirm_bookmark_delete">Вы действительно хотите удалить эту закладку?</string>
     <string name="option_controls_gesture_page_flipping_enabled">Листание жестами</string>
+<string name="options_app_locale_bg">Bulgarian</string>
+    <string name="options_app_locale_hu">Hungarian</string>
+    <string name="options_app_locale_de">German</string>
+    <string name="options_app_locale_es">Spanish</string>
+    <string name="options_app_locale_en">English</string>
+    <string name="options_app_locale_zh_cn">Chinese</string>
+    <string name="options_app_locale_uk">Ukrainian</string>
+    <string name="options_app_locale_tr">Turkish</string>
+    <string name="options_app_locale_it">Italian</string>
+    <string name="options_app_locale_ru">Russian</string>
+    <string name="options_app_locale_sk">Slovak</string>
+    <string name="options_app_locale_nl">Dutch</string>
+    <string name="options_app_locale_lt">Lithuanian</string>
 </resources>
