@@ -236,12 +236,12 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 
     lString16Collection fontExt;
     #if (USE_FREETYPE==1)
-        fontExt.add(lString16(L".ttf"));
-        fontExt.add(lString16(L".otf"));
-        fontExt.add(lString16(L".pfa"));
-        fontExt.add(lString16(L".pfb"));
+        fontExt.add(".ttf");
+        fontExt.add(".otf");
+        fontExt.add(".pfa");
+        fontExt.add(".pfb");
     #else
-        fontExt.add(lString16(L".lbf"));
+        fontExt.add(".lbf");
     #endif
     #if (USE_FREETYPE==1)
         lString16Collection fonts;
@@ -254,14 +254,14 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
         };
     #ifdef _LINUX
     #ifndef LBOOK
-        fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
-        fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-        fontDirs.add( lString16(L"/usr/share/crengine/fonts") );
-        fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
-        fontDirs.add( lString16(L"/root/fonts/truetype") );
+        fontDirs.add("/usr/local/share/crengine/fonts");
+        fontDirs.add("/usr/local/share/fonts/truetype/freefont");
+        fontDirs.add("/usr/share/crengine/fonts");
+        fontDirs.add("/usr/share/fonts/truetype/freefont");
+        fontDirs.add("/root/fonts/truetype");
         //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
         for ( int fi=0; msfonts[fi]; fi++ )
-            fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
+            fonts.add( lString16("/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
     #endif
     #endif
         getDirectoryFonts( fontDirs, fontExt, fonts, true );

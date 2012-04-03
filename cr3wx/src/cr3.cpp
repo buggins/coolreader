@@ -109,7 +109,7 @@ class CRFileProperties {
             if ( !container_stream.isNull() ) {
                 ldomDocument * doc = LVParseXMLStream( container_stream );
                 if ( doc ) {
-                    ldomNode * rootfile = doc->nodeFromXPath( lString16(L"container/rootfiles/rootfile") );
+                    ldomNode * rootfile = doc->nodeFromXPath( lString16("container/rootfiles/rootfile") );
                     if ( rootfile && rootfile->isElement() ) {
                         rootfilePath = rootfile->getAttributeValue(L"full-path");
                         rootfileMediaType = rootfile->getAttributeValue(L"media-type");
@@ -133,8 +133,8 @@ class CRFileProperties {
             if ( !content_stream.isNull() ) {
                 ldomDocument * doc = LVParseXMLStream( content_stream );
                 if ( doc ) {
-                    lString16 title = doc->textFromXPath( lString16(L"package/metadata/title") );
-                    lString16 authors = doc->textFromXPath( lString16(L"package/metadata/creator") );
+                    lString16 title = doc->textFromXPath( lString16("package/metadata/title") );
+                    lString16 authors = doc->textFromXPath( lString16("package/metadata/creator") );
                     delete doc;
                 }
             }
@@ -522,12 +522,12 @@ wxBitmap cr3Frame::getIcon16x16( const lChar16 * name )
 {
     lString16 dir;
     if ( _toolbarSize==2 )
-        dir = lString16(L"icons/22x22/");
+        dir = "icons/22x22/";
     else if ( _toolbarSize==1 )
-        dir = lString16(L"icons/16x16/");
+        dir = "icons/16x16/";
     else
-        dir = lString16(L"icons/32x32/");
-    wxBitmap icon = resources->GetBitmap( (dir + name + L".png").c_str() );
+        dir = "icons/32x32/";
+    wxBitmap icon = resources->GetBitmap( (dir + name + ".png").c_str() );
     if ( icon.IsOk() )
         return icon;
     return wxNullBitmap;
@@ -701,13 +701,13 @@ cr3app::OnInit()
         fonts.add( sysFontDir + lString16(msfonts[fi]) );
 #endif
 #ifdef _LINUX
-    fontDirs.add( lString16(L"/usr/local/share/cr3/fonts") );
-    fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-    fontDirs.add( lString16(L"/usr/share/cr3/fonts") );
-    fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+    fontDirs.add("/usr/local/share/cr3/fonts");
+    fontDirs.add("/usr/local/share/fonts/truetype/freefont");
+    fontDirs.add("/usr/share/cr3/fonts");
+    fontDirs.add("/usr/share/fonts/truetype/freefont");
     //fontDirs.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts") );
     for ( int fi=0; msfonts[fi]; fi++ )
-        fonts.add( lString16(L"/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
+        fonts.add( lString16("/usr/share/fonts/truetype/msttcorefonts/") + lString16(msfonts[fi]) );
 #endif
     getDirectoryFonts( fontDirs, fontExt, fonts, true );
 
@@ -1196,11 +1196,11 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
         lString16 param = lString16( wxGetApp().argv[i] );
         if ( param[0]!='-' )
             fnameToOpen = param;
-        else if ( param.startsWith(lString16(L"--convert") ) )
+        else if (param.startsWith("--convert"))
             convert = true;
-        else if ( param.startsWith(lString16(L"--format=") ) ) {
+        else if (param.startsWith("--format=")) {
             formatName = param.substr(9);
-        } else if ( param.startsWith(lString16(L"--out=") ) ) {
+        } else if (param.startsWith("--out=")) {
             outFile = param.substr(6);
         }
     }

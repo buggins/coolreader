@@ -820,7 +820,7 @@ VIEWER_MENU_GOTOINDEX=Go to index
 VIEWER_MENU_5ABOUT=About...
 VIEWER_MENU_4ABOUT=About...
 */
-    menu_win->setSkinName(lString16(L"#main"));
+    menu_win->setSkinName(lString16("#main"));
 	CRGUIAcceleratorTableRef menuItems = _wm->getAccTables().get(lString16("mainMenuItems"));
 	if ( !menuItems.isNull() && menuItems->length()>1 ) {
 		// get menu from file

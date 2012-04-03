@@ -817,9 +817,9 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     writer.OnTagOpenNoAttr(L"", L"body");
     int fragmentCount = 0;
     for ( int i=0; i<spineItems.length(); i++ ) {
-        if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
+        if (spineItems[i]->mediaType == "application/xhtml+xml") {
             lString16 name = codeBase + spineItems[i]->href;
-            lString16 subst = lString16(L"_doc_fragment_") + fmt::decimal(i);
+            lString16 subst = lString16("_doc_fragment_") + fmt::decimal(i);
             appender.addPathSubstitution( name, subst );
             //CRLog::trace("subst: %s => %s", LCSTR(name), LCSTR(subst));
         }

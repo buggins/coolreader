@@ -1437,7 +1437,7 @@ CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDi
     _dictsTable(16), _active(false), _newWord(NULL), _newTranslation(NULL), _translateResult(0),
     _dictsLoaded(false)
 {
-    setSkinName(lString16(L"#dict"));
+    setSkinName(lString16("#dict"));
     lvRect rect = _wm->getScreen()->getRect();
     if ( !_wm->getSkin().isNull() ) {
         _skin = _wm->getSkin()->getWindowSkin(getSkinName().c_str());
@@ -1586,7 +1586,7 @@ void CRPbDictionaryView::selectDictionary()
                                     lString16(""), LVImageSourceRef(), LVFontRef(), valueFont,
                                     CRPocketBookDocView::instance->getNewProps(), PROP_POCKETBOOK_DICT);
     dictsMenu->setAccelerators(_wm->getAccTables().get("menu"));
-    dictsMenu->setSkinName(lString16(L"#settings"));
+    dictsMenu->setSkinName(lString16("#settings"));
     if (!_dictsLoaded) {
         loadDictionaries();
     }
@@ -2394,8 +2394,8 @@ int InitDoc(const char *exename, char *fileName)
 #endif
 
     lString16Collection fontDirs;
-    fontDirs.add(lString16(L""USERFONTDIR));
-    fontDirs.add(lString16(L""SYSTEMFONTDIR));
+    fontDirs.add(lString16(USERFONTDIR));
+    fontDirs.add(lString16(SYSTEMFONTDIR));
     CRLog::info("INIT...");
     if (!InitCREngine(exename, fontDirs))
         return 0;
@@ -2413,31 +2413,31 @@ int InitDoc(const char *exename, char *fileName)
 
         loadKeymaps(*wm, keymap_locations);
         loadPocketBookKeyMaps(*wm);
-        HyphMan::initDictionaries(lString16(L""USERDATA"/share/cr3/hyph/"));
-        if (!wm->loadSkin(lString16(L""CONFIGPATH"/cr3/skin")))
-            if (!wm->loadSkin(lString16(L""USERDATA2"/share/cr3/skin")))
-                wm->loadSkin(lString16(L""USERDATA"/share/cr3/skin"));
+        HyphMan::initDictionaries(lString16(USERDATA"/share/cr3/hyph/"));
+        if (!wm->loadSkin(lString16(CONFIGPATH"/cr3/skin")))
+            if (!wm->loadSkin(lString16(USERDATA2"/share/cr3/skin")))
+                wm->loadSkin(lString16(USERDATA"/share/cr3/skin"));
 
-        ldomDocCache::init(lString16(L""STATEPATH"/cr3/.cache"), PB_CR3_CACHE_SIZE);
+        ldomDocCache::init(lString16(STATEPATH"/cr3/.cache"), PB_CR3_CACHE_SIZE);
         if (!ldomDocCache::enabled())
-            ldomDocCache::init(lString16(L""USERDATA2"/share/cr3/.cache"), PB_CR3_CACHE_SIZE);
+            ldomDocCache::init(lString16(USERDATA2"/share/cr3/.cache"), PB_CR3_CACHE_SIZE);
         if (!ldomDocCache::enabled())
-            ldomDocCache::init(lString16(L""USERDATA"/share/cr3/.cache"), PB_CR3_CACHE_SIZE);
+            ldomDocCache::init(lString16(USERDATA"/share/cr3/.cache"), PB_CR3_CACHE_SIZE);
         CRLog::trace("creating main window...");
-        main_win = new CRPocketBookDocView(wm, lString16(L""USERDATA"/share/cr3"));
+        main_win = new CRPocketBookDocView(wm, lString16(USERDATA"/share/cr3"));
         CRLog::trace("setting colors...");
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
         if (manual_file[0])
             main_win->setHelpFile( lString16( manual_file ) );
-        if (!main_win->loadDefaultCover(lString16(L""CONFIGPATH"/cr3/cr3_def_cover.png")))
-            if (!main_win->loadDefaultCover(lString16(L""USERDATA2"/share/cr3/cr3_def_cover.png")))
-                main_win->loadDefaultCover(lString16(L""USERDATA"/share/cr3/cr3_def_cover.png"));
-        if ( !main_win->loadCSS(lString16(L""CONFIGPATH"/cr3/")   + lString16(css_file_name) ) )
-            if ( !main_win->loadCSS(  lString16( L""USERDATA"/share/cr3/" ) + lString16(css_file_name) ) )
-                main_win->loadCSS( lString16( L""USERDATA2"/share/cr3/" ) + lString16(css_file_name) );
-        main_win->setBookmarkDir(lString16(L""FLASHDIR"/cr3_notes/"));
+        if (!main_win->loadDefaultCover(lString16(CONFIGPATH"/cr3/cr3_def_cover.png")))
+            if (!main_win->loadDefaultCover(lString16(USERDATA2"/share/cr3/cr3_def_cover.png")))
+                main_win->loadDefaultCover(lString16(USERDATA"/share/cr3/cr3_def_cover.png"));
+        if ( !main_win->loadCSS(lString16(CONFIGPATH"/cr3/")   + lString16(css_file_name) ) )
+            if ( !main_win->loadCSS(  lString16(USERDATA"/share/cr3/" ) + lString16(css_file_name) ) )
+                main_win->loadCSS( lString16(USERDATA2"/share/cr3/" ) + lString16(css_file_name) );
+        main_win->setBookmarkDir(lString16(FLASHDIR"/cr3_notes/"));
         CRLog::trace("choosing init file...");
         static const lChar16 * dirs[] = {
             L""CONFIGPATH"/cr3/",
@@ -2465,7 +2465,7 @@ int InitDoc(const char *exename, char *fileName)
                                                      pocketbook_orientations[GetOrientation()]);
             SetOrientation(cr_oriantations[orient]);
         }
-        if ( !main_win->loadHistory(lString16(L""STATEPATH"/cr3/.cr3hist")) )
+        if ( !main_win->loadHistory(lString16(STATEPATH"/cr3/.cr3hist")) )
             CRLog::error("Cannot read history file");
         LVDocView * _docview = main_win->getDocView();
         _docview->setBatteryState(GetBatteryPower());

@@ -117,14 +117,14 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
         t = fs.st_mtime;
     }
 
-    lString16 author = doc->textFromXPath( lString16(L"package/metadata/creator")).trim();
-    lString16 title = doc->textFromXPath( lString16(L"package/metadata/title")).trim();
+    lString16 author = doc->textFromXPath( lString16("package/metadata/creator")).trim();
+    lString16 title = doc->textFromXPath( lString16("package/metadata/title")).trim();
 
     pBookProps->author = author;
     pBookProps->title = title;
 
     for ( int i=1; i<20; i++ ) {
-        ldomNode * item = doc->nodeFromXPath( lString16(L"package/metadata/meta[") + lString16::itoa(i) + L"]" );
+        ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") + fmt::decimal(i) + L"]" );
         if ( !item )
             break;
         lString16 name = item->getAttributeValue(L"name");
@@ -213,7 +213,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
         LVStreamRef out = LVOpenFileStream(ofname, LVOM_WRITE);
         doc.saveToStream(out, "utf16");
     #endif
-    lString16 authors = extractDocAuthors( &doc, lString16(L"|"), false );
+    lString16 authors = extractDocAuthors( &doc, lString16("|"), false );
     lString16 title = extractDocTitle( &doc );
     lString16 series = extractDocSeries( &doc, &pBookProps->seriesNumber );
 #if SERIES_IN_AUTHORS==1

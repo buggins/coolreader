@@ -664,6 +664,8 @@ public:
     void parse( lString16 string, lString16 delimiter, bool flgTrim );
     void reserve( size_t space );
     size_t add( const lString16 & str );
+    size_t add(const lChar16 * str) { add(lString16(str)); }
+    size_t add(const lChar8 * str) { add(lString16(str)); }
     void addAll( const lString16Collection & v )
 	{
 		for ( unsigned i=0; i<v.length(); i++ )

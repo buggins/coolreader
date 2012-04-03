@@ -1384,8 +1384,8 @@ int main(int argc, char **argv)
         CRXCBWindowManager winman( 600, 800 );
 
 #endif
-    if ( !ldomDocCache::init( lString16(L"/media/sd/.cr3/cache"), 0x100000 * 64 ))
-        ldomDocCache::init( lString16(L"/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
+    if ( !ldomDocCache::init( lString16("/media/sd/.cr3/cache"), 0x100000 * 64 ))
+        ldomDocCache::init( lString16("/tmp/.cr3/cache"), 0x100000 * 64 ); /*64Mb*/
     if ( !winman.hasValidConnection() ) {
         CRLog::error("connection has an error! exiting.");
     } else {

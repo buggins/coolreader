@@ -63,11 +63,11 @@ void CRScreenKeyboard::setLayout( CRKeyboardLayoutRef layout )
 
 void CRScreenKeyboard::setDefaultLayout()
 {
-    _keymap.add(lString16(L"1234567890"));
-    _keymap.add(lString16(L"abcdefghij"));
-    _keymap.add(lString16(L"klmnopqrst"));
-    _keymap.add(lString16(L"uvwxyz.,!?"));
-    _keymap.add(lString16(L"+-'\":;   "));
+    _keymap.add("1234567890");
+    _keymap.add("abcdefghij");
+    _keymap.add("klmnopqrst");
+    _keymap.add("uvwxyz.,!?");
+    _keymap.add("+-'\":;   ");
     _rows = _keymap.length();
 }
 

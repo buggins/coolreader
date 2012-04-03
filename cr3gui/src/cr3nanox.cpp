@@ -1340,8 +1340,8 @@ int InitDoc(char *fileName)
 #endif
 
     lString16Collection fontDirs;
-    fontDirs.add( lString16(L"/root/abook/fonts/") );
-    fontDirs.add( lString16(L"/home/fonts/") );
+    fontDirs.add("/root/abook/fonts/");
+    fontDirs.add("/home/fonts/");
     //fontDirs.add( lString16(L"/root/crengine/fonts") ); // will be added
     CRLog::info("INIT...");
     if ( !InitCREngine( "/root/crengine/", fontDirs ) )
@@ -1380,26 +1380,26 @@ int InitDoc(char *fileName)
         else
             HyphMan::initDictionaries( lString16("/root/crengine/hyph/") );
 
-        if ( !ldomDocCache::init( lString16(L"/root/abook/crengine/.cache"), 0x100000 * 64 ) ) {
-            if ( !ldomDocCache::init( lString16(L"/home/crengine/.cache"), 0x100000 * 64 ) ) {
+        if ( !ldomDocCache::init( lString16("/root/abook/crengine/.cache"), 0x100000 * 64 ) ) {
+            if ( !ldomDocCache::init( lString16("/home/crengine/.cache"), 0x100000 * 64 ) ) {
                 CRLog::error("Cannot initialize swap directory");
             }
         }
 
         CRLog::trace("creating main window...");
-        main_win = new CRJinkeDocView( wm, lString16(L"/root/crengine") );
+        main_win = new CRJinkeDocView( wm, lString16("/root/crengine") );
         CRLog::trace("setting colors...");
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
         if ( manual_file[0] )
             main_win->setHelpFile( lString16( manual_file ) );
-        if ( !main_win->loadDefaultCover( lString16( L"/root/abook/crengine/cr3_def_cover.png" ) ) )
-            if ( !main_win->loadDefaultCover( lString16( L"/home/crengine/cr3_def_cover.png" ) ) )
-                main_win->loadDefaultCover( lString16( L"/root/crengine/cr3_def_cover.png" ) );
-        if ( !main_win->loadCSS(  lString16( L"/root/abook/crengine/" ) + lString16(css_file_name) ) )
-            if ( !main_win->loadCSS(  lString16( L"/home/crengine/" ) + lString16(css_file_name) ) )
-                main_win->loadCSS( lString16( L"/root/crengine/" ) + lString16(css_file_name) );
+        if ( !main_win->loadDefaultCover( lString16("/root/abook/crengine/cr3_def_cover.png" ) ) )
+            if ( !main_win->loadDefaultCover( lString16("/home/crengine/cr3_def_cover.png" ) ) )
+                main_win->loadDefaultCover( lString16("/root/crengine/cr3_def_cover.png" ) );
+        if ( !main_win->loadCSS(  lString16("/root/abook/crengine/" ) + lString16(css_file_name) ) )
+            if ( !main_win->loadCSS(  lString16("/home/crengine/" ) + lString16(css_file_name) ) )
+                main_win->loadCSS( lString16("/root/crengine/" ) + lString16(css_file_name) );
         main_win->setBookmarkDir( bookmarkDir );
         CRLog::trace("choosing init file...");
         static const lChar16 * dirs[] = {

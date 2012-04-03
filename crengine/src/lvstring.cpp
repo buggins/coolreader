@@ -4431,7 +4431,7 @@ bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
 lString16 & lString16::replace(size_type p0, size_type n0, const lString16 & str)
 {
     lString16 s1 = substr( 0, p0 );
-    lString16 s2 = (int)length()-(int)p0-(int)n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString16(L"");
+    lString16 s2 = (int)length()-(int)p0-(int)n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString16();
     *this = s1 + str + s2;
     return *this;
 }

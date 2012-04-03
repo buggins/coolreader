@@ -26,7 +26,7 @@ public:
 };
 
 CRRecentBookMenuItem::CRRecentBookMenuItem( CRMenu * menu, int index, CRFileHistRecord * book )
-: CRMenuItem(menu, index, lString16(L""), LVImageSourceRef(), LVFontRef() ), _book( book )
+: CRMenuItem(menu, index, lString16(), LVImageSourceRef(), LVFontRef() ), _book( book )
 {
 }
 
@@ -135,7 +135,7 @@ CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docvie
     if ( acc.isNull() )
         acc = _wm->getAccTables().get("menu");
     setAccelerators( acc );
-    setSkinName(lString16(L"#bookmarks"));
+    setSkinName(lString16("#bookmarks"));
     lString16 pattern(_("$1 - open book\n$2, $3 - close"));
 #ifdef CR_POCKETBOOK
 	pattern.replaceParam(1, getCommandKeyName( MCMD_SELECT ));

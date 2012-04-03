@@ -673,7 +673,7 @@ bool cr3view::LoadDocument( const wxString & fname )
 	//_docview->exportWolFile( "test.wol", true );
 	//_docview->SetPos(0);
     if ( !res )
-        getDocView()->createDefaultDocument(lString16(L"File open error"), lString16(L"Cannot open file ") + fname.c_str() );
+        getDocView()->createDefaultDocument(lString16("File open error"), lString16("Cannot open file ") + fname.c_str() );
     lString16 title = getDocView()->getAuthors();
     if ( !title.empty() && !getDocView()->getTitle().empty() )
         title << L". ";

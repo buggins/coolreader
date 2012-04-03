@@ -1001,7 +1001,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         }
     } else {
         lString16 s = text;
-        while ( s.replace( cr, lString16(L" ") ) )
+        while ( s.replace( cr, lString16(" ") ) )
             ;
         lines.add( s );
     }

@@ -943,7 +943,7 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
             //if ( s > start )
             //    lines.add( lString16("*") + lString16( start, s-start ) + lString16("<") );
             //else
-            //    lines.add( lString16(L"#") );
+            //    lines.add( lString16("#") );
             if ( (s[1] =='\r' || s[1]=='\n') && (s[1]!=s[0]) )
                 s++;
             start = s+1;
