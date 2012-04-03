@@ -871,7 +871,7 @@ lString16 & lString16::insert(size_type p0, size_type count, lChar16 ch)
 lString16 lString16::substr(size_type pos, size_type n) const
 {
     if (pos>=length())
-        return lString16();
+        return lString16::empty_str;
     if (pos+n>length())
         n = length() - pos;
     return lString16( pchunk->buf16+pos, n );
@@ -1862,7 +1862,7 @@ lString8 & lString8::insert(size_type p0, size_type count, lChar8 ch)
 lString8 lString8::substr(size_type pos, size_type n) const
 {
     if (pos>=length())
-        return lString8();
+        return lString8::empty_str;
     if (pos+n>length())
         n = length() - pos;
     return lString8( pchunk->buf8+pos, n );
@@ -4431,7 +4431,7 @@ bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
 lString16 & lString16::replace(size_type p0, size_type n0, const lString16 & str)
 {
     lString16 s1 = substr( 0, p0 );
-    lString16 s2 = (int)length()-(int)p0-(int)n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString16();
+    lString16 s2 = (int)length()-(int)p0-(int)n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString16::empty_str;
     *this = s1 + str + s2;
     return *this;
 }

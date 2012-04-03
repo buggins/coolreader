@@ -1198,7 +1198,7 @@ lvPoint CRMenu::getSize()
 lString16 CRMenu::getSubmenuValue()
 {
     if ( !isSubmenu() || _propName.empty() || _props.isNull() )
-        return lString16();
+        return lString16::empty_str;
     lString16 value = getProps()->getStringDef(
                                UnicodeToUtf8(getPropName()).c_str(), "");
     for ( int i=0; i<_items.length(); i++ ) {
@@ -1206,7 +1206,7 @@ lString16 CRMenu::getSubmenuValue()
                 value==(_items[i]->getPropValue()) )
             return _items[i]->getLabel();
     }
-    return lString16();
+    return lString16::empty_str;
 }
 
 void CRMenu::toggleSubmenuValue()

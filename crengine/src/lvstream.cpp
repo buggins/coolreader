@@ -3529,7 +3529,7 @@ bool LVIsAbsolutePath( lString16 pathName )
 lString16 LVExtractFirstPathElement( lString16 & pathName )
 {
     if ( pathName.empty() )
-        return lString16();
+        return lString16::empty_str;
     if ( pathName[0]=='/' || pathName[0]=='\\' )
         pathName.erase(0, 1);
     int first_delim_pos = -1;
@@ -3629,7 +3629,7 @@ lString16 LVExtractLastPathElement( lString16 & pathName )
 {
     int l = pathName.length();
     if ( l==0 )
-        return lString16();
+        return lString16::empty_str;
     if ( pathName[l-1]=='/' || pathName[l-1]=='\\' )
         pathName.erase(l-1, 1);
     int last_delim_pos = -1;

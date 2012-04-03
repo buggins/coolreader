@@ -293,7 +293,7 @@ public:
     LVEmbeddedFontDef * findByUrl(lString16 url);
     void add(LVEmbeddedFontDef * def) { LVPtrVector<LVEmbeddedFontDef>::add(def); }
     bool add(lString16 url, lString8 face, bool bold, bool italic);
-    bool add(lString16 url) { return add(url, lString8(), false, false); }
+    bool add(lString16 url) { return add(url, lString8::empty_str, false, false); }
     bool addAll(LVEmbeddedFontList & list);
     void set(LVEmbeddedFontList & list) { clear(); addAll(list); }
     bool serialize(SerialBuf & buf);
@@ -506,7 +506,7 @@ public:
     }
 
     virtual lString8 getTypeFace() const {
-        return lString8();
+        return lString8::empty_str;
     }
 
     virtual css_font_family_t getFontFamily() const {

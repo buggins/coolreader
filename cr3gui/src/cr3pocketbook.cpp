@@ -771,7 +771,7 @@ protected:
     virtual void draw() { _dictDlg->draw(); }
 public:
     CRPbDictionaryProxyWindow(CRPbDictionaryDialog * dictDialog)
-        : CRPbDictionaryDialog(dictDialog->getWindowManager(), dictDialog->_docwin, lString8() ), _dictDlg(dictDialog)
+        : CRPbDictionaryDialog(dictDialog->getWindowManager(), dictDialog->_docwin, lString8::empty_str), _dictDlg(dictDialog)
     {
         _dictDlg->_wordTranslated = _dictDlg->_dictViewActive = false;
         _dictDlg->_selText.clear();
@@ -934,7 +934,7 @@ protected:
             CRPropRef newProps = getNewProps();
             newProps->setInt(PROP_POCKETBOOK_ORIENTATION, newOrientation);
             applySettings();
-            saveSettings( lString16() );
+            saveSettings(lString16::empty_str);
         }
         int dx = _wm->getScreen()->getWidth();
         int dy = _wm->getScreen()->getHeight();
@@ -1433,7 +1433,7 @@ static void paused_rotate_timer()
 }
 
 CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDialog *parent) 
-    : CRViewDialog(wm, lString16(), lString8(), lvRect(), false, true), _parent(parent), _itemsCount(5),
+    : CRViewDialog(wm, lString16::empty_str, lString8::empty_str, lvRect(), false, true), _parent(parent), _itemsCount(5),
     _dictsTable(16), _active(false), _newWord(NULL), _newTranslation(NULL), _translateResult(0),
     _dictsLoaded(false)
 {
@@ -1468,14 +1468,14 @@ CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDi
         int rc = OpenDictionary((char *)UnicodeToUtf8(lastDict).c_str());
         if (rc == 1) {
             _caption = lastDict;
-            getDocView()->createDefaultDocument(lString16(), Utf8ToUnicode(TR("@Word_not_found")));
+            getDocView()->createDefaultDocument(lString16::empty_str, Utf8ToUnicode(TR("@Word_not_found")));
             return;
         }
         lString8 dName =  UnicodeToUtf8(lastDict);
         CRLog::error("OpenDictionary(%s) returned %d", dName.c_str(), rc);
     }
     _dictIndex = -1;
-    getDocView()->createDefaultDocument(lString16(), Utf8ToUnicode(TR("@Dic_error")));
+    getDocView()->createDefaultDocument(lString16::empty_str, Utf8ToUnicode(TR("@Dic_error")));
 }
 
 void CRPbDictionaryView::loadDictionaries()
@@ -1638,7 +1638,7 @@ void CRPbDictionaryView::onDictionarySelect()
 
 void CRPbDictionaryView::noTranslation()
 {
-    setTranslation(CRViewDialog::makeFb2Xml(lString8()));
+    setTranslation(CRViewDialog::makeFb2Xml(lString8::empty_str));
     _newWord = _newTranslation = NULL;
     setCurItem(PB_DICT_EXIT);
 }
@@ -1899,7 +1899,7 @@ lString16 CRPbDictionaryMenuItem::createItemValue(const char * translation)
 }
 
 CRPbDictionaryMenuItem::CRPbDictionaryMenuItem(CRMenu * menu, int id, const char *word, const char *translation)
-    : CRMenuItem(menu, id, lString16(), LVImageSourceRef(), LVFontRef() ), _word( word ), _translation(translation)
+    : CRMenuItem(menu, id, lString16::empty_str, LVImageSourceRef(), LVFontRef() ), _word( word ), _translation(translation)
 {
     _word16 = Utf8ToUnicode(word);
     _translation16 = createItemValue(_translation);
@@ -1935,7 +1935,7 @@ void CRPbDictionaryMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef s
 
 
 CRPbDictionaryMenu::CRPbDictionaryMenu(CRGUIWindowManager * wm, CRPbDictionaryView *parent)
-    : CRMenu(wm, NULL, 0, lString16(), LVImageSourceRef(), LVFontRef(), LVFontRef() ), _parent(parent)
+    : CRMenu(wm, NULL, 0, lString16::empty_str, LVImageSourceRef(), LVFontRef(), LVFontRef() ), _parent(parent)
 {
     _fullscreen = false;
     setSkinName(lString16("#dict-list"));
@@ -2191,7 +2191,7 @@ void CRPbDictionaryDialog::onWordSelection()
                 if (_acceleratorTable->findCommandKey(MCMD_OK, 0, key, keyFlags))
                     prompt_msg.replaceParam(1, lString16(getKeyName(key, keyFlags)));
                 else
-                    prompt_msg.replaceParam(1, lString16());
+                    prompt_msg.replaceParam(1, lString16::empty_str);
                 lString8 body;
                 body << "<p>" << UnicodeToUtf8(prompt_msg) << "</p";
                 _prompt = CRViewDialog::makeFb2Xml(body);

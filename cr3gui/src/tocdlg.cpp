@@ -111,7 +111,7 @@ void CRTOCDialog::draw()
 }
 
 CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCmd, int pageCount, LVDocView * docview )
-: CRNumberEditDialog( wm, title, lString16(), resultCmd, 1, pageCount )
+: CRNumberEditDialog( wm, title, lString16::empty_str, resultCmd, 1, pageCount )
 ,_docview(docview)
 {
     docview->getFlatToc( _items );

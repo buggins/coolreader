@@ -512,9 +512,9 @@ lString16 CRSkinContainer::readString( const lChar16 * path, const lChar16 * att
 {
     ldomXPointer ptr = getXPointer( path );
     if ( !ptr )
-        return lString16();
+        return lString16::empty_str;
     if ( !ptr.getNode()->isElement() )
-        return lString16();
+        return lString16::empty_str;
 	//lString16 pnname = ptr.getNode()->getParentNode()->getNodeName();
 	//lString16 nname = ptr.getNode()->getNodeName();
     lString16 value = ptr.getNode()->getAttributeValue( attrname );
@@ -1498,7 +1498,7 @@ bool CRSkinContainer::readScrollSkin(  const lChar16 * path, CRScrollSkin * res 
 
     res->setAutohide( readBool( (p).c_str(), L"autohide", res->getAutohide()) );
     res->setShowPageNumbers( readBool( (p).c_str(), L"show-page-numbers", res->getShowPageNumbers()) );
-    lString16 l = readString( (p).c_str(), L"location", lString16() );
+    lString16 l = readString( (p).c_str(), L"location", lString16::empty_str );
     if ( !l.empty() ) {
         l.lowercase();
         if ( l==L"title" )
@@ -1913,7 +1913,7 @@ lString16 CRSkinImpl::pathById( const lChar16 * id )
 {
     ldomNode * elem = _doc->getElementById( id );
     if ( !elem )
-        return lString16();
+        return lString16::empty_str;
     return ldomXPointer(elem, -1).toString();
 }
 

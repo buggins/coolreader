@@ -258,7 +258,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->crSample->getDocView()->setShowCover( false );
     m_ui->crSample->getDocView()->setViewMode( DVM_SCROLL, 1 );
     QString testPhrase = tr("The quick brown fox jumps over the lazy dog. ");
-    m_ui->crSample->getDocView()->createDefaultDocument( lString16(), qt2cr(testPhrase+testPhrase+testPhrase) );
+    m_ui->crSample->getDocView()->createDefaultDocument(lString16::empty_str, qt2cr(testPhrase+testPhrase+testPhrase));
 
     updateStyleSample();
 

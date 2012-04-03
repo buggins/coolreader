@@ -203,8 +203,8 @@ public:
 					ldomXRange range;
 					selector_.getRange(range);
 					if ( !range.isNull() ) {
-						mainwin_->getDocView()->saveRangeBookmark( range, bmkt_comment, lString16() );
-						mainwin_->saveHistory(lString16());
+                        mainwin_->getDocView()->saveRangeBookmark( range, bmkt_comment, lString16::empty_str);
+                        mainwin_->saveHistory(lString16::empty_str);
 					}
 					close();
 				};

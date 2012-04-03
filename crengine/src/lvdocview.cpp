@@ -242,7 +242,7 @@ void LVDocView::requestReload() {
 			//swapToCache();
 			restorePosition();
 		} else {
-			createDefaultDocument(lString16(), lString16(
+            createDefaultDocument(lString16::empty_str, lString16(
 					"Error while opening document ") + fn);
 		}
 		checkRender();
@@ -398,7 +398,7 @@ void LVDocView::setPageHeaderInfo(int hdrFlags) {
 }
 
 lString16 mergeCssMacros(CRPropRef props) {
-    lString8 res = lString8();
+    lString8 res = lString8::empty_str;
     for (int i=0; i<props->getCount(); i++) {
     	lString8 n(props->getName(i));
     	if (n.endsWith(".day") || n.endsWith(".night"))
@@ -1488,7 +1488,7 @@ lString16 fitTextWidthWithEllipsis(lString16 text, LVFontRef font, int maxwidth)
 		if (w <= maxwidth)
 			return s;
 	}
-	return lString16();
+    return lString16::empty_str;
 }
 
 /// substitute page header with custom text (e.g. to be used while loading)
@@ -2772,7 +2772,7 @@ bool LVDocView::goSelectedLink() {
 bool splitNavigationPos(lString16 pos, lString16 & fname, lString16 & path) {
 	int p = pos.pos(lString16(NAVIGATION_FILENAME_SEPARATOR));
 	if (p <= 0) {
-		fname = lString16();
+        fname = lString16::empty_str;
 		path = pos;
 		return false;
 	}
@@ -3338,9 +3338,9 @@ static void FileToArcProps(CRPropRef props) {
 	s = props->getStringDef(DOC_PROP_FILE_SIZE);
 	if (!s.empty())
 		props->setString(DOC_PROP_ARC_SIZE, s);
-	props->setString(DOC_PROP_FILE_NAME, lString16());
-	props->setString(DOC_PROP_FILE_PATH, lString16());
-	props->setString(DOC_PROP_FILE_SIZE, lString16());
+    props->setString(DOC_PROP_FILE_NAME, lString16::empty_str);
+    props->setString(DOC_PROP_FILE_PATH, lString16::empty_str);
+    props->setString(DOC_PROP_FILE_SIZE, lString16::empty_str);
 	props->setHex(DOC_PROP_FILE_CRC32, 0);
 }
 
@@ -3496,7 +3496,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 void LVDocView::close() {
     if ( m_doc )
         m_doc->updateMap();
-    createDefaultDocument(lString16(), lString16());
+    createDefaultDocument(lString16::empty_str, lString16::empty_str);
 }
 
 void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
@@ -4314,7 +4314,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 		lString16 & posText) {
 	LVLock lock(getMutex());
 	checkRender();
-	titleText = posText = lString16();
+    titleText = posText = lString16::empty_str;
 	if (bm.isNull())
 		return false;
 	ldomNode * el = bm.getNode();

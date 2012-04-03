@@ -478,7 +478,7 @@ bool DocViewNative::closeBook()
 	if ( _docview->isDocumentOpened() ) {
 	    _docview->savePosition();
         _docview->getDocument()->updateMap();
-	    saveHistory(lString16());
+        saveHistory(lString16::empty_str);
 	    _docview->close();
 	    return true;
 	}

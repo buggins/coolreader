@@ -441,10 +441,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 	CRLog::info("CRENGINE version %s %s", CR_ENGINE_VERSION, CR_ENGINE_BUILD_DATE);
 	
 	CRLog::info("initializing hyphenation manager");
-	HyphMan::initDictionaries(lString16()); //don't look for dictionaries
+    HyphMan::initDictionaries(lString16::empty_str); //don't look for dictionaries
 	HyphMan::activateDictionary(lString16(HYPH_DICT_ID_NONE));
 	CRLog::info("creating font manager");
-	InitFontManager(lString8());
+    InitFontManager(lString8::empty_str);
 	CRLog::debug("converting fonts array: %d items", (int)env->GetArrayLength(fontArray));
 	lString16Collection fonts;
 	env.fromJavaStringArray(fontArray, fonts);

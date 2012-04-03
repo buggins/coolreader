@@ -124,7 +124,7 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
         if ( !target )
             continue;
         ldomXPointer ptr(target, 0);
-        LVTocItem * tocItem = baseToc->addChild(title, ptr, lString16());
+        LVTocItem * tocItem = baseToc->addChild(title, ptr, lString16::empty_str);
         ReadEpubToc( doc, navPoint, tocItem, appender );
     }
 }

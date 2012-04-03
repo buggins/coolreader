@@ -128,7 +128,7 @@ int LVFileParserBase::getProgressPercent()
 lString16 LVFileParserBase::getFileName()
 {
     if ( m_stream.isNull() )
-        return lString16();
+        return lString16::empty_str;
     lString16 name( m_stream->GetName() );
     int lastPathDelim = -1;
     for ( unsigned i=0; i<name.length(); i++ ) {
@@ -3764,16 +3764,16 @@ lString16 htmlCharset( lString16 htmlHeader )
     lString16 meta(L"meta http-equiv=\"content-type\"");
     int p = htmlHeader.pos( meta );
     if ( p<0 )
-        return lString16();
+        return lString16::empty_str;
     htmlHeader = htmlHeader.substr( p + meta.length() );
     p = htmlHeader.pos(L">");
     if ( p<0 )
-        return lString16();
+        return lString16::empty_str;
     htmlHeader = htmlHeader.substr( 0, p );
     CRLog::trace("http-equiv content-type: %s", UnicodeToUtf8(htmlHeader).c_str() );
     p = htmlHeader.pos(L"charset=");
     if ( p<0 )
-        return lString16();
+        return lString16::empty_str;
     htmlHeader = htmlHeader.substr( p + 8 ); // skip "charset="
     lString16 enc;
     for ( int i=0; i<(int)htmlHeader.length(); i++ ) {
@@ -3783,8 +3783,8 @@ lString16 htmlCharset( lString16 htmlHeader )
         else
             break;
     }
-    if ( enc==L"utf-16" )
-        return lString16();
+    if (enc == "utf-16")
+        return lString16::empty_str;
     return enc;
 }
 
@@ -3856,7 +3856,7 @@ lString16 LVReadTextFile( lString16 filename )
 lString16 LVReadTextFile( LVStreamRef stream )
 {
 	if ( stream.isNull() )
-		return lString16();
+        return lString16::empty_str;
     lString16 buf;
     LVTextParser reader( stream, NULL, true );
     if ( !reader.AutodetectEncoding() )

@@ -69,7 +69,7 @@ lString16 cr3view::GetLastRecentFileName()
 {
     if ( getDocView() && getDocView()->getHistory()->getRecords().length()>0 )
         return getDocView()->getHistory()->getRecords()[0]->getFilePathName();
-    return lString16();
+    return lString16::empty_str;
 }
 
 cr3view::cr3view(CRPropRef props, lString16 exeDirPath )

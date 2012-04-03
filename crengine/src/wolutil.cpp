@@ -518,19 +518,19 @@ lString8 WOLReader::readTag()
     for (;;)
     {
         if (_stream->Read(&ch, 1, NULL)!=LVERR_OK)
-            return lString8();
+            return lString8::empty_str;
         if (ch==' '||ch=='\r'||ch=='\n')
             continue;
         if (ch!='<')
-            return lString8();
+            return lString8::empty_str;
         break;
     }
     for (;;)
     {
         if (_stream->Read(&ch, 1, NULL)!=LVERR_OK)
-            return lString8();
+            return lString8::empty_str;
         if (ch==0 || buf.length()>100)
-            return lString8();
+            return lString8::empty_str;
         if (ch=='>')
             return buf;
         buf.append(1, ch);

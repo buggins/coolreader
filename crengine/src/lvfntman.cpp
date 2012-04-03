@@ -2581,7 +2581,7 @@ public:
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
         LVFontDef * def = new LVFontDef( 
-            lString8(),
+            lString8::empty_str,
             size,
             weight,
             italic,
@@ -2706,7 +2706,7 @@ public:
             size = 52;
         
         LVFontDef def( 
-            lString8(),
+            lString8::empty_str,
             size,
             weight,
             italic,
@@ -3161,7 +3161,7 @@ LVFontCacheItem * LVFontCache::find( const LVFontDef * fntdef )
         if ( nindex<list.length() )
             def.setTypeFace( list[nindex] );
         else
-            def.setTypeFace( lString8() );
+            def.setTypeFace(lString8::empty_str);
         for (i=0; i<_instance_list.length(); i++)
         {
             int match = _instance_list[i]->_def.CalcMatch( def );

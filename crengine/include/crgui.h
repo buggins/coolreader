@@ -248,7 +248,7 @@ public:
 	lString16 get( int i )
 	{
 		if ( i<0 || i>= (int)_items.length() )
-			return lString16();
+            return lString16::empty_str;
 		return _items[i];
 	}
 	void set( int index, lString16 chars )
@@ -256,7 +256,7 @@ public:
 		if ( index<0 || index>20 )
 			return;
 		while ( (int)_items.length() <= index )
-			_items.add(lString16());
+            _items.add(lString16::empty_str);
 		_items[ index ] = chars;
 	}
 };
@@ -1034,7 +1034,7 @@ class CRMenuItem
         virtual int onSelect() { return 0; }
         virtual ~CRMenuItem() { }
         /// submenu for options dialog support
-        virtual lString16 getSubmenuValue() { return lString16(); }
+        virtual lString16 getSubmenuValue() { return lString16::empty_str; }
         /// property value, for options editor support
         virtual lString16 getPropValue() { return _propValue; }
         virtual bool isItemDirty() { return _itemDirty; }

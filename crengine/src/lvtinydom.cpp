@@ -2553,7 +2553,7 @@ lString8 ldomTextStorageChunk::getText( int offset )
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         return item->getText8();
     }
-    return lString8();
+    return lString8::empty_str;
 }
 #endif
 
@@ -7063,14 +7063,14 @@ lString16 ldomXRange::getRangeText( lChar16 blockDelimiter, int maxTextLen )
 lString16 ldomXPointer::getHRef()
 {
     if ( isNull() )
-        return lString16();
+        return lString16::empty_str;
     ldomNode * node = getNode();
     while ( node && !node->isElement() )
         node = node->getParentNode();
     while ( node && node->getNodeId()!=el_a )
         node = node->getParentNode();
     if ( !node )
-        return lString16();
+        return lString16::empty_str;
     lString16 ref = node->getAttributeValue( LXML_NS_ANY, attr_href );
     if ( !ref.empty() && ref[0]!='#' )
         ref = DecodeHTMLUrlString(ref);
@@ -7082,7 +7082,7 @@ lString16 ldomXPointer::getHRef()
 lString16 ldomXRange::getHRef()
 {
     if ( isNull() )
-        return lString16();
+        return lString16::empty_str;
     return _start.getHRef();
 }
 
@@ -10619,11 +10619,11 @@ public:
 lString16 ldomNode::getObjectImageRefName()
 {
     if ( !this || !isElement() )
-        return lString16();
+        return lString16::empty_str;
     //printf("ldomElement::getObjectImageSource() ... ");
     const css_elem_def_props_t * et = getDocument()->getElementTypePtr(getNodeId());
     if (!et || !et->is_object)
-        return lString16();
+        return lString16::empty_str;
     lUInt16 hrefId = getDocument()->getAttrNameIndex(L"href");
     lUInt16 srcId = getDocument()->getAttrNameIndex(L"src");
     lUInt16 recIndexId = getDocument()->getAttrNameIndex(L"recindex");
@@ -10652,7 +10652,7 @@ lString16 ldomNode::getObjectImageRefName()
 //        }
     }
     if ( refName.length()<2 )
-        return lString16();
+        return lString16::empty_str;
     refName = DecodeHTMLUrlString(refName);
     return refName;
 }

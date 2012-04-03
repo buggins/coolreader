@@ -430,7 +430,7 @@ void CR3View::setDocumentText( QString text )
 {
     _docview->savePosition();
     clearSelection();
-    _docview->createDefaultDocument( lString16(), qt2cr(text) );
+    _docview->createDefaultDocument(lString16::empty_str, qt2cr(text));
 }
 
 bool CR3View::loadLastDocument()
@@ -452,7 +452,7 @@ bool CR3View::loadDocument( QString fileName )
         CRLog::debug( "Trying to restore position for %s", utf8.constData() );
         _docview->restorePosition();
     } else {
-        _docview->createDefaultDocument( lString16(), qt2cr(tr("Error while opening document ") + fileName) );
+        _docview->createDefaultDocument(lString16::empty_str, qt2cr(tr("Error while opening document ") + fileName));
     }
     update();
     return res;
@@ -1053,9 +1053,9 @@ CRBookmark * CR3View::createBookmark()
 {
     CRBookmark * bm = NULL;
     if ( getSelectionText().length()>0 && !_selRange.isNull() ) {
-        bm = getDocView()->saveRangeBookmark( _selRange, bmkt_comment, lString16() );
+        bm = getDocView()->saveRangeBookmark(_selRange, bmkt_comment, lString16::empty_str);
     } else {
-        bm = getDocView()->saveCurrentPageBookmark(lString16());
+        bm = getDocView()->saveCurrentPageBookmark(lString16::empty_str);
     }
 
     return bm;
@@ -1287,7 +1287,7 @@ void CR3View::OnLoadFileFirstPagesReady()
     //update();
     repaint();
     CRLog::info( "OnLoadFileFirstPagesReady() - painting done" );
-    _docview->setPageHeaderOverride(lString16());
+    _docview->setPageHeaderOverride(lString16::empty_str);
     _docview->requestRender();
     // TODO: remove debug sleep
     //sleep(5);

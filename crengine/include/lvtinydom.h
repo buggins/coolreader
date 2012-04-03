@@ -1289,7 +1289,7 @@ public:
     {
         ldomNode * node = getNode();
         if ( !node )
-            return lString16();
+            return lString16::empty_str;
         return node->getText( blockDelimiter );
     }
     /// returns href attribute of <A> element, null string if not found
@@ -1518,7 +1518,7 @@ public:
     lString16 getText()
     {
         if ( isNull() )
-            return lString16();
+            return lString16::empty_str;
         lString16 txt = _node->getText();
         return txt.substr( _start, _end-_start );
     }
@@ -1888,13 +1888,13 @@ class ldomNavigationHistory
         lString16 back()
         {
             if (_pos==0)
-                return lString16();
+                return lString16::empty_str;
             return _links[--_pos];
         }
         lString16 forward()
         {
             if (_pos>=(int)_links.length()-1)
-                return lString16();
+                return lString16::empty_str;
             return _links[++_pos];
         }
         int backCount()
@@ -2068,7 +2068,7 @@ public:
     {
         ldomNode * node = nodeFromXPath( xPointerStr );
         if ( !node )
-            return lString16();
+            return lString16::empty_str;
         return node->getText();
     }
 
@@ -2317,7 +2317,7 @@ public:
 
 //utils
 /// extract authors from FB2 document, delimiter is lString16 by default
-lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter=lString16(), bool shortMiddleName=true );
+lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter=lString16::empty_str, bool shortMiddleName=true );
 lString16 extractDocTitle( ldomDocument * doc );
 /// returns "(Series Name #number)" if pSeriesNumber is NULL, separate name and number otherwise
 lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber=NULL );

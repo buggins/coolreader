@@ -583,7 +583,7 @@ lString16 CRFileHistRecord::getLastTimeString( bool longFormat )
 
 static lString8 encodeText(lString16 text16) {
     if (text16.empty())
-        return lString8();
+        return lString8::empty_str;
     lString8 text = UnicodeToUtf8(text16);
     lString8 buf;
     for (int i=0; i<text.length(); i++) {
@@ -610,7 +610,7 @@ static lString8 encodeText(lString16 text16) {
 
 static lString16 decodeText(lString8 text) {
     if (text.empty())
-        return lString16();
+        return lString16::empty_str;
     lString8 buf;
     bool lastControl = false;
     for (int i=0; i<text.length(); i++) {

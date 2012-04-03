@@ -26,7 +26,7 @@ public:
 };
 
 CRRecentBookMenuItem::CRRecentBookMenuItem( CRMenu * menu, int index, CRFileHistRecord * book )
-: CRMenuItem(menu, index, lString16(), LVImageSourceRef(), LVFontRef() ), _book( book )
+: CRMenuItem(menu, index, lString16::empty_str, LVImageSourceRef(), LVFontRef() ), _book( book )
 {
 }
 

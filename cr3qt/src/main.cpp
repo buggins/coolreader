@@ -340,7 +340,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     //const char * fontDir8s = fontDir8.c_str();
     //InitFontManager( fontDir8 );
-    InitFontManager( lString8() );
+    InitFontManager(lString8::empty_str);
 
 #ifdef _WIN32
     lChar16 sysdir[MAX_PATH+1];

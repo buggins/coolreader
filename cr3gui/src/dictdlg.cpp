@@ -300,7 +300,7 @@ public:
     {
         if ( current_ >= 0 && current_ < candidates_.length() )
             return candidates_[current_]->getWord();
-        return lString16();
+        return lString16::empty_str;
     }
 };
 

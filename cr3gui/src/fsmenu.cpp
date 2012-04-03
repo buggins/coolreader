@@ -28,7 +28,7 @@ lString16 CRFullScreenMenu::getCommandKeyName( int cmd, int param )
     int k, f;
     bool found = _acceleratorTable->findCommandKey( cmd, param, k, f );
     if ( !found )
-        return lString16();
+        return lString16::empty_str;
     return lString16(getKeyName( k, f ));
 }
 

@@ -58,7 +58,7 @@ DECL_DEF_CR_FONT_SIZES;
 
 
 V3DocViewWin::V3DocViewWin( CRGUIWindowManager * wm, lString16 dataDir )
-: CRViewDialog ( wm, lString16(), lString8(), lvRect(), false, false ), _dataDir(dataDir), _loadFileStart(0)
+: CRViewDialog ( wm, lString16::empty_str, lString8::empty_str, lvRect(), false, false ), _dataDir(dataDir), _loadFileStart(0)
 {
     CRLog::trace("V3DocViewWin()");
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
@@ -538,7 +538,7 @@ void V3DocViewWin::closing()
 	_dict = NULL;
     _docview->savePosition();
     CRLog::trace("after docview->savePosition()");
-    saveHistory( lString16(), _props->getBoolDef( PROP_AUTOSAVE_BOOKMARKS, true ) );
+    saveHistory( lString16::empty_str, _props->getBoolDef( PROP_AUTOSAVE_BOOKMARKS, true ) );
 }
 
 bool V3DocViewWin::loadDocument( lString16 filename )
@@ -1138,12 +1138,12 @@ bool V3DocViewWin::onCommand( int command, int params )
 #endif
     case mm_FontSize:
         applySettings();
-        saveSettings( lString16() );
+        saveSettings(lString16::empty_str);
         _wm->getSkin()->gc();
         return true;
     case DCMD_SAVE_HISTORY:
-        saveHistory( lString16() );
-        saveSettings( lString16() );
+        saveHistory(lString16::empty_str);
+        saveSettings(lString16::empty_str);
         return true;
     case DCMD_SAVE_TO_CACHE:
         _docview->swapToCache();
@@ -1164,7 +1164,7 @@ bool V3DocViewWin::onCommand( int command, int params )
         showWaitIcon();
 		CRViewDialog::onCommand( command, params );
         _props->setInt( PROP_FONT_SIZE, _docview->getFontSize() );
-        saveSettings( lString16() );
+        saveSettings(lString16::empty_str);
         return true;
     case MCMD_HELP:
         showHelpDialog();
@@ -1172,7 +1172,7 @@ bool V3DocViewWin::onCommand( int command, int params )
     case DCMD_BOOKMARK_SAVE_N:
         _docview->doCommand( DCMD_BOOKMARK_SAVE_N, params );
         if ( _props->getBoolDef( PROP_AUTOSAVE_BOOKMARKS, true ) )
-            saveHistory( lString16() );
+            saveHistory(lString16::empty_str);
         return true;
     default:
         // do nothing
@@ -1194,7 +1194,7 @@ void V3DocViewWin::OnLoadFileFirstPagesReady()
     //update();
     _wm->update(true);
     CRLog::info( "OnLoadFileFirstPagesReady() - painting done" );
-    _docview->setPageHeaderOverride(lString16());
+    _docview->setPageHeaderOverride(lString16::empty_str);
     _docview->requestRender();
     // TODO: remove debug sleep
     //sleep(5);

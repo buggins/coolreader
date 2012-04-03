@@ -5,7 +5,7 @@
 lString16 CRJNIEnv::fromJavaString( jstring str )
 {
 	if ( !str )
-		return lString16();
+        return lString16::empty_str;
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars( str, &iscopy );
 	lString16 res(s);

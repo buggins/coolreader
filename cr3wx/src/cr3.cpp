@@ -667,7 +667,7 @@ cr3app::OnInit()
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     const char * fontDir8s = fontDir8.c_str();
     //InitFontManager( fontDir8 );
-    InitFontManager( lString8() );
+    InitFontManager(lString8::empty_str);
 
     // Load font definitions into font manager
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
