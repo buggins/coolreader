@@ -749,7 +749,7 @@ CRIconListRef CRSkinContainer::readIcons( const lChar16 * path, bool * r )
 {
     CRIconListRef list = CRIconListRef(new CRIconList() );
     for ( int i=1; i<16; i++ ) {
-        lString16 p = lString16(path) + L"[" + lString16::itoa(i) + L"]";
+        lString16 p = lString16(path) + L"[" + fmt::decimal(i) + L"]";
         CRIconSkin * icon = new CRIconSkin();
         if ( readIconSkin(p.c_str(), icon ) )
             list->add( CRIconSkinRef(icon) );
@@ -1157,7 +1157,7 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
     if ( _hBody.isNull() ) {
         // text label with optional arrows
         lString16 label;
-        label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
+        label << fmt::decimal(page) << L" / " << fmt::decimal(pages);
         // calc label width
         int w = getFont()->getTextWidth( label.c_str(), label.length() );
         int margin = 4;
@@ -1236,7 +1236,7 @@ void CRScrollSkin::drawScroll( LVDrawBuf & buf, const lvRect & rect, bool vertic
         buf.Draw( img, sliderRect.left, sliderRect.top, sliderRect.width(), sliderRect.height(), false );
         if ( this->getShowPageNumbers() ) {
             lString16 label;
-            label << lString16::itoa(page) + L" / " << lString16::itoa(pages);
+            label << fmt::decimal(page) << L" / " << fmt::decimal(pages);
             drawText( buf, sliderRect, label );
         }
     }
@@ -1855,7 +1855,7 @@ CRButtonListRef CRSkinContainer::readButtons( const lChar16 * path, bool * res )
 {
     CRButtonListRef list = CRButtonListRef(new CRButtonList() );
     for ( int i=1; i<64; i++ ) {
-        lString16 p = lString16(path) + L"[" + lString16::itoa(i) + L"]";
+        lString16 p = lString16(path) + L"[" + fmt::decimal(i) + L"]";
         CRButtonSkin * button = new CRButtonSkin();
         if ( readButtonSkin(p.c_str(), button ) )
             list->add( LVRef<CRButtonSkin>(button) );

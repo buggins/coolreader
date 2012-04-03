@@ -1639,28 +1639,28 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 		lString16 pageinfo;
 		if (pageCount > 0) {
 			if (phi & PGHDR_PAGE_NUMBER)
-				pageinfo += lString16::itoa(pageIndex + 1);
+                pageinfo += fmt::decimal(pageIndex + 1);
             if (phi & PGHDR_PAGE_COUNT) {
                 if ( !pageinfo.empty() )
                     pageinfo += L" / ";
-                pageinfo += lString16::itoa(pageCount);
+                pageinfo += fmt::decimal(pageCount);
             }
             if (phi & PGHDR_PERCENT) {
                 if ( !pageinfo.empty() )
                     pageinfo += L"  ";
                 //pageinfo += lString16::itoa(percent/100)+L"%"; //+L"."+lString16::itoa(percent/10%10)+L"%";
-                pageinfo += lString16::itoa(percent/100);
+                pageinfo += fmt::decimal(percent/100);
                 pageinfo += L",";
                 int pp = percent%100;
                 if ( pp<10 )
-                	pageinfo += L"0";
-                pageinfo += lString16::itoa(pp);
-                pageinfo += L"%";
+                    pageinfo << L"0";
+                pageinfo << fmt::decimal(pp);
+                pageinfo << L"%";
             }
             if ( batteryPercentNormalFont && m_battery_state>=0 ) {
-            	pageinfo += L"  [";
-                pageinfo += lString16::itoa(m_battery_state)+L"%";
-            	pageinfo += L"]";
+                pageinfo << L"  [";
+                pageinfo << fmt::decimal(m_battery_state) << L"%";
+                pageinfo << L"]";
             }
 		}
 		int piw = 0;

@@ -825,13 +825,13 @@ void WOLWriter::addImage(
     lString8 buf;
     buf.reserve(128);
     buf << "<img bitcount=" 
-        << lString8::itoa(num_bits) 
+        << fmt::decimal(num_bits)
         << " compact=1 width="
-        << lString8::itoa(width)
+        << fmt::decimal(width)
         << " height="
-        << lString8::itoa(height)
+        << fmt::decimal(height)
         << " length="
-        << lString8::itoa((int)compressed_len)
+        << fmt::decimal((int)compressed_len)
         << ">";
     *_stream << buf; 
 

@@ -241,6 +241,20 @@ inline size_t _lStr_ncpy(lChar16 * dst, const lChar16 * src, size_t maxcount)
     return count;
 }
 
+inline size_t _lStr_ncpy(lChar16 * dst, const lChar8 * src, size_t maxcount)
+{
+    size_t count = 0;
+    do
+    {
+        if (++count > maxcount)
+        {
+            *dst = 0;
+            return count;
+        }
+    } while ((*dst++ = (unsigned char)*src++));
+    return count;
+}
+
 inline size_t _lStr_ncpy(lChar8 * dst, const lChar8 * src, size_t maxcount)
 {
     size_t count = 0;
@@ -725,6 +739,24 @@ lString16 & lString16::append(const lChar16 * str)
 }
 
 lString16 & lString16::append(const lChar16 * str, size_type count)
+{
+    size_type len = _lStr_nlen(str, count);
+    reserve( pchunk->len+len );
+    _lStr_ncpy(pchunk->buf16+pchunk->len, str, len);
+    pchunk->len += len;
+    return *this;
+}
+
+lString16 & lString16::append(const lChar8 * str)
+{
+    size_type len = _lStr_len(str);
+    reserve( pchunk->len+len );
+    _lStr_ncpy(pchunk->buf16+pchunk->len, str, len+1);
+    pchunk->len += len;
+    return *this;
+}
+
+lString16 & lString16::append(const lChar8 * str, size_type count)
 {
     size_type len = _lStr_nlen(str, count);
     reserve( pchunk->len+len );
@@ -1667,6 +1699,47 @@ lString8 & lString8::appendHex(lUInt64 n)
             foundNz = true;
         if (foundNz)
             append(1, (lChar8)toHexDigit(digit));
+        n >>= 4;
+    }
+    return *this;
+}
+
+lString16 & lString16::appendDecimal(lInt64 n)
+{
+    lChar16 buf[24];
+    int i=0;
+    int negative = 0;
+    if (n==0)
+        return append(1, '0');
+    else if (n<0)
+    {
+        negative = 1;
+        n = -n;
+    }
+    for ( ; n; n/=10 )
+    {
+        buf[i++] = '0' + (n % 10);
+    }
+    reserve(length() + i + negative);
+    if (negative)
+        append(1, '-');
+    for (int j=i-1; j>=0; j--)
+        append(1, buf[j]);
+    return *this;
+}
+
+lString16 & lString16::appendHex(lUInt64 n)
+{
+    if (n == 0)
+        return append(1, '0');
+    reserve(length() + 16);
+    bool foundNz = false;
+    for (int i=0; i<16; i++) {
+        int digit = (n >> 60) & 0x0F;
+        if (digit)
+            foundNz = true;
+        if (foundNz)
+            append(1, toHexDigit(digit));
         n >>= 4;
     }
     return *this;
@@ -4150,7 +4223,7 @@ bool lString16::replace(const lString16 & findStr, const lString16 & replaceStr)
 
 bool lString16::replaceParam(int index, const lString16 & replaceStr)
 {
-    return replace( lString16("$") + lString16::itoa(index), replaceStr );
+    return replace( lString16("$") + fmt::decimal(index), replaceStr );
 }
 
 /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index

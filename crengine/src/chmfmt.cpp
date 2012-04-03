@@ -971,7 +971,7 @@ public:
             return; // already added
         _fileList.add(v1.c_str());
         CRLog::trace("New source file: %s", LCSTR(v1) );
-        _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + lString16::itoa((int)_fileList.length()) );
+        _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + fmt::decimal(_fileList.length()) );
         _appender->setCodeBase( v1 );
     }
 

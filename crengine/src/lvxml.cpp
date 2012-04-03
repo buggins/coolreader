@@ -1913,7 +1913,7 @@ public:
                 return;
             sectionId++;
             callback->OnTagOpen(NULL, L"section");
-            callback->OnAttribute(NULL, L"id", (lString16(L"_section") + lString16::itoa(sectionId)).c_str() );
+            callback->OnAttribute(NULL, L"id", (lString16(L"_section") + fmt::decimal(sectionId)).c_str() );
             callback->OnTagBody();
             inSection = true;
             endOfParagraph();

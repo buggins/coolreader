@@ -59,7 +59,7 @@ QString FilePropsDialog::getDocText( const char * path, const char * delim )
     ldomDocument * doc = _docview->getDocument();
     lString16 res;
     for ( int i=0; i<100; i++ ) {
-        lString8 p = lString8(path) + "[" + lString8::itoa(i+1) + "]";
+        lString8 p = lString8(path) + "[" + fmt::decimal(i+1) + "]";
         //CRLog::trace("checking doc path %s", p.c_str() );
         lString16 p16 = Utf8ToUnicode(p);
         ldomXPointer ptr = doc->createXPointer( p16 );
@@ -79,7 +79,7 @@ QString FilePropsDialog::getDocAuthors( const char * path, const char * delim )
 {
     lString16 res;
     for ( int i=0; i<100; i++ ) {
-        lString8 p = lString8(path) + "[" + lString8::itoa(i+1) + "]";
+        lString8 p = lString8(path) + "[" + fmt::decimal(i+1) + "]";
         //CRLog::trace("checking doc path %s", p.c_str() ));
         lString16 firstName = qt2cr(getDocText( (p + "/first-name").c_str(), " " ));
         lString16 lastName = qt2cr(getDocText( (p + "/last-name").c_str(), " " ));

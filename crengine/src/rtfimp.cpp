@@ -330,7 +330,7 @@ public:
         // add Image BLOB
         lString16 name(BLOB_NAME_PREFIX); // L"@blob#"
         name << L"image";
-        name << lString16::itoa(m_parser.nextImageIndex());
+        name << fmt::decimal(m_parser.nextImageIndex());
         name << (_fmt==rtf_img_jpeg ? L".jpg" : L".png");
         m_callback->OnBlob(name, _buf.get(), _buf.length());
 #if 0

@@ -292,7 +292,7 @@ static void dumpRendMethods( ldomNode * node, lString16 prefix )
     if ( node->isText() )
         name << node->getText();
     else
-        name << L"<" << node->getNodeName() << L">   " << lString16::itoa(node->getRendMethod());
+        name << L"<" << node->getNodeName() << L">   " << fmt::decimal(node->getRendMethod());
     CRLog::trace( "%s ",LCSTR(name) );
     for ( unsigned i=0; i<node->getChildCount(); i++ ) {
         dumpRendMethods( node->getChildNode(i), prefix + L"   ");
@@ -5099,7 +5099,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return getNodeName() + L"[" + lString16::itoa(index+1) + L"]";
+                return getNodeName() + L"[" + fmt::decimal(index+1) + L"]";
             }
             if ( node->isElement() && node->getNodeId()==id )
                 index++;
@@ -5125,7 +5125,7 @@ lString16 ldomXPointer::toString()
     ldomNode * node = getNode();
     int offset = getOffset();
     if ( offset >= 0 ) {
-        path << L"." << lString16::itoa(offset);
+        path << L"." << fmt::decimal(offset);
     }
     ldomNode * p = node;
     ldomNode * mainNode = node->getDocument()->getRootNode();
@@ -5148,7 +5148,7 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16(L"/") + name + L"[" + lString16::itoa(index) + L"]" + path;
+                path = lString16(L"/") + name + L"[" + fmt::decimal(index) + L"]" + path;
             else
                 path = lString16(L"/") + name + path;
         } else {
@@ -5166,7 +5166,7 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16(L"/text()") + L"[" + lString16::itoa(index) + L"]" + path;
+                path = lString16(L"/text()") + L"[" + fmt::decimal(index) + L"]" + path;
             else
                 path = lString16(L"/text()") + path;
         }
@@ -5192,7 +5192,7 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
         delimiter = L", ";
     lString16 authors;
     for ( int i=0; i<16; i++) {
-        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + lString16::itoa(i+1) + L"]";
+        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + L"]";
         ldomXPointer pauthor = doc->createXPointer(path);
         if ( !pauthor ) {
             //CRLog::trace( "xpath not found: %s", UnicodeToUtf8(path).c_str() );
@@ -10641,7 +10641,7 @@ lString16 ldomNode::getObjectImageRefName()
         if (!recindex.empty()) {
             int n;
             if (recindex.atoi(n)) {
-                refName = lString16(MOBI_IMAGE_NAME_PREFIX) + lString16::itoa(n);
+                refName = lString16(MOBI_IMAGE_NAME_PREFIX) + fmt::decimal(n);
                 //CRLog::debug("get mobi image %s", LCSTR(refName));
             }
         }

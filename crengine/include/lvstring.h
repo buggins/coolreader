@@ -296,9 +296,9 @@ public:
     /// append string
     lString8 & operator << (const lString8 & str) { return append(str); }
     /// append decimal number
-    lString8 & operator << (const fmt::decimal & v) { return appendDecimal(v.get()); }
+    lString8 & operator << (const fmt::decimal v) { return appendDecimal(v.get()); }
     /// append hex number
-    lString8 & operator << (const fmt::hex & v) { return appendHex(v.get()); }
+    lString8 & operator << (const fmt::hex v) { return appendHex(v.get()); }
 
     /// returns true if string starts with specified substring
     bool startsWith ( const lString8 & substring ) const;
@@ -362,6 +362,10 @@ public:
     lString8 & operator += ( const value_type * s ) { return append(s); }
     /// append single character
     lString8 & operator += ( value_type ch ) { return append(1, ch); }
+    /// append decimal
+    lString8 & operator += ( fmt::decimal v ) { return appendDecimal(v.get()); }
+    /// append hex
+    lString8 & operator += ( fmt::hex v ) { return appendHex(v.get()); }
 
     /// returns true if string ends with specified substring
     bool endsWith( const lChar8 * substring ) const;
@@ -445,9 +449,15 @@ public:
     lString16 & erase(size_type offset, size_type count);
     lString16 & append(const value_type * str);
     lString16 & append(const value_type * str, size_type count);
+    lString16 & append(const lChar8 * str);
+    lString16 & append(const lChar8 * str, size_type count);
     lString16 & append(const lString16 & str);
     lString16 & append(const lString16 & str, size_type offset, size_type count);
     lString16 & append(size_type count, value_type ch);
+    /// append decimal number
+    lString16 & appendDecimal(lInt64 v);
+    /// append hex number
+    lString16 & appendHex(lUInt64 v);
     lString16 & insert(size_type p0, const value_type * str);
     lString16 & insert(size_type p0, const value_type * str, size_type count);
     lString16 & insert(size_type p0, const lString16 & str);
@@ -500,6 +510,10 @@ public:
     lString16 & operator << (const value_type * str) { return append(str); }
     /// append string
     lString16 & operator << (const lString16 & str) { return append(str); }
+    /// append decimal number
+    lString16 & operator << (const fmt::decimal v) { return appendDecimal(v.get()); }
+    /// append hex number
+    lString16 & operator << (const fmt::hex v) { return appendHex(v.get()); }
 
     /// returns true if string starts with specified substring
     bool startsWith ( const lString16 & substring ) const;
@@ -571,6 +585,10 @@ public:
     lString16 & operator += ( const value_type * s ) { return append(s); }
     /// appends single character
     lString16 & operator += ( value_type ch ) { return append(1, ch); }
+    /// append decimal
+    lString16 & operator += ( fmt::decimal v ) { return appendDecimal(v.get()); }
+    /// append hex
+    lString16 & operator += ( fmt::hex v ) { return appendHex(v.get()); }
 
     /// constructs string representation of integer
     static lString16 itoa( int i );
@@ -741,6 +759,10 @@ inline bool operator != (const lString16& s1, const lChar16 * s2 )
 inline bool operator != (const lChar16 * s1, const lString16& s2 )
     { return s2.compare(s1)!=0; }
 inline lString16 operator + (const lString16 &s1, const lString16 &s2) { lString16 s(s1); s.append(s2); return s; }
+inline lString16 operator + (const lString16 &s1, const lChar16 * s2) { lString16 s(s1); s.append(s2); return s; }
+inline lString16 operator + (const lString16 &s1, const lChar8 * s2) { lString16 s(s1); s.append(s2); return s; }
+inline lString16 operator + (const lString16 &s1, fmt::decimal v) { lString16 s(s1); s.appendDecimal(v.get()); return s; }
+inline lString16 operator + (const lString16 &s1, fmt::hex v) { lString16 s(s1); s.appendHex(v.get()); return s; }
 
 inline bool operator == (const lString8& s1, const lString8& s2 )
     { return s1.compare(s2)==0; }
@@ -758,6 +780,10 @@ inline lString8 operator + (const lString8 &s1, const lString8 &s2)
     { lString8 s(s1); s.append(s2); return s; }
 inline lString8 operator + (const lString8 &s1, const lChar8 * s2)
     { lString8 s(s1); s.append(s2); return s; }
+inline lString8 operator + (const lString8 &s1, fmt::decimal v)
+    { lString8 s(s1); s.appendDecimal(v.get()); return s; }
+inline lString8 operator + (const lString8 &s1, fmt::hex v)
+    { lString8 s(s1); s.appendHex(v.get()); return s; }
 
 
 /// fast 16-bit string character appender

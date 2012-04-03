@@ -64,7 +64,7 @@ static lString16 picasToPercent( const lChar16 * prop, int p, int minvalue, int 
     if ( identPercent<minvalue )
         identPercent = minvalue;
 	//if ( identPercent!=0 )
-	return lString16(prop) + lString16::itoa(identPercent) + L"%; ";
+    return lString16(prop) + fmt::decimal(identPercent) + L"%; ";
 	//return lString16::empty_str;
 }
 
@@ -75,7 +75,7 @@ static lString16 picasToPx( const lChar16 * prop, int p, int minvalue, int maxva
     if ( v<minvalue )
         v = minvalue;
 	if ( v!=0 )
-		return lString16(prop) + lString16::itoa(v) + L"px; ";
+        return lString16(prop) + fmt::decimal(v) + L"px; ";
 	return lString16::empty_str;
 }
 
@@ -86,7 +86,7 @@ static lString16 fontSizeToPercent( const lChar16 * prop, int p, int minvalue, i
     if ( v<minvalue )
         v = minvalue;
 	if ( v!=0 )
-		return lString16(prop) + lString16::itoa(v) + L"%; ";
+        return lString16(prop) + fmt::decimal(v) + L"%; ";
 	return lString16::empty_str;
 }
 
@@ -692,7 +692,7 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
             // add Image BLOB
             lString16 name(BLOB_NAME_PREFIX); // L"@blob#"
             name << L"image";
-            name << lString16::itoa(image_index++);
+            name << fmt::decimal(image_index++);
             name << (pImg->eImageType==imagetype_is_jpeg ? L".jpg" : L".png");
             writer->OnBlob(name, pucJpeg, len);
             writer->OnTagOpen(LXML_NS_NONE, L"img");
