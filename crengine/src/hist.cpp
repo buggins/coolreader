@@ -447,17 +447,17 @@ lString16 CRBookmark::getChapterName( ldomXPointer ptr )
 			if ( !p.prevElement() )
 				break;
             bool foundSection = p.findElementInPath( section_id ) > 0;
-            //(p.toString().pos(lString16(L"section")) >=0 );
+            //(p.toString().pos("section") >=0 );
             foundAnySection = foundAnySection || foundSection;
             if ( !foundSection && foundAnySection )
                 continue;
 			lString16 nname = p.getNode()->getNodeName();
-			if ( !nname.compare(L"title") || !nname.compare(L"h1") || !nname.compare("h2")  || !nname.compare("h3") ) {
+            if ( !nname.compare("title") || !nname.compare("h1") || !nname.compare("h2")  || !nname.compare("h3") ) {
 				if ( lastLevel!=-1 && p.getLevel()>=lastLevel )
 					continue;
 				lastLevel = p.getLevel();
 				if ( !chapter.empty() )
-					chapter = lString16(L" / ") + chapter;
+                    chapter = " / " + chapter;
 				chapter = p.getText(' ') + chapter;
 				if ( !p.parent() )
 					break;

@@ -1076,7 +1076,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 int margin = 0;
                 if ( sp==css_lsp_outside )
                     margin = -marker_width;
-                marker += L"\t";
+                marker += "\t";
                 txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h,
                                         margin, NULL );
                 flags &= ~LTEXT_FLAG_NEWLINE;
@@ -1829,7 +1829,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
         lString16 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
         if ( !nodeStyle.empty() ) {
-            nodeStyle = lString16(L"{") + nodeStyle + L"}";
+            nodeStyle = lString16("{") + nodeStyle + "}";
             LVCssDeclaration decl;
             lString8 s8 = UnicodeToUtf8(nodeStyle);
             const char * s = s8.c_str();

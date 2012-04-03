@@ -167,7 +167,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 	propsUpdateDefaults( m_props);
 
 	//m_drawbuf.Clear(m_backgroundColor);
-	createDefaultDocument(lString16(L"No document"), lString16(
+    createDefaultDocument(lString16("No document"), lString16(
 			L"Welcome to CoolReader! Please select file to open"));
 
     m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
@@ -1374,7 +1374,7 @@ LVArray<int> & LVDocView::getSectionBounds() {
 		return m_section_bounds;
 	m_section_bounds.clear();
 	m_section_bounds.add(0);
-	ldomNode * body = m_doc->nodeFromXPath(lString16(L"/FictionBook/body[1]"));
+    ldomNode * body = m_doc->nodeFromXPath(lString16("/FictionBook/body[1]"));
 	lUInt16 section_id = m_doc->getElementNameIndex(L"section");
 	int fh = GetFullHeight();
     int pc = getVisiblePageCount();
@@ -1483,7 +1483,7 @@ lString16 fitTextWidthWithEllipsis(lString16 text, LVFontRef font, int maxwidth)
 		return text;
 	int len;
 	for (len = text.length() - 1; len > 1; len--) {
-		lString16 s = text.substr(0, len) + L"...";
+        lString16 s = text.substr(0, len) + "...";
 		w = font->getTextWidth(s.c_str(), s.length());
 		if (w <= maxwidth)
 			return s;
@@ -1642,25 +1642,22 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
                 pageinfo += fmt::decimal(pageIndex + 1);
             if (phi & PGHDR_PAGE_COUNT) {
                 if ( !pageinfo.empty() )
-                    pageinfo += L" / ";
+                    pageinfo += " / ";
                 pageinfo += fmt::decimal(pageCount);
             }
             if (phi & PGHDR_PERCENT) {
                 if ( !pageinfo.empty() )
-                    pageinfo += L"  ";
+                    pageinfo += "  ";
                 //pageinfo += lString16::itoa(percent/100)+L"%"; //+L"."+lString16::itoa(percent/10%10)+L"%";
                 pageinfo += fmt::decimal(percent/100);
-                pageinfo += L",";
+                pageinfo += ",";
                 int pp = percent%100;
                 if ( pp<10 )
-                    pageinfo << L"0";
-                pageinfo << fmt::decimal(pp);
-                pageinfo << L"%";
+                    pageinfo << "0";
+                pageinfo << fmt::decimal(pp) << "%";
             }
             if ( batteryPercentNormalFont && m_battery_state>=0 ) {
-                pageinfo << L"  [";
-                pageinfo << fmt::decimal(m_battery_state) << L"%";
-                pageinfo << L"]";
+                pageinfo << "  [" << fmt::decimal(m_battery_state) << "%]";
             }
 		}
 		int piw = 0;
@@ -1709,7 +1706,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 					text = text.substr(0, text.length() - 1);
 			}
 		} else {
-			text = authors + L"  " + title;
+            text = authors + "  " + title;
 		}
 	}
 	lvRect newcr = headerRc;
@@ -2344,7 +2341,7 @@ int LVDocView::getCurrentPageImageCount()
         /// called for each found node in range
         virtual bool onElement(ldomXPointerEx * ptr) {
             lString16 nodeName = ptr->getNode()->getNodeName();
-            if (nodeName == L"img" || nodeName == L"image")
+            if (nodeName == "img" || nodeName == "image")
                 count++;
 			return true;
         }
@@ -2728,7 +2725,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 			m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->crc32());
 			// TODO: load document from stream properly
 			if (!LoadDocument(stream)) {
-				createDefaultDocument(lString16(L"Load error"), lString16(
+                createDefaultDocument(lString16("Load error"), lString16(
 						L"Cannot open file ") + filename);
 				return false;
 			}
@@ -2741,7 +2738,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 			// TODO: setup properties
 			// go to anchor
 			if (!id.empty())
-				goLink(lString16(L"#") + id);
+                goLink(lString16("#") + id);
 			clearImageCache();
 			requestRender();
 			return true;
@@ -2791,7 +2788,7 @@ lString16 LVDocView::getNavigationPath() {
 	LVAppendPathDelimiter(fpath);
 	lString16 s = fpath + fname;
 	if (!m_arc.isNull())
-		s = lString16(L"/") + s;
+        s = lString16("/") + s;
 	return s;
 }
 
@@ -3499,7 +3496,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 void LVDocView::close() {
     if ( m_doc )
         m_doc->updateMap();
-	createDefaultDocument(lString16(L""), lString16(L""));
+    createDefaultDocument(lString16(), lString16());
 }
 
 void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
@@ -3604,7 +3601,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportPDBDocument( m_stream, m_doc, m_callback, this, contentFormat );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( lString16(L"ERROR: Error reading PDB format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading PDB format"), lString16("Cannot open document") );
                 if ( m_callback ) {
                     m_callback->OnLoadFileError( lString16("Error reading PDB document") );
                 }
@@ -3635,7 +3632,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-				createDefaultDocument( lString16(L"ERROR: Error reading EPUB format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading EPUB format"), lString16("Cannot open document") );
 				if ( m_callback ) {
 					m_callback->OnLoadFileError( lString16("Error reading EPUB document") );
 				}
@@ -3674,7 +3671,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportCHMDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-				createDefaultDocument( lString16(L"ERROR: Error reading CHM format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading CHM format"), lString16("Cannot open document") );
 				if ( m_callback ) {
 					m_callback->OnLoadFileError( lString16("Error reading CHM document") );
 				}
@@ -3707,7 +3704,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportWordDocument( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( lString16(L"ERROR: Error reading DOC format"), lString16(L"Cannot open document") );
+                createDefaultDocument( lString16("ERROR: Error reading DOC format"), lString16("Cannot open document") );
                 if ( m_callback ) {
                     m_callback->OnLoadFileError( lString16("Error reading DOC document") );
                 }
@@ -3735,13 +3732,6 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			m_container = m_arc;
 			m_doc_props->setInt( DOC_PROP_ARC_FILE_COUNT, m_arc->GetObjectCount() );
 			bool found = false;
-			lString16 htmlExt(L".html");
-			lString16 htmExt(L".htm");
-			lString16 fb2Ext(L".fb2");
-			lString16 rtfExt(L".rtf");
-			lString16 txtExt(L".txt");
-            lString16 pmlExt(L".pml");
-            lString16 fbdExt(L".fbd");
 			int htmCount = 0;
 			int fb2Count = 0;
 			int rtfCount = 0;
@@ -3762,38 +3752,38 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 						lString16 s = name;
 						s.lowercase();
 						bool nameIsOk = true;
-						if ( s.endsWith(htmExt) || s.endsWith(htmlExt) ) {
+                        if ( s.endsWith(".htm") || s.endsWith(".html") ) {
 							lString16 nm = LVExtractFilenameWithoutExtension( s );
-							if ( nm==L"index" || nm==L"default" )
+                            if ( nm == "index" || nm == "default" )
 							defHtml = name;
 							htmCount++;
-						} else if ( s.endsWith(fb2Ext) ) {
+                        } else if ( s.endsWith(".fb2") ) {
 							fb2Count++;
-						} else if ( s.endsWith(rtfExt) ) {
+                        } else if ( s.endsWith(".rtf") ) {
 							rtfCount++;
-						} else if ( s.endsWith(txtExt) ) {
+                        } else if ( s.endsWith(".txt") ) {
 							txtCount++;
-                        } else if ( s.endsWith(pmlExt) ) {
+                        } else if ( s.endsWith(".pml") ) {
                             pmlCount++;
-                        } else if ( s.endsWith(fbdExt) ) {
+                        } else if ( s.endsWith(".fbd") ) {
 							fbdCount++;
 						} else {
 							nameIsOk = false;
 						}
 						if ( nameIsOk ) {
 							if ( firstGood.empty() )
-							firstGood = name;
+                                firstGood = name;
 						}
 						if ( name.length() >= 5 )
 						{
 							name.lowercase();
 							const lChar16 * pext = name.c_str() + name.length() - 4;
-							if ( pext[0]=='.' && pext[1]=='f' && pext[2]=='b' && pext[3]=='2')
-							nameIsOk = true;
-							else if ( pext[0]=='.' && pext[1]=='t' && pext[2]=='x' && pext[3]=='t')
-							nameIsOk = true;
-							else if ( pext[0]=='.' && pext[1]=='r' && pext[2]=='t' && pext[3]=='f')
-							nameIsOk = true;
+                            if (!lStr_cmp(pext, ".fb2"))
+                                nameIsOk = true;
+                            else if (!lStr_cmp(pext, ".txt"))
+                                nameIsOk = true;
+                            else if (!lStr_cmp(pext, ".rtf"))
+                                nameIsOk = true;
 						}
 						if ( !nameIsOk )
 						continue;
@@ -4016,8 +4006,8 @@ bool LVDocView::ParseDocument() {
 				HTML_AUTOCLOSE_TABLE);
 
 		if (m_stream->GetSize() < 5) {
-			createDefaultDocument(lString16(L"ERROR: Wrong document size"),
-					lString16(L"Cannot open document"));
+            createDefaultDocument(lString16("ERROR: Wrong document size"),
+                    lString16("Cannot open document"));
 			return false;
 		}
 
@@ -4080,8 +4070,8 @@ bool LVDocView::ParseDocument() {
 		// unknown format
 		if (!parser) {
 			setDocFormat( doc_format_none);
-			createDefaultDocument(lString16(L"ERROR: Unknown document format"),
-					lString16(L"Cannot open document"));
+            createDefaultDocument(lString16("ERROR: Unknown document format"),
+                    lString16("Cannot open document"));
 			if (m_callback) {
 				m_callback->OnLoadFileError(
 						lString16("Unknown document format"));
@@ -4107,8 +4097,8 @@ bool LVDocView::ParseDocument() {
 			if (m_callback) {
 				m_callback->OnLoadFileError(lString16("Bad document format"));
 			}
-			createDefaultDocument(lString16(L"ERROR: Bad document format"),
-					lString16(L"Cannot open document"));
+            createDefaultDocument(lString16("ERROR: Bad document format"),
+                    lString16("Cannot open document"));
 			return false;
 		}
 		delete parser;
@@ -4336,7 +4326,7 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 		if (len > 0)
 			txt = txt.substr(startPos, len);
 		if (startPos > 0)
-			posText = L"...";
+            posText = "...";
         posText += txt;
 		el = el->getParentNode();
 	} else {
@@ -4365,8 +4355,8 @@ bool LVDocView::getBookmarkPosText(ldomXPointer bm, lString16 & titleText,
 			lChar16 lastch = !txt.empty() ? txt[txt.length() - 1] : 0;
 			if (!titleText.empty()) {
 				if (lastch != '.' && lastch != '?' && lastch != '!')
-					txt += L".";
-				txt += L" ";
+                    txt += ".";
+                txt += " ";
 			}
 			titleText = txt + titleText;
 			el = el->getParentNode();
@@ -4737,13 +4727,13 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 			if (dir.empty())
 				dir = arcpath;
 			if (arcFileCount > 1)
-				filename = arcname + L"." + fname + L".bmk.txt";
+                filename = arcname + "." + fname + ".bmk.txt";
 			else
-				filename = arcname + L".bmk.txt";
+                filename = arcname + ".bmk.txt";
 		} else {
 			if (dir.empty())
 				dir = fpath;
-			filename = fname + L".bmk.txt";
+            filename = fname + ".bmk.txt";
 		}
 		LVAppendPathDelimiter(dir);
 		filename = dir + filename;

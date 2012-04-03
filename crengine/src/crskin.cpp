@@ -63,7 +63,7 @@ lvPoint fromSkinPercent( lvPoint pt, lvPoint fullpt )
 int toSkinPercent( const lString16 & value, int defValue, bool * res )
 {
     // "75%" format - in percent
-    int p = value.pos(lString16(L"%"));
+    int p = value.pos("%");
     int pvalue;
     if ( p>0 ) {
         if ( value.substr(0, p).atoi(pvalue) ) {
@@ -73,7 +73,7 @@ int toSkinPercent( const lString16 & value, int defValue, bool * res )
         }
     }
     // "75px" format - in pixels
-    p = value.pos(lString16(L"px"));
+    p = value.pos("px");
     if ( p>0 ) {
         if ( value.substr(0, p).atoi(pvalue) ) {
             if ( res )
@@ -559,17 +559,17 @@ lvRect CRSkinContainer::readRect( const lChar16 * path, const lChar16 * attrname
     lvRect p = defValue;
     lString16 s1, s2, s3, s4, s;
     s = value;
-    if ( !s.split2(lString16(L","), s1, s2) )
+    if ( !s.split2(",", s1, s2) )
         return p;
     s1.trim();
     s2.trim();
     s = s2;
-    if ( !s.split2(lString16(L","), s2, s3) )
+    if ( !s.split2(",", s2, s3) )
         return p;
     s2.trim();
     s3.trim();
     s = s3;
-    if ( !s.split2(lString16(L","), s3, s4) )
+    if ( !s.split2(",", s3, s4) )
         return p;
     s3.trim();
     s4.trim();
@@ -704,7 +704,7 @@ lvPoint CRSkinContainer::readSize( const lChar16 * path, const lChar16 * attrnam
         return defValue;
     lvPoint p = defValue;
     lString16 s1, s2;
-    if ( !value.split2(lString16(L","), s1, s2) )
+    if ( !value.split2(",", s1, s2) )
         return p;
     s1.trim();
     s2.trim();
@@ -978,7 +978,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         return;
     lString16Collection lines;
     lString16 tabText;
-    int tabPos = text.pos(lString16(L"\t"));
+    int tabPos = text.pos("\t");
     if ( tabPos>=0 ) {
         if ( flags & SKIN_EXTEND_TAB ) {
             tabText = text.substr( tabPos+1 );

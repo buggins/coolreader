@@ -562,7 +562,65 @@ lString16 & lString16::assign(const lChar16 * str)
     return *this;
 }
 
+lString16 & lString16::assign(const lChar8 * str)
+{
+    if (!str || !(*str))
+    {
+        clear();
+    }
+    else
+    {
+        size_type len = _lStr_len(str);
+        if (pchunk->nref==1)
+        {
+            if (pchunk->size<=len)
+            {
+                // resize is necessary
+                pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(len+1) );
+                pchunk->size = len+1;
+            }
+        }
+        else
+        {
+            release();
+            alloc(len);
+        }
+        _lStr_cpy( pchunk->buf16, str );
+        pchunk->len = len;
+    }
+    return *this;
+}
+
 lString16 & lString16::assign(const lChar16 * str, size_type count)
+{
+    if ( !str || !(*str) || count<=0 )
+    {
+        clear();
+    }
+    else
+    {
+        size_type len = _lStr_nlen(str, count);
+        if (pchunk->nref==1)
+        {
+            if (pchunk->size<=len)
+            {
+                // resize is necessary
+                pchunk->buf16 = (lChar16*) ::realloc( pchunk->buf16, sizeof(lChar16)*(len+1) );
+                pchunk->size = len+1;
+            }
+        }
+        else
+        {
+            release();
+            alloc(len);
+        }
+        _lStr_ncpy( pchunk->buf16, str, count );
+        pchunk->len = len;
+    }
+    return *this;
+}
+
+lString16 & lString16::assign(const lChar8 * str, size_type count)
 {
     if ( !str || !(*str) || count<=0 )
     {
@@ -1910,6 +1968,102 @@ int lString16::rpos(lString16 subStr) const
         int flg = 1;
         for (int j=0; j<l; j++)
             if (pchunk->buf16[i+j]!=subStr.pchunk->buf16[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, -1 if not found
+int lString16::pos(const lChar16 * subStr) const
+{
+    if (!subStr)
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length())
+        return -1;
+    int dl = length() - l;
+    for (int i=0; i <= dl; i++)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf16[i+j] != subStr[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, -1 if not found
+int lString16::pos(const lChar16 * subStr, int start) const
+{
+    if (!subStr)
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length() - start)
+        return -1;
+    int dl = length() - l;
+    for (int i=start; i <= dl; i++)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf16[i+j] != subStr[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, -1 if not found
+int lString16::pos(const lChar8 * subStr) const
+{
+    if (!subStr)
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length())
+        return -1;
+    int dl = length() - l;
+    for (int i=0; i <= dl; i++)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf16[i+j] != subStr[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, -1 if not found
+int lString16::pos(const lChar8 * subStr, int start) const
+{
+    if (!subStr)
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length() - start)
+        return -1;
+    int dl = length() - l;
+    for (int i = start; i <= dl; i++)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf16[i+j] != subStr[j])
             {
                 flg = 0;
                 break;
@@ -3865,6 +4019,19 @@ bool lString16::endsWith( const lChar16 * substring ) const
 }
 
 /// returns true if string ends with specified substring
+bool lString16::endsWith( const lChar8 * substring ) const
+{
+    if ( !substring || !*substring )
+        return true;
+    unsigned len = lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str() + (length()-len);
+    const lChar8 * s2 = substring;
+    return lStr_cmp( s1, s2 )==0;
+}
+
+/// returns true if string ends with specified substring
 bool lString16::endsWith ( const lString16 & substring ) const
 {
     if ( substring.empty() )
@@ -3889,6 +4056,38 @@ bool lString16::startsWith( const lString16 & substring ) const
     const lChar16 * s2 = substring.c_str();
     for ( unsigned i=0; i<len; i++ )
         if ( s1[i]!=s2[i] )
+            return false;
+    return true;
+}
+
+/// returns true if string starts with specified substring
+bool lString16::startsWith(const lChar16 * substring) const
+{
+    if (!substring || !substring[0])
+        return true;
+    unsigned len = _lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str();
+    const lChar16 * s2 = substring;
+    for ( unsigned i=0; i<len; i++ )
+        if ( s1[i] != s2[i] )
+            return false;
+    return true;
+}
+
+/// returns true if string starts with specified substring
+bool lString16::startsWith(const lChar8 * substring) const
+{
+    if (!substring || !substring[0])
+        return true;
+    unsigned len = _lStr_len(substring);
+    if ( length() < len )
+        return false;
+    const lChar16 * s1 = c_str();
+    const lChar8 * s2 = substring;
+    for ( unsigned i=0; i<len; i++ )
+        if (s1[i] != s2[i])
             return false;
     return true;
 }
@@ -4183,6 +4382,32 @@ bool lString16::split2( const lString16 & delim, lString16 & value1, lString16 &
         return false;
     value1 = substr(0, p);
     value2 = substr(p+delim.length());
+    return true;
+}
+
+bool lString16::split2( const lChar16 * delim, lString16 & value1, lString16 & value2 )
+{
+    if (empty())
+        return false;
+    unsigned p = pos(delim);
+    int l = lStr_len(delim);
+    if (p<=0 || p >= length() - l)
+        return false;
+    value1 = substr(0, p);
+    value2 = substr(p + l);
+    return true;
+}
+
+bool lString16::split2( const lChar8 * delim, lString16 & value1, lString16 & value2 )
+{
+    if (empty())
+        return false;
+    unsigned p = pos(delim);
+    int l = lStr_len(delim);
+    if (p<=0 || p >= length() - l)
+        return false;
+    value1 = substr(0, p);
+    value2 = substr(p + l);
     return true;
 }
 

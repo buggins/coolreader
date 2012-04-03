@@ -24,8 +24,8 @@ static void findImagesFromDirectory( lString16 dir, lString16Collection & files 
             if ( !item->IsContainer() ) {
                 lString16 name = item->GetName();
                 name.lowercase();
-                if ( name.endsWith(lString16(L".png")) || name.endsWith(lString16(L".jpg")) || name.endsWith(lString16(L".gif"))
-                    || name.endsWith(lString16(L".jpeg")) ) {
+                if ( name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".gif")
+                    || name.endsWith(".jpeg") ) {
                     files.add(dir + item->GetName());
                 }
             }

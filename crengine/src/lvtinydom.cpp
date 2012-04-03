@@ -295,7 +295,7 @@ static void dumpRendMethods( ldomNode * node, lString16 prefix )
         name << L"<" << node->getNodeName() << L">   " << fmt::decimal(node->getRendMethod());
     CRLog::trace( "%s ",LCSTR(name) );
     for ( unsigned i=0; i<node->getChildCount(); i++ ) {
-        dumpRendMethods( node->getChildNode(i), prefix + L"   ");
+        dumpRendMethods( node->getChildNode(i), prefix + "   ");
     }
 }
 
@@ -3167,7 +3167,7 @@ void ldomDocument::applyDocumentStyleSheet()
         }
         CRLog::error("applyDocumentStyleSheet() : cannot load link/stylesheet from %s", LCSTR(_docStylesheetFileName));
     } else {
-        ldomXPointer ss = createXPointer(lString16(L"/FictionBook/stylesheet"));
+        ldomXPointer ss = createXPointer(lString16("/FictionBook/stylesheet"));
         if ( !ss.isNull() ) {
             lString16 css = ss.getText('\n');
             if ( !css.empty() ) {
@@ -3582,7 +3582,7 @@ lString16 ldomElementWriter::getPath()
 {
     if ( !_path.empty() || _element->isRoot() )
         return _path;
-    _path = _parent->getPath() + L"/" + _element->getXPathSegment();
+    _path = _parent->getPath() + "/" + _element->getXPathSegment();
     return _path;
 }
 
@@ -5099,7 +5099,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return getNodeName() + L"[" + fmt::decimal(index+1) + L"]";
+                return getNodeName() + "[" + fmt::decimal(index+1) + "]";
             }
             if ( node->isElement() && node->getNodeId()==id )
                 index++;
@@ -5108,7 +5108,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return L"text()[" + lString16::itoa(index+1) + L"]";
+                return L"text()[" + lString16::itoa(index+1) + "]";
             }
             if ( node->isText() )
                 index++;
@@ -5136,7 +5136,7 @@ lString16 ldomXPointer::toString()
             lString16 name = p->getNodeName();
             int id = p->getNodeId();
             if ( !parent )
-                return lString16(L"/") + name + path;
+                return "/" + name + path;
             int index = -1;
             int count = 0;
             for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
@@ -5148,13 +5148,13 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16(L"/") + name + L"[" + fmt::decimal(index) + L"]" + path;
+                path = lString16("/") + name + "[" + fmt::decimal(index) + "]" + path;
             else
-                path = lString16(L"/") + name + path;
+                path = lString16("/") + name + path;
         } else {
             // text
             if ( !parent )
-                return lString16(L"/text()") + path;
+                return lString16("/text()") + path;
             int index = -1;
             int count = 0;
             for ( unsigned i=0; i<parent->getChildCount(); i++ ) {
@@ -5166,9 +5166,9 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16(L"/text()") + L"[" + fmt::decimal(index) + L"]" + path;
+                path = lString16("/text()") + "[" + fmt::decimal(index) + "]" + path;
             else
-                path = lString16(L"/text()") + path;
+                path = "/text()" + path;
         }
         p = parent;
     }
@@ -5192,7 +5192,7 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
         delimiter = L", ";
     lString16 authors;
     for ( int i=0; i<16; i++) {
-        lString16 path = lString16(L"/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + L"]";
+        lString16 path = lString16("/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + "]";
         ldomXPointer pauthor = doc->createXPointer(path);
         if ( !pauthor ) {
             //CRLog::trace( "xpath not found: %s", UnicodeToUtf8(path).c_str() );
@@ -5205,7 +5205,7 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
         if ( !author.empty() )
             author += L" ";
         if ( !middleName.empty() )
-            author += shortMiddleName ? lString16(middleName, 0, 1) + L"." : middleName;
+            author += shortMiddleName ? lString16(middleName, 0, 1) + "." : middleName;
         if ( !lastName.empty() && !author.empty() )
             author += L" ";
         author += lastName;
@@ -7166,7 +7166,7 @@ static lString16 escapeDocPath( lString16 path )
 lString16 ldomDocumentFragmentWriter::convertId( lString16 id )
 {
     if ( !codeBasePrefix.empty() ) {
-        return codeBasePrefix + L"_" + id;
+        return codeBasePrefix + "_" + id;
     }
     return id;
 }
@@ -7182,7 +7182,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
         lString16 replacement = pathSubstitutions.get(filePathName);
         if (replacement.empty())
             return href;
-        lString16 p = lString16("#") + replacement + L"_" + href.substr(1);
+        lString16 p = lString16("#") + replacement + "_" + href.substr(1);
         //CRLog::trace("href %s -> %s", LCSTR(href), LCSTR(p));
         return p;
     }
@@ -7210,7 +7210,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
         //p = LVCombinePaths( codeBase, p ); // relative to absolute path
     }
     if ( !id.empty() )
-        p = p + L"_" + id;
+        p = p + "_" + id;
 
     p = lString16("#") + p;
 
@@ -8455,7 +8455,7 @@ public:
 
     bool writeIndex()
     {
-        lString16 filename = _cacheDir + L"cr3cache.inx";
+        lString16 filename = _cacheDir + "cr3cache.inx";
         LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
         if ( !stream )
             return false;
@@ -8481,7 +8481,7 @@ public:
 
     bool readIndex(  )
     {
-        lString16 filename = _cacheDir + L"cr3cache.inx";
+        lString16 filename = _cacheDir + "cr3cache.inx";
         // read index
         lUInt32 totalSize = 0;
         LVStreamRef instream = LVOpenFileStream( filename.c_str(), LVOM_READ );
@@ -8542,7 +8542,7 @@ public:
             const LVContainerItemInfo * item = container->GetObjectInfo( i );
             if ( !item->IsContainer() ) {
                 lString16 fn = item->GetName();
-                if ( !fn.endsWith(L".cr3") )
+                if ( !fn.endsWith(".cr3") )
                     continue;
                 if ( findFileIndex(fn)<0 ) {
                     // delete file
@@ -8652,7 +8652,7 @@ public:
                 fn << L"_";
         }
         if (fn.length() > 25)
-            fn = fn.substr(0, 12) + L"-" + fn.substr(fn.length()-12, 12);
+            fn = fn.substr(0, 12) + "-" + fn.substr(fn.length()-12, 12);
         char s[16];
         sprintf(s, ".%08x.%d.cr3", (unsigned)crc, (int)docFlags);
         return fn + lString16( s ); //_cacheDir +
@@ -10283,7 +10283,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     if ( !marker.empty() ) {
         LVFont * font = getFont().get();
         if ( font ) {
-            markerWidth = font->getTextWidth((marker + L"  ").c_str(), marker.length()+2) + s->font_size.value/8;
+            markerWidth = font->getTextWidth((marker + "  ").c_str(), marker.length()+2) + s->font_size.value/8;
             res = true;
         } else {
             marker.clear();
@@ -10717,11 +10717,11 @@ LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
                 lString16 fname = getProps()->getStringDef( DOC_PROP_FILE_NAME, "" );
                 fname = LVExtractFilenameWithoutExtension(fname);
                 if ( !fname.empty() ) {
-                    lString16 fn = fname + L"_img";
+                    lString16 fn = fname + "_img";
 //                    if ( getContainer()->GetObjectInfo(fn) ) {
 
 //                    }
-                    lString16 name = fn + L"/" + refName;
+                    lString16 name = fn + "/" + refName;
                     if ( !getCodeBase().empty() )
                         name = getCodeBase() + name;
                     ref = getContainer()->OpenStream(name.c_str(), LVOM_READ);

@@ -253,7 +253,7 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
     //LVAppendPathDelimiter( hyphDirectory );
     LVContainerRef container;
     LVStreamRef stream;
-    if ( (hyphDirectory.endsWith(lString16(L"/")) || hyphDirectory.endsWith(lString16(L"\\"))) && LVDirectoryExists(hyphDirectory) ) {
+    if ( (hyphDirectory.endsWith("/") || hyphDirectory.endsWith("\\")) && LVDirectoryExists(hyphDirectory) ) {
         container = LVOpenDirectory( hyphDirectory.c_str(), L"*.*" );
     } else if ( LVFileExists(hyphDirectory) ) {
         stream = LVOpenFileStream( hyphDirectory.c_str(), LVOM_READ );
@@ -270,11 +270,11 @@ bool HyphDictionaryList::open(lString16 hyphDirectory, bool clear)
 			lString16 name = item->GetName();
             lString16 suffix;
             HyphDictType t = HDT_NONE;
-            if ( name.endsWith(lString16(".pdb")) ) {
-                suffix = L"_hyphen_(Alan).pdb";
+            if ( name.endsWith(".pdb") ) {
+                suffix = "_hyphen_(Alan).pdb";
                 t = HDT_DICT_ALAN;
-            } else if ( name.endsWith(lString16(".pattern")) ) {
-                suffix = L".pattern";
+            } else if ( name.endsWith(".pattern") ) {
+                suffix = ".pattern";
                 t = HDT_DICT_TEX;
             } else
                 continue;

@@ -826,7 +826,7 @@ public:
                     //CRLog::trace("CHM item: %s", LCSTR(name));
                     lString16 lname = name;
                     lname.lowercase();
-                    if ( lname.endsWith(L".hhc") ) {
+                    if ( lname.endsWith(".hhc") ) {
                         if ( sz > bestSize ) {
                             hhcName = name;
                             bestSize = sz;
@@ -914,21 +914,21 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString16 defEncodingNa
 static int filename_comparator(lString16 & _s1, lString16 & _s2) {
     lString16 s1 = _s1.substr(1);
     lString16 s2 = _s2.substr(1);
-    if (s1.endsWith(L".htm"))
+    if (s1.endsWith(".htm"))
         s1.erase(s1.length()-4, 4);
-    else if (s1.endsWith(L".html"))
+    else if (s1.endsWith(".html"))
         s1.erase(s1.length()-5, 5);
-    if (s2.endsWith(L".htm"))
+    if (s2.endsWith(".htm"))
         s2.erase(s2.length()-4, 4);
-    else if (s2.endsWith(L".html"))
+    else if (s2.endsWith(".html"))
         s2.erase(s2.length()-5, 5);
-    if (s1 == L"index")
+    if (s1 == "index")
         return -1;
-    else if (s2 == L"index")
+    else if (s2 == "index")
         return 1;
-    if (s1 == L"header")
+    if (s1 == "header")
         return -1;
-    else if (s2 == L"header")
+    else if (s2 == "header")
         return 1;
     int d1 = 0;
     int d2 = 0;
@@ -971,14 +971,14 @@ public:
             return; // already added
         _fileList.add(v1.c_str());
         CRLog::trace("New source file: %s", LCSTR(v1) );
-        _appender->addPathSubstitution( v1, lString16(L"_doc_fragment_") + fmt::decimal(_fileList.length()) );
+        _appender->addPathSubstitution( v1, lString16("_doc_fragment_") + fmt::decimal(_fileList.length()) );
         _appender->setCodeBase( v1 );
     }
 
     void addTocItem( lString16 name, lString16 url, int level )
     {
         //CRLog::trace("CHM toc level %d: '%s' : %s", level, LCSTR(name), LCSTR(url) );
-        if ( url.startsWith(lString16(L"..")) )
+        if (url.startsWith(".."))
             url = LVExtractFilename( url );
         lString16 v1, v2;
         if ( !url.split2(lString16("#"), v1, v2) )
@@ -1108,7 +1108,7 @@ public:
                 // add rest of pages
                 for ( unsigned i=0; i<urlList.length(); i++ ) {
                     lString16 name = urlList[i];
-                    if ( name.endsWith(lString16(L".htm")) || name.endsWith(lString16(L".html")) )
+                    if ( name.endsWith(".htm") || name.endsWith(".html") )
                         addFile(name);
                 }
 
@@ -1198,7 +1198,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     //ldomDocumentWriter writer(doc);
     writer.OnStart(NULL);
     writer.OnTagOpenNoAttr(L"", L"body");
-    ldomDocumentFragmentWriter appender(&writer, lString16(L"body"), lString16(L"DocFragment"), lString16::empty_str );
+    ldomDocumentFragmentWriter appender(&writer, lString16("body"), lString16("DocFragment"), lString16::empty_str );
     CHMTOCReader tocReader(cont, doc, &appender);
     if ( !tocReader.init(cont, tocFileName, defEncodingName, urlList, mainPageName) )
         return false;

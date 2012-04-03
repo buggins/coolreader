@@ -124,16 +124,16 @@ int main(int argc, char *argv[])
         //fontDirs.add( lString16(L"/mnt/fonts") );
         fontDirs.add(homefonts);
 #if MAC==1
-        fontDirs.add( lString16(L"/Library/Fonts") );
+        fontDirs.add( lString16("/Library/Fonts") );
 #endif
 #if 0
         fontDirs.add( exefontpath );
-        fontDirs.add( lString16(L"/usr/share/fonts/truetype") );
-        fontDirs.add( lString16(L"/usr/share/fonts/truetype/liberation") );
-        fontDirs.add( lString16(L"/usr/share/fonts/truetype/freefont") );
+        fontDirs.add( lString16("/usr/share/fonts/truetype") );
+        fontDirs.add( lString16("/usr/share/fonts/truetype/liberation") );
+        fontDirs.add( lString16("/usr/share/fonts/truetype/freefont") );
 #endif
         // TODO: use fontconfig instead
-        //fontDirs.add( lString16(L"/root/fonts/truetype") );
+        //fontDirs.add( lString16("/root/fonts/truetype") );
         if ( !InitCREngine( argv[0], fontDirs ) ) {
             printf("Cannot init CREngine - exiting\n");
             return 2;
@@ -398,10 +398,10 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     // use fontconfig
 
     lString16Collection fontExt;
-    fontExt.add(lString16(L".ttf"));
-    fontExt.add(lString16(L".otf"));
-    fontExt.add(lString16(L".pfa"));
-    fontExt.add(lString16(L".pfb"));
+    fontExt.add(lString16(".ttf"));
+    fontExt.add(lString16(".otf"));
+    fontExt.add(lString16(".pfa"));
+    fontExt.add(lString16(".pfb"));
     lString16Collection fonts;
 
     getDirectoryFonts( fontDirs, fontExt, fonts, true );

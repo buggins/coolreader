@@ -1002,48 +1002,48 @@ void LVTextFileBase::Reset()
 void LVTextFileBase::SetCharset( const lChar16 * name )
 {
     m_encoding_name = lString16( name );
-    if ( m_encoding_name == L"utf-8" ) {
+    if ( m_encoding_name == "utf-8" ) {
         m_enc_type = ce_utf8;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-16" ) {
+    } else if ( m_encoding_name == "utf-16" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
 #if GBK_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"gbk" || m_encoding_name == L"cp936" || m_encoding_name == L"cp-936") {
+    } else if ( m_encoding_name == "gbk" || m_encoding_name == "cp936" || m_encoding_name == "cp-936") {
         m_enc_type = ce_gbk;
         SetCharsetTable( NULL );
 #endif
 #if JIS_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"shift-jis" || m_encoding_name == L"shift_jis" || m_encoding_name == L"sjis" || m_encoding_name == L"ms_kanji" || m_encoding_name == L"csshiftjis" || m_encoding_name == L"shift_jisx0213" || m_encoding_name == L"shift_jis-2004" || m_encoding_name == L"cp932") {
+    } else if ( m_encoding_name == "shift-jis" || m_encoding_name == "shift_jis" || m_encoding_name == "sjis" || m_encoding_name == "ms_kanji" || m_encoding_name == "csshiftjis" || m_encoding_name == "shift_jisx0213" || m_encoding_name == "shift_jis-2004" || m_encoding_name == "cp932") {
         m_enc_type = ce_shift_jis;
         SetCharsetTable( NULL );
-    } else if (m_encoding_name == L"euc-jisx0213" ||  m_encoding_name == L"euc-jis-2004" ||  m_encoding_name == L"euc-jis" ||  m_encoding_name == L"euc-jp" ||  m_encoding_name == L"eucjp") {
+    } else if (m_encoding_name == "euc-jisx0213" ||  m_encoding_name == "euc-jis-2004" ||  m_encoding_name == "euc-jis" ||  m_encoding_name == "euc-jp" ||  m_encoding_name == "eucjp") {
         m_enc_type = ce_euc_jis;
         SetCharsetTable( NULL );
 #endif
 #if BIG5_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"big5" || m_encoding_name == L"big5-2003" || m_encoding_name == L"big-5" || m_encoding_name == L"big-five" || m_encoding_name == L"bigfive" || m_encoding_name == L"cn-big5" || m_encoding_name == L"csbig5" || m_encoding_name == L"cp950") {
+    } else if ( m_encoding_name == "big5" || m_encoding_name == "big5-2003" || m_encoding_name == "big-5" || m_encoding_name == "big-five" || m_encoding_name == "bigfive" || m_encoding_name == "cn-big5" || m_encoding_name == "csbig5" || m_encoding_name == "cp950") {
         m_enc_type = ce_big5;
         SetCharsetTable( NULL );
 #endif
 #if EUC_KR_ENCODING_SUPPORT == 1
-    } else if ( m_encoding_name == L"euc_kr" || m_encoding_name == L"euc-kr" || m_encoding_name == L"euckr" || m_encoding_name == L"cseuckr" || m_encoding_name == L"cp51949" || m_encoding_name == L"cp949") {
+    } else if ( m_encoding_name == "euc_kr" || m_encoding_name == "euc-kr" || m_encoding_name == "euckr" || m_encoding_name == "cseuckr" || m_encoding_name == "cp51949" || m_encoding_name == "cp949") {
         m_enc_type = ce_euc_kr;
         SetCharsetTable( NULL );
 #endif
-    } else if ( m_encoding_name == L"utf-16le" ) {
+    } else if ( m_encoding_name == "utf-16le" ) {
         m_enc_type = ce_utf16_le;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-16be" ) {
+    } else if ( m_encoding_name == "utf-16be" ) {
         m_enc_type = ce_utf16_be;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-32" ) {
+    } else if ( m_encoding_name == "utf-32" ) {
         m_enc_type = ce_utf32_le;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-32le" ) {
+    } else if ( m_encoding_name == "utf-32le" ) {
         m_enc_type = ce_utf32_le;
         SetCharsetTable( NULL );
-    } else if ( m_encoding_name == L"utf-32be" ) {
+    } else if ( m_encoding_name == "utf-32be" ) {
         m_enc_type = ce_utf32_be;
         SetCharsetTable( NULL );
     } else {
@@ -1913,7 +1913,7 @@ public:
                 return;
             sectionId++;
             callback->OnTagOpen(NULL, L"section");
-            callback->OnAttribute(NULL, L"id", (lString16(L"_section") + fmt::decimal(sectionId)).c_str() );
+            callback->OnAttribute(NULL, L"id", (lString16("_section") + fmt::decimal(sectionId)).c_str() );
             callback->OnTagBody();
             inSection = true;
             endOfParagraph();
@@ -3804,15 +3804,15 @@ bool LVHTMLParser::CheckFormat()
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
         s.lowercase();
-        if ( s.pos(L"<html") >=0 && ( s.pos(L"<head") >= 0 || s.pos(L"<body") >=0 ) ) //&& s.pos(L"<FictionBook") >= 0
+        if ( s.pos("<html") >=0 && ( s.pos("<head") >= 0 || s.pos("<body") >=0 ) ) //&& s.pos(L"<FictionBook") >= 0
             res = true;
         lString16 name=m_stream->GetName();
         name.lowercase();
-        bool html_ext = name.endsWith(lString16(".htm")) || name.endsWith(lString16(".html"))
-                        || name.endsWith(lString16(".hhc"))
-                        || name.endsWith(lString16(".xhtml"));
-        if ( html_ext && (s.pos(L"<!--")>=0 || s.pos(L"UL")>=0
-                           || s.pos(L"<p>")>=0 || s.pos(L"ul")>=0) )
+        bool html_ext = name.endsWith(".htm") || name.endsWith(".html")
+                        || name.endsWith(".hhc")
+                        || name.endsWith(".xhtml");
+        if ( html_ext && (s.pos("<!--")>=0 || s.pos("UL")>=0
+                           || s.pos("<p>")>=0 || s.pos("ul")>=0) )
             res = true;
         lString16 enc = htmlCharset( s );
         if ( !enc.empty() )
