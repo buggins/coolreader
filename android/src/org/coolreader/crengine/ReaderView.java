@@ -8,7 +8,6 @@ import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +27,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.text.ClipboardManager;
+import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
@@ -592,7 +592,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private KeyEvent trackedKeyEvent = null; 
 	private ReaderAction actionToRepeat = null;
 	private boolean repeatActionActive = false;
-	private Map<Integer, Long> keyDownTimestampMap = new HashMap<Integer, Long>();
+	private SparseArray<Long> keyDownTimestampMap = new SparseArray<Long>();
 	
 	private int translateKeyCode(int keyCode) {
 		if (DeviceInfo.REVERT_LANDSCAPE_VOLUME_KEYS && (mActivity.getScreenOrientation() & 1) != 0) {
