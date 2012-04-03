@@ -38,12 +38,12 @@ static void findBackgrounds( lString16Collection & baseDirs, lString16Collection
     for ( i=0; i<baseDirs.length(); i++ ) {
         lString16 baseDir = baseDirs[i];
         LVAppendPathDelimiter(baseDir);
-        findImagesFromDirectory( baseDir + L"backgrounds", files );
+        findImagesFromDirectory( baseDir + "backgrounds", files );
     }
     for ( i=0; i<baseDirs.length(); i++ ) {
         lString16 baseDir = baseDirs[i];
         LVAppendPathDelimiter(baseDir);
-        findImagesFromDirectory( baseDir + L"textures", files );
+        findImagesFromDirectory( baseDir + "textures", files );
     }
 }
 

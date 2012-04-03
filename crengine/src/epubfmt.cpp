@@ -37,13 +37,13 @@ public:
 static void dumpZip( LVContainerRef arc ) {
     lString16 arcName = LVExtractFilenameWithoutExtension( arc->GetName() );
     if ( arcName.empty() )
-        arcName = L"unziparc";
+        arcName = "unziparc";
     lString16 outDir = lString16("/tmp/") + arcName;
     LVCreateDirectory(outDir);
     for ( int i=0; i<arc->GetObjectCount(); i++ ) {
         const LVContainerItemInfo * info = arc->GetObjectInfo(i);
         if ( !info->IsContainer() ) {
-            lString16 outFileName = outDir + L"/" + info->GetName();
+            lString16 outFileName = outDir + "/" + info->GetName();
             LVCreateDirectory(LVExtractPath(outFileName));
             LVStreamRef in = arc->OpenStream(info->GetName(), LVOM_READ);
             LVStreamRef out = LVOpenFileStream(outFileName.c_str(), LVOM_WRITE);
@@ -150,7 +150,7 @@ lString16 EpubGetRootFilePath(LVContainerRef m_arc)
         }
     }
 
-    if ( rootfilePath.empty() || rootfileMediaType!=L"application/oebps-package+xml" )
+    if (rootfilePath.empty() || rootfileMediaType != "application/oebps-package+xml")
         return lString16::empty_str;
     return rootfilePath;
 }
@@ -200,39 +200,39 @@ class EncCallback : public LVXMLParserCallback {
 public:
     /// called on opening tag <
     virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) {
-        if (!lStr_cmp(tagname, L"encryption"))
+        if (!lStr_cmp(tagname, "encryption"))
             insideEncryption = true;
-        else if (!lStr_cmp(tagname, L"EncryptedData"))
+        else if (!lStr_cmp(tagname, "EncryptedData"))
             insideEncryptedData = true;
-        else if (!lStr_cmp(tagname, L"EncryptionMethod"))
+        else if (!lStr_cmp(tagname, "EncryptionMethod"))
             insideEncryptionMethod = true;
-        else if (!lStr_cmp(tagname, L"CipherData"))
+        else if (!lStr_cmp(tagname, "CipherData"))
             insideCipherData = true;
-        else if (!lStr_cmp(tagname, L"CipherReference"))
+        else if (!lStr_cmp(tagname, "CipherReference"))
             insideCipherReference = true;
 		return NULL;
     }
     /// called on tag close
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) {
-        if (!lStr_cmp(tagname, L"encryption"))
+        if (!lStr_cmp(tagname, "encryption"))
             insideEncryption = false;
-        else if (!lStr_cmp(tagname, L"EncryptedData") && insideEncryptedData) {
+        else if (!lStr_cmp(tagname, "EncryptedData") && insideEncryptedData) {
             if (!algorithm.empty() && !uri.empty()) {
                 _container->addEncryptedItem(new EncryptedItem(uri, algorithm));
             }
             insideEncryptedData = false;
-        } else if (!lStr_cmp(tagname, L"EncryptionMethod"))
+        } else if (!lStr_cmp(tagname, "EncryptionMethod"))
             insideEncryptionMethod = false;
-        else if (!lStr_cmp(tagname, L"CipherData"))
+        else if (!lStr_cmp(tagname, "CipherData"))
             insideCipherData = false;
-        else if (!lStr_cmp(tagname, L"CipherReference"))
+        else if (!lStr_cmp(tagname, "CipherReference"))
             insideCipherReference = false;
     }
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) {
-        if (!lStr_cmp(attrname, L"URI") && insideCipherReference)
+        if (!lStr_cmp(attrname, "URI") && insideCipherReference)
             insideEncryption = false;
-        else if (!lStr_cmp(attrname, L"Algorithm") && insideEncryptionMethod)
+        else if (!lStr_cmp(attrname, "Algorithm") && insideEncryptionMethod)
             insideEncryptedData = false;
     }
     /// called on text
@@ -305,7 +305,7 @@ public:
     EncryptedItem * findEncryptedItem(const lChar16 * name) {
         lString16 n;
         if (name[0] != '/' && name[0] != '\\')
-            n << L"/";
+            n << "/";
         n << name;
         for (int i=0; i<_list.length(); i++) {
             lString16 s = _list[i]->_uri;
@@ -347,7 +347,7 @@ public:
     bool hasUnsupportedEncryption() {
         for (int i=0; i<_list.length(); i++) {
             lString16 method = _list[i]->_method;
-            if (method != L"http://ns.adobe.com/pdf/enc#RC") {
+            if (method != "http://ns.adobe.com/pdf/enc#RC") {
                 CRLog::debug("unsupported encryption method: %s", LCSTR(method));
                 return true;
             }
@@ -374,31 +374,31 @@ void createEncryptedEpubWarningDocument(ldomDocument * m_doc) {
     ldomDocumentWriter writer(m_doc);
     writer.OnTagOpenNoAttr(NULL, L"body");
     writer.OnTagOpenNoAttr(NULL, L"h3");
-    lString16 hdr(L"Encrypted content");
+    lString16 hdr("Encrypted content");
     writer.OnText(hdr.c_str(), hdr.length(), 0);
     writer.OnTagClose(NULL, L"h3");
 
     writer.OnTagOpenAndClose(NULL, L"hr");
 
     writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt(L"This document is encrypted (has DRM protection).");
+    lString16 txt("This document is encrypted (has DRM protection).");
     writer.OnText(txt.c_str(), txt.length(), 0);
     writer.OnTagClose(NULL, L"p");
 
     writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt2(L"Cool Reader doesn't support reading of DRM protected books.");
+    lString16 txt2("Cool Reader doesn't support reading of DRM protected books.");
     writer.OnText(txt2.c_str(), txt2.length(), 0);
     writer.OnTagClose(NULL, L"p");
 
     writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt3(L"To read this book, please use software recommended by book seller.");
+    lString16 txt3("To read this book, please use software recommended by book seller.");
     writer.OnText(txt3.c_str(), txt3.length(), 0);
     writer.OnTagClose(NULL, L"p");
 
     writer.OnTagOpenAndClose(NULL, L"hr");
 
     writer.OnTagOpenNoAttr(NULL, L"p");
-    lString16 txt4(L"");
+    lString16 txt4("");
     writer.OnText(txt4.c_str(), txt4.length(), 0);
     writer.OnTagClose(NULL, L"p");
 
@@ -436,18 +436,18 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
             return LVStreamRef();
 
         for ( int i=1; i<20; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") + fmt::decimal(i) + L"]" );
+            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
             lString16 name = item->getAttributeValue(L"name");
             lString16 content = item->getAttributeValue(L"content");
-            if (name == L"cover")
+            if (name == "cover")
                 coverId = content;
         }
 
         // items
         for ( int i=1; i<50000; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") + fmt::decimal(i) + L"]" );
+            ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
             lString16 href = item->getAttributeValue(L"href");
@@ -688,7 +688,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         m_doc_props->setString(DOC_PROP_AUTHORS, author );
 
         for ( int i=1; i<50; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/identifier[") + fmt::decimal(i) + L"]" );
+            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/identifier[") << fmt::decimal(i) << "]" );
             if (!item)
                 break;
             lString16 key = item->getText();
@@ -700,22 +700,22 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
         CRLog::info("Author: %s Title: %s", LCSTR(author), LCSTR(title));
         for ( int i=1; i<20; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") + fmt::decimal(i) + L"]" );
+            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
             lString16 name = item->getAttributeValue(L"name");
             lString16 content = item->getAttributeValue(L"content");
-            if ( name == L"cover" )
+            if (name == "cover")
                 coverId = content;
-            else if ( name==L"calibre:series" )
+            else if (name == "calibre:series")
                 m_doc_props->setString(DOC_PROP_SERIES_NAME, content );
-            else if ( name==L"calibre:series_index" )
+            else if (name == "calibre:series_index")
                 m_doc_props->setInt(DOC_PROP_SERIES_NUMBER, content.atoi() );
         }
 
         // items
         for ( int i=1; i<50000; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") + fmt::decimal(i) + L"]" );
+            ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") << fmt::decimal(i) << "]" );
             if ( !item )
                 break;
             lString16 href = item->getAttributeValue(L"href");
@@ -749,7 +749,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 //                    fontList.add(codeBase + href);
 //                }
             }
-            if ( mediaType==L"text/css" ) {
+            if (mediaType == "text/css") {
                 lString16 name = LVCombinePaths(codeBase, href);
                 LVStreamRef cssStream = m_arc->OpenStream(name.c_str(), LVOM_READ);
                 if (!cssStream.isNull()) {
@@ -773,7 +773,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     ncxHref = codeBase + ncx->href;
 
                 for ( int i=1; i<50000; i++ ) {
-                    ldomNode * item = doc->nodeFromXPath( lString16("package/spine/itemref[") + fmt::decimal(i) + L"]" );
+                    ldomNode * item = doc->nodeFromXPath( lString16("package/spine/itemref[") << fmt::decimal(i) << "]" );
                     if ( !item )
                         break;
                     EpubItem * epubItem = epubItems.findById( item->getAttributeValue(L"idref") );
@@ -825,7 +825,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
     }
     for ( int i=0; i<spineItems.length(); i++ ) {
-        if ( spineItems[i]->mediaType==L"application/xhtml+xml" ) {
+        if (spineItems[i]->mediaType == "application/xhtml+xml") {
             lString16 name = codeBase + spineItems[i]->href;
             {
                 CRLog::debug("Checking fragment: %s", LCSTR(name));

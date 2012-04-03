@@ -72,39 +72,39 @@ public:
     /// called on opening tag
     virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
-        if ( lStr_cmp(tagname, L"FictionBookMarks")==0 && state==in_xml ) {
+        if ( lStr_cmp(tagname, "FictionBookMarks")==0 && state==in_xml ) {
             state = in_fbm;
-        } else if ( lStr_cmp(tagname, L"file")==0 && state==in_fbm ) {
+        } else if ( lStr_cmp(tagname, "file")==0 && state==in_fbm ) {
             state = in_file;
             _curr_file = new CRFileHistRecord();
-        } else if ( lStr_cmp(tagname, L"file-info")==0 && state==in_file ) {
+        } else if ( lStr_cmp(tagname, "file-info")==0 && state==in_file ) {
             state = in_file_info;
-        } else if ( lStr_cmp(tagname, L"bookmark-list")==0 && state==in_file ) {
+        } else if ( lStr_cmp(tagname, "bookmark-list")==0 && state==in_file ) {
             state = in_bm_list;
-        } else if ( lStr_cmp(tagname, L"doc-title")==0 && state==in_file_info ) {
+        } else if ( lStr_cmp(tagname, "doc-title")==0 && state==in_file_info ) {
             state = in_title;
-        } else if ( lStr_cmp(tagname, L"doc-author")==0 && state==in_file_info ) {
+        } else if ( lStr_cmp(tagname, "doc-author")==0 && state==in_file_info ) {
             state = in_author;
-        } else if ( lStr_cmp(tagname, L"doc-series")==0 && state==in_file_info ) {
+        } else if ( lStr_cmp(tagname, "doc-series")==0 && state==in_file_info ) {
             state = in_series;
-        } else if ( lStr_cmp(tagname, L"doc-filename")==0 && state==in_file_info ) {
+        } else if ( lStr_cmp(tagname, "doc-filename")==0 && state==in_file_info ) {
             state = in_filename;
-        } else if ( lStr_cmp(tagname, L"doc-filepath")==0 && state==in_file_info ) {
+        } else if ( lStr_cmp(tagname, "doc-filepath")==0 && state==in_file_info ) {
             state = in_filepath;
-        } else if ( lStr_cmp(tagname, L"doc-filesize")==0 && state==in_file_info ) {
+        } else if ( lStr_cmp(tagname, "doc-filesize")==0 && state==in_file_info ) {
             state = in_filesize;
-        } else if ( lStr_cmp(tagname, L"bookmark")==0 && state==in_bm_list ) {
+        } else if ( lStr_cmp(tagname, "bookmark")==0 && state==in_bm_list ) {
             state = in_bm;
             _curr_bookmark = new CRBookmark();
-        } else if ( lStr_cmp(tagname, L"start-point")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(tagname, "start-point")==0 && state==in_bm ) {
             state = in_start_point;
-        } else if ( lStr_cmp(tagname, L"end-point")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(tagname, "end-point")==0 && state==in_bm ) {
             state = in_end_point;
-        } else if ( lStr_cmp(tagname, L"header-text")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(tagname, "header-text")==0 && state==in_bm ) {
             state = in_header_txt;
-        } else if ( lStr_cmp(tagname, L"selection-text")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(tagname, "selection-text")==0 && state==in_bm ) {
             state = in_selection_txt;
-        } else if ( lStr_cmp(tagname, L"comment-text")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(tagname, "comment-text")==0 && state==in_bm ) {
             state = in_comment_txt;
         }
         return NULL;
@@ -112,30 +112,30 @@ public:
     /// called on closing
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
     {
-        if ( lStr_cmp(nsname, L"FictionBookMarks")==0 && state==in_fbm ) {
+        if ( lStr_cmp(nsname, "FictionBookMarks")==0 && state==in_fbm ) {
             state = in_xml;
-        } else if ( lStr_cmp(tagname, L"file")==0 && state==in_file ) {
+        } else if ( lStr_cmp(tagname, "file")==0 && state==in_file ) {
             state = in_fbm;
             if ( _curr_file )
                 _hist->getRecords().add( _curr_file );
             _curr_file = NULL;
-        } else if ( lStr_cmp(tagname, L"file-info")==0 && state==in_file_info ) {
+        } else if ( lStr_cmp(tagname, "file-info")==0 && state==in_file_info ) {
             state = in_file;
-        } else if ( lStr_cmp(tagname, L"bookmark-list")==0 && state==in_bm_list ) {
+        } else if ( lStr_cmp(tagname, "bookmark-list")==0 && state==in_bm_list ) {
             state = in_file;
-        } else if ( lStr_cmp(tagname, L"doc-title")==0 && state==in_title ) {
+        } else if ( lStr_cmp(tagname, "doc-title")==0 && state==in_title ) {
             state = in_file_info;
-        } else if ( lStr_cmp(tagname, L"doc-author")==0 && state==in_author ) {
+        } else if ( lStr_cmp(tagname, "doc-author")==0 && state==in_author ) {
             state = in_file_info;
-        } else if ( lStr_cmp(tagname, L"doc-series")==0 && state==in_series ) {
+        } else if ( lStr_cmp(tagname, "doc-series")==0 && state==in_series ) {
             state = in_file_info;
-        } else if ( lStr_cmp(tagname, L"doc-filename")==0 && state==in_filename ) {
+        } else if ( lStr_cmp(tagname, "doc-filename")==0 && state==in_filename ) {
             state = in_file_info;
-        } else if ( lStr_cmp(tagname, L"doc-filepath")==0 && state==in_filepath ) {
+        } else if ( lStr_cmp(tagname, "doc-filepath")==0 && state==in_filepath ) {
             state = in_file_info;
-        } else if ( lStr_cmp(tagname, L"doc-filesize")==0 && state==in_filesize ) {
+        } else if ( lStr_cmp(tagname, "doc-filesize")==0 && state==in_filesize ) {
             state = in_file_info;
-        } else if ( lStr_cmp(tagname, L"bookmark")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(tagname, "bookmark")==0 && state==in_bm ) {
             state = in_bm_list;
             if ( _curr_bookmark ) {
                 if ( _curr_bookmark->getType() == bmkt_lastpos ) {
@@ -146,22 +146,22 @@ public:
                 }
                 _curr_bookmark = NULL;
             }
-        } else if ( lStr_cmp(tagname, L"start-point")==0 && state==in_start_point ) {
+        } else if ( lStr_cmp(tagname, "start-point")==0 && state==in_start_point ) {
             state = in_bm;
-        } else if ( lStr_cmp(tagname, L"end-point")==0 && state==in_end_point ) {
+        } else if ( lStr_cmp(tagname, "end-point")==0 && state==in_end_point ) {
             state = in_bm;
-        } else if ( lStr_cmp(tagname, L"header-text")==0 && state==in_header_txt ) {
+        } else if ( lStr_cmp(tagname, "header-text")==0 && state==in_header_txt ) {
             state = in_bm;
-        } else if ( lStr_cmp(tagname, L"selection-text")==0 && state==in_selection_txt ) {
+        } else if ( lStr_cmp(tagname, "selection-text")==0 && state==in_selection_txt ) {
             state = in_bm;
-        } else if ( lStr_cmp(tagname, L"comment-text")==0 && state==in_comment_txt ) {
+        } else if ( lStr_cmp(tagname, "comment-text")==0 && state==in_comment_txt ) {
             state = in_bm;
         }
     }
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
     {
-        if ( lStr_cmp(attrname, L"type")==0 && state==in_bm ) {
+        if ( lStr_cmp(attrname, "type")==0 && state==in_bm ) {
             static const char * tnames[] = {"lastpos", "position", "comment", "correction"};
             for ( int i=0; i<4; i++) {
                 if ( lStr_cmp(attrvalue, tnames[i])==0 ) {
@@ -169,10 +169,10 @@ public:
                     return;
                 }
             }
-        } else if ( lStr_cmp(attrname, L"shortcut")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(attrname, "shortcut")==0 && state==in_bm ) {
             int n = lString16( attrvalue ).atoi();
             _curr_bookmark->setShortcut( n );
-        } else if ( lStr_cmp(attrname, L"percent")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(attrname, "percent")==0 && state==in_bm ) {
             int n1=0, n2=0;
             int i=0;
             for ( ; attrvalue[i]>='0' && attrvalue[i]<='9'; i++)
@@ -185,13 +185,13 @@ public:
                     n2 = (attrvalue[i++]-'0');
             }
             _curr_bookmark->setPercent( n1*100 + n2 );
-        } else if ( lStr_cmp(attrname, L"timestamp")==0 && state==in_bm ) {
+        } else if ( lStr_cmp(attrname, "timestamp")==0 && state==in_bm ) {
             time_t n1=0;
             int i=0;
             for ( ; attrvalue[i]>='0' && attrvalue[i]<='9'; i++)
                 n1 = n1*10 + (attrvalue[i]-'0');
             _curr_bookmark->setTimestamp( n1 );
-        } else if (lStr_cmp(attrname, L"page")==0 && state==in_bm) {
+        } else if (lStr_cmp(attrname, "page")==0 && state==in_bm) {
             _curr_bookmark->setBookmarkPage(lString16( attrvalue ).atoi());
         }
     }

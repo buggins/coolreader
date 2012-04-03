@@ -370,18 +370,18 @@ unsigned short * szGetVoiceDataBlock( int iPage, int * numBytes, int * encodingT
         _docview->getBookmarkPosText( bm, titleText, posText );
         text = titleText;
         if ( !posText.empty() && !titleText.empty() )
-            text += L" \n";
+            text += " \n";
         text += posText;
     }
     if ( text.empty() ) {
-        text = L"";
+        text = "";
         LVRendPageList * pages = _docview->getPageList();
         int percent = 0;
         if ( iPage>=0 && iPage<pages->length() ) {
             percent = ( iPage * 100 ) / pages->length()-1;
         }
         text = lString16::itoa(percent);
-        text += L"%";
+        text += "%";
     }
     *encodingType = 2;
     *numBytes = text.length(); // * 2;
@@ -425,16 +425,16 @@ const char * GetAboutInfoText()
     lString16 text;
     static char about_text[10000];
     if ( !authors.empty() ) {
-        text << L"Author(s):     " << authors << L"\n";
+        text << "Author(s):     " << authors << "\n";
     }
     if ( !title.empty() ) {
-        text << L"Title:     " << title << L"\n";
+        text << "Title:     " << title << "\n";
     }
     if ( !series.empty() ) {
-        text << L"Series:     " << series << L"\n";
+        text << "Series:     " << series << "\n";
     }
     lString16 crengineVersion = Utf8ToUnicode(lString8(CR_ENGINE_VERSION));
-    text << L"CoolReader:    " << crengineVersion << L"\n";
+    text << "CoolReader:    " << crengineVersion << "\n";
 
     lStr_cpy( about_text, UnicodeToUtf8( text ).c_str() );
     return about_text;
@@ -733,8 +733,8 @@ int InitDoc(char *fileName)
         if ( lang && lang[0] ) {
             // set translator
             CRLog::info("Current language is %s, looking for translation file", lang);
-            lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
-            lString16 mofilename2 = L"/root/abook/crengine/i18n/" + lString16(lang) + L".mo";
+            lString16 mofilename = "/root/crengine/i18n/" + lString16(lang) + ".mo";
+            lString16 mofilename2 = "/root/abook/crengine/i18n/" + lString16(lang) + ".mo";
             CRMoFileTranslator * t = new CRMoFileTranslator();
             if ( t->openMoFile( mofilename2 ) || t->openMoFile( mofilename ) ) {
                 CRLog::info("translation file %s.mo found", lang);

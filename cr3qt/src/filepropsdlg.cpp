@@ -89,25 +89,25 @@ QString FilePropsDialog::getDocAuthors( const char * path, const char * delim )
         lString16 email = qt2cr(getDocText( (p + "/email").c_str(), " " ));
         lString16 s = firstName;
         if ( !middleName.empty() )
-            s << L" " << middleName;
+            s << " " << middleName;
         if ( !lastName.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << lastName;
         }
         if ( !nickName.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << nickName;
         }
         if ( !homePage.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << homePage;
         }
         if ( !email.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << email;
         }
         if ( s.empty() )
@@ -153,7 +153,7 @@ void FilePropsDialog::fillItems()
     _docview->savePosition();
     CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
 
-    lString16 title = L"Cool Reader ";
+    lString16 title("Cool Reader ");
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION CR_ENGINE_VERSION
 #endif
@@ -166,7 +166,7 @@ void FilePropsDialog::fillItems()
 
     addPropLine( tr("Current page"), cr2qt(lString16::itoa(_docview->getCurPage())) );
     addPropLine( tr("Total pages"), cr2qt(lString16::itoa(_docview->getPageCount())) );
-    addPropLine( tr("Battery state"), cr2qt(lString16::itoa(_docview->getBatteryState()) + L"%") );
+    addPropLine( tr("Battery state"), cr2qt(lString16::itoa(_docview->getBatteryState()) + "%") );
     addPropLine( tr("Current Time"), cr2qt(_docview->getTimeString()) );
     // TODO:
     if ( hist ) {

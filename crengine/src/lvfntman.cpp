@@ -800,9 +800,9 @@ public:
             return false;
         if ( _fileName.endsWith(".pfb") || _fileName.endsWith(".pfa") ) {
             lString8 kernFile = _fileName.substr(0, _fileName.length()-4);
-            if ( LVFileExists(lString16(kernFile.c_str())+L".afm" ) ) {
+            if ( LVFileExists(Utf8ToUnicode(kernFile) + ".afm" ) ) {
                 kernFile += ".afm";
-            } else if ( LVFileExists(lString16(kernFile.c_str())+L".pfm" ) ) {
+            } else if ( LVFileExists(Utf8ToUnicode(kernFile) + ".pfm" ) ) {
                 kernFile += ".pfm";
             } else {
                 kernFile.clear();
@@ -867,9 +867,9 @@ public:
             return false;
         if ( _fileName.endsWith(".pfb") || _fileName.endsWith(".pfa") ) {
         	lString8 kernFile = _fileName.substr(0, _fileName.length()-4);
-        	if ( LVFileExists(lString16(kernFile.c_str())+L".afm" ) ) {
+            if ( LVFileExists(Utf8ToUnicode(kernFile) + ".afm") ) {
         		kernFile += ".afm";
-        	} else if ( LVFileExists(lString16(kernFile.c_str())+L".pfm" ) ) {
+            } else if ( LVFileExists(Utf8ToUnicode(kernFile) + ".pfm" ) ) {
         		kernFile += ".pfm";
         	} else {
         		kernFile.clear();
@@ -1942,7 +1942,7 @@ public:
                 lString8 fn( (const char *)s );
                 lString16 fn16( fn.c_str() );
                 fn16.lowercase();
-                if ( !fn16.endsWith(L".ttf") && !fn16.endsWith(L".odf") && !fn16.endsWith(L".otf") && !fn16.endsWith(L".pfb") && !fn16.endsWith(L".pfa")  ) {
+                if (!fn16.endsWith(".ttf") && !fn16.endsWith(".odf") && !fn16.endsWith(".otf") && !fn16.endsWith(".pfb") && !fn16.endsWith(".pfa")  ) {
                     continue;
                 }
                 int weight = FC_WEIGHT_MEDIUM;
@@ -2038,9 +2038,9 @@ public:
                 face16.lowercase();
                 if ( spacing==FC_MONO )
                     fontFamily = css_ff_monospace;
-                else if ( face16.pos(L"sans")>=0 )
+                else if (face16.pos("sans") >= 0)
                     fontFamily = css_ff_sans_serif;
-                else if ( face16.pos(L"serif")>=0 )
+                else if (face16.pos("serif") >= 0)
                     fontFamily = css_ff_serif;
                 
                 //css_ff_inherit,
@@ -2054,9 +2054,9 @@ public:
                 lString8 face((const char*)family);
                 lString16 style16((const char*)style);
                 style16.lowercase();
-                if ( style16.pos(L"condensed")>=0 )
+                if (style16.pos("condensed") >= 0)
                     face << " Condensed";
-                else if ( style16.pos(L"extralight")>=0 )
+                else if (style16.pos("extralight") >= 0)
                     face << " Extra Light";
                 
                 LVFontDef def(

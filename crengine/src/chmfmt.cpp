@@ -862,7 +862,7 @@ ldomDocument * LVParseCHMHTMLStream( LVStreamRef stream, lString16 defEncodingNa
         if ( node!=NULL ) {
             for ( int i=0; i<node->getChildCount(); i++ ) {
                 ldomNode * child = node->getChildNode(i);
-                if ( child && child->isElement() && child->getNodeName()==L"param" && child->getAttributeValue(L"name")==L"Font") {
+                if (child && child->isElement() && child->getNodeName() == "param" && child->getAttributeValue(L"name") == "Font") {
                     lString16 s = child->getAttributeValue(L"value");
                     lString16 lastDigits;
                     for ( int i=s.length()-1; i>=0; i-- ) {
@@ -996,10 +996,10 @@ public:
     {
         lString16 nodeName = node->getNodeName();
         lUInt16 paramElemId = node->getDocument()->getElementNameIndex(L"param");
-        if ( nodeName==L"object" ) {
+        if (nodeName == "object") {
             if ( level>0 ) {
                 // process object
-                if ( node->getAttributeValue(L"type")==L"text/sitemap" ) {
+                if (node->getAttributeValue(L"type") == "text/sitemap") {
                     lString16 name, local;
                     int cnt = node->getChildCount();
                     for ( int i=0; i<cnt; i++ ) {
@@ -1007,9 +1007,9 @@ public:
                         if ( child ) {
                             lString16 paramName = child->getAttributeValue(L"name");
                             lString16 paramValue = child->getAttributeValue(L"value");
-                            if ( paramName==L"Name" )
+                            if (paramName == "Name")
                                 name = paramValue;
-                            else if ( paramName==L"Local" )
+                            else if (paramName == "Local")
                                 local = paramValue;
                         }
                     }
@@ -1021,7 +1021,7 @@ public:
             }
             return;
         }
-        if ( nodeName==L"ul" )
+        if (nodeName == "ul")
             level++;
         int cnt = node->getChildCount();
         for ( int i=0; i<cnt; i++ ) {
@@ -1041,10 +1041,10 @@ public:
                 if (item->IsContainer())
                     continue;
                 lString16 name = item->GetName();
-                if (name == L"/bookindex.htm" || name == L"/headerindex.htm")
+                if (name == "/bookindex.htm" || name == "/headerindex.htm")
                     continue;
                 //CRLog::trace("item %d : %s", i, LCSTR(name));
-                if (name.endsWith(L".htm") || name.endsWith(L".html"))
+                if (name.endsWith(".htm") || name.endsWith(".html"))
                     htms.add(name);
             }
             if (!htms.length())
@@ -1072,11 +1072,11 @@ public:
             for ( unsigned i=0; i<urlList.length(); i++ ) {
                 //lString16 name = lString16::itoa(i+1);
                 lString16 name = urlList[i];
-                if ( name.endsWith(L".htm") )
+                if ( name.endsWith(".htm") )
                     name = name.substr(0, name.length()-4);
-                else if ( name.endsWith(L".html") )
+                else if ( name.endsWith(".html") )
                     name = name.substr(0, name.length()-5);
-                if (name.startsWith(L"/"))
+                if (name.startsWith("/"))
                     name = name.substr(1);
                 addTocItem( name, urlList[i], 0 );
             }

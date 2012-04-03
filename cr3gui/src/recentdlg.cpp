@@ -57,7 +57,7 @@ void CRRecentBookMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef ski
     if ( title.empty() )
         title = _book->getFileName();
     else if ( !series.empty() )
-        title << L" - " << series;
+        title << " - " << series;
 
     lvRect posRect = textRect;
     if ( !author.empty() ) {
@@ -129,7 +129,7 @@ CRRecentBooksMenu::CRRecentBooksMenu(CRGUIWindowManager * wm, LVDocView * docvie
         CRRecentBookMenuItem * item = new CRRecentBookMenuItem( this, i, file );
         addItem( item );
     }
-    //_helpText = L"Long press 1..8 = set, short press = go to";
+    //_helpText = "Long press 1..8 = set, short press = go to";
     //_helpHeight = 36;
     CRGUIAcceleratorTableRef acc = _wm->getAccTables().get("bookmarks");
     if ( acc.isNull() )

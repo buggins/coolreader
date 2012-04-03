@@ -1166,7 +1166,7 @@ public:
     void showDictDialog()
     {
         if (_dictDlg == NULL) {
-            lString16 filename = L"dict.css";
+            lString16 filename = "dict.css";
             lString8 dictCss;
             if (_cssDir.length() > 0 && LVFileExists( _cssDir + filename ))
                 LVLoadStylesheetFile( _cssDir + filename, dictCss );
@@ -1771,15 +1771,15 @@ lString8 CRPbDictionaryView::createArticle(const char *word, const char *transla
                     }
                     break;
                 case 2:
-                    dst << L"<emphasis>";
-                    closeTag = L"</emphasis>";
+                    dst << "<emphasis>";
+                    closeTag = "</emphasis>";
                     break;
                 case 3:
-                    dst << L"<strong>";
-                    closeTag = L"</strong>";
+                    dst << "<strong>";
+                    closeTag = "</strong>";
                     break;
                 case '\n':
-                    dst << L"</p><p>";
+                    dst << "</p><p>";
 				default:
                     break;
                 }
@@ -1791,7 +1791,7 @@ lString8 CRPbDictionaryView::createArticle(const char *word, const char *transla
                 dst.append(src, offset, count);
             if (closeTag != NULL)
                 dst.append(closeTag);
-            dst << L"</p>";
+            dst << "</p>";
             article << UnicodeToUtf8(dst);
         } else
             article << translation;
@@ -1922,7 +1922,7 @@ void CRPbDictionaryMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef s
     }
     lvRect textRect = rc;
     textRect.left += imgWidth;
-    lString16 word = _word16 + L" ";
+    lString16 word = _word16 + " ";
     lvPoint sz = skin->measureTextItem(word);
     textRect.right = textRect.left + sz.x;
     skin->drawText( buf, textRect, word);
@@ -2348,8 +2348,8 @@ int InitDoc(const char *exename, char *fileName)
         if ( lang && lang[0] ) {
             // set translator
             CRLog::info("Current language is %s, looking for translation file", lang);
-            lString16 mofilename = L""USERDATA"/share/cr3/i18n/" + lString16(lang) + L".mo";
-            lString16 mofilename2 = L""USERDATA2"/share/cr3/i18n/" + lString16(lang) + L".mo";
+            lString16 mofilename = USERDATA"/share/cr3/i18n/" + lString16(lang) + ".mo";
+            lString16 mofilename2 = USERDATA2"/share/cr3/i18n/" + lString16(lang) + ".mo";
             CRMoFileTranslator * t = new CRMoFileTranslator();
             if ( t->openMoFile( mofilename2 ) || t->openMoFile( mofilename ) ) {
                 CRLog::info("translation file %s.mo found", lang);

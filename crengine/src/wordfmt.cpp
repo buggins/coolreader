@@ -64,7 +64,7 @@ static lString16 picasToPercent( const lChar16 * prop, int p, int minvalue, int 
     if ( identPercent<minvalue )
         identPercent = minvalue;
 	//if ( identPercent!=0 )
-    return lString16(prop) + fmt::decimal(identPercent) + L"%; ";
+    return lString16(prop) << fmt::decimal(identPercent) << "%; ";
 	//return lString16::empty_str;
 }
 
@@ -75,7 +75,7 @@ static lString16 picasToPx( const lChar16 * prop, int p, int minvalue, int maxva
     if ( v<minvalue )
         v = minvalue;
 	if ( v!=0 )
-        return lString16(prop) + fmt::decimal(v) + L"px; ";
+        return lString16(prop) << fmt::decimal(v) << "px; ";
 	return lString16::empty_str;
 }
 
@@ -86,7 +86,7 @@ static lString16 fontSizeToPercent( const lChar16 * prop, int p, int minvalue, i
     if ( v<minvalue )
         v = minvalue;
 	if ( v!=0 )
-        return lString16(prop) + fmt::decimal(v) + L"%; ";
+        return lString16(prop) << fmt::decimal(v) << "%; ";
 	return lString16::empty_str;
 }
 
@@ -369,13 +369,13 @@ vStartOfParagraph2(diagram_type *pDiag)
     if ( !inside_p && !inside_list && !inside_li ) {
         writer->OnTagOpen(NULL, L"p");
         if ( alignment==ALIGNMENT_CENTER )
-            style << L"text-align: center; ";
+            style << "text-align: center; ";
         else if ( alignment==ALIGNMENT_RIGHT )
-            style << L"text-align: right; ";
+            style << "text-align: right; ";
         else if ( alignment==ALIGNMENT_JUSTIFY )
-            style << L"text-align: justify; text-indent: 1.3em; ";
+            style << "text-align: justify; text-indent: 1.3em; ";
         else
-            style << L"text-align: left; ";
+            style << "text-align: left; ";
         //if ( sLeftIndent1!=0 )
         //style << picasToPercent(L"text-indent: ", sLeftIndent1, 0, 20);
         if ( sLeftIndent!=0 )
@@ -537,7 +537,7 @@ bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 				int cw = asColumnWidth[i] * 100 / totalWidth;
 		        writer->OnTagOpen(NULL, L"col");
 				if ( cw>=0 )
-					writer->OnAttribute(NULL, L"width", (lString16::itoa(cw) + L"%").c_str());
+                    writer->OnAttribute(NULL, L"width", (lString16::itoa(cw) + "%").c_str());
 		        writer->OnTagBody();
 		        writer->OnTagClose(NULL, L"col");
 			}
@@ -691,9 +691,9 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
 
             // add Image BLOB
             lString16 name(BLOB_NAME_PREFIX); // L"@blob#"
-            name << L"image";
+            name << "image";
             name << fmt::decimal(image_index++);
-            name << (pImg->eImageType==imagetype_is_jpeg ? L".jpg" : L".png");
+            name << (pImg->eImageType==imagetype_is_jpeg ? ".jpg" : ".png");
             writer->OnBlob(name, pucJpeg, len);
             writer->OnTagOpen(LXML_NS_NONE, L"img");
             writer->OnAttribute(LXML_NS_NONE, L"src", name.c_str());

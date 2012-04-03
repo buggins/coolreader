@@ -382,7 +382,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	CRLog::debug("exedir=%s", exedir8.c_str());
 
 	CRMoFileTranslator * translator = new CRMoFileTranslator();
-	translator->openMoFile(exedir + L"/po/ru.mo");
+    translator->openMoFile(exedir + "/po/ru.mo");
 	CRI18NTranslator::setTranslator( translator );
 
 
@@ -394,7 +394,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	lString8 fd = UnicodeToLocal(exedir);
 	lString16Collection fontDirs;
 	//fontDirs.add( fontdir );
-    fontDirs.add( exedir + L"fonts" );
+    fontDirs.add( exedir + "fonts" );
 	InitCREngine( exe_fn, fontDirs );
     const char * fontnames[] = {
 #if 1
@@ -479,19 +479,19 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		loadKeymaps( winman, keymap_locations );
 		
 
-        ldomDocCache::init( exedir + L"cache", 0x100000 * 96 ); /*96Mb*/
+        ldomDocCache::init( exedir + "cache", 0x100000 * 96 ); /*96Mb*/
 
-        winman.loadSkin( LVExtractPath(LocalToUnicode(lString8(exe_fn))) + L"skin" );
+        winman.loadSkin( LVExtractPath(LocalToUnicode(lString8(exe_fn))) + "skin" );
         V3DocViewWin * main_win = new V3DocViewWin( &winman, LVExtractPath(LocalToUnicode(lString8(exe_fn))) );
         main_win->getDocView()->setBackgroundColor(0xFFFFFF);
         main_win->getDocView()->setTextColor(0x000000);
         main_win->getDocView()->setFontSize( 20 );
-		main_win->loadCSS( exedir + L"fb2.css" );
-		main_win->loadSettings( exedir + L"cr3.ini" );
+        main_win->loadCSS( exedir + "fb2.css" );
+        main_win->loadSettings( exedir + "cr3.ini" );
         main_win->saveSettings(lString16::empty_str);
-		main_win->setHelpFile( exedir + L"cr3-manual-ru.fb2" );
-		HyphMan::initDictionaries( exedir + L"hyph\\" );
-		main_win->loadDefaultCover( exedir + L"cr3_def_cover.png" );
+        main_win->setHelpFile( exedir + "cr3-manual-ru.fb2" );
+        HyphMan::initDictionaries( exedir + "hyph\\" );
+        main_win->loadDefaultCover( exedir + "cr3_def_cover.png" );
 		main_win->setBookmarkDir(lString16("c:\\cr3\\bookmarks\\"));
 		lString8 exedir8 = UnicodeToUtf8( exedir );
 		const char * dirs[] = {
@@ -501,7 +501,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 		loadKeymaps( winman, dirs );
 
-        main_win->loadHistory( exedir + L"cr3hist.bmk" );
+        main_win->loadHistory( exedir + "cr3hist.bmk" );
 
         winman.activateWindow( main_win );
         if ( !main_win->loadDocument( LocalToUnicode( cmdline )) ) {

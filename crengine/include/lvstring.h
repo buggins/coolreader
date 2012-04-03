@@ -448,7 +448,7 @@ public:
     lString16 & assign(const lString16 & str, size_type offset, size_type count);
     /// assignment from c-string
     lString16 & operator = (const value_type * str) { return assign(str); }
-    /// assignment from c-string
+    /// assignment from string 8bit ASCII only
     lString16 & operator = (const lChar8 * str) { return assign(str); }
     /// assignment from string
     lString16 & operator = (const lString16 & str) { return assign(str); }
@@ -790,6 +790,8 @@ inline bool operator == (const lChar16 * s1, const lString16& s2 )
 inline bool operator != (const lString16& s1, const lString16& s2 )
     { return s1.compare(s2)!=0; }
 inline bool operator != (const lString16& s1, const lChar16 * s2 )
+    { return s1.compare(s2)!=0; }
+inline bool operator != (const lString16& s1, const lChar8 * s2 )
     { return s1.compare(s2)!=0; }
 inline bool operator != (const lChar16 * s1, const lString16& s2 )
     { return s2.compare(s1)!=0; }

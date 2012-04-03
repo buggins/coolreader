@@ -106,18 +106,18 @@ int main(int argc, char *argv[])
         lString16 datadir = lString16(CR3_DATA_DIR);
         LVAppendPathDelimiter(exedir);
         LVAppendPathDelimiter(datadir);
-        lString16 exefontpath = exedir + L"fonts";
+        lString16 exefontpath = exedir + "fonts";
         CRLog::info("main()");
         lString16Collection fontDirs;
 
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
         lString16 homecr3 = home;
         LVAppendPathDelimiter(homecr3);
-        homecr3 << L".cr3";
+        homecr3 << ".cr3";
         LVAppendPathDelimiter(homecr3);
         //~/.cr3/
         lString16 homefonts = homecr3;
-        homefonts << L"fonts";
+        homefonts << "fonts";
 
         //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
         //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
@@ -330,7 +330,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 #else
     lString16 datadir = lString16(CR3_DATA_DIR);
 #endif
-    lString16 fontDir = datadir + L"fonts";
+    lString16 fontDir = datadir + "fonts";
 	lString8 fontDir8_ = UnicodeToUtf8(fontDir);
 
     fontDirs.add( fontDir );
@@ -346,7 +346,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     lChar16 sysdir[MAX_PATH+1];
     GetWindowsDirectoryW(sysdir, MAX_PATH);
     lString16 fontdir( sysdir );
-    fontdir << L"\\Fonts\\";
+    fontdir << "\\Fonts\\";
     lString8 fontdir8( UnicodeToUtf8(fontdir) );
     const char * fontnames[] = {
         "arial.ttf",
@@ -470,26 +470,26 @@ void InitCREngineLog( const char * cfgfile )
         }
     }
     CRLog::log_level level = CRLog::LL_INFO;
-    if ( loglevelstr==L"OFF" ) {
+    if (loglevelstr == "OFF") {
         level = CRLog::LL_FATAL;
         logfname.clear();
-    } else if ( loglevelstr==L"FATAL" ) {
+    } else if (loglevelstr == "FATAL") {
         level = CRLog::LL_FATAL;
-    } else if ( loglevelstr==L"ERROR" ) {
+    } else if (loglevelstr == "ERROR") {
         level = CRLog::LL_ERROR;
-    } else if ( loglevelstr==L"WARN" ) {
+    } else if (loglevelstr == "WARN") {
         level = CRLog::LL_WARN;
-    } else if ( loglevelstr==L"INFO" ) {
+    } else if (loglevelstr == "INFO") {
         level = CRLog::LL_INFO;
-    } else if ( loglevelstr==L"DEBUG" ) {
+    } else if (loglevelstr == "DEBUG") {
         level = CRLog::LL_DEBUG;
-    } else if ( loglevelstr==L"TRACE" ) {
+    } else if (loglevelstr == "TRACE") {
         level = CRLog::LL_TRACE;
     }
     if ( !logfname.empty() ) {
-        if ( logfname==L"stdout" )
+        if (logfname == "stdout")
             CRLog::setStdoutLogger();
-        else if ( logfname==L"stderr" )
+        else if (logfname == "stderr")
             CRLog::setStderrLogger();
         else
             CRLog::setFileLogger( UnicodeToUtf8( logfname ).c_str(), autoFlush );

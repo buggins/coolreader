@@ -50,8 +50,8 @@ void CRBookmarkMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin,
     }
     lString16 postext(_("Page $1 ($2%)"));
     postext.replaceIntParam(1, _page+1);
-    postext.replaceParam(2, lString16::itoa( _bookmark->getPercent()/100 ) + L"." + lString16::itoa( _bookmark->getPercent()%100 ));
-    postext << L"  " << _bookmark->getTitleText();
+    postext.replaceParam(2, lString16::itoa( _bookmark->getPercent()/100 ) << "." << fmt::decimal(_bookmark->getPercent()%100));
+    postext << "  " << _bookmark->getTitleText();
     skin->drawText( buf, posRect, postext );
     if ( !text.empty() )
         valueSkin->drawText( buf, textRect, text );

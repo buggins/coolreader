@@ -134,7 +134,7 @@ CRGUIAcceleratorTableRef CRGUIAcceleratorTableList::get( const lString16 & name,
     CRGUIAcceleratorTableRef prev = get(name);
     if ( !prev )
         return prev;
-    CRPropRef keymaps = keyRemappingOptions->getSubProps(LCSTR(lString16("keymap.") + name + L"."));
+    CRPropRef keymaps = keyRemappingOptions->getSubProps(LCSTR(lString16("keymap.") + name + "."));
     if ( keymaps.isNull() || keymaps->getCount()==0 )
         return prev;
     CRGUIAcceleratorTableRef acc( new CRGUIAcceleratorTable( *prev ));
@@ -591,7 +591,7 @@ bool CRGUIWindowBase::getClientRect( lvRect & rc )
 /// formats scroll label (like "1 of 2")
 lString16 CRGUIWindowBase::getScrollLabel( int page, int pages )
 {
-    return lString16::itoa(page) + L" of " + lString16::itoa(pages);
+    return lString16::itoa(page) << " of " << fmt::decimal(pages);
 }
 
 /// calculates minimum scroll size
@@ -1078,7 +1078,7 @@ CRMenuSkinRef CRMenu::getSkin()
         return _skin;
     lString16 path = getSkinName();
     lString16 path2;
-    if ( !path.startsWith( L"#" ) )
+    if (!path.startsWith("#"))
         path = lString16("/CR3Skin/") + path;
     else if ( _wm->getScreenOrientation()&1 )
         _skin = _wm->getSkin()->getMenuSkin( (path + "-rotated").c_str() );
@@ -1886,7 +1886,7 @@ CRKeyboardLayoutRef CRKeyboardLayoutList::getCurrentLayout()
 {
 	if ( !_current.isNull() )
 		return _current;
-	_current = get( lString16( L"english" ) );
+    _current = get(lString16("english"));
 	if ( !_current )
 		nextLayout();
 	return _current;
@@ -1999,7 +1999,7 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
 						table = CRKeyboardLayoutRef( new CRKeyboardLayoutSet() );
 						_table.set( langname, table );
 					}
-					if ( layouttype == L"tx" )
+                    if (layouttype == "tx")
 						layout = table->tXKeyboard;
 					else
 						layout = table->vKeyboard;
@@ -2011,7 +2011,7 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
             lString16 name;
             lString16 value;
             if ( splitLine( line, lString16("="), name, value ) ) {
-				if ( name == L"enabled" ) {
+                if (name == "enabled") {
 					//if ( value == L"0" )
 					//	; //TODO:set disabled flag
 					continue;

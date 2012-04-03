@@ -166,7 +166,7 @@ public:
             return;
         }
         bool intbl = m_stack.getInt( pi_intbl )>0;
-        bool asteriskFlag = ( s.compare( L"* * *" )==0 );
+        bool asteriskFlag = (s == "* * *");
         bool titleFlag = m_stack.getInt( pi_align )==ha_center && len<200;
         if ( last_notitle && titleFlag && !asteriskFlag ) {
             OnAction(RA_SECTION);

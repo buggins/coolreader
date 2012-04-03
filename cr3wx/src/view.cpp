@@ -85,7 +85,7 @@ cr3view::cr3view(CRPropRef props, lString16 exeDirPath )
     _wm.activateWindow( (_docwin = new CRDocViewWindow(&_wm)) );
     getDocView()->setCallback( this );
     IMAGE_SOURCE_FROM_BYTES(defCover, cr3_def_cover_gif);
-    LVImageSourceRef cover = LVCreateFileCopyImageSource( exeDirPath + L"cr3_def_cover.png" );
+    LVImageSourceRef cover = LVCreateFileCopyImageSource( exeDirPath + "cr3_def_cover.png" );
     if ( !cover.isNull() )
         getDocView()->setDefaultCover( cover );
     else
@@ -358,7 +358,7 @@ lString16 cr3view::GetHistoryFileName()
         ::wxMkdir( wxString( cfgdir.c_str() ) );
     lChar16 slash = detectSlash( cfgdir );
     cfgdir << slash;
-    return cfgdir + L"cr3hist.bmk";
+    return cfgdir + "cr3hist.bmk";
 }
 
 void cr3view::CloseDocument()

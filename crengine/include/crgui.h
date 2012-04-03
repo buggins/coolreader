@@ -735,7 +735,7 @@ class CRGUIWindowBase : public CRGUIWindow
         {
             // fullscreen visible by default
             _rect = _wm->getScreen()->getRect();
-            //_statusText = L"Sample status text";
+            //_statusText = "Sample status text";
         }
         virtual ~CRGUIWindowBase() { }
 };

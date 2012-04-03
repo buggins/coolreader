@@ -1539,18 +1539,18 @@ public:
         bookTitle.clear();
         bookAuthors.clear();
         lString16 firstLine = get(i)->text;
-        lString16 pgPrefix = L"The Project Gutenberg Etext of ";
+        lString16 pgPrefix("The Project Gutenberg Etext of ");
         if ( firstLine.length() < pgPrefix.length() )
             return false;
         if ( firstLine.substr(0, pgPrefix.length()) != pgPrefix )
             return false;
         firstLine = firstLine.substr( pgPrefix.length(), firstLine.length() - pgPrefix.length());
-        int byPos = firstLine.pos(L", by ");
+        int byPos = firstLine.pos(", by ");
         if ( byPos<=0 )
             return false;
         bookTitle = firstLine.substr( 0, byPos );
         bookAuthors = firstLine.substr( byPos + 5, firstLine.length()-byPos-5 );
-        for ( ; i<length() && i<500 && get(i)->text.pos(L"*END*") != 0; i++ )
+        for ( ; i<length() && i<500 && get(i)->text.pos("*END*") != 0; i++ )
             ;
         if ( i<length() && i<500 ) {
             for ( i++; i<length() && i<500 && get(i)->text.empty(); i++ )
@@ -1572,7 +1572,7 @@ public:
         bookAuthors.clear();
         lString16 firstLine = get(i)->text;
         firstLine.trim();
-        int dotPos = firstLine.pos(L". ");
+        int dotPos = firstLine.pos(". ");
         if ( dotPos<=0 )
             return false;
         bookAuthors = firstLine.substr( 0, dotPos );
@@ -1607,7 +1607,7 @@ public:
             }
             //update book description
             if ( i==0 ) {
-                bookTitle = L"no name";
+                bookTitle = "no name";
             } else {
                 bookTitle = s[1];
             }
@@ -1684,7 +1684,7 @@ public:
             //if ( i==startline )
             //    pos = item->fpos;
             //sz = (item->fpos + item->fsize) - pos;
-            str += item->text + L"\n";
+            str += item->text + "\n";
         }
         bool singleLineFollowedByEmpty = false;
         bool singleLineFollowedByTwoEmpty = false;
@@ -1990,7 +1990,7 @@ public:
                 callback->OnTagOpen(NULL, L"a");
                 callback->OnAttribute(NULL, L"href", ref.c_str());
                 callback->OnTagBody();
-                styleTags << L"a";
+                styleTags << "a";
                 inLink = true;
             }
         }
@@ -2467,7 +2467,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
                 }
             }
             if ( sameChars ) {
-                res = L"* * *"; // hline
+                res = "* * *"; // hline
                 flags |= LINE_IS_HEADER;
             }
         }
@@ -2570,13 +2570,13 @@ bool LVTextBookmarkParser::Parse()
         //if ( line.startsWith( lString16() )
     }
     lString16 desc;
-    desc << L"Bookmarks: ";
+    desc << "Bookmarks: ";
     if ( !author.empty() )
-        desc << author << L"  ";
+        desc << author << "  ";
     if ( !title.empty() )
-        desc << title << L"  ";
+        desc << title << "  ";
     else
-        desc << fname << L"  ";
+        desc << fname << "  ";
     //queue.
     // make fb2 document structure
     m_callback->OnTagOpen( NULL, L"?xml" );
@@ -2620,9 +2620,9 @@ bool LVTextBookmarkParser::Parse()
                             prefix = txt.substr(0, 3);
                             txt = txt.substr( 3 );
                         }
-                        if ( prefix==L"## " ) {
+                        if (prefix == "## ") {
                             prefix = txt;
-                            txt = L" ";
+                            txt = " ";
                         }
                     }
                     postParagraph( m_callback, UnicodeToUtf8(prefix).c_str(), txt, false );
@@ -2906,15 +2906,15 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        bool flg = !m_fb2Only || s.pos(L"<FictionBook") >= 0;
-        if ( flg && (( (s.pos(L"<?xml") >=0 || s.pos(L" xmlns=")>0 )&& s.pos(L"version=") >= 6) ||
-             m_allowHtml && s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"")>=0 )) {
-            //&& s.pos(L"<FictionBook") >= 0
+        bool flg = !m_fb2Only || s.pos("<FictionBook") >= 0;
+        if ( flg && (( (s.pos("<?xml") >= 0 || s.pos(" xmlns=") > 0) && s.pos("version=") >= 6) ||
+             m_allowHtml && s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )) {
+            //&& s.pos("<FictionBook") >= 0
             res = true;
-            int encpos=s.pos(L"encoding=\"");
+            int encpos=s.pos("encoding=\"");
             if ( encpos>=0 ) {
                 lString16 encname = s.substr( encpos+10, 20 );
-                int endpos = s.pos(L"\"");
+                int endpos = s.pos("\"");
                 if ( endpos>0 ) {
                     encname.erase( endpos, encname.length() - endpos );
                     SetCharset( encname.c_str() );
@@ -3039,14 +3039,14 @@ bool LVXMLParser::Parse()
 
                 if (qFlag) {
                     tagname.insert(0, 1, '?');
-                    inXmlTag = (tagname==L"?xml");
+                    inXmlTag = (tagname == "?xml");
                 } else {
                     inXmlTag = false;
                 }
                 m_callback->OnTagOpen(tagns.c_str(), tagname.c_str());
 //                if ( dumpActive )
 //                    CRLog::trace("<%s>", LCSTR(tagname) );
-                if ( !bodyStarted && tagname==L"body" )
+                if (!bodyStarted && tagname == "body")
                     bodyStarted = true;
 
                 m_state = ps_attr;
@@ -3122,7 +3122,7 @@ bool LVXMLParser::Parse()
                     PreProcessXmlString( attrvalue, 0, m_conv_table );
                 }
                 m_callback->OnAttribute( attrns.c_str(), attrname.c_str(), attrvalue.c_str());
-                if (inXmlTag && attrname==L"encoding")
+                if (inXmlTag && attrname == "encoding")
                 {
                     SetCharset( attrvalue.c_str() );
                 }
@@ -3761,17 +3761,17 @@ lString16 htmlCharset( lString16 htmlHeader )
 {
     // META HTTP-EQUIV
     htmlHeader.lowercase();
-    lString16 meta(L"meta http-equiv=\"content-type\"");
+    lString16 meta("meta http-equiv=\"content-type\"");
     int p = htmlHeader.pos( meta );
     if ( p<0 )
         return lString16::empty_str;
     htmlHeader = htmlHeader.substr( p + meta.length() );
-    p = htmlHeader.pos(L">");
+    p = htmlHeader.pos(">");
     if ( p<0 )
         return lString16::empty_str;
     htmlHeader = htmlHeader.substr( 0, p );
     CRLog::trace("http-equiv content-type: %s", UnicodeToUtf8(htmlHeader).c_str() );
-    p = htmlHeader.pos(L"charset=");
+    p = htmlHeader.pos("charset=");
     if ( p<0 )
         return lString16::empty_str;
     htmlHeader = htmlHeader.substr( p + 8 ); // skip "charset="
@@ -3804,7 +3804,7 @@ bool LVHTMLParser::CheckFormat()
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
         s.lowercase();
-        if ( s.pos("<html") >=0 && ( s.pos("<head") >= 0 || s.pos("<body") >=0 ) ) //&& s.pos(L"<FictionBook") >= 0
+        if ( s.pos("<html") >=0 && ( s.pos("<head") >= 0 || s.pos("<body") >=0 ) ) //&& s.pos("<FictionBook") >= 0
             res = true;
         lString16 name=m_stream->GetName();
         name.lowercase();
@@ -3817,7 +3817,7 @@ bool LVHTMLParser::CheckFormat()
         lString16 enc = htmlCharset( s );
         if ( !enc.empty() )
             SetCharset( enc.c_str() );
-        //else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
+        //else if ( s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
         //    res = true;
     }
     delete[] chbuf;

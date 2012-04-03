@@ -1262,9 +1262,9 @@ int InitDoc(char *fileName)
     CRLog::trace("creating window manager...");
     CRJinkeWindowManager * wm = new CRJinkeWindowManager(600,800);
     CRLog::trace("loading skin...");
-    if ( !wm->loadSkin(  lString16( L"/root/abook/crengine/skin" ) ) )
-        if ( !wm->loadSkin(  lString16( L"/home/crengine/skin" ) ) )
-            wm->loadSkin( lString16( L"/root/crengine/skin" ) );
+    if ( !wm->loadSkin(  lString16("/root/abook/crengine/skin") ) )
+        if ( !wm->loadSkin(  lString16("/home/crengine/skin") ) )
+            wm->loadSkin( lString16("/root/crengine/skin") );
     CRLog::trace("drawing progressbar 0%%...");
     //wm->getScreen()->getCanvas()->Clear(0xFFFFFF);
     //wm->getScreen()->invalidateRect( lvRect(0, 0, 600, 800) );
@@ -1294,8 +1294,8 @@ int InitDoc(char *fileName)
         if ( lang && lang[0] ) {
             // set translator
             CRLog::info("Current language is %s, looking for translation file", lang);
-            lString16 mofilename = L"/root/crengine/i18n/" + lString16(lang) + L".mo";
-            lString16 mofilename2 = L"/root/abook/crengine/i18n/" + lString16(lang) + L".mo";
+            lString16 mofilename = "/root/crengine/i18n/" + lString16(lang) + ".mo";
+            lString16 mofilename2 = "/root/abook/crengine/i18n/" + lString16(lang) + ".mo";
             CRMoFileTranslator * t = new CRMoFileTranslator();
             if ( t->openMoFile( mofilename2 ) || t->openMoFile( mofilename ) ) {
                 CRLog::info("translation file %s.mo found", lang);

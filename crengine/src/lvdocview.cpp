@@ -941,7 +941,7 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 	lString16 title = getTitle();
 	lString16 series = getSeries();
 	if (title.empty())
-		title = L"no title";
+        title = "no title";
 	LFormattedText txform;
 	if (!authors.empty())
 		txform.AddSourceLine(authors.c_str(), authors.length(), 0xFFFFFFFF,
@@ -1090,7 +1090,7 @@ bool LVDocView::exportWolFile(LVStream * stream, bool flgGray, int levels) {
 
 		// add TOC
 		ldomNode * body = m_doc->nodeFromXPath(lString16(
-				L"/FictionBook/body[1]"));
+                "/FictionBook/body[1]"));
 		lUInt16 section_id = m_doc->getElementNameIndex(L"section");
 
 		if (body) {
@@ -2651,14 +2651,14 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 	if (link[0] != '#' || link.length() <= 1) {
 		lString16 filename = link;
 		lString16 id;
-		int p = filename.pos(L"#");
+        int p = filename.pos("#");
 		if (p >= 0) {
 			// split filename and anchor
 			// part1.html#chapter3 =>   part1.html & chapter3
 			id = filename.substr(p + 1);
 			filename = filename.substr(0, p);
 		}
-		if (filename.pos(L":") >= 0) {
+        if (filename.pos(":") >= 0) {
 			// URL with protocol like http://
 			if (m_callback) {
 				m_callback->OnExternalLink(link, element);
@@ -2726,7 +2726,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 			// TODO: load document from stream properly
 			if (!LoadDocument(stream)) {
                 createDefaultDocument(lString16("Load error"), lString16(
-						L"Cannot open file ") + filename);
+                        "Cannot open file ") + filename);
 				return false;
 			}
 			//m_filename = newPathName;
@@ -3421,11 +3421,11 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 	}
 	lString16 dir;
 	if ( last_slash==-1 )
-	dir = L".";
+        dir = ".";
 	else if ( last_slash == 0 )
-	dir << slash_char;
+        dir << slash_char;
 	else
-	dir = lString16( fname, last_slash );
+        dir = lString16( fname, last_slash );
 	lString16 fn( fname + last_slash + 1 );
 #endif
 

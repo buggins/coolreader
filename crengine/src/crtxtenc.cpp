@@ -586,19 +586,19 @@ int CREncodingNameToId( const lChar16 * enc_name )
     lString16 s( enc_name );
     s.lowercase();
     const lChar16 * encoding_name = s.c_str();
-    if ( !lStr_cmp(encoding_name, L"utf-8") )
+    if ( !lStr_cmp(encoding_name, "utf-8") )
         return CRENC_ID_UTF8;
-    else if ( !lStr_cmp(encoding_name, L"utf-16") )
+    else if ( !lStr_cmp(encoding_name, "utf-16") )
         return CRENC_ID_UTF16_LE;
-    else if ( !lStr_cmp(encoding_name, L"utf-16le") )
+    else if ( !lStr_cmp(encoding_name, "utf-16le") )
         return CRENC_ID_UTF16_LE;
-    else if ( !lStr_cmp(encoding_name, L"utf-16be") )
+    else if ( !lStr_cmp(encoding_name, "utf-16be") )
         return CRENC_ID_UTF16_BE;
-    else if ( !lStr_cmp(encoding_name, L"utf-32") )
+    else if ( !lStr_cmp(encoding_name, "utf-32") )
         return CRENC_ID_UTF16_LE;
-    else if ( !lStr_cmp(encoding_name, L"utf-32le") )
+    else if ( !lStr_cmp(encoding_name, "utf-32le") )
         return CRENC_ID_UTF16_LE;
-    else if ( !lStr_cmp(encoding_name, L"utf-32be") )
+    else if ( !lStr_cmp(encoding_name, "utf-32be") )
         return CRENC_ID_UTF16_BE;
     for (int i=0; _enc_table[i].name!=NULL; i++)
     {

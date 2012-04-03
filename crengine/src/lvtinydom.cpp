@@ -292,7 +292,7 @@ static void dumpRendMethods( ldomNode * node, lString16 prefix )
     if ( node->isText() )
         name << node->getText();
     else
-        name << L"<" << node->getNodeName() << L">   " << fmt::decimal(node->getRendMethod());
+        name << "<" << node->getNodeName() << ">   " << fmt::decimal(node->getRendMethod());
     CRLog::trace( "%s ",LCSTR(name) );
     for ( unsigned i=0; i<node->getChildCount(); i++ ) {
         dumpRendMethods( node->getChildNode(i), prefix + "   ");
@@ -2807,7 +2807,7 @@ void lxmlDocBase::onAttributeSet( lUInt16 attrId, lUInt16 valueId, ldomNode * no
         _idNodeMap.set( valueId, node->getDataIndex() );
     } else if ( attrId==_nameAttrId ) {
         lString16 nodeName = node->getNodeName();
-        if ( nodeName==L"a" )
+        if (nodeName == "a")
             _idNodeMap.set( valueId, node->getDataIndex() );
     }
 }
@@ -3824,7 +3824,7 @@ int initTableRendMethods( ldomNode * enode, int state )
         }
     }
 //    if ( state==0 ) {
-//        dumpRendMethods( enode, lString16(L"   ") );
+//        dumpRendMethods( enode, lString16("   ") );
 //    }
     return cellCount;
 }
@@ -3850,7 +3850,7 @@ void ldomNode::initNodeRendMethod()
 //    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
 //        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
 //    }
-//    if ( getNodeName()==L"image" ) {
+//    if ( getNodeName() == "image" ) {
 //        CRLog::trace("Init log for image");
 //    }
 
@@ -4170,12 +4170,12 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         //logfile << " !c-err!\n";
         return;
     }
-    if ( tagname[0]=='l' && _currNode && !lStr_cmp(tagname, L"link") ) {
+    if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link") ) {
         // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName()==L"link" &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName()==L"head" &&
-             _currNode->getElement()->getAttributeValue(L"rel")==L"stylesheet" &&
-             _currNode->getElement()->getAttributeValue(L"type")==L"text/css" ) {
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName() == "link" &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName() == "head" &&
+             _currNode->getElement()->getAttributeValue(L"rel") == "stylesheet" &&
+             _currNode->getElement()->getAttributeValue(L"type") == "text/css" ) {
             lString16 href = _currNode->getElement()->getAttributeValue(L"href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
@@ -4196,7 +4196,7 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         _parser->Stop();
     }
 
-    if ( !lStr_cmp(tagname, L"stylesheet") ) {
+    if (!lStr_cmp(tagname, "stylesheet")) {
         //CRLog::trace("</stylesheet> found");
 #if BUILD_LITE!=1
         if ( !_popStyleOnFinish ) {
@@ -4661,7 +4661,7 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
         }
         if (!s[pos] || s[pos]=='/' || s[pos]=='.') {
             path += pos;
-            return (name==L"text()") ? xpath_step_text : xpath_step_element; // OK!
+            return (name == "text()") ? xpath_step_text : xpath_step_element; // OK!
         }
         return xpath_step_error; // error
     }
@@ -5108,7 +5108,7 @@ lString16 ldomNode::getXPathSegment()
         for ( int i=0; i<cnt; i++ ) {
             ldomNode * node = parent->getChildNode(i);
             if ( node == this ) {
-                return L"text()[" + lString16::itoa(index+1) + "]";
+                return "text()[" + lString16::itoa(index+1) + "]";
             }
             if ( node->isText() )
                 index++;
@@ -5125,7 +5125,7 @@ lString16 ldomXPointer::toString()
     ldomNode * node = getNode();
     int offset = getOffset();
     if ( offset >= 0 ) {
-        path << L"." << fmt::decimal(offset);
+        path << "." << fmt::decimal(offset);
     }
     ldomNode * p = node;
     ldomNode * mainNode = node->getDocument()->getRootNode();
@@ -5189,7 +5189,7 @@ int ldomDocument::getFullHeight()
 lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool shortMiddleName )
 {
     if ( delimiter.empty() )
-        delimiter = L", ";
+        delimiter = ", ";
     lString16 authors;
     for ( int i=0; i<16; i++) {
         lString16 path = lString16("/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + "]";
@@ -5203,11 +5203,11 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
         lString16 middleName = pauthor.relative( L"/middle-name" ).getText().trim();
         lString16 author = firstName;
         if ( !author.empty() )
-            author += L" ";
+            author += " ";
         if ( !middleName.empty() )
             author += shortMiddleName ? lString16(middleName, 0, 1) + "." : middleName;
         if ( !lastName.empty() && !author.empty() )
-            author += L" ";
+            author += " ";
         author += lastName;
         if ( !authors.empty() )
             authors += delimiter;
@@ -5233,9 +5233,9 @@ lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
                 *pSeriesNumber = snumber.atoi();
                 res = sname;
             } else {
-                res << L"(" << sname;
+                res << "(" << sname;
                 if ( !snumber.empty() )
-                    res << L" #" << snumber << L")";
+                    res << " #" << snumber << ")";
             }
         }
     }
@@ -7173,7 +7173,7 @@ lString16 ldomDocumentFragmentWriter::convertId( lString16 id )
 
 lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
 {
-    if ( href.pos(L"://")>=0 )
+    if ( href.pos("://")>=0 )
         return href; // fully qualified href: no conversion
 
     //CRLog::trace("convertHref(%s, codeBase=%s, filePathName=%s)", LCSTR(href), LCSTR(codeBase), LCSTR(filePathName));
@@ -7235,11 +7235,11 @@ void ldomDocumentFragmentWriter::setCodeBase( lString16 fileName )
 void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
 {
     if ( insideTag ) {
-        if ( !lStr_cmp(attrname, L"href") || !lStr_cmp(attrname, L"src") ) {
+        if ( !lStr_cmp(attrname, "href") || !lStr_cmp(attrname, "src") ) {
             parent->OnAttribute(nsname, attrname, convertHref(lString16(attrvalue)).c_str() );
-        } else if ( !lStr_cmp(attrname, L"id") ) {
+        } else if ( !lStr_cmp(attrname, "id") ) {
             parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
-        } else if ( !lStr_cmp(attrname, L"name") ) {
+        } else if ( !lStr_cmp(attrname, "name") ) {
             //CRLog::trace("name attribute = %s", LCSTR(lString16(attrvalue)));
             parent->OnAttribute(nsname, attrname, convertId(lString16(attrvalue)).c_str() );
         } else {
@@ -7247,16 +7247,16 @@ void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lCha
         }
     } else {
         if ( styleDetectionState ) {
-            if ( !lStr_cmp(attrname, L"rel") && !lStr_cmp(attrvalue, L"stylesheet") )
+            if ( !lStr_cmp(attrname, "rel") && !lStr_cmp(attrvalue, "stylesheet") )
                 styleDetectionState |= 2;
-            else if ( !lStr_cmp(attrname, L"type") && !lStr_cmp(attrvalue, L"text/css") )
+            else if ( !lStr_cmp(attrname, "type") && !lStr_cmp(attrvalue, "text/css") )
                 styleDetectionState |= 4;
-            else if ( !lStr_cmp(attrname, L"href") ) {
+            else if ( !lStr_cmp(attrname, "href") ) {
                 styleDetectionState |= 8;
                 lString16 href = attrvalue;
                 tmpStylesheetFile = LVCombinePaths( codeBase, href );
             }
-            if ( styleDetectionState==15 ) {
+            if (styleDetectionState == 15) {
                 stylesheetFile = tmpStylesheetFile;
                 styleDetectionState = 0;
                 CRLog::trace("CSS file href: %s", LCSTR(stylesheetFile));
@@ -7271,9 +7271,9 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
     if ( insideTag ) {
         return parent->OnTagOpen(nsname, tagname);
     } else {
-        if ( !lStr_cmp(tagname, L"link") )
+        if ( !lStr_cmp(tagname, "link") )
             styleDetectionState = 1;
-        if ( !lStr_cmp(tagname, L"style") )
+        if ( !lStr_cmp(tagname, "style") )
             headStyleState = 1;
     }
     if ( !insideTag && baseTag==tagname ) {
@@ -7356,7 +7356,7 @@ void ldomDocumentWriterFilter::appendStyle( const lChar16 * style )
 
     lString16 oldStyle = node->getAttributeValue(_styleAttrId);
     if ( !oldStyle.empty() && oldStyle.at(oldStyle.length()-1)!=';' )
-        oldStyle << L"; ";
+        oldStyle << "; ";
     oldStyle << style;
     node->setAttributeValue(LXML_NS_NONE, _styleAttrId, oldStyle.c_str());
 }
@@ -7446,7 +7446,7 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
         if ( parent->getLastChild() != node )
             return;
         if ( id==el_table ) {
-            if ( node->getAttributeValue(attr_align)==L"right" && node->getAttributeValue(attr_width)==L"30%" ) {
+            if (node->getAttributeValue(attr_align) == "right" && node->getAttributeValue(attr_width) == "30%") {
                 // LIB.RU TOC detected: remove it
                 parent->removeLastChild();
             }
@@ -7460,7 +7460,7 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
             else
                 node->setNodeId( el_div );
         } else if ( id==el_div ) {
-            if ( node->getAttributeValue(attr_align)==L"right" ) {
+            if (node->getAttributeValue(attr_align) == "right") {
                 ldomNode * child = node->getLastChild();
                 if ( child && child->getNodeId()==el_form )  {
                     // LIB.RU form detected: remove it
@@ -7481,14 +7481,14 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 
     //CRLog::trace("OnAttribute(%s, %s)", LCSTR(lString16(attrname)), LCSTR(lString16(attrvalue)));
 
-    if ( !lStr_cmp(attrname, L"align") ) {
-        if ( !lStr_cmp(attrvalue, L"justify") )
+    if ( !lStr_cmp(attrname, "align") ) {
+        if ( !lStr_cmp(attrvalue, "justify") )
             appendStyle( L"text-align: justify" );
-        else if ( !lStr_cmp(attrvalue, L"left") )
+        else if ( !lStr_cmp(attrvalue, "left") )
             appendStyle( L"text-align: left" );
-        else if ( !lStr_cmp(attrvalue, L"right") )
+        else if ( !lStr_cmp(attrvalue, "right") )
             appendStyle( L"text-align: right" );
-        else if ( !lStr_cmp(attrvalue, L"center") )
+        else if ( !lStr_cmp(attrvalue, "center") )
             appendStyle( L"text-align: center" );
        return;
     }
@@ -7519,12 +7519,12 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16
     }
 
 
-    if ( tagname[0]=='l' && _currNode && !lStr_cmp(tagname, L"link") ) {
+    if (tagname[0] == 'l' && _currNode && !lStr_cmp(tagname, "link")) {
         // link node
-        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName()==L"link" &&
-             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName()==L"head" &&
-             _currNode->getElement()->getAttributeValue(L"rel")==L"stylesheet" &&
-             _currNode->getElement()->getAttributeValue(L"type")==L"text/css" ) {
+        if ( _currNode && _currNode->getElement() && _currNode->getElement()->getNodeName() == "link" &&
+             _currNode->getElement()->getParentNode() && _currNode->getElement()->getParentNode()->getNodeName() == "head" &&
+             _currNode->getElement()->getAttributeValue(L"rel") == "stylesheet" &&
+             _currNode->getElement()->getAttributeValue(L"type") == "text/css" ) {
             lString16 href = _currNode->getElement()->getAttributeValue(L"href");
             lString16 stylesheetFile = LVCombinePaths( _document->getCodeBase(), href );
             CRLog::debug("Internal stylesheet file: %s", LCSTR(stylesheetFile));
@@ -8678,7 +8678,7 @@ public:
         res = LVCreateBlockWriteStream( res, WRITE_CACHE_BLOCK_SIZE, WRITE_CACHE_BLOCK_COUNT );
 #if TEST_BLOCK_STREAM
 
-        LVStreamRef stream2 = LVOpenFileStream( (_cacheDir+fn+L"_c").c_str(), LVOM_APPEND );
+        LVStreamRef stream2 = LVOpenFileStream( (_cacheDir + fn + "_c").c_str(), LVOM_APPEND );
         if ( !stream2 ) {
             CRLog::error( "ldomDocCache::createNew - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return stream2;
@@ -10553,7 +10553,7 @@ LVStreamRef ldomNode::createBase64Stream()
 #if DEBUG_BASE64_IMAGE==1
     lString16 fname = getAttributeValue( attr_id );
     lString8 fname8 = UnicodeToUtf8( fname );
-    LVStreamRef ostream = LVOpenFileStream( fname.empty()?L"image.png":fname.c_str(), LVOM_WRITE );
+    LVStreamRef ostream = LVOpenFileStream( fname.empty() ? L"image.png" : fname.c_str(), LVOM_WRITE );
     printf("createBase64Stream(%s)\n", fname8.c_str());
 #endif
     LVStream * stream = new LVBase64NodeStream( this );

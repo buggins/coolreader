@@ -358,26 +358,26 @@ void V3DocViewWin::OnLoadFileStart( lString16 filename )
 void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
 {
     CRLog::trace("OnLoadFileFormatDetected(%d)", (int)fileFormat);
-    lString16 filename = L"fb2.css";
+    lString16 filename = "fb2.css";
     if ( _cssDir.length() > 0 ) {
         switch ( fileFormat ) {
         case doc_format_txt:
-            filename = L"txt.css";
+            filename = "txt.css";
             break;
         case doc_format_rtf:
-            filename = L"rtf.css";
+            filename = "rtf.css";
             break;
         case doc_format_epub:
-            filename = L"epub.css";
+            filename = "epub.css";
             break;
         case doc_format_html:
-            filename = L"htm.css";
+            filename = "htm.css";
             break;
         case doc_format_chm:
-            filename = L"chm.css";
+            filename = "chm.css";
             break;
         case doc_format_doc:
-			filename = L"doc.css";
+            filename = "doc.css";
 			break;
         default:
             // do nothing
@@ -386,8 +386,8 @@ void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
         CRLog::debug( "CSS file to load: %s", UnicodeToUtf8(filename).c_str() );
         if ( LVFileExists( _cssDir + filename ) ) {
             loadCSS( _cssDir + filename );
-        } else if ( LVFileExists( _cssDir + L"fb2.css" ) ) {
-            loadCSS( _cssDir + L"fb2.css" );
+        } else if ( LVFileExists( _cssDir + "fb2.css" ) ) {
+            loadCSS( _cssDir + "fb2.css" );
         }
     }
 }
@@ -961,25 +961,25 @@ lString16 getDocAuthors( ldomDocument * doc, const char * path, const char * del
         lString16 email = getDocText( doc, (p + "/email").c_str(), " " );
         lString16 s = firstName;
         if ( !middleName.empty() )
-            s << L" " << middleName;
+            s << " " << middleName;
         if ( !lastName.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << lastName;
         }
         if ( !nickName.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << nickName;
         }
         if ( !homePage.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << homePage;
         }
         if ( !email.empty() ) {
             if ( !s.empty() )
-                s << L" ";
+                s << " ";
             s << email;
         }
         if ( s.empty() )
@@ -1001,7 +1001,7 @@ void V3DocViewWin::showAboutDialog()
 {
 	_docview->savePosition();
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
-    lString16 title = L"Cool Reader ";
+    lString16 title = "Cool Reader ";
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION CR_ENGINE_VERSION
 #endif
@@ -1015,7 +1015,7 @@ void V3DocViewWin::showAboutDialog()
     lString8 statusInfo;
 	addPropLine( statusInfo, _("Current page"), lString16::itoa(_docview->getCurPage()+1) );
 	addPropLine( statusInfo, _("Total pages"), lString16::itoa(_docview->getPageCount()) );
-    addPropLine( statusInfo, _("Battery state"), _docview->getBatteryState()==-1 ? lString16(_("charging...")) : lString16::itoa(_docview->getBatteryState()) + L"%" );
+    addPropLine( statusInfo, _("Battery state"), _docview->getBatteryState()==-1 ? lString16(_("charging...")) : lString16::itoa(_docview->getBatteryState()) + "%" );
 	addPropLine( statusInfo, _("Current Time"), _docview->getTimeString() );
 	// TODO:
 	if ( hist ) {

@@ -1889,7 +1889,7 @@ void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int perce
         // rc is rectangle to draw text to
         lString16 txt;
         if ( charging )
-            txt = L"+++";
+            txt = "+++";
         else
             txt = lString16::itoa(percent); // + L"%";
         int w = font->getTextWidth(txt.c_str(), txt.length());

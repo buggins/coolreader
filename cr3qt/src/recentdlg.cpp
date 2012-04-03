@@ -39,11 +39,11 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
         lString16 series = book->getSeries();
         lString16 filename = book->getFileName();
         if ( author.empty() )
-            author = L"-"; //_book->getFileName();
+            author = "-"; //_book->getFileName();
         if ( title.empty() )
-            title = L"-"; //_book->getFileName();
+            title = "-"; //_book->getFileName();
         else if ( !series.empty() )
-            title << L" - " << series;
+            title << " - " << series;
         int index = 0;
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(lString16::itoa(i - firstItem + 1 ))));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(author)));

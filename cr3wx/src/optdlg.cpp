@@ -156,7 +156,7 @@ wxComboBox * OptPanel::AddFontFaceCombobox( const char * option, wxString captio
     wxArrayString wxlist;// = new wxString[ list.length() + 1 ];
     int arialIndex = -1;
     for ( unsigned i=0; i<list.length(); i++ ) {
-        if ( list[i]==L"Arial" )
+        if (list[i] == "Arial")
             arialIndex = i;
         wxlist.Add( wxString(list[i].c_str()) );
     }

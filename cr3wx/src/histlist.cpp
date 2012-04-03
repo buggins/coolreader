@@ -102,11 +102,11 @@ wxString HistList::OnGetItemText(long item, long column) const
                 lString16 series = rec->getSeries();
                 if ( !series.empty() ) {
                     if ( !title.empty() )
-                        title << L" ";
+                        title << " ";
                     title << series;
                 }
                 if ( !author.empty() && !title.empty() )
-                    author << L". ";
+                    author << ". ";
                 data << author << title;
                 if ( data.empty() )
                     data = fname;
@@ -114,7 +114,7 @@ wxString HistList::OnGetItemText(long item, long column) const
             break;
         case 2:
             {
-                data = lString16::itoa(rec->getLastPos()->getPercent()/100) + L"%";
+                data = lString16::itoa(rec->getLastPos()->getPercent()/100) + "%";
             }
             break;
         }

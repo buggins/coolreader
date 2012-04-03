@@ -119,7 +119,7 @@ class CRFileProperties {
             }
         }
         lString16 codeBase;
-        if ( !rootfilePath.empty() && rootfileMediaType==L"application/oebps-package+xml" ) {
+        if (!rootfilePath.empty() && rootfileMediaType == "application/oebps-package+xml") {
             //
             {
                 int lastSlash = -1;
@@ -159,7 +159,7 @@ class CRFileProperties {
                 }
             }
         }
-        if ( _mimeType==L"application/epub+zip" )
+        if (_mimeType == "application/epub+zip")
             return readEpub( arc );
         // todo: add more mime types support here
         for ( int i=0; i<arc->GetObjectCount(); i++ ) {
@@ -400,7 +400,7 @@ lString16 GetConfigFileName()
         ::wxMkdir( wxString( cfgdir.c_str() ) );
     lChar16 slash = detectSlash( cfgdir );
     cfgdir << slash;
-    return cfgdir + L"cr3.ini";
+    return cfgdir + "cr3.ini";
 }
 
 void cr3Frame::OnUpdateUI( wxUpdateUIEvent& event )
@@ -662,7 +662,7 @@ cr3app::OnInit()
         }
 */
     }
-    lString16 fontDir = appPath + L"fonts";
+    lString16 fontDir = appPath + "fonts";
     fontDir << slashChar;
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     const char * fontDir8s = fontDir8.c_str();
@@ -1128,7 +1128,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     //sprintf( cssfn, "fb2.css"); //, exedir
     //lString8 css = readFileToString( (UnicodeToLocal(_appDir) + cssfn).c_str() );
     lString8 css;
-    LVLoadStylesheetFile( _appDir + L"fb2.css", css );
+    LVLoadStylesheetFile( _appDir + "fb2.css", css );
 #ifdef _LINUX
     if ( css.empty() )
         LVLoadStylesheetFile( L"/usr/share/cr3/fb2.css", css );
@@ -1212,7 +1212,7 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
             formatName = L"wol";
         //==L"wol"
         if ( outFile.empty() )
-            outFile = fnameToOpen + L".wol";
+            outFile = fnameToOpen + ".wol";
         // convertor
         if ( !_view->LoadDocument( wxString( fnameToOpen.c_str() ) ) )
             exit(1);

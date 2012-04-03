@@ -286,7 +286,7 @@ public:
                         CCRTableCol * col = cols[colindex];
                         col->elem = item;
                         lString16 w = item->getAttributeValue(attr_width);
-                        if (w!=L"") {
+                        if (!w.empty()) {
                             // TODO: px, em, and other length types support
                             int wn = StrToIntPercent(w.c_str(), digitwidth);
                             if (wn<0)
@@ -322,7 +322,7 @@ public:
                         CCRTableCell * cell = new CCRTableCell;
                         cell->elem = item;
                         lString16 w = item->getAttributeValue(attr_width);
-                        if (w!=L"") {
+                        if (!w.empty()) {
                             int wn = StrToIntPercent(w.c_str(), digitwidth);
                             if (wn<0)
                                 cell->percent = -wn;
@@ -343,16 +343,16 @@ public:
                         }
                         // "align"
                         lString16 halign = item->getAttributeValue(attr_align);
-                        if (halign==L"center")
-                            cell->halign=1; // center
-                        else if (halign==L"right")
-                            cell->halign=2; // right
+                        if (halign == "center")
+                            cell->halign = 1; // center
+                        else if (halign == "right")
+                            cell->halign = 2; // right
                         // "valign"
                         lString16 valign = item->getAttributeValue(attr_valign);
-                        if (valign==L"center")
-                            cell->valign=1; // center
-                        else if (valign==L"bottom")
-                            cell->valign=2; // bottom
+                        if (valign == "center")
+                            cell->valign = 1; // center
+                        else if (valign == "bottom")
+                            cell->valign = 2; // bottom
 
                         cell->row = rows[rows.length()-1];
                         cell->row->cells.add( cell );
@@ -1420,7 +1420,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             while ( body != NULL && body->getNodeId()!=el_body )
                 body = body->getParentNode();
             if ( body ) {
-                if ( body->getAttributeValue(attr_name)==L"notes" || body->getAttributeValue(attr_name)==L"comments" )
+                if (body->getAttributeValue(attr_name) == "notes" || body->getAttributeValue(attr_name) == "comments")
                     if ( !enode->getAttributeValue(attr_id).empty() )
                         isFootNoteBody = true;
             }
@@ -1596,7 +1596,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                                     ldomNode * node = (ldomNode*)src->object;
                                     ldomNode * parent = node->getParentNode();
                                     if ( parent->getNodeId()==el_a && parent->hasAttribute(LXML_NS_ANY, attr_href )
-                                            && parent->getAttributeValue(LXML_NS_ANY, attr_type )==L"note") {
+                                            && parent->getAttributeValue(LXML_NS_ANY, attr_type ) == "note") {
                                         lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
                                         if ( href.length()>0 && href.at(0)=='#' ) {
                                             href.erase(0,1);

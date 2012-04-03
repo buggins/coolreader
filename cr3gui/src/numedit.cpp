@@ -23,7 +23,7 @@ void CRNumberEditDialog::draw()
     titleSkin->drawText( *drawbuf, titleRect, _title );
     lvRect clientRect = _skin->getClientRect( _rect );
     clientSkin->draw( *drawbuf, clientRect );
-    _skin->drawText( *drawbuf, _rect, _value+L"_" );
+    _skin->drawText( *drawbuf, _rect, _value + "_" );
 }
 
 CRNumberEditDialog::CRNumberEditDialog( CRGUIWindowManager * wm, lString16 title, lString16 initialValue, int resultCmd, int minvalue, int maxvalue )

@@ -70,7 +70,7 @@ public:
     {
         lString16 res = _settingKey;
         if ( key!=0 )
-            res = res + L"." + lString16::itoa(key) + L"." + lString16::itoa(flags);
+            res << "." << fmt::decimal(key) << "." << fmt::decimal(flags);
         return res;
     }
     lString16 getSettingLabel( int key, int flags )
@@ -79,13 +79,13 @@ public:
     }
     CRMenu * createCommandsMenu(int key, int flags)
     {
-        lString16 label = getSettingLabel( key, flags ) + L" - " + lString16(_("choose command"));
+        lString16 label = getSettingLabel( key, flags ) + " - " + lString16(_("choose command"));
         lString16 keyid = getSettingKey( key, flags );
         CRMenu * menu = new CRMenu(_wm, this, _id, label, LVImageSourceRef(), LVFontRef(), LVFontRef(), _props, LCSTR(keyid), 8);
         for ( int i=0; i<_overrideCommands->length(); i++ ) {
             const CRGUIAccelerator * acc = _overrideCommands->get(i);
             lString16 cmdLabel = lString16( getCommandName(acc->commandId, acc->commandParam) );
-            lString16 cmdValue = lString16::itoa(acc->commandId) + L"," + lString16::itoa(acc->commandParam);
+            lString16 cmdValue = lString16::itoa(acc->commandId) << "," << lString16::itoa(acc->commandParam);
             CRMenuItem * item = new CRMenuItem( menu, i, cmdLabel, LVImageSourceRef(), LVFontRef(), cmdValue.c_str());
             menu->addItem(item);
         }
@@ -106,12 +106,12 @@ public:
             CRLog::error("CRControlsMenu: No accelerators %s", LCSTR(_accelTableId) );
         }
         _accelTableId = accelTableId;
-        CRGUIAcceleratorTableRef _overrideKeys = _wm->getAccTables().get( accelTableId + L"-override-keys" );
+        CRGUIAcceleratorTableRef _overrideKeys = _wm->getAccTables().get( accelTableId + "-override-keys" );
         if ( _overrideKeys.isNull() ) {
             CRLog::error("CRControlsMenu: No table of allowed keys for override accelerators %s", LCSTR(_accelTableId) );
             return;
         }
-        _overrideCommands = _wm->getAccTables().get( accelTableId + L"-override-commands" );
+        _overrideCommands = _wm->getAccTables().get( accelTableId + "-override-commands" );
         if ( _overrideCommands.isNull() ) {
             CRLog::error("CRControlsMenu: No table of allowed commands to override accelerators %s", LCSTR(_accelTableId) );
             return;

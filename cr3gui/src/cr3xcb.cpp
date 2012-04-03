@@ -1391,7 +1391,7 @@ int main(int argc, char **argv)
     } else {
 
         lString16 home = Utf8ToUnicode(lString8(( getenv("HOME") ) ));
-        lString16 homecrengine = home + L"/.crengine/";
+        lString16 homecrengine = home + "/.crengine/";
 
         lString8 home8 = UnicodeToUtf8( homecrengine );
         const char * keymap_locations [] = {
@@ -1403,9 +1403,9 @@ int main(int argc, char **argv)
         };
         loadKeymaps( winman, keymap_locations );
 
-        if ( !winman.loadSkin(  homecrengine + L"skin" ) )
-            if ( !winman.loadSkin(  lString16( L"/media/sd/crengine/skin" ) ) )
-            	winman.loadSkin( lString16( L"/usr/share/cr3/skins/default" ) );
+        if ( !winman.loadSkin(homecrengine + "skin") )
+            if ( !winman.loadSkin(  lString16("/media/sd/crengine/skin") ) )
+                winman.loadSkin( lString16("/usr/share/cr3/skins/default") );
         {
             const lChar16 * imgname =
                 ( winman.getScreenOrientation()&1 ) ? L"cr3_logo_screen_landscape.png" : L"cr3_logo_screen.png";
@@ -1464,7 +1464,7 @@ int main(int argc, char **argv)
         CRLog::debug("settings at %s", UnicodeToUtf8(ini).c_str() );
         lString16 hist;
         for ( i=0; dirs[i]; i++ ) {
-            hist = lString16(dirs[i]) + L"cr3hist.bmk";
+            hist = lString16(dirs[i]) + "cr3hist.bmk";
             if ( main_win->loadHistory( hist ) ) {
                 break;
             }

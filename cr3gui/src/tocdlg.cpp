@@ -19,7 +19,7 @@ lString16 limitTextWidth( lString16 s, int width, LVFontRef font )
     int w = font->getTextWidth(s.c_str(), s.length());
     if ( w<width )
         return s;
-    lString16 sss = L"...";
+    lString16 sss = "...";
     int www = font->getTextWidth(sss.c_str(), sss.length());
     while (s.length()>0) {
         s.erase(s.length()-1, 1);
@@ -115,7 +115,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
 ,_docview(docview)
 {
     docview->getFlatToc( _items );
-    _skinName = L"#toc";
+    _skinName = "#toc";
     _skin = _wm->getSkin()->getMenuSkin(_skinName.c_str());
     CRRectSkinRef clientSkin = _skin->getClientSkin();
     CRRectSkinRef itemSkin = _skin->getItemSkin();
@@ -151,7 +151,7 @@ CRTOCDialog::CRTOCDialog( CRGUIWindowManager * wm, lString16 title, int resultCm
     pageString.replaceIntParam(1, curPage+1);
     pageString.replaceIntParam(2, docPages);
     _statusText = pageString + lString16(_("Enter page number:"));
-    _inputText = L"_";
+    _inputText = "_";
 }
 
 bool CRTOCDialog::digitEntered( lChar16 c )
@@ -161,7 +161,7 @@ bool CRTOCDialog::digitEntered( lChar16 c )
     int n = v.atoi();
     if ( n<=_maxvalue ) {
         _value = v;
-        _inputText = _value + L"_";
+        _inputText = _value + "_";
         setDirty();
         return true;
     }
@@ -201,7 +201,7 @@ bool CRTOCDialog::onCommand( int command, int params )
     case MCMD_CANCEL:
         if ( _value.length()>0 ) {
             _value.erase( _value.length()-1, 1 );
-            _inputText = _value + L"_";
+            _inputText = _value + "_";
             setDirty();
         } else {
             _wm->closeWindow( this );

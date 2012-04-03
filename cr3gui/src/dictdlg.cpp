@@ -30,15 +30,15 @@ CRTinyDict::CRTinyDict( const lString16& config )
         dir = LVOpenDirectory( LVExtractPath(config).c_str() );
     if ( !dir.isNull() ) {
         int count = dir->GetSize();
-        lString16 indexExt(L".index");
+        lString16 indexExt(".index");
         for ( int i=0; i<count; i++ ) {
             const LVContainerItemInfo * item = dir->GetObjectInfo( i );
             if ( !item->IsContainer() ) {
                 lString16 name = item->GetName();
                 if ( name.endsWith( indexExt ) ) {
                     lString16 nameBase = name.substr( 0, name.length() - indexExt.length() );
-                    lString16 name1 = nameBase + L".dict";
-                    lString16 name2 = nameBase + L".dict.dz";
+                    lString16 name1 = nameBase + ".dict";
+                    lString16 name2 = nameBase + ".dict.dz";
                     lString16 dataName;
                     int index = -1;
                     for ( int n=0; n<count; n++ ) {

@@ -4532,6 +4532,6 @@ void limitStringSize(lString16 & str, int maxSize) {
 		}
 	int split = lastSpace > 0 ? lastSpace : maxSize;
 	str = str.substr(0, split);
-	str += L"...";
+    str += "...";
 }
 

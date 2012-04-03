@@ -56,11 +56,11 @@ lString16 extractDocSeriesReverse( ldomDocument * doc )
         lString16 sname = series->getAttributeValue( attr_name );
         lString16 snumber = series->getAttributeValue( attr_number );
         if ( !sname.empty() ) {
-            res << L"(";
+            res << "(";
             if ( !snumber.empty() )
-                res << L"#" << snumber << L" ";
+                res << "#" << snumber << L" ";
             res << sname;
-            res << L")";
+            res << ")";
         }
     }
     return res;
@@ -169,7 +169,7 @@ int GetBookProperties(char *name,  struct BookProperties* pBookProps, int localL
     lString16 series = extractDocSeriesReverse( &doc );
 #if SERIES_IN_AUTHORS==1
     if ( !series.empty() )
-    	authors << L"    " << series;
+        authors << "    " << series;
 #endif
     SetFieldValue( pBookProps->name, title );
     if ( !authors.empty() )

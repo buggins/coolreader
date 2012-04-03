@@ -3596,7 +3596,7 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
     //LVAppendPathDelimiter( s );
     LVReplacePathSeparator( s, separator );
     lString16 pattern;
-    pattern << separator << L".." << separator;
+    pattern << separator << ".." << separator;
     bool changed;
     do {
         changed = false;
@@ -3670,9 +3670,9 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
     lString16 dstpath = LVExtractPath( pathName );
     while ( !dstpath.empty() ) {
         lString16 element = LVExtractFirstPathElement( dstpath );
-        if ( element==L"." )
+        if (element == ".")
             ;
-        else if ( element==L".." )
+        else if (element == "..")
             LVExtractLastPathElement( path );
         else
             path << element << delim;

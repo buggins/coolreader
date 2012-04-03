@@ -849,7 +849,7 @@ public:
         lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
         lString16 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
         if ( !name.empty() && !number.empty() )
-            name << L" #" << number;
+            name << " #" << number;
         return name;
     }
 

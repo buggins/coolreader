@@ -223,7 +223,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     if ( lastSlash>=0 )
         appPath = appname.substr( 0, lastSlash+1 );
 
-    lString16 fontDir = appPath + L"fonts";
+    lString16 fontDir = appPath + "fonts";
     fontDir << slashChar;
     lString8 fontDir8 = UnicodeToLocal(fontDir);
     //const char * fontDir8s = fontDir8.c_str();
@@ -329,7 +329,7 @@ void InitCREngineLog( const char * cfgfile )
                                                "stdout"
 #endif
             );
-    lString16 loglevelstr = L"INFO";
+    lString16 loglevelstr = "INFO";
 	bool autoFlush = false;
     CRPropRef logprops = LVCreatePropsContainer();
     {
@@ -354,26 +354,26 @@ void InitCREngineLog( const char * cfgfile )
         }
     }
     CRLog::log_level level = CRLog::LL_INFO;
-    if ( loglevelstr==L"OFF" ) {
+    if (loglevelstr == "OFF") {
         level = CRLog::LL_FATAL;
         logfname.clear();
-    } else if ( loglevelstr==L"FATAL" ) {
+    } else if (loglevelstr == "FATAL") {
         level = CRLog::LL_FATAL;
-    } else if ( loglevelstr==L"ERROR" ) {
+    } else if (loglevelstr == "ERROR") {
         level = CRLog::LL_ERROR;
-    } else if ( loglevelstr==L"WARN" ) {
+    } else if (loglevelstr == "WARN") {
         level = CRLog::LL_WARN;
-    } else if ( loglevelstr==L"INFO" ) {
+    } else if (loglevelstr == "INFO") {
         level = CRLog::LL_INFO;
-    } else if ( loglevelstr==L"DEBUG" ) {
+    } else if (loglevelstr == "DEBUG") {
         level = CRLog::LL_DEBUG;
-    } else if ( loglevelstr==L"TRACE" ) {
+    } else if (loglevelstr == "TRACE") {
         level = CRLog::LL_TRACE;
     }
     if ( !logfname.empty() ) {
-        if ( logfname==L"stdout" )
+        if (logfname == "stdout")
             CRLog::setStdoutLogger();
-        else if ( logfname==L"stderr" )
+        else if (logfname == "stderr")
             CRLog::setStderrLogger();
         else
             CRLog::setFileLogger( UnicodeToUtf8( logfname ).c_str(), autoFlush );
