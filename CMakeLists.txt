@@ -134,7 +134,7 @@ else()
   SET(UNRAR_LIBRARIES)
   ADD_DEFINITIONS(-DUSE_UNRAR=0)
   SET(USE_UNRAR 0)
-endif(NOT DEFINED NO_UNRAR)
+endif(DEFINED USE_UNRAR)
 
 if (MAC)
   message("will use zlib, libpng, libjpeg, freetype from Qt static library")
