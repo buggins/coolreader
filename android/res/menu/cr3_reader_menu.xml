@@ -23,7 +23,6 @@
 <item android:title="@string/action_toggle_document_styles" android:id="@+id/cr3_mi_toggle_document_styles" android:numericShortcut="6" android:titleCondensed="@string/action_toggle_document_styles" android:orderInCategory="9"></item>
 <item android:title="@string/action_toggle_text_autoformat" android:id="@+id/cr3_mi_toggle_text_autoformat" android:numericShortcut="6" android:titleCondensed="@string/action_toggle_document_styles" android:orderInCategory="9"></item>
 <item android:title="@string/mi_tts_play" android:id="@+id/cr3_mi_tts_play" android:numericShortcut="6" android:titleCondensed="@string/dlg_about" android:orderInCategory="10"></item>
-<item android:title="@string/action_toggle_autoscroll" android:id="@+id/cr3_mi_toggle_autoscroll" android:numericShortcut="7" android:titleCondensed="@string/action_toggle_autoscroll" android:orderInCategory="13"></item>
 <item android:title="@string/mi_exit" android:titleCondensed="@string/mi_exit" android:id="@+id/cr3_mi_exit" android:icon="@drawable/cr3_viewer_exit" android:orderInCategory="14" android:numericShortcut="8"></item>
 <item android:title="@string/dlg_about" android:id="@+id/cr3_mi_about" android:numericShortcut="6" android:titleCondensed="@string/dlg_about" android:orderInCategory="11"></item>
 <item android:title="@string/dlg_book_info" android:id="@+id/cr3_mi_book_info" android:numericShortcut="6" android:titleCondensed="@string/dlg_book_info" android:orderInCategory="12"></item>
