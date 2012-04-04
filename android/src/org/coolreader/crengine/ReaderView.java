@@ -1469,7 +1469,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// no animation
 							return performAction(dir < 0 ? ReaderAction.PAGE_DOWN : ReaderAction.PAGE_UP, false);
 						}
-						startAnimation(start_x, start_y, width, height);
+						startAnimation(start_x, start_y, width, height, x, y);
 						updateAnimation(x, y);
 						state = STATE_FLIPPING;
 					}
@@ -3932,7 +3932,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private static final boolean showBrightnessFlickToast = false;
 
 
-	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY )
+	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int newX, final int newY )
 	{
 		if (DEBUG_ANIMATION) log.d("startAnimation("+startX + ", " + startY+")");
 		BackgroundThread.backgroundExecutor.execute(new Runnable() {
@@ -3942,10 +3942,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				PositionProperties currPos = doc.getPositionProps(null);
 				if ( currPos!=null && currPos.pageMode!=0 ) {
 					//int dir = startX > maxX/2 ? currPos.pageMode : -currPos.pageMode;
-					int dir = startX > maxX/2 ? 1 : -1;
+					//int dir = startX > maxX/2 ? 1 : -1;
+					int dir = newX - startX < 0 ? 1 : -1;
 					int sx = startX;
-					if ( dir<0 )
-						sx = 0;
+//					if ( dir<0 )
+//						sx = 0;
 					new PageViewAnimation(sx, maxX, dir);
 				} else {
 					new ScrollViewAnimation(startY, maxY);
@@ -4537,7 +4538,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				boolean moved = false;
 				if ( x!=-1 ) {
 					int threshold = mActivity.getPalmTipPixels() * 7/8;
-					if ( direction>0 ) {
+					if ( direction > 0 ) {
 						// |  <=====  |
 						int dx = startX - x; 
 						if ( dx>threshold )
