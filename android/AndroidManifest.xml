@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.0.56-17" android:versionCode="577">
+      android:versionName="3.0.56-18" android:versionCode="578">
     <supports-screens
         android:xlargeScreens="true" 
         android:largeScreens="true" 
@@ -88,10 +88,12 @@
         
         
         <!-- Sync support -->
-        <service android:name="org.coolreader.sync.SyncService" />
-
+        <service android:name=".sync.SyncService" />
+        <!-- Database service -->
+        <service android:name=".db.CRDBService" />
+        
         <!-- Donations support -->
-        <service android:name="org.coolreader.donations.BillingService" />
+        <service android:name=".donations.BillingService" />
         
         <receiver android:name="org.coolreader.donations.BillingReceiver">
             <intent-filter>

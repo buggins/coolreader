@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -266,7 +265,7 @@ public class BookInfo {
 		return bookmarks.remove(index);
 	}
 	
-	synchronized void setBookmarks(ArrayList<Bookmark> list)
+	synchronized public void setBookmarks(ArrayList<Bookmark> list)
 	{
 		if ( list.size()>0 ) {
 			if ( list.get(0).getType()==0 ) {

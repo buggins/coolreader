@@ -32,31 +32,31 @@ public class FileInfo {
 	
 	
 	
-	Long id; // db id
-	String title; // book title
-	String authors; // authors, delimited with '|'
-	String series; // series name w/o number
-	int seriesNumber; // number of book inside series
-	String path; // path to directory where file or archive is located
-	String filename; // file name w/o path for normal file, with optional path for file inside archive 
-	String pathname; // full path+arcname+filename
-	String arcname; // archive file name w/o path
-	DocumentFormat format;
-	int size;
-	int arcsize;
-	long createTime;
-	long lastAccessTime;
-	int flags;
-	boolean isArchive;
-	boolean isDirectory;
-	boolean isModified;
-	boolean isListed;
-	boolean isScanned;
+	public Long id; // db id
+	public String title; // book title
+	public String authors; // authors, delimited with '|'
+	public String series; // series name w/o number
+	public int seriesNumber; // number of book inside series
+	public String path; // path to directory where file or archive is located
+	public String filename; // file name w/o path for normal file, with optional path for file inside archive 
+	public String pathname; // full path+arcname+filename
+	public String arcname; // archive file name w/o path
+	public DocumentFormat format;
+	public int size;
+	public int arcsize;
+	public long createTime;
+	public long lastAccessTime;
+	public int flags;
+	public boolean isArchive;
+	public boolean isDirectory;
+	public boolean isModified;
+	public boolean isListed;
+	public boolean isScanned;
+	public FileInfo parent; // parent item
+	public Object tag; // some additional information
+	
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
-	FileInfo parent; // parent item
-	
-	Object tag; // some additional information
 	
 	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 	public static final int DONT_REFLOW_TXT_FILES_FLAG = 2;

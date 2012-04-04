@@ -2681,7 +2681,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		// get title, authors, etc.
 		doc.updateBookInfo(mBookInfo);
 		// check whether current book properties updated on another devices
-		syncUpdater.syncExternalChanges(mBookInfo);
+		// TODO: fix and reenable
+		//syncUpdater.syncExternalChanges(mBookInfo);
 	}
 	
 	private class SyncExternalChangesUpdater {

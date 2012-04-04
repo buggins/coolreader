@@ -12,6 +12,7 @@ import java.util.zip.ZipEntry;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.EngineTask;
+import org.coolreader.db.CRDB;
 
 import android.util.Log;
 

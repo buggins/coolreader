@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
+import org.coolreader.db.CRDB;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -18,12 +19,14 @@ public class History {
 	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
 	private final CRDB mDB;
 	private final CoolReader mCoolReader;
+	private final Engine mEngine;
 	private FileInfo mRecentBooksFolder;
 	
-	public History(CoolReader cr, CRDB db)
+	public History(CoolReader cr, CRDB db, Engine engine)
 	{
 		this.mCoolReader = cr;
 		this.mDB = db;
+		this.mEngine = engine;
 	}
 	
 	public BookInfo getLastBook()
@@ -45,6 +48,23 @@ public class History {
 		BookInfo res = getBookInfo(file);
 		if ( res==null ) {
 			res = new BookInfo( file );
+			mBooks.add(0, res);
+		}
+		return res;
+	}
+	
+	public BookInfo getOrCreateAndScanBookInfo( FileInfo file )
+	{
+		BookInfo res = getBookInfo(file);
+		if ( res==null ) {
+			res = new BookInfo( file );
+			if (!mDB.findByPathname(file)) {
+				// not found in DB, scanning
+				mEngine.scanBookProperties(file);
+			} else {
+				// found in DB: loading bookmarks
+				mDB.loadBookmarks(res);
+			}
 			mBooks.add(0, res);
 		}
 		return res;

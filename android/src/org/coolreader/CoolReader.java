@@ -12,7 +12,6 @@ import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.BookmarksDlg;
-import org.coolreader.crengine.CRDB;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.EinkScreen;
 import org.coolreader.crengine.Engine;
@@ -34,6 +33,7 @@ import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.ToastView;
 import org.coolreader.crengine.Utils;
+import org.coolreader.db.CRDB;
 import org.coolreader.donations.BillingService;
 import org.coolreader.donations.BillingService.RequestPurchase;
 import org.coolreader.donations.BillingService.RestoreTransactions;
@@ -664,7 +664,7 @@ public class CoolReader extends Activity
        	mScanner = new Scanner(this, mDB, mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 		
-       	mHistory = new History(this, mDB);
+       	mHistory = new History(this, mDB, mEngine);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
