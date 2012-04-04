@@ -1125,7 +1125,7 @@ public class Engine {
 			list.add(new File(f));
 		}
 		mountedRootsList = list.toArray(new File[] {});
-		Log.i("cr3", "Root list: " + mountedRootsList);
+		Log.i("cr3", "Root list: " + list);
 	}
 	
 	private void init() throws IOException {

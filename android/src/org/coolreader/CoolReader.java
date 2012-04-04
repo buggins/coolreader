@@ -450,7 +450,7 @@ public class CoolReader extends Activity
 		return densityDpi;
 	}
 	
-	private int densityDpi = 120;
+	private int densityDpi = 160;
 	int initialBatteryState = -1;
 	String fileToLoadOnStart = null;
 	BroadcastReceiver intentReceiver;

@@ -3955,7 +3955,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					hiliteRect = null;
 				}
 			}
-			
 		});
 	}
 
