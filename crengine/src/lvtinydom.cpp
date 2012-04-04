@@ -8685,13 +8685,27 @@ public:
     lString16 makeFileName( lString16 filename, lUInt32 crc, lUInt32 docFlags )
     {
         lString16 fn;
-        for (int i=0; i<filename.length(); i++) {
-            lChar16 ch = filename[i];
-            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '.' || ch == '-')
+        lString8 filename8 = UnicodeToTranslit(filename);
+        bool lastUnderscore = false;
+        int goodCount = 0;
+        int badCount = 0;
+        for (int i = 0; i < filename8.length(); i++) {
+            lChar16 ch = filename8[i];
+
+            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '.' || ch == '-') {
                 fn << ch;
-            else
-                fn << L"_";
+                lastUnderscore = false;
+                goodCount++;
+            } else {
+                if (!lastUnderscore) {
+                    fn << L"_";
+                    lastUnderscore = true;
+                }
+                badCount++;
+            }
         }
+        if (goodCount < 2 || badCount > goodCount * 2)
+            fn << "_noname";
         if (fn.length() > 25)
             fn = fn.substr(0, 12) + "-" + fn.substr(fn.length()-12, 12);
         char s[16];
