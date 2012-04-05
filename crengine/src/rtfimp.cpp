@@ -99,7 +99,7 @@ public:
     // set table state, open/close tags if necessary
     void SetTableState( rtfTblState state )
     {
-        static const lChar16 * tags[4] = {
+        static const lChar16 * tags[5] = {
             NULL,// tbls_none=0,
             L"table", // tbls_intable,
             L"tr", // tbls_inrow,
