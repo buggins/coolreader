@@ -724,7 +724,7 @@ public:
             _compression = preamble.compression;
             if ( _compression==1 )
                 _compression = 0;
-            _textSize = -1;
+            _textSize = (lUInt32)-1;
             if ( preamble.imageCount && container ) {
                 for ( int index=preamble.imageDataRecordStart; index<preamble.imageDataRecordStart+preamble.imageCount; index++ ) {
                     lUInt32 start = _records[index].offset + 62;

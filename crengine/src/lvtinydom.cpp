@@ -719,11 +719,11 @@ CacheFileItem * CacheFile::allocBlock( lUInt16 type, lUInt16 index, int size )
     }
     // search for existing free block of proper size
     int bestSize = -1;
-    int bestIndex = -1;
+    //int bestIndex = -1;
     for ( int i=0; i<_freeIndex.length(); i++ ) {
         if ( _freeIndex[i] && (_freeIndex[i]->_blockSize>=size) && (bestSize==-1 || _freeIndex[i]->_blockSize<bestSize) ) {
             bestSize = _freeIndex[i]->_blockSize;
-            bestIndex = -1;
+            //bestIndex = -1;
             existing = _freeIndex[i];
         }
     }
@@ -6331,7 +6331,7 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
     ldomNode * node = NULL;
     lString16 text;
     int textLen = 0;
-    bool moved = false;
+    //bool moved = false;
     for ( ;; ) {
         if ( !isText() || !isVisible() ) {
             // move to previous text
@@ -6341,7 +6341,7 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
             text = node->getText();
             textLen = text.length();
             _data->setOffset( 0 );
-            moved = true;
+            //moved = true;
         } else {
             for (;;) {
                 node = getNode();
@@ -6367,7 +6367,7 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
         // skip spaces
         while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
             _data->addOffset(1);
-            moved = true;
+            //moved = true;
         }
         // skip non-spaces
         while ( _data->getOffset()<textLen ) {
@@ -6394,7 +6394,7 @@ bool ldomXPointerEx::isVisibleWordStart()
     int i = _data->getOffset();
     lChar16 currCh = i<textLen ? text[i] : 0;
     lChar16 prevCh = i<textLen && i>0 ? text[i-1] : 0;
-    if ( canWrapWordBefore(currCh) || IsUnicodeSpaceOrNull(prevCh) && !IsUnicodeSpace(currCh) )
+    if (canWrapWordBefore(currCh) || (IsUnicodeSpaceOrNull(prevCh) && !IsUnicodeSpace(currCh)))
         return true;
     return false;
  }
@@ -6412,7 +6412,7 @@ bool ldomXPointerEx::isVisibleWordEnd()
     int i = _data->getOffset();
     lChar16 currCh = i>0 ? text[i-1] : 0;
     lChar16 nextCh = i<textLen ? text[i] : 0;
-    if ( canWrapWordAfter(currCh) || !IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh) )
+    if (canWrapWordAfter(currCh) || (!IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh)))
         return true;
     return false;
 }
@@ -7450,8 +7450,8 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lC
 //    lStr_lowercase( const_cast<lChar16 *>(tagname), lStr_len(tagname) );
 
     // Patch for bad LIB.RU books - BR delimited paragraphs in "Fine HTML" format
-    if ( (tagname[0]=='b' && tagname[1]=='r' && tagname[2]==0)
-        || tagname[0]=='d' && tagname[1]=='d' && tagname[2]==0 ) {
+    if ((tagname[0] == 'b' && tagname[1] == 'r' && tagname[2] == 0)
+        || (tagname[0] == 'd' && tagname[1] == 'd' && tagname[2] == 0)) {
         // substitute to P
         tagname = L"p";
         _libRuParagraphStart = true; // to trim leading &nbsp;

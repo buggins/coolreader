@@ -1710,7 +1710,7 @@ public:
     virtual bool   Decode( LVImageDecoderCallback * callback )
     {
         callback->OnStartDecode( this );
-        bool res = false;
+        //bool res = false;
         if ( _isGray ) {
             // gray
             LVArray<lUInt32> line;
@@ -1738,7 +1738,7 @@ public:
         } else {
             // color
             for ( int y=0; y<_dy; y++ ) {
-                res = callback->OnLineDecoded( this, y, _colorImage + _dx * y );
+                callback->OnLineDecoded( this, y, _colorImage + _dx * y );
             }
         }
         callback->OnEndDecode( this, false );
@@ -1778,11 +1778,11 @@ public:
     virtual bool   Decode( LVImageDecoderCallback * callback )
     {
         callback->OnStartDecode( this );
-        bool res = false;
+        //bool res = false;
         if ( _buf->GetBitsPerPixel()==32 ) {
             // 32 bpp
             for ( int y=0; y<_dy; y++ ) {
-                res = callback->OnLineDecoded( this, y, (lUInt32 *)_buf->GetScanLine(y) );
+                callback->OnLineDecoded( this, y, (lUInt32 *)_buf->GetScanLine(y) );
             }
         } else {
             // 16 bpp
@@ -1791,7 +1791,7 @@ public:
                 lUInt16 * src = (lUInt16 *)_buf->GetScanLine(y);
                 for ( int x=0; x<_dx; x++ )
                     row[x] = rgb565to888(src[x]);
-                res = callback->OnLineDecoded( this, y, row );
+                callback->OnLineDecoded( this, y, row );
             }
             delete[] row;
         }

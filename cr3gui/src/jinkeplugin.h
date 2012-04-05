@@ -423,7 +423,7 @@ enum
 {
 	TF_ASCII,
 	TF_UTF8,
-	TF_UC16,
+    TF_UC16
 };
 
 //music state

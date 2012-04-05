@@ -98,7 +98,7 @@ public:
         }
     }
 	/// returns number of entries
-	unsigned length() { return _items.length(); }
+    int length() { return _items.length(); }
     /// remove accelerator from table
     bool remove( int keyCode, int keyFlags )
     {

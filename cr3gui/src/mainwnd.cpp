@@ -358,7 +358,7 @@ void V3DocViewWin::OnLoadFileStart( lString16 filename )
 void V3DocViewWin::OnLoadFileFormatDetected( doc_format_t fileFormat )
 {
     CRLog::trace("OnLoadFileFormatDetected(%d)", (int)fileFormat);
-    lString16 filename = "fb2.css";
+    lString16 filename("fb2.css");
     if ( _cssDir.length() > 0 ) {
         switch ( fileFormat ) {
         case doc_format_txt:
@@ -824,7 +824,7 @@ VIEWER_MENU_4ABOUT=About...
 	CRGUIAcceleratorTableRef menuItems = _wm->getAccTables().get(lString16("mainMenuItems"));
 	if ( !menuItems.isNull() && menuItems->length()>1 ) {
 		// get menu from file
-        for ( int i=0; i<menuItems->length(); i++ ) {
+        for (int i=0; i < menuItems->length(); i++) {
 			const CRGUIAccelerator * acc = menuItems->get( i );
 			int cmd = acc->commandId;
 			int param = acc->commandParam;
@@ -1001,7 +1001,7 @@ void V3DocViewWin::showAboutDialog()
 {
 	_docview->savePosition();
 	CRFileHistRecord * hist = _docview->getCurrentFileHistRecord();
-    lString16 title = "Cool Reader ";
+    lString16 title("Cool Reader ");
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION CR_ENGINE_VERSION
 #endif

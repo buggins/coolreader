@@ -473,7 +473,7 @@ public:
     {
         int i;
         LVFont * lastFont = NULL;
-        src_text_fragment_t * lastSrc = NULL;
+        //src_text_fragment_t * lastSrc = NULL;
         int start = 0;
         int lastWidth = 0;
 #define MAX_TEXT_CHUNK_SIZE 4096
@@ -555,7 +555,7 @@ public:
             //
             if (newFont)
                 lastFont = newFont;
-            lastSrc = newSrc;
+            //lastSrc = newSrc;
         }
         if ( tabIndex>=0 ) {
             int tabPosition = -m_srcs[0]->margin;
@@ -688,16 +688,16 @@ public:
         int wstart = start;
         bool lastIsSpace = false;
         bool lastWord = false;
-        bool isObject = false;
+        //bool isObject = false;
         bool isSpace = false;
-        bool nextIsSpace = false;
+        //bool nextIsSpace = false;
         bool space = false;
         for ( int i=start; i<=end; i++ ) {
             src_text_fragment_t * newSrc = i<end ? m_srcs[i] : NULL;
             if ( i<end ) {
-                isObject = (m_flags[i] & LCHAR_IS_OBJECT)!=0;
+                //isObject = (m_flags[i] & LCHAR_IS_OBJECT)!=0;
                 isSpace = (m_flags[i] & LCHAR_IS_SPACE)!=0;
-                nextIsSpace = i<end-1 && (m_flags[i+1] & LCHAR_IS_SPACE);
+                //nextIsSpace = i<end-1 && (m_flags[i+1] & LCHAR_IS_SPACE);
                 space = splitBySpaces && lastIsSpace && !isSpace && i<lastnonspace;
             } else {
                 lastWord = true;

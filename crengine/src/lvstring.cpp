@@ -1260,7 +1260,7 @@ bool SerialBuf::checkCRC( int size )
     }
     lUInt32 n0 = 0;
     n0 = lStr_crc32(n0, _buf + _pos-size, size);
-    lUInt32 n;
+    lUInt32 n = 0;
     *this >> n;
     if ( error() )
         return false;
@@ -3807,9 +3807,9 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     for (; hwStart>0; hwStart--)
     {
         lChar16 ch = str[hwStart];
-        int lastAlpha = -1;
+        //int lastAlpha = -1;
         if (getCharProp(ch) & CH_PROP_ALPHA) {
-            lastAlpha = hwStart;
+            //lastAlpha = hwStart;
         } else {
             hwStart++;
             break;

@@ -2497,7 +2497,7 @@ public:
     virtual int ReadContents()
     {
         lvByteOrderConv cnv;
-        bool arcComment = false;
+        //bool arcComment = false;
         bool truncated = false;
 
         m_list.clear();
@@ -2613,8 +2613,8 @@ public:
             if (ReadSize==0 || ZipHeader.Mark==0x06054b50 ||
                     (truncated && ZipHeader.Mark==0x02014b50) )
             {
-                if (!truncated && *(lUInt16 *)((char *)&ZipHeader+20)!=0)
-                    arcComment=true;
+//                if (!truncated && *(lUInt16 *)((char *)&ZipHeader+20)!=0)
+//                    arcComment=true;
                 break; //(GETARC_EOF);
             }
 

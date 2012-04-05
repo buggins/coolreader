@@ -90,7 +90,7 @@ void lvdrawbufDraw2( draw_buf_t * buf, int x, int y, const lUInt8 * bitmap, int 
     int      srcshift;
     int      srcskip;
     int      srcdata;
-    int      srccount;
+    //int      srccount;
 
     if (x<0)
     {
@@ -140,7 +140,7 @@ void lvdrawbufDraw2( draw_buf_t * buf, int x, int y, const lUInt8 * bitmap, int 
             srcskip = 0;
         }
         srcdata = ((*bitmap)<<(srcshift<<1)) & 0xC0;
-        srccount = 1;
+        //srccount = 1;
         if (!(++srcshift & 3))
         {
             srcshift = 0;

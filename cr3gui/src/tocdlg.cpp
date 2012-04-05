@@ -19,7 +19,7 @@ lString16 limitTextWidth( lString16 s, int width, LVFontRef font )
     int w = font->getTextWidth(s.c_str(), s.length());
     if ( w<width )
         return s;
-    lString16 sss = "...";
+    lString16 sss("...");
     int www = font->getTextWidth(sss.c_str(), sss.length());
     while (s.length()>0) {
         s.erase(s.length()-1, 1);

@@ -10,7 +10,7 @@
 enum granularity {
     grn_char,
     grn_word,
-    grn_block,
+    grn_block
 };
 
 //const lString16 phrase_bounds(L".?!");
@@ -19,7 +19,7 @@ enum granularity {
 enum last_move_type {
     not_moved,
     moved_up,
-    moved_down,
+    moved_down
 };
 
 void
@@ -39,7 +39,7 @@ point_to_end(ldomXPointerEx& xp) {
             xp.setOffset(text.length());
         }
     }
-};
+}
 
 void
 point_to_begin(ldomXPointerEx& xp) {

@@ -104,6 +104,7 @@ public:
             L"table", // tbls_intable,
             L"tr", // tbls_inrow,
             L"td", // tbls_incell,
+            NULL
         };
         if ( tblState < state ) {
             for ( int i=tblState+1; i<=state; i++ ) {

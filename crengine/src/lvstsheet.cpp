@@ -337,9 +337,12 @@ bool parse_color_value( const char * & str, css_length_t & value )
             value.value = (((r + r*16) * 256) | (g + g*16)) * 256 | (b + b*16);
             return true;
         } else if ( nDigits==6 ) {
-            int r = hexDigit( *str++ ) * 16 + hexDigit( *str++ );
-            int g = hexDigit( *str++ ) * 16 + hexDigit( *str++ );
-            int b = hexDigit( *str++ ) * 16 + hexDigit( *str++ );
+            int r = hexDigit( *str++ ) * 16;
+            r += hexDigit( *str++ );
+            int g = hexDigit( *str++ ) * 16;
+            g += hexDigit( *str++ );
+            int b = hexDigit( *str++ ) * 16;
+            b += hexDigit( *str++ );
             value.type = css_val_color;
             value.value = ((r * 256) | g) * 256 | b;
             return true;

@@ -613,7 +613,7 @@ public:
             }
             if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') {
                 onToken(token);
-            } else if (ch == '@' || ch=='-' || ch=='_' || ch=='.' || ch>='a' && ch <='z' || ch>='A' && ch <='Z' || ch>='0' && ch <='9') {
+            } else if (ch == '@' || ch=='-' || ch=='_' || ch=='.' || (ch>='a' && ch <='z') || (ch>='A' && ch <='Z') || (ch>='0' && ch <='9')) {
                 token << ch;
             } else if (ch == ':' || ch=='{' || ch == '}' || ch=='(' || ch == ')' || ch == ';') {
                 onToken(token);

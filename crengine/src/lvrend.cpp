@@ -119,19 +119,7 @@ public:
     { }
 };
 
-class CCRTableRowGroup {
-public:
-    int index;
-    int height;
-    int y;
-    ldomNode * elem;
-    LVPtrVector<CCRTableRow, false> rows;
-    CCRTableRowGroup() : index(0)
-    , height(0)
-    , y(0)
-    , elem(NULL)
-    { }
-};
+class CCRTableRowGroup;
 
 class CCRTableRow {
 public:
@@ -150,6 +138,20 @@ public:
     , linkindex(-1)
     , elem(NULL)
     , rowgroup(NULL)
+    { }
+};
+
+class CCRTableRowGroup {
+public:
+    int index;
+    int height;
+    int y;
+    ldomNode * elem;
+    LVPtrVector<CCRTableRow, false> rows;
+    CCRTableRowGroup() : index(0)
+    , height(0)
+    , y(0)
+    , elem(NULL)
     { }
 };
 
@@ -1264,7 +1266,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             } else {
             }
             */
-            int offs = 0;
+            //int offs = 0;
             if ( txform->GetSrcCount()==0 && style->white_space!=css_ws_pre ) {
                 // clear leading spaces for first text of paragraph
                 int i=0;
@@ -1272,7 +1274,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     ;
                 if ( i>0 ) {
                     txt.erase(0, i);
-                    offs = i;
+                    //offs = i;
                 }
             }
             if ( txt.length()>0 )

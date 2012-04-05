@@ -1323,7 +1323,7 @@ void CRMenu::drawClient()
     if ( !separatorSkin.isNull() )
         separatorHeight = separatorSkin->getMinSize().y;
 
-    lvRect itemBorders = itemSkin->getBorderWidths();
+    //lvRect itemBorders = itemSkin->getBorderWidths();
 
     bool showShortcuts = skin->getShowShortcuts();
 
@@ -1337,7 +1337,7 @@ void CRMenu::drawClient()
 
     lvPoint itemSize = getMaxItemSize();
     //int hdrHeight = itemSize.y; // + ITEM_MARGIN + ITEM_MARGIN;
-    lvPoint sz = getSize();
+    //lvPoint sz = getSize();
 
     //int nItems = _items.length();
     //int scrollHeight = getScrollHeight();
@@ -2028,6 +2028,7 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
 
 
 
+#if CR_INTERNAL_PAGE_ORIENTATION==1
 static int inv_control_table[] = {
     // old cmd, new cmd, param multiplier
     DCMD_LINEUP, DCMD_LINEDOWN, 1,
@@ -2037,6 +2038,7 @@ static int inv_control_table[] = {
     DCMD_MOVE_BY_CHAPTER, DCMD_MOVE_BY_CHAPTER, -1,
     0, 0, 0, 0,
 };
+#endif
 
 /// returns true if command is processed
 bool CRDocViewWindow::onCommand( int command, int params )

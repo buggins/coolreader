@@ -351,7 +351,7 @@ public:
         bool zfound = false;
         for ( int i=0; i<length || length==-1; i++ ) {
             int b = _stream->ReadByte();
-            if ( zfound || b==0 && length>=0 ) {
+            if (zfound || (b==0 && length>=0)) {
                 zfound = true;
                 continue;
             }

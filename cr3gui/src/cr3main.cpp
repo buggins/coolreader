@@ -329,7 +329,7 @@ void InitCREngineLog( const char * cfgfile )
                                                "stdout"
 #endif
             );
-    lString16 loglevelstr = "INFO";
+    lString16 loglevelstr("INFO");
 	bool autoFlush = false;
     CRPropRef logprops = LVCreatePropsContainer();
     {

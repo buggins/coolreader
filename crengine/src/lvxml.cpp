@@ -2907,8 +2907,10 @@ bool LVXMLParser::CheckFormat()
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
         bool flg = !m_fb2Only || s.pos("<FictionBook") >= 0;
-        if ( flg && (( (s.pos("<?xml") >= 0 || s.pos(" xmlns=") > 0) && s.pos("version=") >= 6) ||
-             m_allowHtml && s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )) {
+        if ( flg && (
+                 ((s.pos("<?xml") >= 0 || s.pos(" xmlns=") > 0) && s.pos("version=") >= 6) ||
+                 (m_allowHtml && s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0)
+                 )) {
             //&& s.pos("<FictionBook") >= 0
             res = true;
             int encpos=s.pos("encoding=\"");

@@ -1513,8 +1513,8 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 //    }
 	lUInt32 cl1 = m_statusColor!=0xFF000000 ? m_statusColor : getTextColor();
     //lUInt32 cl2 = getBackgroundColor();
-	lUInt32 cl3 = 0xD0D0D0;
-	lUInt32 cl4 = 0xC0C0C0;
+    //lUInt32 cl3 = 0xD0D0D0;
+    //lUInt32 cl4 = 0xC0C0C0;
 	drawbuf->SetTextColor(cl1);
 	//lUInt32 pal[4];
 	int percent = getPosPercent();
@@ -1527,12 +1527,12 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	lvRect navBar;
 	getNavigationBarRectangle(pageIndex, navBar);
 	int gpos = info.bottom;
-	if (drawbuf->GetBitsPerPixel() <= 2) {
-		// gray
-		cl3 = 1;
-		cl4 = cl1;
-		//pal[0] = cl1;
-	}
+//	if (drawbuf->GetBitsPerPixel() <= 2) {
+//		// gray
+//		cl3 = 1;
+//		cl4 = cl1;
+//		//pal[0] = cl1;
+//	}
         if ( leftPage )
             drawbuf->FillRect(info.left, gpos - 2, info.right, gpos - 2     + 1, cl1);
         //drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
@@ -5550,7 +5550,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 	for (int i = 0; i < props->getCount(); i++) {
 		lString8 name(props->getName(i));
 		lString16 value = props->getValue(i);
-		bool isUnknown = false;
+        //bool isUnknown = false;
 		if (name == PROP_FONT_ANTIALIASING) {
 			int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
 			fontMan->SetAntialiasMode(antialiasingMode);
@@ -5748,7 +5748,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else {
 			// unknown property, adding to list of unknown properties
 			unknown->setString(name.c_str(), value);
-			isUnknown = true;
+            //isUnknown = true;
 		}
 		//if ( !isUnknown ) {
 		// update current value in properties
