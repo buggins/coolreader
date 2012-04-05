@@ -1,6 +1,7 @@
 package org.coolreader.db;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,8 +14,11 @@ import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Utils;
+import org.coolreader.db.CRDB.QueryHelper;
 
 import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
@@ -143,9 +147,15 @@ public class MainDB extends BaseDB {
 		seriesCache.clear();
 		authorCache.clear();
 		folderCache.clear();
+		fileInfoCache.clear();
 	}
 
 	public void flush() {
+		ArrayList<FileInfo> unsavedFiles = fileInfoCache.getUnsaved();
+		if (unsavedFiles != null) {
+			// TODO: save
+		}
+		
         super.flush();
         if (seriesStmt != null) {
             seriesStmt.close();
@@ -623,8 +633,7 @@ public class MainDB extends BaseDB {
 	private SQLiteStatement authorStmt;
 	private SQLiteStatement authorSelectStmt;
 	private HashMap<String,Long> authorCache = new HashMap<String,Long>();
-	public Long getAuthorId( String authorName )
-	{
+	private Long getAuthorId( String authorName ) {
 		if ( authorName==null || authorName.trim().length()==0 )
 			return null;
 		Long id = authorCache.get(authorName); 
@@ -646,11 +655,357 @@ public class MainDB extends BaseDB {
 		return id;
 	}
 	
+	private Long[] getAuthorIds( String authorNames ) {
+		if ( authorNames==null || authorNames.trim().length()==0 )
+			return null;
+		String[] names = authorNames.split("\\|");
+		if ( names==null || names.length==0 )
+			return null;
+		ArrayList<Long> ids = new ArrayList<Long>(names.length);
+		for ( String name : names ) {
+			Long id = getAuthorId(name);
+			if ( id!=null )
+				ids.add(id);
+		}
+		if ( ids.size()>0 )
+			return ids.toArray(new Long[ids.size()]);
+		return null;
+	}
+	
+	public void saveBookAuthors( Long bookId, Long[] authors) {
+		if ( authors==null || authors.length==0 )
+			return;
+		String insertQuery = "INSERT OR IGNORE INTO book_author (book_fk,author_fk) VALUES ";
+		for ( Long id : authors ) {
+			String sql = insertQuery + "(" + bookId + "," + id + ")"; 
+			//Log.v("cr3", "executing: " + sql);
+			mDB.execSQL(sql);
+		}
+	}
 
+	private static boolean eq(String s1, String s2)
+	{
+		if ( s1!=null )
+			return s1.equals(s2);
+		return s2==null;
+	}
+
+	private final static int FILE_INFO_CACHE_SIZE = 3000;
+	private FileInfoCache fileInfoCache = new FileInfoCache(FILE_INFO_CACHE_SIZE); 
+	
+	private FileInfo findFileInfoByPathname(String path)
+	{
+		FileInfo existing = fileInfoCache.get(path);
+		if (existing != null)
+			return existing;
+		FileInfo fileInfo = new FileInfo(); 
+		if (findBy(fileInfo, "pathname", fileInfo.getPathName())) {
+			fileInfoCache.put(fileInfo);
+			return fileInfo;
+		}
+		return null;
+	}
+
+	private FileInfo findFileInfoById(Long id)
+	{
+		if (id == null)
+			return null;
+		FileInfo existing = fileInfoCache.get(id);
+		if (existing != null)
+			return existing;
+		FileInfo fileInfo = new FileInfo(); 
+		if (findBy( fileInfo, "b.id", fileInfo.id)) {
+			fileInfoCache.put(fileInfo);
+			return fileInfo;
+		}
+		return null;
+	}
+
+	private boolean findBy( FileInfo fileInfo, String fieldName, Object fieldValue )
+	{
+		String condition;
+		StringBuilder buf = new StringBuilder(" WHERE ");
+		buf.append(fieldName);
+		if ( fieldValue==null ) {
+			buf.append(" IS NULL ");
+		} else {
+			buf.append("=");
+			DatabaseUtils.appendValueToSql(buf, fieldValue);
+			buf.append(" ");
+		}
+		condition = buf.toString();
+		boolean found = false;
+		Cursor rs = null;
+		try { 
+			rs = mDB.rawQuery(READ_FILEINFO_SQL +
+					condition, null);
+			if ( rs.moveToFirst() ) {
+				readFileInfoFromCursor( fileInfo, rs );
+				found = true;
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return found;
+	}
+
+	private boolean save(FileInfo fileInfo)
+	{
+		beginChanges();
+		boolean authorsChanged = true;
+		try {
+			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName());
+			if (oldValue == null)
+				oldValue = findFileInfoById(fileInfo.id);
+			if (oldValue != null && fileInfo.id == null && oldValue.id != null)
+				fileInfo.id = oldValue.id;
+			if (oldValue != null) {
+				// found, updating
+				QueryHelper h = new QueryHelper(fileInfo, oldValue);
+				h.update(fileInfo.id);
+				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+			} else {
+				// inserting
+				QueryHelper h = new QueryHelper(fileInfo, oldValue);
+				fileInfo.id = h.insert();
+			}
+			
+			fileInfo.setModified(false);
+			fileInfoCache.put(fileInfo);
+			if (fileInfo.id != null) {
+				if ( authorsChanged ) {
+					Long[] authorIds = getAuthorIds(fileInfo.authors);
+					saveBookAuthors(fileInfo.id, authorIds);
+				}
+				return true;
+			}
+			return false;
+		} catch (SQLiteException e) {
+			log.e("error while writing to DB", e);
+			return false;
+		}
+	}
+
+	public void saveFileInfos(Collection<FileInfo> list)
+	{
+		Log.v("cr3db", "save BookInfo collection: " + list.size() + " items");
+		if (!isOpened()) {
+			Log.e("cr3db", "cannot save book info : DB is closed");
+			return;
+		}
+		for (FileInfo fileInfo : list) {
+			save(fileInfo);
+		}
+	}
+	
+	/**
+	 * Load recent books list, with bookmarks
+	 * @param maxCount is max number of recent books to get
+	 * @return list of loaded books
+	 */
+	public ArrayList<BookInfo> loadRecentBooks(int maxCount)
+	{
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		if (!isOpened())
+			return null;
+		beginReading();
+		findRecentBooks(list, maxCount, maxCount*10);
+		ArrayList<BookInfo> res = new ArrayList<BookInfo>(list.size());
+		for (FileInfo f : list) {
+			FileInfo file = fileInfoCache.get(f.getPathName()); // try using cached value instead
+			if (file == null) {
+				file = f;
+				fileInfoCache.put(file);
+			}
+			BookInfo item = new BookInfo( file );
+			loadBookmarks(item);
+			res.add(item);
+		}
+		endReading();
+		return res;
+	}
+
+	private boolean findRecentBooks( ArrayList<FileInfo> list, int maxCount, int limit )
+	{
+		String sql = READ_FILEINFO_SQL + " WHERE last_access_time>0 ORDER BY last_access_time DESC LIMIT " + limit;
+		Cursor rs = null;
+		boolean found = false;
+		try {
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					FileInfo fileInfo = new FileInfo();
+					readFileInfoFromCursor( fileInfo, rs );
+					if ( !fileInfo.fileExists() )
+						continue;
+					list.add(fileInfo);
+					found = true;
+					if ( list.size()>maxCount )
+						break;
+				} while (rs.moveToNext());
+			}
+		} finally {
+			rs.close();
+		}
+		return found;
+	}
+	
+	
 	//=======================================================================================
     // File info access code
     //=======================================================================================
 	
+	public class QueryHelper {
+		String tableName;
+		QueryHelper(String tableName)
+		{
+			this.tableName = tableName;
+		}
+		ArrayList<String> fields = new ArrayList<String>(); 
+		ArrayList<Object> values = new ArrayList<Object>();
+		QueryHelper add(String fieldName, int value, int oldValue )
+		{
+			if ( value!=oldValue ) {
+				fields.add(fieldName);
+				values.add(Long.valueOf(value));
+			}
+			return this;
+		}
+		QueryHelper add(String fieldName, Long value, Long oldValue )
+		{
+			if ( value!=null && (oldValue==null || !oldValue.equals(value))) {
+				fields.add(fieldName);
+				values.add(value);
+			}
+			return this;
+		}
+		QueryHelper add(String fieldName, String value, String oldValue)
+		{
+			if ( value!=null && (oldValue==null || !oldValue.equals(value))) {
+				fields.add(fieldName);
+				values.add(value);
+			}
+			return this;
+		}
+		QueryHelper add(String fieldName, Double value, Double oldValue)
+		{
+			if ( value!=null && (oldValue==null || !oldValue.equals(value))) {
+				fields.add(fieldName);
+				values.add(value);
+			}
+			return this;
+		}
+		Long insert()
+		{
+			if ( fields.size()==0 )
+				return null;
+			StringBuilder valueBuf = new StringBuilder();
+			try {
+				String ignoreOption = ""; //"OR IGNORE ";
+				StringBuilder buf = new StringBuilder("INSERT " + ignoreOption + " INTO ");
+				buf.append(tableName);
+				buf.append(" (id");
+				for ( String field : fields ) {
+					buf.append(",");
+					buf.append(field);
+				}
+				buf.append(") VALUES (NULL");
+				for ( @SuppressWarnings("unused") String field : fields ) {
+					buf.append(",");
+					buf.append("?");
+				}
+				buf.append(")");
+				String sql = buf.toString();
+				Log.d("cr3db", "going to execute " + sql);
+				SQLiteStatement stmt = null;
+				Long id = null;
+				try {
+					stmt = mDB.compileStatement(sql);
+					for ( int i=1; i<=values.size(); i++ ) {
+						Object v = values.get(i-1);
+						valueBuf.append(v!=null ? v.toString() : "null");
+						valueBuf.append(",");
+						if ( v==null )
+							stmt.bindNull(i);
+						else if (v instanceof String)
+							stmt.bindString(i, (String)v);
+						else if (v instanceof Long)
+							stmt.bindLong(i, (Long)v);
+						else if (v instanceof Double)
+							stmt.bindDouble(i, (Double)v);
+					}
+					id = stmt.executeInsert();
+					Log.d("cr3db", "added book, id=" + id + ", query=" + sql);
+				} finally {
+					if ( stmt!=null )
+						stmt.close();
+				}
+				return id;
+			} catch ( Exception e ) {
+				Log.e("cr3db", "insert failed: " + e.getMessage());
+				Log.e("cr3db", "values: " + valueBuf.toString());
+				return null;
+			}
+		}
+		boolean update( Long id )
+		{
+			if ( fields.size()==0 )
+				return false;
+			StringBuilder buf = new StringBuilder("UPDATE ");
+			buf.append(tableName);
+			buf.append(" SET ");
+			boolean first = true;
+			for ( String field : fields ) {
+				if ( !first )
+					buf.append(",");
+				buf.append(field);
+				buf.append("=?");
+				first = false;
+			}
+			buf.append(" WHERE id=" + id );
+			mDB.execSQL(buf.toString(), values.toArray());
+			return true;
+		}
+		Long fromFormat( DocumentFormat f )
+		{
+			if ( f==null )
+				return null;
+			return (long)f.ordinal();
+		}
+		QueryHelper( FileInfo newValue, FileInfo oldValue )
+		{
+			this("book");
+			add("pathname", newValue.getPathName(), oldValue.getPathName());
+			add("folder_fk", getFolderId(newValue.path), getFolderId(oldValue.path));
+			add("filename", newValue.filename, oldValue.filename);
+			add("arcname", newValue.arcname, oldValue.arcname);
+			add("title", newValue.title, oldValue.title);
+			add("series_fk", getSeriesId(newValue.series), getSeriesId(oldValue.series));
+			add("series_number", (long)newValue.seriesNumber, (long)oldValue.seriesNumber);
+			add("format", fromFormat(newValue.format), fromFormat(oldValue.format));
+			add("filesize", (long)newValue.size, (long)oldValue.size);
+			add("arcsize", (long)newValue.arcsize, (long)oldValue.arcsize);
+			add("last_access_time", (long)newValue.lastAccessTime, (long)oldValue.lastAccessTime);
+			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
+			add("flags", (long)newValue.flags, (long)oldValue.flags);
+		}
+		QueryHelper( Bookmark newValue, Bookmark oldValue, long bookId )
+		{
+			this("bookmark");
+			add("book_fk", bookId, oldValue.getId()!=null ? bookId : null);
+			add("type", newValue.getType(), oldValue.getType());
+			add("percent", newValue.getPercent(), oldValue.getPercent());
+			add("shortcut", newValue.getShortcut(), oldValue.getShortcut());
+			add("start_pos", newValue.getStartPos(), oldValue.getStartPos());
+			add("end_pos", newValue.getEndPos(), oldValue.getEndPos());
+			add("title_text", newValue.getTitleText(), oldValue.getTitleText());
+			add("pos_text", newValue.getPosText(), oldValue.getPosText());
+			add("comment_text", newValue.getCommentText(), oldValue.getCommentText());
+			add("time_stamp", newValue.getTimeStamp(), oldValue.getTimeStamp());
+		}
+	}
+
 	private static final String READ_FILEINFO_FIELDS = 
 		"b.id AS id, pathname," +
 		"f.name as path, " +

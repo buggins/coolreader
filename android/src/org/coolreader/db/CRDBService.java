@@ -2,7 +2,10 @@ package org.coolreader.db;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 
+import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
@@ -114,9 +117,6 @@ public class CRDBService extends Service {
     }
     
     private void clearCaches() {
-		synchronized (coverpageCache) {
-			coverpageCache.clear();
-		}
 		mainDB.clearCaches();
 		coverDB.clearCaches();
     }
@@ -187,18 +187,9 @@ public class CRDBService extends Service {
     	void onCoverpageLoaded(long bookId, byte[] data);
     }
     
-    private static final int COVERPAGE_CACHE_SIZE = 512 * 1024;
-    private ByteArrayCache coverpageCache = new ByteArrayCache(COVERPAGE_CACHE_SIZE);
 	public void saveBookCoverpage(final long bookId, final byte[] data) {
 		if (data == null)
 			return;
-		synchronized (coverpageCache) {
-			byte[] oldData = coverpageCache.get(bookId);
-			if (oldData != null)
-				return; // already in cache
-			// update cache and DB
-			coverpageCache.put(bookId, data);
-		}
 		execTask(new Runnable() {
 			@Override
 			public void run() {
@@ -210,29 +201,10 @@ public class CRDBService extends Service {
 	
 	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback, final Handler handler) 
 	{
-		byte[] data = null;
-		synchronized (coverpageCache) {
-			data = coverpageCache.get(bookId);
-		}
-		if (data != null) {
-			final byte[] foundData = data;
-			sendTask(handler, new Runnable() {
-				@Override
-				public void run() {
-					callback.onCoverpageLoaded(bookId, foundData);
-				}
-			});
-			return;
-		}
 		execTask(new Runnable() {
 			@Override
 			public void run() {
 				final byte[] data = coverDB.loadBookCoverpage(bookId);
-				if (data != null) {
-					synchronized (coverpageCache) {
-						coverpageCache.put(bookId, data);
-					}
-				}
 				sendTask(handler, new Runnable() {
 					@Override
 					public void run() {
@@ -248,9 +220,6 @@ public class CRDBService extends Service {
 			@Override
 			public void run() {
 				coverDB.deleteCoverpage(bookId);
-				synchronized (coverpageCache) {
-					coverpageCache.remove(bookId);
-				}
 			}
 		});
 		flush();
@@ -264,7 +233,11 @@ public class CRDBService extends Service {
     }
 
     public interface FileInfoListLoadingCallback {
-    	void onFileInfoListLoaded(long authirId, ArrayList<FileInfo> list);
+    	void onFileInfoListLoaded(long authorId, ArrayList<FileInfo> list);
+    }
+    
+    public interface RecentBooksLoadingCallback {
+    	void onRecentBooksListLoaded(ArrayList<BookInfo> bookList);
     }
     
 	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
@@ -314,7 +287,7 @@ public class CRDBService extends Service {
 			}
 		});
 	}
-	
+
 	public void findAuthorBooks(final long authorId, final FileInfoListLoadingCallback callback, final Handler handler) {
 		execTask(new Runnable() {
 			@Override
@@ -347,6 +320,31 @@ public class CRDBService extends Service {
 		});
 	}
 
+	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback, final Handler handler) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				final ArrayList<BookInfo> list = mainDB.loadRecentBooks(maxCount);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onRecentBooksListLoaded(list);
+					}
+				});
+			}
+		});
+	}
+	
+	public void saveFileInfos(final Collection<FileInfo> list) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				mainDB.saveFileInfos(list);
+			}
+		});
+		flush();
+	}
+	
 	/**
 	 * Execute runnable in CDRDBService background thread.
 	 * Exceptions will be ignored, just dumped into log.
@@ -408,7 +406,7 @@ public class CRDBService extends Service {
      * Provides interface for asynchronous operations with database.
      */
     public class LocalBinder extends Binder {
-        public CRDBService getService() {
+        private CRDBService getService() {
             return CRDBService.this;
         }
         
@@ -446,6 +444,14 @@ public class CRDBService extends Service {
     	
     	public void loadSeriesBooks(long seriesId, FileInfoListLoadingCallback callback, final Handler handler) {
     		getService().findSeriesBooks(seriesId, callback, handler);
+    	}
+
+    	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback, final Handler handler) {
+    		getService().loadRecentBooks(maxCount, callback, handler);
+    	}
+
+    	public void saveFileInfos(final Collection<FileInfo> list) {
+    		getService().saveFileInfos(list);
     	}
     }
 

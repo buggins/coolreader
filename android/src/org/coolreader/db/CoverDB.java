@@ -47,9 +47,22 @@ public class CoverDB extends BaseDB {
 	private void dumpStatistics() {
 		log.i("coverDB: " + longQuery("SELECT count(*) FROM coverpage") + " coverpages");
 	}
+
+	public void clearCaches() {
+		coverpageCache.clear();
+	}
 	
+    private static final int COVERPAGE_CACHE_SIZE = 512 * 1024;
+    private ByteArrayCache coverpageCache = new ByteArrayCache(COVERPAGE_CACHE_SIZE);
+    
 	public void saveBookCoverpage( long bookId, byte[] data )
 	{
+		byte[] oldData = coverpageCache.get(bookId);
+		if (oldData != null)
+			return; // already in cache
+		// update cache and DB
+		coverpageCache.put(bookId, data);
+		
 		if (!isOpened())
 			return;
 		if ( data==null )
@@ -74,6 +87,9 @@ public class CoverDB extends BaseDB {
 
 	public byte[] loadBookCoverpage(long bookId)
 	{
+		byte[] data = coverpageCache.get(bookId);
+		if (data != null)
+			return data;
 		if (!isOpened())
 			return null;
 		Cursor rs = null;
@@ -93,6 +109,7 @@ public class CoverDB extends BaseDB {
 	}
 	
 	public void deleteCoverpage(long bookId) {
+		coverpageCache.remove(bookId);
 		if (!isOpened())
 			return;
 		execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + bookId);
