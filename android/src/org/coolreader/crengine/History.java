@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
 import org.coolreader.db.CRDB;
+import org.coolreader.db.CRDBService;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -17,12 +18,12 @@ import android.util.Log;
 
 public class History {
 	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
-	private final CRDB mDB;
+	private final CRDBService.LocalBinder mDB;
 	private final CoolReader mCoolReader;
 	private final Engine mEngine;
 	private FileInfo mRecentBooksFolder;
 	
-	public History(CoolReader cr, CRDB db, Engine engine)
+	public History(CoolReader cr, CRDBService.LocalBinder db, Engine engine)
 	{
 		this.mCoolReader = cr;
 		this.mDB = db;

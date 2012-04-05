@@ -1,8 +1,12 @@
 package org.coolreader.crengine;
 
+import java.util.ArrayList;
+
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.db.CRDBService;
 
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -109,18 +113,12 @@ public class BookSearchDialog extends BaseDialog {
 		final String series = seriesEdit.getText().toString().trim();
 		final String title = titleEdit.getText().toString().trim();
 		final String filename = filenameEdit.getText().toString().trim();
-		BackgroundThread.instance().executeBackground( new Runnable() {
+		if (mCoolReader == null || mCoolReader.getDB() == null)
+			return;
+		mCoolReader.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename, new CRDBService.BookSearchCallback() {
 			@Override
-			public void run() {
-				if (mCoolReader == null || mCoolReader.getDB() == null)
-					return;
-				final FileInfo[] results = mCoolReader.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename);
-				BackgroundThread.instance().executeGUI( new Runnable() {
-					@Override
-					public void run() {
-						cb.done(results);
-					}
-				});
+			public void onBooksFound(ArrayList<FileInfo> fileList) {
+				cb.done(fileList.toArray(new FileInfo[fileList.size()]));
 			}
 		});
 	}

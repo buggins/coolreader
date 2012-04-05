@@ -134,7 +134,7 @@ public class CRDBService extends Service {
     /**
      * Flush ASAP.
      */
-    private void forceFlush(boolean force) {
+    private void forceFlush() {
    		execTask(new FlushDatabaseTask(true));
     }
 
@@ -236,8 +236,16 @@ public class CRDBService extends Service {
     	void onFileInfoListLoaded(long authorId, ArrayList<FileInfo> list);
     }
     
+    public interface FileInfoLoadingCallback {
+    	void onFileInfoListLoaded(ArrayList<FileInfo> list);
+    }
+    
     public interface RecentBooksLoadingCallback {
     	void onRecentBooksListLoaded(ArrayList<BookInfo> bookList);
+    }
+    
+    public interface BookSearchCallback {
+    	void onBooksFound(ArrayList<FileInfo> fileList);
     }
     
 	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
@@ -335,6 +343,28 @@ public class CRDBService extends Service {
 		});
 	}
 	
+	public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback, final Handler handler) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				final ArrayList<FileInfo> list = mainDB.findByPatterns(maxCount, author, title, series, filename);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onBooksFound(list);
+					}
+				});
+			}
+		});
+	}
+
+	private ArrayList<FileInfo> deepCopyFileInfos(final Collection<FileInfo> src) {
+		final ArrayList<FileInfo> list = new ArrayList<FileInfo>(src.size());
+		for (FileInfo fi : src)
+			list.add(new FileInfo(fi));
+		return list;
+	}
+	
 	public void saveFileInfos(final Collection<FileInfo> list) {
 		execTask(new Runnable() {
 			@Override
@@ -343,6 +373,21 @@ public class CRDBService extends Service {
 			}
 		});
 		flush();
+	}
+
+	public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback, final Handler handler) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				final ArrayList<FileInfo> list = mainDB.loadFileInfos(pathNames);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onFileInfoListLoaded(list);
+					}
+				});
+			}
+		});
 	}
 	
 	/**
@@ -418,40 +463,56 @@ public class CRDBService extends Service {
     		getService().deleteCoverpage(bookId);
     	}
 
-    	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback, final Handler handler) {
-    		getService().loadBookCoverpage(bookId, callback, handler);
+    	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback) {
+    		getService().loadBookCoverpage(bookId, callback, new Handler());
     	}
     	
-    	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback, final Handler handler) {
-    		getService().loadOPDSCatalogs(callback, handler);
+    	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback) {
+    		getService().loadOPDSCatalogs(callback, new Handler());
     	}
 
-    	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
-    		getService().loadAuthorsList(parent, callback, handler);
+    	public void saveOPDSCatalog(final Long id, final String url, final String name) {
+    		getService().saveOPDSCatalog(id, url, name);
     	}
 
-    	public void loadSeriesList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
-    		getService().loadSeriesList(parent, callback, handler);
+    	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
+    		getService().loadAuthorsList(parent, callback, new Handler());
+    	}
+
+    	public void loadSeriesList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
+    		getService().loadSeriesList(parent, callback, new Handler());
     	}
     	
-    	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
-    		getService().loadTitleList(parent, callback, handler);
+    	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
+    		getService().loadTitleList(parent, callback, new Handler());
     	}
 
-    	public void loadAuthorBooks(long authorId, FileInfoListLoadingCallback callback, final Handler handler) {
-    		getService().findAuthorBooks(authorId, callback, handler);
+    	public void loadAuthorBooks(long authorId, FileInfoListLoadingCallback callback) {
+    		getService().findAuthorBooks(authorId, callback, new Handler());
     	}
     	
-    	public void loadSeriesBooks(long seriesId, FileInfoListLoadingCallback callback, final Handler handler) {
-    		getService().findSeriesBooks(seriesId, callback, handler);
+    	public void loadSeriesBooks(long seriesId, FileInfoListLoadingCallback callback) {
+    		getService().findSeriesBooks(seriesId, callback, new Handler());
     	}
 
-    	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback, final Handler handler) {
-    		getService().loadRecentBooks(maxCount, callback, handler);
+    	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback) {
+    		getService().loadRecentBooks(maxCount, callback, new Handler());
     	}
 
     	public void saveFileInfos(final Collection<FileInfo> list) {
-    		getService().saveFileInfos(list);
+    		getService().saveFileInfos(deepCopyFileInfos(list));
+    	}
+    	
+    	public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback) {
+    		getService().findByPatterns(maxCount, author, title, series, filename, callback, new Handler());
+    	}
+    	
+    	public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback) {
+    		getService().loadFileInfos(pathNames, callback, new Handler());
+    	}
+
+    	public void flush() {
+    		getService().forceFlush();
     	}
     }
 

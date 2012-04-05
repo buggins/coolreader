@@ -144,4 +144,56 @@ public class Utils {
 		return f2;
 	}
 
+	private final static String LATIN_C0 =
+		// 0xC0 .. 0xFF
+		  "aaaaaaaceeeeiiiidnoooooxouuuuyps" 
+		+ "aaaaaaaceeeeiiiidnoooooxouuuuypy";
+	
+	private static char convertCharCaseForSearch(char ch) {
+		if (ch >= 'A' && ch <= 'Z')
+			return (char)(ch - 'A' + 'a');
+		if ( ch>=0xC0 && ch<=0xFF )
+			return LATIN_C0.charAt(ch - 0xC0);
+    	if ( ch>=0x410 && ch<=0x42F )
+    		return (char)(ch + 0x20);
+    	if ( ch>=0x390 && ch<=0x3aF )
+    		return (char)(ch + 0x20);
+    	if ( (ch >> 8)==0x1F ) { // greek
+	        int n = ch & 255;
+	        if (n<0x70) {
+	            return (char)(ch & (~8));
+	        } else if (n<0x80) {
+	
+	        } else if (n<0xF0) {
+	            return (char)(ch & (~8));
+	        }
+	    }
+		return ch;
+	}
+	
+	public static boolean matchPattern(String text, String pattern) {
+		if (pattern == null)
+			return true;
+		if (text == null)
+			return false;
+		int textlen = text.length();
+		int patternlen = pattern.length();
+		if (textlen < patternlen)
+			return false;
+		for (int i=0; i <= textlen - patternlen; i++) {
+			if (i > 0 && text.charAt(i-1) != ' ')
+				continue; // match only beginning of words
+			boolean eq = true;
+			for (int j=0; j<patternlen; j++) {
+				if (convertCharCaseForSearch(text.charAt(i + j)) != convertCharCaseForSearch(pattern.charAt(j))) {
+					eq = false;
+					break;
+				}
+			}
+			if (eq)
+				return true;
+		}
+		return false;
+	}
+	
 }

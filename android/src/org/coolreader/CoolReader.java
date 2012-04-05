@@ -34,6 +34,8 @@ import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.ToastView;
 import org.coolreader.crengine.Utils;
 import org.coolreader.db.CRDB;
+import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.donations.BillingService;
 import org.coolreader.donations.BillingService.RequestPurchase;
 import org.coolreader.donations.BillingService.RestoreTransactions;
@@ -101,7 +103,7 @@ public class CoolReader extends Activity
 	FrameLayout mFrame;
 	//View startupView;
 	History mHistory;
-	CRDB mDB;
+	//CRDB mDB;
 	private BackgroundThread mBackgroundThread;
 	
 	
@@ -132,9 +134,9 @@ public class CoolReader extends Activity
 		return mReaderView;
 	}
 	
-	public CRDB getDB()
+	public CRDBService.LocalBinder getDB()
 	{
-		return mDB;
+		return mCRDBService.get();
 	}
 	
 	private static String PREF_FILE = "CR3LastBook";
@@ -552,6 +554,8 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 		mSyncService = new SyncServiceAccessor(this);
+		mCRDBService = new CRDBServiceAccessor(this);
+        mCRDBService.bind();
 
     	isFirstStart = true;
 		
@@ -659,12 +663,12 @@ public class CoolReader extends Activity
 		if ( externalDir!=null ) {
 			dbfile = Engine.checkOrMoveFile(externalDir, dbdir, SQLITE_DB_NAME);
 		}
-		mDB = new CRDB(dbfile);
+		//mDB = new CRDB(dbfile);
 
-       	mScanner = new Scanner(this, mDB, mEngine);
+       	mScanner = new Scanner(this, getDB(), mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 		
-       	mHistory = new History(this, mDB, mEngine);
+       	mHistory = new History(this, getDB(), mEngine);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
@@ -739,6 +743,7 @@ public class CoolReader extends Activity
     public SyncServiceAccessor getSyncService() {
     	return mSyncService;
     }
+    private CRDBServiceAccessor mCRDBService;
     
     public ClipboardManager getClipboardmanager() {
     	return (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
@@ -926,19 +931,11 @@ public class CoolReader extends Activity
 			//mEngine.uninit();
 		}
 
-		if ( mDB!=null ) {
-			final CRDB db = mDB;
-			mBackgroundThread.executeBackground(new Runnable() {
-				public void run() {
-					db.close();
-				}
-			});
-		}
+		mCRDBService.unbind();
 //		if ( mBackgroundThread!=null ) {
 //			mBackgroundThread.quit();
 //		}
 			
-		mDB = null;
 		mReaderView = null;
 		//mEngine = null;
 		mBackgroundThread = null;

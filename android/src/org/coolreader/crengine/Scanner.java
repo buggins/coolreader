@@ -13,6 +13,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.EngineTask;
 import org.coolreader.db.CRDB;
+import org.coolreader.db.CRDBService;
 
 import android.util.Log;
 
@@ -223,6 +224,50 @@ public class Scanner {
 			stopped = true;
 		}
 	}
+
+	private void scanDirectoryFiles(final FileInfo baseDir, final Runnable readyCallback, final ScanControl control) {
+		ArrayList<String> pathNames = new ArrayList<String>();
+		for (int i=0; i < baseDir.fileCount(); i++)
+			pathNames.add(baseDir.getFile(i).getPathName());
+		db.loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
+			@Override
+			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
+				ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
+				ArrayList<FileInfo> filesForSave = new ArrayList<FileInfo>();
+				Map<String, FileInfo> map = new HashMap<String, FileInfo>();
+				for (FileInfo f : list)
+					map.put(f.getPathName(), f);
+				for (int i=0; i<baseDir.fileCount(); i++) {
+					FileInfo item = baseDir.getFile(i);
+					FileInfo fromDB = map.get(item.getPathName());
+					if (fromDB != null) {
+						// use DB value
+						baseDir.setFile(i, fromDB);
+					} else {
+						// not found in DB
+						if (item.format.canParseProperties()) {
+							filesForParsing.add(item);
+						} else {
+							filesForSave.add(item);
+						}
+					}
+				}
+				if (filesForSave.size() > 0) {
+					db.saveFileInfos(filesForSave);
+					filesForSave.clear();
+				}
+				if (filesForParsing.size() == 0) {
+					readyCallback.run();
+					return;
+				}
+				if (control.isStopped()) {
+					readyCallback.run();
+					return;
+				}
+				
+			}
+		});
+	}
 	
 	/**
 	 * Scan single directory for dir and file properties in background thread.
@@ -242,7 +287,7 @@ public class Scanner {
 			long nextProgressTime = startTime + 2000;
 			boolean progressShown = false;
 			final Collection<FileInfo> booksToSave = new ArrayList<FileInfo>();
-			void progress( int percent )
+			void progress(int percent)
 			{
 				if ( recursiveScan )
 					return; // no progress dialog for recursive scan
@@ -406,7 +451,7 @@ public class Scanner {
 	}
 	
 	private void addOPDSRoot() {
-		FileInfo dir = new FileInfo();
+		final FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.OPDS_LIST_TAG;
 		dir.filename = coolReader.getString(R.string.mi_book_opds_root);
@@ -414,7 +459,13 @@ public class Scanner {
 		dir.isScanned = true;
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
-		db.loadOPDSCatalogs(dir);
+		db.loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
+			@Override
+			public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
+				dir.addItems(catalogs);
+				// TODO: update views
+			}
+		});
 	}
 	
 	private void addSearchRoot() {
@@ -734,7 +785,7 @@ public class Scanner {
 		return null;
 	}
 	
-	public Scanner( CoolReader coolReader, CRDB db, Engine engine )
+	public Scanner( CoolReader coolReader, CRDBService.LocalBinder db, Engine engine )
 	{
 		this.engine = engine;
 		this.db = db;
@@ -749,6 +800,6 @@ public class Scanner {
 	}
 
 	private final Engine engine;
-	private final CRDB db;
+	private final CRDBService.LocalBinder db;
 	private final CoolReader coolReader;
 }

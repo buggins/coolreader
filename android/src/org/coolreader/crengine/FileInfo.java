@@ -437,6 +437,17 @@ public class FileInfo {
 		throw new IndexOutOfBoundsException();
 	}
 
+	public void setFile(int index, FileInfo file)
+	{
+		if ( index<0 )
+			throw new IndexOutOfBoundsException();
+		if (index < fileCount()) {
+			files.set(index, file);
+			file.parent = this;
+		}
+		throw new IndexOutOfBoundsException();
+	}
+
 	public void removeEmptyDirs()
 	{
 		if ( parent==null || pathname.startsWith("@") )

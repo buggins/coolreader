@@ -565,6 +565,34 @@ public class MainDB extends BaseDB {
 		return findBooks(sql, list);
 	}
 	
+	private String findAuthors(int maxCount, String authorPattern) {
+		StringBuilder buf = new StringBuilder();
+		String sql = "SELECT id, name FROM author";
+		Cursor rs = null;
+		int count = 0;
+		try {
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					long id = rs.getLong(0);
+					String name = rs.getString(1);
+					if (Utils.matchPattern(name, authorPattern)) {
+						if (buf.length() != 0)
+							buf.append(",");
+						buf.append(id);
+						count++;
+						if (count >= maxCount)
+							break;
+					}
+				} while (rs.moveToNext());
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return buf.toString();
+	}
+	
 	
 	//=======================================================================================
     // Series access code
@@ -1067,4 +1095,112 @@ public class MainDB extends BaseDB {
 		return found;
 	}
 
+	private String findSeries(int maxCount, String seriesPattern) {
+		StringBuilder buf = new StringBuilder();
+		String sql = "SELECT id, name FROM series";
+		Cursor rs = null;
+		int count = 0;
+		try {
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					long id = rs.getLong(0);
+					String name = rs.getString(1);
+					if (Utils.matchPattern(name, seriesPattern)) {
+						if (buf.length() != 0)
+							buf.append(",");
+						buf.append(id);
+						count++;
+						if (count >= maxCount)
+							break;
+					}
+				} while (rs.moveToNext());
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return buf.toString();
+	}
+	
+	public ArrayList<FileInfo> findByPatterns(int maxCount, String author, String title, String series, String filename)
+	{
+		beginReading();
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		
+		StringBuilder buf = new StringBuilder();
+		boolean hasCondition = false;
+		if ( author!=null && author.length()>0 ) {
+			String authorIds = findAuthors(maxCount, author);
+			if (authorIds == null || authorIds.length() == 0)
+				return list;
+			if ( buf.length()>0 )
+				buf.append(" AND ");
+			buf.append(" b.id IN (SELECT ba.book_fk FROM book_author ba WHERE ba.author_fk IN (" + authorIds + ")) ");
+			hasCondition = true;
+		}
+		if ( series!=null && series.length()>0 ) {
+			String seriesIds = findSeries(maxCount, series);
+			if (seriesIds == null || seriesIds.length() == 0)
+				return list;
+			if ( buf.length()>0 )
+				buf.append(" AND ");
+			buf.append(" b.series_fk IN (" + seriesIds + ") ");
+			hasCondition = true;
+		}
+		if ( title!=null && title.length()>0 ) {
+			hasCondition = true;
+		}
+		if ( filename!=null && filename.length()>0 ) {
+			hasCondition = true;
+		}
+		if (!hasCondition)
+			return list;
+		
+		String condition = buf.length()==0 ? "" : " WHERE " + buf.toString();
+		String sql = READ_FILEINFO_SQL + condition;
+		Log.d("cr3", "sql: " + sql );
+		Cursor rs = null;
+		try { 
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				int count = 0;
+				do {
+					if ( title!=null && title.length()>0 )
+						if (!Utils.matchPattern(rs.getString(5), title))
+							continue;
+					if ( filename!=null && filename.length()>0 )
+						if (!Utils.matchPattern(rs.getString(3), filename))
+							continue;
+					FileInfo fi = new FileInfo(); 
+					readFileInfoFromCursor( fi, rs );
+					list.add(fi);
+					count++;
+				} while ( count<maxCount && rs.moveToNext() );
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		endReading();
+		return list;
+	}
+
+	public ArrayList<FileInfo> loadFileInfos(ArrayList<String> pathNames) {
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		if (!isOpened())
+			return list;
+		try {
+			beginReading();
+			for (String path : pathNames) {
+				FileInfo file = findFileInfoByPathname(path);
+				if (file != null)
+					list.add(file);
+			}
+			endReading();
+		} catch (Exception e) {
+			log.e("Exception while loading books from DB", e);
+		}
+		return list;
+	}
 }
