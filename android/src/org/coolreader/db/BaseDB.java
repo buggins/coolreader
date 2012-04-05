@@ -54,6 +54,9 @@ public abstract class BaseDB {
 	public boolean close() {
 		if (mDB != null) {
 			try {
+				L.d("Closing database");
+				flush();
+				clearCaches();
 				mDB.close();
 				mDB = null;
 				return true;
@@ -152,4 +155,47 @@ public abstract class BaseDB {
 		return "'" + s + "'";
 	}
 	
+	public void clearCaches() {
+		// override it
+	}
+
+	private boolean changed = false;
+	
+	/**
+	 * Begin transaction, if not yet started, for changes.
+	 */
+	public void beginChanges() {
+		if (!mDB.inTransaction())
+			mDB.beginTransaction();
+		changed = true;
+	}
+
+	/**
+	 * Begin transaction, if not yet started, for faster reading.
+	 */
+	public void beginReading() {
+		if (!mDB.inTransaction())
+			mDB.beginTransaction();
+	}
+
+	/**
+	 * Rolls back transaction, if writing is not started.
+	 */
+	public void endReading() {
+		if (mDB.inTransaction() && !changed) {
+			mDB.endTransaction();
+		}
+	}
+
+	/**
+	 * Commits or rolls back transaction, if started, and frees DB resources.
+	 * Will commit only if beginChanges() has been called. Otherwise will roll back.
+	 */
+	public void flush() {
+		if (mDB.inTransaction()) {
+			if (changed)
+				mDB.setTransactionSuccessful();
+			mDB.endTransaction();
+		}
+	}
 }

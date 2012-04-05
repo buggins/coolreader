@@ -3,122 +3,179 @@ package org.coolreader.db;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.DocumentFormat;
 import org.coolreader.crengine.FileInfo;
+import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Utils;
 
 import android.database.Cursor;
+import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 public class MainDB extends BaseDB {
+	public static final Logger log = L.create("mdb");
 	
 	public final int DB_VERSION = 8;
 	@Override
 	protected boolean upgradeSchema() {
-		execSQL("CREATE TABLE IF NOT EXISTS author (" +
-				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"name VARCHAR NOT NULL COLLATE NOCASE" +
-				")");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-                "author_name_index ON author (name) ");
-		execSQL("CREATE TABLE IF NOT EXISTS series (" +
-				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"name VARCHAR NOT NULL COLLATE NOCASE" +
-				")");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-		        "series_name_index ON series (name) ");
-		execSQL("CREATE TABLE IF NOT EXISTS folder (" +
-				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"name VARCHAR NOT NULL" +
-				")");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-				"folder_name_index ON folder (name) ");
-		execSQL("CREATE TABLE IF NOT EXISTS book (" +
-				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"pathname VARCHAR NOT NULL," +
-				"folder_fk INTEGER REFERENCES folder (id)," +
-				"filename VARCHAR NOT NULL," +
-				"arcname VARCHAR," +
-				"title VARCHAR COLLATE NOCASE," +
-				"series_fk INTEGER REFERENCES series (id)," +
-				"series_number INTEGER," +
-				"format INTEGER," +
-				"filesize INTEGER," +
-				"arcsize INTEGER," +
-				"create_time INTEGER," +
-				"last_access_time INTEGER, " +
-				"flags INTEGER DEFAULT 0" +
-				")");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-				"book_folder_index ON book (folder_fk) ");
-		execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
-				"book_pathname_index ON book (pathname) ");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-				"book_filename_index ON book (filename) ");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-				"book_title_index ON book (title) ");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-				"book_last_access_time_index ON book (last_access_time) ");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-				"book_title_index ON book (title) ");
-		execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
-				"book_fk INTEGER NOT NULL REFERENCES book (id)," +
-				"author_fk INTEGER NOT NULL REFERENCES author (id)," +
-				"PRIMARY KEY (book_fk, author_fk)" +
-				")");
-		execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
-				"author_book_index ON book_author (author_fk, book_fk) ");
-		execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
-				"id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"book_fk INTEGER NOT NULL REFERENCES book (id)," +
-				"type INTEGER NOT NULL DEFAULT 0," +
-				"percent INTEGER DEFAULT 0," +
-				"shortcut INTEGER DEFAULT 0," +
-				"time_stamp INTEGER DEFAULT 0," +
-				"start_pos VARCHAR NOT NULL," +
-				"end_pos VARCHAR," +
-				"title_text VARCHAR," +
-				"pos_text VARCHAR," +
-				"comment_text VARCHAR" +
-				")");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-		"bookmark_book_index ON bookmark (book_fk) ");
-		int currentVersion = mDB.getVersion();
-		// version 1 updates ====================================================================
-		if ( currentVersion<1 )
-			execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
-		if ( currentVersion<4 )
-			execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN flags INTEGER DEFAULT 0");
-		if ( currentVersion<6 )
-			execSQL("CREATE TABLE IF NOT EXISTS opds_catalog (" +
-					"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-					"name VARCHAR NOT NULL COLLATE NOCASE, " +
-					"url VARCHAR NOT NULL COLLATE NOCASE" +
+		if (mDB.needUpgrade(DB_VERSION)) {
+			execSQL("CREATE TABLE IF NOT EXISTS author (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+					"name VARCHAR NOT NULL COLLATE NOCASE" +
 					")");
-		if ( currentVersion<7 ) {
-			addOPDSCatalogs(DEF_OPDS_URLS1);
-			if (!DeviceInfo.NOFLIBUSTA)
-				addOPDSCatalogs(DEF_OPDS_URLS1A);
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+	                "author_name_index ON author (name) ");
+			execSQL("CREATE TABLE IF NOT EXISTS series (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+					"name VARCHAR NOT NULL COLLATE NOCASE" +
+					")");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+			        "series_name_index ON series (name) ");
+			execSQL("CREATE TABLE IF NOT EXISTS folder (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+					"name VARCHAR NOT NULL" +
+					")");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"folder_name_index ON folder (name) ");
+			execSQL("CREATE TABLE IF NOT EXISTS book (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+					"pathname VARCHAR NOT NULL," +
+					"folder_fk INTEGER REFERENCES folder (id)," +
+					"filename VARCHAR NOT NULL," +
+					"arcname VARCHAR," +
+					"title VARCHAR COLLATE NOCASE," +
+					"series_fk INTEGER REFERENCES series (id)," +
+					"series_number INTEGER," +
+					"format INTEGER," +
+					"filesize INTEGER," +
+					"arcsize INTEGER," +
+					"create_time INTEGER," +
+					"last_access_time INTEGER, " +
+					"flags INTEGER DEFAULT 0" +
+					")");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"book_folder_index ON book (folder_fk) ");
+			execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
+					"book_pathname_index ON book (pathname) ");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"book_filename_index ON book (filename) ");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"book_title_index ON book (title) ");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"book_last_access_time_index ON book (last_access_time) ");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+					"book_title_index ON book (title) ");
+			execSQL("CREATE TABLE IF NOT EXISTS book_author (" +
+					"book_fk INTEGER NOT NULL REFERENCES book (id)," +
+					"author_fk INTEGER NOT NULL REFERENCES author (id)," +
+					"PRIMARY KEY (book_fk, author_fk)" +
+					")");
+			execSQL("CREATE UNIQUE INDEX IF NOT EXISTS " +
+					"author_book_index ON book_author (author_fk, book_fk) ");
+			execSQL("CREATE TABLE IF NOT EXISTS bookmark (" +
+					"id INTEGER PRIMARY KEY AUTOINCREMENT," +
+					"book_fk INTEGER NOT NULL REFERENCES book (id)," +
+					"type INTEGER NOT NULL DEFAULT 0," +
+					"percent INTEGER DEFAULT 0," +
+					"shortcut INTEGER DEFAULT 0," +
+					"time_stamp INTEGER DEFAULT 0," +
+					"start_pos VARCHAR NOT NULL," +
+					"end_pos VARCHAR," +
+					"title_text VARCHAR," +
+					"pos_text VARCHAR," +
+					"comment_text VARCHAR" +
+					")");
+			execSQL("CREATE INDEX IF NOT EXISTS " +
+			"bookmark_book_index ON bookmark (book_fk) ");
+			int currentVersion = mDB.getVersion();
+			// version 1 updates ====================================================================
+			if ( currentVersion<1 )
+				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
+			if ( currentVersion<4 )
+				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN flags INTEGER DEFAULT 0");
+			if ( currentVersion<6 )
+				execSQL("CREATE TABLE IF NOT EXISTS opds_catalog (" +
+						"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+						"name VARCHAR NOT NULL COLLATE NOCASE, " +
+						"url VARCHAR NOT NULL COLLATE NOCASE" +
+						")");
+			if ( currentVersion<7 ) {
+				addOPDSCatalogs(DEF_OPDS_URLS1);
+				if (!DeviceInfo.NOFLIBUSTA)
+					addOPDSCatalogs(DEF_OPDS_URLS1A);
+			}
+			if ( currentVersion<8 )
+				addOPDSCatalogs(DEF_OPDS_URLS2);
+			//==============================================================
+			// add more updates here
+				
+			// set current version
+			if (currentVersion < DB_VERSION)
+				mDB.setVersion(DB_VERSION);
 		}
-		if ( currentVersion<8 )
-			addOPDSCatalogs(DEF_OPDS_URLS2);
-		// TODO: add more updates here
-			
-		// set current version
-		if ( currentVersion<DB_VERSION )
-			mDB.setVersion(DB_VERSION);
+		
+		dumpStatistics();
+		
 		return true;
+	}
+
+	private void dumpStatistics() {
+		log.i("mainDB: " + longQuery("SELECT count(*) FROM author") + " authors, "
+				 + longQuery("SELECT count(*) FROM series") + " series, "
+				 + longQuery("SELECT count(*) FROM book") + " books, "
+				 + longQuery("SELECT count(*) FROM bookmark") + " bookmarks"
+				 + longQuery("SELECT count(*) FROM folder") + " folders"
+		);
 	}
 
 	@Override
 	protected String dbFileName() {
 		return "cr3db.sqlite";
 	}
+	
+	public void clearCaches() {
+		seriesCache.clear();
+		authorCache.clear();
+		folderCache.clear();
+	}
 
+	public void flush() {
+        super.flush();
+        if (seriesStmt != null) {
+            seriesStmt.close();
+            seriesStmt = null;
+        }
+        if (folderStmt != null) {
+        	folderStmt.close();
+        	folderStmt = null;
+        }
+        if (authorStmt != null) {
+            authorStmt.close();
+            authorStmt = null;
+        }
+        if (seriesSelectStmt != null) {
+            seriesSelectStmt.close();
+            seriesSelectStmt = null;
+        }
+        if (folderSelectStmt != null) {
+        	folderSelectStmt.close();
+        	folderSelectStmt = null;
+        }
+        if (authorSelectStmt != null) {
+            authorSelectStmt.close();
+            authorSelectStmt = null;
+        }
+	}
+	
+	//=======================================================================================
+    // OPDS access code
+    //=======================================================================================
 	private final static String[] DEF_OPDS_URLS1 = {
 		"http://www.feedbooks.com/catalog.atom", "Feedbooks",
 		"http://bookserver.archive.org/catalog/", "Internet Archive",
@@ -436,26 +493,31 @@ public class MainDB extends BaseDB {
 	
 	public boolean loadAuthorsList(FileInfo parent) {
 		Log.i("cr3", "loadAuthorsList()");
+		beginReading();
 		parent.clear();
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 		String sql = "SELECT author.id, author.name, count(*) as book_count FROM author INNER JOIN book_author ON  book_author.author_fk = author.id GROUP BY author.name, author.id ORDER BY author.name";
 		boolean found = loadItemList(list, sql, FileInfo.AUTHOR_PREFIX);
 		addGroupedItems(parent, list, 0, list.size(), FileInfo.AUTHOR_GROUP_PREFIX, 1, new ItemGroupFilenameExtractor());
+		endReading();
 		return found;
 	}
 
 	public boolean loadSeriesList(FileInfo parent) {
 		Log.i("cr3", "loadSeriesList()");
+		beginReading();
 		parent.clear();
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 		String sql = "SELECT series.id, series.name, count(*) as book_count FROM series INNER JOIN book ON book.series_fk = series.id GROUP BY series.name, series.id ORDER BY series.name";
 		boolean found = loadItemList(list, sql, FileInfo.SERIES_PREFIX);
 		addGroupedItems(parent, list, 0, list.size(), FileInfo.SERIES_GROUP_PREFIX, 1, new ItemGroupFilenameExtractor());
+		endReading();
 		return found;
 	}
 	
 	public boolean loadTitleList(FileInfo parent) {
 		Log.i("cr3", "loadTitleList()");
+		beginReading();
 		parent.clear();
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 		String sql = READ_FILEINFO_SQL + " WHERE b.title IS NOT NULL AND b.title != '' ORDER BY b.title";
@@ -473,9 +535,118 @@ public class MainDB extends BaseDB {
 				list.remove(i);
 		}
 		addGroupedItems(parent, list, 0, list.size(), FileInfo.TITLE_GROUP_PREFIX, 1, new ItemGroupTitleExtractor());
+		endReading();
 		return found;
 	}
 	
+	public boolean findAuthorBooks(ArrayList<FileInfo> list, long authorId)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " INNER JOIN book_author ON book_author.book_fk = b.id WHERE book_author.author_fk = " + authorId + " ORDER BY b.title";
+		return findBooks(sql, list);
+	}
+	
+	public boolean findSeriesBooks(ArrayList<FileInfo> list, long seriesId)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " INNER JOIN series ON series.id = b.series_fk WHERE series.id = " + seriesId + " ORDER BY b.title";
+		return findBooks(sql, list);
+	}
+	
+	
+	//=======================================================================================
+    // Series access code
+    //=======================================================================================
+	
+	private SQLiteStatement seriesStmt;
+	private SQLiteStatement seriesSelectStmt;
+	private HashMap<String,Long> seriesCache = new HashMap<String,Long>();
+	public Long getSeriesId( String seriesName )
+	{
+		if ( seriesName==null || seriesName.trim().length()==0 )
+			return null;
+		Long id = seriesCache.get(seriesName); 
+		if ( id!=null )
+			return id;
+		if (seriesSelectStmt == null)
+			seriesSelectStmt = mDB.compileStatement("SELECT id FROM series WHERE name=?");
+		try {
+			seriesSelectStmt.bindString(1, seriesName);
+			return seriesSelectStmt.simpleQueryForLong();
+		} catch ( Exception e ) {
+			// not found
+		}
+		if (seriesStmt == null)
+			seriesStmt = mDB.compileStatement("INSERT INTO series (id, name) VALUES (NULL,?)");
+		seriesStmt.bindString(1, seriesName);
+		id = seriesStmt.executeInsert();
+		seriesCache.put( seriesName, id );
+		return id;
+	}
+	
+	//=======================================================================================
+    // Folder access code
+    //=======================================================================================
+	
+	private SQLiteStatement folderStmt;
+	private SQLiteStatement folderSelectStmt;
+	private HashMap<String,Long> folderCache = new HashMap<String,Long>();
+	public Long getFolderId( String folderName )
+	{
+		if ( folderName==null || folderName.trim().length()==0 )
+			return null;
+		Long id = folderCache.get(folderName); 
+		if ( id!=null )
+			return id;
+		if ( folderSelectStmt==null )
+			folderSelectStmt = mDB.compileStatement("SELECT id FROM folder WHERE name=?");
+		try {
+			folderSelectStmt.bindString(1, folderName);
+			return folderSelectStmt.simpleQueryForLong();
+		} catch ( Exception e ) {
+			// not found
+		}
+		if ( folderStmt==null )
+			folderStmt = mDB.compileStatement("INSERT INTO folder (id, name) VALUES (NULL,?)");
+		folderStmt.bindString(1, folderName);
+		id = folderStmt.executeInsert();
+		folderCache.put( folderName, id );
+		return id;
+	}
+	
+	//=======================================================================================
+    // Author access code
+    //=======================================================================================
+	
+	private SQLiteStatement authorStmt;
+	private SQLiteStatement authorSelectStmt;
+	private HashMap<String,Long> authorCache = new HashMap<String,Long>();
+	public Long getAuthorId( String authorName )
+	{
+		if ( authorName==null || authorName.trim().length()==0 )
+			return null;
+		Long id = authorCache.get(authorName); 
+		if ( id!=null )
+			return id;
+		if ( authorSelectStmt==null )
+			authorSelectStmt = mDB.compileStatement("SELECT id FROM author WHERE name=?");
+		try {
+			authorSelectStmt.bindString(1, authorName);
+			return authorSelectStmt.simpleQueryForLong();
+		} catch ( Exception e ) {
+			// not found
+		}
+		if ( authorStmt==null )
+			authorStmt = mDB.compileStatement("INSERT INTO author (id, name) VALUES (NULL,?)");
+		authorStmt.bindString(1, authorName);
+		id = authorStmt.executeInsert();
+		authorCache.put( authorName, id );
+		return id;
+	}
+	
+
 	//=======================================================================================
     // File info access code
     //=======================================================================================

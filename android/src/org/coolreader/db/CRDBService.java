@@ -6,11 +6,13 @@ import java.util.ArrayList;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.Utils;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 
 public class CRDBService extends Service {
@@ -23,7 +25,7 @@ public class CRDBService extends Service {
     public void onCreate() {
     	log.i("onCreate()");
     	mThread = new ServiceThread("crdb");
-    	mThread.post(new OpenDatabaseTask());
+    	execTask(new OpenDatabaseTask());
     }
 
     @Override
@@ -37,7 +39,7 @@ public class CRDBService extends Service {
     @Override
     public void onDestroy() {
     	log.i("onDestroy()");
-    	mThread.post(new CloseDatabaseTask());
+    	execTask(new CloseDatabaseTask());
     	mThread.stop(5000);
     }
 
@@ -93,10 +95,47 @@ public class CRDBService extends Service {
 	    }
     }
     
+    private FlushDatabaseTask lastFlushTask;
+    private class FlushDatabaseTask implements Runnable {
+    	private boolean force;
+    	public FlushDatabaseTask(boolean force) {
+    		this.force = force;
+    		lastFlushTask = this;
+    	}
+		@Override
+		public void run() {
+			long elapsed = Utils.timeInterval(lastFlushTime);
+			if (force || (lastFlushTask == this && elapsed > MIN_FLUSH_INTERVAL)) {
+		    	mainDB.flush();
+		    	coverDB.flush();
+		    	lastFlushTime = Utils.timeStamp();
+			}
+		}
+    }
+    
     private void clearCaches() {
 		synchronized (coverpageCache) {
 			coverpageCache.clear();
 		}
+		mainDB.clearCaches();
+		coverDB.clearCaches();
+    }
+
+    private static final long MIN_FLUSH_INTERVAL = 15000;
+    private long lastFlushTime;
+    
+    /**
+     * Schedule flush.
+     */
+    private void flush() {
+   		execTask(new FlushDatabaseTask(false), MIN_FLUSH_INTERVAL);
+    }
+
+    /**
+     * Flush ASAP.
+     */
+    private void forceFlush(boolean force) {
+   		execTask(new FlushDatabaseTask(true));
     }
 
     public static class FileInfoCache {
@@ -117,7 +156,7 @@ public class CRDBService extends Service {
     }
     
 	public void saveOPDSCatalog(final Long id, final String url, final String name) {
-		mThread.post(new Runnable() {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
 				mainDB.saveOPDSCatalog(id, url, name);
@@ -125,13 +164,18 @@ public class CRDBService extends Service {
 		});
 	}
 
-	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback) {
-		mThread.post(new Runnable() {
+	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback, final Handler handler) {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
-				ArrayList<FileInfo> list = new ArrayList<FileInfo>(); 
+				final ArrayList<FileInfo> list = new ArrayList<FileInfo>(); 
 				mainDB.loadOPDSCatalogs(list);
-				callback.onOPDSCatalogsLoaded(list);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onOPDSCatalogsLoaded(list);
+					}
+				});
 			}
 		});
 	}
@@ -155,40 +199,52 @@ public class CRDBService extends Service {
 			// update cache and DB
 			coverpageCache.put(bookId, data);
 		}
-		mThread.post(new Runnable() {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
 				coverDB.saveBookCoverpage(bookId, data);
 			}
 		});
+		flush();
 	}
 	
-	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback) 
+	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback, final Handler handler) 
 	{
 		byte[] data = null;
 		synchronized (coverpageCache) {
 			data = coverpageCache.get(bookId);
 		}
 		if (data != null) {
-			callback.onCoverpageLoaded(bookId, data);
+			final byte[] foundData = data;
+			sendTask(handler, new Runnable() {
+				@Override
+				public void run() {
+					callback.onCoverpageLoaded(bookId, foundData);
+				}
+			});
 			return;
 		}
-		mThread.post(new Runnable() {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
-				byte[] data = coverDB.loadBookCoverpage(bookId);
+				final byte[] data = coverDB.loadBookCoverpage(bookId);
 				if (data != null) {
 					synchronized (coverpageCache) {
 						coverpageCache.put(bookId, data);
 					}
 				}
-				callback.onCoverpageLoaded(bookId, data);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onCoverpageLoaded(bookId, data);
+					}
+				});
 			}
 		});
 	}
 	
 	public void deleteCoverpage(final long bookId) {
-		mThread.post(new Runnable() {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
 				coverDB.deleteCoverpage(bookId);
@@ -197,6 +253,7 @@ public class CRDBService extends Service {
 				}
 			}
 		});
+		flush();
 	}
 
 	//=======================================================================================
@@ -205,44 +262,150 @@ public class CRDBService extends Service {
     public interface ItemGroupsLoadingCallback {
     	void onItemGroupsLoaded(FileInfo parent);
     }
+
+    public interface FileInfoListLoadingCallback {
+    	void onFileInfoListLoaded(long authirId, ArrayList<FileInfo> list);
+    }
     
-	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
+	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent); 
-		mThread.post(new Runnable() {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
 				mainDB.loadAuthorsList(p);
-				callback.onItemGroupsLoaded(p);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onItemGroupsLoaded(p);
+					}
+				});
 			}
 		});
 	}
 
-	public void loadSeriesList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
+	public void loadSeriesList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent); 
-		mThread.post(new Runnable() {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
 				mainDB.loadSeriesList(p);
-				callback.onItemGroupsLoaded(p);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onItemGroupsLoaded(p);
+					}
+				});
 			}
 		});
 	}
 	
-	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
+	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent); 
-		mThread.post(new Runnable() {
+		execTask(new Runnable() {
 			@Override
 			public void run() {
 				mainDB.loadTitleList(p);
-				callback.onItemGroupsLoaded(p);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onItemGroupsLoaded(p);
+					}
+				});
+			}
+		});
+	}
+	
+	public void findAuthorBooks(final long authorId, final FileInfoListLoadingCallback callback, final Handler handler) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				mainDB.findAuthorBooks(list, authorId);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onFileInfoListLoaded(authorId, list);
+					}
+				});
+			}
+		});
+	}
+	
+	public void findSeriesBooks(final long seriesId, final FileInfoListLoadingCallback callback, final Handler handler) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				mainDB.findSeriesBooks(list, seriesId);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onFileInfoListLoaded(seriesId, list);
+					}
+				});
+			}
+		});
+	}
+
+	/**
+	 * Execute runnable in CDRDBService background thread.
+	 * Exceptions will be ignored, just dumped into log.
+	 * @param task is Runnable to execute
+	 */
+	private void execTask(final Runnable task) {
+		mThread.post(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					task.run();
+				} catch (Exception e) {
+					log.e("Exception while running DB task in background", e);
+				}
 			}
 		});
 	}
 	
 	/**
+	 * Execute runnable in CDRDBService background thread, delayed.
+	 * Exceptions will be ignored, just dumped into log.
+	 * @param task is Runnable to execute
+	 */
+	private void execTask(final Runnable task, long delay) {
+		mThread.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					task.run();
+				} catch (Exception e) {
+					log.e("Exception while running DB task in background", e);
+				}
+			}
+		}, delay);
+	}
+	
+	/**
+	 * Send task to handler, if specified, otherwise run immediately.
+	 * Exceptions will be ignored, just dumped into log.
+	 * @param handler is handler to send task to, null to run immediately
+	 * @param task is Runnable to execute
+	 */
+	private void sendTask(Handler handler, Runnable task) {
+		try {
+			if (handler != null) {
+				handler.post(task);
+			} else {
+				task.run();
+			}
+		} catch (Exception e) {
+			log.e("Exception in DB callback", e);
+		}
+	}
+
+	/**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
      * IPC.
+     * Provides interface for asynchronous operations with database.
      */
     public class LocalBinder extends Binder {
         public CRDBService getService() {
@@ -257,24 +420,32 @@ public class CRDBService extends Service {
     		getService().deleteCoverpage(bookId);
     	}
 
-    	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback) {
-    		getService().loadBookCoverpage(bookId, callback);
+    	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback, final Handler handler) {
+    		getService().loadBookCoverpage(bookId, callback, handler);
     	}
     	
-    	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback) {
-    		getService().loadOPDSCatalogs(callback);
+    	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback, final Handler handler) {
+    		getService().loadOPDSCatalogs(callback, handler);
     	}
 
-    	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
-    		getService().loadAuthorsList(parent, callback);
+    	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
+    		getService().loadAuthorsList(parent, callback, handler);
     	}
 
-    	public void loadSeriesList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
-    		getService().loadSeriesList(parent, callback);
+    	public void loadSeriesList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
+    		getService().loadSeriesList(parent, callback, handler);
     	}
     	
-    	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
-    		getService().loadTitleList(parent, callback);
+    	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
+    		getService().loadTitleList(parent, callback, handler);
+    	}
+
+    	public void loadAuthorBooks(long authorId, FileInfoListLoadingCallback callback, final Handler handler) {
+    		getService().findAuthorBooks(authorId, callback, handler);
+    	}
+    	
+    	public void loadSeriesBooks(long seriesId, FileInfoListLoadingCallback callback, final Handler handler) {
+    		getService().findSeriesBooks(seriesId, callback, handler);
     	}
     }
 

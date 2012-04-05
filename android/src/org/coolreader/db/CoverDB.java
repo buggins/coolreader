@@ -1,11 +1,16 @@
 package org.coolreader.db;
 
+import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
+
 import android.database.Cursor;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 public class CoverDB extends BaseDB {
 
+	public static final Logger log = L.create("cdb");
+	
 	public final int DB_VERSION = 8;
 
 	private final static String[] COVERPAGE_SCHEMA = new String[] {
@@ -17,15 +22,20 @@ public class CoverDB extends BaseDB {
 	
 	@Override
 	protected boolean upgradeSchema() {
-		execSQL(COVERPAGE_SCHEMA);
-		int currentVersion = mDB.getVersion();
-		// ====================================================================
-		// TODO: add more updates here
+		if (mDB.needUpgrade(DB_VERSION)) {
+			execSQL(COVERPAGE_SCHEMA);
+			int currentVersion = mDB.getVersion();
+			// ====================================================================
+			// add more updates here
+			
+			// ====================================================================
+			// set current version
+			if ( currentVersion<DB_VERSION )
+				mDB.setVersion(DB_VERSION);
+		}
+
+		dumpStatistics();
 		
-		// ====================================================================
-		// set current version
-		if ( currentVersion<DB_VERSION )
-			mDB.setVersion(DB_VERSION);
 		return true;
 	}
 
@@ -34,6 +44,10 @@ public class CoverDB extends BaseDB {
 		return "cr3db_cover.sqlite";
 	}
 
+	private void dumpStatistics() {
+		log.i("coverDB: " + longQuery("SELECT count(*) FROM coverpage") + " coverpages");
+	}
+	
 	public void saveBookCoverpage( long bookId, byte[] data )
 	{
 		if (!isOpened())
