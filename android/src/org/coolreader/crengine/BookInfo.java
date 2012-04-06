@@ -40,7 +40,9 @@ public class BookInfo {
 	
 	public void updateAccess()
 	{
-		// TODO:
+		if (lastPosition != null) {
+			lastPosition.setTimeStamp(System.currentTimeMillis());
+		}
 	}
 	
 	public BookInfo( FileInfo fileInfo )

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.db.CRDB;
 import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBService.RecentBooksLoadingCallback;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -16,7 +17,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
-public class History {
+public class History extends FileInfoChangeSource {
 	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
 	private final CRDBService.LocalBinder mDB;
 	private final CoolReader mCoolReader;
@@ -54,23 +55,6 @@ public class History {
 		return res;
 	}
 	
-	public BookInfo getOrCreateAndScanBookInfo( FileInfo file )
-	{
-		BookInfo res = getBookInfo(file);
-		if ( res==null ) {
-			res = new BookInfo( file );
-			if (!mDB.findByPathname(file)) {
-				// not found in DB, scanning
-				mEngine.scanBookProperties(file);
-			} else {
-				// found in DB: loading bookmarks
-				mDB.loadBookmarks(res);
-			}
-			mBooks.add(0, res);
-		}
-		return res;
-	}
-	
 	public BookInfo getBookInfo( FileInfo file )
 	{
 		int index = findBookInfo( file );
@@ -87,18 +71,16 @@ public class History {
 		return null;
 	}
 	
-	public void removeBookInfo( FileInfo fileInfo, boolean removeRecentAccessFromDB, boolean removeBookFromDB )
+	public void removeBookInfo(FileInfo fileInfo, boolean removeRecentAccessFromDB, boolean removeBookFromDB)
 	{
 		int index = findBookInfo(fileInfo);
-		if ( index>=0 )
+		if (index >= 0)
 			mBooks.remove(index);
-		if ( mDB.findByPathname(fileInfo) ) {
-			if ( removeBookFromDB )
-				mDB.deleteBook(fileInfo);
-			else if ( removeRecentAccessFromDB )
-				mDB.deleteRecentPosition(fileInfo);
-			updateRecentDir();
-		}
+		if ( removeBookFromDB )
+			mDB.deleteBook(fileInfo);
+		else if ( removeRecentAccessFromDB )
+			mDB.deleteRecentPosition(fileInfo);
+		updateRecentDir();
 	}
 	
 	public void updateBookAccess( BookInfo bookInfo )
@@ -126,7 +108,10 @@ public class History {
 	
 	public int findBookInfo( FileInfo file )
 	{
-		return findBookInfo( file.getPathName() );
+		for ( int i=0; i<mBooks.size(); i++ )
+			if (file.pathNameEquals(mBooks.get(i).getFileInfo()))
+				return i;
+		return -1;
 	}
 	
 	public Bookmark getLastPos( FileInfo file )
@@ -143,6 +128,7 @@ public class History {
 			mRecentBooksFolder.clear();
 			for ( BookInfo book : mBooks )
 				mRecentBooksFolder.addFile(book.getFileInfo());
+			onChange(mRecentBooksFolder);
 		} else {
 			Log.v("cr3", "History.updateRecentDir() : mRecentBooksFolder is null");
 		}
@@ -331,9 +317,10 @@ public class History {
 			return null;
 		byte[] data = coverPageCache.get(bookId);
 		if (data == null) {
-			if (item.format.needCoverPageCaching())
-				data = mDB.loadBookCoverpage(bookId);
-			else
+			if (item.format.needCoverPageCaching()) {
+				// TODO: coverpage background loading
+				data = null; //mDB.loadBookCoverpage(bookId);
+			} else
 				data = mCoolReader.getEngine().scanBookCover(item.pathname);
 			if (data == null)
 				data = new byte[] {};
@@ -341,6 +328,7 @@ public class History {
 		}
 		return data.length>0 ? data : null;
 	}
+
 	public BitmapDrawable getBookCoverpageImage(Resources resources, FileInfo item)
 	{
 		long bookId = item.id != null ? item.id : 0;
@@ -349,27 +337,35 @@ public class History {
 			return null;
 		return coverPageCache.getImage(bookId);
 	}
+
 	public boolean loadFromDB( Scanner scanner, int maxItems )
 	{
 		Log.v("cr3", "History.loadFromDB()");
-		mBooks = mDB.loadRecentBooks(scanner.mFileList, maxItems);
-		mRecentBooksFolder = scanner.mRoot.getDir(0);
+		mRecentBooksFolder = scanner.getRecentDir();
+		mDB.loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
+			@Override
+			public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
+				mBooks = bookList;
+				updateRecentDir();
+			}
+		});
 		if ( mRecentBooksFolder==null )
 			Log.v("cr3", "History.loadFromDB() : mRecentBooksFolder is null");
-		updateRecentDir();
 		return true;
 	}
 
-	public boolean saveToDB( )
+	public boolean saveToDB()
 	{
 		Log.v("cr3", "History.saveToDB()");
-		try {
-			mDB.save(mBooks);
-			return true;
-		} catch ( Exception e ) {
-			Log.e("cr3", "error while saving file history " + e.getMessage(), e);
-			return false;
-		}
+		// TODO:
+		return false;
+//		try {
+//			mDB.save(mBooks);
+//			return true;
+//		} catch ( Exception e ) {
+//			Log.e("cr3", "error while saving file history " + e.getMessage(), e);
+//			return false;
+//		}
 	}
 
 }

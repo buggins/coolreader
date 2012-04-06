@@ -1203,4 +1203,56 @@ public class MainDB extends BaseDB {
 		}
 		return list;
 	}
+
+	public void deleteRecentPosition( FileInfo fileInfo ) {
+		Long bookId = getBookId(fileInfo);
+		if (bookId == null)
+			return;
+		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + bookId + " AND type=0");
+		execSQLIgnoreErrors("UPDATE book SET last_access_time=0 WHERE id=" + bookId);
+	}
+	
+	public void deleteBookmark( Bookmark bm ) {
+		if ( bm.getId()==null )
+			return;
+		execSQLIgnoreErrors("DELETE FROM bookmark WHERE id=" + bm.getId());
+	}
+	
+	private boolean loadByPathname(FileInfo fileInfo) {
+		return findBy(fileInfo, "pathname", fileInfo.getPathName());
+	}
+
+	private boolean loadById( FileInfo fileInfo ) {
+		return findBy(fileInfo, "b.id", fileInfo.id);
+	}
+
+	private Long getBookId(FileInfo fileInfo) {
+		Long bookId = null;
+		if (fileInfo == null)
+			return bookId;
+		String pathName = fileInfo.getPathName();
+		FileInfo cached = fileInfoCache.get(pathName);
+		if (cached != null) {
+			bookId = cached.id;
+		}
+		if (bookId == null)
+			bookId = fileInfo.id;
+		if (bookId == null)
+			loadByPathname(fileInfo);
+		return bookId;
+	}
+	public void deleteBook(FileInfo fileInfo)
+	{
+		if (fileInfo == null)
+			return;
+		fileInfoCache.remove(fileInfo);
+		Long bookId = getBookId(fileInfo);
+		if (bookId == null)
+			return;
+		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + bookId);
+		//execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + bookId);
+		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + bookId);
+	}
+	
+
 }

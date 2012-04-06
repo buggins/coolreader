@@ -390,6 +390,26 @@ public class CRDBService extends Service {
 		});
 	}
 	
+	public void deleteBook(final FileInfo fileInfo)	{
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				mainDB.deleteBook(fileInfo);
+			}
+		});
+		flush();
+	}
+
+	public void deleteRecentPosition(final FileInfo fileInfo) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				mainDB.deleteRecentPosition(fileInfo);
+			}
+		});
+		flush();
+	}
+
 	/**
 	 * Execute runnable in CDRDBService background thread.
 	 * Exceptions will be ignored, just dumped into log.
@@ -509,6 +529,14 @@ public class CRDBService extends Service {
     	
     	public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback) {
     		getService().loadFileInfos(pathNames, callback, new Handler());
+    	}
+
+    	public void deleteBook(final FileInfo fileInfo)	{
+    		getService().deleteBook(new FileInfo(fileInfo));
+    	}
+
+    	public void deleteRecentPosition(final FileInfo fileInfo)	{
+    		getService().deleteRecentPosition(new FileInfo(fileInfo));
     	}
 
     	public void flush() {

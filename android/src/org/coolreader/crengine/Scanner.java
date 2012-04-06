@@ -17,7 +17,7 @@ import org.coolreader.db.CRDBService;
 
 import android.util.Log;
 
-public class Scanner {
+public class Scanner extends FileInfoChangeSource {
 	
 	HashMap<String, FileInfo> mFileList = new HashMap<String, FileInfo>();
 //	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
@@ -789,6 +789,16 @@ public class Scanner {
 				return mRoot.getDir(i);
 		}
 		L.w("OPDS root directory not found!");
+		return null;
+	}
+	
+	public FileInfo getRecentDir() 
+	{
+		for ( int i=0; i<mRoot.dirCount(); i++ ) {
+			if ( mRoot.getDir(i).isRecentDir())
+				return mRoot.getDir(i);
+		}
+		L.w("Recent books directory not found!");
 		return null;
 	}
 	
