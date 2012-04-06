@@ -72,9 +72,9 @@ public class SyncService extends Service {
 		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
 		thisDeviceName = pref.getString(PREF_THIS_DEVICE_ID, null);
 		if (thisDeviceName == null) {
-			Log.i(TAG, "New device name generated: " + thisDeviceName);
 			thisDeviceName = generateThisDeviceName();
 			pref.edit().putString(PREF_THIS_DEVICE_ID, thisDeviceName);
+			Log.i(TAG, "New device name generated: " + thisDeviceName);
 		}
 		Log.i(TAG, "My device name: " + thisDeviceName);
 	}

@@ -370,24 +370,13 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		log.e("FileBrowser.init() called");
 		mInitStarted = true;
 		//mEngine.showProgress(1000, R.string.progress_scanning);
-		execute( new Task() {
-			public void work() {
+		
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
 				mHistory.loadFromDB(mScanner, 100);
-			}
-			public void done() {
-				log.e("Directory scan is finished. " + mScanner.mFileList.size() + " files found" + ", root item count is " + mScanner.mRoot.itemCount());
-				//mInitialized = true;
-				//mEngine.hideProgress();
-				//mEngine.hideProgress();
 				showDirectory( mScanner.mRoot, null );
 				mListView.setSelection(0);
-			}
-			public void fail(Exception e )
-			{
-				//mEngine.showProgress(9000, "Scan is failed");
-				//mEngine.hideProgress();
-				mActivity.showToast("Scan is failed");
-				log.e("Exception while scanning directories", e);
 			}
 		});
 	}
@@ -538,9 +527,16 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void showOPDSRootDirectory()
 	{
 		log.v("showOPDSRootDirectory()");
-		FileInfo opdsRoot = mScanner.getOPDSRoot();
-		if ( opdsRoot!=null )
-			showDirectory(opdsRoot, null);
+		final FileInfo opdsRoot = mScanner.getOPDSRoot();
+		if (opdsRoot != null) {
+			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
+				@Override
+				public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
+					opdsRoot.setItems(catalogs);
+					showDirectoryInternal(opdsRoot, null);
+				}
+			});
+		}
 	}
 
 	private FileInfo.SortOrder mSortOrder = FileInfo.DEF_SORT_ORDER; 
@@ -781,6 +777,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		BackgroundThread.ensureGUI();
 		if (fileOrDir != null) {
+			if (fileOrDir.isOPDSRoot()) {
+				showOPDSRootDirectory();
+				return;
+			}
 			if (fileOrDir.isOPDSDir()) {
 				showOPDSDir(fileOrDir, itemToSelect);
 				return;

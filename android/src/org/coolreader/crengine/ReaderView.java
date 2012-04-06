@@ -3265,7 +3265,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.getHistory().getOrCreateBookInfo(fileInfo, new History.BookInfoLoadedCallack() {
 			@Override
 			public void onBookInfoLoaded(BookInfo bookInfo) {
-				post(new LoadDocumentTask(mBookInfo, errorHandler));
+				post(new LoadDocumentTask(bookInfo, errorHandler));
 			}
 		});
 		return true;
@@ -4865,6 +4865,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Properties props;
 		LoadDocumentTask(BookInfo bookInfo, Runnable errorHandler)
 		{
+			mBookInfo = bookInfo;
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			log.v("LoadDocumentTask for " + fileInfo);
 			BackgroundThread.ensureGUI();

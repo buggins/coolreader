@@ -3,6 +3,7 @@ package org.coolreader.db;
 import java.io.File;
 
 import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Utils;
 
 import android.database.SQLException;
@@ -12,29 +13,37 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 public abstract class BaseDB {
+
+	public static final Logger log = L.create("bdb");
+	
 	protected SQLiteDatabase mDB;
 	private File mFileName;
 	private boolean restoredFromBackup;
-	private boolean error = true;
+	private boolean error = false;
 
 	public File getFileName() {
 		return mFileName;
 	}
 
 	public boolean isOpened() {
-		return mDB != null && !error;
+		if (mDB != null && !error)
+			return true;
+		log.w("DB access while not opened");
+		return false;
 	}
 
 	public boolean open(File dir) {
-		error = true;
+		error = false;
 		File dbFile = new File(dir, dbFileName());
+		log.i("opening DB " + dbFile);
 		mFileName = dbFile;
 		mDB = openDB(dbFile);
-		if (mDB == null)
+		if (mDB == null) {
 			return false;
+		}
 		boolean res = checkSchema();
 		if (!res) {
-			L.e("Closing DB due error while upgrade of schema: " + dbFile.getAbsolutePath());
+			log.e("Closing DB due error while upgrade of schema: " + dbFile.getAbsolutePath());
 			close();
 			Utils.moveCorruptedFileToBackup(dbFile);
 			if (!restoredFromBackup)
@@ -45,7 +54,6 @@ public abstract class BaseDB {
 				close();
 		}
 		if (mDB != null) {
-			error = false;
 			return true;
 		}
 		return false;
@@ -54,14 +62,14 @@ public abstract class BaseDB {
 	public boolean close() {
 		if (mDB != null) {
 			try {
-				L.d("Closing database");
+				log.d("Closing database");
 				flush();
 				clearCaches();
 				mDB.close();
 				mDB = null;
 				return true;
 			} catch (SQLiteException e) {
-				L.e("Error while closing DB " + mFileName);
+				log.e("Error while closing DB " + mFileName);
 			}
 			mDB = null;
 		}
@@ -88,14 +96,14 @@ public abstract class BaseDB {
 			db = SQLiteDatabase.openOrCreateDatabase(dbFile, null);
 			return db;
 		} catch (SQLiteException e) {
-			L.e("Error while opening DB " + dbFile.getAbsolutePath());
+			log.e("Error while opening DB " + dbFile.getAbsolutePath());
 			Utils.moveCorruptedFileToBackup(dbFile);
 			restoredFromBackup = Utils.restoreFromBackup(dbFile);
 			try {
 				db = SQLiteDatabase.openOrCreateDatabase(dbFile, null);
 				return db;
 			} catch (SQLiteException ee) {
-				L.e("Error while opening DB " + dbFile.getAbsolutePath());
+				log.e("Error while opening DB " + dbFile.getAbsolutePath());
 			}
 		}
 		return null;

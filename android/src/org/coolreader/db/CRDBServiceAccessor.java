@@ -15,6 +15,8 @@ public class CRDBServiceAccessor {
     private boolean mServiceBound;
 
     public CRDBService.LocalBinder get() {
+    	if (mService == null)
+    		throw new RuntimeException("no service");
     	return mService;
     }
     

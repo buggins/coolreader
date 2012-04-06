@@ -3,7 +3,6 @@ package org.coolreader.db;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
@@ -29,6 +28,7 @@ public class CRDBService extends Service {
     public void onCreate() {
     	log.i("onCreate()");
     	mThread = new ServiceThread("crdb");
+    	mThread.start();
     	execTask(new OpenDatabaseTask());
     }
 
@@ -62,13 +62,14 @@ public class CRDBService extends Service {
     
 	final String SQLITE_DB_NAME = "cr3db.sqlite";
 	final String SQLITE_COVER_DB_NAME = "cr3db_cover.sqlite";
-    private class OpenDatabaseTask implements Runnable {
+    private class OpenDatabaseTask extends Task {
+    	public OpenDatabaseTask() {
+    		super("OpenDatabaseTask");
+    	}
     	
 		@Override
-		public void run() {
-	    	log.i("OpenDatabaseTask started");
+		public void work() {
 	    	open();
-	    	log.i("OpenDatabaseTask finished");
 		}
 
 		private boolean open() {
@@ -84,12 +85,14 @@ public class CRDBService extends Service {
 	    
     }
 
-    private class CloseDatabaseTask implements Runnable {
-		@Override
-		public void run() {
-	    	log.i("OpenDatabaseTask started");
+    private class CloseDatabaseTask extends Task {
+    	public CloseDatabaseTask() {
+    		super("CloseDatabaseTask");
+    	}
+
+    	@Override
+		public void work() {
 	    	close();
-	    	log.i("OpenDatabaseTask finished");
 		}
 
 		private void close() {
@@ -100,14 +103,15 @@ public class CRDBService extends Service {
     }
     
     private FlushDatabaseTask lastFlushTask;
-    private class FlushDatabaseTask implements Runnable {
+    private class FlushDatabaseTask extends Task {
     	private boolean force;
     	public FlushDatabaseTask(boolean force) {
+    		super("FlushDatabaseTask");
     		this.force = force;
     		lastFlushTask = this;
     	}
 		@Override
-		public void run() {
+		public void work() {
 			long elapsed = Utils.timeInterval(lastFlushTime);
 			if (force || (lastFlushTask == this && elapsed > MIN_FLUSH_INTERVAL)) {
 		    	mainDB.flush();
@@ -157,18 +161,18 @@ public class CRDBService extends Service {
     }
     
 	public void saveOPDSCatalog(final Long id, final String url, final String name) {
-		execTask(new Runnable() {
+		execTask(new Task("saveOPDSCatalog") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.saveOPDSCatalog(id, url, name);
 			}
 		});
 	}
 
 	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback, final Handler handler) {
-		execTask(new Runnable() {
+		execTask(new Task("loadOPDSCatalogs") {
 			@Override
-			public void run() {
+			public void work() {
 				final ArrayList<FileInfo> list = new ArrayList<FileInfo>(); 
 				mainDB.loadOPDSCatalogs(list);
 				sendTask(handler, new Runnable() {
@@ -182,9 +186,9 @@ public class CRDBService extends Service {
 	}
 
 	public void removeOPDSCatalog(final Long id) {
-		execTask(new Runnable() {
+		execTask(new Task("removeOPDSCatalog") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.removeOPDSCatalog(id);
 			}
 		});
@@ -196,13 +200,13 @@ public class CRDBService extends Service {
     public interface CoverpageLoadingCallback {
     	void onCoverpageLoaded(long bookId, byte[] data);
     }
-    
+
 	public void saveBookCoverpage(final long bookId, final byte[] data) {
 		if (data == null)
 			return;
-		execTask(new Runnable() {
+		execTask(new Task("saveBookCoverpage") {
 			@Override
-			public void run() {
+			public void work() {
 				coverDB.saveBookCoverpage(bookId, data);
 			}
 		});
@@ -211,9 +215,9 @@ public class CRDBService extends Service {
 	
 	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback, final Handler handler) 
 	{
-		execTask(new Runnable() {
+		execTask(new Task("loadBookCoverpage") {
 			@Override
-			public void run() {
+			public void work() {
 				final byte[] data = coverDB.loadBookCoverpage(bookId);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -226,9 +230,9 @@ public class CRDBService extends Service {
 	}
 	
 	public void deleteCoverpage(final long bookId) {
-		execTask(new Runnable() {
+		execTask(new Task("deleteCoverpage") {
 			@Override
-			public void run() {
+			public void work() {
 				coverDB.deleteCoverpage(bookId);
 			}
 		});
@@ -242,10 +246,6 @@ public class CRDBService extends Service {
     	void onItemGroupsLoaded(FileInfo parent);
     }
 
-//    public interface FileInfoListLoadingCallback {
-//    	void onFileInfoListLoaded(long authorId, ArrayList<FileInfo> list);
-//    }
-    
     public interface FileInfoLoadingCallback {
     	void onFileInfoListLoaded(ArrayList<FileInfo> list);
     }
@@ -264,9 +264,9 @@ public class CRDBService extends Service {
     
 	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent); 
-		execTask(new Runnable() {
+		execTask(new Task("loadAuthorsList") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.loadAuthorsList(p);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -280,9 +280,9 @@ public class CRDBService extends Service {
 
 	public void loadSeriesList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent); 
-		execTask(new Runnable() {
+		execTask(new Task("loadSeriesList") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.loadSeriesList(p);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -296,9 +296,9 @@ public class CRDBService extends Service {
 	
 	public void loadTitleList(FileInfo parent, final ItemGroupsLoadingCallback callback, final Handler handler) {
 		final FileInfo p = new FileInfo(parent); 
-		execTask(new Runnable() {
+		execTask(new Task("loadTitleList") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.loadTitleList(p);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -311,9 +311,9 @@ public class CRDBService extends Service {
 	}
 
 	public void findAuthorBooks(final long authorId, final FileInfoLoadingCallback callback, final Handler handler) {
-		execTask(new Runnable() {
+		execTask(new Task("findAuthorBooks") {
 			@Override
-			public void run() {
+			public void work() {
 				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 				mainDB.findAuthorBooks(list, authorId);
 				sendTask(handler, new Runnable() {
@@ -327,9 +327,9 @@ public class CRDBService extends Service {
 	}
 	
 	public void findSeriesBooks(final long seriesId, final FileInfoLoadingCallback callback, final Handler handler) {
-		execTask(new Runnable() {
+		execTask(new Task("findSeriesBooks") {
 			@Override
-			public void run() {
+			public void work() {
 				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
 				mainDB.findSeriesBooks(list, seriesId);
 				sendTask(handler, new Runnable() {
@@ -343,9 +343,9 @@ public class CRDBService extends Service {
 	}
 
 	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback, final Handler handler) {
-		execTask(new Runnable() {
+		execTask(new Task("loadRecentBooks") {
 			@Override
-			public void run() {
+			public void work() {
 				final ArrayList<BookInfo> list = mainDB.loadRecentBooks(maxCount);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -358,9 +358,9 @@ public class CRDBService extends Service {
 	}
 	
 	public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback, final Handler handler) {
-		execTask(new Runnable() {
+		execTask(new Task("findByPatterns") {
 			@Override
-			public void run() {
+			public void work() {
 				final ArrayList<FileInfo> list = mainDB.findByPatterns(maxCount, author, title, series, filename);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -380,9 +380,9 @@ public class CRDBService extends Service {
 	}
 	
 	public void saveFileInfos(final Collection<FileInfo> list) {
-		execTask(new Runnable() {
+		execTask(new Task("saveFileInfos") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.saveFileInfos(list);
 			}
 		});
@@ -390,9 +390,9 @@ public class CRDBService extends Service {
 	}
 
 	public void loadBookInfo(final FileInfo fileInfo, final BookInfoLoadingCallback callback, final Handler handler) {
-		execTask(new Runnable() {
+		execTask(new Task("loadBookInfo") {
 			@Override
-			public void run() {
+			public void work() {
 				final BookInfo bookInfo = mainDB.loadBookInfo(fileInfo);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -405,9 +405,9 @@ public class CRDBService extends Service {
 	}
 
 	public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback, final Handler handler) {
-		execTask(new Runnable() {
+		execTask(new Task("loadFileInfos") {
 			@Override
-			public void run() {
+			public void work() {
 				final ArrayList<FileInfo> list = mainDB.loadFileInfos(pathNames);
 				sendTask(handler, new Runnable() {
 					@Override
@@ -420,9 +420,9 @@ public class CRDBService extends Service {
 	}
 	
 	public void saveBookInfo(final BookInfo bookInfo) {
-		execTask(new Runnable() {
+		execTask(new Task("saveBookInfo") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.saveBookInfo(bookInfo);
 			}
 		});
@@ -430,9 +430,9 @@ public class CRDBService extends Service {
 	}
 	
 	public void deleteBook(final FileInfo fileInfo)	{
-		execTask(new Runnable() {
+		execTask(new Task("deleteBook") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.deleteBook(fileInfo);
 			}
 		});
@@ -440,9 +440,9 @@ public class CRDBService extends Service {
 	}
 	
 	public void deleteBookmark(final Bookmark bm) {
-		execTask(new Runnable() {
+		execTask(new Task("deleteBookmark") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.deleteBookmark(bm);
 			}
 		});
@@ -451,31 +451,49 @@ public class CRDBService extends Service {
 	
 
 	public void deleteRecentPosition(final FileInfo fileInfo) {
-		execTask(new Runnable() {
+		execTask(new Task("deleteRecentPosition") {
 			@Override
-			public void run() {
+			public void work() {
 				mainDB.deleteRecentPosition(fileInfo);
 			}
 		});
 		flush();
 	}
 
+	private abstract class Task implements Runnable {
+		private final String name;
+		public Task(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return "Task[" + name + "]";
+		}
+
+		@Override
+		public void run() {
+			long ts = Utils.timeStamp();
+			log.v(toString() + " started");
+			try {
+				work();
+			} catch (Exception e) {
+				log.e("Exception while running DB task in background", e);
+			}
+			log.v(toString() + " finished in " + Utils.timeInterval(ts) + " ms");
+		}
+		
+		public abstract void work();
+	}
+	
 	/**
 	 * Execute runnable in CDRDBService background thread.
 	 * Exceptions will be ignored, just dumped into log.
 	 * @param task is Runnable to execute
 	 */
-	private void execTask(final Runnable task) {
-		mThread.post(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					task.run();
-				} catch (Exception e) {
-					log.e("Exception while running DB task in background", e);
-				}
-			}
-		});
+	private void execTask(final Task task) {
+		log.v("Posting task " + task);
+		mThread.post(task);
 	}
 	
 	/**
@@ -483,17 +501,9 @@ public class CRDBService extends Service {
 	 * Exceptions will be ignored, just dumped into log.
 	 * @param task is Runnable to execute
 	 */
-	private void execTask(final Runnable task, long delay) {
-		mThread.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					task.run();
-				} catch (Exception e) {
-					log.e("Exception while running DB task in background", e);
-				}
-			}
-		}, delay);
+	private void execTask(final Task task, long delay) {
+		log.v("Posting task " + task + " with delay " + delay);
+		mThread.postDelayed(task, delay);
 	}
 	
 	/**
@@ -505,8 +515,10 @@ public class CRDBService extends Service {
 	private void sendTask(Handler handler, Runnable task) {
 		try {
 			if (handler != null) {
+				log.v("Senging task to " + handler.toString());
 				handler.post(task);
 			} else {
+				log.v("No Handler provided: executing task in current thread");
 				task.run();
 			}
 		} catch (Exception e) {

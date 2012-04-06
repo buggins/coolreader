@@ -3,6 +3,7 @@ package org.coolreader.db;
 import java.util.LinkedList;
 
 import org.coolreader.crengine.L;
+import org.coolreader.crengine.Logger;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +14,8 @@ import android.os.Message;
  * @author Vadim Lopatin
  */
 public class ServiceThread extends Thread {
+
+	public static final Logger log = L.create("st");
 	
 	public ServiceThread(String name) {
 		super(name);
@@ -24,9 +27,10 @@ public class ServiceThread extends Thread {
 	 */
 	public void post(Runnable task) {
 		synchronized (mQueue) {
-			if (mHandler == null || mStopped)
+			if (mHandler == null || mStopped) {
+				log.w("Thread is not yet started, just adding to queue " + task);
 				mQueue.addLast(task);
-			else {
+			} else {
 				postQueuedTasks();
 				mHandler.post(task);
 			}
@@ -66,6 +70,7 @@ public class ServiceThread extends Thread {
 	private void postQueuedTasks() {
 		while (mQueue.size() > 0) {
 			Runnable t = mQueue.removeFirst();
+			log.w("Executing queued task " + t);
 			mHandler.post(t);
 		}
 	}
@@ -105,22 +110,22 @@ public class ServiceThread extends Thread {
 
 	@Override
 	public void run() {
-		L.i("Running service thread");
+		log.i("Running service thread");
 		Looper.prepare();
 		mHandler = new Handler() {
 			public void handleMessage( Message message )
 			{
-				L.d("message: " + message);
+				log.d("message: " + message);
 			}
 		};
-		L.i("Service thread handler is created");
+		log.i("Service thread handler is created");
 		synchronized (mQueue) {
 			postQueuedTasks();
 			mStopped = false;
 		}
 		Looper.loop();
 		mHandler = null;
-		L.i("Exiting background thread");
+		log.i("Exiting background thread");
 	}
 	private Handler mHandler;
 	private boolean mStopped = true;

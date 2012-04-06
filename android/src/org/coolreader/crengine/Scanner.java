@@ -251,7 +251,7 @@ public class Scanner extends FileInfoChangeSource {
 			return;
 		}
 			
-		db.loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
+		db().loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
 			@Override
 			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
 				// GUI thread
@@ -276,7 +276,7 @@ public class Scanner extends FileInfoChangeSource {
 					}
 				}
 				if (filesForSave.size() > 0) {
-					db.saveFileInfos(filesForSave);
+					db().saveFileInfos(filesForSave);
 				}
 				if (filesForParsing.size() == 0 || control.isStopped()) {
 					readyCallback.run();
@@ -308,7 +308,7 @@ public class Scanner extends FileInfoChangeSource {
 								// GUI thread
 								try {
 									if (filesForSave.size() > 0) {
-										db.saveFileInfos(filesForSave);
+										db().saveFileInfos(filesForSave);
 									}
 									for (FileInfo file : filesForSave)
 										baseDir.setFile(file);
@@ -404,7 +404,7 @@ public class Scanner extends FileInfoChangeSource {
 //		int count = mFileList.size();
 //		for ( int i=0; i<count; i++ ) {
 //			FileInfo item = mFileList.get(i);
-//			boolean found = db.findByPathname(item);
+//			boolean found = db().findByPathname(item);
 //			if ( found )
 //				Log.v("cr3db", "File " + item.pathname + " is found in DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 //
@@ -415,7 +415,7 @@ public class Scanner extends FileInfoChangeSource {
 //			}
 //
 //			if ( !found && saveToDB ) {
-//				db.save(item);
+//				db().save(item);
 //				Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 //			}
 //			updateProgress( 1000 + 4000 * i / count );
@@ -428,7 +428,7 @@ public class Scanner extends FileInfoChangeSource {
 //		for ( int i=0; i<count; i++ ) {
 //			FileInfo item = mFilesForParsing.get(i);
 //			engine.scanBookProperties(item);
-//			db.save(item);
+//			db().save(item);
 //			Log.v("cr3db", "File " + item.pathname + " is added to DB (id="+item.id+", title=" + item.title + ", authors=" + item.authors +")");
 //			updateProgress( 5000 + 5000 * i / count );
 //		}
@@ -466,13 +466,6 @@ public class Scanner extends FileInfoChangeSource {
 		dir.isScanned = true;
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
-		db.loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
-			@Override
-			public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
-				dir.addItems(catalogs);
-				// TODO: update views
-			}
-		});
 	}
 	
 	private void addSearchRoot() {
@@ -802,10 +795,9 @@ public class Scanner extends FileInfoChangeSource {
 		return null;
 	}
 	
-	public Scanner( CoolReader coolReader, CRDBService.LocalBinder db, Engine engine )
+	public Scanner( CoolReader coolReader, Engine engine )
 	{
 		this.engine = engine;
-		this.db = db;
 		this.coolReader = coolReader;
 		mRoot = new FileInfo();
 		mRoot.path = FileInfo.ROOT_DIR_TAG;	
@@ -816,7 +808,10 @@ public class Scanner extends FileInfoChangeSource {
 		mRoot.isDirectory = true;
 	}
 
+	private CRDBService.LocalBinder db() {
+		return coolReader.getDB();
+	}
+
 	private final Engine engine;
-	private final CRDBService.LocalBinder db;
 	private final CoolReader coolReader;
 }

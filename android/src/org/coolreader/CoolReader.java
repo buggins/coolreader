@@ -665,10 +665,10 @@ public class CoolReader extends Activity
 		}
 		//mDB = new CRDB(dbfile);
 
-       	mScanner = new Scanner(this, getDB(), mEngine);
+       	mScanner = new Scanner(this, mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 		
-       	mHistory = new History(this, getDB(), mEngine);
+       	mHistory = new History(this);
 		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {

@@ -997,6 +997,7 @@ public class MainDB extends BaseDB {
 		{
 			if ( fields.size()==0 )
 				return null;
+			beginChanges();
 			StringBuilder valueBuf = new StringBuilder();
 			try {
 				String ignoreOption = ""; //"OR IGNORE ";
@@ -1049,6 +1050,7 @@ public class MainDB extends BaseDB {
 		{
 			if ( fields.size()==0 )
 				return false;
+			beginChanges();
 			StringBuilder buf = new StringBuilder("UPDATE ");
 			buf.append(tableName);
 			buf.append(" SET ");

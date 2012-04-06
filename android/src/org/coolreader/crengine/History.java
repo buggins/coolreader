@@ -17,16 +17,16 @@ import android.util.Log;
 
 public class History extends FileInfoChangeSource {
 	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
-	private final CRDBService.LocalBinder mDB;
 	private final CoolReader mCoolReader;
-	private final Engine mEngine;
 	private FileInfo mRecentBooksFolder;
+
+	private CRDBService.LocalBinder db() {
+		return mCoolReader.getDB();
+	}
 	
-	public History(CoolReader cr, CRDBService.LocalBinder db, Engine engine)
+	public History(CoolReader cr)
 	{
 		this.mCoolReader = cr;
-		this.mDB = db;
-		this.mEngine = engine;
 	}
 	
 	public BookInfo getLastBook()
@@ -54,7 +54,7 @@ public class History extends FileInfoChangeSource {
 			callback.onBookInfoLoaded(res);
 			return;
 		}
-		mDB.loadBookInfo(file, new CRDBService.BookInfoLoadingCallback() {
+		db().loadBookInfo(file, new CRDBService.BookInfoLoadingCallback() {
 			@Override
 			public void onBooksInfoLoaded(BookInfo bookInfo) {
 				if (bookInfo == null) {
@@ -88,9 +88,9 @@ public class History extends FileInfoChangeSource {
 		if (index >= 0)
 			mBooks.remove(index);
 		if ( removeBookFromDB )
-			mDB.deleteBook(fileInfo);
+			db().deleteBook(fileInfo);
 		else if ( removeRecentAccessFromDB )
-			mDB.deleteRecentPosition(fileInfo);
+			db().deleteRecentPosition(fileInfo);
 		updateRecentDir();
 	}
 	
@@ -309,7 +309,7 @@ public class History extends FileInfoChangeSource {
 			coverpageData = new byte[] {};
 		if ( oldData==null || oldData.length!=coverpageData.length ) { 
 			coverPageCache.put(bookId, coverpageData);
-			mDB.saveBookCoverpage(bookId, coverpageData);
+			db().saveBookCoverpage(bookId, coverpageData);
 		}
 	}
 
@@ -330,7 +330,7 @@ public class History extends FileInfoChangeSource {
 		if (data == null) {
 			if (item.format.needCoverPageCaching()) {
 				// TODO: coverpage background loading
-				data = null; //mDB.loadBookCoverpage(bookId);
+				data = null; //db().loadBookCoverpage(bookId);
 			} else
 				data = mCoolReader.getEngine().scanBookCover(item.pathname);
 			if (data == null)
@@ -353,7 +353,7 @@ public class History extends FileInfoChangeSource {
 	{
 		Log.v("cr3", "History.loadFromDB()");
 		mRecentBooksFolder = scanner.getRecentDir();
-		mDB.loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
+		db().loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
 			@Override
 			public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
 				mBooks = bookList;
@@ -371,7 +371,7 @@ public class History extends FileInfoChangeSource {
 		// TODO:
 		return false;
 //		try {
-//			mDB.save(mBooks);
+//			db().save(mBooks);
 //			return true;
 //		} catch ( Exception e ) {
 //			Log.e("cr3", "error while saving file history " + e.getMessage(), e);
