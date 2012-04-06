@@ -405,16 +405,27 @@ public class FileInfo {
 			}
 		return null;
 	}
+
+	public static boolean eq(String s1, String s2) {
+		if (s1 == null)
+			return s2 == null;
+		return s1.equals(s2);
+	}
+	
+	public boolean pathNameEquals(FileInfo item) {
+		return isDirectory == item.isDirectory && eq(arcname, item.arcname) && eq(pathname, item.pathname);
+	}
+	
 	public int getItemIndex( FileInfo item )
 	{
 		if ( item==null )
 			return -1;
 		for ( int i=0; i<dirCount(); i++ ) {
-			if ( item.getPathName().equals(getDir(i).getPathName()) )
+			if ( item.pathNameEquals(getDir(i)) )
 				return i;
 		}
 		for ( int i=0; i<fileCount(); i++ ) {
-			if ( item.getPathName().equals(getFile(i).getPathName()) )
+			if (item.pathNameEquals(getFile(i)))
 				return i + dirCount();
 		}
 		return -1;
@@ -446,6 +457,14 @@ public class FileInfo {
 			file.parent = this;
 		}
 		throw new IndexOutOfBoundsException();
+	}
+
+	public void setFile(FileInfo file)
+	{
+		int index = getItemIndex(file);
+		if ( index<0 )
+			return;
+		setFile(index, file);
 	}
 
 	public void removeEmptyDirs()

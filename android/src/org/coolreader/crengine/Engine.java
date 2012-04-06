@@ -1426,4 +1426,42 @@ public class Engine {
 		return NO_TEXTURE;
 	}
 
+	/**
+	 * Create progress dialog control.
+	 * @param resourceId is string resource Id of dialog title, 0 to disable progress
+	 * @return created control object.
+	 */
+	public ProgressControl createProgress(int resourceId) {
+		return new ProgressControl(resourceId);
+	}
+	private static final int PROGRESS_UPDATE_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 500;
+	private static final int PROGRESS_SHOW_INTERVAL = DeviceInfo.EINK_SCREEN ? 4000 : 1500;
+	public class ProgressControl {
+		private final int resourceId;
+		private long createTime = Utils.timeStamp();
+		private long lastUpdateTime;
+		private boolean shown;
+		private ProgressControl(int resourceId) {
+			this.resourceId = resourceId;
+		}
+		public void hide() {
+			if (resourceId == 0)
+				return; // disabled
+			if (shown)
+				hideProgress();
+			shown = false;
+		}
+		public void setProgress(int percent) {
+			if (resourceId == 0)
+				return; // disabled
+			if (Utils.timeInterval(createTime) < PROGRESS_SHOW_INTERVAL)
+				return;
+			if (Utils.timeInterval(lastUpdateTime) < PROGRESS_UPDATE_INTERVAL)
+				return;
+			shown = true;
+			lastUpdateTime = Utils.timeStamp();
+			showProgress(percent, resourceId);
+		}
+	}
+
 }
