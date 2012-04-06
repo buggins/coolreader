@@ -416,6 +416,10 @@ public class FileInfo {
 		return isDirectory == item.isDirectory && eq(arcname, item.arcname) && eq(pathname, item.pathname);
 	}
 	
+	public boolean hasItem(FileInfo item) {
+		return getItemIndex(item) >= 0;
+	}
+	
 	public int getItemIndex( FileInfo item )
 	{
 		if ( item==null )
@@ -455,6 +459,7 @@ public class FileInfo {
 		if (index < fileCount()) {
 			files.set(index, file);
 			file.parent = this;
+			return;
 		}
 		throw new IndexOutOfBoundsException();
 	}

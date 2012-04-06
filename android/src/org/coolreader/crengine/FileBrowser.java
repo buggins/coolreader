@@ -768,9 +768,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void onChange(FileInfo object) {
 		if (currDirectory == null)
 			return;
-		if (!currDirectory.pathNameEquals(object))
+		if (!currDirectory.pathNameEquals(object) && !currDirectory.hasItem(object))
 			return;
-		// TODO process updates in directory
+		// refresh
+		showDirectoryInternal(currDirectory, null);
 	}
 
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
@@ -817,6 +818,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				mActivity.getDB().loadSeriesBooks(fileOrDir.getSeriesId(), new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
+		} else {
+			// fileOrDir == null
 			if (mScanner.getRoot() != null && mScanner.getRoot().dirCount() > 0) {
 				if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
 					fileOrDir = mScanner.getRoot().getDir(0);

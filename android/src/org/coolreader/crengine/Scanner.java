@@ -301,6 +301,7 @@ public class Scanner extends FileInfoChangeSource {
 						} catch (Exception e) {
 							L.e("Exception while scanning");
 						}
+						progress.hide();
 						// jump to GUI thread
 						BackgroundThread.instance().postGUI(new Runnable() {
 							@Override
