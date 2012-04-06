@@ -15,6 +15,7 @@ import org.coolreader.R;
 import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
+import org.coolreader.db.CRDBService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
@@ -26,7 +27,6 @@ import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -40,7 +40,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class FileBrowser extends LinearLayout {
+public class FileBrowser extends LinearLayout implements FileInfoChangeListener {
 
 	public static final Logger log = L.create("fb");
 	
@@ -183,6 +183,8 @@ public class FileBrowser extends LinearLayout {
 		this.mHistory = history;
 		setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 		createListView(true);
+		history.addListener(this);
+		scanner.addListener(this);
 		showDirectory( null, null );
 	}
 	
@@ -337,10 +339,17 @@ public class FileBrowser extends LinearLayout {
 	}
 	
 	private void refreshOPDSRootDirectory() {
-		FileInfo opdsRoot = mScanner.getOPDSRoot();
-		if ( opdsRoot!=null ) {
-			mActivity.getDB().loadOPDSCatalogs(opdsRoot);
-			showDirectory(opdsRoot, null);
+		final FileInfo opdsRoot = mScanner.getOPDSRoot();
+		if (opdsRoot != null) {
+			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
+				@Override
+				public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
+					opdsRoot.clear();
+					for (FileInfo f : catalogs)
+						opdsRoot.addDir(f);
+					showDirectory(opdsRoot, null);
+				}
+			});
 		}
 	}
 	
@@ -735,47 +744,87 @@ public class FileBrowser extends LinearLayout {
 		}
 	}
 	
+	private class ItemGroupsLoadingCallback implements CRDBService.ItemGroupsLoadingCallback {
+		private final FileInfo baseDir;
+		public ItemGroupsLoadingCallback(FileInfo baseDir) {
+			this.baseDir = baseDir;
+		}
+		@Override
+		public void onItemGroupsLoaded(FileInfo parent) {
+			baseDir.setItems(parent);
+			showDirectoryInternal(baseDir, null);
+		}
+	};
+	
+	private class FileInfoLoadingCallback implements CRDBService.FileInfoLoadingCallback {
+		private final FileInfo baseDir;
+		public FileInfoLoadingCallback(FileInfo baseDir) {
+			this.baseDir = baseDir;
+		}
+		@Override
+		public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
+			baseDir.setItems(list);
+			showDirectoryInternal(baseDir, null);
+		}
+	};
+	
+	@Override
+	public void onChange(FileInfo object) {
+		if (currDirectory == null)
+			return;
+		if (!currDirectory.pathNameEquals(object))
+			return;
+		// TODO process updates in directory
+	}
+
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
 	{
 		BackgroundThread.ensureGUI();
-		if ( fileOrDir!=null && fileOrDir.isOPDSDir() ) {
-			showOPDSDir(fileOrDir, itemToSelect);
-			return;
-		}
-		if (fileOrDir!=null && fileOrDir.isSearchShortcut()) {
-			showFindBookDialog();
-			return;
-		}
-		if (fileOrDir!=null && fileOrDir.isBooksByAuthorRoot()) {
-			// refresh authors list
-			log.d("Updating authors list");
-			mActivity.getDB().loadAuthorsList(fileOrDir);
-		}
-		if (fileOrDir!=null && fileOrDir.isBooksBySeriesRoot()) {
-			// refresh authors list
-			log.d("Updating series list");
-			mActivity.getDB().loadSeriesList(fileOrDir);
-		}
-		if (fileOrDir!=null && fileOrDir.isBooksByTitleRoot()) {
-			// refresh authors list
-			log.d("Updating title list");
-			mActivity.getDB().loadTitleList(fileOrDir);
-		}
-		if (fileOrDir!=null && fileOrDir.isBooksByAuthorDir()) {
-			log.d("Updating author book list");
-			mActivity.getDB().loadAuthorBooks(fileOrDir);
-		}
-		if (fileOrDir!=null && fileOrDir.isBooksBySeriesDir()) {
-			log.d("Updating series book list");
-			mActivity.getDB().loadSeriesBooks(fileOrDir);
-		}
-		if ( fileOrDir==null && mScanner.getRoot()!=null && mScanner.getRoot().dirCount()>0 ) {
-			if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
-				fileOrDir = mScanner.getRoot().getDir(0);
-				itemToSelect = mScanner.getRoot().getDir(0).getFile(0);
-			} else {
-				fileOrDir = mScanner.getRoot();
-				itemToSelect = mScanner.getRoot().dirCount()>1 ? mScanner.getRoot().getDir(1) : null;
+		if (fileOrDir != null) {
+			if (fileOrDir.isOPDSDir()) {
+				showOPDSDir(fileOrDir, itemToSelect);
+				return;
+			}
+			if (fileOrDir.isSearchShortcut()) {
+				showFindBookDialog();
+				return;
+			}
+			if (fileOrDir.isBooksByAuthorRoot()) {
+				// refresh authors list
+				log.d("Updating authors list");
+				mActivity.getDB().loadAuthorsList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksBySeriesRoot()) {
+				// refresh authors list
+				log.d("Updating series list");
+				mActivity.getDB().loadSeriesList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByTitleRoot()) {
+				// refresh authors list
+				log.d("Updating title list");
+				mActivity.getDB().loadTitleList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByAuthorDir()) {
+				log.d("Updating author book list");
+				mActivity.getDB().loadAuthorBooks(fileOrDir.getAuthorId(), new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksBySeriesDir()) {
+				log.d("Updating series book list");
+				mActivity.getDB().loadSeriesBooks(fileOrDir.getSeriesId(), new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (mScanner.getRoot() != null && mScanner.getRoot().dirCount() > 0) {
+				if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
+					fileOrDir = mScanner.getRoot().getDir(0);
+					itemToSelect = mScanner.getRoot().getDir(0).getFile(0);
+				} else {
+					fileOrDir = mScanner.getRoot();
+					itemToSelect = mScanner.getRoot().dirCount()>1 ? mScanner.getRoot().getDir(1) : null;
+				}
 			}
 		}
 		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
@@ -1178,4 +1227,5 @@ public class FileBrowser extends LinearLayout {
     public FileInfo getCurrentDir() {
     	return currDirectory;
     }
+
 }

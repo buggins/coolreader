@@ -467,6 +467,33 @@ public class FileInfo {
 		setFile(index, file);
 	}
 
+	public void setItems(FileInfo copyFrom)
+	{
+		clear();
+		for (int i=0; i<copyFrom.fileCount(); i++) {
+			addFile(copyFrom.getFile(i));
+			copyFrom.getFile(i).parent = this;
+		}
+		for (int i=0; i<copyFrom.dirCount(); i++) {
+			addDir(copyFrom.getDir(i));
+			copyFrom.getDir(i).parent = this;
+		}
+	}
+
+	public void setItems(Collection<FileInfo> list)
+	{
+		clear();
+		if (list == null)
+			return;
+		for (FileInfo item : list) {
+			if (item.isDirectory)
+				addDir(item);
+			else
+				addFile(item);
+			item.parent = this;
+		}
+	}
+
 	public void removeEmptyDirs()
 	{
 		if ( parent==null || pathname.startsWith("@") )

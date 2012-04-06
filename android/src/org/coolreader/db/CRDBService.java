@@ -180,6 +180,15 @@ public class CRDBService extends Service {
 		});
 	}
 
+	public void removeOPDSCatalog(final Long id) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				mainDB.removeOPDSCatalog(id);
+			}
+		});
+	}
+
 	//=======================================================================================
     // coverpage DB access code
     //=======================================================================================
@@ -232,9 +241,9 @@ public class CRDBService extends Service {
     	void onItemGroupsLoaded(FileInfo parent);
     }
 
-    public interface FileInfoListLoadingCallback {
-    	void onFileInfoListLoaded(long authorId, ArrayList<FileInfo> list);
-    }
+//    public interface FileInfoListLoadingCallback {
+//    	void onFileInfoListLoaded(long authorId, ArrayList<FileInfo> list);
+//    }
     
     public interface FileInfoLoadingCallback {
     	void onFileInfoListLoaded(ArrayList<FileInfo> list);
@@ -296,7 +305,7 @@ public class CRDBService extends Service {
 		});
 	}
 
-	public void findAuthorBooks(final long authorId, final FileInfoListLoadingCallback callback, final Handler handler) {
+	public void findAuthorBooks(final long authorId, final FileInfoLoadingCallback callback, final Handler handler) {
 		execTask(new Runnable() {
 			@Override
 			public void run() {
@@ -305,14 +314,14 @@ public class CRDBService extends Service {
 				sendTask(handler, new Runnable() {
 					@Override
 					public void run() {
-						callback.onFileInfoListLoaded(authorId, list);
+						callback.onFileInfoListLoaded(list);
 					}
 				});
 			}
 		});
 	}
 	
-	public void findSeriesBooks(final long seriesId, final FileInfoListLoadingCallback callback, final Handler handler) {
+	public void findSeriesBooks(final long seriesId, final FileInfoLoadingCallback callback, final Handler handler) {
 		execTask(new Runnable() {
 			@Override
 			public void run() {
@@ -321,7 +330,7 @@ public class CRDBService extends Service {
 				sendTask(handler, new Runnable() {
 					@Override
 					public void run() {
-						callback.onFileInfoListLoaded(seriesId, list);
+						callback.onFileInfoListLoaded(list);
 					}
 				});
 			}
@@ -495,6 +504,10 @@ public class CRDBService extends Service {
     		getService().saveOPDSCatalog(id, url, name);
     	}
 
+    	public void removeOPDSCatalog(final Long id) {
+    		getService().removeOPDSCatalog(id);
+    	}
+
     	public void loadAuthorsList(FileInfo parent, final ItemGroupsLoadingCallback callback) {
     		getService().loadAuthorsList(parent, callback, new Handler());
     	}
@@ -507,11 +520,11 @@ public class CRDBService extends Service {
     		getService().loadTitleList(parent, callback, new Handler());
     	}
 
-    	public void loadAuthorBooks(long authorId, FileInfoListLoadingCallback callback) {
+    	public void loadAuthorBooks(long authorId, FileInfoLoadingCallback callback) {
     		getService().findAuthorBooks(authorId, callback, new Handler());
     	}
     	
-    	public void loadSeriesBooks(long seriesId, FileInfoListLoadingCallback callback) {
+    	public void loadSeriesBooks(long seriesId, FileInfoLoadingCallback callback) {
     		getService().findSeriesBooks(seriesId, callback, new Handler());
     	}
 

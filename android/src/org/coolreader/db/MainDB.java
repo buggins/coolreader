@@ -281,6 +281,10 @@ public class MainDB extends BaseDB {
 		return found;
 	}
 	
+	public void removeOPDSCatalog(Long id) {
+		log.i("removeOPDSCatalog(" + id + ")");
+		execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE id = " + id);
+	}
 
 	//=======================================================================================
     // Bookmarks access code
