@@ -45,7 +45,20 @@ public class BookInfo {
 		}
 	}
 	
-	public BookInfo( FileInfo fileInfo )
+	/**
+	 * Deep copy.
+	 * @param bookInfo is source object to copy from.
+	 */
+	public BookInfo(BookInfo bookInfo) {
+		this.fileInfo = new FileInfo(bookInfo.fileInfo);
+		if (bookInfo.lastPosition != null)
+			this.lastPosition = new Bookmark(bookInfo.lastPosition);
+		for (int i=0; i < bookInfo.getBookmarkCount(); i++) {
+			this.addBookmark(new Bookmark(bookInfo.getBookmark(i)));
+		}
+	}
+	
+	public BookInfo(FileInfo fileInfo)
 	{
 		this.fileInfo = fileInfo; //new FileInfo(fileInfo);
 	}
@@ -88,6 +101,15 @@ public class BookInfo {
 	synchronized public Bookmark getBookmark( int index )
 	{
 		return bookmarks.get(index);
+	}
+
+	synchronized public ArrayList<Bookmark> getAllBookmarks()
+	{
+		ArrayList<Bookmark> list = new ArrayList<Bookmark>(bookmarks.size() + 1);
+		list.addAll(bookmarks);
+		if (lastPosition != null)
+			list.add(lastPosition);
+		return list;
 	}
 
 	synchronized public Bookmark findBookmark(Bookmark bm)

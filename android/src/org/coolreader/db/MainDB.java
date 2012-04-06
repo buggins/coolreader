@@ -310,8 +310,7 @@ public class MainDB extends BaseDB {
 		v.setModified(false);
 	}
 
-	synchronized public boolean findBy( Bookmark v, String condition )
-	{
+	public boolean findBy( Bookmark v, String condition ) {
 		boolean found = false;
 		Cursor rs = null;
 		try {
@@ -782,8 +781,74 @@ public class MainDB extends BaseDB {
 		return found;
 	}
 
-	private boolean save(FileInfo fileInfo)
+	private HashMap<String, Bookmark> loadBookmarks(FileInfo fileInfo) {
+		HashMap<String, Bookmark> map = new HashMap<String, Bookmark>();
+		if (fileInfo.id != null) {
+			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
+			if (load(bookmarks, "book_fk=" + fileInfo.id + " ORDER BY type")) {
+				for (Bookmark b : bookmarks)
+					map.put(b.getUniqueKey(), b);		
+			}
+		}
+		return map;
+	}
+
+	private boolean save( Bookmark v, long bookId )
 	{
+		if ( !v.isModified() )
+			return false;
+		Log.d("cr3db", "saving bookmark id=" + v.getId() + ", bookId=" + bookId + ", pos=" + v.getStartPos());
+		if ( v.getId()!=null ) {
+			// update
+			Bookmark oldValue = new Bookmark();
+			oldValue.setId(v.getId());
+			if ( findBy(oldValue, "book_fk=" + bookId + " AND id=" + v.getId()) ) {
+				// found, updating
+				QueryHelper h = new QueryHelper(v, oldValue, bookId);
+				h.update(v.getId());
+			} else {
+				oldValue = new Bookmark();
+				QueryHelper h = new QueryHelper(v, oldValue, bookId);
+				v.setId( h.insert() );
+			}
+		} else {
+			Bookmark oldValue = new Bookmark();
+			QueryHelper h = new QueryHelper(v, oldValue, bookId);
+			v.setId( h.insert() );
+		}
+		v.setModified(false);
+		return true;
+	}
+
+	public void saveBookInfo(BookInfo bookInfo)	{
+		if (!isOpened()) {
+			Log.e("cr3db", "cannot save book info : DB is closed");
+			return;
+		}
+		if (bookInfo == null || bookInfo.getFileInfo() == null)
+			return;
+		save(bookInfo.getFileInfo());
+		HashMap<String, Bookmark> bookmarks = loadBookmarks(bookInfo.getFileInfo());
+		for (Bookmark bmk : bookInfo.getAllBookmarks()) {
+			 Bookmark existing = bookmarks.get(bmk.getUniqueKey());
+			 if (existing != null) {
+				 bmk.setId(existing.getId());
+				 if (!bmk.equals(existing))
+					 save(bmk, bookInfo.getFileInfo().id);
+				 bookmarks.remove(existing.getUniqueKey());
+			 } else {
+				 // create new
+			 	 save(bmk, bookInfo.getFileInfo().id);
+			 }
+		}
+		if (bookmarks.size() > 0) {
+			// remove bookmarks not found in new object
+			for (Bookmark bmk : bookmarks.values())
+				deleteBookmark(bmk);
+		}
+	}
+
+	private boolean save(FileInfo fileInfo)	{
 		beginChanges();
 		boolean authorsChanged = true;
 		try {
@@ -1220,6 +1285,27 @@ public class MainDB extends BaseDB {
 		if ( bm.getId()==null )
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE id=" + bm.getId());
+	}
+
+	public BookInfo loadBookInfo(FileInfo fileInfo) {
+		if (!isOpened())
+			return null;
+		try {
+			FileInfo cached = fileInfoCache.get(fileInfo.getPathName());
+			if (cached != null) {
+				BookInfo book = new BookInfo(cached);
+				loadBookmarks(book);
+				return book;
+			}
+			if (loadByPathname(fileInfo)) {
+				BookInfo book = new BookInfo(fileInfo);
+				loadBookmarks(book);
+				return book;
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+		return null;
 	}
 	
 	private boolean loadByPathname(FileInfo fileInfo) {

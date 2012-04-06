@@ -5,9 +5,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
-import org.coolreader.db.CRDB;
 import org.coolreader.db.CRDBService;
-import org.coolreader.db.CRDBService.RecentBooksLoadingCallback;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -45,14 +43,27 @@ public class History extends FileInfoChangeSource {
 		return mBooks.get(1);
 	}
 
-	public BookInfo getOrCreateBookInfo( FileInfo file )
+	public interface BookInfoLoadedCallack {
+		void onBookInfoLoaded(BookInfo bookInfo);
+	}
+	
+	public void getOrCreateBookInfo(final FileInfo file, final BookInfoLoadedCallack callback)
 	{
 		BookInfo res = getBookInfo(file);
-		if ( res==null ) {
-			res = new BookInfo( file );
-			mBooks.add(0, res);
+		if (res != null) {
+			callback.onBookInfoLoaded(res);
+			return;
 		}
-		return res;
+		mDB.loadBookInfo(file, new CRDBService.BookInfoLoadingCallback() {
+			@Override
+			public void onBooksInfoLoaded(BookInfo bookInfo) {
+				if (bookInfo == null) {
+					bookInfo = new BookInfo(file);
+					mBooks.add(0, bookInfo);
+				}
+				callback.onBookInfoLoaded(bookInfo);
+			}
+		});
 	}
 	
 	public BookInfo getBookInfo( FileInfo file )

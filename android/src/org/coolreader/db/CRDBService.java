@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import org.coolreader.crengine.BookInfo;
+import org.coolreader.crengine.Bookmark;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
@@ -253,6 +254,10 @@ public class CRDBService extends Service {
     	void onRecentBooksListLoaded(ArrayList<BookInfo> bookList);
     }
     
+    public interface BookInfoLoadingCallback {
+    	void onBooksInfoLoaded(BookInfo bookInfo);
+    }
+    
     public interface BookSearchCallback {
     	void onBooksFound(ArrayList<FileInfo> fileList);
     }
@@ -384,6 +389,21 @@ public class CRDBService extends Service {
 		flush();
 	}
 
+	public void loadBookInfo(final FileInfo fileInfo, final BookInfoLoadingCallback callback, final Handler handler) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				final BookInfo bookInfo = mainDB.loadBookInfo(fileInfo);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onBooksInfoLoaded(bookInfo);
+					}
+				});
+			}
+		});
+	}
+
 	public void loadFileInfos(final ArrayList<String> pathNames, final FileInfoLoadingCallback callback, final Handler handler) {
 		execTask(new Runnable() {
 			@Override
@@ -399,6 +419,16 @@ public class CRDBService extends Service {
 		});
 	}
 	
+	public void saveBookInfo(final BookInfo bookInfo) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				mainDB.saveBookInfo(bookInfo);
+			}
+		});
+		flush();
+	}
+	
 	public void deleteBook(final FileInfo fileInfo)	{
 		execTask(new Runnable() {
 			@Override
@@ -408,6 +438,17 @@ public class CRDBService extends Service {
 		});
 		flush();
 	}
+	
+	public void deleteBookmark(final Bookmark bm) {
+		execTask(new Runnable() {
+			@Override
+			public void run() {
+				mainDB.deleteBookmark(bm);
+			}
+		});
+		flush();
+	}
+	
 
 	public void deleteRecentPosition(final FileInfo fileInfo) {
 		execTask(new Runnable() {
@@ -548,8 +589,20 @@ public class CRDBService extends Service {
     		getService().deleteBook(new FileInfo(fileInfo));
     	}
 
+    	public void saveBookInfo(final BookInfo bookInfo) {
+    		getService().saveBookInfo(new BookInfo(bookInfo));
+    	}
+
     	public void deleteRecentPosition(final FileInfo fileInfo)	{
     		getService().deleteRecentPosition(new FileInfo(fileInfo));
+    	}
+    	
+    	public void deleteBookmark(final Bookmark bm) {
+    		getService().deleteBookmark(new Bookmark(bm));
+    	}
+
+    	public void loadBookInfo(final FileInfo fileInfo, final BookInfoLoadingCallback callback) {
+    		getService().loadBookInfo(new FileInfo(fileInfo), callback, new Handler());
     	}
 
     	public void flush() {

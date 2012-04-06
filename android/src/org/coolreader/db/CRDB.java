@@ -1475,16 +1475,14 @@ public class CRDB {
 		execSQLIgnoreErrors("UPDATE book SET last_access_time=0 WHERE id=" + fileInfo.id);
 	}
 	
-	synchronized public void deleteBookmark( Bookmark bm )
-	{
+	public void deleteBookmark(Bookmark bm) {
 		if ( bm.getId()==null )
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE id=" + bm.getId());
 	}
 	
-	synchronized public void deleteBook( FileInfo fileInfo )
-	{
-		if ( fileInfo==null || fileInfo.id==0 )
+	public void deleteBook(FileInfo fileInfo)	{
+		if (fileInfo==null || fileInfo.id==0)
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + fileInfo.id);
 		execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + fileInfo.id);

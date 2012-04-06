@@ -22,6 +22,20 @@ public class Bookmark {
 		modified=v.modified;
 	}
 	
+	public String getUniqueKey() {
+		switch (type) {
+		case TYPE_LAST_POSITION:
+			return "l";
+		case TYPE_POSITION:
+			return "p" + startPos;
+		case TYPE_COMMENT:
+			return "c" + startPos + "-" + endPos;
+		case TYPE_CORRECTION:
+			return "r" + startPos + "-" + endPos;
+		default:
+			return "unknown";
+		}
+	}
 	
 	public int getType() {
 		return type;
