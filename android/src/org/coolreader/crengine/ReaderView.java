@@ -5340,22 +5340,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     ReaderCallback readerCallback = new ReaderCallback() {
     
 	    public boolean OnExportProgress(int percent) {
-			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnExportProgress " + percent);
 			return true;
 		}
 		public void OnExternalLink(String url, String nodeXPath) {
-			BackgroundThread.ensureBackground();
 		}
 		public void OnFormatEnd() {
-			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnFormatEnd");
 			//mEngine.hideProgress();
 			drawPage();
 			scheduleSwapTask();
 		}
 		public boolean OnFormatProgress(final int percent) {
-			BackgroundThread.ensureBackground();
 			if ( enable_progress_callback ) {
 		    	log.d("readerCallback.OnFormatProgress " + percent);
 		    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
@@ -5371,23 +5367,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return true;
 		}
 		public void OnFormatStart() {
-			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnFormatStart");
 		}
 		public void OnLoadFileEnd() {
-			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnLoadFileEnd");
 		}
 		public void OnLoadFileError(String message) {
-			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnLoadFileError(" + message + ")");
 		}
 		public void OnLoadFileFirstPagesReady() {
-			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnLoadFileFirstPagesReady");
 		}
 		public String OnLoadFileFormatDetected(final DocumentFormat fileFormat) {
-			BackgroundThread.ensureBackground();
 			log.i("readerCallback.OnLoadFileFormatDetected " + fileFormat);
 			if (fileFormat != null) {
 				String s = getCSSForFormat(fileFormat);

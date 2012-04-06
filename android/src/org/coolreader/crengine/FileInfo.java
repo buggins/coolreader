@@ -435,6 +435,17 @@ public class FileInfo {
 		return -1;
 	}
 
+	public int getFileIndex( FileInfo item )
+	{
+		if ( item==null )
+			return -1;
+		for ( int i=0; i<fileCount(); i++ ) {
+			if (item.pathNameEquals(getFile(i)))
+				return i;
+		}
+		return -1;
+	}
+
 	public FileInfo getDir( int index )
 	{
 		if ( index<0 )
@@ -466,7 +477,7 @@ public class FileInfo {
 
 	public void setFile(FileInfo file)
 	{
-		int index = getItemIndex(file);
+		int index = getFileIndex(file);
 		if ( index<0 )
 			return;
 		setFile(index, file);

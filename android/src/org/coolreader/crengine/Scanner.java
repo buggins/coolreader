@@ -19,6 +19,8 @@ import android.util.Log;
 
 public class Scanner extends FileInfoChangeSource {
 	
+	public static final Logger log = L.create("sc");
+	
 	HashMap<String, FileInfo> mFileList = new HashMap<String, FileInfo>();
 //	ArrayList<FileInfo> mFilesForParsing = new ArrayList<FileInfo>();
 	FileInfo mRoot;
@@ -230,7 +232,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param dir is directory with changed content
 	 */
 	public void onDirectoryContentChanged(FileInfo dir) {
-		// TODO: update UI if shown
+		onChange(dir);
 	}
 	
 	/**
@@ -254,6 +256,7 @@ public class Scanner extends FileInfoChangeSource {
 		db().loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
 			@Override
 			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
+				log.v("onFileInfoListLoaded");
 				// GUI thread
 				final ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
 				ArrayList<FileInfo> filesForSave = new ArrayList<FileInfo>();
@@ -299,7 +302,7 @@ public class Scanner extends FileInfoChangeSource {
 								filesForSave.add(item);
 							}
 						} catch (Exception e) {
-							L.e("Exception while scanning");
+							L.e("Exception while scanning", e);
 						}
 						progress.hide();
 						// jump to GUI thread
@@ -314,7 +317,7 @@ public class Scanner extends FileInfoChangeSource {
 									for (FileInfo file : filesForSave)
 										baseDir.setFile(file);
 								} catch (Exception e ) {
-									L.e("Exception while scanning");
+									L.e("Exception while scanning", e);
 								}
 								// call finish handler
 								readyCallback.run();
@@ -377,6 +380,8 @@ public class Scanner extends FileInfoChangeSource {
 								}
 							};
 							dirIterator.run();
+						} else {
+							readyCallback.run();
 						}
 					}
 				} catch (Exception e) {
