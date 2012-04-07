@@ -4940,7 +4940,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if ( mActivity.getHistory()!=null ) {
 	    		mActivity.getHistory().updateBookAccess(mBookInfo);
-	    		mActivity.getHistory().saveToDB();
+	    		mActivity.getDB().saveBookInfo(mBookInfo);
 		        if (mBookInfo.getFileInfo().id!=null && coverPageBytes!=null && coverPageDrawable!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching())
 		        		mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
@@ -5203,7 +5203,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                 mBookInfo.setLastPosition(bmk);
             if ( saveToDB ) {
                 mActivity.getHistory().updateRecentDir();
-                mActivity.getHistory().saveToDB();
+                mActivity.getDB().saveBookInfo(mBookInfo);
                 mActivity.getDB().flush();
             }
         }
@@ -5221,7 +5221,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
 	    		mBookInfo.setLastPosition(bmk);
 	    		mActivity.getHistory().updateRecentDir();
-	    		mActivity.getHistory().saveToDB();
+	    		mActivity.getDB().saveBookInfo(mBookInfo);
                 log.i("SavePositionTask.done()");
 	    	}
 		}

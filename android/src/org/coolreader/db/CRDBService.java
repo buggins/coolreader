@@ -116,7 +116,8 @@ public class CRDBService extends Service {
 			if (force || (lastFlushTask == this && elapsed > MIN_FLUSH_INTERVAL)) {
 		    	mainDB.flush();
 		    	coverDB.flush();
-		    	lastFlushTime = Utils.timeStamp();
+		    	if (!force)
+		    		lastFlushTime = Utils.timeStamp();
 			}
 		}
     }
