@@ -1201,8 +1201,79 @@ lUInt32 LVColorDrawBuf::GetPixel( int x, int y )
     if (!_data || y<0 || x<0 || y>=_dy || x>=_dx)
         return 0;
     if ( _bpp==16 )
-        return ((lUInt16*)GetScanLine(y))[x];
+        return rgb565to888(((lUInt16*)GetScanLine(y))[x]);
     return ((lUInt32*)GetScanLine(y))[x];
+}
+
+/// get average pixel value for area (coordinates are fixed floating points *16)
+lUInt32 LVBaseDrawBuf::GetAvgColor(lvRect & rc16)
+{
+    if (!_data)
+        return 0;
+    int x0 = rc16.left;
+    int y0 = rc16.top;
+    int x1 = rc16.right;
+    int y1 = rc16.bottom;
+    if (x0 < 0)
+        x0 = 0;
+    if (y0 < 0)
+        y0 = 0;
+    int maxxx = _dx << 4;
+    int maxyy = _dy << 4;
+    if (x1 > maxxx)
+        x1 = maxxx;
+    if (y1 > maxyy)
+        y1 = maxyy;
+    if (x0 > x1 || y0 > y1)
+        return 0; // invalid rectangle
+    int rs = 0;
+    int gs = 0;
+    int bs = 0;
+    int s = 0;
+    int maxy = ((y1 - 1) >> 4);
+    int maxx = ((x1 - 1) >> 4);
+    for (int y = (y0 >> 4); y <= maxy; y++ ) {
+        int yy0 = y << 4;
+        int yy1 = (y + 1) << 4;
+        if (yy0 < y0)
+            yy0 = y0;
+        if (yy1 > y1)
+            yy1 = y1;
+        int ys = yy1 - yy0; // 0..16
+        if (ys < 1)
+            continue;
+        for (int x = (x0 >> 4); x < maxx; x++ ) {
+
+            int xx0 = x << 4;
+            int xx1 = (x + 1) << 4;
+            if (xx0 < x0)
+                xx0 = x0;
+            if (xx1 > x1)
+                xx1 = x1;
+            int xs = xx1 - xx0; // 0..16
+            if (xs < 1)
+                continue;
+
+            int mult = xs * ys;
+
+            lUInt32 pixel = GetPixel(x, y);
+            int r = (pixel >> 16) & 0xFF;
+            int g = (pixel >> 8) & 0xFF;
+            int b = pixel & 0xFF;
+
+            rs += r * mult;
+            gs += g * mult;
+            bs += b * mult;
+            s += mult;
+        }
+    }
+
+    if (s == 0)
+        return 0;
+    rs = (rs / s) & 0xFF;
+    gs = (gs / s) & 0xFF;
+    bs = (bs / s) & 0xFF;
+    return (rs << 16) | (gs << 8) | bs;
 }
 
 /// fills rectangle with specified color
@@ -1758,170 +1829,89 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
     }
 }
 
-/// draws buffer content to another buffer doing color conversion if necessary
-void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette )
+/// draws rescaled buffer content to another buffer doing color conversion if necessary
+void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options)
 {
-    //
+    if (dx < 1 || dy < 1)
+        return;
     lvRect clip;
-    buf->GetClipRect(&clip);
-    int bpp = buf->GetBitsPerPixel();
-    for (int yy=0; yy<_dy; yy++)
+    GetClipRect(&clip);
+    lvRect srcRect;
+    int srcdx = src->GetWidth();
+    int srcdy = src->GetHeight();
+    for (int yy=0; yy<dy; yy++)
     {
         if (y+yy >= clip.top && y+yy < clip.bottom)
         {
-            if ( _bpp==16 ) {
-                lUInt16 * src = (lUInt16 *)GetScanLine(yy);
-                if (bpp==1)
+            srcRect.top = srcdy * yy * 16 / _dy;
+            srcRect.bottom = srcdy * (yy + 1) * 16 / _dy;
+            lUInt8 * dst0 = (lUInt8 *)GetScanLine(y + yy);
+            for (int xx=0; xx<dx; xx++)
+            {
+                if ( x+xx >= clip.left && x+xx < clip.right )
                 {
-                    int shift = x & 7;
-                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>3);
-                    for (int xx=0; xx<_dx; xx++)
+                    lUInt8 * dst = dst0 + x + xx;
+                    srcRect.left = srcdx * xx * 16 / _dx;
+                    srcRect.right = srcdx * (xx + 1) * 16 / _dx;
+                    lUInt32 cl = GetAvgColor(srcRect);
+                    if (_bpp==1)
                     {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
-    #if (GRAY_INVERSE==1)
-                            lUInt8 cl = (((lUInt8)(*src)&0x8000)^0x8000) >> (shift+8);
-    #else
-                            lUInt8 cl = (((lUInt8)(*src)&0x8000)) >> (shift+8);
-    #endif
-                            *dst |= cl;
-                        }
-                        if ( !(shift = (shift+1)&7) )
-                            dst++;
-                        src++;
+                        int shift = x & 7;
+                        lUInt32 dithered = Dither1BitColor(cl, xx, yy);
+                        if (dithered)
+                            *dst = (*dst) | (0x80 >> shift);
+                        else
+                            *dst = (*dst) & ~(0x80 >> shift);
+                    }
+                    else if (_bpp==2)
+                    {
+                        int shift = x & 3;
+                        lUInt32 dithered = Dither2BitColor(cl, xx, yy) << 6;
+                        lUInt8 b = *dst & ~(0xC0 >> shift);
+                        *dst = b | (dithered >> (shift * 2));
+                    }
+                    else
+                    {
+                        lUInt32 dithered = DitherNBitColor(cl, xx, yy, _bpp) << (8 - _bpp);
+                        *dst = dithered;
                     }
                 }
-                else if (bpp==2)
+            }
+        }
+    }
+}
+
+
+
+/// draws rescaled buffer content to another buffer doing color conversion if necessary
+void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options)
+{
+    if (dx < 1 || dy < 1)
+        return;
+    lvRect clip;
+    GetClipRect(&clip);
+    lvRect srcRect;
+    int srcdx = src->GetWidth();
+    int srcdy = src->GetHeight();
+    for (int yy=0; yy<dy; yy++)
+    {
+        if (y+yy >= clip.top && y+yy < clip.bottom)
+        {
+            srcRect.top = srcdy * yy * 16 / _dy;
+            srcRect.bottom = srcdy * (yy + 1) * 16 / _dy;
+            for (int xx=0; xx<dx; xx++)
+            {
+                if ( x+xx >= clip.left && x+xx < clip.right )
                 {
-                    int shift = x & 3;
-                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>2);
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
-    #if (GRAY_INVERSE==1)
-                            lUInt8 cl = (((lUInt8)(*src)&0xC000)^0xC000) >> ((shift<<1) + 8);
-    #else
-                            lUInt8 cl = (((lUInt8)(*src)&0xC000)) >> ((shift<<1) + 8);
-    #endif
-                            *dst |= cl;
-                        }
-                        if ( !(shift = (shift+1)&3) )
-                            dst++;
-                        src++;
-                    }
-                }
-                else if (bpp<=8)
-                {
-                    lUInt8 * dst = buf->GetScanLine(y+yy) + x;
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
-                            *dst = (lUInt8)(*src >> 8);
-                        }
-                        dst++;
-                        src++;
-                    }
-                }
-                else if (bpp==16)
-                {
-                    lUInt16 * dst = ((lUInt16 *)buf->GetScanLine(y+yy)) + x;
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            *dst = *src;
-                        }
-                        dst++;
-                        src++;
-                    }
-                }
-                else if (bpp==32)
-                {
-                    lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y+yy)) + x;
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            *dst = rgb565to888( *src );
-                        }
-                        dst++;
-                        src++;
-                    }
-                }
-            } else {
-                lUInt32 * src = (lUInt32 *)GetScanLine(yy);
-                if (bpp==1)
-                {
-                    int shift = x & 7;
-                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>3);
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
-    #if (GRAY_INVERSE==1)
-                            lUInt8 cl = (((lUInt8)(*src)&0x80)^0x80) >> (shift);
-    #else
-                            lUInt8 cl = (((lUInt8)(*src)&0x80)) >> (shift);
-    #endif
-                            *dst |= cl;
-                        }
-                        if ( !(shift = (shift+1)&7) )
-                            dst++;
-                        src++;
-                    }
-                }
-                else if (bpp==2)
-                {
-                    int shift = x & 3;
-                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>2);
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
-    #if (GRAY_INVERSE==1)
-                            lUInt8 cl = (((lUInt8)(*src)&0xC0)^0xC0) >> (shift<<1);
-    #else
-                            lUInt8 cl = (((lUInt8)(*src)&0xC0)) >> (shift<<1);
-    #endif
-                            *dst |= cl;
-                        }
-                        if ( !(shift = (shift+1)&3) )
-                            dst++;
-                        src++;
-                    }
-                }
-                else if (bpp<=8)
-                {
-                    lUInt8 * dst = buf->GetScanLine(y+yy) + x;
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
-                            *dst = (lUInt8)*src;
-                        }
-                        dst++;
-                        src++;
-                    }
-                }
-                else if (bpp==32)
-                {
-                    lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y+yy)) + x;
-                    for (int xx=0; xx<_dx; xx++)
-                    {
-                        if ( x+xx >= clip.left && x+xx < clip.right )
-                        {
-                            *dst = *src;
-                        }
-                        dst++;
-                        src++;
+                    srcRect.left = srcdx * xx * 16 / _dx;
+                    srcRect.right = srcdx * (xx + 1) * 16 / _dx;
+                    lUInt32 cl = GetAvgColor(srcRect);
+                    if ( _bpp==16 ) {
+                        lUInt16 * dst = (lUInt16 *)GetScanLine(y + yy);
+                        dst[x + xx] = rgb888to565(cl);
+                    } else {
+                        lUInt32 * dst = (lUInt32 *)GetScanLine(y + yy);
+                        dst[x + xx] = cl;
                     }
                 }
             }
