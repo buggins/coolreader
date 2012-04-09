@@ -190,12 +190,16 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 		this.mCoverpageManager.setCoverpageReadyListener(new CoverpageReadyListener() {
 			@Override
-			public void onCoverpageReady(FileInfo file) {
+			public void onCoverpagesReady(ArrayList<FileInfo> files) {
 				if (currDirectory == null)
 					return;
-				if (currDirectory.findItemByPathName(file.getPathName()) == null)
-					return;
-				currentListAdapter.notifyDataSetChanged();
+				boolean found = false;
+				for (FileInfo file : files) {
+					if (currDirectory.findItemByPathName(file.getPathName()) != null)
+						found = true;
+				}
+				if (found)
+					currentListAdapter.notifyDataSetChanged();
 			}
 		});
 	}
@@ -1055,8 +1059,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 							image.setImageResource(item.format.getIconResourceId());
 						} else {
 							image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
-							image.setMinimumHeight(120);
-							image.setMinimumWidth(90);
+							image.setMinimumHeight(140);
+							image.setMinimumWidth(110);
 //							Drawable drawable = null;
 //							if ( item.id!=null )
 //								drawable = mHistory.getBookCoverpageImage(null, item);

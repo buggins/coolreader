@@ -103,6 +103,13 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationI
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightInternal
   (JNIEnv *, jobject, jint);
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    drawBookCoverInternal
+ * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
+  (JNIEnv *, jobject, jobject bmp, jbyteArray data, jstring fontFace, jstring title, jstring authors, jstring seriesName, jint seriesNumber, jint bpp);
 
 
 #ifdef __cplusplus

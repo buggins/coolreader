@@ -1147,6 +1147,19 @@ void lString8Collection::split( const lString8 & str, const lString8 & delimiter
     }
 }
 
+void lString16Collection::split( const lString16 & str, const lString16 & delimiter )
+{
+    if (str.empty())
+        return;
+    for (int startpos = 0; startpos < str.length(); ) {
+        int pos = str.pos(delimiter, startpos);
+        if (pos < 0)
+            pos = str.length();
+        add(str.substr(startpos, pos - startpos));
+        startpos = pos + delimiter.length();
+    }
+}
+
 void lString8Collection::erase(int offset, int cnt)
 {
     if (count <= 0)
@@ -1934,6 +1947,26 @@ int lString8::pos(const lString8 & subStr, int startPos) const
     return -1;
 }
 
+int lString16::pos(const lString16 & subStr, int startPos) const
+{
+    if (subStr.length() > length() - startPos)
+        return -1;
+    int l = subStr.length();
+    int dl = length() - l;
+    for (int i = startPos; i <= dl; i++) {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf16[i+j]!=subStr.pchunk->buf16[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
 /// find position of substring inside string, -1 if not found
 int lString8::pos(const char * subStr, int startPos) const
 {
@@ -1947,6 +1980,29 @@ int lString8::pos(const char * subStr, int startPos) const
         int flg = 1;
         for (int j=0; j<l; j++)
             if (pchunk->buf8[i+j] != subStr[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
+/// find position of substring inside string, -1 if not found
+int lString16::pos(const lChar16 * subStr, int startPos) const
+{
+    if (!subStr || !subStr[0])
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length() - startPos)
+        return -1;
+    int dl = length() - l;
+    for (int i = startPos; i <= dl; i++) {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf16[i+j] != subStr[j])
             {
                 flg = 0;
                 break;
@@ -1989,30 +2045,6 @@ int lString16::pos(const lChar16 * subStr) const
         return -1;
     int dl = length() - l;
     for (int i=0; i <= dl; i++)
-    {
-        int flg = 1;
-        for (int j=0; j<l; j++)
-            if (pchunk->buf16[i+j] != subStr[j])
-            {
-                flg = 0;
-                break;
-            }
-        if (flg)
-            return i;
-    }
-    return -1;
-}
-
-/// find position of substring inside string, -1 if not found
-int lString16::pos(const lChar16 * subStr, int start) const
-{
-    if (!subStr)
-        return -1;
-    int l = lStr_len(subStr);
-    if (l > length() - start)
-        return -1;
-    int dl = length() - l;
-    for (int i=start; i <= dl; i++)
     {
         int flg = 1;
         for (int j=0; j<l; j++)

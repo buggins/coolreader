@@ -582,19 +582,19 @@ void CR3View::updateScroll()
     if ( _scroll!=NULL ) {
         // TODO: set scroll range
         const LVScrollInfo * si = _docview->getScrollInfo();
-        bool changed = false;
+        //bool changed = false;
         if ( si->maxpos != _scroll->maximum() ) {
             _scroll->setMaximum( si->maxpos );
             _scroll->setMinimum(0);
-            changed = true;
+            //changed = true;
         }
         if ( si->pagesize != _scroll->pageStep() ) {
             _scroll->setPageStep( si->pagesize );
-            changed = true;
+            //changed = true;
         }
         if ( si->pos != _scroll->value() ) {
             _scroll->setValue( si-> pos );
-            changed = true;
+            //changed = true;
         }
     }
 }

@@ -9,6 +9,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.db.CRDBService;
 
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -27,7 +28,7 @@ public class CoverpageManager {
 	 * Callback on coverpage decoding finish.
 	 */
 	public interface CoverpageReadyListener {
-		void onCoverpageReady(FileInfo file);
+		void onCoverpagesReady(ArrayList<FileInfo> file);
 	}
 
 	/**
@@ -38,6 +39,7 @@ public class CoverpageManager {
 			for (FileInfo file : filesToUnqueue) {
 				mCheckFileCacheQueue.remove(file);
 				mScanFileQueue.remove(file);
+				mReadyQueue.remove(file);
 				mCache.unqueue(file);
 			}
 		}
@@ -70,8 +72,8 @@ public class CoverpageManager {
 	
 	private CoolReader mActivity;
 	
-	private int maxWidth = 90;
-	private int maxHeight = 120;
+	private int maxWidth = 110;
+	private int maxHeight = 140;
 
 	private enum State {
 		UNINITIALIZED,
@@ -193,6 +195,7 @@ public class CoverpageManager {
 	
 	private FileInfoQueue mCheckFileCacheQueue = new FileInfoQueue(); 
 	private FileInfoQueue mScanFileQueue = new FileInfoQueue();
+	private FileInfoQueue mReadyQueue = new FileInfoQueue();
 	
 	private static class FileInfoQueue {
 		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
@@ -220,11 +223,17 @@ public class CoverpageManager {
 			list.remove(index);
 			list.add(0, item);
 		}
+		public boolean empty() {
+			return list.size() == 0;
+		}
 		public void add(FileInfo file) {
 			int index = indexOf(file);
 			if (index >= 0)
 				return;
 			list.add(file);
+		}
+		public void clear() {
+			list.clear();
 		}
 		public boolean addOnTop(FileInfo file) {
 			int index = indexOf(file);
@@ -257,13 +266,40 @@ public class CoverpageManager {
 			return item;
 		}
 	}
+
+	private final static int COVERPAGE_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 1000 : 300;
+	private final static int COVERPAGE_MAX_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 3000 : 1000;
+	private Runnable lastReadyNotifyTask;
+	private long firstReadyTimestamp;
 	private void notifyBitmapIsReady(final FileInfo file) {
-		BackgroundThread.instance().postGUI(new Runnable() {
+		synchronized(LOCK) {
+			if (mReadyQueue.empty())
+				firstReadyTimestamp = Utils.timeStamp();
+			mReadyQueue.add(file);
+		}
+		Runnable task = new Runnable() {
 			@Override
 			public void run() {
-				listener.onCoverpageReady(file);
+				if (lastReadyNotifyTask != this && Utils.timeInterval(firstReadyTimestamp) < COVERPAGE_MAX_UPDATE_DELAY)
+					return;
+				ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				synchronized(LOCK) {
+					for (;;) {
+						FileInfo f = mReadyQueue.next();
+						if (f == null)
+							break;
+						list.add(f);
+					}
+					mReadyQueue.clear();
+				}
+				if (list.size() > 0) {
+					listener.onCoverpagesReady(list);
+					firstReadyTimestamp = Utils.timeStamp();
+				}
 			}
-		});
+		};
+		lastReadyNotifyTask = task;
+		BackgroundThread.instance().postGUI(task, 500);
 	}
 
 	private void draw(FileInfo file, byte[] data) {
@@ -276,22 +312,16 @@ public class CoverpageManager {
 				return;
 			item.state = State.DRAWING;
 		}
-		Bitmap bmp = decodeCoverPage(data);
+		Bitmap bmp = drawCoverpage(data, file);
 		if (bmp != null) {
 			// successfully decoded
 			log.v("coverpage is decoded for " + file);
 			item.setBitmap(bmp);
 			item.state = State.READY;
 			notifyBitmapIsReady(file);
-		} else {
-			// draw default coverpage
-			bmp = drawDefaultCoverpage(file);
-			log.v("default coverpage is created for " + file);
-			item.setBitmap(bmp);
-			item.state = State.READY;
-			notifyBitmapIsReady(file);
 		}
 	}
+
 	private void coverpageLoaded(final FileInfo file, final byte[] data) {
 		log.v("coverpage data is loaded for " + file);
 		setItemState(file, State.IMAGE_DRAW_SCHEDULED);
@@ -468,114 +498,12 @@ public class CoverpageManager {
 		return new Rect(dst.left + dx, dst.top + dy, dst.left + sw + dx, dst.top + sh + dy); 
 	}
 	
-	private static Method bitmapSetDensityMethod;
-	private static Method canvasSetDensityMethod;
-	private static boolean isNewApiChecked;
-	private Bitmap decodeCoverPage( byte[] data )
-	{
-		if (data == null || data.length == 0)
-			return null;
-		try {
-			ByteArrayInputStream is = new ByteArrayInputStream(data);
-			Bitmap srcbmp = BitmapFactory.decodeStream(is);
-			
-			if ( !isNewApiChecked ) {
-				isNewApiChecked = true;
-				try {
-					bitmapSetDensityMethod = Bitmap.class.getMethod("setDensity", new Class[] {int.class});
-					canvasSetDensityMethod = Canvas.class.getMethod("setDensity", new Class[] {int.class});
-				} catch ( Exception e ) {
-					L.w("No Bitmap.setDensity() method found");
-				}
-			}
-			
-			Rect bestSize = getBestCoverSize(srcbmp.getWidth(), srcbmp.getHeight());
-			Bitmap bmp = Bitmap.createScaledBitmap(srcbmp, bestSize.width(), bestSize.height(), true); 
-				//Bitmap.createBitmap(bestSize.width(), bestSize.height(), Bitmap.Config.ARGB_8888);
-//			if (bitmapSetDensityMethod != null)
-//				bitmapSetDensityMethod.invoke(bmp, Bitmap.DENSITY_NONE);
-//			//bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
-//			Canvas canvas = new Canvas(bmp);
-//			if ( canvasSetDensityMethod!=null )
-//				canvasSetDensityMethod.invoke(canvas, Bitmap.DENSITY_NONE);
-//			//canvas.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
-//			canvas.drawBitmap(srcbmp, null,
-//					new Rect(0, 0, bestSize.width(), bestSize.height()), null);
-			srcbmp.recycle();
-    		//Log.d("cr3", "cover page format: " + srcbmp.getWidth() + "x" + srcbmp.getHeight());
-    		return bmp;
-		} catch ( Exception e ) {
-    		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
-    		return null;
-		}
-	}
-	private Bitmap drawDefaultCoverpage(FileInfo file)
+	private Bitmap drawCoverpage(byte[] data, FileInfo file)
 	{
 		try {
-			if ( !isNewApiChecked ) {
-				isNewApiChecked = true;
-				try {
-					bitmapSetDensityMethod = Bitmap.class.getMethod("setDensity", new Class[] {int.class});
-					canvasSetDensityMethod = Canvas.class.getMethod("setDensity", new Class[] {int.class});
-				} catch ( Exception e ) {
-					L.w("No Bitmap.setDensity() method found");
-				}
-			}
-			
-			// Create drawing buffer bitmap
-			int factor = 3;
-			int width = maxWidth * factor;
-			int height = maxHeight * factor;
-			Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-			if (bitmapSetDensityMethod != null)
-				bitmapSetDensityMethod.invoke(bmp, Bitmap.DENSITY_NONE);
-			//bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
-			Canvas canvas = new Canvas(bmp);
-			if ( canvasSetDensityMethod!=null )
-				canvasSetDensityMethod.invoke(canvas, Bitmap.DENSITY_NONE);
-			
-			// Draw cover page to buffer
-			// draw background
-
-			// frame
-			Rect rc = new Rect(0, 0, width, height);
-			Paint framepaint = new Paint();
-			framepaint.setColor(0xFFA0A0C0);
-			canvas.drawRect(rc, framepaint);
-			
-			// background
-			int frameW = 3;
-			Rect rc2 = new Rect(frameW, frameW, width - frameW * 2, height - frameW * 2);
-			Paint bgpaint = new Paint();
-			bgpaint.setColor(0xFFD0D0D0);
-			canvas.drawRect(rc2, bgpaint);
-			
-			Paint textPaint = new Paint();
-			textPaint.setColor(0xFF000000);
-			textPaint.setTextSize(24);
-			textPaint.setTextAlign(Paint.Align.LEFT);
-			String title = file.title;
-			if (title == null || title.length() == 0)
-				title = file.getFileNameToDisplay();
-			canvas.drawText(title, 20, 20, textPaint);
-
-			// TODO: draw text 
-
-			// RESIZE
-			Bitmap bmp2 = Bitmap.createScaledBitmap(bmp, maxWidth, maxHeight, true);
-//			if (bitmapSetDensityMethod != null)
-//				bitmapSetDensityMethod.invoke(bmp2, Bitmap.DENSITY_NONE);
-//			//bmp.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
-//			Canvas canvas2 = new Canvas(bmp2);
-//			if (canvasSetDensityMethod != null)
-//				canvasSetDensityMethod.invoke(canvas2, Bitmap.DENSITY_NONE);
-//			//canvas.setDensity(Bitmap.DENSITY_NONE); // mCoolReader.getResources().getDisplayMetrics().densityDpi
-//			Paint resizePaint = new Paint();
-//			resizePaint.setFilterBitmap(true);
-//			canvas2.drawBitmap(bmp, null,
-//					new Rect(0, 0, maxWidth, maxHeight), resizePaint);
-			bmp.recycle();
-    		return bmp2;
+			Bitmap bmp = Bitmap.createBitmap(maxWidth, maxHeight, Config.RGB_565);
+			mActivity.getEngine().drawBookCover(bmp, data, "Droid Sans", file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
+			return bmp;
 		} catch ( Exception e ) {
     		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
     		return null;

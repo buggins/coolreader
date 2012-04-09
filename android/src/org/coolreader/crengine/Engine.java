@@ -22,6 +22,7 @@ import org.coolreader.R;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.util.Log;
@@ -593,6 +594,8 @@ public class Engine {
 
 	private native byte[] scanBookCoverInternal(String path);
 
+	private native void drawBookCoverInternal(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
+	
     private static native void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
     
     public static void suspendLongOperation() {
@@ -761,11 +764,33 @@ public class Engine {
 
 	public byte[] scanBookCover(String path) {
 		synchronized(this) {
-			long start = android.os.SystemClock.uptimeMillis();
+			long start = Utils.timeStamp();
 			byte[] res = scanBookCoverInternal(path);
-			long duration = android.os.SystemClock.uptimeMillis() - start;
+			long duration = Utils.timeInterval(start);
 			L.v("scanBookCover took " + duration + " ms for " + path);
 			return res;
+		}
+	}
+
+	/**
+	 * Draw book coverpage into bitmap buffer.
+	 * If cover image specified, this image will be drawn (resized to buffer size).
+	 * If no cover image, default coverpage will be drawn, with author, title, series.
+	 * @param bmp is buffer to draw in.
+	 * @param data is coverpage image data bytes, or empty array if no cover image
+	 * @param fontFace is font face to use.
+	 * @param title is book title.
+	 * @param authors is book authors list
+	 * @param seriesName is series name
+	 * @param seriesNumber is series number
+	 * @param bpp is bits per pixel (specify <=8 for eink grayscale dithering)
+	 */
+	public void drawBookCover(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp) {
+		synchronized(this) {
+			long start = Utils.timeStamp();
+			drawBookCoverInternal(bmp, data, fontFace, title, authors, seriesName, seriesNumber, bpp);
+			long duration = Utils.timeInterval(start);
+			L.v("drawBookCover took " + duration + " ms");
 		}
 	}
 

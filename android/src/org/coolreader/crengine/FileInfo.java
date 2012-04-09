@@ -87,6 +87,16 @@ public class FileInfo {
 		flags = (flags & ~(PROFILE_ID_MASK << PROFILE_ID_SHIFT)) | ((id & PROFILE_ID_MASK) << PROFILE_ID_SHIFT); 
 	}
 	
+	public String getTitleOrFileName() {
+		if (title != null && title.length() > 0)
+			return title;
+		if (authors != null && authors.length() > 0)
+			return "";
+		if (series != null && series.length() > 0)
+			return "";
+		return filename;
+	}
+	
 	/**
 	 * Split archive + file path name by ARC_SEPARATOR
 	 * @param pathName is pathname like /arc_file_path@/filepath_inside_arc or /file_path 

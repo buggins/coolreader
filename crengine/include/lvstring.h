@@ -453,6 +453,7 @@ public:
     /// assignment from string
     lString16 & operator = (const lString16 & str) { return assign(str); }
     lString16 & erase(size_type offset, size_type count);
+
     lString16 & append(const value_type * str);
     lString16 & append(const value_type * str, size_type count);
     lString16 & append(const lChar8 * str);
@@ -511,7 +512,7 @@ public:
     /// find position of substring inside string, -1 if not found
     int pos(lString16 subStr) const;
     /// find position of substring inside string starting from specified position, -1 if not found
-    int pos(lString16 subStr, int start) const;
+    int pos(const lString16 & subStr, int start) const;
     /// find position of substring inside string, -1 if not found
     int pos(const lChar16 * subStr) const;
     /// find position of substring inside string (8bit ASCII only), -1 if not found
@@ -672,6 +673,8 @@ public:
 			add( v[i] );
 	}
     void erase(int offset, int count);
+    /// split into several lines by delimiter
+    void split(const lString16 & str, const lString16 & delimiter);
     const lString16 & at(int index)
     {
         return ((lString16 *)chunks)[index];
