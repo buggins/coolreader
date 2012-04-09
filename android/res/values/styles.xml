@@ -44,14 +44,14 @@
         <item name="android:listSelector">@null</item>
         <item name="android:divider">@drawable/divider_black_tiled</item>
     </style>
-        
+
     <style name="ListView.White" parent="@style/Theme.White">
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
         <item name="android:divider">@drawable/divider_white_tiled</item>
     </style>
-        
+
     <style name="Theme.Light" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@drawable/background_tiled_light</item>
         <item name="android:colorBackground">#ffe0e0e0</item>
