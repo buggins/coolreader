@@ -1242,7 +1242,7 @@ lUInt32 LVBaseDrawBuf::GetAvgColor(lvRect & rc16)
         int ys = yy1 - yy0; // 0..16
         if (ys < 1)
             continue;
-        for (int x = (x0 >> 4); x < maxx; x++ ) {
+        for (int x = (x0 >> 4); x <= maxx; x++ ) {
 
             int xx0 = x << 4;
             int xx1 = (x + 1) << 4;
@@ -2068,15 +2068,15 @@ void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy,
     {
         if (y+yy >= clip.top && y+yy < clip.bottom)
         {
-            srcRect.top = srcdy * yy * 16 / _dy;
-            srcRect.bottom = srcdy * (yy + 1) * 16 / _dy;
+            srcRect.top = srcdy * yy * 16 / dy;
+            srcRect.bottom = srcdy * (yy + 1) * 16 / dy;
             for (int xx=0; xx<dx; xx++)
             {
                 if ( x+xx >= clip.left && x+xx < clip.right )
                 {
-                    srcRect.left = srcdx * xx * 16 / _dx;
-                    srcRect.right = srcdx * (xx + 1) * 16 / _dx;
-                    lUInt32 cl = GetAvgColor(srcRect);
+                    srcRect.left = srcdx * xx * 16 / dx;
+                    srcRect.right = srcdx * (xx + 1) * 16 / dx;
+                    lUInt32 cl = src->GetAvgColor(srcRect);
                     if ( _bpp==16 ) {
                         lUInt16 * dst = (lUInt16 *)GetScanLine(y + yy);
                         dst[x + xx] = rgb888to565(cl);
