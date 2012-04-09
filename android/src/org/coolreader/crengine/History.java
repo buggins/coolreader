@@ -309,7 +309,7 @@ public class History extends FileInfoChangeSource {
 			coverpageData = new byte[] {};
 		if ( oldData==null || oldData.length!=coverpageData.length ) { 
 			coverPageCache.put(bookId, coverpageData);
-			db().saveBookCoverpage(bookId, coverpageData);
+			//db().saveBookCoverpage(bookId, coverpageData);
 		}
 	}
 

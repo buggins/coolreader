@@ -1310,6 +1310,24 @@ public class MainDB extends BaseDB {
 		return null;
 	}
 	
+	public FileInfo loadFileInfo(String pathName) {
+		if (!isOpened())
+			return null;
+		try {
+			FileInfo cached = fileInfoCache.get(pathName);
+			if (cached != null) {
+				return cached;
+			}
+			FileInfo fileInfo = new FileInfo(pathName);
+			if (loadByPathname(fileInfo)) {
+				return fileInfo;
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+		return null;
+	}
+	
 	private boolean loadByPathname(FileInfo fileInfo) {
 		return findBy(fileInfo, "pathname", fileInfo.getPathName());
 	}

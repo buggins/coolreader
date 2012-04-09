@@ -75,6 +75,8 @@ public:
     virtual void Clear( lUInt32 color ) = 0;
     /// get pixel value
     virtual lUInt32 GetPixel( int x, int y ) = 0;
+    /// get average pixel value for area (coordinates are fixed floating points *16)
+    virtual lUInt32 GetAvgColor(lvRect & rc16) = 0;
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color ) = 0;
     /// fills rectangle with specified color
@@ -122,6 +124,8 @@ public:
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither=true ) = 0;
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette ) = 0;
+    /// draws rescaled buffer content to another buffer doing color conversion if necessary
+    virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options) = 0;
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette ) = 0;
@@ -169,6 +173,8 @@ public:
     virtual void GetClipRect( lvRect * clipRect ) { *clipRect = _clip; }
     /// sets clip rect
     virtual void SetClipRect( const lvRect * clipRect );
+    /// get average pixel value for area (coordinates are fixed floating points *16)
+    virtual lUInt32 GetAvgColor(lvRect & rc16);
     /// get buffer width, pixels
     virtual int  GetWidth();
     /// get buffer height, pixels
@@ -255,6 +261,8 @@ public:
     virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
+    /// draws rescaled buffer content to another buffer doing color conversion if necessary
+    virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options);
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette );
@@ -321,6 +329,8 @@ public:
     virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
+    /// draws rescaled buffer content to another buffer doing color conversion if necessary
+    virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options);
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette );

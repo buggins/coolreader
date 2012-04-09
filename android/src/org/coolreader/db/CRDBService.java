@@ -199,31 +199,44 @@ public class CRDBService extends Service {
     // coverpage DB access code
     //=======================================================================================
     public interface CoverpageLoadingCallback {
-    	void onCoverpageLoaded(long bookId, byte[] data);
+    	void onCoverpageLoaded(FileInfo fileInfo, byte[] data);
     }
 
-	public void saveBookCoverpage(final long bookId, final byte[] data) {
+	public void saveBookCoverpage(final FileInfo fileInfo, final byte[] data) {
 		if (data == null)
 			return;
 		execTask(new Task("saveBookCoverpage") {
 			@Override
 			public void work() {
-				coverDB.saveBookCoverpage(bookId, data);
+				Long bookId = fileInfo.id;
+				if (bookId == null) {
+					FileInfo found = mainDB.loadFileInfo(fileInfo.getPathName());
+					if (found != null && found.id != null)
+						bookId = found.id;
+				}
+				if (bookId != null)
+					coverDB.saveBookCoverpage(bookId, data);
 			}
 		});
 		flush();
 	}
 	
-	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback, final Handler handler) 
+	public void loadBookCoverpage(final FileInfo fileInfo, final CoverpageLoadingCallback callback, final Handler handler) 
 	{
 		execTask(new Task("loadBookCoverpage") {
 			@Override
 			public void work() {
-				final byte[] data = coverDB.loadBookCoverpage(bookId);
+				Long bookId = fileInfo.id;
+				if (bookId == null) {
+					FileInfo found = mainDB.loadFileInfo(fileInfo.getPathName());
+					if (found != null && found.id != null)
+						bookId = found.id;
+				}
+				final byte[] data = bookId != null ? coverDB.loadBookCoverpage(bookId) : null;
 				sendTask(handler, new Runnable() {
 					@Override
 					public void run() {
-						callback.onCoverpageLoaded(bookId, data);
+						callback.onCoverpageLoaded(fileInfo, data);
 					}
 				});
 			}
@@ -538,16 +551,16 @@ public class CRDBService extends Service {
             return CRDBService.this;
         }
         
-    	public void saveBookCoverpage(long bookId, byte[] data) {
-    		getService().saveBookCoverpage(bookId, data);
+    	public void saveBookCoverpage(final FileInfo fileInfo, byte[] data) {
+    		getService().saveBookCoverpage(fileInfo, data);
     	}
     	
     	public void deleteBookCoverpage(long bookId) {
     		getService().deleteCoverpage(bookId);
     	}
 
-    	public void loadBookCoverpage(final long bookId, final CoverpageLoadingCallback callback) {
-    		getService().loadBookCoverpage(bookId, callback, new Handler());
+    	public void loadBookCoverpage(final FileInfo fileInfo, final CoverpageLoadingCallback callback) {
+    		getService().loadBookCoverpage(new FileInfo(fileInfo), callback, new Handler());
     	}
     	
     	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback) {
