@@ -12,6 +12,7 @@ import java.util.TimeZone;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
@@ -21,7 +22,6 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -181,12 +181,26 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		this.mScanner = scanner;
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
+		this.mCoverpageManager = new CoverpageManager(mActivity);
 		setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 		createListView(true);
 		history.addListener(this);
 		scanner.addListener(this);
 		showDirectory( null, null );
+
+		this.mCoverpageManager.setCoverpageReadyListener(new CoverpageReadyListener() {
+			@Override
+			public void onCoverpageReady(FileInfo file) {
+				if (currDirectory == null)
+					return;
+				if (currDirectory.findItemByPathName(file.getPathName()) == null)
+					return;
+				currentListAdapter.notifyDataSetChanged();
+			}
+		});
 	}
+	
+	private CoverpageManager mCoverpageManager;
 	
 	private void createListView(boolean recreateAdapter) {
 		mListView = new FileBrowserListView(mActivity);
@@ -1040,16 +1054,19 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						if ( isSimple ) {
 							image.setImageResource(item.format.getIconResourceId());
 						} else {
-							Drawable drawable = null;
-							if ( item.id!=null )
-								drawable = mHistory.getBookCoverpageImage(null, item);
-							if ( drawable!=null ) {
-								image.setImageDrawable(drawable);
-							} else {
-								int resId = item.format!=null ? item.format.getIconResourceId() : 0;
-								if ( resId!=0 )
-									image.setImageResource(item.format.getIconResourceId());
-							}
+							image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
+							image.setMinimumHeight(120);
+							image.setMinimumWidth(90);
+//							Drawable drawable = null;
+//							if ( item.id!=null )
+//								drawable = mHistory.getBookCoverpageImage(null, item);
+//							if ( drawable!=null ) {
+//								image.setImageDrawable(drawable);
+//							} else {
+//								int resId = item.format!=null ? item.format.getIconResourceId() : 0;
+//								if ( resId!=0 )
+//									image.setImageResource(item.format.getIconResourceId());
+//							}
 						}
 					}
 					if ( isSimple ) {
@@ -1155,10 +1172,20 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	}
 	
+	private void setCurrDirectory(FileInfo newCurrDirectory) {
+		if (currDirectory != null && currDirectory != newCurrDirectory) {
+			ArrayList<FileInfo> filesToUqueue = new ArrayList<FileInfo>();
+			for (int i=0; i<currDirectory.fileCount(); i++)
+				filesToUqueue.add(currDirectory.getFile(i));
+			mCoverpageManager.unqueue(filesToUqueue);
+		}
+		currDirectory = newCurrDirectory;
+	}
+	
 	private void showDirectoryInternal( final FileInfo dir, final FileInfo file )
 	{
 		BackgroundThread.ensureGUI();
-		currDirectory = dir;
+		setCurrDirectory(dir);
 		if ( dir!=null )
 			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
 		if ( !BackgroundThread.instance().isGUIThread() )
