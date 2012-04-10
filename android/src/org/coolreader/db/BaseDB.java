@@ -15,6 +15,7 @@ import android.util.Log;
 public abstract class BaseDB {
 
 	public static final Logger log = L.create("bdb");
+	public static final Logger vlog = L.create("bdb", Log.VERBOSE);
 	
 	protected SQLiteDatabase mDB;
 	private File mFileName;
@@ -62,7 +63,7 @@ public abstract class BaseDB {
 	public boolean close() {
 		if (mDB != null) {
 			try {
-				log.d("Closing database");
+				log.i("Closing database");
 				flush();
 				clearCaches();
 				mDB.close();
@@ -173,17 +174,24 @@ public abstract class BaseDB {
 	 * Begin transaction, if not yet started, for changes.
 	 */
 	public void beginChanges() {
-		if (!mDB.inTransaction())
+		if (!mDB.inTransaction()) {
+			vlog.v("starting writable transaction");
 			mDB.beginTransaction();
-		changed = true;
+		}
+		if (!changed) {
+			vlog.v("modify readonly transaction to writable");
+			changed = true;
+		}
 	}
 
 	/**
 	 * Begin transaction, if not yet started, for faster reading.
 	 */
 	public void beginReading() {
-		if (!mDB.inTransaction())
+		if (!mDB.inTransaction()) {
+			vlog.v("starting readonly transaction");
 			mDB.beginTransaction();
+		}
 	}
 
 	/**
@@ -191,6 +199,7 @@ public abstract class BaseDB {
 	 */
 	public void endReading() {
 		if (mDB.inTransaction() && !changed) {
+			vlog.v("ending readonly transaction");
 			mDB.endTransaction();
 		}
 	}
@@ -201,8 +210,12 @@ public abstract class BaseDB {
 	 */
 	public void flush() {
 		if (mDB.inTransaction()) {
-			if (changed)
+			if (changed) {
 				mDB.setTransactionSuccessful();
+				log.i("flush: committing changes");
+			} else {
+				log.i("flush: rolling back changes");
+			}
 			mDB.endTransaction();
 		}
 	}

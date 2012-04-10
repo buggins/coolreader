@@ -5962,7 +5962,7 @@ public:
 		int maxSize = maxSizeW < maxSizeH ? maxSizeW : maxSizeH;
 		if (maxSize > 50)
 			maxSize = 50;
-		int minSize = 14;
+        int minSize = 11;
 		for (int size = maxSize; size >= minSize; ) {
 			if (format(size))
 				return true;

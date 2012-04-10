@@ -5030,14 +5030,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	try {
     		log.d("onDraw() called");
     		draw();
-//    		if ( mInitialized && mBitmap!=null ) {
-//        		log.d("onDraw() -- drawing page image");
-//        		Rect rc = new Rect(0, 0, mBitmap.getWidth(), mBitmap.getHeight());
-//    			canvas.drawBitmap(mBitmap, rc, rc, null);
-//    		} else {
-//        		log.d("onDraw() -- drawing empty screen");
-//    			canvas.drawColor(Color.rgb(192, 192, 192));
-//    		}
     	} catch ( Exception e ) {
     		log.e("exception while drawing", e);
     	}
@@ -5071,88 +5063,49 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	}
     }
     
-//    private void restorePosition()
-//    {
-//		BackgroundThread.ensureGUI();
-//    	if ( mBookInfo!=null ) {
-//    		if ( mBookInfo.getLastPosition()!=null ) {
-//	    		final String pos = mBookInfo.getLastPosition().getStartPos();
-//	    		post( new Task() {
-//	    			public void work() {
-//	    				BackgroundThread.ensureBackground();
-//	    	    		goToPositionInternal( pos );
-//	    	    		preparePageImage(0);
-//	    			}
-//	    		});
-//	    		mActivity.getHistory().updateBookAccess(mBookInfo);
-//    		}
-//    		mActivity.getHistory().saveToDB();
-//    	}
-//    }
-    
-//    private void savePosition()
-//    {
-//		BackgroundThread.ensureBackground();
-//    	if ( !mOpened )
-//    		return;
-//    	Bookmark bmk = getCurrentPageBookmarkInternal();
-//    	if ( bmk!=null )
-//    		log.d("saving position, bmk=" + bmk.getStartPos());
-//    	else
-//    		log.d("saving position: no current page bookmark obtained");
-//    	if ( bmk!=null && mBookInfo!=null ) {
-//        	bmk.setTimeStamp(System.currentTimeMillis());
-//    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
-//    		mBookInfo.setLastPosition(bmk);
-//    		mActivity.getHistory().updateRecentDir();
-//    		mActivity.getHistory().saveToDB();
-//    		saveSettings();
-//    	}
-//    }
-    
     private int lastSavePositionTaskId = 0;
     
-    private final static int DEF_SAVE_POSITION_INTERVAL = 120000;
+    private final static int DEF_SAVE_POSITION_INTERVAL = 180000; // 3 minutes
     private void scheduleSaveCurrentPositionBookmark(final int delayMillis) {
-    	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
-    	// update position, don't save to DB
-    	//saveCurrentPositionBookmarkSync(false);
-    	Runnable updatePositionTask = new Runnable() {
+    	// GUI thread required
+    	BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
 			public void run() {
-				if (mylastSavePositionTaskId == lastSavePositionTaskId) {
-					if (isBookLoaded() && mBookInfo != null) {
-				    	Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
-				    	if (bmk != null) {
-				            bmk.setTimeStamp(System.currentTimeMillis());
-				            bmk.setType(Bookmark.TYPE_LAST_POSITION);
-			                mBookInfo.setLastPosition(bmk);
-			                if (delayMillis <= 1)
-			                	mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk, true);
-				    	}
-					}
-				}
-		}};
-    	BackgroundThread.instance().executeGUI(updatePositionTask);
-    	if (delayMillis <= 1) {
-			if (isBookLoaded() && mBookInfo != null) {
-				log.v("saving last immediately");
-	            mActivity.getDB().saveBookInfo(mBookInfo);
-	            mActivity.getDB().flush();
-			}
-    	} else {
-	    	BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					if (mylastSavePositionTaskId == lastSavePositionTaskId) {
-						if (isBookLoaded() && mBookInfo != null) {
-							log.v("saving last position");
-			                mActivity.getDB().saveBookInfo(mBookInfo);
-			                mActivity.getDB().flush();
+		    	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
+				if (isBookLoaded() && mBookInfo != null) {
+			    	Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
+			    	if (bmk != null) {
+			            bmk.setTimeStamp(System.currentTimeMillis());
+			            bmk.setType(Bookmark.TYPE_LAST_POSITION);
+		                mBookInfo.setLastPosition(bmk);
+		                if (delayMillis <= 1)
+		                	mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk, true);
+			    	}
+			    	final BookInfo bookInfo = mBookInfo;
+			    	if (delayMillis <= 1) {
+						if (bookInfo != null) {
+							log.v("saving last immediately");
+							mActivity.getHistory().updateBookAccess(bookInfo);
+				            mActivity.getDB().saveBookInfo(bookInfo);
+				            mActivity.getDB().flush();
 						}
-					}
-				}}, delayMillis);
-    	}
+			    	} else {
+				    	BackgroundThread.instance().postGUI(new Runnable() {
+							@Override
+							public void run() {
+								if (mylastSavePositionTaskId == lastSavePositionTaskId) {
+									if (bookInfo != null) {
+										log.v("saving last position");
+										mActivity.getHistory().updateBookAccess(bookInfo);
+						                mActivity.getDB().saveBookInfo(bookInfo);
+						                //mActivity.getDB().flush();
+									}
+								}
+							}}, delayMillis);
+			    	}
+				}
+			}
+    	});
     }
     
     public Bookmark saveCurrentPositionBookmarkSync( final boolean saveToDB ) {
@@ -5178,40 +5131,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         }
         return bmk;
     }
-    
-    private class SavePositionTask extends Task {
-
-    	Bookmark bmk;
-    	
-		@Override
-		public void done() {
-	    	if ( bmk!=null && mBookInfo!=null ) {
-	        	bmk.setTimeStamp(System.currentTimeMillis());
-	    		bmk.setType(Bookmark.TYPE_LAST_POSITION);
-	    		mBookInfo.setLastPosition(bmk);
-	    		mActivity.getHistory().updateRecentDir();
-	    		mActivity.getDB().saveBookInfo(mBookInfo);
-                log.i("SavePositionTask.done()");
-	    	}
-		}
-
-		public void work() throws Exception {
-			BackgroundThread.ensureBackground();
-	    	if ( !mOpened )
-	    		return;
-	    	bmk = doc.getCurrentPageBookmark();
-	    	if ( bmk!=null )
-	    		log.d("saving position, bmk=" + bmk.getStartPos());
-	    	else
-	    		log.d("saving position: no current page bookmark obtained");
-		}
-    	
-    }
 
     public void save()
     {
 		BackgroundThread.ensureGUI();
-    	post( new SavePositionTask() );
+		if (isBookLoaded() && mBookInfo != null) {
+			log.v("saving last immediately");
+            mActivity.getDB().saveBookInfo(mBookInfo);
+            mActivity.getDB().flush();
+		}
+		//scheduleSaveCurrentPositionBookmark(0);
+    	//post( new SavePositionTask() );
     }
     
     public void close()
@@ -5222,7 +5152,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		return;
 		cancelSwapTask();
 		stopImageViewer();
-        scheduleSaveCurrentPositionBookmark(0);
+		save();
+        //scheduleSaveCurrentPositionBookmark(0);
 		//save();
     	post( new Task() {
     		public void work() {
@@ -5275,7 +5206,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
     @Override
 	protected void onDetachedFromWindow() {
-		// TODO Auto-generated method stub
 		super.onDetachedFromWindow();
 		log.d("View.onDetachedFromWindow() is called");
 	}

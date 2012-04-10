@@ -1273,16 +1273,16 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
     	this.screenWidth = screenWidth;
     	this.screenHeight = screenHeight;
     	int minSize = screenWidth < screenHeight ? screenWidth : screenHeight;
-    	int n = 4; // medium
+    	int n = 7; // medium
     	if (coverPageSizeOption == 2)
-    		n = 2; // big
+    		n = 4; // big
     	else if (coverPageSizeOption == 0)
-    		n = 7; // small
-    	if (minSize < 50)
-    		minSize = 50;
+    		n = 10; // small
+    	if (minSize < 250)
+    		minSize = 250;
     	int nh = minSize / n;
-    	if (nh < 120)
-    		nh = 120;
+    	if (nh < 90)
+    		nh = 90;
     	int nw = nh * 3 / 4;
     	
     	

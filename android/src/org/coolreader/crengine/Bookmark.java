@@ -22,6 +22,79 @@ public class Bookmark {
 		modified=v.modified;
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((commentText == null) ? 0 : commentText.hashCode());
+		result = prime * result + ((endPos == null) ? 0 : endPos.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + (modified ? 1231 : 1237);
+		result = prime * result + percent;
+		result = prime * result + ((posText == null) ? 0 : posText.hashCode());
+		result = prime * result + shortcut;
+		result = prime * result
+				+ ((startPos == null) ? 0 : startPos.hashCode());
+		result = prime * result + (int) (timeStamp ^ (timeStamp >>> 32));
+		result = prime * result
+				+ ((titleText == null) ? 0 : titleText.hashCode());
+		result = prime * result + type;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Bookmark other = (Bookmark) obj;
+		if (commentText == null) {
+			if (other.commentText != null)
+				return false;
+		} else if (!commentText.equals(other.commentText))
+			return false;
+		if (endPos == null) {
+			if (other.endPos != null)
+				return false;
+		} else if (!endPos.equals(other.endPos))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (modified != other.modified)
+			return false;
+		if (percent != other.percent)
+			return false;
+		if (posText == null) {
+			if (other.posText != null)
+				return false;
+		} else if (!posText.equals(other.posText))
+			return false;
+		if (shortcut != other.shortcut)
+			return false;
+		if (startPos == null) {
+			if (other.startPos != null)
+				return false;
+		} else if (!startPos.equals(other.startPos))
+			return false;
+		if (timeStamp != other.timeStamp)
+			return false;
+		if (titleText == null) {
+			if (other.titleText != null)
+				return false;
+		} else if (!titleText.equals(other.titleText))
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
+	}
+
 	public String getUniqueKey() {
 		switch (type) {
 		case TYPE_LAST_POSITION:

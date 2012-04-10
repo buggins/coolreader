@@ -725,7 +725,7 @@ public class MainDB extends BaseDB {
 		if (existing != null)
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
-		if (findBy(fileInfo, "pathname", fileInfo.getPathName())) {
+		if (findBy(fileInfo, "pathname", path)) {
 			return fileInfo;
 		}
 		return null;
@@ -821,49 +821,67 @@ public class MainDB extends BaseDB {
 		if (bookInfo == null || bookInfo.getFileInfo() == null)
 			return;
 		save(bookInfo.getFileInfo());
+		fileInfoCache.put(bookInfo.getFileInfo());
 		HashMap<String, Bookmark> bookmarks = loadBookmarks(bookInfo.getFileInfo());
+		int changed = 0;
+		int removed = 0;
+		int added = 0;
 		for (Bookmark bmk : bookInfo.getAllBookmarks()) {
 			 Bookmark existing = bookmarks.get(bmk.getUniqueKey());
 			 if (existing != null) {
 				 bmk.setId(existing.getId());
-				 if (!bmk.equals(existing))
+				 if (!bmk.equals(existing)) {
 					 save(bmk, bookInfo.getFileInfo().id);
+					 changed++;
+				 }
 				 bookmarks.remove(existing.getUniqueKey());
 			 } else {
 				 // create new
 			 	 save(bmk, bookInfo.getFileInfo().id);
+			 	 added++;
 			 }
 		}
 		if (bookmarks.size() > 0) {
 			// remove bookmarks not found in new object
-			for (Bookmark bmk : bookmarks.values())
+			for (Bookmark bmk : bookmarks.values()) {
 				deleteBookmark(bmk);
+				removed++;
+			}
 		}
+		if (added + changed + removed > 0)
+			vlog.i("bookmarks added:" + added + ", updated: " + changed + ", removed:" + removed);
 	}
 
 	private boolean save(FileInfo fileInfo)	{
-		beginChanges();
 		boolean authorsChanged = true;
 		try {
 			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName());
-			if (oldValue == null)
+			if (oldValue == null && fileInfo.id != null)
 				oldValue = findFileInfoById(fileInfo.id);
 			if (oldValue != null && fileInfo.id == null && oldValue.id != null)
 				fileInfo.id = oldValue.id;
 			if (oldValue != null) {
 				// found, updating
-				QueryHelper h = new QueryHelper(fileInfo, oldValue);
-				h.update(fileInfo.id);
-				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+				if (!fileInfo.equals(oldValue)) {
+					vlog.d("updating file " + fileInfo.getPathName());
+					beginChanges();
+					QueryHelper h = new QueryHelper(fileInfo, oldValue);
+					h.update(fileInfo.id);
+					authorsChanged = !eq(fileInfo.authors, oldValue.authors);
+				}
 			} else {
 				// inserting
-				QueryHelper h = new QueryHelper(fileInfo, oldValue);
+				vlog.d("inserting new file " + fileInfo.getPathName());
+				beginChanges();
+				QueryHelper h = new QueryHelper(fileInfo, new FileInfo());
 				fileInfo.id = h.insert();
 			}
 			
 			fileInfoCache.put(fileInfo);
 			if (fileInfo.id != null) {
 				if ( authorsChanged ) {
+					vlog.d("updating authors for file " + fileInfo.getPathName());
+					beginChanges();
 					Long[] authorIds = getAuthorIds(fileInfo.authors);
 					saveBookAuthors(fileInfo.id, authorIds);
 				}
