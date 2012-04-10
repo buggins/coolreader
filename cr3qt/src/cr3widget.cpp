@@ -523,7 +523,51 @@ void CR3View::paintEvent ( QPaintEvent * event )
     LVDrawBuf * buf = ref->getDrawBuf();
     int dx = buf->GetWidth();
     int dy = buf->GetHeight();
-    if ( buf->GetBitsPerPixel()==16 ) {
+    int bpp = buf->GetBitsPerPixel();
+    if (bpp == 4 || bpp == 3) {
+        QImage img(dx, dy, QImage::Format_RGB16 );
+        for ( int i=0; i<dy; i++ ) {
+            unsigned char * dst = img.scanLine( i );
+            unsigned char * src = buf->GetScanLine(i);
+            for ( int x=0; x<dx; x++ ) {
+                lUInt16 cl = *src; //(*src << (8 - bpp)) & 0xF8;
+                cl = (cl << 8) | (cl << 3) | (cl >> 3);
+                src++;
+                *dst++ = (cl & 255);
+                *dst++ = ((cl >> 8) & 255);
+//                *dst++ = *src++;
+//                *dst++ = 0xFF;
+//                src++;
+            }
+        }
+        painter.drawImage( rc, img );
+    } else if (bpp == 2) {
+        QImage img(dx, dy, QImage::Format_RGB16 );
+        for ( int i=0; i<dy; i++ ) {
+            unsigned char * dst = img.scanLine( i );
+            unsigned char * src = buf->GetScanLine(i);
+            int shift = 0;
+            for ( int x=0; x<dx; x++ ) {
+                lUInt16 cl = *src; //(*src << (8 - bpp)) & 0xF8;
+                lUInt16 cl2 = (cl << shift) & 0xC0;
+                cl2 = cl2 | (cl2 >> 2);
+                cl2 = (cl2 << 8) | (cl2 << 3) | (cl2 >> 3);
+                if ((x & 3) == 3) {
+                    src++;
+                    shift = 0;
+                } else {
+                    shift += 2;
+                }
+                *dst++ = (cl2 & 255);
+                *dst++ = ((cl2 >> 8) & 255);
+//                *dst++ = *src++;
+//                *dst++ = 0xFF;
+//                src++;
+            }
+        }
+        painter.drawImage( rc, img );
+
+    } else if (bpp == 16) {
         QImage img(dx, dy, QImage::Format_RGB16 );
         for ( int i=0; i<dy; i++ ) {
             unsigned char * dst = img.scanLine( i );
@@ -537,7 +581,7 @@ void CR3View::paintEvent ( QPaintEvent * event )
             }
         }
         painter.drawImage( rc, img );
-    } else if ( buf->GetBitsPerPixel()==32 ) {
+    } else if (bpp == 32) {
         QImage img(dx, dy, QImage::Format_RGB32 );
         for ( int i=0; i<dy; i++ ) {
             unsigned char * dst = img.scanLine( i );

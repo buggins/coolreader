@@ -33,6 +33,15 @@
 /// uncomment to save copy of loaded document to file
 //#define SAVE_COPY_OF_LOADED_DOCUMENT
 
+// TESTING GRAYSCALE MODE
+#if 0
+#undef COLOR_BACKBUFFER
+#define COLOR_BACKBUFFER 0
+#undef GRAY_BUFFER_BITS 4
+#define GRAY_BUFFER_BITS 4
+#endif
+
+
 #if 0
 #define REQUEST_RENDER(txt) {CRLog::trace("request render from "  txt); requestRender();}
 #define CHECK_RENDER(txt) {CRLog::trace("LVDocView::checkRender() - from " txt); checkRender();}
@@ -5827,4 +5836,222 @@ ldomWordEx * LVPageWordSelector::reducePattern()
     if ( res )
         updateSelection();
     return res;
+}
+
+class SimpleTitleFormatter {
+	lString16 _text;
+	lString16Collection _lines;
+	lString8 _fontFace;
+	bool _bold;
+	bool _italic;
+	lUInt32 _color;
+	LVFontRef _font;
+	int _lineHeight;
+	int _height;
+	int _width;
+	int _maxWidth;
+	int _maxHeight;
+public:
+	int getHeight() { return _height; }
+	int getWidth() { return _width; }
+	SimpleTitleFormatter(lString16 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight) : _text(text), _fontFace(fontFace), _bold(bold), _italic(italic), _color(color), _maxWidth(maxWidth), _maxHeight(maxHeight) {
+		if (_text.length() > 80)
+			_text = _text.substr(0, 80) + "...";
+		if (findBestSize())
+			return;
+		_text = _text.substr(0, 50) + "...";
+		if (findBestSize())
+			return;
+		_text = _text.substr(0, 32) + "...";
+		if (findBestSize())
+			return;
+		_text = _text.substr(0, 16) + "...";
+		findBestSize();
+	}
+
+	bool measure() {
+		_width = 0;
+		_height = 0;
+		for (int i=_lines.length() - 1; i >= 0; i--) {
+			lString16 line = _lines[i].trim();
+			int w = _font->getTextWidth(line.c_str(), line.length());
+			if (w > _width)
+				_width = w;
+			_height += _lineHeight;
+		}
+		return _width < _maxWidth && _height < _maxHeight;
+	}
+	bool splitLines(const char * delimiter) {
+		lString16 delim16(delimiter);
+		int bestpos = -1;
+		int bestdist = -1;
+		int start = 0;
+		bool skipDelimiter = *delimiter == '|';
+		for (;;) {
+			int p = _text.pos(delim16, start);
+			if (p < 0)
+				break;
+			int dist = _text.length() / 2 - p;
+			if (dist < 0)
+				dist = -dist;
+			if (bestdist == -1 || dist < bestdist) {
+				bestdist = dist;
+				bestpos = p;
+			}
+			start = p + 1;
+		}
+		if (bestpos < 0)
+			return false;
+		_lines.add(_text.substr(0, bestpos + (skipDelimiter ? 0 : delim16.length())).trim());
+		_lines.add(_text.substr(bestpos + delim16.length()).trim());
+		return measure();
+	}
+	bool format(int fontSize) {
+		_font = fontMan->GetFont(fontSize, _bold ? 800 : 400, _italic, css_ff_sans_serif, _fontFace, -1);
+		_lineHeight = _font->getHeight() * 120 / 100;
+		_lines.clear();
+		int singleLineWidth = _font->getTextWidth(_text.c_str(), _text.length());
+		if (singleLineWidth < _maxWidth) {
+			_lines.add(_text);
+			_width = singleLineWidth;
+			_height = _lineHeight;
+			return _width < _maxWidth && _height < _maxHeight;
+		}
+		if (splitLines("|"))
+			return true;
+		if (splitLines(","))
+			return true;
+		if (splitLines(";"))
+			return true;
+		if (splitLines(":"))
+			return true;
+		if (splitLines("-"))
+			return true;
+		if (splitLines(" "))
+			return true;
+		if (splitLines("_"))
+			return true;
+		if (splitLines("."))
+			return true;
+		_lines.clear();
+		int p = _text.length() / 2;
+		_lines.add(_text.substr(0, p));
+		_lines.add(_text.substr(p, _text.length() - p));
+		return false;
+	}
+	bool findBestSize() {
+		int maxSizeW = _maxWidth / 10;
+		int maxSizeH = _maxHeight / 3;
+		int maxSize = maxSizeW < maxSizeH ? maxSizeW : maxSizeH;
+		if (maxSize > 50)
+			maxSize = 50;
+		int minSize = 14;
+		for (int size = maxSize; size >= minSize; ) {
+			if (format(size))
+				return true;
+			if (size > 30)
+				size -= 3;
+			else if (size > 20)
+				size -= 2;
+			else
+				size--;
+		}
+		return false;
+	}
+	void draw(LVDrawBuf & buf, lString16 str, int x, int y, int align) {
+		int w = _font->getTextWidth(str.c_str(), str.length());
+		if (align == 0)
+			x -= w / 2; // center
+		else if (align == 1)
+			x -= w; // right
+		buf.SetTextColor(_color);
+		_font->DrawTextString(&buf, x, y, str.c_str(), str.length(), '?');
+	}
+	void draw(LVDrawBuf & buf, lvRect rc, int halign, int valign) {
+		int y0 = rc.top;
+		if (valign == 0)
+			y0 += (rc.height() - _lines.length() * _lineHeight) / 2;
+		int x0 = halign < 0 ? rc.left : (halign > 0 ? rc.right : (rc.left + rc.right) / 2);
+		for (int i=0; i<_lines.length(); i++) {
+			draw(buf, _lines[i], x0, y0, halign);
+			y0 += _lineHeight;
+		}
+	}
+};
+
+void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber) {
+	if (!image.isNull() && image->GetWidth() > 0 && image->GetHeight() > 0) {
+		buf.Draw(image, 0, 0, buf.GetWidth(), buf.GetHeight());
+		return;
+	}
+
+	bool isGray = buf.GetBitsPerPixel() <= 8;
+
+	int dx = buf.GetWidth();
+	int dy = buf.GetHeight();
+	CRLog::trace("drawing default cover page %d x %d", dx, dy);
+	lvRect rc(0, 0, buf.GetWidth(), buf.GetHeight());
+	buf.FillRect(rc, 0xC0C0C0);
+	rc.shrink(rc.width() / 40);
+	buf.FillRect(rc, isGray ? 0xFFFFFF : 0xE0E0E0);
+
+	lvRect rc2(rc);
+	rc2.top = rc.height() * 8 / 10;
+	rc2.bottom = rc2.top + rc.height() / 15;
+	buf.FillRect(rc2, 0xC0FFC040);
+
+	lvRect rc3(rc);
+	rc3.left += rc.width() / 30;
+	rc3.right = rc3.left + rc.width() / 30;
+	buf.FillRect(rc3, 0xC0F0D060);
+
+
+	LVFontRef fnt = fontMan->GetFont(16, 400, false, css_ff_sans_serif, fontFace, -1); // = fontMan
+	if (!fnt.isNull()) {
+
+		rc.left += rc.width() / 10;
+		rc.right -= rc.width() / 20;
+
+		lUInt32 titleColor = isGray ? 0 : 0x800000;
+		lUInt32 authorColor = isGray ? 0 : 0x000080;
+		lUInt32 seriesColor = isGray ? 0 : 0x406040;
+
+		lvRect authorRc(rc);
+
+		if (!authors.empty()) {
+			authorRc.top += rc.height() * 1 / 20;
+			authorRc.bottom = authorRc.top + rc.height() * 2 / 10;
+			SimpleTitleFormatter authorFmt(authors, fontFace, false, false, authorColor, authorRc.width(), authorRc.height());
+			authorFmt.draw(buf, authorRc, 0, 0);
+		} else {
+			authorRc.bottom = authorRc.top;
+		}
+
+		if (!title.empty()) {
+			lvRect titleRc(rc);
+			titleRc.top += rc.height() * 4 / 10;
+			titleRc.bottom = titleRc.top + rc.height() * 7 / 10;
+
+			lvRect rc3(titleRc);
+			rc3.top -= rc.height() / 20;
+			rc3.bottom = rc3.top + rc.height() / 40;
+			buf.FillRect(rc3, 0x40FFFFFF);
+
+			SimpleTitleFormatter titleFmt(title, fontFace, true, false, titleColor, titleRc.width(), titleRc.height());
+			titleFmt.draw(buf, titleRc, -1, -1);
+
+			rc3.top += titleFmt.getHeight() + rc.height() / 20;
+			rc3.bottom = rc3.top + rc.height() / 40;
+			buf.FillRect(rc3, 0x40FFFFFF);
+		}
+
+		if (!seriesName.empty()) {
+			lvRect seriesRc(rc);
+			seriesRc.top += rc.height() * 8 / 10;
+			//seriesRc.bottom = rc.top + rc.height() * 9 / 10;
+			SimpleTitleFormatter seriesFmt(seriesName, fontFace, false, true, seriesColor, seriesRc.width(), seriesRc.height());
+			seriesFmt.draw(buf, seriesRc, 1, 0);
+		}
+
+	}
 }

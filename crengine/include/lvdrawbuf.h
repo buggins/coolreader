@@ -77,6 +77,8 @@ public:
     virtual lUInt32 GetPixel( int x, int y ) = 0;
     /// get average pixel value for area (coordinates are fixed floating points *16)
     virtual lUInt32 GetAvgColor(lvRect & rc16) = 0;
+    /// get linearly interpolated pixel value (coordinates are fixed floating points *16)
+    virtual lUInt32 GetInterpolatedColor(int x16, int y16) = 0;
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color ) = 0;
     /// fills rectangle with specified color
@@ -175,6 +177,8 @@ public:
     virtual void SetClipRect( const lvRect * clipRect );
     /// get average pixel value for area (coordinates are fixed floating points *16)
     virtual lUInt32 GetAvgColor(lvRect & rc16);
+    /// get linearly interpolated pixel value (coordinates are fixed floating points *16)
+    virtual lUInt32 GetInterpolatedColor(int x16, int y16);
     /// get buffer width, pixels
     virtual int  GetWidth();
     /// get buffer height, pixels

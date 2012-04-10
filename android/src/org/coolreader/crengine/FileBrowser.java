@@ -200,7 +200,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						found = true;
 				}
 				if (found)
-					currentListAdapter.notifyDataSetChanged();
+					currentListAdapter.notifyInvalidated();
 			}
 		});
 	}
@@ -1273,15 +1273,18 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
     	this.screenWidth = screenWidth;
     	this.screenHeight = screenHeight;
     	int minSize = screenWidth < screenHeight ? screenWidth : screenHeight;
-    	int n = 6;
+    	int n = 4; // medium
     	if (coverPageSizeOption == 2)
-    		n = 4;
+    		n = 2; // big
     	else if (coverPageSizeOption == 0)
-    		n = 9;
+    		n = 7; // small
     	if (minSize < 50)
     		minSize = 50;
     	int nh = minSize / n;
-    	int nw = nh * 210 / 297;
+    	if (nh < 120)
+    		nh = 120;
+    	int nw = nh * 3 / 4;
+    	
     	
     	if (coverPageHeight != nh) {
 	    	coverPageHeight = nh;

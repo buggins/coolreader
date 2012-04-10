@@ -1011,7 +1011,6 @@ public class CoolReader extends Activity
 		mPaused = true;
 //		setScreenUpdateMode(-1, mReaderView);
 		releaseBacklightControl();
-		mReaderView.saveCurrentPositionBookmarkSync(true);
 		mReaderView.onAppPause();
 		super.onPause();
 	}

@@ -982,5 +982,7 @@ public:
     virtual ~LVDocView();
 };
 
+/// draw book cover, either from image, or generated from title/authors
+void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber);
 
 #endif

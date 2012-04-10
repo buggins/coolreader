@@ -1355,8 +1355,8 @@ public class MainDB extends BaseDB {
 	{
 		if (fileInfo == null)
 			return null;
-		fileInfoCache.remove(fileInfo);
 		Long bookId = getBookId(fileInfo);
+		fileInfoCache.remove(fileInfo);
 		if (bookId == null)
 			return null;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + bookId);
