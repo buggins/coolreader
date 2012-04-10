@@ -1316,5 +1316,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 		currentListAdapter.notifyDataSetChanged();
 	}
-	
+
+	public void setCoverpageData(FileInfo fileInfo, byte[] data) {
+		mCoverpageManager.setCoverpageData(fileInfo, data);
+		currentListAdapter.notifyInvalidated();
+	}
 }

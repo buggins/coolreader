@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.coolreader.CoolReader;
 import org.coolreader.db.CRDBService;
@@ -70,6 +71,15 @@ public class CoverpageManager {
 				return false;
 			fontFace = face;
 			return true;
+		}
+	}
+	
+	public void setCoverpageData(FileInfo fileInfo, byte[] data) {
+		synchronized(LOCK) {
+			unqueue(Collections.singleton(fileInfo));
+			mCache.remove(fileInfo);
+			mActivity.getDB().saveBookCoverpage(fileInfo, data);
+			coverpageLoaded(fileInfo, data);
 		}
 	}
 	
@@ -219,6 +229,14 @@ public class CoverpageManager {
 				list.remove(index);
 				item.removed();
 			}
+		}
+		public void remove(FileInfo file) {
+			int index = find(file);
+			if (index < 0)
+				return;
+			BitmapCacheItem item = list.get(index);
+			list.remove(index);
+			item.removed();
 		}
 		public Bitmap getBitmap(FileInfo file) {
 			synchronized (LOCK) {

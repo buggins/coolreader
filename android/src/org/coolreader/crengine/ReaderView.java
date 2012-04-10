@@ -2958,13 +2958,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_LOCALE) ) {
 			mActivity.setLanguage(value);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
-			mActivity.getBrowser().setCoverPagesEnabled(flg);
+        	if (mActivity.getBrowser() != null)
+        		mActivity.getBrowser().setCoverPagesEnabled(flg);
         } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
 			mActivity.getScanner().setDirScanEnabled(flg);
         } else if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
 			mActivity.setKeyBacklightDisabled(flg);
         } else if ( key.equals(PROP_FONT_FACE) ) {
-			mActivity.getBrowser().setCoverPageFontFace(value);
+        	if (mActivity.getBrowser() != null)
+        		mActivity.getBrowser().setCoverPageFontFace(value);
         } else if ( key.equals(PROP_APP_COVERPAGE_SIZE) ) {
         	int n = 0;
         	try {
@@ -2976,7 +2978,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		n = 0;
         	else if (n > 2)
         		n = 2;
-			mActivity.getBrowser().setCoverPageSizeOption(n);
+        	if (mActivity.getBrowser() != null)
+        		mActivity.getBrowser().setCoverPageSizeOption(n);
         } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
         	int n = 0;
         	try {
@@ -4890,8 +4893,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		mActivity.getHistory().updateBookAccess(mBookInfo);
 	    		mActivity.getDB().saveBookInfo(mBookInfo);
 		        if (mBookInfo.getFileInfo().id!=null && coverPageBytes!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
-		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching())
-		        		mActivity.getDB().saveBookCoverpage(mBookInfo.getFileInfo(), coverPageBytes );
+		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching()) {
+		        		if (mActivity.getBrowser() != null)
+		        			mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+		        	}
 		        	if (DeviceInfo.EINK_NOOK)
 		        		updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
 		        	//mEngine.setProgressDrawable(coverPageDrawable);

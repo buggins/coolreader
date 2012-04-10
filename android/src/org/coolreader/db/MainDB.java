@@ -14,7 +14,6 @@ import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Utils;
-import org.coolreader.db.CRDB.QueryHelper;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;

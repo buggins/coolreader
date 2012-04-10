@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,8 +10,6 @@ import java.util.zip.ZipEntry;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
-import org.coolreader.crengine.Engine.EngineTask;
-import org.coolreader.db.CRDB;
 import org.coolreader.db.CRDBService;
 
 import android.util.Log;
