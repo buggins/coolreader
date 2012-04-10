@@ -302,12 +302,11 @@ cr_jpeg_error (j_common_ptr cinfo)
 {
     //fprintf(stderr, "cr_jpeg_error() : fatal error while decoding JPEG image\n");
 
-    //char buffer[JMSG_LENGTH_MAX];
+    char buffer[JMSG_LENGTH_MAX];
 
     /* Create the message */
-    //(*cinfo->err->format_message) (cinfo, buffer);
-
-    //fprintf( stderr, "message: %s\n", buffer );
+    (*cinfo->err->format_message) (cinfo, buffer);
+    CRLog::error("cr_jpeg_error: %s", buffer);
 
     /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
     my_error_ptr myerr = (my_error_ptr) cinfo->err;
@@ -316,8 +315,9 @@ cr_jpeg_error (j_common_ptr cinfo)
     /* We could postpone this until after returning, if we chose. */
     //(*cinfo->err->output_message) (cinfo);
 
+    //CRLog::error("cr_jpeg_error : returning control to setjmp point %08x", &myerr->setjmp_buffer);
     /* Return control to the setjmp point */
-    longjmp(myerr->setjmp_buffer, 1);
+    longjmp(myerr->setjmp_buffer, -1);
 }
 
 #endif
@@ -517,35 +517,49 @@ LVImageSourceRef LVCreateXPMImageSource( const char * data[] )
 
 class LVJpegImageSource : public LVNodeImageSource
 {
+    my_error_mgr jerr;
+    jpeg_decompress_struct cinfo;
 protected:
 public:
     LVJpegImageSource( ldomNode * node, LVStreamRef stream )
         : LVNodeImageSource(node, stream)
     {
+    	//CRLog::trace("creating LVJpegImageSource");
 
+        // testing setjmp
+
+//        jmp_buf buf;
+//        if (setjmp(buf)) {
+//            CRLog::trace("longjmp is working ok");
+//            return;
+//        }
+//        longjmp(buf, -1);
     }
     virtual ~LVJpegImageSource() {}
     virtual void   Compact() { }
     virtual bool   Decode( LVImageDecoderCallback * callback )
     {
-        struct jpeg_decompress_struct cinfo;
+    	//CRLog::trace("LVJpegImageSource::decode called");
+        memset(&cinfo, 0, sizeof(jpeg_decompress_struct));
         /* Step 1: allocate and initialize JPEG decompression object */
 
-	/* We use our private extension JPEG error handler.
-	 * Note that this struct must live as long as the main JPEG parameter
-	 * struct, to avoid dangling-pointer problems.
-	 */
-	struct my_error_mgr jerr;
+		/* We use our private extension JPEG error handler.
+		 * Note that this struct must live as long as the main JPEG parameter
+		 * struct, to avoid dangling-pointer problems.
+		 */
 
         /* We set up the normal JPEG error routines, then override error_exit. */
-        jpeg_error_mgr errmgr;
-        cinfo.err = jpeg_std_error(&errmgr);
-        errmgr.error_exit = cr_jpeg_error;
+        cinfo.err = jpeg_std_error(&jerr.pub);
+        jerr.pub.error_exit = cr_jpeg_error;
+
+        /* Now we can initialize the JPEG decompression object. */
+        jpeg_create_decompress(&cinfo);
 
         lUInt8 * buffer = NULL;
         lUInt32 * row = NULL;
 
         if (setjmp(jerr.setjmp_buffer)) {
+        	CRLog::error("JPEG setjmp error handling");
 	    /* If we get here, the JPEG code has signaled an error.
 	     * We need to clean up the JPEG object, close the input file, and return.
 	     */
@@ -553,15 +567,13 @@ public:
                 delete[] buffer;
             if ( row )
                 delete[] row;
+        	CRLog::debug("JPEG decoder cleanup");
             cr_jpeg_src_free (&cinfo);
             jpeg_destroy_decompress(&cinfo);
             return false;
-	}
-
+	     }
 
             _stream->SetPos( 0 );
-            /* Now we can initialize the JPEG decompression object. */
-            jpeg_create_decompress(&cinfo);
             /* Step 2: specify data source (eg, a file) */
             cr_jpeg_src( &cinfo, _stream.get() );
             /* Step 3: read file parameters with jpeg_read_header() */

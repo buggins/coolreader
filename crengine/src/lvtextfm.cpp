@@ -441,6 +441,8 @@ public:
         if (m_text[pos]==0) // object
             return 0; // no additional space
         LVFont * font = (LVFont*)m_srcs[pos]->t.font;
+        if (!font)
+            return 0; // no font
         if ( !font->getItalic() )
             return 0; // not italic
         if ( pos<maxpos-1 && m_srcs[pos+1]==m_srcs[pos] )

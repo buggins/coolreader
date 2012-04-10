@@ -426,4 +426,6 @@ lString16 LVReadTextFile( LVStreamRef stream );
 /// read file contents to string
 lString16 LVReadTextFile( lString16 filename );
 
+LVStreamRef GetFB2Coverpage(LVStreamRef stream);
+
 #endif // __LVXML_H_INCLUDED__

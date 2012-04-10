@@ -1,7 +1,5 @@
 package org.coolreader.crengine;
 
-import java.io.ByteArrayInputStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,9 +9,7 @@ import org.coolreader.db.CRDBService;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -403,7 +399,13 @@ public class CoverpageManager {
 					mActivity.getDB().loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
 						@Override
 						public void onCoverpageLoaded(FileInfo fileInfo, byte[] data) {
-							coverpageLoaded(fileInfo, data);
+							if (data == null) {
+								log.v("cover not found in DB for " + fileInfo + ", scheduling scan");
+								mScanFileQueue.addOnTop(fileInfo);
+								scheduleScanFile();
+							} else {
+								coverpageLoaded(fileInfo, data);
+							}
 						}
 					});
 					scheduleCheckCache();

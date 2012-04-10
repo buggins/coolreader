@@ -3568,6 +3568,8 @@ void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
 
 /// load document from stream
 bool LVDocView::LoadDocument(LVStreamRef stream) {
+
+
 	m_swapDone = false;
 
 	setRenderProps(0, 0); // to allow apply styles and rend method while loading
@@ -3863,6 +3865,14 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			if (!tcrDecoder.isNull())
 				m_stream = tcrDecoder;
 		}
+
+        // TEST FB2 Coverpage parser
+    #if 0
+        LVStreamRef cover = GetFB2Coverpage(m_stream);
+        if (!cover.isNull()) {
+            CRLog::info("cover page found: %d bytes", (int)cover->GetPos());
+        }
+    #endif
 
 		return ParseDocument();
 

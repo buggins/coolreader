@@ -3928,3 +3928,408 @@ HTML_AUTOCLOSE_TABLE[] = {
 };
 
 
+// base64 decode table
+static const signed char base64_decode_table[] = {
+   -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, //0..15
+   -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, //16..31   10
+   -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63, //32..47   20
+   52,53,54,55,56,57,58,59,60,61,-1,-1,-1,-1,-1,-1, //48..63   30
+   -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14, //64..79   40
+   15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1, //80..95   50
+   -1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40, //INDEX2..111  60
+   41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1  //112..127 70
+};
+
+#define BASE64_BUF_SIZE 128
+class LVBase64Stream : public LVNamedStream
+{
+private:
+    lString8Collection & m_lines;
+    int         m_curr_line;
+    lString8    m_curr_text;
+    int         m_text_pos;
+    lvsize_t    m_size;
+    lvpos_t     m_pos;
+
+    int         m_iteration;
+    lUInt32     m_value;
+
+    lUInt8      m_bytes[BASE64_BUF_SIZE];
+    int         m_bytes_count;
+    int         m_bytes_pos;
+
+    int readNextBytes()
+    {
+        int bytesRead = 0;
+        bool flgEof = false;
+        while ( bytesRead == 0 && !flgEof )
+        {
+            while ( m_text_pos >= (int)m_curr_text.length() )
+            {
+                if ( !findNextTextNode() )
+                    return bytesRead;
+            }
+            int len = m_curr_text.length();
+            const lChar8 * txt = m_curr_text.c_str();
+            for ( ; m_text_pos<len && m_bytes_count < BASE64_BUF_SIZE - 3; m_text_pos++ )
+            {
+                lChar16 ch = txt[ m_text_pos ];
+                if ( ch < 128 )
+                {
+                    if ( ch == '=' )
+                    {
+                        // end of stream
+                        if ( m_iteration == 2 )
+                        {
+                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>4) & 0xFF);
+                            bytesRead++;
+                        }
+                        else if ( m_iteration == 3 )
+                        {
+                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>10) & 0xFF);
+                            m_bytes[m_bytes_count++] = (lUInt8)((m_value>>2) & 0xFF);
+                            bytesRead += 2;
+                        }
+                        // stop!!!
+                        //m_text_pos--;
+                        m_iteration = 0;
+                        flgEof = true;
+                        break;
+                    }
+                    else
+                    {
+                        int k = base64_decode_table[ch];
+                        if ( !(k & 0x80) ) {
+                            // next base-64 digit
+                            m_value = (m_value << 6) | (k);
+                            m_iteration++;
+                            if (m_iteration==4)
+                            {
+                                //
+                                m_bytes[m_bytes_count++] = (lUInt8)((m_value>>16) & 0xFF);
+                                m_bytes[m_bytes_count++] = (lUInt8)((m_value>>8) & 0xFF);
+                                m_bytes[m_bytes_count++] = (lUInt8)((m_value>>0) & 0xFF);
+                                m_iteration = 0;
+                                m_value = 0;
+                                bytesRead+=3;
+                            }
+                        } else {
+                            //m_text_pos++;
+                        }
+                    }
+                }
+            }
+        }
+        return bytesRead;
+    }
+
+    bool findNextTextNode()
+    {
+        if (m_curr_line < m_lines.length()) {
+            m_curr_text = m_lines[m_curr_line++];
+            m_text_pos = 0;
+        }
+        return false;
+    }
+
+    int bytesAvailable() { return m_bytes_count - m_bytes_pos; }
+
+    bool rewind()
+    {
+        m_pos = 0;
+        m_bytes_count = 0;
+        m_bytes_pos = 0;
+        m_iteration = 0;
+        m_value = 0;
+        m_curr_line = 0;
+        return findNextTextNode();
+    }
+
+    bool skip( lvsize_t count )
+    {
+        while ( count )
+        {
+            if ( m_bytes_pos >= m_bytes_count )
+            {
+                m_bytes_pos = 0;
+                m_bytes_count = 0;
+                int bytesRead = readNextBytes();
+                if ( bytesRead == 0 )
+                    return false;
+            }
+            int diff = (int) (m_bytes_count - m_bytes_pos);
+            if (diff > (int)count)
+                diff = (int)count;
+            m_pos += diff;
+            count -= diff;
+        }
+        return true;
+    }
+
+public:
+    virtual ~LVBase64Stream() { }
+    LVBase64Stream(lString8Collection & lines)
+        : m_lines(lines), m_curr_line(0), m_size(0), m_pos(0)
+    {
+        // calculate size
+        rewind();
+        m_size = bytesAvailable();
+        for (;;) {
+            int bytesRead = readNextBytes();
+            if ( !bytesRead )
+                break;
+            m_bytes_count = 0;
+            m_bytes_pos = 0;
+            m_size += bytesRead;
+        }
+        // rewind
+        rewind();
+    }
+    virtual bool Eof()
+    {
+        return m_pos >= m_size;
+    }
+    virtual lvsize_t  GetSize()
+    {
+        return m_size;
+    }
+
+    virtual lvpos_t GetPos()
+    {
+        return m_pos;
+    }
+
+    virtual lverror_t GetPos( lvpos_t * pos )
+    {
+        if (pos)
+            *pos = m_pos;
+        return LVERR_OK;
+    }
+
+    virtual lverror_t Seek(lvoffset_t offset, lvseek_origin_t origin, lvpos_t* newPos)
+    {
+        lvpos_t npos = 0;
+        lvpos_t currpos = GetPos();
+        switch (origin) {
+        case LVSEEK_SET:
+            npos = offset;
+            break;
+        case LVSEEK_CUR:
+            npos = currpos + offset;
+            break;
+        case LVSEEK_END:
+            npos = m_size + offset;
+            break;
+        }
+        if (npos > m_size)
+            return LVERR_FAIL;
+        if ( npos != currpos )
+        {
+            if (npos < currpos)
+            {
+                if ( !rewind() || !skip(npos) )
+                    return LVERR_FAIL;
+            }
+            else
+            {
+                skip( npos - currpos );
+            }
+        }
+        if (newPos)
+            *newPos = npos;
+        return LVERR_OK;
+    }
+    virtual lverror_t Write(const void*, lvsize_t, lvsize_t*)
+    {
+        return LVERR_NOTIMPL;
+    }
+    virtual lverror_t Read(void* buf, lvsize_t size, lvsize_t* pBytesRead)
+    {
+        lvsize_t bytesRead = 0;
+        //fprintf( stderr, "Read()\n" );
+
+        lUInt8 * out = (lUInt8 *)buf;
+
+        while (size>0)
+        {
+            int sz = bytesAvailable();
+            if (!sz) {
+                m_bytes_pos = m_bytes_count = 0;
+                sz = readNextBytes();
+                if (!sz) {
+                    if ( !bytesRead || m_pos!=m_size) //
+                        return LVERR_FAIL;
+                    break;
+                }
+            }
+            if (sz>(int)size)
+                sz = (int)size;
+            for (int i=0; i<sz; i++)
+                *out++ = m_bytes[m_bytes_pos++];
+            size -= sz;
+            bytesRead += sz;
+            m_pos += sz;
+        }
+
+        if (pBytesRead)
+            *pBytesRead = bytesRead;
+        //fprintf( stderr, "    %d bytes read...\n", (int)bytesRead );
+        return LVERR_OK;
+    }
+    virtual lverror_t SetSize(lvsize_t)
+    {
+        return LVERR_NOTIMPL;
+    }
+};
+
+/// XML parser callback interface
+class FB2CoverpageParserCallback : public LVXMLParserCallback
+{
+protected:
+    LVFileFormatParser * _parser;
+    bool insideFictionBook;
+    bool insideDescription;
+    bool insideTitleInfo;
+    bool insideCoverpage;
+    bool insideImage;
+    bool insideBinary;
+    bool insideCoverBinary;
+    int tagCounter;
+    lString16 binaryId;
+    lString8Collection data;
+public:
+    ///
+    FB2CoverpageParserCallback()
+    {
+        insideFictionBook = false;
+        insideDescription = false;
+        insideTitleInfo = false;
+        insideCoverpage = false;
+        insideImage = false;
+        insideBinary = false;
+        tagCounter = 0;
+        insideCoverBinary = false;
+    }
+    virtual lUInt32 getFlags() { return TXTFLG_PRE; }
+    /// called on parsing start
+    virtual void OnStart(LVFileFormatParser * parser)
+    {
+        _parser = parser;
+        parser->SetSpaceMode(false);
+    }
+    /// called on parsing end
+    virtual void OnStop()
+    {
+    }
+    /// called on opening tag end
+    virtual void OnTagBody()
+    {
+    }
+    /// add named BLOB data to document
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return true; }
+    /// called on opening tag
+    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    {
+        tagCounter++;
+        if (!insideFictionBook && tagCounter > 5) {
+            _parser->Stop();
+            return NULL;
+        }
+        if ( lStr_cmp(tagname, "FictionBook")==0) {
+            insideFictionBook = true;
+        } else if ( lStr_cmp(tagname, "description")==0 && insideFictionBook) {
+            insideDescription = true;
+        } else if ( lStr_cmp(tagname, "title-info")==0 && insideDescription) {
+            insideTitleInfo = true;
+        } else if ( lStr_cmp(tagname, "coverpage")==0 && insideTitleInfo) {
+            insideCoverpage =  true;
+        } else if ( lStr_cmp(tagname, "image")==0 && insideCoverpage) {
+            insideImage = true;
+        } else if ( lStr_cmp(tagname, "binary")==0 && insideFictionBook) {
+            insideBinary = true;
+            return NULL;
+        } else if ( lStr_cmp(tagname, "body")==0 && binaryId.empty()) {
+            _parser->Stop();
+            // NO Image ID specified
+            return NULL;
+        }
+        insideCoverBinary = false;
+        return NULL;
+    }
+    /// called on closing
+    virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+    {
+        if ( lStr_cmp(nsname, "FictionBook")==0) {
+            insideFictionBook = false;
+        } else if ( lStr_cmp(tagname, "description")==0) {
+            insideDescription = false;
+        } else if ( lStr_cmp(tagname, "title-info")==0) {
+            insideTitleInfo = false;
+        } else if ( lStr_cmp(tagname, "coverpage")==0) {
+            insideCoverpage =  false;
+        } else if ( lStr_cmp(tagname, "image")==0) {
+            insideImage = false;
+        } else if ( lStr_cmp(tagname, "binary")==0) {
+            insideBinary = false;
+            insideCoverBinary = false;
+        }
+    }
+    /// called on element attribute
+    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+    {
+        if (lStr_cmp(attrname, "href")==0 && insideImage) {
+            lString16 s(attrvalue);
+            if (s.startsWith("#")) {
+                binaryId = s.substr(1);
+                CRLog::trace("found FB2 cover ID");
+            }
+        } else if (lStr_cmp(attrname, "id")==0 && insideBinary) {
+            lString16 id(attrvalue);
+            if (!id.empty() && id == binaryId) {
+                insideCoverBinary = true;
+                CRLog::trace("found FB2 cover data");
+            }
+        } else if (lStr_cmp(attrname, "page")==0) {
+        }
+    }
+    /// called on text
+    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
+    {
+        if (!insideCoverBinary)
+            return;
+        lString16 txt( text, len );
+        data.add(UnicodeToUtf8(txt));
+    }
+    /// destructor
+    virtual ~FB2CoverpageParserCallback()
+    {
+    }
+    LVStreamRef getStream() {
+        static lUInt8 fake_data[1] = {0};
+        if (data.length() == 0)
+            return LVCreateMemoryStream(fake_data, 0, false);
+        LVStreamRef stream = LVStreamRef(new LVBase64Stream(data));
+        LVStreamRef res = LVCreateMemoryStream(stream);
+        return res;
+    }
+};
+
+LVStreamRef GetFB2Coverpage(LVStreamRef stream)
+{
+    FB2CoverpageParserCallback callback;
+    LVXMLParser parser(stream, &callback, false, true);
+    if (!parser.CheckFormat()) {
+        stream->SetPos(0);
+		return LVStreamRef();
+	}
+    CRLog::trace("parsing FB2 file");
+    parser.Parse();
+    LVStreamRef res = callback.getStream();
+    if (res.isNull()) {
+        CRLog::trace("FB2 Cover stream is NULL");
+    } else {
+        CRLog::trace("FB2 Cover stream size = %d", (int)res->GetSize());
+    }
+    stream->SetPos(0);
+    return res;
+}

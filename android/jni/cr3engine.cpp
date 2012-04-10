@@ -336,6 +336,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 	} else {
 		CRLog::error("bitmap accessor is invalid");
 	}
+	CRLog::debug("drawBookCoverInternal finished");
 }
 
 /*
@@ -365,9 +366,12 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 					res = GetEpubCoverpage(arc);
 				}
 			} else {
-				doc_format_t fmt;
-				if (DetectPDBFormat(stream, fmt)) {
-					res = GetPDBCoverpage(stream);
+				res = GetFB2Coverpage(stream);
+				if (res.isNull()) {
+					doc_format_t fmt;
+					if (DetectPDBFormat(stream, fmt)) {
+						res = GetPDBCoverpage(stream);
+					}
 				}
 			}
 		}
