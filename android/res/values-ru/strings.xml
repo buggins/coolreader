@@ -314,9 +314,9 @@
     <string name="options_css_text_decoration_overlineline">Надчеркнутый</string>
     <string name="options_css_font_face_serif">[Шрифт с засечками]</string>
     <string name="options_css_margin_05em">0.5 высоты строки</string>
-    <string name="options_css_margin_10p" formatted="false">10% ширины строки</string>
-    <string name="options_css_margin_20p" formatted="false">20% ширины строки</string>
-    <string name="options_css_margin_30p" formatted="false">30% ширины строки</string>
+    <string formatted="false" name="options_css_margin_10p">10% ширины строки</string>
+    <string formatted="false" name="options_css_margin_20p">20% ширины строки</string>
+    <string formatted="false" name="options_css_margin_30p">30% ширины строки</string>
     <string name="options_css_font_weight_bold">Жирный</string>
     <string name="options_css_text_indent_small_outdent">Маленький выступ</string>
     <string name="options_css_font_weight_bolder">Жирней</string>
@@ -330,7 +330,7 @@
     <string name="options_css_text_valign_subscript">Верхний индекс</string>
     <string name="options_css_margin_03em">0.3 высоты строки</string>
     <string name="options_css_font_style_italic">Наклонный</string>
-    <string name="options_css_margin_15p" formatted="false">15% ширины строки</string>
+    <string formatted="false" name="options_css_margin_15p">15% ширины строки</string>
     <string name="options_css_font_face_monospace">[Моноширинный шрифт]</string>
     <string name="options_css_font_weight_lighter">Легче</string>
     <string name="options_css_font_weight_normal">Нормальный</string>
@@ -342,7 +342,7 @@
     <string name="options_css_text_indent_big_outdent">Большой выступ</string>
     <string name="options_css_font_face_sans_serif">[Шрифт без засечек]</string>
     <string name="options_css_margin_15em">1.5 высоты строки</string>
-    <string name="options_css_margin_5p" formatted="false">5% ширины строки</string>
+    <string formatted="false" name="options_css_margin_5p">5% ширины строки</string>
     <string name="options_css_font_size_130p">Увеличить (130%)</string>
     <string name="options_css_font_size_120p">Увеличить (120%)</string>
     <string name="options_css_font_size_110p">Увеличить (110%)</string>
@@ -420,4 +420,8 @@
     <string name="options_app_locale_sk">Slovak</string>
     <string name="options_app_locale_nl">Dutch</string>
     <string name="options_app_locale_lt">Lithuanian</string>
+<string name="options_app_cover_page_size_big">Большие</string>
+    <string name="options_app_cover_page_size_medium">Средние</string>
+    <string name="options_app_cover_page_size_small">Маленькие</string>
+    <string name="options_app_cover_page_size">Размер обложек</string>
 </resources>

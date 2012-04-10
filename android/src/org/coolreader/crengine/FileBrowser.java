@@ -22,6 +22,7 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -1058,19 +1059,19 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						if ( isSimple ) {
 							image.setImageResource(item.format.getIconResourceId());
 						} else {
-							image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
-							image.setMinimumHeight(140);
-							image.setMinimumWidth(110);
-//							Drawable drawable = null;
-//							if ( item.id!=null )
-//								drawable = mHistory.getBookCoverpageImage(null, item);
-//							if ( drawable!=null ) {
-//								image.setImageDrawable(drawable);
-//							} else {
-//								int resId = item.format!=null ? item.format.getIconResourceId() : 0;
-//								if ( resId!=0 )
-//									image.setImageResource(item.format.getIconResourceId());
-//							}
+							if (coverPagesEnabled) {
+								image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
+								image.setMinimumHeight(coverPageHeight);
+								image.setMinimumWidth(coverPageWidth);
+								image.setMaxHeight(coverPageHeight);
+								image.setMaxWidth(coverPageWidth);
+							} else {
+								image.setImageDrawable(null);
+								image.setMinimumHeight(0);
+								image.setMinimumWidth(0);
+								image.setMaxHeight(0);
+								image.setMaxWidth(0);
+							}
 						}
 					}
 					if ( isSimple ) {
@@ -1262,4 +1263,58 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
     	return currDirectory;
     }
 
+    private boolean coverPagesEnabled = true;
+    private int coverPageHeight = 120;
+    private int coverPageWidth = 90;
+    private int coverPageSizeOption = 1; // 0==small, 2==BIG
+    private int screenWidth = 480;
+    private int screenHeight = 320;
+    private void setCoverSizes(int screenWidth, int screenHeight) {
+    	this.screenWidth = screenWidth;
+    	this.screenHeight = screenHeight;
+    	int minSize = screenWidth < screenHeight ? screenWidth : screenHeight;
+    	int n = 6;
+    	if (coverPageSizeOption == 2)
+    		n = 4;
+    	else if (coverPageSizeOption == 0)
+    		n = 9;
+    	if (minSize < 50)
+    		minSize = 50;
+    	int nh = minSize / n;
+    	int nw = nh * 210 / 297;
+    	
+    	if (coverPageHeight != nh) {
+	    	coverPageHeight = nh;
+	    	coverPageWidth = nw;
+	    	if (mCoverpageManager.setCoverpageSize(coverPageWidth, coverPageHeight))
+	    		currentListAdapter.notifyDataSetChanged();
+    	}
+    }
+
+    @Override
+	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
+    	setCoverSizes(w, h);
+	}
+    
+    public void setCoverPageSizeOption(int coverPageSizeOption) {
+    	if (this.coverPageSizeOption == coverPageSizeOption)
+    		return;
+    	this.coverPageSizeOption = coverPageSizeOption;
+    	setCoverSizes(screenWidth, screenHeight);
+    }
+
+    public void setCoverPageFontFace(String face) {
+    	if (mCoverpageManager.setFontFace(face))
+    		currentListAdapter.notifyDataSetChanged();
+    }
+
+	public void setCoverPagesEnabled(boolean coverPagesEnabled)
+	{
+		this.coverPagesEnabled = coverPagesEnabled;
+		if ( !coverPagesEnabled ) {
+			mCoverpageManager.clear();
+		}
+		currentListAdapter.notifyDataSetChanged();
+	}
+	
 }

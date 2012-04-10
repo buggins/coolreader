@@ -93,6 +93,7 @@ public interface Settings {
     public static final String PROP_APP_FULLSCREEN          ="app.fullscreen";
     public static final String PROP_APP_BOOK_PROPERTY_SCAN_ENABLED ="app.browser.fileprops.scan.enabled";
     public static final String PROP_APP_SHOW_COVERPAGES     ="app.browser.coverpages";
+    public static final String PROP_APP_COVERPAGE_SIZE     ="app.browser.coverpage.size"; // 0==small, 2==BIG
     public static final String PROP_APP_SCREEN_ORIENTATION  ="app.screen.orientation";
     public static final String PROP_APP_SCREEN_BACKLIGHT    ="app.screen.backlight";
     public static final String PROP_APP_SCREEN_BACKLIGHT_DAY   ="app.screen.backlight.day";

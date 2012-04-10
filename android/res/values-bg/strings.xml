@@ -420,4 +420,8 @@
     <string name="options_app_locale_nl">Dutch</string>
     <string name="options_app_locale_lt">Lithuanian</string>
 <string name="options_app_key_backlight_off">Turn off key backlight</string>
+<string name="options_app_cover_page_size_big">Big</string>
+    <string name="options_app_cover_page_size_medium">Medium</string>
+    <string name="options_app_cover_page_size_small">Small</string>
+    <string name="options_app_cover_page_size">Cover page size</string>
 </resources>

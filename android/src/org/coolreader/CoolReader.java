@@ -669,7 +669,6 @@ public class CoolReader extends Activity
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 		
        	mHistory = new History(this);
-		mHistory.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
 //			setTheme(android.R.style.Theme_Light);
@@ -685,6 +684,9 @@ public class CoolReader extends Activity
 		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		
 		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
+		mBrowser.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
+		mBrowser.setCoverPageFontFace(props.getProperty(ReaderView.PROP_FONT_FACE, "Droid Sans"));
+		mBrowser.setCoverPageSizeOption(props.getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));
 
 		
 		mFrame.addView(mReaderView);
@@ -1757,6 +1759,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 		props.applyDefault(ReaderView.PROP_APP_GESTURE_PAGE_FLIPPING, "1");
 		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
+		props.applyDefault(ReaderView.PROP_APP_COVERPAGE_SIZE, "1");
 		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, DeviceInfo.EINK_SCREEN ? "0" : "4"); // "0"
 		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");

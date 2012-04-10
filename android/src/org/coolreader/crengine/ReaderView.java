@@ -311,7 +311,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					log.d("skipping duplicate resize request in GUI thread");
 	    			return;
 	    		}
-	    		mActivity.getHistory().updateCoverPageSize(w, h);
 	    		post(new Task() {
 	    			public void work() {
 	    				BackgroundThread.ensureBackground();
@@ -2959,11 +2958,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_LOCALE) ) {
 			mActivity.setLanguage(value);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
-			mActivity.getHistory().setCoverPagesEnabled(flg);
+			mActivity.getBrowser().setCoverPagesEnabled(flg);
         } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
 			mActivity.getScanner().setDirScanEnabled(flg);
         } else if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
 			mActivity.setKeyBacklightDisabled(flg);
+        } else if ( key.equals(PROP_FONT_FACE) ) {
+			mActivity.getBrowser().setCoverPageFontFace(value);
+        } else if ( key.equals(PROP_APP_COVERPAGE_SIZE) ) {
+        	int n = 0;
+        	try {
+        		n = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+        	if (n < 0)
+        		n = 0;
+        	else if (n > 2)
+        		n = 2;
+			mActivity.getBrowser().setCoverPageSizeOption(n);
         } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
         	int n = 0;
         	try {
@@ -4779,20 +4792,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int internalDY = 0;
 
 	private byte[] coverPageBytes = null;
-	private BitmapDrawable coverPageDrawable = null;
 	private void findCoverPage()
 	{
     	log.d("document is loaded succesfull, checking coverpage data");
-    	if ( mActivity.getHistory().getCoverPagesEnabled() ) {
-	    	byte[] coverpageBytes = doc.getCoverPageData();
-	    	if ( coverpageBytes!=null ) {
-	    		log.d("Found cover page data: " + coverpageBytes.length + " bytes");
-	    		BitmapDrawable drawable = mActivity.getHistory().decodeCoverPage(coverpageBytes);
-	    		if ( drawable!=null ) {
-	    			coverPageBytes = coverpageBytes;
-	    			coverPageDrawable = drawable;
-	    		}
-	    	}
+    	byte[] coverpageBytes = doc.getCoverPageData();
+    	if ( coverpageBytes!=null ) {
+    		log.d("Found cover page data: " + coverpageBytes.length + " bytes");
+			coverPageBytes = coverpageBytes;
     	}
 	}
 	
@@ -4849,7 +4855,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void work() throws IOException {
 			BackgroundThread.ensureBackground();
 			coverPageBytes = null;
-			coverPageDrawable = null;
 			log.i("Loading document " + filename);
 			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, disableInternalStyles ? 0 : 1);
 			doc.doCommand(ReaderCommand.DCMD_SET_TEXT_FORMAT.nativeId, disableTextAutoformat ? 0 : 1);
@@ -4884,9 +4889,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if ( mActivity.getHistory()!=null ) {
 	    		mActivity.getHistory().updateBookAccess(mBookInfo);
 	    		mActivity.getDB().saveBookInfo(mBookInfo);
-		        if (mBookInfo.getFileInfo().id!=null && coverPageBytes!=null && coverPageDrawable!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
+		        if (mBookInfo.getFileInfo().id!=null && coverPageBytes!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching())
-		        		mActivity.getHistory().setBookCoverpageData( mBookInfo.getFileInfo().id, coverPageBytes );
+		        		mActivity.getDB().saveBookCoverpage(mBookInfo.getFileInfo(), coverPageBytes );
 		        	if (DeviceInfo.EINK_NOOK)
 		        		updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
 		        	//mEngine.setProgressDrawable(coverPageDrawable);

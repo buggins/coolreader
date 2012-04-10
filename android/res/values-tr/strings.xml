@@ -331,18 +331,18 @@
     <string name="options_css_text_indent_big_outdent">Büyük çıkıntı</string>
     <string name="options_css_font_face_sans_serif">[Varsayılan sans-serif font]</string>
     <string name="options_css_margin_05em">0.5 satır yükselt</string>
-    <string name="options_css_margin_10p" formatted="false">10% satır genişlet</string>
-    <string name="options_css_margin_20p" formatted="false">20% satır genişlet</string>
-    <string name="options_css_margin_30p" formatted="false">30% satır genişlet</string>
+    <string formatted="false" name="options_css_margin_10p">10% satır genişlet</string>
+    <string formatted="false" name="options_css_margin_20p">20% satır genişlet</string>
+    <string formatted="false" name="options_css_margin_30p">30% satır genişlet</string>
     <string name="options_css_margin_0">0</string>
     <string name="options_css_margin_03em">0.3 satır yükselt</string>
-    <string name="options_css_margin_15p" formatted="false">15% satır genişlet</string>
+    <string formatted="false" name="options_css_margin_15p">15% satır genişlet</string>
     <string name="options_css_margin_02em">0.2 satır yükselt</string>
     <string name="options_css_margin_4em">4 satır yükselt</string>
     <string name="options_css_margin_1em">1 satır yükselt</string>
     <string name="options_css_margin_2em">2 satır yükselt</string>
     <string name="options_css_margin_15em">1.5 satır yükselt</string>
-    <string name="options_css_margin_5p" formatted="false">5% satır genişlet</string>
+    <string formatted="false" name="options_css_margin_5p">5% satır genişlet</string>
     <string name="options_css_font_size_130p">Büyüt (130%)</string>
     <string name="options_css_font_size_120p">Büyüt (120%)</string>
     <string name="options_css_font_size_110p">Büyüt (110%)</string>
@@ -420,4 +420,8 @@
     <string name="options_app_locale_sk">Slovak</string>
     <string name="options_app_locale_nl">Dutch</string>
     <string name="options_app_locale_lt">Lithuanian</string>
+<string name="options_app_cover_page_size_big">Big</string>
+    <string name="options_app_cover_page_size_medium">Medium</string>
+    <string name="options_app_cover_page_size_small">Small</string>
+    <string name="options_app_cover_page_size">Cover page size</string>
 </resources>

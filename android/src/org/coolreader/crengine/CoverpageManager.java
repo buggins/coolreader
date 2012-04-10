@@ -52,6 +52,36 @@ public class CoverpageManager {
 		this.listener = listener;
 	}
 	
+	public boolean setCoverpageSize(int width, int height) {
+		synchronized(LOCK) {
+			if (maxWidth == width && maxHeight == height)
+				return false;
+			clear();
+			maxWidth = width;
+			maxHeight = height;
+			return true;
+		}
+	}
+	
+	public boolean setFontFace(String face) {
+		synchronized(LOCK) {
+			clear();
+			if (fontFace.equals(face))
+				return false;
+			fontFace = face;
+			return true;
+		}
+	}
+	
+	public void clear() {
+		synchronized(LOCK) {
+			mCache.clear();
+			mCheckFileCacheQueue.clear();
+			mScanFileQueue.clear();
+			mReadyQueue.clear();
+		}
+	}
+	
 	/**
 	 * Constructor.
 	 * @param activity is CoolReader main activity.
@@ -74,6 +104,7 @@ public class CoverpageManager {
 	
 	private int maxWidth = 110;
 	private int maxHeight = 140;
+	private String fontFace = "Droid Sans";
 
 	private enum State {
 		UNINITIALIZED,
@@ -157,6 +188,13 @@ public class CoverpageManager {
 				list.remove(i);
 				item.removed();
 			}
+		}
+		public void clear() {
+			for (BitmapCacheItem item : list) {
+				if (item.bitmap != null)
+					item.removed();
+			}
+			list.clear();
 		}
 		public BitmapCacheItem getItem(FileInfo file) {
 			int index = find(file);
@@ -267,8 +305,8 @@ public class CoverpageManager {
 		}
 	}
 
-	private final static int COVERPAGE_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 1000 : 300;
-	private final static int COVERPAGE_MAX_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 3000 : 1000;
+	private final static int COVERPAGE_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 1000 : 100;
+	private final static int COVERPAGE_MAX_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 3000 : 400;
 	private Runnable lastReadyNotifyTask;
 	private long firstReadyTimestamp;
 	private void notifyBitmapIsReady(final FileInfo file) {
@@ -502,7 +540,7 @@ public class CoverpageManager {
 	{
 		try {
 			Bitmap bmp = Bitmap.createBitmap(maxWidth, maxHeight, Config.RGB_565);
-			mActivity.getEngine().drawBookCover(bmp, data, "Droid Sans", file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
+			mActivity.getEngine().drawBookCover(bmp, data, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
 			return bmp;
 		} catch ( Exception e ) {
     		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());
