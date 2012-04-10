@@ -12,6 +12,7 @@ public class CoverDB extends BaseDB {
 	public static final Logger log = L.create("cdb");
 	
 	public final int DB_VERSION = 8;
+	private final static boolean CLEAR_ON_START = false;
 
 	private final static String[] COVERPAGE_SCHEMA = new String[] {
 		"CREATE TABLE IF NOT EXISTS coverpage (" +
@@ -35,6 +36,11 @@ public class CoverDB extends BaseDB {
 		}
 
 		dumpStatistics();
+	
+		if (CLEAR_ON_START) {
+			log.w("CLEAR_ON_START is ON: removing all coverpages from DB");
+			execSQLIgnoreErrors("DELETE FROM coverpage");
+		}
 		
 		return true;
 	}

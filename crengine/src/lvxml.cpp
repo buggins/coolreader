@@ -3944,8 +3944,6 @@ static const signed char base64_decode_table[] = {
 class LVBase64Stream : public LVNamedStream
 {
 private:
-    lString8Collection & m_lines;
-    int         m_curr_line;
     lString8    m_curr_text;
     int         m_text_pos;
     lvsize_t    m_size;
@@ -3966,8 +3964,7 @@ private:
         {
             while ( m_text_pos >= (int)m_curr_text.length() )
             {
-                if ( !findNextTextNode() )
-                    return bytesRead;
+                return bytesRead;
             }
             int len = m_curr_text.length();
             const lChar8 * txt = m_curr_text.c_str();
@@ -4023,15 +4020,6 @@ private:
         return bytesRead;
     }
 
-    bool findNextTextNode()
-    {
-        if (m_curr_line < m_lines.length()) {
-            m_curr_text = m_lines[m_curr_line++];
-            m_text_pos = 0;
-        }
-        return false;
-    }
-
     int bytesAvailable() { return m_bytes_count - m_bytes_pos; }
 
     bool rewind()
@@ -4041,8 +4029,8 @@ private:
         m_bytes_pos = 0;
         m_iteration = 0;
         m_value = 0;
-        m_curr_line = 0;
-        return findNextTextNode();
+        m_text_pos = 0;
+        return m_text_pos < m_curr_text.length();
     }
 
     bool skip( lvsize_t count )
@@ -4068,8 +4056,8 @@ private:
 
 public:
     virtual ~LVBase64Stream() { }
-    LVBase64Stream(lString8Collection & lines)
-        : m_lines(lines), m_curr_line(0), m_size(0), m_pos(0)
+    LVBase64Stream(lString8 data)
+        : m_curr_text(data), m_size(0), m_pos(0)
     {
         // calculate size
         rewind();
@@ -4196,7 +4184,7 @@ protected:
     bool insideCoverBinary;
     int tagCounter;
     lString16 binaryId;
-    lString8Collection data;
+    lString8 data;
 public:
     ///
     FB2CoverpageParserCallback()
@@ -4281,13 +4269,13 @@ public:
             lString16 s(attrvalue);
             if (s.startsWith("#")) {
                 binaryId = s.substr(1);
-                CRLog::trace("found FB2 cover ID");
+                //CRLog::trace("found FB2 cover ID");
             }
         } else if (lStr_cmp(attrname, "id")==0 && insideBinary) {
             lString16 id(attrvalue);
             if (!id.empty() && id == binaryId) {
                 insideCoverBinary = true;
-                CRLog::trace("found FB2 cover data");
+                //CRLog::trace("found FB2 cover data");
             }
         } else if (lStr_cmp(attrname, "page")==0) {
         }
@@ -4298,7 +4286,7 @@ public:
         if (!insideCoverBinary)
             return;
         lString16 txt( text, len );
-        data.add(UnicodeToUtf8(txt));
+        data.append(UnicodeToUtf8(txt));
     }
     /// destructor
     virtual ~FB2CoverpageParserCallback()
@@ -4308,6 +4296,7 @@ public:
         static lUInt8 fake_data[1] = {0};
         if (data.length() == 0)
             return LVCreateMemoryStream(fake_data, 0, false);
+        CRLog::trace("encoded data: %d bytes", data.length());
         LVStreamRef stream = LVStreamRef(new LVBase64Stream(data));
         LVStreamRef res = LVCreateMemoryStream(stream);
         return res;
@@ -4322,11 +4311,11 @@ LVStreamRef GetFB2Coverpage(LVStreamRef stream)
         stream->SetPos(0);
 		return LVStreamRef();
 	}
-    CRLog::trace("parsing FB2 file");
+    //CRLog::trace("parsing FB2 file");
     parser.Parse();
     LVStreamRef res = callback.getStream();
     if (res.isNull()) {
-        CRLog::trace("FB2 Cover stream is NULL");
+        //CRLog::trace("FB2 Cover stream is NULL");
     } else {
         CRLog::trace("FB2 Cover stream size = %d", (int)res->GetSize());
     }

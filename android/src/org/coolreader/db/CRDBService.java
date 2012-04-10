@@ -21,7 +21,7 @@ import android.util.Log;
 
 public class CRDBService extends Service {
 	public static final Logger log = L.create("db");
-	public static final Logger vlog = L.create("db", Log.VERBOSE);
+	public static final Logger vlog = L.create("db", Log.ASSERT);
 
     private MainDB mainDB = new MainDB();
     private CoverDB coverDB = new CoverDB();

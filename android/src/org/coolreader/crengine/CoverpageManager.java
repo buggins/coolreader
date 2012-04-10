@@ -427,17 +427,21 @@ public class CoverpageManager {
 				}
 				if (file != null) {
 					final FileInfo fileInfo = file;
-					BackgroundThread.instance().postBackground(new Runnable() {
-						@Override
-						public void run() {
-							byte[] data = mActivity.getEngine().scanBookCover(fileInfo.getPathName());
-							if (data == null)
-								data = new byte[] {};
-							if (fileInfo.format.needCoverPageCaching())
-								mActivity.getDB().saveBookCoverpage(fileInfo, data);
-							coverpageLoaded(fileInfo, data);
-						}
-					});
+					if (fileInfo.format.canParseCoverpages) {
+						BackgroundThread.instance().postBackground(new Runnable() {
+							@Override
+							public void run() {
+								byte[] data = mActivity.getEngine().scanBookCover(fileInfo.getPathName());
+								if (data == null)
+									data = new byte[] {};
+								if (fileInfo.format.needCoverPageCaching())
+									mActivity.getDB().saveBookCoverpage(fileInfo, data);
+								coverpageLoaded(fileInfo, data);
+							}
+						});
+					} else {
+						coverpageLoaded(fileInfo, new byte[] {});
+					}
 					scheduleScanFile();
 				}
 			}

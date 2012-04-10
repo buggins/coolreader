@@ -5,34 +5,34 @@ import org.coolreader.R;
 public enum DocumentFormat {
 	/// lvtinydom.h: source document formats
 	//typedef enum {
-	NONE("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book, false, 0, 
+	NONE("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book, false, false, 0, 
 			new String[] {},
 			new String[] {}),// doc_format_none,
-	FB2("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book_fb2, true, 10, 
+	FB2("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book_fb2, true, true, 10, 
 			new String[] {".fb2", ".fb2.zip"},
 			new String[] {"application/fb2+zip"}), // doc_format_fb2,
-	TXT("txt.css", R.raw.txt, R.drawable.cr3_browser_book_txt, false, 3, 
+	TXT("txt.css", R.raw.txt, R.drawable.cr3_browser_book_txt, false, false, 3, 
 			new String[] {".txt", ".tcr", ".pml"},
 			new String[] {"text/plain"}), // doc_format_txt,
-	RTF("rtf.css", R.raw.rtf, R.drawable.cr3_browser_book_rtf, false, 7, 
+	RTF("rtf.css", R.raw.rtf, R.drawable.cr3_browser_book_rtf, false, false, 7, 
 			new String[] {".rtf"},
 			new String[] {}), // doc_format_rtf,
-	EPUB("epub.css", R.raw.epub, R.drawable.cr3_browser_book_epub, true, 9, 
+	EPUB("epub.css", R.raw.epub, R.drawable.cr3_browser_book_epub, true, true, 9, 
 			new String[] {".epub"},
 			new String[] {"application/epub+zip"}),// doc_format_epub,
-	HTML("htm.css", R.raw.htm, R.drawable.cr3_browser_book_html, false, 8, 
+	HTML("htm.css", R.raw.htm, R.drawable.cr3_browser_book_html, false, false, 8, 
 			new String[] {".htm", ".html", ".shtml", ".xhtml"},
 			new String[] {"text/html"}),// doc_format_html,
-	TXT_BOOKMARK("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book_fb2, false, 0, 
+	TXT_BOOKMARK("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book_fb2, false, false, 0, 
 			new String[] {".txt.bmk"},
 			new String[] {}), // doc_format_txt_bookmark, // coolreader TXT format bookmark
-	CHM("chm.css", R.raw.chm, R.drawable.cr3_browser_book_chm, false, 6, 
+	CHM("chm.css", R.raw.chm, R.drawable.cr3_browser_book_chm, false, false, 6, 
 			new String[] {".chm"},
 			new String[] {}), //  doc_format_chm,
-	DOC("doc.css", R.raw.doc, R.drawable.cr3_browser_book_doc, false, 5, 
+	DOC("doc.css", R.raw.doc, R.drawable.cr3_browser_book_doc, false, false, 5, 
 			new String[] {".doc"},
 			new String[] {}), // doc_format_doc,
-	PDB("htm.css", R.raw.htm, R.drawable.cr3_browser_book_pdb, false, 4, 
+	PDB("htm.css", R.raw.htm, R.drawable.cr3_browser_book_pdb, false, true, 4, 
 			new String[] {".pdb", ".prc", ".mobi", ".azw"},
 			new String[] {}); // doc_format_txt/html/...,
     // don't forget update getDocFormatName() when changing this enum
@@ -76,6 +76,11 @@ public enum DocumentFormat {
 	public boolean canParseProperties()
 	{
 		return canParseProperties;
+	}
+	
+	public boolean canParseCoverpages()
+	{
+		return canParseCoverpages;
 	}
 	
 	public boolean needCoverPageCaching()
@@ -127,13 +132,14 @@ public enum DocumentFormat {
 		return null;
 	}
 	
-	private DocumentFormat( String cssFileName, int cssResourceId, int iconResourceId, boolean canParseProperties, int priority, String extensions[], String mimeFormats[] )
+	private DocumentFormat( String cssFileName, int cssResourceId, int iconResourceId, boolean canParseProperties, boolean canParseCoverpages, int priority, String extensions[], String mimeFormats[] )
 	{
 		this.cssFileName = cssFileName;
 		this.cssResourceId = cssResourceId;
 		this.iconResourceId = iconResourceId;
 		this.extensions = extensions;
 		this.canParseProperties = canParseProperties;
+		this.canParseCoverpages = canParseCoverpages;
 		this.mimeFormats = mimeFormats;
 		this.priority = priority;
 	}
@@ -142,6 +148,7 @@ public enum DocumentFormat {
 	final private int iconResourceId;
 	final private String[] extensions;
 	final boolean canParseProperties;
+	final boolean canParseCoverpages;
 	final private String[] mimeFormats;
 	final private int priority;
 }

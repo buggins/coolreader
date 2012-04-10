@@ -375,6 +375,25 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 				}
 			}
 		}
+	} else {
+    	CRLog::debug("scanBookCoverInternal() : is archive, item=%s, arc=%d", LCSTR(item), LCSTR(arcname));
+		LVStreamRef arcstream = LVOpenFileStream(arcname.c_str(), LVOM_READ);
+		if (!arcstream.isNull()) {
+			arc = LVOpenArchieve(arcstream);
+			if (!arc.isNull()) {
+				LVStreamRef stream = arc->OpenStream(item.c_str(), LVOM_READ);
+				if (!stream.isNull()) {
+			    	CRLog::debug("scanBookCoverInternal() : archive stream opened ok, parsing");
+					res = GetFB2Coverpage(stream);
+					if (res.isNull()) {
+						doc_format_t fmt;
+						if (DetectPDBFormat(stream, fmt)) {
+							res = GetPDBCoverpage(stream);
+						}
+					}
+				}
+			}
+		}
 	}
 	if (!res.isNull())
 		array = env.streamToJByteArray(res);

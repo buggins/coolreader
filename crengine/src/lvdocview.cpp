@@ -3870,7 +3870,14 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
     #if 0
         LVStreamRef cover = GetFB2Coverpage(m_stream);
         if (!cover.isNull()) {
-            CRLog::info("cover page found: %d bytes", (int)cover->GetPos());
+            CRLog::info("cover page found: %d bytes", (int)cover->GetSize());
+            LVImageSourceRef img = LVCreateStreamImageSource(cover);
+            if (!img.isNull()) {
+                CRLog::info("image size %d x %d", img->GetWidth(), img->GetHeight());
+                LVColorDrawBuf buf(200, 200);
+                CRLog::info("trying to draw");
+                buf.Draw(img, 0, 0, 200, 200, true);
+            }
         }
     #endif
 
