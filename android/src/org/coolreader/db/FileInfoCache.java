@@ -61,18 +61,6 @@ public class FileInfoCache {
 		return item;
 	}
 	
-	public ArrayList<FileInfo> getUnsaved() {
-		ArrayList<FileInfo> res = null;
-		for (FileInfo item : list) {
-			if (item.isModified) {
-				if (res == null)
-					res = new ArrayList<FileInfo>();
-				res.add(item);
-			}
-		}
-		return res;
-	}
-	
 	public void clear() {
 		list.clear();
 		currentSize = 0;
@@ -111,8 +99,7 @@ public class FileInfoCache {
 		if (itemsToRemove < maxSize / 10)
 			return;
 		for (int i=itemsToRemove; i>=0; i--) {
-			if (!list.get(i).isModified) // remove only saved data
-				list.remove(i);
+			list.remove(i);
 		}
 	}
 }

@@ -17,9 +17,11 @@ import android.os.Binder;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 
 public class CRDBService extends Service {
 	public static final Logger log = L.create("db");
+	public static final Logger vlog = L.create("db", Log.VERBOSE);
 
     private MainDB mainDB = new MainDB();
     private CoverDB coverDB = new CoverDB();
@@ -127,7 +129,7 @@ public class CRDBService extends Service {
 		coverDB.clearCaches();
     }
 
-    private static final long MIN_FLUSH_INTERVAL = 15000;
+    private static final long MIN_FLUSH_INTERVAL = 30000; // 30 seconds
     private long lastFlushTime;
     
     /**
@@ -216,6 +218,8 @@ public class CRDBService extends Service {
 				}
 				if (bookId != null)
 					coverDB.saveBookCoverpage(bookId, data);
+				else 
+					log.w("Cannot save cover: Id not found for book " + fileInfo);
 			}
 		});
 		flush();
@@ -447,7 +451,9 @@ public class CRDBService extends Service {
 		execTask(new Task("deleteBook") {
 			@Override
 			public void work() {
-				mainDB.deleteBook(fileInfo);
+				Long bookId = mainDB.deleteBook(fileInfo);
+				if (bookId != null)
+					coverDB.deleteCoverpage(bookId);
 			}
 		});
 		flush();
@@ -506,7 +512,7 @@ public class CRDBService extends Service {
 	 * @param task is Runnable to execute
 	 */
 	private void execTask(final Task task) {
-		log.v("Posting task " + task);
+		vlog.v("Posting task " + task);
 		mThread.post(task);
 	}
 	
@@ -516,7 +522,7 @@ public class CRDBService extends Service {
 	 * @param task is Runnable to execute
 	 */
 	private void execTask(final Task task, long delay) {
-		log.v("Posting task " + task + " with delay " + delay);
+		vlog.v("Posting task " + task + " with delay " + delay);
 		mThread.postDelayed(task, delay);
 	}
 	
@@ -529,10 +535,10 @@ public class CRDBService extends Service {
 	private void sendTask(Handler handler, Runnable task) {
 		try {
 			if (handler != null) {
-				log.v("Senging task to " + handler.toString());
+				vlog.v("Senging task to " + handler.toString());
 				handler.post(task);
 			} else {
-				log.v("No Handler provided: executing task in current thread");
+				vlog.v("No Handler provided: executing task in current thread");
 				task.run();
 			}
 		} catch (Exception e) {

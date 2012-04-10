@@ -23,6 +23,7 @@ import android.util.Log;
 
 public class MainDB extends BaseDB {
 	public static final Logger log = L.create("mdb");
+	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	public final int DB_VERSION = 8;
 	@Override
@@ -150,11 +151,6 @@ public class MainDB extends BaseDB {
 	}
 
 	public void flush() {
-		ArrayList<FileInfo> unsavedFiles = fileInfoCache.getUnsaved();
-		if (unsavedFiles != null) {
-			// TODO: save
-		}
-		
         super.flush();
         if (seriesStmt != null) {
             seriesStmt.close();
@@ -730,7 +726,6 @@ public class MainDB extends BaseDB {
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
 		if (findBy(fileInfo, "pathname", fileInfo.getPathName())) {
-			fileInfoCache.put(fileInfo);
 			return fileInfo;
 		}
 		return null;
@@ -745,7 +740,6 @@ public class MainDB extends BaseDB {
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
 		if (findBy( fileInfo, "b.id", fileInfo.id)) {
-			fileInfoCache.put(fileInfo);
 			return fileInfo;
 		}
 		return null;
@@ -867,7 +861,6 @@ public class MainDB extends BaseDB {
 				fileInfo.id = h.insert();
 			}
 			
-			fileInfo.setModified(false);
 			fileInfoCache.put(fileInfo);
 			if (fileInfo.id != null) {
 				if ( authorsChanged ) {
@@ -936,6 +929,7 @@ public class MainDB extends BaseDB {
 					if ( !fileInfo.fileExists() )
 						continue;
 					list.add(fileInfo);
+					fileInfoCache.put(fileInfo);
 					found = true;
 					if ( list.size()>maxCount )
 						break;
@@ -1155,6 +1149,7 @@ public class MainDB extends BaseDB {
 					if ( !fileInfo.fileExists() )
 						continue;
 					list.add(fileInfo);
+					fileInfoCache.put(fileInfo);
 					found = true;
 				} while (rs.moveToNext());
 			}
@@ -1245,6 +1240,7 @@ public class MainDB extends BaseDB {
 					FileInfo fi = new FileInfo(); 
 					readFileInfoFromCursor( fi, rs );
 					list.add(fi);
+					fileInfoCache.put(fi);
 					count++;
 				} while ( count<maxCount && rs.moveToNext() );
 			}
@@ -1319,6 +1315,7 @@ public class MainDB extends BaseDB {
 			}
 			FileInfo fileInfo = new FileInfo(pathName);
 			if (loadByPathname(fileInfo)) {
+				fileInfoCache.put(fileInfo);
 				return fileInfo;
 			}
 		} catch (Exception e) {
@@ -1328,12 +1325,16 @@ public class MainDB extends BaseDB {
 	}
 	
 	private boolean loadByPathname(FileInfo fileInfo) {
-		return findBy(fileInfo, "pathname", fileInfo.getPathName());
+		if (findBy(fileInfo, "pathname", fileInfo.getPathName())) {
+			fileInfoCache.put(fileInfo);
+			return true;
+		}
+		return false;
 	}
 
-	private boolean loadById( FileInfo fileInfo ) {
-		return findBy(fileInfo, "b.id", fileInfo.id);
-	}
+//	private boolean loadById( FileInfo fileInfo ) {
+//		return findBy(fileInfo, "b.id", fileInfo.id);
+//	}
 
 	private Long getBookId(FileInfo fileInfo) {
 		Long bookId = null;
@@ -1350,17 +1351,17 @@ public class MainDB extends BaseDB {
 			loadByPathname(fileInfo);
 		return bookId;
 	}
-	public void deleteBook(FileInfo fileInfo)
+	public Long deleteBook(FileInfo fileInfo)
 	{
 		if (fileInfo == null)
-			return;
+			return null;
 		fileInfoCache.remove(fileInfo);
 		Long bookId = getBookId(fileInfo);
 		if (bookId == null)
-			return;
+			return null;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE book_fk=" + bookId);
-		//execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + bookId);
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + bookId);
+		return bookId;
 	}
 	
 

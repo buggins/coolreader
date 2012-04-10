@@ -79,7 +79,6 @@ public class BookInfo {
 			lastPosition = position;
 			lastPosition.setModified(true);
 			fileInfo.lastAccessTime = lastPosition.getTimeStamp();
-			fileInfo.setModified(true);
 		}
 	}
 	

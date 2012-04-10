@@ -49,7 +49,6 @@ public class FileInfo {
 	public int flags;
 	public boolean isArchive;
 	public boolean isDirectory;
-	public boolean isModified;
 	public boolean isListed;
 	public boolean isScanned;
 	public FileInfo parent; // parent item
@@ -608,14 +607,6 @@ public class FileInfo {
 		return f.exists();
 	}
 	
-	public boolean isModified() {
-		return isModified || id==null;
-	}
-
-	public void setModified(boolean isModified) {
-		this.isModified = isModified;
-	}
-
 	public String getAuthors() {
 		return authors;
 	}
