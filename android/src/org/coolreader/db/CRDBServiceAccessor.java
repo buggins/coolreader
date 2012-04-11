@@ -1,5 +1,7 @@
 package org.coolreader.db;
 
+import org.coolreader.crengine.MountPathCorrector;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -13,6 +15,7 @@ public class CRDBServiceAccessor {
 	private Activity mActivity;
     private CRDBService.LocalBinder mService;
     private boolean mServiceBound;
+    private MountPathCorrector pathCorrector;
 
     public CRDBService.LocalBinder get() {
     	if (mService == null)
@@ -20,8 +23,9 @@ public class CRDBServiceAccessor {
     	return mService;
     }
     
-	public CRDBServiceAccessor(Activity activity) {
+	public CRDBServiceAccessor(Activity activity, MountPathCorrector pathCorrector) {
 		mActivity = activity;
+		this.pathCorrector = pathCorrector;
 	}
 
     public void bind() {
@@ -47,6 +51,8 @@ public class CRDBServiceAccessor {
         public void onServiceConnected(ComponentName className, IBinder service) {
         	mService = ((CRDBService.LocalBinder)service);
         	Log.i(TAG, "connected to CRDBService");
+        	if (pathCorrector != null)
+        		mService.setPathCorrector(pathCorrector);
         }
 
         public void onServiceDisconnected(ComponentName className) {

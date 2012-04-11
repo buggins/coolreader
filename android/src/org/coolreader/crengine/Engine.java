@@ -1499,7 +1499,7 @@ public class Engine {
 	}
 
 	MountPathCorrector pathCorrector;
-	MountPathCorrector getPathCorrector() {
+	public MountPathCorrector getPathCorrector() {
 		return pathCorrector;
 	}
 }

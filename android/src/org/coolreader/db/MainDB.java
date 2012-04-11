@@ -28,7 +28,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 9;
+	public final int DB_VERSION = 12;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -119,7 +119,7 @@ public class MainDB extends BaseDB {
 			}
 			if (currentVersion < 8)
 				addOPDSCatalogs(DEF_OPDS_URLS2);
-			if (currentVersion < 9)
+			if (currentVersion < 12)
 				pathCorrectionRequired = true;
 			//==============================================================
 			// add more updates here
@@ -1427,7 +1427,7 @@ public class MainDB extends BaseDB {
 				String corrected = pathCorrector.normalize(pathname);
 				if (corrected != null && !corrected.equals(pathname)) {
 					count++;
-					execSQLIgnoreErrors("update book set pathname='" + quoteSqlString(corrected) + "' WHERE id=" + entry.getValue());
+					execSQLIgnoreErrors("update book set pathname=" + quoteSqlString(corrected) + " WHERE id=" + entry.getValue());
 				}
 			}
 			flush();

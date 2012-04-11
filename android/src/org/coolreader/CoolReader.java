@@ -548,14 +548,7 @@ public class CoolReader extends Activity
     {
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
-		mSyncService = new SyncServiceAccessor(this);
-		mCRDBService = new CRDBServiceAccessor(this);
-        mCRDBService.bind();
 
-    	isFirstStart = true;
-		
-		setVolumeControlStream(AudioManager.STREAM_MUSIC);
-		
 		try {
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
 			mVersion = pi.versionName;
@@ -563,6 +556,18 @@ public class CoolReader extends Activity
 			// ignore
 		}
 		log.i("CoolReader version : " + getVersion());
+		
+		// testing background thread
+    	mBackgroundThread = BackgroundThread.instance();
+		mEngine = new Engine(this, mBackgroundThread);
+		
+		mSyncService = new SyncServiceAccessor(this);
+		mCRDBService = new CRDBServiceAccessor(this, mEngine.getPathCorrector());
+        mCRDBService.bind();
+
+    	isFirstStart = true;
+		
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
 		Display d = getWindowManager().getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics(); 
@@ -607,11 +612,6 @@ public class CoolReader extends Activity
 		lp.layoutAnimationParameters = null;
 		lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
 		getWindow().setAttributes(lp);
-		
-		// testing background thread
-    	mBackgroundThread = BackgroundThread.instance();
-    	
-		mEngine = new Engine(this, mBackgroundThread);
 		
 		// load settings
 		Properties props = loadSettings();
