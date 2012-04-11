@@ -2438,6 +2438,30 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		onCommand( cmd, param, null );
 	}
 	
+	private void navigateByHistory(final ReaderCommand cmd) {
+		BackgroundThread.instance().postBackground(new Runnable() {
+			@Override
+			public void run() {
+				final boolean res = doc.doCommand(cmd.nativeId, 0);
+				BackgroundThread.instance().postGUI(new Runnable() {
+					@Override
+					public void run() {
+						if (res) {
+							// successful
+							drawPage();
+						} else {
+							// cannot navigate - no data on stack
+							if (cmd == ReaderCommand.DCMD_LINK_BACK) {
+								// TODO: exit from activity in some cases?
+								mActivity.showBrowser(null);
+							}
+						}
+					}
+				});
+			}
+		});
+	}
+	
 	public void onCommand( final ReaderCommand cmd, final int param, final Runnable onFinishHandler )
 	{
 		BackgroundThread.ensureGUI();
@@ -2525,8 +2549,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		case DCMD_LINK_BACK:
 		case DCMD_LINK_FORWARD:
-            doEngineCommand( cmd, 0);
-            drawPage();
+			navigateByHistory(cmd);
             break;
 		case DCMD_ZOOM_OUT:
             doEngineCommand( ReaderCommand.DCMD_ZOOM_OUT, param);

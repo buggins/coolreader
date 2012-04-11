@@ -5080,11 +5080,11 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	}
 		break;
 	case DCMD_LINK_BACK: {
-		goBack();
+		return goBack() ? 1 : 0;
 	}
 		break;
 	case DCMD_LINK_FORWARD: {
-		goForward();
+		return goForward() ? 1 : 0;
 	}
 		break;
 	case DCMD_LINEDOWN: {
