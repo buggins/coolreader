@@ -2584,7 +2584,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			showTOC();
 			break;
 		case DCMD_FILE_BROWSER:
-			mActivity.showBrowser(getOpenedFileInfo());
+			mActivity.showBrowser(null); //getOpenedFileInfo());
 			break;
 		case DCMD_OPTIONS_DIALOG:
 			mActivity.showOptionsDialog();
