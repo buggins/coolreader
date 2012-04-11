@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "org_coolreader_crengine_Engine.h"
 #include "org_coolreader_crengine_DocView.h"
@@ -594,23 +595,30 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    isLink
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isLink
-  (JNIEnv * env, jobject obj, jstring pathname)
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
+  (JNIEnv * env, jclass obj, jstring pathname)
 {
 	if ( !pathname )
-		return JNI_FALSE;
+		return NULL;
 	int res = JNI_FALSE;
 	jboolean iscopy;
-	const char * s = env->GetStringUTFChars( pathname, &iscopy );
+	const char * s = env->GetStringUTFChars(pathname, &iscopy);
 	struct stat st;
+	lString8 path;
 	if ( !lstat( s, &st) ) {
-		if ( S_ISLNK(st.st_mode) )
-			res = JNI_TRUE;
+		if ( S_ISLNK(st.st_mode) ) {
+			char buf[1024];
+			int len = readlink(s, buf, sizeof(buf) - 1);
+			if (len != -1) {
+				buf[len] = 0;
+				path = lString8(buf);
+			}
+		}
 	}
 	env->ReleaseStringUTFChars(pathname, s);
-	return res;
+	return !path.empty() ? (jstring)env->NewGlobalRef(env->NewStringUTF(path.c_str())) : NULL;
 }
 
 
@@ -654,7 +662,7 @@ static JNINativeMethod sEngineMethods[] = {
   {"scanBookPropertiesInternal", "(Lorg/coolreader/crengine/FileInfo;)Z", (void*)Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal},
   {"setHyphenationMethod", "(I[B)Z", (void*)Java_org_coolreader_crengine_Engine_setHyphenationMethod},
   {"getArchiveItemsInternal", "(Ljava/lang/String;)[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getArchiveItemsInternal},
-  {"isLink", "(Ljava/lang/String;)Z", (void*)JNICALL Java_org_coolreader_crengine_Engine_isLink},
+  {"isLink", "(Ljava/lang/String;)Ljava/lang/String;", (void*)JNICALL Java_org_coolreader_crengine_Engine_isLink},
   {"suspendLongOperationInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_suspendLongOperationInternal},
   {"setKeyBacklightInternal", "(I)Z", (void*)Java_org_coolreader_crengine_Engine_setKeyBacklightInternal},
   {"scanBookCoverInternal", "(Ljava/lang/String;)[B", (void*)Java_org_coolreader_crengine_Engine_scanBookCoverInternal},

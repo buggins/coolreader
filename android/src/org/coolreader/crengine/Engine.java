@@ -608,9 +608,9 @@ public class Engine {
 	 * Checks whether specified directlry or file is symbolic link.
 	 * (thread-safe)
 	 * @param pathName is path to check
-	 * @return true if specified directory or file is link (symlink)
+	 * @return path link points to if specified directory is link (symlink), null for regular file/dir
 	 */
-	public native boolean isLink(String pathName);
+	public native static String isLink(String pathName);
 	
 	private static final int HYPH_NONE = 0;
 	private static final int HYPH_ALGO = 1;
@@ -1052,7 +1052,7 @@ public class Engine {
 					if ( !f.isDirectory() )
 						continue;
 					String fullPath = f.getAbsolutePath();
-					if ( isLink(fullPath) ) {
+					if (isLink(fullPath) != null) {
 						L.d("skipping symlink " + fullPath);
 						continue;
 					}
@@ -1150,8 +1150,17 @@ public class Engine {
 			list.add(new File(f));
 		}
 		mountedRootsList = list.toArray(new File[] {});
-		Log.i("cr3", "Root list: " + list);
+		pathCorrector = new MountPathCorrector(mountedRootsList);
+
+		Log.i("cr3", "Root list: " + list + ", root links: " + pathCorrector);
+//		testPathNormalization("/sdcard/books/test.fb2");
+//		testPathNormalization("/mnt/sdcard/downloads/test.fb2");
+//		testPathNormalization("/mnt/sd/dir/test.fb2");
 	}
+	
+//	private void testPathNormalization(String path) {
+//		Log.i("cr3", "normalization: " + path + " => " + normalizePathUsingRootLinks(new File(path)));
+//	}
 	
 	private void init() throws IOException {
 		if (initialized)
@@ -1489,4 +1498,8 @@ public class Engine {
 		}
 	}
 
+	MountPathCorrector pathCorrector;
+	MountPathCorrector getPathCorrector() {
+		return pathCorrector;
+	}
 }

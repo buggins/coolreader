@@ -82,10 +82,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMet
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    isLink
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_isLink
-  (JNIEnv *, jobject, jstring);
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine

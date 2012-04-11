@@ -9,6 +9,7 @@ import org.coolreader.crengine.Bookmark;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.MountPathCorrector;
 import org.coolreader.crengine.Utils;
 
 import android.app.Service;
@@ -469,6 +470,14 @@ public class CRDBService extends Service {
 		flush();
 	}
 	
+	public void setPathCorrector(final MountPathCorrector corrector) {
+		execTask(new Task("setPathCorrector") {
+			@Override
+			public void work() {
+				mainDB.setPathCorrector(corrector);
+			}
+		});
+	}
 
 	public void deleteRecentPosition(final FileInfo fileInfo) {
 		execTask(new Task("deleteRecentPosition") {
@@ -637,6 +646,10 @@ public class CRDBService extends Service {
     		getService().loadBookInfo(new FileInfo(fileInfo), callback, new Handler());
     	}
 
+    	public void setPathCorrector(MountPathCorrector corrector) {
+    		getService().setPathCorrector(corrector);
+    	}
+    	
     	public void flush() {
     		getService().forceFlush();
     	}

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.Bookmark;
@@ -13,6 +14,7 @@ import org.coolreader.crengine.DocumentFormat;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.MountPathCorrector;
 import org.coolreader.crengine.Utils;
 
 import android.database.Cursor;
@@ -25,7 +27,8 @@ public class MainDB extends BaseDB {
 	public static final Logger log = L.create("mdb");
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
-	public final int DB_VERSION = 8;
+	private boolean pathCorrectionRequired = false;
+	public final int DB_VERSION = 9;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -109,13 +112,15 @@ public class MainDB extends BaseDB {
 						"name VARCHAR NOT NULL COLLATE NOCASE, " +
 						"url VARCHAR NOT NULL COLLATE NOCASE" +
 						")");
-			if ( currentVersion<7 ) {
+			if (currentVersion < 7) {
 				addOPDSCatalogs(DEF_OPDS_URLS1);
 				if (!DeviceInfo.NOFLIBUSTA)
 					addOPDSCatalogs(DEF_OPDS_URLS1A);
 			}
-			if ( currentVersion<8 )
+			if (currentVersion < 8)
 				addOPDSCatalogs(DEF_OPDS_URLS2);
+			if (currentVersion < 9)
+				pathCorrectionRequired = true;
 			//==============================================================
 			// add more updates here
 				
@@ -235,14 +240,14 @@ public class MainDB extends BaseDB {
 			}
 				
 		} catch (Exception e) {
-			Log.e("cr3", "exception while saving OPDS catalog item", e);
+			log.e("exception while saving OPDS catalog item", e);
 			return false;
 		}
 		return true;
 	}
 
 	public boolean loadOPDSCatalogs(ArrayList<FileInfo> list) {
-		Log.i("cr3", "loadOPDSCatalogs()");
+		log.i("loadOPDSCatalogs()");
 		boolean found = false;
 		Cursor rs = null;
 		try {
@@ -1381,6 +1386,62 @@ public class MainDB extends BaseDB {
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + bookId);
 		return bookId;
 	}
+
+	public void correctFilePaths() {
+		Log.i("cr3", "checking data for path correction");
+		beginReading();
+		int rowCount = 0;
+		Map<String, Long> map = new HashMap<String, Long>();
+		Cursor rs = null;
+		try {
+			String sql = "SELECT id, pathname FROM book";
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				// read DB
+				do {
+					Long id = rs.getLong(0);
+					String pathname = rs.getString(1);
+					String corrected = pathCorrector.normalize(pathname);
+					if (pathname == null)
+						continue;
+					rowCount++;
+					if (corrected == null) {
+						Log.w("cr3", "DB contains unknown path " + pathname);
+					} else if (!pathname.equals(corrected)) {
+						map.put(pathname, id);
+					}
+				} while (rs.moveToNext());
+			}
+		} catch (Exception e) {
+			Log.e("cr3", "exception while loading list books to correct paths", e);
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		Log.i("cr3", "Total rows: " + rowCount + ", " + (map.size() > 0 ? "need to correct " + map.size() + " items" : "no corrections required"));
+		if (map.size() > 0) {
+			beginChanges();
+			int count = 0;
+			for (Map.Entry<String, Long> entry : map.entrySet()) {
+				String pathname = entry.getKey();
+				String corrected = pathCorrector.normalize(pathname);
+				if (corrected != null && !corrected.equals(pathname)) {
+					count++;
+					execSQLIgnoreErrors("update book set pathname='" + quoteSqlString(corrected) + "' WHERE id=" + entry.getValue());
+				}
+			}
+			flush();
+			log.i("Finished. Rows corrected: " + count);
+		}
+	}
 	
+	private MountPathCorrector pathCorrector;
+	public void setPathCorrector(MountPathCorrector corrector) {
+		this.pathCorrector = corrector;
+		if (pathCorrectionRequired) {
+			correctFilePaths();
+			pathCorrectionRequired = false;
+		}
+	}
 
 }

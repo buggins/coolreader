@@ -648,7 +648,7 @@ public class Scanner extends FileInfoChangeSource {
 					if ( !f.isDirectory() )
 						continue;
 					String fullPath = f.getAbsolutePath();
-					if ( engine.isLink(fullPath) ) {
+					if (engine.isLink(fullPath) != null) {
 						L.d("skipping symlink " + fullPath);
 						continue;
 					}
@@ -814,7 +814,7 @@ public class Scanner extends FileInfoChangeSource {
 	private CRDBService.LocalBinder db() {
 		return coolReader.getDB();
 	}
-
+	
 	private final Engine engine;
 	private final CoolReader coolReader;
 }

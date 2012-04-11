@@ -3340,8 +3340,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		BackgroundThread.ensureGUI();
 		log.i("loadDocument(" + fileName + ")");
-		if ( fileName==null ) {
+		if (fileName == null) {
 			log.v("loadDocument() : no filename specified");
+			errorHandler.run();
+			return false;
+		}
+		String normalized = mEngine.getPathCorrector().normalize(fileName);
+		if (normalized == null) {
+			log.e("Trying to load book from non-standard path " + fileName);
+			mActivity.showToast("Trying to load book from non-standard path " + fileName);
+			mEngine.hideProgress();
 			errorHandler.run();
 			return false;
 		}
