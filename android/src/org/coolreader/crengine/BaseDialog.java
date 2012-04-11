@@ -181,12 +181,12 @@ public class BaseDialog extends Dialog {
 					if (event.getAction() == MotionEvent.ACTION_DOWN) {
 						int x = (int)event.getX();
 						int dx = v.getWidth();
-						if (x < dx / 2) {
+						if (x < dx / 3) {
 							if (needCancelButton)
 								onNegativeButtonClick();
 							else
 								onPositiveButtonClick();
-						} else {
+						} else if (x > dx * 2 / 3) {
 							onPositiveButtonClick();
 						}
 						return true;

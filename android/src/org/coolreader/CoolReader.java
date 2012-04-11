@@ -9,7 +9,6 @@ import java.util.Locale;
 
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
-import org.coolreader.crengine.BaseDialog;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.DeviceInfo;
@@ -19,6 +18,7 @@ import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
+import org.coolreader.crengine.InputDialog;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
@@ -72,22 +72,18 @@ import android.os.Debug;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
-import android.text.method.DigitsKeyListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -1367,56 +1363,6 @@ public class CoolReader extends Activity
 		}
 	}
 
-	public interface InputHandler {
-		boolean validate( String s ) throws Exception;
-		void onOk( String s ) throws Exception;
-		void onCancel();
-	};
-	
-	public static class InputDialog extends BaseDialog {
-		private InputHandler handler;
-		private EditText input;
-		public InputDialog( CoolReader activity, final String title, boolean isNumberEdit, final InputHandler handler )
-		{
-			super(activity, title, true, true);
-			this.handler = handler;
-	        LayoutInflater mInflater = LayoutInflater.from(getContext());
-	        ViewGroup layout = (ViewGroup)mInflater.inflate(R.layout.line_edit_dlg, null);
-	        input = (EditText)layout.findViewById(R.id.input_field);
-	        //input = new EditText(getContext());
-	        if ( isNumberEdit )
-	        	input.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
-//		        input.getText().setFilters(new InputFilter[] {
-//		        	new DigitsKeyListener()        
-//		        });
-	        setView(layout);
-		}
-		@Override
-		protected void onNegativeButtonClick() {
-            cancel();
-            handler.onCancel();
-		}
-		@Override
-		protected void onPositiveButtonClick() {
-            String value = input.getText().toString().trim();
-            try {
-            	if ( handler.validate(value) )
-            		handler.onOk(value);
-            	else
-            		handler.onCancel();
-            } catch ( Exception e ) {
-            	handler.onCancel();
-            }
-            cancel();
-		}
-	}
-	
-	public void showInputDialog( final String title, boolean isNumberEdit, final InputHandler handler )
-	{
-        final InputDialog dlg = new InputDialog(this, title, isNumberEdit, handler);
-        dlg.show();
-	}
-
 	private int orientationFromSensor = 0;
 	public int getOrientationFromSensor()
 	{
@@ -1534,34 +1480,6 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	public void showGoToPageDialog() {
-		showInputDialog("Enter page number", true, new InputHandler() {
-			int pageNumber = 0;
-			public boolean validate(String s) {
-				pageNumber = Integer.valueOf(s); 
-				return pageNumber>0;
-			}
-			public void onOk(String s) {
-				mReaderView.goToPage(pageNumber);
-			}
-			public void onCancel() {
-			}
-		});
-	}
-	public void showGoToPercentDialog() {
-		showInputDialog("Enter position %", true, new InputHandler() {
-			int percent = 0;
-			public boolean validate(String s) {
-				percent = Integer.valueOf(s); 
-				return percent>=0 && percent<=100;
-			}
-			public void onOk(String s) {
-				mReaderView.goToPercent(percent);
-			}
-			public void onCancel() {
-			}
-		});
-	}
 
 	private static class DefKeyAction {
 		public int keyCode;

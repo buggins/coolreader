@@ -404,9 +404,9 @@
     <string name="options_view_color_bookmark_correction">Correction color</string>
     <string name="options_view_bookmarks_highlight_solid">Solid color</string>
     <string name="win_title_confirm_bookmark_delete">Do you really want to delete this bookmark?</string>
-<string name="folder_name_books_by_series">Books by series</string>
+    <string name="folder_name_books_by_series">Books by series</string>
     <string name="folder_name_books_by_title">Books by title</string>
-<string name="options_app_locale_bg">Bulgarian</string>
+    <string name="options_app_locale_bg">Bulgarian</string>
     <string name="options_app_locale_hu">Hungarian</string>
     <string name="options_app_locale_de">German</string>
     <string name="options_app_locale_es">Spanish</string>
@@ -420,8 +420,11 @@
     <string name="options_app_locale_sk">Slovak</string>
     <string name="options_app_locale_nl">Dutch</string>
     <string name="options_app_locale_lt">Lithuanian</string>
-<string name="options_app_cover_page_size_big">Big</string>
+    <string name="options_app_cover_page_size_big">Big</string>
     <string name="options_app_cover_page_size_medium">Medium</string>
     <string name="options_app_cover_page_size_small">Small</string>
     <string name="options_app_cover_page_size">Cover page size</string>
+    <string name="dlg_goto_current_position">Current page:</string>
+    <string name="dlg_goto_input_page_number">Input page number to go:</string>
+    <string name="dlg_goto_input_percent">Input position percent to go:</string>
 </resources>

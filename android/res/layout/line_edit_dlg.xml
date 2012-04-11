@@ -10,7 +10,16 @@
     android:layout_marginLeft="20dip"
     android:layout_marginRight="20dip"
     >
-	<EditText 
+    <TextView 
+       android:id="@+id/lbl_prompt"
+       style="@style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+       android:layout_margin="5dip"
+       android:text="Page 34/1024 (25%) Chapter 1" 
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"/>
+ 	<EditText 
 	    android:id="@+id/input_field" 
 	    android:layout_width="fill_parent" 
 	    android:layout_height="wrap_content"
@@ -19,6 +28,16 @@
 	    android:layout_marginLeft="10dip"
 	    android:layout_marginRight="10dip"
 	    style="@style/TextAppearance.Widget.EditText"
-	    android:editable="true" android:singleLine="true"
+	    android:singleLine="true"
 	/>
+    <SeekBar android:id="@+id/goto_position_seek_bar"
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:layout_marginTop="8dip"
+        android:layout_marginBottom="2dip"
+        android:layout_marginLeft="2dip"
+        android:layout_marginRight="2dip"
+        android:max="100"
+        android:progress="50"
+    />
 </LinearLayout>

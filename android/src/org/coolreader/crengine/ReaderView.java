@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
+import org.coolreader.crengine.InputDialog.InputHandler;
 import org.coolreader.sync.ChangeInfo;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
@@ -2574,10 +2575,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.showBookmarksDialog();
 			break;
 		case DCMD_GO_PERCENT_DIALOG:
-			mActivity.showGoToPercentDialog();
+			showGoToPercentDialog();
 			break;
 		case DCMD_GO_PAGE_DIALOG:
-			mActivity.showGoToPageDialog();
+			showGoToPageDialog();
 			break;
 		case DCMD_TOC_DIALOG:
 			showTOC();
@@ -3240,7 +3241,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		public void done() {
 			log.d("InitializationFinishedEvent");
-			BackgroundThread.ensureGUI();
+			//BackgroundThread.ensureGUI();
 	        //setSettings(props, new Properties());
 		}
 		public void fail( Exception e )
@@ -5108,6 +5109,32 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	});
     }
     
+    public interface PositionPropertiesCallback {
+    	void onPositionProperties(PositionProperties props, String positionText);
+    }
+    public void getCurrentPositionProperties(final PositionPropertiesCallback callback) {
+    	BackgroundThread.instance().postBackground(new Runnable() {
+			@Override
+			public void run() {
+				final Bookmark bmk = (doc != null) ? doc.getCurrentPageBookmarkNoRender() : null;
+				final PositionProperties props = (bmk != null) ? doc.getPositionProps(bmk.getStartPos()) : null;
+		    	BackgroundThread.instance().postBackground(new Runnable() {
+					@Override
+					public void run() {
+						String posText = null;
+						if (props != null) {
+							int percent = (int)(10000 * (long)props.y / props.fullHeight);
+							String percentText = "" + (percent/100) + "." + (percent%10) + "%";
+							posText = "" + props.pageNumber + " / " + props.pageCount + " (" + percentText + ")";
+						}
+						callback.onPositionProperties(props, posText);
+					}
+		    	});
+				
+			}
+    	});
+    }
+    
     public Bookmark saveCurrentPositionBookmarkSync( final boolean saveToDB ) {
     	++lastSavePositionTaskId;
         Bookmark bmk = mBackThread.callBackground(new Callable<Bookmark>() {
@@ -5675,4 +5702,72 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         syncViewSettings(getSettings(), true, true);
 	}
 
+	public void showInputDialog( final String title, final String prompt, final boolean isNumberEdit, final int minValue, final int maxValue, final int lastValue, final InputHandler handler )
+	{
+		BackgroundThread.instance().executeGUI(new Runnable() {
+			@Override
+			public void run() {
+		        final InputDialog dlg = new InputDialog(mActivity, title, prompt, isNumberEdit, minValue, maxValue, lastValue, handler);
+		        dlg.show();
+			}
+			
+		});
+	}
+
+	public void showGoToPageDialog() {
+		getCurrentPositionProperties(new PositionPropertiesCallback() {
+			@Override
+			public void onPositionProperties(final PositionProperties props, final String positionText) {
+				if (props == null)
+					return;
+				String pos = mActivity.getString(R.string.dlg_goto_current_position) + " " + positionText;
+				String prompt = mActivity.getString(R.string.dlg_goto_input_page_number);
+				showInputDialog(mActivity.getString(R.string.mi_goto_page), pos + "\n" + prompt, true,
+						1, props.pageCount, props.pageNumber,
+						new InputHandler() {
+					int pageNumber = 0;
+					@Override
+					public boolean validate(String s) {
+						pageNumber = Integer.valueOf(s); 
+						return pageNumber>0 && pageNumber <= props.pageCount;
+					}
+					@Override
+					public void onOk(String s) {
+						goToPage(pageNumber);
+					}
+					@Override
+					public void onCancel() {
+					}
+				});
+			}
+		});
+	}
+	public void showGoToPercentDialog() {
+		getCurrentPositionProperties(new PositionPropertiesCallback() {
+			@Override
+			public void onPositionProperties(PositionProperties props, String positionText) {
+				if (props == null)
+					return;
+				String pos = mActivity.getString(R.string.dlg_goto_current_position) + " " + positionText;
+				String prompt = mActivity.getString(R.string.dlg_goto_input_percent);
+				showInputDialog(mActivity.getString(R.string.mi_goto_percent), pos + "\n" + prompt, true,
+						0, 100, props.y * 100 / props.fullHeight,
+						new InputHandler() {
+					int percent = 0;
+					@Override
+					public boolean validate(String s) {
+						percent = Integer.valueOf(s); 
+						return percent>=0 && percent<=100;
+					}
+					@Override
+					public void onOk(String s) {
+						goToPercent(percent);
+					}
+					@Override
+					public void onCancel() {
+					}
+				});
+			}
+		});
+	}
 }
