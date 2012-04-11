@@ -563,7 +563,7 @@ public class CoverpageManager {
 	private Bitmap drawCoverpage(byte[] data, FileInfo file)
 	{
 		try {
-			Bitmap bmp = Bitmap.createBitmap(maxWidth, maxHeight, Config.RGB_565);
+			Bitmap bmp = Bitmap.createBitmap(maxWidth, maxHeight, DeviceInfo.BUFFER_COLOR_FORMAT);
 			mActivity.getEngine().drawBookCover(bmp, data, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
 			return bmp;
 		} catch ( Exception e ) {

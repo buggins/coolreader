@@ -25,6 +25,7 @@ public class DeviceInfo {
 	public final static boolean NOFLIBUSTA;
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
+	public final static android.graphics.Bitmap.Config BUFFER_COLOR_FORMAT;
 
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
@@ -96,6 +97,7 @@ public class DeviceInfo {
 		NAVIGATE_LEFTRIGHT = POCKETBOOK && DEVICE.startsWith("EP10");
 		REVERT_LANDSCAPE_VOLUME_KEYS = POCKETBOOK && DEVICE.startsWith("EP5A");
 		MIN_SCREEN_BRIGHTNESS_PERCENT = getMinBrightness(AMOLED_SCREEN ? 2 : 16);
+		BUFFER_COLOR_FORMAT = getSDKLevel() >= ICE_CREAM_SANDWICH ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
 	}
 	
 	private static String getBuildField(String fieldName) {
