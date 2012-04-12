@@ -88,6 +88,7 @@ public:
     int filesize;
     lString16 filedate;
     int seriesNumber;
+    lString16 language;
 };
 
 static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProperties * pBookProps)
@@ -120,9 +121,11 @@ static bool GetEPUBBookProperties(const char *name, LVStreamRef stream, BookProp
 
     lString16 author = doc->textFromXPath( lString16("package/metadata/creator")).trim();
     lString16 title = doc->textFromXPath( lString16("package/metadata/title")).trim();
+    lString16 language = doc->textFromXPath( lString16("package/metadata/language")).trim();
 
     pBookProps->author = author;
     pBookProps->title = title;
+    pBookProps->language = language;
 
     for ( int i=1; i<20; i++ ) {
         ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
@@ -216,6 +219,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     #endif
     lString16 authors = extractDocAuthors( &doc, lString16("|"), false );
     lString16 title = extractDocTitle( &doc );
+    lString16 language = extractDocLanguage( &doc );
     lString16 series = extractDocSeries( &doc, &pBookProps->seriesNumber );
 #if SERIES_IN_AUTHORS==1
     if ( !series.empty() )
@@ -227,6 +231,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     pBookProps->filesize = (long)stream->GetSize();
     pBookProps->filename = lString16(name);
     pBookProps->filedate = getDateTimeString( t );
+    pBookProps->language = language;
     return true;
 }
 
@@ -269,6 +274,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 	SET_STR_FLD("authors",props.author);
 	SET_STR_FLD("series",props.series);
 	SET_INT_FLD("seriesNumber",props.seriesNumber);
+	SET_STR_FLD("language",props.language);
 	
 	return JNI_TRUE;
 }

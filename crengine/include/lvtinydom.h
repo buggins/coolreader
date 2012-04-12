@@ -76,6 +76,7 @@
 // document property names
 #define DOC_PROP_AUTHORS         "doc.authors"
 #define DOC_PROP_TITLE           "doc.title"
+#define DOC_PROP_LANGUAGE        "doc.language"
 #define DOC_PROP_SERIES_NAME     "doc.series.name"
 #define DOC_PROP_SERIES_NUMBER   "doc.series.number"
 #define DOC_PROP_ARC_NAME        "doc.archive.name"
@@ -2357,6 +2358,7 @@ public:
 /// extract authors from FB2 document, delimiter is lString16 by default
 lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter=lString16::empty_str, bool shortMiddleName=true );
 lString16 extractDocTitle( ldomDocument * doc );
+lString16 extractDocLanguage( ldomDocument * doc );
 /// returns "(Series Name #number)" if pSeriesNumber is NULL, separate name and number otherwise
 lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber=NULL );
 

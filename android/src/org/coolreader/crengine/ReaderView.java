@@ -2019,6 +2019,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						items.add("book.series=" + s);
 					}
 				}
+				if ( fi.language != null) {
+					items.add("book.language=" + fi.language);
+				}
 				BookInfoDialog dlg = new BookInfoDialog(mActivity, items);
 				dlg.show();
 			}

@@ -841,6 +841,8 @@ public:
     CRPropRef getDocProps() { return m_doc_props; }
     /// returns book title
     lString16 getTitle() { return m_doc_props->getStringDef(DOC_PROP_TITLE); }
+    /// returns book language
+    lString16 getLanguage() { return m_doc_props->getStringDef(DOC_PROP_LANGUAGE); }
     /// returns book author(s)
     lString16 getAuthors() { return m_doc_props->getStringDef(DOC_PROP_AUTHORS); }
     /// returns book series name and number (series name #1)

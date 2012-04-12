@@ -639,6 +639,7 @@ class CHMSystem {
     lString8 _indexFile;
     lString8 _defaultTopic;
     lString8 _title;
+    lString8 _language;
     lString8 _defaultFont;
     lUInt32  _lcid;
     bool _dbcs;
@@ -692,6 +693,7 @@ class CHMSystem {
                 int codepage = langToCodepage( _lcid );
                 const lChar16 * enc_name = GetCharsetName( codepage );
                 const lChar16 * table = GetCharsetByte2UnicodeTable( codepage );
+		_language = langToLanguage( _lcid );
                 if ( enc_name!=NULL ) {
                     _enc_table = table;
                     _enc_name = lString16(enc_name);
@@ -801,6 +803,10 @@ public:
 
     lString16 getTitle() {
         return decodeString(_title);
+    }
+
+    lString16 getLanguage() {
+        return decodeString(_language);
     }
 
     lString16 getDefaultTopic() {
@@ -1189,6 +1195,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     lString16 defEncodingName = chm->getEncodingName();
     lString16 mainPageName = chm->getDefaultTopic();
     lString16 title = chm->getTitle();
+    lString16 language = chm->getLanguage();
     CRLog::info("CHM: toc=%s, enc=%s, title=%s", LCSTR(tocFileName), LCSTR(defEncodingName), LCSTR(title));
     //
     lString16Collection urlList;
@@ -1207,6 +1214,8 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
 
     if ( !title.empty() )
         doc->getProps()->setString(DOC_PROP_TITLE, title);
+    if ( !language.empty() )
+        doc->getProps()->setString(DOC_PROP_LANGUAGE, language);
 
     fragmentCount = tocReader.appendFragments( progressCallback );
     writer.OnTagClose(L"", L"body");

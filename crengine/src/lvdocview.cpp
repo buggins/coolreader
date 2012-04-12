@@ -3537,6 +3537,7 @@ void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
 	writer.OnTagOpenNoAttr(NULL, L"description");
 	writer.OnTagOpenNoAttr(NULL, L"title-info");
 	writer.OnTagOpenNoAttr(NULL, L"book-title");
+	writer.OnTagOpenNoAttr(NULL, L"lang");
 	writer.OnText(title.c_str(), title.length(), 0);
 	writer.OnTagClose(NULL, L"book-title");
 	writer.OnTagOpenNoAttr(NULL, L"title-info");
@@ -3908,9 +3909,9 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 		return L"HTML";
 	case doc_format_txt_bookmark:
 		return L"CR3 TXT Bookmark";
-    case doc_format_doc:
-        return L"DOC";
-    default:
+	case doc_format_doc:
+		return L"DOC";
+	default:
 		return L"Unknown format";
 	}
 }
@@ -4174,6 +4175,7 @@ bool LVDocView::ParseDocument() {
 		if (m_doc_props->getStringDef(DOC_PROP_TITLE, "").empty()) {
 			m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors(m_doc));
 			m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle(m_doc));
+			m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc));
             int seriesNumber = -1;
             lString16 seriesName = extractDocSeries(m_doc, &seriesNumber);
             m_doc_props->setString(DOC_PROP_SERIES_NAME, seriesName);

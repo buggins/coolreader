@@ -98,6 +98,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		public String title;
 		public String subtitle;
 		public String icon;
+		public String language;
 		public LinkInfo selfLink;
 		public LinkInfo alternateLink;
 		public LinkInfo nextLink;
@@ -296,6 +297,9 @@ xml:base="http://lib.ololo.cc/opds/">
 				} else if ( "subtitle".equals(currentElement) ) {
 					if ( !insideEntry )
 						docInfo.subtitle = s;
+				} else if ( "language".equals(currentElement) ) {
+					if ( !insideEntry )
+						docInfo.language = s;
 				}
 			}
 		}

@@ -1051,6 +1051,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
     CRStringField(fileinfo,"title").set(p->_docview->getTitle());
     CRStringField(fileinfo,"authors").set(p->_docview->getAuthors());
     CRStringField(fileinfo,"series").set(p->_docview->getSeries());
+    CRStringField(fileinfo,"language").set(p->_docview->getLanguage());
 }
 
 /*

@@ -685,7 +685,9 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         CRPropRef m_doc_props = m_doc->getProps();
         lString16 author = doc->textFromXPath( lString16("package/metadata/creator"));
         lString16 title = doc->textFromXPath( lString16("package/metadata/title"));
+        lString16 language = doc->textFromXPath( lString16("package/metadata/language"));
         m_doc_props->setString(DOC_PROP_TITLE, title);
+        m_doc_props->setString(DOC_PROP_LANGUAGE, language);
         m_doc_props->setString(DOC_PROP_AUTHORS, author );
 
         for ( int i=1; i<50; i++ ) {

@@ -5255,6 +5255,11 @@ lString16 extractDocTitle( ldomDocument * doc )
     return doc->createXPointer(L"/FictionBook/description/title-info/book-title").getText().trim();
 }
 
+lString16 extractDocLanguage( ldomDocument * doc )
+{
+    return doc->createXPointer(L"/FictionBook/description/title-info/lang").getText();
+}
+
 lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
 {
     lString16 res;

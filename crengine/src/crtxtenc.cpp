@@ -941,6 +941,288 @@ int langToCodepage( int lang )
     }
 }
 
+const char* langToLanguage( int lang )
+{
+    switch ( lang )
+    {
+    case	0x0436	: //	Afrikaans
+        return "af";
+    case	0x041c	: //	Albanian
+        return "sq";
+    case	0x0401	: //	Arabic
+    case	0x1401	: //	Arabic Algeria
+    case	0x3c01	: //	Arabic Bahrain
+    case	0x0c01	: //	Arabic Egypt
+    case	0x0001	: //	Arabic General
+    case	0x0801	: //	Arabic Iraq
+    case	0x2c01	: //	Arabic Jordan
+    case	0x3401	: //	Arabic Kuwait
+    case	0x3001	: //	Arabic Lebanon
+    case	0x1001	: //	Arabic Libya
+    case	0x1801	: //	Arabic Morocco
+    case	0x2001	: //	Arabic Oman
+    case	0x4001	: //	Arabic Qatar
+    case	0x2801	: //	Arabic Syria
+    case	0x1c01	: //	Arabic Tunisia
+    case	0x3801	: //	Arabic U.A.E.
+    case	0x2401	: //	Arabic Yemen
+        return "ar";
+    case	0x042b	: //	Armenian
+        return "hy";
+    case	0x044d	: //	Assamese
+        return "as";
+    case	0x082c	: //	Azeri Cyrillic
+    case	0x042c	: //	Azeri Latin
+        return "az";
+    case	0x042d	: //	Basque
+        return "eu";
+    case	0x0445	: //	Bengali
+        return "bn";
+    case	0x101a	: //	Bosnia Herzegovina
+        return "hr";
+    case	0x0402	: //	Bulgarian
+        return "bg";
+    case	0x0455	: //	Burmese
+        return "my";
+    case	0x0423	: //	Byelorussian
+        return "be";
+    case	0x0403	: //	Catalan
+        return "ca";
+    case	0x0804	: //	Chinese China
+    case	0x0004	: //	Chinese General
+    case	0x0c04	: //	Chinese Hong Kong
+    //case	0x0c04	: //	Chinese Macao
+    case	0x1004	: //	Chinese Singapore
+    case	0x0404	: //	Chinese Taiwan
+        return "zh";
+    case	0x041a	: //	Croatian
+        return "hr";
+    case	0x0405	: //	Czech
+        return "cs";
+    case	0x0406	: //	Danish
+        return "da";
+    case	0x0813	: //	Dutch Belgium
+    case	0x0413	: //	Dutch Standard
+        return "nl";
+    case	0x0c09	: //	English Australia
+    case	0x2809	: //	English Belize
+    case	0x0809	: //	English British
+    case	0x1009	: //	English Canada
+    case	0x2409	: //	English Caribbean
+    case	0x0009	: //	English General
+    case	0x1809	: //	English Ireland
+    case	0x2009	: //	English Jamaica
+    case	0x1409	: //	English New Zealand
+    case	0x3409	: //	English Philippines
+    case	0x1c09	: //	English South Africa
+    case	0x2c09	: //	English Trinidad
+    case	0x0409	: //	English United States
+    //case	0x0409	: //	English Zimbabwe
+        return "en";
+    case	0x0425	: //	Estonian
+        return "et";
+    case	0x0438	: //	Faeroese
+        return "fo";
+    case	0x0429	: //	Farsi
+        return "fa";
+    case	0x040b	: //	Finnish
+        return "fi";
+    case	0x040c	: //	French
+    case	0x080c	: //	French Belgium
+    case	0x2c0c	: //	French Cameroon
+    case	0x0c0c	: //	French Canada
+    case	0x300c	: //	French Cote d'Ivoire
+    case	0x140c	: //	French Luxemburg
+    case	0x340c	: //	French Mali
+    case	0x180c	: //	French Monaco
+    case	0x200c	: //	French Reunion
+    case	0x280c	: //	French Senegal
+    case	0x100c	: //	French Swiss
+    case	0x1c0c	: //	French West Indies
+    case	0x240c	: //	French Zaire
+        return "fr";
+    case	0x0462	: //	Frisian
+        return "fy";
+    case	0x043c	: //	Gaelic
+    case	0x083c	: //	Gaelic Ireland
+	return "ga";
+    case	0x0456	: //	Galician
+	return "gl";
+    case	0x0437	: //	Georgian
+        return "ka";
+    case	0x0407	: //	German
+    case	0x0c07	: //	German Austrian
+    case	0x1407	: //	German Liechtenstein
+    case	0x1007	: //	German Luxemburg
+    case	0x0807	: //	German Switzerland
+        return "de";
+    case	0x0408	: //	Greek
+        return "el";
+    case	0x0447	: //	Gujarati
+        return "gu";
+    case	0x040d	: //	Hebrew
+        return "he";
+    case	0x0439	: //	Hindi
+        return "hi";
+    case	0x040e	: //	Hungarian
+        return "hu";
+    case	0x040f	: //	Icelandic
+        return "is";
+    case	0x0421	: //	Indonesian
+        return "id";
+    case	0x0410	: //	Italian
+    case	0x0810	: //	Italian Switzerland
+        return "it";
+    case	0x0411	: //	Japanese
+        return "ja";
+    case	0x044b	: //	Kannada
+        return "kn";
+    case	0x0460	: //	Kashmiri
+    case	0x0860	: //	Kashmiri India
+        return "ks";
+    case	0x043f	: //	Kazakh
+        return "kk";
+    case	0x0453	: //	Khmer
+        return "km";
+    case	0x0440	: //	Kirghiz
+        return "ky";
+    case	0x0457	: //	Konkani
+        return "kok";
+    case	0x0412	: //	Korean
+    case	0x0812	: //	Korean Johab
+        return "ko";
+    case	0x0454	: //	Lao
+        return "lo";
+    case	0x0426	: //	Latvian
+        return "lv";
+    case	0x0427	: //	Lithuanian
+    case	0x0827	: //	Lithuanian Classic
+        return "lt";
+    case	0x043e	: //	Macedonian
+    //case	0x043e	: //	Malay
+    case	0x083e	: //	Malay Brunei Darussalam
+        return "ms";
+    case	0x044c	: //	Malayalam
+        return "ml";
+    case	0x043a	: //	Maltese
+        return "mt";
+    case	0x0458  : //	Manipuri
+        return "mni";
+    case	0x044e	: //	Marathi
+        return "mr";
+    case	0x0450	: //	Mongolian
+        return "mn";
+    case	0x0461	: //	Nepali
+    case	0x0861	: //	Nepali India
+        return "ne";
+    case	0x0414	: //	Norwegian Bokmal
+    case	0x0814	: //	Norwegian Nynorsk
+        return "nb";
+    case	0x0448	: //	Oriya
+        return "or";
+    case	0x0415	: //	Polish
+        return "pl";
+    case	0x0416	: //	Portuguese Brazil
+    case	0x0816	: //	Portuguese Iberian
+        return "pt";
+    case	0x0446	: //	Punjabi
+        return "pa";
+    case	0x0417	: //	Rhaeto-Romanic
+        return "rm";
+    case	0x0418	: //	Romanian
+    case	0x0818	: //	Romanian Moldova
+        return "ro";
+    case	0x0419	: //	Russian
+    case	0x0819	: //	Russian Moldova
+        return "ru";
+    case	0x043b	: //	Sami Lappish
+        return "se";
+    case	0x044f	: //	Sanskrit
+        return "sa";
+    case	0x0c1a	: //	Serbian Cyrillic
+    case	0x081a	: //	Serbian Latin
+        return "hr";
+    case	0x0459	: //	Sindhi
+        return "sd";
+    case	0x041b	: //	Slovak
+        return "sk";
+    case	0x0424	: //	Slovenian
+        return "sl";
+    case	0x042e	: //	Sorbian
+        return "hsb";
+    case	0x2c0a	: //	Spanish Argentina
+    case	0x400a	: //	Spanish Bolivia
+    case	0x340a	: //	Spanish Chile
+    case	0x240a	: //	Spanish Colombia
+    case	0x140a	: //	Spanish Costa Rica
+    case	0x1c0a	: //	Spanish Dominican Republic
+    case	0x300a	: //	Spanish Ecuador
+    case	0x440a	: //	Spanish El Salvador
+    case	0x100a	: //	Spanish Guatemala
+    case	0x480a	: //	Spanish Honduras
+    case	0x080a	: //	Spanish Mexico
+    case	0x0c0a	: //	Spanish Modern
+    case	0x4c0a	: //	Spanish Nicaragua
+    case	0x180a	: //	Spanish Panama
+    case	0x3c0a	: //	Spanish Paraguay
+    case	0x280a	: //	Spanish Peru
+    case	0x500a	: //	Spanish Puerto Rico
+    case	0x040a	: //	Spanish Traditional
+    case	0x380a	: //	Spanish Uruguay
+    case	0x200a	: //	Spanish Venezuela
+        return "es";
+    case	0x0430	: //	Sutu
+        return "st";
+    case	0x0441	: //	Swahili
+        return "sw";
+    case	0x041d	: //	Swedish
+    case	0x081d	: //	Swedish Finland
+        return "sv";
+    case	0x0428	: //	Tajik
+        return "tg";
+    case	0x0449	: //	Tamil
+        return "ta";
+    case	0x0444	: //	Tatar
+        return "tt";
+    case	0x044a	: //	Telugu
+        return "te";
+    case	0x041e	: //	Thai
+        return "th";
+    case	0x0451	: //	Tibetan
+        return "bo";
+    case	0x0431	: //	Tsonga
+        return "ts";
+    case	0x0432	: //	Tswana
+        return "tn";
+    case	0x041f	: //	Turkish
+        return "tr";
+    case	0x0442	: //	Turkmen
+        return "tk";
+    case	0x0422	: //	Ukrainian
+        return "uk";
+    case	0x0420	: //	Urdu
+    case	0x0820	: //	Urdu India
+        return "ur";
+    case	0x0843	: //	Uzbek Cyrillic
+    case	0x0443	: //	Uzbek Latin
+        return "uz";
+    case	0x0433	: //	Venda
+        return "ve";
+    case	0x042a	: //	Vietnamese
+        return "vi";
+    case	0x0452	: //	Welsh
+        return "cy";
+    case	0x0434	: //	Xhosa
+        return "xh";
+    case	0x043d	: //	Yiddish
+        return "yi";
+    case	0x0435	: //	Zulu
+        return "zu";
+    default:
+        return NULL;
+    }
+}
+
 const lChar16 * GetCharsetByte2UnicodeTable( int codepage )
 {
     switch ( codepage )

@@ -84,6 +84,7 @@ const lChar16 * GetCharsetByte2UnicodeTable( int codepage );
 const lChar16 * GetCharsetName( int codepage );
 /// convert language id to codepage number (MS)
 int langToCodepage( int lang );
+const char* langToLanguage( int lang );
 
 /**
     \brief Autodetects encoding of text data in buffer.

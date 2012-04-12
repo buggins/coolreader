@@ -41,6 +41,7 @@ public class FileInfo {
 	public String filename; // file name w/o path for normal file, with optional path for file inside archive 
 	public String pathname; // full path+arcname+filename
 	public String arcname; // archive file name w/o path
+	public String language; // document language
 	public DocumentFormat format;
 	public int size;
 	public int arcsize;
@@ -202,6 +203,7 @@ public class FileInfo {
 		isDirectory = v.isDirectory;
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
+		language = v.language;
 	}
 	
 	/**
@@ -613,6 +615,10 @@ public class FileInfo {
 	
 	public String getTitle() {
 		return title;
+	}
+	
+	public String getLanguage() {
+		return language;
 	}
 
 	public void clear()
