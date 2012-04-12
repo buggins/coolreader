@@ -2872,7 +2872,7 @@ static const char * getCharTranscript( lChar16 ch )
     else if (ch>=0x430 && ch<0x450)
         return russian_small[ch-0x430];
     else if (ch>=0xC0 && ch<0xFF)
-        return latin_1[ch-0x430];
+        return latin_1[ch-0xC0];
     else if (ch==0x450)
         return "E";
     else if ( ch==0x451 )
