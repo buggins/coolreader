@@ -562,10 +562,18 @@ public class CoolReader extends Activity
 		mEngine = new Engine(this, mBackgroundThread);
 		
 		mSyncService = new SyncServiceAccessor(this);
+		mSyncService.bind(new Runnable() {
+			@Override
+			public void run() {
+				log.i("Initialization after SyncService is bound");
+	        	mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
+			}
+		});
 		mCRDBService = new CRDBServiceAccessor(this, mEngine.getPathCorrector());
         mCRDBService.bind(new Runnable() {
 			@Override
 			public void run() {
+				log.i("Initialization after SyncService is bound");
 				mHistory.loadFromDB(200);
 			}
         });
@@ -738,11 +746,8 @@ public class CoolReader extends Activity
         }
 		
         log.i("CoolReader.onCreate() exiting");
-        
-        mSyncService.bind();
-        mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
     }
-    
+
     private SyncServiceAccessor mSyncService;
     public SyncServiceAccessor getSyncService() {
     	return mSyncService;

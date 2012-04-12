@@ -32,8 +32,14 @@ public class SyncServiceAccessor {
 		mActivity = activity;
 	}
 
-    public void bind() {
+	private Runnable connectCallback;
+    public void bind(final Runnable boundCallback) {
     	Log.v(TAG, "binding SyncService");
+    	if (mSyncService != null) {
+    		boundCallback.run();
+    		return;
+    	}
+    	connectCallback = boundCallback;
     	if (mActivity.bindService(new Intent(mActivity, 
                 SyncService.class), mSyncServiceConnection, Context.BIND_AUTO_CREATE)) {
             mSyncServiceBound = true;
@@ -168,6 +174,9 @@ public class SyncServiceAccessor {
         public void onServiceConnected(ComponentName className, IBinder service) {
         	mSyncService = ((SyncService.LocalBinder)service).getService();
         	Log.i(TAG, "connected to SyncService");
+        	if (connectCallback != null)
+        		connectCallback.run();
+        	connectCallback = null;
         	if (syncDirectory != null) {
             	Log.i(TAG, "setting sync directory " + syncDirectory);
         		mSyncService.setSyncDirectory(syncDirectory);
