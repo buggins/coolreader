@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -1311,6 +1312,7 @@ public class Engine {
 				}
 			}
 		}
+		Collections.sort(fontPaths);
 		return fontPaths.toArray(new String[] {});
 	}
 
