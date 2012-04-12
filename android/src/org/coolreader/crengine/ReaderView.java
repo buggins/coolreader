@@ -176,6 +176,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		DCMD_FONT_PREVIOUS(2033),
 
     	DCMD_USER_MANUAL(2034),
+    	DCMD_CURRENT_BOOK_DIRECTORY(2035),
 		;
     	
     	private final int nativeId;
@@ -2610,7 +2611,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			showTOC();
 			break;
 		case DCMD_FILE_BROWSER:
-			mActivity.showBrowser(null); //getOpenedFileInfo());
+			mActivity.showBrowser(firstShowBrowserCall ? getOpenedFileInfo() : null);
+			break;
+		case DCMD_CURRENT_BOOK_DIRECTORY:
+			mActivity.showBrowser(getOpenedFileInfo());
 			break;
 		case DCMD_OPTIONS_DIALOG:
 			mActivity.showOptionsDialog();
@@ -2623,6 +2627,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			break;
 		}
 	}
+	boolean firstShowBrowserCall = true;
 	
 	
 	private TTSToolbarDlg ttsToolbar;

@@ -615,12 +615,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				addKey(listView, KeyEvent.KEYCODE_HOME, "Home");
 			} else {
 				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
+				addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Up");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Down");
 				addKey(listView, KeyEvent.KEYCODE_DPAD_CENTER, "Center");
-				addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
 				addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
 				addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
 				addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
