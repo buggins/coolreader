@@ -151,8 +151,10 @@ public class History extends FileInfoChangeSource {
 		db().loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
 			@Override
 			public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
-				mBooks = bookList;
-				updateRecentDir();
+				if (bookList != null) {
+					mBooks = bookList;
+					updateRecentDir();
+				}
 			}
 		});
 		if ( mRecentBooksFolder==null )
