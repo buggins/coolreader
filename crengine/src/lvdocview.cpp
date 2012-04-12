@@ -1384,8 +1384,14 @@ LVArray<int> & LVDocView::getSectionBounds() {
 		return m_section_bounds;
 	m_section_bounds.clear();
 	m_section_bounds.add(0);
+    // Get sections from FB2 books
     ldomNode * body = m_doc->nodeFromXPath(lString16("/FictionBook/body[1]"));
 	lUInt16 section_id = m_doc->getElementNameIndex(L"section");
+    if (body == NULL) {
+        // Get sections from EPUB books
+        body = m_doc->nodeFromXPath(lString16(L"/body[1]"));
+        section_id = m_doc->getElementNameIndex(L"DocFragment");
+    }
 	int fh = GetFullHeight();
     int pc = getVisiblePageCount();
 	if (body && fh > 0) {
