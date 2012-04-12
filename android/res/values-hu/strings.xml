@@ -398,7 +398,7 @@
     <string name="option_controls_gesture_page_flipping_enabled">Lapozó mozdulat</string>
     <string name="options_font_embedded_document_font_enabled">Beágyazott betűtípusok</string>
     <string name="options_app_locale_system">Rendszer</string>
-    <string name="options_app_locale">Kezelőfelület nyelve</string>
+    <string name="options_app_locale">Kezelőfelület nyelve (Interface language)</string>
     <string name="mi_goto_manual">Felhasználói útmutató megj.</string>
     <string name="options_view_bookmarks_highlight_underline">Aláhúzás</string>
     <string name="options_view_color_selection">Kijelölés színe</string>
@@ -407,21 +407,23 @@
     <string name="options_view_color_bookmark_correction">Korrektúra színe</string>
     <string name="options_view_bookmarks_highlight_solid">Egyszínű kiemelés</string>
     <string name="win_title_confirm_bookmark_delete">Biztosan törli ezt a könyvjelzőt?</string>
-<string name="options_app_locale_bg">bolgár</string>
+    <string name="options_app_locale_bg">bolgár</string>
     <string name="options_app_locale_hu">magyar</string>
     <string name="options_app_locale_de">német</string>
     <string name="options_app_locale_es">spanyol</string>
     <string name="options_app_locale_en">angol</string>
-    <string name="options_app_locale_zh_cn">kínai</string>
-    <string name="options_app_locale_uk">ukrán</string>
+    <string name="options_app_locale_zh_cn">中文</string>
+    <string name="options_app_locale_uk">Ukrainian</string>
     <string name="options_app_locale_tr">török</string>
     <string name="options_app_locale_it">olasz</string>
-    <string name="options_app_locale_ru">orosz</string>
+    <string name="options_app_locale_ru">Русский</string>
     <string name="options_app_locale_sk">szlovák</string>
     <string name="options_app_locale_nl">holland</string>
     <string name="options_app_locale_lt">litván</string>
-<string name="options_app_cover_page_size_big">Nagy</string>
+    <string name="options_app_cover_page_size_big">Nagy</string>
     <string name="options_app_cover_page_size_medium">Közepes</string>
     <string name="options_app_cover_page_size_small">Kicsi</string>
     <string name="options_app_cover_page_size">Borítóméret</string>
+    <string name="options_app_locale_fr">Français</string>
+    <string name="book_info_book_language">Language</string>
 </resources>

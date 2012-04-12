@@ -399,8 +399,8 @@
     <string name="option_controls_gesture_page_flipping_enabled">Changement de page par gestuelle</string>
     <string name="options_font_embedded_document_font_enabled">Utiliser les polices internes des livres</string>
     <string name="options_app_locale_system">Système</string>
-    <string name="options_app_locale">Langue de l\'interface</string>
-    <string name="options_app_locale_zh_cn">Chinois</string>
+    <string name="options_app_locale">Langue de l\'interface (Interface language)</string>
+    <string name="options_app_locale_zh_cn">中文</string>
     <string name="options_app_locale_uk">Ukrainien</string>
     <string name="options_app_locale_tr">Turc</string>
     <string name="options_app_locale_bg">Bulgare</string>
@@ -409,7 +409,7 @@
     <string name="options_app_locale_de">Allemand</string>
     <string name="options_app_locale_es">Espagnol</string>
     <string name="options_app_locale_en">Anglais</string>
-    <string name="options_app_locale_ru">Russe</string>
+    <string name="options_app_locale_ru">Русский</string>
     <string name="options_app_locale_sk">Slovaque</string>
     <string name="options_app_locale_nl">Néerlandais</string>
     <string name="options_app_locale_lt">Lituanien</string>
@@ -426,4 +426,7 @@
     <string name="options_app_cover_page_size_medium">Moyennes</string>
     <string name="options_app_cover_page_size_small">Petites</string>
     <string name="options_app_cover_page_size">Taille des pages couvertures</string>
+    <string name="dlg_goto_current_position">Current page:</string>
+    <string name="dlg_goto_input_page_number">Input page number to go:</string>
+    <string name="dlg_goto_input_percent">Input position percent to go:</string>
 </resources>
