@@ -163,6 +163,7 @@ public interface Settings {
     	EN("en", R.string.options_app_locale_en, R.raw.help_template_en),
     	DE("de", R.string.options_app_locale_de, 0),
     	ES("es", R.string.options_app_locale_es, 0),
+    	FR("fr", R.string.options_app_locale_fr, 0),
     	RU("ru", R.string.options_app_locale_ru, R.raw.help_template_ru),
     	UK("uk", R.string.options_app_locale_uk, R.raw.help_template_ru),
     	BG("bg", R.string.options_app_locale_bg, 0),

@@ -412,6 +412,7 @@
     <string name="options_app_locale_sk">Slovak</string>
     <string name="options_app_locale_nl">Dutch</string>
     <string name="options_app_locale_lt">Lithuanian</string>
+    <string name="options_app_locale_fr">French</string>
     <string name="mi_goto_manual">Show manual</string>
     <string name="options_view_bookmarks_highlight_underline">Underline</string>
     <string name="options_view_color_selection">Selection color</string>
