@@ -1603,6 +1603,33 @@ public class CoolReader extends Activity
 		new DefTapAction(5, true, ReaderAction.OPTIONS),
 	};
 	
+	
+	private boolean isValidFontFace(String face) {
+		String[] fontFaces = mEngine.getFontFaceList();
+		for (String item : fontFaces) {
+			if (item.equals(face))
+				return true;
+		}
+		return false;
+	}
+	private void applyDefaultFont(Properties props, String propName, String defFontFace) {
+		String currentValue = props.getProperty(propName);
+		if (currentValue == null) {
+			currentValue = defFontFace;
+		}
+		if (!isValidFontFace(currentValue)) {
+			if (isValidFontFace("Droid Sans"))
+				currentValue = "Droid Sans";
+			else if (isValidFontFace("Roboto"))
+				currentValue = "Roboto";
+			else if (isValidFontFace("Droid Serif"))
+				currentValue = "Droid Serif";
+			else if (isValidFontFace("Droid Sans Fallback"))
+				currentValue = "Droid Sans Fallback";
+		}
+		props.setProperty(propName, currentValue);
+	}
+	
 	public Properties loadSettings(File file) {
         Properties props = new Properties();
 
@@ -1670,9 +1697,9 @@ public class CoolReader extends Activity
             vmargin = "15";
         }
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
-        props.applyDefault(ReaderView.PROP_FONT_FACE, "Droid Sans");
+        applyDefaultFont(props, ReaderView.PROP_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
-        props.applyDefault(ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
+        applyDefaultFont(props, ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : "16");
         props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
         props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
@@ -1705,7 +1732,7 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 		props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
 		//props.applyDefault(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Fallback");
-		props.put(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback");
+        applyDefaultFont(props, ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback");
 
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, "1");

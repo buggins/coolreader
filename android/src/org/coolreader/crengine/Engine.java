@@ -547,6 +547,7 @@ public class Engine {
 		this.mBackgroundThread = backgroundThread;
 		installLibrary();
 		initMountRoots();
+		mFonts = findFonts();
 		// this.mMainView = mainView;
 		//
 //		log.i("Engine() : initializing Engine in UI thread");
@@ -1222,13 +1223,14 @@ public class Engine {
 //		Log.i("cr3", "normalization: " + path + " => " + normalizePathUsingRootLinks(new File(path)));
 //	}
 	
+	String[] mFonts;
 	private void init() throws IOException {
 		if (initialized)
 			throw new IllegalStateException("Already initialized");
 		String[] fonts = findFonts();
 		findExternalHyphDictionaries();
 		synchronized(this) {
-			if (!initInternal(fonts))
+			if (!initInternal(mFonts))
 				throw new IOException("Cannot initialize CREngine JNI");
 		}
 		// Initialization of cache directory
