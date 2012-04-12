@@ -152,7 +152,13 @@ public class Scanner extends FileInfoChangeSource {
 			// process normal files
 			if ( items!=null ) {
 				for ( File f : items ) {
-					if ( !f.isDirectory() ) {
+					// check whether file is a link
+					if (Engine.isLink(f.getAbsolutePath()) != null) {
+						log.w("skipping " + f + " because it's a link");
+						continue;
+					}
+					if (!f.isDirectory()) {
+						// regular file
 						if ( f.getName().startsWith(".") )
 							continue; // treat files beginning with '.' as hidden
 						String pathName = f.getAbsolutePath();

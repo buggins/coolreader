@@ -987,13 +987,18 @@ public class CoolReader extends Activity
 		if ( fileToOpen!=null ) {
 			// load document
 			final String fn = fileToOpen;
-			mReaderView.loadDocument(fileToOpen, new Runnable() {
+			BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
 				public void run() {
-					log.v("onNewIntent, loadDocument error handler called");
-					showToast("Error occured while loading " + fn);
-					mEngine.hideProgress();
+					mReaderView.loadDocument(fn, new Runnable() {
+						public void run() {
+							log.v("onNewIntent, loadDocument error handler called");
+							showToast("Error occured while loading " + fn);
+							mEngine.hideProgress();
+						}
+					});
 				}
-			});
+			}, 100);
 		}
 	}
 
