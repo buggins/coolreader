@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0">
+<TS version="2.0" language="uk_UA">
 <context>
     <name>AboutDialog</name>
     <message>
@@ -977,7 +977,51 @@ http://sourceforge.net/projects/crengine/
     </message>
     <message>
         <source>All supported formats (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;FB2 books (*.fb2 *.fb2.zip);;Text files (*.txt);;Rich text (*.rtf);;MS Word document (*.doc);;HTML files (*.htm *.html);;EPUB files (*.epub);;CHM files (*.chm);;MOBI files (*.mobi *.prc *.azw);;PalmDOC files (*.pdb *.pml);;ZIP archives (*.zip)</source>
-        <translation>Всі формати, які підтримуються (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;FB2 книги (*.fb2 *.fb2.zip);;Текстові файли (*.txt);;Rich text (*.rtf);;MS Word документи (*.doc);;HTML файли (*.htm *.html);;EPUB файли (*.epub);;CHM файли (*.chm);;MOBI файли (*.mobi *.prc *.azw);;PalmDOC файли (*.pdb *.pml);;ZIP архіви (*.zip)</translation>
+        <translation type="obsolete">Всі формати, які підтримуються (*.fb2 *.txt *.tcr *.rtf *.doc *.epub *.html *.htm *.chm *.zip *.pdb *.pml *.prc *.pml *.mobi);;FB2 книги (*.fb2 *.fb2.zip);;Текстові файли (*.txt);;Rich text (*.rtf);;MS Word документи (*.doc);;HTML файли (*.htm *.html);;EPUB файли (*.epub);;CHM файли (*.chm);;MOBI файли (*.mobi *.prc *.azw);;PalmDOC файли (*.pdb *.pml);;ZIP архіви (*.zip)</translation>
+    </message>
+    <message>
+        <source>All supported formats</source>
+        <translation>Всі формати, які підтримуються</translation>
+    </message>
+    <message>
+        <source>FB2 books</source>
+        <translation>Книги FB2</translation>
+    </message>
+    <message>
+        <source>Text files</source>
+        <translation>Текстові файли</translation>
+    </message>
+    <message>
+        <source>Rich text</source>
+        <translation>RTF файли</translation>
+    </message>
+    <message>
+        <source>MS Word document</source>
+        <translation>MS Word документи</translation>
+    </message>
+    <message>
+        <source>HTML files</source>
+        <translation>HTML файли</translation>
+    </message>
+    <message>
+        <source>EPUB files</source>
+        <translation>EPUB файли</translation>
+    </message>
+    <message>
+        <source>CHM files</source>
+        <translation>CHM файли</translation>
+    </message>
+    <message>
+        <source>MOBI files</source>
+        <translation>MOBI файли</translation>
+    </message>
+    <message>
+        <source>PalmDOC files</source>
+        <translation>PalmDOC файли</translation>
+    </message>
+    <message>
+        <source>ZIP archives</source>
+        <translation>ZIP архіви</translation>
     </message>
 </context>
 <context>
@@ -2170,6 +2214,78 @@ http://sourceforge.net/projects/crengine/
     <message>
         <source>.EPUB</source>
         <translation>Для файлів .EPUB</translation>
+    </message>
+    <message>
+        <source>Selection color</source>
+        <translation>Колір виділення</translation>
+    </message>
+    <message>
+        <source>Comment bookmark color</source>
+        <translation>Колір закладки-коментаря</translation>
+    </message>
+    <message>
+        <source>Correction bookmark color</source>
+        <translation>Колір закладки-поправки</translation>
+    </message>
+    <message>
+        <source>Comment color</source>
+        <translation>Колір коментаря</translation>
+    </message>
+    <message>
+        <source>Correction color</source>
+        <translation>Колір поправки</translation>
+    </message>
+    <message>
+        <source>Bookmark highlight</source>
+        <translation>Підсвічуваня закладки</translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation>Вимкнуто</translation>
+    </message>
+    <message>
+        <source>Solid fill</source>
+        <translation>Суцільне заповнення</translation>
+    </message>
+    <message>
+        <source>Inline images zoom in</source>
+        <translation>Збільшення inline зображень</translation>
+    </message>
+    <message>
+        <source>Integer scale</source>
+        <translation>Ціле число раз</translation>
+    </message>
+    <message>
+        <source>Arbitrary scale</source>
+        <translation>Довільний масштаб</translation>
+    </message>
+    <message>
+        <source>1</source>
+        <translation>х1</translation>
+    </message>
+    <message>
+        <source>2</source>
+        <translation>х2</translation>
+    </message>
+    <message>
+        <source>3</source>
+        <translation>х3</translation>
+    </message>
+    <message>
+        <source>Block images zoom in</source>
+        <translation>Збільшення block зображень</translation>
+    </message>
+    <message>
+        <source>Block images zoom out</source>
+        <translation>Зменшення block зображень</translation>
+    </message>
+    <message>
+        <source>Inline images zoom out</source>
+        <translation>Зменшення inline зображень</translation>
+    </message>
+    <message>
+        <source>Image scaling options</source>
+        <translation>Параметри масштабування зображень</translation>
     </message>
 </context>
 <context>
