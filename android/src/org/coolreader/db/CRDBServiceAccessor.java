@@ -28,10 +28,18 @@ public class CRDBServiceAccessor {
 		this.pathCorrector = pathCorrector;
 	}
 
-    public void bind() {
+	private Runnable onConnectCallback;
+	
+    public void bind(final Runnable boundCallback) {
     	Log.v(TAG, "binding CRDBService");
+    	if (mService != null) {
+        	Log.v(TAG, "Already bound");
+    		boundCallback.run();
+    		return;
+    	}
     	if (mActivity.bindService(new Intent(mActivity, 
                 CRDBService.class), mServiceConnection, Context.BIND_AUTO_CREATE)) {
+    		onConnectCallback = boundCallback;
             mServiceBound = true;
     	} else {
     		Log.e(TAG, "cannot bind CRDBService");
@@ -53,6 +61,11 @@ public class CRDBServiceAccessor {
         	Log.i(TAG, "connected to CRDBService");
         	if (pathCorrector != null)
         		mService.setPathCorrector(pathCorrector);
+        	if (onConnectCallback != null) {
+        		// run once
+        		onConnectCallback.run();
+        		onConnectCallback = null;
+        	}
         }
 
         public void onServiceDisconnected(ComponentName className) {

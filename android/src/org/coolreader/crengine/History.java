@@ -1,18 +1,10 @@
 package org.coolreader.crengine;
 
-import java.io.ByteArrayInputStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
 import org.coolreader.db.CRDBService;
 
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
 public class History extends FileInfoChangeSource {
@@ -24,9 +16,10 @@ public class History extends FileInfoChangeSource {
 		return mCoolReader.getDB();
 	}
 	
-	public History(CoolReader cr)
+	public History(CoolReader cr, Scanner scanner)
 	{
 		this.mCoolReader = cr;
+		this.mScanner = scanner;
 	}
 	
 	public BookInfo getLastBook()
@@ -144,10 +137,11 @@ public class History extends FileInfoChangeSource {
 			Log.v("cr3", "History.updateRecentDir() : mRecentBooksFolder is null");
 		}
 	}
-	public boolean loadFromDB( Scanner scanner, int maxItems )
+	Scanner mScanner;
+	public boolean loadFromDB(int maxItems )
 	{
 		Log.v("cr3", "History.loadFromDB()");
-		mRecentBooksFolder = scanner.getRecentDir();
+		mRecentBooksFolder = mScanner.getRecentDir();
 		db().loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
 			@Override
 			public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {

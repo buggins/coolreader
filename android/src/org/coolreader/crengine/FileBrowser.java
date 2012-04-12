@@ -381,23 +381,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	
 	boolean mInitStarted = false;
-//	boolean mInitialized = false;
 	public void init()
 	{
 		if ( mInitStarted )
 			return;
 		log.e("FileBrowser.init() called");
 		mInitStarted = true;
-		//mEngine.showProgress(1000, R.string.progress_scanning);
 		
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				mHistory.loadFromDB(mScanner, 100);
-				showDirectory( mScanner.mRoot, null );
-				mListView.setSelection(0);
-			}
-		});
+		showDirectory( mScanner.mRoot, null );
+		mListView.setSelection(0);
 	}
 	
 	public static String formatAuthors( String authors ) {

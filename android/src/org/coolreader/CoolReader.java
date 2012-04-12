@@ -563,7 +563,12 @@ public class CoolReader extends Activity
 		
 		mSyncService = new SyncServiceAccessor(this);
 		mCRDBService = new CRDBServiceAccessor(this, mEngine.getPathCorrector());
-        mCRDBService.bind();
+        mCRDBService.bind(new Runnable() {
+			@Override
+			public void run() {
+				mHistory.loadFromDB(200);
+			}
+        });
 
     	isFirstStart = true;
 		
@@ -665,7 +670,7 @@ public class CoolReader extends Activity
        	mScanner = new Scanner(this, mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 		
-       	mHistory = new History(this);
+       	mHistory = new History(this, mScanner);
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
 //			setTheme(android.R.style.Theme_Light);
