@@ -2617,7 +2617,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.showBrowser(getOpenedFileInfo());
 			break;
 		case DCMD_OPTIONS_DIALOG:
-			mActivity.showOptionsDialog();
+			mActivity.showOptionsDialog(OptionsDialog.Mode.READER);
 			break;
 		case DCMD_READER_MENU:
 			mActivity.openOptionsMenu();
@@ -2984,6 +2984,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			this.mActivity.setFullscreen( "1".equals(value) );
         } else if ( key.equals(PROP_APP_LOCALE) ) {
 			mActivity.setLanguage(value);
+        } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
+        	if (mActivity.getBrowser() != null)
+        		mActivity.getBrowser().setSortOrder(value);
+        } else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
+        	if (mActivity.getBrowser() != null)
+        		mActivity.getBrowser().setSimpleViewMode(flg);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
         	if (mActivity.getBrowser() != null)
         		mActivity.getBrowser().setCoverPagesEnabled(flg);

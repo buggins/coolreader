@@ -714,7 +714,9 @@ public class FileInfo {
 				return -1;
 			if ( str2==null )
 				return 1;
-			
+		
+			str1 = str1.toLowerCase();
+			str2 = str2.toLowerCase();
 			int p1 = 0;
 			int p2 = 0;
 			for ( ;; ) {

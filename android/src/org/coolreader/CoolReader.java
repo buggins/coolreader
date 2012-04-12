@@ -1415,7 +1415,7 @@ public class CoolReader extends Activity
 
 	String[] mFontFaces;
 
-	public void showOptionsDialog()
+	public void showOptionsDialog(final OptionsDialog.Mode mode)
 	{
 		final CoolReader _this = this;
 		mBackgroundThread.executeBackground(new Runnable() {
@@ -1423,7 +1423,7 @@ public class CoolReader extends Activity
 				mFontFaces = mEngine.getFontFaceList();
 				mBackgroundThread.executeGUI(new Runnable() {
 					public void run() {
-						OptionsDialog dlg = new OptionsDialog(_this, mReaderView, mFontFaces);
+						OptionsDialog dlg = new OptionsDialog(_this, mReaderView, mFontFaces, mode);
 						dlg.show();
 					}
 				});
@@ -1460,9 +1460,12 @@ public class CoolReader extends Activity
 			mBrowser.setSimpleViewMode(!mBrowser.isSimpleViewMode());
 			mReaderView.saveSetting(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, mBrowser.isSimpleViewMode()?"1":"0");
 			return true;
-		case R.id.book_sort_order:
-			mBrowser.showSortOrderMenu();
+		case R.id.mi_browser_options:
+			showOptionsDialog(OptionsDialog.Mode.BROWSER);
 			return true;
+//		case R.id.book_sort_order:
+//			mBrowser.showSortOrderMenu();
+//			return true;
 		case R.id.book_root:
 			mBrowser.showRootDirectory();
 			return true;

@@ -206,6 +206,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mViewModeTitles = new int[] {
 			R.string.options_view_mode_pages, R.string.options_view_mode_scroll
 		};
+	ViewGroup mContentView;
 	TabHost mTabs;
 	LayoutInflater mInflater;
 	Properties mProperties;
@@ -215,6 +216,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionsListView mOptionsPage;
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
+	OptionsListView mOptionsBrowser;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -382,6 +384,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	private static boolean showIcons = true;
 	private static boolean isTextFormat = false;
 	private static boolean isEpubFormat = false;
+	private Mode mode;
 	
 	class IconsBoolOption extends BoolOption {
 		public IconsBoolOption( OptionOwner owner, String label, String property ) {
@@ -1221,7 +1224,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	//byte[] fakeLongArrayForDebug;
 	
-	public OptionsDialog( CoolReader activity, ReaderView readerView, String[] fontFaces )
+	public enum Mode {
+		READER,
+		BROWSER,
+	}
+	public OptionsDialog(CoolReader activity, ReaderView readerView, String[] fontFaces, Mode mode)
 	{
 		super(activity, null, false, false);
 		
@@ -1236,6 +1243,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
 		isTextFormat = readerView.isTextFormat();
 		isEpubFormat = readerView.isFormatWithEmbeddedFonts();
+		this.mode = mode;
 	}
 	
 	class OptionsListView extends BaseListView {
@@ -1682,16 +1690,51 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsCSS.add(createStyleEditor(styleCodes[i], styleTitles[i]));
 	}
 	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		L.v("creating OptionsDialog");
-		CoolReader.dumpHeapAllocation();
-		L.v("calling gc");
-		System.gc();
-		CoolReader.dumpHeapAllocation();
-		L.v("creating options dialog");
-        setCancelable(true);
-        setCanceledOnTouchOutside(true);
+	private void setupBrowserOptions()
+	{
+        mInflater = LayoutInflater.from(getContext());
+        ViewGroup view = (ViewGroup)mInflater.inflate(R.layout.options_browser, null);
+        ViewGroup body = (ViewGroup)view.findViewById(R.id.body);
+        
+        
+        mOptionsBrowser = new OptionsListView(getContext());
+
+		final Properties properties = new Properties();
+		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+		int[] sortOrderLabels = {
+			FileInfo.SortOrder.FILENAME.resourceId,	
+			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
+			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
+			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
+			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
+			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
+			FileInfo.SortOrder.TIMESTAMP.resourceId,	
+			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
+		};
+		String[] sortOrderValues = {
+			FileInfo.SortOrder.FILENAME.name(),	
+			FileInfo.SortOrder.FILENAME_DESC.name(),	
+			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
+			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),	
+			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
+			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
+			FileInfo.SortOrder.TIMESTAMP.name(),	
+			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
+		};
+		mOptionsBrowser.add(new ListOption(this, getString(R.string.mi_book_sort_order), PROP_APP_BOOK_SORT_ORDER).add(sortOrderValues, sortOrderLabels).setDefaultValue(FileInfo.SortOrder.TITLE_AUTHOR.name()).noIcon());
+		mOptionsBrowser.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
+		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES).noIcon());
+		mOptionsBrowser.add(new ListOption(this, getString(R.string.options_app_cover_page_size), PROP_APP_COVERPAGE_SIZE).add(mCoverPageSizes, mCoverPageSizeTitles).setDefaultValue("1").noIcon());
+		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
+		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
+		mOptionsBrowser.add(new LangOption(this).noIcon());
+		mOptionsBrowser.refresh();
+		
+		body.addView(mOptionsBrowser);
+		setView(view);
+	}
+	private void setupReaderOptions()
+	{
         mInflater = LayoutInflater.from(getContext());
         mTabs = (TabHost)mInflater.inflate(R.layout.options, null);
 		// setup tabs
@@ -1791,6 +1834,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_cover_page_size), PROP_APP_COVERPAGE_SIZE).add(mCoverPageSizes, mCoverPageSizeTitles).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
+		mOptionsApplication.add(new BoolOption(this, getString(R.string.mi_book_browser_simple_mode), PROP_APP_FILE_BROWSER_SIMPLE_MODE).noIcon());
 		
 		fillStyleEditorOptions();
 		
@@ -1828,7 +1872,24 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mTabs.addTab(tsApp);
 		
 		setView(mTabs);
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		L.v("creating OptionsDialog");
+		CoolReader.dumpHeapAllocation();
+		L.v("calling gc");
+		System.gc();
+		CoolReader.dumpHeapAllocation();
+		L.v("creating options dialog");
+        setCancelable(true);
+        setCanceledOnTouchOutside(true);
 		
+        if (mode == Mode.READER)
+        	setupReaderOptions();
+        else if (mode == Mode.BROWSER)
+        	setupBrowserOptions();
+        
 		setOnCancelListener(new OnCancelListener() {
 
 			public void onCancel(DialogInterface dialog) {
@@ -1836,7 +1897,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 		});
 
-		ImageButton positiveButton = (ImageButton)mTabs.findViewById(R.id.options_btn_back);
+		ImageButton positiveButton = (ImageButton)view.findViewById(R.id.options_btn_back);
 		positiveButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				onPositiveButtonClick();
@@ -1908,8 +1969,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 	@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (((OptionsListView)mTabs.getCurrentView()).onKeyDown(keyCode, event))
-        	return true;
+		if (mode == Mode.READER) {
+	        if (((OptionsListView)mTabs.getCurrentView()).onKeyDown(keyCode, event))
+	        	return true;
+		} else {
+	        if (view.onKeyDown(keyCode, event))
+	        	return true;
+		}
         return super.onKeyDown(keyCode, event);
     }	
 }

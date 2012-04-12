@@ -564,49 +564,49 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void setSortOrder(String orderName) {
 		setSortOrder(FileInfo.SortOrder.fromName(orderName));
 	}
-	public void showSortOrderMenu() {
-		final Properties properties = new Properties();
-		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
-		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
-		int[] optionLabels = {
-			FileInfo.SortOrder.FILENAME.resourceId,	
-			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
-			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
-			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
-			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
-			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
-			FileInfo.SortOrder.TIMESTAMP.resourceId,	
-			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
-		};
-		String[] optionValues = {
-			FileInfo.SortOrder.FILENAME.name(),	
-			FileInfo.SortOrder.FILENAME_DESC.name(),	
-			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
-			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),	
-			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
-			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
-			FileInfo.SortOrder.TIMESTAMP.name(),	
-			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
-		};
-		OptionsDialog.ListOption dlg = new OptionsDialog.ListOption(
-			new OptionOwner() {
-				public CoolReader getActivity() { return mActivity; }
-				public Properties getProperties() { return properties; }
-				public LayoutInflater getInflater() { return mInflater; }
-			}, 
-			mActivity.getString(R.string.mi_book_sort_order), 
-			ReaderView.PROP_APP_BOOK_SORT_ORDER).add(optionValues, optionLabels); 
-		dlg.setOnChangeHandler(new Runnable() {
-			public void run() {
-				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
-				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
-					log.d("New sort order: " + newValue);
-					setSortOrder(newValue);
-				}
-			}
-		});
-		dlg.onSelect();
-	}
+//	public void showSortOrderMenu() {
+//		final Properties properties = new Properties();
+//		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+//		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+//		int[] optionLabels = {
+//			FileInfo.SortOrder.FILENAME.resourceId,	
+//			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
+//			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
+//			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
+//			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
+//			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
+//			FileInfo.SortOrder.TIMESTAMP.resourceId,	
+//			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
+//		};
+//		String[] optionValues = {
+//			FileInfo.SortOrder.FILENAME.name(),	
+//			FileInfo.SortOrder.FILENAME_DESC.name(),	
+//			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
+//			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),	
+//			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
+//			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
+//			FileInfo.SortOrder.TIMESTAMP.name(),	
+//			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
+//		};
+//		OptionsDialog.ListOption dlg = new OptionsDialog.ListOption(
+//			new OptionOwner() {
+//				public CoolReader getActivity() { return mActivity; }
+//				public Properties getProperties() { return properties; }
+//				public LayoutInflater getInflater() { return mInflater; }
+//			}, 
+//			mActivity.getString(R.string.mi_book_sort_order), 
+//			ReaderView.PROP_APP_BOOK_SORT_ORDER).add(optionValues, optionLabels); 
+//		dlg.setOnChangeHandler(new Runnable() {
+//			public void run() {
+//				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+//				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
+//					log.d("New sort order: " + newValue);
+//					setSortOrder(newValue);
+//				}
+//			}
+//		});
+//		dlg.onSelect();
+//	}
 	
 	private void showOPDSDir( final FileInfo fileOrDir, final FileInfo itemToSelect ) {
 		

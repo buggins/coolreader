@@ -7,12 +7,7 @@
 </menu>
 </item>
 <item android:title="@string/mi_book_back_to_reading" android:numericShortcut="2" android:titleCondensed="@null" android:id="@+id/book_back_to_reading" android:icon="@android:drawable/ic_menu_view"></item>
-<item android:title="@string/mi_options" android:numericShortcut="3" android:titleCondensed="@string/mi_options" android:orderInCategory="5" android:icon="@android:drawable/ic_menu_preferences">
-<menu>
-<item android:title="@string/mi_book_sort_order" android:titleCondensed="@null" android:id="@+id/book_sort_order" android:icon="@android:drawable/ic_menu_sort_alphabetically"></item>
-<item android:title="@string/mi_book_browser_simple_mode" android:titleCondensed="@null" android:id="@+id/book_toggle_simple_mode" android:icon="@drawable/ic_menu_star"></item>
-</menu>
-</item>
+<item android:title="@string/mi_options" android:numericShortcut="3" android:titleCondensed="@string/mi_options" android:id="@+id/mi_browser_options" android:orderInCategory="5" android:icon="@android:drawable/ic_menu_preferences"></item>
 <item android:title="@string/mi_book_search" android:titleCondensed="@null" android:id="@+id/book_find" android:icon="@android:drawable/ic_menu_search"></item>
 <item android:title="@string/mi_book_scan_recursive" android:titleCondensed="@null" android:id="@+id/book_scan_recursive" android:icon="@drawable/ic_menu_refresh"></item>
 <item android:title="@string/mi_goto_manual" android:id="@+id/cr3_mi_user_manual" android:numericShortcut="6" android:titleCondensed="@string/mi_goto_manual" android:orderInCategory="13"></item>
