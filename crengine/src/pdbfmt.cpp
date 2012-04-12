@@ -667,7 +667,7 @@ public:
         return m_doc_props;
     }
 
-    bool open( LVStreamRef stream, ldomDocument * doc, LVPDBContainer * container, bool validateContent, doc_format_t & contentFormat ) {
+    bool open( LVStreamRef stream, LVPDBContainer * container, bool validateContent, doc_format_t & contentFormat ) {
         contentFormat = doc_format_none;
         _format = UNKNOWN;
         stream->SetPos(0);
@@ -679,28 +679,18 @@ public:
         if ( hdr.recordCount==0 )
             return 0;
 
-        if ( hdr.checkType("TEXt") && hdr.checkCreator("REAd") ) {
-            CRLog::debug("Detected PDB file format: PALMDOC");
+        if ( hdr.checkType("TEXt") && hdr.checkCreator("REAd") )
             _format = PALMDOC;
-	}
-        if ( hdr.checkType("PNRd") && hdr.checkCreator("PPrs") ) {
-            CRLog::debug("Detected PDB file format: EREADER");
+        if ( hdr.checkType("PNRd") && hdr.checkCreator("PPrs") )
             _format = EREADER;
-	}
-        if ( hdr.checkType("BOOK") && hdr.checkCreator("MOBI") ) {
-            CRLog::debug("Detected PDB file format: MOBI");
+        if ( hdr.checkType("BOOK") && hdr.checkCreator("MOBI") )
             _format = MOBI;
-	}
-        if ( hdr.checkType("Data") && hdr.checkCreator("Plkr") ) {
-            CRLog::debug("Detected PDB file format: PLUCKER");
+        if ( hdr.checkType("Data") && hdr.checkCreator("Plkr") )
             _format = PLUCKER;
-	}
 //        if ( hdr.checkType("ToGo") && hdr.checkCreator("ToGo") )
 //            _format = ISILO;
-        if ( _format==UNKNOWN ) {
-            CRLog::debug("Detected PDB file format: Unknown...");
+        if ( _format==UNKNOWN )
             return false; // UNKNOWN FORMAT
-	}
 
         stream->SetPos(0x4E);
         lUInt32 lastEntryStart = 0;
@@ -767,17 +757,6 @@ public:
             _compression = preamble.compression;
             if ( _compression==1 )
                 _compression = 0;
-            if (doc != NULL) {
-            	// Get book title and language if wanted
-		char* buf[preamble.fullNameLength + 1];
-		stream->SetPos(_records[0].offset + preamble.fullNameOffset);
-		stream->Read(buf, preamble.fullNameLength , NULL);
-		lString16 title = lString16((const lChar8 *)buf, preamble.fullNameLength);
-                doc->getProps()->setString(DOC_PROP_TITLE, title);
-		const char* language = langToLanguage( preamble.locale );
-                doc->getProps()->setString(DOC_PROP_LANGUAGE, language);
-            }
-            
             _textSize = preamble.textLength;
             _recordCount = preamble.firstNonBookIndex - 1;
             lUInt32 coverOffset = (lUInt32)-1;
@@ -798,7 +777,7 @@ public:
                         cnv.rev(&hdrLen);
                         cnv.rev(&recCount);
                     }
-                    LVArray<lUInt8> buf;
+                    LVArray<lUInt8> buf2;
                     for (lUInt32 i=0; i<recCount; i++) {
                         lUInt32 recType = 0;
                         lUInt32 recLen = 0;
@@ -808,7 +787,7 @@ public:
                             cnv.rev(&recType);
                             cnv.rev(&recLen);
                         }
-                        buf.reset();
+                        buf2.reset();
                         if (recLen > 8) {
                             lvpos_t nextPos = stream->GetPos() + recLen - 8;
                             //================================
@@ -819,15 +798,15 @@ public:
                                 stream->Read(&thumbOffset);
                                 cnv.msf(&thumbOffset);
                             } else {
-                                buf.addSpace(recLen);
-                                if (stream->Read(buf.get(), recLen - 8, NULL) != LVERR_OK)
+                                buf2.addSpace(recLen);
+                                if (stream->Read(buf2.get(), recLen - 8, NULL) != LVERR_OK)
                                     break;
                                 if (recType == 100) {
-                                    lString8 author((const char *)buf.get());
+                                    lString8 author((const char *)buf2.get());
                                     CRLog::trace("MOBI author: %s", author.c_str());
                                     m_doc_props->setString(DOC_PROP_AUTHORS, Utf8ToUnicode(author));
                                 } else if (recType == 105) {
-                                    lString8 s((const char *)buf.get());
+                                    lString8 s((const char *)buf2.get());
                                     CRLog::trace("MOBI subject: %s", s.c_str());
                                     m_doc_props->setString(DOC_PROP_TITLE, Utf8ToUnicode(s));
                                 }
@@ -1134,7 +1113,7 @@ public:
 bool DetectPDBFormat( LVStreamRef stream, doc_format_t & contentFormat )
 {
     PDBFile pdb;
-    if ( !pdb.open(stream, NULL, NULL, false, contentFormat) )
+    if ( !pdb.open(stream, NULL, false, contentFormat) )
         return false;
     return true;
 }
@@ -1168,7 +1147,7 @@ LVStreamRef GetPDBCoverpage(LVStreamRef stream)
     doc_format_t contentFormat = doc_format_none;
     PDBFile * pdb = new PDBFile();
     LVPDBContainer * container = new LVPDBContainer();
-    if (!pdb->open(stream, NULL, container, false, contentFormat)) {
+    if (!pdb->open(stream, container, false, contentFormat)) {
         delete container;
         delete pdb;
         return LVStreamRef();
@@ -1193,7 +1172,7 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
     contentFormat = doc_format_none;
     PDBFile * pdb = new PDBFile();
     LVPDBContainer * container = new LVPDBContainer();
-    if ( !pdb->open(stream, doc, container, true, contentFormat) ) {
+    if ( !pdb->open(stream, container, true, contentFormat) ) {
         delete container;
         delete pdb;
         return false;
