@@ -639,8 +639,10 @@ public class CoolReader extends Activity
 
         // wait until all background tasks are executed
         mBackgroundThread.syncWithBackground();
-        
-		mEngine.setHyphenationDictionary(HyphDict.byCode(props.getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString())));
+
+        String code = props.getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+        Engine.HyphDict dict = HyphDict.byCode(code);
+		mEngine.setHyphenationDictionary(dict);
 		
 		//this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
         //       WindowManager.LayoutParams.FLAG_FULLSCREEN );

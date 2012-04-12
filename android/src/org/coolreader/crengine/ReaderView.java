@@ -3156,9 +3156,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     			newSettings.setProperty(key, value);
     		} else if ( PROP_HYPHENATION_DICT.equals(key) ) {
     			Engine.HyphDict dict = HyphDict.byCode(value);
-    			//mEngine.setHyphenationDictionary();
     			if ( mEngine.setHyphenationDictionary(dict) ) {
     				if ( isBookLoaded() ) {
+    					String language = getBookInfo().getFileInfo().getLanguage();
+    					mEngine.setHyphenationLanguage(language);
     					doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 0);
     					//drawPage();
     				}
@@ -4850,10 +4851,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Properties props;
 		LoadDocumentTask(BookInfo bookInfo, Runnable errorHandler)
 		{
+			BackgroundThread.ensureGUI();
 			mBookInfo = bookInfo;
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			log.v("LoadDocumentTask for " + fileInfo);
-			BackgroundThread.ensureGUI();
+			if (fileInfo.getTitle() == null) {
+				// As a book 'should' have a title, no title means we should
+				// retrieve the book metadata from the engine to get the
+				// book language.
+				// Is it OK to do this here???  Should we use isScanned?
+				// Should we use another fileInfo flag or a new flag?
+				mEngine.scanBookProperties(fileInfo);
+			}
+			String language = fileInfo.getLanguage();
+			log.v("update hyphenation language: " + language + " for " + fileInfo.getTitle());
+			mEngine.setHyphenationLanguage(language);
 			this.filename = fileInfo.getPathName();
 			this.path = fileInfo.arcname != null ? fileInfo.arcname : fileInfo.pathname;
 			this.errorHandler = errorHandler;

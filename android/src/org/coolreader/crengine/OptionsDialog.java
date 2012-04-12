@@ -1042,7 +1042,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			setDefaultValue("RUSSIAN");
 			Engine.HyphDict[] dicts = Engine.HyphDict.values();
 			for ( Engine.HyphDict dict : dicts )
-				add( dict.toString(), dict.name );
+				add( dict.toString(), dict.getName() );
 		}
 	}
 	

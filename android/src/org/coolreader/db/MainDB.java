@@ -28,7 +28,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 12;
+	public final int DB_VERSION = 13;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -64,7 +64,8 @@ public class MainDB extends BaseDB {
 					"arcsize INTEGER," +
 					"create_time INTEGER," +
 					"last_access_time INTEGER, " +
-					"flags INTEGER DEFAULT 0" +
+					"flags INTEGER DEFAULT 0, " +
+					"language VARCHAR DEFAULT NULL" +
 					")");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 					"book_folder_index ON book (folder_fk) ");
@@ -121,8 +122,10 @@ public class MainDB extends BaseDB {
 				addOPDSCatalogs(DEF_OPDS_URLS2);
 			if (currentVersion < 12)
 				pathCorrectionRequired = true;
+			if ( currentVersion<13 )
+			    execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN language VARCHAR DEFAULT NULL");
+			// add more updates above this line
 			//==============================================================
-			// add more updates here
 				
 			// set current version
 			if (currentVersion < DB_VERSION)
@@ -1104,6 +1107,7 @@ public class MainDB extends BaseDB {
 			add("last_access_time", (long)newValue.lastAccessTime, (long)oldValue.lastAccessTime);
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 			add("flags", (long)newValue.flags, (long)oldValue.flags);
+			add("language", newValue.language, oldValue.language);
 		}
 		QueryHelper( Bookmark newValue, Bookmark oldValue, long bookId )
 		{
@@ -1129,7 +1133,7 @@ public class MainDB extends BaseDB {
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
-		"create_time, last_access_time, flags ";
+		"create_time, last_access_time, flags, language ";
 	
 	private static final String READ_FILEINFO_SQL = 
 		"SELECT " +
@@ -1157,6 +1161,7 @@ public class MainDB extends BaseDB {
 		fileInfo.createTime = rs.getInt(i++);
 		fileInfo.lastAccessTime = rs.getInt(i++);
 		fileInfo.flags = rs.getInt(i++);
+	    fileInfo.language = rs.getString(i++);
 		fileInfo.isArchive = fileInfo.arcname!=null; 
 	}
 

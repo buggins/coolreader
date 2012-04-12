@@ -615,6 +615,7 @@ public class Engine {
 	private static final int HYPH_NONE = 0;
 	private static final int HYPH_ALGO = 1;
 	private static final int HYPH_DICT = 2;
+	private static final int HYPH_BOOK = 0;
 
 	private native boolean setHyphenationMethod(int type, byte[] dictData);
 
@@ -636,25 +637,27 @@ public class Engine {
 
 	public static class HyphDict {
 		private static HyphDict[] values = new HyphDict[] {};
-		public final static HyphDict NONE = new HyphDict("NONE", HYPH_NONE, 0, "[None]");
-		public final static HyphDict ALGORITHM = new HyphDict("ALGORITHM", HYPH_ALGO, 0, "[Algorythmic]"); 
-		public final static HyphDict RUSSIAN = new HyphDict("RUSSIAN", HYPH_DICT, R.raw.russian_enus_hyphen, "Russian"); 
-		public final static HyphDict ENGLISH = new HyphDict("ENGLISH", HYPH_DICT, R.raw.english_us_hyphen, "English US"); 
-		public final static HyphDict GERMAN = new HyphDict("GERMAN", HYPH_DICT, R.raw.german_hyphen, "German"); 
-		public final static HyphDict UKRAINIAN = new HyphDict("UKRAINIAN", HYPH_DICT,R.raw.ukrain_hyphen, "Ukrainian"); 
-		public final static HyphDict SPANISH = new HyphDict("SPANISH", HYPH_DICT,R.raw.spanish_hyphen, "Spanish"); 
-		public final static HyphDict FRENCH = new HyphDict("FRENCH", HYPH_DICT,R.raw.french_hyphen, "French"); 
-		public final static HyphDict BULGARIAN = new HyphDict("BULGARIAN", HYPH_DICT, R.raw.bulgarian_hyphen, "Bulgarian"); 
-		public final static HyphDict SWEDISH = new HyphDict("SWEDISH", HYPH_DICT, R.raw.swedish_hyphen, "Swedish"); 
-		public final static HyphDict POLISH = new HyphDict("POLISH", HYPH_DICT, R.raw.polish_hyphen, "Polish");
-		public final static HyphDict HUNGARIAN = new HyphDict("HUNGARIAN", HYPH_DICT, R.raw.hungarian_hyphen, "Hungarian");
-		public final static HyphDict GREEK = new HyphDict("GREEK", HYPH_DICT, R.raw.greek_hyphen, "Greek");
-		
+		public final static HyphDict NONE = new HyphDict("NONE", HYPH_NONE, 0, "[None]", "");
+		public final static HyphDict ALGORITHM = new HyphDict("ALGORITHM", HYPH_ALGO, 0, "[Algorythmic]", ""); 
+		public final static HyphDict BOOK_LANGUAGE = new HyphDict("BOOK LANGUAGE", HYPH_BOOK, 0, "[From Book Language]", ""); 
+		public final static HyphDict RUSSIAN = new HyphDict("RUSSIAN", HYPH_DICT, R.raw.russian_enus_hyphen, "Russian", "ru"); 
+		public final static HyphDict ENGLISH = new HyphDict("ENGLISH", HYPH_DICT, R.raw.english_us_hyphen, "English US", "en"); 
+		public final static HyphDict GERMAN = new HyphDict("GERMAN", HYPH_DICT, R.raw.german_hyphen, "German", "de"); 
+		public final static HyphDict UKRAINIAN = new HyphDict("UKRAINIAN", HYPH_DICT,R.raw.ukrain_hyphen, "Ukrainian", "uk"); 
+		public final static HyphDict SPANISH = new HyphDict("SPANISH", HYPH_DICT,R.raw.spanish_hyphen, "Spanish", "es"); 
+		public final static HyphDict FRENCH = new HyphDict("FRENCH", HYPH_DICT,R.raw.french_hyphen, "French", "fr"); 
+		public final static HyphDict BULGARIAN = new HyphDict("BULGARIAN", HYPH_DICT, R.raw.bulgarian_hyphen, "Bulgarian", "bg"); 
+		public final static HyphDict SWEDISH = new HyphDict("SWEDISH", HYPH_DICT, R.raw.swedish_hyphen, "Swedish", "sv"); 
+		public final static HyphDict POLISH = new HyphDict("POLISH", HYPH_DICT, R.raw.polish_hyphen, "Polish", "pl");
+		public final static HyphDict HUNGARIAN = new HyphDict("HUNGARIAN", HYPH_DICT, R.raw.hungarian_hyphen, "Hungarian", "hu");
+		public final static HyphDict GREEK = new HyphDict("GREEK", HYPH_DICT, R.raw.greek_hyphen, "Greek", "el");
+
 		public final String code;
 		public final int type;
 		public final int resource;
 		public final String name;
 		public final File file;
+		public String language;
 
 		
 		public static HyphDict[] values() {
@@ -670,12 +673,13 @@ public class Engine {
 			values = list;
 		}
 		
-		private HyphDict(String code, int type, int resource, String name) {
+		private HyphDict(String code, int type, int resource, String name, String language) {
 			this.type = type;
 			this.resource = resource;
 			this.name = name;
 			this.file = null;
 			this.code = code;
+			this.language = language;
 			// register in list
 			add(this);
 		}
@@ -686,8 +690,21 @@ public class Engine {
 			this.name = file.getName();
 			this.file = file;
 			this.code = this.name;
+			this.language = "";
 			// register in list
 			add(this);
+		}
+
+		private static HyphDict byLanguage(String language) {
+			if (language != null && !language.trim().equals("")) {
+				for (HyphDict dict : values) {
+					if (dict != BOOK_LANGUAGE) {
+						if (dict.language.equals(language))
+							return dict;
+					}
+				}
+			}
+			return NONE;
 		}
 
 		public static HyphDict byCode(String code) {
@@ -708,6 +725,17 @@ public class Engine {
 		public String toString() {
 			return code;
 		}
+		public String getName() {
+			if (this == BOOK_LANGUAGE) {
+				if (language != null && !language.trim().equals("")) { 
+					return this.name + " (currently: " + this.language + ")";
+				} else {
+					return this.name + " (currently: none)";
+				}
+			} else {
+				return name;
+			}
+		}
 		
 		public static boolean fromFile(File file) {
 			if (file==null || !file.exists() || !file.isFile() || !file.canRead())
@@ -723,12 +751,45 @@ public class Engine {
 	};
 
 	private HyphDict currentHyphDict = null;
+	private String currentHyphLanguage = null;
 
+	public boolean setHyphenationLanguage(final String wanted_language) {
+		String language = getLanguage(wanted_language);
+		log.i("setHyphenationLanguage( " + language + " ) is called");
+		if (language == currentHyphLanguage || currentHyphDict != HyphDict.BOOK_LANGUAGE)
+			return false;
+		currentHyphLanguage = language;
+		HyphDict dict = HyphDict.byLanguage(language);
+		setHyphenationDictionaryInternal(dict);
+		if (dict != null) {
+			HyphDict.BOOK_LANGUAGE.language = language;
+		} else {
+			HyphDict.BOOK_LANGUAGE.language = "";
+		}
+		log.i("setHyphenationLanguage( " + language + " ) set to " + dict);
+		return true;
+	}
+
+	private String getLanguage(final String language) {
+		if (language == null || "".equals(language.trim())) {
+			return "";
+		} else if (language.contains("-")) {
+			return language.substring(0, language.indexOf("-")).toLowerCase();
+		} else {
+			return language.toLowerCase();
+		}
+	}
+		
 	public boolean setHyphenationDictionary(final HyphDict dict) {
 		log.i("setHyphenationDictionary( " + dict + " ) is called");
 		if (currentHyphDict == dict)
 			return false;
 		currentHyphDict = dict;
+		setHyphenationDictionaryInternal(dict);
+		return true;
+	}
+	
+	private void setHyphenationDictionaryInternal(final HyphDict dict) {
 		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
 		mBackgroundThread.postBackground(new Runnable() {
 			public void run() {
@@ -742,12 +803,10 @@ public class Engine {
 						data = loadResourceBytes(dict.file);
 					}
 				}
-				log.i("Setting engine's hyphenation dictionary to "
-						+ dict);
+				log.i("Setting engine's hyphenation dictionary to " + dict);
 				setHyphenationMethod(dict.type, data);
 			}
 		});
-		return true;
 	}
 
 	public boolean scanBookProperties(FileInfo info) {
