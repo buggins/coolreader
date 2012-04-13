@@ -172,6 +172,9 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
     pline->t.font = font;
+    if (font == NULL && ((flags & LTEXT_WORD_IS_OBJECT) == 0)) {
+        CRLog::fatal("No font specified for text");
+    }
     if (!len) for (len=0; text[len]; len++) ;
     if (flags & LTEXT_FLAG_OWNTEXT)
     {
@@ -464,7 +467,7 @@ public:
             return 0; // not italic
         // need to measure
         LVFont::glyph_info_t glyph;
-        if ( !font->getGlyphInfo(m_text[pos], &glyph, '?') )
+        if (!font->getGlyphInfo(m_text[pos], &glyph, '?'))
             return 0;
         int delta = -glyph.originX;
         return delta > 0 ? delta : 0;
