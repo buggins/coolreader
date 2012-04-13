@@ -857,7 +857,7 @@ public class Engine {
 
 	public String[] getFontFaceList() {
 		if (!initialized)
-			return new String[0]; //throw new IllegalStateException("CREngine is not initialized");
+			return null; //throw new IllegalStateException("CREngine is not initialized");
 		synchronized(this) {
 			return getFontFaceListInternal();
 		}

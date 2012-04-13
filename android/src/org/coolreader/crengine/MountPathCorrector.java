@@ -3,6 +3,8 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MountPathCorrector {
 	private final File[] mountedRoots;
@@ -154,6 +156,26 @@ public class MountPathCorrector {
 				return new File(s);
 		}
 		return null;
+	}
+	
+	/**
+	 * Check whether path contains circular (recursive) links.
+	 * To avoid infinite recursive search in directory.
+	 * @param path is path to test
+	 * @return true if path is recursive, false if normal
+	 */
+	public boolean isRecursivePath(File path) {
+		Set<String> visited = new HashSet<String>();
+		while (path != null) {
+			String normalized = normalizeIfPossible(path.getAbsolutePath());
+			if (normalized != null) {
+				if (visited.contains(normalized))
+					return true;
+				visited.add(normalized);
+			}
+			path = path.getParentFile();
+		}
+		return false;
 	}
 
 	@Override

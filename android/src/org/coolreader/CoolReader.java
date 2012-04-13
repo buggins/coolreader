@@ -1656,7 +1656,7 @@ public class CoolReader extends Activity
 			else {
 				String[] fontFaces = mEngine.getFontFaceList();
 				if (fontFaces != null)
-					currentValue =fontFaces[0];
+					currentValue = fontFaces[0];
 			}
 			changed = true;
 		}
