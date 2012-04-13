@@ -57,10 +57,57 @@ public class FileInfo {
 	
 	private ArrayList<FileInfo> files;// files
 	private ArrayList<FileInfo> dirs; // directories
-	
+
+	// 16 lower bits reserved for document flags
 	public static final int DONT_USE_DOCUMENT_STYLES_FLAG = 1;
 	public static final int DONT_REFLOW_TXT_FILES_FLAG = 2;
 	public static final int USE_DOCUMENT_FONTS_FLAG = 4;
+	
+	// bits 16..19 - reading state (0..15 max)
+	public static final int READING_STATE_SHIFT = 16;
+	public static final int READING_STATE_MASK = 0x0F;
+	public static final int STATE_NEW = 0;
+	public static final int STATE_TO_READ = 1;
+	public static final int STATE_TO_READING = 2;
+	public static final int STATE_FINISHED = 3;
+
+	// bits 20..23 - rate (0..15 max, 0..5 currently)
+	public static final int RATE_SHIFT = 16;
+	public static final int RATE_MASK = 0x0F;
+	
+	/**
+	 * Get book reading state. 
+	 * @return reading state (one of STATE_XXX constants)
+	 */
+	public int getReadingState() {
+		return (flags >> READING_STATE_SHIFT) & READING_STATE_MASK;
+	}
+
+	/**
+	 * Set new reading state.
+	 * @param state is new reading state (one of STATE_XXX constants)
+	 */
+	public void setReadingState(int state) {
+		flags = (flags & ~(READING_STATE_MASK << READING_STATE_SHIFT))
+		 | ((state & READING_STATE_MASK) << READING_STATE_SHIFT);
+	}
+
+	/**
+	 * Get book reading state. 
+	 * @return reading state (one of STATE_XXX constants)
+	 */
+	public int getRate() {
+		return (flags >> READING_STATE_SHIFT) & READING_STATE_MASK;
+	}
+
+	/**
+	 * Set new reading state.
+	 * @param state is new reading state (one of STATE_XXX constants)
+	 */
+	public void setRate(int rate) {
+		flags = (flags & ~(RATE_MASK << RATE_SHIFT))
+		 | ((rate & RATE_MASK) << RATE_SHIFT);
+	}
 
 	/**
 	 * To separate archive name from file name inside archive.
@@ -197,6 +244,7 @@ public class FileInfo {
 		pathname = v.pathname;
 		arcname = v.arcname;
 		format = v.format;
+		flags = v.flags;
 		size = v.size;
 		arcsize = v.arcsize;
 		isArchive = v.isArchive;
