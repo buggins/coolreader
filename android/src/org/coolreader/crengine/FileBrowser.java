@@ -82,6 +82,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					//openContextMenu(_this);
 					//mActivity.loadDocument(item);
 					selectedItem = item;
+					
+					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
+					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled) {
+						BookInfo book = new BookInfo(item);
+						BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, mActivity.getReaderView(), book);
+						dlg.show();
+						return true;
+					}
+					
 					showContextMenu();
 					return true;
 				}
