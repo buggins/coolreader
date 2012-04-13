@@ -72,8 +72,14 @@ public class FileInfo {
 	public static final int STATE_FINISHED = 3;
 
 	// bits 20..23 - rate (0..15 max, 0..5 currently)
-	public static final int RATE_SHIFT = 16;
+	public static final int RATE_SHIFT = 20;
 	public static final int RATE_MASK = 0x0F;
+	public static final int RATE_VALUE_NOT_RATED = 0;
+	public static final int RATE_VALUE_1 = 1;
+	public static final int RATE_VALUE_2 = 2;
+	public static final int RATE_VALUE_3 = 3;
+	public static final int RATE_VALUE_4 = 4;
+	public static final int RATE_VALUE_5 = 5;
 	
 	/**
 	 * Get book reading state. 

@@ -1893,8 +1893,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			boolean disableInternalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
 			disableInternalStyles = !disableInternalStyles;
 			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, disableInternalStyles);
-            doEngineCommand( ReaderCommand.DCMD_SET_INTERNAL_STYLES, disableInternalStyles ? 0 : 1);
-            doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
+            doEngineCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES, disableInternalStyles ? 0 : 1);
+            doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 1);
     		mActivity.getDB().saveBookInfo(mBookInfo);
 		}
 	}

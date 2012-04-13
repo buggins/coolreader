@@ -1083,12 +1083,14 @@ public class Engine {
 		if (list.containsKey(path))
 			return false;
 		for (String key : list.keySet()) {
-			if (path.startsWith(key + "/"))
+			if (path.startsWith(key + "/")) {
+				log.w("Skipping duplicate path " + path + " == " + key);
 				return false; // duplicate subpath
+			}
 		}
 		try {
 			File dir = new File(path);
-			if (dir.exists() && dir.isDirectory()) {
+			if (dir.isDirectory()) {
 				String[] d = dir.list();
 				if (d!=null && d.length>0) {
 					log.i("Adding FS root: " + path + " " + name);
@@ -1145,61 +1147,83 @@ public class Engine {
 		// standard external directory
 		String sdpath = Environment.getExternalStorageDirectory().getAbsolutePath();
 		// dirty fix
-		if ( "/nand".equals(sdpath) && new File("/sdcard").isDirectory() )
+		if ("/nand".equals(sdpath) && new File("/sdcard").isDirectory())
 			sdpath = "/sdcard";
 		// main storage
 		addMountRoot(map, sdpath, R.string.dir_sd_card);
 
 		// retrieve list of mount points from system
-		{
-			String s = loadFileUtf8(new File("/etc/vold.conf"));
-			if (s == null)
-				s = loadFileUtf8(new File("/etc/vold.fstab"));
-			//Log.v("cr3", "mount points: " + s);
-			if ( s!= null) {
-				String[] rows = s.split("\n");
-				for (String row : rows) {
-					if (row != null && row.startsWith("dev_mount")) {
-						String[] cols = row.split(" ");
-						if (cols.length > 3) {
-							String name = cols[1];
-							String point = cols[2];
-							if (name!=null && point!=null && name.length()>0 && point.length()>0) {
-								Log.v("cr3", "mount point configured: " + name + " = " + point);
-								if (!point.equals(sdpath)) {
-									// external SD
-									addMountRoot(map, point, "External SD " + point);
-								}
+		String[] fstabLocations = new String[] {
+			"/system/etc/vold.conf",
+			"/system/etc/vold.fstab",
+			"/etc/vold.conf",
+			"/etc/vold.fstab",
+		};
+		String s = null;
+		for (String fstabFile : fstabLocations) {
+			s = loadFileUtf8(new File(fstabFile));
+			if (s != null)
+				log.d("reading /etc/vold.conf");
+		}
+		if (s == null)
+			log.d("fstab file not found");
+		if ( s!= null) {
+			String[] rows = s.split("\n");
+			for (String row : rows) {
+				if (row != null && row.startsWith("dev_mount")) {
+					log.d("mount rule: " + row);
+					String[] cols = row.split(" ");
+					if (cols.length > 3) {
+						String name = cols[1];
+						String point = cols[2];
+						if (name!=null && point!=null && name.length()>0 && point.length()>0) {
+							log.i("mount point found: " + name + " = " + point);
+							if (!point.equals(sdpath)) {
+								// external SD
+								addMountRoot(map, point, "External SD " + point);
 							}
 						}
 					}
 				}
 			}
-//			String mounted = loadFileUtf8(new File("/proc/mounts"));
-//			Log.v("cr3", "/proc/mounts = " + mounted);
 		}
 
 		// TODO: probably, hardcoded list is not necessary after /etc/vold parsing 
-		// internal SD card on Nook
-		addMountRoot(map, "/system/media/sdcard", R.string.dir_internal_sd_card);
-		// internal memory
-		addMountRoot(map, "/media", R.string.dir_internal_memory);
-		addMountRoot(map, "/nand", R.string.dir_internal_memory);
-		// internal SD card on PocketBook 701 IQ
-		addMountRoot(map, "/PocketBook701", R.string.dir_internal_sd_card);
-		// external SD
-		addMountRoot(map, "/mnt/extsd", "External SD /mnt/extsd");
-		// external SD
-		addMountRoot(map, "/mnt/external1", "External SD /mnt/external1");
-		// external SD
-		addMountRoot(map, "/mnt/sdcard2", "External SD /mnt/sdcard2");
-		// external SD / Galaxy S
-		addMountRoot(map, "/mnt/ext.sd", "External SD /mnt/ext.sd");
-		addMountRoot(map, "/ext.sd", "External SD /ext.sd");
-		// Asus EEE PAD Transformer
-		addMountRoot(map, "/Removable/MicroSD", "MicroSD");
-		// external SD card Huawei S7
-		addMountRoot(map, "/sdcard2", R.string.dir_sd_card_2);
+		String[] knownMountPoints = new String[] {
+			"/system/media/sdcard", // internal SD card on Nook
+			"/media",
+			"/nand",
+			"/PocketBook701", // internal SD card on PocketBook 701 IQ
+			"/mnt/extsd",
+			"/mnt/external1",
+			"/mnt/external_sd",
+			"/mnt/udisk",
+			"/mnt/sdcard2",
+			"/mnt/ext.sd",
+			"/ext.sd",
+			"/extsd",
+			"/sdcard",
+			"/sdcard2",
+			"/mnt/udisk",
+			"/sdcard-ext",
+			"/sd-ext",
+			"/mnt/external1",
+			"/mnt/external2",
+			"/mnt/sdcard1",
+			"/mnt/sdcard2",
+			"/mnt/usb_storage",
+			"/mnt/external_sd",
+			"/emmc",
+			"/external",
+			"/Removable/SD",
+			"/Removable/MicroSD",
+			"/Removable/USBDisk1", 
+		};
+		for (String point : knownMountPoints) {
+			if (isLink(point) != null)
+				continue; // skip link
+			addMountRoot(map, point, point);
+		}
 		
 		// auto detection
 		//autoAddRoots(map, "/", SYSTEM_ROOT_PATHS);
