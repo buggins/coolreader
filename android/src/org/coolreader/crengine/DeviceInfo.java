@@ -26,7 +26,8 @@ public class DeviceInfo {
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
 	public final static android.graphics.Bitmap.Config BUFFER_COLOR_FORMAT;
-
+	public final static String DEF_FONT_FACE;
+	
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
 		"LGE;LG-P500",       "6", // LG Optimus One
@@ -100,6 +101,8 @@ public class DeviceInfo {
 		//BUFFER_COLOR_FORMAT = getSDKLevel() >= ICE_CREAM_SANDWICH ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
 		//BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.ARGB_8888;
 		BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.RGB_565;
+		
+		DEF_FONT_FACE = getSDKLevel() >= ICE_CREAM_SANDWICH ? "Roboto" : "Droid Sans";
 	}
 	
 	private static String getBuildField(String fieldName) {

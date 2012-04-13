@@ -18,7 +18,6 @@ import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History;
-import org.coolreader.crengine.InputDialog;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
@@ -64,7 +63,9 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -566,7 +567,12 @@ public class CoolReader extends Activity
 			@Override
 			public void run() {
 				log.i("Initialization after SyncService is bound");
-	        	mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
+				BackgroundThread.instance().postGUI(new Runnable() {
+					@Override
+					public void run() {
+			        	mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
+					}
+				});
 			}
 		});
 		mCRDBService = new CRDBServiceAccessor(this, mEngine.getPathCorrector());
@@ -695,7 +701,7 @@ public class CoolReader extends Activity
 		
 		mBrowser = new FileBrowser(this, mEngine, mScanner, mHistory);
 		mBrowser.setCoverPagesEnabled(props.getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
-		mBrowser.setCoverPageFontFace(props.getProperty(ReaderView.PROP_FONT_FACE, "Droid Sans"));
+		mBrowser.setCoverPageFontFace(props.getProperty(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
 		mBrowser.setCoverPageSizeOption(props.getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));
 
 		
@@ -1120,6 +1126,18 @@ public class CoolReader extends Activity
 		// Donations support code
 		if (billingSupported)
 			ResponseHandler.register(mPurchaseObserver);
+
+		mBackgroundThread.postGUI(new Runnable() {
+			public void run() {
+				// fixing font settings
+				Properties settings = mReaderView.getSettings();
+				if (fixFontSettings(settings)) {
+					log.i("Missing font settings were fixed");
+					mBrowser.setCoverPageFontFace(settings.getProperty(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
+					mReaderView.setSettings(settings, null);
+				}
+			}
+		});
 		
 		if (!isFirstStart)
 			return;
@@ -1150,7 +1168,7 @@ public class CoolReader extends Activity
 		final String fileName = fileToLoadOnStart;
 		mBackgroundThread.postGUI(new Runnable() {
 			public void run() {
-		        log.i("onStart, scheduled runnable: submitting task");
+				log.i("onStart, scheduled runnable: submitting task");
 		        mEngine.execute(new LoadLastDocumentTask(fileName));
 			}
 		});
@@ -1606,16 +1624,21 @@ public class CoolReader extends Activity
 	
 	private boolean isValidFontFace(String face) {
 		String[] fontFaces = mEngine.getFontFaceList();
+		if (fontFaces == null)
+			return true;
 		for (String item : fontFaces) {
 			if (item.equals(face))
 				return true;
 		}
 		return false;
 	}
-	private void applyDefaultFont(Properties props, String propName, String defFontFace) {
+
+	private boolean applyDefaultFont(Properties props, String propName, String defFontFace) {
 		String currentValue = props.getProperty(propName);
+		boolean changed = false;
 		if (currentValue == null) {
 			currentValue = defFontFace;
+			changed = true;
 		}
 		if (!isValidFontFace(currentValue)) {
 			if (isValidFontFace("Droid Sans"))
@@ -1624,10 +1647,30 @@ public class CoolReader extends Activity
 				currentValue = "Roboto";
 			else if (isValidFontFace("Droid Serif"))
 				currentValue = "Droid Serif";
+			else if (isValidFontFace("Arial"))
+				currentValue = "Arial";
+			else if (isValidFontFace("Times New Roman"))
+				currentValue = "Times New Roman";
 			else if (isValidFontFace("Droid Sans Fallback"))
 				currentValue = "Droid Sans Fallback";
+			else {
+				String[] fontFaces = mEngine.getFontFaceList();
+				if (fontFaces != null)
+					currentValue =fontFaces[0];
+			}
+			changed = true;
 		}
-		props.setProperty(propName, currentValue);
+		if (changed)
+			props.setProperty(propName, currentValue);
+		return changed;
+	}
+
+	public boolean fixFontSettings(Properties props) {
+		boolean res = false;
+        res = applyDefaultFont(props, ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
+        res = applyDefaultFont(props, ReaderView.PROP_STATUS_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
+        res = applyDefaultFont(props, ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback") || res;
+        return res;
 	}
 	
 	public Properties loadSettings(File file) {
@@ -1696,10 +1739,10 @@ public class CoolReader extends Activity
             hmargin = "25";
             vmargin = "15";
         }
+
+        fixFontSettings(props);
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
-        applyDefaultFont(props, ReaderView.PROP_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
-        applyDefaultFont(props, ReaderView.PROP_STATUS_FONT_FACE, "Droid Sans");
         props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : "16");
         props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
         props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
@@ -1731,8 +1774,6 @@ public class CoolReader extends Activity
 		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
 		props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 		props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
-		//props.applyDefault(ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Fallback");
-        applyDefaultFont(props, ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback");
 
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");
 		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, "1");
