@@ -67,6 +67,12 @@ public class Engine {
 		return mountedRootsMap;
 	}
 
+	public boolean isRootsMountPoint(String path) {
+		if (mountedRootsMap == null)
+			return false;
+		return mountedRootsMap.containsKey(path);
+	}
+
 	/**
 	 * Get or create writable subdirectory for specified base directory
 	 * 
@@ -1083,7 +1089,7 @@ public class Engine {
 		if (list.containsKey(path))
 			return false;
 		for (String key : list.keySet()) {
-			if (path.startsWith(key + "/")) {
+			if (path.equals(key)) { // path.startsWith(key + "/")
 				log.w("Skipping duplicate path " + path + " == " + key);
 				return false; // duplicate subpath
 			}
@@ -1091,14 +1097,14 @@ public class Engine {
 		try {
 			File dir = new File(path);
 			if (dir.isDirectory()) {
-				String[] d = dir.list();
-				if ((d!=null && d.length>0) || dir.canWrite()) {
+//				String[] d = dir.list();
+//				if ((d!=null && d.length>0) || dir.canWrite()) {
 					log.i("Adding FS root: " + path + " " + name);
 					list.put(path, name);
-					return true;
-				} else {
-					log.i("Skipping mount point " + path + " : no files or directories found here, and writing is disabled");
-				}
+//					return true;
+//				} else {
+//					log.i("Skipping mount point " + path + " : no files or directories found here, and writing is disabled");
+//				}
 			}
 		} catch (Exception e) {
 			// ignore
@@ -1220,7 +1226,7 @@ public class Engine {
 						}
 						if (!point.equals(sdpath)) {
 							// external SD
-							addMountRoot(map, point, label + " " + point);
+							addMountRoot(map, point, label + " (" + point + ")");
 						}
 					}
 				}

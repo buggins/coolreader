@@ -663,6 +663,17 @@ public class FileInfo {
 		return f.exists();
 	}
 	
+	/**
+	 * @return true if item is a directory, which exists and can be written to
+	 */
+	public boolean isWritableDirectory()
+	{
+		if (!isDirectory || isArchive || isSpecialDir())
+			return false;
+		File f = new File(pathname);
+		return f.isDirectory() && f.canWrite();
+	}
+	
 	public String getAuthors() {
 		return authors;
 	}

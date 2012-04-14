@@ -130,6 +130,10 @@ public class Scanner extends FileInfoChangeSource {
 						String pathName = f.getAbsolutePath();
 						if ( knownItems!=null && knownItems.contains(pathName) )
 							continue;
+						if (engine.isRootsMountPoint(pathName)) {
+							// skip mount root
+							continue;
+						}
 						boolean isZip = pathName.toLowerCase().endsWith(".zip");
 						FileInfo item = mFileList.get(pathName);
 						boolean isNew = false;
@@ -391,6 +395,16 @@ public class Scanner extends FileInfoChangeSource {
 		if (findRoot(pathname) != null) {
 			log.w("skipping duplicate root " + pathname);
 			return false; // exclude duplicates
+		}
+		if (listIt) {
+			if (!dir.isWritableDirectory()) {
+				log.w("Skipping " + pathname + " - it's not a writable directory");
+				return false;
+			}
+			if (!listDirectory(dir)) {
+				log.w("Skipping " + pathname + " - listing failed");
+				return false;
+			}
 		}
 		if (listIt && !listDirectory(dir))
 			return false;
