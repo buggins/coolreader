@@ -1092,10 +1092,12 @@ public class Engine {
 			File dir = new File(path);
 			if (dir.isDirectory()) {
 				String[] d = dir.list();
-				if (d!=null && d.length>0) {
+				if ((d!=null && d.length>0) || dir.canWrite()) {
 					log.i("Adding FS root: " + path + " " + name);
 					list.put(path, name);
 					return true;
+				} else {
+					log.i("Skipping mount point " + path + " : no files or directories found here, and writing is disabled");
 				}
 			}
 		} catch (Exception e) {
@@ -1104,41 +1106,59 @@ public class Engine {
 		return false;
 	}
 	
-	private static final String[] SYSTEM_ROOT_PATHS = {"/system", "/data", "/mnt"};
-	private void autoAddRoots(Map<String, String> list, String rootPath, String[] pathsToExclude)
-	{
-		try {
-			File root = new File(rootPath);
-			File[] files = root.listFiles();
-			if ( files!=null ) {
-				for ( File f : files ) {
-					if ( !f.isDirectory() )
-						continue;
-					String fullPath = f.getAbsolutePath();
-					if (isLink(fullPath) != null) {
-						L.d("skipping symlink " + fullPath);
-						continue;
-					}
-					boolean skip = false;
-					for ( String path : pathsToExclude ) {
-						if ( fullPath.startsWith(path) ) {
-							skip = true;
-							break;
-						}
-					}
-					if ( skip )
-						continue;
-					if ( !f.canWrite() ) {
-						L.i("Path is readonly: " + f.getAbsolutePath());
-						continue;
-					}
-					L.i("Found possible mount point " + f.getAbsolutePath());
-					addMountRoot(list, f.getAbsolutePath(), f.getAbsolutePath());
-				}
-			}
-		} catch ( Exception e ) {
-			L.w("Exception while trying to auto add roots");
-		}
+//	private static final String[] SYSTEM_ROOT_PATHS = {"/system", "/data", "/mnt"};
+//	private void autoAddRoots(Map<String, String> list, String rootPath, String[] pathsToExclude)
+//	{
+//		try {
+//			File root = new File(rootPath);
+//			File[] files = root.listFiles();
+//			if ( files!=null ) {
+//				for ( File f : files ) {
+//					if ( !f.isDirectory() )
+//						continue;
+//					String fullPath = f.getAbsolutePath();
+//					if (isLink(fullPath) != null) {
+//						L.d("skipping symlink " + fullPath);
+//						continue;
+//					}
+//					boolean skip = false;
+//					for ( String path : pathsToExclude ) {
+//						if ( fullPath.startsWith(path) ) {
+//							skip = true;
+//							break;
+//						}
+//					}
+//					if ( skip )
+//						continue;
+//					if ( !f.canWrite() ) {
+//						L.i("Path is readonly: " + f.getAbsolutePath());
+//						continue;
+//					}
+//					L.i("Found possible mount point " + f.getAbsolutePath());
+//					addMountRoot(list, f.getAbsolutePath(), f.getAbsolutePath());
+//				}
+//			}
+//		} catch ( Exception e ) {
+//			L.w("Exception while trying to auto add roots");
+//		}
+//	}
+	
+	public static String ntrim(String str) {
+		if (str == null)
+			return null;
+		str = str.trim();
+		if (str.length() == 0)
+			return null;
+		return str;
+	}
+	
+	public static boolean empty(String str) {
+		if (str == null || str.length() == 0)
+			return true;
+		if (str.trim().length() == 0)
+			return true;
+		return false;
+		
 	}
 	
 	private void initMountRoots() {
@@ -1163,7 +1183,7 @@ public class Engine {
 		for (String fstabFile : fstabLocations) {
 			s = loadFileUtf8(new File(fstabFile));
 			if (s != null)
-				log.d("reading /etc/vold.conf");
+				log.i("found fstab file " + fstabFile);
 		}
 		if (s == null)
 			log.d("fstab file not found");
@@ -1173,15 +1193,34 @@ public class Engine {
 				if (row != null && row.startsWith("dev_mount")) {
 					log.d("mount rule: " + row);
 					String[] cols = row.split(" ");
-					if (cols.length > 3) {
-						String name = cols[1];
-						String point = cols[2];
-						if (name!=null && point!=null && name.length()>0 && point.length()>0) {
-							log.i("mount point found: " + name + " = " + point);
-							if (!point.equals(sdpath)) {
-								// external SD
-								addMountRoot(map, point, "External SD " + point);
-							}
+					if (cols.length >= 5) {
+						String name = ntrim(cols[1]);
+						String point = ntrim(cols[2]);
+						String mode = ntrim(cols[3]);
+						String dev = ntrim(cols[4]);
+						if (empty(name) || empty(point) || empty(mode) || empty(dev))
+							continue;
+						String label = null;
+						boolean hasusb = dev.indexOf("usb") >= 0;
+						boolean hasmmc = dev.indexOf("mmc") >= 0;
+						log.i("mount point found: '" + name + "'  " + point + "  device = " + dev);
+						if ("auto".equals(mode)) {
+							// assume AUTO is for externally automount devices
+							if (hasusb)
+								label = "External USB Storage";
+							else if (hasmmc)
+								label = "External SD";
+							else
+								label = "External Storage";
+						} else {
+							if (hasmmc)
+								label = "Internal SD";
+							else
+								label = "Internal Storage";
+						}
+						if (!point.equals(sdpath)) {
+							// external SD
+							addMountRoot(map, point, label + " " + point);
 						}
 					}
 				}
