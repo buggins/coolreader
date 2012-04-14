@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -25,6 +26,14 @@ public class BookInfoEditDialog extends BaseDialog {
         setCancelable(true);
         setCanceledOnTouchOutside(true);
 
+        super.onCreate();
+		L.v("OptionsDialog is created");
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
         mInflater = LayoutInflater.from(getContext());
         FileInfo file = mBookInfo.getFileInfo();
         ViewGroup view = (ViewGroup)mInflater.inflate(R.layout.book_info_edit_dialog, null);
@@ -35,10 +44,10 @@ public class BookInfoEditDialog extends BaseDialog {
         edTitle.setText(file.title);
         edAuthor.setText(file.authors);
         edSeriesName.setText(file.series);
-        edSeriesNumber.setText(file.seriesNumber);
+        edSeriesNumber.setText(String.valueOf(file.seriesNumber));
         
         setView(view);
-        super.onCreate();
-		L.v("OptionsDialog is created");
 	}
+	
+	
 }
