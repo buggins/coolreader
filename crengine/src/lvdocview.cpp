@@ -37,8 +37,8 @@
 #if 0
 #undef COLOR_BACKBUFFER
 #define COLOR_BACKBUFFER 0
-#undef GRAY_BUFFER_BITS 4
-#define GRAY_BUFFER_BITS 4
+#undef GRAY_BACKBUFFER_BITS
+#define GRAY_BACKBUFFER_BITS 4
 #endif
 
 
@@ -985,9 +985,9 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 			scale_x = scale_y;
 		int dst_dx = (src_dx * scale_x) >> 16;
 		int dst_dy = (src_dy * scale_y) >> 16;
-		if (dst_dx > rc.width() * 7 / 8)
+        if (dst_dx > rc.width() * 6 / 8)
 			dst_dx = imgrc.width();
-		if (dst_dy > rc.height() * 7 / 8)
+        if (dst_dy > rc.height() * 6 / 8)
 			dst_dy = imgrc.height();
 		//CRLog::trace("drawCoverTo() - drawing image");
         LVColorDrawBuf buf2(src_dx, src_dy, 32);

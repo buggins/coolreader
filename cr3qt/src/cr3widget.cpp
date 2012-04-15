@@ -567,6 +567,31 @@ void CR3View::paintEvent ( QPaintEvent * event )
         }
         painter.drawImage( rc, img );
 
+    } else if (bpp == 1) {
+        QImage img(dx, dy, QImage::Format_RGB16 );
+        for ( int i=0; i<dy; i++ ) {
+            unsigned char * dst = img.scanLine( i );
+            unsigned char * src = buf->GetScanLine(i);
+            int shift = 0;
+            for ( int x=0; x<dx; x++ ) {
+                lUInt16 cl = *src; //(*src << (8 - bpp)) & 0xF8;
+                lUInt16 cl2 = (cl << shift) & 0x80;
+                cl2 = cl2 ? 0xffff : 0x0000;
+                if ((x & 7) == 7) {
+                    src++;
+                    shift = 0;
+                } else {
+                    shift++;
+                }
+                *dst++ = (cl2 & 255);
+                *dst++ = ((cl2 >> 8) & 255);
+//                *dst++ = *src++;
+//                *dst++ = 0xFF;
+//                src++;
+            }
+        }
+        painter.drawImage( rc, img );
+
     } else if (bpp == 16) {
         QImage img(dx, dy, QImage::Format_RGB16 );
         for ( int i=0; i<dy; i++ ) {
