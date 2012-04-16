@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:stretchColumns="*"
-    > 
+    android:paddingRight="?android:attr/scrollbarSize"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="*" >
+ 
 	<LinearLayout
 	  android:orientation="vertical"
 	  android:layout_width="fill_parent"
 	  android:layout_height="wrap_content">
 	    <LinearLayout 
 	        android:id="@+id/base_dlg_button_panel"
+            android:orientation="horizontal"
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
 	        android:minHeight="?android:attr/listPreferredItemHeight"
 	        android:gravity="center_vertical"
-	        android:paddingRight="?android:attr/scrollbarSize"
 	        android:background="#40404040"
 	        >
 	        <ImageButton android:id="@+id/base_dlg_btn_back"
@@ -28,19 +31,20 @@
 	            android:focusableInTouchMode="false"
 	            android:background="@null"
 	            />
-	        <TextView android:id="@+id/base_dlg_title"
-	            style="@style/TextAppearance.Medium"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:layout_marginTop="4dip"
-	            android:layout_marginBottom="4dip"
-	            android:layout_marginRight="4dip"
-	            android:layout_marginLeft="4dip"
-	            android:layout_weight="1"
-	            android:singleLine="false"
-	            android:text="Test"
-	            android:layout_centerVertical="true"
-	            />
+            <ImageButton android:id="@+id/btn_open"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dip"
+                android:layout_marginBottom="5dip"
+                android:layout_marginLeft="5dip"
+                android:layout_marginRight="5dip"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/cr3_viewer_fileopen"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:background="@null"
+                />
 	        <ImageButton android:id="@+id/base_dlg_btn_positive"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
@@ -69,29 +73,63 @@
 	            android:background="@null"
 	            />
 	    </LinearLayout>
-	    <LinearLayout 
-	        android:id="@+id/base_dlg_button_panel"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:minHeight="?android:attr/listPreferredItemHeight"
-	        android:gravity="center_vertical"
-	        android:paddingRight="?android:attr/scrollbarSize"
-	        android:background="#40404040"
-	        >
-	        <ImageView android:id="@+id/book_icon"
+        <LinearLayout 
+            android:id="@+id/base_dlg_button_panel"
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            >
+	        <ImageView android:id="@+id/book_cover"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:layout_gravity="left|center_horizontal"
+	            android:layout_gravity="center_vertical|center_horizontal"
 	            android:padding="1dip"
-	            android:layout_weight="1"
 	            android:scaleType="fitCenter"
+	            android:minHeight="120dip"
+                android:minWidth="100dip"
+                android:maxHeight="200dip"
+                android:maxWidth="150dip"
+                android:background="#80808080"
+                android:drawable="@drawable/cr3_browser_book"
 	            />
-	    </LinearLayout>
+	        <LinearLayout 
+	            android:orientation="vertical"
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:gravity="center_vertical"
+	            >
+	            <RadioGroup android:id="@+id/book_state"
+	                android:layout_width="match_parent"
+	                android:layout_height="wrap_content" >
+
+	                <RadioButton android:id="@+id/book_state_new" android:text="New"/>
+                    <RadioButton android:id="@+id/book_state_toread" android:text="To Read"/>
+                    <RadioButton android:id="@+id/book_state_reading" android:text="Reading"/>
+                    <RadioButton android:id="@+id/book_state_finished" android:text="Finished"/>
+                </RadioGroup>
+		    </LinearLayout>
+	        	        
+   	    </LinearLayout>
+        <TextView 
+            style="@style/TextAppearance.Medium"
+            android:singleLine="true"
+            android:text="Rate" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <RatingBar
+            android:id="@+id/book_rating"
+            android:isIndicator="false"
+            android:numStars="5"
+            android:stepSize="1"
+            android:rating="3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 	    <TextView 
 		    android:id="@+id/lbl_book_title"
 		    style="@style/TextAppearance.Medium"
 		    android:singleLine="true"
-		    android:text="@string/dlg_bookmark_edit_range_text" 
+		    android:text="@string/book_info_book_title" 
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"/>
 		<EditText 
@@ -108,51 +146,69 @@
 	        android:id="@+id/lbl_book_author"
 	        style="@style/TextAppearance.Medium"
 	        android:singleLine="true"
-	        android:text="@string/dlg_bookmark_edit_range_text" 
+	        android:text="@string/book_info_book_authors" 
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"/>
-	    <EditText 
-	        android:id="@+id/book_author" 
-	        android:layout_width="fill_parent" 
-	        android:layout_height="wrap_content"
-	        android:text="Book title" 
-	        style="@style/TextAppearance.Widget.EditText"
-	        android:editable="true" 
-	        android:singleLine="true"
-	    />
+        <LinearLayout 
+            android:id="@+id/book_authors_list" 
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            >
+		   <EditText 
+		        android:layout_width="fill_parent" 
+		        android:layout_height="wrap_content"
+		        android:text="Book title" 
+		        style="@style/TextAppearance.Widget.EditText"
+		        android:editable="true" 
+		        android:singleLine="true"
+		    />
+	   </LinearLayout>
 		
-	   	<TextView 
-	        android:id="@+id/lbl_book_series_name"
-	        style="@style/TextAppearance.Medium"
-	        android:singleLine="true"
-	        android:text="@string/dlg_bookmark_edit_range_text" 
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"/>
-	    <EditText 
-	        android:id="@+id/book_series_name" 
-	        android:layout_width="fill_parent" 
-	        android:layout_height="wrap_content"
-	        android:text="Book title" 
-	        style="@style/TextAppearance.Widget.EditText"
-	        android:editable="true" 
-	        android:singleLine="true"
-	    />
-	
-	    <TextView 
-	        android:id="@+id/lbl_book_series_number"
-	        style="@style/TextAppearance.Medium"
-	        android:singleLine="true"
-	        android:text="@string/dlg_bookmark_edit_range_text" 
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"/>
-	    <EditText 
-	        android:id="@+id/book_series_number" 
-	        android:layout_width="fill_parent" 
-	        android:layout_height="wrap_content"
-	        android:text="Book title" 
-	        style="@style/TextAppearance.Widget.EditText"
-	        android:editable="true" 
-	        android:singleLine="true"
-	    />
+	    <TableLayout 
+	        android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+	        <TableRow >
+			   	<TextView 
+			        android:id="@+id/lbl_book_series_name"
+			        style="@style/TextAppearance.Medium"
+			        android:singleLine="true"
+			        android:text="@string/book_info_book_series_name" 
+                    android:layout_weight="3"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"/>
+                <TextView 
+                    android:id="@+id/lbl_book_series_number"
+                    style="@style/TextAppearance.Medium"
+                    android:singleLine="true"
+                    android:text="#" 
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+		    </TableRow>
+            <TableRow >
+                <EditText 
+                    android:id="@+id/book_series_name" 
+                    android:layout_width="fill_parent" 
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="Series" 
+                    style="@style/TextAppearance.Widget.EditText"
+                    android:editable="true" 
+                    android:singleLine="true"
+                />
+                <EditText 
+			        android:id="@+id/book_series_number" 
+			        android:layout_width="fill_parent" 
+			        android:layout_height="wrap_content"
+                    android:layout_weight="1"
+			        android:text="10" 
+			        style="@style/TextAppearance.Widget.EditText"
+			        android:editable="true" 
+			        android:singleLine="true"
+			    />
+			</TableRow>
+	    </TableLayout>
     </LinearLayout>
 </ScrollView>

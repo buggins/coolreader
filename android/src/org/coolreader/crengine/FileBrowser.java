@@ -86,7 +86,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
 					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled) {
 						BookInfo book = new BookInfo(item);
-						BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, mActivity.getReaderView(), book);
+						BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, mActivity.getReaderView(), book, screenHeight < screenWidth ? screenHeight : screenWidth);
 						dlg.show();
 						return true;
 					}
@@ -214,6 +214,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		});
 	}
 	
+	
+	public CoverpageManager getCoverpageManager() {
+		return mCoverpageManager;
+	}
 	private CoverpageManager mCoverpageManager;
 	
 	private void createListView(boolean recreateAdapter) {

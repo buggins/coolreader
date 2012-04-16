@@ -27,6 +27,10 @@ public class CoverpageManager {
 		void onCoverpagesReady(ArrayList<FileInfo> file);
 	}
 
+	public interface CoverpageBitmapReadyListener {
+		void onCoverpageReady(FileInfo file, Bitmap bitmap);
+	}
+
 	/**
 	 * Cancel queued tasks for specified files.
 	 */
@@ -600,6 +604,34 @@ public class CoverpageManager {
 		}
 	}
 
+	public void drawCoverpageFor(final FileInfo file, final Bitmap buffer, final CoverpageBitmapReadyListener callback) {
+		mActivity.getDB().loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
+			@Override
+			public void onCoverpageLoaded(FileInfo fileInfo, final byte[] data) {
+				BackgroundThread.instance().postBackground(new Runnable() {
+					@Override
+					public void run() {
+						byte[] imageData = data;
+						if (data == null && file.format.canParseCoverpages) {
+							imageData = mActivity.getEngine().scanBookCover(file.getPathName());
+							if (imageData == null)
+								imageData = new byte[] {};
+							if (file.format.needCoverPageCaching())
+								mActivity.getDB().saveBookCoverpage(file, imageData);
+						}
+						mActivity.getEngine().drawBookCover(buffer, imageData, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
+						BackgroundThread.instance().postGUI(new Runnable() {
+							@Override
+							public void run() {
+								callback.onCoverpageReady(file, buffer);
+							}
+						});
+					}
+				});
+			}
+		});
+	}
+	
 	private Rect getBestCoverSize(int srcWidth, int srcHeight) {
 		if (srcWidth < 20 || srcHeight < 20) {
 			return new Rect(0, 0, maxWidth, maxHeight);
