@@ -1043,7 +1043,9 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( bookInfo, _("Series number"), props->getStringDef(DOC_PROP_SERIES_NUMBER) );
     addPropLine( bookInfo, _("Date"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/date", ", " ) );
     addPropLine( bookInfo, _("Genres"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/genre", ", " ) );
+    addPropLine( bookInfo, _("Language"), props->getStringDef(DOC_PROP_LANGUAGE) );
     addPropLine( bookInfo, _("Translator"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/translator", ", " ) );
+    addPropLine( bookInfo, _("Source language"), getDocText( getDocView()->getDocument(), "/FictionBook/description/title-info/src-lang", ", " ) );
     addInfoSection( txt, bookInfo, _("Book info") );
 
     lString8 docInfo;
@@ -1053,6 +1055,8 @@ void V3DocViewWin::showAboutDialog()
     addPropLine( docInfo, _("OCR by"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/src-ocr", " " ) );
     addPropLine( docInfo, _("Document version"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/version", " " ) );
     addPropLine( docInfo, _("Change history"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/history", " " ) );
+    addPropLine( docInfo, _("ID"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/id", " " ) );
+    addPropLine( docInfo, _("Program used"), getDocText( getDocView()->getDocument(), "/FictionBook/description/document-info/program-used", " " ) );
     addInfoSection( txt, docInfo, _("Document info") );
 
     lString8 pubInfo;

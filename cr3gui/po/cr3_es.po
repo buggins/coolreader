@@ -6,14 +6,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cool Reader 3 Spanish Translation\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2012-03-13 20:48+0200\n"
+"POT-Creation-Date: 2012-04-12 22:34+0000\n"
 "PO-Revision-Date: 2010-03-02 19:35+0100\n"
 "Last-Translator: \n"
 "Language-Team: jotas\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: \n"
 "X-Poedit-Language: Spanish\n"
 "X-Poedit-Country: SPAIN\n"
 "X-Poedit-SourceCharset: utf-8\n"
@@ -285,83 +285,99 @@ msgid "Genres"
 msgstr "Género(s)"
 
 #: ../src/mainwnd.cpp:1046
+msgid "Language"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1047
 msgid "Translator"
 msgstr "Traductor"
 
-#: ../src/mainwnd.cpp:1047
+#: ../src/mainwnd.cpp:1048
+msgid "Source language"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1049
 msgid "Book info"
 msgstr "Información del libro"
 
-#: ../src/mainwnd.cpp:1050
+#: ../src/mainwnd.cpp:1052
 msgid "Document author"
 msgstr "Autor del documento"
 
-#: ../src/mainwnd.cpp:1051
+#: ../src/mainwnd.cpp:1053
 msgid "Document date"
 msgstr "Fecha del documento"
 
-#: ../src/mainwnd.cpp:1052
+#: ../src/mainwnd.cpp:1054
 msgid "Document source URL"
 msgstr "URL origen del documento"
 
-#: ../src/mainwnd.cpp:1053
+#: ../src/mainwnd.cpp:1055
 msgid "OCR by"
 msgstr "OCR por"
 
-#: ../src/mainwnd.cpp:1054
+#: ../src/mainwnd.cpp:1056
 msgid "Document version"
 msgstr "Versión del documento"
 
-#: ../src/mainwnd.cpp:1055
+#: ../src/mainwnd.cpp:1057
 #, fuzzy
 msgid "Change history"
 msgstr "Retroceder en el historial del movimiento"
 
-#: ../src/mainwnd.cpp:1056
+#: ../src/mainwnd.cpp:1058
+msgid "ID"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1059
+msgid "Program used"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1060
 msgid "Document info"
 msgstr "Información del documento"
 
-#: ../src/mainwnd.cpp:1059
+#: ../src/mainwnd.cpp:1063
 msgid "Publication name"
 msgstr "Nombre de la publicación"
 
-#: ../src/mainwnd.cpp:1060
+#: ../src/mainwnd.cpp:1064
 msgid "Publisher"
 msgstr "Editor"
 
-#: ../src/mainwnd.cpp:1061
+#: ../src/mainwnd.cpp:1065
 msgid "Publisher city"
 msgstr "Ciudad del editor"
 
-#: ../src/mainwnd.cpp:1062
+#: ../src/mainwnd.cpp:1066
 msgid "Publication year"
 msgstr "Año de publicación"
 
-#: ../src/mainwnd.cpp:1063
+#: ../src/mainwnd.cpp:1067
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1064
+#: ../src/mainwnd.cpp:1068
 msgid "Publication info"
 msgstr "Información de la publicación"
 
-#: ../src/mainwnd.cpp:1066
+#: ../src/mainwnd.cpp:1070
 msgid "Custom info"
 msgstr "Información personalizada"
 
-#: ../src/mainwnd.cpp:1070
+#: ../src/mainwnd.cpp:1074
 msgid "CoolReader for PocketBook"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1071
+#: ../src/mainwnd.cpp:1075
 msgid "Build date"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1072
+#: ../src/mainwnd.cpp:1076
 msgid "About program"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1193
+#: ../src/mainwnd.cpp:1197
 msgid "Loading: please wait..."
 msgstr "Cargando: por favor, espera..."
 

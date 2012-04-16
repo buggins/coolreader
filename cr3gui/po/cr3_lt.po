@@ -6,16 +6,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cr 3gui\n"
 "Report-Msgid-Bugs-To: foo@bar.com\n"
-"POT-Creation-Date: 2012-03-13 20:48+0200\n"
+"POT-Creation-Date: 2012-04-12 22:34+0000\n"
 "PO-Revision-Date: 2010-02-24 21:50+0300\n"
 "Last-Translator: Stanislovas Zacharovas\n"
 "Language-Team: Lithuanian\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
-"%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: \n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%"
+"100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: ../src/bmkdlg.cpp:19
 msgid "Empty slot"
@@ -284,82 +284,98 @@ msgid "Genres"
 msgstr "Žanras"
 
 #: ../src/mainwnd.cpp:1046
+msgid "Language"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1047
 msgid "Translator"
 msgstr "Vertėjas"
 
-#: ../src/mainwnd.cpp:1047
+#: ../src/mainwnd.cpp:1048
+msgid "Source language"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1049
 msgid "Book info"
 msgstr "Kita informacija"
 
-#: ../src/mainwnd.cpp:1050
+#: ../src/mainwnd.cpp:1052
 msgid "Document author"
 msgstr "Dokumento autorius"
 
-#: ../src/mainwnd.cpp:1051
+#: ../src/mainwnd.cpp:1053
 msgid "Document date"
 msgstr "Dokumento data"
 
-#: ../src/mainwnd.cpp:1052
+#: ../src/mainwnd.cpp:1054
 msgid "Document source URL"
 msgstr "Dokumento šaltinio URL"
 
-#: ../src/mainwnd.cpp:1053
+#: ../src/mainwnd.cpp:1055
 msgid "OCR by"
 msgstr "Nuskaityta"
 
-#: ../src/mainwnd.cpp:1054
+#: ../src/mainwnd.cpp:1056
 msgid "Document version"
 msgstr "Dokumento versija"
 
-#: ../src/mainwnd.cpp:1055
+#: ../src/mainwnd.cpp:1057
 msgid "Change history"
 msgstr "Pakeitimų istorija"
 
-#: ../src/mainwnd.cpp:1056
+#: ../src/mainwnd.cpp:1058
+msgid "ID"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1059
+msgid "Program used"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1060
 msgid "Document info"
 msgstr "Dokumento informacija"
 
-#: ../src/mainwnd.cpp:1059
+#: ../src/mainwnd.cpp:1063
 msgid "Publication name"
 msgstr "Leidinio pavadinimas"
 
-#: ../src/mainwnd.cpp:1060
+#: ../src/mainwnd.cpp:1064
 msgid "Publisher"
 msgstr "Leidėjas"
 
-#: ../src/mainwnd.cpp:1061
+#: ../src/mainwnd.cpp:1065
 msgid "Publisher city"
 msgstr "Leidybos miestas"
 
-#: ../src/mainwnd.cpp:1062
+#: ../src/mainwnd.cpp:1066
 msgid "Publication year"
 msgstr "Leidybos metai"
 
-#: ../src/mainwnd.cpp:1063
+#: ../src/mainwnd.cpp:1067
 msgid "ISBN"
 msgstr "ISBN"
 
-#: ../src/mainwnd.cpp:1064
+#: ../src/mainwnd.cpp:1068
 msgid "Publication info"
 msgstr "Leidybinė informacija"
 
-#: ../src/mainwnd.cpp:1066
+#: ../src/mainwnd.cpp:1070
 msgid "Custom info"
 msgstr "Kita informacija"
 
-#: ../src/mainwnd.cpp:1070
+#: ../src/mainwnd.cpp:1074
 msgid "CoolReader for PocketBook"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1071
+#: ../src/mainwnd.cpp:1075
 msgid "Build date"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1072
+#: ../src/mainwnd.cpp:1076
 msgid "About program"
 msgstr ""
 
-#: ../src/mainwnd.cpp:1193
+#: ../src/mainwnd.cpp:1197
 msgid "Loading: please wait..."
 msgstr "Atidaromas failas, prašome palaukti..."
 
