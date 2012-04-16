@@ -339,8 +339,9 @@ CRSettingsMenu::CRSettingsMenu( CRGUIWindowManager * wm, CRPropRef newProps, int
 		{NULL, NULL},
 	};
         item_def_t highlight_bookmark[] = {
-                {_("On"), "1"},
-                {_("Off"), "0"},
+                {_("None"), "0"},
+                {_("Solid"), "1"},
+                {_("Underline"), "2"},
                 {NULL, NULL},
         };
 

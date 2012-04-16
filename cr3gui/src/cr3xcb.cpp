@@ -76,7 +76,7 @@ typedef enum {
     DISCHARGING,
     NOT_CHARGING,
     FULL_CHARGE,
-    LOW_CHARGE,
+    LOW_CHARGE
 } battery_status_t;
 
 typedef struct {
