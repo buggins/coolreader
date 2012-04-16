@@ -399,19 +399,20 @@
     <string name="options_font_embedded_document_font_enabled">文档内嵌字体</string>
     <string name="options_app_locale_system">系统</string>
     <string name="options_app_locale">界面语言 (Interface language)</string>
-    <string name="options_app_locale_zh_cn">中文</string>
-    <string name="options_app_locale_uk">Ukrainian</string>
-    <string name="options_app_locale_tr">Turkish</string>
-    <string name="options_app_locale_bg">Bulgarian</string>
-    <string name="options_app_locale_hu">Hungarian</string>
-    <string name="options_app_locale_it">Italian</string>
-    <string name="options_app_locale_de">German</string>
-    <string name="options_app_locale_es">Spanish</string>
+    <string name="options_app_locale_bg">Български</string>
+    <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_en">English</string>
+    <string name="options_app_locale_es">Español</string>
+    <string name="options_app_locale_fr">Français</string>
+    <string name="options_app_locale_hu">Magyar</string>
+    <string name="options_app_locale_it">Italiano</string>
+    <string name="options_app_locale_lt">Lietuvos</string>
+    <string name="options_app_locale_nl">Nederlands</string>
     <string name="options_app_locale_ru">Русский</string>
     <string name="options_app_locale_sk">Slovak</string>
-    <string name="options_app_locale_nl">Dutch</string>
-    <string name="options_app_locale_lt">Lithuanian</string>
+    <string name="options_app_locale_tr">Türkçe</string>
+    <string name="options_app_locale_uk">Українська</string>
+    <string name="options_app_locale_zh_cn">中文</string>
     <string name="mi_goto_manual">使用说明</string>
     <string name="options_view_bookmarks_highlight_underline">下划线</string>
     <string name="options_view_color_selection">选中颜色</string>
@@ -427,6 +428,5 @@
     <string name="dlg_goto_current_position">Current page:</string>
     <string name="dlg_goto_input_page_number">Input page number to go:</string>
     <string name="dlg_goto_input_percent">Input position percent to go:</string>
-    <string name="options_app_locale_fr">Français</string>
     <string name="book_info_book_language">Language</string>
 </resources>

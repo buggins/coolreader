@@ -407,19 +407,20 @@
     <string name="options_view_bookmarks_highlight_solid">Цвет фона</string>
     <string name="win_title_confirm_bookmark_delete">Вы действительно хотите удалить эту закладку?</string>
     <string name="option_controls_gesture_page_flipping_enabled">Листание жестами</string>
-    <string name="options_app_locale_bg">Bulgarian</string>
-    <string name="options_app_locale_hu">Hungarian</string>
-    <string name="options_app_locale_de">German</string>
-    <string name="options_app_locale_es">Spanish</string>
+    <string name="options_app_locale_bg">Български</string>
+    <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_en">English</string>
-    <string name="options_app_locale_zh_cn">中文</string>
-    <string name="options_app_locale_uk">Ukrainian</string>
-    <string name="options_app_locale_tr">Turkish</string>
-    <string name="options_app_locale_it">Italian</string>
+    <string name="options_app_locale_es">Español</string>
+    <string name="options_app_locale_fr">Français</string>
+    <string name="options_app_locale_hu">Magyar</string>
+    <string name="options_app_locale_it">Italiano</string>
+    <string name="options_app_locale_lt">Lietuvos</string>
+    <string name="options_app_locale_nl">Nederlands</string>
     <string name="options_app_locale_ru">Русский</string>
     <string name="options_app_locale_sk">Slovak</string>
-    <string name="options_app_locale_nl">Dutch</string>
-    <string name="options_app_locale_lt">Lithuanian</string>
+    <string name="options_app_locale_tr">Türkçe</string>
+    <string name="options_app_locale_uk">Українська</string>
+    <string name="options_app_locale_zh_cn">中文</string>
     <string name="options_app_cover_page_size_big">Большие</string>
     <string name="options_app_cover_page_size_medium">Средние</string>
     <string name="options_app_cover_page_size_small">Маленькие</string>
@@ -427,6 +428,5 @@
     <string name="dlg_goto_current_position">Текущая страница:</string>
     <string name="dlg_goto_input_page_number">Введите номер страницы для перехода:</string>
     <string name="dlg_goto_input_percent">Введите процент для перехода:</string>
-    <string name="options_app_locale_fr">Français</string>
     <string name="book_info_book_language">Language</string>
 </resources>
