@@ -1048,10 +1048,21 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
 	DocViewCallback callback( _env, p->_docview, _this );
     CRObjectAccessor bookinfo(_env, _info);
     CRObjectAccessor fileinfo(_env, CRFieldAccessor(bookinfo, "fileInfo", "Lorg/coolreader/crengine/FileInfo;").getObject() );
-    CRStringField(fileinfo,"title").set(p->_docview->getTitle());
-    CRStringField(fileinfo,"authors").set(p->_docview->getAuthors());
-    CRStringField(fileinfo,"series").set(p->_docview->getSeries());
-    CRStringField(fileinfo,"language").set(p->_docview->getLanguage());
+    CRStringField titleField(fileinfo,"title");
+    if (titleField.get().empty())
+    	titleField.set(p->_docview->getTitle());
+    CRStringField authorsField(fileinfo,"authors");
+    if (authorsField.get().empty())
+    	authorsField.set(p->_docview->getAuthors());
+    CRStringField seriesField(fileinfo,"series");
+    if (seriesField.get().empty()) {
+    	seriesField.set(p->_docview->getSeriesName());
+    	CRIntField seriesNumberField(fileinfo,"seriesNumber");
+    	seriesNumberField.set(p->_docview->getSeriesNumber());
+    }
+    CRStringField languageField(fileinfo,"language");
+    if (languageField.get().empty())
+    	languageField.set(p->_docview->getLanguage());
 }
 
 /*

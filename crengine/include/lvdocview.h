@@ -854,6 +854,21 @@ public:
             name << " #" << number;
         return name;
     }
+    /// returns book series name and number (series name #1)
+    lString16 getSeriesName()
+    {
+        lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
+        return name;
+    }
+    /// returns book series name and number (series name #1)
+    int getSeriesNumber()
+    {
+        lString16 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
+        lString16 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
+        if (!name.empty() && !number.empty())
+            return number.atoi();
+        return 0;
+    }
 
     /// export to WOL format
     bool exportWolFile( const char * fname, bool flgGray, int levels );
