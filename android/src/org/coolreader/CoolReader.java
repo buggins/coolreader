@@ -562,6 +562,9 @@ public class CoolReader extends Activity
     	mBackgroundThread = BackgroundThread.instance();
 		mEngine = new Engine(this, mBackgroundThread);
 		
+       	mScanner = new Scanner(this, mEngine);
+       	mScanner.initRoots(mEngine.getMountedRootsMap());
+
 		mSyncService = new SyncServiceAccessor(this);
 		mSyncService.bind(new Runnable() {
 			@Override
@@ -570,7 +573,9 @@ public class CoolReader extends Activity
 				BackgroundThread.instance().postGUI(new Runnable() {
 					@Override
 					public void run() {
-			        	mSyncService.setSyncDirectory(new File(mScanner.getDownloadDirectory().getPathName()));
+						FileInfo downloadDirectory = mScanner.getDownloadDirectory();
+						if (downloadDirectory != null)
+			        	mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
 					}
 				});
 			}
@@ -681,9 +686,6 @@ public class CoolReader extends Activity
 		}
 		//mDB = new CRDB(dbfile);
 
-       	mScanner = new Scanner(this, mEngine);
-       	mScanner.initRoots(mEngine.getMountedRootsMap());
-		
        	mHistory = new History(this, mScanner);
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
