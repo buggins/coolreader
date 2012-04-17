@@ -45,6 +45,8 @@ public class MountPathCorrector {
 					return base + tail.substring(1);
 				return base + tail;
 			}
+			if (tail == null || tail.length() == 0)
+				return base;
 			if (tail.charAt(0) == '/')
 				return base + tail;
 			return base + '/' + tail;
