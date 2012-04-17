@@ -917,17 +917,10 @@ public:
         int visialAlignmentWidth = 0;
         if ( visualAlignmentEnabled ) {
             LVFont * font = NULL;
-            if (start >= m_length || end > m_length)  // crash debug
-                CRLog::fatal("paragraph position out of bounds %d .. %d [of %d]", start, end, m_length);
             for ( int i=start; i<end; i++ ) {
                 if ( !(m_pbuffer->srctext[i].flags & LTEXT_SRC_IS_OBJECT) ) {
-                    //lChar16 ch = m_srcs[i]->t.text[0]; // crash debug
                     font = (LVFont*)m_pbuffer->srctext[i].t.font;
                     if (font) {
-//                        if (dynamic_cast<LVFont*>(font) == NULL)  // crash debug
-//                            CRLog::fatal("wrong font pointer");
-//                        CRLog::trace("v [%d/%d] font = %08x  text = %08x", i, m_length, (lUInt32)font, (lUInt32)m_srcs[i]->t.text);
-                        int sz = font->getSize();
                         int dx = font->getVisualAligmentWidth();
                         if ( dx>visialAlignmentWidth )
                             visialAlignmentWidth = dx;

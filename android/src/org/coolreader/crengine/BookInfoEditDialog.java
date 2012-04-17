@@ -123,9 +123,11 @@ public class BookInfoEditDialog extends BaseDialog {
 			this.oldValue = authors;
 			this.parent = parent;
 	        parent.removeAllViews();
-	        String[] list = authors.split("\\|");
-	        for (String author : list)
-	        	add(author);
+	        if (authors != null) {
+		        String[] list = authors.split("\\|");
+		        for (String author : list)
+		        	add(author);
+	        }
 			add("");
 		}
 		public String getAuthorsList() {
@@ -365,6 +367,9 @@ public class BookInfoEditDialog extends BaseDialog {
         modified = file.setReadingState(state) || modified;
         if (modified) {
         	mActivity.getDB().saveBookInfo(mBookInfo);
+        	BookInfo bi = mActivity.getHistory().getBookInfo(mBookInfo.getFileInfo());
+        	if (bi != null)
+        		bi.getFileInfo().setFileProperties(mBookInfo.getFileInfo());
         }
 	}
 

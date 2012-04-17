@@ -429,4 +429,8 @@
     <string name="dlg_goto_input_page_number">Input page number to go:</string>
     <string name="dlg_goto_input_percent">Input position percent to go:</string>
     <string name="book_info_book_language">Language</string>
+    <string name="book_state_toread">К прочтению</string>
+    <string name="book_state_reading">Reading</string>
+    <string name="book_state_none">No mark</string>
+    <string name="book_state_finished">Finished</string>
 </resources>

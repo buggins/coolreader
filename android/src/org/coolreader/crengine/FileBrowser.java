@@ -1063,7 +1063,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					} else  if (item.isOPDSDir()) {
 						setText(field1, item.title);
 						setText(field2, "");
-					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0)) {
+					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isOPDSRoot() && !item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0)) {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {
@@ -1113,8 +1113,30 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 //						field1.setVisibility(VISIBLE);
 //						field2.setVisibility(VISIBLE);
 //						field3.setVisibility(VISIBLE);
+						String state = "";
+						if (item.getRate() > 0 && item.getRate() <= 5) {
+							String[] stars = new String[] {
+									"*",
+									"**",
+									"***",
+									"****",
+									"*****",
+							};
+							state = state + stars[item.getRate() - 1] + " ";
+						}
+						if (item.getReadingState() > 0) {
+							String stateName = "";
+							int n = item.getReadingState();
+							if (n == FileInfo.STATE_READING)
+								stateName = mActivity.getString(R.string.book_state_reading);
+							else if (n == FileInfo.STATE_TO_READ)
+								stateName = mActivity.getString(R.string.book_state_toread);
+							else if (n == FileInfo.STATE_FINISHED)
+								stateName = mActivity.getString(R.string.book_state_finished);
+							state = state + "[" + stateName + "] ";
+						}
 						if (field1 != null)
-							field1.setText(formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
+							field1.setText(state + formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 						if (field2 != null) {
 							Bookmark pos = mHistory.getLastPos(item);

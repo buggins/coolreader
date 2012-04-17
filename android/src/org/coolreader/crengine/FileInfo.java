@@ -523,6 +523,7 @@ public class FileInfo {
 			return dirs.get(index);
 		throw new IndexOutOfBoundsException();
 	}
+
 	public FileInfo getFile( int index )
 	{
 		if ( index<0 )
@@ -532,9 +533,21 @@ public class FileInfo {
 		throw new IndexOutOfBoundsException();
 	}
 
-	public void setFile(int index, FileInfo file)
+	public boolean setFileProperties(FileInfo file)
 	{
-		if ( index<0 )
+		boolean modified = false;
+		modified = setTitle(file.getTitle()) || modified;
+		modified = setAuthors(file.getAuthors()) || modified;
+		modified = setSeriesName(file.getSeriesName()) || modified;
+		modified = setSeriesNumber(file.getSeriesNumber()) || modified;
+		modified = setReadingState(file.getReadingState()) || modified;
+		modified = setRate(file.getRate()) || modified;
+		return modified;
+	}
+
+    public void setFile(int index, FileInfo file)
+    {
+        if ( index<0 )
 			throw new IndexOutOfBoundsException();
 		if (index < fileCount()) {
 			files.set(index, file);
@@ -542,8 +555,8 @@ public class FileInfo {
 			return;
 		}
 		throw new IndexOutOfBoundsException();
-	}
-
+    }
+	
 	public void setFile(FileInfo file)
 	{
 		int index = getFileIndex(file);
@@ -700,6 +713,10 @@ public class FileInfo {
 		return true;
 	}
 	
+	public String getSeriesName() {
+		return series;
+	}
+	
 	public boolean setSeriesName(String series) {
 		if (eq(this.series, series))
 			return false;
@@ -712,6 +729,10 @@ public class FileInfo {
 			return false;
 		this.seriesNumber = seriesNumber;
 		return true;
+	}
+	
+	public int getSeriesNumber() {
+		return seriesNumber;
 	}
 	
 	public String getLanguage() {

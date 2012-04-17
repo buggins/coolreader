@@ -426,4 +426,8 @@
     <string name="options_app_cover_page_size_small">Kicsi</string>
     <string name="options_app_cover_page_size">Borítóméret</string>
     <string name="book_info_book_language">Language</string>
+    <string name="book_state_toread">To read</string>
+    <string name="book_state_reading">Reading</string>
+    <string name="book_state_none">No mark</string>
+    <string name="book_state_finished">Finished</string>
 </resources>

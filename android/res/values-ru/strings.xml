@@ -429,4 +429,8 @@
     <string name="dlg_goto_input_page_number">Введите номер страницы для перехода:</string>
     <string name="dlg_goto_input_percent">Введите процент для перехода:</string>
     <string name="book_info_book_language">Language</string>
+    <string name="book_state_toread">To read</string>
+    <string name="book_state_reading">Читаю</string>
+    <string name="book_state_none">Нет пометки</string>
+    <string name="book_state_finished">Прочитана</string>
 </resources>
