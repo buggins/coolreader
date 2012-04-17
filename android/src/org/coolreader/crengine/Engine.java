@@ -928,7 +928,7 @@ public class Engine {
 		currentKeyBacklightLevel = value;
 		// Try ICS way
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			return setSystemUiVisibility();
+			setSystemUiVisibility();
 		}
 
 		// thread safe

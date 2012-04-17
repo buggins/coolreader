@@ -68,7 +68,7 @@ public class FileInfo {
 	public static final int READING_STATE_MASK = 0x0F;
 	public static final int STATE_NEW = 0;
 	public static final int STATE_TO_READ = 1;
-	public static final int STATE_TO_READING = 2;
+	public static final int STATE_READING = 2;
 	public static final int STATE_FINISHED = 3;
 
 	// bits 20..23 - rate (0..15 max, 0..5 currently)
@@ -93,9 +93,11 @@ public class FileInfo {
 	 * Set new reading state.
 	 * @param state is new reading state (one of STATE_XXX constants)
 	 */
-	public void setReadingState(int state) {
+	public boolean setReadingState(int state) {
+		int oldFlags = flags;
 		flags = (flags & ~(READING_STATE_MASK << READING_STATE_SHIFT))
 		 | ((state & READING_STATE_MASK) << READING_STATE_SHIFT);
+		return flags != oldFlags;
 	}
 
 	/**
@@ -110,9 +112,11 @@ public class FileInfo {
 	 * Set new reading state.
 	 * @param state is new reading state (one of STATE_XXX constants)
 	 */
-	public void setRate(int rate) {
+	public boolean setRate(int rate) {
+		int oldFlags = flags;
 		flags = (flags & ~(RATE_MASK << RATE_SHIFT))
 		 | ((rate & RATE_MASK) << RATE_SHIFT);
+		return flags != oldFlags;
 	}
 
 	/**
@@ -678,8 +682,36 @@ public class FileInfo {
 		return authors;
 	}
 	
+	public boolean setAuthors(String authors) {
+		if (eq(this.authors, authors))
+			return false;
+		this.authors = authors;
+		return true;
+	}
+	
 	public String getTitle() {
 		return title;
+	}
+	
+	public boolean setTitle(String title) {
+		if (eq(this.title, title))
+			return false;
+		this.title = title;
+		return true;
+	}
+	
+	public boolean setSeriesName(String series) {
+		if (eq(this.series, series))
+			return false;
+		this.series = series;
+		return true;
+	}
+	
+	public boolean setSeriesNumber(int seriesNumber) {
+		if (this.seriesNumber == seriesNumber)
+			return false;
+		this.seriesNumber = seriesNumber;
+		return true;
 	}
 	
 	public String getLanguage() {

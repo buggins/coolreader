@@ -13,6 +13,7 @@ import java.util.TimeZone;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
+import org.coolreader.crengine.History.BookInfoLoadedCallack;
 import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
@@ -85,9 +86,18 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					
 					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
 					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled) {
-						BookInfo book = new BookInfo(item);
-						BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, mActivity.getReaderView(), book, screenHeight < screenWidth ? screenHeight : screenWidth);
-						dlg.show();
+						final FileInfo file = item;
+						mHistory.getOrCreateBookInfo(item, new BookInfoLoadedCallack() {
+							@Override
+							public void onBookInfoLoaded(BookInfo bookInfo) {
+								if (bookInfo == null)
+									bookInfo = new BookInfo(file);
+								BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, bookInfo, 
+										screenHeight < screenWidth ? screenHeight : screenWidth, 
+										currDirectory.isRecentDir());
+								dlg.show();
+							}
+						});
 						return true;
 					}
 					
@@ -283,7 +293,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.book_delete:
 			log.d("book_delete menu item selected");
-			askDeleteBook();
+			askDeleteBook(selectedItem);
 			return true;
 		case R.id.book_recent_goto:
 			log.d("book_recent_goto menu item selected");
@@ -291,7 +301,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.book_recent_remove:
 			log.d("book_recent_remove menu item selected");
-			askDeleteRecent();
+			askDeleteRecent(selectedItem);
 			return true;
 		case R.id.catalog_add:
 			log.d("catalog_add menu item selected");
@@ -313,28 +323,28 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		return false;
 	}
 	
-	private void askDeleteBook()
+	public void askDeleteBook(final FileInfo item)
 	{
 		mActivity.askConfirmation(R.string.win_title_confirm_book_delete, new Runnable() {
 			@Override
 			public void run() {
-				mActivity.getReaderView().closeIfOpened(selectedItem);
-				if ( selectedItem.deleteFile() ) {
-					mActivity.getSyncService().removeFile(selectedItem.getPathName());
-					mHistory.removeBookInfo(selectedItem, true, true);
+				mActivity.getReaderView().closeIfOpened(item);
+				if (item.deleteFile()) {
+					mActivity.getSyncService().removeFile(item.getPathName());
+					mHistory.removeBookInfo(item, true, true);
 				}
 				showDirectory(currDirectory, null);
 			}
 		});
 	}
 	
-	private void askDeleteRecent()
+	public void askDeleteRecent(final FileInfo item)
 	{
 		mActivity.askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
 			@Override
 			public void run() {
-				mActivity.getHistory().removeBookInfo(selectedItem, true, false);
-				mActivity.getSyncService().removeFileLastPosition(selectedItem.getPathName());
+				mActivity.getHistory().removeBookInfo(item, true, false);
+				mActivity.getSyncService().removeFileLastPosition(item.getPathName());
 				showRecentBooks();
 			}
 		});
