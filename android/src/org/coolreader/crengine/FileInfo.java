@@ -105,7 +105,7 @@ public class FileInfo {
 	 * @return reading state (one of STATE_XXX constants)
 	 */
 	public int getRate() {
-		return (flags >> READING_STATE_SHIFT) & READING_STATE_MASK;
+		return (flags >> RATE_SHIFT) & RATE_MASK;
 	}
 
 	/**
