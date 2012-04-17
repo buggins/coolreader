@@ -1878,6 +1878,7 @@ public class CoolReader extends Activity
 		public final String className;
 		public final String action;
 		public final Integer internal;
+		public String dataKey = SearchManager.QUERY; 
 		public DictInfo ( String id, String name, String packageName, String className, String action, Integer internal ) {
 			this.id = id;
 			this.name = name;
@@ -1886,6 +1887,7 @@ public class CoolReader extends Activity
 			this.action = action;
 			this.internal = internal;
 		}
+		public DictInfo setDataKey(String key) { this.dataKey = key; return this; }
 	}
 	private static final DictInfo dicts[] = {
 		new DictInfo("Fora", "Fora Dictionary", "com.ngc.fora", "com.ngc.fora.ForaDictionary", Intent.ACTION_SEARCH, 0),
@@ -1894,6 +1896,10 @@ public class CoolReader extends Activity
 		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
 		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
 		new DictInfo("Dictan", "Dictan Dictionary", "", "", Intent.ACTION_VIEW, 2),
+		new DictInfo("FreeDictionary.org", "Free Dictionary . org", "org.freedictionary.MainActivity", "org.freedictionary", Intent.ACTION_VIEW, 0),
+		new DictInfo("LingoQuizLite", "Lingo Quiz Lite", "mnm.lite.lingoquiz", "mnm.lite.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
+		new DictInfo("LingoQuiz", "Lingo Quiz", "mnm.lingoquiz", "mnm.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
+		new DictInfo("LEODictionary", "LEO Dictionary", "org.leo.android.dict", "org.leo.android.dict.LeoDict", "android.intent.action.SEARCH", 0),
 	};
 
 	public DictInfo[] getDictList() {
@@ -1926,7 +1932,7 @@ public class CoolReader extends Activity
 				currentDict.packageName, currentDict.className
 				)).addFlags(DeviceInfo.getSDKLevel() >= 7 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (s!=null)
-				intent0.putExtra(SearchManager.QUERY, s);
+				intent0.putExtra(currentDict.dataKey, s);
 			try {
 				startActivity( intent0 );
 			} catch ( ActivityNotFoundException e ) {
