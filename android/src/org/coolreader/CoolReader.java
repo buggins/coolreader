@@ -955,7 +955,6 @@ public class CoolReader extends Activity
 			
 		mReaderView = null;
 		//mEngine = null;
-		mBackgroundThread = null;
 		
 		//===========================
 		// Donations support code
@@ -967,6 +966,15 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onDestroy() exiting");
 		super.onDestroy();
 		mSyncService.unbind();
+		BackgroundThread.instance().postBackground(new Runnable() {
+			@Override
+			public void run() {
+				log.i("Stopping background thread");
+				mBackgroundThread.quit();
+				mBackgroundThread = null;
+				mEngine = null;
+			}
+		});
 	}
 
 	private String extractFileName( Uri uri )

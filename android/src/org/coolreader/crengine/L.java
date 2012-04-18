@@ -5,7 +5,7 @@ import android.util.Log;
 public class L {
 	public static final String TAG = "cr3"; 
 	public static String getThreadLabel() {
-		return BackgroundThread.instance().isGUIThread() ? "G|" : "B|";
+		return BackgroundThread.isGUIThread() ? "G|" : "B|";
 	}
 	public static void i(String msg) {
 		Log.i(TAG, getThreadLabel() + msg);
