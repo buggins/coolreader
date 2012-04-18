@@ -515,8 +515,8 @@ public:
     }
     inline void clear()
     {
-        if ( p )
-            delete[] ( p );
+        if (p)
+            delete p;
         p = NULL;
     }
     ~LVAutoPtr()
