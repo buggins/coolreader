@@ -268,6 +268,7 @@ class CRXCBScreen : public CRGUIScreenBase
             if ( !CRGUIScreenBase::setSize( dx, dy ) )
                 return false;
             createImage();
+            return true;
         }
         void createImage()
         {
@@ -794,7 +795,7 @@ public:
                 XCB_PROP_MODE_REPLACE, \
                 window, \
                 atoms[(__i__)].atom, \
-                INTEGER, \
+                XCB_ATOM_INTEGER, \
                 32, \
                 1, \
                 (unsigned char*)&i); \
@@ -835,7 +836,7 @@ public:
                 XCB_PROP_MODE_REPLACE,
                 screen->root,
                 atoms[12].atom,
-                WINDOW,
+                XCB_ATOM_WINDOW,
                 sizeof(xcb_window_t) * 8,
                 1,
                 (unsigned char*)&window);
@@ -843,7 +844,7 @@ public:
         xcb_change_property(connection,
                 XCB_PROP_MODE_REPLACE,
                 window,
-                WM_NAME,
+                XCB_ATOM_WM_NAME,
                 atoms[0].atom,
                 8,
                 strlen("CoolReader3"),
@@ -852,8 +853,8 @@ public:
         xcb_change_property(connection,
                 XCB_PROP_MODE_REPLACE,
                 window,
-                WM_CLASS,
-                STRING,
+                XCB_ATOM_WM_CLASS,
+                XCB_ATOM_STRING,
                 8,
                 strlen("cr3") * 2 + 2,
                 "cr3\0cr3");
@@ -862,7 +863,7 @@ public:
                 XCB_PROP_MODE_REPLACE,
                 window,
                 atoms[13].atom,
-                STRING,
+                XCB_ATOM_STRING,
                 8,
                 cover_image_file.length(),
                 cover_image_file.get());
