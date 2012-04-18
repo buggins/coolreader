@@ -172,6 +172,7 @@ public class BackgroundThread extends Thread {
 		postGUI(task, 0);
 	}
 
+	static int delayedTaskId = 0;
 	/**
 	 * Post runnable to be executed in GUI thread
 	 * @param task is runnable to execute in GUI thread
@@ -185,13 +186,13 @@ public class BackgroundThread extends Thread {
 			}
 		} else {
 			if ( delay>0 ) {
-				
-				L.v("posting delayed (" + delay + ") task " + task);
+				final int id = ++delayedTaskId;
+				//L.v("posting delayed (" + delay + ") task " + id + " " + task);
 				guiTarget.postDelayed(new Runnable() {
 					@Override
 					public void run() {
 						task.run();
-						L.v("finished delayed (" + delay + ") task " + task);
+						//L.v("finished delayed (" + delay + ") task " + id + " " + task);
 					}
 				}, delay);
 			} else

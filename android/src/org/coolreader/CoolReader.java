@@ -958,10 +958,10 @@ public class CoolReader extends Activity
 		
 		//===========================
 		// Donations support code
-		if (billingSupported) {
+		//if (billingSupported) {
 			mBillingService.unbind();
 			//mPurchaseDatabase.close();
-		}
+		//}
 		
 		log.i("CoolReader.onDestroy() exiting");
 		super.onDestroy();
