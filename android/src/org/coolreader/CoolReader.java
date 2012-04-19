@@ -1080,6 +1080,7 @@ public class CoolReader extends Activity
 		log.i("CoolReader.onResume()");
 		mPaused = false;
 		mIsStarted = true;
+		backlightControl.onUserActivity();
 		Properties props = mReaderView.getSettings();
 		
 		if (DeviceInfo.EINK_SCREEN) {
