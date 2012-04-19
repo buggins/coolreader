@@ -27,6 +27,7 @@ public class DeviceInfo {
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
 	public final static android.graphics.Bitmap.Config BUFFER_COLOR_FORMAT;
 	public final static String DEF_FONT_FACE;
+	public final static boolean DISABLE_BRIGHTNESS_HACK; 
 	
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
@@ -103,6 +104,9 @@ public class DeviceInfo {
 		BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.RGB_565;
 		
 		DEF_FONT_FACE = getSDKLevel() >= ICE_CREAM_SANDWICH ? "Roboto" : "Droid Sans";
+		
+		DISABLE_BRIGHTNESS_HACK = Build.MANUFACTURER.contentEquals("Samsung") && 
+		 		(Build.MODEL.contentEquals("GT-S5830") || Build.MODEL.contentEquals("GT-S5660")); // More models?
 	}
 	
 	private static String getBuildField(String fieldName) {

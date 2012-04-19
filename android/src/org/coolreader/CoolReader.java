@@ -788,7 +788,7 @@ public class CoolReader extends Activity
     
     private int screenBacklightBrightness = -1; // use default
     //private boolean brightnessHackError = false;
-    private boolean brightnessHackError = false;
+    private boolean brightnessHackError = DeviceInfo.DISABLE_BRIGHTNESS_HACK;
 
     private void turnOffKeyBacklight() {
     	if (!isStarted())
