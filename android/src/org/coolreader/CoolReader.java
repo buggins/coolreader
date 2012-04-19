@@ -63,9 +63,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -788,7 +786,7 @@ public class CoolReader extends Activity
     
     private int screenBacklightBrightness = -1; // use default
     //private boolean brightnessHackError = false;
-    private boolean brightnessHackError = DeviceInfo.DISABLE_BRIGHTNESS_HACK;
+    private boolean brightnessHackError = DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 
     private void turnOffKeyBacklight() {
     	if (!isStarted())

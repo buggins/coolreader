@@ -429,8 +429,8 @@
     <string name="dlg_goto_input_page_number">Введіть сторінку для переходу:</string>
     <string name="dlg_goto_input_percent">Введіть позицію для переходу (у відсотках):</string>
     <string name="book_info_book_language">Мова</string>
-    <string name="book_state_toread">Читати</string>
-    <string name="book_state_reading">Читання</string>
-    <string name="book_state_none">Без позначки</string>
-    <string name="book_state_finished">Завершено</string>
+    <string name="book_state_toread">Читати</string>
+    <string name="book_state_reading">Читання</string>
+    <string name="book_state_none">Без позначки</string>
+    <string name="book_state_finished">Завершено</string>
 </resources>
