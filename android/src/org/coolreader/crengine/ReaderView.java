@@ -464,7 +464,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
 		stopTracking();
 
-		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
+/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
 			// goto/set shortcut bookmark
 			int shortcut = keyCode - KeyEvent.KEYCODE_0;
 			if ( shortcut==0 )
@@ -474,7 +474,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			else
 				goToBookmark(shortcut);
 			return true;
-		}
+		}*/
 		if ( action.isNone() || !tracked ) {
 			return super.onKeyUp(keyCode, event);
 		}
@@ -724,11 +724,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			actionToRepeat = null;
 		}
 		
-		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
 			// will process in keyup handler
 			startTrackingKey(event);
 			return true;
-		}
+		}*/
 		if ( action.isNone() && longAction.isNone() )
 			return super.onKeyDown(keyCode, event);
 		startTrackingKey(event);
