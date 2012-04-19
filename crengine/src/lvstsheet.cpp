@@ -256,12 +256,22 @@ static bool parse_number_value( const char * & str, css_length_t & value )
     else if ( substr_compare( "pt", str ) )
         value.type = css_val_pt;
     else if ( substr_compare( "ex", str ) )
-        value.type = css_val_pt;
+        value.type = css_val_ex;
     else if ( substr_compare( "px", str ) )
         value.type = css_val_px;
+    else if ( substr_compare( "in", str ) )
+        value.type = css_val_in;
+    else if ( substr_compare( "cm", str ) )
+        value.type = css_val_cm;
+    else if ( substr_compare( "mm", str ) )
+        value.type = css_val_mm;
+    else if ( substr_compare( "pc", str ) )
+        value.type = css_val_pc;
     else if ( substr_compare( "%", str ) )
         value.type = css_val_percent;
-    if ( value.type == css_val_unspecified )
+    else if (n == 0 && frac == 0)
+        value.type = css_val_px;
+    else
         return false;
     if ( value.type == css_val_px || value.type == css_val_percent )
         value.value = n;                               // normal
