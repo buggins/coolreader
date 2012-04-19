@@ -1872,6 +1872,7 @@ int LVDocView::getPageCount() {
 
 /// get position of view inside document
 void LVDocView::GetPos(lvRect & rc) {
+    checkPos();
 	rc.left = 0;
 	rc.right = GetWidth();
 	if (isPageMode() && _page >= 0 && _page < m_pages.length()) {
