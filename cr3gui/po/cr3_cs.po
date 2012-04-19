@@ -1,0 +1,1150 @@
+# Translation for CoolReader3
+# This file is put in the public domain.
+#
+# LVE <vadim.lopatin@coolreader.org>, 2009.
+# Pavel Fric <pavelfric@seznam.cz>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: cr3 3.0.17\n"
+"Report-Msgid-Bugs-To: foo@bar.com\n"
+"POT-Creation-Date: 2012-04-12 22:34+0000\n"
+"PO-Revision-Date: 2012-04-17 14:52+0200\n"
+"Last-Translator: Pavel Fric <pavelfric@seznam.cz>\n"
+"Language-Team: Czech <kde-i18n-doc@kde.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Language: cs_CZ\n"
+
+#: ../src/bmkdlg.cpp:19
+msgid "Empty slot"
+msgstr "Prázdné místo"
+
+#: ../src/bmkdlg.cpp:51
+msgid "Page $1 ($2%)"
+msgstr "Strana $1 ($2%)"
+
+#: ../src/bmkdlg.cpp:75 ../src/bmkdlg.cpp:168
+msgid "Go to bookmark"
+msgstr "Jít na záložku"
+
+#: ../src/bmkdlg.cpp:79
+msgid ""
+"Short press $1 - go to bookmark,\n"
+"$2 - switch to SET mode"
+msgstr ""
+"Krátké stisknutí $1 - jít na záložku,\n"
+"$2 - přepnout do režimu NASTAVIT"
+
+#: ../src/bmkdlg.cpp:80
+msgid ""
+"Short press $1 - go to bookmark,\n"
+"long press - set bookmark"
+msgstr ""
+"Krátké stisknutí $1 - jít na záložku,\n"
+"dlouhé stisknutí - nastavit záložku"
+
+#: ../src/bmkdlg.cpp:83 ../src/bmkdlg.cpp:167
+msgid "Set bookmark"
+msgstr "Nastavit záložku"
+
+#: ../src/bmkdlg.cpp:87
+msgid ""
+"$1 - set bookmark,\n"
+"$2 - switch to GO mode"
+msgstr ""
+"$1 - nastavit záložku,\n"
+"$2 - přepnout do režimu JÍT"
+
+#: ../src/bmkdlg.cpp:88
+msgid ""
+"Short press $1 - set bookmark,\n"
+"long press - go to bookmark"
+msgstr ""
+"Krátké stisknutí $1 - nastavit záložku,\n"
+"dlouhé stisknutí - jít na záložku"
+
+#: ../src/bmkdlg.cpp:169
+msgid "Delete bookmark"
+msgstr "Smazat záložku"
+
+#: ../src/bmkdlg.cpp:188 ../src/mainwnd.cpp:884
+msgid "Bookmarks"
+msgstr "Záložky"
+
+#: ../src/bmkdlg.cpp:317
+msgid "Go to citation"
+msgstr "Jít na citaci"
+
+#: ../src/bmkdlg.cpp:318
+msgid "Delete citation"
+msgstr "Smazat citaci"
+
+#: ../src/bmkdlg.cpp:332
+msgid "Citations"
+msgstr "Citace"
+
+#: ../src/bmkdlg.cpp:444 ../src/viewdlg.cpp:560
+msgid "Cite selection dialog"
+msgstr "Dialog pro výběr citace"
+
+#: ../src/citedlg.cpp:80
+msgid "Select next/prev paragraph"
+msgstr "Vybrat další/předchozí odstavec"
+
+#: ../src/citedlg.cpp:83
+msgid "Select one more paragraph"
+msgstr "Vybrat jeden další odstavec"
+
+#: ../src/citedlg.cpp:86
+msgid "Deselect paragraph"
+msgstr "Zrušit výběr odstavce"
+
+#: ../src/citedlg.cpp:89
+msgid "Select one more phrase"
+msgstr "Vybrat jednu další větu"
+
+#: ../src/citedlg.cpp:92
+msgid "Deselect phrase"
+msgstr "Zrušit výběr věty"
+
+#: ../src/citedlg.cpp:112
+msgid "Select text"
+msgstr "Vybrat text"
+
+#: ../src/cr3pocketbook.cpp:2190
+msgid "Press $1 to translate"
+msgstr "Stisknout $1 pro překlad"
+
+#: ../src/cr3qt.cpp:323 ../src/cr3xcb.cpp:1314 ../src/settings.cpp:331
+#: ../src/settings.cpp:337 ../src/settings.cpp:342 ../src/settings.cpp:383
+#: ../src/settings.cpp:389 ../src/settings.cpp:395 ../src/settings.cpp:401
+#: ../src/settings.cpp:407 ../src/settings.cpp:413
+msgid "On"
+msgstr "Zapnuto"
+
+#: ../src/cr3qt.cpp:324 ../src/cr3xcb.cpp:1315
+msgid "About..."
+msgstr "O programu..."
+
+#: ../src/dictdlg.cpp:80
+msgid "From dictionary "
+msgstr "Ze slovníku"
+
+#: ../src/dictdlg.cpp:89
+msgid "[cannot read article]"
+msgstr "[nelze přečíst článek]"
+
+#: ../src/fsmenu.cpp:41
+msgid "1..9"
+msgstr "1..9"
+
+#: ../src/fsmenu.cpp:43
+msgid "1..8"
+msgstr "1..8"
+
+#: ../src/mainwnd.cpp:778
+msgid "No manual currently available for this language, sorry!"
+msgstr "Pro tento jazyk není v současnosti dostupný žádný návod."
+
+#: ../src/mainwnd.cpp:789 ../src/mainwnd.cpp:897
+msgid "Help"
+msgstr "Nápověda"
+
+#: ../src/mainwnd.cpp:814
+msgid "Main Menu"
+msgstr "Hlavní nabídka"
+
+#: ../src/mainwnd.cpp:848 ../src/viewdlg.cpp:559
+msgid "About"
+msgstr "O programu"
+
+#: ../src/mainwnd.cpp:858 ../src/viewdlg.cpp:523
+msgid "Go to page"
+msgstr "Jít na stranu"
+
+#: ../src/mainwnd.cpp:869 ../src/recentdlg.cpp:121
+msgid "Open recent book"
+msgstr "Otevřít nedávnou knihu"
+
+#: ../src/mainwnd.cpp:875 ../src/viewdlg.cpp:165
+msgid "Dictionary"
+msgstr "Slovník"
+
+#: ../src/mainwnd.cpp:880
+msgid "Cite"
+msgstr "Citace"
+
+#: ../src/mainwnd.cpp:888 ../src/viewdlg.cpp:224
+msgid "Search"
+msgstr "Hledání"
+
+#: ../src/mainwnd.cpp:892 ../src/settings.cpp:308
+msgid "Settings"
+msgstr "Nastavení"
+
+#: ../src/mainwnd.cpp:901 ../src/viewdlg.cpp:637
+msgid "Keyboard layout"
+msgstr "Rozvržení klávesnice"
+
+#: ../src/mainwnd.cpp:908
+msgid ""
+"$1 - choose command\n"
+"$2, $3 - close"
+msgstr ""
+"$1 - vybrat příkaz\n"
+"$2, $3 - zavřít"
+
+#: ../src/mainwnd.cpp:1016
+msgid "Current page"
+msgstr "Nynější strana"
+
+#: ../src/mainwnd.cpp:1017
+msgid "Total pages"
+msgstr "Stran celkem"
+
+#: ../src/mainwnd.cpp:1018
+msgid "Battery state"
+msgstr "Stav baterie"
+
+#: ../src/mainwnd.cpp:1018
+msgid "charging..."
+msgstr "Nabíjí se..."
+
+#: ../src/mainwnd.cpp:1019
+msgid "Current Time"
+msgstr "Nynější čas"
+
+#: ../src/mainwnd.cpp:1024
+msgid "Current chapter"
+msgstr "Nynější kapitola"
+
+#: ../src/mainwnd.cpp:1027
+msgid "Status"
+msgstr "Stav"
+
+#: ../src/mainwnd.cpp:1030
+msgid "Archive name"
+msgstr "Název archivu"
+
+#: ../src/mainwnd.cpp:1031
+msgid "Archive path"
+msgstr "Cesta k archivu"
+
+#: ../src/mainwnd.cpp:1032
+msgid "Archive size"
+msgstr "Velikost archivu"
+
+#: ../src/mainwnd.cpp:1033
+msgid "File name"
+msgstr "Název souboru"
+
+#: ../src/mainwnd.cpp:1034
+msgid "File path"
+msgstr "Cesta k souboru"
+
+#: ../src/mainwnd.cpp:1035
+msgid "File size"
+msgstr "Velikost souboru"
+
+#: ../src/mainwnd.cpp:1036
+msgid "File format"
+msgstr "Formát souboru"
+
+#: ../src/mainwnd.cpp:1037
+msgid "File info"
+msgstr "Informace o souboru"
+
+#: ../src/mainwnd.cpp:1040
+msgid "Title"
+msgstr "Název"
+
+#: ../src/mainwnd.cpp:1041
+msgid "Author(s)"
+msgstr "Autor(ři)"
+
+#: ../src/mainwnd.cpp:1042
+msgid "Series name"
+msgstr "Název série"
+
+#: ../src/mainwnd.cpp:1043
+msgid "Series number"
+msgstr "Číslo série"
+
+#: ../src/mainwnd.cpp:1044
+msgid "Date"
+msgstr "Datum"
+
+#: ../src/mainwnd.cpp:1045
+msgid "Genres"
+msgstr "Žánry"
+
+#: ../src/mainwnd.cpp:1046
+msgid "Language"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1047
+msgid "Translator"
+msgstr "Překladatel"
+
+#: ../src/mainwnd.cpp:1048
+msgid "Source language"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1049
+msgid "Book info"
+msgstr "Informace o knize"
+
+#: ../src/mainwnd.cpp:1052
+msgid "Document author"
+msgstr "Autor dokumentu"
+
+#: ../src/mainwnd.cpp:1053
+msgid "Document date"
+msgstr "Čas vytvoření dokumentu"
+
+#: ../src/mainwnd.cpp:1054
+msgid "Document source URL"
+msgstr "Adresa zdroje dokumentu (URL)"
+
+#: ../src/mainwnd.cpp:1055
+msgid "OCR by"
+msgstr "Optické rozpoznání znaků"
+
+#: ../src/mainwnd.cpp:1056
+msgid "Document version"
+msgstr "Verze dokumentu"
+
+#: ../src/mainwnd.cpp:1057
+msgid "Change history"
+msgstr "Historie změn"
+
+#: ../src/mainwnd.cpp:1058
+msgid "ID"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1059
+msgid "Program used"
+msgstr ""
+
+#: ../src/mainwnd.cpp:1060
+msgid "Document info"
+msgstr "Informace o dokumentu"
+
+#: ../src/mainwnd.cpp:1063
+msgid "Publication name"
+msgstr "Název vydání"
+
+#: ../src/mainwnd.cpp:1064
+msgid "Publisher"
+msgstr "Vydavatel"
+
+#: ../src/mainwnd.cpp:1065
+msgid "Publisher city"
+msgstr "Město vydavatele"
+
+#: ../src/mainwnd.cpp:1066
+msgid "Publication year"
+msgstr "Rok vydání"
+
+#: ../src/mainwnd.cpp:1067
+msgid "ISBN"
+msgstr "ISBN"
+
+#: ../src/mainwnd.cpp:1068
+msgid "Publication info"
+msgstr "Informace o vydání"
+
+#: ../src/mainwnd.cpp:1070
+msgid "Custom info"
+msgstr "Vlastní informace"
+
+#: ../src/mainwnd.cpp:1074
+msgid "CoolReader for PocketBook"
+msgstr "CoolReader pro PocketBook"
+
+#: ../src/mainwnd.cpp:1075
+msgid "Build date"
+msgstr "Datum sestavení"
+
+#: ../src/mainwnd.cpp:1076
+msgid "About program"
+msgstr "O programu"
+
+#: ../src/mainwnd.cpp:1197
+msgid "Loading: please wait..."
+msgstr "Nahrává se: Počkejte, prosím..."
+
+#: ../src/recentdlg.cpp:104
+msgid "Open book"
+msgstr "Otevřít knihu"
+
+#: ../src/recentdlg.cpp:105
+msgid "Delete record"
+msgstr "Smazat záznam"
+
+#: ../src/recentdlg.cpp:139
+msgid ""
+"$1 - open book\n"
+"$2, $3 - close"
+msgstr ""
+"$1 - otevřít knihu\n"
+"$2, $3 - zavřít"
+
+#: ../src/settings.cpp:82
+msgid "choose command"
+msgstr "Vybrat příkaz"
+
+#: ../src/settings.cpp:100
+msgid "Controls"
+msgstr "Ovládání"
+
+#: ../src/settings.cpp:171
+msgid "[Command is not assigned]"
+msgstr "[příkaz není přiřazen]"
+
+#: ../src/settings.cpp:192
+msgid "0` (Portrait)"
+msgstr "0` (zobrazení na výšku)"
+
+#: ../src/settings.cpp:193
+msgid "90 `"
+msgstr "90 `"
+
+#: ../src/settings.cpp:194
+msgid "180 `"
+msgstr "180 `"
+
+#: ../src/settings.cpp:195
+msgid "270 `"
+msgstr "270 `"
+
+#: ../src/settings.cpp:206
+msgid "Page orientation"
+msgstr "Natočení strany"
+
+#: ../src/settings.cpp:222
+msgid "Default font size"
+msgstr "Výchozí velikost písma"
+
+#: ../src/settings.cpp:280
+msgid "The quick brown fox jumps over lazy dog"
+msgstr "Rychlá liška skáče přes pomalého ježka"
+
+#: ../src/settings.cpp:317
+msgid "On for all fonts"
+msgstr "Zapnuto pro všechna písma"
+
+#: ../src/settings.cpp:318
+msgid "On for big fonts only"
+msgstr "Zapnuto pouze pro velká písma"
+
+#: ../src/settings.cpp:319 ../src/settings.cpp:332 ../src/settings.cpp:338
+#: ../src/settings.cpp:343 ../src/settings.cpp:384 ../src/settings.cpp:390
+#: ../src/settings.cpp:396 ../src/settings.cpp:402 ../src/settings.cpp:408
+#: ../src/settings.cpp:414 ../src/settings.cpp:439
+msgid "Off"
+msgstr "Vypnuto"
+
+#: ../src/settings.cpp:324
+msgid "Autohinting"
+msgstr "Instruování písma"
+
+#: ../src/settings.cpp:325
+msgid "Use bytecode"
+msgstr "Použít bytecode"
+
+#: ../src/settings.cpp:326
+msgid "Disable"
+msgstr "Zakázat"
+
+#: ../src/settings.cpp:419 ../src/settings.cpp:425
+msgid "Normal"
+msgstr "Obvyklé"
+
+#: ../src/settings.cpp:420
+msgid "Inverse"
+msgstr "Obrácené"
+
+#: ../src/settings.cpp:426
+msgid "Bold"
+msgstr "Tučné"
+
+#: ../src/settings.cpp:431
+msgid "One"
+msgstr "Jeden"
+
+#: ../src/settings.cpp:432
+msgid "Two"
+msgstr "Dva"
+
+#: ../src/settings.cpp:437
+msgid "Top"
+msgstr "Nahoře"
+
+#: ../src/settings.cpp:444
+msgid "70%"
+msgstr "70%"
+
+#: ../src/settings.cpp:445
+msgid "75%"
+msgstr "75%"
+
+#: ../src/settings.cpp:446
+msgid "80%"
+msgstr "80%"
+
+#: ../src/settings.cpp:447
+msgid "85%"
+msgstr "85%"
+
+#: ../src/settings.cpp:448
+msgid "90%"
+msgstr "90%"
+
+#: ../src/settings.cpp:449
+msgid "95%"
+msgstr "95%"
+
+#: ../src/settings.cpp:450
+msgid "100%"
+msgstr "100%"
+
+#: ../src/settings.cpp:451
+msgid "105%"
+msgstr "105%"
+
+#: ../src/settings.cpp:452
+msgid "110%"
+msgstr "110%"
+
+#: ../src/settings.cpp:453
+msgid "115%"
+msgstr "115%"
+
+#: ../src/settings.cpp:454
+msgid "120%"
+msgstr "120%"
+
+#: ../src/settings.cpp:455
+msgid "125%"
+msgstr "125%"
+
+#: ../src/settings.cpp:456
+msgid "130%"
+msgstr "130%"
+
+#: ../src/settings.cpp:457
+msgid "135%"
+msgstr "135%"
+
+#: ../src/settings.cpp:458
+msgid "140%"
+msgstr "140%"
+
+#: ../src/settings.cpp:459
+msgid "145%"
+msgstr "145%"
+
+#: ../src/settings.cpp:460
+msgid "150%"
+msgstr "150%"
+
+#: ../src/settings.cpp:461
+msgid "160%"
+msgstr "160%"
+
+#: ../src/settings.cpp:462
+msgid "180%"
+msgstr "180%"
+
+#: ../src/settings.cpp:463
+msgid "200%"
+msgstr "200%"
+
+#: ../src/settings.cpp:502
+msgid "Always use fast updates"
+msgstr "Vždy použít rychlé obnovení"
+
+#: ../src/settings.cpp:503
+msgid "Don't use fast updates"
+msgstr "Nepoužívat rychlé obnovení"
+
+#: ../src/settings.cpp:504
+msgid "Full updates every 2 pages"
+msgstr "Úplné obnovení každé dvě strany"
+
+#: ../src/settings.cpp:505
+msgid "Full updates every 3 pages"
+msgstr "Úplné obnovení každé tři strany"
+
+#: ../src/settings.cpp:506
+msgid "Full updates every 4 pages"
+msgstr "Úplné obnovení každé čtyři strany"
+
+#: ../src/settings.cpp:507
+msgid "Full updates every 5 pages"
+msgstr "Úplné obnovení každých pět stran"
+
+#: ../src/settings.cpp:508
+msgid "Full updates every 6 pages"
+msgstr "Úplné obnovení každých šest stran"
+
+#: ../src/settings.cpp:509
+msgid "Full updates every 8 pages"
+msgstr "Úplné obnovení každých osm stran"
+
+#: ../src/settings.cpp:510
+msgid "Full updates every 10 pages"
+msgstr "Úplné obnovení každých deset stran"
+
+#: ../src/settings.cpp:511
+msgid "Full updates every 14 pages"
+msgstr "Úplné obnovení každých čtrnáct stran"
+
+#: ../src/settings.cpp:516
+msgid "Turbo mode disabled"
+msgstr "Turborežim zakázán"
+
+#: ../src/settings.cpp:517
+msgid "Turbo mode enabled"
+msgstr "Turborežim povolen"
+
+#: ../src/settings.cpp:524
+msgid "180+slow next page"
+msgstr "180+pomalu další strana"
+
+#: ../src/settings.cpp:525
+msgid "180+slow prev/next page"
+msgstr "180+pomalu předchozí/další strana"
+
+#: ../src/settings.cpp:526
+msgid "180+FAST next page"
+msgstr "180+RYCHLE další strana"
+
+#: ../src/settings.cpp:527
+msgid "180+FAST prev/next page"
+msgstr "180+RYCHLE předchozí/další strana"
+
+#: ../src/settings.cpp:528
+msgid "180+FAST next/prev page"
+msgstr "180+RYCHLE další/předchozí strana"
+
+#: ../src/settings.cpp:548
+msgid "Disabled (1:1)"
+msgstr "Zakázáno (1:1)"
+
+#: ../src/settings.cpp:549
+msgid "Integer scale"
+msgstr "Celočíselná stupnice"
+
+#: ../src/settings.cpp:550
+msgid "Arbitrary scale"
+msgstr "Libovolná stupnice"
+
+#: ../src/settings.cpp:555
+msgid "Auto"
+msgstr "Automaticky"
+
+#: ../src/settings.cpp:556
+msgid "*1"
+msgstr "*1"
+
+#: ../src/settings.cpp:557
+msgid "*2"
+msgstr "*2"
+
+#: ../src/settings.cpp:558
+msgid "*3"
+msgstr "*3"
+
+#: ../src/settings.cpp:572
+msgid "Default font face"
+msgstr "Výchozí druh písma"
+
+#: ../src/settings.cpp:595
+msgid "Fallback font face"
+msgstr "Záložní druh písma"
+
+#: ../src/settings.cpp:615
+msgid "Font weight"
+msgstr "Váha písma"
+
+#: ../src/settings.cpp:621
+msgid "Font antialiasing"
+msgstr "Vyhlazování písma"
+
+#: ../src/settings.cpp:627
+msgid "Font hinting"
+msgstr "Instruování písma"
+
+#: ../src/settings.cpp:633
+msgid "Font Gamma"
+msgstr "Gamma písma"
+
+#: ../src/settings.cpp:639
+msgid "Interline space"
+msgstr "Mezera mezi řádky"
+
+#: ../src/settings.cpp:650
+msgid "Rotate"
+msgstr "Otočit"
+
+#: ../src/settings.cpp:655
+msgid "Page turn angle"
+msgstr "Úhel otočení strany"
+
+#: ../src/settings.cpp:661
+msgid "Footnotes at page bottom"
+msgstr "Poznámky pod čarou na straně dole"
+
+#: ../src/settings.cpp:672
+msgid "Show time"
+msgstr "Ukázat čas"
+
+#: ../src/settings.cpp:678
+msgid "Landscape pages"
+msgstr "Zobrazení stran na šířku"
+
+#: ../src/settings.cpp:684
+msgid "Preformatted text"
+msgstr "Předformátovaný text"
+
+#: ../src/settings.cpp:692
+msgid "Document embedded styles"
+msgstr "Styly vložené do dokumentu"
+
+#: ../src/settings.cpp:698
+msgid "Document embedded fonts"
+msgstr "Písma vložená do dokumentu"
+
+#: ../src/settings.cpp:704
+msgid "Inverse display"
+msgstr "Převrácené zobrazení"
+
+#: ../src/settings.cpp:711
+msgid "Display update mode"
+msgstr "Režim obnovení zobrazení"
+
+#: ../src/settings.cpp:718
+msgid "Turbo update mode"
+msgstr "Režim obnovení Turbo"
+
+#: ../src/settings.cpp:726
+msgid "Show bookmark icons"
+msgstr "Ukázat ikony záložek"
+
+#: ../src/settings.cpp:733
+msgid "Highlight bookmarks"
+msgstr "Zvýraznit záložky"
+
+#: ../src/settings.cpp:739
+msgid "Status line"
+msgstr "Stavový řádek"
+
+#: ../src/settings.cpp:745
+msgid "Font kerning"
+msgstr "Vyrovnání písma"
+
+#: ../src/settings.cpp:753
+msgid "[No Hyphenation]"
+msgstr "[Žádné dělení slov]"
+
+#: ../src/settings.cpp:754
+msgid "[Algorythmic Hyphenation]"
+msgstr "[Algoritmické dělení slov]"
+
+#: ../src/settings.cpp:756
+msgid "Hyphenation"
+msgstr "Dělení slov"
+
+#: ../src/settings.cpp:772
+msgid "Floating punctuation"
+msgstr "Volná interpunkce"
+
+#: ../src/settings.cpp:780
+msgid "Page margins"
+msgstr "Okraje stran"
+
+#: ../src/settings.cpp:783
+msgid "Top margin"
+msgstr "Horní okraj"
+
+#: ../src/settings.cpp:788
+msgid "Bottom margin"
+msgstr "Dolní okraj"
+
+#: ../src/settings.cpp:793
+msgid "Left margin"
+msgstr "Levý okraj"
+
+#: ../src/settings.cpp:798
+msgid "Right margin"
+msgstr "Pravý okraj"
+
+#: ../src/settings.cpp:821
+msgid "Image scaling"
+msgstr "Změna velikosti obrázku"
+
+#: ../src/settings.cpp:823
+msgid "Block image scaling mode"
+msgstr "Režim změny velikosti blokového obrázku"
+
+#: ../src/settings.cpp:828
+msgid "Block image max zoom"
+msgstr "Největší zvětšení blokového obrázku"
+
+#: ../src/settings.cpp:834
+msgid "Inline image scaling mode"
+msgstr "Režim změny velikosti vloženého obrázku"
+
+#: ../src/settings.cpp:839
+msgid "Inline image max zoom"
+msgstr "Největší zvětšení vloženého obrázku"
+
+#: ../src/settings.cpp:861
+msgid ""
+"Press $1 to change option\n"
+"$2 to apply, $3 to cancel"
+msgstr ""
+"Stisknout $1 - pro změnu volby,\n"
+"$2 - pro použití, $3 pro zrušení"
+
+#: ../src/tocdlg.cpp:150
+msgid "Current page: $1 of $2\n"
+msgstr "Nynější strana: $1 of $2\n"
+
+#: ../src/tocdlg.cpp:153
+msgid "Enter page number:"
+msgstr "Zadat číslo strany:"
+
+#: ../src/viewdlg.cpp:160
+msgid "No dictionaries found"
+msgstr "Nenalezeny žádné slovníky"
+
+#: ../src/viewdlg.cpp:161
+msgid "Place dictionaries to directory 'dict' of SD card."
+msgstr "Slovníky umístěte do adresáře 'dict' na kartě SD."
+
+#: ../src/viewdlg.cpp:162
+msgid "Dictionaries in standard unix .dict format are supported."
+msgstr "Jsou podporovány slovníky v běžném unixovém formáty .dict."
+
+#: ../src/viewdlg.cpp:163
+msgid ""
+"For each dictionary, pair of files should be provided: data file (with .dict "
+"or .dict.dz extension, and index file with .index extension"
+msgstr ""
+"U každého slovníku by měla být poskytnuta dvojice souborů: soubor s daty s "
+"příponou .dict nebo .dict.dz a soubor s rejstříkem s příponou .index"
+
+#: ../src/viewdlg.cpp:178
+msgid "Table of contents"
+msgstr "Obsah"
+
+#: ../src/viewdlg.cpp:183
+msgid "Enter page number"
+msgstr "Zadat číslo strany"
+
+#: ../src/viewdlg.cpp:197
+msgid "Enter position percent"
+msgstr "Zadat procento polohy"
+
+#: ../src/viewdlg.cpp:358
+msgid "Find in dictionary"
+msgstr "Hledat ve slovníku"
+
+#: ../src/viewdlg.cpp:471
+msgid "M"
+msgstr "M"
+
+#: ../src/viewdlg.cpp:473
+msgid "Ok"
+msgstr "OK"
+
+#: ../src/viewdlg.cpp:475
+msgid "Up"
+msgstr "Nahoru"
+
+#: ../src/viewdlg.cpp:477
+msgid "Down"
+msgstr "Dolů"
+
+#: ../src/viewdlg.cpp:479
+msgid "C"
+msgstr "C"
+
+#: ../src/viewdlg.cpp:481
+msgid "Left"
+msgstr "Vlevo"
+
+#: ../src/viewdlg.cpp:483
+msgid "Right"
+msgstr "Vpravo"
+
+#: ../src/viewdlg.cpp:485
+msgid "Side Up"
+msgstr "O stranu nahoru"
+
+#: ../src/viewdlg.cpp:487
+msgid "Side Down"
+msgstr "O stranu dolů"
+
+#: ../src/viewdlg.cpp:489
+msgid "Side Press"
+msgstr "Stisknutí strany"
+
+#: ../src/viewdlg.cpp:491
+msgid "Menu"
+msgstr "Nabídka"
+
+#: ../src/viewdlg.cpp:493
+msgid "Zoom"
+msgstr "Zvětšení"
+
+#: ../src/viewdlg.cpp:504
+msgid "Long"
+msgstr "Dlouhý"
+
+#: ../src/viewdlg.cpp:511
+msgid "To first page"
+msgstr "Na první stranu"
+
+#: ../src/viewdlg.cpp:513
+msgid "Back by page"
+msgstr "O stranu zpět"
+
+#: ../src/viewdlg.cpp:515
+msgid "Forward by page"
+msgstr "O stranu vpřed"
+
+#: ../src/viewdlg.cpp:516
+msgid "Forward in move history"
+msgstr "Dopředu v historii pohybů"
+
+#: ../src/viewdlg.cpp:517
+msgid "Back in move history"
+msgstr "Zpět v historii pohybů"
+
+#: ../src/viewdlg.cpp:518
+msgid "Next link"
+msgstr "Další odkaz"
+
+#: ../src/viewdlg.cpp:519
+msgid "Previous link"
+msgstr "Předchozí odkaz"
+
+#: ../src/viewdlg.cpp:520 ../src/viewdlg.cpp:547
+msgid "Go to link"
+msgstr "Jít na odkaz"
+
+#: ../src/viewdlg.cpp:521
+msgid "To last page"
+msgstr "Na poslední stranu"
+
+#: ../src/viewdlg.cpp:522
+msgid "Go to position"
+msgstr "Jít na místo"
+
+#: ../src/viewdlg.cpp:524
+msgid "Zoom in"
+msgstr "Přiblížit"
+
+#: ../src/viewdlg.cpp:525
+msgid "Zoom out"
+msgstr "Oddálit"
+
+#: ../src/viewdlg.cpp:526
+msgid "Toggle bold text"
+msgstr "Přepnout tučný text"
+
+#: ../src/viewdlg.cpp:527
+msgid "Toggle text format"
+msgstr "Přepnout formát textu"
+
+#: ../src/viewdlg.cpp:528
+msgid "Save bookmark by number"
+msgstr "Uložit záložku podle čísla"
+
+#: ../src/viewdlg.cpp:529
+msgid "Go to bookmark by number"
+msgstr "Jít na záložku podle čísla"
+
+#: ../src/viewdlg.cpp:530
+msgid "Move by chapter"
+msgstr "Posunout o kapitolu"
+
+#: ../src/viewdlg.cpp:531
+msgid "First link"
+msgstr "První odkaz"
+
+#: ../src/viewdlg.cpp:532
+msgid "Rotate by"
+msgstr "Otočit o"
+
+#: ../src/viewdlg.cpp:533
+msgid "Set rotate angle"
+msgstr "Nastavit úhel otočení"
+
+#: ../src/viewdlg.cpp:534
+msgid "Save history and bookmarks"
+msgstr "Uložit historii a záložky"
+
+#: ../src/viewdlg.cpp:535
+msgid "Save document to cache"
+msgstr "Uložit dokument do vyrovnávací paměti"
+
+#: ../src/viewdlg.cpp:536
+msgid "Close dialog"
+msgstr "Zavřít dialog"
+
+#: ../src/viewdlg.cpp:539
+msgid "Scroll forward"
+msgstr "Projíždět vpřed"
+
+#: ../src/viewdlg.cpp:540
+msgid "Scroll back"
+msgstr "Projíždět zpět"
+
+#: ../src/viewdlg.cpp:541
+msgid "Close book"
+msgstr "Zavřít knihu"
+
+#: ../src/viewdlg.cpp:542
+msgid "Main menu"
+msgstr "Hlavní nabídka"
+
+#: ../src/viewdlg.cpp:543
+msgid "Go to page dialog"
+msgstr "Jít na dialog pro stranu"
+
+#: ../src/viewdlg.cpp:544
+msgid "Settings menu"
+msgstr "Nabídka nastavení"
+
+#: ../src/viewdlg.cpp:545
+msgid "Font size settings"
+msgstr "Nastavení velikosti písma"
+
+#: ../src/viewdlg.cpp:546
+msgid "Page orientation settings"
+msgstr "Nastavení natočení strany"
+
+#: ../src/viewdlg.cpp:551
+msgid "Find in Dictionary (T5)"
+msgstr "Hledat ve slovníku (T5)"
+
+#: ../src/viewdlg.cpp:553
+msgid "Bookmark list"
+msgstr "Seznam záložek"
+
+#: ../src/viewdlg.cpp:554
+msgid "Citations list"
+msgstr "Seznam citací"
+
+#: ../src/viewdlg.cpp:555
+msgid "Go to bookmark..."
+msgstr "Jít na záložku..."
+
+#: ../src/viewdlg.cpp:556
+msgid "Recent books list"
+msgstr "Seznam nedávných knih"
+
+#: ../src/viewdlg.cpp:557
+msgid "Open recent book by number"
+msgstr "Otevřít nedávnou knihu podle čísla"
+
+#: ../src/viewdlg.cpp:558
+msgid "Switch to recent book"
+msgstr "Přepnout na nedávnou knihu"
+
+#: ../src/viewdlg.cpp:561
+msgid "Search dialog"
+msgstr "Dialog pro hledání"
+
+#: ../src/viewdlg.cpp:562
+msgid "Find in Dictionary (virtual keyboard)"
+msgstr "Hledat ve slovníku (virtuální klávesnice)"
+
+#: ../src/viewdlg.cpp:563
+msgid "Next keyboard layout"
+msgstr "Další rozvržení klávesnice"
+
+#: ../src/viewdlg.cpp:564
+msgid "Previous keyboard layout"
+msgstr "Předchozí rozvržení klávesnice"
+
+#: ../src/viewdlg.cpp:565
+msgid "Show manual"
+msgstr "Ukázat příručku"
+
+#: ../src/viewdlg.cpp:566
+msgid "Show key mapping"
+msgstr "Ukázat přiřazení kláves"
+
+#: ../src/viewdlg.cpp:567
+msgid "Go to percent..."
+msgstr "Jít na procento..."
+
+#: ../src/viewdlg.cpp:572
+msgid "PocketBook Main menu"
+msgstr "Hlavní nabídka PocketBook"
+
+#: ../src/viewdlg.cpp:574
+msgid "Unknown command"
+msgstr "Neznámý příkaz"
+
+#: ../src/viewdlg.cpp:581
+msgid "Previous Page"
+msgstr "Předchozí strana"
+
+#: ../src/viewdlg.cpp:583
+msgid "Next Page"
+msgstr "Další strana"
+
+#: ../src/viewdlg.cpp:585
+msgid "Back by 10 Pages"
+msgstr "Dozadu o 10 stran"
+
+#: ../src/viewdlg.cpp:587
+msgid "Forward by 10 Pages"
+msgstr "Dopředu o 10 stran"
+
+#: ../src/viewdlg.cpp:589
+msgid "Next Chapter"
+msgstr "Další kapitola"
+
+#: ../src/viewdlg.cpp:591
+msgid "Previous Chapter"
+msgstr "Předchozí kapitola"
+
+#: ../src/viewdlg.cpp:593
+msgid "Add Bookmark"
+msgstr "Přidat záložku"
+
+#: ../src/viewdlg.cpp:595
+msgid "Rotate Clockwise"
+msgstr "Otočit po směru hodinových ručiček"
+
+#: ../src/viewdlg.cpp:597
+msgid "Rotate Anti-Clockwise"
+msgstr "Otočit proti směru hodinových ručiček"
+
+#: ../src/viewdlg.cpp:599
+msgid "Portrait View"
+msgstr "Zobrazení na výšku"
+
+#: ../src/viewdlg.cpp:601
+msgid "Landscape View"
+msgstr "Zobrazení na šířku"
+
+#: ../src/viewdlg.cpp:625
+msgid "Assigned function"
+msgstr "Přiřazená funkce"
+
+#: ../src/viewdlg.cpp:625
+msgid "Key"
+msgstr "Klávesa"

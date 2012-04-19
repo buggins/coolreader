@@ -72,7 +72,7 @@ IF (WIN32)
 ENDIF (WIN32)
 
 
-SET(LANGUAGES ru uk de es pl bg hu)
+SET(LANGUAGES ru uk cs de es pl bg hu)
 message( "Languages: ${LANGUAGES}" )
 SET(LANGUAGE_TS_FILES)
 FOREACH(LANGUAGE ${LANGUAGES})

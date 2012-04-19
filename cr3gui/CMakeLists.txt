@@ -19,7 +19,7 @@ SET(KWWidgets_CMAKE_DIR ${CMAKE_SOURCE_DIR}/tools/)
 INCLUDE(${KWWidgets_CMAKE_DIR}FindGettext.cmake)
 INCLUDE(${KWWidgets_CMAKE_DIR}KWWidgetsInternationalizationMacros.cmake)
 
-SET (LANGUAGES ru uk de fr bg es ca pl lt zh_CN zh_TW)
+SET (LANGUAGES ru uk de fr bg es ca cs pl lt zh_CN zh_TW)
 message( "Languages: ${LANGUAGES}" )
 
 SET (CR3_SOURCES 
