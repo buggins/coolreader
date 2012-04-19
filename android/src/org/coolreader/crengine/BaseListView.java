@@ -45,7 +45,7 @@ public class BaseListView  extends ListView {
                 }
             }
                       
-            int nextPos = ( dir > 0 ) ? Math.min(lastPos, count - 1) : Math.max(0, firstPos - (lastPos - firstPos) + delta);
+            int nextPos = ( dir > 0 ) ? Math.min(lastPos + 1, count - 1) : Math.max(0, firstPos - (lastPos - firstPos) + delta);
             
             // Log.w("CoolReader", "first =" + firstPos + " last = " + lastPos + " next = " + nextPos + " count = " + count);
             
