@@ -672,12 +672,10 @@ bool LVCssDeclaration::parse( const char * &decl )
             case cssd_margin_right:
             case cssd_margin_top:
             case cssd_margin_bottom:
-            case cssd_margin:
             case cssd_padding_left:
             case cssd_padding_right:
             case cssd_padding_top:
             case cssd_padding_bottom:
-            case cssd_padding:
                 {
                     css_length_t len;
                     if ( parse_number_value( decl, len ) )
@@ -688,6 +686,31 @@ bool LVCssDeclaration::parse( const char * &decl )
                     }
                 }
                 break;
+            case cssd_margin:
+            case cssd_padding:
+		{
+		    css_length_t len[4];
+		    int i;
+		    for (i = 0; i < 4; ++i)
+			if (!parse_number_value( decl, len[i]))
+			    break;
+		    if (i)
+		    {
+			switch (i)
+			{
+			    case 1: len[1] = len[0]; /* fall through */
+			    case 2: len[2] = len[0]; /* fall through */
+			    case 3: len[3] = len[1];
+			}
+			buf[ buf_pos++ ] = prop_code;
+			for (i = 0; i < 4; ++i)
+			{
+			    buf[ buf_pos++ ] = len[i].type;
+			    buf[ buf_pos++ ] = len[i].value;
+			}
+		    }
+		}
+		break;
             case cssd_color:
             case cssd_background_color:
             {
@@ -860,8 +883,10 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             style->margin[3] = read_length( p );
             break;
         case cssd_margin:
-            style->margin[3] = style->margin[2] = 
-                style->margin[1] = style->margin[0] = read_length( p );
+            style->margin[2] = read_length( p );
+            style->margin[1] = read_length( p );
+            style->margin[3] = read_length( p );
+            style->margin[0] = read_length( p );
             break;
         case cssd_padding_left:
             style->padding[0] = read_length( p );
@@ -876,8 +901,10 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             style->padding[3] = read_length( p );
             break;
         case cssd_padding:
-            style->padding[3] = style->padding[2] = 
-                style->padding[1] = style->padding[0] = read_length( p );
+            style->padding[2] = read_length( p );
+            style->padding[1] = read_length( p );
+            style->padding[3] = read_length( p );
+            style->padding[0] = read_length( p );
             break;
         case cssd_stop:
             return;
