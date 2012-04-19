@@ -1284,7 +1284,6 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
         else if ( *str == ',' || *str == '{' )
             return true;
     }
-    return false; // error: end of selector expected
 }
 
 static bool skip_until_end_of_rule( const char * &str )

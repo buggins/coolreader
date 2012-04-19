@@ -149,7 +149,7 @@ public:
     }
 
 
-    virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
+    virtual lverror_t Write( const void * /*buf*/, lvsize_t /*count*/, lvsize_t * /*nBytesWritten*/ )
     {
         return LVERR_FAIL;
     }
@@ -233,7 +233,7 @@ public:
         Add(item);
     }
 
-    static int CHM_ENUMERATOR_CALLBACK (struct chmFile *h,
+    static int CHM_ENUMERATOR_CALLBACK (struct chmFile * /*h*/,
                               struct chmUnitInfo *ui,
                               void *context)
     {

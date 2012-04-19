@@ -72,7 +72,7 @@ public:
     /// add named BLOB data to document
     virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) = 0;
     /// call to set document property
-    virtual void OnDocProperty(const char * name, lString8 value) { }
+    virtual void OnDocProperty(const char * /*name*/, lString8 /*value*/) { }
     /// destructor
     virtual ~LVXMLParserCallback() {}
 };
@@ -106,7 +106,7 @@ public:
     /// returns pointer to loading progress callback object
     virtual LVDocViewCallback * getProgressCallback() { return NULL; }
     /// sets pointer to loading progress callback object
-    virtual void setProgressCallback( LVDocViewCallback * callback ) { }
+    virtual void setProgressCallback( LVDocViewCallback * /*callback*/ ) { }
     /// returns true if format is recognized by parser
     virtual bool CheckFormat() = 0;
     /// parses input stream

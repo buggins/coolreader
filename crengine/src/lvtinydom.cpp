@@ -602,7 +602,7 @@ bool CacheFile::readIndex()
         CRLog::error("CacheFile::readIndex: index block info doesn't match header");
         return false;
     }
-    _dirty = hdr._dirty;
+    _dirty = hdr._dirty ? true : false;
     return true;
 }
 
@@ -1675,25 +1675,25 @@ lUInt16 tinyNodeCollection::getNodeFontIndex( lUInt32 dataIndex )
     return info._fontIndex;
 }
 
-bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodecount )
+bool tinyNodeCollection::loadNodeData(lUInt16 type, ldomNode ** list, int nodecount)
 {
-    int count = ((nodecount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
-    for ( int i=0; i<count; i++ ) {
+    int count = ((nodecount + TNC_PART_LEN - 1) >> TNC_PART_SHIFT);
+    for (lUInt16 i=0; i<count; i++) {
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
-        if ( offs + sz > nodecount ) {
+        if (offs + sz > nodecount) {
             sz = nodecount - offs;
         }
 
         lUInt8 * p;
         int buflen;
-        if ( !_cacheFile->read( type, i, p, buflen ) )
+        if (!_cacheFile->read( type, i, p, buflen ))
             return false;
         ldomNode * buf = (ldomNode *)p;
-        if (!buf || (unsigned)buflen != sizeof(ldomNode)*sz )
+        if (!buf || (unsigned)buflen != sizeof(ldomNode) * sz)
             return false;
         list[i] = buf;
-        for ( int j=0; j<sz; j++ ) {
+        for (int j=0; j<sz; j++) {
             buf[j].setDocumentIndex( _docIndex );
             if ( buf[j].isElement() ) {
                 // will be set by loadStyles/updateStyles
@@ -1709,19 +1709,19 @@ bool tinyNodeCollection::loadNodeData( lUInt16 type, ldomNode ** list, int nodec
 bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodecount )
 {
     int count = ((nodecount+TNC_PART_LEN-1) >> TNC_PART_SHIFT);
-    for ( int i=0; i<count; i++ ) {
-        if ( !list[i] )
+    for (lUInt16 i=0; i<count; i++) {
+        if (!list[i])
             continue;
         int offs = i*TNC_PART_LEN;
         int sz = TNC_PART_LEN;
-        if ( offs + sz > nodecount ) {
+        if (offs + sz > nodecount) {
             sz = nodecount - offs;
         }
         ldomNode buf[TNC_PART_LEN];
-        memcpy( buf, list[i], sizeof(ldomNode)*sz );
-        for ( int j=0; j<sz; j++ )
-            buf[j].setDocumentIndex( _docIndex );
-        if ( !_cacheFile->write( type, i, (lUInt8*)buf, sizeof(ldomNode)*sz, COMPRESS_NODE_DATA ) )
+        memcpy(buf, list[i], sizeof(ldomNode) * sz);
+        for (int j = 0; j < sz; j++)
+            buf[j].setDocumentIndex(_docIndex);
+        if (!_cacheFile->write(type, i, (lUInt8*)buf, sizeof(ldomNode) * sz, COMPRESS_NODE_DATA))
             crFatalError(-1, "Cannot write node data");
     }
     return true;
@@ -2050,7 +2050,7 @@ ldomTextStorageChunk * ldomDataStorageManager::getChunk( lUInt32 address )
         if ( chunk->_nextRecent )
             chunk->_nextRecent->_prevRecent = chunk->_prevRecent;
         chunk->_prevRecent = NULL;
-        if ( (chunk->_nextRecent = _recentChunk) )
+        if (((chunk->_nextRecent = _recentChunk)))
             _recentChunk->_prevRecent = chunk;
         _recentChunk = chunk;
     }
@@ -2289,45 +2289,45 @@ ldomDataStorageManager::~ldomDataStorageManager()
 }
 
 /// create chunk to be read from cache file
-ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize )
-: _manager(manager)
-, _nextRecent(NULL)
-, _prevRecent(NULL)
-, _buf(NULL)   /// buffer for uncompressed data
-, _bufsize(0)    /// _buf (uncompressed) area size, bytes
-, _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
-, _index(index)      /// ? index of chunk in storage
-, _type( manager->_type )
-, _saved(true)
+ldomTextStorageChunk::ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index, int compsize, int uncompsize)
+	: _manager(manager)
+	, _nextRecent(NULL)
+	, _prevRecent(NULL)
+	, _buf(NULL)   /// buffer for uncompressed data
+	, _bufsize(0)    /// _buf (uncompressed) area size, bytes
+	, _bufpos(uncompsize)     /// _buf (uncompressed) data write position (for appending of new data)
+	, _index(index)      /// ? index of chunk in storage
+	, _type( manager->_type )
+	, _saved(true)
 {
 }
 
-ldomTextStorageChunk::ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index )
-: _manager(manager)
-, _nextRecent(NULL)
-, _prevRecent(NULL)
-, _buf(NULL)   /// buffer for uncompressed data
-, _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
-, _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
-, _index(index)      /// ? index of chunk in storage
-, _type( manager->_type )
-, _saved(false)
+ldomTextStorageChunk::ldomTextStorageChunk(int preAllocSize, ldomDataStorageManager * manager, lUInt16 index)
+	: _manager(manager)
+	, _nextRecent(NULL)
+	, _prevRecent(NULL)
+	, _buf(NULL)   /// buffer for uncompressed data
+	, _bufsize(preAllocSize)    /// _buf (uncompressed) area size, bytes
+	, _bufpos(preAllocSize)     /// _buf (uncompressed) data write position (for appending of new data)
+	, _index(index)      /// ? index of chunk in storage
+	, _type( manager->_type )
+	, _saved(false)
 {
     _buf = (lUInt8*)malloc(preAllocSize);
     memset(_buf, 0, preAllocSize);
     _manager->_uncompressedSize += _bufsize;
 }
 
-ldomTextStorageChunk::ldomTextStorageChunk( ldomDataStorageManager * manager, int index )
-: _manager(manager)
-, _nextRecent(NULL)
-, _prevRecent(NULL)
-, _buf(NULL)   /// buffer for uncompressed data
-, _bufsize(0)    /// _buf (uncompressed) area size, bytes
-, _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
-, _index(index)      /// ? index of chunk in storage
-, _type( manager->_type )
-, _saved(false)
+ldomTextStorageChunk::ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index)
+	: _manager(manager)
+	, _nextRecent(NULL)
+	, _prevRecent(NULL)
+	, _buf(NULL)   /// buffer for uncompressed data
+	, _bufsize(0)    /// _buf (uncompressed) area size, bytes
+	, _bufpos(0)     /// _buf (uncompressed) data write position (for appending of new data)
+	, _index(index)      /// ? index of chunk in storage
+	, _type( manager->_type )
+	, _saved(false)
 {
 }
 
@@ -2437,11 +2437,11 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
     if ( (int)_bufsize - (int)_bufpos < itemsize )
         return -1;
     TextDataStorageItem * p = (TextDataStorageItem*)(_buf + _bufpos);
-    p->sizeDiv16 = itemsize>>4;
+    p->sizeDiv16 = (lUInt16)(itemsize >> 4);
     p->dataIndex = dataIndex;
     p->parentIndex = parentIndex;
     p->type = LXML_TEXT_NODE;
-    p->length = text.length();
+    p->length = (lUInt16)text.length();
     memcpy(p->text, text.c_str(), p->length);
     int res = _bufpos >> 4;
     _bufpos += itemsize;
@@ -2449,7 +2449,7 @@ int ldomTextStorageChunk::addText( lUInt32 dataIndex, lUInt32 parentIndex, const
 }
 
 /// adds new element item to buffer, returns offset inside chunk of stored data
-int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount )
+int ldomTextStorageChunk::addElem(lUInt32 dataIndex, lUInt32 parentIndex, int childCount, int attrCount)
 {
     int itemsize = (sizeof(ElementDataStorageItem) + attrCount*sizeof(lUInt16)*3 + childCount*sizeof(lUInt32) - sizeof(lUInt32) + 15) & 0xFFFFFFF0;
     if ( !_buf ) {
@@ -2464,12 +2464,12 @@ int ldomTextStorageChunk::addElem( lUInt32 dataIndex, lUInt32 parentIndex, int c
         return -1;
     ElementDataStorageItem *item = (ElementDataStorageItem *)(_buf + _bufpos);
     if ( item ) {
-        item->sizeDiv16 = itemsize>>4;
+        item->sizeDiv16 = (lUInt16)(itemsize >> 4);
         item->dataIndex = dataIndex;
         item->parentIndex = parentIndex;
         item->type = LXML_ELEMENT_NODE;
         item->parentIndex = parentIndex;
-        item->attrCount = attrCount;
+        item->attrCount = (lUInt16)attrCount;
         item->childCount = childCount;
     }
     int res = _bufpos >> 4;
@@ -2768,7 +2768,7 @@ simpleLogFile logfile("logfile.log");
 /// lxmlDocument
 
 
-lxmlDocBase::lxmlDocBase( int dataBufSize )
+lxmlDocBase::lxmlDocBase( int /*dataBufSize*/ )
 : _elementNameTable(MAX_ELEMENT_TYPE_ID)
 , _attrNameTable(MAX_ATTRIBUTE_TYPE_ID)
 , _nsNameTable(MAX_NAMESPACE_TYPE_ID)
@@ -3059,7 +3059,7 @@ ldomDocument::~ldomDocument()
 #if BUILD_LITE!=1
 
 /// renders (formats) document in memory
-bool ldomDocument::setRenderProps( int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
+bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*y0*/, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
     bool changed = false;
     _renderedBlockCache.clear();
@@ -4617,7 +4617,7 @@ static bool updateScalingOption( img_scaling_option_t & v, CRPropRef props, int 
     }
     if ( currScale==1 )
         currMode = 0;
-    int updated = false;
+    bool updated = false;
     if ( v.max_scale!=currScale ) {
         updated = true;
         v.max_scale = currScale;
@@ -5168,7 +5168,7 @@ lString16 ldomXPointer::toString()
         if ( p->isElement() ) {
             // element
             lString16 name = p->getNodeName();
-            int id = p->getNodeId();
+            lUInt16 id = p->getNodeId();
             if ( !parent )
                 return "/" + name + path;
             int index = -1;
@@ -6727,6 +6727,9 @@ void ldomXRange::forEach( ldomNodeCallback * callback )
 
 class ldomWordsCollector : public ldomNodeCallback {
     LVArray<ldomWord> & _list;
+	ldomWordsCollector & operator = (ldomWordsCollector&) {
+		// no assignment
+	}
 public:
     ldomWordsCollector( LVArray<ldomWord> & list )
         : _list( list )
@@ -6771,7 +6774,7 @@ void ldomXRange::getRangeWords( LVArray<ldomWord> & list )
 }
 
 /// adds all visible words from range, returns number of added words
-int ldomWordExList::addRangeWords( ldomXRange & range, bool trimPunctuation ) {
+int ldomWordExList::addRangeWords( ldomXRange & range, bool /*trimPunctuation*/ ) {
     LVArray<ldomWord> list;
     range.getRangeWords( list );
     for ( int i=0; i<list.length(); i++ )
@@ -7028,7 +7031,7 @@ class ldomTextCollector : public ldomNodeCallback
 private:
     bool lastText;
     bool newBlock;
-    int  delimiter;
+    lChar16  delimiter;
     int  maxLen;
     lString16 text;
 public:
@@ -7547,7 +7550,7 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar1
 }
 
 /// called on closing tag
-void ldomDocumentWriterFilter::OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
+void ldomDocumentWriterFilter::OnTagClose( const lChar16 * /*nsname*/, const lChar16 * tagname )
 {
     if ( !_tagBodyCalled ) {
         CRLog::error("OnTagClose w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
@@ -7893,7 +7896,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
             }
             if (!_fontList.deserialize(buf)) {
                 CRLog::error("Error while parsing font data");
-                return CR_ERROR;
+                return false;
             }
             registerEmbeddedFonts();
         }
@@ -8376,7 +8379,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
                         lUInt16 fntIndex = _fontMap.get( style );
                         if ( fntIndex==0 ) {
                             LVFontRef fnt = getFont(s.get(), getFontContextDocIndex());
-                            fntIndex = _fonts.cache( fnt );
+                            fntIndex = (lUInt16)_fonts.cache( fnt );
                             if ( fnt.isNull() ) {
                                 CRLog::error("font not found for style!");
                             } else {
@@ -8510,7 +8513,7 @@ public:
 
         lUInt32 start = buf.pos();
         int count = _files.length();
-        buf << count;
+        buf << (lUInt32)count;
         for ( int i=0; i<count && !buf.error(); i++ ) {
             FileItem * item = _files[i];
             buf << item->filename;
@@ -9027,7 +9030,7 @@ lUInt8 ldomNode::getNodeLevel() const
     int level = 0;
     for ( ; node; node = node->getParentNode() )
         level++;
-    return level;
+    return (lUInt8)level;
 }
 
 void ldomNode::onCollectionDestroy()
@@ -9408,7 +9411,6 @@ int ldomNode::getChildCount() const
             return me->childCount;
         }
     }
-    return 0; // TODO
 #endif
 }
 
@@ -9432,7 +9434,6 @@ int ldomNode::getAttrCount() const
             return me->attrCount;
         }
     }
-    return 0;
 #endif
 }
 
@@ -9460,7 +9461,6 @@ const lString16 & ldomNode::getAttributeValue( lUInt16 nsid, lUInt16 id ) const
             return lString16::empty_str;
         return getDocument()->getAttrValue(valueId);
     }
-    return lString16::empty_str;
 #endif
 }
 
@@ -9541,7 +9541,7 @@ void ldomNode::setAttributeValue( lUInt16 nsid, lUInt16 id, const lChar16 * valu
     ASSERT_NODE_NOT_NULL;
     if ( !isElement() )
         return;
-    int valueIndex = getDocument()->getAttrValueIndex(value);
+    lUInt16 valueIndex = getDocument()->getAttrValueIndex(value);
 #if BUILD_LITE!=1
     if ( isPersistent() ) {
         // persistent element
@@ -10141,7 +10141,7 @@ void ldomNode::setRendMethod( lvdom_element_render_method method )
         } else {
             ElementDataStorageItem * me = getDocument()->_elemStorage.getElem( _data._pelem_addr );
             if ( me->rendMethod != method ) {
-                me->rendMethod = method;
+                me->rendMethod = (lUInt8)method;
                 modified();
             }
         }
@@ -10201,7 +10201,7 @@ bool ldomNode::initNodeFont()
             s = getDocument()->_styles.get( style );
         }
         LVFontRef fnt = ::getFont(s.get(), getDocument()->getFontContextDocIndex());
-        fntIndex = getDocument()->_fonts.cache( fnt );
+        fntIndex = (lUInt16)getDocument()->_fonts.cache( fnt );
         if ( fnt.isNull() ) {
             CRLog::error("font not found for style!");
             return false;
@@ -10357,13 +10357,13 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
                 break;
             case css_lst_lower_alpha:
                 if ( counterValue<=26 )
-                    marker.append(1, 'a' + counterValue-1);
+                    marker.append(1, (lChar16)('a' + counterValue - 1));
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple digital counter
                 break;
             case css_lst_upper_alpha:
                 if ( counterValue<=26 )
-                    marker.append(1, 'A' + counterValue-1);
+                    marker.append(1, (lChar16)('A' + counterValue - 1));
                 else
                     marker = lString16::itoa(counterValue); // fallback to simple digital counter
                 break;
@@ -10893,7 +10893,7 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     ::renderFinalBlock( this, f.get(), fmt, flags, 0, 16 );
     int page_h = getDocument()->getPageHeight();
     cache.set( this, f );
-    int h = f->Format( width, page_h );
+    int h = f->Format((lUInt16)width, (lUInt16)page_h);
     frmtext = f;
     //CRLog::trace("Created new formatted object for node #%08X", (lUInt32)this);
     return h;

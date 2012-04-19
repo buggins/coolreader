@@ -1233,7 +1233,6 @@ public:
     }
     lverror_t OpenFile( lString16 fname, int mode )
     {
-        bool use_sync = (mode & LVOM_FLAG_SYNC)!=0;
         mode = mode & LVOM_MASK;
 #if defined(_WIN32)
         lUInt32 m = 0;
@@ -1295,6 +1294,7 @@ public:
         if (mode==LVOM_APPEND)
             Seek( 0, LVSEEK_END, NULL );
 #else
+        bool use_sync = (mode & LVOM_FLAG_SYNC)!=0;
         m_fd = -1;
 
         int flags = (mode==LVOM_READ) ? O_RDONLY : O_RDWR | O_CREAT | (use_sync ? O_SYNC : 0) | (mode==LVOM_WRITE ? O_TRUNC : 0);
@@ -1544,7 +1544,7 @@ public:
 
         if (unicode) {
             // unicode
-            while (1) {
+            for (;;) {
                 lUInt32 dwAttrs = data.dwFileAttributes;
                 wchar_t * pfn = data.cFileName;
                 for (int i=0; data.cFileName[i]; i++) {
@@ -1580,7 +1580,7 @@ public:
             }
         } else {
             // ANSI
-            while (1) {
+            for (;;) {
                 lUInt32 dwAttrs = dataa.dwFileAttributes;
                 char * pfn = dataa.cFileName;
                 for (int i=0; dataa.cFileName[i]; i++) {
@@ -2451,7 +2451,7 @@ public:
 class LVZipArc : public LVArcContainerBase
 {
 public:
-    virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t mode )
+    virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t /*mode*/ )
     {
         if ( fname[0]=='/' )
             fname++;
@@ -2564,7 +2564,7 @@ public:
         unsigned ZipHd1_size = 0x1E; //sizeof(ZipHd1); //sizeof(ZipHd1)
           //lUInt32 ReadSize;
 
-        while (1) {
+        for (;;) {
 
             if (m_stream->Seek( NextPosition, LVSEEK_SET, NULL )!=LVERR_OK)
                 return 0;
@@ -3137,7 +3137,7 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in )
 
 LVContainerRef LVOpenDirectory( const wchar_t * path, const wchar_t * mask )
 {
-    LVContainerRef dir( LVDirectoryContainer::OpenDirectory( path ) );
+    LVContainerRef dir(LVDirectoryContainer::OpenDirectory(path, mask));
     return dir;
 }
 

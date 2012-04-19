@@ -245,9 +245,11 @@ class LVMutex {
 #endif
 
 class LVLock {
-    private:
         LVMutex &_mutex;
         bool _locked;
+		LVLock & operator = (LVLock&) {
+			// no assignment
+		}
     public:
         LVLock( LVMutex &mutex )
         : _mutex(mutex)

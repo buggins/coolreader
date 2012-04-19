@@ -835,6 +835,10 @@ template <int BUFSIZE> class lStringBuf16 {
     lString16 & str;
     lChar16 buf[BUFSIZE];
     int pos;
+	lStringBuf16 & operator = (lStringBuf16 & v)
+	{
+		// not available
+	}
 public:
     lStringBuf16( lString16 & s )
     : str(s), pos(0)

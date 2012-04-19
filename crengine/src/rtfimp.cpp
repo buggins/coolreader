@@ -84,6 +84,9 @@ protected:
     bool last_space;
     bool last_notitle;
     bool in_subtitle;
+	LVRtfDefDestination & operator = (LVRtfDefDestination&) {
+		// no assignment
+	}
 public:
     LVRtfDefDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
@@ -262,6 +265,9 @@ public:
 
 class LVRtfNullDestination : public LVRtfDestination
 {
+	LVRtfNullDestination & operator = (LVRtfNullDestination&) {
+		// disabled
+	}
 public:
     LVRtfNullDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
@@ -289,6 +295,9 @@ class LVRtfPictDestination : public LVRtfDestination
     LVArray<lUInt8> _buf;
     int _fmt;
     int _lastDigit;
+	LVRtfPictDestination & operator = (LVRtfPictDestination&) {
+		// no assignment
+	}
 public:
     LVRtfPictDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser ), _fmt(rtf_img_unknown), _lastDigit(-1)
@@ -297,7 +306,7 @@ public:
     virtual void OnControlWord( const char *, int )
     {
     }
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags)
+    virtual void OnText( const lChar16 * text, int len, lUInt32)
     {
         int fmt = m_stack.getInt(pi_imgfmt);
         if (!fmt)
@@ -562,8 +571,8 @@ bool LVRtfParser::Parse()
                 } else {
                     AddChar('\\');
                     AddChar('\'');
-                    AddChar8(digit1);
-                    AddChar8(digit2);
+                    AddChar8((lUInt8)digit1);
+                    AddChar8((lUInt8)digit2);
                     p+=2;
                 }
             } else {

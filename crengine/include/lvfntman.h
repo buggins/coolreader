@@ -103,8 +103,8 @@ struct LVFontGlyphCacheItem
         LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( sizeof(LVFontGlyphCacheItem)
             + (w*h - 1)*sizeof(lUInt8) );
         item->ch = ch;
-        item->bmp_width = w;
-        item->bmp_height = h;
+        item->bmp_width = (lUInt8)w;
+        item->bmp_height = (lUInt8)h;
         item->origin_x =   0;
         item->origin_y =   0;
         item->advance =    0;
@@ -239,7 +239,7 @@ public:
     virtual void setKerning( bool ) { }
 
     /// sets current hinting mode
-    virtual void setHintingMode(hinting_mode_t mode) { }
+    virtual void setHintingMode(hinting_mode_t /*mode*/) { }
     /// returns current hinting mode
     virtual hinting_mode_t  getHintingMode() const { return HINTING_MODE_AUTOHINT; }
 
@@ -317,19 +317,19 @@ public:
     /// get fallback font face (returns empty string if no fallback font is set)
     virtual lString8 GetFallbackFontFace() { return lString8::empty_str; }
     /// returns fallback font for specified size
-    virtual LVFontRef GetFallbackFont(int size) { return LVFontRef(); }
+    virtual LVFontRef GetFallbackFont(int /*size*/) { return LVFontRef(); }
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers document font
-    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name, lString8 face, bool bold, bool italic) { return false; }
+    virtual bool RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString16 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
     /// unregisters all document fonts
-    virtual void UnregisterDocumentFonts(int documentId) { }
+    virtual void UnregisterDocumentFonts(int /*documentId*/) { }
     /// initializes font manager
     virtual bool Init( lString8 path ) = 0;
     /// get count of registered fonts
     virtual int GetFontCount() = 0;
     /// get hash of installed fonts and fallback font
-    virtual lUInt32 GetFontListHash(int documentId) { return 0; }
+    virtual lUInt32 GetFontListHash(int /*documentId*/) { return 0; }
     /// clear glyph cache
     virtual void clearGlyphCache() { }
 
@@ -362,7 +362,7 @@ public:
     void SetGamma( double gamma );
 
     /// sets current hinting mode
-    virtual void SetHintingMode(hinting_mode_t mode) { }
+    virtual void SetHintingMode(hinting_mode_t /*mode*/) { }
     /// returns current hinting mode
     virtual hinting_mode_t  GetHintingMode() { return HINTING_MODE_AUTOHINT; }
 

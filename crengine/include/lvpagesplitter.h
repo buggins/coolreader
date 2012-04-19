@@ -209,9 +209,9 @@ public:
     lInt16 height; /// height of page, does not include footnotes
     lInt16 type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
     CompactArray<LVPageFootNoteInfo, 1, 4> footnotes; /// footnote fragment list for page
-    LVRendPageInfo( int pageStart, int pageHeight, int pageIndex )
+    LVRendPageInfo(int pageStart, lUInt16 pageHeight, int pageIndex)
     : start(pageStart), index(pageIndex), height(pageHeight), type(PAGE_TYPE_NORMAL) {}
-    LVRendPageInfo( int coverHeight )
+    LVRendPageInfo(lUInt16 coverHeight)
     : start(0), index(0), height(coverHeight), type(PAGE_TYPE_COVER) {}
     LVRendPageInfo() 
     : start(0), index(0), height(0), type(PAGE_TYPE_NORMAL) { }
@@ -272,8 +272,8 @@ public:
     inline int getHeight() const { return height; }
 
     LVRendLineInfo() : links(NULL), start(-1), height(0), flags(0) { }
-    LVRendLineInfo( int line_start, int line_end, int line_flags )
-    : links(NULL), start(line_start), height(line_end-line_start), flags(line_flags)
+    LVRendLineInfo( int line_start, int line_end, lUInt16 line_flags )
+    : links(NULL), start(line_start), height((lUInt16)(line_end-line_start)), flags(line_flags)
     {
     }
     LVFootNoteList * getLinks() { return links; }

@@ -315,8 +315,8 @@ static lChar16 cr3_jisx0213_to_ucs4(unsigned int row, unsigned int col)
     else
         return 0x0000;
 
-    val = jisx0213_to_ucs_main[row * 94 + col];
-    val = jisx0213_to_ucs_pagestart[val >> 8] + (val & 0xff);
+    val = (lChar16)jisx0213_to_ucs_main[row * 94 + col];
+    val = (lChar16)jisx0213_to_ucs_pagestart[val >> 8] + (val & 0xff);
     if (val == 0xfffd)
         val = 0x0000;
     return val;
@@ -498,7 +498,8 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                 }
                 if (ch2 >= 0xa1 && ch2 < 0xff) {
                     unsigned char buf[2];
-                    buf[0] = ch - 0x80; buf[1] = ch2 - 0x80;
+                    buf[0] = (lUInt8)(ch - 0x80); 
+					buf[1] = (lUInt8)(ch2 - 0x80);
                     res = cr3_gb2312_mbtowc(buf);
                     if (!res)
                         res = cr3_cp936ext_mbtowc(buf);
@@ -642,10 +643,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                                     ucs4_t wc2 = jisx0213_to_ucs_combining[wc - 1][1];
                                     /* We cannot output two Unicode characters at once. So,
                                        output the first character and buffer the second one. */
-                                    buf[count++] = wc1;
-                                    res = wc2;
+                                    buf[count++] = (lChar16)wc1;
+                                    res = (lChar16)wc2;
                                 } else
-                                    res = wc;
+                                    res = (lChar16)wc;
                             }
                         }
                     }
@@ -721,10 +722,10 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
                                     }
                                 } else if (i < 216) {
                                     /* 133 <= i < 216. Hiragana. */
-                                    res = 0x3041 - 133 + i;
+                                    res = (lChar16)(0x3041 - 133 + i);
                                 } else if (i < 302) {
                                     /* 216 <= i < 302. Katakana. */
-                                    res = 0x30a1 - 216 + i;
+                                    res = (lChar16)(0x30a1 - 216 + i);
                                 }
                             }
                         } else {
@@ -1190,9 +1191,9 @@ public:
                     if ( *s != ' ' ) {
                         if ( rpos==0 && p>0 ) {
                             //CRLog::debug("   lpos = %d", p);
-                            lpos = p;
+                            lpos = (lUInt16)p;
                         }
-                        rpos = p + 1;
+                        rpos = (lUInt16)(p + 1);
                     }
                     p++;
                 }
@@ -1948,7 +1949,7 @@ public:
             }
         }
 
-        void addSeparator( int width ) {
+        void addSeparator( int /*width*/ ) {
             endOfParagraph();
             callback->OnTagOpenAndClose(L"", L"hr");
         }
@@ -1963,7 +1964,7 @@ public:
             callback->OnTagOpenNoAttr(NULL, L"title");
         }
 
-        void addChapterTitle( int level, lString16 title ) {
+        void addChapterTitle( int /*level*/, lString16 title ) {
             // add title, invisible, for TOC only
         }
 
@@ -2029,7 +2030,7 @@ public:
                             j+=4;
                             continue;
                         } else if ( n>=1 && n<=255 ) {
-                            addChar( n );
+                            addChar((lChar16)n);
                             j+=4;
                             continue;
                         }
@@ -2037,7 +2038,7 @@ public:
                         // \UXXXX	Insert non-ASCII character whose Unicode code is hexidecimal XXXX.
                         int n = decodeHex( str + j + 2, 4 );
                         if ( n>0 ) {
-                            addChar( n );
+                            addChar((lChar16)n);
                             j+=5;
                             continue;
                         }
@@ -2412,7 +2413,7 @@ lString16 LVTextFileBase::ReadLine( int maxLineSize, lUInt32 & flags )
     //FillBuffer( maxLineSize*3 );
 
     lChar16 ch = 0;
-    while ( 1 ) {
+    for (;;) {
         if ( m_eof ) {
             // EOF: treat as EOLN
             flags |= LINE_HAS_EOLN; // EOLN flag
@@ -3482,9 +3483,9 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_tabl
             if (state == 2 && ch=='x')
                 state = 22;
             else if (state == 22 && hexDigit(ch)>=0)
-                nch = (nch << 4) | hexDigit(ch);
+                nch = (lChar16)((nch << 4) | hexDigit(ch));
             else if (state == 2 && ch>='0' && ch<='9')
-                nch = nch * 10 + (ch - '0');
+                nch = (lChar16)(nch * 10 + (ch - '0'));
             else if (ch=='#' && state==1)
                 state = 2;
             else if (state==1 && ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z')) ) {
@@ -4214,9 +4215,9 @@ public:
     {
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return true; }
+    virtual bool OnBlob(lString16 /*name*/, const lUInt8 * /*data*/, int /*size*/) { return true; }
     /// called on opening tag
-    virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
+    virtual ldomNode * OnTagOpen( const lChar16 * /*nsname*/, const lChar16 * tagname)
     {
         tagCounter++;
         if (!insideFictionBook && tagCounter > 5) {
@@ -4263,7 +4264,7 @@ public:
         }
     }
     /// called on element attribute
-    virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
+    virtual void OnAttribute( const lChar16 * /*nsname*/, const lChar16 * attrname, const lChar16 * attrvalue )
     {
         if (lStr_cmp(attrname, "href")==0 && insideImage) {
             lString16 s(attrvalue);
@@ -4281,7 +4282,7 @@ public:
         }
     }
     /// called on text
-    virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
+    virtual void OnText( const lChar16 * text, int len, lUInt32 /*flags*/ )
     {
         if (!insideCoverBinary)
             return;

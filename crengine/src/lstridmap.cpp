@@ -205,20 +205,16 @@ const LDOMNameIdMapItem * LDOMNameIdMap::findItem( const lChar16 * name )
     int r;
     a = 0;
     b = m_count;
-    while (1)
-    {
+    for (;;) {
         c = (a + b)>>1;
         r = lStr_cmp( name, m_by_name[c]->value.c_str() );
         if (r == 0)
             return m_by_name[c]; // found
         if (b==a+1)
             return NULL; // not found
-        if (r>0)
-        {
+        if (r>0) {
             a = c;
-        }
-        else
-        {
+        } else {
             b = c;
         }
     }
@@ -234,20 +230,16 @@ const LDOMNameIdMapItem * LDOMNameIdMap::findItem( const lChar8 * name )
     int r;
     a = 0;
     b = m_count;
-    while (1)
-    {
+    for (;;) {
         c = (a + b)>>1;
         r = lStr_cmp( name, m_by_name[c]->value.c_str() );
         if (r == 0)
             return m_by_name[c]; // found
         if (b==a+1)
             return NULL; // not found
-        if (r>0)
-        {
+        if (r>0) {
             a = c;
-        }
-        else
-        {
+        } else {
             b = c;
         }
     }

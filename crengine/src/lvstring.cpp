@@ -2697,7 +2697,7 @@ lString16 ByteToUnicode( const lString8 & str, const lChar16 * table )
     lString16 buf;
     buf.reserve( str.length() );
     for (int i=0; i < str.length(); i++) {
-        int ch = (unsigned char)str[i];
+        lChar16 ch = (unsigned char)str[i];
         lChar16 ch16 = ((ch & 0x80) && table) ? table[ (ch&0x7F) ] : ch;
         buf += ch16;
     }
@@ -4574,12 +4574,12 @@ static int decodeHex( lChar16 ch )
 
 static lChar16 decodeHTMLChar( const lChar16 * s )
 {
-    if ( s[0]=='%' ) {
+    if (s[0] == '%') {
         int d1 = decodeHex( s[1] );
-        if ( d1>=0 ) {
+        if (d1 >= 0) {
             int d2 = decodeHex( s[2] );
-            if ( d2>=0 ) {
-                return d1*16 + d2;
+            if (d2 >= 0) {
+                return (lChar16)(d1*16 + d2);
             }
         }
     }
@@ -4592,7 +4592,7 @@ lString16 DecodeHTMLUrlString( lString16 s )
     const lChar16 * str = s.c_str();
     for ( int i=0; str[i]; i++ ) {
         if ( str[i]=='%'  ) {
-            int ch = decodeHTMLChar( str + i );
+            lChar16 ch = decodeHTMLChar( str + i );
             if ( ch==0 ) {
                 continue;
             }

@@ -179,25 +179,25 @@ public:
     /// on starting file loading
     virtual void OnLoadFileStart( lString16 filename ) { }
     /// format detection finished
-    virtual void OnLoadFileFormatDetected( doc_format_t fileFormat ) { }
+    virtual void OnLoadFileFormatDetected( doc_format_t /*fileFormat*/) { }
     /// file loading is finished successfully - drawCoveTo() may be called there
     virtual void OnLoadFileEnd() { }
     /// first page is loaded from file an can be formatted for preview
     virtual void OnLoadFileFirstPagesReady() { }
     /// file progress indicator, called with values 0..100
-    virtual void OnLoadFileProgress( int percent ) { }
+    virtual void OnLoadFileProgress( int /*percent*/) { }
     /// document formatting started
     virtual void OnFormatStart() { }
     /// document formatting finished
     virtual void OnFormatEnd() { }
     /// format progress, called with values 0..100
-    virtual void OnFormatProgress( int percent ) { }
+    virtual void OnFormatProgress(int /*percent*/) { }
     /// format progress, called with values 0..100
-    virtual void OnExportProgress( int percent ) { }
+    virtual void OnExportProgress(int /*percent*/) { }
     /// file load finiished with error
-    virtual void OnLoadFileError( lString16 message ) { }
+    virtual void OnLoadFileError(lString16 /*message*/) { }
     /// Override to handle external links
-    virtual void OnExternalLink( lString16 url, ldomNode * node ) { }
+    virtual void OnExternalLink(lString16 /*url*/, ldomNode * /*node*/) { }
     /// Called when page images should be invalidated (clearImageCache() called in LVDocView)
     virtual void OnImageCacheClear() { }
     /// return true if reload will be processed by external code, false to let internal code process it
@@ -361,11 +361,11 @@ public:
     /// set raw data bytes
     void setRaw( int offset, int size, const lUInt8 * buf );
     /// create empty buffer
-    ldomTextStorageChunk( ldomDataStorageManager * manager, int index );
+    ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index);
     /// create chunk to be read from cache file
-    ldomTextStorageChunk( ldomDataStorageManager * manager, int index, int compsize, int uncompsize );
+    ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index, int compsize, int uncompsize);
     /// create with preallocated buffer, for raw access
-    ldomTextStorageChunk( int preAllocSize, ldomDataStorageManager * manager, int index );
+    ldomTextStorageChunk(int preAllocSize, ldomDataStorageManager * manager, lUInt16 index);
     ~ldomTextStorageChunk();
 };
 
@@ -648,7 +648,7 @@ private:
     void onCollectionDestroy();
     inline ldomNode * getTinyNode( lUInt32 index ) const { return ((tinyNodeCollection*)getDocument())->getTinyNode(index); }
 
-    void operator delete( void * p )
+    void operator delete(void *)
     {
         // Do nothing. Just to disable delete.
     }

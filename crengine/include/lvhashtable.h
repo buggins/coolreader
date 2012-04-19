@@ -44,6 +44,9 @@ public:
 		const LVHashTable & _tbl;
 		int index;
 		pair * ptr;
+		iterator & operator = (iterator &) {
+			// no assignment
+		}
 	public:
 		iterator( const LVHashTable & table )
 			: _tbl( table ), index(0), ptr(NULL)

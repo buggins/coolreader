@@ -23,12 +23,15 @@
 
     Automatically deletes objects when vector items are destroyed.
 */
-template < class T, bool ownItems=true >
+template < class T, bool ownItems = true >
 class LVPtrVector
 {
     T * * _list;
     int _size;
     int _count;
+	LVPtrVector & operator = (LVPtrVector&) {
+		// no assignment
+	}
 public:
     /// default constructor
     LVPtrVector() : _list(NULL), _size(0), _count(0) {}

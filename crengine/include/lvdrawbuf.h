@@ -206,6 +206,9 @@ class LVDrawStateSaver
     lUInt32 _textColor;
     lUInt32 _backgroundColor;
     lvRect _clipRect;
+	LVDrawStateSaver & operator = (LVDrawStateSaver &) {
+		// no assignment
+	}
 public:
     /// save settings
     LVDrawStateSaver( LVDrawBuf & buf )

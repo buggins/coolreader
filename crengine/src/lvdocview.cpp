@@ -961,7 +961,7 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 		txform.AddSourceLine(series.c_str(), series.length(), 0xFFFFFFFF,
 				0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER, 18);
 	int title_w = rc.width() - rc.width() / 4;
-	int h = txform.Format(title_w, rc.height());
+	int h = txform.Format((lUInt16)title_w, (lUInt16)rc.height());
 
 	lvRect imgrc = rc;
 
@@ -1215,7 +1215,7 @@ lString16 LVDocView::getTimeString() {
 
 /// draw battery state to buffer
 void LVDocView::drawBatteryState(LVDrawBuf * drawbuf, const lvRect & batteryRc,
-		bool isVertical) {
+		bool /*isVertical*/) {
 	if (m_battery_state == CR_BATTERY_STATE_NO_BATTERY)
 		return;
 	LVDrawStateSaver saver(*drawbuf);
@@ -4801,9 +4801,9 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 		if (bmk->getType() != bmkt_comment && bmk->getType() != bmkt_correction)
 			continue;
 		if (newContent.empty()) {
-			newContent.append(1, (char) 0xef);
-			newContent.append(1, (char) 0xbb);
-			newContent.append(1, (char) 0xbf);
+			newContent.append(1, (lChar8)0xef);
+			newContent.append(1, (lChar8)0xbb);
+			newContent.append(1, (lChar8)0xbf);
 			newContent << "# Cool Reader 3 - exported bookmarks\r\n";
 			newContent << "# file name: " << UnicodeToUtf8(rec->getFileName())
 					<< "\r\n";
