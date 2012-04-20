@@ -595,7 +595,7 @@ public class CoolReader extends Activity
 		DisplayMetrics m = new DisplayMetrics(); 
 		d.getMetrics(m);
 		try {
-			Field fld = d.getClass().getField("densityDpi");
+			Field fld = m.getClass().getField("densityDpi");
 			if ( fld!=null ) {
 				Object v = fld.get(m);
 				if ( v!=null && v instanceof Integer ) {
