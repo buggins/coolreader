@@ -1253,6 +1253,7 @@ public class CoolReader extends Activity
 	private View currentView;
 	public void showView( View view )
 	{
+		mReaderView.setOnFront(view == mReaderView);
 		showView( view, true );
 	}
 	public void showView( View view, boolean hideProgress )

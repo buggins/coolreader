@@ -293,8 +293,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
 		log.i("onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
-		if (!mOpened)
-			resize(w, h, 0);
+		requestResize(w, h);
 	}
 	
 	public boolean isBookLoaded()
@@ -3677,7 +3676,35 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	private void resize(final int width, final int height, final long delay) {
+	private boolean mIsOnFront = false;
+	private int requestedWidth = 0;
+	private int requestedHeight = 0;
+	public void setOnFront(boolean front) {
+		if (mIsOnFront == front)
+			return;
+		mIsOnFront = front;
+		log.d("setOnFront(" + front + ")");
+		if (mIsOnFront)
+			checkSize();
+	}
+	private void requestResize(int width, int height) {
+		requestedWidth = width;
+		requestedHeight = height;
+		checkSize();
+	}
+	private void checkSize() {
+		boolean changed = (requestedWidth != internalDX) || (requestedHeight != internalDY);
+		if (!changed)
+			return;
+		if (mIsOnFront || !mOpened) {
+			log.d("checkSize() : calling resize");
+			resize();
+		} else {
+			log.d("Skipping resize request");
+		}
+	}
+	
+	private void resize() {
 		final int thisId = ++lastResizeTaskId;
 //	    if ( w<h && mActivity.isLandscape() ) {
 //	    	log.i("ignoring size change to portrait since landscape is set");
@@ -3702,10 +3729,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    					log.d("skipping duplicate resize request");
 	    					return;
 	    				}
-	    		        internalDX = width;
-	    		        internalDY = height;
-	    				log.d("ResizeTask: resizeInternal(" + width + "," + height + ")");
-	    		        doc.resize(width, height);
+	    		        internalDX = requestedWidth;
+	    		        internalDY = requestedHeight;
+	    				log.d("ResizeTask: resizeInternal(" + internalDX + "," + internalDY + ")");
+	    		        doc.resize(internalDX, internalDY);
 //	    		        if ( mOpened ) {
 //	    					log.d("ResizeTask: done, drawing page");
 //	    			        drawPage();
@@ -3721,7 +3748,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    };
 	    if ( mOpened ) {
 	    	log.d("scheduling delayed resize task id=" + thisId);
-	    	BackgroundThread.instance().postGUI(task, delay);
+	    	BackgroundThread.instance().postGUI(task, 300);
 	    } else {
 	    	log.d("executing resize without delay");
 	    	task.run();
@@ -3733,7 +3760,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceChanged(SurfaceHolder holder, int format, final int width,
 			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
-		resize(width, height, 200);
+		requestResize(width, height);
 		drawPage();
 	}
 
