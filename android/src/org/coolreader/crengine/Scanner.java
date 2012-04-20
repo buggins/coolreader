@@ -420,7 +420,7 @@ public class Scanner extends FileInfoChangeSource {
 			return false; // exclude duplicates
 		}
 		if (listIt) {
-			if (!dir.isWritableDirectory()) {
+			if (!dir.isReadableDirectory()) { // isWritableDirectory
 				log.w("Skipping " + pathname + " - it's not a writable directory");
 				return false;
 			}

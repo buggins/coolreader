@@ -91,7 +91,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 							public void onBookInfoLoaded(BookInfo bookInfo) {
 								if (bookInfo == null)
 									bookInfo = new BookInfo(file);
-								BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, file.parent, bookInfo, 
+								BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, currDirectory, bookInfo, 
 										screenHeight < screenWidth ? screenHeight : screenWidth, 
 										currDirectory.isRecentDir());
 								dlg.show();

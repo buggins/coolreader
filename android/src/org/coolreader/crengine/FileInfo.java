@@ -1,6 +1,10 @@
 package org.coolreader.crengine;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -688,7 +692,35 @@ public class FileInfo {
 		if (!isDirectory || isArchive || isSpecialDir())
 			return false;
 		File f = new File(pathname);
-		return f.isDirectory() && f.canWrite();
+		boolean isDir = f.isDirectory();
+		boolean canWr = f.canWrite();
+//		if (!canWr) {
+//			File testFile = new File(f, "cr3test.tmp");
+//			try {
+//				OutputStream os = new FileOutputStream(testFile, false);
+//				os.close();
+//				testFile.delete();
+//				canWr = true;
+//			} catch (FileNotFoundException e) {
+//				L.e("cannot write " + testFile, e);
+//			} catch (IOException e) {
+//				L.e("cannot write " + testFile, e);
+//			}
+//		}
+		return isDir && canWr;
+	}
+	
+	/**
+	 * @return true if item is a directory, which exists and can be written to
+	 */
+	public boolean isReadableDirectory()
+	{
+		if (!isDirectory || isArchive || isSpecialDir())
+			return false;
+		File f = new File(pathname);
+		boolean isDir = f.isDirectory();
+		boolean canRd = f.canRead();
+		return isDir && canRd;
 	}
 	
 	public String getAuthors() {
