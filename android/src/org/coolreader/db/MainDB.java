@@ -567,7 +567,7 @@ public class MainDB extends BaseDB {
 	{
 		if (!isOpened())
 			return false;
-		String sql = READ_FILEINFO_SQL + " INNER JOIN series ON series.id = b.series_fk WHERE series.id = " + seriesId + " ORDER BY b.title";
+		String sql = READ_FILEINFO_SQL + " INNER JOIN series ON series.id = b.series_fk WHERE series.id = " + seriesId + " ORDER BY b.serie_number";
 		return findBooks(sql, list);
 	}
 	
