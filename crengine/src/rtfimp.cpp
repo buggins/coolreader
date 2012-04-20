@@ -86,7 +86,8 @@ protected:
     bool in_subtitle;
 	LVRtfDefDestination & operator = (LVRtfDefDestination&) {
 		// no assignment
-	}
+        return *this;
+    }
 public:
     LVRtfDefDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
@@ -267,7 +268,8 @@ class LVRtfNullDestination : public LVRtfDestination
 {
 	LVRtfNullDestination & operator = (LVRtfNullDestination&) {
 		// disabled
-	}
+        return *this;
+    }
 public:
     LVRtfNullDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser )
@@ -297,7 +299,8 @@ class LVRtfPictDestination : public LVRtfDestination
     int _lastDigit;
 	LVRtfPictDestination & operator = (LVRtfPictDestination&) {
 		// no assignment
-	}
+        return *this;
+    }
 public:
     LVRtfPictDestination(  LVRtfParser & parser )
     : LVRtfDestination( parser ), _fmt(rtf_img_unknown), _lastDigit(-1)

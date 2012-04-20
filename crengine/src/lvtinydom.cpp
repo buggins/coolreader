@@ -6729,7 +6729,8 @@ class ldomWordsCollector : public ldomNodeCallback {
     LVArray<ldomWord> & _list;
 	ldomWordsCollector & operator = (ldomWordsCollector&) {
 		// no assignment
-	}
+        return *this;
+    }
 public:
     ldomWordsCollector( LVArray<ldomWord> & list )
         : _list( list )

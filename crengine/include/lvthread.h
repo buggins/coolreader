@@ -249,7 +249,8 @@ class LVLock {
         bool _locked;
 		LVLock & operator = (LVLock&) {
 			// no assignment
-		}
+            return *this;
+        }
     public:
         LVLock( LVMutex &mutex )
         : _mutex(mutex)

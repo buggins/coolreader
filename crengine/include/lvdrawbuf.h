@@ -208,6 +208,7 @@ class LVDrawStateSaver
     lvRect _clipRect;
 	LVDrawStateSaver & operator = (LVDrawStateSaver &) {
 		// no assignment
+        return *this;
 	}
 public:
     /// save settings
