@@ -205,6 +205,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param dir is directory with changed content
 	 */
 	public void onDirectoryContentChanged(FileInfo dir) {
+		log.v("onDirectoryContentChanged(" + dir.getPathName() + ")");
 		onChange(dir);
 	}
 	
@@ -218,6 +219,7 @@ public class Scanner extends FileInfoChangeSource {
 	private void scanDirectoryFiles(final FileInfo baseDir, final ScanControl control, final Engine.ProgressControl progress, final Runnable readyCallback) {
 		// GUI thread
 		BackgroundThread.ensureGUI();
+		log.d("scanDirectoryFiles(" + baseDir.getPathName() + ") ");
 		
 		// store list of files to scan
 		ArrayList<String> pathNames = new ArrayList<String>();
@@ -326,6 +328,9 @@ public class Scanner extends FileInfoChangeSource {
 	public void scanDirectory(final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl) {
 		// Call in GUI thread only!
 		BackgroundThread.ensureGUI();
+
+		log.d("scanDirectory(" + baseDir.getPathName() + ") " + (recursiveScan ? "recursive" : ""));
+		
 		listDirectory(baseDir);
 		listSubtree( baseDir, 2, android.os.SystemClock.uptimeMillis() + 700 );
 		if ( (!getDirScanEnabled() || baseDir.isScanned) && !recursiveScan ) {
@@ -369,10 +374,11 @@ public class Scanner extends FileInfoChangeSource {
 									}
 									final FileInfo dir = dirsToScan.get(0);
 									dirsToScan.remove(0);
+									final Runnable callback = this;
 									BackgroundThread.instance().postGUI(new Runnable() {
 										@Override
 										public void run() {
-											scanDirectory(dir, this, true, scanControl);
+											scanDirectory(dir, callback, true, scanControl);
 										}
 									});
 								}
