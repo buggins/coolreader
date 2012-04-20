@@ -430,4 +430,5 @@
     <string name="book_state_reading">Reading</string>
     <string name="book_state_none">No mark</string>
     <string name="book_state_finished">Finished</string>
+    <string name="book_info_rating">Rate</string>
 </resources>

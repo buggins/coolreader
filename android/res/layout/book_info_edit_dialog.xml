@@ -132,7 +132,7 @@
         <TextView 
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
-            android:text="Rate" 
+            android:text="@string/book_info_rating" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <RatingBar

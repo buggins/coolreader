@@ -33,12 +33,14 @@ import android.widget.TableLayout;
 public class BookInfoEditDialog extends BaseDialog {
 	private CoolReader mActivity;
 	private BookInfo mBookInfo;
+	private FileInfo mParentDir;
 	private LayoutInflater mInflater;
 	private int mWindowSize;
 	private boolean mIsRecentBooksItem;
-	public BookInfoEditDialog(CoolReader activity, BookInfo book, int windowSize, boolean isRecentBooksItem)
+	public BookInfoEditDialog(CoolReader activity, FileInfo baseDir, BookInfo book, int windowSize, boolean isRecentBooksItem)
 	{
 		super(activity, null, false, false);
+		this.mParentDir = baseDir;
 		this.mWindowSize = windowSize;
 		this.mActivity = activity;
 		this.mBookInfo = book;
@@ -367,9 +369,11 @@ public class BookInfoEditDialog extends BaseDialog {
         modified = file.setReadingState(state) || modified;
         if (modified) {
         	mActivity.getDB().saveBookInfo(mBookInfo);
-        	BookInfo bi = mActivity.getHistory().getBookInfo(mBookInfo.getFileInfo());
+        	BookInfo bi = mActivity.getHistory().getBookInfo(file);
         	if (bi != null)
-        		bi.getFileInfo().setFileProperties(mBookInfo.getFileInfo());
+        		bi.getFileInfo().setFileProperties(file);
+        	mParentDir.setFile(file);
+        	mActivity.getBrowser().onChange(file);
         }
 	}
 

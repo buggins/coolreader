@@ -199,6 +199,12 @@ public interface Settings {
     		for (Lang lang : values())
     			if (lang.code.equals(code))
     				return lang;
+    		if (code.length() > 2) {
+    			code = code.substring(0, 2);
+        		for (Lang lang : values())
+        			if (lang.code.equals(code))
+        				return lang;
+    		}
     		Log.w("cr3", "language not found by code " + code);
     		return DEFAULT;
     	}
