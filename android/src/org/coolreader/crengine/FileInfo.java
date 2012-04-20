@@ -732,7 +732,7 @@ public class FileInfo {
 	}
 	
 	public int getSeriesNumber() {
-		return seriesNumber;
+		return series != null && series.length() > 0 ? seriesNumber : 0;
 	}
 	
 	public String getLanguage() {
@@ -772,7 +772,7 @@ public class FileInfo {
 				return firstNz(
 						cmpNotNullFirst(f1.authors, f2.authors)
 						,cmpNotNullFirst(f1.series, f2.series)
-						,cmp(f1.seriesNumber, f2.seriesNumber)
+						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
 						,cmp(f1.filename, f2.filename) 
 						);
@@ -786,7 +786,7 @@ public class FileInfo {
 					return 0;
 				return firstNz(
 						cmpNotNullFirst(f1.series, f2.series)
-						,cmp(f1.seriesNumber, f2.seriesNumber)
+						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
 						,cmpNotNullFirst(f1.authors, f2.authors)
 						,cmp(f1.filename, f2.filename) 
@@ -943,6 +943,6 @@ public class FileInfo {
 	}
 	
 	public boolean allowSorting() {
-		return isDirectory && !isRootDir() && !isRecentDir() && !isOPDSDir();
+		return isDirectory && !isRootDir() && !isRecentDir() && !isOPDSDir() && !isBooksBySeriesDir();
 	}
 }

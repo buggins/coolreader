@@ -24,11 +24,11 @@
     <string name="mi_book_sort_order_filename">По имени файла</string>
     <string name="mi_book_sort_order_filename_desc">По имени файла (по убыв.)</string>
     <string name="mi_book_sort_order_timestamp">По времени файла</string>
-    <string name="mi_book_sort_order_timestamp_desc">По времени файла (desc)</string>
+    <string name="mi_book_sort_order_timestamp_desc">По времени файла (по убыв.)</string>
     <string name="mi_book_sort_order_author">По автору</string>
-    <string name="mi_book_sort_order_author_desc">По автору (desc)</string>
+    <string name="mi_book_sort_order_author_desc">По автору (по убыв.)</string>
     <string name="mi_book_sort_order_title">По названию</string>
-    <string name="mi_book_sort_order_title_desc">По названию (desc)</string>
+    <string name="mi_book_sort_order_title_desc">По названию (по убыв.)</string>
     <string name="mi_bookmark_set">Установить закладку</string>
     <string name="mi_bookmark_goto">Перейти на закладку</string>
     <string name="mi_goto_page">На страницу №</string>
