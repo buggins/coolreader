@@ -218,21 +218,26 @@ public class Scanner extends FileInfoChangeSource {
 	private void scanDirectoryFiles(final FileInfo baseDir, final ScanControl control, final Engine.ProgressControl progress, final Runnable readyCallback) {
 		// GUI thread
 		BackgroundThread.ensureGUI();
+		
+		// store list of files to scan
 		ArrayList<String> pathNames = new ArrayList<String>();
-		for (int i=0; i < baseDir.fileCount(); i++)
+		for (int i=0; i < baseDir.fileCount(); i++) {
 			pathNames.add(baseDir.getFile(i).getPathName());
+		}
 
 		if (pathNames.size() == 0) {
 			readyCallback.run();
 			return;
 		}
 
+		// list all subdirectories
 		for (int i=0; i < baseDir.dirCount(); i++) {
 			if (control.isStopped())
 				break;
 			listDirectory(baseDir.getDir(i));
 		}
-			
+
+		// load book infos for files
 		db().loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
 			@Override
 			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
@@ -240,12 +245,13 @@ public class Scanner extends FileInfoChangeSource {
 				// GUI thread
 				final ArrayList<FileInfo> filesForParsing = new ArrayList<FileInfo>();
 				ArrayList<FileInfo> filesForSave = new ArrayList<FileInfo>();
-				Map<String, FileInfo> map = new HashMap<String, FileInfo>();
+				Map<String, FileInfo> mapOfFilesFoundInDb = new HashMap<String, FileInfo>();
 				for (FileInfo f : list)
-					map.put(f.getPathName(), f);
+					mapOfFilesFoundInDb.put(f.getPathName(), f);
+						
 				for (int i=0; i<baseDir.fileCount(); i++) {
 					FileInfo item = baseDir.getFile(i);
-					FileInfo fromDB = map.get(item.getPathName());
+					FileInfo fromDB = mapOfFilesFoundInDb.get(item.getPathName());
 					if (fromDB != null) {
 						// use DB value
 						baseDir.setFile(i, fromDB);
@@ -314,6 +320,8 @@ public class Scanner extends FileInfoChangeSource {
 	 * Scan single directory for dir and file properties in background thread.
 	 * @param baseDir is directory to scan
 	 * @param readyCallback is called on completion
+	 * @param recursiveScan is true to scan subdirectories recursively, false to scan current directory only
+	 * @param scanControl is to stop long scanning
 	 */
 	public void scanDirectory(final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl) {
 		// Call in GUI thread only!
@@ -339,15 +347,19 @@ public class Scanner extends FileInfoChangeSource {
 						baseDir.isScanned = true;
 
 						if ( recursiveScan ) {
-							if ( scanControl.isStopped() )
+							if (scanControl.isStopped()) {
+								// scan is stopped
+								readyCallback.run();
 								return;
+							}
+							// make list of subdirectories to scan
 							final ArrayList<FileInfo> dirsToScan = new ArrayList<FileInfo>(); 
 							for ( int i=baseDir.dirCount()-1; i>=0; i-- ) {
 								File dir = new File(baseDir.getDir(i).getPathName());
 								if (!engine.getPathCorrector().isRecursivePath(dir))
 									dirsToScan.add(baseDir.getDir(i));
 							}
-							Runnable dirIterator = new Runnable() {
+							final Runnable dirIterator = new Runnable() {
 								@Override
 								public void run() {
 									// process next directory from list
@@ -355,9 +367,14 @@ public class Scanner extends FileInfoChangeSource {
 										readyCallback.run();
 										return;
 									}
-									FileInfo dir = dirsToScan.get(0);
+									final FileInfo dir = dirsToScan.get(0);
 									dirsToScan.remove(0);
-									scanDirectory(dir, this, true, scanControl);
+									BackgroundThread.instance().postGUI(new Runnable() {
+										@Override
+										public void run() {
+											scanDirectory(dir, this, true, scanControl);
+										}
+									});
 								}
 							};
 							dirIterator.run();
