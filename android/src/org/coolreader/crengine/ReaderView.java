@@ -3684,8 +3684,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return;
 		mIsOnFront = front;
 		log.d("setOnFront(" + front + ")");
-		if (mIsOnFront)
+		if (mIsOnFront) {
 			checkSize();
+		} else {
+			// save position immediately
+			scheduleSaveCurrentPositionBookmark(0);
+		}
 	}
 	private void requestResize(int width, int height) {
 		requestedWidth = width;
