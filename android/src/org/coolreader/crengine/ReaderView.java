@@ -293,55 +293,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
 		log.i("onSizeChanged("+w + ", " + h +")");
 		super.onSizeChanged(w, h, oldw, oldh);
-		final int thisId = ++lastResizeTaskId;
-	    if ( w<h && mActivity.isLandscape() ) {
-	    	log.i("ignoring size change to portrait since landscape is set");
-	    	return;
-	    }
-//		if ( mActivity.isPaused() ) {
-//			log.i("ignoring size change since activity is paused");
-//			return;
-//		}
-		// update size with delay: chance to avoid extra unnecessary resizing
-		
-	    Runnable task = new Runnable() {
-	    	public void run() {
-	    		if ( thisId != lastResizeTaskId ) {
-					log.d("skipping duplicate resize request in GUI thread");
-	    			return;
-	    		}
-	    		post(new Task() {
-	    			public void work() {
-	    				BackgroundThread.ensureBackground();
-	    				if ( thisId != lastResizeTaskId ) {
-	    					log.d("skipping duplicate resize request");
-	    					return;
-	    				}
-	    		        internalDX = w;
-	    		        internalDY = h;
-	    				log.d("ResizeTask: resizeInternal("+w+","+h+")");
-	    		        doc.resize(w, h);
-//	    		        if ( mOpened ) {
-//	    					log.d("ResizeTask: done, drawing page");
-//	    			        drawPage();
-//	    		        }
-	    			}
-	    			public void done() {
-	    				clearImageCache();
-	    				drawPage(null, false);
-	    				//redraw();
-	    			}
-	    		});
-	    	}
-	    };
-	    if ( mOpened ) {
-	    	log.d("scheduling delayed resize task id="+thisId);
-	    	BackgroundThread.instance().postGUI( task, 500);
-	    } else {
-	    	log.d("executing resize without delay");
-	    	task.run();
-	    }
-	    
+		if (!mOpened)
+			resize(w, h, 0);
 	}
 	
 	public boolean isBookLoaded()
@@ -3724,11 +3677,63 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
+	private void resize(final int width, final int height, final long delay) {
+		final int thisId = ++lastResizeTaskId;
+//	    if ( w<h && mActivity.isLandscape() ) {
+//	    	log.i("ignoring size change to portrait since landscape is set");
+//	    	return;
+//	    }
+//		if ( mActivity.isPaused() ) {
+//			log.i("ignoring size change since activity is paused");
+//			return;
+//		}
+		// update size with delay: chance to avoid extra unnecessary resizing
+		
+	    Runnable task = new Runnable() {
+	    	public void run() {
+	    		if ( thisId != lastResizeTaskId ) {
+					log.d("skipping duplicate resize request in GUI thread");
+	    			return;
+	    		}
+	    		post(new Task() {
+	    			public void work() {
+	    				BackgroundThread.ensureBackground();
+	    				if ( thisId != lastResizeTaskId ) {
+	    					log.d("skipping duplicate resize request");
+	    					return;
+	    				}
+	    		        internalDX = width;
+	    		        internalDY = height;
+	    				log.d("ResizeTask: resizeInternal(" + width + "," + height + ")");
+	    		        doc.resize(width, height);
+//	    		        if ( mOpened ) {
+//	    					log.d("ResizeTask: done, drawing page");
+//	    			        drawPage();
+//	    		        }
+	    			}
+	    			public void done() {
+	    				clearImageCache();
+	    				drawPage(null, false);
+	    				//redraw();
+	    			}
+	    		});
+	    	}
+	    };
+	    if ( mOpened ) {
+	    	log.d("scheduling delayed resize task id=" + thisId);
+	    	BackgroundThread.instance().postGUI(task, delay);
+	    } else {
+	    	log.d("executing resize without delay");
+	    	task.run();
+	    }
+	}
+	
 	// SurfaceView callbacks
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
+	public void surfaceChanged(SurfaceHolder holder, int format, final int width,
+			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
+		resize(width, height, 200);
 		drawPage();
 	}
 
