@@ -369,6 +369,7 @@ public class BookInfoEditDialog extends BaseDialog {
         modified = file.setReadingState(state) || modified;
         if (modified) {
         	mActivity.getDB().saveBookInfo(mBookInfo);
+        	mActivity.getDB().flush();
         	BookInfo bi = mActivity.getHistory().getBookInfo(file);
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
