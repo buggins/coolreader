@@ -87,9 +87,10 @@ public class History extends FileInfoChangeSource {
 		updateRecentDir();
 	}
 	
-	public void updateBookAccess( BookInfo bookInfo )
+	public void updateBookAccess(BookInfo bookInfo)
 	{
 		Log.v("cr3", "History.updateBookAccess() for " + bookInfo.getFileInfo().getPathName());
+		bookInfo.updateAccess();
 		int index = findBookInfo(bookInfo.getFileInfo());
 		if ( index>=0 ) {
 			BookInfo info = mBooks.get(index);
@@ -97,7 +98,7 @@ public class History extends FileInfoChangeSource {
 				mBooks.remove(index);
 				mBooks.add(0, info);
 			}
-			info.updateAccess();
+			info.setBookmarks(bookInfo.getAllBookmarks());
 			updateRecentDir();
 		}
 	}

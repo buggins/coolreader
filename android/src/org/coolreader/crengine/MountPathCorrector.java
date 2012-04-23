@@ -11,6 +11,17 @@ public class MountPathCorrector {
 	private LinkCollection rootFileLinks = new LinkCollection(); 
 	public MountPathCorrector(File[] mountedRoots) {
 		this.mountedRoots = mountedRoots;
+		for (File f : mountedRoots)
+			this.rootFileLinks.addLinksFromPath(f);
+	}
+	
+	/**
+	 * For testing only: add hardcoded path.
+	 * @param from is link name
+	 * @param to is link destination
+	 */
+	private void addRootLink(String from, String to) {
+		rootFileLinks.add(new LinkInfo(from, to));
 	}
 
 	private static boolean pathStartsWith(String path, String pattern) {
@@ -186,5 +197,12 @@ public class MountPathCorrector {
 				+ Arrays.toString(mountedRoots) + ", rootFileLinks="
 				+ rootFileLinks + "]";
 	}
-	
+
+//	static {
+//		File[] roots = new File[] {new File("/mnt/sdcard")};
+//		MountPathCorrector test = new MountPathCorrector(roots);
+//		test.addRootLink("/sdcard", "/mnt/sdcard");
+//		L.v(test.normalize("/mnt/sdcard/books/book1.fb2"));
+//		L.v(test.normalize("/sdcard/books/book1.fb2"));
+//	}
 }
