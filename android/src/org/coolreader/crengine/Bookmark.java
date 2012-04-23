@@ -19,7 +19,6 @@ public class Bookmark {
 		posText=v.posText;
 		commentText=v.commentText;
 		timeStamp=v.timeStamp;
-		modified=v.modified;
 	}
 	
 	@Override
@@ -30,7 +29,6 @@ public class Bookmark {
 				+ ((commentText == null) ? 0 : commentText.hashCode());
 		result = prime * result + ((endPos == null) ? 0 : endPos.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + (modified ? 1231 : 1237);
 		result = prime * result + percent;
 		result = prime * result + ((posText == null) ? 0 : posText.hashCode());
 		result = prime * result + shortcut;
@@ -66,8 +64,6 @@ public class Bookmark {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;
-		if (modified != other.modified)
 			return false;
 		if (percent != other.percent)
 			return false;
@@ -117,7 +113,6 @@ public class Bookmark {
 		if (this.type == type)
 			return false;
 		this.type = type;
-		modified = true;
 		return true;
 	}
 	public int getPercent() {
@@ -125,21 +120,18 @@ public class Bookmark {
 	}
 	public void setPercent(int percent) {
 		this.percent = percent;
-		modified = true;
 	}
 	public String getStartPos() {
 		return startPos;
 	}
 	public void setStartPos(String startPos) {
 		this.startPos = startPos;
-		modified = true;
 	}
 	public String getEndPos() {
 		return endPos;
 	}
 	public void setEndPos(String endPos) {
 		this.endPos = endPos;
-		modified = true;
 	}
 	public String getCommentText() {
 		return commentText;
@@ -155,7 +147,6 @@ public class Bookmark {
 		if ( !changed(this.commentText, commentText) )
 			return false;
 		this.commentText = commentText;
-		modified = true;
 		return true;
 	}
 	public String getTitleText() {
@@ -167,17 +158,14 @@ public class Bookmark {
 	
 	public void setTitleText(String titleText) {
 		this.titleText = titleText;
-		modified = true;
 	}
 	public void setPosText(String posText) {
 		this.posText = posText;
-		modified = true;
 	}
 	public int getShortcut() {
 		return shortcut;
 	}
 	public void setShortcut(int shortcut) {
-		modified = true;
 		this.shortcut = shortcut;
 	}
 	public long getTimeStamp() {
@@ -187,7 +175,6 @@ public class Bookmark {
 		if ( this.timeStamp == timeStamp )
 			return;
 		this.timeStamp = timeStamp;
-		modified = true;
 	}
 	
 	public Long getId() {
@@ -197,13 +184,6 @@ public class Bookmark {
 		this.id = id;
 	}
 
-	public boolean isModified() {
-		return modified || id==null;
-	}
-	public void setModified(boolean modified) {
-		this.modified = modified;
-	}
-	
 	public boolean isValid() {
 		if (startPos == null || startPos.length() == 0)
 			return false;
@@ -228,7 +208,6 @@ public class Bookmark {
 	private String posText;
 	private String commentText;
 	private long timeStamp = System.currentTimeMillis(); // UTC timestamp
-	private boolean modified;
 	@Override
 	public String toString() {
 		return "Bookmark[t=" + type + ", start=" + startPos + "]";

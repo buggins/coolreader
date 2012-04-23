@@ -266,6 +266,7 @@ public class FileInfo {
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
 		language = v.language;
+		id = v.id;
 	}
 	
 	/**

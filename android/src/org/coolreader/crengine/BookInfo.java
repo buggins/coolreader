@@ -18,7 +18,6 @@ public class BookInfo {
 	synchronized public void setShortcutBookmark(int shortcut, Bookmark bookmark)
 	{
 		bookmark.setShortcut(shortcut);
-		bookmark.setModified(true);
 		for ( int i=0; i<bookmarks.size(); i++ ) {
 			Bookmark bm = bookmarks.get(i);
 			if ( bm.getType()==Bookmark.TYPE_POSITION && bm.getShortcut()==shortcut ) {
@@ -77,7 +76,6 @@ public class BookInfo {
 				position.setId(lastPosition.getId());
 			}
 			lastPosition = position;
-			lastPosition.setModified(true);
 			fileInfo.lastAccessTime = lastPosition.getTimeStamp();
 		}
 	}
@@ -168,9 +166,7 @@ public class BookInfo {
 		item.setTimeStamp(bm.getTimeStamp());
 		item.setPosText(bm.getPosText());
 		item.setCommentText(bm.getCommentText());
-		if (item.isModified())
-			return item;
-		return null;
+		return item;
 	}
 
 	synchronized public Bookmark updateBookmark(Bookmark bm)
@@ -186,8 +182,6 @@ public class BookInfo {
 		item.setTimeStamp(bm.getTimeStamp());
 		item.setPosText(bm.getPosText());
 		item.setCommentText(bm.getCommentText());
-		if (!item.isModified())
-			return null;
 		return item;
 	}
 	synchronized public Bookmark removeBookmark(Bookmark bm)

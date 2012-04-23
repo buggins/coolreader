@@ -310,7 +310,6 @@ public class MainDB extends BaseDB {
 		v.setTitleText( rs.getString(i++) );
 		v.setPosText( rs.getString(i++) );
 		v.setCommentText( rs.getString(i++) );
-		v.setModified(false);
 	}
 
 	public boolean findBy( Bookmark v, String condition ) {
@@ -796,8 +795,6 @@ public class MainDB extends BaseDB {
 
 	private boolean save( Bookmark v, long bookId )
 	{
-		if ( !v.isModified() )
-			return false;
 		Log.d("cr3db", "saving bookmark id=" + v.getId() + ", bookId=" + bookId + ", pos=" + v.getStartPos());
 		if ( v.getId()!=null ) {
 			// update
@@ -817,7 +814,6 @@ public class MainDB extends BaseDB {
 			QueryHelper h = new QueryHelper(v, oldValue, bookId);
 			v.setId( h.insert() );
 		}
-		v.setModified(false);
 		return true;
 	}
 
