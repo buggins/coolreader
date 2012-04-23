@@ -562,11 +562,11 @@ Podívejte se v souboru README.TXT v kořenovém adresáři na pokyn pro sestave
     <name>ExportProgressDlg</name>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished">Dialog</translation>
+        <translation>Dialog</translation>
     </message>
     <message>
         <source>Export is in progress...</source>
-        <translation type="unfinished">Probíhá vyvádění...</translation>
+        <translation>Probíhá vyvádění...</translation>
     </message>
 </context>
 <context>
@@ -1237,39 +1237,39 @@ Podívejte se v souboru README.TXT v kořenovém adresáři na pokyn pro sestave
     <name>SearchDialog</name>
     <message>
         <source>Not found</source>
-        <translation type="unfinished"></translation>
+        <translation>Nenalezeno</translation>
     </message>
     <message>
         <source>Search pattern is not found in document</source>
-        <translation type="unfinished"></translation>
+        <translation>Hledaný vzor nebyl v dokumentu nalezen</translation>
     </message>
     <message>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Hledání</translation>
     </message>
     <message>
         <source>Text</source>
-        <translation type="unfinished">Text</translation>
+        <translation>Text</translation>
     </message>
     <message>
         <source>Case Sensitive</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozlišovat velká a malá písmena</translation>
     </message>
     <message>
         <source>Search forward</source>
-        <translation type="unfinished"></translation>
+        <translation>Hledat dopředu</translation>
     </message>
     <message>
         <source>Search backward</source>
-        <translation type="unfinished"></translation>
+        <translation>Hledat dozadu</translation>
     </message>
     <message>
         <source>Find Next</source>
-        <translation type="unfinished"></translation>
+        <translation>Najít další</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished">Zavřít</translation>
+        <translation>Zavřít</translation>
     </message>
 </context>
 <context>
@@ -1284,7 +1284,7 @@ Podívejte se v souboru README.TXT v kořenovém adresáři na pokyn pro sestave
     </message>
     <message>
         <source>The quick brown fox jumps over the lazy dog. </source>
-        <translation>Rychlá liška skáče přes pomalého ježka. </translation>
+        <translation>Rychlá bílá liška hbytě skáče přes pomalého ježka. Ó, ú, á, é (obdivné výkřiky přihlížejících). </translation>
     </message>
     <message>
         <source>Text color</source>
@@ -2086,27 +2086,27 @@ Podívejte se v souboru README.TXT v kořenovém adresáři na pokyn pro sestave
     <name>WolExportDlg</name>
     <message>
         <source>Dialog</source>
-        <translation type="unfinished">Dialog</translation>
+        <translation>Dialog</translation>
     </message>
     <message>
         <source>Bits per pixel</source>
-        <translation type="unfinished">Bitů na pixel</translation>
+        <translation>Bitů na pixel</translation>
     </message>
     <message>
         <source>1</source>
-        <translation type="unfinished">1</translation>
+        <translation>1</translation>
     </message>
     <message>
         <source>2</source>
-        <translation type="unfinished">2</translation>
+        <translation>2</translation>
     </message>
     <message>
         <source>Table of Contents levels</source>
-        <translation type="unfinished">Úrovně obsahu</translation>
+        <translation>Úrovně obsahu</translation>
     </message>
     <message>
         <source>3</source>
-        <translation type="unfinished">3</translation>
+        <translation>3</translation>
     </message>
 </context>
 </TS>
