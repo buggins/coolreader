@@ -503,13 +503,13 @@ public class CRDBService extends Service {
 		@Override
 		public void run() {
 			long ts = Utils.timeStamp();
-			log.v(toString() + " started");
+			vlog.v(toString() + " started");
 			try {
 				work();
 			} catch (Exception e) {
 				log.e("Exception while running DB task in background", e);
 			}
-			log.v(toString() + " finished in " + Utils.timeInterval(ts) + " ms");
+			vlog.v(toString() + " finished in " + Utils.timeInterval(ts) + " ms");
 		}
 		
 		public abstract void work();

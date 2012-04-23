@@ -99,8 +99,10 @@ public class History extends FileInfoChangeSource {
 				mBooks.add(0, info);
 			}
 			info.setBookmarks(bookInfo.getAllBookmarks());
-			updateRecentDir();
+		} else {
+			mBooks.add(0, bookInfo);
 		}
+		updateRecentDir();
 	}
 
 	public int findBookInfo( String pathname )

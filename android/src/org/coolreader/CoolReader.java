@@ -1115,7 +1115,7 @@ public class CoolReader extends Activity
 	
 	@Override
 	protected void onStart() {
-		log.i("CoolReader.onStart() fileToLoadOnStart=" + fileToLoadOnStart);
+		log.i("CoolReader.onStart() version=" + getVersion() + ", fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
 		
 		mPaused = false;
