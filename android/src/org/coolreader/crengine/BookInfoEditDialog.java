@@ -338,6 +338,8 @@ public class BookInfoEditDialog extends BaseDialog {
 	}
 	
 	private void save() {
+		L.d("BokoInfoEditDialog.save()");
+		
         FileInfo file = mBookInfo.getFileInfo();
         boolean modified = false;
         modified = file.setTitle(edTitle.getText().toString().trim()) || modified;
@@ -374,7 +376,7 @@ public class BookInfoEditDialog extends BaseDialog {
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
         	mParentDir.setFile(file);
-        	mActivity.getBrowser().onChange(file);
+        	mActivity.getBrowser().onChange(file, true);
         }
 	}
 

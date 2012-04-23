@@ -15,7 +15,7 @@ import android.util.Log;
 public abstract class BaseDB {
 
 	public static final Logger log = L.create("bdb");
-	public static final Logger vlog = L.create("bdb", Log.VERBOSE);
+	public static final Logger vlog = L.create("bdb", Log.INFO);
 	
 	protected SQLiteDatabase mDB;
 	private File mFileName;
@@ -211,6 +211,7 @@ public abstract class BaseDB {
 	public void flush() {
 		if (mDB.inTransaction()) {
 			if (changed) {
+				changed = false;
 				mDB.setTransactionSuccessful();
 				log.i("flush: committing changes");
 			} else {

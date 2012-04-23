@@ -968,6 +968,130 @@ public class FileInfo {
 		}
 	}
 	
+	
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((arcname == null) ? 0 : arcname.hashCode());
+		result = prime * result + arcsize;
+		result = prime * result + ((authors == null) ? 0 : authors.hashCode());
+		result = prime * result + (int) (createTime ^ (createTime >>> 32));
+		result = prime * result + ((dirs == null) ? 0 : dirs.hashCode());
+		result = prime * result
+				+ ((filename == null) ? 0 : filename.hashCode());
+		result = prime * result + ((files == null) ? 0 : files.hashCode());
+		result = prime * result + flags;
+		result = prime * result + ((format == null) ? 0 : format.hashCode());
+		result = prime * result + (isArchive ? 1231 : 1237);
+		result = prime * result + (isDirectory ? 1231 : 1237);
+		result = prime * result + (isListed ? 1231 : 1237);
+		result = prime * result + (isScanned ? 1231 : 1237);
+		result = prime * result
+				+ ((language == null) ? 0 : language.hashCode());
+		result = prime * result
+				+ (int) (lastAccessTime ^ (lastAccessTime >>> 32));
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime * result + ((path == null) ? 0 : path.hashCode());
+		result = prime * result
+				+ ((pathname == null) ? 0 : pathname.hashCode());
+		result = prime * result + ((series == null) ? 0 : series.hashCode());
+		result = prime * result + seriesNumber;
+		result = prime * result + size;
+		result = prime * result + ((title == null) ? 0 : title.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FileInfo other = (FileInfo) obj;
+		if (arcname == null) {
+			if (other.arcname != null)
+				return false;
+		} else if (!arcname.equals(other.arcname))
+			return false;
+		if (arcsize != other.arcsize)
+			return false;
+		if (authors == null) {
+			if (other.authors != null)
+				return false;
+		} else if (!authors.equals(other.authors))
+			return false;
+		if (createTime != other.createTime)
+			return false;
+		if (dirs == null) {
+			if (other.dirs != null)
+				return false;
+		} else if (!dirs.equals(other.dirs))
+			return false;
+		if (filename == null) {
+			if (other.filename != null)
+				return false;
+		} else if (!filename.equals(other.filename))
+			return false;
+		if (files == null) {
+			if (other.files != null)
+				return false;
+		} else if (!files.equals(other.files))
+			return false;
+		if (flags != other.flags)
+			return false;
+		if (format != other.format)
+			return false;
+		if (isArchive != other.isArchive)
+			return false;
+		if (isDirectory != other.isDirectory)
+			return false;
+		if (isListed != other.isListed)
+			return false;
+		if (isScanned != other.isScanned)
+			return false;
+		if (language == null) {
+			if (other.language != null)
+				return false;
+		} else if (!language.equals(other.language))
+			return false;
+		if (lastAccessTime != other.lastAccessTime)
+			return false;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		if (path == null) {
+			if (other.path != null)
+				return false;
+		} else if (!path.equals(other.path))
+			return false;
+		if (pathname == null) {
+			if (other.pathname != null)
+				return false;
+		} else if (!pathname.equals(other.pathname))
+			return false;
+		if (series == null) {
+			if (other.series != null)
+				return false;
+		} else if (!series.equals(other.series))
+			return false;
+		if (seriesNumber != other.seriesNumber)
+			return false;
+		if (size != other.size)
+			return false;
+		if (title == null) {
+			if (other.title != null)
+				return false;
+		} else if (!title.equals(other.title))
+			return false;
+		return true;
+	}
+
 	@Override
 	public String toString()
 	{

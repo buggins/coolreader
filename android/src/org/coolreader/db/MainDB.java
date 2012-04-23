@@ -828,8 +828,12 @@ public class MainDB extends BaseDB {
 		}
 		if (bookInfo == null || bookInfo.getFileInfo() == null)
 			return;
+		
+		// save main data
 		save(bookInfo.getFileInfo());
 		fileInfoCache.put(bookInfo.getFileInfo());
+		
+		// save bookmarks
 		HashMap<String, Bookmark> bookmarks = loadBookmarks(bookInfo.getFileInfo());
 		int changed = 0;
 		int removed = 0;
@@ -875,14 +879,15 @@ public class MainDB extends BaseDB {
 					beginChanges();
 					QueryHelper h = new QueryHelper(fileInfo, oldValue);
 					h.update(fileInfo.id);
-					authorsChanged = !eq(fileInfo.authors, oldValue.authors);
 				}
+				authorsChanged = !eq(fileInfo.authors, oldValue.authors);
 			} else {
 				// inserting
 				vlog.d("inserting new file " + fileInfo.getPathName());
 				beginChanges();
 				QueryHelper h = new QueryHelper(fileInfo, new FileInfo());
 				fileInfo.id = h.insert();
+				authorsChanged = true;
 			}
 			
 			fileInfoCache.put(fileInfo);
@@ -933,7 +938,7 @@ public class MainDB extends BaseDB {
 				file = f;
 				fileInfoCache.put(file);
 			}
-			BookInfo item = new BookInfo( file );
+			BookInfo item = new BookInfo(new FileInfo(file));
 			loadBookmarks(item);
 			res.add(item);
 		}
@@ -1082,6 +1087,7 @@ public class MainDB extends BaseDB {
 				first = false;
 			}
 			buf.append(" WHERE id=" + id );
+			vlog.v("executing " + buf);
 			mDB.execSQL(buf.toString(), values.toArray());
 			return true;
 		}
@@ -1108,6 +1114,8 @@ public class MainDB extends BaseDB {
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 			add("flags", (long)newValue.flags, (long)oldValue.flags);
 			add("language", newValue.language, oldValue.language);
+			if (fields.size() == 0)
+				vlog.v("QueryHelper: no fields to update");
 		}
 		QueryHelper( Bookmark newValue, Bookmark oldValue, long bookId )
 		{
@@ -1176,8 +1184,8 @@ public class MainDB extends BaseDB {
 					readFileInfoFromCursor( fileInfo, rs );
 					if ( !fileInfo.fileExists() )
 						continue;
-					list.add(fileInfo);
 					fileInfoCache.put(fileInfo);
+					list.add(new FileInfo(fileInfo));
 					found = true;
 				} while (rs.moveToNext());
 			}
@@ -1289,7 +1297,7 @@ public class MainDB extends BaseDB {
 			for (String path : pathNames) {
 				FileInfo file = findFileInfoByPathname(path);
 				if (file != null)
-					list.add(file);
+					list.add(new FileInfo(file));
 			}
 			endReading();
 		} catch (Exception e) {
@@ -1318,12 +1326,12 @@ public class MainDB extends BaseDB {
 		try {
 			FileInfo cached = fileInfoCache.get(fileInfo.getPathName());
 			if (cached != null) {
-				BookInfo book = new BookInfo(cached);
+				BookInfo book = new BookInfo(new FileInfo(cached));
 				loadBookmarks(book);
 				return book;
 			}
 			if (loadByPathname(fileInfo)) {
-				BookInfo book = new BookInfo(fileInfo);
+				BookInfo book = new BookInfo(new FileInfo(fileInfo));
 				loadBookmarks(book);
 				return book;
 			}
@@ -1339,12 +1347,12 @@ public class MainDB extends BaseDB {
 		try {
 			FileInfo cached = fileInfoCache.get(pathName);
 			if (cached != null) {
-				return cached;
+				return new FileInfo(cached);
 			}
 			FileInfo fileInfo = new FileInfo(pathName);
 			if (loadByPathname(fileInfo)) {
 				fileInfoCache.put(fileInfo);
-				return fileInfo;
+				return new FileInfo(fileInfo);
 			}
 		} catch (Exception e) {
 			// ignore

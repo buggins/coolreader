@@ -800,13 +800,16 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	};
 	
 	@Override
-	public void onChange(FileInfo object) {
+	public void onChange(FileInfo object, boolean filePropsOnly) {
 		if (currDirectory == null)
 			return;
 		if (!currDirectory.pathNameEquals(object) && !currDirectory.hasItem(object))
 			return;
 		// refresh
-		showDirectoryInternal(currDirectory, null);
+		if (filePropsOnly)
+			currentListAdapter.notifyInvalidated();
+		else
+			showDirectoryInternal(currDirectory, null);
 	}
 
 	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )

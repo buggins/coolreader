@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import java.nio.channels.FileChannel;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,8 +12,8 @@ public class FileInfoChangeSource implements FileInfoChangeListener {
 		listeners.remove(listener);
 	}
 	@Override
-	public void onChange(FileInfo object) {
+	public void onChange(FileInfo object, boolean filePropsOnlyChange) {
 		for (FileInfoChangeListener listener : listeners)
-			listener.onChange(object);
+			listener.onChange(object, filePropsOnlyChange);
 	}
 }

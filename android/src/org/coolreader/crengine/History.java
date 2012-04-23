@@ -132,7 +132,7 @@ public class History extends FileInfoChangeSource {
 			mRecentBooksFolder.clear();
 			for ( BookInfo book : mBooks )
 				mRecentBooksFolder.addFile(book.getFileInfo());
-			onChange(mRecentBooksFolder);
+			onChange(mRecentBooksFolder, false);
 		} else {
 			Log.v("cr3", "History.updateRecentDir() : mRecentBooksFolder is null");
 		}

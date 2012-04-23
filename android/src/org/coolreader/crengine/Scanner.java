@@ -206,7 +206,7 @@ public class Scanner extends FileInfoChangeSource {
 	 */
 	public void onDirectoryContentChanged(FileInfo dir) {
 		log.v("onDirectoryContentChanged(" + dir.getPathName() + ")");
-		onChange(dir);
+		onChange(dir, false);
 	}
 	
 	/**
