@@ -1159,9 +1159,16 @@ void LFormattedText::setHighlightOptions(text_highlight_options_t * v)
 void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int y1, int y, int flags, text_highlight_options_t * options) {
     if (!(flags & (4 | 8)))
         return;
-    lUInt32 cl = (flags & 4) ? options->commentColor : options->correctionColor;
     if (options->bookmarkHighlightMode == highlight_mode_none)
         return;
+    bool isGray = drawbuf.GetBitsPerPixel() <= 8;
+    lUInt32 cl = 0x000000;
+    if (isGray) {
+        if (options->bookmarkHighlightMode == highlight_mode_solid)
+            cl = (flags & 4) ? 0xDD000000 : 0xAA000000;
+    } else {
+        cl = (flags & 4) ? options->commentColor : options->correctionColor;
+    }
 
     if (options->bookmarkHighlightMode == highlight_mode_solid) {
         // solid fill
