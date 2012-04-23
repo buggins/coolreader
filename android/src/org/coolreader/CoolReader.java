@@ -793,7 +793,7 @@ public class CoolReader extends Activity
     		return;
     	// repeat again in short interval
     	if (!mEngine.setKeyBacklight(0)) {
-    		log.w("Cannot control key backlight directly");
+    		//log.w("Cannot control key backlight directly");
     		return;
     	}
     	// repeat again in short interval
@@ -802,8 +802,9 @@ public class CoolReader extends Activity
 			public void run() {
 		    	if (!isStarted())
 		    		return;
-		    	if (!mEngine.setKeyBacklight(0))
-		    		log.w("Cannot control key backlight directly (delayed)");
+		    	if (!mEngine.setKeyBacklight(0)) {
+		    		//log.w("Cannot control key backlight directly (delayed)");
+		    	}
 			}
 		};
 		BackgroundThread.instance().postGUI(task, 1);
@@ -901,7 +902,7 @@ public class CoolReader extends Activity
 		        		b = -1.0f; //BRIGHTNESS_OVERRIDE_NONE
 		        	}
 		        	mReaderView.setDimmingAlpha(dimmingAlpha);
-			    	log.d("Brightness: " + b + ", dim: " + dimmingAlpha);
+			    	//log.v("Brightness: " + b + ", dim: " + dimmingAlpha);
 			    	updateBacklightBrightness(b);
 			    	updateButtonsBrightness(keyBacklightOff ? 0.0f : -1.0f);
 				} catch ( Exception e ) {
