@@ -1267,9 +1267,13 @@ public class Engine {
 			"/Removable/USBDisk1", 
 		};
 		for (String point : knownMountPoints) {
-			if (isLink(point) != null)
-				continue; // skip link
-			addMountRoot(map, point, point);
+			String link = isLink(point);
+			if (link != null) {
+				log.d("standard mount point path is link: " + point + " > " + link);
+				addMountRoot(map, link, link);
+			} else {
+				addMountRoot(map, point, point);
+			}
 		}
 		
 		// auto detection
