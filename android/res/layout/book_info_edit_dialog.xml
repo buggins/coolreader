@@ -21,10 +21,6 @@
 	        <ImageButton android:id="@+id/base_dlg_btn_back"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-	            android:layout_marginTop="5dip"
-	            android:layout_marginBottom="5dip"
-	            android:layout_marginLeft="5dip"
-	            android:layout_marginRight="5dip"
 	            android:layout_centerVertical="true"
                 android:minWidth="?android:attr/listPreferredItemHeight"
 	            android:src="@drawable/cr3_button_prev"
@@ -35,41 +31,42 @@
             <ImageButton android:id="@+id/btn_open_book"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dip"
-                android:layout_marginBottom="5dip"
-                android:layout_marginLeft="15dip"
-                android:layout_marginRight="15dip"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
                 android:minWidth="?android:attr/listPreferredItemHeight"
-                android:src="@drawable/cr3_browser_book"
+                android:src="@drawable/cr3_button_book_open"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:background="@null"
                 />
-	        <TextView android:id="@+id/base_dlg_title"
-	            style="@style/TextAppearance.Medium"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:layout_marginTop="4dip"
-	            android:layout_marginBottom="4dip"
-	            android:layout_marginRight="4dip"
-	            android:layout_marginLeft="4dip"
-	            android:layout_weight="1"
-	            android:singleLine="false"
-	            android:text="@string/dlg_book_info"
-	            android:layout_centerVertical="true"
-	            />
-   	        <ImageButton android:id="@+id/book_delete"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:layout_marginTop="5dip"
-	            android:layout_marginBottom="5dip"
-	            android:layout_marginLeft="5dip"
-	            android:layout_marginRight="5dip"
-	            android:layout_centerVertical="true"
+            <ImageButton android:id="@+id/book_folder_open"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
                 android:minWidth="?android:attr/listPreferredItemHeight"
-	            android:src="@drawable/cr3_button_remove"
+                android:src="@drawable/cr3_button_folder_go"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:background="@null"
+                />
+            <ImageButton android:id="@+id/book_recent_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:gravity="right"
+                android:minWidth="?android:attr/listPreferredItemHeight"
+                android:src="@drawable/cr3_button_recent_book_delete"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:background="@null"
+                />
+            <ImageButton android:id="@+id/book_delete"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_centerVertical="true"
+                android:gravity="right"
+                android:minWidth="?android:attr/listPreferredItemHeight"
+	            android:src="@drawable/cr3_button_book_delete"
 	            android:focusable="false"
 	            android:focusableInTouchMode="false"
 	            android:background="@null"
@@ -231,15 +228,5 @@
 			    />
 			</TableRow>
 	    </TableLayout>
-        <TableLayout 
-            android:id="@+id/buttons_table"
-            android:layout_marginTop="10dip"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
-            <TableRow >
-                <Button android:id="@+id/btn_goto_folder" android:text="@string/mi_book_recent_goto" android:layout_weight="1"/>
-                <Button android:id="@+id/btn_remove_from_recent" android:text="@string/mi_book_recent_remove" android:layout_weight="1"/>
-            </TableRow>
-        </TableLayout>
 	</LinearLayout>
 </ScrollView>

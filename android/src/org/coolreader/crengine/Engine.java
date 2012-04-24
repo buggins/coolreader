@@ -925,6 +925,8 @@ public class Engine {
 	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 	private int currentKeyBacklightLevel = 1;
 	public boolean setKeyBacklight(int value) {
+		if (!initialized)
+			return false;
 		currentKeyBacklightLevel = value;
 		// Try ICS way
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
@@ -1444,11 +1446,9 @@ public class Engine {
 					R.drawable.bg_paper1),
 			new BackgroundTextureInfo("bg_paper1_dark", "Paper 1 (dark)",
 					R.drawable.bg_paper1_dark),
+			new BackgroundTextureInfo("tx_wood", "Wood", DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_v3 : R.drawable.tx_wood),
 			new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)",
-					R.drawable.tx_wood_dark),
-			new BackgroundTextureInfo("tx_wood", "Wood", R.drawable.tx_wood),
-			new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)",
-					R.drawable.tx_wood_dark),
+					DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_dark_v3 : R.drawable.tx_wood_dark),
 			new BackgroundTextureInfo("tx_fabric", "Fabric",
 					R.drawable.tx_fabric),
 			new BackgroundTextureInfo("tx_fabric_dark", "Fabric (dark)",

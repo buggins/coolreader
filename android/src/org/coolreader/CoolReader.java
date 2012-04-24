@@ -808,7 +808,7 @@ public class CoolReader extends Activity
 			}
 		};
 		BackgroundThread.instance().postGUI(task, 1);
-		BackgroundThread.instance().postGUI(task, 10);
+		//BackgroundThread.instance().postGUI(task, 10);
     }
     
     private void updateBacklightBrightness(float b) {
