@@ -1188,18 +1188,22 @@ public class Engine {
 			"/etc/vold.fstab",
 		};
 		String s = null;
+		String fstabFileName = null;
 		for (String fstabFile : fstabLocations) {
+			fstabFileName = fstabFile;
 			s = loadFileUtf8(new File(fstabFile));
 			if (s != null)
 				log.i("found fstab file " + fstabFile);
 		}
 		if (s == null)
-			log.d("fstab file not found");
+			log.w("fstab file not found");
 		if ( s!= null) {
 			String[] rows = s.split("\n");
+			int rulesFound = 0;
 			for (String row : rows) {
 				if (row != null && row.startsWith("dev_mount")) {
 					log.d("mount rule: " + row);
+					rulesFound++;
 					String[] cols = row.split(" ");
 					if (cols.length >= 5) {
 						String name = ntrim(cols[1]);
@@ -1233,6 +1237,8 @@ public class Engine {
 					}
 				}
 			}
+			if (rulesFound == 0)
+				log.w("mount point rules not found in " + fstabFileName);
 		}
 
 		// TODO: probably, hardcoded list is not necessary after /etc/vold parsing 
