@@ -5,7 +5,7 @@
     <name>AboutDialog</name>
     <message>
         <source>About CoolReader</source>
-        <translation>O programu CoolReader</translation>
+        <translation>O programu Cool Reader</translation>
     </message>
     <message>
         <source>Dialog</source>
@@ -1284,7 +1284,7 @@ Podívejte se v souboru README.TXT v kořenovém adresáři na pokyn pro sestave
     </message>
     <message>
         <source>The quick brown fox jumps over the lazy dog. </source>
-        <translation>Rychlá bílá liška hbytě skáče přes pomalého ježka. Ó, ú, á, é (obdivné výkřiky přihlížejících). </translation>
+        <translation>Rychlá bílá liška hbitě skáče přes pomalého ježka. Ó, ú, á, é (zní obdivné výkřiky přihlížejících). </translation>
     </message>
     <message>
         <source>Text color</source>
