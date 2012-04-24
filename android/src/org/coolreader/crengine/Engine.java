@@ -1204,7 +1204,7 @@ public class Engine {
 				if (row != null && row.startsWith("dev_mount")) {
 					log.d("mount rule: " + row);
 					rulesFound++;
-					String[] cols = row.split(" ");
+					String[] cols = Utils.splitByWhitespace(row);
 					if (cols.length >= 5) {
 						String name = ntrim(cols[1]);
 						String point = ntrim(cols[2]);
@@ -1215,7 +1215,7 @@ public class Engine {
 						String label = null;
 						boolean hasusb = dev.indexOf("usb") >= 0;
 						boolean hasmmc = dev.indexOf("mmc") >= 0;
-						log.i("mount point found: '" + name + "'  " + point + "  device = " + dev);
+						log.i("mount point found: '" + name + "'  " + point + "  device=" + dev);
 						if ("auto".equals(mode)) {
 							// assume AUTO is for externally automount devices
 							if (hasusb)

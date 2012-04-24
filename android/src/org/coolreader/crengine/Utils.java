@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import android.util.Log;
 
@@ -194,6 +195,25 @@ public class Utils {
 				return true;
 		}
 		return false;
+	}
+	
+	public static String[] splitByWhitespace(String str) {
+		ArrayList<String> list = new ArrayList<String>();
+		StringBuilder buf = new StringBuilder();
+		for (int i=0; i<str.length(); i++) {
+			char ch = str.charAt(i);
+			if (ch == ' ' || ch == '\t') {
+				if (buf.length() > 0) {
+					list.add(buf.toString());
+					buf = new StringBuilder();
+				}
+			} else {
+				buf.append(ch);
+			}
+		}
+		if (buf.length() > 0)
+			list.add(buf.toString());
+		return list.toArray(new String[list.size()]);
 	}
 	
 }
