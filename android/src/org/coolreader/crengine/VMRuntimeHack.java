@@ -39,6 +39,8 @@ public class VMRuntimeHack {
 		}
 	}
 	public VMRuntimeHack() {
+		if (!DeviceInfo.USE_BITMAP_MEMORY_HACK)
+			return;
 		boolean success = false;
 		try {
 			Class cl = Class.forName("dalvik.system.VMRuntime");

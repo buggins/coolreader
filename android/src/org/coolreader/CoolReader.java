@@ -969,6 +969,7 @@ public class CoolReader extends Activity
 			@Override
 			public void run() {
 				log.i("Stopping background thread");
+				mEngine.uninit();
 				mBackgroundThread.quit();
 				mBackgroundThread = null;
 				mEngine = null;

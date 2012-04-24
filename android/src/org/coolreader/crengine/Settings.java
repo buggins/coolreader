@@ -69,7 +69,6 @@ public interface Settings {
     public static final String PROP_APP_SETTINGS_SHOW_ICONS ="app.settings.show.icons";
     public static final String PROP_APP_KEY_BACKLIGHT_OFF   ="app.key.backlight.disabled";
 
-    
 	 // image scaling settings
 	 // mode: 0=disabled, 1=integer scaling factors, 2=free scaling
 	 // scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
@@ -141,6 +140,9 @@ public interface Settings {
 
     public static final String PROP_APP_LOCALE = "app.locale.name";
     
+    public static final String PROP_APP_STARTUP_ACTION="app.startup.action";
+    
+
     // available options for PROP_APP_SELECTION_ACTION setting
     public static final int SELECTION_ACTION_TOOLBAR = 0;
     public static final int SELECTION_ACTION_COPY = 1;
@@ -158,6 +160,11 @@ public interface Settings {
     public static final int BACKLIGHT_CONTROL_FLICK_LEFT = 1;
     public static final int BACKLIGHT_CONTROL_FLICK_RIGHT = 2;
 
+    public static final int APP_STARTUP_ACTION_LAST_BOOK = 0;
+    public static final int APP_STARTUP_ACTION_ROOT = 1;
+    public static final int APP_STARTUP_ACTION_RECENT_BOOKS = 2;
+    public static final int APP_STARTUP_ACTION_LAST_BOOK_FOLDER = 3;
+    
     public enum Lang {
     	DEFAULT("system", R.string.options_app_locale_system, R.raw.help_template_en),
     	EN("en", R.string.options_app_locale_en, R.raw.help_template_en),
