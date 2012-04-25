@@ -98,8 +98,6 @@ public class CoolReader extends Activity
 	//View startupView;
 	History mHistory;
 	//CRDB mDB;
-	private BackgroundThread mBackgroundThread;
-	
 	
 	public CoolReader() {
 	    brightnessHackError = false; //DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
@@ -557,8 +555,7 @@ public class CoolReader extends Activity
 		log.i("CoolReader version : " + getVersion());
 		
 		// testing background thread
-    	mBackgroundThread = BackgroundThread.instance();
-		mEngine = new Engine(this, mBackgroundThread);
+		mEngine = Engine.getInstance(this);
 		
        	mScanner = new Scanner(this, mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
@@ -643,7 +640,7 @@ public class CoolReader extends Activity
 		setLanguage(lang);
     	
 		mFrame = new FrameLayout(this);
-		mBackgroundThread.setGUI(mFrame);
+		BackgroundThread.instance().setGUI(mFrame);
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -660,7 +657,7 @@ public class CoolReader extends Activity
         mEngine.showProgress( 0, R.string.progress_starting_cool_reader );
 
         // wait until all background tasks are executed
-        mBackgroundThread.syncWithBackground();
+        BackgroundThread.instance().syncWithBackground();
 
         String code = props.getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
         Engine.HyphDict dict = HyphDict.byCode(code);
@@ -695,7 +692,7 @@ public class CoolReader extends Activity
 //			setTheme(R.style.Dialog_Fullscreen_Day);
 //		}
 		
-		mReaderView = new ReaderView(this, mEngine, mBackgroundThread, props);
+		mReaderView = new ReaderView(this, mEngine, props);
 
 		mScanner.setDirScanEnabled(props.getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		
@@ -875,7 +872,7 @@ public class CoolReader extends Activity
       	    backlightControl.onUserActivity();
     	// Hack
     	//if ( backlightControl.isHeld() )
-    	BackgroundThread.guiExecutor.execute(new Runnable() {
+    	BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -948,8 +945,8 @@ public class CoolReader extends Activity
 		}
 
 		mCRDBService.unbind();
-//		if ( mBackgroundThread!=null ) {
-//			mBackgroundThread.quit();
+//		if ( BackgroundThread.instance()!=null ) {
+//			BackgroundThread.instance().quit();
 //		}
 			
 		mReaderView = null;
@@ -970,8 +967,7 @@ public class CoolReader extends Activity
 			public void run() {
 				log.i("Stopping background thread");
 				mEngine.uninit();
-				mBackgroundThread.quit();
-				mBackgroundThread = null;
+				BackgroundThread.instance().quit();
 				mEngine = null;
 			}
 		});
@@ -1138,7 +1134,7 @@ public class CoolReader extends Activity
 		if (billingSupported)
 			ResponseHandler.register(mPurchaseObserver);
 
-		mBackgroundThread.postGUI(new Runnable() {
+		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
 				// fixing font settings
 				Properties settings = mReaderView.getSettings();
@@ -1177,7 +1173,7 @@ public class CoolReader extends Activity
 		stopped = false;
 		
 		final String fileName = fileToLoadOnStart;
-		mBackgroundThread.postGUI(new Runnable() {
+		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
 				log.i("onStart, scheduled runnable: submitting task");
 		        mEngine.execute(new LoadLastDocumentTask(fileName));
@@ -1260,10 +1256,10 @@ public class CoolReader extends Activity
 	}
 	public void showView( View view, boolean hideProgress )
 	{
-		if ( mBackgroundThread==null )
+		if (!mIsStarted)
 			return;
 		if ( hideProgress )
-		mBackgroundThread.postGUI(new Runnable() {
+		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
 				mEngine.hideProgress();
 			}
@@ -1448,10 +1444,10 @@ public class CoolReader extends Activity
 	public void showOptionsDialog(final OptionsDialog.Mode mode)
 	{
 		final CoolReader _this = this;
-		mBackgroundThread.executeBackground(new Runnable() {
+		BackgroundThread.instance().postBackground(new Runnable() {
 			public void run() {
 				mFontFaces = mEngine.getFontFaceList();
-				mBackgroundThread.executeGUI(new Runnable() {
+				BackgroundThread.instance().executeGUI(new Runnable() {
 					public void run() {
 						OptionsDialog dlg = new OptionsDialog(_this, mReaderView, mFontFaces, mode);
 						dlg.show();
@@ -2045,7 +2041,7 @@ public class CoolReader extends Activity
 			if ( s.length()>0 ) {
 				//
 				final String pattern = s;
-				BackgroundThread.instance().executeBackground(new Runnable() {
+				BackgroundThread.instance().postBackground(new Runnable() {
 					@Override
 					public void run() {
 						BackgroundThread.instance().postGUI(new Runnable() {

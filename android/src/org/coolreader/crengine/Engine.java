@@ -38,8 +38,7 @@ public class Engine {
 
 	public static final Logger log = L.create("en");
 	
-	private final CoolReader mActivity;
-	private final BackgroundThread mBackgroundThread;
+	private CoolReader mActivity;
 	private File[] mountedRootsList;
 	private Map<String, String> mountedRootsMap;
 	
@@ -130,20 +129,6 @@ public class Engine {
 		public void fail(Exception e);
 	}
 
-	// public static class FatalError extends RuntimeException {
-	// private Engine engine;
-	// private String msg;
-	// public FatalError( Engine engine, String msg )
-	// {
-	// this.engine = engine;
-	// this.msg = msg;
-	// }
-	// public void handle()
-	// {
-	// engine.fatalError(msg);
-	// }
-	// }
-
 	public final static boolean LOG_ENGINE_TASKS = false;
 
 	private class TaskHandler implements Runnable {
@@ -170,7 +155,7 @@ public class Engine {
 					log.i("exited task.work() "
 							+ task.getClass().getName());
 				// post success callback
-				mBackgroundThread.postGUI(new Runnable() {
+				BackgroundThread.instance().postGUI(new Runnable() {
 					public void run() {
 						if (LOG_ENGINE_TASKS)
 							log.i("running task.done() "
@@ -201,7 +186,7 @@ public class Engine {
 				log.e("exception while running task "
 						+ task.getClass().getName(), e);
 				// post error callback
-				mBackgroundThread.postGUI(new Runnable() {
+				BackgroundThread.instance().postGUI(new Runnable() {
 					public void run() {
 						log.e("running task.fail(" + e.getMessage()
 								+ ") " + task.getClass().getSimpleName()
@@ -223,7 +208,7 @@ public class Engine {
 		if (LOG_ENGINE_TASKS)
 			log.d("executing task " + task.getClass().getSimpleName());
 		TaskHandler taskHandler = new TaskHandler(task);
-		mBackgroundThread.executeBackground(taskHandler);
+		BackgroundThread.instance().executeBackground(taskHandler);
 	}
 
 	/**
@@ -236,7 +221,7 @@ public class Engine {
 		if (LOG_ENGINE_TASKS)
 			log.d("executing task " + task.getClass().getSimpleName());
 		TaskHandler taskHandler = new TaskHandler(task);
-		mBackgroundThread.postBackground(taskHandler);
+		BackgroundThread.instance().postBackground(taskHandler);
 	}
 
 	/**
@@ -249,7 +234,7 @@ public class Engine {
 		execute(new EngineTask() {
 
 			public void done() {
-				mBackgroundThread.postGUI(task);
+				BackgroundThread.instance().postGUI(task);
 			}
 
 			public void fail(Exception e) {
@@ -378,7 +363,7 @@ public class Engine {
 		log.v("showProgress(" + mainProgress + ", \"" + msg
 				+ "\") is called : " + Thread.currentThread().getName());
 		if (enable_progress) {
-			mBackgroundThread.executeGUI(new Runnable() {
+			BackgroundThread.instance().executeGUI(new Runnable() {
 				public void run() {
 					// show progress
 					//log.v("showProgress() - in GUI thread");
@@ -438,7 +423,7 @@ public class Engine {
 		log.v("hideProgress() - is called : "
 				+ Thread.currentThread().getName());
 		// log.v("hideProgress() is called");
-		mBackgroundThread.executeGUI(new Runnable() {
+		BackgroundThread.instance().executeGUI(new Runnable() {
 			public void run() {
 				// hide progress
 //				log.v("hideProgress() - in GUI thread");
@@ -542,15 +527,29 @@ public class Engine {
 		}
 	}
 
+	private static Engine instance;
+
+	public static Engine getInstance(CoolReader activity) {
+		if (instance == null) {
+			instance = new Engine(activity);
+		} else {
+			instance.setParams(activity);
+		}
+		return instance;
+	}
+	
+	private void setParams(CoolReader activity) {
+		this.mActivity = activity;
+	}
+	
 	/**
 	 * Initialize CoolReader Engine
 	 * 
 	 * @param fontList
 	 *            is array of .ttf font pathnames to load
 	 */
-	public Engine(CoolReader activity, BackgroundThread backgroundThread) {
-		this.mActivity = activity;
-		this.mBackgroundThread = backgroundThread;
+	public Engine(CoolReader activity) {
+		setParams(activity);
 		installLibrary();
 		initMountRoots();
 		mFonts = findFonts();
@@ -561,11 +560,11 @@ public class Engine {
 //			installLibrary();
 //		}
 		initializeStarted = true;
-		log.i("Engine() : scheduling init task");
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		log.i("Engine() : scheduling init task for " + hashCode());
+		BackgroundThread.instance().postBackground(new Runnable() {
 			public void run() {
 				try {
-					log.i("Engine() : running init() in engine thread");
+					log.i("Engine() : running init() in engine thread for " + hashCode());
 					init();
 					// android.view.ViewRoot.getRunQueue().post(new Runnable() {
 					// public void run() {
@@ -799,7 +798,7 @@ public class Engine {
 	
 	private void setHyphenationDictionaryInternal(final HyphDict dict) {
 		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
-		mBackgroundThread.postBackground(new Runnable() {
+		BackgroundThread.instance().postBackground(new Runnable() {
 			public void run() {
 				if (!initialized)
 					throw new IllegalStateException("CREngine is not initialized");
@@ -1333,22 +1332,18 @@ public class Engine {
 	 * Uninitialize engine.
 	 */
 	public void uninit() {
-		log.i("Engine.uninit() is called");
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
-			public void run() {
-				log.i("Engine.uninit() : in background thread");
-				if (initialized) {
-					synchronized(this) {
-						uninitInternal();
-					}
-					initialized = false;
-				}
+		log.i("Engine.uninit() is called for " + hashCode());
+		if (initialized) {
+			synchronized(this) {
+				uninitInternal();
 			}
-		});
+			initialized = false;
+		}
+		instance = null;
 	}
 
 	protected void finalize() throws Throwable {
-		log.i("Engine.finalize() is called");
+		log.i("Engine.finalize() is called for " + hashCode());
 		// if ( initialized ) {
 		// //uninitInternal();
 		// initialized = false;

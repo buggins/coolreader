@@ -35,18 +35,6 @@ public class BackgroundThread extends Thread {
 		return instance;
 	}
 
-	public final static Executor backgroundExecutor = new Executor() {
-		public void execute(Runnable task) {
-			instance().postBackground(task);
-		}
-	};
-	
-	public final static Executor guiExecutor = new Executor() {
-		public void execute(Runnable task) {
-			instance().postGUI(task);
-		}
-	};
-	
 	public final static boolean CHECK_THREAD_CONTEXT = true; 
 
 	/**
@@ -65,7 +53,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public final static void ensureGUI()
 	{
-		if ( CHECK_THREAD_CONTEXT && instance().isBackgroundThread() ) {
+		if ( CHECK_THREAD_CONTEXT && isBackgroundThread() ) {
 			L.e("not in GUI thread", new Exception("ensureGUI() is failed"));
 			throw new RuntimeException("ensureGUI() is failed");
 		}
@@ -178,7 +166,7 @@ public class BackgroundThread extends Thread {
 	 * @param task is runnable to execute in GUI thread
 	 * @param delay is delay before running task, in millis
 	 */
-	public void postGUI(final Runnable task, final long delay )
+	public void postGUI(final Runnable task, final long delay)
 	{
 		if ( guiTarget==null ) {
 			synchronized( postedGUI ) {
@@ -208,7 +196,7 @@ public class BackgroundThread extends Thread {
 	{
 		Engine.suspendLongOperation();
 		task = guard(task);
-		if ( isBackgroundThread() || mStopped )
+		if (isBackgroundThread() || mStopped)
 			task.run(); // run in this thread
 		else 
 			postBackground(task); // post

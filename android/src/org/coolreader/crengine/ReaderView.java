@@ -272,7 +272,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
 	private final CoolReader mActivity;
     private final Engine mEngine;
-    private final BackgroundThread mBackThread;
     
     private BookInfo mBookInfo;
     
@@ -1059,7 +1058,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return;
 			currentImageViewer = null;
 			unlockOrientation();
-			BackgroundThread.instance().executeBackground(new Runnable() {
+			BackgroundThread.instance().postBackground(new Runnable() {
 				@Override
 				public void run() {
 					doc.closeImage();
@@ -1748,7 +1747,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void scheduleSaveSettings(int delayMillis) {
 		final int mySaveSettingsRequestId = ++lastSaveSettingsRequestId;
-    	mBackThread.executeBackground(new Runnable() {
+    	BackgroundThread.instance().postBackground(new Runnable() {
     		public void run() {
     			BackgroundThread.instance().postGUI(new Runnable() {
     				@Override
@@ -2638,7 +2637,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureBackground();
 		boolean res = doc.doCommand(cmd.nativeId, param);
 		if ( res ) {
-			BackgroundThread.guiExecutor.execute(new Runnable() {
+			BackgroundThread.instance().executeGUI(new Runnable() {
 				public void run() {
 					drawPage();
 				}
@@ -3037,7 +3036,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	try {
         		final int n = Integer.valueOf(value);
         		// delay before setting brightness
-        		mBackThread.postGUI(new Runnable() {
+        		BackgroundThread.instance().postGUI(new Runnable() {
         			public void run() {
         				execute( new Task() {
 
@@ -3163,7 +3162,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		setAppSettings( newSettings, currSettings );
 		Properties changedSettings = newSettings.diff(currSettings);
 		currSettings.setAll(changedSettings);
-    	mBackThread.executeBackground(new Runnable() {
+    	BackgroundThread.instance().postBackground(new Runnable() {
     		public void run() {
     			if (apply)
     				applySettings(currSettings, save, true);
@@ -3798,7 +3797,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //	}
 	private void animatePageFlip( final int dir, final Runnable onFinishHandler )
 	{
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
 				BackgroundThread.ensureBackground();
@@ -3830,7 +3829,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 								currentAnimation.stop(-1, -1);
 							}
 							if ( onFinishHandler!=null )
-								BackgroundThread.guiExecutor.execute(onFinishHandler);
+								BackgroundThread.instance().executeGUI(onFinishHandler);
 						}
 					} else {
 						//new ScrollViewAnimation(startY, maxY);
@@ -3846,7 +3845,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 								currentAnimation.stop(-1, -1);
 							}
 							if ( onFinishHandler!=null )
-								BackgroundThread.guiExecutor.execute(onFinishHandler);
+								BackgroundThread.instance().executeGUI(onFinishHandler);
 						}
 					}
 				}
@@ -3882,7 +3881,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		final int myHiliteId = ++nextHiliteId;
 		int txcolor = mSettings.getColor(PROP_FONT_COLOR, Color.BLACK);
 		final int color = (txcolor & 0xFFFFFF) | (HILITE_RECT_ALPHA<<24);
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
 				if ( myHiliteId != nextHiliteId || (!hilite && hiliteRect==null) )
@@ -3932,7 +3931,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	private void scheduleUnhilite( int delay ) {
 		final int myHiliteId = nextHiliteId;
-		mBackThread.postGUI(new Runnable() {
+		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
 				if ( myHiliteId == nextHiliteId && hiliteRect!=null )
@@ -3982,7 +3981,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int newX, final int newY )
 	{
 		if (DEBUG_ANIMATION) log.d("startAnimation("+startX + ", " + startY+")");
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
 				BackgroundThread.ensureBackground();
@@ -4012,7 +4011,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		if (DEBUG_ANIMATION) log.d("updateAnimation("+x + ", " + y+")");
 		final int serial = ++updateSerialNumber;
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
 				if ( currentAnimation!=null ) {
@@ -4033,7 +4032,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void stopAnimation( final int x, final int y )
 	{
 		if (DEBUG_ANIMATION) log.d("stopAnimation("+x+", "+y+")");
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
 				if ( currentAnimation!=null ) {
@@ -4048,7 +4047,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void scheduleAnimation()
 	{
 		final int serial = ++animationSerialNumber; 
-		BackgroundThread.backgroundExecutor.execute(new Runnable() {
+		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
 				if ( serial!=animationSerialNumber )
@@ -4935,7 +4934,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        close();
 	        if (props != null) {
 		        setAppSettings(props, oldSettings);
-	    		BackgroundThread.instance().executeBackground(new Runnable() {
+	    		BackgroundThread.instance().postBackground(new Runnable() {
 	    			@Override
 	    			public void run() {
 	    				log.v("LoadDocumentTask : switching current profile");
@@ -5006,7 +5005,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        highlightBookmarks();
 		        
 		        drawPage();
-		        mBackThread.postGUI(new Runnable() {
+		        BackgroundThread.instance().postGUI(new Runnable() {
 		        	public void run() {
 		    			mActivity.showReader();
 		        	}
@@ -5230,7 +5229,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
     public Bookmark saveCurrentPositionBookmarkSync( final boolean saveToDB ) {
     	++lastSavePositionTaskId;
-        Bookmark bmk = mBackThread.callBackground(new Callable<Bookmark>() {
+        Bookmark bmk = BackgroundThread.instance().callBackground(new Callable<Bookmark>() {
             @Override
             public Bookmark call() throws Exception {
                 if ( !mOpened )
@@ -5307,10 +5306,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void destroy()
     {
     	log.i("ReaderView.destroy() is called");
-		BackgroundThread.ensureGUI();
-    	if ( mInitialized ) {
+    	if (mInitialized) {
         	//close();
-        	BackgroundThread.backgroundExecutor.execute( new Runnable() {
+        	BackgroundThread.instance().postBackground(new Runnable() {
         		public void run() {
         			BackgroundThread.ensureBackground();
         	    	if ( mInitialized ) {
@@ -5645,7 +5643,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		log.i("Apply new profile settings");
 		setAppSettings(props, oldSettings);
-		BackgroundThread.instance().executeBackground(new Runnable() {
+		BackgroundThread.instance().postBackground(new Runnable() {
 			@Override
 			public void run() {
 				applySettings(props, false, false);
@@ -5746,7 +5744,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	++gcCounter;
     }
 
-	public ReaderView(CoolReader activity, Engine engine, BackgroundThread backThread, Properties props ) 
+	public ReaderView(CoolReader activity, Engine engine, Properties props) 
     {
         super(activity);
         doc = new DocView(engine);
@@ -5757,11 +5755,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
         this.mActivity = activity;
         this.mEngine = engine;
-        this.mBackThread = backThread;
         setFocusable(true);
         setFocusableInTouchMode(true);
         
-        mBackThread.postBackground(new Runnable() {
+        BackgroundThread.instance().postBackground(new Runnable() {
 
 			@Override
 			public void run() {
