@@ -157,6 +157,22 @@ public abstract class BaseDB {
 		}
 	}
 	
+	public String stringQuery( String sql )
+	{
+		ensureOpened();
+		SQLiteStatement stmt = null;
+		try {
+			stmt = mDB.compileStatement(sql);
+			return stmt.simpleQueryForString();
+		} catch ( Exception e ) {
+			// not found or error
+			return null;
+		} finally {
+			if (stmt != null)
+				stmt.close();
+		}
+	}
+	
 	public static String quoteSqlString(String src) {
 		if (src==null)
 			return "null";

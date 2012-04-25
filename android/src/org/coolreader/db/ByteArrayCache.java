@@ -9,7 +9,7 @@ public class ByteArrayCache {
 		this.maxSize = maxSize;
 	}
 	
-	public void put(long id, byte[] data) {
+	public void put(String id, byte[] data) {
 		int index = find(id);
 		if (index >= 0) {
 			ByteArrayItem item = list.get(index);
@@ -28,7 +28,7 @@ public class ByteArrayCache {
 		checkSize();
 	}
 	
-	public byte[] get(long id) {
+	public byte[] get(String id) {
 		int index = find(id);
 		if (index < 0)
 			return null;
@@ -37,7 +37,7 @@ public class ByteArrayCache {
 		return item.data;
 	}
 	
-	public void remove(long id) {
+	public void remove(String id) {
 		int index = find(id);
 		if (index < 0)
 			return;
@@ -49,9 +49,9 @@ public class ByteArrayCache {
 	}
 
 	private static class ByteArrayItem {
-		public long id;
+		public String id;
 		public byte[] data;
-		public ByteArrayItem(long id, byte[] data) {
+		public ByteArrayItem(String id, byte[] data) {
 			this.id = id;
 			this.data = data;
 		}
@@ -61,9 +61,9 @@ public class ByteArrayCache {
 	private int currentSize;
 	private ArrayList<ByteArrayItem> list = new ArrayList<ByteArrayItem>();
 
-	private int find(long id) {
+	private int find(String id) {
 		for (int i=0; i<list.size(); i++)
-			if (list.get(i).id == id)
+			if (list.get(i).id.equals(id))
 				return i;
 		return -1;
 	}

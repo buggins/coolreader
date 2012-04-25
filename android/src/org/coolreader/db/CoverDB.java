@@ -11,12 +11,12 @@ public class CoverDB extends BaseDB {
 
 	public static final Logger log = L.create("cdb");
 	
-	public final int DB_VERSION = 8;
+	public final int DB_VERSION = 9;
 	private final static boolean CLEAR_ON_START = false;
 
 	private final static String[] COVERPAGE_SCHEMA = new String[] {
-		"CREATE TABLE IF NOT EXISTS coverpage (" +
-		"book_fk INTEGER NOT NULL REFERENCES book (id)," +
+		"CREATE TABLE IF NOT EXISTS coverpages (" +
+		"book_path VARCHAR NOT NULL PRIMARY KEY," +
 		"imagedata BLOB NULL" +
 		")"
 	};
@@ -29,6 +29,8 @@ public class CoverDB extends BaseDB {
 			// ====================================================================
 			// add more updates here
 			
+			if (currentVersion < 9)
+				execSQLIgnoreErrors("DROP TABLE coverpage");
 			// ====================================================================
 			// set current version
 			if ( currentVersion<DB_VERSION )
@@ -39,7 +41,7 @@ public class CoverDB extends BaseDB {
 	
 		if (CLEAR_ON_START) {
 			log.w("CLEAR_ON_START is ON: removing all coverpages from DB");
-			execSQLIgnoreErrors("DELETE FROM coverpage");
+			execSQLIgnoreErrors("DELETE FROM coverpages");
 		}
 		
 		return true;
@@ -51,7 +53,7 @@ public class CoverDB extends BaseDB {
 	}
 
 	private void dumpStatistics() {
-		log.i("coverDB: " + longQuery("SELECT count(*) FROM coverpage") + " coverpages");
+		log.i("coverDB: " + longQuery("SELECT count(*) FROM coverpages") + " coverpages");
 	}
 
 	public void clearCaches() {
@@ -61,7 +63,7 @@ public class CoverDB extends BaseDB {
     private static final int COVERPAGE_CACHE_SIZE = 512 * 1024;
     private ByteArrayCache coverpageCache = new ByteArrayCache(COVERPAGE_CACHE_SIZE);
     
-	public void saveBookCoverpage( long bookId, byte[] data )
+	public void saveBookCoverpage(String bookId, byte[] data)
 	{
 		byte[] oldData = coverpageCache.get(bookId);
 		if (oldData != null)
@@ -76,10 +78,11 @@ public class CoverDB extends BaseDB {
 		ensureOpened();
 		SQLiteStatement stmt = null;
 		try {
-			Long existing = longQuery("SELECT book_fk FROM coverpage WHERE book_fk=" + bookId);
+			String existing = stringQuery("SELECT book_path FROM coverpages WHERE book_path=" + quoteSqlString(bookId));
 			if (existing == null) {
-				stmt = mDB.compileStatement("INSERT INTO coverpage (book_fk, imagedata) VALUES ("+bookId+", ?)");
-				stmt.bindBlob(1, data);
+				stmt = mDB.compileStatement("INSERT INTO coverpages (book_path, imagedata) VALUES (?, ?)");
+				stmt.bindString(1, bookId);
+				stmt.bindBlob(2, data);
 				stmt.execute();
 				Log.v("cr3", "db: saved " + data.length + " bytes of cover page for book " + bookId);
 			}
@@ -91,7 +94,7 @@ public class CoverDB extends BaseDB {
 		}
 	}
 
-	public byte[] loadBookCoverpage(long bookId)
+	public byte[] loadBookCoverpage(String bookId)
 	{
 		byte[] data = coverpageCache.get(bookId);
 		if (data != null)
@@ -100,7 +103,7 @@ public class CoverDB extends BaseDB {
 			return null;
 		Cursor rs = null;
 		try {
-			rs = mDB.rawQuery("SELECT imagedata FROM coverpage WHERE book_fk=" + bookId, null);
+			rs = mDB.rawQuery("SELECT imagedata FROM coverpages WHERE book_path=" + quoteSqlString(bookId), null);
 			if ( rs.moveToFirst() ) {
 				return rs.getBlob(0);
 			}
@@ -114,10 +117,10 @@ public class CoverDB extends BaseDB {
 		}
 	}
 	
-	public void deleteCoverpage(long bookId) {
+	public void deleteCoverpage(String bookId) {
 		coverpageCache.remove(bookId);
 		if (!isOpened())
 			return;
-		execSQLIgnoreErrors("DELETE FROM coverpage WHERE book_fk=" + bookId);
+		execSQLIgnoreErrors("DELETE FROM coverpages WHERE book_path=" + quoteSqlString(bookId));
 	}
 }
