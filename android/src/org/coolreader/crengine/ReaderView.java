@@ -5256,8 +5256,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		if (isBookLoaded() && mBookInfo != null) {
 			log.v("saving last immediately");
+			log.d("bookmark count 1 = " + mBookInfo.getBookmarkCount());
            	mActivity.getHistory().updateBookAccess(mBookInfo);
+			log.d("bookmark count 2 = " + mBookInfo.getBookmarkCount());
             mActivity.getDB().saveBookInfo(mBookInfo);
+			log.d("bookmark count 3 = " + mBookInfo.getBookmarkCount());
             mActivity.getDB().flush();
 		}
 		//scheduleSaveCurrentPositionBookmark(0);

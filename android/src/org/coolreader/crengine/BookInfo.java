@@ -87,7 +87,15 @@ public class BookInfo {
 	
 	synchronized public void addBookmark( Bookmark bm )
 	{
-		bookmarks.add(bm);
+		if (bm.getType() == Bookmark.TYPE_LAST_POSITION) {
+			lastPosition = bm;
+		} else {
+			if (findBookmarkIndex(bm) >= 0) {
+				L.w("duplicate bookmark added " + bm.getUniqueKey());
+			} else {
+				bookmarks.add(bm);
+			}
+		}
 	}
 
 	synchronized public int getBookmarkCount()
@@ -103,9 +111,9 @@ public class BookInfo {
 	synchronized public ArrayList<Bookmark> getAllBookmarks()
 	{
 		ArrayList<Bookmark> list = new ArrayList<Bookmark>(bookmarks.size() + 1);
-		list.addAll(bookmarks);
 		if (lastPosition != null)
 			list.add(lastPosition);
+		list.addAll(bookmarks);
 		return list;
 	}
 
@@ -265,14 +273,12 @@ public class BookInfo {
 	
 	synchronized public void setBookmarks(ArrayList<Bookmark> list)
 	{
-		if ( list.size()>0 ) {
-			if ( list.get(0).getType()==0 ) {
-				lastPosition = list.remove(0); 
-			}
-		}
-		if ( list.size()>0 ) {
-			bookmarks = list;
-		}
+		lastPosition = null;
+		bookmarks = new ArrayList<Bookmark>();
+		if (list == null)
+			return;
+		for (Bookmark bm : list)
+			addBookmark(bm);
 	}
 
 	@Override
