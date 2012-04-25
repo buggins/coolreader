@@ -1165,7 +1165,7 @@ void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int 
     lUInt32 cl = 0x000000;
     if (isGray) {
         if (options->bookmarkHighlightMode == highlight_mode_solid)
-            cl = (flags & 4) ? 0xDD000000 : 0xAA000000;
+            cl = (flags & 4) ? 0xCCCCCC : 0xAAAAAA;
     } else {
         cl = (flags & 4) ? options->commentColor : options->correctionColor;
     }
