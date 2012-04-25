@@ -121,33 +121,14 @@ public class BookInfo {
 
 	private int findBookmarkIndex(Bookmark bm)
 	{
-		if ( bm==null )
+		if (bm == null)
 			return -1;
-		int index = -1;
 		for ( int i=0; i<bookmarks.size(); i++ ) {
 			Bookmark item = bookmarks.get(i);
-			if (bm.getType() == Bookmark.TYPE_LAST_POSITION && item.getType() == Bookmark.TYPE_LAST_POSITION) {
-				index = i;
-				break;
-			}
-			if ( bm.getShortcut()>0 && item.getShortcut()==bm.getShortcut() ) {
-				index = i;
-				break;
-			}
-			if ( bm.getStartPos()!=null && bm.getStartPos().equals(item.getStartPos())) {
-				if (bm.getType() == Bookmark.TYPE_POSITION) {
-					index = i;
-					break;
-				}
-				if (bm.getEndPos()!=null && bm.getEndPos().equals(item.getEndPos())) {
-					if (item.getId() != null && bm.getId() != null && !bm.getId().equals(item.getId()))
-						continue; // another bookmark with same pos
-					index = i;
-					break;
-				}
-			}
+			if (item.equalUniqueKey(bm))
+				return i;
 		}
-		return index;
+		return -1;
 	}
 
 	synchronized public Bookmark syncBookmark(Bookmark bm)
@@ -155,7 +136,7 @@ public class BookInfo {
 		if ( bm==null )
 			return null;
 		int index = findBookmarkIndex(bm);
-		if ( index<0 ) {
+		if (index < 0) {
 			addBookmark(bm);
 			return bm;
 		}

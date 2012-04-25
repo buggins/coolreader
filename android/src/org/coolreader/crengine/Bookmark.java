@@ -96,13 +96,29 @@ public class Bookmark {
 		case TYPE_LAST_POSITION:
 			return "l";
 		case TYPE_POSITION:
-			return "p" + startPos;
+			return shortcut > 0 ? String.valueOf(shortcut) : "p" + startPos;
 		case TYPE_COMMENT:
 			return "c" + startPos + "-" + endPos;
 		case TYPE_CORRECTION:
 			return "r" + startPos + "-" + endPos;
 		default:
 			return "unknown";
+		}
+	}
+	
+	public boolean equalUniqueKey(Bookmark bm) {
+		if (type != bm.type)
+			return false;
+		switch (type) {
+		case TYPE_LAST_POSITION:
+			return true;
+		case TYPE_POSITION:
+			return shortcut > 0 ? shortcut == bm.shortcut : Utils.eq(startPos, bm.startPos);
+		case TYPE_COMMENT:
+		case TYPE_CORRECTION:
+			return Utils.eq(startPos, bm.startPos) && Utils.eq(endPos, bm.endPos);
+		default:
+			return false;
 		}
 	}
 	

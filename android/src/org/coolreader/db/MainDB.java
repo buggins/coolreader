@@ -21,6 +21,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+import android.text.TextUtils.SimpleStringSplitter;
 import android.util.Log;
 
 public class MainDB extends BaseDB {
@@ -784,10 +785,18 @@ public class MainDB extends BaseDB {
 	private HashMap<String, Bookmark> loadBookmarks(FileInfo fileInfo) {
 		HashMap<String, Bookmark> map = new HashMap<String, Bookmark>();
 		if (fileInfo.id != null) {
-			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>(); 
+			ArrayList<Bookmark> bookmarks = new ArrayList<Bookmark>();
 			if (load(bookmarks, "book_fk=" + fileInfo.id + " ORDER BY type")) {
-				for (Bookmark b : bookmarks)
-					map.put(b.getUniqueKey(), b);		
+				for (Bookmark b : bookmarks) {
+					// delete non-unique bookmarks
+					String key = b.getUniqueKey();
+					if (!map.containsKey(key))
+						map.put(key, b);
+					else {
+						log.w("Removing non-unique bookmark " + b + " for " + fileInfo.getPathName());
+						deleteBookmark(b);
+					}
+				}
 			}
 		}
 		return map;
@@ -830,28 +839,28 @@ public class MainDB extends BaseDB {
 		fileInfoCache.put(bookInfo.getFileInfo());
 		
 		// save bookmarks
-		HashMap<String, Bookmark> bookmarks = loadBookmarks(bookInfo.getFileInfo());
+		HashMap<String, Bookmark> existingBookmarks = loadBookmarks(bookInfo.getFileInfo());
 		int changed = 0;
 		int removed = 0;
 		int added = 0;
 		for (Bookmark bmk : bookInfo.getAllBookmarks()) {
-			 Bookmark existing = bookmarks.get(bmk.getUniqueKey());
+			 Bookmark existing = existingBookmarks.get(bmk.getUniqueKey());
 			 if (existing != null) {
 				 bmk.setId(existing.getId());
 				 if (!bmk.equals(existing)) {
 					 save(bmk, bookInfo.getFileInfo().id);
 					 changed++;
 				 }
-				 bookmarks.remove(existing.getUniqueKey());
+				 existingBookmarks.remove(bmk.getUniqueKey()); // saved
 			 } else {
 				 // create new
 			 	 save(bmk, bookInfo.getFileInfo().id);
 			 	 added++;
 			 }
 		}
-		if (bookmarks.size() > 0) {
+		if (existingBookmarks.size() > 0) {
 			// remove bookmarks not found in new object
-			for (Bookmark bmk : bookmarks.values()) {
+			for (Bookmark bmk : existingBookmarks.values()) {
 				deleteBookmark(bmk);
 				removed++;
 			}
@@ -1310,8 +1319,8 @@ public class MainDB extends BaseDB {
 		execSQLIgnoreErrors("UPDATE book SET last_access_time=0 WHERE id=" + bookId);
 	}
 	
-	public void deleteBookmark( Bookmark bm ) {
-		if ( bm.getId()==null )
+	public void deleteBookmark(Bookmark bm) {
+		if (bm.getId() == null)
 			return;
 		execSQLIgnoreErrors("DELETE FROM bookmark WHERE id=" + bm.getId());
 	}

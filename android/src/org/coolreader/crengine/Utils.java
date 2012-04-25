@@ -215,5 +215,11 @@ public class Utils {
 			list.add(buf.toString());
 		return list.toArray(new String[list.size()]);
 	}
-	
+
+	public static boolean eq(String s1, String s2) {
+		if (s1 == null) {
+			return s2 == null;
+		}
+		return s1.equals(s2);
+	}
 }
