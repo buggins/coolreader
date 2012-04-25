@@ -3170,6 +3170,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				mSettings = currSettings;
     		}
     	});
+    	scheduleSaveSettings(60000);
 //        }
 	}
 

@@ -416,24 +416,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		mListView.setSelection(0);
 	}
 	
-	public static String formatAuthors( String authors ) {
-		if ( authors==null || authors.length()==0 )
-			return null;
-		String[] list = authors.split("\\|");
-		StringBuilder buf = new StringBuilder(authors.length());
-		for ( String a : list ) {
-			if ( buf.length()>0 )
-				buf.append(", ");
-			buf.append(Utils.authorNameFileAs(a));
-//			String[] items = a.split(" ");
-//			if ( items.length==3 && items[1]!=null && items[1].length()>=1 )
-//				buf.append(items[0] + " " + items[1].charAt(0) + ". " + items[2]);
-//			else
-//				buf.append(a);
-		}
-		return buf.toString();
-	}
-	
 	public static String formatSize( int size )
 	{
 		if ( size==0 )
@@ -579,9 +561,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if ( mSortOrder == order )
 			return;
 		mSortOrder = order!=null ? order : FileInfo.DEF_SORT_ORDER;
-		if ( currDirectory!=null && currDirectory.allowSorting() ) {
+		if (currDirectory != null && currDirectory.allowSorting()) {
 			currDirectory.sort(mSortOrder);
-			showDirectory(currDirectory, null);
+			showDirectory(currDirectory, selectedItem);
 			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
 		}
 	}
@@ -873,7 +855,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if ( dir!=null ) {
 			mScanner.scanDirectory(dir, new Runnable() {
 				public void run() {
-					if ( dir.allowSorting() )
+					if (dir.allowSorting())
 						dir.sort(mSortOrder);
 					showDirectoryInternal(dir, file);
 				}
@@ -883,7 +865,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	
 	public void scanCurrentDirectoryRecursive() {
-		if ( currDirectory==null )
+		if (currDirectory == null)
 			return;
 		log.i("scanCurrentDirectoryRecursive started");
 		final Scanner.ScanControl control = new Scanner.ScanControl(); 
@@ -915,8 +897,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void setSimpleViewMode( boolean isSimple ) {
 		if ( isSimpleViewMode!=isSimple ) {
 			isSimpleViewMode = isSimple;
-			mSortOrder = FileInfo.SortOrder.FILENAME;
-			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
+			if (isSimple) {
+				mSortOrder = FileInfo.SortOrder.FILENAME;
+				mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
+			}
 			if ( isShown() && currDirectory!=null ) {
 				showDirectory(currDirectory, null);
 			}
@@ -1097,7 +1081,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						String fn = item.getFileNameToDisplay();
 						setText( filename, fn );
 					} else {
-						setText( author, formatAuthors(item.authors) );
+						setText( author, Utils.formatAuthors(item.authors) );
 						String seriesName = formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
 						String filename1 = item.filename;

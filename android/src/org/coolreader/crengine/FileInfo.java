@@ -1,10 +1,6 @@
 package org.coolreader.crengine;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -803,7 +799,7 @@ public class FileInfo {
 				if ( f1==null || f2==null )
 					return 0;
 				return firstNz(
-						cmpNotNullFirst(f1.authors, f2.authors)
+						cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
 						,cmpNotNullFirst(f1.series, f2.series)
 						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
@@ -821,7 +817,7 @@ public class FileInfo {
 						cmpNotNullFirst(f1.series, f2.series)
 						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
-						,cmpNotNullFirst(f1.authors, f2.authors)
+						,cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
 						,cmp(f1.filename, f2.filename) 
 						);
 			}

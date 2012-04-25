@@ -222,4 +222,24 @@ public class Utils {
 		}
 		return s1.equals(s2);
 	}
+	
+	public static String formatAuthors( String authors ) {
+		if ( authors==null || authors.length()==0 )
+			return null;
+		String[] list = authors.split("\\|");
+		StringBuilder buf = new StringBuilder(authors.length());
+		for ( String a : list ) {
+			if ( buf.length()>0 )
+				buf.append(", ");
+			buf.append(Utils.authorNameFileAs(a));
+//			String[] items = a.split(" ");
+//			if ( items.length==3 && items[1]!=null && items[1].length()>=1 )
+//				buf.append(items[0] + " " + items[1].charAt(0) + ". " + items[2]);
+//			else
+//				buf.append(a);
+		}
+		return buf.toString();
+	}
+	
+
 }
