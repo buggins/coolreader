@@ -1218,7 +1218,7 @@ public class Engine {
 						if ("auto".equals(mode)) {
 							// assume AUTO is for externally automount devices
 							if (hasusb)
-								label = "External USB Storage";
+								label = "USB Storage";
 							else if (hasmmc)
 								label = "External SD";
 							else
@@ -1287,12 +1287,16 @@ public class Engine {
 		
 		mountedRootsMap = map;
 		Collection<File> list = new ArrayList<File>();
+		log.i("Mount ROOTS:");
 		for (String f : map.keySet()) {
-			list.add(new File(f));
+			File path = new File(f);
+			list.add(path);
+			String label = map.get(f);
+			log.i("*** " + f + " '" + label + "' isDirectory=" + path.isDirectory() + " canRead=" + path.canRead() + " canWrite=" + path.canRead() + " isLink=" + isLink(f));
 		}
 		mountedRootsList = list.toArray(new File[] {});
 		pathCorrector = new MountPathCorrector(mountedRootsList);
-
+		
 		Log.i("cr3", "Root list: " + list + ", root links: " + pathCorrector);
 //		testPathNormalization("/sdcard/books/test.fb2");
 //		testPathNormalization("/mnt/sdcard/downloads/test.fb2");
@@ -1451,7 +1455,8 @@ public class Engine {
 					R.drawable.bg_paper1),
 			new BackgroundTextureInfo("bg_paper1_dark", "Paper 1 (dark)",
 					R.drawable.bg_paper1_dark),
-			new BackgroundTextureInfo("tx_wood", "Wood", DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_v3 : R.drawable.tx_wood),
+			new BackgroundTextureInfo("tx_wood", "Wood", 
+					DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_v3 : R.drawable.tx_wood),
 			new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)",
 					DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_dark_v3 : R.drawable.tx_wood_dark),
 			new BackgroundTextureInfo("tx_fabric", "Fabric",

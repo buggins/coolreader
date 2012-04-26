@@ -25,6 +25,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.ClipboardManager;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -35,7 +36,8 @@ import android.view.SurfaceView;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
 
-	public static final Logger log = L.create("rv");
+	public static final Logger log = L.create("rv", Log.VERBOSE);
+	public static final Logger alog = L.create("ra", Log.WARN);
 
 	private DocView doc;
 	
@@ -2129,7 +2131,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		private boolean onTimer() {
 			int newProgress = calcProgressPercent();
-			if (DEBUG_ANIMATION) log.v("onTimer(progress = " + newProgress + ")");
+			alog.v("onTimer(progress = " + newProgress + ")");
 			mActivity.onUserActivity();
 			progress = newProgress;
 			if (progress == 0 || progress >= startAnimationProgress) {
@@ -2340,7 +2342,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void draw(Canvas canvas) {
 			if (currentAutoScrollAnimation != this)
 				return;
-			if (DEBUG_ANIMATION) log.v("AutoScrollAnimation.draw(" + progress + ")");
+			alog.v("AutoScrollAnimation.draw(" + progress + ")");
 			if (progress!=0 && progress<startAnimationProgress)
 				return; // don't draw page w/o started animation
 			int scrollPercent = 10000 * (progress - startAnimationProgress) / (MAX_PROGRESS - startAnimationProgress);
@@ -3878,7 +3880,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	private void hiliteTapZone( final boolean hilite, final int startX, final int startY, final int maxX, final int maxY )
 	{
-		if (DEBUG_ANIMATION) log.d("highliteTapZone("+startX + ", " + startY+")");
+		alog.d("highliteTapZone("+startX + ", " + startY+")");
 		final int myHiliteId = ++nextHiliteId;
 		int txcolor = mSettings.getColor(PROP_FONT_COLOR, Color.BLACK);
 		final int color = (txcolor & 0xFFFFFF) | (HILITE_RECT_ALPHA<<24);
@@ -3981,7 +3983,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int newX, final int newY )
 	{
-		if (DEBUG_ANIMATION) log.d("startAnimation("+startX + ", " + startY+")");
+		alog.d("startAnimation("+startX + ", " + startY+")");
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
@@ -4006,7 +4008,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
-	private final static boolean DEBUG_ANIMATION = true;
 	private volatile int updateSerialNumber = 0;
 	private class AnimationUpdate {
 		private int x;
@@ -4026,7 +4027,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.instance().postBackground(new Runnable() {
 				@Override
 				public void run() {
-					if (DEBUG_ANIMATION) log.d("updating("+x + ", " + y+")");
+					alog.d("updating("+x + ", " + y+")");
 					boolean animate = false;
 					synchronized (AnimationUpdate.class) {
 						
@@ -4046,7 +4047,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private AnimationUpdate currentAnimationUpdate;
 	private void updateAnimation( final int x, final int y )
 	{
-		if (DEBUG_ANIMATION) log.d("updateAnimation("+x + ", " + y+")");
+		alog.d("updateAnimation("+x + ", " + y+")");
 		synchronized(AnimationUpdate.class) {
 			if (currentAnimationUpdate != null)
 				currentAnimationUpdate.set(x, y);
@@ -4063,7 +4064,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private void stopAnimation( final int x, final int y )
 	{
-		if (DEBUG_ANIMATION) log.d("stopAnimation("+x+", "+y+")");
+		alog.d("stopAnimation("+x+", "+y+")");
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
@@ -4610,7 +4611,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		@Override
 		public void stop(int x, int y) {
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.stop(" + x + ", " + y + ")");
+			alog.v("PageViewAnimation.stop(" + x + ", " + y + ")");
 			//if ( started ) {
 				boolean moved = false;
 				if ( x!=-1 ) {
@@ -4651,7 +4652,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		@Override
 		public void update(int x, int y) {
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.update(" + x + ", " + y + ")");
+			alog.v("PageViewAnimation.update(" + x + ", " + y + ")");
 			int delta = direction>0 ? startX - x : x - startX;
 			if ( delta<=0 )
 				destShift = 0;
@@ -4663,7 +4664,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void animate()
 		{
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.animate("+currShift + " => " + destShift + ") speed=" + pageFlipAnimationSpeedMs);
+			alog.v("PageViewAnimation.animate("+currShift + " => " + destShift + ") speed=" + pageFlipAnimationSpeedMs);
 			//log.d("animate() is called");
 			if ( currShift != destShift ) {
 				started = true;
@@ -4685,7 +4686,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						currShift+=step;
 					else if ( currShift > destShift )
 						currShift-=step;
-					if (DEBUG_ANIMATION) log.v("PageViewAnimation.animate("+currShift + " => " + destShift + "  step=" + step + ")");
+					alog.v("PageViewAnimation.animate("+currShift + " => " + destShift + "  step=" + step + ")");
 				}
 				//pointerCurrPos = pointerDestPos;
 				draw();
@@ -4696,7 +4697,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		public void draw(Canvas canvas)
 		{
-			if (DEBUG_ANIMATION) log.v("PageViewAnimation.draw("+currShift + ")");
+			alog.v("PageViewAnimation.draw("+currShift + ")");
 //			BitmapInfo image1 = mCurrentPageInfo;
 //			BitmapInfo image2 = mNextPageInfo;
 			if (image1.isReleased() || image2.isReleased())

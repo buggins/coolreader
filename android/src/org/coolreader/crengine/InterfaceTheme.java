@@ -54,4 +54,10 @@ public class InterfaceTheme {
 		this.fsDialogThemeId = fsDialogThemeId;
 		this.displayNameResourceId = displayNameResourceId;
 	}
+	@Override
+	public String toString() {
+		return "InterfaceTheme [code=" + code + ", themeId=" + themeId + "]";
+	}
+	
+	
 }

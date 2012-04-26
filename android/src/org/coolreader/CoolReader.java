@@ -208,6 +208,7 @@ public class CoolReader extends Activity
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {
+		log.i("setCurrentTheme(" + theme + ")");
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
@@ -217,11 +218,11 @@ public class CoolReader extends Activity
 			//int clText = a.getColor(1, 0);
 			int clBackground = a.getColor(2, 0);
 			//int clForeground = a.getColor(3, 0);
-			a.recycle();
 			if (clBackground != 0)
 				mFrame.setBackgroundColor(clBackground);
 			if (bgRes != 0)
 				mFrame.setBackgroundResource(bgRes);
+			a.recycle();
 		}
 		if (mBrowser != null)
 			mBrowser.onThemeChanged();
@@ -636,10 +637,10 @@ public class CoolReader extends Activity
 		Properties props = loadSettings();
 		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
-		setCurrentTheme(theme);
 		setLanguage(lang);
     	
 		mFrame = new FrameLayout(this);
+		setCurrentTheme(theme);
 		BackgroundThread.instance().setGUI(mFrame);
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);

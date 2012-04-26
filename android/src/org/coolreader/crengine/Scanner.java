@@ -420,20 +420,20 @@ public class Scanner extends FileInfoChangeSource {
 			return false; // exclude duplicates
 		}
 		if (listIt) {
+			log.i("Checking FS root " + pathname);
 			if (!dir.isReadableDirectory()) { // isWritableDirectory
-				log.w("Skipping " + pathname + " - it's not a writable directory");
+				log.w("Skipping " + pathname + " - it's not a readable directory");
 				return false;
 			}
 			if (!listDirectory(dir)) {
 				log.w("Skipping " + pathname + " - listing failed");
 				return false;
 			}
+			log.i("Adding FS root: " + pathname + "  " + filename);
 		}
-		if (listIt && !listDirectory(dir))
-			return false;
 		mRoot.addDir(dir);
 		dir.parent = mRoot;
-		if ( !listIt ) {
+		if (!listIt) {
 			dir.isListed = true;
 			dir.isScanned = true;
 		}
