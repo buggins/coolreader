@@ -4015,7 +4015,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void set(int x, int y) {
 			this.x = x;
 			this.y = y;
-			
 		}
 		public AnimationUpdate(int x, int y) {
 			this.x = x;
@@ -4024,7 +4023,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			scheduleUpdate();
 		}
 		private void scheduleUpdate() {
-			BackgroundThread.instance().executeBackground(new Runnable() {
+			BackgroundThread.instance().postBackground(new Runnable() {
 				@Override
 				public void run() {
 					if (DEBUG_ANIMATION) log.d("updating("+x + ", " + y+")");
@@ -4076,16 +4075,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
-	private int animationSerialNumber = 0;
+	DelayedExecutor animationScheduler = DelayedExecutor.createBackground("animation");
 	private void scheduleAnimation()
 	{
-		final int serial = ++animationSerialNumber; 
-		BackgroundThread.instance().executeBackground(new Runnable() {
+		animationScheduler.post(new Runnable() {
 			@Override
 			public void run() {
-				if ( serial!=animationSerialNumber )
-					return;
-				if ( currentAnimation!=null ) {
+				if (currentAnimation != null) {
 					currentAnimation.animate();
 				}
 			}
@@ -4175,19 +4171,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			return started;
 		}
+
 		ViewAnimationBase()
 		{
 			//startTimeStamp = android.os.SystemClock.uptimeMillis();
 			cancelGc();
 		}
+
 		public void close()
 		{
+			animationScheduler.cancel();
 			currentAnimation = null;
 			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			scheduleGc();
 		}
-
-		
 
 		public void draw()
 		{

@@ -813,7 +813,7 @@ public class CoolReader extends Activity
         if (wnd != null) {
 	    	LayoutParams attrs =  wnd.getAttributes();
 	    	boolean changed = false;
-	    	if (b < 0) {
+	    	if (b < 0 && b > -0.99999f) {
 	    		log.d("dimming screen by " + (int)((1 + b)*100) + "%");
 	    		b = -b * attrs.screenBrightness;
 	    		if (b < 0.15)
@@ -843,9 +843,9 @@ public class CoolReader extends Activity
 	    	if (!brightnessHackError)
 	    	try {
 	        	Field bb = attrs.getClass().getField("buttonBrightness");
-	        	if ( bb!=null ) {
+	        	if (bb != null) {
 	        		Float oldValue = (Float)bb.get(attrs);
-	        		if ( oldValue==null || oldValue.floatValue()!=0 ) {
+	        		if (oldValue == null || oldValue.floatValue() != buttonBrightness) {
 	        			bb.set(attrs, buttonBrightness);
 		        		changed = true;
 	        		}
@@ -855,7 +855,7 @@ public class CoolReader extends Activity
 	    		brightnessHackError = true;
 	    	}
 	    	//attrs.buttonBrightness = 0;
-	    	if ( changed ) {
+	    	if (changed) {
 	    		log.d("Window attribute changed: " + attrs);
 	    		wnd.setAttributes(attrs);
 	    	}

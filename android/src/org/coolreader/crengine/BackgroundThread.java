@@ -34,6 +34,18 @@ public class BackgroundThread extends Thread {
 		}
 		return instance;
 	}
+	
+	public static Handler getBackgroundHandler() {
+		if (instance == null)
+			return null;
+		return instance.handler;
+	}
+
+	public static Handler getGUIHandler() {
+		if (instance().guiTarget == null)
+			return null;
+		return instance().guiTarget.getHandler();
+	}
 
 	public final static boolean CHECK_THREAD_CONTEXT = true; 
 
