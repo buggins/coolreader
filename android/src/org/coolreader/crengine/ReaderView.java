@@ -4006,22 +4006,54 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
-	private final static boolean DEBUG_ANIMATION = false;
+	private final static boolean DEBUG_ANIMATION = true;
 	private volatile int updateSerialNumber = 0;
+	private class AnimationUpdate {
+		private int x;
+		private int y;
+		ViewAnimationControl myAnimation;
+		public void set(int x, int y) {
+			this.x = x;
+			this.y = y;
+			
+		}
+		public AnimationUpdate(int x, int y) {
+			this.x = x;
+			this.y = y;
+			this.myAnimation = currentAnimation;
+			scheduleUpdate();
+		}
+		private void scheduleUpdate() {
+			BackgroundThread.instance().executeBackground(new Runnable() {
+				@Override
+				public void run() {
+					if (DEBUG_ANIMATION) log.d("updating("+x + ", " + y+")");
+					boolean animate = false;
+					synchronized (AnimationUpdate.class) {
+						
+						if (/*currentAnimation == myAnimation && */currentAnimationUpdate == AnimationUpdate.this) {
+							currentAnimationUpdate = null;
+							currentAnimation.update(x, y);
+							animate = true;
+						}
+					}
+					if (animate)
+						currentAnimation.animate();
+				}
+			});
+		}
+		
+	}
+	private AnimationUpdate currentAnimationUpdate;
 	private void updateAnimation( final int x, final int y )
 	{
 		if (DEBUG_ANIMATION) log.d("updateAnimation("+x + ", " + y+")");
-		final int serial = ++updateSerialNumber;
-		BackgroundThread.instance().executeBackground(new Runnable() {
-			@Override
-			public void run() {
-				if ( currentAnimation!=null ) {
-					currentAnimation.update(x, y);
-					if ( serial==updateSerialNumber ) //|| serial==updateSerialNumber-1 
-						currentAnimation.animate();
-				}
-			}
-		});
+		synchronized(AnimationUpdate.class) {
+			if (currentAnimationUpdate != null)
+				currentAnimationUpdate.set(x, y);
+			else
+				currentAnimationUpdate = new AnimationUpdate(x, y);
+		}
 		try {
 			// give a chance to background thread to process event faster
 			Thread.sleep(0);
@@ -5736,7 +5768,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void run() {
 			if (myCounter == gcCounter) {
 				log.v("Initiating garbage collection");
-				System.gc();
+				//System.gc();
 				++gcCounter;
 			}
 		}
