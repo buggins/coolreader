@@ -29,7 +29,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 13;
+	public final int DB_VERSION = 14;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -103,7 +103,7 @@ public class MainDB extends BaseDB {
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 			"bookmark_book_index ON bookmark (book_fk) ");
 			int currentVersion = mDB.getVersion();
-			// version 1 updates ====================================================================
+			// ====================================================================
 			if ( currentVersion<1 )
 				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN shortcut INTEGER DEFAULT 0");
 			if ( currentVersion<4 )
@@ -121,12 +121,13 @@ public class MainDB extends BaseDB {
 			}
 			if (currentVersion < 8)
 				addOPDSCatalogs(DEF_OPDS_URLS2);
-			if (currentVersion < 12)
-				pathCorrectionRequired = true;
-			if ( currentVersion<13 )
+			if (currentVersion < 13)
 			    execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN language VARCHAR DEFAULT NULL");
-			// add more updates above this line
+			if (currentVersion < 14)
+				pathCorrectionRequired = true;
+
 			//==============================================================
+			// add more updates above this line
 				
 			// set current version
 			if (currentVersion < DB_VERSION)

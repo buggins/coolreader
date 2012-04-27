@@ -455,7 +455,7 @@ public class Engine {
 			InputStream is = new FileInputStream(file);
 			return loadResourceUtf8(is);
 		} catch (Exception e) {
-			log.e("cannot load resource from file " + file);
+			log.w("cannot load resource from file " + file);
 			return null;
 		}
 	}
@@ -1150,24 +1150,6 @@ public class Engine {
 //		}
 //	}
 	
-	public static String ntrim(String str) {
-		if (str == null)
-			return null;
-		str = str.trim();
-		if (str.length() == 0)
-			return null;
-		return str;
-	}
-	
-	public static boolean empty(String str) {
-		if (str == null || str.length() == 0)
-			return true;
-		if (str.trim().length() == 0)
-			return true;
-		return false;
-		
-	}
-	
 	private void initMountRoots() {
 		Map<String, String> map = new LinkedHashMap<String, String>();
 
@@ -1205,16 +1187,16 @@ public class Engine {
 					rulesFound++;
 					String[] cols = Utils.splitByWhitespace(row);
 					if (cols.length >= 5) {
-						String name = ntrim(cols[1]);
-						String point = ntrim(cols[2]);
-						String mode = ntrim(cols[3]);
-						String dev = ntrim(cols[4]);
-						if (empty(name) || empty(point) || empty(mode) || empty(dev))
+						String name = Utils.ntrim(cols[1]);
+						String point = Utils.ntrim(cols[2]);
+						String mode = Utils.ntrim(cols[3]);
+						String dev = Utils.ntrim(cols[4]);
+						if (Utils.empty(name) || Utils.empty(point) || Utils.empty(mode) || Utils.empty(dev))
 							continue;
 						String label = null;
 						boolean hasusb = dev.indexOf("usb") >= 0;
 						boolean hasmmc = dev.indexOf("mmc") >= 0;
-						log.i("mount point found: '" + name + "'  " + point + "  device=" + dev);
+						log.i("*** mount point '" + name + "' *** " + point + "  (" + dev + ")");
 						if ("auto".equals(mode)) {
 							// assume AUTO is for externally automount devices
 							if (hasusb)
@@ -1296,6 +1278,12 @@ public class Engine {
 		}
 		mountedRootsList = list.toArray(new File[] {});
 		pathCorrector = new MountPathCorrector(mountedRootsList);
+
+		for (String point : knownMountPoints) {
+			String link = isLink(point);
+			if (link != null)
+				pathCorrector.addRootLink(point, link);
+		}
 		
 		Log.i("cr3", "Root list: " + list + ", root links: " + pathCorrector);
 //		testPathNormalization("/sdcard/books/test.fb2");

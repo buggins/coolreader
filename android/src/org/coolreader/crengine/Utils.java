@@ -240,6 +240,24 @@ public class Utils {
 		}
 		return buf.toString();
 	}
+
+	public static String ntrim(String str) {
+		if (str == null)
+			return null;
+		str = str.trim();
+		if (str.length() == 0)
+			return null;
+		return str;
+	}
+
+	public static boolean empty(String str) {
+		if (str == null || str.length() == 0)
+			return true;
+		if (str.trim().length() == 0)
+			return true;
+		return false;
+		
+	}
 	
 
 }

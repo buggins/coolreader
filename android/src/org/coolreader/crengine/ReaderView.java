@@ -3321,6 +3321,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mEngine.hideProgress();
 			errorHandler.run();
 			return false;
+		} else if (!normalized.equals(fileName)) {
+			log.w("Filename normalized to " + normalized);
+			fileName = normalized;
 		}
 		if (fileName.equals(getManualFileName())) {
 			// ensure manual file is up to date

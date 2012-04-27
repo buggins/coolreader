@@ -14,14 +14,25 @@ public class MountPathCorrector {
 		for (File f : mountedRoots)
 			this.rootFileLinks.addLinksFromPath(f);
 	}
+
+	public boolean isRootMountPoint(String path) {
+		for (File root : mountedRoots) {
+			if (root.getAbsolutePath().equals(path))
+				return true;
+		}
+		return false;
+	}
 	
 	/**
 	 * For testing only: add hardcoded path.
 	 * @param from is link name
 	 * @param to is link destination
 	 */
-	private void addRootLink(String from, String to) {
-		rootFileLinks.add(new LinkInfo(from, to));
+	public void addRootLink(String from, String to) {
+		if (isRootMountPoint(from) || isRootMountPoint(to)) {
+			L.i("Adding new root link " + from + " => " + to);
+			rootFileLinks.add(new LinkInfo(from, to));
+		}
 	}
 
 	private static boolean pathStartsWith(String path, String pattern) {
@@ -89,6 +100,7 @@ public class MountPathCorrector {
 		}
 		public LinkCollection(LinkCollection v) {
 			links = new ArrayList<LinkInfo>(v.links.size() + 2);
+			links.addAll(v.links);
 		}
 		public void add(LinkInfo item) {
 			links.add(item);
@@ -154,8 +166,14 @@ public class MountPathCorrector {
 	 * @return normalized path which starts from one of known roots, null if match is not found
 	 */
 	public File normalize(File path) {
+		if (path == null)
+			return null;
 		LinkCollection thisFileLinks = new LinkCollection();
 		thisFileLinks.addLinksFromPath(path);
+		return normalize(path, thisFileLinks);
+	}
+	
+	public File normalize(File path, LinkCollection thisFileLinks) {
 		if (path == null)
 			return null;
 		String pathName = path.getAbsolutePath();
@@ -199,10 +217,30 @@ public class MountPathCorrector {
 	}
 
 //	static {
-//		File[] roots = new File[] {new File("/mnt/sdcard")};
+//		L.v("*** MountPathCorrector TEST Started ***");
+//		L.v("*** Part 1 ***");
+//		File[] roots = new File[] {new File("/mnt/sdcard"), new File("/mnt/external_sd")};
+//		String[] testFiles = {
+//				"/mnt/sdcard/books/download/book1.fb2",
+//				"/sdcard/books/download/book1.fb2",
+//				"/mnt/sdcard/books/book1.fb2",
+//				"/mnt/external_sd/books2/author1/book1.fb2",
+//				"/external_sd/books2/author1/book1.fb2",
+//				"/external_sd/books2/author1/book1.fb2",
+//				"/wrong/path/book1.fb2",
+//			};
 //		MountPathCorrector test = new MountPathCorrector(roots);
 //		test.addRootLink("/sdcard", "/mnt/sdcard");
-//		L.v(test.normalize("/mnt/sdcard/books/book1.fb2"));
-//		L.v(test.normalize("/sdcard/books/book1.fb2"));
+//		test.addRootLink("/external_sd", "/mnt/external_sd");
+//		for (String path : testFiles)
+//			L.v(path + "=>" + test.normalize(path));
+//		L.v("*** Part 2 ***");
+//		MountPathCorrector test2 = new MountPathCorrector(roots);
+//		LinkCollection myLinks = new LinkCollection();
+//		myLinks.add(new LinkInfo("/sdcard", "/mnt/sdcard"));
+//		myLinks.add(new LinkInfo("/external_sd", "/mnt/external_sd"));
+//		for (String path : testFiles)
+//			L.v(path + "=>" + test2.normalize(new File(path), myLinks));
+//		L.v("*** MountPathCorrector TEST Finished ***");
 //	}
 }
