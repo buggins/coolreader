@@ -170,6 +170,8 @@ static bool skip_spaces( const char * & str )
         // comment found
         while ( *str && str[1] && (str[0]!='*' || str[1]!='/') )
             str++;
+        if ( *str=='*' && str[1]=='/' )
+            str +=2;
     }
     while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
         str++;
