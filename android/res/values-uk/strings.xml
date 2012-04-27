@@ -327,7 +327,7 @@
     <string name="options_css_text_decoration_underline">Підкреслений</string>
     <string name="options_css_text_indent_small_indent">Маленький відступ</string>
     <string name="options_css_text_decoration_line_through">Закреслений</string>
-    <string name="options_css_text_valign_subscript">Верхній індекс</string>
+    <string name="options_css_text_valign_subscript">Нижній індекс</string>
     <string name="options_css_margin_03em">0.3 висоти рядка</string>
     <string name="options_css_font_style_italic">Похилий</string>
     <string formatted="false" name="options_css_margin_15p">15% ширини рядка</string>
@@ -338,7 +338,7 @@
     <string name="options_css_margin_4em">4 висоти рядка</string>
     <string name="options_css_margin_1em">1 висота рядка</string>
     <string name="options_css_margin_2em">2 висоти рядка</string>
-    <string name="options_css_text_valign_superscript">Нижній індекс</string>
+    <string name="options_css_text_valign_superscript">Верхній індекс</string>
     <string name="options_css_text_indent_big_outdent">Великий відступ вліво</string>
     <string name="options_css_font_face_sans_serif">[Шрифт без засічок]</string>
     <string name="options_css_margin_15em">1.5 висоти рядка</string>

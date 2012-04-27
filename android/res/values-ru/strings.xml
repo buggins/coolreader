@@ -327,7 +327,7 @@
     <string name="options_css_text_decoration_underline">Подчеркнутый</string>
     <string name="options_css_text_indent_small_indent">Маленький отступ</string>
     <string name="options_css_text_decoration_line_through">Зачеркнутый</string>
-    <string name="options_css_text_valign_subscript">Верхний индекс</string>
+    <string name="options_css_text_valign_subscript">Нижний индекс</string>
     <string name="options_css_margin_03em">0.3 высоты строки</string>
     <string name="options_css_font_style_italic">Наклонный</string>
     <string formatted="false" name="options_css_margin_15p">15% ширины строки</string>
@@ -338,7 +338,7 @@
     <string name="options_css_margin_4em">4 высоты строки</string>
     <string name="options_css_margin_1em">1 высота строки</string>
     <string name="options_css_margin_2em">2 высоты строки</string>
-    <string name="options_css_text_valign_superscript">Нижний индекс</string>
+    <string name="options_css_text_valign_superscript">Верхний индекс</string>
     <string name="options_css_text_indent_big_outdent">Большой выступ</string>
     <string name="options_css_font_face_sans_serif">[Шрифт без засечек]</string>
     <string name="options_css_margin_15em">1.5 высоты строки</string>
