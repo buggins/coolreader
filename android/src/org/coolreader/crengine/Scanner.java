@@ -125,8 +125,10 @@ public class Scanner extends FileInfoChangeSource {
 					}
 					if (!f.isDirectory()) {
 						// regular file
-						if ( f.getName().startsWith(".") )
+						if (f.getName().startsWith("."))
 							continue; // treat files beginning with '.' as hidden
+						if (f.getName().equalsIgnoreCase("LOST.DIR"))
+							continue; // system directory
 						String pathName = f.getAbsolutePath();
 						if ( knownItems!=null && knownItems.contains(pathName) )
 							continue;

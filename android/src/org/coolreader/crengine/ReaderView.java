@@ -5755,30 +5755,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
     
-    private static volatile int gcCounter = 0;
-    private static final int GC_INTERVAL = 5000; // 5 ms
-    private static class GcScheduleTask implements Runnable {
-    	public static void scheduleGc() {
-    		BackgroundThread.instance().postGUI(new GcScheduleTask(), GC_INTERVAL);
-    	}
-    	private final int myCounter;
-    	private GcScheduleTask() {
-    		myCounter = ++gcCounter;
-    	}
-		@Override
-		public void run() {
-			if (myCounter == gcCounter) {
+    private static final int GC_INTERVAL = 15000; // 15 seconds
+    DelayedExecutor gcTask = DelayedExecutor.createGUI("gc");
+    public void scheduleGc() {
+    	gcTask.postDelayed(new Runnable() {
+			@Override
+			public void run() {
 				log.v("Initiating garbage collection");
-				//System.gc();
-				++gcCounter;
+				System.gc();
 			}
-		}
+		}, GC_INTERVAL);
     }
-    public static void scheduleGc() {
-    	GcScheduleTask.scheduleGc();
-    }
-    public static void cancelGc() {
-    	++gcCounter;
+    public void cancelGc() {
+    	gcTask.cancel();
     }
 
 	public ReaderView(CoolReader activity, Engine engine, Properties props) 

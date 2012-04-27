@@ -64,6 +64,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -212,18 +213,23 @@ public class CoolReader extends Activity
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
-		if (mFrame != null) {
-			TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
-			int bgRes = a.getResourceId(0, 0);
-			//int clText = a.getColor(1, 0);
-			int clBackground = a.getColor(2, 0);
-			//int clForeground = a.getColor(3, 0);
-			if (clBackground != 0)
-				mFrame.setBackgroundColor(clBackground);
-			if (bgRes != 0)
-				mFrame.setBackgroundResource(bgRes);
-			a.recycle();
-		}
+//		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
+//		int bgRes = a.getResourceId(0, 0);
+//		//int clText = a.getColor(1, 0);
+//		int clBackground = a.getColor(2, 0);
+		//int clForeground = a.getColor(3, 0);
+//		if (mFrame != null) {
+//			if (bgRes != 0) {
+//				Drawable d = getResources().getDrawable(bgRes);
+//				log.v("Setting background resource " + d.getIntrinsicWidth() + "x" + d.getIntrinsicHeight());
+//				mFrame.setBackgroundResource(bgRes);
+//				getWindow().setBackgroundDrawable(d);
+//			} else if (clBackground != 0)
+//				mFrame.setBackgroundColor(clBackground);
+//		}
+//		if (bgRes != 0)
+//			getWindow().setBackgroundDrawableResource(bgRes);
+//		a.recycle();
 		if (mBrowser != null)
 			mBrowser.onThemeChanged();
 	}
@@ -1172,11 +1178,11 @@ public class CoolReader extends Activity
         //engine.waitTasksCompletion();
 //		restarted = false;
 		stopped = false;
-		
+
 		final String fileName = fileToLoadOnStart;
 		BackgroundThread.instance().postGUI(new Runnable() {
 			public void run() {
-				log.i("onStart, scheduled runnable: submitting task");
+				log.i("onStart, scheduled runnable: load document");
 		        mEngine.execute(new LoadLastDocumentTask(fileName));
 			}
 		});
