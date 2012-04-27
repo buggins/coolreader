@@ -114,10 +114,10 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getCurrentPageBoo
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    goToPositionInternal
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (Ljava/lang/String;Z)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInternal
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jobject, jstring, jboolean);
 
 /*
  * Class:     org_coolreader_crengine_DocView

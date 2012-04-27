@@ -240,9 +240,9 @@ public class DocView {
 	 * @param xPath
 	 * @return
 	 */
-	public boolean goToPosition(String xPath) {
+	public boolean goToPosition(String xPath, boolean saveToHistory) {
 		synchronized(mutex) {
-			return goToPositionInternal(xPath);
+			return goToPositionInternal(xPath, saveToHistory);
 		}
 	}
 
@@ -402,7 +402,7 @@ public class DocView {
 
 	private native Bookmark getCurrentPageBookmarkInternal();
 
-	private native boolean goToPositionInternal(String xPath);
+	private native boolean goToPositionInternal(String xPath, boolean saveToHistory);
 
 	private native PositionProperties getPositionPropsInternal(String xPath);
 	

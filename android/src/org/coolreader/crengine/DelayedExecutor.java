@@ -12,27 +12,30 @@ public class DelayedExecutor {
 
 	public static final Logger log = L.create("dt", Log.INFO);
 	
+	private boolean isBackground;
 	private Handler handler;
 	private Runnable currentTask;
 	private String name;
 
+	private Handler getHandler() {
+		if (handler != null)
+			return handler;
+		if (isBackground)
+			handler = BackgroundThread.getBackgroundHandler();
+		else
+			handler = BackgroundThread.getGUIHandler();
+		if (handler == null)
+			throw new RuntimeException("Cannot get handler");
+		return handler;
+	}
+	
 	public static DelayedExecutor createBackground(String name) {
-		Handler handler = BackgroundThread.getBackgroundHandler();
-		if (handler == null) {
-			log.e("Cannot get background thread handler");
-			return null;
-		}
-		DelayedExecutor task = new DelayedExecutor(handler, name);
+		DelayedExecutor task = new DelayedExecutor(true, name);
 		return task;
 	}
 	
 	public static DelayedExecutor createGUI(String name) {
-		Handler handler = BackgroundThread.getGUIHandler();
-		if (handler == null) {
-			log.e("Cannot get GUI thread handler");
-			return null;
-		}
-		DelayedExecutor task = new DelayedExecutor(handler, name);
+		DelayedExecutor task = new DelayedExecutor(false, name);
 		return task;
 	}
 	
@@ -74,15 +77,15 @@ public class DelayedExecutor {
 		synchronized(this) {
 			if (currentTask != null) {
 				log.d("Cancelling pending task " + currentTask);
-				handler.removeCallbacks(currentTask); // cancel pending task, replace with new one
+				getHandler().removeCallbacks(currentTask); // cancel pending task, replace with new one
 			}
 			currentTask = myTask;
 			if (delay > 0) {
 				log.d("Posting delayed task " + currentTask + " delay=" + delay);
-				handler.postDelayed(currentTask, delay);
+				getHandler().postDelayed(currentTask, delay);
 			} else {
 				log.d("Posting task " + currentTask);
-				handler.post(currentTask);
+				getHandler().post(currentTask);
 			}
 		}
 	}
@@ -91,14 +94,14 @@ public class DelayedExecutor {
 		synchronized(this) {
 			if (currentTask != null) {
 				log.d("Cancelling pending task " + currentTask);
-				handler.removeCallbacks(currentTask); // cancel pending task, replace with new one
+				getHandler().removeCallbacks(currentTask); // cancel pending task, replace with new one
 				currentTask = null;
 			}
 		}
 	}
 	
-	private DelayedExecutor(Handler handler, String name) {
-		this.handler = handler;
+	private DelayedExecutor(boolean isBackground, String name) {
+		this.isBackground = isBackground;
 		this.name = name;
 	}
 }

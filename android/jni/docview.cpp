@@ -1068,10 +1068,10 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateBookInfoIntern
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    goToPositionInternal
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (Ljava/lang/String;Z)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInternal
-  (JNIEnv * _env, jobject _this, jstring jstr)
+  (JNIEnv * _env, jobject _this, jstring jstr, jboolean saveToHistory)
 {
 	CRJNIEnv env(_env);
     DocViewNative * p = getNative(_env, _this);
@@ -1082,7 +1082,9 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInte
     ldomXPointer bm = p->_docview->getDocument()->createXPointer(str);
 	if ( bm.isNull() )
 		return JNI_FALSE;
-	p->_docview->goToBookmark(bm); 
+	if (saveToHistory)
+		p->_docview->savePosToNavigationHistory();
+	p->_docview->goToBookmark(bm);
 	return JNI_TRUE;
 }
 

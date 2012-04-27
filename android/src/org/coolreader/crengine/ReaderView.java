@@ -1618,7 +1618,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mEngine.execute(new Task() {
 			public void work() {
 				BackgroundThread.ensureBackground();
-				doc.goToPosition(pos);
+				doc.goToPosition(pos, true);
 			}
 			public void done() {
 				BackgroundThread.ensureGUI();
@@ -5180,9 +5180,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private void restorePositionBackground( String pos )
     {
 		BackgroundThread.ensureBackground();
-    	if ( pos!=null ) {
+    	if (pos != null) {
 			BackgroundThread.ensureBackground();
-			doc.goToPosition( pos );
+			doc.goToPosition(pos, false);
     		preparePageImage(0);
     	}
     }
