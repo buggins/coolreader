@@ -41,7 +41,6 @@
     </style>
         
     <style name="ListView.Black" parent="@style/Theme.Black">
-        <item name="android:background">@android:color/black</item>
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
