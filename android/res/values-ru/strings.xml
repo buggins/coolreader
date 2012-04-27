@@ -382,7 +382,7 @@
     <string name="options_font_hinting_auto">Автохинтинг</string>
     <string name="options_font_fallback_face">Дополнительный шрифт</string>
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
-    <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту кгнигу из списка последних книг?</string>
+    <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту книгу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу?</string>
     <string name="folder_name_books_by_series">Книги по сериям</string>
     <string name="folder_name_books_by_title">Книги по названию</string>
