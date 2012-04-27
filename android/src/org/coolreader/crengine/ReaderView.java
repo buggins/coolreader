@@ -1745,21 +1745,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return mSettings.getProperty(name);
 	}
 
-	private int lastSaveSettingsRequestId = 0;
-	
+	DelayedExecutor saveSettingsTask = DelayedExecutor.createBackground("saveSettings"); 
 	public void scheduleSaveSettings(int delayMillis) {
-		final int mySaveSettingsRequestId = ++lastSaveSettingsRequestId;
-    	BackgroundThread.instance().postBackground(new Runnable() {
+		saveSettingsTask.postDelayed(new Runnable() {
     		public void run() {
     			BackgroundThread.instance().postGUI(new Runnable() {
     				@Override
     				public void run() {
-    					if (mySaveSettingsRequestId == lastSaveSettingsRequestId)
-    						saveSettings(mSettings);
+   						saveSettings(mSettings);
     				}
     			});
     		}
-    	});
+    	}, delayMillis);
 	}
 	
 	public void setSetting(String name, String value, boolean invalidateImages, boolean save, boolean apply) {
@@ -2861,7 +2858,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        		if (saveDelayed)
 	        			scheduleSaveSettings(5000);
 	        		else {
-	        			++lastSaveSettingsRequestId;
+	        			saveSettingsTask.cancel();
 	        			saveSettings(currSettings);
 	        		}
 	        	}

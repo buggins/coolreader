@@ -1305,10 +1305,14 @@ public class CoolReader extends Activity
 	public void showBrowser( final FileInfo fileToShow )
 	{
 		log.v("showBrowser() is called");
-		if ( currentView == mReaderView )
+		if (currentView != null && currentView == mReaderView) {
 			mReaderView.save();
+			backlightControl.release();
+		}
 		mEngine.runInGUI( new Runnable() {
 			public void run() {
+				if (mBrowser == null)
+					return;
 				showView(mBrowser);
 		        if (fileToShow == null || mBrowser.isBookShownInRecentList(fileToShow))
 		        	mBrowser.showLastDirectory();
