@@ -164,17 +164,25 @@ static int substr_icompare( const char * sub, const char * & str )
 
 static bool skip_spaces( const char * & str )
 {
-    while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
-        str++;
-    if ( *str=='/' && str[1]=='*' ) {
-        // comment found
-        while ( *str && str[1] && (str[0]!='*' || str[1]!='/') )
+    const char * oldpos = str;
+    for (;;) {
+        while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
             str++;
-        if ( *str=='*' && str[1]=='/' )
-            str +=2;
+        if ( *str=='/' && str[1]=='*' ) {
+            // comment found
+            while ( *str && str[1] && (str[0]!='*' || str[1]!='/') )
+                str++;
+            if ( *str=='*' && str[1]=='/' )
+                str +=2;
+        }
+        while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
+            str++;
+        if (oldpos == str)
+            break;
+        if (*str == 0)
+            return false;
+        oldpos = str;
     }
-    while (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
-        str++;
     return *str != 0;
 }
 
