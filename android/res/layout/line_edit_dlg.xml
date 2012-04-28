@@ -34,9 +34,10 @@
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content" 
         android:layout_marginTop="8dip"
-        android:layout_marginBottom="2dip"
+        android:layout_marginBottom="8dip"
         android:layout_marginLeft="2dip"
-        android:layout_marginRight="2dip"
+        android:layout_marginRight="8dip"
+        android:padding="10dip"
         android:max="100"
         android:progress="50"
     />
