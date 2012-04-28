@@ -3002,7 +3002,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
         	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
         } else if (PROP_APP_HIGHLIGHT_BOOKMARKS.equals(key)) {
-        	flgHighlightBookmarks = flg;
+        	flgHighlightBookmarks = !"0".equals(value);
         	clearSelection();
         } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
         	int orientation = 0;
