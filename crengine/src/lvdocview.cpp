@@ -140,7 +140,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 			 */
 			, m_stream(NULL), m_doc(NULL), m_stylesheet(def_stylesheet),
             m_backgroundTiled(true),
-            m_highlightBookmarks(true),
+            m_highlightBookmarks(1),
 			m_pageMargins(DEFAULT_PAGE_MARGIN,
 					DEFAULT_PAGE_MARGIN / 2 /*+ INFO_FONT_SIZE + 4 */,
 					DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN / 2),
@@ -5771,7 +5771,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if (getDocument()->setMinSpaceCondensingPercent(value))
                 REQUEST_RENDER("propsApply condensing percent")
         } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS) {
-            bool value = props->getBoolDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, true);
+            bool value = props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
             if (m_highlightBookmarks != value) {
                 m_highlightBookmarks = value;
                 updateBookMarksRanges();
