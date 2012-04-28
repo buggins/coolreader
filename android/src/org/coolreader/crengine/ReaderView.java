@@ -4036,7 +4036,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					boolean animate = false;
 					synchronized (AnimationUpdate.class) {
 						
-						if (currentAnimation == myAnimation && currentAnimationUpdate == AnimationUpdate.this) {
+						if (currentAnimation != null && currentAnimationUpdate == AnimationUpdate.this) {
 							currentAnimationUpdate = null;
 							currentAnimation.update(x, y);
 							animate = true;
