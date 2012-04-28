@@ -4116,7 +4116,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (x>x1)
 			x = x1;
 		int intervals = accelerationShape.length - 1;
-		int pos = 100 * intervals * (x - x0) / (x1-x0);
+		int pos = x1 > x0 ? 100 * intervals * (x - x0) / (x1-x0) : x1;
 		int interval = pos / 100;
 		int part = pos % 100;
 		if ( interval<0 )
