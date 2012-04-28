@@ -105,7 +105,7 @@ public class DeviceInfo {
 		
 		DEF_FONT_FACE = getSDKLevel() >= ICE_CREAM_SANDWICH ? "Roboto" : "Droid Sans";
 		
-		USE_BITMAP_MEMORY_HACK = getSDKLevel() < HONEYCOMB;
+		USE_BITMAP_MEMORY_HACK = getSDKLevel() < ICE_CREAM_SANDWICH;
 	}
 	
 	private static String getBuildField(String fieldName) {
