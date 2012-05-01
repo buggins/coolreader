@@ -4836,19 +4836,23 @@ bool LVDocView::exportBookmarks(lString16 filename) {
 					<< "\r\n";
 		newContent << "\r\n";
 	}
+
 	if (newContent == oldContent)
-		return true;
-	{
-		LVStreamRef os = LVOpenFileStream(filename.c_str(), LVOM_WRITE);
-		if (os.isNull())
-			return false;
-		lvsize_t bytesWritten = 0;
-		if (newContent.length() > 0)
-			if (os->Write(newContent.c_str(), newContent.length(),
-					&bytesWritten) != LVERR_OK || bytesWritten
-                    != (lUInt32)newContent.length())
-				return false;
-	}
+            return true;
+
+        if (newContent.length() > 0) {
+            LVStreamRef os = LVOpenFileStream(filename.c_str(), LVOM_WRITE);
+            if (os.isNull())
+                    return false;
+            lvsize_t bytesWritten = 0;
+
+            if (os->Write(newContent.c_str(), newContent.length(), &bytesWritten) != LVERR_OK ||
+                bytesWritten != (lUInt32)newContent.length())
+                return false;
+        } else {
+            LVDeleteFile(filename);
+            return false;
+        }
 	return true;
 }
 
