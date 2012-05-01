@@ -257,7 +257,7 @@ protected:
     LVHashTable<lString8, int> _pbTable;
 
     void initPocketBookActionsTable() {
-        for (int i = 0; i < sizeof(pbActions)/sizeof(pbActions[0]); i++) {
+        for (unsigned i = 0; i < sizeof(pbActions)/sizeof(pbActions[0]); i++) {
             _pbTable.set(lString8(pbActions[i].pbAction), i);
         }
     }
@@ -339,6 +339,7 @@ public:
     bool getBatteryStatus(int & percent, bool & charging) {
         charging = IsCharging() > 0; // TODO: find out values returned by the IsCharging() function.
         percent = GetBatteryPower(); // It seems that the GetBatteryPower() returns what needed here
+        return true;
     }
 
     int hasKeyMapping(int key, int flags) {
@@ -583,7 +584,7 @@ private:
     int _tocLength;
 public:
     CRPocketBookContentsWindow( CRGUIWindowManager * wm, tocentry *toc, int toc_length, int cur_page)
-        : CRPocketBookInkViewWindow( wm ), _toc(toc), _tocLength(toc_length), _curPage(cur_page) {}
+        : CRPocketBookInkViewWindow( wm ), _curPage(cur_page), _toc(toc), _tocLength(toc_length) {}
     virtual void showWindow()
     {
         OpenContents(_toc, _tocLength, _curPage, tocHandler);
@@ -810,7 +811,7 @@ public:
     }
     virtual bool isDocDirty()
     {
-        _dictDlg->isDocDirty();
+        return _dictDlg->isDocDirty();
     }
     virtual void setDocDirty()
     {
@@ -822,7 +823,7 @@ public:
     }
     virtual bool isSelectingWord()
     {
-        _dictDlg->isSelectingWord();
+        return _dictDlg->isSelectingWord();
     }
     virtual void setDirty()
     {
@@ -1005,7 +1006,7 @@ protected:
 public:
     static CRPocketBookDocView * instance;
     CRPocketBookDocView( CRGUIWindowManager * wm, lString16 dataDir )
-        : V3DocViewWin( wm, dataDir ), _tocLength(0), _toc(NULL), _bm3x3(NULL), _dictDlg(NULL), _rotatetimerset(false),
+        : V3DocViewWin( wm, dataDir ), _bm3x3(NULL), _toc(NULL), _tocLength(0), _dictDlg(NULL), _rotatetimerset(false),
         _lastturn(true), _pauseRotationTimer(false), m_goToPage(-1), _restore_globOrientation(false), m_skipEvent(false)
     {
         instance = this;
@@ -1166,7 +1167,7 @@ public:
     void showDictDialog()
     {
         if (_dictDlg == NULL) {
-            lString16 filename = "dict.css";
+            lString16 filename("dict.css");
             lString8 dictCss;
             if (_cssDir.length() > 0 && LVFileExists( _cssDir + filename ))
                 LVLoadStylesheetFile( _cssDir + filename, dictCss );
@@ -1433,9 +1434,9 @@ static void paused_rotate_timer()
 }
 
 CRPbDictionaryView::CRPbDictionaryView(CRGUIWindowManager * wm, CRPbDictionaryDialog *parent) 
-    : CRViewDialog(wm, lString16::empty_str, lString8::empty_str, lvRect(), false, true), _parent(parent), _itemsCount(5),
-    _dictsTable(16), _active(false), _newWord(NULL), _newTranslation(NULL), _translateResult(0),
-    _dictsLoaded(false)
+    : CRViewDialog(wm, lString16::empty_str, lString8::empty_str, lvRect(), false, true), _parent(parent),
+    _dictsTable(16), _active(false), _dictsLoaded(false), _itemsCount(5), _translateResult(0),
+    _newWord(NULL), _newTranslation(NULL)
 {
     setSkinName(lString16("#dict"));
     lvRect rect = _wm->getScreen()->getRect();
@@ -1694,6 +1695,7 @@ bool CRPbDictionaryView::onItemSelect()
         searchDictinary();
         return true;
     }
+    return false;
 }
 
 bool CRPbDictionaryView::onCommand( int command, int params )
@@ -1753,7 +1755,7 @@ lString8 CRPbDictionaryView::createArticle(const char *word, const char *transla
         article << "<section>";
         article << "<p>";
         int offset = 0, count = 0;
-        const lChar16 *closeTag = NULL;
+        const lChar8 *closeTag = NULL;
         for (int i = 0; i < src.length(); i++) {
             lChar16 currentChar = src[i];
             if (currentChar == 1 || currentChar == 2 || currentChar == 3 ||
