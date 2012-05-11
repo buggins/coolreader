@@ -103,30 +103,45 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
 
 
 
-struct lstring_chunk_t {
+struct lstring8_chunk_t {
     friend class lString8;
     friend class lString16;
     friend struct lstring_chunk_slice_t;
 public:
-    lstring_chunk_t(lChar16 * _buf16) : size(1), len(0), nref(1), buf16(_buf16) {}
-    lstring_chunk_t(lChar8 * _buf8) : size(1), len(0), nref(1), buf8(_buf8) {}
-    const lChar16 * data16() const { return buf16; }
+    lstring8_chunk_t(lChar8 * _buf8) : buf8(_buf8), size(1), len(0), nref(1) {}
     const lChar8 * data8() const { return buf8; }
 private:
+    lChar8  * buf8; // z-string
     lInt32 size;   // 0 for free chunk
     lInt32 len;    // count of chars in string
     int nref;      // reference counter
-    union {
-        lstring_chunk_t * nextfree;
-        lChar16 * buf16;
-        lChar8  * buf8;
-    };
 
-    lstring_chunk_t() {}
+    lstring8_chunk_t() {}
 
     // chunk allocation functions
-    static lstring_chunk_t * alloc();
-    static void free( lstring_chunk_t * pChunk );
+    static lstring8_chunk_t * alloc();
+    static void free( lstring8_chunk_t * pChunk );
+
+};
+
+struct lstring16_chunk_t {
+    friend class lString8;
+    friend class lString16;
+    friend struct lstring_chunk_slice_t;
+public:
+    lstring16_chunk_t(lChar16 * _buf16) : buf16(_buf16), size(1), len(0), nref(1) {}
+    const lChar16 * data16() const { return buf16; }
+private:
+    lChar16 * buf16; // z-string
+    lInt32 size;   // 0 for free chunk
+    lInt32 len;    // count of chars in string
+    int nref;      // reference counter
+
+    lstring16_chunk_t() {}
+
+    // chunk allocation functions
+    static lstring16_chunk_t * alloc();
+    static void free( lstring16_chunk_t * pChunk );
 
 };
 
@@ -165,6 +180,8 @@ public:
     typedef value_type &        reference;       ///< reference to char type
     typedef const value_type *  const_pointer;   ///< pointer to const char type
     typedef const value_type &  const_reference; ///< reference to const char type
+
+    typedef lstring8_chunk_t    lstring_chunk_t; ///< data container
 
     class decimal {
         lInt64 value;
@@ -398,6 +415,8 @@ public:
     typedef value_type &        reference;
     typedef const value_type *  const_pointer;
     typedef const value_type &  const_reference;
+
+    typedef lstring16_chunk_t    lstring_chunk_t; ///< data container
 
 private:
     lstring_chunk_t * pchunk;
@@ -652,7 +671,7 @@ inline lUInt32 getHash( const lString8 & s )
 class lString16Collection
 {
 private:
-    lstring_chunk_t * * chunks;
+    lstring16_chunk_t * * chunks;
     int count;
     int size;
 public:
@@ -708,7 +727,7 @@ public:
 class lString8Collection
 {
 private:
-    lstring_chunk_t * * chunks;
+    lstring8_chunk_t * * chunks;
     int count;
     int size;
 public:

@@ -49,33 +49,39 @@ extern "C" {
 
 // memory allocation slice
 struct lstring_chunk_slice_t {
-    lstring_chunk_t * pChunks; // first chunk
-    lstring_chunk_t * pEnd;    // first free byte after last chunk
-    lstring_chunk_t * pFree;   // first free chunk
+    lstring8_chunk_t * pChunks; // first chunk
+    lstring8_chunk_t * pEnd;    // first free byte after last chunk
+    lstring8_chunk_t * pFree;   // first free chunk
     int used;
     lstring_chunk_slice_t( int size )
     {
-        pChunks = (lstring_chunk_t *) malloc(sizeof(lstring_chunk_t) * size);
+        pChunks = (lstring8_chunk_t *) malloc(sizeof(lstring8_chunk_t) * size);
         pEnd = pChunks + size;
         pFree = pChunks;
-        for (lstring_chunk_t * p = pChunks; p<pEnd; ++p)
+        for (lstring8_chunk_t * p = pChunks; p<pEnd; ++p)
         {
-            p->nextfree = p+1;
+            p->buf8 = (char*)(p+1);
             p->size = 0;
         }
-        (pEnd-1)->nextfree = NULL;
+        (pEnd-1)->buf8 = NULL;
     }
     ~lstring_chunk_slice_t()
     {
         free( pChunks );
     }
-    inline lstring_chunk_t * alloc_chunk()
+    inline lstring8_chunk_t * alloc_chunk()
     {
-        lstring_chunk_t * res = pFree;
-        pFree = res->nextfree;
+        lstring8_chunk_t * res = pFree;
+        pFree = (lstring8_chunk_t *)res->buf8;
         return res;
     }
-    inline bool free_chunk( lstring_chunk_t * pChunk )
+    inline lstring16_chunk_t * alloc_chunk16()
+    {
+        lstring16_chunk_t * res = (lstring16_chunk_t *)pFree;
+        pFree = (lstring8_chunk_t *)res->buf16;
+        return res;
+    }
+    inline bool free_chunk( lstring8_chunk_t * pChunk )
     {
         if (pChunk < pChunks || pChunk >= pEnd)
             return false; // chunk does not belong to this slice
@@ -88,8 +94,25 @@ struct lstring_chunk_slice_t {
         pChunk->size = 0;
 #endif
 */
-        pChunk->nextfree = pFree;
+        pChunk->buf8 = (char *)pFree;
         pFree = pChunk;
+        return true;
+    }
+    inline bool free_chunk16(lstring16_chunk_t * pChunk)
+    {
+        if ((lstring8_chunk_t *)pChunk < pChunks || (lstring8_chunk_t *)pChunk >= pEnd)
+            return false; // chunk does not belong to this slice
+/*
+#ifdef LS_DEBUG_CHECK
+        if (!pChunk->size)
+        {
+            crFatalError(); // already freed!!!
+        }
+        pChunk->size = 0;
+#endif
+*/
+        pChunk->buf16 = (lChar16 *)pFree;
+        pFree = (lstring8_chunk_t *)pChunk;
         return true;
     }
 };
@@ -103,12 +126,12 @@ static bool slices_initialized = false;
 #endif
 
 static lChar8 empty_str_8[] = {0};
-static lstring_chunk_t empty_chunk_8(empty_str_8);
-lstring_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
+static lstring8_chunk_t empty_chunk_8(empty_str_8);
+lstring8_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
 
 static lChar16 empty_str_16[] = {0};
-static lstring_chunk_t empty_chunk_16(empty_str_16);
-lstring_chunk_t * lString16::EMPTY_STR_16 = &empty_chunk_16;
+static lstring16_chunk_t empty_chunk_16(empty_str_16);
+lstring16_chunk_t * lString16::EMPTY_STR_16 = &empty_chunk_16;
 
 #if (LDOM_USE_OWN_MEM_MAN == 1)
 static void init_ls_storage()
@@ -130,7 +153,7 @@ void free_ls_storage()
     slices_initialized = false;
 }
 
-lstring_chunk_t * lstring_chunk_t::alloc()
+lstring8_chunk_t * lstring8_chunk_t::alloc()
 {
     if (!slices_initialized)
         init_ls_storage();
@@ -148,11 +171,39 @@ lstring_chunk_t * lstring_chunk_t::alloc()
     return slices[slices_count-1]->alloc_chunk();
 }
 
-void lstring_chunk_t::free( lstring_chunk_t * pChunk )
+void lstring8_chunk_t::free( lstring8_chunk_t * pChunk )
 {
     for (int i=slices_count-1; i>=0; --i)
     {
         if (slices[i]->free_chunk(pChunk))
+            return;
+    }
+    crFatalError(); // wrong pointer!!!
+}
+
+lstring16_chunk_t * lstring16_chunk_t::alloc()
+{
+    if (!slices_initialized)
+        init_ls_storage();
+    // search for existing slice
+    for (int i=slices_count-1; i>=0; --i)
+    {
+        if (slices[i]->pFree != NULL)
+            return slices[i]->alloc_chunk16();
+    }
+    // alloc new slice
+    if (slices_count >= MAX_SLICE_COUNT)
+        crFatalError();
+    lstring_chunk_slice_t * new_slice = new lstring_chunk_slice_t( FIRST_SLICE_SIZE << (slices_count+1) );
+    slices[slices_count++] = new_slice;
+    return slices[slices_count-1]->alloc_chunk16();
+}
+
+void lstring16_chunk_t::free( lstring16_chunk_t * pChunk )
+{
+    for (int i=slices_count-1; i>=0; --i)
+    {
+        if (slices[i]->free_chunk16(pChunk))
             return;
     }
     crFatalError(); // wrong pointer!!!
@@ -432,7 +483,7 @@ void lString16::free()
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     for (int i=slices_count-1; i>=0; --i)
     {
-        if (slices[i]->free_chunk(pchunk))
+        if (slices[i]->free_chunk16(pchunk))
             return;
     }
     crFatalError(); // wrong pointer!!!
@@ -1064,34 +1115,34 @@ void lString16Collection::reserve(int space)
     if ( count + space > size )
     {
         size = count + space + 64;
-        chunks = (lstring_chunk_t * *)realloc( chunks, sizeof(lstring_chunk_t *) * size );
+        chunks = (lstring16_chunk_t * *)realloc( chunks, sizeof(lstring16_chunk_t *) * size );
     }
 }
 
 static int (str16_comparator)(const void * n1, const void * n2)
 {
-    lstring_chunk_t ** s1 = (lstring_chunk_t **)n1;
-    lstring_chunk_t ** s2 = (lstring_chunk_t **)n2;
+    lstring16_chunk_t ** s1 = (lstring16_chunk_t **)n1;
+    lstring16_chunk_t ** s2 = (lstring16_chunk_t **)n2;
     return lStr_cmp( (*s1)->data16(), (*s2)->data16() );
 }
 
 static int(*custom_lstr16_comparator_ptr)(lString16 & s1, lString16 & s2);
 static int (str16_custom_comparator)(const void * n1, const void * n2)
 {
-    lString16 s1(*((lstring_chunk_t **)n1));
-    lString16 s2(*((lstring_chunk_t **)n2));
+    lString16 s1(*((lstring16_chunk_t **)n1));
+    lString16 s2(*((lstring16_chunk_t **)n2));
     return custom_lstr16_comparator_ptr(s1, s2);
 }
 
 void lString16Collection::sort(int(comparator)(lString16 & s1, lString16 & s2))
 {
     custom_lstr16_comparator_ptr = comparator;
-    qsort(chunks,count,sizeof(lstring_chunk_t*), str16_custom_comparator);
+    qsort(chunks,count,sizeof(lstring16_chunk_t*), str16_custom_comparator);
 }
 
 void lString16Collection::sort()
 {
-    qsort(chunks,count,sizeof(lstring_chunk_t*), str16_comparator);
+    qsort(chunks,count,sizeof(lstring16_chunk_t*), str16_comparator);
 }
 
 int lString16Collection::add( const lString16 & str )
@@ -1185,7 +1236,7 @@ void lString8Collection::reserve(int space)
     if ( count + space > size )
     {
         size = count + space + 64;
-        chunks = (lstring_chunk_t * *)realloc( chunks, sizeof(lstring_chunk_t *) * size );
+        chunks = (lstring8_chunk_t * *)realloc( chunks, sizeof(lstring8_chunk_t *) * size );
     }
 }
 
