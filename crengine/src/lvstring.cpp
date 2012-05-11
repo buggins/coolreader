@@ -46,6 +46,86 @@ extern "C" {
 #define CHECK_STARTUP_STAGE
 #endif
 
+lstring8_chunk_t lstring8_chunk_t::const_chunks[CONST_STRING_BUFFER_SIZE];
+const void * lstring8_chunk_t::const_ptrs[CONST_STRING_BUFFER_SIZE] = {NULL};
+static int const_str8_allocated = 0;
+
+lstring8_chunk_t * lstring8_chunk_t::alloc_const(const char * str) {
+    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    lstring8_chunk_t * res = &const_chunks[index];
+    if (const_ptrs[index] == str) {
+        res->nref++;
+        return res;
+    } else {
+        for (;;) {
+            if (const_ptrs[index] == NULL) {
+                CRLog::trace("allocating static string %s", str);
+                res->buf8 = (char *)str; // it's safe
+                res->len = lStr_len(str);
+                res->size = res->len + 1;
+                res->nref = 1;
+                const_str8_allocated++;
+                return res;
+            }
+            if (const_str8_allocated > CONST_STRING_BUFFER_SIZE / 4) {
+                crFatalError(-1, "out of memory for const string8");
+            }
+            index = (index + 1) & CONST_STRING_BUFFER_MASK;
+        }
+    }
+}
+
+lstring16_chunk_t lstring16_chunk_t::const_chunks[CONST_STRING_BUFFER_SIZE];
+const void * lstring16_chunk_t::const_ptrs[CONST_STRING_BUFFER_SIZE] = {NULL};
+
+lstring16_chunk_t * lstring16_chunk_t::alloc_const(const char * str) {
+    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    lstring16_chunk_t * res = &const_chunks[index];
+    if (const_ptrs[index] == str) {
+        res->nref++;
+        return res;
+    } else {
+        for (;;) {
+            if (const_ptrs[index] == NULL) {
+                CRLog::trace("allocating static string16 %s", str);
+                res->len = lStr_len(str);
+                res->size = res->len + 1;
+                res->buf16 = (lChar16 *)malloc(res->size * sizeof(lChar16)); // intentional memory leak, once per scatic string!
+                lStr_cpy(res->buf16, str);
+                res->nref = 1;
+                return res;
+            }
+            if (const_str8_allocated > CONST_STRING_BUFFER_SIZE / 4) {
+                crFatalError(-1, "out of memory for const string8");
+            }
+            index = (index + 1) & CONST_STRING_BUFFER_MASK;
+        }
+    }
+}
+
+lstring16_chunk_t * lstring16_chunk_t::alloc_const(const lChar16 * str) {
+    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    lstring16_chunk_t * res = &const_chunks[index];
+    if (const_ptrs[index] == str) {
+        res->nref++;
+        return res;
+    } else {
+        for (;;) {
+            if (const_ptrs[index] == NULL) {
+                CRLog::trace("allocating static string16 %s", LCSTR(str));
+                res->buf16 = (lChar16 *)str; // it's safe
+                res->len = lStr_len(str);
+                res->size = res->len + 1;
+                res->nref = 1;
+                return res;
+            }
+            if (const_str8_allocated > CONST_STRING_BUFFER_SIZE / 4) {
+                crFatalError(-1, "out of memory for const string8");
+            }
+            index = (index + 1) & CONST_STRING_BUFFER_MASK;
+        }
+    }
+}
 
 // memory allocation slice
 struct lstring_chunk_slice_t {

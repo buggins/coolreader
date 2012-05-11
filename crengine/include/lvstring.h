@@ -100,7 +100,10 @@ lUInt16 lGetCharProps( lChar16 ch );
 void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int & end );
 
 
-
+// must be power of 2
+#define CONST_STRING_BUFFER_SIZE 4096
+#define CONST_STRING_BUFFER_MASK (CONST_STRING_BUFFER_SIZE - 1)
+#define CONST_STRING_BUFFER_HASH_MULT 31
 
 
 struct lstring8_chunk_t {
@@ -120,8 +123,11 @@ private:
 
     // chunk allocation functions
     static lstring8_chunk_t * alloc();
+    static lstring8_chunk_t * alloc_const(const char * str);
     static void free( lstring8_chunk_t * pChunk );
 
+    static lstring8_chunk_t const_chunks[CONST_STRING_BUFFER_SIZE];
+    static const void * const_ptrs[CONST_STRING_BUFFER_SIZE];
 };
 
 struct lstring16_chunk_t {
@@ -141,8 +147,12 @@ private:
 
     // chunk allocation functions
     static lstring16_chunk_t * alloc();
+    static lstring16_chunk_t * alloc_const(const char * str);
+    static lstring16_chunk_t * alloc_const(const lChar16 * str);
     static void free( lstring16_chunk_t * pChunk );
 
+    static lstring16_chunk_t const_chunks[CONST_STRING_BUFFER_SIZE];
+    static const void * const_ptrs[CONST_STRING_BUFFER_SIZE];
 };
 
 namespace fmt {
@@ -206,6 +216,15 @@ private:
     inline void release() { if (--pchunk->nref==0) free(); }
     explicit lString8(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
 public:
+
+    /// create const static string (pass only string literals here!!!)
+    static inline lString8 c(const char * s) {
+        lstring_chunk_t * res = lstring_chunk_t::alloc_const(s);
+        if (res)
+            return lString8(res);
+        return lString8(s);
+    }
+
     /// default constrictor
     explicit lString8() : pchunk(EMPTY_STR_8) { addref(); }
     /// constructor of empty string with buffer of specified size
@@ -396,6 +415,10 @@ public:
 
     friend class lString16Collection;
 };
+
+inline lString8 lstr8(const char * s) {
+    return lString8::c(s);
+}
 
 /**
     \brief Wide character (lChar16) string. 
