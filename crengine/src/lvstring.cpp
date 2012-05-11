@@ -2650,12 +2650,39 @@ int Utf8CharCount( const lChar8 * str )
     while ( (ch=*str++) ) {
         if ( (ch & 0x80) == 0 ) {
         } else if ( (ch & 0xE0) == 0xC0 ) {
-            if ( !(ch=*str++) )
+            if ( !(*str++) )
+                break;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+        } else if ( (ch & 0xFC) == 0xF8 ) {
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
                 break;
         } else {
-            if ( !(ch=*str++) )
+            if ( !(*str++) )
                 break;
-            if ( !(ch=*str++) )
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
                 break;
         }
         count++;
@@ -2665,23 +2692,26 @@ int Utf8CharCount( const lChar8 * str )
 
 int Utf8CharCount( const lChar8 * str, int len )
 {
+    if (len == 0)
+        return 0;
     int count = 0;
     lUInt8 ch;
-    while ( (--len)>=0 && (ch=*str++) ) {
+    const lChar8 * endp = str + len;
+    while ((ch=*str++)) {
         if ( (ch & 0x80) == 0 ) {
         } else if ( (ch & 0xE0) == 0xC0 ) {
-            //if ( !(ch=*str++) )
-            //    break;
             str++;
-			len--;
-        } else {
-            //if ( !(ch=*str++) )
-            //    break;
-            //if ( !(ch=*str++) )
-            //    break;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
             str+=2;
-			len-=2;
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            str+=3;
+        } else if ( (ch & 0xFC) == 0xF8 ) {
+            str+=4;
+        } else {
+            str+=5;
         }
+        if (str > endp)
+            break;
         count++;
     }
     return count;
@@ -2708,36 +2738,55 @@ lString16 Utf8ToUnicode( const lString8 & str )
 	return Utf8ToUnicode( str.c_str() );
 }
 
+#define CONT_BYTE(index,shift) (((lChar16)(s[index]) & 0x3F) << shift)
+
 lString16 Utf8ToUnicode( const char * s )
 {
-    lString16 dst;
     if ( !s || !s[0] )
-      return dst;
+      return lString16::empty_str;
     int len = Utf8CharCount( s );
     if (!len)
-      return dst;
-    dst.reserve( len );
+      return lString16::empty_str;
+    lString16 dst;
+    dst.append(len, (lChar16)0);
+    lChar16 * p = dst.modify();
+    lChar16 * endp = p + len;
     {
-        lStringBuf16<1024> buf( dst );
         lUInt16 ch;
-        while ( (ch=*s++) ) {
+        while (p < endp) {
+            ch = *s++;
             if ( (ch & 0x80) == 0 ) {
-                buf.append( ch );
+                *p++ = ch;
             } else if ( (ch & 0xE0) == 0xC0 ) {
-                lChar16 d = (ch & 0x1F) << 6;
-                if ( !(ch=*s++) )
-                    break;
-                d |= (ch & 0x3F);
-                buf.append( d );
+                *p++ = ((ch & 0x1F) << 6)
+                        | CONT_BYTE(0,0);
+                s++;
+            } else if ( (ch & 0xF0) == 0xE0 ) {
+                *p++ = ((ch & 0x0F) << 12)
+                    | CONT_BYTE(0,6)
+                    | CONT_BYTE(1,0);
+                s += 2;
+            } else if ( (ch & 0xF8) == 0xF0 ) {
+                *p++ = ((ch & 0x07) << 18)
+                    | CONT_BYTE(0,12)
+                    | CONT_BYTE(1,6)
+                    | CONT_BYTE(2,0);
+                s += 3;
+            } else if ( (ch & 0xFC) == 0xF8 ) {
+                *p++ = ((ch & 0x03) << 24)
+                    | CONT_BYTE(0,18)
+                    | CONT_BYTE(1,12)
+                    | CONT_BYTE(2,6)
+                    | CONT_BYTE(3,0);
+                s += 4;
             } else {
-                lChar16 d = (ch & 0x0F) << 12;
-                if ( !(ch=*s++) )
-                    break;
-                d |= (ch & 0x3F) << 6;
-                if ( !(ch=*s++) )
-                    break;
-                d |= (ch & 0x3F);
-                buf.append( d );
+                *p++ = ((ch & 0x01) << 30)
+                    | CONT_BYTE(0,24)
+                    | CONT_BYTE(1,18)
+                    | CONT_BYTE(2,12)
+                    | CONT_BYTE(3,6)
+                    | CONT_BYTE(4,0);
+                s += 5;
             }
         }
     }
