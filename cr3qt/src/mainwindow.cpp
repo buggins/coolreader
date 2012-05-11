@@ -384,7 +384,7 @@ void MainWindow::onPropsChange( PropsRef props )
                 }
             }
             fn.lowercase();
-            bool tiled = ( fn.pos(lString16("\\textures\\"))>=0 || fn.pos(lString16("/textures/"))>=0);
+            bool tiled = ( fn.pos(cs16("\\textures\\"))>=0 || fn.pos(cs16("/textures/"))>=0);
             ui->view->getDocView()->setBackgroundImage(img, tiled);
         }
         if ( name == PROP_WINDOW_TOOLBAR_SIZE ) {

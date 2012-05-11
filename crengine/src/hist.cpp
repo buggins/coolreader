@@ -682,7 +682,7 @@ lString8 ChangeInfo::toString() {
 }
 
 ChangeInfo * ChangeInfo::fromString(lString8 s) {
-    lString8Collection rows(s, lString8("\n"));
+    lString8Collection rows(s, cs8("\n"));
     if (rows.length() < 3 || rows[0] != START_TAG || rows[rows.length() - 1] != END_TAG)
         return NULL;
     ChangeInfo * ci = new ChangeInfo();

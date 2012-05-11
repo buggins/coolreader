@@ -176,7 +176,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 	propsUpdateDefaults( m_props);
 
 	//m_drawbuf.Clear(m_backgroundColor);
-    createDefaultDocument(lString16("No document"), lString16(
+    createDefaultDocument(cs16("No document"), lString16(
 			L"Welcome to CoolReader! Please select file to open"));
 
     m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
@@ -941,11 +941,11 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 		base_font_size = 24;
 	//CRLog::trace("drawCoverTo() - loading fonts...");
 	LVFontRef author_fnt(fontMan->GetFont(base_font_size, 700, false,
-			css_ff_serif, lString8("Times New Roman")));
+            css_ff_serif, cs8("Times New Roman")));
 	LVFontRef title_fnt(fontMan->GetFont(base_font_size + 4, 700, false,
-			css_ff_serif, lString8("Times New Roman")));
+            css_ff_serif, cs8("Times New Roman")));
 	LVFontRef series_fnt(fontMan->GetFont(base_font_size - 3, 400, true,
-			css_ff_serif, lString8("Times New Roman")));
+            css_ff_serif, cs8("Times New Roman")));
 	lString16 authors = getAuthors();
 	lString16 title = getTitle();
 	lString16 series = getSeries();
@@ -1057,12 +1057,12 @@ bool LVDocView::exportWolFile(LVStream * stream, bool flgGray, int levels) {
 		WOLWriter wol(stream);
 		lString8 authors = UnicodeTo8Bit(getAuthors(), table);
 		lString8 name = UnicodeTo8Bit(getTitle(), table);
-		wol.addTitle(name, lString8("-"), authors, lString8("-"), //adapter
-				lString8("-"), //translator
-				lString8("-"), //publisher
-				lString8("-"), //2006-11-01
-				lString8("-"), //This is introduction.
-				lString8("") //ISBN
+        wol.addTitle(name, cs8("-"), authors, cs8("-"), //adapter
+                cs8("-"), //translator
+                cs8("-"), //publisher
+                cs8("-"), //2006-11-01
+                cs8("-"), //This is introduction.
+                cs8("") //ISBN
 		);
 
 		LVGrayDrawBuf cover(600, 800);
@@ -1385,11 +1385,11 @@ LVArray<int> & LVDocView::getSectionBounds() {
 	m_section_bounds.clear();
 	m_section_bounds.add(0);
     // Get sections from FB2 books
-    ldomNode * body = m_doc->nodeFromXPath(lString16("/FictionBook/body[1]"));
+    ldomNode * body = m_doc->nodeFromXPath(cs16("/FictionBook/body[1]"));
 	lUInt16 section_id = m_doc->getElementNameIndex(L"section");
     if (body == NULL) {
         // Get sections from EPUB books
-        body = m_doc->nodeFromXPath(lString16(L"/body[1]"));
+        body = m_doc->nodeFromXPath(cs16("/body[1]"));
         section_id = m_doc->getElementNameIndex(L"DocFragment");
     }
 	int fh = GetFullHeight();
@@ -2743,7 +2743,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 			m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->crc32());
 			// TODO: load document from stream properly
 			if (!LoadDocument(stream)) {
-                createDefaultDocument(lString16("Load error"), lString16(
+                createDefaultDocument(cs16("Load error"), lString16(
                         "Cannot open file ") + filename);
 				return false;
 			}
@@ -2756,7 +2756,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 			// TODO: setup properties
 			// go to anchor
 			if (!id.empty())
-                goLink(lString16("#") + id);
+                goLink(cs16("#") + id);
 			clearImageCache();
 			requestRender();
 			return true;
@@ -2806,7 +2806,7 @@ lString16 LVDocView::getNavigationPath() {
 	LVAppendPathDelimiter(fpath);
 	lString16 s = fpath + fname;
 	if (!m_arc.isNull())
-        s = lString16("/") + s;
+        s = cs16("/") + s;
 	return s;
 }
 
@@ -3622,9 +3622,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportPDBDocument( m_stream, m_doc, m_callback, this, contentFormat );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( lString16("ERROR: Error reading PDB format"), lString16("Cannot open document") );
+                createDefaultDocument( cs16("ERROR: Error reading PDB format"), cs16("Cannot open document") );
                 if ( m_callback ) {
-                    m_callback->OnLoadFileError( lString16("Error reading PDB document") );
+                    m_callback->OnLoadFileError( cs16("Error reading PDB document") );
                 }
                 return false;
             } else {
@@ -3653,9 +3653,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-                createDefaultDocument( lString16("ERROR: Error reading EPUB format"), lString16("Cannot open document") );
+                createDefaultDocument( cs16("ERROR: Error reading EPUB format"), cs16("Cannot open document") );
 				if ( m_callback ) {
-					m_callback->OnLoadFileError( lString16("Error reading EPUB document") );
+                    m_callback->OnLoadFileError( cs16("Error reading EPUB document") );
 				}
 				return false;
 			} else {
@@ -3692,9 +3692,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportCHMDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-                createDefaultDocument( lString16("ERROR: Error reading CHM format"), lString16("Cannot open document") );
+                createDefaultDocument( cs16("ERROR: Error reading CHM format"), cs16("Cannot open document") );
 				if ( m_callback ) {
-					m_callback->OnLoadFileError( lString16("Error reading CHM document") );
+                    m_callback->OnLoadFileError( cs16("Error reading CHM document") );
 				}
 				return false;
 			} else {
@@ -3725,9 +3725,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             bool res = ImportWordDocument( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( lString16("ERROR: Error reading DOC format"), lString16("Cannot open document") );
+                createDefaultDocument( cs16("ERROR: Error reading DOC format"), cs16("Cannot open document") );
                 if ( m_callback ) {
-                    m_callback->OnLoadFileError( lString16("Error reading DOC document") );
+                    m_callback->OnLoadFileError( cs16("Error reading DOC document") );
                 }
                 return false;
             } else {
@@ -3828,7 +3828,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			{
 				Clear();
 				if ( m_callback ) {
-					m_callback->OnLoadFileError( lString16("File with supported extension not fouind in archive.") );
+                    m_callback->OnLoadFileError( cs16("File with supported extension not fouind in archive.") );
 				}
 				return false;
 			}
@@ -4042,8 +4042,8 @@ bool LVDocView::ParseDocument() {
 				HTML_AUTOCLOSE_TABLE);
 
 		if (m_stream->GetSize() < 5) {
-            createDefaultDocument(lString16("ERROR: Wrong document size"),
-                    lString16("Cannot open document"));
+            createDefaultDocument(cs16("ERROR: Wrong document size"),
+                    cs16("Cannot open document"));
 			return false;
 		}
 
@@ -4106,11 +4106,11 @@ bool LVDocView::ParseDocument() {
 		// unknown format
 		if (!parser) {
 			setDocFormat( doc_format_none);
-            createDefaultDocument(lString16("ERROR: Unknown document format"),
-                    lString16("Cannot open document"));
+            createDefaultDocument(cs16("ERROR: Unknown document format"),
+                    cs16("Cannot open document"));
 			if (m_callback) {
 				m_callback->OnLoadFileError(
-						lString16("Unknown document format"));
+                        cs16("Unknown document format"));
 			}
 			return false;
 		}
@@ -4131,10 +4131,10 @@ bool LVDocView::ParseDocument() {
 		if (!parser->Parse()) {
 			delete parser;
 			if (m_callback) {
-				m_callback->OnLoadFileError(lString16("Bad document format"));
+                m_callback->OnLoadFileError(cs16("Bad document format"));
 			}
-            createDefaultDocument(lString16("ERROR: Bad document format"),
-                    lString16("Cannot open document"));
+            createDefaultDocument(cs16("ERROR: Bad document format"),
+                    cs16("Cannot open document"));
 			return false;
 		}
 		delete parser;
@@ -4206,7 +4206,7 @@ bool LVDocView::ParseDocument() {
 	}
 #endif
 #if 0// test swap to disk
-	lString16 cacheFile = lString16("/tmp/cr3swap.bin");
+    lString16 cacheFile = cs16("/tmp/cr3swap.bin");
 	bool res = m_doc->swapToCacheFile( cacheFile );
 	if ( !res ) {
 		CRLog::error( "Failed to swap to disk" );
@@ -5596,7 +5596,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 			int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
 			fontMan->SetAntialiasMode(antialiasingMode);
             REQUEST_RENDER("propsApply - font antialiasing")
-        } else if (name.startsWith(lString8("styles."))) {
+        } else if (name.startsWith(cs8("styles."))) {
             REQUEST_RENDER("propsApply - styles.*")
         } else if (name == PROP_FONT_GAMMA) {
             double gamma = 1.0;

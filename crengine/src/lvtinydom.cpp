@@ -3043,7 +3043,7 @@ bool ldomDocument::saveToStream( LVStreamRef stream, const char *, bool treeLayo
     if (!stream || !getRootNode()->getChildCount())
         return false;
 
-    *stream.get() << UnicodeToLocal(lString16(L"\xFEFF"));
+    *stream.get() << UnicodeToLocal(cs16(L"\xFEFF"));
     writeNode( stream.get(), getRootNode(), treeLayout );
     return true;
 }
@@ -3201,7 +3201,7 @@ void ldomDocument::applyDocumentStyleSheet()
         }
         CRLog::error("applyDocumentStyleSheet() : cannot load link/stylesheet from %s", LCSTR(_docStylesheetFileName));
     } else {
-        ldomXPointer ss = createXPointer(lString16("/FictionBook/stylesheet"));
+        ldomXPointer ss = createXPointer(cs16("/FictionBook/stylesheet"));
         if ( !ss.isNull() ) {
             lString16 css = ss.getText('\n');
             if ( !css.empty() ) {
@@ -3270,7 +3270,7 @@ int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, 
         updateRenderContext();
 
         // DEBUG dump of render methods
-        //dumpRendMethods( getRootNode(), lString16(" - ") );
+        //dumpRendMethods( getRootNode(), cs16(" - ") );
 //        lUInt32 styleHash = calcStyleHash();
 //        styleHash = styleHash * 31 + calcGlobalSettingsHash();
 //        CRLog::debug("Style hash: %x", styleHash);
@@ -3858,7 +3858,7 @@ int initTableRendMethods( ldomNode * enode, int state )
         }
     }
 //    if ( state==0 ) {
-//        dumpRendMethods( enode, lString16("   ") );
+//        dumpRendMethods( enode, cs16("   ") );
 //    }
     return cellCount;
 }
@@ -5182,13 +5182,13 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16("/") + name + "[" + fmt::decimal(index) + "]" + path;
+                path = cs16("/") + name + "[" + fmt::decimal(index) + "]" + path;
             else
-                path = lString16("/") + name + path;
+                path = cs16("/") + name + path;
         } else {
             // text
             if ( !parent )
-                return lString16("/text()") + path;
+                return cs16("/text()") + path;
             int index = -1;
             int count = 0;
             for ( int i=0; i<parent->getChildCount(); i++ ) {
@@ -5200,7 +5200,7 @@ lString16 ldomXPointer::toString()
                 }
             }
             if ( count>1 )
-                path = lString16("/text()") + "[" + fmt::decimal(index) + "]" + path;
+                path = cs16("/text()") + "[" + fmt::decimal(index) + "]" + path;
             else
                 path = "/text()" + path;
         }
@@ -5226,7 +5226,7 @@ lString16 extractDocAuthors( ldomDocument * doc, lString16 delimiter, bool short
         delimiter = ", ";
     lString16 authors;
     for ( int i=0; i<16; i++) {
-        lString16 path = lString16("/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + "]";
+        lString16 path = cs16("/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + "]";
         ldomXPointer pauthor = doc->createXPointer(path);
         if ( !pauthor ) {
             //CRLog::trace( "xpath not found: %s", UnicodeToUtf8(path).c_str() );
@@ -7232,7 +7232,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
         lString16 replacement = pathSubstitutions.get(filePathName);
         if (replacement.empty())
             return href;
-        lString16 p = lString16("#") + replacement + "_" + href.substr(1);
+        lString16 p = cs16("#") + replacement + "_" + href.substr(1);
         //CRLog::trace("href %s -> %s", LCSTR(href), LCSTR(p));
         return p;
     }
@@ -7241,7 +7241,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
 
     // resolve relative links
     lString16 p, id;
-    if ( !href.split2(lString16("#"), p, id) )
+    if ( !href.split2(cs16("#"), p, id) )
         p = href;
     if ( p.empty() ) {
         //CRLog::trace("codebase = %s -> href = %s", LCSTR(codeBase), LCSTR(href));
@@ -7262,7 +7262,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
     if ( !id.empty() )
         p = p + "_" + id;
 
-    p = lString16("#") + p;
+    p = cs16("#") + p;
 
     //CRLog::debug("converted href=%s to %s", LCSTR(href), LCSTR(p) );
 
@@ -10391,7 +10391,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     }
     return res;
 #else
-    marker = lString16("*");
+    marker = cs16("*");
     return true;
 #endif
 }
@@ -11173,7 +11173,7 @@ void testCacheFile()
     // write
     {
         CacheFile f;
-        MYASSERT(f.open(lString16("/tmp/blabla-not-exits-file-name"))==false, "Wrong failed open result");
+        MYASSERT(f.open(cs16("/tmp/blabla-not-exits-file-name"))==false, "Wrong failed open result");
         MYASSERT(f.create( fn )==true, "new file created");
         MYASSERT(f.write(CBT_TEXT_DATA, 1, data1, sizeof(data1), true)==true, "write 1");
         MYASSERT(f.write(CBT_ELEM_DATA, 3, data2, sizeof(data2), false)==true, "write 2");
@@ -11213,7 +11213,7 @@ void runFileCacheTest()
     CRLog::info("====Cache test started =====");
 
     // init and clear cache
-    ldomDocCache::init(lString16("/tmp/cr3cache"), 100);
+    ldomDocCache::init(cs16("/tmp/cr3cache"), 100);
     MYASSERT(ldomDocCache::enabled(), "clear cache");
 
     {
@@ -11364,7 +11364,7 @@ void runBasicTinyDomUnitTests()
         style1->font_family = css_ff_sans_serif;
         style1->font_size.type = css_val_px;
         style1->font_size.value = 24;
-        style1->font_name = lString8("Arial");
+        style1->font_name = cs8("Arial");
         style1->font_weight = css_fw_400;
         style1->font_style = css_fs_normal;
         style1->text_indent.type = css_val_px;
@@ -11391,7 +11391,7 @@ void runBasicTinyDomUnitTests()
         style2->font_family = css_ff_sans_serif;
         style2->font_size.type = css_val_px;
         style2->font_size.value = 24;
-        style2->font_name = lString8("Arial");
+        style2->font_name = cs8("Arial");
         style2->font_weight = css_fw_400;
         style2->font_style = css_fs_normal;
         style2->text_indent.type = css_val_px;
@@ -11418,7 +11418,7 @@ void runBasicTinyDomUnitTests()
         style3->font_family = css_ff_sans_serif;
         style3->font_size.type = css_val_px;
         style3->font_size.value = 24;
-        style3->font_name = lString8("Arial");
+        style3->font_name = cs8("Arial");
         style3->font_weight = css_fw_400;
         style3->font_style = css_fs_normal;
         style3->text_indent.type = css_val_px;
@@ -11439,9 +11439,9 @@ void runBasicTinyDomUnitTests()
 
     CRLog::info("* font cache");
     {
-        font_ref_t font1 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, lString8("DejaVu Sans"));
-        font_ref_t font2 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, lString8("DejaVu Sans"));
-        font_ref_t font3 = fontMan->GetFont(28, 800, false, css_ff_serif, lString8("DejaVu Sans Condensed"));
+        font_ref_t font1 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, cs8("DejaVu Sans"));
+        font_ref_t font2 = fontMan->GetFont(24, 400, false, css_ff_sans_serif, cs8("DejaVu Sans"));
+        font_ref_t font3 = fontMan->GetFont(28, 800, false, css_ff_serif, cs8("DejaVu Sans Condensed"));
         MYASSERT(el1->getFont().isNull(), "font is not set");
         el1->setFont(font1);
         MYASSERT(!el1->getFont().isNull(), "font is set");
@@ -11499,8 +11499,8 @@ void runBasicTinyDomUnitTests()
     MYASSERT(!el21->isPersistent(), "mutable after insertChildElement");
     el211->persist();
     MYASSERT(el211->isPersistent(), "persistent before insertChildText");
-    el211->insertChildText(lString16(L"bla bla bla"));
-    el211->insertChildText(lString16(L"bla bla blaw"));
+    el211->insertChildText(cs16(L"bla bla bla"));
+    el211->insertChildText(cs16(L"bla bla blaw"));
     MYASSERT(!el211->isPersistent(), "modifable after insertChildText");
     //el21->insertChildElement(el_strong);
     MYASSERT(el211->getChildCount()==2, "child count, in mutable");

@@ -184,7 +184,7 @@ public:
         LVCHMStream * p = new LVCHMStream(_file);
         lString16 fn(fname);
         if ( fn[0]!='/' )
-            fn = lString16("/") + fn;
+            fn = cs16("/") + fn;
         if ( !p->open( UnicodeToUtf8(lString16(fn)).c_str() )) {
             delete p;
             return stream;
@@ -773,7 +773,7 @@ class CHMSystem {
         }
         if ( _enc_table==NULL ) {
             _enc_table = GetCharsetByte2UnicodeTable( 1252 );
-            _enc_name = lString16("windows-1252");
+            _enc_name = cs16("windows-1252");
         }
         _urlTable = CHMUrlTable::open(_container);
         return !err;
@@ -979,7 +979,7 @@ public:
             return; // already added
         _fileList.add(v1.c_str());
         CRLog::trace("New source file: %s", LCSTR(v1) );
-        _appender->addPathSubstitution( v1, lString16("_doc_fragment_") + fmt::decimal(_fileList.length()) );
+        _appender->addPathSubstitution( v1, cs16("_doc_fragment_") + fmt::decimal(_fileList.length()) );
         _appender->setCodeBase( v1 );
     }
 
@@ -989,7 +989,7 @@ public:
         if (url.startsWith(".."))
             url = LVExtractFilename( url );
         lString16 v1, v2;
-        if ( !url.split2(lString16("#"), v1, v2) )
+        if ( !url.split2(cs16("#"), v1, v2) )
             v1 = url;
         PreProcessXmlString( name, 0 );
         addFile(v1);
@@ -1108,7 +1108,7 @@ public:
             doc->saveToStream( out, NULL, true );
     #endif
 
-            ldomNode * body = doc->getRootNode(); //doc->createXPointer(lString16("/html[1]/body[1]"));
+            ldomNode * body = doc->getRootNode(); //doc->createXPointer(cs16("/html[1]/body[1]"));
             bool res = false;
             if ( body->isElement() ) {
                 // body element
@@ -1207,7 +1207,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     //ldomDocumentWriter writer(doc);
     writer.OnStart(NULL);
     writer.OnTagOpenNoAttr(L"", L"body");
-    ldomDocumentFragmentWriter appender(&writer, lString16("body"), lString16("DocFragment"), lString16::empty_str );
+    ldomDocumentFragmentWriter appender(&writer, cs16("body"), cs16("DocFragment"), lString16::empty_str );
     CHMTOCReader tocReader(cont, doc, &appender);
     if ( !tocReader.init(cont, tocFileName, defEncodingName, urlList, mainPageName) )
         return false;

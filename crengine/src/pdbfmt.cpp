@@ -1252,8 +1252,8 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
             continue;
         lString16 fn = item->GetName();
         if (fn.empty())
-            fn = lString16("pdb_item_") + lString16::itoa(i);
-        fn = lString16("/tmp/") + fn;
+            fn = cs16("pdb_item_") + lString16::itoa(i);
+        fn = cs16("/tmp/") + fn;
         LVStreamRef in = container->OpenStream(item->GetName(), LVOM_READ);
         if (in.isNull())
             continue;

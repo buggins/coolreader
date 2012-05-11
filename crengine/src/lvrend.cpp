@@ -947,9 +947,9 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
     for ( ; *s; s++ ) {
         if ( *s=='\r' || *s=='\n' ) {
             //if ( s > start )
-            //    lines.add( lString16("*") + lString16( start, s-start ) + lString16("<") );
+            //    lines.add( cs16("*") + lString16( start, s-start ) + cs16("<") );
             //else
-            //    lines.add( lString16("#") );
+            //    lines.add( cs16("#") );
             if ( (s[1] =='\r' || s[1]=='\n') && (s[1]!=s[0]) )
                 s++;
             start = s+1;
@@ -1114,7 +1114,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 title = enode->getAttributeValue(attr_suptitle);
                 if ( !title.empty() ) {
                     lString16Collection lines;
-                    lines.parse(title, lString16("\\n"), true);
+                    lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
@@ -1122,14 +1122,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 title = enode->getAttributeValue(attr_subtitle);
                 if ( !title.empty() ) {
                     lString16Collection lines;
-                    lines.parse(title, lString16("\\n"), true);
+                    lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
                 title = enode->getAttributeValue(attr_title);
                 if ( !title.empty() ) {
                     lString16Collection lines;
-                    lines.parse(title, lString16("\\n"), true);
+                    lines.parse(title, cs16("\\n"), true);
                     for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, 0, NULL );
                 }
@@ -1835,7 +1835,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
         lString16 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
         if ( !nodeStyle.empty() ) {
-            nodeStyle = lString16("{") + nodeStyle + "}";
+            nodeStyle = cs16("{") + nodeStyle + "}";
             LVCssDeclaration decl;
             lString8 s8 = UnicodeToUtf8(nodeStyle);
             const char * s = s8.c_str();

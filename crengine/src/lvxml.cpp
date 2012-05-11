@@ -1870,7 +1870,7 @@ public:
         }
 
         void onImage( lString16 url ) {
-            //url = lString16("book_img/") + url;
+            //url = cs16("book_img/") + url;
             callback->OnTagOpen(L"", L"img");
             callback->OnAttribute(L"", L"src", url.c_str());
             callback->OnTagBody();
@@ -1914,7 +1914,7 @@ public:
                 return;
             sectionId++;
             callback->OnTagOpen(NULL, L"section");
-            callback->OnAttribute(NULL, L"id", (lString16("_section") + fmt::decimal(sectionId)).c_str() );
+            callback->OnAttribute(NULL, L"id", (cs16("_section") + fmt::decimal(sectionId)).c_str() );
             callback->OnTagBody();
             inSection = true;
             endOfParagraph();
@@ -2498,7 +2498,7 @@ bool LVTextBookmarkParser::CheckFormat()
 {
     Reset();
     // encoding test
-    m_lang_name = lString16("en");
+    m_lang_name = cs16("en");
     SetCharset( L"utf8" );
 
     #define TEXT_PARSER_DETECT_SIZE 16384
@@ -2598,7 +2598,7 @@ bool LVTextBookmarkParser::Parse()
       // BODY
       m_callback->OnTagOpenNoAttr( NULL, L"body" );
           m_callback->OnTagOpenNoAttr( NULL, L"title" );
-              postParagraph( m_callback, "", lString16("CoolReader Bookmarks file"), false );
+              postParagraph( m_callback, "", cs16("CoolReader Bookmarks file"), false );
           m_callback->OnTagClose( NULL, L"title" );
           postParagraph( m_callback, "file: ", fname, false );
           postParagraph( m_callback, "path: ", path, false );

@@ -806,7 +806,7 @@ CRSkinRef LVOpenSkin( const lString16 & pathname )
 }
 
 // default parameters
-//LVFontRef CRSkinnedItem::getFont() { return fontMan->GetFont( 24, 300, false, css_ff_sans_serif, lString8("Arial")) }
+//LVFontRef CRSkinnedItem::getFont() { return fontMan->GetFont( 24, 300, false, css_ff_sans_serif, cs8("Arial")) }
 
 void CRSkinnedItem::draw( LVDrawBuf & buf, const lvRect & rc )
 {
@@ -1001,7 +1001,7 @@ void CRSkinnedItem::drawText( LVDrawBuf & buf, const lvRect & rc, lString16 text
         }
     } else {
         lString16 s = text;
-        while ( s.replace( cr, lString16(" ") ) )
+        while ( s.replace( cr, cs16(" ") ) )
             ;
         lines.add( s );
     }

@@ -74,9 +74,9 @@ int main(int argc, char *argv[])
                 return 0;
             }
             lString8 s(argv[i]);
-            if ( s.startsWith(lString8("--loglevel=")) ) {
+            if ( s.startsWith(cs8("--loglevel=")) ) {
                 loglevel = s.substr(11, s.length()-11);
-            } else if ( s.startsWith(lString8("--logfile=")) ) {
+            } else if ( s.startsWith(cs8("--logfile=")) ) {
                 logfile = s.substr(10, s.length()-10);
             }
         }
@@ -119,21 +119,21 @@ int main(int argc, char *argv[])
         lString16 homefonts = homecr3;
         homefonts << "fonts";
 
-        //fontDirs.add( lString16(L"/usr/local/share/crengine/fonts") );
-        //fontDirs.add( lString16(L"/usr/local/share/fonts/truetype/freefont") );
-        //fontDirs.add( lString16(L"/mnt/fonts") );
+        //fontDirs.add( cs16("/usr/local/share/crengine/fonts") );
+        //fontDirs.add( cs16("/usr/local/share/fonts/truetype/freefont") );
+        //fontDirs.add( cs16("/mnt/fonts") );
         fontDirs.add(homefonts);
 #if MAC==1
-        fontDirs.add( lString16("/Library/Fonts") );
+        fontDirs.add( cs16("/Library/Fonts") );
 #endif
 #if 0
         fontDirs.add( exefontpath );
-        fontDirs.add( lString16("/usr/share/fonts/truetype") );
-        fontDirs.add( lString16("/usr/share/fonts/truetype/liberation") );
-        fontDirs.add( lString16("/usr/share/fonts/truetype/freefont") );
+        fontDirs.add( cs16("/usr/share/fonts/truetype") );
+        fontDirs.add( cs16("/usr/share/fonts/truetype/liberation") );
+        fontDirs.add( cs16("/usr/share/fonts/truetype/freefont") );
 #endif
         // TODO: use fontconfig instead
-        //fontDirs.add( lString16("/root/fonts/truetype") );
+        //fontDirs.add( cs16("/root/fonts/truetype") );
         if ( !InitCREngine( argv[0], fontDirs ) ) {
             printf("Cannot init CREngine - exiting\n");
             return 2;
@@ -206,7 +206,7 @@ int WINAPI WinMain( HINSTANCE hInstance,
 	if ( !str1.empty() && str1[0]=='\"' ) {
 		// quoted filename support
 		str1.erase(0, 1);
-		int pos = str1.pos(lString8("\""));
+        int pos = str1.pos(cs8("\""));
 		if ( pos>=0 )
 			str1 = str1.substr(0, pos);
 	}
@@ -398,10 +398,10 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     // use fontconfig
 
     lString16Collection fontExt;
-    fontExt.add(lString16(".ttf"));
-    fontExt.add(lString16(".otf"));
-    fontExt.add(lString16(".pfa"));
-    fontExt.add(lString16(".pfb"));
+    fontExt.add(cs16(".ttf"));
+    fontExt.add(cs16(".otf"));
+    fontExt.add(cs16(".pfa"));
+    fontExt.add(cs16(".pfb"));
     lString16Collection fonts;
 
     getDirectoryFonts( fontDirs, fontExt, fonts, true );

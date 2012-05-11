@@ -134,7 +134,7 @@ CRGUIAcceleratorTableRef CRGUIAcceleratorTableList::get( const lString16 & name,
     CRGUIAcceleratorTableRef prev = get(name);
     if ( !prev )
         return prev;
-    CRPropRef keymaps = keyRemappingOptions->getSubProps(LCSTR(lString16("keymap.") + name + "."));
+    CRPropRef keymaps = keyRemappingOptions->getSubProps(LCSTR(cs16("keymap.") + name + "."));
     if ( keymaps.isNull() || keymaps->getCount()==0 )
         return prev;
     CRGUIAcceleratorTableRef acc( new CRGUIAcceleratorTable( *prev ));
@@ -144,9 +144,9 @@ CRGUIAcceleratorTableRef CRGUIAcceleratorTableList::get( const lString16 & name,
 //        CRLog::trace("Override key map: %s -> %s", LCSTR(name), LCSTR(value) );
         int key, flags;
         int cmd, params;
-        if ( !splitIntegerList( name, lString16("."), key, flags ))
+        if ( !splitIntegerList( name, cs16("."), key, flags ))
             continue;
-        if ( !splitIntegerList( value, lString16(","), cmd, params ))
+        if ( !splitIntegerList( value, cs16(","), cmd, params ))
             continue;
         acc->add(key, flags, cmd, params);
     }
@@ -932,7 +932,7 @@ void CRMenuItem::Draw( LVDrawBuf & buf, lvRect & rc, CRRectSkinRef skin, CRRectS
     lString16 s1;
     lString16 s2;
     lvRect valueRect = textRect;
-    if ( _label.split2(lString16("\t"), s1, s2 ) ) {
+    if ( _label.split2(cs16("\t"), s1, s2 ) ) {
         //valueSkin->drawText( buf, textRect, s2 );
     } else {
         s1 = _label;
@@ -1079,7 +1079,7 @@ CRMenuSkinRef CRMenu::getSkin()
     lString16 path = getSkinName();
     lString16 path2;
     if (!path.startsWith("#"))
-        path = lString16("/CR3Skin/") + path;
+        path = cs16("/CR3Skin/") + path;
     else if ( _wm->getScreenOrientation()&1 )
         _skin = _wm->getSkin()->getMenuSkin( (path + "-rotated").c_str() );
     if ( !_skin )
@@ -1347,7 +1347,7 @@ void CRMenu::drawClient()
     rc.top += 0; //ITEM_MARGIN;
     //rc.left += ITEM_MARGIN;
     //rc.right -= ITEM_MARGIN;
-    LVFontRef numberFont( fontMan->GetFont( MENU_NUMBER_FONT_SIZE, 600, true, css_ff_sans_serif, lString8("Arial")) );
+    LVFontRef numberFont( fontMan->GetFont( MENU_NUMBER_FONT_SIZE, 600, true, css_ff_sans_serif, cs8("Arial")) );
     for ( int index=0; index<_pageItems; index++ ) {
         int i = _topItem + index;
         if ( i >= _items.length() )
@@ -1792,7 +1792,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
     while ( readNextLine(defStream, line) ) {
         lString16 name;
         lString16 value;
-        if ( splitLine( line, lString16("="), name, value ) )  {
+        if ( splitLine( line, cs16("="), name, value ) )  {
             int key = decodeKey( value );
             if ( key!=0 )
                 defs.set( name, key );
@@ -1823,7 +1823,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
             // begin new section
             if ( !eof ) {
                 table = CRGUIAcceleratorTableRef( new CRGUIAcceleratorTable() );
-                int endbracket = line.pos( lString16("]") );
+                int endbracket = line.pos( cs16("]") );
                 if ( endbracket<=0 )
                     endbracket = line.length();
                 if ( endbracket >= 2 )
@@ -1835,12 +1835,12 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
             // read definition
             lString16 name;
             lString16 value;
-            if ( splitLine( line, lString16("="), name, value ) ) {
+            if ( splitLine( line, cs16("="), name, value ) ) {
                 int flag = 0;
                 int key = 0;
                 lString16 keyName;
                 lString16 flagName;
-                splitLine( name, lString16(","), keyName, flagName );
+                splitLine( name, cs16(","), keyName, flagName );
                 if ( !flagName.empty() ) {
                     flag = decodeKey( flagName );
                     if ( !flag )
@@ -1858,7 +1858,7 @@ bool CRGUIAcceleratorTableList::openFromFile( const char  * defFile, const char 
                 int cmdParam = 0;
                 lString16 cmdName;
                 lString16 paramName;
-                splitLine( value, lString16(","), cmdName, paramName );
+                splitLine( value, cs16(","), cmdName, paramName );
                 if ( !paramName.empty() ) {
                     cmdParam = decodeKey( paramName );
                     if ( !cmdParam )
@@ -1886,7 +1886,7 @@ CRKeyboardLayoutRef CRKeyboardLayoutList::getCurrentLayout()
 {
 	if ( !_current.isNull() )
 		return _current;
-    _current = get(lString16("english"));
+    _current = get(cs16("english"));
 	if ( !_current )
 		nextLayout();
 	return _current;
@@ -1984,7 +1984,7 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
             }
             // begin new section
             if ( !eof ) {
-                int endbracket = line.pos( lString16("]") );
+                int endbracket = line.pos( cs16("]") );
                 if ( endbracket<=0 )
                     endbracket = line.length();
                 if ( endbracket >= 2 )
@@ -1993,7 +1993,7 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
                     section.clear(); // wrong sectino
 				lString16 langname;
 				lString16 layouttype;
-                if ( !section.empty() && splitLine( section, lString16("."), langname, layouttype ) ) {
+                if ( !section.empty() && splitLine( section, cs16("."), langname, layouttype ) ) {
 					table = _table.get( langname );
 					if ( table.isNull() ) {
 						table = CRKeyboardLayoutRef( new CRKeyboardLayoutSet() );
@@ -2010,7 +2010,7 @@ bool CRKeyboardLayoutList::openFromFile( const char  * layoutFile )
             // read definition
             lString16 name;
             lString16 value;
-            if ( splitLine( line, lString16("="), name, value ) ) {
+            if ( splitLine( line, cs16("="), name, value ) ) {
                 if (name == "enabled") {
 					//if ( value == L"0" )
 					//	; //TODO:set disabled flag

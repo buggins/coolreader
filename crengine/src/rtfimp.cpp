@@ -348,7 +348,7 @@ public:
         m_callback->OnBlob(name, _buf.get(), _buf.length());
 #if 0
         {
-            LVStreamRef stream = LVOpenFileStream((lString16("/tmp/") + name).c_str(), LVOM_WRITE);
+            LVStreamRef stream = LVOpenFileStream((cs16("/tmp/") + name).c_str(), LVOM_WRITE);
             stream->Write(_buf.get(), _buf.length(), NULL);
         }
 #endif

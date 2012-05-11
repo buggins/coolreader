@@ -123,11 +123,8 @@ private:
 
     // chunk allocation functions
     static lstring8_chunk_t * alloc();
-    static lstring8_chunk_t * alloc_const(const char * str);
     static void free( lstring8_chunk_t * pChunk );
 
-    static lstring8_chunk_t const_chunks[CONST_STRING_BUFFER_SIZE];
-    static const void * const_ptrs[CONST_STRING_BUFFER_SIZE];
 };
 
 struct lstring16_chunk_t {
@@ -147,13 +144,9 @@ private:
 
     // chunk allocation functions
     static lstring16_chunk_t * alloc();
-    static lstring16_chunk_t * alloc_const(const char * str);
-    static lstring16_chunk_t * alloc_const(const lChar16 * str);
     static void free( lstring16_chunk_t * pChunk );
-
-    static lstring16_chunk_t const_chunks[CONST_STRING_BUFFER_SIZE];
-    static const void * const_ptrs[CONST_STRING_BUFFER_SIZE];
 };
+
 
 namespace fmt {
     class decimal {
@@ -181,6 +174,7 @@ namespace fmt {
 class lString8
 {
     friend class lString8Collection;
+    friend const lString8 & cs8(const char * str);
 public:
     // typedefs for STL compatibility
     typedef lChar8              value_type;      ///< character type
@@ -216,15 +210,6 @@ private:
     inline void release() { if (--pchunk->nref==0) free(); }
     explicit lString8(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
 public:
-
-    /// create const static string (pass only string literals here!!!)
-    static inline lString8 c(const char * s) {
-        lstring_chunk_t * res = lstring_chunk_t::alloc_const(s);
-        if (res)
-            return lString8(res);
-        return lString8(s);
-    }
-
     /// default constrictor
     explicit lString8() : pchunk(EMPTY_STR_8) { addref(); }
     /// constructor of empty string with buffer of specified size
@@ -416,10 +401,6 @@ public:
     friend class lString16Collection;
 };
 
-inline lString8 lstr8(const char * s) {
-    return lString8::c(s);
-}
-
 /**
     \brief Wide character (lChar16) string. 
 
@@ -429,6 +410,8 @@ inline lString8 lstr8(const char * s) {
 */
 class lString16
 {
+    friend const lString16 & cs16(const char * str);
+    friend const lString16 & cs16(const lChar16 * str);
 public:
     // typedefs for STL compatibility
     typedef lChar16             value_type;
@@ -689,6 +672,14 @@ inline lUInt32 getHash( const lString8 & s )
 {
     return s.getHash();
 }
+
+
+/// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective replacement of lString8("abc")
+const lString8 & cs8(const char * str);
+/// get reference to atomic constant wide string for string literal e.g. cs16("abc") -- fast and memory effective replacement of lString16("abc")
+const lString16 & cs16(const char * str);
+/// get reference to atomic constant wide string for string literal e.g. cs16(L"abc") -- fast and memory effective replacement of lString16(L"abc")
+const lString16 & cs16(const lChar16 * str);
 
 /// collection of wide strings
 class lString16Collection

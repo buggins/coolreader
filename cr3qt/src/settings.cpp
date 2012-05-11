@@ -95,7 +95,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     baseDirs.add(qt2cr(homeDir));
     baseDirs.add(qt2cr(exeDir));
 #ifdef _LINUX
-    baseDirs.add(lString16("/usr/local/share/cr3/"));
+    baseDirs.add(cs16("/usr/local/share/cr3/"));
 #endif
     lString16Collection bgFiles;
     QStringList bgFileLabels;

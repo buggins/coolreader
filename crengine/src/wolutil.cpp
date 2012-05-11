@@ -839,7 +839,7 @@ void WOLWriter::addImage(
 
     _stream->Write( compressed, compressed_len, NULL );
     endPage();
-    *_stream << lString8("</img>");
+    *_stream << cs8("</img>");
   
     // cleanup
     delete[] compressed;

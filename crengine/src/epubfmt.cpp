@@ -38,7 +38,7 @@ public:
 //    lString16 arcName = LVExtractFilenameWithoutExtension( arc->GetName() );
 //    if ( arcName.empty() )
 //        arcName = "unziparc";
-//    lString16 outDir = lString16("/tmp/") + arcName;
+//    lString16 outDir = cs16("/tmp/") + arcName;
 //    LVCreateDirectory(outDir);
 //    for ( int i=0; i<arc->GetObjectCount(); i++ ) {
 //        const LVContainerItemInfo * info = arc->GetObjectInfo(i);
@@ -140,7 +140,7 @@ lString16 EpubGetRootFilePath(LVContainerRef m_arc)
         if ( !container_stream.isNull() ) {
             ldomDocument * doc = LVParseXMLStream( container_stream );
             if ( doc ) {
-                ldomNode * rootfile = doc->nodeFromXPath( lString16("container/rootfiles/rootfile") );
+                ldomNode * rootfile = doc->nodeFromXPath( cs16("container/rootfiles/rootfile") );
                 if ( rootfile && rootfile->isElement() ) {
                     rootfilePath = rootfile->getAttributeValue("full-path");
                     rootfileMediaType = rootfile->getAttributeValue("media-type");
@@ -437,7 +437,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
             return LVStreamRef();
 
         for ( int i=1; i<20; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
+            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/meta[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
             lString16 name = item->getAttributeValue("name");
@@ -448,7 +448,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
 
         // items
         for ( int i=1; i<50000; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") << fmt::decimal(i) << "]" );
+            ldomNode * item = doc->nodeFromXPath(lString16("package/manifest/item[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
             lString16 href = item->getAttributeValue("href");
@@ -683,15 +683,15 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             return false;
 
         CRPropRef m_doc_props = m_doc->getProps();
-        lString16 author = doc->textFromXPath( lString16("package/metadata/creator"));
-        lString16 title = doc->textFromXPath( lString16("package/metadata/title"));
-        lString16 language = doc->textFromXPath( lString16("package/metadata/language"));
+        lString16 author = doc->textFromXPath( cs16("package/metadata/creator"));
+        lString16 title = doc->textFromXPath( cs16("package/metadata/title"));
+        lString16 language = doc->textFromXPath( cs16("package/metadata/language"));
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_LANGUAGE, language);
         m_doc_props->setString(DOC_PROP_AUTHORS, author );
 
         for ( int i=1; i<50; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/identifier[") << fmt::decimal(i) << "]" );
+            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/identifier[") << fmt::decimal(i) << "]");
             if (!item)
                 break;
             lString16 key = item->getText();
@@ -703,7 +703,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
         CRLog::info("Author: %s Title: %s", LCSTR(author), LCSTR(title));
         for ( int i=1; i<20; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/metadata/meta[") << fmt::decimal(i) << "]" );
+            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/meta[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
             lString16 name = item->getAttributeValue("name");
@@ -718,7 +718,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
         // items
         for ( int i=1; i<50000; i++ ) {
-            ldomNode * item = doc->nodeFromXPath( lString16("package/manifest/item[") << fmt::decimal(i) << "]" );
+            ldomNode * item = doc->nodeFromXPath(lString16("package/manifest/item[") << fmt::decimal(i) << "]");
             if ( !item )
                 break;
             lString16 href = item->getAttributeValue("href");
@@ -767,16 +767,16 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
         // spine == itemrefs
         if ( epubItems.length()>0 ) {
-            ldomNode * spine = doc->nodeFromXPath( lString16("package/spine") );
+            ldomNode * spine = doc->nodeFromXPath( cs16("package/spine") );
             if ( spine ) {
 
                 EpubItem * ncx = epubItems.findById( spine->getAttributeValue("toc") ); //TODO
-                //EpubItem * ncx = epubItems.findById(lString16("ncx"));
+                //EpubItem * ncx = epubItems.findById(cs16("ncx"));
                 if ( ncx!=NULL )
                     ncxHref = codeBase + ncx->href;
 
                 for ( int i=1; i<50000; i++ ) {
-                    ldomNode * item = doc->nodeFromXPath( lString16("package/spine/itemref[") << fmt::decimal(i) << "]" );
+                    ldomNode * item = doc->nodeFromXPath(lString16("package/spine/itemref[") << fmt::decimal(i) << "]");
                     if ( !item )
                         break;
                     EpubItem * epubItem = epubItems.findById( item->getAttributeValue("idref") );
@@ -815,14 +815,14 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 #endif
     //m_doc->setCodeBase( codeBase );
 
-    ldomDocumentFragmentWriter appender(&writer, lString16("body"), lString16("DocFragment"), lString16::empty_str );
+    ldomDocumentFragmentWriter appender(&writer, cs16("body"), cs16("DocFragment"), lString16::empty_str );
     writer.OnStart(NULL);
     writer.OnTagOpenNoAttr(L"", L"body");
     int fragmentCount = 0;
     for ( int i=0; i<spineItems.length(); i++ ) {
         if (spineItems[i]->mediaType == "application/xhtml+xml") {
             lString16 name = codeBase + spineItems[i]->href;
-            lString16 subst = lString16("_doc_fragment_") + fmt::decimal(i);
+            lString16 subst = cs16("_doc_fragment_") + fmt::decimal(i);
             appender.addPathSubstitution( name, subst );
             //CRLog::trace("subst: %s => %s", LCSTR(name), LCSTR(subst));
         }
@@ -863,7 +863,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         if ( !stream.isNull() ) {
             ldomDocument * ncxdoc = LVParseXMLStream( stream );
             if ( ncxdoc!=NULL ) {
-                ldomNode * navMap = ncxdoc->nodeFromXPath( lString16("ncx/navMap"));
+                ldomNode * navMap = ncxdoc->nodeFromXPath( cs16("ncx/navMap"));
                 if ( navMap!=NULL )
                     ReadEpubToc( m_doc, navMap, m_doc->getToc(), appender );
                 delete ncxdoc;

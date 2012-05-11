@@ -46,88 +46,97 @@ extern "C" {
 #define CHECK_STARTUP_STAGE
 #endif
 
-lstring8_chunk_t lstring8_chunk_t::const_chunks[CONST_STRING_BUFFER_SIZE];
-const void * lstring8_chunk_t::const_ptrs[CONST_STRING_BUFFER_SIZE] = {NULL};
-static int const_str8_allocated = 0;
+static lChar8 empty_str_8[] = {0};
+static lstring8_chunk_t empty_chunk_8(empty_str_8);
+lstring8_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
 
-lstring8_chunk_t * lstring8_chunk_t::alloc_const(const char * str) {
+static lChar16 empty_str_16[] = {0};
+static lstring16_chunk_t empty_chunk_16(empty_str_16);
+lstring16_chunk_t * lString16::EMPTY_STR_16 = &empty_chunk_16;
+
+//================================================================================
+// atomic string storages for string literals
+//================================================================================
+
+static const void * const_ptrs_8[CONST_STRING_BUFFER_SIZE] = {NULL};
+static lString8 values_8[CONST_STRING_BUFFER_SIZE];
+static int size_8 = 0;
+
+/// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective
+const lString8 & cs8(const char * str) {
     int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
-    lstring8_chunk_t * res = &const_chunks[index];
-    if (const_ptrs[index] == str) {
-        res->nref++;
-        return res;
-    } else {
-        for (;;) {
-            if (const_ptrs[index] == NULL) {
-                CRLog::trace("allocating static string %s", str);
-                res->buf8 = (char *)str; // it's safe
-                res->len = lStr_len(str);
-                res->size = res->len + 1;
-                res->nref = 1;
-                const_str8_allocated++;
-                return res;
-            }
-            if (const_str8_allocated > CONST_STRING_BUFFER_SIZE / 4) {
-                crFatalError(-1, "out of memory for const string8");
-            }
-            index = (index + 1) & CONST_STRING_BUFFER_MASK;
+    for (;;) {
+        const void * p = const_ptrs_8[index];
+        if (p == str) {
+            return values_8[index];
+        } else if (p == NULL) {
+            CRLog::trace("allocating static string8 %s", str);
+            const_ptrs_8[index] = str;
+            size_8++;
+            values_8[index] = lString8(str);
+            values_8[index].addref();
+            return values_8[index];
         }
+        if (size_8 > CONST_STRING_BUFFER_SIZE / 4) {
+            crFatalError(-1, "out of memory for const string8");
+        }
+        index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
 }
 
-lstring16_chunk_t lstring16_chunk_t::const_chunks[CONST_STRING_BUFFER_SIZE];
-const void * lstring16_chunk_t::const_ptrs[CONST_STRING_BUFFER_SIZE] = {NULL};
+static const void * const_ptrs_16[CONST_STRING_BUFFER_SIZE] = {NULL};
+static lString16 values_16[CONST_STRING_BUFFER_SIZE];
+static int size_16 = 0;
 
-lstring16_chunk_t * lstring16_chunk_t::alloc_const(const char * str) {
+/// get reference to atomic constant wide string for string literal e.g. cs16("abc") -- fast and memory effective
+const lString16 & cs16(const char * str) {
     int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
-    lstring16_chunk_t * res = &const_chunks[index];
-    if (const_ptrs[index] == str) {
-        res->nref++;
-        return res;
-    } else {
-        for (;;) {
-            if (const_ptrs[index] == NULL) {
-                CRLog::trace("allocating static string16 %s", str);
-                res->len = lStr_len(str);
-                res->size = res->len + 1;
-                res->buf16 = (lChar16 *)malloc(res->size * sizeof(lChar16)); // intentional memory leak, once per scatic string!
-                lStr_cpy(res->buf16, str);
-                res->nref = 1;
-                return res;
-            }
-            if (const_str8_allocated > CONST_STRING_BUFFER_SIZE / 4) {
-                crFatalError(-1, "out of memory for const string8");
-            }
-            index = (index + 1) & CONST_STRING_BUFFER_MASK;
+    for (;;) {
+        const void * p = const_ptrs_16[index];
+        if (p == str) {
+            return values_16[index];
+        } else if (p == NULL) {
+            CRLog::trace("allocating static string16 %s", str);
+            const_ptrs_16[index] = str;
+            size_16++;
+            values_16[index] = lString16(str);
+            values_16[index].addref();
+            return values_16[index];
         }
+        if (size_16 > CONST_STRING_BUFFER_SIZE / 4) {
+            crFatalError(-1, "out of memory for const string8");
+        }
+        index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
 }
 
-lstring16_chunk_t * lstring16_chunk_t::alloc_const(const lChar16 * str) {
+/// get reference to atomic constant wide string for string literal e.g. cs16(L"abc") -- fast and memory effective
+const lString16 & cs16(const lChar16 * str) {
     int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
-    lstring16_chunk_t * res = &const_chunks[index];
-    if (const_ptrs[index] == str) {
-        res->nref++;
-        return res;
-    } else {
-        for (;;) {
-            if (const_ptrs[index] == NULL) {
-                CRLog::trace("allocating static string16 %s", LCSTR(str));
-                res->buf16 = (lChar16 *)str; // it's safe
-                res->len = lStr_len(str);
-                res->size = res->len + 1;
-                res->nref = 1;
-                return res;
-            }
-            if (const_str8_allocated > CONST_STRING_BUFFER_SIZE / 4) {
-                crFatalError(-1, "out of memory for const string8");
-            }
-            index = (index + 1) & CONST_STRING_BUFFER_MASK;
+    for (;;) {
+        const void * p = const_ptrs_16[index];
+        if (p == str) {
+            return values_16[index];
+        } else if (p == NULL) {
+            CRLog::trace("allocating static string16 %s", LCSTR(str));
+            const_ptrs_16[index] = str;
+            size_16++;
+            values_16[index] = lString16(str);
+            values_16[index].addref();
+            return values_16[index];
         }
+        if (size_16 > CONST_STRING_BUFFER_SIZE / 4) {
+            crFatalError(-1, "out of memory for const string8");
+        }
+        index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
 }
 
+
+
+//================================================================================
 // memory allocation slice
+//================================================================================
 struct lstring_chunk_slice_t {
     lstring8_chunk_t * pChunks; // first chunk
     lstring8_chunk_t * pEnd;    // first free byte after last chunk
@@ -204,14 +213,6 @@ static lstring_chunk_slice_t * slices[MAX_SLICE_COUNT];
 static int slices_count = 0;
 static bool slices_initialized = false;
 #endif
-
-static lChar8 empty_str_8[] = {0};
-static lstring8_chunk_t empty_chunk_8(empty_str_8);
-lstring8_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
-
-static lChar16 empty_str_16[] = {0};
-static lstring16_chunk_t empty_chunk_16(empty_str_16);
-lstring16_chunk_t * lString16::EMPTY_STR_16 = &empty_chunk_16;
 
 #if (LDOM_USE_OWN_MEM_MAN == 1)
 static void init_ls_storage()
@@ -2372,7 +2373,7 @@ lString8 lString8::itoa( int n )
     int i=0;
     int negative = 0;
     if (n==0)
-        return lString8("0");
+        return cs8("0");
     else if (n<0)
     {
         negative = 1;
@@ -2397,7 +2398,7 @@ lString8 lString8::itoa( unsigned int n )
     lChar8 buf[16];
     int i=0;
     if (n==0)
-        return lString8("0");
+        return cs8("0");
     for ( ; n; n/=10 )
     {
         buf[i++] = '0' + (n%10);
@@ -2422,7 +2423,7 @@ lString16 lString16::itoa( lInt64 n )
     int i=0;
     int negative = 0;
     if (n==0)
-        return lString16("0");
+        return cs16("0");
     else if (n<0)
     {
         negative = 1;
@@ -2619,7 +2620,7 @@ lString16 lString16::itoa( lUInt64 n )
     lChar16 buf[24];
     int i=0;
     if (n==0)
-        return lString16("0");
+        return cs16("0");
     for ( ; n; n/=10 )
     {
         buf[i++] = (lChar16)('0' + (n%10));
@@ -4683,7 +4684,7 @@ bool lString16::replace(const lString16 & findStr, const lString16 & replaceStr)
 
 bool lString16::replaceParam(int index, const lString16 & replaceStr)
 {
-    return replace( lString16("$") + fmt::decimal(index), replaceStr );
+    return replace( cs16("$") + fmt::decimal(index), replaceStr );
 }
 
 /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
