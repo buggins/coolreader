@@ -384,7 +384,7 @@ static lChar16 cr3_ksc5601_mbtowc(lChar16 c1, lChar16 c2)
 /// reads several characters from buffer
 int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
 {
-    if ( m_buf_pos>=m_buf_len )
+    if (m_buf_pos >= m_buf_len)
         return 0;
     int count = 0;
     switch ( m_enc_type ) {
@@ -397,67 +397,12 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
             }
             return count;
         } else  {
-            for ( ; count<maxsize && m_buf_pos<m_buf_len; count++ ) {
-                lUInt16 ch = m_buf[m_buf_pos];
-                // support only 11 and 16 bit UTF8 chars
-                if ( (ch & 0x80) == 0 ) {
-                    buf[count] = ch;
-                    m_buf_pos++;
-                } else if ( (ch & 0xE0) == 0xC0 ) {
-                    // 11 bits
-                    if ( m_buf_pos+1>=m_buf_len ) {
-                        checkEof();
-                        return count;
-                    }
-                    ch = (ch&0x1F);
-#ifdef _DEBUG
-//#define CHECK_UTF8_CODE 1
-#endif
-#if CHECK_UTF8_CODE==1
-                    if ( (m_buf[m_buf_pos+1] & 0xC0) != 0x80 ) {
-                        CRLog::error("Wrong utf8 character at position %08x", (int)(m_buf_fpos+m_buf_pos));
-                    }
-#endif
-                    m_buf_pos++;
-                    lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
-                    buf[count] = (ch<<6) | ch2;
-                    //buf[count] = ((lUInt16)(ch&0x1F)<<6) | ((lUInt16)m_buf[m_buf_pos++]&0x3F);
-                } else if ( (ch & 0xF0) == 0xE0 ) {
-                    // 16 bits
-                    if ( m_buf_pos+2>=m_buf_len ) {
-                        checkEof();
-                        return count;
-                    }
-                    ch = (ch&0x0F);
-#if CHECK_UTF8_CODE==1
-                    if ( (m_buf[m_buf_pos+1] & 0xC0) != 0x80 || (m_buf[m_buf_pos+2] & 0xC0) != 0x80 ) {
-                        CRLog::error("Wrong utf8 character at position %08x", (int)(m_buf_fpos+m_buf_pos));
-                    }
-#endif
-                    m_buf_pos++;
-                    lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
-                    lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
-                    buf[count] = (ch<<12) | (ch2<<6) | ch3;
-                } else {
-                    // 20 bits
-                    if ( m_buf_pos+3>=m_buf_len ) {
-                        checkEof();
-                        return count;
-                    }
-                    ch = (ch&0x07);
-#if CHECK_UTF8_CODE==1
-                    if ( (m_buf[m_buf_pos+1] & 0xC0) != 0x80 || (m_buf[m_buf_pos+2] & 0xC0) != 0x80  || (m_buf[m_buf_pos+3] & 0xC0) != 0x80 ) {
-                        CRLog::error("Wrong utf8 character at position %08x", (int)(m_buf_fpos+m_buf_pos));
-                    }
-#endif
-                    m_buf_pos++;
-                    lUInt16 ch2 = m_buf[m_buf_pos++]&0x3F;
-                    lUInt16 ch3 = m_buf[m_buf_pos++]&0x3F;
-                    lUInt16 ch4 = m_buf[m_buf_pos++]&0x3F;
-                    buf[count] = ((lChar16)ch<<18) | (ch2<12) | (ch3<<6) | ch4;
-                }
-            }
-            return count;
+            int srclen = m_buf_len - m_buf_pos;
+            int dstlen = maxsize;
+            Utf8ToUnicode(m_buf + m_buf_pos, srclen, buf, dstlen);
+            m_buf_pos += srclen;
+            checkEof();
+            return dstlen;
         }
     case ce_utf16_be:
         {

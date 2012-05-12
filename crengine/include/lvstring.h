@@ -954,6 +954,8 @@ lString16 Utf8ToUnicode( const lString8 & str );
 lString16 Utf8ToUnicode( const char * s );
 /// converts utf-8 string fragment to wide unicode string
 lString16 Utf8ToUnicode( const char * s, int sz );
+/// converts utf-8 string fragment to wide unicode string
+void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen);
 /// decodes path like "file%20name" to "file name"
 lString16 DecodeHTMLUrlString( lString16 s );
 /// truncates string by specified size, appends ... if truncated, prefers to wrap whole words

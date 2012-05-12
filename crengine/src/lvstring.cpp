@@ -2797,6 +2797,64 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
     }
 }
 
+void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
+{
+    const lUInt8 * s = src;
+    const lUInt8 * ends = s + srclen;
+    lChar16 * p = dst;
+    lChar16 * endp = p + dstlen;
+    lUInt32 ch;
+    while (p < endp && s < ends) {
+        ch = *s;
+        if ( (ch & 0x80) == 0 ) {
+            *p++ = ch;
+            s++;
+        } else if ( (ch & 0xE0) == 0xC0 ) {
+            if (s + 2 > ends)
+                break;
+            *p++ = ((ch & 0x1F) << 6)
+                    | CONT_BYTE(1,0);
+            s += 2;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
+            if (s + 3 > ends)
+                break;
+            *p++ = ((ch & 0x0F) << 12)
+                | CONT_BYTE(1,6)
+                | CONT_BYTE(2,0);
+            s += 3;
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            if (s + 4 > ends)
+                break;
+            *p++ = ((ch & 0x07) << 18)
+                | CONT_BYTE(1,12)
+                | CONT_BYTE(2,6)
+                | CONT_BYTE(3,0);
+            s += 4;
+        } else if ( (ch & 0xFC) == 0xF8 ) {
+            if (s + 5 > ends)
+                break;
+            *p++ = ((ch & 0x03) << 24)
+                | CONT_BYTE(1,18)
+                | CONT_BYTE(2,12)
+                | CONT_BYTE(3,6)
+                | CONT_BYTE(4,0);
+            s += 5;
+        } else {
+            if (s + 6 > ends)
+                break;
+            *p++ = ((ch & 0x01) << 30)
+                | CONT_BYTE(1,24)
+                | CONT_BYTE(2,18)
+                | CONT_BYTE(3,12)
+                | CONT_BYTE(4,6)
+                | CONT_BYTE(5,0);
+            s += 6;
+        }
+    }
+    srclen = s - src;
+    dstlen = p - dst;
+}
+
 lString16 Utf8ToUnicode( const char * s ) {
     if (!s || !s[0])
       return lString16::empty_str;
