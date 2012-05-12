@@ -4025,9 +4025,10 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     {
         // normal mode: store text copy
         // add text node, if not first empty space string of block node
-        if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) || (_flags&TXTFLG_PRE) )
-            _element->insertChildText(lString16(text, len));
-        else {
+        if ( !_isBlock || _element->getChildCount()!=0 || !IsEmptySpace( text, len ) || (_flags&TXTFLG_PRE) ) {
+            lString8 s8 = UnicodeToUtf8(text, len);
+            _element->insertChildText(s8);
+        } else {
             //CRLog::trace("ldomElementWriter::onText: Ignoring first empty space of block item");
         }
     }
@@ -10619,6 +10620,28 @@ ldomNode * ldomNode::insertChildText( const lString16 & value )
 #else
         ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         lString8 s8 = UnicodeToUtf8(value);
+        node->_data._ptext_addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
+#endif
+        me->_children.insert( me->_children.length(), node->getDataIndex() );
+        return node;
+    }
+    readOnlyError();
+    return NULL;
+}
+
+/// inserts child text
+ldomNode * ldomNode::insertChildText(const lString8 & s8)
+{
+    ASSERT_NODE_NOT_NULL;
+    if  ( isElement() ) {
+        if ( isPersistent() )
+            modify();
+        tinyElement * me = NPELEM;
+#if !defined(USE_PERSISTENT_TEXT) || BUILD_LITE==1
+        ldomNode * node = getDocument()->allocTinyNode( NT_TEXT );
+        node->_data._text_ptr = new ldomTextNode(_handle._dataIndex, s8);
+#else
+        ldomNode * node = getDocument()->allocTinyNode( NT_PTEXT );
         node->_data._ptext_addr = getDocument()->_textStorage.allocText( node->_handle._dataIndex, _handle._dataIndex, s8 );
 #endif
         me->_children.insert( me->_children.length(), node->getDataIndex() );

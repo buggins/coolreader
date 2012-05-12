@@ -2713,18 +2713,37 @@ int Utf8CharCount( const lChar8 * str, int len )
     return count;
 }
 
-int Utf8ByteCount( const lChar16 * str )
+inline int charUtf8ByteCount(int ch) {
+    if (!(ch & ~0x7F))
+        return 1;
+    if (!(ch & ~0x7FF))
+        return 2;
+    if (!(ch & ~0xFFFF))
+        return 3;
+    if (!(ch & ~0x1FFFFF))
+        return 4;
+    if (!(ch & ~0x3FFFFFF))
+        return 5;
+    return 6;
+}
+
+int Utf8ByteCount(const lChar16 * str)
 {
     int count = 0;
-    lUInt16 ch;
+    lUInt32 ch;
     while ( (ch=*str++) ) {
-        if ( (ch & 0xFF80) == 0 ) {
-            count++;
-        } else if ( (ch & 0xF800) == 0 ) {
-            count += 2;
-        } else {
-            count += 3;
-        }
+        count += charUtf8ByteCount(ch);
+    }
+    return count;
+}
+
+int Utf8ByteCount(const lChar16 * str, int len)
+{
+    int count = 0;
+    lUInt32 ch;
+    while ((len--) > 0) {
+        ch = *str++;
+        count += charUtf8ByteCount(ch);
     }
     return count;
 }
@@ -2739,7 +2758,7 @@ lString16 Utf8ToUnicode( const lString8 & str )
 static void DecodeUtf8(const char * s,  lChar16 * p, int len)
 {
     lChar16 * endp = p + len;
-    lUInt16 ch;
+    lUInt32 ch;
     while (p < endp) {
         ch = *s++;
         if ( (ch & 0x80) == 0 ) {
@@ -2805,31 +2824,56 @@ lString16 Utf8ToUnicode( const char * s, int sz ) {
 }
 
 
-lString8 UnicodeToUtf8( const lString16 & str )
+lString8 UnicodeToUtf8(const lChar16 * s, int count)
 {
+    if (count <= 0)
+      return lString8::empty_str;
     lString8 dst;
-    if (str.empty())
-      return dst;
-    const lChar16 * s = str.c_str();
-    int len = Utf8ByteCount( s );
+    int len = Utf8ByteCount(s, count);
+    if (len <= 0)
+      return lString8::empty_str;
     dst.append( len, ' ' );
     lChar8 * buf = dst.modify();
     {
-        lUInt16 ch;
-        while ( (ch=*s++) ) {
-            if ( (ch & 0xFF80) == 0 ) {
+        lUInt32 ch;
+        while ((count--) > 0) {
+            ch = *s++;
+            if (!(ch & ~0x7F)) {
                 *buf++ = ( (lUInt8)ch );
-            } else if ( (ch & 0xF800) == 0 ) {
+            } else if (!(ch & ~0x7FF)) {
                 *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 ) );
                 *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
-            } else {
+            } else if (!(ch & ~0xFFFF)) {
                 *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+            } else if (!(ch & ~0x1FFFFF)) {
+                *buf++ = ( (lUInt8) ( ((ch >> 18) & 0x07) | 0xF0 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+            } else if (!(ch & ~0x3FFFFFF)) {
+                *buf++ = ( (lUInt8) ( ((ch >> 24) & 0x03) | 0xF8 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 18) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+            } else {
+                *buf++ = ( (lUInt8) ( ((ch >> 30) & 0x01) | 0xFC ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 24) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 18) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
                 *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
                 *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
             }
         }
     }
     return dst;
+}
+
+lString8 UnicodeToUtf8( const lString16 & str )
+{
+    return UnicodeToUtf8(str.c_str(), str.length());
 }
 
 lString8 UnicodeTo8Bit( const lString16 & str, const lChar8 * * table )

@@ -940,6 +940,8 @@ lString8  UnicodeToTranslit( const lString16 & str );
 lString8  UnicodeToLocal( const lString16 & str );
 /// converts wide unicode string to utf-8 string
 lString8  UnicodeToUtf8( const lString16 & str );
+/// converts wide unicode string to utf-8 string
+lString8 UnicodeToUtf8(const lChar16 * s, int count);
 /// converts unicode string to 8-bit string using specified conversion table
 lString8  UnicodeTo8Bit( const lString16 & str, const lChar8 * * table );
 /// converts 8-bit string to unicode string using specified conversion table for upper 128 characters

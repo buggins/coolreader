@@ -851,6 +851,8 @@ public:
     ldomNode * insertChildText( lUInt32 index, const lString16 & value );
     /// inserts child text
     ldomNode * insertChildText( const lString16 & value );
+    /// inserts child text
+    ldomNode * insertChildText(const lString8 & value);
     /// remove child
     ldomNode * removeChild( lUInt32 index );
 
