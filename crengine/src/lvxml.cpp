@@ -3389,45 +3389,38 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
     if ( pre_para_splitting )
         pre = false;
     //CRLog::trace("before: '%s' %s", LCSTR(s), pre ? "pre ":" ");
-    int tabCount = 0;
     int j = 0;
-    for (int i=0; i<len; ++i )
-    {
+    for (int i=0; i<len; ++i ) {
         lChar16 ch = str[i];
-        if ( pre && ch=='\t' )
-            tabCount++;
-        if ( !pre && (ch=='\r' || ch=='\n' || ch=='\t') )
-            ch = ' ';
-        if (ch=='\r')
-        {
-            if ((i==0 || lch!='\n') && (i==len-1 || str[i+1]!='\n'))
+        if (pre) {
+            if (ch == '\r') {
+                if ((i==0 || lch!='\n') && (i==len-1 || str[i+1]!='\n')) {
+                    str[j++] = '\n';
+                    lch = '\n';
+                }
+                continue;
+            } else if (ch == '\n') {
                 str[j++] = '\n';
+                lch = ch;
+                continue;
+            }
+        } else {
+            if (ch=='\r' || ch=='\n' || ch=='\t')
+                ch = ' ';
         }
-        else if (ch=='\n')
-        {
-            str[j++] = '\n';
-        }
-        else if (ch=='&')
-        {
+        if (ch == '&') {
             state = 1;
             nch = 0;
-        }
-        else if (state==0)
-        {
-            if (ch==' ')
-            {
+        } else if (state == 0) {
+            if (ch == ' ') {
                 if ( pre || !nsp )
                     str[j++] = ch;
                 nsp++;
-            }
-            else
-            {
+            } else {
                 str[j++] = ch;
                 nsp = 0;
             }
-        }
-        else
-        {
+        } else {
             if (state == 2 && ch=='x')
                 state = 22;
             else if (state == 22 && hexDigit(ch)>=0)
@@ -3467,15 +3460,12 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
                     state = 0;
                 }
 
-            } else if (ch == ';')
-            {
+            } else if (ch == ';') {
                 if (nch)
                     str[j++] = nch;
                 state = 0;
                 nsp = 0;
-            }
-            else
-            {
+            } else {
                 // error: return to normal mode
                 state = 0;
             }
