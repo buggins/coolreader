@@ -94,6 +94,8 @@ public:
 
 /// converts XML text: decode character entities, convert space chars
 void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_table=NULL );
+/// converts XML text in-place: decode character entities, convert space chars, returns new length of string
+int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * enc_table = NULL);
 
 #define MAX_PERSISTENT_BUF_SIZE 16384
 

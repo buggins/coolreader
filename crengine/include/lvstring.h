@@ -957,6 +957,9 @@ lString16 DecodeHTMLUrlString( lString16 s );
 /// truncates string by specified size, appends ... if truncated, prefers to wrap whole words
 void limitStringSize(lString16 & str, int maxSize);
 
+int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens);
+
+
 #define LCSTR(x) (UnicodeToUtf8(x).c_str())
 bool splitIntegerList( lString16 s, lString16 delim, int & value1, int & value2 );
 

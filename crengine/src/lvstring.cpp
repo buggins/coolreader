@@ -930,10 +930,9 @@ lString16 & lString16::append(const lChar16 * str)
 
 lString16 & lString16::append(const lChar16 * str, size_type count)
 {
-    size_type len = _lStr_nlen(str, count);
-    reserve( pchunk->len+len );
-    _lStr_ncpy(pchunk->buf16+pchunk->len, str, len);
-    pchunk->len += len;
+    reserve(pchunk->len + count);
+    _lStr_ncpy(pchunk->buf16 + pchunk->len, str, count);
+    pchunk->len += count;
     return *this;
 }
 
@@ -948,10 +947,9 @@ lString16 & lString16::append(const lChar8 * str)
 
 lString16 & lString16::append(const lChar8 * str, size_type count)
 {
-    size_type len = _lStr_nlen(str, count);
-    reserve( pchunk->len+len );
-    _lStr_ncpy(pchunk->buf16+pchunk->len, str, len);
-    pchunk->len += len;
+    reserve(pchunk->len + count);
+    _lStr_ncpy(pchunk->buf16+pchunk->len, str, count);
+    pchunk->len += count;
     return *this;
 }
 
@@ -2561,17 +2559,14 @@ void lString16Collection::parse( lString16 string, lString16 delimiter, bool flg
     }
 }
 
-lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
+int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens)
 {
-    if ( empty() )
-        return *this;
-    lChar16 * buf = modify();
     lChar16 * psrc = buf;
     lChar16 * pdst = buf;
     int state = 0; // 0=beginning, 1=after space, 2=after non-space
-    while (*psrc ) {
+    while ((len--) > 0) {
         lChar16 ch = *psrc++;
-        if ( ch==' ' || ch=='\t' ) {
+        if (ch == ' ' || ch == '\t') {
             if ( state==2 ) {
                 if ( *psrc || allowEndSpace ) // if not last
                     *pdst++ = ' ';
@@ -2594,17 +2589,18 @@ lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpac
             state = 2;
         }
     }
-    if ( pdst==buf ) {
-        clear();
+    return pdst - buf;
+}
+
+lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
+{
+    if ( empty() )
         return *this;
-    }
-    if ( pdst==psrc ) {
-        // was not changed
-        return *this;
-    }
-    // truncated: erase extra characters
-    int chars_to_delete = psrc-pdst;
-    erase( length()-chars_to_delete, chars_to_delete );
+    lChar16 * buf = modify();
+    int len = length();
+    int nlen = TrimDoubleSpaces(buf, len,  allowStartSpace, allowEndSpace, removeEolHyphens);
+    if (nlen < len)
+        limit(nlen);
     return *this;
 }
 

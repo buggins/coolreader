@@ -44,6 +44,11 @@ typedef unsigned int ucs4_t;
 #define CP_AUTODETECT_BUF_SIZE 0x20000
 
 
+
+int CalcTabCount(const lChar16 * str, int nlen);
+void ExpandTabs(lString16 & s);
+void ExpandTabs(lString16 & buf, const lChar16 * str, int len);
+
 /// virtual destructor
 LVFileFormatParser::~LVFileFormatParser()
 {
@@ -3427,11 +3432,9 @@ static const ent_def_t def_entity_table[] = {
 {NULL, 0},
 };
 
-// returns new length
-void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_table )
+/// in-place XML string decoding, don't expand tabs, returns new length (may be less than initial len)
+int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * enc_table)
 {
-    lChar16 * str = s.modify();
-    int len = s.length();
     int state = 0;
     lChar16 nch = 0;
     lChar16 lch = 0;
@@ -3534,33 +3537,64 @@ void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_tabl
         }
         lch = ch;
     }
+    return j;
+}
 
+int CalcTabCount(const lChar16 * str, int nlen) {
+    int tabCount = 0;
+    for (int i=0; i<nlen; i++) {
+        if (str[i] == '\t')
+            tabCount++;
+    }
+    return tabCount;
+}
 
-    // remove extra characters from end of line
-    s.limit( j );
+void ExpandTabs(lString16 & buf, const lChar16 * str, int len)
+{
+    // check for tabs
+    int x = 0;
+    for (int i = 0; i < len; i++) {
+        lChar16 ch = str[i];
+        if ( ch=='\r' || ch=='\n' )
+            x = 0;
+        if ( ch=='\t' ) {
+            int delta = 8 - (x & 7);
+            x += delta;
+            while ( delta-- )
+                buf << L' ';
+        } else {
+            buf << ch;
+            x++;
+        }
+    }
+}
 
+void ExpandTabs(lString16 & s)
+{
+    // check for tabs
+    int nlen = s.length();
+    int tabCount = CalcTabCount(s.c_str(), nlen);
     if ( tabCount > 0 ) {
         // expand tabs
         lString16 buf;
-
-        buf.reserve( j + tabCount * 8 );
-        int x = 0;
-        for ( int i=0; i<j; i++ ) {
-            lChar16 ch = str[i];
-            if ( ch=='\r' || ch=='\n' )
-                x = 0;
-            if ( ch=='\t' ) {
-                int delta = 8 - (x & 7);
-                x += delta;
-                while ( delta-- )
-                    buf << L' ';
-            } else {
-                buf << ch;
-                x++;
-            }
-        }
+        buf.reserve(nlen + tabCount * 8);
+        ExpandTabs(buf, s.c_str(), s.length());
         s = buf;
     }
+}
+
+// returns new length
+void PreProcessXmlString( lString16 & s, lUInt32 flags, const lChar16 * enc_table )
+{
+    lChar16 * str = s.modify();
+    int len = s.length();
+    int nlen = PreProcessXmlString(str, len, flags, enc_table);
+    // remove extra characters from end of line
+    if (nlen < len)
+        s.limit(nlen);
+
+    if (flags & TXTFLG_PRE)
+        ExpandTabs(s);
     //CRLog::trace(" after: '%s'", LCSTR(s));
 }
 
@@ -3650,19 +3684,40 @@ bool LVXMLParser::ReadText()
         if ( tlen > TEXT_SPLIT_SIZE || flgBreak || splitParas)
         {
             //=====================================================
-            lString16 nextText = m_txt_buf.substr( last_split_txtlen );
-            m_txt_buf.limit( last_split_txtlen );
+            lChar16 * buf = m_txt_buf.modify();
+
             const lChar16 * enc_table = NULL;
             if ( flags & TXTFLG_CONVERT_8BIT_ENTITY_ENCODING )
                 enc_table = this->m_conv_table;
-            PreProcessXmlString( m_txt_buf, flags, enc_table );
+
+            int nlen = PreProcessXmlString(buf, last_split_txtlen, flags, enc_table);
             if ( (flags & TXTFLG_TRIM) && (!(flags & TXTFLG_PRE) || (flags & TXTFLG_PRE_PARA_SPLITTING)) ) {
-                m_txt_buf.trimDoubleSpaces(
+                nlen = TrimDoubleSpaces(buf, nlen,
                     ((flags & TXTFLG_TRIM_ALLOW_START_SPACE) || pre_para_splitting)?true:false,
                     (flags & TXTFLG_TRIM_ALLOW_END_SPACE)?true:false,
                     (flags & TXTFLG_TRIM_REMOVE_EOL_HYPHENS)?true:false );
             }
-            m_callback->OnText(m_txt_buf.c_str(), m_txt_buf.length(), flags );
+
+            if (flags & TXTFLG_PRE) {
+                // check for tabs
+                int tabCount = CalcTabCount(buf, nlen);
+                if ( tabCount > 0 ) {
+                    // expand tabs
+                    lString16 tmp;
+                    tmp.reserve(nlen + tabCount * 8);
+                    ExpandTabs(tmp, buf, nlen);
+                    m_callback->OnText(tmp.c_str(), tmp.length(), flags);
+                } else {
+                    m_callback->OnText(buf, nlen, flags);
+                }
+            } else {
+                m_callback->OnText(buf, nlen, flags);
+            }
+
+            m_txt_buf.erase(0, last_split_txtlen);
+            tlen = m_txt_buf.length();
+            last_split_txtlen = 0;
+
             //=====================================================
             if (flgBreak)
             {
@@ -3673,11 +3728,8 @@ bool LVXMLParser::ReadText()
                 //    m_read_buffer_pos++;
                 break;
             }
-            m_txt_buf = nextText;
-            tlen = m_txt_buf.length();
             //text_start_pos = last_split_fpos; //m_buf_fpos + m_buf_pos;
             //last_split_fpos = 0;
-            last_split_txtlen = 0;
         }
     }
 
