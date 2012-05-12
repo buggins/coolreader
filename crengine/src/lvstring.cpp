@@ -2740,9 +2740,50 @@ lString16 Utf8ToUnicode( const lString8 & str )
 
 #define CONT_BYTE(index,shift) (((lChar16)(s[index]) & 0x3F) << shift)
 
-lString16 Utf8ToUnicode( const char * s )
+static void DecodeUtf8(const char * s,  lChar16 * p, int len)
 {
-    if ( !s || !s[0] )
+    lChar16 * endp = p + len;
+    lUInt16 ch;
+    while (p < endp) {
+        ch = *s++;
+        if ( (ch & 0x80) == 0 ) {
+            *p++ = ch;
+        } else if ( (ch & 0xE0) == 0xC0 ) {
+            *p++ = ((ch & 0x1F) << 6)
+                    | CONT_BYTE(0,0);
+            s++;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
+            *p++ = ((ch & 0x0F) << 12)
+                | CONT_BYTE(0,6)
+                | CONT_BYTE(1,0);
+            s += 2;
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            *p++ = ((ch & 0x07) << 18)
+                | CONT_BYTE(0,12)
+                | CONT_BYTE(1,6)
+                | CONT_BYTE(2,0);
+            s += 3;
+        } else if ( (ch & 0xFC) == 0xF8 ) {
+            *p++ = ((ch & 0x03) << 24)
+                | CONT_BYTE(0,18)
+                | CONT_BYTE(1,12)
+                | CONT_BYTE(2,6)
+                | CONT_BYTE(3,0);
+            s += 4;
+        } else {
+            *p++ = ((ch & 0x01) << 30)
+                | CONT_BYTE(0,24)
+                | CONT_BYTE(1,18)
+                | CONT_BYTE(2,12)
+                | CONT_BYTE(3,6)
+                | CONT_BYTE(4,0);
+            s += 5;
+        }
+    }
+}
+
+lString16 Utf8ToUnicode( const char * s ) {
+    if (!s || !s[0])
       return lString16::empty_str;
     int len = Utf8CharCount( s );
     if (!len)
@@ -2750,82 +2791,20 @@ lString16 Utf8ToUnicode( const char * s )
     lString16 dst;
     dst.append(len, (lChar16)0);
     lChar16 * p = dst.modify();
-    lChar16 * endp = p + len;
-    {
-        lUInt16 ch;
-        while (p < endp) {
-            ch = *s++;
-            if ( (ch & 0x80) == 0 ) {
-                *p++ = ch;
-            } else if ( (ch & 0xE0) == 0xC0 ) {
-                *p++ = ((ch & 0x1F) << 6)
-                        | CONT_BYTE(0,0);
-                s++;
-            } else if ( (ch & 0xF0) == 0xE0 ) {
-                *p++ = ((ch & 0x0F) << 12)
-                    | CONT_BYTE(0,6)
-                    | CONT_BYTE(1,0);
-                s += 2;
-            } else if ( (ch & 0xF8) == 0xF0 ) {
-                *p++ = ((ch & 0x07) << 18)
-                    | CONT_BYTE(0,12)
-                    | CONT_BYTE(1,6)
-                    | CONT_BYTE(2,0);
-                s += 3;
-            } else if ( (ch & 0xFC) == 0xF8 ) {
-                *p++ = ((ch & 0x03) << 24)
-                    | CONT_BYTE(0,18)
-                    | CONT_BYTE(1,12)
-                    | CONT_BYTE(2,6)
-                    | CONT_BYTE(3,0);
-                s += 4;
-            } else {
-                *p++ = ((ch & 0x01) << 30)
-                    | CONT_BYTE(0,24)
-                    | CONT_BYTE(1,18)
-                    | CONT_BYTE(2,12)
-                    | CONT_BYTE(3,6)
-                    | CONT_BYTE(4,0);
-                s += 5;
-            }
-        }
-    }
+    DecodeUtf8(s, p, len);
     return dst;
 }
 
-lString16 Utf8ToUnicode( const char * s, int sz )
-{
-    lString16 dst;
-    if ( !s || !s[0] || sz<=0 )
-      return dst;
+lString16 Utf8ToUnicode( const char * s, int sz ) {
+    if (!s || !s[0] || sz <= 0)
+      return lString16::empty_str;
     int len = Utf8CharCount( s, sz );
     if (!len)
-      return dst;
-    dst.append( len, ' ' );
-    lChar16 * buf = dst.modify();
-    {
-        lUInt16 ch;
-        while ( (--len>=0) && (ch=*s++) ) {
-            if ( (ch & 0x80) == 0 ) {
-                *buf++ = ( ch );
-            } else if ( (ch & 0xE0) == 0xC0 ) {
-                lChar16 d = (ch & 0x1F) << 6;
-                if ( !(ch=*s++) )
-                    break;
-                d |= (ch & 0x3F);
-                *buf++ = ( d );
-            } else {
-                lChar16 d = (ch & 0x0F) << 12;
-                if ( !(ch=*s++) )
-                    break;
-                d |= (ch & 0x3F) << 6;
-                if ( !(ch=*s++) )
-                    break;
-                d |= (ch & 0x3F);
-                *buf++ = ( d );
-            }
-        }
-    }
+      return lString16::empty_str;
+    lString16 dst;
+    dst.append(len, 0);
+    lChar16 * p = dst.modify();
+    DecodeUtf8(s, p, len);
     return dst;
 }
 
