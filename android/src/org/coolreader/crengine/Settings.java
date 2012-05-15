@@ -178,7 +178,7 @@ public interface Settings {
     	TR("tr", R.string.options_app_locale_tr, 0),
     	LT("lt", R.string.options_app_locale_lt, 0),
     	IT("it", R.string.options_app_locale_it, 0),
-    	HU("hu", R.string.options_app_locale_hu, 0),
+    	HU("hu", R.string.options_app_locale_hu, R.raw.help_template_hu),
     	NL("nl", R.string.options_app_locale_nl, 0),
     	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, R.raw.help_template_zh_cn),
     	;

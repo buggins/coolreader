@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template for CoolReader3/Android help file -->
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<description>
+		<title-info>
+			<book-title>Cool Reader Felhasználói útmutató</book-title>
+		</title-info>
+	</description>
+	<body>
+		<section>
+            <title>
+                <p>Üdvözli a Cool Reader <!--cr3:setting version--><br/><!--cr3:image cr3_logo--></p>
+            </title>
+            <p>Ez egy<b><i>elektronikus könyvek</i></b> olvasására szolgáló program, mely a következő formátumokat támogatja: EPUB, FB2, RTF, TXT, HTML, CHM, PDB, MOBI, TCR</p>
+            <p>Mentse el könyveit az SD kártyára és nyissa meg őket a beépített <a href="#filebrowser">Fájl böngészővel</a>, vagy töltsön le új könyveket az <a href="#opds">online katalógusokból</a> (OPDS) közvetlenül a CoolReader-be.</p>
+			<subtitle>Navigáció olvasás közben</subtitle>
+			<p>Különböző módokon lapozhat előre és hátra:</p>
+			<ul>
+				<li>Gesztusokkal: jobbról balra lapozó mozdulattal a következő oldalra, balról jobbra mozdulattal pedig azt előzőre</li>
+				<li>A képernyő érintésével: a jobb szél érintésével a következő, a bal szélével pedig az előző oldalra</li>
+				<!--cr3:if app.controls.volume.keys.enabled--><li>Lapozás a hangerőszabályzóval</li><!--cr3:endif-->
+				<li>Joystick-kel vagy a navigációs gombokkal</li>
+				<!--cr3:if app.trackball.disabled--><li>Lapozás a trackball-lal (ha van ilyen).</li><!--cr3:endif-->
+			</ul>
+			<p>A hivatkozásokra a link hosszú érintésével ugorhat, vissza pedig a Vissza gombbal, vagy pedig a képernyő bal felső sarkának megérintésével</p>
+            <p>Az útmutató fejezetei: <a href="#menu">Menü</a> 
+                | <a href="#settings">Beállítások</a> 
+                | <a href="#filebrowser">Fájl böngésző</a>
+                | <a href="#tapzones">Érintőzónák</a> 
+                | <a href="#bookmarks">Könyvjelzők</a>
+                | <a href="#dict">Szótárak</a>
+                | <a href="#tts">Felolvasás (TTS)</a>
+                | <a href="#autoscroll">Automatikus lapozás</a>
+                | <a href="#viewimages">Képek nagyítása</a>
+                | <a href="#advanced">Haladó beállítások</a>
+                | <a href="#links">Hasznos linkek</a>
+                </p>
+            <p>Egy adott oldalra a Menü / Ugrás / Oldalszámhoz# menüponttal ugorhat.</p>
+            <p>Válassza a Menü / Ugrás / Pozícióhoz% menüpontot egy bizonyos százaléknyi pozícióhoz ugráshoz.</p>
+            <p>A fejezetek közötti navigáláshoz használja a Tartalomjegyzéket: Menü / Ugrás / Tartalomjegyzékhez.</p>
+    		<section id="menu">
+    			<title>
+    				<p>Menü</p>
+    			</title>
+    			<p>Menü elérése:</p>
+    			<ul>
+    				<li>Billentyűvel: a menü gomb rövid megnyomásával</li>
+    				<li>Érintőképernyővel: a kijelző közepének megérintésével</li>
+    			</ul>
+    			<p>Menüpontok:</p>
+    			<ul>
+    				<li><!--cr3:image open_file--> Fájl megnyitása</li>
+    				<li><!--cr3:image goto--> Ugrás... almenü:</li>
+    				<ul>
+    					<li>Oldalszámhoz#...</li>
+    					<li>Pozícióhoz%...</li>
+    					<li>Automatikus lapozás ki/bekapcsolása (a sebesség a hangerőgombokkal, vagy pedig a képernyő bal/jobb alsó sarkainak érintésével)</li>
+    					<li>Tartalomjegyzékhez</li>
+    					<li>Hátra a navigációs előzményekben</li>
+    					<li>Előre a navigációs előzményekben</li>
+    					<li>Előző könyv megnyitása</li>
+    				</ul>
+    				<li><!--cr3:image bookmarks--> Könyvjelzők</li>
+    				<li><!--cr3:image select--> Kijelölés</li>
+    				<li><!--cr3:image options--> Beállítások</li>
+    				<li><!--cr3:image search--> Keresés</li>
+    				<li>"Tovább" almenü:</li>
+    				<ul>
+    					<li>Éjszakai / nappali mód</li>
+    					<li>Dokumentum saját stílus engedélyezése / tiltása</li>
+    					<li>Szöveg automatikus formázás (TXT fájlokhoz)</li>
+    					<li>Felolvasás (TTS / text-to-speech)</li>
+    					<li>Előző könyv megnyitása</li>
+    					<li>Automatikus lapozás be / ki</li>
+    					<li>Kilépés</li>
+    					<li>A Cool Reader-ről</li>
+    					<li>Könyv infó (aktuális könyv))</li>
+    					<li>Felhasználói útmutató megjelenítése</li>
+    				</ul>
+    			</ul>
+    		</section>
+    		<section id="settings">
+    			<title>
+    				<p>Beállítások</p>
+    			</title>
+                <p>A <a href="#settings">Beállításokhoz</a> a következőképpen juthat el:</p>
+    			<ul>
+    				<li>Billentyűvel: a menü gomb hosszú megnyomásával</li>
+    				<li>Érintőképernyővel: a kijelző közepének hosszú érintésével</li>
+    				<li><a href="#menu">Főmenüből</a>: a Beállítások menüpont kiválasztásával</li>
+    			</ul>
+                <p>A Beállítások ablaka különböző füleket tartalmaz</p>
+                <ul>
+                    <li><a href="#settings-text">Szöveg beállítások</a></li>
+                    <li><a href="#settings-css">Stílus/CSS beállítások</a></li>
+                    <li><a href="#settings-page">Oldal testreszabása</a></li>
+                    <li><a href="#settings-controls">Vezérlők</a></li>
+                    <li><a href="#settings-application">Alkalmazás</a></li>
+                </ul>
+                <subtitle>Profilok megadása</subtitle>
+                <p>Különböző profilokat is megadhat a beállításoknak, melyek között gyorsan válthat is. Rendelje hozzá a "Profilváltás" műveletet valamelyik érintőzónához, vagy billentyűhöz</p>
+                <subtitle id="settings-text">Szöveg beállítások</subtitle>
+                <ul>
+                    <li>Betűtípus</li>
+                    <li>Betűméret</li>
+                    <li>Betű vastagítása - kövéríti a szöveget</li>
+                    <li>Betű élsimítás - a betűk éleit simítja el</li>
+                    <li>Sorköz - a sorok közötti függőleges távolság a szövegben</li>
+                    <li>Elválasztási szótár - válasszon nyelvet, algoritmikus módot, vagy kapcsolja ki, ha nem szükséges.</li>
+                    <li>Lebegő írásjelek - az írásjelek ne számítsanak bele a szöveg szélességébe.</li>
+                    <li>Betű alávágás - egymást követő karakterek pontosabb illesztése</li>
+                    <li>Kép átméretezés - a szövegbe beszúrt kép megjelenítését szabályozza</li>
+                    <li>Betű gamma érték - kismértékben megváltoztatja a karakterek vastagságát és élsimítását egyes betűtípusoknál.</li>
+                    <li>Minimális szóköz szélesség% - amikor minél több szöveget próbál beilleszteni a program egy sorba, ezzel az értékkel számol a program a szavak között minimális távolság meghatározásához. (Állítsa 100%-ra a funkció kikacsolásához).</li>
+                    <li>Betű olvashatóság javítása - a vektoros karakterek képként történő megjelenítését változtatja meg. Különböző betűtípusoknál más-más módszer ad jobb eredményt.</li>
+                    <li>Másodlagos betűtípus - ezt a betűtípust használja a program abban az estben, ha a megjelenítendő karakter nem szerepel a beállított betűtípusban.</li>
+                </ul>
+                <subtitle id="settings-css">Stílus/CSS beállítások</subtitle>
+                <ul>
+                    <li>Dokumentum saját stílusok engedélyezése - be- / kikapcsolja a dokumentumban megadott stílusokat</li>
+                    <li>Beágyazott betűtípusok - engedélyezi / tiltja a dokumentum beágyazott betűtípusait. Tiltás esetén a programban megadott betűtípust használja a CoolReader.</li>
+                    <li>Szöveg automatikus formázás - automatikus formázás, vagy megjelenítés változatlanul monospace betűtípussal előformázott szövegként</li>
+                    <li>Különböző, alapvető stíluselemek beállításai (alapértelmezett bekezdés, cím, alcím, előformázott szöveg, hivatkozás, idézet, stb.). Ezeknél az elemeknél különböző tulajdonságokat adhat meg, úgymint betűtípus, stílus, szín, sorköz, margók, stb. Tulajdonképpen a program egy alapértelmezett CSS stíluslapot generál a megadott adatok alapján.</li>
+                </ul>
+                <subtitle id="settings-page">Oldal testreszabása</subtitle>
+                <ul>
+                    <li>Teljesképernyős mód - a rendszer állapotsor elrejtése, egyes 3.0 és 4.0 Android verziókon nem működik.</li>
+                    <li>Olvasási mód - lapozás vagy görgetés. A lapozási mód az ajánlott.</li>
+                    <li>Tájolás - fekvő, álló, vagy szenzorvezérelt.</li>
+                    <li>Fekvő tájolás oldalai.</li>
+                    <li>Nappali/Éjszakai mód váltása (két tárolt profil közötti váltás, melyekben megadhatók pl. színek, hátterek, stb. Az éjszakai mód sötét háttéren világos betűket használ.</li>
+                    <li>Szövegszín.</li>
+                    <li>Háttérszín - egyszínű háttér beállítása.</li>
+                    <li>Háttér mintázat - kép, vagy mintázat beállítása háttérként.</li>
+                    <li>Állapotsor beállítások - a program állapotsorának beállítása.</li>
+                    <li>Lábjegyzetek a képernyő alján (jelenleg csak FB2 formátumnál működik).</li>
+                    <li>Lapozás animáció.</li>
+                    <li>Könyvjelzők kiemelése (semmi, egyszínű kiemelés, vagy aláhúzás).</li>
+                    <li>Kijelölés színe.</li>
+                    <li>Megjegyzés és korrektúra színei.</li>
+                    <li>Lap margók.</li>
+                </ul>
+                <subtitle id="settings-controls">Vezérlés beállításai</subtitle>
+                <ul>
+                    <li>Gyorsbillentyűk -- műveletek beállítása a billentyűk normál, hosszú és dupla lenyomásához.</li>
+                    <li><a href="#tapzones">Érintő-zóna</a> műveletek -- műveletek beállítása a képernyő 3x3 zónájához (normál, hosszú és dupla érintés).</li>
+                    <li><a href="#tapzones">Másodlagos érintési művelet</a> típusa (hosszú vagy dupla érintés)</li>
+                    <li>Szövegkijelölés dupla érintésre (vagy hosszú érintésre, az előző beállítástól függően).</li>
+                    <li>A hangerőszabályzó lapoz</li>
+                    <li>Érintésre a zónák felvillantása</li>
+                    <li>Trackball tiltása</li>
+                    <li>Fényerőszabályzás ujjhúzással (letiltva, a képernyő bal ill. jobb szélén).</li>
+                    <li>Lapozó mozdulat engedélyezése / tiltása.</li>
+                    <li>Kijelölési művelet (kijelölési eszköztár, másolás a vágólapra, keresés szótárban, könyvjelző hozzáadása, keresés a szövegben).</li>
+                    <li>Szövegrész kijelölési művelet (kijelölési eszköztár, másolás a vágólapra, keresés szótárban, könyvjelző hozzáadása, keresés a szövegben). Hasznos lehet például az egyszerű (szókijelölést) a szótárban kereséssel, a szövegrész kijelölést pedig a könyvjelző hozzáadásával párosítani.</li>
+                    <li>Szótárazás után maradjon a kijelölés (segít visszatalálni a legutóbbi olvasási pozícióhoz).</li>
+                </ul>
+                <subtitle id="settings-application">Az alkalmazás működésének beállításai</subtitle>
+                <ul>
+                    <li>Kezelőfelület nyelve - használhatja a rendszer nyelvét, vagy választhat a rendelkezésre álló más nyelvek közül is.</li>
+                    <li>Kezelőfelület téma (színséma a kezelőfelülethez).</li>
+                    <li>Háttérvilágítás kikapcsolása - a rendszer beállításának, vagy a megadott időnek a használata.</li>
+                    <li>Háttérvilágítás fényerő - beállítható itt, vagy ujjhúzással, ha az engedélyezve van a vezérlés beállításaiban.</li>
+                    <li>Billentyűzet háttérvilágítás kikapcsolása - hasznos lehet sötétben olvasáskor.</li>
+                    <li>Ikonok a beállítás menüben</li>
+                    <li>Szótár - válassza ki a külső szótár alkalmazást.</li>
+                    <li>Borítók megjelenítése a fájlböngészőben.</li>
+                    <li>A mappában lévő összes könyv tulajdonságainak elemzése.</li>
+                    <li>Könyv nélküli mappák elrejtése.</li>
+                </ul>
+    		</section>
+    		<section id="tapzones">
+    			<title>
+    				<p>Érintő-zónák</p>
+    			</title>
+    			<p>A képernyő egy 3x3-as rácsra van felosztva, ennek a rácsnak a cellái az érintő-zónák.</p>
+    			<p>Minden zónához két műveletet adhat meg. Egyet a rövid, egyet pedig a <!--cr3:if app.touch.secondary.action.type=0-->hosszú<!--cr3:else-->dupla<!--cr3:endif--> érintéshez.</p>
+    			<p>A másodlagos érintés típusa megadható a <a href="#settings-controls">beállításokban</a>.</p>
+    			<p>Az aktuális műveletek (<b>elsődleges</b> / másodlagos):</p>
+    			<table><col width="30%"/><col width="30%"/><col width="30%"/>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.1--></b><br/><!--cr3:setting app.tapzone.action.tap.long.1--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.2--></b><br/><!--cr3:setting app.tapzone.action.tap.long.2--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.3--></b><br/><!--cr3:setting app.tapzone.action.tap.long.3--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.4--></b><br/><!--cr3:setting app.tapzone.action.tap.long.4--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.5--></b><br/><!--cr3:setting app.tapzone.action.tap.long.5--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.6--></b><br/><!--cr3:setting app.tapzone.action.tap.long.6--></td>
+    			</tr>
+    			<tr>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.7--></b><br/><!--cr3:setting app.tapzone.action.tap.long.7--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.8--></b><br/><!--cr3:setting app.tapzone.action.tap.long.8--></td>
+    				<td><b><!--cr3:setting app.tapzone.action.tap.9--></b><br/><!--cr3:setting app.tapzone.action.tap.long.9--></td>
+    			</tr>
+    			</table>
+    		</section>
+            <section>
+                <title id="bookmarks">
+                    <p>Könyvjelzők</p>
+                </title>
+                <p>A Coolreader háromfajta könyvjelzőt támogat:</p>
+                <ul>
+                    <li><b>Pozíció</b> könyvjelzőt: ez az aktuális oldal legfelső sorához kötődik</li>
+                    <li><b>Megjegyzés</b> könyvjelzőt: a kijelölt szövegrészhez adhat hozzá megjegyzéseket</li>
+                    <li><b>Korrektúra</b> könyvjelzőt: a kijelölt szövegrészhez adhat hozzá javított szöveget (hasznos lehet mások dokumentumának ellenőrzésekor)</li>
+                </ul>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>A megjegyzés és a korrektúra könyvjelzők alászínezettek a szövegben.</p>
+                <!--cr3:else-->
+                    <p>A megjegyzés és a korrektúra könyvjelzők színét a megfelelő menüpontban beállíthatja</p>
+                <!--cr3:endif-->
+                <p>Pozíció könyvjelző hozzáadásához válassza a Menü / Könyvjelzők menüpontot és érintse meg a képernyő felső szélén lévő + jelet. 
+                    Az aktuális oldal hozzáadódik a könyvjelzőkhöz és amikor újra megnyitja a könyvjelzőket, láthatja azt a listában. 
+                    Érintse meg a könyvelzőt az adott pozícióra ugráshoz.</p>
+                <p>Megjegyzés vagy korrektúra könyvjelző hozzáadásához szövegrészt kell kijelölnie.</p>
+                <!--cr3:if app.controls.doubletap.selection-->
+                    <!--cr3:if app.touch.secondary.action.type=0-->
+                        <p>Dupla érintés a szóra a kijelölés megkezdéséhez, majd mozgassa az ujját a szövegrész kijelöléséhez.</p>
+                    <!--cr3:else-->
+                        <p>Hosszú érintés a szóra a kijelölés megkezdéséhez, majd mozgassa az ujját a szövegrész kijelöléséhez.</p>
+                    <!--cr3:endif-->
+                    <p>Ezen felül használhatja a Menü / Kijelölés menüpontot a kijelölési mód megadásához, majd ujjmozdulattal jelölje ki a kívánt szövegrészt.</p>
+                <!--cr3:else-->
+                    <p>Használja a Menü / Kijelölési művelet menüpontot a kijelölési mód megadásához, majd ujjmozdulattal jelölje ki a kívánt szövegrészt.</p>
+                <!--cr3:endif-->
+                <!--cr3:if app.selection.action=0-->
+                    <!--cr3:if app.multyselection.action=0-->
+                        <p>A kijelölés végeztével megjelenik a Kijelölési eszköztár. Érintse meg a Könyvjelző gombot a könyvjelző hozzáadásához.</p>
+                    <!--cr3:else-->
+                        <p>A kijelölés végeztével megjelenik a Kijelölési eszköztár. Érintse meg a Könyvjelző gombot a könyvjelző hozzáadásához.</p>
+                        <p>Az aktuális beállítások alapján nem a Kijelölési eszköztár jelenik meg, hanem a "Szövegrész kijelölése" beállításnál hozzárendelt műveletet hajtja végre a program.</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <!--cr3:if app.selection.action=3-->
+                    <!--cr3:if app.multyselection.action=3-->
+                        <p>A kijelölés végeztével azonnal megjelenik a Könyvjelző hozzáadása ablak. (Ezt megváltoztathatja a Beállítások / Kijelölési művelet menüpontban)</p>
+                    <!--cr3:else-->
+                        <p>A kijelölés végeztével azonnal megjelenik a Könyvjelző hozzáadása ablak.</p>
+                        <p>A jelenlegi beállítások alapján nem a Kijelölési eszköztár jelenik meg, hanem más művelet lesz végrehajtva (Ez beállítható a Beállítások / Szövegrész kijelölési művelet menüpontban).</p>
+                    <!--cr3:endif-->
+                <!--cr3:endif-->
+                <p>A Könyvjelző hozzáadása ablak lehetővé teszi, hogy kiválassza a könyvjelző kívánt típusát (megjegyzés vagy korrektúra). Érintse meg az ablak felső szélén lévő + jelet a hozzáadáshoz, vagy a Vissza gombot az elvetéshez.</p>
+                <!--cr3:if crengine.highlight.bookmarks-->
+                    <p>A megjegyzés és a korrektúra könyvjelzők alászínezettek a szövegben.</p>
+                <!--cr3:else-->
+                    <p>A megjegyzés és a korrektúra könyvjelzők színét a megfelelő menüpontban beállíthatja</p>
+                <!--cr3:endif-->
+                <p>A könyvjelzők listáját a Menü / Könyvjelzők menüvel jelenítheti meg. Ekkor az aktuális könyv könyvjelzői lesznek láthatóak.</p>
+                <p>A könyvjelző rövid érintésére azonnal az adott pozícióhoz ugorhat a könyvben.</p>
+                <p>Hosszú érintésre megjelenik egy almenü:</p>
+                <ul>
+                    <li>Ugrás könyvjelzőre - ugrás az adott pozícióhoz</li>
+                    <li>Hozzáadás - pozíció könyvjelző hozzáadása az aktuális oldalhoz</li>
+                    <li>Szerkesztés - megjegyzés vagy korrektúra könyvjelző szövegének szerkesztése</li>
+                    <li>Törlés</li>
+                    <li>Könyvjelzők exportálása - könyvjelzők mentése szövegfájlba</li>
+                    <li>Küldés - könyvjelzők küldése szövegként pl. e-mailben, stb.</li>
+                </ul>
+            </section>
+            <section>
+                <title id="dict">
+                    <p>Szótár támogatás</p>
+                </title>
+                <p>A CoolReader a kijelölt szavak jelentését le tudja kérdezni külső szótárprogramokból</p>
+                <p>Támogatott, a Google Play-ről is letölthető szótár alkalmazások:</p>
+                <ul>
+                    <li>Fora</li>
+                    <li>Color Dict</li>
+                    <li>Color Dict New / Golden Dict</li>
+                    <li>Aard</li>
+                    <li>Dictan</li>
+                </ul>
+                <p>A kívánt és telepített alkalmazást a Beállítások /Alkalmazás /Szótár menüpontban adhatja meg.</p>
+                <p>Jelölje ki a kívánt szót, majd érintse meg a szótár ikont a megjelenő eszköztáron.</p>
+                <p>A kényelmesebb használat érdekében ezt a műveletet is hozzárendelheti érintő-zónához vagy gyorsbillentyűhöz.</p>
+            </section>
+            <section>
+                <title id="tts">
+                    <p>Felolvasás (TTS)</p>
+                </title>
+                <p>A CoolReader támogatja a szöveg felolvasását a rendszer alapértelmezett Text To Speech (TTS) motorján keeresztül.</p>
+                <p>A felolvasáshoz válassza a Menü / Tovább / Felolvasás (TTS) menüpontot. A gyorsabb eléréshez ezt a műveletet is hozzárendelheti érintő-zónához, vagy gyorsbillentyűhöz.</p>
+                <p>Felovasás közben megjelenik egy vezérlőpult, ahol állítható a sebesség, hangmagasság, elindítás és leállítás.</p>
+            </section>
+            <section>
+                <title id="autoscroll">
+                    <p>Automatikus lapozás</p>
+                </title>
+                <p>Az automatikus lapozáshoz a Menü / Ugrás / Görgetés be-ki menüponttal juthat el (szintén hozzárendelhető érintő-zónához vagy gyorsbillentyűhöz).</p>
+                <p>A sebességet a hangerőszabályzóval vagy képernyő bal ill. jobb alsó sarkának érintésével szabályozhatja.</p>
+                <p>A görgetés leállításához érintse meg bárhol a képernyőt a bal ill. jobb alsó sarok kivételével.</p>
+            </section>
+            <section>
+                <title id="viewimages">
+                    <p>Képek nagyítása</p>
+                </title>
+                <p>Hosszú érintés a képen és az megnyílik a beépített képnézőben.</p>
+                <p>A nagyítást a + és - ikonokkal, vagy a hangerőszabályzóval változtathatja. Görgetéshez használja az érintő képernyőt.</p>
+                <p>A képnéző bezárásához érintse meg a képernyőt bárhol, a + és - ikonok kivételével, vagy nyomja meg a Vissza gombot.</p>
+            </section>
+        </section>
+        <section id="filebrowser">
+            <title>
+                <p>Fájlböngésző</p>
+            </title>
+            <p>Könyvet olvasáshoz a beépített fájlböngészővel választhat.</p>
+            <p>A böngészőt olvasás közben a Menü / Megnyitás menüponttal érheti el. (Vissza a Menü / Jelenlegi könyv menüponttal, vagy a könyv kiválasztásával ugorhat.)</p>
+            <p>A fájlböngésző segítségével elérheti a fájlrendszert, a legutóbb olvasott könyvek listáját, a szerző/sorozat/cím szerint rendezett listákat, valamint az online OPDS katalógusokat a letöltéshez. A fájlböngésző gyökérmappája mindezeket tartalmazza.</p>
+            <p>Bárhol a fájlböngészőn belül használhatja a Menü / Ugrás menüt a gyökérmappához ugráshoz, a <a href="#recent">Legutóbbi könyvek</a> listájához, vagy az Online katalógusokhoz.</p>
+            <p>Az olvasáshoz a könyveknek az eszköz belső tárolójában, vagy az SD kártyára mentve kell lenniük.</p>
+            <p>A CoolReader a metaadatokat (szerző, cím, sorozat, fájlnév, stb.), az utolsó olvasási pozíciót, valamint a könyvjelzőket belső adatbázisában tárolja.</p>
+            <p>Könyvek importálásához elegendő a fájlböngészővel a könyv mappájába lépni, vagy a Menü / Mappa frissítése menüpontot használni.</p>
+            <p>Fájlböngésző témakörök: 
+                <a href="#filesystem">Fájlrendszer</a> 
+                | <a href="#recent">Legutóbbi könyvek</a>
+                | <a href="#opds">Online katalógusok</a>
+                | <a href="#categories">Könyvek szerzők/sorozat/cím szerint rendezve</a>
+                | <a href="#fbmenu">Fájlböngésző menü</a> 
+                | <a href="#fbsettings">Fájlböngésző beállítások</a> 
+                </p>
+            <section id="filesystem">
+                <title>
+                    <p>Fájlrendszer</p>
+                </title>
+                <p>Általában a könyv megnyitása a könyvfájl közvetlen megnyitásával történik.</p>
+                <p>A gyökérmappában láthatóak a belső tároló és az SD kártya fájljai.</p>
+                <p>Navigáljon a mappák között érintéssel. A legfelső elemet megérintve ugorhat vissza egy szintet.</p>
+                <p>A könyvet hosszan megérintve egy újabb, hasznos menü jelenik meg, ahonnan megnyithatja a könyvet, törölheti azt, szerkesztheti bizonyos adatait.</p>
+                <p>A Menüben is többféle lehetőség közül választhat. Visszaugorhat a jelenlegi könyvre, kereshet az adatbázisban, frissítheti a mappában lévő könyvek metaadatait, a gyökérmappára/legutóbbi könyvekre/online katalógusokra ugorhat. Beállíthatja a fájlböngészőt, kiléphet a programból, illetve megtekintheti ezt a felhasználói útmutatót.</p>
+                <p>A megjelenítésnek két módja van: normál (könyvek metaadatai, borító, stb.) és egyszerű (csak fájlnevek).</p>
+                <p>A borítók megjelenítését a Menü / Beállítások / Alkalmazás / Borítók a böngészőben menüpontban szabályozhatja.</p>
+                <p>EPUB és MOBI könyvek esetén a borítók azonnal megjelennek a mappába lépés után. FB2 könyvek borítói csak a könyv egyszeri megnyitása után jelennek meg.</p>
+                <p>A Menü / Keresés menüben metaadatok alapján (szerző/cím/sorozat/fájlnév) kereshet a könyvek és katalógusok között.</p>
+            </section>
+            <section id="recent">
+                <title>
+                    <p>Legutóbbi könyvek</p>
+                </title>
+                <p>A CoolReader tárolja a legutóbb megnyitott könyvek listáját.</p>
+                <p>Ezt a listát a fájlböngésző gyökérmappájából is elérheti, ahol válassza a "Legutóbbi könyvek" elemet, vagy bárhonnan a <a href="#fbmenu">Menü</a> / Ugrás / Legutóbbi könyvek menüből.</p>
+                <p>A könyvet megérintve az megnyílik és az utolsó olvasási pozícióra ugrik.</p>
+                <p>A könyvet hosszan megérintve egy újabb, hasznos menü jelenik meg, ahonnan megnyithatja a könyvet, törölheti azt, szerkesztheti bizonyos adatait.</p>
+            </section>
+            <section id="opds">
+                <title>
+                    <p>OPDS katalógusok</p>
+                </title>
+                <p>A CoolReader lehetővé tesz az online OPDS katalógusok használatát, letöltést ezekből a katalógusokból.</p>
+                <p>Ehhez válassza a fájlböngésző gyökérmappájában az "Online katalógusok" elemet, vagy használja a <a href="#fbmenu">Menü</a> / Ugrás / Online katalógusok menüpontot.</p>
+                <p>Ekkor megjelenik az elérhető katalógusok listája.</p>
+                <p>Egy katalógus-elemet hosszan megérintve hozzáadhat, törölhet és szerkeszthet egy-egy elemet.</p>
+                <p>Válasszon ki egy katalógust, majd keressen benne egy könyvet. A könyvre kattintva elindul a könyv letöltése. Letöltés után a könyv megnyílik.</p>
+                <p>A letöltött könyvek az SD kártya, vagy a belső tároló "Books" mappájába kerülnek a szerző szerinti almappába.</p>
+                <p>FIGYELEM: a biztonságos (SSL) kapcsolatok jelenleg nem támogatottak.</p>
+            </section>
+            <section id="categories">
+                <title>
+                    <p>Könyvek szerzők/sorozat/cím szerint rendezve</p>
+                </title>
+                <p>A CoolReader lehetővé tesz az adatbázisban szereplő könyvek rendezett elérését szerző, cím és sorozat szerint a fájlböngésző gyökérmappájából.</p>
+                <p>A megfelelő elemre kattintva (pl. "Könyvek szerző szerint")láthatja az adatbázis rendezett listáját.</p>
+                <p>A listán belül a darabszámától függően pl. a szerzők első betű(i), teljes neve alapján jelennek meg a könyvek, esetleg maga a könyv.</p>
+                <p>A CoolReader automatikusan kezeli ezeket az almappákat (például 10 szerző esetén mindegyik közvetlenül megjelenik a listában, de 100 szerző már kezdőbetűk szerint csoportosítva lesz).</p>
+                <p>Csak az elemzett (importált) )mappák kerülnek az adatbázisba.</p>
+                <p>Könyvek importálásához elegendő a fájlböngészővel a könyv mappájába lépni, vagy a Menü / Mappa frissítése menüpontot használni.</p>
+            </section>
+            <section id="fbmenu">
+                <title>
+                    <p>Fájlböngésző menü</p>
+                </title>
+                <p>Menüpontok:</p>
+                <ul>
+                    <li>Jelenlegi könyv -- vissza az olvasáshoz</li>
+                    <li>Könyv keresése -- könyv keresése adatok alapján az adatbázisban</li>
+                    <li>Mappa frissítése -- az aktuális és gyermek mappák elemzése</li>
+                    <li>Ugrás -- ugrás a gyökérmappához, a Legutóbbi könyvek listájához, vagy az Online katalógusokhoz.</li>
+                    <li><a href="#fbsettings">Beállítások</a> -- fájlböngésző beállításai.</li>
+                    <li>Tovább: kilépés, felhasználói útmutató megjelenítése</li>
+                </ul>
+            </section>
+            <section id="fbsettings">
+                <title>
+                    <p>Fájlböngésző beállítások</p>
+                </title>
+                <p>Válassza a Menü / Beállítások menüpontot a rendezés, böngészőmód, stb. beállításához. Új betűtípusok érzékeléséhez a program újraindítása szükséges.</p>
+                <p>Egyszerű módban csak a könyvek fájlnevei jelennek meg. Normál módban pedig a metaadatok és a borító is.</p>
+                <p>A böngészőre vonatkozóan találhat beállítási lehetőségeket olvasási módban a Menü / Beállítások /Alkalmazás fülön:</p>
+                <ul>
+                    <li>Borítók a böngészőben</li>
+                    <li>A mappában lévő összes könyv tulajdonságainak elemzése</li>
+                    <li>Könyv nélküli mappák elrejtése</li>
+                </ul>
+            </section>
+        </section>
+        <section id="advanced">
+            <title>
+                <p>Haladó beállítások</p>
+            </title>
+            <subtitle>További betűtípusok</subtitle>
+            <p>Saját betűtípusokat az SD kártya "fonts" mappájába másolt .ttf fájlokkal adhat a programhoz.</p>
+            <subtitle>Külső stílusok, CSS</subtitle>
+            <p>A stílusok finomhangolásához az SD kártya ".cr3" mappájába másolt, formátumnak megfelelő CSS fájlok (fb2.css, epub.css, htm.css, rtf.css, txt.css, chm.css) használhatóak, melyek felülbírálják a csomagban lévő stílusokat. Kiindulásképpen a CoolReader (crengine) SourceForge projekt GIT tárolójában találhatók ilyen fájlok.</p> 
+            <subtitle>További háttérképek</subtitle>
+            <p>Saját képek (.jpg, .png) mozaikszerű háttérként való használata is lehetséges a képfájlok ".cr3/textures/" mappába másolásával az SD kártyára.</p>
+            <p>A ".cr3" (ponttal kezdve) mappa helyett használható a sima "cr3" mappanév is. Külső SD kártya helyett használható a belső tároló, illetve a belső SD tároló is (ha van ilyen). A "."-tal kezdődő mappák esetenként rejtettek a készülék böngészője számára.</p> 
+            <subtitle>Beállítások alaphelyzetbe állítása</subtitle>
+            <p>A beállításokat a ".cr3" mappában található .ini fájlok tartalmazzák. Az alaphelyzetbe állításhoz töröljön minden .ini kiterjesztésű fájlt.</p>
+            <subtitle>Ideiglenes tároló és ideiglenes fájlok törlése</subtitle>
+            <p>Az alkalmazás összeomlásának egyik lehetséges oka a könyvhöz tartozó ideiglenes fájl sérülése. Ezek az ideiglenes fájlok a ".cr3/cache" mappában találhatóak. A mappa törlésével ez a hiba elhárítható.</p>
+        </section>
+        <section id="links">
+            <title>
+                <p>Hasznos linkek</p>
+            </title>
+            <p>(külső internetböngészőben nyílnak meg)</p>
+            <p><a href="http://sourceforge.net/projects/crengine/">CoolReader projekt a  SourceForge-on</a></p>
+            <p><a href="http://sourceforge.net/apps/mediawiki/crengine/index.php?title=Main_Page">Projekt Wiki</a> a SourceForge-on</p>
+            <p><a href="https://sourceforge.net/project/project_donations.php?group_id=191284">A projekt támogatási oldala</a> a SourceForge-on</p>
+            <p>A projektet legegyszerűbben úgy támogathatja, hogy az alkalmazáson belülről (Menü / Tovább / A CoolReader-ről / harmadik fül), vagy közvetlenül a Google Play-ről vásárol VIP, platina, arany, ezüst, bronz, illetve vas támogatási csomagokat.</p>
+            <p>Hibajelentéseit, összeomlás esetén lehetőleg az Android System Info app által gyűjtött hibajelentéssel, az eszköz típusával és az Android verzióval kiegészítve küldje a  buggins@fromru.com e-mail címre. Ha egy könyvet nem sikerül megnyitni, míg más könyveket igen, akkor lehetőség szerint csatolja a meg nem nyitható könyvet is a hatékonyabb hibafelderítés érdekében.</p>
+        </section>
+	</body>
+</FictionBook>
