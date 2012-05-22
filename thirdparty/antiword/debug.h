@@ -13,6 +13,10 @@
 #include <ctype.h>
 
 #if defined(DEBUG)
+//#define DEBUG_ANTIWORD
+#endif
+
+#if defined(DEBUG_ANTIWORD)
 
 #define DBG_MSG(t)	(void)fprintf(stderr,\
 				"%s[%3d]: %.240s\n",\
