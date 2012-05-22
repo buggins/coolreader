@@ -1825,10 +1825,12 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
 						c &= ~(mask>>8);
 						c |= (cl>>8);
                         *dst = c;
-						c = *(dst+1);
-						c &= ~(mask&0xFF);
-						c |= (cl&0xFF);
-                        *(dst+1) = c;
+                        if (mask & 0xFF) {
+                            c = *(dst+1);
+                            c &= ~(mask&0xFF);
+                            c |= (cl&0xFF);
+                            *(dst+1) = c;
+                        }
                     }    
                     dst++;
                     src++;
@@ -1849,10 +1851,12 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
 						c &= ~(mask>>8);
 						c |= (cl>>8);
                         *dst = c;
-						c = *(dst+1);
-						c &= ~(mask&0xFF);
-						c |= (cl&0xFF);
-                        *(dst+1) = c;
+                        if (mask & 0xFF) {
+                            c = *(dst+1);
+                            c &= ~(mask&0xFF);
+                            c |= (cl&0xFF);
+                            *(dst+1) = c;
+                        }
                     }    
                     dst++;
                     src++;
