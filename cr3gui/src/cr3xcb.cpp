@@ -691,20 +691,20 @@ static struct atom {
     const char *name;
     xcb_atom_t atom;
 } atoms[] = {
-    "UTF8_STRING", 0,
-    "ACTIVE_DOC_AUTHOR", 0,
-    "ACTIVE_DOC_TITLE", 0,
-    "ACTIVE_DOC_FILENAME", 0,
-    "ACTIVE_DOC_FILEPATH", 0,
-    "ACTIVE_DOC_SERIES", 0,
-    "ACTIVE_DOC_SERIES_NUMBER", 0,
-    "ACTIVE_DOC_TYPE", 0,
-    "ACTIVE_DOC_SIZE", 0,
-    "ACTIVE_DOC_CURRENT_POSITION", 0,
-    "ACTIVE_DOC_CURRENT_PAGE", 0,
-    "ACTIVE_DOC_PAGES_COUNT", 0,
-    "ACTIVE_DOC_WINDOW_ID", 0,
-    "ACTIVE_DOC_COVER_IMAGE", 0,
+    {"UTF8_STRING", 0},
+    {"ACTIVE_DOC_AUTHOR", 0},
+    {"ACTIVE_DOC_TITLE", 0},
+    {"ACTIVE_DOC_FILENAME", 0},
+    {"ACTIVE_DOC_FILEPATH", 0},
+    {"ACTIVE_DOC_SERIES", 0},
+    {"ACTIVE_DOC_SERIES_NUMBER", 0},
+    {"ACTIVE_DOC_TYPE", 0},
+    {"ACTIVE_DOC_SIZE", 0},
+    {"ACTIVE_DOC_CURRENT_POSITION", 0},
+    {"ACTIVE_DOC_CURRENT_PAGE", 0},
+    {"ACTIVE_DOC_PAGES_COUNT", 0},
+    {"ACTIVE_DOC_WINDOW_ID", 0},
+    {"ACTIVE_DOC_COVER_IMAGE", 0}
 };
 
 cr_rotate_angle_t readXCBScreenRotationAngle()
