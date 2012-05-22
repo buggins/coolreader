@@ -515,7 +515,16 @@ ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathnam
 }
 
 CRBookmark::CRBookmark (ldomXPointer ptr )
-: _percent(0), _type(0), _shortcut(0), _timestamp(0)
+: _startpos(lString16::empty_str)
+, _endpos(lString16::empty_str)
+, _percent(0)
+, _type(0)
+, _shortcut(0)
+, _postext(lString16::empty_str)
+, _titletext(lString16::empty_str)
+, _commenttext(lString16::empty_str)
+, _timestamp(time_t(0))
+, _page(0)
 {
     //
     if ( ptr.isNull() )
