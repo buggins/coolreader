@@ -727,13 +727,13 @@ bool DetectWordFormat( LVStreamRef stream )
     int iWordVersion = iGuessVersionNumber(file, lFilesize);
     if (iWordVersion < 0 || iWordVersion == 3) {
         if (bIsRtfFile(file)) {
-            CRLog::error("not a Word Document."
-                " It is probably a Rich Text Format file");
+//            CRLog::trace("not a Word Document."
+//                " It is probably a Rich Text Format file");
         } if (bIsWordPerfectFile(file)) {
-            CRLog::error("not a Word Document."
-                " It is probably a Word Perfect file");
+//            CRLog::trace("not a Word Document."
+//                " It is probably a Word Perfect file");
         } else {
-            CRLog::error("not a Word Document");
+            //CRLog::error("not a Word Document");
         }
         return FALSE;
     }

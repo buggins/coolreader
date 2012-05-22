@@ -8159,14 +8159,6 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
             CRLog::error("Error while writing style data");
             return CR_ERROR;
         }
-        CRLog::trace("ldomDocument::saveChanges() - flush");
-        {
-            CRTimerUtil infinite;
-            if ( !_cacheFile->flush(true, infinite) ) {
-                CRLog::error("Error while updating index of cache file");
-                return CR_ERROR;
-            }
-        }
         // fall through
     case 11:
         _mapSavingStage = 11;
@@ -8178,10 +8170,23 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 CRLog::error("Error while saving embedded font data");
                 return CR_ERROR;
             }
+            CHECK_EXPIRATION("saving embedded fonts")
         }
         // fall through
     case 12:
         _mapSavingStage = 12;
+        CRLog::trace("ldomDocument::saveChanges() - flush");
+        {
+            CRTimerUtil infinite;
+            if ( !_cacheFile->flush(true, infinite) ) {
+                CRLog::error("Error while updating index of cache file");
+                return CR_ERROR;
+            }
+            CHECK_EXPIRATION("flushing")
+        }
+        // fall through
+    case 13:
+        _mapSavingStage = 13;
     }
     CRLog::trace("ldomDocument::saveChanges() - done");
     return CR_DONE;
@@ -8437,9 +8442,11 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
 /// swaps to cache file or saves changes, limited by time interval
 ContinuousOperationResult ldomDocument::swapToCache( CRTimerUtil & maxTime )
 {
+    CRLog::trace("ldomDocument::swapToCache entered");
     if ( _maperror )
         return CR_ERROR;
     if ( !_mapped ) {
+        CRLog::trace("ldomDocument::swapToCache creating cache file");
         if ( !createCacheFile() ) {
             CRLog::error("ldomDocument::swapToCache: failed: cannot create cache file");
             _maperror = true;

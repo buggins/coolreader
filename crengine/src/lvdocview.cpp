@@ -3454,7 +3454,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 	LVStreamRef stream = m_container->OpenStream(fn.c_str(), LVOM_READ);
 	if (!stream)
 		return false;
-	m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
+    m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
 	m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa(
 			(int) stream->GetSize()));
 	m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->crc32());
@@ -4254,11 +4254,14 @@ ContinuousOperationResult LVDocView::updateCache()
 ContinuousOperationResult LVDocView::swapToCache(CRTimerUtil & maxTime)
 {
     int fs = m_doc_props->getIntDef(DOC_PROP_FILE_SIZE, 0);
+    CRLog::trace("LVDocView::swapToCache(fs = %d)", fs);
     // minimum file size to swap, even if forced
     // TODO
     int mfs = 30000; //m_props->getIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, 30000); // 30K
-    if (fs < mfs)
+    if (fs < mfs) {
+        //CRLog::trace("LVDocView::swapToCache : file is too small for caching");
         return CR_DONE;
+    }
     return m_doc->swapToCache( maxTime );
 }
 
@@ -5408,7 +5411,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int def_aa_props[] = { 2, 1, 0 };
 
 	props->setIntDef(PROP_MIN_FILE_SIZE_TO_CACHE,
-			DOCUMENT_CACHING_SIZE_THRESHOLD); // ~6M
+            300000); // ~6M
 	props->setIntDef(PROP_FORCED_MIN_FILE_SIZE_TO_CACHE,
 			DOCUMENT_CACHING_MIN_SIZE); // 32K
 	props->setIntDef(PROP_PROGRESS_SHOW_FIRST_PAGE, 1);
