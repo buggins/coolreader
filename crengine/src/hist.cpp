@@ -279,11 +279,10 @@ static void putBookmark( LVStream * stream, CRBookmark * bmk )
 {
     static const char * tnames[] = {"lastpos", "position", "comment", "correction"};
     const char * tname = bmk->getType()>=bmkt_lastpos && bmk->getType()<=bmkt_correction ? tnames[bmk->getType()] : "unknown";
-    char percent[32];
-    sprintf( percent, "%d.%02d%%", bmk->getPercent()/100, bmk->getPercent()%100 );
-    char bmktag[255];
-    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%s\" timestamp=\"%d\" shortcut=\"%d\" page=\"%d\"", tname, percent,
-            (int)bmk->getTimestamp(), (int)bmk->getShortcut(), (int)bmk->getBookmarkPage() );
+    char bmktag[256];
+    sprintf(bmktag, "bookmark type=\"%s\" percent=\"%d.%02d%%\" timestamp=\"%d\" shortcut=\"%d\" page=\"%d\"", tname,
+            bmk->getPercent()/100, bmk->getPercent()%100,
+            (int)bmk->getTimestamp(), (int)bmk->getShortcut(), (int)bmk->getBookmarkPage());
     putTag(stream, 3, bmktag);
     putTagValue( stream, 4, "start-point", bmk->getStartPos() );
     putTagValue( stream, 4, "end-point", bmk->getEndPos() );
