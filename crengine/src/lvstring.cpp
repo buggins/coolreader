@@ -46,6 +46,10 @@ extern "C" {
 #define CHECK_STARTUP_STAGE
 #endif
 
+// set to 1 to enable debugging
+#define DEBUG_STATIC_STRING_ALLOC 0
+
+
 static lChar8 empty_str_8[] = {0};
 static lstring8_chunk_t empty_chunk_8(empty_str_8);
 lstring8_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
@@ -70,7 +74,9 @@ const lString8 & cs8(const char * str) {
         if (p == str) {
             return values_8[index];
         } else if (p == NULL) {
+#if DEBUG_STATIC_STRING_ALLOC == 1
             CRLog::trace("allocating static string8 %s", str);
+#endif
             const_ptrs_8[index] = str;
             size_8++;
             values_8[index] = lString8(str);
@@ -96,7 +102,9 @@ const lString16 & cs16(const char * str) {
         if (p == str) {
             return values_16[index];
         } else if (p == NULL) {
+#if DEBUG_STATIC_STRING_ALLOC == 1
             CRLog::trace("allocating static string16 %s", str);
+#endif
             const_ptrs_16[index] = str;
             size_16++;
             values_16[index] = lString16(str);
@@ -118,7 +126,9 @@ const lString16 & cs16(const lChar16 * str) {
         if (p == str) {
             return values_16[index];
         } else if (p == NULL) {
+#if DEBUG_STATIC_STRING_ALLOC == 1
             CRLog::trace("allocating static string16 %s", LCSTR(str));
+#endif
             const_ptrs_16[index] = str;
             size_16++;
             values_16[index] = lString16(str);
