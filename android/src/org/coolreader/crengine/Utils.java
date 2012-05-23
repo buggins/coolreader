@@ -6,6 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 public class Utils {
@@ -259,5 +262,25 @@ public class Utils {
 		
 	}
 	
-
+	public static Drawable solidColorDrawable(int color) {
+		return new Drawable() {
+			@Override
+			public void setColorFilter(ColorFilter cf) {
+			}
+			
+			@Override
+			public void setAlpha(int alpha) {
+			}
+			
+			@Override
+			public int getOpacity() {
+				return 0;
+			}
+			
+			@Override
+			public void draw(Canvas canvas) {
+				canvas.drawColor(0xFF000000);
+			}
+		};
+	}
 }

@@ -75,6 +75,10 @@ public class DeviceInfo {
 		return sdkInt;
 	}
 	
+	public static boolean supportsActionBar() {
+		return getSDKLevel() >= HONEYCOMB;
+	}
+	
 	static {
 		MANUFACTURER = getBuildField("MANUFACTURER");
 		MODEL = getBuildField("MODEL");
