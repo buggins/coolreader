@@ -1018,6 +1018,9 @@ public:
     /// add CRC32 for last N bytes
     void putCRC( int N );
 
+    /// returns CRC32 for the whole buffer
+    lUInt32 getCRC();
+
     /// add contents of another buffer
     SerialBuf & operator << ( const SerialBuf & v );
 

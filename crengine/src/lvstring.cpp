@@ -1402,6 +1402,16 @@ void SerialBuf::putCRC( int size )
     *this << n;
 }
 
+/// get CRC32 for the whole buffer
+lUInt32 SerialBuf::getCRC()
+{
+    if (error())
+        return 0;
+    lUInt32 n = 0;
+    n = lStr_crc32( n, _buf, _pos );
+    return n;
+}
+
 /// read crc32 code, comapare with CRC32 for last N bytes
 bool SerialBuf::checkCRC( int size )
 {

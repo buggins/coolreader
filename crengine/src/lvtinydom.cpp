@@ -8498,6 +8498,8 @@ class ldomDocCacheImpl : public ldomDocCache
 {
     lString16 _cacheDir;
     lvsize_t _maxSize;
+    lUInt32 _oldStreamSize;
+    lUInt32 _oldStreamCRC;
 
     struct FileItem {
         lString16 filename;
@@ -8506,7 +8508,7 @@ class ldomDocCacheImpl : public ldomDocCache
     LVPtrVector<FileItem> _files;
 public:
     ldomDocCacheImpl( lString16 cacheDir, lvsize_t maxSize )
-        : _cacheDir( cacheDir ), _maxSize( maxSize )
+        : _cacheDir( cacheDir ), _maxSize( maxSize ), _oldStreamSize(0), _oldStreamCRC(0)
     {
         LVAppendPathDelimiter( _cacheDir );
     }
@@ -8514,12 +8516,18 @@ public:
     bool writeIndex()
     {
         lString16 filename = _cacheDir + "cr3cache.inx";
-        LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_WRITE );
-        if ( !stream )
-            return false;
+        if (_oldStreamSize == 0)
+        {
+            LVStreamRef oldStream = LVOpenFileStream(filename.c_str(), LVOM_READ);
+            if (!oldStream.isNull()) {
+                _oldStreamSize = (lUInt32)oldStream->GetSize();
+                _oldStreamCRC = (lUInt32)oldStream->crc32();
+            }
+        }
+
+        // fill buffer
         SerialBuf buf( 16384, true );
         buf.putMagic( doccache_magic );
-
         lUInt32 start = buf.pos();
         int count = _files.length();
         buf << (lUInt32)count;
@@ -8529,11 +8537,23 @@ public:
             buf << item->size;
         }
         buf.putCRC( buf.pos() - start );
-
         if ( buf.error() )
             return false;
-        if ( stream->Write( buf.buf(), buf.pos(), NULL )!=LVERR_OK )
-            return false;
+        lUInt32 newCRC = buf.getCRC();
+        lUInt32 newSize = buf.pos();
+
+        // check to avoid rewritting of identical file
+        if (newCRC != _oldStreamCRC || newSize != _oldStreamSize) {
+            // changed: need to write
+            CRLog::trace("Writing cache index");
+            LVStreamRef stream = LVOpenFileStream(filename.c_str(), LVOM_WRITE);
+            if ( !stream )
+                return false;
+            if ( stream->Write( buf.buf(), buf.pos(), NULL )!=LVERR_OK )
+                return false;
+            _oldStreamCRC = newCRC;
+            _oldStreamSize = newSize;
+        }
         return true;
     }
 
