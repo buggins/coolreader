@@ -3390,6 +3390,21 @@ static const char * attr_value_map_magic = "ATTV";
 static const char * ns_id_map_magic =   "NMSP";
 static const char * node_by_id_map_magic = "NIDM";
 
+typedef struct {
+    lUInt16 key;
+    lUInt32 value;
+} id_node_map_item;
+
+int compare_id_node_map_items(const void * item1, const void * item2) {
+    id_node_map_item * v1 = (id_node_map_item*)item1;
+    id_node_map_item * v2 = (id_node_map_item*)item2;
+    if (v1->key > v2->key)
+        return 1;
+    if (v1->key < v2->key)
+        return -1;
+    return 0;
+}
+
 /// serialize to byte array (pointer will be incremented by number of bytes written)
 void lxmlDocBase::serializeMaps( SerialBuf & buf )
 {
@@ -3422,11 +3437,21 @@ void lxmlDocBase::serializeMaps( SerialBuf & buf )
     if ( (int)cnt!=_idNodeMap.length() )
         CRLog::error("_idNodeMap.length=%d doesn't match real item count %d", _idNodeMap.length(), cnt);
     buf << cnt;
+    if (cnt > 0)
     {
+        // sort items before serializing!
+        id_node_map_item * array = new id_node_map_item[cnt];
+        int i = 0;
         LVHashTable<lUInt16,lInt32>::iterator ii = _idNodeMap.forwardIterator();
         for ( LVHashTable<lUInt16,lInt32>::pair * p = ii.next(); p!=NULL; p = ii.next() ) {
-            buf << (lUInt16)p->key << (lUInt32)p->value;
+            array[i].key = (lUInt16)p->key;
+            array[i].value = (lUInt32)p->value;
+            i++;
         }
+        qsort(array, cnt, sizeof(id_node_map_item), &compare_id_node_map_items);
+        for (i = 0; i < (int)cnt; i++)
+            buf << array[i].key << array[i].value;
+        delete[] array;
     }
     buf.putMagic( node_by_id_map_magic );
     buf.putCRC( buf.pos() - start );
@@ -7862,6 +7887,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
             formatCallback->OnCacheFileFormatDetected((doc_format_t)fmt);
         }
 
+        CRLog::trace("ldomDocument::loadCacheFileContent() - ID data");
         SerialBuf idbuf(0, true);
         if ( !_cacheFile->read( CBT_MAPS_DATA, idbuf ) ) {
             CRLog::error("Error while reading Id data");
@@ -7890,6 +7916,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
         CRLog::info("%d pages read from cache file", pages.length());
         //_pagesData.setPos( 0 );
 
+        CRLog::trace("ldomDocument::loadCacheFileContent() - embedded font data");
         {
             SerialBuf buf(0, true);
             if ( !_cacheFile->read(CBT_FONT_DATA, buf)) {

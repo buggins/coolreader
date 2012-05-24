@@ -99,6 +99,8 @@ void LDOMNameIdMap::serialize( SerialBuf & buf )
 {
     if ( buf.error() )
         return;
+    if (!m_sorted)
+        Sort();
     int start = buf.pos();
 	buf.putMagic( id_map_magic );
     buf << m_count;
@@ -107,6 +109,7 @@ void LDOMNameIdMap::serialize( SerialBuf & buf )
             m_by_id[i]->serialize( buf );
     }
     buf.putCRC( buf.pos() - start );
+    m_changed = false;
 }
 
 /// deserialize from byte array (pointer will be incremented by number of bytes read)
@@ -138,6 +141,9 @@ bool LDOMNameIdMap::deserialize( SerialBuf & buf )
     }
     m_sorted = false;
     buf.checkCRC( buf.pos() - start );
+    m_changed = false;
+    if (!m_sorted)
+        Sort();
     return !buf.error();
 }
 
@@ -151,11 +157,13 @@ LDOMNameIdMap::LDOMNameIdMap(lUInt16 maxId)
     m_by_name = new LDOMNameIdMapItem * [m_size];
     memset( m_by_name, 0, sizeof(LDOMNameIdMapItem *)*m_size );  
     m_sorted = true;
+    m_changed = false;
 }
 
 /// Copy constructor
 LDOMNameIdMap::LDOMNameIdMap( LDOMNameIdMap & map )
 {
+    m_changed = false;
     m_size = map.m_size;
     m_count = map.m_count;
     m_by_id   = new LDOMNameIdMapItem * [m_size];
@@ -274,6 +282,10 @@ void LDOMNameIdMap::AddItem( LDOMNameIdMapItem * item )
     m_by_id[item->id] = item;
     m_by_name[m_count++] = item;
     m_sorted = false;
+    if (!m_changed) {
+        m_changed = true;
+        //CRLog::trace("new ID for %s is %d", LCSTR(item->value), item->id);
+    }
 }
 
 void LDOMNameIdMap::AddItem( lUInt16 id, const lString16 & value, const css_elem_def_props_t * data )

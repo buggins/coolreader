@@ -57,6 +57,7 @@ private:
     lUInt16 m_count; // non-empty count
     lUInt16 m_size;  // max number of ids
     bool    m_sorted;
+    bool    m_changed;
 
     void    Sort();
 public:
