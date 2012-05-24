@@ -401,7 +401,9 @@ int LVTextFileBase::ReadChars( lChar16 * buf, int maxsize )
             int dstlen = maxsize;
             Utf8ToUnicode(m_buf + m_buf_pos, srclen, buf, dstlen);
             m_buf_pos += srclen;
-            checkEof();
+            if (dstlen == 0) {
+                checkEof();
+            }
             return dstlen;
         }
     case ce_utf16_be:

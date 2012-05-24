@@ -682,6 +682,12 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         if ( !doc )
             return false;
 
+//        // for debug
+//        {
+//            LVStreamRef out = LVOpenFileStream("/tmp/content.xml", LVOM_WRITE);
+//            doc->saveToStream(out, NULL, true);
+//        }
+
         CRPropRef m_doc_props = m_doc->getProps();
         lString16 author = doc->textFromXPath( cs16("package/metadata/creator"));
         lString16 title = doc->textFromXPath( cs16("package/metadata/title"));
