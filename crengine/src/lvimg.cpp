@@ -916,6 +916,21 @@ inline lUInt32 lRGB(lUInt32 r, lUInt32 g, lUInt32 b )
     return (r<<16)|(g<<8)|b;
 }
 
+static bool skipGifExtension(unsigned char *&buf, int buf_size) {
+    unsigned char * endp = buf + buf_size;
+    if (*buf != '!')
+        return false;
+    buf += 2;
+    for (;;) {
+        if (buf >= endp)
+            return false;
+        unsigned blockSize = *buf;
+        buf++;
+        if (blockSize == 0)
+            return true;
+        buf += blockSize;
+    }
+}
 
 int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImageDecoderCallback * callback)
 {
@@ -969,24 +984,42 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
         p+=(m_color_count * 3);
     }
 
-    bool res = false;
-    if (p - buf < buf_size ) {
+    bool found = false;
+    bool res = true;
+    while (res && p - buf < buf_size) {
         // search for delimiter char ','
-        while (*p != ',' && p-buf<buf_size)
-            p++;
-        if (*p==',') {
+        int recordType = *p;
+
+        //            while (*p != ',' && p-buf<buf_size)
+        //                p++;
+        switch (recordType) {
+        case ',': // image descriptor, ','
             // found image descriptor!
-            LVGifFrame * pFrame = new LVGifFrame(this);
-            int cbRead = 0;
-            if (pFrame->DecodeFromBuffer(p, buf_size-(p-buf), cbRead) ) {
-                res = true;
-                pFrame->Draw( callback );
+            {
+                LVGifFrame * pFrame = new LVGifFrame(this);
+                int cbRead = 0;
+                if (pFrame->DecodeFromBuffer(p, buf_size - (p - buf), cbRead) ) {
+                    found = true;
+                    pFrame->Draw( callback );
+                }
+                delete pFrame;
+                res = false; // first frame found, stop!
             }
-            delete pFrame;
+            break;
+        case '!': // extension record
+            {
+                res = skipGifExtension(p, buf_size - (p - buf));
+            }
+            break;
+        case ';': // terminate record
+            res = false;
+            break;
+        default:
+            res = false;
         }
     }
 
-    return res;
+    return found;
 }
 
 void LVGifImageSource::Clear()
@@ -1153,10 +1186,11 @@ public:
             str_nextchar[i] = -1;
         }
         // init codes
-        clearcode = (1<<sizecode);
+        clearcode = (1 << sizecode);
+        eoicode = clearcode + 1;
+
         str_table[clearcode] = 0;
         str_nextchar[clearcode] = -1;
-        eoicode = clearcode + 1;
         str_table[eoicode] = 0;
         str_nextchar[eoicode] = -1;
         //str_table[eoicode] = NULL;
@@ -1194,7 +1228,7 @@ public:
                     return 0;
 
                 if (CodeExists(code)) {
-                    if (code==eoicode)
+                    if (code == eoicode)
                         return 1;
                     else if (code==clearcode)
                         break; // clear & goto 3
@@ -1253,10 +1287,10 @@ int LVGifFrame::DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_
     p++;
 
     // read info
-    m_left = p[0] + (p[1]<<8);
-    m_top = p[2] + (p[3]<<8);
-    m_cx = p[4] + (p[5]<<8);
-    m_cy = p[6] + (p[7]<<8);
+    m_left = p[0] + (((unsigned int)p[1])<<8);
+    m_top = p[2] + (((unsigned int)p[3])<<8);
+    m_cx = p[4] + (((unsigned int)p[5])<<8);
+    m_cy = p[6] + (((unsigned int)p[7])<<8);
 
     if (m_cx<1 || m_cx>4096 ||
         m_cy<1 || m_cy>4096 ||
