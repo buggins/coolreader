@@ -1364,6 +1364,7 @@ LVGifFrame::LVGifFrame(LVGifImageSource * pImage)
     m_cy = 0;
     m_flg_ltc = 0; // GTC (gobal table of colors) flag
     m_local_color_table = NULL;
+    m_buffer = NULL;
 }
 
 LVGifFrame::~LVGifFrame()
