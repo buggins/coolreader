@@ -1043,6 +1043,7 @@ void LVGifImageSource::Clear()
 }
 
 #define LSWDECODER_MAX_TABLE_SIZE 4096
+#define LSWDECODER_MAX_BITS 12
 class CLZWDecoder
 {
 protected:
@@ -1118,11 +1119,11 @@ public:
         code >>= in_bit_pos;
         code &= (1<<bits)-1;
         in_bit_pos += bits;
-        if (in_bit_pos>8) {
+        if (in_bit_pos >= 8) {
             p_in_stream++;
             in_stream_size--;
             in_bit_pos -= 8;
-            if (in_bit_pos>8) {
+            if (in_bit_pos>=8) {
                 p_in_stream++;
                 in_stream_size--;
                 in_bit_pos -= 8;
@@ -1138,9 +1139,9 @@ public:
         if (lastadd == LSWDECODER_MAX_TABLE_SIZE)
             return -1;
         if (lastadd == (1<<bits)-1) {
-            // increase table size
-            bits++;
-            //ResizeTable(1<<bits);
+            // increase table size, except case when ClearCode is expected
+            if (bits < LSWDECODER_MAX_BITS)
+                bits++;
         }
 
         str_table[lastadd] = NewChar;
@@ -1180,7 +1181,7 @@ public:
         // init table
         Clear();
         //ResizeTable(1<<bits);
-        for (int i=(1<<sizecode)-1; i>=0; i--) {
+        for (int i=(1<<sizecode) + 1; i>=0; i--) {
             str_table[i] = i;
             last_table[i] = i;
             str_nextchar[i] = -1;
@@ -1213,8 +1214,9 @@ public:
         while (1) { // 3
 
             code = ReadInCode();
+
             if (code<0 || code>lastadd)
-                return 0;
+                return 1; // allow partial image
 
             if (!WriteOutString(code))
                 return 0;
@@ -1224,14 +1226,16 @@ public:
                 oldcode = code;
 
                 code = ReadInCode();
+
                 if (code<0 || code>lastadd)
                     return 0;
 
                 if (CodeExists(code)) {
                     if (code == eoicode)
                         return 1;
-                    else if (code==clearcode)
+                    else if (code == clearcode) {
                         break; // clear & goto 3
+                    }
 
                     // write  code
                     if (!WriteOutString(code))
@@ -1273,6 +1277,13 @@ bool LVGifImageSource::Decode( LVImageDecoderCallback * callback )
     _stream->SetPos(0);
     if ( _stream->Read( buf, sz, &bytesRead )!=LVERR_OK || bytesRead!=sz )
         res = false;
+
+//    // for DEBUG
+//    {
+//        LVStreamRef out = LVOpenFileStream("/tmp/test.gif", LVOM_WRITE);
+//        out->Write(buf, sz, NULL);
+//    }
+
     res = res && DecodeFromBuffer( buf, sz, callback );
     delete[] buf;
     return res;
