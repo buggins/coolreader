@@ -3,14 +3,10 @@ package org.coolreader;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.Locale;
 
-import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.Activities;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseActivity;
-import org.coolreader.crengine.BookInfo;
-import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.Engine;
 import org.coolreader.crengine.Engine.HyphDict;
@@ -20,50 +16,25 @@ import org.coolreader.crengine.History;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
-import org.coolreader.crengine.OptionsDialog;
 import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
-import org.coolreader.crengine.Settings.Lang;
 import org.coolreader.crengine.SettingsManager;
-import org.coolreader.crengine.TTS;
-import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
-import org.coolreader.donations.BillingService;
-import org.coolreader.donations.BillingService.RequestPurchase;
-import org.coolreader.donations.BillingService.RestoreTransactions;
-import org.coolreader.donations.Consts;
-import org.coolreader.donations.Consts.PurchaseState;
-import org.coolreader.donations.Consts.ResponseCode;
-import org.coolreader.donations.PurchaseObserver;
-import org.coolreader.donations.ResponseHandler;
 import org.coolreader.sync.SyncServiceAccessor;
 
-import android.app.AlertDialog;
-import android.app.SearchManager;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.res.Resources;
 import android.graphics.PixelFormat;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
-import android.os.Handler;
-import android.text.ClipboardManager;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -936,6 +907,46 @@ public class CoolReader extends BaseActivity
 	}
 	
 
+	
+	public void applyAppSetting( String key, String value )
+	{
+		super.applyAppSetting(key, value);
+		boolean flg = "1".equals(value);
+        if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
+        	if (getBrowser() != null)
+        		getBrowser().setSortOrder(value);
+        } else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
+        	if (getBrowser() != null)
+        		getBrowser().setSimpleViewMode(flg);
+        } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
+        	if (getBrowser() != null)
+        		getBrowser().setCoverPagesEnabled(flg);
+        } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
+			getScanner().setDirScanEnabled(flg);
+        } else if ( key.equals(PROP_FONT_FACE) ) {
+        	if (getBrowser() != null)
+        		getBrowser().setCoverPageFontFace(value);
+        } else if ( key.equals(PROP_APP_COVERPAGE_SIZE) ) {
+        	int n = 0;
+        	try {
+        		n = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+        	if (n < 0)
+        		n = 0;
+        	else if (n > 2)
+        		n = 2;
+        	if (getBrowser() != null)
+        		getBrowser().setCoverPageSizeOption(n);
+        } else if ( key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE) ) {
+        	if (getBrowser()!=null )
+        		getBrowser().setSimpleViewMode(flg);
+        } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
+        	getScanner().setHideEmptyDirs(flg);
+        }
+        //
+	}
 	
 	
 }

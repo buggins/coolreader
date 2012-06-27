@@ -6,17 +6,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
-import org.coolreader.crengine.Settings.Lang;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -33,7 +31,7 @@ import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
 
-public class BaseActivity extends Activity {
+public class BaseActivity extends Activity implements Settings {
 
 	public static final Logger log = L.create("ba");
 	
@@ -823,5 +821,72 @@ public class BaseActivity extends Activity {
 	
 	// Store system locale here, on class creation
 	private static final Locale defaultLocale = Locale.getDefault();
+
+	
+	static public int stringToInt( String value, int defValue ) {
+		if ( value==null )
+			return defValue;
+		try {
+			return Integer.valueOf(value);
+		} catch ( NumberFormatException e ) {
+			return defValue;
+		}
+	}
+	
+	public void applyAppSetting( String key, String value )
+	{
+		boolean flg = "1".equals(value);
+        if ( key.equals(PROP_APP_FULLSCREEN) ) {
+			setFullscreen( "1".equals(value) );
+        } else if ( key.equals(PROP_APP_LOCALE) ) {
+			setLanguage(value);
+        } else if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
+			setKeyBacklightDisabled(flg);
+        } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
+        	int n = 0;
+        	try {
+        		n = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+			setScreenBacklightDuration(n);
+        } else if ( key.equals(PROP_NIGHT_MODE) ) {
+			setNightMode(flg);
+        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_MODE) ) {
+			setScreenUpdateMode(stringToInt(value, 0), getContentView());
+        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL) ) {
+			setScreenUpdateInterval(stringToInt(value, 10), getContentView());
+        } else if ( key.equals(PROP_APP_THEME) ) {
+        	setCurrentTheme(value);
+        } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
+        	int orientation = 0;
+        	try {
+        		orientation = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+        	setScreenOrientation(orientation);
+        } else if ( !DeviceInfo.EINK_SCREEN && PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
+        	try {
+        		final int n = Integer.valueOf(value);
+        		// delay before setting brightness
+        		BackgroundThread.instance().postGUI(new Runnable() {
+        			public void run() {
+                		BackgroundThread.instance().postBackground(new Runnable() {
+                			public void run() {
+                        		BackgroundThread.instance().postGUI(new Runnable() {
+                        			public void run() {
+        				        		setScreenBacklightLevel(n);
+                        			}
+                        		});
+                			}
+                		});
+        			}
+        		}, 100);
+        	} catch ( Exception e ) {
+        		// ignore
+        	}
+        }
+	}
 	
 }

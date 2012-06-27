@@ -37,4 +37,13 @@ public class Activities {
 	public static void showBrowserRecentBooks() {
 		// TODO: implement
 	}
+
+	public static void applyAppSetting( String key, String value )
+	{
+		if (mainActivity != null)
+			mainActivity.applyAppSetting(key, value);
+		if (readerActivity != null)
+			readerActivity.applyAppSetting(key, value);
+	}
+
 }
