@@ -21,7 +21,7 @@ extern "C" {
  * Signature: ([Ljava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
-  (JNIEnv *, jobject, jobjectArray);
+  (JNIEnv *, jclass, jobjectArray);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -29,7 +29,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_uninitInternal
-  (JNIEnv *, jobject);
+  (JNIEnv *, jclass);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -37,7 +37,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_uninitInternal
  * Signature: ()[Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceListInternal
-  (JNIEnv *, jobject);
+  (JNIEnv *, jclass);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -45,7 +45,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveItemsInternal
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -53,7 +53,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveIte
  * Signature: (Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal
-  (JNIEnv *, jobject, jstring, jint);
+  (JNIEnv *, jclass, jstring, jint);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -61,7 +61,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
  * Signature: (Lorg/coolreader/crengine/FileInfo;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jclass, jobject);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -69,7 +69,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
  * Signature: (Ljava/lang/String;)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverInternal
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -77,7 +77,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
  * Signature: (I[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv *, jobject, jint, jbyteArray);
+  (JNIEnv *, jclass, jint, jbyteArray);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -101,7 +101,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationI
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightInternal
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -109,7 +109,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightIn
  * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
-  (JNIEnv *, jobject, jobject bmp, jbyteArray data, jstring fontFace, jstring title, jstring authors, jstring seriesName, jint seriesNumber, jint bpp);
+  (JNIEnv *, jclass, jobject bmp, jbyteArray data, jstring fontFace, jstring title, jstring authors, jstring seriesName, jint seriesNumber, jint bpp);
 
 
 #ifdef __cplusplus
