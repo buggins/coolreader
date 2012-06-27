@@ -24,7 +24,7 @@ public class Scanner extends FileInfoChangeSource {
 	
 	boolean mHideEmptyDirs = true;
 	
-	void setHideEmptyDirs( boolean flgHide ) {
+	public void setHideEmptyDirs( boolean flgHide ) {
 		mHideEmptyDirs = flgHide;
 	}
 

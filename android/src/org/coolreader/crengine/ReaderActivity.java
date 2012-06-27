@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
 import org.coolreader.crengine.SettingsManager.DictInfo;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.BillingService;
@@ -443,6 +442,30 @@ public class ReaderActivity extends BaseActivity {
 			}
 		});
 	}
+	
+	
+	
+	@Override
+	public void applyAppSetting( String key, String value )
+	{
+		super.applyAppSetting(key, value);
+		boolean flg = "1".equals(value);
+        if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
+			setKeyBacklightDisabled(flg);
+        } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
+        	int n = 0;
+        	try {
+        		n = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+			setScreenBacklightDuration(n);
+        } else if ( key.equals(PROP_APP_DICTIONARY) ) {
+        	setDict(value);
+        }
+        //
+	}
+	
 	
 
 	//==============================================================

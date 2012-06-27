@@ -2900,7 +2900,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private String getManualFileName() {
-		Scanner s = mActivity.getScanner();
+		Scanner s = getScanner();
 		if (s != null) {
 			FileInfo fi = s.getDownloadDirectory();
 			if (fi != null) {
@@ -2953,83 +2953,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void applyAppSetting( String key, String value )
 	{
 		boolean flg = "1".equals(value);
-        if ( key.equals(PROP_APP_FULLSCREEN) ) {
-			this.mActivity.setFullscreen( "1".equals(value) );
-        } else if ( key.equals(PROP_APP_LOCALE) ) {
-			mActivity.setLanguage(value);
-        } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
-        	if (mActivity.getBrowser() != null)
-        		mActivity.getBrowser().setSortOrder(value);
-        } else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
-        	if (mActivity.getBrowser() != null)
-        		mActivity.getBrowser().setSimpleViewMode(flg);
-        } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
-        	if (mActivity.getBrowser() != null)
-        		mActivity.getBrowser().setCoverPagesEnabled(flg);
-        } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
-			mActivity.getScanner().setDirScanEnabled(flg);
-        } else if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
-			mActivity.setKeyBacklightDisabled(flg);
-        } else if ( key.equals(PROP_FONT_FACE) ) {
-        	if (mActivity.getBrowser() != null)
-        		mActivity.getBrowser().setCoverPageFontFace(value);
-        } else if ( key.equals(PROP_APP_COVERPAGE_SIZE) ) {
-        	int n = 0;
-        	try {
-        		n = Integer.parseInt(value);
-        	} catch (NumberFormatException e) {
-        		// ignore
-        	}
-        	if (n < 0)
-        		n = 0;
-        	else if (n > 2)
-        		n = 2;
-        	if (mActivity.getBrowser() != null)
-        		mActivity.getBrowser().setCoverPageSizeOption(n);
-        } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
-        	int n = 0;
-        	try {
-        		n = Integer.parseInt(value);
-        	} catch (NumberFormatException e) {
-        		// ignore
-        	}
-			mActivity.setScreenBacklightDuration(n);
-        } else if ( key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE) ) {
-        	if ( mActivity.getBrowser()!=null )
-        		mActivity.getBrowser().setSimpleViewMode(flg);
-        } else if ( key.equals(PROP_NIGHT_MODE) ) {
-			mActivity.setNightMode(flg);
-        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_MODE) ) {
-			mActivity.setScreenUpdateMode(stringToInt(value, 0), this);
-        } else if ( key.equals(PROP_APP_SCREEN_UPDATE_INTERVAL) ) {
-			mActivity.setScreenUpdateInterval(stringToInt(value, 10), this);
-        } else if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
+        if ( key.equals(PROP_APP_TAP_ZONE_HILIGHT) ) {
         	hiliteTapZoneOnTap = flg;
-        } else if ( key.equals(PROP_APP_DICTIONARY) ) {
-        	mActivity.setDict(value);
-        } else if ( key.equals(PROP_APP_THEME) ) {
-        	mActivity.setCurrentTheme(value);
         } else if ( key.equals(PROP_APP_DOUBLE_TAP_SELECTION) ) {
         	doubleTapSelectionEnabled = flg;
         } else if ( key.equals(PROP_APP_GESTURE_PAGE_FLIPPING) ) {
         	gesturePageFlippingEnabled = flg;
         } else if ( key.equals(PROP_APP_SECONDARY_TAP_ACTION_TYPE) ) {
         	secondaryTapActionType = flg ? TAP_ACTION_TYPE_DOUBLE : TAP_ACTION_TYPE_LONGPRESS;
-        } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
-        	getScanner().setHideEmptyDirs(flg);
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
         	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
         } else if (PROP_APP_HIGHLIGHT_BOOKMARKS.equals(key)) {
         	flgHighlightBookmarks = !"0".equals(value);
         	clearSelection();
-        } else if ( key.equals(PROP_APP_SCREEN_ORIENTATION) ) {
-        	int orientation = 0;
-        	try {
-        		orientation = Integer.parseInt(value);
-        	} catch (NumberFormatException e) {
-        		// ignore
-        	}
-        	mActivity.setScreenOrientation(orientation);
         } else if (PROP_APP_VIEW_AUTOSCROLL_SPEED.equals(key)) {
         	int n = 1500;
         	try {
@@ -3054,31 +2990,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			pageFlipAnimationSpeedMs = pageFlipAnimationMode!=PAGE_ANIMATION_NONE ? DEF_PAGE_FLIP_MS : 0; 
         } else if ( PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) ) {
         	enableVolumeKeys = flg;
-        } else if ( !DeviceInfo.EINK_SCREEN && PROP_APP_SCREEN_BACKLIGHT.equals(key) ) {
-        	try {
-        		final int n = Integer.valueOf(value);
-        		// delay before setting brightness
-        		BackgroundThread.instance().postGUI(new Runnable() {
-        			public void run() {
-        				execute( new Task() {
-
-							@Override
-							public void work() throws Exception {
-								// do nothing
-							}
-
-							@Override
-							public void done() {
-				        		mActivity.setScreenBacklightLevel(n);
-								super.done();
-							}
-        					
-        				});
-        			}
-        		}, 100);
-        	} catch ( Exception e ) {
-        		// ignore
-        	}
         } else if ( PROP_APP_SELECTION_ACTION.equals(key) ) {
         	try {
         		int n = Integer.valueOf(value);
@@ -3093,6 +3004,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         	} catch ( Exception e ) {
         		// ignore
         	}
+        } else {
+        	Activities.applyAppSetting(key, value);
         }
         //
 	}
