@@ -2,13 +2,12 @@
 package org.coolreader;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.util.Locale;
 
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
+import org.coolreader.crengine.BaseActivity;
 import org.coolreader.crengine.BookInfo;
 import org.coolreader.crengine.BookmarksDlg;
 import org.coolreader.crengine.DeviceInfo;
@@ -26,8 +25,8 @@ import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.Scanner;
-import org.coolreader.crengine.Settings;
 import org.coolreader.crengine.Settings.Lang;
+import org.coolreader.crengine.SettingsManager;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.crengine.ToastView;
@@ -45,7 +44,6 @@ import org.coolreader.donations.ResponseHandler;
 import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
@@ -62,9 +60,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -87,7 +83,7 @@ import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-public class CoolReader extends Activity
+public class CoolReader extends BaseActivity
 {
 	public static final Logger log = L.create("cr");
 	
@@ -640,7 +636,7 @@ public class CoolReader extends Activity
 		getWindow().setAttributes(lp);
 		
 		// load settings
-		Properties props = loadSettings();
+		Properties props = SettingsManager.instance(this).get();
 		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 		setLanguage(lang);
@@ -1145,7 +1141,7 @@ public class CoolReader extends Activity
 			public void run() {
 				// fixing font settings
 				Properties settings = mReaderView.getSettings();
-				if (fixFontSettings(settings)) {
+				if (SettingsManager.instance(CoolReader.this).fixFontSettings(settings)) {
 					log.i("Missing font settings were fixed");
 					mBrowser.setCoverPageFontFace(settings.getProperty(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
 					mReaderView.setSettings(settings, null);
@@ -1656,205 +1652,6 @@ public class CoolReader extends Activity
 		return false;
 	}
 
-	private boolean applyDefaultFont(Properties props, String propName, String defFontFace) {
-		String currentValue = props.getProperty(propName);
-		boolean changed = false;
-		if (currentValue == null) {
-			currentValue = defFontFace;
-			changed = true;
-		}
-		if (!isValidFontFace(currentValue)) {
-			if (isValidFontFace("Droid Sans"))
-				currentValue = "Droid Sans";
-			else if (isValidFontFace("Roboto"))
-				currentValue = "Roboto";
-			else if (isValidFontFace("Droid Serif"))
-				currentValue = "Droid Serif";
-			else if (isValidFontFace("Arial"))
-				currentValue = "Arial";
-			else if (isValidFontFace("Times New Roman"))
-				currentValue = "Times New Roman";
-			else if (isValidFontFace("Droid Sans Fallback"))
-				currentValue = "Droid Sans Fallback";
-			else {
-				String[] fontFaces = mEngine.getFontFaceList();
-				if (fontFaces != null)
-					currentValue = fontFaces[0];
-			}
-			changed = true;
-		}
-		if (changed)
-			props.setProperty(propName, currentValue);
-		return changed;
-	}
-
-	public boolean fixFontSettings(Properties props) {
-		boolean res = false;
-        res = applyDefaultFont(props, ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
-        res = applyDefaultFont(props, ReaderView.PROP_STATUS_FONT_FACE, DeviceInfo.DEF_FONT_FACE) || res;
-        res = applyDefaultFont(props, ReaderView.PROP_FALLBACK_FONT_FACE, "Droid Sans Fallback") || res;
-        return res;
-	}
-	
-	public Properties loadSettings(File file) {
-        Properties props = new Properties();
-
-        if ( file.exists() && !DEBUG_RESET_OPTIONS ) {
-        	try {
-        		FileInputStream is = new FileInputStream(file);
-        		props.load(is);
-        		log.v("" + props.size() + " settings items loaded from file " + propsFile.getAbsolutePath() );
-        	} catch ( Exception e ) {
-        		log.e("error while reading settings");
-        	}
-        }
-        
-        // default key actions
-        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
-        		props.applyDefault(ka.getProp(), ka.action.id);
-        }
-        // default tap zone actions
-        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
-        	if ( ka.longPress )
-        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone, ka.action.id);
-        	else
-        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
-        }
-        
-        if ( DeviceInfo.EINK_SCREEN ) {
-    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_NONE);
-        } else {
-    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);
-        }
-
-        props.applyDefault(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
-        
-        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
-        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
-        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_LIGHT_THEME ? "BLACK" : "DARK");
-        props.applyDefault(ReaderView.PROP_APP_SELECTION_PERSIST, "0");
-        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
-        if ("1".equals(props.getProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK)))
-            props.setProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
-        props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
-        props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
-        // autodetect best initial font size based on display resolution
-        DisplayMetrics m = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(m);
-        int screenWidth = m.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();
-        int fontSize = 20;
-        String hmargin = "4";
-        String vmargin = "2";
-        if ( screenWidth<=320 ) {
-        	fontSize = 20;
-            hmargin = "4";
-            vmargin = "2";
-        } else if ( screenWidth<=400 ) {
-        	fontSize = 24;
-            hmargin = "10";
-            vmargin = "4";
-        } else if ( screenWidth<=600 ) {
-        	fontSize = 28;
-            hmargin = "20";
-            vmargin = "8";
-        } else {
-        	fontSize = 32;
-            hmargin = "25";
-            vmargin = "15";
-        }
-
-        fixFontSettings(props);
-        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
-        props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
-        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : "16");
-        props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
-        props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
-        props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#808080");
-        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR, "#FFFFFF");
-        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_DAY, "#FFFFFF");
-        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, "#101010");
-        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR, "#FF000000"); // don't use separate color
-        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_DAY, "#FF000000"); // don't use separate color
-        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, "#80000000"); // don't use separate color
-        props.setProperty(ReaderView.PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
-        props.setProperty(ReaderView.PROP_DISPLAY_INVERSE, "0");
-        props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
-        props.applyDefault(ReaderView.PROP_APP_VIEW_AUTOSCROLL_SPEED, "1500");
-        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT, "-1");
-		props.applyDefault(ReaderView.PROP_SHOW_BATTERY, "1"); 
-		props.applyDefault(ReaderView.PROP_SHOW_POS_PERCENT, "0"); 
-		props.applyDefault(ReaderView.PROP_SHOW_PAGE_COUNT, "1"); 
-		props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
-		props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
-		props.applyDefault(ReaderView.PROP_APP_GESTURE_PAGE_FLIPPING, "1");
-		props.applyDefault(ReaderView.PROP_APP_SHOW_COVERPAGES, "1");
-		props.applyDefault(ReaderView.PROP_APP_COVERPAGE_SIZE, "1");
-		props.applyDefault(ReaderView.PROP_APP_SCREEN_ORIENTATION, DeviceInfo.EINK_SCREEN ? "0" : "4"); // "0"
-		props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
-		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
-		props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
-		props.applyDefault(ReaderView.PROP_APP_DICTIONARY, dicts[0].id);
-		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
-		props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
-		props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
-
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, "1");
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE, "1");
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, "1");
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, "0");
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE, "0");
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, "0");
-		props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, "0");
-		
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, hmargin);
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, hmargin);
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, vmargin);
-		props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, vmargin);
-		
-        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
-        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
-        
-        props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
-        if (DeviceInfo.FORCE_LIGHT_THEME) {
-        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
-        } else {
-        	if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
-        		props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
-        	else
-        		props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.DEF_DAY_BACKGROUND_TEXTURE);
-        }
-        props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_DAY, Engine.DEF_DAY_BACKGROUND_TEXTURE);
-        props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE_NIGHT, Engine.DEF_NIGHT_BACKGROUND_TEXTURE);
-        
-        props.applyDefault(ReaderView.PROP_FONT_GAMMA, DeviceInfo.EINK_SCREEN ? "1.5" : "1.0");
-		
-		props.setProperty(ReaderView.PROP_MIN_FILE_SIZE_TO_CACHE, "100000");
-		props.setProperty(ReaderView.PROP_FORCED_MIN_FILE_SIZE_TO_CACHE, "32768");
-		props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
-		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
-		
-		if (!DeviceInfo.EINK_SCREEN) {
-			props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR, "#AAAAAA");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, "#AAAA55");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, "#C07070");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR_DAY, "#AAAAAA");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_DAY, "#AAAA55");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_DAY, "#C07070");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR_NIGHT, "#808080");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT_NIGHT, "#A09060");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION_NIGHT, "#906060");
-		} else {
-			props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "2");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR, "#808080");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, "#000000");
-			props.applyDefault(ReaderView.PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, "#000000");
-		}
-        
-        return props;
-	}
-	
 	public File getSettingsFile(int profile) {
 		if (profile == 0)
 			return propsFile;
@@ -1864,36 +1661,6 @@ public class CoolReader extends Activity
 	File propsFile;
 	private static final String SETTINGS_FILE_NAME = "cr3.ini";
 	private static boolean DEBUG_RESET_OPTIONS = false;
-	private Properties loadSettings()
-	{
-		File[] dataDirs = mEngine.getDataDirectories(null, false, true);
-		File existingFile = null;
-		for ( File dir : dataDirs ) {
-			File f = new File(dir, SETTINGS_FILE_NAME);
-			if ( f.exists() && f.isFile() ) {
-				existingFile = f;
-				break;
-			}
-		}
-        if ( existingFile!=null )
-        	propsFile = existingFile;
-        else {
-	        File propsDir = getDir("settings", Context.MODE_PRIVATE);
-			propsFile = new File( propsDir, SETTINGS_FILE_NAME);
-			File dataDir = Engine.getExternalSettingsDir();
-			if ( dataDir!=null ) {
-				log.d("external settings dir: " + dataDir);
-				propsFile = Engine.checkOrMoveFile(dataDir, propsDir, SETTINGS_FILE_NAME);
-			} else {
-				propsDir.mkdirs();
-			}
-        }
-        
-        Properties props = loadSettings(propsFile);
-
-		return props;
-	}
-
 	public static class DictInfo {
 		public final String id; 
 		public final String name;
@@ -2067,72 +1834,6 @@ public class CoolReader extends Activity
 		}
 	}
 	
-	public Properties loadSettings(int profile) {
-		File f = getSettingsFile(profile);
-		if (!f.exists() && profile != 0)
-			f = getSettingsFile(0);
-		Properties res = loadSettings(f);
-		if (profile != 0) {
-			res = filterProfileSettings(res);
-			res.setInt(Settings.PROP_PROFILE_NUMBER, profile);
-		}
-		return res;
-	}
-	
-	public static Properties filterProfileSettings(Properties settings) {
-		Properties res = new Properties();
-		res.entrySet();
-		for (Object k : settings.keySet()) {
-			String key = (String)k;
-			String value = settings.getProperty(key);
-			boolean found = false;
-			for (String pattern : Settings.PROFILE_SETTINGS) {
-				if (pattern.endsWith("*")) {
-					if (key.startsWith(pattern.substring(0, pattern.length()-1))) {
-						found = true;
-						break;
-					}
-				} else if (pattern.equalsIgnoreCase(key)) {
-					found = true;
-					break;
-				} else if (key.startsWith("styles.")) {
-					found = true;
-					break;
-				}
-			}
-			if (found) {
-				res.setProperty(key, value);
-			}
-		}
-		return res;
-	}
-	
-	public void saveSettings(int profile, Properties settings) {
-		File f = getSettingsFile(profile);
-		if (profile != 0) {
-			settings = filterProfileSettings(settings);
-			settings.setInt(Settings.PROP_PROFILE_NUMBER, profile);
-		}
-		saveSettings(f, settings);
-	}
-	
-	public void saveSettings(File f, Properties settings)
-	{
-		try {
-			log.v("saveSettings()");
-    		FileOutputStream os = new FileOutputStream(f);
-    		settings.store(os, "Cool Reader 3 settings");
-			log.i("Settings successfully saved to file " + f.getAbsolutePath());
-		} catch ( Exception e ) {
-			log.e("exception while saving settings", e);
-		}
-	}
-
-	public void saveSettings(Properties settings)
-	{
-		saveSettings(propsFile, settings);
-	}
-
 	private static Debug.MemoryInfo info = new Debug.MemoryInfo();
 	private static Field[] infoFields = Debug.MemoryInfo.class.getFields();
 	private static String dumpFields( Field[] fields, Object obj) {
