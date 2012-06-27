@@ -26,7 +26,7 @@ public class FindNextDlg {
 	View mPanel;
 	final String pattern;
 	final boolean caseInsensitive;
-	static public void showDialog( CoolReader coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
+	static public void showDialog( BaseActivity coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
 	{
 		FindNextDlg dlg = new FindNextDlg(coolReader, readerView, pattern, caseInsensitive);
 		//dlg.mWindow.update(dlg.mAnchor, width, height)
@@ -36,7 +36,7 @@ public class FindNextDlg {
 		//dlg.showAsDropDown(readerView);
 		//dlg.update();
 	}
-	public FindNextDlg( CoolReader coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
+	public FindNextDlg( BaseActivity coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
 	{
 		this.pattern = pattern;
 		this.caseInsensitive = caseInsensitive;

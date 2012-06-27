@@ -14,11 +14,11 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 public class SwitchProfileDialog extends BaseDialog {
-	CoolReader mCoolReader;
+	ReaderActivity mCoolReader;
 	ReaderView mReaderView;
 	ListView mListView;
 	int currentProfile;
-	public SwitchProfileDialog(CoolReader coolReader, ReaderView readerView)
+	public SwitchProfileDialog(ReaderActivity coolReader, ReaderView readerView)
 	{
 		super(coolReader, coolReader.getResources().getString(R.string.action_switch_settings_profile), false, false);
         setCancelable(true);

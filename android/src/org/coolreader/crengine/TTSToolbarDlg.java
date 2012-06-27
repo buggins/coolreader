@@ -25,7 +25,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	PopupWindow mWindow;
 	View mAnchor;
-	CoolReader mCoolReader;
+	ReaderActivity mCoolReader;
 	ReaderView mReaderView;
 	View mPanel;
 	TTS mTTS;
@@ -33,7 +33,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	SeekBar sbSpeed;
 	SeekBar sbVolume;
 	
-	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTS tts)
+	static public TTSToolbarDlg showDialog( ReaderActivity coolReader, ReaderView readerView, TTS tts)
 	{
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, tts);
 		//dlg.mWindow.update(dlg.mAnchor, width, height)
@@ -155,7 +155,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 			moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
 	}
 
-	public TTSToolbarDlg( CoolReader coolReader, ReaderView readerView, TTS tts )
+	public TTSToolbarDlg( ReaderActivity coolReader, ReaderView readerView, TTS tts )
 	{
 		mCoolReader = coolReader;
 		mReaderView = readerView;

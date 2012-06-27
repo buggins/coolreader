@@ -26,7 +26,7 @@ public class BaseDialog extends Dialog {
 	View layoutView;
 	ViewGroup buttonsLayout;
 	ViewGroup contentsLayout;
-	CoolReader activity;
+	BaseActivity activity;
 	String title;
 	boolean needCancelButton;
 	int positiveButtonImage;
@@ -43,15 +43,15 @@ public class BaseDialog extends Dialog {
 	}
 	
 	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
-	public BaseDialog( CoolReader activity )
+	public BaseDialog( BaseActivity activity )
 	{
 		this( activity, "", false, false );
 	}
-	public BaseDialog( CoolReader activity, String title, boolean showNegativeButton, boolean windowed )
+	public BaseDialog( BaseActivity activity, String title, boolean showNegativeButton, boolean windowed )
 	{
 		this( activity, title, showNegativeButton, activity.isFullscreen(), activity.isNightMode(), windowed );
 	}
-	public BaseDialog( CoolReader activity, String title, boolean showNegativeButton, boolean fullscreen, boolean dark, boolean windowed )
+	public BaseDialog( BaseActivity activity, String title, boolean showNegativeButton, boolean fullscreen, boolean dark, boolean windowed )
 	{
 		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : R.style.Dialog_Normal);
 		//super(activity, fullscreen ? R.style.Dialog_Fullscreen : android.R.style.Theme_Dialog); //android.R.style.Theme_Light_NoTitleBar_Fullscreen : android.R.style.Theme_Light

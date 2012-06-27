@@ -23,7 +23,7 @@ public class InputDialog extends BaseDialog {
 	private EditText input;
 	int minValue;
 	int maxValue;
-	public InputDialog( CoolReader activity, final String title, final String prompt, boolean isNumberEdit, int minValue, int maxValue, int currentValue, final InputHandler handler )
+	public InputDialog( BaseActivity activity, final String title, final String prompt, boolean isNumberEdit, int minValue, int maxValue, int currentValue, final InputHandler handler )
 	{
 		super(activity, title, true, true);
 		this.handler = handler;
