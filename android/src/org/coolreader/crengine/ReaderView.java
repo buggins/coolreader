@@ -15,7 +15,9 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.InputDialog.InputHandler;
+import org.coolreader.db.CRDBService;
 import org.coolreader.sync.ChangeInfo;
+import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
@@ -272,7 +274,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return res;
     }
     
-	private final CoolReader mActivity;
+	private final ReaderActivity mActivity;
     private final Engine mEngine;
     
     private BookInfo mBookInfo;
@@ -284,7 +286,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return mEngine;
     }
     
-    public CoolReader getActivity()
+    public ReaderActivity getActivity()
     {
     	return mActivity;
     }
@@ -1225,7 +1227,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// absolute path to file
 							FileInfo fi = new FileInfo(link);
 							if (fi.exists()) {
-								mActivity.loadDocument(fi);
+								Activities.loadDocument(fi);
 								return;
 							}
 							File baseDir = null;
@@ -1242,7 +1244,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									if (baseDir!=null && url!=null && url.length()>0) {
 										fi = new FileInfo(baseDir.getAbsolutePath()+"/"+url);
 										if (fi.exists()) {
-											mActivity.loadDocument(fi);
+											Activities.loadDocument(fi);
 											return;
 										}
 									}
@@ -1250,7 +1252,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									// from archive
 									fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
 									if (fi.exists()) {
-										mActivity.loadDocument(fi);
+										Activities.loadDocument(fi);
 										return;
 									}
 								}
@@ -1644,12 +1646,28 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return false;
 	}
 	
+	public SyncServiceAccessor getSyncService() {
+		return Activities.getMain().getSyncService();
+	}
+	
+	public CRDBService.LocalBinder getDB() {
+		return Activities.getMain().getDB();
+	}
+	
+	public History getHistory() {
+		return Activities.getMain().getHistory();
+	}
+	
+	public Scanner getScanner() {
+		return Activities.getMain().getScanner();
+	}
+	
 	public Bookmark removeBookmark(final Bookmark bookmark) {
 		Bookmark removed = mBookInfo.removeBookmark(bookmark);
 		if (removed != null) {
-            mActivity.getSyncService().removeBookmark(mBookInfo.getFileInfo().getPathName(), removed);
+            getSyncService().removeBookmark(mBookInfo.getFileInfo().getPathName(), removed);
 			if ( removed.getId()!=null ) {
-				mActivity.getDB().deleteBookmark(removed);
+				getDB().deleteBookmark(removed);
 			}
 			highlightBookmarks();
 		}
@@ -1667,7 +1685,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void addBookmark(final Bookmark bookmark) {
 		mBookInfo.addBookmark(bookmark);
-		mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bookmark, false);
+		getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bookmark, false);
         highlightBookmarks();
         scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
     }
@@ -1691,8 +1709,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						mBookInfo.addBookmark(bm);
 					else
 						mBookInfo.setShortcutBookmark(shortcut, bm);
-					mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm, false);
-					mActivity.getDB().saveBookInfo(mBookInfo);
+					getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm, false);
+					getDB().saveBookInfo(mBookInfo);
 					String s;
 					if ( shortcut==0 )
 						s = mActivity.getString(R.string.toast_position_bookmark_is_set);
@@ -1845,7 +1863,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, disableInternalStyles);
             doEngineCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES, disableInternalStyles ? 0 : 1);
             doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 1);
-    		mActivity.getDB().saveBookInfo(mBookInfo);
+    		getDB().saveBookInfo(mBookInfo);
 		}
 	}
 	
@@ -1857,7 +1875,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mBookInfo.getFileInfo().setFlag(FileInfo.USE_DOCUMENT_FONTS_FLAG, enableInternalFonts);
             doEngineCommand( ReaderCommand.DCMD_SET_DOC_FONTS, enableInternalFonts ? 1 : 0);
             doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
-    		mActivity.getDB().saveBookInfo(mBookInfo);
+    		getDB().saveBookInfo(mBookInfo);
 		}
 	}
 	
@@ -1893,7 +1911,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			boolean disableTextReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
 			disableTextReflow = !disableTextReflow;
 			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG, disableTextReflow);
-    		mActivity.getDB().saveBookInfo(mBookInfo);
+    		getDB().saveBookInfo(mBookInfo);
 			reloadDocument();
 		}
 	}
@@ -2407,7 +2425,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// cannot navigate - no data on stack
 							if (cmd == ReaderCommand.DCMD_LINK_BACK) {
 								// TODO: exit from activity in some cases?
-								mActivity.showBrowser(null);
+								Activities.showBrowser(null);
 							}
 						}
 					}
@@ -2540,7 +2558,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doEngineCommand(cmd, param);
 			break;
 		case DCMD_RECENT_BOOKS_LIST:
-			mActivity.showBrowserRecentBooks();
+			Activities.showBrowserRecentBooks();
 			break;
 		case DCMD_SEARCH:
 			showSearchDialog(null);
@@ -2561,10 +2579,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			showTOC();
 			break;
 		case DCMD_FILE_BROWSER:
-			mActivity.showBrowser(firstShowBrowserCall ? getOpenedFileInfo() : null);
+			Activities.showBrowser(firstShowBrowserCall ? getOpenedFileInfo() : null);
 			break;
 		case DCMD_CURRENT_BOOK_DIRECTORY:
-			mActivity.showBrowser(getOpenedFileInfo());
+			Activities.showBrowser(getOpenedFileInfo());
 			break;
 		case DCMD_OPTIONS_DIALOG:
 			mActivity.showOptionsDialog(OptionsDialog.Mode.READER);
@@ -2690,7 +2708,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			if (fn == null)
 				return;
 			int LIMIT = 5000;
-			List<ChangeInfo> changes = mActivity.getSyncService().checkChangesSync(LIMIT);
+			List<ChangeInfo> changes = getSyncService().checkChangesSync(LIMIT);
 			if (changes == null)
 				return;
 			ArrayList<ChangeInfo> thisBookChanges = new ArrayList<ChangeInfo>();
@@ -2729,10 +2747,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return;
 			}
 			if (ci.isDeleted() && ci.getBookmark() == null) {
-				mActivity.getHistory().removeBookInfo(file, true, true);
+				getHistory().removeBookInfo(file, true, true);
 				return; // ignore REMOVE BOOK events
 			}
-			mActivity.getHistory().getOrCreateBookInfo(file, new History.BookInfoLoadedCallack() {
+			getHistory().getOrCreateBookInfo(file, new History.BookInfoLoadedCallack() {
 				@Override
 				public void onBookInfoLoaded(BookInfo bookInfo) {
 					// process
@@ -2896,10 +2914,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private File generateManual() {
 		HelpFileGenerator generator = new HelpFileGenerator(mActivity, mEngine, getSettings(), mActivity.getCurrentLanguage());
-		FileInfo downloadDir = mActivity.getScanner().getDownloadDirectory();
+		FileInfo downloadDir = getScanner().getDownloadDirectory();
 		File bookDir;
 		if (downloadDir != null)
-			bookDir = new File(mActivity.getScanner().getDownloadDirectory().getPathName());
+			bookDir = new File(getScanner().getDownloadDirectory().getPathName());
 		else {
 			log.e("cannot download directory file name!");
 			bookDir = new File("/tmp/");
@@ -2998,7 +3016,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         } else if ( key.equals(PROP_APP_SECONDARY_TAP_ACTION_TYPE) ) {
         	secondaryTapActionType = flg ? TAP_ACTION_TYPE_DOUBLE : TAP_ACTION_TYPE_LONGPRESS;
         } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
-        	mActivity.getScanner().setHideEmptyDirs(flg);
+        	getScanner().setHideEmptyDirs(flg);
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
         	isBacklightControlFlick = "1".equals(value) ? 1 : ("2".equals(value) ? 2 : 0);
         } else if (PROP_APP_HIGHLIGHT_BOOKMARKS.equals(key)) {
@@ -3265,11 +3283,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
 			log.d("trying to load already opened document");
-			mActivity.showReader();
+			Activities.showReader();
 			drawPage();
 			return false;
 		}
-		mActivity.getHistory().getOrCreateBookInfo(fileInfo, new History.BookInfoLoadedCallack() {
+		getHistory().getOrCreateBookInfo(fileInfo, new History.BookInfoLoadedCallack() {
 			@Override
 			public void onBookInfoLoaded(BookInfo bookInfo) {
 				post(new LoadDocumentTask(bookInfo, errorHandler));
@@ -3283,7 +3301,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		//BookInfo book = mActivity.getHistory().getLastBook();
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
-		if (lastBookName == null && mActivity.getHistory().getLastBook() == null)
+		if (lastBookName == null && getHistory().getLastBook() == null)
 			lastBookName = getManualFileName();
 		log.i("loadLastDocument() is called, lastBookName = " + lastBookName);
 		return loadDocument( lastBookName, errorHandler );
@@ -3297,7 +3315,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public boolean loadPreviousDocument( final Runnable errorHandler )
 	{
 		BackgroundThread.ensureGUI();
-		BookInfo bi = mActivity.getHistory().getPreviousBook();
+		BookInfo bi = getHistory().getPreviousBook();
 		if (bi!=null && bi.getFileInfo()!=null) {
 			save();
 			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
@@ -3335,13 +3353,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return false;
 			}
 		}
-		BookInfo book = mActivity.getHistory().getBookInfo(fileName);
+		BookInfo book = getHistory().getBookInfo(fileName);
 		if ( book!=null )
 			log.v("loadDocument() : found book in history : " + book);
 		FileInfo fi = null;
 		if ( book==null ) {
 			log.v("loadDocument() : book not found in history, looking for location directory");
-			FileInfo dir = mActivity.getScanner().findParent(new FileInfo(fileName), mActivity.getScanner().getRoot());
+			FileInfo dir = getScanner().findParent(new FileInfo(fileName), getScanner().getRoot());
 			if ( dir!=null ) {
 				log.v("loadDocument() : document location found : " + dir);
 				fi = dir.findItemByPathName(fileName);
@@ -3354,7 +3372,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			if ( fi.isDirectory ) {
 				log.v("loadDocument() : is a directory, opening browser");
-				mActivity.showBrowser(fi);
+				Activities.showBrowser(fi);
 				return true;
 			}
 		} else {
@@ -5016,13 +5034,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			BackgroundThread.ensureGUI();
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
-			if ( mActivity.getHistory()!=null ) {
-	    		mActivity.getHistory().updateBookAccess(mBookInfo);
-	    		mActivity.getDB().saveBookInfo(mBookInfo);
+			if ( getHistory()!=null ) {
+	    		getHistory().updateBookAccess(mBookInfo);
+	    		getDB().saveBookInfo(mBookInfo);
 		        if (coverPageBytes!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching()) {
-		        		if (mActivity.getBrowser() != null)
-		        			mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
+		        		// TODO: fix it
+//		        		if (mActivity.getBrowser() != null)
+//		        			mActivity.getBrowser().setCoverpageData(new FileInfo(mBookInfo.getFileInfo()), coverPageBytes);
 		        	}
 		        	if (DeviceInfo.EINK_NOOK)
 		        		updateNookTouchCoverpage(mBookInfo.getFileInfo().getPathName(), coverPageBytes);
@@ -5043,7 +5062,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        drawPage();
 		        BackgroundThread.instance().postGUI(new Runnable() {
 		        	public void run() {
-		    			mActivity.showReader();
+		    			Activities.showReader();
 		        	}
 		        });
 		        mActivity.setLastSuccessfullyOpenedBook(filename);
@@ -5053,7 +5072,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			BackgroundThread.ensureGUI();
 			log.v("LoadDocumentTask failed for " + mBookInfo, e);
-			mActivity.getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
+			getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
 			mBookInfo = null;
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());
 	        mOpened = false;
@@ -5208,15 +5227,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			            bmk.setType(Bookmark.TYPE_LAST_POSITION);
 		                mBookInfo.setLastPosition(bmk);
 		                if (delayMillis <= 1)
-		                	mActivity.getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk, true);
+		                	getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk, true);
 			    	}
 			    	final BookInfo bookInfo = mBookInfo;
 			    	if (delayMillis <= 1) {
 						if (bookInfo != null) {
 							log.v("saving last immediately");
-							mActivity.getHistory().updateBookAccess(bookInfo);
-				            mActivity.getDB().saveBookInfo(bookInfo);
-				            mActivity.getDB().flush();
+							getHistory().updateBookAccess(bookInfo);
+				            getDB().saveBookInfo(bookInfo);
+				            getDB().flush();
 						}
 			    	} else {
 				    	BackgroundThread.instance().postGUI(new Runnable() {
@@ -5225,8 +5244,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 								if (mylastSavePositionTaskId == lastSavePositionTaskId) {
 									if (bookInfo != null) {
 										log.v("saving last position");
-										mActivity.getHistory().updateBookAccess(bookInfo);
-						                mActivity.getDB().saveBookInfo(bookInfo);
+										getHistory().updateBookAccess(bookInfo);
+						                getDB().saveBookInfo(bookInfo);
 						                //mActivity.getDB().flush();
 									}
 								}
@@ -5279,9 +5298,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             if ( mBookInfo!=null )
                 mBookInfo.setLastPosition(bmk);
             if ( saveToDB ) {
-                mActivity.getHistory().updateRecentDir();
-                mActivity.getDB().saveBookInfo(mBookInfo);
-                mActivity.getDB().flush();
+                getHistory().updateRecentDir();
+                getDB().saveBookInfo(mBookInfo);
+                getDB().flush();
             }
         }
         return bmk;
@@ -5293,11 +5312,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (isBookLoaded() && mBookInfo != null) {
 			log.v("saving last immediately");
 			log.d("bookmark count 1 = " + mBookInfo.getBookmarkCount());
-           	mActivity.getHistory().updateBookAccess(mBookInfo);
+           	getHistory().updateBookAccess(mBookInfo);
 			log.d("bookmark count 2 = " + mBookInfo.getBookmarkCount());
-            mActivity.getDB().saveBookInfo(mBookInfo);
+            getDB().saveBookInfo(mBookInfo);
 			log.d("bookmark count 3 = " + mBookInfo.getBookmarkCount());
-            mActivity.getDB().flush();
+            getDB().flush();
 		}
 		//scheduleSaveCurrentPositionBookmark(0);
     	//post( new SavePositionTask() );
@@ -5678,7 +5697,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return;
 		if (mBookInfo != null && mBookInfo.getFileInfo() != null) {
 			mBookInfo.getFileInfo().setProfileId(profile);
-    		mActivity.getDB().saveBookInfo(mBookInfo);
+    		getDB().saveBookInfo(mBookInfo);
 		}
 		log.i("Apply new profile settings");
 		setAppSettings(props, oldSettings);
@@ -5772,7 +5791,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	gcTask.cancel();
     }
 
-	public ReaderView(CoolReader activity, Engine engine, Properties props) 
+	public ReaderView(ReaderActivity activity, Engine engine, Properties props) 
     {
         super(activity);
         doc = new DocView(engine);

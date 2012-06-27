@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-import org.coolreader.CoolReader.DictInfo;
 import org.coolreader.crengine.Settings.Lang;
 
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.util.DisplayMetrics;
@@ -42,8 +42,7 @@ public class SettingsManager {
 	public Properties get() {
 		return mSettings;
 	}
-
-
+	
 	private static class DefKeyAction {
 		public int keyCode;
 		public int type;
@@ -465,6 +464,25 @@ public class SettingsManager {
 	}
 
 
+	public static class DictInfo {
+		public final String id; 
+		public final String name;
+		public final String packageName;
+		public final String className;
+		public final String action;
+		public final Integer internal;
+		public String dataKey = SearchManager.QUERY; 
+		public DictInfo ( String id, String name, String packageName, String className, String action, Integer internal ) {
+			this.id = id;
+			this.name = name;
+			this.packageName = packageName;
+			this.className = className;
+			this.action = action;
+			this.internal = internal;
+		}
+		public DictInfo setDataKey(String key) { this.dataKey = key; return this; }
+	}
+	
 	private static final DictInfo dicts[] = {
 		new DictInfo("Fora", "Fora Dictionary", "com.ngc.fora", "com.ngc.fora.ForaDictionary", Intent.ACTION_SEARCH, 0),
 		new DictInfo("ColorDict", "ColorDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 0),
@@ -478,7 +496,15 @@ public class SettingsManager {
 		new DictInfo("LEODictionary", "LEO Dictionary", "org.leo.android.dict", "org.leo.android.dict.LeoDict", "android.intent.action.SEARCH", 0),
 	};
 
-	public DictInfo[] getDictList() {
+	public static DictInfo[] getDictList() {
 		return dicts;
 	}
+
+
+
+	public String getSetting( String name ) {
+		return mSettings.getProperty(name);
+	}
+
+
 }

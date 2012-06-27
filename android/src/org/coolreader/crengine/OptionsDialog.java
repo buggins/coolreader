@@ -38,7 +38,7 @@ import android.widget.TextView;
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
 	ReaderView mReaderView;
-	CoolReader mActivity;
+	ReaderActivity mActivity;
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -224,14 +224,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public final static int OPTION_VIEW_TYPE_SUBMENU = 3;
 	//public final static int OPTION_VIEW_TYPE_COUNT = 3;
 
-	public CoolReader getActivity() { return mActivity; }
+	public ReaderActivity getActivity() { return mActivity; }
 	public Properties getProperties() { return mProperties; }
 	public LayoutInflater getInflater() { return mInflater; }
 	
 	public static class OptionBase {
 		protected View myView;
 		Properties mProperties;
-		CoolReader mActivity;
+		ReaderActivity mActivity;
 		OptionOwner mOwner;
 		LayoutInflater mInflater;
 		public String label;
@@ -1032,9 +1032,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public DictOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_DICTIONARY );
-			CoolReader.DictInfo[] dicts = mActivity.getDictList();
+			SettingsManager.DictInfo[] dicts = SettingsManager.getDictList();
 			setDefaultValue(dicts[0].id);
-			for ( CoolReader.DictInfo dict : dicts )
+			for ( SettingsManager.DictInfo dict : dicts )
 				add( dict.id, dict.name );
 		}
 	} 
@@ -1230,7 +1230,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		READER,
 		BROWSER,
 	}
-	public OptionsDialog(CoolReader activity, ReaderView readerView, String[] fontFaces, Mode mode)
+	public OptionsDialog(ReaderActivity activity, ReaderView readerView, String[] fontFaces, Mode mode)
 	{
 		super(activity, null, false, false);
 		
@@ -1702,7 +1702,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
         mOptionsBrowser = new OptionsListView(getContext());
 
 		final Properties properties = new Properties();
-		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, SettingsManager.instance(mActivity).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
 		int[] sortOrderLabels = {
 			FileInfo.SortOrder.FILENAME.resourceId,	
 			FileInfo.SortOrder.FILENAME_DESC.resourceId,	

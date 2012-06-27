@@ -19,6 +19,7 @@ import java.util.zip.ZipEntry;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -39,7 +40,7 @@ public class Engine {
 	
 	static final private String LIBRARY_NAME = "cr3engine-45-15";
 
-	private CoolReader mActivity;
+	private BaseActivity mActivity;
 	
 	
 	// private final View mMainView;
@@ -525,7 +526,7 @@ public class Engine {
 
 	private static Engine instance;
 
-	public static Engine getInstance(CoolReader activity) {
+	public static Engine getInstance(BaseActivity activity) {
 		if (instance == null) {
 			instance = new Engine(activity);
 		} else {
@@ -534,7 +535,7 @@ public class Engine {
 		return instance;
 	}
 	
-	private void setParams(CoolReader activity) {
+	private void setParams(BaseActivity activity) {
 		this.mActivity = activity;
 	}
 
@@ -544,7 +545,7 @@ public class Engine {
 	 * @param fontList
 	 *            is array of .ttf font pathnames to load
 	 */
-	public Engine(CoolReader activity) {
+	private Engine(BaseActivity activity) {
 		setParams(activity);
 	}
 
@@ -825,68 +826,12 @@ public class Engine {
 		}
 	}
 
-	private int lastSystemUiVisibility = -1;
-	private boolean setSystemUiVisibility(int value) {
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
-			if (value == lastSystemUiVisibility)// && a4)
-				return false;
-			lastSystemUiVisibility = value;
-			if (!a4)
-				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
-			View view;
-			//if (a4)
-				view = mActivity.getWindow().getDecorView(); // getReaderView();
-			//else
-			//	view = mActivity.getContentView(); // getReaderView();
-			
-			if (view == null)
-				return false;
-			Method m;
-			try {
-				m = view.getClass().getMethod("setSystemUiVisibility", int.class);
-				m.invoke(view, value);
-				return true;
-			} catch (SecurityException e) {
-				// ignore
-			} catch (NoSuchMethodException e) {
-				// ignore
-			} catch (IllegalArgumentException e) {
-				// ignore
-			} catch (IllegalAccessException e) {
-				// ignore
-			} catch (InvocationTargetException e) {
-				// ignore
-			}
-		}
-		return false;
-	}
-
-	public boolean setSystemUiVisibility() {
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			int flags = 0;
-			if (currentKeyBacklightLevel == 0)
-				flags |= SYSTEM_UI_FLAG_LOW_PROFILE;
-			if (mActivity.isFullscreen())
-				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-			setSystemUiVisibility(flags);
-			return true;
-		}
-		return false;
-	}
-	
-	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
-	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
-	
-	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 	private int currentKeyBacklightLevel = 1;
+	public int getKeyBacklight() {
+		return currentKeyBacklightLevel;
+	}
 	public boolean setKeyBacklight(int value) {
 		currentKeyBacklightLevel = value;
-		// Try ICS way
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			setSystemUiVisibility();
-		}
-
 		// thread safe
 		return setKeyBacklightInternal(value);
 	}
