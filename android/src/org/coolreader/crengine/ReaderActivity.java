@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import org.coolreader.PhoneStateReceiver;
 import org.coolreader.crengine.SettingsManager.DictInfo;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.BillingService;
@@ -13,9 +14,11 @@ import org.coolreader.donations.ResponseHandler;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -38,6 +41,10 @@ public class ReaderActivity extends BaseActivity {
 		protected void onLayout(boolean changed, int l, int t, int r, int b) {
 			contentView.layout(l, t, r, b);
 		}
+	}
+	
+	public ReaderView getReaderView() {
+		return mReaderView;
 	}
 	
 	private ReaderView mReaderView;
@@ -73,15 +80,39 @@ public class ReaderActivity extends BaseActivity {
         } else {
         	log.i("Billing is supported");
         }
-    
-		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+		intentReceiver = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				int level = intent.getIntExtra("level", 0);
+				if ( mReaderView!=null )
+					mReaderView.setBatteryState(level);
+				else
+					initialBatteryState = level;
+			}
+			
+		};
+		registerReceiver(intentReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
+		if ( initialBatteryState>=0 )
+			mReaderView.setBatteryState(initialBatteryState);
+		
+		setContentView(mFrame);
+		
 		super.onCreate(savedInstanceState);
 	}
 
+	public final static boolean CLOSE_BOOK_ON_STOP = false;
+	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+
+		if ( !CLOSE_BOOK_ON_STOP )
+			mReaderView.close();
 
 		if ( tts!=null ) {
 			tts.shutdown();
@@ -90,9 +121,18 @@ public class ReaderActivity extends BaseActivity {
 			ttsError = false;
 		}
 		
+		if ( intentReceiver!=null ) {
+			unregisterReceiver(intentReceiver);
+			intentReceiver = null;
+		}
 		
 		mBillingService.unbind();
 		Activities.setReader(null);
+
+		if (mReaderView != null) {
+			mReaderView.destroy();
+		}
+		mReaderView = null;
 	}
 
 	@Override
@@ -148,6 +188,16 @@ public class ReaderActivity extends BaseActivity {
 		if (billingSupported)
 			ResponseHandler.register(mPurchaseObserver);
 
+		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
+			@Override
+			public void run() {
+				if (mReaderView != null) {
+					mReaderView.stopTTS();
+					mReaderView.save();
+				}
+			}
+		});
+
 		super.onStart();
 	}
 
@@ -157,6 +207,8 @@ public class ReaderActivity extends BaseActivity {
 		if (billingSupported)
 			ResponseHandler.unregister(mPurchaseObserver);
 		super.onStop();
+		if ( CLOSE_BOOK_ON_STOP )
+			mReaderView.close();
 	}
 
 	@Override
@@ -645,5 +697,7 @@ public class ReaderActivity extends BaseActivity {
     	Log.i(LOG_TEXT_KEY, activity);
     }
 
+	int initialBatteryState = -1;
+	BroadcastReceiver intentReceiver;
 
 }

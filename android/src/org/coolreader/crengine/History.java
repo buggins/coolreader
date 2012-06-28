@@ -9,16 +9,14 @@ import android.util.Log;
 
 public class History extends FileInfoChangeSource {
 	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
-	private final CoolReader mCoolReader;
 	private FileInfo mRecentBooksFolder;
 
 	private CRDBService.LocalBinder db() {
-		return mCoolReader.getDB();
+		return Services.getDB();
 	}
 	
-	public History(CoolReader cr, Scanner scanner)
+	public History(Scanner scanner)
 	{
-		this.mCoolReader = cr;
 		this.mScanner = scanner;
 	}
 	

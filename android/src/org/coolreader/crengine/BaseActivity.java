@@ -886,6 +886,8 @@ public class BaseActivity extends Activity implements Settings {
         	} catch ( Exception e ) {
         		// ignore
         	}
+        } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
+        	Services.getScanner().setHideEmptyDirs(flg);
         }
 	}
 	

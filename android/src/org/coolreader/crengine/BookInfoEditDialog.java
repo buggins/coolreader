@@ -30,13 +30,13 @@ import android.widget.RadioGroup;
 import android.widget.RatingBar;
 
 public class BookInfoEditDialog extends BaseDialog {
-	private CoolReader mActivity;
+	private BrowserActivity mActivity;
 	private BookInfo mBookInfo;
 	private FileInfo mParentDir;
 	private LayoutInflater mInflater;
 	private int mWindowSize;
 	private boolean mIsRecentBooksItem;
-	public BookInfoEditDialog(CoolReader activity, FileInfo baseDir, BookInfo book, int windowSize, boolean isRecentBooksItem)
+	public BookInfoEditDialog(BrowserActivity activity, FileInfo baseDir, BookInfo book, int windowSize, boolean isRecentBooksItem)
 	{
 		super(activity, null, false, false);
 		this.mParentDir = baseDir;
@@ -372,9 +372,9 @@ public class BookInfoEditDialog extends BaseDialog {
 			state = FileInfo.STATE_FINISHED;
         modified = file.setReadingState(state) || modified;
         if (modified) {
-        	mActivity.getDB().saveBookInfo(mBookInfo);
-        	mActivity.getDB().flush();
-        	BookInfo bi = mActivity.getHistory().getBookInfo(file);
+        	Services.getDB().saveBookInfo(mBookInfo);
+        	Services.getDB().flush();
+        	BookInfo bi = Services.getHistory().getBookInfo(file);
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
         	mParentDir.setFile(file);
@@ -385,7 +385,7 @@ public class BookInfoEditDialog extends BaseDialog {
 	@Override
 	protected void onPositiveButtonClick() {
 		save();
-		mActivity.getReaderView().loadDocument(mBookInfo.getFileInfo(), new Runnable() {
+		Activities.loadDocument(mBookInfo.getFileInfo(), new Runnable() {
 			@Override
 			public void run() {
 				// error occured
