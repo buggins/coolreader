@@ -77,7 +77,7 @@ public class CoverpageManager {
 		synchronized(LOCK) {
 			unqueue(Collections.singleton(fileInfo));
 			mCache.remove(fileInfo);
-			mActivity.getDB().saveBookCoverpage(fileInfo, data);
+			Services.getDB().saveBookCoverpage(fileInfo, data);
 			coverpageLoaded(fileInfo, data);
 		}
 	}
@@ -95,7 +95,7 @@ public class CoverpageManager {
 	 * Constructor.
 	 * @param activity is CoolReader main activity.
 	 */
-	public CoverpageManager (CoolReader activity) {
+	public CoverpageManager (BaseActivity activity) {
 		this.mActivity = activity;
 	}
 	
@@ -109,7 +109,7 @@ public class CoverpageManager {
 		return new CoverImage(book);
 	}
 	
-	private CoolReader mActivity;
+	private BaseActivity mActivity;
 	
 	private int maxWidth = 110;
 	private int maxHeight = 140;
@@ -399,7 +399,7 @@ public class CoverpageManager {
 					}
 				}
 				if (file != null) {
-					mActivity.getDB().loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
+					Services.getDB().loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
 						@Override
 						public void onCoverpageLoaded(FileInfo fileInfo, byte[] data) {
 							if (data == null) {
@@ -434,11 +434,11 @@ public class CoverpageManager {
 						BackgroundThread.instance().postBackground(new Runnable() {
 							@Override
 							public void run() {
-								byte[] data = mActivity.getEngine().scanBookCover(fileInfo.getPathName());
+								byte[] data = Services.getEngine().scanBookCover(fileInfo.getPathName());
 								if (data == null)
 									data = new byte[] {};
 								if (fileInfo.format.needCoverPageCaching())
-									mActivity.getDB().saveBookCoverpage(fileInfo, data);
+									Services.getDB().saveBookCoverpage(fileInfo, data);
 								coverpageLoaded(fileInfo, data);
 							}
 						});
@@ -605,7 +605,7 @@ public class CoverpageManager {
 	}
 
 	public void drawCoverpageFor(final FileInfo file, final Bitmap buffer, final CoverpageBitmapReadyListener callback) {
-		mActivity.getDB().loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
+		Services.getDB().loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
 			@Override
 			public void onCoverpageLoaded(FileInfo fileInfo, final byte[] data) {
 				BackgroundThread.instance().postBackground(new Runnable() {
@@ -613,13 +613,13 @@ public class CoverpageManager {
 					public void run() {
 						byte[] imageData = data;
 						if (data == null && file.format.canParseCoverpages) {
-							imageData = mActivity.getEngine().scanBookCover(file.getPathName());
+							imageData = Services.getEngine().scanBookCover(file.getPathName());
 							if (imageData == null)
 								imageData = new byte[] {};
 							if (file.format.needCoverPageCaching())
-								mActivity.getDB().saveBookCoverpage(file, imageData);
+								Services.getDB().saveBookCoverpage(file, imageData);
 						}
-						mActivity.getEngine().drawBookCover(buffer, imageData, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
+						Services.getEngine().drawBookCover(buffer, imageData, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
 						BackgroundThread.instance().postGUI(new Runnable() {
 							@Override
 							public void run() {
@@ -668,7 +668,7 @@ public class CoverpageManager {
 	{
 		try {
 			Bitmap bmp = Bitmap.createBitmap(maxWidth, maxHeight, DeviceInfo.BUFFER_COLOR_FORMAT);
-			mActivity.getEngine().drawBookCover(bmp, data, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
+			Services.getEngine().drawBookCover(bmp, data, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
 			return bmp;
 		} catch ( Exception e ) {
     		Log.e("cr3", "exception while decoding coverpage " + e.getMessage());

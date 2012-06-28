@@ -1650,24 +1650,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return Activities.getMain().getSyncService();
 	}
 	
-	public CRDBService.LocalBinder getDB() {
-		return Activities.getMain().getDB();
-	}
-	
-	public History getHistory() {
-		return Activities.getMain().getHistory();
-	}
-	
-	public Scanner getScanner() {
-		return Activities.getMain().getScanner();
-	}
-	
 	public Bookmark removeBookmark(final Bookmark bookmark) {
 		Bookmark removed = mBookInfo.removeBookmark(bookmark);
 		if (removed != null) {
             getSyncService().removeBookmark(mBookInfo.getFileInfo().getPathName(), removed);
 			if ( removed.getId()!=null ) {
-				getDB().deleteBookmark(removed);
+				Services.getDB().deleteBookmark(removed);
 			}
 			highlightBookmarks();
 		}
@@ -1710,7 +1698,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					else
 						mBookInfo.setShortcutBookmark(shortcut, bm);
 					getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm, false);
-					getDB().saveBookInfo(mBookInfo);
+					Services.getDB().saveBookInfo(mBookInfo);
 					String s;
 					if ( shortcut==0 )
 						s = mActivity.getString(R.string.toast_position_bookmark_is_set);
@@ -1863,7 +1851,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG, disableInternalStyles);
             doEngineCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES, disableInternalStyles ? 0 : 1);
             doEngineCommand(ReaderCommand.DCMD_REQUEST_RENDER, 1);
-    		getDB().saveBookInfo(mBookInfo);
+            Services.getDB().saveBookInfo(mBookInfo);
 		}
 	}
 	
@@ -1875,7 +1863,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mBookInfo.getFileInfo().setFlag(FileInfo.USE_DOCUMENT_FONTS_FLAG, enableInternalFonts);
             doEngineCommand( ReaderCommand.DCMD_SET_DOC_FONTS, enableInternalFonts ? 1 : 0);
             doEngineCommand( ReaderCommand.DCMD_REQUEST_RENDER, 1);
-    		getDB().saveBookInfo(mBookInfo);
+            Services.getDB().saveBookInfo(mBookInfo);
 		}
 	}
 	
@@ -1911,7 +1899,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			boolean disableTextReflow = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
 			disableTextReflow = !disableTextReflow;
 			mBookInfo.getFileInfo().setFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG, disableTextReflow);
-    		getDB().saveBookInfo(mBookInfo);
+			Services.getDB().saveBookInfo(mBookInfo);
 			reloadDocument();
 		}
 	}
@@ -2747,10 +2735,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return;
 			}
 			if (ci.isDeleted() && ci.getBookmark() == null) {
-				getHistory().removeBookInfo(file, true, true);
+				Services.getHistory().removeBookInfo(file, true, true);
 				return; // ignore REMOVE BOOK events
 			}
-			getHistory().getOrCreateBookInfo(file, new History.BookInfoLoadedCallack() {
+			Services.getHistory().getOrCreateBookInfo(file, new History.BookInfoLoadedCallack() {
 				@Override
 				public void onBookInfoLoaded(BookInfo bookInfo) {
 					// process
@@ -2900,7 +2888,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	private String getManualFileName() {
-		Scanner s = getScanner();
+		Scanner s = Services.getScanner();
 		if (s != null) {
 			FileInfo fi = s.getDownloadDirectory();
 			if (fi != null) {
@@ -2914,10 +2902,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private File generateManual() {
 		HelpFileGenerator generator = new HelpFileGenerator(mActivity, mEngine, getSettings(), mActivity.getCurrentLanguage());
-		FileInfo downloadDir = getScanner().getDownloadDirectory();
+		FileInfo downloadDir = Services.getScanner().getDownloadDirectory();
 		File bookDir;
 		if (downloadDir != null)
-			bookDir = new File(getScanner().getDownloadDirectory().getPathName());
+			bookDir = new File(Services.getScanner().getDownloadDirectory().getPathName());
 		else {
 			log.e("cannot download directory file name!");
 			bookDir = new File("/tmp/");
@@ -3200,7 +3188,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			drawPage();
 			return false;
 		}
-		getHistory().getOrCreateBookInfo(fileInfo, new History.BookInfoLoadedCallack() {
+		Services.getHistory().getOrCreateBookInfo(fileInfo, new History.BookInfoLoadedCallack() {
 			@Override
 			public void onBookInfoLoaded(BookInfo bookInfo) {
 				post(new LoadDocumentTask(bookInfo, errorHandler));
@@ -3214,7 +3202,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		//BookInfo book = mActivity.getHistory().getLastBook();
 		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
-		if (lastBookName == null && getHistory().getLastBook() == null)
+		if (lastBookName == null && Services.getHistory().getLastBook() == null)
 			lastBookName = getManualFileName();
 		log.i("loadLastDocument() is called, lastBookName = " + lastBookName);
 		return loadDocument( lastBookName, errorHandler );
@@ -3228,7 +3216,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public boolean loadPreviousDocument( final Runnable errorHandler )
 	{
 		BackgroundThread.ensureGUI();
-		BookInfo bi = getHistory().getPreviousBook();
+		BookInfo bi = Services.getHistory().getPreviousBook();
 		if (bi!=null && bi.getFileInfo()!=null) {
 			save();
 			log.i("loadPreviousDocument() is called, prevBookName = " + bi.getFileInfo().getPathName());
@@ -3266,13 +3254,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return false;
 			}
 		}
-		BookInfo book = getHistory().getBookInfo(fileName);
+		BookInfo book = Services.getHistory().getBookInfo(fileName);
 		if ( book!=null )
 			log.v("loadDocument() : found book in history : " + book);
 		FileInfo fi = null;
 		if ( book==null ) {
 			log.v("loadDocument() : book not found in history, looking for location directory");
-			FileInfo dir = getScanner().findParent(new FileInfo(fileName), getScanner().getRoot());
+			FileInfo dir = Services.getScanner().findParent(new FileInfo(fileName), Services.getScanner().getRoot());
 			if ( dir!=null ) {
 				log.v("loadDocument() : document location found : " + dir);
 				fi = dir.findItemByPathName(fileName);
@@ -4947,9 +4935,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			BackgroundThread.ensureGUI();
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
-			if ( getHistory()!=null ) {
-	    		getHistory().updateBookAccess(mBookInfo);
-	    		getDB().saveBookInfo(mBookInfo);
+			if (Services.getHistory() != null) {
+				Services.getHistory().updateBookAccess(mBookInfo);
+				Services.getDB().saveBookInfo(mBookInfo);
 		        if (coverPageBytes!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching()) {
 		        		// TODO: fix it
@@ -4985,7 +4973,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		{
 			BackgroundThread.ensureGUI();
 			log.v("LoadDocumentTask failed for " + mBookInfo, e);
-			getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
+			Services.getHistory().removeBookInfo( mBookInfo.getFileInfo(), true, false );
 			mBookInfo = null;
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());
 	        mOpened = false;
@@ -5146,9 +5134,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    	if (delayMillis <= 1) {
 						if (bookInfo != null) {
 							log.v("saving last immediately");
-							getHistory().updateBookAccess(bookInfo);
-				            getDB().saveBookInfo(bookInfo);
-				            getDB().flush();
+							Services.getHistory().updateBookAccess(bookInfo);
+							Services.getDB().saveBookInfo(bookInfo);
+							Services.getDB().flush();
 						}
 			    	} else {
 				    	BackgroundThread.instance().postGUI(new Runnable() {
@@ -5157,8 +5145,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 								if (mylastSavePositionTaskId == lastSavePositionTaskId) {
 									if (bookInfo != null) {
 										log.v("saving last position");
-										getHistory().updateBookAccess(bookInfo);
-						                getDB().saveBookInfo(bookInfo);
+										Services.getHistory().updateBookAccess(bookInfo);
+										Services.getDB().saveBookInfo(bookInfo);
 						                //mActivity.getDB().flush();
 									}
 								}
@@ -5211,9 +5199,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             if ( mBookInfo!=null )
                 mBookInfo.setLastPosition(bmk);
             if ( saveToDB ) {
-                getHistory().updateRecentDir();
-                getDB().saveBookInfo(mBookInfo);
-                getDB().flush();
+            	Services.getHistory().updateRecentDir();
+            	Services.getDB().saveBookInfo(mBookInfo);
+            	Services.getDB().flush();
             }
         }
         return bmk;
@@ -5225,11 +5213,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (isBookLoaded() && mBookInfo != null) {
 			log.v("saving last immediately");
 			log.d("bookmark count 1 = " + mBookInfo.getBookmarkCount());
-           	getHistory().updateBookAccess(mBookInfo);
+			Services.getHistory().updateBookAccess(mBookInfo);
 			log.d("bookmark count 2 = " + mBookInfo.getBookmarkCount());
-            getDB().saveBookInfo(mBookInfo);
+			Services.getDB().saveBookInfo(mBookInfo);
 			log.d("bookmark count 3 = " + mBookInfo.getBookmarkCount());
-            getDB().flush();
+			Services.getDB().flush();
 		}
 		//scheduleSaveCurrentPositionBookmark(0);
     	//post( new SavePositionTask() );
@@ -5610,7 +5598,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return;
 		if (mBookInfo != null && mBookInfo.getFileInfo() != null) {
 			mBookInfo.getFileInfo().setProfileId(profile);
-    		getDB().saveBookInfo(mBookInfo);
+			Services.getDB().saveBookInfo(mBookInfo);
 		}
 		log.i("Apply new profile settings");
 		setAppSettings(props, oldSettings);

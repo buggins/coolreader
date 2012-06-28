@@ -423,7 +423,7 @@ xml:base="http://lib.ololo.cc/opds/">
 	}
 	
 	public static class DownloadTask {
-		final private CoolReader coolReader; 
+		final private BrowserActivity coolReader; 
 		private URL url;
 		final private String expectedType;
 		final private String referer;
@@ -433,7 +433,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		private HttpURLConnection connection;
 		private DelayedProgress delayedProgress;
 		OPDSHandler handler;
-		public DownloadTask( CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
+		public DownloadTask(BrowserActivity coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
 			this.url = url;
 			this.coolReader = coolReader;
 			this.callback = callback; 
@@ -455,8 +455,8 @@ xml:base="http://lib.ololo.cc/opds/">
 						delayedProgress.cancel();
 						delayedProgress.hide();
 					}
-					if (coolReader.getEngine() != null)
-						coolReader.getEngine().hideProgress();
+					if (Services.getEngine() != null)
+						Services.getEngine().hideProgress();
 					callback.onError(msg);
 				}
 			});
@@ -679,7 +679,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				setProgressMessage( url.toString(), -1 );
 				visited.add(url.toString());
 				long startTimeStamp = System.currentTimeMillis();
-				delayedProgress = coolReader.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
+				delayedProgress = Services.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
 				URLConnection conn = url.openConnection();
 				if ( conn instanceof HttpsURLConnection ) {
 					onError("HTTPs is not supported yet");
@@ -767,14 +767,14 @@ xml:base="http://lib.ololo.cc/opds/">
 					L.d("Downloading book: " + contentEncoding);
 					downloadBook( contentType, url.toString(), is, contentLen, fileName, isZip );
 					if ( progressShown )
-						coolReader.getEngine().hideProgress();
+						Services.getEngine().hideProgress();
 					loadNext = false;
 					itemsLoadedPartially = false;
 				}
 			} catch (Exception e) {
 				L.e("Exception while trying to open URI " + url.toString(), e);
 				if ( progressShown )
-					coolReader.getEngine().hideProgress();
+					Services.getEngine().hideProgress();
 				onError("Error occured while reading OPDS catalog");
 				break;
 			} finally {
@@ -787,7 +787,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			}
 			} while (loadNext);
 			if ( progressShown )
-				coolReader.getEngine().hideProgress();
+				Services.getEngine().hideProgress();
 			if (itemsLoadedPartially)
 				BackgroundThread.instance().executeGUI(new Runnable() {
 					@Override
@@ -847,7 +847,7 @@ xml:base="http://lib.ololo.cc/opds/">
 						percent = bytesRead * 100 / totalSize * 100;
 					}
 					if ( (!progressShown || percent!=lastPercent) && (progressShown || percent<maxPercentToStartShowingProgress || delay > TIMEOUT*2 ) ) {
-						coolReader.getEngine().showProgress(percent, progressMessage);
+						Services.getEngine().showProgress(percent, progressMessage);
 						lastPercent = percent;
 						progressShown = true;
 					}
@@ -870,7 +870,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create( CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
+	public static DownloadTask create(BrowserActivity coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
 		final DownloadTask task = new DownloadTask(coolReader, uri, defaultFileName, expectedType, referer, callback);
 		currentTask = task;
 		return task;

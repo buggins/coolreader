@@ -56,6 +56,8 @@ public class SettingsManager {
 			return ReaderView.PROP_APP_KEY_ACTIONS_PRESS + ReaderAction.getTypeString(type) + keyCode;			
 		}
 	}
+
+	
 	private static class DefTapAction {
 		public int zone;
 		public boolean longPress;
@@ -500,11 +502,20 @@ public class SettingsManager {
 		return dicts;
 	}
 
-
-
 	public String getSetting( String name ) {
 		return mSettings.getProperty(name);
 	}
 
+	public String getSetting(String name, String defaultValue) {
+		return mSettings.getProperty(name, defaultValue);
+	}
+
+	public boolean getBool(String name, boolean defaultValue) {
+		return mSettings.getBool(name, defaultValue);
+	}
+
+	public int getInt(String name, int defaultValue) {
+		return mSettings.getInt(name, defaultValue);
+	}
 
 }

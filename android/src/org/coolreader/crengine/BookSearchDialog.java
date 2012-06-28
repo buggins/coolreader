@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 public class BookSearchDialog extends BaseDialog {
 	
-	private final CoolReader mCoolReader;
+	private final BrowserActivity mCoolReader;
 	private final LayoutInflater mInflater;
 	final EditText authorEdit;
 	final EditText titleEdit;
@@ -29,7 +29,7 @@ public class BookSearchDialog extends BaseDialog {
 	private boolean searchActive = false;
 	private boolean closing = false;
 	
-	public BookSearchDialog( CoolReader activity, SearchCallback callback )
+	public BookSearchDialog(BrowserActivity activity, SearchCallback callback)
 	{
 		super(activity, activity.getString( R.string.dlg_book_search), true, false);
 		mCoolReader = activity;
@@ -113,9 +113,9 @@ public class BookSearchDialog extends BaseDialog {
 		final String series = seriesEdit.getText().toString().trim();
 		final String title = titleEdit.getText().toString().trim();
 		final String filename = filenameEdit.getText().toString().trim();
-		if (mCoolReader == null || mCoolReader.getDB() == null)
+		if (mCoolReader == null || Services.getDB() == null)
 			return;
-		mCoolReader.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename, new CRDBService.BookSearchCallback() {
+		Services.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename, new CRDBService.BookSearchCallback() {
 			@Override
 			public void onBooksFound(ArrayList<FileInfo> fileList) {
 				cb.done(fileList.toArray(new FileInfo[fileList.size()]));

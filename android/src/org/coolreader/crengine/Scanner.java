@@ -741,7 +741,7 @@ public class Scanner extends FileInfoChangeSource {
 		return null;
 	}
 	
-	public Scanner( CoolReader coolReader, Engine engine )
+	public Scanner( BaseActivity coolReader, Engine engine )
 	{
 		this.engine = engine;
 		this.coolReader = coolReader;
@@ -755,9 +755,9 @@ public class Scanner extends FileInfoChangeSource {
 	}
 
 	private CRDBService.LocalBinder db() {
-		return coolReader.getDB();
+		return Services.getDB();
 	}
 	
 	private final Engine engine;
-	private final CoolReader coolReader;
+	private final BaseActivity coolReader;
 }
