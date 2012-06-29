@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content">
+<ScrollView
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    
+<LinearLayout
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content">
+    <TextView 
+        android:id="@+id/lbl_catalog_name"
+        style="@style/TextAppearance.Medium"
+        android:text="Now reading" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    
+    <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+
+        
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_book" />
+	    <LinearLayout
+	      android:orientation="vertical"
+	      android:layout_width="fill_parent"
+	      android:layout_height="wrap_content"
+	      android:minHeight="?android:attr/listPreferredItemHeight"
+	      >
+	      <TextView 
+		        android:id="@+id/lbl_catalog_name"
+		           style="@style/TextAppearance.Medium"
+		           android:singleLine="false"
+		           android:maxLines="3"
+		        android:text="Author" 
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"/>
+          <TextView 
+                android:id="@+id/lbl_catalog_name"
+                   style="@style/TextAppearance.Medium"
+                   android:singleLine="false"
+                   android:maxLines="3"
+                android:text="Book Title" 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+	      </LinearLayout>
+      
+    </LinearLayout>
+    
+    <TextView 
+        android:id="@+id/lbl_catalog_name"
+        style="@style/TextAppearance.Medium"
+	    android:text="@string/dir_recent_books" 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"/>
+	<LinearLayout
+	  android:orientation="horizontal"
+	  android:layout_width="fill_parent"
+	  android:layout_height="wrap_content"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+	  >
+
+	  <ImageButton
+	      android:layout_width="wrap_content"
+	      android:layout_height="wrap_content"
+	      android:src="@drawable/cr3_browser_book" />
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_book" />
+	  
+	  </LinearLayout>
+    <TextView 
+        android:id="@+id/lbl_catalog_name"
+        style="@style/TextAppearance.Medium"
+        android:text="File system" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_folder" />
+      <ImageButton
+	      android:layout_width="wrap_content"
+	      android:layout_height="wrap_content"
+	      android:src="@drawable/cr3_browser_folder" />
+      <ImageButton
+	      android:layout_width="wrap_content"
+	      android:layout_height="wrap_content"
+	      android:src="@drawable/cr3_browser_folder" />
+    </LinearLayout>
+    <TextView 
+        android:id="@+id/lbl_catalog_name"
+        style="@style/TextAppearance.Medium"
+        android:text="Library" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_find" />
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_folder_authors" />
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_folder_authors" />
+    </LinearLayout>
+    <TextView 
+        android:id="@+id/lbl_catalog_name"
+        style="@style/TextAppearance.Medium"
+        android:text="Online Catalogs" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_folder_opds" />
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_folder_opds" />
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_folder_opds" />
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/cr3_browser_folder_opds" />
+   </LinearLayout>
+</LinearLayout>
+</ScrollView>
+</LinearLayout>
