@@ -10,8 +10,12 @@ import org.coolreader.db.CRDBService;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.devsmart.android.ui.HorizontalListView;
 
 public class CRRootView extends ViewGroup {
 
@@ -19,6 +23,7 @@ public class CRRootView extends ViewGroup {
 
 	private final CoolReader mActivity;
 	private ViewGroup mView;
+	private HorizontalListView mRecentBooksScroll;
 	private CoverpageManager mCoverpageManager;
 	private int coverWidth;
 	private int coverHeight;
@@ -48,6 +53,7 @@ public class CRRootView extends ViewGroup {
 					@Override
 					public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
 						updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
+						updateRecentBooks(bookList);
 					}
 				});
 			}
@@ -109,12 +115,105 @@ public class CRRootView extends ViewGroup {
 		}
 	}	
 	
+	private ArrayList<BookInfo> mRecentBooks = new ArrayList<BookInfo>();
+	private void updateRecentBooks(ArrayList<BookInfo> books) {
+		mRecentBooks = new ArrayList<BookInfo>();
+		for (BookInfo bi : books)
+			mRecentBooks.add(new BookInfo(bi));
+		mRecentBooksScroll.setAdapter(new BaseListAdapter() {
+
+			@Override
+			public boolean areAllItemsEnabled() {
+				return true;
+			}
+
+			@Override
+			public boolean isEnabled(int position) {
+				return true;
+			}
+
+			@Override
+			public int getCount() {
+				return mRecentBooks.size() > 1 ? mRecentBooks.size() - 1 : 0;
+			}
+
+			@Override
+			public Object getItem(int position) {
+				return mRecentBooks.get(position - 1);
+			}
+
+			@Override
+			public long getItemId(int position) {
+				return position + 1;
+			}
+
+			@Override
+			public int getItemViewType(int position) {
+				return 0;
+			}
+
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+				if (convertView == null) {
+					LayoutInflater inflater = LayoutInflater.from(mActivity);
+					View view = inflater.inflate(R.layout.root_item_recent_book, null);
+					convertView = (ViewGroup)view;
+				}
+				ImageView cover = (ImageView)convertView.findViewById(R.id.book_cover);
+				TextView label = (TextView)convertView.findViewById(R.id.book_name);
+				BookInfo book = mRecentBooks.get(position + 1);
+				cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(book.getFileInfo(), coverWidth, coverHeight));
+				cover.setMinimumHeight(coverHeight);
+				cover.setMaxHeight(coverHeight);
+				cover.setMinimumWidth(coverWidth);
+				cover.setMaxWidth(coverWidth);
+				if (label != null) {
+					String title = book.getFileInfo().title;
+					String authors = Utils.formatAuthors(book.getFileInfo().authors);
+					String s = book.getFileInfo().getFileNameToDisplay();
+					if (!Utils.empty(title) && !Utils.empty(authors))
+						s = title + " - " + authors;
+					else if (!Utils.empty(title))
+						s = title;
+					else if (!Utils.empty(authors))
+						s = authors;
+					label.setText(s != null ? s : "");
+					label.setMaxWidth(coverWidth);
+				}
+				return convertView;
+			}
+
+			@Override
+			public int getViewTypeCount() {
+				return 1;
+			}
+
+			@Override
+			public boolean hasStableIds() {
+				return true;
+			}
+
+			@Override
+			public boolean isEmpty() {
+				return mRecentBooks.size() <= 1;
+			}
+		
+		});
+	}
+	
 	private void createViews() {
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		View view = inflater.inflate(R.layout.root_window, null);
 		mView = (ViewGroup)view;
 		
 		updateCurrentBook(Services.getHistory().getLastBook());
+		
+		LinearLayout recentLayout = (LinearLayout)mView.findViewById(R.id.scroll_recent_books);
+		recentLayout.removeAllViews();
+		mRecentBooksScroll = new HorizontalListView(mActivity, null);
+		mRecentBooksScroll.setMinimumHeight(coverHeight);
+		mRecentBooksScroll.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		recentLayout.addView(mRecentBooksScroll);
 
 		removeAllViews();
 		addView(mView);

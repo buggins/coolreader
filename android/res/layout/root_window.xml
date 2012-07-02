@@ -82,23 +82,29 @@
 	    android:text="@string/dir_recent_books" 
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"/>
-	<LinearLayout
-	  android:orientation="horizontal"
-	  android:layout_width="fill_parent"
-	  android:layout_height="wrap_content"
-      android:minHeight="?android:attr/listPreferredItemHeight"
-	  >
 
-	  <ImageButton
-	      android:layout_width="wrap_content"
+    <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+
+	    <LinearLayout
+	      android:id="@+id/scroll_recent_books"
+	      android:orientation="horizontal"
+	      android:layout_width="fill_parent"
 	      android:layout_height="wrap_content"
-	      android:src="@drawable/cr3_browser_book" />
+	      android:minHeight="?android:attr/listPreferredItemHeight"
+	      >
+	    </LinearLayout>
+        
       <ImageButton
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_book" />
-	  
-	  </LinearLayout>
+          android:src="@drawable/cr3_browser_folder" />
+	</LinearLayout>
+    
     <TextView 
         android:id="@+id/lbl_catalog_name"
         style="@style/TextAppearance.Medium"
