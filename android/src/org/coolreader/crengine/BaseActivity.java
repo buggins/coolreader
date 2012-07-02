@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 
 import org.coolreader.R;
+import org.coolreader.crengine.Settings.Lang;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -20,11 +21,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -65,6 +68,41 @@ public class BaseActivity extends Activity implements Settings {
 		} catch ( Exception e ) {
 			log.e("Cannot find field densityDpi, using default value");
 		}
+		
+		
+		log.i("CoolReader.window=" + getWindow());
+		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+		lp.alpha = 1.0f;
+		lp.dimAmount = 0.0f;
+		lp.format = PixelFormat.RGB_565;
+		lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+		lp.horizontalMargin = 0;
+		lp.verticalMargin = 0;
+		lp.windowAnimations = 0;
+		lp.layoutAnimationParameters = null;
+		lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
+		getWindow().setAttributes(lp);
+
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
+		// load settings
+		Properties props = SettingsManager.instance(this).get();
+		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
+		setLanguage(lang);
+		setCurrentTheme(theme);
+    
+		setScreenBacklightDuration(props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, 3));
+
+		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
+		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4); //(DeviceInfo.EINK_SCREEN?0:4)
+		if ( orientation < 0 || orientation > 4 )
+			orientation = 0;
+		setScreenOrientation(orientation);
+		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
+		if ( backlight<-1 || backlight>100 )
+			backlight = -1;
+		setScreenBacklightLevel(backlight);
     }
 	
 	@Override
