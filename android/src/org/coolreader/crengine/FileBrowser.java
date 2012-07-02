@@ -192,7 +192,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 		
 	}
-	
+
+	CoverpageManager.CoverpageReadyListener coverpageListener;
 	public FileBrowser(BrowserActivity activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
 		this.mActivity = activity;
@@ -200,30 +201,40 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		this.mScanner = scanner;
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
-		this.mCoverpageManager = new CoverpageManager(mActivity);
+		this.mCoverpageManager = Services.getCoverpageManager();
+
+		coverpageListener =	new CoverpageReadyListener() {
+			@Override
+			public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {
+				if (currDirectory == null)
+					return;
+				boolean found = false;
+				for (CoverpageManager.ImageItem file : files) {
+					if (currDirectory.findItemByPathName(file.file.getPathName()) != null)
+						found = true;
+				}
+				if (found)
+					currentListAdapter.notifyInvalidated();
+			}
+		};
+		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
+		super.onAttachedToWindow();
+		
 		setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 		createListView(true);
 		history.addListener(this);
 		scanner.addListener(this);
 		showDirectory( null, null );
 
-		this.mCoverpageManager.setCoverpageReadyListener(new CoverpageReadyListener() {
-			@Override
-			public void onCoverpagesReady(ArrayList<FileInfo> files) {
-				if (currDirectory == null)
-					return;
-				boolean found = false;
-				for (FileInfo file : files) {
-					if (currDirectory.findItemByPathName(file.getPathName()) != null)
-						found = true;
-				}
-				if (found)
-					currentListAdapter.notifyInvalidated();
-			}
-		});
 	}
 	
-	
+	public void onClose() {
+		this.mCoverpageManager.removeCoverpageReadyListener(coverpageListener);
+		coverpageListener = null;
+		super.onDetachedFromWindow();
+	}
+
+
 	public CoverpageManager getCoverpageManager() {
 		return mCoverpageManager;
 	}
@@ -430,16 +441,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return String.valueOf(size/1000000) + "M";
 	}
 
-	public static String formatSeries( String name, int number )
-	{
-		if ( name==null || name.length()==0 )
-			return null;
-		if ( number>0 )
-			return "#" + number + " " + name;
-		else
-			return name;
-	}
-	
 	static private ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>(); 
 	static private ThreadLocal<SimpleDateFormat> timeFormatThreadLocal = new ThreadLocal<SimpleDateFormat>();
 	static private SimpleDateFormat dateFormat() {
@@ -1082,7 +1083,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						setText( filename, fn );
 					} else {
 						setText( author, Utils.formatAuthors(item.authors) );
-						String seriesName = formatSeries(item.series, item.seriesNumber);
+						String seriesName = Utils.formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
 						String filename1 = item.filename;
 						String filename2 = item.isArchive /*&& !item.isDirectory */
@@ -1204,9 +1205,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	
 	private void setCurrDirectory(FileInfo newCurrDirectory) {
 		if (currDirectory != null && currDirectory != newCurrDirectory) {
-			ArrayList<FileInfo> filesToUqueue = new ArrayList<FileInfo>();
+			ArrayList<CoverpageManager.ImageItem> filesToUqueue = new ArrayList<CoverpageManager.ImageItem>();
 			for (int i=0; i<currDirectory.fileCount(); i++)
-				filesToUqueue.add(currDirectory.getFile(i));
+				filesToUqueue.add(new CoverpageManager.ImageItem(currDirectory.getFile(i), -1, -1));
 			mCoverpageManager.unqueue(filesToUqueue);
 		}
 		currDirectory = newCurrDirectory;

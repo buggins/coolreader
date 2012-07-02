@@ -361,6 +361,20 @@ public class CRDBService extends Service {
 		});
 	}
 	
+	public void sync(final Runnable callback, final Handler handler) {
+		execTask(new Task("sync") {
+			@Override
+			public void work() {
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.run();
+					}
+				});
+			}
+		});
+	}
+	
 	public void findByPatterns(final int maxCount, final String author, final String title, final String series, final String filename, final BookSearchCallback callback, final Handler handler) {
 		execTask(new Task("findByPatterns") {
 			@Override
@@ -592,6 +606,10 @@ public class CRDBService extends Service {
 
     	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback) {
     		getService().loadRecentBooks(maxCount, callback, new Handler());
+    	}
+
+    	public void sync(final Runnable callback) {
+    		getService().sync(callback, new Handler());
     	}
 
     	public void saveFileInfos(final Collection<FileInfo> list) {

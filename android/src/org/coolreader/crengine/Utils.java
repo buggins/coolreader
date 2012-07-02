@@ -283,4 +283,14 @@ public class Utils {
 			}
 		};
 	}
+
+	public static String formatSeries( String name, int number )
+	{
+		if ( name==null || name.length()==0 )
+			return null;
+		if ( number>0 )
+			return "#" + number + " " + name;
+		else
+			return name;
+	}
 }

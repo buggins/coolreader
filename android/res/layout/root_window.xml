@@ -30,10 +30,18 @@
       >
 
         
-      <ImageButton
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_book" />
+         <ImageView android:id="@+id/book_cover"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_vertical|center_horizontal"
+             android:padding="3dip"
+             android:scaleType="fitCenter"
+             android:minHeight="120dip"
+             android:minWidth="100dip"
+             android:maxHeight="200dip"
+             android:maxWidth="150dip"
+             android:drawable="@drawable/cr3_browser_book"
+             />
 	    <LinearLayout
 	      android:orientation="vertical"
 	      android:layout_width="fill_parent"
@@ -41,22 +49,30 @@
 	      android:minHeight="?android:attr/listPreferredItemHeight"
 	      >
 	      <TextView 
-		        android:id="@+id/lbl_catalog_name"
+		        android:id="@+id/lbl_book_author"
 		           style="@style/TextAppearance.Medium"
 		           android:singleLine="false"
-		           android:maxLines="3"
+		           android:maxLines="1"
 		        android:text="Author" 
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"/>
           <TextView 
-                android:id="@+id/lbl_catalog_name"
+                android:id="@+id/lbl_book_title"
                    style="@style/TextAppearance.Medium"
                    android:singleLine="false"
-                   android:maxLines="3"
+                   android:maxLines="1"
                 android:text="Book Title" 
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
-	      </LinearLayout>
+          <TextView 
+                android:id="@+id/lbl_book_series"
+                   style="@style/TextAppearance.Small"
+                   android:singleLine="false"
+                   android:maxLines="1"
+                android:text="Book Title" 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+  	      </LinearLayout>
       
     </LinearLayout>
     
