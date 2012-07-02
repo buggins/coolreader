@@ -7,50 +7,24 @@ import java.lang.reflect.Field;
 import org.coolreader.crengine.Activities;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseActivity;
-import org.coolreader.crengine.DeviceInfo;
-import org.coolreader.crengine.Engine;
-import org.coolreader.crengine.Engine.HyphDict;
-import org.coolreader.crengine.FileBrowser;
-import org.coolreader.crengine.FileInfo;
-import org.coolreader.crengine.History;
-import org.coolreader.crengine.InterfaceTheme;
+import org.coolreader.crengine.CRRootView;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
-import org.coolreader.crengine.Properties;
-import org.coolreader.crengine.ReaderAction;
-import org.coolreader.crengine.ReaderView;
-import org.coolreader.crengine.Scanner;
 import org.coolreader.crengine.Services;
-import org.coolreader.crengine.SettingsManager;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.sync.SyncServiceAccessor;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
-import android.view.Gravity;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.FrameLayout;
 
 public class CoolReader extends BaseActivity
 {
 	public static final Logger log = L.create("cr");
 	
-	FrameLayout mFrame;
+	CRRootView mFrame;
 	//View startupView;
 	//CRDB mDB;
 	
@@ -86,54 +60,23 @@ public class CoolReader extends BaseActivity
 
     	isFirstStart = true;
 		
-
-
-		log.i("CoolReader.window=" + getWindow());
-		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-		lp.alpha = 1.0f;
-		lp.dimAmount = 0.0f;
-		lp.format = PixelFormat.RGB_565;
-		lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
-		lp.horizontalMargin = 0;
-		lp.verticalMargin = 0;
-		lp.windowAnimations = 0;
-		lp.layoutAnimationParameters = null;
-		lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
-		getWindow().setAttributes(lp);
-		
-		// load settings
-		Properties props = SettingsManager.instance(this).get();
-		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
-		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
-		setLanguage(lang);
     	
-		mFrame = new FrameLayout(this);
-		setCurrentTheme(theme);
+
+
+    	
+		mFrame = new CRRootView(this);
+		setContentView( mFrame );
 		BackgroundThread.instance().setGUI(mFrame);
 
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
-		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4); //(DeviceInfo.EINK_SCREEN?0:4)
-		if ( orientation < 0 || orientation > 4 )
-			orientation = 0;
-		setScreenOrientation(orientation);
-		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
-		if ( backlight<-1 || backlight>100 )
-			backlight = -1;
-		setScreenBacklightLevel(backlight);
 
-        Services.getEngine().showProgress( 0, R.string.progress_starting_cool_reader );
+        //Services.getEngine().showProgress( 0, R.string.progress_starting_cool_reader );
 
-        // wait until all background tasks are executed
-        BackgroundThread.instance().syncWithBackground();
-		
 		//this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
         //       WindowManager.LayoutParams.FLAG_FULLSCREEN );
 //		startupView = new View(this) {
 //		};
 //		startupView.setBackgroundColor(Color.BLACK);
-		setScreenBacklightDuration(props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, 3));
 
 
 //		if ( DeviceInfo.FORCE_LIGHT_THEME ) {
@@ -146,7 +89,6 @@ public class CoolReader extends BaseActivity
 //		}
 		
 //		mFrame.addView(startupView);
-		setContentView( mFrame );
         log.i("initializing browser");
         log.i("initializing reader");
         
@@ -329,7 +271,7 @@ public class CoolReader extends BaseActivity
 ////			}
 //		}
 		if ( !stopped ) {
-			Services.getEngine().showProgress( 500, R.string.progress_starting_cool_reader );
+			//Services.getEngine().showProgress( 500, R.string.progress_starting_cool_reader );
 		}
         //log.i("waiting for engine tasks completion");
         //engine.waitTasksCompletion();
