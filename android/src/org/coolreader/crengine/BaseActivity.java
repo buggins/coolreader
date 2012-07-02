@@ -83,15 +83,16 @@ public class BaseActivity extends Activity implements Settings {
 		lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
 		getWindow().setAttributes(lp);
 
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		
 		// load settings
 		Properties props = SettingsManager.instance(this).get();
 		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 		setLanguage(lang);
 		setCurrentTheme(theme);
-    
+
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
+		
 		setScreenBacklightDuration(props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, 3));
 
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));

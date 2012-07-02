@@ -72,6 +72,7 @@ public class BrowserActivity extends BaseActivity {
 
 	@Override
 	protected void onDestroy() {
+		mBrowser.onClose();
 		super.onDestroy();
 		Activities.setBrowser(null);
 	}

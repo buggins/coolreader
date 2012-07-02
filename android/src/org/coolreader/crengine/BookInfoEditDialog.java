@@ -280,7 +280,7 @@ public class BookInfoEditDialog extends BaseDialog {
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
         mActivity.getBrowser().getCoverpageManager().drawCoverpageFor(file, bmp, new CoverpageBitmapReadyListener() {
 			@Override
-			public void onCoverpageReady(FileInfo file, Bitmap bitmap) {
+			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
 		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
 				image.setImageDrawable(drawable);
 			}

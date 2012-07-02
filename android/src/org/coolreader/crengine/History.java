@@ -139,6 +139,23 @@ public class History extends FileInfoChangeSource {
 		}
 	}
 	Scanner mScanner;
+
+	
+	public void getOrLoadRecentBooks(final CRDBService.RecentBooksLoadingCallback callback) {
+		if (mBooks != null && mBooks.size() > 0) {
+			callback.onRecentBooksListLoaded(mBooks);
+		} else {
+			// not yet loaded. Wait until ready: sync with DB thread.
+			db().sync(new Runnable() {
+				@Override
+				public void run() {
+					callback.onRecentBooksListLoaded(mBooks);
+				}
+			});
+		}
+			
+	}
+	
 	public boolean loadFromDB(int maxItems )
 	{
 		Log.v("cr3", "History.loadFromDB()");
