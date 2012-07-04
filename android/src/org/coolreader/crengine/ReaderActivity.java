@@ -26,19 +26,26 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
 
 public class ReaderActivity extends BaseActivity {
 
-	static class ReaderViewLayout extends ViewGroup {
+	static class ReaderViewLayout extends FrameLayout {
 		private View contentView;
 		public ReaderViewLayout(Context context, View contentView) {
 			super(context);
 			this.contentView = contentView;
+			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+			this.addView(contentView);
 		}
 
 		@Override
 		protected void onLayout(boolean changed, int l, int t, int r, int b) {
+			r -= l;
+			b -= t;
+			t = 0;
+			l = 0;
 			contentView.layout(l, t, r, b);
 		}
 	}
@@ -55,6 +62,9 @@ public class ReaderActivity extends BaseActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Activities.setReader(this);
+		
+		super.onCreate(savedInstanceState);
+
 		mEngine = Engine.getInstance(this);
 		mReaderView = new ReaderView(this, mEngine, SettingsManager.instance(this).get());
 		mFrame = new ReaderViewLayout(this, mReaderView);
@@ -102,7 +112,6 @@ public class ReaderActivity extends BaseActivity {
 		
 		setContentView(mFrame);
 		
-		super.onCreate(savedInstanceState);
 	}
 
 	public final static boolean CLOSE_BOOK_ON_STOP = false;
@@ -187,6 +196,16 @@ public class ReaderActivity extends BaseActivity {
 		// Donations support code
 		if (billingSupported)
 			ResponseHandler.register(mPurchaseObserver);
+		
+		Intent intent = getIntent();
+		log.d("intent=" + intent);
+		if (intent != null) {
+			String fileToOpen = intent.getExtras().getString("FILE_TO_OPEN");
+			if (fileToOpen != null) {
+				log.d("FILE_TO_OPEN = " + fileToOpen);
+				mReaderView.loadDocument(fileToOpen, null);
+			}
+		}
 
 		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
 			@Override

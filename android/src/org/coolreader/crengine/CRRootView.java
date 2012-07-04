@@ -11,9 +11,12 @@ import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
 
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -21,7 +24,7 @@ import android.widget.TextView;
 
 import com.devsmart.android.ui.HorizontalListView;
 
-public class CRRootView extends ViewGroup {
+public class CRRootView extends FrameLayout {
 
 	public static final Logger log = L.create("cr");
 
@@ -359,6 +362,10 @@ public class CRRootView extends ViewGroup {
 
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		r -= l;
+		b -= t;
+		t = 0;
+		l = 0;
 		mView.layout(l, t, r, b);
 	}
 

@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 
 import org.coolreader.R;
-import org.coolreader.crengine.Settings.Lang;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -21,7 +20,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
@@ -45,6 +46,7 @@ public class BaseActivity extends Activity implements Settings {
 		log.i("BaseActivity.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
+		
 		try {
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
 			mVersion = pi.versionName;
@@ -90,8 +92,6 @@ public class BaseActivity extends Activity implements Settings {
 		setLanguage(lang);
 		setCurrentTheme(theme);
 
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		
 		
 		setScreenBacklightDuration(props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, 3));
 
@@ -104,11 +104,19 @@ public class BaseActivity extends Activity implements Settings {
 		if ( backlight<-1 || backlight>100 )
 			backlight = -1;
 		setScreenBacklightLevel(backlight);
+
+    
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
     }
 	
 	@Override
 	protected void onStart() {
 		super.onStart();
+
+//		Properties props = SettingsManager.instance(this).get();
+//		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+//		setCurrentTheme(theme);
+		
 		mIsStarted = true;
 		mPaused = false;
 		backlightControl.onUserActivity();
@@ -203,23 +211,25 @@ public class BaseActivity extends Activity implements Settings {
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
-//		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
-//		int bgRes = a.getResourceId(0, 0);
-//		//int clText = a.getColor(1, 0);
-//		int clBackground = a.getColor(2, 0);
+		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
+		int bgRes = a.getResourceId(0, 0);
+		//int clText = a.getColor(1, 0);
+		int clBackground = a.getColor(2, 0);
 		//int clForeground = a.getColor(3, 0);
-//		if (mFrame != null) {
-//			if (bgRes != 0) {
-//				Drawable d = getResources().getDrawable(bgRes);
-//				log.v("Setting background resource " + d.getIntrinsicWidth() + "x" + d.getIntrinsicHeight());
-//				mFrame.setBackgroundResource(bgRes);
-//				getWindow().setBackgroundDrawable(d);
-//			} else if (clBackground != 0)
-//				mFrame.setBackgroundColor(clBackground);
-//		}
-//		if (bgRes != 0)
-//			getWindow().setBackgroundDrawableResource(bgRes);
-//		a.recycle();
+		View contentView = getContentView();
+		if (contentView != null) {
+			if (bgRes != 0) {
+				Drawable d = getResources().getDrawable(bgRes);
+				log.v("Setting background resource " + d.getIntrinsicWidth() + "x" + d.getIntrinsicHeight());
+				contentView.setBackgroundResource(bgRes);
+				getWindow().setBackgroundDrawable(d);
+			} else if (clBackground != 0)
+				contentView.setBackgroundColor(clBackground);
+		} else {
+			if (bgRes != 0)
+				getWindow().setBackgroundDrawableResource(bgRes);
+		}
+		a.recycle();
 	}
 
 
