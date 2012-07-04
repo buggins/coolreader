@@ -65,26 +65,70 @@ public class Activities {
 		//mReaderView.loadDocument(item, null);
 	}
 	
-	public static void loadDocument( String item, Runnable callback )
-	{
-		Intent intent = new Intent(mainActivity.getApplicationContext(), ReaderActivity.class);
-		intent.putExtra("FILE_TO_OPEN", item);
-		mainActivity.startActivity(intent);
-		//mainActivity.cre
-		// TODO: load document
-		//showView(readerView);
-		//setContentView(readerView);
-		//mReaderView.loadDocument(item, null);
+	public static String getString(int resourceId) {
+		BaseActivity activity = getCurrentActivity();
+		if (activity != null) {
+			return activity.getString(resourceId);
+		} else {
+			return "unknown string";
+		}
 	}
 	
-	public static void showBrowser(FileInfo dir) {
-		// TODO: implement
+	public static BaseActivity getCurrentActivity() {
+		if (mainActivity != null)
+			return mainActivity;
+		if (browserActivity != null)
+			return browserActivity;
+		if (readerActivity != null)
+			return readerActivity;
+		return null;
 	}
 	
-	public static void showBrowserRecentBooks() {
-		// TODO: implement
+	public static void startActivity(Class<?> activityClass, String paramName, String paramValue) {
+		BaseActivity activity = getCurrentActivity();
+		if (activity != null) {
+			Intent intent = new Intent(activity.getApplicationContext(), activityClass);
+			if (paramName != null)
+				intent.putExtra(paramName, paramValue);
+			activity.startActivity(intent);
+		}
 	}
 
+	public static final String OPEN_FILE_PARAM = "FILE_TO_OPEN";
+	public static void loadDocument( String item, Runnable callback )
+	{
+		startActivity(ReaderActivity.class, OPEN_FILE_PARAM, item);
+	}
+	
+	public static void showRootWindow() {
+		startActivity(CoolReader.class, null, null);
+	}
+	
+	public static final String OPEN_DIR_PARAM = "DIR_TO_OPEN";
+	public static void showBrowser(FileInfo dir) {
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, dir.getPathName());
+	}
+	
+	public static void showRecentBooks() {
+		log.d("Activities.showRecentBooks() is called");
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, FileInfo.RECENT_DIR_TAG);
+	}
+
+	public static void showOnlineCatalogs() {
+		log.d("Activities.showOnlineCatalogs() is called");
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, FileInfo.OPDS_LIST_TAG);
+	}
+
+	public static void showDirectory(FileInfo path) {
+		log.d("Activities.showDirectory(" + path + ") is called");
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, path.getPathName());
+	}
+
+	public static void showCatalog(FileInfo path) {
+		log.d("Activities.showCatalog(" + path + ") is called");
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, path.getPathName());
+	}
+	
 	public static void applyAppSetting( String key, String value )
 	{
 		if (mainActivity != null)
@@ -110,23 +154,4 @@ public class Activities {
 			readerActivity.getReaderView().saveSetting(name, value);
 	}
 	
-	public static void showRecentBooks() {
-		// TODO:
-		log.d("Activities.showRecentBooks() is called");
-	}
-
-	public static void showOnlineCatalogs() {
-		// TODO:
-		log.d("Activities.showOnlineCatalogs() is called");
-	}
-
-	public static void showDirectory(FileInfo path) {
-		// TODO:
-		log.d("Activities.showDirectory(" + path + ") is called");
-	}
-
-	public static void showCatalog(FileInfo path) {
-		// TODO:
-		log.d("Activities.showCatalog(" + path + ") is called");
-	}
 }

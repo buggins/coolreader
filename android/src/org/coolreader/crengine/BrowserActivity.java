@@ -1,25 +1,41 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
-import org.coolreader.crengine.ReaderActivity.ReaderViewLayout;
-
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout.LayoutParams;
 
 public class BrowserActivity extends BaseActivity {
 
 	static class BrowserViewLayout extends ViewGroup {
-		private View contentView;
-		public BrowserViewLayout(Context context, View contentView) {
+		private FileBrowser contentView;
+		public BrowserViewLayout(Context context, FileBrowser contentView) {
 			super(context);
 			this.contentView = contentView;
+			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+			this.addView(contentView);
 		}
 
 		@Override
 		protected void onLayout(boolean changed, int l, int t, int r, int b) {
+			r -= l;
+			b -= t;
+			t = 0;
+			l = 0;
 			contentView.layout(l, t, r, b);
+		}
+		
+		@Override
+		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			contentView.measure(widthMeasureSpec, heightMeasureSpec);
+	        setMeasuredDimension(contentView.getMeasuredWidth(), contentView.getMeasuredHeight());
+		}
+		
+		@Override
+		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+			super.onSizeChanged(w, h, oldw, oldh);
 		}
 	}
 
@@ -32,6 +48,7 @@ public class BrowserActivity extends BaseActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Activities.setBrowser(this);
+		super.onCreate(savedInstanceState);
 		mEngine = Engine.getInstance(this);
 		
 		mBrowser = new FileBrowser(this, Services.getEngine(), Services.getScanner(), Services.getHistory());
@@ -43,13 +60,21 @@ public class BrowserActivity extends BaseActivity {
         mBrowser.init();
         mBrowser.showDirectory(Services.getScanner().getRoot(), null);
 		mFrame = new BrowserViewLayout(this, mBrowser);
-		super.onCreate(savedInstanceState);
+		setContentView(mFrame);
 	}
 
+	
 	@Override
 	protected void onStart() {
-		// TODO Auto-generated method stub
 		super.onStart();
+		
+		Intent intent = getIntent();
+		if (intent != null) {
+			String dir = intent.getExtras().getString(Activities.OPEN_DIR_PARAM);
+			if (dir != null) {
+				mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
+			}
+		}
 	}
 
 	@Override

@@ -200,7 +200,7 @@ public class ReaderActivity extends BaseActivity {
 		Intent intent = getIntent();
 		log.d("intent=" + intent);
 		if (intent != null) {
-			String fileToOpen = intent.getExtras().getString("FILE_TO_OPEN");
+			String fileToOpen = intent.getExtras().getString(Activities.OPEN_FILE_PARAM);
 			if (fileToOpen != null) {
 				log.d("FILE_TO_OPEN = " + fileToOpen);
 				mReaderView.loadDocument(fileToOpen, null);

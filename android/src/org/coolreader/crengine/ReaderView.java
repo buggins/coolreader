@@ -2546,7 +2546,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doEngineCommand(cmd, param);
 			break;
 		case DCMD_RECENT_BOOKS_LIST:
-			Activities.showBrowserRecentBooks();
+			Activities.showRecentBooks();
 			break;
 		case DCMD_SEARCH:
 			showSearchDialog(null);
