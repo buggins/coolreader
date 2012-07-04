@@ -442,59 +442,108 @@ public class Scanner extends FileInfoChangeSource {
 		return true;
 	}
 	
-	private void addOPDSRoot() {
+	public FileInfo pathToFileInfo(String path) {
+		if (path == null || path.length() == 0)
+			return null;
+		if (FileInfo.OPDS_LIST_TAG.equals(path))
+			return createOPDSRoot();
+		else if (FileInfo.SEARCH_SHORTCUT_TAG.equals(path))
+			return createOPDSRoot();
+		else if (FileInfo.RECENT_DIR_TAG.equals(path))
+			return createRecentRoot();
+		else if (FileInfo.AUTHORS_TAG.equals(path))
+			return createAuthorsRoot();
+		else if (FileInfo.TITLE_TAG.equals(path))
+			return createTitleRoot();
+		else if (FileInfo.SERIES_TAG.equals(path))
+			return createSeriesRoot();
+		else
+			return new FileInfo(path);
+	}
+	
+	private FileInfo createOPDSRoot() {
 		final FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.OPDS_LIST_TAG;
-		dir.filename = coolReader.getString(R.string.mi_book_opds_root);
+		dir.filename = Activities.getString(R.string.mi_book_opds_root);
 		dir.isListed = true;
 		dir.isScanned = true;
+		return dir;
+	}
+
+	private void addRoot(FileInfo dir) {
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
 	}
+
+	public FileInfo createRecentRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.RECENT_DIR_TAG;
+		dir.filename = Activities.getString(R.string.dir_recent_books);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
 	
-	private void addSearchRoot() {
+	private void addOPDSRoot() {
+		addRoot(createOPDSRoot());
+	}
+	
+	public FileInfo createSearchRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.SEARCH_SHORTCUT_TAG;
-		dir.filename = coolReader.getString(R.string.mi_book_search);
+		dir.filename = Activities.getString(R.string.mi_book_search);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
 	}
 	
-	private void addAuthorsRoot() {
+	private void addSearchRoot() {
+		addRoot(createSearchRoot());
+	}
+	
+	public FileInfo createAuthorsRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.AUTHORS_TAG;
-		dir.filename = coolReader.getString(R.string.folder_name_books_by_author);
+		dir.filename = Activities.getString(R.string.folder_name_books_by_author);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
 	}
 	
-	private void addSeriesRoot() {
+	private void addAuthorsRoot() {
+		addRoot(createAuthorsRoot());
+	}
+	
+	public FileInfo createSeriesRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.SERIES_TAG;
-		dir.filename = coolReader.getString(R.string.folder_name_books_by_series);
+		dir.filename = Activities.getString(R.string.folder_name_books_by_series);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
 	}
 	
-	private void addTitleRoot() {
+	private void addSeriesRoot() {
+		addRoot(createSeriesRoot());
+	}
+	
+	public FileInfo createTitleRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.TITLE_TAG;
 		dir.filename = coolReader.getString(R.string.folder_name_books_by_title);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
+	}
+	
+	private void addTitleRoot() {
+		addRoot(createTitleRoot());
 	}
 	
 	/**
