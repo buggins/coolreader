@@ -448,7 +448,7 @@ public class Scanner extends FileInfoChangeSource {
 		if (FileInfo.OPDS_LIST_TAG.equals(path))
 			return createOPDSRoot();
 		else if (FileInfo.SEARCH_SHORTCUT_TAG.equals(path))
-			return createOPDSRoot();
+			return createSearchRoot();
 		else if (FileInfo.RECENT_DIR_TAG.equals(path))
 			return createRecentRoot();
 		else if (FileInfo.AUTHORS_TAG.equals(path))
@@ -729,6 +729,15 @@ public class Scanner extends FileInfoChangeSource {
 //		return res;
 //	}
 	
+	
+	public ArrayList<FileInfo> getLibraryItems() {
+		ArrayList<FileInfo> result = new ArrayList<FileInfo>();
+		result.add(pathToFileInfo(FileInfo.SEARCH_SHORTCUT_TAG));
+		result.add(pathToFileInfo(FileInfo.AUTHORS_TAG));
+		result.add(pathToFileInfo(FileInfo.TITLE_TAG));
+		result.add(pathToFileInfo(FileInfo.SERIES_TAG));
+		return result;
+	}
 	
 	public FileInfo getDownloadDirectory() {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {

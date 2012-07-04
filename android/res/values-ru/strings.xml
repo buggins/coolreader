@@ -225,7 +225,7 @@
     <string name="dlg_book_search_author">Автор</string>
     <string name="dlg_book_search_found">Найдено книг:</string>
     <string name="dlg_book_search_prompt">Задайте параметры поиска:</string>
-    <string name="mi_book_search">Найти книгу</string>
+    <string name="mi_book_search">Найти</string>
     <string name="dlg_book_search_not_found">Книги не найдены</string>
     <string name="dir_search_results">Результаты поиска</string>
     <string name="dlg_about_donation_bronze">$1: купить Бронзовую монетку Cool Reader</string>
@@ -280,7 +280,7 @@
     <string name="options_controls_tap_type_double">Двойное нажатие</string>
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
     <string name="mi_bookmark_send">Отправить</string>
-    <string name="folder_name_books_by_author">Книги по авторам</string>
+    <string name="folder_name_books_by_author">Авторы</string>
     <string name="options_view_bookmarks_highlight">Подсвечивать закладки</string>
     <string name="options_css_footnotetitle">Заголовок сноски</string>
     <string name="options_css_subtitle">Подзаголовок</string>
@@ -384,8 +384,8 @@
     <string name="win_title_confirm_catalog_delete">Вы действительно хотите удалить этот каталог?</string>
     <string name="win_title_confirm_history_record_delete">Вы действительно хотите удалить эту книгу из списка последних книг?</string>
     <string name="win_title_confirm_book_delete">Вы действительно хотите удалить эту книгу?</string>
-    <string name="folder_name_books_by_series">Книги по сериям</string>
-    <string name="folder_name_books_by_title">Книги по названию</string>
+    <string name="folder_name_books_by_series">Серии</string>
+    <string name="folder_name_books_by_title">Названия</string>
     <string name="dlg_about_donation_platinum">$30: купить Платиновую монету Cool Reader</string>
     <string name="mi_donation">Пожертвовать</string>
     <string name="dlg_about_donation_inapp_purchase">Cool Reader - бесплатная свободная программа, и всегда будет оставаться такой. Вы можете поддержать развитие проекта с помощью Android Market:</string>
