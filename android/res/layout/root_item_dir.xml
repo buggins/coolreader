@@ -29,9 +29,10 @@
         android:layout_height="wrap_content"
         android:layout_weight="2"
         android:singleLine="true"
-        android:ellipsize="middle"
+        android:ellipsize="start"
         android:layout_gravity="center_horizontal" 
-        android:maxWidth="250dip"
+        android:minWidth="?android:attr/listPreferredItemHeight"
+        android:maxWidth="300dip"
         />
 
 </LinearLayout>

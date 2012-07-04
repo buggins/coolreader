@@ -2,6 +2,8 @@ package org.coolreader.crengine;
 
 import org.coolreader.CoolReader;
 
+import android.content.Intent;
+
 public class Activities {
 	
 	public static final Logger log = L.create("aa");
@@ -56,6 +58,7 @@ public class Activities {
 	public static void loadDocument( FileInfo item, Runnable callback )
 	{
 		log.d("Activities.loadDocument(" + item.pathname + ")");
+		loadDocument(item.getPathName(), null);
 		// TODO: load document
 		//showView(readerView);
 		//setContentView(readerView);
@@ -64,6 +67,10 @@ public class Activities {
 	
 	public static void loadDocument( String item, Runnable callback )
 	{
+		Intent intent = new Intent(mainActivity.getApplicationContext(), ReaderActivity.class);
+		intent.putExtra("FILE_TO_OPEN", item);
+		mainActivity.startActivity(intent);
+		//mainActivity.cre
 		// TODO: load document
 		//showView(readerView);
 		//setContentView(readerView);

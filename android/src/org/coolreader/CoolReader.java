@@ -8,6 +8,7 @@ import org.coolreader.crengine.Activities;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseActivity;
 import org.coolreader.crengine.CRRootView;
+import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Services;
@@ -61,7 +62,7 @@ public class CoolReader extends BaseActivity
 
     	isFirstStart = true;
 		
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		//requestWindowFeature(Window.FEATURE_NO_TITLE);
     	
 
 
@@ -586,6 +587,10 @@ public class CoolReader extends BaseActivity
 	
 
 	
-	
+	@Override
+	public void setCurrentTheme(InterfaceTheme theme) {
+		super.setCurrentTheme(theme);
+		//getWindow().setBackgroundDrawable(theme.getActionBarBackgroundDrawableBrowser());
+	}
 	
 }
