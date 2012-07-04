@@ -3,6 +3,9 @@ package org.coolreader.crengine;
 import org.coolreader.CoolReader;
 
 public class Activities {
+	
+	public static final Logger log = L.create("aa");
+	
 	private static CoolReader mainActivity;
 	private static ReaderActivity readerActivity;
 	private static BrowserActivity browserActivity;
@@ -42,19 +45,17 @@ public class Activities {
 	}
 
 	public static void showReader() {
-		// TODO: implement
+		log.d("Activities.showReader()");
 	}
 
 	public static void loadDocument( FileInfo item )
 	{
-		// TODO: load document
-		//showView(readerView);
-		//setContentView(readerView);
-		//mReaderView.loadDocument(item, null);
+		loadDocument(item, null);
 	}
 	
 	public static void loadDocument( FileInfo item, Runnable callback )
 	{
+		log.d("Activities.loadDocument(" + item.pathname + ")");
 		// TODO: load document
 		//showView(readerView);
 		//setContentView(readerView);
@@ -100,5 +101,25 @@ public class Activities {
 	public static void saveSetting(String name, String value) {
 		if (readerActivity != null)
 			readerActivity.getReaderView().saveSetting(name, value);
+	}
+	
+	public static void showRecentBooks() {
+		// TODO:
+		log.d("Activities.showRecentBooks() is called");
+	}
+
+	public static void showOnlineCatalogs() {
+		// TODO:
+		log.d("Activities.showOnlineCatalogs() is called");
+	}
+
+	public static void showDirectory(FileInfo path) {
+		// TODO:
+		log.d("Activities.showDirectory(" + path + ") is called");
+	}
+
+	public static void showCatalog(FileInfo path) {
+		// TODO:
+		log.d("Activities.showCatalog(" + path + ") is called");
 	}
 }

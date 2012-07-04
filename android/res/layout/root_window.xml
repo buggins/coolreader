@@ -7,6 +7,7 @@
 <ScrollView
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:paddingRight="?android:attr/scrollbarSize"
     android:orientation="vertical" >
 
     
@@ -75,6 +76,13 @@
   	      </LinearLayout>
       
     </LinearLayout>
+
+    <ImageView android:id="@+id/separator1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:drawable="@drawable/divider_light"
+    />
     
     <TextView 
         android:id="@+id/lbl_catalog_name"
@@ -96,42 +104,58 @@
 	      android:layout_width="fill_parent"
 	      android:layout_height="wrap_content"
 	      android:minHeight="?android:attr/listPreferredItemHeight"
+	      android:layout_weight="3"
+          android:layout_gravity="left|fill"
 	      >
 	    </LinearLayout>
         
       <ImageButton
+          android:id="@+id/btn_recent_books"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_folder" />
+          android:minHeight="?android:attr/listPreferredItemHeight"
+          android:minWidth="?android:attr/listPreferredItemHeight"
+          android:layout_marginLeft="3dip"
+          android:layout_marginRight="3dip"
+          android:layout_weight="1"
+          android:layout_gravity="right|center_vertical"
+          android:background="@null"
+          android:src="@drawable/cr3_button_next" />
 	</LinearLayout>
+
+    <ImageView android:id="@+id/separator2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:drawable="@drawable/divider_light"
+    />
     
     <TextView 
-        android:id="@+id/lbl_catalog_name"
+        android:id="@+id/lbl_filesystem"
         style="@style/TextAppearance.Medium"
         android:text="File system" 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
     <LinearLayout
+      android:id="@+id/scroll_filesystem"
       android:orientation="horizontal"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
       android:minHeight="?android:attr/listPreferredItemHeight"
+      android:layout_weight="3"
+      android:layout_gravity="fill"
       >
-      <ImageButton
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_folder" />
-      <ImageButton
-	      android:layout_width="wrap_content"
-	      android:layout_height="wrap_content"
-	      android:src="@drawable/cr3_browser_folder" />
-      <ImageButton
-	      android:layout_width="wrap_content"
-	      android:layout_height="wrap_content"
-	      android:src="@drawable/cr3_browser_folder" />
     </LinearLayout>
+
+    <ImageView android:id="@+id/separator3"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:drawable="@drawable/divider_light"
+    />
+    
     <TextView 
-        android:id="@+id/lbl_catalog_name"
+        android:id="@+id/lbl_library"
         style="@style/TextAppearance.Medium"
         android:text="Library" 
         android:layout_width="wrap_content"
@@ -155,8 +179,17 @@
           android:layout_height="wrap_content"
           android:src="@drawable/cr3_browser_folder_authors" />
     </LinearLayout>
+
+    <ImageView android:id="@+id/separator4"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:minHeight="3dip"
+        android:drawable="@drawable/divider_light"
+    />
+    
     <TextView 
-        android:id="@+id/lbl_catalog_name"
+        android:id="@+id/lbl_online_catalogs"
         style="@style/TextAppearance.Medium"
         android:text="Online Catalogs" 
         android:layout_width="wrap_content"
@@ -167,23 +200,31 @@
       android:layout_height="wrap_content"
       android:minHeight="?android:attr/listPreferredItemHeight"
       >
+
+        <LinearLayout
+          android:id="@+id/scroll_online_catalogs"
+          android:orientation="horizontal"
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:minHeight="?android:attr/listPreferredItemHeight"
+          android:layout_weight="3"
+          android:layout_gravity="left|fill"
+          >
+        </LinearLayout>
+        
       <ImageButton
+          android:id="@+id/btn_online_catalogs"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_folder_opds" />
-      <ImageButton
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_folder_opds" />
-      <ImageButton
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_folder_opds" />
-      <ImageButton
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:src="@drawable/cr3_browser_folder_opds" />
-   </LinearLayout>
+          android:minHeight="?android:attr/listPreferredItemHeight"
+          android:minWidth="?android:attr/listPreferredItemHeight"
+          android:layout_marginLeft="3dip"
+          android:layout_marginRight="3dip"
+          android:layout_weight="1"
+          android:layout_gravity="right|center_vertical"
+          android:background="@null"
+          android:src="@drawable/cr3_button_next" />
+    </LinearLayout>
 </LinearLayout>
 </ScrollView>
 </LinearLayout>
