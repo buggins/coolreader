@@ -9,7 +9,6 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:minHeight="?android:attr/listPreferredItemHeight"
-    android:minWidth="?android:attr/listPreferredItemHeight"
     >
 
     <ImageView android:id="@+id/item_icon"
@@ -29,8 +28,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:singleLine="false"
-        android:gravity="center_horizontal"
+        android:maxLines="2"
         android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
         android:minWidth="?android:attr/listPreferredItemHeight"
         />
 
