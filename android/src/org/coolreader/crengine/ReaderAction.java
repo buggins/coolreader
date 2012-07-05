@@ -6,16 +6,17 @@ import org.coolreader.crengine.ReaderView.ReaderCommand;
 public class ReaderAction {
 	final public String id;
 	final public int nameId;
-	final public int    iconId;
+	public int    iconId;
 	final public ReaderView.ReaderCommand cmd;
 	final public int param;
 	final public int menuItemId;
 	private boolean canRepeat = false;
 	private boolean mayAssignOnKey = true;
 	private boolean mayAssignOnTap = true;
-	private ReaderAction setCanRepeat() { canRepeat=true; return this; }
+	private ReaderAction setIconId(int iconId) { this.iconId = iconId; return this; }
+	private ReaderAction setCanRepeat() { canRepeat = true; return this; }
 	//private ReaderAction dontAssignOnKey() { mayAssignOnKey=false; return this; }
-	private ReaderAction dontAssignOnTap() { mayAssignOnTap=false; return this; }
+	private ReaderAction dontAssignOnTap() { mayAssignOnTap = false; return this; }
 	public boolean canRepeat() { return canRepeat; }
 	public boolean mayAssignOnKey() { return mayAssignOnKey; }
 	public boolean mayAssignOnTap() { return mayAssignOnTap; }
@@ -67,8 +68,11 @@ public class ReaderAction {
 	public final static ReaderAction OPTIONS = new ReaderAction("OPTIONS", R.string.action_options, ReaderCommand.DCMD_OPTIONS_DIALOG, 0, R.id.cr3_mi_options );
 	public final static ReaderAction READER_MENU = new ReaderAction("READER_MENU", R.string.action_reader_menu, ReaderCommand.DCMD_READER_MENU, 0 );
 	public final static ReaderAction TOGGLE_DAY_NIGHT = new ReaderAction("TOGGLE_DAY_NIGHT", R.string.action_toggle_day_night, ReaderCommand.DCMD_TOGGLE_DAY_NIGHT_MODE, 0, R.id.cr3_mi_toggle_day_night );
-	public final static ReaderAction RECENT_BOOKS = new ReaderAction("RECENT_BOOKS", R.string.action_recent_books_list, ReaderCommand.DCMD_RECENT_BOOKS_LIST, R.id.book_recent_books );
+	public final static ReaderAction RECENT_BOOKS = new ReaderAction("RECENT_BOOKS", R.string.action_recent_books_list, ReaderCommand.DCMD_RECENT_BOOKS_LIST, R.id.book_recent_books ).setIconId(R.drawable.cr3_browser_folder_recent);
+	public final static ReaderAction OPDS_CATALOGS = new ReaderAction("OPDS_CATALOGS", R.string.mi_book_opds_root, ReaderCommand.DCMD_OPDS_CATALOGS, 0).setIconId(R.drawable.cr3_browser_folder_opds);
+	public final static ReaderAction FILE_BROWSER_ROOT = new ReaderAction("FILE_BROWSER_ROOT", R.string.mi_book_root, ReaderCommand.DCMD_FILE_BROWSER_ROOT, 0).setIconId(R.drawable.cr3_browser_folder_root);
 	public final static ReaderAction FILE_BROWSER = new ReaderAction("FILE_BROWSER", R.string.action_file_browser, ReaderCommand.DCMD_FILE_BROWSER, 0, R.id.cr3_mi_open_file );
+	public final static ReaderAction FILE_BROWSER_UP = new ReaderAction("FILE_BROWSER_UP", R.string.action_go_back, ReaderCommand.DCMD_FILE_BROWSER_UP, 0).setIconId(R.drawable.cr3_browser_back);
 	public final static ReaderAction CURRENT_BOOK_DIRECTORY = new ReaderAction("DCMD_CURRENT_BOOK_DIRECTORY", R.string.mi_book_recent_goto, ReaderCommand.DCMD_CURRENT_BOOK_DIRECTORY, 0);
 	
 	public final static ReaderAction FONT_PREVIOUS = new ReaderAction("FONT_PREVIOUS", R.string.mi_font_previous, ReaderCommand.DCMD_FONT_PREVIOUS, 0); //, R.id.cr3_mi_font_previous 
@@ -78,7 +82,7 @@ public class ReaderAction {
 	public final static ReaderAction TOGGLE_FULLSCREEN = new ReaderAction("TOGGLE_FULLSCREEN", R.string.action_toggle_fullscreen, ReaderCommand.DCMD_TOGGLE_FULLSCREEN, 0 );
 	public final static ReaderAction TOGGLE_SELECTION_MODE = new ReaderAction("TOGGLE_SELECTION_MODE", R.string.action_toggle_selection_mode, ReaderCommand.DCMD_TOGGLE_SELECTION_MODE, 0, R.id.cr3_mi_select_text );
 	public final static ReaderAction HOME_SCREEN = new ReaderAction("HOME_SCREEN", R.string.action_exit_home_screen, ReaderCommand.DCMD_SHOW_HOME_SCREEN, 0 );
-	public final static ReaderAction GO_BACK = new ReaderAction("GO_BACK", R.string.action_go_back, ReaderCommand.DCMD_LINK_BACK, 0, R.id.cr3_go_back );
+	public final static ReaderAction GO_BACK = new ReaderAction("GO_BACK", R.string.action_go_back, ReaderCommand.DCMD_LINK_BACK, 0, R.id.cr3_go_back ).setIconId(R.drawable.cr3_browser_back);
 	public final static ReaderAction GO_FORWARD = new ReaderAction("GO_FORWARD", R.string.action_go_forward, ReaderCommand.DCMD_LINK_FORWARD, 0, R.id.cr3_go_forward );
 	public final static ReaderAction TTS_PLAY = new ReaderAction("TTS_PLAY", R.string.mi_tts_play, ReaderCommand.DCMD_TTS_PLAY, 0, R.id.cr3_mi_tts_play );
 	public final static ReaderAction TOGGLE_TITLEBAR = new ReaderAction("TOGGLE_TITLEBAR", R.string.action_toggle_titlebar, ReaderCommand.DCMD_TOGGLE_TITLEBAR, 0 );

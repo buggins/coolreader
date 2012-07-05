@@ -457,6 +457,8 @@ public class Scanner extends FileInfoChangeSource {
 			return createTitleRoot();
 		else if (FileInfo.SERIES_TAG.equals(path))
 			return createSeriesRoot();
+		else if (path.startsWith(FileInfo.OPDS_DIR_PREFIX))
+			return createOPDSDir(path);
 		else
 			return new FileInfo(path);
 	}
@@ -516,6 +518,14 @@ public class Scanner extends FileInfoChangeSource {
 	
 	private void addAuthorsRoot() {
 		addRoot(createAuthorsRoot());
+	}
+	
+	public FileInfo createOPDSDir(String path) {
+		FileInfo opds = mRoot.findItemByPathName(FileInfo.OPDS_LIST_TAG);
+		if (opds == null)
+			return null;
+		FileInfo repository = opds.findItemByPathName(path);
+		return repository;
 	}
 	
 	public FileInfo createSeriesRoot() {
