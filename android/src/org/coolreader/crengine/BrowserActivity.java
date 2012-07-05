@@ -70,7 +70,7 @@ public class BrowserActivity extends BaseActivity {
 		
 		Intent intent = getIntent();
 		if (intent != null) {
-			String dir = intent.getExtras().getString(Activities.OPEN_DIR_PARAM);
+			String dir = intent.getExtras() != null ? intent.getExtras().getString(Activities.OPEN_DIR_PARAM) : null;
 			if (dir != null) {
 				mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
 			}
