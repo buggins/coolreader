@@ -68,10 +68,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						int position, long id) {
 					log.d("onItemLongClick("+position+")");
 					//return super.performItemClick(view, position, id);
-					if (position == 0 && currDirectory.parent != null) {
-						showParentDirectory();
-						return true;
-					}
 					FileInfo item = (FileInfo) getAdapter().getItem(position);
 					if ( item==null )
 						return false;
@@ -137,10 +133,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		public boolean performItemClick(View view, int position, long id) {
 			log.d("performItemClick("+position+")");
 			//return super.performItemClick(view, position, id);
-			if (position == 0 && currDirectory.parent != null) {
-				showParentDirectory();
-				return true;
-			}
 			FileInfo item = (FileInfo) getAdapter().getItem(position);
 			if ( item==null )
 				return false;
@@ -807,7 +799,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		public int getCount() {
 			if (currDirectory == null)
 				return 0;
-			return currDirectory.fileCount() + currDirectory.dirCount() + (currDirectory.parent!=null ? 1 : 0);
+			return currDirectory.fileCount() + currDirectory.dirCount();
 		}
 
 		public Object getItem(int position) {
@@ -815,10 +807,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				return null;
 			if ( position<0 )
 				return null;
-			int start = (currDirectory.parent!=null ? 1 : 0);
-			if ( position<start )
-				return currDirectory.parent;
-			return currDirectory.getItem(position-start);
+			return currDirectory.getItem(position);
 		}
 
 		public long getItemId(int position) {
@@ -838,13 +827,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				return 0;
 			if (position < 0)
 				return Adapter.IGNORE_ITEM_VIEW_TYPE;
-			int start = (currDirectory.parent!=null ? 1 : 0);
-			if (position<start)
-				return VIEW_TYPE_LEVEL_UP;
-			if (position<start + currDirectory.dirCount())
+			if (position < currDirectory.dirCount())
 				return VIEW_TYPE_DIRECTORY;
-			start += currDirectory.dirCount();
-			position -= start;
+			position -= currDirectory.dirCount();
 			if (position < currDirectory.fileCount()) {
 				Object itm = getItem(position);
 				if (itm instanceof FileInfo) {
@@ -1081,6 +1066,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
 		if ( dir!=null && !dir.isRootDir() )
 			index++;
+		
+		String title = dir.filename;
+		if (!dir.isSpecialDir())
+			title = dir.getPathName();
+		mActivity.setTitle(title);
+		
 		mListView.setAdapter(currentListAdapter);
 		currentListAdapter.notifyDataSetChanged();
 		mListView.setSelection(index);

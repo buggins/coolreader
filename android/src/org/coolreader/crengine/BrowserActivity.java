@@ -93,6 +93,13 @@ public class BrowserActivity extends BaseActivity {
 
 	public FileBrowser getBrowser() { return mBrowser; }
 	
+	private String title = "";
+	public void setTitle(String title) {
+		this.title = title;
+		if (mTitleBar != null)
+			((TextView)mTitleBar.findViewById(R.id.title)).setText(title);
+	}
+	
 	private FileBrowser mBrowser;
 	private Engine mEngine;
 	private BrowserViewLayout mFrame;
@@ -119,24 +126,23 @@ public class BrowserActivity extends BaseActivity {
         mBrowser.setSortOrder(SettingsManager.instance(this).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
 		mBrowser.setSimpleViewMode(SettingsManager.instance(this).getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
         mBrowser.init();
-        mBrowser.showDirectory(Services.getScanner().getRoot(), null);
 
 		LayoutInflater inflater = LayoutInflater.from(this);// activity.getLayoutInflater();
 		
 		mTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
-        ((TextView)mTitleBar.findViewById(R.id.title)).setText("Cool Reader browser window");
+		setTitle("Cool Reader browser window");
 
         mToolBar = new CRToolBar(this, createActionList(
         		ReaderAction.FILE_BROWSER_UP, 
-        		ReaderAction.FILE_BROWSER_ROOT, 
-        		ReaderAction.OPDS_CATALOGS, 
-        		ReaderAction.RECENT_BOOKS,
         		ReaderAction.CURRENT_BOOK,
         		ReaderAction.CURRENT_BOOK_DIRECTORY,
-        		ReaderAction.SEARCH,
-        		ReaderAction.OPTIONS
+        		ReaderAction.FILE_BROWSER_ROOT, 
+        		ReaderAction.OPTIONS,
+        		ReaderAction.RECENT_BOOKS,
+        		ReaderAction.OPDS_CATALOGS, 
+        		ReaderAction.SEARCH
         		));
-        mToolBar.setBackgroundColor(0x20404040);
+        mToolBar.setBackgroundColor(0x40303030);
         mToolBar.setOnItemSelectedHandler(new OnActionHandler() {
 			@Override
 			public boolean onActionSelected(ReaderAction item) {
@@ -170,6 +176,8 @@ public class BrowserActivity extends BaseActivity {
 		});
 		mFrame = new BrowserViewLayout(this, mBrowser, mToolBar, mTitleBar);
 		setContentView(mFrame);
+
+        mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
 	}
 
 	

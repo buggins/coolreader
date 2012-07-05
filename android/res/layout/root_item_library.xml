@@ -11,7 +11,7 @@
     android:baselineAligned="false"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:minWidth="?android:attr/listPreferredItemHeight"
-    android:layout_marginRight="7dip"
+    android:layout_marginRight="12dip"
     >
 
     <ImageView android:id="@+id/item_icon"
