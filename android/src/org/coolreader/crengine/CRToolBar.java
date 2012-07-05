@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import org.coolreader.R;
 
-import android.content.Context;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
@@ -32,12 +32,17 @@ public class CRToolBar extends ViewGroup {
 	private int visibleNonButtonCount;
 	private boolean isVertical;
 	final private int preferredItemHeight;
+	private final int BUTTON_SPACING = 4;
+	private final int BAR_SPACING = 8;
 	public void setVertical(boolean vertical) {
 		this.isVertical = vertical;
-		if (isVertical)
+		if (isVertical) {
+			setPadding(BUTTON_SPACING, BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING);
 			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT));
-		else
+		} else {
+			setPadding(BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING, BUTTON_SPACING);
 			setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		}
 	}
 	public boolean isVertical() {
 		return this.isVertical;
@@ -49,6 +54,7 @@ public class CRToolBar extends ViewGroup {
 		this.preferredItemHeight = context.getPreferredItemHeight();
 		buttonWidth = preferredItemHeight;
 		buttonHeight = preferredItemHeight;
+		int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
@@ -58,13 +64,15 @@ public class CRToolBar extends ViewGroup {
 			}
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() + 4;
-			int h = d.getIntrinsicHeight();
-			if (buttonWidth < w || buttonHeight < h) {
+			int w = d.getIntrinsicWidth() * dpi / 160;
+			int h = d.getIntrinsicHeight() * dpi / 160;
+			if (buttonWidth < w) {
 				buttonWidth = w;
+				contentWidth = buttonWidth + getPaddingLeft() + getPaddingRight();
+			}
+			if (buttonHeight < h) {
 				buttonHeight = h;
 				contentHeight = buttonHeight + getPaddingTop() + getPaddingBottom();
-				contentWidth = buttonWidth + getPaddingLeft() + getPaddingRight();
 			}
 		}
 	}
@@ -93,18 +101,18 @@ public class CRToolBar extends ViewGroup {
 		if (isVertical) {
 			if (left) {
 				rc.bottom = rc.top + buttonHeight;
-				rect.top += buttonHeight;
+				rect.top += buttonHeight + BUTTON_SPACING;
 			} else {
 				rc.top = rc.bottom - buttonHeight;
-				rect.bottom -= buttonHeight;
+				rect.bottom -= buttonHeight + BUTTON_SPACING;
 			}
 		} else {
 			if (left) {
 				rc.right = rc.left + buttonWidth;
-				rect.left += buttonWidth;
+				rect.left += buttonWidth + BUTTON_SPACING;
 			} else {
 				rc.left = rc.right - buttonWidth;
-				rect.right -= buttonWidth;
+				rect.right -= buttonWidth + BUTTON_SPACING;
 			}
 		}
 		if (rc.isEmpty())
@@ -137,18 +145,29 @@ public class CRToolBar extends ViewGroup {
 		right -= left;
 		bottom -= top;
 		left = top = 0;
-		Rect rect = new Rect(left + getPaddingLeft(), top + getPaddingTop(), right +  + getPaddingRight(), bottom + getPaddingBottom());
+		removeAllViews();
+
+		View divider = new View(getContext());
+		addView(divider);
+		if (isVertical()) {
+			divider.setBackgroundResource(R.drawable.divider_light_vertical_tiled);
+			divider.layout(right - 8, top, right, bottom);
+		} else {
+			divider.setBackgroundResource(R.drawable.divider_light_tiled);
+			divider.layout(left, bottom - 8, right, bottom);
+		}
+		
+		Rect rect = new Rect(left + getPaddingLeft(), top + getPaddingTop(), right - getPaddingRight(), bottom - getPaddingBottom());
 		if (rect.isEmpty())
 			return;
-		removeAllViews();
 		ArrayList<ReaderAction> itemsToShow = new ArrayList<ReaderAction>();
 		int maxButtonCount = 1;
 		if (isVertical) {
 			int maxHeight = bottom - top - getPaddingTop() - getPaddingBottom();
-			maxButtonCount = maxHeight / buttonHeight;
+			maxButtonCount = maxHeight / (buttonHeight + BUTTON_SPACING);
 		} else {
 			int maxWidth = right - left - getPaddingLeft() - getPaddingRight();
-			maxButtonCount = maxWidth / buttonWidth;
+			maxButtonCount = maxWidth / (buttonWidth + BUTTON_SPACING);
 		}
 		int count = 0;
 		boolean addEllipsis = visibleButtonCount > maxButtonCount || visibleNonButtonCount > 0;

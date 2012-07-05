@@ -103,6 +103,11 @@ public class Activities {
 		startActivity(ReaderActivity.class, OPEN_FILE_PARAM, item);
 	}
 	
+	public static void showOpenedBook()
+	{
+		startActivity(ReaderActivity.class, OPEN_FILE_PARAM, null);
+	}
+	
 	public static void showRootWindow() {
 		startActivity(CoolReader.class, null, null);
 	}

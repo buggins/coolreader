@@ -57,11 +57,30 @@ public class BrowserActivity extends BaseActivity {
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 			int w = MeasureSpec.getSize(widthMeasureSpec);
 			int h = MeasureSpec.getSize(heightMeasureSpec);
+
+			
 			toolbarView.setVertical(w > h);
-			toolbarView.measure(widthMeasureSpec, heightMeasureSpec);
-			titleView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0), 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
-			contentView.measure(widthMeasureSpec, heightMeasureSpec);
+			if (w > h) {
+				// landscape
+				toolbarView.setVertical(true);
+				toolbarView.measure(widthMeasureSpec, heightMeasureSpec);
+				int tbWidth = toolbarView.getMeasuredWidth();
+				titleView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w - tbWidth), 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+				int titleHeight = titleView.getMeasuredHeight();
+				contentView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w - tbWidth), 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h - titleHeight));
+			} else {
+				// portrait
+				toolbarView.setVertical(false);
+				toolbarView.measure(widthMeasureSpec, heightMeasureSpec);
+				int tbHeight = toolbarView.getMeasuredHeight();
+				titleView.measure(widthMeasureSpec, 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+				int titleHeight = titleView.getMeasuredHeight();
+				contentView.measure(widthMeasureSpec, 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h - titleHeight - tbHeight));
+			}
 	        setMeasuredDimension(w, h);
 		}
 		
@@ -106,7 +125,16 @@ public class BrowserActivity extends BaseActivity {
 		mTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
         ((TextView)mTitleBar.findViewById(R.id.title)).setText("Cool Reader browser window");
 
-        mToolBar = new CRToolBar(this, createActionList(ReaderAction.FILE_BROWSER_UP, ReaderAction.FILE_BROWSER_ROOT, ReaderAction.OPDS_CATALOGS, ReaderAction.RECENT_BOOKS));
+        mToolBar = new CRToolBar(this, createActionList(
+        		ReaderAction.FILE_BROWSER_UP, 
+        		ReaderAction.FILE_BROWSER_ROOT, 
+        		ReaderAction.OPDS_CATALOGS, 
+        		ReaderAction.RECENT_BOOKS,
+        		ReaderAction.CURRENT_BOOK,
+        		ReaderAction.CURRENT_BOOK_DIRECTORY,
+        		ReaderAction.SEARCH,
+        		ReaderAction.OPTIONS
+        		));
         mToolBar.setBackgroundColor(0x80C0C0C0);
         mToolBar.setOnItemSelectedHandler(new OnActionHandler() {
 			@Override
@@ -116,6 +144,24 @@ public class BrowserActivity extends BaseActivity {
 					Activities.showRootWindow();
 				case DCMD_FILE_BROWSER_UP:
 					mBrowser.showParentDirectory();
+					break;
+				case DCMD_OPDS_CATALOGS:
+					mBrowser.showOPDSRootDirectory();
+					break;
+				case DCMD_RECENT_BOOKS_LIST:
+					mBrowser.showRecentBooks();
+					break;
+				case DCMD_SEARCH:
+					mBrowser.showFindBookDialog();
+					break;
+				case DCMD_CURRENT_BOOK:
+					BookInfo bi = Services.getHistory().getLastBook();
+					if (bi != null)
+						Activities.loadDocument(bi.getFileInfo());
+					break;
+				case DCMD_OPTIONS_DIALOG:
+					//mBrowser.
+					// TODO: open browser options dialog
 					break;
 				}
 				return false;

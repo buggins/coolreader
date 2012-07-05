@@ -60,20 +60,21 @@ public class ReaderAction {
 	public final static ReaderAction USER_MANUAL = new ReaderAction("USER_MANUAL", R.string.mi_goto_manual, ReaderCommand.DCMD_USER_MANUAL, 0, R.id.cr3_mi_user_manual );
 	public final static ReaderAction BOOK_INFO = new ReaderAction("BOOK_INFO", R.string.dlg_book_info, ReaderCommand.DCMD_BOOK_INFO, 0, R.id.cr3_mi_book_info );
 	public final static ReaderAction TOC = new ReaderAction("TOC", R.string.action_toc, ReaderCommand.DCMD_TOC_DIALOG, 0, R.id.cr3_go_toc );
-	public final static ReaderAction SEARCH = new ReaderAction("SEARCH", R.string.action_search, ReaderCommand.DCMD_SEARCH, 0, R.id.cr3_mi_search );
+	public final static ReaderAction SEARCH = new ReaderAction("SEARCH", R.string.action_search, ReaderCommand.DCMD_SEARCH, 0, R.id.cr3_mi_search ).setIconId(R.drawable.cr3_browser_find);
 	public final static ReaderAction GO_PAGE = new ReaderAction("GO_PAGE", R.string.action_go_page, ReaderCommand.DCMD_GO_PAGE_DIALOG, 0, R.id.cr3_mi_go_page );
 	public final static ReaderAction GO_PERCENT = new ReaderAction("GO_PERCENT", R.string.action_go_percent, ReaderCommand.DCMD_GO_PERCENT_DIALOG, 0, R.id.cr3_mi_go_percent );
 	public final static ReaderAction FIRST_PAGE = new ReaderAction("FIRST_PAGE", R.string.action_go_first_page, ReaderCommand.DCMD_BEGIN, 0 );
 	public final static ReaderAction LAST_PAGE = new ReaderAction("LAST_PAGE", R.string.action_go_last_page, ReaderCommand.DCMD_END, 0 );
-	public final static ReaderAction OPTIONS = new ReaderAction("OPTIONS", R.string.action_options, ReaderCommand.DCMD_OPTIONS_DIALOG, 0, R.id.cr3_mi_options );
+	public final static ReaderAction OPTIONS = new ReaderAction("OPTIONS", R.string.action_options, ReaderCommand.DCMD_OPTIONS_DIALOG, 0, R.id.cr3_mi_options ).setIconId(R.drawable.cr3_viewer_settings);
 	public final static ReaderAction READER_MENU = new ReaderAction("READER_MENU", R.string.action_reader_menu, ReaderCommand.DCMD_READER_MENU, 0 );
 	public final static ReaderAction TOGGLE_DAY_NIGHT = new ReaderAction("TOGGLE_DAY_NIGHT", R.string.action_toggle_day_night, ReaderCommand.DCMD_TOGGLE_DAY_NIGHT_MODE, 0, R.id.cr3_mi_toggle_day_night );
 	public final static ReaderAction RECENT_BOOKS = new ReaderAction("RECENT_BOOKS", R.string.action_recent_books_list, ReaderCommand.DCMD_RECENT_BOOKS_LIST, R.id.book_recent_books ).setIconId(R.drawable.cr3_browser_folder_recent);
 	public final static ReaderAction OPDS_CATALOGS = new ReaderAction("OPDS_CATALOGS", R.string.mi_book_opds_root, ReaderCommand.DCMD_OPDS_CATALOGS, 0).setIconId(R.drawable.cr3_browser_folder_opds);
 	public final static ReaderAction FILE_BROWSER_ROOT = new ReaderAction("FILE_BROWSER_ROOT", R.string.mi_book_root, ReaderCommand.DCMD_FILE_BROWSER_ROOT, 0).setIconId(R.drawable.cr3_browser_folder_root);
 	public final static ReaderAction FILE_BROWSER = new ReaderAction("FILE_BROWSER", R.string.action_file_browser, ReaderCommand.DCMD_FILE_BROWSER, 0, R.id.cr3_mi_open_file );
-	public final static ReaderAction FILE_BROWSER_UP = new ReaderAction("FILE_BROWSER_UP", R.string.action_go_back, ReaderCommand.DCMD_FILE_BROWSER_UP, 0).setIconId(R.drawable.cr3_browser_back);
-	public final static ReaderAction CURRENT_BOOK_DIRECTORY = new ReaderAction("DCMD_CURRENT_BOOK_DIRECTORY", R.string.mi_book_recent_goto, ReaderCommand.DCMD_CURRENT_BOOK_DIRECTORY, 0);
+	public final static ReaderAction FILE_BROWSER_UP = new ReaderAction("FILE_BROWSER_UP", R.string.action_go_back, ReaderCommand.DCMD_FILE_BROWSER_UP, 0).setIconId(R.drawable.cr3_browser_folder_up);
+	public final static ReaderAction CURRENT_BOOK_DIRECTORY = new ReaderAction("DCMD_CURRENT_BOOK_DIRECTORY", R.string.mi_book_recent_goto, ReaderCommand.DCMD_CURRENT_BOOK_DIRECTORY, 0).setIconId(R.drawable.cr3_browser_folder_current_book);
+	public final static ReaderAction CURRENT_BOOK = new ReaderAction("DCMD_CURRENT_BOOK", R.string.mi_book_back_to_reading, ReaderCommand.DCMD_CURRENT_BOOK, 0).setIconId(R.drawable.cr3_button_book_open);
 	
 	public final static ReaderAction FONT_PREVIOUS = new ReaderAction("FONT_PREVIOUS", R.string.mi_font_previous, ReaderCommand.DCMD_FONT_PREVIOUS, 0); //, R.id.cr3_mi_font_previous 
 	public final static ReaderAction FONT_NEXT = new ReaderAction("FONT_NEXT", R.string.mi_font_next, ReaderCommand.DCMD_FONT_NEXT, 0); //, R.id.cr3_mi_font_next 	
