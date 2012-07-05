@@ -82,7 +82,15 @@
                 android:text="Book Series" 
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
-  	      </LinearLayout>
+          <TextView 
+                android:id="@+id/lbl_book_info"
+                   style="@style/TextAppearance.Small"
+                   android:singleLine="false"
+                   android:maxLines="2"
+                android:text="File info" 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+          </LinearLayout>
       
     </LinearLayout>
 

@@ -85,18 +85,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					
 					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
 					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled) {
-						final FileInfo file = item;
-						mHistory.getOrCreateBookInfo(item, new BookInfoLoadedCallack() {
-							@Override
-							public void onBookInfoLoaded(BookInfo bookInfo) {
-								if (bookInfo == null)
-									bookInfo = new BookInfo(file);
-								BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, currDirectory, bookInfo, 
-										screenHeight < screenWidth ? screenHeight : screenWidth, 
-										currDirectory.isRecentDir());
-								dlg.show();
-							}
-						});
+						Activities.editBookInfo(mActivity, currDirectory, item);
 						return true;
 					}
 					
@@ -303,7 +292,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.book_delete:
 			log.d("book_delete menu item selected");
-			askDeleteBook(selectedItem);
+			Activities.askDeleteBook(mActivity, selectedItem);
 			return true;
 		case R.id.book_recent_goto:
 			log.d("book_recent_goto menu item selected");
@@ -311,7 +300,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.book_recent_remove:
 			log.d("book_recent_remove menu item selected");
-			askDeleteRecent(selectedItem);
+			Activities.askDeleteRecent(mActivity, selectedItem);
 			return true;
 		case R.id.catalog_add:
 			log.d("catalog_add menu item selected");
@@ -319,7 +308,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.catalog_delete:
 			log.d("catalog_delete menu item selected");
-			askDeleteCatalog();
+			Activities.askDeleteCatalog(mActivity, selectedItem);
 			return true;
 		case R.id.catalog_edit:
 			log.d("catalog_edit menu item selected");
@@ -331,46 +320,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		}
 		return false;
-	}
-	
-	public void askDeleteBook(final FileInfo item)
-	{
-		mActivity.askConfirmation(R.string.win_title_confirm_book_delete, new Runnable() {
-			@Override
-			public void run() {
-				Activities.closeBookIfOpened(item);
-				if (item.deleteFile()) {
-					Services.getSyncService().removeFile(item.getPathName());
-					mHistory.removeBookInfo(item, true, true);
-				}
-				showDirectory(currDirectory, null);
-			}
-		});
-	}
-	
-	public void askDeleteRecent(final FileInfo item)
-	{
-		mActivity.askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
-			@Override
-			public void run() {
-				Services.getHistory().removeBookInfo(item, true, false);
-				Services.getSyncService().removeFileLastPosition(item.getPathName());
-				showRecentBooks();
-			}
-		});
-	}
-	
-	private void askDeleteCatalog()
-	{
-		mActivity.askConfirmation(R.string.win_title_confirm_catalog_delete, new Runnable() {
-			@Override
-			public void run() {
-				if (selectedItem!=null && selectedItem.isOPDSDir()) {
-					Services.getDB().removeOPDSCatalog(selectedItem.id);
-					refreshOPDSRootDirectory();
-				}
-			}
-		});
 	}
 	
 	public void refreshOPDSRootDirectory() {
@@ -388,6 +337,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 	}
 	
+	public void refreshDirectory(FileInfo dir) {
+		if (dir.isSpecialDir()) {
+			if (dir.isOPDSRoot())
+				refreshOPDSRootDirectory();
+		} else {
+			if (dir.pathNameEquals(currDirectory))
+				showDirectory(currDirectory, null);
+		}
+	}
 
 	protected void showParentDirectory()
 	{
@@ -408,62 +366,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		mListView.setSelection(0);
 	}
 	
-	public static String formatSize( int size )
-	{
-		if ( size==0 )
-			return "";
-		if ( size<10000 )
-			return String.valueOf(size);
-		else if ( size<1000000 )
-			return String.valueOf(size/1000) + "K";
-		else if ( size<10000000 )
-			return String.valueOf(size/1000000) + "." + String.valueOf(size%1000000/100000) + "M";
-		else
-			return String.valueOf(size/1000000) + "M";
-	}
-
-	static private ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>(); 
-	static private ThreadLocal<SimpleDateFormat> timeFormatThreadLocal = new ThreadLocal<SimpleDateFormat>();
-	static private SimpleDateFormat dateFormat() {
-		if (dateFormatThreadLocal.get() == null)
-			dateFormatThreadLocal.set(new SimpleDateFormat("dd.MM.yy", Locale.getDefault()));
-		return dateFormatThreadLocal.get();
-	}
-	
-	static private SimpleDateFormat timeFormat() {
-		if (timeFormatThreadLocal.get() == null)
-			timeFormatThreadLocal.set(new SimpleDateFormat("HH:mm", Locale.getDefault()));
-		return timeFormatThreadLocal.get();
-	}
-	
-	public static String formatDate( long timeStamp )
-	{
-		if ( timeStamp<5000*60*60*24*1000 )
-			return "";
-		TimeZone tz = java.util.TimeZone.getDefault();
-		Calendar now = Calendar.getInstance(tz);
-		Calendar c = Calendar.getInstance(tz);
-		c.setTimeInMillis(timeStamp);
-		if ( c.get(Calendar.YEAR)<1980 )
-			return "";
-		if ( c.get(Calendar.YEAR)==now.get(Calendar.YEAR)
-				&& c.get(Calendar.MONTH)==now.get(Calendar.MONTH)
-				&& c.get(Calendar.DAY_OF_MONTH)==now.get(Calendar.DAY_OF_MONTH)) {
-			timeFormat().setTimeZone(tz);
-			return timeFormat().format(c.getTime());
-		} else {
-			dateFormat().setTimeZone(tz);
-			return dateFormat().format(c.getTime());
-		}
-	}
-
-	public static String formatPercent( int percent )
-	{
-		if ( percent<=0 )
-			return null;
-		return String.valueOf(percent/100) + "." + String.valueOf(percent/10%10) + "%";
-	}
-
 	private FileInfo currDirectory;
 
 	public boolean isRootDir()
@@ -1081,39 +983,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 //						field1.setVisibility(VISIBLE);
 //						field2.setVisibility(VISIBLE);
 //						field3.setVisibility(VISIBLE);
-						String state = "";
-						if (item.getRate() > 0 && item.getRate() <= 5) {
-							String[] stars = new String[] {
-									"*",
-									"**",
-									"***",
-									"****",
-									"*****",
-							};
-							state = state + stars[item.getRate() - 1] + " ";
-						}
-						if (item.getReadingState() > 0) {
-							String stateName = "";
-							int n = item.getReadingState();
-							if (n == FileInfo.STATE_READING)
-								stateName = mActivity.getString(R.string.book_state_reading);
-							else if (n == FileInfo.STATE_TO_READ)
-								stateName = mActivity.getString(R.string.book_state_toread);
-							else if (n == FileInfo.STATE_FINISHED)
-								stateName = mActivity.getString(R.string.book_state_finished);
-							state = state + "[" + stateName + "] ";
-						}
+						String state = Utils.formatReadingState(mActivity, item);
 						if (field1 != null)
-							field1.setText(state + formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
+							field1.setText(state + " " + Utils.formatFileInfo(item) + "  ");
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
-						if (field2 != null) {
-							Bookmark pos = mHistory.getLastPos(item);
-							if ( pos!=null && pos.getPercent() > 0 && pos.getTimeStamp() > 0) {
-								field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
-							} else {
-								field2.setText("");
-							}
-						}
+						if (field2 != null)
+							field2.setText(Utils.formatLastPosition(mHistory.getLastPos(item)));
 						//field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
 					} 
 					

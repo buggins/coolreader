@@ -11,18 +11,11 @@ import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
 
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.FrameLayout;
-import android.widget.FrameLayout.LayoutParams;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.devsmart.android.ui.HorizontalListView;
 
 public class CRRootView extends FrameLayout {
 
@@ -56,18 +49,8 @@ public class CRRootView extends FrameLayout {
     	coverWidth = w;
     	coverHeight = h;
 		createViews();
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				Services.getHistory().getOrLoadRecentBooks(new CRDBService.RecentBooksLoadingCallback() {
-					@Override
-					public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
-						updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
-						updateRecentBooks(bookList);
-					}
-				});
-			}
-		});
+		
+		refreshRecentBooks();
 
 		coverpageListener =	new CoverpageReadyListener() {
 			@Override
@@ -124,15 +107,20 @@ public class CRRootView extends FrameLayout {
     	// set current book cover page
 		ImageView cover = (ImageView)mView.findViewById(R.id.book_cover);
 		if (currentBook != null) {
-			cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(currentBook.getFileInfo(), coverWidth, coverHeight));
+			FileInfo item = currentBook.getFileInfo();
+			cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item, coverWidth, coverHeight));
 			cover.setMinimumHeight(coverHeight);
 			cover.setMinimumWidth(coverWidth);
 			cover.setMaxHeight(coverHeight);
 			cover.setMaxWidth(coverWidth);
-			
-			setBookInfoItem(mView, R.id.lbl_book_author, Utils.formatAuthors(currentBook.getFileInfo().authors));
+
+			setBookInfoItem(mView, R.id.lbl_book_author, Utils.formatAuthors(item.authors));
 			setBookInfoItem(mView, R.id.lbl_book_title, currentBook.getFileInfo().title);
-			setBookInfoItem(mView, R.id.lbl_book_series, Utils.formatSeries(currentBook.getFileInfo().series, currentBook.getFileInfo().seriesNumber));
+			setBookInfoItem(mView, R.id.lbl_book_series, Utils.formatSeries(item.series, item.seriesNumber));
+			String state = Utils.formatReadingState(mActivity, item);
+			state = state + " " + Utils.formatFileInfo(item) + " ";
+			state = state + " " + Utils.formatLastPosition(Services.getHistory().getLastPos(item));
+			setBookInfoItem(mView, R.id.lbl_book_info, state);
 		} else {
 			log.w("No current book in history");
 			cover.setImageDrawable(null);
@@ -195,10 +183,32 @@ public class CRRootView extends FrameLayout {
 						Activities.loadDocument(item);
 					}
 				});
+				view.setOnLongClickListener(new OnLongClickListener() {
+					@Override
+					public boolean onLongClick(View v) {
+						Activities.editBookInfo(mActivity, Services.getScanner().createRecentRoot(), item);
+						return true;
+					}
+				});
 			}
 			mRecentBooksScroll.addView(view);
 		}
 		mRecentBooksScroll.invalidate();
+	}
+
+	public void refreshRecentBooks() {
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				Services.getHistory().getOrLoadRecentBooks(new CRDBService.RecentBooksLoadingCallback() {
+					@Override
+					public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
+						updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
+						updateRecentBooks(bookList);
+					}
+				});
+			}
+		});
 	}
 
 	public void refreshOnlineCatalogs() {
@@ -352,6 +362,14 @@ public class CRRootView extends FrameLayout {
 					Activities.loadDocument(currentBook.getFileInfo());
 				}
 				
+			}
+		});
+		mView.findViewById(R.id.current_book).setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				if (currentBook != null)
+					Activities.editBookInfo(mActivity, Services.getScanner().createRecentRoot(), currentBook.getFileInfo());
+				return true;
 			}
 		});
 

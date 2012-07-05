@@ -120,7 +120,7 @@ public class BookmarksDlg  extends BaseDialog {
 					labelView.setText(String.valueOf(position+1));
 			}
 			if ( b!=null ) {
-				String percentString = FileBrowser.formatPercent(b.getPercent());
+				String percentString = Utils.formatPercent(b.getPercent());
 				String s1 = b.getTitleText();
 				String s2 = b.getPosText();
 				String s3 = b.getCommentText();

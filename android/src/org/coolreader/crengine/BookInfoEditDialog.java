@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 
@@ -18,10 +17,10 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -30,17 +29,19 @@ import android.widget.RadioGroup;
 import android.widget.RatingBar;
 
 public class BookInfoEditDialog extends BaseDialog {
-	private BrowserActivity mActivity;
+	private BaseActivity mActivity;
 	private BookInfo mBookInfo;
 	private FileInfo mParentDir;
 	private LayoutInflater mInflater;
 	private int mWindowSize;
 	private boolean mIsRecentBooksItem;
-	public BookInfoEditDialog(BrowserActivity activity, FileInfo baseDir, BookInfo book, int windowSize, boolean isRecentBooksItem)
+	public BookInfoEditDialog(BaseActivity activity, FileInfo baseDir, BookInfo book, boolean isRecentBooksItem)
 	{
 		super(activity, null, false, false);
 		this.mParentDir = baseDir;
-		this.mWindowSize = windowSize;
+		DisplayMetrics outMetrics = new DisplayMetrics();
+		activity.getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+		this.mWindowSize = outMetrics.widthPixels < outMetrics.heightPixels ? outMetrics.widthPixels : outMetrics.heightPixels;
 		this.mActivity = activity;
 		this.mBookInfo = book;
 		this.mIsRecentBooksItem = isRecentBooksItem;
@@ -249,7 +250,7 @@ public class BookInfoEditDialog extends BaseDialog {
         btnDeleteBook.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mActivity.getBrowser().askDeleteBook(mBookInfo.getFileInfo());
+				Activities.askDeleteBook(mActivity, mBookInfo.getFileInfo());
 				dismiss();
 			}
 		});
@@ -278,7 +279,7 @@ public class BookInfoEditDialog extends BaseDialog {
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-        mActivity.getBrowser().getCoverpageManager().drawCoverpageFor(file, bmp, new CoverpageBitmapReadyListener() {
+        Services.getCoverpageManager().drawCoverpageFor(file, bmp, new CoverpageBitmapReadyListener() {
 			@Override
 			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
 		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
@@ -319,14 +320,14 @@ public class BookInfoEditDialog extends BaseDialog {
         	btnRemoveRecent.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					mActivity.getBrowser().askDeleteRecent(mBookInfo.getFileInfo());
+					Activities.askDeleteRecent(mActivity, mBookInfo.getFileInfo());
 					dismiss();
 				}
 			});
         	btnOpenFolder.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					mActivity.getBrowser().showDirectory(mBookInfo.getFileInfo(), mBookInfo.getFileInfo());
+					Activities.showDirectory(mBookInfo.getFileInfo());
 					dismiss();
 				}
 			});
@@ -378,7 +379,7 @@ public class BookInfoEditDialog extends BaseDialog {
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
         	mParentDir.setFile(file);
-        	mActivity.getBrowser().onChange(file, true);
+        	Activities.directoryUpdated(mParentDir);
         }
 	}
 

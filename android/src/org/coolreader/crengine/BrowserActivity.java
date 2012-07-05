@@ -147,5 +147,8 @@ public class BrowserActivity extends BaseActivity {
         }
         //
 	}
-	
+
+	public void directoryUpdated(FileInfo dir) {
+		mBrowser.refreshDirectory(dir);
+	}
 }
