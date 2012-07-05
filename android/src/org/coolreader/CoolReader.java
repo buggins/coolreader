@@ -3,17 +3,20 @@ package org.coolreader;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 import org.coolreader.crengine.Activities;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseActivity;
 import org.coolreader.crengine.CRRootView;
+import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.Services;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
+import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
 import org.coolreader.sync.SyncServiceAccessor;
 
 import android.content.Intent;
@@ -592,5 +595,10 @@ public class CoolReader extends BaseActivity
 		super.setCurrentTheme(theme);
 		//getWindow().setBackgroundDrawable(theme.getActionBarBackgroundDrawableBrowser());
 	}
+
+	public void refreshOnlineCatalogs() {
+		mFrame.refreshOnlineCatalogs();
+	}
+	
 	
 }

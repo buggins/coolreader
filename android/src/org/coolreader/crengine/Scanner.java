@@ -461,7 +461,7 @@ public class Scanner extends FileInfoChangeSource {
 			return new FileInfo(path);
 	}
 	
-	private FileInfo createOPDSRoot() {
+	public FileInfo createOPDSRoot() {
 		final FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.OPDS_LIST_TAG;

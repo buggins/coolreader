@@ -30,10 +30,10 @@ public class CRRootView extends FrameLayout {
 
 	private final CoolReader mActivity;
 	private ViewGroup mView;
-	private HorizontalListView mRecentBooksScroll;
-	private HorizontalListView mFilesystemScroll;
-	private HorizontalListView mLibraryScroll;
-	private HorizontalListView mOnlineCatalogsScroll;
+	private LinearLayout mRecentBooksScroll;
+	private LinearLayout mFilesystemScroll;
+	private LinearLayout mLibraryScroll;
+	private LinearLayout mOnlineCatalogsScroll;
 	private CoverpageManager mCoverpageManager;
 	private int coverWidth;
 	private int coverHeight;
@@ -80,33 +80,23 @@ public class CRRootView extends FrameLayout {
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
-				Services.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
-					@Override
-					public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
-						updateOnlineCatalogs(catalogs);
-					}
-				});
+				refreshOnlineCatalogs();
 			}
 		});
 
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
-				Services.getDB().sync(new Runnable() {
-					@Override
-					public void run() {
-						ArrayList<FileInfo> dirs = new ArrayList<FileInfo>();
-						dirs.add(Services.getScanner().getDownloadDirectory());
-						File[] roots = Engine.getStorageDirectories(false);
-						for (File f : roots) {
-							FileInfo dir = new FileInfo(f);
-							dirs.add(dir);
-						}
-						updateFilesystems(dirs);
-						
-						updateLibraryItems(Services.getScanner().getLibraryItems());
-					}
-				});
+				ArrayList<FileInfo> dirs = new ArrayList<FileInfo>();
+				File[] roots = Engine.getStorageDirectories(false);
+				for (File f : roots) {
+					FileInfo dir = new FileInfo(f);
+					dirs.add(dir);
+				}
+				dirs.add(Services.getScanner().getDownloadDirectory());
+				updateFilesystems(dirs);
+				
+				updateLibraryItems(Services.getScanner().getLibraryItems());
 			}
 		});
 	}
@@ -157,47 +147,39 @@ public class CRRootView extends FrameLayout {
 		}
 	}	
 	
-	private ArrayList<BookInfo> mRecentBooks = new ArrayList<BookInfo>();
+	private final static int MAX_RECENT_BOOKS = 12;
 	private void updateRecentBooks(ArrayList<BookInfo> books) {
-		mRecentBooks = new ArrayList<BookInfo>();
-		for (BookInfo bi : books)
-			mRecentBooks.add(new BookInfo(bi));
-		mRecentBooksScroll.setAdapter(new BaseListAdapter() {
-
-			@Override
-			public int getCount() {
-				return mRecentBooks.size() > 1 ? mRecentBooks.size() - 1 : 0;
-			}
-
-			@Override
-			public Object getItem(int position) {
-				return mRecentBooks.get(position - 1);
-			}
-
-			@Override
-			public long getItemId(int position) {
-				return position + 1;
-			}
-
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				if (convertView == null) {
-					LayoutInflater inflater = LayoutInflater.from(mActivity);
-					View view = inflater.inflate(R.layout.root_item_recent_book, null);
-					convertView = (ViewGroup)view;
-				}
-				ImageView cover = (ImageView)convertView.findViewById(R.id.book_cover);
-				TextView label = (TextView)convertView.findViewById(R.id.book_name);
-				BookInfo book = mRecentBooks.get(position + 1);
-				cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(book.getFileInfo(), coverWidth, coverHeight));
-				cover.setMinimumHeight(coverHeight);
-				cover.setMaxHeight(coverHeight);
-				cover.setMinimumWidth(coverWidth);
-				cover.setMaxWidth(coverWidth);
+		ArrayList<FileInfo> files = new ArrayList<FileInfo>();
+		for (int i = 1; i <= MAX_RECENT_BOOKS && i < books.size(); i++)
+			files.add(books.get(i).getFileInfo());
+		files.add(Services.getScanner().createRecentRoot());
+		LayoutInflater inflater = LayoutInflater.from(mActivity);
+		mRecentBooksScroll.removeAllViews();
+		for (final FileInfo item : files) {
+			final View view = inflater.inflate(R.layout.root_item_recent_book, null);
+			ImageView cover = (ImageView)view.findViewById(R.id.book_cover);
+			TextView label = (TextView)view.findViewById(R.id.book_name);
+			cover.setMinimumHeight(coverHeight);
+			cover.setMaxHeight(coverHeight);
+			cover.setMaxWidth(coverWidth);
+			if (item.isRecentDir()) {
+				cover.setImageResource(R.drawable.cr3_button_next);
 				if (label != null) {
-					String title = book.getFileInfo().title;
-					String authors = Utils.formatAuthors(book.getFileInfo().authors);
-					String s = book.getFileInfo().getFileNameToDisplay();
+					label.setText("");
+				}
+				view.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Activities.showRecentBooks();
+					}
+				});
+			} else {
+				cover.setMinimumWidth(coverWidth);
+				cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item, coverWidth, coverHeight));
+				if (label != null) {
+					String title = item.title;
+					String authors = Utils.formatAuthors(item.authors);
+					String s = item.getFileNameToDisplay();
 					if (!Utils.empty(title) && !Utils.empty(authors))
 						s = title + " - " + authors;
 					else if (!Utils.empty(title))
@@ -207,212 +189,145 @@ public class CRRootView extends FrameLayout {
 					label.setText(s != null ? s : "");
 					label.setMaxWidth(coverWidth);
 				}
-				return convertView;
+				view.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Activities.loadDocument(item);
+					}
+				});
 			}
+			mRecentBooksScroll.addView(view);
+		}
+		mRecentBooksScroll.invalidate();
+	}
 
-		});
-		mRecentBooksScroll.setOnItemClickListener(new OnItemClickListener() {
+	public void refreshOnlineCatalogs() {
+		Services.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
-				BookInfo book = mRecentBooks.get((int)position);
-				Activities.loadDocument(book.getFileInfo());
+			public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
+				updateOnlineCatalogs(catalogs);
 			}
 		});
 	}
 	
-	private ArrayList<FileInfo> mOnlineCatalogs = new ArrayList<FileInfo>();
 	private void updateOnlineCatalogs(ArrayList<FileInfo> catalogs) {
-		mOnlineCatalogs = catalogs;
-		mOnlineCatalogsScroll.setAdapter(new BaseListAdapter() {
-			@Override
-			public int getCount() {
-				return mOnlineCatalogs.size();
-			}
-
-			@Override
-			public Object getItem(int position) {
-				return mOnlineCatalogs.get(position);
-			}
-
-			@Override
-			public long getItemId(int position) {
-				return position;
-			}
-
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				if (convertView == null) {
-					LayoutInflater inflater = LayoutInflater.from(mActivity);
-					View view = inflater.inflate(R.layout.root_item_online_catalog, null);
-					convertView = (ViewGroup)view;
-				}
-				TextView label = (TextView)convertView.findViewById(R.id.item_name);
-				FileInfo item = mOnlineCatalogs.get(position);
+		catalogs.add(Services.getScanner().createOPDSRoot());
+		LayoutInflater inflater = LayoutInflater.from(mActivity);
+		mOnlineCatalogsScroll.removeAllViews();
+		for (final FileInfo item : catalogs) {
+			final View view = inflater.inflate(R.layout.root_item_online_catalog, null);
+			ImageView icon = (ImageView)view.findViewById(R.id.item_icon);
+			TextView label = (TextView)view.findViewById(R.id.item_name);
+			if (item.isOPDSRoot()) {
+				icon.setImageResource(R.drawable.cr3_browser_folder_opds_add);
+				label.setText("Add");
+				view.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Activities.editOPDSCatalog(null);
+					}
+				});
+			} else {
 				if (label != null) {
 					label.setText(item.getFileNameToDisplay());
 					label.setMaxWidth(coverWidth * 3 / 2);
 				}
-				return convertView;
+				view.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Activities.showCatalog(item);
+					}
+				});
+				view.setOnLongClickListener(new OnLongClickListener() {
+					@Override
+					public boolean onLongClick(View v) {
+						Activities.editOPDSCatalog(item);
+						return true;
+					}
+				});
 			}
-
-		});
-		mOnlineCatalogsScroll.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
-				FileInfo catalog = mOnlineCatalogs.get((int)position);
-				Activities.showCatalog(catalog);
-			}
-		});
+			mOnlineCatalogsScroll.addView(view);
+		}
 		mOnlineCatalogsScroll.invalidate();
 	}
 	
-	private ArrayList<FileInfo> mFileSystems = new ArrayList<FileInfo>();
 	private void updateFilesystems(ArrayList<FileInfo> dirs) {
-		mFileSystems = new ArrayList<FileInfo>();
-		for (FileInfo fi : dirs)
-			mFileSystems.add(new FileInfo(fi));
-		mFilesystemScroll.setAdapter(new BaseListAdapter() {
 
-			@Override
-			public int getCount() {
-				return mFileSystems.size();
-			}
-
-			@Override
-			public Object getItem(int position) {
-				return mFileSystems.get(position);
-			}
-
-			@Override
-			public long getItemId(int position) {
-				return position;
-			}
-
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				if (convertView == null) {
-					LayoutInflater inflater = LayoutInflater.from(mActivity);
-					View view = inflater.inflate(R.layout.root_item_dir, null);
-					convertView = (ViewGroup)view;
+		LayoutInflater inflater = LayoutInflater.from(mActivity);
+		mFilesystemScroll.removeAllViews();
+		for (int i = 0; i < dirs.size(); i++) {
+			final FileInfo item = dirs.get(i);
+			final View view = inflater.inflate(R.layout.root_item_dir, null);
+			ImageView icon = (ImageView)view.findViewById(R.id.item_icon);
+			TextView label = (TextView)view.findViewById(R.id.item_name);
+			if (i == dirs.size() - 1)
+				icon.setImageResource(R.drawable.cr3_browser_folder_user);
+			else
+				icon.setImageResource(R.drawable.cr3_browser_folder_database);
+			label.setText(item.pathname);
+			label.setMaxWidth(coverWidth * 25 / 10);
+			view.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Activities.showDirectory(item);
 				}
-				TextView label = (TextView)convertView.findViewById(R.id.item_name);
-				FileInfo item = mFileSystems.get(position);
-				if (label != null) {
-					label.setText(item.pathname);
-					label.setMaxWidth(coverWidth * 2);
-				}
-				return convertView;
-			}
-
-		});
-		mFilesystemScroll.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
-				FileInfo dir = mFileSystems.get((int)position);
-				Activities.showDirectory(dir);
-			}
-		});
+			});
+			mFilesystemScroll.addView(view);
+		}
 		mFilesystemScroll.invalidate();
 	}
 
-	private ArrayList<FileInfo> mLibraryItems = new ArrayList<FileInfo>();
 	private void updateLibraryItems(ArrayList<FileInfo> dirs) {
-		mLibraryItems = new ArrayList<FileInfo>();
-		for (FileInfo fi : dirs)
-			mLibraryItems.add(new FileInfo(fi));
-		mLibraryScroll.setAdapter(new BaseListAdapter() {
-			@Override
-			public int getCount() {
-				return mLibraryItems.size();
+		LayoutInflater inflater = LayoutInflater.from(mActivity);
+		mLibraryScroll.removeAllViews();
+		for (final FileInfo item : dirs) {
+			final View view = inflater.inflate(R.layout.root_item_library, null);
+			ImageView image = (ImageView)view.findViewById(R.id.item_icon);
+			TextView label = (TextView)view.findViewById(R.id.item_name);
+			if (item.isSearchShortcut())
+				image.setImageResource(R.drawable.cr3_browser_find);
+			else if (item.isBooksByAuthorRoot() || item.isBooksByTitleRoot() || item.isBooksBySeriesRoot())
+				image.setImageResource(R.drawable.cr3_browser_folder_authors);
+			if (label != null) {
+				label.setText(item.filename);
+				label.setMaxWidth(coverWidth * 3 / 2);
 			}
-
-			@Override
-			public Object getItem(int position) {
-				return mLibraryItems.get(position);
-			}
-
-			@Override
-			public long getItemId(int position) {
-				return position;
-			}
-
-			@Override
-			public View getView(int position, View convertView, ViewGroup parent) {
-				if (convertView == null) {
-					LayoutInflater inflater = LayoutInflater.from(mActivity);
-					View view = inflater.inflate(R.layout.root_item_library, null);
-					convertView = (ViewGroup)view;
+			view.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Activities.showDirectory(item);
 				}
-				ImageView image = (ImageView)convertView.findViewById(R.id.item_icon);
-				TextView label = (TextView)convertView.findViewById(R.id.item_name);
-				FileInfo item = mLibraryItems.get(position);
-				if (label != null) {
-					label.setText(item.filename);
-					//label.setMaxWidth(coverWidth * 3 / 2);
-				}
-				if (item.isSearchShortcut())
-					image.setImageResource(R.drawable.cr3_browser_find);
-				else if (item.isBooksByAuthorRoot() || item.isBooksByTitleRoot() || item.isBooksBySeriesRoot())
-					image.setImageResource(R.drawable.cr3_browser_folder_authors);
-				return convertView;
-			}
-
-		});
-		mLibraryScroll.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
-				FileInfo dir = mLibraryItems.get((int)position);
-				Activities.showDirectory(dir);
-			}
-		});
+			});
+			mLibraryScroll.addView(view);
+		}
 		mLibraryScroll.invalidate();
 	}
 
-	private HorizontalListView createHScroll(int layoutId, OnLongClickListener longClickListener) {
-		LinearLayout layout = (LinearLayout)mView.findViewById(layoutId);
-		layout.removeAllViews();
-		HorizontalListView view = new HorizontalListView(mActivity, null);
-		view.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-//		view.setFadingEdgeLength(10);
-//		view.setHorizontalFadingEdgeEnabled(true);
-		layout.addView(view);
-		if (longClickListener != null)
-			layout.setOnLongClickListener(longClickListener); 
-		return view;
-	}
+//	private HorizontalListView createHScroll(int layoutId, OnLongClickListener longClickListener) {
+//		LinearLayout layout = (LinearLayout)mView.findViewById(layoutId);
+//		layout.removeAllViews();
+//		HorizontalListView view = new HorizontalListView(mActivity, null);
+//		view.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+////		view.setFadingEdgeLength(10);
+////		view.setHorizontalFadingEdgeEnabled(true);
+//		layout.addView(view);
+//		if (longClickListener != null)
+//			layout.setOnLongClickListener(longClickListener); 
+//		return view;
+//	}
 	
 	private void createViews() {
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		View view = inflater.inflate(R.layout.root_window, null);
 		mView = (ViewGroup)view;
 		
-		mRecentBooksScroll = createHScroll(R.id.scroll_recent_books, new OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				Activities.showRecentBooks();
-				return true;
-			}
-		});
-		mRecentBooksScroll.setMinimumHeight(coverHeight);
+		mRecentBooksScroll = (LinearLayout)mView.findViewById(R.id.scroll_recent_books);
 		
-		mFilesystemScroll = createHScroll(R.id.scroll_filesystem, null);
-		mFilesystemScroll.setMinimumHeight(coverHeight * 2 / 3);
+		mFilesystemScroll = (LinearLayout)mView.findViewById(R.id.scroll_filesystem);
 
-		mLibraryScroll = createHScroll(R.id.scroll_library, null);
-		mLibraryScroll.setMinimumHeight(coverHeight * 2 / 3);
+		mLibraryScroll = (LinearLayout)mView.findViewById(R.id.scroll_library);
 		
-		mOnlineCatalogsScroll = createHScroll(R.id.scroll_online_catalogs, new OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				Activities.showOnlineCatalogs();
-				return true;
-			}
-		});
-		mOnlineCatalogsScroll.setMinimumHeight(coverHeight * 2 / 3);
+		mOnlineCatalogsScroll = (LinearLayout)mView.findViewById(R.id.scroll_online_catalogs);
 
 		updateCurrentBook(Services.getHistory().getLastBook());
 		

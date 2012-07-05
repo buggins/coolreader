@@ -16,27 +16,16 @@
   android:layout_height="wrap_content">
 
     
-    <TextView 
-        style="@style/TextAppearance.Small"
-        android:text="Cool Reader v3.1" 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        />
-    
-    <View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      />
-
     
     <LinearLayout
       android:id="@+id/current_book"
       android:orientation="horizontal"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
+      android:layout_marginLeft="4dip"
+      android:layout_marginRight="4dip"
+      android:layout_marginTop="4dip"
+      android:layout_marginBottom="4dip"
       android:minHeight="?android:attr/listPreferredItemHeight"
       >
 
@@ -45,7 +34,7 @@
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:layout_gravity="center_vertical|center_horizontal"
-             android:scaleType="fitCenter"
+             android:scaleType="center"
              android:gravity="center_vertical|left"
              android:minHeight="120dip"
              android:minWidth="100dip"
@@ -110,16 +99,26 @@
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"/-->
 
+    <HorizontalScrollView
+	      android:layout_marginLeft="4dip"
+	      android:layout_marginRight="4dip"
+	      android:layout_marginTop="6dip"
+	      android:layout_marginBottom="4dip"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
     <LinearLayout
       android:id="@+id/scroll_recent_books"
       android:orientation="horizontal"
-      android:layout_marginTop="6dip"
-      android:layout_width="fill_parent"
+      android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
       android:minHeight="?android:attr/listPreferredItemHeight"
       >
     </LinearLayout>
-
+    </HorizontalScrollView>
+    
     <View
       android:orientation="vertical"
       android:layout_width="fill_parent"
@@ -133,15 +132,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/-->
     
+    <HorizontalScrollView
+        android:layout_marginTop="6dip"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
     <LinearLayout
       android:id="@+id/scroll_filesystem"
-      android:layout_marginTop="6dip"
       android:orientation="horizontal"
-      android:layout_width="fill_parent"
+      android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
       android:minHeight="?android:attr/listPreferredItemHeight"
       >
     </LinearLayout>
+    </HorizontalScrollView>
 
     <View
       android:orientation="vertical"
@@ -150,20 +156,22 @@
       android:background="@drawable/divider_light_tiled"
       />
     
-    <!--TextView 
-        style="@style/TextAppearance.Medium"
-        android:text="Library" 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/-->
+    <HorizontalScrollView
+        android:layout_marginTop="6dip"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
     <LinearLayout
       android:id="@+id/scroll_library"
       android:orientation="horizontal"
-      android:layout_marginTop="6dip"
-      android:layout_width="fill_parent"
+      android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
       android:minHeight="?android:attr/listPreferredItemHeight"
       >
     </LinearLayout>
+    </HorizontalScrollView>
 
     <View
       android:orientation="vertical"
@@ -178,15 +186,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/-->
 
+	<HorizontalScrollView
+        android:layout_marginTop="6dip"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal" >
     <LinearLayout
       android:id="@+id/scroll_online_catalogs"
       android:orientation="horizontal"
-      android:layout_marginTop="6dip"
-      android:layout_width="fill_parent"
+      android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
       android:minHeight="?android:attr/listPreferredItemHeight"
       >
     </LinearLayout>
+    </HorizontalScrollView>
 
     <View
       android:orientation="vertical"
@@ -194,15 +209,7 @@
       android:layout_height="8dip"
       android:background="@drawable/divider_light_tiled"
       />
-
-    <TextView 
-        style="@style/TextAppearance.Small"
-        android:text="(c) Vadim Lopatin" 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        />
-    
+		
 </LinearLayout>
 </ScrollView>
 <!-- /LinearLayout-->

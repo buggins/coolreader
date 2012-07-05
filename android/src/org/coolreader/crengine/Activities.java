@@ -128,6 +128,33 @@ public class Activities {
 		log.d("Activities.showCatalog(" + path + ") is called");
 		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, path.getPathName());
 	}
+
+	
+	public static void editOPDSCatalog(FileInfo opds) {
+		if (opds==null) {
+			opds = new FileInfo();
+			opds.isDirectory = true;
+			opds.pathname = FileInfo.OPDS_DIR_PREFIX + "http://";
+			opds.filename = "New Catalog";
+			opds.isListed = true;
+			opds.isScanned = true;
+			opds.parent = Services.getScanner().getOPDSRoot();
+		}
+		OPDSCatalogEditDialog dlg = new OPDSCatalogEditDialog(getCurrentActivity(), opds, new Runnable() {
+			@Override
+			public void run() {
+				refreshOPDSRootDirectory();
+			}
+		});
+		dlg.show();
+	}
+	
+	public static void refreshOPDSRootDirectory() {
+		if (browserActivity != null)
+			browserActivity.getBrowser().refreshOPDSRootDirectory();
+		if (mainActivity != null)
+			mainActivity.refreshOnlineCatalogs();
+	}
 	
 	public static void applyAppSetting( String key, String value )
 	{
