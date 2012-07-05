@@ -1,7 +1,10 @@
 package org.coolreader.crengine;
 
 import org.coolreader.CoolReader;
+import org.coolreader.R;
+import org.coolreader.crengine.History.BookInfoLoadedCallack;
 
+import android.app.Activity;
 import android.content.Intent;
 
 public class Activities {
@@ -106,7 +109,7 @@ public class Activities {
 	
 	public static final String OPEN_DIR_PARAM = "DIR_TO_OPEN";
 	public static void showBrowser(FileInfo dir) {
-		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, dir.getPathName());
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, dir != null ? dir.getPathName() : null);
 	}
 	
 	public static void showRecentBooks() {
@@ -147,6 +150,67 @@ public class Activities {
 			}
 		});
 		dlg.show();
+	}
+
+	public static void askDeleteBook(BaseActivity activity, final FileInfo item)
+	{
+		activity.askConfirmation(R.string.win_title_confirm_book_delete, new Runnable() {
+			@Override
+			public void run() {
+				Activities.closeBookIfOpened(item);
+				if (item.deleteFile()) {
+					Services.getSyncService().removeFile(item.getPathName());
+					Services.getHistory().removeBookInfo(item, true, true);
+				}
+				directoryUpdated(item.parent);
+			}
+		});
+	}
+	
+	public static void askDeleteRecent(BaseActivity activity, final FileInfo item)
+	{
+		activity.askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
+			@Override
+			public void run() {
+				Services.getHistory().removeBookInfo(item, true, false);
+				Services.getSyncService().removeFileLastPosition(item.getPathName());
+				directoryUpdated(Services.getScanner().createRecentRoot());
+			}
+		});
+	}
+	
+	public static void askDeleteCatalog(BaseActivity activity, final FileInfo item)
+	{
+		activity.askConfirmation(R.string.win_title_confirm_catalog_delete, new Runnable() {
+			@Override
+			public void run() {
+				if (item != null && item.isOPDSDir()) {
+					Services.getDB().removeOPDSCatalog(item.id);
+					directoryUpdated(Services.getScanner().createRecentRoot());
+				}
+			}
+		});
+	}
+	
+	
+	public static void directoryUpdated(FileInfo dir) {
+		if (mainActivity != null)
+			mainActivity.directoryUpdated(dir);
+		if (browserActivity != null)
+			browserActivity.directoryUpdated(dir);
+	}
+	
+	public static void editBookInfo(final BaseActivity activity, final FileInfo currDirectory, final FileInfo item) {
+		Services.getHistory().getOrCreateBookInfo(item, new BookInfoLoadedCallack() {
+			@Override
+			public void onBookInfoLoaded(BookInfo bookInfo) {
+				if (bookInfo == null)
+					bookInfo = new BookInfo(item);
+				BookInfoEditDialog dlg = new BookInfoEditDialog(activity, currDirectory, bookInfo, 
+						currDirectory.isRecentDir());
+				dlg.show();
+			}
+		});
 	}
 	
 	public static void refreshOPDSRootDirectory() {

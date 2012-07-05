@@ -4,8 +4,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
+import org.coolreader.R;
+
+import android.app.Activity;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.drawable.Drawable;
@@ -293,4 +300,99 @@ public class Utils {
 		else
 			return name;
 	}
+	
+	public static String formatPercent( int percent )
+	{
+		if ( percent<=0 )
+			return null;
+		return String.valueOf(percent/100) + "." + String.valueOf(percent/10%10) + "%";
+	}
+
+	public static String formatDate( long timeStamp )
+	{
+		if ( timeStamp<5000*60*60*24*1000 )
+			return "";
+		TimeZone tz = java.util.TimeZone.getDefault();
+		Calendar now = Calendar.getInstance(tz);
+		Calendar c = Calendar.getInstance(tz);
+		c.setTimeInMillis(timeStamp);
+		if ( c.get(Calendar.YEAR)<1980 )
+			return "";
+		if ( c.get(Calendar.YEAR)==now.get(Calendar.YEAR)
+				&& c.get(Calendar.MONTH)==now.get(Calendar.MONTH)
+				&& c.get(Calendar.DAY_OF_MONTH)==now.get(Calendar.DAY_OF_MONTH)) {
+			timeFormat().setTimeZone(tz);
+			return timeFormat().format(c.getTime());
+		} else {
+			dateFormat().setTimeZone(tz);
+			return dateFormat().format(c.getTime());
+		}
+	}
+	
+	static private ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>(); 
+	static private ThreadLocal<SimpleDateFormat> timeFormatThreadLocal = new ThreadLocal<SimpleDateFormat>();
+	static private SimpleDateFormat dateFormat() {
+		if (dateFormatThreadLocal.get() == null)
+			dateFormatThreadLocal.set(new SimpleDateFormat("dd.MM.yy", Locale.getDefault()));
+		return dateFormatThreadLocal.get();
+	}
+	
+	static private SimpleDateFormat timeFormat() {
+		if (timeFormatThreadLocal.get() == null)
+			timeFormatThreadLocal.set(new SimpleDateFormat("HH:mm", Locale.getDefault()));
+		return timeFormatThreadLocal.get();
+	}
+
+	public static String formatSize( int size )
+	{
+		if ( size==0 )
+			return "";
+		if ( size<10000 )
+			return String.valueOf(size);
+		else if ( size<1000000 )
+			return String.valueOf(size/1000) + "K";
+		else if ( size<10000000 )
+			return String.valueOf(size/1000000) + "." + String.valueOf(size%1000000/100000) + "M";
+		else
+			return String.valueOf(size/1000000) + "M";
+	}
+
+	public static String formatFileInfo(FileInfo item) {
+		return formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime);
+	}
+
+	public static String formatLastPosition(Bookmark pos) {
+		if ( pos!=null && pos.getPercent() > 0 && pos.getTimeStamp() > 0) {
+			return formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp());
+		} else {
+			return "";
+		}
+	}
+
+	public static String formatReadingState(Activity activity, FileInfo item) {
+		String state = "";
+		if (item.getRate() > 0 && item.getRate() <= 5) {
+			String[] stars = new String[] {
+					"*",
+					"**",
+					"***",
+					"****",
+					"*****",
+			};
+			state = state + stars[item.getRate() - 1] + " ";
+		}
+		if (item.getReadingState() > 0) {
+			String stateName = "";
+			int n = item.getReadingState();
+			if (n == FileInfo.STATE_READING)
+				stateName = activity.getString(R.string.book_state_reading);
+			else if (n == FileInfo.STATE_TO_READ)
+				stateName = activity.getString(R.string.book_state_toread);
+			else if (n == FileInfo.STATE_FINISHED)
+				stateName = activity.getString(R.string.book_state_finished);
+			state = state + "[" + stateName + "] ";
+		}
+		return state;
+	}
+	
 }

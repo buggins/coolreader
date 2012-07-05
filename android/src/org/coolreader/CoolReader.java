@@ -596,6 +596,13 @@ public class CoolReader extends BaseActivity
 		//getWindow().setBackgroundDrawable(theme.getActionBarBackgroundDrawableBrowser());
 	}
 
+	public void directoryUpdated(FileInfo dir) {
+		if (dir.isOPDSRoot())
+			mFrame.refreshOnlineCatalogs();
+		else if (dir.isRecentDir())
+			mFrame.refreshRecentBooks();
+	}
+	
 	public void refreshOnlineCatalogs() {
 		mFrame.refreshOnlineCatalogs();
 	}
