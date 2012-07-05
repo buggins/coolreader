@@ -206,16 +206,22 @@ public class BaseActivity extends Activity implements Settings {
 		}
 	}
 
+	private int preferredItemHeight = 36;
+	public int getPreferredItemHeight() {
+		return preferredItemHeight;
+	}
+	
 	public void setCurrentTheme(InterfaceTheme theme) {
 		log.i("setCurrentTheme(" + theme + ")");
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
-		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground});
+		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground, android.R.attr.listPreferredItemHeight});
 		int bgRes = a.getResourceId(0, 0);
 		//int clText = a.getColor(1, 0);
 		int clBackground = a.getColor(2, 0);
 		//int clForeground = a.getColor(3, 0);
+		preferredItemHeight = a.getInt(4, 36);
 		View contentView = getContentView();
 		if (contentView != null) {
 			if (bgRes != 0) {

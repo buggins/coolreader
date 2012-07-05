@@ -1,20 +1,35 @@
 package org.coolreader.crengine;
 
+import java.util.ArrayList;
+
+import org.coolreader.R;
+import org.coolreader.crengine.CRToolBar.OnActionHandler;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout.LayoutParams;
+import android.widget.TextView;
 
 public class BrowserActivity extends BaseActivity {
 
 	static class BrowserViewLayout extends ViewGroup {
 		private FileBrowser contentView;
-		public BrowserViewLayout(Context context, FileBrowser contentView) {
+		private View titleView;
+		private CRToolBar toolbarView;
+		public BrowserViewLayout(Context context, FileBrowser contentView, CRToolBar toolbar, View titleView) {
 			super(context);
 			this.contentView = contentView;
+			
+			
+			this.titleView = titleView;
+			this.titleView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			this.toolbarView = toolbar;
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+			this.addView(titleView);
+			this.addView(toolbarView);
 			this.addView(contentView);
 		}
 
@@ -24,13 +39,30 @@ public class BrowserActivity extends BaseActivity {
 			b -= t;
 			t = 0;
 			l = 0;
-			contentView.layout(l, t, r, b);
+			int titleHeight = titleView.getMeasuredHeight();
+			if (toolbarView.isVertical()) {
+				int tbWidth = toolbarView.getMeasuredWidth();
+				titleView.layout(l + tbWidth, t, r, t + titleHeight);
+				toolbarView.layout(l, t, l + tbWidth, b);
+				contentView.layout(l + tbWidth, t + titleHeight, r, b);
+			} else {
+				int tbHeight = toolbarView.getMeasuredHeight();
+				titleView.layout(l, t, r, t + titleHeight);
+				toolbarView.layout(l, t + titleHeight, r, t + titleHeight + tbHeight);
+				contentView.layout(l, t + titleHeight + tbHeight, r, b);
+			}
 		}
 		
 		@Override
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			int w = MeasureSpec.getSize(widthMeasureSpec);
+			int h = MeasureSpec.getSize(heightMeasureSpec);
+			toolbarView.setVertical(w > h);
+			toolbarView.measure(widthMeasureSpec, heightMeasureSpec);
+			titleView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0), 
+					MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
 			contentView.measure(widthMeasureSpec, heightMeasureSpec);
-	        setMeasuredDimension(contentView.getMeasuredWidth(), contentView.getMeasuredHeight());
+	        setMeasuredDimension(w, h);
 		}
 		
 		@Override
@@ -44,6 +76,15 @@ public class BrowserActivity extends BaseActivity {
 	private FileBrowser mBrowser;
 	private Engine mEngine;
 	private BrowserViewLayout mFrame;
+	private View mTitleBar;
+	private CRToolBar mToolBar;
+	
+	private ArrayList<ReaderAction> createActionList(ReaderAction ... actions) {
+		ArrayList<ReaderAction> list = new ArrayList<ReaderAction>(actions.length);
+		for (ReaderAction item : actions)
+			list.add(item);
+		return list;
+	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +100,28 @@ public class BrowserActivity extends BaseActivity {
 		mBrowser.setSimpleViewMode(SettingsManager.instance(this).getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
         mBrowser.init();
         mBrowser.showDirectory(Services.getScanner().getRoot(), null);
-		mFrame = new BrowserViewLayout(this, mBrowser);
+
+		LayoutInflater inflater = LayoutInflater.from(this);// activity.getLayoutInflater();
+		
+		mTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
+        ((TextView)mTitleBar.findViewById(R.id.title)).setText("Cool Reader browser window");
+
+        mToolBar = new CRToolBar(this, createActionList(ReaderAction.FILE_BROWSER_UP, ReaderAction.FILE_BROWSER_ROOT, ReaderAction.OPDS_CATALOGS, ReaderAction.RECENT_BOOKS));
+        mToolBar.setBackgroundColor(0x80C0C0C0);
+        mToolBar.setOnItemSelectedHandler(new OnActionHandler() {
+			@Override
+			public boolean onActionSelected(ReaderAction item) {
+				switch (item.cmd) {
+				case DCMD_FILE_BROWSER_ROOT:
+					Activities.showRootWindow();
+				case DCMD_FILE_BROWSER_UP:
+					mBrowser.showParentDirectory();
+					break;
+				}
+				return false;
+			}
+		});
+		mFrame = new BrowserViewLayout(this, mBrowser, mToolBar, mTitleBar);
 		setContentView(mFrame);
 	}
 
