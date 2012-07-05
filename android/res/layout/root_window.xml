@@ -47,8 +47,8 @@
 	      android:layout_width="fill_parent"
 	      android:layout_height="wrap_content"
           android:gravity="center_vertical|left"
+          android:layout_gravity="center_vertical|left"
           android:layout_margin="7dip"
-	      android:layout_marginLeft="7dip"
 	      android:minHeight="?android:attr/listPreferredItemHeight"
 	      >
 
@@ -76,17 +76,13 @@
                 android:layout_height="wrap_content"/>
           <TextView 
                 android:id="@+id/lbl_book_series"
-                   style="@style/TextAppearance.Small"
-                   android:singleLine="false"
-                   android:maxLines="2"
+                style="@style/TextAppearance.Small"
                 android:text="Book Series" 
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
           <TextView 
                 android:id="@+id/lbl_book_info"
                    style="@style/TextAppearance.Small"
-                   android:singleLine="false"
-                   android:maxLines="2"
                 android:text="File info" 
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
@@ -141,7 +137,7 @@
         android:layout_height="wrap_content"/-->
     
     <HorizontalScrollView
-        android:layout_marginTop="6dip"
+        android:layout_margin="7dip"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
@@ -165,7 +161,7 @@
       />
     
     <HorizontalScrollView
-        android:layout_marginTop="6dip"
+        android:layout_margin="7dip"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
@@ -195,7 +191,7 @@
         android:layout_height="wrap_content"/-->
 
 	<HorizontalScrollView
-        android:layout_marginTop="6dip"
+        android:layout_margin="7dip"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:orientation="horizontal" >

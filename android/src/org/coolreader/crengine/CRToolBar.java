@@ -37,10 +37,10 @@ public class CRToolBar extends ViewGroup {
 	public void setVertical(boolean vertical) {
 		this.isVertical = vertical;
 		if (isVertical) {
-			setPadding(BUTTON_SPACING, BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING);
+			//setPadding(BUTTON_SPACING, BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING);
 			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT));
 		} else {
-			setPadding(BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING, BUTTON_SPACING);
+			//setPadding(BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING, BUTTON_SPACING);
 			setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		}
 	}
@@ -64,8 +64,8 @@ public class CRToolBar extends ViewGroup {
 			}
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() * dpi / 160;
-			int h = d.getIntrinsicHeight() * dpi / 160;
+			int w = d.getIntrinsicWidth() * dpi / 160 + 8;
+			int h = d.getIntrinsicHeight() * dpi / 160 + 8;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 				contentWidth = buttonWidth + getPaddingLeft() + getPaddingRight();
@@ -157,15 +157,17 @@ public class CRToolBar extends ViewGroup {
 			divider.layout(left, bottom - 8, right, bottom);
 		}
 		
-		Rect rect = new Rect(left + getPaddingLeft(), top + getPaddingTop(), right - getPaddingRight(), bottom - getPaddingBottom());
+		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
 		if (rect.isEmpty())
 			return;
 		ArrayList<ReaderAction> itemsToShow = new ArrayList<ReaderAction>();
 		int maxButtonCount = 1;
 		if (isVertical) {
+			rect.right -= BAR_SPACING;
 			int maxHeight = bottom - top - getPaddingTop() - getPaddingBottom();
 			maxButtonCount = maxHeight / (buttonHeight + BUTTON_SPACING);
 		} else {
+			rect.bottom -= BAR_SPACING;
 			int maxWidth = right - left - getPaddingLeft() - getPaddingRight();
 			maxButtonCount = maxWidth / (buttonWidth + BUTTON_SPACING);
 		}
@@ -200,15 +202,11 @@ public class CRToolBar extends ViewGroup {
 
         if (isVertical) {
 	        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
-	
-	        int maxWidth = contentWidth > 0 ?
-	                contentWidth : MeasureSpec.getSize(widthMeasureSpec);
+	        int maxWidth = buttonWidth + BUTTON_SPACING + BUTTON_SPACING + BAR_SPACING + getPaddingLeft() + getPaddingRight();
 	        setMeasuredDimension(maxWidth, contentHeight);
         } else {
 	        int contentWidth = MeasureSpec.getSize(widthMeasureSpec);
-	    	
-	        int maxHeight = contentHeight > 0 ?
-	                contentHeight : MeasureSpec.getSize(heightMeasureSpec);
+	        int maxHeight = buttonHeight + BUTTON_SPACING + BUTTON_SPACING + BAR_SPACING + getPaddingTop() + getPaddingBottom();
 	        setMeasuredDimension(contentWidth, maxHeight);
         }
 	}
