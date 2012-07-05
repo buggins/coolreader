@@ -47,8 +47,8 @@ public class BrowserActivity extends BaseActivity {
 				contentView.layout(l + tbWidth, t + titleHeight, r, b);
 			} else {
 				int tbHeight = toolbarView.getMeasuredHeight();
-				titleView.layout(l, t, r, t + titleHeight);
-				toolbarView.layout(l, t + titleHeight, r, t + titleHeight + tbHeight);
+				toolbarView.layout(l, t, r, t + tbHeight);
+				titleView.layout(l, t + tbHeight, r, t + titleHeight + tbHeight);
 				contentView.layout(l, t + titleHeight + tbHeight, r, b);
 			}
 		}
@@ -73,10 +73,11 @@ public class BrowserActivity extends BaseActivity {
 			} else {
 				// portrait
 				toolbarView.setVertical(false);
-				toolbarView.measure(widthMeasureSpec, heightMeasureSpec);
-				int tbHeight = toolbarView.getMeasuredHeight();
 				titleView.measure(widthMeasureSpec, 
 						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+				toolbarView.measure(widthMeasureSpec, 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+				int tbHeight = toolbarView.getMeasuredHeight();
 				int titleHeight = titleView.getMeasuredHeight();
 				contentView.measure(widthMeasureSpec, 
 						MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h - titleHeight - tbHeight));
@@ -135,7 +136,7 @@ public class BrowserActivity extends BaseActivity {
         		ReaderAction.SEARCH,
         		ReaderAction.OPTIONS
         		));
-        mToolBar.setBackgroundColor(0x80C0C0C0);
+        mToolBar.setBackgroundColor(0x20404040);
         mToolBar.setOnItemSelectedHandler(new OnActionHandler() {
 			@Override
 			public boolean onActionSelected(ReaderAction item) {
