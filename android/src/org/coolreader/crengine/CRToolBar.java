@@ -24,15 +24,13 @@ public class CRToolBar extends ViewGroup {
 
 	private ArrayList<ReaderAction> actions = new ArrayList<ReaderAction>();
 	private boolean showLabels;
-	private int contentHeight;
-	private int contentWidth;
 	private int buttonHeight;
 	private int buttonWidth;
 	private int visibleButtonCount;
 	private int visibleNonButtonCount;
 	private boolean isVertical;
 	final private int preferredItemHeight;
-	private final int BUTTON_SPACING = 4;
+	private int BUTTON_SPACING = 4;
 	private final int BAR_SPACING = 8;
 	public void setVertical(boolean vertical) {
 		this.isVertical = vertical;
@@ -54,6 +52,7 @@ public class CRToolBar extends ViewGroup {
 		this.preferredItemHeight = context.getPreferredItemHeight();
 		buttonWidth = preferredItemHeight;
 		buttonHeight = preferredItemHeight;
+		//BUTTON_SPACING = preferredItemHeight / 5;
 		int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
@@ -68,11 +67,9 @@ public class CRToolBar extends ViewGroup {
 			int h = d.getIntrinsicHeight() * dpi / 160 + 8;
 			if (buttonWidth < w) {
 				buttonWidth = w;
-				contentWidth = buttonWidth + getPaddingLeft() + getPaddingRight();
 			}
 			if (buttonHeight < h) {
 				buttonHeight = h;
-				contentHeight = buttonHeight + getPaddingTop() + getPaddingBottom();
 			}
 		}
 	}

@@ -300,7 +300,8 @@ public class CRRootView extends FrameLayout {
 				image.setImageResource(R.drawable.cr3_browser_folder_authors);
 			if (label != null) {
 				label.setText(item.filename);
-				label.setMaxWidth(coverWidth * 3 / 2);
+				label.setMinWidth(coverWidth);
+				label.setMaxWidth(coverWidth * 2);
 			}
 			view.setOnClickListener(new OnClickListener() {
 				@Override

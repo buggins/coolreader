@@ -26,7 +26,7 @@
         android:layout_marginLeft="3dip"
         android:layout_marginRight="3dip"
         android:ellipsize="start"
-        android:background="#20404040"
+        android:background="#40303030"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
 
