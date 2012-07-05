@@ -349,9 +349,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	protected void showParentDirectory()
 	{
-		if (currDirectory != null && currDirectory.parent != null) {
+		if (currDirectory == null || currDirectory.parent == null || currDirectory.parent.isRootDir())
+			Activities.showRootWindow();
+		else
 			showDirectory(currDirectory.parent, currDirectory);
-		}
 	}
 	
 	boolean mInitStarted = false;
