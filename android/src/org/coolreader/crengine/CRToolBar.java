@@ -76,7 +76,7 @@ public class CRToolBar extends ViewGroup {
 
 	private OnActionHandler onActionHandler;
 	
-	public void setOnItemSelectedHandler(OnActionHandler handler) {
+	public void setOnActionHandler(OnActionHandler handler) {
 		this.onActionHandler = handler;
 	}
 	

@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import org.coolreader.PhoneStateReceiver;
+import org.coolreader.crengine.CRToolBar.OnActionHandler;
 import org.coolreader.crengine.SettingsManager.DictInfo;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.BillingService;
@@ -44,6 +45,10 @@ public class ReaderActivity extends BaseActivity {
 		private CRToolBar toolbarView;
 		private int statusBarLocation;
 		private int toolbarLocation;
+		
+		public CRToolBar getToolBar() {
+			return toolbarView;
+		}
 		
 		public void updateSettings(Properties settings) {
 			statusBarLocation = settings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP);
@@ -157,6 +162,12 @@ public class ReaderActivity extends BaseActivity {
 			contentView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
 					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
 		}
+
+		@Override
+		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+			super.onSizeChanged(w, h, oldw, oldh);
+			requestLayout();
+		}
 	}
 	
 	public ReaderView getReaderView() {
@@ -177,6 +188,13 @@ public class ReaderActivity extends BaseActivity {
 		mEngine = Engine.getInstance(this);
 		mReaderView = new ReaderView(this, mEngine, SettingsManager.instance(this).get());
 		mFrame = new ReaderViewLayout(this, mReaderView);
+        mFrame.getToolBar().setOnActionHandler(new OnActionHandler() {
+			@Override
+			public boolean onActionSelected(ReaderAction item) {
+				mReaderView.onAction(item);
+				return true;
+			}
+		});
 
 		//==========================================
 		// Donations related code
