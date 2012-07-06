@@ -31,6 +31,7 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.View.MeasureSpec;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -3622,21 +3623,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			scheduleSaveCurrentPositionBookmark(0);
 		}
 	}
+
 	private void requestResize(int width, int height) {
 		requestedWidth = width;
 		requestedHeight = height;
 		checkSize();
 	}
+
 	private void checkSize() {
 		boolean changed = (requestedWidth != internalDX) || (requestedHeight != internalDY);
 		if (!changed)
 			return;
-		if (mIsOnFront || !mOpened) {
+//		if (mIsOnFront || !mOpened) {
 			log.d("checkSize() : calling resize");
 			resize();
-		} else {
-			log.d("Skipping resize request");
-		}
+//		} else {
+//			log.d("Skipping resize request");
+//		}
 	}
 	
 	private void resize() {
@@ -5814,4 +5817,5 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 		});
 	}
+
 }

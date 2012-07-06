@@ -63,7 +63,8 @@ public class BrowserActivity extends BaseActivity {
 			if (w > h) {
 				// landscape
 				toolbarView.setVertical(true);
-				toolbarView.measure(widthMeasureSpec, heightMeasureSpec);
+				toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
 				int tbWidth = toolbarView.getMeasuredWidth();
 				titleView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w - tbWidth), 
 						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
@@ -73,11 +74,11 @@ public class BrowserActivity extends BaseActivity {
 			} else {
 				// portrait
 				toolbarView.setVertical(false);
+				toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+				int tbHeight = toolbarView.getMeasuredHeight();
 				titleView.measure(widthMeasureSpec, 
 						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
-				toolbarView.measure(widthMeasureSpec, 
-						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
-				int tbHeight = toolbarView.getMeasuredHeight();
 				int titleHeight = titleView.getMeasuredHeight();
 				contentView.measure(widthMeasureSpec, 
 						MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h - titleHeight - tbHeight));
@@ -106,13 +107,6 @@ public class BrowserActivity extends BaseActivity {
 	private View mTitleBar;
 	private CRToolBar mToolBar;
 	
-	private ArrayList<ReaderAction> createActionList(ReaderAction ... actions) {
-		ArrayList<ReaderAction> list = new ArrayList<ReaderAction>(actions.length);
-		for (ReaderAction item : actions)
-			list.add(item);
-		return list;
-	}
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Activities.setBrowser(this);
@@ -132,7 +126,7 @@ public class BrowserActivity extends BaseActivity {
 		mTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
 		setTitle("Cool Reader browser window");
 
-        mToolBar = new CRToolBar(this, createActionList(
+        mToolBar = new CRToolBar(this, ReaderAction.createList(
         		ReaderAction.FILE_BROWSER_UP, 
         		ReaderAction.CURRENT_BOOK,
         		ReaderAction.CURRENT_BOOK_DIRECTORY,
@@ -143,7 +137,7 @@ public class BrowserActivity extends BaseActivity {
         		ReaderAction.SEARCH
         		));
         mToolBar.setBackgroundColor(0x40303030);
-        mToolBar.setOnItemSelectedHandler(new OnActionHandler() {
+        mToolBar.setOnActionHandler(new OnActionHandler() {
 			@Override
 			public boolean onActionSelected(ReaderAction item) {
 				switch (item.cmd) {

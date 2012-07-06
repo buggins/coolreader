@@ -50,10 +50,8 @@ public class CRToolBar extends ViewGroup {
 		this.actions = actions;
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
-		buttonWidth = preferredItemHeight;
-		buttonHeight = preferredItemHeight;
-		//BUTTON_SPACING = preferredItemHeight / 5;
-		int dpi = context.getDensityDpi();
+		buttonWidth = buttonHeight = preferredItemHeight * 2 / 3 - BUTTON_SPACING * 2;
+		//int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
@@ -63,8 +61,8 @@ public class CRToolBar extends ViewGroup {
 			}
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() * dpi / 160 + 8;
-			int h = d.getIntrinsicHeight() * dpi / 160 + 8;
+			int w = d.getIntrinsicWidth(); // * dpi / 160;
+			int h = d.getIntrinsicHeight(); // * dpi / 160;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 			}
@@ -76,7 +74,7 @@ public class CRToolBar extends ViewGroup {
 
 	private OnActionHandler onActionHandler;
 	
-	public void setOnItemSelectedHandler(OnActionHandler handler) {
+	public void setOnActionHandler(OnActionHandler handler) {
 		this.onActionHandler = handler;
 	}
 	
@@ -199,12 +197,10 @@ public class CRToolBar extends ViewGroup {
 
         if (isVertical) {
 	        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
-	        int maxWidth = buttonWidth + BUTTON_SPACING + BUTTON_SPACING + BAR_SPACING + getPaddingLeft() + getPaddingRight();
-	        setMeasuredDimension(maxWidth, contentHeight);
+	        setMeasuredDimension(buttonWidth + BUTTON_SPACING * 2 + BAR_SPACING, contentHeight);
         } else {
 	        int contentWidth = MeasureSpec.getSize(widthMeasureSpec);
-	        int maxHeight = buttonHeight + BUTTON_SPACING + BUTTON_SPACING + BAR_SPACING + getPaddingTop() + getPaddingBottom();
-	        setMeasuredDimension(contentWidth, maxHeight);
+	        setMeasuredDimension(contentWidth, buttonHeight + BUTTON_SPACING * 2 + BAR_SPACING);
         }
 	}
 

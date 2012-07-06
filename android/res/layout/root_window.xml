@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:cr3="http://schemas.android.com/apk/res/org.coolreader"
   android:orientation="vertical"
   android:layout_width="fill_parent"
   android:layout_height="wrap_content"-->
 <ScrollView
   xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:cr3="http://schemas.android.com/apk/res/org.coolreader"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
@@ -90,12 +92,7 @@
       
     </LinearLayout>
 
-    <View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      />
+    <View style="@style/RootDelimiter"/>
     
     <!-- TextView 
         style="@style/TextAppearance.Medium"
@@ -123,12 +120,7 @@
     </LinearLayout>
     </HorizontalScrollView>
     
-    <View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      />
+    <View style="@style/RootDelimiter"/>
     
     <!--TextView 
         style="@style/TextAppearance.Medium"
@@ -153,12 +145,7 @@
     </LinearLayout>
     </HorizontalScrollView>
 
-    <View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      />
+    <View style="@style/RootDelimiter"/>
     
     <HorizontalScrollView
         android:layout_margin="7dip"
@@ -177,12 +164,7 @@
     </LinearLayout>
     </HorizontalScrollView>
 
-    <View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      />
+    <View style="@style/RootDelimiter"/>
     
     <!--TextView 
         style="@style/TextAppearance.Medium"
@@ -207,12 +189,7 @@
     </LinearLayout>
     </HorizontalScrollView>
 
-    <View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      />
+    <View style="@style/RootDelimiter"/>
 		
 </LinearLayout>
 </ScrollView>
