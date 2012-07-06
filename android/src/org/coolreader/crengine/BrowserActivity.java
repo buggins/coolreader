@@ -131,7 +131,7 @@ public class BrowserActivity extends BaseActivity {
         		ReaderAction.OPTIONS
         		));
         mToolBar.setBackgroundColor(0x80C0C0C0);
-        mToolBar.setOnItemSelectedHandler(new OnActionHandler() {
+        mToolBar.setOnActionHandler(new OnActionHandler() {
 			@Override
 			public boolean onActionSelected(ReaderAction item) {
 				switch (item.cmd) {
