@@ -206,7 +206,7 @@ public class MainDB extends BaseDB {
 	};
 	
 	private final static String[] DEF_OPDS_URLS2 = {
-		"http://www.shucang.com/s/index.php", "ShuCang.com",
+		"http://www.shucang.org/s/index.php", "ShuCang.org",
 	};
 
 	private void addOPDSCatalogs(String[] catalogs) {

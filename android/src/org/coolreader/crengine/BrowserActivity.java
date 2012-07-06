@@ -63,7 +63,8 @@ public class BrowserActivity extends BaseActivity {
 			if (w > h) {
 				// landscape
 				toolbarView.setVertical(true);
-				toolbarView.measure(widthMeasureSpec, heightMeasureSpec);
+				toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
 				int tbWidth = toolbarView.getMeasuredWidth();
 				titleView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w - tbWidth), 
 						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
@@ -106,13 +107,6 @@ public class BrowserActivity extends BaseActivity {
 	private View mTitleBar;
 	private CRToolBar mToolBar;
 	
-	private ArrayList<ReaderAction> createActionList(ReaderAction ... actions) {
-		ArrayList<ReaderAction> list = new ArrayList<ReaderAction>(actions.length);
-		for (ReaderAction item : actions)
-			list.add(item);
-		return list;
-	}
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Activities.setBrowser(this);
@@ -132,7 +126,7 @@ public class BrowserActivity extends BaseActivity {
 		mTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
 		setTitle("Cool Reader browser window");
 
-        mToolBar = new CRToolBar(this, createActionList(
+        mToolBar = new CRToolBar(this, ReaderAction.createList(
         		ReaderAction.FILE_BROWSER_UP, 
         		ReaderAction.CURRENT_BOOK,
         		ReaderAction.CURRENT_BOOK_DIRECTORY,

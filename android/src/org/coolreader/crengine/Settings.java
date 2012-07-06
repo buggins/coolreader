@@ -49,6 +49,10 @@ public interface Settings {
     public static final String PROP_DISPLAY_INVERSE         ="crengine.display.inverse";
 //    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
 //    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
+
+    public static final String PROP_STATUS_LOCATION         ="viewer.status.location";
+    public static final String PROP_TOOLBAR_LOCATION        ="viewer.toolbar.location";
+    
     public static final String PROP_STATUS_LINE             ="window.status.line";
     public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";
     public static final String PROP_FOOTNOTES               ="crengine.footnotes";
@@ -164,6 +168,20 @@ public interface Settings {
     public static final int APP_STARTUP_ACTION_ROOT = 1;
     public static final int APP_STARTUP_ACTION_RECENT_BOOKS = 2;
     public static final int APP_STARTUP_ACTION_LAST_BOOK_FOLDER = 3;
+    
+    public static final int VIEWER_STATUS_NONE = 0;
+    public static final int VIEWER_STATUS_TOP = 1;
+    public static final int VIEWER_STATUS_BOTTOM = 2;
+    public static final int VIEWER_STATUS_PAGE = 3;
+    
+    public static final int VIEWER_TOOLBAR_NONE = 0;
+    public static final int VIEWER_TOOLBAR_TOP = 1;
+    public static final int VIEWER_TOOLBAR_BOTTOM = 2;
+    public static final int VIEWER_TOOLBAR_LEFT = 3;
+    public static final int VIEWER_TOOLBAR_RIGHT = 4;
+    public static final int VIEWER_TOOLBAR_SHORT_SIDE = 5;
+    public static final int VIEWER_TOOLBAR_LONG_SIDE = 6;
+    
     
     public enum Lang {
     	DEFAULT("system", R.string.options_app_locale_system, R.raw.help_template_en),
