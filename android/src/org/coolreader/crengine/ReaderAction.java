@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import java.util.ArrayList;
+
 import org.coolreader.R;
 import org.coolreader.crengine.ReaderView.ReaderCommand;
 
@@ -59,7 +61,7 @@ public class ReaderAction {
 	public final static ReaderAction ABOUT = new ReaderAction("ABOUT", R.string.dlg_about, ReaderCommand.DCMD_ABOUT, 0, R.id.cr3_mi_about );
 	public final static ReaderAction USER_MANUAL = new ReaderAction("USER_MANUAL", R.string.mi_goto_manual, ReaderCommand.DCMD_USER_MANUAL, 0, R.id.cr3_mi_user_manual );
 	public final static ReaderAction BOOK_INFO = new ReaderAction("BOOK_INFO", R.string.dlg_book_info, ReaderCommand.DCMD_BOOK_INFO, 0, R.id.cr3_mi_book_info );
-	public final static ReaderAction TOC = new ReaderAction("TOC", R.string.action_toc, ReaderCommand.DCMD_TOC_DIALOG, 0, R.id.cr3_go_toc );
+	public final static ReaderAction TOC = new ReaderAction("TOC", R.string.action_toc, ReaderCommand.DCMD_TOC_DIALOG, 0, R.id.cr3_go_toc ).setIconId(R.drawable.cr3_viewer_toc);
 	public final static ReaderAction SEARCH = new ReaderAction("SEARCH", R.string.action_search, ReaderCommand.DCMD_SEARCH, 0, R.id.cr3_mi_search ).setIconId(R.drawable.cr3_browser_find);
 	public final static ReaderAction GO_PAGE = new ReaderAction("GO_PAGE", R.string.action_go_page, ReaderCommand.DCMD_GO_PAGE_DIALOG, 0, R.id.cr3_mi_go_page );
 	public final static ReaderAction GO_PERCENT = new ReaderAction("GO_PERCENT", R.string.action_go_percent, ReaderCommand.DCMD_GO_PERCENT_DIALOG, 0, R.id.cr3_mi_go_percent );
@@ -97,7 +99,7 @@ public class ReaderAction {
 	public final static ReaderAction SWITCH_PROFILE = new ReaderAction("SWITCH_PROFILE", R.string.action_switch_settings_profile, ReaderCommand.DCMD_SWITCH_PROFILE, 0);
 	public final static ReaderAction NEXT_CHAPTER = new ReaderAction("NEXT_CHAPTER", R.string.action_chapter_next, ReaderCommand.DCMD_MOVE_BY_CHAPTER, 1);
 	public final static ReaderAction PREV_CHAPTER = new ReaderAction("PREV_CHAPTER", R.string.action_chapter_prev, ReaderCommand.DCMD_MOVE_BY_CHAPTER, -1);
-	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit );
+	public final static ReaderAction EXIT = new ReaderAction("EXIT", R.string.action_exit, ReaderCommand.DCMD_EXIT, 0, R.id.cr3_mi_exit ).setIconId(R.drawable.cr3_menu_exit);
 	
 	
 	public final static ReaderAction[] AVAILABLE_ACTIONS = {
@@ -220,4 +222,12 @@ public class ReaderAction {
 		String id = settings.getProperty( getKeyProp( keyCode, DOUBLE ) );
 		return findById(id);
 	}
+	
+	public static ArrayList<ReaderAction> createList(ReaderAction ... actions) {
+		ArrayList<ReaderAction> list = new ArrayList<ReaderAction>(actions.length);
+		for (ReaderAction item : actions)
+			list.add(item);
+		return list;
+	}
+	
 }

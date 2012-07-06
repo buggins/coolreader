@@ -25,19 +25,51 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
+import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
-import android.widget.FrameLayout.LayoutParams;
+import android.widget.TextView;
 
 public class ReaderActivity extends BaseActivity {
 
-	static class ReaderViewLayout extends FrameLayout {
-		private View contentView;
-		public ReaderViewLayout(Context context, View contentView) {
+	static class StatusBar extends TextView {
+		public StatusBar(Context context) {
 			super(context);
+			setText("Book Name - Book Author      24/124  [35%]");
+		}
+	}
+	static class ReaderViewLayout extends FrameLayout implements Settings {
+		private ReaderActivity activity;
+		private ReaderView contentView;
+		private StatusBar statusView;
+		private CRToolBar toolbarView;
+		private int statusBarLocation;
+		private int toolbarLocation;
+		
+		public void updateSettings(Properties settings) {
+			statusBarLocation = settings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP);
+			toolbarLocation = settings.getInt(PROP_TOOLBAR_LOCATION, VIEWER_TOOLBAR_SHORT_SIDE);
+			statusView.setVisibility(statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP ? VISIBLE : INVISIBLE);
+			toolbarView.setVisibility(toolbarLocation != VIEWER_TOOLBAR_NONE ? VISIBLE : INVISIBLE);
+			requestLayout();
+		}
+		public ReaderViewLayout(ReaderActivity context, ReaderView contentView) {
+			super(context);
+			this.activity = context;
 			this.contentView = contentView;
+			this.statusView = new StatusBar(context);
+			this.toolbarView = new CRToolBar(context, ReaderAction.createList(new ReaderAction[] {
+				ReaderAction.GO_BACK,
+				ReaderAction.TOC,
+				ReaderAction.SEARCH,
+				ReaderAction.FILE_BROWSER_ROOT,
+				ReaderAction.FILE_BROWSER,
+				ReaderAction.EXIT,
+			}));
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 			this.addView(contentView);
+			this.addView(statusView);
+			this.addView(toolbarView);
+			updateSettings(SettingsManager.instance(context).get());
 		}
 
 		@Override
@@ -46,7 +78,84 @@ public class ReaderActivity extends BaseActivity {
 			b -= t;
 			t = 0;
 			l = 0;
+
+			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE;
+			boolean landscape = r > b;
+			if (toolbarVisible) {
+				int location = toolbarLocation;
+				if (location == VIEWER_TOOLBAR_SHORT_SIDE)
+					location = landscape ? VIEWER_TOOLBAR_LEFT : VIEWER_TOOLBAR_TOP;
+				else if (location == VIEWER_TOOLBAR_LONG_SIDE)
+					location = landscape ? VIEWER_TOOLBAR_TOP : VIEWER_TOOLBAR_LEFT;
+				switch (location) {
+				case VIEWER_TOOLBAR_LEFT:
+					toolbarView.layout(l, t, l + toolbarView.getMeasuredWidth(), b);
+					l += toolbarView.getMeasuredWidth();
+					break;
+				case VIEWER_TOOLBAR_RIGHT:
+					toolbarView.layout(r - toolbarView.getMeasuredWidth(), t, r, b);
+					r -= toolbarView.getMeasuredWidth();
+					break;
+				case VIEWER_TOOLBAR_TOP:
+					toolbarView.layout(l, t, r, t + toolbarView.getMeasuredHeight());
+					t += toolbarView.getMeasuredHeight();
+					break;
+				case VIEWER_TOOLBAR_BOTTOM:
+					toolbarView.layout(l, b - toolbarView.getMeasuredHeight(), r, b);
+					b -= toolbarView.getMeasuredHeight();
+					break;
+				}
+			}
+			if (statusBarLocation == VIEWER_STATUS_TOP) {
+				statusView.layout(l, t, r, t + statusView.getMeasuredHeight());
+				t += statusView.getMeasuredHeight();
+			} else if (statusBarLocation == VIEWER_STATUS_BOTTOM) {
+				statusView.layout(l, b - statusView.getMeasuredHeight(), r, b);
+				b -= statusView.getMeasuredHeight();
+			}
 			contentView.layout(l, t, r, b);
+		}
+		
+		@Override
+		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			int w = MeasureSpec.getSize(widthMeasureSpec);
+			int h = MeasureSpec.getSize(heightMeasureSpec);
+	        setMeasuredDimension(w, h);
+
+			boolean statusVisible = statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP;
+			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE;
+			boolean landscape = w > h;
+			if (toolbarVisible) {
+				int location = toolbarLocation;
+				if (location == VIEWER_TOOLBAR_SHORT_SIDE)
+					location = landscape ? VIEWER_TOOLBAR_LEFT : VIEWER_TOOLBAR_TOP;
+				else if (location == VIEWER_TOOLBAR_LONG_SIDE)
+					location = landscape ? VIEWER_TOOLBAR_TOP : VIEWER_TOOLBAR_LEFT;
+				switch (location) {
+				case VIEWER_TOOLBAR_LEFT:
+				case VIEWER_TOOLBAR_RIGHT:
+					toolbarView.setVertical(true);
+					toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+							MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+					w -= toolbarView.getMeasuredWidth();
+					break;
+				case VIEWER_TOOLBAR_TOP:
+				case VIEWER_TOOLBAR_BOTTOM:
+					toolbarView.setVertical(false);
+					toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+							MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+					h -= toolbarView.getMeasuredHeight();
+					break;
+				}
+			}
+			if (statusVisible) {
+				statusView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+				h -= statusView.getMeasuredHeight();
+			}
+			
+			contentView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
 		}
 	}
 	

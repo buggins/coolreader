@@ -52,8 +52,8 @@ public class CRToolBar extends ViewGroup {
 		this.actions = actions;
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
-		buttonWidth = preferredItemHeight;
-		buttonHeight = preferredItemHeight;
+		buttonWidth = preferredItemHeight * 3 / 4 - BUTTON_SPACING * 2;
+		buttonHeight = preferredItemHeight * 3 / 4 - BUTTON_SPACING * 2;
 		int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
@@ -64,8 +64,8 @@ public class CRToolBar extends ViewGroup {
 			}
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() * dpi / 160;
-			int h = d.getIntrinsicHeight() * dpi / 160;
+			int w = d.getIntrinsicWidth(); // * dpi / 160;
+			int h = d.getIntrinsicHeight(); // * dpi / 160;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 				contentWidth = buttonWidth + getPaddingLeft() + getPaddingRight();
@@ -200,16 +200,10 @@ public class CRToolBar extends ViewGroup {
 
         if (isVertical) {
 	        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
-	
-	        int maxWidth = contentWidth > 0 ?
-	                contentWidth : MeasureSpec.getSize(widthMeasureSpec);
-	        setMeasuredDimension(maxWidth, contentHeight);
+	        setMeasuredDimension(buttonWidth + BUTTON_SPACING * 2 + BAR_SPACING, contentHeight);
         } else {
 	        int contentWidth = MeasureSpec.getSize(widthMeasureSpec);
-	    	
-	        int maxHeight = contentHeight > 0 ?
-	                contentHeight : MeasureSpec.getSize(heightMeasureSpec);
-	        setMeasuredDimension(contentWidth, maxHeight);
+	        setMeasuredDimension(contentWidth, buttonHeight + BUTTON_SPACING * 2 + BAR_SPACING);
         }
 	}
 
