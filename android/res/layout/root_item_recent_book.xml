@@ -3,7 +3,6 @@
    Recent Book item layout for CR3 root window
 -->
 
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/browser_item_body"
     android:orientation="vertical"
