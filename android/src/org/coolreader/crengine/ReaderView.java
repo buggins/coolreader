@@ -2433,6 +2433,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureGUI();
 		log.i("On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
+		case DCMD_FILE_BROWSER_ROOT:
+			Activities.showRootWindow();
+			break;
 		case DCMD_ABOUT:
 			mActivity.showAboutDialog();
 			break;
@@ -2558,7 +2561,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			showSearchDialog(null);
 			break;
 		case DCMD_EXIT:
-			mActivity.finish();
+			Activities.finish();
 			break;
 		case DCMD_BOOKMARKS:
 			mActivity.showBookmarksDialog();

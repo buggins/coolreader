@@ -250,4 +250,13 @@ public class Activities {
 			readerActivity.getReaderView().saveSetting(name, value);
 	}
 	
+	public static void finish() {
+		if (readerActivity != null)
+			readerActivity.finish();
+		if (browserActivity != null)
+			browserActivity.finish();
+		if (mainActivity != null)
+			mainActivity.finish();
+
+	}
 }
