@@ -593,6 +593,8 @@ public class CoolReader extends BaseActivity
 	@Override
 	public void setCurrentTheme(InterfaceTheme theme) {
 		super.setCurrentTheme(theme);
+		if (mFrame != null)
+			mFrame.onThemeChange(theme);
 		//getWindow().setBackgroundDrawable(theme.getActionBarBackgroundDrawableBrowser());
 	}
 

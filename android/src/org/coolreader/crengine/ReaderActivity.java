@@ -66,6 +66,7 @@ public class ReaderActivity extends BaseActivity {
 				ReaderAction.GO_BACK,
 				ReaderAction.TOC,
 				ReaderAction.SEARCH,
+				ReaderAction.OPTIONS,
 				ReaderAction.FILE_BROWSER_ROOT,
 				ReaderAction.FILE_BROWSER,
 				ReaderAction.EXIT,

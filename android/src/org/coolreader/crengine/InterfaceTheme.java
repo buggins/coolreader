@@ -6,13 +6,17 @@ import android.graphics.drawable.Drawable;
 
 public class InterfaceTheme {
 
-	public final static InterfaceTheme BLACK = new InterfaceTheme("BLACK", R.style.Theme_Black, R.style.Theme_Black_Dialog_Normal, R.style.Theme_Black_Dialog_Fullscreen, R.string.options_app_ui_theme_black, 0xFF000000);
+	public final static InterfaceTheme BLACK = new InterfaceTheme("BLACK", R.style.Theme_Black, R.style.Theme_Black_Dialog_Normal, R.style.Theme_Black_Dialog_Fullscreen, R.string.options_app_ui_theme_black, 0xFF000000)
+			.setRootDelimiter(R.drawable.divider_black_tiled);
 	
-	public final static InterfaceTheme WHITE = new InterfaceTheme("WHITE", R.style.Theme_White, R.style.Theme_White_Dialog_Normal, R.style.Theme_White_Dialog_Fullscreen, R.string.options_app_ui_theme_white, 0xFFFFFFFF);
+	public final static InterfaceTheme WHITE = new InterfaceTheme("WHITE", R.style.Theme_White, R.style.Theme_White_Dialog_Normal, R.style.Theme_White_Dialog_Fullscreen, R.string.options_app_ui_theme_white, 0xFFFFFFFF)
+			.setRootDelimiter(R.drawable.divider_white_tiled);
 
-	public final static InterfaceTheme LIGHT = new InterfaceTheme("LIGHT", R.style.Theme_Light, R.style.Theme_Light_Dialog_Normal, R.style.Theme_Light_Dialog_Fullscreen, R.string.options_app_ui_theme_light, 0xFF000000);
+	public final static InterfaceTheme LIGHT = new InterfaceTheme("LIGHT", R.style.Theme_Light, R.style.Theme_Light_Dialog_Normal, R.style.Theme_Light_Dialog_Fullscreen, R.string.options_app_ui_theme_light, 0xFF000000)
+			.setRootDelimiter(R.drawable.divider_light_tiled_v3);
 	
-	public final static InterfaceTheme DARK = new InterfaceTheme("DARK", R.style.Theme_Dark, R.style.Theme_Dark_Dialog_Normal, R.style.Theme_Dark_Dialog_Fullscreen, R.string.options_app_ui_theme_dark, 0xFF000000);
+	public final static InterfaceTheme DARK = new InterfaceTheme("DARK", R.style.Theme_Dark, R.style.Theme_Dark_Dialog_Normal, R.style.Theme_Dark_Dialog_Fullscreen, R.string.options_app_ui_theme_dark, 0xFF000000)
+			.setRootDelimiter(R.drawable.divider_dark_tiled_v3);
 	
 	public String getCode() {
 		return code;
@@ -46,6 +50,10 @@ public class InterfaceTheme {
 		return Utils.solidColorDrawable(0);
 	}
 	
+	public int getRootDelimiterResourceId() {
+		return rootDelimiterResourceId;
+	}
+	
 	public final static InterfaceTheme[] allThemes = {
 		BLACK, WHITE, DARK, LIGHT,
 	};
@@ -65,6 +73,7 @@ public class InterfaceTheme {
 	private final int fsDialogThemeId;
 	private final int displayNameResourceId;
 	private final int actionBarBackgroundColorReading;
+	private int rootDelimiterResourceId;
 	
 	private InterfaceTheme(String code, int themeId, int dialogThemeId, int fsDialogThemeId, int displayNameResourceId, int actionBarBackgroundColorReading) {
 		this.code = code;
@@ -73,6 +82,11 @@ public class InterfaceTheme {
 		this.fsDialogThemeId = fsDialogThemeId;
 		this.displayNameResourceId = displayNameResourceId;
 		this.actionBarBackgroundColorReading = actionBarBackgroundColorReading;
+	}
+	
+	private InterfaceTheme setRootDelimiter(int resourceId) {
+		this.rootDelimiterResourceId = resourceId;
+		return this;
 	}
 	
 	@Override

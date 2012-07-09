@@ -50,38 +50,10 @@ public class CRRootView extends FrameLayout {
     	coverHeight = h;
 		createViews();
 		
-		refreshRecentBooks();
-
-		coverpageListener =	new CoverpageReadyListener() {
-			@Override
-			public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {
-				mView.invalidate();
-			}
-		};
-		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
-
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				refreshOnlineCatalogs();
-			}
-		});
-
-		BackgroundThread.instance().postGUI(new Runnable() {
-			@Override
-			public void run() {
-				ArrayList<FileInfo> dirs = new ArrayList<FileInfo>();
-				File[] roots = Engine.getStorageDirectories(false);
-				for (File f : roots) {
-					FileInfo dir = new FileInfo(f);
-					dirs.add(dir);
-				}
-				dirs.add(Services.getScanner().getDownloadDirectory());
-				updateFilesystems(dirs);
-				
-				updateLibraryItems(Services.getScanner().getLibraryItems());
-			}
-		});
+	}
+	
+	public void onThemeChange(InterfaceTheme theme) {
+		createViews();
 	}
 	
 	public void onClose() {
@@ -327,10 +299,21 @@ public class CRRootView extends FrameLayout {
 //		return view;
 //	}
 	
+	private void updateDelimiterTheme(int viewId) {
+		View view = mView.findViewById(viewId);
+		view.setBackgroundResource(mActivity.getCurrentTheme().getRootDelimiterResourceId());
+	}
+	
 	private void createViews() {
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		View view = inflater.inflate(R.layout.root_window, null);
 		mView = (ViewGroup)view;
+		
+		updateDelimiterTheme(R.id.delimiter1);
+		updateDelimiterTheme(R.id.delimiter2);
+		updateDelimiterTheme(R.id.delimiter3);
+		updateDelimiterTheme(R.id.delimiter4);
+		updateDelimiterTheme(R.id.delimiter5);
 		
 		mRecentBooksScroll = (LinearLayout)mView.findViewById(R.id.scroll_recent_books);
 		
@@ -374,6 +357,39 @@ public class CRRootView extends FrameLayout {
 			}
 		});
 
+		refreshRecentBooks();
+
+		coverpageListener =	new CoverpageReadyListener() {
+			@Override
+			public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {
+				mView.invalidate();
+			}
+		};
+		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
+
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				refreshOnlineCatalogs();
+			}
+		});
+
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				ArrayList<FileInfo> dirs = new ArrayList<FileInfo>();
+				File[] roots = Engine.getStorageDirectories(false);
+				for (File f : roots) {
+					FileInfo dir = new FileInfo(f);
+					dirs.add(dir);
+				}
+				dirs.add(Services.getScanner().getDownloadDirectory());
+				updateFilesystems(dirs);
+				
+				updateLibraryItems(Services.getScanner().getLibraryItems());
+			}
+		});
+		
 		removeAllViews();
 		addView(mView);
 	}
