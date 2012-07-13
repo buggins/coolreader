@@ -164,7 +164,7 @@ public class Activities {
 			public void run() {
 				Activities.closeBookIfOpened(item);
 				if (item.deleteFile()) {
-					Services.getSyncService().removeFile(item.getPathName());
+					activity.getSyncService().removeFile(item.getPathName());
 					Services.getHistory().removeBookInfo(activity.getDB(), item, true, true);
 				}
 				directoryUpdated(item.parent);
@@ -178,7 +178,7 @@ public class Activities {
 			@Override
 			public void run() {
 				Services.getHistory().removeBookInfo(activity.getDB(), item, true, false);
-				Services.getSyncService().removeFileLastPosition(item.getPathName());
+				activity.getSyncService().removeFileLastPosition(item.getPathName());
 				directoryUpdated(Services.getScanner().createRecentRoot());
 			}
 		});

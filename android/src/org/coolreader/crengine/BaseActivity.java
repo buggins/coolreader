@@ -9,6 +9,7 @@ import java.util.Locale;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
+import org.coolreader.sync.SyncServiceAccessor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -42,6 +43,7 @@ public class BaseActivity extends Activity implements Settings {
 	public static final Logger log = L.create("ba");
 
 	private CRDBServiceAccessor mCRDBService;
+	private SyncServiceAccessor mSyncService;
 	
 	protected void unbindCRDBService() {
 		if (mCRDBService != null) {
@@ -50,7 +52,46 @@ public class BaseActivity extends Activity implements Settings {
 		}
 	}
 
-	protected void bindCRDBService(Runnable readyCallback) {
+	protected void unbindSyncService() {
+		if (mSyncService != null) {
+			mSyncService.unbind();
+			mSyncService = null;
+		}
+	}
+
+	protected void bindSyncService() {
+		if (mSyncService == null) {
+	       	mSyncService = new SyncServiceAccessor(this);
+			mSyncService.bind(new Runnable() {
+				@Override
+				public void run() {
+					log.i("Initialization after SyncService is bound");
+					BackgroundThread.instance().postGUI(new Runnable() {
+						@Override
+						public void run() {
+							FileInfo downloadDirectory = Services.getScanner().getDownloadDirectory();
+							if (downloadDirectory != null)
+				        	mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
+						}
+					});
+				}
+			});
+		}
+	}
+
+	
+	protected void bindCRDBService() {
+		if (mCRDBService == null) {
+			mCRDBService = new CRDBServiceAccessor(this, Engine.getInstance(this).getPathCorrector());
+		}
+        mCRDBService.bind(null);
+	}
+
+	/**
+	 * Wait until database is bound.
+	 * @param readyCallback to be called after DB is ready
+	 */
+	public void waitForCRDBService(Runnable readyCallback) {
 		if (mCRDBService == null) {
 			mCRDBService = new CRDBServiceAccessor(this, Engine.getInstance(this).getPathCorrector());
 		}
@@ -59,6 +100,7 @@ public class BaseActivity extends Activity implements Settings {
 
 	public CRDBServiceAccessor getDBService() { return mCRDBService; }
 	public CRDBService.LocalBinder getDB() { return mCRDBService.get(); }
+	public SyncServiceAccessor getSyncService() { return mSyncService; }
 	
 	/** Called when the activity is first created. */
     @Override
@@ -128,13 +170,17 @@ public class BaseActivity extends Activity implements Settings {
 
     
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-    }
+		
+		bindSyncService();
+		bindCRDBService();
+	}
 	
     
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		unbindCRDBService();
+		unbindSyncService();
 	}
 
 	@Override

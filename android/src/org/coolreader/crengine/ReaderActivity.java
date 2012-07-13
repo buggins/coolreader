@@ -186,7 +186,7 @@ public class ReaderActivity extends BaseActivity {
 		
 		super.onCreate(savedInstanceState);
 
-		bindCRDBService(new Runnable() {
+		waitForCRDBService(new Runnable() {
 			@Override
 			public void run() {
 				// TO do on DB ready
@@ -253,7 +253,6 @@ public class ReaderActivity extends BaseActivity {
 	
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
 
 		if ( !CLOSE_BOOK_ON_STOP )
 			mReaderView.close();
@@ -277,6 +276,7 @@ public class ReaderActivity extends BaseActivity {
 			mReaderView.destroy();
 		}
 		mReaderView = null;
+		super.onDestroy();
 	}
 
 	@Override
@@ -335,10 +335,15 @@ public class ReaderActivity extends BaseActivity {
 		Intent intent = getIntent();
 		log.d("intent=" + intent);
 		if (intent != null) {
-			String fileToOpen = intent.getExtras().getString(Activities.OPEN_FILE_PARAM);
+			final String fileToOpen = intent.getExtras().getString(Activities.OPEN_FILE_PARAM);
 			if (fileToOpen != null) {
 				log.d("FILE_TO_OPEN = " + fileToOpen);
-				mReaderView.loadDocument(fileToOpen, null);
+				waitForCRDBService(new Runnable() {
+					@Override
+					public void run() {
+						mReaderView.loadDocument(fileToOpen, null);
+					}
+				});
 			}
 		}
 

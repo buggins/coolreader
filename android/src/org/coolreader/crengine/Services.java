@@ -1,11 +1,6 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-
 import org.coolreader.crengine.Engine.HyphDict;
-import org.coolreader.db.CRDBService;
-import org.coolreader.db.CRDBServiceAccessor;
-import org.coolreader.sync.SyncServiceAccessor;
 
 public class Services {
 
@@ -13,13 +8,11 @@ public class Services {
 	
 	private static Engine mEngine;
 	private static Scanner mScanner;
-	private static SyncServiceAccessor mSyncService;
 	private static History mHistory;
 	private static CoverpageManager mCoverpageManager;
 
 	public static Engine getEngine() { return mEngine; }
 	public static Scanner getScanner() { return mScanner; }
-	public static SyncServiceAccessor getSyncService() { return mSyncService; }
 	public static History getHistory() { return mHistory; }
 	public static CoverpageManager getCoverpageManager() { return mCoverpageManager; }
 	
@@ -35,21 +28,6 @@ public class Services {
        	mScanner = new Scanner(activity, mEngine);
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 
-       	mSyncService = new SyncServiceAccessor(activity);
-		mSyncService.bind(new Runnable() {
-			@Override
-			public void run() {
-				log.i("Initialization after SyncService is bound");
-				BackgroundThread.instance().postGUI(new Runnable() {
-					@Override
-					public void run() {
-						FileInfo downloadDirectory = mScanner.getDownloadDirectory();
-						if (downloadDirectory != null)
-			        	mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
-					}
-				});
-			}
-		});
        	mHistory = new History(mScanner);
 		mScanner.setDirScanEnabled(SettingsManager.instance(activity).getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		mCoverpageManager = new CoverpageManager();
@@ -57,7 +35,6 @@ public class Services {
 	static void onLastActivityDestroyed() {
 		log.i("Last activity is destroyed");
 		mCoverpageManager.clear();
-		mSyncService.unbind();
 		BackgroundThread.instance().postBackground(new Runnable() {
 			@Override
 			public void run() {
