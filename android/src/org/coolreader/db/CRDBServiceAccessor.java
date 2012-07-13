@@ -34,7 +34,8 @@ public class CRDBServiceAccessor {
     	Log.v(TAG, "binding CRDBService");
     	if (mService != null) {
         	Log.v(TAG, "Already bound");
-    		boundCallback.run();
+        	if (boundCallback != null)
+        		boundCallback.run();
     		return;
     	}
     	if (mActivity.bindService(new Intent(mActivity, 

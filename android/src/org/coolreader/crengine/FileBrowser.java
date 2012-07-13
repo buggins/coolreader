@@ -3,17 +3,11 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.Locale;
-import java.util.TimeZone;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
-import org.coolreader.crengine.History.BookInfoLoadedCallack;
 import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
@@ -317,7 +311,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void refreshOPDSRootDirectory() {
 		final FileInfo opdsRoot = mScanner.getOPDSRoot();
 		if (opdsRoot != null) {
-			Services.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
+			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
 				@Override
 				public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
 					opdsRoot.clear();
@@ -423,7 +417,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		log.v("showOPDSRootDirectory()");
 		final FileInfo opdsRoot = mScanner.getOPDSRoot();
 		if (opdsRoot != null) {
-			Services.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
+			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
 				@Override
 				public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
 					opdsRoot.setItems(catalogs);
@@ -690,29 +684,29 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			if (fileOrDir.isBooksByAuthorRoot()) {
 				// refresh authors list
 				log.d("Updating authors list");
-				Services.getDB().loadAuthorsList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadAuthorsList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksBySeriesRoot()) {
 				// refresh authors list
 				log.d("Updating series list");
-				Services.getDB().loadSeriesList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadSeriesList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksByTitleRoot()) {
 				// refresh authors list
 				log.d("Updating title list");
-				Services.getDB().loadTitleList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				mActivity.getDB().loadTitleList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksByAuthorDir()) {
 				log.d("Updating author book list");
-				Services.getDB().loadAuthorBooks(fileOrDir.getAuthorId(), new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadAuthorBooks(fileOrDir.getAuthorId(), new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksBySeriesDir()) {
 				log.d("Updating series book list");
-				Services.getDB().loadSeriesBooks(fileOrDir.getSeriesId(), new FileInfoLoadingCallback(fileOrDir));
+				mActivity.getDB().loadSeriesBooks(fileOrDir.getSeriesId(), new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
 		} else {
@@ -730,7 +724,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
 		final FileInfo dir = fileOrDir!=null && !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
 		if ( dir!=null ) {
-			mScanner.scanDirectory(dir, new Runnable() {
+			mScanner.scanDirectory(mActivity.getDB(), dir, new Runnable() {
 				public void run() {
 					if (dir.allowSorting())
 						dir.sort(mSortOrder);
@@ -756,7 +750,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						control.stop();
 					}
 		});
-		mScanner.scanDirectory(currDirectory, new Runnable() {
+		mScanner.scanDirectory(mActivity.getDB(), currDirectory, new Runnable() {
 			@Override
 			public void run() {
 				log.i("scanCurrentDirectoryRecursive : finish handler");
@@ -933,7 +927,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 							image.setImageResource(item.format.getIconResourceId());
 						} else {
 							if (coverPagesEnabled) {
-								image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
+								image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(mActivity.getDB(), item));
 								image.setMinimumHeight(coverPageHeight);
 								image.setMinimumWidth(coverPageWidth);
 								image.setMaxHeight(coverPageHeight);
@@ -1191,7 +1185,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 
 	public void setCoverpageData(FileInfo fileInfo, byte[] data) {
-		mCoverpageManager.setCoverpageData(fileInfo, data);
+		mCoverpageManager.setCoverpageData(mActivity.getDB(), fileInfo, data);
 		currentListAdapter.notifyInvalidated();
 	}
 }

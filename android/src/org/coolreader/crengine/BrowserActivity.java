@@ -111,6 +111,14 @@ public class BrowserActivity extends BaseActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		Activities.setBrowser(this);
 		super.onCreate(savedInstanceState);
+		
+		bindCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				// TO do on DB ready
+			}
+		});
+
 		mEngine = Engine.getInstance(this);
 		
 		mBrowser = new FileBrowser(this, Services.getEngine(), Services.getScanner(), Services.getHistory());

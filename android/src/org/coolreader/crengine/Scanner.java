@@ -218,7 +218,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param readyCallback is Runable to call when operation is finished or stopped (will be called in GUI thread)
 	 * @param control allows to stop long operation
 	 */
-	private void scanDirectoryFiles(final FileInfo baseDir, final ScanControl control, final Engine.ProgressControl progress, final Runnable readyCallback) {
+	private void scanDirectoryFiles(final CRDBService.LocalBinder db, final FileInfo baseDir, final ScanControl control, final Engine.ProgressControl progress, final Runnable readyCallback) {
 		// GUI thread
 		BackgroundThread.ensureGUI();
 		log.d("scanDirectoryFiles(" + baseDir.getPathName() + ") ");
@@ -242,7 +242,7 @@ public class Scanner extends FileInfoChangeSource {
 		}
 
 		// load book infos for files
-		db().loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
+		db.loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
 			@Override
 			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
 				log.v("onFileInfoListLoaded");
@@ -269,7 +269,7 @@ public class Scanner extends FileInfoChangeSource {
 					}
 				}
 				if (filesForSave.size() > 0) {
-					db().saveFileInfos(filesForSave);
+					db.saveFileInfos(filesForSave);
 				}
 				if (filesForParsing.size() == 0 || control.isStopped()) {
 					readyCallback.run();
@@ -302,7 +302,7 @@ public class Scanner extends FileInfoChangeSource {
 								// GUI thread
 								try {
 									if (filesForSave.size() > 0) {
-										db().saveFileInfos(filesForSave);
+										db.saveFileInfos(filesForSave);
 									}
 									for (FileInfo file : filesForSave)
 										baseDir.setFile(file);
@@ -327,7 +327,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param recursiveScan is true to scan subdirectories recursively, false to scan current directory only
 	 * @param scanControl is to stop long scanning
 	 */
-	public void scanDirectory(final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl) {
+	public void scanDirectory(final CRDBService.LocalBinder db, final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl) {
 		// Call in GUI thread only!
 		BackgroundThread.ensureGUI();
 
@@ -340,7 +340,7 @@ public class Scanner extends FileInfoChangeSource {
 			return;
 		}
 		Engine.ProgressControl progress = engine.createProgress(recursiveScan ? 0 : R.string.progress_scanning); 
-		scanDirectoryFiles(baseDir, scanControl, progress, new Runnable() {
+		scanDirectoryFiles(db, baseDir, scanControl, progress, new Runnable() {
 			@Override
 			public void run() {
 				// GUI thread
@@ -380,7 +380,7 @@ public class Scanner extends FileInfoChangeSource {
 									BackgroundThread.instance().postGUI(new Runnable() {
 										@Override
 										public void run() {
-											scanDirectory(dir, callback, true, scanControl);
+											scanDirectory(db, dir, callback, true, scanControl);
 										}
 									});
 								}
@@ -822,10 +822,6 @@ public class Scanner extends FileInfoChangeSource {
 		mRoot.isDirectory = true;
 	}
 
-	private CRDBService.LocalBinder db() {
-		return Services.getDB();
-	}
-	
 	private final Engine engine;
 	private final BaseActivity coolReader;
 }
