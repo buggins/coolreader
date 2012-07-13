@@ -15,7 +15,6 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.InputDialog.InputHandler;
-import org.coolreader.db.CRDBService;
 import org.coolreader.sync.ChangeInfo;
 import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
@@ -31,7 +30,6 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
-import android.view.View.MeasureSpec;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -2067,6 +2065,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		notifyAutoscrollSpeed();
 	}
 	
+	public static Paint createSolidPaint(int color) {
+		Paint res = new Paint();
+		res.setStyle(Paint.Style.FILL);
+		res.setColor(color);
+		return res;
+	}
+
 	class AutoScrollAnimation {
 
 		boolean isScrollView;
@@ -2830,8 +2835,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.setBool(PROP_SHOW_BATTERY, isFullScreen); 
 		props.setBool(PROP_SHOW_TIME, isFullScreen);
 		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
-		if ( backgroundImageId!=null )
-			setBackgroundTexture(backgroundImageId);
+		int backgroundColor = props.getInt(PROP_BACKGROUND_COLOR, 0xFFFFFF);
+		setBackgroundTexture(backgroundImageId, backgroundColor);
 		doc.applySettings(props);
         syncViewSettings(props, save, saveDelayed);
         drawPage();
@@ -3106,27 +3111,45 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //        }
 	}
 
-	private void setBackgroundTexture( String textureId ) {
+	private void setBackgroundTexture(String textureId, int color) {
 		BackgroundTextureInfo[] textures = mEngine.getAvailableTextures();
 		for ( BackgroundTextureInfo item : textures ) {
 			if ( item.id.equals(textureId) ) {
-				setBackgroundTexture( item );
+				setBackgroundTexture(item, color);
 				return;
 			}
 		}
-		setBackgroundTexture( Engine.NO_TEXTURE );
+		setBackgroundTexture(Engine.NO_TEXTURE, color);
 	}
 
-	private void setBackgroundTexture( BackgroundTextureInfo texture ) {
+	private void setBackgroundTexture(BackgroundTextureInfo texture, int color) {
+		log.v("setBackgroundTexture(" + texture + ", " + color + ")");
+		currentBackgroundColor = color;
 		if ( !currentBackgroundTexture.equals(texture) ) {
-		log.d("setBackgroundTexture( " + texture + " )");
+			log.d("setBackgroundTexture( " + texture + " )");
 			currentBackgroundTexture = texture;
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
 			doc.setPageBackgroundTexture(data, texture.tiled ? 1 : 0);
+			currentBackgroundTextureTiled = texture.tiled;
+			if (data != null && data.length > 0) {
+				if (currentBackgroundTextureBitmap != null)
+					currentBackgroundTextureBitmap.recycle();
+				try {
+					currentBackgroundTextureBitmap = android.graphics.BitmapFactory.decodeByteArray(data, 0, data.length);
+				} catch (Exception e) {
+					log.e("Exception while decoding image data", e);
+					currentBackgroundTextureBitmap = null;
+				}
+			} else {
+				currentBackgroundTextureBitmap = null;
+			}
 		}
 	}
 	
 	BackgroundTextureInfo currentBackgroundTexture = Engine.NO_TEXTURE;
+	Bitmap currentBackgroundTextureBitmap = null;
+	boolean currentBackgroundTextureTiled = false;
+	int currentBackgroundColor = 0;
 	class CreateViewTask extends Task
 	{
         Properties props = new Properties();
@@ -3248,7 +3271,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (normalized == null) {
 			log.e("Trying to load book from non-standard path " + fileName);
 			mActivity.showToast("Trying to load book from non-standard path " + fileName);
-			mEngine.hideProgress();
+			hideProgress();
 			errorHandler.run();
 			return false;
 		} else if (!normalized.equals(fileName)) {
@@ -3593,14 +3616,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //				invalidate();
 //			}
 //    		if (mOpened)
-   			mEngine.hideProgress();
+   			hideProgress();
    			if ( doneHandler!=null )
    				doneHandler.run();
    			scheduleGc();
 		}
 		@Override
 		public void fail(Exception e) {
-   			mEngine.hideProgress();
+   			hideProgress();
 		}
 	};
 	
@@ -3702,7 +3725,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
 		requestResize(width, height);
-		drawPage();
+		draw();
 	}
 
 	boolean mSurfaceCreated = false;
@@ -3710,7 +3733,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceCreated(SurfaceHolder holder) {
 		log.i("surfaceCreated()");
 		mSurfaceCreated = true;
-		drawPage();
+		draw();
 	}
 
 	@Override
@@ -4850,6 +4873,31 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			coverPageBytes = coverpageBytes;
     	}
 	}
+
+	private int currentProgressPosition = 1;
+	private int currentProgressTitle = R.string.progress_loading;
+	private void showProgress(int position, int titleResource) {
+		log.v("showProgress(" + position + ")");
+		boolean first = currentProgressTitle == 0;
+		if (currentProgressPosition != position || currentProgressTitle != titleResource) {
+			currentProgressPosition = position;
+			currentProgressTitle = titleResource;
+			draw(!first);
+		}
+	}
+	
+	private void hideProgress() {
+		log.v("hideProgress()");
+		if (currentProgressTitle != 0) {
+			currentProgressPosition = 0;
+			currentProgressTitle = 0;
+			draw(false);
+		}
+	}
+	
+	private boolean isProgressActive() {
+		return currentProgressPosition != 0;
+	}
 	
 	private class LoadDocumentTask extends Task
 	{
@@ -4893,7 +4941,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("LoadDocumentTask : last position = " + pos);
 			
     		//mBitmap = null;
-	        mEngine.showProgress(1000, R.string.progress_loading);
+	        showProgress(1000, R.string.progress_loading);
 	        //init();
 	        // close existing document
 			log.v("LoadDocumentTask : closing current book");
@@ -4989,7 +5037,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());
 	        mOpened = false;
 			drawPage();
-			mEngine.hideProgress();
+			hideProgress();
 			mActivity.showToast("Error while loading document");
 			if ( errorHandler!=null ) {
 				log.e("LoadDocumentTask: Calling error handler");
@@ -5017,11 +5065,68 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		dimRect( canvas, dst );
 	}
 	
+	protected void drawPageBackground(Canvas canvas) {
+		Bitmap bmp = currentBackgroundTextureBitmap;
+		if (bmp != null) {
+			Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+			int h = bmp.getHeight();
+			int w = bmp.getWidth();
+    		Rect src = new Rect(0, 0, w, h);
+			if (currentBackgroundTextureTiled) {
+				// TILED
+				for (int x = 0; x < dst.width(); x += w) {
+					int ww = w;
+					if (x + ww > dst.width())
+						ww = dst.width() - x;
+					for (int y = 0; y < dst.height(); y += h) {
+						int hh = h;
+						if (y + hh > dst.height())
+							hh = dst.height() - y;
+						Rect d = new Rect(x, y, x + ww, y + hh);
+						Rect s = new Rect(0, 0, ww, hh);
+		        		drawDimmedBitmap(canvas, bmp, s, d);
+					}
+				}
+			} else {
+				// STRETCHED
+        		drawDimmedBitmap(canvas, bmp, src, dst);
+			}
+		} else {
+			canvas.drawColor(currentBackgroundColor | 0xFF000000);
+		}
+	}
+	
+	protected void doDrawProgress(Canvas canvas, int position, int titleResource) {
+		log.v("doDrawProgress(" + position + ")");
+		int w = canvas.getWidth();
+		int h = canvas.getHeight();
+		int mins = (w < h ? w : h) * 9 / 10;
+		int ph = mins / 20;
+		Rect rc = new Rect(w / 2 - mins / 2, h / 2 - ph / 2, w / 2 + mins / 2, h / 2 + ph / 2);
+		canvas.drawRect(rc, createSolidPaint(0xFFC0C0A0));
+		rc.left += 2;
+		rc.right -= 2;
+		rc.top += 2;
+		rc.bottom -= 2;
+		int x = rc.left + (rc.right - rc.left) * position / 10000;
+		Rect rc1 = new Rect(rc);
+		rc1.right = x;
+		canvas.drawRect(rc1, createSolidPaint(0xFF808080));
+		canvas.drawText(String.valueOf(position * 100 / 10000) + "%", rc.left + 4, rc1.bottom - 4, createSolidPaint(0xFF000000));
+//		Rect rc2 = new Rect(rc);
+//		rc.left = x;
+//		canvas.drawRect(rc2, createSolidPaint(0xFFC0C0A0));
+	}
+	
 	protected void doDraw(Canvas canvas)
 	{
        	try {
     		log.d("doDraw() called");
-    		if ( mInitialized && mCurrentPageInfo!=null ) {
+    		if (isProgressActive()) {
+        		log.d("onDraw() -- drawing progress");
+        		drawPageBackground(canvas);
+        		doDrawProgress(canvas, currentProgressPosition, currentProgressTitle);
+    		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
         		log.d("onDraw() -- drawing page image");
 
         		if (currentAutoScrollAnimation != null) {
@@ -5059,7 +5164,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
     		} else {
         		log.d("onDraw() -- drawing empty screen");
-    			canvas.drawColor(Color.rgb(64, 64, 64));
+        		drawPageBackground(canvas);
     		}
     	} catch ( Exception e ) {
     		log.e("exception while drawing", e);
@@ -5342,13 +5447,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public boolean OnFormatProgress(final int percent) {
 			if ( enable_progress_callback ) {
 		    	log.d("readerCallback.OnFormatProgress " + percent);
-		    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
+		    	showProgress( percent*4/10 + 5000, R.string.progress_formatting);
 			}
 //			executeSync( new Callable<Object>() {
 //				public Object call() {
 //					BackgroundThread.ensureGUI();
 //			    	log.d("readerCallback.OnFormatProgress " + percent);
-//			    	mEngine.showProgress( percent*4/10 + 5000, R.string.progress_formatting);
+//			    	showProgress( percent*4/10 + 5000, R.string.progress_formatting);
 //			    	return null;
 //				}
 //			});
@@ -5396,13 +5501,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 			if ( enable_progress_callback ) {
 		    	log.d("readerCallback.OnLoadFileProgress " + percent);
-		    	mEngine.showProgress( percent*4/10 + 1000, R.string.progress_loading);
+		    	showProgress( percent*4/10 + 1000, R.string.progress_loading);
 			}
 //			executeSync( new Callable<Object>() {
 //				public Object call() {
 //					BackgroundThread.ensureGUI();
 //			    	log.d("readerCallback.OnLoadFileProgress " + percent);
-//			    	mEngine.showProgress( percent*4/10 + 1000, R.string.progress_loading);
+//			    	showProgress( percent*4/10 + 1000, R.string.progress_loading);
 //			    	return null;
 //				}
 //			});
