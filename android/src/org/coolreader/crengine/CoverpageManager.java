@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.coolreader.CoolReader;
 import org.coolreader.db.CRDBService;
 
 import android.graphics.Bitmap;
@@ -102,12 +101,12 @@ public class CoverpageManager {
 		}
 	}
 	
-	public void setCoverpageData(FileInfo fileInfo, byte[] data) {
+	public void setCoverpageData(final CRDBService.LocalBinder db, FileInfo fileInfo, byte[] data) {
 		synchronized(LOCK) {
 			ImageItem item = new ImageItem(fileInfo, -1, -1);
 			unqueue(Collections.singleton(item));
 			mCache.remove(item);
-			Services.getDB().saveBookCoverpage(item.file, data);
+			db.saveBookCoverpage(item.file, data);
 			coverpageLoaded(item, data);
 		}
 	}
@@ -134,8 +133,8 @@ public class CoverpageManager {
 	 * @param book is file to get coverpage for.
 	 * @return Drawable which can be used to draw coverpage.
 	 */
-	public Drawable getCoverpageDrawableFor(FileInfo book) {
-		return new CoverImage(new ImageItem(new FileInfo(book), maxWidth, maxHeight));
+	public Drawable getCoverpageDrawableFor(final CRDBService.LocalBinder db, FileInfo book) {
+		return new CoverImage(db, new ImageItem(new FileInfo(book), maxWidth, maxHeight));
 	}
 	
 	/**
@@ -146,8 +145,8 @@ public class CoverpageManager {
 	 * @param maxHeight is height in pixel of destination image size.
 	 * @return Drawable which can be used to draw coverpage.
 	 */
-	public Drawable getCoverpageDrawableFor(FileInfo book, int maxWidth, int maxHeight) {
-		return new CoverImage(new ImageItem(new FileInfo(book), maxWidth, maxHeight));
+	public Drawable getCoverpageDrawableFor(final CRDBService.LocalBinder db, FileInfo book, int maxWidth, int maxHeight) {
+		return new CoverImage(db, new ImageItem(new FileInfo(book), maxWidth, maxHeight));
 	}
 	
 	private int maxWidth = 110;
@@ -428,7 +427,7 @@ public class CoverpageManager {
 			}
 		});
 	}
-	private void scheduleCheckCache() {
+	private void scheduleCheckCache(final CRDBService.LocalBinder db) {
 		// cache lookup
 		lastCheckCacheTask = new Runnable() {
 			@Override
@@ -441,25 +440,25 @@ public class CoverpageManager {
 				}
 				if (file != null) {
 					final ImageItem request = file;
-					Services.getDB().loadBookCoverpage(file.file, new CRDBService.CoverpageLoadingCallback() {
+					db.loadBookCoverpage(file.file, new CRDBService.CoverpageLoadingCallback() {
 						@Override
 						public void onCoverpageLoaded(FileInfo fileInfo, byte[] data) {
 							if (data == null) {
 								log.v("cover not found in DB for " + fileInfo + ", scheduling scan");
 								mScanFileQueue.addOnTop(request);
-								scheduleScanFile();
+								scheduleScanFile(db);
 							} else {
 								coverpageLoaded(request, data);
 							}
 						}
 					});
-					scheduleCheckCache();
+					scheduleCheckCache(db);
 				}
 			}
 		};
 		BackgroundThread.instance().postGUI(lastCheckCacheTask);
 	}
-	private void scheduleScanFile() {
+	private void scheduleScanFile(final CRDBService.LocalBinder db) {
 		// file scan
 		lastScanFileTask = new Runnable() {
 			@Override
@@ -480,21 +479,21 @@ public class CoverpageManager {
 								if (data == null)
 									data = new byte[] {};
 								if (fileInfo.file.format.needCoverPageCaching())
-									Services.getDB().saveBookCoverpage(fileInfo.file, data);
+									db.saveBookCoverpage(fileInfo.file, data);
 								coverpageLoaded(fileInfo, data);
 							}
 						});
 					} else {
 						coverpageLoaded(fileInfo, new byte[] {});
 					}
-					scheduleScanFile();
+					scheduleScanFile(db);
 				}
 			}
 		};
 		BackgroundThread.instance().postGUI(lastScanFileTask);
 	}
 
-	private void queueForDrawing(ImageItem file) {
+	private void queueForDrawing(final CRDBService.LocalBinder db, ImageItem file) {
 		synchronized (LOCK) {
 			BitmapCacheItem item = mCache.getItem(file);
 			if (item != null && (item.state == State.READY || item.state == State.DRAWING))
@@ -502,12 +501,12 @@ public class CoverpageManager {
 			if (file.file.format.needCoverPageCaching()) {
 				if (mCheckFileCacheQueue.addOnTop(file)) {
 					log.v("Scheduled coverpage DB lookup for " + file);
-					scheduleCheckCache();
+					scheduleCheckCache(db);
 				}
 			} else {
 				if (mScanFileQueue.addOnTop(file)) {
 					log.v("Scheduled coverpage filescan for " + file);
-					scheduleScanFile();
+					scheduleScanFile(db);
 				}
 			}
 		}
@@ -517,14 +516,16 @@ public class CoverpageManager {
 		
 		ImageItem book;
 		Paint defPaint;
+		final CRDBService.LocalBinder db;
 		final static int alphaLevels = 16;
 		final static int shadowSizePercent = 6;
 		final static int minAlpha = 40;
 		final static int maxAlpha = 180;
 		final Paint[] shadowPaints = new Paint[alphaLevels + 1];
 		
-		public CoverImage(ImageItem book) {
+		public CoverImage(final CRDBService.LocalBinder db, ImageItem book) {
 			this.book = book;
+			this.db = db;
 			defPaint = new Paint();
 			defPaint.setColor(0xFF000000);
 			defPaint.setFilterBitmap(true);
@@ -612,7 +613,7 @@ public class CoverpageManager {
 						return;
 					}
 				}
-				queueForDrawing(book);
+				queueForDrawing(db, book);
 				//if (h * bestWidth / bestHeight > w)
 				//canvas.drawRect(rc, defPaint);
 			} catch (Exception e) {
@@ -646,8 +647,8 @@ public class CoverpageManager {
 		}
 	}
 
-	public void drawCoverpageFor(final FileInfo file, final Bitmap buffer, final CoverpageBitmapReadyListener callback) {
-		Services.getDB().loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
+	public void drawCoverpageFor(final CRDBService.LocalBinder db, final FileInfo file, final Bitmap buffer, final CoverpageBitmapReadyListener callback) {
+		db.loadBookCoverpage(file, new CRDBService.CoverpageLoadingCallback() {
 			@Override
 			public void onCoverpageLoaded(FileInfo fileInfo, final byte[] data) {
 				BackgroundThread.instance().postBackground(new Runnable() {
@@ -659,7 +660,7 @@ public class CoverpageManager {
 							if (imageData == null)
 								imageData = new byte[] {};
 							if (file.format.needCoverPageCaching())
-								Services.getDB().saveBookCoverpage(file, imageData);
+								db.saveBookCoverpage(file, imageData);
 						}
 						Services.getEngine().drawBookCover(buffer, imageData, fontFace, file.getTitleOrFileName(), file.authors, file.series, file.seriesNumber, DeviceInfo.EINK_SCREEN ? 4 : 16);
 						BackgroundThread.instance().postGUI(new Runnable() {

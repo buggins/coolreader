@@ -157,7 +157,7 @@ public class Activities {
 		dlg.show();
 	}
 
-	public static void askDeleteBook(BaseActivity activity, final FileInfo item)
+	public static void askDeleteBook(final BaseActivity activity, final FileInfo item)
 	{
 		activity.askConfirmation(R.string.win_title_confirm_book_delete, new Runnable() {
 			@Override
@@ -165,32 +165,32 @@ public class Activities {
 				Activities.closeBookIfOpened(item);
 				if (item.deleteFile()) {
 					Services.getSyncService().removeFile(item.getPathName());
-					Services.getHistory().removeBookInfo(item, true, true);
+					Services.getHistory().removeBookInfo(activity.getDB(), item, true, true);
 				}
 				directoryUpdated(item.parent);
 			}
 		});
 	}
 	
-	public static void askDeleteRecent(BaseActivity activity, final FileInfo item)
+	public static void askDeleteRecent(final BaseActivity activity, final FileInfo item)
 	{
 		activity.askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
 			@Override
 			public void run() {
-				Services.getHistory().removeBookInfo(item, true, false);
+				Services.getHistory().removeBookInfo(activity.getDB(), item, true, false);
 				Services.getSyncService().removeFileLastPosition(item.getPathName());
 				directoryUpdated(Services.getScanner().createRecentRoot());
 			}
 		});
 	}
 	
-	public static void askDeleteCatalog(BaseActivity activity, final FileInfo item)
+	public static void askDeleteCatalog(final BaseActivity activity, final FileInfo item)
 	{
 		activity.askConfirmation(R.string.win_title_confirm_catalog_delete, new Runnable() {
 			@Override
 			public void run() {
 				if (item != null && item.isOPDSDir()) {
-					Services.getDB().removeOPDSCatalog(item.id);
+					activity.getDB().removeOPDSCatalog(item.id);
 					directoryUpdated(Services.getScanner().createRecentRoot());
 				}
 			}
@@ -206,7 +206,7 @@ public class Activities {
 	}
 	
 	public static void editBookInfo(final BaseActivity activity, final FileInfo currDirectory, final FileInfo item) {
-		Services.getHistory().getOrCreateBookInfo(item, new BookInfoLoadedCallack() {
+		Services.getHistory().getOrCreateBookInfo(activity.getDB(), item, new BookInfoLoadedCallack() {
 			@Override
 			public void onBookInfoLoaded(BookInfo bookInfo) {
 				if (bookInfo == null)

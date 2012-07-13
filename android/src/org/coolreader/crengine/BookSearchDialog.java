@@ -113,9 +113,9 @@ public class BookSearchDialog extends BaseDialog {
 		final String series = seriesEdit.getText().toString().trim();
 		final String title = titleEdit.getText().toString().trim();
 		final String filename = filenameEdit.getText().toString().trim();
-		if (mCoolReader == null || Services.getDB() == null)
+		if (mCoolReader == null || mCoolReader.getDB() == null)
 			return;
-		Services.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename, new CRDBService.BookSearchCallback() {
+		mCoolReader.getDB().findByPatterns(MAX_RESULTS, author, title, series, filename, new CRDBService.BookSearchCallback() {
 			@Override
 			public void onBooksFound(ArrayList<FileInfo> fileList) {
 				cb.done(fileList.toArray(new FileInfo[fileList.size()]));

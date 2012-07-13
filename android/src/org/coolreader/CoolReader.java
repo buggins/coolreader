@@ -33,13 +33,6 @@ public class CoolReader extends BaseActivity
 	//View startupView;
 	//CRDB mDB;
 	
-	public CRDBService.LocalBinder getDB()
-	{
-		return mCRDBService.get();
-	}
-	
-
-	
 	
 	String fileToLoadOnStart = null;
 	
@@ -58,10 +51,16 @@ public class CoolReader extends BaseActivity
     	Activities.setMain(this);
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		
+		bindCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				// after DB is ready
+			}
+		});
 
 		// testing background thread
 		mSyncService = Services.getSyncService();
-		mCRDBService = Services.getDBService();
 
     	isFirstStart = true;
 		
@@ -116,7 +115,6 @@ public class CoolReader extends BaseActivity
     public SyncServiceAccessor getSyncService() {
     	return mSyncService;
     }
-    private CRDBServiceAccessor mCRDBService;
     
     
     boolean mDestroyed = false;

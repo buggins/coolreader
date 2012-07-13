@@ -7,6 +7,8 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 
 import org.coolreader.R;
+import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBServiceAccessor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -38,6 +40,25 @@ import android.widget.Toast;
 public class BaseActivity extends Activity implements Settings {
 
 	public static final Logger log = L.create("ba");
+
+	private CRDBServiceAccessor mCRDBService;
+	
+	protected void unbindCRDBService() {
+		if (mCRDBService != null) {
+			mCRDBService.unbind();
+			mCRDBService = null;
+		}
+	}
+
+	protected void bindCRDBService(Runnable readyCallback) {
+		if (mCRDBService == null) {
+			mCRDBService = new CRDBServiceAccessor(this, Engine.getInstance(this).getPathCorrector());
+		}
+        mCRDBService.bind(readyCallback);
+	}
+
+	public CRDBServiceAccessor getDBService() { return mCRDBService; }
+	public CRDBService.LocalBinder getDB() { return mCRDBService.get(); }
 	
 	/** Called when the activity is first created. */
     @Override
@@ -109,6 +130,13 @@ public class BaseActivity extends Activity implements Settings {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
     }
 	
+    
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		unbindCRDBService();
+	}
+
 	@Override
 	protected void onStart() {
 		super.onStart();

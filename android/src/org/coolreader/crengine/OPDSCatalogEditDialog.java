@@ -32,7 +32,7 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 
 	@Override
 	protected void onPositiveButtonClick() {
-		Services.getDB().saveOPDSCatalog(mItem.id,
+		activity.getDB().saveOPDSCatalog(mItem.id,
 				urlEdit.getText().toString(), nameEdit.getText().toString());
 		mOnUpdate.run();
 		super.onPositiveButtonClick();

@@ -14,15 +14,12 @@ public class Services {
 	private static Engine mEngine;
 	private static Scanner mScanner;
 	private static SyncServiceAccessor mSyncService;
-	private static CRDBServiceAccessor mCRDBService;
 	private static History mHistory;
 	private static CoverpageManager mCoverpageManager;
 
 	public static Engine getEngine() { return mEngine; }
 	public static Scanner getScanner() { return mScanner; }
 	public static SyncServiceAccessor getSyncService() { return mSyncService; }
-	public static CRDBServiceAccessor getDBService() { return mCRDBService; }
-	public static CRDBService.LocalBinder getDB() { return mCRDBService.get(); }
 	public static History getHistory() { return mHistory; }
 	public static CoverpageManager getCoverpageManager() { return mCoverpageManager; }
 	
@@ -53,14 +50,6 @@ public class Services {
 				});
 			}
 		});
-		mCRDBService = new CRDBServiceAccessor(activity, mEngine.getPathCorrector());
-        mCRDBService.bind(new Runnable() {
-			@Override
-			public void run() {
-				log.i("Initialization after SyncService is bound");
-				mHistory.loadFromDB(200);
-			}
-        });
        	mHistory = new History(mScanner);
 		mScanner.setDirScanEnabled(SettingsManager.instance(activity).getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		mCoverpageManager = new CoverpageManager();
@@ -68,7 +57,6 @@ public class Services {
 	static void onLastActivityDestroyed() {
 		log.i("Last activity is destroyed");
 		mCoverpageManager.clear();
-		mCRDBService.unbind();
 		mSyncService.unbind();
 		BackgroundThread.instance().postBackground(new Runnable() {
 			@Override

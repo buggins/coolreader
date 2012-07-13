@@ -80,7 +80,7 @@ public class CRRootView extends FrameLayout {
 		ImageView cover = (ImageView)mView.findViewById(R.id.book_cover);
 		if (currentBook != null) {
 			FileInfo item = currentBook.getFileInfo();
-			cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item, coverWidth, coverHeight));
+			cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(mActivity.getDB(), item, coverWidth, coverHeight));
 			cover.setMinimumHeight(coverHeight);
 			cover.setMinimumWidth(coverWidth);
 			cover.setMaxHeight(coverHeight);
@@ -135,7 +135,7 @@ public class CRRootView extends FrameLayout {
 				});
 			} else {
 				cover.setMinimumWidth(coverWidth);
-				cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item, coverWidth, coverHeight));
+				cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(mActivity.getDB(), item, coverWidth, coverHeight));
 				if (label != null) {
 					String title = item.title;
 					String authors = Utils.formatAuthors(item.authors);
@@ -172,7 +172,7 @@ public class CRRootView extends FrameLayout {
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
-				Services.getHistory().getOrLoadRecentBooks(new CRDBService.RecentBooksLoadingCallback() {
+				Services.getHistory().getOrLoadRecentBooks(mActivity.getDB(), new CRDBService.RecentBooksLoadingCallback() {
 					@Override
 					public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
 						updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
@@ -184,7 +184,7 @@ public class CRRootView extends FrameLayout {
 	}
 
 	public void refreshOnlineCatalogs() {
-		Services.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
+		mActivity.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
 			@Override
 			public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
 				updateOnlineCatalogs(catalogs);

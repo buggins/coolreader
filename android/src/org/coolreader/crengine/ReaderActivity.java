@@ -186,6 +186,13 @@ public class ReaderActivity extends BaseActivity {
 		
 		super.onCreate(savedInstanceState);
 
+		bindCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				// TO do on DB ready
+			}
+		});
+		
 		mEngine = Engine.getInstance(this);
 		mReaderView = new ReaderView(this, mEngine, SettingsManager.instance(this).get());
 		mFrame = new ReaderViewLayout(this, mReaderView);

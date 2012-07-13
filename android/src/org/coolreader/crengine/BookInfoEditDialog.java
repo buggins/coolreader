@@ -279,7 +279,7 @@ public class BookInfoEditDialog extends BaseDialog {
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-        Services.getCoverpageManager().drawCoverpageFor(file, bmp, new CoverpageBitmapReadyListener() {
+        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), file, bmp, new CoverpageBitmapReadyListener() {
 			@Override
 			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
 		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
@@ -373,8 +373,8 @@ public class BookInfoEditDialog extends BaseDialog {
 			state = FileInfo.STATE_FINISHED;
         modified = file.setReadingState(state) || modified;
         if (modified) {
-        	Services.getDB().saveBookInfo(mBookInfo);
-        	Services.getDB().flush();
+        	mActivity.getDB().saveBookInfo(mBookInfo);
+        	mActivity.getDB().flush();
         	BookInfo bi = Services.getHistory().getBookInfo(file);
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
