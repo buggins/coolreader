@@ -46,7 +46,6 @@ public class Services {
 		});
 		mHistory = null;
 		mScanner = null;
-		mEngine = null;
 		mCoverpageManager = null;
 	}
 }
