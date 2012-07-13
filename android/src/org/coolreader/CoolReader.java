@@ -52,26 +52,22 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 		
-		bindCRDBService(new Runnable() {
-			@Override
-			public void run() {
-				// after DB is ready
-			}
-		});
-
-		// testing background thread
-		mSyncService = Services.getSyncService();
-
     	isFirstStart = true;
 		
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
     	
 
-
+		waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				Services.getHistory().loadFromDB(getDB(), 200);
+				
+				mFrame = new CRRootView(CoolReader.this);
+				setContentView( mFrame );
+				BackgroundThread.instance().setGUI(mFrame);
+			}
+		});
     	
-		mFrame = new CRRootView(this);
-		setContentView( mFrame );
-		BackgroundThread.instance().setGUI(mFrame);
 
 
 
@@ -94,29 +90,23 @@ public class CoolReader extends BaseActivity
 //		}
 		
 //		mFrame.addView(startupView);
-        log.i("initializing browser");
-        log.i("initializing reader");
-        
-        fileToLoadOnStart = null;
-		Intent intent = getIntent();
-		if ( intent!=null && Intent.ACTION_VIEW.equals(intent.getAction()) ) {
-			Uri uri = intent.getData();
-			if ( uri!=null ) {
-				fileToLoadOnStart = extractFileName(uri);
-			}
-			intent.setData(null);
-		}
+//        log.i("initializing browser");
+//        log.i("initializing reader");
+//        
+//        fileToLoadOnStart = null;
+//		Intent intent = getIntent();
+//		if ( intent!=null && Intent.ACTION_VIEW.equals(intent.getAction()) ) {
+//			Uri uri = intent.getData();
+//			if ( uri!=null ) {
+//				fileToLoadOnStart = extractFileName(uri);
+//			}
+//			intent.setData(null);
+//		}
         
 		
         log.i("CoolReader.onCreate() exiting");
     }
 
-    private SyncServiceAccessor mSyncService;
-    public SyncServiceAccessor getSyncService() {
-    	return mSyncService;
-    }
-    
-    
     boolean mDestroyed = false;
 	@Override
 	protected void onDestroy() {

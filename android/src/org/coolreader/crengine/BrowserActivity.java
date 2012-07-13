@@ -102,7 +102,6 @@ public class BrowserActivity extends BaseActivity {
 	}
 	
 	private FileBrowser mBrowser;
-	private Engine mEngine;
 	private BrowserViewLayout mFrame;
 	private View mTitleBar;
 	private CRToolBar mToolBar;
@@ -112,74 +111,72 @@ public class BrowserActivity extends BaseActivity {
 		Activities.setBrowser(this);
 		super.onCreate(savedInstanceState);
 		
-		bindCRDBService(new Runnable() {
+		waitForCRDBService(new Runnable() {
 			@Override
 			public void run() {
-				// TO do on DB ready
+				mBrowser = new FileBrowser(BrowserActivity.this, Services.getEngine(), Services.getScanner(), Services.getHistory());
+				mBrowser.setCoverPagesEnabled(SettingsManager.instance(BrowserActivity.this).getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
+				mBrowser.setCoverPageFontFace(SettingsManager.instance(BrowserActivity.this).getSetting(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
+				mBrowser.setCoverPageSizeOption(SettingsManager.instance(BrowserActivity.this).getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));
+		        mBrowser.setSortOrder(SettingsManager.instance(BrowserActivity.this).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+				mBrowser.setSimpleViewMode(SettingsManager.instance(BrowserActivity.this).getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
+		        mBrowser.init();
+
+				LayoutInflater inflater = LayoutInflater.from(BrowserActivity.this);// activity.getLayoutInflater();
+				
+				mTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
+				setTitle("Cool Reader browser window");
+
+		        mToolBar = new CRToolBar(BrowserActivity.this, ReaderAction.createList(
+		        		ReaderAction.FILE_BROWSER_UP, 
+		        		ReaderAction.CURRENT_BOOK,
+		        		ReaderAction.CURRENT_BOOK_DIRECTORY,
+		        		ReaderAction.FILE_BROWSER_ROOT, 
+		        		ReaderAction.OPTIONS,
+		        		ReaderAction.RECENT_BOOKS,
+		        		ReaderAction.OPDS_CATALOGS, 
+		        		ReaderAction.SEARCH
+		        		));
+		        mToolBar.setBackgroundColor(0x40303030);
+		        mToolBar.setOnActionHandler(new OnActionHandler() {
+					@Override
+					public boolean onActionSelected(ReaderAction item) {
+						switch (item.cmd) {
+						case DCMD_FILE_BROWSER_ROOT:
+							Activities.showRootWindow();
+						case DCMD_FILE_BROWSER_UP:
+							mBrowser.showParentDirectory();
+							break;
+						case DCMD_OPDS_CATALOGS:
+							mBrowser.showOPDSRootDirectory();
+							break;
+						case DCMD_RECENT_BOOKS_LIST:
+							mBrowser.showRecentBooks();
+							break;
+						case DCMD_SEARCH:
+							mBrowser.showFindBookDialog();
+							break;
+						case DCMD_CURRENT_BOOK:
+							BookInfo bi = Services.getHistory().getLastBook();
+							if (bi != null)
+								Activities.loadDocument(bi.getFileInfo());
+							break;
+						case DCMD_OPTIONS_DIALOG:
+							//mBrowser.
+							// TODO: open browser options dialog
+							break;
+						}
+						return false;
+					}
+				});
+				mFrame = new BrowserViewLayout(BrowserActivity.this, mBrowser, mToolBar, mTitleBar);
+				setContentView(mFrame);
+
+		        mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
 			}
 		});
 
-		mEngine = Engine.getInstance(this);
 		
-		mBrowser = new FileBrowser(this, Services.getEngine(), Services.getScanner(), Services.getHistory());
-		mBrowser.setCoverPagesEnabled(SettingsManager.instance(this).getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
-		mBrowser.setCoverPageFontFace(SettingsManager.instance(this).getSetting(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
-		mBrowser.setCoverPageSizeOption(SettingsManager.instance(this).getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));
-        mBrowser.setSortOrder(SettingsManager.instance(this).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
-		mBrowser.setSimpleViewMode(SettingsManager.instance(this).getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
-        mBrowser.init();
-
-		LayoutInflater inflater = LayoutInflater.from(this);// activity.getLayoutInflater();
-		
-		mTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
-		setTitle("Cool Reader browser window");
-
-        mToolBar = new CRToolBar(this, ReaderAction.createList(
-        		ReaderAction.FILE_BROWSER_UP, 
-        		ReaderAction.CURRENT_BOOK,
-        		ReaderAction.CURRENT_BOOK_DIRECTORY,
-        		ReaderAction.FILE_BROWSER_ROOT, 
-        		ReaderAction.OPTIONS,
-        		ReaderAction.RECENT_BOOKS,
-        		ReaderAction.OPDS_CATALOGS, 
-        		ReaderAction.SEARCH
-        		));
-        mToolBar.setBackgroundColor(0x40303030);
-        mToolBar.setOnItemSelectedHandler(new OnActionHandler() {
-			@Override
-			public boolean onActionSelected(ReaderAction item) {
-				switch (item.cmd) {
-				case DCMD_FILE_BROWSER_ROOT:
-					Activities.showRootWindow();
-				case DCMD_FILE_BROWSER_UP:
-					mBrowser.showParentDirectory();
-					break;
-				case DCMD_OPDS_CATALOGS:
-					mBrowser.showOPDSRootDirectory();
-					break;
-				case DCMD_RECENT_BOOKS_LIST:
-					mBrowser.showRecentBooks();
-					break;
-				case DCMD_SEARCH:
-					mBrowser.showFindBookDialog();
-					break;
-				case DCMD_CURRENT_BOOK:
-					BookInfo bi = Services.getHistory().getLastBook();
-					if (bi != null)
-						Activities.loadDocument(bi.getFileInfo());
-					break;
-				case DCMD_OPTIONS_DIALOG:
-					//mBrowser.
-					// TODO: open browser options dialog
-					break;
-				}
-				return false;
-			}
-		});
-		mFrame = new BrowserViewLayout(this, mBrowser, mToolBar, mTitleBar);
-		setContentView(mFrame);
-
-        mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
 	}
 
 	
@@ -189,9 +186,15 @@ public class BrowserActivity extends BaseActivity {
 		
 		Intent intent = getIntent();
 		if (intent != null) {
-			String dir = intent.getExtras() != null ? intent.getExtras().getString(Activities.OPEN_DIR_PARAM) : null;
+			final String dir = intent.getExtras() != null ? intent.getExtras().getString(Activities.OPEN_DIR_PARAM) : null;
 			if (dir != null) {
-				mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
+				// postpone until DB service created
+				waitForCRDBService(new Runnable() {
+					@Override
+					public void run() {
+						mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
+					}
+				});
 			}
 		}
 	}
