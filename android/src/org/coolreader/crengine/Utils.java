@@ -404,4 +404,11 @@ public class Utils {
 		canvas.drawRect(new Rect(rect.left + 1, rect.bottom - 1, rect.right - 1, rect.bottom), paint);
 	}
 	
+	public static Paint createSolidPaint(int color) {
+		Paint res = new Paint();
+		res.setStyle(Paint.Style.FILL);
+		res.setColor(color);
+		return res;
+	}
+
 }

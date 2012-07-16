@@ -50,8 +50,8 @@ public class CRToolBar extends ViewGroup {
 		this.actions = actions;
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
-		buttonWidth = buttonHeight = preferredItemHeight * 2 / 3 - BUTTON_SPACING * 2;
-		//int dpi = context.getDensityDpi();
+		buttonWidth = buttonHeight = preferredItemHeight * 2 / 3 - BUTTON_SPACING * 2 - BAR_SPACING;
+		int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
@@ -61,8 +61,8 @@ public class CRToolBar extends ViewGroup {
 			}
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth(); // * dpi / 160;
-			int h = d.getIntrinsicHeight(); // * dpi / 160;
+			int w = d.getIntrinsicWidth() * dpi / 160;
+			int h = d.getIntrinsicHeight() * dpi / 160;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 			}
@@ -183,13 +183,13 @@ public class CRToolBar extends ViewGroup {
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+//        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
 //        if (widthMode != MeasureSpec.EXACTLY) {
 //            throw new IllegalStateException(getClass().getSimpleName() + " can only be used " +
 //                    "with android:layout_width=\"match_parent\" (or fill_parent)");
 //        }
         
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+//        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 //        if (heightMode != MeasureSpec.AT_MOST) {
 //            throw new IllegalStateException(getClass().getSimpleName() + " can only be used " +
 //                    "with android:layout_height=\"wrap_content\"");

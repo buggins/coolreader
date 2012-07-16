@@ -1,6 +1,7 @@
 package org.coolreader.crengine;
 
 import org.coolreader.PhoneStateReceiver;
+import org.coolreader.R;
 import org.coolreader.crengine.CRToolBar.OnActionHandler;
 import org.coolreader.crengine.SettingsManager.DictInfo;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
@@ -21,23 +22,102 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View.MeasureSpec;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class ReaderActivity extends BaseActivity {
 
-	static class StatusBar extends TextView {
-		public StatusBar(Context context) {
+	static class PositionIndicator extends View {
+
+		private final int INDICATOR_HEIGHT = 8;
+		
+		private int color = 0;
+		
+		public PositionIndicator(ReaderActivity context) {
 			super(context);
-			setText("Book Name - Book Author      24/124  [35%]");
+			setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			this.color = 0x808080; //SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
+			setBackgroundColor(0xC0404040);
+		}
+		
+		@Override
+		protected void onDraw(Canvas canvas) {
+			Paint readPaint = Utils.createSolidPaint(0xC0000000 | color);
+			Paint unreadPaint = Utils.createSolidPaint(0x40000000 | color);
+			int w = getWidth();
+			int h = getHeight();
+			int pos = 3300;
+			int x = w * pos / 10000;
+			canvas.drawRect(new Rect(getLeft(), h/2 - 1, getLeft() + x, h/2 + 1), readPaint);
+			canvas.drawRect(new Rect(getLeft() + x, h/2 - 1, getLeft() + w, h/2 + 1), unreadPaint);
+		}
+
+		@Override
+		protected void onLayout(boolean changed, int left, int top, int right,
+				int bottom) {
+			super.onLayout(changed, left, top, right, bottom);
+		}
+
+		@Override
+		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			int w = MeasureSpec.getSize(widthMeasureSpec);
+			int h = INDICATOR_HEIGHT;
+			setMeasuredDimension(w, h);
 		}
 	}
+	
+	static class StatusBar extends LinearLayout implements Settings {
+		private ReaderActivity activity;
+		private LinearLayout content;
+		private TextView title;
+		private TextView position;
+		private PositionIndicator indicator;
+		private int textSize = 14;
+		private int color = 0;
+		
+		public StatusBar(ReaderActivity context) {
+			super(context);
+			this.activity = context;
+			setOrientation(VERTICAL);
+			
+			this.textSize = SettingsManager.instance(context).getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
+			this.color = 0x808080; //SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
+			
+			LayoutInflater inflater = LayoutInflater.from(activity);
+			content = (LinearLayout)inflater.inflate(R.layout.reader_status_bar, null);
+			title = (TextView)content.findViewById(R.id.title);
+			position = (TextView)content.findViewById(R.id.position);
+
+			title.setText("Book Name - Book Author (series #1)");
+			title.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+			title.setTextColor(0xFF000000 | color);
+
+			position.setText("24/124  [35%]");
+			position.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+			position.setTextColor(0xFF000000 | color);
+			
+			addView(content);
+			indicator = new PositionIndicator(activity);
+			addView(indicator);
+			//content.addView(indicator);
+			
+			
+		}
+	}
+
 	static class ReaderViewLayout extends FrameLayout implements Settings {
 		private ReaderActivity activity;
 		private ReaderView contentView;
