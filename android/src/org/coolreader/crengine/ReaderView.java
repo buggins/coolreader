@@ -2065,13 +2065,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		notifyAutoscrollSpeed();
 	}
 	
-	public static Paint createSolidPaint(int color) {
-		Paint res = new Paint();
-		res.setStyle(Paint.Style.FILL);
-		res.setColor(color);
-		return res;
-	}
-
 	class AutoScrollAnimation {
 
 		boolean isScrollView;
@@ -5105,7 +5098,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int textColor = mSettings.getColor(PROP_FONT_COLOR, 0x000000);
 		Rect rc = new Rect(w / 2 - mins / 2, h / 2 - ph / 2, w / 2 + mins / 2, h / 2 + ph / 2);
 		
-		Utils.drawFrame(canvas, rc, createSolidPaint(0xC0000000 | textColor));
+		Utils.drawFrame(canvas, rc, Utils.createSolidPaint(0xC0000000 | textColor));
 		//canvas.drawRect(rc, createSolidPaint(0xFFC0C0A0));
 		rc.left += 2;
 		rc.right -= 2;
@@ -5114,8 +5107,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		int x = rc.left + (rc.right - rc.left) * position / 10000;
 		Rect rc1 = new Rect(rc);
 		rc1.right = x;
-		canvas.drawRect(rc1, createSolidPaint(0x80000000 | textColor));
-		Paint textPaint = createSolidPaint(0xFF000000 | textColor);
+		canvas.drawRect(rc1, Utils.createSolidPaint(0x80000000 | textColor));
+		Paint textPaint = Utils.createSolidPaint(0xFF000000 | textColor);
 		textPaint.setTextAlign(Paint.Align.CENTER);
 		textPaint.setTextSize(22f);
 		textPaint.setSubpixelText(true);
