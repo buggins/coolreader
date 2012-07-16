@@ -3451,18 +3451,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 
 		if ( internalDX==0 || internalDY==0 ) {
-			internalDX=200;
-			internalDY=300;
-			doc.resize(internalDX, internalDY);
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					log.d("invalidating view due to resize");
-					//ReaderView.this.invalidate();
-					drawPage(null, false);
-					//redraw();
-				}
-			});
+//			internalDX=200;
+//			internalDY=300;
+//			doc.resize(internalDX, internalDY);
+//			BackgroundThread.instance().postGUI(new Runnable() {
+//				@Override
+//				public void run() {
+//					log.d("invalidating view due to resize");
+//					//ReaderView.this.invalidate();
+//					drawPage(null, false);
+//					//redraw();
+//				}
+//			});
 		}
 		
 		if (currentImageViewer != null)
@@ -3724,8 +3724,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceChanged(SurfaceHolder holder, int format, final int width,
 			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
-		requestResize(width, height);
-		draw();
+		//requestResize(width, height);
+		//draw();
 	}
 
 	boolean mSurfaceCreated = false;
@@ -3733,7 +3733,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceCreated(SurfaceHolder holder) {
 		log.i("surfaceCreated()");
 		mSurfaceCreated = true;
-		draw();
+		//draw();
 	}
 
 	@Override
@@ -5464,6 +5464,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		public void OnLoadFileEnd() {
 	    	log.d("readerCallback.OnLoadFileEnd");
+			if (internalDX == 0 && internalDY == 0) {
+				internalDX = requestedWidth;
+				internalDY = requestedHeight;
+				log.d("OnLoadFileEnd: resizeInternal(" + internalDX + "," + internalDY + ")");
+				doc.resize(internalDX, internalDY);
+			}
+	    	
 		}
 		public void OnLoadFileError(String message) {
 	    	log.d("readerCallback.OnLoadFileError(" + message + ")");
