@@ -16,11 +16,13 @@ import android.widget.TextView;
 public class BrowserActivity extends BaseActivity {
 
 	static class BrowserViewLayout extends ViewGroup {
+		private BaseActivity activity;
 		private FileBrowser contentView;
 		private View titleView;
 		private CRToolBar toolbarView;
-		public BrowserViewLayout(Context context, FileBrowser contentView, CRToolBar toolbar, View titleView) {
+		public BrowserViewLayout(BaseActivity context, FileBrowser contentView, CRToolBar toolbar, View titleView) {
 			super(context);
+			this.activity = context;
 			this.contentView = contentView;
 			
 			
@@ -31,6 +33,12 @@ public class BrowserActivity extends BaseActivity {
 			this.addView(titleView);
 			this.addView(toolbarView);
 			this.addView(contentView);
+			this.onThemeChanged(context.getCurrentTheme());
+		}
+		
+		public void onThemeChanged(InterfaceTheme theme) {
+			titleView.setBackgroundResource(theme.getBrowserStatusBackground());
+			toolbarView.setBackgroundResource(theme.getBrowserToolbarBackground(toolbarView.isVertical()));
 		}
 
 		@Override
@@ -45,11 +53,13 @@ public class BrowserActivity extends BaseActivity {
 				titleView.layout(l + tbWidth, t, r, t + titleHeight);
 				toolbarView.layout(l, t, l + tbWidth, b);
 				contentView.layout(l + tbWidth, t + titleHeight, r, b);
+				toolbarView.setBackgroundResource(activity.getCurrentTheme().getBrowserToolbarBackground(true));
 			} else {
 				int tbHeight = toolbarView.getMeasuredHeight();
 				toolbarView.layout(l, t, r, t + tbHeight);
 				titleView.layout(l, t + tbHeight, r, t + titleHeight + tbHeight);
 				contentView.layout(l, t + titleHeight + tbHeight, r, b);
+				toolbarView.setBackgroundResource(activity.getCurrentTheme().getBrowserToolbarBackground(false));
 			}
 		}
 		
@@ -137,7 +147,7 @@ public class BrowserActivity extends BaseActivity {
 		        		ReaderAction.OPDS_CATALOGS, 
 		        		ReaderAction.SEARCH
 		        		));
-		        mToolBar.setBackgroundColor(0x40303030);
+		        mToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
 		        mToolBar.setOnActionHandler(new OnActionHandler() {
 					@Override
 					public boolean onActionSelected(ReaderAction item) {
@@ -228,6 +238,8 @@ public class BrowserActivity extends BaseActivity {
 		super.setCurrentTheme(theme);
 		if (mBrowser != null)
 			mBrowser.onThemeChanged();
+		if (mFrame != null)
+			mFrame.onThemeChanged(theme);
 	}
 
 	public void applyAppSetting( String key, String value )
