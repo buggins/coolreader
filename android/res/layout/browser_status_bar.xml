@@ -10,14 +10,6 @@
   android:layout_width="fill_parent"
   android:layout_height="wrap_content">
     
-    <!--View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      /-->
-    
-    
     <TextView 
       android:id="@+id/title"
         style="@style/TextAppearance.Medium"
@@ -30,12 +22,5 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
 
-    <View
-      android:orientation="vertical"
-      android:layout_width="fill_parent"
-      android:layout_height="8dip"
-      android:background="@drawable/divider_light_tiled"
-      />
-        
 </LinearLayout>
 <!-- /LinearLayout-->

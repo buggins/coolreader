@@ -31,7 +31,7 @@ public class CRToolBar extends ViewGroup {
 	private boolean isVertical;
 	final private int preferredItemHeight;
 	private int BUTTON_SPACING = 4;
-	private final int BAR_SPACING = 8;
+	private final int BAR_SPACING = 4;
 	public void setVertical(boolean vertical) {
 		this.isVertical = vertical;
 		if (isVertical) {
@@ -144,15 +144,15 @@ public class CRToolBar extends ViewGroup {
 		left = top = 0;
 		removeAllViews();
 
-		View divider = new View(getContext());
-		addView(divider);
-		if (isVertical()) {
-			divider.setBackgroundResource(R.drawable.divider_light_vertical_tiled);
-			divider.layout(right - 8, top, right, bottom);
-		} else {
-			divider.setBackgroundResource(R.drawable.divider_light_tiled);
-			divider.layout(left, bottom - 8, right, bottom);
-		}
+//		View divider = new View(getContext());
+//		addView(divider);
+//		if (isVertical()) {
+//			divider.setBackgroundResource(R.drawable.divider_light_vertical_tiled);
+//			divider.layout(right - 8, top, right, bottom);
+//		} else {
+//			divider.setBackgroundResource(R.drawable.divider_light_tiled);
+//			divider.layout(left, bottom - 8, right, bottom);
+//		}
 		
 		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
 		if (rect.isEmpty())
