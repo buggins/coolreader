@@ -15,6 +15,8 @@ import org.coolreader.R;
 import android.app.Activity;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
@@ -393,6 +395,13 @@ public class Utils {
 			state = state + "[" + stateName + "] ";
 		}
 		return state;
+	}
+	
+	public static void drawFrame(Canvas canvas, Rect rect, Paint paint) {
+		canvas.drawRect(new Rect(rect.left, rect.top, rect.right, rect.top + 1), paint);
+		canvas.drawRect(new Rect(rect.left, rect.top + 1, rect.left + 1, rect.bottom), paint);
+		canvas.drawRect(new Rect(rect.right - 1, rect.top + 1, rect.right, rect.bottom), paint);
+		canvas.drawRect(new Rect(rect.left + 1, rect.bottom - 1, rect.right - 1, rect.bottom), paint);
 	}
 	
 }
