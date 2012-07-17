@@ -31,7 +31,7 @@ public class CRToolBar extends ViewGroup {
 	private boolean isVertical;
 	final private int preferredItemHeight;
 	private int BUTTON_SPACING = 4;
-	private final int BAR_SPACING = 4;
+	private final int BAR_SPACING = 0;
 	public void setVertical(boolean vertical) {
 		this.isVertical = vertical;
 		if (isVertical) {
@@ -51,7 +51,7 @@ public class CRToolBar extends ViewGroup {
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
 		buttonWidth = buttonHeight = preferredItemHeight * 2 / 3 - BUTTON_SPACING * 2 - BAR_SPACING;
-		int dpi = context.getDensityDpi();
+		//int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
@@ -61,8 +61,8 @@ public class CRToolBar extends ViewGroup {
 			}
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() * dpi / 160;
-			int h = d.getIntrinsicHeight() * dpi / 160;
+			int w = d.getIntrinsicWidth(); // * dpi / 160;
+			int h = d.getIntrinsicHeight(); // * dpi / 160;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 			}
@@ -117,7 +117,7 @@ public class CRToolBar extends ViewGroup {
 			ib.setImageResource(item.iconId);
 			ib.setTag(item);
 		} else {
-			ib.setImageDrawable(getResources().getDrawable(R.drawable.ic_menu_moreoverflow));
+			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));
 		}
 		ib.setBackgroundDrawable(null);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
@@ -151,30 +151,45 @@ public class CRToolBar extends ViewGroup {
 //			divider.setBackgroundResource(R.drawable.divider_light_tiled);
 //			divider.layout(left, bottom - 8, right, bottom);
 //		}
+
+		visibleButtonCount = 0;
+		for (int i=0; i<actions.size(); i++) {
+			if (actions.get(i).iconId != 0)
+				visibleButtonCount++;
+		}
+		
 		
 		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
 		if (rect.isEmpty())
 			return;
 		ArrayList<ReaderAction> itemsToShow = new ArrayList<ReaderAction>();
+		ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
 		int maxButtonCount = 1;
 		if (isVertical) {
 			rect.right -= BAR_SPACING;
-			int maxHeight = bottom - top - getPaddingTop() - getPaddingBottom();
+			int maxHeight = bottom - top - getPaddingTop() - getPaddingBottom() + BUTTON_SPACING;
 			maxButtonCount = maxHeight / (buttonHeight + BUTTON_SPACING);
 		} else {
 			rect.bottom -= BAR_SPACING;
-			int maxWidth = right - left - getPaddingLeft() - getPaddingRight();
+			int maxWidth = right - left - getPaddingLeft() - getPaddingRight() + BUTTON_SPACING;
 			maxButtonCount = maxWidth / (buttonWidth + BUTTON_SPACING);
 		}
 		int count = 0;
 		boolean addEllipsis = visibleButtonCount > maxButtonCount || visibleNonButtonCount > 0;
 		if (addEllipsis) {
 			addButton(rect, null, false);
+			maxButtonCount--;
 		}
 		for (int i = 0; i < actions.size(); i++) {
-			if (count >= maxButtonCount - 1)
-				break;
 			ReaderAction item = actions.get(i);
+			if (count >= maxButtonCount) {
+				itemsOverflow.add(item);
+				continue;
+			}
+			if (item.iconId == 0) {
+				itemsOverflow.add(item);
+				continue;
+			}
 			itemsToShow.add(item);
 			count++;
 			addButton(rect, item, true);
