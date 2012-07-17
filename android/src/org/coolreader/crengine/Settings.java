@@ -52,6 +52,7 @@ public interface Settings {
 
     public static final String PROP_STATUS_LOCATION         ="viewer.status.location";
     public static final String PROP_TOOLBAR_LOCATION        ="viewer.toolbar.location";
+    public static final String PROP_TOOLBAR_HIDE_IN_FULLSCREEN="viewer.toolbar.fullscreen.hide";
     
     public static final String PROP_STATUS_LINE             ="window.status.line";
     public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";

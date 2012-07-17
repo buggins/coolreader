@@ -42,6 +42,24 @@ public class SettingsManager {
 	public Properties get() {
 		return mSettings;
 	}
+
+	int lastSaveId = 0;
+	public void setSettings(Properties settings, int delayMillis) {
+		mSettings = new Properties(settings);
+		if (delayMillis >= 0) {
+			saveSettingsTask.postDelayed(new Runnable() {
+	    		public void run() {
+	    			BackgroundThread.instance().postGUI(new Runnable() {
+	    				@Override
+	    				public void run() {
+	   						saveSettings(mSettings);
+	    				}
+	    			});
+	    		}
+	    	}, delayMillis);
+		}
+		Activities.onSettingsChanged(mSettings);
+	}
 	
 	private static class DefKeyAction {
 		public int keyCode;
@@ -339,6 +357,11 @@ public class SettingsManager {
 		props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 		
+		props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_TOP);
+		props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_SHORT_SIDE);
+		props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");
+
+		
 		if (!DeviceInfo.EINK_SCREEN) {
 			props.applyDefault(ReaderView.PROP_APP_HIGHLIGHT_BOOKMARKS, "1");
 			props.applyDefault(ReaderView.PROP_HIGHLIGHT_SELECTION_COLOR, "#AAAAAA");
@@ -448,6 +471,7 @@ public class SettingsManager {
 		saveSettings(f, settings);
 	}
 	
+	DelayedExecutor saveSettingsTask = DelayedExecutor.createBackground("saveSettings"); 
 	public void saveSettings(File f, Properties settings)
 	{
 		try {

@@ -1755,20 +1755,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return mSettings.getProperty(name);
 	}
 
-	DelayedExecutor saveSettingsTask = DelayedExecutor.createBackground("saveSettings"); 
-	public void scheduleSaveSettings(int delayMillis) {
-		saveSettingsTask.postDelayed(new Runnable() {
-    		public void run() {
-    			BackgroundThread.instance().postGUI(new Runnable() {
-    				@Override
-    				public void run() {
-   						saveSettings(mSettings);
-    				}
-    			});
-    		}
-    	}, delayMillis);
-	}
-	
 	public void setSetting(String name, String value, boolean invalidateImages, boolean save, boolean apply) {
 		Properties settings = new Properties(); //getSettings();
 		settings.put(name, value);
@@ -2854,6 +2840,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
 		int backgroundColor = props.getInt(PROP_BACKGROUND_COLOR, 0xFFFFFF);
 		setBackgroundTexture(backgroundImageId, backgroundColor);
+		props.setBool(PROP_STATUS_LINE, props.getInt(PROP_STATUS_LOCATION, 1) != 0);		
 		doc.applySettings(props);
         syncViewSettings(props, save, saveDelayed);
         drawPage();
@@ -2870,7 +2857,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	public void saveSettings( Properties settings )
 	{
-		mActivity.saveSettings(new Properties(settings));
+		SettingsManager.instance(mActivity).saveSettings(settings);
 	}
 	
 	/**
@@ -2892,12 +2879,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        }
 	        	mSettings = currSettings;
 	        	if ( save ) {
-	        		if (saveDelayed)
-	        			scheduleSaveSettings(5000);
-	        		else {
-	        			saveSettingsTask.cancel();
-	        			saveSettings(currSettings);
-	        		}
+        			SettingsManager.instance(mActivity).setSettings(mSettings, saveDelayed ? 5000 : 0);
+	        	} else {
+        			SettingsManager.instance(mActivity).setSettings(mSettings, -1);
 	        	}
 			}
 		});
@@ -3116,6 +3100,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		setAppSettings( newSettings, currSettings );
 		Properties changedSettings = newSettings.diff(currSettings);
 		currSettings.setAll(changedSettings);
+		SettingsManager.instance(mActivity).setSettings(currSettings, 60000);
     	BackgroundThread.instance().postBackground(new Runnable() {
     		public void run() {
     			if (apply)
@@ -3124,7 +3109,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     				mSettings = currSettings;
     		}
     	});
-    	scheduleSaveSettings(60000);
+    	//scheduleSaveSettings(60000);
 //        }
 	}
 
