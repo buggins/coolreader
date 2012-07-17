@@ -107,6 +107,7 @@ public class BaseActivity extends Activity implements Settings {
     protected void onCreate(Bundle savedInstanceState)
     {
 		log.i("BaseActivity.onCreate() entered");
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 
 		
@@ -169,7 +170,6 @@ public class BaseActivity extends Activity implements Settings {
 		setScreenBacklightLevel(backlight);
 
     
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		bindSyncService();
 		bindCRDBService();
