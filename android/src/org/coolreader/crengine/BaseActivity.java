@@ -248,11 +248,6 @@ public class BaseActivity extends Activity implements Settings {
 		SettingsManager.instance(this).saveSettings(f, settings);
 	}
 
-	public void saveSettings(Properties settings)
-	{
-		SettingsManager.instance(this).saveSettings(settings);
-	}
-
 	public int getPalmTipPixels()
 	{
 		return densityDpi / 3; // 1/3"
@@ -1024,4 +1019,8 @@ public class BaseActivity extends Activity implements Settings {
 		// override it to use
 	}
 
+	public void onSettingsChanged(Properties props) {
+		// override for specific actions
+	}
+	
 }

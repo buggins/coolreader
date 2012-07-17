@@ -127,28 +127,34 @@ public class ReaderActivity extends BaseActivity {
 
 		public void updateCurrentPositionStatus(FileInfo book, Bookmark position, PositionProperties props) {
 			String title = "";
-			String authors = Utils.formatAuthors(book.authors);
-			if (Utils.empty(book.title)) {
-				if (Utils.empty(authors)) {
-					title = book.getFileNameToDisplay();
+			if (book != null) {
+				String authors = Utils.formatAuthors(book.authors);
+				if (Utils.empty(book.title)) {
+					if (Utils.empty(authors)) {
+						title = book.getFileNameToDisplay();
+					} else {
+						title = authors;
+					}
 				} else {
-					title = authors;
+					if (Utils.empty(authors)) {
+						title = book.title;
+					} else {
+						title = book.title + " - " + authors;
+					}
 				}
-			} else {
-				if (Utils.empty(authors)) {
-					title = book.title;
-				} else {
-					title = book.title + " - " + authors;
+				String pos = "";
+				if (props != null) {
+					pos = pos + props.pageNumber + " / " + props.pageCount;
 				}
+				if (position != null) {
+					pos = pos + " "; 
+					String percent = position.getPercent() > 0 ? Utils.formatPercent(position.getPercent()) : "0%";
+					pos = pos + percent;
+				}
+				this.position.setText(pos);
 			}
 			this.title.setText(title);
-			String pos = "";
-			pos = pos + props.pageNumber + " / " + props.pageCount; 
-			pos = pos + " "; 
-			pos = pos + Utils.formatPercent(position.getPercent());
-			this.position.setText(pos);
 			indicator.setPosition(position.getPercent());
-			invalidate();
 		}
 	
 	}
@@ -160,7 +166,9 @@ public class ReaderActivity extends BaseActivity {
 		private CRToolBar toolbarView;
 		private int statusBarLocation;
 		private int toolbarLocation;
-		
+		private boolean hideToolbarInFullscren;
+		private boolean fullscreen;
+	
 		public CRToolBar getToolBar() {
 			return toolbarView;
 		}
@@ -169,9 +177,17 @@ public class ReaderActivity extends BaseActivity {
 			return statusView;
 		}
 		
+		public void updateFullscreen(boolean fullscreen) {
+			if (this.fullscreen == fullscreen)
+				return;
+			this.fullscreen = fullscreen;
+			requestLayout();
+		}
+		
 		public void updateSettings(Properties settings) {
 			statusBarLocation = settings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP);
 			toolbarLocation = settings.getInt(PROP_TOOLBAR_LOCATION, VIEWER_TOOLBAR_SHORT_SIDE);
+			hideToolbarInFullscren = settings.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, true);
 			statusView.setVisibility(statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP ? VISIBLE : INVISIBLE);
 			toolbarView.setVisibility(toolbarLocation != VIEWER_TOOLBAR_NONE ? VISIBLE : INVISIBLE);
 			requestLayout();
@@ -211,7 +227,7 @@ public class ReaderActivity extends BaseActivity {
 			t = 0;
 			l = 0;
 
-			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE;
+			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE && (!fullscreen || !hideToolbarInFullscren);
 			boolean landscape = r > b;
 			if (toolbarVisible) {
 				int location = toolbarLocation;
@@ -259,7 +275,7 @@ public class ReaderActivity extends BaseActivity {
 	        setMeasuredDimension(w, h);
 
 			boolean statusVisible = statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP;
-			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE;
+			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE && (!fullscreen || !hideToolbarInFullscren);
 			boolean landscape = w > h;
 			if (toolbarVisible) {
 				int location = toolbarLocation;
@@ -992,5 +1008,15 @@ public class ReaderActivity extends BaseActivity {
 	public void updateCurrentPositionStatus(FileInfo book, Bookmark position, PositionProperties props) {
 		mFrame.getStatusBar().updateCurrentPositionStatus(book, position, props);
 	}
+
+	@Override
+	public void setFullscreen( boolean fullscreen )
+	{
+		super.setFullscreen(fullscreen);
+		mFrame.updateFullscreen(fullscreen);
+	}
 	
+	public void onSettingsChanged(Properties props) {
+		mFrame.updateSettings(props);
+	}
 }

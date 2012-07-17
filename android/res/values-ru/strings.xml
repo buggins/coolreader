@@ -434,4 +434,17 @@
     <string name="book_state_none">Нет пометки</string>
     <string name="book_state_finished">Прочитана</string>
     <string name="book_info_rating">Оценка</string>
+    <string name="options_page_show_titlebar_hidden">Не показывать</string>
+    <string name="options_page_show_titlebar_page_header">В заголовке страницы</string>
+    <string name="options_page_show_titlebar_bottom">Внизу</string>
+    <string name="options_page_show_titlebar_top">Вверху</string>
+    <string name="options_view_toolbar_position_short_side">По короткому краю</string>
+    <string name="options_view_toolbar_position_bottom">Внизу</string>
+    <string name="options_view_toolbar_position">Панель инструментов</string>
+    <string name="options_view_toolbar_position_top">Сверху</string>
+    <string name="options_view_toolbar_position_left">Слева</string>
+    <string name="options_view_toolbar_position_long_side">По длинному краю</string>
+    <string name="options_view_toolbar_position_none">Спрятать</string>
+    <string name="options_view_toolbar_hide_in_fullscreen">Прятать в полноэкранном режиме</string>
+    <string name="options_view_toolbar_position_right">Справа</string>
 </resources>

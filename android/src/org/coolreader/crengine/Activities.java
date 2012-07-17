@@ -231,6 +231,20 @@ public class Activities {
 			mainActivity.applyAppSetting(key, value);
 		if (readerActivity != null)
 			readerActivity.applyAppSetting(key, value);
+		if (browserActivity != null)
+			browserActivity.applyAppSetting(key, value);
+	}
+	
+	public static void onSettingsChanged(Properties props) {
+		for (Object key : props.keySet()) {
+			applyAppSetting((String)key, props.getProperty((String)key));
+		}
+		if (mainActivity != null)
+			mainActivity.onSettingsChanged(props);
+		if (readerActivity != null)
+			readerActivity.onSettingsChanged(props);
+		if (browserActivity != null)
+			browserActivity.onSettingsChanged(props);
 	}
 
 	public static boolean isBookOpened() {
