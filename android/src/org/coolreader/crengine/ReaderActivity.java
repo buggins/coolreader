@@ -200,11 +200,15 @@ public class ReaderActivity extends BaseActivity {
 			this.toolbarView = new CRToolBar(context, ReaderAction.createList(new ReaderAction[] {
 				ReaderAction.GO_BACK,
 				ReaderAction.TOC,
+				ReaderAction.GO_PAGE,
+				ReaderAction.GO_PERCENT,
 				ReaderAction.SEARCH,
 				ReaderAction.OPTIONS,
+				ReaderAction.BOOKMARKS,
 				ReaderAction.FILE_BROWSER_ROOT,
 				ReaderAction.FILE_BROWSER,
 				ReaderAction.TTS_PLAY,
+				ReaderAction.GO_FORWARD,
 				ReaderAction.EXIT,
 			}));
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
@@ -212,6 +216,7 @@ public class ReaderActivity extends BaseActivity {
 			this.addView(statusView);
 			this.addView(toolbarView);
 			updateSettings(SettingsManager.instance(context).get());
+			updateFullscreen(activity.isFullscreen());
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
@@ -1013,10 +1018,12 @@ public class ReaderActivity extends BaseActivity {
 	public void setFullscreen( boolean fullscreen )
 	{
 		super.setFullscreen(fullscreen);
-		mFrame.updateFullscreen(fullscreen);
+		if (mFrame != null)
+			mFrame.updateFullscreen(fullscreen);
 	}
 	
 	public void onSettingsChanged(Properties props) {
-		mFrame.updateSettings(props);
+		if (mFrame != null)
+			mFrame.updateSettings(props);
 	}
 }
