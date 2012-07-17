@@ -5105,6 +5105,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	protected void doDrawProgress(Canvas canvas, int position, int titleResource) {
 		log.v("doDrawProgress(" + position + ")");
+		if (titleResource == 0)
+			return;
 		int w = canvas.getWidth();
 		int h = canvas.getHeight();
 		int mins = (w < h ? w : h) * 7 / 10;
