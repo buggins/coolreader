@@ -45,6 +45,7 @@ public class ReaderActivity extends BaseActivity {
 		private final int INDICATOR_HEIGHT = 8;
 		
 		private int color = 0;
+		private int percent = 0;
 		
 		public PositionIndicator(ReaderActivity context) {
 			super(context);
@@ -59,7 +60,7 @@ public class ReaderActivity extends BaseActivity {
 			Paint unreadPaint = Utils.createSolidPaint(0x40000000 | color);
 			int w = getWidth();
 			int h = getHeight();
-			int pos = 3300;
+			int pos = percent;
 			int x = w * pos / 10000;
 			canvas.drawRect(new Rect(getLeft(), h/2 - 1, getLeft() + x, h/2 + 1), readPaint);
 			canvas.drawRect(new Rect(getLeft() + x, h/2 - 1, getLeft() + w, h/2 + 1), unreadPaint);
@@ -76,6 +77,12 @@ public class ReaderActivity extends BaseActivity {
 			int w = MeasureSpec.getSize(widthMeasureSpec);
 			int h = INDICATOR_HEIGHT;
 			setMeasuredDimension(w, h);
+		}
+		
+		public void setPosition(int percent) {
+			this.percent = percent;
+			if (isShown())
+				invalidate();
 		}
 	}
 	
@@ -117,6 +124,33 @@ public class ReaderActivity extends BaseActivity {
 			
 			
 		}
+
+		public void updateCurrentPositionStatus(FileInfo book, Bookmark position, PositionProperties props) {
+			String title = "";
+			String authors = Utils.formatAuthors(book.authors);
+			if (Utils.empty(book.title)) {
+				if (Utils.empty(authors)) {
+					title = book.getFileNameToDisplay();
+				} else {
+					title = authors;
+				}
+			} else {
+				if (Utils.empty(authors)) {
+					title = book.title;
+				} else {
+					title = book.title + " - " + authors;
+				}
+			}
+			this.title.setText(title);
+			String pos = "";
+			pos = pos + props.pageNumber + " / " + props.pageCount; 
+			pos = pos + " "; 
+			pos = pos + Utils.formatPercent(position.getPercent());
+			this.position.setText(pos);
+			indicator.setPosition(position.getPercent());
+			invalidate();
+		}
+	
 	}
 
 	static class ReaderViewLayout extends FrameLayout implements Settings {
@@ -129,6 +163,10 @@ public class ReaderActivity extends BaseActivity {
 		
 		public CRToolBar getToolBar() {
 			return toolbarView;
+		}
+		
+		public StatusBar getStatusBar() {
+			return statusView;
 		}
 		
 		public void updateSettings(Properties settings) {
@@ -951,4 +989,8 @@ public class ReaderActivity extends BaseActivity {
 	int initialBatteryState = -1;
 	BroadcastReceiver intentReceiver;
 
+	public void updateCurrentPositionStatus(FileInfo book, Bookmark position, PositionProperties props) {
+		mFrame.getStatusBar().updateCurrentPositionStatus(book, position, props);
+	}
+	
 }

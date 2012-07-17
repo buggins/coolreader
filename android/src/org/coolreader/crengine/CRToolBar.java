@@ -7,6 +7,7 @@ import org.coolreader.R;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,6 +33,9 @@ public class CRToolBar extends ViewGroup {
 	final private int preferredItemHeight;
 	private int BUTTON_SPACING = 4;
 	private final int BAR_SPACING = 0;
+
+	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
+	
 	public void setVertical(boolean vertical) {
 		this.isVertical = vertical;
 		if (isVertical) {
@@ -82,8 +86,26 @@ public class CRToolBar extends ViewGroup {
 		boolean onActionSelected(ReaderAction item);
 	}
 	
+	private ReaderAction findByCmd(int id) {
+		for (ReaderAction action : actions)
+			if (id == action.cmd.getNativeId())
+				return action;
+		return null;
+	}
+	
+	@Override
+	protected void onCreateContextMenu(ContextMenu menu) {
+		int order = 0;
+		for (ReaderAction action : itemsOverflow) {
+			menu.add(0, action.menuItemId, order++, action.nameId);
+		}
+	}
+	
+	
+
 	private void onMoreButtonClick() {
-		// TODO: show additional items
+		if (itemsOverflow.size() > 0)
+			showContextMenu();
 	}
 	
 	private void onButtonClick(ReaderAction item) {
@@ -163,7 +185,7 @@ public class CRToolBar extends ViewGroup {
 		if (rect.isEmpty())
 			return;
 		ArrayList<ReaderAction> itemsToShow = new ArrayList<ReaderAction>();
-		ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
+		itemsOverflow.clear();
 		int maxButtonCount = 1;
 		if (isVertical) {
 			rect.right -= BAR_SPACING;
