@@ -144,8 +144,9 @@ public class BrowserActivity extends BaseActivity {
 		        		ReaderAction.FILE_BROWSER_ROOT, 
 		        		ReaderAction.OPTIONS,
 		        		ReaderAction.RECENT_BOOKS,
-		        		ReaderAction.OPDS_CATALOGS, 
-		        		ReaderAction.SEARCH
+		        		ReaderAction.OPDS_CATALOGS,
+		        		ReaderAction.SEARCH,
+						ReaderAction.EXIT
 		        		));
 		        mToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
 		        mToolBar.setOnActionHandler(new OnActionHandler() {
