@@ -152,6 +152,7 @@ public class CRToolBar extends ViewGroup {
 					onMoreButtonClick();
 			}
 		});
+		ib.setAlpha(0x80);
 		addView(ib);
 		return ib;
 	}
