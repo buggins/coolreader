@@ -50,7 +50,7 @@ public class ReaderActivity extends BaseActivity {
 			super(context);
 			setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 			this.color = 0x808080; //SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
-			setBackgroundColor(0xC0404040);
+			//setBackgroundColor(0xC0404040);
 		}
 		
 		@Override
@@ -113,6 +113,7 @@ public class ReaderActivity extends BaseActivity {
 			indicator = new PositionIndicator(activity);
 			addView(indicator);
 			//content.addView(indicator);
+			setBackgroundResource(context.getCurrentTheme().getReaderStatusBackground());
 			
 			
 		}
@@ -149,6 +150,7 @@ public class ReaderActivity extends BaseActivity {
 				ReaderAction.OPTIONS,
 				ReaderAction.FILE_BROWSER_ROOT,
 				ReaderAction.FILE_BROWSER,
+				ReaderAction.TTS_PLAY,
 				ReaderAction.EXIT,
 			}));
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
