@@ -2609,15 +2609,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.d("doCommand("+cmd + ", " + param +")");
 		post(new Task() {
 			boolean res;
+			boolean isMoveCommand;
 			public void work() {
 				BackgroundThread.ensureBackground();
 				res = doc.doCommand(cmd.nativeId, param);
-			}
-			public void done() {
-				if (res) {
-					invalidImages = true;
-					drawPage( doneHandler, false );
-				}
 				switch (cmd) {
 					case DCMD_BEGIN:
 					case DCMD_LINEUP:
@@ -2636,9 +2631,37 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					case DCMD_GO_SCROLL_POS:
 					case DCMD_LINK_FIRST:
 					case DCMD_SCROLL_BY:
-			    		scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
+			    		isMoveCommand = true;
 						break;
 				}
+				if (isMoveCommand)
+					updateCurrentPositionStatus();
+			}
+			public void done() {
+				if (res) {
+					invalidImages = true;
+					drawPage( doneHandler, false );
+				}
+				if (isMoveCommand)
+			    	scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
+			}
+		});
+	}
+	
+	// update book and position info in status bar
+	private void updateCurrentPositionStatus() {
+		if (mBookInfo == null)
+			return;
+		// in background thread
+		final FileInfo fileInfo = mBookInfo.getFileInfo();
+		if (fileInfo == null)
+			return;
+		final Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
+		final PositionProperties props = doc.getPositionProps(bmk.getStartPos());
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				mActivity.updateCurrentPositionStatus(fileInfo, bmk, props);
 			}
 		});
 	}
@@ -2667,6 +2690,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		BackgroundThread.ensureBackground();
 		// get title, authors, etc.
 		doc.updateBookInfo(mBookInfo);
+		updateCurrentPositionStatus();
 		// check whether current book properties updated on another devices
 		// TODO: fix and reenable
 		//syncUpdater.syncExternalChanges(mBookInfo);
@@ -3488,7 +3512,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			BitmapInfo bi = new BitmapInfo();
 	        bi.position = currpos;
-			bi.bitmap = factory.get(internalDX, internalDY);
+			bi.bitmap = factory.get(internalDX > 0 ? internalDX : requestedWidth, 
+					internalDY > 0 ? internalDY : requestedHeight);
 			doc.setBatteryState(mBatteryState);
 			doc.getPageImage(bi.bitmap);
 	        mCurrentPageInfo = bi;
@@ -3627,21 +3652,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	private boolean mIsOnFront = false;
+//	private boolean mIsOnFront = false;
 	private int requestedWidth = 0;
 	private int requestedHeight = 0;
-	public void setOnFront(boolean front) {
-		if (mIsOnFront == front)
-			return;
-		mIsOnFront = front;
-		log.d("setOnFront(" + front + ")");
-		if (mIsOnFront) {
-			checkSize();
-		} else {
-			// save position immediately
-			scheduleSaveCurrentPositionBookmark(0);
-		}
-	}
+//	public void setOnFront(boolean front) {
+//		if (mIsOnFront == front)
+//			return;
+//		mIsOnFront = front;
+//		log.d("setOnFront(" + front + ")");
+//		if (mIsOnFront) {
+//			checkSize();
+//		} else {
+//			// save position immediately
+//			scheduleSaveCurrentPositionBookmark(0);
+//		}
+//	}
 
 	private void requestResize(int width, int height) {
 		requestedWidth = width;
@@ -3758,6 +3783,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				if ( currentAnimation==null ) {
 					PositionProperties currPos = doc.getPositionProps(null);
 					if ( currPos==null )
+						return;
+					if (mCurrentPageInfo == null)
 						return;
 					int w = currPos.pageWidth;
 					int h = currPos.pageHeight;
@@ -4135,6 +4162,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			animationScheduler.cancel();
 			currentAnimation = null;
 			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
+			updateCurrentPositionStatus();
 			scheduleGc();
 		}
 
@@ -4597,6 +4625,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			// preparing images for next page flip
 			preparePageImage(0);
 			preparePageImage(direction);
+			updateCurrentPositionStatus();
 			//if ( started )
 			//	drawPage();
 		}
