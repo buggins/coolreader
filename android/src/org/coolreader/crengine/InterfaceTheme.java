@@ -26,7 +26,7 @@ public class InterfaceTheme {
 					R.drawable.ui_status_background_reader_black, 
 					R.drawable.ui_toolbar_background_reader_black,
 					R.drawable.ui_toolbar_background_reader_vertical_black,
-					0x000000, 0xC0);
+					0x000000, 0xE0);
 
 	public final static InterfaceTheme LIGHT = new InterfaceTheme("LIGHT", R.style.Theme_Light, R.style.Theme_Light_Dialog_Normal, R.style.Theme_Light_Dialog_Fullscreen, R.string.options_app_ui_theme_light, 0xFF000000)
 			.setRootDelimiter(R.drawable.divider_light_tiled_v3)

@@ -54,6 +54,11 @@ public class ReaderActivity extends BaseActivity {
 			//setBackgroundColor(0xC0404040);
 		}
 		
+		public void onThemeChange(InterfaceTheme theme) {
+			color = theme.getStatusTextColor();
+			invalidate();
+		}
+		
 		@Override
 		protected void onDraw(Canvas canvas) {
 			Paint readPaint = Utils.createSolidPaint(0xC0000000 | color);
@@ -62,8 +67,8 @@ public class ReaderActivity extends BaseActivity {
 			int h = getHeight();
 			int pos = percent;
 			int x = w * pos / 10000;
-			canvas.drawRect(new Rect(getLeft(), h/2 - 1, getLeft() + x, h/2 + 1), readPaint);
-			canvas.drawRect(new Rect(getLeft() + x, h/2 - 1, getLeft() + w, h/2 + 1), unreadPaint);
+			canvas.drawRect(new Rect(getLeft(), h/2 - 3, getLeft() + x, h/2 + 0), readPaint);
+			canvas.drawRect(new Rect(getLeft() + x, h/2 - 3, getLeft() + w, h/2 + 0), unreadPaint);
 		}
 
 		@Override
@@ -94,6 +99,10 @@ public class ReaderActivity extends BaseActivity {
 		private PositionIndicator indicator;
 		private int textSize = 14;
 		private int color = 0;
+		
+		public void updateSettings(Properties props) {
+			
+		}
 		
 		public StatusBar(ReaderActivity context) {
 			super(context);
@@ -127,6 +136,9 @@ public class ReaderActivity extends BaseActivity {
 
 		public void onThemeChanged(InterfaceTheme theme) {
 			color = theme.getStatusTextColor();
+			title.setTextColor(0xFF000000 | color);
+			position.setTextColor(0xFF000000 | color);
+			indicator.onThemeChange(theme);
 			if (isShown())
 				invalidate();
 		}
@@ -221,8 +233,9 @@ public class ReaderActivity extends BaseActivity {
 			this.addView(contentView);
 			this.addView(statusView);
 			this.addView(toolbarView);
-			updateSettings(SettingsManager.instance(context).get());
 			updateFullscreen(activity.isFullscreen());
+			onThemeChanged(activity.getCurrentTheme());
+			updateSettings(SettingsManager.instance(context).get());
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
@@ -240,6 +253,9 @@ public class ReaderActivity extends BaseActivity {
 			t = 0;
 			l = 0;
 
+			statusView.setVisibility(statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP ? VISIBLE : INVISIBLE);
+			toolbarView.setVisibility(toolbarLocation != VIEWER_TOOLBAR_NONE ? VISIBLE : INVISIBLE);
+			
 			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE && (!fullscreen || !hideToolbarInFullscren);
 			boolean landscape = r > b;
 			if (toolbarVisible) {
