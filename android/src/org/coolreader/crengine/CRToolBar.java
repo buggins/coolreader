@@ -17,11 +17,7 @@ import android.widget.PopupWindow;
 
 public class CRToolBar extends ViewGroup {
 
-	public CRToolBar(BaseActivity context) {
-		super(context);
-		this.preferredItemHeight = context.getPreferredItemHeight();
-	}
-
+	final private BaseActivity activity;
 	private ArrayList<ReaderAction> actions = new ArrayList<ReaderAction>();
 	private boolean showLabels;
 	private int buttonHeight;
@@ -50,8 +46,16 @@ public class CRToolBar extends ViewGroup {
 	public boolean isVertical() {
 		return this.isVertical;
 	}
+
+	public CRToolBar(BaseActivity context) {
+		super(context);
+		this.activity = context;
+		this.preferredItemHeight = context.getPreferredItemHeight();
+	}
+	
 	public CRToolBar(BaseActivity context, ArrayList<ReaderAction> actions) {
 		super(context);
+		this.activity = context;
 		this.actions = actions;
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
@@ -102,11 +106,13 @@ public class CRToolBar extends ViewGroup {
 		}
 	}
 	
-	
-
-	private void onMoreButtonClick() {
+	public void showOverflowMenu() {
 		if (itemsOverflow.size() > 0)
 			showContextMenu();
+	}
+	
+	private void onMoreButtonClick() {
+		showOverflowMenu();
 	}
 	
 	private void onButtonClick(ReaderAction item) {
@@ -250,9 +256,13 @@ public class CRToolBar extends ViewGroup {
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
 
+	public PopupWindow showAsPopup(View anchor, OnActionHandler onActionHandler) {
+		return showPopup(activity, anchor, actions, onActionHandler);
+	}
 	
-	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions) {
+	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler) {
 		final CRToolBar tb = new CRToolBar(context, actions);
+		tb.setOnActionHandler(onActionHandler);
 		tb.measure(anchor.getWidth(), ViewGroup.LayoutParams.WRAP_CONTENT);
 		int w = tb.getMeasuredWidth();
 		int р = tb.getMeasuredHeight();
@@ -266,6 +276,13 @@ public class CRToolBar extends ViewGroup {
 					return true;
 				}
 				return false;
+			}
+		});
+		tb.setOnActionHandler(new OnActionHandler() {
+			@Override
+			public boolean onActionSelected(ReaderAction item) {
+				popup.dismiss();
+				return onActionHandler.onActionSelected(item);
 			}
 		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());

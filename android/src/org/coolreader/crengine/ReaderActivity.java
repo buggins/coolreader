@@ -101,7 +101,7 @@ public class ReaderActivity extends BaseActivity {
 		private int color = 0;
 		
 		public void updateSettings(Properties props) {
-			
+			this.textSize = props.getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
 		}
 		
 		public StatusBar(ReaderActivity context) {
@@ -109,7 +109,6 @@ public class ReaderActivity extends BaseActivity {
 			this.activity = context;
 			setOrientation(VERTICAL);
 			
-			this.textSize = SettingsManager.instance(context).getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
 			this.color = 0x808080; //SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
 			
 			LayoutInflater inflater = LayoutInflater.from(activity);
@@ -130,8 +129,7 @@ public class ReaderActivity extends BaseActivity {
 			addView(indicator);
 			//content.addView(indicator);
 			setBackgroundResource(context.getCurrentTheme().getReaderStatusBackground());
-			
-			
+			updateSettings(SettingsManager.instance(context).get());
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
@@ -202,14 +200,36 @@ public class ReaderActivity extends BaseActivity {
 			requestLayout();
 		}
 		
+		public boolean isToolbarVisible() {
+			return toolbarLocation != VIEWER_TOOLBAR_NONE && (!fullscreen || !hideToolbarInFullscren);
+		}
+		
+		public boolean isStatusbarVisible() {
+			return statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP;
+		}
+		
 		public void updateSettings(Properties settings) {
 			statusBarLocation = settings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP);
 			toolbarLocation = settings.getInt(PROP_TOOLBAR_LOCATION, VIEWER_TOOLBAR_SHORT_SIDE);
 			hideToolbarInFullscren = settings.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, true);
-			statusView.setVisibility(statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP ? VISIBLE : INVISIBLE);
-			toolbarView.setVisibility(toolbarLocation != VIEWER_TOOLBAR_NONE ? VISIBLE : INVISIBLE);
+			statusView.setVisibility(isStatusbarVisible() ? VISIBLE : GONE);
+			toolbarView.setVisibility(isToolbarVisible() ? VISIBLE : GONE);
 			requestLayout();
 		}
+		
+		public void showMenu() {
+			if (toolbarView.getVisibility() == VISIBLE)
+				toolbarView.showOverflowMenu();
+			else
+				toolbarView.showAsPopup(this, new OnActionHandler() {
+					@Override
+					public boolean onActionSelected(ReaderAction item) {
+						activity.getReaderView().onAction(item);
+						return true;
+					}
+				});
+		}
+		
 		public ReaderViewLayout(ReaderActivity context, ReaderView contentView) {
 			super(context);
 			this.activity = context;
@@ -253,8 +273,8 @@ public class ReaderActivity extends BaseActivity {
 			t = 0;
 			l = 0;
 
-			statusView.setVisibility(statusBarLocation == VIEWER_STATUS_BOTTOM || statusBarLocation == VIEWER_STATUS_TOP ? VISIBLE : INVISIBLE);
-			toolbarView.setVisibility(toolbarLocation != VIEWER_TOOLBAR_NONE ? VISIBLE : INVISIBLE);
+			statusView.setVisibility(isStatusbarVisible() ? VISIBLE : GONE);
+			toolbarView.setVisibility(isToolbarVisible() ? VISIBLE : GONE);
 			
 			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE && (!fullscreen || !hideToolbarInFullscren);
 			boolean landscape = r > b;
@@ -1049,5 +1069,12 @@ public class ReaderActivity extends BaseActivity {
 	public void onSettingsChanged(Properties props) {
 		if (mFrame != null)
 			mFrame.updateSettings(props);
+	}
+	
+	public void showMenu() {
+		//
+		if (mFrame != null) {
+			mFrame.showMenu();
+		}
 	}
 }
