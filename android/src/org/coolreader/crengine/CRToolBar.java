@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import org.coolreader.R;
 
-import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
@@ -33,6 +32,8 @@ public class CRToolBar extends ViewGroup {
 	final private int preferredItemHeight;
 	private int BUTTON_SPACING = 4;
 	private final int BAR_SPACING = 0;
+	private int buttonAlpha = 0xC0;
+	private int textColor = 0x000000;
 
 	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
 	
@@ -141,7 +142,7 @@ public class CRToolBar extends ViewGroup {
 		} else {
 			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));
 		}
-		ib.setBackgroundDrawable(null);
+		ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
 		ib.setOnClickListener(new OnClickListener() {
 			@Override
@@ -152,7 +153,7 @@ public class CRToolBar extends ViewGroup {
 					onMoreButtonClick();
 			}
 		});
-		ib.setAlpha(0x80);
+		ib.setAlpha(buttonAlpha);
 		addView(ib);
 		return ib;
 	}
@@ -279,5 +280,14 @@ public class CRToolBar extends ViewGroup {
 		int popupY = location[1];
 		popup.showAtLocation(anchor, Gravity.TOP | Gravity.LEFT, location[0], popupY);
 		return popup;
+	}
+	
+	public void onThemeChanged(InterfaceTheme theme) {
+		buttonAlpha = theme.getToolbarButtonAlpha();
+		textColor = theme.getStatusTextColor();
+		if (isShown()) {
+			requestLayout();
+			invalidate();
+		}
 	}
 }

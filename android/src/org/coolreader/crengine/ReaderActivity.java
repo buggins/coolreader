@@ -125,6 +125,12 @@ public class ReaderActivity extends BaseActivity {
 			
 		}
 
+		public void onThemeChanged(InterfaceTheme theme) {
+			color = theme.getStatusTextColor();
+			if (isShown())
+				invalidate();
+		}
+		
 		public void updateCurrentPositionStatus(FileInfo book, Bookmark position, PositionProperties props) {
 			String title = "";
 			if (book != null) {
@@ -222,6 +228,8 @@ public class ReaderActivity extends BaseActivity {
 		public void onThemeChanged(InterfaceTheme theme) {
 			statusView.setBackgroundResource(theme.getReaderStatusBackground());
 			toolbarView.setBackgroundResource(theme.getReaderToolbarBackground(toolbarView.isVertical()));
+			toolbarView.onThemeChanged(theme);
+			statusView.onThemeChanged(theme);
 		}
 
 		
