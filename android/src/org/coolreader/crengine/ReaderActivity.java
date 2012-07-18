@@ -1,8 +1,11 @@
 package org.coolreader.crengine;
 
+import java.util.ArrayList;
+
 import org.coolreader.PhoneStateReceiver;
 import org.coolreader.R;
 import org.coolreader.crengine.CRToolBar.OnActionHandler;
+import org.coolreader.crengine.CRToolBar.OnOverflowHandler;
 import org.coolreader.crengine.SettingsManager.DictInfo;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.BillingService;
@@ -226,6 +229,18 @@ public class ReaderActivity extends BaseActivity {
 					public boolean onActionSelected(ReaderAction item) {
 						activity.getReaderView().onAction(item);
 						return true;
+					}
+				}, new OnOverflowHandler() {
+					@Override
+					public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
+						activity.showActionsPopupMenu(actions, new OnActionHandler() {
+							@Override
+							public boolean onActionSelected(ReaderAction item) {
+								activity.getReaderView().onAction(item);
+								return true;
+							}
+						});
+						return false;
 					}
 				});
 		}

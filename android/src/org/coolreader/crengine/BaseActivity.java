@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.coolreader.R;
@@ -30,9 +31,14 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -1021,6 +1027,27 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void onSettingsChanged(Properties props) {
 		// override for specific actions
+	}
+	
+	public void showActionsPopupMenu(final ArrayList<ReaderAction> actions, final CRToolBar.OnActionHandler onActionHandler) {
+		registerForContextMenu(contentView);
+		contentView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+			@Override
+			public void onCreateContextMenu(ContextMenu menu, View v,
+					ContextMenuInfo menuInfo) {
+				int order = 0;
+				for (final ReaderAction action : actions) {
+					MenuItem item = menu.add(0, action.menuItemId, order++, action.nameId);
+					item.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+						@Override
+						public boolean onMenuItemClick(MenuItem item) {
+							return onActionHandler.onActionSelected(action);
+						}
+					});
+				}
+			}
+		});
+		contentView.showContextMenu();
 	}
 	
 }
