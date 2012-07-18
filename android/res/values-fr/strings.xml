@@ -445,6 +445,6 @@
     <string name="options_view_toolbar_position_left">Left</string>
     <string name="options_view_toolbar_position_long_side">Long side</string>
     <string name="options_view_toolbar_position_none">None</string>
-    <string name="options_view_toolbar_hide_in_fullscreen">Hide in fullscreen</string>
+    <string name="options_view_toolbar_hide_in_fullscreen">Hide toolbar in fullscreen</string>
     <string name="options_view_toolbar_position_right">Right</string>
 </resources>
