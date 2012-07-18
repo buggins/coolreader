@@ -3224,8 +3224,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		Services.getHistory().getOrCreateBookInfo(mActivity.getDB(), fileInfo, new History.BookInfoLoadedCallack() {
 			@Override
-			public void onBookInfoLoaded(BookInfo bookInfo) {
-				post(new LoadDocumentTask(bookInfo, errorHandler));
+			public void onBookInfoLoaded(final BookInfo bookInfo) {
+				log.v("posting LoadDocument task to background thread");
+				BackgroundThread.instance().postBackground(new Runnable() {
+					@Override
+					public void run() {
+						log.v("posting LoadDocument task to GUI thread");
+						BackgroundThread.instance().postGUI(new Runnable() {
+							@Override
+							public void run() {
+								log.v("synced posting LoadDocument task to GUI thread");
+								post(new LoadDocumentTask(bookInfo, errorHandler));
+							}
+						});
+					}
+				});
 			}
 		});
 		return true;
@@ -3453,6 +3466,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 
 		if ( internalDX==0 || internalDY==0 ) {
+			if (requestedWidth > 0 && requestedHeight > 0) {
+				internalDX = requestedWidth;
+				internalDY = requestedHeight;
+				doc.resize(internalDX, internalDY);
+			} else {
+				internalDX = getWidth();
+				internalDY = getHeight();
+				doc.resize(internalDX, internalDY);
+			}
 //			internalDX=200;
 //			internalDY=300;
 //			doc.resize(internalDX, internalDY);
@@ -3727,6 +3749,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceChanged(SurfaceHolder holder, int format, final int width,
 			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
+		invalidate();
 		//requestResize(width, height);
 		//draw();
 	}
@@ -4981,6 +5004,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				
 	        	findCoverPage();
 				log.v("requesting page image, to render");
+				if (internalDX == 0 || internalDY == 0) {
+					internalDX = getWidth();
+					internalDY = getHeight();
+					log.d("LoadDocument task: no size defined, resizing using widget size");
+					doc.resize(internalDX, internalDY);
+				}
 	        	preparePageImage(0);
 				log.v("updating loaded book info");
 	        	updateLoadedBookInfo();
