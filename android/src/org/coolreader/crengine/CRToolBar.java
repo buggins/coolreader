@@ -30,6 +30,7 @@ public class CRToolBar extends ViewGroup {
 	private final int BAR_SPACING = 0;
 	private int buttonAlpha = 0xC0;
 	private int textColor = 0x000000;
+	private ImageButton overflowButton;
 
 	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
 	
@@ -79,6 +80,7 @@ public class CRToolBar extends ViewGroup {
 				buttonHeight = h;
 			}
 		}
+		
 	}
 
 	private OnActionHandler onActionHandler;
@@ -87,9 +89,19 @@ public class CRToolBar extends ViewGroup {
 		this.onActionHandler = handler;
 	}
 	
+	private OnOverflowHandler onOverflowHandler;
+	
+	public void setOnOverflowHandler(OnOverflowHandler handler) {
+		this.onOverflowHandler = handler;
+	}
+	
 	public interface OnActionHandler {
 		boolean onActionSelected(ReaderAction item);
 	}
+	public interface OnOverflowHandler {
+		boolean onOverflowActions(ArrayList<ReaderAction> actions);
+	}
+	
 	
 	private ReaderAction findByCmd(int id) {
 		for (ReaderAction action : actions)
@@ -107,13 +119,24 @@ public class CRToolBar extends ViewGroup {
 	}
 	
 	public void showOverflowMenu() {
-		if (itemsOverflow.size() > 0)
-			showContextMenu();
+		if (itemsOverflow.size() > 0) {
+			if (onOverflowHandler != null)
+				onOverflowHandler.onOverflowActions(itemsOverflow);
+			else
+				activity.showActionsPopupMenu(actions, onActionHandler);
+//			PopupMenu menu = new PopupMenu(activity, this);
+//			int order = 0;
+//			for (ReaderAction action : itemsOverflow) {
+//				menu.getMenu().add(0, action.menuItemId, order++, action.nameId);
+//			}
+//			menu.show();
+//			showContextMenuForChild(overflowButton);
+		}
 	}
 	
-	private void onMoreButtonClick() {
-		showOverflowMenu();
-	}
+//	private void onMoreButtonClick() {
+//		showOverflowMenu();
+//	}
 	
 	private void onButtonClick(ReaderAction item) {
 		if (onActionHandler != null)
@@ -150,13 +173,15 @@ public class CRToolBar extends ViewGroup {
 		}
 		ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
+		if (item == null)
+			overflowButton = ib;
 		ib.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (item != null)
 					onButtonClick(item);
 				else
-					onMoreButtonClick();
+					showOverflowMenu();
 			}
 		});
 		ib.setAlpha(buttonAlpha);
@@ -171,6 +196,7 @@ public class CRToolBar extends ViewGroup {
 		bottom -= top;
 		left = top = 0;
 		removeAllViews();
+		overflowButton = null;
 
 //		View divider = new View(getContext());
 //		addView(divider);
@@ -256,11 +282,11 @@ public class CRToolBar extends ViewGroup {
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
 
-	public PopupWindow showAsPopup(View anchor, OnActionHandler onActionHandler) {
-		return showPopup(activity, anchor, actions, onActionHandler);
+	public PopupWindow showAsPopup(View anchor, OnActionHandler onActionHandler, OnOverflowHandler onOverflowHandler) {
+		return showPopup(activity, anchor, actions, onActionHandler, onOverflowHandler);
 	}
 	
-	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler) {
+	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler, final OnOverflowHandler onOverflowHandler) {
 		final CRToolBar tb = new CRToolBar(context, actions);
 		tb.setOnActionHandler(onActionHandler);
 		tb.measure(anchor.getWidth(), ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -283,6 +309,13 @@ public class CRToolBar extends ViewGroup {
 			public boolean onActionSelected(ReaderAction item) {
 				popup.dismiss();
 				return onActionHandler.onActionSelected(item);
+			}
+		});
+		tb.setOnOverflowHandler(new OnOverflowHandler() {
+			@Override
+			public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
+				popup.dismiss();
+				return onOverflowHandler.onOverflowActions(actions);
 			}
 		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
