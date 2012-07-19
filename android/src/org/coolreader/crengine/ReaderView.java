@@ -4972,6 +4972,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			
     		//mBitmap = null;
 	        showProgress(1000, R.string.progress_loading);
+	        //draw();
+	        BackgroundThread.instance().postGUI(new Runnable() {
+				@Override
+				public void run() {
+					draw(false);
+				}
+			});
 	        //init();
 	        // close existing document
 			log.v("LoadDocumentTask : closing current book");
