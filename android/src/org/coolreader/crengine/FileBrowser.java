@@ -1179,7 +1179,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		this.coverPagesEnabled = coverPagesEnabled;
 		if ( !coverPagesEnabled ) {
-			mCoverpageManager.clear();
+			//mCoverpageManager.clear();
 		}
 		currentListAdapter.notifyDataSetChanged();
 	}
