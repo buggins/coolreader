@@ -12,6 +12,29 @@ public class PositionProperties {
 	public int charCount;
 	public int imageCount;
 	
+	
+	public PositionProperties(PositionProperties v) {
+		x = v.x;
+		y = v.y;
+		fullHeight = v.fullHeight;
+		pageHeight = v.pageHeight;
+		pageWidth = v.pageWidth;
+		pageNumber = v.pageNumber;
+		pageCount = v.pageCount;
+		pageMode = v.pageMode;
+		charCount = v.charCount;
+		imageCount = v.imageCount;
+	}
+
+	public PositionProperties() {
+		
+	}
+	
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
+
 	public boolean canMoveToNextPage() {
 		if (pageMode == 0) {
 			return fullHeight > pageHeight && y < fullHeight - pageHeight;

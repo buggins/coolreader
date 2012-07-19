@@ -88,6 +88,8 @@ public class ReaderActivity extends BaseActivity {
 		}
 		
 		public void setPosition(int percent) {
+			if (this.percent == percent)
+				return;
 			this.percent = percent;
 			if (isShown())
 				invalidate();
@@ -97,14 +99,37 @@ public class ReaderActivity extends BaseActivity {
 	static class StatusBar extends LinearLayout implements Settings {
 		private ReaderActivity activity;
 		private LinearLayout content;
-		private TextView title;
-		private TextView position;
+		private TextView lblTitle;
+		private TextView lblPosition;
 		private PositionIndicator indicator;
 		private int textSize = 14;
 		private int color = 0;
+		private boolean showBookAuthor;
+		private boolean showBookTitle;
+		private boolean showBattery;
+		private boolean showTime;
+		private boolean showPageNumber;
+		private boolean showPosPercent;
+		private boolean fullscreen;
+		
+		FileInfo book;
+		Bookmark position;
+		PositionProperties props;
+		
+		public void updateFullscreen(boolean fullscreen) {
+			if (this.fullscreen == fullscreen)
+				return;
+			this.fullscreen = fullscreen;
+			requestLayout();
+		}
 		
 		public void updateSettings(Properties props) {
 			this.textSize = props.getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
+			showBookTitle = props.getBool(PROP_SHOW_TITLE, true);
+			showBattery = true; //props.getBool(PROP_SHOW_BATTERY, true);
+			showTime = true; //props.getBool(PROP_SHOW_TIME, true);
+			showPageNumber = props.getBool(PROP_SHOW_PAGE_NUMBER, true);
+			showPosPercent = props.getBool(PROP_SHOW_POS_PERCENT, true);
 		}
 		
 		public StatusBar(ReaderActivity context) {
@@ -116,16 +141,16 @@ public class ReaderActivity extends BaseActivity {
 			
 			LayoutInflater inflater = LayoutInflater.from(activity);
 			content = (LinearLayout)inflater.inflate(R.layout.reader_status_bar, null);
-			title = (TextView)content.findViewById(R.id.title);
-			position = (TextView)content.findViewById(R.id.position);
+			lblTitle = (TextView)content.findViewById(R.id.title);
+			lblPosition = (TextView)content.findViewById(R.id.position);
 
-			title.setText("Book Name - Book Author (series #1)");
-			title.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-			title.setTextColor(0xFF000000 | color);
+			lblTitle.setText("Cool Reader " + activity.getVersion());
+			lblTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+			lblTitle.setTextColor(0xFF000000 | color);
 
-			position.setText("24/124  [35%]");
-			position.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-			position.setTextColor(0xFF000000 | color);
+			lblPosition.setText("");
+			lblPosition.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+			lblPosition.setTextColor(0xFF000000 | color);
 			
 			addView(content);
 			indicator = new PositionIndicator(activity);
@@ -137,43 +162,75 @@ public class ReaderActivity extends BaseActivity {
 
 		public void onThemeChanged(InterfaceTheme theme) {
 			color = theme.getStatusTextColor();
-			title.setTextColor(0xFF000000 | color);
-			position.setTextColor(0xFF000000 | color);
+			lblTitle.setTextColor(0xFF000000 | color);
+			lblPosition.setTextColor(0xFF000000 | color);
 			indicator.onThemeChange(theme);
 			if (isShown())
 				invalidate();
 		}
+
+		private static boolean empty(String s) {
+			return s == null || s.length() == 0;
+		}
+		
+		private static void append(StringBuilder buf, String text, String delimiter) {
+			if (!Utils.empty(text)) {
+				if (buf.length() != 0 && !empty(delimiter)) {
+					buf.append(delimiter);
+				}
+				buf.append(text);
+			}
+		}
 		
 		public void updateCurrentPositionStatus(FileInfo book, Bookmark position, PositionProperties props) {
-			String title = "";
+			this.book = book != null ? new FileInfo(book) : null;
+			this.position = position != null ? new Bookmark(position) : null;
+			this.props = props != null ? new PositionProperties(props) : null;
+			updateViews();
+		}
+		private void updateViews() {
+			StringBuilder title = new StringBuilder();
+			StringBuilder pos = new StringBuilder();
 			if (book != null) {
-				String authors = Utils.formatAuthors(book.authors);
-				if (Utils.empty(book.title)) {
-					if (Utils.empty(authors)) {
-						title = book.getFileNameToDisplay();
-					} else {
-						title = authors;
-					}
-				} else {
-					if (Utils.empty(authors)) {
-						title = book.title;
-					} else {
-						title = book.title + " - " + authors;
-					}
-				}
-				String pos = "";
+				String authors = Utils.formatAuthorsNormalNames(book.authors);
+				append(title, book.title, null);
+				append(title, authors, " - ");
+				if (title.length() == 0)
+					append(title, book.getFileNameToDisplay(), null);
 				if (props != null) {
-					pos = pos + props.pageNumber + " / " + props.pageCount;
+					if (showPageNumber)
+						append(pos, props.pageNumber + "/" + props.pageCount, " ");
 				}
 				if (position != null) {
-					pos = pos + " "; 
-					String percent = position.getPercent() > 0 ? Utils.formatPercent(position.getPercent()) : "0%";
-					pos = pos + percent;
+					if (showPosPercent) {
+						String percent = position.getPercent() > 0 ? Utils.formatPercent(position.getPercent()) : "0%";
+						append(pos, percent, " ");
+					}
 				}
-				this.position.setText(pos);
 			}
-			this.title.setText(title);
-			indicator.setPosition(position.getPercent());
+			if (showTime && fullscreen) {
+				append(pos, Utils.formatTime(System.currentTimeMillis()), " ");
+			}
+			if (showBattery && fullscreen) {
+				int batteryState = activity.getReaderView().getBatteryState();
+				if (batteryState >= 0)
+					append(pos, "[" + (batteryState < 10 ? "0" : "") + batteryState + "%]", " ");
+			}
+			boolean updated = false;
+			if (!lblPosition.getText().equals(pos)) {
+				this.lblPosition.setText(pos);
+				updated = true;
+			}
+			if (!lblTitle.getText().equals(title)) {
+				this.lblTitle.setText(title);
+				updated = true;
+			}
+			if (position != null)
+				indicator.setPosition(position.getPercent());
+			else
+				indicator.setPosition(0);
+			if (updated && isShown())
+				requestLayout();
 		}
 	
 	}
@@ -200,6 +257,7 @@ public class ReaderActivity extends BaseActivity {
 			if (this.fullscreen == fullscreen)
 				return;
 			this.fullscreen = fullscreen;
+			statusView.updateFullscreen(fullscreen);
 			requestLayout();
 		}
 		

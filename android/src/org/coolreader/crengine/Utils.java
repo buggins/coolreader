@@ -253,6 +253,24 @@ public class Utils {
 		return buf.toString();
 	}
 
+	public static String formatAuthorsNormalNames( String authors ) {
+		if ( authors==null || authors.length()==0 )
+			return null;
+		String[] list = authors.split("\\|");
+		StringBuilder buf = new StringBuilder(authors.length());
+		for (String a : list) {
+			if (buf.length() > 0)
+				buf.append(", ");
+			buf.append(a);
+//			String[] items = a.split(" ");
+//			if ( items.length==3 && items[1]!=null && items[1].length()>=1 )
+//				buf.append(items[0] + " " + items[1].charAt(0) + ". " + items[2]);
+//			else
+//				buf.append(a);
+		}
+		return buf.toString();
+	}
+
 	public static String ntrim(String str) {
 		if (str == null)
 			return null;
@@ -310,6 +328,16 @@ public class Utils {
 		return String.valueOf(percent/100) + "." + String.valueOf(percent/10%10) + "%";
 	}
 
+	public static String formatTime( long timeStamp )
+	{
+		if ( timeStamp<5000*60*60*24*1000 )
+			return "";
+		TimeZone tz = java.util.TimeZone.getDefault();
+		Calendar c = Calendar.getInstance(tz);
+		c.setTimeInMillis(timeStamp);
+		return timeFormat().format(c.getTime());
+	}
+	
 	public static String formatDate( long timeStamp )
 	{
 		if ( timeStamp<5000*60*60*24*1000 )
