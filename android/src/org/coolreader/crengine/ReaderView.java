@@ -3750,6 +3750,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
 		invalidate();
+		if (!isProgressActive())
+			draw();
 		//requestResize(width, height);
 		//draw();
 	}

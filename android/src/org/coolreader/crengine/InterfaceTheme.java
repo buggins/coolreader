@@ -29,7 +29,7 @@ public class InterfaceTheme {
 					0x000000, 0xE0);
 
 	public final static InterfaceTheme LIGHT = new InterfaceTheme("LIGHT", R.style.Theme_Light, R.style.Theme_Light_Dialog_Normal, R.style.Theme_Light_Dialog_Fullscreen, R.string.options_app_ui_theme_light, 0xFF000000)
-			.setRootDelimiter(R.drawable.divider_light_tiled_v3, 8)
+			.setRootDelimiter(R.drawable.divider_light_tiled_v3, 16)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_light, 
 					R.drawable.ui_toolbar_background_browser_light,
@@ -40,7 +40,7 @@ public class InterfaceTheme {
 					0x404040, 0xC0);
 	
 	public final static InterfaceTheme DARK = new InterfaceTheme("DARK", R.style.Theme_Dark, R.style.Theme_Dark_Dialog_Normal, R.style.Theme_Dark_Dialog_Fullscreen, R.string.options_app_ui_theme_dark, 0xFF000000)
-			.setRootDelimiter(R.drawable.divider_dark_tiled_v3, 8)
+			.setRootDelimiter(R.drawable.divider_dark_tiled_v3, 16)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_dark, 
 					R.drawable.ui_toolbar_background_browser_dark,
@@ -48,7 +48,7 @@ public class InterfaceTheme {
 					R.drawable.ui_status_background_reader_dark, 
 					R.drawable.ui_toolbar_background_reader_dark,
 					R.drawable.ui_toolbar_background_reader_vertical_dark,
-					0xC0C0C0, 0x80);
+					0xE0E0E0, 0x90);
 			
 	
 	public String getCode() {
