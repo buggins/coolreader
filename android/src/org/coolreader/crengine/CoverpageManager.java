@@ -84,7 +84,7 @@ public class CoverpageManager {
 		synchronized(LOCK) {
 			if (maxWidth == width && maxHeight == height)
 				return false;
-			clear();
+			//clear();
 			maxWidth = width;
 			maxHeight = height;
 			return true;

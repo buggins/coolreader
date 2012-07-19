@@ -7,7 +7,7 @@ import android.graphics.drawable.Drawable;
 public class InterfaceTheme {
 
 	public final static InterfaceTheme BLACK = new InterfaceTheme("BLACK", R.style.Theme_Black, R.style.Theme_Black_Dialog_Normal, R.style.Theme_Black_Dialog_Fullscreen, R.string.options_app_ui_theme_black, 0xFF000000)
-			.setRootDelimiter(R.drawable.divider_black_tiled)
+			.setRootDelimiter(R.drawable.divider_black_tiled, 2)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_black, 
 					R.drawable.ui_toolbar_background_browser_black,
@@ -18,7 +18,7 @@ public class InterfaceTheme {
 					0x808080, 0x80);
 	
 	public final static InterfaceTheme WHITE = new InterfaceTheme("WHITE", R.style.Theme_White, R.style.Theme_White_Dialog_Normal, R.style.Theme_White_Dialog_Fullscreen, R.string.options_app_ui_theme_white, 0xFFFFFFFF)
-			.setRootDelimiter(R.drawable.divider_white_tiled)
+			.setRootDelimiter(R.drawable.divider_white_tiled, 2)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_black, 
 					R.drawable.ui_toolbar_background_browser_black,
@@ -29,7 +29,7 @@ public class InterfaceTheme {
 					0x000000, 0xE0);
 
 	public final static InterfaceTheme LIGHT = new InterfaceTheme("LIGHT", R.style.Theme_Light, R.style.Theme_Light_Dialog_Normal, R.style.Theme_Light_Dialog_Fullscreen, R.string.options_app_ui_theme_light, 0xFF000000)
-			.setRootDelimiter(R.drawable.divider_light_tiled_v3)
+			.setRootDelimiter(R.drawable.divider_light_tiled_v3, 8)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_light, 
 					R.drawable.ui_toolbar_background_browser_light,
@@ -40,7 +40,7 @@ public class InterfaceTheme {
 					0x404040, 0xC0);
 	
 	public final static InterfaceTheme DARK = new InterfaceTheme("DARK", R.style.Theme_Dark, R.style.Theme_Dark_Dialog_Normal, R.style.Theme_Dark_Dialog_Fullscreen, R.string.options_app_ui_theme_dark, 0xFF000000)
-			.setRootDelimiter(R.drawable.divider_dark_tiled_v3)
+			.setRootDelimiter(R.drawable.divider_dark_tiled_v3, 8)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_dark, 
 					R.drawable.ui_toolbar_background_browser_dark,
@@ -87,6 +87,10 @@ public class InterfaceTheme {
 		return rootDelimiterResourceId;
 	}
 	
+	public int getRootDelimiterHeight() {
+		return rootDelimiterHeight;
+	}
+	
 	public int getBrowserStatusBackground() {
 		return browserStatusBackground;
 	}
@@ -131,6 +135,7 @@ public class InterfaceTheme {
 	private final int displayNameResourceId;
 	private final int actionBarBackgroundColorReading;
 	private int rootDelimiterResourceId;
+	private int rootDelimiterHeight;
 	
 	private int browserStatusBackground;
 	private int browserToolbarBackground;
@@ -165,8 +170,9 @@ public class InterfaceTheme {
 		this.actionBarBackgroundColorReading = actionBarBackgroundColorReading;
 	}
 	
-	private InterfaceTheme setRootDelimiter(int resourceId) {
+	private InterfaceTheme setRootDelimiter(int resourceId, int height) {
 		this.rootDelimiterResourceId = resourceId;
+		this.rootDelimiterHeight = height;
 		return this;
 	}
 	

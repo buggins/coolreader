@@ -301,7 +301,10 @@ public class CRRootView extends FrameLayout {
 	
 	private void updateDelimiterTheme(int viewId) {
 		View view = mView.findViewById(viewId);
-		view.setBackgroundResource(mActivity.getCurrentTheme().getRootDelimiterResourceId());
+		InterfaceTheme theme = mActivity.getCurrentTheme();
+		view.setBackgroundResource(theme.getRootDelimiterResourceId());
+		view.setMinimumHeight(theme.getRootDelimiterHeight());
+		view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, theme.getRootDelimiterHeight()));
 	}
 	
 	private void createViews() {
