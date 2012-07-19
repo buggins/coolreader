@@ -279,7 +279,7 @@ public class ReaderActivity extends BaseActivity {
 		}
 		
 		public void showMenu() {
-			if (toolbarView.getVisibility() == VISIBLE)
+			if (isToolbarVisible())
 				toolbarView.showOverflowMenu();
 			else
 				toolbarView.showAsPopup(this, new OnActionHandler() {
@@ -311,15 +311,17 @@ public class ReaderActivity extends BaseActivity {
 			this.toolbarView = new CRToolBar(context, ReaderAction.createList(new ReaderAction[] {
 				ReaderAction.GO_BACK,
 				ReaderAction.TOC,
-				ReaderAction.GO_PAGE,
-				ReaderAction.GO_PERCENT,
 				ReaderAction.SEARCH,
 				ReaderAction.OPTIONS,
 				ReaderAction.BOOKMARKS,
 				ReaderAction.FILE_BROWSER_ROOT,
+				ReaderAction.GO_PAGE,
+				ReaderAction.GO_PERCENT,
 				ReaderAction.FILE_BROWSER,
 				ReaderAction.TTS_PLAY,
 				ReaderAction.GO_FORWARD,
+				ReaderAction.TOGGLE_AUTOSCROLL,
+				ReaderAction.TOGGLE_DAY_NIGHT,
 				ReaderAction.EXIT,
 			}));
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));

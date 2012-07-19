@@ -123,7 +123,7 @@ public class CRToolBar extends ViewGroup {
 			if (onOverflowHandler != null)
 				onOverflowHandler.onOverflowActions(itemsOverflow);
 			else
-				activity.showActionsPopupMenu(actions, onActionHandler);
+				activity.showActionsPopupMenu(itemsOverflow, onActionHandler);
 //			PopupMenu menu = new PopupMenu(activity, this);
 //			int order = 0;
 //			for (ReaderAction action : itemsOverflow) {
