@@ -154,6 +154,8 @@ public class BrowserActivity extends BaseActivity {
 					@Override
 					public boolean onActionSelected(ReaderAction item) {
 						switch (item.cmd) {
+						case DCMD_EXIT:
+							Activities.finish();
 						case DCMD_FILE_BROWSER_ROOT:
 							Activities.showRootWindow();
 						case DCMD_FILE_BROWSER_UP:

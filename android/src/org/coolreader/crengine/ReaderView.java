@@ -3641,7 +3641,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //				invalidate();
 //			}
 //    		if (mOpened)
-   			hideProgress();
+   			//hideProgress();
    			if ( doneHandler!=null )
    				doneHandler.run();
    			scheduleGc();

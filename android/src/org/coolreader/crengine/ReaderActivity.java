@@ -43,6 +43,8 @@ import android.widget.TextView;
 
 public class ReaderActivity extends BaseActivity {
 
+	private static final Logger log = L.create("ra");
+	
 	static class PositionIndicator extends View {
 
 		private final int INDICATOR_HEIGHT = 8;
@@ -320,14 +322,16 @@ public class ReaderActivity extends BaseActivity {
 				ReaderAction.FILE_BROWSER,
 				ReaderAction.TTS_PLAY,
 				ReaderAction.GO_FORWARD,
+				ReaderAction.RECENT_BOOKS,
+				ReaderAction.OPEN_PREVIOUS_BOOK,
 				ReaderAction.TOGGLE_AUTOSCROLL,
 				ReaderAction.TOGGLE_DAY_NIGHT,
 				ReaderAction.EXIT,
 			}));
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+			this.addView(toolbarView);
 			this.addView(contentView);
 			this.addView(statusView);
-			this.addView(toolbarView);
 			updateFullscreen(activity.isFullscreen());
 			onThemeChanged(activity.getCurrentTheme());
 			updateSettings(SettingsManager.instance(context).get());
@@ -343,6 +347,7 @@ public class ReaderActivity extends BaseActivity {
 		
 		@Override
 		protected void onLayout(boolean changed, int l, int t, int r, int b) {
+			log.v("onLayout(" + l + ", " + t + ", " + r + ", " + b + ")");
 			r -= l;
 			b -= t;
 			t = 0;
@@ -353,6 +358,7 @@ public class ReaderActivity extends BaseActivity {
 			
 			boolean toolbarVisible = toolbarLocation != VIEWER_TOOLBAR_NONE && (!fullscreen || !hideToolbarInFullscren);
 			boolean landscape = r > b;
+			Rect toolbarRc = new Rect(l, t, r, b);
 			if (toolbarVisible) {
 				int location = toolbarLocation;
 				if (location == VIEWER_TOOLBAR_SHORT_SIDE)
@@ -362,34 +368,46 @@ public class ReaderActivity extends BaseActivity {
 				switch (location) {
 				case VIEWER_TOOLBAR_LEFT:
 					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(true));
-					toolbarView.layout(l, t, l + toolbarView.getMeasuredWidth(), b);
+					toolbarRc.right = l + toolbarView.getMeasuredWidth();
+					//toolbarView.layout(l, t, l + toolbarView.getMeasuredWidth(), b);
 					l += toolbarView.getMeasuredWidth();
 					break;
 				case VIEWER_TOOLBAR_RIGHT:
 					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(true));
-					toolbarView.layout(r - toolbarView.getMeasuredWidth(), t, r, b);
+					toolbarRc.left = r - toolbarView.getMeasuredWidth();
+					//toolbarView.layout(r - toolbarView.getMeasuredWidth(), t, r, b);
 					r -= toolbarView.getMeasuredWidth();
 					break;
 				case VIEWER_TOOLBAR_TOP:
 					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(false));
-					toolbarView.layout(l, t, r, t + toolbarView.getMeasuredHeight());
+					toolbarRc.bottom = t + toolbarView.getMeasuredHeight();
+					//toolbarView.layout(l, t, r, t + toolbarView.getMeasuredHeight());
 					t += toolbarView.getMeasuredHeight();
 					break;
 				case VIEWER_TOOLBAR_BOTTOM:
 					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(false));
-					toolbarView.layout(l, b - toolbarView.getMeasuredHeight(), r, b);
+					toolbarRc.top = b - toolbarView.getMeasuredHeight();
+					//toolbarView.layout(l, b - toolbarView.getMeasuredHeight(), r, b);
 					b -= toolbarView.getMeasuredHeight();
 					break;
 				}
 			}
+			Rect statusRc = new Rect(l, t, r, b);
 			if (statusBarLocation == VIEWER_STATUS_TOP) {
-				statusView.layout(l, t, r, t + statusView.getMeasuredHeight());
+				statusRc.bottom = t + statusView.getMeasuredHeight();
+				//statusView.layout(l, t, r, t + statusView.getMeasuredHeight());
 				t += statusView.getMeasuredHeight();
 			} else if (statusBarLocation == VIEWER_STATUS_BOTTOM) {
-				statusView.layout(l, b - statusView.getMeasuredHeight(), r, b);
+				statusRc.top = b - statusView.getMeasuredHeight();
+				//statusView.layout(l, b - statusView.getMeasuredHeight(), r, b);
 				b -= statusView.getMeasuredHeight();
 			}
 			contentView.layout(l, t, r, b);
+			toolbarView.layout(toolbarRc.left, toolbarRc.top, toolbarRc.right, toolbarRc.bottom);
+			statusView.layout(statusRc.left, statusRc.top, statusRc.right, statusRc.bottom);
+//			toolbarView.invalidate();
+//			toolbarView.requestLayout();
+			//invalidate();
 		}
 		
 		@Override
@@ -582,6 +600,16 @@ public class ReaderActivity extends BaseActivity {
                 }
             }
 		}
+//		BackgroundThread.instance().postGUI(new Runnable() {
+//			@Override
+//			public void run() {
+//				if (mFrame != null) {
+//					log.v("requesting layout");
+//					mFrame.requestLayout();
+//					mFrame.getToolBar().invalidate();
+//				}
+//			}
+//		}, 400);
 	}
 	
 	@Override
@@ -628,6 +656,7 @@ public class ReaderActivity extends BaseActivity {
 		});
 
 		super.onStart();
+		
 	}
 
 	@Override
