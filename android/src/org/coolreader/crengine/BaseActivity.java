@@ -46,7 +46,7 @@ import android.widget.Toast;
 
 public class BaseActivity extends Activity implements Settings {
 
-	public static final Logger log = L.create("ba");
+	private static final Logger log = L.create("ba");
 
 	private CRDBServiceAccessor mCRDBService;
 	private SyncServiceAccessor mSyncService;
@@ -757,8 +757,8 @@ public class BaseActivity extends Activity implements Settings {
 				if (backlightTimerTask == null)
 					return;
 				long interval = Utils.timeInterval(lastUserActivityTime);
-				log.v("ScreenBacklightControl: timer task, lastActivityMillis = "
-						+ interval);
+//				log.v("ScreenBacklightControl: timer task, lastActivityMillis = "
+//						+ interval);
 				int nextTimerInterval = screenBacklightDuration / 20;
 				boolean dim = false;
 				if (interval > screenBacklightDuration * 8 / 10) {
