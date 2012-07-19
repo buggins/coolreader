@@ -26,6 +26,7 @@
         android:icon="@drawable/cr3_logo"
         android:debuggable="true"
         android:allowClearUserData="true"
+        android:process="org.coolreader"
         >
         <activity android:name=".CoolReader" 
             android:label="@string/app_name" 
