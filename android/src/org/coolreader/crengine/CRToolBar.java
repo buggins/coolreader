@@ -184,7 +184,7 @@ public class CRToolBar extends ViewGroup {
 					showOverflowMenu();
 			}
 		});
-		ib.setAlpha(buttonAlpha);
+		ib.setAlpha(nightMode ? buttonAlpha : 0x60);
 		addView(ib);
 		return ib;
 	}
@@ -330,6 +330,17 @@ public class CRToolBar extends ViewGroup {
 		int popupY = location[1];
 		popup.showAtLocation(anchor, Gravity.TOP | Gravity.LEFT, location[0], popupY);
 		return popup;
+	}
+	
+	private boolean nightMode;
+	public void updateNightMode(boolean nightMode) {
+		if (this.nightMode != nightMode) {
+			this.nightMode = nightMode;
+			if (isShown()) {
+				requestLayout();
+				invalidate();
+			}
+		}
 	}
 	
 	public void onThemeChanged(InterfaceTheme theme) {
