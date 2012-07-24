@@ -3216,6 +3216,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public boolean loadDocument( final FileInfo fileInfo, final Runnable errorHandler )
 	{
+		log.v("loadDocument(" + fileInfo.getPathName() + ")");
 		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
 			log.d("trying to load already opened document");
 			Activities.showReader();
@@ -3750,7 +3751,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
 		invalidate();
-		if (!isProgressActive())
+		//if (!isProgressActive())
 			draw();
 		//requestResize(width, height);
 		//draw();
@@ -4921,14 +4922,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void hideProgress() {
 		log.v("hideProgress()");
 		if (currentProgressTitle != 0) {
-			currentProgressPosition = 0;
+			currentProgressPosition = -1;
 			currentProgressTitle = 0;
 			draw(false);
 		}
 	}
 	
 	private boolean isProgressActive() {
-		return currentProgressPosition != 0;
+		return currentProgressPosition > 0;
 	}
 	
 	private class LoadDocumentTask extends Task
@@ -4973,7 +4974,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("LoadDocumentTask : last position = " + pos);
 			
     		//mBitmap = null;
-	        showProgress(1000, R.string.progress_loading);
+	        //showProgress(1000, R.string.progress_loading);
 	        //draw();
 	        BackgroundThread.instance().postGUI(new Runnable() {
 				@Override
@@ -5178,7 +5179,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
        	try {
     		log.d("doDraw() called");
     		if (isProgressActive()) {
-        		log.d("onDraw() -- drawing progress");
+        		log.d("onDraw() -- drawing progress " + (currentProgressPosition / 100));
         		drawPageBackground(canvas);
         		doDrawProgress(canvas, currentProgressPosition, currentProgressTitle);
     		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
@@ -5496,6 +5497,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public void OnFormatEnd() {
 	    	log.d("readerCallback.OnFormatEnd");
 			//mEngine.hideProgress();
+	    	hideProgress();
 			drawPage();
 			scheduleSwapTask();
 		}
@@ -5524,6 +5526,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				internalDY = requestedHeight;
 				log.d("OnLoadFileEnd: resizeInternal(" + internalDX + "," + internalDY + ")");
 				doc.resize(internalDX, internalDY);
+				hideProgress();
 			}
 	    	
 		}

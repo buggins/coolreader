@@ -468,6 +468,8 @@ public class ReaderActivity extends BaseActivity {
 	private ReaderViewLayout mFrame;
 	
 	
+	private boolean justCreated = false; 
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Activities.setReader(this);
@@ -480,6 +482,8 @@ public class ReaderActivity extends BaseActivity {
 				// TO do on DB ready
 			}
 		});
+
+		justCreated = true;
 		
 		mEngine = Engine.getInstance(this);
 		mReaderView = new ReaderView(this, mEngine, SettingsManager.instance(this).get());
@@ -569,8 +573,9 @@ public class ReaderActivity extends BaseActivity {
 
 	@Override
 	protected void onNewIntent(Intent intent) {
-		// TODO Auto-generated method stub
 		super.onNewIntent(intent);
+		log.v("onNewIntent()");
+		processIntent(intent);
 	}
 
 	@Override
@@ -623,14 +628,8 @@ public class ReaderActivity extends BaseActivity {
 		// TODO Auto-generated method stub
 		super.onRestart();
 	}
-
-	@Override
-	protected void onStart() {
-		// Donations support code
-		if (billingSupported)
-			ResponseHandler.register(mPurchaseObserver);
-		
-		Intent intent = getIntent();
+	
+	private void processIntent(Intent intent) {
 		log.d("intent=" + intent);
 		if (intent != null) {
 			final String fileToOpen = intent.getExtras().getString(Activities.OPEN_FILE_PARAM);
@@ -643,6 +642,18 @@ public class ReaderActivity extends BaseActivity {
 					}
 				});
 			}
+		}
+	}
+
+	@Override
+	protected void onStart() {
+		// Donations support code
+		if (billingSupported)
+			ResponseHandler.register(mPurchaseObserver);
+		
+		if (justCreated) {
+			justCreated = false;
+			processIntent(getIntent());
 		}
 
 		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
