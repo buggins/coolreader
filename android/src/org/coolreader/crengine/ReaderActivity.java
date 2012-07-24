@@ -113,6 +113,7 @@ public class ReaderActivity extends BaseActivity {
 		private boolean showPageNumber;
 		private boolean showPosPercent;
 		private boolean fullscreen;
+		private boolean nightMode;
 		
 		FileInfo book;
 		Bookmark position;
@@ -132,6 +133,7 @@ public class ReaderActivity extends BaseActivity {
 			showTime = true; //props.getBool(PROP_SHOW_TIME, true);
 			showPageNumber = props.getBool(PROP_SHOW_PAGE_NUMBER, true);
 			showPosPercent = props.getBool(PROP_SHOW_POS_PERCENT, true);
+			nightMode = props.getBool(PROP_NIGHT_MODE, false);
 		}
 		
 		public StatusBar(ReaderActivity context) {
@@ -163,7 +165,7 @@ public class ReaderActivity extends BaseActivity {
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
-			color = theme.getStatusTextColor();
+			color = nightMode ? 0x808080 : theme.getStatusTextColor();
 			lblTitle.setTextColor(0xFF000000 | color);
 			lblPosition.setTextColor(0xFF000000 | color);
 			indicator.onThemeChange(theme);
@@ -246,6 +248,7 @@ public class ReaderActivity extends BaseActivity {
 		private int toolbarLocation;
 		private boolean hideToolbarInFullscren;
 		private boolean fullscreen;
+		private boolean nightMode;
 	
 		public CRToolBar getToolBar() {
 			return toolbarView;
@@ -272,10 +275,12 @@ public class ReaderActivity extends BaseActivity {
 		}
 		
 		public void updateSettings(Properties settings) {
+			nightMode = settings.getBool(PROP_NIGHT_MODE, false);
 			statusBarLocation = settings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP);
 			toolbarLocation = settings.getInt(PROP_TOOLBAR_LOCATION, VIEWER_TOOLBAR_SHORT_SIDE);
 			hideToolbarInFullscren = settings.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, true);
 			statusView.setVisibility(isStatusbarVisible() ? VISIBLE : GONE);
+			toolbarView.updateNightMode(nightMode);
 			toolbarView.setVisibility(isToolbarVisible() ? VISIBLE : GONE);
 			requestLayout();
 		}
@@ -340,6 +345,7 @@ public class ReaderActivity extends BaseActivity {
 		public void onThemeChanged(InterfaceTheme theme) {
 			statusView.setBackgroundResource(theme.getReaderStatusBackground());
 			toolbarView.setBackgroundResource(theme.getReaderToolbarBackground(toolbarView.isVertical()));
+			toolbarView.updateNightMode(nightMode);
 			toolbarView.onThemeChanged(theme);
 			statusView.onThemeChanged(theme);
 		}
