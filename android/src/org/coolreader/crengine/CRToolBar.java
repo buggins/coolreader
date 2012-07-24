@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.coolreader.R;
 
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
@@ -17,6 +18,9 @@ import android.widget.PopupWindow;
 
 public class CRToolBar extends ViewGroup {
 
+
+	private static final Logger log = L.create("tb");
+	
 	final private BaseActivity activity;
 	private ArrayList<ReaderAction> actions = new ArrayList<ReaderAction>();
 	private boolean showLabels;
@@ -280,8 +284,16 @@ public class CRToolBar extends ViewGroup {
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
+		log.v("CRToolBar.onSizeChanged(" + w + ", " + h + ")");
 	}
+	
+	
 
+	@Override
+	protected void onDraw(Canvas canvas) {
+		log.v("CRToolBar.onDraw(" + getWidth() + ", " + getHeight() + ")");
+		super.onDraw(canvas);
+	}
 	public PopupWindow showAsPopup(View anchor, OnActionHandler onActionHandler, OnOverflowHandler onOverflowHandler) {
 		return showPopup(activity, anchor, actions, onActionHandler, onOverflowHandler);
 	}

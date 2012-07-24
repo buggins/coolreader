@@ -199,7 +199,7 @@ public class BaseActivity extends Activity implements Settings {
 		
 		mIsStarted = true;
 		mPaused = false;
-		backlightControl.onUserActivity();
+		onUserActivity();
 	}
 
 	@Override
@@ -572,7 +572,7 @@ public class BaseActivity extends Activity implements Settings {
 	    	LayoutParams attrs =  wnd.getAttributes();
 	    	boolean changed = false;
 	    	if (b < 0 && b > -0.99999f) {
-	    		log.d("dimming screen by " + (int)((1 + b)*100) + "%");
+	    		//log.d("dimming screen by " + (int)((1 + b)*100) + "%");
 	    		b = -b * attrs.screenBrightness;
 	    		if (b < 0.15)
 	    			return;

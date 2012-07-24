@@ -12,12 +12,11 @@ import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class CRRootView extends FrameLayout {
+public class CRRootView extends ViewGroup {
 
 	public static final Logger log = L.create("cr");
 
