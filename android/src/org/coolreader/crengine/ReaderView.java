@@ -3745,6 +3745,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    }
 	}
 	
+	
 	// SurfaceView callbacks
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, final int width,
@@ -3752,7 +3753,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.i("surfaceChanged(" + width + ", " + height + ")");
 		invalidate();
 		//if (!isProgressActive())
-			draw();
+		draw();
 		//requestResize(width, height);
 		//draw();
 	}
@@ -5281,6 +5282,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 			doc.goToPosition(pos, false);
     		preparePageImage(0);
+    		hideProgress();
+    		drawPage();
     	}
     }
     

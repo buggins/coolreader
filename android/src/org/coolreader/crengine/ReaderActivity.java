@@ -36,8 +36,8 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -234,12 +234,12 @@ public class ReaderActivity extends BaseActivity {
 			else
 				indicator.setPosition(0);
 			if (updated && isShown())
-				requestLayout();
+				forceLayout();
 		}
 	
 	}
 
-	static class ReaderViewLayout extends FrameLayout implements Settings {
+	static class ReaderViewLayout extends ViewGroup implements Settings {
 		private ReaderActivity activity;
 		private ReaderView contentView;
 		private StatusBar statusView;
@@ -337,6 +337,9 @@ public class ReaderActivity extends BaseActivity {
 			this.addView(toolbarView);
 			this.addView(contentView);
 			this.addView(statusView);
+			toolbarView.setFocusable(false);
+			statusView.setFocusable(false);
+			contentView.setFocusable(true);
 			updateFullscreen(activity.isFullscreen());
 			onThemeChanged(activity.getCurrentTheme());
 			updateSettings(SettingsManager.instance(context).get());
@@ -411,7 +414,20 @@ public class ReaderActivity extends BaseActivity {
 			contentView.layout(l, t, r, b);
 			toolbarView.layout(toolbarRc.left, toolbarRc.top, toolbarRc.right, toolbarRc.bottom);
 			statusView.layout(statusRc.left, statusRc.top, statusRc.right, statusRc.bottom);
-//			toolbarView.invalidate();
+			
+			if (activity.isFullscreen()) {
+				BackgroundThread.instance().postGUI(new Runnable() {
+					@Override
+					public void run() {
+						log.v("Invalidating toolbar ++++++++++");
+						toolbarView.forceLayout();
+						contentView.invalidate();
+						toolbarView.invalidate();
+					}
+				}, 100);
+			}
+			
+			//			toolbarView.invalidate();
 //			toolbarView.requestLayout();
 			//invalidate();
 		}
@@ -544,7 +560,7 @@ public class ReaderActivity extends BaseActivity {
 			mReaderView.setBatteryState(initialBatteryState);
 		
 		setContentView(mFrame);
-		
+		mFrame.bringToFront();
 	}
 
 	public final static boolean CLOSE_BOOK_ON_STOP = false;
@@ -653,6 +669,8 @@ public class ReaderActivity extends BaseActivity {
 
 	@Override
 	protected void onStart() {
+		super.onStart();
+
 		// Donations support code
 		if (billingSupported)
 			ResponseHandler.register(mPurchaseObserver);
@@ -661,6 +679,17 @@ public class ReaderActivity extends BaseActivity {
 			justCreated = false;
 			processIntent(getIntent());
 		}
+		
+//		BackgroundThread.instance().postGUI(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				log.v("Invalidating toolbar ***************");
+//				mFrame.getToolBar().invalidate();
+//				mFrame.requestLayout();
+//				//mFrame.invalidate();
+//			}
+//		}, 10000);
 
 		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
 			@Override
@@ -671,9 +700,6 @@ public class ReaderActivity extends BaseActivity {
 				}
 			}
 		});
-
-		super.onStart();
-		
 	}
 
 	@Override
