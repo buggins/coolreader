@@ -160,14 +160,20 @@ public class ReaderActivity extends BaseActivity {
 			indicator = new PositionIndicator(activity);
 			addView(indicator);
 			//content.addView(indicator);
-			setBackgroundResource(context.getCurrentTheme().getReaderStatusBackground());
+			onThemeChanged(context.getCurrentTheme());
 			updateSettings(SettingsManager.instance(context).get());
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
-			color = nightMode ? 0x808080 : theme.getStatusTextColor();
+			color = nightMode ? 0x606060 : theme.getStatusTextColor();
 			lblTitle.setTextColor(0xFF000000 | color);
 			lblPosition.setTextColor(0xFF000000 | color);
+			if (DeviceInfo.EINK_SCREEN)
+				setBackgroundColor(0xFFFFFFFF);
+			else if (nightMode)
+				setBackgroundColor(0xFF000000);
+			else
+				setBackgroundResource(theme.getReaderStatusBackground());
 			indicator.onThemeChange(theme);
 			if (isShown())
 				invalidate();
@@ -341,13 +347,21 @@ public class ReaderActivity extends BaseActivity {
 			statusView.setFocusable(false);
 			contentView.setFocusable(true);
 			updateFullscreen(activity.isFullscreen());
-			onThemeChanged(activity.getCurrentTheme());
 			updateSettings(SettingsManager.instance(context).get());
+			onThemeChanged(activity.getCurrentTheme());
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
-			statusView.setBackgroundResource(theme.getReaderStatusBackground());
-			toolbarView.setBackgroundResource(theme.getReaderToolbarBackground(toolbarView.isVertical()));
+			if (DeviceInfo.EINK_SCREEN) {
+				statusView.setBackgroundColor(0xFFFFFFFF);
+				toolbarView.setBackgroundColor(0xFFFFFFFF);
+			} else if (nightMode) {
+				statusView.setBackgroundColor(0xFF000000);
+				toolbarView.setBackgroundColor(0xFF000000);
+			} else {
+				statusView.setBackgroundResource(theme.getReaderStatusBackground());
+				toolbarView.setBackgroundResource(theme.getReaderToolbarBackground(toolbarView.isVertical()));
+			}
 			toolbarView.updateNightMode(nightMode);
 			toolbarView.onThemeChanged(theme);
 			statusView.onThemeChanged(theme);
