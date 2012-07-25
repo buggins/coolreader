@@ -55,12 +55,12 @@ public class ReaderActivity extends BaseActivity {
 		public PositionIndicator(ReaderActivity context) {
 			super(context);
 			setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			this.color = 0x808080; //SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
+			this.color = SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
 			//setBackgroundColor(0xC0404040);
 		}
 		
-		public void onThemeChange(InterfaceTheme theme) {
-			color = theme.getStatusTextColor();
+		public void setColor(int color) {
+			this.color = color;
 			invalidate();
 		}
 		
@@ -174,7 +174,7 @@ public class ReaderActivity extends BaseActivity {
 				setBackgroundColor(0xFF000000);
 			else
 				setBackgroundResource(theme.getReaderStatusBackground());
-			indicator.onThemeChange(theme);
+			indicator.setColor(color);
 			if (isShown())
 				invalidate();
 		}
