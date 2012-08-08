@@ -8,6 +8,9 @@ import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
+import org.coolreader.plugins.litres.LitresConnection;
+import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
+import org.coolreader.plugins.litres.LitresResponse;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -215,6 +218,15 @@ public class CRRootView extends ViewGroup {
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
+						LitresConnection.instance().loadGenres(new ResultHandler() {
+							@Override
+							public void onResponse(LitresResponse response) {
+								if (response instanceof LitresConnection.LitresGenre) {
+									LitresConnection.LitresGenre result = (LitresConnection.LitresGenre)response;
+									log.d("genres found: " + result.getChildCount() + " on top level");
+								}
+							}
+						});
 						mActivity.showToast("TODO");
 					}
 				});
