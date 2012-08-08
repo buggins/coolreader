@@ -192,6 +192,7 @@ public class CRRootView extends ViewGroup {
 	}
 	
 	private void updateOnlineCatalogs(ArrayList<FileInfo> catalogs) {
+		catalogs.add(0, Services.getScanner().createOnlineLibraryPluginItem("org.coolreader.plugins.litres", "LitRes"));
 		catalogs.add(Services.getScanner().createOPDSRoot());
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		mOnlineCatalogsScroll.removeAllViews();
@@ -206,6 +207,15 @@ public class CRRootView extends ViewGroup {
 					@Override
 					public void onClick(View v) {
 						Activities.editOPDSCatalog(null);
+					}
+				});
+			} else if (item.isOnlineCatalogPluginDir()) {
+				icon.setImageResource(R.drawable.plugins_logo_litres);
+				label.setText(item.filename);
+				view.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						mActivity.showToast("TODO");
 					}
 				});
 			} else {
