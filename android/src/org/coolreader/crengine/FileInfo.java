@@ -20,6 +20,7 @@ public class FileInfo {
 	public final static String ROOT_DIR_TAG = "@root";
 	public final static String OPDS_LIST_TAG = "@opds";
 	public final static String OPDS_DIR_PREFIX = "@opds:";
+	public final static String ONLINE_CATALOG_PLUGIN_PREFIX = "@plugin:";
 	public final static String AUTHORS_TAG = "@authorsRoot";
 	public final static String AUTHOR_GROUP_PREFIX = "@authorGroup:";
 	public final static String AUTHOR_PREFIX = "@author:";
@@ -303,6 +304,11 @@ public class FileInfo {
 		return pathname!=null && pathname.startsWith("@");
 	}
 	
+	public boolean isOnlineCatalogPluginDir()
+	{
+		return pathname!=null && pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX);
+	}
+	
 	public boolean isOPDSDir()
 	{
 		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX) && (getOPDSEntryInfo() == null || getOPDSEntryInfo().getBestAcquisitionLink() == null);
@@ -378,6 +384,13 @@ public class FileInfo {
 		if ( !pathname.startsWith(OPDS_DIR_PREFIX) )
 			return null;
 		return pathname.substring(OPDS_DIR_PREFIX.length());
+	}
+	
+	public String getOnlineCatalogPluginPackage()
+	{
+		if ( !pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX) )
+			return null;
+		return pathname.substring(ONLINE_CATALOG_PLUGIN_PREFIX.length());
 	}
 	
 	/**

@@ -473,6 +473,16 @@ public class Scanner extends FileInfoChangeSource {
 		return dir;
 	}
 
+	public FileInfo createOnlineLibraryPluginItem(String packageName, String label) {
+		final FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + packageName;
+		dir.filename = label;
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+
 	private void addRoot(FileInfo dir) {
 		dir.parent = mRoot;
 		mRoot.addDir(dir);

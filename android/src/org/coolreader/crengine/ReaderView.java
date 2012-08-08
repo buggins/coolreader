@@ -23,8 +23,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -5112,10 +5114,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		dimRect( canvas, dst );
 	}
 	
-	protected void drawPageBackground(Canvas canvas) {
+	protected void drawPageBackground(Canvas canvas, Rect dst, int side) {
 		Bitmap bmp = currentBackgroundTextureBitmap;
 		if (bmp != null) {
-			Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
 			int h = bmp.getHeight();
 			int w = bmp.getWidth();
     		Rect src = new Rect(0, 0, w, h);
@@ -5136,11 +5137,84 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				}
 			} else {
 				// STRETCHED
+				if (side == VIEWER_TOOLBAR_LONG_SIDE)
+					side = canvas.getWidth() > canvas.getHeight() ? VIEWER_TOOLBAR_TOP : VIEWER_TOOLBAR_LEFT;
+				else if (side == VIEWER_TOOLBAR_SHORT_SIDE)
+					side = canvas.getWidth() < canvas.getHeight() ? VIEWER_TOOLBAR_TOP : VIEWER_TOOLBAR_LEFT;
+				switch(side) {
+				case VIEWER_TOOLBAR_LEFT:
+					{
+						int d = dst.width() * dst.height() / h;
+						if (d > w)
+							d = w;
+						src.left = src.right - d;
+					}
+					break;
+				case VIEWER_TOOLBAR_RIGHT:
+					{
+						int d = dst.width() * dst.height() / h;
+						if (d > w)
+							d = w;
+						src.right = src.left + d;
+					}
+					break;
+				case VIEWER_TOOLBAR_TOP:
+					{
+						int d = dst.height() * dst.width() / w;
+						if (d > h)
+							d = h;
+						src.top = src.bottom - d;
+					}
+					break;
+				case VIEWER_TOOLBAR_BOTTOM:
+					{
+						int d = dst.height() * dst.width() / w;
+						if (d > h)
+							d = h;
+						src.bottom = src.top + d;
+					}
+					break;
+				}
         		drawDimmedBitmap(canvas, bmp, src, dst);
 			}
 		} else {
 			canvas.drawColor(currentBackgroundColor | 0xFF000000);
 		}
+	}
+
+	protected void drawPageBackground(Canvas canvas) {
+		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+		drawPageBackground(canvas, dst, VIEWER_TOOLBAR_NONE);
+	}
+	
+	public class ToolbarBackgroundDrawable extends Drawable {
+		private int location = VIEWER_TOOLBAR_NONE;
+		private int alpha;
+		public void setLocation(int location) {
+			this.location = location;
+		}
+		@Override
+		public void draw(Canvas canvas) {
+			Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+			drawPageBackground(canvas, dst, location);
+		}
+		@Override
+		public int getOpacity() {
+			return 255 - alpha;
+		}
+		@Override
+		public void setAlpha(int alpha) {
+			this.alpha = alpha;
+			
+		}
+		@Override
+		public void setColorFilter(ColorFilter cf) {
+			// not supported
+		}
+	}
+	
+	public ToolbarBackgroundDrawable createToolbarBackgroundDrawable() {
+		return new ToolbarBackgroundDrawable();
 	}
 	
 	protected void doDrawProgress(Canvas canvas, int position, int titleResource) {

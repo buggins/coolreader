@@ -32,11 +32,19 @@ public class CRToolBar extends ViewGroup {
 	final private int preferredItemHeight;
 	private int BUTTON_SPACING = 4;
 	private final int BAR_SPACING = 0;
-	private int buttonAlpha = 0xC0;
+	private int buttonAlpha = 0xFF;
 	private int textColor = 0x000000;
 	private ImageButton overflowButton;
 
 	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
+	
+	public void setButtonAlpha(int alpha) {
+		this.buttonAlpha = alpha;
+		if (isShown()) {
+			requestLayout();
+			invalidate();
+		}
+	}
 	
 	public void setVertical(boolean vertical) {
 		this.isVertical = vertical;
@@ -188,7 +196,7 @@ public class CRToolBar extends ViewGroup {
 					showOverflowMenu();
 			}
 		});
-		ib.setAlpha(nightMode ? buttonAlpha : 0x60);
+		ib.setAlpha(nightMode ? 0x60 : buttonAlpha);
 		addView(ib);
 		return ib;
 	}
@@ -354,8 +362,8 @@ public class CRToolBar extends ViewGroup {
 	}
 	
 	public void onThemeChanged(InterfaceTheme theme) {
-		buttonAlpha = theme.getToolbarButtonAlpha();
-		textColor = theme.getStatusTextColor();
+		//buttonAlpha = theme.getToolbarButtonAlpha();
+		//textColor = theme.getStatusTextColor();
 		if (isShown()) {
 			requestLayout();
 			invalidate();

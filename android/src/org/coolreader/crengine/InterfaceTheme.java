@@ -2,8 +2,6 @@ package org.coolreader.crengine;
 
 import org.coolreader.R;
 
-import android.graphics.drawable.Drawable;
-
 public class InterfaceTheme {
 
 	public final static InterfaceTheme BLACK = new InterfaceTheme("BLACK", R.style.Theme_Black, R.style.Theme_Black_Dialog_Normal, R.style.Theme_Black_Dialog_Fullscreen, R.string.options_app_ui_theme_black, 0xFF000000)
@@ -11,44 +9,64 @@ public class InterfaceTheme {
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_black, 
 					R.drawable.ui_toolbar_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_vertical_black,
-					R.drawable.ui_status_background_browser_black, 
-					R.drawable.ui_toolbar_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_vertical_black,
-					0x808080, 0x80);
+					R.drawable.ui_toolbar_background_browser_vertical_black)
+			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0x80);
+//			.setBackgrounds(
+//					R.drawable.ui_status_background_browser_black, 
+//					R.drawable.ui_toolbar_background_browser_black,
+//					R.drawable.ui_toolbar_background_browser_vertical_black,
+//					R.drawable.ui_status_background_browser_black, 
+//					R.drawable.ui_toolbar_background_browser_black,
+//					R.drawable.ui_toolbar_background_browser_vertical_black,
+//					0x808080, 0x80);
 	
 	public final static InterfaceTheme WHITE = new InterfaceTheme("WHITE", R.style.Theme_White, R.style.Theme_White_Dialog_Normal, R.style.Theme_White_Dialog_Fullscreen, R.string.options_app_ui_theme_white, 0xFFFFFFFF)
 			.setRootDelimiter(R.drawable.divider_white_tiled, 2)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_black, 
 					R.drawable.ui_toolbar_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_vertical_black,
-					R.drawable.ui_status_background_reader_black, 
-					R.drawable.ui_toolbar_background_reader_black,
-					R.drawable.ui_toolbar_background_reader_vertical_black,
-					0x000000, 0xE0);
+					R.drawable.ui_toolbar_background_browser_vertical_black)
+			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xE0);
+//			.setBackgrounds(
+//					R.drawable.ui_status_background_browser_black, 
+//					R.drawable.ui_toolbar_background_browser_black,
+//					R.drawable.ui_toolbar_background_browser_vertical_black,
+//					R.drawable.ui_status_background_reader_black, 
+//					R.drawable.ui_toolbar_background_reader_black,
+//					R.drawable.ui_toolbar_background_reader_vertical_black,
+//					0x000000, 0xE0);
 
 	public final static InterfaceTheme LIGHT = new InterfaceTheme("LIGHT", R.style.Theme_Light, R.style.Theme_Light_Dialog_Normal, R.style.Theme_Light_Dialog_Fullscreen, R.string.options_app_ui_theme_light, 0xFF000000)
 			.setRootDelimiter(R.drawable.divider_light_tiled_v3, 16)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_light, 
 					R.drawable.ui_toolbar_background_browser_light,
-					R.drawable.ui_toolbar_background_browser_vertical_light,
-					R.drawable.ui_status_background_reader_light, 
-					R.drawable.ui_toolbar_background_reader_light,
-					R.drawable.ui_toolbar_background_reader_vertical_light,
-					0x404040, 0xC0);
+					R.drawable.ui_toolbar_background_browser_vertical_light)
+			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xC0);
+//			.setBackgrounds(
+//					R.drawable.ui_status_background_browser_light, 
+//					R.drawable.ui_toolbar_background_browser_light,
+//					R.drawable.ui_toolbar_background_browser_vertical_light,
+//					R.drawable.ui_status_background_reader_light, 
+//					R.drawable.ui_toolbar_background_reader_light,
+//					R.drawable.ui_toolbar_background_reader_vertical_light,
+//					0x404040, 0xC0);
 	
 	public final static InterfaceTheme DARK = new InterfaceTheme("DARK", R.style.Theme_Dark, R.style.Theme_Dark_Dialog_Normal, R.style.Theme_Dark_Dialog_Fullscreen, R.string.options_app_ui_theme_dark, 0xFF000000)
 			.setRootDelimiter(R.drawable.divider_dark_tiled_v3, 16)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_dark, 
 					R.drawable.ui_toolbar_background_browser_dark,
-					R.drawable.ui_toolbar_background_browser_vertical_dark,
-					R.drawable.ui_status_background_reader_dark, 
-					R.drawable.ui_toolbar_background_reader_dark,
-					R.drawable.ui_toolbar_background_reader_vertical_dark,
-					0xE0E0E0, 0x90);
+					R.drawable.ui_toolbar_background_browser_vertical_dark)
+			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0x90);
+//			.setBackgrounds(
+//					R.drawable.ui_status_background_browser_dark, 
+//					R.drawable.ui_toolbar_background_browser_dark,
+//					R.drawable.ui_toolbar_background_browser_vertical_dark,
+//					R.drawable.ui_status_background_reader_dark, 
+//					R.drawable.ui_toolbar_background_reader_dark,
+//					R.drawable.ui_toolbar_background_reader_vertical_dark,
+//					0xE0E0E0, 0x90);
 			
 	
 	public String getCode() {
@@ -71,17 +89,17 @@ public class InterfaceTheme {
 		return displayNameResourceId;
 	}
 	
-	public int getActionBarBackgroundColorReading() {
-		return actionBarBackgroundColorReading;
-	}
-	
-	public Drawable getActionBarBackgroundDrawableReading() {
-		return Utils.solidColorDrawable(actionBarBackgroundColorReading);
-	}
-	
-	public Drawable getActionBarBackgroundDrawableBrowser() {
-		return Utils.solidColorDrawable(0);
-	}
+//	public int getActionBarBackgroundColorReading() {
+//		return actionBarBackgroundColorReading;
+//	}
+//	
+//	public Drawable getActionBarBackgroundDrawableReading() {
+//		return Utils.solidColorDrawable(actionBarBackgroundColorReading);
+//	}
+//	
+//	public Drawable getActionBarBackgroundDrawableBrowser() {
+//		return Utils.solidColorDrawable(0);
+//	}
 	
 	public int getRootDelimiterResourceId() {
 		return rootDelimiterResourceId;
@@ -99,17 +117,17 @@ public class InterfaceTheme {
 		return !vertical ? browserToolbarBackground : browserToolbarBackgroundVertical;
 	}
 	
-	public int getReaderStatusBackground() {
-		return readerStatusBackground;
-	}
+//	public int getReaderStatusBackground() {
+//		return readerStatusBackground;
+//	}
+//	
+//	public int getReaderToolbarBackground(boolean vertical) {
+//		return !vertical ? readerToolbarBackground : readerToolbarBackgroundVertical;
+//	}
 	
-	public int getReaderToolbarBackground(boolean vertical) {
-		return !vertical ? readerToolbarBackground : readerToolbarBackgroundVertical;
-	}
-	
-	public int getStatusTextColor() {
-		return statusTextColor;
-	}
+//	public int getStatusTextColor() {
+//		return statusTextColor;
+//	}
 	
 	public int getToolbarButtonAlpha() {
 		return toolbarButtonAlpha;
@@ -140,24 +158,36 @@ public class InterfaceTheme {
 	private int browserStatusBackground;
 	private int browserToolbarBackground;
 	private int browserToolbarBackgroundVertical;
-	private int readerStatusBackground;
-	private int readerToolbarBackground;
-	private int readerToolbarBackgroundVertical;
-	private int statusTextColor;
+//	private int readerStatusBackground;
+//	private int readerToolbarBackground;
+//	private int readerToolbarBackgroundVertical;
+//	private int statusTextColor;
 	private int toolbarButtonAlpha;
 	
-	private InterfaceTheme setBackgrounds(int browserStatusBackground, int browserToolbarBackground,
-			int browserToolbarBackgroundVertical, int readerStatusBackground, 
-			int readerToolbarBackground, int readerToolbarBackgroundVertical,
-			int statusTextColor, int toolbarButtonAlpha) {
+	private InterfaceTheme setToolbarButtonAlpha(int toolbarButtonAlpha) {
+		this.toolbarButtonAlpha = toolbarButtonAlpha;
+		return this;
+	}
+//	private InterfaceTheme setBackgrounds(int browserStatusBackground, int browserToolbarBackground,
+//			int browserToolbarBackgroundVertical, int readerStatusBackground, 
+//			int readerToolbarBackground, int readerToolbarBackgroundVertical,
+//			int statusTextColor, int toolbarButtonAlpha) {
+//		this.browserStatusBackground = browserStatusBackground;
+//		this.browserToolbarBackground = browserToolbarBackground;
+//		this.browserToolbarBackgroundVertical = browserToolbarBackgroundVertical;
+//		this.readerStatusBackground = readerStatusBackground;
+//		this.readerToolbarBackground = readerToolbarBackground;
+//		this.readerToolbarBackgroundVertical = readerToolbarBackgroundVertical;
+//		this.statusTextColor = statusTextColor;
+//		this.toolbarButtonAlpha = toolbarButtonAlpha;
+//		return this;
+//	}
+
+	private InterfaceTheme setBackgrounds(int browserStatusBackground,
+			int browserToolbarBackground, int browserToolbarBackgroundVertical) {
 		this.browserStatusBackground = browserStatusBackground;
 		this.browserToolbarBackground = browserToolbarBackground;
 		this.browserToolbarBackgroundVertical = browserToolbarBackgroundVertical;
-		this.readerStatusBackground = readerStatusBackground;
-		this.readerToolbarBackground = readerToolbarBackground;
-		this.readerToolbarBackgroundVertical = readerToolbarBackgroundVertical;
-		this.statusTextColor = statusTextColor;
-		this.toolbarButtonAlpha = toolbarButtonAlpha;
 		return this;
 	}
 	
