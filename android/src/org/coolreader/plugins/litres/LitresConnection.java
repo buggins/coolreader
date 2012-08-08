@@ -4,9 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,17 +24,23 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.coolreader.crengine.L;
 import org.coolreader.db.ServiceThread;
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import android.os.Handler;
+import android.util.Log;
 
 public class LitresConnection {
+	final static String TAG = "litres";
+	
 	public static final String AUTHORIZE_URL = "http://robot.litres.ru/pages/catalit_authorise/";
+	public static final String GENRES_URL = "http://robot.litres.ru/pages/catalit_genres/";
 	
 	ServiceThread workerThread;
 	
 	private LitresConnection() {
 		workerThread = new ServiceThread("litres");
+		workerThread.start();
 	}
 	
 	public static LitresConnection create () {
@@ -47,6 +55,7 @@ public class LitresConnection {
     public static final int READ_TIMEOUT = 60000;
     public static final int MAX_CONTENT_LEN_TO_BUFFER = 1000000;
 	public void sendRequest(final String url, final Map<String, String> params, final ResponseHandler contentHandler, final ResultHandler resultHandler) {
+		Log.i(TAG, "sending request to " + url);
 		final Handler callbackHandler = new Handler();
 		workerThread.post(new Runnable() {
 			@Override
@@ -70,6 +79,7 @@ public class LitresConnection {
 						return;
 					}
 					connection = (HttpURLConnection)conn;
+					Log.i(TAG, "opened connection");
 		            connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
 		            connection.setInstanceFollowRedirects(true);
 		            connection.setAllowUserInteraction(false);
@@ -163,6 +173,87 @@ public class LitresConnection {
 		});
 	}
 	
+	public static class LitresGenre extends LitresResponse implements Serializable {
+		private static final long serialVersionUID = 1;
+		public String id;
+		public String title;
+		public String token;
+		private LitresGenre parent;
+		private ArrayList<LitresGenre> children;
+		public LitresGenre getParent() {
+			return parent;
+		}
+		public void addChild(LitresGenre child) {
+			if (children == null)
+				children = new ArrayList<LitresGenre>();
+			children.add(child);
+			child.parent = this;
+		}
+		public int getChildCount() {
+			return (children != null) ? children.size() : 0;
+		}
+		public LitresGenre get(int index) {
+			return children.get(index);
+		}
+	}
+
+	private LitresGenre genres;
+	private long genresLastUpdateTimestamp;
+	public void loadGenres(final ResultHandler resultHandler) {
+		if (genres != null && System.currentTimeMillis() < genresLastUpdateTimestamp + 24*60*60*1000) {
+			resultHandler.onResponse(genres);
+			return;
+		}
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("search_types", "0");
+		sendRequest(GENRES_URL, params, new ResponseHandler() {
+			LitresGenre result = new LitresGenre();
+			LitresGenre currentNode = result;
+			@Override
+			public LitresResponse getResponse() {
+				LitresResponse res =  super.getResponse();
+				if (res != null)
+					return res;
+				genres = result;
+				genresLastUpdateTimestamp = System.currentTimeMillis();
+				return result;
+			}
+
+			@Override
+			public void endElement(String uri, String localName, String qName)
+					throws SAXException {
+				super.endElement(uri, localName, qName);
+				if ("catalit-genres".equals(localName))
+					currentNode = null;
+				else if ("genre".equals(localName)) {
+					if (currentNode != null)
+						currentNode = currentNode.getParent();
+				}
+			}
+
+			@Override
+			public void startElement(String uri, String localName,
+					String qName, Attributes attributes) throws SAXException {
+				super.startElement(uri, localName, qName, attributes);
+				if ("catalit-genres".equals(localName))
+					currentNode = result;
+				else if ("genre".equals(localName)) {
+					if (currentNode == null)
+						return;
+					LitresGenre item = new LitresGenre();
+					item.id = attributes.getValue("id");
+					item.title = attributes.getValue("title");
+					item.token = attributes.getValue("token");
+					if (item.title != null) {
+						currentNode.addChild(item);
+						currentNode = item;
+					}
+				}
+					
+			}
+		}, resultHandler);
+	}
+
 	public void authorize(final String sid, final String login, final String pwd, final ResultHandler resultHandler) {
 		final Map<String, String> params = new HashMap<String, String>();
 		if (sid != null)
@@ -178,5 +269,12 @@ public class LitresConnection {
 
 	public void close() {
 		workerThread.stop(5000);
+	}
+	
+	private static LitresConnection instance;
+	public static LitresConnection instance() {
+		if (instance == null)
+			instance = new LitresConnection();
+		return instance;
 	}
 }

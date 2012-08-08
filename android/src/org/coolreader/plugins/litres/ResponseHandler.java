@@ -2,10 +2,13 @@ package org.coolreader.plugins.litres;
 
 import org.xml.sax.helpers.DefaultHandler;
 
+import android.util.Log;
+
 public abstract class ResponseHandler extends DefaultHandler {
 	private int errorCode = -1;
 	private String errorMessage;
 	public void onError(int errorCode, String errorMessage) {
+		Log.e("litres", "error " + errorCode + ": " + errorMessage);
 		this.errorCode = errorCode;
 		this.errorMessage = errorMessage;
 	}
