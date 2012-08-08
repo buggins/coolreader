@@ -60,8 +60,9 @@ public class ReaderActivity extends BaseActivity {
 		}
 		
 		public void setColor(int color) {
-			this.color = color;
-			invalidate();
+			this.color = color & 0xFFFFFF;
+			if (isShown())
+				invalidate();
 		}
 		
 		@Override
@@ -134,6 +135,10 @@ public class ReaderActivity extends BaseActivity {
 			showPageNumber = props.getBool(PROP_SHOW_PAGE_NUMBER, true);
 			showPosPercent = props.getBool(PROP_SHOW_POS_PERCENT, true);
 			nightMode = props.getBool(PROP_NIGHT_MODE, false);
+			this.color = props.getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
+			lblTitle.setTextColor(0xFF000000 | color);
+			lblPosition.setTextColor(0xFF000000 | color);
+			indicator.setColor(this.color);
 		}
 		
 		public StatusBar(ReaderActivity context) {
@@ -141,7 +146,7 @@ public class ReaderActivity extends BaseActivity {
 			this.activity = context;
 			setOrientation(VERTICAL);
 			
-			this.color = 0x808080; //SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
+			this.color = SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
 			
 			LayoutInflater inflater = LayoutInflater.from(activity);
 			content = (LinearLayout)inflater.inflate(R.layout.reader_status_bar, null);
@@ -165,18 +170,18 @@ public class ReaderActivity extends BaseActivity {
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
-			color = nightMode ? 0x606060 : theme.getStatusTextColor();
-			lblTitle.setTextColor(0xFF000000 | color);
-			lblPosition.setTextColor(0xFF000000 | color);
-			if (DeviceInfo.EINK_SCREEN)
-				setBackgroundColor(0xFFFFFFFF);
-			else if (nightMode)
-				setBackgroundColor(0xFF000000);
-			else
-				setBackgroundResource(theme.getReaderStatusBackground());
-			indicator.setColor(color);
-			if (isShown())
-				invalidate();
+//			//color = nightMode ? 0x606060 : theme.getStatusTextColor();
+//			lblTitle.setTextColor(0xFF000000 | color);
+//			lblPosition.setTextColor(0xFF000000 | color);
+////			if (DeviceInfo.EINK_SCREEN)
+////				setBackgroundColor(0xFFFFFFFF);
+////			else if (nightMode)
+////				setBackgroundColor(0xFF000000);
+////			else
+////				setBackgroundResource(theme.getReaderStatusBackground());
+//			indicator.setColor(color);
+//			if (isShown())
+//				invalidate();
 		}
 
 		private static boolean empty(String s) {
@@ -255,6 +260,8 @@ public class ReaderActivity extends BaseActivity {
 		private boolean hideToolbarInFullscren;
 		private boolean fullscreen;
 		private boolean nightMode;
+		ReaderView.ToolbarBackgroundDrawable toolbarBackground;
+		ReaderView.ToolbarBackgroundDrawable statusBackground;
 	
 		public CRToolBar getToolBar() {
 			return toolbarView;
@@ -286,6 +293,7 @@ public class ReaderActivity extends BaseActivity {
 			toolbarLocation = settings.getInt(PROP_TOOLBAR_LOCATION, VIEWER_TOOLBAR_SHORT_SIDE);
 			hideToolbarInFullscren = settings.getBool(PROP_TOOLBAR_HIDE_IN_FULLSCREEN, true);
 			statusView.setVisibility(isStatusbarVisible() ? VISIBLE : GONE);
+			statusView.updateSettings(settings);
 			toolbarView.updateNightMode(nightMode);
 			toolbarView.setVisibility(isToolbarVisible() ? VISIBLE : GONE);
 			requestLayout();
@@ -321,6 +329,9 @@ public class ReaderActivity extends BaseActivity {
 			this.activity = context;
 			this.contentView = contentView;
 			this.statusView = new StatusBar(context);
+			statusBackground = contentView.createToolbarBackgroundDrawable();
+			this.statusView.setBackgroundDrawable(statusBackground);
+			toolbarBackground = contentView.createToolbarBackgroundDrawable();
 			this.toolbarView = new CRToolBar(context, ReaderAction.createList(new ReaderAction[] {
 				ReaderAction.GO_BACK,
 				ReaderAction.TOC,
@@ -339,6 +350,7 @@ public class ReaderActivity extends BaseActivity {
 				ReaderAction.TOGGLE_DAY_NIGHT,
 				ReaderAction.EXIT,
 			}));
+			this.toolbarView.setBackgroundDrawable(toolbarBackground);
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 			this.addView(toolbarView);
 			this.addView(contentView);
@@ -352,17 +364,18 @@ public class ReaderActivity extends BaseActivity {
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {
-			if (DeviceInfo.EINK_SCREEN) {
-				statusView.setBackgroundColor(0xFFFFFFFF);
-				toolbarView.setBackgroundColor(0xFFFFFFFF);
-			} else if (nightMode) {
-				statusView.setBackgroundColor(0xFF000000);
-				toolbarView.setBackgroundColor(0xFF000000);
-			} else {
-				statusView.setBackgroundResource(theme.getReaderStatusBackground());
-				toolbarView.setBackgroundResource(theme.getReaderToolbarBackground(toolbarView.isVertical()));
-			}
+//			if (DeviceInfo.EINK_SCREEN) {
+//				statusView.setBackgroundColor(0xFFFFFFFF);
+//				toolbarView.setBackgroundColor(0xFFFFFFFF);
+//			} else if (nightMode) {
+//				statusView.setBackgroundColor(0xFF000000);
+//				toolbarView.setBackgroundColor(0xFF000000);
+//			} else {
+//				statusView.setBackgroundResource(theme.getReaderStatusBackground());
+//				toolbarView.setBackgroundResource(theme.getReaderToolbarBackground(toolbarView.isVertical()));
+//			}
 			toolbarView.updateNightMode(nightMode);
+			toolbarView.setButtonAlpha(theme.getToolbarButtonAlpha());
 			toolbarView.onThemeChanged(theme);
 			statusView.onThemeChanged(theme);
 		}
@@ -390,30 +403,31 @@ public class ReaderActivity extends BaseActivity {
 					location = landscape ? VIEWER_TOOLBAR_TOP : VIEWER_TOOLBAR_LEFT;
 				switch (location) {
 				case VIEWER_TOOLBAR_LEFT:
-					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(true));
+					//toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(true));
 					toolbarRc.right = l + toolbarView.getMeasuredWidth();
 					//toolbarView.layout(l, t, l + toolbarView.getMeasuredWidth(), b);
 					l += toolbarView.getMeasuredWidth();
 					break;
 				case VIEWER_TOOLBAR_RIGHT:
-					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(true));
+					//toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(true));
 					toolbarRc.left = r - toolbarView.getMeasuredWidth();
 					//toolbarView.layout(r - toolbarView.getMeasuredWidth(), t, r, b);
 					r -= toolbarView.getMeasuredWidth();
 					break;
 				case VIEWER_TOOLBAR_TOP:
-					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(false));
+					//toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(false));
 					toolbarRc.bottom = t + toolbarView.getMeasuredHeight();
 					//toolbarView.layout(l, t, r, t + toolbarView.getMeasuredHeight());
 					t += toolbarView.getMeasuredHeight();
 					break;
 				case VIEWER_TOOLBAR_BOTTOM:
-					toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(false));
+					//toolbarView.setBackgroundResource(activity.getCurrentTheme().getReaderToolbarBackground(false));
 					toolbarRc.top = b - toolbarView.getMeasuredHeight();
 					//toolbarView.layout(l, b - toolbarView.getMeasuredHeight(), r, b);
 					b -= toolbarView.getMeasuredHeight();
 					break;
 				}
+				toolbarBackground.setLocation(location);
 			}
 			Rect statusRc = new Rect(l, t, r, b);
 			if (statusBarLocation == VIEWER_STATUS_TOP) {
@@ -425,6 +439,7 @@ public class ReaderActivity extends BaseActivity {
 				//statusView.layout(l, b - statusView.getMeasuredHeight(), r, b);
 				b -= statusView.getMeasuredHeight();
 			}
+			statusBackground.setLocation(statusBarLocation);
 			contentView.layout(l, t, r, b);
 			toolbarView.layout(toolbarRc.left, toolbarRc.top, toolbarRc.right, toolbarRc.bottom);
 			statusView.layout(statusRc.left, statusRc.top, statusRc.right, statusRc.bottom);
