@@ -546,6 +546,9 @@ public class BaseActivity extends Activity implements Settings {
     private void turnOffKeyBacklight() {
     	if (!isStarted())
     		return;
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			setKeyBacklight(0);
+		}
     	// repeat again in short interval
     	if (!Engine.getInstance(this).setKeyBacklight(0)) {
     		//log.w("Cannot control key backlight directly");
