@@ -196,7 +196,7 @@ public class CRToolBar extends ViewGroup {
 					showOverflowMenu();
 			}
 		});
-		ib.setAlpha(buttonAlpha);
+		ib.setAlpha(nightMode ? 0x60 : buttonAlpha);
 		addView(ib);
 		return ib;
 	}
