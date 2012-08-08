@@ -38,6 +38,7 @@ public class BrowserActivity extends BaseActivity {
 		
 		public void onThemeChanged(InterfaceTheme theme) {
 			titleView.setBackgroundResource(theme.getBrowserStatusBackground());
+			//toolbarView.setButtonAlpha(theme.getToolbarButtonAlpha());
 			toolbarView.setBackgroundResource(theme.getBrowserToolbarBackground(toolbarView.isVertical()));
 			toolbarView.onThemeChanged(theme);
 		}
