@@ -1,9 +1,8 @@
 package org.coolreader.plugins.litres;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -35,6 +34,7 @@ public class LitresConnection {
 	
 	public static final String AUTHORIZE_URL = "http://robot.litres.ru/pages/catalit_authorise/";
 	public static final String GENRES_URL = "http://robot.litres.ru/pages/catalit_genres/";
+	public static final String AUTHORS_URL = "http://robot.litres.ru/pages/catalit_persons/";
 	
 	ServiceThread workerThread;
 	
@@ -85,18 +85,21 @@ public class LitresConnection {
 		            connection.setAllowUserInteraction(false);
 		            connection.setConnectTimeout(CONNECT_TIMEOUT);
 		            connection.setReadTimeout(READ_TIMEOUT);
-		            connection.setDoInput(true);
+		            //connection.setDoInput(true);
             		connection.setDoOutput(true);
 		            connection.setRequestMethod("POST");
 		            
 		            List<NameValuePair> list = new LinkedList<NameValuePair>();
 		            for (Map.Entry<String, String> entry : params.entrySet())
 		            	list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
-		            UrlEncodedFormEntity postParams = new UrlEncodedFormEntity(list);
-					OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
-                    wr.write(postParams.toString());
+		            UrlEncodedFormEntity postParams = new UrlEncodedFormEntity(list, "utf-8");
+					//Log.d(TAG, "params: " + postParams.toString());
+					OutputStream wr = connection.getOutputStream();
+					//OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+					postParams.writeTo(wr);
+                    //wr.write(postParams.toString());
 					wr.flush();
-					wr.close();		            
+					wr.close();
 					
 		            String fileName = null;
 		            String disp = connection.getHeaderField("Content-Disposition");
@@ -131,14 +134,14 @@ public class LitresConnection {
 					}
 					
 					InputStream is = connection.getInputStream();
-					byte[] buf = new byte[contentLen];
-					if (is.read(buf) != contentLen) {
-						contentHandler.onError(0, "Wrong content length");
-						return;
-					}
-					is.close();
-					is = null;
-					is = new ByteArrayInputStream(buf);
+//					byte[] buf = new byte[contentLen];
+//					if (is.read(buf) != contentLen) {
+//						contentHandler.onError(0, "Wrong content length");
+//						return;
+//					}
+//					is.close();
+//					is = null;
+//					is = new ByteArrayInputStream(buf);
 					
 					SAXParserFactory spf = SAXParserFactory.newInstance();
 					spf.setValidating(false);
@@ -147,6 +150,7 @@ public class LitresConnection {
 					SAXParser sp = spf.newSAXParser();
 					//XMLReader xr = sp.getXMLReader();				
 					sp.parse(is, contentHandler);
+					is.close();
 					
 				} catch (ParserConfigurationException e) {
 					contentHandler.onError(0, "Error while parsing response");
@@ -222,7 +226,6 @@ public class LitresConnection {
 			@Override
 			public void endElement(String uri, String localName, String qName)
 					throws SAXException {
-				super.endElement(uri, localName, qName);
 				if ("catalit-genres".equals(localName))
 					currentNode = null;
 				else if ("genre".equals(localName)) {
@@ -234,7 +237,6 @@ public class LitresConnection {
 			@Override
 			public void startElement(String uri, String localName,
 					String qName, Attributes attributes) throws SAXException {
-				super.startElement(uri, localName, qName, attributes);
 				if ("catalit-genres".equals(localName))
 					currentNode = result;
 				else if ("genre".equals(localName)) {
@@ -254,6 +256,148 @@ public class LitresConnection {
 		}, resultHandler);
 	}
 
+	public static class LitresAuthor {
+		public String id;
+		public String firstName;
+		public String lastName;
+		public String middleName;
+		public String title;
+		public String photo;
+		@Override
+		public String toString() {
+			return "LitresAuthor [id=" + id + ", lastName=" + lastName
+					+ ", firstName=" + firstName + ", middleName=" + middleName
+					+ ", title=" + title + ", photo=" + photo + "]";
+		}
+	}
+	public static class LitresAuthors extends LitresResponse {
+		private ArrayList<LitresAuthor> list = new ArrayList<LitresAuthor>();
+		public void add(LitresAuthor author) {
+			list.add(author);
+		}
+		public int size() {
+			return list.size();
+		}
+		public LitresAuthor get(int index) {
+			return list.get(index);
+		}
+	}
+
+	public void loadAuthorsByLastName(String lastNamePattern, final ResultHandler resultHandler) {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("search_last_name", lastNamePattern + "%");
+		loadAuthors(params, resultHandler);
+	}
+
+	public void loadAuthors(final Map<String, String> params, final ResultHandler resultHandler) {
+		params.put("search_types", "0");
+		sendRequest(AUTHORS_URL, params, new ResponseHandler() {
+			LitresAuthors result = new LitresAuthors();
+			LitresAuthor currentNode;
+			boolean insideCatalitPersons;
+			String currentElement;
+			@Override
+			public LitresResponse getResponse() {
+				LitresResponse res =  super.getResponse();
+				if (res != null)
+					return res;
+				return result;
+			}
+
+			@Override
+			public void endElement(String uri, String localName, String qName)
+					throws SAXException {
+				currentElement = null;
+				if ("catalit-persons".equals(localName))
+					insideCatalitPersons = false;
+				else if ("subject".equals(localName)) {
+					if (currentNode.id != null && currentNode.lastName != null)
+						result.add(currentNode);
+					currentNode = null;
+				}
+			}
+
+			@Override
+			public void startElement(String uri, String localName,
+					String qName, Attributes attributes) throws SAXException {
+				//Log.d(TAG, "startElement " + localName);
+				if ("catalit-persons".equals(localName))
+					insideCatalitPersons = true;
+				else if ("subject".equals(localName)) {
+					if (!insideCatalitPersons)
+						return;
+					currentNode = new LitresAuthor();
+					currentNode.id = attributes.getValue("id");
+				} else {
+					currentElement = localName;
+				}
+					
+			}
+
+			@Override
+			public void characters(char[] ch, int start, int length)
+					throws SAXException {
+				if (currentNode == null)
+					return;
+				String text = new String(ch, start, length);
+				if ("last-name".equals(currentElement))
+					currentNode.lastName = text;
+				else if ("middle-name".equals(currentElement))
+					currentNode.middleName = text;
+				else if ("first-name".equals(currentElement))
+					currentNode.firstName = text;
+				else if ("photo".equals(currentElement))
+					currentNode.photo = text;
+				else if ("main".equals(currentElement))
+					currentNode.title = text;
+			}
+			
+			
+		}, resultHandler);
+	}
+
+	public static class LitresAuthInfo extends LitresResponse {
+		public String sid;
+		public String id;
+		public String firstName;
+		public String lastName;
+		public String middleName;
+		public String mail;
+		public int bookCount;
+		public int authorCount;
+		public int userCount;
+		public boolean canRebill;
+		public String login;
+		@Override
+		public String toString() {
+			return "LitresAuthInfo [id=" + id + ", sid=" + sid + ", login="
+					+ login + ", lastName=" + lastName + ", firstName="
+					+ firstName + ", middleName=" + middleName + ", bookCount=" 
+					+ bookCount + ", authorCount="
+					+ authorCount + ", userCount=" + userCount + ", canRebill="
+					+ canRebill + "]";
+		}
+		
+	}
+
+	private long lastAuthorizationTimestamp;
+	private String lastSid;
+	private String lastLogin;
+	private String lastPwd;
+	private LitresAuthInfo authInfo;
+	public String getSID() {
+		return lastSid;
+	}
+	public LitresAuthInfo getAuthInfo() {
+		return authInfo;
+	}
+	public void authorize(String login, String pwd, final ResultHandler resultHandler) {
+		if (login == null)
+			login = lastLogin;
+		if (pwd == null)
+			pwd = lastPwd;
+		authorize(lastSid, login, pwd, resultHandler);
+	}
 	public void authorize(final String sid, final String login, final String pwd, final ResultHandler resultHandler) {
 		final Map<String, String> params = new HashMap<String, String>();
 		if (sid != null)
@@ -263,10 +407,55 @@ public class LitresConnection {
 		if (pwd != null)
 			params.put("pwd", pwd);
 		sendRequest(AUTHORIZE_URL, params, new ResponseHandler() {
-			
+			LitresAuthInfo result;
+			@Override
+			public LitresResponse getResponse() {
+				LitresResponse res =  super.getResponse();
+				if (res != null)
+					return res;
+				return result;
+			}
+
+			@Override
+			public void startElement(String uri, String localName,
+					String qName, Attributes attributes) throws SAXException {
+				if ("catalit-authorization-ok".equals(localName)) {
+					result = new LitresAuthInfo();
+					result.sid = attributes.getValue("sid");
+					result.id = attributes.getValue("user-id");
+					result.firstName = attributes.getValue("first-name");
+					result.lastName = attributes.getValue("last-name");
+					result.middleName = attributes.getValue("middle-name");
+					result.bookCount = stringToInt(attributes.getValue("books-cnt"), 0);
+					result.authorCount = stringToInt(attributes.getValue("authors-cnt"), 0);
+					result.userCount = stringToInt(attributes.getValue("users-cnt"), 0);
+					result.canRebill = stringToInt(attributes.getValue("can-rebill"), 0) == 1;
+					authInfo = result;
+					if (pwd != null)
+						lastPwd = pwd;
+					if (login != null)
+						lastLogin = login;
+					result.login = lastLogin;
+					lastSid = result.sid;
+					lastAuthorizationTimestamp = System.currentTimeMillis();
+				} else if ("catalit-authorization-failed".equals(localName)) {
+					onError(1, "Authorization failed");
+				}
+			}
 		}, resultHandler);
 	}
 
+	public static int stringToInt(String v, int defValue) {
+		if (v == null || v.length() == 0)
+			return defValue;
+		try {
+			return Integer.valueOf(v);
+		} catch (NumberFormatException e) {
+			// ignore
+			return defValue;
+		}
+	}
+	
 	public void close() {
 		workerThread.stop(5000);
 	}
