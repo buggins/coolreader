@@ -24,6 +24,9 @@ import org.apache.http.message.BasicNameValuePair;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Utils;
 import org.coolreader.db.ServiceThread;
+import org.coolreader.plugins.AsyncResponse;
+import org.coolreader.plugins.OnlineStoreBook;
+import org.coolreader.plugins.OnlineStoreBooks;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -50,7 +53,7 @@ public class LitresConnection {
 	}
 
 	public interface ResultHandler {
-		void onResponse(LitresResponse response);
+		void onResponse(AsyncResponse response);
 	}
 	
     public static final int CONNECT_TIMEOUT = 60000;
@@ -179,7 +182,7 @@ public class LitresConnection {
 		});
 	}
 	
-	public static class LitresGenre extends LitresResponse implements Serializable {
+	public static class LitresGenre extends AsyncResponse implements Serializable {
 		private static final long serialVersionUID = 1;
 		public String id;
 		public String title;
@@ -216,8 +219,8 @@ public class LitresConnection {
 			LitresGenre result = new LitresGenre();
 			LitresGenre currentNode = result;
 			@Override
-			public LitresResponse getResponse() {
-				LitresResponse res =  super.getResponse();
+			public AsyncResponse getResponse() {
+				AsyncResponse res =  super.getResponse();
 				if (res != null)
 					return res;
 				genres = result;
@@ -272,7 +275,7 @@ public class LitresConnection {
 					+ ", title=" + title + ", photo=" + photo + "]";
 		}
 	}
-	public static class LitresAuthors extends LitresResponse {
+	public static class LitresAuthors extends AsyncResponse {
 		private ArrayList<LitresAuthor> list = new ArrayList<LitresAuthor>();
 		public void add(LitresAuthor author) {
 			list.add(author);
@@ -299,8 +302,8 @@ public class LitresConnection {
 			boolean insideCatalitPersons;
 			String currentElement;
 			@Override
-			public LitresResponse getResponse() {
-				LitresResponse res =  super.getResponse();
+			public AsyncResponse getResponse() {
+				AsyncResponse res =  super.getResponse();
 				if (res != null)
 					return res;
 				return result;
@@ -358,66 +361,22 @@ public class LitresConnection {
 		}, resultHandler);
 	}
 
-	public static class LitresBook {
-		public LitresAuthors authors = new LitresAuthors();
-		public String bookTitle;
-		public String id;
-		public double basePrice;
-		public double price;
-		public int zipSize;
-		public boolean hasTrial;
-		public String trialId;
-		public String cover;
-		public String coverPreview;
-		public int rating;
-		public String sequenceName;
-		public int sequenceNumber;
-		public String getAuthors() {
-			StringBuilder buf = new StringBuilder();
-			for (int i=0; i <authors.size(); i++) {
-				LitresAuthor author = authors.get(i);
-				if (buf.length() > 0)
-					buf.append("|");
-				String name = Utils.concatWs(author.firstName, author.lastName, " ");
-				if (name.length() == 0)
-					name = author.title;
-				buf.append(name);
-			}
-			return buf.toString();
-		}
-	}
-
-	public static class LitresBooks extends LitresResponse {
-		public double account;
-		public int pages;
-		public int records;
-		private ArrayList<LitresBook> list = new ArrayList<LitresBook>();
-		public void add(LitresBook item) {
-			list.add(item);
-		}
-		public int size() {
-			return list.size();
-		}
-		public LitresBook get(int index) {
-			return list.get(index);
-		}
-	}
-
 	public void loadBooks(final Map<String, String> params, final ResultHandler resultHandler) {
 		params.put("search_types", "0");
 		if (lastSid != null)
 			params.put("sid", lastSid);
+		params.put("checkpoint", "2000-01-01 00:00:00");
 		sendRequest(CATALOG_URL, params, new ResponseHandler() {
-			LitresBooks result = new LitresBooks();
-			LitresBook currentNode;
+			OnlineStoreBooks result = new OnlineStoreBooks();
+			OnlineStoreBook currentNode;
 			LitresAuthor currentAuthor;
 			boolean insideCatalitBooks;
 			boolean insideTitleInfo;
 			boolean insideAuthor;
 			String currentElement;
 			@Override
-			public LitresResponse getResponse() {
-				LitresResponse res =  super.getResponse();
+			public AsyncResponse getResponse() {
+				AsyncResponse res =  super.getResponse();
 				if (res != null)
 					return res;
 				return result;
@@ -459,7 +418,7 @@ public class LitresConnection {
 				} else if ("fb2-book".equals(localName)) {
 					if (!insideCatalitBooks)
 						return;
-					currentNode = new LitresBook();
+					currentNode = new OnlineStoreBook();
 					currentNode.id = attributes.getValue("hub_id");
 					currentNode.hasTrial = stringToInt(attributes.getValue("hub_id"), 0) != 0;
 					currentNode.trialId = attributes.getValue("trial_id");
@@ -512,7 +471,7 @@ public class LitresConnection {
 		loadBooks(params, resultHandler);
 	}
 
-	public static class LitresAuthInfo extends LitresResponse {
+	public static class LitresAuthInfo extends AsyncResponse {
 		public String sid;
 		public String id;
 		public String firstName;
@@ -571,8 +530,8 @@ public class LitresConnection {
 		sendRequest(AUTHORIZE_URL, params, new ResponseHandler() {
 			LitresAuthInfo result;
 			@Override
-			public LitresResponse getResponse() {
-				LitresResponse res =  super.getResponse();
+			public AsyncResponse getResponse() {
+				AsyncResponse res =  super.getResponse();
 				if (res != null)
 					return res;
 				return result;

@@ -13,6 +13,7 @@ import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
 import org.coolreader.plugins.FileInfoCallback;
+import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
@@ -77,7 +78,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					selectedItem = item;
 					
 					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
-					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled) {
+					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled && !item.isOnlineCatalogPluginDir()) {
 						Activities.editBookInfo(mActivity, currDirectory, item);
 						return true;
 					}
@@ -125,7 +126,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 
 
-
 		@Override
 		public boolean performItemClick(View view, int position, long id) {
 			log.d("performItemClick("+position+")");
@@ -139,6 +139,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 			if (item.isOPDSDir() || item.isOPDSBook())
 				showOPDSDir(item, null);
+			else if (item.isOnlineCatalogPluginBook())
+				showOnlineCatalogBookDialog(item);
 			else
 				Activities.loadDocument(item);
 			return true;
@@ -921,6 +923,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						image.setImageResource(R.drawable.cr3_browser_folder_authors);
 					else if (item.isOPDSRoot() || item.isOPDSDir())
 						image.setImageResource(R.drawable.cr3_browser_folder_opds);
+					else if (item.isOnlineCatalogPluginDir())
+						image.setImageResource(R.drawable.plugins_logo_litres);
 					else if (item.isSearchShortcut())
 						image.setImageResource(R.drawable.cr3_browser_find);
 					else if ( item.isRecentDir() )
@@ -950,7 +954,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					} else  if (item.isOPDSDir()) {
 						setText(field1, item.title);
 						setText(field2, "");
-					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isOPDSRoot() && !item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0)) {
+					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isOPDSRoot() && !item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0) && !item.isOnlineCatalogPluginDir()) {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {
@@ -988,12 +992,24 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						String filename1 = item.filename;
 						String filename2 = item.isArchive /*&& !item.isDirectory */
 								? new File(item.arcname).getName() : null;
+								
+						String onlineBookInfo = "";
+						if (item.getOnlineStoreBookInfo() != null) {
+							OnlineStoreBook book = item.getOnlineStoreBookInfo();
+							onlineBookInfo = " ";
+							if (book.price > 0)
+								onlineBookInfo = onlineBookInfo + "price:" + book.price + "  ";
+							if (book.rating > 0)
+								onlineBookInfo = onlineBookInfo + "rating:" + book.rating + "  ";
+							
+						}
 						if ( title==null || title.length()==0 ) {
 							title = filename1;
-							if (seriesName==null) 
+							if (seriesName==null)
 								seriesName = filename2;
 						} else if (seriesName==null) 
 							seriesName = filename1;
+						
 						setText( name, title );
 						setText( series, seriesName );
 
@@ -1002,7 +1018,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 //						field3.setVisibility(VISIBLE);
 						String state = Utils.formatReadingState(mActivity, item);
 						if (field1 != null)
-							field1.setText(state + " " + Utils.formatFileInfo(item) + "  ");
+							field1.setText(state + " " + Utils.formatFileInfo(item) + "  " + onlineBookInfo);
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 						if (field2 != null)
 							field2.setText(Utils.formatLastPosition(mHistory.getLastPos(item)));
@@ -1224,5 +1240,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void setCoverpageData(FileInfo fileInfo, byte[] data) {
 		mCoverpageManager.setCoverpageData(mActivity.getDB(), fileInfo, data);
 		currentListAdapter.notifyInvalidated();
+	}
+	
+	protected void showOnlineCatalogBookDialog(FileInfo book) {
+		// TODO
+		mActivity.showToast("bookId=" + book.pathname);
 	}
 }

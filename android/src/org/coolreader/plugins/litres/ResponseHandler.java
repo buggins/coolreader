@@ -1,5 +1,6 @@
 package org.coolreader.plugins.litres;
 
+import org.coolreader.plugins.AsyncResponse;
 import org.xml.sax.helpers.DefaultHandler;
 
 import android.util.Log;
@@ -12,7 +13,7 @@ public abstract class ResponseHandler extends DefaultHandler {
 		this.errorCode = errorCode;
 		this.errorMessage = errorMessage;
 	}
-	public LitresResponse getResponse() {
+	public AsyncResponse getResponse() {
 		if (errorCode != -1)
 			return new ErrorResponse(errorCode, errorMessage);
 		return null;
