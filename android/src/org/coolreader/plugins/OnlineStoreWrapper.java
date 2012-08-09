@@ -27,21 +27,19 @@ public class OnlineStoreWrapper {
 		if (path == null) {
 			control.finished();
 			callback.onError(0, "wrong path");
-			control.finished();
 			return control;
 		}
 		if ("genres".equals(path)) {
 			plugin.fillGenres(control, dir, callback);
 			control.finished();
-			callback.onFileInfoReady(dir);
 			return control;
-		} else if (path.startsWith("genres:")) {
+		} else if (path.startsWith("genre=")) {
 			String genre = dir.getOnlineCatalogPluginId();
-			plugin.fillGenres(control, dir, callback);
+			plugin.getBooksForGenre(control, dir, genre, callback);
 			control.finished();
-			callback.onFileInfoReady(dir);
 			return control;
 		} else if ("authors".equals(path)) {
+			//
 			// TODO
 		} else {
 			

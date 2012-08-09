@@ -1,5 +1,6 @@
 package org.coolreader.plugins.litres;
 
+import org.coolreader.crengine.DocumentFormat;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.Scanner;
 import org.coolreader.plugins.AsyncOperationControl;
@@ -91,10 +92,40 @@ public class LitresPlugin implements OnlineStorePlugin {
 			}
 		});
 	}
+	
+	private void addBookFileInfo(final FileInfo dir, LitresConnection.LitresBook book) {
+		FileInfo fileInfo = new FileInfo();
+		fileInfo.authors = book.getAuthors();
+		fileInfo.title = book.bookTitle;
+		fileInfo.size = book.zipSize;
+		fileInfo.format = DocumentFormat.FB2;
+		fileInfo.series = book.sequenceName;
+		fileInfo.seriesNumber = book.sequenceNumber;
+		fileInfo.tag = book;
+		fileInfo.pathname = FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + PACKAGE_NAME + ":book=" + book.id;
+		dir.addFile(fileInfo);
+		fileInfo.parent = dir;
+	}
 
+	final int BOOK_LOAD_PAGE_SIZE = 200;
 	@Override
-	public void getBooksForGenre(AsyncOperationControl control, FileInfo dir, String genreId, FileInfoCallback callback) {
-		
+	public void getBooksForGenre(final AsyncOperationControl control, final FileInfo dir, final String genreId, final FileInfoCallback callback) {
+		connection.loadBooksByGenre(genreId, dir.fileCount(), BOOK_LOAD_PAGE_SIZE, new ResultHandler() {
+			@Override
+			public void onResponse(LitresResponse response) {
+				control.finished();
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof LitresConnection.LitresBooks) {
+					LitresConnection.LitresBooks result = (LitresConnection.LitresBooks)response;
+					for (int i=0; i < result.size(); i++) {
+						addBookFileInfo(dir, result.get(i));
+					}
+					callback.onFileInfoReady(dir);
+				}
+			}
+		});
 	}
 
 }
