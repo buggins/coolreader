@@ -118,9 +118,36 @@ public class LitresPlugin implements OnlineStorePlugin {
 		fileInfo.parent = dir;
 	}
 
+	private void addBooks(FileInfo dir, OnlineStoreBooks books) {
+		books.sortBySeriesAndTitle();
+		if (books.size() < BOOK_LIST_GROUP_BY_SERIES_THRESHOLD) {
+			for (int i=0; i < books.size(); i++) {
+				addBookFileInfo(dir, books.get(i));
+			}
+		} else {
+			String lastSeries = null;
+			FileInfo group = null;
+			for (int i=0; i < books.size(); i++) {
+				OnlineStoreBook book = books.get(i);
+				if (book.sequenceName != null) {
+					if (group == null || !lastSeries.equals(book.sequenceName)) {
+						group = Scanner.createOnlineLibraryPluginItem(PACKAGE_NAME + ":series=" + book.sequenceName, book.sequenceName);
+						lastSeries = book.sequenceName;
+						dir.addDir(group);
+					}
+					addBookFileInfo(group, book);
+				} else {
+					addBookFileInfo(dir, book);
+				}
+			}
+		}
+	}
+	
+	final int BOOK_LIST_GROUP_BY_SERIES_THRESHOLD = 20;
+	final int BOOK_LOAD_PAGE_SIZE_AUTHOR = 2000;
 	@Override
 	public void getBooksByAuthor(final AsyncOperationControl control, final FileInfo dir, final String authorId, final FileInfoCallback callback) {
-		connection.loadBooksByAuthor(authorId, dir.fileCount(), BOOK_LOAD_PAGE_SIZE, new ResultHandler() {
+		connection.loadBooksByAuthor(authorId, dir.fileCount(), BOOK_LOAD_PAGE_SIZE_AUTHOR, new ResultHandler() {
 			@Override
 			public void onResponse(AsyncResponse response) {
 				control.finished();
@@ -129,9 +156,7 @@ public class LitresPlugin implements OnlineStorePlugin {
 					callback.onError(error.errorCode, error.errorMessage);
 				} else if (response instanceof OnlineStoreBooks) {
 					OnlineStoreBooks result = (OnlineStoreBooks)response;
-					for (int i=0; i < result.size(); i++) {
-						addBookFileInfo(dir, result.get(i));
-					}
+					addBooks(dir, result);
 					callback.onFileInfoReady(dir);
 				}
 			}
