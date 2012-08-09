@@ -55,12 +55,18 @@ public class LitresPlugin implements OnlineStorePlugin {
 	private void addGenres(FileInfo dir, LitresConnection.LitresGenre genre) {
 		for (int i=0; i<genre.getChildCount(); i++) {
 			LitresConnection.LitresGenre item = genre.get(i);
-			String path = PACKAGE_NAME + ":genre";
+			String basePath = PACKAGE_NAME + ":genre";
+			String path = basePath;
+			boolean isLinkWithChildren = (item.id != null) && item.getChildCount() > 0;
 			if (item.id != null)
 				path = path + "=" + item.id;
-			FileInfo subdir = Scanner.createOnlineLibraryPluginItem(PACKAGE_NAME + ":genre=" + item.id, item.title);
+			FileInfo subdir = Scanner.createOnlineLibraryPluginItem(isLinkWithChildren ? basePath : path, item.title);
 			dir.addDir(subdir);
 			if (item.getChildCount() > 0) {
+				if (isLinkWithChildren) {
+					FileInfo subdir2 = Scanner.createOnlineLibraryPluginItem(path, item.title);
+					dir.addDir(subdir2);
+				}
 				addGenres(subdir, item);
 			}
 		}
@@ -69,7 +75,7 @@ public class LitresPlugin implements OnlineStorePlugin {
 	@Override
 	public void fillGenres(final AsyncOperationControl control, final FileInfo dir,
 			final FileInfoCallback callback) {
-		dir.clear();
+		//dir.clear();
 		connection.loadGenres(new ResultHandler() {
 			@Override
 			public void onResponse(LitresResponse response) {
@@ -84,6 +90,11 @@ public class LitresPlugin implements OnlineStorePlugin {
 				}
 			}
 		});
+	}
+
+	@Override
+	public void getBooksForGenre(AsyncOperationControl control, FileInfo dir, String genreId, FileInfoCallback callback) {
+		
 	}
 
 }
