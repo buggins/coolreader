@@ -227,6 +227,29 @@ public class CRRootView extends ViewGroup {
 								}
 							}
 						});
+						LitresConnection.instance().authorize("login", "password", new ResultHandler() {
+							@Override
+							public void onResponse(LitresResponse response) {
+								if (response instanceof LitresConnection.LitresAuthInfo) {
+									LitresConnection.LitresAuthInfo result = (LitresConnection.LitresAuthInfo)response;
+									log.d("authorization successful: " + result);
+								} else {
+									log.d("authorization failed");
+								}
+							}
+						});
+						LitresConnection.instance().loadAuthorsByLastName("л", new ResultHandler() {
+							@Override
+							public void onResponse(LitresResponse response) {
+								if (response instanceof LitresConnection.LitresAuthors) {
+									LitresConnection.LitresAuthors result = (LitresConnection.LitresAuthors)response;
+									log.d("authors found: " + result.size());
+									for (int i=0; i<result.size() && i<10; i++) {
+										log.d(result.get(i).toString());
+									}
+								}
+							}
+						});
 						mActivity.showToast("TODO");
 					}
 				});

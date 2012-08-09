@@ -390,7 +390,36 @@ public class FileInfo {
 	{
 		if ( !pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX) )
 			return null;
-		return pathname.substring(ONLINE_CATALOG_PLUGIN_PREFIX.length());
+		String s = pathname.substring(ONLINE_CATALOG_PLUGIN_PREFIX.length());
+		int p = s.indexOf(":");
+		if (p < 0)
+			return s;
+		else
+			return s.substring(0, p);
+	}
+	
+	public String getOnlineCatalogPluginPath()
+	{
+		if ( !pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX) )
+			return null;
+		String s = pathname.substring(ONLINE_CATALOG_PLUGIN_PREFIX.length());
+		int p = s.indexOf(":");
+		if (p < 0)
+			return null;
+		else
+			return s.substring(p + 1);
+	}
+	
+	public String getOnlineCatalogPluginId()
+	{
+		String s = getOnlineCatalogPluginPath();
+		if (s == null)
+			return null;
+		int p = s.indexOf("=");
+		if (p < 0)
+			return null;
+		else
+			return s.substring(p + 1);
 	}
 	
 	/**
