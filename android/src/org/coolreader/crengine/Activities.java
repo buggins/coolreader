@@ -113,8 +113,16 @@ public class Activities {
 	}
 	
 	public static final String OPEN_DIR_PARAM = "DIR_TO_OPEN";
+	public static void showBrowser() {
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, null);
+	}
+	
 	public static void showBrowser(FileInfo dir) {
 		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, dir != null ? dir.getPathName() : null);
+	}
+	
+	public static void showBrowser(String dir) {
+		startActivity(BrowserActivity.class, OPEN_DIR_PARAM, dir);
 	}
 	
 	public static void showRecentBooks() {

@@ -8,16 +8,13 @@ public class OnlineStoreWrapper {
 	public OnlineStoreWrapper(OnlineStorePlugin plugin) {
 		this.plugin = plugin;
 	}
-	public AsyncOperationControl createRootDirectory(final FileInfoCallback callback) {
-		AsyncOperationControl control = new AsyncOperationControl();
+	public FileInfo createRootDirectory() {
 		final FileInfo root = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName(), plugin.getDescription());
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":genres", "Books by genres"));
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":authors", "Books by authors"));
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":popular", "Popular"));
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":my", "My books"));
-		control.finished();
-		callback.onFileInfoReady(root);
-		return control;
+		return root;
 	}
 	public AsyncOperationControl openDirectory(final FileInfo dir, final FileInfoCallback callback) {
 		AsyncOperationControl control = new AsyncOperationControl();
@@ -30,12 +27,17 @@ public class OnlineStoreWrapper {
 		if (path == null) {
 			control.finished();
 			callback.onError(0, "wrong path");
+			control.finished();
 			return control;
 		}
 		if ("genres".equals(path)) {
 			plugin.fillGenres(control, dir, callback);
+			control.finished();
+			callback.onFileInfoReady(dir);
 			return control;
-		} else if ("genres".equals(path)) {
+		} else if ("authors".equals(path)) {
+			// TODO
+		} else {
 			
 		}
 			
