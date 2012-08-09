@@ -280,6 +280,17 @@ public class Utils {
 		return str;
 	}
 
+	public static String concatWs(String str1, String str2, String ws) {
+		if (empty(str1)) {
+			if (empty(str2))
+				return "";
+			return str2;
+		}
+		if (empty(str2))
+			return str1;
+		return str1 + ws + str2;
+	}
+	
 	public static boolean empty(String str) {
 		if (str == null || str.length() == 0)
 			return true;

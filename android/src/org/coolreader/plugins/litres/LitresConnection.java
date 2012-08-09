@@ -22,6 +22,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.coolreader.crengine.L;
+import org.coolreader.crengine.Utils;
 import org.coolreader.db.ServiceThread;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -35,6 +36,7 @@ public class LitresConnection {
 	public static final String AUTHORIZE_URL = "http://robot.litres.ru/pages/catalit_authorise/";
 	public static final String GENRES_URL = "http://robot.litres.ru/pages/catalit_genres/";
 	public static final String AUTHORS_URL = "http://robot.litres.ru/pages/catalit_persons/";
+	public static final String CATALOG_URL = "http://robot.litres.ru/pages/catalit_browser/";
 	
 	ServiceThread workerThread;
 	
@@ -356,6 +358,140 @@ public class LitresConnection {
 		}, resultHandler);
 	}
 
+	public static class LitresBook {
+		public LitresAuthors authors = new LitresAuthors();
+		public String bookTitle;
+		public String id;
+		public double basePrice;
+		public double price;
+		public int zipSize;
+		public boolean hasTrial;
+		public String trialId;
+		public String cover;
+		public String coverPreview;
+		public int rating;
+		public String sequenceName;
+		public int sequenceNumber;
+	}
+
+	public static class LitresBooks extends LitresResponse {
+		public double account;
+		public int pages;
+		public int records;
+		private ArrayList<LitresBook> list = new ArrayList<LitresBook>();
+		public void add(LitresBook item) {
+			list.add(item);
+		}
+		public int size() {
+			return list.size();
+		}
+		public LitresBook get(int index) {
+			return list.get(index);
+		}
+	}
+
+	public void loadCatalog(final Map<String, String> params, final ResultHandler resultHandler) {
+		params.put("search_types", "0");
+		if (lastSid != null)
+			params.put("sid", lastSid);
+		sendRequest(CATALOG_URL, params, new ResponseHandler() {
+			LitresBooks result = new LitresBooks();
+			LitresBook currentNode;
+			LitresAuthor currentAuthor;
+			boolean insideCatalitBooks;
+			boolean insideTitleInfo;
+			boolean insideAuthor;
+			String currentElement;
+			@Override
+			public LitresResponse getResponse() {
+				LitresResponse res =  super.getResponse();
+				if (res != null)
+					return res;
+				return result;
+			}
+
+			@Override
+			public void endElement(String uri, String localName, String qName)
+					throws SAXException {
+				currentElement = null;
+				if ("catalit-fb2-books".equals(localName))
+					insideCatalitBooks = false;
+				else if ("title-info".equals(localName))
+					insideTitleInfo = false;
+				else if ("author".equals(localName)) {
+					if (insideAuthor && currentAuthor != null && currentAuthor.id != null) {
+						currentAuthor.title = Utils.concatWs(currentAuthor.firstName, currentAuthor.lastName, " ");
+						currentNode.authors.add(currentAuthor);
+					}
+					insideAuthor = false;
+					currentAuthor = null;
+				} else if ("fb2-book".equals(localName)) {
+					if (currentNode.id != null)
+						result.add(currentNode);
+					currentNode = null;
+				}
+			}
+
+			@Override
+			public void startElement(String uri, String localName,
+					String qName, Attributes attributes) throws SAXException {
+				//Log.d(TAG, "startElement " + localName);
+				if ("catalit-fb2-books".equals(localName))
+					insideCatalitBooks = true;
+				else if ("title-info".equals(localName) && insideCatalitBooks)
+					insideTitleInfo = true;
+				else if ("author".equals(localName) && insideTitleInfo) {
+					insideAuthor = true;
+					currentAuthor = new LitresAuthor();
+				} else if ("fb2-book".equals(localName)) {
+					if (!insideCatalitBooks)
+						return;
+					currentNode = new LitresBook();
+					currentNode.id = attributes.getValue("hub_id");
+					currentNode.hasTrial = stringToInt(attributes.getValue("hub_id"), 0) != 0;
+					currentNode.trialId = attributes.getValue("trial_id");
+					currentNode.rating = stringToInt(attributes.getValue("rating"), 0);
+					currentNode.zipSize = stringToInt(attributes.getValue("zip_size"), 0);
+					currentNode.basePrice = stringToDouble(attributes.getValue("base_price"), 0);
+					currentNode.price = stringToDouble(attributes.getValue("price"), 0);
+					currentNode.cover = attributes.getValue("cover");
+					currentNode.coverPreview = attributes.getValue("cover_preview");
+				} else if ("sequence".equals(localName)) {
+					if (currentNode == null)
+						return;
+					currentNode.sequenceName = attributes.getValue("name");
+					currentNode.sequenceNumber = stringToInt(attributes.getValue("number"), 0);
+				} else {
+					currentElement = localName;
+				}
+					
+			}
+
+			@Override
+			public void characters(char[] ch, int start, int length)
+					throws SAXException {
+				if (currentNode == null)
+					return;
+				String text = new String(ch, start, length);
+				if (insideAuthor) {
+					if ("id".equals(currentElement))
+						currentAuthor.id = text;
+					else if ("first-name".equals(currentElement))
+						currentAuthor.firstName = text;
+					else if ("last-name".equals(currentElement))
+						currentAuthor.lastName = text;
+					else if ("middle-name".equals(currentElement))
+						currentAuthor.middleName = text;
+					return;
+				}
+				if ("book-title".equals(currentElement))
+					currentNode.bookTitle = text;
+			}
+			
+			
+		}, resultHandler);
+	}
+
 	public static class LitresAuthInfo extends LitresResponse {
 		public String sid;
 		public String id;
@@ -461,6 +597,18 @@ public class LitresConnection {
 			return defValue;
 		}
 	}
+
+	public static double stringToDouble(String v, double defValue) {
+		if (v == null || v.length() == 0)
+			return defValue;
+		try {
+			return Double.valueOf(v);
+		} catch (NumberFormatException e) {
+			// ignore
+			return defValue;
+		}
+	}
+	
 	
 	public void close() {
 		workerThread.stop(5000);

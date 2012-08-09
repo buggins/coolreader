@@ -35,6 +35,12 @@ public class OnlineStoreWrapper {
 			control.finished();
 			callback.onFileInfoReady(dir);
 			return control;
+		} else if (path.startsWith("genres:")) {
+			String genre = dir.getOnlineCatalogPluginId();
+			plugin.fillGenres(control, dir, callback);
+			control.finished();
+			callback.onFileInfoReady(dir);
+			return control;
 		} else if ("authors".equals(path)) {
 			// TODO
 		} else {
