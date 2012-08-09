@@ -55,8 +55,14 @@ public class LitresPlugin implements OnlineStorePlugin {
 	private void addGenres(FileInfo dir, LitresConnection.LitresGenre genre) {
 		for (int i=0; i<genre.getChildCount(); i++) {
 			LitresConnection.LitresGenre item = genre.get(i);
+			String path = PACKAGE_NAME + ":genre";
+			if (item.id != null)
+				path = path + "=" + item.id;
 			FileInfo subdir = Scanner.createOnlineLibraryPluginItem(PACKAGE_NAME + ":genre=" + item.id, item.title);
 			dir.addDir(subdir);
+			if (item.getChildCount() > 0) {
+				addGenres(subdir, item);
+			}
 		}
 	}
 	

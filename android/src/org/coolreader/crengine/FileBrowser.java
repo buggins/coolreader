@@ -12,6 +12,9 @@ import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
+import org.coolreader.plugins.FileInfoCallback;
+import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.plugins.OnlineStoreWrapper;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
@@ -412,6 +415,35 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		showDirectory(mScanner.getRoot(), null);
 	}
 
+	private OnlineStoreWrapper getPlugin(FileInfo dir) {
+		return OnlineStorePluginManager.getPlugin(dir.getOnlineCatalogPluginPackage());
+	}
+	public void showOnlineStoreDirectory(FileInfo dir)
+	{
+		log.v("showOnlineStoreDirectory(" + dir.pathname + ")");
+		OnlineStoreWrapper plugin = getPlugin(dir);
+		if (plugin != null) {
+			if (dir.fileCount() > 0 || dir.dirCount() > 0) {
+				showDirectoryInternal(dir, null);
+				return;
+			}
+			String path = dir.getOnlineCatalogPluginPath();
+			if ("genres".equals(path)) {
+				plugin.openDirectory(dir, new FileInfoCallback() {
+					@Override
+					public void onFileInfoReady(FileInfo fileInfo) {
+						log.d("Genres tree is ready");
+						showDirectoryInternal(fileInfo, null);
+					}
+					@Override
+					public void onError(int errorCode, String description) {
+						mActivity.showToast("Cannot load list of genres");
+					}
+				});
+			}
+		}
+	}
+
 	public void showOPDSRootDirectory()
 	{
 		log.v("showOPDSRootDirectory()");
@@ -669,6 +701,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		BackgroundThread.ensureGUI();
 		if (fileOrDir != null) {
+			if (fileOrDir.isOnlineCatalogPluginDir()) {
+				showOnlineStoreDirectory(fileOrDir);
+				return;
+			}
 			if (fileOrDir.isOPDSRoot()) {
 				showOPDSRootDirectory();
 				return;

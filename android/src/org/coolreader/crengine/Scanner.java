@@ -8,9 +8,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
+import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.plugins.OnlineStoreWrapper;
 
 import android.util.Log;
 
@@ -457,7 +458,12 @@ public class Scanner extends FileInfoChangeSource {
 			return createTitleRoot();
 		else if (FileInfo.SERIES_TAG.equals(path))
 			return createSeriesRoot();
-		else if (path.startsWith(FileInfo.OPDS_DIR_PREFIX))
+		else if (path.startsWith(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX)) {
+			OnlineStoreWrapper w = OnlineStorePluginManager.getPlugin(path);
+			if (w != null)
+				return w.createRootDirectory();
+			return null;
+		} else if (path.startsWith(FileInfo.OPDS_DIR_PREFIX))
 			return createOPDSDir(path);
 		else
 			return new FileInfo(path);
@@ -476,7 +482,10 @@ public class Scanner extends FileInfoChangeSource {
 	public static FileInfo createOnlineLibraryPluginItem(String packageName, String label) {
 		final FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
-		dir.pathname = FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + packageName;
+		if (packageName.startsWith(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX))
+			dir.pathname = packageName;
+		else
+			dir.pathname = FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + packageName;
 		dir.filename = label;
 		dir.isListed = true;
 		dir.isScanned = true;

@@ -9,6 +9,7 @@ import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
 import org.coolreader.plugins.litres.LitresConnection;
+import org.coolreader.plugins.litres.LitresPlugin;
 import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
 import org.coolreader.plugins.litres.LitresResponse;
 
@@ -218,39 +219,40 @@ public class CRRootView extends ViewGroup {
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						LitresConnection.instance().loadGenres(new ResultHandler() {
-							@Override
-							public void onResponse(LitresResponse response) {
-								if (response instanceof LitresConnection.LitresGenre) {
-									LitresConnection.LitresGenre result = (LitresConnection.LitresGenre)response;
-									log.d("genres found: " + result.getChildCount() + " on top level");
-								}
-							}
-						});
-						LitresConnection.instance().authorize("login", "password", new ResultHandler() {
-							@Override
-							public void onResponse(LitresResponse response) {
-								if (response instanceof LitresConnection.LitresAuthInfo) {
-									LitresConnection.LitresAuthInfo result = (LitresConnection.LitresAuthInfo)response;
-									log.d("authorization successful: " + result);
-								} else {
-									log.d("authorization failed");
-								}
-							}
-						});
-						LitresConnection.instance().loadAuthorsByLastName("л", new ResultHandler() {
-							@Override
-							public void onResponse(LitresResponse response) {
-								if (response instanceof LitresConnection.LitresAuthors) {
-									LitresConnection.LitresAuthors result = (LitresConnection.LitresAuthors)response;
-									log.d("authors found: " + result.size());
-									for (int i=0; i<result.size() && i<10; i++) {
-										log.d(result.get(i).toString());
-									}
-								}
-							}
-						});
-						mActivity.showToast("TODO");
+						Activities.showBrowser(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
+//						LitresConnection.instance().loadGenres(new ResultHandler() {
+//							@Override
+//							public void onResponse(LitresResponse response) {
+//								if (response instanceof LitresConnection.LitresGenre) {
+//									LitresConnection.LitresGenre result = (LitresConnection.LitresGenre)response;
+//									log.d("genres found: " + result.getChildCount() + " on top level");
+//								}
+//							}
+//						});
+//						LitresConnection.instance().authorize("login", "password", new ResultHandler() {
+//							@Override
+//							public void onResponse(LitresResponse response) {
+//								if (response instanceof LitresConnection.LitresAuthInfo) {
+//									LitresConnection.LitresAuthInfo result = (LitresConnection.LitresAuthInfo)response;
+//									log.d("authorization successful: " + result);
+//								} else {
+//									log.d("authorization failed");
+//								}
+//							}
+//						});
+//						LitresConnection.instance().loadAuthorsByLastName("л", new ResultHandler() {
+//							@Override
+//							public void onResponse(LitresResponse response) {
+//								if (response instanceof LitresConnection.LitresAuthors) {
+//									LitresConnection.LitresAuthors result = (LitresConnection.LitresAuthors)response;
+//									log.d("authors found: " + result.size());
+//									for (int i=0; i<result.size() && i<10; i++) {
+//										log.d(result.get(i).toString());
+//									}
+//								}
+//							}
+//						});
+//						mActivity.showToast("TODO");
 					}
 				});
 			} else {

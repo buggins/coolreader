@@ -462,6 +462,8 @@ public class FileInfo {
 		if ( dirs==null )
 			dirs = new ArrayList<FileInfo>();
 		dirs.add(dir);
+		if (dir.parent == null)
+			dir.parent = this;
 	}
 	public void addFile( FileInfo file )
 	{

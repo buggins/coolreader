@@ -2405,7 +2405,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// cannot navigate - no data on stack
 							if (cmd == ReaderCommand.DCMD_LINK_BACK) {
 								// TODO: exit from activity in some cases?
-								Activities.showBrowser(null);
+								Activities.showBrowser();
 							}
 						}
 					}
