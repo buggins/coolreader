@@ -385,6 +385,12 @@ public class LitresConnection {
 	private String lastLogin;
 	private String lastPwd;
 	private LitresAuthInfo authInfo;
+	public String getLogin() {
+		return lastLogin;
+	}
+	public String getPassword() {
+		return lastPwd;
+	}
 	public String getSID() {
 		return lastSid;
 	}
