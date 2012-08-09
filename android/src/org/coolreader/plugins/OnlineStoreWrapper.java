@@ -11,7 +11,12 @@ public class OnlineStoreWrapper {
 	public FileInfo createRootDirectory() {
 		final FileInfo root = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName(), plugin.getDescription());
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":genres", "Books by genres"));
-		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":authors", "Books by authors"));
+		FileInfo authors = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":authors", "Books by authors");
+		root.addDir(authors);
+		String firstLetters = plugin.getFirstAuthorNameLetters();
+		for (char ch : firstLetters.toCharArray()) {
+			authors.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":authors=" + ch, ("" + ch).toUpperCase()));
+		}
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":popular", "Popular"));
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":my", "My books"));
 		return root;
@@ -36,6 +41,16 @@ public class OnlineStoreWrapper {
 		} else if (path.startsWith("genre=")) {
 			String genre = dir.getOnlineCatalogPluginId();
 			plugin.getBooksForGenre(control, dir, genre, callback);
+			control.finished();
+			return control;
+		} else if (path.startsWith("authors=")) {
+			String prefix = dir.getOnlineCatalogPluginId();
+			plugin.getAuthorsByPrefix(control, dir, prefix, callback);
+			control.finished();
+			return control;
+		} else if (path.startsWith("author=")) {
+			String authorId = dir.getOnlineCatalogPluginId();
+			plugin.getBooksByAuthor(control, dir, authorId, callback);
 			control.finished();
 			return control;
 		} else if ("authors".equals(path)) {

@@ -25,6 +25,8 @@ import org.coolreader.crengine.L;
 import org.coolreader.crengine.Utils;
 import org.coolreader.db.ServiceThread;
 import org.coolreader.plugins.AsyncResponse;
+import org.coolreader.plugins.OnlineStoreAuthor;
+import org.coolreader.plugins.OnlineStoreAuthors;
 import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStoreBooks;
 import org.xml.sax.Attributes;
@@ -261,33 +263,6 @@ public class LitresConnection {
 		}, resultHandler);
 	}
 
-	public static class LitresAuthor {
-		public String id;
-		public String firstName;
-		public String lastName;
-		public String middleName;
-		public String title;
-		public String photo;
-		@Override
-		public String toString() {
-			return "LitresAuthor [id=" + id + ", lastName=" + lastName
-					+ ", firstName=" + firstName + ", middleName=" + middleName
-					+ ", title=" + title + ", photo=" + photo + "]";
-		}
-	}
-	public static class LitresAuthors extends AsyncResponse {
-		private ArrayList<LitresAuthor> list = new ArrayList<LitresAuthor>();
-		public void add(LitresAuthor author) {
-			list.add(author);
-		}
-		public int size() {
-			return list.size();
-		}
-		public LitresAuthor get(int index) {
-			return list.get(index);
-		}
-	}
-
 	public void loadAuthorsByLastName(String lastNamePattern, final ResultHandler resultHandler) {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("search_last_name", lastNamePattern + "%");
@@ -297,8 +272,8 @@ public class LitresConnection {
 	public void loadAuthors(final Map<String, String> params, final ResultHandler resultHandler) {
 		params.put("search_types", "0");
 		sendRequest(AUTHORS_URL, params, new ResponseHandler() {
-			LitresAuthors result = new LitresAuthors();
-			LitresAuthor currentNode;
+			OnlineStoreAuthors result = new OnlineStoreAuthors();
+			OnlineStoreAuthor currentNode;
 			boolean insideCatalitPersons;
 			String currentElement;
 			@Override
@@ -316,8 +291,11 @@ public class LitresConnection {
 				if ("catalit-persons".equals(localName))
 					insideCatalitPersons = false;
 				else if ("subject".equals(localName)) {
-					if (currentNode.id != null && currentNode.lastName != null)
+					if (currentNode.id != null && currentNode.lastName != null) {
+						if (currentNode.title == null)
+							currentNode.title = Utils.concatWs(currentNode.firstName, currentNode.lastName, " ");
 						result.add(currentNode);
+					}
 					currentNode = null;
 				}
 			}
@@ -331,7 +309,7 @@ public class LitresConnection {
 				else if ("subject".equals(localName)) {
 					if (!insideCatalitPersons)
 						return;
-					currentNode = new LitresAuthor();
+					currentNode = new OnlineStoreAuthor();
 					currentNode.id = attributes.getValue("id");
 				} else {
 					currentElement = localName;
@@ -369,7 +347,7 @@ public class LitresConnection {
 		sendRequest(CATALOG_URL, params, new ResponseHandler() {
 			OnlineStoreBooks result = new OnlineStoreBooks();
 			OnlineStoreBook currentNode;
-			LitresAuthor currentAuthor;
+			OnlineStoreAuthor currentAuthor;
 			boolean insideCatalitBooks;
 			boolean insideTitleInfo;
 			boolean insideAuthor;
@@ -414,7 +392,7 @@ public class LitresConnection {
 					insideTitleInfo = true;
 				else if ("author".equals(localName) && insideTitleInfo) {
 					insideAuthor = true;
-					currentAuthor = new LitresAuthor();
+					currentAuthor = new OnlineStoreAuthor();
 				} else if ("fb2-book".equals(localName)) {
 					if (!insideCatalitBooks)
 						return;
@@ -467,6 +445,13 @@ public class LitresConnection {
 	public void loadBooksByGenre(String genreId, int offset, int maxCount, final ResultHandler resultHandler) {
 		final Map<String, String> params = new HashMap<String, String>();
 		params.put("genre", genreId);
+		params.put("limit", "" + offset + "," + maxCount);
+		loadBooks(params, resultHandler);
+	}
+
+	public void loadBooksByAuthor(String authorId, int offset, int maxCount, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("person", authorId);
 		params.put("limit", "" + offset + "," + maxCount);
 		loadBooks(params, resultHandler);
 	}

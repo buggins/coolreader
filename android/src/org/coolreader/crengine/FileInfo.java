@@ -836,7 +836,7 @@ public class FileInfo {
 			{
 				if ( f1==null || f2==null )
 					return 0;
-				return cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
+				return Utils.cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
 			}
 		}),
 		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, FILENAME),
@@ -845,7 +845,7 @@ public class FileInfo {
 			{
 				if ( f1==null || f2==null )
 					return 0;
-				return firstNz( cmp(f1.createTime, f2.createTime), cmp(f1.filename, f2.filename) );
+				return firstNz( cmp(f1.createTime, f2.createTime), Utils.cmp(f1.filename, f2.filename) );
 			}
 		}),
 		TIMESTAMP_DESC(R.string.mi_book_sort_order_timestamp_desc, TIMESTAMP),
@@ -859,7 +859,7 @@ public class FileInfo {
 						,cmpNotNullFirst(f1.series, f2.series)
 						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
-						,cmp(f1.filename, f2.filename) 
+						,Utils.cmp(f1.filename, f2.filename) 
 						);
 			}
 		}),
@@ -874,7 +874,7 @@ public class FileInfo {
 						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
 						,cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
-						,cmp(f1.filename, f2.filename) 
+						,Utils.cmp(f1.filename, f2.filename) 
 						);
 			}
 		}),
@@ -904,66 +904,6 @@ public class FileInfo {
 		}
 		
 		/**
-		 * Compares two strings - with numbers sorted by value.
-		 * @param str1
-		 * @param str2
-		 * @return
-		 */
-		private static int cmp( String str1, String str2 )
-		{
-			if ( str1==null && str2==null )
-				return 0;
-			if ( str1==null )
-				return -1;
-			if ( str2==null )
-				return 1;
-		
-			str1 = str1.toLowerCase();
-			str2 = str2.toLowerCase();
-			int p1 = 0;
-			int p2 = 0;
-			for ( ;; ) {
-				if ( p1>=str1.length() ) {
-					if ( p2>=str2.length() )
-						return 0;
-					return 1;
-				}
-				if ( p2>=str2.length() )
-					return -1;
-				char ch1 = str1.charAt(p1);
-				char ch2 = str2.charAt(p2);
-				if ( ch1>='0' && ch1<='9' && ch2>='0' && ch2<='9' ) {
-					int n1 = 0;
-					int n2 = 0;
-					while ( ch1>='0' && ch1<='9' ) {
-						p1++;
-						n1 = n1 * 10 + (ch1-'0');
-						if ( p1>=str1.length() )
-							break;
-						ch1 = str1.charAt(p1);
-					}
-					while ( ch2>='0' && ch2<='9' ) {
-						p2++;
-						n2 = n2 * 10 + (ch2-'0');
-						if ( p2>=str2.length() )
-							break;
-						ch2 = str2.charAt(p2);
-					}
-					int c = cmp(n1, n2);
-					if ( c!=0 )
-						return c;
-				} else {
-					if ( ch1<ch2 )
-						return -1;
-					if ( ch1>ch2 )
-						return 1;
-					p1++;
-					p2++;
-				}
-			}
-		}
-		
-		/**
 		 * Same as cmp, but not-null comes first
 		 * @param str1
 		 * @param str2
@@ -977,10 +917,10 @@ public class FileInfo {
 				return 1;
 			if ( str2==null )
 				return -1;
-			return cmp(str1, str2);
+			return Utils.cmp(str1, str2);
 		}
 		
-		private static int cmp( long n1, long n2 )
+		static int cmp( long n1, long n2 )
 		{
 			if ( n1<n2 )
 				return -1;

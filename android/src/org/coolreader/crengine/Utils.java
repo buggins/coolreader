@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import org.coolreader.R;
+import org.coolreader.crengine.FileInfo.SortOrder;
 
 import android.app.Activity;
 import android.graphics.Canvas;
@@ -448,6 +449,66 @@ public class Utils {
 		res.setStyle(Paint.Style.FILL);
 		res.setColor(color);
 		return res;
+	}
+
+	/**
+	 * Compares two strings - with numbers sorted by value.
+	 * @param str1
+	 * @param str2
+	 * @return
+	 */
+	public static int cmp( String str1, String str2 )
+	{
+		if ( str1==null && str2==null )
+			return 0;
+		if ( str1==null )
+			return -1;
+		if ( str2==null )
+			return 1;
+	
+		str1 = str1.toLowerCase();
+		str2 = str2.toLowerCase();
+		int p1 = 0;
+		int p2 = 0;
+		for ( ;; ) {
+			if ( p1>=str1.length() ) {
+				if ( p2>=str2.length() )
+					return 0;
+				return 1;
+			}
+			if ( p2>=str2.length() )
+				return -1;
+			char ch1 = str1.charAt(p1);
+			char ch2 = str2.charAt(p2);
+			if ( ch1>='0' && ch1<='9' && ch2>='0' && ch2<='9' ) {
+				int n1 = 0;
+				int n2 = 0;
+				while ( ch1>='0' && ch1<='9' ) {
+					p1++;
+					n1 = n1 * 10 + (ch1-'0');
+					if ( p1>=str1.length() )
+						break;
+					ch1 = str1.charAt(p1);
+				}
+				while ( ch2>='0' && ch2<='9' ) {
+					p2++;
+					n2 = n2 * 10 + (ch2-'0');
+					if ( p2>=str2.length() )
+						break;
+					ch2 = str2.charAt(p2);
+				}
+				int c = SortOrder.cmp(n1, n2);
+				if ( c!=0 )
+					return c;
+			} else {
+				if ( ch1<ch2 )
+					return -1;
+				if ( ch1>ch2 )
+					return 1;
+				p1++;
+				p2++;
+			}
+		}
 	}
 
 }
