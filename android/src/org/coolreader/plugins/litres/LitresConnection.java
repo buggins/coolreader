@@ -372,6 +372,19 @@ public class LitresConnection {
 		public int rating;
 		public String sequenceName;
 		public int sequenceNumber;
+		public String getAuthors() {
+			StringBuilder buf = new StringBuilder();
+			for (int i=0; i <authors.size(); i++) {
+				LitresAuthor author = authors.get(i);
+				if (buf.length() > 0)
+					buf.append("|");
+				String name = Utils.concatWs(author.firstName, author.lastName, " ");
+				if (name.length() == 0)
+					name = author.title;
+				buf.append(name);
+			}
+			return buf.toString();
+		}
 	}
 
 	public static class LitresBooks extends LitresResponse {
@@ -390,7 +403,7 @@ public class LitresConnection {
 		}
 	}
 
-	public void loadCatalog(final Map<String, String> params, final ResultHandler resultHandler) {
+	public void loadBooks(final Map<String, String> params, final ResultHandler resultHandler) {
 		params.put("search_types", "0");
 		if (lastSid != null)
 			params.put("sid", lastSid);
@@ -490,6 +503,13 @@ public class LitresConnection {
 			
 			
 		}, resultHandler);
+	}
+
+	public void loadBooksByGenre(String genreId, int offset, int maxCount, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("genre", genreId);
+		params.put("limit", "" + offset + "," + maxCount);
+		loadBooks(params, resultHandler);
 	}
 
 	public static class LitresAuthInfo extends LitresResponse {

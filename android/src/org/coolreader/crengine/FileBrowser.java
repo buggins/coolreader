@@ -428,7 +428,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				return;
 			}
 			String path = dir.getOnlineCatalogPluginPath();
-			if ("genres".equals(path)) {
+			String id = dir.getOnlineCatalogPluginId();
+			if ("genres".equals(path) || (path.startsWith("genre=") && id != null)) {
 				plugin.openDirectory(dir, new FileInfoCallback() {
 					@Override
 					public void onFileInfoReady(FileInfo fileInfo) {

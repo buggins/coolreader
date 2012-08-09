@@ -3282,7 +3282,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.i("loadDocument(" + fileName + ")");
 		if (fileName == null) {
 			log.v("loadDocument() : no filename specified");
-			errorHandler.run();
+			if (errorHandler != null)
+				errorHandler.run();
 			return false;
 		}
 		String normalized = mEngine.getPathCorrector().normalize(fileName);
@@ -3290,7 +3291,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.e("Trying to load book from non-standard path " + fileName);
 			mActivity.showToast("Trying to load book from non-standard path " + fileName);
 			hideProgress();
-			errorHandler.run();
+			if (errorHandler != null)
+				errorHandler.run();
 			return false;
 		} else if (!normalized.equals(fileName)) {
 			log.w("Filename normalized to " + normalized);
@@ -3300,7 +3302,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			// ensure manual file is up to date
 			if (generateManual() == null) {
 				log.v("loadDocument() : no filename specified");
-				errorHandler.run();
+				if (errorHandler != null)
+					errorHandler.run();
 				return false;
 			}
 		}
@@ -3318,7 +3321,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			if ( fi==null ) {
 				log.v("loadDocument() : no file item " + fileName + " found inside " + dir);
-				errorHandler.run();
+				if (errorHandler != null)
+					errorHandler.run();
 				return false;
 			}
 			if ( fi.isDirectory ) {
