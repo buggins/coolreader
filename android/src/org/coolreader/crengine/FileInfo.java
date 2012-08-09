@@ -10,6 +10,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.coolreader.R;
+import org.coolreader.plugins.OnlineStoreBook;
 
 import android.util.Log;
 
@@ -309,6 +310,11 @@ public class FileInfo {
 		return pathname!=null && pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX);
 	}
 	
+	public boolean isOnlineCatalogPluginBook()
+	{
+		return !isDirectory && pathname != null && pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX) && getOnlineStoreBookInfo() != null;
+	}
+	
 	public boolean isOPDSDir()
 	{
 		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX) && (getOPDSEntryInfo() == null || getOPDSEntryInfo().getBestAcquisitionLink() == null);
@@ -322,6 +328,12 @@ public class FileInfo {
 	private OPDSUtil.EntryInfo getOPDSEntryInfo() {
 		if (tag !=null && tag instanceof OPDSUtil.EntryInfo)
 			return (OPDSUtil.EntryInfo)tag;
+		return null;
+	}
+	
+	public OnlineStoreBook getOnlineStoreBookInfo() {
+		if (tag !=null && tag instanceof OnlineStoreBook)
+			return (OnlineStoreBook)tag;
 		return null;
 	}
 	

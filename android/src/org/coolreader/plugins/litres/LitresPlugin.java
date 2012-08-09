@@ -6,6 +6,9 @@ import org.coolreader.crengine.Scanner;
 import org.coolreader.plugins.AsyncOperationControl;
 import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.FileInfoCallback;
+import org.coolreader.plugins.AsyncResponse;
+import org.coolreader.plugins.OnlineStoreBook;
+import org.coolreader.plugins.OnlineStoreBooks;
 import org.coolreader.plugins.OnlineStorePlugin;
 import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
 
@@ -30,7 +33,7 @@ public class LitresPlugin implements OnlineStorePlugin {
 	public void authenticate(final AsyncOperationControl control, String login, String password, final AuthenticationCallback callback) {
 		connection.authorize(login, password, new ResultHandler() {
 			@Override
-			public void onResponse(LitresResponse response) {
+			public void onResponse(AsyncResponse response) {
 				control.finished();
 				if (response instanceof ErrorResponse) {
 					ErrorResponse error = (ErrorResponse)response;
@@ -79,7 +82,7 @@ public class LitresPlugin implements OnlineStorePlugin {
 		//dir.clear();
 		connection.loadGenres(new ResultHandler() {
 			@Override
-			public void onResponse(LitresResponse response) {
+			public void onResponse(AsyncResponse response) {
 				control.finished();
 				if (response instanceof ErrorResponse) {
 					ErrorResponse error = (ErrorResponse)response;
@@ -93,7 +96,7 @@ public class LitresPlugin implements OnlineStorePlugin {
 		});
 	}
 	
-	private void addBookFileInfo(final FileInfo dir, LitresConnection.LitresBook book) {
+	private void addBookFileInfo(final FileInfo dir, OnlineStoreBook book) {
 		FileInfo fileInfo = new FileInfo();
 		fileInfo.authors = book.getAuthors();
 		fileInfo.title = book.bookTitle;
@@ -112,13 +115,13 @@ public class LitresPlugin implements OnlineStorePlugin {
 	public void getBooksForGenre(final AsyncOperationControl control, final FileInfo dir, final String genreId, final FileInfoCallback callback) {
 		connection.loadBooksByGenre(genreId, dir.fileCount(), BOOK_LOAD_PAGE_SIZE, new ResultHandler() {
 			@Override
-			public void onResponse(LitresResponse response) {
+			public void onResponse(AsyncResponse response) {
 				control.finished();
 				if (response instanceof ErrorResponse) {
 					ErrorResponse error = (ErrorResponse)response;
 					callback.onError(error.errorCode, error.errorMessage);
-				} else if (response instanceof LitresConnection.LitresBooks) {
-					LitresConnection.LitresBooks result = (LitresConnection.LitresBooks)response;
+				} else if (response instanceof OnlineStoreBooks) {
+					OnlineStoreBooks result = (OnlineStoreBooks)response;
 					for (int i=0; i < result.size(); i++) {
 						addBookFileInfo(dir, result.get(i));
 					}

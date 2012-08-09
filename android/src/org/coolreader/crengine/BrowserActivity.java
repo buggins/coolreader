@@ -7,6 +7,7 @@ import org.coolreader.crengine.CRToolBar.OnActionHandler;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,8 @@ import android.widget.TextView;
 
 public class BrowserActivity extends BaseActivity {
 
+	public static final Logger log = L.create("ba");
+	
 	static class BrowserViewLayout extends ViewGroup {
 		private BaseActivity activity;
 		private FileBrowser contentView;
@@ -187,31 +190,43 @@ public class BrowserActivity extends BaseActivity {
 				mFrame = new BrowserViewLayout(BrowserActivity.this, mBrowser, mToolBar, mTitleBar);
 				setContentView(mFrame);
 
-		        mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
+				if (getIntent() == null)
+					mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
 			}
 		});
 
 		
 	}
 
+	@Override
+	protected void onNewIntent(Intent intent) {
+		log.i("onNewIntent : " + intent);
+		processIntent(intent);
+	}
+
+	protected void processIntent(Intent intent) {
+		final String dir = intent.getExtras() != null ? intent.getExtras().getString(Activities.OPEN_DIR_PARAM) : null;
+		if (dir != null) {
+			// postpone until DB service created
+			waitForCRDBService(new Runnable() {
+				@Override
+				public void run() {
+					mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
+				}
+			});
+		}
+	}
 	
+	boolean firstStart = true;
 	@Override
 	protected void onStart() {
 		super.onStart();
 		
 		Intent intent = getIntent();
-		if (intent != null) {
-			final String dir = intent.getExtras() != null ? intent.getExtras().getString(Activities.OPEN_DIR_PARAM) : null;
-			if (dir != null) {
-				// postpone until DB service created
-				waitForCRDBService(new Runnable() {
-					@Override
-					public void run() {
-						mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
-					}
-				});
-			}
+		if (intent != null && firstStart) {
+			processIntent(intent);
 		}
+		firstStart = false;
 	}
 
 	@Override

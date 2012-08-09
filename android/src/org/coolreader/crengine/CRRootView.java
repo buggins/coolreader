@@ -8,10 +8,10 @@ import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
+import org.coolreader.plugins.AsyncResponse;
 import org.coolreader.plugins.litres.LitresConnection;
 import org.coolreader.plugins.litres.LitresPlugin;
 import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
-import org.coolreader.plugins.litres.LitresResponse;
 
 import android.view.LayoutInflater;
 import android.view.View;
