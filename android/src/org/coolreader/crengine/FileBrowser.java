@@ -420,6 +420,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	private OnlineStoreWrapper getPlugin(FileInfo dir) {
 		return OnlineStorePluginManager.getPlugin(dir.getOnlineCatalogPluginPackage());
 	}
+
 	public void showOnlineStoreDirectory(FileInfo dir)
 	{
 		log.v("showOnlineStoreDirectory(" + dir.pathname + ")");
@@ -431,16 +432,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 			String path = dir.getOnlineCatalogPluginPath();
 			String id = dir.getOnlineCatalogPluginId();
-			if ("genres".equals(path) || (path.startsWith("genre=") && id != null)) {
+			if ("genres".equals(path) || (path.startsWith("genre=") && id != null) || (path.startsWith("authors=") && id != null) || (path.startsWith("author=") && id != null)) {
 				plugin.openDirectory(dir, new FileInfoCallback() {
 					@Override
 					public void onFileInfoReady(FileInfo fileInfo) {
-						log.d("Genres tree is ready");
 						showDirectoryInternal(fileInfo, null);
 					}
 					@Override
 					public void onError(int errorCode, String description) {
-						mActivity.showToast("Cannot load list of genres");
+						mActivity.showToast("Cannot read from server");
 					}
 				});
 			}
