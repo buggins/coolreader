@@ -115,4 +115,13 @@ public class OnlineStoreWrapper {
 			loadBookInfoSkipAuth(control, bookId, callback);
 		return control;
 	}
+	public String getLogin() {
+		return plugin.getLogin();
+	}
+	public String getPassword() {
+		return plugin.getPassword();
+	}
+	public String getDescription() {
+		return plugin.getDescription();
+	}
 }

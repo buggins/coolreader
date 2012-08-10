@@ -59,6 +59,7 @@
             android:singleLine="false"
             android:maxLines="3"
             android:text="Author1, Author2" 
+            android:layout_marginTop="10dip"
             android:layout_marginLeft="10dip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
@@ -68,6 +69,8 @@
             android:singleLine="false"
             android:maxLines="3"
             android:text="Book Title" 
+            android:layout_marginTop="4dip"
+            android:layout_marginBottom="4dip"
             android:layout_marginLeft="10dip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
@@ -78,14 +81,6 @@
             android:maxLines="3"
             android:layout_marginLeft="10dip"
             android:text="Series Name #4" 
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView 
-            android:id="@+id/lbl_book_file_info"
-            style="@style/TextAppearance.Medium"
-            android:singleLine="true"
-            android:text="250K" 
-            android:layout_marginLeft="10dip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <LinearLayout 
@@ -106,6 +101,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical|center_horizontal"
                     android:padding="3dip"
+                    android:layout_marginLeft="10dip"
                     android:scaleType="fitCenter"
                     android:minHeight="120dip"
                     android:minWidth="100dip"
@@ -124,38 +120,55 @@
                 <TextView 
                     android:id="@+id/lbl_login"
                     style="@style/TextAppearance.Medium"
+                    android:layout_marginLeft="10dip"
                     android:singleLine="true"
-                    android:text="logged in as: user" 
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-                <TextView 
-                    android:id="@+id/lbl_status"
-                    style="@style/TextAppearance.Medium"
-                    android:singleLine="true"
-                    android:text="status: purchased" 
+                    android:text="account: user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
                 <TextView 
                     android:id="@+id/lbl_balance"
 		            style="@style/TextAppearance.Medium"
-		            android:singleLine="true"
-		            android:text="account balance: 0" 
+		            android:singleLine="false"
+                    android:maxLines="2"
+		            android:text="balance: 0" 
+                    android:layout_marginLeft="10dip"
 		            android:layout_width="wrap_content"
 		            android:layout_height="wrap_content"/>
                 <TextView 
+                    android:id="@+id/lbl_status"
+                    style="@style/TextAppearance.Small"
+                    android:singleLine="false"
+                    android:maxLines="2"
+                    android:layout_marginLeft="10dip"
+                    android:text="status: purchased" 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView 
                     android:id="@+id/lbl_price"
                     style="@style/TextAppearance.Medium"
-                    android:singleLine="true"
+                    android:singleLine="false"
+                    android:maxLines="2"
                     android:text="price: 0" 
+                    android:layout_marginLeft="10dip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
                 <TextView 
                     android:id="@+id/lbl_normal_price"
                     style="@style/TextAppearance.Medium"
-                    android:singleLine="true"
+                    android:singleLine="false"
+                    android:maxLines="2"
                     android:text="normal price: 0"
+                    android:layout_marginLeft="10dip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
+		        <TextView 
+		            android:id="@+id/lbl_book_file_info"
+		            style="@style/TextAppearance.Small"
+		            android:singleLine="true"
+		            android:text="250K" 
+		            android:layout_marginLeft="10dip"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"/>
    		    </LinearLayout>
         </LinearLayout>
         <RatingBar

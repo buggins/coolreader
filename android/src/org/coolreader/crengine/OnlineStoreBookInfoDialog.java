@@ -1,9 +1,13 @@
 package org.coolreader.crengine;
 
 import org.coolreader.R;
+import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 import org.coolreader.plugins.OnlineStoreBookInfo;
 
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -18,9 +22,10 @@ import android.widget.TextView;
 public class OnlineStoreBookInfoDialog extends BaseDialog {
 	private BaseActivity mActivity;
 	private OnlineStoreBookInfo mBookInfo;
+	private FileInfo mFileInfo;
 	private LayoutInflater mInflater;
 	private int mWindowSize;
-	public OnlineStoreBookInfoDialog(BaseActivity activity, OnlineStoreBookInfo book)
+	public OnlineStoreBookInfoDialog(BaseActivity activity, OnlineStoreBookInfo book, FileInfo fileInfo)
 	{
 		super(activity, null, false, false);
 		DisplayMetrics outMetrics = new DisplayMetrics();
@@ -28,6 +33,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		this.mWindowSize = outMetrics.widthPixels < outMetrics.heightPixels ? outMetrics.widthPixels : outMetrics.heightPixels;
 		this.mActivity = activity;
 		this.mBookInfo = book;
+		this.mFileInfo = fileInfo;
 	}
 
 	@Override
@@ -92,27 +98,20 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         rbBookRating = (RatingBar)view.findViewById(R.id.book_rating);
 
         final ImageView image = (ImageView)view.findViewById(R.id.book_cover);
-        image.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				// open book
-				onPositiveButtonClick();
-			}
-		});
         int w = mWindowSize * 4 / 10;
         int h = w * 4 / 3;
         image.setMinimumHeight(h);
         image.setMaxHeight(h);
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
-//        Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-//        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), file, bmp, new CoverpageBitmapReadyListener() {
-//			@Override
-//			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
-//		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
-//				image.setImageDrawable(drawable);
-//			}
-//		}); 
+        Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
+        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), mFileInfo, bmp, new CoverpageBitmapReadyListener() {
+			@Override
+			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
+		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
+				image.setImageDrawable(drawable);
+			}
+		}); 
 
         if (mBookInfo.book.rating > 0)
         	rbBookRating.setRating(mBookInfo.book.rating / 2.0f);
@@ -126,8 +125,8 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		lblTitle.setText(mBookInfo.book.bookTitle);
 		lblAuthors.setText(Utils.formatAuthorsNormalNames(mBookInfo.book.getAuthors()));
 		lblSeries.setText(mBookInfo.book.getSeries());
-        lblLogin.setText(mBookInfo.isLoggedIn ? "logged in as " + mBookInfo.login : "not logged in");
-        lblBalance.setText(mBookInfo.isLoggedIn ? "Balance: " + mBookInfo.accountBalance : "");
+        lblLogin.setText(mBookInfo.isLoggedIn ? "account: " + mBookInfo.login : "please log in");
+        lblBalance.setText(mBookInfo.isLoggedIn ? "balance: " + mBookInfo.accountBalance : "");
         lblStatus.setText(mBookInfo.isPurchased ? "(already purchased)" : "");
         lblPrice.setText(mBookInfo.book.price > 0 ? "price: " + String.valueOf(mBookInfo.book.price) : "free!");
         lblNormalPrice.setText(mBookInfo.book.price != mBookInfo.book.basePrice ? String.valueOf(mBookInfo.book.basePrice) : "");

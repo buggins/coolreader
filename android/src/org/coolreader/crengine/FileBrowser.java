@@ -12,12 +12,14 @@ import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
+import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.BookInfoCallback;
 import org.coolreader.plugins.FileInfoCallback;
 import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStoreBookInfo;
 import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
+import org.coolreader.plugins.litres.LitresPlugin;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
@@ -427,10 +429,35 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		return OnlineStorePluginManager.getPlugin(dir.getOnlineCatalogPluginPackage());
 	}
 
-	public void showOnlineStoreDirectory(FileInfo dir)
+	private void openPluginDirectory(OnlineStoreWrapper plugin, FileInfo dir) {
+		plugin.openDirectory(dir, new FileInfoCallback() {
+			@Override
+			public void onFileInfoReady(FileInfo fileInfo) {
+				progress.hide();
+				showDirectoryInternal(fileInfo, null);
+			}
+			@Override
+			public void onError(int errorCode, String description) {
+				progress.hide();
+				mActivity.showToast("Cannot read from server");
+			}
+		});
+	}
+	
+	private void openPluginDirectoryWithLoginDialog(final OnlineStoreWrapper plugin, final FileInfo dir) {
+		OnlineStoreLoginDialog dlg = new OnlineStoreLoginDialog(mActivity, plugin, new Runnable() {
+			@Override
+			public void run() {
+				openPluginDirectory(plugin, dir);
+			}
+		});
+		dlg.show();
+	}
+
+	public void showOnlineStoreDirectory(final FileInfo dir)
 	{
 		log.v("showOnlineStoreDirectory(" + dir.pathname + ")");
-		OnlineStoreWrapper plugin = getPlugin(dir);
+		final OnlineStoreWrapper plugin = getPlugin(dir);
 		if (plugin != null) {
 			if (dir.fileCount() > 0 || dir.dirCount() > 0) {
 				showDirectoryInternal(dir, null);
@@ -438,20 +465,29 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 			String path = dir.getOnlineCatalogPluginPath();
 			String id = dir.getOnlineCatalogPluginId();
+			if ("my".equals(path)) {
+				String login = plugin.getLogin();
+				String password = plugin.getPassword();
+				if (login != null && password != null) {
+					plugin.authenticate(login, password, new AuthenticationCallback() {
+						@Override
+						public void onError(int errorCode, String errorMessage) {
+							// ignore error 
+							openPluginDirectoryWithLoginDialog(plugin, dir);
+						}
+						@Override
+						public void onSuccess() {
+							openPluginDirectory(plugin, dir);
+						}
+					});
+					return;
+				} else {
+					openPluginDirectoryWithLoginDialog(plugin, dir);
+				}
+			}
 			if ("genres".equals(path) || (path.startsWith("genre=") && id != null) || (path.startsWith("authors=") && id != null) || (path.startsWith("author=") && id != null)) {
 				progress.show();
-				plugin.openDirectory(dir, new FileInfoCallback() {
-					@Override
-					public void onFileInfoReady(FileInfo fileInfo) {
-						progress.hide();
-						showDirectoryInternal(fileInfo, null);
-					}
-					@Override
-					public void onError(int errorCode, String description) {
-						progress.hide();
-						mActivity.showToast("Cannot read from server");
-					}
-				});
+				openPluginDirectory(plugin, dir);
 			}
 		}
 	}
@@ -709,11 +745,34 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			showDirectoryInternal(currDirectory, null);
 	}
 
-	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
+	public void showDirectory(FileInfo fileOrDir, FileInfo itemToSelect)
 	{
 		BackgroundThread.ensureGUI();
 		if (fileOrDir != null) {
 			if (fileOrDir.isOnlineCatalogPluginDir()) {
+				if (fileOrDir.getOnlineCatalogPluginPath() == null) {
+					// root
+					OnlineStoreWrapper plugin = OnlineStorePluginManager.getPlugin(fileOrDir.getOnlineCatalogPluginPackage());
+					if (plugin != null) {
+						String login = plugin.getLogin();
+						String password = plugin.getPassword();
+						if (login != null && password != null) {
+							final FileInfo dir = fileOrDir;
+							plugin.authenticate(login, password, new AuthenticationCallback() {
+								@Override
+								public void onError(int errorCode, String errorMessage) {
+									// ignore error 
+									showOnlineStoreDirectory(dir);
+								}
+								@Override
+								public void onSuccess() {
+									showOnlineStoreDirectory(dir);
+								}
+							});
+							return;
+						}
+					}
+				}
 				showOnlineStoreDirectory(fileOrDir);
 				return;
 			}
@@ -1251,7 +1310,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		currentListAdapter.notifyInvalidated();
 	}
 	
-	protected void showOnlineCatalogBookDialog(FileInfo book) {
+	protected void showOnlineCatalogBookDialog(final FileInfo book) {
 		OnlineStoreWrapper plugin = getPlugin(book);
 		if (plugin == null) {
 			mActivity.showToast("cannot find plugin");
@@ -1266,7 +1325,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			
 			@Override
 			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
-				OnlineStoreBookInfoDialog dlg = new OnlineStoreBookInfoDialog(mActivity, bookInfo);
+				OnlineStoreBookInfoDialog dlg = new OnlineStoreBookInfoDialog(mActivity, bookInfo, book);
 				dlg.show();
 			}
 		});
