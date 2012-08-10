@@ -5,6 +5,7 @@ import org.coolreader.R;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
 
@@ -18,11 +19,15 @@ public class ProgressPopup {
 	}
 	public void show() {
 		if (popup == null) {
+			L.d("showing progress indicator");
 			popup = new PopupWindow(context);
 	        LayoutInflater inflater = LayoutInflater.from(context);
 	        View content = inflater.inflate(R.layout.network_access_progress, null);
+	        content.measure(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 	        popup.setContentView(content);
+	        popup.setBackgroundDrawable(null);
 	        popup.showAtLocation(parent, Gravity.CENTER, 0, 0);
+	        popup.update(content.getMeasuredWidth(), content.getMeasuredHeight());
 	        popup.setOnDismissListener(new OnDismissListener() {
 				@Override
 				public void onDismiss() {
@@ -33,6 +38,7 @@ public class ProgressPopup {
 	}
 	public void hide() {
 		if (popup != null) {
+			L.d("hiding progress indicator");
 			popup.dismiss();
 			popup = null;
 		}
