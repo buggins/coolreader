@@ -14,6 +14,9 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 
 public class CoverpageManager {
 
@@ -39,6 +42,12 @@ public class CoverpageManager {
 		public boolean matches(ImageItem item) {
 			return fileMatches(item) && sizeMatches(item);
 		}
+		@Override
+		public String toString() {
+			return "[" + file + " " + maxWidth
+					+ "x" + maxHeight + "]";
+		}
+		
 	}
 	
 	/**
@@ -375,8 +384,10 @@ public class CoverpageManager {
 		Runnable task = new Runnable() {
 			@Override
 			public void run() {
-				if (lastReadyNotifyTask != this && Utils.timeInterval(firstReadyTimestamp) < COVERPAGE_MAX_UPDATE_DELAY)
+				if (lastReadyNotifyTask != this && Utils.timeInterval(firstReadyTimestamp) < COVERPAGE_MAX_UPDATE_DELAY) {
+					log.v("skipping update, " + Utils.timeInterval(firstReadyTimestamp));
 					return;
+				}
 				ArrayList<ImageItem> list = new ArrayList<ImageItem>();
 				synchronized(LOCK) {
 					for (;;) {
@@ -386,6 +397,7 @@ public class CoverpageManager {
 						list.add(f);
 					}
 					mReadyQueue.clear();
+					log.v("ready coverpages: " + list.size());
 				}
 				if (list.size() > 0) {
 					for (CoverpageReadyListener listener : listeners)
@@ -395,7 +407,7 @@ public class CoverpageManager {
 			}
 		};
 		lastReadyNotifyTask = task;
-		BackgroundThread.instance().postGUI(task, 500);
+		BackgroundThread.instance().postGUI(task, COVERPAGE_UPDATE_DELAY);
 	}
 
 	private void draw(ImageItem file, byte[] data) {
@@ -513,9 +525,14 @@ public class CoverpageManager {
 		}
 	}
 
-	private class CoverImage extends Drawable {
+	public static abstract class CoverImageBase extends Drawable {
+		protected ImageItem book;
+		public CoverImageBase(ImageItem book) {
+			this.book = book;
+		}
+	}
+	private class CoverImage extends CoverImageBase {
 		
-		ImageItem book;
 		Paint defPaint;
 		final CRDBService.LocalBinder db;
 		final static int alphaLevels = 16;
@@ -525,7 +542,7 @@ public class CoverpageManager {
 		final Paint[] shadowPaints = new Paint[alphaLevels + 1];
 		
 		public CoverImage(final CRDBService.LocalBinder db, ImageItem book) {
-			this.book = book;
+			super(book);
 			this.db = db;
 			defPaint = new Paint();
 			defPaint.setColor(0xFF000000);
@@ -707,4 +724,23 @@ public class CoverpageManager {
 	}
 
 	private ArrayList<CoverpageReadyListener> listeners = new ArrayList<CoverpageReadyListener>();
+
+
+	public static void invalidateChildImages(View view, ArrayList<CoverpageManager.ImageItem> files) {
+		if (view instanceof ViewGroup) {
+			ViewGroup vg = (ViewGroup)view;
+			for (int i=0; i<vg.getChildCount(); i++) {
+				invalidateChildImages(vg.getChildAt(i), files);
+			}
+		} else if (view instanceof ImageView) {
+			if (view.getTag() instanceof CoverpageManager.ImageItem) {
+				CoverpageManager.ImageItem item = (CoverpageManager.ImageItem)view.getTag();
+				for (CoverpageManager.ImageItem v : files)
+					if (v.matches(item))
+						view.invalidate();
+			}
+			
+		}
+	}
+
 }

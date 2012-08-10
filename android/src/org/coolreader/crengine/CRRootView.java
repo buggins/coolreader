@@ -8,7 +8,6 @@ import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
-import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 import org.coolreader.plugins.litres.LitresPlugin;
@@ -432,7 +431,14 @@ public class CRRootView extends ViewGroup {
 		coverpageListener =	new CoverpageReadyListener() {
 			@Override
 			public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {
-				mView.invalidate();
+				CoverpageManager.invalidateChildImages(mView, files);
+//				for (int i=0; i<mRecentBooksScroll.getChildCount(); i++) {
+//					mRecentBooksScroll.getChildAt(i).invalidate();
+//				}
+//				//mRecentBooksScroll.invalidate();
+//				ImageView cover = (ImageView)mView.findViewById(R.id.book_cover);
+//				cover.invalidate();
+//				//mView.invalidate();
 			}
 		};
 		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
@@ -485,4 +491,5 @@ public class CRRootView extends ViewGroup {
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
+	
 }
