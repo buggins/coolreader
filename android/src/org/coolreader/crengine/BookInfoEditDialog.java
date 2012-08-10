@@ -98,6 +98,7 @@ public class BookInfoEditDialog extends BaseDialog {
 			item.editor = new EditText(getContext());
 			item.value = value != null ? value : "";
 			item.editor.setText(value != null ? value : "");
+			item.editor.setFocusableInTouchMode(false);
 			authorItems.add(item);
 			parent.addView(item.editor);
 			item.editor.addTextChangedListener(new TextWatcher() {
