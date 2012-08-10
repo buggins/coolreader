@@ -32,6 +32,7 @@ import org.coolreader.plugins.OnlineStoreBooks;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
 
@@ -46,13 +47,16 @@ public class LitresConnection {
 	
 	ServiceThread workerThread;
 	
-	private LitresConnection() {
+	SharedPreferences preferences;
+	private LitresConnection(SharedPreferences preferences) {
 		workerThread = new ServiceThread("litres");
 		workerThread.start();
+		this.preferences = preferences;
+		restorLoginInfo();
 	}
 	
-	public static LitresConnection create () {
-		return new LitresConnection();
+	public static LitresConnection create (SharedPreferences preferences) {
+		return new LitresConnection(preferences);
 	}
 
 	public interface ResultHandler {
@@ -507,18 +511,43 @@ public class LitresConnection {
 	private String lastLogin;
 	private String lastPwd;
 	private LitresAuthInfo authInfo;
+
 	public String getLogin() {
 		return lastLogin;
 	}
+
 	public String getPassword() {
 		return lastPwd;
 	}
+
 	public String getSID() {
 		return lastSid;
 	}
+
 	public LitresAuthInfo getAuthInfo() {
 		return authInfo;
 	}
+
+	private void saveLoginInfo(String login, String password) {
+		if (login != null && password != null && preferences != null) {
+			SharedPreferences.Editor editor = preferences.edit();
+			editor.putString("litres.login", login);
+			editor.putString("litres.password", password);
+			editor.commit();
+		}
+	}
+
+	private void restorLoginInfo() {
+		if (preferences != null) {
+			String l = preferences.getString("litres.login", null);
+			String p = preferences.getString("litres.password", null);
+			if (l != null && p != null) {
+				lastLogin = l;
+				lastPwd = p;
+			}
+		}
+	}
+
 	public void authorize(String login, String pwd, final ResultHandler resultHandler) {
 		if (login == null)
 			login = lastLogin;
@@ -566,6 +595,7 @@ public class LitresConnection {
 					result.login = lastLogin;
 					lastSid = result.sid;
 					lastAuthorizationTimestamp = System.currentTimeMillis();
+					saveLoginInfo(login, pwd);
 				} else if ("catalit-authorization-failed".equals(localName)) {
 					onError(1, "Authorization failed");
 				}
@@ -598,12 +628,5 @@ public class LitresConnection {
 	
 	public void close() {
 		workerThread.stop(5000);
-	}
-	
-	private static LitresConnection instance;
-	public static LitresConnection instance() {
-		if (instance == null)
-			instance = new LitresConnection();
-		return instance;
 	}
 }
