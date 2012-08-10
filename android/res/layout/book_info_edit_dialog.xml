@@ -166,7 +166,6 @@
 		    style="@style/TextAppearance.Widget.EditText"
 	        android:editable="true" 
 	        android:singleLine="true"
-	        android:focusableInTouchMode="false"
 		/>
 	
 	    <TextView 
@@ -188,7 +187,6 @@
 		        android:layout_height="wrap_content"
 		        android:text="Book title" 
 		        style="@style/TextAppearance.Widget.EditText"
-                android:focusableInTouchMode="false"
 		        android:editable="true" 
 		        android:singleLine="true"
 		    />
@@ -225,7 +223,6 @@
                     style="@style/TextAppearance.Widget.EditText"
                     android:editable="true" 
                     android:singleLine="true"
-                    android:focusableInTouchMode="false"
                 />
                 <EditText 
 			        android:id="@+id/book_series_number" 
@@ -236,7 +233,6 @@
 			        style="@style/TextAppearance.Widget.EditText"
 			        android:editable="true" 
 			        android:singleLine="true"
-                    android:focusableInTouchMode="false"
 			    />
 			</TableRow>
 	    </TableLayout>

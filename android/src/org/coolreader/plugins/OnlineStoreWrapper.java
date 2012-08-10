@@ -53,9 +53,9 @@ public class OnlineStoreWrapper {
 			plugin.getBooksByAuthor(control, dir, authorId, callback);
 			control.finished();
 			return control;
-		} else if ("authors".equals(path)) {
-			//
-			// TODO
+		} else if ("my".equals(path)) {
+			plugin.getPurchasedBooks(control, dir, callback);
+			return control;
 		} else {
 			
 		}

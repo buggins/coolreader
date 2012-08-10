@@ -449,6 +449,13 @@ public class LitresConnection {
 		}, resultHandler);
 	}
 
+	public void loadPurchasedBooks(int offset, int maxCount, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("my", "1");
+		params.put("limit", "" + offset + "," + maxCount);
+		loadBooks(params, resultHandler);
+	}
+
 	public void loadBooksByGenre(String genreId, int offset, int maxCount, final ResultHandler resultHandler) {
 		final Map<String, String> params = new HashMap<String, String>();
 		params.put("genre", genreId);
