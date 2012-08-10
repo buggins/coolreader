@@ -69,4 +69,50 @@ public class OnlineStoreWrapper {
 		plugin.authenticate(control, login, password, callback);
 		return control;
 	}
+	private void loadBookInfoContinue(final AsyncOperationControl control, final String bookId, final boolean isBought, final BookInfoCallback callback) {
+		plugin.getBookInfo(control, bookId, false, new BookInfoCallback() {
+			@Override
+			public void onError(int errorCode, String errorMessage) {
+				callback.onError(errorCode, errorMessage);
+			}
+			@Override
+			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
+				bookInfo.isPurchased = isBought;
+				callback.onBookInfoReady(bookInfo);
+			}
+		});
+	}
+	private void loadBookInfoSkipAuth(final AsyncOperationControl control, final String bookId, final BookInfoCallback callback) {
+		plugin.getBookInfo(control, bookId, true, new BookInfoCallback() {
+			@Override
+			public void onError(int errorCode, String errorMessage) {
+				loadBookInfoContinue(control, bookId, false, callback);
+			}
+			
+			@Override
+			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
+				loadBookInfoContinue(control, bookId, true, callback);
+			}
+		});
+	}
+	public AsyncOperationControl loadBookInfo(final String bookId, final BookInfoCallback callback) {
+		final AsyncOperationControl control = new AsyncOperationControl();
+		String login = plugin.getLogin();
+		String password = plugin.getPassword();
+		if (login != null && password != null) {
+			plugin.authenticate(control, login, password, new AuthenticationCallback() {
+				@Override
+				public void onError(int errorCode, String errorMessage) {
+					loadBookInfoSkipAuth(control, bookId, callback);
+				}
+				
+				@Override
+				public void onSuccess() {
+					loadBookInfoSkipAuth(control, bookId, callback);
+				}
+			});
+		} else
+			loadBookInfoSkipAuth(control, bookId, callback);
+		return control;
+	}
 }

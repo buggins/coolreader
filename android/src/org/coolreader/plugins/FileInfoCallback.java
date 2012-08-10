@@ -2,7 +2,6 @@ package org.coolreader.plugins;
 
 import org.coolreader.crengine.FileInfo;
 
-public interface FileInfoCallback {
+public interface FileInfoCallback extends ErrorCallback {
 	void onFileInfoReady(FileInfo fileInfo);
-	void onError(int errorCode, String description);
 }

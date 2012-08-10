@@ -11,7 +11,7 @@ public class OnlineStoreBook {
 	public double price;
 	public int zipSize;
 	public boolean hasTrial;
-	public String trialId;
+	public String trialUrl;
 	public String cover;
 	public String coverPreview;
 	public int rating;
@@ -29,5 +29,12 @@ public class OnlineStoreBook {
 			buf.append(name);
 		}
 		return buf.toString();
+	}
+	public String getSeries() {
+		if (Utils.empty(sequenceName))
+			return "";
+		if (sequenceNumber <= 0)
+			return sequenceName;
+		return sequenceName + " #" + sequenceNumber;
 	}
 }

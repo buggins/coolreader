@@ -42,6 +42,7 @@ public class LitresConnection {
 	public static final String GENRES_URL = "http://robot.litres.ru/pages/catalit_genres/";
 	public static final String AUTHORS_URL = "http://robot.litres.ru/pages/catalit_persons/";
 	public static final String CATALOG_URL = "http://robot.litres.ru/pages/catalit_browser/";
+	public static final String TRIALS_URL = "http://robot.litres.ru/static/trials/";
 	
 	ServiceThread workerThread;
 	
@@ -399,13 +400,19 @@ public class LitresConnection {
 					currentNode = new OnlineStoreBook();
 					currentNode.id = attributes.getValue("hub_id");
 					currentNode.hasTrial = stringToInt(attributes.getValue("hub_id"), 0) != 0;
-					currentNode.trialId = attributes.getValue("trial_id");
 					currentNode.rating = stringToInt(attributes.getValue("rating"), 0);
 					currentNode.zipSize = stringToInt(attributes.getValue("zip_size"), 0);
 					currentNode.basePrice = stringToDouble(attributes.getValue("base_price"), 0);
 					currentNode.price = stringToDouble(attributes.getValue("price"), 0);
 					currentNode.cover = attributes.getValue("cover");
 					currentNode.coverPreview = attributes.getValue("cover_preview");
+					if (currentNode.hasTrial && currentNode.id != null) {
+						String trialId = currentNode.id;
+						while (trialId.length() < 8)
+							trialId = "0" + trialId;
+						String path = trialId.substring(0, 2) + "/" + trialId.substring(2, 4) + "/" + trialId.substring(4, 6) + "/" + trialId + ".fb2.zip";
+						currentNode.trialUrl = TRIALS_URL + path;
+					}
 				} else if ("sequence".equals(localName)) {
 					if (currentNode == null)
 						return;
@@ -446,6 +453,14 @@ public class LitresConnection {
 		final Map<String, String> params = new HashMap<String, String>();
 		params.put("genre", genreId);
 		params.put("limit", "" + offset + "," + maxCount);
+		loadBooks(params, resultHandler);
+	}
+
+	public void loadBooksByBookId(String bookId, boolean myOnly, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("art", bookId);
+		if (myOnly)
+			params.put("my", "1");
 		loadBooks(params, resultHandler);
 	}
 
