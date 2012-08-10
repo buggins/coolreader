@@ -460,6 +460,20 @@ public class LitresConnection {
 		loadBooks(params, resultHandler);
 	}
 
+	public void loadPopularBooks(int offset, int maxCount, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("rating", "books");
+		params.put("limit", "" + offset + "," + maxCount);
+		loadBooks(params, resultHandler);
+	}
+
+	public void loadNewBooks(int offset, int maxCount, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("rating", "hot");
+		params.put("limit", "" + offset + "," + maxCount);
+		loadBooks(params, resultHandler);
+	}
+
 	public void loadBooksByGenre(String genreId, int offset, int maxCount, final ResultHandler resultHandler) {
 		final Map<String, String> params = new HashMap<String, String>();
 		params.put("genre", genreId);

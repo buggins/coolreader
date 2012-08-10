@@ -489,7 +489,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					openPluginDirectoryWithLoginDialog(plugin, dir);
 				}
 			}
-			if ("genres".equals(path) || (path.startsWith("genre=") && id != null) || (path.startsWith("authors=") && id != null) || (path.startsWith("author=") && id != null)) {
+			if ("genres".equals(path) || "popular".equals(path) || "new".equals(path) || (path.startsWith("genre=") && id != null) || (path.startsWith("authors=") && id != null) || (path.startsWith("author=") && id != null)) {
 				openPluginDirectory(plugin, dir);
 			}
 		}
@@ -761,17 +761,18 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						String password = plugin.getPassword();
 						if (login != null && password != null) {
 							final FileInfo dir = fileOrDir;
+							// just do authentication in background
 							plugin.authenticate(login, password, new AuthenticationCallback() {
 								@Override
 								public void onError(int errorCode, String errorMessage) {
 									// ignore error 
-									showOnlineStoreDirectory(dir);
 								}
 								@Override
 								public void onSuccess() {
-									showOnlineStoreDirectory(dir);
+									// ignore result
 								}
 							});
+							showOnlineStoreDirectory(dir);
 							return;
 						}
 					}
@@ -1067,11 +1068,11 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						String onlineBookInfo = "";
 						if (item.getOnlineStoreBookInfo() != null) {
 							OnlineStoreBook book = item.getOnlineStoreBookInfo();
-							onlineBookInfo = " ";
-							if (book.price > 0)
-								onlineBookInfo = onlineBookInfo + "price:" + book.price + "  ";
+							onlineBookInfo = "";
 							if (book.rating > 0)
 								onlineBookInfo = onlineBookInfo + "rating:" + book.rating + "  ";
+							if (book.price > 0)
+								onlineBookInfo = onlineBookInfo + "price:" + book.price + "  ";
 							
 						}
 						if ( title==null || title.length()==0 ) {
@@ -1089,7 +1090,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 //						field3.setVisibility(VISIBLE);
 						String state = Utils.formatReadingState(mActivity, item);
 						if (field1 != null)
-							field1.setText(state + " " + Utils.formatFileInfo(item) + "  " + onlineBookInfo);
+							field1.setText(onlineBookInfo + "  " + state + " " + Utils.formatFileInfo(item));
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 						if (field2 != null)
 							field2.setText(Utils.formatLastPosition(mHistory.getLastPos(item)));

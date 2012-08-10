@@ -361,8 +361,8 @@ public class CoverpageManager {
 		}
 	}
 
-	private final static int COVERPAGE_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 1000 : 30;
-	private final static int COVERPAGE_MAX_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 3000 : 100;
+	private final static int COVERPAGE_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 1000 : 10;
+	private final static int COVERPAGE_MAX_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 3000 : 30;
 	private Runnable lastReadyNotifyTask;
 	private long firstReadyTimestamp;
 	private void notifyBitmapIsReady(final ImageItem file) {

@@ -289,4 +289,46 @@ public class LitresPlugin implements OnlineStorePlugin {
 			}
 		});
 	}
+
+	final int BOOK_LOAD_PAGE_SIZE_POPULAR = 50;
+	@Override
+	public void getPopularBooks(final AsyncOperationControl control, final FileInfo dir, final FileInfoCallback callback) {
+		connection.loadPopularBooks(dir.fileCount(), BOOK_LOAD_PAGE_SIZE_POPULAR, new ResultHandler() {
+			@Override
+			public void onResponse(AsyncResponse response) {
+				control.finished();
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof OnlineStoreBooks) {
+					OnlineStoreBooks result = (OnlineStoreBooks)response;
+					for (int i=0; i < result.size(); i++) {
+						addBookFileInfo(dir, result.get(i));
+					}
+					callback.onFileInfoReady(dir);
+				}
+			}
+		});
+	}
+	
+	final int BOOK_LOAD_PAGE_SIZE_NEW = 50;
+	@Override
+	public void getNewBooks(final AsyncOperationControl control, final FileInfo dir, final FileInfoCallback callback) {
+		connection.loadNewBooks(dir.fileCount(), BOOK_LOAD_PAGE_SIZE_NEW, new ResultHandler() {
+			@Override
+			public void onResponse(AsyncResponse response) {
+				control.finished();
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof OnlineStoreBooks) {
+					OnlineStoreBooks result = (OnlineStoreBooks)response;
+					for (int i=0; i < result.size(); i++) {
+						addBookFileInfo(dir, result.get(i));
+					}
+					callback.onFileInfoReady(dir);
+				}
+			}
+		});
+	}
 }
