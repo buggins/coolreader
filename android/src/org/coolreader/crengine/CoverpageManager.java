@@ -112,6 +112,7 @@ public class CoverpageManager {
 	}
 	
 	public void clear() {
+		log.d("CoverpageManager.clear()");
 		synchronized(LOCK) {
 			mCache.clear();
 			mCheckFileCacheQueue.clear();

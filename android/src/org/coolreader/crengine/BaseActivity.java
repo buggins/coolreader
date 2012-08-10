@@ -76,8 +76,8 @@ public class BaseActivity extends Activity implements Settings {
 						@Override
 						public void run() {
 							FileInfo downloadDirectory = Services.getScanner().getDownloadDirectory();
-							if (downloadDirectory != null)
-				        	mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
+							if (downloadDirectory != null && mSyncService != null)
+								mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
 						}
 					});
 				}
@@ -276,7 +276,7 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void setCurrentTheme(String themeCode) {
 		InterfaceTheme theme = InterfaceTheme.findByCode(themeCode);
-		if (theme != null) {
+		if (theme != null && currentTheme != theme) {
 			setCurrentTheme(theme);
 		}
 	}
