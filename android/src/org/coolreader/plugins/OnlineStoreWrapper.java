@@ -17,8 +17,9 @@ public class OnlineStoreWrapper {
 		for (char ch : firstLetters.toCharArray()) {
 			authors.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":authors=" + ch, ("" + ch).toUpperCase()));
 		}
-		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":popular", "Popular"));
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":my", "My books"));
+		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":popular", "Popular"));
+		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":new", "Hot new"));
 		return root;
 	}
 	public AsyncOperationControl openDirectory(final FileInfo dir, final FileInfoCallback callback) {
@@ -55,6 +56,12 @@ public class OnlineStoreWrapper {
 			return control;
 		} else if ("my".equals(path)) {
 			plugin.getPurchasedBooks(control, dir, callback);
+			return control;
+		} else if ("new".equals(path)) {
+			plugin.getNewBooks(control, dir, callback);
+			return control;
+		} else if ("popular".equals(path)) {
+			plugin.getPopularBooks(control, dir, callback);
 			return control;
 		} else {
 			
