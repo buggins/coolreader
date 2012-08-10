@@ -73,14 +73,14 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 			}
 		});
         btnBuyOrDownload = (Button)view.findViewById(R.id.btn_buy);
-        btnBack.setOnClickListener(new View.OnClickListener() {
+        btnBuyOrDownload.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				onBuyButtonClick();
 			}
 		});
         btnPreview = (Button)view.findViewById(R.id.btn_preview);
-        btnBack.setOnClickListener(new View.OnClickListener() {
+        btnPreview.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				onPreviewButtonClick();

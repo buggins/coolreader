@@ -57,7 +57,7 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 			}
 		});
         btnLogin = (Button)view.findViewById(R.id.btn_login);
-        btnBack.setOnClickListener(new View.OnClickListener() {
+        btnLogin.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				onPositiveButtonClick();
