@@ -10,6 +10,7 @@ public interface OnlineStorePlugin {
 	String getFirstAuthorNameLetters();
 	void authenticate(AsyncOperationControl control, String login, String password, AuthenticationCallback callback);
 	void fillGenres(AsyncOperationControl control, FileInfo dir, FileInfoCallback callback);
+	void getBookInfo(AsyncOperationControl control, String bookId, boolean myOnly, BookInfoCallback callback);
 	void getBooksForGenre(AsyncOperationControl control, FileInfo dir, String genreId, FileInfoCallback callback);
 	void getBooksByAuthor(AsyncOperationControl control, FileInfo dir, String authorId, FileInfoCallback callback);
 	void getAuthorsByPrefix(AsyncOperationControl control, FileInfo dir, String prefix, FileInfoCallback callback);

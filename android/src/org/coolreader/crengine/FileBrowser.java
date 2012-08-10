@@ -12,8 +12,10 @@ import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
+import org.coolreader.plugins.BookInfoCallback;
 import org.coolreader.plugins.FileInfoCallback;
 import org.coolreader.plugins.OnlineStoreBook;
+import org.coolreader.plugins.OnlineStoreBookInfo;
 import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
@@ -1250,7 +1252,23 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	
 	protected void showOnlineCatalogBookDialog(FileInfo book) {
-		// TODO
-		mActivity.showToast("bookId=" + book.pathname);
+		OnlineStoreWrapper plugin = getPlugin(book);
+		if (plugin == null) {
+			mActivity.showToast("cannot find plugin");
+			return;
+		}
+		String bookId = book.getOnlineCatalogPluginId();
+		plugin.loadBookInfo(bookId, new BookInfoCallback() {
+			@Override
+			public void onError(int errorCode, String errorMessage) {
+				mActivity.showToast("Error while loading book info");
+			}
+			
+			@Override
+			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
+				OnlineStoreBookInfoDialog dlg = new OnlineStoreBookInfoDialog(mActivity, bookInfo);
+				dlg.show();
+			}
+		});
 	}
 }

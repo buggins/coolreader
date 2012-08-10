@@ -6,10 +6,12 @@ import org.coolreader.crengine.Scanner;
 import org.coolreader.plugins.AsyncOperationControl;
 import org.coolreader.plugins.AsyncResponse;
 import org.coolreader.plugins.AuthenticationCallback;
+import org.coolreader.plugins.BookInfoCallback;
 import org.coolreader.plugins.FileInfoCallback;
 import org.coolreader.plugins.OnlineStoreAuthor;
 import org.coolreader.plugins.OnlineStoreAuthors;
 import org.coolreader.plugins.OnlineStoreBook;
+import org.coolreader.plugins.OnlineStoreBookInfo;
 import org.coolreader.plugins.OnlineStoreBooks;
 import org.coolreader.plugins.OnlineStorePlugin;
 import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
@@ -233,4 +235,30 @@ public class LitresPlugin implements OnlineStorePlugin {
 		});
 	}
 	
+	@Override
+	public void getBookInfo(final AsyncOperationControl control, final String bookId, final boolean myOnly, final BookInfoCallback callback) {
+		connection.loadBooksByBookId(bookId, myOnly, new ResultHandler() {
+			@Override
+			public void onResponse(AsyncResponse response) {
+				control.finished();
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof OnlineStoreBooks) {
+					OnlineStoreBooks result = (OnlineStoreBooks)response;
+					if (result.size() == 0)
+						callback.onError(0, "not found");
+					else {
+						OnlineStoreBookInfo info = new OnlineStoreBookInfo();
+						info.book = result.get(0);
+						if (connection.getSID() != null)
+							info.isLoggedIn = true;
+						info.login = connection.getLogin();
+						info.accountBalance = result.account;
+						callback.onBookInfoReady(info);
+					}
+				}
+			}
+		});
+	}
 }
