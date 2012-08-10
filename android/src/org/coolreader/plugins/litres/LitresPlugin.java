@@ -16,11 +16,18 @@ import org.coolreader.plugins.OnlineStoreBooks;
 import org.coolreader.plugins.OnlineStorePlugin;
 import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
 
+import android.content.SharedPreferences;
+
 public class LitresPlugin implements OnlineStorePlugin {
 
 	public static final String PACKAGE_NAME = "org.coolreader.plugins.litres";
 	
-	private final LitresConnection connection = LitresConnection.create();
+	private final LitresConnection connection;
+	public LitresPlugin(SharedPreferences preferences) {
+		connection = LitresConnection.create(preferences);
+	}
+	
+	
 	
 	@Override
 	public String getFirstAuthorNameLetters() {
