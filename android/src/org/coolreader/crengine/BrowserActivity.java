@@ -37,6 +37,12 @@ public class BrowserActivity extends BaseActivity {
 			this.addView(toolbarView);
 			this.addView(contentView);
 			this.onThemeChanged(context.getCurrentTheme());
+			titleView.setFocusable(false);
+			titleView.setFocusableInTouchMode(false);
+			toolbarView.setFocusable(false);
+			toolbarView.setFocusableInTouchMode(false);
+			contentView.setFocusable(true);
+			contentView.setFocusableInTouchMode(true);
 		}
 		
 		public void onThemeChanged(InterfaceTheme theme) {

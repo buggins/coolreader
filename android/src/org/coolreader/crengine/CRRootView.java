@@ -441,6 +441,8 @@ public class CRRootView extends ViewGroup {
 		
 		removeAllViews();
 		addView(mView);
+		setFocusable(true);
+		setFocusableInTouchMode(true);
 	}
 
 	@Override
