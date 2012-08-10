@@ -8,10 +8,10 @@ import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
-import org.coolreader.plugins.AsyncResponse;
-import org.coolreader.plugins.litres.LitresConnection;
+import org.coolreader.plugins.AuthenticationCallback;
+import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.plugins.OnlineStoreWrapper;
 import org.coolreader.plugins.litres.LitresPlugin;
-import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -216,6 +216,22 @@ public class CRRootView extends ViewGroup {
 			} else if (item.isOnlineCatalogPluginDir()) {
 				icon.setImageResource(R.drawable.plugins_logo_litres);
 				label.setText(item.filename);
+				view.setOnLongClickListener(new OnLongClickListener() {
+					@Override
+					public boolean onLongClick(View v) {
+						OnlineStoreWrapper plugin = OnlineStorePluginManager.getPlugin(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
+						if (plugin != null) {
+							OnlineStoreLoginDialog dlg = new OnlineStoreLoginDialog(mActivity, plugin, new Runnable() {
+								@Override
+								public void run() {
+									Activities.showBrowser(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
+								}
+							});
+							dlg.show();
+						}
+						return true;
+					}
+				});
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
