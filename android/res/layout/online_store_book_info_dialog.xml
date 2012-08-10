@@ -76,7 +76,7 @@
             android:layout_height="wrap_content"/>
         <TextView 
             android:id="@+id/lbl_book_series"
-            style="@style/TextAppearance.Medium"
+            style="@style/TextAppearance.Small"
             android:singleLine="false"
             android:maxLines="3"
             android:layout_marginLeft="10dip"

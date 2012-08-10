@@ -65,6 +65,7 @@
             android:layout_width="fill_parent" 
             android:layout_height="wrap_content"
             android:text="login" 
+            android:inputType="textEmailAddress"
             android:layout_margin="10px"
             style="@style/TextAppearance.Widget.EditText"
             android:editable="true" 

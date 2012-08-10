@@ -430,6 +430,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 
 	private void openPluginDirectory(OnlineStoreWrapper plugin, FileInfo dir) {
+		progress.show();
 		plugin.openDirectory(dir, new FileInfoCallback() {
 			@Override
 			public void onFileInfoReady(FileInfo fileInfo) {
@@ -469,14 +470,17 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				String login = plugin.getLogin();
 				String password = plugin.getPassword();
 				if (login != null && password != null) {
+					progress.show();
 					plugin.authenticate(login, password, new AuthenticationCallback() {
 						@Override
 						public void onError(int errorCode, String errorMessage) {
 							// ignore error 
+							progress.hide();
 							openPluginDirectoryWithLoginDialog(plugin, dir);
 						}
 						@Override
 						public void onSuccess() {
+							progress.hide();
 							openPluginDirectory(plugin, dir);
 						}
 					});
@@ -486,7 +490,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				}
 			}
 			if ("genres".equals(path) || (path.startsWith("genre=") && id != null) || (path.startsWith("authors=") && id != null) || (path.startsWith("author=") && id != null)) {
-				progress.show();
 				openPluginDirectory(plugin, dir);
 			}
 		}
@@ -1317,14 +1320,17 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return;
 		}
 		String bookId = book.getOnlineCatalogPluginId();
+		progress.show();
 		plugin.loadBookInfo(bookId, new BookInfoCallback() {
 			@Override
 			public void onError(int errorCode, String errorMessage) {
+				progress.hide();
 				mActivity.showToast("Error while loading book info");
 			}
 			
 			@Override
 			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
+				progress.hide();
 				OnlineStoreBookInfoDialog dlg = new OnlineStoreBookInfoDialog(mActivity, bookInfo, book);
 				dlg.show();
 			}

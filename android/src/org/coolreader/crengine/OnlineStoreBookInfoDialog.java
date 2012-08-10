@@ -125,9 +125,9 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		lblTitle.setText(mBookInfo.book.bookTitle);
 		lblAuthors.setText(Utils.formatAuthorsNormalNames(mBookInfo.book.getAuthors()));
 		lblSeries.setText(mBookInfo.book.getSeries());
-        lblLogin.setText(mBookInfo.isLoggedIn ? "account: " + mBookInfo.login : "please log in");
+        lblLogin.setText(mBookInfo.isLoggedIn ? mBookInfo.login : "please log in");
         lblBalance.setText(mBookInfo.isLoggedIn ? "balance: " + mBookInfo.accountBalance : "");
-        lblStatus.setText(mBookInfo.isPurchased ? "(already purchased)" : "");
+        lblStatus.setText(mBookInfo.isPurchased ? "purchased" : "");
         lblPrice.setText(mBookInfo.book.price > 0 ? "price: " + String.valueOf(mBookInfo.book.price) : "free!");
         lblNormalPrice.setText(mBookInfo.book.price != mBookInfo.book.basePrice ? String.valueOf(mBookInfo.book.basePrice) : "");
         lblNormalPrice.setPaintFlags(lblNormalPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
