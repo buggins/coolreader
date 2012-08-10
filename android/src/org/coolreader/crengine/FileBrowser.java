@@ -220,7 +220,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	private CoverpageManager mCoverpageManager;
 	
+	private ProgressPopup progress;
 	private void createListView(boolean recreateAdapter) {
+		if (progress != null)
+			progress.hide();
 		mListView = new FileBrowserListView(mActivity);
 		final GestureDetector detector = new GestureDetector(new MyGestureListener());
 		mListView.setOnTouchListener(new ListView.OnTouchListener() {
@@ -241,6 +244,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		removeAllViews();
 		addView(mListView);
 		mListView.setVisibility(VISIBLE);
+		progress = new ProgressPopup(mActivity, mListView);
 	}
 	
 	public void onThemeChanged() {
@@ -433,13 +437,16 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			String path = dir.getOnlineCatalogPluginPath();
 			String id = dir.getOnlineCatalogPluginId();
 			if ("genres".equals(path) || (path.startsWith("genre=") && id != null) || (path.startsWith("authors=") && id != null) || (path.startsWith("author=") && id != null)) {
+				progress.show();
 				plugin.openDirectory(dir, new FileInfoCallback() {
 					@Override
 					public void onFileInfoReady(FileInfo fileInfo) {
+						progress.hide();
 						showDirectoryInternal(fileInfo, null);
 					}
 					@Override
 					public void onError(int errorCode, String description) {
+						progress.hide();
 						mActivity.showToast("Cannot read from server");
 					}
 				});

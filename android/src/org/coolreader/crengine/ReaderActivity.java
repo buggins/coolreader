@@ -357,7 +357,10 @@ public class ReaderActivity extends BaseActivity {
 			this.addView(statusView);
 			toolbarView.setFocusable(false);
 			statusView.setFocusable(false);
+			toolbarView.setFocusableInTouchMode(false);
+			statusView.setFocusableInTouchMode(false);
 			contentView.setFocusable(true);
+			contentView.setFocusableInTouchMode(true);
 			updateFullscreen(activity.isFullscreen());
 			updateSettings(SettingsManager.instance(context).get());
 			onThemeChanged(activity.getCurrentTheme());
