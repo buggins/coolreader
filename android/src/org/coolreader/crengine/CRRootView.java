@@ -55,8 +55,12 @@ public class CRRootView extends ViewGroup {
 		
 	}
 	
+	private InterfaceTheme lastTheme;
 	public void onThemeChange(InterfaceTheme theme) {
-		createViews();
+		if (lastTheme != theme) {
+			lastTheme = theme;
+			createViews();
+		}
 	}
 	
 	public void onClose() {
@@ -175,13 +179,14 @@ public class CRRootView extends ViewGroup {
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
-				Services.getHistory().getOrLoadRecentBooks(mActivity.getDB(), new CRDBService.RecentBooksLoadingCallback() {
-					@Override
-					public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
-						updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
-						updateRecentBooks(bookList);
-					}
-				});
+				if (Services.getHistory() != null)
+					Services.getHistory().getOrLoadRecentBooks(mActivity.getDB(), new CRDBService.RecentBooksLoadingCallback() {
+						@Override
+						public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
+							updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
+							updateRecentBooks(bookList);
+						}
+					});
 			}
 		});
 	}

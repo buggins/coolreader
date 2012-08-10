@@ -20,14 +20,14 @@ public class ProgressPopup {
 	public void show() {
 		if (popup == null) {
 			L.d("showing progress indicator");
-			popup = new PopupWindow(context);
 	        LayoutInflater inflater = LayoutInflater.from(context);
 	        View content = inflater.inflate(R.layout.network_access_progress, null);
 	        content.measure(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+			popup = new PopupWindow(content.getMeasuredWidth(), content.getMeasuredHeight());
 	        popup.setContentView(content);
 	        popup.setBackgroundDrawable(null);
 	        popup.showAtLocation(parent, Gravity.CENTER, 0, 0);
-	        popup.update(content.getMeasuredWidth(), content.getMeasuredHeight());
+	        //popup.update(content.getMeasuredWidth(), content.getMeasuredHeight());
 	        popup.setOnDismissListener(new OnDismissListener() {
 				@Override
 				public void onDismiss() {
