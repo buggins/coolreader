@@ -9,6 +9,14 @@
 	  android:orientation="vertical"
 	  android:layout_width="fill_parent"
 	  android:layout_height="wrap_content">
+
+	    <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
+	    <LinearLayout
+	    android:id="@+id/linearLayout_focus"
+	    android:focusable="true"
+	    android:focusableInTouchMode="true"
+	    android:layout_width="0px"
+	    android:layout_height="0px"/>
 	    <LinearLayout 
 	        android:id="@+id/base_dlg_button_panel"
             android:orientation="horizontal"
@@ -158,6 +166,7 @@
 		    style="@style/TextAppearance.Widget.EditText"
 	        android:editable="true" 
 	        android:singleLine="true"
+	        android:focusableInTouchMode="false"
 		/>
 	
 	    <TextView 
@@ -179,6 +188,7 @@
 		        android:layout_height="wrap_content"
 		        android:text="Book title" 
 		        style="@style/TextAppearance.Widget.EditText"
+                android:focusableInTouchMode="false"
 		        android:editable="true" 
 		        android:singleLine="true"
 		    />
@@ -215,6 +225,7 @@
                     style="@style/TextAppearance.Widget.EditText"
                     android:editable="true" 
                     android:singleLine="true"
+                    android:focusableInTouchMode="false"
                 />
                 <EditText 
 			        android:id="@+id/book_series_number" 
@@ -225,6 +236,7 @@
 			        style="@style/TextAppearance.Widget.EditText"
 			        android:editable="true" 
 			        android:singleLine="true"
+                    android:focusableInTouchMode="false"
 			    />
 			</TableRow>
 	    </TableLayout>
