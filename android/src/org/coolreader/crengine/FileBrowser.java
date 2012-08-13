@@ -1045,6 +1045,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 								image.setMinimumWidth(coverPageWidth);
 								image.setMaxHeight(coverPageHeight);
 								image.setMaxWidth(coverPageWidth);
+								image.setTag(item);
 							} else {
 								image.setImageDrawable(null);
 								image.setMinimumHeight(0);

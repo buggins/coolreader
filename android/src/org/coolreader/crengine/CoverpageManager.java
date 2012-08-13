@@ -371,8 +371,8 @@ public class CoverpageManager {
 		}
 	}
 
-	private final static int COVERPAGE_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 1000 : 10;
-	private final static int COVERPAGE_MAX_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 3000 : 30;
+	private final static int COVERPAGE_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 1000 : 100;
+	private final static int COVERPAGE_MAX_UPDATE_DELAY = DeviceInfo.EINK_SCREEN ? 3000 : 300;
 	private Runnable lastReadyNotifyTask;
 	private long firstReadyTimestamp;
 	private void notifyBitmapIsReady(final ImageItem file) {
@@ -384,10 +384,10 @@ public class CoverpageManager {
 		Runnable task = new Runnable() {
 			@Override
 			public void run() {
-				if (lastReadyNotifyTask != this && Utils.timeInterval(firstReadyTimestamp) < COVERPAGE_MAX_UPDATE_DELAY) {
-					log.v("skipping update, " + Utils.timeInterval(firstReadyTimestamp));
-					return;
-				}
+//				if (lastReadyNotifyTask != this && Utils.timeInterval(firstReadyTimestamp) < COVERPAGE_MAX_UPDATE_DELAY) {
+//					log.v("skipping update, " + Utils.timeInterval(firstReadyTimestamp));
+//					return;
+//				}
 				ArrayList<ImageItem> list = new ArrayList<ImageItem>();
 				synchronized(LOCK) {
 					for (;;) {
@@ -736,8 +736,10 @@ public class CoverpageManager {
 			if (view.getTag() instanceof CoverpageManager.ImageItem) {
 				CoverpageManager.ImageItem item = (CoverpageManager.ImageItem)view.getTag();
 				for (CoverpageManager.ImageItem v : files)
-					if (v.matches(item))
+					if (v.matches(item)) {
+						log.v("invalidating view for " + item);
 						view.invalidate();
+					}
 			}
 			
 		}
