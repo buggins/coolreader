@@ -11,6 +11,7 @@ public class PositionProperties {
 	public int pageMode; // 1, 2 for page mode, 0 for scroll mode
 	public int charCount;
 	public int imageCount;
+	public String pageText;
 	
 	
 	public PositionProperties(PositionProperties v) {
