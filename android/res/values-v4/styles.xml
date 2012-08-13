@@ -25,7 +25,7 @@
     <style name="ListView">
     </style>
     <style name="ListView.Dark" parent="@style/Theme.Dark">
-        <item name="android:background">@drawable/background_tiled_dark</item>
+        <!--item name="android:background">@drawable/background_tiled_dark</item-->
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
@@ -33,7 +33,7 @@
     </style>
         
     <style name="ListView.Light" parent="@style/Theme.Light">
-        <item name="android:background">@drawable/background_tiled_light</item>
+        <!--item name="android:background">@drawable/background_tiled_light</item-->
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
@@ -48,7 +48,7 @@
     </style>
 
     <style name="ListView.White" parent="@style/Theme.White">
-        <item name="android:background">@android:color/white</item>
+        <!--item name="android:background">@android:color/white</item-->
         <item name="android:scrollbars">vertical</item>
         <item name="android:fadingEdge">vertical</item>
         <item name="android:listSelector">@null</item>
