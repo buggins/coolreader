@@ -44,6 +44,7 @@ public class LitresConnection {
 	public static final String AUTHORS_URL = "http://robot.litres.ru/pages/catalit_persons/";
 	public static final String CATALOG_URL = "http://robot.litres.ru/pages/catalit_browser/";
 	public static final String TRIALS_URL = "http://robot.litres.ru/static/trials/";
+	public static final String P_ID = "8786915";
 	
 	ServiceThread workerThread;
 	

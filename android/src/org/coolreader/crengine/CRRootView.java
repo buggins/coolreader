@@ -91,6 +91,7 @@ public class CRRootView extends ViewGroup {
 			cover.setMinimumWidth(coverWidth);
 			cover.setMaxHeight(coverHeight);
 			cover.setMaxWidth(coverWidth);
+			cover.setTag(item);
 
 			setBookInfoItem(mView, R.id.lbl_book_author, Utils.formatAuthors(item.authors));
 			setBookInfoItem(mView, R.id.lbl_book_title, currentBook.getFileInfo().title);
@@ -127,6 +128,7 @@ public class CRRootView extends ViewGroup {
 			TextView label = (TextView)view.findViewById(R.id.book_name);
 			cover.setMinimumHeight(coverHeight);
 			cover.setMaxHeight(coverHeight);
+			cover.setTag(item);
 			cover.setMaxWidth(coverWidth);
 			if (item.isRecentDir()) {
 				cover.setImageResource(R.drawable.cr3_button_next);
@@ -436,8 +438,8 @@ public class CRRootView extends ViewGroup {
 //					mRecentBooksScroll.getChildAt(i).invalidate();
 //				}
 //				//mRecentBooksScroll.invalidate();
-//				ImageView cover = (ImageView)mView.findViewById(R.id.book_cover);
-//				cover.invalidate();
+				//ImageView cover = (ImageView)mView.findViewById(R.id.book_cover);
+				//cover.invalidate();
 //				//mView.invalidate();
 			}
 		};
@@ -470,6 +472,7 @@ public class CRRootView extends ViewGroup {
 		addView(mView);
 		setFocusable(true);
 		setFocusableInTouchMode(true);
+		requestFocus();
 	}
 
 	@Override
