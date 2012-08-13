@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 
 import org.coolreader.crengine.Settings.Lang;
 
-import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -23,19 +22,21 @@ public class SettingsManager {
 	public static final Logger log = L.create("cr");
 	
 	private static SettingsManager instance;
-	public static SettingsManager instance(Activity activity) {
+	public static SettingsManager instance(BaseActivity activity) {
 		if (instance == null)
 			instance = new SettingsManager(activity);
 		return instance;
 	}
 	
 	private Properties mSettings;
+	private boolean isSmartphone;
 	
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final File defaultSettingsDir;
-	private SettingsManager(Activity activity) {
+	private SettingsManager(BaseActivity activity) {
 	    activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 	    defaultSettingsDir = activity.getDir("settings", Context.MODE_PRIVATE);
+	    isSmartphone = activity.isSmartphone();
 	    mSettings = loadSettings();
 	}
 	
@@ -360,8 +361,8 @@ public class SettingsManager {
 		props.applyDefault(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
 		props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 		
-		props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_TOP);
-		props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_SHORT_SIDE);
+		props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_PAGE);
+		props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, isSmartphone ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
 		props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");
 
 		
