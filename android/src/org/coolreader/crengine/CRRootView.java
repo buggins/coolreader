@@ -180,7 +180,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
-				if (Services.getHistory() != null)
+				if (Services.getHistory() != null && mActivity.getDB() != null)
 					Services.getHistory().getOrLoadRecentBooks(mActivity.getDB(), new CRDBService.RecentBooksLoadingCallback() {
 						@Override
 						public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
@@ -193,12 +193,13 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 	}
 
 	public void refreshOnlineCatalogs() {
-		mActivity.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
-			@Override
-			public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
-				updateOnlineCatalogs(catalogs);
-			}
-		});
+		if (mActivity.getDB() != null)
+			mActivity.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
+				@Override
+				public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
+					updateOnlineCatalogs(catalogs);
+				}
+			});
 	}
 	
 	private void updateOnlineCatalogs(ArrayList<FileInfo> catalogs) {

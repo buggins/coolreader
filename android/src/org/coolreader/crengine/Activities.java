@@ -4,6 +4,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.History.BookInfoLoadedCallack;
 
+import android.R.bool;
 import android.app.Activity;
 import android.content.Intent;
 
@@ -272,13 +273,29 @@ public class Activities {
 			readerActivity.getReaderView().saveSetting(name, value);
 	}
 	
+	private static boolean flgExiting;
+	public static boolean exiting() {
+		boolean result = flgExiting;
+		flgExiting = false;
+		return result;
+	}
+	
 	public static void finish() {
+		log.i("Activities.finish() is called");
+		flgExiting = true;
+		//startActivity(CoolReader.class, "EXIT", "true");
+//		BaseActivity activity = getCurrentActivity();
+//		if (activity != null) {
+//			Intent intent = new Intent(activity.getApplicationContext(), CoolReader.class);
+//			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//			intent.putExtra("EXIT", true);
+//			activity.startActivity(intent);
+//		}
 		if (readerActivity != null)
 			readerActivity.finish();
 		if (browserActivity != null)
 			browserActivity.finish();
 		if (mainActivity != null)
 			mainActivity.finish();
-
 	}
 }

@@ -12,6 +12,7 @@ import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBService.RecentBooksLoadingCallback;
 import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.BookInfoCallback;
 import org.coolreader.plugins.FileInfoCallback;
@@ -19,7 +20,6 @@ import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStoreBookInfo;
 import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
-import org.coolreader.plugins.litres.LitresPlugin;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
@@ -362,7 +362,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		log.e("FileBrowser.init() called");
 		mInitStarted = true;
 		
-		showDirectory( mScanner.mRoot, null );
+		//showDirectory( mScanner.mRoot, null );
 		mListView.setSelection(0);
 	}
 	
@@ -752,6 +752,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		BackgroundThread.ensureGUI();
 		if (fileOrDir != null) {
+			if (fileOrDir.isRootDir()) {
+				Activities.showRootWindow();
+				return;
+			}
 			if (fileOrDir.isOnlineCatalogPluginDir()) {
 				if (fileOrDir.getOnlineCatalogPluginPath() == null) {
 					// root

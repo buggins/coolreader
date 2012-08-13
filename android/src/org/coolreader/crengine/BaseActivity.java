@@ -105,7 +105,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	public CRDBServiceAccessor getDBService() { return mCRDBService; }
-	public CRDBService.LocalBinder getDB() { return mCRDBService.get(); }
+	public CRDBService.LocalBinder getDB() { return mCRDBService != null ? mCRDBService.get() : null; }
 	public SyncServiceAccessor getSyncService() { return mSyncService; }
 	
 	/** Called when the activity is first created. */
@@ -114,6 +114,12 @@ public class BaseActivity extends Activity implements Settings {
     {
 		log.i("BaseActivity.onCreate() entered");
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+    	if (Activities.exiting()) {
+    		log.i("onCreate() - EXIT flag is set: exiting app");
+    		super.onCreate(savedInstanceState);
+   		    finish();
+   		    return;
+    	}
 		super.onCreate(savedInstanceState);
 
 		
