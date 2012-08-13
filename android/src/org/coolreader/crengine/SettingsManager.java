@@ -263,6 +263,7 @@ public class SettingsManager {
             props.setProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
         props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
         props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
+        props.applyDefault(ReaderView.PROP_LANDSCAPE_PAGES, DeviceInfo.ONE_COLUMN_IN_LANDSCAPE ? "0" : "1");
         // autodetect best initial font size based on display resolution
         int screenWidth = displayMetrics.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();
         int fontSize = 20;
@@ -285,6 +286,8 @@ public class SettingsManager {
             hmargin = "25";
             vmargin = "15";
         }
+        if (DeviceInfo.DEF_FONT_SIZE != null)
+        	fontSize = DeviceInfo.DEF_FONT_SIZE;
 
         fixFontSettings(props);
         props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
