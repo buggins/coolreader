@@ -28,6 +28,8 @@ public class DeviceInfo {
 	public final static android.graphics.Bitmap.Config BUFFER_COLOR_FORMAT;
 	public final static String  DEF_FONT_FACE;
 	public final static boolean USE_BITMAP_MEMORY_HACK; // revert volume keys in landscape mode
+	public final static Integer DEF_FONT_SIZE;
+	public final static boolean ONE_COLUMN_IN_LANDSCAPE;
 	
 	// minimal screen backlight level percent for different devices
 	private static final String[] MIN_SCREEN_BRIGHTNESS_DB = {
@@ -92,7 +94,7 @@ public class DeviceInfo {
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.startsWith("PRS-T");
 		EINK_SCREEN = EINK_SONY || EINK_NOOK; // TODO: set to true for eink devices like Nook Touch
 
-		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook");
+		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");
 		
 		NOOK_NAVIGATION_KEYS = EINK_NOOK; // TODO: add autodetect
 		SONY_NAVIGATION_KEYS = EINK_SONY;
@@ -110,6 +112,8 @@ public class DeviceInfo {
 		DEF_FONT_FACE = getSDKLevel() >= ICE_CREAM_SANDWICH ? "Roboto" : "Droid Sans";
 		
 		USE_BITMAP_MEMORY_HACK = getSDKLevel() < ICE_CREAM_SANDWICH;
+		ONE_COLUMN_IN_LANDSCAPE = POCKETBOOK && DEVICE.endsWith("SURFPAD");
+		DEF_FONT_SIZE = POCKETBOOK && DEVICE.endsWith("SURFPAD") ? 18 : null;
 	}
 	
 	private static String getBuildField(String fieldName) {
