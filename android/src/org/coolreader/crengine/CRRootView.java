@@ -19,7 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class CRRootView extends ViewGroup {
+public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 	public static final Logger log = L.create("cr");
 
@@ -91,7 +91,7 @@ public class CRRootView extends ViewGroup {
 			cover.setMinimumWidth(coverWidth);
 			cover.setMaxHeight(coverHeight);
 			cover.setMaxWidth(coverWidth);
-			cover.setTag(item);
+			cover.setTag(new CoverpageManager.ImageItem(item, coverWidth, coverHeight));
 
 			setBookInfoItem(mView, R.id.lbl_book_author, Utils.formatAuthors(item.authors));
 			setBookInfoItem(mView, R.id.lbl_book_title, currentBook.getFileInfo().title);
@@ -128,12 +128,11 @@ public class CRRootView extends ViewGroup {
 			TextView label = (TextView)view.findViewById(R.id.book_name);
 			cover.setMinimumHeight(coverHeight);
 			cover.setMaxHeight(coverHeight);
-			cover.setTag(item);
 			cover.setMaxWidth(coverWidth);
 			if (item.isRecentDir()) {
 				cover.setImageResource(R.drawable.cr3_button_next);
 				if (label != null) {
-					label.setText("");
+					label.setText("More...");
 				}
 				view.setOnClickListener(new OnClickListener() {
 					@Override
@@ -143,6 +142,7 @@ public class CRRootView extends ViewGroup {
 				});
 			} else {
 				cover.setMinimumWidth(coverWidth);
+				cover.setTag(new CoverpageManager.ImageItem(item, coverWidth, coverHeight));
 				cover.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(mActivity.getDB(), item, coverWidth, coverHeight));
 				if (label != null) {
 					String title = item.title;
@@ -430,20 +430,6 @@ public class CRRootView extends ViewGroup {
 
 		refreshRecentBooks();
 
-		coverpageListener =	new CoverpageReadyListener() {
-			@Override
-			public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {
-				CoverpageManager.invalidateChildImages(mView, files);
-//				for (int i=0; i<mRecentBooksScroll.getChildCount(); i++) {
-//					mRecentBooksScroll.getChildAt(i).invalidate();
-//				}
-//				//mRecentBooksScroll.invalidate();
-				//ImageView cover = (ImageView)mView.findViewById(R.id.book_cover);
-				//cover.invalidate();
-//				//mView.invalidate();
-			}
-		};
-		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
 
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
@@ -473,6 +459,19 @@ public class CRRootView extends ViewGroup {
 		setFocusable(true);
 		setFocusableInTouchMode(true);
 		requestFocus();
+	}
+
+	public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {
+		//invalidate();
+		log.d("CRRootView.onCoverpagesReady(" + files + ")");
+		CoverpageManager.invalidateChildImages(mView, files);
+//		for (int i=0; i<mRecentBooksScroll.getChildCount(); i++) {
+//			mRecentBooksScroll.getChildAt(i).invalidate();
+//		}
+//		//mRecentBooksScroll.invalidate();
+		//ImageView cover = (ImageView)mView.findViewById(R.id.book_cover);
+		//cover.invalidate();
+//		//mView.invalidate();
 	}
 
 	@Override

@@ -178,6 +178,7 @@ public class CoolReader extends BaseActivity
 	@Override
 	protected void onPause() {
 		super.onPause();
+		Services.getCoverpageManager().removeCoverpageReadyListener(mFrame);
 	}
 	
 	@Override
@@ -225,6 +226,7 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onStart() version=" + getVersion() + ", fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
 		
+		
 //		BackgroundThread.instance().postGUI(new Runnable() {
 //			public void run() {
 //				// fixing font settings
@@ -243,6 +245,7 @@ public class CoolReader extends BaseActivity
 				Services.getHistory().loadFromDB(getDB(), 200);
 				
 				mFrame = new CRRootView(CoolReader.this);
+				Services.getCoverpageManager().addCoverpageReadyListener(mFrame);
 				setContentView( mFrame );
 				BackgroundThread.instance().setGUI(mFrame);
 			}
