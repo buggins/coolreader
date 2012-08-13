@@ -1134,7 +1134,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? p->_docview->getVisiblePageCount() : 0);
     CRIntField(v,"charCount").set(p->_docview->getCurrentPageCharCount());
     CRIntField(v,"imageCount").set(p->_docview->getCurrentPageImageCount());
-    CRStringField(v,"pageText").set(p->_docview->getPageText());
+    CRStringField(v,"pageText").set(p->_docview->getPageText(false, -1));
 	return obj;
 }
 
