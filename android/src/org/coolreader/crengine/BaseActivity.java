@@ -140,7 +140,9 @@ public class BaseActivity extends Activity implements Settings {
 		} catch ( Exception e ) {
 			log.e("Cannot find field densityDpi, using default value");
 		}
-		
+		float widthInches = m.widthPixels / densityDpi;
+		float heightInches = m.heightPixels / densityDpi;
+		diagonalInches = (float)Math.sqrt(widthInches * widthInches + heightInches * heightInches);
 		
 		log.i("CoolReader.window=" + getWindow());
 		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
@@ -264,7 +266,17 @@ public class BaseActivity extends Activity implements Settings {
 		return densityDpi;
 	}
 	
+	public float getDiagonalInches()
+	{
+		return diagonalInches;
+	}
+	
+	public boolean isSmartphone() {
+		return diagonalInches <= 5.5;
+	}
+	
 	private int densityDpi = 160;
+	private float diagonalInches = 4;
 
 
 
@@ -286,11 +298,7 @@ public class BaseActivity extends Activity implements Settings {
 		return preferredItemHeight;
 	}
 	
-	public void setCurrentTheme(InterfaceTheme theme) {
-		log.i("setCurrentTheme(" + theme + ")");
-		currentTheme = theme;
-		getApplication().setTheme(theme.getThemeId());
-		setTheme(theme.getThemeId());
+	public void updateBackground() {
 		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground, android.R.attr.listPreferredItemHeight});
 		int bgRes = a.getResourceId(0, 0);
 		//int clText = a.getColor(1, 0);
@@ -313,8 +321,13 @@ public class BaseActivity extends Activity implements Settings {
 		a.recycle();
 	}
 
-
-
+	public void setCurrentTheme(InterfaceTheme theme) {
+		log.i("setCurrentTheme(" + theme + ")");
+		currentTheme = theme;
+		getApplication().setTheme(theme.getThemeId());
+		setTheme(theme.getThemeId());
+		updateBackground();
+	}
 
 	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
 	public void applyScreenOrientation( Window wnd )
@@ -853,6 +866,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	public void setContentView(View view) {
 		this.contentView = view;
+		updateBackground();
 		super.setContentView(view);
 	}
 	
