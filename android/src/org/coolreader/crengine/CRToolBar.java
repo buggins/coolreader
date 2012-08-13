@@ -72,7 +72,8 @@ public class CRToolBar extends ViewGroup {
 		this.actions = actions;
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
-		buttonWidth = buttonHeight = preferredItemHeight * 2 / 3 - BUTTON_SPACING * 2 - BAR_SPACING;
+		int sz = (context.isSmartphone() ? preferredItemHeight * 2 / 3 : preferredItemHeight) - BUTTON_SPACING * 2 - BAR_SPACING;
+		buttonWidth = buttonHeight = sz;
 		//int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);

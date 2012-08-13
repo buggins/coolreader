@@ -36,8 +36,8 @@ public class CoverpageManager {
 		}
 		public boolean sizeMatches(ImageItem item) {
 			return (maxWidth == item.maxWidth && maxHeight == item.maxHeight)
-					|| (item.maxHeight <= -1 && item.maxWidth <= 1)
-					|| (maxHeight <= -1 && maxWidth <= 1);
+					|| (item.maxHeight <= -1 && item.maxWidth <= -1)
+					|| (maxHeight <= -1 && maxWidth <= -1);
 		}
 		public boolean matches(ImageItem item) {
 			return fileMatches(item) && sizeMatches(item);
@@ -342,7 +342,8 @@ public class CoverpageManager {
 		public boolean addOnTop(ImageItem file) {
 			int index = indexOf(file);
 			if (index >= 0) {
-				moveOnTop(index);
+				if (index > 0)
+					moveOnTop(index);
 				return false;
 			}
 			list.add(0, file);
@@ -622,6 +623,7 @@ public class CoverpageManager {
 				synchronized (mCache) {
 					Bitmap bitmap = mCache.getBitmap(book);
 					if (bitmap != null) {
+						log.d("Image for " + book + " is found in cache, drawing...");
 						Rect dst = getBestCoverSize(rc, bitmap.getWidth(), bitmap.getHeight());
 						canvas.drawBitmap(bitmap, null, dst, defPaint);
 						if (shadowSizePercent > 0) {
@@ -631,6 +633,7 @@ public class CoverpageManager {
 						return;
 					}
 				}
+				log.d("Image for " + book + " is not found in cache, scheduling generation...");
 				queueForDrawing(db, book);
 				//if (h * bestWidth / bestHeight > w)
 				//canvas.drawRect(rc, defPaint);
