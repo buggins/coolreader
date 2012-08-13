@@ -451,7 +451,7 @@ public class Scanner extends FileInfoChangeSource {
 		else if (FileInfo.SEARCH_SHORTCUT_TAG.equals(path))
 			return createSearchRoot();
 		else if (FileInfo.RECENT_DIR_TAG.equals(path))
-			return createRecentRoot();
+			return getRecentDir();
 		else if (FileInfo.AUTHORS_TAG.equals(path))
 			return createAuthorsRoot();
 		else if (FileInfo.TITLE_TAG.equals(path))

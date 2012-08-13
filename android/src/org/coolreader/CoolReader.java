@@ -48,11 +48,21 @@ public class CoolReader extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+//    	Intent intent = getIntent();
+//    	if (intent != null && intent.getBooleanExtra("EXIT", false)) {
+//    		log.i("CoolReader.onCreate() - EXIT extra parameter found: exiting app");
+//   		    finish();
+//   		    return;
+//    	}
+    	
+    
     	Activities.setMain(this);
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 		
     	isFirstStart = true;
+    	
+
 		
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
     	
@@ -102,7 +112,8 @@ public class CoolReader extends BaseActivity
 	protected void onDestroy() {
 
 		log.i("CoolReader.onDestroy() entered");
-		mFrame.onClose();
+		if (mFrame != null)
+			mFrame.onClose();
 		mDestroyed = true;
 		
 		//if ( mReaderView!=null )
