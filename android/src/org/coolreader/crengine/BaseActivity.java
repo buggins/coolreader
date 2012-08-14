@@ -312,24 +312,24 @@ public class BaseActivity extends Activity implements Settings {
 		//int clForeground = a.getColor(3, 0);
 		preferredItemHeight = a.getDimensionPixelSize(5, 36);
 		//View contentView = getContentView();
-//		if (contentView != null) {
-//			if (bgRes != 0) {
-//				//Drawable d = getResources().getDrawable(bgRes);
-//				//log.v("Setting background resource " + d.getIntrinsicWidth() + "x" + d.getIntrinsicHeight());
-//				//contentView.setBackgroundResource(null);
-//				contentView.setBackgroundResource(bgRes);
-//				getWindow().setBackgroundDrawableResource(bgRes);//Drawable(d);
-//				//getWindow().setBackgroundDrawable(d);
-//			} else if (clBackground != 0) {
-//				//contentView.setBackgroundColor(clBackground);
-//				getWindow().setBackgroundDrawable(Utils.solidColorDrawable(clBackground));
-//			}
-//		} else {
+		if (contentView != null) {
+			if (bgRes != 0) {
+				//Drawable d = getResources().getDrawable(bgRes);
+				//log.v("Setting background resource " + d.getIntrinsicWidth() + "x" + d.getIntrinsicHeight());
+				//contentView.setBackgroundResource(null);
+				contentView.setBackgroundResource(bgRes);
+				//getWindow().setBackgroundDrawableResource(bgRes);//Drawable(d);
+				//getWindow().setBackgroundDrawable(d);
+			} else if (clBackground != 0) {
+				contentView.setBackgroundColor(clBackground);
+				//getWindow().setBackgroundDrawable(Utils.solidColorDrawable(clBackground));
+			}
+		} else {
 //			if (bgRes != 0)
 //				getWindow().setBackgroundDrawableResource(bgRes);
 //			else if (clBackground != 0)
 //				getWindow().setBackgroundDrawable(Utils.solidColorDrawable(clBackground));
-//		}
+		}
 		a.recycle();
 	}
 
@@ -879,7 +879,8 @@ public class BaseActivity extends Activity implements Settings {
 	public void setContentView(View view) {
 		this.contentView = view;
 		super.setContentView(view);
-		updateBackground();
+		//updateBackground();
+		setCurrentTheme(currentTheme);
 	}
 	
 
