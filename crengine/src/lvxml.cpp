@@ -1233,11 +1233,11 @@ public:
         return get(index - first_line_index);
     }
     // remove lines from head of queue
-    void RemoveLines( int lineCount )
+    void RemoveLines(int lineCount)
     {
-        if ( lineCount>length() )
+        if ((unsigned)lineCount > (unsigned)length())
             lineCount = length();
-        erase( 0, lineCount );
+        erase(0, lineCount);
         first_line_index += lineCount;
     }
     // read lines and place to tail of queue
