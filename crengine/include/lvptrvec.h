@@ -114,7 +114,7 @@ public:
     /// removes item from vector by index
     T * remove( int pos )
     {
-        if ( pos < 0 || pos > _count )
+        if (pos < 0 || (unsigned)pos > (unsigned)_count)
             crFatalError();
         int i;
         T * item = _list[pos];
