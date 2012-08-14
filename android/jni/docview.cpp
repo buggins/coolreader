@@ -1110,7 +1110,8 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
 	DocViewCallback callback( _env, p->_docview, _this );
     lString16 str = env.fromJavaString(_path);
     ldomXPointer bm;
-    bool useCurPos = false; // use current Y position for scroll view mode  
+    bool useCurPos = false; // use current Y position for scroll view mode
+    p->_docview->checkPos();
     if ( !str.empty() ) {
         bm = p->_docview->getDocument()->createXPointer(str);
     } else {

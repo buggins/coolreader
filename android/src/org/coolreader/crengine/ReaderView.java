@@ -2644,7 +2644,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		final FileInfo fileInfo = mBookInfo.getFileInfo();
 		if (fileInfo == null)
 			return;
-		final Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
+		final Bookmark bmk = doc.getCurrentPageBookmark();
 		final PositionProperties props = doc.getPositionProps(bmk.getStartPos());
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
@@ -5362,6 +5362,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		preparePageImage(0);
     		hideProgress();
     		drawPage();
+    		updateCurrentPositionStatus();
     	}
     }
     

@@ -127,7 +127,7 @@ public class ReaderActivity extends BaseActivity {
 			requestLayout();
 		}
 		
-		public void updateSettings(Properties props) {
+		public boolean updateSettings(Properties props) {
 			int newTextSize = props.getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
 			boolean needRelayout = (textSize != newTextSize);
 			this.textSize = newTextSize;
@@ -143,9 +143,23 @@ public class ReaderActivity extends BaseActivity {
 			indicator.setColor(this.color);
 			lblTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
 			lblPosition.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-			if (needRelayout)
-				requestLayout();
+			if (needRelayout) {
+				log.d("changing status bar layout");
+				lblPosition.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+				lblTitle.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+				content.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+				content.forceLayout();
+				forceLayout();
+//				content.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+//				measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+//				content.forceLayout();
+//				requestLayout();
+//				removeAllViews();
+//				addView(content);
+//				addView(indicator);
+			}
 			invalidate();
+			return needRelayout;
 		}
 		
 		public StatusBar(ReaderActivity context) {
@@ -191,6 +205,12 @@ public class ReaderActivity extends BaseActivity {
 //				invalidate();
 		}
 
+		@Override
+		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			content.measure(widthMeasureSpec, heightMeasureSpec);
+			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		}
+		
 		private static boolean empty(String s) {
 			return s == null || s.length() == 0;
 		}
@@ -221,14 +241,18 @@ public class ReaderActivity extends BaseActivity {
 					append(title, book.getFileNameToDisplay(), null);
 				if (props != null) {
 					if (showPageNumber)
-						append(pos, props.pageNumber + "/" + props.pageCount, " ");
-				}
-				if (position != null) {
+						append(pos, (props.pageNumber + 1) + "/" + props.pageCount, " ");
 					if (showPosPercent) {
-						String percent = position.getPercent() > 0 ? Utils.formatPercent(position.getPercent()) : "0%";
+						String percent = props.getPercent() > 0 ? Utils.formatPercent(props.getPercent()) : "0%";
 						append(pos, percent, " ");
 					}
 				}
+//				if (position != null) {
+//					if (showPosPercent) {
+//						String percent = position.getPercent() > 0 ? Utils.formatPercent(position.getPercent()) : "0%";
+//						append(pos, percent, " ");
+//					}
+//				}
 			}
 			if (showTime && fullscreen) {
 				append(pos, Utils.formatTime(System.currentTimeMillis()), " ");
@@ -251,8 +275,11 @@ public class ReaderActivity extends BaseActivity {
 				indicator.setPosition(position.getPercent());
 			else
 				indicator.setPosition(0);
-			if (updated && isShown())
+			if (updated && isShown()) {
+				log.d("changing status bar layout");
+				measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
 				forceLayout();
+			}
 		}
 	
 	}
