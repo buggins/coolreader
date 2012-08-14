@@ -130,7 +130,7 @@ public class ReaderActivity extends BaseActivity {
 		public void updateSettings(Properties props) {
 			int newTextSize = props.getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
 			boolean needRelayout = (textSize != newTextSize);
-			this.textSize = props.getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
+			this.textSize = newTextSize;
 			showBookTitle = props.getBool(PROP_SHOW_TITLE, true);
 			showBattery = true; //props.getBool(PROP_SHOW_BATTERY, true);
 			showTime = true; //props.getBool(PROP_SHOW_TIME, true);
@@ -141,6 +141,11 @@ public class ReaderActivity extends BaseActivity {
 			lblTitle.setTextColor(0xFF000000 | color);
 			lblPosition.setTextColor(0xFF000000 | color);
 			indicator.setColor(this.color);
+			lblTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+			lblPosition.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+			if (needRelayout)
+				requestLayout();
+			invalidate();
 		}
 		
 		public StatusBar(ReaderActivity context) {
@@ -290,6 +295,7 @@ public class ReaderActivity extends BaseActivity {
 		}
 		
 		public void updateSettings(Properties settings) {
+			log.d("ReaderActivity.updateSettings()");
 			nightMode = settings.getBool(PROP_NIGHT_MODE, false);
 			statusBarLocation = settings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP);
 			toolbarLocation = settings.getInt(PROP_TOOLBAR_LOCATION, VIEWER_TOOLBAR_SHORT_SIDE);
