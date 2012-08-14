@@ -1051,6 +1051,22 @@ public class BaseActivity extends Activity implements Settings {
 		dlg.show();
 	}
 
+	public void askConfirmation(String question, final Runnable action) {
+		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
+		dlg.setTitle(question);
+		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+				action.run();
+			}
+		});
+		dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+				// do nothing
+			}
+		});
+		dlg.show();
+	}
+
 	public void directoryUpdated(FileInfo dir) {
 		// override it to use
 	}

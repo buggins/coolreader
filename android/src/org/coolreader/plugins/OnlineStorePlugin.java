@@ -17,4 +17,5 @@ public interface OnlineStorePlugin {
 	void getNewBooks(AsyncOperationControl control, FileInfo dir, FileInfoCallback callback);
 	void getBooksByAuthor(AsyncOperationControl control, FileInfo dir, String authorId, FileInfoCallback callback);
 	void getAuthorsByPrefix(AsyncOperationControl control, FileInfo dir, String prefix, FileInfoCallback callback);
+	void purchaseBook(AsyncOperationControl control, String bookId, PurchaseBookCallback callback);
 }

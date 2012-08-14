@@ -44,6 +44,7 @@ public class LitresConnection {
 	public static final String AUTHORS_URL = "http://robot.litres.ru/pages/catalit_persons/";
 	public static final String CATALOG_URL = "http://robot.litres.ru/pages/catalit_browser/";
 	public static final String TRIALS_URL = "http://robot.litres.ru/static/trials/";
+	public static final String PURCHASE_URL = "http://robot.litres.ru/pages/purchase_book/";
 	public static final String P_ID = "8786915";
 	
 	ServiceThread workerThread;
@@ -526,6 +527,11 @@ public class LitresConnection {
 	private String lastLogin;
 	private String lastPwd;
 	private LitresAuthInfo authInfo;
+	
+	public final static long AUTHORIZATION_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+	public boolean authorizationValid() {
+		return lastSid != null && (System.currentTimeMillis() < lastAuthorizationTimestamp + AUTHORIZATION_TIMEOUT);
+	}
 
 	public String getLogin() {
 		return lastLogin;
@@ -618,6 +624,46 @@ public class LitresConnection {
 		}, resultHandler);
 	}
 
+	public static class PurchaseStatus extends AsyncResponse {
+		public String bookId;
+		public double newBalance;
+	}
+
+	public void purchaseBook(final String bookId, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("art", bookId);
+		params.put("sid", lastSid);
+		params.put("lfrom", P_ID);
+		sendRequest(PURCHASE_URL, params, new ResponseHandler() {
+			PurchaseStatus result = new PurchaseStatus();
+			@Override
+			public AsyncResponse getResponse() {
+				AsyncResponse res =  super.getResponse();
+				if (res != null)
+					return res;
+				if (result.bookId != null)
+					return result;
+				return new ErrorResponse(0, "Unknown purchase error");
+			}
+
+			@Override
+			public void startElement(String uri, String localName,
+					String qName, Attributes attributes) throws SAXException {
+				if ("catalit-purchase-ok".equals(localName)) {
+					result.bookId = attributes.getValue("art");
+					result.newBalance = stringToDouble(attributes.getValue("account"), 0.0);
+				} else if ("catalit-purchase-failed".equals(localName)) {
+					int errorCode = stringToInt(attributes.getValue("error"), 0);
+					String comment = attributes.getValue("comment");
+					if (comment == null)
+						comment = attributes.getValue("coment"); // spelling error in API description
+					onError(errorCode, comment);
+				}
+					
+			}
+		}, resultHandler);
+	}
+	
 	public static int stringToInt(String v, int defValue) {
 		if (v == null || v.length() == 0)
 			return defValue;

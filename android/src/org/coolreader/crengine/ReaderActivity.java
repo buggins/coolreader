@@ -128,6 +128,8 @@ public class ReaderActivity extends BaseActivity {
 		}
 		
 		public void updateSettings(Properties props) {
+			int newTextSize = props.getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
+			boolean needRelayout = (textSize != newTextSize);
 			this.textSize = props.getInt(Settings.PROP_STATUS_FONT_SIZE, 16);
 			showBookTitle = props.getBool(PROP_SHOW_TITLE, true);
 			showBattery = true; //props.getBool(PROP_SHOW_BATTERY, true);

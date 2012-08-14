@@ -122,12 +122,21 @@ public class OnlineStoreWrapper {
 			loadBookInfoSkipAuth(control, bookId, callback);
 		return control;
 	}
+
+	public AsyncOperationControl purchaseBook(final String bookId, final PurchaseBookCallback callback) {
+		final AsyncOperationControl control = new AsyncOperationControl();
+		plugin.purchaseBook(control, bookId, callback);
+		return control;
+	}
+	
 	public String getLogin() {
 		return plugin.getLogin();
 	}
+
 	public String getPassword() {
 		return plugin.getPassword();
 	}
+
 	public String getDescription() {
 		return plugin.getDescription();
 	}
