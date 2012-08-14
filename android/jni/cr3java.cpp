@@ -164,15 +164,15 @@ jbyteArray CRJNIEnv::streamToJByteArray( LVStreamRef stream )
 {
 	if ( stream.isNull() )
 		return NULL;
-	int sz = (int)stream->GetSize();
+	unsigned sz = stream->GetSize();
 	if ( sz<10 || sz>2000000 )
 		return NULL;
     jbyteArray array = env->NewByteArray(sz); 
-    lUInt8 * array_data = (lUInt8 *)env->GetByteArrayElements(array, 0);\
+    lUInt8 * array_data = (lUInt8 *)env->GetByteArrayElements(array, 0);
     lvsize_t bytesRead = 0;
     stream->Read(array_data, sz, &bytesRead);
    	env->ReleaseByteArrayElements(array, (jbyte*)array_data, 0);
-    if ( bytesRead!=sz )
+    if (bytesRead != sz)
     	return NULL;
     return array; 
 }

@@ -13,7 +13,7 @@ CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH -DFT2_BUILD_LIBRARY=1
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
      -DLDOM_USE_OWN_MEM_MAN=0 \
      -DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1 \
-     -DMAX_IMAGE_SCALE_MUL=2
+     -DMAX_IMAGE_SCALE_MUL=2 -DDEBUG=1 -D_DEBUG=1
 
 CR3_ROOT = $(LOCAL_PATH)/../..
 
@@ -26,7 +26,7 @@ LOCAL_C_INCLUDES := \
     -I $(CR3_ROOT)/thirdparty/chmlib/src
 
 
-LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES)
+LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES) -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Werror -Wall
 
 
 CRENGINE_SRC_FILES := \
