@@ -14,6 +14,9 @@ import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStoreBookInfo;
 import org.coolreader.plugins.OnlineStoreBooks;
 import org.coolreader.plugins.OnlineStorePlugin;
+import org.coolreader.plugins.PurchaseBookCallback;
+import org.coolreader.plugins.litres.LitresConnection.LitresAuthInfo;
+import org.coolreader.plugins.litres.LitresConnection.PurchaseStatus;
 import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
 
 import android.content.SharedPreferences;
@@ -331,4 +334,45 @@ public class LitresPlugin implements OnlineStorePlugin {
 			}
 		});
 	}
+
+	protected void purchaseBookNoAuth(final AsyncOperationControl control, final String bookId, final PurchaseBookCallback callback) {
+		connection.purchaseBook(bookId, new ResultHandler() {
+			@Override
+			public void onResponse(AsyncResponse response) {
+				control.finished();
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof PurchaseStatus) {
+					PurchaseStatus result = (PurchaseStatus)response;
+					callback.onBookPurchased(result.bookId, result.newBalance);
+				}
+			}
+		});
+	}
+
+	@Override
+	public void purchaseBook(final AsyncOperationControl control, final String bookId, final PurchaseBookCallback callback) {
+		if (connection.getLogin() == null) {
+			callback.onError(0, "Not logged in");
+			return;
+		}
+		if (!connection.authorizationValid()) {
+			connection.authorize(null, null, new ResultHandler() {
+				@Override
+				public void onResponse(AsyncResponse response) {
+					control.finished();
+					if (response instanceof ErrorResponse) {
+						ErrorResponse error = (ErrorResponse)response;
+						callback.onError(error.errorCode, error.errorMessage);
+					} else if (response instanceof LitresAuthInfo) {
+						purchaseBookNoAuth(control, bookId, callback);
+					}
+				}
+			});
+		} else {
+			purchaseBookNoAuth(control, bookId, callback);
+		}
+	}
+
 }

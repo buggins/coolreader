@@ -2,7 +2,11 @@ package org.coolreader.crengine;
 
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
+import org.coolreader.plugins.BookInfoCallback;
 import org.coolreader.plugins.OnlineStoreBookInfo;
+import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.plugins.OnlineStoreWrapper;
+import org.coolreader.plugins.PurchaseBookCallback;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -25,6 +29,10 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 	private FileInfo mFileInfo;
 	private LayoutInflater mInflater;
 	private int mWindowSize;
+	private OnlineStoreWrapper mPlugin;
+	
+	private ViewGroup mContentView;
+	
 	public OnlineStoreBookInfoDialog(BaseActivity activity, OnlineStoreBookInfo book, FileInfo fileInfo)
 	{
 		super(activity, null, false, false);
@@ -34,6 +42,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		this.mActivity = activity;
 		this.mBookInfo = book;
 		this.mFileInfo = fileInfo;
+		this.mPlugin = OnlineStorePluginManager.getPlugin(fileInfo.getOnlineCatalogPluginPackage());
 	}
 
 	@Override
@@ -64,6 +73,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 
         mInflater = LayoutInflater.from(getContext());
         ViewGroup view = (ViewGroup)mInflater.inflate(R.layout.online_store_book_info_dialog, null);
+        mContentView = view;
         
         ImageButton btnBack = (ImageButton)view.findViewById(R.id.base_dlg_btn_back);
         btnBack.setOnClickListener(new View.OnClickListener() {
@@ -117,6 +127,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         	rbBookRating.setRating(mBookInfo.book.rating / 2.0f);
         else
         	rbBookRating.setVisibility(View.GONE);
+		progress = new ProgressPopup(mActivity, mContentView);
         updateInfo();
         setView(view);
 	}
@@ -156,7 +167,66 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 	}
 
 	protected void onBuyButtonClick() {
-		mActivity.showToast("Buy button pressed");
+		if (mBookInfo.isLoggedIn) {
+			if (mBookInfo.isPurchased) {
+				// TODO: download
+			} else {
+				// buy
+				mActivity.askConfirmation("Price is " + mBookInfo.book.price + " Do you want to purchase this book?", new Runnable() {
+					@Override
+					public void run() {
+						String bookId = mFileInfo.getOnlineCatalogPluginId();
+						progress.show();
+						mPlugin.purchaseBook(bookId, new PurchaseBookCallback() {
+							@Override
+							public void onError(int errorCode, String errorMessage) {
+								progress.hide();
+								mActivity.showToast("Purchase error: " + errorMessage);
+							}
+							
+							@Override
+							public void onBookPurchased(String bookId, double newAccountBalance) {
+								progress.hide();
+								mBookInfo.accountBalance = newAccountBalance;
+								mBookInfo.isPurchased = true;
+								updateInfo();
+								mActivity.showToast("Book has been purchased. New balance: " + newAccountBalance);
+							}
+						});
+					}
+				});
+			}
+		} else {
+			// LOGIN
+			OnlineStoreLoginDialog dlg = new OnlineStoreLoginDialog(mActivity, mPlugin, new Runnable() {
+				@Override
+				public void run() {
+					reloadBookInfo();
+				}
+			});
+			dlg.show();
+		}
+	}
+	
+	private ProgressPopup progress;
+	
+	private void reloadBookInfo() {
+		String bookId = mFileInfo.getOnlineCatalogPluginId();
+		progress.show();
+		mPlugin.loadBookInfo(bookId, new BookInfoCallback() {
+			@Override
+			public void onError(int errorCode, String errorMessage) {
+				progress.hide();
+				mActivity.showToast("Error while loading book info");
+			}
+			
+			@Override
+			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
+				progress.hide();
+				mBookInfo = bookInfo;
+				updateInfo();
+			}
+		});
 	}
 	
 	protected void onPreviewButtonClick() {

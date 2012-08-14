@@ -74,20 +74,26 @@ public class OnlineStoreLoginDialog extends BaseDialog {
         edPassword.setText(mPlugin.getPassword());
 		
         setView(view);
+		progress = new ProgressPopup(mActivity, view);
 	}
+	
+	private ProgressPopup progress;
 	
 	@Override
 	protected void onPositiveButtonClick() {
 		super.onPositiveButtonClick();
 		String login = edLogin.getText().toString();
 		String password = edPassword.getText().toString();
+		progress.show();
 		mPlugin.authenticate(login, password, new AuthenticationCallback() {
 			@Override
 			public void onError(int errorCode, String errorMessage) {
+				progress.hide();
 				mActivity.showToast("Cannot login: " + errorMessage);
 			}
 			@Override
 			public void onSuccess() {
+				progress.hide();
 				mActivity.showToast("Successful login");
 				mOnLoginHandler.run();
 			}
