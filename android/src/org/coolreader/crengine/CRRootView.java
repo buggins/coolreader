@@ -204,7 +204,10 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 	
 	private void updateOnlineCatalogs(ArrayList<FileInfo> catalogs) {
 		catalogs.add(0, Services.getScanner().createOnlineLibraryPluginItem("org.coolreader.plugins.litres", "LitRes"));
-		catalogs.add(Services.getScanner().createOPDSRoot());
+		FileInfo opdsRoot = Services.getScanner().getOPDSRoot();
+		if (opdsRoot.dirCount() == 0)
+			opdsRoot.addItems(catalogs);
+		catalogs.add(opdsRoot);
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		mOnlineCatalogsScroll.removeAllViews();
 		for (final FileInfo item : catalogs) {
