@@ -407,12 +407,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		BookSearchDialog dlg = new BookSearchDialog( mActivity, new BookSearchDialog.SearchCallback() {
 			@Override
 			public void done(FileInfo[] results) {
-				if ( results!=null ) {
-					if ( results.length==0 ) {
+				if (results != null) {
+					if (results.length == 0) {
 						mActivity.showToast(R.string.dlg_book_search_not_found);
 					} else {
-						showSearchResult( results );
+						showSearchResult(results);
 					}
+				} else {
+					if (currDirectory == null || currDirectory.isRootDir())
+						Activities.showRootWindow();
 				}
 			}
 		});
