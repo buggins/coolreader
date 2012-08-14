@@ -295,14 +295,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 	lString16 authors = env.fromJavaString(_authors);
 	lString16 seriesName = env.fromJavaString(_seriesName);
 	LVStreamRef stream;
-	LVImageSourceRef image;
-	if (_data != NULL && _env->GetArrayLength(_data) > 0) {
-		stream = env.jbyteArrayToStream(_data);
-		if (!stream.isNull())
-			image = LVCreateStreamImageSource(stream);
-	}
 	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(_env, bitmap);
 	if (drawbuf != NULL) {
+		LVImageSourceRef image;
+		if (_data != NULL && _env->GetArrayLength(_data) > 0) {
+			stream = env.jbyteArrayToStream(_data);
+			if (!stream.isNull())
+				image = LVCreateStreamImageSource(stream);
+		}
 
 		int factor = 1;
 		int dx = drawbuf->GetWidth();
@@ -327,9 +327,11 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 		if (bpp >= 16) {
 			// native color resolution
 			LVDrawBookCover(*drawbuf2, image, fontFace, title, authors, seriesName, seriesNumber);
+			image.Clear();
 		} else {
 			LVGrayDrawBuf grayBuf(drawbuf2->GetWidth(), drawbuf2->GetHeight(), bpp);
 			LVDrawBookCover(grayBuf, image, fontFace, title, authors, seriesName, seriesNumber);
+			image.Clear();
 			grayBuf.DrawTo(drawbuf2, 0, 0, 0, NULL);
 		}
 
