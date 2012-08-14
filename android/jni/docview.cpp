@@ -669,7 +669,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_destroyInternal
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
   (JNIEnv * env, jobject view, jobject bitmap, jint bpp)
 {
-    CRLog::trace("getPageImageInternal entered");
+    CRLog::trace("getPageImageInternal entered : bpp=%d", bpp);
     DocViewNative * p = getNative(env, view);
     //CRLog::info("Initialize callback");
 	DocViewCallback callback( env, p->_docview, view );	

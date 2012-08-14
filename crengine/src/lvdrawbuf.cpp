@@ -17,6 +17,13 @@
 #include <string.h>
 #include "../include/lvdrawbuf.h"
 
+#define GUARD_BYTE 0xa5
+#define CHECK_GUARD_BYTE \
+	{ \
+        if (_bpp != 1 && _bpp != 2 && _bpp !=3 && _bpp != 4 && _bpp != 8 && _bpp != 16 && _bpp != 32) crFatalError(-5, "wrong bpp"); \
+        if (_ownData && _data[_rowsize * _dy] != GUARD_BYTE) crFatalError(-5, "corrupted bitmap buffer"); \
+    }
+
 void LVDrawBuf::RoundRect( int x0, int y0, int x1, int y1, int borderWidth, int radius, lUInt32 color, int cornerFlags )
 {
     FillRect( x0 + ((cornerFlags&1)?radius:0), y0, x1-1-((cornerFlags&2)?radius:0), y0+borderWidth, color );
@@ -843,25 +850,24 @@ void LVGrayDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
                 line += _rowsize;
             }
         }
+	CHECK_GUARD_BYTE;
 }
-
 void LVGrayDrawBuf::Resize( int dx, int dy )
 {
+    if (!_ownData) {
+        _data = NULL;
+        _ownData = false;
+    } else if (_data) {
+    	CHECK_GUARD_BYTE;
+        free(_data);
+        _data = NULL;
+	}
     _dx = dx;
     _dy = dy;
     _rowsize = _bpp<=2 ? (_dx * _bpp + 7) / 8 : _dx;
-    if ( !_ownData ) {
-        _data = NULL;
-        _ownData = false;
-    }
-    if ( dx && dy )
-    {
-        _data = cr_realloc(_data, _rowsize * _dy);
-    }
-    else if (_data)
-    {
-        free(_data);
-        _data = NULL;
+    if (dx > 0 && dy > 0) {
+        _data = (unsigned char *)malloc(_rowsize * _dy + 1);
+        _data[_rowsize * _dy] = GUARD_BYTE;
     }
     Clear(0);
     SetClipRect( NULL );
@@ -907,16 +913,20 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp, void * auxdata )
         _data = (lUInt8 *) auxdata;
         _ownData = false;
     } else if (_dx && _dy) {
-        _data = (lUInt8 *) malloc(_rowsize * _dy);
+        _data = (lUInt8 *) malloc(_rowsize * _dy + 1);
+        _data[_rowsize * _dy] = GUARD_BYTE;
         Clear(0);
     }
     SetClipRect( NULL );
+    CHECK_GUARD_BYTE;
 }
 
 LVGrayDrawBuf::~LVGrayDrawBuf()
 {
-    if (_data && _ownData )
-        free( _data );
+    if (_data && _ownData ) {
+    	CHECK_GUARD_BYTE;
+    	free( _data );
+    }
 }
 
 void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * )
@@ -1063,6 +1073,7 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
         dst = dstline;
         shift = shift0;
     }
+	CHECK_GUARD_BYTE;
 }
 
 void LVBaseDrawBuf::SetClipRect( const lvRect * clipRect )
@@ -1145,6 +1156,7 @@ void LVGrayDrawBuf::ConvertToBitmap(bool flgDither)
     _data = bitmap;
     _bpp = 1;
     _rowsize = (_dx+7)/8;
+	CHECK_GUARD_BYTE;
 }
 
 //=======================================================
@@ -1877,6 +1889,7 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
             }
         }
     }
+	CHECK_GUARD_BYTE;
 }
 
 /// draws buffer content to another buffer doing color conversion if necessary
@@ -2024,6 +2037,8 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
     int srcdx = src->GetWidth();
     int srcdy = src->GetHeight();
     bool linearInterpolation = (srcdx <= dx || srcdy <= dy);
+    //CRLog::trace("LVGrayDrawBuf::DrawRescaled bpp=%d %dx%d srcbpp=%d (%d,%d) (%d,%d)", _bpp, GetWidth(), GetHeight(), src->GetBitsPerPixel(), x, y, dx, dy);
+	CHECK_GUARD_BYTE;
     for (int yy=0; yy<dy; yy++)
     {
         if (y+yy >= clip.top && y+yy < clip.bottom)
@@ -2062,6 +2077,14 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                         }
                     }
                 }
+#if 1
+            	{
+            		if (_ownData && _data[_rowsize * _dy] != GUARD_BYTE) {
+            			CRLog::error("lin interpolation, corrupted buffer, yy=%d of %d", yy, dy);
+            			crFatalError(-5, "corrupted bitmap buffer");
+            		}
+            	}
+#endif
             } else {
                 // area average
                 lvRect srcRect;
@@ -2100,9 +2123,18 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                         }
                     }
                 }
+#if 1
+                {
+            		if (_ownData && _data[_rowsize * _dy] != GUARD_BYTE) {
+            			CRLog::error("area avg, corrupted buffer, yy=%d of %d", yy, dy);
+            			crFatalError(-5, "corrupted bitmap buffer");
+            		}
+            	}
+#endif
             }
         }
     }
+	CHECK_GUARD_BYTE;
 }
 
 
