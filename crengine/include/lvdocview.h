@@ -524,8 +524,6 @@ protected:
     int getNextPageOffset();
     /// returns document offset for previous page
     int getPrevPageOffset();
-    /// ensure current position is set to current bookmark value
-    void checkPos();
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
     /// set status bar and clock mode
@@ -537,6 +535,8 @@ protected:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+    /// ensure current position is set to current bookmark value
+    void checkPos();
     LVFontRef getBatteryFont() { return m_batteryFont; }
     void setBatteryFont( LVFontRef font ) { m_batteryFont=font; }
 

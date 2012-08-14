@@ -31,6 +31,17 @@ public class PositionProperties {
 		
 	}
 	
+	public int getPercent() {
+		if (fullHeight - pageHeight <= 0)
+			return 0;
+		int p = 10000 * y / (fullHeight - pageHeight);
+		if (p < 0)
+			p = 0;
+		if (p > 10000)
+			p = 10000;
+		return p;
+	}
+	
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
