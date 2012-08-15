@@ -343,6 +343,7 @@ public class CRToolBar extends ViewGroup {
 		popup.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
 		popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
 		popup.setFocusable(true);
+		popup.setFocusable(true);
 		popup.setTouchable(true);
 		popup.setOutsideTouchable(true);
 		popup.setContentView(tb);
