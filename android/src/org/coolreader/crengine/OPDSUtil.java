@@ -565,7 +565,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				ext = fileName.substring(fileName.lastIndexOf(".")+1);
 				fileName = fileName.substring(0, fileName.lastIndexOf("."));
 			}
-			fileName = transcribeFileName( fileName );
+			fileName = Utils.transcribeFileName( fileName );
 			if ( fmt!=null ) {
 				if ( fmt==DocumentFormat.FB2 && isZip )
 					ext = ".fb2.zip";
@@ -876,7 +876,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		return task;
 	}
 
-	private static class SubstTable {
+	static class SubstTable {
 		private final int startChar;
 		private final String[] replacements;
 		public SubstTable( int startChar, String[] replacements ) {
@@ -889,32 +889,6 @@ xml:base="http://lib.ololo.cc/opds/">
 		String get( char ch ) {
 			return (ch>=startChar && ch<startChar + replacements.length) ? replacements[ch - startChar] : "";
 		}
-	}
-	
-	private final static SubstTable[] substTables = { 
-		new SubstTable(0x430, new String[]{"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "c", "ch", "sh", "sch", "'", "y", "i", "e", "yu", "ya"}),
-		new SubstTable(0x410, new String[]{"A", "B", "V", "G", "D", "E", "Zh", "Z", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "H", "C", "Ch", "Sh", "Sch", "'", "Y", "I", "E", "Yu", "Ya"}),
-	};
-	
-	public static String transcribeFileName( String fileName ) {
-		StringBuilder buf = new StringBuilder(fileName.length());
-		for ( char ch : fileName.toCharArray() ) {
-			boolean found = false;
-			if ( ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9') || ch=='-' || ch=='_' || ch=='(' || ch==')')) {
-				buf.append(ch);
-				continue;
-			}
-			for ( SubstTable t : substTables ) {
-				if ( t.isInRange(ch) ) {
-					buf.append(t.get(ch));
-					found = true;
-				}
-			}
-			if ( found )
-				continue;
-			buf.append("_");
-		}
-		return buf.toString();
 	}
 	
 	public static final int PROGRESS_DELAY_MILLIS = 2000;

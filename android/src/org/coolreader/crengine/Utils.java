@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -63,6 +65,19 @@ public class Utils {
 		return moveFile(oldPlace, newPlace, false);
 	}
 
+	public static int copyStreamContent(OutputStream os, InputStream is) throws IOException {
+		int totalSize = 0;
+		byte[] buf = new byte[0x10000];
+		for (;;) {
+			int bytesRead = is.read(buf);
+			if ( bytesRead<=0 )
+				break;
+			totalSize += bytesRead;
+			os.write(buf, 0, bytesRead);
+		}
+		return totalSize;
+	}
+	
 	private static boolean moveFile(File oldPlace, File newPlace, boolean removeOld) {
 		boolean removeNewFile = true;
 		Log.i("cr3", "Moving file " + oldPlace.getAbsolutePath() + " to " + newPlace.getAbsolutePath());
@@ -77,13 +92,7 @@ public class Utils {
 				return false; // cannot create file
 			os = new FileOutputStream(newPlace);
 			is = new FileInputStream(oldPlace);
-			byte[] buf = new byte[0x10000];
-			for (;;) {
-				int bytesRead = is.read(buf);
-				if ( bytesRead<=0 )
-					break;
-				os.write(buf, 0, bytesRead);
-			}
+			copyStreamContent(os, is);
 			removeNewFile = false;
 			oldPlace.delete();
 			return true;
@@ -509,6 +518,38 @@ public class Utils {
 				p2++;
 			}
 		}
+	}
+
+	public static String transcribeFileName( String fileName ) {
+		StringBuilder buf = new StringBuilder(fileName.length());
+		for ( char ch : fileName.toCharArray() ) {
+			boolean found = false;
+			if ( ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9') || ch=='-' || ch=='_' || ch=='(' || ch==')')) {
+				buf.append(ch);
+				continue;
+			}
+			for ( OPDSUtil.SubstTable t : Utils.substTables ) {
+				if ( t.isInRange(ch) ) {
+					buf.append(t.get(ch));
+					found = true;
+				}
+			}
+			if ( found )
+				continue;
+			buf.append("_");
+		}
+		return buf.toString();
+	}
+
+	final static OPDSUtil.SubstTable[] substTables = { 
+		new OPDSUtil.SubstTable(0x430, new String[]{"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "c", "ch", "sh", "sch", "'", "y", "i", "e", "yu", "ya"}),
+		new OPDSUtil.SubstTable(0x410, new String[]{"A", "B", "V", "G", "D", "E", "Zh", "Z", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "H", "C", "Ch", "Sh", "Sch", "'", "Y", "I", "E", "Yu", "Ya"}),
+	};
+	public static String transcribeWithLimit(String str, int maxLen) {
+		str = transcribeFileName(str);
+		if (str.length() > maxLen)
+			str = str.substring(0, maxLen);
+		return str;
 	}
 
 }

@@ -7,7 +7,7 @@ import java.util.Comparator;
 import org.coolreader.crengine.Utils;
 
 
-public class OnlineStoreBooks extends AsyncResponse {
+public class OnlineStoreBooks implements AsyncResponse {
 	public double account;
 	public int pages;
 	public int records;
