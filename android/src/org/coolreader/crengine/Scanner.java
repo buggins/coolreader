@@ -626,6 +626,14 @@ public class Scanner extends FileInfoChangeSource {
 		return parent;
 	}
 	
+	public FileInfo findFileInTree(FileInfo f) {
+		FileInfo parent = findParent(f, getRoot());
+		if (parent == null)
+			return null;
+		FileInfo item = parent.findItemByPathName(f.getPathName());
+		return item;
+	}
+	
 	/**
 	 * List directories in subtree, limited by runtime and depth; remove empty branches (w/o books).  
 	 * @param root is directory to start with
