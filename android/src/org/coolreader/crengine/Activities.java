@@ -172,11 +172,15 @@ public class Activities {
 			@Override
 			public void run() {
 				Activities.closeBookIfOpened(item);
-				if (item.deleteFile()) {
-					activity.getSyncService().removeFile(item.getPathName());
-					Services.getHistory().removeBookInfo(activity.getDB(), item, true, true);
+				FileInfo file = Services.getScanner().findFileInTree(item);
+				if (file == null)
+					file = item;
+				if (file.deleteFile()) {
+					activity.getSyncService().removeFile(file.getPathName());
+					Services.getHistory().removeBookInfo(activity.getDB(), file, true, true);
 				}
-				directoryUpdated(item.parent);
+				if (file.parent != null)
+					directoryUpdated(file.parent);
 			}
 		});
 	}
