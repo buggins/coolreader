@@ -1,6 +1,6 @@
 package org.coolreader.plugins;
 
-public class OnlineStoreBookInfo extends AsyncResponse {
+public class OnlineStoreBookInfo implements AsyncResponse {
 	public String login;
 	public boolean isLoggedIn;
 	public double accountBalance;

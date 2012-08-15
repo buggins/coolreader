@@ -11,7 +11,10 @@ public class OnlineStoreBook {
 	public double price;
 	public int zipSize;
 	public boolean hasTrial;
-	public String trialUrl;
+	public String trialUrl; // full URL to download trial version
+	public String trialFileName; // generated filename to save trial book version as
+	public String downloadUrl; // full download URL
+	public String downloadFileName; // generated filename to save full book version as
 	public String cover;
 	public String coverPreview;
 	public int rating;

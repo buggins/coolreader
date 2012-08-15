@@ -7,7 +7,7 @@ import java.util.Comparator;
 import org.coolreader.crengine.Utils;
 
 
-public class OnlineStoreAuthors extends AsyncResponse {
+public class OnlineStoreAuthors implements AsyncResponse {
 	private ArrayList<OnlineStoreAuthor> list = new ArrayList<OnlineStoreAuthor>();
 	public void add(OnlineStoreAuthor author) {
 		list.add(author);

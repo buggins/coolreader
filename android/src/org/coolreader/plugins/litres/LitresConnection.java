@@ -1,5 +1,7 @@
 package org.coolreader.plugins.litres;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,6 +27,8 @@ import org.coolreader.crengine.L;
 import org.coolreader.crengine.Utils;
 import org.coolreader.db.ServiceThread;
 import org.coolreader.plugins.AsyncResponse;
+import org.coolreader.plugins.ErrorResponse;
+import org.coolreader.plugins.FileResponse;
 import org.coolreader.plugins.OnlineStoreAuthor;
 import org.coolreader.plugins.OnlineStoreAuthors;
 import org.coolreader.plugins.OnlineStoreBook;
@@ -45,6 +49,7 @@ public class LitresConnection {
 	public static final String CATALOG_URL = "http://robot.litres.ru/pages/catalit_browser/";
 	public static final String TRIALS_URL = "http://robot.litres.ru/static/trials/";
 	public static final String PURCHASE_URL = "http://robot.litres.ru/pages/purchase_book/";
+	public static final String DOWNLOAD_BOOK_URL = "http://robot.litres.ru/pages/catalit_download_book/";
 	public static final String P_ID = "8786915";
 	
 	ServiceThread workerThread;
@@ -65,10 +70,10 @@ public class LitresConnection {
 		void onResponse(AsyncResponse response);
 	}
 	
-    public static final int CONNECT_TIMEOUT = 60000;
-    public static final int READ_TIMEOUT = 60000;
-    public static final int MAX_CONTENT_LEN_TO_BUFFER = 1000000;
-	public void sendRequest(final String url, final Map<String, String> params, final ResponseHandler contentHandler, final ResultHandler resultHandler) {
+    private static final int CONNECT_TIMEOUT = 60000;
+    private static final int READ_TIMEOUT = 60000;
+    private static final int MAX_CONTENT_LEN_TO_BUFFER = 1000000;
+	public void sendXMLRequest(final String url, final Map<String, String> params, final ResponseHandler contentHandler, final ResultHandler resultHandler) {
 		Log.i(TAG, "sending request to " + url);
 		final Handler callbackHandler = new Handler();
 		workerThread.post(new Runnable() {
@@ -191,7 +196,122 @@ public class LitresConnection {
 		});
 	}
 	
-	public static class LitresGenre extends AsyncResponse implements Serializable {
+	public void sendFileRequest(final String url, final Map<String, String> params, final File fileToStore, final FileResponse contentHandler, final ResultHandler resultHandler) {
+		Log.i(TAG, "sending request to " + url);
+		final Handler callbackHandler = new Handler();
+		workerThread.post(new Runnable() {
+			@Override
+			public void run() {
+				HttpURLConnection connection = null;
+				try {
+					URL u = new URL(url);
+					URLConnection conn = null;
+					try {
+						conn = u.openConnection();
+					} catch (IOException e) {
+						contentHandler.onError(0, "Cannot open connection");
+						return;
+					}
+					if ( conn instanceof HttpsURLConnection ) {
+						contentHandler.onError(0, "HTTPs is not supported yet");
+						return;
+					}
+					if ( !(conn instanceof HttpURLConnection) ) {
+						contentHandler.onError(0, "Only HTTP supported");
+						return;
+					}
+					connection = (HttpURLConnection)conn;
+					Log.i(TAG, "opened connection");
+		            connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
+		            connection.setInstanceFollowRedirects(true);
+		            connection.setAllowUserInteraction(false);
+		            connection.setConnectTimeout(CONNECT_TIMEOUT);
+		            connection.setReadTimeout(READ_TIMEOUT);
+		            if (params != null) {
+	            		connection.setDoOutput(true);
+			            connection.setRequestMethod("POST");
+			            List<NameValuePair> list = new LinkedList<NameValuePair>();
+			            for (Map.Entry<String, String> entry : params.entrySet())
+			            	list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+			            UrlEncodedFormEntity postParams = new UrlEncodedFormEntity(list, "utf-8");
+						//Log.d(TAG, "params: " + postParams.toString());
+						OutputStream wr = connection.getOutputStream();
+						//OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+						postParams.writeTo(wr);
+	                    //wr.write(postParams.toString());
+						wr.flush();
+						wr.close();
+		            } else {
+			            connection.setDoInput(true);
+			            connection.setRequestMethod("GET");
+		            }
+		            
+		            int response = -1;
+					
+					response = connection.getResponseCode();
+					L.d("Response: " + response);
+					if (response != 200) {
+						contentHandler.onError(response, "Error " + response + " " + connection.getResponseMessage());
+						return;
+					}
+					String contentType = connection.getContentType();
+					String contentEncoding = connection.getContentEncoding();
+					int contentLen = connection.getContentLength();
+					//connection.getC
+					L.d("Entity content length: " + contentLen);
+					L.d("Entity content type: " + contentType);
+					L.d("Entity content encoding: " + contentEncoding);
+
+					if (contentLen <= 0 || contentLen > MAX_CONTENT_LEN_TO_BUFFER) {
+						contentHandler.onError(0, "Wrong content length");
+						return;
+					}
+					
+					InputStream is = null;
+					OutputStream os = null;
+					try {
+						is = connection.getInputStream();
+						Log.i(TAG, "downloading file to " + contentHandler.fileToSave + "  contentLen=" + contentLen);
+						os = new FileOutputStream(contentHandler.fileToSave);
+						int bytesRead = Utils.copyStreamContent(os, is);
+						Log.i(TAG, "downloaded bytes: " + bytesRead);
+					} finally {
+						try {
+							if (os != null)
+								os.close();
+						} catch (IOException e) {
+							// ignore
+						}
+						try {
+							if (is != null)
+								is.close();
+						} catch (IOException e) {
+							// ignore
+						}
+					}
+				} catch (IOException e) {
+					contentHandler.fileToSave.delete();
+					contentHandler.onError(0, "Error while accessing litres server");
+				} finally {
+					if ( connection!=null ) {
+						try {
+							connection.disconnect();
+						} catch ( Exception e ) {
+							// ignore
+						}
+					}
+				}
+				callbackHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						resultHandler.onResponse(contentHandler.getResponse());
+					}
+				});
+			}
+		});
+	}
+	
+	public static class LitresGenre implements AsyncResponse {
 		private static final long serialVersionUID = 1;
 		public String id;
 		public String title;
@@ -224,7 +344,7 @@ public class LitresConnection {
 		}
 		final Map<String, String> params = new HashMap<String, String>();
 		params.put("search_types", "0");
-		sendRequest(GENRES_URL, params, new ResponseHandler() {
+		sendXMLRequest(GENRES_URL, params, new ResponseHandler() {
 			LitresGenre result = new LitresGenre();
 			LitresGenre currentNode = result;
 			@Override
@@ -278,7 +398,7 @@ public class LitresConnection {
 
 	public void loadAuthors(final Map<String, String> params, final ResultHandler resultHandler) {
 		params.put("search_types", "0");
-		sendRequest(AUTHORS_URL, params, new ResponseHandler() {
+		sendXMLRequest(AUTHORS_URL, params, new ResponseHandler() {
 			OnlineStoreAuthors result = new OnlineStoreAuthors();
 			OnlineStoreAuthor currentNode;
 			boolean insideCatalitPersons;
@@ -345,13 +465,38 @@ public class LitresConnection {
 			
 		}, resultHandler);
 	}
+	
+	public static String generateFileName(OnlineStoreBook book) {
+		StringBuilder buf = new StringBuilder();
+		buf.append(book.id);
+		if (!Utils.empty(book.bookTitle)) {
+			buf.append("-");
+			buf.append(Utils.transcribeWithLimit(book.bookTitle, 20));
+		}
+		StringBuilder authors = new StringBuilder();
+		for (int i = 0; i < book.authors.size(); i++) {
+			OnlineStoreAuthor author = book.authors.get(i);
+			String a = !Utils.empty(author.lastName) ? author.lastName : author.title;
+			if (!Utils.empty(a)) {
+				if (authors.length() > 0)
+					authors.append("-");
+				authors.append(a);
+			}
+		}
+		if (authors.length() > 0) {
+			buf.append("-");
+			buf.append(Utils.transcribeWithLimit(authors.toString(), 30));
+		}
+		buf.append(".fb2.zip");
+		return buf.toString();
+	}
 
 	public void loadBooks(final Map<String, String> params, final ResultHandler resultHandler) {
 		params.put("search_types", "0");
 		if (lastSid != null)
 			params.put("sid", lastSid);
 		params.put("checkpoint", "2000-01-01 00:00:00");
-		sendRequest(CATALOG_URL, params, new ResponseHandler() {
+		sendXMLRequest(CATALOG_URL, params, new ResponseHandler() {
 			OnlineStoreBooks result = new OnlineStoreBooks();
 			OnlineStoreBook currentNode;
 			OnlineStoreAuthor currentAuthor;
@@ -383,8 +528,14 @@ public class LitresConnection {
 					insideAuthor = false;
 					currentAuthor = null;
 				} else if ("fb2-book".equals(localName)) {
-					if (currentNode.id != null)
+					if (currentNode.id != null) {
+						String fileName = generateFileName(currentNode);
+						if (currentNode.hasTrial) {
+							currentNode.trialFileName = "trial-" + fileName;
+						}
+						currentNode.downloadFileName = fileName;
 						result.add(currentNode);
+					}
 					currentNode = null;
 				}
 			}
@@ -498,7 +649,7 @@ public class LitresConnection {
 		loadBooks(params, resultHandler);
 	}
 
-	public static class LitresAuthInfo extends AsyncResponse {
+	public static class LitresAuthInfo implements AsyncResponse {
 		public String sid;
 		public String id;
 		public String firstName;
@@ -584,7 +735,7 @@ public class LitresConnection {
 			params.put("login", login);
 		if (pwd != null)
 			params.put("pwd", pwd);
-		sendRequest(AUTHORIZE_URL, params, new ResponseHandler() {
+		sendXMLRequest(AUTHORIZE_URL, params, new ResponseHandler() {
 			LitresAuthInfo result;
 			@Override
 			public AsyncResponse getResponse() {
@@ -624,7 +775,7 @@ public class LitresConnection {
 		}, resultHandler);
 	}
 
-	public static class PurchaseStatus extends AsyncResponse {
+	public static class PurchaseStatus implements AsyncResponse {
 		public String bookId;
 		public double newBalance;
 	}
@@ -634,7 +785,7 @@ public class LitresConnection {
 		params.put("art", bookId);
 		params.put("sid", lastSid);
 		params.put("lfrom", P_ID);
-		sendRequest(PURCHASE_URL, params, new ResponseHandler() {
+		sendXMLRequest(PURCHASE_URL, params, new ResponseHandler() {
 			PurchaseStatus result = new PurchaseStatus();
 			@Override
 			public AsyncResponse getResponse() {

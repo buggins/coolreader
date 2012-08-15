@@ -1,8 +1,7 @@
-package org.coolreader.plugins.litres;
+package org.coolreader.plugins;
 
-import org.coolreader.plugins.AsyncResponse;
 
-public class ErrorResponse extends AsyncResponse {
+public class ErrorResponse implements AsyncResponse {
 	public int errorCode;
 	public String errorMessage;
 	public ErrorResponse(int errorCode, String errorMessage) {

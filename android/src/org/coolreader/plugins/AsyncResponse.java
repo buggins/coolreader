@@ -1,5 +1,5 @@
 package org.coolreader.plugins;
 
-public class AsyncResponse {
+public interface AsyncResponse {
 
 }

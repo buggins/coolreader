@@ -657,7 +657,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						log.d("onDownloadStart: after getDownloadDirectory()" );
 						String subdir = null;
 						if ( fileOrDir.authors!=null ) {
-							subdir = OPDSUtil.transcribeFileName(fileOrDir.authors);
+							subdir = Utils.transcribeFileName(fileOrDir.authors);
 							if ( subdir.length()>MAX_SUBDIR_LEN )
 								subdir = subdir.substring(0, MAX_SUBDIR_LEN);
 						} else {
@@ -701,7 +701,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					
 				};
 				String fileMimeType = fileOrDir.format!=null ? fileOrDir.format.getMimeFormat() : null;
-				String defFileName = OPDSUtil.transcribeFileName( fileOrDir.title!=null ? fileOrDir.title : fileOrDir.filename );
+				String defFileName = Utils.transcribeFileName( fileOrDir.title!=null ? fileOrDir.title : fileOrDir.filename );
 				if ( fileOrDir.format!=null )
 					defFileName = defFileName + fileOrDir.format.getExtensions()[0];
 				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(mActivity, uri, defFileName, fileOrDir.isDirectory?"application/atom+xml":fileMimeType, 

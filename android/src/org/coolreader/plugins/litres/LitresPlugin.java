@@ -7,6 +7,7 @@ import org.coolreader.plugins.AsyncOperationControl;
 import org.coolreader.plugins.AsyncResponse;
 import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.BookInfoCallback;
+import org.coolreader.plugins.ErrorResponse;
 import org.coolreader.plugins.FileInfoCallback;
 import org.coolreader.plugins.OnlineStoreAuthor;
 import org.coolreader.plugins.OnlineStoreAuthors;
