@@ -114,7 +114,7 @@ public class BaseActivity extends Activity implements Settings {
     {
 		log.i("BaseActivity.onCreate() entered");
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-    	if (Activities.exiting()) {
+    	if (Activities.exiting(true)) {
     		log.i("onCreate() - EXIT flag is set: exiting app");
     		super.onCreate(savedInstanceState);
    		    finish();

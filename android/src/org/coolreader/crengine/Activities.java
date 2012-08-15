@@ -278,9 +278,10 @@ public class Activities {
 	}
 	
 	private static boolean flgExiting;
-	public static boolean exiting() {
+	public static boolean exiting(boolean clearFlag) {
 		boolean result = flgExiting;
-		flgExiting = false;
+		if (clearFlag)
+			flgExiting = false;
 		return result;
 	}
 	
