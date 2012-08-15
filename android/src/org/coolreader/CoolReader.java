@@ -56,9 +56,13 @@ public class CoolReader extends BaseActivity
 //    	}
     	
     
-    	Activities.setMain(this);
+    	boolean exiting = Activities.exiting(false);
+    	if (!exiting)
+    		Activities.setMain(this);
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		if (exiting)
+			return;
 		
     	isFirstStart = true;
     	

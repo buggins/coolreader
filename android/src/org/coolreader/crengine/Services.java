@@ -34,6 +34,10 @@ public class Services {
 	}
 	static void onLastActivityDestroyed() {
 		log.i("Last activity is destroyed");
+		if (mCoverpageManager == null) {
+			log.i("Will not destroy services: finish only activity creation detected");
+			return;
+		}
 		mCoverpageManager.clear();
 		BackgroundThread.instance().postBackground(new Runnable() {
 			@Override
