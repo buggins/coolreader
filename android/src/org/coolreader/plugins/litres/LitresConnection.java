@@ -261,10 +261,12 @@ public class LitresConnection {
 						wr.flush();
 						wr.close();
 		            } else {
-			            //connection.setDoInput(true);
-			            //connection.setRequestMethod("GET");
-	            		connection.setDoOutput(true);
-			            connection.setRequestMethod("POST");
+		            	//Log.d(TAG, "setting up GET method");
+			            connection.setDoInput(true);
+			            connection.setRequestMethod("GET");
+	            		//connection.setDoOutput(true);
+			            //connection.setRequestMethod("POST");
+	            		connection.connect();
 		            }
 		            
 		            int response = -1;
@@ -838,12 +840,13 @@ public class LitresConnection {
 	}
 
 	public void downloadBook(final File fileToStore, final OnlineStoreBook book, boolean trial, final ResultHandler resultHandler) {
-		final Map<String, String> params = new HashMap<String, String>();
+		Map<String, String> params = null;
 		String url = null;
 		if (trial) {
 			url = book.trialUrl;
 			Log.d(TAG, "trialUrl=" + url);
 		} else {
+			params = new HashMap<String, String>();
 			url = DOWNLOAD_BOOK_URL;
 			params.put("sid", lastSid);
 			params.put("art", book.id);
