@@ -36,6 +36,7 @@
             android:configChanges="keyboardHidden|orientation|locale"
             android:theme="@android:style/Theme.NoTitleBar" 
             android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden"
             android:screenOrientation="sensor">
             
             <intent-filter>
@@ -96,6 +97,7 @@
             android:configChanges="keyboardHidden|orientation|locale"
             android:theme="@android:style/Theme.NoTitleBar" 
             android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden"
             android:screenOrientation="sensor">
             
         </activity>
@@ -105,6 +107,7 @@
             android:configChanges="keyboardHidden|orientation|locale"
             android:theme="@android:style/Theme.NoTitleBar" 
             android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden"
             android:screenOrientation="sensor">
             
         </activity>
