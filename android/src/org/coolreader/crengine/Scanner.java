@@ -44,6 +44,7 @@ public class Scanner extends FileInfoChangeSource {
 	{
 		try {
 			File zf = new File(zip.pathname);
+			long arcsize = zf.length();
 			//ZipFile file = new ZipFile(zf);
 			ArrayList<ZipEntry> entries = engine.getArchiveItems(zip.pathname);
 			ArrayList<FileInfo> items = new ArrayList<FileInfo>();
@@ -64,7 +65,7 @@ public class Scanner extends FileInfoChangeSource {
 				//item.createTime = entry.getTime();
 				item.createTime = zf.lastModified();
 				item.arcname = zip.pathname;
-				item.arcsize = (int)entry.getSize(); //getCompressedSize();
+				item.arcsize = (int)entry.getCompressedSize();
 				item.isArchive = true;
 				items.add(item);
 			}

@@ -45,8 +45,8 @@ public class FileInfo {
 	public String arcname; // archive file name w/o path
 	public String language; // document language
 	public DocumentFormat format;
-	public int size;
-	public int arcsize;
+	public int size; // full file size
+	public int arcsize; // compressed size
 	public long createTime;
 	public long lastAccessTime;
 	public int flags;
@@ -187,17 +187,23 @@ public class FileInfo {
 			filename = f.getName();
 			path = f.getPath();
 			File arc = new File(arcname);
-			if ( arc.isFile() && arc.exists() ) {
+			if (arc.isFile() && arc.exists()) {
 				arcsize = (int)arc.length();
+				isArchive = true;
 				try {
-					ZipFile zip = new ZipFile(new File(arcname));
-					for ( Enumeration<?> e = zip.entries(); e.hasMoreElements(); ) {
-						ZipEntry entry = (ZipEntry)e.nextElement();
-						
+					//ZipFile zip = new ZipFile(new File(arcname));
+					ArrayList<ZipEntry> entries = Services.getEngine().getArchiveItems(arcname);
+					//for ( Enumeration<?> e = zip.entries(); e.hasMoreElements(); ) {
+					for (ZipEntry entry : entries) {
 						String name = entry.getName();
-						if ( !entry.isDirectory() && !pathname.equals(name) ) {
+						
+						if ( !entry.isDirectory() && pathname.equals(name) ) {
+							File itemf = new File(name);
+							filename = itemf.getName();
+							path = itemf.getPath();
 							format = DocumentFormat.byExtension(name);
 							size = (int)entry.getSize();
+							arcsize = (int)entry.getCompressedSize();
 							createTime = entry.getTime();
 							break;
 						}
@@ -246,6 +252,11 @@ public class FileInfo {
 
 	/// doesn't copy parent and children
 	public FileInfo(FileInfo v)
+	{
+		assign(v);
+	}
+
+	public void assign(FileInfo v)
 	{
 		title = v.title;
 		authors = v.authors;
