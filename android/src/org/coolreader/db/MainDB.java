@@ -735,7 +735,30 @@ public class MainDB extends BaseDB {
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
 		if (findBy(fileInfo, "pathname", path)) {
+			fileInfoCache.put(fileInfo);
 			return fileInfo;
+		}
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		FileInfo fi = new FileInfo(path);
+		if (fi.exists()) {
+			if (findAllBy(list, "filename", fi.filename)) {
+				for (FileInfo item : list) {
+					if (item.exists())
+						continue;
+					if (item.size == fi.size) {
+						log.i("Found record for file of the same name and size: treat as moved " + item.filename + " " + item.size);
+						// fix and save
+						item.pathname = fi.pathname;
+						item.arcname = fi.arcname;
+						item.arcsize = fi.arcsize;
+						item.path = fi.path;
+						item.createTime = fi.createTime;
+						save(item);
+						fileInfoCache.put(fileInfo);
+						return item;
+					}
+				}
+			}
 		}
 		return null;
 	}
@@ -775,6 +798,39 @@ public class MainDB extends BaseDB {
 			if ( rs.moveToFirst() ) {
 				readFileInfoFromCursor( fileInfo, rs );
 				found = true;
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return found;
+	}
+
+	private boolean findAllBy( ArrayList<FileInfo> result, String fieldName, Object fieldValue )
+	{
+		String condition;
+		StringBuilder buf = new StringBuilder(" WHERE ");
+		buf.append(fieldName);
+		if ( fieldValue==null ) {
+			buf.append(" IS NULL ");
+		} else {
+			buf.append("=");
+			DatabaseUtils.appendValueToSql(buf, fieldValue);
+			buf.append(" ");
+		}
+		condition = buf.toString();
+		boolean found = false;
+		Cursor rs = null;
+		try { 
+			rs = mDB.rawQuery(READ_FILEINFO_SQL +
+					condition, null);
+			if (rs.moveToFirst()) {
+				do {
+					FileInfo fileInfo = new FileInfo();
+					readFileInfoFromCursor( fileInfo, rs );
+					result.add(fileInfo);
+					found = true;
+				} while (rs.moveToNext());
 			}
 		} finally {
 			if ( rs!=null )
