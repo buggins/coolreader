@@ -1,8 +1,12 @@
 package org.coolreader.crengine;
 
+import java.io.File;
+
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 import org.coolreader.plugins.BookInfoCallback;
+import org.coolreader.plugins.DownloadBookCallback;
+import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStoreBookInfo;
 import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
@@ -30,6 +34,10 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 	private LayoutInflater mInflater;
 	private int mWindowSize;
 	private OnlineStoreWrapper mPlugin;
+	private File downloadDir;
+	private File downloadTrialDir;
+	private File downloadFilename;
+	private File downloadTrialFilename;
 	
 	private ViewGroup mContentView;
 	
@@ -43,6 +51,11 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		this.mBookInfo = book;
 		this.mFileInfo = fileInfo;
 		this.mPlugin = OnlineStorePluginManager.getPlugin(fileInfo.getOnlineCatalogPluginPackage());
+		File baseDir = new File(Services.getScanner().getDownloadDirectory().pathname);
+		this.downloadDir = new File(baseDir, mPlugin.getDescription());
+		this.downloadFilename = new File(downloadDir, book.book.downloadFileName);
+		this.downloadTrialDir = new File(baseDir, mPlugin.getDescription() + "-trials");
+		this.downloadTrialFilename = new File(downloadTrialDir, book.book.trialFileName);
 	}
 
 	@Override
@@ -145,7 +158,15 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         lblFileInfo.setText(Utils.formatSize(mBookInfo.book.zipSize));
         if (mBookInfo.book.trialUrl == null)
         	btnPreview.setVisibility(View.GONE);
-		if (mBookInfo.isLoggedIn) {
+        else {
+        	if (bookFileExists(true))
+        		btnPreview.setText("Open preview");
+        	else
+        		btnPreview.setText("Download preview");
+        }
+        if (bookFileExists(false)) {
+			btnBuyOrDownload.setText("Open");
+        } else if (mBookInfo.isLoggedIn) {
 			if (mBookInfo.isPurchased) {
 				btnBuyOrDownload.setText("Download");
 			} else {
@@ -166,10 +187,13 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		super.onNegativeButtonClick();
 	}
 
+	
 	protected void onBuyButtonClick() {
-		if (mBookInfo.isLoggedIn) {
+		if (bookFileExists(false)) {
+			openBook(false);
+		} else if (mBookInfo.isLoggedIn) {
 			if (mBookInfo.isPurchased) {
-				// TODO: download
+				download(false);
 			} else {
 				// buy
 				mActivity.askConfirmation("Price is " + mBookInfo.book.price + " Do you want to purchase this book?", new Runnable() {
@@ -230,7 +254,57 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 	}
 	
 	protected void onPreviewButtonClick() {
-		mActivity.showToast("Preview button pressed");
+		if (bookFileExists(true))
+			openBook(true);
+		else
+			download(true);
+	}
+	
+	private boolean ensureDownloadDirectoryExists(boolean trial) {
+		File dir = (trial ? downloadTrialDir : downloadDir);
+		if (dir.isDirectory())
+			return true;
+		return dir.mkdirs();
+	}
+	
+	private File getBookFile(boolean trial) {
+		return (trial ? downloadTrialFilename : downloadFilename);
+	}
+	
+	private boolean bookFileExists(boolean trial) {
+		return getBookFile(trial).exists();
+	}
+	
+	private void download(final boolean trial) {
+		File f = getBookFile(trial);
+		if (!ensureDownloadDirectoryExists(trial)) {
+			mActivity.showToast("Cannot create download directory " + f.getAbsolutePath());
+			return;
+		}
+		progress.show();
+		mPlugin.downloadBook(mBookInfo.book, trial, f, new DownloadBookCallback() {
+			@Override
+			public void onError(int errorCode, String errorMessage) {
+				progress.hide();
+				mActivity.showToast("Error while downloading book: " + errorMessage);
+			}
+			
+			@Override
+			public void onBookDownloaded(OnlineStoreBook book, boolean trial,
+					File savedFileName) {
+				progress.hide();
+				openBook(trial);
+			}
+		});
+	}
+	
+	private void openBook(boolean trial) {
+		File book = getBookFile(trial);
+//		FileInfo fileInfo = new FileInfo(book);
+//		FileInfo parent = Services.getScanner().findParent(fileInfo, Services.getScanner().getRoot());
+//		FileInfo bookFileInfo = parent.findItemByPathName(book.getAbsolutePath());
+		dismiss();
+		Activities.loadDocument(book.getAbsolutePath(), null);
 	}
 }
 

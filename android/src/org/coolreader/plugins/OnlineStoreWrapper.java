@@ -1,5 +1,7 @@
 package org.coolreader.plugins;
 
+import java.io.File;
+
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.Scanner;
 
@@ -128,7 +130,13 @@ public class OnlineStoreWrapper {
 		plugin.purchaseBook(control, bookId, callback);
 		return control;
 	}
-	
+
+	public AsyncOperationControl downloadBook(OnlineStoreBook book, boolean trial, File fileToSave, DownloadBookCallback callback) {
+		final AsyncOperationControl control = new AsyncOperationControl();
+		plugin.downloadBook(control, book, trial, fileToSave, callback);
+		return control;
+	}
+
 	public String getLogin() {
 		return plugin.getLogin();
 	}
