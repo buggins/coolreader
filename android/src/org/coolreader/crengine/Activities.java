@@ -277,17 +277,18 @@ public class Activities {
 			readerActivity.getReaderView().saveSetting(name, value);
 	}
 	
-	private static boolean flgExiting;
+	private final static int EXITING_INTERVAL = 2000;
+	private static long tsExiting;
 	public static boolean exiting(boolean clearFlag) {
-		boolean result = flgExiting;
+		boolean result = System.currentTimeMillis() - tsExiting < EXITING_INTERVAL;
 		if (clearFlag)
-			flgExiting = false;
+			tsExiting = 0;
 		return result;
 	}
 	
 	public static void finish() {
 		log.i("Activities.finish() is called");
-		flgExiting = true;
+		tsExiting = System.currentTimeMillis();
 		//startActivity(CoolReader.class, "EXIT", "true");
 //		BaseActivity activity = getCurrentActivity();
 //		if (activity != null) {
