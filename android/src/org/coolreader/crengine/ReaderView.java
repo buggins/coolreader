@@ -2840,7 +2840,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		props.setBool(PROP_SHOW_BATTERY, isFullScreen); 
 		props.setBool(PROP_SHOW_TIME, isFullScreen);
 		String backgroundImageId = props.getProperty(PROP_PAGE_BACKGROUND_IMAGE);
-		int backgroundColor = props.getInt(PROP_BACKGROUND_COLOR, 0xFFFFFF);
+		int backgroundColor = props.getColor(PROP_BACKGROUND_COLOR, 0xFFFFFF);
 		setBackgroundTexture(backgroundImageId, backgroundColor);
 		props.setInt(PROP_STATUS_LINE, props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP) == VIEWER_STATUS_PAGE ? 0 : 1);		
 		doc.applySettings(props);
@@ -3128,9 +3128,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void setBackgroundTexture(BackgroundTextureInfo texture, int color) {
 		log.v("setBackgroundTexture(" + texture + ", " + color + ")");
-		currentBackgroundColor = color;
-		if ( !currentBackgroundTexture.equals(texture) ) {
+		if (!currentBackgroundTexture.equals(texture) || currentBackgroundColor != color) {
 			log.d("setBackgroundTexture( " + texture + " )");
+			currentBackgroundColor = color;
 			currentBackgroundTexture = texture;
 			byte[] data = mEngine.getImageData(currentBackgroundTexture);
 			doc.setPageBackgroundTexture(data, texture.tiled ? 1 : 0);
