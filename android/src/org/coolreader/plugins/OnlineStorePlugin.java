@@ -1,5 +1,7 @@
 package org.coolreader.plugins;
 
+import java.io.File;
+
 import org.coolreader.crengine.FileInfo;
 
 public interface OnlineStorePlugin {
@@ -18,4 +20,5 @@ public interface OnlineStorePlugin {
 	void getBooksByAuthor(AsyncOperationControl control, FileInfo dir, String authorId, FileInfoCallback callback);
 	void getAuthorsByPrefix(AsyncOperationControl control, FileInfo dir, String prefix, FileInfoCallback callback);
 	void purchaseBook(AsyncOperationControl control, String bookId, PurchaseBookCallback callback);
+	void downloadBook(AsyncOperationControl control, OnlineStoreBook book, boolean trial, File fileToSave, DownloadBookCallback callback);
 }

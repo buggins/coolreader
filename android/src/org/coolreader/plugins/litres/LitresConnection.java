@@ -77,6 +77,16 @@ public class LitresConnection {
 		Log.i(TAG, "sending request to " + url);
 		final Handler callbackHandler = new Handler();
 		workerThread.post(new Runnable() {
+			void onError(int errorCode, String errorMessage) {
+				contentHandler.onError(errorCode, errorMessage);
+				callbackHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						resultHandler.onResponse(contentHandler.getResponse());
+					}
+				});
+			}
+			
 			@Override
 			public void run() {
 				HttpURLConnection connection = null;
@@ -86,15 +96,15 @@ public class LitresConnection {
 					try {
 						conn = u.openConnection();
 					} catch (IOException e) {
-						contentHandler.onError(0, "Cannot open connection");
+						onError(0, "Cannot open connection");
 						return;
 					}
 					if ( conn instanceof HttpsURLConnection ) {
-						contentHandler.onError(0, "HTTPs is not supported yet");
+						onError(0, "HTTPs is not supported yet");
 						return;
 					}
 					if ( !(conn instanceof HttpURLConnection) ) {
-						contentHandler.onError(0, "Only HTTP supported");
+						onError(0, "Only HTTP supported");
 						return;
 					}
 					connection = (HttpURLConnection)conn;
@@ -136,7 +146,7 @@ public class LitresConnection {
 					response = connection.getResponseCode();
 					L.d("Response: " + response);
 					if (response != 200) {
-						contentHandler.onError(response, "Error " + response + " " + connection.getResponseMessage());
+						onError(response, "Error " + response + " " + connection.getResponseMessage());
 						return;
 					}
 					String contentType = connection.getContentType();
@@ -148,7 +158,7 @@ public class LitresConnection {
 					L.d("Entity content encoding: " + contentEncoding);
 
 					if (contentLen <= 0 || contentLen > MAX_CONTENT_LEN_TO_BUFFER) {
-						contentHandler.onError(0, "Wrong content length");
+						onError(0, "Wrong content length");
 						return;
 					}
 					
@@ -200,6 +210,15 @@ public class LitresConnection {
 		Log.i(TAG, "sending request to " + url);
 		final Handler callbackHandler = new Handler();
 		workerThread.post(new Runnable() {
+			void onError(int errorCode, String errorMessage) {
+				contentHandler.onError(errorCode, errorMessage);
+				callbackHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						resultHandler.onResponse(contentHandler.getResponse());
+					}
+				});
+			}
 			@Override
 			public void run() {
 				HttpURLConnection connection = null;
@@ -209,15 +228,15 @@ public class LitresConnection {
 					try {
 						conn = u.openConnection();
 					} catch (IOException e) {
-						contentHandler.onError(0, "Cannot open connection");
+						onError(0, "Cannot open connection");
 						return;
 					}
 					if ( conn instanceof HttpsURLConnection ) {
-						contentHandler.onError(0, "HTTPs is not supported yet");
+						onError(0, "HTTPs is not supported yet");
 						return;
 					}
 					if ( !(conn instanceof HttpURLConnection) ) {
-						contentHandler.onError(0, "Only HTTP supported");
+						onError(0, "Only HTTP supported");
 						return;
 					}
 					connection = (HttpURLConnection)conn;
@@ -242,8 +261,10 @@ public class LitresConnection {
 						wr.flush();
 						wr.close();
 		            } else {
-			            connection.setDoInput(true);
-			            connection.setRequestMethod("GET");
+			            //connection.setDoInput(true);
+			            //connection.setRequestMethod("GET");
+	            		connection.setDoOutput(true);
+			            connection.setRequestMethod("POST");
 		            }
 		            
 		            int response = -1;
@@ -251,7 +272,7 @@ public class LitresConnection {
 					response = connection.getResponseCode();
 					L.d("Response: " + response);
 					if (response != 200) {
-						contentHandler.onError(response, "Error " + response + " " + connection.getResponseMessage());
+						onError(response, "Error " + response + " " + connection.getResponseMessage());
 						return;
 					}
 					String contentType = connection.getContentType();
@@ -263,7 +284,7 @@ public class LitresConnection {
 					L.d("Entity content encoding: " + contentEncoding);
 
 					if (contentLen <= 0 || contentLen > MAX_CONTENT_LEN_TO_BUFFER) {
-						contentHandler.onError(0, "Wrong content length");
+						onError(0, "Wrong content length");
 						return;
 					}
 					
@@ -544,9 +565,10 @@ public class LitresConnection {
 			public void startElement(String uri, String localName,
 					String qName, Attributes attributes) throws SAXException {
 				//Log.d(TAG, "startElement " + localName);
-				if ("catalit-fb2-books".equals(localName))
+				if ("catalit-fb2-books".equals(localName)) {
 					insideCatalitBooks = true;
-				else if ("title-info".equals(localName) && insideCatalitBooks)
+					result.account = stringToDouble(attributes.getValue("account"), 0);
+				} else if ("title-info".equals(localName) && insideCatalitBooks)
 					insideTitleInfo = true;
 				else if ("author".equals(localName) && insideTitleInfo) {
 					insideAuthor = true;
@@ -556,7 +578,7 @@ public class LitresConnection {
 						return;
 					currentNode = new OnlineStoreBook();
 					currentNode.id = attributes.getValue("hub_id");
-					currentNode.hasTrial = stringToInt(attributes.getValue("hub_id"), 0) != 0;
+					currentNode.hasTrial = stringToInt(attributes.getValue("has_trial"), 0) != 0;
 					currentNode.rating = stringToInt(attributes.getValue("rating"), 0);
 					currentNode.zipSize = stringToInt(attributes.getValue("zip_size"), 0);
 					currentNode.basePrice = stringToDouble(attributes.getValue("base_price"), 0);
@@ -814,6 +836,22 @@ public class LitresConnection {
 			}
 		}, resultHandler);
 	}
+
+	public void downloadBook(final File fileToStore, final OnlineStoreBook book, boolean trial, final ResultHandler resultHandler) {
+		final Map<String, String> params = new HashMap<String, String>();
+		String url = null;
+		if (trial) {
+			url = book.trialUrl;
+			Log.d(TAG, "trialUrl=" + url);
+		} else {
+			url = DOWNLOAD_BOOK_URL;
+			params.put("sid", lastSid);
+			params.put("art", book.id);
+		}
+		FileResponse myResponse = new FileResponse(book, fileToStore, trial);
+		sendFileRequest(url, params, fileToStore, myResponse, resultHandler);
+	}
+
 	
 	public static int stringToInt(String v, int defValue) {
 		if (v == null || v.length() == 0)

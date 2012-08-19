@@ -1,5 +1,7 @@
 package org.coolreader.plugins.litres;
 
+import java.io.File;
+
 import org.coolreader.crengine.DocumentFormat;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.Scanner;
@@ -7,8 +9,10 @@ import org.coolreader.plugins.AsyncOperationControl;
 import org.coolreader.plugins.AsyncResponse;
 import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.BookInfoCallback;
+import org.coolreader.plugins.DownloadBookCallback;
 import org.coolreader.plugins.ErrorResponse;
 import org.coolreader.plugins.FileInfoCallback;
+import org.coolreader.plugins.FileResponse;
 import org.coolreader.plugins.OnlineStoreAuthor;
 import org.coolreader.plugins.OnlineStoreAuthors;
 import org.coolreader.plugins.OnlineStoreBook;
@@ -373,6 +377,49 @@ public class LitresPlugin implements OnlineStorePlugin {
 			});
 		} else {
 			purchaseBookNoAuth(control, bookId, callback);
+		}
+	}
+
+	private void downloadBookNoAuth(final AsyncOperationControl control, final OnlineStoreBook book, final boolean trial, final File fileToSave, final DownloadBookCallback callback) {
+		connection.downloadBook(fileToSave, book, trial, new ResultHandler() {
+			public void onResponse(AsyncResponse response) {
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof FileResponse) {
+					FileResponse result = (FileResponse)response;
+					callback.onBookDownloaded(book, trial, fileToSave);
+				}
+			}
+		});
+	}
+
+	@Override
+	public void downloadBook(final AsyncOperationControl control, final OnlineStoreBook book, final boolean trial, final File fileToSave, final DownloadBookCallback callback) {
+		if (trial && !book.hasTrial) {
+			callback.onError(0, "No trial version");
+			return;
+		}
+			
+		if (!trial && connection.getLogin() == null) {
+			callback.onError(0, "Not logged in");
+			return;
+		}
+		if (!trial && !connection.authorizationValid()) {
+			connection.authorize(null, null, new ResultHandler() {
+				@Override
+				public void onResponse(AsyncResponse response) {
+					control.finished();
+					if (response instanceof ErrorResponse) {
+						ErrorResponse error = (ErrorResponse)response;
+						callback.onError(error.errorCode, error.errorMessage);
+					} else if (response instanceof LitresAuthInfo) {
+						downloadBookNoAuth(control, book, trial, fileToSave, callback);
+					}
+				}
+			});
+		} else {
+			downloadBookNoAuth(control, book, trial, fileToSave, callback);
 		}
 	}
 
