@@ -12,6 +12,8 @@ import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.sync.SyncServiceAccessor;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -27,9 +29,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.view.ContextMenu;
@@ -38,9 +38,9 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -522,8 +522,8 @@ public class BaseActivity extends Activity implements Settings {
 			int flags = 0;
 			if (getKeyBacklight() == 0)
 				flags |= SYSTEM_UI_FLAG_LOW_PROFILE;
-			if (isFullscreen() && wantHideNavbarInFullscreen())
-				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+//			if (isFullscreen() && wantHideNavbarInFullscreen() && isSmartphone())
+//				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 			setSystemUiVisibility(flags);
 //			if (isFullscreen() && DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH)
 //				simulateTouch();
@@ -534,14 +534,26 @@ public class BaseActivity extends Activity implements Settings {
 	
 
 	private int lastSystemUiVisibility = -1;
+	private boolean systemUiVisibilityListenerIsSet = false;
+	@TargetApi(11)
+	@SuppressLint("NewApi")
 	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			if (!systemUiVisibilityListenerIsSet && contentView != null) {
+				contentView.setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
+					@Override
+					public void onSystemUiVisibilityChange(int visibility) {
+						lastSystemUiVisibility = visibility;
+					}
+				});
+			}
 			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
-			if (value == lastSystemUiVisibility)// && a4)
-				return false;
-			lastSystemUiVisibility = value;
 			if (!a4)
 				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
+			if (value == lastSystemUiVisibility && value != SYSTEM_UI_FLAG_LOW_PROFILE)// && a4)
+				return false;
+			lastSystemUiVisibility = value;
+
 			View view;
 			//if (a4)
 				view = getWindow().getDecorView(); // getReaderView();
@@ -921,6 +933,7 @@ public class BaseActivity extends Activity implements Settings {
 	public void setContentView(View view) {
 		this.contentView = view;
 		super.setContentView(view);
+		systemUiVisibilityListenerIsSet = false;
 		//updateBackground();
 		setCurrentTheme(currentTheme);
 	}
