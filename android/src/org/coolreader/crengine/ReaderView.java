@@ -1460,6 +1460,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if ( !isTouchScreenEnabled ) {
 			return true;
 		}
+		if (event.getX()==0 && event.getY()==0)
+			return true;
 		mActivity.onUserActivity();
 		
 		if (currentImageViewer != null)
@@ -5386,7 +5388,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    	}
 			    	final BookInfo bookInfo = mBookInfo;
 			    	if (delayMillis <= 1) {
-						if (bookInfo != null) {
+						if (bookInfo != null && mActivity.getDB() != null) {
 							log.v("saving last immediately");
 							Services.getHistory().updateBookAccess(bookInfo);
 							mActivity.getDB().saveBookInfo(bookInfo);
@@ -5400,7 +5402,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									if (bookInfo != null) {
 										log.v("saving last position");
 										Services.getHistory().updateBookAccess(bookInfo);
-										mActivity.getDB().saveBookInfo(bookInfo);
+										if (mActivity.getDB() != null)
+											mActivity.getDB().saveBookInfo(bookInfo);
 						                //mActivity.getDB().flush();
 									}
 								}

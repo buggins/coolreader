@@ -1291,4 +1291,10 @@ public class ReaderActivity extends BaseActivity {
 			mFrame.showMenu();
 		}
 	}
+
+	@Override
+	protected boolean wantHideNavbarInFullscreen() {
+		return true;
+	}
+
 }
