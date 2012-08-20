@@ -31,7 +31,7 @@ public class CRToolBar extends ViewGroup {
 	private boolean isVertical;
 	final private int preferredItemHeight;
 	private int BUTTON_SPACING = 4;
-	private final int BAR_SPACING = 0;
+	private int BAR_SPACING = 4;
 	private int buttonAlpha = 0xFF;
 	private int textColor = 0x000000;
 	private ImageButton overflowButton;
@@ -72,9 +72,16 @@ public class CRToolBar extends ViewGroup {
 		this.actions = actions;
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
-		int sz = (context.isSmartphone() ? preferredItemHeight * 2 / 3 : preferredItemHeight) - BUTTON_SPACING * 2 - BAR_SPACING;
+		if (context.isSmartphone()) {
+			BUTTON_SPACING = 4;
+			BAR_SPACING = 4;
+		} else {
+			BUTTON_SPACING = preferredItemHeight / 5;
+			BAR_SPACING = preferredItemHeight / 5;
+		}
+		int sz = (context.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz;
-		//int dpi = context.getDensityDpi();
+		int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
@@ -84,8 +91,8 @@ public class CRToolBar extends ViewGroup {
 			}
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth(); // * dpi / 160;
-			int h = d.getIntrinsicHeight(); // * dpi / 160;
+			int w = d.getIntrinsicWidth() * dpi / 160 + 4;
+			int h = d.getIntrinsicHeight() * dpi / 160 + 4;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 			}
