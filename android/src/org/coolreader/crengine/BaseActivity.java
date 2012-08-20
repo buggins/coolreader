@@ -26,9 +26,10 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.view.ContextMenu;
@@ -37,6 +38,7 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
 import android.view.Window;
@@ -477,14 +479,54 @@ public class BaseActivity extends Activity implements Settings {
 	
 	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 
+//	public void simulateTouch() {
+//		// Obtain MotionEvent object
+//		long downTime = SystemClock.uptimeMillis();
+//		long eventTime = SystemClock.uptimeMillis() + 10;
+//		float x = 0.0f;
+//		float y = 0.0f;
+//		// List of meta states found here: developer.android.com/reference/android/view/KeyEvent.html#getMetaState()
+//		int metaState = 0;
+//		MotionEvent motionEvent = MotionEvent.obtain(
+//		    downTime, 
+//		    downTime, 
+//		    MotionEvent.ACTION_DOWN, 
+//		    x, 
+//		    y, 
+//		    metaState
+//		);
+//		MotionEvent motionEvent2 = MotionEvent.obtain(
+//			    downTime, 
+//			    eventTime, 
+//			    MotionEvent.ACTION_UP, 
+//			    x, 
+//			    y, 
+//			    metaState
+//			);
+//		//motionEvent.setEdgeFlags(flags)
+//		// Dispatch touch event to view
+//		//new Handler().dispatchMessage(motionEvent);
+//		if (getContentView() != null) {
+//			getContentView().dispatchTouchEvent(motionEvent);
+//			getContentView().dispatchTouchEvent(motionEvent2);
+//		}
+//
+//	}
+	
+	protected boolean wantHideNavbarInFullscreen() {
+		return false;
+	}
+	
 	public boolean setSystemUiVisibility() {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
 			int flags = 0;
 			if (getKeyBacklight() == 0)
 				flags |= SYSTEM_UI_FLAG_LOW_PROFILE;
-			if (isFullscreen())
+			if (isFullscreen() && wantHideNavbarInFullscreen())
 				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 			setSystemUiVisibility(flags);
+//			if (isFullscreen() && DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH)
+//				simulateTouch();
 			return true;
 		}
 		return false;

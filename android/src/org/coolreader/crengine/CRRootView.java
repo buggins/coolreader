@@ -13,6 +13,7 @@ import org.coolreader.plugins.OnlineStoreWrapper;
 import org.coolreader.plugins.litres.LitresPlugin;
 
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -460,9 +461,31 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		
 		removeAllViews();
 		addView(mView);
-		setFocusable(true);
-		setFocusableInTouchMode(true);
-		requestFocus();
+		setFocusable(false);
+		setFocusableInTouchMode(false);
+//		requestFocus();
+//		setOnTouchListener(new OnTouchListener() {
+//			@Override
+//			public boolean onTouch(View v, MotionEvent event) {
+//				return true;
+//			}
+//		});
+	}
+	
+	
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		log.d("CRRootView.onTouchEvent(" + event.getAction() + ")");
+		return false;
+	}
+	
+	
+
+	@Override
+	public void onWindowFocusChanged(boolean hasWindowFocus) {
+		log.d("CRRootView.onWindowFocusChanged(" + hasWindowFocus + ")");
+		super.onWindowFocusChanged(hasWindowFocus);
 	}
 
 	public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {

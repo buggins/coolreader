@@ -263,6 +263,8 @@ public class CoolReader extends BaseActivity
 				Services.getCoverpageManager().addCoverpageReadyListener(mFrame);
 				setContentView( mFrame );
 				BackgroundThread.instance().setGUI(mFrame);
+				mFrame.requestFocus();
+				setSystemUiVisibility();
 			}
 		});
 		
