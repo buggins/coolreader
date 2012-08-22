@@ -540,6 +540,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 	public void showMenu() {
 		ReaderAction[] actions = {
+			ReaderAction.USER_MANUAL,	
 			ReaderAction.EXIT,	
 		};
 		mActivity.showActionsPopupMenu(actions, new OnActionHandler() {
@@ -547,6 +548,9 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			public boolean onActionSelected(ReaderAction item) {
 				if (item == ReaderAction.EXIT) {
 					Activities.finish();
+					return true;
+				} else if (item == ReaderAction.USER_MANUAL) {
+					Activities.showManual();
 					return true;
 				}
 				return false;

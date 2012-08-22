@@ -3288,6 +3288,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				errorHandler.run();
 			return false;
 		}
+		if ("@manual".equals(fileName)) {
+			fileName = getManualFileName();
+			log.i("Manual document: " + fileName);
+		}
 		String normalized = mEngine.getPathCorrector().normalize(fileName);
 		if (normalized == null) {
 			log.e("Trying to load book from non-standard path " + fileName);
