@@ -187,6 +187,7 @@ public class CRToolBar extends ViewGroup {
 		ImageButton ib = new ImageButton(getContext());
 		if (item != null) {
 			ib.setImageResource(item.iconId);
+			ib.setContentDescription(getContext().getString(item.nameId));
 			ib.setTag(item);
 		} else {
 			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));

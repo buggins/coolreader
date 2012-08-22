@@ -447,4 +447,21 @@
     <string name="options_view_toolbar_position_none">None</string>
     <string name="options_view_toolbar_hide_in_fullscreen">Hide toolbar in fullscreen</string>
     <string name="options_view_toolbar_position_right">Right</string>
+    <string name="dlg_button_back">Back</string>
+    <string name="dlg_about_donation_iron">$0.3: buy Cool Reader Iron Donation</string>
+    <string name="dlg_about_donation_vip">$100: buy Cool Reader VIP Donation</string>
+    <string name="tb_button_find_prev">Find previous</string>
+    <string name="tb_button_find_close">Close search</string>
+    <string name="tb_button_find_next">Find next</string>
+    <string name="options_selection_action_mail">Share</string>
+    <string name="tts_play">Play / Pause</string>
+    <string name="tts_back">Revind</string>
+    <string name="tts_forward">Forward</string>
+    <string name="tts_stop">Stop</string>
+    <string name="tts_volume">Volume</string>
+    <string name="tts_rate">Rate</string>
+    <string name="dlg_button_open_book">Open book</string>
+    <string name="dlg_button_open_folder">Open containing folder</string>
+    <string name="dlg_button_recent_delete">Remove from recent books list</string>
+    <string name="dlg_button_book_delete">Delete book</string>
 </resources>

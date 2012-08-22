@@ -20,6 +20,7 @@
         android:layout_marginBottom="2dip"
         android:layout_marginLeft="8dip"
         android:layout_marginRight="10dip"
+        android:contentDescription="@string/tb_button_find_prev"/>
         />
     <ImageButton android:id="@+id/search_btn_close"
         android:layout_width="wrap_content"
@@ -30,6 +31,7 @@
         android:layout_marginLeft="8dip"
         android:layout_marginRight="8dip"
         android:src="@drawable/cr3_find_close"
+        android:contentDescription="@string/tb_button_find_close"/>
         />
     <ImageButton android:id="@+id/search_btn_next"
         android:layout_width="wrap_content"
@@ -40,5 +42,6 @@
         android:layout_marginLeft="10dip"
         android:layout_marginRight="8dip"
         android:src="@drawable/cr3_find_next"
+        android:contentDescription="@string/tb_button_find_next"/>
         />
 </LinearLayout>
