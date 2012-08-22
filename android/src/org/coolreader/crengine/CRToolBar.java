@@ -76,8 +76,8 @@ public class CRToolBar extends ViewGroup {
 			BUTTON_SPACING = 4;
 			BAR_SPACING = 4;
 		} else {
-			BUTTON_SPACING = preferredItemHeight / 5;
-			BAR_SPACING = preferredItemHeight / 5;
+			BUTTON_SPACING = preferredItemHeight / 8;
+			BAR_SPACING = preferredItemHeight / 8;
 		}
 		int sz = (context.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz;

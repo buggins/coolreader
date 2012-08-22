@@ -121,7 +121,8 @@
                     android:id="@+id/lbl_login"
                     style="@style/TextAppearance.Medium"
                     android:layout_marginLeft="10dip"
-                    android:singleLine="true"
+                    android:singleLine="false"
+                    android:maxLines="2"
                     android:text="account: user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
