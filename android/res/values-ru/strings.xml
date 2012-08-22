@@ -447,7 +447,7 @@
     <string name="options_view_toolbar_position_none">Спрятать</string>
     <string name="options_view_toolbar_hide_in_fullscreen">Прятать панель инструментов в полноэкранном режиме</string>
     <string name="options_view_toolbar_position_right">Справа</string>
-    <string name="online_store_login">Логин</string>
+    <string name="online_store_login">Зарегистрироваться</string>
     <string name="online_store_username">Имя пользователя:</string>
     <string name="online_store_password">Пароль:</string>
     <string name="online_store_genres">Книги по жанрам</string>

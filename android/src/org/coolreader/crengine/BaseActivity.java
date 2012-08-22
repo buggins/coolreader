@@ -1130,6 +1130,12 @@ public class BaseActivity extends Activity implements Settings {
 		// override for specific actions
 	}
 	
+	public void showActionsPopupMenu(final ReaderAction[] actions, final CRToolBar.OnActionHandler onActionHandler) {
+		ArrayList<ReaderAction> list = new ArrayList<ReaderAction>(actions.length);
+		for (ReaderAction a : actions)
+			list.add(a);
+		showActionsPopupMenu(list, onActionHandler);
+	}
 	public void showActionsPopupMenu(final ArrayList<ReaderAction> actions, final CRToolBar.OnActionHandler onActionHandler) {
 		registerForContextMenu(contentView);
 		contentView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {

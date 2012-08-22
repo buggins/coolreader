@@ -12,7 +12,6 @@ import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
-import org.coolreader.db.CRDBService.RecentBooksLoadingCallback;
 import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.BookInfoCallback;
 import org.coolreader.plugins.FileInfoCallback;
@@ -1012,7 +1011,13 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						image.setImageResource(R.drawable.cr3_browser_folder_zip);
 					else
 						image.setImageResource(R.drawable.cr3_browser_folder);
-					setText(name, item.filename);
+
+					String title = item.filename;
+					
+					if (item.isOnlineCatalogPluginDir())
+						title = translateOnlineStorePluginItem(item);
+					
+					setText(name, title);
 
 					if ( item.isBooksByAuthorDir() ) {
 						int bookCount = 0;
@@ -1089,9 +1094,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 								seriesName = filename2;
 						} else if (seriesName==null) 
 							seriesName = filename1;
-						
-						if (item.isOnlineCatalogPluginDir())
-							title = translateOnlineStorePluginItem(item);
 						
 						setText( name, title );
 						setText( series, seriesName );
@@ -1190,7 +1192,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			resourceId = R.string.online_store_new;
 		if (resourceId != 0)
 			return mActivity.getString(resourceId);
-		return item.title;
+		return item.filename;
 	}
 	
 	private void setCurrDirectory(FileInfo newCurrDirectory) {
@@ -1218,6 +1220,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		String title = dir.filename;
 		if (!dir.isSpecialDir())
 			title = dir.getPathName();
+		if (dir.isOnlineCatalogPluginDir())
+			title = translateOnlineStorePluginItem(dir);		
 		mActivity.setTitle(title);
 		
 		mListView.setAdapter(currentListAdapter);

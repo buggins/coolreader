@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.CRToolBar.OnActionHandler;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBService.OPDSCatalogsLoadingCallback;
@@ -16,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -416,6 +418,20 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 //			}
 //		});
 		
+//		((ImageButton)mView.findViewById(R.id.btn_settings)).setOnClickListener(new OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				showSettings();
+//			}
+//		});
+
+		((ImageButton)mView.findViewById(R.id.btn_menu)).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				showMenu();
+			}
+		});
+
 		mView.findViewById(R.id.current_book).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -520,6 +536,22 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
+	}
+
+	public void showMenu() {
+		ReaderAction[] actions = {
+			ReaderAction.EXIT,	
+		};
+		mActivity.showActionsPopupMenu(actions, new OnActionHandler() {
+			@Override
+			public boolean onActionSelected(ReaderAction item) {
+				if (item == ReaderAction.EXIT) {
+					Activities.finish();
+					return true;
+				}
+				return false;
+			}
+		});
 	}
 	
 }
