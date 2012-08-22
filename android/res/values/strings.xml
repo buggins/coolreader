@@ -464,4 +464,5 @@
     <string name="dlg_button_open_folder">Open containing folder</string>
     <string name="dlg_button_recent_delete">Remove from recent books list</string>
     <string name="dlg_button_book_delete">Delete book</string>
+    <string name="btn_toolbar_more">More</string>
 </resources>
