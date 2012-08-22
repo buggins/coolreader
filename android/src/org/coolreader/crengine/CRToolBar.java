@@ -187,11 +187,11 @@ public class CRToolBar extends ViewGroup {
 		ImageButton ib = new ImageButton(getContext());
 		if (item != null) {
 			ib.setImageResource(item.iconId);
-			ib.setContentDescription(getContext().getString(item.nameId));
+			Utils.setContentDescription(ib, getContext().getString(item.nameId));
 			ib.setTag(item);
 		} else {
 			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));
-			ib.setContentDescription(getContext().getString(R.string.btn_toolbar_more));
+			Utils.setContentDescription(ib, getContext().getString(R.string.btn_toolbar_more));
 		}
 		ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);

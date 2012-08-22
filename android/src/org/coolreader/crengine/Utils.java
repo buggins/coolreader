@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -22,6 +24,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.view.View;
 
 public class Utils {
 	public static long timeStamp() {
@@ -552,4 +555,22 @@ public class Utils {
 		return str;
 	}
 
+	// to support API LEVEL 3: View.setContentDescription() has been added only since API LEVEL 4
+	public static void setContentDescription(View view, CharSequence text) {
+		if (DeviceInfo.getSDKLevel() >= 4) {
+			Method m;
+			try {
+				m = view.getClass().getMethod("setContentDescription", CharSequence.class);
+				m.invoke(view, text);
+			} catch (NoSuchMethodException e) {
+				// Ignore
+			} catch (IllegalArgumentException e) {
+				// Ignore
+			} catch (IllegalAccessException e) {
+				// Ignore
+			} catch (InvocationTargetException e) {
+				// Ignore
+			}
+		}
+	}
 }
