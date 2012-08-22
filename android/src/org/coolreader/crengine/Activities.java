@@ -98,6 +98,10 @@ public class Activities {
 		}
 	}
 
+	public static void showManual() {
+		loadDocument("@manual", null);
+	}
+	
 	public static final String OPEN_FILE_PARAM = "FILE_TO_OPEN";
 	public static void loadDocument( String item, Runnable callback )
 	{
