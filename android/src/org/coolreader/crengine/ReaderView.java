@@ -5401,9 +5401,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 								if (mylastSavePositionTaskId == lastSavePositionTaskId) {
 									if (bookInfo != null) {
 										log.v("saving last position");
-										Services.getHistory().updateBookAccess(bookInfo);
-										if (mActivity.getDB() != null)
-											mActivity.getDB().saveBookInfo(bookInfo);
+										if (Services.getHistory() != null) {
+											Services.getHistory().updateBookAccess(bookInfo);
+											if (mActivity.getDB() != null)
+												mActivity.getDB().saveBookInfo(bookInfo);
+										}
 						                //mActivity.getDB().flush();
 									}
 								}
