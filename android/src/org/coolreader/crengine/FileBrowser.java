@@ -1090,6 +1090,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						} else if (seriesName==null) 
 							seriesName = filename1;
 						
+						if (item.isOnlineCatalogPluginDir())
+							title = translateOnlineStorePluginItem(item);
+						
 						setText( name, title );
 						setText( series, seriesName );
 
@@ -1170,6 +1173,24 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return mScanner.mFileList.size()==0;
 		}
 
+	}
+	
+	private String translateOnlineStorePluginItem(FileInfo item) {
+		String path = item.getOnlineCatalogPluginPath();
+		int resourceId = 0;
+		if ("genres".equals(path))
+			resourceId = R.string.online_store_genres;
+		else if ("authors".equals(path))
+			resourceId = R.string.online_store_authors;
+		else if ("my".equals(path))
+			resourceId = R.string.online_store_my;
+		else if ("popular".equals(path))
+			resourceId = R.string.online_store_popular;
+		else if ("new".equals(path))
+			resourceId = R.string.online_store_new;
+		if (resourceId != 0)
+			return mActivity.getString(resourceId);
+		return item.title;
 	}
 	
 	private void setCurrDirectory(FileInfo newCurrDirectory) {
