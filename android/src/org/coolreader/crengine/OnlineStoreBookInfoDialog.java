@@ -64,7 +64,6 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         setCanceledOnTouchOutside(true);
 
         super.onCreate();
-		L.v("OptionsDialog is created");
 	}
 	
 	RatingBar rbBookRating;
@@ -145,14 +144,18 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         setView(view);
 	}
 	
+	private String getString(int resourceId) {
+		return getContext().getString(resourceId);
+	}
+	
 	private void updateInfo() {
 		lblTitle.setText(mBookInfo.book.bookTitle);
 		lblAuthors.setText(Utils.formatAuthorsNormalNames(mBookInfo.book.getAuthors()));
 		lblSeries.setText(mBookInfo.book.getSeries());
-        lblLogin.setText(mBookInfo.isLoggedIn ? mBookInfo.login : "please log in");
-        lblBalance.setText(mBookInfo.isLoggedIn ? "balance: " + mBookInfo.accountBalance : "");
-        lblStatus.setText(mBookInfo.isPurchased ? "purchased" : "");
-        lblPrice.setText(mBookInfo.book.price > 0 ? "price: " + String.valueOf(mBookInfo.book.price) : "free!");
+        lblLogin.setText(mBookInfo.isLoggedIn ? mBookInfo.login : getString(R.string.online_store_please_login));
+        lblBalance.setText(mBookInfo.isLoggedIn ? getString(R.string.online_store_balance) + " " + mBookInfo.accountBalance : "");
+        lblStatus.setText(mBookInfo.isPurchased ? getString(R.string.online_store_status_purchased) : "");
+        lblPrice.setText(mBookInfo.book.price > 0 ? getString(R.string.online_store_price) + " " + String.valueOf(mBookInfo.book.price) : getString(R.string.online_store_status_free));
         lblNormalPrice.setText(mBookInfo.book.price != mBookInfo.book.basePrice ? String.valueOf(mBookInfo.book.basePrice) : "");
         lblNormalPrice.setPaintFlags(lblNormalPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         lblFileInfo.setText(Utils.formatSize(mBookInfo.book.zipSize));
@@ -160,20 +163,20 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
         	btnPreview.setVisibility(View.GONE);
         else {
         	if (bookFileExists(true))
-        		btnPreview.setText("Open preview");
+        		btnPreview.setText(R.string.online_store_open_trial);
         	else
-        		btnPreview.setText("Download preview");
+        		btnPreview.setText(R.string.online_store_download_trial);
         }
         if (bookFileExists(false)) {
-			btnBuyOrDownload.setText("Open");
+			btnBuyOrDownload.setText(R.string.online_store_open);
         } else if (mBookInfo.isLoggedIn) {
 			if (mBookInfo.isPurchased) {
-				btnBuyOrDownload.setText("Download");
+				btnBuyOrDownload.setText(R.string.online_store_download);
 			} else {
-				btnBuyOrDownload.setText("Buy");
+				btnBuyOrDownload.setText(R.string.online_store_buy);
 			}
 		} else {
-			btnBuyOrDownload.setText("Login");
+			btnBuyOrDownload.setText(R.string.online_store_login);
 		}
 	}
 	
@@ -196,7 +199,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 				download(false);
 			} else {
 				// buy
-				mActivity.askConfirmation("Price is " + mBookInfo.book.price + " Do you want to purchase this book?", new Runnable() {
+				mActivity.askConfirmation(getString(R.string.online_store_price) + " " + mBookInfo.book.price + " " + getString(R.string.online_store_confirm_purchase), new Runnable() {
 					@Override
 					public void run() {
 						String bookId = mFileInfo.getOnlineCatalogPluginId();
@@ -205,7 +208,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 							@Override
 							public void onError(int errorCode, String errorMessage) {
 								progress.hide();
-								mActivity.showToast("Purchase error: " + errorMessage);
+								mActivity.showToast(getString(R.string.online_store_purchase_error) + ": " + errorMessage);
 							}
 							
 							@Override
@@ -214,7 +217,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 								mBookInfo.accountBalance = newAccountBalance;
 								mBookInfo.isPurchased = true;
 								updateInfo();
-								mActivity.showToast("Book has been purchased. New balance: " + newAccountBalance);
+								mActivity.showToast(getString(R.string.online_store_confirm_purchase) + " " + getString(R.string.online_store_purchase_new_balance) + " " + newAccountBalance);
 							}
 						});
 					}
