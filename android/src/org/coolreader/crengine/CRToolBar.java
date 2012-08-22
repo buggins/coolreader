@@ -191,6 +191,7 @@ public class CRToolBar extends ViewGroup {
 			ib.setTag(item);
 		} else {
 			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));
+			ib.setContentDescription(getContext().getString(R.string.btn_toolbar_more));
 		}
 		ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
