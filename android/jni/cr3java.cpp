@@ -25,6 +25,7 @@ void CRJNIEnv::fromJavaStringArray( jobjectArray array, lString16Collection & ds
 	for ( int i=0; i<len; i++ ) {
 		jstring str = (jstring)env->GetObjectArrayElement(array, i);
 		dst.add(fromJavaString(str));
+		env->DeleteLocalRef(str);
 	}
 }
 
