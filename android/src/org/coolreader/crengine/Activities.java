@@ -281,6 +281,10 @@ public class Activities {
 			readerActivity.getReaderView().saveSetting(name, value);
 	}
 	
+	public static void showBrowserOptionsDialog() {
+		// TODO:
+	}
+	
 	private final static int EXITING_INTERVAL = 2000;
 	private static long tsExiting;
 	public static boolean exiting(boolean clearFlag) {
