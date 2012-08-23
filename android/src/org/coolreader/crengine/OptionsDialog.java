@@ -38,7 +38,7 @@ import android.widget.TextView;
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
 	ReaderView mReaderView;
-	ReaderActivity mActivity;
+	BaseActivity mActivity;
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -239,14 +239,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public final static int OPTION_VIEW_TYPE_SUBMENU = 3;
 	//public final static int OPTION_VIEW_TYPE_COUNT = 3;
 
-	public ReaderActivity getActivity() { return mActivity; }
+	public BaseActivity getActivity() { return mActivity; }
 	public Properties getProperties() { return mProperties; }
 	public LayoutInflater getInflater() { return mInflater; }
 	
 	public static class OptionBase {
 		protected View myView;
 		Properties mProperties;
-		ReaderActivity mActivity;
+		BaseActivity mActivity;
 		OptionOwner mOwner;
 		LayoutInflater mInflater;
 		public String label;
@@ -1207,7 +1207,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			super.updateItemContents(layout, item, listView, position);
 			ImageView img = (ImageView)layout.findViewById(R.id.option_value_image);
 			int cl = mProperties.getColor(PROP_BACKGROUND_COLOR, Color.WHITE);
-			BackgroundTextureInfo texture = mReaderView.getEngine().getTextureInfoById(item.value);
+			BackgroundTextureInfo texture = Services.getEngine().getTextureInfoById(item.value);
 			img.setBackgroundColor(cl);
 			if ( texture.resourceId!=0 ) {
 //				img.setImageDrawable(null);
@@ -1245,21 +1245,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		READER,
 		BROWSER,
 	}
-	public OptionsDialog(ReaderActivity activity, ReaderView readerView, String[] fontFaces, Mode mode)
+	public OptionsDialog(BaseActivity activity, ReaderView readerView, String[] fontFaces, Mode mode)
 	{
 		super(activity, null, false, false);
 		
 		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
-		mProperties = readerView.getSettings();
+		mProperties = SettingsManager.instance(mActivity).get(); //  readerView.getSettings();
 		mOldProperties = new Properties(mProperties);
-		mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
-		mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
-		mProperties.setBool(PROP_EMBEDDED_FONTS, mReaderView.getDocumentFontsEnabled());
+		if (mode == Mode.READER) {
+			mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
+			mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
+			mProperties.setBool(PROP_EMBEDDED_FONTS, mReaderView.getDocumentFontsEnabled());
+			isTextFormat = readerView.isTextFormat();
+			isEpubFormat = readerView.isFormatWithEmbeddedFonts();
+		}
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
-		isTextFormat = readerView.isTextFormat();
-		isEpubFormat = readerView.isFormatWithEmbeddedFonts();
 		this.mode = mode;
 	}
 	
@@ -1956,16 +1958,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //	}
 	
 	protected void apply() {
-		if (mProperties.getBool(PROP_TXT_OPTION_PREFORMATTED, true) != mReaderView.isTextAutoformatEnabled()) {
-			mReaderView.toggleTextFormat();
+		if (mode == Mode.READER) {
+			if (mProperties.getBool(PROP_TXT_OPTION_PREFORMATTED, true) != mReaderView.isTextAutoformatEnabled()) {
+				mReaderView.toggleTextFormat();
+			}
+			if (mProperties.getBool(PROP_EMBEDDED_STYLES, true) != mReaderView.getDocumentStylesEnabled()) {
+				mReaderView.toggleDocumentStyles();
+			}
+			if (mProperties.getBool(PROP_EMBEDDED_FONTS, true) != mReaderView.getDocumentFontsEnabled()) {
+				mReaderView.toggleEmbeddedFonts();
+			}
 		}
-		if (mProperties.getBool(PROP_EMBEDDED_STYLES, true) != mReaderView.getDocumentStylesEnabled()) {
-			mReaderView.toggleDocumentStyles();
-		}
-		if (mProperties.getBool(PROP_EMBEDDED_FONTS, true) != mReaderView.getDocumentFontsEnabled()) {
-			mReaderView.toggleEmbeddedFonts();
-		}
-        mReaderView.setSettings(mProperties, mOldProperties);
+		SettingsManager.instance(mActivity).setSettings(mProperties, 0);
+        //mReaderView.setSettings(mProperties, mOldProperties);
 	}
 	
 	@Override

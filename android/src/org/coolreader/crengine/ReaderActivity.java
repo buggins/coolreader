@@ -383,6 +383,7 @@ public class ReaderActivity extends BaseActivity {
 				ReaderAction.OPEN_PREVIOUS_BOOK,
 				ReaderAction.TOGGLE_AUTOSCROLL,
 				ReaderAction.TOGGLE_DAY_NIGHT,
+				ReaderAction.ABOUT,
 				ReaderAction.EXIT,
 			}));
 			this.toolbarView.setBackgroundDrawable(toolbarBackground);

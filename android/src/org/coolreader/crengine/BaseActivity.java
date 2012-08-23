@@ -1156,4 +1156,10 @@ public class BaseActivity extends Activity implements Settings {
 		contentView.showContextMenu();
 	}
 	
+	public void showBrowserOptionsDialog()
+	{
+		OptionsDialog dlg = new OptionsDialog(BaseActivity.this, null, null, OptionsDialog.Mode.BROWSER);
+		dlg.show();
+	}
+
 }

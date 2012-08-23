@@ -186,8 +186,7 @@ public class BrowserActivity extends BaseActivity {
 								Activities.loadDocument(bi.getFileInfo());
 							break;
 						case DCMD_OPTIONS_DIALOG:
-							//mBrowser.
-							// TODO: open browser options dialog
+							showBrowserOptionsDialog();
 							break;
 						}
 						return false;
