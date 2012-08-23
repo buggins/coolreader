@@ -254,7 +254,7 @@ public class BookmarksDlg  extends BaseDialog {
 		mCoolReader = activity;
 		mReaderView = readerView;
 		mBookInfo = mReaderView.getBookInfo();
-		setPositiveButtonImage(R.drawable.cr3_button_add);
+		setPositiveButtonImage(R.drawable.cr3_button_add, R.string.mi_bookmark_add);
 		View frame = mInflater.inflate(R.layout.bookmark_list_dialog, null);
 		ViewGroup body = (ViewGroup)frame.findViewById(R.id.bookmark_list);
 		mList = new BookmarkList(activity, false);

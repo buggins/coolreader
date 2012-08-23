@@ -30,16 +30,22 @@ public class BaseDialog extends Dialog {
 	String title;
 	boolean needCancelButton;
 	int positiveButtonImage;
+	int positiveButtonContentDescriptionId = R.string.dlg_button_ok;
 	int negativeButtonImage;
+	int negativeButtonContentDescriptionId = R.string.action_go_back;
 	int thirdButtonImage;
-	public void setPositiveButtonImage(int id) {
-		positiveButtonImage = id;
+	int thirdButtonContentDescriptionId;
+	public void setPositiveButtonImage(int imageId, int descriptionId) {
+		positiveButtonImage = imageId;
+		positiveButtonContentDescriptionId = descriptionId;
 	}
-	public void setNegativeButtonImage(int id) {
-		negativeButtonImage = id;
+	public void setNegativeButtonImage(int imageId, int descriptionId) {
+		negativeButtonImage = imageId;
+		negativeButtonContentDescriptionId = descriptionId;
 	}
-	public void setThirdButtonImage(int id) {
-		thirdButtonImage = id;
+	public void setThirdButtonImage(int imageId, int descriptionId) {
+		thirdButtonImage = imageId;
+		thirdButtonContentDescriptionId = descriptionId;
 	}
 	
 	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
@@ -126,15 +132,24 @@ public class BaseDialog extends Dialog {
 		ImageButton backButton = (ImageButton)layout.findViewById(R.id.base_dlg_btn_back);
 		if (positiveButtonImage != 0) {
 			positiveButton.setImageResource(positiveButtonImage);
+			if (positiveButtonContentDescriptionId != 0)
+				positiveButton.setContentDescription(getContext().getString(positiveButtonContentDescriptionId));
 			//backButton.setImageResource(positiveButtonImage);
 		}
 		if (thirdButtonImage != 0) {
 			negativeButton.setImageResource(thirdButtonImage);
+			if (thirdButtonContentDescriptionId != 0)
+				negativeButton.setContentDescription(getContext().getString(thirdButtonContentDescriptionId));
 		}
 		if (negativeButtonImage != 0) {
-			if (thirdButtonImage == 0)
+			if (thirdButtonImage == 0) {
 				negativeButton.setImageResource(negativeButtonImage);
+				if (negativeButtonContentDescriptionId != 0)
+					negativeButton.setContentDescription(getContext().getString(negativeButtonContentDescriptionId));
+			}
 			backButton.setImageResource(negativeButtonImage);
+			if (negativeButtonContentDescriptionId != 0)
+				backButton.setContentDescription(getContext().getString(negativeButtonContentDescriptionId));
 		}
 		if (needCancelButton) {
 			//layout.removeView(backButton);
