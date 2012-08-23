@@ -5055,7 +5055,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
 				Services.getHistory().updateBookAccess(mBookInfo);
-				mActivity.getDB().saveBookInfo(mBookInfo);
+				if (mActivity.getDB() != null)
+					mActivity.getDB().saveBookInfo(mBookInfo);
 		        if (coverPageBytes!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching()) {
 		        		// TODO: fix it
