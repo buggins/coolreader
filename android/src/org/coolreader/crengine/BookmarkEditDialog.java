@@ -33,7 +33,7 @@ public class BookmarkEditDialog extends BaseDialog {
 		//else
 		//	mBookmark = bookmark;
 		if (!isNew) {
-			setThirdButtonImage(R.drawable.cr3_button_remove);
+			setThirdButtonImage(R.drawable.cr3_button_remove, R.string.mi_bookmark_delete);
 		}
 		boolean isComment = bookmark.getType()==Bookmark.TYPE_COMMENT;
 		setTitle(mCoolReader.getString( mIsNew ? R.string.dlg_bookmark_create : R.string.dlg_bookmark_edit));
