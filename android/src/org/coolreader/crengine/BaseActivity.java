@@ -40,7 +40,6 @@ import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
-import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -539,14 +538,14 @@ public class BaseActivity extends Activity implements Settings {
 	@SuppressLint("NewApi")
 	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			if (!systemUiVisibilityListenerIsSet && contentView != null) {
-				contentView.setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
-					@Override
-					public void onSystemUiVisibilityChange(int visibility) {
-						lastSystemUiVisibility = visibility;
-					}
-				});
-			}
+//			if (!systemUiVisibilityListenerIsSet && contentView != null) {
+//				contentView.setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
+//					@Override
+//					public void onSystemUiVisibilityChange(int visibility) {
+//						lastSystemUiVisibility = visibility;
+//					}
+//				});
+//			}
 			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
 			if (!a4)
 				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
