@@ -52,6 +52,7 @@
     <string name="tab_options_page">Page</string>
     <string name="tab_options_app">App</string>
     <string name="tab_options_controls">Controls</string>
+    <string name="tab_options_css">CSS</string>
     <string name="options_font_size">Font size</string>
     <string name="options_font_face">Font face</string>
     <string name="options_font_embolden">Embolden font</string>

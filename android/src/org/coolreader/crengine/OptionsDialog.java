@@ -1864,35 +1864,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
 		
-		
-		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
-		tsStyles.setIndicator("", //getContext().getResources().getString(R.string.tab_options_styles) 
-				getContext().getResources().getDrawable(R.drawable.cr3_tab_style)); //R.drawable.cr3_option_style
-		tsStyles.setContent(this);
-		mTabs.addTab(tsStyles);
-
-		TabHost.TabSpec tsCSS = mTabs.newTabSpec("CSS");
-		tsCSS.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_css)); //R.drawable.cr3_option_style
-		tsCSS.setContent(this);
-		mTabs.addTab(tsCSS);
-
-		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
-		tsPage.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_page)); //R.drawable.cr3_option_page
-		tsPage.setContent(this);
-		mTabs.addTab(tsPage);
-
-		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
-		tsControls.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_controls));
-		tsControls.setContent(this);
-		mTabs.addTab(tsControls);
-
-
-		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
-		tsApp.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_application));
-		tsApp.setContent(this);
-		mTabs.addTab(tsApp);
+		addTab("Styles", R.drawable.cr3_tab_style, R.string.tab_options_styles);
+		addTab("CSS", R.drawable.cr3_tab_css, R.string.tab_options_css);
+		addTab("Page", R.drawable.cr3_tab_page, R.string.tab_options_page);
+		addTab("Controls", R.drawable.cr3_tab_controls, R.string.tab_options_controls);
+		addTab("App", R.drawable.cr3_tab_application, R.string.tab_options_app);
 		
 		setView(mTabs);
+	}
+	
+	private void addTab(String name, int imageDrawable, int contentDescription) {
+		TabHost.TabSpec ts = mTabs.newTabSpec(name);
+		ImageButton ib = new ImageButton(getContext());
+		ib.setImageDrawable(getContext().getResources().getDrawable(imageDrawable));
+		Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
+		ts.setIndicator(ib);
+		ts.setContent(this);
+		mTabs.addTab(ts);
 	}
 	
 	@Override
