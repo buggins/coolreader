@@ -157,6 +157,7 @@ public class BrowserActivity extends BaseActivity {
 		        		ReaderAction.RECENT_BOOKS,
 		        		ReaderAction.OPDS_CATALOGS,
 		        		ReaderAction.SEARCH,
+		        		ReaderAction.SCAN_DIRECTORY_RECURSIVE,
 						ReaderAction.EXIT
 		        		));
 		        mToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
@@ -187,6 +188,9 @@ public class BrowserActivity extends BaseActivity {
 							break;
 						case DCMD_OPTIONS_DIALOG:
 							showBrowserOptionsDialog();
+							break;
+						case DCMD_SCAN_DIRECTORY_RECURSIVE:
+							mBrowser.scanCurrentDirectoryRecursive();
 							break;
 						}
 						return false;

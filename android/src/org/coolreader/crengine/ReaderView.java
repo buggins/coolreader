@@ -187,6 +187,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_FILE_BROWSER_ROOT(2051),
     	DCMD_FILE_BROWSER_UP(2052),
     	DCMD_CURRENT_BOOK(2053),
+    	DCMD_SCAN_DIRECTORY_RECURSIVE(2054),
 		;
     	
     	private final int nativeId;
