@@ -1877,6 +1877,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		TabHost.TabSpec ts = mTabs.newTabSpec(name);
 		ImageButton ib = new ImageButton(getContext());
 		ib.setImageDrawable(getContext().getResources().getDrawable(imageDrawable));
+		ib.setBackgroundDrawable(null);
 		Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
 		ts.setIndicator(ib);
 		ts.setContent(this);

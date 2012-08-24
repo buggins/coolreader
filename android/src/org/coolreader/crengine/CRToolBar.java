@@ -73,11 +73,11 @@ public class CRToolBar extends ViewGroup {
 		this.showLabels = true;
 		this.preferredItemHeight = context.getPreferredItemHeight();
 		if (context.isSmartphone()) {
-			BUTTON_SPACING = 4;
-			BAR_SPACING = 4;
+			BUTTON_SPACING = 3;
+			BAR_SPACING = 3;
 		} else {
-			BUTTON_SPACING = preferredItemHeight / 8;
-			BAR_SPACING = preferredItemHeight / 8;
+			BUTTON_SPACING = preferredItemHeight / 12;
+			BAR_SPACING = preferredItemHeight / 12;
 		}
 		int sz = (context.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz;
@@ -349,13 +349,20 @@ public class CRToolBar extends ViewGroup {
 			}
 		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
-		popup.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
+		popup.setWidth(WindowManager.LayoutParams.FILL_PARENT);
 		popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
 		popup.setFocusable(true);
 		popup.setFocusable(true);
 		popup.setTouchable(true);
 		popup.setOutsideTouchable(true);
 		popup.setContentView(tb);
+		InterfaceTheme theme = context.getCurrentTheme();
+		Drawable bg;
+		if (theme.getBrowserToolbarBackground(false) != 0)
+			bg = context.getResources().getDrawable(theme.getPopupToolbarBackground());
+		else
+			bg = Utils.solidColorDrawable(theme.getPopupToolbarBackgroundColor());
+		popup.setBackgroundDrawable(bg);
 		int [] location = new int[2];
 		anchor.getLocationOnScreen(location);
 		int popupY = location[1];

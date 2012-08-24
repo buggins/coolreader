@@ -9,7 +9,8 @@ public class InterfaceTheme {
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_black, 
 					R.drawable.ui_toolbar_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_vertical_black)
+					R.drawable.ui_toolbar_background_browser_vertical_black,
+					0, 0xFF000000)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0x80);
 //			.setBackgrounds(
 //					R.drawable.ui_status_background_browser_black, 
@@ -25,7 +26,8 @@ public class InterfaceTheme {
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_black, 
 					R.drawable.ui_toolbar_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_vertical_black)
+					R.drawable.ui_toolbar_background_browser_vertical_black,
+					0, 0xFFFFFFFF)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xE0);
 //			.setBackgrounds(
 //					R.drawable.ui_status_background_browser_black, 
@@ -41,7 +43,8 @@ public class InterfaceTheme {
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_light, 
 					R.drawable.ui_toolbar_background_browser_light,
-					R.drawable.ui_toolbar_background_browser_vertical_light)
+					R.drawable.ui_toolbar_background_browser_vertical_light,
+					R.drawable.background_tiled_light, 0)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xC0);
 //			.setBackgrounds(
 //					R.drawable.ui_status_background_browser_light, 
@@ -57,7 +60,8 @@ public class InterfaceTheme {
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_dark, 
 					R.drawable.ui_toolbar_background_browser_dark,
-					R.drawable.ui_toolbar_background_browser_vertical_dark)
+					R.drawable.ui_toolbar_background_browser_vertical_dark,
+					R.drawable.background_tiled_dark, 0)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0x90);
 //			.setBackgrounds(
 //					R.drawable.ui_status_background_browser_dark, 
@@ -132,6 +136,15 @@ public class InterfaceTheme {
 	public int getToolbarButtonAlpha() {
 		return toolbarButtonAlpha;
 	}
+
+	public int getPopupToolbarBackground() {
+		return popupToolbarBackground;
+	}
+
+	public int getPopupToolbarBackgroundColor() {
+		return popupToolbarBackgroundColor;
+	}
+
 	
 	public final static InterfaceTheme[] allThemes = {
 		BLACK, WHITE, DARK, LIGHT,
@@ -158,6 +171,8 @@ public class InterfaceTheme {
 	private int browserStatusBackground;
 	private int browserToolbarBackground;
 	private int browserToolbarBackgroundVertical;
+	private int popupToolbarBackground;
+	private int popupToolbarBackgroundColor;
 //	private int readerStatusBackground;
 //	private int readerToolbarBackground;
 //	private int readerToolbarBackgroundVertical;
@@ -184,10 +199,13 @@ public class InterfaceTheme {
 //	}
 
 	private InterfaceTheme setBackgrounds(int browserStatusBackground,
-			int browserToolbarBackground, int browserToolbarBackgroundVertical) {
+			int browserToolbarBackground, int browserToolbarBackgroundVertical, 
+			int popupToolbarBackground, int browserToolbarBackgroundColor) {
 		this.browserStatusBackground = browserStatusBackground;
 		this.browserToolbarBackground = browserToolbarBackground;
 		this.browserToolbarBackgroundVertical = browserToolbarBackgroundVertical;
+		this.popupToolbarBackground = popupToolbarBackground;
+		this.popupToolbarBackgroundColor = browserToolbarBackgroundColor;
 		return this;
 	}
 	
