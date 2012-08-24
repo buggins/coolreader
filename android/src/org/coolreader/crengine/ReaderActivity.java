@@ -1282,8 +1282,11 @@ public class ReaderActivity extends BaseActivity {
 	}
 	
 	public void onSettingsChanged(Properties props) {
-		if (mFrame != null)
+		if (mFrame != null) {
 			mFrame.updateSettings(props);
+			if (mReaderView != null)
+				mReaderView.setSettings(props, null);
+		}
 	}
 	
 	public void showMenu() {
