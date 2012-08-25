@@ -2850,7 +2850,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		setBackgroundTexture(backgroundImageId, backgroundColor);
 		props.setInt(PROP_STATUS_LINE, props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP) == VIEWER_STATUS_PAGE ? 0 : 1);		
 		doc.applySettings(props);
-        syncViewSettings(props, save, saveDelayed);
+        //syncViewSettings(props, save, saveDelayed);
         drawPage();
 	}
 	
