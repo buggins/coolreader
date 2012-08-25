@@ -319,9 +319,10 @@ public class CRToolBar extends ViewGroup {
 	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler, final OnOverflowHandler onOverflowHandler) {
 		final CRToolBar tb = new CRToolBar(context, actions);
 		tb.setOnActionHandler(onActionHandler);
-		tb.measure(anchor.getWidth(), ViewGroup.LayoutParams.WRAP_CONTENT);
+		tb.measure(MeasureSpec.makeMeasureSpec(anchor.getWidth(), MeasureSpec.EXACTLY), ViewGroup.LayoutParams.WRAP_CONTENT);
+		tb.setVertical(false);
 		int w = tb.getMeasuredWidth();
-		int р = tb.getMeasuredHeight();
+		int h = tb.getMeasuredHeight();
 		final PopupWindow popup = new PopupWindow(context);
 		popup.setTouchInterceptor(new OnTouchListener() {
 			
@@ -350,7 +351,7 @@ public class CRToolBar extends ViewGroup {
 		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
 		popup.setWidth(WindowManager.LayoutParams.FILL_PARENT);
-		popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+		popup.setHeight(h);
 		popup.setFocusable(true);
 		popup.setFocusable(true);
 		popup.setTouchable(true);
