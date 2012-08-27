@@ -79,7 +79,7 @@ public class CRToolBar extends ViewGroup {
 		ImageView icon = (ImageView)view.findViewById(R.id.action_icon);
 		TextView label = (TextView)view.findViewById(R.id.action_label);
 		icon.setImageResource(action != null ? action.iconId : R.drawable.cr3_button_more);
-		icon.setMinimumHeight(buttonHeight);
+		//icon.setMinimumHeight(buttonHeight);
 		icon.setMinimumWidth(buttonWidth);
 		Utils.setContentDescription(icon, activity.getString(action != null ? action.nameId : R.string.btn_toolbar_more));
 		label.setText(action != null ? action.nameId : R.string.btn_toolbar_more);
@@ -275,9 +275,10 @@ public class CRToolBar extends ViewGroup {
         			final ReaderAction action = (visibleNonButtonCount > 0 && i + startBtn == iconActions.size()) ? null : iconActions.get(startBtn + i);
         			//log.v("item=" + itemRect);
         			LinearLayout item = inflateItem(action);
-        			item.setLayoutParams(new LinearLayout.LayoutParams(itemRect.width(), itemRect.height()));
+        			//item.setLayoutParams(new LinearLayout.LayoutParams(itemRect.width(), itemRect.height()));
+        			item.measure(MeasureSpec.makeMeasureSpec(itemRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(itemRect.height(), MeasureSpec.EXACTLY));
         			item.layout(itemRect.left, itemRect.top, itemRect.right, itemRect.bottom);
-        			item.forceLayout();
+        			//item.forceLayout();
         			addView(item);
         			item.setOnClickListener(new OnClickListener() {
 						@Override

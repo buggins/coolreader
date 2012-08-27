@@ -6,7 +6,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_margin="1px"
-    android:layout_width="wrap_content"
+    android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:baselineAligned="false"
     android:background="@drawable/cr3_toolbar_button_background"
@@ -14,21 +14,20 @@
     >
 
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout 
     android:orientation="vertical"
     android:padding="1px"
     android:layout_margin="1px"
-    android:layout_width="wrap_content"
+    android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:background="#20FFFFFF"
     >
 
     <ImageView android:id="@+id/action_icon"
         android:src="@drawable/cr3_button_next"
-        android:minWidth="?android:attr/listPreferredItemHeight"
-        android:minHeight="?android:attr/listPreferredItemHeight"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal|top"
         android:scaleType="center"
         android:layout_gravity="center_horizontal" 
         />
@@ -36,13 +35,14 @@
     <TextView android:id="@+id/action_label"
         style="@style/TextAppearance.Small"
         android:text="Action name"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="2"
+        android:gravity="center_horizontal"
         android:singleLine="false"
         android:lines="2"
-        android:ellipsize="end"
-        android:layout_gravity="center_horizontal" 
+        android:maxLines="2"
+        android:ellipsize="none"
         />
 
 </LinearLayout>
