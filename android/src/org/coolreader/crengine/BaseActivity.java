@@ -279,7 +279,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 	public boolean isSmartphone() {
-		return diagonalInches <= 5.5;
+		return diagonalInches <= 5.8;
 	}
 	
 	private int densityDpi = 160;
