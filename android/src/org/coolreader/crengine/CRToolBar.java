@@ -9,12 +9,16 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 public class CRToolBar extends ViewGroup {
 
@@ -23,18 +27,22 @@ public class CRToolBar extends ViewGroup {
 	
 	final private BaseActivity activity;
 	private ArrayList<ReaderAction> actions = new ArrayList<ReaderAction>();
+	private ArrayList<ReaderAction> iconActions = new ArrayList<ReaderAction>();
 	private boolean showLabels;
 	private int buttonHeight;
 	private int buttonWidth;
+	private int itemHeight; // multiline mode, line height 
 	private int visibleButtonCount;
 	private int visibleNonButtonCount;
 	private boolean isVertical;
+	private boolean isMultiline;
 	final private int preferredItemHeight;
 	private int BUTTON_SPACING = 4;
 	private int BAR_SPACING = 4;
 	private int buttonAlpha = 0xFF;
 	private int textColor = 0x000000;
 	private ImageButton overflowButton;
+	private LayoutInflater inflater;
 
 	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
 	
@@ -65,30 +73,50 @@ public class CRToolBar extends ViewGroup {
 		this.activity = context;
 		this.preferredItemHeight = context.getPreferredItemHeight();
 	}
+
+	private LinearLayout inflateItem(ReaderAction action) {
+		final LinearLayout view = (LinearLayout)inflater.inflate(R.layout.popup_toolbar_item, null);
+		ImageView icon = (ImageView)view.findViewById(R.id.action_icon);
+		TextView label = (TextView)view.findViewById(R.id.action_label);
+		icon.setImageResource(action != null ? action.iconId : R.drawable.cr3_button_more);
+		icon.setMinimumHeight(buttonHeight);
+		icon.setMinimumWidth(buttonWidth);
+		Utils.setContentDescription(icon, activity.getString(action != null ? action.nameId : R.string.btn_toolbar_more));
+		label.setText(action != null ? action.nameId : R.string.btn_toolbar_more);
+		view.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+		return view;
+	}
 	
-	public CRToolBar(BaseActivity context, ArrayList<ReaderAction> actions) {
+	public CRToolBar(BaseActivity context, ArrayList<ReaderAction> actions, boolean multiline) {
 		super(context);
 		this.activity = context;
 		this.actions = actions;
-		this.showLabels = true;
+		this.showLabels = multiline;
+		this.isMultiline = multiline;
 		this.preferredItemHeight = context.getPreferredItemHeight();
+		this.inflater = LayoutInflater.from(activity);
+		context.getWindow().getAttributes();
 		if (context.isSmartphone()) {
 			BUTTON_SPACING = 3;
 			BAR_SPACING = 3;
 		} else {
-			BUTTON_SPACING = preferredItemHeight / 12;
-			BAR_SPACING = preferredItemHeight / 12;
+			BUTTON_SPACING = preferredItemHeight / 20;
+			BAR_SPACING = preferredItemHeight / 20;
 		}
 		int sz = (context.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz;
+		if (multiline)
+			buttonHeight = sz / 2;
 		int dpi = context.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
 			if (iconId == 0) {
+				itemsOverflow.add(item);
 				visibleNonButtonCount++;
 				continue;
 			}
+			iconActions.add(item);
 			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
 			int w = d.getIntrinsicWidth() * dpi / 160 + 4;
@@ -100,7 +128,10 @@ public class CRToolBar extends ViewGroup {
 				buttonHeight = h;
 			}
 		}
-		
+		if (multiline) {
+			LinearLayout item = inflateItem(iconActions.get(0));
+			itemHeight = item.getMeasuredHeight() + BUTTON_SPACING;
+		}
 	}
 
 	private OnActionHandler onActionHandler;
@@ -219,6 +250,48 @@ public class CRToolBar extends ViewGroup {
 		left = top = 0;
 		removeAllViews();
 		overflowButton = null;
+		
+		if (isMultiline) {
+        	int lineCount = calcLineCount(right);
+        	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
+        	int buttonsPerLine = (btnCount + lineCount - 1) / lineCount;
+        	
+    		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
+    		int lineH = rect.height() / lineCount;
+        	for (int currentLine = 0; currentLine < lineCount; currentLine++) {
+        		int startBtn = currentLine * buttonsPerLine;
+        		int endBtn = (currentLine + 1) * buttonsPerLine;
+        		if (endBtn > btnCount)
+        			endBtn = btnCount;
+        		int currentLineButtons = endBtn - startBtn;
+        		Rect lineRect = new Rect(rect);
+        		lineRect.top += currentLine * lineH + BUTTON_SPACING / 2;
+        		lineRect.bottom = lineRect.top + lineH - BUTTON_SPACING / 2;
+        		int itemWidth = lineRect.width() / currentLineButtons;
+        		for (int i = 0; i < currentLineButtons; i++) {
+        			Rect itemRect = new Rect(lineRect);
+        			itemRect.left += i * itemWidth + BUTTON_SPACING / 2;
+        			itemRect.right = itemRect.left + itemWidth - BUTTON_SPACING / 2;
+        			final ReaderAction action = (visibleNonButtonCount > 0 && i + startBtn == iconActions.size()) ? null : iconActions.get(startBtn + i);
+        			//log.v("item=" + itemRect);
+        			LinearLayout item = inflateItem(action);
+        			item.setLayoutParams(new LinearLayout.LayoutParams(itemRect.width(), itemRect.height()));
+        			item.layout(itemRect.left, itemRect.top, itemRect.right, itemRect.bottom);
+        			item.forceLayout();
+        			addView(item);
+        			item.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							if (action != null)
+								onButtonClick(action);
+							else
+								showOverflowMenu();
+						}
+					});
+        		}
+        	}
+        	return;
+		}
 
 //		View divider = new View(getContext());
 //		addView(divider);
@@ -294,9 +367,30 @@ public class CRToolBar extends ViewGroup {
 	        setMeasuredDimension(maxWidth, contentHeight);
         } else {
 	        int contentWidth = MeasureSpec.getSize(widthMeasureSpec);
-	        int maxHeight = buttonHeight + BUTTON_SPACING + BUTTON_SPACING + BAR_SPACING + getPaddingTop() + getPaddingBottom();
-	        setMeasuredDimension(contentWidth, maxHeight);
+	        if (isMultiline) {
+	        	int lineCount = calcLineCount(contentWidth);
+	        	setMeasuredDimension(contentWidth, lineCount * itemHeight + BAR_SPACING + BAR_SPACING);
+	        } else {
+	        	setMeasuredDimension(contentWidth, buttonHeight + BUTTON_SPACING * 2 + BAR_SPACING);
+	        }
         }
+	}
+	
+	protected int calcLineCount(int contentWidth) {
+		if (!isMultiline)
+			return 1;
+    	int lineCount = 1;
+    	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
+    	int minLineItemCount = 3;
+    	int maxLineItemCount = contentWidth / (preferredItemHeight * 3);
+    	if (maxLineItemCount < minLineItemCount)
+    		maxLineItemCount = minLineItemCount;
+
+    	for (;;) {
+	    	if (btnCount <= maxLineItemCount * lineCount)
+	    		return lineCount;
+	    	lineCount++;
+    	}
 	}
 
 	@Override
@@ -317,7 +411,7 @@ public class CRToolBar extends ViewGroup {
 	}
 	
 	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler, final OnOverflowHandler onOverflowHandler) {
-		final CRToolBar tb = new CRToolBar(context, actions);
+		final CRToolBar tb = new CRToolBar(context, actions, true);
 		tb.setOnActionHandler(onActionHandler);
 		tb.measure(MeasureSpec.makeMeasureSpec(anchor.getWidth(), MeasureSpec.EXACTLY), ViewGroup.LayoutParams.WRAP_CONTENT);
 		tb.setVertical(false);

@@ -159,7 +159,7 @@ public class BrowserActivity extends BaseActivity {
 		        		ReaderAction.SEARCH,
 		        		ReaderAction.SCAN_DIRECTORY_RECURSIVE,
 						ReaderAction.EXIT
-		        		));
+		        		), false);
 		        mToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
 		        mToolBar.setOnActionHandler(new OnActionHandler() {
 					@Override
