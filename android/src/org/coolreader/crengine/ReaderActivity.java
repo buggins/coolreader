@@ -385,7 +385,7 @@ public class ReaderActivity extends BaseActivity {
 				ReaderAction.TOGGLE_DAY_NIGHT,
 				ReaderAction.ABOUT,
 				ReaderAction.EXIT,
-			}));
+			}), false);
 			this.toolbarView.setBackgroundDrawable(toolbarBackground);
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 			this.addView(toolbarView);
