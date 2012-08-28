@@ -490,4 +490,5 @@
     <string name="online_store_purchase_error">Failed to purchase book</string>
     <string name="online_store_purchase_success">Book has been purchased.</string>
     <string name="online_store_purchase_new_balance">New balance:</string>
+    <string name="options_app_plugins">Plugins</string>
 </resources>

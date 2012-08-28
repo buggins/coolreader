@@ -476,7 +476,7 @@ public class CRToolBar extends ViewGroup {
 		popup.setContentView(scroll);
 		InterfaceTheme theme = context.getCurrentTheme();
 		Drawable bg;
-		if (theme.getBrowserToolbarBackground(false) != 0)
+		if (theme.getPopupToolbarBackground() != 0)
 			bg = context.getResources().getDrawable(theme.getPopupToolbarBackground());
 		else
 			bg = Utils.solidColorDrawable(theme.getPopupToolbarBackgroundColor());
