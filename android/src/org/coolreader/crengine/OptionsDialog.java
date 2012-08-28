@@ -1893,11 +1893,20 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	
 	private void addTab(String name, int imageDrawable, int contentDescription) {
 		TabHost.TabSpec ts = mTabs.newTabSpec(name);
-		ImageButton ib = new ImageButton(getContext());
-		ib.setImageDrawable(getContext().getResources().getDrawable(imageDrawable));
-		ib.setBackgroundDrawable(null);
-		Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
-		ts.setIndicator(ib);
+		Drawable icon = getContext().getResources().getDrawable(imageDrawable);
+		
+		// temporary rollback ImageButton tabs: no highlight for current tab in this implementation
+		if (true) {
+			ts.setIndicator("", icon);
+		} else {
+			// ACCESSIBILITY: we need to specify contentDescription
+			ImageButton ib = new ImageButton(getContext());
+			ib.setImageDrawable(icon);
+			ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
+			Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
+			ts.setIndicator(ib);
+		}
+		
 		ts.setContent(this);
 		mTabs.addTab(ts);
 	}
