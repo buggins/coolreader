@@ -14,10 +14,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AbsoluteLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class CRToolBar extends ViewGroup {
@@ -255,9 +257,15 @@ public class CRToolBar extends ViewGroup {
         	int lineCount = calcLineCount(right);
         	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
         	int buttonsPerLine = (btnCount + lineCount - 1) / lineCount;
+
+//        	ScrollView scroll = new ScrollView(activity);
+//        	scroll.setLayoutParams(new LayoutParams(right, bottom));
+//        	AbsoluteLayout content = new AbsoluteLayout(activity);
+        	
         	
     		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
-    		int lineH = rect.height() / lineCount;
+    		int lineH = itemHeight; //rect.height() / lineCount;
+    		int spacing = 0;
         	for (int currentLine = 0; currentLine < lineCount; currentLine++) {
         		int startBtn = currentLine * buttonsPerLine;
         		int endBtn = (currentLine + 1) * buttonsPerLine;
@@ -265,15 +273,15 @@ public class CRToolBar extends ViewGroup {
         			endBtn = btnCount;
         		int currentLineButtons = endBtn - startBtn;
         		Rect lineRect = new Rect(rect);
-        		lineRect.top += currentLine * lineH + BUTTON_SPACING / 2;
-        		lineRect.bottom = lineRect.top + lineH - BUTTON_SPACING / 2;
+        		lineRect.top += currentLine * lineH + spacing;
+        		lineRect.bottom = lineRect.top + lineH - spacing;
         		int itemWidth = lineRect.width() / currentLineButtons;
         		for (int i = 0; i < currentLineButtons; i++) {
         			Rect itemRect = new Rect(lineRect);
-        			itemRect.left += i * itemWidth + BUTTON_SPACING / 2;
-        			itemRect.right = itemRect.left + itemWidth - BUTTON_SPACING / 2;
+        			itemRect.left += i * itemWidth + spacing;
+        			itemRect.right = itemRect.left + itemWidth - spacing;
         			final ReaderAction action = (visibleNonButtonCount > 0 && i + startBtn == iconActions.size()) ? null : iconActions.get(startBtn + i);
-        			//log.v("item=" + itemRect);
+        			log.v("item=" + itemRect);
         			LinearLayout item = inflateItem(action);
         			//item.setLayoutParams(new LinearLayout.LayoutParams(itemRect.width(), itemRect.height()));
         			item.measure(MeasureSpec.makeMeasureSpec(itemRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(itemRect.height(), MeasureSpec.EXACTLY));
@@ -290,6 +298,7 @@ public class CRToolBar extends ViewGroup {
 						}
 					});
         		}
+//        		addView(scroll);
         	}
         	return;
 		}
@@ -369,8 +378,12 @@ public class CRToolBar extends ViewGroup {
         } else {
 	        int contentWidth = MeasureSpec.getSize(widthMeasureSpec);
 	        if (isMultiline) {
+		        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
 	        	int lineCount = calcLineCount(contentWidth);
-	        	setMeasuredDimension(contentWidth, lineCount * itemHeight + BAR_SPACING + BAR_SPACING);
+	        	int h = lineCount * itemHeight + BAR_SPACING + BAR_SPACING;
+//	        	if (h > contentHeight - itemHeight)
+//	        		h = contentHeight - itemHeight;
+	        	setMeasuredDimension(contentWidth, h);
 	        } else {
 	        	setMeasuredDimension(contentWidth, buttonHeight + BUTTON_SPACING * 2 + BAR_SPACING);
 	        }
@@ -412,12 +425,17 @@ public class CRToolBar extends ViewGroup {
 	}
 	
 	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler, final OnOverflowHandler onOverflowHandler) {
+		final ScrollView scroll = new ScrollView(context);
 		final CRToolBar tb = new CRToolBar(context, actions, true);
 		tb.setOnActionHandler(onActionHandler);
-		tb.measure(MeasureSpec.makeMeasureSpec(anchor.getWidth(), MeasureSpec.EXACTLY), ViewGroup.LayoutParams.WRAP_CONTENT);
 		tb.setVertical(false);
+		tb.measure(MeasureSpec.makeMeasureSpec(anchor.getWidth(), MeasureSpec.EXACTLY), ViewGroup.LayoutParams.WRAP_CONTENT);
 		int w = tb.getMeasuredWidth();
 		int h = tb.getMeasuredHeight();
+		scroll.addView(tb);
+		scroll.setLayoutParams(new LayoutParams(w, h/2));
+		scroll.setVerticalFadingEdgeEnabled(true);
+		scroll.setFadingEdgeLength(h / 10);
 		final PopupWindow popup = new PopupWindow(context);
 		popup.setTouchInterceptor(new OnTouchListener() {
 			
@@ -446,12 +464,16 @@ public class CRToolBar extends ViewGroup {
 		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
 		popup.setWidth(WindowManager.LayoutParams.FILL_PARENT);
-		popup.setHeight(h);
+		int hh = h;
+		int maxh = anchor.getHeight();
+		if (hh > maxh - context.getPreferredItemHeight())
+			hh = maxh - context.getPreferredItemHeight() * 3 / 2;
+		popup.setHeight(hh);
 		popup.setFocusable(true);
 		popup.setFocusable(true);
 		popup.setTouchable(true);
 		popup.setOutsideTouchable(true);
-		popup.setContentView(tb);
+		popup.setContentView(scroll);
 		InterfaceTheme theme = context.getCurrentTheme();
 		Drawable bg;
 		if (theme.getBrowserToolbarBackground(false) != 0)

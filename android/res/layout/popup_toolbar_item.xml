@@ -5,9 +5,10 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_margin="1px"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:padding="0dip"
+    android:layout_margin="0dip"
     android:baselineAligned="false"
     android:background="@drawable/cr3_toolbar_button_background"
     android:minHeight="?android:attr/listPreferredItemHeight"
@@ -16,11 +17,10 @@
 
 <LinearLayout 
     android:orientation="vertical"
-    android:padding="1px"
-    android:layout_margin="1px"
+    android:padding="0dip"
+    android:layout_margin="0dip"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="#20FFFFFF"
     >
 
     <ImageView android:id="@+id/action_icon"
