@@ -28,6 +28,10 @@ public class FileInfo {
 	public final static String SERIES_TAG = "@seriesRoot";
 	public final static String SERIES_GROUP_PREFIX = "@seriesGroup:";
 	public final static String SERIES_PREFIX = "@series:";
+	public final static String RATING_TAG = "@ratingRoot";
+	public final static String STATE_TO_READ_TAG = "@stateToReadRoot";
+	public final static String STATE_READING_TAG = "@stateReadingRoot";
+	public final static String STATE_FINISHED_TAG = "@stateFinishedRoot";
 	public final static String TITLE_TAG = "@titlesRoot";
 	public final static String TITLE_GROUP_PREFIX = "@titleGroup:";
 	public final static String SEARCH_SHORTCUT_TAG = "@search";
@@ -366,6 +370,26 @@ public class FileInfo {
 	public boolean isBooksBySeriesRoot()
 	{
 		return SERIES_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByRatingRoot()
+	{
+		return RATING_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByStateToReadRoot()
+	{
+		return STATE_TO_READ_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByStateReadingRoot()
+	{
+		return STATE_READING_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByStateFinishedRoot()
+	{
+		return STATE_FINISHED_TAG.equals(pathname);
 	}
 	
 	public boolean isBooksByTitleRoot()

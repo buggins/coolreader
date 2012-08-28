@@ -459,6 +459,14 @@ public class Scanner extends FileInfoChangeSource {
 			return createTitleRoot();
 		else if (FileInfo.SERIES_TAG.equals(path))
 			return createSeriesRoot();
+		else if (FileInfo.RATING_TAG.equals(path))
+			return createBooksByRatingRoot();
+		else if (FileInfo.STATE_READING_TAG.equals(path))
+			return createBooksByStateReadingRoot();
+		else if (FileInfo.STATE_TO_READ_TAG.equals(path))
+			return createBooksByStateToReadRoot();
+		else if (FileInfo.STATE_FINISHED_TAG.equals(path))
+			return createBooksByStateFinishedRoot();
 		else if (path.startsWith(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX)) {
 			OnlineStoreWrapper w = OnlineStorePluginManager.getPlugin(path);
 			if (w != null)
@@ -553,6 +561,46 @@ public class Scanner extends FileInfoChangeSource {
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.SERIES_TAG;
 		dir.filename = Activities.getString(R.string.folder_name_books_by_series);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	public FileInfo createBooksByRatingRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.RATING_TAG;
+		dir.filename = Activities.getString(R.string.folder_name_books_by_rating);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	public FileInfo createBooksByStateToReadRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.STATE_TO_READ_TAG;
+		dir.filename = Activities.getString(R.string.folder_name_books_by_state_to_read);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	public FileInfo createBooksByStateReadingRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.STATE_READING_TAG;
+		dir.filename = Activities.getString(R.string.folder_name_books_by_state_reading);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	public FileInfo createBooksByStateFinishedRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.STATE_FINISHED_TAG;
+		dir.filename = Activities.getString(R.string.folder_name_books_by_state_finished);
 		dir.isListed = true;
 		dir.isScanned = true;
 		return dir;
@@ -774,6 +822,10 @@ public class Scanner extends FileInfoChangeSource {
 		result.add(pathToFileInfo(FileInfo.AUTHORS_TAG));
 		result.add(pathToFileInfo(FileInfo.TITLE_TAG));
 		result.add(pathToFileInfo(FileInfo.SERIES_TAG));
+		result.add(pathToFileInfo(FileInfo.RATING_TAG));
+		result.add(pathToFileInfo(FileInfo.STATE_TO_READ_TAG));
+		result.add(pathToFileInfo(FileInfo.STATE_READING_TAG));
+		result.add(pathToFileInfo(FileInfo.STATE_FINISHED_TAG));
 		return result;
 	}
 	

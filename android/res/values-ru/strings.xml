@@ -281,6 +281,10 @@
     <string name="options_controls_tap_type_long">Длинное нажатие</string>
     <string name="mi_bookmark_send">Отправить</string>
     <string name="folder_name_books_by_author">Авторы</string>
+    <string name="folder_name_books_by_rating">По рейтингу</string>
+    <string name="folder_name_books_by_state_to_read">К прочтению</string>
+    <string name="folder_name_books_by_state_reading">Читаю</string>
+    <string name="folder_name_books_by_state_finished">Прочитанные</string>
     <string name="options_view_bookmarks_highlight">Подсвечивать закладки</string>
     <string name="options_css_footnotetitle">Заголовок сноски</string>
     <string name="options_css_subtitle">Подзаголовок</string>
