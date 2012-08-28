@@ -810,6 +810,26 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				mActivity.getDB().loadSeriesList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
 				return;
 			}
+			if (fileOrDir.isBooksByRatingRoot()) {
+				log.d("Updating rated books list");
+				mActivity.getDB().loadBooksByRating(1, 10, new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByStateFinishedRoot()) {
+				log.d("Updating books by state=finished");
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_FINISHED, new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByStateReadingRoot()) {
+				log.d("Updating books by state=reading");
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_READING, new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByStateReadingRoot()) {
+				log.d("Updating books by state=toRead");
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_TO_READ, new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
 			if (fileOrDir.isBooksByTitleRoot()) {
 				// refresh authors list
 				log.d("Updating title list");
@@ -998,6 +1018,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					else if (item.isBooksBySeriesRoot())
 						image.setImageResource(R.drawable.cr3_browser_folder_authors);
 					else if (item.isBooksByTitleRoot())
+						image.setImageResource(R.drawable.cr3_browser_folder_authors);
+					else if (item.isBooksByRatingRoot() || item.isBooksByStateReadingRoot() || item.isBooksByStateToReadRoot() || item.isBooksByStateFinishedRoot())
 						image.setImageResource(R.drawable.cr3_browser_folder_authors);
 					else if (item.isOPDSRoot() || item.isOPDSDir())
 						image.setImageResource(R.drawable.cr3_browser_folder_opds);

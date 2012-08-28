@@ -572,6 +572,22 @@ public class MainDB extends BaseDB {
 		return findBooks(sql, list);
 	}
 	
+	public boolean findBooksByRating(ArrayList<FileInfo> list, int minRate, int maxRate)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " WHERE ((flags>>20)&15) BETWEEN " + minRate + " AND " + maxRate + " ORDER BY ((flags>>20)&15) DESC, b.title LIMIT 1000";
+		return findBooks(sql, list);
+	}
+	
+	public boolean findBooksByState(ArrayList<FileInfo> list, int state)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " WHERE ((flags>>16)&15) = " + state + " ORDER BY b.title LIMIT 1000";
+		return findBooks(sql, list);
+	}
+	
 	private String findAuthors(int maxCount, String authorPattern) {
 		StringBuilder buf = new StringBuilder();
 		String sql = "SELECT id, name FROM author";
