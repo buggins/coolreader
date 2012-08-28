@@ -151,7 +151,8 @@ public class BaseActivity extends Activity implements Settings {
 		float heightInches = m.heightPixels / densityDpi;
 		diagonalInches = (float)Math.sqrt(widthInches * widthInches + heightInches * heightInches);
 		
-		log.i("CoolReader.window=" + getWindow());
+		log.i("diagonal=" + diagonalInches + "  isSmartphone=" + isSmartphone());
+		//log.i("CoolReader.window=" + getWindow());
 		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
 		lp.alpha = 1.0f;
 		lp.dimAmount = 0.0f;
