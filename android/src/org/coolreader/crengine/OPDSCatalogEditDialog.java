@@ -27,6 +27,7 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 		urlEdit = (EditText) view.findViewById(R.id.catalog_url);
 		nameEdit.setText(mItem.filename);
 		urlEdit.setText(mItem.getOPDSUrl());
+		setThirdButtonImage(R.drawable.cr3_button_remove, R.string.mi_catalog_delete);
 		setView(view);
 	}
 
@@ -43,4 +44,11 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 		super.onNegativeButtonClick();
 	}
 
+	@Override
+	protected void onThirdButtonClick() {
+		Activities.askDeleteCatalog(activity, mItem);
+		super.onThirdButtonClick();
+	}
+
+	
 }
