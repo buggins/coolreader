@@ -206,12 +206,23 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			});
 	}
 	
+	ArrayList<FileInfo> lastCatalogs = new ArrayList<FileInfo>();
 	private void updateOnlineCatalogs(ArrayList<FileInfo> catalogs) {
-		catalogs.add(0, Services.getScanner().createOnlineLibraryPluginItem("org.coolreader.plugins.litres", "LitRes"));
+		String lang = mActivity.getCurrentLanguage();
+		boolean defEnableLitres = lang.toLowerCase().startsWith("ru") && !DeviceInfo.POCKETBOOK;
+		boolean enableLitres = SettingsManager.instance(mActivity).getBool(Settings.PROP_APP_PLUGIN_ENABLED + "." + OnlineStorePluginManager.PLUGIN_PKG_LITRES, defEnableLitres);
+		if (enableLitres)
+			catalogs.add(0, Scanner.createOnlineLibraryPluginItem(OnlineStorePluginManager.PLUGIN_PKG_LITRES, "LitRes"));
 		FileInfo opdsRoot = Services.getScanner().getOPDSRoot();
 		if (opdsRoot.dirCount() == 0)
 			opdsRoot.addItems(catalogs);
 		catalogs.add(opdsRoot);
+		
+		if (lastCatalogs.equals(catalogs)) {
+			return; // not changed
+		}
+		lastCatalogs = catalogs;
+		
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		mOnlineCatalogsScroll.removeAllViews();
 		for (final FileInfo item : catalogs) {

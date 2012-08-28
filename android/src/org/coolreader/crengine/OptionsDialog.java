@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
+import org.coolreader.plugins.OnlineStorePluginManager;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -673,6 +674,22 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_percent), PROP_SHOW_POS_PERCENT).setDefaultValue("0"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_chapter_marks), PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_battery_percent), PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
+			dlg.setView(listView);
+			dlg.show();
+		}
+
+		public String getValueLabel() { return ">"; }
+	}
+	
+	class PluginsOption extends SubmenuOption {
+		public PluginsOption( OptionOwner owner, String label ) {
+			super(owner, label, PROP_APP_PLUGIN_ENABLED);
+		}
+		public void onSelect() {
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
+			OptionsListView listView = new OptionsListView(getContext());
+			boolean defEnableLitres = activity.getCurrentLanguage().toLowerCase().startsWith("ru") && !DeviceInfo.POCKETBOOK;
+			listView.add(new BoolOption(mOwner, "LitRes", PROP_APP_PLUGIN_ENABLED + "." + OnlineStorePluginManager.PLUGIN_PKG_LITRES).setDefaultValue(defEnableLitres ? "1" : "0"));
 			dlg.setView(listView);
 			dlg.show();
 		}
@@ -1747,6 +1764,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
 		mOptionsBrowser.add(new LangOption(this).noIcon());
+		mOptionsBrowser.add(new PluginsOption(this, getString(R.string.options_app_plugins)).noIcon());
 		mOptionsBrowser.refresh();
 		
 		body.addView(mOptionsBrowser);

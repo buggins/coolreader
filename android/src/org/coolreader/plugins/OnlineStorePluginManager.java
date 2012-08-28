@@ -31,4 +31,5 @@ public class OnlineStorePluginManager {
 		}
 		return wrapper;
 	}
+	public static final String PLUGIN_PKG_LITRES = "org.coolreader.plugins.litres";
 }

@@ -13,6 +13,7 @@ import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.Services;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
@@ -616,6 +617,12 @@ public class CoolReader extends BaseActivity
 	
 	public void refreshOnlineCatalogs() {
 		mFrame.refreshOnlineCatalogs();
+	}
+	
+	public void onSettingsChanged(Properties props) {
+		if (mFrame != null) {
+			mFrame.refreshOnlineCatalogs();
+		}
 	}
 	
 	

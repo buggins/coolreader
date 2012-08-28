@@ -313,7 +313,7 @@ public class Utils {
 		
 	}
 	
-	public static Drawable solidColorDrawable(int color) {
+	public static Drawable solidColorDrawable(final int color) {
 		return new Drawable() {
 			@Override
 			public void setColorFilter(ColorFilter cf) {
@@ -330,7 +330,7 @@ public class Utils {
 			
 			@Override
 			public void draw(Canvas canvas) {
-				canvas.drawColor(0xFF000000);
+				canvas.drawColor(0xFF000000 | color);
 			}
 		};
 	}

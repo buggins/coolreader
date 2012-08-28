@@ -471,4 +471,5 @@
     <string name="online_store_purchase_error">Не удалось купить книгу</string>
     <string name="online_store_purchase_success">Книга успешно куплена.</string>
     <string name="online_store_purchase_new_balance">Остаток на счете:</string>
+    <string name="options_app_plugins">Плагины</string>
 </resources>
