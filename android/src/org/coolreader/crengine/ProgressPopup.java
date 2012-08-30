@@ -25,8 +25,8 @@ public class ProgressPopup {
 	        LayoutInflater inflater = LayoutInflater.from(context);
 	        View content = inflater.inflate(R.layout.network_access_progress, null);
 	        content.measure(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-			popup = new PopupWindow(content.getMeasuredWidth(), content.getMeasuredHeight());
-	        popup.setContentView(content);
+			popup = new PopupWindow(content, content.getMeasuredWidth(), content.getMeasuredHeight());
+	        //popup.setContentView(content);
 	        popup.setBackgroundDrawable(null);
 	        popup.setOutsideTouchable(true);
 	        popup.showAtLocation(parent, Gravity.CENTER, 0, 0);
