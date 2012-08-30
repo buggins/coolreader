@@ -123,7 +123,7 @@
     <string name="action_file_browser">Otworz plik</string>
     <string name="action_options">Opcje</string>
     <string name="action_toggle_day_night">Dzien / noc</string>
-    <string name="action_reader_menu">Menu Reader'a</string>
+    <string name="action_reader_menu">Menu Reader\'a</string>
     <string name="options_app_tap_action_short">Akcja dotkniecia</string>
     <string name="options_app_tap_action_long">Akcja przytrzymania</string>
     <string name="action_touch_screen_toggle_lock">Zablokuj/odblokuj dotyk</string>
@@ -400,7 +400,7 @@
     <string name="options_font_embedded_document_font_enabled">Czcionki wbudowane dokumentu</string>
     <string name="options_app_locale_system">Systemowy</string>
     <string name="options_app_locale">Jezyk interfejsu</string>
-    <string name="options_app_locale_bg">Български</string>
+    <string name="options_app_locale_bg">Р‘СЉР»РіР°СЂСЃРєРё</string>
     <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_en">English</string>
     <string name="options_app_locale_es">Espanol</string>
@@ -409,12 +409,12 @@
     <string name="options_app_locale_it">Italiano</string>
     <string name="options_app_locale_lt">Lietuvos</string>
     <string name="options_app_locale_nl">Nederlands</string>
-    <string name="options_app_locale_ru">Русский</string>
+    <string name="options_app_locale_ru">Р СѓСЃСЃРєРёР№</string>
     <string name="options_app_locale_sk">Slovak</string>
     <string name="options_app_locale_tr">Turkce</string>
-    <string name="options_app_locale_uk">Українська</string>
-    <string name="options_app_locale_zh_cn">??</string>
-	<string name="options_app_locale_pl">Polski</string>
+    <string name="options_app_locale_uk">РЈРєСЂР°С—РЅСЃСЊРєР°</string>
+    <string name="options_app_locale_zh_cn">дё­ж–‡</string>
+    <string name="options_app_locale_pl">Polski</string>
     <string name="mi_goto_manual">Pomoc</string>
     <string name="options_view_bookmarks_highlight_underline">Podkreslenie</string>
     <string name="options_view_color_selection">Kolor zaznaczenia</string>
