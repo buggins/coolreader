@@ -92,17 +92,20 @@ public class OnlineStoreWrapper {
 		});
 	}
 	private void loadBookInfoSkipAuth(final AsyncOperationControl control, final String bookId, final BookInfoCallback callback) {
-		plugin.getBookInfo(control, bookId, true, new BookInfoCallback() {
-			@Override
-			public void onError(int errorCode, String errorMessage) {
-				loadBookInfoContinue(control, bookId, false, callback);
-			}
-			
-			@Override
-			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
-				loadBookInfoContinue(control, bookId, true, callback);
-			}
-		});
+		if (plugin.getLogin() == null)
+			loadBookInfoContinue(control, bookId, false, callback);
+		else
+			plugin.getBookInfo(control, bookId, true, new BookInfoCallback() {
+				@Override
+				public void onError(int errorCode, String errorMessage) {
+					loadBookInfoContinue(control, bookId, false, callback);
+				}
+				
+				@Override
+				public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
+					loadBookInfoContinue(control, bookId, true, callback);
+				}
+			});
 	}
 	public AsyncOperationControl loadBookInfo(final String bookId, final BookInfoCallback callback) {
 		final AsyncOperationControl control = new AsyncOperationControl();

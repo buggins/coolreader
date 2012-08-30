@@ -580,7 +580,9 @@ public class LitresConnection {
 			public void startElement(String uri, String localName,
 					String qName, Attributes attributes) throws SAXException {
 				//Log.d(TAG, "startElement " + localName);
-				if ("catalit-fb2-books".equals(localName)) {
+				if ("catalit-authorization-failed".equals(localName)) {
+					onError(25, "Authorization failed");
+				} else if ("catalit-fb2-books".equals(localName)) {
 					insideCatalitBooks = true;
 					result.account = stringToDouble(attributes.getValue("account"), 0);
 				} else if ("title-info".equals(localName) && insideCatalitBooks)
