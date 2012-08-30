@@ -250,7 +250,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			s = s.trim();
 			if (s.length()==0 || (s.length()==1 && s.charAt(0) == '\n') )
 				return; // ignore empty line
-			L.d(tab() + "  {" + s + "}");
+			//L.d(tab() + "  {" + s + "}");
 			String currentElement = elements.peek();
 			if ( currentElement==null )
 				return;
@@ -330,7 +330,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( qName!=null && qName.length()>0 )
 				localName = qName;
 			level++;
-			L.d(tab() + "<" + localName + ">");
+			//L.d(tab() + "<" + localName + ">");
 			//currentAttributes = attributes;
 			elements.push(localName);
 			//String currentElement = elements.peek();
@@ -390,7 +390,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			super.endElement(uri, localName, qName);
 			if ( qName!=null && qName.length()>0 )
 				localName = qName;
-			L.d(tab() + "</" + localName + ">");
+			//L.d(tab() + "</" + localName + ">");
 			//String currentElement = elements.peek();
 			if ( insideFeed && "feed".equals(localName) ) {
 				insideFeed = false;
