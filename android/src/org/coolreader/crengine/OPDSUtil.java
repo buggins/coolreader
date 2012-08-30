@@ -126,7 +126,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( href==null )
 				return href;
 			String port = "";
-			if (baseURL.getPort() != 80)
+			if (baseURL.getPort() != 80 && baseURL.getPort() > 0)
 				port = ":" + baseURL.getPort();
 			String hostPort = baseURL.getHost() + port;
 			if ( href.startsWith("/") )
