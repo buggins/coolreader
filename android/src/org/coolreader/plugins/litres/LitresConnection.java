@@ -1,11 +1,11 @@
 package org.coolreader.plugins.litres;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.parsers.ParserConfigurationException;
@@ -163,7 +164,13 @@ public class LitresConnection {
 					}
 					
 					InputStream is = connection.getInputStream();
-//					byte[] buf = new byte[contentLen];
+
+					if ("gzip".equals(contentEncoding)) {
+						L.d("Stream is compressed with GZIP");
+						is = new GZIPInputStream(new BufferedInputStream(is, 8192));
+					}
+					
+					//					byte[] buf = new byte[contentLen];
 //					if (is.read(buf) != contentLen) {
 //						contentHandler.onError(0, "Wrong content length");
 //						return;
@@ -294,6 +301,12 @@ public class LitresConnection {
 					OutputStream os = null;
 					try {
 						is = connection.getInputStream();
+
+						if ("gzip".equals(contentEncoding)) {
+							L.d("Stream is compressed with GZIP");
+							is = new GZIPInputStream(new BufferedInputStream(is, 8192));
+						}
+						
 						Log.i(TAG, "downloading file to " + contentHandler.fileToSave + "  contentLen=" + contentLen);
 						os = new FileOutputStream(contentHandler.fileToSave);
 						int bytesRead = Utils.copyStreamContent(os, is);
