@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.logging.MemoryHandler;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -3760,12 +3761,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    }
 	}
 	
-	
+	int hackMemorySize = 0;
 	// SurfaceView callbacks
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, final int width,
 			final int height) {
 		log.i("surfaceChanged(" + width + ", " + height + ")");
+
+		if (hackMemorySize <= 0) {
+			hackMemorySize = width * height * 2;
+			runtime.trackFree(hackMemorySize);
+		}
+
+		
 		invalidate();
 		//if (!isProgressActive())
 		draw();
@@ -3785,6 +3793,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		log.i("surfaceDestroyed()");
 		mSurfaceCreated = false;
+		if (hackMemorySize > 0) {
+			runtime.trackAlloc(hackMemorySize);
+			hackMemorySize = 0;
+		}
 	}
 	
 	enum AnimationType {

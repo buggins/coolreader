@@ -104,7 +104,7 @@ public class DeviceInfo {
 		NOFLIBUSTA = POCKETBOOK;
 		NAVIGATE_LEFTRIGHT = POCKETBOOK && DEVICE.startsWith("EP10");
 		REVERT_LANDSCAPE_VOLUME_KEYS = POCKETBOOK && DEVICE.startsWith("EP5A");
-		MIN_SCREEN_BRIGHTNESS_PERCENT = getMinBrightness(AMOLED_SCREEN ? 2 : (getSDKLevel() >= ICE_CREAM_SANDWICH ? 8 : 16));
+		MIN_SCREEN_BRIGHTNESS_PERCENT = getMinBrightness(AMOLED_SCREEN ? 2 : (getSDKLevel() >= ICE_CREAM_SANDWICH ? 4 : 16));
 		//BUFFER_COLOR_FORMAT = getSDKLevel() >= HONEYCOMB ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
 		//BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.ARGB_8888;
 		BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.RGB_565;
