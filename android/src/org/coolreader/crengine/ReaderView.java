@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.logging.MemoryHandler;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -1235,7 +1234,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// absolute path to file
 							FileInfo fi = new FileInfo(link);
 							if (fi.exists()) {
-								Activities.loadDocument(fi);
+								mActivity.loadDocument(fi);
 								return;
 							}
 							File baseDir = null;
@@ -1252,7 +1251,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									if (baseDir!=null && url!=null && url.length()>0) {
 										fi = new FileInfo(baseDir.getAbsolutePath()+"/"+url);
 										if (fi.exists()) {
-											Activities.loadDocument(fi);
+											mActivity.loadDocument(fi);
 											return;
 										}
 									}
@@ -1260,7 +1259,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									// from archive
 									fi = new FileInfo(mBookInfo.getFileInfo().getArchiveName() + FileInfo.ARC_SEPARATOR + link);
 									if (fi.exists()) {
-										Activities.loadDocument(fi);
+										mActivity.loadDocument(fi);
 										return;
 									}
 								}
@@ -1657,7 +1656,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	
 	public SyncServiceAccessor getSyncService() {
-		return Activities.getMain().getSyncService();
+		return mActivity.getSyncService();
 	}
 	
 	public Bookmark removeBookmark(final Bookmark bookmark) {
@@ -2412,7 +2411,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 							// cannot navigate - no data on stack
 							if (cmd == ReaderCommand.DCMD_LINK_BACK) {
 								// TODO: exit from activity in some cases?
-								Activities.showBrowser();
+								mActivity.showBrowser();
 							}
 						}
 					}
@@ -2427,7 +2426,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.i("On command " + cmd + (param!=0?" ("+param+")":" "));
 		switch ( cmd ) {
 		case DCMD_FILE_BROWSER_ROOT:
-			Activities.showRootWindow();
+			mActivity.showRootWindow();
 			break;
 		case DCMD_ABOUT:
 			mActivity.showAboutDialog();
@@ -2548,13 +2547,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			doEngineCommand(cmd, param);
 			break;
 		case DCMD_RECENT_BOOKS_LIST:
-			Activities.showRecentBooks();
+			mActivity.showRecentBooks();
 			break;
 		case DCMD_SEARCH:
 			showSearchDialog(null);
 			break;
 		case DCMD_EXIT:
-			Activities.finish();
+			mActivity.finish();
 			break;
 		case DCMD_BOOKMARKS:
 			mActivity.showBookmarksDialog();
@@ -2569,10 +2568,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			showTOC();
 			break;
 		case DCMD_FILE_BROWSER:
-			Activities.showBrowser(firstShowBrowserCall ? getOpenedFileInfo() : null);
+			mActivity.showBrowser(firstShowBrowserCall ? getOpenedFileInfo() : null);
 			break;
 		case DCMD_CURRENT_BOOK_DIRECTORY:
-			Activities.showBrowser(getOpenedFileInfo());
+			mActivity.showBrowser(getOpenedFileInfo());
 			break;
 		case DCMD_OPTIONS_DIALOG:
 			mActivity.showOptionsDialog(OptionsDialog.Mode.READER);
@@ -3017,7 +3016,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		// ignore
         	}
         } else {
-        	Activities.applyAppSetting(key, value);
+        	mActivity.applyAppSetting(key, value);
         }
         //
 	}
@@ -3227,7 +3226,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		log.v("loadDocument(" + fileInfo.getPathName() + ")");
 		if ( this.mBookInfo!=null && this.mBookInfo.getFileInfo().pathname.equals(fileInfo.pathname) && mOpened ) {
 			log.d("trying to load already opened document");
-			Activities.showReader();
+			mActivity.showReader();
 			drawPage();
 			return false;
 		}
@@ -3337,7 +3336,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			if ( fi.isDirectory ) {
 				log.v("loadDocument() : is a directory, opening browser");
-				Activities.showBrowser(fi);
+				mActivity.showBrowser(fi);
 				return true;
 			}
 		} else {
@@ -5097,7 +5096,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        drawPage();
 		        BackgroundThread.instance().postGUI(new Runnable() {
 		        	public void run() {
-		    			Activities.showReader();
+		    			mActivity.showReader();
 		        	}
 		        });
 		        mActivity.setLastSuccessfullyOpenedBook(filename);
