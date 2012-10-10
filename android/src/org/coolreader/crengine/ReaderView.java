@@ -1748,8 +1748,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		Properties settings = getSettings();
 		OptionsDialog.toggleDayNightMode(settings);
-		setSettings(settings, null);
-		SettingsManager.instance(mActivity).setSettings(mSettings, 60000);
+		setSettings(settings, SettingsManager.instance(mActivity).get());
+		SettingsManager.instance(mActivity).setSettings(settings, 60000);
 		invalidImages = true;
 	}
 	
