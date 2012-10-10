@@ -24,11 +24,11 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 public class SelectionToolbarDlg {
 	PopupWindow mWindow;
 	View mAnchor;
-	ReaderActivity mCoolReader;
+	CoolReader mCoolReader;
 	ReaderView mReaderView;
 	View mPanel;
 	Selection selection;
-	static public void showDialog( ReaderActivity coolReader, ReaderView readerView, final Selection selection )
+	static public void showDialog( CoolReader coolReader, ReaderView readerView, final Selection selection )
 	{
 		SelectionToolbarDlg dlg = new SelectionToolbarDlg(coolReader, readerView, selection);
 		//dlg.mWindow.update(dlg.mAnchor, width, height)
@@ -125,7 +125,7 @@ public class SelectionToolbarDlg {
 		mWindow.dismiss();
 	}
 	
-	public SelectionToolbarDlg(ReaderActivity coolReader, ReaderView readerView, Selection sel )
+	public SelectionToolbarDlg(CoolReader coolReader, ReaderView readerView, Selection sel )
 	{
 		this.selection = sel;
 		mCoolReader = coolReader;

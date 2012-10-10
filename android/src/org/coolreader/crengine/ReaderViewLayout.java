@@ -2,16 +2,15 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
+import org.coolreader.CoolReader;
 import org.coolreader.crengine.CRToolBar.OnActionHandler;
 import org.coolreader.crengine.CRToolBar.OnOverflowHandler;
 
 import android.graphics.Rect;
 import android.view.ViewGroup;
-import android.view.View.MeasureSpec;
-import android.view.ViewGroup.LayoutParams;
 
-class ReaderViewLayout extends ViewGroup implements Settings {
-		private ReaderActivity activity;
+public class ReaderViewLayout extends ViewGroup implements Settings {
+		private CoolReader activity;
 		private ReaderView contentView;
 		private StatusBar statusView;
 		private CRToolBar toolbarView;
@@ -48,7 +47,7 @@ class ReaderViewLayout extends ViewGroup implements Settings {
 		}
 		
 		public void updateSettings(Properties settings) {
-			ReaderActivity.log.d("ReaderActivity.updateSettings()");
+			CoolReader.log.d("CoolReader.updateSettings()");
 			nightMode = settings.getBool(PROP_NIGHT_MODE, false);
 			statusBarLocation = settings.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_TOP);
 			toolbarLocation = settings.getInt(PROP_TOOLBAR_LOCATION, VIEWER_TOOLBAR_SHORT_SIDE);
@@ -85,7 +84,7 @@ class ReaderViewLayout extends ViewGroup implements Settings {
 				});
 		}
 		
-		public ReaderViewLayout(ReaderActivity context, ReaderView contentView) {
+		public ReaderViewLayout(CoolReader context, ReaderView contentView) {
 			super(context);
 			this.activity = context;
 			this.contentView = contentView;
@@ -148,7 +147,7 @@ class ReaderViewLayout extends ViewGroup implements Settings {
 		
 		@Override
 		protected void onLayout(boolean changed, int l, int t, int r, int b) {
-			ReaderActivity.log.v("onLayout(" + l + ", " + t + ", " + r + ", " + b + ")");
+			CoolReader.log.v("onLayout(" + l + ", " + t + ", " + r + ", " + b + ")");
 			r -= l;
 			b -= t;
 			t = 0;
@@ -213,7 +212,7 @@ class ReaderViewLayout extends ViewGroup implements Settings {
 				BackgroundThread.instance().postGUI(new Runnable() {
 					@Override
 					public void run() {
-						ReaderActivity.log.v("Invalidating toolbar ++++++++++");
+						CoolReader.log.v("Invalidating toolbar ++++++++++");
 						toolbarView.forceLayout();
 						contentView.invalidate();
 						toolbarView.invalidate();

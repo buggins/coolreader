@@ -151,95 +151,11 @@ public class Activities {
 	}
 
 	
-	public static void editOPDSCatalog(FileInfo opds) {
-		if (opds==null) {
-			opds = new FileInfo();
-			opds.isDirectory = true;
-			opds.pathname = FileInfo.OPDS_DIR_PREFIX + "http://";
-			opds.filename = "New Catalog";
-			opds.isListed = true;
-			opds.isScanned = true;
-			opds.parent = Services.getScanner().getOPDSRoot();
-		}
-		OPDSCatalogEditDialog dlg = new OPDSCatalogEditDialog(getCurrentActivity(), opds, new Runnable() {
-			@Override
-			public void run() {
-				refreshOPDSRootDirectory();
-			}
-		});
-		dlg.show();
-	}
-
-	public static void askDeleteBook(final BaseActivity activity, final FileInfo item)
-	{
-		activity.askConfirmation(R.string.win_title_confirm_book_delete, new Runnable() {
-			@Override
-			public void run() {
-				Activities.closeBookIfOpened(item);
-				FileInfo file = Services.getScanner().findFileInTree(item);
-				if (file == null)
-					file = item;
-				if (file.deleteFile()) {
-					activity.getSyncService().removeFile(file.getPathName());
-					Services.getHistory().removeBookInfo(activity.getDB(), file, true, true);
-				}
-				if (file.parent != null)
-					directoryUpdated(file.parent);
-			}
-		});
-	}
-	
-	public static void askDeleteRecent(final BaseActivity activity, final FileInfo item)
-	{
-		activity.askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
-			@Override
-			public void run() {
-				Services.getHistory().removeBookInfo(activity.getDB(), item, true, false);
-				activity.getSyncService().removeFileLastPosition(item.getPathName());
-				directoryUpdated(Services.getScanner().createRecentRoot());
-			}
-		});
-	}
-	
-	public static void askDeleteCatalog(final BaseActivity activity, final FileInfo item)
-	{
-		activity.askConfirmation(R.string.win_title_confirm_catalog_delete, new Runnable() {
-			@Override
-			public void run() {
-				if (item != null && item.isOPDSDir()) {
-					activity.getDB().removeOPDSCatalog(item.id);
-					directoryUpdated(Services.getScanner().createRecentRoot());
-				}
-			}
-		});
-	}
-	
-	
 	public static void directoryUpdated(FileInfo dir) {
 		if (mainActivity != null)
 			mainActivity.directoryUpdated(dir);
 		if (browserActivity != null)
 			browserActivity.directoryUpdated(dir);
-	}
-	
-	public static void editBookInfo(final BaseActivity activity, final FileInfo currDirectory, final FileInfo item) {
-		Services.getHistory().getOrCreateBookInfo(activity.getDB(), item, new BookInfoLoadedCallack() {
-			@Override
-			public void onBookInfoLoaded(BookInfo bookInfo) {
-				if (bookInfo == null)
-					bookInfo = new BookInfo(item);
-				BookInfoEditDialog dlg = new BookInfoEditDialog(activity, currDirectory, bookInfo, 
-						currDirectory.isRecentDir());
-				dlg.show();
-			}
-		});
-	}
-	
-	public static void refreshOPDSRootDirectory() {
-		if (browserActivity != null)
-			browserActivity.getBrowser().refreshOPDSRootDirectory();
-		if (mainActivity != null)
-			mainActivity.refreshOnlineCatalogs();
 	}
 	
 	public static void applyAppSetting( String key, String value )
@@ -264,23 +180,6 @@ public class Activities {
 			browserActivity.onSettingsChanged(props);
 	}
 
-	public static boolean isBookOpened() {
-		if (readerActivity == null)
-			return false;
-		return readerActivity.getReaderView().isBookLoaded();
-	}
-
-	public static void closeBookIfOpened(FileInfo book) {
-		if (readerActivity == null)
-			return;
-		readerActivity.getReaderView().closeIfOpened(book);
-	}
-	
-	public static void saveSetting(String name, String value) {
-		if (readerActivity != null)
-			readerActivity.getReaderView().saveSetting(name, value);
-	}
-	
 	public static void showBrowserOptionsDialog() {
 		// TODO:
 	}

@@ -21,7 +21,7 @@ public class HelpFileGenerator {
 	private final String langCode;
 	private final Properties settings;
 	private final String version;
-	public HelpFileGenerator(ReaderActivity context, Engine engine, Properties props, String langCode) {
+	public HelpFileGenerator(CoolReader context, Engine engine, Properties props, String langCode) {
 		this.context = context;
 		this.engine = engine;
 		this.langCode = langCode;

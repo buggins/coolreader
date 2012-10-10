@@ -423,7 +423,7 @@ xml:base="http://lib.ololo.cc/opds/">
 	}
 	
 	public static class DownloadTask {
-		final private BrowserActivity coolReader; 
+		final private CoolReader coolReader; 
 		private URL url;
 		final private String expectedType;
 		final private String referer;
@@ -433,7 +433,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		private HttpURLConnection connection;
 		private DelayedProgress delayedProgress;
 		OPDSHandler handler;
-		public DownloadTask(BrowserActivity coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
+		public DownloadTask(CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
 			this.url = url;
 			this.coolReader = coolReader;
 			this.callback = callback; 
@@ -870,7 +870,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create(BrowserActivity coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
+	public static DownloadTask create(CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
 		final DownloadTask task = new DownloadTask(coolReader, uri, defaultFileName, expectedType, referer, callback);
 		currentTask = task;
 		return task;

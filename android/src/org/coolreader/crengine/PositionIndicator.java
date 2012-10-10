@@ -1,10 +1,11 @@
 package org.coolreader.crengine;
 
+import org.coolreader.CoolReader;
+
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.View;
-import android.view.View.MeasureSpec;
 import android.view.ViewGroup.LayoutParams;
 
 class PositionIndicator extends View {
@@ -14,7 +15,7 @@ class PositionIndicator extends View {
 	private int color = 0;
 	private int percent = 0;
 	
-	public PositionIndicator(ReaderActivity context) {
+	public PositionIndicator(CoolReader context) {
 		super(context);
 		setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		this.color = SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);

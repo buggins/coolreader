@@ -6,7 +6,6 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -16,7 +15,7 @@ import android.widget.TextView;
 
 public class BookSearchDialog extends BaseDialog {
 	
-	private final BrowserActivity mCoolReader;
+	private final CoolReader mCoolReader;
 	private final LayoutInflater mInflater;
 	final EditText authorEdit;
 	final EditText titleEdit;
@@ -29,7 +28,7 @@ public class BookSearchDialog extends BaseDialog {
 	private boolean searchActive = false;
 	private boolean closing = false;
 	
-	public BookSearchDialog(BrowserActivity activity, SearchCallback callback)
+	public BookSearchDialog(CoolReader activity, SearchCallback callback)
 	{
 		super(activity, activity.getString( R.string.dlg_book_search), true, false);
 		mCoolReader = activity;

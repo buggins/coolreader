@@ -170,7 +170,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnLongClickListener(new OnLongClickListener() {
 					@Override
 					public boolean onLongClick(View v) {
-						Activities.editBookInfo(mActivity, Services.getScanner().createRecentRoot(), item);
+						mActivity.editBookInfo(Services.getScanner().createRecentRoot(), item);
 						return true;
 					}
 				});
@@ -235,7 +235,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Activities.editOPDSCatalog(null);
+						mActivity.editOPDSCatalog(null);
 					}
 				});
 			} else if (item.isOnlineCatalogPluginDir()) {
@@ -310,7 +310,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnLongClickListener(new OnLongClickListener() {
 					@Override
 					public boolean onLongClick(View v) {
-						Activities.editOPDSCatalog(item);
+						mActivity.editOPDSCatalog(item);
 						return true;
 					}
 				});
@@ -456,7 +456,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			@Override
 			public boolean onLongClick(View v) {
 				if (currentBook != null)
-					Activities.editBookInfo(mActivity, Services.getScanner().createRecentRoot(), currentBook.getFileInfo());
+					mActivity.editBookInfo(Services.getScanner().createRecentRoot(), currentBook.getFileInfo());
 				return true;
 			}
 		});
