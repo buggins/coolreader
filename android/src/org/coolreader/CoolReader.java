@@ -460,7 +460,7 @@ public class CoolReader extends BaseActivity
 
 	private void processIntent(Intent intent) {
 		log.d("intent=" + intent);
-		if (intent != null) {
+		if (intent != null && intent.getExtras() != null) {
 			final String fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
 			if (fileToOpen != null) {
 				log.d("FILE_TO_OPEN = " + fileToOpen);
@@ -574,9 +574,8 @@ public class CoolReader extends BaseActivity
 				
 				mHomeFrame = new CRRootView(CoolReader.this);
 				Services.getCoverpageManager().addCoverpageReadyListener(mHomeFrame);
-				setContentView( mHomeFrame );
-				BackgroundThread.instance().setGUI(mHomeFrame);
 				mHomeFrame.requestFocus();
+				showRootWindow();
 				setSystemUiVisibility();
 			}
 		});
@@ -1034,7 +1033,7 @@ public class CoolReader extends BaseActivity
 	public void showCatalog(FileInfo path) {
 		log.d("Activities.showCatalog(" + path + ") is called");
 		showBrowser();
-		mBrowser.showOnlineStoreDirectory(path);
+		mBrowser.showDirectory(path, null);
 	}
 
 	

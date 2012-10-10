@@ -2,6 +2,8 @@ package org.coolreader.crengine;
 
 import org.coolreader.crengine.Engine.HyphDict;
 
+import android.os.Handler;
+
 public class Services {
 
 	public static final Logger log = L.create("sv");
@@ -19,6 +21,8 @@ public class Services {
 	public static void onFirstActivityCreated(BaseActivity activity) {
 		log.i("First activity is created");
 		// testing background thread
+		BackgroundThread.instance().setGUIHandler(new Handler());
+				
 		mEngine = Engine.getInstance(activity);
 		
         String code = SettingsManager.instance(activity).getSetting(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
