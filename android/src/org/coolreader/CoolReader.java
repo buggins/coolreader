@@ -117,89 +117,7 @@ public class CoolReader extends BaseActivity
 		mEngine = Engine.getInstance(this);
 
 		
-		waitForCRDBService(new Runnable() {
-			@Override
-			public void run() {
-				mBrowser = new FileBrowser(CoolReader.this, Services.getEngine(), Services.getScanner(), Services.getHistory());
-				mBrowser.setCoverPagesEnabled(SettingsManager.instance(CoolReader.this).getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
-				mBrowser.setCoverPageFontFace(SettingsManager.instance(CoolReader.this).getSetting(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
-				mBrowser.setCoverPageSizeOption(SettingsManager.instance(CoolReader.this).getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));
-		        mBrowser.setSortOrder(SettingsManager.instance(CoolReader.this).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
-				mBrowser.setSimpleViewMode(SettingsManager.instance(CoolReader.this).getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
-		        mBrowser.init();
-
-				LayoutInflater inflater = LayoutInflater.from(CoolReader.this);// activity.getLayoutInflater();
-				
-				mBrowserTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
-				setTitle("Cool Reader browser window");
-
-		        mBrowserToolBar = new CRToolBar(CoolReader.this, ReaderAction.createList(
-		        		ReaderAction.FILE_BROWSER_UP, 
-		        		ReaderAction.CURRENT_BOOK,
-		        		ReaderAction.CURRENT_BOOK_DIRECTORY,
-		        		ReaderAction.FILE_BROWSER_ROOT, 
-		        		ReaderAction.OPTIONS,
-		        		ReaderAction.RECENT_BOOKS,
-		        		ReaderAction.OPDS_CATALOGS,
-		        		ReaderAction.SEARCH,
-		        		ReaderAction.SCAN_DIRECTORY_RECURSIVE,
-						ReaderAction.EXIT
-		        		), false);
-		        mBrowserToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
-		        mBrowserToolBar.setOnActionHandler(new OnActionHandler() {
-					@Override
-					public boolean onActionSelected(ReaderAction item) {
-						switch (item.cmd) {
-						case DCMD_EXIT:
-							//
-							finish();
-							break;
-						case DCMD_FILE_BROWSER_ROOT:
-							showRootWindow();
-							break;
-						case DCMD_FILE_BROWSER_UP:
-							mBrowser.showParentDirectory();
-							break;
-						case DCMD_OPDS_CATALOGS:
-							mBrowser.showOPDSRootDirectory();
-							break;
-						case DCMD_RECENT_BOOKS_LIST:
-							mBrowser.showRecentBooks();
-							break;
-						case DCMD_SEARCH:
-							mBrowser.showFindBookDialog();
-							break;
-						case DCMD_CURRENT_BOOK:
-							BookInfo bi = Services.getHistory().getLastBook();
-							if (bi != null)
-								loadDocument(bi.getFileInfo());
-							break;
-						case DCMD_OPTIONS_DIALOG:
-							showBrowserOptionsDialog();
-							break;
-						case DCMD_SCAN_DIRECTORY_RECURSIVE:
-							mBrowser.scanCurrentDirectoryRecursive();
-							break;
-						}
-						return false;
-					}
-				});
-				mBrowserFrame = new BrowserViewLayout(CoolReader.this, mBrowser, mBrowserToolBar, mBrowserTitleBar);
-
-				if (getIntent() == null)
-					mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
-			}
-		});
 		
-		mReaderView = new ReaderView(this, mEngine, SettingsManager.instance(this).get());
-		mReaderFrame = new ReaderViewLayout(this, mReaderView);
-        mReaderFrame.getToolBar().setOnActionHandler(new OnActionHandler() {
-			@Override
-			public boolean onActionSelected(ReaderAction item) {
-				mReaderView.onAction(item);
-				return true;
-			}
-		});
 		
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
     	
@@ -510,7 +428,7 @@ public class CoolReader extends BaseActivity
 	protected void onResume() {
 		log.i("CoolReader.onResume()");
 		super.onResume();
-		Properties props = mReaderView.getSettings();
+		//Properties props = SettingsManager.instance(this).get();
 		
 		if (DeviceInfo.EINK_SCREEN) {
             if (DeviceInfo.EINK_SONY) {
@@ -964,15 +882,135 @@ public class CoolReader extends BaseActivity
 	}
 	
 	public void showReader() {
-		setCurrentFrame(mReaderFrame);
+		runInReader(new Runnable() {
+			@Override
+			public void run() {
+				// do nothing
+			}
+		});
 	}
 	
 	public void showRootWindow() {
 		setCurrentFrame(mHomeFrame);
 	}
 	
+	private void runInReader(final Runnable task) {
+		waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				if (mReaderFrame != null) {
+					task.run();
+					setCurrentFrame(mReaderFrame);
+				} else {
+					mReaderView = new ReaderView(CoolReader.this, mEngine, SettingsManager.instance(CoolReader.this).get());
+					mReaderFrame = new ReaderViewLayout(CoolReader.this, mReaderView);
+			        mReaderFrame.getToolBar().setOnActionHandler(new OnActionHandler() {
+						@Override
+						public boolean onActionSelected(ReaderAction item) {
+							mReaderView.onAction(item);
+							return true;
+						}
+					});
+					task.run();
+					setCurrentFrame(mReaderFrame);
+				}
+			}
+		});
+		
+	}
+	
+	private void runInBrowser(final Runnable task) {
+		waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				if (mBrowserFrame != null) {
+					task.run();
+					setCurrentFrame(mBrowserFrame);
+				} else {
+					mBrowser = new FileBrowser(CoolReader.this, Services.getEngine(), Services.getScanner(), Services.getHistory());
+					mBrowser.setCoverPagesEnabled(SettingsManager.instance(CoolReader.this).getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
+					mBrowser.setCoverPageFontFace(SettingsManager.instance(CoolReader.this).getSetting(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
+					mBrowser.setCoverPageSizeOption(SettingsManager.instance(CoolReader.this).getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));
+			        mBrowser.setSortOrder(SettingsManager.instance(CoolReader.this).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+					mBrowser.setSimpleViewMode(SettingsManager.instance(CoolReader.this).getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
+			        mBrowser.init();
+
+					LayoutInflater inflater = LayoutInflater.from(CoolReader.this);// activity.getLayoutInflater();
+					
+					mBrowserTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
+					setTitle("Cool Reader browser window");
+
+			        mBrowserToolBar = new CRToolBar(CoolReader.this, ReaderAction.createList(
+			        		ReaderAction.FILE_BROWSER_UP, 
+			        		ReaderAction.CURRENT_BOOK,
+			        		ReaderAction.CURRENT_BOOK_DIRECTORY,
+			        		ReaderAction.FILE_BROWSER_ROOT, 
+			        		ReaderAction.OPTIONS,
+			        		ReaderAction.RECENT_BOOKS,
+			        		ReaderAction.OPDS_CATALOGS,
+			        		ReaderAction.SEARCH,
+			        		ReaderAction.SCAN_DIRECTORY_RECURSIVE,
+							ReaderAction.EXIT
+			        		), false);
+			        mBrowserToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
+			        mBrowserToolBar.setOnActionHandler(new OnActionHandler() {
+						@Override
+						public boolean onActionSelected(ReaderAction item) {
+							switch (item.cmd) {
+							case DCMD_EXIT:
+								//
+								finish();
+								break;
+							case DCMD_FILE_BROWSER_ROOT:
+								showRootWindow();
+								break;
+							case DCMD_FILE_BROWSER_UP:
+								mBrowser.showParentDirectory();
+								break;
+							case DCMD_OPDS_CATALOGS:
+								mBrowser.showOPDSRootDirectory();
+								break;
+							case DCMD_RECENT_BOOKS_LIST:
+								mBrowser.showRecentBooks();
+								break;
+							case DCMD_SEARCH:
+								mBrowser.showFindBookDialog();
+								break;
+							case DCMD_CURRENT_BOOK:
+								BookInfo bi = Services.getHistory().getLastBook();
+								if (bi != null)
+									loadDocument(bi.getFileInfo());
+								break;
+							case DCMD_OPTIONS_DIALOG:
+								showBrowserOptionsDialog();
+								break;
+							case DCMD_SCAN_DIRECTORY_RECURSIVE:
+								mBrowser.scanCurrentDirectoryRecursive();
+								break;
+							}
+							return false;
+						}
+					});
+					mBrowserFrame = new BrowserViewLayout(CoolReader.this, mBrowser, mBrowserToolBar, mBrowserTitleBar);
+					
+					task.run();
+					setCurrentFrame(mBrowserFrame);
+
+//					if (getIntent() == null)
+//						mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
+				}
+			}
+		});
+		
+	}
+	
 	public void showBrowser() {
-		setCurrentFrame(mBrowserFrame);
+		runInBrowser(new Runnable() {
+			@Override
+			public void run() {
+				// do nothing, browser is shown
+			}
+		});
 	}
 	
 	public void showManual() {
@@ -980,10 +1018,14 @@ public class CoolReader extends BaseActivity
 	}
 	
 	public static final String OPEN_FILE_PARAM = "FILE_TO_OPEN";
-	public void loadDocument( String item, Runnable callback )
+	public void loadDocument(final String item, final Runnable callback)
 	{
-		showReader();
-		mReaderView.loadDocument(item, callback);
+		runInReader(new Runnable() {
+			@Override
+			public void run() {
+				mReaderView.loadDocument(item, callback);
+			}
+		});
 	}
 	
 	public void loadDocument( FileInfo item )
@@ -1003,26 +1045,42 @@ public class CoolReader extends BaseActivity
 	}
 	
 	public static final String OPEN_DIR_PARAM = "DIR_TO_OPEN";
-	public void showBrowser(FileInfo dir) {
-		showBrowser();
-		mBrowser.showDirectory(dir, null);
+	public void showBrowser(final FileInfo dir) {
+		runInBrowser(new Runnable() {
+			@Override
+			public void run() {
+				mBrowser.showDirectory(dir, null);
+			}
+		});
 	}
 	
-	public void showBrowser(String dir) {
-		showBrowser();
-		mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
+	public void showBrowser(final String dir) {
+		runInBrowser(new Runnable() {
+			@Override
+			public void run() {
+				mBrowser.showDirectory(Services.getScanner().pathToFileInfo(dir), null);
+			}
+		});
 	}
 	
 	public void showRecentBooks() {
 		log.d("Activities.showRecentBooks() is called");
-		showBrowser();
-		mBrowser.showRecentBooks();
+		runInBrowser(new Runnable() {
+			@Override
+			public void run() {
+				mBrowser.showRecentBooks();
+			}
+		});
 	}
 
 	public void showOnlineCatalogs() {
 		log.d("Activities.showOnlineCatalogs() is called");
-		showBrowser();
-		mBrowser.showOPDSRootDirectory();
+		runInBrowser(new Runnable() {
+			@Override
+			public void run() {
+				mBrowser.showOPDSRootDirectory();
+			}
+		});
 	}
 
 	public void showDirectory(FileInfo path) {
@@ -1030,10 +1088,14 @@ public class CoolReader extends BaseActivity
 		showBrowser(path);
 	}
 
-	public void showCatalog(FileInfo path) {
+	public void showCatalog(final FileInfo path) {
 		log.d("Activities.showCatalog(" + path + ") is called");
-		showBrowser();
-		mBrowser.showDirectory(path, null);
+		runInBrowser(new Runnable() {
+			@Override
+			public void run() {
+				mBrowser.showDirectory(path, null);
+			}
+		});
 	}
 
 	
