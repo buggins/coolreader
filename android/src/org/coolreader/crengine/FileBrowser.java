@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
 import org.coolreader.crengine.OPDSUtil.DocInfo;
@@ -48,7 +49,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	
 	Engine mEngine;
 	Scanner mScanner;
-	BrowserActivity mActivity;
+	CoolReader mActivity;
 	LayoutInflater mInflater;
 	History mHistory;
 	ListView mListView;
@@ -82,7 +83,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					
 					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
 					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled && !item.isOnlineCatalogPluginDir()) {
-						Activities.editBookInfo(mActivity, currDirectory, item);
+						mActivity.editBookInfo(currDirectory, item);
 						return true;
 					}
 					
@@ -151,9 +152,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			if (keyCode == KeyEvent.KEYCODE_BACK && Activities.isBookOpened()) {
+			if (keyCode == KeyEvent.KEYCODE_BACK && mActivity.isBookOpened()) {
 				if ( isRootDir() ) {
-					if (Activities.isBookOpened()) {
+					if (mActivity.isBookOpened()) {
 						Activities.showReader();
 						return true;
 					} else
@@ -177,7 +178,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 
 	CoverpageManager.CoverpageReadyListener coverpageListener;
-	public FileBrowser(BrowserActivity activity, Engine engine, Scanner scanner, History history) {
+	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
 		this.mActivity = activity;
 		this.mEngine = engine;
@@ -283,14 +284,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			showRootDirectory();
 			return true;
 		case R.id.book_back_to_reading:
-			if (Activities.isBookOpened())
+			if (mActivity.isBookOpened())
 				Activities.showReader();
 			else
 				mActivity.showToast("No book opened");
 			return true;
 		case R.id.book_delete:
 			log.d("book_delete menu item selected");
-			Activities.askDeleteBook(mActivity, selectedItem);
+			mActivity.askDeleteBook(selectedItem);
 			return true;
 		case R.id.book_recent_goto:
 			log.d("book_recent_goto menu item selected");
@@ -298,19 +299,19 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.book_recent_remove:
 			log.d("book_recent_remove menu item selected");
-			Activities.askDeleteRecent(mActivity, selectedItem);
+			mActivity.askDeleteRecent(selectedItem);
 			return true;
 		case R.id.catalog_add:
 			log.d("catalog_add menu item selected");
-			Activities.editOPDSCatalog(null);
+			mActivity.editOPDSCatalog(null);
 			return true;
 		case R.id.catalog_delete:
 			log.d("catalog_delete menu item selected");
-			Activities.askDeleteCatalog(mActivity, selectedItem);
+			mActivity.askDeleteCatalog(selectedItem);
 			return true;
 		case R.id.catalog_edit:
 			log.d("catalog_edit menu item selected");
-			Activities.editOPDSCatalog(selectedItem);
+			mActivity.editOPDSCatalog(selectedItem);
 			return true;
 		case R.id.catalog_open:
 			log.d("catalog_open menu item selected");
@@ -345,7 +346,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 	}
 
-	protected void showParentDirectory()
+	public void showParentDirectory()
 	{
 		if (currDirectory == null || currDirectory.parent == null || currDirectory.parent.isRootDir())
 			Activities.showRootWindow();
@@ -520,7 +521,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if (currDirectory != null && currDirectory.allowSorting()) {
 			currDirectory.sort(mSortOrder);
 			showDirectory(currDirectory, selectedItem);
-			Activities.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
+			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
 		}
 	}
 	public void setSortOrder(String orderName) {
@@ -907,7 +908,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			isSimpleViewMode = isSimple;
 			if (isSimple) {
 				mSortOrder = FileInfo.SortOrder.FILENAME;
-				Activities.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
+				mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
 			}
 			if ( isShown() && currDirectory!=null ) {
 				showDirectory(currDirectory, null);

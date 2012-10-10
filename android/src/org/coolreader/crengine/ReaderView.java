@@ -282,7 +282,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return res;
     }
     
-	private final ReaderActivity mActivity;
+	private final CoolReader mActivity;
     private final Engine mEngine;
     
     private BookInfo mBookInfo;
@@ -294,7 +294,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return mEngine;
     }
     
-    public ReaderActivity getActivity()
+    public CoolReader getActivity()
     {
     	return mActivity;
     }
@@ -2578,7 +2578,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			mActivity.showOptionsDialog(OptionsDialog.Mode.READER);
 			break;
 		case DCMD_READER_MENU:
-			mActivity.showMenu();
+			mActivity.showReaderMenu();
 			break;
 		case DCMD_TOGGLE_DAY_NIGHT_MODE:
 			toggleDayNightMode();
@@ -5980,7 +5980,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	gcTask.cancel();
     }
 
-	public ReaderView(ReaderActivity activity, Engine engine, Properties props) 
+	public ReaderView(CoolReader activity, Engine engine, Properties props) 
     {
         super(activity);
         doc = new DocView(engine);

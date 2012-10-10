@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 
@@ -30,13 +31,13 @@ import android.widget.RadioGroup;
 import android.widget.RatingBar;
 
 public class BookInfoEditDialog extends BaseDialog {
-	private BaseActivity mActivity;
+	private CoolReader mActivity;
 	private BookInfo mBookInfo;
 	private FileInfo mParentDir;
 	private LayoutInflater mInflater;
 	private int mWindowSize;
 	private boolean mIsRecentBooksItem;
-	public BookInfoEditDialog(BaseActivity activity, FileInfo baseDir, BookInfo book, boolean isRecentBooksItem)
+	public BookInfoEditDialog(CoolReader activity, FileInfo baseDir, BookInfo book, boolean isRecentBooksItem)
 	{
 		super(activity, null, false, false);
 		this.mParentDir = baseDir;
@@ -255,7 +256,7 @@ public class BookInfoEditDialog extends BaseDialog {
         btnDeleteBook.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Activities.askDeleteBook(mActivity, mBookInfo.getFileInfo());
+				mActivity.askDeleteBook(mBookInfo.getFileInfo());
 				dismiss();
 			}
 		});
@@ -325,7 +326,7 @@ public class BookInfoEditDialog extends BaseDialog {
         	btnRemoveRecent.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Activities.askDeleteRecent(mActivity, mBookInfo.getFileInfo());
+					mActivity.askDeleteRecent(mBookInfo.getFileInfo());
 					dismiss();
 				}
 			});
@@ -384,7 +385,7 @@ public class BookInfoEditDialog extends BaseDialog {
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
         	mParentDir.setFile(file);
-        	Activities.directoryUpdated(mParentDir);
+        	mActivity.directoryUpdated(mParentDir);
         }
 	}
 

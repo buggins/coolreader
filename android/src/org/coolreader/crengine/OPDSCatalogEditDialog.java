@@ -9,16 +9,18 @@ import android.widget.EditText;
 
 public class OPDSCatalogEditDialog extends BaseDialog {
 
+	private final CoolReader mActivity;
 	private final LayoutInflater mInflater;
 	private final FileInfo mItem;
 	private final EditText nameEdit;
 	private final EditText urlEdit;
 	private final Runnable mOnUpdate;
 
-	public OPDSCatalogEditDialog(BaseActivity activity, FileInfo item, Runnable onUpdate) {
+	public OPDSCatalogEditDialog(CoolReader activity, FileInfo item, Runnable onUpdate) {
 		super(activity, activity.getString((item.id == null) ? R.string.dlg_catalog_add_title
 				: R.string.dlg_catalog_edit_title), true,
 				false);
+		mActivity = activity;
 		mItem = item;
 		mOnUpdate = onUpdate;
 		mInflater = LayoutInflater.from(getContext());
@@ -46,7 +48,7 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 
 	@Override
 	protected void onThirdButtonClick() {
-		Activities.askDeleteCatalog(activity, mItem);
+		mActivity.askDeleteCatalog(mItem);
 		super.onThirdButtonClick();
 	}
 

@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import java.util.Random;
 
 import org.coolreader.CoolReader;
+import org.coolreader.CoolReader.DonationListener;
 import org.coolreader.R;
 
 import android.content.ActivityNotFoundException;
@@ -18,7 +19,7 @@ import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 
 public class AboutDialog extends BaseDialog implements TabContentFactory {
-	final ReaderActivity mCoolReader;
+	final CoolReader mCoolReader;
 	
 	private View mAppTab;
 	private View mLicenseTab;
@@ -79,7 +80,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			text.setText(mCoolReader.getString(R.string.dlg_about_donation_total) + " $" + amount);
 	}
 
-	public AboutDialog( ReaderActivity activity)
+	public AboutDialog( CoolReader activity)
 	{
 		super(activity);
 		mCoolReader = activity;
@@ -102,7 +103,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), 1);
 			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_iron), 0.3);
 			updateTotalDonations();
-			mCoolReader.setDonationListener(new ReaderActivity.DonationListener() {
+			mCoolReader.setDonationListener(new DonationListener() {
 				@Override
 		    	public void onDonationTotalChanged(double total) {
 		    		updateTotalDonations();
