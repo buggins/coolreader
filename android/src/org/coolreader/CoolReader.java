@@ -211,7 +211,7 @@ public class CoolReader extends BaseActivity
 	protected void onDestroy() {
 
 		log.i("CoolReader.onDestroy() entered");
-		if ( !CLOSE_BOOK_ON_STOP )
+		if (!CLOSE_BOOK_ON_STOP && mReaderView != null)
 			mReaderView.close();
 
 		if ( tts!=null ) {

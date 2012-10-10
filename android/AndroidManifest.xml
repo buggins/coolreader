@@ -32,10 +32,9 @@
         >
         <activity android:name=".CoolReader" 
             android:label="@string/app_name" 
-            android:process="org.coolreader"
-            android:configChanges="keyboardHidden|orientation|locale"
+            android:configChanges="orientation|keyboardHidden|locale|screenSize"
             android:theme="@android:style/Theme.NoTitleBar" 
-            android:launchMode="singleTask"
+            android:launchMode="standard"
             android:windowSoftInputMode="stateHidden"
             android:screenOrientation="sensor">
             
