@@ -333,7 +333,7 @@ public class BookInfoEditDialog extends BaseDialog {
         	btnOpenFolder.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Activities.showDirectory(mBookInfo.getFileInfo());
+					mActivity.showDirectory(mBookInfo.getFileInfo());
 					dismiss();
 				}
 			});
@@ -392,7 +392,7 @@ public class BookInfoEditDialog extends BaseDialog {
 	@Override
 	protected void onPositiveButtonClick() {
 		save();
-		Activities.loadDocument(mBookInfo.getFileInfo(), new Runnable() {
+		mActivity.loadDocument(mBookInfo.getFileInfo(), new Runnable() {
 			@Override
 			public void run() {
 				// error occured

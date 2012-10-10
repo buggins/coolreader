@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
+import org.coolreader.CoolReader;
 import org.coolreader.crengine.Settings.Lang;
 
 import android.app.SearchManager;
@@ -28,12 +29,14 @@ public class SettingsManager {
 		return instance;
 	}
 	
+	private BaseActivity mActivity;
 	private Properties mSettings;
 	private boolean isSmartphone;
 	
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final File defaultSettingsDir;
 	private SettingsManager(BaseActivity activity) {
+		this.mActivity = activity;
 	    activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 	    defaultSettingsDir = activity.getDir("settings", Context.MODE_PRIVATE);
 	    isSmartphone = activity.isSmartphone();
@@ -59,7 +62,7 @@ public class SettingsManager {
 	    		}
 	    	}, delayMillis);
 		}
-		Activities.onSettingsChanged(mSettings);
+		mActivity.onSettingsChanged(mSettings);
 	}
 	
 	private static class DefKeyAction {

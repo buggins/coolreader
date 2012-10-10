@@ -16,7 +16,7 @@ public class Services {
 	public static History getHistory() { return mHistory; }
 	public static CoverpageManager getCoverpageManager() { return mCoverpageManager; }
 	
-	static void onFirstActivityCreated(BaseActivity activity) {
+	public static void onFirstActivityCreated(BaseActivity activity) {
 		log.i("First activity is created");
 		// testing background thread
 		mEngine = Engine.getInstance(activity);
@@ -32,7 +32,7 @@ public class Services {
 		mScanner.setDirScanEnabled(SettingsManager.instance(activity).getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		mCoverpageManager = new CoverpageManager();
 	}
-	static void onLastActivityDestroyed() {
+	public static void onLastActivityDestroyed() {
 		log.i("Last activity is destroyed");
 		if (mCoverpageManager == null) {
 			log.i("Will not destroy services: finish only activity creation detected");

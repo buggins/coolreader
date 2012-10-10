@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.io.File;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 import org.coolreader.plugins.BookInfoCallback;
@@ -28,7 +29,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 public class OnlineStoreBookInfoDialog extends BaseDialog {
-	private BaseActivity mActivity;
+	private CoolReader mActivity;
 	private OnlineStoreBookInfo mBookInfo;
 	private FileInfo mFileInfo;
 	private LayoutInflater mInflater;
@@ -41,7 +42,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 	
 	private ViewGroup mContentView;
 	
-	public OnlineStoreBookInfoDialog(BaseActivity activity, OnlineStoreBookInfo book, FileInfo fileInfo)
+	public OnlineStoreBookInfoDialog(CoolReader activity, OnlineStoreBookInfo book, FileInfo fileInfo)
 	{
 		super(activity, null, false, false);
 		DisplayMetrics outMetrics = new DisplayMetrics();
@@ -50,7 +51,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		this.mActivity = activity;
 		this.mBookInfo = book;
 		this.mFileInfo = fileInfo;
-		this.mPlugin = OnlineStorePluginManager.getPlugin(fileInfo.getOnlineCatalogPluginPackage());
+		this.mPlugin = OnlineStorePluginManager.getPlugin(mActivity, fileInfo.getOnlineCatalogPluginPackage());
 		File baseDir = new File(Services.getScanner().getDownloadDirectory().pathname);
 		this.downloadDir = new File(baseDir, mPlugin.getDescription());
 		this.downloadFilename = new File(downloadDir, book.book.downloadFileName);
@@ -307,7 +308,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 //		FileInfo parent = Services.getScanner().findParent(fileInfo, Services.getScanner().getRoot());
 //		FileInfo bookFileInfo = parent.findItemByPathName(book.getAbsolutePath());
 		dismiss();
-		Activities.loadDocument(book.getAbsolutePath(), null);
+		mActivity.loadDocument(book.getAbsolutePath(), null);
 	}
 }
 

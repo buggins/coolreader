@@ -141,7 +141,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Activities.showRecentBooks();
+						mActivity.showRecentBooks();
 					}
 				});
 			} else {
@@ -164,7 +164,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Activities.loadDocument(item);
+						mActivity.loadDocument(item);
 					}
 				});
 				view.setOnLongClickListener(new OnLongClickListener() {
@@ -244,12 +244,12 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnLongClickListener(new OnLongClickListener() {
 					@Override
 					public boolean onLongClick(View v) {
-						OnlineStoreWrapper plugin = OnlineStorePluginManager.getPlugin(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
+						OnlineStoreWrapper plugin = OnlineStorePluginManager.getPlugin(mActivity, FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
 						if (plugin != null) {
 							OnlineStoreLoginDialog dlg = new OnlineStoreLoginDialog(mActivity, plugin, new Runnable() {
 								@Override
 								public void run() {
-									Activities.showBrowser(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
+									mActivity.showBrowser(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
 								}
 							});
 							dlg.show();
@@ -260,7 +260,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Activities.showBrowser(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
+						mActivity.showBrowser(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + LitresPlugin.PACKAGE_NAME);
 //						LitresConnection.instance().loadGenres(new ResultHandler() {
 //							@Override
 //							public void onResponse(LitresResponse response) {
@@ -304,7 +304,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 				view.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Activities.showCatalog(item);
+						mActivity.showCatalog(item);
 					}
 				});
 				view.setOnLongClickListener(new OnLongClickListener() {
@@ -338,7 +338,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			view.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Activities.showDirectory(item);
+					mActivity.showDirectory(item);
 				}
 			});
 			mFilesystemScroll.addView(view);
@@ -365,7 +365,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			view.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Activities.showDirectory(item);
+					mActivity.showDirectory(item);
 				}
 			});
 			mLibraryScroll.addView(view);
@@ -447,7 +447,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			@Override
 			public void onClick(View v) {
 				if (currentBook != null) {
-					Activities.loadDocument(currentBook.getFileInfo());
+					mActivity.loadDocument(currentBook.getFileInfo());
 				}
 				
 			}
@@ -559,10 +559,10 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			@Override
 			public boolean onActionSelected(ReaderAction item) {
 				if (item == ReaderAction.EXIT) {
-					Activities.finish();
+					mActivity.finish();
 					return true;
 				} else if (item == ReaderAction.USER_MANUAL) {
-					Activities.showManual();
+					mActivity.showManual();
 					return true;
 				} else if (item == ReaderAction.OPTIONS) {
 					mActivity.showBrowserOptionsDialog();

@@ -146,7 +146,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			else if (item.isOnlineCatalogPluginBook())
 				showOnlineCatalogBookDialog(item);
 			else
-				Activities.loadDocument(item);
+				mActivity.loadDocument(item);
 			return true;
 		}
 
@@ -155,7 +155,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			if (keyCode == KeyEvent.KEYCODE_BACK && mActivity.isBookOpened()) {
 				if ( isRootDir() ) {
 					if (mActivity.isBookOpened()) {
-						Activities.showReader();
+						mActivity.showReader();
 						return true;
 					} else
 						return super.onKeyDown(keyCode, event);
@@ -269,7 +269,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			if ( selectedItem.isOPDSDir() )
 				showOPDSDir(selectedItem, null);
 			else
-				Activities.loadDocument(selectedItem);
+				mActivity.loadDocument(selectedItem);
 			return true;
 		case R.id.book_sort_order:
 			mActivity.showToast("Sorry, sort order selection is not yet implemented");
@@ -285,7 +285,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.book_back_to_reading:
 			if (mActivity.isBookOpened())
-				Activities.showReader();
+				mActivity.showReader();
 			else
 				mActivity.showToast("No book opened");
 			return true;
@@ -349,7 +349,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void showParentDirectory()
 	{
 		if (currDirectory == null || currDirectory.parent == null || currDirectory.parent.isRootDir())
-			Activities.showRootWindow();
+			mActivity.showRootWindow();
 		else
 			showDirectory(currDirectory.parent, currDirectory);
 	}
@@ -415,7 +415,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					}
 				} else {
 					if (currDirectory == null || currDirectory.isRootDir())
-						Activities.showRootWindow();
+						mActivity.showRootWindow();
 				}
 			}
 		});
@@ -429,7 +429,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 
 	private OnlineStoreWrapper getPlugin(FileInfo dir) {
-		return OnlineStorePluginManager.getPlugin(dir.getOnlineCatalogPluginPackage());
+		return OnlineStorePluginManager.getPlugin(mActivity, dir.getOnlineCatalogPluginPackage());
 	}
 
 	private void openPluginDirectory(OnlineStoreWrapper plugin, FileInfo dir) {
@@ -688,9 +688,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						mScanner.listDirectory(dir);
 						FileInfo item = dir.findItemByPathName(file.getAbsolutePath());
 						if ( item!=null )
-							Activities.loadDocument(item);
+							mActivity.loadDocument(item);
 						else
-							Activities.loadDocument(fi);
+							mActivity.loadDocument(fi);
 					}
 
 					@Override
@@ -756,13 +756,13 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		BackgroundThread.ensureGUI();
 		if (fileOrDir != null) {
 			if (fileOrDir.isRootDir()) {
-				Activities.showRootWindow();
+				mActivity.showRootWindow();
 				return;
 			}
 			if (fileOrDir.isOnlineCatalogPluginDir()) {
 				if (fileOrDir.getOnlineCatalogPluginPath() == null) {
 					// root
-					OnlineStoreWrapper plugin = OnlineStorePluginManager.getPlugin(fileOrDir.getOnlineCatalogPluginPackage());
+					OnlineStoreWrapper plugin = OnlineStorePluginManager.getPlugin(mActivity, fileOrDir.getOnlineCatalogPluginPackage());
 					if (plugin != null) {
 						String login = plugin.getLogin();
 						String password = plugin.getPassword();
