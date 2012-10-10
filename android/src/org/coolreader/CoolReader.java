@@ -901,6 +901,9 @@ public class CoolReader extends BaseActivity
 				if (mReaderFrame != null) {
 					task.run();
 					setCurrentFrame(mReaderFrame);
+					mReaderView.setFocusable(true);
+					mReaderView.setFocusableInTouchMode(true);
+					mReaderView.requestFocus();
 				} else {
 					mReaderView = new ReaderView(CoolReader.this, mEngine, SettingsManager.instance(CoolReader.this).get());
 					mReaderFrame = new ReaderViewLayout(CoolReader.this, mReaderView);
@@ -913,6 +916,9 @@ public class CoolReader extends BaseActivity
 					});
 					task.run();
 					setCurrentFrame(mReaderFrame);
+					mReaderView.setFocusable(true);
+					mReaderView.setFocusableInTouchMode(true);
+					mReaderView.requestFocus();
 				}
 			}
 		});
