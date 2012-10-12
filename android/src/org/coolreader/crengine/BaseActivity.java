@@ -148,17 +148,20 @@ public class BaseActivity extends Activity implements Settings {
 		
 		log.i("diagonal=" + diagonalInches + "  isSmartphone=" + isSmartphone());
 		//log.i("CoolReader.window=" + getWindow());
-		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-		lp.alpha = 1.0f;
-		lp.dimAmount = 0.0f;
-		lp.format = PixelFormat.RGB_565;
-		lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
-		lp.horizontalMargin = 0;
-		lp.verticalMargin = 0;
-		lp.windowAnimations = 0;
-		lp.layoutAnimationParameters = null;
-		lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
-		getWindow().setAttributes(lp);
+		if (!DeviceInfo.EINK_SCREEN) {
+			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+			lp.alpha = 1.0f;
+			lp.dimAmount = 0.0f;
+			if (!DeviceInfo.EINK_SCREEN)
+				lp.format = DeviceInfo.PIXEL_FORMAT;
+			lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+			lp.horizontalMargin = 0;
+			lp.verticalMargin = 0;
+			lp.windowAnimations = 0;
+			lp.layoutAnimationParameters = null;
+			lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_NORMAL;
+			getWindow().setAttributes(lp);
+		}
 
 		// load settings
 		Properties props = SettingsManager.instance(this).get();
