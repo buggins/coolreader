@@ -49,6 +49,11 @@ public interface Settings {
     public static final String PROP_DISPLAY_INVERSE         ="crengine.display.inverse";
 //    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
 //    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
+
+    public static final String PROP_STATUS_LOCATION         ="viewer.status.location";
+    public static final String PROP_TOOLBAR_LOCATION        ="viewer.toolbar.location";
+    public static final String PROP_TOOLBAR_HIDE_IN_FULLSCREEN="viewer.toolbar.fullscreen.hide";
+    
     public static final String PROP_STATUS_LINE             ="window.status.line";
     public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";
     public static final String PROP_FOOTNOTES               ="crengine.footnotes";
@@ -134,13 +139,15 @@ public interface Settings {
     public static final String PROP_APP_VIEW_AUTOSCROLL_SPEED  ="app.view.autoscroll.speed";
     public static final String PROP_APP_VIEW_AUTOSCROLL_TYPE  ="app.view.autoscroll.type";
 
-    public static final String PROP_APP_THEME  ="app.ui.theme";
-    public static final String PROP_APP_THEME_DAY  ="app.ui.theme.day";
-    public static final String PROP_APP_THEME_NIGHT  ="app.ui.theme.night";
+    public static final String PROP_APP_THEME = "app.ui.theme";
+    public static final String PROP_APP_THEME_DAY  = "app.ui.theme.day";
+    public static final String PROP_APP_THEME_NIGHT = "app.ui.theme.night";
 
     public static final String PROP_APP_LOCALE = "app.locale.name";
     
-    public static final String PROP_APP_STARTUP_ACTION="app.startup.action";
+    public static final String PROP_APP_STARTUP_ACTION = "app.startup.action";
+
+    public static final String PROP_APP_PLUGIN_ENABLED = "app.plugin.enabled";
     
 
     // available options for PROP_APP_SELECTION_ACTION setting
@@ -165,6 +172,20 @@ public interface Settings {
     public static final int APP_STARTUP_ACTION_RECENT_BOOKS = 2;
     public static final int APP_STARTUP_ACTION_LAST_BOOK_FOLDER = 3;
     
+    public static final int VIEWER_STATUS_NONE = 0;
+    public static final int VIEWER_STATUS_TOP = 1;
+    public static final int VIEWER_STATUS_BOTTOM = 2;
+    public static final int VIEWER_STATUS_PAGE = 3;
+    
+    public static final int VIEWER_TOOLBAR_NONE = 0;
+    public static final int VIEWER_TOOLBAR_TOP = 1;
+    public static final int VIEWER_TOOLBAR_BOTTOM = 2;
+    public static final int VIEWER_TOOLBAR_LEFT = 3;
+    public static final int VIEWER_TOOLBAR_RIGHT = 4;
+    public static final int VIEWER_TOOLBAR_SHORT_SIDE = 5;
+    public static final int VIEWER_TOOLBAR_LONG_SIDE = 6;
+    
+    
     public enum Lang {
     	DEFAULT("system", R.string.options_app_locale_system, R.raw.help_template_en),
     	EN("en", R.string.options_app_locale_en, R.raw.help_template_en),
@@ -180,6 +201,7 @@ public interface Settings {
     	IT("it", R.string.options_app_locale_it, 0),
     	HU("hu", R.string.options_app_locale_hu, R.raw.help_template_hu),
     	NL("nl", R.string.options_app_locale_nl, 0),
+    	PL("pl", R.string.options_app_locale_pl, 0),
     	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, R.raw.help_template_zh_cn),
     	;
     	

@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import java.util.Random;
 
 import org.coolreader.CoolReader;
+import org.coolreader.CoolReader.DonationListener;
 import org.coolreader.R;
 
 import android.content.ActivityNotFoundException;
@@ -89,7 +90,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		mAppTab = (View)inflater.inflate(R.layout.about_dialog_app, null);
 		((TextView)mAppTab.findViewById(R.id.version)).setText("Cool Reader " + mCoolReader.getVersion());
 		mLicenseTab = (View)inflater.inflate(R.layout.about_dialog_license, null);
-		String license = mCoolReader.getEngine().loadResourceUtf8(R.raw.license);
+		String license = Engine.getInstance(mCoolReader).loadResourceUtf8(R.raw.license);
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
 		boolean billingSupported = mCoolReader.isDonationSupported();
 		mDonationTab = (View)inflater.inflate(billingSupported ? R.layout.about_dialog_donation2 : R.layout.about_dialog_donation, null);
@@ -102,7 +103,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_bronze), 1);
 			setupInAppDonationButton( (Button)mDonationTab.findViewById(R.id.btn_about_donation_install_iron), 0.3);
 			updateTotalDonations();
-			mCoolReader.setDonationListener(new CoolReader.DonationListener() {
+			mCoolReader.setDonationListener(new DonationListener() {
 				@Override
 		    	public void onDonationTotalChanged(double total) {
 		    		updateTotalDonations();

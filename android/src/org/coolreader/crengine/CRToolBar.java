@@ -4,105 +4,246 @@ import java.util.ArrayList;
 
 import org.coolreader.R;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.view.ContextMenu.ContextMenuInfo;
+import android.view.ContextMenu;
 import android.view.Gravity;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AbsoluteLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 public class CRToolBar extends ViewGroup {
-	private final Menu menu;
+
+
+	private static final Logger log = L.create("tb");
+	
+	final private BaseActivity activity;
+	private ArrayList<ReaderAction> actions = new ArrayList<ReaderAction>();
+	private ArrayList<ReaderAction> iconActions = new ArrayList<ReaderAction>();
 	private boolean showLabels;
-	private int contentHeight;
 	private int buttonHeight;
 	private int buttonWidth;
+	private int itemHeight; // multiline mode, line height 
 	private int visibleButtonCount;
 	private int visibleNonButtonCount;
-	public CRToolBar(Context context, Menu menu) {
+	private boolean isVertical;
+	private boolean isMultiline;
+	final private int preferredItemHeight;
+	private int BUTTON_SPACING = 4;
+	private int BAR_SPACING = 4;
+	private int buttonAlpha = 0xFF;
+	private int textColor = 0x000000;
+	private ImageButton overflowButton;
+	private LayoutInflater inflater;
+
+	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
+	
+	public void setButtonAlpha(int alpha) {
+		this.buttonAlpha = alpha;
+		if (isShown()) {
+			requestLayout();
+			invalidate();
+		}
+	}
+	
+	public void setVertical(boolean vertical) {
+		this.isVertical = vertical;
+		if (isVertical) {
+			//setPadding(BUTTON_SPACING, BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING);
+			setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT));
+		} else {
+			//setPadding(BUTTON_SPACING, BAR_SPACING, BUTTON_SPACING, BUTTON_SPACING);
+			setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+		}
+	}
+	public boolean isVertical() {
+		return this.isVertical;
+	}
+
+	public CRToolBar(BaseActivity context) {
 		super(context);
-		this.menu = menu;
-		this.showLabels = true;
-		for (int i=0; i<menu.size(); i++) {
-			MenuItem item = menu.getItem(i);
-			if (!item.isVisible())
-				continue;
-			Drawable d = item.getIcon();
-			if (d == null) {
+		this.activity = context;
+		this.preferredItemHeight = context.getPreferredItemHeight();
+	}
+
+	private LinearLayout inflateItem(ReaderAction action) {
+		final LinearLayout view = (LinearLayout)inflater.inflate(R.layout.popup_toolbar_item, null);
+		ImageView icon = (ImageView)view.findViewById(R.id.action_icon);
+		TextView label = (TextView)view.findViewById(R.id.action_label);
+		icon.setImageResource(action != null ? action.iconId : R.drawable.cr3_button_more);
+		//icon.setMinimumHeight(buttonHeight);
+		icon.setMinimumWidth(buttonWidth);
+		Utils.setContentDescription(icon, activity.getString(action != null ? action.nameId : R.string.btn_toolbar_more));
+		label.setText(action != null ? action.nameId : R.string.btn_toolbar_more);
+		view.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+		return view;
+	}
+	
+	public CRToolBar(BaseActivity context, ArrayList<ReaderAction> actions, boolean multiline) {
+		super(context);
+		this.activity = context;
+		this.actions = actions;
+		this.showLabels = multiline;
+		this.isMultiline = multiline;
+		this.preferredItemHeight = context.getPreferredItemHeight();
+		this.inflater = LayoutInflater.from(activity);
+		context.getWindow().getAttributes();
+		if (context.isSmartphone()) {
+			BUTTON_SPACING = 3;
+			BAR_SPACING = 3;
+		} else {
+			BUTTON_SPACING = preferredItemHeight / 20;
+			BAR_SPACING = preferredItemHeight / 20;
+		}
+		int sz = (context.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
+		buttonWidth = buttonHeight = sz;
+		if (multiline)
+			buttonHeight = sz / 2;
+		int dpi = context.getDensityDpi();
+		for (int i=0; i<actions.size(); i++) {
+			ReaderAction item = actions.get(i);
+			int iconId = item.iconId;
+			if (iconId == 0) {
+				itemsOverflow.add(item);
 				visibleNonButtonCount++;
 				continue;
 			}
+			iconActions.add(item);
+			Drawable d = context.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() + 4;
-			int h = d.getIntrinsicHeight();
-			if (buttonWidth < w || buttonHeight < h) {
+			int w = d.getIntrinsicWidth() * dpi / 160 + 4;
+			int h = d.getIntrinsicHeight() * dpi / 160 + 4;
+			if (buttonWidth < w) {
 				buttonWidth = w;
-				buttonHeight = h;
-				contentHeight = buttonHeight + getPaddingTop() + getPaddingBottom();
 			}
-			
+			if (buttonHeight < h) {
+				buttonHeight = h;
+			}
+		}
+		if (multiline) {
+			LinearLayout item = inflateItem(iconActions.get(0));
+			itemHeight = item.getMeasuredHeight() + BUTTON_SPACING;
 		}
 	}
 
-	private OnItemSelectedHandler onItemSelectedHandler;
+	private OnActionHandler onActionHandler;
 	
-	public void setOnItemSelectedHandler(OnItemSelectedHandler handler) {
-		this.onItemSelectedHandler = handler;
+	public void setOnActionHandler(OnActionHandler handler) {
+		this.onActionHandler = handler;
 	}
 	
-	public interface OnItemSelectedHandler {
-		boolean onOptionsItemSelected(MenuItem item);
+	private OnOverflowHandler onOverflowHandler;
+	
+	public void setOnOverflowHandler(OnOverflowHandler handler) {
+		this.onOverflowHandler = handler;
 	}
 	
-	private void onMoreButtonClick() {
-		// TODO: show additional items
+	public interface OnActionHandler {
+		boolean onActionSelected(ReaderAction item);
+	}
+	public interface OnOverflowHandler {
+		boolean onOverflowActions(ArrayList<ReaderAction> actions);
 	}
 	
-	private void onButtonClick(MenuItem item) {
-		if (onItemSelectedHandler != null)
-			onItemSelectedHandler.onOptionsItemSelected(item);
+	
+	private ReaderAction findByCmd(int id) {
+		for (ReaderAction action : actions)
+			if (id == action.cmd.getNativeId())
+				return action;
+		return null;
 	}
 	
-	private ImageButton addButton(Rect rect, final MenuItem item, boolean left) {
+	@Override
+	protected void onCreateContextMenu(ContextMenu menu) {
+		int order = 0;
+		for (ReaderAction action : itemsOverflow) {
+			menu.add(0, action.menuItemId, order++, action.nameId);
+		}
+	}
+	
+	public void showOverflowMenu() {
+		if (itemsOverflow.size() > 0) {
+			if (onOverflowHandler != null)
+				onOverflowHandler.onOverflowActions(itemsOverflow);
+			else {
+				if (!isMultiline && visibleNonButtonCount == 0)
+					showPopup(activity, activity.getContentView(), actions, onActionHandler, onOverflowHandler);
+				else
+					activity.showActionsPopupMenu(itemsOverflow, onActionHandler);
+			}
+//			PopupMenu menu = new PopupMenu(activity, this);
+//			int order = 0;
+//			for (ReaderAction action : itemsOverflow) {
+//				menu.getMenu().add(0, action.menuItemId, order++, action.nameId);
+//			}
+//			menu.show();
+//			showContextMenuForChild(overflowButton);
+		}
+	}
+	
+//	private void onMoreButtonClick() {
+//		showOverflowMenu();
+//	}
+	
+	private void onButtonClick(ReaderAction item) {
+		if (onActionHandler != null)
+			onActionHandler.onActionSelected(item);
+	}
+	
+	private ImageButton addButton(Rect rect, final ReaderAction item, boolean left) {
 		Rect rc = new Rect(rect);
-		if (left) {
-			rc.right = rc.left + buttonWidth;
-			rect.left += buttonWidth;
+		if (isVertical) {
+			if (left) {
+				rc.bottom = rc.top + buttonHeight;
+				rect.top += buttonHeight + BUTTON_SPACING;
+			} else {
+				rc.top = rc.bottom - buttonHeight;
+				rect.bottom -= buttonHeight + BUTTON_SPACING;
+			}
 		} else {
-			rc.left = rc.right - buttonWidth;
-			rect.right -= buttonWidth;
+			if (left) {
+				rc.right = rc.left + buttonWidth;
+				rect.left += buttonWidth + BUTTON_SPACING;
+			} else {
+				rc.left = rc.right - buttonWidth;
+				rect.right -= buttonWidth + BUTTON_SPACING;
+			}
 		}
 		if (rc.isEmpty())
 			return null;
 		ImageButton ib = new ImageButton(getContext());
 		if (item != null) {
-			ib.setImageDrawable(item.getIcon());
+			ib.setImageResource(item.iconId);
+			Utils.setContentDescription(ib, getContext().getString(item.nameId));
 			ib.setTag(item);
 		} else {
-			ib.setImageDrawable(getResources().getDrawable(R.drawable.ic_menu_moreoverflow));
+			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));
+			Utils.setContentDescription(ib, getContext().getString(R.string.btn_toolbar_more));
 		}
-		ib.setBackgroundDrawable(null);
+		ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
+		if (item == null)
+			overflowButton = ib;
 		ib.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (item != null)
 					onButtonClick(item);
 				else
-					onMoreButtonClick();
+					showOverflowMenu();
 			}
 		});
+		ib.setAlpha(nightMode ? 0x60 : buttonAlpha);
 		addView(ib);
 		return ib;
 	}
@@ -110,24 +251,110 @@ public class CRToolBar extends ViewGroup {
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right,
 			int bottom) {
-		Rect rect = new Rect(left + getPaddingLeft(), top + getPaddingTop(), right +  + getPaddingRight(), bottom + getPaddingBottom());
+		right -= left;
+		bottom -= top;
+		left = top = 0;
+		removeAllViews();
+		overflowButton = null;
+		
+		if (isMultiline) {
+        	int lineCount = calcLineCount(right);
+        	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
+        	int buttonsPerLine = (btnCount + lineCount - 1) / lineCount;
+
+//        	ScrollView scroll = new ScrollView(activity);
+//        	scroll.setLayoutParams(new LayoutParams(right, bottom));
+//        	AbsoluteLayout content = new AbsoluteLayout(activity);
+        	
+        	
+    		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
+    		int lineH = itemHeight; //rect.height() / lineCount;
+    		int spacing = 0;
+        	for (int currentLine = 0; currentLine < lineCount; currentLine++) {
+        		int startBtn = currentLine * buttonsPerLine;
+        		int endBtn = (currentLine + 1) * buttonsPerLine;
+        		if (endBtn > btnCount)
+        			endBtn = btnCount;
+        		int currentLineButtons = endBtn - startBtn;
+        		Rect lineRect = new Rect(rect);
+        		lineRect.top += currentLine * lineH + spacing;
+        		lineRect.bottom = lineRect.top + lineH - spacing;
+        		int itemWidth = lineRect.width() / currentLineButtons;
+        		for (int i = 0; i < currentLineButtons; i++) {
+        			Rect itemRect = new Rect(lineRect);
+        			itemRect.left += i * itemWidth + spacing;
+        			itemRect.right = itemRect.left + itemWidth - spacing;
+        			final ReaderAction action = (visibleNonButtonCount > 0 && i + startBtn == iconActions.size()) ? null : iconActions.get(startBtn + i);
+        			log.v("item=" + itemRect);
+        			LinearLayout item = inflateItem(action);
+        			//item.setLayoutParams(new LinearLayout.LayoutParams(itemRect.width(), itemRect.height()));
+        			item.measure(MeasureSpec.makeMeasureSpec(itemRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(itemRect.height(), MeasureSpec.EXACTLY));
+        			item.layout(itemRect.left, itemRect.top, itemRect.right, itemRect.bottom);
+        			//item.forceLayout();
+        			addView(item);
+        			item.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							if (action != null)
+								onButtonClick(action);
+							else
+								showOverflowMenu();
+						}
+					});
+        		}
+//        		addView(scroll);
+        	}
+        	return;
+		}
+
+//		View divider = new View(getContext());
+//		addView(divider);
+//		if (isVertical()) {
+//			divider.setBackgroundResource(R.drawable.divider_light_vertical_tiled);
+//			divider.layout(right - 8, top, right, bottom);
+//		} else {
+//			divider.setBackgroundResource(R.drawable.divider_light_tiled);
+//			divider.layout(left, bottom - 8, right, bottom);
+//		}
+
+		visibleButtonCount = 0;
+		for (int i=0; i<actions.size(); i++) {
+			if (actions.get(i).iconId != 0)
+				visibleButtonCount++;
+		}
+		
+		
+		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
 		if (rect.isEmpty())
 			return;
-		removeAllViews();
-		ArrayList<MenuItem> itemsToShow = new ArrayList<MenuItem>();
-		int maxWidth = right - left - getPaddingLeft() - getPaddingRight();
-		int maxButtonCount = maxWidth / buttonWidth;
+		ArrayList<ReaderAction> itemsToShow = new ArrayList<ReaderAction>();
+		itemsOverflow.clear();
+		int maxButtonCount = 1;
+		if (isVertical) {
+			rect.right -= BAR_SPACING;
+			int maxHeight = bottom - top - getPaddingTop() - getPaddingBottom() + BUTTON_SPACING;
+			maxButtonCount = maxHeight / (buttonHeight + BUTTON_SPACING);
+		} else {
+			rect.bottom -= BAR_SPACING;
+			int maxWidth = right - left - getPaddingLeft() - getPaddingRight() + BUTTON_SPACING;
+			maxButtonCount = maxWidth / (buttonWidth + BUTTON_SPACING);
+		}
 		int count = 0;
 		boolean addEllipsis = visibleButtonCount > maxButtonCount || visibleNonButtonCount > 0;
 		if (addEllipsis) {
 			addButton(rect, null, false);
+			maxButtonCount--;
 		}
-		for (int i = 0; i < menu.size(); i++) {
-			if (count >= maxButtonCount - 1)
-				break;
-			MenuItem item = menu.getItem(i);
-			if (!item.isVisible())
+		for (int i = 0; i < actions.size(); i++) {
+			ReaderAction item = actions.get(i);
+			if (count >= maxButtonCount) {
+				itemsOverflow.add(item);
 				continue;
+			}
+			if (item.iconId == 0) {
+				itemsOverflow.add(item);
+				continue;
+			}
 			itemsToShow.add(item);
 			count++;
 			addButton(rect, item, true);
@@ -136,475 +363,83 @@ public class CRToolBar extends ViewGroup {
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+//        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
 //        if (widthMode != MeasureSpec.EXACTLY) {
 //            throw new IllegalStateException(getClass().getSimpleName() + " can only be used " +
 //                    "with android:layout_width=\"match_parent\" (or fill_parent)");
 //        }
         
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+//        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 //        if (heightMode != MeasureSpec.AT_MOST) {
 //            throw new IllegalStateException(getClass().getSimpleName() + " can only be used " +
 //                    "with android:layout_height=\"wrap_content\"");
 //        }
 
-        int contentWidth = MeasureSpec.getSize(widthMeasureSpec);
+        if (isVertical) {
+	        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
+	        int maxWidth = buttonWidth + BUTTON_SPACING + BUTTON_SPACING + BAR_SPACING + getPaddingLeft() + getPaddingRight();
+	        setMeasuredDimension(maxWidth, contentHeight);
+        } else {
+	        int contentWidth = MeasureSpec.getSize(widthMeasureSpec);
+	        if (isMultiline) {
+		        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
+	        	int lineCount = calcLineCount(contentWidth);
+	        	int h = lineCount * itemHeight + BAR_SPACING + BAR_SPACING;
+//	        	if (h > contentHeight - itemHeight)
+//	        		h = contentHeight - itemHeight;
+	        	setMeasuredDimension(contentWidth, h);
+	        } else {
+	        	setMeasuredDimension(contentWidth, buttonHeight + BUTTON_SPACING * 2 + BAR_SPACING);
+	        }
+        }
+	}
+	
+	protected int calcLineCount(int contentWidth) {
+		if (!isMultiline)
+			return 1;
+    	int lineCount = 1;
+    	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
+    	int minLineItemCount = 3;
+    	int maxLineItemCount = contentWidth / (preferredItemHeight * 3);
+    	if (maxLineItemCount < minLineItemCount)
+    		maxLineItemCount = minLineItemCount;
 
-        int maxHeight = contentHeight > 0 ?
-                contentHeight : MeasureSpec.getSize(heightMeasureSpec);
-        setMeasuredDimension(contentWidth, maxHeight);
+    	for (;;) {
+	    	if (btnCount <= maxLineItemCount * lineCount)
+	    		return lineCount;
+	    	lineCount++;
+    	}
 	}
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-	}
-
-	public static class MyMenuItem implements MenuItem {
-
-		char alphabeticShortcut;
-		char numericShortcut;
-		int groupId;
-		int itemId;
-		int order;
-		CharSequence title;
-		CharSequence titleCondensed;
-		Drawable icon;
-		SubMenu subMenu;
-		boolean checkable;
-		boolean checked;
-		boolean enabled = true;
-		boolean visible = true;
-		OnMenuItemClickListener listener;
-		Context context;
-		
-		public MyMenuItem(Context context) {
-			this.context = context;
-		}
-		
-		@Override
-		public char getAlphabeticShortcut() {
-			return alphabeticShortcut;
-		}
-
-		@Override
-		public int getGroupId() {
-			return groupId;
-		}
-
-		@Override
-		public Drawable getIcon() {
-			return icon;
-		}
-
-		@Override
-		public Intent getIntent() {
-			return null;
-		}
-
-		@Override
-		public int getItemId() {
-			return itemId;
-		}
-
-		@Override
-		public ContextMenuInfo getMenuInfo() {
-			return null;
-		}
-
-		@Override
-		public char getNumericShortcut() {
-			return numericShortcut;
-		}
-
-		@Override
-		public int getOrder() {
-			return order;
-		}
-
-		@Override
-		public SubMenu getSubMenu() {
-			return subMenu;
-		}
-
-		@Override
-		public CharSequence getTitle() {
-			return title;
-		}
-
-		@Override
-		public CharSequence getTitleCondensed() {
-			return titleCondensed;
-		}
-
-		@Override
-		public boolean hasSubMenu() {
-			return subMenu != null;
-		}
-
-		@Override
-		public boolean isCheckable() {
-			return checkable;
-		}
-
-		@Override
-		public boolean isChecked() {
-			return checked;
-		}
-
-		@Override
-		public boolean isEnabled() {
-			return enabled;
-		}
-
-		@Override
-		public boolean isVisible() {
-			return visible;
-		}
-
-		@Override
-		public MenuItem setAlphabeticShortcut(char alphaChar) {
-			alphabeticShortcut = alphaChar;
-			return this;
-		}
-
-		@Override
-		public MenuItem setCheckable(boolean checkable) {
-			this.checkable = checkable;
-			return this;
-		}
-
-		@Override
-		public MenuItem setChecked(boolean checked) {
-			this.checked = true;
-			return this;
-		}
-
-		@Override
-		public MenuItem setEnabled(boolean enabled) {
-			this.enabled = enabled;
-			return this;
-		}
-
-		@Override
-		public MenuItem setIcon(Drawable icon) {
-			this.icon = icon;
-			return this;
-		}
-
-		@Override
-		public MenuItem setIcon(int iconRes) {
-			if (iconRes != 0)
-				this.icon =  context.getResources().getDrawable(iconRes);
-			return this;
-		}
-
-		@Override
-		public MenuItem setIntent(Intent intent) {
-			// TODO
-			return this;
-		}
-
-		@Override
-		public MenuItem setNumericShortcut(char numericChar) {
-			numericShortcut = numericChar;
-			return this;
-		}
-
-		
-		@Override
-		public MenuItem setOnMenuItemClickListener(
-				OnMenuItemClickListener menuItemClickListener) {
-			this.listener = menuItemClickListener;
-			return this;
-		}
-
-		public MyMenuItem setOrder(int order) {
-			this.order = order;
-			return this;
-		}
-		
-		public MyMenuItem setItemId(int itemId) {
-			this.itemId = itemId;
-			return this;
-		}
-		
-		public MenuItem setGroupId(int groupId) {
-			this.groupId = groupId;
-			return this;
-		}
-		
-		public MenuItem setSubMenu(SubMenu subMenu) {
-			this.subMenu = subMenu;
-			return this;
-		}
-		
-		@Override
-		public MenuItem setShortcut(char numericChar, char alphaChar) {
-			this.numericShortcut = numericChar;
-			this.alphabeticShortcut = alphaChar;
-			return this;
-		}
-
-		@Override
-		public MenuItem setTitle(CharSequence title) {
-			this.title = title;
-			return this;
-		}
-
-		@Override
-		public MenuItem setTitle(int title) {
-			this.title = context.getResources().getString(title);
-			return this;
-		}
-
-		@Override
-		public MenuItem setTitleCondensed(CharSequence title) {
-			this.titleCondensed = title;
-			return this;
-		}
-
-		@Override
-		public MenuItem setVisible(boolean visible) {
-			this.visible = visible;
-			return this;
-		}
-		
-	}
-
-	public static class MyMenuBuilder implements SubMenu {
-
-		ArrayList<MenuItem> items = new ArrayList<MenuItem>();
-		Context context;
-		MenuItem parentItem;
-
-		private MenuItem add(MenuItem item) {
-			items.add(item);
-			return item;
-		}
-		
-		public MyMenuBuilder(Context context) {
-			this.context = context;
-		}
-		
-		@Override
-		public MenuItem add(CharSequence title) {
-			return add(new MyMenuItem(context).setTitle(title));
-		}
-
-		@Override
-		public MenuItem add(int titleRes) {
-			return add(new MyMenuItem(context).setTitle(titleRes));
-		}
-
-		@Override
-		public MenuItem add(int groupId, int itemId, int order,
-				CharSequence title) {
-			MyMenuItem item = new MyMenuItem(context); 
-			return add(item.setOrder(order).setItemId(itemId).setGroupId(groupId).setTitle(title));
-		}
-
-		@Override
-		public MenuItem add(int groupId, int itemId, int order, int titleRes) {
-			MyMenuItem item = new MyMenuItem(context); 
-			return add(item.setOrder(order).setItemId(itemId).setGroupId(groupId).setTitle(titleRes));
-		}
-
-		@Override
-		public int addIntentOptions(int groupId, int itemId, int order,
-				ComponentName caller, Intent[] specifics, Intent intent,
-				int flags, MenuItem[] outSpecificItems) {
-			return 0;
-		}
-
-		@Override
-		public SubMenu addSubMenu(CharSequence title) {
-			MyMenuItem item = new MyMenuItem(context);
-			item.setTitle(title);
-			MyMenuBuilder submenu = new MyMenuBuilder(context);
-			item.setSubMenu(submenu);
-			add(item);
-			submenu.parentItem = item;
-			return submenu;
-		}
-
-		@Override
-		public SubMenu addSubMenu(int titleRes) {
-			MyMenuItem item = new MyMenuItem(context);
-			item.setTitle(titleRes);
-			MyMenuBuilder submenu = new MyMenuBuilder(context);
-			item.setSubMenu(submenu);
-			add(item);
-			submenu.parentItem = item;
-			return submenu;
-		}
-
-		@Override
-		public SubMenu addSubMenu(int groupId, int itemId, int order,
-				CharSequence title) {
-			MyMenuItem item = new MyMenuItem(context);
-			item.setItemId(itemId);
-			item.setOrder(order);
-			item.setGroupId(groupId);
-			item.setTitle(title);
-			MyMenuBuilder submenu = new MyMenuBuilder(context);
-			item.setSubMenu(submenu);
-			add(item);
-			submenu.parentItem = item;
-			return submenu;
-		}
-
-		@Override
-		public SubMenu addSubMenu(int groupId, int itemId, int order,
-				int titleRes) {
-			MyMenuItem item = new MyMenuItem(context);
-			item.setItemId(itemId);
-			item.setOrder(order);
-			item.setGroupId(groupId);
-			item.setTitle(titleRes);
-			add(item);
-			MyMenuBuilder submenu = new MyMenuBuilder(context);
-			item.setSubMenu(submenu);
-			submenu.parentItem = item;
-			return submenu;
-		}
-
-		@Override
-		public void clear() {
-			items.clear();
-		}
-
-		@Override
-		public void close() {
-			// TODO
-		}
-
-		@Override
-		public MenuItem findItem(int id) {
-			for (MenuItem item : items)
-				if (item.getItemId() == id)
-					return item;
-			return null;
-		}
-
-		@Override
-		public MenuItem getItem(int index) {
-			return items.get(index);
-		}
-
-		@Override
-		public boolean hasVisibleItems() {
-			for (MenuItem item : items)
-				if (item.isVisible())
-					return true;
-			return false;
-		}
-
-		@Override
-		public boolean isShortcutKey(int keyCode, KeyEvent event) {
-			for (MenuItem item : items)
-				if (item.getAlphabeticShortcut() == event.getUnicodeChar() || item.getNumericShortcut() == event.getNumber())
-					return true;
-			return false;
-		}
-
-		@Override
-		public boolean performIdentifierAction(int id, int flags) {
-			return false;
-		}
-
-		@Override
-		public boolean performShortcut(int keyCode, KeyEvent event, int flags) {
-			return false;
-		}
-
-		@Override
-		public void removeGroup(int groupId) {
-		}
-
-		@Override
-		public void removeItem(int id) {
-			for (int i=0; i<items.size(); i++) {
-				if (items.get(i).getItemId() == id) {
-					items.remove(i);
-					return;
-				}
-			}
-		}
-
-		@Override
-		public void setGroupCheckable(int group, boolean checkable,
-				boolean exclusive) {
-		}
-
-		@Override
-		public void setGroupEnabled(int group, boolean enabled) {
-		}
-
-		@Override
-		public void setGroupVisible(int group, boolean visible) {
-		}
-
-		@Override
-		public void setQwertyMode(boolean isQwerty) {
-		}
-
-		@Override
-		public int size() {
-			return items.size();
-		}
-
-		@Override
-		public void clearHeader() {
-		}
-
-		@Override
-		public MenuItem getItem() {
-			return parentItem;
-		}
-
-		@Override
-		public SubMenu setHeaderIcon(int iconRes) {
-			return this;
-		}
-
-		@Override
-		public SubMenu setHeaderIcon(Drawable icon) {
-			return this;
-		}
-
-		@Override
-		public SubMenu setHeaderTitle(int titleRes) {
-			return this;
-		}
-
-		@Override
-		public SubMenu setHeaderTitle(CharSequence title) {
-			return this;
-		}
-
-		@Override
-		public SubMenu setHeaderView(View view) {
-			return this;
-		}
-
-		@Override
-		public SubMenu setIcon(int iconRes) {
-			return this;
-		}
-
-		@Override
-		public SubMenu setIcon(Drawable icon) {
-			return this;
-		}
-		
+		log.v("CRToolBar.onSizeChanged(" + w + ", " + h + ")");
 	}
 	
-	public static PopupWindow showPopup(Context context, View anchor, Menu menu) {
-		final CRToolBar tb = new CRToolBar(context, menu);
-		tb.measure(anchor.getWidth(), ViewGroup.LayoutParams.WRAP_CONTENT);
+	
+
+	@Override
+	protected void onDraw(Canvas canvas) {
+		log.v("CRToolBar.onDraw(" + getWidth() + ", " + getHeight() + ")");
+		super.onDraw(canvas);
+	}
+	public PopupWindow showAsPopup(View anchor, OnActionHandler onActionHandler, OnOverflowHandler onOverflowHandler) {
+		return showPopup(activity, anchor, actions, onActionHandler, onOverflowHandler);
+	}
+	
+	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler, final OnOverflowHandler onOverflowHandler) {
+		final ScrollView scroll = new ScrollView(context);
+		final CRToolBar tb = new CRToolBar(context, actions, true);
+		tb.setOnActionHandler(onActionHandler);
+		tb.setVertical(false);
+		tb.measure(MeasureSpec.makeMeasureSpec(anchor.getWidth(), MeasureSpec.EXACTLY), ViewGroup.LayoutParams.WRAP_CONTENT);
 		int w = tb.getMeasuredWidth();
-		int р = tb.getMeasuredHeight();
+		int h = tb.getMeasuredHeight();
+		scroll.addView(tb);
+		scroll.setLayoutParams(new LayoutParams(w, h/2));
+		scroll.setVerticalFadingEdgeEnabled(true);
+		scroll.setFadingEdgeLength(h / 10);
 		final PopupWindow popup = new PopupWindow(context);
 		popup.setTouchInterceptor(new OnTouchListener() {
 			
@@ -617,17 +452,63 @@ public class CRToolBar extends ViewGroup {
 				return false;
 			}
 		});
+		tb.setOnActionHandler(new OnActionHandler() {
+			@Override
+			public boolean onActionSelected(ReaderAction item) {
+				popup.dismiss();
+				return onActionHandler.onActionSelected(item);
+			}
+		});
+		tb.setOnOverflowHandler(new OnOverflowHandler() {
+			@Override
+			public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
+				popup.dismiss();
+				return onOverflowHandler.onOverflowActions(actions);
+			}
+		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
-		popup.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
-		popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+		popup.setWidth(WindowManager.LayoutParams.FILL_PARENT);
+		int hh = h;
+		int maxh = anchor.getHeight();
+		if (hh > maxh - context.getPreferredItemHeight())
+			hh = maxh - context.getPreferredItemHeight() * 3 / 2;
+		popup.setHeight(hh);
+		popup.setFocusable(true);
 		popup.setFocusable(true);
 		popup.setTouchable(true);
 		popup.setOutsideTouchable(true);
-		popup.setContentView(tb);
+		popup.setContentView(scroll);
+		InterfaceTheme theme = context.getCurrentTheme();
+		Drawable bg;
+		if (theme.getPopupToolbarBackground() != 0)
+			bg = context.getResources().getDrawable(theme.getPopupToolbarBackground());
+		else
+			bg = Utils.solidColorDrawable(theme.getPopupToolbarBackgroundColor());
+		popup.setBackgroundDrawable(bg);
 		int [] location = new int[2];
 		anchor.getLocationOnScreen(location);
 		int popupY = location[1];
 		popup.showAtLocation(anchor, Gravity.TOP | Gravity.LEFT, location[0], popupY);
 		return popup;
+	}
+	
+	private boolean nightMode;
+	public void updateNightMode(boolean nightMode) {
+		if (this.nightMode != nightMode) {
+			this.nightMode = nightMode;
+			if (isShown()) {
+				requestLayout();
+				invalidate();
+			}
+		}
+	}
+	
+	public void onThemeChanged(InterfaceTheme theme) {
+		//buttonAlpha = theme.getToolbarButtonAlpha();
+		//textColor = theme.getStatusTextColor();
+		if (isShown()) {
+			requestLayout();
+			invalidate();
+		}
 	}
 }

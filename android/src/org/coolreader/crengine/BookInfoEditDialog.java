@@ -18,10 +18,11 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -36,14 +37,19 @@ public class BookInfoEditDialog extends BaseDialog {
 	private LayoutInflater mInflater;
 	private int mWindowSize;
 	private boolean mIsRecentBooksItem;
-	public BookInfoEditDialog(CoolReader activity, FileInfo baseDir, BookInfo book, int windowSize, boolean isRecentBooksItem)
+	public BookInfoEditDialog(CoolReader activity, FileInfo baseDir, BookInfo book, boolean isRecentBooksItem)
 	{
 		super(activity, null, false, false);
 		this.mParentDir = baseDir;
-		this.mWindowSize = windowSize;
+		DisplayMetrics outMetrics = new DisplayMetrics();
+		activity.getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+		this.mWindowSize = outMetrics.widthPixels < outMetrics.heightPixels ? outMetrics.widthPixels : outMetrics.heightPixels;
 		this.mActivity = activity;
 		this.mBookInfo = book;
 		this.mIsRecentBooksItem = isRecentBooksItem;
+		if(getWindow().getAttributes().softInputMode==WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED) {
+		    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+		}
 	}
 
 	@Override
@@ -97,6 +103,7 @@ public class BookInfoEditDialog extends BaseDialog {
 			item.editor = new EditText(getContext());
 			item.value = value != null ? value : "";
 			item.editor.setText(value != null ? value : "");
+			//item.editor.setFocusableInTouchMode(false);
 			authorItems.add(item);
 			parent.addView(item.editor);
 			item.editor.addTextChangedListener(new TextWatcher() {
@@ -249,7 +256,7 @@ public class BookInfoEditDialog extends BaseDialog {
         btnDeleteBook.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mActivity.getBrowser().askDeleteBook(mBookInfo.getFileInfo());
+				mActivity.askDeleteBook(mBookInfo.getFileInfo());
 				dismiss();
 			}
 		});
@@ -278,9 +285,9 @@ public class BookInfoEditDialog extends BaseDialog {
         image.setMinimumWidth(w);
         image.setMaxWidth(w);
         Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-        mActivity.getBrowser().getCoverpageManager().drawCoverpageFor(file, bmp, new CoverpageBitmapReadyListener() {
+        Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), file, bmp, new CoverpageBitmapReadyListener() {
 			@Override
-			public void onCoverpageReady(FileInfo file, Bitmap bitmap) {
+			public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
 		        BitmapDrawable drawable = new BitmapDrawable(bitmap);
 				image.setImageDrawable(drawable);
 			}
@@ -319,14 +326,14 @@ public class BookInfoEditDialog extends BaseDialog {
         	btnRemoveRecent.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					mActivity.getBrowser().askDeleteRecent(mBookInfo.getFileInfo());
+					mActivity.askDeleteRecent(mBookInfo.getFileInfo());
 					dismiss();
 				}
 			});
         	btnOpenFolder.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					mActivity.getBrowser().showDirectory(mBookInfo.getFileInfo(), mBookInfo.getFileInfo());
+					mActivity.showDirectory(mBookInfo.getFileInfo());
 					dismiss();
 				}
 			});
@@ -374,18 +381,18 @@ public class BookInfoEditDialog extends BaseDialog {
         if (modified) {
         	mActivity.getDB().saveBookInfo(mBookInfo);
         	mActivity.getDB().flush();
-        	BookInfo bi = mActivity.getHistory().getBookInfo(file);
+        	BookInfo bi = Services.getHistory().getBookInfo(file);
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
         	mParentDir.setFile(file);
-        	mActivity.getBrowser().onChange(file, true);
+        	mActivity.directoryUpdated(mParentDir);
         }
 	}
 
 	@Override
 	protected void onPositiveButtonClick() {
 		save();
-		mActivity.getReaderView().loadDocument(mBookInfo.getFileInfo(), new Runnable() {
+		mActivity.loadDocument(mBookInfo.getFileInfo(), new Runnable() {
 			@Override
 			public void run() {
 				// error occured

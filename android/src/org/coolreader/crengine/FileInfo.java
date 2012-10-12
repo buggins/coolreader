@@ -10,6 +10,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.coolreader.R;
+import org.coolreader.plugins.OnlineStoreBook;
 
 import android.util.Log;
 
@@ -20,12 +21,17 @@ public class FileInfo {
 	public final static String ROOT_DIR_TAG = "@root";
 	public final static String OPDS_LIST_TAG = "@opds";
 	public final static String OPDS_DIR_PREFIX = "@opds:";
+	public final static String ONLINE_CATALOG_PLUGIN_PREFIX = "@plugin:";
 	public final static String AUTHORS_TAG = "@authorsRoot";
 	public final static String AUTHOR_GROUP_PREFIX = "@authorGroup:";
 	public final static String AUTHOR_PREFIX = "@author:";
 	public final static String SERIES_TAG = "@seriesRoot";
 	public final static String SERIES_GROUP_PREFIX = "@seriesGroup:";
 	public final static String SERIES_PREFIX = "@series:";
+	public final static String RATING_TAG = "@ratingRoot";
+	public final static String STATE_TO_READ_TAG = "@stateToReadRoot";
+	public final static String STATE_READING_TAG = "@stateReadingRoot";
+	public final static String STATE_FINISHED_TAG = "@stateFinishedRoot";
 	public final static String TITLE_TAG = "@titlesRoot";
 	public final static String TITLE_GROUP_PREFIX = "@titleGroup:";
 	public final static String SEARCH_SHORTCUT_TAG = "@search";
@@ -43,8 +49,8 @@ public class FileInfo {
 	public String arcname; // archive file name w/o path
 	public String language; // document language
 	public DocumentFormat format;
-	public int size;
-	public int arcsize;
+	public int size; // full file size
+	public int arcsize; // compressed size
 	public long createTime;
 	public long lastAccessTime;
 	public int flags;
@@ -185,17 +191,23 @@ public class FileInfo {
 			filename = f.getName();
 			path = f.getPath();
 			File arc = new File(arcname);
-			if ( arc.isFile() && arc.exists() ) {
+			if (arc.isFile() && arc.exists()) {
 				arcsize = (int)arc.length();
+				isArchive = true;
 				try {
-					ZipFile zip = new ZipFile(new File(arcname));
-					for ( Enumeration<?> e = zip.entries(); e.hasMoreElements(); ) {
-						ZipEntry entry = (ZipEntry)e.nextElement();
-						
+					//ZipFile zip = new ZipFile(new File(arcname));
+					ArrayList<ZipEntry> entries = Services.getEngine().getArchiveItems(arcname);
+					//for ( Enumeration<?> e = zip.entries(); e.hasMoreElements(); ) {
+					for (ZipEntry entry : entries) {
 						String name = entry.getName();
-						if ( !entry.isDirectory() && !pathname.equals(name) ) {
+						
+						if ( !entry.isDirectory() && pathname.equals(name) ) {
+							File itemf = new File(name);
+							filename = itemf.getName();
+							path = itemf.getPath();
 							format = DocumentFormat.byExtension(name);
 							size = (int)entry.getSize();
+							arcsize = (int)entry.getCompressedSize();
 							createTime = entry.getTime();
 							break;
 						}
@@ -244,6 +256,11 @@ public class FileInfo {
 
 	/// doesn't copy parent and children
 	public FileInfo(FileInfo v)
+	{
+		assign(v);
+	}
+
+	public void assign(FileInfo v)
 	{
 		title = v.title;
 		authors = v.authors;
@@ -303,6 +320,16 @@ public class FileInfo {
 		return pathname!=null && pathname.startsWith("@");
 	}
 	
+	public boolean isOnlineCatalogPluginDir()
+	{
+		return pathname!=null && pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX);
+	}
+	
+	public boolean isOnlineCatalogPluginBook()
+	{
+		return !isDirectory && pathname != null && pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX) && getOnlineStoreBookInfo() != null;
+	}
+	
 	public boolean isOPDSDir()
 	{
 		return pathname!=null && pathname.startsWith(OPDS_DIR_PREFIX) && (getOPDSEntryInfo() == null || getOPDSEntryInfo().getBestAcquisitionLink() == null);
@@ -316,6 +343,12 @@ public class FileInfo {
 	private OPDSUtil.EntryInfo getOPDSEntryInfo() {
 		if (tag !=null && tag instanceof OPDSUtil.EntryInfo)
 			return (OPDSUtil.EntryInfo)tag;
+		return null;
+	}
+	
+	public OnlineStoreBook getOnlineStoreBookInfo() {
+		if (tag !=null && tag instanceof OnlineStoreBook)
+			return (OnlineStoreBook)tag;
 		return null;
 	}
 	
@@ -337,6 +370,26 @@ public class FileInfo {
 	public boolean isBooksBySeriesRoot()
 	{
 		return SERIES_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByRatingRoot()
+	{
+		return RATING_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByStateToReadRoot()
+	{
+		return STATE_TO_READ_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByStateReadingRoot()
+	{
+		return STATE_READING_TAG.equals(pathname);
+	}
+	
+	public boolean isBooksByStateFinishedRoot()
+	{
+		return STATE_FINISHED_TAG.equals(pathname);
 	}
 	
 	public boolean isBooksByTitleRoot()
@@ -380,6 +433,42 @@ public class FileInfo {
 		return pathname.substring(OPDS_DIR_PREFIX.length());
 	}
 	
+	public String getOnlineCatalogPluginPackage()
+	{
+		if ( !pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX) )
+			return null;
+		String s = pathname.substring(ONLINE_CATALOG_PLUGIN_PREFIX.length());
+		int p = s.indexOf(":");
+		if (p < 0)
+			return s;
+		else
+			return s.substring(0, p);
+	}
+	
+	public String getOnlineCatalogPluginPath()
+	{
+		if ( !pathname.startsWith(ONLINE_CATALOG_PLUGIN_PREFIX) )
+			return null;
+		String s = pathname.substring(ONLINE_CATALOG_PLUGIN_PREFIX.length());
+		int p = s.indexOf(":");
+		if (p < 0)
+			return null;
+		else
+			return s.substring(p + 1);
+	}
+	
+	public String getOnlineCatalogPluginId()
+	{
+		String s = getOnlineCatalogPluginPath();
+		if (s == null)
+			return null;
+		int p = s.indexOf("=");
+		if (p < 0)
+			return null;
+		else
+			return s.substring(p + 1);
+	}
+	
 	/**
 	 * Get absolute path to file.
 	 * For plain files, returns /abs_path_to_file/filename.ext
@@ -420,6 +509,8 @@ public class FileInfo {
 		if ( dirs==null )
 			dirs = new ArrayList<FileInfo>();
 		dirs.add(dir);
+		if (dir.parent == null)
+			dir.parent = this;
 	}
 	public void addFile( FileInfo file )
 	{
@@ -780,7 +871,7 @@ public class FileInfo {
 			{
 				if ( f1==null || f2==null )
 					return 0;
-				return cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
+				return Utils.cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
 			}
 		}),
 		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, FILENAME),
@@ -789,7 +880,7 @@ public class FileInfo {
 			{
 				if ( f1==null || f2==null )
 					return 0;
-				return firstNz( cmp(f1.createTime, f2.createTime), cmp(f1.filename, f2.filename) );
+				return firstNz( cmp(f1.createTime, f2.createTime), Utils.cmp(f1.filename, f2.filename) );
 			}
 		}),
 		TIMESTAMP_DESC(R.string.mi_book_sort_order_timestamp_desc, TIMESTAMP),
@@ -803,7 +894,7 @@ public class FileInfo {
 						,cmpNotNullFirst(f1.series, f2.series)
 						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
-						,cmp(f1.filename, f2.filename) 
+						,Utils.cmp(f1.filename, f2.filename) 
 						);
 			}
 		}),
@@ -818,7 +909,7 @@ public class FileInfo {
 						,cmp(f1.getSeriesNumber(), f2.getSeriesNumber())
 						,cmpNotNullFirst(f1.title, f2.title)
 						,cmpNotNullFirst(Utils.formatAuthors(f1.authors), Utils.formatAuthors(f2.authors))
-						,cmp(f1.filename, f2.filename) 
+						,Utils.cmp(f1.filename, f2.filename) 
 						);
 			}
 		}),
@@ -848,66 +939,6 @@ public class FileInfo {
 		}
 		
 		/**
-		 * Compares two strings - with numbers sorted by value.
-		 * @param str1
-		 * @param str2
-		 * @return
-		 */
-		private static int cmp( String str1, String str2 )
-		{
-			if ( str1==null && str2==null )
-				return 0;
-			if ( str1==null )
-				return -1;
-			if ( str2==null )
-				return 1;
-		
-			str1 = str1.toLowerCase();
-			str2 = str2.toLowerCase();
-			int p1 = 0;
-			int p2 = 0;
-			for ( ;; ) {
-				if ( p1>=str1.length() ) {
-					if ( p2>=str2.length() )
-						return 0;
-					return 1;
-				}
-				if ( p2>=str2.length() )
-					return -1;
-				char ch1 = str1.charAt(p1);
-				char ch2 = str2.charAt(p2);
-				if ( ch1>='0' && ch1<='9' && ch2>='0' && ch2<='9' ) {
-					int n1 = 0;
-					int n2 = 0;
-					while ( ch1>='0' && ch1<='9' ) {
-						p1++;
-						n1 = n1 * 10 + (ch1-'0');
-						if ( p1>=str1.length() )
-							break;
-						ch1 = str1.charAt(p1);
-					}
-					while ( ch2>='0' && ch2<='9' ) {
-						p2++;
-						n2 = n2 * 10 + (ch2-'0');
-						if ( p2>=str2.length() )
-							break;
-						ch2 = str2.charAt(p2);
-					}
-					int c = cmp(n1, n2);
-					if ( c!=0 )
-						return c;
-				} else {
-					if ( ch1<ch2 )
-						return -1;
-					if ( ch1>ch2 )
-						return 1;
-					p1++;
-					p2++;
-				}
-			}
-		}
-		
-		/**
 		 * Same as cmp, but not-null comes first
 		 * @param str1
 		 * @param str2
@@ -921,10 +952,10 @@ public class FileInfo {
 				return 1;
 			if ( str2==null )
 				return -1;
-			return cmp(str1, str2);
+			return Utils.cmp(str1, str2);
 		}
 		
-		private static int cmp( long n1, long n2 )
+		static int cmp( long n1, long n2 )
 		{
 			if ( n1<n2 )
 				return -1;

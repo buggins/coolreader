@@ -1,0 +1,4 @@
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/divider_light_vertical"
+    android:gravity="fill_vertical"
+/>

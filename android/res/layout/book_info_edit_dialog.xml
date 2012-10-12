@@ -9,6 +9,14 @@
 	  android:orientation="vertical"
 	  android:layout_width="fill_parent"
 	  android:layout_height="wrap_content">
+
+	    <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
+	    <LinearLayout
+	    android:id="@+id/linearLayout_focus"
+	    android:focusable="true"
+	    android:focusableInTouchMode="true"
+	    android:layout_width="0px"
+	    android:layout_height="0px"/>
 	    <LinearLayout 
 	        android:id="@+id/base_dlg_button_panel"
             android:orientation="horizontal"
@@ -27,6 +35,7 @@
 	            android:focusable="false"
 	            android:focusableInTouchMode="false"
 	            android:background="@null"
+	            android:contentDescription="@string/dlg_button_back"/>
 	            />
             <ImageButton android:id="@+id/btn_open_book"
                 android:layout_width="wrap_content"
@@ -38,6 +47,7 @@
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:background="@null"
+	            android:contentDescription="@string/dlg_button_open_book"/>
                 />
             <ImageButton android:id="@+id/book_folder_open"
                 android:layout_width="wrap_content"
@@ -48,6 +58,7 @@
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:background="@null"
+	            android:contentDescription="@string/dlg_button_open_folder"/>
                 />
             <ImageButton android:id="@+id/book_recent_delete"
                 android:layout_width="wrap_content"
@@ -59,6 +70,7 @@
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:background="@null"
+	            android:contentDescription="@string/dlg_button_recent_delete"/>
                 />
             <ImageButton android:id="@+id/book_delete"
 	            android:layout_width="wrap_content"
@@ -70,6 +82,7 @@
 	            android:focusable="false"
 	            android:focusableInTouchMode="false"
 	            android:background="@null"
+	            android:contentDescription="@string/dlg_button_book_delete"/>
 	            />
 	    </LinearLayout>
         <LinearLayout 

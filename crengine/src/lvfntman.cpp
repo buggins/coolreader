@@ -1179,7 +1179,7 @@ public:
                     ch_glyph_index,                /* glyph index           */
                     rend_flags );             /* load flags, see below */
             if ( error ) {
-                return false;  /* ignore errors */
+                return NULL;  /* ignore errors */
             }
             item = newItem( &_glyph_cache, ch, _slot ); //, _drawMonochrome
             _glyph_cache.put( item );

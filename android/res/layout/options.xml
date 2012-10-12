@@ -7,7 +7,6 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:minHeight="?android:attr/listPreferredItemHeight"
         android:padding="0dp">
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/option_item_body"
@@ -23,20 +22,18 @@
 	        <ImageButton android:id="@+id/options_btn_back"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
-                android:minWidth="40dip"
-	            android:layout_marginTop="5dip"
-	            android:layout_marginBottom="5dip"
-	            android:layout_marginLeft="5dip"
-	            android:layout_marginRight="5dip"
-	            android:layout_centerVertical="true"
                 android:layout_gravity="center_vertical|center_horizontal"
+		        android:minHeight="?android:attr/listPreferredItemHeight"
+		        android:minWidth="?android:attr/listPreferredItemHeight"
 	            android:src="@drawable/cr3_button_prev"
 	            android:focusable="false"
 	            android:focusableInTouchMode="false"
 	            android:background="@null"
+	            android:contentDescription="@string/dlg_button_back"/>
 	            />
             <TabWidget
                 android:id="@android:id/tabs"
+                android:minHeight="?android:attr/listPreferredItemHeight"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content" 
                 android:layout_toRightOf="@id/options_btn_back"

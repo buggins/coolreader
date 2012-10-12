@@ -4966,7 +4966,7 @@ static int calcBookmarkMatch(lvPoint pt, lvRect & rc1, lvRect & rc2, int type) {
 CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
     CRFileHistRecord * rec = getCurrentFileHistRecord();
     if (!rec)
-        return false;
+        return NULL;
     if (!windowToDocPoint(pt))
         return NULL;
     LVPtrVector<CRBookmark>  & bookmarks = rec->getBookmarks();

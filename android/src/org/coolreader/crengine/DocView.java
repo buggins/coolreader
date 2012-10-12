@@ -188,6 +188,7 @@ public class DocView {
 	 */
 	public void resize(int dx, int dy) {
 		synchronized(mutex) {
+			log.d("DocView.resize(" + dx + ", "+ dy + ")");
 			resizeInternal(dx, dy);
 		}
 	}

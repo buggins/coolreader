@@ -42,9 +42,9 @@ public class BackgroundThread extends Thread {
 	}
 
 	public static Handler getGUIHandler() {
-		if (instance().guiTarget == null)
+		if (instance().guiHandler == null)
 			return null;
-		return instance().guiTarget.getHandler();
+		return instance().guiHandler;
 	}
 
 	public final static boolean CHECK_THREAD_CONTEXT = true; 
@@ -74,21 +74,21 @@ public class BackgroundThread extends Thread {
 	// 
 	private Handler handler;
 	private ArrayList<Runnable> posted = new ArrayList<Runnable>();
-	private View guiTarget;
+	private Handler guiHandler;
 	private ArrayList<Runnable> postedGUI = new ArrayList<Runnable>();
 
 	/**
 	 * Set view to post GUI tasks to.
 	 * @param guiTarget is view to post GUI tasks to.
 	 */
-	public void setGUI( View guiTarget ) {
-		this.guiTarget = guiTarget;
-		if ( guiTarget!=null ) {
+	public void setGUIHandler(Handler guiHandler) {
+		this.guiHandler = guiHandler;
+		if (guiHandler != null) {
 			// forward already posted events
 			synchronized(postedGUI) {
 				L.d("Engine.setGUI: " + postedGUI.size() + " posted tasks to copy");
 				for ( Runnable task : postedGUI )
-					guiTarget.post( task );
+					guiHandler.post( task );
 			}
 		}
 	}
@@ -180,7 +180,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public void postGUI(final Runnable task, final long delay)
 	{
-		if ( guiTarget==null ) {
+		if ( guiHandler==null ) {
 			synchronized( postedGUI ) {
 				postedGUI.add(task);
 			}
@@ -188,7 +188,7 @@ public class BackgroundThread extends Thread {
 			if ( delay>0 ) {
 				final int id = ++delayedTaskId;
 				//L.v("posting delayed (" + delay + ") task " + id + " " + task);
-				guiTarget.postDelayed(new Runnable() {
+				guiHandler.postDelayed(new Runnable() {
 					@Override
 					public void run() {
 						task.run();
@@ -196,7 +196,7 @@ public class BackgroundThread extends Thread {
 					}
 				}, delay);
 			} else
-				guiTarget.post(task);
+				guiHandler.post(task);
 		}
 	}
 

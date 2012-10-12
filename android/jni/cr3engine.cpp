@@ -242,7 +242,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
  * Signature: (Lorg/coolreader/crengine/FileInfo;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertiesInternal
-  (JNIEnv * _env, jobject _engine, jobject _fileInfo)
+  (JNIEnv * _env, jclass _engine, jobject _fileInfo)
 {
 	CRJNIEnv env(_env);
 	jclass objclass = env->GetObjectClass(_fileInfo);
@@ -286,7 +286,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
  * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
-  (JNIEnv * _env, jobject _engine, jobject bitmap, jbyteArray _data, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
+  (JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
 {
 	CRJNIEnv env(_env);
 	CRLog::debug("drawBookCoverInternal called");
@@ -295,14 +295,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 	lString16 authors = env.fromJavaString(_authors);
 	lString16 seriesName = env.fromJavaString(_seriesName);
 	LVStreamRef stream;
-	LVImageSourceRef image;
-	if (_data != NULL && _env->GetArrayLength(_data) > 0) {
-		stream = env.jbyteArrayToStream(_data);
-		if (!stream.isNull())
-			image = LVCreateStreamImageSource(stream);
-	}
 	LVDrawBuf * drawbuf = BitmapAccessorInterface::getInstance()->lock(_env, bitmap);
 	if (drawbuf != NULL) {
+		LVImageSourceRef image;
+		if (_data != NULL && _env->GetArrayLength(_data) > 0) {
+			stream = env.jbyteArrayToStream(_data);
+			if (!stream.isNull())
+				image = LVCreateStreamImageSource(stream);
+		}
 
 		int factor = 1;
 		int dx = drawbuf->GetWidth();
@@ -327,9 +327,11 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 		if (bpp >= 16) {
 			// native color resolution
 			LVDrawBookCover(*drawbuf2, image, fontFace, title, authors, seriesName, seriesNumber);
+			image.Clear();
 		} else {
 			LVGrayDrawBuf grayBuf(drawbuf2->GetWidth(), drawbuf2->GetHeight(), bpp);
 			LVDrawBookCover(grayBuf, image, fontFace, title, authors, seriesName, seriesNumber);
+			image.Clear();
 			grayBuf.DrawTo(drawbuf2, 0, 0, 0, NULL);
 		}
 
@@ -352,7 +354,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
  * Signature: (Ljava/lang/String;)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverInternal
-  (JNIEnv * _env, jobject _engine, jstring _path) {
+  (JNIEnv * _env, jclass _class, jstring _path) {
 	CRJNIEnv env(_env);
 	lString16 path = env.fromJavaString(_path);
 	CRLog::debug("scanBookCoverInternal(%s) called", LCSTR(path));
@@ -417,7 +419,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveItemsInternal
-  (JNIEnv * _env, jobject, jstring jarcName)
+  (JNIEnv * _env, jclass, jstring jarcName)
 {
     CRJNIEnv env(_env);
     lString16 arcName = env.fromJavaString(jarcName);
@@ -448,7 +450,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveIte
  * Signature: (I[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv * _env, jobject _engine, jint method, jbyteArray data)
+  (JNIEnv * _env, jclass _engine, jint method, jbyteArray data)
 {
 	CRJNIEnv env(_env);
 	if ( method==0 ) {
@@ -523,7 +525,7 @@ void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
  * Signature: ([Ljava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
-  (JNIEnv * penv, jobject obj, jobjectArray fontArray)
+  (JNIEnv * penv, jclass obj, jobjectArray fontArray)
 {
 	CRJNIEnv env(penv);
 	
@@ -562,7 +564,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_uninitInternal
-  (JNIEnv *, jobject)
+  (JNIEnv *, jclass)
 {
 	LOGI("uninitInternal called");
 	HyphMan::uninit();
@@ -576,7 +578,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_uninitInternal
  * Signature: ()[Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceListInternal
-  (JNIEnv * penv, jobject obj)
+  (JNIEnv * penv, jclass obj)
 {
 	LOGI("getFontFaceListInternal called");
 	CRJNIEnv env(penv);
@@ -591,7 +593,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
  * Signature: (Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal
-  (JNIEnv * penv, jobject obj, jstring dir, jint size)
+  (JNIEnv * penv, jclass obj, jstring dir, jint size)
 {
 	CRJNIEnv env(penv);
 	bool res = ldomDocCache::init(env.fromJavaString(dir), size ); 
@@ -647,7 +649,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationI
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightInternal
-  (JNIEnv *, jobject, jint n)
+  (JNIEnv *, jclass, jint n)
 {
 	FILE * f = fopen(BUTTON_BACKLIGHT_CONTROL_PATH, "wb");
 	if (!f)

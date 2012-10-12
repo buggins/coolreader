@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -16,13 +15,12 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
@@ -37,13 +35,14 @@ import android.view.View;
 public class Engine {
 
 	public static final Logger log = L.create("en");
-	
-	private CoolReader mActivity;
-	private File[] mountedRootsList;
-	private Map<String, String> mountedRootsMap;
-	
-	static final private String LIBRARY_NAME = "cr3engine-45-15";
+	public static final Object lock = new Object();
 
+	
+	static final private String LIBRARY_NAME = "cr3engine-3-1-0";
+
+	private BaseActivity mActivity;
+	
+	
 	// private final View mMainView;
 	// private final ExecutorService mExecutor =
 	// Executors.newFixedThreadPool(1);
@@ -53,7 +52,7 @@ public class Engine {
 	 * 
 	 * @return array of r/w storage roots
 	 */
-	public File[] getStorageDirectories(boolean writableOnly) {
+	public static File[] getStorageDirectories(boolean writableOnly) {
 		Collection<File> res = new HashSet<File>(2);
 		for (File dir : mountedRootsList) {
 			if (dir.isDirectory() && (!writableOnly || dir.canWrite()))
@@ -105,7 +104,7 @@ public class Engine {
 	 * @param createIfNotExists
 	 * @return
 	 */
-	public File[] getDataDirectories(String subdir,
+	public static File[] getDataDirectories(String subdir,
 			boolean createIfNotExists, boolean writableOnly) {
 		File[] roots = getStorageDirectories(writableOnly);
 		ArrayList<File> res = new ArrayList<File>(roots.length);
@@ -147,8 +146,6 @@ public class Engine {
 				if (LOG_ENGINE_TASKS)
 					log.i("running task.work() "
 							+ task.getClass().getName());
-				if (!initialized)
-					throw new IllegalStateException("Engine not initialized");
 				// run task
 				task.work();
 				if (LOG_ENGINE_TASKS)
@@ -450,7 +447,7 @@ public class Engine {
 		return progressShown;
 	}
 
-	public String loadFileUtf8(File file) {
+	public static String loadFileUtf8(File file) {
 		try {
 			InputStream is = new FileInputStream(file);
 			return loadResourceUtf8(is);
@@ -470,7 +467,7 @@ public class Engine {
 		}
 	}
 
-	public String loadResourceUtf8(InputStream is) {
+	public static String loadResourceUtf8(InputStream is) {
 		try {
 			int available = is.available();
 			if (available <= 0)
@@ -529,7 +526,7 @@ public class Engine {
 
 	private static Engine instance;
 
-	public static Engine getInstance(CoolReader activity) {
+	public static Engine getInstance(BaseActivity activity) {
 		if (instance == null) {
 			instance = new Engine(activity);
 		} else {
@@ -538,77 +535,44 @@ public class Engine {
 		return instance;
 	}
 	
-	private void setParams(CoolReader activity) {
+	private void setParams(BaseActivity activity) {
 		this.mActivity = activity;
 	}
-	
+
 	/**
 	 * Initialize CoolReader Engine
 	 * 
 	 * @param fontList
 	 *            is array of .ttf font pathnames to load
 	 */
-	public Engine(CoolReader activity) {
+	private Engine(BaseActivity activity) {
 		setParams(activity);
-		installLibrary();
-		initMountRoots();
-		mFonts = findFonts();
-		// this.mMainView = mainView;
-		//
-//		log.i("Engine() : initializing Engine in UI thread");
-//		if (!initialized) {
-//			installLibrary();
-//		}
-		initializeStarted = true;
-		log.i("Engine() : scheduling init task for " + hashCode());
-		BackgroundThread.instance().postBackground(new Runnable() {
-			public void run() {
-				try {
-					log.i("Engine() : running init() in engine thread for " + hashCode());
-					init();
-					// android.view.ViewRoot.getRunQueue().post(new Runnable() {
-					// public void run() {
-					//
-					// }
-					// });
-				} catch (final Exception e) {
-					log.e("Exception while initializing Engine", e);
-					// handler.post(new Runnable() {
-					// public void run() {
-					// // TODO: fatal error
-					// }
-					// });
-				}
-			}
-		});
 	}
 
-	private native boolean initInternal(String[] fontList);
+	// Native functions
+	private native static boolean initInternal(String[] fontList);
 
-	private native void uninitInternal();
+	private native static void uninitInternal();
 
-	private native String[] getFontFaceListInternal();
+	private native static String[] getFontFaceListInternal();
 
-	private native String[] getArchiveItemsInternal(String arcName); // pairs:
-																		// pathname,
-																		// size
+	private native static String[] getArchiveItemsInternal(String arcName); // pairs: pathname, size
 
-	private native boolean setKeyBacklightInternal(int value);
+	private native static boolean setKeyBacklightInternal(int value);
 
-	private native boolean setCacheDirectoryInternal(String dir, int size);
+	private native static boolean setCacheDirectoryInternal(String dir, int size);
 
-	private native boolean scanBookPropertiesInternal(FileInfo info);
+	private native static boolean scanBookPropertiesInternal(FileInfo info);
 
-	private native byte[] scanBookCoverInternal(String path);
+	private native static byte[] scanBookCoverInternal(String path);
 
-	private native void drawBookCoverInternal(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
+	private native static void drawBookCoverInternal(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp);
 	
-    private static native void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
+    private native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
+
     
     public static void suspendLongOperation() {
-    	if (isInitialized()) {
-    		suspendLongOperationInternal();
-    	}
+   		suspendLongOperationInternal();
     }
 	
 	/**
@@ -629,7 +593,7 @@ public class Engine {
 	public ArrayList<ZipEntry> getArchiveItems(String zipFileName) {
 		final int itemsPerEntry = 2;
 		String[] in;
-		synchronized(this) {
+		synchronized(lock) {
 		    in = getArchiveItemsInternal(zipFileName);
 		}
 		ArrayList<ZipEntry> list = new ArrayList<ZipEntry>();
@@ -800,8 +764,6 @@ public class Engine {
 		// byte[] image = loadResourceBytes(R.drawable.tx_old_book);
 		BackgroundThread.instance().postBackground(new Runnable() {
 			public void run() {
-				if (!initialized)
-					throw new IllegalStateException("CREngine is not initialized");
 				byte[] data = null;
 				if (dict.type == HYPH_DICT) {
 					if (dict.resource!=0) {
@@ -817,9 +779,7 @@ public class Engine {
 	}
 
 	public boolean scanBookProperties(FileInfo info) {
-		if (!initialized)
-			throw new IllegalStateException("CREngine is not initialized");
-		synchronized(this) {
+		synchronized(lock) {
 			long start = android.os.SystemClock.uptimeMillis();
 			boolean res = scanBookPropertiesInternal(info);
 			long duration = android.os.SystemClock.uptimeMillis() - start;
@@ -829,7 +789,7 @@ public class Engine {
 	}
 
 	public byte[] scanBookCover(String path) {
-		synchronized(this) {
+		synchronized(lock) {
 			long start = Utils.timeStamp();
 			byte[] res = scanBookCoverInternal(path);
 			long duration = Utils.timeInterval(start);
@@ -852,7 +812,7 @@ public class Engine {
 	 * @param bpp is bits per pixel (specify <=8 for eink grayscale dithering)
 	 */
 	public void drawBookCover(Bitmap bmp, byte[] data, String fontFace, String title, String authors, String seriesName, int seriesNumber, int bpp) {
-		synchronized(this) {
+		synchronized(lock) {
 			long start = Utils.timeStamp();
 			drawBookCoverInternal(bmp, data, fontFace, title, authors, seriesName, seriesNumber, bpp);
 			long duration = Utils.timeInterval(start);
@@ -860,85 +820,25 @@ public class Engine {
 		}
 	}
 
-	public String[] getFontFaceList() {
-		if (!initialized)
-			return null; //throw new IllegalStateException("CREngine is not initialized");
-		synchronized(this) {
+	public static String[] getFontFaceList() {
+		synchronized(lock) {
 			return getFontFaceListInternal();
 		}
 	}
 
-	private int lastSystemUiVisibility = -1;
-	private boolean setSystemUiVisibility(int value) {
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
-			if (value == lastSystemUiVisibility)// && a4)
-				return false;
-			lastSystemUiVisibility = value;
-			if (!a4)
-				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
-			View view;
-			//if (a4)
-				view = mActivity.getWindow().getDecorView(); // getReaderView();
-			//else
-			//	view = mActivity.getContentView(); // getReaderView();
-			
-			if (view == null)
-				return false;
-			Method m;
-			try {
-				m = view.getClass().getMethod("setSystemUiVisibility", int.class);
-				m.invoke(view, value);
-				return true;
-			} catch (SecurityException e) {
-				// ignore
-			} catch (NoSuchMethodException e) {
-				// ignore
-			} catch (IllegalArgumentException e) {
-				// ignore
-			} catch (IllegalAccessException e) {
-				// ignore
-			} catch (InvocationTargetException e) {
-				// ignore
-			}
-		}
-		return false;
-	}
-
-	public boolean setSystemUiVisibility() {
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			int flags = 0;
-			if (currentKeyBacklightLevel == 0)
-				flags |= SYSTEM_UI_FLAG_LOW_PROFILE;
-			if (mActivity.isFullscreen())
-				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-			setSystemUiVisibility(flags);
-			return true;
-		}
-		return false;
-	}
-	
-	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
-	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
-	
-	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 	private int currentKeyBacklightLevel = 1;
+	public int getKeyBacklight() {
+		return currentKeyBacklightLevel;
+	}
 	public boolean setKeyBacklight(int value) {
-		if (!initialized)
-			return false;
 		currentKeyBacklightLevel = value;
-		// Try ICS way
-		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			setSystemUiVisibility();
-		}
-
 		// thread safe
 		return setKeyBacklightInternal(value);
 	}
 	
 	final static int CACHE_DIR_SIZE = 32000000;
 
-	private String createCacheDir(File baseDir, String subDir) {
+	private static String createCacheDir(File baseDir, String subDir) {
 		String cacheDirName = null;
 		if (baseDir.isDirectory()) {
 			if (baseDir.canWrite()) {
@@ -1047,7 +947,7 @@ public class Engine {
 	private static String CR3_SETTINGS_DIR_NAME;
 	
 	public final static String CACHE_BASE_DIR_NAME = ".cr3"; // "Books"
-	private void initCacheDirectory() {
+	private static void initCacheDirectory() {
 		String cacheDirName = null;
 		// SD card
 		cacheDirName = createCacheDir(
@@ -1062,31 +962,31 @@ public class Engine {
 			}
 		}
 		// internal flash
-		if (cacheDirName == null) {
-			File cacheDir = mActivity.getCacheDir();
-			if (!cacheDir.isDirectory())
-				cacheDir.mkdir();
-			cacheDirName = createCacheDir(cacheDir, null);
-			// File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
-//			if (cacheDir.isDirectory() && cacheDir.canWrite())
-//				cacheDirName = cacheDir.getAbsolutePath();
-		}
+//		if (cacheDirName == null) {
+//			File cacheDir = mActivity.getCacheDir();
+//			if (!cacheDir.isDirectory())
+//				cacheDir.mkdir();
+//			cacheDirName = createCacheDir(cacheDir, null);
+//			// File cacheDir = mActivity.getDir("cache", Context.MODE_PRIVATE);
+////			if (cacheDir.isDirectory() && cacheDir.canWrite())
+////				cacheDirName = cacheDir.getAbsolutePath();
+//		}
 		// set cache directory for engine
 		if (cacheDirName != null) {
 			log.i(cacheDirName
 					+ " will be used for cache, maxCacheSize=" + CACHE_DIR_SIZE);
-			synchronized(this) {
-				setCacheDirectoryInternal(cacheDirName, CACHE_DIR_SIZE);
-			}
+			setCacheDirectoryInternal(cacheDirName, CACHE_DIR_SIZE);
+		} else {
+			log.w("No directory for cache is available!");
 		}
 	}
 
-	private boolean addMountRoot(Map<String, String> list, String pathname, int resourceId)
+	private static boolean addMountRoot(Map<String, String> list, String pathname, int resourceId)
 	{
-		return addMountRoot(list, pathname, mActivity.getResources().getString(resourceId));
+		return addMountRoot(list, pathname, pathname); //mActivity.getResources().getString(resourceId));
 	}
 	
-	private boolean addMountRoot(Map<String, String> list, String path, String name) {
+	private static boolean addMountRoot(Map<String, String> list, String path, String name) {
 		if (list.containsKey(path))
 			return false;
 		for (String key : list.keySet()) {
@@ -1150,7 +1050,7 @@ public class Engine {
 //		}
 //	}
 	
-	private void initMountRoots() {
+	private static void initMountRoots() {
 		Map<String, String> map = new LinkedHashMap<String, String>();
 
 		// standard external directory
@@ -1295,20 +1195,6 @@ public class Engine {
 //		Log.i("cr3", "normalization: " + path + " => " + normalizePathUsingRootLinks(new File(path)));
 //	}
 	
-	String[] mFonts;
-	private void init() throws IOException {
-		if (initialized)
-			throw new IllegalStateException("Already initialized");
-		String[] fonts = findFonts();
-		findExternalHyphDictionaries();
-		synchronized(this) {
-			if (!initInternal(mFonts))
-				throw new IOException("Cannot initialize CREngine JNI");
-		}
-		// Initialization of cache directory
-		initCacheDirectory();
-		initialized = true;
-	}
 
 	// public void waitTasksCompletion()
 	// {
@@ -1324,13 +1210,13 @@ public class Engine {
 	 * Uninitialize engine.
 	 */
 	public void uninit() {
-		log.i("Engine.uninit() is called for " + hashCode());
-		if (initialized) {
-			synchronized(this) {
-				uninitInternal();
-			}
-			initialized = false;
-		}
+//		log.i("Engine.uninit() is called for " + hashCode());
+//		if (initialized) {
+//			synchronized(this) {
+//				uninitInternal();
+//			}
+//			initialized = false;
+//		}
 		instance = null;
 	}
 
@@ -1342,14 +1228,7 @@ public class Engine {
 		// }
 	}
 
-	public static boolean isInitialized() {
-		return initialized;
-	}
-	
-	static private boolean initialized = false;
-	static private boolean initializeStarted = false;
-
-	private String[] findFonts() {
+	private static String[] findFonts() {
 		ArrayList<File> dirs = new ArrayList<File>();
 		File[] dataDirs = getDataDirectories("fonts", false, false);
 		for (File dir : dataDirs)
@@ -1387,12 +1266,12 @@ public class Engine {
 	}
 
 	private String SO_NAME = "lib" + LIBRARY_NAME + ".so";
-	private boolean force_install_library = false;
+//	private static boolean force_install_library = false;
 
-	private void installLibrary() {
+	private static void installLibrary() {
 		try {
-			if (force_install_library)
-				throw new Exception("forcing install");
+//			if (force_install_library)
+//				throw new Exception("forcing install");
 			// try loading library w/o manual installation
 			log.i("trying to load library " + LIBRARY_NAME
 					+ " w/o installation");
@@ -1401,37 +1280,38 @@ public class Engine {
 			//log.i("trying execute native method ");
 			//setHyphenationMethod(HYPH_NONE, new byte[] {});
 			log.i(LIBRARY_NAME + " loaded successfully");
-		} catch (Exception ee) {
-			log.i(SO_NAME + " not found using standard paths, will install manually");
-			File sopath = mActivity.getDir("libs", Context.MODE_PRIVATE);
-			File soname = new File(sopath, SO_NAME);
-			try {
-				sopath.mkdirs();
-				File zip = new File(mActivity.getPackageCodePath());
-				ZipFile zipfile = new ZipFile(zip);
-				ZipEntry zipentry = zipfile.getEntry("lib/armeabi/" + SO_NAME);
-				if (!soname.exists() || zipentry.getSize() != soname.length()) {
-					InputStream is = zipfile.getInputStream(zipentry);
-					OutputStream os = new FileOutputStream(soname);
-					Log.i("cr3",
-							"Installing JNI library "
-									+ soname.getAbsolutePath());
-					final int BUF_SIZE = 0x10000;
-					byte[] buf = new byte[BUF_SIZE];
-					int n;
-					while ((n = is.read(buf)) > 0)
-						os.write(buf, 0, n);
-					is.close();
-					os.close();
-				} else {
-					log.i("JNI library " + soname.getAbsolutePath()
-							+ " is up to date");
-				}
-				System.load(soname.getAbsolutePath());
-				//setHyphenationMethod(HYPH_NONE, new byte[] {});
+//		} catch (Exception ee) {
+//			log.i(SO_NAME + " not found using standard paths, will install manually");
+//			File sopath = mActivity.getDir("libs", Context.MODE_PRIVATE);
+//			File soname = new File(sopath, SO_NAME);
+//			try {
+//				sopath.mkdirs();
+//				File zip = new File(mActivity.getPackageCodePath());
+//				ZipFile zipfile = new ZipFile(zip);
+//				ZipEntry zipentry = zipfile.getEntry("lib/armeabi/" + SO_NAME);
+//				if (!soname.exists() || zipentry.getSize() != soname.length()) {
+//					InputStream is = zipfile.getInputStream(zipentry);
+//					OutputStream os = new FileOutputStream(soname);
+//					Log.i("cr3",
+//							"Installing JNI library "
+//									+ soname.getAbsolutePath());
+//					final int BUF_SIZE = 0x10000;
+//					byte[] buf = new byte[BUF_SIZE];
+//					int n;
+//					while ((n = is.read(buf)) > 0)
+//						os.write(buf, 0, n);
+//					is.close();
+//					os.close();
+//				} else {
+//					log.i("JNI library " + soname.getAbsolutePath()
+//							+ " is up to date");
+//				}
+//				System.load(soname.getAbsolutePath());
+//				//setHyphenationMethod(HYPH_NONE, new byte[] {});
 			} catch (Exception e) {
 				log.e("cannot install " + LIBRARY_NAME + " library", e);
-			}
+				throw new RuntimeException("Cannot load JNI library");
+//			}
 		}
 	}
 
@@ -1510,7 +1390,7 @@ public class Engine {
 		return list.toArray(new BackgroundTextureInfo[] {});
 	}
 
-	public void findHyphDictionariesFromDirectory(File dir) {
+	public static void findHyphDictionariesFromDirectory(File dir) {
 		for (File f : dir.listFiles()) {
 			if (!f.isDirectory()) {
 				if (HyphDict.fromFile(f))
@@ -1519,7 +1399,7 @@ public class Engine {
 		}
 	}
 
-	public void findExternalHyphDictionaries() {
+	public static void findExternalHyphDictionaries() {
 		for (File d : getStorageDirectories(false)) {
 			File base = new File(d, ".cr3");
 			if (!base.isDirectory())
@@ -1628,8 +1508,27 @@ public class Engine {
 		}
 	}
 
-	MountPathCorrector pathCorrector;
 	public MountPathCorrector getPathCorrector() {
 		return pathCorrector;
+	}
+
+	private static File[] mountedRootsList;
+	private static Map<String, String> mountedRootsMap;
+	private static MountPathCorrector pathCorrector;
+	private static String[] mFonts;
+
+	// static initialization
+	static {
+		log.i("Engine() : static initialization");
+		installLibrary();
+		initMountRoots();
+		mFonts = findFonts();
+		findExternalHyphDictionaries();
+		if (!initInternal(mFonts)) {
+			log.i("Engine.initInternal failed!");
+			throw new RuntimeException("Cannot initialize CREngine JNI");
+		}
+		initCacheDirectory();
+		log.i("Engine() : initialization done");
 	}
 }

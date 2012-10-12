@@ -206,7 +206,7 @@ public class MainDB extends BaseDB {
 	};
 	
 	private final static String[] DEF_OPDS_URLS2 = {
-		"http://www.shucang.com/s/index.php", "ShuCang.com",
+		"http://www.shucang.org/s/index.php", "ShuCang.org",
 	};
 
 	private void addOPDSCatalogs(String[] catalogs) {
@@ -572,6 +572,22 @@ public class MainDB extends BaseDB {
 		return findBooks(sql, list);
 	}
 	
+	public boolean findBooksByRating(ArrayList<FileInfo> list, int minRate, int maxRate)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " WHERE ((flags>>20)&15) BETWEEN " + minRate + " AND " + maxRate + " ORDER BY ((flags>>20)&15) DESC, b.title LIMIT 1000";
+		return findBooks(sql, list);
+	}
+	
+	public boolean findBooksByState(ArrayList<FileInfo> list, int state)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " WHERE ((flags>>16)&15) = " + state + " ORDER BY b.title LIMIT 1000";
+		return findBooks(sql, list);
+	}
+	
 	private String findAuthors(int maxCount, String authorPattern) {
 		StringBuilder buf = new StringBuilder();
 		String sql = "SELECT id, name FROM author";
@@ -728,16 +744,45 @@ public class MainDB extends BaseDB {
 	private final static int FILE_INFO_CACHE_SIZE = 3000;
 	private FileInfoCache fileInfoCache = new FileInfoCache(FILE_INFO_CACHE_SIZE); 
 	
-	private FileInfo findFileInfoByPathname(String path)
+	private FileInfo findMovedFileInfo(String path) {
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		FileInfo fi = new FileInfo(path);
+		if (fi.exists()) {
+			if (findAllBy(list, "filename", fi.filename)) {
+				for (FileInfo item : list) {
+					if (item.exists())
+						continue;
+					if (item.size == fi.size) {
+						log.i("Found record for file of the same name and size: treat as moved " + item.filename + " " + item.size);
+						// fix and save
+						item.pathname = fi.pathname;
+						item.arcname = fi.arcname;
+						item.arcsize = fi.arcsize;
+						item.path = fi.path;
+						item.createTime = fi.createTime;
+						save(item);
+						fileInfoCache.put(item);
+						return item;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	private FileInfo findFileInfoByPathname(String path, boolean detectMoved)
 	{
 		FileInfo existing = fileInfoCache.get(path);
 		if (existing != null)
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
 		if (findBy(fileInfo, "pathname", path)) {
+			fileInfoCache.put(fileInfo);
 			return fileInfo;
 		}
-		return null;
+		if (!detectMoved)
+			return null;
+		return findMovedFileInfo(path);
 	}
 
 	private FileInfo findFileInfoById(Long id)
@@ -748,7 +793,7 @@ public class MainDB extends BaseDB {
 		if (existing != null)
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
-		if (findBy( fileInfo, "b.id", fileInfo.id)) {
+		if (findBy( fileInfo, "b.id", id)) {
 			return fileInfo;
 		}
 		return null;
@@ -775,6 +820,39 @@ public class MainDB extends BaseDB {
 			if ( rs.moveToFirst() ) {
 				readFileInfoFromCursor( fileInfo, rs );
 				found = true;
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return found;
+	}
+
+	private boolean findAllBy( ArrayList<FileInfo> result, String fieldName, Object fieldValue )
+	{
+		String condition;
+		StringBuilder buf = new StringBuilder(" WHERE ");
+		buf.append(fieldName);
+		if ( fieldValue==null ) {
+			buf.append(" IS NULL ");
+		} else {
+			buf.append("=");
+			DatabaseUtils.appendValueToSql(buf, fieldValue);
+			buf.append(" ");
+		}
+		condition = buf.toString();
+		boolean found = false;
+		Cursor rs = null;
+		try { 
+			rs = mDB.rawQuery(READ_FILEINFO_SQL +
+					condition, null);
+			if (rs.moveToFirst()) {
+				do {
+					FileInfo fileInfo = new FileInfo();
+					readFileInfoFromCursor( fileInfo, rs );
+					result.add(fileInfo);
+					found = true;
+				} while (rs.moveToNext());
 			}
 		} finally {
 			if ( rs!=null )
@@ -873,7 +951,7 @@ public class MainDB extends BaseDB {
 	private boolean save(FileInfo fileInfo)	{
 		boolean authorsChanged = true;
 		try {
-			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName());
+			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName(), false);
 			if (oldValue == null && fileInfo.id != null)
 				oldValue = findFileInfoById(fileInfo.id);
 			if (oldValue != null && fileInfo.id == null && oldValue.id != null)
@@ -1301,7 +1379,7 @@ public class MainDB extends BaseDB {
 		try {
 			beginReading();
 			for (String path : pathNames) {
-				FileInfo file = findFileInfoByPathname(path);
+				FileInfo file = findFileInfoByPathname(path, true);
 				if (file != null)
 					list.add(new FileInfo(file));
 			}
@@ -1371,6 +1449,13 @@ public class MainDB extends BaseDB {
 			fileInfoCache.put(fileInfo);
 			return true;
 		}
+		
+		FileInfo moved = findMovedFileInfo(fileInfo.getPathName());
+		if (moved != null) {
+			fileInfo.assign(moved);
+			return true;
+		}
+		
 		return false;
 	}
 

@@ -11,6 +11,8 @@ import java.util.zip.ZipEntry;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
+import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.plugins.OnlineStoreWrapper;
 
 import android.util.Log;
 
@@ -24,7 +26,7 @@ public class Scanner extends FileInfoChangeSource {
 	
 	boolean mHideEmptyDirs = true;
 	
-	void setHideEmptyDirs( boolean flgHide ) {
+	public void setHideEmptyDirs( boolean flgHide ) {
 		mHideEmptyDirs = flgHide;
 	}
 
@@ -43,6 +45,7 @@ public class Scanner extends FileInfoChangeSource {
 	{
 		try {
 			File zf = new File(zip.pathname);
+			long arcsize = zf.length();
 			//ZipFile file = new ZipFile(zf);
 			ArrayList<ZipEntry> entries = engine.getArchiveItems(zip.pathname);
 			ArrayList<FileInfo> items = new ArrayList<FileInfo>();
@@ -63,7 +66,7 @@ public class Scanner extends FileInfoChangeSource {
 				//item.createTime = entry.getTime();
 				item.createTime = zf.lastModified();
 				item.arcname = zip.pathname;
-				item.arcsize = (int)entry.getSize(); //getCompressedSize();
+				item.arcsize = (int)entry.getCompressedSize();
 				item.isArchive = true;
 				items.add(item);
 			}
@@ -218,7 +221,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param readyCallback is Runable to call when operation is finished or stopped (will be called in GUI thread)
 	 * @param control allows to stop long operation
 	 */
-	private void scanDirectoryFiles(final FileInfo baseDir, final ScanControl control, final Engine.ProgressControl progress, final Runnable readyCallback) {
+	private void scanDirectoryFiles(final CRDBService.LocalBinder db, final FileInfo baseDir, final ScanControl control, final Engine.ProgressControl progress, final Runnable readyCallback) {
 		// GUI thread
 		BackgroundThread.ensureGUI();
 		log.d("scanDirectoryFiles(" + baseDir.getPathName() + ") ");
@@ -242,7 +245,7 @@ public class Scanner extends FileInfoChangeSource {
 		}
 
 		// load book infos for files
-		db().loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
+		db.loadFileInfos(pathNames, new CRDBService.FileInfoLoadingCallback() {
 			@Override
 			public void onFileInfoListLoaded(ArrayList<FileInfo> list) {
 				log.v("onFileInfoListLoaded");
@@ -269,7 +272,7 @@ public class Scanner extends FileInfoChangeSource {
 					}
 				}
 				if (filesForSave.size() > 0) {
-					db().saveFileInfos(filesForSave);
+					db.saveFileInfos(filesForSave);
 				}
 				if (filesForParsing.size() == 0 || control.isStopped()) {
 					readyCallback.run();
@@ -302,7 +305,7 @@ public class Scanner extends FileInfoChangeSource {
 								// GUI thread
 								try {
 									if (filesForSave.size() > 0) {
-										db().saveFileInfos(filesForSave);
+										db.saveFileInfos(filesForSave);
 									}
 									for (FileInfo file : filesForSave)
 										baseDir.setFile(file);
@@ -327,7 +330,7 @@ public class Scanner extends FileInfoChangeSource {
 	 * @param recursiveScan is true to scan subdirectories recursively, false to scan current directory only
 	 * @param scanControl is to stop long scanning
 	 */
-	public void scanDirectory(final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl) {
+	public void scanDirectory(final CRDBService.LocalBinder db, final FileInfo baseDir, final Runnable readyCallback, final boolean recursiveScan, final ScanControl scanControl) {
 		// Call in GUI thread only!
 		BackgroundThread.ensureGUI();
 
@@ -340,7 +343,7 @@ public class Scanner extends FileInfoChangeSource {
 			return;
 		}
 		Engine.ProgressControl progress = engine.createProgress(recursiveScan ? 0 : R.string.progress_scanning); 
-		scanDirectoryFiles(baseDir, scanControl, progress, new Runnable() {
+		scanDirectoryFiles(db, baseDir, scanControl, progress, new Runnable() {
 			@Override
 			public void run() {
 				// GUI thread
@@ -380,7 +383,7 @@ public class Scanner extends FileInfoChangeSource {
 									BackgroundThread.instance().postGUI(new Runnable() {
 										@Override
 										public void run() {
-											scanDirectory(dir, callback, true, scanControl);
+											scanDirectory(db, dir, callback, true, scanControl);
 										}
 									});
 								}
@@ -399,7 +402,7 @@ public class Scanner extends FileInfoChangeSource {
 	}
 	
 	private boolean addRoot( String pathname, int resourceId, boolean listIt) {
-		return addRoot( pathname, coolReader.getResources().getString(resourceId), listIt);
+		return addRoot( pathname, mActivity.getResources().getString(resourceId), listIt);
 	}
 
 	private FileInfo findRoot(String pathname) {
@@ -442,59 +445,184 @@ public class Scanner extends FileInfoChangeSource {
 		return true;
 	}
 	
-	private void addOPDSRoot() {
+	public FileInfo pathToFileInfo(String path) {
+		if (path == null || path.length() == 0)
+			return null;
+		if (FileInfo.OPDS_LIST_TAG.equals(path))
+			return createOPDSRoot();
+		else if (FileInfo.SEARCH_SHORTCUT_TAG.equals(path))
+			return createSearchRoot();
+		else if (FileInfo.RECENT_DIR_TAG.equals(path))
+			return getRecentDir();
+		else if (FileInfo.AUTHORS_TAG.equals(path))
+			return createAuthorsRoot();
+		else if (FileInfo.TITLE_TAG.equals(path))
+			return createTitleRoot();
+		else if (FileInfo.SERIES_TAG.equals(path))
+			return createSeriesRoot();
+		else if (FileInfo.RATING_TAG.equals(path))
+			return createBooksByRatingRoot();
+		else if (FileInfo.STATE_READING_TAG.equals(path))
+			return createBooksByStateReadingRoot();
+		else if (FileInfo.STATE_TO_READ_TAG.equals(path))
+			return createBooksByStateToReadRoot();
+		else if (FileInfo.STATE_FINISHED_TAG.equals(path))
+			return createBooksByStateFinishedRoot();
+		else if (path.startsWith(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX)) {
+			OnlineStoreWrapper w = OnlineStorePluginManager.getPlugin(mActivity, path);
+			if (w != null)
+				return w.createRootDirectory();
+			return null;
+		} else if (path.startsWith(FileInfo.OPDS_DIR_PREFIX))
+			return createOPDSDir(path);
+		else
+			return new FileInfo(path);
+	}
+	
+	public FileInfo createOPDSRoot() {
 		final FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.OPDS_LIST_TAG;
-		dir.filename = coolReader.getString(R.string.mi_book_opds_root);
+		dir.filename = mActivity.getString(R.string.mi_book_opds_root);
 		dir.isListed = true;
 		dir.isScanned = true;
+		return dir;
+	}
+
+	public static FileInfo createOnlineLibraryPluginItem(String packageName, String label) {
+		final FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		if (packageName.startsWith(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX))
+			dir.pathname = packageName;
+		else
+			dir.pathname = FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX + packageName;
+		dir.filename = label;
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+
+	private void addRoot(FileInfo dir) {
 		dir.parent = mRoot;
 		mRoot.addDir(dir);
 	}
+
+	public FileInfo createRecentRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.RECENT_DIR_TAG;
+		dir.filename = mActivity.getString(R.string.dir_recent_books);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
 	
-	private void addSearchRoot() {
+	private void addOPDSRoot() {
+		addRoot(createOPDSRoot());
+	}
+	
+	public FileInfo createSearchRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.SEARCH_SHORTCUT_TAG;
-		dir.filename = coolReader.getString(R.string.mi_book_search);
+		dir.filename = mActivity.getString(R.string.mi_book_search);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
 	}
 	
-	private void addAuthorsRoot() {
+	private void addSearchRoot() {
+		addRoot(createSearchRoot());
+	}
+	
+	public FileInfo createAuthorsRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.AUTHORS_TAG;
-		dir.filename = coolReader.getString(R.string.folder_name_books_by_author);
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_author);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
 	}
 	
-	private void addSeriesRoot() {
+	private void addAuthorsRoot() {
+		addRoot(createAuthorsRoot());
+	}
+	
+	public FileInfo createOPDSDir(String path) {
+		FileInfo opds = mRoot.findItemByPathName(FileInfo.OPDS_LIST_TAG);
+		if (opds == null)
+			return null;
+		FileInfo repository = opds.findItemByPathName(path);
+		return repository;
+	}
+	
+	public FileInfo createSeriesRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.SERIES_TAG;
-		dir.filename = coolReader.getString(R.string.folder_name_books_by_series);
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_series);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
 	}
 	
-	private void addTitleRoot() {
+	public FileInfo createBooksByRatingRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.RATING_TAG;
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_rating);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	public FileInfo createBooksByStateToReadRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.STATE_TO_READ_TAG;
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_state_to_read);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	public FileInfo createBooksByStateReadingRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.STATE_READING_TAG;
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_state_reading);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	public FileInfo createBooksByStateFinishedRoot() {
+		FileInfo dir = new FileInfo();
+		dir.isDirectory = true;
+		dir.pathname = FileInfo.STATE_FINISHED_TAG;
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_state_finished);
+		dir.isListed = true;
+		dir.isScanned = true;
+		return dir;
+	}
+	
+	private void addSeriesRoot() {
+		addRoot(createSeriesRoot());
+	}
+	
+	public FileInfo createTitleRoot() {
 		FileInfo dir = new FileInfo();
 		dir.isDirectory = true;
 		dir.pathname = FileInfo.TITLE_TAG;
-		dir.filename = coolReader.getString(R.string.folder_name_books_by_title);
+		dir.filename = mActivity.getString(R.string.folder_name_books_by_title);
 		dir.isListed = true;
 		dir.isScanned = true;
-		dir.parent = mRoot;
-		mRoot.addDir(dir);
+		return dir;
+	}
+	
+	private void addTitleRoot() {
+		addRoot(createTitleRoot());
 	}
 	
 	/**
@@ -546,6 +674,14 @@ public class Scanner extends FileInfoChangeSource {
 		long maxTs = android.os.SystemClock.uptimeMillis() + MAX_DIR_LIST_TIME;
 		listSubtrees(root, mHideEmptyDirs ? 5 : 1, maxTs);
 		return parent;
+	}
+	
+	public FileInfo findFileInTree(FileInfo f) {
+		FileInfo parent = findParent(f, getRoot());
+		if (parent == null)
+			return null;
+		FileInfo item = parent.findItemByPathName(f.getPathName());
+		return item;
 	}
 	
 	/**
@@ -604,7 +740,7 @@ public class Scanner extends FileInfoChangeSource {
 			FileInfo dir = new FileInfo();
 			dir.isDirectory = true;
 			dir.pathname = FileInfo.SEARCH_RESULT_DIR_TAG;
-			dir.filename = coolReader.getResources().getString(R.string.dir_search_results);
+			dir.filename = mActivity.getResources().getString(R.string.dir_search_results);
 			dir.parent = mRoot;
 			dir.isListed = true;
 			dir.isScanned = true;
@@ -681,6 +817,19 @@ public class Scanner extends FileInfoChangeSource {
 //	}
 	
 	
+	public ArrayList<FileInfo> getLibraryItems() {
+		ArrayList<FileInfo> result = new ArrayList<FileInfo>();
+		result.add(pathToFileInfo(FileInfo.SEARCH_SHORTCUT_TAG));
+		result.add(pathToFileInfo(FileInfo.AUTHORS_TAG));
+		result.add(pathToFileInfo(FileInfo.TITLE_TAG));
+		result.add(pathToFileInfo(FileInfo.SERIES_TAG));
+		result.add(pathToFileInfo(FileInfo.RATING_TAG));
+		result.add(pathToFileInfo(FileInfo.STATE_TO_READ_TAG));
+		result.add(pathToFileInfo(FileInfo.STATE_READING_TAG));
+		result.add(pathToFileInfo(FileInfo.STATE_FINISHED_TAG));
+		return result;
+	}
+	
 	public FileInfo getDownloadDirectory() {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {
 			FileInfo item = mRoot.getDir(i);
@@ -741,10 +890,10 @@ public class Scanner extends FileInfoChangeSource {
 		return null;
 	}
 	
-	public Scanner( CoolReader coolReader, Engine engine )
+	public Scanner( BaseActivity coolReader, Engine engine )
 	{
 		this.engine = engine;
-		this.coolReader = coolReader;
+		this.mActivity = coolReader;
 		mRoot = new FileInfo();
 		mRoot.path = FileInfo.ROOT_DIR_TAG;	
 		mRoot.filename = "File Manager";
@@ -754,10 +903,6 @@ public class Scanner extends FileInfoChangeSource {
 		mRoot.isDirectory = true;
 	}
 
-	private CRDBService.LocalBinder db() {
-		return coolReader.getDB();
-	}
-	
 	private final Engine engine;
-	private final CoolReader coolReader;
+	private final BaseActivity mActivity;
 }

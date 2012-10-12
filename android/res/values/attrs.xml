@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="rootDelimiterStyle" format="reference" />
+    <attr name="horizontalDelimiterRoot" format="reference|color" />
+    <attr name="horizontalDelimiterSizeRoot" format="reference|dimension">8dip</attr>
+    <attr name="toolbarBackgroundBrowser" format="reference|color" />
+    <attr name="toolbarBackgroundReader" format="reference|color" />
+    <attr name="statusbarBackgroundBrowser" format="reference|color" />
+    <attr name="statusbarBackgroundReader" format="reference|color" />
+    <declare-styleable name="View">
+	    <attr name="horizontalDelimiterRoot"/>
+	    <attr name="horizontalDelimiterSizeRoot"></attr>
+	</declare-styleable>
+</resources>

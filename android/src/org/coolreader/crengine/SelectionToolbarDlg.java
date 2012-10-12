@@ -125,7 +125,7 @@ public class SelectionToolbarDlg {
 		mWindow.dismiss();
 	}
 	
-	public SelectionToolbarDlg( CoolReader coolReader, ReaderView readerView, Selection sel )
+	public SelectionToolbarDlg(CoolReader coolReader, ReaderView readerView, Selection sel )
 	{
 		this.selection = sel;
 		mCoolReader = coolReader;

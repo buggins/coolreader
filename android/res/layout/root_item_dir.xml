@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Recent Book item layout for CR3 root window
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/browser_item_body"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:paddingRight="7dip"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:minWidth="?android:attr/listPreferredItemHeight"
+    >
+
+    <ImageView android:id="@+id/item_icon"
+        android:src="@drawable/cr3_browser_folder_root"
+        android:padding="2dip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:layout_gravity="center_horizontal|top" 
+        />
+    
+    <TextView android:id="@+id/item_name"
+        style="@style/TextAppearance.Small"
+        android:text="/mnt/sdcard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:paddingRight="7dip"
+        android:singleLine="true"
+        android:ellipsize="start"
+        android:layout_gravity="center_horizontal|bottom" 
+        android:minWidth="?android:attr/listPreferredItemHeight"
+        />
+
+</LinearLayout>

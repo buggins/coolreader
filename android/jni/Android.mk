@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := cr3engine-45-15
+LOCAL_MODULE    := cr3engine-3-1-0
 
 # Generate CREngine blob with statically linked libjpeg, libpng, libfreetype, chmlib
 # TODO: build libraries using separate makefiles
@@ -26,7 +26,7 @@ LOCAL_C_INCLUDES := \
     -I $(CR3_ROOT)/thirdparty/chmlib/src
 
 
-LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES)
+LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES) -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Werror -Wall
 
 
 CRENGINE_SRC_FILES := \

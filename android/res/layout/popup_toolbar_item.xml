@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Toolbar item with icon and label
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="0dip"
+    android:layout_margin="0dip"
+    android:baselineAligned="false"
+    android:background="@drawable/cr3_toolbar_button_background"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    >
+
+
+<LinearLayout 
+    android:orientation="vertical"
+    android:padding="0dip"
+    android:layout_margin="0dip"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+
+    <ImageView android:id="@+id/action_icon"
+        android:src="@drawable/cr3_button_next"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|top"
+        android:scaleType="center"
+        android:layout_gravity="center_horizontal" 
+        />
+    
+    <TextView android:id="@+id/action_label"
+        style="@style/TextAppearance.Small"
+        android:text="Action name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:gravity="center_horizontal"
+        android:singleLine="false"
+        android:lines="2"
+        android:maxLines="2"
+        android:ellipsize="none"
+        />
+
+</LinearLayout>
+</LinearLayout>

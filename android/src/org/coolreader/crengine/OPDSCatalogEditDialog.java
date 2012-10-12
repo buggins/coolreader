@@ -9,7 +9,7 @@ import android.widget.EditText;
 
 public class OPDSCatalogEditDialog extends BaseDialog {
 
-	private final CoolReader mCoolReader;
+	private final CoolReader mActivity;
 	private final LayoutInflater mInflater;
 	private final FileInfo mItem;
 	private final EditText nameEdit;
@@ -20,7 +20,7 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 		super(activity, activity.getString((item.id == null) ? R.string.dlg_catalog_add_title
 				: R.string.dlg_catalog_edit_title), true,
 				false);
-		mCoolReader = activity;
+		mActivity = activity;
 		mItem = item;
 		mOnUpdate = onUpdate;
 		mInflater = LayoutInflater.from(getContext());
@@ -29,12 +29,13 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 		urlEdit = (EditText) view.findViewById(R.id.catalog_url);
 		nameEdit.setText(mItem.filename);
 		urlEdit.setText(mItem.getOPDSUrl());
+		setThirdButtonImage(R.drawable.cr3_button_remove, R.string.mi_catalog_delete);
 		setView(view);
 	}
 
 	@Override
 	protected void onPositiveButtonClick() {
-		mCoolReader.getDB().saveOPDSCatalog(mItem.id,
+		activity.getDB().saveOPDSCatalog(mItem.id,
 				urlEdit.getText().toString(), nameEdit.getText().toString());
 		mOnUpdate.run();
 		super.onPositiveButtonClick();
@@ -45,4 +46,11 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 		super.onNegativeButtonClick();
 	}
 
+	@Override
+	protected void onThirdButtonClick() {
+		mActivity.askDeleteCatalog(mItem);
+		super.onThirdButtonClick();
+	}
+
+	
 }

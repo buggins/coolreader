@@ -3,21 +3,23 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
-import org.coolreader.crengine.History.BookInfoLoadedCallack;
 import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
+import org.coolreader.plugins.AuthenticationCallback;
+import org.coolreader.plugins.BookInfoCallback;
+import org.coolreader.plugins.FileInfoCallback;
+import org.coolreader.plugins.OnlineStoreBook;
+import org.coolreader.plugins.OnlineStoreBookInfo;
+import org.coolreader.plugins.OnlineStorePluginManager;
+import org.coolreader.plugins.OnlineStoreWrapper;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
@@ -68,10 +70,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						int position, long id) {
 					log.d("onItemLongClick("+position+")");
 					//return super.performItemClick(view, position, id);
-					if (position == 0 && currDirectory.parent != null) {
-						showParentDirectory();
-						return true;
-					}
 					FileInfo item = (FileInfo) getAdapter().getItem(position);
 					if ( item==null )
 						return false;
@@ -84,19 +82,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					selectedItem = item;
 					
 					boolean bookInfoDialogEnabled = true; // TODO: it's for debug
-					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled) {
-						final FileInfo file = item;
-						mHistory.getOrCreateBookInfo(item, new BookInfoLoadedCallack() {
-							@Override
-							public void onBookInfoLoaded(BookInfo bookInfo) {
-								if (bookInfo == null)
-									bookInfo = new BookInfo(file);
-								BookInfoEditDialog dlg = new BookInfoEditDialog(mActivity, currDirectory, bookInfo, 
-										screenHeight < screenWidth ? screenHeight : screenWidth, 
-										currDirectory.isRecentDir());
-								dlg.show();
-							}
-						});
+					if (!item.isDirectory && !item.isOPDSBook() && bookInfoDialogEnabled && !item.isOnlineCatalogPluginDir()) {
+						mActivity.editBookInfo(currDirectory, item);
 						return true;
 					}
 					
@@ -143,15 +130,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 
 
-
 		@Override
 		public boolean performItemClick(View view, int position, long id) {
 			log.d("performItemClick("+position+")");
 			//return super.performItemClick(view, position, id);
-			if (position == 0 && currDirectory.parent != null) {
-				showParentDirectory();
-				return true;
-			}
 			FileInfo item = (FileInfo) getAdapter().getItem(position);
 			if ( item==null )
 				return false;
@@ -161,6 +143,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 			if (item.isOPDSDir() || item.isOPDSBook())
 				showOPDSDir(item, null);
+			else if (item.isOnlineCatalogPluginBook())
+				showOnlineCatalogBookDialog(item);
 			else
 				mActivity.loadDocument(item);
 			return true;
@@ -168,9 +152,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			if ( keyCode==KeyEvent.KEYCODE_BACK && mActivity.isBookOpened() ) {
+			if (keyCode == KeyEvent.KEYCODE_BACK && mActivity.isBookOpened()) {
 				if ( isRootDir() ) {
-					if ( mActivity.isBookOpened() ) {
+					if (mActivity.isBookOpened()) {
 						mActivity.showReader();
 						return true;
 					} else
@@ -179,7 +163,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				showParentDirectory();
 				return true;
 			}
-			if (keyCode==KeyEvent.KEYCODE_SEARCH) {
+			if (keyCode == KeyEvent.KEYCODE_SEARCH) {
 				showFindBookDialog();
 				return true;
 			}
@@ -192,7 +176,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 		
 	}
-	
+
+	CoverpageManager.CoverpageReadyListener coverpageListener;
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
 		this.mActivity = activity;
@@ -200,36 +185,49 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		this.mScanner = scanner;
 		this.mInflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
 		this.mHistory = history;
-		this.mCoverpageManager = new CoverpageManager(mActivity);
+		this.mCoverpageManager = Services.getCoverpageManager();
+
+		coverpageListener =	new CoverpageReadyListener() {
+			@Override
+			public void onCoverpagesReady(ArrayList<CoverpageManager.ImageItem> files) {
+				if (currDirectory == null)
+					return;
+				boolean found = false;
+				for (CoverpageManager.ImageItem file : files) {
+					if (currDirectory.findItemByPathName(file.file.getPathName()) != null)
+						found = true;
+				}
+				if (found)
+					currentListAdapter.notifyInvalidated();
+			}
+		};
+		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
+		super.onAttachedToWindow();
+		
 		setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 		createListView(true);
 		history.addListener(this);
 		scanner.addListener(this);
 		showDirectory( null, null );
 
-		this.mCoverpageManager.setCoverpageReadyListener(new CoverpageReadyListener() {
-			@Override
-			public void onCoverpagesReady(ArrayList<FileInfo> files) {
-				if (currDirectory == null)
-					return;
-				boolean found = false;
-				for (FileInfo file : files) {
-					if (currDirectory.findItemByPathName(file.getPathName()) != null)
-						found = true;
-				}
-				if (found)
-					currentListAdapter.notifyInvalidated();
-			}
-		});
 	}
 	
-	
+	public void onClose() {
+		this.mCoverpageManager.removeCoverpageReadyListener(coverpageListener);
+		coverpageListener = null;
+		super.onDetachedFromWindow();
+	}
+
+
 	public CoverpageManager getCoverpageManager() {
 		return mCoverpageManager;
 	}
 	private CoverpageManager mCoverpageManager;
 	
+	private ProgressPopup progress;
 	private void createListView(boolean recreateAdapter) {
+		if (progress != null)
+			progress.hide();
 		mListView = new FileBrowserListView(mActivity);
 		final GestureDetector detector = new GestureDetector(new MyGestureListener());
 		mListView.setOnTouchListener(new ListView.OnTouchListener() {
@@ -250,6 +248,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		removeAllViews();
 		addView(mListView);
 		mListView.setVisibility(VISIBLE);
+		progress = new ProgressPopup(mActivity, mListView);
 	}
 	
 	public void onThemeChanged() {
@@ -285,14 +284,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			showRootDirectory();
 			return true;
 		case R.id.book_back_to_reading:
-			if ( mActivity.isBookOpened() )
+			if (mActivity.isBookOpened())
 				mActivity.showReader();
 			else
 				mActivity.showToast("No book opened");
 			return true;
 		case R.id.book_delete:
 			log.d("book_delete menu item selected");
-			askDeleteBook(selectedItem);
+			mActivity.askDeleteBook(selectedItem);
 			return true;
 		case R.id.book_recent_goto:
 			log.d("book_recent_goto menu item selected");
@@ -300,19 +299,19 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return true;
 		case R.id.book_recent_remove:
 			log.d("book_recent_remove menu item selected");
-			askDeleteRecent(selectedItem);
+			mActivity.askDeleteRecent(selectedItem);
 			return true;
 		case R.id.catalog_add:
 			log.d("catalog_add menu item selected");
-			editOPDSCatalog(null);
+			mActivity.editOPDSCatalog(null);
 			return true;
 		case R.id.catalog_delete:
 			log.d("catalog_delete menu item selected");
-			askDeleteCatalog();
+			mActivity.askDeleteCatalog(selectedItem);
 			return true;
 		case R.id.catalog_edit:
 			log.d("catalog_edit menu item selected");
-			editOPDSCatalog(selectedItem);
+			mActivity.editOPDSCatalog(selectedItem);
 			return true;
 		case R.id.catalog_open:
 			log.d("catalog_open menu item selected");
@@ -322,66 +321,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		return false;
 	}
 	
-	public void askDeleteBook(final FileInfo item)
-	{
-		mActivity.askConfirmation(R.string.win_title_confirm_book_delete, new Runnable() {
-			@Override
-			public void run() {
-				mActivity.getReaderView().closeIfOpened(item);
-				if (item.deleteFile()) {
-					mActivity.getSyncService().removeFile(item.getPathName());
-					mHistory.removeBookInfo(item, true, true);
-				}
-				showDirectory(currDirectory, null);
-			}
-		});
-	}
-	
-	public void askDeleteRecent(final FileInfo item)
-	{
-		mActivity.askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
-			@Override
-			public void run() {
-				mActivity.getHistory().removeBookInfo(item, true, false);
-				mActivity.getSyncService().removeFileLastPosition(item.getPathName());
-				showRecentBooks();
-			}
-		});
-	}
-	
-	private void askDeleteCatalog()
-	{
-		mActivity.askConfirmation(R.string.win_title_confirm_catalog_delete, new Runnable() {
-			@Override
-			public void run() {
-				if (selectedItem!=null && selectedItem.isOPDSDir()) {
-					mActivity.getDB().removeOPDSCatalog(selectedItem.id);
-					refreshOPDSRootDirectory();
-				}
-			}
-		});
-	}
-	
-	public void editOPDSCatalog(FileInfo opds) {
-		if (opds==null) {
-			opds = new FileInfo();
-			opds.isDirectory = true;
-			opds.pathname = FileInfo.OPDS_DIR_PREFIX + "http://";
-			opds.filename = "New Catalog";
-			opds.isListed = true;
-			opds.isScanned = true;
-			opds.parent = mScanner.getOPDSRoot();
-		}
-		OPDSCatalogEditDialog dlg = new OPDSCatalogEditDialog(mActivity, opds, new Runnable() {
-			@Override
-			public void run() {
-				refreshOPDSRootDirectory();
-			}
-		});
-		dlg.show();
-	}
-	
-	private void refreshOPDSRootDirectory() {
+	public void refreshOPDSRootDirectory() {
 		final FileInfo opdsRoot = mScanner.getOPDSRoot();
 		if (opdsRoot != null) {
 			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
@@ -396,12 +336,22 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 	}
 	
-
-	protected void showParentDirectory()
-	{
-		if (currDirectory != null && currDirectory.parent != null) {
-			showDirectory(currDirectory.parent, currDirectory);
+	public void refreshDirectory(FileInfo dir) {
+		if (dir.isSpecialDir()) {
+			if (dir.isOPDSRoot())
+				refreshOPDSRootDirectory();
+		} else {
+			if (dir.pathNameEquals(currDirectory))
+				showDirectory(currDirectory, null);
 		}
+	}
+
+	public void showParentDirectory()
+	{
+		if (currDirectory == null || currDirectory.parent == null || currDirectory.parent.isRootDir())
+			mActivity.showRootWindow();
+		else
+			showDirectory(currDirectory.parent, currDirectory);
 	}
 	
 	boolean mInitStarted = false;
@@ -412,76 +362,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		log.e("FileBrowser.init() called");
 		mInitStarted = true;
 		
-		showDirectory( mScanner.mRoot, null );
+		//showDirectory( mScanner.mRoot, null );
 		mListView.setSelection(0);
 	}
 	
-	public static String formatSize( int size )
-	{
-		if ( size==0 )
-			return "";
-		if ( size<10000 )
-			return String.valueOf(size);
-		else if ( size<1000000 )
-			return String.valueOf(size/1000) + "K";
-		else if ( size<10000000 )
-			return String.valueOf(size/1000000) + "." + String.valueOf(size%1000000/100000) + "M";
-		else
-			return String.valueOf(size/1000000) + "M";
-	}
-
-	public static String formatSeries( String name, int number )
-	{
-		if ( name==null || name.length()==0 )
-			return null;
-		if ( number>0 )
-			return "#" + number + " " + name;
-		else
-			return name;
-	}
-	
-	static private ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>(); 
-	static private ThreadLocal<SimpleDateFormat> timeFormatThreadLocal = new ThreadLocal<SimpleDateFormat>();
-	static private SimpleDateFormat dateFormat() {
-		if (dateFormatThreadLocal.get() == null)
-			dateFormatThreadLocal.set(new SimpleDateFormat("dd.MM.yy", Locale.getDefault()));
-		return dateFormatThreadLocal.get();
-	}
-	
-	static private SimpleDateFormat timeFormat() {
-		if (timeFormatThreadLocal.get() == null)
-			timeFormatThreadLocal.set(new SimpleDateFormat("HH:mm", Locale.getDefault()));
-		return timeFormatThreadLocal.get();
-	}
-	
-	public static String formatDate( long timeStamp )
-	{
-		if ( timeStamp<5000*60*60*24*1000 )
-			return "";
-		TimeZone tz = java.util.TimeZone.getDefault();
-		Calendar now = Calendar.getInstance(tz);
-		Calendar c = Calendar.getInstance(tz);
-		c.setTimeInMillis(timeStamp);
-		if ( c.get(Calendar.YEAR)<1980 )
-			return "";
-		if ( c.get(Calendar.YEAR)==now.get(Calendar.YEAR)
-				&& c.get(Calendar.MONTH)==now.get(Calendar.MONTH)
-				&& c.get(Calendar.DAY_OF_MONTH)==now.get(Calendar.DAY_OF_MONTH)) {
-			timeFormat().setTimeZone(tz);
-			return timeFormat().format(c.getTime());
-		} else {
-			dateFormat().setTimeZone(tz);
-			return dateFormat().format(c.getTime());
-		}
-	}
-
-	public static String formatPercent( int percent )
-	{
-		if ( percent<=0 )
-			return null;
-		return String.valueOf(percent/100) + "." + String.valueOf(percent/10%10) + "%";
-	}
-
 	private FileInfo currDirectory;
 
 	public boolean isRootDir()
@@ -523,12 +407,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		BookSearchDialog dlg = new BookSearchDialog( mActivity, new BookSearchDialog.SearchCallback() {
 			@Override
 			public void done(FileInfo[] results) {
-				if ( results!=null ) {
-					if ( results.length==0 ) {
+				if (results != null) {
+					if (results.length == 0) {
 						mActivity.showToast(R.string.dlg_book_search_not_found);
 					} else {
-						showSearchResult( results );
+						showSearchResult(results);
 					}
+				} else {
+					if (currDirectory == null || currDirectory.isRootDir())
+						mActivity.showRootWindow();
 				}
 			}
 		});
@@ -539,6 +426,76 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		log.v("showRootDirectory()");
 		showDirectory(mScanner.getRoot(), null);
+	}
+
+	private OnlineStoreWrapper getPlugin(FileInfo dir) {
+		return OnlineStorePluginManager.getPlugin(mActivity, dir.getOnlineCatalogPluginPackage());
+	}
+
+	private void openPluginDirectory(OnlineStoreWrapper plugin, FileInfo dir) {
+		progress.show();
+		plugin.openDirectory(dir, new FileInfoCallback() {
+			@Override
+			public void onFileInfoReady(FileInfo fileInfo) {
+				progress.hide();
+				showDirectoryInternal(fileInfo, null);
+			}
+			@Override
+			public void onError(int errorCode, String description) {
+				progress.hide();
+				mActivity.showToast("Cannot read from server");
+			}
+		});
+	}
+	
+	private void openPluginDirectoryWithLoginDialog(final OnlineStoreWrapper plugin, final FileInfo dir) {
+		OnlineStoreLoginDialog dlg = new OnlineStoreLoginDialog(mActivity, plugin, new Runnable() {
+			@Override
+			public void run() {
+				openPluginDirectory(plugin, dir);
+			}
+		});
+		dlg.show();
+	}
+
+	public void showOnlineStoreDirectory(final FileInfo dir)
+	{
+		log.v("showOnlineStoreDirectory(" + dir.pathname + ")");
+		final OnlineStoreWrapper plugin = getPlugin(dir);
+		if (plugin != null) {
+			if (dir.fileCount() > 0 || dir.dirCount() > 0) {
+				showDirectoryInternal(dir, null);
+				return;
+			}
+			String path = dir.getOnlineCatalogPluginPath();
+			String id = dir.getOnlineCatalogPluginId();
+			if ("my".equals(path)) {
+				String login = plugin.getLogin();
+				String password = plugin.getPassword();
+				if (login != null && password != null) {
+					progress.show();
+					plugin.authenticate(login, password, new AuthenticationCallback() {
+						@Override
+						public void onError(int errorCode, String errorMessage) {
+							// ignore error 
+							progress.hide();
+							openPluginDirectoryWithLoginDialog(plugin, dir);
+						}
+						@Override
+						public void onSuccess() {
+							progress.hide();
+							openPluginDirectory(plugin, dir);
+						}
+					});
+					return;
+				} else {
+					openPluginDirectoryWithLoginDialog(plugin, dir);
+				}
+			}
+			if ("genres".equals(path) || "popular".equals(path) || "new".equals(path) || (path.startsWith("genre=") && id != null) || (path.startsWith("authors=") && id != null) || (path.startsWith("author=") && id != null)) {
+				openPluginDirectory(plugin, dir);
+			}
+		}
 	}
 
 	public void showOPDSRootDirectory()
@@ -570,49 +527,49 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void setSortOrder(String orderName) {
 		setSortOrder(FileInfo.SortOrder.fromName(orderName));
 	}
-//	public void showSortOrderMenu() {
-//		final Properties properties = new Properties();
-//		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
-//		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
-//		int[] optionLabels = {
-//			FileInfo.SortOrder.FILENAME.resourceId,	
-//			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
-//			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
-//			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
-//			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
-//			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
-//			FileInfo.SortOrder.TIMESTAMP.resourceId,	
-//			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
-//		};
-//		String[] optionValues = {
-//			FileInfo.SortOrder.FILENAME.name(),	
-//			FileInfo.SortOrder.FILENAME_DESC.name(),	
-//			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
-//			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),	
-//			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
-//			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
-//			FileInfo.SortOrder.TIMESTAMP.name(),	
-//			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
-//		};
-//		OptionsDialog.ListOption dlg = new OptionsDialog.ListOption(
-//			new OptionOwner() {
-//				public CoolReader getActivity() { return mActivity; }
-//				public Properties getProperties() { return properties; }
-//				public LayoutInflater getInflater() { return mInflater; }
-//			}, 
-//			mActivity.getString(R.string.mi_book_sort_order), 
-//			ReaderView.PROP_APP_BOOK_SORT_ORDER).add(optionValues, optionLabels); 
-//		dlg.setOnChangeHandler(new Runnable() {
-//			public void run() {
-//				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
-//				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
-//					log.d("New sort order: " + newValue);
-//					setSortOrder(newValue);
-//				}
-//			}
-//		});
-//		dlg.onSelect();
-//	}
+	public void showSortOrderMenu() {
+		final Properties properties = new Properties();
+		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, SettingsManager.instance(mActivity).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+		int[] optionLabels = {
+			FileInfo.SortOrder.FILENAME.resourceId,	
+			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
+			FileInfo.SortOrder.AUTHOR_TITLE.resourceId,	
+			FileInfo.SortOrder.AUTHOR_TITLE_DESC.resourceId,	
+			FileInfo.SortOrder.TITLE_AUTHOR.resourceId,	
+			FileInfo.SortOrder.TITLE_AUTHOR_DESC.resourceId,	
+			FileInfo.SortOrder.TIMESTAMP.resourceId,	
+			FileInfo.SortOrder.TIMESTAMP_DESC.resourceId,	
+		};
+		String[] optionValues = {
+			FileInfo.SortOrder.FILENAME.name(),	
+			FileInfo.SortOrder.FILENAME_DESC.name(),	
+			FileInfo.SortOrder.AUTHOR_TITLE.name(),	
+			FileInfo.SortOrder.AUTHOR_TITLE_DESC.name(),
+			FileInfo.SortOrder.TITLE_AUTHOR.name(),	
+			FileInfo.SortOrder.TITLE_AUTHOR_DESC.name(),	
+			FileInfo.SortOrder.TIMESTAMP.name(),	
+			FileInfo.SortOrder.TIMESTAMP_DESC.name(),	
+		};
+		OptionsDialog.ListOption dlg = new OptionsDialog.ListOption(
+			new OptionOwner() {
+				public BaseActivity getActivity() { return mActivity; }
+				public Properties getProperties() { return properties; }
+				public LayoutInflater getInflater() { return mInflater; }
+			}, 
+			mActivity.getString(R.string.mi_book_sort_order), 
+			ReaderView.PROP_APP_BOOK_SORT_ORDER).add(optionValues, optionLabels); 
+		dlg.setOnChangeHandler(new Runnable() {
+			public void run() {
+				final String newValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
+				if ( newValue!=null && oldValue!=null && !newValue.equals(oldValue) ) {
+					log.d("New sort order: " + newValue);
+					setSortOrder(newValue);
+				}
+			}
+		});
+		dlg.onSelect();
+	}
 	
 	private void showOPDSDir( final FileInfo fileOrDir, final FileInfo itemToSelect ) {
 		
@@ -696,11 +653,11 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						//mEngine.showProgress(0, "Downloading " + url);
 						//mActivity.showToast("Starting download of " + type + " from " + url);
 						log.d("onDownloadStart: called for " + type + " " + url );
-						downloadDir = mActivity.getScanner().getDownloadDirectory();
+						downloadDir = Services.getScanner().getDownloadDirectory();
 						log.d("onDownloadStart: after getDownloadDirectory()" );
 						String subdir = null;
 						if ( fileOrDir.authors!=null ) {
-							subdir = OPDSUtil.transcribeFileName(fileOrDir.authors);
+							subdir = Utils.transcribeFileName(fileOrDir.authors);
 							if ( subdir.length()>MAX_SUBDIR_LEN )
 								subdir = subdir.substring(0, MAX_SUBDIR_LEN);
 						} else {
@@ -744,7 +701,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					
 				};
 				String fileMimeType = fileOrDir.format!=null ? fileOrDir.format.getMimeFormat() : null;
-				String defFileName = OPDSUtil.transcribeFileName( fileOrDir.title!=null ? fileOrDir.title : fileOrDir.filename );
+				String defFileName = Utils.transcribeFileName( fileOrDir.title!=null ? fileOrDir.title : fileOrDir.filename );
 				if ( fileOrDir.format!=null )
 					defFileName = defFileName + fileOrDir.format.getExtensions()[0];
 				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(mActivity, uri, defFileName, fileOrDir.isDirectory?"application/atom+xml":fileMimeType, 
@@ -794,10 +751,42 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			showDirectoryInternal(currDirectory, null);
 	}
 
-	public void showDirectory( FileInfo fileOrDir, FileInfo itemToSelect )
+	public void showDirectory(FileInfo fileOrDir, FileInfo itemToSelect)
 	{
 		BackgroundThread.ensureGUI();
 		if (fileOrDir != null) {
+			if (fileOrDir.isRootDir()) {
+				mActivity.showRootWindow();
+				return;
+			}
+			if (fileOrDir.isOnlineCatalogPluginDir()) {
+				if (fileOrDir.getOnlineCatalogPluginPath() == null) {
+					// root
+					OnlineStoreWrapper plugin = OnlineStorePluginManager.getPlugin(mActivity, fileOrDir.getOnlineCatalogPluginPackage());
+					if (plugin != null) {
+						String login = plugin.getLogin();
+						String password = plugin.getPassword();
+						if (login != null && password != null) {
+							final FileInfo dir = fileOrDir;
+							// just do authentication in background
+							plugin.authenticate(login, password, new AuthenticationCallback() {
+								@Override
+								public void onError(int errorCode, String errorMessage) {
+									// ignore error 
+								}
+								@Override
+								public void onSuccess() {
+									// ignore result
+								}
+							});
+							showOnlineStoreDirectory(dir);
+							return;
+						}
+					}
+				}
+				showOnlineStoreDirectory(fileOrDir);
+				return;
+			}
 			if (fileOrDir.isOPDSRoot()) {
 				showOPDSRootDirectory();
 				return;
@@ -820,6 +809,26 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				// refresh authors list
 				log.d("Updating series list");
 				mActivity.getDB().loadSeriesList(fileOrDir, new ItemGroupsLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByRatingRoot()) {
+				log.d("Updating rated books list");
+				mActivity.getDB().loadBooksByRating(1, 10, new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByStateFinishedRoot()) {
+				log.d("Updating books by state=finished");
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_FINISHED, new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByStateReadingRoot()) {
+				log.d("Updating books by state=reading");
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_READING, new FileInfoLoadingCallback(fileOrDir));
+				return;
+			}
+			if (fileOrDir.isBooksByStateReadingRoot()) {
+				log.d("Updating books by state=toRead");
+				mActivity.getDB().loadBooksByState(FileInfo.STATE_TO_READ, new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
 			if (fileOrDir.isBooksByTitleRoot()) {
@@ -853,7 +862,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		final FileInfo file = fileOrDir==null || fileOrDir.isDirectory ? itemToSelect : fileOrDir;
 		final FileInfo dir = fileOrDir!=null && !fileOrDir.isDirectory ? mScanner.findParent(file, mScanner.getRoot()) : fileOrDir;
 		if ( dir!=null ) {
-			mScanner.scanDirectory(dir, new Runnable() {
+			mScanner.scanDirectory(mActivity.getDB(), dir, new Runnable() {
 				public void run() {
 					if (dir.allowSorting())
 						dir.sort(mSortOrder);
@@ -879,7 +888,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						control.stop();
 					}
 		});
-		mScanner.scanDirectory(currDirectory, new Runnable() {
+		mScanner.scanDirectory(mActivity.getDB(), currDirectory, new Runnable() {
 			@Override
 			public void run() {
 				log.i("scanCurrentDirectoryRecursive : finish handler");
@@ -922,7 +931,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		public int getCount() {
 			if (currDirectory == null)
 				return 0;
-			return currDirectory.fileCount() + currDirectory.dirCount() + (currDirectory.parent!=null ? 1 : 0);
+			return currDirectory.fileCount() + currDirectory.dirCount();
 		}
 
 		public Object getItem(int position) {
@@ -930,10 +939,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				return null;
 			if ( position<0 )
 				return null;
-			int start = (currDirectory.parent!=null ? 1 : 0);
-			if ( position<start )
-				return currDirectory.parent;
-			return currDirectory.getItem(position-start);
+			return currDirectory.getItem(position);
 		}
 
 		public long getItemId(int position) {
@@ -953,13 +959,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				return 0;
 			if (position < 0)
 				return Adapter.IGNORE_ITEM_VIEW_TYPE;
-			int start = (currDirectory.parent!=null ? 1 : 0);
-			if (position<start)
-				return VIEW_TYPE_LEVEL_UP;
-			if (position<start + currDirectory.dirCount())
+			if (position < currDirectory.dirCount())
 				return VIEW_TYPE_DIRECTORY;
-			start += currDirectory.dirCount();
-			position -= start;
+			position -= currDirectory.dirCount();
 			if (position < currDirectory.fileCount()) {
 				Object itm = getItem(position);
 				if (itm instanceof FileInfo) {
@@ -1018,8 +1020,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						image.setImageResource(R.drawable.cr3_browser_folder_authors);
 					else if (item.isBooksByTitleRoot())
 						image.setImageResource(R.drawable.cr3_browser_folder_authors);
+					else if (item.isBooksByRatingRoot() || item.isBooksByStateReadingRoot() || item.isBooksByStateToReadRoot() || item.isBooksByStateFinishedRoot())
+						image.setImageResource(R.drawable.cr3_browser_folder_authors);
 					else if (item.isOPDSRoot() || item.isOPDSDir())
 						image.setImageResource(R.drawable.cr3_browser_folder_opds);
+					else if (item.isOnlineCatalogPluginDir())
+						image.setImageResource(R.drawable.plugins_logo_litres);
 					else if (item.isSearchShortcut())
 						image.setImageResource(R.drawable.cr3_browser_find);
 					else if ( item.isRecentDir() )
@@ -1028,7 +1034,13 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						image.setImageResource(R.drawable.cr3_browser_folder_zip);
 					else
 						image.setImageResource(R.drawable.cr3_browser_folder);
-					setText(name, item.filename);
+
+					String title = item.filename;
+					
+					if (item.isOnlineCatalogPluginDir())
+						title = translateOnlineStorePluginItem(item);
+					
+					setText(name, title);
 
 					if ( item.isBooksByAuthorDir() ) {
 						int bookCount = 0;
@@ -1049,7 +1061,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					} else  if (item.isOPDSDir()) {
 						setText(field1, item.title);
 						setText(field2, "");
-					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isOPDSRoot() && !item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0)) {
+					} else  if ( !item.isOPDSDir() && !item.isSearchShortcut() && ((!item.isOPDSRoot() && !item.isBooksByAuthorRoot() && !item.isBooksBySeriesRoot() && !item.isBooksByTitleRoot()) || item.dirCount()>0) && !item.isOnlineCatalogPluginDir()) {
 						setText(field1, "books: " + String.valueOf(item.fileCount()));
 						setText(field2, "folders: " + String.valueOf(item.dirCount()));
 					} else {
@@ -1063,11 +1075,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 							image.setImageResource(item.format.getIconResourceId());
 						} else {
 							if (coverPagesEnabled) {
-								image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(item));
+								image.setImageDrawable(mCoverpageManager.getCoverpageDrawableFor(mActivity.getDB(), item));
 								image.setMinimumHeight(coverPageHeight);
 								image.setMinimumWidth(coverPageWidth);
 								image.setMaxHeight(coverPageHeight);
 								image.setMaxWidth(coverPageWidth);
+								image.setTag(item);
 							} else {
 								image.setImageDrawable(null);
 								image.setMinimumHeight(0);
@@ -1082,56 +1095,41 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						setText( filename, fn );
 					} else {
 						setText( author, Utils.formatAuthors(item.authors) );
-						String seriesName = formatSeries(item.series, item.seriesNumber);
+						String seriesName = Utils.formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
 						String filename1 = item.filename;
 						String filename2 = item.isArchive /*&& !item.isDirectory */
 								? new File(item.arcname).getName() : null;
+								
+						String onlineBookInfo = "";
+						if (item.getOnlineStoreBookInfo() != null) {
+							OnlineStoreBook book = item.getOnlineStoreBookInfo();
+							onlineBookInfo = "";
+							if (book.rating > 0)
+								onlineBookInfo = onlineBookInfo + "rating:" + book.rating + "  ";
+							if (book.price > 0)
+								onlineBookInfo = onlineBookInfo + "price:" + book.price + "  ";
+							
+						}
 						if ( title==null || title.length()==0 ) {
 							title = filename1;
-							if (seriesName==null) 
+							if (seriesName==null)
 								seriesName = filename2;
 						} else if (seriesName==null) 
 							seriesName = filename1;
+						
 						setText( name, title );
 						setText( series, seriesName );
 
 //						field1.setVisibility(VISIBLE);
 //						field2.setVisibility(VISIBLE);
 //						field3.setVisibility(VISIBLE);
-						String state = "";
-						if (item.getRate() > 0 && item.getRate() <= 5) {
-							String[] stars = new String[] {
-									"*",
-									"**",
-									"***",
-									"****",
-									"*****",
-							};
-							state = state + stars[item.getRate() - 1] + " ";
-						}
-						if (item.getReadingState() > 0) {
-							String stateName = "";
-							int n = item.getReadingState();
-							if (n == FileInfo.STATE_READING)
-								stateName = mActivity.getString(R.string.book_state_reading);
-							else if (n == FileInfo.STATE_TO_READ)
-								stateName = mActivity.getString(R.string.book_state_toread);
-							else if (n == FileInfo.STATE_FINISHED)
-								stateName = mActivity.getString(R.string.book_state_finished);
-							state = state + "[" + stateName + "] ";
-						}
+						String state = Utils.formatReadingState(mActivity, item);
 						if (field1 != null)
-							field1.setText(state + formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime) + "  ");
+							field1.setText(onlineBookInfo + "  " + state + " " + Utils.formatFileInfo(item));
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
-						if (field2 != null) {
-							Bookmark pos = mHistory.getLastPos(item);
-							if ( pos!=null && pos.getPercent() > 0 && pos.getTimeStamp() > 0) {
-								field2.setText(formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp())) ;
-							} else {
-								field2.setText("");
-							}
-						}
+						if (field2 != null)
+							field2.setText(Utils.formatLastPosition(mHistory.getLastPos(item)));
 						//field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
 					} 
 					
@@ -1202,11 +1200,29 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	}
 	
+	private String translateOnlineStorePluginItem(FileInfo item) {
+		String path = item.getOnlineCatalogPluginPath();
+		int resourceId = 0;
+		if ("genres".equals(path))
+			resourceId = R.string.online_store_genres;
+		else if ("authors".equals(path))
+			resourceId = R.string.online_store_authors;
+		else if ("my".equals(path))
+			resourceId = R.string.online_store_my;
+		else if ("popular".equals(path))
+			resourceId = R.string.online_store_popular;
+		else if ("new".equals(path))
+			resourceId = R.string.online_store_new;
+		if (resourceId != 0)
+			return mActivity.getString(resourceId);
+		return item.filename;
+	}
+	
 	private void setCurrDirectory(FileInfo newCurrDirectory) {
 		if (currDirectory != null && currDirectory != newCurrDirectory) {
-			ArrayList<FileInfo> filesToUqueue = new ArrayList<FileInfo>();
+			ArrayList<CoverpageManager.ImageItem> filesToUqueue = new ArrayList<CoverpageManager.ImageItem>();
 			for (int i=0; i<currDirectory.fileCount(); i++)
-				filesToUqueue.add(currDirectory.getFile(i));
+				filesToUqueue.add(new CoverpageManager.ImageItem(currDirectory.getFile(i), -1, -1));
 			mCoverpageManager.unqueue(filesToUqueue);
 		}
 		currDirectory = newCurrDirectory;
@@ -1223,6 +1239,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
 		if ( dir!=null && !dir.isRootDir() )
 			index++;
+		
+		String title = dir.filename;
+		if (!dir.isSpecialDir())
+			title = dir.getPathName();
+		if (dir.isOnlineCatalogPluginDir())
+			title = translateOnlineStorePluginItem(dir);		
+		mActivity.setTitle(title);
+		
 		mListView.setAdapter(currentListAdapter);
 		currentListAdapter.notifyDataSetChanged();
 		mListView.setSelection(index);
@@ -1336,13 +1360,37 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		this.coverPagesEnabled = coverPagesEnabled;
 		if ( !coverPagesEnabled ) {
-			mCoverpageManager.clear();
+			//mCoverpageManager.clear();
 		}
 		currentListAdapter.notifyDataSetChanged();
 	}
 
 	public void setCoverpageData(FileInfo fileInfo, byte[] data) {
-		mCoverpageManager.setCoverpageData(fileInfo, data);
+		mCoverpageManager.setCoverpageData(mActivity.getDB(), fileInfo, data);
 		currentListAdapter.notifyInvalidated();
+	}
+	
+	protected void showOnlineCatalogBookDialog(final FileInfo book) {
+		OnlineStoreWrapper plugin = getPlugin(book);
+		if (plugin == null) {
+			mActivity.showToast("cannot find plugin");
+			return;
+		}
+		String bookId = book.getOnlineCatalogPluginId();
+		progress.show();
+		plugin.loadBookInfo(bookId, new BookInfoCallback() {
+			@Override
+			public void onError(int errorCode, String errorMessage) {
+				progress.hide();
+				mActivity.showToast("Error while loading book info");
+			}
+			
+			@Override
+			public void onBookInfoReady(OnlineStoreBookInfo bookInfo) {
+				progress.hide();
+				OnlineStoreBookInfoDialog dlg = new OnlineStoreBookInfoDialog(mActivity, bookInfo, book);
+				dlg.show();
+			}
+		});
 	}
 }

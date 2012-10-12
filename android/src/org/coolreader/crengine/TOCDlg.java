@@ -162,7 +162,7 @@ public class TOCDlg extends BaseDialog {
 		});
 	}
 
-	public TOCDlg( CoolReader coolReader, ReaderView readerView, TOCItem toc, int currentPage )
+	public TOCDlg(BaseActivity coolReader, ReaderView readerView, TOCItem toc, int currentPage )
 	{
 		super(coolReader, coolReader.getResources().getString(R.string.win_title_toc), false, false);
         setCancelable(true);

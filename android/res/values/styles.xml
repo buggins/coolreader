@@ -1,4 +1,7 @@
-<resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources
+    xmlns:cr3="http://schemas.android.com/apk/res/org.coolreader"
+    >
 
     <style name="TabWidget" parent="@android:style/Widget.TabWidget">
         <!-- item name="android:textAppearance">@style/TextAppearance.Small</item>
@@ -58,6 +61,7 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.Light</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
+        <item name="rootDelimiterStyle">@style/RootDelimiter.Light</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -65,6 +69,7 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Dark</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
+        <item name="rootDelimiterStyle">@style/RootDelimiter.Dark</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -72,6 +77,8 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.White</item>
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
+
+        <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
         <item name="android:windowBackground">@android:color/black</item>
@@ -79,6 +86,8 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Black</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
+        
+        <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
     </style>
     
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">
@@ -168,4 +177,30 @@
         <item name="android:padding">2dip</item>
         <item name="android:layout_margin">2dip</item>
     </style>
+
+
+    
+    <style name="RootDelimiter">
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">8dip</item>
+        <item name="android:background">@drawable/divider_light_tiled_v3</item>
+        <!-- item name="android:background">?android:attr/windowBackground</item-->
+    </style>
+
+    <style name="RootDelimiter.Dark" parent="@style/Theme.Dark">
+        <item name="android:background">@drawable/divider_light_tiled_v3</item>
+    </style>
+        
+    <style name="RootDelimiter.Light" parent="@style/Theme.Light">
+        <item name="android:background">@drawable/divider_light_tiled_v3</item>
+    </style>
+        
+    <style name="RootDelimiter.Black" parent="@style/Theme.Black">
+        <item name="android:background">@drawable/divider_black_tiled</item>
+    </style>
+
+    <style name="RootDelimiter.White" parent="@style/Theme.White">
+        <item name="android:background">@drawable/divider_white_tiled</item>
+    </style>
+    
 </resources>

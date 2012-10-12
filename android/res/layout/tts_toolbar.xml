@@ -29,6 +29,7 @@
             android:src="@drawable/ic_media_play"
 	        android:focusable="false"
             android:focusableInTouchMode="false"
+            android:contentDescription="@string/tts_play"/>
 	        />
 	    <ImageButton android:id="@+id/tts_back"
             android:layout_width="0dip" android:layout_weight="1"
@@ -40,6 +41,7 @@
 	        android:src="@drawable/ic_media_rew"
             android:focusable="false"
             android:focusableInTouchMode="false"
+            android:contentDescription="@string/tts_back"/>
 	        />
 	    <ImageButton android:id="@+id/tts_forward"
             android:layout_width="0dip" android:layout_weight="1"
@@ -51,6 +53,7 @@
 	        android:src="@drawable/ic_media_ff"
             android:focusable="false"
             android:focusableInTouchMode="false"
+            android:contentDescription="@string/tts_forward"/>
 	        />
 	    <ImageButton android:id="@+id/tts_stop"
             android:layout_width="0dip" android:layout_weight="1"
@@ -62,6 +65,7 @@
 	        android:src="@drawable/ic_media_stop"
             android:focusable="false"
             android:focusableInTouchMode="false"
+            android:contentDescription="@string/tts_stop"/>
 	        />
 	</LinearLayout>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -73,7 +77,7 @@
         <TextView android:id="@+id/tts_lbl_volume" 
             android:layout_height="wrap_content" 
             android:layout_width="0dip" android:layout_weight="1"
-            android:text="Volume"
+            android:text="@string/tts_volume"
             android:layout_marginTop="5dip"
             android:layout_marginBottom="2dip"
             android:layout_marginLeft="5dip"
@@ -81,7 +85,7 @@
         />
         <TextView android:id="@+id/tts_lbl_speed" android:layout_height="wrap_content" 
             android:layout_width="0dip" android:layout_weight="1"
-            android:text="Speed"
+            android:text="@string/tts_rate"
             android:layout_marginTop="5dip"
             android:layout_marginBottom="2dip"
             android:layout_marginLeft="5dip"

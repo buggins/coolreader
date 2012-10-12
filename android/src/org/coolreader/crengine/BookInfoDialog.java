@@ -14,7 +14,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 public class BookInfoDialog extends BaseDialog {
-	private final CoolReader mCoolReader;
+	private final BaseActivity mCoolReader;
 	private final LayoutInflater mInflater; 
 	private Map<String, Integer> mLabelMap;
 	private void fillMap() {
@@ -74,7 +74,7 @@ public class BookInfoDialog extends BaseDialog {
 		table.addView(tableRow);
 	}
 	
-	public BookInfoDialog( CoolReader activity, Collection<String> items)
+	public BookInfoDialog( BaseActivity activity, Collection<String> items)
 	{
 		super(activity);
 		mCoolReader = activity;

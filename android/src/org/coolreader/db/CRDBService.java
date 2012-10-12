@@ -346,6 +346,38 @@ public class CRDBService extends Service {
 		});
 	}
 
+	public void findBooksByRating(final int minRate, final int maxRate, final FileInfoLoadingCallback callback, final Handler handler) {
+		execTask(new Task("findBooksByRating") {
+			@Override
+			public void work() {
+				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				mainDB.findBooksByRating(list, minRate, maxRate);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onFileInfoListLoaded(list);
+					}
+				});
+			}
+		});
+	}
+
+	public void findBooksByState(final int state, final FileInfoLoadingCallback callback, final Handler handler) {
+		execTask(new Task("findBooksByState") {
+			@Override
+			public void work() {
+				final ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+				mainDB.findBooksByState(list, state);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onFileInfoListLoaded(list);
+					}
+				});
+			}
+		});
+	}
+
 	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback, final Handler handler) {
 		execTask(new Task("loadRecentBooks") {
 			@Override
@@ -355,6 +387,20 @@ public class CRDBService extends Service {
 					@Override
 					public void run() {
 						callback.onRecentBooksListLoaded(list);
+					}
+				});
+			}
+		});
+	}
+	
+	public void sync(final Runnable callback, final Handler handler) {
+		execTask(new Task("sync") {
+			@Override
+			public void work() {
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.run();
 					}
 				});
 			}
@@ -590,8 +636,20 @@ public class CRDBService extends Service {
     		getService().findSeriesBooks(seriesId, callback, new Handler());
     	}
 
+    	public void loadBooksByRating(int minRating, int maxRating, FileInfoLoadingCallback callback) {
+    		getService().findBooksByRating(minRating, maxRating, callback, new Handler());
+    	}
+
+    	public void loadBooksByState(int state, FileInfoLoadingCallback callback) {
+    		getService().findBooksByState(state, callback, new Handler());
+    	}
+
     	public void loadRecentBooks(final int maxCount, final RecentBooksLoadingCallback callback) {
     		getService().loadRecentBooks(maxCount, callback, new Handler());
+    	}
+
+    	public void sync(final Runnable callback) {
+    		getService().sync(callback, new Handler());
     	}
 
     	public void saveFileInfos(final Collection<FileInfo> list) {

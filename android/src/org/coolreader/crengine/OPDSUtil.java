@@ -126,7 +126,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( href==null )
 				return href;
 			String port = "";
-			if (baseURL.getPort() != 80)
+			if (baseURL.getPort() != 80 && baseURL.getPort() > 0)
 				port = ":" + baseURL.getPort();
 			String hostPort = baseURL.getHost() + port;
 			if ( href.startsWith("/") )
@@ -250,7 +250,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			s = s.trim();
 			if (s.length()==0 || (s.length()==1 && s.charAt(0) == '\n') )
 				return; // ignore empty line
-			L.d(tab() + "  {" + s + "}");
+			//L.d(tab() + "  {" + s + "}");
 			String currentElement = elements.peek();
 			if ( currentElement==null )
 				return;
@@ -330,7 +330,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( qName!=null && qName.length()>0 )
 				localName = qName;
 			level++;
-			L.d(tab() + "<" + localName + ">");
+			//L.d(tab() + "<" + localName + ">");
 			//currentAttributes = attributes;
 			elements.push(localName);
 			//String currentElement = elements.peek();
@@ -390,7 +390,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			super.endElement(uri, localName, qName);
 			if ( qName!=null && qName.length()>0 )
 				localName = qName;
-			L.d(tab() + "</" + localName + ">");
+			//L.d(tab() + "</" + localName + ">");
 			//String currentElement = elements.peek();
 			if ( insideFeed && "feed".equals(localName) ) {
 				insideFeed = false;
@@ -433,7 +433,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		private HttpURLConnection connection;
 		private DelayedProgress delayedProgress;
 		OPDSHandler handler;
-		public DownloadTask( CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
+		public DownloadTask(CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
 			this.url = url;
 			this.coolReader = coolReader;
 			this.callback = callback; 
@@ -455,8 +455,8 @@ xml:base="http://lib.ololo.cc/opds/">
 						delayedProgress.cancel();
 						delayedProgress.hide();
 					}
-					if (coolReader.getEngine() != null)
-						coolReader.getEngine().hideProgress();
+					if (Services.getEngine() != null)
+						Services.getEngine().hideProgress();
 					callback.onError(msg);
 				}
 			});
@@ -565,7 +565,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				ext = fileName.substring(fileName.lastIndexOf(".")+1);
 				fileName = fileName.substring(0, fileName.lastIndexOf("."));
 			}
-			fileName = transcribeFileName( fileName );
+			fileName = Utils.transcribeFileName( fileName );
 			if ( fmt!=null ) {
 				if ( fmt==DocumentFormat.FB2 && isZip )
 					ext = ".fb2.zip";
@@ -679,7 +679,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				setProgressMessage( url.toString(), -1 );
 				visited.add(url.toString());
 				long startTimeStamp = System.currentTimeMillis();
-				delayedProgress = coolReader.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
+				delayedProgress = Services.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
 				URLConnection conn = url.openConnection();
 				if ( conn instanceof HttpsURLConnection ) {
 					onError("HTTPs is not supported yet");
@@ -767,14 +767,14 @@ xml:base="http://lib.ololo.cc/opds/">
 					L.d("Downloading book: " + contentEncoding);
 					downloadBook( contentType, url.toString(), is, contentLen, fileName, isZip );
 					if ( progressShown )
-						coolReader.getEngine().hideProgress();
+						Services.getEngine().hideProgress();
 					loadNext = false;
 					itemsLoadedPartially = false;
 				}
 			} catch (Exception e) {
 				L.e("Exception while trying to open URI " + url.toString(), e);
 				if ( progressShown )
-					coolReader.getEngine().hideProgress();
+					Services.getEngine().hideProgress();
 				onError("Error occured while reading OPDS catalog");
 				break;
 			} finally {
@@ -787,7 +787,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			}
 			} while (loadNext);
 			if ( progressShown )
-				coolReader.getEngine().hideProgress();
+				Services.getEngine().hideProgress();
 			if (itemsLoadedPartially)
 				BackgroundThread.instance().executeGUI(new Runnable() {
 					@Override
@@ -847,7 +847,7 @@ xml:base="http://lib.ololo.cc/opds/">
 						percent = bytesRead * 100 / totalSize * 100;
 					}
 					if ( (!progressShown || percent!=lastPercent) && (progressShown || percent<maxPercentToStartShowingProgress || delay > TIMEOUT*2 ) ) {
-						coolReader.getEngine().showProgress(percent, progressMessage);
+						Services.getEngine().showProgress(percent, progressMessage);
 						lastPercent = percent;
 						progressShown = true;
 					}
@@ -870,13 +870,13 @@ xml:base="http://lib.ololo.cc/opds/">
 		
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create( CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
+	public static DownloadTask create(CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
 		final DownloadTask task = new DownloadTask(coolReader, uri, defaultFileName, expectedType, referer, callback);
 		currentTask = task;
 		return task;
 	}
 
-	private static class SubstTable {
+	static class SubstTable {
 		private final int startChar;
 		private final String[] replacements;
 		public SubstTable( int startChar, String[] replacements ) {
@@ -889,32 +889,6 @@ xml:base="http://lib.ololo.cc/opds/">
 		String get( char ch ) {
 			return (ch>=startChar && ch<startChar + replacements.length) ? replacements[ch - startChar] : "";
 		}
-	}
-	
-	private final static SubstTable[] substTables = { 
-		new SubstTable(0x430, new String[]{"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "c", "ch", "sh", "sch", "'", "y", "i", "e", "yu", "ya"}),
-		new SubstTable(0x410, new String[]{"A", "B", "V", "G", "D", "E", "Zh", "Z", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "H", "C", "Ch", "Sh", "Sch", "'", "Y", "I", "E", "Yu", "Ya"}),
-	};
-	
-	public static String transcribeFileName( String fileName ) {
-		StringBuilder buf = new StringBuilder(fileName.length());
-		for ( char ch : fileName.toCharArray() ) {
-			boolean found = false;
-			if ( ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9') || ch=='-' || ch=='_' || ch=='(' || ch==')')) {
-				buf.append(ch);
-				continue;
-			}
-			for ( SubstTable t : substTables ) {
-				if ( t.isInRange(ch) ) {
-					buf.append(t.get(ch));
-					found = true;
-				}
-			}
-			if ( found )
-				continue;
-			buf.append("_");
-		}
-		return buf.toString();
 	}
 	
 	public static final int PROGRESS_DELAY_MILLIS = 2000;

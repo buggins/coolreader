@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
+import org.coolreader.plugins.OnlineStorePluginManager;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -38,7 +39,7 @@ import android.widget.TextView;
 public class OptionsDialog extends BaseDialog implements TabContentFactory, OptionOwner, Settings {
 
 	ReaderView mReaderView;
-	CoolReader mActivity;
+	BaseActivity mActivity;
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -117,6 +118,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90, R.string.options_page_orientation_180, R.string.options_page_orientation_270
 			,R.string.options_page_orientation_sensor
 		};
+
+	int[] mToolbarPositions = new int[] {
+			Settings.VIEWER_TOOLBAR_NONE, Settings.VIEWER_TOOLBAR_TOP, Settings.VIEWER_TOOLBAR_BOTTOM, Settings.VIEWER_TOOLBAR_LEFT, Settings.VIEWER_TOOLBAR_RIGHT, Settings.VIEWER_TOOLBAR_SHORT_SIDE, Settings.VIEWER_TOOLBAR_LONG_SIDE
+		};
+	int[] mToolbarPositionsTitles = new int[] {
+			R.string.options_view_toolbar_position_none, R.string.options_view_toolbar_position_top, R.string.options_view_toolbar_position_bottom, R.string.options_view_toolbar_position_left, R.string.options_view_toolbar_position_right, R.string.options_view_toolbar_position_short_side, R.string.options_view_toolbar_position_long_side
+		};
+	
+	int[] mStatusPositions = new int[] {
+			Settings.VIEWER_STATUS_NONE, Settings.VIEWER_STATUS_TOP, Settings.VIEWER_STATUS_BOTTOM, Settings.VIEWER_STATUS_PAGE
+		};
+	int[] mStatusPositionsTitles = new int[] {
+			R.string.options_page_show_titlebar_hidden, R.string.options_page_show_titlebar_top, R.string.options_page_show_titlebar_bottom, R.string.options_page_show_titlebar_page_header
+		};
+	
 	int[] mImageScalingModes = new int[] {
 			0, 1, 2
 		};
@@ -224,14 +240,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public final static int OPTION_VIEW_TYPE_SUBMENU = 3;
 	//public final static int OPTION_VIEW_TYPE_COUNT = 3;
 
-	public CoolReader getActivity() { return mActivity; }
+	public BaseActivity getActivity() { return mActivity; }
 	public Properties getProperties() { return mProperties; }
 	public LayoutInflater getInflater() { return mInflater; }
 	
 	public static class OptionBase {
 		protected View myView;
 		Properties mProperties;
-		CoolReader mActivity;
+		BaseActivity mActivity;
 		OptionOwner mOwner;
 		LayoutInflater mInflater;
 		public String label;
@@ -648,7 +664,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
-			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LINE).setInverse().setDefaultValue("0"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LOCATION).add(mStatusPositions, mStatusPositionsTitles).setDefaultValue("1"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
 			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), PROP_STATUS_FONT_COLOR, 0x000000));
@@ -658,6 +674,22 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_percent), PROP_SHOW_POS_PERCENT).setDefaultValue("0"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_chapter_marks), PROP_STATUS_CHAPTER_MARKS).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_battery_percent), PROP_SHOW_BATTERY_PERCENT).setDefaultValue("1"));
+			dlg.setView(listView);
+			dlg.show();
+		}
+
+		public String getValueLabel() { return ">"; }
+	}
+	
+	class PluginsOption extends SubmenuOption {
+		public PluginsOption( OptionOwner owner, String label ) {
+			super(owner, label, PROP_APP_PLUGIN_ENABLED);
+		}
+		public void onSelect() {
+			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
+			OptionsListView listView = new OptionsListView(getContext());
+			boolean defEnableLitres = activity.getCurrentLanguage().toLowerCase().startsWith("ru") && !DeviceInfo.POCKETBOOK;
+			listView.add(new BoolOption(mOwner, "LitRes", PROP_APP_PLUGIN_ENABLED + "." + OnlineStorePluginManager.PLUGIN_PKG_LITRES).setDefaultValue(defEnableLitres ? "1" : "0"));
 			dlg.setView(listView);
 			dlg.show();
 		}
@@ -1032,9 +1064,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public DictOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_DICTIONARY );
-			CoolReader.DictInfo[] dicts = mActivity.getDictList();
+			SettingsManager.DictInfo[] dicts = SettingsManager.getDictList();
 			setDefaultValue(dicts[0].id);
-			for ( CoolReader.DictInfo dict : dicts )
+			for ( SettingsManager.DictInfo dict : dicts )
 				add( dict.id, dict.name );
 		}
 	} 
@@ -1192,7 +1224,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			super.updateItemContents(layout, item, listView, position);
 			ImageView img = (ImageView)layout.findViewById(R.id.option_value_image);
 			int cl = mProperties.getColor(PROP_BACKGROUND_COLOR, Color.WHITE);
-			BackgroundTextureInfo texture = mReaderView.getEngine().getTextureInfoById(item.value);
+			BackgroundTextureInfo texture = Services.getEngine().getTextureInfoById(item.value);
 			img.setBackgroundColor(cl);
 			if ( texture.resourceId!=0 ) {
 //				img.setImageDrawable(null);
@@ -1230,21 +1262,23 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		READER,
 		BROWSER,
 	}
-	public OptionsDialog(CoolReader activity, ReaderView readerView, String[] fontFaces, Mode mode)
+	public OptionsDialog(BaseActivity activity, ReaderView readerView, String[] fontFaces, Mode mode)
 	{
 		super(activity, null, false, false);
 		
 		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
-		mProperties = readerView.getSettings();
+		mProperties = SettingsManager.instance(mActivity).get(); //  readerView.getSettings();
 		mOldProperties = new Properties(mProperties);
-		mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
-		mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
-		mProperties.setBool(PROP_EMBEDDED_FONTS, mReaderView.getDocumentFontsEnabled());
+		if (mode == Mode.READER) {
+			mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
+			mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
+			mProperties.setBool(PROP_EMBEDDED_FONTS, mReaderView.getDocumentFontsEnabled());
+			isTextFormat = readerView.isTextFormat();
+			isEpubFormat = readerView.isFormatWithEmbeddedFonts();
+		}
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
-		isTextFormat = readerView.isTextFormat();
-		isEpubFormat = readerView.isFormatWithEmbeddedFonts();
 		this.mode = mode;
 	}
 	
@@ -1702,7 +1736,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
         mOptionsBrowser = new OptionsListView(getContext());
 
 		final Properties properties = new Properties();
-		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, SettingsManager.instance(mActivity).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
 		int[] sortOrderLabels = {
 			FileInfo.SortOrder.FILENAME.resourceId,	
 			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
@@ -1730,6 +1764,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());
 		mOptionsBrowser.add(new BoolOption(this, getString(R.string.options_app_browser_hide_empty_dirs), PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS).setDefaultValue("0").noIcon());
 		mOptionsBrowser.add(new LangOption(this).noIcon());
+		mOptionsBrowser.add(new PluginsOption(this, getString(R.string.options_app_plugins)).noIcon());
 		mOptionsBrowser.refresh();
 		
 		body.addView(mOptionsBrowser);
@@ -1787,6 +1822,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 
 		mOptionsPage.add(new StatusBarOption(this, getString(R.string.options_page_titlebar)));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_toolbar_position), PROP_TOOLBAR_LOCATION).add(mToolbarPositions, mToolbarPositionsTitles).setDefaultValue("1"));
+		mOptionsPage.add(new BoolOption(this, getString(R.string.options_view_toolbar_hide_in_fullscreen), PROP_TOOLBAR_HIDE_IN_FULLSCREEN).setDefaultValue("0"));
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_page_footnotes), PROP_FOOTNOTES).setDefaultValue("1"));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsPage.add(new ListOption(this, getString(R.string.options_page_animation), PROP_PAGE_ANIMATION).add(mAnimation, mAnimationTitles).setDefaultValue("1").noIcon());
@@ -1845,35 +1882,33 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
 		
-		
-		TabHost.TabSpec tsStyles = mTabs.newTabSpec("Styles");
-		tsStyles.setIndicator("", //getContext().getResources().getString(R.string.tab_options_styles) 
-				getContext().getResources().getDrawable(R.drawable.cr3_tab_style)); //R.drawable.cr3_option_style
-		tsStyles.setContent(this);
-		mTabs.addTab(tsStyles);
-
-		TabHost.TabSpec tsCSS = mTabs.newTabSpec("CSS");
-		tsCSS.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_css)); //R.drawable.cr3_option_style
-		tsCSS.setContent(this);
-		mTabs.addTab(tsCSS);
-
-		TabHost.TabSpec tsPage = mTabs.newTabSpec("Page");
-		tsPage.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_page)); //R.drawable.cr3_option_page
-		tsPage.setContent(this);
-		mTabs.addTab(tsPage);
-
-		TabHost.TabSpec tsControls = mTabs.newTabSpec("Controls");
-		tsControls.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_controls));
-		tsControls.setContent(this);
-		mTabs.addTab(tsControls);
-
-
-		TabHost.TabSpec tsApp = mTabs.newTabSpec("App");
-		tsApp.setIndicator("", getContext().getResources().getDrawable(R.drawable.cr3_tab_application));
-		tsApp.setContent(this);
-		mTabs.addTab(tsApp);
+		addTab("Styles", R.drawable.cr3_tab_style, R.string.tab_options_styles);
+		addTab("CSS", R.drawable.cr3_tab_css, R.string.tab_options_css);
+		addTab("Page", R.drawable.cr3_tab_page, R.string.tab_options_page);
+		addTab("Controls", R.drawable.cr3_tab_controls, R.string.tab_options_controls);
+		addTab("App", R.drawable.cr3_tab_application, R.string.tab_options_app);
 		
 		setView(mTabs);
+	}
+	
+	private void addTab(String name, int imageDrawable, int contentDescription) {
+		TabHost.TabSpec ts = mTabs.newTabSpec(name);
+		Drawable icon = getContext().getResources().getDrawable(imageDrawable);
+		
+		// temporary rollback ImageButton tabs: no highlight for current tab in this implementation
+		if (true) {
+			ts.setIndicator("", icon);
+		} else {
+			// ACCESSIBILITY: we need to specify contentDescription
+			ImageButton ib = new ImageButton(getContext());
+			ib.setImageDrawable(icon);
+			ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
+			Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
+			ts.setIndicator(ib);
+		}
+		
+		ts.setContent(this);
+		mTabs.addTab(ts);
 	}
 	
 	@Override
@@ -1939,16 +1974,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //	}
 	
 	protected void apply() {
-		if (mProperties.getBool(PROP_TXT_OPTION_PREFORMATTED, true) != mReaderView.isTextAutoformatEnabled()) {
-			mReaderView.toggleTextFormat();
+		if (mode == Mode.READER) {
+			if (mProperties.getBool(PROP_TXT_OPTION_PREFORMATTED, true) != mReaderView.isTextAutoformatEnabled()) {
+				mReaderView.toggleTextFormat();
+			}
+			if (mProperties.getBool(PROP_EMBEDDED_STYLES, true) != mReaderView.getDocumentStylesEnabled()) {
+				mReaderView.toggleDocumentStyles();
+			}
+			if (mProperties.getBool(PROP_EMBEDDED_FONTS, true) != mReaderView.getDocumentFontsEnabled()) {
+				mReaderView.toggleEmbeddedFonts();
+			}
 		}
-		if (mProperties.getBool(PROP_EMBEDDED_STYLES, true) != mReaderView.getDocumentStylesEnabled()) {
-			mReaderView.toggleDocumentStyles();
-		}
-		if (mProperties.getBool(PROP_EMBEDDED_FONTS, true) != mReaderView.getDocumentFontsEnabled()) {
-			mReaderView.toggleEmbeddedFonts();
-		}
-        mReaderView.setSettings(mProperties, mOldProperties);
+		SettingsManager.instance(mActivity).setSettings(mProperties, 0);
+        //mReaderView.setSettings(mProperties, mOldProperties);
 	}
 	
 	@Override

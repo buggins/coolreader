@@ -225,7 +225,7 @@ public abstract class BaseDB {
 	 * Will commit only if beginChanges() has been called. Otherwise will roll back.
 	 */
 	public void flush() {
-		if (mDB.inTransaction()) {
+		if (mDB != null && mDB.inTransaction()) {
 			if (changed) {
 				changed = false;
 				mDB.setTransactionSuccessful();
