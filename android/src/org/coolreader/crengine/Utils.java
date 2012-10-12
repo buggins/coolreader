@@ -23,6 +23,8 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.util.Log;
 import android.view.View;
 
@@ -314,25 +316,31 @@ public class Utils {
 	}
 	
 	public static Drawable solidColorDrawable(final int color) {
-		return new Drawable() {
-			@Override
-			public void setColorFilter(ColorFilter cf) {
-			}
-			
-			@Override
-			public void setAlpha(int alpha) {
-			}
-			
-			@Override
-			public int getOpacity() {
-				return 0;
-			}
-			
-			@Override
-			public void draw(Canvas canvas) {
-				canvas.drawColor(0xFF000000 | color);
-			}
-		};
+		GradientDrawable d = new GradientDrawable();
+		d.setColor(color);
+		return d;
+//		RectShape s = new RectShape();
+//		
+//		d.setShape(s);
+//		return new Drawable() {
+//			@Override
+//			public void setColorFilter(ColorFilter cf) {
+//			}
+//			
+//			@Override
+//			public void setAlpha(int alpha) {
+//			}
+//			
+//			@Override
+//			public int getOpacity() {
+//				return 0;
+//			}
+//			
+//			@Override
+//			public void draw(Canvas canvas) {
+//				canvas.drawColor(0xFF000000 | color);
+//			}
+//		};
 	}
 
 	public static String formatSeries( String name, int number )
