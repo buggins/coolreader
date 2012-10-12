@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.lang.reflect.Field;
 
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
 
@@ -26,6 +27,7 @@ public class DeviceInfo {
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
 	public final static android.graphics.Bitmap.Config BUFFER_COLOR_FORMAT;
+	public final static int PIXEL_FORMAT;
 	public final static String  DEF_FONT_FACE;
 	public final static boolean USE_BITMAP_MEMORY_HACK; // revert volume keys in landscape mode
 	public final static Integer DEF_FONT_SIZE;
@@ -107,7 +109,8 @@ public class DeviceInfo {
 		MIN_SCREEN_BRIGHTNESS_PERCENT = getMinBrightness(AMOLED_SCREEN ? 2 : (getSDKLevel() >= ICE_CREAM_SANDWICH ? 4 : 16));
 		//BUFFER_COLOR_FORMAT = getSDKLevel() >= HONEYCOMB ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
 		//BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.ARGB_8888;
-		BUFFER_COLOR_FORMAT = android.graphics.Bitmap.Config.RGB_565;
+		BUFFER_COLOR_FORMAT = EINK_SCREEN || (getSDKLevel() >= ICE_CREAM_SANDWICH) ? android.graphics.Bitmap.Config.ARGB_8888 : android.graphics.Bitmap.Config.RGB_565;
+		PIXEL_FORMAT = (DeviceInfo.BUFFER_COLOR_FORMAT == android.graphics.Bitmap.Config.RGB_565) ? PixelFormat.RGB_565 : PixelFormat.RGBA_8888;
 		
 		DEF_FONT_FACE = getSDKLevel() >= ICE_CREAM_SANDWICH ? "Roboto" : "Droid Sans";
 		

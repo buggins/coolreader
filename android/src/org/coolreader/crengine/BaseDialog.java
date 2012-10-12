@@ -72,17 +72,20 @@ public class BaseDialog extends Dialog {
 		this.needCancelButton = showNegativeButton;
 		getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 //		requestWindowFeature(Window.FEATURE_OPTIONS_PANEL);
-		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-		lp.alpha = 1.0f;
-		lp.dimAmount = 0.0f;
-		lp.format = PixelFormat.RGB_565;
-		lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
-		lp.horizontalMargin = 0;
-		lp.verticalMargin = 0;
-		lp.windowAnimations = 0;
-		lp.layoutAnimationParameters = null;
-		//lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_PUSH_BUFFERS;
-		getWindow().setAttributes(lp);
+		if (!DeviceInfo.EINK_SCREEN) {
+			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+			lp.alpha = 1.0f;
+			lp.dimAmount = 0.0f;
+			if (!DeviceInfo.EINK_SCREEN)
+				lp.format = DeviceInfo.PIXEL_FORMAT;
+			lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+			lp.horizontalMargin = 0;
+			lp.verticalMargin = 0;
+			lp.windowAnimations = 0;
+			lp.layoutAnimationParameters = null;
+			//lp.memoryType = WindowManager.LayoutParams.MEMORY_TYPE_PUSH_BUFFERS;
+			getWindow().setAttributes(lp);
+		}
 		Log.i("cr3", "BaseDialog.window=" + getWindow());
         setCancelable(true);
         setOnDismissListener(new OnDismissListener() {
@@ -132,23 +135,23 @@ public class BaseDialog extends Dialog {
 		if (positiveButtonImage != 0) {
 			positiveButton.setImageResource(positiveButtonImage);
 			if (positiveButtonContentDescriptionId != 0)
-				positiveButton.setContentDescription(getContext().getString(positiveButtonContentDescriptionId));
+				Utils.setContentDescription(positiveButton, getContext().getString(positiveButtonContentDescriptionId));
 			//backButton.setImageResource(positiveButtonImage);
 		}
 		if (thirdButtonImage != 0) {
 			negativeButton.setImageResource(thirdButtonImage);
 			if (thirdButtonContentDescriptionId != 0)
-				negativeButton.setContentDescription(getContext().getString(thirdButtonContentDescriptionId));
+				Utils.setContentDescription(negativeButton, getContext().getString(thirdButtonContentDescriptionId));
 		}
 		if (negativeButtonImage != 0) {
 			if (thirdButtonImage == 0) {
 				negativeButton.setImageResource(negativeButtonImage);
 				if (negativeButtonContentDescriptionId != 0)
-					negativeButton.setContentDescription(getContext().getString(negativeButtonContentDescriptionId));
+					Utils.setContentDescription(negativeButton, getContext().getString(negativeButtonContentDescriptionId));
 			}
 			backButton.setImageResource(negativeButtonImage);
 			if (negativeButtonContentDescriptionId != 0)
-				backButton.setContentDescription(getContext().getString(negativeButtonContentDescriptionId));
+				Utils.setContentDescription(backButton, getContext().getString(negativeButtonContentDescriptionId));
 		}
 		if (needCancelButton) {
 			//layout.removeView(backButton);
