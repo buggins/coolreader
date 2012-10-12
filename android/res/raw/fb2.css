@@ -64,9 +64,9 @@ h5 { font-size: 110% }
 
 table { font-size: 80% }
 td, th { text-indent: 0px; padding: 3px }
-th {  font-weight: bold; text-align: center; background-color: #DDD  } 
+th {  font-weight: bold; text-align: center; } 
 /* #808080; */
-table caption { text-indent: 0px; padding: 4px; background-color: #EEE }
+table caption { text-indent: 0px; padding: 4px; }
 
 tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
 code, pre { 
