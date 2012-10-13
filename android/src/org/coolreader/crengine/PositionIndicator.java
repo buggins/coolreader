@@ -18,7 +18,7 @@ class PositionIndicator extends View {
 	public PositionIndicator(CoolReader context) {
 		super(context);
 		setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-		this.color = SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
+		this.color = context.settings().get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
 		//setBackgroundColor(0xC0404040);
 	}
 	

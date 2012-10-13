@@ -123,7 +123,7 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 			contentView.setFocusable(true);
 			contentView.setFocusableInTouchMode(true);
 			updateFullscreen(activity.isFullscreen());
-			updateSettings(SettingsManager.instance(context).get());
+			updateSettings(context.settings().get());
 			onThemeChanged(activity.getCurrentTheme());
 		}
 

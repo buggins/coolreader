@@ -76,7 +76,7 @@ public class StatusBar extends LinearLayout implements Settings {
 			this.activity = context;
 			setOrientation(VERTICAL);
 			
-			this.color = SettingsManager.instance(context).get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
+			this.color = context.settings().get().getColor(Settings.PROP_STATUS_FONT_COLOR, 0);
 			
 			LayoutInflater inflater = LayoutInflater.from(activity);
 			content = (LinearLayout)inflater.inflate(R.layout.reader_status_bar, null);
@@ -96,7 +96,7 @@ public class StatusBar extends LinearLayout implements Settings {
 			addView(indicator);
 			//content.addView(indicator);
 			onThemeChanged(context.getCurrentTheme());
-			updateSettings(SettingsManager.instance(context).get());
+			updateSettings(context.settings().get());
 		}
 
 		public void onThemeChanged(InterfaceTheme theme) {

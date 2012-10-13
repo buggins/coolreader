@@ -22,20 +22,13 @@ public class SettingsManager {
 
 	public static final Logger log = L.create("cr");
 	
-	private static SettingsManager instance;
-	public static SettingsManager instance(BaseActivity activity) {
-		if (instance == null)
-			instance = new SettingsManager(activity);
-		return instance;
-	}
-	
 	private BaseActivity mActivity;
 	private Properties mSettings;
 	private boolean isSmartphone;
 	
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final File defaultSettingsDir;
-	private SettingsManager(BaseActivity activity) {
+	public SettingsManager(BaseActivity activity) {
 		this.mActivity = activity;
 	    activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 	    defaultSettingsDir = activity.getDir("settings", Context.MODE_PRIVATE);

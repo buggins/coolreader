@@ -108,6 +108,17 @@ public class BaseActivity extends Activity implements Settings {
 	public CRDBServiceAccessor getDBService() { return mCRDBService; }
 	public CRDBService.LocalBinder getDB() { return mCRDBService != null ? mCRDBService.get() : null; }
 	public SyncServiceAccessor getSyncService() { return mSyncService; }
+
+	public SettingsManager settings() { return mSettingsManager; }
+	
+	private SettingsManager mSettingsManager;
+	
+	protected void startServices() {
+		// create settings
+    	mSettingsManager = new SettingsManager(this);
+    	// create rest of settings
+		Services.startServices(this);
+	}
 	
 	/** Called when the activity is first created. */
     @Override
@@ -164,7 +175,7 @@ public class BaseActivity extends Activity implements Settings {
 		}
 
 		// load settings
-		Properties props = SettingsManager.instance(this).get();
+		Properties props = settings().get();
 		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 		setLanguage(lang);
@@ -201,7 +212,7 @@ public class BaseActivity extends Activity implements Settings {
 	protected void onStart() {
 		super.onStart();
 
-//		Properties props = SettingsManager.instance(this).get();
+//		Properties props = settings().get();
 //		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
 //		setCurrentTheme(theme);
 		
@@ -250,16 +261,16 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 	public Properties loadSettings(int profile) {
-		return SettingsManager.instance(this).loadSettings(profile);
+		return settings().loadSettings(profile);
 	}
 	
 	public void saveSettings(int profile, Properties settings) {
-		SettingsManager.instance(this).saveSettings(profile, settings);
+		settings().saveSettings(profile, settings);
 	}
 	
 	public void saveSettings(File f, Properties settings)
 	{
-		SettingsManager.instance(this).saveSettings(f, settings);
+		settings().saveSettings(f, settings);
 	}
 
 	public int getPalmTipPixels()
