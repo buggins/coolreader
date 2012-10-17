@@ -12,9 +12,7 @@ public class Services {
 	private static Scanner mScanner;
 	private static History mHistory;
 	private static CoverpageManager mCoverpageManager;
-	private static SettingsManager mSettings;
 
-	public static SettingsManager getSettings() { return mSettings; }
 	public static Engine getEngine() { return mEngine; }
 	public static Scanner getScanner() { return mScanner; }
 	public static History getHistory() { return mHistory; }
@@ -23,13 +21,13 @@ public class Services {
 	public static void startServices(BaseActivity activity) {
 		log.i("First activity is created");
 		// testing background thread
-		mSettings = activity.settings();
+		//mSettings = activity.settings();
 		
 		BackgroundThread.instance().setGUIHandler(new Handler());
 				
 		mEngine = Engine.getInstance(activity);
 		
-        String code = activity.settings().getSetting(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+        String code = activity.settings().getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
         Engine.HyphDict dict = HyphDict.byCode(code);
 		mEngine.setHyphenationDictionary(dict);
 		

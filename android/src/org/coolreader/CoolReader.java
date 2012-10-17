@@ -31,8 +31,6 @@ import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
-import org.coolreader.crengine.SettingsManager;
-import org.coolreader.crengine.SettingsManager.DictInfo;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.BillingService;
@@ -905,7 +903,7 @@ public class CoolReader extends BaseActivity
 					mReaderView.setFocusableInTouchMode(true);
 					mReaderView.requestFocus();
 				} else {
-					mReaderView = new ReaderView(CoolReader.this, mEngine, settings().get());
+					mReaderView = new ReaderView(CoolReader.this, mEngine, settings());
 					mReaderFrame = new ReaderViewLayout(CoolReader.this, mReaderView);
 			        mReaderFrame.getToolBar().setOnActionHandler(new OnActionHandler() {
 						@Override
@@ -935,9 +933,9 @@ public class CoolReader extends BaseActivity
 				} else {
 					mBrowser = new FileBrowser(CoolReader.this, Services.getEngine(), Services.getScanner(), Services.getHistory());
 					mBrowser.setCoverPagesEnabled(settings().getBool(ReaderView.PROP_APP_SHOW_COVERPAGES, true));
-					mBrowser.setCoverPageFontFace(settings().getSetting(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
+					mBrowser.setCoverPageFontFace(settings().getProperty(ReaderView.PROP_FONT_FACE, DeviceInfo.DEF_FONT_FACE));
 					mBrowser.setCoverPageSizeOption(settings().getInt(ReaderView.PROP_APP_COVERPAGE_SIZE, 1));
-			        mBrowser.setSortOrder(settings().getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+			        mBrowser.setSortOrder(settings().getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER));
 					mBrowser.setSimpleViewMode(settings().getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
 			        mBrowser.init();
 
@@ -1243,10 +1241,10 @@ public class CoolReader extends BaseActivity
         }
     }
 	
-	private DictInfo currentDict = SettingsManager.getDictList()[0];
+	private DictInfo currentDict = getDictList()[0];
 	
 	public void setDict( String id ) {
-		for ( DictInfo d : SettingsManager.getDictList() ) {
+		for ( DictInfo d : getDictList() ) {
 			if ( d.id.equals(id) ) {
 				currentDict = d;
 				return;
@@ -1696,6 +1694,9 @@ public class CoolReader extends BaseActivity
 			mHomeFrame.refreshOnlineCatalogs();
 	}
 	
+
+	
+
 	
 }
 

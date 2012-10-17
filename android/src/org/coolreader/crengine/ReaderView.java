@@ -1748,8 +1748,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		Properties settings = getSettings();
 		OptionsDialog.toggleDayNightMode(settings);
-		setSettings(settings, mActivity.settings().get());
-		mActivity.settings().setSettings(settings, 60000);
+		setSettings(settings, mActivity.settings());
+		mActivity.setSettings(settings, 60000);
 		invalidImages = true;
 	}
 	
@@ -1765,7 +1765,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Properties settings = new Properties(); //getSettings();
 		settings.put(name, value);
 		setSettings(settings, null, save, apply);
-		mActivity.settings().setSettings(mSettings, 60000);
+		mActivity.setSettings(mSettings, 60000);
 		if (invalidateImages)
 			invalidImages = true;
 	}
@@ -1838,7 +1838,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		Properties settings = new Properties();
 		settings.setProperty(PROP_STATUS_LINE, newValue);
 		setSettings(settings, null, true, true);
-		mActivity.settings().setSettings(mSettings, 60000);
+		mActivity.setSettings(mSettings, 60000);
 	}
 	
 	public void toggleDocumentStyles() {
@@ -2865,7 +2865,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	public void saveSettings( Properties settings )
 	{
-		mActivity.settings().saveSettings(settings);
+		mActivity.setSettings(settings, 0);
 	}
 	
 	/**
@@ -2887,9 +2887,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        }
 	        	mSettings = currSettings;
 	        	if ( save ) {
-        			mActivity.settings().setSettings(mSettings, saveDelayed ? 5000 : 0);
+        			mActivity.setSettings(mSettings, saveDelayed ? 5000 : 0);
 	        	} else {
-        			mActivity.settings().setSettings(mSettings, -1);
+        			mActivity.setSettings(mSettings, -1);
 	        	}
 			}
 		});

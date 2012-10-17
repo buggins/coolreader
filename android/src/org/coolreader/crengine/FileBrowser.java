@@ -529,7 +529,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	}
 	public void showSortOrderMenu() {
 		final Properties properties = new Properties();
-		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.settings().getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.settings().getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER));
 		final String oldValue = properties.getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER);
 		int[] optionLabels = {
 			FileInfo.SortOrder.FILENAME.resourceId,	
