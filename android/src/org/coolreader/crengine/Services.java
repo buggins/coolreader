@@ -21,11 +21,13 @@ public class Services {
 	public static void startServices(BaseActivity activity) {
 		log.i("First activity is created");
 		// testing background thread
+		//mSettings = activity.settings();
+		
 		BackgroundThread.instance().setGUIHandler(new Handler());
 				
 		mEngine = Engine.getInstance(activity);
 		
-        String code = SettingsManager.instance(activity).getSetting(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
+        String code = activity.settings().getProperty(ReaderView.PROP_HYPHENATION_DICT, Engine.HyphDict.RUSSIAN.toString());
         Engine.HyphDict dict = HyphDict.byCode(code);
 		mEngine.setHyphenationDictionary(dict);
 		
@@ -33,9 +35,10 @@ public class Services {
        	mScanner.initRoots(mEngine.getMountedRootsMap());
 
        	mHistory = new History(mScanner);
-		mScanner.setDirScanEnabled(SettingsManager.instance(activity).getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
+		mScanner.setDirScanEnabled(activity.settings().getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		mCoverpageManager = new CoverpageManager();
 	}
+
 	public static void stopServices() {
 		log.i("Last activity is destroyed");
 		if (mCoverpageManager == null) {

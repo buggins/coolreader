@@ -49,8 +49,10 @@ public class ToastView {
         }
     };
 
-    public static void showToast(View anchor, String msg, int duration) {
+    static int fontSize = 24;
+    public static void showToast(View anchor, String msg, int duration, int textSize) {
     	mReaderView = anchor;
+    	fontSize = textSize;
         try {
             queue.put(new Toast(anchor, msg, duration));
         } catch (InterruptedException e) {
@@ -84,7 +86,7 @@ public class ToastView {
         LayoutInflater inflater = (LayoutInflater) t.anchor.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         window.setContentView(inflater.inflate(R.layout.custom_toast, null, true));
         TextView tv = (TextView) window.getContentView().findViewById(R.id.toast);
-        tv.setTextSize(Integer.valueOf( SettingsManager.instance(null).get().getInt(ReaderView.PROP_FONT_SIZE, 20) ) );
+        tv.setTextSize(fontSize); //Integer.valueOf(Services.getSettings().getInt(ReaderView.PROP_FONT_SIZE, 20) ) );
         tv.setText(t.msg);
         window.showAtLocation(t.anchor, Gravity.NO_GRAVITY, 0, 0);
         mHandler.postDelayed(handleDismiss, t.duration == 0 ? 2000 : 3000);

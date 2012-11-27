@@ -1064,9 +1064,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public DictOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_DICTIONARY );
-			SettingsManager.DictInfo[] dicts = SettingsManager.getDictList();
+			DictInfo[] dicts = mActivity.getDictList();
 			setDefaultValue(dicts[0].id);
-			for ( SettingsManager.DictInfo dict : dicts )
+			for (DictInfo dict : dicts)
 				add( dict.id, dict.name );
 		}
 	} 
@@ -1269,7 +1269,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
-		mProperties = SettingsManager.instance(mActivity).get(); //  readerView.getSettings();
+		mProperties = mActivity.settings(); //  readerView.getSettings();
 		mOldProperties = new Properties(mProperties);
 		if (mode == Mode.READER) {
 			mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
@@ -1736,7 +1736,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
         mOptionsBrowser = new OptionsListView(getContext());
 
 		final Properties properties = new Properties();
-		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, SettingsManager.instance(mActivity).getSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER));
+		properties.setProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER, mActivity.settings().getProperty(ReaderView.PROP_APP_BOOK_SORT_ORDER));
 		int[] sortOrderLabels = {
 			FileInfo.SortOrder.FILENAME.resourceId,	
 			FileInfo.SortOrder.FILENAME_DESC.resourceId,	
@@ -1985,7 +1985,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				mReaderView.toggleEmbeddedFonts();
 			}
 		}
-		SettingsManager.instance(mActivity).setSettings(mProperties, 0);
+		mActivity.setSettings(mProperties, 0);
         //mReaderView.setSettings(mProperties, mOldProperties);
 	}
 	
