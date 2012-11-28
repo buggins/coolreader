@@ -3069,6 +3069,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		setAppSettings( newSettings, currSettings );
 		Properties changedSettings = newSettings.diff(currSettings);
 		currSettings.setAll(changedSettings);
+		mSettings = currSettings;
     	BackgroundThread.instance().postBackground(new Runnable() {
     		public void run() {
     			applySettings(currSettings);
