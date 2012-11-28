@@ -1175,6 +1175,30 @@ public class BaseActivity extends Activity implements Settings {
 		dlg.show();
 	}
 
+	private int currentProfile = 0;
+	public int getCurrentProfile() {
+		if (currentProfile == 0) {
+			currentProfile = mSettingsManager.getInt(PROP_PROFILE_NUMBER, 1);
+			if (currentProfile < 1 || currentProfile > MAX_PROFILES)
+				currentProfile = 1;
+		}
+		return currentProfile;
+	}
+
+	public void setCurrentProfile(int profile) {
+		if (profile == 0 || profile == getCurrentProfile())
+			return;
+		log.i("Switching from profile " + currentProfile + " to " + profile);
+		mSettingsManager.saveSettings(currentProfile, null);
+		final Properties loadedSettings = mSettingsManager.loadSettings(profile);
+		mSettingsManager.setSettings(loadedSettings, 0);
+		currentProfile = profile;
+	}
+    
+	public void setSetting(String name, String value) {
+		setSetting(name, value);
+	}
+	
 	public void setSettings(Properties settings, int delayMillis) {
 		mSettingsManager.setSettings(settings, delayMillis);
 	}
@@ -1199,7 +1223,7 @@ public class BaseActivity extends Activity implements Settings {
 		
 		//int lastSaveId = 0;
 		public void setSettings(Properties settings, int delayMillis) {
-			mSettings = new Properties(settings);
+			mSettings = settings == mSettings ? mSettings : new Properties(settings);
 			if (delayMillis >= 0) {
 				saveSettingsTask.postDelayed(new Runnable() {
 		    		public void run() {
@@ -1213,6 +1237,14 @@ public class BaseActivity extends Activity implements Settings {
 		    	}, delayMillis);
 			}
 			mActivity.onSettingsChanged(mSettings);
+		}
+		
+		public void setSetting(String name, String value) {
+			Properties props = new Properties(mSettings);
+			if (value.equals(mSettings.getProperty(name)))
+				return;
+			props.setProperty(name, value);
+			setSettings(props, 1000);
 		}
 		
 		private static class DefKeyAction {
@@ -1620,6 +1652,8 @@ public class BaseActivity extends Activity implements Settings {
 		}
 		
 		public void saveSettings(int profile, Properties settings) {
+			if (settings == null)
+				settings = mSettings;
 			File f = getSettingsFile(profile);
 			if (profile != 0) {
 				settings = filterProfileSettings(settings);

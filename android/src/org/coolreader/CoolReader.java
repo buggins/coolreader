@@ -866,7 +866,7 @@ public class CoolReader extends BaseActivity
 		if (mReaderFrame != null) {
 			mReaderFrame.updateSettings(props);
 			if (mReaderView != null)
-				mReaderView.setSettings(props, null);
+				mReaderView.updateSettings(props);
 		}
 	}
 	

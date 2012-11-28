@@ -1728,7 +1728,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		Properties settings = getSettings();
 		OptionsDialog.toggleDayNightMode(settings);
-		setSettings(settings, mActivity.settings());
+		//setSettings(settings, mActivity.settings());
 		mActivity.setSettings(settings, 60000);
 		invalidImages = true;
 	}
@@ -1742,12 +1742,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
 	public void setSetting(String name, String value, boolean invalidateImages, boolean save, boolean apply) {
-		Properties settings = new Properties(); //getSettings();
-		settings.put(name, value);
-		setSettings(settings, null, save, apply);
-		mActivity.setSettings(mSettings, 60000);
-		if (invalidateImages)
-			invalidImages = true;
+		mActivity.setSetting(name, value);
+		invalidImages = true;
 	}
 	
 	public void setSetting( String name, String value ) {
@@ -1815,10 +1811,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		boolean newBool = "1".equals(getSetting(PROP_STATUS_LINE));
 		String newValue = !newBool ? "1" : "0";
-		Properties settings = new Properties();
-		settings.setProperty(PROP_STATUS_LINE, newValue);
-		setSettings(settings, null, true, true);
-		mActivity.setSettings(mSettings, 60000);
+		mActivity.setSetting(PROP_STATUS_LINE, newValue);
 	}
 	
 	public void toggleDocumentStyles() {
@@ -2814,7 +2807,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		syncUpdater.scheduleExternalChangesSync(10000);
 	}
 	
-	private void applySettings( Properties props, boolean save, boolean saveDelayed )
+	private void applySettings(Properties props)
 	{
 		props = new Properties(props); // make a copy
 		props.remove(PROP_TXT_OPTION_PREFORMATTED);
@@ -3067,37 +3060,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	 * @param newSettings are new settings
 	 * @param oldSettings are old settings, null to use mSettings
 	 */
-	public void setSettings(Properties newSettings, Properties oldSettings)
+	public void updateSettings(Properties newSettings)
 	{
-		setSettings(newSettings, oldSettings, true, true);
-	}
-
-	/**
-     * Change settings.
-	 * @param newSettings are new settings
-	 * @param oldSettings are old settings, null to use mSettings
-	 * @param save is true to save settings to file, false to skip saving
-	 */
-	public void setSettings(Properties newSettings, Properties oldSettings, final boolean save, final boolean apply)
-	{
-		log.v("setSettings() " + newSettings.toString());
+		log.v("updateSettings() " + newSettings.toString());
+		log.v("oldNightMode=" + mSettings.getProperty(PROP_NIGHT_MODE) + " newNightMode=" + newSettings.getProperty(PROP_NIGHT_MODE));
 		BackgroundThread.ensureGUI();
-		if ( oldSettings==null )
-			oldSettings = mSettings;
-		final Properties currSettings = new Properties(oldSettings);
+		final Properties currSettings = new Properties(mSettings);
 		setAppSettings( newSettings, currSettings );
 		Properties changedSettings = newSettings.diff(currSettings);
 		currSettings.setAll(changedSettings);
     	BackgroundThread.instance().postBackground(new Runnable() {
     		public void run() {
-    			if (apply)
-    				applySettings(currSettings, save, true);
-    			else
-    				mSettings = currSettings;
+    			applySettings(currSettings);
     		}
     	});
-    	//scheduleSaveSettings(60000);
-//        }
 	}
 
 	private void setBackgroundTexture(String textureId, int color) {
@@ -3170,7 +3146,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        String css = mEngine.loadResourceUtf8(R.raw.fb2);
 	        if ( css!=null && css.length()>0 )
 	        	doc.setStylesheet(css);
-   			applySettings(props, false, false);
+   			applySettings(props);
    			mInitialized = true;
 		}
 		public void done() {
@@ -4974,7 +4950,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			disableTextAutoformat = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
 			profileNumber = mBookInfo.getFileInfo().getProfileId();
 			Properties oldSettings = new Properties(mSettings);
-			props = prepareProfileChange(profileNumber);
+			// TODO: enable storing of profile per book
+			//mActivity.setCurrentProfile(profileNumber);
 	    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null )
 	    		pos = mBookInfo.getLastPosition().getStartPos();
 			log.v("LoadDocumentTask : book info " + mBookInfo);
@@ -4999,7 +4976,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    			@Override
 	    			public void run() {
 	    				log.v("LoadDocumentTask : switching current profile");
-	    				applySettings(props, false, false);
+	    				applySettings(props);
 	    				log.i("Switching done");
 	    			}
 	    		});
@@ -5846,36 +5823,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return currentProfile;
 	}
 
-	public Properties prepareProfileChange(int profile) {
-		if (profile == 0 || profile == getCurrentProfile())
-			return null;
-		log.i("Switching from profile " + currentProfile + " to " + profile);
-		mActivity.saveSettings(currentProfile, mSettings);
-		final Properties loadedSettings = mActivity.loadSettings(profile);
-		mSettings.setAll(loadedSettings);
-		mActivity.saveSettings(0, mSettings); // save to default
-		currentProfile = profile;
-		return mSettings;
-	}
-	
 	public void setCurrentProfile(int profile) {
-		Properties oldSettings = new Properties(mSettings);
-		final Properties props = prepareProfileChange(profile);
-		if (props == null)
+		if (mActivity.getCurrentProfile() == profile)
 			return;
 		if (mBookInfo != null && mBookInfo.getFileInfo() != null) {
 			mBookInfo.getFileInfo().setProfileId(profile);
 			mActivity.getDB().saveBookInfo(mBookInfo);
 		}
 		log.i("Apply new profile settings");
-		setAppSettings(props, oldSettings);
-		BackgroundThread.instance().postBackground(new Runnable() {
-			@Override
-			public void run() {
-				applySettings(props, false, false);
-				log.i("Switching done");
-			}
-		});
+		mActivity.setCurrentProfile(profile);
 	}
     
     private final static String NOOK_TOUCH_COVERPAGE_DIR = "/media/screensavers/currentbook";
