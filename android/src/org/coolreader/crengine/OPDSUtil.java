@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -52,8 +51,8 @@ xml:base="http://lib.ololo.cc/opds/">
 <entry>
    <updated>2011-05-31T10:28:22+04:00</updated>
    <id>http://lib.ololo.cc/opds/asearch/</id>
-   <title>Авторы</title>
-   <content type="text">Поиск по авторам</content>
+   <title>sample type</title>
+   <content type="text">sample content</content>
    <link type="application/atom+xml" href="http://lib.ololo.cc/opds/asearch/"/>
 </entry>
 </feed>

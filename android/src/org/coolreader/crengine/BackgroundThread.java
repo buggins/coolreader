@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 
 import org.coolreader.crengine.ReaderView.Sync;
 
@@ -10,7 +9,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
 
 /**
  * Allows running tasks either in background thread or in GUI thread.
@@ -54,7 +52,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public final static void ensureBackground()
 	{
-		if ( CHECK_THREAD_CONTEXT && !instance().isBackgroundThread() ) {
+		if ( CHECK_THREAD_CONTEXT && !isBackgroundThread() ) {
 			L.e("not in background thread", new Exception("ensureInBackgroundThread() is failed"));
 			throw new RuntimeException("ensureInBackgroundThread() is failed");
 		}
@@ -126,18 +124,19 @@ public class BackgroundThread extends Thread {
 		Log.i("cr3", "Exiting background thread");
 	}
 
-	private final static boolean USE_LOCK = false;
+	//private final static boolean USE_LOCK = false;
 	private Runnable guard( final Runnable r )
 	{
-		if ( !USE_LOCK )
-			return r;
-		return new Runnable() {
-			public void run() {
-				synchronized (LOCK) {
-					r.run();
-				}
-			}
-		};
+		return r;
+//		if ( !USE_LOCK )
+//			return r;
+//		return new Runnable() {
+//			public void run() {
+//				synchronized (LOCK) {
+//					r.run();
+//				}
+//			}
+//		};
 	}
 
 	/**

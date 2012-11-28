@@ -3,6 +3,7 @@
 
 #include <jni.h>
 #include <time.h>
+#include <android/log.h>
 
 
 #include <stdio.h>
@@ -13,18 +14,18 @@
 #include "org_coolreader_crengine_DocView.h"
 
 #include "cr3java.h"
-#include "cr3version.h"
+#include "../../crengine/include/cr3version.h"
 #include "docview.h"
-#include "crengine.h"
-#include "epubfmt.h"
-#include "pdbfmt.h"
-#include "lvstream.h"
+#include "../../crengine/include/crengine.h"
+#include "../../crengine/include/epubfmt.h"
+#include "../../crengine/include/pdbfmt.h"
+#include "../../crengine/include/lvstream.h"
 
 
-#include <fb2def.h>
+#include <../../crengine/include/fb2def.h>
 
 #define XS_IMPLEMENT_SCHEME 1
-#include <fb2def.h>
+#include <../../crengine/include/fb2def.h>
 #include <sys/stat.h>
 
 

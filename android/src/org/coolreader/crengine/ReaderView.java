@@ -261,26 +261,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 
-    private <T> T executeSync( final Callable<T> task )
-    {
-    	//log.d("executeSync called");
-    	
-    	
-    	final Sync<T> sync = new Sync<T>();
-    	post( new Runnable() {
-    		public void run() {
-    			log.d("executeSync " + Thread.currentThread().getName());
-    			try {
-    				sync.set( task.call() );
-    			} catch ( Exception e ) {
-    			}
-    		}
-    	});
-    	T res = sync.get();
-    	//log.d("executeSync done");
-    	return res;
-    }
-    
 	private final CoolReader mActivity;
     private final Engine mEngine;
     
@@ -3930,14 +3910,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				    			if ( hilite ) {
 					    			Paint p = new Paint();
 					    			p.setColor(color);
-					    			if ( true ) {
+//					    			if ( true ) {
 					    				canvas.drawRect(new Rect(rc.left, rc.top, rc.right-2, rc.top+2), p);
 					    				canvas.drawRect(new Rect(rc.left, rc.top+2, rc.left+2, rc.bottom-2), p);
 					    				canvas.drawRect(new Rect(rc.right-2-2, rc.top+2, rc.right-2, rc.bottom-2), p);
 					    				canvas.drawRect(new Rect(rc.left+2, rc.bottom-2-2, rc.right-2-2, rc.bottom-2), p);
-					    			} else {
-					    				canvas.drawRect(rc, p);
-					    			}
+//					    			} else {
+//					    				canvas.drawRect(rc, p);
+//					    			}
 				    			}
 				    		}
 						}
@@ -5570,12 +5550,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 		if ( fileFormat==null )
 			fileFormat = DocumentFormat.FB2;
-		File[] dataDirs = mEngine.getDataDirectories(null, false, false);
+		File[] dataDirs = Engine.getDataDirectories(null, false, false);
 		String defaultCss = mEngine.loadResourceUtf8(fileFormat.getCSSResourceId());
 		for ( File dir : dataDirs ) {
 			File file = new File( dir, fileFormat.getCssName() );
 			if ( file.exists() ) {
-				String css = mEngine.loadFileUtf8(file);
+				String css = Engine.loadFileUtf8(file);
 				if ( css!=null ) {
 					int p1 = css.indexOf("@import");
 					if ( p1<0 )
@@ -6010,7 +5990,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	private void switchFontFace(int direction) {
 		String currentFontFace = mSettings.getProperty(PROP_FONT_FACE, "");
-		String[] mFontFaces = mEngine.getFontFaceList();
+		String[] mFontFaces = Engine.getFontFaceList();
 		int index = 0;
 		int countFaces = mFontFaces.length;
 		for (int i = 0; i < countFaces; i++) {

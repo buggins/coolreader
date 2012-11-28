@@ -2,6 +2,8 @@
 
 package org.coolreader.donations;
 
+import java.lang.reflect.Method;
+
 import org.coolreader.donations.BillingService.RequestPurchase;
 import org.coolreader.donations.BillingService.RestoreTransactions;
 import org.coolreader.donations.Consts.PurchaseState;
@@ -10,12 +12,10 @@ import org.coolreader.donations.Consts.ResponseCode;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.app.PendingIntent.CanceledException;
+import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.os.Handler;
 import android.util.Log;
-
-import java.lang.reflect.Method;
 
 /**
  * An interface for observing changes related to purchases. The main application
@@ -32,12 +32,12 @@ public abstract class PurchaseObserver {
     private Method mStartIntentSender;
     private Method mGetIntentSender;
     private Object[] mStartIntentSenderArgs = new Object[5];
-    private static final Class mIntentSenderClass = findClass("android.content.IntentSender");
-    private static final Class[] START_INTENT_SENDER_SIG = new Class[] {
+    private static final Class<?> mIntentSenderClass = findClass("android.content.IntentSender");
+    private static final Class<?>[] START_INTENT_SENDER_SIG = new Class[] {
     	mIntentSenderClass, Intent.class, int.class, int.class, int.class
     };
     
-    private static Class findClass(String name) {
+    private static Class<?> findClass(String name) {
     	try {
 			return Class.forName(name);
 		} catch (ClassNotFoundException e) {

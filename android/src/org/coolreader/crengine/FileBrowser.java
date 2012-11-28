@@ -1234,7 +1234,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		setCurrDirectory(dir);
 		if ( dir!=null )
 			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
-		if ( !BackgroundThread.instance().isGUIThread() )
+		if ( !BackgroundThread.isGUIThread() )
 			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
 		if ( dir!=null && !dir.isRootDir() )
@@ -1290,11 +1290,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		
 	}
 	
-	private void execute( Engine.EngineTask task )
-    {
-    	mEngine.execute(task);
-    }
-
     private abstract class Task implements Engine.EngineTask {
     	
 		public void done() {

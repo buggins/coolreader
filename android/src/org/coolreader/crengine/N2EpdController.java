@@ -1,9 +1,7 @@
 package org.coolreader.crengine;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
-import android.view.View;
-//import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Nook Touch EPD controller interface wrapper.
@@ -36,7 +34,7 @@ public class N2EpdController {
 	public static String strN2EpdInit = " N2EpdInit: ";
 	
 	private static Method mtSetRegion = null;
-	private static Constructor RegionParamsConstructor= null;
+	private static Constructor<?> RegionParamsConstructor= null;
 
 	private static Object[] enumsWave 	= null;
 	private static Object[] enumsRegion	= null;
@@ -45,12 +43,12 @@ public class N2EpdController {
 	static {
 		if (DeviceInfo.EINK_NOOK) {
 			try {
-				Class clEpdController     	= Class.forName("android.hardware.EpdController");
-				Class clEpdControllerWave 	= Class.forName("android.hardware.EpdController$Wave");
-				Class clEpdControllerMode 	= Class.forName("android.hardware.EpdController$Mode");
-				Class clEpdControllerRegion = Class.forName("android.hardware.EpdController$Region");
+				Class<?> clEpdController     	= Class.forName("android.hardware.EpdController");
+				Class<?> clEpdControllerWave 	= Class.forName("android.hardware.EpdController$Wave");
+				Class<?> clEpdControllerMode 	= Class.forName("android.hardware.EpdController$Mode");
+				Class<?> clEpdControllerRegion = Class.forName("android.hardware.EpdController$Region");
 
-				Class clEpdControllerRegionParams = Class.forName("android.hardware.EpdController$RegionParams");
+				Class<?> clEpdControllerRegionParams = Class.forName("android.hardware.EpdController$RegionParams");
 				
 				enumsWave = clEpdControllerWave.getEnumConstants();
 

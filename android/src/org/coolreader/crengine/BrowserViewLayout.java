@@ -2,8 +2,6 @@ package org.coolreader.crengine;
 
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.MeasureSpec;
-import android.view.ViewGroup.LayoutParams;
 
 public class BrowserViewLayout extends ViewGroup {
 	private BaseActivity activity;

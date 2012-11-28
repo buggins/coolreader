@@ -5,7 +5,6 @@ import java.util.Locale;
 import org.coolreader.R;
 
 import android.app.SearchManager;
-import android.content.Intent;
 import android.util.Log;
 
 public interface Settings {

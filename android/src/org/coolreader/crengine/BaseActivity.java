@@ -487,9 +487,9 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
-	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
-	
-	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
+//	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
+//	
+//	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 
 //	public void simulateTouch() {
 //		// Obtain MotionEvent object
@@ -546,7 +546,7 @@ public class BaseActivity extends Activity implements Settings {
 	
 
 	private int lastSystemUiVisibility = -1;
-	private boolean systemUiVisibilityListenerIsSet = false;
+	//private boolean systemUiVisibilityListenerIsSet = false;
 	@TargetApi(11)
 	@SuppressLint("NewApi")
 	private boolean setSystemUiVisibility(int value) {
@@ -945,7 +945,7 @@ public class BaseActivity extends Activity implements Settings {
 	public void setContentView(View view) {
 		this.contentView = view;
 		super.setContentView(view);
-		systemUiVisibilityListenerIsSet = false;
+		//systemUiVisibilityListenerIsSet = false;
 		//updateBackground();
 		setCurrentTheme(currentTheme);
 	}
@@ -1197,11 +1197,7 @@ public class BaseActivity extends Activity implements Settings {
 		    mSettings = loadSettings();
 		}
 		
-		public Properties get() {
-			return mSettings;
-		}
-
-		int lastSaveId = 0;
+		//int lastSaveId = 0;
 		public void setSettings(Properties settings, int delayMillis) {
 			mSettings = new Properties(settings);
 			if (delayMillis >= 0) {

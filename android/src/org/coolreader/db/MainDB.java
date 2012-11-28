@@ -21,7 +21,6 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
-import android.text.TextUtils.SimpleStringSplitter;
 import android.util.Log;
 
 public class MainDB extends BaseDB {

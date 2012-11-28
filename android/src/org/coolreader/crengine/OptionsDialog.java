@@ -1064,7 +1064,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public DictOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_DICTIONARY );
-			DictInfo[] dicts = mActivity.getDictList();
+			DictInfo[] dicts = BaseActivity.getDictList();
 			setDefaultValue(dicts[0].id);
 			for (DictInfo dict : dicts)
 				add( dict.id, dict.name );
@@ -1896,16 +1896,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		Drawable icon = getContext().getResources().getDrawable(imageDrawable);
 		
 		// temporary rollback ImageButton tabs: no highlight for current tab in this implementation
-		if (true) {
+//		if (true) {
 			ts.setIndicator("", icon);
-		} else {
-			// ACCESSIBILITY: we need to specify contentDescription
-			ImageButton ib = new ImageButton(getContext());
-			ib.setImageDrawable(icon);
-			ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
-			Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
-			ts.setIndicator(ib);
-		}
+//		} else {
+//			// ACCESSIBILITY: we need to specify contentDescription
+//			ImageButton ib = new ImageButton(getContext());
+//			ib.setImageDrawable(icon);
+//			ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
+//			Utils.setContentDescription(ib, getContext().getResources().getString(contentDescription));
+//			ts.setIndicator(ib);
+//		}
 		
 		ts.setContent(this);
 		mTabs.addTab(ts);

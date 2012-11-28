@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.graphics.drawable.BitmapDrawable;
@@ -10,11 +9,11 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
 

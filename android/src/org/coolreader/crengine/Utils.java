@@ -19,12 +19,10 @@ import org.coolreader.crengine.FileInfo.SortOrder;
 
 import android.app.Activity;
 import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.shapes.RectShape;
 import android.util.Log;
 import android.view.View;
 

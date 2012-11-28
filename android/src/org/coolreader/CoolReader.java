@@ -1270,8 +1270,8 @@ public class CoolReader extends BaseActivity
 	// (from Dungeons sample) 
 	// 
 	//==============================================================
-    private static final int DIALOG_CANNOT_CONNECT_ID = 1;
-    private static final int DIALOG_BILLING_NOT_SUPPORTED_ID = 2;
+    //private static final int DIALOG_CANNOT_CONNECT_ID = 1;
+    //private static final int DIALOG_BILLING_NOT_SUPPORTED_ID = 2;
     /**
      * Used for storing the log text.
      */
@@ -1294,7 +1294,7 @@ public class CoolReader extends BaseActivity
      * purchased multiple times (such as poker chips). It is up to the
      * application to keep track of UNMANAGED products for the user.
      */
-    private enum Managed { MANAGED, UNMANAGED }
+    //private enum Managed { MANAGED, UNMANAGED }
 
     private CRPurchaseObserver mPurchaseObserver;
     private BillingService mBillingService;

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 import org.coolreader.plugins.OnlineStorePluginManager;

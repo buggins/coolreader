@@ -14,7 +14,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AbsoluteLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -155,14 +154,6 @@ public class CRToolBar extends ViewGroup {
 		boolean onOverflowActions(ArrayList<ReaderAction> actions);
 	}
 	
-	
-	private ReaderAction findByCmd(int id) {
-		for (ReaderAction action : actions)
-			if (id == action.cmd.getNativeId())
-				return action;
-		return null;
-	}
-	
 	@Override
 	protected void onCreateContextMenu(ContextMenu menu) {
 		int order = 0;
@@ -248,6 +239,9 @@ public class CRToolBar extends ViewGroup {
 		return ib;
 	}
 	
+	private Rect layoutRect = new Rect();
+	private Rect layoutLineRect = new Rect();
+	private Rect layoutItemRect = new Rect();
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right,
 			int bottom) {
@@ -266,8 +260,7 @@ public class CRToolBar extends ViewGroup {
 //        	scroll.setLayoutParams(new LayoutParams(right, bottom));
 //        	AbsoluteLayout content = new AbsoluteLayout(activity);
         	
-        	
-    		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
+        	layoutRect.set(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
     		int lineH = itemHeight; //rect.height() / lineCount;
     		int spacing = 0;
         	for (int currentLine = 0; currentLine < lineCount; currentLine++) {
@@ -276,20 +269,20 @@ public class CRToolBar extends ViewGroup {
         		if (endBtn > btnCount)
         			endBtn = btnCount;
         		int currentLineButtons = endBtn - startBtn;
-        		Rect lineRect = new Rect(rect);
-        		lineRect.top += currentLine * lineH + spacing;
-        		lineRect.bottom = lineRect.top + lineH - spacing;
-        		int itemWidth = lineRect.width() / currentLineButtons;
+        		layoutLineRect.set(layoutRect);
+        		layoutLineRect.top += currentLine * lineH + spacing;
+        		layoutLineRect.bottom = layoutLineRect.top + lineH - spacing;
+        		int itemWidth = layoutLineRect.width() / currentLineButtons;
         		for (int i = 0; i < currentLineButtons; i++) {
-        			Rect itemRect = new Rect(lineRect);
-        			itemRect.left += i * itemWidth + spacing;
-        			itemRect.right = itemRect.left + itemWidth - spacing;
+        			layoutItemRect.set(layoutLineRect);
+        			layoutItemRect.left += i * itemWidth + spacing;
+        			layoutItemRect.right = layoutItemRect.left + itemWidth - spacing;
         			final ReaderAction action = (visibleNonButtonCount > 0 && i + startBtn == iconActions.size()) ? null : iconActions.get(startBtn + i);
-        			log.v("item=" + itemRect);
+        			log.v("item=" + layoutItemRect);
         			LinearLayout item = inflateItem(action);
         			//item.setLayoutParams(new LinearLayout.LayoutParams(itemRect.width(), itemRect.height()));
-        			item.measure(MeasureSpec.makeMeasureSpec(itemRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(itemRect.height(), MeasureSpec.EXACTLY));
-        			item.layout(itemRect.left, itemRect.top, itemRect.right, itemRect.bottom);
+        			item.measure(MeasureSpec.makeMeasureSpec(layoutItemRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(layoutItemRect.height(), MeasureSpec.EXACTLY));
+        			item.layout(layoutItemRect.left, layoutItemRect.top, layoutItemRect.right, layoutItemRect.bottom);
         			//item.forceLayout();
         			addView(item);
         			item.setOnClickListener(new OnClickListener() {

@@ -15,10 +15,10 @@
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
 #define  LOGASSERTFAILED(cond,...)  __android_log_assert(cond,LOG_TAG,__VA_ARGS__)
 
-#include "lvstring.h"
-#include "lvdrawbuf.h"
-#include "props.h"
-#include "lvtinydom.h"
+#include "../../crengine/include/lvstring.h"
+#include "../../crengine/include/lvdrawbuf.h"
+#include "../../crengine/include/props.h"
+#include "../../crengine/include/lvtinydom.h"
 
 //====================================================================
 // libjnigraphics replacement for pre-2.2 SDKs 
@@ -47,7 +47,8 @@ class BitmapAccessorInterface {
 public:
     virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) = 0;
     virtual void unlock(JNIEnv* env, jobject jbitmap, LVDrawBuf * buf ) = 0;
-	static BitmapAccessorInterface * getInstance(); 
+	static BitmapAccessorInterface * getInstance();
+	virtual ~BitmapAccessorInterface() {}
 };
 
 
