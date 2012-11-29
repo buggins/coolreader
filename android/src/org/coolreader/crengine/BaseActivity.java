@@ -1196,7 +1196,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
     
 	public void setSetting(String name, String value) {
-		setSetting(name, value);
+		mSettingsManager.setSetting(name, value);
 	}
 	
 	public void setSettings(Properties settings, int delayMillis) {
