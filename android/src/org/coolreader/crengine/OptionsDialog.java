@@ -1985,7 +1985,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				mReaderView.toggleEmbeddedFonts();
 			}
 		}
-		mActivity.setSettings(mProperties, 0);
+		mActivity.setSettings(mProperties, 0, true);
         //mReaderView.setSettings(mProperties, mOldProperties);
 	}
 	
