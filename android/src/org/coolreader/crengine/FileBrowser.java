@@ -183,6 +183,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		
 	}
 
+	private void invalidateAdapter(final FileListAdapter adapter) {
+		adapter.notifyInvalidated();
+	}
+	
 	CoverpageManager.CoverpageReadyListener coverpageListener;
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
@@ -203,8 +207,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					if (currDirectory.findItemByPathName(file.file.getPathName()) != null)
 						found = true;
 				}
-				if (found)
-					currentListAdapter.notifyInvalidated();
+				if (found) // && mListView.getS
+					invalidateAdapter(currentListAdapter);
 			}
 		};
 		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
