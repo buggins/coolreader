@@ -76,6 +76,7 @@ public class CoolReader extends BaseActivity
 	//View startupView;
 	//CRDB mDB;
 	private ViewGroup mCurrentFrame;
+	private ViewGroup mPreviousFrame;
 	
 	
 	String fileToLoadOnStart = null;
@@ -871,8 +872,17 @@ public class CoolReader extends BaseActivity
 	}
 	
 
+	public ViewGroup getPreviousFrame() {
+		return mPreviousFrame;
+	}
+	
+	public boolean isPreviousFrameHome() {
+		return mPreviousFrame != null && mPreviousFrame == mHomeFrame;
+	}
+
 	private void setCurrentFrame(ViewGroup newFrame) {
 		if (mCurrentFrame != newFrame) {
+			mPreviousFrame = mCurrentFrame;
 			log.i("New current frame: " + newFrame.getClass().toString());
 			mCurrentFrame = newFrame;
 			setContentView(mCurrentFrame);
