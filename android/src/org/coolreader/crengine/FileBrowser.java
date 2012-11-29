@@ -63,6 +63,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	        setLongClickable(true);
 	        //registerForContextMenu(this);
 	        //final FileBrowser _this = this;
+	        setFocusable(true);
+	        setFocusableInTouchMode(true);
+	        requestFocus();
+	        
 	        setOnItemLongClickListener(new OnItemLongClickListener() {
 
 				@Override
@@ -152,13 +156,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			if (keyCode == KeyEvent.KEYCODE_BACK && mActivity.isBookOpened()) {
+			//log.d("FileBrowser.ListView.onKeyDown(" + keyCode + ")");
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
 				if ( isRootDir() ) {
-					if (mActivity.isBookOpened()) {
-						mActivity.showReader();
-						return true;
-					} else
-						return super.onKeyDown(keyCode, event);
+					mActivity.showRootWindow();
+//					if (mActivity.isBookOpened()) {
+//						mActivity.showReader();
+//						return true;
+//					} else
+//						return super.onKeyDown(keyCode, event);
 				}
 				showParentDirectory();
 				return true;
@@ -370,7 +376,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	public boolean isRootDir()
 	{
-		return currDirectory == mScanner.getRoot();
+		return currDirectory != null && (currDirectory == mScanner.getRoot() || currDirectory.parent == mScanner.getRoot());
 	}
 
 	public boolean isRecentDir()

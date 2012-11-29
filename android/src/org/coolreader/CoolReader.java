@@ -876,6 +876,7 @@ public class CoolReader extends BaseActivity
 			log.i("New current frame: " + newFrame.getClass().toString());
 			mCurrentFrame = newFrame;
 			setContentView(mCurrentFrame);
+			mCurrentFrame.requestFocus();
 		}
 	}
 	

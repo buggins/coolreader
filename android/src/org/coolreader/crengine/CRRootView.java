@@ -13,6 +13,7 @@ import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 import org.coolreader.plugins.litres.LitresPlugin;
 
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -57,6 +58,29 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		
 	}
 	
+	
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			if (mActivity.isBookOpened()) {
+				mActivity.showReader();
+				return true;
+			} else {
+				return super.onKeyDown(keyCode, event);
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		return super.onKeyUp(keyCode, event);
+	}
+
+
+
 	private InterfaceTheme lastTheme;
 	public void onThemeChange(InterfaceTheme theme) {
 		if (lastTheme != theme) {
