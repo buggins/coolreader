@@ -887,6 +887,8 @@ public class CoolReader extends BaseActivity
 			mCurrentFrame = newFrame;
 			setContentView(mCurrentFrame);
 			mCurrentFrame.requestFocus();
+			if (mCurrentFrame != mReaderFrame)
+				releaseBacklightControl();
 		}
 	}
 	
