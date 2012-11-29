@@ -134,10 +134,10 @@
 	            <RadioGroup android:id="@+id/book_state"
 	                android:layout_width="match_parent"
 	                android:layout_height="wrap_content" >
-        	        <RadioButton android:id="@+id/book_state_new" android:text="@string/book_state_none"/>
-                    <RadioButton android:id="@+id/book_state_toread" android:text="@string/book_state_toread"/>
-                    <RadioButton android:id="@+id/book_state_reading" android:text="@string/book_state_reading"/>
-                    <RadioButton android:id="@+id/book_state_finished" android:text="@string/book_state_finished"/>
+        	        <RadioButton android:id="@+id/book_state_new" android:text="@string/book_state_none" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                    <RadioButton android:id="@+id/book_state_toread" android:text="@string/book_state_toread" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                    <RadioButton android:id="@+id/book_state_reading" android:text="@string/book_state_reading" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                    <RadioButton android:id="@+id/book_state_finished" android:text="@string/book_state_finished" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 </RadioGroup>
 		    </LinearLayout>
 	        	        
