@@ -855,6 +855,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 		} else {
 			// fileOrDir == null
+			if (currDirectory != null)
+				return; // just show current directory
 			if (mScanner.getRoot() != null && mScanner.getRoot().dirCount() > 0) {
 				if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
 					fileOrDir = mScanner.getRoot().getDir(0);
