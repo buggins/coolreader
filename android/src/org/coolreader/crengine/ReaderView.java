@@ -2541,7 +2541,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			showTOC();
 			break;
 		case DCMD_FILE_BROWSER:
-			mActivity.showBrowser(firstShowBrowserCall ? getOpenedFileInfo() : null);
+			mActivity.showBrowser(!mActivity.isBrowserCreated() ? getOpenedFileInfo() : null);
 			break;
 		case DCMD_CURRENT_BOOK_DIRECTORY:
 			mActivity.showBrowser(getOpenedFileInfo());

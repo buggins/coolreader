@@ -924,6 +924,10 @@ public class CoolReader extends BaseActivity
 		
 	}
 	
+	public boolean isBrowserCreated() {
+		return mBrowserFrame != null;
+	}
+	
 	private void runInBrowser(final Runnable task) {
 		waitForCRDBService(new Runnable() {
 			@Override
