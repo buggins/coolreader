@@ -17,6 +17,7 @@ public class DeviceInfo {
 	public final static boolean EINK_SCREEN_UPDATE_MODES_SUPPORTED;
 	public final static boolean NOOK_NAVIGATION_KEYS;
 	public final static boolean EINK_NOOK;
+	public final static boolean EINK_NOOK_120;
 	public final static boolean FORCE_LIGHT_THEME;
 	public final static boolean EINK_SONY;
 	public final static boolean SONY_NAVIGATION_KEYS;
@@ -91,8 +92,10 @@ public class DeviceInfo {
 		        (MODEL.contentEquals("GT-S5830") || MODEL.contentEquals("GT-S5660")); // More models?
 		AMOLED_SCREEN = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
         		(MODEL.toLowerCase().startsWith("gt-i")); // AMOLED screens: GT-IXXXX
-		EINK_NOOK = MANUFACTURER.toLowerCase().contentEquals("barnesandnoble") && MODEL.contentEquals("NOOK") &&
+		EINK_NOOK = MANUFACTURER.toLowerCase().contentEquals("barnesandnoble") && 
+				(MODEL.contentEquals("NOOK") || MODEL.contentEquals("BNRV350")) &&
 				DEVICE.toLowerCase().contentEquals("zoom2");
+		EINK_NOOK_120 = EINK_NOOK && MODEL.contentEquals("BNRV350");
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.startsWith("PRS-T");
 		EINK_SCREEN = EINK_SONY || EINK_NOOK; // TODO: set to true for eink devices like Nook Touch
 

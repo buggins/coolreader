@@ -23,6 +23,7 @@ import org.coolreader.crengine.History.BookInfoLoadedCallack;
 import org.coolreader.crengine.InterfaceTheme;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
+import org.coolreader.crengine.N2EpdController;
 import org.coolreader.crengine.OPDSCatalogEditDialog;
 import org.coolreader.crengine.OptionsDialog;
 import org.coolreader.crengine.PositionProperties;
@@ -164,6 +165,7 @@ public class CoolReader extends BaseActivity
         	log.i("Billing is supported");
         }
 
+		N2EpdController.n2MainActivity = this;
 
 
         //Services.getEngine().showProgress( 0, R.string.progress_starting_cool_reader );
