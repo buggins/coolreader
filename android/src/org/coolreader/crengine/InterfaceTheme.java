@@ -24,9 +24,9 @@ public class InterfaceTheme {
 	public final static InterfaceTheme WHITE = new InterfaceTheme("WHITE", R.style.Theme_White, R.style.Theme_White_Dialog_Normal, R.style.Theme_White_Dialog_Fullscreen, R.string.options_app_ui_theme_white, 0xFFFFFFFF)
 			.setRootDelimiter(R.drawable.divider_white_tiled, 2)
 			.setBackgrounds(
-					R.drawable.ui_status_background_browser_black, 
-					R.drawable.ui_toolbar_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_vertical_black,
+					R.drawable.ui_status_background_browser_white, 
+					R.drawable.ui_toolbar_background_browser_white,
+					R.drawable.ui_toolbar_background_browser_vertical_white,
 					0, 0xFFFFFFFF)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xE0);
 //			.setBackgrounds(
