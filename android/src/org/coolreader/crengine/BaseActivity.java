@@ -1138,8 +1138,9 @@ public class BaseActivity extends Activity implements Settings {
 		// override it to use
 	}
 
-	public void onSettingsChanged(Properties props) {
+	public void onSettingsChanged(Properties props, Properties oldProps) {
 		// override for specific actions
+		
 	}
 	
 	public void showActionsPopupMenu(final ReaderAction[] actions, final CRToolBar.OnActionHandler onActionHandler) {
@@ -1223,7 +1224,8 @@ public class BaseActivity extends Activity implements Settings {
 		
 		//int lastSaveId = 0;
 		public void setSettings(Properties settings, int delayMillis, boolean notify) {
-			mSettings = settings == mSettings ? mSettings : new Properties(settings);
+			Properties oldSettings = mSettings;
+			mSettings = new Properties(settings);
 			if (delayMillis >= 0) {
 				saveSettingsTask.postDelayed(new Runnable() {
 		    		public void run() {
@@ -1237,7 +1239,7 @@ public class BaseActivity extends Activity implements Settings {
 		    	}, delayMillis);
 			}
 			if (notify)
-				mActivity.onSettingsChanged(mSettings);
+				mActivity.onSettingsChanged(mSettings, oldSettings);
 		}
 		
 		public void setSetting(String name, String value, boolean notify) {

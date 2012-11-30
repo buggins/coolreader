@@ -3,6 +3,7 @@ package org.coolreader;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.Map;
 
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
@@ -864,7 +865,8 @@ public class CoolReader extends BaseActivity
 			mBrowser.refreshDirectory(dir);
 	}
 	
-	public void onSettingsChanged(Properties props) {
+	public void onSettingsChanged(Properties props, Properties oldProps) {
+		Properties changedProps = oldProps!=null ? props.diff(oldProps) : props;
 		if (mHomeFrame != null) {
 			mHomeFrame.refreshOnlineCatalogs();
 		}
@@ -873,6 +875,12 @@ public class CoolReader extends BaseActivity
 			if (mReaderView != null)
 				mReaderView.updateSettings(props);
 		}
+        for ( Map.Entry<Object, Object> entry : changedProps.entrySet() ) {
+    		String key = (String)entry.getKey();
+    		String value = (String)entry.getValue();
+    		applyAppSetting( key, value );
+        }
+		
 	}
 	
 
