@@ -934,6 +934,8 @@ public class CoolReader extends BaseActivity
 					mReaderView.setFocusable(true);
 					mReaderView.setFocusableInTouchMode(true);
 					mReaderView.requestFocus();
+					if (initialBatteryState >= 0)
+						mReaderView.setBatteryState(initialBatteryState);
 				}
 			}
 		});
