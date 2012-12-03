@@ -267,8 +267,6 @@ public class CoolReader extends BaseActivity
 	public ReaderView getReaderView() {
 		return mReaderView;
 	}
-	
-
 
 	@Override
 	public void applyAppSetting( String key, String value )
@@ -381,15 +379,13 @@ public class CoolReader extends BaseActivity
 	private void processIntent(Intent intent) {
 		log.d("intent=" + intent);
 		if (intent != null && intent.getExtras() != null) {
+			log.d("extras=" + intent.getExtras());
 			final String fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
 			if (fileToOpen != null) {
 				log.d("FILE_TO_OPEN = " + fileToOpen);
-				waitForCRDBService(new Runnable() {
-					@Override
-					public void run() {
-						mReaderView.loadDocument(fileToOpen, null);
-					}
-				});
+				loadDocument(fileToOpen, null);
+			} else {
+				log.d("No file to open");
 			}
 		}
 	}
@@ -901,6 +897,14 @@ public class CoolReader extends BaseActivity
 			mCurrentFrame.requestFocus();
 			if (mCurrentFrame != mReaderFrame)
 				releaseBacklightControl();
+			if (mCurrentFrame == mHomeFrame) {
+				// update recent books
+				mHomeFrame.refreshRecentBooks();
+			}
+			if (mCurrentFrame == mBrowserFrame) {
+				// update recent books directory
+				mBrowser.refreshDirectory(Services.getScanner().getRecentDir());
+			}
 		}
 	}
 	
