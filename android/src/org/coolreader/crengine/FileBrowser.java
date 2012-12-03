@@ -606,18 +606,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				final URL uri = new URL(url);
 				DownloadCallback callback = new DownloadCallback() {
 
-					@Override
-					public void onEntries(DocInfo doc,
-							Collection<EntryInfo> entries) {
-						// TODO Auto-generated method stub
-					}
-
-					@Override
-					public void onFinish(DocInfo doc,
-							Collection<EntryInfo> entries) {
-						if ( myCurrDirectory != currDirectory ) {
+					private boolean processNewEntries(DocInfo doc,
+							Collection<EntryInfo> entries, boolean notifyNoEntries) {
+						log.d("OPDS: processNewEntries: " + entries.size() + (notifyNoEntries ? " - done":" - to continue"));
+						if (myCurrDirectory != currDirectory && currDirectory != fileOrDir) {
 							log.w("current directory has been changed: ignore downloaded items");
-							return;
+							return false;
 						}
 						ArrayList<FileInfo> items = new ArrayList<FileInfo>();
 						for ( EntryInfo entry : entries ) {
@@ -650,10 +644,27 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						}
 						if ( items.size()>0 ) {
 							fileOrDir.replaceItems(items);
-							showDirectoryInternal(fileOrDir, null);
+							if (currDirectory == fileOrDir)
+								currentListAdapter.notifyDataSetChanged();
+							else
+								showDirectoryInternal(fileOrDir, null);
 						} else {
-							mActivity.showToast("No OPDS entries found");
+							if (notifyNoEntries)
+								mActivity.showToast("No OPDS entries found");
 						}
+						return true;
+					}
+					
+					@Override
+					public boolean onEntries(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						return processNewEntries(doc, entries, false);
+					}
+
+					@Override
+					public boolean onFinish(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						return processNewEntries(doc, entries, true);
 					}
 
 					@Override
