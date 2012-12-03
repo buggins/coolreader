@@ -347,32 +347,32 @@ public class CoolReader extends BaseActivity
 			log.e("engine is already destroyed");
 			return;
 		}
-		String fileToOpen = null;
-		if ( Intent.ACTION_VIEW.equals(intent.getAction()) ) {
-			Uri uri = intent.getData();
-			if ( uri!=null ) {
-				fileToOpen = extractFileName(uri);
-			}
-			intent.setData(null);
-		}
-		log.v("onNewIntent, fileToOpen=" + fileToOpen);
-		if ( fileToOpen!=null ) {
-			// load document
-			final String fn = fileToOpen;
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					loadDocument(fn, new Runnable() {
-						public void run() {
-							log.v("onNewIntent, loadDocument error handler called");
-							showToast("Error occured while loading " + fn);
-							Services.getEngine().hideProgress();
-						}
-					});
-				}
-			}, 100);
-		}
 		processIntent(intent);
+//		String fileToOpen = null;
+//		if ( Intent.ACTION_VIEW.equals(intent.getAction()) ) {
+//			Uri uri = intent.getData();
+//			if ( uri!=null ) {
+//				fileToOpen = extractFileName(uri);
+//			}
+//			intent.setData(null);
+//		}
+//		log.v("onNewIntent, fileToOpen=" + fileToOpen);
+//		if ( fileToOpen!=null ) {
+//			// load document
+//			final String fn = fileToOpen;
+//			BackgroundThread.instance().postGUI(new Runnable() {
+//				@Override
+//				public void run() {
+//					loadDocument(fn, new Runnable() {
+//						public void run() {
+//							log.v("onNewIntent, loadDocument error handler called");
+//							showToast("Error occured while loading " + fn);
+//							Services.getEngine().hideProgress();
+//						}
+//					});
+//				}
+//			}, 100);
+//		}
 	}
 
 	private boolean processIntent(Intent intent) {
@@ -382,6 +382,7 @@ public class CoolReader extends BaseActivity
 		String fileToOpen = null;
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			fileToOpen = intent.getDataString();
+			intent.setData(null);
 			if (fileToOpen.startsWith("file://"))
 				fileToOpen = fileToOpen.substring("file://".length());
 		}
@@ -395,7 +396,13 @@ public class CoolReader extends BaseActivity
 				fileToOpen = fileToOpen.replace("%2F", "/");
 			}
 			log.d("FILE_TO_OPEN = " + fileToOpen);
-			loadDocument(fileToOpen, null);
+			loadDocument(fileToOpen, new Runnable() {
+				@Override
+				public void run() {
+					showToast("Cannot open book");
+					showRootWindow();
+				}
+			});
 			return true;
 		} else {
 			log.d("No file to open");
