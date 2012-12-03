@@ -242,6 +242,7 @@ public class BaseActivity extends Activity implements Settings {
 	
 	protected static String PREF_FILE = "CR3LastBook";
 	protected static String PREF_LAST_BOOK = "LastBook";
+	protected static String PREF_LAST_LOCATION = "LastLocation";
 	
 	@Override
 	protected void onResume() {
@@ -976,19 +977,6 @@ public class BaseActivity extends Activity implements Settings {
 	
 
 	private static String PREF_HELP_FILE = "HelpFile";
-	public String getLastSuccessfullyOpenedBook()
-	{
-		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
-		String res = pref.getString(PREF_LAST_BOOK, null);
-		pref.edit().putString(PREF_LAST_BOOK, null).commit();
-		return res;
-	}
-	
-	public void setLastSuccessfullyOpenedBook( String filename )
-	{
-		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
-		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
-	}
 	
 	public String getLastGeneratedHelpFileSignature()
 	{

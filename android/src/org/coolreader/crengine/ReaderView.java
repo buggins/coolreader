@@ -3218,17 +3218,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return true;
 	}
 
-	public boolean loadLastDocument( final Runnable errorHandler )
-	{
-		BackgroundThread.ensureGUI();
-		//BookInfo book = mActivity.getHistory().getLastBook();
-		String lastBookName = mActivity.getLastSuccessfullyOpenedBook();
-		if (lastBookName == null && Services.getHistory().getLastBook() == null)
-			lastBookName = getManualFileName();
-		log.i("loadLastDocument() is called, lastBookName = " + lastBookName);
-		return loadDocument( lastBookName, errorHandler );
-	}
-	
 	/**
 	 * When current book is opened, switch to previous book.
 	 * @param errorHandler
@@ -5066,7 +5055,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		    			mActivity.showReader();
 		        	}
 		        });
-		        mActivity.setLastSuccessfullyOpenedBook(filename);
+		        mActivity.setLastBook(filename);
 			}
 		}
 		public void fail( Exception e )

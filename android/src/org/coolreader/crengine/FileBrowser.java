@@ -1244,8 +1244,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		BackgroundThread.ensureGUI();
 		setCurrDirectory(dir);
-		if ( dir!=null )
+		
+		if ( dir!=null ) {
 			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
+			if (dir.isRecentDir())
+				mActivity.setLastLocation(dir.getPathName());
+			else if (!dir.isSpecialDir())
+				mActivity.setLastDirectory(dir.getPathName());
+		}
 		if ( !BackgroundThread.isGUIThread() )
 			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
 		int index = dir!=null ? dir.getItemIndex(file) : -1;

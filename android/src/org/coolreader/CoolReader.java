@@ -893,6 +893,8 @@ public class CoolReader extends BaseActivity
 			mCurrentFrame.requestFocus();
 			if (mCurrentFrame != mReaderFrame)
 				releaseBacklightControl();
+			if (mCurrentFrame == mHomeFrame)
+				setLastLocationRoot();
 		}
 	}
 	
@@ -1719,7 +1721,71 @@ public class CoolReader extends BaseActivity
 	
 
 	
-
+    private SharedPreferences mPreferences = getSharedPreferences(PREF_FILE, 0);
+    private final static String BOOK_LOCATION_PREFIX = "@book:";
+    private final static String DIRECTORY_LOCATION_PREFIX = "@dir:";
+	
+    public void setLastBook(String path) {
+    	setLastLocation(BOOK_LOCATION_PREFIX + path);
+    }
+    
+    public void setLastDirectory(String path) {
+    	setLastLocation(DIRECTORY_LOCATION_PREFIX + path);
+    }
+    
+    public void setLastLocationRoot() {
+    	setLastLocation(FileInfo.ROOT_DIR_TAG);
+    }
+    
+	/**
+	 * Store last location - to resume after program restart.
+	 * @param location is file name, directory, or special folder tag
+	 */
+	public void setLastLocation(String location) {
+		try {
+	        SharedPreferences.Editor editor = mPreferences.edit();
+	        editor.putString(PREF_LAST_LOCATION, location);
+	        editor.commit();
+		} catch (Exception e) {
+			// ignore
+		}
+	}
+	
+	/**
+	 * Get last stored location.
+	 * @param location
+	 * @return
+	 */
+	private String getLastLocation() {
+        String res = mPreferences.getString(PREF_LAST_LOCATION, null);
+        log.i("getLastLocation() = " + res);
+        return res;
+	}
+	
+	/**
+	 * Open location - book, root view, folder...
+	 */
+	public void showLastLocation() {
+		String location = getLastLocation();
+		if (location == null)
+			location = FileInfo.ROOT_DIR_TAG;
+		if (location.startsWith(BOOK_LOCATION_PREFIX)) {
+			location = location.substring(BOOK_LOCATION_PREFIX.length());
+			loadDocument(location, null);
+			return;
+		}
+		if (location.startsWith(DIRECTORY_LOCATION_PREFIX)) {
+			location = location.substring(DIRECTORY_LOCATION_PREFIX.length());
+			showBrowser(location);
+			return;
+		}
+		if (location.equals(FileInfo.RECENT_DIR_TAG)) {
+			showBrowser(location);
+			return;
+		}
+		// TODO: support other locations as well
+		showRootWindow();
+	}
 	
 }
 
