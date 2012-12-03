@@ -1750,9 +1750,15 @@ public class CoolReader extends BaseActivity
 	
 
 	
-    private SharedPreferences mPreferences = getSharedPreferences(PREF_FILE, 0);
+    private SharedPreferences mPreferences;
     private final static String BOOK_LOCATION_PREFIX = "@book:";
     private final static String DIRECTORY_LOCATION_PREFIX = "@dir:";
+    
+    private SharedPreferences getPrefs() {
+    	if (mPreferences == null)
+    		mPreferences = getSharedPreferences(PREF_FILE, 0);
+    	return mPreferences;
+    }
 	
     public void setLastBook(String path) {
     	setLastLocation(BOOK_LOCATION_PREFIX + path);
@@ -1772,7 +1778,7 @@ public class CoolReader extends BaseActivity
 	 */
 	public void setLastLocation(String location) {
 		try {
-	        SharedPreferences.Editor editor = mPreferences.edit();
+	        SharedPreferences.Editor editor = getPrefs().edit();
 	        editor.putString(PREF_LAST_LOCATION, location);
 	        editor.commit();
 		} catch (Exception e) {
@@ -1786,7 +1792,7 @@ public class CoolReader extends BaseActivity
 	 * @return
 	 */
 	private String getLastLocation() {
-        String res = mPreferences.getString(PREF_LAST_LOCATION, null);
+        String res = getPrefs().getString(PREF_LAST_LOCATION, null);
         log.i("getLastLocation() = " + res);
         return res;
 	}
