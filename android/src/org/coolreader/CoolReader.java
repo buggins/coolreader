@@ -3,6 +3,7 @@ package org.coolreader;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.Map;
 
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
@@ -266,8 +267,6 @@ public class CoolReader extends BaseActivity
 	public ReaderView getReaderView() {
 		return mReaderView;
 	}
-	
-
 
 	@Override
 	public void applyAppSetting( String key, String value )
@@ -379,17 +378,23 @@ public class CoolReader extends BaseActivity
 
 	private void processIntent(Intent intent) {
 		log.d("intent=" + intent);
-		if (intent != null && intent.getExtras() != null) {
-			final String fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
-			if (fileToOpen != null) {
-				log.d("FILE_TO_OPEN = " + fileToOpen);
-				waitForCRDBService(new Runnable() {
-					@Override
-					public void run() {
-						mReaderView.loadDocument(fileToOpen, null);
-					}
-				});
-			}
+		if (intent == null)
+			return;
+		String fileToOpen = null;
+		if (intent.getAction() == Intent.ACTION_VIEW) {
+			fileToOpen = intent.getDataString();
+			if (fileToOpen.startsWith("file://"))
+				fileToOpen = fileToOpen.substring("file://".length());
+		}
+		if (fileToOpen == null && intent.getExtras() != null) {
+			log.d("extras=" + intent.getExtras());
+			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
+		}
+		if (fileToOpen != null) {
+			log.d("FILE_TO_OPEN = " + fileToOpen);
+			loadDocument(fileToOpen, null);
+		} else {
+			log.d("No file to open");
 		}
 	}
 
@@ -864,7 +869,8 @@ public class CoolReader extends BaseActivity
 			mBrowser.refreshDirectory(dir);
 	}
 	
-	public void onSettingsChanged(Properties props) {
+	public void onSettingsChanged(Properties props, Properties oldProps) {
+		Properties changedProps = oldProps!=null ? props.diff(oldProps) : props;
 		if (mHomeFrame != null) {
 			mHomeFrame.refreshOnlineCatalogs();
 		}
@@ -873,8 +879,19 @@ public class CoolReader extends BaseActivity
 			if (mReaderView != null)
 				mReaderView.updateSettings(props);
 		}
+        for ( Map.Entry<Object, Object> entry : changedProps.entrySet() ) {
+    		String key = (String)entry.getKey();
+    		String value = (String)entry.getValue();
+    		applyAppSetting( key, value );
+        }
+		
 	}
-	
+
+    protected boolean allowLowBrightness() {
+    	// override to force higher brightness in non-reading mode (to avoid black screen on some devices when brightness level set to small value)
+    	return mCurrentFrame == mReaderFrame;
+    }
+    
 
 	public ViewGroup getPreviousFrame() {
 		return mPreviousFrame;
@@ -893,8 +910,16 @@ public class CoolReader extends BaseActivity
 			mCurrentFrame.requestFocus();
 			if (mCurrentFrame != mReaderFrame)
 				releaseBacklightControl();
-			if (mCurrentFrame == mHomeFrame)
+			if (mCurrentFrame == mHomeFrame) {
+				// update recent books
+				mHomeFrame.refreshRecentBooks();
 				setLastLocationRoot();
+			}
+			if (mCurrentFrame == mBrowserFrame) {
+				// update recent books directory
+				mBrowser.refreshDirectory(Services.getScanner().getRecentDir());
+			}
+			onUserActivity();
 		}
 	}
 	
@@ -1573,7 +1598,8 @@ public class CoolReader extends BaseActivity
 
 	@Override
     protected void setDimmingAlpha(int dimmingAlpha) {
-    	mReaderView.setDimmingAlpha(dimmingAlpha);
+		if (mReaderView != null)
+			mReaderView.setDimmingAlpha(dimmingAlpha);
     }
 
 	public void showReaderMenu() {

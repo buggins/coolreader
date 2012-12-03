@@ -2998,7 +2998,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		// ignore
         	}
         } else {
-        	mActivity.applyAppSetting(key, value);
+        	//mActivity.applyAppSetting(key, value);
         }
         //
 	}

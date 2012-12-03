@@ -1269,7 +1269,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mActivity = activity;
 		mReaderView = readerView;
 		mFontFaces = fontFaces;
-		mProperties = mActivity.settings(); //  readerView.getSettings();
+		mProperties = new Properties(mActivity.settings()); //  readerView.getSettings();
 		mOldProperties = new Properties(mProperties);
 		if (mode == Mode.READER) {
 			mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
