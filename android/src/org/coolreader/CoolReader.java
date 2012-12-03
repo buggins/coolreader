@@ -391,6 +391,7 @@ public class CoolReader extends BaseActivity
 			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
 		}
 		if (fileToOpen != null) {
+			// patch for opening of books from ReLaunch (under Nook Simple Touch) 
 			while (fileToOpen.indexOf("%2F") >= 0) {
 				fileToOpen = fileToOpen.replace("%2F", "/");
 			}
