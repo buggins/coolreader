@@ -381,7 +381,7 @@ public class CoolReader extends BaseActivity
 		if (intent == null)
 			return false;
 		String fileToOpen = null;
-		if (intent.getAction() == Intent.ACTION_VIEW) {
+		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			fileToOpen = intent.getDataString();
 			if (fileToOpen.startsWith("file://"))
 				fileToOpen = fileToOpen.substring("file://".length());
