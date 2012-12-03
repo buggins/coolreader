@@ -331,7 +331,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		return false;
 	}
 	
-	public void refreshOPDSRootDirectory() {
+	public void refreshOPDSRootDirectory(final boolean showInBrowser) {
 		final FileInfo opdsRoot = mScanner.getOPDSRoot();
 		if (opdsRoot != null) {
 			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
@@ -340,7 +340,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					opdsRoot.clear();
 					for (FileInfo f : catalogs)
 						opdsRoot.addDir(f);
-					showDirectory(opdsRoot, null);
+					if (showInBrowser || (currDirectory!=null && currDirectory.isOPDSRoot()))
+						showDirectory(opdsRoot, null);
 				}
 			});
 		}
@@ -349,7 +350,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void refreshDirectory(FileInfo dir) {
 		if (dir.isSpecialDir()) {
 			if (dir.isOPDSRoot())
-				refreshOPDSRootDirectory();
+				refreshOPDSRootDirectory(false);
 		} else {
 			if (dir.pathNameEquals(currDirectory))
 				showDirectory(currDirectory, null);
@@ -599,7 +600,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			showDirectoryInternal(fileOrDir, itemToSelect);
 			// update last usage
 			mActivity.getDB().updateOPDSCatalogLastUsage(fileOrDir.getOPDSUrl());
-			mActivity.refreshOPDSRootDirectory();
+			mActivity.refreshOPDSRootDirectory(false);
 		}
 		
 		String url = fileOrDir.getOPDSUrl();

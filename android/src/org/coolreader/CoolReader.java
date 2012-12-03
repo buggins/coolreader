@@ -1739,15 +1739,15 @@ public class CoolReader extends BaseActivity
 		OPDSCatalogEditDialog dlg = new OPDSCatalogEditDialog(CoolReader.this, opds, new Runnable() {
 			@Override
 			public void run() {
-				refreshOPDSRootDirectory();
+				refreshOPDSRootDirectory(true);
 			}
 		});
 		dlg.show();
 	}
 
-	public void refreshOPDSRootDirectory() {
+	public void refreshOPDSRootDirectory(boolean showInBrowser) {
 		if (mBrowser != null)
-			mBrowser.refreshOPDSRootDirectory();
+			mBrowser.refreshOPDSRootDirectory(showInBrowser);
 		if (mHomeFrame != null)
 			mHomeFrame.refreshOnlineCatalogs();
 	}
