@@ -878,7 +878,12 @@ public class CoolReader extends BaseActivity
         }
 		
 	}
-	
+
+    protected boolean allowLowBrightness() {
+    	// override to force higher brightness in non-reading mode (to avoid black screen on some devices when brightness level set to small value)
+    	return mCurrentFrame == mReaderFrame;
+    }
+    
 
 	public ViewGroup getPreviousFrame() {
 		return mPreviousFrame;
@@ -905,6 +910,7 @@ public class CoolReader extends BaseActivity
 				// update recent books directory
 				mBrowser.refreshDirectory(Services.getScanner().getRecentDir());
 			}
+			onUserActivity();
 		}
 	}
 	
@@ -1583,7 +1589,8 @@ public class CoolReader extends BaseActivity
 
 	@Override
     protected void setDimmingAlpha(int dimmingAlpha) {
-    	mReaderView.setDimmingAlpha(dimmingAlpha);
+		if (mReaderView != null)
+			mReaderView.setDimmingAlpha(dimmingAlpha);
     }
 
 	public void showReaderMenu() {

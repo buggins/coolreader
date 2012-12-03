@@ -722,6 +722,12 @@ public class BaseActivity extends Activity implements Settings {
     	// override it
     }
     
+    protected boolean allowLowBrightness() {
+    	// override to force higher brightness in non-reading mode (to avoid black screen on some devices when brightness level set to small value)
+    	return true;
+    }
+
+    private final static int MIN_BRIGHTNESS_IN_BROWSER = 12;
     public void onUserActivity()
     {
     	if (backlightControl != null)
@@ -736,10 +742,13 @@ public class BaseActivity extends Activity implements Settings {
 		        	int dimmingAlpha = 255;
 		        	// screenBacklightBrightness is 0..100
 		        	if (screenBacklightBrightness >= 0) {
+		        		int percent = screenBacklightBrightness;
+		        		if (!allowLowBrightness() && percent < MIN_BRIGHTNESS_IN_BROWSER)
+		        			percent = MIN_BRIGHTNESS_IN_BROWSER;
 	        			float minb = MIN_BACKLIGHT_LEVEL_PERCENT / 100.0f; 
-		        		if ( screenBacklightBrightness >= 10 ) {
+		        		if ( percent >= 10 ) {
 		        			// real brightness control, no colors dimming
-		        			b = (screenBacklightBrightness - 10) / (100.0f - 10.0f); // 0..1
+		        			b = (percent - 10) / (100.0f - 10.0f); // 0..1
 		        			b = minb + b * (1-minb); // minb..1
 				        	if (b < minb) // BRIGHTNESS_OVERRIDE_OFF
 				        		b = minb;
@@ -748,7 +757,7 @@ public class BaseActivity extends Activity implements Settings {
 		        		} else {
 			        		// minimal brightness with colors dimming
 			        		b = minb;
-			        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 180 / 10; 
+			        		dimmingAlpha = 255 - (11-percent) * 180 / 10; 
 		        		}
 		        	} else {
 		        		// system
