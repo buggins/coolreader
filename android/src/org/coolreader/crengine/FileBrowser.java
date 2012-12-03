@@ -594,6 +594,11 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return;
 		}
 		
+		if (currDirectory != null && !currDirectory.isOPDSRoot() && !currDirectory.isOPDSBook() && !currDirectory.isOPDSDir()) {
+			// show empty directory before trying to download catalog
+			showDirectoryInternal(fileOrDir, itemToSelect);					
+		}
+		
 		String url = fileOrDir.getOPDSUrl();
 		final FileInfo myCurrDirectory = currDirectory;
 		if ( url!=null ) {
