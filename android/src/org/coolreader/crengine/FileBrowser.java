@@ -596,7 +596,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		
 		if (currDirectory != null && !currDirectory.isOPDSRoot() && !currDirectory.isOPDSBook() && !currDirectory.isOPDSDir()) {
 			// show empty directory before trying to download catalog
-			showDirectoryInternal(fileOrDir, itemToSelect);					
+			showDirectoryInternal(fileOrDir, itemToSelect);
+			// update last usage
+			mActivity.getDB().updateOPDSCatalogLastUsage(fileOrDir.getOPDSUrl());
+			mActivity.refreshOPDSRootDirectory();
 		}
 		
 		String url = fileOrDir.getOPDSUrl();
@@ -852,7 +855,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				mActivity.getDB().loadBooksByState(FileInfo.STATE_READING, new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
-			if (fileOrDir.isBooksByStateReadingRoot()) {
+			if (fileOrDir.isBooksByStateToReadRoot()) {
 				log.d("Updating books by state=toRead");
 				mActivity.getDB().loadBooksByState(FileInfo.STATE_TO_READ, new FileInfoLoadingCallback(fileOrDir));
 				return;
