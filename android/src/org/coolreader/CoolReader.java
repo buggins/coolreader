@@ -285,39 +285,38 @@ public class CoolReader extends BaseActivity
 			setScreenBacklightDuration(n);
         } else if ( key.equals(PROP_APP_DICTIONARY) ) {
         	setDict(value);
-            if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
-            	if (mBrowser != null)
-            		mBrowser.setSortOrder(value);
-            } else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
-            	if (mBrowser != null)
-            		mBrowser.setSimpleViewMode(flg);
-            } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
-            	if (mBrowser != null)
-            		mBrowser.setCoverPagesEnabled(flg);
-            } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
-            	Services.getScanner().setDirScanEnabled(flg);
-            } else if ( key.equals(PROP_FONT_FACE) ) {
-            	if (mBrowser != null)
-            		mBrowser.setCoverPageFontFace(value);
-            } else if ( key.equals(PROP_APP_COVERPAGE_SIZE) ) {
-            	int n = 0;
-            	try {
-            		n = Integer.parseInt(value);
-            	} catch (NumberFormatException e) {
-            		// ignore
-            	}
-            	if (n < 0)
-            		n = 0;
-            	else if (n > 2)
-            		n = 2;
-            	if (mBrowser != null)
-            		mBrowser.setCoverPageSizeOption(n);
-            } else if ( key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE) ) {
-            	if (mBrowser != null)
-            		mBrowser.setSimpleViewMode(flg);
-            } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
-            	Services.getScanner().setHideEmptyDirs(flg);
-            }
+        } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
+        	if (mBrowser != null)
+        		mBrowser.setSortOrder(value);
+        } else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
+        	if (mBrowser != null)
+        		mBrowser.setSimpleViewMode(flg);
+        } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
+        	if (mBrowser != null)
+        		mBrowser.setCoverPagesEnabled(flg);
+        } else if ( key.equals(PROP_APP_BOOK_PROPERTY_SCAN_ENABLED) ) {
+        	Services.getScanner().setDirScanEnabled(flg);
+        } else if ( key.equals(PROP_FONT_FACE) ) {
+        	if (mBrowser != null)
+        		mBrowser.setCoverPageFontFace(value);
+        } else if ( key.equals(PROP_APP_COVERPAGE_SIZE) ) {
+        	int n = 0;
+        	try {
+        		n = Integer.parseInt(value);
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}
+        	if (n < 0)
+        		n = 0;
+        	else if (n > 2)
+        		n = 2;
+        	if (mBrowser != null)
+        		mBrowser.setCoverPageSizeOption(n);
+        } else if ( key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE) ) {
+        	if (mBrowser != null)
+        		mBrowser.setSimpleViewMode(flg);
+        } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
+        	Services.getScanner().setHideEmptyDirs(flg);
         }
         //
 	}
