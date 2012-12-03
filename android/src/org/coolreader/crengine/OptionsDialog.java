@@ -127,10 +127,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		};
 	
 	int[] mStatusPositions = new int[] {
-			Settings.VIEWER_STATUS_NONE, Settings.VIEWER_STATUS_TOP, Settings.VIEWER_STATUS_BOTTOM, Settings.VIEWER_STATUS_PAGE
+			Settings.VIEWER_STATUS_NONE, 
+			//Settings.VIEWER_STATUS_TOP, Settings.VIEWER_STATUS_BOTTOM, 
+			Settings.VIEWER_STATUS_PAGE
 		};
 	int[] mStatusPositionsTitles = new int[] {
-			R.string.options_page_show_titlebar_hidden, R.string.options_page_show_titlebar_top, R.string.options_page_show_titlebar_bottom, R.string.options_page_show_titlebar_page_header
+			R.string.options_page_show_titlebar_hidden, 
+			//R.string.options_page_show_titlebar_top, R.string.options_page_show_titlebar_bottom, 
+			R.string.options_page_show_titlebar_page_header
 		};
 	
 	int[] mImageScalingModes = new int[] {

@@ -1475,6 +1475,12 @@ public class BaseActivity extends Activity implements Settings {
 	        if (DeviceInfo.DEF_FONT_SIZE != null)
 	        	fontSize = DeviceInfo.DEF_FONT_SIZE;
 
+	        int statusLocation = props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE);
+	        if (statusLocation == VIEWER_STATUS_BOTTOM || statusLocation == VIEWER_STATUS_TOP)
+	        	statusLocation = VIEWER_STATUS_PAGE;
+	        props.setInt(PROP_STATUS_LOCATION, statusLocation);
+	        
+	        
 	        fixFontSettings(props);
 	        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
