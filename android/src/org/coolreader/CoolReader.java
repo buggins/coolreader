@@ -376,10 +376,10 @@ public class CoolReader extends BaseActivity
 		processIntent(intent);
 	}
 
-	private void processIntent(Intent intent) {
+	private boolean processIntent(Intent intent) {
 		log.d("intent=" + intent);
 		if (intent == null)
-			return;
+			return false;
 		String fileToOpen = null;
 		if (intent.getAction() == Intent.ACTION_VIEW) {
 			fileToOpen = intent.getDataString();
@@ -393,8 +393,10 @@ public class CoolReader extends BaseActivity
 		if (fileToOpen != null) {
 			log.d("FILE_TO_OPEN = " + fileToOpen);
 			loadDocument(fileToOpen, null);
+			return true;
 		} else {
 			log.d("No file to open");
+			return false;
 		}
 	}
 
@@ -512,7 +514,8 @@ public class CoolReader extends BaseActivity
 		
 		if (justCreated) {
 			justCreated = false;
-			processIntent(getIntent());
+			if (!processIntent(getIntent()))
+				showLastLocation();
 		}
 		
 		
