@@ -11,6 +11,7 @@ public class BaseListView  extends ListView {
 		super(context);
         setFocusable(true);
         setFocusableInTouchMode(true);
+        setFastScrollEnabled(true);
 	}
 
 	@Override

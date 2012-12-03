@@ -3,9 +3,9 @@ package org.coolreader.crengine;
 import java.util.ArrayList;
 
 import android.database.DataSetObserver;
-import android.widget.ListAdapter;
+import android.widget.BaseAdapter;
 
-public abstract class BaseListAdapter implements ListAdapter {
+public abstract class BaseListAdapter extends BaseAdapter {
 	private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();
 	
 	public void registerDataSetObserver(DataSetObserver observer) {
