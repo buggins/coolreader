@@ -378,15 +378,23 @@ public class CoolReader extends BaseActivity
 
 	private void processIntent(Intent intent) {
 		log.d("intent=" + intent);
-		if (intent != null && intent.getExtras() != null) {
+		if (intent == null)
+			return;
+		String fileToOpen = null;
+		if (intent.getAction() == Intent.ACTION_VIEW) {
+			fileToOpen = intent.getDataString();
+			if (fileToOpen.startsWith("file://"))
+				fileToOpen = fileToOpen.substring("file://".length());
+		}
+		if (fileToOpen == null && intent.getExtras() != null) {
 			log.d("extras=" + intent.getExtras());
-			final String fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
-			if (fileToOpen != null) {
-				log.d("FILE_TO_OPEN = " + fileToOpen);
-				loadDocument(fileToOpen, null);
-			} else {
-				log.d("No file to open");
-			}
+			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
+		}
+		if (fileToOpen != null) {
+			log.d("FILE_TO_OPEN = " + fileToOpen);
+			loadDocument(fileToOpen, null);
+		} else {
+			log.d("No file to open");
 		}
 	}
 
