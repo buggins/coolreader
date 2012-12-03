@@ -4219,6 +4219,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		@Override
 		public void stop(int x, int y) {
+			if (currentAnimation == null)
+				return;
 			//if ( started ) {
 				if ( y!=-1 ) {
 					int delta = startY - y;
@@ -4583,6 +4585,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		@Override
 		public void stop(int x, int y) {
+			if (currentAnimation == null)
+				return;
 			alog.v("PageViewAnimation.stop(" + x + ", " + y + ")");
 			//if ( started ) {
 				boolean moved = false;
@@ -5902,16 +5906,24 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private static final int GC_INTERVAL = 15000; // 15 seconds
     DelayedExecutor gcTask = DelayedExecutor.createGUI("gc");
     public void scheduleGc() {
-    	gcTask.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				log.v("Initiating garbage collection");
-				System.gc();
-			}
-		}, GC_INTERVAL);
+    	try {
+	    	gcTask.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					log.v("Initiating garbage collection");
+					System.gc();
+				}
+			}, GC_INTERVAL);
+    	} catch (Exception e) {
+    		// ignore
+    	}
     }
     public void cancelGc() {
-    	gcTask.cancel();
+    	try {
+    		gcTask.cancel();
+    	} catch (Exception e) {
+    		// ignore
+    	}
     }
 
 	public ReaderView(CoolReader activity, Engine engine, Properties props) 
