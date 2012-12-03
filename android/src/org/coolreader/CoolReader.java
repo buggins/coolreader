@@ -391,6 +391,9 @@ public class CoolReader extends BaseActivity
 			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
 		}
 		if (fileToOpen != null) {
+			while (fileToOpen.indexOf("%2F") >= 0) {
+				fileToOpen = fileToOpen.replace("%2F", "/");
+			}
 			log.d("FILE_TO_OPEN = " + fileToOpen);
 			loadDocument(fileToOpen, null);
 			return true;
