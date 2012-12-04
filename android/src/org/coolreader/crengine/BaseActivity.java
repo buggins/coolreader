@@ -1717,7 +1717,7 @@ public class BaseActivity extends Activity implements Settings {
 		new DictInfo("ColorDictApi", "ColorDict new / GoldenDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 1),
 		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
 		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
-		new DictInfo("Dictan", "Dictan Dictionary", "", "", Intent.ACTION_VIEW, 2),
+		new DictInfo("Dictan", "Dictan Dictionary", "info.softex.dictan", "", Intent.ACTION_VIEW, 2),
 		new DictInfo("FreeDictionary.org", "Free Dictionary . org", "org.freedictionary.MainActivity", "org.freedictionary", Intent.ACTION_VIEW, 0),
 		new DictInfo("LingoQuizLite", "Lingo Quiz Lite", "mnm.lite.lingoquiz", "mnm.lite.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
 		new DictInfo("LingoQuiz", "Lingo Quiz", "mnm.lingoquiz", "mnm.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
