@@ -1070,8 +1070,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			super( owner, label, PROP_APP_DICTIONARY );
 			DictInfo[] dicts = BaseActivity.getDictList();
 			setDefaultValue(dicts[0].id);
-			for (DictInfo dict : dicts)
-				add( dict.id, dict.name );
+			for (DictInfo dict : dicts) {
+				boolean installed = mActivity.isPackageInstalled(dict.packageName);
+				add( dict.id, dict.name + (installed ? "" : " " + mActivity.getString(R.string.options_app_dictionary_not_installed)));
+			}
 		}
 	} 
 	

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import org.coolreader.R;
-import org.coolreader.crengine.Settings.DictInfo;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.sync.SyncServiceAccessor;
@@ -26,6 +25,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -1200,6 +1200,10 @@ public class BaseActivity extends Activity implements Settings {
 	public void setSettings(Properties settings, int delayMillis, boolean notify) {
 		mSettingsManager.setSettings(settings, delayMillis, notify);
 	}
+	
+	public void notifySettingsChanged() {
+		setSettings(mSettingsManager.get(), -1, true);
+	}
 
 	private static class SettingsManager {
 
@@ -1703,6 +1707,8 @@ public class BaseActivity extends Activity implements Settings {
 		public int getInt(String name, int defaultValue) {
 			return mSettings.getInt(name, defaultValue);
 		}
+		
+		public Properties get() { return new Properties(mSettings); }
 
 	}
 	static final DictInfo dicts[] = {
@@ -1722,4 +1728,16 @@ public class BaseActivity extends Activity implements Settings {
 		return dicts;
 	}
 
+	public boolean isPackageInstalled(String packageName) {
+        PackageManager pm = getPackageManager();
+        try
+        {
+            pm.getPackageInfo(packageName, 0); //PackageManager.GET_ACTIVITIES);
+            return true;
+        }
+        catch (PackageManager.NameNotFoundException e)
+        {
+            return false;
+        }
+    }
 }

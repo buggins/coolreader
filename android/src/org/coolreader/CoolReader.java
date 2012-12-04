@@ -512,8 +512,11 @@ public class CoolReader extends BaseActivity
 					mHomeFrame = new CRRootView(CoolReader.this);
 					Services.getCoverpageManager().addCoverpageReadyListener(mHomeFrame);
 					mHomeFrame.requestFocus();
+					
 					showRootWindow();
 					setSystemUiVisibility();
+					
+					notifySettingsChanged();
 				}
 			});
 		}

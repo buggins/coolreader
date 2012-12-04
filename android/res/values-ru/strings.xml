@@ -162,6 +162,7 @@
     <string name="options_controls_flick_brightness_none">Отключено</string>
     <string name="options_page_show_titlebar_page_number">Номер страницы</string>
     <string name="options_app_dictionary">Словарь</string>
+    <string name="options_app_dictionary_not_installed">(не установлен)</string>
     <string name="action_zoom_in">Увеличить шрифт</string>
     <string name="options_font_kerning">Кернинг шрифта</string>
     <string name="action_zoom_out">Уменьшить шрифт</string>

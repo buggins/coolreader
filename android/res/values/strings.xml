@@ -167,6 +167,7 @@
     <string name="options_controls_flick_brightness_none">Disabled</string>
     <string name="options_page_show_titlebar_page_number">Page number</string>
     <string name="options_app_dictionary">Dictionary</string>
+    <string name="options_app_dictionary_not_installed">(not installed)</string>
     <string name="action_zoom_in">Increase font size</string>
     <string name="options_font_kerning">Font kerning</string>
     <string name="action_zoom_out">Decrease font size</string>
