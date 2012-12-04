@@ -262,7 +262,7 @@ public class CRToolBar extends ViewGroup {
 //        	scroll.setLayoutParams(new LayoutParams(right, bottom));
 //        	AbsoluteLayout content = new AbsoluteLayout(activity);
         	
-        	layoutRect.set(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
+        	layoutRect.set(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING - windowDividerHeight);
     		int lineH = itemHeight; //rect.height() / lineCount;
     		int spacing = 0;
         	for (int currentLine = 0; currentLine < lineCount; currentLine++) {
@@ -299,6 +299,10 @@ public class CRToolBar extends ViewGroup {
         		}
 //        		addView(scroll);
         	}
+    		View separator = new View(activity);
+    		separator.setBackgroundResource(activity.getCurrentTheme().getBrowserStatusBackground());
+    		addView(separator);
+    		separator.layout(left, bottom - windowDividerHeight, right, bottom);
         	return;
 		}
 
@@ -379,7 +383,7 @@ public class CRToolBar extends ViewGroup {
 	        if (isMultiline) {
 		        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
 	        	int lineCount = calcLineCount(contentWidth);
-	        	int h = lineCount * itemHeight + BAR_SPACING + BAR_SPACING;
+	        	int h = lineCount * itemHeight + BAR_SPACING + BAR_SPACING + windowDividerHeight;
 //	        	if (h > contentHeight - itemHeight)
 //	        		h = contentHeight - itemHeight;
 	        	setMeasuredDimension(contentWidth, h);
