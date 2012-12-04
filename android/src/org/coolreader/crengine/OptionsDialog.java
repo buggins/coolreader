@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -248,7 +249,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public Properties getProperties() { return mProperties; }
 	public LayoutInflater getInflater() { return mInflater; }
 	
-	public static class OptionBase {
+	public abstract static class OptionBase {
 		protected View myView;
 		Properties mProperties;
 		BaseActivity mActivity;
@@ -963,7 +964,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			final ListView listView = new BaseListView(mActivity);
 			
 			
-			ListAdapter listAdapter = new ListAdapter() {
+			ListAdapter listAdapter = new BaseAdapter() {
 
 				public boolean areAllItemsEnabled() {
 					return true;
