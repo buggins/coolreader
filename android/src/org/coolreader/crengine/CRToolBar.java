@@ -42,6 +42,7 @@ public class CRToolBar extends ViewGroup {
 	private int BAR_SPACING = 4;
 	private int buttonAlpha = 0xFF;
 	private int textColor = 0x000000;
+	private int windowDividerHeight = 0; // for popup window, height of divider below buttons
 	private ImageButton overflowButton;
 	private LayoutInflater inflater;
 
@@ -96,6 +97,7 @@ public class CRToolBar extends ViewGroup {
 		this.isMultiline = multiline;
 		this.preferredItemHeight = context.getPreferredItemHeight();
 		this.inflater = LayoutInflater.from(activity);
+		this.windowDividerHeight = multiline ? 8 : 0;
 		context.getWindow().getAttributes();
 		if (context.isSmartphone()) {
 			BUTTON_SPACING = 3;
