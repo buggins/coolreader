@@ -799,11 +799,13 @@ xml:base="http://lib.ololo.cc/opds/">
 					// partially loaded
 					if ( progressShown )
 						Services.getEngine().hideProgress();
+					final ArrayList<EntryInfo> entries = new ArrayList<EntryInfo>();
+					entries.addAll(handler.entries);
 					BackgroundThread.instance().executeGUI(new Runnable() {
 						@Override
 						public void run() {
 							L.d("Parsing is partially. " + handler.entries.size() + " entries found -- updating view");
-							if (!callback.onEntries(handler.docInfo, handler.entries))
+							if (!callback.onEntries(handler.docInfo, entries))
 								cancel();
 						}
 					});
