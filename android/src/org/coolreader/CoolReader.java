@@ -100,6 +100,7 @@ public class CoolReader extends BaseActivity
     protected void onCreate(Bundle savedInstanceState)
     {
     	startServices();
+    	
 //    	Intent intent = getIntent();
 //    	if (intent != null && intent.getBooleanExtra("EXIT", false)) {
 //    		log.i("CoolReader.onCreate() - EXIT extra parameter found: exiting app");
@@ -110,8 +111,11 @@ public class CoolReader extends BaseActivity
     
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
-		
-    	isFirstStart = true;
+
+		// apply settings
+    	onSettingsChanged(settings(), null);
+
+		isFirstStart = true;
 		justCreated = true;
     	
 
