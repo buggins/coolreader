@@ -398,7 +398,8 @@ public class CoverpageManager {
 						list.add(f);
 					}
 					mReadyQueue.clear();
-					log.v("ready coverpages: " + list.size());
+					if (list.size() > 0)
+						log.v("ready coverpages: " + list.size());
 				}
 				if (list.size() > 0) {
 					for (CoverpageReadyListener listener : listeners)
