@@ -30,6 +30,7 @@ import android.util.Log;
 
 public class OPDSUtil {
 
+	public static final boolean EXTENDED_LOG = false;
     public static final int CONNECT_TIMEOUT = 60000;
     public static final int READ_TIMEOUT = 60000;
 	/*
@@ -306,10 +307,11 @@ xml:base="http://lib.ololo.cc/opds/">
 		@Override
 		public void endDocument() throws SAXException {
 			super.endDocument();
-			L.d("endDocument: " + entries.size() + " entries parsed");
-			for ( EntryInfo entry : entries ) {
-				L.d("   " + entry.title + " : " + entry.link.toString());
-			}
+			if (EXTENDED_LOG) L.d("endDocument: " + entries.size() + " entries parsed");
+			if (EXTENDED_LOG) 
+				for ( EntryInfo entry : entries ) {
+					L.d("   " + entry.title + " : " + entry.link.toString());
+				}
 		}
 
 		private String tab() {
@@ -357,7 +359,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			} else if ( "link".equals(localName) ) {
 				LinkInfo link = new LinkInfo(url, attributes);
 				if ( link.isValid() && insideFeed ) {
-					L.d(tab()+link.toString());
+					if (EXTENDED_LOG) L.d(tab()+link.toString());
 					if ( insideEntry ) {
 						if ( link.type!=null ) {
 							entryInfo.links.add(link);
@@ -439,7 +441,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			this.referer = referer;
 			this.expectedType = expectedType;
 			this.defaultFileName = defaultFileName;
-			Log.d("cr3", "Created DownloadTask for " + url);
+			L.d("Created DownloadTask for " + url);
 		}
 		private void setProgressMessage( String url, int totalSize ) {
 			progressMessage = coolReader.getString(org.coolreader.R.string.progress_downloading) + " " + url;
@@ -712,7 +714,7 @@ xml:base="http://lib.ololo.cc/opds/">
 		            int response = -1;
 					
 					response = connection.getResponseCode();
-					L.d("Response: " + response);
+					if (EXTENDED_LOG) L.d("Response: " + response);
 					if ( response!=200 ) {
 						onError("Error " + response);
 						return;
@@ -725,9 +727,9 @@ xml:base="http://lib.ololo.cc/opds/">
 					String contentEncoding = connection.getContentEncoding();
 					int contentLen = connection.getContentLength();
 					//connection.getC
-					L.d("Entity content length: " + contentLen);
-					L.d("Entity content type: " + contentType);
-					L.d("Entity content encoding: " + contentEncoding);
+					if (EXTENDED_LOG) L.d("Entity content length: " + contentLen);
+					if (EXTENDED_LOG) L.d("Entity content type: " + contentType);
+					if (EXTENDED_LOG) L.d("Entity content encoding: " + contentEncoding);
 					setProgressMessage( url.toString(), contentLen );
 					InputStream is = connection.getInputStream();
 					if (delayedProgress != null)
@@ -750,7 +752,7 @@ xml:base="http://lib.ololo.cc/opds/">
 							contentType = "application/atom+xml"; // override type
 					}
 					if ( contentType.startsWith("application/atom+xml") ) {
-						L.d("Parsing feed");
+						if (EXTENDED_LOG) L.d("Parsing feed");
 						parseFeed( is );
 						itemsLoadedPartially = true;
 						if (handler.docInfo.nextLink!=null && handler.docInfo.nextLink.type.startsWith("application/atom+xml;profile=opds-catalog")) {
