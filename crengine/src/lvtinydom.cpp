@@ -981,6 +981,7 @@ bool CacheFile::open( lString16 filename )
         CRLog::error( "CacheFile::open: cannot open file %s", LCSTR(filename));
         return false;
     }
+    crSetFileToRemoveOnFatalError(LCSTR(filename));
     return open(stream);
 }
 
@@ -1012,6 +1013,7 @@ bool CacheFile::create( lString16 filename )
         CRLog::error( "CacheFile::create: cannot create file %s", LCSTR(filename));
         return false;
     }
+    crSetFileToRemoveOnFatalError(LCSTR(filename));
     return create(stream);
 }
 
