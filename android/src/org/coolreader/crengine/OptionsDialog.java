@@ -1310,7 +1310,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			super(context, false);
 			setFocusable(true);
 			setFocusableInTouchMode(true);
-			mAdapter = new ListAdapter() {
+			mAdapter = new BaseAdapter() {
 				public boolean areAllItemsEnabled() {
 					return false;
 				}
