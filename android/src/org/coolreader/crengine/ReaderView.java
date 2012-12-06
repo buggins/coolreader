@@ -4410,7 +4410,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currentAnimation = this;
 			divPaint = new Paint();
 			divPaint.setStyle(Paint.Style.FILL);
-			divPaint.setColor(Color.argb(128, 128, 128, 128));
+			divPaint.setColor(mActivity.isNightMode() ? Color.argb(96, 64, 64, 64) : Color.argb(128, 128, 128, 128));
 			final int numPaints = 16;
 			shadePaints = new Paint[numPaints];
 			hilitePaints = new Paint[numPaints];
@@ -4421,7 +4421,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				shadePaints[i].setStyle(Paint.Style.FILL);
 				if ( mActivity.isNightMode() ) {
 					shadePaints[i].setColor(Color.argb((i+1)*96 / numPaints, 0, 0, 0));
-					hilitePaints[i].setColor(Color.argb((i+1)*96 / numPaints, 128, 128, 128));
+					hilitePaints[i].setColor(Color.argb((i+1)*96 / numPaints, 64, 64, 64));
 				} else {
 					shadePaints[i].setColor(Color.argb((i+1)*96 / numPaints, 0, 0, 0));
 					hilitePaints[i].setColor(Color.argb((i+1)*96 / numPaints, 255, 255, 255));
