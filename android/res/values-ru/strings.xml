@@ -477,4 +477,5 @@
     <string name="online_store_purchase_success">Книга успешно куплена.</string>
     <string name="online_store_purchase_new_balance">Остаток на счете:</string>
     <string name="options_app_plugins">Плагины</string>
+    <string name="note1_reader_menu">ВНИМАНИЕ! В приложениях для Android 3 и 4 экранная кнопка меню недоступна. Без панели инструментов в режиме чтения меню можно вызвать коротким нажатием в центре экрана. Длинное нажатие открывает настройки. Включить панель инструментов для режима чтения?</string>
 </resources>

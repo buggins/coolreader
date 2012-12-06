@@ -497,4 +497,5 @@
     <string name="online_store_purchase_success">Book has been purchased.</string>
     <string name="online_store_purchase_new_balance">New balance:</string>
     <string name="options_app_plugins">Plugins</string>
+    <string name="note1_reader_menu">WARNING: No more legacy Menu soft button available under Android 3 and 4. Without toolbar, in reading mode you can open menu by tapping at center of screen. Long tap at center of screen shows settings dialog. Turn on toolbar in reading mode?</string>
 </resources>

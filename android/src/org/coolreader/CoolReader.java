@@ -524,6 +524,8 @@ public class CoolReader extends BaseActivity
 					setSystemUiVisibility();
 					
 					notifySettingsChanged();
+					
+					showNotifications();
 				}
 			});
 		}
@@ -1804,6 +1806,49 @@ public class CoolReader extends BaseActivity
 		} catch (Exception e) {
 			// ignore
 		}
+	}
+	
+	int CURRENT_NOTIFICATOIN_VERSION = 1;
+	public void setLastNotificationId(int notificationId) {
+		try {
+	        SharedPreferences.Editor editor = getPrefs().edit();
+	        editor.putInt(PREF_LAST_NOTIFICATION, notificationId);
+	        editor.commit();
+		} catch (Exception e) {
+			// ignore
+		}
+	}
+	
+	public int getLastNotificationId() {
+        int res = getPrefs().getInt(PREF_LAST_NOTIFICATION, 0);
+        log.i("getLastNotification() = " + res);
+        return res;
+	}
+	
+	
+	public void showNotifications() {
+		int lastNoticeId = getLastNotificationId();
+		if (lastNoticeId >= CURRENT_NOTIFICATOIN_VERSION)
+			return;
+		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB)
+			if (lastNoticeId <= 1)
+				notification1();
+		setLastNotificationId(CURRENT_NOTIFICATOIN_VERSION);
+	}
+	
+	public void notification1()
+	{
+		showNotice(R.string.note1_reader_menu, new Runnable() {
+			@Override
+			public void run() {
+				setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_SHORT_SIDE), false);
+			}
+		}, new Runnable() {
+			@Override
+			public void run() {
+				setSetting(PROP_TOOLBAR_LOCATION, String.valueOf(VIEWER_TOOLBAR_NONE), false);
+			}
+		});
 	}
 	
 	/**
