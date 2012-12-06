@@ -7,11 +7,11 @@ import android.view.View;
 import android.widget.ListView;
 
 public class BaseListView  extends ListView {
-	public BaseListView(Context context) {
+	public BaseListView(Context context, boolean fastScrollEnabled) {
 		super(context);
         setFocusable(true);
         setFocusableInTouchMode(true);
-        setFastScrollEnabled(true);
+        setFastScrollEnabled(fastScrollEnabled);
 	}
 
 	@Override

@@ -961,7 +961,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			final BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 
-			final ListView listView = new BaseListView(mActivity);
+			final ListView listView = new BaseListView(mActivity, false);
 			
 			
 			ListAdapter listAdapter = new BaseAdapter() {
@@ -1307,7 +1307,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 		public OptionsListView( Context context )
 		{
-			super(context);
+			super(context, false);
 			setFocusable(true);
 			setFocusableInTouchMode(true);
 			mAdapter = new ListAdapter() {

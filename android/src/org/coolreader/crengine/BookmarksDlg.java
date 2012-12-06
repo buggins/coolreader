@@ -201,7 +201,7 @@ public class BookmarksDlg  extends BaseDialog {
 			setAdapter(mAdapter);
 		}
 		public BookmarkList( Context context, boolean shortcutMode ) {
-			super(context);
+			super(context, true);
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setShortcutMode(shortcutMode);
 			setLongClickable(true);

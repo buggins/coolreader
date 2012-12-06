@@ -59,7 +59,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	private class FileBrowserListView extends BaseListView {
 
 		public FileBrowserListView(Context context) {
-			super(context);
+			super(context, true);
 	        setLongClickable(true);
 	        //registerForContextMenu(this);
 	        //final FileBrowser _this = this;
