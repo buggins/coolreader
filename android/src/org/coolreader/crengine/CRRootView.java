@@ -60,8 +60,14 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 	
 	
 	
+	private long menuDownTs = 0;
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_MENU) {
+			menuDownTs = Utils.timeStamp();
+			return true;
+		}
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 			if (mActivity.isBookOpened()) {
 				mActivity.showReader();
@@ -75,7 +81,14 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
+		if (keyCode == KeyEvent.KEYCODE_MENU) {
+			long duration = Utils.timeInterval(menuDownTs);
+			if (duration > 700 && duration < 5000)
+				mActivity.showBrowserOptionsDialog();
+			else
+				showMenu();
+			return true;
+		}
 		return super.onKeyUp(keyCode, event);
 	}
 

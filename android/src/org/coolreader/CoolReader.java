@@ -35,6 +35,7 @@ import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
+import org.coolreader.crengine.Utils;
 import org.coolreader.donations.BillingService;
 import org.coolreader.donations.BillingService.RequestPurchase;
 import org.coolreader.donations.BillingService.RestoreTransactions;
@@ -58,6 +59,7 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -1841,6 +1843,8 @@ public class CoolReader extends BaseActivity
 		// TODO: support other locations as well
 		showRootWindow();
 	}
+
+
 	
 }
 
