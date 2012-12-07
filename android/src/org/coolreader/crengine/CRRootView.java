@@ -221,13 +221,17 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 	}
 
 	public void refreshOnlineCatalogs() {
-		if (mActivity.getDB() != null)
-			mActivity.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
-				@Override
-				public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
-					updateOnlineCatalogs(catalogs);
-				}
-			});
+		mActivity.waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				mActivity.getDB().loadOPDSCatalogs(new OPDSCatalogsLoadingCallback() {
+					@Override
+					public void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs) {
+						updateOnlineCatalogs(catalogs);
+					}
+				});
+			}
+		});
 	}
 	
 	ArrayList<FileInfo> lastCatalogs = new ArrayList<FileInfo>();
@@ -354,9 +358,11 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			ImageView icon = (ImageView)view.findViewById(R.id.item_icon);
 			TextView label = (TextView)view.findViewById(R.id.item_name);
 			if (i == dirs.size() - 1)
-				icon.setImageResource(R.drawable.cr3_browser_folder_user);
+				icon.setImageResource(R.drawable.folder_bookmark);
+			else if (label.getText().toString().indexOf("sd") >= 0)
+				icon.setImageResource(R.drawable.media_flash_sd_mmc);
 			else
-				icon.setImageResource(R.drawable.cr3_browser_folder_database);
+				icon.setImageResource(R.drawable.folder_blue);
 			label.setText(item.pathname);
 			label.setMaxWidth(coverWidth * 25 / 10);
 			view.setOnClickListener(new OnClickListener() {
