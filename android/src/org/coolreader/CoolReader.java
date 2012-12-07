@@ -943,6 +943,7 @@ public class CoolReader extends BaseActivity
 				// update recent books
 				mHomeFrame.refreshRecentBooks();
 				setLastLocationRoot();
+				mCurrentFrame.invalidate();
 			}
 			if (mCurrentFrame == mBrowserFrame) {
 				// update recent books directory
@@ -1021,15 +1022,15 @@ public class CoolReader extends BaseActivity
 					LayoutInflater inflater = LayoutInflater.from(CoolReader.this);// activity.getLayoutInflater();
 					
 					mBrowserTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
-					setTitle("Cool Reader browser window");
+					setBrowserTitle("Cool Reader browser window");
 
 			        mBrowserToolBar = new CRToolBar(CoolReader.this, ReaderAction.createList(
 			        		ReaderAction.FILE_BROWSER_UP, 
 			        		ReaderAction.CURRENT_BOOK,
-			        		ReaderAction.CURRENT_BOOK_DIRECTORY,
-			        		ReaderAction.FILE_BROWSER_ROOT, 
 			        		ReaderAction.OPTIONS,
+			        		ReaderAction.FILE_BROWSER_ROOT, 
 			        		ReaderAction.RECENT_BOOKS,
+			        		ReaderAction.CURRENT_BOOK_DIRECTORY,
 			        		ReaderAction.OPDS_CATALOGS,
 			        		ReaderAction.SEARCH,
 			        		ReaderAction.SCAN_DIRECTORY_RECURSIVE,
@@ -1181,12 +1182,12 @@ public class CoolReader extends BaseActivity
 
 	
 	
-	private String browserTitle = "";
 	public void setBrowserTitle(String title) {
-		this.browserTitle = title;
-		if (mBrowserTitleBar != null)
-			((TextView)mBrowserTitleBar.findViewById(R.id.title)).setText(title);
+		if (mBrowserFrame != null)
+			mBrowserFrame.setBrowserTitle(title);
 	}
+	
+
 	
 	// Dictionary support
 	
