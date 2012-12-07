@@ -134,17 +134,17 @@
           android:singleLine="true"
           android:maxLines="1"
           android:layout_marginTop="2dip"
-          android:layout_marginBottom="2dip"
+          android:layout_marginBottom="0dip"
           android:layout_marginLeft="8dip"
           android:layout_marginRight="8dip"
-          android:text="@string/mi_book_recent_books" 
+          android:text="@string/root_item_recent" 
           android:layout_width="fill_parent"
           android:layout_height="wrap_content"/>
 
     <HorizontalScrollView
 	      android:layout_marginLeft="4dip"
-	      android:layout_marginRight="4dip"
-	      android:layout_marginTop="6dip"
+	      android:layout_marginRight="8dip"
+	      android:layout_marginTop="2dip"
 	      android:layout_marginBottom="4dip"
         android:scrollbars="none"
         android:layout_width="fill_parent"
@@ -175,7 +175,7 @@
           android:singleLine="true"
           android:maxLines="1"
           android:layout_marginTop="2dip"
-          android:layout_marginBottom="2dip"
+          android:layout_marginBottom="0dip"
           android:layout_marginLeft="8dip"
           android:layout_marginRight="8dip"
           android:text="@string/root_item_filesystem" 
@@ -183,7 +183,10 @@
           android:layout_height="wrap_content"/>
     
     <HorizontalScrollView
-        android:layout_margin="7dip"
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
         android:layout_width="fill_parent"
         android:scrollbars="none"
         android:layout_height="wrap_content"
@@ -207,7 +210,7 @@
           android:singleLine="true"
           android:maxLines="1"
           android:layout_marginTop="2dip"
-          android:layout_marginBottom="2dip"
+          android:layout_marginBottom="0dip"
           android:layout_marginLeft="8dip"
           android:layout_marginRight="8dip"
           android:text="@string/root_item_library" 
@@ -215,7 +218,10 @@
           android:layout_height="wrap_content"/>
     
     <HorizontalScrollView
-        android:layout_margin="7dip"
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
         android:layout_width="fill_parent"
         android:scrollbars="none"
         android:layout_height="wrap_content"
@@ -244,7 +250,7 @@
           android:singleLine="true"
           android:maxLines="1"
           android:layout_marginTop="2dip"
-          android:layout_marginBottom="2dip"
+          android:layout_marginBottom="0dip"
           android:layout_marginLeft="8dip"
           android:layout_marginRight="8dip"
           android:text="@string/root_item_online_catalogs" 
@@ -252,7 +258,10 @@
           android:layout_height="wrap_content"/>
 
 	<HorizontalScrollView
-        android:layout_margin="7dip"
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
         android:scrollbars="none"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
