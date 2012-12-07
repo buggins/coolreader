@@ -420,6 +420,8 @@ public class CoolReader extends BaseActivity
 	@Override
 	protected void onPause() {
 		super.onPause();
+		if (mReaderView != null)
+			mReaderView.onAppPause();
 		Services.getCoverpageManager().removeCoverpageReadyListener(mHomeFrame);
 	}
 	
@@ -1056,9 +1058,7 @@ public class CoolReader extends BaseActivity
 								mBrowser.showFindBookDialog();
 								break;
 							case DCMD_CURRENT_BOOK:
-								BookInfo bi = Services.getHistory().getLastBook();
-								if (bi != null)
-									loadDocument(bi.getFileInfo());
+								showCurrentBook();
 								break;
 							case DCMD_OPTIONS_DIALOG:
 								showBrowserOptionsDialog();
@@ -1327,9 +1327,6 @@ public class CoolReader extends BaseActivity
 		}
 	}
 
-	
-	
-	
 	public void showAboutDialog() {
 		AboutDialog dlg = new AboutDialog(this);
 		dlg.show();
@@ -1885,6 +1882,12 @@ public class CoolReader extends BaseActivity
 		}
 		// TODO: support other locations as well
 		showRootWindow();
+	}
+
+	public void showCurrentBook() {
+		BookInfo bi = Services.getHistory().getLastBook();
+		if (bi != null)
+			loadDocument(bi.getFileInfo());
 	}
 	
 }

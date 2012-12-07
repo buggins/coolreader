@@ -142,8 +142,8 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		
 		setView( tabs );
 
-		// 50% chance to show Donations tab
-		if (rnd.nextBoolean())
+		// 25% chance to show Donations tab
+		if ((rnd.nextInt() & 3) == 3)
 			tabs.setCurrentTab(2);
 		
 	}

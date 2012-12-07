@@ -575,6 +575,9 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 	public void showMenu() {
 		ReaderAction[] actions = {
+			ReaderAction.ABOUT,
+			ReaderAction.CURRENT_BOOK,
+			ReaderAction.RECENT_BOOKS,
 			ReaderAction.USER_MANUAL,
 			ReaderAction.OPTIONS,
 			ReaderAction.EXIT,	
@@ -584,6 +587,15 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			public boolean onActionSelected(ReaderAction item) {
 				if (item == ReaderAction.EXIT) {
 					mActivity.finish();
+					return true;
+				} else if (item == ReaderAction.ABOUT) {
+					mActivity.showAboutDialog();
+					return true;
+				} else if (item == ReaderAction.RECENT_BOOKS) {
+					mActivity.showRecentBooks();
+					return true;
+				} else if (item == ReaderAction.CURRENT_BOOK) {
+					mActivity.showCurrentBook();
 					return true;
 				} else if (item == ReaderAction.USER_MANUAL) {
 					mActivity.showManual();
