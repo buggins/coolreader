@@ -391,7 +391,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	public void showRecentBooks()
 	{
-		showDirectory(null, null);
+		showDirectory(mScanner.getRecentDir(), null);
 	}
 
 	public boolean isBookShownInRecentList(FileInfo book) {

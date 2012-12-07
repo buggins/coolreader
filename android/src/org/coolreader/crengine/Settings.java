@@ -52,7 +52,7 @@ public interface Settings {
 //    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
 
     public static final String PROP_STATUS_LOCATION         ="viewer.status.location";
-    public static final String PROP_TOOLBAR_LOCATION        ="viewer.toolbar.location";
+    public static final String PROP_TOOLBAR_LOCATION        ="viewer.toolbar.location2";
     public static final String PROP_TOOLBAR_HIDE_IN_FULLSCREEN="viewer.toolbar.fullscreen.hide";
     
     public static final String PROP_STATUS_LINE             ="window.status.line";

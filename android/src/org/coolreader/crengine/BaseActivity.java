@@ -243,6 +243,7 @@ public class BaseActivity extends Activity implements Settings {
 	protected static String PREF_FILE = "CR3LastBook";
 	protected static String PREF_LAST_BOOK = "LastBook";
 	protected static String PREF_LAST_LOCATION = "LastLocation";
+	protected static String PREF_LAST_NOTIFICATION = "LastNoticeNumber";
 	
 	@Override
 	protected void onResume() {
@@ -1099,7 +1100,16 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	
+	public void showNotice(int questionResourceId, final Runnable action, final Runnable cancelAction) {
+		NoticeDialog dlg = new NoticeDialog(this, action, cancelAction);
+		dlg.show();
+	}
+
 	public void askConfirmation(int questionResourceId, final Runnable action) {
+		askConfirmation(questionResourceId, action, null);
+	}
+
+	public void askConfirmation(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
 		dlg.setTitle(questionResourceId);
 		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
@@ -1109,7 +1119,8 @@ public class BaseActivity extends Activity implements Settings {
 		});
 		dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
 			public void onClick(DialogInterface arg0, int arg1) {
-				// do nothing
+				if (cancelAction != null)
+					cancelAction.run();
 			}
 		});
 		dlg.show();
@@ -1561,7 +1572,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 			
 			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_PAGE);
-			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, isSmartphone ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
+			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, DeviceInfo.getSDKLevel() < DeviceInfo.HONEYCOMB ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");
 
 			

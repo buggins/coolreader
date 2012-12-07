@@ -129,11 +129,22 @@
 	    android:text="@string/dir_recent_books" 
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"/-->
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_recent" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
 
     <HorizontalScrollView
 	      android:layout_marginLeft="4dip"
-	      android:layout_marginRight="4dip"
-	      android:layout_marginTop="6dip"
+	      android:layout_marginRight="8dip"
+	      android:layout_marginTop="2dip"
 	      android:layout_marginBottom="4dip"
         android:scrollbars="none"
         android:layout_width="fill_parent"
@@ -159,8 +170,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/-->
     
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_filesystem" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
+    
     <HorizontalScrollView
-        android:layout_margin="7dip"
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
         android:layout_width="fill_parent"
         android:scrollbars="none"
         android:layout_height="wrap_content"
@@ -178,9 +204,24 @@
     </HorizontalScrollView>
 
     <View android:id="@+id/delimiter3" style="@style/RootDelimiter"/>
+
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_library" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
     
     <HorizontalScrollView
-        android:layout_margin="7dip"
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
         android:layout_width="fill_parent"
         android:scrollbars="none"
         android:layout_height="wrap_content"
@@ -204,9 +245,23 @@
         android:text="Online Catalogs" 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/-->
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_online_catalogs" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
 
 	<HorizontalScrollView
-        android:layout_margin="7dip"
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
         android:scrollbars="none"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"

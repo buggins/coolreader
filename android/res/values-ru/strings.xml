@@ -477,4 +477,9 @@
     <string name="online_store_purchase_success">Книга успешно куплена.</string>
     <string name="online_store_purchase_new_balance">Остаток на счете:</string>
     <string name="options_app_plugins">Плагины</string>
+    <string name="note1_reader_menu">ВНИМАНИЕ! В новой версии для поддержки полноэкранного режима и гашения экранных кнопок под Android 3 и 4 в приложении указана целевая платформа Android 4. В этом режиме экранная кнопка меню недоступна. Без панели инструментов в режиме чтения меню можно вызвать коротким нажатием в центре экрана. Длинное нажатие открывает настройки. Включить панель инструментов для режима чтения? (Этот выбор всегда можно изменить в Настройках/Страница/Панель инструментов)</string>
+    <string name="root_item_recent">Последние открытые книги</string>
+    <string name="root_item_library">Библиотека</string>
+    <string name="root_item_filesystem">Открыть книгу с файловой системы</string>
+    <string name="root_item_online_catalogs">Сетевые библиотеки</string>
 </resources>
