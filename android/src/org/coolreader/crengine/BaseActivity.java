@@ -1430,10 +1430,14 @@ public class BaseActivity extends Activity implements Settings {
 	        }
 	        // default tap zone actions
 	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
-	        	if ( ka.longPress )
-	        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone, ka.action.id);
-	        	else
-	        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
+	        	String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
+	        	
+	        	if (ka.zone == 5 && ((DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) || (DeviceInfo.EINK_SCREEN))) {
+	        		// force assignment of central tap zone
+	        		props.setProperty(paramName, ka.action.id);
+	        	} else {
+	        		props.applyDefault(paramName, ka.action.id);
+	        	}
 	        }
 	        
 	        if ( DeviceInfo.EINK_SCREEN ) {
