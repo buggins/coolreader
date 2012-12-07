@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.1.2-18" android:versionCode="838">
+      android:versionName="3.1.2-19" android:versionCode="839">
     <supports-screens
         android:xlargeScreens="true"
         android:largeScreens="true"
@@ -26,7 +26,7 @@
     <uses-permission android:name="com.android.vending.BILLING" />
     <application android:label="@string/app_name"
         android:icon="@drawable/cr3_logo"
-        android:debuggable="true"
+        android:debuggable="false"
         android:allowClearUserData="true"
         android:process="org.coolreader"
         >
