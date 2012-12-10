@@ -11,6 +11,7 @@ public class DeviceInfo {
 	public final static String MANUFACTURER;
 	public final static String MODEL;
 	public final static String DEVICE;
+	public final static String PRODUCT;
 	public final static int MIN_SCREEN_BRIGHTNESS_PERCENT;
 	public final static boolean SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	public final static boolean EINK_SCREEN;
@@ -88,12 +89,13 @@ public class DeviceInfo {
 		MANUFACTURER = getBuildField("MANUFACTURER");
 		MODEL = getBuildField("MODEL");
 		DEVICE = getBuildField("DEVICE");
+		PRODUCT = getBuildField("PRODUCT");
 		SAMSUNG_BUTTONS_HIGHLIGHT_PATCH = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
 		        (MODEL.contentEquals("GT-S5830") || MODEL.contentEquals("GT-S5660")); // More models?
 		AMOLED_SCREEN = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
         		(MODEL.toLowerCase().startsWith("gt-i")); // AMOLED screens: GT-IXXXX
 		EINK_NOOK = MANUFACTURER.toLowerCase().contentEquals("barnesandnoble") && 
-				(MODEL.contentEquals("NOOK") || MODEL.contentEquals("BNRV350") || MODEL.contentEquals("BNRV300")) &&
+				(PRODUCT.contentEquals("NOOK") || MODEL.contentEquals("NOOK") || MODEL.contentEquals("BNRV350") || MODEL.contentEquals("BNRV300")) &&
 				DEVICE.toLowerCase().contentEquals("zoom2");
 		EINK_NOOK_120 = EINK_NOOK && MODEL.contentEquals("BNRV350");
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.startsWith("PRS-T");
@@ -134,7 +136,7 @@ public class DeviceInfo {
 	
 	
 	static {
-		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE);
+		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE + ", PRODUCT=" + PRODUCT);
 		Log.i("cr3", "DeviceInfo: MIN_SCREEN_BRIGHTNESS_PERCENT=" + MIN_SCREEN_BRIGHTNESS_PERCENT + ", EINK_SCREEN=" + EINK_SCREEN + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
 	}
 
