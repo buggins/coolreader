@@ -1800,11 +1800,33 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					}
 					int percent = (int)(10000 * (long)prop.y / prop.fullHeight);
 					buf.append("" + (percent/100) + "." + (percent%100) + "%" );
-					String chapter = bm.getTitleText();
-					if (chapter!=null && chapter.length()>100)
-						chapter = chapter.substring(0, 100) + "...";
-					if (chapter != null && chapter.length() > 0)
-			 			buf.append("\n" + chapter);
+
+ 					// Show chapter details if book has more than one chapter
+ 					TOCItem toc = doc.getTOC();
+ 					if ( toc!=null && toc.getChildCount() > 1) {
+ 						TOCItem chapter = toc.getChapterAtPage(prop.pageNumber);
+ 
+ 						String chapterName = chapter.getName();
+ 						if (chapterName!=null && chapterName.length()>30)
+ 							chapterName = chapterName.substring(0, 30) + "...";
+ 
+ 						TOCItem nextChapter = chapter.getNextChapter();
+ 						int iChapterEnd = (nextChapter != null) ? nextChapter.getPage() : prop.pageCount;
+ 						
+ 						String chapterPos = null;
+ 						if ( prop.pageMode!=0 ) {
+ 							int iChapterStart = chapter.getPage();
+ 							int iChapterLen = iChapterEnd - iChapterStart;
+ 							int iChapterPage = prop.pageNumber - iChapterStart + 1;
+ 
+ 							chapterPos = "  (" + iChapterPage + " / " + iChapterLen + ")";
+ 						}
+ 						
+ 						if (chapterName != null && chapterName.length() > 0)
+ 				 			buf.append("\n" + chapterName);
+ 						if (chapterPos != null && chapterPos.length() > 0)
+ 							buf.append(chapterPos);
+ 					}
 				}
 			}
 			public void done() {

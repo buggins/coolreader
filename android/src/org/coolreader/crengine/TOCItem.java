@@ -65,5 +65,32 @@ public class TOCItem {
 	public String getPath() {
 		return mPath;
 	}
-	
+	public TOCItem getChapterAtPage(int page)
+	{
+		if ( this.getChildCount() > 1) {
+
+			TOCItem curChapter = null;
+			for ( int i=this.getChildCount()-1; i>=0; i-- ) {
+				curChapter = this.getChild(i);
+				if ( curChapter.getPage()<=page )
+					if (curChapter.getChildCount() > 1)
+						return curChapter.getChapterAtPage(page);
+					else
+						return curChapter;
+			}
+		}
+		return this;
+	}
+	public TOCItem getNextChapter()
+	{
+		if (this.getParent() == null)
+			return null;
+
+		TOCItem parent = this.getParent();
+		int pos = parent.mChildren.indexOf(this);
+		if (pos < parent.getChildCount()-1)
+			return parent.getChild(pos+1);
+		
+		return parent.getNextChapter();
+	}
 }
