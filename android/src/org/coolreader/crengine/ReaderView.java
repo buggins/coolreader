@@ -467,6 +467,54 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //	boolean VOLUME_KEYS_ZOOM = false;
 	
 	//private boolean backKeyDownHere = false;
+
+
+	private long statStartTime;
+	private long statTimeElapsed;
+
+	public void startStats() {
+		if (statStartTime == 0) {
+			statStartTime = android.os.SystemClock.uptimeMillis();
+			log.d("stats: started reading");
+		}
+	}
+
+	public void stopStats() {
+		if (statStartTime > 0) {
+			statTimeElapsed += android.os.SystemClock.uptimeMillis() - statStartTime;
+			statStartTime = 0;
+			log.d("stats: stopped reading");
+		}
+	}
+
+	public long getTimeElapsed() {
+		if (statStartTime > 0)
+			return statTimeElapsed + android.os.SystemClock.uptimeMillis() - statStartTime;
+		else
+			return statTimeElapsed++;
+	}
+
+	public void setTimeElapsed(long timeElapsed) {
+		statTimeElapsed = timeElapsed;
+	}
+
+	@Override
+	public void onWindowVisibilityChanged(int visibility) {
+		if (visibility == VISIBLE)
+			startStats();
+		else
+			stopStats();
+		super.onWindowVisibilityChanged(visibility);
+	}
+	 	
+	@Override
+	public void onWindowFocusChanged(boolean hasWindowFocus) {
+		if (hasWindowFocus)
+			startStats();
+		else
+			stopStats();
+		super.onWindowFocusChanged(hasWindowFocus);
+	}
 	
 	@Override
 	protected void onFocusChanged(boolean gainFocus, int direction,
@@ -4987,7 +5035,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    		pos = mBookInfo.getLastPosition().getStartPos();
 			log.v("LoadDocumentTask : book info " + mBookInfo);
 			log.v("LoadDocumentTask : last position = " + pos);
-			
+			if (mBookInfo != null && mBookInfo.getLastPosition() != null)
+			    setTimeElapsed(mBookInfo.getLastPosition().getTimeElapsed());			
     		//mBitmap = null;
 	        //showProgress(1000, R.string.progress_loading);
 	        //draw();
@@ -5056,7 +5105,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureGUI();
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
-				Services.getHistory().updateBookAccess(mBookInfo);
+				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
 				if (mActivity.getDB() != null)
 					mActivity.getDB().saveBookInfo(mBookInfo);
 		        if (coverPageBytes!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
@@ -5401,7 +5450,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    	if (delayMillis <= 1) {
 						if (bookInfo != null && mActivity.getDB() != null) {
 							log.v("saving last immediately");
-							Services.getHistory().updateBookAccess(bookInfo);
+							Services.getHistory().updateBookAccess(bookInfo, getTimeElapsed());
 							mActivity.getDB().saveBookInfo(bookInfo);
 							mActivity.getDB().flush();
 						}
@@ -5413,7 +5462,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									if (bookInfo != null) {
 										log.v("saving last position");
 										if (Services.getHistory() != null) {
-											Services.getHistory().updateBookAccess(bookInfo);
+											Services.getHistory().updateBookAccess(bookInfo, getTimeElapsed());
 											if (mActivity.getDB() != null)
 												mActivity.getDB().saveBookInfo(bookInfo);
 										}
@@ -5483,7 +5532,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (isBookLoaded() && mBookInfo != null) {
 			log.v("saving last immediately");
 			log.d("bookmark count 1 = " + mBookInfo.getBookmarkCount());
-			Services.getHistory().updateBookAccess(mBookInfo);
+			Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
 			log.d("bookmark count 2 = " + mBookInfo.getBookmarkCount());
 			mActivity.getDB().saveBookInfo(mBookInfo);
 			log.d("bookmark count 3 = " + mBookInfo.getBookmarkCount());

@@ -80,10 +80,11 @@ public class History extends FileInfoChangeSource {
 		updateRecentDir();
 	}
 	
-	public void updateBookAccess(BookInfo bookInfo)
+	public void updateBookAccess(BookInfo bookInfo, long timeElapsed)
 	{
 		Log.v("cr3", "History.updateBookAccess() for " + bookInfo.getFileInfo().getPathName());
 		bookInfo.updateAccess();
+		bookInfo.updateTimeElapsed(timeElapsed);
 		int index = findBookInfo(bookInfo.getFileInfo());
 		if ( index>=0 ) {
 			BookInfo info = mBooks.get(index);
