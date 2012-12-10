@@ -1454,7 +1454,7 @@ public class BaseActivity extends Activity implements Settings {
 	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
 	        	String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
 	        	
-	        	if (ka.zone == 5 && !activity.hasHardwareMenuKey && !menuTapActionFound) {
+	        	if (ka.zone == 5 && !activity.hasHardwareMenuKey() && !menuTapActionFound) {
 	        		// force assignment of central tap zone
 	        		props.setProperty(paramName, ka.action.id);
 	        	} else {
