@@ -152,9 +152,8 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			setBookInfoItem(mView, R.id.lbl_book_title, currentBook.getFileInfo().title);
 			setBookInfoItem(mView, R.id.lbl_book_series, Utils.formatSeries(item.series, item.seriesNumber));
 			String state = Utils.formatReadingState(mActivity, item);
-			state = state + " " + Utils.formatFileInfo(item) + " ";
-			state = state + " " + (Services.getHistory()!=null ? Utils.formatLastPosition(Services.getHistory().getLastPos(item)) : "");
-			setBookInfoItem(mView, R.id.lbl_book_info, state);
+			state = state + " " + Utils.formatFileInfo(mActivity, item) + " ";
+			state = state + " " + Utils.formatLastPosition(mActivity, Services.getHistory().getLastPos(item));			setBookInfoItem(mView, R.id.lbl_book_info, state);
 		} else {
 			log.w("No current book in history");
 			cover.setImageDrawable(null);

@@ -8,10 +8,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.coolreader.R;
@@ -23,6 +21,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 
@@ -358,17 +357,17 @@ public class Utils {
 		return String.valueOf(percent/100) + "." + String.valueOf(percent/10%10) + "%";
 	}
 
-	public static String formatTime( long timeStamp )
+	public static String formatTime( Activity activity, long timeStamp )
 	{
 		if ( timeStamp<5000*60*60*24*1000 )
 			return "";
 		TimeZone tz = java.util.TimeZone.getDefault();
 		Calendar c = Calendar.getInstance(tz);
 		c.setTimeInMillis(timeStamp);
-		return timeFormat().format(c.getTime());
+		return DateFormat.getTimeFormat(activity.getApplicationContext()).format(c.getTime());
 	}
 	
-	public static String formatDate( long timeStamp )
+	public static String formatDate( Activity activity, long timeStamp )
 	{
 		if ( timeStamp<5000*60*60*24*1000 )
 			return "";
@@ -381,27 +380,25 @@ public class Utils {
 		if ( c.get(Calendar.YEAR)==now.get(Calendar.YEAR)
 				&& c.get(Calendar.MONTH)==now.get(Calendar.MONTH)
 				&& c.get(Calendar.DAY_OF_MONTH)==now.get(Calendar.DAY_OF_MONTH)) {
-			timeFormat().setTimeZone(tz);
-			return timeFormat().format(c.getTime());
+			return formatTime(activity, timeStamp);
 		} else {
-			dateFormat().setTimeZone(tz);
-			return dateFormat().format(c.getTime());
+			return DateFormat.getDateFormat(activity.getApplicationContext()).format(c.getTime());
 		}
 	}
 	
-	static private ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>(); 
-	static private ThreadLocal<SimpleDateFormat> timeFormatThreadLocal = new ThreadLocal<SimpleDateFormat>();
-	static private SimpleDateFormat dateFormat() {
-		if (dateFormatThreadLocal.get() == null)
-			dateFormatThreadLocal.set(new SimpleDateFormat("dd.MM.yy", Locale.getDefault()));
-		return dateFormatThreadLocal.get();
-	}
-	
-	static private SimpleDateFormat timeFormat() {
-		if (timeFormatThreadLocal.get() == null)
-			timeFormatThreadLocal.set(new SimpleDateFormat("HH:mm", Locale.getDefault()));
-		return timeFormatThreadLocal.get();
-	}
+//	static private ThreadLocal<SimpleDateFormat> dateFormatThreadLocal = new ThreadLocal<SimpleDateFormat>(); 
+//	static private ThreadLocal<SimpleDateFormat> timeFormatThreadLocal = new ThreadLocal<SimpleDateFormat>();
+//	static private SimpleDateFormat dateFormat() {
+//		if (dateFormatThreadLocal.get() == null)
+//			dateFormatThreadLocal.set(new SimpleDateFormat("dd.MM.yy", Locale.getDefault()));
+//		return dateFormatThreadLocal.get();
+//	}
+//	
+//	static private SimpleDateFormat timeFormat() {
+//		if (timeFormatThreadLocal.get() == null)
+//			timeFormatThreadLocal.set(new SimpleDateFormat("HH:mm", Locale.getDefault()));
+//		return timeFormatThreadLocal.get();
+//	}
 
 	public static String formatSize( int size )
 	{
@@ -417,13 +414,13 @@ public class Utils {
 			return String.valueOf(size/1000000) + "M";
 	}
 
-	public static String formatFileInfo(FileInfo item) {
-		return formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(item.createTime);
+	public static String formatFileInfo(Activity activity, FileInfo item) {
+		return formatSize(item.size) + " " + (item.format!=null ? item.format.name().toLowerCase() : "") + " " + formatDate(activity, item.createTime);
 	}
 
-	public static String formatLastPosition(Bookmark pos) {
+	public static String formatLastPosition(Activity activity, Bookmark pos) {
 		if ( pos!=null && pos.getPercent() > 0 && pos.getTimeStamp() > 0) {
-			return formatPercent(pos.getPercent()) + " " + formatDate(pos.getTimeStamp());
+			return formatPercent(pos.getPercent()) + " " + formatDate(activity, pos.getTimeStamp());
 		} else {
 			return "";
 		}

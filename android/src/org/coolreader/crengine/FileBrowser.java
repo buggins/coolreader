@@ -1163,10 +1163,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 //						field3.setVisibility(VISIBLE);
 						String state = Utils.formatReadingState(mActivity, item);
 						if (field1 != null)
-							field1.setText(onlineBookInfo + "  " + state + " " + Utils.formatFileInfo(item));
+							field1.setText(onlineBookInfo + "  " + state + " " + Utils.formatFileInfo(mActivity, item));
 						//field2.setText(formatDate(pos!=null ? pos.getTimeStamp() : item.createTime));
 						if (field2 != null)
-							field2.setText(Utils.formatLastPosition(mHistory.getLastPos(item)));
+							field2.setText(Utils.formatLastPosition(mActivity, mHistory.getLastPos(item)));
 						//field3.setText(pos!=null ? formatPercent(pos.getPercent()) : null);
 					} 
 					
