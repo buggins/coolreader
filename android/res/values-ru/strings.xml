@@ -482,4 +482,5 @@
     <string name="root_item_library">Библиотека</string>
     <string name="root_item_filesystem">Открыть книгу с файловой системы</string>
     <string name="root_item_online_catalogs">Сетевые библиотеки</string>
+    <string name="btn_toolbar_more">Еще...</string>
 </resources>
