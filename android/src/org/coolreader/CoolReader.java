@@ -889,13 +889,16 @@ public class CoolReader extends BaseActivity
 		//getWindow().setBackgroundDrawable(theme.getActionBarBackgroundDrawableBrowser());
 	}
 
-	public void directoryUpdated(FileInfo dir) {
+	public void directoryUpdated(FileInfo dir, FileInfo selected) {
 		if (dir.isOPDSRoot())
 			mHomeFrame.refreshOnlineCatalogs();
 		else if (dir.isRecentDir())
 			mHomeFrame.refreshRecentBooks();
 		if (mBrowser != null)
-			mBrowser.refreshDirectory(dir);
+			mBrowser.refreshDirectory(dir, selected);
+	}
+	public void directoryUpdated(FileInfo dir) {
+		directoryUpdated(dir, null);
 	}
 	
 	public void onSettingsChanged(Properties props, Properties oldProps) {

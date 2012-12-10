@@ -385,7 +385,7 @@ public class BookInfoEditDialog extends BaseDialog {
         	if (bi != null)
         		bi.getFileInfo().setFileProperties(file);
         	mParentDir.setFile(file);
-        	mActivity.directoryUpdated(mParentDir);
+        	mActivity.directoryUpdated(mParentDir, file);
         }
 	}
 

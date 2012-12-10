@@ -352,13 +352,13 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		}
 	}
 	
-	public void refreshDirectory(FileInfo dir) {
+	public void refreshDirectory(FileInfo dir, FileInfo selected) {
 		if (dir.isSpecialDir()) {
 			if (dir.isOPDSRoot())
 				refreshOPDSRootDirectory(false);
 		} else {
 			if (dir.pathNameEquals(currDirectory))
-				showDirectory(currDirectory, null);
+				showDirectory(currDirectory, selected);
 		}
 	}
 
