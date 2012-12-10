@@ -1188,18 +1188,19 @@ public class CoolReader extends BaseActivity
 	
 	public void findInDictionary( String s ) {
 		if ( s!=null && s.length()!=0 ) {
-			s = s.trim();
-			for ( ;s.length()>0; ) {
-				char ch = s.charAt(s.length()-1);
-				if ( ch>=128 )
-					break;
-				if ( ch>='0' && ch<='9' || ch>='A' && ch<='Z' || ch>='a' && ch<='z' )
-					break;
-				s = s.substring(0, s.length()-1);
-			}
-			if ( s.length()>0 ) {
-				//
-				final String pattern = s;
+			int start,end;
+			
+			// Skip over non-letter characters at the beginning and end of the search string
+			for (start = 0 ;start<s.length(); start++)
+				if (Character.isLetterOrDigit(s.charAt(start)))
+ 					break;
+			for (end=s.length()-1; end>=start; end--)
+				if (Character.isLetterOrDigit(s.charAt(end)))
+ 					break;
+
+			if ( end > start ) {
+    			final String pattern = s.substring(start,end+1);
+
 				BackgroundThread.instance().postBackground(new Runnable() {
 					@Override
 					public void run() {
