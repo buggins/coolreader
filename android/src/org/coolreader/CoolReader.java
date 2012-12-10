@@ -3,6 +3,8 @@ package org.coolreader;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.coolreader.crengine.AboutDialog;
@@ -35,7 +37,6 @@ import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
-import org.coolreader.crengine.Utils;
 import org.coolreader.donations.BillingService;
 import org.coolreader.donations.BillingService.RequestPurchase;
 import org.coolreader.donations.BillingService.RestoreTransactions;
@@ -59,11 +60,10 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 public class CoolReader extends BaseActivity
 {
@@ -89,7 +89,8 @@ public class CoolReader extends BaseActivity
 	int initialBatteryState = -1;
 	BroadcastReceiver intentReceiver;
 
-	private boolean justCreated = false; 
+	private boolean justCreated = false;
+	
 	
 	/** Called when the activity is first created. */
     @Override
@@ -108,6 +109,10 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
+		
+		
+		
+		
 		// apply settings
     	onSettingsChanged(settings(), null);
 
@@ -1842,6 +1847,8 @@ public class CoolReader extends BaseActivity
 	
 	public void notification1()
 	{
+		if (hasHardwareMenuKey())
+			return; // don't show notice if hard key present
 		showNotice(R.string.note1_reader_menu, new Runnable() {
 			@Override
 			public void run() {

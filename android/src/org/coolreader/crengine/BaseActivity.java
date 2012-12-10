@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import org.coolreader.R;
+import org.coolreader.crengine.OptionsDialog.TapZoneOption;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.sync.SyncServiceAccessor;
@@ -40,6 +41,7 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.ViewConfiguration;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
@@ -1422,7 +1424,7 @@ public class BaseActivity extends Activity implements Settings {
 	        return res;
 		}
 		
-		public Properties loadSettings(File file) {
+		public Properties loadSettings(BaseActivity activity, File file) {
 	        Properties props = new Properties();
 
 	        if ( file.exists() && !DEBUG_RESET_OPTIONS ) {
@@ -1439,11 +1441,20 @@ public class BaseActivity extends Activity implements Settings {
 	        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
 	        		props.applyDefault(ka.getProp(), ka.action.id);
 	        }
+
+	        boolean menuTapActionFound = false;
+	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
+	        	String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
+	        	String value = props.getProperty(paramName);
+	        	if (ReaderAction.READER_MENU.id.equals(value))
+	        		menuTapActionFound = true;
+	        }
+	        
 	        // default tap zone actions
 	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
 	        	String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
 	        	
-	        	if (ka.zone == 5 && ((DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) || (DeviceInfo.EINK_SCREEN))) {
+	        	if (ka.zone == 5 && !activity.hasHardwareMenuKey && !menuTapActionFound) {
 	        		// force assignment of central tap zone
 	        		props.setProperty(paramName, ka.action.id);
 	        	} else {
@@ -1631,7 +1642,7 @@ public class BaseActivity extends Activity implements Settings {
 				}
 	        }
 	        
-	        Properties props = loadSettings(propsFile);
+	        Properties props = loadSettings(mActivity, propsFile);
 
 			return props;
 		}
@@ -1640,7 +1651,7 @@ public class BaseActivity extends Activity implements Settings {
 			File f = getSettingsFile(profile);
 			if (!f.exists() && profile != 0)
 				f = getSettingsFile(0);
-			Properties res = loadSettings(f);
+			Properties res = loadSettings(mActivity, f);
 			if (profile != 0) {
 				res = filterProfileSettings(res);
 				res.setInt(Settings.PROP_PROFILE_NUMBER, profile);
@@ -1755,4 +1766,39 @@ public class BaseActivity extends Activity implements Settings {
             return false;
         }
     }
+
+	private Boolean hasHardwareMenuKey = null;
+	
+	public boolean hasHardwareMenuKey() {
+		if (hasHardwareMenuKey == null) {
+			ViewConfiguration vc = ViewConfiguration.get(this);
+			if (DeviceInfo.getSDKLevel() >= 14) {
+				//boolean vc.hasPermanentMenuKey();
+				try {
+					Method m = vc.getClass().getMethod("hasPermanentMenuKey", new Class<?>[] {});
+					try {
+						hasHardwareMenuKey = (Boolean)m.invoke(vc, new Object[] {});
+					} catch (IllegalArgumentException e) {
+						hasHardwareMenuKey = false;
+					} catch (IllegalAccessException e) {
+						hasHardwareMenuKey = false;
+					} catch (InvocationTargetException e) {
+						hasHardwareMenuKey = false;
+					}
+				} catch (NoSuchMethodException e) {
+					hasHardwareMenuKey = false;
+				}
+			}
+			if (hasHardwareMenuKey == null) {
+				if (DeviceInfo.EINK_SCREEN)
+					hasHardwareMenuKey = false;			
+				else if (DeviceInfo.getSDKLevel() < DeviceInfo.ICE_CREAM_SANDWICH)
+					hasHardwareMenuKey = true;
+				else
+					hasHardwareMenuKey = false;			
+			}
+		}
+		return hasHardwareMenuKey;
+	}
+	
 }
