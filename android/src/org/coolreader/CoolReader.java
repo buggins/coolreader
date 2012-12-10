@@ -85,12 +85,6 @@ public class CoolReader extends BaseActivity
 	
 	String fileToLoadOnStart = null;
 	
-	private String mVersion = "3.0";
-	
-	public String getVersion() {
-		return mVersion;
-	}
-	
 	private boolean isFirstStart = true;
 	int initialBatteryState = -1;
 	BroadcastReceiver intentReceiver;

@@ -259,7 +259,7 @@ public class BaseActivity extends Activity implements Settings {
 	
 	public boolean isStarted() { return mIsStarted; }
 	
-	private String mVersion = "3.0";
+	private String mVersion = "3.1";
 	
 	public String getVersion() {
 		return mVersion;
