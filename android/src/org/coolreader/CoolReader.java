@@ -1809,6 +1809,9 @@ public class CoolReader extends BaseActivity
 	 */
 	public void setLastLocation(String location) {
 		try {
+			String oldLocation = getPrefs().getString(PREF_LAST_LOCATION, null);
+			if (oldLocation != null && oldLocation.equals(location))
+				return; // not changed
 	        SharedPreferences.Editor editor = getPrefs().edit();
 	        editor.putString(PREF_LAST_LOCATION, location);
 	        editor.commit();

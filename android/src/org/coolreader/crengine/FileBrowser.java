@@ -1270,7 +1270,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		BackgroundThread.ensureGUI();
 		setCurrDirectory(dir);
 		
-		if ( dir!=null ) {
+		if (dir!=null && dir != currDirectory) {
 			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
 			if (dir.isRecentDir())
 				mActivity.setLastLocation(dir.getPathName());
