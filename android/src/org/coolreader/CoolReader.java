@@ -528,6 +528,12 @@ public class CoolReader extends BaseActivity
 			});
 		}
 		
+		
+		if ( isBookOpened() ) {
+			showOpenedBook();
+			return;
+		}
+		
 		if (!isFirstStart)
 			return;
 		isFirstStart = false;
