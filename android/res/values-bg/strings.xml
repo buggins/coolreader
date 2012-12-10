@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="app_name">Cool Reader</string>
     <string name="mi_search">Търсене</string>
@@ -434,17 +434,17 @@
     <string name="book_state_none">Не е отбелязано</string>
     <string name="book_state_finished">Прочетена</string>
     <string name="book_info_rating">Оценка</string>
-    <string name="options_page_show_titlebar_hidden">None</string>
-    <string name="options_page_show_titlebar_page_header">Page header</string>
-    <string name="options_page_show_titlebar_bottom">Bottom</string>
-    <string name="options_page_show_titlebar_top">Top</string>
-    <string name="options_view_toolbar_position_short_side">Short side</string>
-    <string name="options_view_toolbar_position_bottom">Bottom</string>
-    <string name="options_view_toolbar_position">Toolbar position</string>
-    <string name="options_view_toolbar_position_top">Top</string>
-    <string name="options_view_toolbar_position_left">Left</string>
-    <string name="options_view_toolbar_position_long_side">Long side</string>
-    <string name="options_view_toolbar_position_none">None</string>
-    <string name="options_view_toolbar_hide_in_fullscreen">Hide toolbar in fullscreen</string>
-    <string name="options_view_toolbar_position_right">Right</string>
+    <string name="options_page_show_titlebar_hidden">Не показвай</string>
+    <string name="options_page_show_titlebar_page_header">В заглавната част на страницата</string>
+    <string name="options_page_show_titlebar_bottom">Отдолу</string>
+    <string name="options_page_show_titlebar_top">Отгоре</string>
+    <string name="options_view_toolbar_position_short_side">На късата страна</string>
+    <string name="options_view_toolbar_position_bottom">Отдолу</string>
+    <string name="options_view_toolbar_position">Позиция на тулбара</string>
+    <string name="options_view_toolbar_position_top">Отгоре</string>
+    <string name="options_view_toolbar_position_left">Отляво</string>
+    <string name="options_view_toolbar_position_long_side">На дългата страна</string>
+    <string name="options_view_toolbar_position_none">Не показвай</string>
+    <string name="options_view_toolbar_hide_in_fullscreen">Скрий тулбара в режим на цял екран</string>
+    <string name="options_view_toolbar_position_right">Отдясно</string>
 </resources>
