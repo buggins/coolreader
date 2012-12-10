@@ -1462,7 +1462,7 @@ public class BaseActivity extends Activity implements Settings {
 	        	}
 	        }
 	        
-	        if ( DeviceInfo.EINK_SCREEN ) {
+	        if (DeviceInfo.EINK_NOOK) {
 	    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_NONE);
 	        } else {
 	    		props.applyDefault(ReaderView.PROP_PAGE_ANIMATION, ReaderView.PAGE_ANIMATION_SLIDE2);

@@ -97,7 +97,7 @@ public class DeviceInfo {
 		EINK_NOOK = MANUFACTURER.toLowerCase().contentEquals("barnesandnoble") && 
 				(PRODUCT.contentEquals("NOOK") || MODEL.contentEquals("NOOK") || MODEL.contentEquals("BNRV350") || MODEL.contentEquals("BNRV300")) &&
 				DEVICE.toLowerCase().contentEquals("zoom2");
-		EINK_NOOK_120 = EINK_NOOK && MODEL.contentEquals("BNRV350");
+		EINK_NOOK_120 = EINK_NOOK && (MODEL.contentEquals("BNRV350") || MODEL.contentEquals("BNRV300"));
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.startsWith("PRS-T");
 		EINK_SCREEN = EINK_SONY || EINK_NOOK; // TODO: set to true for eink devices like Nook Touch
 
