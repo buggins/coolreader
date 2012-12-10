@@ -81,6 +81,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int SEL_CMD_NEXT_SENTENCE = 2;
     public static final int SEL_CMD_PREV_SENTENCE = 3;
     
+    // Double tap selections within this radius are are assumed to be attempts to select a single point 
+    public static final int DOUBLE_TAP_RADIUS = 60;
     
     public enum ViewMode
     {
@@ -1348,7 +1350,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					state = STATE_DONE;
 					return cancel();
 				case STATE_SELECTION:
-					updateSelection( start_x, start_y, x, y, true );
+					// If the second tap is within a radius of the first tap point, assume the user is trying to double tap on the same point 
+					if ( start_x-x <= DOUBLE_TAP_RADIUS && x-start_x <= DOUBLE_TAP_RADIUS && y-start_y <= DOUBLE_TAP_RADIUS && start_y-y <= DOUBLE_TAP_RADIUS )
+						updateSelection( start_x, start_y, start_x, start_y, true );
+					else
+						updateSelection( start_x, start_y, x, y, true );
 					selectionModeActive = false;
 					state = STATE_DONE;
 					return cancel();
