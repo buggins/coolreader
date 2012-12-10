@@ -284,6 +284,7 @@ public interface Settings {
 	    
 	    "app.tapzone.*",
 	    PROP_APP_DOUBLE_TAP_SELECTION,
+	    "app.touch.*",
 
 	    "app.ui.theme*",
 	};
