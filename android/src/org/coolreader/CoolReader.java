@@ -950,7 +950,7 @@ public class CoolReader extends BaseActivity
 			}
 			if (mCurrentFrame == mBrowserFrame) {
 				// update recent books directory
-				mBrowser.refreshDirectory(Services.getScanner().getRecentDir());
+				mBrowser.refreshDirectory(Services.getScanner().getRecentDir(), null);
 			}
 			onUserActivity();
 		}
