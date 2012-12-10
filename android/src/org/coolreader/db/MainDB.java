@@ -28,7 +28,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 16;
+	public final int DB_VERSION = 17;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -130,6 +130,8 @@ public class MainDB extends BaseDB {
 			    execSQLIgnoreErrors("ALTER TABLE opds_catalog ADD COLUMN last_usage INTEGER DEFAULT 0");
 			if (currentVersion < 16)
 				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN time_elapsed INTEGER DEFAULT 0");
+			if (currentVersion < 17)
+				pathCorrectionRequired = true; // chance to correct paths under Android 4.2
 
 			//==============================================================
 			// add more updates above this line
