@@ -153,7 +153,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			setBookInfoItem(mView, R.id.lbl_book_series, Utils.formatSeries(item.series, item.seriesNumber));
 			String state = Utils.formatReadingState(mActivity, item);
 			state = state + " " + Utils.formatFileInfo(item) + " ";
-			state = state + " " + Utils.formatLastPosition(Services.getHistory().getLastPos(item));
+			state = state + " " + (Services.getHistory()!=null ? Utils.formatLastPosition(Services.getHistory().getLastPos(item)) : "");
 			setBookInfoItem(mView, R.id.lbl_book_info, state);
 		} else {
 			log.w("No current book in history");
@@ -269,6 +269,8 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		boolean enableLitres = mActivity.settings().getBool(Settings.PROP_APP_PLUGIN_ENABLED + "." + OnlineStorePluginManager.PLUGIN_PKG_LITRES, defEnableLitres);
 		if (enableLitres)
 			catalogs.add(0, Scanner.createOnlineLibraryPluginItem(OnlineStorePluginManager.PLUGIN_PKG_LITRES, "LitRes"));
+		if (Services.getScanner() == null)
+			return;
 		FileInfo opdsRoot = Services.getScanner().getOPDSRoot();
 		if (opdsRoot.dirCount() == 0)
 			opdsRoot.addItems(catalogs);
@@ -382,6 +384,8 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		mFilesystemScroll.removeAllViews();
 		for (int i = 0; i < dirs.size(); i++) {
 			final FileInfo item = dirs.get(i);
+			if (item == null)
+				continue;
 			final View view = inflater.inflate(R.layout.root_item_dir, null);
 			ImageView icon = (ImageView)view.findViewById(R.id.item_icon);
 			TextView label = (TextView)view.findViewById(R.id.item_name);

@@ -167,7 +167,7 @@ public class StatusBar extends LinearLayout implements Settings {
 				append(pos, Utils.formatTime(System.currentTimeMillis()), " ");
 			}
 			if (showBattery && fullscreen) {
-				int batteryState = activity.getReaderView().getBatteryState();
+				int batteryState = activity.getReaderView() != null ? activity.getReaderView().getBatteryState() : 0;
 				if (batteryState >= 0)
 					append(pos, "[" + (batteryState < 10 ? "0" : "") + batteryState + "%]", " ");
 			}

@@ -2626,9 +2626,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		final FileInfo fileInfo = mBookInfo.getFileInfo();
 		if (fileInfo == null)
 			return;
-		final Bookmark bmk = doc.getCurrentPageBookmark();
-		final PositionProperties props = doc.getPositionProps(bmk.getStartPos());
-		BackgroundThread.instance().postGUI(new Runnable() {
+		final Bookmark bmk = doc != null ? doc.getCurrentPageBookmark() : null;
+		final PositionProperties props = bmk != null ? doc.getPositionProps(bmk.getStartPos()) : null;
+		if (props != null) BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
 				mActivity.updateCurrentPositionStatus(fileInfo, bmk, props);
@@ -5181,7 +5181,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		@Override
 		public void draw(Canvas canvas) {
 			Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-			drawPageBackground(canvas, dst, location);
+			try {
+				drawPageBackground(canvas, dst, location);
+			} catch (Exception e) {
+				L.e("Exception in ToolbarBackgroundDrawable.draw", e);
+			}
 		}
 		@Override
 		public int getOpacity() {

@@ -243,7 +243,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		mListView.setOnTouchListener(new ListView.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				return detector.onTouchEvent(event);
+				try {
+					return detector.onTouchEvent(event);
+				} catch (Exception e) {
+					L.e("Exception in onTouch", e);
+					return false;
+				}
 			}
 		});
 		if (currentListAdapter == null || recreateAdapter) {
@@ -1130,7 +1135,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						String seriesName = Utils.formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
 						String filename1 = item.filename;
-						String filename2 = item.isArchive /*&& !item.isDirectory */
+						String filename2 = item.isArchive && item.arcname != null /*&& !item.isDirectory */
 								? new File(item.arcname).getName() : null;
 								
 						String onlineBookInfo = "";
