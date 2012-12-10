@@ -13,10 +13,13 @@
     <TextView 
       android:id="@+id/title"
         style="@style/TextAppearance.Medium"
-        android:text="Cool Reader File Browser" 
+        android:text="@null" 
         android:singleLine="true"
         android:layout_marginLeft="3dip"
         android:layout_marginRight="3dip"
+        android:paddingTop="3dip"
+        android:paddingBottom="3dip"
+
         android:ellipsize="start"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>

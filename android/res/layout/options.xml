@@ -36,7 +36,7 @@
                 android:minHeight="?android:attr/listPreferredItemHeight"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content" 
-                android:layout_toRightOf="@id/options_btn_back"
+                android:gravity="bottom"
                 android:background="@null"
             />
         </LinearLayout>

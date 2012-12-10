@@ -167,6 +167,7 @@
     <string name="options_controls_flick_brightness_none">Disabled</string>
     <string name="options_page_show_titlebar_page_number">Page number</string>
     <string name="options_app_dictionary">Dictionary</string>
+    <string name="options_app_dictionary_not_installed">(not installed)</string>
     <string name="action_zoom_in">Increase font size</string>
     <string name="options_font_kerning">Font kerning</string>
     <string name="action_zoom_out">Decrease font size</string>
@@ -496,4 +497,9 @@
     <string name="online_store_purchase_success">Book has been purchased.</string>
     <string name="online_store_purchase_new_balance">New balance:</string>
     <string name="options_app_plugins">Plugins</string>
+    <string name="note1_reader_menu">WARNING: To support fullscreen mode and dimming of softkeys on Android 3 and 4, target Android version has been changed to Android 4. In this mode legacy Menu soft button is not available anymore. Without reader toolbar, in reading mode you can open menu by tapping at center of screen. Long tap at center of screen shows settings dialog. Turn on toolbar in reading mode now? (You can always change this option in Settings/Page/Toolbar)</string>
+    <string name="root_item_recent">Recent books</string>
+    <string name="root_item_library">Browse library</string>
+    <string name="root_item_filesystem">Browse file system</string>
+    <string name="root_item_online_catalogs">Online catalogs</string>
 </resources>

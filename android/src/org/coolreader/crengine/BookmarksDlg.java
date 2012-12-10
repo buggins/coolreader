@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -38,7 +39,7 @@ public class BookmarksDlg  extends BaseDialog {
 	public final static int ITEM_CORRECTION=2;
 	public final static int ITEM_SHORTCUT=3;
 	
-	class BookmarkListAdapter implements ListAdapter {
+	class BookmarkListAdapter extends BaseAdapter {
 		public boolean areAllItemsEnabled() {
 			return true;
 		}
@@ -201,7 +202,7 @@ public class BookmarksDlg  extends BaseDialog {
 			setAdapter(mAdapter);
 		}
 		public BookmarkList( Context context, boolean shortcutMode ) {
-			super(context);
+			super(context, true);
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setShortcutMode(shortcutMode);
 			setLongClickable(true);

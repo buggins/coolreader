@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import org.coolreader.R;
-import org.coolreader.crengine.Settings.DictInfo;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.sync.SyncServiceAccessor;
@@ -26,6 +25,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -242,6 +242,8 @@ public class BaseActivity extends Activity implements Settings {
 	
 	protected static String PREF_FILE = "CR3LastBook";
 	protected static String PREF_LAST_BOOK = "LastBook";
+	protected static String PREF_LAST_LOCATION = "LastLocation";
+	protected static String PREF_LAST_NOTIFICATION = "LastNoticeNumber";
 	
 	@Override
 	protected void onResume() {
@@ -257,7 +259,7 @@ public class BaseActivity extends Activity implements Settings {
 	
 	public boolean isStarted() { return mIsStarted; }
 	
-	private String mVersion = "3.0";
+	private String mVersion = "3.1";
 	
 	public String getVersion() {
 		return mVersion;
@@ -487,9 +489,9 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
-	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
-	
-	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
+//	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
+//	
+//	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 
 //	public void simulateTouch() {
 //		// Obtain MotionEvent object
@@ -546,7 +548,7 @@ public class BaseActivity extends Activity implements Settings {
 	
 
 	private int lastSystemUiVisibility = -1;
-	private boolean systemUiVisibilityListenerIsSet = false;
+	//private boolean systemUiVisibilityListenerIsSet = false;
 	@TargetApi(11)
 	@SuppressLint("NewApi")
 	private boolean setSystemUiVisibility(int value) {
@@ -722,6 +724,12 @@ public class BaseActivity extends Activity implements Settings {
     	// override it
     }
     
+    protected boolean allowLowBrightness() {
+    	// override to force higher brightness in non-reading mode (to avoid black screen on some devices when brightness level set to small value)
+    	return true;
+    }
+
+    private final static int MIN_BRIGHTNESS_IN_BROWSER = 12;
     public void onUserActivity()
     {
     	if (backlightControl != null)
@@ -736,10 +744,13 @@ public class BaseActivity extends Activity implements Settings {
 		        	int dimmingAlpha = 255;
 		        	// screenBacklightBrightness is 0..100
 		        	if (screenBacklightBrightness >= 0) {
+		        		int percent = screenBacklightBrightness;
+		        		if (!allowLowBrightness() && percent < MIN_BRIGHTNESS_IN_BROWSER)
+		        			percent = MIN_BRIGHTNESS_IN_BROWSER;
 	        			float minb = MIN_BACKLIGHT_LEVEL_PERCENT / 100.0f; 
-		        		if ( screenBacklightBrightness >= 10 ) {
+		        		if ( percent >= 10 ) {
 		        			// real brightness control, no colors dimming
-		        			b = (screenBacklightBrightness - 10) / (100.0f - 10.0f); // 0..1
+		        			b = (percent - 10) / (100.0f - 10.0f); // 0..1
 		        			b = minb + b * (1-minb); // minb..1
 				        	if (b < minb) // BRIGHTNESS_OVERRIDE_OFF
 				        		b = minb;
@@ -748,7 +759,7 @@ public class BaseActivity extends Activity implements Settings {
 		        		} else {
 			        		// minimal brightness with colors dimming
 			        		b = minb;
-			        		dimmingAlpha = 255 - (11-screenBacklightBrightness) * 180 / 10; 
+			        		dimmingAlpha = 255 - (11-percent) * 180 / 10; 
 		        		}
 		        	} else {
 		        		// system
@@ -945,7 +956,7 @@ public class BaseActivity extends Activity implements Settings {
 	public void setContentView(View view) {
 		this.contentView = view;
 		super.setContentView(view);
-		systemUiVisibilityListenerIsSet = false;
+		//systemUiVisibilityListenerIsSet = false;
 		//updateBackground();
 		setCurrentTheme(currentTheme);
 	}
@@ -976,19 +987,6 @@ public class BaseActivity extends Activity implements Settings {
 	
 
 	private static String PREF_HELP_FILE = "HelpFile";
-	public String getLastSuccessfullyOpenedBook()
-	{
-		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
-		String res = pref.getString(PREF_LAST_BOOK, null);
-		pref.edit().putString(PREF_LAST_BOOK, null).commit();
-		return res;
-	}
-	
-	public void setLastSuccessfullyOpenedBook( String filename )
-	{
-		SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
-		pref.edit().putString(PREF_LAST_BOOK, filename).commit();
-	}
 	
 	public String getLastGeneratedHelpFileSignature()
 	{
@@ -1102,7 +1100,16 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 	
+	public void showNotice(int questionResourceId, final Runnable action, final Runnable cancelAction) {
+		NoticeDialog dlg = new NoticeDialog(this, action, cancelAction);
+		dlg.show();
+	}
+
 	public void askConfirmation(int questionResourceId, final Runnable action) {
+		askConfirmation(questionResourceId, action, null);
+	}
+
+	public void askConfirmation(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
 		dlg.setTitle(questionResourceId);
 		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
@@ -1112,7 +1119,8 @@ public class BaseActivity extends Activity implements Settings {
 		});
 		dlg.setNegativeButton(R.string.dlg_button_cancel, new OnClickListener() {
 			public void onClick(DialogInterface arg0, int arg1) {
-				// do nothing
+				if (cancelAction != null)
+					cancelAction.run();
 			}
 		});
 		dlg.show();
@@ -1138,8 +1146,9 @@ public class BaseActivity extends Activity implements Settings {
 		// override it to use
 	}
 
-	public void onSettingsChanged(Properties props) {
+	public void onSettingsChanged(Properties props, Properties oldProps) {
 		// override for specific actions
+		
 	}
 	
 	public void showActionsPopupMenu(final ReaderAction[] actions, final CRToolBar.OnActionHandler onActionHandler) {
@@ -1175,8 +1184,36 @@ public class BaseActivity extends Activity implements Settings {
 		dlg.show();
 	}
 
-	public void setSettings(Properties settings, int delayMillis) {
-		mSettingsManager.setSettings(settings, delayMillis);
+	private int currentProfile = 0;
+	public int getCurrentProfile() {
+		if (currentProfile == 0) {
+			currentProfile = mSettingsManager.getInt(PROP_PROFILE_NUMBER, 1);
+			if (currentProfile < 1 || currentProfile > MAX_PROFILES)
+				currentProfile = 1;
+		}
+		return currentProfile;
+	}
+
+	public void setCurrentProfile(int profile) {
+		if (profile == 0 || profile == getCurrentProfile())
+			return;
+		log.i("Switching from profile " + currentProfile + " to " + profile);
+		mSettingsManager.saveSettings(currentProfile, null);
+		final Properties loadedSettings = mSettingsManager.loadSettings(profile);
+		mSettingsManager.setSettings(loadedSettings, 0, true);
+		currentProfile = profile;
+	}
+    
+	public void setSetting(String name, String value, boolean notify) {
+		mSettingsManager.setSetting(name, value, notify);
+	}
+	
+	public void setSettings(Properties settings, int delayMillis, boolean notify) {
+		mSettingsManager.setSettings(settings, delayMillis, notify);
+	}
+	
+	public void notifySettingsChanged() {
+		setSettings(mSettingsManager.get(), -1, true);
 	}
 
 	private static class SettingsManager {
@@ -1197,12 +1234,9 @@ public class BaseActivity extends Activity implements Settings {
 		    mSettings = loadSettings();
 		}
 		
-		public Properties get() {
-			return mSettings;
-		}
-
-		int lastSaveId = 0;
-		public void setSettings(Properties settings, int delayMillis) {
+		//int lastSaveId = 0;
+		public void setSettings(Properties settings, int delayMillis, boolean notify) {
+			Properties oldSettings = mSettings;
 			mSettings = new Properties(settings);
 			if (delayMillis >= 0) {
 				saveSettingsTask.postDelayed(new Runnable() {
@@ -1216,7 +1250,16 @@ public class BaseActivity extends Activity implements Settings {
 		    		}
 		    	}, delayMillis);
 			}
-			mActivity.onSettingsChanged(mSettings);
+			if (notify)
+				mActivity.onSettingsChanged(mSettings, oldSettings);
+		}
+		
+		public void setSetting(String name, String value, boolean notify) {
+			Properties props = new Properties(mSettings);
+			if (value.equals(mSettings.getProperty(name)))
+				return;
+			props.setProperty(name, value);
+			setSettings(props, 1000, notify);
 		}
 		
 		private static class DefKeyAction {
@@ -1398,10 +1441,14 @@ public class BaseActivity extends Activity implements Settings {
 	        }
 	        // default tap zone actions
 	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
-	        	if ( ka.longPress )
-	        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone, ka.action.id);
-	        	else
-	        		props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone, ka.action.id);
+	        	String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
+	        	
+	        	if (ka.zone == 5 && ((DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) || (DeviceInfo.EINK_SCREEN))) {
+	        		// force assignment of central tap zone
+	        		props.setProperty(paramName, ka.action.id);
+	        	} else {
+	        		props.applyDefault(paramName, ka.action.id);
+	        	}
 	        }
 	        
 	        if ( DeviceInfo.EINK_SCREEN ) {
@@ -1447,6 +1494,12 @@ public class BaseActivity extends Activity implements Settings {
 	        if (DeviceInfo.DEF_FONT_SIZE != null)
 	        	fontSize = DeviceInfo.DEF_FONT_SIZE;
 
+	        int statusLocation = props.getInt(PROP_STATUS_LOCATION, VIEWER_STATUS_PAGE);
+	        if (statusLocation == VIEWER_STATUS_BOTTOM || statusLocation == VIEWER_STATUS_TOP)
+	        	statusLocation = VIEWER_STATUS_PAGE;
+	        props.setInt(PROP_STATUS_LOCATION, statusLocation);
+	        
+	        
 	        fixFontSettings(props);
 	        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
@@ -1519,7 +1572,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 			
 			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_PAGE);
-			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, isSmartphone ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
+			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, DeviceInfo.getSDKLevel() < DeviceInfo.HONEYCOMB ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");
 
 			
@@ -1624,6 +1677,8 @@ public class BaseActivity extends Activity implements Settings {
 		}
 		
 		public void saveSettings(int profile, Properties settings) {
+			if (settings == null)
+				settings = mSettings;
 			File f = getSettingsFile(profile);
 			if (profile != 0) {
 				settings = filterProfileSettings(settings);
@@ -1667,6 +1722,8 @@ public class BaseActivity extends Activity implements Settings {
 		public int getInt(String name, int defaultValue) {
 			return mSettings.getInt(name, defaultValue);
 		}
+		
+		public Properties get() { return new Properties(mSettings); }
 
 	}
 	static final DictInfo dicts[] = {
@@ -1675,7 +1732,7 @@ public class BaseActivity extends Activity implements Settings {
 		new DictInfo("ColorDictApi", "ColorDict new / GoldenDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 1),
 		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
 		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
-		new DictInfo("Dictan", "Dictan Dictionary", "", "", Intent.ACTION_VIEW, 2),
+		new DictInfo("Dictan", "Dictan Dictionary", "info.softex.dictan", "", Intent.ACTION_VIEW, 2),
 		new DictInfo("FreeDictionary.org", "Free Dictionary . org", "org.freedictionary.MainActivity", "org.freedictionary", Intent.ACTION_VIEW, 0),
 		new DictInfo("LingoQuizLite", "Lingo Quiz Lite", "mnm.lite.lingoquiz", "mnm.lite.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
 		new DictInfo("LingoQuiz", "Lingo Quiz", "mnm.lingoquiz", "mnm.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
@@ -1686,4 +1743,16 @@ public class BaseActivity extends Activity implements Settings {
 		return dicts;
 	}
 
+	public boolean isPackageInstalled(String packageName) {
+        PackageManager pm = getPackageManager();
+        try
+        {
+            pm.getPackageInfo(packageName, 0); //PackageManager.GET_ACTIVITIES);
+            return true;
+        }
+        catch (PackageManager.NameNotFoundException e)
+        {
+            return false;
+        }
+    }
 }

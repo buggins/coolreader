@@ -20,7 +20,8 @@
 	    <ImageButton android:id="@+id/selection_copy"
             android:layout_width="0dip" android:layout_weight="1"
 	        android:layout_height="wrap_content"
-	        android:src="@drawable/cr3_menu_copy"
+	        android:src="@drawable/ic_menu_copy"
+            android:minHeight="?android:attr/listPreferredItemHeight"
 	        android:layout_marginTop="2dip"
 	        android:layout_marginBottom="2dip"
 	        android:layout_marginLeft="1dip"
@@ -30,11 +31,12 @@
 	    <ImageButton android:id="@+id/selection_dict"
             android:layout_width="0dip" android:layout_weight="1"
 	        android:layout_height="wrap_content"
+            android:src="@drawable/ic_menu_sort_alphabetically"
+            android:minHeight="?android:attr/listPreferredItemHeight"
 	        android:layout_marginTop="2dip"
 	        android:layout_marginBottom="2dip"
 	        android:layout_marginLeft="1dip"
 	        android:layout_marginRight="1dip"
-	        android:src="@drawable/cr3_menu_dict"
 	        android:contentDescription="@string/options_selection_action_dictionary"/>
 	        />
 	    <ImageButton android:id="@+id/selection_bookmark"
@@ -50,6 +52,7 @@
         <ImageButton android:id="@+id/selection_email"
             android:layout_width="0dip" android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:minHeight="?android:attr/listPreferredItemHeight"
             android:layout_marginTop="2dip"
             android:layout_marginBottom="2dip"
             android:layout_marginLeft="1dip"
@@ -60,21 +63,23 @@
         <ImageButton android:id="@+id/selection_find"
             android:layout_width="0dip" android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:minHeight="?android:attr/listPreferredItemHeight"
             android:layout_marginTop="2dip"
             android:layout_marginBottom="2dip"
             android:layout_marginLeft="1dip"
             android:layout_marginRight="1dip"
-            android:src="@android:drawable/ic_menu_search"
+            android:src="@drawable/ic_menu_search"
 	        android:contentDescription="@string/dlg_button_find"/>
             />
         <ImageButton android:id="@+id/selection_cancel"
             android:layout_width="0dip" android:layout_weight="1"
 	        android:layout_height="wrap_content"
+            android:minHeight="?android:attr/listPreferredItemHeight"
 	        android:layout_marginTop="2dip"
 	        android:layout_marginBottom="2dip"
 	        android:layout_marginLeft="1dip"
 	        android:layout_marginRight="1dip"
-	        android:src="@android:drawable/ic_menu_close_clear_cancel"
+	        android:src="@drawable/ic_menu_close_clear_cancel"
 	        android:contentDescription="@string/dlg_button_cancel"/>
 	        />
 	</LinearLayout>

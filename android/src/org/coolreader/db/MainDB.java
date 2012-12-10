@@ -21,7 +21,6 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
-import android.text.TextUtils.SimpleStringSplitter;
 import android.util.Log;
 
 public class MainDB extends BaseDB {
@@ -29,7 +28,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 14;
+	public final int DB_VERSION = 15;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -125,6 +124,8 @@ public class MainDB extends BaseDB {
 			    execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN language VARCHAR DEFAULT NULL");
 			if (currentVersion < 14)
 				pathCorrectionRequired = true;
+			if (currentVersion < 15)
+			    execSQLIgnoreErrors("ALTER TABLE opds_catalog ADD COLUMN last_usage INTEGER DEFAULT 0");
 
 			//==============================================================
 			// add more updates above this line
@@ -217,6 +218,24 @@ public class MainDB extends BaseDB {
 		}
 	}
 
+	public void updateOPDSCatalogLastUsage(String url) {
+		try {
+			Long existingIdByUrl = longQuery("SELECT id FROM opds_catalog WHERE url=" + quoteSqlString(url));
+			if (existingIdByUrl == null)
+				return;
+			// update existing
+			Long lastUsage = longQuery("SELECT max(last_usage) FROM opds_catalog");
+			if (lastUsage == null)
+				lastUsage = 1L;
+			else
+				lastUsage = lastUsage + 1;
+			execSQL("UPDATE opds_catalog SET last_usage="+ lastUsage +" WHERE id=" + existingIdByUrl);
+		} catch (Exception e) {
+			log.e("exception while updating OPDS catalog item", e);
+		}
+	}
+
+	
 	public boolean saveOPDSCatalog(Long id, String url, String name) {
 		if (!isOpened())
 			return false;
@@ -243,6 +262,7 @@ public class MainDB extends BaseDB {
 				// update existing
 				execSQL("UPDATE opds_catalog SET name="+quoteSqlString(name)+", url="+quoteSqlString(url)+" WHERE id=" + id);
 			}
+			updateOPDSCatalogLastUsage(url);
 				
 		} catch (Exception e) {
 			log.e("exception while saving OPDS catalog item", e);
@@ -256,7 +276,7 @@ public class MainDB extends BaseDB {
 		boolean found = false;
 		Cursor rs = null;
 		try {
-			String sql = "SELECT id, name, url FROM opds_catalog";
+			String sql = "SELECT id, name, url FROM opds_catalog ORDER BY last_usage DESC, name";
 			rs = mDB.rawQuery(sql, null);
 			if ( rs.moveToFirst() ) {
 				// remove existing entries
@@ -1490,7 +1510,7 @@ public class MainDB extends BaseDB {
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + bookId);
 		return bookId;
 	}
-
+	
 	public void correctFilePaths() {
 		Log.i("cr3", "checking data for path correction");
 		beginReading();

@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.database.DataSetObserver;
@@ -13,8 +12,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -78,7 +77,7 @@ public class TOCDlg extends BaseDialog {
 	
 	private void refreshList()
 	{
-		mListView.setAdapter(new ListAdapter() {
+		mListView.setAdapter(new BaseAdapter() {
 			public boolean areAllItemsEnabled() {
 				return true;
 			}
@@ -170,7 +169,7 @@ public class TOCDlg extends BaseDialog {
 		this.mReaderView = readerView;
 		this.mTOC = toc;
 		this.mCurrentPage = currentPage;
-		this.mListView = new BaseListView(getContext());
+		this.mListView = new BaseListView(getContext(), true);
 		mListView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override

@@ -50,6 +50,8 @@ public class Services {
 			@Override
 			public void run() {
 				log.i("Stopping background thread");
+				if (mEngine == null)
+					return;
 				mEngine.uninit();
 				BackgroundThread.instance().quit();
 				mEngine = null;

@@ -348,6 +348,7 @@ public class LitresConnection {
 	}
 	
 	public static class LitresGenre implements AsyncResponse {
+		@SuppressWarnings("unused")
 		private static final long serialVersionUID = 1;
 		public String id;
 		public String title;

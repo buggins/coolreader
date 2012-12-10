@@ -2,17 +2,10 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
-import org.coolreader.R;
-
 import android.database.DataSetObserver;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ListAdapter;
-import android.widget.TextView;
+import android.widget.BaseAdapter;
 
-public abstract class BaseListAdapter implements ListAdapter {
+public abstract class BaseListAdapter extends BaseAdapter {
 	private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();
 	
 	public void registerDataSetObserver(DataSetObserver observer) {
@@ -31,7 +24,8 @@ public abstract class BaseListAdapter implements ListAdapter {
 
 	public void notifyInvalidated() {
 		for (DataSetObserver observer : observers) {
-			observer.onInvalidated();
+			observer.onChanged();
+			//observer.onInvalidated();
 		}
 	}
 

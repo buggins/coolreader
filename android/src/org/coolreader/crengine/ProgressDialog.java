@@ -1,9 +1,9 @@
 package org.coolreader.crengine;
 
-import android.R.drawable;
+import org.coolreader.R;
+
 import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,8 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import org.coolreader.R;
 
 /**
  * Progress dialog, based on source code of android.app.ProgressDialog

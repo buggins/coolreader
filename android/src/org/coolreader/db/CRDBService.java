@@ -172,6 +172,15 @@ public class CRDBService extends Service {
 			}
 		});
 	}
+	
+	public void updateOPDSCatalogLastUsage(final String url) {
+		execTask(new Task("saveOPDSCatalog") {
+			@Override
+			public void work() {
+				mainDB.updateOPDSCatalogLastUsage(url);
+			}
+		});
+	}	
 
 	public void loadOPDSCatalogs(final OPDSCatalogsLoadingCallback callback, final Handler handler) {
 		execTask(new Task("loadOPDSCatalogs") {
@@ -610,6 +619,10 @@ public class CRDBService extends Service {
 
     	public void saveOPDSCatalog(final Long id, final String url, final String name) {
     		getService().saveOPDSCatalog(id, url, name);
+    	}
+
+    	public void updateOPDSCatalogLastUsage(final String url) {
+    		getService().updateOPDSCatalogLastUsage(url);
     	}
 
     	public void removeOPDSCatalog(final Long id) {

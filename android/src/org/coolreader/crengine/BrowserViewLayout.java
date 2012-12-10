@@ -1,9 +1,13 @@
 package org.coolreader.crengine;
 
+import org.coolreader.CoolReader;
+import org.coolreader.R;
+
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.MeasureSpec;
-import android.view.ViewGroup.LayoutParams;
+import android.widget.TextView;
 
 public class BrowserViewLayout extends ViewGroup {
 	private BaseActivity activity;
@@ -30,15 +34,29 @@ public class BrowserViewLayout extends ViewGroup {
 		toolbarView.setFocusableInTouchMode(false);
 		contentView.setFocusable(false);
 		contentView.setFocusableInTouchMode(false);
+		setFocusable(true);
+		setFocusableInTouchMode(true);
+	}
+	
+	private String browserTitle = "";
+	public void setBrowserTitle(String title) {
+		this.browserTitle = title;
+		((TextView)titleView.findViewById(R.id.title)).setText(title);
 	}
 	
 	public void onThemeChanged(InterfaceTheme theme) {
-		titleView.setBackgroundResource(theme.getBrowserStatusBackground());
+		//titleView.setBackgroundResource(theme.getBrowserStatusBackground());
 		//toolbarView.setButtonAlpha(theme.getToolbarButtonAlpha());
+		LayoutInflater inflater = LayoutInflater.from(activity);// activity.getLayoutInflater();
+		removeView(titleView);
+		titleView = inflater.inflate(R.layout.browser_status_bar, null);
+		addView(titleView);
+		setBrowserTitle(browserTitle);
 		toolbarView.setBackgroundResource(theme.getBrowserToolbarBackground(toolbarView.isVertical()));
 		toolbarView.onThemeChanged(theme);
+		requestLayout();
 	}
-
+	
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		r -= l;
@@ -98,4 +116,54 @@ public class BrowserViewLayout extends ViewGroup {
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
+
+
+	private long menuDownTs = 0;
+	private long backDownTs = 0;
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+			//L.v("BrowserViewLayout.onKeyDown(" + keyCode + ")");
+			if (event.getRepeatCount() == 0)
+				menuDownTs = Utils.timeStamp();
+			return true;
+		}
+		if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+			//L.v("BrowserViewLayout.onKeyDown(" + keyCode + ")");
+			if (event.getRepeatCount() == 0)
+				backDownTs = Utils.timeStamp();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+			long duration = Utils.timeInterval(menuDownTs);
+			L.v("BrowserViewLayout.onKeyUp(" + keyCode + ") duration = " + duration);
+			if (duration > 700 && duration < 10000)
+				activity.showBrowserOptionsDialog();
+			else
+				toolbarView.showOverflowMenu();
+			return true;
+		}
+		if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+			long duration = Utils.timeInterval(backDownTs);
+			L.v("BrowserViewLayout.onKeyUp(" + keyCode + ") duration = " + duration);
+			if (duration > 700 && duration < 10000) {
+				activity.finish();
+				return true;
+			} else {
+				contentView.showParentDirectory();
+				return true;
+			}
+		}
+		return super.onKeyUp(keyCode, event);
+	}
+
+
 }
+
+

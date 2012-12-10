@@ -59,10 +59,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	private class FileBrowserListView extends BaseListView {
 
 		public FileBrowserListView(Context context) {
-			super(context);
+			super(context, true);
 	        setLongClickable(true);
 	        //registerForContextMenu(this);
 	        //final FileBrowser _this = this;
+	        setFocusable(true);
+	        setFocusableInTouchMode(true);
+	        requestFocus();
+	        
 	        setOnItemLongClickListener(new OnItemLongClickListener() {
 
 				@Override
@@ -152,13 +156,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			if (keyCode == KeyEvent.KEYCODE_BACK && mActivity.isBookOpened()) {
+			//log.d("FileBrowser.ListView.onKeyDown(" + keyCode + ")");
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
 				if ( isRootDir() ) {
-					if (mActivity.isBookOpened()) {
-						mActivity.showReader();
-						return true;
-					} else
-						return super.onKeyDown(keyCode, event);
+					mActivity.showRootWindow();
+//					if (mActivity.isBookOpened()) {
+//						mActivity.showReader();
+//						return true;
+//					} else
+//						return super.onKeyDown(keyCode, event);
 				}
 				showParentDirectory();
 				return true;
@@ -177,6 +183,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		
 	}
 
+	private void invalidateAdapter(final FileListAdapter adapter) {
+		adapter.notifyInvalidated();
+	}
+	
 	CoverpageManager.CoverpageReadyListener coverpageListener;
 	public FileBrowser(CoolReader activity, Engine engine, Scanner scanner, History history) {
 		super(activity);
@@ -197,8 +207,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					if (currDirectory.findItemByPathName(file.file.getPathName()) != null)
 						found = true;
 				}
-				if (found)
-					currentListAdapter.notifyInvalidated();
+				if (found) // && mListView.getS
+					invalidateAdapter(currentListAdapter);
 			}
 		};
 		this.mCoverpageManager.addCoverpageReadyListener(coverpageListener);
@@ -233,7 +243,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		mListView.setOnTouchListener(new ListView.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				return detector.onTouchEvent(event);
+				try {
+					return detector.onTouchEvent(event);
+				} catch (Exception e) {
+					L.e("Exception in onTouch", e);
+					return false;
+				}
 			}
 		});
 		if (currentListAdapter == null || recreateAdapter) {
@@ -321,7 +336,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		return false;
 	}
 	
-	public void refreshOPDSRootDirectory() {
+	public void refreshOPDSRootDirectory(final boolean showInBrowser) {
 		final FileInfo opdsRoot = mScanner.getOPDSRoot();
 		if (opdsRoot != null) {
 			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
@@ -330,7 +345,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					opdsRoot.clear();
 					for (FileInfo f : catalogs)
 						opdsRoot.addDir(f);
-					showDirectory(opdsRoot, null);
+					if (showInBrowser || (currDirectory!=null && currDirectory.isOPDSRoot()))
+						showDirectory(opdsRoot, null);
 				}
 			});
 		}
@@ -339,7 +355,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	public void refreshDirectory(FileInfo dir) {
 		if (dir.isSpecialDir()) {
 			if (dir.isOPDSRoot())
-				refreshOPDSRootDirectory();
+				refreshOPDSRootDirectory(false);
 		} else {
 			if (dir.pathNameEquals(currDirectory))
 				showDirectory(currDirectory, null);
@@ -370,7 +386,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	public boolean isRootDir()
 	{
-		return currDirectory == mScanner.getRoot();
+		return currDirectory != null && (currDirectory == mScanner.getRoot() || currDirectory.parent == mScanner.getRoot());
 	}
 
 	public boolean isRecentDir()
@@ -380,7 +396,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 
 	public void showRecentBooks()
 	{
-		showDirectory(null, null);
+		showDirectory(mScanner.getRecentDir(), null);
 	}
 
 	public boolean isBookShownInRecentList(FileInfo book) {
@@ -584,6 +600,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			return;
 		}
 		
+		if (currDirectory != null && !currDirectory.isOPDSRoot() && !currDirectory.isOPDSBook() && !currDirectory.isOPDSDir()) {
+			// show empty directory before trying to download catalog
+			showDirectoryInternal(fileOrDir, itemToSelect);
+			// update last usage
+			mActivity.getDB().updateOPDSCatalogLastUsage(fileOrDir.getOPDSUrl());
+			mActivity.refreshOPDSRootDirectory(false);
+		}
+		
 		String url = fileOrDir.getOPDSUrl();
 		final FileInfo myCurrDirectory = currDirectory;
 		if ( url!=null ) {
@@ -591,18 +615,12 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				final URL uri = new URL(url);
 				DownloadCallback callback = new DownloadCallback() {
 
-					@Override
-					public void onEntries(DocInfo doc,
-							Collection<EntryInfo> entries) {
-						// TODO Auto-generated method stub
-					}
-
-					@Override
-					public void onFinish(DocInfo doc,
-							Collection<EntryInfo> entries) {
-						if ( myCurrDirectory != currDirectory ) {
+					private boolean processNewEntries(DocInfo doc,
+							Collection<EntryInfo> entries, boolean notifyNoEntries) {
+						log.d("OPDS: processNewEntries: " + entries.size() + (notifyNoEntries ? " - done":" - to continue"));
+						if (myCurrDirectory != currDirectory && currDirectory != fileOrDir) {
 							log.w("current directory has been changed: ignore downloaded items");
-							return;
+							return false;
 						}
 						ArrayList<FileInfo> items = new ArrayList<FileInfo>();
 						for ( EntryInfo entry : entries ) {
@@ -635,10 +653,27 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						}
 						if ( items.size()>0 ) {
 							fileOrDir.replaceItems(items);
-							showDirectoryInternal(fileOrDir, null);
+							if (currDirectory == fileOrDir)
+								currentListAdapter.notifyDataSetChanged();
+							else
+								showDirectoryInternal(fileOrDir, null);
 						} else {
-							mActivity.showToast("No OPDS entries found");
+							if (notifyNoEntries)
+								mActivity.showToast("No OPDS entries found");
 						}
+						return true;
+					}
+					
+					@Override
+					public boolean onEntries(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						return processNewEntries(doc, entries, false);
+					}
+
+					@Override
+					public boolean onFinish(DocInfo doc,
+							Collection<EntryInfo> entries) {
+						return processNewEntries(doc, entries, true);
 					}
 
 					@Override
@@ -826,7 +861,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				mActivity.getDB().loadBooksByState(FileInfo.STATE_READING, new FileInfoLoadingCallback(fileOrDir));
 				return;
 			}
-			if (fileOrDir.isBooksByStateReadingRoot()) {
+			if (fileOrDir.isBooksByStateToReadRoot()) {
 				log.d("Updating books by state=toRead");
 				mActivity.getDB().loadBooksByState(FileInfo.STATE_TO_READ, new FileInfoLoadingCallback(fileOrDir));
 				return;
@@ -849,6 +884,8 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 		} else {
 			// fileOrDir == null
+			if (currDirectory != null)
+				return; // just show current directory
 			if (mScanner.getRoot() != null && mScanner.getRoot().dirCount() > 0) {
 				if ( mScanner.getRoot().getDir(0).fileCount()>0 ) {
 					fileOrDir = mScanner.getRoot().getDir(0);
@@ -1098,7 +1135,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 						String seriesName = Utils.formatSeries(item.series, item.seriesNumber);
 						String title = item.title;
 						String filename1 = item.filename;
-						String filename2 = item.isArchive /*&& !item.isDirectory */
+						String filename2 = item.isArchive && item.arcname != null /*&& !item.isDirectory */
 								? new File(item.arcname).getName() : null;
 								
 						String onlineBookInfo = "";
@@ -1232,9 +1269,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	{
 		BackgroundThread.ensureGUI();
 		setCurrDirectory(dir);
-		if ( dir!=null )
+		
+		if ( dir!=null ) {
 			log.i("Showing directory " + dir + " " + Thread.currentThread().getName());
-		if ( !BackgroundThread.instance().isGUIThread() )
+			if (dir.isRecentDir())
+				mActivity.setLastLocation(dir.getPathName());
+			else if (!dir.isSpecialDir())
+				mActivity.setLastDirectory(dir.getPathName());
+		}
+		if ( !BackgroundThread.isGUIThread() )
 			throw new IllegalStateException("showDirectoryInternal should be called from GUI thread!");
 		int index = dir!=null ? dir.getItemIndex(file) : -1;
 		if ( dir!=null && !dir.isRootDir() )
@@ -1244,8 +1287,10 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if (!dir.isSpecialDir())
 			title = dir.getPathName();
 		if (dir.isOnlineCatalogPluginDir())
-			title = translateOnlineStorePluginItem(dir);		
-		mActivity.setTitle(title);
+			title = translateOnlineStorePluginItem(dir);
+		
+		
+		mActivity.setBrowserTitle(title);
 		
 		mListView.setAdapter(currentListAdapter);
 		currentListAdapter.notifyDataSetChanged();
@@ -1290,11 +1335,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		
 	}
 	
-	private void execute( Engine.EngineTask task )
-    {
-    	mEngine.execute(task);
-    }
-
     private abstract class Task implements Engine.EngineTask {
     	
 		public void done() {

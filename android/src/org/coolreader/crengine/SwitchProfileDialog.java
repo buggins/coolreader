@@ -24,7 +24,7 @@ public class SwitchProfileDialog extends BaseDialog {
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
-		this.mListView = new BaseListView(getContext());
+		this.mListView = new BaseListView(getContext(), false);
 		currentProfile = mReaderView.getCurrentProfile(); // TODO: get from settings
 		mListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override

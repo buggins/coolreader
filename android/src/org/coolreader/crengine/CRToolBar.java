@@ -9,12 +9,12 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AbsoluteLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -43,8 +43,14 @@ public class CRToolBar extends ViewGroup {
 	private int BAR_SPACING = 4;
 	private int buttonAlpha = 0xFF;
 	private int textColor = 0x000000;
+	private int windowDividerHeight = 0; // for popup window, height of divider below buttons
 	private ImageButton overflowButton;
 	private LayoutInflater inflater;
+	private PopupWindow popup;
+	
+	private void setPopup(PopupWindow popup) {
+		this.popup = popup;
+	}
 
 	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
 	
@@ -97,6 +103,7 @@ public class CRToolBar extends ViewGroup {
 		this.isMultiline = multiline;
 		this.preferredItemHeight = context.getPreferredItemHeight();
 		this.inflater = LayoutInflater.from(activity);
+		this.windowDividerHeight = multiline ? 8 : 0;
 		context.getWindow().getAttributes();
 		if (context.isSmartphone()) {
 			BUTTON_SPACING = 3;
@@ -105,11 +112,15 @@ public class CRToolBar extends ViewGroup {
 			BUTTON_SPACING = preferredItemHeight / 20;
 			BAR_SPACING = preferredItemHeight / 20;
 		}
-		int sz = (context.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
+		calcLayout();
+	}
+	
+	private void calcLayout() {
+		int sz = (activity.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz;
-		if (multiline)
+		if (isMultiline)
 			buttonHeight = sz / 2;
-		int dpi = context.getDensityDpi();
+		int dpi = activity.getDensityDpi();
 		for (int i=0; i<actions.size(); i++) {
 			ReaderAction item = actions.get(i);
 			int iconId = item.iconId;
@@ -119,7 +130,7 @@ public class CRToolBar extends ViewGroup {
 				continue;
 			}
 			iconActions.add(item);
-			Drawable d = context.getResources().getDrawable(iconId);
+			Drawable d = activity.getResources().getDrawable(iconId);
 			visibleButtonCount++;
 			int w = d.getIntrinsicWidth() * dpi / 160 + 4;
 			int h = d.getIntrinsicHeight() * dpi / 160 + 4;
@@ -130,7 +141,7 @@ public class CRToolBar extends ViewGroup {
 				buttonHeight = h;
 			}
 		}
-		if (multiline) {
+		if (isMultiline) {
 			LinearLayout item = inflateItem(iconActions.get(0));
 			itemHeight = item.getMeasuredHeight() + BUTTON_SPACING;
 		}
@@ -153,14 +164,6 @@ public class CRToolBar extends ViewGroup {
 	}
 	public interface OnOverflowHandler {
 		boolean onOverflowActions(ArrayList<ReaderAction> actions);
-	}
-	
-	
-	private ReaderAction findByCmd(int id) {
-		for (ReaderAction action : actions)
-			if (id == action.cmd.getNativeId())
-				return action;
-		return null;
 	}
 	
 	@Override
@@ -248,48 +251,65 @@ public class CRToolBar extends ViewGroup {
 		return ib;
 	}
 	
+	private Rect layoutRect = new Rect();
+	private Rect layoutLineRect = new Rect();
+	private Rect layoutItemRect = new Rect();
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right,
 			int bottom) {
 		right -= left;
 		bottom -= top;
 		left = top = 0;
+		//calcLayout();
 		removeAllViews();
 		overflowButton = null;
 		
 		if (isMultiline) {
+			itemsOverflow.clear();
+			int lastButtonIndex = -1;
+			
         	int lineCount = calcLineCount(right);
         	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
         	int buttonsPerLine = (btnCount + lineCount - 1) / lineCount;
 
+    		View separator = new View(activity);
+    		separator.setBackgroundResource(activity.getCurrentTheme().getBrowserStatusBackground());
+    		addView(separator);
+    		separator.layout(left, top, right, top + windowDividerHeight);
+        	
+        	
 //        	ScrollView scroll = new ScrollView(activity);
 //        	scroll.setLayoutParams(new LayoutParams(right, bottom));
 //        	AbsoluteLayout content = new AbsoluteLayout(activity);
         	
-        	
-    		Rect rect = new Rect(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING);
+        	layoutRect.set(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING - windowDividerHeight);
     		int lineH = itemHeight; //rect.height() / lineCount;
     		int spacing = 0;
-        	for (int currentLine = 0; currentLine < lineCount; currentLine++) {
+    		int maxLines = bottom / lineH;
+    		if (maxLines > 3)
+    			maxLines = 3;
+        	for (int currentLine = 0; currentLine < lineCount && currentLine < maxLines; currentLine++) {
         		int startBtn = currentLine * buttonsPerLine;
         		int endBtn = (currentLine + 1) * buttonsPerLine;
         		if (endBtn > btnCount)
         			endBtn = btnCount;
         		int currentLineButtons = endBtn - startBtn;
-        		Rect lineRect = new Rect(rect);
-        		lineRect.top += currentLine * lineH + spacing;
-        		lineRect.bottom = lineRect.top + lineH - spacing;
-        		int itemWidth = lineRect.width() / currentLineButtons;
+        		layoutLineRect.set(layoutRect);
+        		layoutLineRect.top += currentLine * lineH + spacing + windowDividerHeight + 4;
+        		layoutLineRect.bottom = layoutLineRect.top + lineH - spacing;
+        		int itemWidth = layoutLineRect.width() / currentLineButtons;
         		for (int i = 0; i < currentLineButtons; i++) {
-        			Rect itemRect = new Rect(lineRect);
-        			itemRect.left += i * itemWidth + spacing;
-        			itemRect.right = itemRect.left + itemWidth - spacing;
-        			final ReaderAction action = (visibleNonButtonCount > 0 && i + startBtn == iconActions.size()) ? null : iconActions.get(startBtn + i);
-        			log.v("item=" + itemRect);
+        			layoutItemRect.set(layoutLineRect);
+        			layoutItemRect.left += i * itemWidth + spacing;
+        			layoutItemRect.right = layoutItemRect.left + itemWidth - spacing;
+        			final ReaderAction action = (visibleNonButtonCount > 0 && i + startBtn == iconActions.size()) || (lineCount > maxLines && currentLine == maxLines - 1 && i == currentLineButtons - 1) ? null : iconActions.get(startBtn + i);
+        			if (action != null)
+        				lastButtonIndex = startBtn + i;
+        			log.v("item=" + layoutItemRect);
         			LinearLayout item = inflateItem(action);
         			//item.setLayoutParams(new LinearLayout.LayoutParams(itemRect.width(), itemRect.height()));
-        			item.measure(MeasureSpec.makeMeasureSpec(itemRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(itemRect.height(), MeasureSpec.EXACTLY));
-        			item.layout(itemRect.left, itemRect.top, itemRect.right, itemRect.bottom);
+        			item.measure(MeasureSpec.makeMeasureSpec(layoutItemRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(layoutItemRect.height(), MeasureSpec.EXACTLY));
+        			item.layout(layoutItemRect.left, layoutItemRect.top, layoutItemRect.right, layoutItemRect.bottom);
         			//item.forceLayout();
         			addView(item);
         			item.setOnClickListener(new OnClickListener() {
@@ -304,6 +324,10 @@ public class CRToolBar extends ViewGroup {
         		}
 //        		addView(scroll);
         	}
+    		//popup.
+    		if (lastButtonIndex > 0)
+    			for (int i=lastButtonIndex + 1; i < actions.size(); i++)
+    				itemsOverflow.add(actions.get(i));
         	return;
 		}
 
@@ -384,7 +408,9 @@ public class CRToolBar extends ViewGroup {
 	        if (isMultiline) {
 		        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
 	        	int lineCount = calcLineCount(contentWidth);
-	        	int h = lineCount * itemHeight + BAR_SPACING + BAR_SPACING;
+	        	if (lineCount > 3)
+	        		lineCount = 3;
+	        	int h = lineCount * itemHeight + BAR_SPACING + BAR_SPACING + windowDividerHeight + 4;
 //	        	if (h > contentHeight - itemHeight)
 //	        		h = contentHeight - itemHeight;
 	        	setMeasuredDimension(contentWidth, h);
@@ -400,7 +426,7 @@ public class CRToolBar extends ViewGroup {
     	int lineCount = 1;
     	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
     	int minLineItemCount = 3;
-    	int maxLineItemCount = contentWidth / (preferredItemHeight * 3);
+    	int maxLineItemCount = contentWidth / (preferredItemHeight * 3 / 2);
     	if (maxLineItemCount < minLineItemCount)
     		maxLineItemCount = minLineItemCount;
 
@@ -441,6 +467,7 @@ public class CRToolBar extends ViewGroup {
 		scroll.setVerticalFadingEdgeEnabled(true);
 		scroll.setFadingEdgeLength(h / 10);
 		final PopupWindow popup = new PopupWindow(context);
+		tb.setPopup(popup);
 		popup.setTouchInterceptor(new OnTouchListener() {
 			
 			@Override
@@ -466,6 +493,19 @@ public class CRToolBar extends ViewGroup {
 				return onOverflowHandler.onOverflowActions(actions);
 			}
 		});
+		// close on menu or back keys
+		tb.setFocusable(true);
+		tb.setFocusableInTouchMode(true);
+		tb.setOnKeyListener(new OnKeyListener() {
+			@Override
+			public boolean onKey(View view, int keyCode, KeyEvent event) {
+				if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+					popup.dismiss();
+					return true;
+				}
+				return false;
+			}
+		});
 		//popup.setBackgroundDrawable(new BitmapDrawable());
 		popup.setWidth(WindowManager.LayoutParams.FILL_PARENT);
 		int hh = h;
@@ -488,7 +528,8 @@ public class CRToolBar extends ViewGroup {
 		int [] location = new int[2];
 		anchor.getLocationOnScreen(location);
 		int popupY = location[1];
-		popup.showAtLocation(anchor, Gravity.TOP | Gravity.LEFT, location[0], popupY);
+		//popup.showAtLocation(anchor, Gravity.TOP | Gravity.LEFT, location[0], popupY);
+		popup.showAtLocation(anchor, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, 0, 0); //location[0], popupY - anchor.getHeight());
 		return popup;
 	}
 	

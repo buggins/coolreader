@@ -94,4 +94,11 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>crengine</name>
+			<type>2</type>
+			<location>C:/Users/vlopatin/cr3ws2/crengine/crengine/src</location>
+		</link>
+	</linkedResources>
 </projectDescription>

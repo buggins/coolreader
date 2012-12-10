@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.view.LayoutInflater;

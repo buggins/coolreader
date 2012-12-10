@@ -22,9 +22,9 @@
   android:orientation="vertical"
   android:id="@+id/rg_type">
   <RadioButton android:checked="true"
-     android:id="@+id/rb_comment" android:text="@string/dlg_bookmark_type_comment"/>
+     android:id="@+id/rb_comment" android:text="@string/dlg_bookmark_type_comment" android:layout_width="match_parent" android:layout_height="wrap_content"/>
   <RadioButton android:checked="false"
-    android:id="@+id/rb_correction" android:text="@string/dlg_bookmark_type_correction"/>
+    android:id="@+id/rb_correction" android:text="@string/dlg_bookmark_type_correction" android:layout_width="match_parent" android:layout_height="wrap_content"/>
 </RadioGroup>
 <TextView 
     android:id="@+id/lbl_selection_text"
