@@ -1869,6 +1869,18 @@ public class CoolReader extends BaseActivity
 	 */
 	private String getLastLocation() {
         String res = getPrefs().getString(PREF_LAST_LOCATION, null);
+        if (res == null) {
+    		// import last book value from previous releases 
+        	res = getPrefs().getString(PREF_LAST_BOOK, null);
+        	if (res != null) {
+        		res = BOOK_LOCATION_PREFIX + res;
+        		try {
+        			getPrefs().edit().remove(PREF_LAST_BOOK).commit();
+        		} catch (Exception e) {
+        			// ignore
+        		}
+        	}
+        }
         log.i("getLastLocation() = " + res);
         return res;
 	}
