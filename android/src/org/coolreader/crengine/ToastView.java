@@ -88,6 +88,7 @@ public class ToastView {
         TextView tv = (TextView) window.getContentView().findViewById(R.id.toast);
         tv.setTextSize(fontSize); //Integer.valueOf(Services.getSettings().getInt(ReaderView.PROP_FONT_SIZE, 20) ) );
         tv.setText(t.msg);
+        tv.setGravity(Gravity.CENTER);
         window.showAtLocation(t.anchor, Gravity.NO_GRAVITY, 0, 0);
         mHandler.postDelayed(handleDismiss, t.duration == 0 ? 2000 : 3000);
     }
