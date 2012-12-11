@@ -69,19 +69,21 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 						activity.getReaderView().onAction(item);
 						return true;
 					}
-				}, new OnOverflowHandler() {
-					@Override
-					public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
-						activity.showActionsPopupMenu(actions, new OnActionHandler() {
-							@Override
-							public boolean onActionSelected(ReaderAction item) {
-								activity.getReaderView().onAction(item);
-								return true;
-							}
-						});
-						return false;
-					}
-				});
+				}, null);
+//			new OnOverflowHandler() {
+//					@Override
+//					public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
+//						toolbarView.showOverflowMenu();
+////						activity.showActionsPopupMenu(actions, new OnActionHandler() {
+////							@Override
+////							public boolean onActionSelected(ReaderAction item) {
+////								activity.getReaderView().onAction(item);
+////								return true;
+////							}
+////						});
+//						return false;
+//					}
+//				});
 		}
 		
 		public ReaderViewLayout(CoolReader context, ReaderView contentView) {

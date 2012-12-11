@@ -47,9 +47,12 @@ public class CRToolBar extends ViewGroup {
 	private ImageButton overflowButton;
 	private LayoutInflater inflater;
 	private PopupWindow popup;
+	private int popupLocation = Settings.VIEWER_TOOLBAR_BOTTOM;
+	private int maxMultilineLines = 3;
 	
-	private void setPopup(PopupWindow popup) {
+	private void setPopup(PopupWindow popup, int popupLocation) {
 		this.popup = popup;
+		this.popupLocation = popupLocation;
 	}
 
 	private ArrayList<ReaderAction> itemsOverflow = new ArrayList<ReaderAction>();
@@ -174,15 +177,29 @@ public class CRToolBar extends ViewGroup {
 		}
 	}
 	
+	private static boolean allActionsHaveIcon(ArrayList<ReaderAction> list) {
+		for (ReaderAction item : list) {
+			if (item.iconId == 0)
+				return false;
+		}
+		return true;
+	}
+	
 	public void showOverflowMenu() {
 		if (itemsOverflow.size() > 0) {
 			if (onOverflowHandler != null)
 				onOverflowHandler.onOverflowActions(itemsOverflow);
 			else {
-				if (!isMultiline && visibleNonButtonCount == 0)
-					showPopup(activity, activity.getContentView(), actions, onActionHandler, onOverflowHandler);
-				else
-					activity.showActionsPopupMenu(itemsOverflow, onActionHandler);
+				if (!isMultiline && visibleNonButtonCount == 0) {
+					showPopup(activity, activity.getContentView(), actions, onActionHandler, onOverflowHandler, actions.size(), Settings.VIEWER_TOOLBAR_TOP);
+				} else {
+					if (allActionsHaveIcon(itemsOverflow)) {
+						if (popup != null)
+							popup.dismiss();
+						showPopup(activity, activity.getContentView(), itemsOverflow, onActionHandler, onOverflowHandler, actions.size(), isMultiline ? popupLocation : Settings.VIEWER_TOOLBAR_BOTTOM);
+					} else
+						activity.showActionsPopupMenu(itemsOverflow, onActionHandler);
+				}
 			}
 //			PopupMenu menu = new PopupMenu(activity, this);
 //			int order = 0;
@@ -272,22 +289,26 @@ public class CRToolBar extends ViewGroup {
         	int btnCount = iconActions.size() + (visibleNonButtonCount > 0 ? 1 : 0);
         	int buttonsPerLine = (btnCount + lineCount - 1) / lineCount;
 
-    		View separator = new View(activity);
-    		separator.setBackgroundResource(activity.getCurrentTheme().getBrowserStatusBackground());
-    		addView(separator);
-    		separator.layout(left, top, right, top + windowDividerHeight);
+        	int y0 = 0;
+        	if (popupLocation == Settings.VIEWER_TOOLBAR_BOTTOM) {
+	    		View separator = new View(activity);
+	    		separator.setBackgroundResource(activity.getCurrentTheme().getBrowserStatusBackground());
+	    		addView(separator);
+	    		separator.layout(left, top, right, top + windowDividerHeight);
+	    		y0 = windowDividerHeight + 4;
+        	}
         	
         	
 //        	ScrollView scroll = new ScrollView(activity);
 //        	scroll.setLayoutParams(new LayoutParams(right, bottom));
 //        	AbsoluteLayout content = new AbsoluteLayout(activity);
         	
-        	layoutRect.set(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING - windowDividerHeight);
+        	layoutRect.set(left + getPaddingLeft() + BUTTON_SPACING, top + getPaddingTop() + BUTTON_SPACING, right - getPaddingRight() - BUTTON_SPACING, bottom - getPaddingBottom() - BUTTON_SPACING - y0);
     		int lineH = itemHeight; //rect.height() / lineCount;
     		int spacing = 0;
     		int maxLines = bottom / lineH;
-    		if (maxLines > 3)
-    			maxLines = 3;
+    		if (maxLines > maxMultilineLines)
+    			maxLines = maxMultilineLines;
         	for (int currentLine = 0; currentLine < lineCount && currentLine < maxLines; currentLine++) {
         		int startBtn = currentLine * buttonsPerLine;
         		int endBtn = (currentLine + 1) * buttonsPerLine;
@@ -295,7 +316,7 @@ public class CRToolBar extends ViewGroup {
         			endBtn = btnCount;
         		int currentLineButtons = endBtn - startBtn;
         		layoutLineRect.set(layoutRect);
-        		layoutLineRect.top += currentLine * lineH + spacing + windowDividerHeight + 4;
+        		layoutLineRect.top += currentLine * lineH + spacing + y0;
         		layoutLineRect.bottom = layoutLineRect.top + lineH - spacing;
         		int itemWidth = layoutLineRect.width() / currentLineButtons;
         		for (int i = 0; i < currentLineButtons; i++) {
@@ -323,6 +344,12 @@ public class CRToolBar extends ViewGroup {
 					});
         		}
 //        		addView(scroll);
+        	}
+        	if (popupLocation != Settings.VIEWER_TOOLBAR_BOTTOM) {
+	    		View separator = new View(activity);
+	    		separator.setBackgroundResource(activity.getCurrentTheme().getBrowserStatusBackground());
+	    		addView(separator);
+	    		separator.layout(bottom - windowDividerHeight, top, right, bottom);
         	}
     		//popup.
     		if (lastButtonIndex > 0)
@@ -408,8 +435,8 @@ public class CRToolBar extends ViewGroup {
 	        if (isMultiline) {
 		        int contentHeight = MeasureSpec.getSize(heightMeasureSpec);
 	        	int lineCount = calcLineCount(contentWidth);
-	        	if (lineCount > 3)
-	        		lineCount = 3;
+	        	if (lineCount > maxMultilineLines)
+	        		lineCount = maxMultilineLines;
 	        	int h = lineCount * itemHeight + BAR_SPACING + BAR_SPACING + windowDividerHeight + 4;
 //	        	if (h > contentHeight - itemHeight)
 //	        		h = contentHeight - itemHeight;
@@ -451,12 +478,17 @@ public class CRToolBar extends ViewGroup {
 		super.onDraw(canvas);
 	}
 	public PopupWindow showAsPopup(View anchor, OnActionHandler onActionHandler, OnOverflowHandler onOverflowHandler) {
-		return showPopup(activity, anchor, actions, onActionHandler, onOverflowHandler);
+		return showPopup(activity, anchor, actions, onActionHandler, onOverflowHandler, 3, Settings.VIEWER_TOOLBAR_BOTTOM);
 	}
 	
-	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler, final OnOverflowHandler onOverflowHandler) {
+	private void setMaxLines(int maxLines) {
+		this.maxMultilineLines = maxLines;
+	}
+	
+	public static PopupWindow showPopup(BaseActivity context, View anchor, ArrayList<ReaderAction> actions, final OnActionHandler onActionHandler, final OnOverflowHandler onOverflowHandler, int maxLines, int popupLocation) {
 		final ScrollView scroll = new ScrollView(context);
 		final CRToolBar tb = new CRToolBar(context, actions, true);
+		tb.setMaxLines(maxLines);
 		tb.setOnActionHandler(onActionHandler);
 		tb.setVertical(false);
 		tb.measure(MeasureSpec.makeMeasureSpec(anchor.getWidth(), MeasureSpec.EXACTLY), ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -467,7 +499,7 @@ public class CRToolBar extends ViewGroup {
 		scroll.setVerticalFadingEdgeEnabled(true);
 		scroll.setFadingEdgeLength(h / 10);
 		final PopupWindow popup = new PopupWindow(context);
-		tb.setPopup(popup);
+		tb.setPopup(popup, popupLocation);
 		popup.setTouchInterceptor(new OnTouchListener() {
 			
 			@Override
@@ -529,8 +561,10 @@ public class CRToolBar extends ViewGroup {
 		int [] location = new int[2];
 		anchor.getLocationOnScreen(location);
 		int popupY = location[1];
-		//popup.showAtLocation(anchor, Gravity.TOP | Gravity.LEFT, location[0], popupY);
-		popup.showAtLocation(anchor, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, 0, 0); //location[0], popupY - anchor.getHeight());
+		if (popupLocation == Settings.VIEWER_TOOLBAR_BOTTOM)
+			popup.showAtLocation(anchor, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, 0, 0); //location[0], popupY - anchor.getHeight());
+		else
+			popup.showAtLocation(anchor, Gravity.TOP | Gravity.FILL_HORIZONTAL, 0, 0); //, location[0], popupY);
 		return popup;
 	}
 	
