@@ -110,17 +110,17 @@ public class CRToolBar extends ViewGroup {
 		context.getWindow().getAttributes();
 		if (context.isSmartphone()) {
 			BUTTON_SPACING = 3;
-			BAR_SPACING = 3;
+			BAR_SPACING = 0; //3;
 		} else {
 			BUTTON_SPACING = preferredItemHeight / 20;
-			BAR_SPACING = preferredItemHeight / 20;
+			BAR_SPACING = 0; //preferredItemHeight / 20;
 		}
 		calcLayout();
 	}
 	
 	private void calcLayout() {
-		int sz = (activity.isSmartphone() ? preferredItemHeight * 3 / 4 - BUTTON_SPACING : preferredItemHeight);
-		buttonWidth = buttonHeight = sz;
+		int sz = (activity.isSmartphone() ? preferredItemHeight * 6 / 10 - BUTTON_SPACING : preferredItemHeight);
+		buttonWidth = buttonHeight = sz - BUTTON_SPACING;
 		if (isMultiline)
 			buttonHeight = sz / 2;
 		int dpi = activity.getDensityDpi();
@@ -135,8 +135,8 @@ public class CRToolBar extends ViewGroup {
 			iconActions.add(item);
 			Drawable d = activity.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() * dpi / 160 + 4;
-			int h = d.getIntrinsicHeight() * dpi / 160 + 4;
+			int w = d.getIntrinsicWidth() * dpi / 160;
+			int h = d.getIntrinsicHeight() * dpi / 160;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 			}
