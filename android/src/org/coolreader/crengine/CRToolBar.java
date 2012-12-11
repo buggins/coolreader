@@ -486,13 +486,14 @@ public class CRToolBar extends ViewGroup {
 				return onActionHandler.onActionSelected(item);
 			}
 		});
-		tb.setOnOverflowHandler(new OnOverflowHandler() {
-			@Override
-			public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
-				popup.dismiss();
-				return onOverflowHandler.onOverflowActions(actions);
-			}
-		});
+		if (onOverflowHandler != null)
+			tb.setOnOverflowHandler(new OnOverflowHandler() {
+				@Override
+				public boolean onOverflowActions(ArrayList<ReaderAction> actions) {
+					popup.dismiss();
+					return onOverflowHandler.onOverflowActions(actions);
+				}
+			});
 		// close on menu or back keys
 		tb.setFocusable(true);
 		tb.setFocusableInTouchMode(true);
