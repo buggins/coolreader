@@ -408,9 +408,9 @@
     <string name="options_app_locale">Interface language</string>
     <string name="options_app_locale_bg">Български</string>
     <string name="options_app_locale_de">Deutsch</string>
+    <string name="options_app_locale_cs">Czech</string>
     <string name="options_app_locale_en">English</string>
     <string name="options_app_locale_es">Español</string>
-    <string name="options_app_locale_fi">Finnish</string>
     <string name="options_app_locale_fr">Français</string>
     <string name="options_app_locale_hu">Magyar</string>
     <string name="options_app_locale_it">Italiano</string>
