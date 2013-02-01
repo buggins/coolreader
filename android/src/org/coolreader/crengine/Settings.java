@@ -203,6 +203,7 @@ public interface Settings {
     	HU("hu", R.string.options_app_locale_hu, R.raw.help_template_hu),
     	NL("nl", R.string.options_app_locale_nl, 0),
     	PL("pl", R.string.options_app_locale_pl, 0),
+    	PL("cs", R.string.options_app_locale_cs, 0),
     	ZH_CN("zh_CN", R.string.options_app_locale_zh_cn, R.raw.help_template_zh_cn),
     	;
     	
