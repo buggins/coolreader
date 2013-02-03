@@ -56,7 +56,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 		this.downloadDir = new File(baseDir, mPlugin.getDescription());
 		this.downloadFilename = new File(downloadDir, book.book.downloadFileName);
 		this.downloadTrialDir = new File(baseDir, mPlugin.getDescription() + "-trials");
-		this.downloadTrialFilename = new File(downloadTrialDir, book.book.trialFileName);
+		this.downloadTrialFilename = book.book.trialFileName != null ? new File(downloadTrialDir, book.book.trialFileName) : null;
 	}
 
 	@Override
