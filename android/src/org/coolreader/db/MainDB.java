@@ -15,6 +15,7 @@ import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.MountPathCorrector;
+import org.coolreader.crengine.OPDSConst;
 import org.coolreader.crengine.Utils;
 
 import android.database.Cursor;
@@ -28,7 +29,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 17;
+	public final int DB_VERSION = 18;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -117,8 +118,6 @@ public class MainDB extends BaseDB {
 						")");
 			if (currentVersion < 7) {
 				addOPDSCatalogs(DEF_OPDS_URLS1);
-				if (!DeviceInfo.NOFLIBUSTA)
-					addOPDSCatalogs(DEF_OPDS_URLS1A);
 			}
 			if (currentVersion < 8)
 				addOPDSCatalogs(DEF_OPDS_URLS2);
@@ -132,6 +131,8 @@ public class MainDB extends BaseDB {
 				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN time_elapsed INTEGER DEFAULT 0");
 			if (currentVersion < 17)
 				pathCorrectionRequired = true; // chance to correct paths under Android 4.2
+			if (currentVersion < 18)
+				removeOPDSCatalogsFromBlackList(); // BLACK LIST enforcement, by LitRes request
 
 			//==============================================================
 			// add more updates above this line
@@ -208,10 +209,6 @@ public class MainDB extends BaseDB {
 		"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
 	};
 
-	private final static String[] DEF_OPDS_URLS1A = {
-		"http://flibusta.net/opds/", "Flibusta", 
-	};
-	
 	private final static String[] DEF_OPDS_URLS2 = {
 		"http://www.shucang.org/s/index.php", "ShuCang.org",
 	};
@@ -224,6 +221,14 @@ public class MainDB extends BaseDB {
 		}
 	}
 
+	public void removeOPDSCatalogsFromBlackList() {
+		if (OPDSConst.BLACK_LIST_MODE != OPDSConst.BLACK_LIST_MODE_FORCE)
+			return;
+		for (String url : OPDSConst.BLACK_LIST) {
+		    execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE url=" + quoteSqlString(url));
+		}
+	}
+	
 	public void updateOPDSCatalogLastUsage(String url) {
 		try {
 			Long existingIdByUrl = longQuery("SELECT id FROM opds_catalog WHERE url=" + quoteSqlString(url));
