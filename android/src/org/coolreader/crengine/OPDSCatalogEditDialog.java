@@ -35,6 +35,39 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 
 	@Override
 	protected void onPositiveButtonClick() {
+		String url = urlEdit.getText().toString();
+		boolean blacklist = checkBlackList(url);
+		if (OPDSConst.BLACK_LIST_MODE == OPDSConst.BLACK_LIST_MODE_FORCE) {
+			mActivity.showToast(R.string.black_list_enforced);
+		} else if (OPDSConst.BLACK_LIST_MODE == OPDSConst.BLACK_LIST_MODE_WARN) {
+			mActivity.askConfirmation(R.string.black_list_warning, new Runnable() {
+				@Override
+				public void run() {
+					save();
+					OPDSCatalogEditDialog.super.onPositiveButtonClick();
+				}
+				
+			}, new Runnable() {
+				@Override
+				public void run() {
+					onNegativeButtonClick();
+				}
+			});
+		} else {
+			save();
+			super.onPositiveButtonClick();
+		}
+	}
+	
+	private boolean checkBlackList(String url) {
+		for (String s : OPDSConst.BLACK_LIST) {
+			if (s.equals(url))
+				return true;
+		}
+		return false;
+	}
+	
+	private void save() {
 		activity.getDB().saveOPDSCatalog(mItem.id,
 				urlEdit.getText().toString(), nameEdit.getText().toString());
 		mOnUpdate.run();
