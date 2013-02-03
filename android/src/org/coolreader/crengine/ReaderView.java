@@ -1830,9 +1830,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return;
 		final StringBuilder buf = new StringBuilder();
 //		if (mActivity.isFullscreen()) {
-		SimpleDateFormat fmt = new SimpleDateFormat("HH:mm");
-		final String time = fmt.format(new Date());
-		buf.append(time + " ");
+		buf.append( Utils.formatTime(mActivity, System.currentTimeMillis()) +  " ");
 		if (mBatteryState>=0)
  			buf.append(" [" + mBatteryState + "%]\n");
 //		}
@@ -1973,7 +1971,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		items.add("section=section.system");
 		items.add("system.version=Cool Reader " + mActivity.getVersion());
 		items.add("system.battery=" + mBatteryState + "%");
-		items.add("system.time=" + timeFormat.format(new Date()));
+		items.add("system.time=" + Utils.formatTime(mActivity, System.currentTimeMillis()));
 		final BookInfo bi = mBookInfo;
 		if ( bi!=null ) {
 			FileInfo fi = bi.getFileInfo();
