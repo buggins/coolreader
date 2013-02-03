@@ -543,10 +543,12 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 					FileInfo dir = new FileInfo(f);
 					dirs.add(dir);
 				}
-				dirs.add(Services.getScanner().getDownloadDirectory());
+				if (Services.getScanner() != null)
+					dirs.add(Services.getScanner().getDownloadDirectory());
 				updateFilesystems(dirs);
 				
-				updateLibraryItems(Services.getScanner().getLibraryItems());
+				if (Services.getScanner() != null)
+					updateLibraryItems(Services.getScanner().getLibraryItems());
 			}
 		});
 		
