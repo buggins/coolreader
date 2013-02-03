@@ -990,7 +990,8 @@ public class CoolReader extends BaseActivity
 			        mReaderFrame.getToolBar().setOnActionHandler(new OnActionHandler() {
 						@Override
 						public boolean onActionSelected(ReaderAction item) {
-							mReaderView.onAction(item);
+							if (mReaderView != null)
+								mReaderView.onAction(item);
 							return true;
 						}
 					});
