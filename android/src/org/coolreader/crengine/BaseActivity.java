@@ -1438,8 +1438,11 @@ public class BaseActivity extends Activity implements Settings {
 	        }
 	        
 	        // default key actions
+          boolean menuKeyActionFound = false;
 	        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
 	        		props.applyDefault(ka.getProp(), ka.action.id);
+	        		if (ReaderAction.READER_MENU.id.equals(ka.action.id))
+	        		  menuKeyActionFound = true;
 	        }
 
 	        boolean menuTapActionFound = false;
@@ -1449,12 +1452,12 @@ public class BaseActivity extends Activity implements Settings {
 	        	if (ReaderAction.READER_MENU.id.equals(value))
 	        		menuTapActionFound = true;
 	        }
-	        
-	        // default tap zone actions
+
+          // default tap zone actions
 	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
 	        	String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
 	        	
-	        	if (ka.zone == 5 && !activity.hasHardwareMenuKey() && !menuTapActionFound) {
+	        	if (ka.zone == 5 && !activity.hasHardwareMenuKey() && !menuTapActionFound && !menuKeyActionFound) {
 	        		// force assignment of central tap zone
 	        		props.setProperty(paramName, ka.action.id);
 	        	} else {
