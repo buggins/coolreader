@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.graphics.drawable.BitmapDrawable;
@@ -10,11 +9,11 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
 
@@ -26,7 +25,7 @@ public class FindNextDlg {
 	View mPanel;
 	final String pattern;
 	final boolean caseInsensitive;
-	static public void showDialog( CoolReader coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
+	static public void showDialog( BaseActivity coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
 	{
 		FindNextDlg dlg = new FindNextDlg(coolReader, readerView, pattern, caseInsensitive);
 		//dlg.mWindow.update(dlg.mAnchor, width, height)
@@ -36,7 +35,7 @@ public class FindNextDlg {
 		//dlg.showAsDropDown(readerView);
 		//dlg.update();
 	}
-	public FindNextDlg( CoolReader coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
+	public FindNextDlg( BaseActivity coolReader, ReaderView readerView, final String pattern, final boolean caseInsensitive )
 	{
 		this.pattern = pattern;
 		this.caseInsensitive = caseInsensitive;

@@ -16,7 +16,11 @@
 #include "../include/lvref.h"
 #include "../include/lvtinydom.h"
 
+static char file_to_remove_on_crash[2048] = "";
 
+void crSetFileToRemoveOnFatalError(const char * filename) {
+	strcpy(file_to_remove_on_crash, filename == NULL ? "" : filename);
+}
 
 /// default fatal error handler: uses exit()
 void lvDefFatalErrorHandler (int errorCode, const char * errorText )
@@ -29,6 +33,8 @@ lv_FatalErrorHandler_t * lvFatalErrorHandler = &lvDefFatalErrorHandler;
 
 void crFatalError( int code, const char * errorText )
 {
+	if (file_to_remove_on_crash[0])
+		LVDeleteFile(Utf8ToUnicode(lString8(file_to_remove_on_crash)));
     lvFatalErrorHandler( code, errorText );
 }
 

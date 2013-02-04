@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.os.Bundle;
@@ -10,7 +9,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 
 public class SearchDlg  extends BaseDialog {
-	CoolReader mCoolReader;
+	BaseActivity mCoolReader;
 	ReaderView mReaderView;
 	private LayoutInflater mInflater;
 	View mDialogView;
@@ -38,13 +37,13 @@ public class SearchDlg  extends BaseDialog {
 	}
 
 	
-	public SearchDlg(CoolReader coolReader, ReaderView readerView, String initialText)
+	public SearchDlg(BaseActivity coolReader, ReaderView readerView, String initialText)
 	{
 		super(coolReader, coolReader.getResources().getString(R.string.win_title_search), true, false);
         setCancelable(true);
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
-		setPositiveButtonImage(R.drawable.cr3_button_find);
+		setPositiveButtonImage(R.drawable.cr3_button_find, R.string.action_search);
         mInflater = LayoutInflater.from(getContext());
         mDialogView = mInflater.inflate(R.layout.search_dialog, null);
     	mEditView = (EditText)mDialogView.findViewById(R.id.search_text);

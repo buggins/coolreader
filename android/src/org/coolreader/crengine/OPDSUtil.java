@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -31,6 +30,7 @@ import android.util.Log;
 
 public class OPDSUtil {
 
+	public static final boolean EXTENDED_LOG = false;
     public static final int CONNECT_TIMEOUT = 60000;
     public static final int READ_TIMEOUT = 60000;
 	/*
@@ -52,8 +52,8 @@ xml:base="http://lib.ololo.cc/opds/">
 <entry>
    <updated>2011-05-31T10:28:22+04:00</updated>
    <id>http://lib.ololo.cc/opds/asearch/</id>
-   <title>Авторы</title>
-   <content type="text">Поиск по авторам</content>
+   <title>sample type</title>
+   <content type="text">sample content</content>
    <link type="application/atom+xml" href="http://lib.ololo.cc/opds/asearch/"/>
 </entry>
 </feed>
@@ -67,13 +67,13 @@ xml:base="http://lib.ololo.cc/opds/">
 		 * @param doc is document
 		 * @param entries is list of entries to add
 		 */
-		public void onEntries( DocInfo doc, Collection<EntryInfo> entries );
+		public boolean onEntries( DocInfo doc, Collection<EntryInfo> entries );
 		/**
 		 * All entries are downloaded.
 		 * @param doc is document
 		 * @param entries is list of entries to add
 		 */
-		public void onFinish( DocInfo doc, Collection<EntryInfo> entries );
+		public boolean onFinish( DocInfo doc, Collection<EntryInfo> entries );
 		/**
 		 * Before download: request filename to save as.
 		 */
@@ -126,7 +126,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( href==null )
 				return href;
 			String port = "";
-			if (baseURL.getPort() != 80)
+			if (baseURL.getPort() != 80 && baseURL.getPort() > 0)
 				port = ":" + baseURL.getPort();
 			String hostPort = baseURL.getHost() + port;
 			if ( href.startsWith("/") )
@@ -250,7 +250,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			s = s.trim();
 			if (s.length()==0 || (s.length()==1 && s.charAt(0) == '\n') )
 				return; // ignore empty line
-			L.d(tab() + "  {" + s + "}");
+			//L.d(tab() + "  {" + s + "}");
 			String currentElement = elements.peek();
 			if ( currentElement==null )
 				return;
@@ -307,10 +307,11 @@ xml:base="http://lib.ololo.cc/opds/">
 		@Override
 		public void endDocument() throws SAXException {
 			super.endDocument();
-			L.d("endDocument: " + entries.size() + " entries parsed");
-			for ( EntryInfo entry : entries ) {
-				L.d("   " + entry.title + " : " + entry.link.toString());
-			}
+			if (EXTENDED_LOG) L.d("endDocument: " + entries.size() + " entries parsed");
+			if (EXTENDED_LOG) 
+				for ( EntryInfo entry : entries ) {
+					L.d("   " + entry.title + " : " + entry.link.toString());
+				}
 		}
 
 		private String tab() {
@@ -330,7 +331,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			if ( qName!=null && qName.length()>0 )
 				localName = qName;
 			level++;
-			L.d(tab() + "<" + localName + ">");
+			//L.d(tab() + "<" + localName + ">");
 			//currentAttributes = attributes;
 			elements.push(localName);
 			//String currentElement = elements.peek();
@@ -358,7 +359,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			} else if ( "link".equals(localName) ) {
 				LinkInfo link = new LinkInfo(url, attributes);
 				if ( link.isValid() && insideFeed ) {
-					L.d(tab()+link.toString());
+					if (EXTENDED_LOG) L.d(tab()+link.toString());
 					if ( insideEntry ) {
 						if ( link.type!=null ) {
 							entryInfo.links.add(link);
@@ -390,7 +391,7 @@ xml:base="http://lib.ololo.cc/opds/">
 			super.endElement(uri, localName, qName);
 			if ( qName!=null && qName.length()>0 )
 				localName = qName;
-			L.d(tab() + "</" + localName + ">");
+			//L.d(tab() + "</" + localName + ">");
 			//String currentElement = elements.peek();
 			if ( insideFeed && "feed".equals(localName) ) {
 				insideFeed = false;
@@ -433,14 +434,14 @@ xml:base="http://lib.ololo.cc/opds/">
 		private HttpURLConnection connection;
 		private DelayedProgress delayedProgress;
 		OPDSHandler handler;
-		public DownloadTask( CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
+		public DownloadTask(CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
 			this.url = url;
 			this.coolReader = coolReader;
 			this.callback = callback; 
 			this.referer = referer;
 			this.expectedType = expectedType;
 			this.defaultFileName = defaultFileName;
-			Log.d("cr3", "Created DownloadTask for " + url);
+			L.d("Created DownloadTask for " + url);
 		}
 		private void setProgressMessage( String url, int totalSize ) {
 			progressMessage = coolReader.getString(org.coolreader.R.string.progress_downloading) + " " + url;
@@ -455,8 +456,8 @@ xml:base="http://lib.ololo.cc/opds/">
 						delayedProgress.cancel();
 						delayedProgress.hide();
 					}
-					if (coolReader.getEngine() != null)
-						coolReader.getEngine().hideProgress();
+					if (Services.getEngine() != null)
+						Services.getEngine().hideProgress();
 					callback.onError(msg);
 				}
 			});
@@ -565,7 +566,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				ext = fileName.substring(fileName.lastIndexOf(".")+1);
 				fileName = fileName.substring(0, fileName.lastIndexOf("."));
 			}
-			fileName = transcribeFileName( fileName );
+			fileName = Utils.transcribeFileName( fileName );
 			if ( fmt!=null ) {
 				if ( fmt==DocumentFormat.FB2 && isZip )
 					ext = ".fb2.zip";
@@ -675,125 +676,150 @@ xml:base="http://lib.ololo.cc/opds/">
 			HashSet<String> visited = new HashSet<String>();
 
 			do {
-			try {
-				setProgressMessage( url.toString(), -1 );
-				visited.add(url.toString());
-				long startTimeStamp = System.currentTimeMillis();
-				delayedProgress = coolReader.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
-				URLConnection conn = url.openConnection();
-				if ( conn instanceof HttpsURLConnection ) {
-					onError("HTTPs is not supported yet");
-					return;
-				}
-				if ( !(conn instanceof HttpURLConnection) ) {
-					onError("Only HTTP supported");
-					return;
-				}
-				connection = (HttpURLConnection)conn;
-	            connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
-	            if ( referer!=null )
-	            	connection.setRequestProperty("Referer", referer);
-	            connection.setInstanceFollowRedirects(true);
-	            connection.setAllowUserInteraction(false);
-	            connection.setConnectTimeout(CONNECT_TIMEOUT);
-	            connection.setReadTimeout(READ_TIMEOUT);
-	            connection.setDoInput(true);
-	            String fileName = null;
-	            String disp = connection.getHeaderField("Content-Disposition");
-	            if ( disp!=null ) {
-	            	int p = disp.indexOf("filename=");
-	            	if ( p>0 ) {
-	            		fileName = disp.substring(p + 9);
-	            	}
-	            }
-	            //connection.setDoOutput(true);
-	            //connection.set
-	            
-	            int response = -1;
-				
-				response = connection.getResponseCode();
-				L.d("Response: " + response);
-				if ( response!=200 ) {
-					onError("Error " + response);
-					return;
-				}
-				String contentType = connection.getContentType();
-				String contentEncoding = connection.getContentEncoding();
-				int contentLen = connection.getContentLength();
-				//connection.getC
-				L.d("Entity content length: " + contentLen);
-				L.d("Entity content type: " + contentType);
-				L.d("Entity content encoding: " + contentEncoding);
-				setProgressMessage( url.toString(), contentLen );
-				InputStream is = connection.getInputStream();
-				delayedProgress.cancel();
-				is = new ProgressInputStream(is, startTimeStamp, progressMessage, contentLen, 80);
-				final int MAX_CONTENT_LEN_TO_BUFFER = 256*1024;
-				boolean isZip = contentType!=null && contentType.equals("application/zip");
-				if ( expectedType!=null )
-					contentType = expectedType;
-				else if ( contentLen>0 && contentLen<MAX_CONTENT_LEN_TO_BUFFER) { // autodetect type
-					byte[] buf = new byte[contentLen];
-					if ( is.read(buf)!=contentLen ) {
-						onError("Wrong content length");
+				try {
+					setProgressMessage( url.toString(), -1 );
+					visited.add(url.toString());
+					long startTimeStamp = System.currentTimeMillis();
+					if (!partialDownloadCompleted)
+						delayedProgress = Services.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
+					URLConnection conn = url.openConnection();
+					if ( conn instanceof HttpsURLConnection ) {
+						onError("HTTPs is not supported yet");
 						return;
 					}
-					is.close();
-					is = null;
-					is = new ByteArrayInputStream(buf);
-					if ( findSubstring(buf, "<?xml version=")>=0 && findSubstring(buf, "<feed")>=0  )
-						contentType = "application/atom+xml"; // override type
-				}
-				if ( contentType.startsWith("application/atom+xml") ) {
-					L.d("Parsing feed");
-					parseFeed( is );
-					itemsLoadedPartially = true;
-					if (handler.docInfo.nextLink!=null && handler.docInfo.nextLink.type.startsWith("application/atom+xml;profile=opds-catalog")) {
-						if (handler.entries.size() < MAX_OPDS_ITEMS) {
-							url = new URL(handler.docInfo.nextLink.href);
-							loadNext = !visited.contains(url.toString());
-							L.d("continue with next part: " + url);
+					if ( !(conn instanceof HttpURLConnection) ) {
+						onError("Only HTTP supported");
+						return;
+					}
+					connection = (HttpURLConnection)conn;
+		            connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
+		            if ( referer!=null )
+		            	connection.setRequestProperty("Referer", referer);
+		            connection.setInstanceFollowRedirects(true);
+		            connection.setAllowUserInteraction(false);
+		            connection.setConnectTimeout(CONNECT_TIMEOUT);
+		            connection.setReadTimeout(READ_TIMEOUT);
+		            connection.setDoInput(true);
+		            String fileName = null;
+		            String disp = connection.getHeaderField("Content-Disposition");
+		            if ( disp!=null ) {
+		            	int p = disp.indexOf("filename=");
+		            	if ( p>0 ) {
+		            		fileName = disp.substring(p + 9);
+		            	}
+		            }
+		            //connection.setDoOutput(true);
+		            //connection.set
+		            
+		            int response = -1;
+					
+					response = connection.getResponseCode();
+					if (EXTENDED_LOG) L.d("Response: " + response);
+					if ( response!=200 ) {
+						onError("Error " + response);
+						return;
+					}
+					
+					if (cancelled)
+						break;
+					
+					String contentType = connection.getContentType();
+					String contentEncoding = connection.getContentEncoding();
+					int contentLen = connection.getContentLength();
+					//connection.getC
+					if (EXTENDED_LOG) L.d("Entity content length: " + contentLen);
+					if (EXTENDED_LOG) L.d("Entity content type: " + contentType);
+					if (EXTENDED_LOG) L.d("Entity content encoding: " + contentEncoding);
+					setProgressMessage( url.toString(), contentLen );
+					InputStream is = connection.getInputStream();
+					if (delayedProgress != null)
+						delayedProgress.cancel();
+					is = new ProgressInputStream(is, startTimeStamp, progressMessage, contentLen, 80);
+					final int MAX_CONTENT_LEN_TO_BUFFER = 256*1024;
+					boolean isZip = contentType!=null && contentType.equals("application/zip");
+					if ( expectedType!=null )
+						contentType = expectedType;
+					else if ( contentLen>0 && contentLen<MAX_CONTENT_LEN_TO_BUFFER) { // autodetect type
+						byte[] buf = new byte[contentLen];
+						if ( is.read(buf)!=contentLen ) {
+							onError("Wrong content length");
+							return;
+						}
+						is.close();
+						is = null;
+						is = new ByteArrayInputStream(buf);
+						if ( findSubstring(buf, "<?xml version=")>=0 && findSubstring(buf, "<feed")>=0  )
+							contentType = "application/atom+xml"; // override type
+					}
+					if ( contentType.startsWith("application/atom+xml") ) {
+						if (EXTENDED_LOG) L.d("Parsing feed");
+						parseFeed( is );
+						itemsLoadedPartially = true;
+						if (handler.docInfo.nextLink!=null && handler.docInfo.nextLink.type.startsWith("application/atom+xml;profile=opds-catalog")) {
+							if (handler.entries.size() < MAX_OPDS_ITEMS) {
+								url = new URL(handler.docInfo.nextLink.href);
+								loadNext = !visited.contains(url.toString());
+								L.d("continue with next part: " + url);
+							} else {
+								L.d("max item count reached: " + handler.entries.size());
+								loadNext = false;
+							}
 						} else {
-							L.d("max item count reached: " + handler.entries.size());
 							loadNext = false;
 						}
+							
 					} else {
+						if ( fileName==null )
+							fileName = defaultFileName;
+						L.d("Downloading book: " + contentEncoding);
+						downloadBook( contentType, url.toString(), is, contentLen, fileName, isZip );
+						if ( progressShown )
+							Services.getEngine().hideProgress();
 						loadNext = false;
+						itemsLoadedPartially = false;
 					}
-						
-				} else {
-					if ( fileName==null )
-						fileName = defaultFileName;
-					L.d("Downloading book: " + contentEncoding);
-					downloadBook( contentType, url.toString(), is, contentLen, fileName, isZip );
+				} catch (Exception e) {
+					L.e("Exception while trying to open URI " + url.toString(), e);
 					if ( progressShown )
-						coolReader.getEngine().hideProgress();
-					loadNext = false;
-					itemsLoadedPartially = false;
+						Services.getEngine().hideProgress();
+					onError("Error occured while reading OPDS catalog");
+					break;
+				} finally {
+					if ( connection!=null )
+						try {
+							connection.disconnect();
+						} catch ( Exception e ) {
+							// ignore
+						}
 				}
-			} catch (Exception e) {
-				L.e("Exception while trying to open URI " + url.toString(), e);
-				if ( progressShown )
-					coolReader.getEngine().hideProgress();
-				onError("Error occured while reading OPDS catalog");
-				break;
-			} finally {
-				if ( connection!=null )
-					try {
-						connection.disconnect();
-					} catch ( Exception e ) {
-						// ignore
-					}
-			}
-			} while (loadNext);
+			
+				partialDownloadCompleted = true; // don't show progress
+				
+				if (loadNext && !cancelled) {
+					// partially loaded
+					if ( progressShown )
+						Services.getEngine().hideProgress();
+					final ArrayList<EntryInfo> entries = new ArrayList<EntryInfo>();
+					entries.addAll(handler.entries);
+					BackgroundThread.instance().executeGUI(new Runnable() {
+						@Override
+						public void run() {
+							L.d("Parsing is partially. " + handler.entries.size() + " entries found -- updating view");
+							if (!callback.onEntries(handler.docInfo, entries))
+								cancel();
+						}
+					});
+				}
+			} while (loadNext && !cancelled);
 			if ( progressShown )
-				coolReader.getEngine().hideProgress();
-			if (itemsLoadedPartially)
+				Services.getEngine().hideProgress();
+			if (itemsLoadedPartially && !cancelled)
 				BackgroundThread.instance().executeGUI(new Runnable() {
 					@Override
 					public void run() {
 						L.d("Parsing is finished successfully. " + handler.entries.size() + " entries found");
-						callback.onFinish(handler.docInfo, handler.entries);
+						if (!callback.onFinish(handler.docInfo, handler.entries))
+							cancel();
 					}
 				});
 		}
@@ -812,9 +838,17 @@ xml:base="http://lib.ololo.cc/opds/">
 		}
 
 		public void cancel() {
+			if (!cancelled) {
+				L.d("cancelling current download task");
+				cancelled = true;
+			}
 		}
 
+		volatile private boolean cancelled = false;
+		
 		private boolean progressShown = false;
+		
+		private boolean partialDownloadCompleted = false;
 	
 		public class ProgressInputStream extends InputStream {
 
@@ -846,8 +880,8 @@ xml:base="http://lib.ololo.cc/opds/">
 					if ( totalSize>0 ) {
 						percent = bytesRead * 100 / totalSize * 100;
 					}
-					if ( (!progressShown || percent!=lastPercent) && (progressShown || percent<maxPercentToStartShowingProgress || delay > TIMEOUT*2 ) ) {
-						coolReader.getEngine().showProgress(percent, progressMessage);
+					if ( !partialDownloadCompleted && (!progressShown || percent!=lastPercent) && (progressShown || percent<maxPercentToStartShowingProgress || delay > TIMEOUT*2 ) ) {
+						Services.getEngine().showProgress(percent, progressMessage);
 						lastPercent = percent;
 						progressShown = true;
 					}
@@ -870,13 +904,15 @@ xml:base="http://lib.ololo.cc/opds/">
 		
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create( CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback ) {
+	public static DownloadTask create(CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
+		if (currentTask != null)
+			currentTask.cancel();
 		final DownloadTask task = new DownloadTask(coolReader, uri, defaultFileName, expectedType, referer, callback);
 		currentTask = task;
 		return task;
 	}
 
-	private static class SubstTable {
+	static class SubstTable {
 		private final int startChar;
 		private final String[] replacements;
 		public SubstTable( int startChar, String[] replacements ) {
@@ -889,32 +925,6 @@ xml:base="http://lib.ololo.cc/opds/">
 		String get( char ch ) {
 			return (ch>=startChar && ch<startChar + replacements.length) ? replacements[ch - startChar] : "";
 		}
-	}
-	
-	private final static SubstTable[] substTables = { 
-		new SubstTable(0x430, new String[]{"a", "b", "v", "g", "d", "e", "zh", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "c", "ch", "sh", "sch", "'", "y", "i", "e", "yu", "ya"}),
-		new SubstTable(0x410, new String[]{"A", "B", "V", "G", "D", "E", "Zh", "Z", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "H", "C", "Ch", "Sh", "Sch", "'", "Y", "I", "E", "Yu", "Ya"}),
-	};
-	
-	public static String transcribeFileName( String fileName ) {
-		StringBuilder buf = new StringBuilder(fileName.length());
-		for ( char ch : fileName.toCharArray() ) {
-			boolean found = false;
-			if ( ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z') || (ch>='0' && ch<='9') || ch=='-' || ch=='_' || ch=='(' || ch==')')) {
-				buf.append(ch);
-				continue;
-			}
-			for ( SubstTable t : substTables ) {
-				if ( t.isInRange(ch) ) {
-					buf.append(t.get(ch));
-					found = true;
-				}
-			}
-			if ( found )
-				continue;
-			buf.append("_");
-		}
-		return buf.toString();
 	}
 	
 	public static final int PROGRESS_DELAY_MILLIS = 2000;

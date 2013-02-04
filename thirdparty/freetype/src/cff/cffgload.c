@@ -724,6 +724,7 @@
     FT_ULong      charstring_len;
     FT_Pos        glyph_width;
 
+    charstring_len = 0; // fix warning
 
     if ( decoder->seac )
     {
@@ -2741,6 +2742,7 @@
       FT_Byte*  charstring;
       FT_ULong  charstring_len;
 
+      charstring_len = 0; // fix warning
 
       cff_decoder_init( &decoder, face, size, glyph, hinting,
                         FT_LOAD_TARGET_MODE( load_flags ) );

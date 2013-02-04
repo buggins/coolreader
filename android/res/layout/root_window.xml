@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:cr3="http://schemas.android.com/apk/res/org.coolreader"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"-->
+<ScrollView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:cr3="http://schemas.android.com/apk/res/org.coolreader"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    
+<LinearLayout
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content">
+
+    
+    
+    <LinearLayout
+      android:id="@+id/current_book"
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="4dip"
+      android:layout_marginRight="4dip"
+      android:layout_marginTop="4dip"
+      android:layout_marginBottom="4dip"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+
+        
+         <ImageView android:id="@+id/book_cover"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_vertical|center_horizontal"
+             android:scaleType="center"
+             android:gravity="center_vertical|left"
+             android:minHeight="120dip"
+             android:minWidth="100dip"
+             android:maxHeight="200dip"
+             android:maxWidth="150dip"
+             android:drawable="@drawable/cr3_browser_book"
+             />
+
+         
+    <LinearLayout
+      android:gravity="center_vertical|left"
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      >
+         	    <LinearLayout
+          android:layout_weight="5"
+	      android:orientation="vertical"
+	      android:layout_width="fill_parent"
+	      android:layout_height="wrap_content"
+          android:gravity="center_vertical|left"
+          android:layout_gravity="center_vertical|left"
+          android:layout_margin="7dip"
+	      android:minHeight="?android:attr/listPreferredItemHeight"
+	      >
+
+  	      <!--TextView 
+	        android:id="@+id/lbl_current_book"
+	        style="@style/TextAppearance.Medium"
+	        android:text="Now reading:" 
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"/-->
+  	      <TextView 
+		        android:id="@+id/lbl_book_author"
+		           style="@style/TextAppearance.Small"
+		           android:singleLine="false"
+		           android:maxLines="2"
+		        android:text="Author" 
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"/>
+          <TextView 
+                android:id="@+id/lbl_book_title"
+                   style="@style/TextAppearance.Medium"
+                   android:singleLine="false"
+                   android:maxLines="2"
+                android:text="Book Title" 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+          <TextView 
+                android:id="@+id/lbl_book_series"
+                style="@style/TextAppearance.Small"
+                android:text="Book Series" 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+          <TextView 
+                android:id="@+id/lbl_book_info"
+                   style="@style/TextAppearance.Small"
+                android:text="File info" 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+          </LinearLayout>
+      
+                <!-- ImageButton
+                    android:id="@+id/btn_settings"
+                    android:src="@drawable/cr3_viewer_settings"
+                    android:background="@drawable/cr3_toolbar_button_background"
+                    android:layout_gravity="top|right"
+                    android:layout_width="?android:attr/listPreferredItemHeight"
+                    android:layout_height="?android:attr/listPreferredItemHeight"
+                    android:contentDescription="@string/mi_options"
+                /-->
+              <ImageButton
+                    android:id="@+id/btn_menu"
+                    android:src="@drawable/cr3_button_more"
+                    android:background="@drawable/cr3_toolbar_button_background"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:layout_gravity="right"
+                    android:layout_width="?android:attr/listPreferredItemHeight"
+                    android:layout_height="?android:attr/listPreferredItemHeight"
+                    android:contentDescription="@string/btn_toolbar_more"
+                />
+          </LinearLayout>
+	    </LinearLayout>
+
+    <View android:id="@+id/delimiter1" style="@style/RootDelimiter"/>
+    
+    <!-- TextView 
+        style="@style/TextAppearance.Medium"
+	    android:text="@string/dir_recent_books" 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"/-->
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_recent" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
+
+    <HorizontalScrollView
+	      android:layout_marginLeft="4dip"
+	      android:layout_marginRight="8dip"
+	      android:layout_marginTop="2dip"
+	      android:layout_marginBottom="4dip"
+        android:scrollbars="none"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+    <LinearLayout
+      android:id="@+id/scroll_recent_books"
+      android:orientation="horizontal"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+    </LinearLayout>
+    </HorizontalScrollView>
+    
+    <View android:id="@+id/delimiter2" style="@style/RootDelimiter"/>
+    
+    <!--TextView 
+        style="@style/TextAppearance.Medium"
+        android:text="File system" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/-->
+    
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_filesystem" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
+    
+    <HorizontalScrollView
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
+        android:layout_width="fill_parent"
+        android:scrollbars="none"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+    <LinearLayout
+      android:id="@+id/scroll_filesystem"
+      android:orientation="horizontal"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+    </LinearLayout>
+    </HorizontalScrollView>
+
+    <View android:id="@+id/delimiter3" style="@style/RootDelimiter"/>
+
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_library" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
+    
+    <HorizontalScrollView
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
+        android:layout_width="fill_parent"
+        android:scrollbars="none"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+    <LinearLayout
+      android:id="@+id/scroll_library"
+      android:orientation="horizontal"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+    </LinearLayout>
+    </HorizontalScrollView>
+
+    <View android:id="@+id/delimiter4" style="@style/RootDelimiter"/>
+    
+    <!--TextView 
+        style="@style/TextAppearance.Medium"
+        android:text="Online Catalogs" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/-->
+    <TextView 
+          style="@style/TextAppearance.Small"
+          android:singleLine="true"
+          android:maxLines="1"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="0dip"
+          android:layout_marginLeft="8dip"
+          android:layout_marginRight="8dip"
+          android:text="@string/root_item_online_catalogs" 
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"/>
+
+	<HorizontalScrollView
+          android:layout_marginLeft="4dip"
+          android:layout_marginRight="8dip"
+          android:layout_marginTop="2dip"
+          android:layout_marginBottom="4dip"
+        android:scrollbars="none"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:scrollbarDefaultDelayBeforeFade="2000"
+	    android:orientation="horizontal" >
+    <LinearLayout
+      android:id="@+id/scroll_online_catalogs"
+      android:orientation="horizontal"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:fadingEdge="horizontal"
+      android:fadingEdgeLength="20dip"
+      android:minHeight="?android:attr/listPreferredItemHeight"
+      >
+    </LinearLayout>
+    </HorizontalScrollView>
+
+    <View android:id="@+id/delimiter5" style="@style/RootDelimiter"/>
+		
+</LinearLayout>
+</ScrollView>
+<!-- /LinearLayout-->

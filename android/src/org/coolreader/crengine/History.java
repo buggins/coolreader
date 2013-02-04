@@ -2,23 +2,16 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
-import org.coolreader.CoolReader;
 import org.coolreader.db.CRDBService;
 
 import android.util.Log;
 
 public class History extends FileInfoChangeSource {
 	private ArrayList<BookInfo> mBooks = new ArrayList<BookInfo>();
-	private final CoolReader mCoolReader;
 	private FileInfo mRecentBooksFolder;
 
-	private CRDBService.LocalBinder db() {
-		return mCoolReader.getDB();
-	}
-	
-	public History(CoolReader cr, Scanner scanner)
+	public History(Scanner scanner)
 	{
-		this.mCoolReader = cr;
 		this.mScanner = scanner;
 	}
 	
@@ -40,14 +33,14 @@ public class History extends FileInfoChangeSource {
 		void onBookInfoLoaded(BookInfo bookInfo);
 	}
 	
-	public void getOrCreateBookInfo(final FileInfo file, final BookInfoLoadedCallack callback)
+	public void getOrCreateBookInfo(final CRDBService.LocalBinder db, final FileInfo file, final BookInfoLoadedCallack callback)
 	{
 		BookInfo res = getBookInfo(file);
 		if (res != null) {
 			callback.onBookInfoLoaded(res);
 			return;
 		}
-		db().loadBookInfo(file, new CRDBService.BookInfoLoadingCallback() {
+		db.loadBookInfo(file, new CRDBService.BookInfoLoadingCallback() {
 			@Override
 			public void onBooksInfoLoaded(BookInfo bookInfo) {
 				if (bookInfo == null) {
@@ -75,22 +68,23 @@ public class History extends FileInfoChangeSource {
 		return null;
 	}
 	
-	public void removeBookInfo(FileInfo fileInfo, boolean removeRecentAccessFromDB, boolean removeBookFromDB)
+	public void removeBookInfo(final CRDBService.LocalBinder db, FileInfo fileInfo, boolean removeRecentAccessFromDB, boolean removeBookFromDB)
 	{
 		int index = findBookInfo(fileInfo);
 		if (index >= 0)
 			mBooks.remove(index);
 		if ( removeBookFromDB )
-			db().deleteBook(fileInfo);
+			db.deleteBook(fileInfo);
 		else if ( removeRecentAccessFromDB )
-			db().deleteRecentPosition(fileInfo);
+			db.deleteRecentPosition(fileInfo);
 		updateRecentDir();
 	}
 	
-	public void updateBookAccess(BookInfo bookInfo)
+	public void updateBookAccess(BookInfo bookInfo, long timeElapsed)
 	{
 		Log.v("cr3", "History.updateBookAccess() for " + bookInfo.getFileInfo().getPathName());
 		bookInfo.updateAccess();
+		bookInfo.updateTimeElapsed(timeElapsed);
 		int index = findBookInfo(bookInfo.getFileInfo());
 		if ( index>=0 ) {
 			BookInfo info = mBooks.get(index);
@@ -141,11 +135,28 @@ public class History extends FileInfoChangeSource {
 		}
 	}
 	Scanner mScanner;
-	public boolean loadFromDB(int maxItems )
+
+	
+	public void getOrLoadRecentBooks(final CRDBService.LocalBinder db, final CRDBService.RecentBooksLoadingCallback callback) {
+		if (mBooks != null && mBooks.size() > 0) {
+			callback.onRecentBooksListLoaded(mBooks);
+		} else {
+			// not yet loaded. Wait until ready: sync with DB thread.
+			db.sync(new Runnable() {
+				@Override
+				public void run() {
+					callback.onRecentBooksListLoaded(mBooks);
+				}
+			});
+		}
+			
+	}
+	
+	public boolean loadFromDB(final CRDBService.LocalBinder db, int maxItems )
 	{
 		Log.v("cr3", "History.loadFromDB()");
 		mRecentBooksFolder = mScanner.getRecentDir();
-		db().loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
+		db.loadRecentBooks(100, new CRDBService.RecentBooksLoadingCallback() {
 			@Override
 			public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
 				if (bookList != null) {

@@ -19,6 +19,7 @@ public class Bookmark {
 		posText=v.posText;
 		commentText=v.commentText;
 		timeStamp=v.timeStamp;
+		timeElapsed = v.timeElapsed;
 	}
 	
 	@Override
@@ -80,6 +81,8 @@ public class Bookmark {
 		} else if (!startPos.equals(other.startPos))
 			return false;
 		if (timeStamp != other.timeStamp)
+			return false;
+		if (timeElapsed != other.timeElapsed)
 			return false;
 		if (titleText == null) {
 			if (other.titleText != null)
@@ -192,7 +195,14 @@ public class Bookmark {
 			return;
 		this.timeStamp = timeStamp;
 	}
-	
+	public long getTimeElapsed() {
+		return timeElapsed;
+	}
+	public void setTimeElapsed(long timeElapsed) {
+		if ( this.timeElapsed == timeElapsed )
+			return;
+		this.timeElapsed = timeElapsed;
+	}	
 	public Long getId() {
 		return id;
 	}
@@ -224,6 +234,7 @@ public class Bookmark {
 	private String posText;
 	private String commentText;
 	private long timeStamp = System.currentTimeMillis(); // UTC timestamp
+	private long timeElapsed;
 	@Override
 	public String toString() {
 		return "Bookmark[t=" + type + ", start=" + startPos + "]";

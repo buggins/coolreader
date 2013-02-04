@@ -434,4 +434,17 @@
     <string name="book_state_none">Без позначки</string>
     <string name="book_state_finished">Завершено</string>
     <string name="book_info_rating">Rate</string>
+    <string name="options_page_show_titlebar_hidden">None</string>
+    <string name="options_page_show_titlebar_page_header">Page header</string>
+    <string name="options_page_show_titlebar_bottom">Bottom</string>
+    <string name="options_page_show_titlebar_top">Top</string>
+    <string name="options_view_toolbar_position_short_side">Short side</string>
+    <string name="options_view_toolbar_position_bottom">Bottom</string>
+    <string name="options_view_toolbar_position">Toolbar position</string>
+    <string name="options_view_toolbar_position_top">Top</string>
+    <string name="options_view_toolbar_position_left">Left</string>
+    <string name="options_view_toolbar_position_long_side">Long side</string>
+    <string name="options_view_toolbar_position_none">None</string>
+    <string name="options_view_toolbar_hide_in_fullscreen">Hide toolbar in fullscreen</string>
+    <string name="options_view_toolbar_position_right">Right</string>
 </resources>

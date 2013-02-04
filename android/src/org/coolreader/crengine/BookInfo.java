@@ -44,6 +44,13 @@ public class BookInfo {
 		}
 	}
 	
+	public void updateTimeElapsed(long timeElapsed)
+	{
+		if (lastPosition != null) {
+			lastPosition.setTimeElapsed(timeElapsed);
+		}
+	}	
+	
 	/**
 	 * Deep copy.
 	 * @param bookInfo is source object to copy from.

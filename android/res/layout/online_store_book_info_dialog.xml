@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_marginRight="?android:attr/scrollbarSize"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="*" >
+ 
+    <LinearLayout
+      android:orientation="vertical"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content">
+
+        <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
+        <LinearLayout
+        android:id="@+id/linearLayout_focus"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="0px"
+        android:layout_height="0px"/>
+        <LinearLayout 
+            android:id="@+id/base_dlg_button_panel"
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="?android:attr/listPreferredItemHeight"
+            android:gravity="center_vertical"
+            android:background="#60404040"
+            >
+            <ImageButton android:id="@+id/base_dlg_btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:minWidth="?android:attr/listPreferredItemHeight"
+                android:src="@drawable/cr3_button_prev"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:background="@null"
+                />
+            <Button android:id="@+id/btn_buy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dip"
+                android:text="Buy"
+                android:minWidth="100dip"
+                android:layout_gravity="center_vertical"
+                />
+            <Button android:id="@+id/btn_preview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dip"
+                android:text="Preview"
+                android:minWidth="100dip"
+                android:layout_gravity="center_vertical"
+                />
+        </LinearLayout>
+        <TextView 
+            android:id="@+id/lbl_book_author"
+            style="@style/TextAppearance.Medium"
+            android:singleLine="false"
+            android:maxLines="3"
+            android:text="Author1, Author2" 
+            android:layout_marginTop="10dip"
+            android:layout_marginLeft="10dip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView 
+            android:id="@+id/lbl_book_title"
+            style="@style/TextAppearance.Large"
+            android:singleLine="false"
+            android:maxLines="3"
+            android:text="Book Title" 
+            android:layout_marginTop="4dip"
+            android:layout_marginBottom="4dip"
+            android:layout_marginLeft="10dip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView 
+            android:id="@+id/lbl_book_series"
+            style="@style/TextAppearance.Small"
+            android:singleLine="false"
+            android:maxLines="3"
+            android:layout_marginLeft="10dip"
+            android:text="Series Name #4" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <LinearLayout 
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            >
+            <LinearLayout 
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dip"
+                android:gravity="center_vertical"
+                >
+                <ImageView android:id="@+id/book_cover"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|center_horizontal"
+                    android:padding="3dip"
+                    android:layout_marginLeft="10dip"
+                    android:scaleType="fitCenter"
+                    android:minHeight="120dip"
+                    android:minWidth="100dip"
+                    android:maxHeight="200dip"
+                    android:maxWidth="150dip"
+                    android:drawable="@drawable/cr3_browser_book"
+                    />
+            </LinearLayout>
+            <LinearLayout 
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dip"
+                android:gravity="center_vertical"
+                >
+                <TextView 
+                    android:id="@+id/lbl_login"
+                    style="@style/TextAppearance.Medium"
+                    android:layout_marginLeft="10dip"
+                    android:singleLine="false"
+                    android:maxLines="2"
+                    android:text="account: user"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView 
+                    android:id="@+id/lbl_balance"
+		            style="@style/TextAppearance.Medium"
+		            android:singleLine="false"
+                    android:maxLines="2"
+		            android:text="balance: 0" 
+                    android:layout_marginLeft="10dip"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"/>
+                <TextView 
+                    android:id="@+id/lbl_status"
+                    style="@style/TextAppearance.Small"
+                    android:singleLine="false"
+                    android:maxLines="2"
+                    android:layout_marginLeft="10dip"
+                    android:text="status: purchased" 
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView 
+                    android:id="@+id/lbl_price"
+                    style="@style/TextAppearance.Medium"
+                    android:singleLine="false"
+                    android:maxLines="2"
+                    android:text="price: 0" 
+                    android:layout_marginLeft="10dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView 
+                    android:id="@+id/lbl_normal_price"
+                    style="@style/TextAppearance.Medium"
+                    android:singleLine="false"
+                    android:maxLines="2"
+                    android:text="normal price: 0"
+                    android:layout_marginLeft="10dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+		        <TextView 
+		            android:id="@+id/lbl_book_file_info"
+		            style="@style/TextAppearance.Small"
+		            android:singleLine="true"
+		            android:text="250K" 
+		            android:layout_marginLeft="10dip"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"/>
+   		    </LinearLayout>
+        </LinearLayout>
+        <RatingBar
+            android:id="@+id/book_rating"
+            android:isIndicator="true"
+            android:numStars="5"
+            android:stepSize="0.5"
+            android:rating="3.5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</ScrollView>

@@ -1,9 +1,8 @@
 package org.coolreader.crengine;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
-import android.view.View;
-//import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import android.app.Activity;
 
 /**
  * Nook Touch EPD controller interface wrapper.
@@ -36,7 +35,10 @@ public class N2EpdController {
 	public static String strN2EpdInit = " N2EpdInit: ";
 	
 	private static Method mtSetRegion = null;
-	private static Constructor RegionParamsConstructor= null;
+	private static Constructor<?> RegionParamsConstructor= null;
+	private static Constructor<?> EpdControllerConstructors[] = null;
+	public static Activity n2MainActivity =  null;
+	private static Object mEpdController = null;
 
 	private static Object[] enumsWave 	= null;
 	private static Object[] enumsRegion	= null;
@@ -45,12 +47,20 @@ public class N2EpdController {
 	static {
 		if (DeviceInfo.EINK_NOOK) {
 			try {
-				Class clEpdController     	= Class.forName("android.hardware.EpdController");
-				Class clEpdControllerWave 	= Class.forName("android.hardware.EpdController$Wave");
-				Class clEpdControllerMode 	= Class.forName("android.hardware.EpdController$Mode");
-				Class clEpdControllerRegion = Class.forName("android.hardware.EpdController$Region");
+				Class<?> clEpdController     	= Class.forName("android.hardware.EpdController");
+				Class<?> clEpdControllerWave;
+				if (DeviceInfo.EINK_NOOK_120)
+					clEpdControllerWave = Class.forName("android.hardware.EpdRegionParams$Wave");
+				else
+					clEpdControllerWave = Class.forName("android.hardware.EpdController$Wave");
+				Class<?> clEpdControllerMode 	= Class.forName("android.hardware.EpdController$Mode");
+				Class<?> clEpdControllerRegion = Class.forName("android.hardware.EpdController$Region");
 
-				Class clEpdControllerRegionParams = Class.forName("android.hardware.EpdController$RegionParams");
+				Class<?> clEpdControllerRegionParams;
+				if (DeviceInfo.EINK_NOOK_120)
+					clEpdControllerRegionParams = Class.forName("android.hardware.EpdRegionParams");
+				else
+					clEpdControllerRegionParams = Class.forName("android.hardware.EpdController$RegionParams");
 				
 				enumsWave = clEpdControllerWave.getEnumConstants();
 
@@ -58,12 +68,13 @@ public class N2EpdController {
 
 				enumsRegion = clEpdControllerRegion.getEnumConstants();
 
-//				mtSetRegion = clEpdController.getMethod("setRegion", String.class, clEpdControllerRegion, View.class,
-//								clEpdControllerWave, clEpdControllerMode);
 				RegionParamsConstructor = clEpdControllerRegionParams.getConstructor(
 						new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, clEpdControllerWave});
 				mtSetRegion = clEpdController.getMethod("setRegion", String.class, clEpdControllerRegion, 
 						clEpdControllerRegionParams, clEpdControllerMode);
+				
+				if (DeviceInfo.EINK_NOOK_120) 
+					EpdControllerConstructors = clEpdController.getConstructors();
 				
 				strN2EpdInit += "Ok!";
 			} catch (Exception e) {
@@ -75,13 +86,13 @@ public class N2EpdController {
 		}
 	}
 
-//	public static void setMode(int region, int wave, int mode, View view) {
 	public static void setMode(int region, int wave, int mode) {
 		if (mtSetRegion != null) {
 			try {
+				if (DeviceInfo.EINK_NOOK_120 && mEpdController == null)
+					mEpdController = EpdControllerConstructors[0].newInstance(new Object[] { n2MainActivity });
 				Object regionParams =  RegionParamsConstructor.newInstance(new Object[] { 0, 0, 600, 800, enumsWave[wave]});
-//				mtSetRegion.invoke(null, "CoolReader", enumsRegion[region], view, enumsWave[wave], enumsMode[mode]);
-				mtSetRegion.invoke(null, "CoolReader", enumsRegion[region], regionParams, enumsMode[mode]);
+				mtSetRegion.invoke(mEpdController, "CoolReader", enumsRegion[region], regionParams, enumsMode[mode]);
 			} catch (Exception e) {
 				System.err.println("Failed: SetMode");
 				System.err.println(e.toString());

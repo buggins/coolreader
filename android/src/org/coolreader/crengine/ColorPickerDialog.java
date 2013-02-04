@@ -3,7 +3,6 @@ package org.coolreader.crengine;
 // based on color picker from 
 // http://www.anddev.org/announce_color_picker_dialog-t10771.html
 
-import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.content.res.Resources;
@@ -54,7 +53,7 @@ public class ColorPickerDialog extends BaseDialog implements OnSeekBarChangeList
 	private int mColor;
 	private GradientDrawable mPreviewDrawable;
 
-	public ColorPickerDialog(CoolReader activity, OnColorChangedListener listener, int color, String title) {
+	public ColorPickerDialog(BaseActivity activity, OnColorChangedListener listener, int color, String title) {
 		super(activity, title, false, true);
 		mListener = listener;
 

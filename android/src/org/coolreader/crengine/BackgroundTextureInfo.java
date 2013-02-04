@@ -63,7 +63,7 @@ public class BackgroundTextureInfo {
 	}
 	@Override
 	public String toString() {
-		return "BackgroundTextureInfo [id=" + id + ", name=" + name + "]";
+		return "BackgroundTextureInfo[id=" + id + ", name=" + name + ", tiled=" + tiled + "]";
 	}
 	public boolean isNone() {
 		return id==null || id.equals(NO_TEXTURE_ID);

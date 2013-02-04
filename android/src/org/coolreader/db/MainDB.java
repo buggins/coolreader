@@ -15,13 +15,13 @@ import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
 import org.coolreader.crengine.MountPathCorrector;
+import org.coolreader.crengine.OPDSConst;
 import org.coolreader.crengine.Utils;
 
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
-import android.text.TextUtils.SimpleStringSplitter;
 import android.util.Log;
 
 public class MainDB extends BaseDB {
@@ -29,7 +29,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 14;
+	public final int DB_VERSION = 20;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -98,7 +98,8 @@ public class MainDB extends BaseDB {
 					"end_pos VARCHAR," +
 					"title_text VARCHAR," +
 					"pos_text VARCHAR," +
-					"comment_text VARCHAR" +
+					"comment_text VARCHAR, " +
+					"time_elapsed INTEGER DEFAULT 0" +
 					")");
 			execSQL("CREATE INDEX IF NOT EXISTS " +
 			"bookmark_book_index ON bookmark (book_fk) ");
@@ -112,12 +113,11 @@ public class MainDB extends BaseDB {
 				execSQL("CREATE TABLE IF NOT EXISTS opds_catalog (" +
 						"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
 						"name VARCHAR NOT NULL COLLATE NOCASE, " +
-						"url VARCHAR NOT NULL COLLATE NOCASE" +
+						"url VARCHAR NOT NULL COLLATE NOCASE, " +
+						"last_usage INTEGER DEFAULT 0" +
 						")");
 			if (currentVersion < 7) {
 				addOPDSCatalogs(DEF_OPDS_URLS1);
-				if (!DeviceInfo.NOFLIBUSTA)
-					addOPDSCatalogs(DEF_OPDS_URLS1A);
 			}
 			if (currentVersion < 8)
 				addOPDSCatalogs(DEF_OPDS_URLS2);
@@ -125,6 +125,14 @@ public class MainDB extends BaseDB {
 			    execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN language VARCHAR DEFAULT NULL");
 			if (currentVersion < 14)
 				pathCorrectionRequired = true;
+			if (currentVersion < 15)
+			    execSQLIgnoreErrors("ALTER TABLE opds_catalog ADD COLUMN last_usage INTEGER DEFAULT 0");
+			if (currentVersion < 16)
+				execSQLIgnoreErrors("ALTER TABLE bookmark ADD COLUMN time_elapsed INTEGER DEFAULT 0");
+			if (currentVersion < 17)
+				pathCorrectionRequired = true; // chance to correct paths under Android 4.2
+			if (currentVersion < 20)
+				removeOPDSCatalogsFromBlackList(); // BLACK LIST enforcement, by LitRes request
 
 			//==============================================================
 			// add more updates above this line
@@ -201,12 +209,8 @@ public class MainDB extends BaseDB {
 		"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
 	};
 
-	private final static String[] DEF_OPDS_URLS1A = {
-		"http://flibusta.net/opds/", "Flibusta", 
-	};
-	
 	private final static String[] DEF_OPDS_URLS2 = {
-		"http://www.shucang.com/s/index.php", "ShuCang.com",
+		"http://www.shucang.org/s/index.php", "ShuCang.org",
 	};
 
 	private void addOPDSCatalogs(String[] catalogs) {
@@ -217,6 +221,34 @@ public class MainDB extends BaseDB {
 		}
 	}
 
+	public void removeOPDSCatalogsFromBlackList() {
+		if (OPDSConst.BLACK_LIST_MODE != OPDSConst.BLACK_LIST_MODE_FORCE) {
+		    execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE url='http://flibusta.net/opds/'");
+		} else {
+			for (String url : OPDSConst.BLACK_LIST) {
+			    execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE url=" + quoteSqlString(url));
+			}
+		}
+	}
+	
+	public void updateOPDSCatalogLastUsage(String url) {
+		try {
+			Long existingIdByUrl = longQuery("SELECT id FROM opds_catalog WHERE url=" + quoteSqlString(url));
+			if (existingIdByUrl == null)
+				return;
+			// update existing
+			Long lastUsage = longQuery("SELECT max(last_usage) FROM opds_catalog");
+			if (lastUsage == null)
+				lastUsage = 1L;
+			else
+				lastUsage = lastUsage + 1;
+			execSQL("UPDATE opds_catalog SET last_usage="+ lastUsage +" WHERE id=" + existingIdByUrl);
+		} catch (Exception e) {
+			log.e("exception while updating OPDS catalog item", e);
+		}
+	}
+
+	
 	public boolean saveOPDSCatalog(Long id, String url, String name) {
 		if (!isOpened())
 			return false;
@@ -243,6 +275,7 @@ public class MainDB extends BaseDB {
 				// update existing
 				execSQL("UPDATE opds_catalog SET name="+quoteSqlString(name)+", url="+quoteSqlString(url)+" WHERE id=" + id);
 			}
+			updateOPDSCatalogLastUsage(url);
 				
 		} catch (Exception e) {
 			log.e("exception while saving OPDS catalog item", e);
@@ -256,7 +289,7 @@ public class MainDB extends BaseDB {
 		boolean found = false;
 		Cursor rs = null;
 		try {
-			String sql = "SELECT id, name, url FROM opds_catalog";
+			String sql = "SELECT id, name, url FROM opds_catalog ORDER BY last_usage DESC, name";
 			rs = mDB.rawQuery(sql, null);
 			if ( rs.moveToFirst() ) {
 				// remove existing entries
@@ -297,7 +330,7 @@ public class MainDB extends BaseDB {
 	private static final String READ_BOOKMARK_SQL = 
 		"SELECT " +
 		"id, type, percent, shortcut, time_stamp, " + 
-		"start_pos, end_pos, title_text, pos_text, comment_text " +
+		"start_pos, end_pos, title_text, pos_text, comment_text, time_elapsed " +
 		"FROM bookmark b ";
 	private void readBookmarkFromCursor( Bookmark v, Cursor rs )
 	{
@@ -312,6 +345,7 @@ public class MainDB extends BaseDB {
 		v.setTitleText( rs.getString(i++) );
 		v.setPosText( rs.getString(i++) );
 		v.setCommentText( rs.getString(i++) );
+		v.setTimeElapsed( rs.getLong(i++) );
 	}
 
 	public boolean findBy( Bookmark v, String condition ) {
@@ -572,6 +606,22 @@ public class MainDB extends BaseDB {
 		return findBooks(sql, list);
 	}
 	
+	public boolean findBooksByRating(ArrayList<FileInfo> list, int minRate, int maxRate)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " WHERE ((flags>>20)&15) BETWEEN " + minRate + " AND " + maxRate + " ORDER BY ((flags>>20)&15) DESC, b.title LIMIT 1000";
+		return findBooks(sql, list);
+	}
+	
+	public boolean findBooksByState(ArrayList<FileInfo> list, int state)
+	{
+		if (!isOpened())
+			return false;
+		String sql = READ_FILEINFO_SQL + " WHERE ((flags>>16)&15) = " + state + " ORDER BY b.title LIMIT 1000";
+		return findBooks(sql, list);
+	}
+	
 	private String findAuthors(int maxCount, String authorPattern) {
 		StringBuilder buf = new StringBuilder();
 		String sql = "SELECT id, name FROM author";
@@ -728,16 +778,45 @@ public class MainDB extends BaseDB {
 	private final static int FILE_INFO_CACHE_SIZE = 3000;
 	private FileInfoCache fileInfoCache = new FileInfoCache(FILE_INFO_CACHE_SIZE); 
 	
-	private FileInfo findFileInfoByPathname(String path)
+	private FileInfo findMovedFileInfo(String path) {
+		ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+		FileInfo fi = new FileInfo(path);
+		if (fi.exists()) {
+			if (findAllBy(list, "filename", fi.filename)) {
+				for (FileInfo item : list) {
+					if (item.exists())
+						continue;
+					if (item.size == fi.size) {
+						log.i("Found record for file of the same name and size: treat as moved " + item.filename + " " + item.size);
+						// fix and save
+						item.pathname = fi.pathname;
+						item.arcname = fi.arcname;
+						item.arcsize = fi.arcsize;
+						item.path = fi.path;
+						item.createTime = fi.createTime;
+						save(item);
+						fileInfoCache.put(item);
+						return item;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	private FileInfo findFileInfoByPathname(String path, boolean detectMoved)
 	{
 		FileInfo existing = fileInfoCache.get(path);
 		if (existing != null)
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
 		if (findBy(fileInfo, "pathname", path)) {
+			fileInfoCache.put(fileInfo);
 			return fileInfo;
 		}
-		return null;
+		if (!detectMoved)
+			return null;
+		return findMovedFileInfo(path);
 	}
 
 	private FileInfo findFileInfoById(Long id)
@@ -748,7 +827,7 @@ public class MainDB extends BaseDB {
 		if (existing != null)
 			return existing;
 		FileInfo fileInfo = new FileInfo(); 
-		if (findBy( fileInfo, "b.id", fileInfo.id)) {
+		if (findBy( fileInfo, "b.id", id)) {
 			return fileInfo;
 		}
 		return null;
@@ -775,6 +854,39 @@ public class MainDB extends BaseDB {
 			if ( rs.moveToFirst() ) {
 				readFileInfoFromCursor( fileInfo, rs );
 				found = true;
+			}
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return found;
+	}
+
+	private boolean findAllBy( ArrayList<FileInfo> result, String fieldName, Object fieldValue )
+	{
+		String condition;
+		StringBuilder buf = new StringBuilder(" WHERE ");
+		buf.append(fieldName);
+		if ( fieldValue==null ) {
+			buf.append(" IS NULL ");
+		} else {
+			buf.append("=");
+			DatabaseUtils.appendValueToSql(buf, fieldValue);
+			buf.append(" ");
+		}
+		condition = buf.toString();
+		boolean found = false;
+		Cursor rs = null;
+		try { 
+			rs = mDB.rawQuery(READ_FILEINFO_SQL +
+					condition, null);
+			if (rs.moveToFirst()) {
+				do {
+					FileInfo fileInfo = new FileInfo();
+					readFileInfoFromCursor( fileInfo, rs );
+					result.add(fileInfo);
+					found = true;
+				} while (rs.moveToNext());
 			}
 		} finally {
 			if ( rs!=null )
@@ -873,7 +985,7 @@ public class MainDB extends BaseDB {
 	private boolean save(FileInfo fileInfo)	{
 		boolean authorsChanged = true;
 		try {
-			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName());
+			FileInfo oldValue = findFileInfoByPathname(fileInfo.getPathName(), false);
 			if (oldValue == null && fileInfo.id != null)
 				oldValue = findFileInfoById(fileInfo.id);
 			if (oldValue != null && fileInfo.id == null && oldValue.id != null)
@@ -1136,6 +1248,7 @@ public class MainDB extends BaseDB {
 			add("pos_text", newValue.getPosText(), oldValue.getPosText());
 			add("comment_text", newValue.getCommentText(), oldValue.getCommentText());
 			add("time_stamp", newValue.getTimeStamp(), oldValue.getTimeStamp());
+			add("time_elapsed", newValue.getTimeElapsed(), oldValue.getTimeElapsed());
 		}
 	}
 
@@ -1301,7 +1414,7 @@ public class MainDB extends BaseDB {
 		try {
 			beginReading();
 			for (String path : pathNames) {
-				FileInfo file = findFileInfoByPathname(path);
+				FileInfo file = findFileInfoByPathname(path, true);
 				if (file != null)
 					list.add(new FileInfo(file));
 			}
@@ -1371,6 +1484,13 @@ public class MainDB extends BaseDB {
 			fileInfoCache.put(fileInfo);
 			return true;
 		}
+		
+		FileInfo moved = findMovedFileInfo(fileInfo.getPathName());
+		if (moved != null) {
+			fileInfo.assign(moved);
+			return true;
+		}
+		
 		return false;
 	}
 
@@ -1405,7 +1525,7 @@ public class MainDB extends BaseDB {
 		execSQLIgnoreErrors("DELETE FROM book WHERE id=" + bookId);
 		return bookId;
 	}
-
+	
 	public void correctFilePaths() {
 		Log.i("cr3", "checking data for path correction");
 		beginReading();

@@ -17,7 +17,6 @@ src/txtselector.cpp
 src/crtest.cpp
 )
 
-
 if ( NOT ${GUI} STREQUAL FB2PROPS )
     SET (CRENGINE_SOURCES ${CRENGINE_SOURCES}
     src/lvbmpbuf.cpp   

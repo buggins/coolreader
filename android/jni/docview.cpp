@@ -669,7 +669,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_destroyInternal
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
   (JNIEnv * env, jobject view, jobject bitmap, jint bpp)
 {
-    CRLog::trace("getPageImageInternal entered");
+    CRLog::trace("getPageImageInternal entered : bpp=%d", bpp);
     DocViewNative * p = getNative(env, view);
     //CRLog::info("Initialize callback");
 	DocViewCallback callback( env, p->_docview, view );	
@@ -1110,7 +1110,8 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
 	DocViewCallback callback( _env, p->_docview, _this );
     lString16 str = env.fromJavaString(_path);
     ldomXPointer bm;
-    bool useCurPos = false; // use current Y position for scroll view mode  
+    bool useCurPos = false; // use current Y position for scroll view mode
+    p->_docview->checkPos();
     if ( !str.empty() ) {
         bm = p->_docview->getDocument()->createXPointer(str);
     } else {
@@ -1134,6 +1135,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     CRIntField(v,"pageMode").set(p->_docview->getViewMode()==DVM_PAGES ? p->_docview->getVisiblePageCount() : 0);
     CRIntField(v,"charCount").set(p->_docview->getCurrentPageCharCount());
     CRIntField(v,"imageCount").set(p->_docview->getCurrentPageImageCount());
+    CRStringField(v,"pageText").set(p->_docview->getPageText(false, -1));
 	return obj;
 }
 

@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -38,7 +39,7 @@ public class BookmarksDlg  extends BaseDialog {
 	public final static int ITEM_CORRECTION=2;
 	public final static int ITEM_SHORTCUT=3;
 	
-	class BookmarkListAdapter implements ListAdapter {
+	class BookmarkListAdapter extends BaseAdapter {
 		public boolean areAllItemsEnabled() {
 			return true;
 		}
@@ -120,7 +121,7 @@ public class BookmarksDlg  extends BaseDialog {
 					labelView.setText(String.valueOf(position+1));
 			}
 			if ( b!=null ) {
-				String percentString = FileBrowser.formatPercent(b.getPercent());
+				String percentString = Utils.formatPercent(b.getPercent());
 				String s1 = b.getTitleText();
 				String s2 = b.getPosText();
 				String s3 = b.getCommentText();
@@ -192,6 +193,10 @@ public class BookmarksDlg  extends BaseDialog {
 			return mShortcutMode;
 		}
 		public void setShortcutMode( boolean shortcutMode ) {
+			if (mBookInfo == null) {
+				L.e("BookmarkList - mBookInfo is null");
+				return;
+			}
 			if ( !shortcutMode )
 				mBookInfo.sortBookmarks();
 			updateAdapter( shortcutMode ? new ShortcutBookmarkListAdapter() : new BookmarkListAdapter() );
@@ -201,7 +206,7 @@ public class BookmarksDlg  extends BaseDialog {
 			setAdapter(mAdapter);
 		}
 		public BookmarkList( Context context, boolean shortcutMode ) {
-			super(context);
+			super(context, true);
 			setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			setShortcutMode(shortcutMode);
 			setLongClickable(true);
@@ -254,7 +259,7 @@ public class BookmarksDlg  extends BaseDialog {
 		mCoolReader = activity;
 		mReaderView = readerView;
 		mBookInfo = mReaderView.getBookInfo();
-		setPositiveButtonImage(R.drawable.cr3_button_add);
+		setPositiveButtonImage(R.drawable.cr3_button_add, R.string.mi_bookmark_add);
 		View frame = mInflater.inflate(R.layout.bookmark_list_dialog, null);
 		ViewGroup body = (ViewGroup)frame.findViewById(R.id.bookmark_list);
 		mList = new BookmarkList(activity, false);

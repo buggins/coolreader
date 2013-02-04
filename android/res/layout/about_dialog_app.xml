@@ -9,13 +9,13 @@
 			android:src="@drawable/cr3_logo" android:layout_gravity="center_vertical|left">
 		</ImageView>
 		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:id="@+id/LinearLayout01" android:layout_height="wrap_content" android:layout_width="fill_parent">
-			<TextView android:text="Cool Reader 3.0" android:id="@+id/version" android:layout_width="fill_parent" 
+			<TextView android:text="Cool Reader 3.1" android:id="@+id/version" android:layout_width="fill_parent" 
 	            style="@style/TextAppearance.Medium"
 		        android:gravity="left"
 		        android:layout_margin="4dip"
 				android:layout_height="wrap_content">
 			</TextView>
-			<TextView android:text="(c) Vadim Lopatin, 2011" android:id="@+id/copyright" 
+			<TextView android:text="(c) Vadim Lopatin, 2013" android:id="@+id/copyright" 
 		            style="@style/TextAppearance.Medium"
                     android:gravity="left"
 					android:layout_margin="4dip" 

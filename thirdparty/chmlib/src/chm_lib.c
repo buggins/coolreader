@@ -1536,6 +1536,8 @@ static Int64 _chm_decompress_region(struct chmFile *h,
     UInt64 gotLen;
     UChar *ubuffer;
 
+    ubuffer = NULL; // fix warning
+
     if (len <= 0)
         return (Int64)0;
 

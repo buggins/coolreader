@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_marginRight="?android:attr/scrollbarSize"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="*" >
+ 
+    <LinearLayout
+      android:orientation="vertical"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content">
+
+        <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
+        <LinearLayout
+        android:id="@+id/linearLayout_focus"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="0px"
+        android:layout_height="0px"/>
+        <LinearLayout 
+            android:id="@+id/base_dlg_button_panel"
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="?android:attr/listPreferredItemHeight"
+            android:gravity="center_vertical"
+            android:background="#60404040"
+            >
+            <ImageButton android:id="@+id/base_dlg_btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:minWidth="?android:attr/listPreferredItemHeight"
+                android:src="@drawable/cr3_button_prev"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:background="@null"
+                />
+	        <Button android:id="@+id/btn_login"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_marginLeft="10dip"
+	            android:text="@string/online_store_login"
+	            android:minWidth="100dip"
+	            android:layout_gravity="center_vertical"
+	            />
+	    </LinearLayout>
+        <TextView 
+            android:id="@+id/dlg_title"
+            style="@style/TextAppearance.Large"
+            android:singleLine="true"
+            android:layout_margin="10px"
+            android:text="LitRes" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView 
+            style="@style/TextAppearance.Medium"
+            android:singleLine="true"
+            android:text="@string/online_store_username"
+            android:layout_margin="10px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <EditText 
+            android:id="@+id/ed_login" 
+            android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:text="login" 
+            android:inputType="textEmailAddress"
+            android:layout_margin="10px"
+            style="@style/TextAppearance.Widget.EditText"
+            android:editable="true" 
+            android:singleLine="true"
+        />
+    
+        <TextView 
+            style="@style/TextAppearance.Medium"
+            android:singleLine="true"
+            android:text="@string/online_store_password"
+            android:layout_margin="10px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+       <EditText 
+            android:id="@+id/ed_password" 
+            android:layout_width="fill_parent" 
+            android:layout_margin="10px"
+            android:layout_height="wrap_content"
+            android:password="true" 
+            android:text="password" 
+            style="@style/TextAppearance.Widget.EditText"
+            android:editable="true" 
+            android:singleLine="true"
+        />
+   </LinearLayout>
+</ScrollView>

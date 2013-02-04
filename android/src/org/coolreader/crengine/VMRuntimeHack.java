@@ -9,10 +9,13 @@ public class VMRuntimeHack {
 	private Object runtime = null;
 	private Method trackAllocation = null;
 	private Method trackFree = null;
+	private static int totalSize = 0;
 	
 	public boolean trackAlloc(long size) {
 		if (runtime == null)
 			return false;
+		totalSize += size;
+		L.v("trackAlloc(" + size + ")  total=" + totalSize);
 		try {
 			Object res = trackAllocation.invoke(runtime, Long.valueOf(size));
 			return (res instanceof Boolean) ? (Boolean)res : true;
@@ -27,6 +30,8 @@ public class VMRuntimeHack {
 	public boolean trackFree(long size) {
 		if (runtime == null)
 			return false;
+		totalSize -= size;
+		L.v("trackFree(" + size + ")  total=" + totalSize);
 		try {
 			Object res = trackFree.invoke(runtime, Long.valueOf(size));
 			return (res instanceof Boolean) ? (Boolean)res : true;
@@ -43,7 +48,7 @@ public class VMRuntimeHack {
 			return;
 		boolean success = false;
 		try {
-			Class cl = Class.forName("dalvik.system.VMRuntime");
+			Class<?> cl = Class.forName("dalvik.system.VMRuntime");
 			Method getRt = cl.getMethod("getRuntime", new Class[0]);
 			runtime = getRt.invoke(null, new Object[0]);
 			trackAllocation = cl.getMethod("trackExternalAllocation", new Class[] {long.class});

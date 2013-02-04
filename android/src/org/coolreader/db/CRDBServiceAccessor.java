@@ -1,5 +1,7 @@
 package org.coolreader.db;
 
+import java.util.ArrayList;
+
 import org.coolreader.crengine.MountPathCorrector;
 
 import android.app.Activity;
@@ -28,21 +30,27 @@ public class CRDBServiceAccessor {
 		this.pathCorrector = pathCorrector;
 	}
 
-	private Runnable onConnectCallback;
+	private ArrayList<Runnable> onConnectCallbacks = new ArrayList<Runnable>();
 	
+	private boolean bindIsCalled;
     public void bind(final Runnable boundCallback) {
-    	Log.v(TAG, "binding CRDBService");
     	if (mService != null) {
-        	Log.v(TAG, "Already bound");
-    		boundCallback.run();
+        	Log.v(TAG, "CRDBService is already bound");
+        	if (boundCallback != null)
+        		boundCallback.run();
     		return;
     	}
-    	if (mActivity.bindService(new Intent(mActivity, 
-                CRDBService.class), mServiceConnection, Context.BIND_AUTO_CREATE)) {
-    		onConnectCallback = boundCallback;
-            mServiceBound = true;
-    	} else {
-    		Log.e(TAG, "cannot bind CRDBService");
+    	Log.v(TAG, "binding CRDBService");
+    	if (boundCallback != null)
+    		onConnectCallbacks.add(boundCallback);
+    	if (!bindIsCalled) {
+    		bindIsCalled = true;
+	    	if (mActivity.bindService(new Intent(mActivity, 
+	                CRDBService.class), mServiceConnection, Context.BIND_AUTO_CREATE)) {
+	            mServiceBound = true;
+	    	} else {
+	    		Log.e(TAG, "cannot bind CRDBService");
+	    	}
     	}
     }
 
@@ -61,10 +69,11 @@ public class CRDBServiceAccessor {
         	Log.i(TAG, "connected to CRDBService");
         	if (pathCorrector != null)
         		mService.setPathCorrector(pathCorrector);
-        	if (onConnectCallback != null) {
+        	if (onConnectCallbacks.size() != 0) {
         		// run once
-        		onConnectCallback.run();
-        		onConnectCallback = null;
+        		for (Runnable callback : onConnectCallbacks)
+        			callback.run();
+        		onConnectCallbacks.clear();
         	}
         }
 

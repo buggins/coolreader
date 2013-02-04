@@ -2,7 +2,6 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 
 import org.coolreader.crengine.ReaderView.Sync;
 
@@ -10,7 +9,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
 
 /**
  * Allows running tasks either in background thread or in GUI thread.
@@ -42,9 +40,9 @@ public class BackgroundThread extends Thread {
 	}
 
 	public static Handler getGUIHandler() {
-		if (instance().guiTarget == null)
+		if (instance().guiHandler == null)
 			return null;
-		return instance().guiTarget.getHandler();
+		return instance().guiHandler;
 	}
 
 	public final static boolean CHECK_THREAD_CONTEXT = true; 
@@ -54,7 +52,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public final static void ensureBackground()
 	{
-		if ( CHECK_THREAD_CONTEXT && !instance().isBackgroundThread() ) {
+		if ( CHECK_THREAD_CONTEXT && !isBackgroundThread() ) {
 			L.e("not in background thread", new Exception("ensureInBackgroundThread() is failed"));
 			throw new RuntimeException("ensureInBackgroundThread() is failed");
 		}
@@ -74,21 +72,21 @@ public class BackgroundThread extends Thread {
 	// 
 	private Handler handler;
 	private ArrayList<Runnable> posted = new ArrayList<Runnable>();
-	private View guiTarget;
+	private Handler guiHandler;
 	private ArrayList<Runnable> postedGUI = new ArrayList<Runnable>();
 
 	/**
 	 * Set view to post GUI tasks to.
 	 * @param guiTarget is view to post GUI tasks to.
 	 */
-	public void setGUI( View guiTarget ) {
-		this.guiTarget = guiTarget;
-		if ( guiTarget!=null ) {
+	public void setGUIHandler(Handler guiHandler) {
+		this.guiHandler = guiHandler;
+		if (guiHandler != null) {
 			// forward already posted events
 			synchronized(postedGUI) {
 				L.d("Engine.setGUI: " + postedGUI.size() + " posted tasks to copy");
 				for ( Runnable task : postedGUI )
-					guiTarget.post( task );
+					guiHandler.post( task );
 			}
 		}
 	}
@@ -126,18 +124,19 @@ public class BackgroundThread extends Thread {
 		Log.i("cr3", "Exiting background thread");
 	}
 
-	private final static boolean USE_LOCK = false;
+	//private final static boolean USE_LOCK = false;
 	private Runnable guard( final Runnable r )
 	{
-		if ( !USE_LOCK )
-			return r;
-		return new Runnable() {
-			public void run() {
-				synchronized (LOCK) {
-					r.run();
-				}
-			}
-		};
+		return r;
+//		if ( !USE_LOCK )
+//			return r;
+//		return new Runnable() {
+//			public void run() {
+//				synchronized (LOCK) {
+//					r.run();
+//				}
+//			}
+//		};
 	}
 
 	/**
@@ -180,7 +179,7 @@ public class BackgroundThread extends Thread {
 	 */
 	public void postGUI(final Runnable task, final long delay)
 	{
-		if ( guiTarget==null ) {
+		if ( guiHandler==null ) {
 			synchronized( postedGUI ) {
 				postedGUI.add(task);
 			}
@@ -188,7 +187,7 @@ public class BackgroundThread extends Thread {
 			if ( delay>0 ) {
 				final int id = ++delayedTaskId;
 				//L.v("posting delayed (" + delay + ") task " + id + " " + task);
-				guiTarget.postDelayed(new Runnable() {
+				guiHandler.postDelayed(new Runnable() {
 					@Override
 					public void run() {
 						task.run();
@@ -196,7 +195,7 @@ public class BackgroundThread extends Thread {
 					}
 				}, delay);
 			} else
-				guiTarget.post(task);
+				guiHandler.post(task);
 		}
 	}
 
