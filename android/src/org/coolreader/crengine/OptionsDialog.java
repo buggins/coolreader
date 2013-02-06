@@ -693,7 +693,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
-			boolean defEnableLitres = activity.getCurrentLanguage().toLowerCase().startsWith("ru") && !DeviceInfo.POCKETBOOK;
+			boolean defEnableLitres = false; //activity.getCurrentLanguage().toLowerCase().startsWith("ru") && !DeviceInfo.POCKETBOOK;
 			listView.add(new BoolOption(mOwner, "LitRes", PROP_APP_PLUGIN_ENABLED + "." + OnlineStorePluginManager.PLUGIN_PKG_LITRES).setDefaultValue(defEnableLitres ? "1" : "0"));
 			dlg.setView(listView);
 			dlg.show();
