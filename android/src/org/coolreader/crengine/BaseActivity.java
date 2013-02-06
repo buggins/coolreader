@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import org.coolreader.R;
-import org.coolreader.crengine.OptionsDialog.TapZoneOption;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
 import org.coolreader.sync.SyncServiceAccessor;
@@ -41,13 +40,14 @@ import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
-import android.view.ViewConfiguration;
 import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class BaseActivity extends Activity implements Settings {
@@ -1113,7 +1113,12 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void askConfirmation(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
-		dlg.setTitle(questionResourceId);
+		
+		final TextView myView = new TextView(getApplicationContext());
+		myView.setText(questionResourceId);
+		//myView.setTextSize(12);
+		dlg.setView(myView);
+		//dlg.setTitle(questionResourceId);
 		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
 			public void onClick(DialogInterface arg0, int arg1) {
 				action.run();
@@ -1438,8 +1443,11 @@ public class BaseActivity extends Activity implements Settings {
 	        }
 	        
 	        // default key actions
+          boolean menuKeyActionFound = false;
 	        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
 	        		props.applyDefault(ka.getProp(), ka.action.id);
+	        		if (ReaderAction.READER_MENU.id.equals(ka.action.id))
+	        		  menuKeyActionFound = true;
 	        }
 
 	        boolean menuTapActionFound = false;
@@ -1449,12 +1457,12 @@ public class BaseActivity extends Activity implements Settings {
 	        	if (ReaderAction.READER_MENU.id.equals(value))
 	        		menuTapActionFound = true;
 	        }
-	        
-	        // default tap zone actions
+
+          // default tap zone actions
 	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
 	        	String paramName = ka.longPress ? ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + ".long." + ka.zone : ReaderView.PROP_APP_TAP_ZONE_ACTIONS_TAP + "." + ka.zone;
 	        	
-	        	if (ka.zone == 5 && !activity.hasHardwareMenuKey() && !menuTapActionFound) {
+	        	if (ka.zone == 5 && !activity.hasHardwareMenuKey() && !menuTapActionFound && !menuKeyActionFound) {
 	        		// force assignment of central tap zone
 	        		props.setProperty(paramName, ka.action.id);
 	        	} else {

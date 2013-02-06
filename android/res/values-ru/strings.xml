@@ -483,4 +483,6 @@
     <string name="root_item_filesystem">Открыть книгу с файловой системы</string>
     <string name="root_item_online_catalogs">Сетевые библиотеки</string>
     <string name="btn_toolbar_more">Еще...</string>
+    <string name="black_list_enforced">Нельзя добавлять этот адрес, так как по запросу LitRes.ru он добавлен в черный список каталогов, нарушающих авторские права.</string>
+    <string name="black_list_warning">Внимание! этот адрес по запросу LitRes.ru был добавлен в черный список каталогов, нарушающих авторские права. Вы действительно хотите использовать этот каталог?</string>
 </resources>

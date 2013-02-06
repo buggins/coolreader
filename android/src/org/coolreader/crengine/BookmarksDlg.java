@@ -193,6 +193,10 @@ public class BookmarksDlg  extends BaseDialog {
 			return mShortcutMode;
 		}
 		public void setShortcutMode( boolean shortcutMode ) {
+			if (mBookInfo == null) {
+				L.e("BookmarkList - mBookInfo is null");
+				return;
+			}
 			if ( !shortcutMode )
 				mBookInfo.sortBookmarks();
 			updateAdapter( shortcutMode ? new ShortcutBookmarkListAdapter() : new BookmarkListAdapter() );

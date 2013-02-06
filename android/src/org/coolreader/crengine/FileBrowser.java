@@ -1283,12 +1283,14 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if ( dir!=null && !dir.isRootDir() )
 			index++;
 		
-		String title = dir.filename;
-		if (!dir.isSpecialDir())
-			title = dir.getPathName();
-		if (dir.isOnlineCatalogPluginDir())
-			title = translateOnlineStorePluginItem(dir);
-		
+		String title = "";
+		if (dir != null) {
+			title = dir.filename;
+			if (!dir.isSpecialDir())
+				title = dir.getPathName();
+			if (dir.isOnlineCatalogPluginDir())
+				title = translateOnlineStorePluginItem(dir);
+		}
 		
 		mActivity.setBrowserTitle(title);
 		
