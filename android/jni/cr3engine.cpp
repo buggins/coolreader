@@ -529,7 +529,10 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
   (JNIEnv * penv, jclass obj, jobjectArray fontArray)
 {
 	CRJNIEnv env(penv);
-	
+
+	// to catch crashes and remove current cache file on crash (SIGSEGV etc.)
+	crSetSignalHandler();
+
 	LOGI("initInternal called");
 	// set fatal error handler
 	crSetFatalErrorHandler( &cr3androidFatalErrorHandler );

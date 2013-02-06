@@ -27,6 +27,9 @@ typedef void (lv_FatalErrorHandler_t)(int errorCode, const char * errorText );
 /// set file to remove of fatal error - for removing of book cache file which caused crash
 void crSetFileToRemoveOnFatalError(const char * filename);
 
+/// set signal handler to do some cleanup actions (e.g. delete current cache file since it might be corrupted)
+void crSetSignalHandler();
+
 /// fatal error function calls fatal error handler
 void crFatalError( int code, const char * errorText );
 inline void crFatalError() { crFatalError( -1, "Unknown fatal error" ); }
