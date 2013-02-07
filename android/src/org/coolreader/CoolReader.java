@@ -3,8 +3,6 @@ package org.coolreader;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.coolreader.crengine.AboutDialog;
@@ -62,7 +60,6 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 public class CoolReader extends BaseActivity
