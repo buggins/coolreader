@@ -148,7 +148,7 @@ public interface Settings {
     
     public static final String PROP_APP_STARTUP_ACTION = "app.startup.action";
 
-    public static final String PROP_APP_PLUGIN_ENABLED = "app.plugin.enabled";
+    public static final String PROP_APP_PLUGIN_ENABLED = "app.plugin.enabled.litres";
     
 
     // available options for PROP_APP_SELECTION_ACTION setting
