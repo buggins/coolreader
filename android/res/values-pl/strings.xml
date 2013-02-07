@@ -47,7 +47,7 @@
     <string name="win_title_options">Preferencje</string>
     <string name="win_title_search">Szukaj</string>
     <string name="win_title_options_apply">Wprowadzić zmiany?</string>
-    <string name="win_title_screen_orientation_change_apply">Zmienić orientacje ekranu?</string>
+    <string name="win_title_screen_orientation_change_apply">Zmienić orientację ekranu?</string>
     <string name="tab_options_styles">Style</string>
     <string name="tab_options_page">Strona</string>
     <string name="tab_options_app">Aplikacja</string>
@@ -56,11 +56,11 @@
     <string name="options_font_size">Rozmiar czcionki</string>
     <string name="options_font_face">Czcionka</string>
     <string name="options_font_embolden">Pogrub czcionkę</string>
-    <string name="options_font_antialias">Wygładzanie czcionki</string>
+    <string name="options_font_antialias">Wygładzanie czcionek</string>
     <string name="options_font_antialias_off">Brak</string>
     <string name="options_font_antialias_on_for_big">Dużych czcionek</string>
     <string name="options_font_antialias_on_for_all">Wszystkie czcionki</string>
-    <string name="options_interline_space">Odstęp miedzy liniami</string>
+    <string name="options_interline_space">Odstęp między liniami</string>
     <string name="options_inverse_view">Tryb nocny</string>
     <string name="options_color_text">Kolor tekstu</string>
     <string name="options_color_background">Kolor tła</string>
@@ -86,7 +86,7 @@
     <string name="options_page_margin_bottom">Dolny margines</string>
     <string name="options_view_mode">Widok</string>
     <string name="options_view_mode_pages">Strony</string>
-    <string name="options_view_mode_scroll">Ciagly</string>
+    <string name="options_view_mode_scroll">Ciągły</string>
     <string name="options_app_fullscreen">Tryb pełnoekranowy</string>
     <string name="options_app_show_cover_pages">Okładki w liście</string>
     <string name="options_value_on">Włączone</string>
@@ -138,7 +138,7 @@
     <string name="options_page_titlebar_font_size">Rozmiar czcionki</string>
     <string name="options_page_titlebar_font_face">Czcionka</string>
     <string name="options_page_titlebar_font_color">Kolor czcionki</string>
-    <string name="options_page_show_titlebar_title">Pokaz tytuł książki</string>
+    <string name="options_page_show_titlebar_title">Pokaż tytuł książki</string>
     <string name="options_app_tapzone_hilite">Podświetl strefę po naciśnięciu</string>
     <string name="options_page_animation_paperbook">Papier</string>
     <string name="options_page_animation_none">Brak</string>
@@ -151,14 +151,14 @@
     <string name="action_toggle_selection_mode_off">Tryb zaznaczania wyłączony.</string>
     <string name="action_toggle_selection_mode_on">Tryb zaznaczania włączony. Zaznacz tekst na ekranie.</string>
     <string name="action_go_forward">Do przodu</string>
-    <string name="action_go_back">Do tylu</string>
-    <string name="action_toggle_screen_orientation">Zmień orientacje ekranu</string>
+    <string name="action_go_back">Do tyłu</string>
+    <string name="action_toggle_screen_orientation">Zmień orientację ekranu</string>
     <string name="action_toggle_fullscreen">Tryb pełnoekranowy</string>
     <string name="action_exit_home_screen">Ekran początkowy</string>
     <string name="options_color_r">Czerwony</string>
     <string name="options_color_g">Zielony</string>
     <string name="options_color_b">Niebieski</string>
-    <string name="options_page_show_titlebar_percent">Pokaz % zaawansowania</string>
+    <string name="options_page_show_titlebar_percent">Pokaż % zaawansowania</string>
     <string name="options_page_show_titlebar_page_count">Liczba stron</string>
     <string name="options_show_titlebar_page_number">Numer strony</string>
     <string name="options_controls_flick_brightness">Zmiana podświetlenia przesunięciem</string>
@@ -210,7 +210,7 @@
     <string name="dlg_bookmark_edit_correction">Tekst poprawiony</string>
     <string name="dlg_bookmark_edit_comment">Komentarz</string>
     <string name="dlg_bookmark_type_correction">Poprawka</string>
-    <string name="dlg_bookmark_create">Nowa zakladka</string>
+    <string name="dlg_bookmark_create">Nowa zakładka</string>
     <string name="dlg_bookmark_edit">Edytuj zakładkę</string>
     <string name="dlg_bookmark_edit_range_text">Wybrany tekst</string>
     <string name="dlg_bookmark_type_comment">Komentarz</string>
@@ -245,7 +245,7 @@
     <string name="options_page_animation_slide_2_pages">Slajd (2 strony)</string>
     <string name="progress_downloading">Pobieranie</string>
     <string name="mi_book_opds_root">Katalogi online</string>
-    <string name="mi_tts_play">Czytaj na glos</string>
+    <string name="mi_tts_play">Czytaj na głos</string>
     <string name="options_format_image_scaling_block_scale">Maksymalna skala powiększenia obrazu</string>
     <string name="options_format_image_scaling_mode_integer_factor">Skalowanie o stały współczynnik</string>
     <string name="options_format_image_scaling_block_mode">Tryb skalowania obrazów</string>
@@ -262,11 +262,11 @@
     <string name="options_screen_update_mode_fast">Szybki</string>
     <string name="options_screen_update_mode_fast2">Szybki 2</string>
     <string name="options_screen_update_mode_quality">Wysoka jakość</string>
-    <string name="options_screen_update_interval">Interwal pełnego odświeżenia ekranu</string>
+    <string name="options_screen_update_interval">Interwał pełnego odświeżenia ekranu</string>
     <string name="options_render_font_gamma">Przezroczystość czcionki</string>
     <string name="action_toggle_titlebar">Przełącz pasek tytułowy</string>
-    <string name="action_show_position_info">Pokaz info o pozycji</string>
-    <string name="action_show_dictionary">Pokaz słownik</string>
+    <string name="action_show_position_info">Pokaż info o pozycji</string>
+    <string name="action_show_dictionary">Pokaż słownik</string>
     <string name="action_open_last_book">Wróć do poprzedniej książki</string>
     <string name="mi_catalog_edit">Edytuj katalog</string>
     <string name="mi_catalog_add">Nowy katalog</string>
@@ -303,7 +303,7 @@
     <string name="options_css_link">Link</string>
     <string name="options_css_cite">Cytat</string>
     <string name="options_css_footnotelink">Link w stopce</string>
-    <string name="options_css_title">Tytul</string>
+    <string name="options_css_title">Tytuł</string>
     <string name="options_css_def">Domyślne formatowanie paragrafu</string>
     <string name="options_css_font_size">Rozmiar czcionki</string>
     <string name="options_css_margin_bottom">Margines po</string>
@@ -324,7 +324,7 @@
     <string name="options_css_text_decoration_overlineline">Górna linia</string>
     <string name="options_css_font_face_serif">[Domyślna czcionka serif]</string>
     <string name="options_css_font_weight_bold">Pogrubiona</string>
-    <string name="options_css_text_indent_small_outdent">Małe wysuniecie</string>
+    <string name="options_css_text_indent_small_outdent">Małe wysunięcie</string>
     <string name="options_css_font_weight_bolder">Grubsza</string>
     <string name="options_css_text_indent_no_indent">Bez wcięcia</string>
     <string name="options_css_text_indent_big_indent">Duże wcięcie</string>
@@ -393,8 +393,8 @@
     <string name="options_font_hinting_auto">Auto</string>
     <string name="options_font_fallback_face">Czcionka "zapasowa"</string>
     <string name="win_title_confirm_catalog_delete">Potwierdź usunięcie katalogu?</string>
-    <string name="win_title_confirm_history_record_delete">Potwierdź usuniecie książki z listy ostatnich?</string>
-    <string name="win_title_confirm_book_delete">Potwierdź usuniecie książki?</string>
+    <string name="win_title_confirm_history_record_delete">Potwierdź usunięcie książki z listy ostatnich?</string>
+    <string name="win_title_confirm_book_delete">Potwierdź usunięcie książki?</string>
     <string name="book_info_book_language">Język</string>
     <string name="folder_name_books_by_series">Ks. wg. serii</string>
     <string name="folder_name_books_by_title">Ks. wg. tytułu</string>
@@ -428,7 +428,7 @@
     <string name="options_view_bookmarks_highlight_none">Brak</string>
     <string name="options_view_color_bookmark_correction">Kolor korekty</string>
     <string name="options_view_bookmarks_highlight_solid">Kolor</string>
-    <string name="win_title_confirm_bookmark_delete">Potwierdź usuniecie zakładki?</string>
+    <string name="win_title_confirm_bookmark_delete">Potwierdź usunięcie zakładki?</string>
     <string name="options_app_cover_page_size_big">Duża</string>
     <string name="options_app_cover_page_size_medium">Średnia</string>
     <string name="options_app_cover_page_size_small">Mała</string>
@@ -457,7 +457,7 @@
     <string name="dlg_button_back">Wstecz</string>
     <string name="dlg_about_donation_iron">$0.3: Kup dotację Cool Reader Iron</string>
     <string name="dlg_about_donation_vip">$100: Kup dotację Cool Reader VIP</string>
-    <string name="tb_button_find_prev">Znajdż poprzedni</string>
+    <string name="tb_button_find_prev">Znajdź poprzedni</string>
     <string name="tb_button_find_close">Zakończ wyszukiwanie</string>
     <string name="tb_button_find_next">Znajdź następny</string>
     <string name="options_selection_action_mail">Wyślij</string>
@@ -499,7 +499,7 @@
     <string name="options_app_plugins">Wtyczki</string>
     <string name="note1_reader_menu">UWAGA: w celu obsługi trybu pełnoekranowego i klawiszy ekranowych systemów Android 3 i 4, docelowa wersja systemu została zmieniona na Android 4. W tym trybie tradycyjny przycisk Menu nie jest już dostępny. Po wyłączeniu paska narzędzi, dostęp do menu w trybie czytania uzyskasz dotykając w środku ekranu. Długie przytrzymanie w środku ekranu otwiera okno ustawień. Włączyć pasek narzędzi w trybie czytania? (Zawsze możesz to zmienić w Ustawienia/Strona/Pasek narzędzi)</string>
     <string name="root_item_recent">Ostatnio czytane</string>
-    <string name="root_item_library">Otwórz z bibliteczki</string>
+    <string name="root_item_library">Otwórz z biblioteczki</string>
     <string name="root_item_filesystem">Otwórz z karty</string>
     <string name="root_item_online_catalogs">Katalogi w sieci</string>
 </resources>
