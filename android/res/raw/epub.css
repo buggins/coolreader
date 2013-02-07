@@ -99,9 +99,14 @@ del, s, strike, strikethrough { text-decoration: line-through; }
 small { font-size: 80%; } 
 big { font-size: 130%; } 
 
-.code, pre, code { 
+pre { 
    display: block; 
    white-space: pre; 
+   $pre.all
+} 
+
+.code, code { 
+   display: inline; 
    $pre.all
 } 
 
