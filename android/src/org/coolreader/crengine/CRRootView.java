@@ -275,7 +275,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		FileInfo opdsRoot = Services.getScanner().getOPDSRoot();
 		if (opdsRoot.dirCount() == 0)
 			opdsRoot.addItems(catalogs);
-		catalogs.add(opdsRoot);
+		catalogs.add(0, opdsRoot);
 		
 //		if (lastCatalogs.equals(catalogs)) {
 //			return; // not changed
