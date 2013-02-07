@@ -149,6 +149,11 @@ enum CacheFileBlockType {
 #define USE_PERSISTENT_TEXT 1
 
 
+static bool _enableCacheFileContentsValidation = (bool)ENABLE_CACHE_FILE_CONTENTS_VALIDATION;
+void enableCacheFileContentsValidation(bool enable) {
+	_enableCacheFileContentsValidation = enable;
+}
+
 static int _nextDocumentIndex = 0;
 ldomDocument * ldomNode::_documentInstances[MAX_DOCUMENT_INSTANCE_COUNT] = {NULL,};
 
@@ -997,12 +1002,10 @@ bool CacheFile::open( LVStreamRef stream )
         CRLog::error("CacheFile::open : cannot read index from file");
         return false;
     }
-#if ENABLE_CACHE_FILE_CONTENTS_VALIDATION==1
-    if ( !validateContents() ) {
+    if (_enableCacheFileContentsValidation && !validateContents() ) {
         CRLog::error("CacheFile::open : file contents validation failed");
         return false;
     }
-#endif
     return true;
 }
 

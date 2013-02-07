@@ -75,6 +75,7 @@
 #define PROP_FILE_PROPS_FONT_SIZE    "cr3.file.props.font.size"
 
 
+#define PROP_CACHE_VALIDATION_ENABLED  "crengine.cache.validation.enabled"
 #define PROP_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.filesize.min"
 #define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
 #define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"

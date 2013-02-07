@@ -5789,7 +5789,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 					props->getIntDef(PROP_PAGE_VIEW_MODE, 1) ? DVM_PAGES
 							: DVM_SCROLL;
 			setViewMode(m);
+        } else if (name == PROP_PAGE_VIEW_MODE) {
+            bool value = props->getBoolDef(PROP_CACHE_VALIDATION_ENABLED, true);
+			enableCacheFileContentsValidation(value);
 		} else {
+
 			// unknown property, adding to list of unknown properties
 			unknown->setString(name.c_str(), value);
             //isUnknown = true;
