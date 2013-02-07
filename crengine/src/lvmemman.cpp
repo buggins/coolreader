@@ -18,6 +18,7 @@
 #ifdef _LINUX
 #define _XOPEN_SOURCE
 #include <signal.h>
+#include <unistd.h>
 #endif
 
 static char file_to_remove_on_crash[2048] = "";
@@ -44,10 +45,11 @@ void crSetSignalHandler()
 	if (signals_are_set)
 		return;
 	signals_are_set = true;
-	struct sigaction handler = {0};
+	struct sigaction handler; // = {0};
 	//size_t s = sizeof(handler);
 	//void * p = &handler;
 	//memset(p, 0, s);
+	memset(&handler, 0, sizeof(handler));
 	handler.sa_sigaction = cr_sigaction;
 	handler.sa_flags = SA_RESETHAND;
 #define CATCHSIG(X) sigaction(X, &handler, &old_sa[X])
@@ -56,7 +58,7 @@ void crSetSignalHandler()
 	CATCHSIG(SIGBUS);
 	CATCHSIG(SIGFPE);
 	CATCHSIG(SIGSEGV);
-	CATCHSIG(SIGSTKFLT);
+//	CATCHSIG(SIGSTKFLT);
 	CATCHSIG(SIGPIPE);
 #endif
 }
