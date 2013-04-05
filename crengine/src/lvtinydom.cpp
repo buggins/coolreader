@@ -7366,6 +7366,15 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
                 parent->OnAttribute(L"", L"StyleSheet", stylesheetFile.c_str() );
                 CRLog::debug("Setting StyleSheet attribute to %s for document fragment", LCSTR(stylesheetFile) );
             }
+            else if (!headStyleText.empty()) {
+                const char * s = headStyleText.c_str();
+                lString8 import_file;
+                if ( LVProcessStyleSheetImport( s, import_file ) ) {
+                    lString16 importFilename = LVCombinePaths( codeBase, Utf8ToUnicode(import_file) );
+                    if (!importFilename.empty())
+                        parent->OnAttribute(L"", L"StyleSheet", importFilename.c_str() );
+                }
+            }
             if ( !codeBasePrefix.empty() )
                 parent->OnAttribute(L"", L"id", codeBasePrefix.c_str() );
             parent->OnTagBody();
