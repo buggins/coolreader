@@ -2088,6 +2088,9 @@ public:
     font_ref_t getDefaultFont() { return _def_font; }
     /// get default style reference
     css_style_ref_t getDefaultStyle() { return _def_style; }
+
+    inline bool parseStyleSheet(lString16 codeBase, lString16 css);
+    inline bool parseStyleSheet(lString16 cssFile);
 #endif
     /// destructor
     virtual ~ldomDocument();
@@ -2269,6 +2272,7 @@ private:
     lString16 codeBasePrefix;
     lString16 stylesheetFile;
     lString16 tmpStylesheetFile;
+    lString16Collection stylesheetLinks;
     bool insideTag;
     int styleDetectionState;
     LVHashTable<lString16, lString16> pathSubstitutions;

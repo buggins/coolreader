@@ -3063,6 +3063,67 @@ ldomDocument::~ldomDocument()
 
 #if BUILD_LITE!=1
 
+class LVImportStylesheetParser
+{
+public:
+    LVImportStylesheetParser(ldomDocument *document) :
+        _document(document), _nestingLevel(0)
+    {
+    }
+
+    ~LVImportStylesheetParser()
+    {
+        _inProgress.clear();
+    }
+
+    bool Parse(lString16 cssFile)
+    {
+        bool ret = false;
+        if ( cssFile.empty() )
+            return ret;
+
+        lString16 codeBase = cssFile;
+        LVExtractLastPathElement(codeBase);
+        LVStreamRef cssStream = _document->getContainer()->OpenStream(cssFile.c_str(), LVOM_READ);
+        if ( !cssStream.isNull() ) {
+            lString16 css;
+            css << LVReadTextFile( cssStream );
+            int offset = _inProgress.add(cssFile);
+            ret = Parse(codeBase, css) || ret;
+            _inProgress.erase(offset, 1);
+        }
+        return ret;
+    }
+
+    bool Parse(lString16 codeBase, lString16 css)
+    {
+        bool ret = false;
+        if ( css.empty() )
+            return ret;
+        lString8 css8 = UnicodeToUtf8(css);
+        const char * s = css8.c_str();
+
+        _nestingLevel += 1;
+        while (_nestingLevel < 11) { //arbitrary limit
+            lString8 import_file;
+
+            if ( LVProcessStyleSheetImport( s, import_file ) ) {
+                lString16 importFilename = LVCombinePaths( codeBase, Utf8ToUnicode(import_file) );
+                if ( !importFilename.empty() && !_inProgress.contains(importFilename) ) {
+                    ret = Parse(importFilename) || ret;
+                }
+            } else {
+                break;
+            }
+        }
+        return (_document->getStyleSheet()->parse(s) || ret);
+    }
+private:
+    ldomDocument  *_document;
+    lString16Collection _inProgress;
+    int _nestingLevel;
+};
+
 /// renders (formats) document in memory
 bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*y0*/, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
@@ -3194,17 +3255,10 @@ void ldomDocument::applyDocumentStyleSheet()
     if ( !_docStylesheetFileName.empty() ) {
         if ( getContainer().isNull() )
             return;
-        LVStreamRef cssStream = getContainer()->OpenStream(_docStylesheetFileName.c_str(), LVOM_READ);
-        if ( !cssStream.isNull() ) {
-            lString16 css;
-            css << LVReadTextFile( cssStream );
-            if ( !css.empty() ) {
-                CRLog::debug("applyDocumentStyleSheet() : Using document stylesheet from link/stylesheet from %s", LCSTR(_docStylesheetFileName));
-                _stylesheet.parse(LCSTR(css));
-                return;
-            }
+        if ( parseStyleSheet(_docStylesheetFileName) ) {
+            CRLog::debug("applyDocumentStyleSheet() : Using document stylesheet from link/stylesheet from %s",
+                         LCSTR(_docStylesheetFileName));
         }
-        CRLog::error("applyDocumentStyleSheet() : cannot load link/stylesheet from %s", LCSTR(_docStylesheetFileName));
     } else {
         ldomXPointer ss = createXPointer(cs16("/FictionBook/stylesheet"));
         if ( !ss.isNull() ) {
@@ -3221,6 +3275,17 @@ void ldomDocument::applyDocumentStyleSheet()
     }
 }
 
+bool ldomDocument::parseStyleSheet(lString16 codeBase, lString16 css)
+{
+    LVImportStylesheetParser parser(this);
+    return parser.Parse(codeBase, css);
+}
+
+bool ldomDocument::parseStyleSheet(lString16 cssFile)
+{
+    LVImportStylesheetParser parser(this);
+    return parser.Parse(cssFile);
+}
 
 int ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback, int width, int dy, bool showCover, int y0, font_ref_t def_font, int def_interline_space, CRPropRef props )
 {
@@ -4065,32 +4130,44 @@ void ldomElementWriter::onText( const lChar16 * text, int len, lUInt32 )
     //logfile << "}";
 }
 
+
 //#define DISABLE_STYLESHEET_REL
 #if BUILD_LITE!=1
 /// if stylesheet file name is set, and file is found, set stylesheet to its value
 bool ldomNode::applyNodeStylesheet()
 {
 #ifndef DISABLE_STYLESHEET_REL
-    if ( getNodeId()!=el_DocFragment || !hasAttribute(attr_StyleSheet) )
+    CRLog::trace("ldomNode::applyNodeStylesheet()");
+    if ( !getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) ||// internal styles are disabled
+          getNodeId() != el_DocFragment )
         return false;
-    if (!getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES))
-        return false; // internal styles are disabled
 
-    lString16 v = getAttributeValue(attr_StyleSheet);
-    if ( v.empty() )
-        return false;
     if ( getDocument()->getContainer().isNull() )
         return false;
-    LVStreamRef cssStream = getDocument()->getContainer()->OpenStream(v.c_str(), LVOM_READ);
-    if ( !cssStream.isNull() ) {
-        lString16 css;
-        css << LVReadTextFile( cssStream );
-        if ( !css.empty() ) {
-            getDocument()->_stylesheet.push();
-            getDocument()->_stylesheet.parse(UnicodeToUtf8(css).c_str());
-            return true;
+
+    bool stylesheetChanged = false;
+    if ( hasAttribute(attr_StyleSheet) ) {
+        getDocument()->_stylesheet.push();
+        stylesheetChanged = getDocument()->parseStyleSheet(getAttributeValue(attr_StyleSheet));
+        if ( !stylesheetChanged )
+            getDocument()->_stylesheet.pop();
+    }
+    if ( getChildCount() > 0 ) {
+        ldomNode *styleNode = getChildNode(0);
+
+        if ( styleNode && styleNode->getNodeId()==el_stylesheet ) {
+            if ( false == stylesheetChanged) {
+                getDocument()->_stylesheet.push();
+            }
+            if ( getDocument()->parseStyleSheet(styleNode->getAttributeValue(attr_href),
+                                                styleNode->getText()) ) {
+                stylesheetChanged = true;
+            } else if (false == stylesheetChanged) {
+                getDocument()->_stylesheet.pop();
+            }
         }
     }
+    return stylesheetChanged;
 #endif
     return false;
 }
@@ -4248,6 +4325,17 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
             _document->applyDocumentStyleSheet();
         }
     }
+
+    bool isStyleSheetTag = !lStr_cmp(tagname, "stylesheet");
+    if ( isStyleSheetTag ) {
+        ldomNode *parentNode = _currNode->getElement()->getParentNode();
+        if (parentNode && parentNode->isNodeName("DocFragment")) {
+            _document->parseStyleSheet(_currNode->getElement()->getAttributeValue(attr_href),
+                                       _currNode->getElement()->getText());
+            isStyleSheetTag = false;
+        }
+    }
+
     lUInt16 id = _document->getElementNameIndex(tagname);
     //lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
     _errFlag |= (id != _currNode->getElement()->getNodeId());
@@ -4261,7 +4349,7 @@ void ldomDocumentWriter::OnTagClose( const lChar16 *, const lChar16 * tagname )
         _parser->Stop();
     }
 
-    if (!lStr_cmp(tagname, "stylesheet")) {
+    if ( isStyleSheetTag ) {
         //CRLog::trace("</stylesheet> found");
 #if BUILD_LITE!=1
         if ( !_popStyleOnFinish ) {
@@ -7335,10 +7423,16 @@ void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lCha
             else if ( !lStr_cmp(attrname, "href") ) {
                 styleDetectionState |= 8;
                 lString16 href = attrvalue;
-                tmpStylesheetFile = LVCombinePaths( codeBase, href );
+                if ( stylesheetFile.empty() )
+                    tmpStylesheetFile = LVCombinePaths( codeBase, href );
+                else
+                    tmpStylesheetFile = href;
             }
             if (styleDetectionState == 15) {
-                stylesheetFile = tmpStylesheetFile;
+                if ( !stylesheetFile.empty() )
+                    stylesheetLinks.add(tmpStylesheetFile);
+                else
+                    stylesheetFile = tmpStylesheetFile;
                 styleDetectionState = 0;
                 CRLog::trace("CSS file href: %s", LCSTR(stylesheetFile));
             }
@@ -7366,18 +7460,24 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
                 parent->OnAttribute(L"", L"StyleSheet", stylesheetFile.c_str() );
                 CRLog::debug("Setting StyleSheet attribute to %s for document fragment", LCSTR(stylesheetFile) );
             }
-            else if (!headStyleText.empty()) {
-                const char * s = headStyleText.c_str();
-                lString8 import_file;
-                if ( LVProcessStyleSheetImport( s, import_file ) ) {
-                    lString16 importFilename = LVCombinePaths( codeBase, Utf8ToUnicode(import_file) );
-                    if (!importFilename.empty())
-                        parent->OnAttribute(L"", L"StyleSheet", importFilename.c_str() );
-                }
-            }
             if ( !codeBasePrefix.empty() )
                 parent->OnAttribute(L"", L"id", codeBasePrefix.c_str() );
             parent->OnTagBody();
+            if ( !headStyleText.empty() || stylesheetLinks.length() > 0 ) {
+                parent->OnTagOpen(L"", L"stylesheet");
+                parent->OnAttribute(L"", L"href", codeBase.c_str() );
+                lString16 imports;
+                for (int i = 0; i < stylesheetLinks.length(); i++) {
+                    lString16 import("@import url(\"");
+                    import << stylesheetLinks.at(i);
+                    import << "\");\n";
+                    imports << import;
+                }
+                stylesheetLinks.clear();
+                lString16 styleText = imports + headStyleText.c_str();
+                parent->OnText(styleText.c_str(), styleText.length(), 0);
+                parent->OnTagClose(L"", L"stylesheet");
+            }
             // add base tag, too (e.g., in CSS, styles are often defined for body tag"
             parent->OnTagOpen(L"", baseTag.c_str());
             parent->OnTagBody();
