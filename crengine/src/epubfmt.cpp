@@ -728,6 +728,8 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             if ( !item )
                 break;
             lString16 href = item->getAttributeValue("href");
+            if ( href.pos("%") != -1 )
+                href = DecodeHTMLUrlString( href );
             lString16 mediaType = item->getAttributeValue("media-type");
             lString16 id = item->getAttributeValue("id");
             if ( !href.empty() && !id.empty() ) {
