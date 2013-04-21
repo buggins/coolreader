@@ -3116,6 +3116,7 @@ public:
                 break;
             }
         }
+        _nestingLevel -= 1;
         return (_document->getStyleSheet()->parse(s) || ret);
     }
 private:
