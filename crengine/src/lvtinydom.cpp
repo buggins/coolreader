@@ -3637,7 +3637,6 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
         _element = _parent->getElement()->insertChildElement( (lUInt32)-1, nsid, id );
     else
         _element = _document->getRootNode(); //->insertChildElement( (lUInt32)-1, nsid, id );
-    //CRLog::trace("ldomElementWriter created for element 0x%04x %s", _element->getDataIndex(), LCSTR(_element->getNodeName()));
     if ( IS_FIRST_BODY && id==el_body ) {
         _tocItem = _document->getToc();
         //_tocItem->clear();

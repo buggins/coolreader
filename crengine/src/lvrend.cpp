@@ -465,12 +465,14 @@ public:
                         cells[y0+y][x0+x] = cell;
                     }
                 }
+
                 // calc cell text size
                 lString16 txt = (cell->elem)->getText();
                 int txtlen = txt.length();
-                txtlen = (txtlen+(cell->colspan-1))/cell->colspan + 1;
+                txtlen = (txtlen+(cell->colspan-1))/(cell->colspan + 1);
                 for (int x=0; x<cell->colspan; x++) {
-                    cols[x0+x]->txtlen += txtlen;
+                    if ( txtlen > cols[x0+x]->txtlen )
+                        cols[x0+x]->txtlen = txtlen;
                 }
             }
         }
