@@ -1767,7 +1767,7 @@ void MakeDblCharStat(const unsigned char * buf, int buf_size, dbl_char_stat_t * 
    unsigned char ch2=' ';
    bool insideTag = false;
    for ( int i=1; i<buf_size; i++) {
-      lChar16 ch = buf[i];
+      lChar8 ch = buf[i];
       if (skipHtml) {
           if (ch == '<') {
               insideTag = true;
