@@ -400,6 +400,8 @@
     <string name="options_font_embedded_document_font_enabled">Utiliser les polices internes des livres</string>
     <string name="options_app_locale_system">Système</string>
     <string name="options_app_locale">Langue de l\'interface (Interface language)</string>
+    <string name="options_app_locale_pt">Português do Brasil</string>
+    <string name="options_app_locale_pt_rbr">Português do Brasil</string>
     <string name="options_app_locale_bg">Български</string>
     <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_en">English</string>

@@ -406,6 +406,8 @@
     <string name="options_view_color_bookmark_correction">Цвят на корекциите</string>
     <string name="options_view_bookmarks_highlight_solid">Цвят на фона</string>
     <string name="win_title_confirm_bookmark_delete">Действително ли искате да изтриете тази отметка?</string>
+    <string name="options_app_locale_pt">Português do Brasil</string>
+    <string name="options_app_locale_pt_rbr">Português do Brasil</string>
     <string name="options_app_locale_bg">Български</string>
     <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_en">English</string>

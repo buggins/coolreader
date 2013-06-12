@@ -406,6 +406,8 @@
     <string name="options_font_embedded_document_font_enabled">Document embedded fonts</string>
     <string name="options_app_locale_system">System</string>
     <string name="options_app_locale">Interface language</string>
+    <string name="options_app_locale_pt">Português do Brasil</string>
+    <string name="options_app_locale_pt_rbr">Português do Brasil</string>
     <string name="options_app_locale_bg">Български</string>
     <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_cs">Czech</string>

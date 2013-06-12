@@ -373,7 +373,7 @@
     <string name="options_css_text_align_left">Izquieda</string>
     <string name="options_css_text_align_right">Derecha</string>
     <string name="action_switch_settings_profile">Cambiar perfil</string>
-    <string name="options_app_settings_icons">Iconos en menu de opciones</string>
+    <string name="options_app_settings_icons">Ícones en menu de opções</string>
     <string name="mi_text_autoformat_enable">Activar autoformato</string>
     <string name="mi_text_autoformat_disable">Desactivar autoformato</string>
     <string name="action_toggle_text_autoformat">Cambiar autoformato de texto</string>
@@ -407,6 +407,8 @@
     <string name="folder_name_books_by_series">Books by series</string>
     <string name="folder_name_books_by_title">Books by title</string>
     <string name="options_app_locale_system">System</string>
+    <string name="options_app_locale_pt">Português do Brasil</string>
+    <string name="options_app_locale_pt_rbr">Português do Brasil</string>
     <string name="options_app_locale_bg">Български</string>
     <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_en">English</string>

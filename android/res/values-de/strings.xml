@@ -408,6 +408,8 @@
     <string name="options_view_bookmarks_highlight_solid">einfarbig</string>
     <string name="win_title_confirm_bookmark_delete">Dieses Lesezeichen wirklich löschen?</string>
     <string name="options_app_locale_bg">Български</string>
+    <string name="options_app_locale_pt">Português do Brasil</string>
+    <string name="options_app_locale_pt_rbr">Português do Brasil</string>
     <string name="options_app_locale_de">Deutsch</string>
     <string name="options_app_locale_en">English</string>
     <string name="options_app_locale_es">Español</string>

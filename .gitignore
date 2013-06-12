@@ -7,3 +7,10 @@ qtbuild
 qt-build
 qtcreator-build
 *~
+.DS_Store
+*/.DS_Store
+.*/.DS_Store
+out/*
+.idea/*
+.idea/.*
+*.apk

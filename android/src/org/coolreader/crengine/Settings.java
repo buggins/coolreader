@@ -1,11 +1,11 @@
 package org.coolreader.crengine;
 
-import java.util.Locale;
+import android.app.SearchManager;
+import android.util.Log;
 
 import org.coolreader.R;
 
-import android.app.SearchManager;
-import android.util.Log;
+import java.util.Locale;
 
 public interface Settings {
     public static final String PROP_PAGE_BACKGROUND_IMAGE       ="background.image";
@@ -190,7 +190,8 @@ public interface Settings {
     public enum Lang {
     	DEFAULT("system", R.string.options_app_locale_system, R.raw.help_template_en),
     	EN("en", R.string.options_app_locale_en, R.raw.help_template_en),
-    	DE("de", R.string.options_app_locale_de, 0),
+        PT("pt", R.string.options_app_locale_pt, 0),
+        DE("de", R.string.options_app_locale_de, 0),
     	ES("es", R.string.options_app_locale_es, 0),
     	FR("fr", R.string.options_app_locale_fr, 0),
     	RU("ru", R.string.options_app_locale_ru, R.raw.help_template_ru),
