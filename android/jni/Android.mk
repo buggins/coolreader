@@ -72,6 +72,8 @@ PNG_SRC_FILES := \
     ../../thirdparty/libpng/pngrutil.c \
     ../../thirdparty/libpng/pngvcrd.c \
     ../../thirdparty/libpng/png.c \
+    ../../thirdparty/libpng/pngwrite.c \
+    ../../thirdparty/libpng/pngwutil.c \
     ../../thirdparty/libpng/pnggccrd.c \
     ../../thirdparty/libpng/pngmem.c \
     ../../thirdparty/libpng/pngread.c \

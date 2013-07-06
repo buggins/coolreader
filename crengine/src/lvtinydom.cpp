@@ -2037,7 +2037,7 @@ bool ldomDataStorageManager::load()
             _chunks.clear();
             return false;
         }
-        _chunks.add( new ldomTextStorageChunk( this, i,compsize, uncompsize ) );
+        _chunks.add( new ldomTextStorageChunk( this, (lUInt16)i,compsize, uncompsize ) );
     }
     return true;
 #else

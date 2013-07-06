@@ -2782,7 +2782,7 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
     while (p < endp) {
         ch = *s++;
         if ( (ch & 0x80) == 0 ) {
-            *p++ = ch;
+            *p++ = (char)ch;
         } else if ( (ch & 0xE0) == 0xC0 ) {
             *p++ = ((ch & 0x1F) << 6)
                     | CONT_BYTE(0,0);
@@ -2827,7 +2827,7 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
     while (p < endp && s < ends) {
         ch = *s;
         if ( (ch & 0x80) == 0 ) {
-            *p++ = ch;
+            *p++ = (char)ch;
             s++;
         } else if ( (ch & 0xE0) == 0xC0 ) {
             if (s + 2 > ends)

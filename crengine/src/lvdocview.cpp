@@ -5778,7 +5778,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if (getDocument()->setMinSpaceCondensingPercent(value))
                 REQUEST_RENDER("propsApply condensing percent")
         } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS) {
-            bool value = props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
+            int value = props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
             if (m_highlightBookmarks != value) {
                 m_highlightBookmarks = value;
                 updateBookMarksRanges();

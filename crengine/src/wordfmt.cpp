@@ -9,6 +9,15 @@
 
 
 #if ENABLE_ANTIWORD==1
+#if defined(_DEBUG) && !defined(DEBUG)
+#define DEBUG
+#endif
+#if defined(_NDEBUG) && !defined(NDEBUG)
+#define NDEBUG
+#endif
+#if !defined(DEBUG) && !defined(NDEBUG)
+#define NDEBUG
+#endif
 #include "../include/wordfmt.h"
 
 #ifdef _WIN32
