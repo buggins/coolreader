@@ -323,7 +323,7 @@ public:
     void setIndex( LVArray<ref_t> &list )
     {
         clear();
-        size = nearestPowerOf2(list.length()>0 ? list.length()*4 : 32);
+        size = nearestPowerOf2(list.length()>0 ? list.length() : 32);
         if ( table )
             delete[] table;
         table = new LVRefCacheRec * [ size ];
