@@ -2581,13 +2581,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             drawPage();
 			break;
 		case DCMD_PAGEDOWN:
-			if ( param==1 )
+			if ( param==1 && !DeviceInfo.EINK_SCREEN)
 				animatePageFlip(1, onFinishHandler);
 			else
 				doEngineCommand(cmd, param, onFinishHandler);
 			break;
 		case DCMD_PAGEUP:
-			if ( param==1 )
+			if ( param==1 && !DeviceInfo.EINK_SCREEN)
 				animatePageFlip(-1, onFinishHandler);
 			else
 				doEngineCommand(cmd, param, onFinishHandler);
