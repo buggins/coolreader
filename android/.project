@@ -98,7 +98,7 @@
 		<link>
 			<name>crengine</name>
 			<type>2</type>
-			<location>C:/Users/vlopatin/cr3ws2/crengine/crengine/src</location>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/crengine/src</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
