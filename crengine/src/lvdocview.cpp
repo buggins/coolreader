@@ -662,7 +662,7 @@ public:
 #endif
 
 /// draw current page to specified buffer
-void LVDocView::Draw(LVDrawBuf & drawbuf) {
+void LVDocView::Draw(LVDrawBuf & drawbuf, bool autoResize) {
 	int offset = -1;
 	int p = -1;
 	if (isPageMode()) {
@@ -674,7 +674,7 @@ void LVDocView::Draw(LVDrawBuf & drawbuf) {
 	}
 	//CRLog::trace("Draw() : calling Draw(buf(%d x %d), %d, %d, false)",
 	//		drawbuf.GetWidth(), drawbuf.GetHeight(), offset, p);
-	Draw(drawbuf, offset, p, false);
+	Draw(drawbuf, offset, p, false, autoResize);
 }
 
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
@@ -2090,12 +2090,13 @@ void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offset
 }
 
 /// draw to specified buffer
-void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
+void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate, bool autoresize) {
 	LVLock lock(getMutex());
 	//CRLog::trace("Draw() : calling checkPos()");
 	checkPos();
 	//CRLog::trace("Draw() : calling drawbuf.resize(%d, %d)", m_dx, m_dy);
-	drawbuf.Resize(m_dx, m_dy);
+	if (autoresize)
+		drawbuf.Resize(m_dx, m_dy);
 	drawbuf.SetBackgroundColor(m_backgroundColor);
 	drawbuf.SetTextColor(m_textColor);
 	//CRLog::trace("Draw() : calling clear()", m_dx, m_dy);
@@ -2123,9 +2124,9 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate) {
 			rc.right -= m_pageMargins.right;
 			drawCoverTo(&drawbuf, rc);
 		}
-		DrawDocument(drawbuf, m_doc->getRootNode(), m_pageMargins.left, 0, m_dx
-				- m_pageMargins.left - m_pageMargins.right, m_dy, 0, -position,
-                m_dy, &m_markRanges, &m_bmkRanges);
+		DrawDocument(drawbuf, m_doc->getRootNode(), m_pageMargins.left, 0, drawbuf.GetWidth()
+				- m_pageMargins.left - m_pageMargins.right, drawbuf.GetHeight(), 0, -position,
+				drawbuf.GetHeight(), &m_markRanges, &m_bmkRanges);
 	} else {
 		int pc = getVisiblePageCount();
 		//CRLog::trace("searching for page with offset=%d", position);

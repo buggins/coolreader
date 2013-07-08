@@ -511,7 +511,7 @@ private:
 
 protected:
     /// draw to specified buffer by either Y pos or page number (unused param should be -1)
-    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate );
+    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate, bool autoresize = true);
 
 
     virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
@@ -542,7 +542,7 @@ public:
     void setBatteryFont( LVFontRef font ) { m_batteryFont=font; }
 
     /// draw current page to specified buffer
-    void Draw( LVDrawBuf & drawbuf );
+    void Draw( LVDrawBuf & drawbuf, bool autoResize = true);
     
     /// close document
     void close();
