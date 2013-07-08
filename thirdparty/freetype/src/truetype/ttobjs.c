@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Objects manager (body).                                              */
 /*                                                                         */
-/*  Copyright 1996-2011                                                    */
+/*  Copyright 1996-2013                                                    */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -21,6 +21,7 @@
 #include FT_INTERNAL_STREAM_H
 #include FT_TRUETYPE_TAGS_H
 #include FT_INTERNAL_SFNT_H
+#include FT_TRUETYPE_DRIVER_H
 
 #include "ttgload.h"
 #include "ttpload.h"
@@ -244,7 +245,7 @@
   tt_check_trickyness_sfnt_ids( TT_Face  face )
   {
 #define TRICK_SFNT_IDS_PER_FACE   3
-#define TRICK_SFNT_IDS_NUM_FACES  13
+#define TRICK_SFNT_IDS_NUM_FACES  17
 
     static const tt_sfnt_id_rec sfnt_id[TRICK_SFNT_IDS_NUM_FACES]
                                        [TRICK_SFNT_IDS_PER_FACE] = {
@@ -317,6 +318,26 @@
         { 0x00000000, 0x00000000 }, /* cvt  */
         { 0x0d3de9cb, 0x00000141 }, /* fpgm */
         { 0xd4127766, 0x00002280 }  /* prep */
+      },
+      { /* NEC FA-Gothic, 1996 */
+        { 0x00000000, 0x00000000 }, /* cvt  */
+        { 0x4a692698, 0x000001f0 }, /* fpgm */
+        { 0x340d4346, 0x00001fca }  /* prep */
+      },
+      { /* NEC FA-Minchou, 1996 */
+        { 0x00000000, 0x00000000 }, /* cvt  */
+        { 0xcd34c604, 0x00000166 }, /* fpgm */
+        { 0x6cf31046, 0x000022b0 }  /* prep */
+      },
+      { /* NEC FA-RoundGothicB, 1996 */
+        { 0x00000000, 0x00000000 }, /* cvt  */
+        { 0x5da75315, 0x0000019d }, /* fpgm */
+        { 0x40745a5f, 0x000022e0 }  /* prep */
+      },
+      { /* NEC FA-RoundGothicM, 1996 */
+        { 0x00000000, 0x00000000 }, /* cvt  */
+        { 0xf055fc48, 0x000001c2 }, /* fpgm */
+        { 0x3900ded3, 0x00001e18 }  /* prep */
       }
     };
 
@@ -328,7 +349,7 @@
 
 
     FT_MEM_SET( num_matched_ids, 0,
-                sizeof( int ) * TRICK_SFNT_IDS_NUM_FACES );
+                sizeof ( int ) * TRICK_SFNT_IDS_NUM_FACES );
     has_cvt  = FALSE;
     has_fpgm = FALSE;
     has_prep = FALSE;
@@ -493,10 +514,17 @@
     TT_Face       face = (TT_Face)ttface;
 
 
+    FT_TRACE2(( "TTF driver\n" ));
+
     library = ttface->driver->root.library;
-    sfnt    = (SFNT_Service)FT_Get_Module_Interface( library, "sfnt" );
+
+    sfnt = (SFNT_Service)FT_Get_Module_Interface( library, "sfnt" );
     if ( !sfnt )
-      goto Bad_Format;
+    {
+      FT_ERROR(( "tt_face_init: cannot access `sfnt' module\n" ));
+      error = FT_THROW( Missing_Module );
+      goto Exit;
+    }
 
     /* create input stream from resource */
     if ( FT_STREAM_SEEK( 0 ) )
@@ -514,7 +542,7 @@
          face->format_tag != 0x00020000L &&    /* CJK fonts for Win 3.1 */
          face->format_tag != TTAG_true   )     /* Mac fonts */
     {
-      FT_TRACE2(( "[not a valid TTF font]\n" ));
+      FT_TRACE2(( "  not a TTF font\n" ));
       goto Bad_Format;
     }
 
@@ -524,7 +552,7 @@
 
     /* If we are performing a simple font format check, exit immediately. */
     if ( face_index < 0 )
-      return TT_Err_Ok;
+      return FT_Err_Ok;
 
     /* Load font directory */
     error = sfnt->load_face( stream, face, face_index, num_params, params );
@@ -624,7 +652,7 @@
     return error;
 
   Bad_Format:
-    error = TT_Err_Unknown_File_Format;
+    error = FT_THROW( Unknown_File_Format );
     goto Exit;
   }
 
@@ -725,7 +753,7 @@
       exec = ( (TT_Driver)FT_FACE_DRIVER( face ) )->context;
 
     if ( !exec )
-      return TT_Err_Could_Not_Find_Context;
+      return FT_THROW( Could_Not_Find_Context );
 
     TT_Load_Context( exec, face, size );
 
@@ -737,7 +765,7 @@
     exec->threshold = 0;
 
     exec->instruction_trap = FALSE;
-    exec->F_dot_P          = 0x10000L;
+    exec->F_dot_P          = 0x4000L;
 
     exec->pedantic_hinting = pedantic;
 
@@ -778,7 +806,7 @@
       }
     }
     else
-      error = TT_Err_Ok;
+      error = FT_Err_Ok;
 
     if ( !error )
       TT_Save_Context( exec, size );
@@ -819,7 +847,7 @@
       exec = ( (TT_Driver)FT_FACE_DRIVER( face ) )->context;
 
     if ( !exec )
-      return TT_Err_Could_Not_Find_Context;
+      return FT_THROW( Could_Not_Find_Context );
 
     TT_Load_Context( exec, face, size );
 
@@ -849,7 +877,27 @@
       }
     }
     else
-      error = TT_Err_Ok;
+      error = FT_Err_Ok;
+
+    /* UNDOCUMENTED!  The MS rasterizer doesn't allow the following */
+    /* graphics state variables to be modified by the CVT program.  */
+
+    exec->GS.dualVector.x = 0x4000;
+    exec->GS.dualVector.y = 0;
+    exec->GS.projVector.x = 0x4000;
+    exec->GS.projVector.y = 0x0;
+    exec->GS.freeVector.x = 0x4000;
+    exec->GS.freeVector.y = 0x0;
+
+    exec->GS.rp0 = 0;
+    exec->GS.rp1 = 0;
+    exec->GS.rp2 = 0;
+
+    exec->GS.gep0 = 1;
+    exec->GS.gep1 = 1;
+    exec->GS.gep2 = 1;
+
+    exec->GS.loop = 1;
 
     /* save as default graphics state */
     size->GS = exec->GS;
@@ -996,7 +1044,7 @@
   tt_size_ready_bytecode( TT_Size  size,
                           FT_Bool  pedantic )
   {
-    FT_Error  error = TT_Err_Ok;
+    FT_Error  error = FT_Err_Ok;
 
 
     if ( !size->bytecode_ready )
@@ -1063,7 +1111,7 @@
   tt_size_init( FT_Size  ttsize )           /* TT_Size */
   {
     TT_Size   size  = (TT_Size)ttsize;
-    FT_Error  error = TT_Err_Ok;
+    FT_Error  error = FT_Err_Ok;
 
 #ifdef TT_USE_BYTECODE_INTERPRETER
     size->bytecode_ready = 0;
@@ -1119,7 +1167,7 @@
   tt_size_reset( TT_Size  size )
   {
     TT_Face           face;
-    FT_Error          error = TT_Err_Ok;
+    FT_Error          error = FT_Err_Ok;
     FT_Size_Metrics*  metrics;
 
 
@@ -1133,7 +1181,7 @@
     *metrics = size->root.metrics;
 
     if ( metrics->x_ppem < 1 || metrics->y_ppem < 1 )
-      return TT_Err_Invalid_PPem;
+      return FT_THROW( Invalid_PPem );
 
     /* This bit flag, if set, indicates that the ppems must be       */
     /* rounded to integers.  Nearly all TrueType fonts have this bit */
@@ -1163,16 +1211,14 @@
       size->ttmetrics.scale   = metrics->x_scale;
       size->ttmetrics.ppem    = metrics->x_ppem;
       size->ttmetrics.x_ratio = 0x10000L;
-      size->ttmetrics.y_ratio = FT_MulDiv( metrics->y_ppem,
-                                           0x10000L,
+      size->ttmetrics.y_ratio = FT_DivFix( metrics->y_ppem,
                                            metrics->x_ppem );
     }
     else
     {
       size->ttmetrics.scale   = metrics->y_scale;
       size->ttmetrics.ppem    = metrics->y_ppem;
-      size->ttmetrics.x_ratio = FT_MulDiv( metrics->x_ppem,
-                                           0x10000L,
+      size->ttmetrics.x_ratio = FT_DivFix( metrics->x_ppem,
                                            metrics->y_ppem );
       size->ttmetrics.y_ratio = 0x10000L;
     }
@@ -1212,15 +1258,21 @@
 
 
     if ( !TT_New_Context( driver ) )
-      return TT_Err_Could_Not_Find_Context;
+      return FT_THROW( Could_Not_Find_Context );
 
+#ifdef TT_CONFIG_OPTION_SUBPIXEL_HINTING
+    driver->interpreter_version = TT_INTERPRETER_VERSION_38;
 #else
+    driver->interpreter_version = TT_INTERPRETER_VERSION_35;
+#endif
+
+#else /* !TT_USE_BYTECODE_INTERPRETER */
 
     FT_UNUSED( ttdriver );
 
-#endif
+#endif /* !TT_USE_BYTECODE_INTERPRETER */
 
-    return TT_Err_Ok;
+    return FT_Err_Ok;
   }
 
 

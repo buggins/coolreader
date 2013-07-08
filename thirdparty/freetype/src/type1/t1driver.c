@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Type 1 driver interface (body).                                      */
 /*                                                                         */
-/*  Copyright 1996-2004, 2006, 2007, 2009, 2011 by                         */
+/*  Copyright 1996-2004, 2006, 2007, 2009, 2011, 2013 by                   */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -61,7 +61,7 @@
   {
     FT_STRCPYN( buffer, face->type1.glyph_names[glyph_index], buffer_max );
 
-    return T1_Err_Ok;
+    return FT_Err_Ok;
   }
 
 
@@ -69,13 +69,13 @@
   t1_get_name_index( T1_Face     face,
                      FT_String*  glyph_name )
   {
-    FT_Int      i;
-    FT_String*  gname;
+    FT_Int  i;
 
 
     for ( i = 0; i < face->type1.num_glyphs; i++ )
     {
-      gname = face->type1.glyph_names[i];
+      FT_String*  gname = face->type1.glyph_names[i];
+
 
       if ( !ft_strcmp( glyph_name, gname ) )
         return (FT_UInt)i;
@@ -138,7 +138,7 @@
   {
     *afont_info = ((T1_Face)face)->type1.font_info;
 
-    return T1_Err_Ok;
+    return FT_Err_Ok;
   }
 
 
@@ -148,7 +148,7 @@
   {
     *afont_extra = ((T1_Face)face)->type1.font_extra;
 
-    return T1_Err_Ok;
+    return FT_Err_Ok;
   }
 
 
@@ -167,7 +167,7 @@
   {
     *afont_private = ((T1_Face)face)->type1.private_dict;
 
-    return T1_Err_Ok;
+    return FT_Err_Ok;
   }
 
 
@@ -195,7 +195,7 @@
       if ( idx < sizeof ( type1->font_matrix ) /
                    sizeof ( type1->font_matrix.xx ) )
       {
-        FT_Fixed  val;
+        FT_Fixed  val = 0;
 
 
         retval = sizeof ( val );
@@ -225,7 +225,7 @@
       if ( idx < sizeof ( type1->font_bbox ) /
                    sizeof ( type1->font_bbox.xMin ) )
       {
-        FT_Fixed val;
+        FT_Fixed val = 0;
 
 
         retval = sizeof ( val );
@@ -258,7 +258,7 @@
       break;
 
     case PS_DICT_FONT_NAME:
-      retval = ft_strlen( type1->font_name ) + 1;
+      retval = (FT_Long)( ft_strlen( type1->font_name ) + 1 );
       if ( value && value_len >= retval )
         ft_memcpy( value, (void *)( type1->font_name ), retval );
       break;
@@ -278,7 +278,7 @@
     case PS_DICT_CHAR_STRING_KEY:
       if ( idx < (FT_UInt)type1->num_glyphs )
       {
-        retval = ft_strlen( type1->glyph_names[idx] ) + 1;
+        retval = (FT_Long)( ft_strlen( type1->glyph_names[idx] ) + 1 );
         if ( value && value_len >= retval )
         {
           ft_memcpy( value, (void *)( type1->glyph_names[idx] ), retval );
@@ -290,7 +290,7 @@
     case PS_DICT_CHAR_STRING:
       if ( idx < (FT_UInt)type1->num_glyphs )
       {
-        retval = type1->charstrings_len[idx] + 1;
+        retval = (FT_Long)( type1->charstrings_len[idx] + 1 );
         if ( value && value_len >= retval )
         {
           ft_memcpy( value, (void *)( type1->charstrings[idx] ),
@@ -310,7 +310,7 @@
       if ( type1->encoding_type == T1_ENCODING_TYPE_ARRAY &&
            idx < (FT_UInt)type1->encoding.num_chars       )
       {
-        retval = ft_strlen( type1->encoding.char_name[idx] ) + 1;
+        retval = (FT_Long)( ft_strlen( type1->encoding.char_name[idx] ) + 1 );
         if ( value && value_len >= retval )
         {
           ft_memcpy( value, (void *)( type1->encoding.char_name[idx] ),
@@ -329,7 +329,7 @@
     case PS_DICT_SUBR:
       if ( idx < (FT_UInt)type1->num_subrs )
       {
-        retval = type1->subrs_len[idx] + 1;
+        retval = (FT_Long)( type1->subrs_len[idx] + 1 );
         if ( value && value_len >= retval )
         {
           ft_memcpy( value, (void *)( type1->subrs[idx] ), retval - 1 );
@@ -523,31 +523,31 @@
       break;
 
     case PS_DICT_VERSION:
-      retval = ft_strlen( type1->font_info.version ) + 1;
+      retval = (FT_Long)( ft_strlen( type1->font_info.version ) + 1 );
       if ( value && value_len >= retval )
         ft_memcpy( value, (void *)( type1->font_info.version ), retval );
       break;
 
     case PS_DICT_NOTICE:
-      retval = ft_strlen( type1->font_info.notice ) + 1;
+      retval = (FT_Long)( ft_strlen( type1->font_info.notice ) + 1 );
       if ( value && value_len >= retval )
         ft_memcpy( value, (void *)( type1->font_info.notice ), retval );
       break;
 
     case PS_DICT_FULL_NAME:
-      retval = ft_strlen( type1->font_info.full_name ) + 1;
+      retval = (FT_Long)( ft_strlen( type1->font_info.full_name ) + 1 );
       if ( value && value_len >= retval )
         ft_memcpy( value, (void *)( type1->font_info.full_name ), retval );
       break;
 
     case PS_DICT_FAMILY_NAME:
-      retval = ft_strlen( type1->font_info.family_name ) + 1;
+      retval = (FT_Long)( ft_strlen( type1->font_info.family_name ) + 1 );
       if ( value && value_len >= retval )
         ft_memcpy( value, (void *)( type1->font_info.family_name ), retval );
       break;
 
     case PS_DICT_WEIGHT:
-      retval = ft_strlen( type1->font_info.weight ) + 1;
+      retval = (FT_Long)( ft_strlen( type1->font_info.weight ) + 1 );
       if ( value && value_len >= retval )
         ft_memcpy( value, (void *)( type1->font_info.weight ), retval );
       break;
@@ -607,11 +607,11 @@
   };
 
 
-  static FT_Module_Interface
-  Get_Interface( FT_Driver         driver,
+  FT_CALLBACK_DEF( FT_Module_Interface )
+  Get_Interface( FT_Module         module,
                  const FT_String*  t1_interface )
   {
-    FT_UNUSED( driver );
+    FT_UNUSED( module );
 
     return ft_service_list_lookup( t1_services, t1_interface );
   }
@@ -652,11 +652,14 @@
   /*    They can be implemented by format-specific interfaces.             */
   /*                                                                       */
   static FT_Error
-  Get_Kerning( T1_Face     face,
+  Get_Kerning( FT_Face     t1face,        /* T1_Face */
                FT_UInt     left_glyph,
                FT_UInt     right_glyph,
                FT_Vector*  kerning )
   {
+    T1_Face  face = (T1_Face)t1face;
+
+
     kerning->x = 0;
     kerning->y = 0;
 
@@ -666,7 +669,7 @@
                       right_glyph,
                       kerning );
 
-    return T1_Err_Ok;
+    return FT_Err_Ok;
   }
 
 
@@ -681,7 +684,7 @@
       FT_MODULE_DRIVER_SCALABLE   |
       FT_MODULE_DRIVER_HAS_HINTER,
 
-      sizeof( FT_DriverRec ),
+      sizeof ( FT_DriverRec ),
 
       "type1",
       0x10000L,
@@ -689,38 +692,34 @@
 
       0,   /* format interface */
 
-      (FT_Module_Constructor)T1_Driver_Init,
-      (FT_Module_Destructor) T1_Driver_Done,
-      (FT_Module_Requester)  Get_Interface,
+      T1_Driver_Init,
+      T1_Driver_Done,
+      Get_Interface,
     },
 
-    sizeof( T1_FaceRec ),
-    sizeof( T1_SizeRec ),
-    sizeof( T1_GlyphSlotRec ),
+    sizeof ( T1_FaceRec ),
+    sizeof ( T1_SizeRec ),
+    sizeof ( T1_GlyphSlotRec ),
 
-    (FT_Face_InitFunc)        T1_Face_Init,
-    (FT_Face_DoneFunc)        T1_Face_Done,
-    (FT_Size_InitFunc)        T1_Size_Init,
-    (FT_Size_DoneFunc)        T1_Size_Done,
-    (FT_Slot_InitFunc)        T1_GlyphSlot_Init,
-    (FT_Slot_DoneFunc)        T1_GlyphSlot_Done,
+    T1_Face_Init,
+    T1_Face_Done,
+    T1_Size_Init,
+    T1_Size_Done,
+    T1_GlyphSlot_Init,
+    T1_GlyphSlot_Done,
 
-#ifdef FT_CONFIG_OPTION_OLD_INTERNALS
-    ft_stub_set_char_sizes,
-    ft_stub_set_pixel_sizes,
-#endif
-    (FT_Slot_LoadFunc)        T1_Load_Glyph,
+    T1_Load_Glyph,
 
 #ifdef T1_CONFIG_OPTION_NO_AFM
-    (FT_Face_GetKerningFunc)  0,
-    (FT_Face_AttachFunc)      0,
+    0,                     /* FT_Face_GetKerningFunc */
+    0,                     /* FT_Face_AttachFunc     */
 #else
-    (FT_Face_GetKerningFunc)  Get_Kerning,
-    (FT_Face_AttachFunc)      T1_Read_Metrics,
+    Get_Kerning,
+    T1_Read_Metrics,
 #endif
-    (FT_Face_GetAdvancesFunc) T1_Get_Advances,
-    (FT_Size_RequestFunc)     T1_Size_Request,
-    (FT_Size_SelectFunc)      0
+    T1_Get_Advances,
+    T1_Size_Request,
+    0                      /* FT_Size_SelectFunc     */
   };
 
 

@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    ANSI-specific configuration file (specification only).               */
 /*                                                                         */
-/*  Copyright 1996-2004, 2006-2008, 2010-2011 by                           */
+/*  Copyright 1996-2004, 2006-2008, 2010-2011, 2013 by                     */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -120,8 +120,7 @@ FT_BEGIN_HEADER
   /*   This is the only necessary change, so it is defined here instead    */
   /*   providing a new configuration file.                                 */
   /*                                                                       */
-#if ( defined( __APPLE__ ) && !defined( DARWIN_NO_CARBON ) ) || \
-    ( defined( __MWERKS__ ) && defined( macintosh )        )
+#if defined( __APPLE__ ) || ( defined( __MWERKS__ ) && defined( macintosh ) )
   /* no Carbon frameworks for 64bit 10.4.x */
   /* AvailabilityMacros.h is available since Mac OS X 10.2,        */
   /* so guess the system version by maximum errno before inclusion */
@@ -131,9 +130,7 @@ FT_BEGIN_HEADER
 #endif
 #if defined( __LP64__ ) && \
     ( MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4 )
-#define DARWIN_NO_CARBON 1
-#else
-#define FT_MACINTOSH 1
+#undef FT_MACINTOSH
 #endif
 
 #elif defined( __SC__ ) || defined( __MRC__ )
@@ -203,6 +200,30 @@ FT_BEGIN_HEADER
   /*                                                                       */
   typedef unsigned XXX  FT_UInt32;
 
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* <Type>                                                                */
+  /*    FT_Int64                                                           */
+  /*                                                                       */
+  /*    A typedef for a 64bit signed integer type.  The size depends on    */
+  /*    the configuration.  Only defined if there is real 64bit support;   */
+  /*    otherwise, it gets emulated with a structure (if necessary).       */
+  /*                                                                       */
+  typedef signed XXX  FT_Int64;
+
+
+  /*************************************************************************/
+  /*                                                                       */
+  /* <Type>                                                                */
+  /*    FT_UInt64                                                          */
+  /*                                                                       */
+  /*    A typedef for a 64bit unsigned integer type.  The size depends on  */
+  /*    the configuration.  Only defined if there is real 64bit support;   */
+  /*    otherwise, it gets emulated with a structure (if necessary).       */
+  /*                                                                       */
+  typedef unsigned XXX  FT_UInt64;
+
   /* */
 
 #endif
@@ -242,13 +263,15 @@ FT_BEGIN_HEADER
 
   /* FT_LONG64 must be defined if a 64-bit type is available */
 #define FT_LONG64
-#define FT_INT64  long
+#define FT_INT64   long
+#define FT_UINT64  unsigned long
 
 #elif defined( _MSC_VER ) && _MSC_VER >= 900  /* Visual C++ (and Intel C++) */
 
   /* this compiler provides the __int64 type */
 #define FT_LONG64
-#define FT_INT64  __int64
+#define FT_INT64   __int64
+#define FT_UINT64  unsigned __int64
 
 #elif defined( __BORLANDC__ )  /* Borland C++ */
 
@@ -257,7 +280,8 @@ FT_BEGIN_HEADER
 
   /* this compiler provides the __int64 type */
 #define FT_LONG64
-#define FT_INT64  __int64
+#define FT_INT64   __int64
+#define FT_UINT64  unsigned __int64
 
 #elif defined( __WATCOMC__ )   /* Watcom C++ */
 
@@ -266,13 +290,15 @@ FT_BEGIN_HEADER
 #elif defined( __MWERKS__ )    /* Metrowerks CodeWarrior */
 
 #define FT_LONG64
-#define FT_INT64  long long int
+#define FT_INT64   long long int
+#define FT_UINT64  unsigned long long int
 
 #elif defined( __GNUC__ )
 
   /* GCC provides the `long long' type */
 #define FT_LONG64
-#define FT_INT64  long long int
+#define FT_INT64   long long int
+#define FT_UINT64  unsigned long long int
 
 #endif /* FT_SIZEOF_LONG == (64 / FT_CHAR_BIT) */
 
@@ -295,6 +321,11 @@ FT_BEGIN_HEADER
 #endif /* __STDC__ */
 
 #endif /* FT_LONG64 && !FT_CONFIG_OPTION_FORCE_INT64 */
+
+#ifdef FT_LONG64
+  typedef FT_INT64   FT_Int64;
+  typedef FT_UINT64  FT_UInt64;
+#endif
 
 
 #define FT_BEGIN_STMNT  do {
@@ -358,7 +389,8 @@ FT_BEGIN_HEADER
       "mov    %0, %1, lsr #16\n\t"      /* %0  = %1 >> 16 */
       "orr    %0, %0, %2, lsl #16\n\t"  /* %0 |= %2 << 16 */
       : "=r"(a), "=&r"(t2), "=&r"(t)
-      : "r"(a), "r"(b) );
+      : "r"(a), "r"(b)
+      : "cc" );
     return a;
   }
 
