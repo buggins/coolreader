@@ -35,8 +35,11 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnKeyListener;
+import android.view.View.OnTouchListener;
 
-public class ReaderView implements android.view.SurfaceHolder.Callback, Settings {
+public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, OnKeyListener, OnTouchListener {
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
@@ -47,6 +50,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public interface BookView {
 		
 	}
+	
 	public class ReaderSurface extends SurfaceView {
 
 		public ReaderSurface(Context context) {
@@ -115,104 +119,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			mActivity.onUserActivity();
 			return super.onTrackballEvent(event);
 		}
-
-		@Override
-		public boolean onKeyUp(int keyCode, final KeyEvent event) {
-			if (keyCode == 0)
-				keyCode = event.getScanCode();
-			mActivity.onUserActivity();
-			keyCode = translateKeyCode(keyCode);
-			if (currentImageViewer != null)
-				return currentImageViewer.onKeyUp(keyCode, event);
-			if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP ) {
-	    		if (isAutoScrollActive())
-	    			return true;
-				if ( !enableVolumeKeys )
-					return super.onKeyUp(keyCode, event);
-			}
-			if (isAutoScrollActive()) {
-				stopAutoScroll();
-				return true;
-			}
-			if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
-				mActivity.releaseBacklightControl();
-				return false;
-			}
-			boolean tracked = isTracked(event);
-//			if ( keyCode!=KeyEvent.KEYCODE_BACK )
-//				backKeyDownHere = false;
-
-			if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
-				return true;
-			//backKeyDownHere = false;
-			
-			// apply orientation
-			keyCode = overrideKey( keyCode );
-			boolean isLongPress = false;
-			Long keyDownTs = keyDownTimestampMap.get(keyCode);
-			if ( keyDownTs!=null && System.currentTimeMillis()-keyDownTs>=LONG_KEYPRESS_TIME )
-				isLongPress = true;
-			ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
-			ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
-			ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
-			stopTracking();
-
-	/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
-				// goto/set shortcut bookmark
-				int shortcut = keyCode - KeyEvent.KEYCODE_0;
-				if ( shortcut==0 )
-					shortcut = 10;
-				if ( isLongPress )
-					addBookmark(shortcut);
-				else
-					goToBookmark(shortcut);
-				return true;
-			}*/
-			if ( action.isNone() || !tracked ) {
-				return super.onKeyUp(keyCode, event);
-			}
-			if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
-				// already processed by onKeyDown()
-				return true;
-			}
-			
-			if ( isLongPress ) {
-				action = longAction;
-			} else {
-				if ( !dblAction.isNone() ) {
-					// wait for possible double click
-					currentDoubleClickActionStart = android.os.SystemClock.uptimeMillis();
-					currentDoubleClickAction = dblAction;
-					currentSingleClickAction = action;
-					currentDoubleClickActionKeyCode = keyCode;
-					final int myKeyCode = keyCode;
-					BackgroundThread.instance().postGUI(new Runnable() {
-						public void run() {
-							if ( currentSingleClickAction!=null && currentDoubleClickActionKeyCode==myKeyCode ) {
-								log.d("onKeyUp: single click action " + currentSingleClickAction.id + " found for key " + myKeyCode + " single click");
-								onAction( currentSingleClickAction );
-							}
-							currentDoubleClickActionStart = 0;
-							currentDoubleClickActionKeyCode = 0;
-							currentDoubleClickAction = null;
-							currentSingleClickAction = null;
-						}
-					}, DOUBLE_CLICK_INTERVAL);
-					// posted
-					return true;
-				}
-			}
-			if ( !action.isNone() ) {
-				log.d("onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
-				onAction( action );
-				return true;
-			}
-			
-
-			// not processed
-			return super.onKeyUp(keyCode, event);
-		}
-
 	
 		@Override
 		protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
@@ -254,137 +160,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			return super.onKeyMultiple(keyCode, repeatCount, event);
 		}
 
-		@Override
-		public boolean onKeyDown(int keyCode, final KeyEvent event) {
-			
-			if (keyCode == 0)
-				keyCode = event.getScanCode();
-			keyCode = translateKeyCode(keyCode);
-
-			mActivity.onUserActivity();
-			
-			if (currentImageViewer != null)
-				return currentImageViewer.onKeyDown(keyCode, event);
-
-//			backKeyDownHere = false;
-			if ( event.getRepeatCount()==0 ) {
-				log.v("onKeyDown("+keyCode + ", " + event +")");
-				keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
-				
-				if (keyCode == KeyEvent.KEYCODE_BACK) {
-					// force saving position on BACK key press
-					scheduleSaveCurrentPositionBookmark(1);
-				}
-			}
-			if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
-				mActivity.releaseBacklightControl();
-				boolean res = super.onKeyDown(keyCode, event);
-				return res;
-			}
-
-	    	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN ) {
-	    		if (isAutoScrollActive()) {
-	    			if (keyCode==KeyEvent.KEYCODE_VOLUME_UP)
-	    				changeAutoScrollSpeed(1);
-	    			else
-	    				changeAutoScrollSpeed(-1);
-	    			return true;
-	    		}
-	    		if (!enableVolumeKeys) {
-	    			boolean res = super.onKeyDown(keyCode, event);
-	    			return res;
-	    		}
-	    	}
-	    	
-			if (isAutoScrollActive())
-				return true; // autoscroll will be stopped in onKeyUp
-	    	
-			keyCode = overrideKey( keyCode );
-			ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
-			ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
-			//ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
-
-			if ( event.getRepeatCount()==0 ) {
-				if ( keyCode==currentDoubleClickActionKeyCode && currentDoubleClickActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
-					if ( currentDoubleClickAction!=null ) {
-						log.d("executing doubleclick action " + currentDoubleClickAction);
-						onAction(currentDoubleClickAction);
-					}
-					currentDoubleClickActionStart = 0;
-					currentDoubleClickActionKeyCode = 0;
-					currentDoubleClickAction = null;
-					currentSingleClickAction = null;
-					return true;
-				} else {
-					if ( currentSingleClickAction!=null ) {
-						onAction(currentSingleClickAction);
-					}
-					currentDoubleClickActionStart = 0;
-					currentDoubleClickActionKeyCode = 0;
-					currentDoubleClickAction = null;
-					currentSingleClickAction = null;
-				}
-				
-			}
-			
-			
-	    	if ( event.getRepeatCount()>0 ) {
-	    		if ( !isTracked(event) )
-	    			return true; // ignore
-	    		// repeating key down
-	    		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=AUTOREPEAT_KEYPRESS_TIME;
-	    		if ( isLongPress ) {
-		    		if ( actionToRepeat!=null ) {
-		    			if ( !repeatActionActive ) {
-			    			log.v("autorepeating action : " + actionToRepeat );
-			    			repeatActionActive = true;
-			    			onAction(actionToRepeat, new Runnable() {
-			    				public void run() {
-			    					if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime()==event.getDownTime() ) {
-			    						log.v("action is completed : " + actionToRepeat );
-			    						repeatActionActive = false;
-			    					}
-			    				}
-			    			});
-		    			}
-		    		} else {
-		    			stopTracking();
-		    			log.v("executing action on long press : " + longAction );
-		    			onAction(longAction);
-		    		}
-	    		}
-	    		return true;
-	    	}
-			
-			if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
-				// start tracking repeat
-				startTrackingKey(event);
-				actionToRepeat = action;
-				log.v("running action with scheduled autorepeat : " + actionToRepeat );
-				repeatActionActive = true;
-				onAction(actionToRepeat, new Runnable() {
-					public void run() {
-						if ( trackedKeyEvent==event ) {
-							log.v("action is completed : " + actionToRepeat );
-							repeatActionActive = false;
-						}
-					}
-				});
-				return true;
-			} else {
-				actionToRepeat = null;
-			}
-			
-	/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
-				// will process in keyup handler
-				startTrackingKey(event);
-				return true;
-			}*/
-			if ( action.isNone() && longAction.isNone() )
-				return super.onKeyDown(keyCode, event);
-			startTrackingKey(event);
-			return true;
-		}
 		
 	}
 	
@@ -6026,6 +5801,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     {
         //super(activity);
 		surface = new ReaderSurface(activity);
+		surface.setOnTouchListener(this);
+		surface.setOnKeyListener(this);
         doc = new DocView(engine);
         doc.setReaderCallback(readerCallback);
         SurfaceHolder holder = surface.getHolder();
@@ -6139,6 +5916,280 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				});
 			}
 		});
+	}
+
+	@Override
+	public boolean onKey(View v, int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		if (event.getAction() == KeyEvent.ACTION_DOWN)
+			return onKeyDown(keyCode, event);
+		else if (event.getAction() == KeyEvent.ACTION_UP)
+			return onKeyUp(keyCode, event);
+		return false;
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		return onTouchEvent(event);
+	}
+
+	public boolean onKeyDown(int keyCode, final KeyEvent event) {
+		
+		if (keyCode == 0)
+			keyCode = event.getScanCode();
+		keyCode = translateKeyCode(keyCode);
+
+		mActivity.onUserActivity();
+		
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyDown(keyCode, event);
+
+//		backKeyDownHere = false;
+		if ( event.getRepeatCount()==0 ) {
+			log.v("onKeyDown("+keyCode + ", " + event +")");
+			keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
+			
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
+				// force saving position on BACK key press
+				scheduleSaveCurrentPositionBookmark(1);
+			}
+		}
+		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
+			mActivity.releaseBacklightControl();
+			return false;
+		}
+
+    	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN ) {
+    		if (isAutoScrollActive()) {
+    			if (keyCode==KeyEvent.KEYCODE_VOLUME_UP)
+    				changeAutoScrollSpeed(1);
+    			else
+    				changeAutoScrollSpeed(-1);
+    			return true;
+    		}
+    		if (!enableVolumeKeys) {
+    			return false;
+    		}
+    	}
+    	
+		if (isAutoScrollActive())
+			return true; // autoscroll will be stopped in onKeyUp
+    	
+		keyCode = overrideKey( keyCode );
+		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
+		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+		//ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
+
+		if ( event.getRepeatCount()==0 ) {
+			if ( keyCode==currentDoubleClickActionKeyCode && currentDoubleClickActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
+				if ( currentDoubleClickAction!=null ) {
+					log.d("executing doubleclick action " + currentDoubleClickAction);
+					onAction(currentDoubleClickAction);
+				}
+				currentDoubleClickActionStart = 0;
+				currentDoubleClickActionKeyCode = 0;
+				currentDoubleClickAction = null;
+				currentSingleClickAction = null;
+				return true;
+			} else {
+				if ( currentSingleClickAction!=null ) {
+					onAction(currentSingleClickAction);
+				}
+				currentDoubleClickActionStart = 0;
+				currentDoubleClickActionKeyCode = 0;
+				currentDoubleClickAction = null;
+				currentSingleClickAction = null;
+			}
+			
+		}
+		
+		
+    	if ( event.getRepeatCount()>0 ) {
+    		if ( !isTracked(event) )
+    			return true; // ignore
+    		// repeating key down
+    		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=AUTOREPEAT_KEYPRESS_TIME;
+    		if ( isLongPress ) {
+	    		if ( actionToRepeat!=null ) {
+	    			if ( !repeatActionActive ) {
+		    			log.v("autorepeating action : " + actionToRepeat );
+		    			repeatActionActive = true;
+		    			onAction(actionToRepeat, new Runnable() {
+		    				public void run() {
+		    					if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime()==event.getDownTime() ) {
+		    						log.v("action is completed : " + actionToRepeat );
+		    						repeatActionActive = false;
+		    					}
+		    				}
+		    			});
+	    			}
+	    		} else {
+	    			stopTracking();
+	    			log.v("executing action on long press : " + longAction );
+	    			onAction(longAction);
+	    		}
+    		}
+    		return true;
+    	}
+		
+		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
+			// start tracking repeat
+			startTrackingKey(event);
+			actionToRepeat = action;
+			log.v("running action with scheduled autorepeat : " + actionToRepeat );
+			repeatActionActive = true;
+			onAction(actionToRepeat, new Runnable() {
+				public void run() {
+					if ( trackedKeyEvent==event ) {
+						log.v("action is completed : " + actionToRepeat );
+						repeatActionActive = false;
+					}
+				}
+			});
+			return true;
+		} else {
+			actionToRepeat = null;
+		}
+		
+/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+			// will process in keyup handler
+			startTrackingKey(event);
+			return true;
+		}*/
+		if ( action.isNone() && longAction.isNone() )
+			return false;
+		startTrackingKey(event);
+		return true;
+	}
+
+	public boolean onKeyUp(int keyCode, final KeyEvent event) {
+		if (keyCode == 0)
+			keyCode = event.getScanCode();
+		mActivity.onUserActivity();
+		keyCode = translateKeyCode(keyCode);
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyUp(keyCode, event);
+		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP ) {
+    		if (isAutoScrollActive())
+    			return true;
+			if ( !enableVolumeKeys )
+				return false;
+		}
+		if (isAutoScrollActive()) {
+			stopAutoScroll();
+			return true;
+		}
+		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
+			mActivity.releaseBacklightControl();
+			return false;
+		}
+		boolean tracked = isTracked(event);
+//		if ( keyCode!=KeyEvent.KEYCODE_BACK )
+//			backKeyDownHere = false;
+
+		if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
+			return true;
+		//backKeyDownHere = false;
+		
+		// apply orientation
+		keyCode = overrideKey( keyCode );
+		boolean isLongPress = false;
+		Long keyDownTs = keyDownTimestampMap.get(keyCode);
+		if ( keyDownTs!=null && System.currentTimeMillis()-keyDownTs>=LONG_KEYPRESS_TIME )
+			isLongPress = true;
+		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
+		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
+		stopTracking();
+
+/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
+			// goto/set shortcut bookmark
+			int shortcut = keyCode - KeyEvent.KEYCODE_0;
+			if ( shortcut==0 )
+				shortcut = 10;
+			if ( isLongPress )
+				addBookmark(shortcut);
+			else
+				goToBookmark(shortcut);
+			return true;
+		}*/
+		if ( action.isNone() || !tracked ) {
+			return false;
+		}
+		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
+			// already processed by onKeyDown()
+			return true;
+		}
+		
+		if ( isLongPress ) {
+			action = longAction;
+		} else {
+			if ( !dblAction.isNone() ) {
+				// wait for possible double click
+				currentDoubleClickActionStart = android.os.SystemClock.uptimeMillis();
+				currentDoubleClickAction = dblAction;
+				currentSingleClickAction = action;
+				currentDoubleClickActionKeyCode = keyCode;
+				final int myKeyCode = keyCode;
+				BackgroundThread.instance().postGUI(new Runnable() {
+					public void run() {
+						if ( currentSingleClickAction!=null && currentDoubleClickActionKeyCode==myKeyCode ) {
+							log.d("onKeyUp: single click action " + currentSingleClickAction.id + " found for key " + myKeyCode + " single click");
+							onAction( currentSingleClickAction );
+						}
+						currentDoubleClickActionStart = 0;
+						currentDoubleClickActionKeyCode = 0;
+						currentDoubleClickAction = null;
+						currentSingleClickAction = null;
+					}
+				}, DOUBLE_CLICK_INTERVAL);
+				// posted
+				return true;
+			}
+		}
+		if ( !action.isNone() ) {
+			log.d("onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
+			onAction( action );
+			return true;
+		}
+		
+
+		// not processed
+		return false;
+	}
+
+	public boolean onTouchEvent(MotionEvent event) {
+		
+		if ( !isTouchScreenEnabled ) {
+			return true;
+		}
+		if (event.getX()==0 && event.getY()==0)
+			return true;
+		mActivity.onUserActivity();
+		
+		if (currentImageViewer != null)
+			return currentImageViewer.onTouchEvent(event);
+		
+		if (isAutoScrollActive()) {
+			//if (currentTapHandler != null && currentTapHandler.isInitialState()) {
+			if (event.getAction() == MotionEvent.ACTION_DOWN) {
+				int x = (int)event.getX();
+				int y = (int)event.getY();
+				int z = getTapZone(x, y, surface.getWidth(), surface.getHeight());
+				if (z == 7)
+					changeAutoScrollSpeed(-1);
+				else if (z == 9)
+					changeAutoScrollSpeed(1);
+				else
+					stopAutoScroll();
+			}
+			return true;
+		}
+		
+		if (currentTapHandler == null)
+			currentTapHandler = new TapHandler();
+		currentTapHandler.checkExpiration();
+		return currentTapHandler.onTouchEvent(event);
 	}
 
 }
