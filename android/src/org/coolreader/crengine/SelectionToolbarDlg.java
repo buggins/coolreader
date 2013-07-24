@@ -130,7 +130,7 @@ public class SelectionToolbarDlg {
 		this.selection = sel;
 		mCoolReader = coolReader;
 		mReaderView = readerView;
-		mAnchor = readerView;
+		mAnchor = readerView.getSurface();
 
 		View panel = (LayoutInflater.from(coolReader.getApplicationContext()).inflate(R.layout.selection_toolbar, null));
 		panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -259,7 +259,7 @@ public class SelectionToolbarDlg {
 		int y = sel.startY;
 		if (y > sel.endY)
 			y = sel.endY;
-		int maxy = mReaderView.getHeight() * 4 / 5; 
+		int maxy = mReaderView.getSurface().getHeight() * 4 / 5; 
 		if (y > maxy) {
 			setReaderMode(); // selection is overlapped by toolbar: set scroll mode and move
 			BackgroundThread.instance().postGUI(new Runnable() {
@@ -272,7 +272,7 @@ public class SelectionToolbarDlg {
 							BackgroundThread.instance().postGUI(new Runnable() {
 								@Override
 								public void run() {
-									mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getHeight() / 3);
+									mReaderView.doEngineCommand(ReaderCommand.DCMD_SCROLL_BY, mReaderView.getSurface().getHeight() / 3);
 									mReaderView.redraw();
 								}
 							});
