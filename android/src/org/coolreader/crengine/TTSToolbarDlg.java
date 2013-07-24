@@ -159,7 +159,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	{
 		mCoolReader = coolReader;
 		mReaderView = readerView;
-		mAnchor = readerView;
+		mAnchor = readerView.getSurface();
 		mTTS = tts;
 		mTTS.setOnUtteranceCompletedListener(this);
 

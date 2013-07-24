@@ -978,9 +978,9 @@ public class CoolReader extends BaseActivity
 				if (mReaderFrame != null) {
 					task.run();
 					setCurrentFrame(mReaderFrame);
-					mReaderView.setFocusable(true);
-					mReaderView.setFocusableInTouchMode(true);
-					mReaderView.requestFocus();
+					mReaderView.getSurface().setFocusable(true);
+					mReaderView.getSurface().setFocusableInTouchMode(true);
+					mReaderView.getSurface().requestFocus();
 				} else {
 					mReaderView = new ReaderView(CoolReader.this, mEngine, settings());
 					mReaderFrame = new ReaderViewLayout(CoolReader.this, mReaderView);
@@ -994,9 +994,9 @@ public class CoolReader extends BaseActivity
 					});
 					task.run();
 					setCurrentFrame(mReaderFrame);
-					mReaderView.setFocusable(true);
-					mReaderView.setFocusableInTouchMode(true);
-					mReaderView.requestFocus();
+					mReaderView.getSurface().setFocusable(true);
+					mReaderView.getSurface().setFocusableInTouchMode(true);
+					mReaderView.getSurface().requestFocus();
 					if (initialBatteryState >= 0)
 						mReaderView.setBatteryState(initialBatteryState);
 				}
