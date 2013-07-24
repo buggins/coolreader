@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
-import org.coolreader.crengine.ReaderView.ReaderCommand;
 
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;

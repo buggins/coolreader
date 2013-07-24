@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.crengine.ReaderView.ReaderCommand;
 
 import android.graphics.Bitmap;
 
