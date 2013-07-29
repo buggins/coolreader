@@ -455,6 +455,9 @@ public class CoolReader extends BaseActivity
 		super.onResume();
 		//Properties props = SettingsManager.instance(this).get();
 		
+		if (mReaderView != null)
+			mReaderView.onAppResume();
+		
 		if (DeviceInfo.EINK_SCREEN) {
             if (DeviceInfo.EINK_SONY) {
                 SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);

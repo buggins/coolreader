@@ -3,12 +3,16 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ShortBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -24,8 +28,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.opengl.GLSurfaceView;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -44,6 +50,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
+	
+	public boolean USE_GL = true;
 
 	private final SurfaceView surface;
 	private final BookView bookView;
@@ -53,6 +61,121 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		void draw();
 		void draw(boolean isPartially);
 		void invalidate();
+		void onPause();
+		void onResume();
+	}
+	
+	public class GLReaderSurface extends GLSurfaceView implements BookView, GLSurfaceView.Renderer {
+
+		boolean surfaceisReady = false;
+		
+		public GLReaderSurface(Context context) {
+			super(context);
+			log.d("Creating GLReaderSurface");
+			setRenderer(this);
+			setRenderMode(RENDERMODE_WHEN_DIRTY);
+			surfaceSize = new PointF();
+		}
+		
+		@Override
+		public void onPause() {
+			super.onPause();
+		}
+
+		@Override
+		public void onResume() {
+			super.onResume();
+		}
+
+		@Override
+		public void draw() {
+			draw(false);
+		}
+
+		@Override
+		public void draw(boolean isPartially) {
+			log.d("GLReaderSurface.draw(" + isPartially + ")");
+			if (!surfaceisReady)
+				return;
+			requestRender();
+		}
+
+		@Override
+		public void onDrawFrame(GL10 gl) {
+			log.d("GLReaderSurface.onDrawFrame");
+			gl.glPushMatrix();
+			 
+		    gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+		    //gl.glTranslatef(offset.x, offset.y, 0);
+		 
+		    gl.glColor4f(1.0f, 0.3f, 0.0f, .5f);    
+		    gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		    gl.glVertexPointer(3, GL10.GL_SHORT, 0, triangleBuffer);
+		    gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 3);    
+		    gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		 
+		    gl.glPopMatrix();
+		}
+
+		private PointF surfaceSize;
+		private ShortBuffer triangleBuffer;
+		
+		@Override
+		public void onSurfaceChanged(GL10 gl, int width, int height) {
+			log.d("GLReaderSurface.onSurfaceChanged " + width + "x" + height);
+		    surfaceSize.set(width, height);
+		    
+		    // Create our triangle.
+		    final int div = 1;
+		    short[] triangles = { 
+		        0, 0, 0,
+		        0, (short) (surfaceSize.y / div), 0,
+		        (short) (surfaceSize.x / div), (short) (surfaceSize.y / div), 0,
+		    };    
+		    triangleBuffer = ShortBuffer.wrap(triangles);
+		 
+		    // Disable a few things we are not going to use.
+		    gl.glDisable(GL10.GL_LIGHTING);
+		    gl.glDisable(GL10.GL_CULL_FACE);
+		    gl.glDisable(GL10.GL_DEPTH_BUFFER_BIT);
+		    gl.glDisable(GL10.GL_DEPTH_TEST);
+		    gl.glClearColor(.5f, .5f, .8f, 1.f);
+		    gl.glShadeModel(GL10.GL_SMOOTH);
+		 
+		    float ratio = surfaceSize.x / surfaceSize.y;
+		    gl.glViewport(0, 0, (int) surfaceSize.x, (int) surfaceSize.y);
+		 
+		    // Set our field of view.
+		    gl.glMatrixMode(GL10.GL_PROJECTION);
+		    gl.glLoadIdentity();
+		    gl.glFrustumf(
+		        -surfaceSize.x / 2, surfaceSize.x / 2, 
+		        -surfaceSize.y / 2, surfaceSize.y / 2,
+		        1, 3);
+		 
+		    // Position the camera at (0, 0, -2) looking down the -z axis.
+		    gl.glMatrixMode(GL10.GL_MODELVIEW);
+		    gl.glLoadIdentity();
+		    // Points rendered to z=0 will be exactly at the frustum's 
+		    // (farZ - nearZ) / 2 so the actual dimension of the triangle should be
+		    // half
+		    gl.glTranslatef(0, 0, -2);
+		}
+
+		@Override
+		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+			log.d("GLReaderSurface.onSurfaceCreated");
+			surfaceisReady = true;
+		}
+		
+		@Override
+		public void invalidate() {
+			log.d("GLReaderSurface.invalidate");
+			if (!surfaceisReady)
+				return;
+			requestRender();
+		}
+		
 	}
 	
 	public class ReaderSurface extends SurfaceView implements BookView {
@@ -61,7 +184,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			super(context);
 			// TODO Auto-generated constructor stub
 		}
-
+		@Override 
+		public void onPause() {
+			
+		}
+		@Override 
+		public void onResume() {
+			
+		}
 		@Override 
 	    protected void onDraw(Canvas canvas) {
 	    	try {
@@ -430,8 +560,13 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentAutoScrollAnimation != null)
 			stopAutoScroll();
 		saveCurrentPositionBookmarkSync(true);
+		bookView.onPause();
 	}
-	
+
+	public void onAppResume() {
+		bookView.onResume();
+	}
+
 	private boolean startTrackingKey( KeyEvent event ) {
 		if ( event.getRepeatCount()==0 ) {
 			stopTracking();
@@ -5622,40 +5757,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     	}
     }
 
-	public ReaderView(CoolReader activity, Engine engine, Properties props) 
-    {
-        //super(activity);
-		surface = new ReaderSurface(activity);
-		bookView = (BookView)surface;
-		surface.setOnTouchListener(this);
-		surface.setOnKeyListener(this);
-		surface.setOnFocusChangeListener(this);
-        doc = new DocView(engine);
-        doc.setReaderCallback(readerCallback);
-        SurfaceHolder holder = surface.getHolder();
-        holder.addCallback(this);
-        
-		BackgroundThread.ensureGUI();
-        this.mActivity = activity;
-        this.mEngine = engine;
-        surface.setFocusable(true);
-        surface.setFocusableInTouchMode(true);
-        
-        BackgroundThread.instance().postBackground(new Runnable() {
-
-			@Override
-			public void run() {
-				log.d("ReaderView - in background thread: calling createInternal()");
-				doc.create();
-				mInitialized = true;
-			}
-        	
-        });
-
-        post(new CreateViewTask( props ));
-
-    }
-	
 	private void switchFontFace(int direction) {
 		String currentFontFace = mSettings.getProperty(PROP_FONT_FACE, "");
 		String[] mFontFaces = Engine.getFontFaceList();
@@ -6038,4 +6139,45 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
 		});
 	}
+
+	public ReaderView(CoolReader activity, Engine engine, Properties props) 
+    {
+        //super(activity);
+		if (USE_GL) {
+			log.i("Creating OpenGL surface");
+			surface = new GLReaderSurface(activity);
+		} else {
+			log.i("Creating normal SurfaceView");
+			surface = new ReaderSurface(activity);
+		}
+		bookView = (BookView)surface;
+		surface.setOnTouchListener(this);
+		surface.setOnKeyListener(this);
+		surface.setOnFocusChangeListener(this);
+        doc = new DocView(engine);
+        doc.setReaderCallback(readerCallback);
+        SurfaceHolder holder = surface.getHolder();
+        holder.addCallback(this);
+        
+		BackgroundThread.ensureGUI();
+        this.mActivity = activity;
+        this.mEngine = engine;
+        surface.setFocusable(true);
+        surface.setFocusableInTouchMode(true);
+        
+        BackgroundThread.instance().postBackground(new Runnable() {
+
+			@Override
+			public void run() {
+				log.d("ReaderView - in background thread: calling createInternal()");
+				doc.create();
+				mInitialized = true;
+			}
+        	
+        });
+
+        post(new CreateViewTask( props ));
+
+    }
+	
 }
