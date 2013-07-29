@@ -26,7 +26,7 @@
     <uses-permission android:name="com.android.vending.BILLING" />
     <application android:label="@string/app_name"
         android:icon="@drawable/cr3_logo"
-        android:debuggable="false"
+        android:debuggable="true"
         android:allowClearUserData="true"
         android:process="org.coolreader"
         >
