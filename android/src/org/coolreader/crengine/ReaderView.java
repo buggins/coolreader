@@ -46,13 +46,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public static final Logger alog = L.create("ra", Log.WARN);
 
 	private final SurfaceView surface;
+	private final BookView bookView;
 	public SurfaceView getSurface() { return surface; }
 	
 	public interface BookView {
-		
+		void draw();
+		void draw(boolean isPartially);
+		void invalidate();
 	}
 	
-	public class ReaderSurface extends SurfaceView {
+	public class ReaderSurface extends SurfaceView implements BookView {
 
 		public ReaderSurface(Context context) {
 			super(context);
@@ -63,7 +66,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	    protected void onDraw(Canvas canvas) {
 	    	try {
 	    		log.d("onDraw() called");
-	    		ReaderView.this.draw();
+	    		draw();
 	    	} catch ( Exception e ) {
 	    		log.e("exception while drawing", e);
 	    	}
@@ -111,6 +114,79 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			super.onWindowFocusChanged(hasWindowFocus);
 		}
 		
+		protected void doDraw(Canvas canvas)
+		{
+	       	try {
+	    		log.d("doDraw() called");
+	    		if (isProgressActive()) {
+	        		log.d("onDraw() -- drawing progress " + (currentProgressPosition / 100));
+	        		drawPageBackground(canvas);
+	        		doDrawProgress(canvas, currentProgressPosition, currentProgressTitle);
+	    		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
+	        		log.d("onDraw() -- drawing page image");
+
+	        		if (currentAutoScrollAnimation != null) {
+	        			currentAutoScrollAnimation.draw(canvas);
+	        			return;
+	        		}
+	        		
+	        		if (currentAnimation != null) {
+	        			currentAnimation.draw(canvas);
+	        			return;
+	        		}
+
+	        		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+	        		Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
+	        		if ( dontStretchWhileDrawing ) {
+		        		if ( dst.right>src.right )
+		        			dst.right = src.right;
+		        		if ( dst.bottom>src.bottom )
+		        			dst.bottom = src.bottom;
+		        		if ( src.right>dst.right )
+		        			src.right = dst.right;
+		        		if ( src.bottom>dst.bottom )
+		        			src.bottom = dst.bottom;
+		        		if ( centerPageInsteadOfResizing ) {
+			        		int ddx = (canvas.getWidth() - dst.width()) / 2;
+			        		int ddy = (canvas.getHeight() - dst.height()) / 2;
+			        		dst.left += ddx; 
+			        		dst.right += ddx; 
+			        		dst.top += ddy; 
+			        		dst.bottom += ddy; 
+		        		}
+	        		}
+	        		if ( dst.width()!=canvas.getWidth() || dst.height()!=canvas.getHeight() )
+	        			canvas.drawColor(Color.rgb(32, 32, 32));
+	        		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
+	    		} else {
+	        		log.d("onDraw() -- drawing empty screen");
+	        		drawPageBackground(canvas);
+	    		}
+	    	} catch ( Exception e ) {
+	    		log.e("exception while drawing", e);
+	    	}
+		}
+		@Override
+		public void draw()
+		{
+			draw(false);
+		}
+		@Override
+		public void draw(boolean isPartially)
+		{
+			drawCallback(new DrawCanvasCallback() {
+				@Override
+				public void drawTo(Canvas c) {
+					doDraw(c);
+				}
+			}, null, isPartially);
+		}
+
+		@Override
+		public void invalidate() {
+			super.invalidate();
+		}
+
 	}
 	
 	private DocView doc;
@@ -431,7 +507,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					invalidImages = true;
 					BitmapInfo bi = preparePageImage(0);
 					if ( bi!=null ) {
-						draw(true);
+						bookView.draw(true);
 					}
 				}
 			}
@@ -2066,19 +2142,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		
 	}
 
-	public void redraw() {
-		//BackgroundThread.instance().executeBackground(new Runnable() {
-		BackgroundThread.instance().executeGUI(new Runnable() {
-			@Override
-			public void run() {
-				surface.invalidate();
-				invalidImages = true;
-				//preparePageImage(0);
-				draw();
-			}
-		});
-	}
-
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
 		onCommand( cmd, param, null );
@@ -3314,7 +3377,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.e("DrawPageTask.work("+internalDX+","+internalDY+")");
 			bi = preparePageImage(0);
 			if ( bi!=null ) {
-				draw(isPartially);
+				bookView.draw(isPartially);
 			}
 		}
 		@Override
@@ -3445,7 +3508,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		
 		surface.invalidate();
 		//if (!isProgressActive())
-		draw();
+		bookView.draw();
 		//requestResize(width, height);
 		//draw();
 	}
@@ -4616,7 +4679,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentProgressPosition != position || currentProgressTitle != titleResource) {
 			currentProgressPosition = position;
 			currentProgressTitle = titleResource;
-			draw(!first);
+			bookView.draw(!first);
 		}
 	}
 	
@@ -4625,7 +4688,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentProgressTitle != 0) {
 			currentProgressPosition = -1;
 			currentProgressTitle = 0;
-			draw(false);
+			bookView.draw(false);
 		}
 	}
 	
@@ -4682,7 +4745,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	        BackgroundThread.instance().postGUI(new Runnable() {
 				@Override
 				public void run() {
-					draw(false);
+					bookView.draw(false);
 				}
 			});
 	        //init();
@@ -4954,77 +5017,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //		canvas.drawRect(rc2, createSolidPaint(0xFFC0C0A0));
 	}
 	
-	protected void doDraw(Canvas canvas)
-	{
-       	try {
-    		log.d("doDraw() called");
-    		if (isProgressActive()) {
-        		log.d("onDraw() -- drawing progress " + (currentProgressPosition / 100));
-        		drawPageBackground(canvas);
-        		doDrawProgress(canvas, currentProgressPosition, currentProgressTitle);
-    		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
-        		log.d("onDraw() -- drawing page image");
-
-        		if (currentAutoScrollAnimation != null) {
-        			currentAutoScrollAnimation.draw(canvas);
-        			return;
-        		}
-        		
-        		if (currentAnimation != null) {
-        			currentAnimation.draw(canvas);
-        			return;
-        		}
-
-        		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-        		Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
-        		if ( dontStretchWhileDrawing ) {
-	        		if ( dst.right>src.right )
-	        			dst.right = src.right;
-	        		if ( dst.bottom>src.bottom )
-	        			dst.bottom = src.bottom;
-	        		if ( src.right>dst.right )
-	        			src.right = dst.right;
-	        		if ( src.bottom>dst.bottom )
-	        			src.bottom = dst.bottom;
-	        		if ( centerPageInsteadOfResizing ) {
-		        		int ddx = (canvas.getWidth() - dst.width()) / 2;
-		        		int ddy = (canvas.getHeight() - dst.height()) / 2;
-		        		dst.left += ddx; 
-		        		dst.right += ddx; 
-		        		dst.top += ddy; 
-		        		dst.bottom += ddy; 
-	        		}
-        		}
-        		if ( dst.width()!=canvas.getWidth() || dst.height()!=canvas.getHeight() )
-        			canvas.drawColor(Color.rgb(32, 32, 32));
-        		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
-    		} else {
-        		log.d("onDraw() -- drawing empty screen");
-        		drawPageBackground(canvas);
-    		}
-    	} catch ( Exception e ) {
-    		log.e("exception while drawing", e);
-    	}
-	}
-	
-	protected void draw()
-	{
-		drawCallback(new DrawCanvasCallback() {
-			@Override
-			public void drawTo(Canvas c) {
-				doDraw(c);
-			}
-		}, null, false);
-	}
-	protected void draw(boolean isPartially)
-	{
-		drawCallback(new DrawCanvasCallback() {
-			@Override
-			public void drawTo(Canvas c) {
-				doDraw(c);
-			}
-		}, null, isPartially);
-	}
 	
     private int dimmingAlpha = 255; // no dimming
     public void setDimmingAlpha( int alpha ) {
@@ -5037,7 +5029,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     		mEngine.execute(new Task() {
 				@Override
 				public void work() throws Exception {
-		    		draw();
+					bookView.draw();
 				}
     			
     		});
@@ -5634,6 +5626,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     {
         //super(activity);
 		surface = new ReaderSurface(activity);
+		bookView = (BookView)surface;
 		surface.setOnTouchListener(this);
 		surface.setOnKeyListener(this);
 		surface.setOnFocusChangeListener(this);
@@ -6033,4 +6026,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			stopAutoScroll();
 	}
 
+	public void redraw() {
+		//BackgroundThread.instance().executeBackground(new Runnable() {
+		BackgroundThread.instance().executeGUI(new Runnable() {
+			@Override
+			public void run() {
+				surface.invalidate();
+				invalidImages = true;
+				//preparePageImage(0);
+				bookView.draw();
+			}
+		});
+	}
 }
