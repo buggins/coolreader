@@ -3,6 +3,9 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLU;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -80,6 +84,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		@Override
 		public void onPause() {
 			super.onPause();
+			surfaceisReady = false;
 		}
 
 		@Override
@@ -107,7 +112,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			 
 		    gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		    //gl.glTranslatef(offset.x, offset.y, 0);
-		 
+		    //log.i("GL onDrawFrame triangleBuffer size=" + triangleBuffer.limit() + " pos=" + triangleBuffer.position());
 		    gl.glColor4f(1.0f, 0.3f, 0.0f, .5f);    
 		    gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 		    gl.glVertexPointer(3, GL10.GL_SHORT, 0, triangleBuffer);
@@ -120,6 +125,24 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		private PointF surfaceSize;
 		private ShortBuffer triangleBuffer;
 		
+	    public FloatBuffer makeFloatBuffer(float[] arr) {
+	        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*4);
+	        bb.order(ByteOrder.nativeOrder());
+	        FloatBuffer fb = bb.asFloatBuffer();
+	        fb.put(arr);
+	        fb.position(0);
+	        return fb;
+	    }
+	    
+	    public ShortBuffer makeShortBuffer(short[] arr) {
+	        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*2);
+	        bb.order(ByteOrder.nativeOrder());
+	        ShortBuffer fb = bb.asShortBuffer();
+	        fb.put(arr);
+	        fb.position(0);
+	        return fb;
+	    }
+	    
 		@Override
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
 			log.d("GLReaderSurface.onSurfaceChanged " + width + "x" + height);
@@ -128,11 +151,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		    // Create our triangle.
 		    final int div = 1;
 		    short[] triangles = { 
-		        0, 0, 0,
-		        0, (short) (surfaceSize.y / div), 0,
-		        (short) (surfaceSize.x / div), (short) (surfaceSize.y / div), 0,
+		        20, 20, 0,
+		        20, (short) (surfaceSize.y / div - 20), 0,
+		        (short) (surfaceSize.x / div - 20), (short) (surfaceSize.y / div - 20), 0,
 		    };    
-		    triangleBuffer = ShortBuffer.wrap(triangles);
+		    triangleBuffer = makeShortBuffer(triangles);
 		 
 		    // Disable a few things we are not going to use.
 		    gl.glDisable(GL10.GL_LIGHTING);
@@ -148,24 +171,25 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		    // Set our field of view.
 		    gl.glMatrixMode(GL10.GL_PROJECTION);
 		    gl.glLoadIdentity();
-		    gl.glFrustumf(
-		        -surfaceSize.x / 2, surfaceSize.x / 2, 
-		        -surfaceSize.y / 2, surfaceSize.y / 2,
-		        1, 3);
-		 
+//		    gl.glFrustumf(
+//		        -surfaceSize.x / 2, surfaceSize.x / 2, 
+//		        -surfaceSize.y / 2, surfaceSize.y / 2,
+//		        1, 3);
+		    gl.glOrthof(0, surfaceSize.x, 0, surfaceSize.y, -3f, 10f);
+		    //GLU.gluOrtho2D(gl, 0, surfaceSize.x, 0, surfaceSize.y);
 		    // Position the camera at (0, 0, -2) looking down the -z axis.
 		    gl.glMatrixMode(GL10.GL_MODELVIEW);
 		    gl.glLoadIdentity();
 		    // Points rendered to z=0 will be exactly at the frustum's 
 		    // (farZ - nearZ) / 2 so the actual dimension of the triangle should be
 		    // half
-		    gl.glTranslatef(0, 0, -2);
+		    //gl.glTranslatef(0, 0, -2);
+			surfaceisReady = true;
 		}
 
 		@Override
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 			log.d("GLReaderSurface.onSurfaceCreated");
-			surfaceisReady = true;
 		}
 		
 		@Override
