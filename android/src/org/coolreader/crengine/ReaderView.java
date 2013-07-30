@@ -50,6 +50,147 @@ import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 
+class TextureInfo {
+	int dx;
+	int dy;
+	int tdx;
+	int tdy;
+	int textureId;
+	FloatBuffer textureCoords;
+	ShortBuffer indexes;
+	public TextureInfo(int width, int height) {
+    	dx = width;
+    	dy = height;
+    	tdx = nearestPOT(width);
+    	tdy = nearestPOT(height);
+    	calcTextureCoords();
+	}
+	private void calcTextureCoords() {
+		float w = dx / (float)tdx;
+		float h = dy / (float)tdy;
+		float[] buf = {
+			0, 0,
+			w, 0,
+			0, h,
+			w, h
+		};
+		short[] ind = {
+			0, 1, 2, 1, 2, 3	
+		};
+		indexes = GLUtil.makeShortBuffer(ind);
+		textureCoords = GLUtil.makeFloatBuffer(buf);
+	}
+	public static TextureInfo createTestTexture(GL10 gl, int width, int height) {
+    	TextureInfo ti = new TextureInfo(width, height);
+    	int[] ids = new int[1];
+    	ti.textureId = ids[0];
+    	gl.glGenTextures(1, ids, 0);
+    	checkError(gl, "glGenTextures");
+    	gl.glBindTexture(GL10.GL_TEXTURE_2D, ti.textureId);
+    	checkError(gl, "glBindTexture");
+    	// Scale up if the texture if smaller.
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+    	                   GL10.GL_TEXTURE_MAG_FILTER,
+    	                   GL10.GL_NEAREST);
+    	checkError(gl, "glTexParameter");
+    	// scale linearly when image smalled than texture
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+    	                   GL10.GL_TEXTURE_MIN_FILTER,
+    	                   GL10.GL_NEAREST);
+    	checkError(gl, "glTexParameter");
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                   GL10.GL_TEXTURE_WRAP_S,
+                   GL10.GL_CLAMP_TO_EDGE);
+    	checkError(gl, "glTexParameter");
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                   GL10.GL_TEXTURE_WRAP_T,
+                   GL10.GL_CLAMP_TO_EDGE);
+    	checkError(gl, "glTexParameter");
+    	byte[] pixels = new byte[ti.tdx * ti.tdy * 4];
+    	for (int y=0; y<ti.dy; y++) {
+    		int rowp = ti.tdx * y * 4;
+    		for (int x = 0; x<ti.dx; x++) {
+    			int p = rowp + x * 4;
+    			byte cl = (((x / 3 ^ y / 3) & 1) != 0) ? (byte)0xC0 : (byte)0x00;
+    			pixels[p] = cl;
+    			pixels[p + 1] = cl; //(byte)(x & 255);
+    			pixels[p + 2] = cl; //(byte)(y & 255);
+    			pixels[p + 3] = (byte)0xFF;
+    		}
+    	}
+    	ByteBuffer buf = ByteBuffer.allocateDirect(pixels.length);
+    	buf.put(pixels);
+    	buf.position(0);
+    	gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, ti.tdx, ti.tdy, 0, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, buf);
+    	checkError(gl, "glTexImage2D");
+    	return ti;
+    }
+    public int nearestPOT(int n) {
+    	for (int i = 16; i < 4096; i <<= 1)
+    		if (i >= n)
+    			return i;
+    	return 256;
+    }
+    public static void checkError(GL10 gl, String desc) {
+    	int err = gl.glGetError();
+    	if (err != 0) {
+    		Log.e("cr3", "GL error " + err + " : " + desc);
+    	}
+    }
+    public void drawAt(GL10 gl, ShortBuffer pos) {
+    	// Telling OpenGL to enable textures.
+    	gl.glEnable(GL10.GL_TEXTURE_2D);
+    	checkError(gl, "glEnable");
+    	// Tell OpenGL where our texture is located.
+    	gl.glBindTexture(GL10.GL_TEXTURE_2D, textureId);
+    	checkError(gl, "glBindTexture");
+    	// Tell OpenGL to enable the use of UV coordinates.
+    	gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+    	checkError(gl, "glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY)");
+    	// Telling OpenGL where our UV coordinates are.
+    	gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureCoords);
+    	checkError(gl, "gl.glTexCoordPointer");
+    	 
+    	// ... here goes the rendering of the mesh ...
+	    gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+    	checkError(gl, "gl.glEnableClientState(GL10.GL_VERTEX_ARRAY)");
+	    gl.glVertexPointer(3, GL10.GL_SHORT, 0, pos);
+    	checkError(gl, "glVertexPointer(4, GL10.GL_SHORT, 0, pos)");
+	    //gl.glDrawElements(GL10.GL_TRIANGLES, 6, GL10.GL_UNSIGNED_SHORT, indexes);
+	    gl.glDrawElements(GL10.GL_TRIANGLES, 6, GL10.GL_UNSIGNED_SHORT, indexes);
+    	checkError(gl, "gl.glDrawElements(GL10.GL_TRIANGLES, 2, GL10.GL_UNSIGNED_SHORT, indexes)");
+	    //gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);    
+	    gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+    	checkError(gl, "gl.glDisableClientState(GL10.GL_VERTEX_ARRAY)");
+	    
+    	// Disable the use of UV coordinates.
+    	gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+    	checkError(gl, "gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY)");
+    	// Disable the use of textures.
+    	gl.glDisable(GL10.GL_TEXTURE_2D);
+    }
+}
+
+class GLUtil {
+    public static FloatBuffer makeFloatBuffer(float[] arr) {
+        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*4);
+        bb.order(ByteOrder.nativeOrder());
+        FloatBuffer fb = bb.asFloatBuffer();
+        fb.put(arr);
+        fb.position(0);
+        return fb;
+    }
+    
+    public static ShortBuffer makeShortBuffer(short[] arr) {
+        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*2);
+        bb.order(ByteOrder.nativeOrder());
+        ShortBuffer fb = bb.asShortBuffer();
+        fb.put(arr);
+        fb.position(0);
+        return fb;
+    }
+}
+
 public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
@@ -71,7 +212,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	
 	public class GLReaderSurface extends GLSurfaceView implements BookView, GLSurfaceView.Renderer {
 
-		boolean surfaceisReady = false;
 		
 		public GLReaderSurface(Context context) {
 			super(context);
@@ -113,35 +253,25 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		    gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		    //gl.glTranslatef(offset.x, offset.y, 0);
 		    //log.i("GL onDrawFrame triangleBuffer size=" + triangleBuffer.limit() + " pos=" + triangleBuffer.position());
-		    gl.glColor4f(1.0f, 0.3f, 0.0f, .5f);    
-		    gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-		    gl.glVertexPointer(3, GL10.GL_SHORT, 0, triangleBuffer);
-		    gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 3);    
-		    gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		    testTexture.drawAt(gl,  rectBuffer);
+		    
+//		    gl.glColor4f(1.0f, 0.3f, 0.0f, .5f);    
+//		    gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+//		    gl.glVertexPointer(3, GL10.GL_SHORT, 0, triangleBuffer);
+//		    gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 3);    
+//		    gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 		 
 		    gl.glPopMatrix();
 		}
 
+		private boolean surfaceisReady;
 		private PointF surfaceSize;
-		private ShortBuffer triangleBuffer;
+//		private ShortBuffer triangleBuffer;
+		private TextureInfo testTexture;
+		private ShortBuffer rectBuffer;
 		
-	    public FloatBuffer makeFloatBuffer(float[] arr) {
-	        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*4);
-	        bb.order(ByteOrder.nativeOrder());
-	        FloatBuffer fb = bb.asFloatBuffer();
-	        fb.put(arr);
-	        fb.position(0);
-	        return fb;
-	    }
 	    
-	    public ShortBuffer makeShortBuffer(short[] arr) {
-	        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*2);
-	        bb.order(ByteOrder.nativeOrder());
-	        ShortBuffer fb = bb.asShortBuffer();
-	        fb.put(arr);
-	        fb.position(0);
-	        return fb;
-	    }
+
 	    
 		@Override
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -149,13 +279,21 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		    surfaceSize.set(width, height);
 		    
 		    // Create our triangle.
-		    final int div = 1;
-		    short[] triangles = { 
-		        20, 20, 0,
-		        20, (short) (surfaceSize.y / div - 20), 0,
-		        (short) (surfaceSize.x / div - 20), (short) (surfaceSize.y / div - 20), 0,
-		    };    
-		    triangleBuffer = makeShortBuffer(triangles);
+//		    final int div = 1;
+//		    short[] triangles = { 
+//		        20, 20, 0,
+//		        20, (short) (surfaceSize.y / div - 20), 0,
+//		        (short) (surfaceSize.x / div - 20), (short) (surfaceSize.y / div - 20), 0,
+//		    };    
+		    //rectBuffer = GLUtil.makeShortBuffer(triangles);
+		    short d = 0;
+		    short[] buf = { 
+			        d, d, 0,
+			        (short) (surfaceSize.x - d), d, 0,
+			        d, (short) (surfaceSize.y - d), 0,
+			        (short) (surfaceSize.x - d), (short) (surfaceSize.y - d), 0,
+			};    
+			rectBuffer = GLUtil.makeShortBuffer(buf);
 		 
 		    // Disable a few things we are not going to use.
 		    gl.glDisable(GL10.GL_LIGHTING);
@@ -175,7 +313,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //		        -surfaceSize.x / 2, surfaceSize.x / 2, 
 //		        -surfaceSize.y / 2, surfaceSize.y / 2,
 //		        1, 3);
-		    gl.glOrthof(0, surfaceSize.x, 0, surfaceSize.y, -3f, 10f);
+		    gl.glOrthof(0, surfaceSize.x, surfaceSize.y, 0, -3f, 10f);
 		    //GLU.gluOrtho2D(gl, 0, surfaceSize.x, 0, surfaceSize.y);
 		    // Position the camera at (0, 0, -2) looking down the -z axis.
 		    gl.glMatrixMode(GL10.GL_MODELVIEW);
@@ -184,6 +322,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		    // (farZ - nearZ) / 2 so the actual dimension of the triangle should be
 		    // half
 		    //gl.glTranslatef(0, 0, -2);
+		    testTexture = TextureInfo.createTestTexture(gl, width, height);
+		    
 			surfaceisReady = true;
 		}
 
