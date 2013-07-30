@@ -112,7 +112,7 @@ class TextureInfo {
     		for (int x = 0; x<ti.dx; x++) {
     			int p = rowp + x * 4;
     			byte cl = (((x / 3 ^ y / 3) & 1) != 0) ? (byte)0xC0 : (byte)0x00;
-    			pixels[p] = cl;
+    			pixels[p] = (byte)0xC0;
     			pixels[p + 1] = cl; //(byte)(x & 255);
     			pixels[p + 2] = cl; //(byte)(y & 255);
     			pixels[p + 3] = (byte)0xFF;

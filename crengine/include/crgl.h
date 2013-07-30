@@ -9,4 +9,19 @@
     See LICENSE file for details.
 
 */
+#ifndef CRGL_H_INCLUDED
+#define CRGL_H_INCLUDED
 
+#include "LVDocView.h"
+
+typedef struct tag_PageImageTextureInfo {
+	int dx;
+	int dy;
+	int tdx;
+	int tdy;
+	int textureId;
+} PageImageTextureInfo;
+
+bool getPageImageTexture(LVDocView * docview, int width, int height, int bpp, PageImageTextureInfo & ti);
+
+#endif
