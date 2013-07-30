@@ -15,13 +15,7 @@
 #include <GLES/gl.h>
 #include <EGL/egl.h>
 
-struct PageImageTextureInfo {
-	int dx;
-	int dy;
-	int tdx;
-	int tdy;
-	int textureId;
-};
+
 
 int crCreateTextureRGBA(int dx, int dy, lUInt32 * pixels) {
     GLuint textureId = 0;
