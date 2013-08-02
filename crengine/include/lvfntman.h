@@ -375,9 +375,9 @@ protected:
     css_font_family_t _family;
 public:
     /// returns font typeface name
-    virtual lString8 getTypeFace() { return _typeface; }
+    virtual lString8 getTypeFace() const { return _typeface; }
     /// returns font family id
-    virtual css_font_family_t getFontFamily() { return _family; }
+    virtual css_font_family_t getFontFamily() const { return _family; }
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 

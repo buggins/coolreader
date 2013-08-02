@@ -16,7 +16,9 @@
 #include "../include/lvref.h"
 #include "../include/lvtinydom.h"
 #ifdef _LINUX
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
+#endif
 #include <signal.h>
 #include <unistd.h>
 #endif

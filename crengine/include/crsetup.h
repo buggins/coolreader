@@ -66,7 +66,11 @@
 #define USE_FREETYPE                         1
 #ifndef ANDROID
 #ifndef MAC
+#ifndef TIZEN
+#ifndef USE_FONTCONFIG
 #define USE_FONTCONFIG						 1
+#endif
+#endif
 #endif
 #endif
 #define ALLOW_KERNING                        1

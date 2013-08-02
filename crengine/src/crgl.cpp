@@ -12,8 +12,13 @@
 *******************************************************/
 #include "../include/crengine.h"
 #include "../include/crgl.h"
+#ifdef TIZEN
+#include <gl.h>
+#include <egl.h>
+#else
 #include <GLES/gl.h>
 #include <EGL/egl.h>
+#endif
 
 struct PageImageTextureInfo {
 	int dx;
