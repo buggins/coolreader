@@ -257,14 +257,16 @@ public:
 /// Get read buffer - default implementation, with RAM buffer
 LVStreamBufferRef LVStream::GetReadBuffer( lvpos_t pos, lvpos_t size )
 {
-    LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, true );
+    LVStreamBufferRef res;
+    res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, true );
     return res;
 }
 
 /// Get read/write buffer - default implementation, with RAM buffer
 LVStreamBufferRef LVStream::GetWriteBuffer( lvpos_t pos, lvpos_t size )
 {
-    LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, false );
+    LVStreamBufferRef res;
+    res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, false );
     return res;
 }
 

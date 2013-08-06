@@ -21,7 +21,7 @@ void CRFileHist::clear()
 class CRHistoryFileParserCallback : public LVXMLParserCallback
 {
 protected:
-    LVXMLParser * _parser;
+	LVFileFormatParser * _parser;
     CRFileHist *  _hist;
     CRBookmark * _curr_bookmark;
     CRFileHistRecord * _curr_file;
@@ -54,7 +54,7 @@ public:
     }
     virtual lUInt32 getFlags() { return TXTFLG_PRE; }
     /// called on parsing start
-    virtual void OnStart(LVXMLParser * parser)
+    virtual void OnStart(LVFileFormatParser * parser)
     {
         _parser = parser;
         parser->SetSpaceMode(false);
@@ -611,6 +611,7 @@ static lString8 encodeText(lString16 text16) {
             break;
         default:
             buf << ch;
+            break;
         }
     }
     return buf;
@@ -636,6 +637,7 @@ static lString16 decodeText(lString8 text) {
                 break;
             default:
                 buf.append(1, ch);
+                break;
             }
             lastControl = false;
             continue;
