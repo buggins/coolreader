@@ -351,15 +351,15 @@ public:
     virtual void getFaceList( lString16Collection & ) { }
 
     /// fills array with list of available gamma levels
-    void GetGammaLevels(LVArray<double> dst);
+    virtual void GetGammaLevels(LVArray<double> dst);
     /// returns current gamma level index
-    int  GetGammaIndex();
+    virtual int  GetGammaIndex();
     /// sets current gamma level index
-    void SetGammaIndex( int gammaIndex );
+    virtual void SetGammaIndex( int gammaIndex );
     /// returns current gamma level
-    double GetGamma();
+    virtual double GetGamma();
     /// sets current gamma level
-    void SetGamma( double gamma );
+    virtual void SetGamma( double gamma );
 
     /// sets current hinting mode
     virtual void SetHintingMode(hinting_mode_t /*mode*/) { }
