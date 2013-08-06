@@ -17,9 +17,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+inline lUInt32 getHash( lUInt16 n )
+{
+    return (lUInt32)n * 1975317 + 164521;
+}
+
 inline lUInt32 getHash( lUInt32 n )
 {
     return n * 1975317 + 164521;
+}
+
+inline lUInt32 getHash( lUInt64 n )
+{
+    return (lUInt32)(n * 1975317 + (n >> 32) * 31 + 164521);
+}
+
+class LVFont;
+inline lUInt32 getHash(LVFont * n )
+{
+    return getHash((lUInt64)n);
 }
 
 /// Hash table
