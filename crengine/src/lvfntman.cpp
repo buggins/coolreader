@@ -2134,6 +2134,7 @@ public:
         int error = FT_Init_FreeType( &_library );
         if ( error ) {
             // error
+        	CRLog::error("Error while initializing freetype library");
         }
     #if (DEBUG_FONT_MAN==1)
         _log = fopen(DEBUG_FONT_MAN_LOG_FILE, "at");

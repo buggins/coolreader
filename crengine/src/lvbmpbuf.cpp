@@ -440,7 +440,7 @@ void lvdrawbufDrawText( draw_buf_t * buf, int x, int y, const lvfont_handle pfon
       }
       else if (*text != UNICODE_SOFT_HYPHEN_CODE)
       {
-          len = len;
+          //len = len;
       }
       len--;
       text++;
