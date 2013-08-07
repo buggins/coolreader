@@ -673,7 +673,6 @@ inline lUInt32 getHash( const lString8 & s )
     return s.getHash();
 }
 
-
 /// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective replacement of lString8("abc")
 const lString8 & cs8(const char * str);
 /// get reference to atomic constant wide string for string literal e.g. cs16("abc") -- fast and memory effective replacement of lString16("abc")
