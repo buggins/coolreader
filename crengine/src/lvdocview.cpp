@@ -663,6 +663,7 @@ public:
 
 /// draw current page to specified buffer
 void LVDocView::Draw(LVDrawBuf & drawbuf, bool autoResize) {
+	checkPos();
 	int offset = -1;
 	int p = -1;
 	if (isPageMode()) {
