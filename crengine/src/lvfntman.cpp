@@ -1252,6 +1252,33 @@ public:
         return _fontFamily;
     }
 
+    virtual bool kerningEnabled() {
+		#if (ALLOW_KERNING==1)
+        	return _allowKerning && FT_HAS_KERNING( _face );
+		#else
+        	return false;
+		#endif
+    }
+
+    virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) {
+		#if (ALLOW_KERNING==1)
+    		FT_UInt ch_glyph_index1 = getCharIndex( ch1, def_char );
+			FT_UInt ch_glyph_index2 = getCharIndex( ch2, def_char );
+            if (ch_glyph_index1 > 0 && ch_glyph_index2 > 0) {
+                FT_Vector delta;
+                int error = FT_Get_Kerning(
+                		_face,          /* handle to face object */
+                		ch_glyph_index1,          /* left glyph index      */
+                		ch_glyph_index2,         /* right glyph index     */
+                        FT_KERNING_DEFAULT,  /* kerning mode          */
+                        &delta );    /* target vector         */
+                if ( !error )
+                    return delta.x;
+            }
+		#endif
+        return 0;
+    }
+
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
                        const lChar16 * text, int len, 
@@ -3451,8 +3478,6 @@ lUInt16 LVWin32DrawFont::measureText(
     if (_hfont==NULL)
         return 0;
 
-    if (len==5 && text[len]==65021)
-        max_width=max_width;
     lString16 str(text, len);
     assert(str[len]==0);
     //str += L"         ";

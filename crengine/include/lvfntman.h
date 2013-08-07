@@ -248,6 +248,10 @@ public:
     virtual bool operator ! () const = 0;
     virtual void Clear() = 0;
     virtual ~LVFont() { }
+
+    virtual bool kerningEnabled() { return false; }
+    virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) { return 0; }
+
     /// set fallback font for this font
     void setFallbackFont( LVFastRef<LVFont> font ) { }
     /// get fallback font for this font
