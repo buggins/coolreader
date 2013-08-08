@@ -38,6 +38,11 @@ inline lUInt32 getHash(LVFont * n )
     return getHash((lUInt64)n);
 }
 
+inline lUInt32 getHash(void * n )
+{
+    return getHash((lUInt64)n);
+}
+
 /// Hash table
 /**
     Implements hash table map

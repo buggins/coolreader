@@ -38,7 +38,7 @@ enum cr_rotate_angle_t {
 class LVFont;
 
 /// Abstract drawing buffer
-class LVDrawBuf
+class LVDrawBuf : public CacheableObject
 {
 public:
     /// rotates buffer contents by specified angle

@@ -18,6 +18,33 @@
 #include "lvref.h"
 #include "lvstream.h"
 
+class CacheableObject;
+class CacheObjectListener {
+public:
+	virtual void onCachedObjectDeleted(CacheableObject * obj) {}
+	virtual ~CacheObjectListener() {}
+};
+
+/// object deletion listener callback function type
+typedef void(*onObjectDestroyedCallback_t)(CacheObjectListener * pcache, CacheableObject * pobject);
+
+/// to handle object deletion listener
+class CacheableObject {
+	onObjectDestroyedCallback_t _callback;
+	CacheObjectListener * _cache;
+public:
+	CacheableObject() : _callback(NULL), _cache(NULL) {}
+	virtual ~CacheableObject() {
+		if (_callback)
+			_callback(_cache, this);
+	}
+	/// set callback to call on object destroy
+	void setOnObjectDestroyedCallback(onObjectDestroyedCallback_t callback, CacheObjectListener * pcache) {
+		_callback = callback;
+		_cache = pcache;
+	}
+};
+
 class LVImageSource;
 class ldomNode;
 class LVColorDrawBuf;
@@ -32,7 +59,7 @@ public:
     virtual void OnEndDecode( LVImageSource * obj, bool errors ) = 0;
 };
 
-class LVImageSource
+class LVImageSource : public CacheableObject
 {
 public:
     virtual ldomNode * GetSourceNode() = 0;
