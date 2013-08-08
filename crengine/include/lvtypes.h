@@ -84,6 +84,11 @@ public:
     {
         return rc.left == left && rc.right == right && rc.top == top && rc.bottom == bottom;
     }
+    /// returns true if rectangles are not equal
+    bool operator !=( const lvRect & rc ) const
+    {
+        return !(rc.left == left && rc.right == right && rc.top == top && rc.bottom == bottom);
+    }
 
     /// returns rectangle width
     int width() const { return right - left; }
@@ -121,6 +126,15 @@ public:
         if ( rc.isEmpty() || isEmpty() )
             return false;
         if ( rc.left < left || rc.right > right || rc.top < top || rc.bottom > bottom )
+            return false;
+        return true;
+    }
+    /// returns true if specified rectangle has common part with this rectangle
+    bool intersects( lvRect rc ) const
+    {
+        if ( rc.isEmpty() || isEmpty() )
+            return false;
+        if ( rc.right <= left || rc.left >= right || rc.bottom <= top || rc.top >= bottom )
             return false;
         return true;
     }
