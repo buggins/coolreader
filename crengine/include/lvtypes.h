@@ -89,6 +89,25 @@ public:
     {
         return !(rc.left == left && rc.right == right && rc.top == top && rc.bottom == bottom);
     }
+    /// returns non-NULL pointer to trimming values for 4 sides of rc, if clipping is necessary
+    lvRect * clipBy(lvRect & cliprc) {
+    	if (intersects(cliprc) && !cliprc.isRectInside(*this)) {
+    		lvRect * res = new lvRect();
+    		if (cliprc.left > left)
+    			res->left = cliprc.left - left;
+    		if (cliprc.top > top)
+    			res->top = cliprc.top - top;
+    		if (right > cliprc.right)
+    			res->right = right - cliprc.right;
+    		if (bottom > cliprc.bottom)
+    			res->bottom = bottom - cliprc.bottom;
+    		return res;
+    	} else {
+    		return NULL;
+    	}
+    }
+
+
 
     /// returns rectangle width
     int width() const { return right - left; }

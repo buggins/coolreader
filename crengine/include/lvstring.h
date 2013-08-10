@@ -747,6 +747,9 @@ public:
     lString8Collection()
         : chunks(NULL), count(0), size(0)
     { }
+    lString8Collection(lString8Collection & src)
+        : chunks(NULL), count(0), size(0)
+    { addAll(src); }
     lString8Collection(const lString8 & str, const lString8 & delimiter)
         : chunks(NULL), count(0), size(0)
     {
@@ -754,6 +757,10 @@ public:
     }
     void reserve(int space);
     int add(const lString8 & str);
+    void addAll(const lString8Collection & src) {
+    	for (int i = 0; i < src.length(); i++)
+    		add(src[i]);
+    }
     /// split string by delimiters, and add all substrings to collection
     void split(const lString8 & str, const lString8 & delimiter);
     void erase(int offset, int count);
