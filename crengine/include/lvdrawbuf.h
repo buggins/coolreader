@@ -124,6 +124,8 @@ public:
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * palette ) = 0;
     /// draws image
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither=true ) = 0;
+    /// draws part of source image, possible rescaled
+    virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, int srcx, int srcy, int srcwidth, int srcheight, bool dither=true ) { }
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette ) = 0;
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
