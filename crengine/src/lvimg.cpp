@@ -40,8 +40,75 @@ typedef boolean wxjpeg_boolean;
 
 #endif
 
+bool CR9PatchInfo::isValid() {
+	return stretchX1 > 0 && stretchY1 > 0;
+}
 
-LVImageSource::~LVImageSource() {}
+class CRNinePatchDecoder : public LVImageDecoderCallback
+{
+	int _dx;
+	int _dy;
+	CR9PatchInfo * _info;
+public:
+	CRNinePatchDecoder(int dx, int dy, CR9PatchInfo * info) : _dx(dx), _dy(dy), _info(info) {
+		_info->stretchY0 = 0xFFFF;
+		_info->padding.top = 0xFFFF;
+	}
+    virtual ~CRNinePatchDecoder() { }
+    virtual void OnStartDecode( LVImageSource * obj ) {}
+    bool isUsedPixel(lUInt32 pixel) {
+    	return (pixel == 0x000000); // black
+    }
+    void decodeHLine(lUInt32 * line, int & x0, int & x1) {
+    	bool foundUsed = false;
+    	for (int x = 0; x < _dx; x++) {
+    		if (isUsedPixel(line[x])) {
+    			if (!foundUsed) {
+    				x0 = x;
+        			foundUsed = true;
+    			}
+    			x1 = x + 1;
+    		}
+    	}
+    }
+    void decodeVLine(lUInt32 pixel, int y, int & y0, int & y1) {
+    	if (isUsedPixel(pixel)) {
+    		if (y0 == 0xFFFF)
+    			y0 = y;
+    		y1 = y + 1;
+    	}
+    }
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
+    	if (y == 0) {
+    		decodeHLine(data, _info->stretchX0, _info->stretchX1);
+    	} else if (y == _dy - 1) {
+    		decodeHLine(data, _info->padding.left, _info->padding.right);
+    	} else {
+    		decodeVLine(data[0], y, _info->stretchY0, _info->stretchY1);
+    		decodeVLine(data[_dx - 1], y, _info->padding.top, _info->padding.bottom);
+    	}
+    }
+    virtual void OnEndDecode( LVImageSource * obj, bool errors ) {}
+};
+
+CR9PatchInfo * LVImageSource::DetectNinePatch()
+{
+	if (_ninePatch)
+		return _ninePatch;
+	_ninePatch = new CR9PatchInfo();
+	CRNinePatchDecoder decoder(GetWidth(), GetHeight(), _ninePatch);
+	Decode(&decoder);
+	if (!_ninePatch->isValid()) {
+		delete _ninePatch;
+		_ninePatch = NULL;
+	}
+	return _ninePatch;
+}
+
+LVImageSource::~LVImageSource() {
+	if (_ninePatch)
+		delete _ninePatch;
+}
 
 
 class LVNodeImageSource : public LVImageSource

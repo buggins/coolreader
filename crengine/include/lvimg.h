@@ -59,15 +59,30 @@ public:
     virtual void OnEndDecode( LVImageSource * obj, bool errors ) = 0;
 };
 
+struct CR9PatchInfo {
+	int stretchX0;
+	int stretchX1;
+	int stretchY0;
+	int stretchY1;
+	lvRect padding;
+	bool isValid();
+	CR9PatchInfo() : stretchX0(0), stretchX1(0), stretchY0(0), stretchY1(0) {}
+};
+
+
 class LVImageSource : public CacheableObject
 {
+	CR9PatchInfo * _ninePatch;
 public:
+	virtual const CR9PatchInfo * GetNinePatchInfo() { return _ninePatch; }
+	virtual CR9PatchInfo *  DetectNinePatch();
     virtual ldomNode * GetSourceNode() = 0;
     virtual LVStream * GetSourceStream() = 0;
     virtual void   Compact() = 0;
     virtual int    GetWidth() = 0;
     virtual int    GetHeight() = 0;
     virtual bool   Decode( LVImageDecoderCallback * callback ) = 0;
+    LVImageSource() : _ninePatch(NULL) {}
     virtual ~LVImageSource();
 };
 
@@ -80,6 +95,8 @@ enum ImageTransform {
     IMG_TRANSFORM_STRETCH, // stretch image proportionally to fill whole area
     IMG_TRANSFORM_TILE     // tile image
 };
+
+
 
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
 LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform=IMG_TRANSFORM_SPLIT, ImageTransform vTransform=IMG_TRANSFORM_SPLIT, int splitX=-1, int splitY=-1 );
