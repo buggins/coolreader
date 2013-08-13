@@ -466,8 +466,12 @@ public:
                         continue;
                     if ( !alpha )
                         row[ x ] = cl;
-                    else
-                        ApplyAlphaRGB( row[x], cl, alpha );
+                    else {
+                    	if ((row[x] & 0xFF000000) == 0xFF000000)
+                            row[ x ] = cl; // copy as is if buffer pixel is transparent
+                    	else
+                    		ApplyAlphaRGB( row[x], cl, alpha );
+                    }
                 }
             }
             else if ( bpp == 16 )
