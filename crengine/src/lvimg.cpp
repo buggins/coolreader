@@ -64,7 +64,7 @@ static void fixNegative(int n[4]) {
 }
 
 /// caclulate dst and src rectangles (src does not include layout frame)
-void CR9PatchInfo::calcRectangles(const lvRect & dst, const lvRect & src, lvRect dstitems[9], lvRect srcitems[9]) {
+void CR9PatchInfo::calcRectangles(const lvRect & dst, const lvRect & src, lvRect dstitems[9], lvRect srcitems[9]) const {
 	for (int i=0; i<9; i++) {
 		srcitems[i].clear();
 		dstitems[i].clear();
@@ -96,6 +96,20 @@ void CR9PatchInfo::calcRectangles(const lvRect & dst, const lvRect & src, lvRect
 	if (dy[1] > dy[2]) {
 		// shrink vertical
 		fixNegative(dy);
+	}
+	// fill calculated rectangles
+	for (int y = 0; y<3; y++) {
+		for (int x = 0; x < 3; x++) {
+			int i = y * 3 + x;
+			srcitems[i].left = sx[x];
+			srcitems[i].right = sx[x + 1];
+			srcitems[i].top = sy[y];
+			srcitems[i].bottom = sy[y + 1];
+			dstitems[i].left = dx[x];
+			dstitems[i].right = dx[x + 1];
+			dstitems[i].top = dy[y];
+			dstitems[i].bottom = dy[y + 1];
+		}
 	}
 }
 
