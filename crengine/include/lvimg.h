@@ -60,13 +60,12 @@ public:
 };
 
 struct CR9PatchInfo {
-	int stretchX0;
-	int stretchX1;
-	int stretchY0;
-	int stretchY1;
+	lvRect stretch;
 	lvRect padding;
-	bool isValid();
-	CR9PatchInfo() : stretchX0(0), stretchX1(0), stretchY0(0), stretchY1(0) {}
+	/// caclulate dst and src rectangles (src rect includes 1 pixel layout frame)
+	void calcRectangles(const lvRect & dst, const lvRect & src, lvRect dstitems[9], lvRect srcitems[9]);
+	/// for each side, apply max(padding.C, dstPadding.C) to dstPadding
+	void applyPadding(lvRect & dstPadding);
 };
 
 
