@@ -41,7 +41,7 @@ typedef boolean wxjpeg_boolean;
 #endif
 
 
-void CR9PatchInfo::applyPadding(lvRect & dstPadding)
+void CR9PatchInfo::applyPadding(lvRect & dstPadding) const
 {
 	if (dstPadding.left < padding.left)
 		dstPadding.left = padding.left;
@@ -74,20 +74,20 @@ void CR9PatchInfo::calcRectangles(const lvRect & dst, const lvRect & src, lvRect
 
 	int sx[4], sy[4], dx[4], dy[4];
 	sx[0] = src.left;
-	sx[1] = src.left + stretch.left;
-	sx[2] = src.right - stretch.right;
+	sx[1] = src.left + frame.left;
+	sx[2] = src.right - frame.right;
 	sx[3] = src.right;
 	sy[0] = src.top;
-	sy[1] = src.top + stretch.left;
-	sy[2] = src.bottom - stretch.right;
+	sy[1] = src.top + frame.top;
+	sy[2] = src.bottom - frame.bottom;
 	sy[3] = src.bottom;
 	dx[0] = dst.left;
-	dx[1] = dst.left + stretch.left;
-	dx[2] = dst.right - stretch.right;
+	dx[1] = dst.left + frame.left;
+	dx[2] = dst.right - frame.right;
 	dx[3] = dst.right;
 	dy[0] = dst.top;
-	dy[1] = dst.top + stretch.top;
-	dy[2] = dst.bottom - stretch.bottom;
+	dy[1] = dst.top + frame.top;
+	dy[2] = dst.bottom - frame.bottom;
 	dy[3] = dst.bottom;
 	if (dx[1] > dx[2]) {
 		// shrink horizontal
@@ -148,11 +148,11 @@ public:
     }
     virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
     	if (y == 0) {
-    		decodeHLine(data, _info->stretch.left, _info->stretch.right);
+    		decodeHLine(data, _info->frame.left, _info->frame.right);
     	} else if (y == _dy - 1) {
     		decodeHLine(data, _info->padding.left, _info->padding.right);
     	} else {
-    		decodeVLine(data[0], y, _info->stretch.top, _info->stretch.bottom);
+    		decodeVLine(data[0], y, _info->frame.top, _info->frame.bottom);
     		decodeVLine(data[_dx - 1], y, _info->padding.top, _info->padding.bottom);
     	}
     }
@@ -173,9 +173,9 @@ CR9PatchInfo * LVImageSource::DetectNinePatch()
 	_ninePatch = new CR9PatchInfo();
 	CRNinePatchDecoder decoder(GetWidth(), GetHeight(), _ninePatch);
 	Decode(&decoder);
-	if (!(_ninePatch->stretch.left > 0 && _ninePatch->stretch.top > 0
-			&& _ninePatch->stretch.left < _ninePatch->stretch.right
-			&& _ninePatch->stretch.top < _ninePatch->stretch.bottom)) {
+	if (!(_ninePatch->frame.left > 0 && _ninePatch->frame.top > 0
+			&& _ninePatch->frame.left < _ninePatch->frame.right
+			&& _ninePatch->frame.top < _ninePatch->frame.bottom)) {
 		delete _ninePatch;
 		_ninePatch = NULL;
 	}
@@ -188,14 +188,14 @@ CR9PatchInfo * LVImageSource::DetectNinePatch()
 	fixNegative(_ninePatch->padding.top);
 	fixNegative(_ninePatch->padding.right);
 	fixNegative(_ninePatch->padding.bottom);
-	_ninePatch->stretch.left--;
-	_ninePatch->stretch.top--;
-	_ninePatch->stretch.right = GetWidth() - _ninePatch->stretch.right - 1;
-	_ninePatch->stretch.bottom = GetHeight() - _ninePatch->stretch.bottom - 1;
-	fixNegative(_ninePatch->stretch.left);
-	fixNegative(_ninePatch->stretch.top);
-	fixNegative(_ninePatch->stretch.right);
-	fixNegative(_ninePatch->stretch.bottom);
+	_ninePatch->frame.left--;
+	_ninePatch->frame.top--;
+	_ninePatch->frame.right = GetWidth() - _ninePatch->frame.right - 1;
+	_ninePatch->frame.bottom = GetHeight() - _ninePatch->frame.bottom - 1;
+	fixNegative(_ninePatch->frame.left);
+	fixNegative(_ninePatch->frame.top);
+	fixNegative(_ninePatch->frame.right);
+	fixNegative(_ninePatch->frame.bottom);
 	return _ninePatch;
 }
 
