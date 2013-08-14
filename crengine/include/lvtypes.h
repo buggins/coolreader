@@ -180,6 +180,8 @@ public:
 			if (rc.top <= top) {
 				if (rc.bottom <= top) 
 					ret = false;
+
+
 			} else if (rc.top < bottom) {
 				top = rc.top;
 			} else 
