@@ -1357,7 +1357,7 @@ public:
             // text decoration: underline, etc.
             int h = _size > 30 ? 2 : 1;
             lUInt32 cl = buf->GetTextColor();
-            if ( flags & LTEXT_TD_UNDERLINE || flags & LTEXT_TD_BLINK ) {
+            if ( (flags & LTEXT_TD_UNDERLINE) || (flags & LTEXT_TD_BLINK) ) {
                 int liney = y + _baseline + h;
                 buf->FillRect( x0, liney, x, liney+h, cl );
             }

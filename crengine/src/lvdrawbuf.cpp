@@ -117,12 +117,12 @@ static void ApplyAlphaGray( lUInt8 &dst, lUInt8 src, lUInt32 alpha, int bpp )
     }
 }
 
-static const short dither_2bpp_4x4[] = {
-    5, 13,  8,  16,
-    9,  1,  12,  4,
-    7, 15,  6,  14,
-    11, 3,  10,  2,
-};
+//static const short dither_2bpp_4x4[] = {
+//    5, 13,  8,  16,
+//    9,  1,  12,  4,
+//    7, 15,  6,  14,
+//    11, 3,  10,  2,
+//};
 
 static const short dither_2bpp_8x8[] = {
 0, 32, 12, 44, 2, 34, 14, 46, 
@@ -583,7 +583,7 @@ public:
                     lUInt32 cl = data[xmap ? xmap[x] : x];
                     int xx = x + dst_x;
                     lUInt32 alpha = (cl >> 24)&0xFF;
-                    if ( xx<clip.left || xx>=clip.right || alpha&0x80 )
+                    if ( xx<clip.left || xx>=clip.right || (alpha&0x80) )
                         continue;
                     lUInt32 dcl = 0;
                     if ( dither ) {

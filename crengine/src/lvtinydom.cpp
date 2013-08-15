@@ -2025,7 +2025,7 @@ bool ldomDataStorageManager::load()
     }
     lUInt32 n;
     buf >> n;
-    if ( n<0 || n > 10000 )
+    if (n > 10000)
         return false; // invalid
     _recentChunk = NULL;
     _chunks.clear();
@@ -2254,21 +2254,18 @@ void ldomDataStorageManager::compact( int reservedSpace )
         // do compacting
         int sumsize = reservedSpace;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
-            if ( p->_bufsize >= 0 ) {
-                if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
-                    // fits
-                    sumsize += p->_bufsize;
-                } else {
-                    if ( !_cache )
-                        _owner->createCacheFile();
-                    if ( _cache ) {
-                        if ( !p->swapToCache(true) ) {
-                            crFatalError(111, "Swap file writing error!");
-                        }
-                    }
-                }
-            }
-
+			if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
+				// fits
+				sumsize += p->_bufsize;
+			} else {
+				if ( !_cache )
+					_owner->createCacheFile();
+				if ( _cache ) {
+					if ( !p->swapToCache(true) ) {
+						crFatalError(111, "Swap file writing error!");
+					}
+				}
+			}
         }
 
     }

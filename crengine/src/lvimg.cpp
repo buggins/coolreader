@@ -155,6 +155,7 @@ public:
     		decodeVLine(data[0], y, _info->frame.top, _info->frame.bottom);
     		decodeVLine(data[_dx - 1], y, _info->padding.top, _info->padding.bottom);
     	}
+    	return true;
     }
     virtual void OnEndDecode( LVImageSource * obj, bool errors ) {
 
@@ -1177,6 +1178,7 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
             break;
         default:
             res = false;
+            break;
         }
     }
 
