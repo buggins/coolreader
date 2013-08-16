@@ -513,6 +513,10 @@ public:
         : p(ptr)
     {
     }
+    bool isNull() const {
+    	return p == NULL;
+    }
+    bool operator !() const { return p == NULL; }
     inline void clear()
     {
         if (p)
@@ -527,9 +531,17 @@ public:
     {
         return p;
     }
+    inline const T * operator -> () const
+    {
+        return p;
+    }
     inline T & operator [] (int index) { return p[index]; }
-    inline T * get() { return p; }
+    inline T * get() const { return p; }
     inline T & operator * ()
+    {
+        return *p;
+    }
+    inline const T & operator * () const
     {
         return *p;
     }

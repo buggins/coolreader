@@ -57,7 +57,7 @@ public:
         pair *  next; // extend
         keyT    key;
         valueT  value;
-        pair( keyT nkey, valueT nvalue, pair * pnext ) : next(pnext), key(nkey), value(nvalue) { }
+        pair( const keyT & nkey, valueT nvalue, pair * pnext ) : next(pnext), key(nkey), value(nvalue) { }
     };
 
 	class iterator {
@@ -152,7 +152,7 @@ public:
         _size = nsize;
 
     }
-    void set( keyT key, valueT value )
+    void set( const keyT & key, valueT value )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair ** p = &_table[index];
@@ -175,7 +175,7 @@ public:
         *p = new pair( key, value, NULL );
         _count++;
     }
-    void remove( keyT key )
+    void remove( const keyT & key )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair ** p = &_table[index];
@@ -191,7 +191,7 @@ public:
             }
         }
     }
-    valueT get( keyT key )
+    valueT get( const keyT & key )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];
@@ -204,7 +204,7 @@ public:
         }
         return valueT();
     }
-    bool get( keyT key, valueT & res )
+    bool get( const keyT & key, valueT & res )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];
