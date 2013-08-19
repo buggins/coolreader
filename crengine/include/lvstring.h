@@ -359,6 +359,8 @@ public:
     void  reserve(size_type count = 0);
     /// returns true if string is empty
     bool  empty() const { return pchunk->len==0; }
+    /// returns true if string is empty
+    bool  operator !() const { return pchunk->len==0; }
     /// swaps content of two strings
     void  swap( lString8 & str ) { lstring_chunk_t * tmp = pchunk;
                 pchunk=str.pchunk; str.pchunk=tmp; }
