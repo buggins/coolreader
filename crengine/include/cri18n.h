@@ -19,16 +19,19 @@
 
 #include "lvstring.h"
 #include "lvptrvec.h"
+#include "lvhashtable.h"
 
 /// i18n interface
 class CRI18NTranslator
 {
 protected:
 	static CRI18NTranslator * _translator;
+	static CRI18NTranslator * _defTranslator;
 	virtual const char * getText( const char * src ) = 0;
 public:
 	virtual ~CRI18NTranslator() { }
 	static void setTranslator( CRI18NTranslator * translator );
+	static void setDefTranslator( CRI18NTranslator * translator );
     static const char * translate( const char * src );
     static const lString8 translate8( const char * src );
     static const lString16 translate16( const char * src );
@@ -61,6 +64,20 @@ public:
 	bool openMoFile( lString16 fileName );
 	virtual ~CRMoFileTranslator();
 };
+
+class CRIniFileTranslator : public CRI18NTranslator
+{
+public:
+	LVHashTable<lString8, lString8> _map;
+protected:
+	virtual const char * getText( const char * src );
+public:
+	bool open(const char * fileName);
+	CRIniFileTranslator() : _map(3000) {}
+	virtual ~CRIniFileTranslator() {}
+	static CRIniFileTranslator * create(const char * fileName);
+};
+
 
 #ifdef _
 #undef _

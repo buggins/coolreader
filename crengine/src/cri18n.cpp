@@ -16,6 +16,14 @@
 #include "../include/lvstream.h"
 
 CRI18NTranslator * CRI18NTranslator::_translator = NULL;
+CRI18NTranslator * CRI18NTranslator::_defTranslator = NULL;
+
+void CRI18NTranslator::setDefTranslator( CRI18NTranslator * translator )
+{
+	if ( _defTranslator != NULL )
+		delete _defTranslator;
+	_defTranslator = translator;
+}
 
 void CRI18NTranslator::setTranslator( CRI18NTranslator * translator )
 {
@@ -26,8 +34,17 @@ void CRI18NTranslator::setTranslator( CRI18NTranslator * translator )
 
 const char * CRI18NTranslator::translate( const char * src )
 {
-	if ( _translator != NULL )
-		return _translator->getText( src );
+	if (_translator) {
+		const char * s = _translator->getText( src );
+		if (s && s[0])
+			return s;
+		if (_defTranslator) {
+			s = _defTranslator->getText( src );
+			if (s && s[0])
+				return s;
+		}
+		return src; // return untranslated
+	}
 	const char * res = src;
 #if CR_EMULATE_GETTEXT==1
 	res = src;
@@ -186,3 +203,68 @@ bool CRMoFileTranslator::openMoFile( lString16 fileName )
 
 CRMoFileTranslator::CRMoFileTranslator() { }
 CRMoFileTranslator::~CRMoFileTranslator() { }
+
+
+const char * CRIniFileTranslator::getText( const char * src )
+{
+	lString8 key(src);
+	lString8 res;
+	if (_map.get(key, res))
+		return _map.get(key).c_str();
+	return NULL;
+}
+
+CRIniFileTranslator * CRIniFileTranslator::create(const char * fileName)
+{
+	CRIniFileTranslator * res = new CRIniFileTranslator();
+	if (res->open(fileName))
+		return res;
+	CRLog::error("Cannot load language resources from %s", fileName);
+	delete res;
+	return NULL;
+}
+
+bool CRIniFileTranslator::open(const char * fileName)
+{
+	LVStreamRef stream = LVOpenFileStream(fileName, LVOM_READ);
+	if (stream.isNull())
+		return false;
+    if (stream->GetMode()!=LVOM_READ )
+        return false;
+    lvsize_t sz = stream->GetSize() - stream->GetPos();
+    if ( sz<=0 )
+        return false;
+    char * buf = new char[sz + 3];
+    lvsize_t bytesRead = 0;
+    if ( stream->Read( buf, sz, &bytesRead )!=LVERR_OK ) {
+        delete[] buf;
+        return false;
+    }
+    buf[sz] = 0;
+    char * p = buf;
+    if( (unsigned char)buf[0] == 0xEF && (unsigned char)buf[1]==0xBB && (unsigned char)buf[2]==0xBF )
+        p += 3;
+    // read lines from buffer
+    while (*p) {
+        char * elp = p;
+        char * eqpos = NULL;
+        while ( *elp && !(elp[0]=='\r' && elp[1]=='\n')  && !(elp[0]=='\n') ) {
+            if ( *elp == '=' && eqpos==NULL )
+                eqpos = elp;
+            elp++;
+        }
+        if ( eqpos!=NULL && eqpos>p && *elp!='#' ) {
+            lString8 name( p, eqpos-p );
+            lString8 value( eqpos+1, elp - eqpos - 1);
+            _map.set(name, value);
+        }
+        for ( p=elp; *elp && *elp!='\r' && *elp!='\n'; elp++)
+            ;
+        p = elp;
+		while ( *p=='\r' || *p=='\n' )
+			p++;
+    }
+    // cleanup
+    delete[] buf;
+    return _map.length() > 0;
+}
