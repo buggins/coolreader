@@ -54,6 +54,9 @@ public:
             _size = size;
         }
     }
+    void sort(int (comparator)(const T ** item1, const T ** item2 ) ) {
+    	qsort(_list, _count, sizeof(T*), (int (*)(const void *, const void *))comparator);
+    }
     /// sets item by index (extends vector if necessary)
     void set( int index, T * item )
     {
