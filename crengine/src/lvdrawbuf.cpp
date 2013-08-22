@@ -301,7 +301,7 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
         int newrowsize = _dy * 2;
         sz = (_dx * newrowsize);
         lUInt16 * dst = (lUInt16*) malloc( sz );
-    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+    #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         bool cw = angle!=CR_ROTATE_ANGLE_90;
     #else
         bool cw = angle==CR_ROTATE_ANGLE_90;
@@ -323,7 +323,7 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
                 dst[ _dy*ny + nx ] = src[ x ];
             }
         }
-    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+    #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         memcpy( _data, dst, sz );
         free( dst );
     #else
@@ -348,7 +348,7 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
         int newrowsize = _dy * 4;
         sz = (_dx * newrowsize);
         lUInt32 * dst = (lUInt32*) malloc( sz );
-    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+    #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         bool cw = angle!=CR_ROTATE_ANGLE_90;
     #else
         bool cw = angle==CR_ROTATE_ANGLE_90;
@@ -370,7 +370,7 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
                 dst[ _dy*ny + nx ] = src[ x ];
             }
         }
-    #if !defined(__SYMBIAN32__) && defined(_WIN32)
+    #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         memcpy( _data, dst, sz );
         free( dst );
     #else
@@ -1435,7 +1435,7 @@ void LVColorDrawBuf::Resize( int dx, int dy )
     // delete old bitmap
     if ( _dx>0 && _dy>0 && _data )
     {
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         if (_drawbmp)
             DeleteObject( _drawbmp );
         if (_drawdc)
@@ -1457,7 +1457,7 @@ void LVColorDrawBuf::Resize( int dx, int dy )
         _dx = dx;
         _dy = dy;
         _rowsize = dx*(_bpp>>3);
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         BITMAPINFO bmi;
         memset( &bmi, 0, sizeof(bmi) );
         bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
@@ -1605,7 +1605,7 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
     }
 }
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
 /// draws buffer content to DC doing color conversion if necessary
 void LVGrayDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette )
 {
@@ -2200,7 +2200,7 @@ lUInt8 * LVColorDrawBuf::GetScanLine( int y )
 {
     if (!_data || y<0 || y>=_dy)
         return NULL;
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     return _data + _rowsize * (_dy-1-y);
 #else
     return _data + _rowsize * y;
@@ -2222,7 +2222,7 @@ lUInt32 LVColorDrawBuf::GetBlackColor()
 /// constructor
 LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, int bpp)
 :     LVBaseDrawBuf()
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     ,_drawdc(NULL)
     ,_drawbmp(NULL)
 #endif
@@ -2236,7 +2236,7 @@ LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, int bpp)
 /// creates wrapper around external RGBA buffer
 LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, lUInt8 * externalBuffer, int bpp )
 :     LVBaseDrawBuf()
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     ,_drawdc(NULL)
     ,_drawbmp(NULL)
 #endif
@@ -2255,7 +2255,7 @@ LVColorDrawBuf::~LVColorDrawBuf()
 {
 	if ( !_ownData )
 		return;
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     if (_drawdc)
         DeleteDC(_drawdc);
     if (_drawbmp)
