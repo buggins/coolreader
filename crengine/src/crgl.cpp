@@ -12,12 +12,18 @@
 *******************************************************/
 #include "../include/crengine.h"
 #include "../include/crgl.h"
-#ifdef TIZEN
+
+#ifdef _WIN32
+#include <GL/glew.h>
+#include <GL/wglew.h>
+#else
+#if !defined(ANDROID) 
 #include <gl.h>
 #include <egl.h>
 #else
 #include <GLES/gl.h>
 #include <EGL/egl.h>
+#endif
 #endif
 
 

@@ -2418,8 +2418,8 @@ public:
             if ( familyName=="Times" || familyName=="Times New Roman" )
                 fontFamily = css_ff_serif;
 
-            bool boldFlag = !faceName.empty() ? bold : (face->style_flags & FT_STYLE_FLAG_BOLD);
-            bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC);
+            bool boldFlag = !faceName.empty() ? bold : (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
+            bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
             LVFontDef def(
                 name8,
