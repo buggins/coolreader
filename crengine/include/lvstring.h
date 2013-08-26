@@ -300,6 +300,8 @@ public:
     int pos(const lString8 & subStr) const;
     /// find position of substring inside string, -1 if not found
     int pos(const char * subStr) const;
+    /// find position of substring inside string starting from right, -1 if not found
+    int rpos(const char * subStr) const;
     /// find position of substring inside string starting from specified position, -1 if not found
     int pos(const lString8 & subStr, int startPos) const;
     /// find position of substring inside string starting from specified position, -1 if not found

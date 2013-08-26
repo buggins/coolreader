@@ -2053,6 +2053,30 @@ int lString8::pos(const lString8 & subStr) const
     return -1;
 }
 
+/// find position of substring inside string starting from right, -1 if not found
+int lString8::rpos(const char * subStr) const
+{
+    if (!subStr || !subStr[0])
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length())
+        return -1;
+    int dl = length() - l;
+    for (int i=dl; i>=0; i--)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf8[i+j] != subStr[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
 /// find position of substring inside string, -1 if not found
 int lString8::pos(const char * subStr) const
 {
