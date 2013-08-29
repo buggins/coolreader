@@ -6019,7 +6019,57 @@ public:
 	}
 };
 
+struct cover_palette_t {
+    lUInt32 frame;
+    lUInt32 bg;
+    lUInt32 hline;
+    lUInt32 vline;
+    lUInt32 title;
+    lUInt32 authors;
+    lUInt32 series;
+    lUInt32 titleframe;
+};
+
+static cover_palette_t gray_palette[1] = {
+    // frame,    bg,         hline,      vline,      title,      authors,    series      titleframe
+    {0x00C0C0C0, 0x00FFFFFF, 0xC0FFC040, 0xC0F0D060, 0x00000000, 0x00000000, 0x00000000, 0x40FFFFFF},
+};
+
+static cover_palette_t normal_palette[8] = {
+    // frame,    bg,         hline,      vline,      title,      authors,    series
+    {0x00D0D0D0, 0x00E8E0E0, 0xC0CFC040, 0xC0F0E060, 0x00600000, 0x00000040, 0x00404040, 0x80FFFFFF},
+    {0x00D0D0D0, 0x00E0E8E0, 0xC0FFC040, 0xD0F0D080, 0x00800000, 0x00000080, 0x00406040, 0x80FFFFFF},
+    {0x00D0D0D0, 0x00E0E0E8, 0xC0CFC040, 0xC0F0D060, 0x00A00000, 0x00000060, 0x00404060, 0x80FFEFFF},
+    {0x00D0D0D0, 0x00E0E8E8, 0xC0FFC040, 0xD0F0E060, 0x00800000, 0x00000080, 0x00406040, 0x80FFFFFF},
+    {0x00D0D0D0, 0x00E8E8E0, 0xC0EFC040, 0xC0F0D060, 0x00400000, 0x00000050, 0x00404040, 0x80FFEFFF},
+    {0x00D0D0D0, 0x00E8E0E8, 0xC0FFC040, 0xC0F0E040, 0x00000000, 0x00000080, 0x00606040, 0x80FFFFFF},
+    {0x00D0D0D0, 0x00E8E8E8, 0xC0EFC040, 0xD0F0D060, 0x00600000, 0x000000A0, 0x00402040, 0x80FFEFFF},
+    {0x00D0D0D0, 0x00E0F0E0, 0xC0FFC040, 0xC0F0D080, 0x00400000, 0x00000080, 0x00402020, 0x80FFFFFF},
+};
+
+static cover_palette_t series_palette[8] = {
+    // frame,    bg,         hline,      vline,      title,      authors,    series
+    {0x00C0D0C0, 0x20DFD0E0, 0xD0FFC040, 0xD0F0D080, 0x00800000, 0x00000080, 0x00406040, 0x80FFFFFF},
+    {0x00C0C0D0, 0x00D0FFD0, 0xD0EFC040, 0xD0D0F060, 0x00400000, 0x00400040, 0x00404040, 0xA0FFFFFF},
+    {0x00B0C0C0, 0x20D0D0FF, 0xE0FFC040, 0xD0F0D0E0, 0x00600000, 0x00000080, 0x00406040, 0x60FFEFFF},
+    {0x00C0D0C0, 0x20D0FFFF, 0xC0EFC040, 0xD0FFD060, 0x00804000, 0x00000060, 0x00402020, 0x80FFFFFF},
+    {0x00C0C0B0, 0x20FFFFD0, 0xC0EFC040, 0xD0FFD060, 0x00400040, 0x00000060, 0x00406040, 0xB0FFEFFF},
+    {0x00D0C0C0, 0x20DFE0FF, 0xE0FFC040, 0xD0FFD0E0, 0x00804040, 0x00000080, 0x00204040, 0xA0FFFFFF},
+    {0x00D0C0D0, 0x20E0E0F0, 0xC0FFC040, 0xD0FFE0E0, 0x00400000, 0x00400040, 0x00204040, 0xB0FFEFFF},
+    {0x00C0D0C0, 0x20E8E8D8, 0xC0FFC040, 0xD0F0E0E0, 0x00400040, 0x00000080, 0x00402040, 0x80FFFFFF},
+};
+
 void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber) {
+    bool isGray = buf.GetBitsPerPixel() <= 8;
+    cover_palette_t * palette = NULL;
+    if (isGray)
+        palette = &gray_palette[0];
+    else if (!seriesName.empty())
+        palette = &series_palette[getHash(seriesName) & 7];
+    else if (!authors.empty())
+        palette = &normal_palette[getHash(authors) & 7];
+    else
+        palette = &normal_palette[getHash(title) & 7];
     int dx = buf.GetWidth();
     int dy = buf.GetHeight();
     if (!image.isNull() && image->GetWidth() > 0 && image->GetHeight() > 0) {
@@ -6028,23 +6078,22 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
 		return;
 	}
 
-	bool isGray = buf.GetBitsPerPixel() <= 8;
 
     CRLog::trace("drawing default cover page %d x %d", dx, dy);
 	lvRect rc(0, 0, buf.GetWidth(), buf.GetHeight());
-	buf.FillRect(rc, 0xC0C0C0);
+    buf.FillRect(rc, palette->frame);
 	rc.shrink(rc.width() / 40);
-	buf.FillRect(rc, isGray ? 0xFFFFFF : 0xE0E0E0);
+    buf.FillRect(rc, palette->bg);
 
 	lvRect rc2(rc);
 	rc2.top = rc.height() * 8 / 10;
 	rc2.bottom = rc2.top + rc.height() / 15;
-	buf.FillRect(rc2, 0xC0FFC040);
+    buf.FillRect(rc2, palette->hline);
 
 	lvRect rc3(rc);
 	rc3.left += rc.width() / 30;
 	rc3.right = rc3.left + rc.width() / 30;
-	buf.FillRect(rc3, 0xC0F0D060);
+    buf.FillRect(rc3, palette->vline);
 
 
 	LVFontRef fnt = fontMan->GetFont(16, 400, false, css_ff_sans_serif, fontFace, -1); // = fontMan
@@ -6053,9 +6102,9 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
 		rc.left += rc.width() / 10;
 		rc.right -= rc.width() / 20;
 
-		lUInt32 titleColor = isGray ? 0 : 0x800000;
-		lUInt32 authorColor = isGray ? 0 : 0x000080;
-		lUInt32 seriesColor = isGray ? 0 : 0x406040;
+        lUInt32 titleColor = palette->title;
+        lUInt32 authorColor = palette->authors;
+        lUInt32 seriesColor = palette->series;
 
 		lvRect authorRc(rc);
 
@@ -6076,14 +6125,14 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
 			lvRect rc3(titleRc);
 			rc3.top -= rc.height() / 20;
 			rc3.bottom = rc3.top + rc.height() / 40;
-			buf.FillRect(rc3, 0x40FFFFFF);
+            buf.FillRect(rc3, palette->titleframe);
 
 			SimpleTitleFormatter titleFmt(title, fontFace, true, false, titleColor, titleRc.width(), titleRc.height());
 			titleFmt.draw(buf, titleRc, -1, -1);
 
 			rc3.top += titleFmt.getHeight() + rc.height() / 20;
 			rc3.bottom = rc3.top + rc.height() / 40;
-			buf.FillRect(rc3, 0x40FFFFFF);
+            buf.FillRect(rc3, palette->titleframe);
 		}
 
 		if (!seriesName.empty()) {
