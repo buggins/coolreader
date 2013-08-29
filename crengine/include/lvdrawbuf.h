@@ -41,6 +41,10 @@ class LVFont;
 class LVDrawBuf : public CacheableObject
 {
 public:
+    /// GL draw buffer compatibility - requires this call before any drawing
+    virtual void beforeDrawing() {}
+    /// GL draw buffer compatibility - requires this call after any drawing
+    virtual void afterDrawing() {}
     /// rotates buffer contents by specified angle
     virtual void Rotate( cr_rotate_angle_t angle ) = 0;
     /// returns white pixel value
