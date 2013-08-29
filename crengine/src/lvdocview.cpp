@@ -6020,16 +6020,17 @@ public:
 };
 
 void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber) {
-	if (!image.isNull() && image->GetWidth() > 0 && image->GetHeight() > 0) {
-		buf.Draw(image, 0, 0, buf.GetWidth(), buf.GetHeight());
+    int dx = buf.GetWidth();
+    int dy = buf.GetHeight();
+    if (!image.isNull() && image->GetWidth() > 0 && image->GetHeight() > 0) {
+        CRLog::trace("drawing image cover page %d x %d", dx, dy);
+        buf.Draw(image, 0, 0, dx, dy);
 		return;
 	}
 
 	bool isGray = buf.GetBitsPerPixel() <= 8;
 
-	int dx = buf.GetWidth();
-	int dy = buf.GetHeight();
-	CRLog::trace("drawing default cover page %d x %d", dx, dy);
+    CRLog::trace("drawing default cover page %d x %d", dx, dy);
 	lvRect rc(0, 0, buf.GetWidth(), buf.GetHeight());
 	buf.FillRect(rc, 0xC0C0C0);
 	rc.shrink(rc.width() / 40);
@@ -6093,5 +6094,7 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
 			seriesFmt.draw(buf, seriesRc, 1, 0);
 		}
 
-	}
+    } else {
+        CRLog::error("Cannot get font for coverpage");
+    }
 }

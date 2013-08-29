@@ -26,15 +26,17 @@ class LVQueue {
             tail = p->prev;
         else
             p->next->prev = p->prev;
+        p->next = NULL;
+        p->prev = NULL;
         count--;
         return p;
     }
     void moveToHead(Item * item) {
         Item * p = remove(item);
-        if (tail) {
-            tail->next = p;
-            p->prev = tail;
-            tail = p;
+        if (head) {
+            head->prev = p;
+            p->next = head;
+            head = p;
         } else {
             head = tail = p;
         }

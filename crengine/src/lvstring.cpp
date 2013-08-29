@@ -2381,6 +2381,7 @@ int lString8::atoi() const
     while (*s>='0' && *s<='9')
     {
         n = n * 10 + ( (*s)-'0' );
+        s++;
     }
     return (sgn>0)?n:-n;
 }
