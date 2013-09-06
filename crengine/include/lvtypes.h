@@ -148,8 +148,9 @@ public:
             return false;
         return true;
     }
+
     /// returns true if specified rectangle has common part with this rectangle
-    bool intersects( lvRect rc ) const
+    bool intersects(const lvRect & rc) const
     {
         if ( rc.isEmpty() || isEmpty() )
             return false;
@@ -157,6 +158,7 @@ public:
             return false;
         return true;
     }
+
     /// returns true if point is inside this rectangle
     bool isPointInside ( lvPoint & pt ) const 
     {
@@ -164,31 +166,17 @@ public:
     }
 	void clear() { left=right=top=bottom=0; }
 	
-	bool intersect (const lvRect &rc) 
+    bool intersect(const lvRect &rc)
 	{
-		bool ret = true;
-		if (rc.left <= left) {
-			if (rc.right <= left) 
-				ret = false;
-		} else if (rc.left < right) {
-			left = rc.left;
-		} else 
-			ret = false;
-		if (ret) {
-			if (rc.right < right)
-				right = rc.right;
-			if (rc.top <= top) {
-				if (rc.bottom <= top) 
-					ret = false;
-
-
-			} else if (rc.top < bottom) {
-				top = rc.top;
-			} else 
-				ret = false;
-			if (ret && rc.bottom < bottom)
-				bottom = rc.bottom;
-		}
+        if (left < rc.left)
+            left = rc.left;
+        if (right > rc.right)
+            right = rc.right;
+        if (top < rc.top)
+            top = rc.top;
+        if (bottom > rc.bottom)
+            bottom = rc.bottom;
+        bool ret = !isEmpty();
 		if (!ret)
 			clear();
 		return ret;
