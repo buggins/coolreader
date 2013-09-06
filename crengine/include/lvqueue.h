@@ -52,6 +52,10 @@ public:
             queue = v.queue;
             currentItem = v.currentItem;
         }
+        Iterator(const Iterator & v) {
+            queue = v.queue;
+            currentItem = v.currentItem;
+        }
         Iterator(LVQueue * _queue) : queue(_queue), currentItem(NULL) {
         }
         T get() { return currentItem ? currentItem->value : T(); }
