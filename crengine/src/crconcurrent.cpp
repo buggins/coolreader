@@ -5,12 +5,20 @@
 
 CRMutex * _refMutex = NULL;
 CRMutex * _fontMutex = NULL;
+CRMutex * _fontGlyphCacheMutex = NULL;
+CRMutex * _fontLocalGlyphCacheMutex = NULL;
 
 void CRSetupEngineConcurrency() {
+    if (!concurrencyProvider)
+        return;
     if (!_refMutex)
         _refMutex = concurrencyProvider->createMutex();
     if (!_fontMutex)
         _fontMutex = concurrencyProvider->createMutex();
+    if (!_fontGlyphCacheMutex)
+        _fontGlyphCacheMutex = concurrencyProvider->createMutex();
+    if (!_fontLocalGlyphCacheMutex)
+        _fontLocalGlyphCacheMutex = concurrencyProvider->createMutex();
 }
 
 CRConcurrencyProvider * concurrencyProvider = NULL;

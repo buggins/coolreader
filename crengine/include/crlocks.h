@@ -1,6 +1,8 @@
 #ifndef CRLOCKS_H
 #define CRLOCKS_H
 
+#include "lvautoptr.h"
+
 class CRMutex {
 public:
     virtual ~CRMutex() {}
@@ -33,21 +35,34 @@ public:
     virtual void execute(CRRunnable * task) = 0;
 };
 
-class CRMutexGuard {
+typedef LVAutoPtr<CRThread> CRThreadRef;
+typedef LVAutoPtr<CRMonitor> CRMonitorRef;
+typedef LVAutoPtr<CRMutex> CRMutexRef;
+
+class CRGuard {
     CRMutex * mutex;
 public:
-    CRMutexGuard(CRMutex * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
-    CRMutexGuard(CRMonitor * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
-    ~CRMutexGuard() { if (mutex) mutex->release(); }
+    CRGuard(CRMutexRef & _mutex) : mutex(_mutex.get()) { if(mutex) mutex->acquire(); }
+    CRGuard(CRMonitorRef & _mutex) : mutex(_mutex.get()) { if(mutex) mutex->acquire(); }
+    CRGuard(CRMutex * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
+    CRGuard(CRMonitor * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
+    ~CRGuard() { if (mutex) mutex->release(); }
 };
+
 
 extern CRMutex * _refMutex;
 extern CRMutex * _fontMutex;
+extern CRMutex * _fontGlyphCacheMutex;
+extern CRMutex * _fontLocalGlyphCacheMutex;
 
 // use REF_GUARD to acquire LVProtectedRef mutex
-#define REF_GUARD CRMutexGuard _refGuard(_refMutex); CR_UNUSED(_refGuard);
+#define REF_GUARD CRGuard _refGuard(_refMutex); CR_UNUSED(_refGuard);
 // use FONT_GUARD to acquire font operations mutex
-#define FONT_GUARD CRMutexGuard _fontGuard(_fontMutex); CR_UNUSED(_fontGuard);
+#define FONT_GUARD CRGuard _fontGuard(_fontMutex); CR_UNUSED(_fontGuard);
+// use FONT_GLYPH_CACHE_GUARD to acquire font global glyph cache operations mutex
+#define FONT_GLYPH_CACHE_GUARD CRGuard _fontGlyphCacheGuard(_fontGlyphCacheMutex); CR_UNUSED(_fontGlyphCacheGuard);
+// use FONT_LOCAL_GLYPH_CACHE_GUARD to acquire font global glyph cache operations mutex
+#define FONT_LOCAL_GLYPH_CACHE_GUARD CRGuard _fontLocalGlyphCacheGuard(_fontLocalGlyphCacheMutex); CR_UNUSED(_fontLocalGlyphCacheGuard);
 
 /// call to create mutexes for different parts of CoolReader engine
 void CRSetupEngineConcurrency();

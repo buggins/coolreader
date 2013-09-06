@@ -231,6 +231,7 @@ bool LVEmbeddedFontList::deserialize(SerialBuf & buf) {
  */
 int LVFont::getVisualAligmentWidth()
 {
+    FONT_GUARD
     if ( _visual_alignment_width==-1 ) {
         lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', 0 };
         int maxw = 0;
@@ -460,6 +461,7 @@ private:
 public:
     lUInt8 get( lChar16 ch )
     {
+        FONT_GLYPH_CACHE_GUARD
         int inx = (ch>>9) & 0x7f;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr )
@@ -468,6 +470,7 @@ public:
     }
     void put( lChar16 ch, lUInt8 w )
     {
+        FONT_GLYPH_CACHE_GUARD
         int inx = (ch>>9) & 0x7f;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr ) {
@@ -479,6 +482,7 @@ public:
     }
     void clear()
     {
+        FONT_GLYPH_CACHE_GUARD
         for ( int i=0; i<128; i++ ) {
             if ( ptrs[i] )
                 delete [] ptrs[i];
@@ -498,6 +502,7 @@ public:
 class LVFreeTypeFace;
 static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar16 ch, FT_GlyphSlot slot ) // , bool drawMonochrome
 {
+    FONT_LOCAL_GLYPH_CACHE_GUARD
     FT_Bitmap*  bitmap = &slot->bitmap;
     lUInt8 w = (lUInt8)(bitmap->width);
     lUInt8 h = (lUInt8)(bitmap->rows);
@@ -552,6 +557,7 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
 
 void LVFontLocalGlyphCache::clear()
 {
+    FONT_LOCAL_GLYPH_CACHE_GUARD
     while ( head ) {
         LVFontGlyphCacheItem * ptr = head;
         remove( ptr );
@@ -562,6 +568,7 @@ void LVFontLocalGlyphCache::clear()
 
 LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt16 ch )
 {
+    FONT_LOCAL_GLYPH_CACHE_GUARD
     LVFontGlyphCacheItem * ptr = head;
     for ( ; ptr; ptr = ptr->next_local ) {
         if ( ptr->ch == ch ) {
@@ -574,6 +581,7 @@ LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt16 ch )
 
 void LVFontLocalGlyphCache::put( LVFontGlyphCacheItem * item )
 {
+    FONT_LOCAL_GLYPH_CACHE_GUARD
     global_cache->put( item );
     item->next_local = head;
     if ( head )
@@ -586,6 +594,7 @@ void LVFontLocalGlyphCache::put( LVFontGlyphCacheItem * item )
 /// remove from list, but don't delete
 void LVFontLocalGlyphCache::remove( LVFontGlyphCacheItem * item )
 {
+    FONT_LOCAL_GLYPH_CACHE_GUARD
     if ( item==head )
         head = item->next_local;
     if ( item==tail )
@@ -602,6 +611,7 @@ void LVFontLocalGlyphCache::remove( LVFontGlyphCacheItem * item )
 
 void LVFontGlobalGlyphCache::refresh( LVFontGlyphCacheItem * item )
 {
+    FONT_GLYPH_CACHE_GUARD
     if ( tail!=item ) {
         //move to head
         remove( item );
@@ -611,6 +621,7 @@ void LVFontGlobalGlyphCache::refresh( LVFontGlyphCacheItem * item )
 
 void LVFontGlobalGlyphCache::put( LVFontGlyphCacheItem * item )
 {
+    FONT_GLYPH_CACHE_GUARD
     int sz = item->getSize();
     // remove extra items from tail
     while ( sz + size > max_size ) {
@@ -633,6 +644,7 @@ void LVFontGlobalGlyphCache::put( LVFontGlyphCacheItem * item )
 
 void LVFontGlobalGlyphCache::remove( LVFontGlyphCacheItem * item )
 {
+    FONT_GLYPH_CACHE_GUARD
     if ( item==head )
         head = item->next_global;
     if ( item==tail )
@@ -650,6 +662,7 @@ void LVFontGlobalGlyphCache::remove( LVFontGlyphCacheItem * item )
 
 void LVFontGlobalGlyphCache::clear()
 {
+    FONT_GLYPH_CACHE_GUARD
     while ( head ) {
         LVFontGlyphCacheItem * ptr = head;
         remove( ptr );
@@ -756,6 +769,7 @@ public:
 
     virtual int getHyphenWidth()
     {
+        FONT_GUARD
         if ( !_hyphen_width ) {
             _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
         }
@@ -792,6 +806,7 @@ public:
 
     bool loadFromBuffer(LVByteArrayRef buf, int index, int size, css_font_family_t fontFamily, bool monochrome, bool italicize )
     {
+        FONT_GUARD
         _hintingMode = fontMan->GetHintingMode();
         _drawMonochrome = monochrome;
         _fontFamily = fontFamily;
@@ -855,6 +870,7 @@ public:
 
     bool loadFromFile( const char * fname, int index, int size, css_font_family_t fontFamily, bool monochrome, bool italicize )
     {
+        FONT_GUARD
         _hintingMode = fontMan->GetHintingMode();
         _drawMonochrome = monochrome;
         _fontFamily = fontFamily;
@@ -941,7 +957,7 @@ public:
     */
     virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
     {
-        LVLock lock(_mutex);
+        FONT_GUARD
         int glyph_index = getCharIndex( code, 0 );
         if ( glyph_index==0 ) {
             LVFont * fallback = getFallbackFont();
@@ -1009,7 +1025,7 @@ public:
                         bool allow_hyphenation = true
                      )
     {
-        LVLock lock(_mutex);
+        FONT_GUARD
         if ( len <= 0 || _face==NULL )
             return 0;
         int error;
@@ -1118,7 +1134,7 @@ public:
                         const lChar16 * text, int len
         )
     {
-        LVLock lock(_mutex);
+        FONT_GUARD
         static lUInt16 widths[MAX_LINE_CHARS+1];
         static lUInt8 flags[MAX_LINE_CHARS+1];
         if ( len>MAX_LINE_CHARS )
@@ -1151,6 +1167,7 @@ public:
         \return glyph pointer if glyph was found, NULL otherwise
     */
     virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+        FONT_GUARD
         FT_UInt ch_glyph_index = getCharIndex( ch, 0 );
         if ( ch_glyph_index==0 ) {
             LVFont * fallback = getFallbackFont();
@@ -1284,7 +1301,7 @@ public:
                        const lChar16 * text, int len, 
                        lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
     {
-        LVLock lock(_mutex);
+        FONT_GUARD
         if ( len <= 0 || _face==NULL )
             return;
         if ( letter_spacing<0 || letter_spacing>50 )
@@ -1435,6 +1452,7 @@ public:
 
     /// hyphen width
     virtual int getHyphenWidth() {
+        FONT_GUARD
         if ( _hyphWidth<0 )
             _hyphWidth = getCharWidth( getHyphChar() );
         return _hyphWidth;
