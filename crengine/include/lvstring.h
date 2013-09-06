@@ -761,6 +761,7 @@ public:
     }
     void reserve(int space);
     int add(const lString8 & str);
+    int add(const char * str) { return add(lString8(str)); }
     void addAll(const lString8Collection & src) {
     	for (int i = 0; i < src.length(); i++)
     		add(src[i]);

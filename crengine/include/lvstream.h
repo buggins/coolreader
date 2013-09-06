@@ -842,12 +842,18 @@ lString16 LVExtractFilename( lString16 pathName );
 lString16 LVExtractFilenameWithoutExtension( lString16 pathName );
 /// appends path delimiter character to end of path, if absent
 void LVAppendPathDelimiter( lString16 & pathName );
+/// appends path delimiter character to end of path, if absent
+void LVAppendPathDelimiter( lString8 & pathName );
 /// replaces any found / or \\ separator with specified one
 void LVReplacePathSeparator( lString16 & pathName, lChar16 separator );
 /// removes path delimiter character from end of path, if exists
 void LVRemovePathDelimiter( lString16 & pathName );
+/// removes path delimiter character from end of path, if exists
+void LVRemovePathDelimiter( lString8 & pathName );
 /// returns path delimiter character
 lChar16 LVDetectPathDelimiter( lString16 pathName );
+/// returns path delimiter character
+char LVDetectPathDelimiter( lString8 pathName );
 /// returns true if absolute path is specified
 bool LVIsAbsolutePath( lString16 pathName );
 /// returns full path to file identified by pathName, with base directory == basePath

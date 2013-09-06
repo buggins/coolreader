@@ -3560,6 +3560,16 @@ void LVAppendPathDelimiter( lString16 & pathName )
         pathName << delim;
 }
 
+/// appends path delimiter character to end of path, if absent
+void LVAppendPathDelimiter( lString8 & pathName )
+{
+    if ( pathName.empty() )
+        return;
+    lChar8 delim = LVDetectPathDelimiter(pathName);
+    if ( pathName[pathName.length()-1]!=delim )
+        pathName << delim;
+}
+
 /// replaces any found / or \\ separator with specified one
 void LVReplacePathSeparator( lString16 & pathName, lChar16 separator )
 {
@@ -3661,6 +3671,18 @@ lChar16 LVDetectPathDelimiter( lString16 pathName )
 #endif
 }
 
+/// returns path delimiter character
+char LVDetectPathDelimiter( lString8 pathName ) {
+    for ( int i=0; i<pathName.length(); i++ )
+        if ( pathName[i]=='/' || pathName[i]=='\\' )
+            return pathName[i];
+#ifdef _LINUX
+        return '/';
+#else
+        return '\\';
+#endif
+}
+
 /// returns full path to file identified by pathName, with base directory == basePath
 lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
 {
@@ -3686,6 +3708,16 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
 
 /// removes path delimiter character from end of path, if exists
 void LVRemovePathDelimiter( lString16 & pathName )
+{
+    int len = pathName.length();
+    if ( len>0 ) {
+        if ( pathName.lastChar() == '/' || pathName.lastChar() == '\\' )
+            pathName.erase( pathName.length()-1, 1 );
+    }
+}
+
+/// removes path delimiter character from end of path, if exists
+void LVRemovePathDelimiter( lString8 & pathName )
 {
     int len = pathName.length();
     if ( len>0 ) {
