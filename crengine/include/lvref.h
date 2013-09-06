@@ -13,7 +13,9 @@
 #ifndef __LVREF_H_INCLUDED__
 #define __LVREF_H_INCLUDED__
 
+#include "lvtypes.h"
 #include "lvmemman.h"
+#include "crlocks.h"
 
 /// Memory manager pool for ref counting
 /**
@@ -32,6 +34,7 @@ public:
     int _refcount;
     void * _obj;
     static ref_count_rec_t null_ref;
+    static ref_count_rec_t protected_null_ref;
 
     ref_count_rec_t( void * obj ) : _refcount(1), _obj(obj) { }
 #if (LDOM_USE_OWN_MEM_MAN==1)
@@ -185,6 +188,165 @@ public:
      */
     bool isNull() const { return (_ptr == NULL); }
 };
+
+/// Fast smart pointer with reference counting and protection by mutex
+/**
+    Stores pointer to object and reference counter.
+    Imitates usual pointer behavior, but deletes object
+    when there are no more references on it.
+    On copy, increases reference counter.
+    On destroy, decreases reference counter; deletes object if counter became 0.
+    T should implement AddRef() and Release() methods.
+    \param T class of stored object
+ */
+template <class T> class LVProtectedFastRef
+{
+private:
+    T * _ptr;
+    inline T * Release()
+    {
+        T * res = NULL;
+        if ( _ptr ) {
+            if ( _ptr->Release()==0 ) {
+                res = _ptr;
+            }
+            _ptr=NULL;
+        }
+        return res;
+    }
+public:
+    /// Default constructor.
+    /** Initializes pointer to NULL */
+    LVProtectedFastRef() : _ptr(NULL) { }
+
+    /// Constructor by object pointer.
+    /** Initializes pointer to given value
+    \param ptr is a pointer to object
+     */
+    explicit LVProtectedFastRef( T * ptr ) {
+        REF_GUARD
+        _ptr = ptr;
+        if ( _ptr )
+            _ptr->AddRef();
+    }
+
+    /// Copy constructor.
+    /** Creates copy of object pointer. Increments reference counter instead of real copy.
+    \param ref is reference to copy
+     */
+    LVProtectedFastRef( const LVProtectedFastRef & ref )
+    {
+        REF_GUARD
+        _ptr = ref._ptr;
+        if ( _ptr )
+            _ptr->AddRef();
+    }
+
+    /// Destructor.
+    /** Decrements reference counter; deletes object if counter became 0. */
+    ~LVProtectedFastRef() {
+        T * removed = NULL;
+        {
+            REF_GUARD
+            removed = Release();
+        }
+        if (removed)
+            delete removed;
+    }
+
+    /// Clears pointer.
+    /** Sets object pointer to NULL. */
+    void Clear() {
+        T * removed = NULL;
+        {
+            REF_GUARD
+            removed = Release();
+        }
+        if (removed)
+            delete removed;
+    }
+
+    /// Copy operator.
+    /** Duplicates a pointer from specified reference.
+    Increments counter instead of copying of object.
+    \param ref is reference to copy
+     */
+    LVProtectedFastRef & operator = ( const LVProtectedFastRef & ref )
+    {
+        T * removed = NULL;
+        {
+            REF_GUARD
+            if ( _ptr ) {
+                if ( _ptr==ref._ptr )
+                    return *this;
+                removed = Release();
+            }
+            if ( ref._ptr )
+                (_ptr = ref._ptr)->AddRef();
+        }
+        if (removed)
+            delete removed;
+        return *this;
+    }
+
+    /// Object pointer assignment operator.
+    /** Sets object pointer to the specified value.
+    Reference counter is being initialized to 1.
+    \param obj pointer to object
+     */
+    LVProtectedFastRef & operator = ( T * obj )
+    {
+        T * removed = NULL;
+        {
+            REF_GUARD
+            if ( _ptr ) {
+                if ( _ptr==obj )
+                    return *this;
+                removed = Release();
+            }
+            if ( obj )
+                (_ptr = obj)->AddRef();
+        }
+        if (removed)
+            delete removed;
+        return *this;
+    }
+
+    /// Returns stored pointer to object.
+    /** Imitates usual pointer behavior.
+    Usual way to access object fields.
+     */
+    T * operator -> () const { return _ptr; }
+
+    /// Dereferences pointer to object.
+    /** Imitates usual pointer behavior. */
+    T & operator * () const { return *_ptr; }
+
+    /// To check reference counter value.
+    /** It might be useful in some cases.
+    \return reference counter value.
+     */
+    int getRefCount() const { return _ptr->getRefCount(); }
+
+    /// Returns stored pointer to object.
+    /** Usual way to get pointer value.
+    \return stored pointer to object.
+     */
+    T * get() const { return _ptr; }
+
+    /// Checks whether pointer is NULL or not.
+    /** \return true if pointer is NULL.
+    \sa isNull() */
+    bool operator ! () const { return !_ptr; }
+
+    /// Checks whether pointer is NULL or not.
+    /** \return true if pointer is NULL.
+    \sa operator !()
+     */
+    bool isNull() const { return (_ptr == NULL); }
+};
+
+
 
 /// Smart pointer with reference counting
 /**
@@ -497,6 +659,163 @@ public:
     LVRef<T> * ptr() { return _array; }
     /// destructor
     ~LVRefVec() { clear(); }
+};
+
+template <class T>
+class LVProtectedRef {
+private:
+    ref_count_rec_t * _ptr;
+    //========================================
+    ref_count_rec_t * AddRef() const { ++_ptr->_refcount; return _ptr; }
+    //========================================
+    void Release()
+    {
+        if (--_ptr->_refcount == 0)
+        {
+            if ( _ptr->_obj )
+                delete (reinterpret_cast<T*>(_ptr->_obj));
+            delete _ptr;
+        }
+    }
+    //========================================
+public:
+
+    /// creates reference to copy
+    LVProtectedRef & clone()
+    {
+        REF_GUARD
+        if ( isNull() )
+            return LVProtectedRef();
+        return LVProtectedRef( new T( *_ptr ) );
+    }
+
+    /// Default constructor.
+    /** Initializes pointer to NULL */
+    LVProtectedRef() : _ptr(&ref_count_rec_t::protected_null_ref) {
+        REF_GUARD
+        ref_count_rec_t::protected_null_ref._refcount++;
+    }
+
+    /// Constructor by object pointer.
+    /** Initializes pointer to given value
+        \param ptr is a pointer to object
+    */
+    explicit LVProtectedRef( T * ptr ) {
+        REF_GUARD
+        if (ptr)
+        {
+            _ptr = new ref_count_rec_t(ptr);
+        }
+        else
+        {
+            ref_count_rec_t::protected_null_ref._refcount++;
+            _ptr = &ref_count_rec_t::protected_null_ref;
+        }
+    }
+
+    /// Copy constructor.
+    /** Creates copy of object pointer. Increments reference counter instead of real copy.
+        \param ref is reference to copy
+    */
+    LVProtectedRef( const LVProtectedRef & ref ) {
+        REF_GUARD
+        _ptr = ref.AddRef();
+    }
+
+    /// Destructor.
+    /** Decrements reference counter; deletes object if counter became 0. */
+    ~LVProtectedRef() {
+        REF_GUARD
+        Release();
+    }
+
+    /// Clears pointer.
+    /** Sets object pointer to NULL. */
+    void Clear() {
+        REF_GUARD
+        Release();
+        _ptr = &ref_count_rec_t::protected_null_ref;
+        ++_ptr->_refcount;
+    }
+
+    /// Copy operator.
+    /** Duplicates a pointer from specified reference.
+        Increments counter instead of copying of object.
+        \param ref is reference to copy
+    */
+    LVProtectedRef & operator = ( const LVProtectedRef & ref )
+    {
+        REF_GUARD
+        if (!ref._ptr->_obj)
+        {
+            Clear();
+        }
+        else
+        {
+            if (_ptr!=ref._ptr)
+            {
+                Release();
+                _ptr = ref.AddRef();
+            }
+        }
+        return *this;
+    }
+
+    /// Object pointer assignment operator.
+    /** Sets object pointer to the specified value.
+        Reference counter is being initialized to 1.
+        \param obj pointer to object
+    */
+    LVProtectedRef & operator = ( T * obj )
+    {
+        REF_GUARD
+        if ( !obj )
+        {
+            Clear();
+        }
+        else
+        {
+            if (_ptr->_obj!=obj)
+            {
+                Release();
+                _ptr = new ref_count_rec_t(obj);
+            }
+        }
+        return *this;
+    }
+
+    /// Returns stored pointer to object.
+    /** Imitates usual pointer behavior.
+        Usual way to access object fields.
+    */
+    T * operator -> () const { return reinterpret_cast<T*>(_ptr->_obj); }
+
+    /// Dereferences pointer to object.
+    /** Imitates usual pointer behavior. */
+    T & operator * () const { return *(reinterpret_cast<T*>(_ptr->_obj)); }
+
+    /// To check reference counter value.
+    /** It might be useful in some cases.
+        \return reference counter value.
+    */
+    int getRefCount() const { return _ptr->_refcount; }
+
+    /// Returns stored pointer  to object.
+    /** Usual way to get pointer value.
+        \return stored pointer to object.
+    */
+    T * get() const { return reinterpret_cast<T*>(_ptr->_obj); }
+
+    /// Checks whether pointer is NULL or not.
+    /** \return true if pointer is NULL.
+        \sa isNull() */
+    bool operator ! () const { return !_ptr->_obj; }
+
+    /// Checks whether pointer is NULL or not.
+    /** \return true if pointer is NULL.
+        \sa operator !()
+    */
+    bool isNull() const { return _ptr->_obj == NULL; }
 };
 
 /// auto pointer

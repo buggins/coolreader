@@ -253,13 +253,12 @@ public:
     virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) { return 0; }
 
     /// set fallback font for this font
-    void setFallbackFont( LVFastRef<LVFont> font ) { }
+    void setFallbackFont( LVProtectedFastRef<LVFont> font ) { }
     /// get fallback font for this font
     LVFont * getFallbackFont() { return NULL; }
 };
 
-typedef LVFastRef<LVFont> LVFontRef;
-
+typedef LVProtectedFastRef<LVFont> LVFontRef;
 
 enum font_antialiasing_t
 {

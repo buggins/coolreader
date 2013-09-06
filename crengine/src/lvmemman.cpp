@@ -88,6 +88,8 @@ void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler )
 }
 
 ref_count_rec_t ref_count_rec_t::null_ref(NULL);
+ref_count_rec_t ref_count_rec_t::protected_null_ref(NULL);
+
 
 #if (LDOM_USE_OWN_MEM_MAN==1)
 ldomMemManStorage * pmsREF = NULL;

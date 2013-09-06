@@ -712,7 +712,7 @@ public:
 
     // fallback font support
     /// set fallback font for this font
-    void setFallbackFont( LVFastRef<LVFont> font ) {
+    void setFallbackFont( LVFontRef font ) {
         _fallbackFont = font;
         _fallbackFontIsSet = !font.isNull();
     }

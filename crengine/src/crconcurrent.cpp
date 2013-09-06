@@ -3,6 +3,16 @@
 #include "lvptrvec.h"
 #include "lvstring.h"
 
+CRMutex * _refMutex = NULL;
+CRMutex * _fontMutex = NULL;
+
+void CRSetupEngineConcurrency() {
+    if (!_refMutex)
+        _refMutex = concurrencyProvider->createMutex();
+    if (!_fontMutex)
+        _fontMutex = concurrencyProvider->createMutex();
+}
+
 CRConcurrencyProvider * concurrencyProvider = NULL;
 
 CRThreadExecutor::CRThreadExecutor() : _stopped(false) {

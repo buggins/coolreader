@@ -393,5 +393,6 @@ public:
     }
 };
 
+#define CR_UNUSED(x) (void)x;
 
 #endif//LVTYPES_H_INCLUDED

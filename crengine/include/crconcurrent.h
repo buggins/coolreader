@@ -1,37 +1,11 @@
 #ifndef CRCONCURRENT_H
 #define CRCONCURRENT_H
 
-#include <lvref.h>
-#include <lvqueue.h>
+#include "crlocks.h"
 
-class CRMutex {
-public:
-    virtual ~CRMutex() {}
-    virtual void acquire() = 0;
-    virtual void release() = 0;
-};
-typedef LVAutoPtr<CRMutex> CRMutexRef;
 
-class CRMonitor : public CRMutex {
-public:
-    virtual void wait() = 0;
-    virtual void notify() = 0;
-    virtual void notifyAll() = 0;
-};
-typedef LVAutoPtr<CRMonitor> CRMonitorRef;
-
-class CRRunnable {
-public:
-    virtual void run() = 0;
-};
-
-class CRThread {
-public:
-    virtual ~CRThread() {}
-    virtual void start() = 0;
-    virtual void join() = 0;
-};
-typedef LVAutoPtr<CRThread> CRThreadRef;
+#include "lvref.h"
+#include "lvqueue.h"
 
 class CRConcurrencyProvider {
 public:
@@ -46,10 +20,19 @@ public:
 
 extern CRConcurrencyProvider * concurrencyProvider;
 
-class CRExecutor {
+
+typedef LVAutoPtr<CRThread> CRThreadRef;
+typedef LVAutoPtr<CRMonitor> CRMonitorRef;
+typedef LVAutoPtr<CRMutex> CRMutexRef;
+
+class CRGuard {
+    CRMutex * mutex;
 public:
-    virtual ~CRExecutor() {}
-    virtual void execute(CRRunnable * task) = 0;
+    CRGuard(CRMutexRef & _mutex) : mutex(_mutex.get()) { if(mutex) mutex->acquire(); }
+    CRGuard(CRMonitorRef & _mutex) : mutex(_mutex.get()) { if(mutex) mutex->acquire(); }
+    CRGuard(CRMutex * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
+    CRGuard(CRMonitor * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
+    ~CRGuard() { if (mutex) mutex->release(); }
 };
 
 class CRThreadExecutor : public CRRunnable, public CRExecutor {
@@ -64,14 +47,5 @@ public:
     virtual void run();
 };
 
-class CRGuard {
-    CRMutex * mutex;
-public:
-    CRGuard(CRMutexRef & _mutex) : mutex(_mutex.get()) { if(mutex) mutex->acquire(); }
-    CRGuard(CRMonitorRef & _mutex) : mutex(_mutex.get()) { if(mutex) mutex->acquire(); }
-    CRGuard(CRMutex * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
-    CRGuard(CRMonitor * _mutex) : mutex(_mutex) { if(mutex) mutex->acquire(); }
-    ~CRGuard() { if (mutex) mutex->release(); }
-};
 
 #endif // CRCONCURRENT_H
