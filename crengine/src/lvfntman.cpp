@@ -1828,10 +1828,14 @@ private:
 public:
 
     /// get hash of installed fonts and fallback font
-    virtual lUInt32 GetFontListHash(int documentId) { return _cache.GetFontListHash(documentId) * 75 + _fallbackFontFace.getHash(); }
+    virtual lUInt32 GetFontListHash(int documentId) {
+        FONT_MAN_GUARD
+        return _cache.GetFontListHash(documentId) * 75 + _fallbackFontFace.getHash();
+    }
 
     /// set fallback font
     virtual bool SetFallbackFontFace( lString8 face ) {
+        FONT_MAN_GUARD
         if ( face!=_fallbackFontFace ) {
             _cache.clearFallbackFonts();
             CRLog::trace("Looking for fallback font %s", face.c_str());
@@ -1848,6 +1852,7 @@ public:
 
     /// returns fallback font for specified size
     virtual LVFontRef GetFallbackFont(int size) {
+        FONT_MAN_GUARD
         if ( _fallbackFontFace.empty() )
             return LVFontRef();
         // reduce number of possible distinct sizes for fallback font
@@ -1887,6 +1892,7 @@ public:
         _antialiasMode = mode; 
         gc(); 
         clearGlyphCache();
+        FONT_MAN_GUARD
         LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
         for ( int i=0; i<fonts->length(); i++ ) {
             fonts->get(i)->getFont()->setBitmapMode( isBitmapModeForSize( fonts->get(i)->getFont()->getHeight() ) );
@@ -1897,6 +1903,7 @@ public:
     virtual void SetHintingMode(hinting_mode_t mode) {
         if (_hintingMode == mode)
             return;
+        FONT_MAN_GUARD
         CRLog::debug("Hinting mode is changed: %d", (int)mode);
         _hintingMode = mode;
         gc();
@@ -1915,8 +1922,8 @@ public:
     /// set antialiasing mode
     virtual void setKerning( bool kerning )
     {
-    
-        _allowKerning = kerning; 
+        FONT_MAN_GUARD
+        _allowKerning = kerning;
         gc();
         clearGlyphCache();
         LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
@@ -1927,6 +1934,7 @@ public:
     /// clear glyph cache
     virtual void clearGlyphCache()
     {
+        FONT_MAN_GUARD
         _globalCache.clear();
     }
 
@@ -2162,6 +2170,7 @@ public:
 
     virtual ~LVFreeTypeFontManager() 
     {
+        FONT_MAN_GUARD
         _globalCache.clear();
         _cache.clear();
         if ( _library )
@@ -2176,6 +2185,7 @@ public:
     LVFreeTypeFontManager()
     : _library(NULL), _globalCache(GLYPH_CACHE_SIZE)
     {
+        FONT_MAN_GUARD
         int error = FT_Init_FreeType( &_library );
         if ( error ) {
             // error
@@ -2192,6 +2202,7 @@ public:
 
     virtual void gc() // garbage collector
     {
+        FONT_MAN_GUARD
         _cache.gc();
     }
 
@@ -2207,11 +2218,13 @@ public:
     /// returns available typefaces
     virtual void getFaceList( lString16Collection & list )
     {
+        FONT_MAN_GUARD
         _cache.getFaceList( list );
     }
 
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
+        FONT_MAN_GUARD
     #if (DEBUG_FONT_MAN==1)
         if ( _log ) {
              fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
@@ -2380,6 +2393,7 @@ public:
 
     /// registers document font
     virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString16 name, lString8 faceName, bool bold, bool italic) {
+        FONT_MAN_GUARD
         lString8 name8 = UnicodeToUtf8(name);
         CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, name8.c_str());
         if (_cache.findDocumentFontDuplicate(documentId, name8)) {
@@ -2488,6 +2502,7 @@ public:
 
     virtual bool RegisterFont( lString8 name )
     {
+        FONT_MAN_GUARD
 #ifdef LOAD_TTF_FONTS_ONLY
         if ( name.pos( cs8(".ttf") ) < 0 && name.pos( cs8(".TTF") ) < 0 )
             return false; // load ttf fonts only

@@ -52,6 +52,7 @@ public:
 
 extern CRMutex * _refMutex;
 extern CRMutex * _fontMutex;
+extern CRMutex * _fontManMutex;
 extern CRMutex * _fontGlyphCacheMutex;
 extern CRMutex * _fontLocalGlyphCacheMutex;
 
@@ -59,6 +60,8 @@ extern CRMutex * _fontLocalGlyphCacheMutex;
 #define REF_GUARD CRGuard _refGuard(_refMutex); CR_UNUSED(_refGuard);
 // use FONT_GUARD to acquire font operations mutex
 #define FONT_GUARD CRGuard _fontGuard(_fontMutex); CR_UNUSED(_fontGuard);
+// use FONT_MAN_GUARD to acquire font manager mutex
+#define FONT_MAN_GUARD CRGuard _fontManGuard(_fontManMutex); CR_UNUSED(_fontManGuard);
 // use FONT_GLYPH_CACHE_GUARD to acquire font global glyph cache operations mutex
 #define FONT_GLYPH_CACHE_GUARD CRGuard _fontGlyphCacheGuard(_fontGlyphCacheMutex); CR_UNUSED(_fontGlyphCacheGuard);
 // use FONT_LOCAL_GLYPH_CACHE_GUARD to acquire font global glyph cache operations mutex
