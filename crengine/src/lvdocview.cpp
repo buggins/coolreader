@@ -926,6 +926,7 @@ LVImageSourceRef LVDocView::getCoverPageImage() {
 
 /// draws coverpage to image buffer
 void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
+    CRLog::trace("drawCoverTo");
 	if (rc.width() < 130 || rc.height() < 130)
 		return;
 	int base_font_size = 16;

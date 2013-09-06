@@ -56,7 +56,7 @@ static int	    usAfterIndent = 0;	/* Vertical indent after paragraph in twips */
 
 // Antiword Output handling
 extern "C" {
-#include "../../thirdparty/antiword/antiword.h"
+#include "antiword.h"
 }
 
 static conversion_type	eConversionType = conversion_unknown;
