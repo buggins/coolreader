@@ -957,7 +957,7 @@ public:
     */
     virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
     {
-        FONT_GUARD
+        //FONT_GUARD
         int glyph_index = getCharIndex( code, 0 );
         if ( glyph_index==0 ) {
             LVFont * fallback = getFallbackFont();
@@ -1134,7 +1134,6 @@ public:
                         const lChar16 * text, int len
         )
     {
-        FONT_GUARD
         static lUInt16 widths[MAX_LINE_CHARS+1];
         static lUInt8 flags[MAX_LINE_CHARS+1];
         if ( len>MAX_LINE_CHARS )
