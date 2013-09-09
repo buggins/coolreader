@@ -20,6 +20,7 @@ public:
 class CRRunnable {
 public:
     virtual void run() = 0;
+    virtual ~CRRunnable() {}
 };
 
 class CRThread {
