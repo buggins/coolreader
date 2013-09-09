@@ -325,6 +325,8 @@ public:
 
     /// returns true if string starts with specified substring
     bool startsWith ( const lString8 & substring ) const;
+    /// returns true if string starts with specified substring
+    bool startsWith ( const char * substring ) const;
 
     /// returns last character
     value_type lastChar() { return empty() ? 0 : at(length()-1); }
