@@ -38,6 +38,7 @@
 #include "lvhashtable.h"
 #include "lvimg.h"
 #include "props.h"
+#include "bookformats.h"
 
 #define LXML_NO_DATA       0 ///< to mark data storage record as empty
 #define LXML_ELEMENT_NODE  1 ///< element node
@@ -156,21 +157,6 @@ struct ElementDataStorageItem;
 struct NodeItem;
 class DataBuffer;
 //#endif
-
-/// source document formats
-typedef enum {
-    doc_format_none,
-    doc_format_fb2,
-    doc_format_txt,
-    doc_format_rtf,
-    doc_format_epub,
-    doc_format_html,
-    doc_format_txt_bookmark, // coolreader TXT format bookmark
-    doc_format_chm,
-    doc_format_doc,
-    doc_format_max = doc_format_doc
-    // don't forget update getDocFormatName() when changing this enum
-} doc_format_t;
 
 
 /// DocView Callback interface - track progress, external links, etc.

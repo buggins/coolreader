@@ -748,6 +748,8 @@ public:
         } else if (_format==MOBI ) {
             if ( _records[0].size<sizeof(MobiPreamble) )
                 return false;
+            contentFormat = doc_format_pdb;
+
             MobiPreamble preamble;
             stream->SetPos(_records[0].offset);
             if ( !preamble.read(stream, _mobiExtraDataFlags) )

@@ -475,6 +475,7 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
 void LVDocView::setStyleSheet(lString8 css_text) {
 	LVLock lock(getMutex());
     REQUEST_RENDER("setStyleSheet")
+
     m_stylesheet = css_text;
 }
 
