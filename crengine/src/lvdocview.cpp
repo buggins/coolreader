@@ -1471,6 +1471,7 @@ void LVDocView::getNavigationBarRectangle(int pageIndex, lvRect & navRect) {
 
 void LVDocView::drawNavigationBar(LVDrawBuf * drawbuf, int pageIndex,
 		int percent) {
+    CR_UNUSED2(drawbuf, percent);
 	//LVArray<int> & sbounds = getSectionBounds();
 	lvRect navBar;
 	getNavigationBarRectangle(pageIndex, navBar);
@@ -1888,6 +1889,7 @@ void LVDocView::GetPos(lvRect & rc) {
 
 int LVDocView::getPageHeight(int pageIndex)
 {
+    CR_UNUSED(pageIndex);
 	if (isPageMode() && _page >= 0 && _page < m_pages.length()) 
 		return m_pages[_page]->height;
 	return 0;
@@ -3983,6 +3985,7 @@ void LVDocView::OnCacheFileFormatDetected( doc_format_t fmt )
 
 void LVDocView::insertBookmarkPercentInfo(int start_page, int end_y, int percent)
 {
+    CR_UNUSED3(start_page, end_y, percent);
 #if 0
     for (int j = start_page; j < m_pages.length(); j++) {
         if (m_pages[j]->start > end_y)
@@ -6061,6 +6064,7 @@ static cover_palette_t series_palette[8] = {
 };
 
 void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber) {
+    CR_UNUSED(seriesNumber);
     bool isGray = buf.GetBitsPerPixel() <= 8;
     cover_palette_t * palette = NULL;
     if (isGray)

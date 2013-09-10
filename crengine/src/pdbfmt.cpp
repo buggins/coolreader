@@ -1025,6 +1025,7 @@ public:
         \return lverror_t status: LVERR_OK if success
     */
     virtual lverror_t SetSize( lvsize_t size ) {
+        CR_UNUSED(size);
         return LVERR_NOTIMPL;
     }
 
@@ -1072,6 +1073,7 @@ public:
         \return lverror_t status: LVERR_OK if success
     */
     virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten ) {
+        CR_UNUSED3(buf, count, nBytesWritten);
         return LVERR_NOTIMPL;
     }
 

@@ -21,7 +21,7 @@
 class CacheableObject;
 class CacheObjectListener {
 public:
-	virtual void onCachedObjectDeleted(CacheableObject * obj) {}
+    virtual void onCachedObjectDeleted(CacheableObject * obj) { CR_UNUSED(obj); }
 	virtual ~CacheObjectListener() {}
 };
 

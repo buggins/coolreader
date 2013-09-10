@@ -381,6 +381,17 @@ public:
     }
 };
 
+// MACROS to avoid UNUSED PARAM warning
 #define CR_UNUSED(x) (void)x;
+#define CR_UNUSED2(x,x2) (void)x;(void)x2;
+#define CR_UNUSED3(x,x2,x3) (void)x;(void)x2;(void)x3;
+#define CR_UNUSED4(x,x2,x3,x4) (void)x;(void)x2;(void)x3;(void)x4;
+#define CR_UNUSED5(x,x2,x3,x4,x5) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;
+#define CR_UNUSED6(x,x2,x3,x4,x5,x6) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;
+#define CR_UNUSED7(x,x2,x3,x4,x5,x6,x7) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;
+#define CR_UNUSED8(x,x2,x3,x4,x5,x6,x7,x8) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;
+#define CR_UNUSED9(x,x2,x3,x4,x5,x6,x7,x8,x9) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;(void)x9;
+#define CR_UNUSED10(x,x2,x3,x4,x5,x6,x7,x8,x9,x10) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;(void)x9;(void)x10;
+#define CR_UNUSED11(x,x2,x3,x4,x5,x6,x7,x8,x9,x11) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;(void)x9;(void)x10;(void)x11;
 
 #endif//LVTYPES_H_INCLUDED

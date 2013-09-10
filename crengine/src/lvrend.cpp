@@ -1993,11 +1993,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     enode->initNodeFont();
 }
 
-#define UNUSED(x)
 int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width )
 {
-    UNUSED(x);
-    UNUSED(y);
+    CR_UNUSED2(x, y);
     CCRTable table( node, width, 10 );
     int h = table.renderCells( context );
 

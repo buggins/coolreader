@@ -250,7 +250,7 @@ public:
     virtual ~LVFont() { }
 
     virtual bool kerningEnabled() { return false; }
-    virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) { return 0; }
+    virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) { CR_UNUSED3(ch1,ch2,def_char); return 0; }
 
     /// set fallback font for this font
     void setFallbackFont( LVProtectedFastRef<LVFont> font ) { }

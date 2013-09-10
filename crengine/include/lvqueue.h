@@ -48,10 +48,6 @@ public:
         LVQueue * queue;
         Item * currentItem;
     public:
-        Iterator(Iterator & v) {
-            queue = v.queue;
-            currentItem = v.currentItem;
-        }
         Iterator(const Iterator & v) {
             queue = v.queue;
             currentItem = v.currentItem;
