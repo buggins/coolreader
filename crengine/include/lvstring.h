@@ -884,6 +884,7 @@ template <int BUFSIZE> class lStringBuf16 {
 	lStringBuf16 & operator = (lStringBuf16 & v)
 	{
 		// not available
+		return *this;
 	}
 public:
     lStringBuf16( lString16 & s )
