@@ -88,6 +88,7 @@ const lString8 & cs8(const char * str) {
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
+    return lString8::empty_str;
 }
 
 static const void * const_ptrs_16[CONST_STRING_BUFFER_SIZE] = {NULL};
@@ -116,6 +117,7 @@ const lString16 & cs16(const char * str) {
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
+    return lString16::empty_str;
 }
 
 /// get reference to atomic constant wide string for string literal e.g. cs16(L"abc") -- fast and memory effective
@@ -140,6 +142,7 @@ const lString16 & cs16(const lChar16 * str) {
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
+    return lString16::empty_str;
 }
 
 
