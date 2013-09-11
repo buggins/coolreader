@@ -3,7 +3,7 @@
 //#define CHM_SUPPORT_ENABLED 1
 #if CHM_SUPPORT_ENABLED==1
 #include "../include/chmfmt.h"
-#include "chm_lib.h"
+#include <chm_lib.h>
 
 #define DUMP_CHM_DOC 0
 

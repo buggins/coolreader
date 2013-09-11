@@ -36,6 +36,7 @@ enum cr_rotate_angle_t {
 };
 
 class LVFont;
+class GLDrawBuf; // workaround for no-rtti builds
 
 /// Abstract drawing buffer
 class LVDrawBuf : public CacheableObject
@@ -155,6 +156,7 @@ public:
     virtual lUInt8 * GetScanLine( int y ) = 0;
     /// virtual destructor
     virtual ~LVDrawBuf() { }
+    virtual GLDrawBuf * asGLDrawBuf() { return NULL; }
 };
 
 /// LVDrawBufferBase
