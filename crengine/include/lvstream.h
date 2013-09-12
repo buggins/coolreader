@@ -869,4 +869,18 @@ bool LVFileExists( const lString16 & pathName );
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString16 & pathName );
 
+
+/// factory to handle filesystem access for paths started with ASSET_PATH_PREFIX (@ sign)
+class LVAssetContainerFactory {
+public:
+	virtual LVContainerRef openAssetContainer(lString16 path) = 0;
+	virtual LVStreamRef openAssetStream(lString16 path) = 0;
+	LVAssetContainerFactory() {}
+	~LVAssetContainerFactory() {}
+};
+
+#define ASSET_PATH_PREFIX '@'
+/// set container to handle filesystem access for paths started with ASSET_PATH_PREFIX (@ sign)
+void LVSetAssetContainerFactory(LVAssetContainerFactory * asset);
+
 #endif // __LVSTREAM_H_INCLUDED__

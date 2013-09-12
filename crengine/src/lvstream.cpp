@@ -73,6 +73,16 @@ extern "C" {
 
 #endif
 
+
+static LVAssetContainerFactory * _assetContainerFactory = NULL;
+
+/// set container to handle filesystem access for paths started with ASSET_PATH_PREFIX (@ sign)
+void LVSetAssetContainerFactory(LVAssetContainerFactory * asset) {
+	_assetContainerFactory = asset;
+}
+
+
+
 // LVStorageObject stubs
 const lChar16 * LVStorageObject::GetName()
 {
@@ -1355,6 +1365,12 @@ bool LVSplitArcName( lString16 fullPathName, lString16 & arcPathName, lString16 
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 {
     lString16 fn(pathname);
+    if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory || mode != LVOM_READ)
+    		return LVStreamRef();
+    	lString16 assetPath = fn.substr(1);
+    	return _assetContainerFactory->openAssetStream(assetPath);
+    }
 #if 0
     //defined(_LINUX) || defined(_WIN32)
     if ( mode==LVOM_READ ) {
@@ -3139,6 +3155,13 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in )
 
 LVContainerRef LVOpenDirectory( const wchar_t * path, const wchar_t * mask )
 {
+	lString16 pathname(path);
+    if (pathname.length() > 1 && pathname[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory)
+    		return LVContainerRef();
+    	lString16 assetPath = pathname.substr(1);
+    	return _assetContainerFactory->openAssetContainer(assetPath);
+    }
     LVContainerRef dir(LVDirectoryContainer::OpenDirectory(path, mask));
     return dir;
 }
@@ -3694,9 +3717,9 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
     lString16 dstpath = LVExtractPath( pathName );
     while ( !dstpath.empty() ) {
         lString16 element = LVExtractFirstPathElement( dstpath );
-        if (element == ".")
-            ;
-        else if (element == "..")
+        if (element == ".") {
+            // do nothing
+        } else if (element == "..")
             LVExtractLastPathElement( path );
         else
             path << element << delim;
@@ -3730,6 +3753,13 @@ void LVRemovePathDelimiter( lString8 & pathName )
 /// returns true if specified file exists
 bool LVFileExists( const lString16 & pathName )
 {
+    lString16 fn(pathName);
+    if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory)
+    		return false;
+    	lString16 assetPath = fn.substr(1);
+    	return !_assetContainerFactory->openAssetStream(assetPath).isNull();
+    }
 #ifdef _WIN32
 	LVStreamRef stream = LVOpenFileStream( pathName.c_str(), LVOM_READ );
 	return !stream.isNull();
@@ -3746,7 +3776,13 @@ bool LVFileExists( const lString16 & pathName )
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString16 & pathName )
 {
-	// TODO: optimize
+    lString16 fn(pathName);
+    if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory)
+    		return false;
+    	lString16 assetPath = fn.substr(1);
+    	return !_assetContainerFactory->openAssetContainer(assetPath).isNull();
+    }
     LVContainerRef dir = LVOpenDirectory( pathName.c_str() );
     return !dir.isNull();
 }
@@ -3758,6 +3794,10 @@ bool LVCreateDirectory( lString16 path )
     //LVRemovePathDelimiter(path);
     if ( path.length() <= 1 )
         return false;
+    if (path[0] == ASSET_PATH_PREFIX) {
+    	// cannot create directory in asset
+    	return false;
+    }
     LVContainerRef dir = LVOpenDirectory( path.c_str() );
     if ( dir.isNull() ) {
         CRLog::trace("Directory %s not found", UnicodeToUtf8(path).c_str());
