@@ -876,7 +876,7 @@ public:
 	virtual LVContainerRef openAssetContainer(lString16 path) = 0;
 	virtual LVStreamRef openAssetStream(lString16 path) = 0;
 	LVAssetContainerFactory() {}
-	~LVAssetContainerFactory() {}
+	virtual ~LVAssetContainerFactory() {}
 };
 
 #define ASSET_PATH_PREFIX '@'
