@@ -31,6 +31,7 @@ class LVPtrVector
     int _count;
 	LVPtrVector & operator = (LVPtrVector&) {
 		// no assignment
+		return *this;
 	}
 public:
     /// default constructor
@@ -315,6 +316,7 @@ public:
     {
         _first = v._first;
         _second = v._second;
+        return *this;
     }
     T1 & first() { return _first; }
     const T1 & first() const { return _first; }
