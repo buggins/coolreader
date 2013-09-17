@@ -123,7 +123,9 @@ public:
 	CRNinePatchDecoder(int dx, int dy, CR9PatchInfo * info) : _dx(dx), _dy(dy), _info(info) {
 	}
     virtual ~CRNinePatchDecoder() { }
-    virtual void OnStartDecode( LVImageSource * obj ) {}
+    virtual void OnStartDecode( LVImageSource * obj ) {
+        CR_UNUSED(obj);
+    }
     bool isUsedPixel(lUInt32 pixel) {
     	return (pixel == 0x000000); // black
     }
@@ -147,7 +149,8 @@ public:
     	}
     }
     virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
-    	if (y == 0) {
+        CR_UNUSED(obj);
+        if (y == 0) {
     		decodeHLine(data, _info->frame.left, _info->frame.right);
     	} else if (y == _dy - 1) {
     		decodeHLine(data, _info->padding.left, _info->padding.right);
@@ -158,7 +161,7 @@ public:
     	return true;
     }
     virtual void OnEndDecode( LVImageSource * obj, bool errors ) {
-
+        CR_UNUSED2(obj, errors);
     }
 };
 
@@ -1848,6 +1851,84 @@ LVImageSourceRef LVCreateTileTransform( LVImageSourceRef src, int newWidth, int 
         return LVImageSourceRef();
     return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, IMG_TRANSFORM_TILE, IMG_TRANSFORM_TILE,
                                                      offsetX, offsetY ) );
+}
+
+static inline lUInt32 limit256(int n) {
+    if (n < 0)
+        return n;
+    else if (n > 255)
+        return 255;
+    else
+        return (lUInt32)n;
+}
+
+class LVColorTransformImgSource : public LVImageSource, public LVImageDecoderCallback
+{
+protected:
+    LVImageSourceRef _src;
+    lUInt32 _add;
+    lUInt32 _multiply;
+    LVImageDecoderCallback * _callback;
+public:
+    LVColorTransformImgSource(LVImageSourceRef src, lUInt32 addRGB, lUInt32 multiplyRGB)
+        : _src( src )
+        , _add(addRGB)
+        , _multiply(multiplyRGB)
+    {
+    }
+    virtual void OnStartDecode( LVImageSource * )
+    {
+        _callback->OnStartDecode(this);
+    }
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
+        bool res = false;
+        int dx = _src->GetWidth();
+        // simple add
+        int ar = (((_add >> 16) & 255) - 0x80) * 2;
+        int ag = (((_add >> 8) & 255) - 0x80) * 2;
+        int ab = (((_add >> 0) & 255) - 0x80) * 2;
+        // fixed point * 256
+        int mr = ((_multiply >> 16) & 255) << 3;
+        int mg = ((_multiply >> 8) & 255) << 3;
+        int mb = ((_multiply >> 0) & 255) << 3;
+        for ( int x=0; x<dx; x++ ) {
+            lUInt32 cl = data[x];
+            lUInt32 a = cl & 0xFF000000;
+            if (a != 0xFF000000) {
+                int r = (cl >> 16) & 255;
+                int g = (cl >> 8) & 255;
+                int b = (cl >> 0) & 255;
+                r = ((r + ar) * mr) >> 8;
+                g = ((g + ag) * mg) >> 8;
+                b = ((b + ab) * mb) >> 8;
+                data[x] = a | (limit256(r) << 16) | (limit256(g) << 8) | (limit256(b) << 0);
+            }
+        }
+        _callback->OnLineDecoded(obj, y, data);
+        return res;
+    }
+    virtual void OnEndDecode( LVImageSource *, bool res)
+    {
+        _callback->OnEndDecode(this, res);
+    }
+    virtual ldomNode * GetSourceNode() { return NULL; }
+    virtual LVStream * GetSourceStream() { return NULL; }
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _src->GetWidth(); }
+    virtual int    GetHeight() { return _src->GetHeight(); }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        _callback = callback;
+        return _src->Decode( this );
+    }
+    virtual ~LVColorTransformImgSource()
+    {
+    }
+};
+
+/// creates image source which transforms colors of another image source (add RGB components (c - 0x80) * 2 from addedRGB first, then multiplyed by multiplyRGB fixed point components (0x20 is 1.0f)
+LVImageSourceRef LVCreateColorTransformImageSource(LVImageSourceRef srcImage, lUInt32 addRGB, lUInt32 multiplyRGB) {
+    return LVImageSourceRef(new LVColorTransformImgSource(srcImage, addRGB, multiplyRGB));
 }
 
 class LVUnpackedImgSource : public LVImageSource, public LVImageDecoderCallback
