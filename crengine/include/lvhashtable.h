@@ -67,6 +67,7 @@ public:
 		pair * ptr;
 		iterator & operator = (iterator &) {
 			// no assignment
+			return *this;
 		}
 	public:
 		iterator( const LVHashTable & table )

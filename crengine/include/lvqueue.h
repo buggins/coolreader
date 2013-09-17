@@ -29,6 +29,10 @@ class LVQueue {
         p->next = NULL;
         p->prev = NULL;
         count--;
+        if (count == 0) {
+        	head = tail = NULL;
+        }
+
         return p;
     }
     void moveToHead(Item * item) {
