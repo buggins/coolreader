@@ -7475,6 +7475,7 @@ ldomNode * ldomDocumentFragmentWriter::OnTagOpen( const lChar16 * nsname, const 
                 }
                 stylesheetLinks.clear();
                 lString16 styleText = imports + headStyleText.c_str();
+                parent->OnTagBody();
                 parent->OnText(styleText.c_str(), styleText.length(), 0);
                 parent->OnTagClose(L"", L"stylesheet");
             }
