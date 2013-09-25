@@ -871,6 +871,34 @@ public:
     virtual ~LVDocView();
 };
 
+class SimpleTitleFormatter {
+    lString16 _text;
+    lString16Collection _lines;
+    lString8 _fontFace;
+    bool _bold;
+    bool _italic;
+    lUInt32 _color;
+    LVFontRef _font;
+    int _lineHeight;
+    int _height;
+    int _width;
+    int _maxWidth;
+    int _maxHeight;
+    int _fntSize;
+public:
+    int getHeight() { return _height; }
+    int getWidth() { return _width; }
+    SimpleTitleFormatter(lString16 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight, int fntSize = 0);
+
+    bool measure();
+    bool splitLines(const char * delimiter);
+    bool format(int fontSize);
+    bool findBestSize();
+    void draw(LVDrawBuf & buf, lString16 str, int x, int y, int align);
+    void draw(LVDrawBuf & buf, lvRect rc, int halign, int valign);
+};
+
+
 /// draw book cover, either from image, or generated from title/authors
 void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber);
 

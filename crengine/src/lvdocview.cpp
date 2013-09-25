@@ -5883,146 +5883,133 @@ ldomWordEx * LVPageWordSelector::reducePattern()
     return res;
 }
 
-class SimpleTitleFormatter {
-	lString16 _text;
-	lString16Collection _lines;
-	lString8 _fontFace;
-	bool _bold;
-	bool _italic;
-	lUInt32 _color;
-	LVFontRef _font;
-	int _lineHeight;
-	int _height;
-	int _width;
-	int _maxWidth;
-	int _maxHeight;
-public:
-	int getHeight() { return _height; }
-	int getWidth() { return _width; }
-	SimpleTitleFormatter(lString16 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight) : _text(text), _fontFace(fontFace), _bold(bold), _italic(italic), _color(color), _maxWidth(maxWidth), _maxHeight(maxHeight) {
-		if (_text.length() > 80)
-			_text = _text.substr(0, 80) + "...";
-		if (findBestSize())
-			return;
-		_text = _text.substr(0, 50) + "...";
-		if (findBestSize())
-			return;
-		_text = _text.substr(0, 32) + "...";
-		if (findBestSize())
-			return;
-		_text = _text.substr(0, 16) + "...";
-		findBestSize();
-	}
+SimpleTitleFormatter::SimpleTitleFormatter(lString16 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight, int fntSize) : _text(text), _fontFace(fontFace), _bold(bold), _italic(italic), _color(color), _maxWidth(maxWidth), _maxHeight(maxHeight), _fntSize(fntSize) {
+    if (_text.length() > 80)
+        _text = _text.substr(0, 80) + "...";
+    if (findBestSize())
+        return;
+    _text = _text.substr(0, 50) + "...";
+    if (findBestSize())
+        return;
+    _text = _text.substr(0, 32) + "...";
+    if (findBestSize())
+        return;
+    _text = _text.substr(0, 16) + "...";
+    findBestSize();
+}
 
-	bool measure() {
-		_width = 0;
-		_height = 0;
-		for (int i=_lines.length() - 1; i >= 0; i--) {
-			lString16 line = _lines[i].trim();
-			int w = _font->getTextWidth(line.c_str(), line.length());
-			if (w > _width)
-				_width = w;
-			_height += _lineHeight;
-		}
-		return _width < _maxWidth && _height < _maxHeight;
-	}
-	bool splitLines(const char * delimiter) {
-		lString16 delim16(delimiter);
-		int bestpos = -1;
-		int bestdist = -1;
-		int start = 0;
-		bool skipDelimiter = *delimiter == '|';
-		for (;;) {
-			int p = _text.pos(delim16, start);
-			if (p < 0)
-				break;
-			int dist = _text.length() / 2 - p;
-			if (dist < 0)
-				dist = -dist;
-			if (bestdist == -1 || dist < bestdist) {
-				bestdist = dist;
-				bestpos = p;
-			}
-			start = p + 1;
-		}
-		if (bestpos < 0)
-			return false;
-		_lines.add(_text.substr(0, bestpos + (skipDelimiter ? 0 : delim16.length())).trim());
-		_lines.add(_text.substr(bestpos + delim16.length()).trim());
-		return measure();
-	}
-	bool format(int fontSize) {
-		_font = fontMan->GetFont(fontSize, _bold ? 800 : 400, _italic, css_ff_sans_serif, _fontFace, -1);
-		_lineHeight = _font->getHeight() * 120 / 100;
-		_lines.clear();
-		int singleLineWidth = _font->getTextWidth(_text.c_str(), _text.length());
-		if (singleLineWidth < _maxWidth) {
-			_lines.add(_text);
-			_width = singleLineWidth;
-			_height = _lineHeight;
-			return _width < _maxWidth && _height < _maxHeight;
-		}
-		if (splitLines("|"))
-			return true;
-		if (splitLines(","))
-			return true;
-		if (splitLines(";"))
-			return true;
-		if (splitLines(":"))
-			return true;
-		if (splitLines("-"))
-			return true;
-		if (splitLines(" "))
-			return true;
-		if (splitLines("_"))
-			return true;
-		if (splitLines("."))
-			return true;
-		_lines.clear();
-		int p = _text.length() / 2;
-		_lines.add(_text.substr(0, p));
-		_lines.add(_text.substr(p, _text.length() - p));
-		return false;
-	}
-	bool findBestSize() {
-		int maxSizeW = _maxWidth / 10;
-		int maxSizeH = _maxHeight / 3;
-		int maxSize = maxSizeW < maxSizeH ? maxSizeW : maxSizeH;
-		if (maxSize > 50)
-			maxSize = 50;
-        int minSize = 11;
-		for (int size = maxSize; size >= minSize; ) {
-			if (format(size))
-				return true;
-			if (size > 30)
-				size -= 3;
-			else if (size > 20)
-				size -= 2;
-			else
-				size--;
-		}
-		return false;
-	}
-	void draw(LVDrawBuf & buf, lString16 str, int x, int y, int align) {
-		int w = _font->getTextWidth(str.c_str(), str.length());
-		if (align == 0)
-			x -= w / 2; // center
-		else if (align == 1)
-			x -= w; // right
-		buf.SetTextColor(_color);
-		_font->DrawTextString(&buf, x, y, str.c_str(), str.length(), '?');
-	}
-	void draw(LVDrawBuf & buf, lvRect rc, int halign, int valign) {
-		int y0 = rc.top;
-		if (valign == 0)
-			y0 += (rc.height() - _lines.length() * _lineHeight) / 2;
-		int x0 = halign < 0 ? rc.left : (halign > 0 ? rc.right : (rc.left + rc.right) / 2);
-		for (int i=0; i<_lines.length(); i++) {
-			draw(buf, _lines[i], x0, y0, halign);
-			y0 += _lineHeight;
-		}
-	}
-};
+bool SimpleTitleFormatter::measure() {
+    _width = 0;
+    _height = 0;
+    for (int i=_lines.length() - 1; i >= 0; i--) {
+        lString16 line = _lines[i].trim();
+        int w = _font->getTextWidth(line.c_str(), line.length());
+        if (w > _width)
+            _width = w;
+        _height += _lineHeight;
+    }
+    return _width < _maxWidth && _height < _maxHeight;
+}
+bool SimpleTitleFormatter::splitLines(const char * delimiter) {
+    lString16 delim16(delimiter);
+    int bestpos = -1;
+    int bestdist = -1;
+    int start = 0;
+    bool skipDelimiter = *delimiter == '|';
+    for (;;) {
+        int p = _text.pos(delim16, start);
+        if (p < 0)
+            break;
+        int dist = _text.length() / 2 - p;
+        if (dist < 0)
+            dist = -dist;
+        if (bestdist == -1 || dist < bestdist) {
+            bestdist = dist;
+            bestpos = p;
+        }
+        start = p + 1;
+    }
+    if (bestpos < 0)
+        return false;
+    _lines.add(_text.substr(0, bestpos + (skipDelimiter ? 0 : delim16.length())).trim());
+    _lines.add(_text.substr(bestpos + delim16.length()).trim());
+    return measure();
+}
+bool SimpleTitleFormatter::format(int fontSize) {
+    _font = fontMan->GetFont(fontSize, _bold ? 800 : 400, _italic, css_ff_sans_serif, _fontFace, -1);
+    _lineHeight = _font->getHeight() * 120 / 100;
+    _lines.clear();
+    int singleLineWidth = _font->getTextWidth(_text.c_str(), _text.length());
+    if (singleLineWidth < _maxWidth) {
+        _lines.add(_text);
+        _width = singleLineWidth;
+        _height = _lineHeight;
+        return _width < _maxWidth && _height < _maxHeight;
+    }
+    if (splitLines("|"))
+        return true;
+    if (splitLines(","))
+        return true;
+    if (splitLines(";"))
+        return true;
+    if (splitLines(":"))
+        return true;
+    if (splitLines("-"))
+        return true;
+    if (splitLines(" "))
+        return true;
+    if (splitLines("_"))
+        return true;
+    if (splitLines("."))
+        return true;
+    _lines.clear();
+    int p = _text.length() / 2;
+    _lines.add(_text.substr(0, p));
+    _lines.add(_text.substr(p, _text.length() - p));
+    return false;
+}
+bool SimpleTitleFormatter::findBestSize() {
+    if (_fntSize) {
+        format(_fntSize);
+        return true;
+    }
+    int maxSizeW = _maxWidth / 10;
+    int maxSizeH = _maxHeight / 3;
+    int maxSize = maxSizeW < maxSizeH ? maxSizeW : maxSizeH;
+    if (maxSize > 50)
+        maxSize = 50;
+    int minSize = 11;
+    for (int size = maxSize; size >= minSize; ) {
+        if (format(size))
+            return true;
+        if (size > 30)
+            size -= 3;
+        else if (size > 20)
+            size -= 2;
+        else
+            size--;
+    }
+    return false;
+}
+void SimpleTitleFormatter::draw(LVDrawBuf & buf, lString16 str, int x, int y, int align) {
+    int w = _font->getTextWidth(str.c_str(), str.length());
+    if (align == 0)
+        x -= w / 2; // center
+    else if (align == 1)
+        x -= w; // right
+    buf.SetTextColor(_color);
+    _font->DrawTextString(&buf, x, y, str.c_str(), str.length(), '?');
+}
+void SimpleTitleFormatter::draw(LVDrawBuf & buf, lvRect rc, int halign, int valign) {
+    int y0 = rc.top;
+    if (valign == 0)
+        y0 += (rc.height() - _lines.length() * _lineHeight) / 2;
+    int x0 = halign < 0 ? rc.left : (halign > 0 ? rc.right : (rc.left + rc.right) / 2);
+    for (int i=0; i<_lines.length(); i++) {
+        draw(buf, _lines[i], x0, y0, halign);
+        y0 += _lineHeight;
+    }
+}
 
 struct cover_palette_t {
     lUInt32 frame;
