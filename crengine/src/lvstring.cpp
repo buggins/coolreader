@@ -2457,6 +2457,32 @@ lString8 lString8::itoa( unsigned int n )
 }
 
 // constructs string representation of integer
+lString8 lString8::itoa( lInt64 n )
+{
+    lChar8 buf[32];
+    int i=0;
+    int negative = 0;
+    if (n==0)
+        return cs8("0");
+    else if (n<0)
+    {
+        negative = 1;
+        n = -n;
+    }
+    for ( ; n; n/=10 )
+    {
+        buf[i++] = '0' + (n%10);
+    }
+    lString8 res;
+    res.reserve(i+negative);
+    if (negative)
+        res.append(1, '-');
+    for (int j=i-1; j>=0; j--)
+        res.append(1, buf[j]);
+    return res;
+}
+
+// constructs string representation of integer
 lString16 lString16::itoa( int n )
 {
     return itoa( (lInt64)n );

@@ -401,6 +401,8 @@ public:
     static lString8 itoa( int i );
     /// constructs string representation of unsigned integer
     static lString8 itoa( unsigned int i );
+    // constructs string representation of 64 bit integer
+    static lString8 itoa( lInt64 n );
 
     static const lString8 empty_str;
 
