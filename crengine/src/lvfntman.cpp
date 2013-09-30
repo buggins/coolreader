@@ -48,8 +48,9 @@
 #else
 
 #include <freetype/config/ftheader.h>
-//#include FT_FREETYPE_H
-#include <freetype/freetype.h>
+//#include <ft2build.h>
+#include FT_FREETYPE_H
+//#include <freetype/freetype.h>
 #endif
 
 #if (USE_FONTCONFIG==1)

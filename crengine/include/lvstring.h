@@ -1134,6 +1134,11 @@ protected:
 
 void free_ls_storage();
 
+lUInt64 GetCurrentTimeMillis();
+void CRReinitTimer();
+
+
+
 #ifdef _DEBUG
 #include <stdio.h>
 class DumpFile
@@ -1159,3 +1164,8 @@ public:
 #endif
 
 #endif
+
+
+
+
+

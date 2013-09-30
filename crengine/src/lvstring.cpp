@@ -4961,3 +4961,52 @@ void limitStringSize(lString16 & str, int maxSize) {
     str += "...";
 }
 
+
+#ifdef _WIN32
+static bool __timerInitialized = false;
+static double __timeTicksPerMillis;
+static lUInt64 __timeStart;
+static lUInt64 __timeAbsolute;
+static lUInt64 __startTimeMillis;
+#endif
+
+void CRReinitTimer() {
+#ifdef _WIN32
+    LARGE_INTEGER tps;
+    QueryPerformanceFrequency(&tps);
+    __timeTicksPerMillis = (double)(tps.QuadPart / 1000L);
+    LARGE_INTEGER queryTime;
+    QueryPerformanceCounter(&queryTime);
+    __timeStart = (lUInt64)(queryTime.QuadPart / __timeTicksPerMillis);
+    __timerInitialized = true;
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    __startTimeMillis = (ft.dwLowDateTime | (((lUInt64)ft.dwHighDateTime) << 32)) / 10000;
+#else
+    // do nothing. it's for win32 only
+#endif
+}
+
+
+lUInt64 GetCurrentTimeMillis() {
+#if defined(LINUX) || defined(ANDROID) || defined(_LINUX)
+    timeval ts;
+    gettimeofday(&ts, NULL);
+    return ts.tv_sec * (lUInt64)1000 + ts.tv_usec / 1000;
+#else
+ #ifdef _WIN32
+    if (!__timerInitialized) {
+        CRReinitTimer();
+        return __startTimeMillis;
+    } else {
+        LARGE_INTEGER queryTime;
+        QueryPerformanceCounter(&queryTime);
+        __timeAbsolute = (lUInt64)(queryTime.QuadPart / __timeTicksPerMillis);
+        return __startTimeMillis + (lUInt64)(__timeAbsolute - __timeStart);
+    }
+ #else
+ #error * You should define GetCurrentTimeMillis() *
+ #endif
+#endif
+}
+

@@ -163,7 +163,7 @@ class DataBuffer;
 class LVDocViewCallback {
 public:
     /// on starting file loading
-    virtual void OnLoadFileStart( lString16 filename ) { }
+    virtual void OnLoadFileStart( lString16 filename ) { CR_UNUSED(filename); }
     /// format detection finished
     virtual void OnLoadFileFormatDetected( doc_format_t /*fileFormat*/) { }
     /// file loading is finished successfully - drawCoveTo() may be called there

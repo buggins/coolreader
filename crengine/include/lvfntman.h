@@ -253,7 +253,7 @@ public:
     virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) { CR_UNUSED3(ch1,ch2,def_char); return 0; }
 
     /// set fallback font for this font
-    void setFallbackFont( LVProtectedFastRef<LVFont> font ) { }
+    void setFallbackFont( LVProtectedFastRef<LVFont> font ) { CR_UNUSED(font); }
     /// get fallback font for this font
     LVFont * getFallbackFont() { return NULL; }
 };
@@ -316,7 +316,7 @@ public:
     /// returns most similar font
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId = -1) = 0;
     /// set fallback font face (returns true if specified font is found)
-    virtual bool SetFallbackFontFace( lString8 face ) { return false; }
+    virtual bool SetFallbackFontFace( lString8 face ) { CR_UNUSED(face); return false; }
     /// get fallback font face (returns empty string if no fallback font is set)
     virtual lString8 GetFallbackFontFace() { return lString8::empty_str; }
     /// returns fallback font for specified size
