@@ -117,6 +117,10 @@ LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int max
 LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize, int bpp );
 /// creates image source based on draw buffer
 LVImageSourceRef LVCreateDrawBufImageSource( LVColorDrawBuf * buf, bool own );
+
+#define COLOR_TRANSFORM_BRIGHTNESS_NONE 0x808080
+#define COLOR_TRANSFORM_CONTRAST_NONE 0x404040
+
 /// creates image source which transforms colors of another image source (add RGB components added first, then multiplyed by multiplyRGB fixed point components (0x20 is 1.0f)
 LVImageSourceRef LVCreateColorTransformImageSource(LVImageSourceRef srcImage, lUInt32 addRGB, lUInt32 multiplyRGB);
 
