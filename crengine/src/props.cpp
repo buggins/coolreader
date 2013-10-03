@@ -309,17 +309,9 @@ void CRPropAccessor::setInt( const char * propName, int value )
     setString( propName, lString16::itoa( value ) );
 }
 
-/// get color (#xxxxxx) property by name, returns false if not found
-bool CRPropAccessor::getColor( const char * propName, lUInt32 &result ) const
-{
+bool CRPropAccessor::parseColor(lString16 value, lUInt32 & result) {
     int n = 0;
-    lString16 value;
-    if ( !getString( propName, value ) ) {
-        //CRLog::debug("%s is not found", propName);
-        return false;
-    }
     if ( value.empty() || (value[0]!='#' && (value[0]!='0' || value[1]!='x')) ) {
-//        CRLog::debug("%s = %s", propName, LCSTR(value));
         return false;
     }
     for ( int i=value[0]=='#' ? 1 : 2; i<value.length(); i++ ) {
@@ -334,8 +326,19 @@ bool CRPropAccessor::getColor( const char * propName, lUInt32 &result ) const
             return false;
     }
     result = (lUInt32)n;
-//    CRLog::debug("%s = %s (%08x)", propName, LCSTR(value), n);
     return true;
+}
+
+/// get color (#xxxxxx) property by name, returns false if not found
+bool CRPropAccessor::getColor( const char * propName, lUInt32 &result ) const
+{
+    int n = 0;
+    lString16 value;
+    if ( !getString( propName, value ) ) {
+        //CRLog::debug("%s is not found", propName);
+        return false;
+    }
+    return parseColor(value, result);
 }
 
 

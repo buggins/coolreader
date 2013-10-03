@@ -98,6 +98,8 @@ public:
     /// set lInt64 property by name
     virtual void setInt64( const char * propName, lInt64 value );
 
+
+    static bool parseColor(lString16 value, lUInt32 & result);
     /// get argb color (#xxxxxx) property by name, returns false if not found
     virtual bool getColor( const char * propName, lUInt32 &result ) const;
     /// get argb color (#xxxxxx) property by name, returns default value if not found
