@@ -47,6 +47,8 @@
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
 #define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
+#define PROP_HYPHENATION_DICT_VALUE_NONE "@none"
+#define PROP_HYPHENATION_DICT_VALUE_ALGORITHM "@algorithm"
 #define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
 
 #define PROP_FLOATING_PUNCTUATION    "crengine.style.floating.punctuation.enabled"

@@ -1949,6 +1949,7 @@ public:
         }
         if (_drawbuf)
             delete _drawbuf;
+        _drawbuf = NULL;
         _callback->OnEndDecode(this, res);
     }
     virtual ldomNode * GetSourceNode() { return NULL; }
