@@ -1855,7 +1855,7 @@ LVImageSourceRef LVCreateTileTransform( LVImageSourceRef src, int newWidth, int 
 
 static inline lUInt32 limit256(int n) {
     if (n < 0)
-        return n;
+        return 0;
     else if (n > 255)
         return 255;
     else
@@ -1869,20 +1869,54 @@ protected:
     lUInt32 _add;
     lUInt32 _multiply;
     LVImageDecoderCallback * _callback;
+    LVColorDrawBuf * _drawbuf;
+    int _sumR;
+    int _sumG;
+    int _sumB;
+    int _countPixels;
 public:
     LVColorTransformImgSource(LVImageSourceRef src, lUInt32 addRGB, lUInt32 multiplyRGB)
         : _src( src )
         , _add(addRGB)
         , _multiply(multiplyRGB)
+        , _drawbuf(NULL)
     {
     }
+    virtual ~LVColorTransformImgSource() {
+        if (_drawbuf)
+            delete _drawbuf;
+    }
+
     virtual void OnStartDecode( LVImageSource * )
     {
         _callback->OnStartDecode(this);
+        _sumR = _sumG = _sumB = _countPixels = 0;
+        if (_drawbuf)
+            delete _drawbuf;
+        _drawbuf = new LVColorDrawBuf(_src->GetWidth(), _src->GetHeight(), 32);
     }
     virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
-        bool res = false;
+        CR_UNUSED(obj);
         int dx = _src->GetWidth();
+
+        lUInt32 * row = (lUInt32*)_drawbuf->GetScanLine(y);
+        for (int x = 0; x < dx; x++) {
+            lUInt32 cl = data[x];
+            row[x] = cl;
+            if (((cl >> 24) & 255) < 0xC0) { // count non-transparent pixels only
+                _sumR += (cl >> 16) & 0xFF;
+                _sumG += (cl >> 8) & 0xFF;
+                _sumB += (cl >> 0) & 0xFF;
+                _countPixels++;
+            }
+        }
+        return true;
+
+    }
+    virtual void OnEndDecode( LVImageSource * obj, bool res)
+    {
+        int dx = _src->GetWidth();
+        int dy = _src->GetHeight();
         // simple add
         int ar = (((_add >> 16) & 255) - 0x80) * 2;
         int ag = (((_add >> 8) & 255) - 0x80) * 2;
@@ -1891,24 +1925,30 @@ public:
         int mr = ((_multiply >> 16) & 255) << 3;
         int mg = ((_multiply >> 8) & 255) << 3;
         int mb = ((_multiply >> 0) & 255) << 3;
-        for ( int x=0; x<dx; x++ ) {
-            lUInt32 cl = data[x];
-            lUInt32 a = cl & 0xFF000000;
-            if (a != 0xFF000000) {
-                int r = (cl >> 16) & 255;
-                int g = (cl >> 8) & 255;
-                int b = (cl >> 0) & 255;
-                r = ((r + ar) * mr) >> 8;
-                g = ((g + ag) * mg) >> 8;
-                b = ((b + ab) * mb) >> 8;
-                data[x] = a | (limit256(r) << 16) | (limit256(g) << 8) | (limit256(b) << 0);
+
+        int avgR = _countPixels > 0 ? _sumR / _countPixels : 128;
+        int avgG = _countPixels > 0 ? _sumG / _countPixels : 128;
+        int avgB = _countPixels > 0 ? _sumB / _countPixels : 128;
+
+        for (int y = 0; y < dy; y++) {
+            lUInt32 * row = (lUInt32*)_drawbuf->GetScanLine(y);
+            for ( int x=0; x<dx; x++ ) {
+                lUInt32 cl = row[x];
+                lUInt32 a = cl & 0xFF000000;
+                if (a != 0xFF000000) {
+                    int r = (cl >> 16) & 255;
+                    int g = (cl >> 8) & 255;
+                    int b = (cl >> 0) & 255;
+                    r = (((r - avgR) * mr) >> 8) + avgR + ar;
+                    g = (((g - avgG) * mg) >> 8) + avgG + ag;
+                    b = (((b - avgB) * mb) >> 8) + avgB + ab;
+                    row[x] = a | (limit256(r) << 16) | (limit256(g) << 8) | (limit256(b) << 0);
+                }
             }
+            _callback->OnLineDecoded(obj, y, row);
         }
-        _callback->OnLineDecoded(obj, y, data);
-        return res;
-    }
-    virtual void OnEndDecode( LVImageSource *, bool res)
-    {
+        if (_drawbuf)
+            delete _drawbuf;
         _callback->OnEndDecode(this, res);
     }
     virtual ldomNode * GetSourceNode() { return NULL; }
@@ -1920,9 +1960,6 @@ public:
     {
         _callback = callback;
         return _src->Decode( this );
-    }
-    virtual ~LVColorTransformImgSource()
-    {
     }
 };
 
