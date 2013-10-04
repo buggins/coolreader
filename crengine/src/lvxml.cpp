@@ -3741,7 +3741,7 @@ bool LVXMLParser::ReadIdent( lString16 & ns, lString16 & name )
         }
     }
     lChar16 ch = PeekCharFromBuffer();
-    return (!name.empty()) && (ch==' ' || ch=='/' || ch=='>' || ch=='?' || ch=='=' || ch==0);
+    return (!name.empty()) && (ch==' ' || ch=='/' || ch=='>' || ch=='?' || ch=='=' || ch==0 || ch == '\r' || ch == '\n');
 }
 
 void LVXMLParser::SetSpaceMode( bool flgTrimSpaces )
