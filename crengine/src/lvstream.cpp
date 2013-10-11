@@ -3599,6 +3599,15 @@ void LVAppendPathDelimiter( lString8 & pathName )
         pathName << delim;
 }
 
+/// removes path delimiter from end of path, if present
+void LVRemoveLastPathDelimiter( lString8 & pathName )
+{
+    if (pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
+        return;
+    if (pathName.endsWith("/") || pathName.endsWith("\\"))
+        pathName = pathName.substr(0, pathName.length() - 1);
+}
+
 /// replaces any found / or \\ separator with specified one
 void LVReplacePathSeparator( lString16 & pathName, lChar16 separator )
 {

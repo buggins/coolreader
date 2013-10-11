@@ -12,7 +12,7 @@
 #ifndef CRGL_H_INCLUDED
 #define CRGL_H_INCLUDED
 
-#include "LVDocView.h"
+#include <lvdocview.h>
 
 typedef struct tag_PageImageTextureInfo {
 	int dx;

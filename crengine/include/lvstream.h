@@ -832,6 +832,8 @@ LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream );
 
 /// returns path part of pathname (appended with / or \ delimiter)
 lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath=true );
+/// returns path part of pathname (appended with / or \ delimiter)
+lString8 LVExtractPath( lString8 pathName, bool appendEmptyPath=true ) { return UnicodeToUtf8(LVExtractPath(Utf8ToUnicode(pathName), appendEmptyPath)); }
 /// removes first path part from pathname and returns it
 lString16 LVExtractFirstPathElement( lString16 & pathName );
 /// removes last path part from pathname and returns it
@@ -844,6 +846,8 @@ lString16 LVExtractFilenameWithoutExtension( lString16 pathName );
 void LVAppendPathDelimiter( lString16 & pathName );
 /// appends path delimiter character to end of path, if absent
 void LVAppendPathDelimiter( lString8 & pathName );
+/// removes path delimiter from end of path, if present
+void LVRemoveLastPathDelimiter( lString8 & pathName );
 /// replaces any found / or \\ separator with specified one
 void LVReplacePathSeparator( lString16 & pathName, lChar16 separator );
 /// removes path delimiter character from end of path, if exists
