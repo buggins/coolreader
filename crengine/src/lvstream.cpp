@@ -3521,6 +3521,11 @@ lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
 }
 
 /// returns filename part of pathname
+lString8 LVExtractFilename( lString8 pathName ) {
+    return UnicodeToUtf8(LVExtractFilename(Utf8ToUnicode(pathName)));
+}
+
+/// returns filename part of pathname
 lString16 LVExtractFilename( lString16 pathName )
 {
     int last_delim_pos = -1;
