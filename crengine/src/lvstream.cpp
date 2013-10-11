@@ -3500,7 +3500,7 @@ LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream )
 }
 
 /// returns path part of pathname (appended with / or \ delimiter)
-lString8 LVExtractPath( lString8 pathName, bool appendEmptyPath=true ) {
+lString8 LVExtractPath( lString8 pathName, bool appendEmptyPath) {
     return UnicodeToUtf8(LVExtractPath(Utf8ToUnicode(pathName), appendEmptyPath));
 }
 
