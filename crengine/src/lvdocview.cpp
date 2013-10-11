@@ -1751,7 +1751,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	lvRect fullRect(0, 0, drawbuf->GetWidth(), drawbuf->GetHeight());
 	if (!pageRect)
 		pageRect = &fullRect;
-    drawbuf->setHidePartialGlyphs(getViewMode()==DVM_PAGES);
+    drawbuf->setHidePartialGlyphs(getViewMode() == DVM_PAGES);
 	//int offset = (pageRect->height() - m_pageMargins.top - m_pageMargins.bottom - height) / 3;
 	//if (offset>16)
 	//    offset = 16;
@@ -1766,8 +1766,8 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
 	if (page.type == PAGE_TYPE_COVER)
 		clip.top = pageRect->top + m_pageMargins.top;
-	if ((m_pageHeaderInfo || !m_pageHeaderOverride.empty()) && page.type
-			!= PAGE_TYPE_COVER) {
+    if (((m_pageHeaderInfo || !m_pageHeaderOverride.empty()) && page.type
+            != PAGE_TYPE_COVER) && getViewMode() == DVM_PAGES) {
 		int phi = m_pageHeaderInfo;
 		if (getVisiblePageCount() == 2) {
 			if (page.index & 1) {
@@ -3561,9 +3561,13 @@ void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
 		writer.OnTagClose(NULL, L"p");
 		writer.OnTagClose(NULL, L"title");
 	}
-	writer.OnTagOpenNoAttr(NULL, L"p");
-	writer.OnText(message.c_str(), message.length(), 0);
-	writer.OnTagClose(NULL, L"p");
+    lString16Collection messageLines;
+    messageLines.split(message, lString16("\n"));
+    for (int i = 0; i < messageLines.length(); i++) {
+        writer.OnTagOpenNoAttr(NULL, L"p");
+        writer.OnText(messageLines[i].c_str(), messageLines[i].length(), 0);
+        writer.OnTagClose(NULL, L"p");
+    }
 	//m_callback->OnTagClose( NULL, L"section" );
 	writer.OnTagClose(NULL, L"body");
 	writer.OnTagClose(NULL, L"FictionBook");

@@ -634,7 +634,7 @@ public:
     bool getFlatToc( LVPtrVector<LVTocItem, false> & items );
     /// update page numbers for items
     void updatePageNumbers( LVTocItem * item );
-    /// set view mode (pages/scroll)
+    /// set view mode (pages/scroll) - DVM_SCROLL/DVM_PAGES
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)
     LVDocViewMode getViewMode();
@@ -678,6 +678,7 @@ public:
     void setTextColor( lUInt32 cl )
     {
         m_textColor = cl;
+        m_props->setColor(PROP_FONT_COLOR, cl);
         clearImageCache();
     }
 

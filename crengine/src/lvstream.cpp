@@ -3753,7 +3753,7 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
 void LVRemovePathDelimiter( lString16 & pathName )
 {
     int len = pathName.length();
-    if ( len>0 ) {
+    if ( len>0 && pathName != "/" && pathName != "\\" && !pathName.endsWith(":\\") && !pathName.endsWith("\\\\")) {
         if ( pathName.lastChar() == '/' || pathName.lastChar() == '\\' )
             pathName.erase( pathName.length()-1, 1 );
     }
@@ -3763,7 +3763,7 @@ void LVRemovePathDelimiter( lString16 & pathName )
 void LVRemovePathDelimiter( lString8 & pathName )
 {
     int len = pathName.length();
-    if ( len>0 ) {
+    if ( len>0 && pathName != "/" && pathName != "\\" && !pathName.endsWith(":\\") && !pathName.endsWith("\\\\")) {
         if ( pathName.lastChar() == '/' || pathName.lastChar() == '\\' )
             pathName.erase( pathName.length()-1, 1 );
     }
