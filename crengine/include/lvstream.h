@@ -833,7 +833,7 @@ LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream );
 /// returns path part of pathname (appended with / or \ delimiter)
 lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath=true );
 /// returns path part of pathname (appended with / or \ delimiter)
-lString8 LVExtractPath( lString8 pathName, bool appendEmptyPath=true ) { return UnicodeToUtf8(LVExtractPath(Utf8ToUnicode(pathName), appendEmptyPath)); }
+lString8 LVExtractPath( lString8 pathName, bool appendEmptyPath=true );
 /// removes first path part from pathname and returns it
 lString16 LVExtractFirstPathElement( lString16 & pathName );
 /// removes last path part from pathname and returns it
