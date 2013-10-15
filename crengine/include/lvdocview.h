@@ -778,7 +778,7 @@ public:
     bool goToScrollPos( int pos );
     /// converts scrollbar pos to doc pos
     int scrollPosToDocPos( int scrollpos );
-    /// returns position in 1/100 of percents
+    /// returns position in 1/100 of percents (0..10000)
     int getPosPercent();
 
     /// execute command
