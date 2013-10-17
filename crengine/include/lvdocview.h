@@ -481,7 +481,7 @@ public:
     /// sets default property values if properties not found, checks ranges
     void propsUpdateDefaults( CRPropRef props );
     /// applies properties, returns list of not recognized properties
-    CRPropRef propsApply( CRPropRef props );
+    virtual CRPropRef propsApply( CRPropRef props );
     /// returns current values of supported properties
     CRPropRef propsGetCurrent();
 
