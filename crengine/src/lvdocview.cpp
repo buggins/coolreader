@@ -5660,23 +5660,31 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 				|| name == PROP_DISPLAY_INVERSE || name==PROP_STATUS_FONT_COLOR) {
 			// update current value in properties
 			m_props->setString(name.c_str(), value);
-			lUInt32 textColor = m_props->getIntDef(PROP_FONT_COLOR, 0x000000);
-			lUInt32 backColor = m_props->getIntDef(PROP_BACKGROUND_COLOR,
-					0xFFFFFF);
-			lUInt32 statusColor = m_props->getIntDef(PROP_STATUS_FONT_COLOR,
-					0xFF000000);
-			bool inverse = m_props->getBoolDef(PROP_DISPLAY_INVERSE, false);
+            lUInt32 textColor = props->getColorDef(PROP_FONT_COLOR, m_props->getColorDef(PROP_FONT_COLOR, 0x000000));
+            lUInt32 backColor = props->getColorDef(PROP_BACKGROUND_COLOR,
+                                                   m_props->getIntDef(PROP_BACKGROUND_COLOR,
+                                                                       0xFFFFFF));
+            lUInt32 statusColor = props->getColorDef(PROP_STATUS_FONT_COLOR,
+                                                     m_props->getColorDef(PROP_STATUS_FONT_COLOR,
+                                                                         0xFF000000));
+            bool inverse = props->getBoolDef(PROP_DISPLAY_INVERSE, m_props->getBoolDef(PROP_DISPLAY_INVERSE, false));
 			if (inverse) {
 				CRLog::trace("Setting inverse colors");
-				setBackgroundColor(textColor);
-				setTextColor(backColor);
-				setStatusColor(backColor);
+                //if (name == PROP_FONT_COLOR)
+                setBackgroundColor(textColor);
+                //if (name == PROP_BACKGROUND_COLOR)
+                setTextColor(backColor);
+                //if (name == PROP_BACKGROUND_COLOR)
+                setStatusColor(backColor);
                 REQUEST_RENDER("propsApply  color") // TODO: only colors to be changed
 			} else {
 				CRLog::trace("Setting normal colors");
-				setBackgroundColor(backColor);
-				setTextColor(textColor);
-				setStatusColor(statusColor);
+                //if (name == PROP_BACKGROUND_COLOR)
+                setBackgroundColor(backColor);
+                //if (name == PROP_FONT_COLOR)
+                setTextColor(textColor);
+                //if (name == PROP_STATUS_FONT_COLOR)
+                setStatusColor(statusColor);
                 REQUEST_RENDER("propsApply  color") // TODO: only colors to be changed
 			}
 		} else if (name == PROP_PAGE_MARGIN_TOP || name
