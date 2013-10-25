@@ -1904,14 +1904,14 @@ int LVDocView::GetPos() {
 	return _pos;
 }
 
-int LVDocView::SetPos(int pos, bool savePos) {
+int LVDocView::SetPos(int pos, bool savePos, bool allowScrollAfterEnd) {
 	LVLock lock(getMutex());
 	_posIsSet = true;
     CHECK_RENDER("setPos()")
 	//if ( m_posIsSet && m_pos==pos )
 	//    return;
 	if (isScrollMode()) {
-		if (pos > GetFullHeight() - m_dy)
+		if (pos > GetFullHeight() - m_dy && !allowScrollAfterEnd)
 			pos = GetFullHeight() - m_dy;
 		if (pos < 0)
 			pos = 0;

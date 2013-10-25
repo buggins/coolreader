@@ -824,7 +824,7 @@ public:
     /// get position of view inside document
     void GetPos( lvRect & rc );
     /// set vertical position of view inside document
-    int SetPos( int pos, bool savePos=true );
+    int SetPos( int pos, bool savePos=true, bool allowScrollAfterEnd = false);
 
 	int getPageHeight(int pageIndex);
 

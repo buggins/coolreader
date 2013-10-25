@@ -11035,7 +11035,7 @@ LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
 LVImageSourceRef ldomDocument::getObjectImageSource( lString16 refName )
 {
     LVStreamRef stream = getObjectImageStream( refName );
-    if ( stream.isNull() )\
+    if (stream.isNull())
          return LVImageSourceRef();
     return LVCreateStreamImageSource( stream );
 }
