@@ -377,8 +377,6 @@ private:
     void updateDocStyleSheet();
 
 protected:
-    /// draw to specified buffer by either Y pos or page number (unused param should be -1)
-    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate, bool autoresize = true);
 
 
     virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
@@ -394,8 +392,6 @@ protected:
     int getPrevPageOffset();
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
-    /// set status bar and clock mode
-    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount );
     /// create document and set flags
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible
@@ -403,6 +399,10 @@ protected:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
 public:
+    /// set status bar and clock mode
+    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount );
+    /// draw to specified buffer by either Y pos or page number (unused param should be -1)
+    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate, bool autoresize = true);
     /// ensure current position is set to current bookmark value
     void checkPos();
     LVFontRef getBatteryFont() { return m_batteryFont; }
