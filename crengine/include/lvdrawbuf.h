@@ -90,6 +90,14 @@ public:
     }
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color ) = 0;
+    /// draw frame
+    inline void DrawFrame(const lvRect & rc, lUInt32 color, int width = 1)
+    {
+        FillRect( rc.left, rc.top, rc.right, rc.top + width, color );
+        FillRect( rc.left, rc.bottom - width, rc.right, rc.bottom, color );
+        FillRect( rc.left, rc.top + width, rc.left + width, rc.bottom - width, color );
+        FillRect( rc.right - width, rc.top + width, rc.right, rc.bottom - width, color );
+    }
     /// fills rectangle with specified color
     inline void FillRect( const lvRect & rc, lUInt32 color )
     {
