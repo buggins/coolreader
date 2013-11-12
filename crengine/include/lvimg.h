@@ -123,6 +123,8 @@ LVImageSourceRef LVCreateDrawBufImageSource( LVColorDrawBuf * buf, bool own );
 
 /// creates image source which transforms colors of another image source (add RGB components added first, then multiplyed by multiplyRGB fixed point components (0x20 is 1.0f)
 LVImageSourceRef LVCreateColorTransformImageSource(LVImageSourceRef srcImage, lUInt32 addRGB, lUInt32 multiplyRGB);
+/// creates image source which applies alpha to another image source (0 is no change, 255 is totally transparent)
+LVImageSourceRef LVCreateAlphaTransformImageSource(LVImageSourceRef srcImage, int alpha);
 
 
 class LVFont;

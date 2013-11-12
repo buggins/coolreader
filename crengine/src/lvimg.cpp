@@ -1969,6 +1969,63 @@ LVImageSourceRef LVCreateColorTransformImageSource(LVImageSourceRef srcImage, lU
     return LVImageSourceRef(new LVColorTransformImgSource(srcImage, addRGB, multiplyRGB));
 }
 
+class LVAlphaTransformImgSource : public LVImageSource, public LVImageDecoderCallback
+{
+protected:
+    LVImageSourceRef _src;
+    LVImageDecoderCallback * _callback;
+    int _alpha;
+public:
+    LVAlphaTransformImgSource(LVImageSourceRef src, int alpha)
+        : _src( src )
+        , _alpha(255 - alpha)
+    {
+    }
+    virtual ~LVAlphaTransformImgSource() {
+    }
+
+    virtual void OnStartDecode( LVImageSource * )
+    {
+        _callback->OnStartDecode(this);
+    }
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
+        CR_UNUSED(obj);
+        int dx = _src->GetWidth();
+
+        for (int x = 0; x < dx; x++) {
+            lUInt32 cl = data[x];
+            int srcalpha = 255 - (cl >> 24);
+            if (srcalpha > 0) {
+                srcalpha = _alpha * srcalpha;
+                cl = (cl & 0xFFFFFF) | ((255 - _alpha * srcalpha)<<24);
+            }
+            data[x] = cl;
+        }
+        return _callback->OnLineDecoded(obj, y, data);
+    }
+    virtual void OnEndDecode( LVImageSource * obj, bool res)
+    {
+        _callback->OnEndDecode(this, res);
+    }
+    virtual ldomNode * GetSourceNode() { return NULL; }
+    virtual LVStream * GetSourceStream() { return NULL; }
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _src->GetWidth(); }
+    virtual int    GetHeight() { return _src->GetHeight(); }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        _callback = callback;
+        return _src->Decode( this );
+    }
+};
+
+/// creates image source which applies alpha to another image source (0 is no change, 255 is totally transparent)
+LVImageSourceRef LVCreateAlphaTransformImageSource(LVImageSourceRef srcImage, int alpha) {
+    if (alpha <= 0)
+        return srcImage;
+    return LVImageSourceRef(new LVAlphaTransformImgSource(srcImage, alpha));
+}
+
 class LVUnpackedImgSource : public LVImageSource, public LVImageDecoderCallback
 {
 protected:

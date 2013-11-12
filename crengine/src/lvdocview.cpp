@@ -2018,7 +2018,7 @@ static bool checkBufferSize( LVRef<LVColorDrawBuf> & buf, int dx, int dy ) {
 }
 
 /// clears page background
-void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY )
+void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY, int alpha)
 {
     //CRLog::trace("drawPageBackground() called");
     drawbuf.SetBackgroundColor(m_backgroundColor);
@@ -2030,12 +2030,13 @@ void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offset
             //CRLog::trace("drawPageBackground() using texture %d x %d", m_backgroundImage->GetWidth(), m_backgroundImage->GetHeight());
             if ( !checkBufferSize( m_backgroundImageScaled, m_backgroundImage->GetWidth(), m_backgroundImage->GetHeight() ) ) {
                 // unpack
-                m_backgroundImageScaled->Draw(m_backgroundImage, 0, 0, m_backgroundImage->GetWidth(), m_backgroundImage->GetHeight(), false);
+
+                m_backgroundImageScaled->Draw(LVCreateAlphaTransformImageSource(m_backgroundImage, alpha), 0, 0, m_backgroundImage->GetWidth(), m_backgroundImage->GetHeight(), false);
             }
             LVImageSourceRef src = LVCreateDrawBufImageSource(m_backgroundImageScaled.get(), false);
             LVImageSourceRef tile = LVCreateTileTransform( src, dx, dy, offsetX, offsetY );
             //CRLog::trace("created tile image, drawing");
-            drawbuf.Draw(tile, 0, 0, dx, dy);
+            drawbuf.Draw(LVCreateAlphaTransformImageSource(tile, alpha), 0, 0, dx, dy);
             //CRLog::trace("draw completed");
         } else {
             if ( getViewMode()==DVM_SCROLL ) {
@@ -2046,14 +2047,14 @@ void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offset
                                                                               IMG_TRANSFORM_STRETCH,
                                                                               IMG_TRANSFORM_TILE,
                                                                               0, 0);
-                    m_backgroundImageScaled->Draw(resized, 0, 0, dx, m_backgroundImage->GetHeight(), false);
+                    m_backgroundImageScaled->Draw(LVCreateAlphaTransformImageSource(resized, alpha), 0, 0, dx, m_backgroundImage->GetHeight(), false);
                 }
                 LVImageSourceRef src = LVCreateDrawBufImageSource(m_backgroundImageScaled.get(), false);
                 LVImageSourceRef resized = LVCreateStretchFilledTransform(src, dx, dy,
                                                                           IMG_TRANSFORM_TILE,
                                                                           IMG_TRANSFORM_TILE,
                                                                           offsetX, offsetY);
-                drawbuf.Draw(resized, 0, 0, dx, dy);
+                drawbuf.Draw(LVCreateAlphaTransformImageSource(resized, alpha), 0, 0, dx, dy);
             } else if ( getVisiblePageCount() != 2 ) {
                 // single page
                 if ( !checkBufferSize( m_backgroundImageScaled, dx, dy ) ) {
@@ -2062,10 +2063,10 @@ void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offset
                                                                               IMG_TRANSFORM_STRETCH,
                                                                               IMG_TRANSFORM_STRETCH,
                                                                               offsetX, offsetY);
-                    m_backgroundImageScaled->Draw(resized, 0, 0, dx, dy, false);
+                    m_backgroundImageScaled->Draw(LVCreateAlphaTransformImageSource(resized, alpha), 0, 0, dx, dy, false);
                 }
                 LVImageSourceRef src = LVCreateDrawBufImageSource(m_backgroundImageScaled.get(), false);
-                drawbuf.Draw(src, 0, 0, dx, dy);
+                drawbuf.Draw(LVCreateAlphaTransformImageSource(src, alpha), 0, 0, dx, dy);
             } else {
                 // two pages
                 int halfdx = (dx + 1) / 2;
@@ -2075,16 +2076,21 @@ void LVDocView::drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offset
                                                                               IMG_TRANSFORM_STRETCH,
                                                                               IMG_TRANSFORM_STRETCH,
                                                                               offsetX, offsetY);
-                    m_backgroundImageScaled->Draw(resized, 0, 0, halfdx, dy, false);
+                    m_backgroundImageScaled->Draw(LVCreateAlphaTransformImageSource(resized, alpha), 0, 0, halfdx, dy, false);
                 }
                 LVImageSourceRef src = LVCreateDrawBufImageSource(m_backgroundImageScaled.get(), false);
-                drawbuf.Draw(src, 0, 0, halfdx, dy);
-                drawbuf.Draw(src, dx/2, 0, dx - halfdx, dy);
+                drawbuf.Draw(LVCreateAlphaTransformImageSource(src, alpha), 0, 0, halfdx, dy);
+                drawbuf.Draw(LVCreateAlphaTransformImageSource(src, alpha), dx/2, 0, dx - halfdx, dy);
             }
         }
     } else {
         // solid color
-        drawbuf.Clear(m_backgroundColor);
+        lUInt32 cl = m_backgroundColor;
+        if (alpha > 0) {
+            cl = (cl & 0xFFFFFF) | (alpha << 24);
+            drawbuf.FillRect(0, 0, drawbuf.GetWidth(), drawbuf.GetHeight(), cl);
+        } else
+            drawbuf.Clear(cl);
     }
     if (drawbuf.GetBitsPerPixel() == 32 && getVisiblePageCount() == 2) {
         int x = drawbuf.GetWidth() / 2;

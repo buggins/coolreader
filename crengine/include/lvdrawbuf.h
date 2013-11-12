@@ -168,6 +168,12 @@ public:
 */
     /// returns scanline pointer
     virtual lUInt8 * GetScanLine( int y ) = 0;
+
+
+    virtual int getAlpha() { return 0; }
+    virtual void setAlpha(int alpha) { CR_UNUSED(alpha); }
+    virtual lUInt32 applyAlpha(lUInt32 cl) { return cl; }
+
     /// virtual destructor
     virtual ~LVDrawBuf() { }
     virtual GLDrawBuf * asGLDrawBuf() { return NULL; }
@@ -229,6 +235,7 @@ class LVDrawStateSaver
     LVDrawBuf & _buf;
     lUInt32 _textColor;
     lUInt32 _backgroundColor;
+    int _alpha;
     lvRect _clipRect;
 	LVDrawStateSaver & operator = (LVDrawStateSaver &) {
 		// no assignment
@@ -240,6 +247,7 @@ public:
     : _buf( buf )
     , _textColor( buf.GetTextColor() )
     , _backgroundColor( buf.GetBackgroundColor() )
+    , _alpha(buf.getAlpha())
     {
         _buf.GetClipRect( &_clipRect );
     }
@@ -247,6 +255,7 @@ public:
     {
         _buf.SetTextColor( _textColor );
         _buf.SetBackgroundColor( _backgroundColor );
+        _buf.setAlpha(_alpha);
         _buf.SetClipRect( &_clipRect );
     }
     /// restore settings on destroy
