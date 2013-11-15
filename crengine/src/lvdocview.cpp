@@ -2862,6 +2862,16 @@ bool LVDocView::navigateTo(lString16 historyPath) {
 }
 
 /// go back. returns true if navigation was successful
+bool LVDocView::canGoBack() {
+    return _navigationHistory.backCount() > 0;
+}
+
+/// go forward. returns true if navigation was successful
+bool LVDocView::canGoForward() {
+    return _navigationHistory.forwardCount() > 0;
+}
+
+/// go back. returns true if navigation was successful
 bool LVDocView::goBack() {
 	if (_navigationHistory.forwardCount() == 0 && savePosToNavigationHistory())
 		_navigationHistory.back();
