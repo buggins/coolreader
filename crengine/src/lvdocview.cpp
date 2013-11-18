@@ -2822,17 +2822,23 @@ lString16 LVDocView::getNavigationPath() {
 	return s;
 }
 
+/// saves position to navigation history, to be able return back
+bool LVDocView::savePosToNavigationHistory(lString16 path) {
+    if (!path.empty()) {
+        lString16 s = getNavigationPath() + NAVIGATION_FILENAME_SEPARATOR
+                + path;
+        CRLog::debug("savePosToNavigationHistory(%s)",
+                UnicodeToUtf8(s).c_str());
+        return _navigationHistory.save(s);
+    }
+    return false;
+}
+
 bool LVDocView::savePosToNavigationHistory() {
 	ldomXPointer bookmark = getBookmark();
 	if (!bookmark.isNull()) {
 		lString16 path = bookmark.toString();
-		if (!path.empty()) {
-			lString16 s = getNavigationPath() + NAVIGATION_FILENAME_SEPARATOR
-					+ path;
-			CRLog::debug("savePosToNavigationHistory(%s)",
-					UnicodeToUtf8(s).c_str());
-			return _navigationHistory.save(s);
-		}
+        return savePosToNavigationHistory(path);
 	}
 	return false;
 }

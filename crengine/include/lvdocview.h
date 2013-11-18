@@ -444,6 +444,8 @@ public:
     void checkRender();
     /// saves current position to navigation history, to be able return back
     bool savePosToNavigationHistory();
+    /// saves position to navigation history, to be able return back
+    bool savePosToNavigationHistory(lString16 path);
     /// navigate to history path URL
     bool navigateTo( lString16 historyPath );
     /// packs current file path and name
