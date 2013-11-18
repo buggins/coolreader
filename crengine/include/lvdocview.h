@@ -396,9 +396,9 @@ protected:
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible
     bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
+public:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
-public:
     /// set status bar and clock mode
     void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount );
     /// draw to specified buffer by either Y pos or page number (unused param should be -1)

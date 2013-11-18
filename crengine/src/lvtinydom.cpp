@@ -4970,7 +4970,8 @@ bool ldomXPointer::getRect(lvRect & rect) const
     }
     ldomNode * mainNode = p->getDocument()->getRootNode();
     for ( ; p; p = p->getParentNode() ) {
-        if ( p->getRendMethod() == erm_final ) {
+        int rm = p->getRendMethod();
+        if ( rm == erm_final || rm == erm_list_item ) {
             finalNode = p; // found final block
         } else if ( p->getRendMethod() == erm_invisible ) {
             return false; // invisible !!!
