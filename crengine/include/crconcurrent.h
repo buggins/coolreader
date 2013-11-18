@@ -14,6 +14,8 @@ public:
     virtual CRMonitor * createMonitor() = 0;
     virtual CRThread * createThread(CRRunnable * threadTask) = 0;
     virtual void executeGui(CRRunnable * task) = 0;
+    /// execute task delayed; already scheduled but not executed task will be deleted; pass NULL task to cancel active tasks
+    virtual void executeGui(CRRunnable * task, int delayMillis) = 0;
     /// sleep current thread
     virtual void sleepMs(int durationMs) = 0;
 };
