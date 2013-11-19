@@ -1011,6 +1011,20 @@ lString16 & lString16::insert(size_type p0, size_type count, lChar16 ch)
     return *this;
 }
 
+lString16 & lString16::insert(size_type p0, const lString16 & str)
+{
+    if (p0>pchunk->len)
+        p0 = pchunk->len;
+    int count = str.length();
+    reserve( pchunk->len+count );
+    for (size_type i=pchunk->len+count; i>p0; i--)
+        pchunk->buf16[i] = pchunk->buf16[i-1];
+    _lStr_memcpy(pchunk->buf16 + p0, str.c_str(), count);
+    pchunk->len += count;
+    pchunk->buf16[pchunk->len] = 0;
+    return *this;
+}
+
 lString16 lString16::substr(size_type pos, size_type n) const
 {
     if (pos>=length())
