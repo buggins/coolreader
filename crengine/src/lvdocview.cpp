@@ -1881,7 +1881,13 @@ void LVDocView::GetPos(lvRect & rc) {
 	rc.right = GetWidth();
 	if (isPageMode() && _page >= 0 && _page < m_pages.length()) {
 		rc.top = m_pages[_page]->start;
-		rc.bottom = rc.top + m_pages[_page]->height;
+        if (getVisiblePageCount() == 2) {
+            if (_page < m_pages.length() - 1)
+                rc.bottom = m_pages[_page + 1]->start + m_pages[_page + 1]->height;
+            else
+                rc.bottom = rc.top + m_pages[_page]->height;
+        } else
+            rc.bottom = rc.top + m_pages[_page]->height;
 	} else {
 		rc.top = _pos;
 		rc.bottom = _pos + GetHeight();
