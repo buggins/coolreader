@@ -81,8 +81,10 @@ public:
     {
         if (_list)
         {
+            int cnt = _count;
+            _count = 0;
             if ( ownItems ) {
-                for (int i=0; i<_count; ++i)
+                for (int i=cnt - 1; i>=0; --i)
                     delete _list[i];
             }
             free( _list );
