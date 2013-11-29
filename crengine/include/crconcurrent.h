@@ -24,12 +24,13 @@ extern CRConcurrencyProvider * concurrencyProvider;
 
 
 class CRThreadExecutor : public CRRunnable, public CRExecutor {
-    bool _stopped;
+    volatile bool _stopped;
     CRMonitorRef _monitor;
     CRThreadRef _thread;
     LVQueue<CRRunnable *> _queue;
 public:
     CRThreadExecutor();
+    virtual ~CRThreadExecutor();
     virtual void execute(CRRunnable * task);
     void stop();
     virtual void run();

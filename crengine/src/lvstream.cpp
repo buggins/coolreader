@@ -1334,6 +1334,7 @@ public:
         m_size = (lvsize_t) stat.st_size;
 #endif
 
+        SetName(fname.c_str());
         return LVERR_OK;
     }
     LVFileStream() :
@@ -2514,6 +2515,7 @@ public:
     }
     LVZipArc( LVStreamRef stream ) : LVArcContainerBase(stream)
     {
+        SetName(stream->GetName());
     }
     virtual ~LVZipArc()
     {
