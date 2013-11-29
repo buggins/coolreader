@@ -1,8 +1,10 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.util.ArrayList;
-
+import android.view.*;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CRToolBar.OnActionHandler;
@@ -13,15 +15,10 @@ import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 import org.coolreader.plugins.litres.LitresPlugin;
 
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import java.util.ArrayList;
+import java.util.List;
+
+import static android.view.ContextMenu.ContextMenuInfo;
 
 public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
@@ -262,7 +259,12 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			}
 		});
 	}
-	
+
+    public void refreshFileSystemFolders() {
+        ArrayList<FileInfo> folders = Services.getFileSystemFolders().getFileSystemFolders();
+        updateFilesystems(folders);
+    }
+
 	ArrayList<FileInfo> lastCatalogs = new ArrayList<FileInfo>();
 	private void updateOnlineCatalogs(ArrayList<FileInfo> catalogs) {
 		String lang = mActivity.getCurrentLanguage();
@@ -378,38 +380,94 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		}
 		mOnlineCatalogsScroll.invalidate();
 	}
-	
-	private void updateFilesystems(ArrayList<FileInfo> dirs) {
+
+	private void updateFilesystems(List<FileInfo> dirs) {
 
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		mFilesystemScroll.removeAllViews();
-		for (int i = 0; i < dirs.size(); i++) {
-			final FileInfo item = dirs.get(i);
-			if (item == null)
-				continue;
-			final View view = inflater.inflate(R.layout.root_item_dir, null);
-			ImageView icon = (ImageView)view.findViewById(R.id.item_icon);
-			TextView label = (TextView)view.findViewById(R.id.item_name);
-			if (i == dirs.size() - 1)
-				icon.setImageResource(R.drawable.folder_bookmark);
-			else if (label.getText().toString().indexOf("sd") >= 0)
-				icon.setImageResource(R.drawable.media_flash_sd_mmc);
-			else
-				icon.setImageResource(R.drawable.folder_blue);
-			label.setText(item.pathname);
-			label.setMaxWidth(coverWidth * 25 / 10);
-			view.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					mActivity.showDirectory(item);
-				}
-			});
-			mFilesystemScroll.addView(view);
-		}
+        int idx = 0;
+        for (final FileInfo item : dirs) {
+            if (item == null)
+                continue;
+            final View view = inflater.inflate(R.layout.root_item_dir, null);
+            ImageView icon = (ImageView) view.findViewById(R.id.item_icon);
+            TextView label = (TextView) view.findViewById(R.id.item_name);
+            if (item.getType() == FileInfo.TYPE_DOWNLOAD_DIR)
+                icon.setImageResource(R.drawable.folder_bookmark);
+            else if (item.getType() == FileInfo.TYPE_FS_ROOT)
+                icon.setImageResource(R.drawable.media_flash_sd_mmc);
+            else
+                icon.setImageResource(R.drawable.folder_blue);
+            label.setText(item.pathname);
+            label.setMaxWidth(coverWidth * 25 / 10);
+            view.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mActivity.showDirectory(item);
+                }
+            });
+            view.setOnLongClickListener(new OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    registerFoldersContextMenu(item);
+                    return false;
+                }
+            });
+            mFilesystemScroll.addView(view);
+            ++idx;
+        }
 		mFilesystemScroll.invalidate();
 	}
 
-	private void updateLibraryItems(ArrayList<FileInfo> dirs) {
+    private void registerFoldersContextMenu(final FileInfo folder) {
+        mActivity.registerForContextMenu(mFilesystemScroll);
+        mFilesystemScroll.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+            @Override
+            public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenuInfo contextMenuInfo) {
+                MenuInflater inflater = mActivity.getMenuInflater();
+                inflater.inflate(R.menu.cr3_favorite_folder_context_menu,contextMenu);
+                boolean isFavorite = folder.getType() == FileInfo.TYPE_NOT_SET;
+                final FileSystemFolders service = Services.getFileSystemFolders();
+                for(int idx = 0 ; idx< contextMenu.size(); ++idx){
+                    MenuItem item = contextMenu.getItem(idx);
+                    boolean enabled = isFavorite;
+                    if(item.getItemId() == R.id.folder_left) {
+                        enabled = enabled && service.canMove(folder, true);
+                        if(enabled)
+                            item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                                @Override
+                                public boolean onMenuItemClick(MenuItem menuItem) {
+                                    service.moveFavoriteFolder(mActivity.getDB(), folder, true);
+                                    return true;
+                                }
+                            });
+                    } else if(item.getItemId() == R.id.folder_right) {
+                        enabled = enabled && service.canMove(folder, false);
+                        if(enabled)
+                            item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                                @Override
+                                public boolean onMenuItemClick(MenuItem menuItem) {
+                                    service.moveFavoriteFolder(mActivity.getDB(), folder, false);
+                                    return true;
+                                }
+                            });
+                    } else if(item.getItemId() == R.id.folder_remove) {
+                        if(enabled)
+                            item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                                @Override
+                                public boolean onMenuItemClick(MenuItem menuItem) {
+                                    service.removeFavoriteFolder(mActivity.getDB(), folder);
+                                    return true;
+                                }
+                            });
+                    }
+                    item.setEnabled(enabled);
+                }
+            }
+        });
+    }
+
+    private void updateLibraryItems(ArrayList<FileInfo> dirs) {
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		mLibraryScroll.removeAllViews();
 		for (final FileInfo item : dirs) {
@@ -526,6 +584,24 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 		refreshRecentBooks();
 
+        Services.getFileSystemFolders().addListener(new FileInfoChangeListener() {
+            @Override
+            public void onChange(FileInfo object, boolean onlyProperties) {
+                BackgroundThread.instance().postGUI(new Runnable() {
+              			@Override
+              			public void run() {
+              				refreshFileSystemFolders();
+              			}
+              		});
+            }
+        });
+
+        mActivity.waitForCRDBService(new Runnable() {
+            @Override
+            public void run() {
+                Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
+            }
+        });
 
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
@@ -537,21 +613,11 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
-				ArrayList<FileInfo> dirs = new ArrayList<FileInfo>();
-				File[] roots = Engine.getStorageDirectories(false);
-				for (File f : roots) {
-					FileInfo dir = new FileInfo(f);
-					dirs.add(dir);
-				}
-				if (Services.getScanner() != null)
-					dirs.add(Services.getScanner().getDownloadDirectory());
-				updateFilesystems(dirs);
-				
 				if (Services.getScanner() != null)
 					updateLibraryItems(Services.getScanner().getLibraryItems());
 			}
 		});
-		
+
 		removeAllViews();
 		addView(mView);
 		//setFocusable(false);
@@ -564,8 +630,8 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 //			}
 //		});
 	}
-	
-	
+
+
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

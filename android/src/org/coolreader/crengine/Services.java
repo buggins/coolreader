@@ -12,12 +12,14 @@ public class Services {
 	private static Scanner mScanner;
 	private static History mHistory;
 	private static CoverpageManager mCoverpageManager;
+    private static FileSystemFolders mFSFolders;
 
 	public static Engine getEngine() { return mEngine; }
 	public static Scanner getScanner() { return mScanner; }
 	public static History getHistory() { return mHistory; }
-	public static CoverpageManager getCoverpageManager() { return mCoverpageManager; }
-	
+    public static CoverpageManager getCoverpageManager() { return mCoverpageManager; }
+    public static FileSystemFolders getFileSystemFolders() { return mFSFolders; }
+
 	public static void startServices(BaseActivity activity) {
 		log.i("First activity is created");
 		// testing background thread
@@ -37,6 +39,8 @@ public class Services {
        	mHistory = new History(mScanner);
 		mScanner.setDirScanEnabled(activity.settings().getBool(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, true));
 		mCoverpageManager = new CoverpageManager();
+
+        mFSFolders = new FileSystemFolders(mScanner);
 	}
 
 	public static void stopServices() {

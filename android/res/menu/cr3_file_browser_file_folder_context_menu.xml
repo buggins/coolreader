@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Context menu for physical folder -->
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:title="@string/mi_folder_open" android:titleCondensed="@string/mi_folder_open" android:id="@+id/folder_open"></item>
+<item android:title="@string/mi_folder_to_favorites" android:titleCondensed="@string/mi_folder_to_favorites" android:id="@+id/folder_to_favorites"></item>
+<item android:title="@string/mi_book_root" android:titleCondensed="@string/mi_book_root" android:id="@+id/book_root"></item>
+</menu>

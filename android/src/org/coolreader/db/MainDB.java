@@ -1,35 +1,20 @@
 package org.coolreader.db;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.coolreader.crengine.BookInfo;
-import org.coolreader.crengine.Bookmark;
-import org.coolreader.crengine.DeviceInfo;
-import org.coolreader.crengine.DocumentFormat;
-import org.coolreader.crengine.FileInfo;
-import org.coolreader.crengine.L;
-import org.coolreader.crengine.Logger;
-import org.coolreader.crengine.MountPathCorrector;
-import org.coolreader.crengine.OPDSConst;
-import org.coolreader.crengine.Utils;
-
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
+import org.coolreader.crengine.*;
+
+import java.util.*;
 
 public class MainDB extends BaseDB {
 	public static final Logger log = L.create("mdb");
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 20;
+	public final int DB_VERSION = 21;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -111,11 +96,11 @@ public class MainDB extends BaseDB {
 				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN flags INTEGER DEFAULT 0");
 			if ( currentVersion<6 )
 				execSQL("CREATE TABLE IF NOT EXISTS opds_catalog (" +
-						"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-						"name VARCHAR NOT NULL COLLATE NOCASE, " +
-						"url VARCHAR NOT NULL COLLATE NOCASE, " +
-						"last_usage INTEGER DEFAULT 0" +
-						")");
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "name VARCHAR NOT NULL COLLATE NOCASE, " +
+                        "url VARCHAR NOT NULL COLLATE NOCASE, " +
+                        "last_usage INTEGER DEFAULT 0" +
+                        ")");
 			if (currentVersion < 7) {
 				addOPDSCatalogs(DEF_OPDS_URLS1);
 			}
@@ -133,6 +118,12 @@ public class MainDB extends BaseDB {
 				pathCorrectionRequired = true; // chance to correct paths under Android 4.2
 			if (currentVersion < 20)
 				removeOPDSCatalogsFromBlackList(); // BLACK LIST enforcement, by LitRes request
+            if (currentVersion < 21)
+                execSQL("CREATE TABLE IF NOT EXISTS favorite_folders (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "path VARCHAR NOT NULL, " +
+                        "position INTEGER NOT NULL default 0" +
+                        ")");
 
 			//==============================================================
 			// add more updates above this line
@@ -323,6 +314,65 @@ public class MainDB extends BaseDB {
 		log.i("removeOPDSCatalog(" + id + ")");
 		execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE id = " + id);
 	}
+
+    public ArrayList<FileInfo> loadFavoriteFolders() {
+        log.i("loadFavoriteFolders()");
+        Cursor rs = null;
+        ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+        try {
+            String sql = "SELECT id, path, position FROM favorite_folders ORDER BY position, path";
+            rs = mDB.rawQuery(sql, null);
+            if ( rs.moveToFirst() ) {
+                do {
+                    Long id = rs.getLong(0);
+                    String path = rs.getString(1);
+                    int pos = rs.getInt(2);
+                    FileInfo favorite = new FileInfo(path);
+                    favorite.id = id;
+                    favorite.seriesNumber = pos;
+                    favorite.setType(FileInfo.TYPE_NOT_SET);
+                    list.add(favorite);
+                } while (rs.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e("cr3", "exception while loading list of favorite folders", e);
+        } finally {
+            if ( rs!=null )
+                rs.close();
+        }
+        return list;
+    }
+
+    public void deleteFavoriteFolder(FileInfo folder){
+        execSQLIgnoreErrors("DELETE FROM favorite_folders WHERE id = "+ folder.id);
+    }
+
+    public void updateFavoriteFolder(FileInfo folder){
+        SQLiteStatement stmt = null;
+        try {
+            stmt = mDB.compileStatement("UPDATE favorite_folders SET position = ?, path = ? WHERE id = ?");
+            stmt.bindLong(1, folder.seriesNumber);
+            stmt.bindString(2, folder.pathname);
+            stmt.bindLong(3, folder.id);
+            stmt.executeUpdateDelete();
+        } finally {
+            if(stmt!= null)
+                stmt.close();
+        }
+    }
+
+    public void createFavoritesFolder(FileInfo folder){
+        SQLiteStatement stmt = null;
+        try {
+            stmt = mDB.compileStatement("INSERT INTO favorite_folders (id, path, position) VALUES (NULL, ?, ?)");
+            stmt.bindString(1, folder.pathname);
+            stmt.bindLong(2, folder.seriesNumber);
+            folder.id = stmt.executeInsert();
+        } finally {
+            if(stmt!= null)
+                stmt.close();
+        }
+    }
 
 	//=======================================================================================
     // Bookmarks access code

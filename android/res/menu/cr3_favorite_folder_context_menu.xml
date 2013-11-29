@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="@string/mi_folder_left" android:titleCondensed="@string/mi_folder_left" android:id="@+id/folder_left"></item>
+    <item android:title="@string/mi_folder_right" android:titleCondensed="@string/mi_folder_right" android:id="@+id/folder_right"></item>
+    <item android:title="@string/mi_folder_remove" android:titleCondensed="@string/mi_folder_remove" android:id="@+id/folder_remove"></item>
+</menu>

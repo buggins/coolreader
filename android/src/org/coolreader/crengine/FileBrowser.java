@@ -1,11 +1,12 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
+import android.view.*;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.MenuItem.OnMenuItemClickListener;
+import android.widget.*;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageReadyListener;
@@ -13,35 +14,14 @@ import org.coolreader.crengine.OPDSUtil.DocInfo;
 import org.coolreader.crengine.OPDSUtil.DownloadCallback;
 import org.coolreader.crengine.OPDSUtil.EntryInfo;
 import org.coolreader.db.CRDBService;
-import org.coolreader.plugins.AuthenticationCallback;
-import org.coolreader.plugins.BookInfoCallback;
-import org.coolreader.plugins.FileInfoCallback;
-import org.coolreader.plugins.OnlineStoreBook;
-import org.coolreader.plugins.OnlineStoreBookInfo;
-import org.coolreader.plugins.OnlineStorePluginManager;
-import org.coolreader.plugins.OnlineStoreWrapper;
+import org.coolreader.plugins.*;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
-import android.view.ContextMenu;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class FileBrowser extends LinearLayout implements FileInfoChangeListener {
 
@@ -77,10 +57,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					FileInfo item = (FileInfo) getAdapter().getItem(position);
 					if ( item==null )
 						return false;
-					if (item.isDirectory && !item.isOPDSDir()) {
-						showDirectory(item, null);
-						return true;
-					}
 					//openContextMenu(_this);
 					//mActivity.loadDocument(item);
 					selectedItem = item;
@@ -115,6 +91,9 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		    } else if (selectedItem!=null && selectedItem.isOPDSBook()) {
 			    inflater.inflate(R.menu.cr3_file_browser_opds_book_context_menu, menu);
 			    menu.setHeaderTitle(mActivity.getString(R.string.menu_title_catalog));
+            } else if (selectedItem!=null && selectedItem.isDirectory && !selectedItem.isOPDSDir()) {
+                inflater.inflate(R.menu.cr3_file_browser_file_folder_context_menu, menu);
+                menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_folder));
 		    } else if (selectedItem!=null && selectedItem.isDirectory) {
 			    inflater.inflate(R.menu.cr3_file_browser_folder_context_menu, menu);
 			    menu.setHeaderTitle(mActivity.getString(R.string.context_menu_title_book));
@@ -130,7 +109,6 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					}
 				});
 		    }
-		    return;
 		}
 
 
@@ -275,7 +253,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	
 	public boolean onContextItemSelected(MenuItem item) {
 		
-		if ( selectedItem==null || (selectedItem.isDirectory && !selectedItem.isOPDSDir()) )
+		if ( selectedItem==null )
 			return false;
 			
 		switch (item.getItemId()) {
@@ -332,11 +310,23 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			log.d("catalog_open menu item selected");
 			showOPDSDir(selectedItem, null);
 			return true;
+        case R.id.folder_open:
+            log.d("folder_open menu item selected");
+            showDirectory(selectedItem, null);
+            return true;
+        case R.id.folder_to_favorites:
+            log.d("folder_to_favorites menu item selected");
+            addToFavorites(selectedItem);
+            return true;
 		}
 		return false;
 	}
-	
-	public void refreshOPDSRootDirectory(final boolean showInBrowser) {
+
+    private void addToFavorites(FileInfo folder) {
+        Services.getFileSystemFolders().addFavoriteFolder(mActivity.getDB(), folder);
+    }
+
+    public void refreshOPDSRootDirectory(final boolean showInBrowser) {
 		final FileInfo opdsRoot = mScanner.getOPDSRoot();
 		if (opdsRoot != null) {
 			mActivity.getDB().loadOPDSCatalogs(new CRDBService.OPDSCatalogsLoadingCallback() {
