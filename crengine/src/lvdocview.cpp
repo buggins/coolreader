@@ -3551,44 +3551,75 @@ void LVDocView::close() {
     createDefaultDocument(lString16::empty_str, lString16::empty_str);
 }
 
+
+/// create empty document with specified message (to show errors)
+void LVDocView::createHtmlDocument(lString16 code) {
+    Clear();
+    m_showCover = false;
+    createEmptyDocument();
+
+    //ldomDocumentWriter writer(m_doc);
+    ldomDocumentWriterFilter writerFilter(m_doc, false,
+            HTML_AUTOCLOSE_TABLE);
+
+    _pos = 0;
+    _page = 0;
+
+
+    lString8 s = UnicodeToUtf8(lString16(L"\xFEFF<html><body>") + code + "</body>");
+    setDocFormat( doc_format_html);
+    LVStreamRef stream = LVCreateMemoryStream();
+    stream->Write(s.c_str(), s.length(), NULL);
+    stream->SetPos(0);
+    LVHTMLParser parser(stream, &writerFilter);
+    if (!parser.CheckFormat()) {
+        // error - cannot parse
+    } else {
+        parser.Parse();
+    }
+    REQUEST_RENDER("resize")
+}
+
 void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
-	Clear();
-	m_showCover = false;
-	createEmptyDocument();
+    Clear();
+    m_showCover = false;
+    createEmptyDocument();
 
-	ldomDocumentWriter writer(m_doc);
+    ldomDocumentWriter writer(m_doc);
+    lString16Collection lines;
+    lines.split(message, lString16("\n"));
 
-	_pos = 0;
-	_page = 0;
+    _pos = 0;
+    _page = 0;
 
-	// make fb2 document structure
-	writer.OnTagOpen(NULL, L"?xml");
-	writer.OnAttribute(NULL, L"version", L"1.0");
-	writer.OnAttribute(NULL, L"encoding", L"utf-8");
-	writer.OnEncoding(L"utf-8", NULL);
-	writer.OnTagBody();
-	writer.OnTagClose(NULL, L"?xml");
-	writer.OnTagOpenNoAttr(NULL, L"FictionBook");
-	// DESCRIPTION
-	writer.OnTagOpenNoAttr(NULL, L"description");
-	writer.OnTagOpenNoAttr(NULL, L"title-info");
-	writer.OnTagOpenNoAttr(NULL, L"book-title");
-	writer.OnTagOpenNoAttr(NULL, L"lang");
-	writer.OnText(title.c_str(), title.length(), 0);
-	writer.OnTagClose(NULL, L"book-title");
-	writer.OnTagOpenNoAttr(NULL, L"title-info");
-	writer.OnTagClose(NULL, L"description");
-	// BODY
-	writer.OnTagOpenNoAttr(NULL, L"body");
-	//m_callback->OnTagOpen( NULL, L"section" );
-	// process text
-	if (title.length()) {
-		writer.OnTagOpenNoAttr(NULL, L"title");
-		writer.OnTagOpenNoAttr(NULL, L"p");
-		writer.OnText(title.c_str(), title.length(), 0);
-		writer.OnTagClose(NULL, L"p");
-		writer.OnTagClose(NULL, L"title");
-	}
+    // make fb2 document structure
+    writer.OnTagOpen(NULL, L"?xml");
+    writer.OnAttribute(NULL, L"version", L"1.0");
+    writer.OnAttribute(NULL, L"encoding", L"utf-8");
+    writer.OnEncoding(L"utf-8", NULL);
+    writer.OnTagBody();
+    writer.OnTagClose(NULL, L"?xml");
+    writer.OnTagOpenNoAttr(NULL, L"FictionBook");
+    // DESCRIPTION
+    writer.OnTagOpenNoAttr(NULL, L"description");
+    writer.OnTagOpenNoAttr(NULL, L"title-info");
+    writer.OnTagOpenNoAttr(NULL, L"book-title");
+    writer.OnTagOpenNoAttr(NULL, L"lang");
+    writer.OnText(title.c_str(), title.length(), 0);
+    writer.OnTagClose(NULL, L"book-title");
+    writer.OnTagOpenNoAttr(NULL, L"title-info");
+    writer.OnTagClose(NULL, L"description");
+    // BODY
+    writer.OnTagOpenNoAttr(NULL, L"body");
+    //m_callback->OnTagOpen( NULL, L"section" );
+    // process text
+    if (title.length()) {
+        writer.OnTagOpenNoAttr(NULL, L"title");
+        writer.OnTagOpenNoAttr(NULL, L"p");
+        writer.OnText(title.c_str(), title.length(), 0);
+        writer.OnTagClose(NULL, L"p");
+        writer.OnTagClose(NULL, L"title");
+    }
     lString16Collection messageLines;
     messageLines.split(message, lString16("\n"));
     for (int i = 0; i < messageLines.length(); i++) {
@@ -3596,19 +3627,19 @@ void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
         writer.OnText(messageLines[i].c_str(), messageLines[i].length(), 0);
         writer.OnTagClose(NULL, L"p");
     }
-	//m_callback->OnTagClose( NULL, L"section" );
-	writer.OnTagClose(NULL, L"body");
-	writer.OnTagClose(NULL, L"FictionBook");
+    //m_callback->OnTagClose( NULL, L"section" );
+    writer.OnTagClose(NULL, L"body");
+    writer.OnTagClose(NULL, L"FictionBook");
 
-	// set stylesheet
+    // set stylesheet
     updateDocStyleSheet();
-	//m_doc->getStyleSheet()->clear();
-	//m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
+    //m_doc->getStyleSheet()->clear();
+    //m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
-	m_doc_props->clear();
-	m_doc->setProps(m_doc_props);
+    m_doc_props->clear();
+    m_doc->setProps(m_doc_props);
 
-	m_doc_props->setString(DOC_PROP_TITLE, title);
+    m_doc_props->setString(DOC_PROP_TITLE, title);
 
     REQUEST_RENDER("resize")
 }

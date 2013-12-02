@@ -554,8 +554,10 @@ public:
     virtual bool canGoForward();
 
 
-    /// create empty document with specified message (to show errors)
+    /// create empty document with specified message (e.g. to show errors)
     virtual void createDefaultDocument( lString16 title, lString16 message );
+    /// create empty document with specified message (to show errors)
+    virtual void createHtmlDocument(lString16 code);
 
     /// returns default font face
     lString8 getDefaultFontFace() { return m_defaultFontFace; }
