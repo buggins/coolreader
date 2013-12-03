@@ -4894,6 +4894,13 @@ bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
     return true;
 }
 
+lString8 & lString8::replace(size_type p0, size_type n0, const lString8 & str) {
+    lString8 s1 = substr( 0, p0 );
+    lString8 s2 = length() - p0 - n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString8::empty_str;
+    *this = s1 + str + s2;
+    return *this;
+}
+
 lString16 & lString16::replace(size_type p0, size_type n0, const lString16 & str)
 {
     lString16 s1 = substr( 0, p0 );
