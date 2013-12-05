@@ -136,7 +136,7 @@ public:
     LVClonePtr( const LVClonePtr & v ) { p = v.p ? (T*)v.p->clone() : NULL; }
     LVClonePtr & operator = (const LVClonePtr & v) {
         clear();
-        p = (T*)v.p->clone();
+        p = v.p ? (T*)v.p->clone() : NULL;
         return *this;
     } // no copy
     bool isNull() const {
