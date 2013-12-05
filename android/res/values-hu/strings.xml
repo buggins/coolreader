@@ -456,7 +456,7 @@
     <string name="tts_forward">Előre</string>
     <string name="tts_stop">Állj</string>
     <string name="tts_volume">Hangerő</string>
-    <string name="tts_rate">Értékelés</string>
+    <string name="tts_rate">Sebesség</string>
     <string name="dlg_button_open_book">Könyv megnyitása</string>
     <string name="dlg_button_open_folder">Tartalmazó mappa megnyitása</string>
     <string name="dlg_button_recent_delete">Törlés a legutóbbiak listájáról</string>
@@ -492,7 +492,7 @@
     <string name="root_item_library">Könyvtár</string>
     <string name="root_item_filesystem">Fájlrendszer</string>
     <string name="root_item_online_catalogs">Online katalógus</string>
-    <string name="dlg_goto_current_position">Aktuális olda:</string>
+    <string name="dlg_goto_current_position">Aktuális oldal:</string>
     <string name="dlg_goto_input_page_number">Adja meg hová ugorjon:</string>
     <string name="dlg_goto_input_percent">Adja meg hová ugorjon (%):</string>
     <string name="folder_name_books_by_rating">Értékelés</string>
