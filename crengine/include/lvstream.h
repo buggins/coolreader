@@ -819,6 +819,12 @@ LVContainerRef LVOpenDirectory( const lChar16 * path, const wchar_t * mask = L"*
 bool LVCreateDirectory( lString16 path );
 /// delete file, return true if file found and successfully deleted
 bool LVDeleteFile( lString16 filename );
+/// delete file, return true if file found and successfully deleted
+bool LVDeleteFile( lString8 filename );
+/// rename file
+bool LVRenameFile(lString16 oldname, lString16 newname);
+/// rename file
+bool LVRenameFile(lString8 oldname, lString8 newname);
 
 /// copies content of in stream to out stream
 lvsize_t LVPumpStream( LVStreamRef out, LVStreamRef in );
@@ -850,6 +856,8 @@ void LVAppendPathDelimiter( lString16 & pathName );
 void LVAppendPathDelimiter( lString8 & pathName );
 /// removes path delimiter from end of path, if present
 void LVRemoveLastPathDelimiter( lString8 & pathName );
+/// removes path delimiter from end of path, if present
+void LVRemoveLastPathDelimiter( lString16 & pathName );
 /// replaces any found / or \\ separator with specified one
 void LVReplacePathSeparator( lString16 & pathName, lChar16 separator );
 /// removes path delimiter character from end of path, if exists
@@ -868,12 +876,18 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName );
 lString16 LVCombinePaths( lString16 basePath, lString16 newPath );
 
 /// tries to split full path name into archive name and file name inside archive using separator "@/" or "@\"
-bool LVSplitArcName( lString16 fullPathName, lString16 & arcPathName, lString16 & arcItemPathName );
+bool LVSplitArcName(lString16 fullPathName, lString16 & arcPathName, lString16 & arcItemPathName);
+/// tries to split full path name into archive name and file name inside archive using separator "@/" or "@\"
+bool LVSplitArcName(lString8 fullPathName, lString8 & arcPathName, lString8 & arcItemPathName);
 
 /// returns true if specified file exists
 bool LVFileExists( const lString16 & pathName );
+/// returns true if specified file exists
+bool LVFileExists( const lString8 & pathName );
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString16 & pathName );
+/// returns true if directory exists and your app can write to directory
+bool LVDirectoryIsWritable(const lString16 & pathName);
 
 
 /// factory to handle filesystem access for paths started with ASSET_PATH_PREFIX (@ sign)

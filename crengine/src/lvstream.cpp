@@ -1368,6 +1368,19 @@ bool LVSplitArcName( lString16 fullPathName, lString16 & arcPathName, lString16 
     return !arcPathName.empty() && !arcItemPathName.empty();
 }
 
+/// tries to split full path name into archive name and file name inside archive using separator "@/" or "@\"
+bool LVSplitArcName( lString8 fullPathName, lString8 & arcPathName, lString8 & arcItemPathName )
+{
+    int p = fullPathName.pos("@/");
+    if ( p<0 )
+        p = fullPathName.pos("@\\");
+    if ( p<0 )
+        return false;
+    arcPathName = fullPathName.substr(0, p);
+    arcItemPathName = fullPathName.substr(p + 2);
+    return !arcPathName.empty() && !arcItemPathName.empty();
+}
+
 // facility functions
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 {
@@ -3612,6 +3625,14 @@ void LVAppendPathDelimiter( lString8 & pathName )
 }
 
 /// removes path delimiter from end of path, if present
+void LVRemoveLastPathDelimiter( lString16 & pathName ) {
+    if (pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
+        return;
+    if (pathName.endsWith("/") || pathName.endsWith("\\"))
+        pathName = pathName.substr(0, pathName.length() - 1);
+}
+
+/// removes path delimiter from end of path, if present
 void LVRemoveLastPathDelimiter( lString8 & pathName )
 {
     if (pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
@@ -3776,6 +3797,10 @@ void LVRemovePathDelimiter( lString8 & pathName )
     }
 }
 
+/// returns true if specified file exists
+bool LVFileExists( const lString8 & pathName ) {
+    return LVFileExists(Utf8ToUnicode(pathName));
+}
 
 /// returns true if specified file exists
 bool LVFileExists( const lString16 & pathName )
@@ -3798,6 +3823,28 @@ bool LVFileExists( const lString16 & pathName )
     }
     return false;
 #endif
+}
+
+/// returns true if directory exists and your app can write to directory
+bool LVDirectoryIsWritable(const lString16 & pathName) {
+    lString16 fn = pathName;
+    LVAppendPathDelimiter(fn);
+    fn << ".cr3_directory_write_test";
+    bool res = false;
+    bool created = false;
+    {
+        LVStreamRef stream = LVOpenFileStream(fn.c_str(), LVOM_WRITE);
+        if (!stream.isNull()) {
+            created = true;
+            lvsize_t bytesWritten = 0;
+            if (stream->Write("TEST", 4, &bytesWritten) == LVERR_OK && bytesWritten == 4) {
+                res = true;
+            }
+        }
+    }
+    if (created)
+        LVDeleteFile(fn);
+    return res;
 }
 
 /// returns true if specified directory exists
@@ -3885,6 +3932,21 @@ bool LVDeleteFile( lString16 filename )
         return false;
     return true;
 #endif
+}
+
+/// rename file
+bool LVRenameFile(lString16 oldname, lString16 newname) {
+    return LVRenameFile(UnicodeToUtf8(oldname), UnicodeToUtf8(newname));
+}
+
+/// rename file
+bool LVRenameFile(lString8 oldname, lString8 newname) {
+    return !rename(oldname.c_str(), newname.c_str());
+}
+
+/// delete file, return true if file found and successfully deleted
+bool LVDeleteFile( lString8 filename ) {
+    return LVDeleteFile(Utf8ToUnicode(filename));
 }
 
 #define TRACE_BLOCK_WRITE_STREAM 0
