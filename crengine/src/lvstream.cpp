@@ -1413,7 +1413,7 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 
 LVStreamRef LVOpenFileStream( const lChar8 * pathname, int mode )
 {
-    lString16 fn = LocalToUnicode(lString8(pathname));
+    lString16 fn = Utf8ToUnicode(lString8(pathname));
     return LVOpenFileStream( fn.c_str(), mode );
 }
 
@@ -3941,7 +3941,12 @@ bool LVRenameFile(lString16 oldname, lString16 newname) {
 
 /// rename file
 bool LVRenameFile(lString8 oldname, lString8 newname) {
+#ifdef _WIN32
+    CRLog::trace("Renaming %s to %s", oldname.c_str(), newname.c_str());
+    return MoveFileW(Utf8ToUnicode(oldname).c_str(), Utf8ToUnicode(newname).c_str()) != 0;
+#else
     return !rename(oldname.c_str(), newname.c_str());
+#endif
 }
 
 /// delete file, return true if file found and successfully deleted

@@ -758,7 +758,7 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode );
 
 /// Open file stream
 /**
-    \param pathname is file name to open (local codepage)
+    \param pathname is file name to open (utf8 codepage)
     \param mode is mode file should be opened in
     \return reference to opened stream if success, NULL if error
 */
