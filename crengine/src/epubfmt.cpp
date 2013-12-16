@@ -202,6 +202,7 @@ class EncCallback : public LVXMLParserCallback {
 public:
     /// called on opening tag <
     virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname) {
+        CR_UNUSED(nsname);
         if (!lStr_cmp(tagname, "encryption"))
             insideEncryption = true;
         else if (!lStr_cmp(tagname, "EncryptedData"))
@@ -216,6 +217,7 @@ public:
     }
     /// called on tag close
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) {
+        CR_UNUSED(nsname);
         if (!lStr_cmp(tagname, "encryption"))
             insideEncryption = false;
         else if (!lStr_cmp(tagname, "EncryptedData") && insideEncryptedData) {
@@ -232,6 +234,7 @@ public:
     }
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue ) {
+        CR_UNUSED2(nsname, attrvalue);
         if (!lStr_cmp(attrname, "URI") && insideCipherReference)
             insideEncryption = false;
         else if (!lStr_cmp(attrname, "Algorithm") && insideEncryptionMethod)
@@ -239,10 +242,13 @@ public:
     }
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) {
-
+        CR_UNUSED3(text,len,flags);
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return false; }
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) {
+        CR_UNUSED3(name,data,size);
+        return false;
+    }
 
     virtual void OnStop() { }
     /// called after > of opening tag (when entering tag body)

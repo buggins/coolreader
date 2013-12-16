@@ -88,6 +88,7 @@ const lString8 & cs8(const char * str) {
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
+    return lString8::empty_str;
 }
 
 static const void * const_ptrs_16[CONST_STRING_BUFFER_SIZE] = {NULL};
@@ -116,6 +117,7 @@ const lString16 & cs16(const char * str) {
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
+    return lString16::empty_str;
 }
 
 /// get reference to atomic constant wide string for string literal e.g. cs16(L"abc") -- fast and memory effective
@@ -140,6 +142,7 @@ const lString16 & cs16(const lChar16 * str) {
         }
         index = (index + 1) & CONST_STRING_BUFFER_MASK;
     }
+    return lString16::empty_str;
 }
 
 
@@ -1003,6 +1006,20 @@ lString16 & lString16::insert(size_type p0, size_type count, lChar16 ch)
     for (size_type i=pchunk->len+count; i>p0; i--)
         pchunk->buf16[i] = pchunk->buf16[i-1];
     _lStr_memset(pchunk->buf16+p0, ch, count);
+    pchunk->len += count;
+    pchunk->buf16[pchunk->len] = 0;
+    return *this;
+}
+
+lString16 & lString16::insert(size_type p0, const lString16 & str)
+{
+    if (p0>pchunk->len)
+        p0 = pchunk->len;
+    int count = str.length();
+    reserve( pchunk->len+count );
+    for (size_type i=pchunk->len+count; i>p0; i--)
+        pchunk->buf16[i] = pchunk->buf16[i-1];
+    _lStr_memcpy(pchunk->buf16 + p0, str.c_str(), count);
     pchunk->len += count;
     pchunk->buf16[pchunk->len] = 0;
     return *this;
@@ -2053,6 +2070,30 @@ int lString8::pos(const lString8 & subStr) const
     return -1;
 }
 
+/// find position of substring inside string starting from right, -1 if not found
+int lString8::rpos(const char * subStr) const
+{
+    if (!subStr || !subStr[0])
+        return -1;
+    int l = lStr_len(subStr);
+    if (l > length())
+        return -1;
+    int dl = length() - l;
+    for (int i=dl; i>=0; i--)
+    {
+        int flg = 1;
+        for (int j=0; j<l; j++)
+            if (pchunk->buf8[i+j] != subStr[j])
+            {
+                flg = 0;
+                break;
+            }
+        if (flg)
+            return i;
+    }
+    return -1;
+}
+
 /// find position of substring inside string, -1 if not found
 int lString8::pos(const char * subStr) const
 {
@@ -2357,6 +2398,7 @@ int lString8::atoi() const
     while (*s>='0' && *s<='9')
     {
         n = n * 10 + ( (*s)-'0' );
+        s++;
     }
     return (sgn>0)?n:-n;
 }
@@ -2423,6 +2465,32 @@ lString8 lString8::itoa( unsigned int n )
     }
     lString8 res;
     res.reserve(i);
+    for (int j=i-1; j>=0; j--)
+        res.append(1, buf[j]);
+    return res;
+}
+
+// constructs string representation of integer
+lString8 lString8::itoa( lInt64 n )
+{
+    lChar8 buf[32];
+    int i=0;
+    int negative = 0;
+    if (n==0)
+        return cs8("0");
+    else if (n<0)
+    {
+        negative = 1;
+        n = -n;
+    }
+    for ( ; n; n/=10 )
+    {
+        buf[i++] = '0' + (n%10);
+    }
+    lString8 res;
+    res.reserve(i+negative);
+    if (negative)
+        res.append(1, '-');
     for (int j=i-1; j>=0; j--)
         res.append(1, buf[j]);
     return res;
@@ -4359,6 +4427,22 @@ bool lString16::startsWithNoCase ( const lString16 & substring ) const
 }
 
 /// returns true if string starts with specified substring
+bool lString8::startsWith( const char * substring ) const
+{
+    if (!substring || !substring[0])
+        return true;
+    int len = strlen(substring);
+    if (length() < len)
+        return false;
+    const lChar8 * s1 = c_str();
+    const lChar8 * s2 = substring;
+    for (int i=0; i<len; i++ )
+        if ( s1[i] != s2[i] )
+            return false;
+    return true;
+}
+
+/// returns true if string starts with specified substring
 bool lString8::startsWith( const lString8 & substring ) const
 {
     if ( substring.empty() )
@@ -4810,6 +4894,13 @@ bool splitIntegerList( lString16 s, lString16 delim, int &value1, int &value2 )
     return true;
 }
 
+lString8 & lString8::replace(size_type p0, size_type n0, const lString8 & str) {
+    lString8 s1 = substr( 0, p0 );
+    lString8 s2 = length() - p0 - n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString8::empty_str;
+    *this = s1 + str + s2;
+    return *this;
+}
+
 lString16 & lString16::replace(size_type p0, size_type n0, const lString16 & str)
 {
     lString16 s1 = substr( 0, p0 );
@@ -4915,5 +5006,54 @@ void limitStringSize(lString16 & str, int maxSize) {
 	int split = lastSpace > 0 ? lastSpace : maxSize;
 	str = str.substr(0, split);
     str += "...";
+}
+
+
+#ifdef _WIN32
+static bool __timerInitialized = false;
+static double __timeTicksPerMillis;
+static lUInt64 __timeStart;
+static lUInt64 __timeAbsolute;
+static lUInt64 __startTimeMillis;
+#endif
+
+void CRReinitTimer() {
+#ifdef _WIN32
+    LARGE_INTEGER tps;
+    QueryPerformanceFrequency(&tps);
+    __timeTicksPerMillis = (double)(tps.QuadPart / 1000L);
+    LARGE_INTEGER queryTime;
+    QueryPerformanceCounter(&queryTime);
+    __timeStart = (lUInt64)(queryTime.QuadPart / __timeTicksPerMillis);
+    __timerInitialized = true;
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    __startTimeMillis = (ft.dwLowDateTime | (((lUInt64)ft.dwHighDateTime) << 32)) / 10000;
+#else
+    // do nothing. it's for win32 only
+#endif
+}
+
+
+lUInt64 GetCurrentTimeMillis() {
+#if defined(LINUX) || defined(ANDROID) || defined(_LINUX)
+    timeval ts;
+    gettimeofday(&ts, NULL);
+    return ts.tv_sec * (lUInt64)1000 + ts.tv_usec / 1000;
+#else
+ #ifdef _WIN32
+    if (!__timerInitialized) {
+        CRReinitTimer();
+        return __startTimeMillis;
+    } else {
+        LARGE_INTEGER queryTime;
+        QueryPerformanceCounter(&queryTime);
+        __timeAbsolute = (lUInt64)(queryTime.QuadPart / __timeTicksPerMillis);
+        return __startTimeMillis + (lUInt64)(__timeAbsolute - __timeStart);
+    }
+ #else
+ #error * You should define GetCurrentTimeMillis() *
+ #endif
+#endif
 }
 

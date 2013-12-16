@@ -41,7 +41,7 @@ public class FindNextDlg {
 		this.caseInsensitive = caseInsensitive;
 		//mCoolReader = coolReader;
 		mReaderView = readerView;
-		mAnchor = readerView;
+		mAnchor = readerView.getSurface();
 
 		View panel = (LayoutInflater.from(coolReader.getApplicationContext()).inflate(R.layout.search_popup, null));
 		panel.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);

@@ -748,6 +748,8 @@ public:
         } else if (_format==MOBI ) {
             if ( _records[0].size<sizeof(MobiPreamble) )
                 return false;
+            contentFormat = doc_format_pdb;
+
             MobiPreamble preamble;
             stream->SetPos(_records[0].offset);
             if ( !preamble.read(stream, _mobiExtraDataFlags) )
@@ -1025,6 +1027,7 @@ public:
         \return lverror_t status: LVERR_OK if success
     */
     virtual lverror_t SetSize( lvsize_t size ) {
+        CR_UNUSED(size);
         return LVERR_NOTIMPL;
     }
 
@@ -1072,6 +1075,7 @@ public:
         \return lverror_t status: LVERR_OK if success
     */
     virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten ) {
+        CR_UNUSED3(buf, count, nBytesWritten);
         return LVERR_NOTIMPL;
     }
 

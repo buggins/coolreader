@@ -92,7 +92,7 @@ typedef struct css_style_rec_tag {
 /// style record reference type
 typedef LVFastRef< css_style_rec_t > css_style_ref_t;
 /// font reference type
-typedef LVFastRef< LVFont > font_ref_t;
+typedef LVFontRef font_ref_t;
 
 /// to compare two styles
 bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2);

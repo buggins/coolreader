@@ -455,6 +455,9 @@ public class CoolReader extends BaseActivity
 		super.onResume();
 		//Properties props = SettingsManager.instance(this).get();
 		
+		if (mReaderView != null)
+			mReaderView.onAppResume();
+		
 		if (DeviceInfo.EINK_SCREEN) {
             if (DeviceInfo.EINK_SONY) {
                 SharedPreferences pref = getSharedPreferences(PREF_FILE, 0);
@@ -978,9 +981,9 @@ public class CoolReader extends BaseActivity
 				if (mReaderFrame != null) {
 					task.run();
 					setCurrentFrame(mReaderFrame);
-					mReaderView.setFocusable(true);
-					mReaderView.setFocusableInTouchMode(true);
-					mReaderView.requestFocus();
+					mReaderView.getSurface().setFocusable(true);
+					mReaderView.getSurface().setFocusableInTouchMode(true);
+					mReaderView.getSurface().requestFocus();
 				} else {
 					mReaderView = new ReaderView(CoolReader.this, mEngine, settings());
 					mReaderFrame = new ReaderViewLayout(CoolReader.this, mReaderView);
@@ -994,9 +997,9 @@ public class CoolReader extends BaseActivity
 					});
 					task.run();
 					setCurrentFrame(mReaderFrame);
-					mReaderView.setFocusable(true);
-					mReaderView.setFocusableInTouchMode(true);
-					mReaderView.requestFocus();
+					mReaderView.getSurface().setFocusable(true);
+					mReaderView.getSurface().setFocusableInTouchMode(true);
+					mReaderView.getSurface().requestFocus();
 					if (initialBatteryState >= 0)
 						mReaderView.setBatteryState(initialBatteryState);
 				}

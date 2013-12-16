@@ -300,6 +300,8 @@ public:
     int pos(const lString8 & subStr) const;
     /// find position of substring inside string, -1 if not found
     int pos(const char * subStr) const;
+    /// find position of substring inside string starting from right, -1 if not found
+    int rpos(const char * subStr) const;
     /// find position of substring inside string starting from specified position, -1 if not found
     int pos(const lString8 & subStr, int startPos) const;
     /// find position of substring inside string starting from specified position, -1 if not found
@@ -323,6 +325,8 @@ public:
 
     /// returns true if string starts with specified substring
     bool startsWith ( const lString8 & substring ) const;
+    /// returns true if string starts with specified substring
+    bool startsWith ( const char * substring ) const;
 
     /// returns last character
     value_type lastChar() { return empty() ? 0 : at(length()-1); }
@@ -359,6 +363,8 @@ public:
     void  reserve(size_type count = 0);
     /// returns true if string is empty
     bool  empty() const { return pchunk->len==0; }
+    /// returns true if string is empty
+    bool  operator !() const { return pchunk->len==0; }
     /// swaps content of two strings
     void  swap( lString8 & str ) { lstring_chunk_t * tmp = pchunk;
                 pchunk=str.pchunk; str.pchunk=tmp; }
@@ -395,6 +401,8 @@ public:
     static lString8 itoa( int i );
     /// constructs string representation of unsigned integer
     static lString8 itoa( unsigned int i );
+    // constructs string representation of 64 bit integer
+    static lString8 itoa( lInt64 n );
 
     static const lString8 empty_str;
 
@@ -673,7 +681,6 @@ inline lUInt32 getHash( const lString8 & s )
     return s.getHash();
 }
 
-
 /// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective replacement of lString8("abc")
 const lString8 & cs8(const char * str);
 /// get reference to atomic constant wide string for string literal e.g. cs16("abc") -- fast and memory effective replacement of lString16("abc")
@@ -748,6 +755,9 @@ public:
     lString8Collection()
         : chunks(NULL), count(0), size(0)
     { }
+    lString8Collection(lString8Collection & src)
+        : chunks(NULL), count(0), size(0)
+    { addAll(src); }
     lString8Collection(const lString8 & str, const lString8 & delimiter)
         : chunks(NULL), count(0), size(0)
     {
@@ -755,6 +765,11 @@ public:
     }
     void reserve(int space);
     int add(const lString8 & str);
+    int add(const char * str) { return add(lString8(str)); }
+    void addAll(const lString8Collection & src) {
+    	for (int i = 0; i < src.length(); i++)
+    		add(src[i]);
+    }
     /// split string by delimiters, and add all substrings to collection
     void split(const lString8 & str, const lString8 & delimiter);
     void erase(int offset, int count);
@@ -871,6 +886,7 @@ template <int BUFSIZE> class lStringBuf16 {
 	lStringBuf16 & operator = (lStringBuf16 & v)
 	{
 		// not available
+		return *this;
 	}
 public:
     lStringBuf16( lString16 & s )
@@ -1120,6 +1136,11 @@ protected:
 
 void free_ls_storage();
 
+lUInt64 GetCurrentTimeMillis();
+void CRReinitTimer();
+
+
+
 #ifdef _DEBUG
 #include <stdio.h>
 class DumpFile
@@ -1145,3 +1166,8 @@ public:
 #endif
 
 #endif
+
+
+
+
+

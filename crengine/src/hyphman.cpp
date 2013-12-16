@@ -352,27 +352,27 @@ public:
 
     static int hash( const lChar16 * s )
     {
-        return (((s[0] *31 + s[1])*31 + s[2]) * 31 + s[3]) % PATTERN_HASH_SIZE;
+        return ((lUInt32)(((s[0] *31 + s[1])*31 + s[2]) * 31 + s[3])) % PATTERN_HASH_SIZE;
     }
 
     static int hash3( const lChar16 * s )
     {
-        return (((s[0] *31 + s[1])*31 + s[2]) * 31 + 0) % PATTERN_HASH_SIZE;
+        return ((lUInt32)(((s[0] *31 + s[1])*31 + s[2]) * 31 + 0)) % PATTERN_HASH_SIZE;
     }
 
     static int hash2( const lChar16 * s )
     {
-        return (((s[0] *31 + s[1])*31 + 0) * 31 + 0) % PATTERN_HASH_SIZE;
+        return ((lUInt32)(((s[0] *31 + s[1])*31 + 0) * 31 + 0)) % PATTERN_HASH_SIZE;
     }
 
     static int hash1( const lChar16 * s )
     {
-        return (((s[0] *31 + 0)*31 + 0) * 31 + 0) % PATTERN_HASH_SIZE;
+        return ((lUInt32)(((s[0] *31 + 0)*31 + 0) * 31 + 0)) % PATTERN_HASH_SIZE;
     }
 
     int hash()
     {
-        return (((word[0] *31 + word[1])*31 + word[2]) * 31 + word[3]) % PATTERN_HASH_SIZE;
+        return ((lUInt32)(((word[0] *31 + word[1])*31 + word[2]) * 31 + word[3])) % PATTERN_HASH_SIZE;
     }
 
     bool match( const lChar16 * s, char * mask )

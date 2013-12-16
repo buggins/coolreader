@@ -84,6 +84,30 @@ public:
     {
         return rc.left == left && rc.right == right && rc.top == top && rc.bottom == bottom;
     }
+    /// returns true if rectangles are not equal
+    bool operator !=( const lvRect & rc ) const
+    {
+        return !(rc.left == left && rc.right == right && rc.top == top && rc.bottom == bottom);
+    }
+    /// returns non-NULL pointer to trimming values for 4 sides of rc, if clipping is necessary
+    lvRect * clipBy(lvRect & cliprc) {
+    	if (intersects(cliprc) && !cliprc.isRectInside(*this)) {
+    		lvRect * res = new lvRect();
+    		if (cliprc.left > left)
+    			res->left = cliprc.left - left;
+    		if (cliprc.top > top)
+    			res->top = cliprc.top - top;
+    		if (right > cliprc.right)
+    			res->right = right - cliprc.right;
+    		if (bottom > cliprc.bottom)
+    			res->bottom = bottom - cliprc.bottom;
+    		return res;
+    	} else {
+    		return NULL;
+    	}
+    }
+
+
 
     /// returns rectangle width
     int width() const { return right - left; }
@@ -124,6 +148,17 @@ public:
             return false;
         return true;
     }
+
+    /// returns true if specified rectangle has common part with this rectangle
+    bool intersects(const lvRect & rc) const
+    {
+        if ( rc.isEmpty() || isEmpty() )
+            return false;
+        if ( rc.right <= left || rc.left >= right || rc.bottom <= top || rc.top >= bottom )
+            return false;
+        return true;
+    }
+
     /// returns true if point is inside this rectangle
     bool isPointInside ( lvPoint & pt ) const 
     {
@@ -131,29 +166,17 @@ public:
     }
 	void clear() { left=right=top=bottom=0; }
 	
-	bool intersect (const lvRect &rc) 
+    bool intersect(const lvRect &rc)
 	{
-		bool ret = true;
-		if (rc.left <= left) {
-			if (rc.right <= left) 
-				ret = false;
-		} else if (rc.left < right) {
-			left = rc.left;
-		} else 
-			ret = false;
-		if (ret) {
-			if (rc.right < right)
-				right = rc.right;
-			if (rc.top <= top) {
-				if (rc.bottom <= top) 
-					ret = false;
-			} else if (rc.top < bottom) {
-				top = rc.top;
-			} else 
-				ret = false;
-			if (ret && rc.bottom < bottom)
-				bottom = rc.bottom;
-		}
+        if (left < rc.left)
+            left = rc.left;
+        if (right > rc.right)
+            right = rc.right;
+        if (top < rc.top)
+            top = rc.top;
+        if (bottom > rc.bottom)
+            bottom = rc.bottom;
+        bool ret = !isEmpty();
 		if (!ret)
 			clear();
 		return ret;
@@ -358,5 +381,17 @@ public:
     }
 };
 
+// MACROS to avoid UNUSED PARAM warning
+#define CR_UNUSED(x) (void)x;
+#define CR_UNUSED2(x,x2) (void)x;(void)x2;
+#define CR_UNUSED3(x,x2,x3) (void)x;(void)x2;(void)x3;
+#define CR_UNUSED4(x,x2,x3,x4) (void)x;(void)x2;(void)x3;(void)x4;
+#define CR_UNUSED5(x,x2,x3,x4,x5) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;
+#define CR_UNUSED6(x,x2,x3,x4,x5,x6) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;
+#define CR_UNUSED7(x,x2,x3,x4,x5,x6,x7) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;
+#define CR_UNUSED8(x,x2,x3,x4,x5,x6,x7,x8) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;
+#define CR_UNUSED9(x,x2,x3,x4,x5,x6,x7,x8,x9) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;(void)x9;
+#define CR_UNUSED10(x,x2,x3,x4,x5,x6,x7,x8,x9,x10) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;(void)x9;(void)x10;
+#define CR_UNUSED11(x,x2,x3,x4,x5,x6,x7,x8,x9,x11) (void)x;(void)x2;(void)x3;(void)x4;(void)x5;(void)x6;(void)x7;(void)x8;(void)x9;(void)x10;(void)x11;
 
 #endif//LVTYPES_H_INCLUDED

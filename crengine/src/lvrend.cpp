@@ -264,8 +264,8 @@ public:
                         // rows of table
                         CCRTableRow * row = new CCRTableRow;
                         row->elem = item;
-						if ( item==NULL )
-							item = item;
+//						if ( item==NULL )
+//							item = item;
                         if ( currentRowGroup ) {
                             // add row to group
                             row->rowgroup = currentRowGroup;
@@ -310,8 +310,8 @@ public:
                         if ( rows.length()==0 ) {
                             CCRTableRow * row = new CCRTableRow;
                             row->elem = item;
-                            if ( item==NULL )
-                                item = item;
+//                            if ( item==NULL )
+//                                item = item;
                             if ( currentRowGroup ) {
                                 // add row to group
                                 row->rowgroup = currentRowGroup;
@@ -1437,8 +1437,8 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
 //            CRLog::trace("renderBlockElement() : Footnote body detected! %s", LCSTR(ldomXPointer(enode,0).toString()) );
         //if (!fmt)
         //    crFatalError();
-        if ( enode->getNodeId() == el_empty_line )
-            x = x;
+//        if ( enode->getNodeId() == el_empty_line )
+//            x = x;
         int em = enode->getFont()->getSize();
         int margin_left = lengthToPx( enode->getStyle()->margin[0], width, em ) + DEBUG_TREE_DRAW;
         int margin_right = lengthToPx( enode->getStyle()->margin[1], width, em ) + DEBUG_TREE_DRAW;
@@ -1556,6 +1556,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             default:
                 CRLog::error("Unsupported render method %d", m);
                 crFatalError(); // error
+                break;
             }
         }
         if ( flgSplit ) {
@@ -1992,11 +1993,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     enode->initNodeFont();
 }
 
-#define UNUSED(x)
 int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width )
 {
-    UNUSED(x);
-    UNUSED(y);
+    CR_UNUSED2(x, y);
     CCRTable table( node, width, 10 );
     int h = table.renderCells( context );
 

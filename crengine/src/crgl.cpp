@@ -12,21 +12,9 @@
 *******************************************************/
 #include "../include/crengine.h"
 #include "../include/crgl.h"
-#ifdef TIZEN
-#include <gl.h>
-#include <egl.h>
-#else
-#include <GLES/gl.h>
-#include <EGL/egl.h>
-#endif
+#include "glwrapper.h"
 
-struct PageImageTextureInfo {
-	int dx;
-	int dy;
-	int tdx;
-	int tdy;
-	int textureId;
-};
+
 
 int crCreateTextureRGBA(int dx, int dy, lUInt32 * pixels) {
     GLuint textureId = 0;

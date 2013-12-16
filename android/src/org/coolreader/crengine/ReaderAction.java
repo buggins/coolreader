@@ -3,13 +3,12 @@ package org.coolreader.crengine;
 import java.util.ArrayList;
 
 import org.coolreader.R;
-import org.coolreader.crengine.ReaderView.ReaderCommand;
 
 public class ReaderAction {
 	final public String id;
 	final public int nameId;
 	public int    iconId;
-	final public ReaderView.ReaderCommand cmd;
+	final public ReaderCommand cmd;
 	final public int param;
 	final public int menuItemId;
 	private boolean canRepeat = false;

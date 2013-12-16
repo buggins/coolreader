@@ -21,7 +21,7 @@ void CRFileHist::clear()
 class CRHistoryFileParserCallback : public LVXMLParserCallback
 {
 protected:
-    LVXMLParser * _parser;
+	LVFileFormatParser * _parser;
     CRFileHist *  _hist;
     CRBookmark * _curr_bookmark;
     CRFileHistRecord * _curr_file;
@@ -54,7 +54,7 @@ public:
     }
     virtual lUInt32 getFlags() { return TXTFLG_PRE; }
     /// called on parsing start
-    virtual void OnStart(LVXMLParser * parser)
+    virtual void OnStart(LVFileFormatParser * parser)
     {
         _parser = parser;
         parser->SetSpaceMode(false);
@@ -68,10 +68,14 @@ public:
     {
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return true; }
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) {
+        CR_UNUSED3(name, data, size);
+        return true;
+    }
     /// called on opening tag
     virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
+        CR_UNUSED(nsname);
         if ( lStr_cmp(tagname, "FictionBookMarks")==0 && state==in_xml ) {
             state = in_fbm;
         } else if ( lStr_cmp(tagname, "file")==0 && state==in_fbm ) {
@@ -161,6 +165,7 @@ public:
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
     {
+        CR_UNUSED(nsname);
         if ( lStr_cmp(attrname, "type")==0 && state==in_bm ) {
             static const char * tnames[] = {"lastpos", "position", "comment", "correction"};
             for ( int i=0; i<4; i++) {
@@ -198,6 +203,7 @@ public:
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
     {
+        CR_UNUSED(flags);
         lString16 txt( text, len );
         switch (state) {
         case in_start_point:
@@ -403,6 +409,7 @@ int CRFileHistRecord::getFirstFreeShortcutBookmark()
 
 int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz )
 {
+    CR_UNUSED(fpath);
     for ( int i=0; i<_records.length(); i++ ) {
         CRFileHistRecord * rec = _records[i];
         if ( rec->getFileName().compare(fname) )
@@ -611,6 +618,7 @@ static lString8 encodeText(lString16 text16) {
             break;
         default:
             buf << ch;
+            break;
         }
     }
     return buf;
@@ -636,6 +644,7 @@ static lString16 decodeText(lString8 text) {
                 break;
             default:
                 buf.append(1, ch);
+                break;
             }
             lastControl = false;
             continue;

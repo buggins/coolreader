@@ -18,6 +18,33 @@
 #include "lvref.h"
 #include "lvstream.h"
 
+class CacheableObject;
+class CacheObjectListener {
+public:
+    virtual void onCachedObjectDeleted(CacheableObject * obj) { CR_UNUSED(obj); }
+	virtual ~CacheObjectListener() {}
+};
+
+/// object deletion listener callback function type
+typedef void(*onObjectDestroyedCallback_t)(CacheObjectListener * pcache, CacheableObject * pobject);
+
+/// to handle object deletion listener
+class CacheableObject {
+	onObjectDestroyedCallback_t _callback;
+	CacheObjectListener * _cache;
+public:
+	CacheableObject() : _callback(NULL), _cache(NULL) {}
+	virtual ~CacheableObject() {
+		if (_callback)
+			_callback(_cache, this);
+	}
+	/// set callback to call on object destroy
+	void setOnObjectDestroyedCallback(onObjectDestroyedCallback_t callback, CacheObjectListener * pcache) {
+		_callback = callback;
+		_cache = pcache;
+	}
+};
+
 class LVImageSource;
 class ldomNode;
 class LVColorDrawBuf;
@@ -32,15 +59,29 @@ public:
     virtual void OnEndDecode( LVImageSource * obj, bool errors ) = 0;
 };
 
-class LVImageSource
+struct CR9PatchInfo {
+	lvRect frame;
+	lvRect padding;
+	/// caclulate dst and src rectangles (src rect includes 1 pixel layout frame)
+	void calcRectangles(const lvRect & dst, const lvRect & src, lvRect dstitems[9], lvRect srcitems[9]) const;
+	/// for each side, apply max(padding.C, dstPadding.C) to dstPadding
+	void applyPadding(lvRect & dstPadding) const;
+};
+
+
+class LVImageSource : public CacheableObject
 {
+	CR9PatchInfo * _ninePatch;
 public:
+	virtual const CR9PatchInfo * GetNinePatchInfo() { return _ninePatch; }
+	virtual CR9PatchInfo *  DetectNinePatch();
     virtual ldomNode * GetSourceNode() = 0;
     virtual LVStream * GetSourceStream() = 0;
     virtual void   Compact() = 0;
     virtual int    GetWidth() = 0;
     virtual int    GetHeight() = 0;
     virtual bool   Decode( LVImageDecoderCallback * callback ) = 0;
+    LVImageSource() : _ninePatch(NULL) {}
     virtual ~LVImageSource();
 };
 
@@ -53,6 +94,8 @@ enum ImageTransform {
     IMG_TRANSFORM_STRETCH, // stretch image proportionally to fill whole area
     IMG_TRANSFORM_TILE     // tile image
 };
+
+
 
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
 LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform=IMG_TRANSFORM_SPLIT, ImageTransform vTransform=IMG_TRANSFORM_SPLIT, int splitX=-1, int splitY=-1 );
@@ -74,6 +117,14 @@ LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int max
 LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize, int bpp );
 /// creates image source based on draw buffer
 LVImageSourceRef LVCreateDrawBufImageSource( LVColorDrawBuf * buf, bool own );
+
+#define COLOR_TRANSFORM_BRIGHTNESS_NONE 0x808080
+#define COLOR_TRANSFORM_CONTRAST_NONE 0x404040
+
+/// creates image source which transforms colors of another image source (add RGB components added first, then multiplyed by multiplyRGB fixed point components (0x20 is 1.0f)
+LVImageSourceRef LVCreateColorTransformImageSource(LVImageSourceRef srcImage, lUInt32 addRGB, lUInt32 multiplyRGB);
+/// creates image source which applies alpha to another image source (0 is no change, 255 is totally transparent)
+LVImageSourceRef LVCreateAlphaTransformImageSource(LVImageSourceRef srcImage, int alpha);
 
 
 class LVFont;

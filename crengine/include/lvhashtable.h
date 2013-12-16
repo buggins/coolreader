@@ -17,9 +17,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+inline lUInt32 getHash( lUInt16 n )
+{
+    return (lUInt32)n * 1975317 + 164521;
+}
+
 inline lUInt32 getHash( lUInt32 n )
 {
     return n * 1975317 + 164521;
+}
+
+inline lUInt32 getHash( lUInt64 n )
+{
+    return (lUInt32)(n * 1975317 + (n >> 32) * 31 + 164521);
+}
+
+class LVFont;
+inline lUInt32 getHash(LVFont * n )
+{
+    return getHash((lUInt64)n);
+}
+
+inline lUInt32 getHash(void * n )
+{
+    return getHash((lUInt64)n);
 }
 
 /// Hash table
@@ -36,7 +57,7 @@ public:
         pair *  next; // extend
         keyT    key;
         valueT  value;
-        pair( keyT nkey, valueT nvalue, pair * pnext ) : next(pnext), key(nkey), value(nvalue) { }
+        pair( const keyT & nkey, valueT nvalue, pair * pnext ) : next(pnext), key(nkey), value(nvalue) { }
     };
 
 	class iterator {
@@ -46,6 +67,7 @@ public:
 		pair * ptr;
 		iterator & operator = (iterator &) {
 			// no assignment
+			return *this;
 		}
 	public:
 		iterator( const LVHashTable & table )
@@ -131,7 +153,7 @@ public:
         _size = nsize;
 
     }
-    void set( keyT key, valueT value )
+    void set( const keyT & key, valueT value )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair ** p = &_table[index];
@@ -154,7 +176,7 @@ public:
         *p = new pair( key, value, NULL );
         _count++;
     }
-    void remove( keyT key )
+    void remove( const keyT & key )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair ** p = &_table[index];
@@ -170,7 +192,7 @@ public:
             }
         }
     }
-    valueT get( keyT key )
+    valueT get( const keyT & key )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];
@@ -183,7 +205,7 @@ public:
         }
         return valueT();
     }
-    bool get( keyT key, valueT & res )
+    bool get( const keyT & key, valueT & res )
     {
         lUInt32 index = getHash( key ) % ( _size );
         pair * p = _table[index];

@@ -3,13 +3,19 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -25,8 +31,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.opengl.GLSurfaceView;
+import android.opengl.GLU;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -36,12 +45,444 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnFocusChangeListener;
+import android.view.View.OnKeyListener;
+import android.view.View.OnTouchListener;
 
-public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
+class TextureInfo {
+	int dx;
+	int dy;
+	int tdx;
+	int tdy;
+	int textureId;
+	FloatBuffer textureCoords;
+	ShortBuffer indexes;
+	public TextureInfo(int width, int height) {
+    	dx = width;
+    	dy = height;
+    	tdx = nearestPOT(width);
+    	tdy = nearestPOT(height);
+    	calcTextureCoords();
+	}
+	private void calcTextureCoords() {
+		float w = dx / (float)tdx;
+		float h = dy / (float)tdy;
+		float[] buf = {
+			0, 0,
+			w, 0,
+			0, h,
+			w, h
+		};
+		short[] ind = {
+			0, 1, 2, 1, 2, 3	
+		};
+		indexes = GLUtil.makeShortBuffer(ind);
+		textureCoords = GLUtil.makeFloatBuffer(buf);
+	}
+	public static TextureInfo createTestTexture(GL10 gl, int width, int height) {
+    	TextureInfo ti = new TextureInfo(width, height);
+    	int[] ids = new int[1];
+    	ti.textureId = ids[0];
+    	gl.glGenTextures(1, ids, 0);
+    	checkError(gl, "glGenTextures");
+    	gl.glBindTexture(GL10.GL_TEXTURE_2D, ti.textureId);
+    	checkError(gl, "glBindTexture");
+    	// Scale up if the texture if smaller.
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+    	                   GL10.GL_TEXTURE_MAG_FILTER,
+    	                   GL10.GL_NEAREST);
+    	checkError(gl, "glTexParameter");
+    	// scale linearly when image smalled than texture
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+    	                   GL10.GL_TEXTURE_MIN_FILTER,
+    	                   GL10.GL_NEAREST);
+    	checkError(gl, "glTexParameter");
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                   GL10.GL_TEXTURE_WRAP_S,
+                   GL10.GL_CLAMP_TO_EDGE);
+    	checkError(gl, "glTexParameter");
+    	gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                   GL10.GL_TEXTURE_WRAP_T,
+                   GL10.GL_CLAMP_TO_EDGE);
+    	checkError(gl, "glTexParameter");
+    	byte[] pixels = new byte[ti.tdx * ti.tdy * 4];
+    	for (int y=0; y<ti.dy; y++) {
+    		int rowp = ti.tdx * y * 4;
+    		for (int x = 0; x<ti.dx; x++) {
+    			int p = rowp + x * 4;
+    			byte cl = (((x / 3 ^ y / 3) & 1) != 0) ? (byte)0xC0 : (byte)0x00;
+    			pixels[p] = (byte)0xC0;
+    			pixels[p + 1] = cl; //(byte)(x & 255);
+    			pixels[p + 2] = cl; //(byte)(y & 255);
+    			pixels[p + 3] = (byte)0xFF;
+    		}
+    	}
+    	ByteBuffer buf = ByteBuffer.allocateDirect(pixels.length);
+    	buf.put(pixels);
+    	buf.position(0);
+    	gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, ti.tdx, ti.tdy, 0, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, buf);
+    	checkError(gl, "glTexImage2D");
+    	return ti;
+    }
+    public int nearestPOT(int n) {
+    	for (int i = 16; i < 4096; i <<= 1)
+    		if (i >= n)
+    			return i;
+    	return 256;
+    }
+    public static void checkError(GL10 gl, String desc) {
+    	int err = gl.glGetError();
+    	if (err != 0) {
+    		Log.e("cr3", "GL error " + err + " : " + desc);
+    	}
+    }
+    public void drawAt(GL10 gl, ShortBuffer pos) {
+    	// Telling OpenGL to enable textures.
+    	gl.glEnable(GL10.GL_TEXTURE_2D);
+    	checkError(gl, "glEnable");
+    	// Tell OpenGL where our texture is located.
+    	gl.glBindTexture(GL10.GL_TEXTURE_2D, textureId);
+    	checkError(gl, "glBindTexture");
+    	// Tell OpenGL to enable the use of UV coordinates.
+    	gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+    	checkError(gl, "glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY)");
+    	// Telling OpenGL where our UV coordinates are.
+    	gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureCoords);
+    	checkError(gl, "gl.glTexCoordPointer");
+    	 
+    	// ... here goes the rendering of the mesh ...
+	    gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+    	checkError(gl, "gl.glEnableClientState(GL10.GL_VERTEX_ARRAY)");
+	    gl.glVertexPointer(3, GL10.GL_SHORT, 0, pos);
+    	checkError(gl, "glVertexPointer(4, GL10.GL_SHORT, 0, pos)");
+	    //gl.glDrawElements(GL10.GL_TRIANGLES, 6, GL10.GL_UNSIGNED_SHORT, indexes);
+	    gl.glDrawElements(GL10.GL_TRIANGLES, 6, GL10.GL_UNSIGNED_SHORT, indexes);
+    	checkError(gl, "gl.glDrawElements(GL10.GL_TRIANGLES, 2, GL10.GL_UNSIGNED_SHORT, indexes)");
+	    //gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);    
+	    gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+    	checkError(gl, "gl.glDisableClientState(GL10.GL_VERTEX_ARRAY)");
+	    
+    	// Disable the use of UV coordinates.
+    	gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+    	checkError(gl, "gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY)");
+    	// Disable the use of textures.
+    	gl.glDisable(GL10.GL_TEXTURE_2D);
+    }
+}
+
+class GLUtil {
+    public static FloatBuffer makeFloatBuffer(float[] arr) {
+        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*4);
+        bb.order(ByteOrder.nativeOrder());
+        FloatBuffer fb = bb.asFloatBuffer();
+        fb.put(arr);
+        fb.position(0);
+        return fb;
+    }
+    
+    public static ShortBuffer makeShortBuffer(short[] arr) {
+        ByteBuffer bb = ByteBuffer.allocateDirect(arr.length*2);
+        bb.order(ByteOrder.nativeOrder());
+        ShortBuffer fb = bb.asShortBuffer();
+        fb.put(arr);
+        fb.position(0);
+        return fb;
+    }
+}
+
+public class ReaderView implements android.view.SurfaceHolder.Callback, Settings, OnKeyListener, OnTouchListener, OnFocusChangeListener {
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
+	
+	public boolean USE_GL = true;
 
+	private final SurfaceView surface;
+	private final BookView bookView;
+	public SurfaceView getSurface() { return surface; }
+	
+	public interface BookView {
+		void draw();
+		void draw(boolean isPartially);
+		void invalidate();
+		void onPause();
+		void onResume();
+	}
+	
+	public class GLReaderSurface extends GLSurfaceView implements BookView, GLSurfaceView.Renderer {
+
+		
+		public GLReaderSurface(Context context) {
+			super(context);
+			log.d("Creating GLReaderSurface");
+			setRenderer(this);
+			setRenderMode(RENDERMODE_WHEN_DIRTY);
+			surfaceSize = new PointF();
+		}
+		
+		@Override
+		public void onPause() {
+			super.onPause();
+			surfaceisReady = false;
+		}
+
+		@Override
+		public void onResume() {
+			super.onResume();
+		}
+
+		@Override
+		public void draw() {
+			draw(false);
+		}
+
+		@Override
+		public void draw(boolean isPartially) {
+			log.d("GLReaderSurface.draw(" + isPartially + ")");
+			if (!surfaceisReady)
+				return;
+			requestRender();
+		}
+
+		@Override
+		public void onDrawFrame(GL10 gl) {
+			log.d("GLReaderSurface.onDrawFrame");
+			gl.glPushMatrix();
+			 
+		    gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+		    //gl.glTranslatef(offset.x, offset.y, 0);
+		    //log.i("GL onDrawFrame triangleBuffer size=" + triangleBuffer.limit() + " pos=" + triangleBuffer.position());
+		    testTexture.drawAt(gl,  rectBuffer);
+		    
+//		    gl.glColor4f(1.0f, 0.3f, 0.0f, .5f);    
+//		    gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+//		    gl.glVertexPointer(3, GL10.GL_SHORT, 0, triangleBuffer);
+//		    gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 3);    
+//		    gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		 
+		    gl.glPopMatrix();
+		}
+
+		private boolean surfaceisReady;
+		private PointF surfaceSize;
+//		private ShortBuffer triangleBuffer;
+		private TextureInfo testTexture;
+		private ShortBuffer rectBuffer;
+		
+	    
+
+	    
+		@Override
+		public void onSurfaceChanged(GL10 gl, int width, int height) {
+			log.d("GLReaderSurface.onSurfaceChanged " + width + "x" + height);
+		    surfaceSize.set(width, height);
+		    
+		    // Create our triangle.
+//		    final int div = 1;
+//		    short[] triangles = { 
+//		        20, 20, 0,
+//		        20, (short) (surfaceSize.y / div - 20), 0,
+//		        (short) (surfaceSize.x / div - 20), (short) (surfaceSize.y / div - 20), 0,
+//		    };    
+		    //rectBuffer = GLUtil.makeShortBuffer(triangles);
+		    short d = 0;
+		    short[] buf = { 
+			        d, d, 0,
+			        (short) (surfaceSize.x - d), d, 0,
+			        d, (short) (surfaceSize.y - d), 0,
+			        (short) (surfaceSize.x - d), (short) (surfaceSize.y - d), 0,
+			};    
+			rectBuffer = GLUtil.makeShortBuffer(buf);
+		 
+		    // Disable a few things we are not going to use.
+		    gl.glDisable(GL10.GL_LIGHTING);
+		    gl.glDisable(GL10.GL_CULL_FACE);
+		    gl.glDisable(GL10.GL_DEPTH_BUFFER_BIT);
+		    gl.glDisable(GL10.GL_DEPTH_TEST);
+		    gl.glClearColor(.5f, .5f, .8f, 1.f);
+		    gl.glShadeModel(GL10.GL_SMOOTH);
+		 
+		    float ratio = surfaceSize.x / surfaceSize.y;
+		    gl.glViewport(0, 0, (int) surfaceSize.x, (int) surfaceSize.y);
+		 
+		    // Set our field of view.
+		    gl.glMatrixMode(GL10.GL_PROJECTION);
+		    gl.glLoadIdentity();
+//		    gl.glFrustumf(
+//		        -surfaceSize.x / 2, surfaceSize.x / 2, 
+//		        -surfaceSize.y / 2, surfaceSize.y / 2,
+//		        1, 3);
+		    gl.glOrthof(0, surfaceSize.x, surfaceSize.y, 0, -3f, 10f);
+		    //GLU.gluOrtho2D(gl, 0, surfaceSize.x, 0, surfaceSize.y);
+		    // Position the camera at (0, 0, -2) looking down the -z axis.
+		    gl.glMatrixMode(GL10.GL_MODELVIEW);
+		    gl.glLoadIdentity();
+		    // Points rendered to z=0 will be exactly at the frustum's 
+		    // (farZ - nearZ) / 2 so the actual dimension of the triangle should be
+		    // half
+		    //gl.glTranslatef(0, 0, -2);
+		    testTexture = TextureInfo.createTestTexture(gl, width, height);
+		    
+			surfaceisReady = true;
+		}
+
+		@Override
+		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+			log.d("GLReaderSurface.onSurfaceCreated");
+		}
+		
+		@Override
+		public void invalidate() {
+			log.d("GLReaderSurface.invalidate");
+			if (!surfaceisReady)
+				return;
+			requestRender();
+		}
+		
+	}
+	
+	public class ReaderSurface extends SurfaceView implements BookView {
+
+		public ReaderSurface(Context context) {
+			super(context);
+			// TODO Auto-generated constructor stub
+		}
+		@Override 
+		public void onPause() {
+			
+		}
+		@Override 
+		public void onResume() {
+			
+		}
+		@Override 
+	    protected void onDraw(Canvas canvas) {
+	    	try {
+	    		log.d("onDraw() called");
+	    		draw();
+	    	} catch ( Exception e ) {
+	    		log.e("exception while drawing", e);
+	    	}
+	    }
+	    
+	    @Override
+		protected void onDetachedFromWindow() {
+			super.onDetachedFromWindow();
+			log.d("View.onDetachedFromWindow() is called");
+		}
+
+		@Override
+		public boolean onTrackballEvent(MotionEvent event) {
+			log.d("onTrackballEvent(" + event + ")");
+			if ( mSettings.getBool(PROP_APP_TRACKBALL_DISABLED, false) ) {
+				log.d("trackball is disabled in settings");
+				return true;
+			}
+			mActivity.onUserActivity();
+			return super.onTrackballEvent(event);
+		}
+	
+		@Override
+		protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
+			log.i("onSizeChanged("+w + ", " + h +")");
+			super.onSizeChanged(w, h, oldw, oldh);
+			requestResize(w, h);
+		}
+
+		@Override
+		public void onWindowVisibilityChanged(int visibility) {
+			if (visibility == VISIBLE)
+				startStats();
+			else
+				stopStats();
+			super.onWindowVisibilityChanged(visibility);
+		}
+		 	
+		@Override
+		public void onWindowFocusChanged(boolean hasWindowFocus) {
+			if (hasWindowFocus)
+				startStats();
+			else
+				stopStats();
+			super.onWindowFocusChanged(hasWindowFocus);
+		}
+		
+		protected void doDraw(Canvas canvas)
+		{
+	       	try {
+	    		log.d("doDraw() called");
+	    		if (isProgressActive()) {
+	        		log.d("onDraw() -- drawing progress " + (currentProgressPosition / 100));
+	        		drawPageBackground(canvas);
+	        		doDrawProgress(canvas, currentProgressPosition, currentProgressTitle);
+	    		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
+	        		log.d("onDraw() -- drawing page image");
+
+	        		if (currentAutoScrollAnimation != null) {
+	        			currentAutoScrollAnimation.draw(canvas);
+	        			return;
+	        		}
+	        		
+	        		if (currentAnimation != null) {
+	        			currentAnimation.draw(canvas);
+	        			return;
+	        		}
+
+	        		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
+	        		Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
+	        		if ( dontStretchWhileDrawing ) {
+		        		if ( dst.right>src.right )
+		        			dst.right = src.right;
+		        		if ( dst.bottom>src.bottom )
+		        			dst.bottom = src.bottom;
+		        		if ( src.right>dst.right )
+		        			src.right = dst.right;
+		        		if ( src.bottom>dst.bottom )
+		        			src.bottom = dst.bottom;
+		        		if ( centerPageInsteadOfResizing ) {
+			        		int ddx = (canvas.getWidth() - dst.width()) / 2;
+			        		int ddy = (canvas.getHeight() - dst.height()) / 2;
+			        		dst.left += ddx; 
+			        		dst.right += ddx; 
+			        		dst.top += ddy; 
+			        		dst.bottom += ddy; 
+		        		}
+	        		}
+	        		if ( dst.width()!=canvas.getWidth() || dst.height()!=canvas.getHeight() )
+	        			canvas.drawColor(Color.rgb(32, 32, 32));
+	        		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
+	    		} else {
+	        		log.d("onDraw() -- drawing empty screen");
+	        		drawPageBackground(canvas);
+	    		}
+	    	} catch ( Exception e ) {
+	    		log.e("exception while drawing", e);
+	    	}
+		}
+		@Override
+		public void draw()
+		{
+			draw(false);
+		}
+		@Override
+		public void draw(boolean isPartially)
+		{
+			drawCallback(new DrawCanvasCallback() {
+				@Override
+				public void drawTo(Canvas c) {
+					doDraw(c);
+				}
+			}, null, isPartially);
+		}
+
+		@Override
+		public void invalidate() {
+			super.invalidate();
+		}
+
+	}
+	
 	private DocView doc;
 	
     // additional key codes for Nook
@@ -84,124 +525,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     // Double tap selections within this radius are are assumed to be attempts to select a single point 
     public static final int DOUBLE_TAP_RADIUS = 60;
     
-    public enum ViewMode
-    {
-    	PAGES,
-    	SCROLL
-    }
-    
     private ViewMode viewMode = ViewMode.PAGES;
-    
-    public enum ReaderCommand
-    {
-    	DCMD_NONE(0),
-    	DCMD_REPEAT(1), // repeat last action
-    	
-    	//definitions from crengine/include/lvdocview.h
-    	DCMD_BEGIN(100),
-    	DCMD_LINEUP(101),
-    	DCMD_PAGEUP(102),
-    	DCMD_PAGEDOWN(103),
-    	DCMD_LINEDOWN(104),
-    	DCMD_LINK_FORWARD(105),
-    	DCMD_LINK_BACK(106),
-    	DCMD_LINK_NEXT(107),
-    	DCMD_LINK_PREV(108),
-    	DCMD_LINK_GO(109),
-    	DCMD_END(110),
-    	DCMD_GO_POS(111),
-    	DCMD_GO_PAGE(112),
-    	DCMD_ZOOM_IN(113),
-    	DCMD_ZOOM_OUT(114),
-    	DCMD_TOGGLE_TEXT_FORMAT(115),
-    	DCMD_BOOKMARK_SAVE_N(116),
-    	DCMD_BOOKMARK_GO_N(117),
-    	DCMD_MOVE_BY_CHAPTER(118),
-    	DCMD_GO_SCROLL_POS(119),
-    	DCMD_TOGGLE_PAGE_SCROLL_VIEW(120),
-    	DCMD_LINK_FIRST(121),
-    	DCMD_ROTATE_BY(122),
-    	DCMD_ROTATE_SET(123),
-    	DCMD_SAVE_HISTORY(124),
-    	DCMD_SAVE_TO_CACHE(125),
-    	DCMD_TOGGLE_BOLD(126),
-    	DCMD_SCROLL_BY(127),
-    	DCMD_REQUEST_RENDER(128),
-    	DCMD_GO_PAGE_DONT_SAVE_HISTORY(129),
-    	DCMD_SET_INTERNAL_STYLES(130),
-    	
-        DCMD_SELECT_FIRST_SENTENCE(131), // select first sentence on page
-        DCMD_SELECT_NEXT_SENTENCE(132), // move selection to next sentence
-        DCMD_SELECT_PREV_SENTENCE(133), // move selection to next sentence
-        DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS(134), // move selection start by words 
-        DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS(135), // move selection end by words 
-
-    	DCMD_SET_TEXT_FORMAT(136),
-
-    	DCMD_SET_DOC_FONTS(137),
-
-        
-		
-    	// definitions from android/jni/readerview.h
-    	DCMD_OPEN_RECENT_BOOK(2000),
-    	DCMD_CLOSE_BOOK(2001),
-    	DCMD_RESTORE_POSITION(2002),
-
-    	// application actions
-    	DCMD_RECENT_BOOKS_LIST(2003),
-    	DCMD_SEARCH(2004),
-    	DCMD_EXIT(2005),
-    	DCMD_BOOKMARKS(2005),
-    	DCMD_GO_PERCENT_DIALOG(2006),
-    	DCMD_GO_PAGE_DIALOG(2007),
-    	DCMD_TOC_DIALOG(2008),
-    	DCMD_FILE_BROWSER(2009),
-    	DCMD_OPTIONS_DIALOG(2010),
-    	DCMD_TOGGLE_DAY_NIGHT_MODE(2011),
-    	DCMD_READER_MENU(2012),
-    	DCMD_TOGGLE_TOUCH_SCREEN_LOCK(2013),
-    	DCMD_TOGGLE_SELECTION_MODE(2014),
-    	DCMD_TOGGLE_ORIENTATION(2015),
-    	DCMD_TOGGLE_FULLSCREEN(2016),
-    	DCMD_SHOW_HOME_SCREEN(2017), // home screen activity
-    	DCMD_TOGGLE_DOCUMENT_STYLES(2018),
-    	DCMD_ABOUT(2019),
-    	DCMD_BOOK_INFO(2020),
-    	DCMD_TTS_PLAY(2021),
-    	DCMD_TOGGLE_TITLEBAR(2022),
-    	DCMD_SHOW_POSITION_INFO_POPUP(2023),
-    	DCMD_SHOW_DICTIONARY(2024),
-    	DCMD_OPEN_PREVIOUS_BOOK(2025),
-    	DCMD_TOGGLE_AUTOSCROLL(2026),
-    	DCMD_AUTOSCROLL_SPEED_INCREASE(2027),
-    	DCMD_AUTOSCROLL_SPEED_DECREASE(2028),
-    	DCMD_START_SELECTION(2029),
-    	DCMD_SWITCH_PROFILE(2030),
-    	DCMD_TOGGLE_TEXT_AUTOFORMAT(2031),
-
-    	DCMD_FONT_NEXT(2032),
-		DCMD_FONT_PREVIOUS(2033),
-
-    	DCMD_USER_MANUAL(2034),
-    	DCMD_CURRENT_BOOK_DIRECTORY(2035),
-    	
-    	DCMD_OPDS_CATALOGS(2050),
-    	DCMD_FILE_BROWSER_ROOT(2051),
-    	DCMD_FILE_BROWSER_UP(2052),
-    	DCMD_CURRENT_BOOK(2053),
-    	DCMD_SCAN_DIRECTORY_RECURSIVE(2054),
-		;
-    	
-    	private final int nativeId;
-    	private ReaderCommand( int nativeId )
-    	{
-    		this.nativeId = nativeId;
-    	}
-    	
-    	public int getNativeId() {
-    		return nativeId;
-    	}
-    }
     
     private void execute( Engine.EngineTask task )
     {
@@ -281,12 +605,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
     
 	private int lastResizeTaskId = 0;
-	@Override
-	protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
-		log.i("onSizeChanged("+w + ", " + h +")");
-		super.onSizeChanged(w, h, oldw, oldh);
-		requestResize(w, h);
-	}
 	
 	public boolean isBookLoaded()
 	{
@@ -367,103 +685,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private ReaderAction currentSingleClickAction = null;
 	private long currentDoubleClickActionStart = 0;
 	private int currentDoubleClickActionKeyCode = 0;
-	@Override
-	public boolean onKeyUp(int keyCode, final KeyEvent event) {
-		if (keyCode == 0)
-			keyCode = event.getScanCode();
-		mActivity.onUserActivity();
-		keyCode = translateKeyCode(keyCode);
-		if (currentImageViewer != null)
-			return currentImageViewer.onKeyUp(keyCode, event);
-		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP ) {
-    		if (isAutoScrollActive())
-    			return true;
-			if ( !enableVolumeKeys )
-				return super.onKeyUp(keyCode, event);
-		}
-		if (isAutoScrollActive()) {
-			stopAutoScroll();
-			return true;
-		}
-		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
-			mActivity.releaseBacklightControl();
-			return false;
-		}
-		boolean tracked = isTracked(event);
-//		if ( keyCode!=KeyEvent.KEYCODE_BACK )
-//			backKeyDownHere = false;
-
-		if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
-			return true;
-		//backKeyDownHere = false;
-		
-		// apply orientation
-		keyCode = overrideKey( keyCode );
-		boolean isLongPress = false;
-		Long keyDownTs = keyDownTimestampMap.get(keyCode);
-		if ( keyDownTs!=null && System.currentTimeMillis()-keyDownTs>=LONG_KEYPRESS_TIME )
-			isLongPress = true;
-		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
-		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
-		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
-		stopTracking();
-
-/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
-			// goto/set shortcut bookmark
-			int shortcut = keyCode - KeyEvent.KEYCODE_0;
-			if ( shortcut==0 )
-				shortcut = 10;
-			if ( isLongPress )
-				addBookmark(shortcut);
-			else
-				goToBookmark(shortcut);
-			return true;
-		}*/
-		if ( action.isNone() || !tracked ) {
-			return super.onKeyUp(keyCode, event);
-		}
-		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
-			// already processed by onKeyDown()
-			return true;
-		}
-		
-		if ( isLongPress ) {
-			action = longAction;
-		} else {
-			if ( !dblAction.isNone() ) {
-				// wait for possible double click
-				currentDoubleClickActionStart = android.os.SystemClock.uptimeMillis();
-				currentDoubleClickAction = dblAction;
-				currentSingleClickAction = action;
-				currentDoubleClickActionKeyCode = keyCode;
-				final int myKeyCode = keyCode;
-				BackgroundThread.instance().postGUI(new Runnable() {
-					public void run() {
-						if ( currentSingleClickAction!=null && currentDoubleClickActionKeyCode==myKeyCode ) {
-							log.d("onKeyUp: single click action " + currentSingleClickAction.id + " found for key " + myKeyCode + " single click");
-							onAction( currentSingleClickAction );
-						}
-						currentDoubleClickActionStart = 0;
-						currentDoubleClickActionKeyCode = 0;
-						currentDoubleClickAction = null;
-						currentSingleClickAction = null;
-					}
-				}, DOUBLE_CLICK_INTERVAL);
-				// posted
-				return true;
-			}
-		}
-		if ( !action.isNone() ) {
-			log.d("onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
-			onAction( action );
-			return true;
-		}
-		
-
-		// not processed
-		return super.onKeyUp(keyCode, event);
-	}
-
 //	boolean VOLUME_KEYS_ZOOM = false;
 	
 	//private boolean backKeyDownHere = false;
@@ -498,40 +719,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		statTimeElapsed = timeElapsed;
 	}
 
-	@Override
-	public void onWindowVisibilityChanged(int visibility) {
-		if (visibility == VISIBLE)
-			startStats();
-		else
-			stopStats();
-		super.onWindowVisibilityChanged(visibility);
-	}
-	 	
-	@Override
-	public void onWindowFocusChanged(boolean hasWindowFocus) {
-		if (hasWindowFocus)
-			startStats();
-		else
-			stopStats();
-		super.onWindowFocusChanged(hasWindowFocus);
-	}
-	
-	@Override
-	protected void onFocusChanged(boolean gainFocus, int direction,
-			Rect previouslyFocusedRect) {
-		stopTracking();
-		if (currentAutoScrollAnimation != null)
-			stopAutoScroll();
-		super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
-	}
-	
 	public void onAppPause() {
 		stopTracking();
 		if (currentAutoScrollAnimation != null)
 			stopAutoScroll();
 		saveCurrentPositionBookmarkSync(true);
+		bookView.onPause();
 	}
-	
+
+	public void onAppResume() {
+		bookView.onResume();
+	}
+
 	private boolean startTrackingKey( KeyEvent event ) {
 		if ( event.getRepeatCount()==0 ) {
 			stopTracking();
@@ -573,12 +772,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return false;
 	}
 
-	@Override
-	public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
-		log.v("onKeyMultiple( keyCode=" + keyCode + ", repeatCount=" + repeatCount + ", event=" + event);
-		return super.onKeyMultiple(keyCode, repeatCount, event);
-	}
-
 
 	private KeyEvent trackedKeyEvent = null; 
 	private ReaderAction actionToRepeat = null;
@@ -593,138 +786,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				return KeyEvent.KEYCODE_VOLUME_DOWN;
 		}
 		return keyCode;
-	}
-	
-	@Override
-	public boolean onKeyDown(int keyCode, final KeyEvent event) {
-		
-		if (keyCode == 0)
-			keyCode = event.getScanCode();
-		keyCode = translateKeyCode(keyCode);
-
-		mActivity.onUserActivity();
-		
-		if (currentImageViewer != null)
-			return currentImageViewer.onKeyDown(keyCode, event);
-
-//		backKeyDownHere = false;
-		if ( event.getRepeatCount()==0 ) {
-			log.v("onKeyDown("+keyCode + ", " + event +")");
-			keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
-			
-			if (keyCode == KeyEvent.KEYCODE_BACK) {
-				// force saving position on BACK key press
-				scheduleSaveCurrentPositionBookmark(1);
-			}
-		}
-		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
-			mActivity.releaseBacklightControl();
-			boolean res = super.onKeyDown(keyCode, event);
-			return res;
-		}
-
-    	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN ) {
-    		if (isAutoScrollActive()) {
-    			if (keyCode==KeyEvent.KEYCODE_VOLUME_UP)
-    				changeAutoScrollSpeed(1);
-    			else
-    				changeAutoScrollSpeed(-1);
-    			return true;
-    		}
-    		if (!enableVolumeKeys) {
-    			boolean res = super.onKeyDown(keyCode, event);
-    			return res;
-    		}
-    	}
-    	
-		if (isAutoScrollActive())
-			return true; // autoscroll will be stopped in onKeyUp
-    	
-		keyCode = overrideKey( keyCode );
-		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
-		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
-		//ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
-
-		if ( event.getRepeatCount()==0 ) {
-			if ( keyCode==currentDoubleClickActionKeyCode && currentDoubleClickActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
-				if ( currentDoubleClickAction!=null ) {
-					log.d("executing doubleclick action " + currentDoubleClickAction);
-					onAction(currentDoubleClickAction);
-				}
-				currentDoubleClickActionStart = 0;
-				currentDoubleClickActionKeyCode = 0;
-				currentDoubleClickAction = null;
-				currentSingleClickAction = null;
-				return true;
-			} else {
-				if ( currentSingleClickAction!=null ) {
-					onAction(currentSingleClickAction);
-				}
-				currentDoubleClickActionStart = 0;
-				currentDoubleClickActionKeyCode = 0;
-				currentDoubleClickAction = null;
-				currentSingleClickAction = null;
-			}
-			
-		}
-		
-		
-    	if ( event.getRepeatCount()>0 ) {
-    		if ( !isTracked(event) )
-    			return true; // ignore
-    		// repeating key down
-    		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=AUTOREPEAT_KEYPRESS_TIME;
-    		if ( isLongPress ) {
-	    		if ( actionToRepeat!=null ) {
-	    			if ( !repeatActionActive ) {
-		    			log.v("autorepeating action : " + actionToRepeat );
-		    			repeatActionActive = true;
-		    			onAction(actionToRepeat, new Runnable() {
-		    				public void run() {
-		    					if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime()==event.getDownTime() ) {
-		    						log.v("action is completed : " + actionToRepeat );
-		    						repeatActionActive = false;
-		    					}
-		    				}
-		    			});
-	    			}
-	    		} else {
-	    			stopTracking();
-	    			log.v("executing action on long press : " + longAction );
-	    			onAction(longAction);
-	    		}
-    		}
-    		return true;
-    	}
-		
-		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
-			// start tracking repeat
-			startTrackingKey(event);
-			actionToRepeat = action;
-			log.v("running action with scheduled autorepeat : " + actionToRepeat );
-			repeatActionActive = true;
-			onAction(actionToRepeat, new Runnable() {
-				public void run() {
-					if ( trackedKeyEvent==event ) {
-						log.v("action is completed : " + actionToRepeat );
-						repeatActionActive = false;
-					}
-				}
-			});
-			return true;
-		} else {
-			actionToRepeat = null;
-		}
-		
-/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
-			// will process in keyup handler
-			startTrackingKey(event);
-			return true;
-		}*/
-		if ( action.isNone() && longAction.isNone() )
-			return super.onKeyDown(keyCode, event);
-		startTrackingKey(event);
-		return true;
 	}
 	
 	private int nextUpdateId = 0;
@@ -745,7 +806,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					invalidImages = true;
 					BitmapInfo bi = preparePageImage(0);
 					if ( bi!=null ) {
-						draw(true);
+						bookView.draw(true);
 					}
 				}
 			}
@@ -1412,8 +1473,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				case STATE_INITIAL:
 					start_x = x;
 					start_y = y;
-					width = getWidth();
-					height = getHeight();
+					width = surface.getWidth();
+					height = surface.getHeight();
 					int zone = getTapZone(x, y, width, height);
 					shortTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_SHORT);
 					longTapAction = findTapZoneAction(zone, TAP_ACTION_TYPE_LONGPRESS);
@@ -1489,51 +1550,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 	}
 	
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		
-		if ( !isTouchScreenEnabled ) {
-			return true;
-		}
-		if (event.getX()==0 && event.getY()==0)
-			return true;
-		mActivity.onUserActivity();
-		
-		if (currentImageViewer != null)
-			return currentImageViewer.onTouchEvent(event);
-		
-		if (isAutoScrollActive()) {
-			//if (currentTapHandler != null && currentTapHandler.isInitialState()) {
-			if (event.getAction() == MotionEvent.ACTION_DOWN) {
-				int x = (int)event.getX();
-				int y = (int)event.getY();
-				int z = getTapZone(x, y, getWidth(), getHeight());
-				if (z == 7)
-					changeAutoScrollSpeed(-1);
-				else if (z == 9)
-					changeAutoScrollSpeed(1);
-				else
-					stopAutoScroll();
-			}
-			return true;
-		}
-		
-		if (currentTapHandler == null)
-			currentTapHandler = new TapHandler();
-		currentTapHandler.checkExpiration();
-		return currentTapHandler.onTouchEvent(event);
-	}
-
-	@Override
-	public boolean onTrackballEvent(MotionEvent event) {
-		log.d("onTrackballEvent(" + event + ")");
-		if ( mSettings.getBool(PROP_APP_TRACKBALL_DISABLED, false) ) {
-			log.d("trackball is disabled in settings");
-			return true;
-		}
-		mActivity.onUserActivity();
-		return super.onTrackballEvent(event);
-	}
 	
 	public void showTOC()
 	{
@@ -1630,7 +1646,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				invalidImages = true;
 			}
 			public void done() {
-				if (isShown())
+				if (surface.isShown())
 					drawPage(true);
 			}
 		});
@@ -1650,7 +1666,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				invalidImages = true;
 			}
 			public void done() {
-				if (isShown())
+				if (surface.isShown())
 					drawPage(true);
 			}
 		});
@@ -2425,19 +2441,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 	}
 
-	public void redraw() {
-		//BackgroundThread.instance().executeBackground(new Runnable() {
-		BackgroundThread.instance().executeGUI(new Runnable() {
-			@Override
-			public void run() {
-				invalidate();
-				invalidImages = true;
-				//preparePageImage(0);
-				draw();
-			}
-		});
-	}
-
 	public void onCommand( final ReaderCommand cmd, final int param )
 	{
 		onCommand( cmd, param, null );
@@ -2902,8 +2905,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		int updMode      = props.getInt(PROP_APP_SCREEN_UPDATE_MODE, 0);
 		int updInterval  = props.getInt(PROP_APP_SCREEN_UPDATE_INTERVAL, 10);
-		mActivity.setScreenUpdateMode(updMode, this);
-		mActivity.setScreenUpdateInterval(updInterval, this);		
+		mActivity.setScreenUpdateMode(updMode, surface);
+		mActivity.setScreenUpdateInterval(updInterval, surface);		
 		
 		doc.applySettings(props);
         //syncViewSettings(props, save, saveDelayed);
@@ -3516,8 +3519,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				internalDY = requestedHeight;
 				doc.resize(internalDX, internalDY);
 			} else {
-				internalDX = getWidth();
-				internalDY = getHeight();
+				internalDX = surface.getWidth();
+				internalDY = surface.getHeight();
 				doc.resize(internalDX, internalDY);
 			}
 //			internalDX=200;
@@ -3673,7 +3676,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.e("DrawPageTask.work("+internalDX+","+internalDY+")");
 			bi = preparePageImage(0);
 			if ( bi!=null ) {
-				draw(isPartially);
+				bookView.draw(isPartially);
 			}
 		}
 		@Override
@@ -3802,9 +3805,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 
 		
-		invalidate();
+		surface.invalidate();
 		//if (!isProgressActive())
-		draw();
+		bookView.draw();
 		//requestResize(width, height);
 		//draw();
 	}
@@ -3921,7 +3924,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private final static int HILITE_RECT_ALPHA = 32;
 	private Rect hiliteRect = null;
 	private void unhiliteTapZone() {
-		hiliteTapZone( false, 0, 0, getWidth(), getHeight() );
+		hiliteTapZone( false, 0, 0, surface.getWidth(), surface.getHeight() );
 	}
 	private void hiliteTapZone( final boolean hilite, final int startX, final int startY, final int maxX, final int maxY )
 	{
@@ -3996,7 +3999,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 	private void updateBrightnessControl(final int x, final int y) {
 		int n = OptionsDialog.mBacklightLevels.length;
-		int index = n - 1 - y * n / getHeight();
+		int index = n - 1 - y * n / surface.getHeight();
 		if ( index<0 )
 			index = 0;
 		else if ( index>=n )
@@ -4176,7 +4179,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return;
 		//synchronized(surfaceLock) { }
 		//log.v("draw() - in thread " + Thread.currentThread().getName());
-		final SurfaceHolder holder = getHolder();
+		final SurfaceHolder holder = surface.getHolder();
 		//log.v("before synchronized(surfaceLock)");
 		if ( holder!=null )
 		//synchronized(surfaceLock) 
@@ -4188,13 +4191,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				//log.v("before draw(canvas)");
 				if ( canvas!=null ) {
 					if (DeviceInfo.EINK_SCREEN){
-						EinkScreen.PrepareController(this, isPartially);
+						EinkScreen.PrepareController(surface, isPartially);
 					}
 					callback.drawTo(canvas);
 				}
 			} finally {
 				//log.v("exiting finally");
-				if ( canvas!=null && getHolder()!=null ) {
+				if ( canvas!=null && surface.getHolder()!=null ) {
 					//log.v("before unlockCanvasAndPost");
 					if ( canvas!=null && holder!=null ) {
 						holder.unlockCanvasAndPost(canvas);
@@ -4975,7 +4978,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (currentProgressPosition != position || currentProgressTitle != titleResource) {
 			currentProgressPosition = position;
 			currentProgressTitle = titleResource;
-			draw(!first);
+			bookView.draw(!first);
 		}
 	}
 	
@@ -4984,7 +4987,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		if (currentProgressTitle != 0) {
 			currentProgressPosition = -1;
 			currentProgressTitle = 0;
-			draw(false);
+			bookView.draw(false);
 		}
 	}
 	
@@ -5041,7 +5044,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        BackgroundThread.instance().postGUI(new Runnable() {
 				@Override
 				public void run() {
-					draw(false);
+					bookView.draw(false);
 				}
 			});
 	        //init();
@@ -5077,8 +5080,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        	findCoverPage();
 				log.v("requesting page image, to render");
 				if (internalDX == 0 || internalDY == 0) {
-					internalDX = getWidth();
-					internalDY = getHeight();
+					internalDX = surface.getWidth();
+					internalDY = surface.getHeight();
 					log.d("LoadDocument task: no size defined, resizing using widget size");
 					doc.resize(internalDX, internalDY);
 				}
@@ -5313,88 +5316,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //		canvas.drawRect(rc2, createSolidPaint(0xFFC0C0A0));
 	}
 	
-	protected void doDraw(Canvas canvas)
-	{
-       	try {
-    		log.d("doDraw() called");
-    		if (isProgressActive()) {
-        		log.d("onDraw() -- drawing progress " + (currentProgressPosition / 100));
-        		drawPageBackground(canvas);
-        		doDrawProgress(canvas, currentProgressPosition, currentProgressTitle);
-    		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
-        		log.d("onDraw() -- drawing page image");
-
-        		if (currentAutoScrollAnimation != null) {
-        			currentAutoScrollAnimation.draw(canvas);
-        			return;
-        		}
-        		
-        		if (currentAnimation != null) {
-        			currentAnimation.draw(canvas);
-        			return;
-        		}
-
-        		Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-        		Rect src = new Rect(0, 0, mCurrentPageInfo.bitmap.getWidth(), mCurrentPageInfo.bitmap.getHeight());
-        		if ( dontStretchWhileDrawing ) {
-	        		if ( dst.right>src.right )
-	        			dst.right = src.right;
-	        		if ( dst.bottom>src.bottom )
-	        			dst.bottom = src.bottom;
-	        		if ( src.right>dst.right )
-	        			src.right = dst.right;
-	        		if ( src.bottom>dst.bottom )
-	        			src.bottom = dst.bottom;
-	        		if ( centerPageInsteadOfResizing ) {
-		        		int ddx = (canvas.getWidth() - dst.width()) / 2;
-		        		int ddy = (canvas.getHeight() - dst.height()) / 2;
-		        		dst.left += ddx; 
-		        		dst.right += ddx; 
-		        		dst.top += ddy; 
-		        		dst.bottom += ddy; 
-	        		}
-        		}
-        		if ( dst.width()!=canvas.getWidth() || dst.height()!=canvas.getHeight() )
-        			canvas.drawColor(Color.rgb(32, 32, 32));
-        		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
-    		} else {
-        		log.d("onDraw() -- drawing empty screen");
-        		drawPageBackground(canvas);
-    		}
-    	} catch ( Exception e ) {
-    		log.e("exception while drawing", e);
-    	}
-	}
 	
-	protected void draw()
-	{
-		drawCallback(new DrawCanvasCallback() {
-			@Override
-			public void drawTo(Canvas c) {
-				doDraw(c);
-			}
-		}, null, false);
-	}
-	protected void draw(boolean isPartially)
-	{
-		drawCallback(new DrawCanvasCallback() {
-			@Override
-			public void drawTo(Canvas c) {
-				doDraw(c);
-			}
-		}, null, isPartially);
-	}
-	
-    @Override 
-    protected void onDraw(Canvas canvas) {
-    	try {
-    		log.d("onDraw() called");
-    		draw();
-    	} catch ( Exception e ) {
-    		log.e("exception while drawing", e);
-    	}
-    }
-    
     private int dimmingAlpha = 255; // no dimming
     public void setDimmingAlpha( int alpha ) {
     	if ( alpha>255 )
@@ -5406,7 +5328,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		mEngine.execute(new Task() {
 				@Override
 				public void work() throws Exception {
-		    		draw();
+					bookView.draw();
 				}
     			
     		});
@@ -5599,12 +5521,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	}
     }
     
-    @Override
-	protected void onDetachedFromWindow() {
-		super.onDetachedFromWindow();
-		log.d("View.onDetachedFromWindow() is called");
-	}
-
 	private String getCSSForFormat( DocumentFormat fileFormat )
 	{
 		if ( fileFormat==null )
@@ -5810,7 +5726,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void goToPosition( int position )
     {
 		BackgroundThread.ensureGUI();
-		doEngineCommand(ReaderView.ReaderCommand.DCMD_GO_POS, position);
+		doEngineCommand(ReaderCommand.DCMD_GO_POS, position);
     }
     
     public void moveBy( final int delta )
@@ -5832,7 +5748,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void goToPage( int pageNumber )
     {
 		BackgroundThread.ensureGUI();
-		doEngineCommand(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
+		doEngineCommand(ReaderCommand.DCMD_GO_PAGE, pageNumber-1);
     }
     
     public void goToPercent( final int percent )
@@ -5844,7 +5760,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    			PositionProperties pos = doc.getPositionProps(null);
 	    			if ( pos!=null && pos.pageCount>0) {
 	    				int pageNumber = pos.pageCount * percent / 100; 
-						doCommandFromBackgroundThread(ReaderView.ReaderCommand.DCMD_GO_PAGE, pageNumber);
+						doCommandFromBackgroundThread(ReaderCommand.DCMD_GO_PAGE, pageNumber);
 	    			}
 	    		}
 	    	});
@@ -5870,7 +5786,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void done() {
 				if ( callback!=null ) {
 					clearImageCache();
-					invalidate();
+					surface.invalidate();
 					drawPage();
 					if ( res )
 						callback.onNewSelection(selection);
@@ -6005,35 +5921,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	}
     }
 
-	public ReaderView(CoolReader activity, Engine engine, Properties props) 
-    {
-        super(activity);
-        doc = new DocView(engine);
-        doc.setReaderCallback(readerCallback);
-        SurfaceHolder holder = getHolder();
-        holder.addCallback(this);
-        
-		BackgroundThread.ensureGUI();
-        this.mActivity = activity;
-        this.mEngine = engine;
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-        
-        BackgroundThread.instance().postBackground(new Runnable() {
-
-			@Override
-			public void run() {
-				log.d("ReaderView - in background thread: calling createInternal()");
-				doc.create();
-				mInitialized = true;
-			}
-        	
-        });
-
-        post(new CreateViewTask( props ));
-
-    }
-	
 	private void switchFontFace(int direction) {
 		String currentFontFace = mSettings.getProperty(PROP_FONT_FACE, "");
 		String[] mFontFaces = Engine.getFontFaceList();
@@ -6123,4 +6010,338 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 	}
 
+	@Override
+	public boolean onKey(View v, int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		if (event.getAction() == KeyEvent.ACTION_DOWN)
+			return onKeyDown(keyCode, event);
+		else if (event.getAction() == KeyEvent.ACTION_UP)
+			return onKeyUp(keyCode, event);
+		return false;
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		return onTouchEvent(event);
+	}
+
+	public boolean onKeyDown(int keyCode, final KeyEvent event) {
+		
+		if (keyCode == 0)
+			keyCode = event.getScanCode();
+		keyCode = translateKeyCode(keyCode);
+
+		mActivity.onUserActivity();
+		
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyDown(keyCode, event);
+
+//		backKeyDownHere = false;
+		if ( event.getRepeatCount()==0 ) {
+			log.v("onKeyDown("+keyCode + ", " + event +")");
+			keyDownTimestampMap.put(keyCode, System.currentTimeMillis());
+			
+			if (keyCode == KeyEvent.KEYCODE_BACK) {
+				// force saving position on BACK key press
+				scheduleSaveCurrentPositionBookmark(1);
+			}
+		}
+		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
+			mActivity.releaseBacklightControl();
+			return false;
+		}
+
+    	if ( keyCode==KeyEvent.KEYCODE_VOLUME_UP || keyCode==KeyEvent.KEYCODE_VOLUME_DOWN ) {
+    		if (isAutoScrollActive()) {
+    			if (keyCode==KeyEvent.KEYCODE_VOLUME_UP)
+    				changeAutoScrollSpeed(1);
+    			else
+    				changeAutoScrollSpeed(-1);
+    			return true;
+    		}
+    		if (!enableVolumeKeys) {
+    			return false;
+    		}
+    	}
+    	
+		if (isAutoScrollActive())
+			return true; // autoscroll will be stopped in onKeyUp
+    	
+		keyCode = overrideKey( keyCode );
+		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
+		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+		//ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
+
+		if ( event.getRepeatCount()==0 ) {
+			if ( keyCode==currentDoubleClickActionKeyCode && currentDoubleClickActionStart + DOUBLE_CLICK_INTERVAL > android.os.SystemClock.uptimeMillis() ) {
+				if ( currentDoubleClickAction!=null ) {
+					log.d("executing doubleclick action " + currentDoubleClickAction);
+					onAction(currentDoubleClickAction);
+				}
+				currentDoubleClickActionStart = 0;
+				currentDoubleClickActionKeyCode = 0;
+				currentDoubleClickAction = null;
+				currentSingleClickAction = null;
+				return true;
+			} else {
+				if ( currentSingleClickAction!=null ) {
+					onAction(currentSingleClickAction);
+				}
+				currentDoubleClickActionStart = 0;
+				currentDoubleClickActionKeyCode = 0;
+				currentDoubleClickAction = null;
+				currentSingleClickAction = null;
+			}
+			
+		}
+		
+		
+    	if ( event.getRepeatCount()>0 ) {
+    		if ( !isTracked(event) )
+    			return true; // ignore
+    		// repeating key down
+    		boolean isLongPress = (event.getEventTime()-event.getDownTime())>=AUTOREPEAT_KEYPRESS_TIME;
+    		if ( isLongPress ) {
+	    		if ( actionToRepeat!=null ) {
+	    			if ( !repeatActionActive ) {
+		    			log.v("autorepeating action : " + actionToRepeat );
+		    			repeatActionActive = true;
+		    			onAction(actionToRepeat, new Runnable() {
+		    				public void run() {
+		    					if ( trackedKeyEvent!=null && trackedKeyEvent.getDownTime()==event.getDownTime() ) {
+		    						log.v("action is completed : " + actionToRepeat );
+		    						repeatActionActive = false;
+		    					}
+		    				}
+		    			});
+	    			}
+	    		} else {
+	    			stopTracking();
+	    			log.v("executing action on long press : " + longAction );
+	    			onAction(longAction);
+	    		}
+    		}
+    		return true;
+    	}
+		
+		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
+			// start tracking repeat
+			startTrackingKey(event);
+			actionToRepeat = action;
+			log.v("running action with scheduled autorepeat : " + actionToRepeat );
+			repeatActionActive = true;
+			onAction(actionToRepeat, new Runnable() {
+				public void run() {
+					if ( trackedKeyEvent==event ) {
+						log.v("action is completed : " + actionToRepeat );
+						repeatActionActive = false;
+					}
+				}
+			});
+			return true;
+		} else {
+			actionToRepeat = null;
+		}
+		
+/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 ) {
+			// will process in keyup handler
+			startTrackingKey(event);
+			return true;
+		}*/
+		if ( action.isNone() && longAction.isNone() )
+			return false;
+		startTrackingKey(event);
+		return true;
+	}
+
+	public boolean onKeyUp(int keyCode, final KeyEvent event) {
+		if (keyCode == 0)
+			keyCode = event.getScanCode();
+		mActivity.onUserActivity();
+		keyCode = translateKeyCode(keyCode);
+		if (currentImageViewer != null)
+			return currentImageViewer.onKeyUp(keyCode, event);
+		if ( keyCode==KeyEvent.KEYCODE_VOLUME_DOWN || keyCode==KeyEvent.KEYCODE_VOLUME_UP ) {
+    		if (isAutoScrollActive())
+    			return true;
+			if ( !enableVolumeKeys )
+				return false;
+		}
+		if (isAutoScrollActive()) {
+			stopAutoScroll();
+			return true;
+		}
+		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
+			mActivity.releaseBacklightControl();
+			return false;
+		}
+		boolean tracked = isTracked(event);
+//		if ( keyCode!=KeyEvent.KEYCODE_BACK )
+//			backKeyDownHere = false;
+
+		if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
+			return true;
+		//backKeyDownHere = false;
+		
+		// apply orientation
+		keyCode = overrideKey( keyCode );
+		boolean isLongPress = false;
+		Long keyDownTs = keyDownTimestampMap.get(keyCode);
+		if ( keyDownTs!=null && System.currentTimeMillis()-keyDownTs>=LONG_KEYPRESS_TIME )
+			isLongPress = true;
+		ReaderAction action = ReaderAction.findForKey( keyCode, mSettings );
+		ReaderAction longAction = ReaderAction.findForLongKey( keyCode, mSettings );
+		ReaderAction dblAction = ReaderAction.findForDoubleKey( keyCode, mSettings );
+		stopTracking();
+
+/*		if ( keyCode>=KeyEvent.KEYCODE_0 && keyCode<=KeyEvent.KEYCODE_9 && tracked ) {
+			// goto/set shortcut bookmark
+			int shortcut = keyCode - KeyEvent.KEYCODE_0;
+			if ( shortcut==0 )
+				shortcut = 10;
+			if ( isLongPress )
+				addBookmark(shortcut);
+			else
+				goToBookmark(shortcut);
+			return true;
+		}*/
+		if ( action.isNone() || !tracked ) {
+			return false;
+		}
+		if ( !action.isNone() && action.canRepeat() && longAction.isRepeat() ) {
+			// already processed by onKeyDown()
+			return true;
+		}
+		
+		if ( isLongPress ) {
+			action = longAction;
+		} else {
+			if ( !dblAction.isNone() ) {
+				// wait for possible double click
+				currentDoubleClickActionStart = android.os.SystemClock.uptimeMillis();
+				currentDoubleClickAction = dblAction;
+				currentSingleClickAction = action;
+				currentDoubleClickActionKeyCode = keyCode;
+				final int myKeyCode = keyCode;
+				BackgroundThread.instance().postGUI(new Runnable() {
+					public void run() {
+						if ( currentSingleClickAction!=null && currentDoubleClickActionKeyCode==myKeyCode ) {
+							log.d("onKeyUp: single click action " + currentSingleClickAction.id + " found for key " + myKeyCode + " single click");
+							onAction( currentSingleClickAction );
+						}
+						currentDoubleClickActionStart = 0;
+						currentDoubleClickActionKeyCode = 0;
+						currentDoubleClickAction = null;
+						currentSingleClickAction = null;
+					}
+				}, DOUBLE_CLICK_INTERVAL);
+				// posted
+				return true;
+			}
+		}
+		if ( !action.isNone() ) {
+			log.d("onKeyUp: action " + action.id + " found for key " + keyCode + (isLongPress?" (long)" : "") );
+			onAction( action );
+			return true;
+		}
+		
+
+		// not processed
+		return false;
+	}
+
+	public boolean onTouchEvent(MotionEvent event) {
+		
+		if ( !isTouchScreenEnabled ) {
+			return true;
+		}
+		if (event.getX()==0 && event.getY()==0)
+			return true;
+		mActivity.onUserActivity();
+		
+		if (currentImageViewer != null)
+			return currentImageViewer.onTouchEvent(event);
+		
+		if (isAutoScrollActive()) {
+			//if (currentTapHandler != null && currentTapHandler.isInitialState()) {
+			if (event.getAction() == MotionEvent.ACTION_DOWN) {
+				int x = (int)event.getX();
+				int y = (int)event.getY();
+				int z = getTapZone(x, y, surface.getWidth(), surface.getHeight());
+				if (z == 7)
+					changeAutoScrollSpeed(-1);
+				else if (z == 9)
+					changeAutoScrollSpeed(1);
+				else
+					stopAutoScroll();
+			}
+			return true;
+		}
+		
+		if (currentTapHandler == null)
+			currentTapHandler = new TapHandler();
+		currentTapHandler.checkExpiration();
+		return currentTapHandler.onTouchEvent(event);
+	}
+
+	@Override
+	public void onFocusChange(View arg0, boolean arg1) {
+		stopTracking();
+		if (currentAutoScrollAnimation != null)
+			stopAutoScroll();
+	}
+
+	public void redraw() {
+		//BackgroundThread.instance().executeBackground(new Runnable() {
+		BackgroundThread.instance().executeGUI(new Runnable() {
+			@Override
+			public void run() {
+				surface.invalidate();
+				invalidImages = true;
+				//preparePageImage(0);
+				bookView.draw();
+			}
+		});
+	}
+
+	public ReaderView(CoolReader activity, Engine engine, Properties props) 
+    {
+        //super(activity);
+		if (USE_GL) {
+			log.i("Creating OpenGL surface");
+			surface = new GLReaderSurface(activity);
+		} else {
+			log.i("Creating normal SurfaceView");
+			surface = new ReaderSurface(activity);
+		}
+		bookView = (BookView)surface;
+		surface.setOnTouchListener(this);
+		surface.setOnKeyListener(this);
+		surface.setOnFocusChangeListener(this);
+        doc = new DocView(engine);
+        doc.setReaderCallback(readerCallback);
+        SurfaceHolder holder = surface.getHolder();
+        holder.addCallback(this);
+        
+		BackgroundThread.ensureGUI();
+        this.mActivity = activity;
+        this.mEngine = engine;
+        surface.setFocusable(true);
+        surface.setFocusableInTouchMode(true);
+        
+        BackgroundThread.instance().postBackground(new Runnable() {
+
+			@Override
+			public void run() {
+				log.d("ReaderView - in background thread: calling createInternal()");
+				doc.create();
+				mInitialized = true;
+			}
+        	
+        });
+
+        post(new CreateViewTask( props ));
+
+    }
+	
 }

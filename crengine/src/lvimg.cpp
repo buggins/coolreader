@@ -41,7 +41,172 @@ typedef boolean wxjpeg_boolean;
 #endif
 
 
-LVImageSource::~LVImageSource() {}
+void CR9PatchInfo::applyPadding(lvRect & dstPadding) const
+{
+	if (dstPadding.left < padding.left)
+		dstPadding.left = padding.left;
+	if (dstPadding.right < padding.right)
+		dstPadding.right = padding.right;
+	if (dstPadding.top < padding.top)
+		dstPadding.top = padding.top;
+	if (dstPadding.bottom < padding.bottom)
+		dstPadding.bottom = padding.bottom;
+}
+
+static void fixNegative(int n[4]) {
+	int d1 = n[1] - n[0];
+	int d2 = n[3] - n[2];
+	if (d1 + d2 > 0) {
+		n[1] = n[2] = n[0] + (n[3] - n[0]) * d1 / (d1 + d2);
+	} else {
+		n[1] = n[2] = (n[0] + n [3]) / 2;
+	}
+}
+
+/// caclulate dst and src rectangles (src does not include layout frame)
+void CR9PatchInfo::calcRectangles(const lvRect & dst, const lvRect & src, lvRect dstitems[9], lvRect srcitems[9]) const {
+	for (int i=0; i<9; i++) {
+		srcitems[i].clear();
+		dstitems[i].clear();
+	}
+	if (dst.isEmpty() || src.isEmpty())
+		return;
+
+	int sx[4], sy[4], dx[4], dy[4];
+	sx[0] = src.left;
+	sx[1] = src.left + frame.left;
+	sx[2] = src.right - frame.right;
+	sx[3] = src.right;
+	sy[0] = src.top;
+	sy[1] = src.top + frame.top;
+	sy[2] = src.bottom - frame.bottom;
+	sy[3] = src.bottom;
+	dx[0] = dst.left;
+	dx[1] = dst.left + frame.left;
+	dx[2] = dst.right - frame.right;
+	dx[3] = dst.right;
+	dy[0] = dst.top;
+	dy[1] = dst.top + frame.top;
+	dy[2] = dst.bottom - frame.bottom;
+	dy[3] = dst.bottom;
+	if (dx[1] > dx[2]) {
+		// shrink horizontal
+		fixNegative(dx);
+	}
+	if (dy[1] > dy[2]) {
+		// shrink vertical
+		fixNegative(dy);
+	}
+	// fill calculated rectangles
+	for (int y = 0; y<3; y++) {
+		for (int x = 0; x < 3; x++) {
+			int i = y * 3 + x;
+			srcitems[i].left = sx[x];
+			srcitems[i].right = sx[x + 1];
+			srcitems[i].top = sy[y];
+			srcitems[i].bottom = sy[y + 1];
+			dstitems[i].left = dx[x];
+			dstitems[i].right = dx[x + 1];
+			dstitems[i].top = dy[y];
+			dstitems[i].bottom = dy[y + 1];
+		}
+	}
+}
+
+
+class CRNinePatchDecoder : public LVImageDecoderCallback
+{
+	int _dx;
+	int _dy;
+	CR9PatchInfo * _info;
+public:
+	CRNinePatchDecoder(int dx, int dy, CR9PatchInfo * info) : _dx(dx), _dy(dy), _info(info) {
+	}
+    virtual ~CRNinePatchDecoder() { }
+    virtual void OnStartDecode( LVImageSource * obj ) {
+        CR_UNUSED(obj);
+    }
+    bool isUsedPixel(lUInt32 pixel) {
+    	return (pixel == 0x000000); // black
+    }
+    void decodeHLine(lUInt32 * line, int & x0, int & x1) {
+    	bool foundUsed = false;
+    	for (int x = 0; x < _dx; x++) {
+    		if (isUsedPixel(line[x])) {
+    			if (!foundUsed) {
+    				x0 = x;
+        			foundUsed = true;
+    			}
+    			x1 = x + 1;
+    		}
+    	}
+    }
+    void decodeVLine(lUInt32 pixel, int y, int & y0, int & y1) {
+    	if (isUsedPixel(pixel)) {
+    		if (y0 == 0)
+    			y0 = y;
+    		y1 = y + 1;
+    	}
+    }
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
+        CR_UNUSED(obj);
+        if (y == 0) {
+    		decodeHLine(data, _info->frame.left, _info->frame.right);
+    	} else if (y == _dy - 1) {
+    		decodeHLine(data, _info->padding.left, _info->padding.right);
+    	} else {
+    		decodeVLine(data[0], y, _info->frame.top, _info->frame.bottom);
+    		decodeVLine(data[_dx - 1], y, _info->padding.top, _info->padding.bottom);
+    	}
+    	return true;
+    }
+    virtual void OnEndDecode( LVImageSource * obj, bool errors ) {
+        CR_UNUSED2(obj, errors);
+    }
+};
+
+
+static void fixNegative(int & n) {
+	if (n < 0)
+		n = 0;
+}
+CR9PatchInfo * LVImageSource::DetectNinePatch()
+{
+	if (_ninePatch)
+		return _ninePatch;
+	_ninePatch = new CR9PatchInfo();
+	CRNinePatchDecoder decoder(GetWidth(), GetHeight(), _ninePatch);
+	Decode(&decoder);
+	if (!(_ninePatch->frame.left > 0 && _ninePatch->frame.top > 0
+			&& _ninePatch->frame.left < _ninePatch->frame.right
+			&& _ninePatch->frame.top < _ninePatch->frame.bottom)) {
+		delete _ninePatch;
+		_ninePatch = NULL;
+	}
+	// remove 1 pixel frame
+	_ninePatch->padding.left--;
+	_ninePatch->padding.top--;
+	_ninePatch->padding.right = GetWidth() - _ninePatch->padding.right - 1;
+	_ninePatch->padding.bottom = GetHeight() - _ninePatch->padding.bottom - 1;
+	fixNegative(_ninePatch->padding.left);
+	fixNegative(_ninePatch->padding.top);
+	fixNegative(_ninePatch->padding.right);
+	fixNegative(_ninePatch->padding.bottom);
+	_ninePatch->frame.left--;
+	_ninePatch->frame.top--;
+	_ninePatch->frame.right = GetWidth() - _ninePatch->frame.right - 1;
+	_ninePatch->frame.bottom = GetHeight() - _ninePatch->frame.bottom - 1;
+	fixNegative(_ninePatch->frame.left);
+	fixNegative(_ninePatch->frame.top);
+	fixNegative(_ninePatch->frame.right);
+	fixNegative(_ninePatch->frame.bottom);
+	return _ninePatch;
+}
+
+LVImageSource::~LVImageSource() {
+	if (_ninePatch)
+		delete _ninePatch;
+}
 
 
 class LVNodeImageSource : public LVImageSource
@@ -1016,6 +1181,7 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
             break;
         default:
             res = false;
+            break;
         }
     }
 
@@ -1685,6 +1851,179 @@ LVImageSourceRef LVCreateTileTransform( LVImageSourceRef src, int newWidth, int 
         return LVImageSourceRef();
     return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, IMG_TRANSFORM_TILE, IMG_TRANSFORM_TILE,
                                                      offsetX, offsetY ) );
+}
+
+static inline lUInt32 limit256(int n) {
+    if (n < 0)
+        return 0;
+    else if (n > 255)
+        return 255;
+    else
+        return (lUInt32)n;
+}
+
+class LVColorTransformImgSource : public LVImageSource, public LVImageDecoderCallback
+{
+protected:
+    LVImageSourceRef _src;
+    lUInt32 _add;
+    lUInt32 _multiply;
+    LVImageDecoderCallback * _callback;
+    LVColorDrawBuf * _drawbuf;
+    int _sumR;
+    int _sumG;
+    int _sumB;
+    int _countPixels;
+public:
+    LVColorTransformImgSource(LVImageSourceRef src, lUInt32 addRGB, lUInt32 multiplyRGB)
+        : _src( src )
+        , _add(addRGB)
+        , _multiply(multiplyRGB)
+        , _drawbuf(NULL)
+    {
+    }
+    virtual ~LVColorTransformImgSource() {
+        if (_drawbuf)
+            delete _drawbuf;
+    }
+
+    virtual void OnStartDecode( LVImageSource * )
+    {
+        _callback->OnStartDecode(this);
+        _sumR = _sumG = _sumB = _countPixels = 0;
+        if (_drawbuf)
+            delete _drawbuf;
+        _drawbuf = new LVColorDrawBuf(_src->GetWidth(), _src->GetHeight(), 32);
+    }
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
+        CR_UNUSED(obj);
+        int dx = _src->GetWidth();
+
+        lUInt32 * row = (lUInt32*)_drawbuf->GetScanLine(y);
+        for (int x = 0; x < dx; x++) {
+            lUInt32 cl = data[x];
+            row[x] = cl;
+            if (((cl >> 24) & 255) < 0xC0) { // count non-transparent pixels only
+                _sumR += (cl >> 16) & 0xFF;
+                _sumG += (cl >> 8) & 0xFF;
+                _sumB += (cl >> 0) & 0xFF;
+                _countPixels++;
+            }
+        }
+        return true;
+
+    }
+    virtual void OnEndDecode( LVImageSource * obj, bool res)
+    {
+        int dx = _src->GetWidth();
+        int dy = _src->GetHeight();
+        // simple add
+        int ar = (((_add >> 16) & 255) - 0x80) * 2;
+        int ag = (((_add >> 8) & 255) - 0x80) * 2;
+        int ab = (((_add >> 0) & 255) - 0x80) * 2;
+        // fixed point * 256
+        int mr = ((_multiply >> 16) & 255) << 3;
+        int mg = ((_multiply >> 8) & 255) << 3;
+        int mb = ((_multiply >> 0) & 255) << 3;
+
+        int avgR = _countPixels > 0 ? _sumR / _countPixels : 128;
+        int avgG = _countPixels > 0 ? _sumG / _countPixels : 128;
+        int avgB = _countPixels > 0 ? _sumB / _countPixels : 128;
+
+        for (int y = 0; y < dy; y++) {
+            lUInt32 * row = (lUInt32*)_drawbuf->GetScanLine(y);
+            for ( int x=0; x<dx; x++ ) {
+                lUInt32 cl = row[x];
+                lUInt32 a = cl & 0xFF000000;
+                if (a != 0xFF000000) {
+                    int r = (cl >> 16) & 255;
+                    int g = (cl >> 8) & 255;
+                    int b = (cl >> 0) & 255;
+                    r = (((r - avgR) * mr) >> 8) + avgR + ar;
+                    g = (((g - avgG) * mg) >> 8) + avgG + ag;
+                    b = (((b - avgB) * mb) >> 8) + avgB + ab;
+                    row[x] = a | (limit256(r) << 16) | (limit256(g) << 8) | (limit256(b) << 0);
+                }
+            }
+            _callback->OnLineDecoded(obj, y, row);
+        }
+        if (_drawbuf)
+            delete _drawbuf;
+        _drawbuf = NULL;
+        _callback->OnEndDecode(this, res);
+    }
+    virtual ldomNode * GetSourceNode() { return NULL; }
+    virtual LVStream * GetSourceStream() { return NULL; }
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _src->GetWidth(); }
+    virtual int    GetHeight() { return _src->GetHeight(); }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        _callback = callback;
+        return _src->Decode( this );
+    }
+};
+
+/// creates image source which transforms colors of another image source (add RGB components (c - 0x80) * 2 from addedRGB first, then multiplyed by multiplyRGB fixed point components (0x20 is 1.0f)
+LVImageSourceRef LVCreateColorTransformImageSource(LVImageSourceRef srcImage, lUInt32 addRGB, lUInt32 multiplyRGB) {
+    return LVImageSourceRef(new LVColorTransformImgSource(srcImage, addRGB, multiplyRGB));
+}
+
+class LVAlphaTransformImgSource : public LVImageSource, public LVImageDecoderCallback
+{
+protected:
+    LVImageSourceRef _src;
+    LVImageDecoderCallback * _callback;
+    int _alpha;
+public:
+    LVAlphaTransformImgSource(LVImageSourceRef src, int alpha)
+        : _src( src )
+        , _alpha(255 - alpha)
+    {
+    }
+    virtual ~LVAlphaTransformImgSource() {
+    }
+
+    virtual void OnStartDecode( LVImageSource * )
+    {
+        _callback->OnStartDecode(this);
+    }
+    virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * data ) {
+        CR_UNUSED(obj);
+        int dx = _src->GetWidth();
+
+        for (int x = 0; x < dx; x++) {
+            lUInt32 cl = data[x];
+            int srcalpha = 255 - (cl >> 24);
+            if (srcalpha > 0) {
+                srcalpha = _alpha * srcalpha;
+                cl = (cl & 0xFFFFFF) | ((255 - _alpha * srcalpha)<<24);
+            }
+            data[x] = cl;
+        }
+        return _callback->OnLineDecoded(obj, y, data);
+    }
+    virtual void OnEndDecode( LVImageSource * obj, bool res)
+    {
+        _callback->OnEndDecode(this, res);
+    }
+    virtual ldomNode * GetSourceNode() { return NULL; }
+    virtual LVStream * GetSourceStream() { return NULL; }
+    virtual void   Compact() { }
+    virtual int    GetWidth() { return _src->GetWidth(); }
+    virtual int    GetHeight() { return _src->GetHeight(); }
+    virtual bool   Decode( LVImageDecoderCallback * callback )
+    {
+        _callback = callback;
+        return _src->Decode( this );
+    }
+};
+
+/// creates image source which applies alpha to another image source (0 is no change, 255 is totally transparent)
+LVImageSourceRef LVCreateAlphaTransformImageSource(LVImageSourceRef srcImage, int alpha) {
+    if (alpha <= 0)
+        return srcImage;
+    return LVImageSourceRef(new LVAlphaTransformImgSource(srcImage, alpha));
 }
 
 class LVUnpackedImgSource : public LVImageSource, public LVImageDecoderCallback

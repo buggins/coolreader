@@ -117,14 +117,14 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 			this.toolbarView.setBackgroundDrawable(toolbarBackground);
 			this.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 			this.addView(toolbarView);
-			this.addView(contentView);
+			this.addView(contentView.getSurface());
 			this.addView(statusView);
 			toolbarView.setFocusable(false);
 			statusView.setFocusable(false);
 			toolbarView.setFocusableInTouchMode(false);
 			statusView.setFocusableInTouchMode(false);
-			contentView.setFocusable(true);
-			contentView.setFocusableInTouchMode(true);
+			contentView.getSurface().setFocusable(true);
+			contentView.getSurface().setFocusableInTouchMode(true);
 			updateFullscreen(activity.isFullscreen());
 			updateSettings(context.settings());
 			onThemeChanged(activity.getCurrentTheme());
@@ -207,7 +207,7 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 				b -= statusView.getMeasuredHeight();
 			}
 			statusBackground.setLocation(statusBarLocation);
-			contentView.layout(l, t, r, b);
+			contentView.getSurface().layout(l, t, r, b);
 			toolbarView.layout(toolbarRc.left, toolbarRc.top, toolbarRc.right, toolbarRc.bottom);
 			statusView.layout(statusRc.left, statusRc.top, statusRc.right, statusRc.bottom);
 			
@@ -217,7 +217,7 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 					public void run() {
 						CoolReader.log.v("Invalidating toolbar ++++++++++");
 						toolbarView.forceLayout();
-						contentView.invalidate();
+						contentView.getSurface().invalidate();
 						toolbarView.invalidate();
 					}
 				}, 100);
@@ -266,7 +266,7 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 				h -= statusView.getMeasuredHeight();
 			}
 			
-			contentView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
+			contentView.getSurface().measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
 					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
 		}
 

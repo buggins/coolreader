@@ -73,6 +73,22 @@ extern "C" {
 
 #endif
 
+
+static LVAssetContainerFactory * _assetContainerFactory = NULL;
+
+/// set container to handle filesystem access for paths started with ASSET_PATH_PREFIX (@ sign)
+void LVSetAssetContainerFactory(LVAssetContainerFactory * asset) {
+	_assetContainerFactory = asset;
+}
+
+lString16 LVExtractAssetPath(lString16 fn) {
+	if (fn.length() < 2 || fn[0] != ASSET_PATH_PREFIX)
+		return lString16();
+	if (fn[1] == '/' || fn[1] == '\\')
+		return fn.substr(2);
+	return fn.substr(1);
+}
+
 // LVStorageObject stubs
 const lChar16 * LVStorageObject::GetName()
 {
@@ -257,14 +273,16 @@ public:
 /// Get read buffer - default implementation, with RAM buffer
 LVStreamBufferRef LVStream::GetReadBuffer( lvpos_t pos, lvpos_t size )
 {
-    LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, true );
+    LVStreamBufferRef res;
+    res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, true );
     return res;
 }
 
 /// Get read/write buffer - default implementation, with RAM buffer
 LVStreamBufferRef LVStream::GetWriteBuffer( lvpos_t pos, lvpos_t size )
 {
-    LVStreamBufferRef res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, false );
+    LVStreamBufferRef res;
+    res = LVDefStreamBuffer::create( LVStreamRef(this), pos, size, false );
     return res;
 }
 
@@ -1316,6 +1334,7 @@ public:
         m_size = (lvsize_t) stat.st_size;
 #endif
 
+        SetName(fname.c_str());
         return LVERR_OK;
     }
     LVFileStream() :
@@ -1349,10 +1368,29 @@ bool LVSplitArcName( lString16 fullPathName, lString16 & arcPathName, lString16 
     return !arcPathName.empty() && !arcItemPathName.empty();
 }
 
+/// tries to split full path name into archive name and file name inside archive using separator "@/" or "@\"
+bool LVSplitArcName( lString8 fullPathName, lString8 & arcPathName, lString8 & arcItemPathName )
+{
+    int p = fullPathName.pos("@/");
+    if ( p<0 )
+        p = fullPathName.pos("@\\");
+    if ( p<0 )
+        return false;
+    arcPathName = fullPathName.substr(0, p);
+    arcItemPathName = fullPathName.substr(p + 2);
+    return !arcPathName.empty() && !arcItemPathName.empty();
+}
+
 // facility functions
 LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 {
     lString16 fn(pathname);
+    if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory || mode != LVOM_READ)
+    		return LVStreamRef();
+    	lString16 assetPath = LVExtractAssetPath(fn);
+    	return _assetContainerFactory->openAssetStream(assetPath);
+    }
 #if 0
     //defined(_LINUX) || defined(_WIN32)
     if ( mode==LVOM_READ ) {
@@ -1375,7 +1413,7 @@ LVStreamRef LVOpenFileStream( const lChar16 * pathname, int mode )
 
 LVStreamRef LVOpenFileStream( const lChar8 * pathname, int mode )
 {
-    lString16 fn = LocalToUnicode(lString8(pathname));
+    lString16 fn = Utf8ToUnicode(lString8(pathname));
     return LVOpenFileStream( fn.c_str(), mode );
 }
 
@@ -2490,6 +2528,7 @@ public:
     }
     LVZipArc( LVStreamRef stream ) : LVArcContainerBase(stream)
     {
+        SetName(stream->GetName());
     }
     virtual ~LVZipArc()
     {
@@ -3137,6 +3176,13 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in )
 
 LVContainerRef LVOpenDirectory( const wchar_t * path, const wchar_t * mask )
 {
+	lString16 pathname(path);
+    if (pathname.length() > 1 && pathname[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory)
+    		return LVContainerRef();
+    	lString16 assetPath = LVExtractAssetPath(pathname);
+    	return _assetContainerFactory->openAssetContainer(assetPath);
+    }
     LVContainerRef dir(LVDirectoryContainer::OpenDirectory(path, mask));
     return dir;
 }
@@ -3469,6 +3515,11 @@ LVStreamRef LVCreateTCRDecoderStream( LVStreamRef stream )
 }
 
 /// returns path part of pathname (appended with / or \ delimiter)
+lString8 LVExtractPath( lString8 pathName, bool appendEmptyPath) {
+    return UnicodeToUtf8(LVExtractPath(Utf8ToUnicode(pathName), appendEmptyPath));
+}
+
+/// returns path part of pathname (appended with / or \ delimiter)
 lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
 {
     int last_delim_pos = -1;
@@ -3482,6 +3533,11 @@ lString16 LVExtractPath( lString16 pathName, bool appendEmptyPath )
         return lString16(appendEmptyPath ? L".\\" : L"");
 #endif
     return pathName.substr( 0, last_delim_pos+1 );
+}
+
+/// returns filename part of pathname
+lString8 LVExtractFilename( lString8 pathName ) {
+    return UnicodeToUtf8(LVExtractFilename(Utf8ToUnicode(pathName)));
 }
 
 /// returns filename part of pathname
@@ -3551,11 +3607,38 @@ lString16 LVExtractFirstPathElement( lString16 & pathName )
 /// appends path delimiter character to end of path, if absent
 void LVAppendPathDelimiter( lString16 & pathName )
 {
-    if ( pathName.empty() )
+    if ( pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
         return;
     lChar16 delim = LVDetectPathDelimiter( pathName );
     if ( pathName[pathName.length()-1]!=delim )
         pathName << delim;
+}
+
+/// appends path delimiter character to end of path, if absent
+void LVAppendPathDelimiter( lString8 & pathName )
+{
+    if ( pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
+        return;
+    lChar8 delim = LVDetectPathDelimiter(pathName);
+    if ( pathName[pathName.length()-1]!=delim )
+        pathName << delim;
+}
+
+/// removes path delimiter from end of path, if present
+void LVRemoveLastPathDelimiter( lString16 & pathName ) {
+    if (pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
+        return;
+    if (pathName.endsWith("/") || pathName.endsWith("\\"))
+        pathName = pathName.substr(0, pathName.length() - 1);
+}
+
+/// removes path delimiter from end of path, if present
+void LVRemoveLastPathDelimiter( lString8 & pathName )
+{
+    if (pathName.empty() || (pathName.length() == 1 && pathName[0] == ASSET_PATH_PREFIX))
+        return;
+    if (pathName.endsWith("/") || pathName.endsWith("\\"))
+        pathName = pathName.substr(0, pathName.length() - 1);
 }
 
 /// replaces any found / or \\ separator with specified one
@@ -3659,6 +3742,18 @@ lChar16 LVDetectPathDelimiter( lString16 pathName )
 #endif
 }
 
+/// returns path delimiter character
+char LVDetectPathDelimiter( lString8 pathName ) {
+    for ( int i=0; i<pathName.length(); i++ )
+        if ( pathName[i]=='/' || pathName[i]=='\\' )
+            return pathName[i];
+#ifdef _LINUX
+        return '/';
+#else
+        return '\\';
+#endif
+}
+
 /// returns full path to file identified by pathName, with base directory == basePath
 lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
 {
@@ -3670,9 +3765,9 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
     lString16 dstpath = LVExtractPath( pathName );
     while ( !dstpath.empty() ) {
         lString16 element = LVExtractFirstPathElement( dstpath );
-        if (element == ".")
-            ;
-        else if (element == "..")
+        if (element == ".") {
+            // do nothing
+        } else if (element == "..")
             LVExtractLastPathElement( path );
         else
             path << element << delim;
@@ -3686,16 +3781,37 @@ lString16 LVMakeRelativeFilename( lString16 basePath, lString16 pathName )
 void LVRemovePathDelimiter( lString16 & pathName )
 {
     int len = pathName.length();
-    if ( len>0 ) {
+    if ( len>0 && pathName != "/" && pathName != "\\" && !pathName.endsWith(":\\") && !pathName.endsWith("\\\\")) {
         if ( pathName.lastChar() == '/' || pathName.lastChar() == '\\' )
             pathName.erase( pathName.length()-1, 1 );
     }
 }
 
+/// removes path delimiter character from end of path, if exists
+void LVRemovePathDelimiter( lString8 & pathName )
+{
+    int len = pathName.length();
+    if ( len>0 && pathName != "/" && pathName != "\\" && !pathName.endsWith(":\\") && !pathName.endsWith("\\\\")) {
+        if ( pathName.lastChar() == '/' || pathName.lastChar() == '\\' )
+            pathName.erase( pathName.length()-1, 1 );
+    }
+}
+
+/// returns true if specified file exists
+bool LVFileExists( const lString8 & pathName ) {
+    return LVFileExists(Utf8ToUnicode(pathName));
+}
 
 /// returns true if specified file exists
 bool LVFileExists( const lString16 & pathName )
 {
+    lString16 fn(pathName);
+    if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory)
+    		return false;
+    	lString16 assetPath = LVExtractAssetPath(fn);
+    	return !_assetContainerFactory->openAssetStream(assetPath).isNull();
+    }
 #ifdef _WIN32
 	LVStreamRef stream = LVOpenFileStream( pathName.c_str(), LVOM_READ );
 	return !stream.isNull();
@@ -3709,10 +3825,38 @@ bool LVFileExists( const lString16 & pathName )
 #endif
 }
 
+/// returns true if directory exists and your app can write to directory
+bool LVDirectoryIsWritable(const lString16 & pathName) {
+    lString16 fn = pathName;
+    LVAppendPathDelimiter(fn);
+    fn << ".cr3_directory_write_test";
+    bool res = false;
+    bool created = false;
+    {
+        LVStreamRef stream = LVOpenFileStream(fn.c_str(), LVOM_WRITE);
+        if (!stream.isNull()) {
+            created = true;
+            lvsize_t bytesWritten = 0;
+            if (stream->Write("TEST", 4, &bytesWritten) == LVERR_OK && bytesWritten == 4) {
+                res = true;
+            }
+        }
+    }
+    if (created)
+        LVDeleteFile(fn);
+    return res;
+}
+
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString16 & pathName )
 {
-	// TODO: optimize
+    lString16 fn(pathName);
+    if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory)
+    		return false;
+    	lString16 assetPath = LVExtractAssetPath(fn);
+    	return !_assetContainerFactory->openAssetContainer(assetPath).isNull();
+    }
     LVContainerRef dir = LVOpenDirectory( pathName.c_str() );
     return !dir.isNull();
 }
@@ -3724,6 +3868,10 @@ bool LVCreateDirectory( lString16 path )
     //LVRemovePathDelimiter(path);
     if ( path.length() <= 1 )
         return false;
+    if (path[0] == ASSET_PATH_PREFIX) {
+    	// cannot create directory in asset
+    	return false;
+    }
     LVContainerRef dir = LVOpenDirectory( path.c_str() );
     if ( dir.isNull() ) {
         CRLog::trace("Directory %s not found", UnicodeToUtf8(path).c_str());
@@ -3784,6 +3932,26 @@ bool LVDeleteFile( lString16 filename )
         return false;
     return true;
 #endif
+}
+
+/// rename file
+bool LVRenameFile(lString16 oldname, lString16 newname) {
+    return LVRenameFile(UnicodeToUtf8(oldname), UnicodeToUtf8(newname));
+}
+
+/// rename file
+bool LVRenameFile(lString8 oldname, lString8 newname) {
+#ifdef _WIN32
+    CRLog::trace("Renaming %s to %s", oldname.c_str(), newname.c_str());
+    return MoveFileW(Utf8ToUnicode(oldname).c_str(), Utf8ToUnicode(newname).c_str()) != 0;
+#else
+    return !rename(oldname.c_str(), newname.c_str());
+#endif
+}
+
+/// delete file, return true if file found and successfully deleted
+bool LVDeleteFile( lString8 filename ) {
+    return LVDeleteFile(Utf8ToUnicode(filename));
 }
 
 #define TRACE_BLOCK_WRITE_STREAM 0

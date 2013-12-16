@@ -20,80 +20,9 @@
 #include "lvdrawbuf.h"
 #include "hist.h"
 #include "lvthread.h"
+#include "lvdocviewcmd.h"
+#include "lvdocviewprops.h"
 
-// standard properties supported by LVDocView
-#define PROP_FONT_GAMMA              "font.gamma" // currently supported: 0.65 .. 1.35, see gammatbl.h
-#define PROP_FONT_ANTIALIASING       "font.antialiasing.mode"
-#define PROP_FONT_HINTING            "font.hinting.mode"
-#define PROP_FONT_COLOR              "font.color.default"
-#define PROP_FONT_FACE               "font.face.default"
-#define PROP_FONT_WEIGHT_EMBOLDEN    "font.face.weight.embolden"
-#define PROP_BACKGROUND_COLOR        "background.color.default"
-#define PROP_BACKGROUND_IMAGE        "background.image.filename"
-#define PROP_TXT_OPTION_PREFORMATTED "crengine.file.txt.preformatted"
-#define PROP_LOG_FILENAME            "crengine.log.filename"
-#define PROP_LOG_LEVEL               "crengine.log.level"
-#define PROP_LOG_AUTOFLUSH           "crengine.log.autoflush"
-#define PROP_FONT_SIZE               "crengine.font.size"
-#define PROP_FALLBACK_FONT_FACE      "crengine.font.fallback.face"
-#define PROP_STATUS_FONT_COLOR       "crengine.page.header.font.color"
-#define PROP_STATUS_FONT_FACE        "crengine.page.header.font.face"
-#define PROP_STATUS_FONT_SIZE        "crengine.page.header.font.size"
-#define PROP_PAGE_MARGIN_TOP         "crengine.page.margin.top"
-#define PROP_PAGE_MARGIN_BOTTOM      "crengine.page.margin.bottom"
-#define PROP_PAGE_MARGIN_LEFT        "crengine.page.margin.left"
-#define PROP_PAGE_MARGIN_RIGHT       "crengine.page.margin.right"
-#define PROP_PAGE_VIEW_MODE          "crengine.page.view.mode" // pages/scroll
-#define PROP_INTERLINE_SPACE         "crengine.interline.space"
-#if CR_INTERNAL_PAGE_ORIENTATION==1
-#define PROP_ROTATE_ANGLE            "window.rotate.angle"
-#endif
-#define PROP_EMBEDDED_STYLES         "crengine.doc.embedded.styles.enabled"
-#define PROP_EMBEDDED_FONTS          "crengine.doc.embedded.fonts.enabled"
-#define PROP_DISPLAY_INVERSE         "crengine.display.inverse"
-#define PROP_DISPLAY_FULL_UPDATE_INTERVAL "crengine.display.full.update.interval"
-#define PROP_DISPLAY_TURBO_UPDATE_MODE "crengine.display.turbo.update"
-#define PROP_STATUS_LINE             "window.status.line"
-#define PROP_BOOKMARK_ICONS          "crengine.bookmarks.icons"
-#define PROP_FOOTNOTES               "crengine.footnotes"
-#define PROP_SHOW_TIME               "window.status.clock"
-#define PROP_SHOW_TITLE              "window.status.title"
-#define PROP_STATUS_CHAPTER_MARKS    "crengine.page.header.chapter.marks"
-#define PROP_SHOW_BATTERY            "window.status.battery"
-#define PROP_SHOW_POS_PERCENT        "window.status.pos.percent"
-#define PROP_SHOW_PAGE_COUNT         "window.status.pos.page.count"
-#define PROP_SHOW_PAGE_NUMBER        "window.status.pos.page.number"
-#define PROP_SHOW_BATTERY_PERCENT    "window.status.battery.percent"
-#define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
-#define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
-#define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
-#define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
-
-#define PROP_FLOATING_PUNCTUATION    "crengine.style.floating.punctuation.enabled"
-#define PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT "crengine.style.space.condensing.percent"
-
-#define PROP_FILE_PROPS_FONT_SIZE    "cr3.file.props.font.size"
-
-
-#define PROP_CACHE_VALIDATION_ENABLED  "crengine.cache.validation.enabled"
-#define PROP_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.filesize.min"
-#define PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  "crengine.cache.forced.filesize.min"
-#define PROP_PROGRESS_SHOW_FIRST_PAGE  "crengine.progress.show.first.page"
-#define PROP_HIGHLIGHT_COMMENT_BOOKMARKS "crengine.highlight.bookmarks"
-#define PROP_HIGHLIGHT_SELECTION_COLOR "crengine.highlight.selection.color"
-#define PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT "crengine.highlight.bookmarks.color.comment"
-#define PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION "crengine.highlight.bookmarks.color.correction"
-// image scaling settings
-// mode: 0=disabled, 1=integer scaling factors, 2=free scaling
-// scale: 0=auto based on font size, 1=no zoom, 2=scale up to *2, 3=scale up to *3
-#define PROP_IMG_SCALING_ZOOMIN_INLINE_MODE  "crengine.image.scaling.zoomin.inline.mode"
-#define PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE  "crengine.image.scaling.zoomin.inline.scale"
-#define PROP_IMG_SCALING_ZOOMOUT_INLINE_MODE "crengine.image.scaling.zoomout.inline.mode"
-#define PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE "crengine.image.scaling.zoomout.inline.scale"
-#define PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE  "crengine.image.scaling.zoomin.block.mode"
-#define PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE  "crengine.image.scaling.zoomin.block.scale"
-#define PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE "crengine.image.scaling.zoomout.block.mode"
-#define PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE "crengine.image.scaling.zoomout.block.scale"
 
 const lChar16 * getDocFormatName( doc_format_t fmt );
 
@@ -264,68 +193,6 @@ public:
 };
 
 
-#define LVDOCVIEW_COMMANDS_START 100
-/// LVDocView commands
-enum LVDocCmd
-{
-    DCMD_BEGIN = LVDOCVIEW_COMMANDS_START,
-    DCMD_LINEUP,
-    DCMD_PAGEUP,
-    DCMD_PAGEDOWN,
-    DCMD_LINEDOWN,
-    DCMD_LINK_FORWARD,
-    DCMD_LINK_BACK,
-    DCMD_LINK_NEXT,
-    DCMD_LINK_PREV,
-    DCMD_LINK_GO,
-    DCMD_END,
-    DCMD_GO_POS,
-    DCMD_GO_PAGE,
-    DCMD_ZOOM_IN,
-    DCMD_ZOOM_OUT,
-    DCMD_TOGGLE_TEXT_FORMAT,
-    DCMD_BOOKMARK_SAVE_N, // save current page bookmark under spicified number
-    DCMD_BOOKMARK_GO_N,  // go to bookmark with specified number
-    DCMD_MOVE_BY_CHAPTER, // param=-1 - previous chapter, 1 = next chapter
-    DCMD_GO_SCROLL_POS,  // param=position of scroll bar slider
-    DCMD_TOGGLE_PAGE_SCROLL_VIEW,  // toggle paged/scroll view mode
-    DCMD_LINK_FIRST, // select first link on page
-    DCMD_ROTATE_BY, // rotate view, param =  +1 - clockwise, -1 - counter-clockwise
-    DCMD_ROTATE_SET, // rotate viewm param = 0..3 (0=normal, 1=90`, ...)
-    DCMD_SAVE_HISTORY, // save history and bookmarks
-    DCMD_SAVE_TO_CACHE, // save document to cache for fast opening
-    DCMD_TOGGLE_BOLD, // togle font bolder attribute
-    DCMD_SCROLL_BY, // scroll by N pixels, for Scroll view mode only
-    DCMD_REQUEST_RENDER, // invalidate rendered data
-    DCMD_GO_PAGE_DONT_SAVE_HISTORY,
-    DCMD_SET_INTERNAL_STYLES, // set internal styles option
-
-    // selection by sentences
-    DCMD_SELECT_FIRST_SENTENCE, // select first sentence on page
-    DCMD_SELECT_NEXT_SENTENCE, // nove selection to next sentence
-    DCMD_SELECT_PREV_SENTENCE, // nove selection to next sentence
-    DCMD_SELECT_MOVE_LEFT_BOUND_BY_WORDS, // move selection start by words
-    DCMD_SELECT_MOVE_RIGHT_BOUND_BY_WORDS, // move selection end by words
-
-    // 136
-    DCMD_SET_TEXT_FORMAT, // set text format, param=1 to autoformat, 0 for preformatted
-    // 137
-    DCMD_SET_DOC_FONTS, // set embedded fonts option (1=enabled, 0=disabled)
-
-
-    //=======================================
-    DCMD_EDIT_CURSOR_LEFT,
-    DCMD_EDIT_CURSOR_RIGHT,
-    DCMD_EDIT_CURSOR_UP,
-    DCMD_EDIT_CURSOR_DOWN,
-    DCMD_EDIT_PAGE_UP,
-    DCMD_EDIT_PAGE_DOWN,
-    DCMD_EDIT_HOME,
-    DCMD_EDIT_END,
-    DCMD_EDIT_INSERT_CHAR,
-    DCMD_EDIT_REPLACE_CHAR
-};
-#define LVDOCVIEW_COMMANDS_END DCMD_TOGGLE_BOLD
 
 /// document view mode: pages/scroll
 enum LVDocViewMode
@@ -510,8 +377,6 @@ private:
     void updateDocStyleSheet();
 
 protected:
-    /// draw to specified buffer by either Y pos or page number (unused param should be -1)
-    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate, bool autoresize = true);
 
 
     virtual void drawNavigationBar( LVDrawBuf * drawbuf, int pageIndex, int percent );
@@ -527,15 +392,17 @@ protected:
     int getPrevPageOffset();
     /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
     virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
-    /// set status bar and clock mode
-    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount );
     /// create document and set flags
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible
     bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
+public:
     /// get screen rectangle for specified cursor position, returns false if not visible
     bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
-public:
+    /// set status bar and clock mode
+    void setStatusMode( int newMode, bool showClock, bool showTitle, bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount );
+    /// draw to specified buffer by either Y pos or page number (unused param should be -1)
+    void Draw( LVDrawBuf & drawbuf, int pageTopPosition, int pageNumber, bool rotate, bool autoresize = true);
     /// ensure current position is set to current bookmark value
     void checkPos();
     LVFontRef getBatteryFont() { return m_batteryFont; }
@@ -577,6 +444,8 @@ public:
     void checkRender();
     /// saves current position to navigation history, to be able return back
     bool savePosToNavigationHistory();
+    /// saves position to navigation history, to be able return back
+    bool savePosToNavigationHistory(lString16 path);
     /// navigate to history path URL
     bool navigateTo( lString16 historyPath );
     /// packs current file path and name
@@ -614,7 +483,7 @@ public:
     /// sets default property values if properties not found, checks ranges
     void propsUpdateDefaults( CRPropRef props );
     /// applies properties, returns list of not recognized properties
-    CRPropRef propsApply( CRPropRef props );
+    virtual CRPropRef propsApply( CRPropRef props );
     /// returns current values of supported properties
     CRPropRef propsGetCurrent();
 
@@ -628,7 +497,7 @@ public:
     /// set background image
     void setBackgroundImage(LVImageSourceRef bgImage, bool tiled=true) { m_backgroundImage = bgImage; m_backgroundTiled=tiled; m_backgroundImageScaled.Clear(); clearImageCache(); }
     /// clears page background
-    void drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY );
+    virtual void drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY, int alpha = 0);
 
     // callback functions
     /// set callback
@@ -679,10 +548,16 @@ public:
     virtual bool goBack();
     /// go forward. returns true if navigation was successful
     virtual bool goForward();
+    /// check if navigation forward is possible
+    virtual bool canGoBack();
+    /// check if navigation back is possible
+    virtual bool canGoForward();
 
 
-    /// create empty document with specified message (to show errors)
+    /// create empty document with specified message (e.g. to show errors)
     virtual void createDefaultDocument( lString16 title, lString16 message );
+    /// create empty document with specified message (to show errors)
+    virtual void createHtmlDocument(lString16 code);
 
     /// returns default font face
     lString8 getDefaultFontFace() { return m_defaultFontFace; }
@@ -767,7 +642,7 @@ public:
     bool getFlatToc( LVPtrVector<LVTocItem, false> & items );
     /// update page numbers for items
     void updatePageNumbers( LVTocItem * item );
-    /// set view mode (pages/scroll)
+    /// set view mode (pages/scroll) - DVM_SCROLL/DVM_PAGES
     void setViewMode( LVDocViewMode view_mode, int visiblePageCount=-1 );
     /// get view mode (pages/scroll)
     LVDocViewMode getViewMode();
@@ -811,6 +686,7 @@ public:
     void setTextColor( lUInt32 cl )
     {
         m_textColor = cl;
+        m_props->setColor(PROP_FONT_COLOR, cl);
         clearImageCache();
     }
 
@@ -910,7 +786,7 @@ public:
     bool goToScrollPos( int pos );
     /// converts scrollbar pos to doc pos
     int scrollPosToDocPos( int scrollpos );
-    /// returns position in 1/100 of percents
+    /// returns position in 1/100 of percents (0..10000)
     int getPosPercent();
 
     /// execute command
@@ -956,7 +832,7 @@ public:
     /// get position of view inside document
     void GetPos( lvRect & rc );
     /// set vertical position of view inside document
-    int SetPos( int pos, bool savePos=true );
+    int SetPos( int pos, bool savePos=true, bool allowScrollAfterEnd = false);
 
 	int getPageHeight(int pageIndex);
 
@@ -1003,6 +879,34 @@ public:
     /// Destructor
     virtual ~LVDocView();
 };
+
+class SimpleTitleFormatter {
+    lString16 _text;
+    lString16Collection _lines;
+    lString8 _fontFace;
+    bool _bold;
+    bool _italic;
+    lUInt32 _color;
+    LVFontRef _font;
+    int _lineHeight;
+    int _height;
+    int _width;
+    int _maxWidth;
+    int _maxHeight;
+    int _fntSize;
+public:
+    int getHeight() { return _height; }
+    int getWidth() { return _width; }
+    SimpleTitleFormatter(lString16 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight, int fntSize = 0);
+
+    bool measure();
+    bool splitLines(const char * delimiter);
+    bool format(int fontSize);
+    bool findBestSize();
+    void draw(LVDrawBuf & buf, lString16 str, int x, int y, int align);
+    void draw(LVDrawBuf & buf, lvRect rc, int halign, int valign);
+};
+
 
 /// draw book cover, either from image, or generated from title/authors
 void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace, lString16 title, lString16 authors, lString16 seriesName, int seriesNumber);

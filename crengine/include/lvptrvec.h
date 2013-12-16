@@ -31,6 +31,7 @@ class LVPtrVector
     int _count;
 	LVPtrVector & operator = (LVPtrVector&) {
 		// no assignment
+		return *this;
 	}
 public:
     /// default constructor
@@ -53,6 +54,9 @@ public:
                 _list[i] = NULL;
             _size = size;
         }
+    }
+    void sort(int (comparator)(const T ** item1, const T ** item2 ) ) {
+    	qsort(_list, _count, sizeof(T*), (int (*)(const void *, const void *))comparator);
     }
     /// sets item by index (extends vector if necessary)
     void set( int index, T * item )
@@ -77,8 +81,10 @@ public:
     {
         if (_list)
         {
+            int cnt = _count;
+            _count = 0;
             if ( ownItems ) {
-                for (int i=0; i<_count; ++i)
+                for (int i=cnt - 1; i>=0; --i)
                     delete _list[i];
             }
             free( _list );
@@ -312,6 +318,7 @@ public:
     {
         _first = v._first;
         _second = v._second;
+        return *this;
     }
     T1 & first() { return _first; }
     const T1 & first() const { return _first; }

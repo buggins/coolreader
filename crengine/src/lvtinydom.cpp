@@ -2025,7 +2025,7 @@ bool ldomDataStorageManager::load()
     }
     lUInt32 n;
     buf >> n;
-    if ( n<0 || n > 10000 )
+    if (n > 10000)
         return false; // invalid
     _recentChunk = NULL;
     _chunks.clear();
@@ -2254,21 +2254,18 @@ void ldomDataStorageManager::compact( int reservedSpace )
         // do compacting
         int sumsize = reservedSpace;
         for ( ldomTextStorageChunk * p = _recentChunk; p; p = p->_nextRecent ) {
-            if ( p->_bufsize >= 0 ) {
-                if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
-                    // fits
-                    sumsize += p->_bufsize;
-                } else {
-                    if ( !_cache )
-                        _owner->createCacheFile();
-                    if ( _cache ) {
-                        if ( !p->swapToCache(true) ) {
-                            crFatalError(111, "Swap file writing error!");
-                        }
-                    }
-                }
-            }
-
+			if ( (int)p->_bufsize + sumsize < _maxUncompressedSize || (p==_activeChunk && reservedSpace<0xFFFFFFF)) {
+				// fits
+				sumsize += p->_bufsize;
+			} else {
+				if ( !_cache )
+					_owner->createCacheFile();
+				if ( _cache ) {
+					if ( !p->swapToCache(true) ) {
+						crFatalError(111, "Swap file writing error!");
+					}
+				}
+			}
         }
 
     }
@@ -4973,7 +4970,8 @@ bool ldomXPointer::getRect(lvRect & rect) const
     }
     ldomNode * mainNode = p->getDocument()->getRootNode();
     for ( ; p; p = p->getParentNode() ) {
-        if ( p->getRendMethod() == erm_final ) {
+        int rm = p->getRendMethod();
+        if ( rm == erm_final || rm == erm_list_item ) {
             finalNode = p; // found final block
         } else if ( p->getRendMethod() == erm_invisible ) {
             return false; // invisible !!!
@@ -11039,7 +11037,7 @@ LVStreamRef ldomDocument::getObjectImageStream( lString16 refName )
 LVImageSourceRef ldomDocument::getObjectImageSource( lString16 refName )
 {
     LVStreamRef stream = getObjectImageStream( refName );
-    if ( stream.isNull() )\
+    if (stream.isNull())
          return LVImageSourceRef();
     return LVCreateStreamImageSource( stream );
 }
