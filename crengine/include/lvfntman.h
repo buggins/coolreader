@@ -42,6 +42,8 @@ private:
     LVFontGlyphCacheItem * tail;
     int size;
     int max_size;
+    void removeNoLock( LVFontGlyphCacheItem * item );
+    void putNoLock( LVFontGlyphCacheItem * item );
 public:
     LVFontGlobalGlyphCache( int maxSize )
         : head(NULL), tail(NULL), size(0), max_size(maxSize )
