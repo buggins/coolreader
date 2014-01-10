@@ -8661,7 +8661,7 @@ public:
             LVStreamRef oldStream = LVOpenFileStream(filename.c_str(), LVOM_READ);
             if (!oldStream.isNull()) {
                 _oldStreamSize = (lUInt32)oldStream->GetSize();
-                _oldStreamCRC = (lUInt32)oldStream->crc32();
+                _oldStreamCRC = (lUInt32)oldStream->getcrc32();
             }
         }
 

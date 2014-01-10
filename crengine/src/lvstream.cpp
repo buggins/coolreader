@@ -119,14 +119,14 @@ lvsize_t LVStorageObject::GetSize( )
 
 
 /// calculate crc32 code for stream, if possible
-lverror_t LVNamedStream::crc32( lUInt32 & dst )
+lverror_t LVNamedStream::getcrc32( lUInt32 & dst )
 {
     if ( _crc!=0 ) {
         dst = _crc;
         return LVERR_OK;
     } else {
         if ( !_crcFailed ) {
-            lverror_t res = LVStream::crc32( dst );
+            lverror_t res = LVStream::getcrc32( dst );
             if ( res==LVERR_OK ) {
                 _crc = dst;
                 return LVERR_OK;
@@ -290,7 +290,7 @@ LVStreamBufferRef LVStream::GetWriteBuffer( lvpos_t pos, lvpos_t size )
 #define CRC_BUF_SIZE 16384
 
 /// calculate crc32 code for stream, if possible
-lverror_t LVStream::crc32( lUInt32 & dst )
+lverror_t LVStream::getcrc32( lUInt32 & dst )
 {
     dst = 0;
     if ( GetMode() == LVOM_READ || GetMode() == LVOM_APPEND ) {
@@ -1885,9 +1885,9 @@ public:
     }
 
     /// fastly return already known CRC
-    virtual lverror_t crc32( lUInt32 & dst )
+    virtual lverror_t getcrc32( lUInt32 & dst )
     {
-        return m_stream->crc32( dst );
+        return m_stream->getcrc32( dst );
     }
 
     virtual bool Eof()
@@ -2364,7 +2364,7 @@ private:
 public:
 
     /// fastly return already known CRC
-    virtual lverror_t crc32( lUInt32 & dst )
+    virtual lverror_t getcrc32( lUInt32 & dst )
     {
         dst = m_originalCRC;
         return LVERR_OK;
@@ -3943,7 +3943,12 @@ bool LVRenameFile(lString16 oldname, lString16 newname) {
 bool LVRenameFile(lString8 oldname, lString8 newname) {
 #ifdef _WIN32
     CRLog::trace("Renaming %s to %s", oldname.c_str(), newname.c_str());
-    return MoveFileW(Utf8ToUnicode(oldname).c_str(), Utf8ToUnicode(newname).c_str()) != 0;
+    bool res = MoveFileW(Utf8ToUnicode(oldname).c_str(), Utf8ToUnicode(newname).c_str()) != 0;
+    if (!res) {
+        CRLog::error("Renaming result: %s for renaming of %s to %s", res ? "success" : "failed", oldname.c_str(), newname.c_str());
+        CRLog::error("Last Error: %d", GetLastError());
+    }
+    return res;
 #else
     return !rename(oldname.c_str(), newname.c_str());
 #endif

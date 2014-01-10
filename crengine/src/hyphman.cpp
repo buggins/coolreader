@@ -516,7 +516,7 @@ bool TexHyph::load( LVStreamRef stream )
     int w = isCorrectHyphFile(stream.get());
     int patternCount = 0;
     if (w) {
-        _hash = stream->crc32();
+        _hash = stream->getcrc32();
         int        i;
         lvsize_t   dw;
 
