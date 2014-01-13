@@ -99,6 +99,14 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #define INFO_FONT_SIZE      22
 #endif
 
+#ifndef MIN_STATUS_FONT_SIZE
+#define MIN_STATUS_FONT_SIZE 8
+#endif
+
+#ifndef MAX_STATUS_FONT_SIZE
+#define MAX_STATUS_FONT_SIZE 32
+#endif
+
 #if defined(__SYMBIAN32__)
 #include <e32std.h>
 #define DEFAULT_PAGE_MARGIN 2
@@ -5563,10 +5571,10 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
 	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 11);
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
-    if (fs < 8)
-        fs = 8;
-    else if (fs > 32)
-        fs = 32;
+    if (fs < MIN_STATUS_FONT_SIZE)
+        fs = MIN_STATUS_FONT_SIZE;
+    else if (fs > MAX_STATUS_FONT_SIZE)
+        fs = MAX_STATUS_FONT_SIZE;
 	props->setIntDef(PROP_STATUS_FONT_SIZE, fs);
 	lString16 hyph = props->getStringDef(PROP_HYPHENATION_DICT,
 			DEF_HYPHENATION_DICT);
@@ -5798,10 +5806,10 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 		} else if (name == PROP_STATUS_FONT_SIZE) {
 			int fontSize = props->getIntDef(PROP_STATUS_FONT_SIZE,
 					INFO_FONT_SIZE);
-			if (fontSize < 8)
-				fontSize = 8;
-			else if (fontSize > 28)
-				fontSize = 28;
+			if (fontSize < MIN_STATUS_FONT_SIZE)
+				fontSize = MIN_STATUS_FONT_SIZE;
+			else if (fontSize > MAX_STATUS_FONT_SIZE)
+				fontSize = MAX_STATUS_FONT_SIZE;
 			setStatusFontSize(fontSize);//cr_font_sizes
 			value = lString16::itoa(fontSize);
 #if !defined(ANDROID)
