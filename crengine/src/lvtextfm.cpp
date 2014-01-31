@@ -965,6 +965,7 @@ public:
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
             spaceReduceWidth -= visialAlignmentWidth/2;
             firstCharMargin += visialAlignmentWidth/2;
+            if (isCJKLeftPunctuation(m_text[pos])) firstCharMargin -= visialAlignmentWidth;
             for ( i=pos; i<m_length; i++ ) {
                 if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin)
                     break;
