@@ -1905,7 +1905,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( font_style, css_fs_inherit );
     UPDATE_STYLE_FIELD( font_weight, css_fw_inherit );
     if ( pstyle->font_family == css_ff_inherit ) {
-        UPDATE_STYLE_FIELD( font_name, "" );
+        //UPDATE_STYLE_FIELD( font_name, "" );
+        pstyle->font_name = parent_font.get()->getTypeFace();
     }
     UPDATE_STYLE_FIELD( font_family, css_ff_inherit );
     UPDATE_LEN_FIELD( font_size );
