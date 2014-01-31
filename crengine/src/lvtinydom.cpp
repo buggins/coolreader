@@ -6871,6 +6871,10 @@ public:
                 _list.add( ldomWord( node, beginOfWord, i ) );
                 beginOfWord = -1;
             }
+            if (lGetCharProps(text[i]) == CH_PROP_CJK) {
+                _list.add( ldomWord( node, i, i+1 ) );
+                beginOfWord = -1;
+            }
         }
     }
     /// called for each found node in range
