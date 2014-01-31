@@ -531,6 +531,13 @@ public:
             }
             _state = 0;
             break;
+		case ',':
+            if (_state == 2) {
+                if (!_url.empty())
+                    _fontList.add(_url, _face, _bold, _italic);
+                _state = 11;
+            }
+            break;
         case '(':
             if (_state == 12) {
                 _state = 13;
@@ -585,7 +592,11 @@ public:
         //CRLog::trace("state==%d: \"%s\"", _state, token.c_str());
         if (_state == 11 || _state == 13) {
             if (!token.empty()) {
-                _url = LVCombinePaths(_basePath, Utf8ToUnicode(token));
+                lString16 ltoken = Utf8ToUnicode(token);
+                if (ltoken.startsWithNoCase(lString16("res://")) || ltoken.startsWithNoCase(lString16("file://")) )
+                    _url = ltoken;
+                else
+                    _url = LVCombinePaths(_basePath, ltoken);
             }
             _state = 2;
         } else if (_state == 5) {
@@ -622,7 +633,7 @@ public:
                 onToken(token);
             } else if (ch == '@' || ch=='-' || ch=='_' || ch=='.' || (ch>='a' && ch <='z') || (ch>='A' && ch <='Z') || (ch>='0' && ch <='9')) {
                 token << ch;
-            } else if (ch == ':' || ch=='{' || ch == '}' || ch=='(' || ch == ')' || ch == ';') {
+            } else if (ch == ':' || ch=='{' || ch == '}' || ch=='(' || ch == ')' || ch == ';' || ch == ',') {
                 onToken(token);
                 onToken(ch);
             } else if (ch == '\'' || ch == '\"') {
