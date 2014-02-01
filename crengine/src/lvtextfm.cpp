@@ -814,13 +814,16 @@ public:
                         }
                         if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER ) {
                             word->width -= font->getHyphenWidth(); // TODO: strange fix - need some other solution
-                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ||
-                            lastc==L'。' || lastc==L'，' || lastc==L'！' || lastc==L'：' || lastc==L'；' ||
-                            lastc==L'”' || lastc==L'’' || lastc==L'」' || lastc==L'』' || lastc=='?' ) {
+                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':' || lastc==';' || lastc=='?') {
                             FONT_GUARD
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
                             word->width -= w;
+                        } else if (lastc==L'。' || lastc==L'，' || lastc==L'！' || lastc==L'：' || lastc==L'；' ||
+                    		    lastc==L'”'  || lastc==L'’' || lastc==L'」' || lastc==L'』' || lastc==L'、') {
+                            FONT_GUARD
+                        	int w = font->getCharWidth(lastc);
+                        	if (frmline->width + w + wAlign + x >= maxWidth) word->width -= w;
                         }
                         word->min_width = word->width;
                     }
