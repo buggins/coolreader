@@ -51,7 +51,7 @@ static lUInt8 rgbToGray( lUInt32 color, int bpp )
 
 static lUInt16 rgb565(int r, int g, int b) {
 	// rrrr rggg gggb bbbb
-	return (lUInt16)(((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((g & 0xF8) >> 3));
+    return (lUInt16)(((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3));
 }
 
 static lUInt8 rgbToGrayMask( lUInt32 color, int bpp )
@@ -1484,7 +1484,7 @@ void LVColorDrawBuf::Resize( int dx, int dy )
 }
 void LVColorDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
 {
-	
+    CR_UNUSED4(x0, y0, x1, y1);
 }
 
 /// draws bitmap (1 byte per pixel) using specified palette
@@ -1670,6 +1670,7 @@ void LVColorDrawBuf::DrawTo( HDC dc, int x, int y, int options, lUInt32 * palett
 /// draws buffer content to another buffer doing color conversion if necessary
 void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette )
 {
+    CR_UNUSED2(options, palette);
     lvRect clip;
     buf->GetClipRect(&clip);
 
@@ -1899,6 +1900,8 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
 /// draws buffer content to another buffer doing color conversion if necessary
 void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette )
 {
+    CR_UNUSED(options);
+    CR_UNUSED(palette);
     //
     lvRect clip;
     buf->GetClipRect(&clip);
@@ -2034,6 +2037,7 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
 /// draws rescaled buffer content to another buffer doing color conversion if necessary
 void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options)
 {
+    CR_UNUSED(options);
     if (dx < 1 || dy < 1)
         return;
     lvRect clip;
@@ -2146,6 +2150,7 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
 /// draws rescaled buffer content to another buffer doing color conversion if necessary
 void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options)
 {
+    CR_UNUSED(options);
     if (dx < 1 || dy < 1)
         return;
     lvRect clip;
@@ -2269,5 +2274,7 @@ LVColorDrawBuf::~LVColorDrawBuf()
 /// convert to 1-bit bitmap
 void LVColorDrawBuf::ConvertToBitmap(bool flgDither)
 {
+    // not implemented
+    CR_UNUSED(flgDither);
 }
 
