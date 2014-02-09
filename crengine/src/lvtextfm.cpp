@@ -972,6 +972,7 @@ public:
             if (isCJKLeftPunctuation(m_text[pos])) {
             	LVFont * fnt = (LVFont *)m_srcs[pos]->t.font;
             	if (fnt) firstCharMargin -= fnt->getCharWidth(m_text[pos]);
+            	firstCharMargin = (x + firstCharMargin) > 0 ? firstCharMargin : 0;
             }
             for ( i=pos; i<m_length; i++ ) {
                 if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin)
