@@ -2140,10 +2140,10 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                         int srcx16 = srcdx * xx * 16 / dx;
                         lUInt32 cl = src->GetInterpolatedColor(srcx16, srcy16);
                         lUInt32 alpha = (cl >> 24) & 255;
-                        if (alpha >= 128)
-                            continue;
                         if (_bpp==1)
                         {
+                            if (alpha >= 128)
+                                continue;
                             int shift = (xx + x) & 7;
                             lUInt8 * dst = dst0 + ((x + xx) >> 3);
                             lUInt32 dithered = Dither1BitColor(cl, xx, yy);
@@ -2154,6 +2154,8 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                         }
                         else if (_bpp==2)
                         {
+                            if (alpha >= 128)
+                                continue;
                             lUInt8 * dst = dst0 + ((x + xx) >> 2);
                             int shift = ((x+xx) & 3) * 2;
                             lUInt32 dithered = Dither2BitColor(cl, xx, yy) << 6;
@@ -2164,7 +2166,17 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                         {
                             lUInt8 * dst = dst0 + x + xx;
                             lUInt32 dithered = DitherNBitColor(cl, xx, yy, _bpp); // << (8 - _bpp);
-                            *dst = (lUInt8)dithered;
+                            if (alpha < 16)
+                                *dst = (lUInt8)dithered;
+                            else if (alpha < 240) {
+                                lUInt32 nalpha = 255 - alpha;
+                                lUInt32 pixel = *dst;
+                                if (_bpp == 4)
+                                    pixel = ((pixel * alpha + dithered * nalpha) >> 8) & 0xF0;
+                                else
+                                    pixel = ((pixel * alpha + dithered * nalpha) >> 8) & 0xFF;
+                                *dst = (lUInt8)pixel;
+                            }
                         }
                     }
                 }
