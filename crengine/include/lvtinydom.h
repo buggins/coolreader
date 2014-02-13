@@ -2172,7 +2172,7 @@ protected:
     lUInt16 _stopTagId;
     //============================
     lUInt32 _flags;
-    virtual void ElementCloseHandler( ldomNode * ) { }
+    virtual void ElementCloseHandler( ldomNode * node ) { node->persist(); }
 public:
     /// returns flags
     virtual lUInt32 getFlags() { return _flags; }
