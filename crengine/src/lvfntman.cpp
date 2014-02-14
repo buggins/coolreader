@@ -2941,7 +2941,8 @@ LVFontRef LoadFontFromFile( const char * fname )
 bool InitFontManager( lString8 path )
 {
     if ( fontMan ) {
-        delete fontMan;
+    	return true;
+        //delete fontMan;
     }
 #if (USE_WIN32_FONTS==1)
     fontMan = new LVWin32FontManager;
