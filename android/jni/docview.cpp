@@ -1,6 +1,6 @@
 #include "docview.h"
 #include "lvdocview.h"
-#include "crgl.h"
+//#include "crgl.h"
 
 
 
@@ -693,31 +693,6 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageInternal
 	}
     //CRLog::trace("getPageImageInternal exiting");
 }
-
-/*
- * Class:     org_coolreader_crengine_DocView
- * Method:    getPageImageTextureInternal
- * Signature: ([III)V
- */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageTextureInternal
-  (JNIEnv * env, jobject view, jintArray buf, jint width, jint height, jint bpp)
-{
-    CRLog::trace("getPageImageTextureInternal entered : %dx%d bpp=%d", width, height, bpp);
-    DocViewNative * p = getNative(env, view);
-	DocViewCallback callback( env, p->_docview, view );
-	PageImageTextureInfo ti;
-	getPageImageTexture(p->_docview, width, height, bpp, ti);
-	int len = env->GetArrayLength(buf);
-	if (len < 5)
-		return;
-    lInt32 * data = (lInt32 *)env->GetIntArrayElements(buf, 0);
-    data[0] = ti.dx;
-    data[1] = ti.dy;
-    data[2] = ti.tdx;
-    data[3] = ti.tdy;
-    data[4] = ti.textureId;
-    env->ReleaseIntArrayElements(buf, (jint*)data, 0);}
-
 
 /*
  * Class:     org_coolreader_crengine_DocView

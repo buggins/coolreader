@@ -60,7 +60,7 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvtextfm.cpp \
     ../../crengine/src/lvrend.cpp \
     ../../crengine/src/wolutil.cpp \
-    ../../crengine/src/crgl.cpp \
+    ../../crengine/src/crconcurrent.cpp \
     ../../crengine/src/hist.cpp
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \
@@ -233,7 +233,7 @@ LOCAL_SRC_FILES := \
     $(CHM_SRC_FILES) \
     $(ANTIWORD_SRC_FILES)
 
-LOCAL_LDLIBS    := -lm -llog -lz -lGLESv1_CM -ldl -Wl,-Map=cr3engine.map
+LOCAL_LDLIBS    := -lm -llog -lz -ldl -Wl,-Map=cr3engine.map
 #-ljnigraphics
 
 include $(BUILD_SHARED_LIBRARY)

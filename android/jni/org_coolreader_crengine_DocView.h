@@ -271,13 +271,6 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInte
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isRenderedInternal
   (JNIEnv *, jobject);
 
-/*
- * Class:     org_coolreader_crengine_DocView
- * Method:    getPageImageTextureInternal
- * Signature: ([III)V
- */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageTextureInternal
-  (JNIEnv *, jobject, jintArray, jint, jint, jint);
 
 #define SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE 1
 #define SEL_CMD_NEXT_SENTENCE 2
