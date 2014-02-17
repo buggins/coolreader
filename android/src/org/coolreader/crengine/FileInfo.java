@@ -1,16 +1,15 @@
 package org.coolreader.crengine;
 
+import android.util.Log;
+import org.coolreader.R;
+import org.coolreader.plugins.OnlineStoreBook;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.zip.ZipEntry;
-
-import org.coolreader.R;
-import org.coolreader.plugins.OnlineStoreBook;
-
-import android.util.Log;
 
 public class FileInfo {
 
@@ -84,24 +83,28 @@ public class FileInfo {
 	public static final int RATE_VALUE_3 = 3;
 	public static final int RATE_VALUE_4 = 4;
 	public static final int RATE_VALUE_5 = 5;
-	
+
+    //bit 24,25 - info type
+    private static final int TYPE_SHIFT = 24;
+    private static final int TYPE_MASK = 0x03;
+    public static final int TYPE_NOT_SET = 0;
+    public static final int TYPE_FS_ROOT = 1;
+    public static final int TYPE_DOWNLOAD_DIR = 2;
+
 	/**
 	 * Get book reading state. 
 	 * @return reading state (one of STATE_XXX constants)
 	 */
 	public int getReadingState() {
-		return (flags >> READING_STATE_SHIFT) & READING_STATE_MASK;
-	}
+        return getBitValue(READING_STATE_SHIFT,READING_STATE_MASK);
+    }
 
 	/**
 	 * Set new reading state.
 	 * @param state is new reading state (one of STATE_XXX constants)
 	 */
 	public boolean setReadingState(int state) {
-		int oldFlags = flags;
-		flags = (flags & ~(READING_STATE_MASK << READING_STATE_SHIFT))
-		 | ((state & READING_STATE_MASK) << READING_STATE_SHIFT);
-		return flags != oldFlags;
+        return setBitValue(state, READING_STATE_SHIFT, READING_STATE_MASK);
 	}
 
 	/**
@@ -109,19 +112,32 @@ public class FileInfo {
 	 * @return reading state (one of STATE_XXX constants)
 	 */
 	public int getRate() {
-		return (flags >> RATE_SHIFT) & RATE_MASK;
-	}
+        return getBitValue(RATE_SHIFT, RATE_MASK);
+    }
 
 	/**
-	 * Set new reading state.
-	 * @param state is new reading state (one of STATE_XXX constants)
+	 * Set new rate.
+	 * @param rate is new rate (one of RATE_XXX constants)
 	 */
 	public boolean setRate(int rate) {
-		int oldFlags = flags;
-		flags = (flags & ~(RATE_MASK << RATE_SHIFT))
-		 | ((rate & RATE_MASK) << RATE_SHIFT);
-		return flags != oldFlags;
+        return setBitValue(rate, RATE_SHIFT, RATE_MASK);
 	}
+
+    /**
+   	 * Get FileInfo type.
+   	 * @return folder type (one of TYPE_XXX constants)
+   	 */
+   	public int getType() {
+        return getBitValue(TYPE_SHIFT, TYPE_MASK);
+    }
+
+   	/**
+   	 * Set FileInfo type.
+   	 * @param type is new type
+   	 */
+   	public boolean setType(int type) {
+        return setBitValue(type, TYPE_SHIFT, TYPE_MASK);
+   	}
 
 	/**
 	 * To separate archive name from file name inside archive.
@@ -141,14 +157,25 @@ public class FileInfo {
 	}
 	
 	public int getProfileId() {
-		return (flags >> PROFILE_ID_SHIFT) & PROFILE_ID_MASK; 
+        return getBitValue(PROFILE_ID_SHIFT,PROFILE_ID_MASK);
+    }
+
+    public void setProfileId(int id) {
+        setBitValue(id,PROFILE_ID_SHIFT,PROFILE_ID_MASK);
 	}
-	
-	public void setProfileId(int id) {
-		flags = (flags & ~(PROFILE_ID_MASK << PROFILE_ID_SHIFT)) | ((id & PROFILE_ID_MASK) << PROFILE_ID_SHIFT); 
-	}
-	
-	public String getTitleOrFileName() {
+
+    private boolean setBitValue(int value, int shift, int mask) {
+        int oldFlags = flags;
+        flags = (flags & ~(mask << shift))
+                | ((value & mask) << shift);
+        return flags != oldFlags;
+    }
+
+    private int getBitValue(int shift, int mask) {
+        return (flags >> shift) & mask;
+    }
+
+    public String getTitleOrFileName() {
 		if (title != null && title.length() > 0)
 			return title;
 		if (authors != null && authors.length() > 0)

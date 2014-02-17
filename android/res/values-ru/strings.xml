@@ -15,6 +15,7 @@
     <string name="context_menu_title_bookmark">Закладка</string>
     <string name="context_menu_title_book">Книга</string>
     <string name="context_menu_title_recent_book">Запись</string>
+    <string name="context_menu_title_folder">Папка</string>
     <string name="mi_book_open">Открыть</string>
     <string name="mi_book_recent_books">Последние</string>
     <string name="mi_book_file_remove">Удалить файл</string>
@@ -34,6 +35,11 @@
     <string name="mi_goto_page">На страницу №</string>
     <string name="mi_goto_percent">На позицию %</string>
     <string name="mi_goto_toc">Содержание</string>
+    <string name="mi_folder_open">Открыть папку</string>
+    <string name="mi_folder_to_favorites">Добавить в избранное</string>
+    <string name="mi_folder_left">Сдвинуть влево</string>
+    <string name="mi_folder_right">Сдвинуть вправо</string>
+    <string name="mi_folder_remove">Убрать</string>
     <string name="dir_recent_books">Последние книги</string>
     <string name="dir_sd_card">SD карта</string>
     <string name="dir_internal_sd_card">Внутр. SD карта</string>

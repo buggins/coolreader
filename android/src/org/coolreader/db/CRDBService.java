@@ -1,17 +1,5 @@
 package org.coolreader.db;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.coolreader.crengine.BookInfo;
-import org.coolreader.crengine.Bookmark;
-import org.coolreader.crengine.FileInfo;
-import org.coolreader.crengine.L;
-import org.coolreader.crengine.Logger;
-import org.coolreader.crengine.MountPathCorrector;
-import org.coolreader.crengine.Utils;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -19,6 +7,11 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import org.coolreader.crengine.*;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class CRDBService extends Service {
 	public static final Logger log = L.create("db");
@@ -528,6 +521,54 @@ public class CRDBService extends Service {
 		flush();
 	}
 
+    //=======================================================================================
+    // Favorite folders access code
+    //=======================================================================================
+    public void createFavoriteFolder(final FileInfo folder) {
+   		execTask(new Task("createFavoriteFolder") {
+   			@Override
+   			public void work() {
+   				mainDB.createFavoritesFolder(folder);
+   			}
+   		});
+        flush();
+   	}
+
+    public void loadFavoriteFolders(final FileInfoLoadingCallback callback, final Handler handler) {
+   		execTask(new Task("loadFavoriteFolders") {
+            @Override
+            public void work() {
+                final ArrayList<FileInfo> favorites = mainDB.loadFavoriteFolders();
+                sendTask(handler, new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onFileInfoListLoaded(favorites);
+                    }
+                });
+            }
+        });
+   	}
+
+    public void updateFavoriteFolder(final FileInfo folder) {
+   		execTask(new Task("updateFavoriteFolder") {
+   			@Override
+   			public void work() {
+   				mainDB.updateFavoriteFolder(folder);
+   			}
+   		});
+        flush();
+   	}
+
+    public void deleteFavoriteFolder(final FileInfo folder) {
+   		execTask(new Task("deleteFavoriteFolder") {
+   			@Override
+   			public void work() {
+   				mainDB.deleteFavoriteFolder(folder);
+   			}
+   		});
+        flush();
+   	}
+
 	private abstract class Task implements Runnable {
 		private final String name;
 		public Task(String name) {
@@ -696,6 +737,23 @@ public class CRDBService extends Service {
     	public void loadBookInfo(final FileInfo fileInfo, final BookInfoLoadingCallback callback) {
     		getService().loadBookInfo(new FileInfo(fileInfo), callback, new Handler());
     	}
+
+        public void createFavoriteFolder(final FileInfo folder) {
+            getService().createFavoriteFolder(folder);
+       	}
+
+        public void loadFavoriteFolders(FileInfoLoadingCallback callback) {
+            getService().loadFavoriteFolders(callback, new Handler());
+       	}
+
+        public void updateFavoriteFolder(final FileInfo folder) {
+            getService().updateFavoriteFolder(folder);
+       	}
+
+        public void deleteFavoriteFolder(final FileInfo folder) {
+            getService().deleteFavoriteFolder(folder);
+       	}
+
 
     	public void setPathCorrector(MountPathCorrector corrector) {
     		getService().setPathCorrector(corrector);

@@ -1,19 +1,14 @@
 package org.coolreader.crengine;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.zip.ZipEntry;
-
+import android.util.Log;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 
-import android.util.Log;
+import java.io.File;
+import java.util.*;
+import java.util.zip.ZipEntry;
 
 public class Scanner extends FileInfoChangeSource {
 	
@@ -863,7 +858,12 @@ public class Scanner extends FileInfoChangeSource {
 		}
 		return null;
 	}
-	
+
+    public boolean isValidFolder(FileInfo info){
+        File dir = new File( info.pathname );
+        return dir.isDirectory();
+    }
+
 	public FileInfo getRoot() 
 	{
 		return mRoot;

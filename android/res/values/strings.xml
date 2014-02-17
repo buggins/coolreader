@@ -19,6 +19,7 @@
     <string name="context_menu_title_bookmark">Bookmark</string>
     <string name="context_menu_title_book">Book</string>
     <string name="context_menu_title_recent_book">Recent book</string>
+    <string name="context_menu_title_folder">Folder</string>
     <string name="mi_book_open">Open book</string>
     <string name="mi_book_recent_books">Recent books</string>
     <string name="mi_book_file_remove">Delete book file</string>
@@ -38,6 +39,11 @@
     <string name="mi_goto_page">Go to page #</string>
     <string name="mi_goto_percent">Go to position %</string>
     <string name="mi_goto_toc">Table of Contents</string>
+    <string name="mi_folder_open">Open folder</string>
+    <string name="mi_folder_to_favorites">Add to favorites</string>
+    <string name="mi_folder_left">Move left</string>
+    <string name="mi_folder_right">Move right</string>
+    <string name="mi_folder_remove">Remove</string>
     <string name="dir_recent_books">Recent Books</string>
     <string name="dir_sd_card">SD Card</string>
     <string name="dir_internal_sd_card">Internal SD Card</string>
