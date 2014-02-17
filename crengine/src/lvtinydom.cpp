@@ -8688,7 +8688,7 @@ public:
         : _cacheDir( cacheDir ), _maxSize( maxSize ), _oldStreamSize(0), _oldStreamCRC(0)
     {
         LVAppendPathDelimiter( _cacheDir );
-        CRLog::trace("ldomDocCacheImpl(%s)", LCSTR(_cacheDir));
+        CRLog::trace("ldomDocCacheImpl(%s maxSize=%d)", LCSTR(_cacheDir), (int)maxSize);
     }
 
     bool writeIndex()
