@@ -196,7 +196,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
 	
-	public boolean USE_GL = true;
+	public boolean USE_GL = false;
 
 	private final SurfaceView surface;
 	private final BookView bookView;
