@@ -7415,9 +7415,12 @@ void ldomDocumentFragmentWriter::OnAttribute( const lChar16 * nsname, const lCha
         if ( styleDetectionState ) {
             if ( !lStr_cmp(attrname, "rel") && !lStr_cmp(attrvalue, "stylesheet") )
                 styleDetectionState |= 2;
-            else if ( !lStr_cmp(attrname, "type") && !lStr_cmp(attrvalue, "text/css") )
-                styleDetectionState |= 4;
-            else if ( !lStr_cmp(attrname, "href") ) {
+            else if ( !lStr_cmp(attrname, "type") ) {
+                if ( !lStr_cmp(attrvalue, "text/css") )
+                    styleDetectionState |= 4;
+                else
+                    styleDetectionState = 0;  // text/css type supported only
+            } else if ( !lStr_cmp(attrname, "href") ) {
                 styleDetectionState |= 8;
                 lString16 href = attrvalue;
                 if ( stylesheetFile.empty() )
@@ -7502,13 +7505,21 @@ void ldomDocumentFragmentWriter::OnTagClose( const lChar16 * nsname, const lChar
         parent->OnTagClose(nsname, tagname);
 }
 
-/// called after > of opening tag (when entering tag body)
+/// called after > of opening tag (when entering tag body) or just before /> closing tag for empty tags
 void ldomDocumentFragmentWriter::OnTagBody()
 {
     if ( insideTag ) {
         parent->OnTagBody();
     }
-    styleDetectionState = 0;
+    if ( styleDetectionState == 11 ) {
+        // incomplete <link rel="stylesheet", href="..." />; assuming type="text/css"
+        if ( !stylesheetFile.empty() )
+            stylesheetLinks.add(tmpStylesheetFile);
+        else
+            stylesheetFile = tmpStylesheetFile;
+        styleDetectionState = 0;
+    } else
+        styleDetectionState = 0;
 }
 
 
