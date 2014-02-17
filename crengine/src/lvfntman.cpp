@@ -615,21 +615,26 @@ void LVFontGlobalGlyphCache::refresh( LVFontGlyphCacheItem * item )
     FONT_GLYPH_CACHE_GUARD
     if ( tail!=item ) {
         //move to head
-        remove( item );
-        put( item );
+        removeNoLock( item );
+        putNoLock( item );
     }
 }
 
 void LVFontGlobalGlyphCache::put( LVFontGlyphCacheItem * item )
 {
     FONT_GLYPH_CACHE_GUARD
+    putNoLock(item);
+}
+
+void LVFontGlobalGlyphCache::putNoLock( LVFontGlyphCacheItem * item )
+{
     int sz = item->getSize();
     // remove extra items from tail
     while ( sz + size > max_size ) {
         LVFontGlyphCacheItem * removed_item = tail;
         if ( !removed_item )
             break;
-        remove( removed_item );
+        removeNoLock( removed_item );
         removed_item->local_cache->remove( removed_item );
         LVFontGlyphCacheItem::freeItem( removed_item );
     }
@@ -646,6 +651,11 @@ void LVFontGlobalGlyphCache::put( LVFontGlyphCacheItem * item )
 void LVFontGlobalGlyphCache::remove( LVFontGlyphCacheItem * item )
 {
     FONT_GLYPH_CACHE_GUARD
+    removeNoLock(item);
+}
+
+void LVFontGlobalGlyphCache::removeNoLock( LVFontGlyphCacheItem * item )
+{
     if ( item==head )
         head = item->next_global;
     if ( item==tail )
@@ -1167,7 +1177,7 @@ public:
         \return glyph pointer if glyph was found, NULL otherwise
     */
     virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
-        FONT_GUARD
+        //FONT_GUARD
         FT_UInt ch_glyph_index = getCharIndex( ch, 0 );
         if ( ch_glyph_index==0 ) {
             LVFont * fallback = getFallbackFont();
@@ -2931,7 +2941,8 @@ LVFontRef LoadFontFromFile( const char * fname )
 bool InitFontManager( lString8 path )
 {
     if ( fontMan ) {
-        delete fontMan;
+    	return true;
+        //delete fontMan;
     }
 #if (USE_WIN32_FONTS==1)
     fontMan = new LVWin32FontManager;

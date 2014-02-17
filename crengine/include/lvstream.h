@@ -261,9 +261,9 @@ public:
     lverror_t Write( LVArray<lUInt32> & array );
 
     /// calculate crc32 code for stream, if possible
-    virtual lverror_t crc32( lUInt32 & dst );
+    virtual lverror_t getcrc32( lUInt32 & dst );
     /// calculate crc32 code for stream, returns 0 for error or empty stream
-    inline lUInt32 crc32() { lUInt32 res = 0; crc32( res ); return res; }
+    inline lUInt32 getcrc32() { lUInt32 res = 0; getcrc32( res ); return res; }
 
     /// set write bytes limit to call flush(true) automatically after writing of each sz bytes
     virtual void setAutoSyncSize(lvsize_t /*sz*/) { }
@@ -448,7 +448,7 @@ public:
         return (lvopen_mode_t)(m_mode & LVOM_MASK);
     }
     /// calculate crc32 code for stream, if possible
-    virtual lverror_t crc32( lUInt32 & dst );
+    virtual lverror_t getcrc32( lUInt32 & dst );
 };
 
 

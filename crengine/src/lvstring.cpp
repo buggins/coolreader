@@ -4352,8 +4352,10 @@ protected:
         int memusage = mi.arena;
 #endif
 #else
-        time_t t = (time_t)time(0);
-        int ms = 0;
+        lUInt64 ts = GetCurrentTimeMillis();
+        //time_t t = (time_t)time(0);
+        time_t t = ts / 1000;
+        int ms = (ts % 1000) * 1000;
 #if LOG_HEAP_USAGE
         int memusage = 0;
 #endif

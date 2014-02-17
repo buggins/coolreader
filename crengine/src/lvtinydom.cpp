@@ -4204,7 +4204,6 @@ ldomElementWriter * ldomDocumentWriter::pop( ldomElementWriter * obj, lUInt16 id
         tmp2 = tmp->_parent;
         bool stop = (tmp->getElement()->getNodeId() == id);
         ElementCloseHandler( tmp->getElement() );
-        tmp->getElement()->persist();
         delete tmp;
         if ( stop )
             return tmp2;
@@ -7587,6 +7586,7 @@ void ldomDocumentWriterFilter::AutoClose( lUInt16 tag_id, bool open )
 
 ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar16 * nsname, const lChar16 * tagname )
 {
+    //CRLog::trace("OnTagOpen(%s, %s)", LCSTR(lString16(nsname)), LCSTR(lString16(tagname)));
     if ( !_tagBodyCalled ) {
         CRLog::error("OnTagOpen w/o parent's OnTagBody : %s", LCSTR(lString16(tagname)));
         crFatalError();
@@ -7627,6 +7627,14 @@ void ldomDocumentWriterFilter::OnTagBody()
     }
 }
 
+bool isRightAligned(ldomNode * node) {
+    lString16 style = node->getAttributeValue(attr_style);
+    if (style.empty())
+        return false;
+    int p = style.pos("text-align: right", 0);
+    return (p >= 0);
+}
+
 void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
 {
     ldomNode * parent = node->getParentNode();
@@ -7635,30 +7643,45 @@ void ldomDocumentWriterFilter::ElementCloseHandler( ldomNode * node )
         if ( parent->getLastChild() != node )
             return;
         if ( id==el_table ) {
-            if (node->getAttributeValue(attr_align) == "right" && node->getAttributeValue(attr_width) == "30%") {
+            if (isRightAligned(node) && node->getAttributeValue(attr_width) == "30%") {
                 // LIB.RU TOC detected: remove it
-                parent->removeLastChild();
+                //parent = parent->modify();
+
+                //parent->removeLastChild();
             }
         } else if ( id==el_pre && _libRuDocumentDetected ) {
             // for LIB.ru - replace PRE element with DIV (section?)
-            if ( node->getChildCount()==0 )
-                parent->removeLastChild(); // remove empty PRE element
+            if ( node->getChildCount()==0 ) {
+                //parent = parent->modify();
+
+                //parent->removeLastChild(); // remove empty PRE element
+            }
             //else if ( node->getLastChild()->getNodeId()==el_div && node->getLastChild()->getChildCount() &&
             //          ((ldomElement*)node->getLastChild())->getLastChild()->getNodeId()==el_form )
             //    parent->removeLastChild(); // remove lib.ru final section
             else
                 node->setNodeId( el_div );
         } else if ( id==el_div ) {
-            if (node->getAttributeValue(attr_align) == "right") {
+//            CRLog::trace("DIV attr align = %s", LCSTR(node->getAttributeValue(attr_align)));
+//            CRLog::trace("DIV attr count = %d", node->getAttrCount());
+//            int alignId = node->getDocument()->getAttrNameIndex("align");
+//            CRLog::trace("align= %d %d", alignId, attr_align);
+//            for (int i = 0; i < node->getAttrCount(); i++)
+//                CRLog::trace("DIV attr %s", LCSTR(node->getAttributeName(i)));
+            if (isRightAligned(node)) {
                 ldomNode * child = node->getLastChild();
                 if ( child && child->getNodeId()==el_form )  {
                     // LIB.RU form detected: remove it
+                    //parent = parent->modify();
+
                     parent->removeLastChild();
                     _libRuDocumentDetected = true;
                 }
             }
         }
     }
+    if (!_libRuDocumentDetected)
+        node->persist();
 }
 
 void ldomDocumentWriterFilter::OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
@@ -7817,10 +7840,13 @@ void ldomDocumentWriterFilter::OnText( const lChar16 * text, int len, lUInt32 fl
             }
             if ( isHr ) {
                 OnTagOpen( NULL, L"hr" );
+                OnTagBody();
                 OnTagClose( NULL, L"hr" );
             } else if ( len > 0 ) {
-                if ( autoPara )
+                if ( autoPara ) {
                     OnTagOpen( NULL, paraTag );
+                    OnTagBody();
+                }
                 _currNode->onText( text, len, flags );
                 if ( autoPara )
                     OnTagClose( NULL, paraTag );
@@ -8661,7 +8687,7 @@ public:
             LVStreamRef oldStream = LVOpenFileStream(filename.c_str(), LVOM_READ);
             if (!oldStream.isNull()) {
                 _oldStreamSize = (lUInt32)oldStream->GetSize();
-                _oldStreamCRC = (lUInt32)oldStream->crc32();
+                _oldStreamCRC = (lUInt32)oldStream->getcrc32();
             }
         }
 

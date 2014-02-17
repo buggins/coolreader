@@ -42,10 +42,41 @@ class GLDrawBuf; // workaround for no-rtti builds
 class LVDrawBuf : public CacheableObject
 {
 public:
+    // GL draw buffer support
     /// GL draw buffer compatibility - requires this call before any drawing
     virtual void beforeDrawing() {}
     /// GL draw buffer compatibility - requires this call after any drawing
     virtual void afterDrawing() {}
+
+    // tiles support
+    /// returns true if drawing buffer is tiled
+    virtual bool isTiled() { return false; }
+    /// returns tile width (or just width if no tiles)
+    virtual int tileWidth() { return GetWidth(); }
+    /// returns tile height (or just height if no tiles)
+    virtual int tileHeight() { return GetHeight(); }
+    /// returns tile drawbuf for tiled image, returns this for non tiled draw buffer
+    virtual LVDrawBuf * getTile(int x, int y) {
+        CR_UNUSED2(x, y);
+        return this;
+    }
+    /// returns number of tiles in row
+    virtual int getXtiles() {
+        return 1;
+    }
+    /// returns number of tiles in column
+    virtual int getYtiles() {
+        return 1;
+    }
+
+    /// returns tile rectangle
+    virtual void getTileRect(lvRect & rc, int x, int y) {
+        CR_UNUSED2(x, y);
+        rc.left = rc.top = 0;
+        rc.right = GetWidth();
+        rc.bottom = GetHeight();
+    }
+
     /// rotates buffer contents by specified angle
     virtual void Rotate( cr_rotate_angle_t angle ) = 0;
     /// returns white pixel value

@@ -161,6 +161,7 @@ public:
 
     virtual lverror_t SetSize( lvsize_t size )
     {
+        CR_UNUSED(size);
         // support only size grow
         return LVERR_FAIL;
     }

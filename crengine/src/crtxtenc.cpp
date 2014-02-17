@@ -570,6 +570,7 @@ static struct {
     {"windows-852", __cp852, CRENC_ID_CP852},
     {"koi-8r", __koi8r, CRENC_ID_KOI8R},
     {"koi8r", __koi8r, CRENC_ID_KOI8R},
+    {"koi8-r", __koi8r, CRENC_ID_KOI8R},
     {"iso8859-2", __iso8859_2, CRENC_ID_ISO8859_2},
     {"iso-8859-2", __iso8859_2, CRENC_ID_ISO8859_2},
     {"iso8859_2", __iso8859_2, CRENC_ID_ISO8859_2},
