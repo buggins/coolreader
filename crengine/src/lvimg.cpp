@@ -40,6 +40,11 @@ typedef boolean wxjpeg_boolean;
 
 #endif
 
+static lUInt32 NEXT_CACHEABLE_OBJECT_ID = 1;
+CacheableObject::CacheableObject() : _callback(NULL), _cache(NULL)
+{
+	_objectId = ++NEXT_CACHEABLE_OBJECT_ID;
+}
 
 void CR9PatchInfo::applyPadding(lvRect & dstPadding) const
 {

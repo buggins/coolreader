@@ -21,23 +21,25 @@
 class CacheableObject;
 class CacheObjectListener {
 public:
-    virtual void onCachedObjectDeleted(CacheableObject * obj) { CR_UNUSED(obj); }
+    virtual void onCachedObjectDeleted(lUInt32 objectId) { CR_UNUSED(objectId); }
 	virtual ~CacheObjectListener() {}
 };
 
 /// object deletion listener callback function type
-typedef void(*onObjectDestroyedCallback_t)(CacheObjectListener * pcache, CacheableObject * pobject);
+typedef void(*onObjectDestroyedCallback_t)(CacheObjectListener * pcache, lUInt32 pobject);
 
 /// to handle object deletion listener
 class CacheableObject {
 	onObjectDestroyedCallback_t _callback;
 	CacheObjectListener * _cache;
+	lUInt32 _objectId;
 public:
-	CacheableObject() : _callback(NULL), _cache(NULL) {}
+	CacheableObject();
 	virtual ~CacheableObject() {
 		if (_callback)
-			_callback(_cache, this);
+			_callback(_cache, _objectId);
 	}
+	virtual lUInt32 getObjectId() { return _objectId; }
 	/// set callback to call on object destroy
 	void setOnObjectDestroyedCallback(onObjectDestroyedCallback_t callback, CacheObjectListener * pcache) {
 		_callback = callback;

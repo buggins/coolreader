@@ -8688,6 +8688,7 @@ public:
         : _cacheDir( cacheDir ), _maxSize( maxSize ), _oldStreamSize(0), _oldStreamCRC(0)
     {
         LVAppendPathDelimiter( _cacheDir );
+        CRLog::trace("ldomDocCacheImpl(%s)", LCSTR(_cacheDir));
     }
 
     bool writeIndex()
@@ -8712,6 +8713,7 @@ public:
             FileItem * item = _files[i];
             buf << item->filename;
             buf << item->size;
+            CRLog::trace("cache item: %s %d", LCSTR(item->filename), (int)item->size);
         }
         buf.putCRC( buf.pos() - start );
         if ( buf.error() )
