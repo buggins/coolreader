@@ -337,7 +337,7 @@ public:
     lUInt32 getHash() const;
 
     /// get character at specified position with range check
-    value_type & at( size_type pos ) { if (pos>pchunk->len) crFatalError(); return modify()[pos]; }
+    value_type & at( size_type pos ) { if (pos > (size_type)pchunk->len) crFatalError(); return modify()[pos]; }
     /// get character at specified position without range check
     value_type operator [] ( size_type pos ) const { return pchunk->buf8[pos]; }
     /// get reference to character at specified position
