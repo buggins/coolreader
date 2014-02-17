@@ -196,6 +196,7 @@ public interface Settings {
     	RU("ru", R.string.options_app_locale_ru, R.raw.help_template_ru),
     	UK("uk", R.string.options_app_locale_uk, R.raw.help_template_ru),
     	BG("bg", R.string.options_app_locale_bg, 0),
+    	BY("by", R.string.options_app_locale_by, 0),
     	SK("sk", R.string.options_app_locale_sk, 0),
     	TR("tr", R.string.options_app_locale_tr, 0),
     	LT("lt", R.string.options_app_locale_lt, 0),

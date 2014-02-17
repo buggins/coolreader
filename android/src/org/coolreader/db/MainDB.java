@@ -354,7 +354,7 @@ public class MainDB extends BaseDB {
             stmt.bindLong(1, folder.seriesNumber);
             stmt.bindString(2, folder.pathname);
             stmt.bindLong(3, folder.id);
-            stmt.executeUpdateDelete();
+            stmt.execute();
         } finally {
             if(stmt!= null)
                 stmt.close();
