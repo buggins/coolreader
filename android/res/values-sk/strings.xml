@@ -412,6 +412,8 @@
     <string name="options_app_locale_it">Italiano</string>
     <string name="options_app_locale_lt">Lietuvos</string>
     <string name="options_app_locale_nl">Nederlands</string>
+    <string name="options_app_locale_pt">Português</string>
+    <string name="options_app_locale_pt_rbr">Português do Brasil</string>
     <string name="options_app_locale_ru">Русский</string>
     <string name="options_app_locale_sk">Slovak</string>
     <string name="options_app_locale_tr">Türkçe</string>

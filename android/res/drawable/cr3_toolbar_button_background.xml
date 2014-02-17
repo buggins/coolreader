@@ -4,7 +4,7 @@
           android:drawable="@drawable/btn_default_small_pressed" /> <!-- pressed -->
     <item android:state_focused="true"
           android:drawable="@drawable/btn_default_small_selected" /> <!-- focused -->
-    <item android:state_hovered="true"
+    <item android:state_long_pressable="true"
           android:drawable="@drawable/btn_default_small_selected" /> <!-- hovered -->
     <item android:drawable="@drawable/btn_default_small_transparent" /> <!-- default -->
 </selector>

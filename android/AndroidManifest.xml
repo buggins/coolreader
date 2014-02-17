@@ -23,17 +23,20 @@
     <!-- Hide Android3 soft buttons on Archos -->
     <!--uses-permission android:name="archos.permission.FULLSCREEN.FULL"/-->
     <!-- Required permission to use in-app billing. -->
-    <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- <uses-permission android:name="com.android.vending.BILLING" />-->
     <application android:label="@string/app_name"
         android:icon="@drawable/cr3_logo"
         android:debuggable="true"
         android:allowClearUserData="true"
         android:process="org.coolreader"
         >
-        <activity android:name=".CoolReader" 
-            android:label="@string/app_name" 
+<!--
             android:configChanges="orientation|keyboardHidden|locale|screenSize"
-            android:theme="@android:style/Theme.NoTitleBar" 
+-->
+        <activity android:name=".CoolReader"
+            android:label="@string/app_name" 
+            android:configChanges="orientation|keyboardHidden|locale"
+            android:theme="@android:style/Theme.NoTitleBar"
             android:launchMode="singleTask"
             android:windowSoftInputMode="stateHidden"
             android:screenOrientation="sensor">
