@@ -25,7 +25,7 @@ public class SwitchProfileDialog extends BaseDialog {
 		this.mCoolReader = coolReader;
 		this.mReaderView = readerView;
 		this.mListView = new BaseListView(getContext(), false);
-		currentProfile = mReaderView.getCurrentProfile(); // TODO: get from settings
+		currentProfile = this.mCoolReader.getCurrentProfile(); // TODO: get from settings
 		mListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> listview, View view,

@@ -44,6 +44,7 @@ import java.util.Locale;
 public class BaseActivity extends Activity implements Settings {
 
 	private static final Logger log = L.create("ba");
+	private View mDecorView;
 
 	private CRDBServiceAccessor mCRDBService;
 	private SyncServiceAccessor mSyncService;
@@ -115,17 +116,35 @@ public class BaseActivity extends Activity implements Settings {
     	// create rest of settings
 		Services.startServices(this);
 	}
-	
-	/** Called when the activity is first created. */
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+	super.onWindowFocusChanged(hasFocus);
+	if (hasFocus && (DeviceInfo.getSDKLevel() >= 19)) {
+		int flag = 0;
+		if (mFullscreen)
+			flag |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+					| View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+            mDecorView.setSystemUiVisibility(flag);
+        }
+    }
+
+    /** Called when the activity is first created. */
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
 		log.i("BaseActivity.onCreate() entered");
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		mDecorView = getWindow().getDecorView();
 
 		super.onCreate(savedInstanceState);
 
-		
+
 		try {
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
 			mVersion = pi.versionName;
@@ -229,10 +248,16 @@ public class BaseActivity extends Activity implements Settings {
 		mIsStarted = false;
 		mPaused = true;
 //		setScreenUpdateMode(-1, mReaderView);
+		einkRefresh();
 		releaseBacklightControl();
 		super.onPause();
 	}
 	
+	protected void einkRefresh() {
+		EinkScreen.RefreshNumber = -1;
+	}
+
+
 	protected static String PREF_FILE = "CR3LastBook";
 	protected static String PREF_LAST_BOOK = "LastBook";
 	protected static String PREF_LAST_LOCATION = "LastLocation";
@@ -464,15 +489,16 @@ public class BaseActivity extends Activity implements Settings {
 	public void applyFullscreen( Window wnd )
 	{
 		if ( mFullscreen ) {
-			//mActivity.getWindow().requestFeature(Window.)
-			wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		//mActivity.getWindow().requestFeature(Window.)
+		wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+		        WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		} else {
 			wnd.setFlags(0, 
-			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+		        WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		}
 		setSystemUiVisibility();
 	}
+
 	public void setFullscreen( boolean fullscreen )
 	{
 		if ( mFullscreen!=fullscreen ) {
@@ -546,6 +572,7 @@ public class BaseActivity extends Activity implements Settings {
 	@SuppressLint("NewApi")
 	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
+			if (DeviceInfo.getSDKLevel() < 19) {
 //			if (!systemUiVisibilityListenerIsSet && contentView != null) {
 //				contentView.setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
 //					@Override
@@ -584,6 +611,7 @@ public class BaseActivity extends Activity implements Settings {
 				// ignore
 			} catch (InvocationTargetException e) {
 				// ignore
+			}
 			}
 		}
 		return false;

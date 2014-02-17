@@ -1153,7 +1153,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public boolean onTouchEvent(MotionEvent event) {
 			int x = (int)event.getX();
 			int y = (int)event.getY();
-			
+			if ((DeviceInfo.getSDKLevel() >= 19) && mActivity.isFullscreen() && (event.getAction() == MotionEvent.ACTION_DOWN)) {
+				if ((y < 30) || (y > (getSurface().getHeight() - 30))) 
+					return unexpectedEvent();
+			}			
 
 			if (state == STATE_INITIAL && event.getAction() != MotionEvent.ACTION_DOWN)
 				return unexpectedEvent(); // ignore unexpected event
@@ -3041,6 +3044,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	public boolean loadDocument( String fileName, final Runnable errorHandler )
 	{
 		BackgroundThread.ensureGUI();
+		save();
 		log.i("loadDocument(" + fileName + ")");
 		if (fileName == null) {
 			log.v("loadDocument() : no filename specified");
@@ -4756,7 +4760,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			profileNumber = mBookInfo.getFileInfo().getProfileId();
 			Properties oldSettings = new Properties(mSettings);
 			// TODO: enable storing of profile per book
-			//mActivity.setCurrentProfile(profileNumber);
+			mActivity.setCurrentProfile(profileNumber);
 	    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null )
 	    		pos = mBookInfo.getLastPosition().getStartPos();
 			log.v("LoadDocumentTask : book info " + mBookInfo);
@@ -5173,6 +5177,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
     public void save()
     {
+    	mActivity.einkRefresh();
 		BackgroundThread.ensureGUI();
 		if (isBookLoaded() && mBookInfo != null) {
 			log.v("saving last immediately");
@@ -5536,15 +5541,15 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		dlg.show();
 	}
 	
-	private int currentProfile = 0;
-	public int getCurrentProfile() {
-		if (currentProfile == 0) {
-			currentProfile = mSettings.getInt(PROP_PROFILE_NUMBER, 1);
-			if (currentProfile < 1 || currentProfile > MAX_PROFILES)
-				currentProfile = 1;
-		}
-		return currentProfile;
-	}
+//	private int currentProfile = 0;
+//	public int getCurrentProfile() {
+//		if (currentProfile == 0) {
+//			currentProfile = mSettings.getInt(PROP_PROFILE_NUMBER, 1);
+//			if (currentProfile < 1 || currentProfile > MAX_PROFILES)
+//				currentProfile = 1;
+//		}
+//		return currentProfile;
+//	}
 
 	public void setCurrentProfile(int profile) {
 		if (mActivity.getCurrentProfile() == profile)

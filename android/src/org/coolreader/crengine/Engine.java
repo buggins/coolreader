@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 
 import org.coolreader.R;
+import org.coolreader.crengine.DeviceInfo;
 
 import android.app.AlertDialog;
 import android.graphics.Bitmap;
@@ -918,6 +919,7 @@ public class Engine {
 	 * Can be slow if big file is being moved. 
 	 * @param bestPlace is desired directory for file (e.g. new place after migration)
 	 * @param oldPlace is old (obsolete) directory for file (e.g. location from older releases)
+
 	 * @param filename is name of file
 	 * @return file to use (from old or new place)
 	 */
@@ -948,8 +950,10 @@ public class Engine {
 		String cacheDirName = null;
 		// SD card
 		cacheDirName = createCacheDir(
-				Environment.getExternalStorageDirectory(), CACHE_BASE_DIR_NAME);
+				DeviceInfo.EINK_NOOK ? new File("/media/") : Environment.getExternalStorageDirectory(), CACHE_BASE_DIR_NAME);
 		// non-standard SD mount points
+		log.i(cacheDirName
+				+ " will be used for cache, maxCacheSize=" + CACHE_DIR_SIZE);
 		if (cacheDirName == null) {
 			for (String dirname : mountedRootsMap.keySet()) {
 				cacheDirName = createCacheDir(new File(dirname),
@@ -1051,7 +1055,7 @@ public class Engine {
 		Map<String, String> map = new LinkedHashMap<String, String>();
 
 		// standard external directory
-		String sdpath = Environment.getExternalStorageDirectory().getAbsolutePath();
+		String sdpath = DeviceInfo.EINK_NOOK ? "/media/" : Environment.getExternalStorageDirectory().getAbsolutePath();
 		// dirty fix
 		if ("/nand".equals(sdpath) && new File("/sdcard").isDirectory())
 			sdpath = "/sdcard";
@@ -1148,7 +1152,11 @@ public class Engine {
 			"/external",
 			"/Removable/SD",
 			"/Removable/MicroSD",
-			"/Removable/USBDisk1", 
+			"/Removable/USBDisk1",
+			"/storage/sdcard1",
+			Environment.getExternalStorageDirectory().getPath(),
+			"/mnt/sdcard/extStorages/SdCard",
+			"/storage/extSdCard",
 		};
 		for (String point : knownMountPoints) {
 			String link = isLink(point);

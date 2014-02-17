@@ -850,13 +850,13 @@ public class CoolReader extends BaseActivity
 //		return false;
 //	}
 
-	public File getSettingsFile(int profile) {
-		if (profile == 0)
-			return propsFile;
-		return new File(propsFile.getAbsolutePath() + ".profile" + profile);
-	}
-	
-	File propsFile;
+//	public File getSettingsFile(int profile) {
+//		if (profile == 0)
+//			return propsFile;
+//		return new File(propsFile.getAbsolutePath() + ".profile" + profile);
+//	}
+//	
+//	File propsFile;
 
 	private static Debug.MemoryInfo info = new Debug.MemoryInfo();
 	private static Field[] infoFields = Debug.MemoryInfo.class.getFields();
