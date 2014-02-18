@@ -622,7 +622,8 @@ bool LVCssDeclaration::parse( const char * &decl )
                     lString8Collection list;
                     int processed = splitPropertyValueList( decl, list );
                     decl += processed;
-                       n = -1;
+                    // default to serif generic-family
+                    n = 1;
                     if (list.length())
                     {
                         for (int i=list.length()-1; i>=0; i--)
