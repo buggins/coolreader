@@ -268,7 +268,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 	ArrayList<FileInfo> lastCatalogs = new ArrayList<FileInfo>();
 	private void updateOnlineCatalogs(ArrayList<FileInfo> catalogs) {
 		String lang = mActivity.getCurrentLanguage();
-		boolean defEnableLitres = false; //lang.toLowerCase().startsWith("ru") && !DeviceInfo.POCKETBOOK;
+		boolean defEnableLitres = lang.toLowerCase().startsWith("ru") && !DeviceInfo.POCKETBOOK;
 		boolean enableLitres = mActivity.settings().getBool(Settings.PROP_APP_PLUGIN_ENABLED + "." + OnlineStorePluginManager.PLUGIN_PKG_LITRES, defEnableLitres);
 		if (enableLitres)
 			catalogs.add(0, Scanner.createOnlineLibraryPluginItem(OnlineStorePluginManager.PLUGIN_PKG_LITRES, "LitRes"));

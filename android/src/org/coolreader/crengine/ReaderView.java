@@ -449,10 +449,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		if (currentAutoScrollAnimation != null)
 			stopAutoScroll();
 		saveCurrentPositionBookmarkSync(true);
+		log.i("calling bookView.onPause()");
 		bookView.onPause();
 	}
 
 	public void onAppResume() {
+		log.i("calling bookView.onResume()");
 		bookView.onResume();
 	}
 
@@ -2963,6 +2965,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	        	doc.setStylesheet(css);
    			applySettings(props);
    			mInitialized = true;
+   	        log.i("CreateViewTask - finished");
 		}
 		public void done() {
 			log.d("InitializationFinishedEvent");
@@ -6066,6 +6069,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
         	
         });
 
+        log.i("Posting create view task");
         post(new CreateViewTask( props ));
 
     }

@@ -14,6 +14,7 @@ public class DocView {
 	private Object mutex;
 
 	public DocView(Object mutex) {
+		log.i("DocView()");
 		this.mutex = mutex;
 	}
 	
