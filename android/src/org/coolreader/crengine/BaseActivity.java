@@ -254,7 +254,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 	protected void einkRefresh() {
-		EinkScreen.RefreshNumber = -1;
+		EinkScreen.Refresh();
 	}
 
 

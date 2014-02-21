@@ -8,10 +8,13 @@ CRMutex * _fontMutex = NULL;
 CRMutex * _fontManMutex = NULL;
 CRMutex * _fontGlyphCacheMutex = NULL;
 CRMutex * _fontLocalGlyphCacheMutex = NULL;
+CRMutex * _crengineMutex = NULL;
 
 void CRSetupEngineConcurrency() {
-    if (!concurrencyProvider)
+    if (!concurrencyProvider) {
+    	CRLog::error("CRSetupEngineConcurrency() : No concurrency provider is set");
         return;
+    }
     if (!_refMutex)
         _refMutex = concurrencyProvider->createMutex();
     if (!_fontMutex)
@@ -22,6 +25,8 @@ void CRSetupEngineConcurrency() {
         _fontGlyphCacheMutex = concurrencyProvider->createMutex();
     if (!_fontLocalGlyphCacheMutex)
         _fontLocalGlyphCacheMutex = concurrencyProvider->createMutex();
+    if (!_crengineMutex)
+    	_crengineMutex = concurrencyProvider->createMutex();
 }
 
 CRConcurrencyProvider * concurrencyProvider = NULL;

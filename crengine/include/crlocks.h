@@ -56,6 +56,7 @@ extern CRMutex * _fontMutex;
 extern CRMutex * _fontManMutex;
 extern CRMutex * _fontGlyphCacheMutex;
 extern CRMutex * _fontLocalGlyphCacheMutex;
+extern CRMutex * _crengineMutex;
 
 // use REF_GUARD to acquire LVProtectedRef mutex
 #define REF_GUARD CRGuard _refGuard(_refMutex); CR_UNUSED(_refGuard);
@@ -67,6 +68,8 @@ extern CRMutex * _fontLocalGlyphCacheMutex;
 #define FONT_GLYPH_CACHE_GUARD CRGuard _fontGlyphCacheGuard(_fontGlyphCacheMutex); CR_UNUSED(_fontGlyphCacheGuard);
 // use FONT_LOCAL_GLYPH_CACHE_GUARD to acquire font global glyph cache operations mutex
 #define FONT_LOCAL_GLYPH_CACHE_GUARD CRGuard _fontLocalGlyphCacheGuard(_fontLocalGlyphCacheMutex); CR_UNUSED(_fontLocalGlyphCacheGuard);
+// use CRENGINE_GUARD to acquire crengine drawing lock
+#define CRENGINE_GUARD CRGuard _crengineGuard(_crengineMutex); CR_UNUSED(_crengineMutex);
 
 /// call to create mutexes for different parts of CoolReader engine
 void CRSetupEngineConcurrency();

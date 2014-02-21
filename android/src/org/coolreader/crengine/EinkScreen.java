@@ -18,6 +18,10 @@ public class EinkScreen {
 	public final static int cmodeOneshot = 1;
 	public final static int cmodeActive = 2;
 
+	public static void Refresh() {
+		RefreshNumber = -1;
+	}
+	
 	public static void PrepareController(View view, boolean isPartially) {
 		if (DeviceInfo.EINK_NOOK) {
 			//System.err.println("Sleep = " + isPartially);
