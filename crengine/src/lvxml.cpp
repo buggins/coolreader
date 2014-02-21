@@ -2873,7 +2873,7 @@ bool LVXMLParser::CheckFormat()
             }
         } else if ( !res && s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0) {
             res = m_allowHtml;
-        } else if (!res) {
+        } else if (!res && !m_fb2Only) {
             // not XML or XML without declaration;
             int lt_pos = s.pos("<");
             if ( lt_pos >= 0 && s.pos("xmlns") > lt_pos ) {
