@@ -37,6 +37,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
     src/epubfmt.cpp     
     src/pdbfmt.cpp     
     src/wordfmt.cpp     
+    src/crconcurrent.cpp
     #src/xutils.cpp
     )
 endif (NOT ${GUI} STREQUAL FB2PROPS)

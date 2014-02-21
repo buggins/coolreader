@@ -2859,26 +2859,31 @@ bool LVXMLParser::CheckFormat()
     bool res = false;
     if ( charsDecoded > 30 ) {
         lString16 s( chbuf, charsDecoded );
-        bool flg = !m_fb2Only || s.pos("<FictionBook") >= 0;
-        if ( flg && (
-                 ((s.pos("<?xml") >= 0 || s.pos(" xmlns=") > 0) && s.pos("version=") >= 6) ||
-                 (m_allowHtml && s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0)
-                 )) {
-            //&& s.pos("<FictionBook") >= 0
-            res = true;
-            int encpos=s.pos("encoding=\"");
-            if ( encpos>=0 ) {
+        res = s.pos("<FictionBook") >= 0;
+        if ( s.pos("<?xml") >= 0 && s.pos("version=") >= 6 ) {
+            res = res || !m_fb2Only;
+            int encpos;
+            if ( res && (encpos=s.pos("encoding=\"")) >= 0 ) {
                 lString16 encname = s.substr( encpos+10, 20 );
                 int endpos = s.pos("\"");
                 if ( endpos>0 ) {
                     encname.erase( endpos, encname.length() - endpos );
                     SetCharset( encname.c_str() );
                 }
-            } else {
+            }
+        } else if ( !res && s.pos("<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0) {
+            res = m_allowHtml;
+        } else if (!res && !m_fb2Only) {
+            // not XML or XML without declaration;
+            int lt_pos = s.pos("<");
+            if ( lt_pos >= 0 && s.pos("xmlns") > lt_pos ) {
+                // contains xml namespace declaration probably XML
+                res = true;
+                // check that only whitespace chars before <
+                for ( int i=0; i<lt_pos && res; i++)
+                    res = IsSpaceChar( chbuf[i] );
             }
         }
-        //else if ( s.pos(L"<html xmlns=\"http://www.w3.org/1999/xhtml\"") >= 0 )
-        //    res = true;
     }
     delete[] chbuf;
     Reset();
