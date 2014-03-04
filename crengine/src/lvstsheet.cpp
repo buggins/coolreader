@@ -622,8 +622,7 @@ bool LVCssDeclaration::parse( const char * &decl )
                     lString8Collection list;
                     int processed = splitPropertyValueList( decl, list );
                     decl += processed;
-                    // default to serif generic-family
-                    n = 1;
+                    n = -1;
                     if (list.length())
                     {
                         for (int i=list.length()-1; i>=0; i--)
@@ -642,6 +641,8 @@ bool LVCssDeclaration::parse( const char * &decl )
                         }
                         strValue = joinPropertyValueList( list );
                     }
+                    // default to serif generic font-family
+                    if (n == -1) n = 1;
                 }
                 break;
             case cssd_font_style:
