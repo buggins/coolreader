@@ -1079,7 +1079,7 @@ public:
                    endp += downSkipCount;
                    wrapPos += downSkipCount;
                    CRLog::trace("finally down skip punctuations %d", downSkipCount);
-                } else {
+                } else if (downSkipCount - upSkipCount < 2){
                    endp -= upSkipCount;
                    wrapPos -= upSkipCount;
                    CRLog::trace("finally up skip punctuations %d", upSkipCount);
