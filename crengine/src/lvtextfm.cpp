@@ -982,7 +982,7 @@ public:
                     lastMandatoryWrap = i;
                     break;
                 }
-                if ((flags & LCHAR_ALLOW_WRAP_AFTER) || i==m_length-1 || isCJKIdeograph(m_text[i]))
+                if ((flags & LCHAR_ALLOW_WRAP_AFTER) || i==m_length-1 || isCJKIdeograph(m_text[i]) || isCJKPunctuation(m_text[i]))
                     lastNormalWrap = i;
                 else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER )
                     lastDeprecatedWrap = i;
