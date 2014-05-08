@@ -13,6 +13,7 @@ set(CMAKE_CONFIGURATION_TYPES "Release;Debug;MinSizeRel;RelWithDebInfo")
 
 project(libpng C)
 enable_testing()
+enable_language(C ASM)
 
 set(PNGLIB_MAJOR 1)
 set(PNGLIB_MINOR 6)
@@ -97,6 +98,8 @@ set(libpng_sources
   pngwrite.c
   pngwtran.c
   pngwutil.c
+  arm/arm_init.c
+  arm/filter_neon.S
 )
 set(pngtest_sources
   pngtest.c
