@@ -484,7 +484,7 @@ public:
     void propsUpdateDefaults( CRPropRef props );
 
     /// applies only one property by name, return false if property is unknown
-    virtual bool propApply( CRPropRef props, lString8 name, lString16 value );
+    virtual bool propApply( lString8 name, lString16 value );
     /// applies properties, returns list of not recognized properties
     virtual CRPropRef propsApply( CRPropRef props );
     /// returns current values of supported properties
