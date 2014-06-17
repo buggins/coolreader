@@ -712,7 +712,7 @@ public:
             } else {
                 lastWord = true;
             }
-            if ( i>wstart && (newSrc!=lastSrc || space || lastWord) ) {
+			if ( i>wstart && (newSrc!=lastSrc || space || lastWord || isCJKIdeograph(m_flags[i])) ) {
                 // create and add new word
                 formatted_word_t * word = lvtextAddFormattedWord(frmline);
                 int b;
@@ -811,7 +811,9 @@ public:
                         }
                         if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER ) {
                             word->width -= font->getHyphenWidth(); // TODO: strange fix - need some other solution
-                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ) {
+                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ||
+                            lastc==L'。' || lastc==L'，' || lastc==L'！' || lastc==L'：' || lastc==L'；' ||
+                            lastc==L'”' || lastc==L'’' || lastc==L'」' || lastc==L'』' ) {
                             FONT_GUARD
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
@@ -870,6 +872,30 @@ public:
         return 0;
     }
 
+#define UNICODE_CJK_IDEOGRAPHS_BEGIN 0x4e00
+#define UNICODE_CJK_IDEOGRAPHS_END 0x9FFF
+#define UNICODE_CJK_PUNCTUATION_BEGIN 0x3000
+#define UNICODE_CJK_PUNCTUATION_END 0x303F
+#define UNICODE_GENERAL_PUNCTUATION_BEGIN 0x2000
+#define UNICODE_GENERAL_PUNCTUATION_END 0x206F
+#define UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN 0xFF01
+#define UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END 0xFFEE
+
+    bool isCJKIdeograph(lChar16 c) {
+       return c >= UNICODE_CJK_IDEOGRAPHS_BEGIN && c <= UNICODE_CJK_IDEOGRAPHS_END;
+    }
+
+    bool isCJKPunctuation(lChar16 c) {
+       return (c >= UNICODE_CJK_PUNCTUATION_BEGIN && c <= UNICODE_CJK_PUNCTUATION_END) || \
+       (c >= UNICODE_GENERAL_PUNCTUATION_BEGIN && c <= UNICODE_GENERAL_PUNCTUATION_END) || \
+       (c >= UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && c <= UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END);
+    }
+
+    bool isCJKLeftPunctuation(lChar16 c) {
+       return c==L'“' || c==L'‘' || c==L'「' || c==L'『' || c==L'《' || c==L'〈' || c==L'（' || c==L'【';
+    }
+
+	
     /// Split paragraph into lines
     void processParagraph( int start, int end )
     {
@@ -928,7 +954,7 @@ public:
                     }
                 }
             }
-            maxWidth -= visialAlignmentWidth;
+            //maxWidth -= visialAlignmentWidth;
         }
 #endif
 
@@ -945,6 +971,8 @@ public:
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
+            spaceReduceWidth -= visialAlignmentWidth/2;
+            firstCharMargin += visialAlignmentWidth/2;
             for ( i=pos; i<m_length; i++ ) {
                 if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin)
                     break;
@@ -953,7 +981,7 @@ public:
                     lastMandatoryWrap = i;
                     break;
                 }
-                if ((flags & LCHAR_ALLOW_WRAP_AFTER) || i==m_length-1 || lGetCharProps(m_text[i]) == 0)
+                if ((flags & LCHAR_ALLOW_WRAP_AFTER) || i==m_length-1 || lGetCharProps(m_text[i]) == 0 || isCJKIdeograph(m_text[i]) || isCJKPunctuation(m_text[i]))
                     lastNormalWrap = i;
                 else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER )
                     lastDeprecatedWrap = i;
@@ -1030,6 +1058,34 @@ public:
             }
             bool needReduceSpace = true; // todo: calculate whether space reducing required
             int endp = wrapPos+(lastMandatoryWrap<0 ? 1 : 0);
+            int downSkipCount = 0;
+            int upSkipCount = 0;
+            if (endp > 1 && isCJKLeftPunctuation(*(m_text + endp))) {
+				CRLog::trace("skip skip punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
+            } else if (endp > 1 && endp < m_length && isCJKLeftPunctuation(*(m_text + endp - 1))) {
+               endp--; wrapPos--;
+               CRLog::trace("up skip left punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
+            } else if (endp > 1 && isCJKPunctuation(*(m_text + endp))) {
+                for (int epos = endp; epos>=start; epos++, downSkipCount++) {
+                    if ( !isCJKPunctuation(*(m_text + epos)) ) 
+						break;
+                   //CRLog::trace("down skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
+                }
+                for (int epos = endp; epos>=start; epos--, upSkipCount++) {
+                    if ( !isCJKPunctuation(*(m_text + epos)) ) 
+						break;
+                   //CRLog::trace("up skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
+				}
+                if (downSkipCount <= upSkipCount && visualAlignmentEnabled) {
+                   endp += downSkipCount;
+                   wrapPos += downSkipCount;
+                   //CRLog::trace("finally down skip punctuations %d", downSkipCount);
+                } else {
+                   endp -= upSkipCount;
+                   wrapPos -= upSkipCount;
+                   //CRLog::trace("finally up skip punctuations %d", upSkipCount);
+                }
+            }
             int lastnonspace = endp-1;
             for ( int k=endp-1; k>=start; k-- ) {
                 if ( !((m_flags[k] & LCHAR_IS_SPACE) && !(m_flags[k] & LCHAR_IS_OBJECT)) ) {
