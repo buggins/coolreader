@@ -511,10 +511,12 @@ protected:
 
 void cr3androidFatalErrorHandler(int errorCode, const char * errorText )
 {
-	static char str[1001];
-	snprintf(str, 1000, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
 	LOGE("CoolReader Fatal Error #%d: %s", errorCode, errorText);
-	LOGASSERTFAILED(errorText, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	LOGASSERTFAILED("CoolReader Fatal Error", "CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	//static char str[1001];
+	//snprintf(str, 1000, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	//LOGE("CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	//LOGASSERTFAILED(errorText, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
 }
 
 /// set fatal error handler
