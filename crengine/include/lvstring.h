@@ -838,6 +838,14 @@ inline bool operator == (const lString16& s1, const lChar8 * s2 )
 /// returns true if wide strings is equal to wide c-string
 inline bool operator == (const lChar16 * s1, const lString16& s2 )
     { return s2.compare(s1)==0; }
+
+/// returns true if wide strings is equal to wide c-string
+inline bool operator == (const lString16& s1, const lString8& s2 )
+    { return lStr_cmp(s2.c_str(), s1.c_str())==0; }
+/// returns true if wide strings is equal to wide c-string
+inline bool operator == (const lString8& s1, const lString16& s2 )
+    { return lStr_cmp(s2.c_str(), s1.c_str())==0; }
+
 inline bool operator != (const lString16& s1, const lString16& s2 )
     { return s1.compare(s2)!=0; }
 inline bool operator != (const lString16& s1, const lChar16 * s2 )

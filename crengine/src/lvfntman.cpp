@@ -77,6 +77,31 @@ LVFontManager * fontMan = NULL;
 static double gammaLevel = 1.0;
 static int gammaIndex = GAMMA_LEVELS/2;
 
+/// returns first found face from passed list, or return face for font found by family only
+lString8 LVFontManager::findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily) {
+	// faces we want
+	lString8Collection list;
+	splitPropertyValueList(commaSeparatedFaceList.c_str(), list);
+	// faces we have
+	lString16Collection faces;
+	getFaceList(faces);
+	// find first matched
+	for (int i = 0; i < list.length(); i++) {
+		lString8 wantFace = list[i];
+		for (int j = 0; j < faces.length(); j++) {
+			lString16 haveFace = faces[j];
+			if (wantFace == haveFace)
+				return wantFace;
+		}
+	}
+	// not matched - get by family name
+    LVFontRef fnt = GetFont(10, 400, false, fallbackByFamily, lString8("Arial"));
+    if (fnt.isNull())
+    	return lString8::empty_str; // not found
+    // get face from found font
+    return fnt->getTypeFace();
+}
+
 /// fills array with list of available gamma levels
 void LVFontManager::GetGammaLevels(LVArray<double> dst) {
     dst.clear();
