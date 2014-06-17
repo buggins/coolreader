@@ -814,6 +814,8 @@ LVStreamRef LVCreateStringStream( lString16 data );
 LVStreamRef LVCreateBlockWriteStream( LVStreamRef baseStream, int blockSize, int blockCount );
 
 LVContainerRef LVOpenDirectory( const lChar16 * path, const wchar_t * mask = L"*.*" );
+LVContainerRef LVOpenDirectory(const lString16& path, const wchar_t * mask = L"*.*" );
+LVContainerRef LVOpenDirectory(const lString8& path, const wchar_t * mask = L"*.*" );
 
 /// Create directory if not exist
 bool LVCreateDirectory( lString16 path );
@@ -886,6 +888,8 @@ bool LVFileExists( const lString16 & pathName );
 bool LVFileExists( const lString8 & pathName );
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString16 & pathName );
+/// returns true if specified directory exists
+bool LVDirectoryExists( const lString8 & pathName );
 /// returns true if directory exists and your app can write to directory
 bool LVDirectoryIsWritable(const lString16 & pathName);
 

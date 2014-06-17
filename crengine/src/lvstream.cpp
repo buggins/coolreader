@@ -3174,6 +3174,14 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in )
 }
 
 
+LVContainerRef LVOpenDirectory(const lString16& path, const wchar_t * mask) {
+	return LVOpenDirectory(path.c_str(), mask);
+}
+
+LVContainerRef LVOpenDirectory(const lString8& path, const wchar_t * mask) {
+	return LVOpenDirectory(Utf8ToUnicode(path).c_str(), mask);
+}
+
 LVContainerRef LVOpenDirectory( const wchar_t * path, const wchar_t * mask )
 {
 	lString16 pathname(path);
@@ -3858,6 +3866,20 @@ bool LVDirectoryExists( const lString16 & pathName )
     	return !_assetContainerFactory->openAssetContainer(assetPath).isNull();
     }
     LVContainerRef dir = LVOpenDirectory( pathName.c_str() );
+    return !dir.isNull();
+}
+
+/// returns true if specified directory exists
+bool LVDirectoryExists( const lString8 & pathName )
+{
+    lString16 fn(Utf8ToUnicode(pathName));
+    if (fn.length() > 1 && fn[0] == ASSET_PATH_PREFIX) {
+    	if (!_assetContainerFactory)
+    		return false;
+    	lString16 assetPath = LVExtractAssetPath(fn);
+    	return !_assetContainerFactory->openAssetContainer(assetPath).isNull();
+    }
+    LVContainerRef dir = LVOpenDirectory(fn);
     return !dir.isNull();
 }
 
