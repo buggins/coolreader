@@ -2506,6 +2506,11 @@ public:
             );
         }
     #endif
+			if ( face ) {
+				FT_Done_Face( face );
+				face = NULL;
+			}
+
             if ( _cache.findDuplicate( &def ) ) {
                 CRLog::trace("font definition is duplicate");
                 return false;
@@ -2518,11 +2523,6 @@ public:
                     _cache.update( &newDef, LVFontRef(NULL) );
             }
             res = true;
-
-            if ( face ) {
-                FT_Done_Face( face );
-                face = NULL;
-            }
 
             if ( index>=num_faces-1 )
                 break;
@@ -2609,7 +2609,13 @@ public:
             );
         }
     #endif
-            if ( _cache.findDuplicate( &def ) ) {
+
+			if ( face ) {
+				FT_Done_Face( face );
+				face = NULL;
+			}
+
+			if ( _cache.findDuplicate( &def ) ) {
                 CRLog::trace("font definition is duplicate");
                 return false;
             }
@@ -2621,11 +2627,6 @@ public:
                     _cache.update( &newDef, LVFontRef(NULL) );
             }
             res = true;
-
-            if ( face ) {
-                FT_Done_Face( face );
-                face = NULL;
-            }
 
             if ( index>=num_faces-1 )
                 break;
