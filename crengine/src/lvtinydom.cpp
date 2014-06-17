@@ -11024,6 +11024,13 @@ void ldomDocument::registerEmbeddedFonts()
         return;
     for (int i=0; i<_fontList.length(); i++) {
         LVEmbeddedFontDef * item =  _fontList.get(i);
+        lString16 url = item->getUrl();
+        if (url.startsWithNoCase(lString16("res://")) || url.startsWithNoCase(lString16("file://"))) {
+            if (!fontMan->RegisterExternalFont(item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
+                CRLog::error("Failed to register external font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
+            }
+            continue;
+        }
         if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
             CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
         }
