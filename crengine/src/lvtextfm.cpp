@@ -953,7 +953,7 @@ public:
                     lastMandatoryWrap = i;
                     break;
                 }
-                if ( flags & LCHAR_ALLOW_WRAP_AFTER || i==m_length-1)
+                if ((flags & LCHAR_ALLOW_WRAP_AFTER) || i==m_length-1 || lGetCharProps(m_text[i]) == 0)
                     lastNormalWrap = i;
                 else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER )
                     lastDeprecatedWrap = i;
