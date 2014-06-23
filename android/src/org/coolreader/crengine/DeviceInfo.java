@@ -12,6 +12,7 @@ public class DeviceInfo {
 	public final static String MODEL;
 	public final static String DEVICE;
 	public final static String PRODUCT;
+	public final static String BRAND;
 	public final static int MIN_SCREEN_BRIGHTNESS_PERCENT;
 	public final static boolean SAMSUNG_BUTTONS_HIGHLIGHT_PATCH;
 	public final static boolean EINK_SCREEN;
@@ -21,6 +22,7 @@ public class DeviceInfo {
 	public final static boolean EINK_NOOK_120;
 	public final static boolean EINK_ONYX;
 	public final static boolean EINK_DNS;
+	public final static boolean EINK_TOLINO;
 	public final static boolean FORCE_LIGHT_THEME;
 	public final static boolean EINK_SONY;
 	public final static boolean SONY_NAVIGATION_KEYS;
@@ -58,6 +60,7 @@ public class DeviceInfo {
 		"HUAWEI;U8800",      "6",
 		"Motorola;Milestone XT720", "6",
 		"Foxconn;PocketBook A10", "3",
+		"*;*;*;tolino",	     "1",
 		// TODO: more devices here
 	};
 
@@ -97,6 +100,7 @@ public class DeviceInfo {
 		MODEL = getBuildField("MODEL");
 		DEVICE = getBuildField("DEVICE");
 		PRODUCT = getBuildField("PRODUCT");
+		BRAND = getBuildField("BRAND");
 		SAMSUNG_BUTTONS_HIGHLIGHT_PATCH = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
 		        (MODEL.contentEquals("GT-S5830") || MODEL.contentEquals("GT-S5660")); // More models?
 		AMOLED_SCREEN = MANUFACTURER.toLowerCase().contentEquals("samsung") &&
@@ -110,13 +114,16 @@ public class DeviceInfo {
 		EINK_ONYX = MANUFACTURER.toLowerCase().contentEquals("onyx") && MODEL.startsWith("C") && MODEL.endsWith("ML");
 		//MANUFACTURER -DNS, DEVICE -BK6004C, MODEL - DNS Airbook EGH602, PRODUCT - BK6004C
 		EINK_DNS = MANUFACTURER.toLowerCase().contentEquals("dns") && MODEL.startsWith("DNS Airbook EGH");
-		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_DNS; // TODO: set to true for eink devices like Nook Touch
+		EINK_TOLINO = BRAND.toLowerCase().contentEquals("tolino") && (
+					MODEL.toLowerCase().contentEquals("imx50_rdp") // SHINE
+				);
+		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
 
 		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");
 		
 		NOOK_NAVIGATION_KEYS = EINK_NOOK; // TODO: add autodetect
 		SONY_NAVIGATION_KEYS = EINK_SONY;
-		EINK_SCREEN_UPDATE_MODES_SUPPORTED = EINK_SCREEN && EINK_NOOK; // TODO: add autodetect
+		EINK_SCREEN_UPDATE_MODES_SUPPORTED = EINK_SCREEN && ( EINK_NOOK || EINK_TOLINO ); // TODO: add autodetect
 		FORCE_LIGHT_THEME = EINK_SCREEN || MODEL.equalsIgnoreCase("pocketbook vision");
 		USE_CUSTOM_TOAST = EINK_SCREEN;
 		NOFLIBUSTA = POCKETBOOK;
@@ -147,7 +154,7 @@ public class DeviceInfo {
 	
 	
 	static {
-		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE + ", PRODUCT=" + PRODUCT);
+		Log.i("cr3", "DeviceInfo: MANUFACTURER=" + MANUFACTURER + ", MODEL=" + MODEL + ", DEVICE=" + DEVICE + ", PRODUCT=" + PRODUCT + ", BRAND=" + BRAND);
 		Log.i("cr3", "DeviceInfo: MIN_SCREEN_BRIGHTNESS_PERCENT=" + MIN_SCREEN_BRIGHTNESS_PERCENT + ", EINK_SCREEN=" + EINK_SCREEN + ", AMOLED_SCREEN=" + AMOLED_SCREEN + ", POCKETBOOK=" + POCKETBOOK);
 	}
 
@@ -190,7 +197,7 @@ public class DeviceInfo {
 	}
 
 	// delimited by ;
-	// "manufacturer;model;device" or "manufacturer;model" or "manufacturer" 
+	// "manufacturer;model;device;brand", "manufacturer;model;device" or "manufacturer;model" or "manufacturer" 
 	private static boolean matchDevice(String pattern) {
 		String[] patterns = pattern.split(";");
 		if (patterns.length >= 1)
@@ -201,6 +208,9 @@ public class DeviceInfo {
 				return false;
 		if (patterns.length >= 3)
 			if (!match(DEVICE, patterns[2]))
+				return false;
+		if (patterns.length >= 4)
+			if (!match(BRAND, patterns[3]))
 				return false;
 		return true;
 	}

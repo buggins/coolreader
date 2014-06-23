@@ -23,7 +23,7 @@ public class EinkScreen {
 	}
 	
 	public static void PrepareController(View view, boolean isPartially) {
-		if (DeviceInfo.EINK_NOOK) {
+		if (DeviceInfo.EINK_NOOK || DeviceInfo.EINK_TOLINO) {
 			//System.err.println("Sleep = " + isPartially);
 			if (isPartially || IsSleep != isPartially) {
 				SleepController(isPartially, view);
@@ -89,7 +89,7 @@ public class EinkScreen {
 	}
 
 	public static void ResetController(int mode, View view) {
-		if (!DeviceInfo.EINK_NOOK) { return; }
+		if (!DeviceInfo.EINK_NOOK && !DeviceInfo.EINK_TOLINO) { return; }
 		System.err.println("+++ResetController " + mode);
 		switch (mode) {
 			case cmodeClear:
@@ -109,14 +109,14 @@ public class EinkScreen {
 		UpdateMode = mode;
 	}
 	public static void ResetController(View view) {
-		if (!DeviceInfo.EINK_NOOK || UpdateMode == cmodeClear) { return; }
+		if ((!DeviceInfo.EINK_NOOK && !DeviceInfo.EINK_TOLINO) || UpdateMode == cmodeClear) { return; }
 		System.err.println("+++Soft reset Controller ");
 		SetMode(view, cmodeClear);
 		RefreshNumber = -1;
 	}
 
 	public static void SleepController(boolean toSleep, View view) {
-		if (!DeviceInfo.EINK_NOOK || toSleep == IsSleep) {
+		if ((!DeviceInfo.EINK_NOOK && !DeviceInfo.EINK_TOLINO) || toSleep == IsSleep) {
 			return;
 		}
 		System.err.println("+++SleepController " + toSleep);
@@ -138,8 +138,12 @@ public class EinkScreen {
 	}
 	
 	private static void SetMode(View view, int mode) {
+		if (DeviceInfo.EINK_TOLINO) {
+			TolinoEpdController.setMode(view, mode);
+			return;
+		}
 		switch (mode) {
-		case cmodeClear:	
+		case cmodeClear:
 			N2EpdController.setMode(N2EpdController.REGION_APP_3,
 				N2EpdController.WAVE_GC,
 				N2EpdController.MODE_ONESHOT_ALL);
@@ -147,15 +151,15 @@ public class EinkScreen {
 			break;
 		case cmodeOneshot:	
 			N2EpdController.setMode(N2EpdController.REGION_APP_3,
-					N2EpdController.WAVE_GU,
-					N2EpdController.MODE_ONESHOT_ALL);
-//			N2EpdController.MODE_ONESHOT_ALL, view);
+				N2EpdController.WAVE_GU,
+				N2EpdController.MODE_ONESHOT_ALL);
+//				N2EpdController.MODE_ONESHOT_ALL, view);
 			break;
 		case cmodeActive:	
 			N2EpdController.setMode(N2EpdController.REGION_APP_3,
 				N2EpdController.WAVE_GL16,
 				N2EpdController.MODE_ACTIVE_ALL);
-//			N2EpdController.MODE_ACTIVE_ALL, view);
+//				N2EpdController.MODE_ACTIVE_ALL, view);
 			break;
 		}  
 	}	
