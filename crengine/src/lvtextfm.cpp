@@ -1070,7 +1070,7 @@ public:
             int upSkipCount = 0;
             if (endp > 1 && isCJKLeftPunctuation(*(m_text + endp))) {
                 CRLog::trace("skip skip punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
-            } else if (endp > 1 && isCJKLeftPunctuation(*(m_text + endp - 1))) {
+            } else if (endp > 1 && endp < m_length - 1 && isCJKLeftPunctuation(*(m_text + endp - 1))) {
                 upSkipPos = endp;
                 endp--; wrapPos--;
                 CRLog::trace("up skip left punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
@@ -1083,11 +1083,11 @@ public:
                    if ( !isCJKPunctuation(*(m_text + epos)) ) break;
                    CRLog::trace("up skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
 				}
-                if (downSkipCount <= upSkipCount && visualAlignmentEnabled) {
+                if (downSkipCount <= upSkipCount && downSkipCount <= 2 && visualAlignmentEnabled) {
                    endp += downSkipCount;
                    wrapPos += downSkipCount;
                    CRLog::trace("finally down skip punctuations %d", downSkipCount);
-                } else {
+                } else if (upSkipCount <= 2) {
                    upSkipPos = endp;
                    endp -= upSkipCount;
                    wrapPos -= upSkipCount;
