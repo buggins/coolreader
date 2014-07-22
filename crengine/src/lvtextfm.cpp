@@ -659,7 +659,7 @@ public:
     }
 
     /// split line into words, add space for width alignment
-    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace, int visualAlignmentWidth )
     {
         int maxWidth = m_pbuffer->width;
         //int w0 = start>0 ? m_widths[start-1] : 0;
@@ -854,7 +854,7 @@ public:
             lastIsSpace = isSpace;
         }
 
-        alignLine( frmline, maxWidth, align );
+        alignLine( frmline, maxWidth - visualAlignmentWidth/4, align );
 
         m_y += frmline->height;
         m_pbuffer->height = m_y;
@@ -938,7 +938,7 @@ public:
 #if 1
         // reservation of space for floating punctuation
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
-        int visialAlignmentWidth = 0;
+        int visualAlignmentWidth = 0;
         if ( visualAlignmentEnabled ) {
             LVFont * font = NULL;
             for ( int i=start; i<end; i++ ) {
@@ -946,8 +946,8 @@ public:
                     font = (LVFont*)m_pbuffer->srctext[i].t.font;
                     if (font) {
                         int dx = font->getVisualAligmentWidth();
-                        if ( dx>visialAlignmentWidth )
-                            visialAlignmentWidth = dx;
+                        if ( dx>visualAlignmentWidth )
+                            visualAlignmentWidth = dx;
                     }
                 }
             }
@@ -968,8 +968,8 @@ public:
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
-            spaceReduceWidth -= visialAlignmentWidth/2;
-            firstCharMargin += visialAlignmentWidth/2;
+            spaceReduceWidth -= visualAlignmentWidth/2;
+            firstCharMargin += visualAlignmentWidth/2;
             if (isCJKLeftPunctuation(m_text[pos])) {
             	LVFont * fnt = (LVFont *)m_srcs[pos]->t.font;
             	if (fnt) firstCharMargin -= fnt->getCharWidth(m_text[pos]);
@@ -1106,7 +1106,7 @@ public:
                 TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
                 m_widths[lastnonspace] += dw;
             }
-            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace );
+            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace, visualAlignmentWidth);
             pos = wrapPos + 1;
         }
     }
