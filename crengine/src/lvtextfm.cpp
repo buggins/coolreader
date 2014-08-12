@@ -460,7 +460,7 @@ public:
         if ( !font->getGlyphInfo(m_text[pos], &glyph, '?') )
             return 0;
         int delta = glyph.originX + glyph.blackBoxX - glyph.width;
-        return delta > 0 ? delta : 0;
+        return delta < 0 ? -delta : 0;
     }
 
     /// checks whether to add more space on left before italic character
@@ -854,7 +854,7 @@ public:
             lastIsSpace = isSpace;
         }
 
-        alignLine( frmline, maxWidth - visualAlignmentWidth/4, align );
+        alignLine( frmline, maxWidth - visualAlignmentWidth/2, align );
 
         m_y += frmline->height;
         m_pbuffer->height = m_y;
@@ -968,8 +968,9 @@ public:
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
-            spaceReduceWidth -= visualAlignmentWidth/2;
-            firstCharMargin += visualAlignmentWidth/2;
+            int lastCharMargin = visualAlignmentEnabled ? 0 : 5; // arbitrary additional width to eliminate truncation of synthetic italic glyphs
+            spaceReduceWidth -= visualAlignmentWidth + lastCharMargin;
+            firstCharMargin += visualAlignmentWidth + lastCharMargin;
             if (isCJKLeftPunctuation(m_text[pos])) {
             	LVFont * fnt = (LVFont *)m_srcs[pos]->t.font;
             	if (fnt) firstCharMargin -= fnt->getCharWidth(m_text[pos]);
@@ -1000,13 +1001,11 @@ public:
             int wordpos = i-1;
             int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
             int deprecatedWrapWidth = lastDeprecatedWrap > 0 ? x + m_widths[lastDeprecatedWrap]-w0 : 0;
-            int unusedSpace = maxWidth - normalWrapWidth;
+            int unusedSpace = maxWidth - normalWrapWidth - 2*visualAlignmentWidth - 2*lastCharMargin;
             int unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
             if ( deprecatedWrapWidth>normalWrapWidth && unusedPercent>3 ) {
                 lastNormalWrap = lastDeprecatedWrap;
             }
-            unusedSpace = maxWidth - normalWrapWidth;
-            unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
             if ( lastMandatoryWrap<0 && lastNormalWrap<m_length-1 && unusedPercent > 5 && !(m_srcs[wordpos]->flags & LTEXT_SRC_IS_OBJECT) && (m_srcs[wordpos]->flags & LTEXT_HYPHENATE) ) {
                 // hyphenate word
                 int start, end;
@@ -1032,7 +1031,7 @@ public:
                     for ( int i=0; i<len; i++ ) {
                         widths[i] = m_widths[start+i] - wordStart_w;
                     }
-                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0) - firstCharMargin;
+                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0) - firstCharMargin - 2*lastCharMargin;
                     int _hyphen_width = ((LVFont*)m_srcs[wordpos]->t.font)->getHyphenWidth();
                     if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
                         for ( int i=0; i<len; i++ )
@@ -1101,7 +1100,7 @@ public:
                     break;
                 }
             }
-            int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) : 0;
+            int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) + lastCharMargin : 0;
             if (dw) {
                 TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
                 m_widths[lastnonspace] += dw;
