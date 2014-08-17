@@ -951,6 +951,7 @@ public:
                     }
                 }
             }
+            maxWidth -= visualAlignmentWidth;
         }
 #endif
 
