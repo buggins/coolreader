@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,7 +19,12 @@ import java.util.HashSet;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -26,7 +34,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import android.util.Log;
+import android.util.Base64;
 
 public class OPDSUtil {
 
@@ -426,6 +434,8 @@ xml:base="http://lib.ololo.cc/opds/">
 	public static class DownloadTask {
 		final private CoolReader coolReader; 
 		private URL url;
+		private String username;
+		private String password;
 		final private String expectedType;
 		final private String referer;
 		final private String defaultFileName;
@@ -434,13 +444,15 @@ xml:base="http://lib.ololo.cc/opds/">
 		private HttpURLConnection connection;
 		private DelayedProgress delayedProgress;
 		OPDSHandler handler;
-		public DownloadTask(CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
+		public DownloadTask(CoolReader coolReader, URL url, String defaultFileName, String expectedType, String referer, DownloadCallback callback, String username, String password) {
 			this.url = url;
 			this.coolReader = coolReader;
 			this.callback = callback; 
 			this.referer = referer;
 			this.expectedType = expectedType;
 			this.defaultFileName = defaultFileName;
+			this.username = username;
+			this.password = password;
 			L.d("Created DownloadTask for " + url);
 		}
 		private void setProgressMessage( String url, int totalSize ) {
@@ -684,8 +696,29 @@ xml:base="http://lib.ololo.cc/opds/">
 						delayedProgress = Services.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
 					URLConnection conn = url.openConnection();
 					if ( conn instanceof HttpsURLConnection ) {
-						onError("HTTPs is not supported yet");
-						return;
+	                	HttpsURLConnection https = (HttpsURLConnection)conn;
+
+	                    // Create a trust manager that does not validate certificate chains
+	                    TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+	                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+	                            return null;
+	                        }
+	                        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+	                        }
+	                        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+	                        }
+	                    } };
+	                    // Install the all-trusting trust manager
+	                    final SSLContext sc = SSLContext.getInstance("SSL");
+	                    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+	                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+	                    
+	                	https.setHostnameVerifier(new HostnameVerifier() {
+						    @Override
+						    public boolean verify(String arg0, SSLSession arg1) {
+							    return true;
+						    }
+					    });
 					}
 					if ( !(conn instanceof HttpURLConnection) ) {
 						onError("Only HTTP supported");
@@ -696,6 +729,16 @@ xml:base="http://lib.ololo.cc/opds/">
 		            if ( referer!=null )
 		            	connection.setRequestProperty("Referer", referer);
 		            connection.setInstanceFollowRedirects(true);
+	                connection.setUseCaches(false);
+		            
+	                if (username != null && username.length() > 0 && password != null && password.length() > 0) {
+	                	connection.setRequestProperty("Authorization", "Basic " + Base64.encodeToString((username + ":" + password).getBytes(), Base64.NO_WRAP));
+	                	Authenticator.setDefault(new Authenticator() {
+	                	    protected PasswordAuthentication getPasswordAuthentication() {
+	                	        return new PasswordAuthentication(username, password.toCharArray());
+	                	    }});	            	
+	                }
+		            
 		            connection.setAllowUserInteraction(false);
 		            connection.setConnectTimeout(CONNECT_TIMEOUT);
 		            connection.setReadTimeout(READ_TIMEOUT);
@@ -904,10 +947,10 @@ xml:base="http://lib.ololo.cc/opds/">
 		
 	}
 	private static DownloadTask currentTask;
-	public static DownloadTask create(CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback) {
+	public static DownloadTask create(CoolReader coolReader, URL uri, String defaultFileName, String expectedType, String referer, DownloadCallback callback, String username, String password) {
 		if (currentTask != null)
 			currentTask.cancel();
-		final DownloadTask task = new DownloadTask(coolReader, uri, defaultFileName, expectedType, referer, callback);
+		final DownloadTask task = new DownloadTask(coolReader, uri, defaultFileName, expectedType, referer, callback, username, password);
 		currentTask = task;
 		return task;
 	}

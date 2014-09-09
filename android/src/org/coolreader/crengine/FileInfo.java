@@ -306,6 +306,8 @@ public class FileInfo {
 		createTime = v.createTime;
 		lastAccessTime = v.lastAccessTime;
 		language = v.language;
+		username = v.username;
+		password = v.password;
 		id = v.id;
 	}
 	
