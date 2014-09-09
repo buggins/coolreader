@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.X509Certificate;
@@ -693,8 +695,29 @@ xml:base="http://lib.ololo.cc/opds/">
 					visited.add(url.toString());
 					long startTimeStamp = System.currentTimeMillis();
 					if (!partialDownloadCompleted)
-						delayedProgress = Services.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS); 
-					URLConnection conn = url.openConnection();
+						delayedProgress = Services.getEngine().showProgressDelayed(0, progressMessage, PROGRESS_DELAY_MILLIS);
+					URL newURL = url;
+					boolean useOrobotProxy = false;
+					String host = url.getHost();
+					if (host.endsWith(".onion"))
+					    useOrobotProxy = true;
+					String oldAddress = url.toString();
+					if (oldAddress.startsWith("orobot://")) {
+					    newURL = new URL("http://" + oldAddress.substring(9)); // skip orobot://
+					    useOrobotProxy = true;
+					    L.d("Converting url - " + oldAddress + " to " + newURL + " for using ORobot proxy");
+					} else if (oldAddress.startsWith("orobots://")) {
+					    newURL = new URL("https://" + oldAddress.substring(10)); // skip orobots://
+					    useOrobotProxy = true;
+					    L.d("Converting url - " + oldAddress + " to " + newURL + " for using ORobot proxy");
+					}
+					Proxy proxy = null;
+					if (useOrobotProxy) {
+					    proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8118)); // ORobot proxy running on this device
+					    L.d("Using ORobot proxy: " + proxy);
+					}
+				    
+					URLConnection conn = proxy != null ? newURL.openConnection() : newURL.openConnection(proxy);
 					if ( conn instanceof HttpsURLConnection ) {
 	                	HttpsURLConnection https = (HttpsURLConnection)conn;
 
