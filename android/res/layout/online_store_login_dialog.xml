@@ -13,6 +13,7 @@
         <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
         <LinearLayout
         android:id="@+id/linearLayout_focus"
+        android:orientation="vertical"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:layout_width="0px"

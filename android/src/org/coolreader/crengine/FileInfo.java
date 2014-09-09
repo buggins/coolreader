@@ -45,6 +45,8 @@ public class FileInfo {
 	public String pathname; // full path+arcname+filename
 	public String arcname; // archive file name w/o path
 	public String language; // document language
+	public String username; // username for online catalogs
+	public String password; // password for online catalogs
 	public DocumentFormat format;
 	public int size; // full file size
 	public int arcsize; // compressed size

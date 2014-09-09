@@ -39,5 +39,38 @@
     style="@style/TextAppearance.Widget.EditText"
     android:editable="true" android:singleLine="true"
 />
+<TextView 
+    android:id="@+id/lbl_catalog_username"
+       style="@style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+    android:text="@string/dlg_catalog_edit_username" 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>
+<EditText 
+    android:id="@+id/catalog_username" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:text="http://" 
+    style="@style/TextAppearance.Widget.EditText"
+    android:editable="true" android:singleLine="true"
+/>
+<TextView 
+    android:id="@+id/lbl_catalog_password"
+       style="@style/TextAppearance.Medium"
+       android:singleLine="false"
+       android:maxLines="3"
+    android:text="@string/dlg_catalog_edit_password" 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"/>
+<EditText 
+    android:id="@+id/catalog_password" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:text="http://" 
+    style="@style/TextAppearance.Widget.EditText"
+    android:editable="true" android:singleLine="true"
+    android:password="true"
+/>
 </LinearLayout>
 </ScrollView>

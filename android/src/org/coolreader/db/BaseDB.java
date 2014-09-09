@@ -174,7 +174,7 @@ public abstract class BaseDB {
 	}
 	
 	public static String quoteSqlString(String src) {
-		if (src==null)
+		if (src == null)
 			return "null";
 		String s = src.replaceAll("\\'", "\\\\'");
 		return "'" + s + "'";
