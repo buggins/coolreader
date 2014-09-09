@@ -43,11 +43,20 @@
 //#include <ft2build.h>
 
 #ifdef ANDROID
+#ifdef USE_FREETYPE2
+#include "freetype2/config/ftheader.h"
+#include "freetype2/freetype.h"
+#else
 #include "freetype/config/ftheader.h"
 #include "freetype/freetype.h"
+#endif
 #else
 
+#ifdef USE_FREETYPE2
+#include <freetype2/config/ftheader.h>
+#else
 #include <freetype/config/ftheader.h>
+#endif
 //#include <ft2build.h>
 #include FT_FREETYPE_H
 //#include <freetype/freetype.h>
