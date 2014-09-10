@@ -712,12 +712,20 @@ xml:base="http://lib.ololo.cc/opds/">
 					    L.d("Converting url - " + oldAddress + " to " + newURL + " for using ORobot proxy");
 					}
 					Proxy proxy = null;
+                    System.setProperty("http.keepAlive", "false");					
 					if (useOrobotProxy) {
+                        // Set-up proxy
+                        //System.setProperty("http.proxyHost", "127.0.0.1");
+                        //System.setProperty("http.proxyPort", "8118");
+					    //L.d("Using ORobot proxy: " + proxy);
 					    proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8118)); // ORobot proxy running on this device
 					    L.d("Using ORobot proxy: " + proxy);
+					} else {
+                        //System.clearProperty("http.proxyHost");
+                        //System.clearProperty("http.proxyPort");
 					}
 				    
-					URLConnection conn = proxy != null ? newURL.openConnection() : newURL.openConnection(proxy);
+					URLConnection conn = proxy == null ? newURL.openConnection() : newURL.openConnection(proxy);
 					if ( conn instanceof HttpsURLConnection ) {
 	                	HttpsURLConnection https = (HttpsURLConnection)conn;
 
