@@ -104,7 +104,7 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #endif
 
 #ifndef MAX_STATUS_FONT_SIZE
-#define MAX_STATUS_FONT_SIZE 32
+#define MAX_STATUS_FONT_SIZE 255
 #endif
 
 #if defined(__SYMBIAN32__)
@@ -2460,8 +2460,8 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
 		if (!m_font || !m_infoFont)
 			return;
 
-		CRLog::debug("Render(width=%d, height=%d, fontSize=%d)", dx, dy,
-				m_font_size);
+        CRLog::debug("Render(width=%d, height=%d, fontSize=%d, currentFontSize=%d, 0 char width=%d)", dx, dy,
+                     m_font_size, m_font->getSize(), m_font->getCharWidth('0'));
 		//CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
 		m_doc->render(pages, isDocumentOpened() ? m_callback : NULL, dx, dy,
                 m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
@@ -3150,6 +3150,7 @@ void LVDocView::setFontSize(int newSize) {
 	m_font_size = findBestFit(m_font_sizes, newSize);
 	if (oldSize != newSize) {
 		propsGetCurrent()->setInt(PROP_FONT_SIZE, m_font_size);
+        CRLog::debug("New font size: %d requested: %d", m_font_size, newSize);
         REQUEST_RENDER("setFontSize")
 	}
 	//goToBookmark(_posBookmark);

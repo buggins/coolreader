@@ -2899,10 +2899,10 @@ public:
     virtual LVFontRef GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface )
     {
         int italic = bitalic?1:0;
-        if (size<10)
-            size = 10;
-        if (size>52)
-            size = 52;
+        if (size < 8)
+            size = 8;
+        if (size > 255)
+            size = 255;
         
         LVFontDef def( 
             lString8::empty_str,

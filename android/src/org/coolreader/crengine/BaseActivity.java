@@ -1,5 +1,19 @@
 package org.coolreader.crengine;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Locale;
+
+import org.coolreader.R;
+import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBServiceAccessor;
+import org.coolreader.sync.SyncServiceAccessor;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -16,30 +30,26 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
-import android.view.*;
+import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.ViewConfiguration;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
-import org.coolreader.R;
-import org.coolreader.db.CRDBService;
-import org.coolreader.db.CRDBServiceAccessor;
-import org.coolreader.sync.SyncServiceAccessor;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Locale;
 
 public class BaseActivity extends Activity implements Settings {
 
@@ -338,6 +348,11 @@ public class BaseActivity extends Activity implements Settings {
 		return preferredItemHeight;
 	}
 	
+	private int minFontSize = 9;
+	public int getMinFontSize() { return minFontSize; }
+	private int maxFontSize = 90;
+	public int getMaxFontSize() { return maxFontSize; }
+	
 	public void updateBackground() {
 		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground, android.R.attr.listPreferredItemHeight});
 		int bgRes = a.getResourceId(0, 0);
@@ -365,7 +380,19 @@ public class BaseActivity extends Activity implements Settings {
 //				getWindow().setBackgroundDrawable(Utils.solidColorDrawable(clBackground));
 		}
 		a.recycle();
-	}
+		Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int sz = size.x;
+        if (sz > size.y)
+            sz = size.y;
+        minFontSize = sz / 38;
+        maxFontSize = sz / 8;
+        if (maxFontSize > 340)
+            maxFontSize = 340;
+        if (minFontSize < 9)
+            minFontSize = 9;
+        }
 
 	public void setCurrentTheme(InterfaceTheme theme) {
 		log.i("setCurrentTheme(" + theme + ")");
@@ -1511,26 +1538,39 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
 	        props.applyDefault(ReaderView.PROP_LANDSCAPE_PAGES, DeviceInfo.ONE_COLUMN_IN_LANDSCAPE ? "0" : "1");
 	        // autodetect best initial font size based on display resolution
+	        int screenHeight = displayMetrics.heightPixels;
 	        int screenWidth = displayMetrics.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();
+	        if (screenWidth > screenHeight)
+    	        screenWidth = screenHeight;
 	        int fontSize = 20;
+	        int statusFontSize = 16;
 	        String hmargin = "4";
 	        String vmargin = "2";
 	        if ( screenWidth<=320 ) {
 	        	fontSize = 20;
+	        	statusFontSize = 16;
 	            hmargin = "4";
 	            vmargin = "2";
 	        } else if ( screenWidth<=400 ) {
 	        	fontSize = 24;
+	        	statusFontSize = 20;
 	            hmargin = "10";
 	            vmargin = "4";
 	        } else if ( screenWidth<=600 ) {
 	        	fontSize = 28;
+	        	statusFontSize = 24;
 	            hmargin = "20";
 	            vmargin = "8";
-	        } else {
+	        } else if ( screenWidth<=800 ) {
 	        	fontSize = 32;
+	        	statusFontSize = 28;
 	            hmargin = "25";
 	            vmargin = "15";
+	        } else {
+	        	fontSize = 48;
+	        	statusFontSize = 32;
+	            hmargin = "30";
+	            vmargin = "20";
 	        }
 	        if (DeviceInfo.DEF_FONT_SIZE != null)
 	        	fontSize = DeviceInfo.DEF_FONT_SIZE;
@@ -1544,7 +1584,7 @@ public class BaseActivity extends Activity implements Settings {
 	        fixFontSettings(props);
 	        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
-	        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : "16");
+	        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
 	        props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
 	        props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#808080");

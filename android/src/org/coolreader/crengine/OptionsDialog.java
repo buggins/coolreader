@@ -44,12 +44,26 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
 		12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-		31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72
+		31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72, 78, 84, 90, 110, 130, 150, 170, 200, 230, 260, 300, 340
 	};
 	int[] mStatusFontSizes = new int[] {
 			10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 25, 26, 27, 28, 29, 30,
-			32
+			31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72, 78, 84, 90, 110, 130, 150, 170, 200, 230, 260, 300, 340
 		};
+		
+	int[] filterFontSizes(int[] fontSizes) {
+	    ArrayList<Integer> list = new ArrayList<Integer>();
+	    for (int i = 0; i < fontSizes.length; i++) {
+	        int sz = fontSizes[i];
+	        if (sz >= mActivity.getMinFontSize() && sz <= mActivity.getMaxFontSize())
+    	        list.add(sz);
+	    }
+	    int[] res = new int[list.size()];
+	    for (int i = 0; i < list.size(); i++)
+	        res[i] = list.get(i);
+	    return res;
+	}
+	
 	public static int findBacklightSettingIndex( int value ) {
 		int bestIndex = 0;
 		int bestDiff = -1;
@@ -671,7 +685,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LOCATION).add(mStatusPositions, mStatusPositionsTitles).setDefaultValue("1"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(filterFontSizes(mStatusFontSizes)).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
 			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), PROP_STATUS_FONT_COLOR, 0x000000));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), PROP_SHOW_TITLE).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_number), PROP_SHOW_PAGE_NUMBER).setDefaultValue("1"));
@@ -1801,7 +1815,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		
 		mOptionsStyles = new OptionsListView(getContext());
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(filterFontSizes(mFontSizes)).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_antialias));

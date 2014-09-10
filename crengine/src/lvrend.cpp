@@ -844,8 +844,8 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
         sz >>= 8;
     if ( sz < 8 )
         sz = 8;
-    if ( sz > 72 )
-        sz = 72;
+    if ( sz > 340 )
+        sz = 340;
     int fw;
     if (style->font_weight>=css_fw_100 && style->font_weight<=css_fw_900)
         fw = ((style->font_weight - css_fw_100)+1) * 100;
@@ -1812,6 +1812,7 @@ inline void spreadParent( css_length_t & val, css_length_t & parent_val )
 
 void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef parent_font )
 {
+    CR_UNUSED(parent_font);
     //lvdomElementFormatRec * fmt = node->getRenderData();
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
