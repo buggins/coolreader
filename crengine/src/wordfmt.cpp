@@ -178,6 +178,7 @@ void
 vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
 {
     TRACE("antiword::vImagePrologue()");
+    CR_UNUSED2(pDiag, pImg);
     //vImageProloguePS(pDiag, pImg);
 } /* end of vImagePrologue */
 
@@ -187,6 +188,7 @@ vImagePrologue(diagram_type *pDiag, const imagedata_type *pImg)
 void
 vImageEpilogue(diagram_type *pDiag)
 {
+    CR_UNUSED(pDiag);
     TRACE("antiword::vImageEpilogue()");
     //vImageEpiloguePS(pDiag);
 } /* end of vImageEpilogue */
@@ -199,6 +201,7 @@ vImageEpilogue(diagram_type *pDiag)
 BOOL
 bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 {
+    CR_UNUSED2(pDiag, pImg);
     TRACE("antiword::vImageEpilogue()");
     //return bAddDummyImagePS(pDiag, pImg);
 	return FALSE;
@@ -250,6 +253,7 @@ void
 vPrologue2(diagram_type *pDiag, int iWordVersion)
 {
     TRACE("antiword::vDestroyDiagram()");
+    CR_UNUSED2(pDiag, iWordVersion);
 //    vCreateBookIntro(pDiag, iWordVersion);
 //    vCreateInfoDictionary(pDiag, iWordVersion);
 //    vAddFontsPDF(pDiag);

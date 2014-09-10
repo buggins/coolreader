@@ -34,6 +34,7 @@ static struct sigaction old_sa[NSIG];
 
 void cr_sigaction(int signal, siginfo_t *info, void *reserved)
 {
+    CR_UNUSED2(info, reserved);
 	if (file_to_remove_on_crash[0])
 		unlink(file_to_remove_on_crash);
 	old_sa[signal].sa_handler(signal);
