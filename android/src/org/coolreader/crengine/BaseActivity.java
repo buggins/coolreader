@@ -344,7 +344,7 @@ public class BaseActivity extends Activity implements Settings {
 		//int clText = a.getColor(1, 0);
 		int clBackground = a.getColor(2, 0);
 		//int clForeground = a.getColor(3, 0);
-		preferredItemHeight = a.getDimensionPixelSize(5, 36);
+		preferredItemHeight = densityDpi / 3; //a.getDimensionPixelSize(5, 36);
 		//View contentView = getContentView();
 		if (contentView != null) {
 			if (bgRes != 0) {
