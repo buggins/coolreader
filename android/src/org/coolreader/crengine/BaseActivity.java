@@ -381,11 +381,9 @@ public class BaseActivity extends Activity implements Settings {
 		}
 		a.recycle();
 		Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        int sz = size.x;
-        if (sz > size.y)
-            sz = size.y;
+        int sz = display.getWidth();
+        if (sz > display.getHeight())
+            sz = display.getHeight();
         minFontSize = sz / 38;
         maxFontSize = sz / 8;
         if (maxFontSize > 340)
