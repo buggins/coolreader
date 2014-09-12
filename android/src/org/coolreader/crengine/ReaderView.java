@@ -453,7 +453,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		bookView.onPause();
 	}
 
+    private long lastAppResumeTs = 0;
+    
 	public void onAppResume() {
+    	lastAppResumeTs = System.currentTimeMillis();
 		log.i("calling bookView.onResume()");
 		bookView.onResume();
 	}
@@ -3515,9 +3518,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	    		});
 	    	}
 	    };
+	    
+	    long timeSinceLastResume = System.currentTimeMillis() - lastAppResumeTs;
+	    int delay = 300;
+	    
+	    if (timeSinceLastResume < 1000)
+	        delay = 1000;
+
 	    if ( mOpened ) {
-	    	log.d("scheduling delayed resize task id=" + thisId);
-	    	BackgroundThread.instance().postGUI(task, 300);
+	    	log.d("scheduling delayed resize task id=" + thisId + " for " + delay + " ms");
+	    	BackgroundThread.instance().postGUI(task, delay);
 	    } else {
 	    	log.d("executing resize without delay");
 	    	task.run();
