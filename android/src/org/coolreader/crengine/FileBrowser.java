@@ -1425,4 +1425,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 		});
 	}
+
+	@Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+		activity.onUserActivity();
+       if( this.view != null ) {
+            if (this.view.onKeyDown(keyCode, event))
+            	return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
+
