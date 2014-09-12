@@ -1168,7 +1168,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getPositionPropsI
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return NULL;
     }
 
     jclass cls = _env->FindClass("org/coolreader/crengine/PositionProperties");
@@ -1633,7 +1633,7 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_DocView_checkLinkInternal
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return NULL;
     }
     lString16 link;
     for ( int r=0; r<=delta; r+=5 ) {
