@@ -659,7 +659,7 @@ public:
     }
 
     /// split line into words, add space for width alignment
-    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace, int visualAlignmentWidth )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace, int visualAlignmentWidth, int hyphPos, int dw )
     {
         int maxWidth = m_pbuffer->width;
         //int w0 = start>0 ? m_widths[start-1] : 0;
@@ -761,6 +761,7 @@ public:
                     word->t.start = m_charindex[wstart];
                     word->t.len = i - wstart;
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
+                    if (i>0 && i-1 == hyphPos) word->width += dw;
                     word->min_width = word->width;
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
 //                    lChar16 lastch = m_text[i-1];
@@ -957,6 +958,7 @@ public:
 
         // split paragraph into lines, export lines
         int pos = 0;
+        int hyphPos = -1;
         int upSkipPos = -1;
         int indent = m_srcs[0]->margin;
         for (;pos<m_length;) {
@@ -1102,11 +1104,12 @@ public:
                 }
             }
             int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) + lastCharMargin : 0;
-            if (dw) {
-                TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
+            if (dw && lastnonspace != lastHyphWrap) {
+                TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + lastnonspace, 1)));
                 m_widths[lastnonspace] += dw;
             }
-            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace, visualAlignmentWidth);
+            hyphPos = lastHyphWrap == -1 ? hyphPos : lastHyphWrap;
+            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace, visualAlignmentWidth, hyphPos, dw);
             pos = wrapPos + 1;
         }
     }
