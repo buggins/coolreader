@@ -20,7 +20,7 @@
 #endif
 #include "../include/wordfmt.h"
 
-#ifdef _WIN32
+#if (defined(_WIN32) && !defined(MINGW))
 extern "C" {
 	int strcasecmp(const char *s1, const char *s2) {
 		return stricmp(s1,s2);
