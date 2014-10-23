@@ -30,6 +30,12 @@ class TocItem : public QTreeWidgetItem
         }
 };
 
+#if QT_VERSION >= 0x050000
+#define setResizeModeMethod setSectionResizeMode
+#else
+#define setResizeModeMethod setResizeMode
+#endif
+
 bool TocDlg::showDlg(  QWidget * parent, CR3View * docView )
 {
     LVTocItem * root = docView->getToc();
@@ -49,8 +55,8 @@ TocDlg::TocDlg(QWidget *parent, CR3View * docView) :
     m_ui->treeWidget->setColumnCount(2);
     m_ui->treeWidget->setHeaderItem(new QTreeWidgetItem(QStringList() << tr("Title") << tr("Page") ));
     m_ui->treeWidget->header()->setStretchLastSection(false);
-    m_ui->treeWidget->header()->setResizeMode( 0, QHeaderView::Stretch );
-    m_ui->treeWidget->header()->setResizeMode( 1, QHeaderView::ResizeToContents );
+    m_ui->treeWidget->header()->setResizeModeMethod( 0, QHeaderView::Stretch );
+    m_ui->treeWidget->header()->setResizeModeMethod( 1, QHeaderView::ResizeToContents );
 
     int nearestPage = -1;
     int currPage = docView->getCurPage();

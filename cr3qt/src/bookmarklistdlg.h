@@ -1,7 +1,12 @@
 #ifndef BOOKMARKLISTDLG_H
 #define BOOKMARKLISTDLG_H
 
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QDialog>
+#else
 #include <QtGui/QDialog>
+#endif
 #include <QModelIndex>
 
 namespace Ui {

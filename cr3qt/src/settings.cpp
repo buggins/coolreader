@@ -2,8 +2,14 @@
 #include "ui_settings.h"
 #include "cr3widget.h"
 #include "crqtutil.h"
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QColorDialog>
+#include <QtWidgets/QStyleFactory>
+#else
 #include <QtGui/QColorDialog>
 #include <QtGui/QStyleFactory>
+#endif
 #include <QDir>
 
 static int def_margins[] = { 0, 5, 8, 10, 15, 20, 25, 30 };

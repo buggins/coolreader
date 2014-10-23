@@ -6,12 +6,22 @@
 #include "qpainter.h"
 #include "settings.h"
 #include "addbookmarkdlg.h"
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QResizeEvent>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QStyleFactory>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QApplication>
+#else
 #include <QtGui/QResizeEvent>
 #include <QtGui/QScrollBar>
 #include <QtGui/QMenu>
 #include <QtGui/QStyleFactory>
 #include <QtGui/QStyle>
 #include <QtGui/QApplication>
+#endif
 #include <QUrl>
 #include <QDir>
 #include <QFileInfo>

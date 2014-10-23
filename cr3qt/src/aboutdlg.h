@@ -1,7 +1,12 @@
 #ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QDialog>
+#else
 #include <QtGui/QDialog>
+#endif
 
 namespace Ui {
     class AboutDialog;

@@ -1,7 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QStyleFactory>
+#else
 #include <QtGui/QFileDialog>
 #include <QtGui/QStyleFactory>
+#endif
+
 #include <QClipboard>
 #include <QTranslator>
 #include <QLibraryInfo>

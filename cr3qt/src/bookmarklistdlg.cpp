@@ -13,6 +13,13 @@ static QString limit( QString s )
     return s + "...";
 }
 
+#if QT_VERSION >= 0x050000
+#define setResizeModeMethod setSectionResizeMode
+#else
+#define setResizeModeMethod setResizeMode
+#endif
+
+
 BookmarkListDialog::BookmarkListDialog(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
     m_ui(new Ui::BookmarkListDialog),
@@ -25,11 +32,11 @@ BookmarkListDialog::BookmarkListDialog(QWidget *parent, CR3View * docView ) :
     m_ui->tableWidget->setHorizontalHeaderLabels ( QStringList() << tr("Position") << tr("Type", "bookmark type") /*<< tr("Chapter") */ << tr("Text") << tr("Comment") );
     m_ui->tableWidget->verticalHeader()->hide();
     int i = 0;
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( i++, QHeaderView::ResizeToContents );
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( i++, QHeaderView::ResizeToContents );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( i++, QHeaderView::ResizeToContents );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( i++, QHeaderView::ResizeToContents );
     //m_ui->tableWidget->horizontalHeader()->setResizeMode( i++, QHeaderView::Stretch );
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( i++, QHeaderView::Stretch );
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( i++, QHeaderView::Stretch );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( i++, QHeaderView::Stretch );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( i++, QHeaderView::Stretch );
     //m_ui->tableWidget->horizontalHeader()->setResizeMode( 1, QHeaderView::Stretch ); //Stretch
     m_ui->tableWidget->horizontalHeader()->setStretchLastSection( true );
     m_ui->tableWidget->horizontalHeader()->setDefaultAlignment( Qt::AlignLeft );
@@ -74,7 +81,7 @@ BookmarkListDialog::BookmarkListDialog(QWidget *parent, CR3View * docView ) :
 			//m_ui->tableWidget->setItem( y, i++, new QTableWidgetItem( limit(cr2qt(bm->getTitleText())) ) );
 			m_ui->tableWidget->setItem( y, i++, new QTableWidgetItem( limit(cr2qt(bm->getPosText())) ) );
 			m_ui->tableWidget->setItem( y, i++, new QTableWidgetItem( limit(cr2qt(bm->getCommentText())) ) );
-			m_ui->tableWidget->verticalHeader()->setResizeMode( y, QHeaderView::ResizeToContents );
+            m_ui->tableWidget->verticalHeader()->setResizeModeMethod( y, QHeaderView::ResizeToContents );
 		}
         y++;
     }
