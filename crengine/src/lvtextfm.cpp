@@ -855,11 +855,11 @@ public:
     }
 
     int getMaxCondensedSpaceTruncation(int pos) {
-        if (pos<0 || pos>m_length || m_text[pos]!=' ')
+        if (pos<0 || pos>=m_length || m_text[pos]!=' ')
             return 0;
         if (m_pbuffer->min_space_condensing_percent==100)
             return 0;
-        int w = (m_widths[pos] - m_widths[pos-1]);
+        int w = (m_widths[pos] - (pos > 0 ? m_widths[pos-1] : 0));
         int dw = w * (100 - m_pbuffer->min_space_condensing_percent) / 100;
         if ( dw>0 ) {
             // typographic rule: don't use spaces narrower than 1/4 of font size
@@ -886,8 +886,8 @@ public:
     }
 
     bool isCJKPunctuation(lChar16 c) {
-       return (c >= UNICODE_CJK_PUNCTUATION_BEGIN && c <= UNICODE_CJK_PUNCTUATION_END) || \
-       (c >= UNICODE_GENERAL_PUNCTUATION_BEGIN && c <= UNICODE_GENERAL_PUNCTUATION_END) || \
+       return (c >= UNICODE_CJK_PUNCTUATION_BEGIN && c <= UNICODE_CJK_PUNCTUATION_END) ||
+       //(c >= UNICODE_GENERAL_PUNCTUATION_BEGIN && c <= UNICODE_GENERAL_PUNCTUATION_END) ||
        (c >= UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && c <= UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END);
     }
 
@@ -971,10 +971,13 @@ public:
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
-            spaceReduceWidth -= visialAlignmentWidth/2;
+            //spaceReduceWidth -= visialAlignmentWidth/2;
             firstCharMargin += visialAlignmentWidth/2;
+            int visualAlignmentReserved = visialAlignmentWidth/2;
+            int spaceReduceCount = 0;
+            int maxSpaceReduceW = 0;
             for ( i=pos; i<m_length; i++ ) {
-                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin)
+                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin - visualAlignmentReserved)
                     break;
                 lUInt8 flags = m_flags[i];
                 if ( m_text[i]=='\n' ) {
@@ -987,10 +990,14 @@ public:
                     lastDeprecatedWrap = i;
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
-                if (m_pbuffer->min_space_condensing_percent!=100 && i<m_length-1 && m_text[i]==' ' && (i==m_length-1 || m_text[i+1]!=' ')) {
+                if (m_pbuffer->min_space_condensing_percent!=100 && i<m_length-1 && (m_flags[i] & LCHAR_IS_SPACE) && (i==m_length-1 || !(m_flags[i+1] & LCHAR_IS_SPACE))) { //m_text[i+1]!=' '
                     int dw = getMaxCondensedSpaceTruncation(i);
-                    if ( dw>0 )
-                        spaceReduceWidth += dw;
+                    if ( dw>0 ) {
+                        //spaceReduceWidth += dw;
+                        spaceReduceCount++;
+                        if (dw > maxSpaceReduceW)
+                            maxSpaceReduceW = dw;
+                    }
                 }
             }
             if (i<=pos)

@@ -2865,7 +2865,7 @@ bool LVDocView::navigateTo(lString16 historyPath) {
 		lString16 curr_fname = getNavigationPath();
 		if (curr_fname != fname) {
 			CRLog::debug(
-					"navigateTo() : file name doesn't match: current=%s %s, new=%s %s",
+                    "navigateTo() : file name doesn't match: current=%s, new=%s",
 					LCSTR(curr_fname), LCSTR(fname));
 			if (!goLink(fname, false))
 				return false;
