@@ -70,8 +70,9 @@ MainWindow::MainWindow(QWidget *parent)
     addAction(ui->actionCopy2); // alternative shortcut
     addAction(ui->actionAddBookmark);
     addAction(ui->actionShowBookmarksList);
-    addAction(ui->actionCopy);
     addAction(ui->actionToggleEditMode);
+    addAction(ui->actionNextSentence);
+    addAction(ui->actionPrevSentence);
 
 #ifdef _LINUX
     QString homeDir = QDir::toNativeSeparators(QDir::homePath() + "/.cr3/");
@@ -533,4 +534,14 @@ void MainWindow::on_actionToggleEditMode_triggered()
 void MainWindow::on_actionNextPage3_triggered()
 {
     ui->view->nextPage();
+}
+
+void MainWindow::on_actionNextSentence_triggered()
+{
+    ui->view->nextSentence();
+}
+
+void MainWindow::on_actionPrevSentence_triggered()
+{
+    ui->view->prevSentence();
 }

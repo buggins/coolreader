@@ -197,7 +197,10 @@ to disable console, use /SUBSYSTEM:WINDOWS linker option instead of /SUBSYSTEM:C
 
 For QT5, use GUI=QT5 instead of GUI=QT
 For building Qt5 app from QtCreator remove -G (generator) parameter: 
--D GUI=QT5 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dist ..
+	Release build:
+		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dist ..
+	Debug build:
+		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=dist ..
 
 It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
 You need also add following DLLs to this directory in order to get cr3.exe working:

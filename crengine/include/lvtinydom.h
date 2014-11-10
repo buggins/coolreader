@@ -1452,6 +1452,8 @@ public:
     bool prevVisibleWordEnd( bool thisBlockOnly = false );
     /// move to next visible word beginning
     bool nextVisibleWordStart( bool thisBlockOnly = false );
+    /// move to end of current word
+    bool thisVisibleWordEnd( bool thisBlockOnly = false );
     /// move to next visible word end
     bool nextVisibleWordEnd( bool thisBlockOnly = false );
 

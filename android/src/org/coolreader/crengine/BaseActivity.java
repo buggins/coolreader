@@ -129,7 +129,8 @@ public class BaseActivity extends Activity implements Settings {
 	
 	private final static int SYSTEM_UI_FLAG_IMMERSIVE_STICKY = 4096;
 
-    @Override
+    @SuppressLint("NewApi")
+	@Override
     public void onWindowFocusChanged(boolean hasFocus) {
 	super.onWindowFocusChanged(hasFocus);
 	if (hasFocus && (DeviceInfo.getSDKLevel() >= 19)) {

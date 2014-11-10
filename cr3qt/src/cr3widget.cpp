@@ -686,6 +686,18 @@ void CR3View::scrollTo( int value )
     }
 }
 
+void CR3View::nextSentence() {
+    // for debugging of ReadAloud feature position movement.
+    _docview->doCommand(DCMD_SELECT_NEXT_SENTENCE, 0 );
+    update();
+}
+
+void CR3View::prevSentence() {
+    // for debugging of ReadAloud feature position movement.
+    _docview->doCommand(DCMD_SELECT_PREV_SENTENCE, 0 );
+    update();
+}
+
 void CR3View::doCommand( int cmd, int param )
 {
     _docview->doCommand( (LVDocCmd)cmd, param );
