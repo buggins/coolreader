@@ -126,6 +126,8 @@ public class BaseActivity extends Activity implements Settings {
     	// create rest of settings
 		Services.startServices(this);
 	}
+	
+	private final static int SYSTEM_UI_FLAG_IMMERSIVE_STICKY = 4096;
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -137,7 +139,7 @@ public class BaseActivity extends Activity implements Settings {
 					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-					| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+					| SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 					| View.SYSTEM_UI_FLAG_FULLSCREEN;
 
             mDecorView.setSystemUiVisibility(flag);
@@ -384,7 +386,7 @@ public class BaseActivity extends Activity implements Settings {
         int sz = display.getWidth();
         if (sz > display.getHeight())
             sz = display.getHeight();
-        minFontSize = sz / 38;
+        minFontSize = sz / 45;
         maxFontSize = sz / 8;
         if (maxFontSize > 340)
             maxFontSize = 340;
