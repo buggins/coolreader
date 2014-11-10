@@ -315,7 +315,7 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 				if ( progress<50 )
 					rate = 0.3f + 0.7f * progress / 50f;
 				else
-					rate = 1.0f + 1.5f * (progress-50) / 50f;
+					rate = 1.0f + 2.5f * (progress-50) / 50f;
 				mTTS.setSpeechRate(rate);
 			}
 
