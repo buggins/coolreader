@@ -158,7 +158,7 @@ public class LitresConnection {
 					L.d("Entity content type: " + contentType);
 					L.d("Entity content encoding: " + contentEncoding);
 
-					if (contentLen <= 0 || contentLen > MAX_CONTENT_LEN_TO_BUFFER) {
+					if ((contentLen <= 0 && contentLen != -1) || contentLen > MAX_CONTENT_LEN_TO_BUFFER) {
 						onError(0, "Wrong content length");
 						return;
 					}
