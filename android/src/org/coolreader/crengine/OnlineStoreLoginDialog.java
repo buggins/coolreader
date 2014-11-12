@@ -75,13 +75,8 @@ public class OnlineStoreLoginDialog extends BaseDialog {
             btnRegister.setOnClickListener(new View.OnClickListener() {
     			@Override
     			public void onClick(View v) {
-					final OnlineStoreNewAccountDialog dlg = new OnlineStoreNewAccountDialog(mActivity, mPlugin, new Runnable() {
-						@Override
-						public void run() {
-							// registered and logged in 
-							mOnLoginHandler.run();
-						}
-					});
+    				OnlineStoreLoginDialog.super.onPositiveButtonClick();
+					final OnlineStoreNewAccountDialog dlg = new OnlineStoreNewAccountDialog(mActivity, mPlugin, mOnLoginHandler);
 					dlg.show();
     			}
     		});

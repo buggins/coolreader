@@ -2,6 +2,7 @@ package org.coolreader.plugins;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.Scanner;
@@ -77,6 +78,11 @@ public class OnlineStoreWrapper {
 	public AsyncOperationControl authenticate(String login, String password, AuthenticationCallback callback) {
 		AsyncOperationControl control = new AsyncOperationControl();
 		plugin.authenticate(control, login, password, callback);
+		return control;
+	}
+	public AsyncOperationControl registerNewAccount(HashMap<String, String> params, AuthenticationCallback callback) {
+		AsyncOperationControl control = new AsyncOperationControl();
+		plugin.registerNewAccount(control, params, callback);
 		return control;
 	}
 	private void loadBookInfoContinue(final AsyncOperationControl control, final String bookId, final boolean isBought, final BookInfoCallback callback) {

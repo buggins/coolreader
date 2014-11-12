@@ -2,6 +2,7 @@ package org.coolreader.plugins.litres;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.coolreader.crengine.DocumentFormat;
 import org.coolreader.crengine.FileInfo;
@@ -135,6 +136,24 @@ public class LitresPlugin implements OnlineStorePlugin {
 			}
 		});
 	}
+	
+	@Override
+	public void registerNewAccount(final AsyncOperationControl control, HashMap<String, String> params, final AuthenticationCallback callback) {
+		connection.register(params, new ResultHandler() {
+			@Override
+			public void onResponse(AsyncResponse response) {
+				control.finished();
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof LitresConnection.LitresAuthInfo) {
+					LitresConnection.LitresAuthInfo result = (LitresConnection.LitresAuthInfo)response;
+					callback.onSuccess();
+				}
+			}
+		});
+	}
+	
 
 	@Override
 	public String getLogin() {

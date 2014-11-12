@@ -2,6 +2,7 @@ package org.coolreader.plugins;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.coolreader.crengine.FileInfo;
 
@@ -15,6 +16,7 @@ public interface OnlineStorePlugin {
 	String getFirstAuthorNameLetters();
 	// return null if no new account creation is supported
 	ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters();
+	void registerNewAccount(AsyncOperationControl control, HashMap<String, String> params, AuthenticationCallback callback);
 	void authenticate(AsyncOperationControl control, String login, String password, AuthenticationCallback callback);
 	void fillGenres(AsyncOperationControl control, FileInfo dir, FileInfoCallback callback);
 	void getBookInfo(AsyncOperationControl control, String bookId, boolean myOnly, BookInfoCallback callback);

@@ -1,10 +1,15 @@
 package org.coolreader.crengine;
 
+import java.util.HashMap;
+
 import org.coolreader.R;
+import org.coolreader.plugins.AuthenticationCallback;
+import org.coolreader.plugins.OnlineStoreRegistrationParam;
 import org.coolreader.plugins.OnlineStoreWrapper;
 
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -111,7 +116,6 @@ public class OnlineStoreNewAccountDialog extends BaseDialog {
 	
 	@Override
 	protected void onPositiveButtonClick() {
-		super.onPositiveButtonClick();
 		String login = edLogin.getText().toString().trim();
 		String password = edPassword.getText().toString().trim();
 		String password2 = edPassword2.getText().toString().trim();
@@ -138,22 +142,35 @@ public class OnlineStoreNewAccountDialog extends BaseDialog {
 		String city = edCity.getText().toString().trim();
 		String phone = edPhone.getText().toString().trim();
 		boolean subscribe = cbSubscribe.isChecked();
-		/*
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LOGIN, login);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PASSWORD, password);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_EMAIL, email);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_FIRST_NAME, firstName);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LAST_NAME, lastName);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_MIDDLE_NAME, middleName);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_CITY, city);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PHONE, phone);
+		params.put(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_SUBSCRIBE, subscribe ? "1" : "0");
+		
 		progress.show();
-		mPlugin.authenticate(login, password, new AuthenticationCallback() {
+		L.i("trying to register new LitRes account " + login);
+		mPlugin.registerNewAccount(params, new AuthenticationCallback() {
 			@Override
 			public void onError(int errorCode, String errorMessage) {
+				L.e("registerNewAccount - error " + errorCode + " : " + errorMessage);
 				progress.hide();
-				mActivity.showToast("Cannot login: " + errorMessage);
+				mActivity.showToast("Cannot register account: " + errorMessage);
 			}
 			@Override
 			public void onSuccess() {
+				L.i("registerNewAccount - successful");
 				progress.hide();
-				mActivity.showToast("Successful login");
+				mActivity.showToast("Account is registered successfully");
+				OnlineStoreNewAccountDialog.super.onPositiveButtonClick();
 				mOnLoginHandler.run();
 			}
 		});
-		*/
 	}
 
 	@Override

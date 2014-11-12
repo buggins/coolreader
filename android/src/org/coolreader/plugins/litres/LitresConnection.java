@@ -34,6 +34,7 @@ import org.coolreader.plugins.OnlineStoreAuthor;
 import org.coolreader.plugins.OnlineStoreAuthors;
 import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStoreBooks;
+import org.coolreader.plugins.OnlineStoreRegistrationParam;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -45,6 +46,7 @@ public class LitresConnection {
 	final static String TAG = "litres";
 	
 	public static final String AUTHORIZE_URL = "http://robot.litres.ru/pages/catalit_authorise/";
+	public static final String REGISTER_URL = "http://robot.litres.ru/pages/catalit_register_user/";
 	public static final String GENRES_URL = "http://robot.litres.ru/pages/catalit_genres/";
 	public static final String AUTHORS_URL = "http://robot.litres.ru/pages/catalit_persons/";
 	public static final String CATALOG_URL = "http://robot.litres.ru/pages/catalit_browser/";
@@ -767,6 +769,7 @@ public class LitresConnection {
 			pwd = lastPwd;
 		authorize(lastSid, login, pwd, resultHandler);
 	}
+
 	public void authorize(final String sid, final String login, final String pwd, final ResultHandler resultHandler) {
 		final Map<String, String> params = new HashMap<String, String>();
 		if (sid != null)
@@ -808,6 +811,75 @@ public class LitresConnection {
 					lastSid = result.sid;
 					lastAuthorizationTimestamp = System.currentTimeMillis();
 					saveLoginInfo(login, pwd);
+				} else if ("catalit-authorization-failed".equals(localName)) {
+					onError(1, "Authorization failed");
+				}
+			}
+		}, resultHandler);
+	}
+
+	private static void copyParam(HashMap<String, String> dst, HashMap<String, String> src, String dstName, String srcName) {
+		String srcv = src.get(srcName);
+		if (srcv != null && srcv.length() > 0) {
+			String dstv = srcv;
+			// TODO: conversion for some parameters, if necessary
+			if (dstv != null)
+				dst.put(dstName, dstv);
+		}
+	}
+	
+	public void register(final HashMap<String, String> registerParams, final ResultHandler resultHandler) {
+		final HashMap<String, String> params = new HashMap<String, String>();
+		final String login = registerParams.get(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LOGIN);
+		final String pwd = registerParams.get(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PASSWORD);
+		copyParam(params, registerParams, "new_login", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LOGIN);
+		copyParam(params, registerParams, "new_pwd1", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PASSWORD);
+		copyParam(params, registerParams, "mail", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_EMAIL);
+		copyParam(params, registerParams, "first_name", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_FIRST_NAME);
+		copyParam(params, registerParams, "middle_name", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_MIDDLE_NAME);
+		copyParam(params, registerParams, "last_name", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LAST_NAME);
+		copyParam(params, registerParams, "city", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_CITY);
+		copyParam(params, registerParams, "phone", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PHONE);
+		boolean subscribe = "1".equals(registerParams.get(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_SUBSCRIBE));
+		if (!subscribe)
+			params.put("no_present_books", "1");
+		sendXMLRequest(REGISTER_URL, params, new ResponseHandler() {
+			LitresAuthInfo result;
+			@Override
+			public AsyncResponse getResponse() {
+				AsyncResponse res =  super.getResponse();
+				if (res != null)
+					return res;
+				return result;
+			}
+
+			@Override
+			public void startElement(String uri, String localName,
+					String qName, Attributes attributes) throws SAXException {
+				if ("catalit-authorization-ok".equals(localName)) {
+					result = new LitresAuthInfo();
+					result.sid = attributes.getValue("sid");
+					result.id = attributes.getValue("user-id");
+					result.firstName = attributes.getValue("first-name");
+					result.lastName = attributes.getValue("last-name");
+					result.middleName = attributes.getValue("middle-name");
+					result.bookCount = stringToInt(attributes.getValue("books-cnt"), 0);
+					result.authorCount = stringToInt(attributes.getValue("authors-cnt"), 0);
+					result.userCount = stringToInt(attributes.getValue("users-cnt"), 0);
+					result.canRebill = stringToInt(attributes.getValue("can-rebill"), 0) == 1;
+					authInfo = result;
+					if (pwd != null)
+						lastPwd = pwd;
+					if (login != null)
+						lastLogin = login;
+					result.login = lastLogin;
+					lastSid = result.sid;
+					lastAuthorizationTimestamp = System.currentTimeMillis();
+					saveLoginInfo(login, pwd);
+				} else if ("catalit-registration-failed".equals(localName)) {
+					int error = stringToInt(attributes.getValue("error"), 0);
+					String errorMsg = attributes.getValue("coment");
+					onError(error, "Registration failed: " + errorMsg);
 				} else if ("catalit-authorization-failed".equals(localName)) {
 					onError(1, "Authorization failed");
 				}
