@@ -37,6 +37,7 @@
                 android:focusableInTouchMode="false"
                 android:background="@null"
                 />
+
 	        <Button android:id="@+id/btn_login"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
@@ -44,14 +45,34 @@
 	            android:text="@string/online_store_login"
 	            android:minWidth="100dip"
 	            android:layout_gravity="center_vertical"
+	            android:textStyle="bold"
 	            />
-	    </LinearLayout>
+	        
+            <Button
+                android:id="@+id/btn_new_account"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dip"
+	            android:layout_marginRight="10dip"
+                android:minWidth="100dip"
+	            android:layout_gravity="center_vertical|right"
+                android:text="@string/online_store_new_account" />
+
+	        	    </LinearLayout>
         <TextView 
             android:id="@+id/dlg_title"
             style="@style/TextAppearance.Large"
             android:singleLine="true"
             android:layout_margin="10px"
-            android:text="LitRes" 
+            android:text="Plugin name" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView 
+            android:id="@+id/lbl_description"
+            style="@style/TextAppearance.Small"
+            android:singleLine="true"
+            android:layout_margin="10px"
+            android:text="Plugin description" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <TextView 
@@ -91,5 +112,14 @@
             android:editable="true" 
             android:singleLine="true"
         />
-   </LinearLayout>
+        <TextView 
+            android:id="@+id/lbl_url"
+            style="@style/TextAppearance.Large"
+            android:singleLine="true"
+            android:layout_margin="10px"
+            android:text="URL" 
+            android:autoLink="web"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        </LinearLayout>
 </ScrollView>

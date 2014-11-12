@@ -1,15 +1,20 @@
 package org.coolreader.plugins;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import org.coolreader.crengine.FileInfo;
 
 public interface OnlineStorePlugin {
 	String getPackageName();
+	String getName();
+	String getUrl();
 	String getDescription();
 	String getLogin();
 	String getPassword();
 	String getFirstAuthorNameLetters();
+	// return null if no new account creation is supported
+	ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters();
 	void authenticate(AsyncOperationControl control, String login, String password, AuthenticationCallback callback);
 	void fillGenres(AsyncOperationControl control, FileInfo dir, FileInfoCallback callback);
 	void getBookInfo(AsyncOperationControl control, String bookId, boolean myOnly, BookInfoCallback callback);

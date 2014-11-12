@@ -1,6 +1,7 @@
 package org.coolreader.plugins;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.Scanner;
@@ -11,7 +12,7 @@ public class OnlineStoreWrapper {
 		this.plugin = plugin;
 	}
 	public FileInfo createRootDirectory() {
-		final FileInfo root = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName(), plugin.getDescription());
+		final FileInfo root = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName(), plugin.getName());
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":genres", "Books by genres"));
 		FileInfo authors = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":authors", "Books by authors");
 		root.addDir(authors);
@@ -150,5 +151,17 @@ public class OnlineStoreWrapper {
 
 	public String getDescription() {
 		return plugin.getDescription();
+	}
+
+	public String getName() {
+		return plugin.getName();
+	}
+	
+	public String getUrl() {
+		return plugin.getUrl();
+	}
+	
+	public ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters() {
+		return plugin.getNewAccountParameters();
 	}
 }

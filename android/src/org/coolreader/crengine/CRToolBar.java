@@ -501,6 +501,13 @@ public class CRToolBar extends ViewGroup {
 		scroll.setFadingEdgeLength(h / 10);
 		final PopupWindow popup = new PopupWindow(context);
 		tb.setPopup(popup, popupLocation);
+		ReaderAction longMenuAction = null;
+		for (ReaderAction action : actions) {
+			if (action.activateWithLongMenuKey())
+				longMenuAction = action;
+		}
+		final ReaderAction foundLongMenuAction = longMenuAction;
+		
 		popup.setTouchInterceptor(new OnTouchListener() {
 			
 			@Override
@@ -533,9 +540,20 @@ public class CRToolBar extends ViewGroup {
 		tb.setOnKeyListener(new OnKeyListener() {
 			@Override
 			public boolean onKey(View view, int keyCode, KeyEvent event) {
-				if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
-					popup.dismiss();
-					return true;
+				if (event.getAction() == KeyEvent.ACTION_DOWN) {
+					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+						//popup.dismiss();
+						return true;
+					}
+				} else if (event.getAction() == KeyEvent.ACTION_UP) {
+					if (keyCode == KeyEvent.KEYCODE_MENU && foundLongMenuAction != null && event.getDownTime() >= 500) {
+						popup.dismiss();
+						return onActionHandler.onActionSelected(foundLongMenuAction);
+					}
+					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+						popup.dismiss();
+						return true;
+					}
 				}
 				return false;
 			}

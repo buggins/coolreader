@@ -1493,7 +1493,7 @@ public class BaseActivity extends Activity implements Settings {
 	        }
 	        
 	        // default key actions
-          boolean menuKeyActionFound = false;
+            boolean menuKeyActionFound = false;
 	        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
 	        		props.applyDefault(ka.getProp(), ka.action.id);
 	        		if (ReaderAction.READER_MENU.id.equals(ka.action.id))

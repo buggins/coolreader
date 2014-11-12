@@ -1,9 +1,7 @@
 package org.coolreader.crengine;
 
 import org.coolreader.R;
-import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.OnlineStoreWrapper;
-import org.coolreader.plugins.litres.LitresPlugin;
 
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -11,16 +9,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class OnlineStoreLoginDialog extends BaseDialog {
+public class OnlineStoreNewAccountDialog extends BaseDialog {
 	private BaseActivity mActivity;
 	private OnlineStoreWrapper mPlugin;
 	private LayoutInflater mInflater;
 	private Runnable mOnLoginHandler;
-	public OnlineStoreLoginDialog(BaseActivity activity, OnlineStoreWrapper plugin, Runnable onLoginHandler)
+	public OnlineStoreNewAccountDialog(BaseActivity activity, OnlineStoreWrapper plugin, Runnable onLoginHandler)
 	{
 		super(activity, null, false, false);
 		DisplayMetrics outMetrics = new DisplayMetrics();
@@ -40,18 +39,24 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 	
     TextView lblTitle;
     TextView lblDescription;
-    TextView lblURL;
-    Button btnLogin;
     Button btnRegister;
     EditText edLogin;
     EditText edPassword;
+    EditText edPassword2;
+    EditText edEmail;
+    EditText edFirstName;
+    EditText edLastName;
+    EditText edMiddleName;
+    EditText edPhone;
+    EditText edCity;
+    CheckBox cbSubscribe;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
         mInflater = LayoutInflater.from(getContext());
-        ViewGroup view = (ViewGroup)mInflater.inflate(R.layout.online_store_login_dialog, null);
+        ViewGroup view = (ViewGroup)mInflater.inflate(R.layout.online_store_new_account_dialog, null);
         
         ImageButton btnBack = (ImageButton)view.findViewById(R.id.base_dlg_btn_back);
         btnBack.setOnClickListener(new View.OnClickListener() {
@@ -60,46 +65,35 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 				onNegativeButtonClick();
 			}
 		});
-        btnLogin = (Button)view.findViewById(R.id.btn_login);
-        btnLogin.setOnClickListener(new View.OnClickListener() {
+        btnRegister = (Button)view.findViewById(R.id.btn_new_account);
+        btnRegister.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				onPositiveButtonClick();
 			}
 		});
         
-        btnRegister = (Button)view.findViewById(R.id.btn_new_account);
-        if (mPlugin.getNewAccountParameters() == null) {
-        	btnRegister.setVisibility(View.GONE);
-        } else {
-            btnRegister.setOnClickListener(new View.OnClickListener() {
-    			@Override
-    			public void onClick(View v) {
-					final OnlineStoreNewAccountDialog dlg = new OnlineStoreNewAccountDialog(mActivity, mPlugin, new Runnable() {
-						@Override
-						public void run() {
-							// registered and logged in 
-							mOnLoginHandler.run();
-						}
-					});
-					dlg.show();
-    			}
-    		});
-        }
-        
         lblTitle = (TextView)view.findViewById(R.id.dlg_title);
         lblDescription = (TextView)view.findViewById(R.id.lbl_description);
-        lblURL = (TextView)view.findViewById(R.id.lbl_url);
-        
 
 		lblTitle.setText(mPlugin.getName());
 		lblDescription.setText(mPlugin.getDescription());
-		lblURL.setText(mPlugin.getUrl());
 		
         edLogin = (EditText)view.findViewById(R.id.ed_login);
         edPassword = (EditText)view.findViewById(R.id.ed_password);
+        edPassword2 = (EditText)view.findViewById(R.id.ed_password_repeat);
+        edFirstName = (EditText)view.findViewById(R.id.ed_first_name);
+        edLastName = (EditText)view.findViewById(R.id.ed_last_name);
+        edMiddleName = (EditText)view.findViewById(R.id.ed_middle_name);
+        edEmail = (EditText)view.findViewById(R.id.ed_email);
+        edCity = (EditText)view.findViewById(R.id.ed_city);
+        edPhone = (EditText)view.findViewById(R.id.ed_phone);
+        cbSubscribe = (CheckBox)view.findViewById(R.id.cb_subscribe); 
+
+        
         edLogin.setText(mPlugin.getLogin());
         edPassword.setText(mPlugin.getPassword());
+        edPassword2.setText(mPlugin.getPassword());
 		
         setView(view);
 		progress = new ProgressPopup(mActivity, view);
@@ -107,11 +101,44 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 	
 	private ProgressPopup progress;
 	
+	static boolean isEmpty(String s) {
+		return s == null || s.trim().length() == 0;
+	}
+	
+	protected void showError(String msg) {
+		mActivity.showToast(msg);
+	}
+	
 	@Override
 	protected void onPositiveButtonClick() {
 		super.onPositiveButtonClick();
-		String login = edLogin.getText().toString();
-		String password = edPassword.getText().toString();
+		String login = edLogin.getText().toString().trim();
+		String password = edPassword.getText().toString().trim();
+		String password2 = edPassword2.getText().toString().trim();
+		if (isEmpty(login)) {
+			showError("Mandatory field: login");
+			return;
+		}
+		if (isEmpty(password)) {
+			showError("Mandatory field: password");
+			return;
+		}
+		if (isEmpty(password2)) {
+			showError("Mandatory field: repeat password");
+			return;
+		}
+		if (!password.equals(password2)) {
+			showError("Both passwords should match!");
+			return;
+		}
+		String firstName = edFirstName.getText().toString().trim();
+		String lastName = edLastName.getText().toString().trim();
+		String middleName = edMiddleName.getText().toString().trim();
+		String email = edEmail.getText().toString().trim();
+		String city = edCity.getText().toString().trim();
+		String phone = edPhone.getText().toString().trim();
+		boolean subscribe = cbSubscribe.isChecked();
+		/*
 		progress.show();
 		mPlugin.authenticate(login, password, new AuthenticationCallback() {
 			@Override
@@ -126,6 +153,7 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 				mOnLoginHandler.run();
 			}
 		});
+		*/
 	}
 
 	@Override
