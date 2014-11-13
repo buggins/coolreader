@@ -490,6 +490,11 @@
     <string name="online_store_username">User name:</string>
     <string name="online_store_password">Password:</string>
     <string name="online_store_password_repeat">Repeat password:</string>
+    <string name="online_store_refill_account_balance_request_litres">Account balance is too low to purchase this book.\nDo you want to refill your account balance?\nLink with account refill page will be opened in external browser.</string>
+    <string name="online_store_error_successful_login">Logged in successfully.</string>
+    <string name="online_store_error_cannot_login">Error occurred while trying to login.</string>
+    <string name="online_store_error_succesful_registration">New account is registered.</string>
+    <string name="online_store_error_cannot_register">Error occurred while trying to register new account.</string>
     <string name="online_store_new_account">Register</string>
     <string name="online_store_new_account_param_email">Email:</string>
     <string name="online_store_new_account_param_email_description_litres">If you don\'t use email as login, you can specify your email here.</string>

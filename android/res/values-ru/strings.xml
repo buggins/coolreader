@@ -466,6 +466,11 @@
     <string name="online_store_username">Имя пользователя:</string>
     <string name="online_store_password">Пароль:</string>
     <string name="online_store_password_repeat">Повторите пароль:</string>
+    <string name="online_store_refill_account_balance_request_litres">Денег на вашем счете недостаточно для покупки этой книги.\nВы хотите перейти на страницу пополнения баланса на сайте LitRes.ru?\nСтраница будет открыта во внешнем браузере.</string>
+    <string name="online_store_error_successful_login">Вход выпонен успешно.</string>
+    <string name="online_store_error_cannot_login">Не удалось войти.</string>
+    <string name="online_store_error_succesful_registration">Регистрация прошла успешно.</string>
+    <string name="online_store_error_cannot_register">Ошибка при регистрации новой учетной записи.</string>
     <string name="online_store_new_account">Регистрация</string>
     <string name="online_store_new_account_param_email">Электронная почта:</string>
     <string name="online_store_new_account_param_email_description_litres">Если вы не используете адрес электронной почты как имя пользователя, можете указать его здесь. Это полезно для восстановления пароля.</string>

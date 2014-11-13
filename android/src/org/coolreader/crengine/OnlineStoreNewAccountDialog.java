@@ -160,13 +160,13 @@ public class OnlineStoreNewAccountDialog extends BaseDialog {
 			public void onError(int errorCode, String errorMessage) {
 				L.e("registerNewAccount - error " + errorCode + " : " + errorMessage);
 				progress.hide();
-				mActivity.showToast("Cannot register account: " + errorMessage);
+				mActivity.showToast(mActivity.getString(R.string.online_store_error_succesful_registration) + " " + errorMessage);
 			}
 			@Override
 			public void onSuccess() {
 				L.i("registerNewAccount - successful");
 				progress.hide();
-				mActivity.showToast("Account is registered successfully");
+				mActivity.showToast(R.string.online_store_error_succesful_registration);
 				OnlineStoreNewAccountDialog.super.onPositiveButtonClick();
 				mOnLoginHandler.run();
 			}

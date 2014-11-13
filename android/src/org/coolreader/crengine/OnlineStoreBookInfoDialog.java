@@ -13,10 +13,13 @@ import org.coolreader.plugins.OnlineStorePluginManager;
 import org.coolreader.plugins.OnlineStoreWrapper;
 import org.coolreader.plugins.PurchaseBookCallback;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -27,6 +30,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class OnlineStoreBookInfoDialog extends BaseDialog {
 	private CoolReader mActivity;
@@ -220,6 +224,29 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 								updateInfo();
 								mActivity.showToast(getString(R.string.online_store_confirm_purchase) + " " + getString(R.string.online_store_purchase_new_balance) + " " + newAccountBalance);
 							}
+							
+							@Override
+							public void onLowBalance(String bookId, double accountBalance, double bookPrice) {
+								final String refillUrl = mPlugin.getAccountRefillUrl();
+								if (refillUrl != null) {
+									mActivity.askConfirmation(R.string.online_store_refill_account_balance_request_litres, new Runnable() {
+										@Override
+										public void run() {
+											try {
+												Uri uri = Uri.parse(refillUrl);
+											    Intent myIntent = new Intent(Intent.ACTION_VIEW, uri);
+											    mActivity.startActivity(myIntent);
+											} catch (ActivityNotFoundException e) {
+												mActivity.showToast("Cannot open web page");
+											}
+											
+										}
+									});
+								} else {
+									mActivity.showToast("Not enough money on account");
+								}
+							}
+							
 						});
 					}
 				});

@@ -167,6 +167,10 @@ public class OnlineStoreWrapper {
 		return plugin.getUrl();
 	}
 	
+	public String getAccountRefillUrl() {
+		return plugin.getAccountRefillUrl();
+	}
+	
 	public ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters() {
 		return plugin.getNewAccountParameters();
 	}

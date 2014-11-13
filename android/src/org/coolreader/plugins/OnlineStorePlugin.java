@@ -14,6 +14,7 @@ public interface OnlineStorePlugin {
 	String getLogin();
 	String getPassword();
 	String getFirstAuthorNameLetters();
+	String getAccountRefillUrl();
 	// return null if no new account creation is supported
 	ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters();
 	void registerNewAccount(AsyncOperationControl control, HashMap<String, String> params, AuthenticationCallback callback);

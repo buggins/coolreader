@@ -112,12 +112,12 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 			@Override
 			public void onError(int errorCode, String errorMessage) {
 				progress.hide();
-				mActivity.showToast("Cannot login: " + errorMessage);
+				mActivity.showToast(mActivity.getString(R.string.online_store_error_cannot_login) + " " + errorMessage);
 			}
 			@Override
 			public void onSuccess() {
 				progress.hide();
-				mActivity.showToast("Successful login");
+				mActivity.showToast(R.string.online_store_error_successful_login);
 				mOnLoginHandler.run();
 			}
 		});

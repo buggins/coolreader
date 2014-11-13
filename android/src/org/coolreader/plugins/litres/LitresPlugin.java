@@ -68,6 +68,14 @@ public class LitresPlugin implements OnlineStorePlugin {
 	public String getUrl() {
 		return "http://www.litres.ru/";
 	}
+	
+	@Override
+	public String getAccountRefillUrl() {
+		String sid = connection.getSID();
+		if (sid != null && sid.length() > 0)
+			return "http://robot.litres.ru/pages/put_money_on_account/?sid=" + connection.getSID();
+		return null;
+	}
 
 	@Override
 	public ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters() {
@@ -424,6 +432,8 @@ public class LitresPlugin implements OnlineStorePlugin {
 		});
 	}
 
+	private final static int ERROR_NOT_ENOUGH_MONEY = 1;
+	
 	protected void purchaseBookNoAuth(final AsyncOperationControl control, final String bookId, final PurchaseBookCallback callback) {
 		connection.purchaseBook(bookId, new ResultHandler() {
 			@Override
@@ -431,7 +441,10 @@ public class LitresPlugin implements OnlineStorePlugin {
 				control.finished();
 				if (response instanceof ErrorResponse) {
 					ErrorResponse error = (ErrorResponse)response;
-					callback.onError(error.errorCode, error.errorMessage);
+					if (error.errorCode == ERROR_NOT_ENOUGH_MONEY)
+						callback.onLowBalance(bookId, 0, 0);
+					else
+						callback.onError(error.errorCode, error.errorMessage);
 				} else if (response instanceof PurchaseStatus) {
 					PurchaseStatus result = (PurchaseStatus)response;
 					callback.onBookPurchased(result.bookId, result.newBalance);

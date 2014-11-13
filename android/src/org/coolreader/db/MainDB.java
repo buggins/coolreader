@@ -99,7 +99,9 @@ public class MainDB extends BaseDB {
                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         "name VARCHAR NOT NULL COLLATE NOCASE, " +
                         "url VARCHAR NOT NULL COLLATE NOCASE, " +
-                        "last_usage INTEGER DEFAULT 0" +
+                        "last_usage INTEGER DEFAULT 0," +
+                        "username VARCHAR DEFAULT NULL, " +
+                        "password VARCHAR DEFAULT NULL" +
                         ")");
 			if (currentVersion < 7) {
 				addOPDSCatalogs(DEF_OPDS_URLS1);
