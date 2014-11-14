@@ -3,19 +3,12 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
@@ -25,17 +18,16 @@ import org.coolreader.sync.ChangeInfo;
 import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.opengl.GLSurfaceView;
-import android.opengl.GLU;
+import android.net.Uri;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -5136,7 +5128,53 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 			}
     	});
+    	
+    	if (DeviceInfo.EINK_SONY && isBookLoaded()) {
+    		getCurrentPositionProperties(new PositionPropertiesCallback() {
+				@Override
+				public void onPositionProperties(PositionProperties props,
+						String positionText) {
+					// update position for Sony T2
+					if (props != null && mBookInfo != null) {
+						String fname = mBookInfo.getFileInfo().getBasePath();
+						if (fname != null && fname.length() > 0)
+							setBookPositionForExternalShell(fname, props.pageNumber, props.pageCount);
+					}
+				}
+    		});
+    	}
     }
+    
+    // Sony T2 update position method - by Jotas
+    public void setBookPositionForExternalShell(String filename, long current_page , long total_pages) {
+    	if (DeviceInfo.EINK_SONY) {
+	        File f = new File(filename); 
+	        if( f.exists() ) { 
+	            String file_path = f.getAbsolutePath();
+	            try { 
+	                file_path = f.getCanonicalPath(); 
+	            } catch( Exception e ) { 
+	                Log.d("cr3Sony" , "setBookPosition getting filename/path", e); 
+	            }
+	
+	            try {          
+	                Uri uri = Uri.parse("content://com.sony.drbd.ebook.internal.provider/continuerea ding"); 
+	                ContentValues contentvalues = new ContentValues(); 
+	                contentvalues.put("file_path" , file_path); 
+	                contentvalues.put("current_page" , Long.valueOf(current_page)); 
+	                contentvalues.put("total_pages" , Long.valueOf(total_pages)); 
+	                if ( mActivity.getContentResolver().insert(uri, contentvalues) != null) 
+	                   Log.d("cr3Sony" , "setBookPosition: filename = " + filename + "start=" + current_page + "end=" + total_pages); 
+	                else 
+	                   Log.d("crsony" , "setBookPosition : error inserting in database!");
+	
+	            } catch( Exception e ) { 
+	                Log.d("cr3Sony" , "setBookPositon parse/values!", e); 
+	            }
+	        }
+    	}
+    }
+    
     
     public interface PositionPropertiesCallback {
     	void onPositionProperties(PositionProperties props, String positionText);
@@ -5164,6 +5202,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     	});
     }
     
+
     public Bookmark saveCurrentPositionBookmarkSync( final boolean saveToDB ) {
     	++lastSavePositionTaskId;
         Bookmark bmk = BackgroundThread.instance().callBackground(new Callable<Bookmark>() {
@@ -5175,6 +5214,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
             }
         });
         if ( bmk!=null ) {
+        	//setBookPosition();
             bmk.setTimeStamp(System.currentTimeMillis());
             bmk.setType(Bookmark.TYPE_LAST_POSITION);
             if ( mBookInfo!=null )
