@@ -11,11 +11,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
 import org.coolreader.R;
-import org.coolreader.crengine.DeviceInfo;
 
 import android.app.AlertDialog;
 import android.graphics.Bitmap;
@@ -51,7 +51,7 @@ public class Engine {
 	public static File[] getStorageDirectories(boolean writableOnly) {
 		Collection<File> res = new HashSet<File>(2);
 		for (File dir : mountedRootsList) {
-			if (dir.isDirectory() && (!writableOnly || dir.canWrite()))
+			if (dir.isDirectory() && dir.canRead() && dir.list().length > 0 && (!writableOnly || dir.canWrite()))
 				res.add(dir);
 		}
 		return res.toArray(new File[res.size()]);
@@ -1052,7 +1052,89 @@ public class Engine {
 //		}
 //	}
 	
+	public static HashSet<String> getExternalMounts() {
+	    final HashSet<String> out = new HashSet<String>();
+	    try {
+		    String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
+		    String s = "";
+		    try {
+		        final Process process = new ProcessBuilder().command("mount")
+		                .redirectErrorStream(true).start();
+		        process.waitFor();
+		        final InputStream is = process.getInputStream();
+		        final byte[] buffer = new byte[1024];
+		        while (is.read(buffer) != -1) {
+		            s = s + new String(buffer);
+		        }
+		        is.close();
+		    } catch (final Exception e) {
+		        e.printStackTrace();
+		    }
+	
+		    // parse output
+		    final String[] lines = s.split("\n");
+		    for (String line : lines) {
+		        if (!line.toLowerCase(Locale.US).contains("asec")) {
+		        	log.d("mount entry: " + line);
+		            if (line.matches(reg)) {
+		                String[] parts = line.split(" ");
+		                for (String part : parts) {
+		                    if (part.startsWith("/"))
+		                        if (!part.toLowerCase(Locale.US).contains("vold"))
+		                            out.add(part);
+		                }
+		            }
+		        }
+		    }
+	    } catch (Exception e) {
+	    	// ignore
+	    }
+	    return out;
+	}	
+	
+    private static HashSet<String> readMountsFile() {
+	    final HashSet<String> out = new HashSet<String>();
+        /*
+         * Scan the /proc/mounts file and look for lines like this:
+         * /dev/block/vold/179:1 /mnt/sdcard vfat
+         * rw,dirsync,nosuid,nodev,noexec,
+         * relatime,uid=1000,gid=1015,fmask=0602,dmask
+         * =0602,allow_utime=0020,codepage
+         * =cp437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro 0 0
+         * 
+         * When one is found, split it into its elements and then pull out the
+         * path to the that mount point and add it to the arraylist
+         */
+
+        try {
+			String s = loadFileUtf8(new File("/proc/mounts"));
+			if (s != null) {
+				String[] rows = s.split("\n");
+				for(String line : rows) {
+	                if (line.startsWith("/dev/block/vold/")) {
+	                    String[] lineElements = line.split(" ");
+	                    String element = lineElements[1];
+	                    if (element.startsWith("/"))
+	                        out.add(element);
+	                }
+				}
+			}
+        } catch (Exception e) {
+        	// ignore
+        }
+        return out;
+    }
+
+	
+	
 	private static void initMountRoots() {
+		
+		log.i("initMountRoots()");
+		HashSet<String> mountedPathsFromMountCmd = getExternalMounts();
+		HashSet<String> mountedPathsFromMountFile = readMountsFile();
+		log.i("mountedPathsFromMountCmd: " + mountedPathsFromMountCmd);
+		log.i("mountedPathsFromMountFile: " + mountedPathsFromMountFile);
+		
 		Map<String, String> map = new LinkedHashMap<String, String>();
 
 		// standard external directory
@@ -1138,6 +1220,11 @@ public class Engine {
 			"/mnt/ext.sd",
 			"/ext.sd",
 			"/extsd",
+			"/storage/sdcard",
+			"/storage/sdcard0",
+			"/storage/sdcard1",
+			"/storage/sdcard2",
+			"/mnt/extSdCard",
 			"/sdcard",
 			"/sdcard2",
 			"/mnt/udisk",
@@ -1155,17 +1242,41 @@ public class Engine {
 			"/Removable/MicroSD",
 			"/Removable/USBDisk1",
 			"/storage/sdcard1",
-			Environment.getExternalStorageDirectory().getPath(),
 			"/mnt/sdcard/extStorages/SdCard",
 			"/storage/extSdCard",
 		};
+		// collect mount points from all possible sources
+		HashSet<String> mountPointsToAdd = new HashSet<String>();
 		for (String point : knownMountPoints) {
-			String link = isLink(point);
-			if (link != null) {
-				log.d("standard mount point path is link: " + point + " > " + link);
-				addMountRoot(map, link, link);
-			} else {
-				addMountRoot(map, point, point);
+			mountPointsToAdd.add(point);
+		}
+		mountPointsToAdd.addAll(mountedPathsFromMountCmd);
+		mountPointsToAdd.addAll(mountedPathsFromMountFile);
+		mountPointsToAdd.add(Environment.getExternalStorageDirectory().getAbsolutePath());
+		String storageList = System.getenv("SECONDARY_STORAGE");
+		if (storageList != null) {
+			for (String point : storageList.split(":")) {
+				if (point.startsWith("/"))
+					mountPointsToAdd.add(point);
+			}
+		}
+		// add mount points
+		
+		for (String point : mountPointsToAdd) {
+			if (point == null)
+				continue;
+			point = point.trim();
+			if (point.length() == 0)
+				continue;
+			File dir = new File(point);
+			if (dir.isDirectory() && dir.canRead() && dir.list().length > 0) {
+				String link = isLink(point);
+				if (link != null) {
+					log.d("found mount point path is link: " + point + " > " + link);
+					addMountRoot(map, link, link);
+				} else {
+					addMountRoot(map, point, point);
+				}
 			}
 		}
 		
@@ -1185,7 +1296,7 @@ public class Engine {
 		mountedRootsList = list.toArray(new File[] {});
 		pathCorrector = new MountPathCorrector(mountedRootsList);
 
-		for (String point : knownMountPoints) {
+		for (String point : mountPointsToAdd) {
 			String link = isLink(point);
 			if (link != null)
 				pathCorrector.addRootLink(point, link);
