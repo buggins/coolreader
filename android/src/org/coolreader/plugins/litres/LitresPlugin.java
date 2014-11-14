@@ -73,7 +73,8 @@ public class LitresPlugin implements OnlineStorePlugin {
 	public String getAccountRefillUrl() {
 		String sid = connection.getSID();
 		if (sid != null && sid.length() > 0)
-			return "http://robot.litres.ru/pages/put_money_on_account/?sid=" + connection.getSID();
+			return "http://www.litres.ru/pages/put_money_on_account/?sid=" + connection.getSID();
+		//return "http://robot.litres.ru/pages/put_money_on_account/?sid=" + connection.getSID();
 		return null;
 	}
 

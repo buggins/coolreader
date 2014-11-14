@@ -227,6 +227,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 							
 							@Override
 							public void onLowBalance(String bookId, double accountBalance, double bookPrice) {
+								progress.hide();
 								final String refillUrl = mPlugin.getAccountRefillUrl();
 								if (refillUrl != null) {
 									mActivity.askConfirmation(R.string.online_store_refill_account_balance_request_litres, new Runnable() {
