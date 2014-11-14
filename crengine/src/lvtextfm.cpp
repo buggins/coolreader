@@ -972,7 +972,7 @@ public:
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
             //spaceReduceWidth -= visialAlignmentWidth/2;
-            firstCharMargin += visialAlignmentWidth/2;
+            firstCharMargin += visialAlignmentWidth/3;
             int visualAlignmentReserved = visialAlignmentWidth/2;
             int spaceReduceCount = 0;
             int maxSpaceReduceW = 0;
