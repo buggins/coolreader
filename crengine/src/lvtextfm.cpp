@@ -459,8 +459,8 @@ public:
         LVFont::glyph_info_t glyph;
         if ( !font->getGlyphInfo(m_text[pos], &glyph, '?') )
             return 0;
-        int delta = glyph.originX + glyph.blackBoxX - glyph.width;
-        return delta < 0 ? -delta : 0;
+        int delta = glyph.originX + glyph.width - glyph.blackBoxX;
+        return delta > 0 ? delta : 0;
     }
 
     /// checks whether to add more space on left before italic character
@@ -659,7 +659,7 @@ public:
     }
 
     /// split line into words, add space for width alignment
-    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace, int visualAlignmentWidth, int hyphPos, int dw )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace, int visualAlignmentWidth )
     {
         int maxWidth = m_pbuffer->width;
         //int w0 = start>0 ? m_widths[start-1] : 0;
@@ -761,7 +761,6 @@ public:
                     word->t.start = m_charindex[wstart];
                     word->t.len = i - wstart;
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
-                    if (i>0 && i-1 == hyphPos) word->width += dw;
                     word->min_width = word->width;
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
 //                    lChar16 lastch = m_text[i-1];
@@ -958,7 +957,6 @@ public:
 
         // split paragraph into lines, export lines
         int pos = 0;
-        int hyphPos = -1;
         int upSkipPos = -1;
         int indent = m_srcs[0]->margin;
         for (;pos<m_length;) {
@@ -971,9 +969,8 @@ public:
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
-            int lastCharMargin = visualAlignmentEnabled ? 0 : 5; // arbitrary additional width to eliminate truncation of synthetic italic glyphs
-            spaceReduceWidth -= visualAlignmentWidth + lastCharMargin;
-            firstCharMargin += visualAlignmentWidth + lastCharMargin;
+            spaceReduceWidth -= visualAlignmentWidth/2;
+            firstCharMargin += visualAlignmentWidth/2;
             if (isCJKLeftPunctuation(m_text[pos])) {
             	LVFont * fnt = (LVFont *)m_srcs[pos]->t.font;
             	if (fnt) firstCharMargin -= fnt->getCharWidth(m_text[pos]);
@@ -1004,7 +1001,7 @@ public:
             int wordpos = i-1;
             int normalWrapWidth = lastNormalWrap > 0 ? x + m_widths[lastNormalWrap]-w0 : 0;
             int deprecatedWrapWidth = lastDeprecatedWrap > 0 ? x + m_widths[lastDeprecatedWrap]-w0 : 0;
-            int unusedSpace = maxWidth - normalWrapWidth - 2*visualAlignmentWidth - 2*lastCharMargin;
+            int unusedSpace = maxWidth - normalWrapWidth - 2*visualAlignmentWidth;
             int unusedPercent = maxWidth > 0 ? unusedSpace * 100 / maxWidth : 0;
             if ( deprecatedWrapWidth>normalWrapWidth && unusedPercent>3 ) {
                 lastNormalWrap = lastDeprecatedWrap;
@@ -1034,7 +1031,7 @@ public:
                     for ( int i=0; i<len; i++ ) {
                         widths[i] = m_widths[start+i] - wordStart_w;
                     }
-                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0) - firstCharMargin - 2*lastCharMargin;
+                    int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0) - firstCharMargin;
                     int _hyphen_width = ((LVFont*)m_srcs[wordpos]->t.font)->getHyphenWidth();
                     if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width) ) {
                         for ( int i=0; i<len; i++ )
@@ -1103,13 +1100,12 @@ public:
                     break;
                 }
             }
-            int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) + lastCharMargin : 0;
-            if (dw && lastnonspace != lastHyphWrap) {
-                TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + lastnonspace, 1)));
+            int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) : 0;
+            if (dw) {
+                TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
                 m_widths[lastnonspace] += dw;
             }
-            hyphPos = lastHyphWrap == -1 ? hyphPos : lastHyphWrap;
-            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace, visualAlignmentWidth, hyphPos, dw);
+            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace, visualAlignmentWidth);
             pos = wrapPos + 1;
         }
     }
