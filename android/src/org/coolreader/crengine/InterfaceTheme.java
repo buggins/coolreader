@@ -93,10 +93,10 @@ public class InterfaceTheme {
 		return displayNameResourceId;
 	}
 	
-//	public int getActionBarBackgroundColorReading() {
-//		return actionBarBackgroundColorReading;
-//	}
-//	
+	public int getActionBarBackgroundColorReading() {
+		return actionBarBackgroundColorReading;
+	}
+	
 //	public Drawable getActionBarBackgroundDrawableReading() {
 //		return Utils.solidColorDrawable(actionBarBackgroundColorReading);
 //	}
@@ -164,7 +164,7 @@ public class InterfaceTheme {
 	private final int dialogThemeId;
 	private final int fsDialogThemeId;
 	private final int displayNameResourceId;
-	//private final int actionBarBackgroundColorReading;
+	private final int actionBarBackgroundColorReading;
 	private int rootDelimiterResourceId;
 	private int rootDelimiterHeight;
 	

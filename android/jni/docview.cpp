@@ -647,7 +647,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_createInternal
     jclass rvClass = env->FindClass("org/coolreader/crengine/DocView");
     gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "J");
     DocViewNative * obj = new DocViewNative();
-    env->SetLongField(_this, gNativeObjectID, (jint)obj);
+    env->SetLongField(_this, gNativeObjectID, (jlong)obj);
     obj->_docview->setFontSize(24); 
 }
 
