@@ -455,7 +455,7 @@ public class DocView {
 
 	private native void getPageImageTextureInternal(int[] buf, int width, int height, int bpp);
 	
-	private int mNativeObject; // used from JNI
+	private long mNativeObject; // used from JNI
 
 	private ReaderCallback readerCallback;
 	

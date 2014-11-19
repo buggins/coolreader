@@ -30,7 +30,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.graphics.Point;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
@@ -434,9 +434,18 @@ public class BaseActivity extends Activity implements Settings {
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	private boolean isReverseLandscape() {
+		return screenOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE; 
+	}
+	
 	public boolean isLandscape()
 	{
-		return screenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE || screenOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+		if (screenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+			return true;
+		if (DeviceInfo.getSDKLevel() >= 9 && isReverseLandscape())
+			return true;
+		return false;
 	}
 
 	// support pre API LEVEL 9

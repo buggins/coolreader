@@ -1078,6 +1078,9 @@ public class CoolReader extends BaseActivity
 							case DCMD_SCAN_DIRECTORY_RECURSIVE:
 								mBrowser.scanCurrentDirectoryRecursive();
 								break;
+							default:
+								// do nothing
+								break;
 							}
 							return false;
 						}

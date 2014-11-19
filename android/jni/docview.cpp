@@ -433,11 +433,11 @@ static DocViewNative * getNative(JNIEnv * env, jobject _this)
 	if (!gNativeObjectID) {
 		CRLog::error("gNativeObjectID is not defined");
 	    jclass rvClass = env->FindClass("org/coolreader/crengine/DocView");
-	    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
+	    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "J");
 	    if (!gNativeObjectID)
 	    	return NULL;
 	}
-	DocViewNative * res = (DocViewNative *)env->GetIntField(_this, gNativeObjectID);
+	DocViewNative * res = (DocViewNative *)env->GetLongField(_this, gNativeObjectID);
 	if (res == NULL)
 		CRLog::error("Native DocView is NULL");
 	return res;
@@ -645,9 +645,9 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_createInternal
 	CRLog::info("createInternal: Creating new RenderView");
 	CRLog::info("******************************************************************");
     jclass rvClass = env->FindClass("org/coolreader/crengine/DocView");
-    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
+    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "J");
     DocViewNative * obj = new DocViewNative();
-    env->SetIntField(_this, gNativeObjectID, (jint)obj);
+    env->SetLongField(_this, gNativeObjectID, (jint)obj);
     obj->_docview->setFontSize(24); 
 }
 
@@ -666,8 +666,8 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_destroyInternal
 		CRLog::info("******************************************************************");
     	delete p;
 	    jclass rvClass = env->FindClass("org/coolreader/crengine/DocView");
-	    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "I");
-	    env->SetIntField(view, gNativeObjectID, 0);
+	    gNativeObjectID = env->GetFieldID(rvClass, "mNativeObject", "J");
+	    env->SetLongField(view, gNativeObjectID, 0);
 	    gNativeObjectID = 0;
 	} else {
 		CRLog::error("RenderView is already destroyed");

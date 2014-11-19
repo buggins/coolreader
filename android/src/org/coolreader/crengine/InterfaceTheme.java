@@ -164,7 +164,7 @@ public class InterfaceTheme {
 	private final int dialogThemeId;
 	private final int fsDialogThemeId;
 	private final int displayNameResourceId;
-	private final int actionBarBackgroundColorReading;
+	//private final int actionBarBackgroundColorReading;
 	private int rootDelimiterResourceId;
 	private int rootDelimiterHeight;
 	

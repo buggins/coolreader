@@ -2360,6 +2360,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		case DCMD_TOGGLE_DAY_NIGHT_MODE:
 			toggleDayNightMode();
 			break;
+		default:
+			// do nothing
+			break;
 		}
 	}
 	boolean firstShowBrowserCall = true;
@@ -2404,6 +2407,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					case DCMD_LINK_FIRST:
 					case DCMD_SCROLL_BY:
 			    		isMoveCommand = true;
+						break;
+					default:
+						// do nothing
 						break;
 				}
 				if (isMoveCommand)
@@ -2704,7 +2710,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
 		}
 		log.e("cannot get manual file name!");
-		return "/sdcard/books/manual_ru.fb2";
+		return null;
 	}
 	
 	private File generateManual() {
@@ -3794,7 +3800,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private class AnimationUpdate {
 		private int x;
 		private int y;
-		ViewAnimationControl myAnimation;
+		//ViewAnimationControl myAnimation;
 		public void set(int x, int y) {
 			this.x = x;
 			this.y = y;
@@ -3802,7 +3808,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public AnimationUpdate(int x, int y) {
 			this.x = x;
 			this.y = y;
-			this.myAnimation = currentAnimation;
+			//this.myAnimation = currentAnimation;
 			scheduleUpdate();
 		}
 		private void scheduleUpdate() {

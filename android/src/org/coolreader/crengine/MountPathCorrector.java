@@ -98,10 +98,10 @@ public class MountPathCorrector {
 		public LinkCollection() {
 			links = new ArrayList<LinkInfo>(4);
 		}
-		public LinkCollection(LinkCollection v) {
-			links = new ArrayList<LinkInfo>(v.links.size() + 2);
-			links.addAll(v.links);
-		}
+//		public LinkCollection(LinkCollection v) {
+//			links = new ArrayList<LinkInfo>(v.links.size() + 2);
+//			links.addAll(v.links);
+//		}
 		public void add(LinkInfo item) {
 			links.add(item);
 		}
