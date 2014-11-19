@@ -325,7 +325,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	
 	public boolean isBookLoaded()
 	{
-		BackgroundThread.ensureGUI();
 		return mOpened;
 	}
 	
@@ -2440,6 +2439,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			@Override
 			public void run() {
 				mActivity.updateCurrentPositionStatus(fileInfo, bmk, props);
+				
+				String fname = mBookInfo.getFileInfo().getBasePath();
+				if (fname != null && fname.length() > 0)
+					setBookPositionForExternalShell(fname, props.pageNumber, props.pageCount);
 			}
 		});
 	}
@@ -5135,25 +5138,26 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
     	});
     	
-    	if (DeviceInfo.EINK_SONY && isBookLoaded()) {
-    		getCurrentPositionProperties(new PositionPropertiesCallback() {
-				@Override
-				public void onPositionProperties(PositionProperties props,
-						String positionText) {
-					// update position for Sony T2
-					if (props != null && mBookInfo != null) {
-						String fname = mBookInfo.getFileInfo().getBasePath();
-						if (fname != null && fname.length() > 0)
-							setBookPositionForExternalShell(fname, props.pageNumber, props.pageCount);
-					}
-				}
-    		});
-    	}
+//    	if (DeviceInfo.EINK_SONY && isBookLoaded()) {
+//    		getCurrentPositionProperties(new PositionPropertiesCallback() {
+//				@Override
+//				public void onPositionProperties(PositionProperties props,
+//						String positionText) {
+//					// update position for Sony T2
+//					if (props != null && mBookInfo != null) {
+//						String fname = mBookInfo.getFileInfo().getBasePath();
+//						if (fname != null && fname.length() > 0)
+//							setBookPositionForExternalShell(fname, props.pageNumber, props.pageCount);
+//					}
+//				}
+//    		});
+//    	}
     }
     
     // Sony T2 update position method - by Jotas
     public void setBookPositionForExternalShell(String filename, long current_page , long total_pages) {
     	if (DeviceInfo.EINK_SONY) {
+    		log.d("Trying to update last book and position in Sony T2 shell: file=" + filename + " currentPage=" + current_page + " totalPages=" + total_pages);
 	        File f = new File(filename); 
 	        if( f.exists() ) { 
 	            String file_path = f.getAbsolutePath();
