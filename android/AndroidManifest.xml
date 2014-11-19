@@ -4,7 +4,6 @@
       android:installLocation="auto"
       android:versionName="3.1.2-52" android:versionCode="872">
     <supports-screens
-        android:xxlargeScreens="true"
         android:xlargeScreens="true"
         android:largeScreens="true"
         android:normalScreens="true" 
