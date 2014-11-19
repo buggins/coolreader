@@ -811,7 +811,7 @@ public:
                         int lastc = m_text[endp];
                         int wAlign = font->getVisualAligmentWidth();
                         word->width += wAlign;
-                        while ( (lastc==' ') && endp>0 ) { // || lastc=='\r' || lastc=='\n'
+                        while ( (m_flags[endp] & LCHAR_IS_SPACE) && endp>0 ) { // || lastc=='\r' || lastc=='\n'
                             word->width -= m_widths[endp] - m_widths[endp-1];
                             endp--;
                             lastc = m_text[endp];
@@ -866,7 +866,7 @@ public:
     }
 
     int getMaxCondensedSpaceTruncation(int pos) {
-        if (pos<0 || pos>=m_length || m_text[pos]!=' ')
+        if (pos<0 || pos>=m_length || !(m_flags[pos] & LCHAR_IS_SPACE))
             return 0;
         if (m_pbuffer->min_space_condensing_percent==100)
             return 0;
@@ -998,7 +998,7 @@ public:
                     lastDeprecatedWrap = i;
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
-                if (m_pbuffer->min_space_condensing_percent!=100 && i<m_length-1 && m_text[i]==' ' && (i==m_length-1 || m_text[i+1]!=' ')) {
+                if (m_pbuffer->min_space_condensing_percent!=100 && i<m_length-1 && (m_flags[i] & LCHAR_IS_SPACE) && (i==m_length-1 || !(m_flags[i + 1] & LCHAR_IS_SPACE))) {
                     int dw = getMaxCondensedSpaceTruncation(i);
                     if ( dw>0 )
                         spaceReduceWidth += dw;
