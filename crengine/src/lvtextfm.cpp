@@ -1,4 +1,4 @@
-/*******************************************************
+﻿/*******************************************************
 
    CoolReader Engine C-compatible API
 
@@ -23,6 +23,9 @@
 #include "../include/lvimg.h"
 #include "../include/lvtinydom.h"
 #endif
+
+// disable CJK support since it breaks usual text formatting with floating punctuation and space trunctaion turned on
+#define CJK_PATCH 0
 
 #define MIN_SPACE_CONDENSING_PERCENT 50
 
@@ -712,7 +715,11 @@ public:
             } else {
                 lastWord = true;
             }
-			if ( i>wstart && (newSrc!=lastSrc || space || lastWord || isCJKIdeograph(m_flags[i])) ) {
+			if ( i>wstart && (newSrc!=lastSrc || space || lastWord
+#if CJK_PATCH
+				 || isCJKIdeograph(m_flags[i])
+#endif
+					)) {
                 // create and add new word
                 formatted_word_t * word = lvtextAddFormattedWord(frmline);
                 int b;
@@ -811,9 +818,13 @@ public:
                         }
                         if ( word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER ) {
                             word->width -= font->getHyphenWidth(); // TODO: strange fix - need some other solution
-                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';' ||
+                        } else if ( lastc=='.' || lastc==',' || lastc=='!' || lastc==':'   || lastc==';'
+#if CJK_PATCH
+ 							||
                             lastc==L'。' || lastc==L'，' || lastc==L'！' || lastc==L'：' || lastc==L'；' ||
-                            lastc==L'”' || lastc==L'’' || lastc==L'」' || lastc==L'』' ) {
+                            lastc==L'”' || lastc==L'’' || lastc==L'」' || lastc==L'』' 
+#endif
+								) {
                             FONT_GUARD
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
@@ -872,6 +883,7 @@ public:
         return 0;
     }
 
+#if CJK_PATCH
 #define UNICODE_CJK_IDEOGRAPHS_BEGIN 0x4e00
 #define UNICODE_CJK_IDEOGRAPHS_END 0x9FFF
 #define UNICODE_CJK_PUNCTUATION_BEGIN 0x3000
@@ -895,7 +907,8 @@ public:
        return c==L'“' || c==L'‘' || c==L'「' || c==L'『' || c==L'《' || c==L'〈' || c==L'（' || c==L'【';
     }
 
-	
+#endif // CJK_PATCH	
+
     /// Split paragraph into lines
     void processParagraph( int start, int end )
     {
@@ -954,7 +967,7 @@ public:
                     }
                 }
             }
-            //maxWidth -= visialAlignmentWidth;
+            maxWidth -= visialAlignmentWidth;
         }
 #endif
 
@@ -971,33 +984,24 @@ public:
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
-            //spaceReduceWidth -= visialAlignmentWidth/2;
-            firstCharMargin += visialAlignmentWidth/3;
-            int visualAlignmentReserved = visialAlignmentWidth/2;
-            int spaceReduceCount = 0;
-            int maxSpaceReduceW = 0;
             for ( i=pos; i<m_length; i++ ) {
-                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin - visualAlignmentReserved)
+                if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin)
                     break;
                 lUInt8 flags = m_flags[i];
                 if ( m_text[i]=='\n' ) {
                     lastMandatoryWrap = i;
                     break;
                 }
-                if ((flags & LCHAR_ALLOW_WRAP_AFTER) || i==m_length-1 || lGetCharProps(m_text[i]) == 0 || isCJKIdeograph(m_text[i]) || isCJKPunctuation(m_text[i]))
+                if ( flags & LCHAR_ALLOW_WRAP_AFTER || i==m_length-1)
                     lastNormalWrap = i;
                 else if ( flags & LCHAR_DEPRECATED_WRAP_AFTER )
                     lastDeprecatedWrap = i;
                 else if ( flags & LCHAR_ALLOW_HYPH_WRAP_AFTER )
                     lastHyphWrap = i;
-                if (m_pbuffer->min_space_condensing_percent!=100 && i<m_length-1 && (m_flags[i] & LCHAR_IS_SPACE) && (i==m_length-1 || !(m_flags[i+1] & LCHAR_IS_SPACE))) { //m_text[i+1]!=' '
+                if (m_pbuffer->min_space_condensing_percent!=100 && i<m_length-1 && m_text[i]==' ' && (i==m_length-1 || m_text[i+1]!=' ')) {
                     int dw = getMaxCondensedSpaceTruncation(i);
-                    if ( dw>0 ) {
-                        //spaceReduceWidth += dw;
-                        spaceReduceCount++;
-                        if (dw > maxSpaceReduceW)
-                            maxSpaceReduceW = dw;
-                    }
+                    if ( dw>0 )
+                        spaceReduceWidth += dw;
                 }
             }
             if (i<=pos)
@@ -1065,7 +1069,7 @@ public:
             }
             bool needReduceSpace = true; // todo: calculate whether space reducing required
             int endp = wrapPos+(lastMandatoryWrap<0 ? 1 : 0);
-#if 0 // disable CJK support since it breaks usual text formatting with floating punctuation and space trunctaion turned on
+#if CJK_PATCH
             int downSkipCount = 0;
             int upSkipCount = 0;
             if (endp > 1 && isCJKLeftPunctuation(*(m_text + endp))) {
@@ -1094,7 +1098,7 @@ public:
                    //CRLog::trace("finally up skip punctuations %d", upSkipCount);
                 }
             }
-#endif
+#endif // CJK_PATCH
             int lastnonspace = endp-1;
             for ( int k=endp-1; k>=start; k-- ) {
                 if ( !((m_flags[k] & LCHAR_IS_SPACE) && !(m_flags[k] & LCHAR_IS_OBJECT)) ) {
