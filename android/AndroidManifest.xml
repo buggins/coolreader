@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.1.2-53" android:versionCode="873">
+      android:versionName="3.1.2-55" android:versionCode="875">
     <supports-screens
         android:xlargeScreens="true"
         android:largeScreens="true"
@@ -12,7 +12,7 @@
         android:anyDensity="true"
     />
     
-    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="19" />
+    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="17" />
     
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>

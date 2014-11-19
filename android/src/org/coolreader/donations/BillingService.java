@@ -16,26 +16,30 @@
 
 package org.coolreader.donations;
 
-import com.android.vending.billing.IMarketBillingService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.coolreader.donations.Consts.PurchaseState;
 import org.coolreader.donations.Consts.ResponseCode;
 import org.coolreader.donations.Security.VerifiedPurchase;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import com.android.vending.billing.IMarketBillingService;
 
 
 /**
@@ -400,7 +404,29 @@ public class BillingService extends Service implements ServiceConnection {
             checkResponseCode(requestId, responseCode);
         }
     }
+    
+    private Intent getExplicitIapIntent() {
+        PackageManager pm = getPackageManager();
+        
+        Intent implicitIntent = new Intent(Consts.MARKET_BILLING_SERVICE_ACTION);
+        //Intent implicitIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
+        List<ResolveInfo> resolveInfos = pm.queryIntentServices(implicitIntent, 0);
 
+        // Is somebody else trying to intercept our IAP call?
+        if (resolveInfos == null || resolveInfos.size() != 1) {
+            return null;
+        }
+
+        ResolveInfo serviceInfo = resolveInfos.get(0);
+        String packageName = serviceInfo.serviceInfo.packageName;
+        String className = serviceInfo.serviceInfo.name;
+        ComponentName component = new ComponentName(packageName, className);
+        Intent iapIntent = new Intent();
+        iapIntent.setComponent(component);
+        return iapIntent;
+    }    
+
+    
     /**
      * Binds to the MarketBillingService and returns true if the bind
      * succeeded.
@@ -411,18 +437,27 @@ public class BillingService extends Service implements ServiceConnection {
             if (Consts.DEBUG) {
                 Log.i(TAG, "binding to Market billing service");
             }
-            boolean bindResult = bindService(
-                    new Intent(Consts.MARKET_BILLING_SERVICE_ACTION),
-                    this,  // ServiceConnection.
-                    Context.BIND_AUTO_CREATE);
-
-            if (bindResult) {
-                return true;
+            Intent intent = getExplicitIapIntent();
+            if (intent == null)
+            	intent = new Intent(Consts.MARKET_BILLING_SERVICE_ACTION);
+            if (intent == null) {
+                Log.e(TAG, "Could not create intent for billing service.");
             } else {
-                Log.e(TAG, "Could not bind to service.");
+	            boolean bindResult = bindService(
+	                    intent, //new Intent(Consts.MARKET_BILLING_SERVICE_ACTION),
+	                    this,  // ServiceConnection.
+	                    Context.BIND_AUTO_CREATE);
+	
+	            if (bindResult) {
+	                return true;
+	            } else {
+	                Log.e(TAG, "Could not bind to service.");
+	            }
             }
         } catch (SecurityException e) {
             Log.e(TAG, "Security exception: " + e);
+        } catch (Exception e) {
+            Log.e(TAG, "Exception: " + e);
         }
         return false;
     }

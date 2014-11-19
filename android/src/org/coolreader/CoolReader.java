@@ -1028,12 +1028,14 @@ public class CoolReader extends BaseActivity
 					mBrowser.setSimpleViewMode(settings().getBool(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, false));
 			        mBrowser.init();
 
+			        
 					LayoutInflater inflater = LayoutInflater.from(CoolReader.this);// activity.getLayoutInflater();
 					
 					mBrowserTitleBar = inflater.inflate(R.layout.browser_status_bar, null);
 					setBrowserTitle("Cool Reader browser window");
 
-			        mBrowserToolBar = new CRToolBar(CoolReader.this, ReaderAction.createList(
+					
+					mBrowserToolBar = new CRToolBar(CoolReader.this, ReaderAction.createList(
 			        		ReaderAction.FILE_BROWSER_UP, 
 			        		ReaderAction.CURRENT_BOOK,
 			        		ReaderAction.OPTIONS,
