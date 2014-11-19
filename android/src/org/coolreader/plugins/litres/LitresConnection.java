@@ -832,6 +832,7 @@ public class LitresConnection {
 		final HashMap<String, String> params = new HashMap<String, String>();
 		final String login = registerParams.get(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LOGIN);
 		final String pwd = registerParams.get(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PASSWORD);
+		params.put("lfrom", P_ID);
 		copyParam(params, registerParams, "new_login", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LOGIN);
 		copyParam(params, registerParams, "new_pwd1", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PASSWORD);
 		copyParam(params, registerParams, "mail", OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_EMAIL);

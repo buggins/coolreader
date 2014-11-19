@@ -66,15 +66,18 @@ public class LitresPlugin implements OnlineStorePlugin {
 
 	@Override
 	public String getUrl() {
-		return "http://www.litres.ru/";
+		String sidParam = connection.getSID();
+		String res = "http://www.litres.ru/?lfrom=" + LitresConnection.P_ID;
+		if (sidParam != null && sidParam.length() > 0)
+			res = res + "&sid=" + sidParam;
+		return res;
 	}
 	
 	@Override
 	public String getAccountRefillUrl() {
 		String sid = connection.getSID();
 		if (sid != null && sid.length() > 0)
-			return "http://www.litres.ru/pages/put_money_on_account/?sid=" + connection.getSID();
-		//return "http://robot.litres.ru/pages/put_money_on_account/?sid=" + connection.getSID();
+			return "http://www.litres.ru/pages/put_money_on_account/?lfrom=" + LitresConnection.P_ID + "&sid=" + sid;
 		return null;
 	}
 

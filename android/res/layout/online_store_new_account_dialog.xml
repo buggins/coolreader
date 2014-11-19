@@ -131,6 +131,7 @@
         />
         
         <TextView 
+            android:visibility="gone"
             android:id="@+id/lbl_last_name" 
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
@@ -139,6 +140,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
+            android:visibility="gone"
             android:id="@+id/ed_last_name" 
             android:layout_width="fill_parent" 
             android:layout_margin="10px"
@@ -150,6 +152,7 @@
         />
         
         <TextView 
+            android:visibility="gone"
             android:id="@+id/lbl_first_name" 
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
@@ -158,6 +161,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
+            android:visibility="gone"
             android:id="@+id/ed_first_name" 
             android:layout_width="fill_parent" 
             android:layout_margin="10px"
@@ -169,6 +173,7 @@
         />
         
         <TextView 
+            android:visibility="gone"
             android:id="@+id/lbl_middle_name" 
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
@@ -177,6 +182,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
+            android:visibility="gone"
             android:id="@+id/ed_middle_name" 
             android:layout_width="fill_parent" 
             android:layout_margin="10px"
@@ -217,6 +223,7 @@
         />
         
         <TextView 
+            android:visibility="gone"
             android:id="@+id/lbl_phone" 
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
@@ -226,6 +233,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
+            android:visibility="gone"
             android:id="@+id/ed_phone" 
             android:layout_width="fill_parent" 
             android:layout_margin="10px"
@@ -237,6 +245,7 @@
         />
         
         <TextView 
+            android:visibility="gone"
             android:id="@+id/lbl_city" 
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
@@ -245,6 +254,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
+            android:visibility="gone"
             android:id="@+id/ed_city" 
             android:layout_width="fill_parent" 
             android:layout_margin="10px"
@@ -270,7 +280,7 @@
 	            android:singleLine="true"
 	        />
             <TextView 
-	            android:id="@+id/lbl_city" 
+	            android:id="@+id/lbl_subscribe" 
 	            style="@style/TextAppearance.Medium"
 	            android:singleLine="true"
 	            android:text="@string/online_store_new_account_param_subscribe"
