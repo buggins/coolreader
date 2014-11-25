@@ -659,7 +659,7 @@ public:
     }
 
     /// split line into words, add space for width alignment
-    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace, int visualAlignmentWidth )
+    void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace )
     {
         int maxWidth = m_pbuffer->width;
         //int w0 = start>0 ? m_widths[start-1] : 0;
@@ -854,7 +854,7 @@ public:
             lastIsSpace = isSpace;
         }
 
-        alignLine( frmline, maxWidth - visualAlignmentWidth/2, align );
+        alignLine( frmline, maxWidth, align );
 
         m_y += frmline->height;
         m_pbuffer->height = m_y;
@@ -1105,7 +1105,7 @@ public:
                 TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
                 m_widths[lastnonspace] += dw;
             }
-            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace, visualAlignmentWidth);
+            addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace);
             pos = wrapPos + 1;
         }
     }
