@@ -9,7 +9,7 @@
 <string name="mi_options">Налады</string>
 <string name="progress_please_wait">Пачакайце ...</string>
 <string name="progress_starting_cool_reader">CoolReader запускаецца</string>
-<string name="progress_loading">Адкрыццё дакумента</string>
+<string name="progress_loading">Адкрыццё дакументу</string>
 <string name="progress_formatting">Фарматаванне дакумента</string>
 <string name="progress_scanning">Сканаванне тэчкі</string>
 <string name="context_menu_title_bookmark">Закладка</string>
@@ -53,8 +53,8 @@
 <string name="options_font_embolden">Тлустасць</string>
 <string name="options_font_antialias">Згладжванне шрыфта</string>
 <string name="options_font_antialias_off">Без згладжвання</string>
-<string name="options_font_antialias_on_for_big">згладжваецца вялікія шрыфты</string>
-<string name="options_font_antialias_on_for_all">згладжваць усе шрыфты</string>
+<string name="options_font_antialias_on_for_big">Згладжваецца вялікія шрыфты</string>
+<string name="options_font_antialias_on_for_all">Згладжваць ўсе шрыфты</string>
 <string name="options_interline_space">Міжрадковы інтэрвал</string>
 <string name="options_inverse_view">Начны рэжым</string>
 <string name="options_color_text">Колер тэксту</string>
@@ -72,13 +72,13 @@
 <string name="options_page_orientation_180">Кніжная (180 °)</string>
 <string name="options_page_orientation_270">Альбомная (270 °)</string>
 <string name="options_page_orientation_sensor">Сэнсар</string>
-<string name="options_page_landscape_pages">калонак у альбомнай старонцы</string>
+<string name="options_page_landscape_pages">Калонак у альбомнай старонцы</string>
 <string name="options_page_landscape_pages_one">Адна</string>
 <string name="options_page_landscape_pages_two">Дзве</string>
-<string name="options_page_margin_left">Адступленне злева</string>
-<string name="options_page_margin_right">Адступленне справа</string>
-<string name="options_page_margin_top">Адступленне ўверсе</string>
-<string name="options_page_margin_bottom">Адступленне знізу</string>
+<string name="options_page_margin_left">Водступ злева</string>
+<string name="options_page_margin_right">Водступ зправа</string>
+<string name="options_page_margin_top">Водступ ўверсе</string>
+<string name="options_page_margin_bottom">Водступ знізу</string>
 <string name="options_view_mode">Рэжым прагляду</string>
 <string name="options_view_mode_pages">Старонкі</string>
 <string name="options_view_mode_scroll">Скрутак</string>
@@ -93,7 +93,7 @@
 <string name="dlg_button_cancel">Адмена</string>
 <string name="dlg_button_find">Знайсці</string>
 <string name="options_page_animation">Анімацыя гартання</string>
-<string name="options_controls_enable_volume_keys">прагортванне кнопкамі гучнасці</string>
+<string name="options_controls_enable_volume_keys">Прагортванне кнопкамі гучнасці</string>
 <string name="options_app_backlight_screen">Яркасць падсвятлення экрана</string>
 <string name="options_app_backlight_screen_default">Устаноўленая ў сістэме</string>
 <string name="options_app_tapzones_normal">Сэнсарны экран</string>
@@ -134,7 +134,7 @@
 <string name="options_page_titlebar_font_face">Шрыфт</string>
 <string name="options_page_titlebar_font_color">Колер тэксту</string>
 <string name="options_page_show_titlebar_title">Назва кнігі</string>
-<string name="options_app_tapzone_hilite">падсвятляюць зону экрана пры націску</string>
+<string name="options_app_tapzone_hilite">Падсвятляюць зону экрана пры націску</string>
 <string name="options_page_animation_paperbook">прагортванне</string>
 <string name="options_page_animation_none">Без анімацыі</string>
 <string name="options_page_animation_slide">Зрушэнне</string>
@@ -165,7 +165,7 @@
 <string name="action_zoom_in">Павялічыць шрыфт</string>
 <string name="options_font_kerning">Кернінг шрыфта</string>
 <string name="action_zoom_out">Паменшыць шрыфт</string>
-<string name="options_style_floating_punctuation">Вісячы пунктуацыя</string>
+<string name="options_style_floating_punctuation">Вісячая пунктуацыя</string>
 <string name="options_style_document_embedded_styles">Унутраныя стылі дакумента</string>
 <string name="action_toggle_document_styles">Уключыць / выключыць стылі дакумента</string>
 <string name="options_selection_action_toolbar">Панэль інструментаў</string>
@@ -176,8 +176,8 @@
 <string name="options_app_browser_hide_empty_dirs">Хаваць тэчкі без кніг</string>
 <string name="dlg_about">Аб праграме</string>
 <string name="dlg_book_info">Аб кнізе</string>
-<string name="mi_book_styles_enable">Дазволіць убудаваныя стылі дакумента</string>
-<string name="mi_book_styles_disable">Забараніць убудаваныя стылі дакумента</string>
+<string name="mi_book_styles_enable">Дазволіць ўбудаваныя стылі дакумента</string>
+<string name="mi_book_styles_disable">Забараніць ўбудаваныя стылі дакумента</string>
 <string name="mi_night_mode_disable">Дзённы рэжым</string>
 <string name="mi_night_mode_enable">Начны рэжым</string>
 <string name="book_info_file_format">Фармат</string>
@@ -229,16 +229,16 @@
 <string name="dlg_book_search_not_found"> Не знойдзена кнігі</string>
 <string name="dir_search_results">Вынікі пошуку</string>
 <string name="dlg_about_donation">CoolReader - бясплатная свабодная праграма і заўсёды заставацца такой . Вы можаце падтрымаць развіццё праекта , набыўшы пакет - манетку ў Android Market .</string>
-<string name="dlg_about_donation_bronze">$ 1 : купіць бронзавы манетку CoolReader</string>
-<string name="dlg_about_donation_silver">$ 3 : купіць сярэбраны манетку CoolReader</string>
-<string name="dlg_about_donation_gold">$ 10 : купіць залатую манетку CoolReader</string>
-<string name="dlg_about_donation_installed">Устаноўлена</string>
+<string name="dlg_about_donation_bronze">$ 1 : набыць бронзавую манетку CoolReader</string>
+<string name="dlg_about_donation_silver">$ 3 : набыць сярэбраную манетку CoolReader</string>
+<string name="dlg_about_donation_gold">$ 10 : набыць залатую манетку CoolReader</string>
+<string name="dlg_about_donation_installed">Усталявана</string>
 <string name="mi_book_browser_normal_mode">Нармальны рэжым</string>
 <string name="mi_book_browser_simple_mode">Просты пералік файлаў</string>
 <string name="options_page_animation_slide_2_pages">Зрушэнне ( 2)</string>
-<string name="progress_downloading">загружаў</string>
-<string name="mi_book_opds_root">Онлайн -каталогі</string>
-<string name="mi_tts_play">Чытаць услых</string>
+<string name="progress_downloading">запампоўваю</string>
+<string name="mi_book_opds_root">Анлайн -каталогі</string>
+<string name="mi_tts_play">Чытаць ўслых</string>
 <string name="options_format_image_scaling_block_scale">Макс. павелічэнне для звычайных малюнкаў</string>
 <string name="options_format_image_scaling_mode_integer_factor">У цэлае колькасць разоў</string>
 <string name="options_format_image_scaling_block_mode">Рэжым для звычайных малюнкаў</string>
@@ -272,10 +272,10 @@
 <string name="dlg_catalog_add_title">Дадаць тэчку</string>
 <string name="options_format_min_space_width_percent">Мін. шырыня прабелу</string>
 <string name="options_selection_keep_selection_after_dictionary">Захоўваць выдзялення пасля слоўніка</string>
-<string name="action_toggle_autoscroll">Автогортання</string>
+<string name="action_toggle_autoscroll">Аўтагартанне</string>
 <string name="lbl_autoscroll_speed">Хуткасць : $ 1 знакаў / мін</string>
-<string name="action_autoscroll_speed_increase">Павялічыць хуткасць автогортання</string>
-<string name="action_autoscroll_speed_decrease">Паменшыць хуткасць автогортання</string>
+<string name="action_autoscroll_speed_increase">Павялічыць хуткасць аўтагартання</string>
+<string name="action_autoscroll_speed_decrease">Паменшыць хуткасць аўтагартання</string>
 <string name="options_controls_tap_secondary_action_type">Тып ТАПУ для дад. дзеянні</string>
 <string name="options_controls_tap_type_double">Падвойны ТАП</string>
 <string name="options_controls_tap_type_long">Доўгі ТАП</string>
@@ -287,14 +287,14 @@
 <string name="options_css_poem">Вершы</string>
 <string name="options_css_textauthor">Аўтар тэксту / эпіграфа</string>
 <string name="options_css_footnote">Зноска</string>
-<string name="options_css_pre">Передформатованний тэкст / код</string>
+<string name="options_css_pre">Прэфарматаваны тэкст / код</string>
 <string name="options_css_epigraph">Эпіграф</string>
 <string name="options_css_link">Спасылка</string>
 <string name="options_css_footnotelink">Спасылка на зноску</string>
 <string name="options_css_title">Загаловак</string>
 <string name="options_css_def">Тыповы фармат параграфа</string>
 <string name="options_css_font_size">Памер шрыфта</string>
-<string name="options_css_margin_bottom">Адступленне пасля</string>
+<string name="options_css_margin_bottom">Водступ пасля</string>
 <string name="options_css_text_color">Колер тэксту</string>
 <string name="options_css_cite">Цытата</string>
 <string name="options_css_font_face">Гарнітура шрыфта</string>
@@ -306,43 +306,43 @@
 <string name="options_css_text_valign">Надрадковы / падтэкставыя індэксы</string>
 <string name="options_css_text_align">Выраўноўванне тэксту</string>
 <string name="options_css_text_indent">Водступ першага радка</string>
-<string name="options_css_margin_right">Адступленне справа</string>
+<string name="options_css_margin_right">Водступ зправа</string>
 <string name="options_css_margin_top">Водступ</string>
 <string name="options_css_inherited">-</string>
 <string name="options_css_text_valign_baseline">Нармальны</string>
 <string name="options_css_text_decoration_none">форуме</string>
 <string name="options_css_text_decoration_overlineline">Надкреслений</string>
 <string name="options_css_font_face_serif">[ Шрыфт з засечкамі ]</string>
-<string name="options_css_margin_05em">0.5 вышыні радкі</string>
-<string formatted="false" name="options_css_margin_10p">10 % шырыні радкі</string>
-<string formatted="false" name="options_css_margin_20p">20 % шырыні радкі</string>
-<string formatted="false" name="options_css_margin_30p">30 % шырыні радкі</string>
+<string name="options_css_margin_05em">0.5 вышыні радка</string>
+<string formatted="false" name="options_css_margin_10p">10 % шырыні радка</string>
+<string formatted="false" name="options_css_margin_20p">20 % шырыні радка</string>
+<string formatted="false" name="options_css_margin_30p">30 % шырыні радка</string>
 <string name="options_css_font_weight_bold">Тоўсты</string>
-<string name="options_css_text_indent_small_outdent">Маленькі адступ налева</string>
+<string name="options_css_text_indent_small_outdent">Маленькі водступ налева</string>
 <string name="options_css_font_weight_bolder">тлустыя</string>
 <string name="options_css_text_indent_no_indent">Без адступлення</string>
 <string name="options_css_margin_0">0</string>
-<string name="options_css_text_indent_big_indent">Вялікае адступленне</string>
+<string name="options_css_text_indent_big_indent">Вялікі водступ</string>
 <string name="options_css_font_style_normal">Звычайны</string>
 <string name="options_css_text_decoration_underline">Падкрэслены</string>
-<string name="options_css_text_indent_small_indent">Маленькі адступ</string>
+<string name="options_css_text_indent_small_indent">Маленькі водступ</string>
 <string name="options_css_text_decoration_line_through">Закрэслены</string>
 <string name="options_css_text_valign_subscript">Ніжні індэкс</string>
-<string name="options_css_margin_03em">0.3 вышыні радкі</string>
+<string name="options_css_margin_03em">0.3 вышыні радка</string>
 <string name="options_css_font_style_italic">Нахілены</string>
-<string formatted="false" name="options_css_margin_15p">15% шырыні радкі</string>
+<string formatted="false" name="options_css_margin_15p">15% шырыні радка</string>
 <string name="options_css_font_face_monospace">[ Шрыфт ]</string>
 <string name="options_css_font_weight_lighter">цьмяны</string>
 <string name="options_css_font_weight_normal">Нармальны</string>
-<string name="options_css_margin_02em">0.2 вышыні радкі</string>
-<string name="options_css_margin_4em">4 вышыні радкі</string>
-<string name="options_css_margin_1em">1 вышыня радкі</string>
-<string name="options_css_margin_2em">2 вышыні радкі</string>
+<string name="options_css_margin_02em">0.2 вышыні радка</string>
+<string name="options_css_margin_4em">4 вышыні радка</string>
+<string name="options_css_margin_1em">1 вышыня радка</string>
+<string name="options_css_margin_2em">2 вышыні радка</string>
 <string name="options_css_text_valign_superscript">Верхні індэкс</string>
-<string name="options_css_text_indent_big_outdent">Вялікае адступленне налева</string>
+<string name="options_css_text_indent_big_outdent">Вялікае водступ налева</string>
 <string name="options_css_font_face_sans_serif">[ Шрыфт без засечак ]</string>
-<string name="options_css_margin_15em">1.5 вышыні радкі</string>
-<string formatted="false" name="options_css_margin_5p">5% % шырыні радкі</string>
+<string name="options_css_margin_15em">1.5 вышыні радка</string>
+<string formatted="false" name="options_css_margin_5p">5% % шырыні радка</string>
 <string name="options_css_font_size_130p">Павялічыць ( 130% )</string>
 <string name="options_css_font_size_120p">Павялічыць (120 %)</string>
 <string name="options_css_font_size_110p">Павялічыць (110 %)</string>
@@ -356,7 +356,7 @@
 <string name="options_app_backlight_timeout_4">4 хвіліны</string>
 <string name="options_app_backlight_timeout_3">3 хвіліны</string>
 <string name="options_app_backlight_timeout_2">2 хвіліны</string>
-<string name="options_app_backlight_timeout_0">Устаноўленая ў сістэме</string>
+<string name="options_app_backlight_timeout_0">Сістэмны час</string>
 <string name="options_app_backlight_timeout">Працягласць падсвятлення экрана</string>
 <string name="options_css_annotation">Анатацыя</string>
 <string name="options_app_ui_theme">Тэма афармлення</string>
@@ -370,25 +370,25 @@
 <string name="options_css_text_align_right">Па правым краі</string>
 <string name="action_switch_settings_profile">Профіль налад</string>
 <string name="options_app_settings_icons">Значкі наладах</string>
-<string name="mi_text_autoformat_enable">Дазволіць автоформатирования тэксту</string>
-<string name="mi_text_autoformat_disable">Забараніць автоформатирования тэксту</string>
-<string name="action_toggle_text_autoformat">Пераключыць автоформатирования тэксту</string>
+<string name="mi_text_autoformat_enable">Дазволіць аўтафарматаванне тэксту</string>
+<string name="mi_text_autoformat_disable">Забараніць аўтафарматаванне тэксту</string>
+<string name="action_toggle_text_autoformat">Пераключыць аўтафарматаванне тэксту</string>
 <string name="options_app_key_backlight_off">Адключаць падсвятленне клавіш</string>
-<string name="action_chapter_next">Наступны раздзел</string>
-<string name="action_chapter_prev">Папярэдні падзел</string>
+<string name="action_chapter_next">Наступная глава</string>
+<string name="action_chapter_prev">Папярэдняя глава</string>
 <string name="options_font_hinting_bytecode">Выкарыстоўваць байт- код</string>
-<string name="options_font_hinting">Хітынг шрыфта</string>
-<string name="options_font_hinting_disabled">Адключанае</string>
-<string name="options_font_hinting_auto">Автохинтинг</string>
+<string name="options_font_hinting">Хінтынг шрыфта</string>
+<string name="options_font_hinting_disabled">Адключаны</string>
+<string name="options_font_hinting_auto">Аўтахінтынг</string>
 <string name="options_font_fallback_face">Дадатковы шрыфт</string>
 <string name="win_title_confirm_catalog_delete">Вы сапраўды хочаце выдаліць гэтую тэчку</string>
 <string name="win_title_confirm_history_record_delete">Вы сапраўды хочаце выдаліць кнігу з спісу апошніх</string>
 <string name="win_title_confirm_book_delete">Вы сапраўды хочаце выдаліць кнігу</string>
 <string name="folder_name_books_by_series">Кнігі па серыям</string>
 <string name="folder_name_books_by_title">Кнігі па назве</string>
-<string name="dlg_about_donation_platinum">$ 30 : купіць плацінавых манету CoolReader</string>
+<string name="dlg_about_donation_platinum">$ 30 : набыць плацінавых манет CoolReader</string>
 <string name="mi_donation">Ахвяраваць</string>
-<string name="dlg_about_donation_inapp_purchase">CoolReader - бясплатная свабодная праграма , і заўсёды такі застанецца. Вы можаце падтрымаць развіццё праекта з дапамогай Android Market :</string>
+<string name="dlg_about_donation_inapp_purchase">CoolReader - бясплатная свабодная праграма , і назаўсёды такой застанецца. Вы можаце падтрымаць развіццё праекта з дапамогай Android Market :</string>
 <string name="mi_font_next">Наступны шрыфт</string>
 <string name="mi_font_size_decrease">Паменшыць шрыфт</string>
 <string name="mi_font_size_increase">Павялічыць шрыфт</string>
@@ -397,7 +397,7 @@
 <string name="option_controls_gesture_page_flipping_enabled">Перагортванне жэстамі</string>
 <string name="dlg_about_donation_total">Усяго :</string>
 <string name="options_font_embedded_document_font_enabled">Убудаваныя шрыфты дакумента</string>
-<string name="options_app_locale_system">Сістэмны</string>
+<string name="options_app_locale_system">Сістэмная</string>
 <string name="options_app_locale">Мова інтэрфейсу ( Interface language )</string>
 <string name="mi_goto_manual">Дарадца карыстальніка</string>
 <string name="options_view_bookmarks_highlight_underline">Падкрэсліванне</string>
@@ -456,7 +456,7 @@
 <string name="online_store_my"> Мае кнігі </string>
 <string name="online_store_popular"> Папулярныя </string>
 <string name="online_store_new"> Новыя </string>
-<string name="online_store_buy"> Купіць </string>
+<string name="online_store_buy"> Набыць </string>
 <string name="online_store_download"> Спампаваць </string>
 <string name="online_store_open"> Адкрыць </string>
 <string name="online_store_download_trial"> Спампаваць ўрывак </string>
@@ -468,17 +468,17 @@
 <string name="online_store_price"> Кошт: </string>
 <string name="online_store_normal_price"> Звычайная цана: </string>
 <string name="online_store_please_login"> калі ласка зарэгіструйцеся </string>
-<string name="online_store_confirm_purchase"> Вы сапраўды хочаце купіць гэтую кнігу ? </string>
-<string name="online_store_purchase_error"> Не атрымалася купіць кнігу </string>
+<string name="online_store_confirm_purchase"> Вы сапраўды хочаце набыць гэтую кнігу ? </string>
+<string name="online_store_purchase_error"> Не атрымалася набыць кнігу </string>
 <string name="online_store_purchase_success"> Кніга паспяхова набытая . </string>
 <string name="online_store_purchase_new_balance"> Рэшта на рахунку : </string>
 <string name="options_app_plugins"> Убудовы </string>
-<string name="note1_reader_menu"> УВАГА ! У новай версіі для падтрымкі поўнаэкраннага рэжыму і гашэння экранных кнопак пад Android 3 і 4 у дадатку указана мэтавая платформа Android 4 . У гэтым рэжыме экранная кнопка меню недаступная. Без панэлі інструментаў у рэжыме чытання меню можна выклікаць кароткім націскам у цэнтры экрана. Доўгае націск адкрывае налады. Ўключыць панэль інструментаў для рэжыму чытання? (Гэты выбар заўсёды можна змяніць у Уласьцівасьцях / Старонка / Панэль інструментаў) </string>
+<string name="note1_reader_menu"> УВАГА ! У новай версіі для падтрымкі поўнаэкраннага рэжыму і гашэння экранных кнопак пад Android 3 і 4 у дадатку указана мэтавая платформа Android 4 . У гэтым рэжыме экранная кнопка меню недаступная. Без панэлі інструментаў у рэжыме чытання меню можна выклікаць кароткім націскам у цэнтры экрана. Доўгае націск адкрывае налады. Ўключыць панэль інструментаў для рэжыму чытання? (Гэты выбар заўсёды можна змяніць ў Налады / Старонка / Панэль інструментаў) </string>
 <string name="root_item_recent"> Апошнія адкрытыя кнігі </string>
 <string name="root_item_library"> Бібліятэка </string>
 <string name="root_item_filesystem"> Адкрыць кнігу з файлавай сістэмы </string>
 <string name="root_item_online_catalogs"> Сеткавыя бібліятэкі </string>
 <string name="btn_toolbar_more"> Яшчэ ... </string>
 <string name="black_list_enforced"> Нельга дадаваць гэты адрас , так як па запыце LitRes.ru ён дададзены ў чорны спіс каталогаў , якія парушаюць аўтарскія правы. </string>
-<string name="black_list_warning"> Увага ! гэты адрас па запыце LitRes.ru быў дададзены ў чорны спіс каталогаў , якія парушаюць аўтарскія правы. Вы сапраўды жадаеце выкарыстоўваць гэты каталог ? </string>
-</resources>
+<string name="black_list_warning"> Увага ! Гэты адрас па запыце LitRes.ru быў дададзены ў чорны спіс каталогаў , якія парушаюць аўтарскія правы. Вы сапраўды жадаеце выкарыстоўваць гэты каталог ? </string>
+</resources> 
