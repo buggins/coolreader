@@ -1804,9 +1804,9 @@ void convertLengthToPx( css_length_t & val, int base_px, int base_em )
     }
 }
 
-inline void spreadParent( css_length_t & val, css_length_t & parent_val )
+inline void spreadParent( css_length_t & val, css_length_t & parent_val, bool inherited=true )
 {
-    if ( val.type == css_val_inherited )
+    if ( val.type == css_val_inherited || (val.type == css_val_unspecified && inherited))
         val = parent_val;
 }
 
@@ -1980,7 +1980,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     spreadParent( pstyle->letter_spacing, parent_style->letter_spacing );
     spreadParent( pstyle->line_height, parent_style->line_height );
     spreadParent( pstyle->color, parent_style->color );
-    spreadParent( pstyle->background_color, parent_style->background_color );
+    spreadParent( pstyle->background_color, parent_style->background_color, false );
 
     // set calculated style
     //enode->getDocument()->cacheStyle( style );
