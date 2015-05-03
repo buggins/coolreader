@@ -506,15 +506,15 @@ public:
 };
 
 
-static void lvpng_error_func (png_structp png, png_const_charp)
+static void lvpng_error_func (png_structp png, png_const_charp msg)
 {
-    //fprintf(stderr, "png error: %s\n", msg)
+    CRLog::error("libpng: %s", msg);
     longjmp(png_jmpbuf(png), 1);
 }
 
-static void lvpng_warning_func (png_structp png, png_const_charp)
+static void lvpng_warning_func (png_structp png, png_const_charp msg)
 {
-    //fprintf(stderr, "png warning: %s\n", msg)
+    CRLog::warn("libpng: %s", msg);
     longjmp(png_jmpbuf(png), 1);
 }
 
