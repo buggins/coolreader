@@ -282,7 +282,7 @@
     <string name="dlg_catalog_edit_name">Назва</string>
     <string name="dlg_catalog_edit_url">URL</string>
     <string name="dlg_catalog_edit_title">Тека OPDS</string>
-    <string name="dlg_catalog_edit_username">Ім'я користувача</string>
+    <string name="dlg_catalog_edit_username">Ім\'я користувача</string>
     <string name="dlg_catalog_edit_password">Пароль</string>
     <string name="dlg_catalog_add_title">Додати теку</string>
     <string formatted="false" name="options_format_min_space_width_percent">Мін. ширина пробілу</string>
@@ -487,7 +487,7 @@
     <string name="online_store_login">Лоґін</string>
     <string name="online_store_plugin_name_litres">LitRes</string>
     <string name="online_store_plugin_description_litres">online book store</string>
-    <string name="online_store_username">Ім'я користувача:</string>
+    <string name="online_store_username">Ім\'я користувача:</string>
     <string name="online_store_password">Пароль:</string>
     <string name="online_store_password_repeat">Повторити пароль:</string>
     <string name="online_store_refill_account_balance_request_litres">Account balance is too low to purchase this book.\nDo you want to refill your account balance?\nLink with account refill page will be opened in external browser.</string>
@@ -498,7 +498,7 @@
     <string name="online_store_new_account">Зареєструватись</string>
     <string name="online_store_new_account_param_email">Електронна пошта:</string>
     <string name="online_store_new_account_param_email_description_litres">If you don\'t use email as login, you can specify your email here.</string>
-    <string name="online_store_new_account_param_first_name">Ім'я:</string>
+    <string name="online_store_new_account_param_first_name">Ім\'я:</string>
     <string name="online_store_new_account_param_last_name">Прізвище:</string>
     <string name="online_store_new_account_param_middle_name">По батькові:</string>
     <string name="online_store_new_account_param_city">Місто:</string>
