@@ -11,7 +11,7 @@
     <string name="mi_font_size_decrease">Зменшити розмір шрифту</string>
     <string name="mi_font_previous">Попередній шрифт</string>
     <string name="mi_font_next">Наступний шрифт</string>
-    <string name="progress_please_wait">Зачекайте...</string>
+    <string name="progress_please_wait">Зачекайте&#8230;</string>
     <string name="progress_starting_cool_reader">CoolReader запускається</string>
     <string name="progress_loading">Відкриття документу</string>
     <string name="progress_formatting">Форматування документу</string>
@@ -26,10 +26,10 @@
     <string name="mi_book_recent_remove">Видалити зі списку</string>
     <string name="mi_book_recent_goto">Перейти до теки</string>
     <string name="mi_book_sort_order">Сортувати</string>
-    <string name="mi_book_sort_order_filename">За ім’ям файлу (А-Я)</string>
-    <string name="mi_book_sort_order_filename_desc">За ім’ям файлу (Я-А)</string>
-    <string name="mi_book_sort_order_timestamp">За датою файлу (0-9)</string>
-    <string name="mi_book_sort_order_timestamp_desc">За датою файлу (9-0)</string>
+    <string name="mi_book_sort_order_filename">За ім’ям файлу (А&#8211;Я)</string>
+    <string name="mi_book_sort_order_filename_desc">За ім’ям файлу (Я&#8211;А)</string>
+    <string name="mi_book_sort_order_timestamp">За датою файлу (0&#8211;9)</string>
+    <string name="mi_book_sort_order_timestamp_desc">За датою файлу (9&#8211;0)</string>
     <string name="mi_book_sort_order_author">За автором (А-Я)</string>
     <string name="mi_book_sort_order_author_desc">За автором (Я-А)</string>
     <string name="mi_book_sort_order_title">За назвою (А-Я)</string>
@@ -230,7 +230,7 @@
     <string name="toast_bookmark_export_failed">Помилка збереження закладок у</string>
     <string name="mi_book_scan_recursive">Сканувати книги у теці</string>
     <string name="dlg_scan_title">Сканування тек</string>
-    <string name="dlg_scan_message">Це може тривати кілька хвилин...</string>
+    <string name="dlg_scan_message">Це може тривати кілька хвилин&#8230;</string>
     <string name="dlg_book_search">Пошук книги</string>
     <string name="dlg_book_search_title">Назва</string>
     <string name="dlg_book_search_series">Серія</string>

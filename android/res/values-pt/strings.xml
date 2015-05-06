@@ -17,7 +17,6 @@
     <string name="context_menu_title_recent_book">Livro recente</string>
     <string name="mi_book_open">Abrir livro</string>
     <string name="mi_book_recent_books">Livros recentes</string>
-    <string name="book_recent_books">Livros recentes</string>
     <string name="mi_book_file_remove">Remover livro</string>
     <string name="mi_book_recent_remove">Remover da lista</string>
     <string name="mi_book_recent_goto">Ir ao ficheiro</string>
@@ -228,7 +227,7 @@
     <string name="toast_shortcut_bookmark_is_set">Se establece o marcador $1</string>
     <string name="toast_position_bookmark_is_set">Marcador adicionado a página</string>
     <string name="mi_bookmark_add">Adicionar</string>
-    <string name="mi_bookmark_doete">Eliminar</string>
+    <string name="mi_bookmark_delete">Eliminar</string>
     <string name="mi_bookmark_edit">Editar</string>
     <string name="mi_bookmark_export">Exportar marcadores</string>
     <string name="toast_bookmark_export_ok">Marcadores guardados en</string>
@@ -285,7 +284,7 @@
     <string name="action_open_last_book">Mudar para o livro anterior</string>
     <string name="mi_catalog_edit">Editar Catálogo</string>
     <string name="mi_catalog_add">Novo Catálogo</string>
-    <string name="mi_catalog_doete">Eliminar Catálogo</string>
+    <string name="mi_catalog_delete">Eliminar Catálogo</string>
     <string name="mi_catalog_open">Abrir Catálogo</string>
     <string name="menu_title_catalog">OPDS Catálogo</string>
     <string name="dlg_catalog_edit_name">Nome</string>
@@ -403,8 +402,8 @@
     <string name="options_font_hinting_disabled">Desativado</string>
     <string name="options_font_hinting_auto">Auto-aperfeiçoamento de fontes</string>
     <string name="options_font_fallback_face">Fonte de reserva</string>
-    <string name="win_title_confirm_catalog_doete">Deseja remover este catálogo?</string>
-    <string name="win_title_confirm_history_record_doete">Deseja remover este livro da lista dos mais recentes?</string>
+    <string name="win_title_confirm_catalog_delete">Deseja remover este catálogo?</string>
+    <string name="win_title_confirm_history_record_delete">Deseja remover este livro da lista dos mais recentes?</string>
     <string name="win_title_confirm_book_doete">Deseja remover este livro?</string>
     <string name="mi_font_next">Próxima fonte</string>
     <string name="mi_font_size_decrease">Diminuir tamanho da fonte</string>
@@ -421,7 +420,7 @@
     <string name="options_view_bookmarks_highlight_none">Nenhum</string>
     <string name="options_view_color_bookmark_correction">Cor de correção</string>
     <string name="options_view_bookmarks_highlight_solid">Cor sólida</string>
-    <string name="win_title_confirm_bookmark_doete">Você realmente deseja remover este marcador?</string>
+    <string name="win_title_confirm_bookmark_delete">Você realmente deseja remover este marcador?</string>
     <string name="folder_name_books_by_series">Livros pela série</string>
     <string name="folder_name_books_by_title">Livros por título</string>
     <string name="options_app_locale_system">Sistema</string>
