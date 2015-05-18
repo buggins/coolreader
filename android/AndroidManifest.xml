@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"
-      android:versionName="3.1.2-55" android:versionCode="875">
+      android:versionName="3.1.2-56" android:versionCode="876">
     <supports-screens
         android:xlargeScreens="true"
         android:largeScreens="true"
@@ -16,6 +16,7 @@
     
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <!-- uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE"/-->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Stop TTS on incoming call -->

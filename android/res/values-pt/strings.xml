@@ -404,7 +404,7 @@
     <string name="options_font_fallback_face">Fonte de reserva</string>
     <string name="win_title_confirm_catalog_delete">Deseja remover este catálogo?</string>
     <string name="win_title_confirm_history_record_delete">Deseja remover este livro da lista dos mais recentes?</string>
-    <string name="win_title_confirm_book_doete">Deseja remover este livro?</string>
+    <string name="win_title_confirm_book_delete">Deseja remover este livro?</string>
     <string name="mi_font_next">Próxima fonte</string>
     <string name="mi_font_size_decrease">Diminuir tamanho da fonte</string>
     <string name="mi_font_size_increase">Aumentar tamanho da fonte</string>
