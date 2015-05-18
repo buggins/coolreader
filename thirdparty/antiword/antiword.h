@@ -9,6 +9,10 @@
 #if !defined(__antiword_h)
 #define __antiword_h 1
 
+#if !defined(DEBUG)
+#define NDEBUG
+#endif
+
 #if defined(DEBUG) == defined(NDEBUG)
 #error Exactly one of the DEBUG and NDEBUG flags MUST be set
 #endif /* DEBUG == NDEBUG */
