@@ -606,8 +606,8 @@ public:
                 break;
             }
         }
-        int pos = p-fn;
-        if (p>fn)
+        int pos = (int)(p - fn);
+        if (p > fn)
             m_path = m_fname.substr(0, pos);
         m_filename = m_fname.substr(pos, m_fname.length() - pos);
     }
