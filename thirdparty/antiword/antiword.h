@@ -10,7 +10,9 @@
 #define __antiword_h 1
 
 #if !defined(DEBUG)
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #endif
 
 #if defined(DEBUG) == defined(NDEBUG)

@@ -2209,6 +2209,28 @@ public:
 
             return facesFound > 0;
         }
+        #elif (CR3_OSX == 1)
+
+        int facesFound = 0;
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial Bold.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial Italic.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial Bold Italic.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial Unicode.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial Narrow.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial Narrow Bold.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Arial Narrow Italic.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Courier New.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Courier New Bold.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Courier New Italic.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Courier New Bold Italic.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Georgia.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Georgia Bold.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Georgia Italic.ttf"));
+        facesFound += fontMan->RegisterFont(lString8("/Library/Fonts/Georgia Bold Italic.ttf"));
+
+        return facesFound > 0;
+
         #else
         return false;
         #endif
