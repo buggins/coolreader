@@ -332,7 +332,7 @@ bool CRPropAccessor::parseColor(lString16 value, lUInt32 & result) {
 /// get color (#xxxxxx) property by name, returns false if not found
 bool CRPropAccessor::getColor( const char * propName, lUInt32 &result ) const
 {
-    int n = 0;
+    //int n = 0;
     lString16 value;
     if ( !getString( propName, value ) ) {
         //CRLog::debug("%s is not found", propName);
@@ -596,8 +596,8 @@ bool CRPropAccessor::loadFromStream( LVStream * stream )
             elp++;
         }
         if ( eqpos!=NULL && eqpos>p && *elp!='#' ) {
-            lString8 name( p, eqpos-p );
-            lString8 value( eqpos+1, elp - eqpos - 1);
+            lString8 name( p, (int)(eqpos - p) );
+            lString8 value( eqpos+1, (int)(elp - eqpos - 1));
             setString( name.c_str(), Utf8ToUnicode(removeBackslashChars(value)) );
         }
         for ( p=elp; *elp && *elp!='\r' && *elp!='\n'; elp++)

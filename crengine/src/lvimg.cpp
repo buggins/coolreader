@@ -514,6 +514,7 @@ static void lvpng_error_func (png_structp png, png_const_charp msg)
 
 static void lvpng_warning_func (png_structp png, png_const_charp msg)
 {
+    CR_UNUSED(png);
     CRLog::warn("libpng: %s", msg);
 }
 
@@ -522,7 +523,7 @@ static void lvpng_read_func(png_structp png, png_bytep buf, png_size_t len)
     LVNodeImageSource * obj = (LVNodeImageSource *) png_get_io_ptr(png);
     LVStream * stream = obj->GetSourceStream();
     lvsize_t bytesRead = 0;
-    if ( stream->Read( buf, len, &bytesRead )!=LVERR_OK || bytesRead!=(lvsize_t)len )
+    if ( stream->Read( buf, (int)len, &bytesRead )!=LVERR_OK || bytesRead!=len )
         longjmp(png_jmpbuf(png), 1);
 }
 
@@ -1167,7 +1168,7 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
             {
                 LVGifFrame * pFrame = new LVGifFrame(this);
                 int cbRead = 0;
-                if (pFrame->DecodeFromBuffer(p, buf_size - (p - buf), cbRead) ) {
+                if (pFrame->DecodeFromBuffer(p, (int)(buf_size - (p - buf)), cbRead) ) {
                     found = true;
                     pFrame->Draw( callback );
                 }
@@ -1177,7 +1178,7 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
             break;
         case '!': // extension record
             {
-                res = skipGifExtension(p, buf_size - (p - buf));
+                res = skipGifExtension(p, (int)(buf_size - (p - buf)));
             }
             break;
         case ';': // terminate record
@@ -1515,7 +1516,7 @@ int LVGifFrame::DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_
 
     // test raster stream size
     int i;
-    int rest_buf_size = buf_size - (p-buf);
+    int rest_buf_size = (int)(buf_size - (p-buf));
     for (i=0; i<rest_buf_size && p[i]; ) {
         // next block
         int block_size = p[i];
@@ -1527,7 +1528,7 @@ int LVGifFrame::DecodeFromBuffer( unsigned char * buf, int buf_size, int &bytes_
         return 0; // error
 
     // set read bytes count
-    bytes_read = (p-buf) + i;
+    bytes_read = (int)((p-buf) + i);
 
     // create stream buffer
     stream_buffer = new unsigned char[stream_buffer_size+3];

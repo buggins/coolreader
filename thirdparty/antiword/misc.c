@@ -234,7 +234,7 @@ bReadBuffer(FILE *pFile, ULONG ulStartBlock,
 			}
 		}
 		if (ulOffset >= (ULONG)tBlockSize) {
-			ulOffset -= tBlockSize;
+            ulOffset -= (long)tBlockSize;
 			continue;
 		}
 		ulBegin = ulDepotOffset(ulIndex, tBlockSize) + ulOffset;

@@ -2358,7 +2358,7 @@ lString8 & lString8::trim()
             (pchunk->buf8[lastns]==' ' || pchunk->buf8[lastns]=='\t');
             --lastns)
         ;
-    int newlen = lastns-firstns+1;
+    int newlen = (int)(lastns - firstns + 1);
     if (newlen == pchunk->len)
         return *this;
     if (pchunk->nref == 1)
@@ -2678,7 +2678,7 @@ int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEn
             state = 2;
         }
     }
-    return pdst - buf;
+    return (int)(pdst - buf);
 }
 
 lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
@@ -2940,8 +2940,8 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
             s += 6;
         }
     }
-    srclen = s - src;
-    dstlen = p - dst;
+    srclen = (int)(s - src);
+    dstlen = (int)(p - dst);
 }
 
 lString16 Utf8ToUnicode( const char * s ) {
@@ -4434,7 +4434,7 @@ bool lString8::startsWith( const char * substring ) const
 {
     if (!substring || !substring[0])
         return true;
-    int len = strlen(substring);
+    int len = (int)strlen(substring);
     if (length() < len)
         return false;
     const lChar8 * s1 = c_str();
@@ -4466,7 +4466,7 @@ bool lString8::endsWith( const lChar8 * substring ) const
 {
 	if ( !substring || !*substring )
 		return true;
-    int len = strlen(substring);
+    int len = (int)strlen(substring);
     if ( length() < len )
         return false;
     const lChar8 * s1 = c_str() + (length()-len);

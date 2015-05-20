@@ -242,7 +242,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 
 	if (eEncoding == encoding_cyrillic) {
 		/* FIXME: until the character tables are available */
-		return (tStringLength * 600L * (long)usFontSize + 1) / 2;
+        return (long)((tStringLength * 600L * (long)usFontSize + 1) / 2);
 	}
 
 	DBG_DEC_C(eEncoding != encoding_latin_1 &&

@@ -536,7 +536,7 @@ vGet6Stylesheet(FILE *pFile, ULONG ulStartBlock,
 					NO_DBG_DEC(pStyle->usIstdNext);
 					vGet6StyleInfo(0,
 						aucBuffer + tOffset + tPos + 4,
-						tUpxLen - 2, pStyle);
+                        (int)(tUpxLen - 2), pStyle);
 					NO_DBG_DEC(pStyle->sLeftIndent);
 					NO_DBG_DEC(pStyle->sRightIndent);
 					NO_DBG_HEX(pStyle->ucAlignment);
@@ -739,7 +739,7 @@ vGet8Stylesheet(FILE *pFile, const pps_info_type *pPPS,
 					NO_DBG_DEC(pStyle->usIstdNext);
 					vGet8StyleInfo(0,
 						aucBuffer + tOffset + tPos + 4,
-						tUpxLen - 2, pStyle);
+                        (int)(tUpxLen - 2), pStyle);
 					NO_DBG_DEC(pStyle->sLeftIndent);
 					NO_DBG_DEC(pStyle->sRightIndent);
 					NO_DBG_HEX(pStyle->ucAlignment);

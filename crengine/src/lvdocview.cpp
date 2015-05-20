@@ -448,7 +448,7 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
             }
             if (!err) {
                 // substitute variable
-                lString8 prop(s + 1, s2 - s - 1);
+                lString8 prop(s + 1, (lvsize_t)(s2 - s - 1));
                 lString16 v;
                 // $styles.stylename.all will merge all properties like styles.stylename.*
                 if (prop.endsWith(".all")) {

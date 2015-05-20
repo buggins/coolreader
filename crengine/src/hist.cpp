@@ -485,7 +485,7 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
     splitFName( fpathname, path, name );
     CRBookmark bmk( ptr );
     //CRLog::trace("Bookmark created");
-    int index = findEntry( name, path, sz );
+    int index = findEntry( name, path, (lvsize_t)sz );
     //CRLog::trace("findEntry exited");
     if ( index>=0 ) {
         makeTop( index );
@@ -499,7 +499,7 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
     rec->setSeries( series );
     rec->setFileName( name );
     rec->setFilePath( path );
-    rec->setFileSize( sz );
+    rec->setFileSize( (lvsize_t)sz );
     rec->setLastPos( &bmk );
     rec->setLastTime( (time_t)time(0) );
 
@@ -513,7 +513,7 @@ ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathnam
     lString16 name;
     lString16 path;
     splitFName( fpathname, path, name );
-    int index = findEntry( name, path, sz );
+    int index = findEntry( name, path, (lvsize_t)sz );
     if ( index>=0 ) {
         makeTop( index );
         return doc->createXPointer( _records[0]->getLastPos()->getStartPos() );

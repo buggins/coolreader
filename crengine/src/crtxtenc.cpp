@@ -1952,7 +1952,7 @@ int strincmp(const unsigned char * buf, const char * pattern, int len)
 
 int strnstr(const unsigned char * buf, int buf_len, const char * pattern)
 {
-    int plen = strlen(pattern);
+    int plen = (int)strlen(pattern);
     for (int i=0; i<=buf_len - plen; i++) {
         if (!strincmp(buf + i, pattern, plen)) {
             return i;
@@ -1963,7 +1963,7 @@ int strnstr(const unsigned char * buf, int buf_len, const char * pattern)
 
 int rstrnstr(const unsigned char * buf, int buf_len, const char * pattern)
 {
-    int plen = strlen(pattern);
+    int plen = (int)strlen(pattern);
     for (int i=buf_len - plen; i>=0; i--) {
         if (!strincmp(buf + i, pattern, plen)) {
             return i;

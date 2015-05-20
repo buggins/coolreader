@@ -288,9 +288,9 @@ vJustify2Window(diagram_type *pDiag, output_type *pAnchor,
 		pTmp->szStorage = xfree(pTmp->szStorage);
 		pTmp->szStorage = szStorage;
 		pTmp->tStorageSize = pTmp->tNextFree + (size_t)lToAdd + 1;
-		pTmp->lStringWidth +=
+        pTmp->lStringWidth += (long)(
 			(pcNew - szStorage - (long)pTmp->tNextFree) *
-			lSpaceWidth;
+            lSpaceWidth);
 		fail(pcNew < szStorage);
 		pTmp->tNextFree = (size_t)(pcNew - szStorage);
 		fail(pTmp->tNextFree != strlen(pTmp->szStorage));
@@ -359,7 +359,7 @@ tStyle2Window(char *szLine, size_t tLineSize, const style_block_type *pStyle,
 	for (tIndex = 0; tIndex <= tStyleIndex; tIndex++) {
 		if (tIndex == tStyleIndex ||
 		    (bNeedPrevLvl && tIndex < tStyleIndex)) {
-			if (pcTxt - szLine >= tLineSize - 25) {
+            if ((long)(pcTxt - szLine) >= (long)(tLineSize - 25)) {
 				/* Prevent a possible buffer overflow */
 				DBG_DEC(pcTxt - szLine);
 				DBG_DEC(tLineSize - 25);

@@ -23,7 +23,7 @@
 #ifdef _WIN32
 extern "C" {
 	int strcasecmp(const char *s1, const char *s2) {
-		return stricmp(s1,s2);
+        return _stricmp(s1,s2);
 	}
 //char	*optarg = NULL;
 //	int	optind = 0;
@@ -286,7 +286,7 @@ vSubstring2Diagram(diagram_type *pDiag,
     UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
     USHORT usFontSize, USHORT usMaxFontSize)
 {
-    lString16 s( szString, tStringLength);
+    lString16 s( szString, (int)tStringLength);
 #ifdef _LINUX
     TRACE("antiword::vSubstring2Diagram(%s)", LCSTR(s));
 #else
@@ -631,7 +631,7 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
             return FALSE;
         }
         lvsize_t bytesRead=0;
-        if ( stream->Read(aucBytes, tMemb*sizeof(UCHAR), &bytesRead)!=LVERR_OK || bytesRead!=tMemb ) {
+        if ( stream->Read(aucBytes, tMemb*sizeof(UCHAR), &bytesRead)!=LVERR_OK || bytesRead != (lvsize_t)tMemb ) {
             return FALSE;
         }
     } else {
@@ -682,8 +682,8 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
     case imagetype_is_jpeg:
     case imagetype_is_png:
         {
-            lUInt32 offset = ulFileOffsetImage + pImg->tPosition;
-            lUInt32 len = pImg->tLength - pImg->tPosition;
+            lUInt32 offset = (lUInt32)(ulFileOffsetImage + pImg->tPosition);
+            lUInt32 len = lUInt32(pImg->tLength - pImg->tPosition);
 
             if (!bSetDataOffset(pFile, offset)) {
                 return FALSE;

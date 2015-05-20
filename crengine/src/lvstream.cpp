@@ -159,7 +159,7 @@ void LVNamedStream::SetName(const lChar16 * name)
         if (p[-1] == '/' || p[-1]=='\\')
             break;
     }
-    int pos = p-fn;
+    int pos = (int)(p - fn);
     if (p>fn)
         m_path = m_fname.substr(0, pos);
     m_filename = m_fname.substr(pos, m_fname.length() - pos);
@@ -1003,6 +1003,7 @@ public:
     /// flushes unsaved data from buffers to file, with optional flush of OS buffers
     virtual lverror_t Flush( bool sync )
     {
+        CR_UNUSED(sync);
 #ifdef _WIN32
         if ( m_hFile==INVALID_HANDLE_VALUE || !FlushFileBuffers( m_hFile ) )
             return LVERR_FAIL;
@@ -1045,7 +1046,7 @@ public:
             m_pos += dwBytesRead;
 	        return LVERR_OK;
         } else {
-			DWORD err = GetLastError();
+            //DWORD err = GetLastError();
 			if (nBytesRead)
 				*nBytesRead = 0;
             return LVERR_FAIL;
@@ -2187,7 +2188,7 @@ private:
     {
         if (m_zstream.avail_in < ARC_INBUF_SIZE / 4 && m_inbytesleft > 0)
         {
-            int inpos = m_zstream.next_in ? (m_zstream.next_in - m_inbuf) : 0;
+            int inpos = (int)(m_zstream.next_in ? (m_zstream.next_in - m_inbuf) : 0);
             if ( inpos > ARC_INBUF_SIZE/2 )
             {
                 // move rest of data to beginning of buffer
@@ -2254,7 +2255,7 @@ private:
     // returns count of available decoded bytes in buffer
     inline int getAvailBytes()
     {
-        return m_zstream.next_out - m_outbuf - m_decodedpos;
+        return (int)(m_zstream.next_out - m_outbuf - m_decodedpos);
     }
     /// decode next portion of data, returns number of decoded bytes available, -1 if error
     int decodeNext()
@@ -2270,7 +2271,7 @@ private:
         if (m_decodedpos > ARC_OUTBUF_SIZE/2 || (m_zstream.avail_out < ARC_OUTBUF_SIZE / 4 && m_outbytesleft > 0) )
         {
 
-            int outpos = m_zstream.next_out - m_outbuf;
+            int outpos = (int)(m_zstream.next_out - m_outbuf);
             if ( m_decodedpos > ARC_OUTBUF_SIZE/2 || outpos > ARC_OUTBUF_SIZE*2/4 || m_zstream.avail_out==0 || m_inbytesleft==0 )
             {
                 // move rest of data to beginning of buffer

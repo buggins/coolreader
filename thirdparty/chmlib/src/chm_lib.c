@@ -73,8 +73,8 @@
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #else
-#define strcasecmp stricmp
-#define strncasecmp strnicmp
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #endif
 #else
 /* basic Linux system includes */
@@ -1423,7 +1423,7 @@ static Int64 _chm_decompress_block(struct chmFile *h,
     /* let the caching system pull its weight! */
     if (block - blockAlign <= h->lzx_last_block  &&
         block              >= h->lzx_last_block)
-        blockAlign = (block - h->lzx_last_block);
+        blockAlign = (UInt32)(block - h->lzx_last_block);
 
     /* check if we need previous blocks */
     if (blockAlign != 0)
@@ -1431,7 +1431,7 @@ static Int64 _chm_decompress_block(struct chmFile *h,
         /* fetch all required previous blocks since last reset */
         for (i = blockAlign; i > 0; i--)
         {
-            UInt32 curBlockIdx = block - i;
+            UInt32 curBlockIdx = (UInt32)(block - i);
 
             /* check if we most recently decompressed the previous block */
             if (h->lzx_last_block != curBlockIdx)
@@ -1461,7 +1461,7 @@ static Int64 _chm_decompress_block(struct chmFile *h,
 #endif
                 if (!_chm_get_cmpblock_bounds(h, curBlockIdx, &cmpStart, &cmpLen) ||
                     cmpLen < 0                                                    ||
-                    cmpLen > h->reset_table.block_len + 6144                      ||
+                    cmpLen > (int)(h->reset_table.block_len + 6144)               ||
                     _chm_fetch_bytes(h, cbuffer, cmpStart, cmpLen) != cmpLen      ||
                     LZXdecompress(h->lzx_state, cbuffer, lbuffer, (int)cmpLen,
                                   (int)h->reset_table.block_len) != DECR_OK)
@@ -1803,7 +1803,7 @@ int chm_enumerate_dir(struct chmFile *h,
     /* initialize pathname state */
     strncpy(prefixRectified, prefix, CHM_MAX_PATHLEN);
     prefixRectified[CHM_MAX_PATHLEN] = '\0';
-    prefixLen = strlen(prefixRectified);
+    prefixLen = (int)strlen(prefixRectified);
     if (prefixLen != 0)
     {
         if (prefixRectified[prefixLen-1] != '/')
@@ -1881,7 +1881,7 @@ int chm_enumerate_dir(struct chmFile *h,
             }
             strncpy(lastPath, ui.path, CHM_MAX_PATHLEN);
             lastPath[CHM_MAX_PATHLEN] = '\0';
-            lastPathLen = strlen(lastPath);
+            lastPathLen = (int)strlen(lastPath);
 
             /* get the length of the path */
             ui_path_len = strlen(ui.path)-1;

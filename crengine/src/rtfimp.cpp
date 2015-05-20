@@ -561,7 +561,7 @@ bool LVRtfParser::Parse()
                 p++;
                 OnControlWord( cwname, PARAM_VALUE_NONE, asteriskFlag );
             }
-            m_buf_pos += p - (m_buf + m_buf_pos);
+            m_buf_pos += (int)(p - (m_buf + m_buf_pos));
         } else {
             //lChar16 txtch = 0;
             if ( ch=='\\' ) {
@@ -588,7 +588,7 @@ bool LVRtfParser::Parse()
             }
             //=======================================================
             //=======================================================
-            m_buf_pos += p - (m_buf + m_buf_pos);
+            m_buf_pos += (int)(p - (m_buf + m_buf_pos));
         }
     }
     m_callback->OnStop();

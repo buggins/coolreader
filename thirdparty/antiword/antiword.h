@@ -147,8 +147,8 @@
 /* Macros */
 #define STREQ(x,y)	(*(x) == *(y) && strcmp(x,y) == 0)
 #define STRNEQ(x,y,n)	(*(x) == *(y) && strncmp(x,y,n) == 0)
-#if defined(__dos) || defined(__EMX__)
-#define STRCEQ(x,y)	(stricmp(x,y) == 0)
+#if defined(__dos) || defined(__EMX__) || defined(_WIN32)
+#define STRCEQ(x,y)	(_stricmp(x,y) == 0)
 #else
 #define STRCEQ(x,y)	(strcasecmp(x,y) == 0)
 #endif /* __dos or __EMX__ */

@@ -119,7 +119,7 @@ bAdd2DataBlockList(const data_block_type *pDataBlock)
 ULONG
 ulGetDataOffset(FILE *pFile)
 {
-	return pBlockCurrent->tInfo.ulFileOffset + ulBlockOffset + tByteNext;
+    return (ULONG)(pBlockCurrent->tInfo.ulFileOffset + ulBlockOffset + tByteNext);
 } /* end of ulGetDataOffset */
 
 /*
