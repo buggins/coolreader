@@ -621,6 +621,7 @@ public class Engine {
 		public final static HyphDict FINNISH = new HyphDict("FINNISH", HYPH_DICT, R.raw.finnish_hyphen, "Finnish", "fi");
 		public final static HyphDict TURKISH = new HyphDict("TURKISH", HYPH_DICT, R.raw.turkish_hyphen, "Turkish", "tr");
 		public final static HyphDict DUTCH = new HyphDict("DUTCH", HYPH_DICT, R.raw.dutch_hyphen, "Dutch", "nl");
+		public final static HyphDict CATALAN = new HyphDict("CATALAN", HYPH_DICT, R.raw.catalan_hyphen, "Catalan", "ca");
 
 		public final String code;
 		public final int type;

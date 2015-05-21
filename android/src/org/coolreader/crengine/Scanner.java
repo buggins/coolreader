@@ -851,6 +851,18 @@ public class Scanner extends FileInfoChangeSource {
 				}
 			}
 		}
+		File fd = mActivity.getFilesDir();
+		File downloadDir = new File(fd, "downloads");
+		if (downloadDir.mkdirs()) {
+			Log.d("cr3", "download dir: " + downloadDir);
+			FileInfo books = null;
+			books = new FileInfo(downloadDir);
+			//books.parent = item;
+			//item.addDir(books);
+			books.isScanned = true;
+			books.isListed = true;
+			return books;
+		}
 		try {
 			throw new Exception("download directory not found and cannot be created");
 		} catch (Exception e) {
