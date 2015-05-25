@@ -4296,7 +4296,7 @@ void CRLog::info( const char * msg, ... )
         return;
     va_list args;
     va_start( args, msg );
-    CRLOG->log( "WARN", msg, args );
+    CRLOG->log( "INFO", msg, args );
     va_end(args);
 }
 
