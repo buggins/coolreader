@@ -5368,6 +5368,7 @@ int LVDocView::onSelectionCommand( int cmd, int param )
     } else {
         // selection start doesn't match sentence bounds
         if ( !currSel.getStart().isSentenceStart() ) {
+            CRLog::trace("moving to selection start");
             currSel.getStart().thisSentenceStart();
             moved = true;
         }
@@ -5375,12 +5376,16 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         if ( !moved )
             switch ( cmd ) {
             case DCMD_SELECT_NEXT_SENTENCE:
-                if ( !currSel.getStart().nextSentenceStart() )
+                if ( !currSel.getStart().nextSentenceStart() ) {
+                    CRLog::trace("nextSentenceStart() returned false");
                     return 0;
+                }
                 break;
             case DCMD_SELECT_PREV_SENTENCE:
-                if ( !currSel.getStart().prevSentenceStart() )
+                if ( !currSel.getStart().prevSentenceStart() ) {
+                    CRLog::trace("prevSentenceStart() returned false");
                     return 0;
+                }
                 break;
             case DCMD_SELECT_FIRST_SENTENCE:
             default: // unknown action
