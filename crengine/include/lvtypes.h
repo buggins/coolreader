@@ -161,7 +161,7 @@ public:
     }
 
     /// returns true if point is inside this rectangle
-    bool isPointInside ( lvPoint & pt ) const 
+    bool isPointInside ( const lvPoint & pt ) const
     {
         return left<=pt.x && top<=pt.y && right>pt.x && bottom > pt.y;
     }

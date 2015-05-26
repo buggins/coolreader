@@ -893,6 +893,7 @@ template <int BUFSIZE> class lStringBuf16 {
     int pos;
 	lStringBuf16 & operator = (lStringBuf16 & v)
 	{
+        CR_UNUSED(v);
 		// not available
 		return *this;
 	}
