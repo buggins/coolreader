@@ -314,6 +314,7 @@ private:
     lvRect m_pageMargins;
     lvRect m_pageRects[2];
     int    m_pagesVisible;
+    int    m_pagesVisibleOverride;
     int m_pageHeaderInfo;
     bool m_showCover;
     LVRefVec<LVImageSource> m_headerIcons;
@@ -651,10 +652,14 @@ public:
     LVDocViewMode getViewMode();
     /// toggle pages/scroll view mode
     void toggleViewMode();
+    /// returns current pages visible setting value (independent on window and font size)
+    int getPagesVisibleSetting();
     /// get window visible page count (1 or 2)
     int getVisiblePageCount();
     /// set window visible page count (1 or 2)
     void setVisiblePageCount( int n );
+    /// set window visible page count, to use exact value independent of font size and window sides
+    void overrideVisiblePageCount(int n);
 
     /// get page header info mask
     int getPageHeaderInfo() { return m_pageHeaderInfo; }

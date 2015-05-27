@@ -152,7 +152,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 			m_pageMargins(DEFAULT_PAGE_MARGIN,
 					DEFAULT_PAGE_MARGIN / 2 /*+ INFO_FONT_SIZE + 4 */,
 					DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN / 2),
-			m_pagesVisible(2), m_pageHeaderInfo(PGHDR_PAGE_NUMBER
+            m_pagesVisible(2), m_pagesVisibleOverride(0), m_pageHeaderInfo(PGHDR_PAGE_NUMBER
 #ifndef LBOOK
 					| PGHDR_CLOCK
 #endif
@@ -3081,9 +3081,32 @@ void LVDocView::toggleViewMode() {
 
 }
 
+/// returns current pages visible setting value
+int LVDocView::getPagesVisibleSetting() {
+    if (m_view_mode == DVM_PAGES && m_pagesVisible == 2)
+        return 2;
+    return 1;
+}
+
 int LVDocView::getVisiblePageCount() {
-	return (m_view_mode == DVM_SCROLL || m_dx < m_font_size * MIN_EM_PER_PAGE
-			|| m_dx * 5 < m_dy * 6) ? 1 : m_pagesVisible;
+    if (m_view_mode == DVM_SCROLL || m_pagesVisible == 1)
+        return 1;
+    if (m_pagesVisibleOverride > 0)
+        return m_pagesVisibleOverride;
+    return (m_dx < m_font_size * MIN_EM_PER_PAGE || m_dx * 5 < m_dy * 6)
+            ? 1 : m_pagesVisible;
+}
+
+void LVDocView::overrideVisiblePageCount(int n) {
+    clearImageCache();
+    LVLock lock(getMutex());
+    int newCount = n > 0 ? ((n == 2) ? 2 : 1) : 0;
+    if (m_pagesVisibleOverride == newCount)
+        return;
+    m_pagesVisibleOverride = newCount;
+    updateLayout();
+    REQUEST_RENDER("setVisiblePageCount")
+    _posIsSet = false;
 }
 
 /// set window visible page count (1 or 2)
