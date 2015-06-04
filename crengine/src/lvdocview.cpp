@@ -1535,6 +1535,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	lvRect oldcr;
 	drawbuf->GetClipRect(&oldcr);
 	lvRect hrc = headerRc;
+    hrc.bottom += 2;
 	drawbuf->SetClipRect(&hrc);
 	bool drawGauge = true;
 	lvRect info = headerRc;
@@ -1565,17 +1566,28 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 //		cl4 = cl1;
 //		//pal[0] = cl1;
 //	}
-        if ( leftPage )
-            drawbuf->FillRect(info.left, gpos - 2, info.right, gpos - 2     + 1, cl1);
+	if ( leftPage )
+		drawbuf->FillRect(info.left, gpos - 2, info.right, gpos - 2 + 1, cl1);
         //drawbuf->FillRect(info.left+percent_pos, gpos-gh, info.right, gpos-gh+1, cl1 ); //cl3
         //      drawbuf->FillRect(info.left + percent_pos, gpos - 2, info.right, gpos - 2
         //                      + 1, cl1); // cl3
 
 	int sbound_index = 0;
 	bool enableMarks = !leftPage && (phi & PGHDR_CHAPTER_MARKS) && sbounds.length()<info.width()/5;
+	int w = GetWidth();
+	int h = GetHeight();
+	if (w > h)
+		w = h;
+	int markh = 3;
+	int markw = 1;
+	if (w > 700) {
+		markh = 7;
+        markw = 2;
+	}
 	for ( int x = info.left; x<info.right; x++ ) {
 		int cl = -1;
 		int sz = 1;
+		int szx = 1;
 		int boundCategory = 0;
 		while ( enableMarks && sbound_index<sbounds.length() ) {
 			int sx = info.left + sbounds[sbound_index] * (info.width() - 1) / 10000;
@@ -1593,20 +1605,20 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 			sz = 1;
 		} else {
             if ( x < info.left + percent_pos ) {
-				sz = 3;
+                sz = 3;
 				if ( boundCategory==0 )
 					cl = cl1;
                 else
                     sz = 0;
             } else {
 				if ( boundCategory!=0 )
-					sz = 3;
+					sz = markh;
 				cl = cl1;
+				szx = markw;
 			}
 		}
         if ( cl!=-1 && sz>0 )
-			drawbuf->FillRect(x, gpos - 2 - sz/2, x+1, gpos - 2
-					+ sz/2 + 1, cl);
+            drawbuf->FillRect(x, gpos - 2 - sz/2, x + szx, gpos - 2 + sz/2 + 1, cl);
 	}
 
 	lString16 text;
