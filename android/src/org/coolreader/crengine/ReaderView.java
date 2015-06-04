@@ -4206,7 +4206,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			long start = android.os.SystemClock.uptimeMillis();
 			log.v("PageViewAnimation -- creating: drawing two pages to buffer");
 			
-			PositionProperties currPos = mCurrentPageInfo.position;
+			PositionProperties currPos = mCurrentPageInfo == null ? null : mCurrentPageInfo.position;
 			if ( currPos==null )
 				currPos = doc.getPositionProps(null);
 			page1 = currPos.pageNumber;

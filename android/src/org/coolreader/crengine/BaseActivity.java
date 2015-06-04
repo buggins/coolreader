@@ -1597,7 +1597,7 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
 	        props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
-	        props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#808080");
+	        props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#D0B070");
 	        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR, "#FFFFFF");
 	        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_DAY, "#FFFFFF");
 	        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, "#101010");
