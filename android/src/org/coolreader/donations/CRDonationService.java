@@ -8,9 +8,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender.SendIntentException;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -48,11 +50,16 @@ public class CRDonationService {
 					+ ", currency=" + currency + ", purchased=" + purchased
 					+ "]";
 		}
-		
+	}
+	
+	public interface PurchaseListener {
+		void onPurchaseCompleted(boolean success, String productId, float totalDonations);
 	}
 	
 	private ArrayList<PurchaseInfo> mPurchases = new ArrayList<PurchaseInfo>();
 	private ArrayList<PurchaseInfo> mProducts = new ArrayList<PurchaseInfo>();
+	
+	private float mTotalDonations = 0;
 	
 	public void connect() {
 		mServiceConn = new ServiceConnection() {
@@ -159,6 +166,64 @@ public class CRDonationService {
 		}
 		return mPurchases;
 	}
+	
+	private PurchaseListener mCurrentListener;
+	
+	public void purchase(String productId, PurchaseListener listener) {
+		if (!isBillingSupported()) {
+			if (mCurrentListener != null)
+				mCurrentListener.onPurchaseCompleted(false, productId, 0);
+		} 
+		try {
+			mCurrentListener = listener;
+			Bundle buyIntentBundle = mService.getBuyIntent(API_VERSION, PACKAGE_NAME,
+					productId, "inapp", "NO_PAYLOAD");
+			PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
+			mActivity.startIntentSenderForResult(pendingIntent.getIntentSender(),
+					   1001, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
+					   Integer.valueOf(0));
+		} catch (RemoteException e) {
+			if (mCurrentListener != null)
+				mCurrentListener.onPurchaseCompleted(false, productId, 0);
+			mCurrentListener = null;
+		} catch (SendIntentException e) {
+			if (mCurrentListener != null)
+				mCurrentListener.onPurchaseCompleted(false, productId, 0);
+			mCurrentListener = null;
+		}
+	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == 1001) {
+			//int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
+			String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
+			//String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
+
+			if (resultCode == RESULT_OK) {
+				try {
+					JSONObject jo = new JSONObject(purchaseData);
+					if (jo != null) {
+						String sku = jo.optString("productId");
+						if (sku != null) {
+							log.i("Purchase is completed for " + sku);
+							if (mCurrentListener != null) {
+								mCurrentListener.onPurchaseCompleted(true, sku, mTotalDonations);
+							}
+							return;
+						}
+					}
+				}
+				catch (Exception e) {
+					log.e("Exception while checking activity result");
+				}
+				log.i("Purchase is failed");
+				if (mCurrentListener != null) {
+					mCurrentListener.onPurchaseCompleted(false, null, mTotalDonations);
+				}
+			}
+			mCurrentListener = null;
+		}
+	}	
 
 	public void bind() {
 		log.d("CRDonationService.bind()");
