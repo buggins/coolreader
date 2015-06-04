@@ -44,9 +44,13 @@
 
 #if 0
 #define REQUEST_RENDER(txt) {CRLog::trace("request render from "  txt); requestRender();}
-#define CHECK_RENDER(txt) {CRLog::trace("LVDocView::checkRender() - from " txt); checkRender();}
 #else
 #define REQUEST_RENDER(txt) requestRender();
+#endif
+
+#if 0
+#define CHECK_RENDER(txt) {CRLog::trace("LVDocView::checkRender() - from " txt); checkRender();}
+#else
 #define CHECK_RENDER(txt) checkRender();
 #endif
 
