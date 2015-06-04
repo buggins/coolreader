@@ -1,7 +1,6 @@
 // Main Class
 package org.coolreader;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -38,6 +37,7 @@ import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.BillingService;
 import org.coolreader.donations.BillingService.RequestPurchase;
 import org.coolreader.donations.BillingService.RestoreTransactions;
+import org.coolreader.donations.CRDonationService;
 import org.coolreader.donations.Consts;
 import org.coolreader.donations.Consts.PurchaseState;
 import org.coolreader.donations.Consts.ResponseCode;
@@ -149,6 +149,15 @@ public class CoolReader extends BaseActivity
 		//==========================================
 		// Donations related code
 		try {
+			
+			mDonationService = new CRDonationService(this);
+			mDonationService.bind();
+			if (mDonationService.isBillingSupported()) {
+				log.d("CRDonationService: billing is supported");
+			} else {
+				log.d("CRDonationService: billing is not supported");
+			}
+			
 	        mHandler = new Handler();
 	        mPurchaseObserver = new CRPurchaseObserver(mHandler);
 	        mBillingService = new BillingService();
@@ -254,6 +263,8 @@ public class CoolReader extends BaseActivity
 			//mPurchaseDatabase.close();
 		//}
 		mBillingService.unbind();
+		if (mDonationService != null)
+			mDonationService.unbind();
 
 		if (mReaderView != null) {
 			mReaderView.destroy();
@@ -1394,6 +1405,7 @@ public class CoolReader extends BaseActivity
 
     private CRPurchaseObserver mPurchaseObserver;
     private BillingService mBillingService;
+    private CRDonationService mDonationService;
     private Handler mHandler;
     private DonationListener mDonationListener = null;
     private boolean billingSupported = false;
