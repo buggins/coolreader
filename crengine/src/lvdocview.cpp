@@ -390,9 +390,41 @@ lvPoint LVDocView::rotatePoint(lvPoint & pt, bool winToDoc) {
 #endif
 }
 
+/// update page margins based on current settings
+void LVDocView::updatePageMargins() {
+    lvRect rc = getPageMargins();
+    rc.left = m_props->getIntDef(PROP_PAGE_MARGIN_LEFT, rc.left);
+    rc.top = m_props->getIntDef(PROP_PAGE_MARGIN_TOP, rc.top);
+    rc.right = m_props->getIntDef(PROP_PAGE_MARGIN_RIGHT, rc.right);
+    rc.bottom = m_props->getIntDef(PROP_PAGE_MARGIN_BOTTOM, rc.bottom);
+    int maxhmargin = m_dx / 5;
+    int maxvmargin = m_dy / 5;
+    if (rc.left > maxhmargin)
+        rc.left = maxhmargin;
+    if (rc.right > maxhmargin)
+        rc.right = maxhmargin;
+    if (rc.top > maxvmargin)
+        rc.top = maxvmargin;
+    if (rc.bottom > maxvmargin)
+        rc.bottom = maxvmargin;
+    setPageMargins(rc);
+}
+
 /// sets page margins
-void LVDocView::setPageMargins(const lvRect & rc) {
-	if (m_pageMargins.left + m_pageMargins.right != rc.left + rc.right
+void LVDocView::setPageMargins(lvRect rc) {
+    bool floatingPunct = m_props->getBoolDef(PROP_FLOATING_PUNCTUATION, true);
+    int align = 0;
+    if (floatingPunct) {
+        m_font = fontMan->GetFont(m_font_size, 400 + LVRendGetFontEmbolden(),
+                false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
+        align = m_font->getVisualAligmentWidth() / 2;
+    }
+    if (align > rc.right)
+        align = rc.right;
+    rc.left += align;
+    rc.right -= align;
+
+    if (m_pageMargins.left + m_pageMargins.right != rc.left + rc.right
             || m_pageMargins.top + m_pageMargins.bottom != rc.top + rc.bottom) {
 
         m_pageMargins = rc;
@@ -2328,8 +2360,8 @@ void LVDocView::updateLayout() {
 	m_pageRects[1] = rc;
 	if (getVisiblePageCount() == 2) {
 		int middle = (rc.left + rc.right) >> 1;
-		m_pageRects[0].right = middle - m_pageMargins.right / 2;
-		m_pageRects[1].left = middle + m_pageMargins.left / 2;
+        m_pageRects[0].right = middle; // - m_pageMargins.right;
+        m_pageRects[1].left = middle; // + m_pageMargins.left;
 	}
 }
 
@@ -5819,22 +5851,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_PAGE_MARGIN_TOP || name
                    == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
                    || name == PROP_PAGE_MARGIN_BOTTOM) {
-            int margin = props->getIntDef(name.c_str(), 8);
-            int maxmargin = (name == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT) ? m_dx / 4 : m_dy / 4;
-            if (margin > maxmargin)
-                margin = maxmargin;
-            lvRect rc = getPageMargins();
-            if (name == PROP_PAGE_MARGIN_TOP)
-                rc.top = margin;
-            else if (name == PROP_PAGE_MARGIN_BOTTOM)
-                rc.bottom = margin;
-            else if (name == PROP_PAGE_MARGIN_LEFT)
-                rc.left = margin;
-            else if (name == PROP_PAGE_MARGIN_RIGHT)
-                rc.right = margin;
-            setPageMargins(rc);
+            m_props->setString(name.c_str(), value);
+            updatePageMargins();
         } else if (name == PROP_FONT_FACE) {
             setDefaultFontFace(UnicodeToUtf8(value));
+            updatePageMargins();
         } else if (name == PROP_FALLBACK_FONT_FACE) {
             lString8 oldFace = fontMan->GetFallbackFontFace();
             if ( UnicodeToUtf8(value)!=oldFace )
@@ -5865,6 +5886,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             int fontSize = props->getIntDef(PROP_FONT_SIZE, m_font_sizes[0]);
             setFontSize(fontSize);//cr_font_sizes
             value = lString16::itoa(m_font_size);
+            updatePageMargins();
         } else if (name == PROP_STATUS_FONT_SIZE) {
             int fontSize = props->getIntDef(PROP_STATUS_FONT_SIZE,
                                             INFO_FONT_SIZE);

@@ -607,7 +607,9 @@ public:
     /// set list of battery icons to display battery state
     void setBatteryIcons( LVRefVec<LVImageSource> icons );
     /// sets page margins
-    void setPageMargins( const lvRect & rc );
+    void setPageMargins(lvRect rc);
+    /// update page margins based on current settings
+    void updatePageMargins();
     /// returns page margins
     lvRect getPageMargins() const { return m_pageMargins; }
 #if CR_INTERNAL_PAGE_ORIENTATION==1
