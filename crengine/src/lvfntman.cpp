@@ -401,6 +401,7 @@ public:
     void gc(); // garbage collector
     void update( const LVFontDef * def, LVFontRef ref );
     void removeDocumentFonts(int documentId);
+    void removefont(const LVFontDef * def);
     int  length() { return _registered_list.length(); }
     void addInstance( const LVFontDef * def, LVFontRef ref );
     LVPtrVector< LVFontCacheItem > * getInstances() { return &_instance_list; }
@@ -2221,7 +2222,46 @@ public:
         FONT_MAN_GUARD
         _cache.getFaceList( list );
     }
-
+	bool setalias(lString8 alias,lString8 facename,int id)
+{
+    FONT_MAN_GUARD
+    lString8 fontname=lString8("\0");
+    LVFontDef def(
+            fontname,
+            10,
+            400,
+            false,
+            css_ff_inherit,
+            facename,
+            -1,
+            id
+    );
+        LVFontCacheItem * item = _cache.find( &def);
+    LVFontDef def1(
+            fontname,
+            10,
+            400,
+            false,
+            css_ff_inherit,
+            alias,
+            -1,
+            id
+    );
+        if (!item->getDef()->getName().empty()) {
+            _cache.removefont(&def1);
+            def.setTypeFace(alias);
+            def.setName(item->getDef()->getName());
+            LVFontDef newDef(*item->getDef());
+            newDef.setTypeFace(alias);
+            LVFontRef ref = item->getFont();
+            _cache.update(&newDef, ref);
+            return true;
+        }
+    else
+        {
+            return false;
+        }
+}
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
         FONT_MAN_GUARD
@@ -3387,7 +3427,26 @@ void LVFontCache::update( const LVFontDef * def, LVFontRef ref )
         _registered_list.add( item );
     }
 }
+void LVFontCache::removefont(const LVFontDef * def)
+{
+    int i;
+        for (i=0; i<_instance_list.length(); i++)
+        {
+            if ( _instance_list[i]->_def.getTypeFace() == def->getTypeFace() )
+            {
+                _instance_list.remove(i);
+            }
 
+        }
+        for (i=0; i<_registered_list.length(); i++)
+        {
+            if ( _registered_list[i]->_def.getTypeFace() == def->getTypeFace() )
+            {
+                _registered_list.remove(i);
+            }
+        }
+
+}
 void LVFontCache::removeDocumentFonts(int documentId)
 {
     int i;

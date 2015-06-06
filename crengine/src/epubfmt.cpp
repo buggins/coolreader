@@ -481,6 +481,7 @@ class EmbeddedFontStyleParser {
     lString16 _basePath;
     int _state;
     lString8 _face;
+    lString8 islocal;
     bool _italic;
     bool _bold;
     lString16 _url;
@@ -526,6 +527,7 @@ public:
                 if (!_url.empty()) {
 //                    CRLog::trace("@font { face: %s; bold: %s; italic: %s; url: %s", _face.c_str(), _bold ? "yes" : "no",
 //                                 _italic ? "yes" : "no", LCSTR(_url));
+			  if (islocal.length()==5) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
                     _fontList.add(_url, _face, _bold, _italic);
                 }
             }
@@ -534,7 +536,10 @@ public:
 		case ',':
             if (_state == 2) {
                 if (!_url.empty())
+           	    {
+                      if (islocal.length() == 5) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
                     _fontList.add(_url, _face, _bold, _italic);
+			}
                 _state = 11;
             }
             break;
@@ -583,7 +588,15 @@ public:
             _state = 2;
         } else if (_state == 11) {
             if (t == "url")
+		{
                 _state = 12;
+		islocal=t;
+	        }
+            else if (t=="local")
+            	{
+                _state=12;
+                islocal=t;
+            	}
             else
                 _state = 2;
         }
