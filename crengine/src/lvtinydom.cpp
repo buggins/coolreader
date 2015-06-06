@@ -11056,17 +11056,40 @@ void ldomDocument::registerEmbeddedFonts()
 {
     if (_fontList.empty())
         return;
-    for (int i=0; i<_fontList.length(); i++) {
-        LVEmbeddedFontDef * item =  _fontList.get(i);
+    int list = _fontList.length();
+    lString8 lastface = lString8("");
+    for (int i = list; i > 0; i--) {
+        LVEmbeddedFontDef *item = _fontList.get(i - 1);
         lString16 url = item->getUrl();
+        lString8 face = item->getFace();
+        if (face.empty()) face = lastface;
+        else lastface = face;
+        CRLog::debug("url is %s\n", UnicodeToLocal(url).c_str());
         if (url.startsWithNoCase(lString16("res://")) || url.startsWithNoCase(lString16("file://"))) {
             if (!fontMan->RegisterExternalFont(item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
                 CRLog::error("Failed to register external font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
             }
             continue;
         }
-        if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
-            CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
+        else {
+            if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
+                CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
+            lString16Collection flist;
+            fontMan->getFaceList(flist);
+            int cnt = flist.length();
+            lString16 fontface = lString16("");
+                CRLog::debug("fontlist has %d fontfaces\n", cnt);
+            for (int j = 0; j < cnt; j = j + 1) {
+                fontface = flist[j];
+                do { (fontface.replace(lString16(" "), lString16("\0"))); }
+                while (fontface.pos(lString16(" ")) != -1);
+                if (fontface.lowercase().pos(url.lowercase()) != -1) {
+                    CRLog::debug("****found %s\n", UnicodeToLocal(fontface).c_str());
+                    fontMan->setalias(face, UnicodeToLocal(flist[j]), getDocIndex(),item->getItalic(),item->getBold()) ;
+                    break;
+                }
+            }
+            }
         }
     }
 }

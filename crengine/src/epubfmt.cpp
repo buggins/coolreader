@@ -484,6 +484,7 @@ class EmbeddedFontStyleParser {
     bool _italic;
     bool _bold;
     lString16 _url;
+    lString8 islocal;
 public:
     EmbeddedFontStyleParser(LVEmbeddedFontList & fontList) : _fontList(fontList) { }
     void onToken(char token) {
@@ -526,9 +527,10 @@ public:
                 if (!_url.empty()) {
 //                    CRLog::trace("@font { face: %s; bold: %s; italic: %s; url: %s", _face.c_str(), _bold ? "yes" : "no",
 //                                 _italic ? "yes" : "no", LCSTR(_url));
-                    _fontList.add(_url, _face, _bold, _italic);
-                }
+                        if (islocal.length()==5) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
+                        _fontList.add(_url, _face, _bold, _italic);
             }
+	}
             _state = 0;
             break;
 		case ',':
@@ -583,7 +585,15 @@ public:
             _state = 2;
         } else if (_state == 11) {
             if (t == "url")
+            {
                 _state = 12;
+                islocal=t;
+            }
+            else if (t=="local")
+            {
+                _state=12;
+                islocal=t;
+            }
             else
                 _state = 2;
         }

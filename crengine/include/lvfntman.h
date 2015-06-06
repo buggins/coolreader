@@ -375,7 +375,7 @@ public:
     virtual void SetHintingMode(hinting_mode_t /*mode*/) { }
     /// returns current hinting mode
     virtual hinting_mode_t  GetHintingMode() { return HINTING_MODE_AUTOHINT; }
-
+    virtual bool setalias(lString8 alias,lString8 facename,int id,bool italic,bool bold){ return false;}
 };
 
 class LVBaseFont : public LVFont
