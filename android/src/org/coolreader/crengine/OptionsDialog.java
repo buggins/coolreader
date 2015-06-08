@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
+import org.coolreader.Dictionaries;
+import org.coolreader.Dictionaries.DictInfo;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 import org.coolreader.plugins.OnlineStorePluginManager;
@@ -1083,7 +1085,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public DictOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_DICTIONARY );
-			DictInfo[] dicts = BaseActivity.getDictList();
+			DictInfo[] dicts = Dictionaries.getDictList();
 			setDefaultValue(dicts[0].id);
 			for (DictInfo dict : dicts) {
 				boolean installed = mActivity.isPackageInstalled(dict.packageName);

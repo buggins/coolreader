@@ -296,25 +296,5 @@ public interface Settings {
 	    "app.ui.theme*",
 	};
 
-	public static class DictInfo {
-		public final String id; 
-		public final String name;
-		public final String packageName;
-		public final String className;
-		public final String action;
-		public final Integer internal;
-		public String dataKey = SearchManager.QUERY; 
-		public DictInfo ( String id, String name, String packageName, String className, String action, Integer internal ) {
-			this.id = id;
-			this.name = name;
-			this.packageName = packageName;
-			this.className = className;
-			this.action = action;
-			this.internal = internal;
-		}
-		public DictInfo setDataKey(String key) { this.dataKey = key; return this; }
-	}
-
-
 
 }

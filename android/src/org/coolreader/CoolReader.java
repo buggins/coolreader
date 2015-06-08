@@ -4,6 +4,7 @@ package org.coolreader;
 import java.lang.reflect.Field;
 import java.util.Map;
 
+import org.coolreader.Dictionaries.DictionaryException;
 import org.coolreader.crengine.AboutDialog;
 import org.coolreader.crengine.BackgroundThread;
 import org.coolreader.crengine.BaseActivity;
@@ -1173,80 +1174,12 @@ public class CoolReader extends BaseActivity
 		}
 	}
 	
-	private final static int DICTAN_ARTICLE_REQUEST_CODE = 100;
-	
-	private final static String DICTAN_ARTICLE_WORD = "article.word";
-	
-	private final static String DICTAN_ERROR_MESSAGE = "error.message";
-
-	private final static int FLAG_ACTIVITY_CLEAR_TASK = 0x00008000;
-	
 	private void findInDictionaryInternal(String s) {
-		switch (currentDict.internal) {
-		case 0:
-			Intent intent0 = new Intent(currentDict.action).setComponent(new ComponentName(
-				currentDict.packageName, currentDict.className
-				)).addFlags(DeviceInfo.getSDKLevel() >= 7 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
-			if (s!=null)
-				intent0.putExtra(currentDict.dataKey, s);
-			try {
-				startActivity( intent0 );
-			} catch ( ActivityNotFoundException e ) {
-				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
-			}
-			break;
-		case 1:
-			final String SEARCH_ACTION  = "colordict.intent.action.SEARCH";
-			final String EXTRA_QUERY   = "EXTRA_QUERY";
-			final String EXTRA_FULLSCREEN = "EXTRA_FULLSCREEN";
-			final String EXTRA_HEIGHT  = "EXTRA_HEIGHT";
-			final String EXTRA_WIDTH   = "EXTRA_WIDTH";
-			final String EXTRA_GRAVITY  = "EXTRA_GRAVITY";
-			final String EXTRA_MARGIN_LEFT = "EXTRA_MARGIN_LEFT";
-			final String EXTRA_MARGIN_TOP  = "EXTRA_MARGIN_TOP";
-			final String EXTRA_MARGIN_BOTTOM = "EXTRA_MARGIN_BOTTOM";
-			final String EXTRA_MARGIN_RIGHT = "EXTRA_MARGIN_RIGHT";
-
-			Intent intent1 = new Intent(SEARCH_ACTION);
-			if (s!=null)
-				intent1.putExtra(EXTRA_QUERY, s); //Search Query
-			intent1.putExtra(EXTRA_FULLSCREEN, true); //
-			try
-			{
-				startActivity(intent1);
-			} catch ( ActivityNotFoundException e ) {
-				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
-			}
-			break;
-		case 2:
-			// Dictan support
-			Intent intent2 = new Intent("android.intent.action.VIEW");
-			// Add custom category to run the Dictan external dispatcher
-            intent2.addCategory("info.softex.dictan.EXTERNAL_DISPATCHER");
-            
-   	        // Don't include the dispatcher in activity  
-            // because it doesn't have any content view.	      
-            intent2.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-		  
-	        intent2.putExtra(DICTAN_ARTICLE_WORD, s);
-			  
-	        try {
-	        	startActivityForResult(intent2, DICTAN_ARTICLE_REQUEST_CODE);
-	        } catch (ActivityNotFoundException e) {
-				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
-	        }
-			break;
-		case 3:
-			Intent intent = new Intent("aard2.lookup");
-			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			intent.putExtra(SearchManager.QUERY, s);
-			try
-			{
-				startActivity(intent);
-			} catch ( ActivityNotFoundException e ) {
-				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
-			}
-			break;
+		log.d("lookup in dictionary: " + s);
+		try {
+			mDictionaries.findInDictionary(s);
+		} catch (DictionaryException e) {
+			showToast(e.getMessage());
 		}
 	}
 
@@ -1256,45 +1189,18 @@ public class CoolReader extends BaseActivity
 	
 	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if (requestCode == DICTAN_ARTICLE_REQUEST_CODE) {
-	       	switch (resultCode) {
-	        	
-	        	// The article has been shown, the intent is never expected null
-			case RESULT_OK:
-				break;
-					
-			// Error occured
-			case RESULT_CANCELED: 
-				String errMessage = "Unknown Error.";
-				if (intent != null) {
-					errMessage = "The Requested Word: " + 
-					intent.getStringExtra(DICTAN_ARTICLE_WORD) + 
-					". Error: " + intent.getStringExtra(DICTAN_ERROR_MESSAGE);
-				}
-				showToast(errMessage);
-				break;
-					
-			// Must never occur
-			default: 
-				showToast("Unknown Result Code: " + resultCode);
-				break;
-			}
-        } else {
-        	if (mDonationService != null) {
-        		mDonationService.onActivityResult(requestCode, resultCode, intent);
-        	}
-        }
+		try {
+			mDictionaries.onActivityResult(requestCode, resultCode, intent);
+		} catch (DictionaryException e) {
+			showToast(e.getMessage());
+		}
+    	if (mDonationService != null) {
+    		mDonationService.onActivityResult(requestCode, resultCode, intent);
+    	}
     }
 	
-	private DictInfo currentDict = getDictList()[0];
-	
 	public void setDict( String id ) {
-		for ( DictInfo d : getDictList() ) {
-			if ( d.id.equals(id) ) {
-				currentDict = d;
-				return;
-			}
-		}
+		mDictionaries.setDict(id);
 	}
 
 	public void showAboutDialog() {
