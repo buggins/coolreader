@@ -112,10 +112,5 @@ android:contentDescription="@string/dlg_about_donation_vip"/>
             android:layout_margin="4dip" 
             android:paddingBottom="6dip" 
             android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-<TextView android:text="PayPal: coolreader.org@gmail.com" 
-            style="@style/TextAppearance.Medium"
-            android:maxLines="2" 
-            android:layout_margin="4dip" 
-            android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 </LinearLayout>
 </ScrollView>
