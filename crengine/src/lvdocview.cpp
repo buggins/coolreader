@@ -5381,7 +5381,8 @@ int LVDocView::onSelectionCommand( int cmd, int param )
         currSel = *sel[0];
     bool moved = false;
     bool makeSelStartVisible = true; // true: start, false: end
-    if ( !currSel.isNull() && !pageRange->isInside(currSel.getStart()) && !pageRange->isInside(currSel.getEnd()) )
+    if ( !currSel.isNull() && cmd == DCMD_SELECT_FIRST_SENTENCE
+            && !pageRange->isInside(currSel.getStart()) && !pageRange->isInside(currSel.getEnd()) )
         currSel.clear();
     if ( currSel.isNull() || currSel.getStart().isNull() ) {
         // select first sentence on page
