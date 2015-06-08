@@ -37,6 +37,7 @@ import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.CRDonationService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -48,7 +49,6 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -1235,6 +1235,17 @@ public class CoolReader extends BaseActivity
 	        } catch (ActivityNotFoundException e) {
 				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
 	        }
+			break;
+		case 3:
+			Intent intent = new Intent("aard2.lookup");
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			intent.putExtra(SearchManager.QUERY, s);
+			try
+			{
+				startActivity(intent);
+			} catch ( ActivityNotFoundException e ) {
+				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+			}
 			break;
 		}
 	}
