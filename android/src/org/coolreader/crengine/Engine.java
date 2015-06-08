@@ -57,7 +57,7 @@ public class Engine {
 		return res.toArray(new File[res.size()]);
 	}
 	
-	public Map<String, String> getMountedRootsMap() {
+	public static Map<String, String> getMountedRootsMap() {
 		return mountedRootsMap;
 	}
 
@@ -579,6 +579,16 @@ public class Engine {
 	 */
 	public native static String isLink(String pathName);
 	
+	public static String folowLink(String pathName) {
+		String lnk = isLink(pathName);
+		if (lnk == null)
+			return pathName;
+		String lnk2 = isLink(lnk);
+		if (lnk2 == null)
+			return lnk;
+		return lnk2;
+	}
+	
 	private static final int HYPH_NONE = 0;
 	private static final int HYPH_ALGO = 1;
 	private static final int HYPH_DICT = 2;
@@ -989,11 +999,31 @@ public class Engine {
 		return addMountRoot(list, pathname, pathname); //mActivity.getResources().getString(resourceId));
 	}
 	
+	public static boolean isStorageDir(String path) {
+		if (path == null)
+			return false;
+		String normalized = pathCorrector.normalizeIfPossible(path);
+		String sdpath = pathCorrector.normalizeIfPossible(Environment.getExternalStorageDirectory().getAbsolutePath());
+		if (sdpath != null && sdpath.equals(normalized))
+			return true;
+		return false;
+	}
+	
+	public static boolean isExternalStorageDir(String path) {
+		if (path == null)
+			return false;
+		if (path.contains("/ext"))
+			return true;
+		return false;
+	}
+	
 	private static boolean addMountRoot(Map<String, String> list, String path, String name) {
 		if (list.containsKey(path))
 			return false;
+		String plink = folowLink(path);
 		for (String key : list.keySet()) {
-			if (path.equals(key)) { // path.startsWith(key + "/")
+			//if (pathCorrector.normalizeIfPossible(path).equals(pathCorrector.normalizeIfPossible(key))) {
+			if (plink.equals(folowLink(key))) { // path.startsWith(key + "/")
 				log.w("Skipping duplicate path " + path + " == " + key);
 				return false; // duplicate subpath
 			}
@@ -1143,8 +1173,12 @@ public class Engine {
 		// dirty fix
 		if ("/nand".equals(sdpath) && new File("/sdcard").isDirectory())
 			sdpath = "/sdcard";
+		//String sdlink = isLink(sdpath);
+		//if (sdlink != null)
+		//	sdpath = sdlink;
+		
 		// main storage
-		addMountRoot(map, sdpath, R.string.dir_sd_card);
+		addMountRoot(map, sdpath, "SD");
 
 		// retrieve list of mount points from system
 		String[] fstabLocations = new String[] {
@@ -1287,23 +1321,41 @@ public class Engine {
 		
 		mountedRootsMap = map;
 		Collection<File> list = new ArrayList<File>();
-		log.i("Mount ROOTS:");
+		
 		for (String f : map.keySet()) {
 			File path = new File(f);
 			list.add(path);
-			String label = map.get(f);
-			log.i("*** " + f + " '" + label + "' isDirectory=" + path.isDirectory() + " canRead=" + path.canRead() + " canWrite=" + path.canRead() + " isLink=" + isLink(f));
 		}
+		
 		mountedRootsList = list.toArray(new File[] {});
 		pathCorrector = new MountPathCorrector(mountedRootsList);
 
 		for (String point : mountPointsToAdd) {
 			String link = isLink(point);
-			if (link != null)
+			if (link != null) {
+				log.d("pathCorrector.addRootLink(" + point + ", " + link + ")");
 				pathCorrector.addRootLink(point, link);
+			}
 		}
 		
 		Log.i("cr3", "Root list: " + list + ", root links: " + pathCorrector);
+
+		
+		log.i("Mount ROOTS:");
+		for (String f : map.keySet()) {
+			File path = new File(f);
+			String label = map.get(f);
+			if (isStorageDir(f)) {
+				label = "SD";
+				map.put(f, label);
+			} else if (isExternalStorageDir(f)) {
+				label = "Ext SD";
+				map.put(f, label);
+			}
+			
+			log.i("*** " + f + " '" + label + "' isDirectory=" + path.isDirectory() + " canRead=" + path.canRead() + " canWrite=" + path.canRead() + " isLink=" + isLink(f));
+		}
+		
 //		testPathNormalization("/sdcard/books/test.fb2");
 //		testPathNormalization("/mnt/sdcard/downloads/test.fb2");
 //		testPathNormalization("/mnt/sd/dir/test.fb2");

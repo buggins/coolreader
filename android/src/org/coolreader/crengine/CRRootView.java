@@ -398,7 +398,12 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
                 icon.setImageResource(R.drawable.media_flash_sd_mmc);
             else
                 icon.setImageResource(R.drawable.folder_blue);
-            label.setText(item.pathname);
+            if (item.title != null)
+            	label.setText(item.title); //  filename
+            else if (item.getType() == FileInfo.TYPE_FS_ROOT || item.getType() == FileInfo.TYPE_DOWNLOAD_DIR)
+            	label.setText(item.filename); //  filename
+            else
+            	label.setText(item.pathname); //  filename
             label.setMaxWidth(coverWidth * 25 / 10);
             view.setOnClickListener(new OnClickListener() {
                 @Override

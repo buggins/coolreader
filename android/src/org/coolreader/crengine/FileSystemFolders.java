@@ -5,6 +5,7 @@ import org.coolreader.db.CRDBService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.coolreader.db.CRDBService.FileInfoLoadingCallback;
 
@@ -28,10 +29,15 @@ public class FileSystemFolders extends FileInfoChangeSource {
 
     private ArrayList<FileInfo> updateEntries(List<FileInfo> favoriteFolders){
         ArrayList<FileInfo> dirs = new ArrayList<FileInfo>();
-        File[] roots = Engine.getStorageDirectories(false);
-        for (File f : roots) {
+        Map<String, String> map = Engine.getMountedRootsMap();
+		for (String r : map.keySet()) {
+			if (r.equals("/storage/emulated/legacy")) // hack for Samsung Galaxy S
+				continue;
+			File f = new File(r);
+			String label = map.get(r);
             FileInfo dir = new FileInfo(f);
             dir.setType(FileInfo.TYPE_FS_ROOT);
+        	dir.setTitle(label);
             dirs.add(dir);
         }
         dirs.addAll(filter(favoriteFolders));

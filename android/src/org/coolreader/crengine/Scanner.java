@@ -414,6 +414,7 @@ public class Scanner extends FileInfoChangeSource {
 		dir.isDirectory = true;
 		dir.pathname = pathname;
 		dir.filename = filename;
+		dir.title = filename;
 		if (findRoot(pathname) != null) {
 			log.w("skipping duplicate root " + pathname);
 			return false; // exclude duplicates
@@ -827,6 +828,8 @@ public class Scanner extends FileInfoChangeSource {
 	public FileInfo getDownloadDirectory() {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {
 			FileInfo item = mRoot.getDir(i);
+			if (!item.isWritableDirectory())
+				continue;
 			if ( !item.isSpecialDir() && !item.isArchive ) {
 				if (!item.isListed)
 					listDirectory(item);
