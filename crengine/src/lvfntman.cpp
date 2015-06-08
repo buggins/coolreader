@@ -38,7 +38,7 @@
 #define GAMMA_TABLES_IMPL
 #include "../include/gammatbl.h"
 
-#if (USE_FREETYPE==1)
+//#if (USE_FREETYPE==1)
 
 //#include <ft2build.h>
 
@@ -266,7 +266,7 @@ int LVFont::getVisualAligmentWidth()
     FONT_GUARD
     if ( _visual_alignment_width==-1 ) {
         //lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', 0 };
-        lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', (lChar16)L'，', (lChar16)L'。', (lChar16)L'！', 0 };
+        lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', (lChar16)L'ï¼Œ', (lChar16)L'ã€‚', (lChar16)L'ï¼�', 0 };
         int maxw = 0;
         for ( int i=0; chars[i]; i++ ) {
             int w = getCharWidth( chars[i] );
