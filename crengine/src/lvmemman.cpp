@@ -33,6 +33,10 @@ void crSetFileToRemoveOnFatalError(const char * filename) {
 static struct sigaction old_sa[NSIG];
 
 #if FOR_ANDROID == 1
+//#define ANDROID_BACKTRACE
+#endif
+
+#ifdef ANDROID_BACKTRACE
 #include <unwind.h>
 #include <dlfcn.h>
 
@@ -84,7 +88,7 @@ void dumpBacktrace(void** addrs, size_t count)
     }
 }
 
-#endif
+#endif // ANDROID_BACKTRACE
 
 
 
@@ -95,7 +99,7 @@ void cr_sigaction(int signal, siginfo_t *info, void *reserved)
 		unlink(file_to_remove_on_crash);
 	CRLog::error("cr_sigaction(%d)", signal);
 
-#if FOR_ANDROID == 1
+#ifdef ANDROID_BACKTRACE
     void* buffer[50];
 	dumpBacktrace(buffer, captureBacktrace(buffer, 50));
 #endif

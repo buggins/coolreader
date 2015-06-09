@@ -191,8 +191,8 @@ typedef unsigned long           UInt64;
 #define strlen __builtin_strlen
 #endif
 
-#if defined(WIN32)
-static int ffs(unsigned int val)
+//#if defined(WIN32)
+static int myffs(unsigned int val)
 {
     int bit=1, idx=1;
     while (bit != 0  &&  (val & bit) == 0)
@@ -205,7 +205,7 @@ static int ffs(unsigned int val)
     else
         return idx;
 }
-#endif
+//#endif
 
 /* utilities for unmarshalling data */
 static int _unmarshal_char_array(unsigned char **pData,
@@ -1566,7 +1566,7 @@ static Int64 _chm_decompress_region(struct chmFile *h,
     /* data request not satisfied, so... start up the decompressor machine */
     if (! h->lzx_state)
     {
-        int window_size = ffs(h->window_size) - 1;
+        int window_size = myffs(h->window_size) - 1;
         h->lzx_last_block = -1;
         h->lzx_state = LZXinit(window_size);
     }
