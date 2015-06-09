@@ -266,7 +266,11 @@ int LVFont::getVisualAligmentWidth()
     FONT_GUARD
     if ( _visual_alignment_width==-1 ) {
         //lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', 0 };
-        lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';', (lChar16)L'，', (lChar16)L'。', (lChar16)L'！', 0 };
+        lChar16 chars[] = { getHyphChar(), ',', '.', '!', ':', ';',
+                            (lChar16)L'\xff0c', (lChar16)L'\x3302', (lChar16)L'\xff01', 0 };
+        //                  (lChar16)L'，', (lChar16)L'。', (lChar16)L'！', 0 };
+        //                  65292 12290 65281
+        //                  ff0c 3002 ff01
         int maxw = 0;
         for ( int i=0; chars[i]; i++ ) {
             int w = getCharWidth( chars[i] );
@@ -2334,8 +2338,8 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
                     }
                     break;
                 }
-                bool scal = FT_IS_SCALABLE( face );
-                bool charset = checkCharSet( face );
+                //bool scal = FT_IS_SCALABLE( face );
+                //bool charset = checkCharSet( face );
 
                 int num_faces = face->num_faces;
 
