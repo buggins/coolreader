@@ -26,7 +26,7 @@ public:
 };
 
 
-#define WORD_LENGTH   64
+#define WORD_LENGTH   1024
 #define MAX_REAL_WORD 24
 
 
