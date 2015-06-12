@@ -11052,7 +11052,7 @@ void ldomDocument::registerEmbeddedFonts()
                 do { (fontface.replace(lString16(" "), lString16("\0"))); }
                 while (fontface.pos(lString16(" ")) != -1);
                 if (fontface.lowercase().pos(url.lowercase()) != -1) {
-                    fontMan->setalias(face, UnicodeToLocal(flist[j]), getDocIndex()) ;
+                    fontMan->SetAlias(face, UnicodeToLocal(flist[j]), getDocIndex(),item->getBold(),item->getItalic()) ;
                     break;
                 }
             }
