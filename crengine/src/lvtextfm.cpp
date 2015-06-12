@@ -459,7 +459,7 @@ public:
         LVFont::glyph_info_t glyph;
         if ( !font->getGlyphInfo(m_text[pos], &glyph, '?') )
             return 0;
-        int delta = glyph.originX + glyph.width - glyph.blackBoxX;
+        int delta = glyph.originX - glyph.width + glyph.blackBoxX;//fix the italic CJK character
         return delta > 0 ? delta : 0;
     }
 
@@ -1105,6 +1105,7 @@ public:
                 TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + endp - 1, 1)));
                 m_widths[lastnonspace] += dw;
             }
+            if (endp>m_length) endp=m_length;
             addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace);
             pos = wrapPos + 1;
         }
