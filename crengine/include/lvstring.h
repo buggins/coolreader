@@ -178,7 +178,7 @@ class lString8
 public:
     // typedefs for STL compatibility
     typedef lChar8              value_type;      ///< character type
-    typedef int                 size_type;       ///< size type
+    typedef lInt32              size_type;       ///< size type
     typedef int                 difference_type; ///< difference type
     typedef value_type *        pointer;         ///< pointer to char type
     typedef value_type &        reference;       ///< reference to char type
@@ -337,7 +337,11 @@ public:
     lUInt32 getHash() const;
 
     /// get character at specified position with range check
-    value_type & at( size_type pos ) { if (pos > (size_type)pchunk->len) crFatalError(); return modify()[pos]; }
+    value_type & at(size_type pos) {
+    	if (pos > pchunk->len)
+    		crFatalError();
+    	return modify()[pos];
+    }
     /// get character at specified position without range check
     value_type operator [] ( size_type pos ) const { return pchunk->buf8[pos]; }
     /// get reference to character at specified position
