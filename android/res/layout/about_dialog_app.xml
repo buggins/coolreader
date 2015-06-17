@@ -39,4 +39,9 @@
             android:id="@+id/thirdparty2" 
             style="@style/TextAppearance.Small"
             android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+    <TextView android:text="CoffeeCatch> library: https://github.com/xroche/coffeecatch" 
+            android:id="@+id/thirdparty3" 
+            style="@style/TextAppearance.Small"
+            android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+
 </LinearLayout>

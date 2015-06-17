@@ -1,6 +1,12 @@
 #include "docview.h"
 #include "lvdocview.h"
 //#include "crgl.h"
+#if defined(__arm__)
+#include "coffeecatch/coffeecatch.h"
+#include "coffeecatch/coffeejni.h"
+#else
+#define COFFEE_TRY_JNI(ENV, CODE) CODE;
+#endif
 
 
 
