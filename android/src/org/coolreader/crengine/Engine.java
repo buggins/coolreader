@@ -1020,6 +1020,12 @@ public class Engine {
 	private static boolean addMountRoot(Map<String, String> list, String path, String name) {
 		if (list.containsKey(path))
 			return false;
+		if (path.equals("/storage/emulated/legacy")) {
+			for (String key : list.keySet()) {
+				if (key.equals("/storage/emulated/0"))
+					return false; // don't add "/storage/emulated/legacy" after "/storage/emulated/0"
+			}
+		}
 		String plink = folowLink(path);
 		for (String key : list.keySet()) {
 			//if (pathCorrector.normalizeIfPossible(path).equals(pathCorrector.normalizeIfPossible(key))) {
@@ -1045,43 +1051,6 @@ public class Engine {
 		}
 		return false;
 	}
-	
-//	private static final String[] SYSTEM_ROOT_PATHS = {"/system", "/data", "/mnt"};
-//	private void autoAddRoots(Map<String, String> list, String rootPath, String[] pathsToExclude)
-//	{
-//		try {
-//			File root = new File(rootPath);
-//			File[] files = root.listFiles();
-//			if ( files!=null ) {
-//				for ( File f : files ) {
-//					if ( !f.isDirectory() )
-//						continue;
-//					String fullPath = f.getAbsolutePath();
-//					if (isLink(fullPath) != null) {
-//						L.d("skipping symlink " + fullPath);
-//						continue;
-//					}
-//					boolean skip = false;
-//					for ( String path : pathsToExclude ) {
-//						if ( fullPath.startsWith(path) ) {
-//							skip = true;
-//							break;
-//						}
-//					}
-//					if ( skip )
-//						continue;
-//					if ( !f.canWrite() ) {
-//						L.i("Path is readonly: " + f.getAbsolutePath());
-//						continue;
-//					}
-//					L.i("Found possible mount point " + f.getAbsolutePath());
-//					addMountRoot(list, f.getAbsolutePath(), f.getAbsolutePath());
-//				}
-//			}
-//		} catch ( Exception e ) {
-//			L.w("Exception while trying to auto add roots");
-//		}
-//	}
 	
 	public static HashSet<String> getExternalMounts() {
 	    final HashSet<String> out = new HashSet<String>();
@@ -1270,7 +1239,7 @@ public class Engine {
 			"/mnt/sdcard1",
 			"/mnt/sdcard2",
 			"/mnt/usb_storage",
-			"/mnt/external_sd",
+			"/mnt/external_SD",
 			"/emmc",
 			"/external",
 			"/Removable/SD",
@@ -1279,6 +1248,7 @@ public class Engine {
 			"/storage/sdcard1",
 			"/mnt/sdcard/extStorages/SdCard",
 			"/storage/extSdCard",
+			"/storage/external_SD",
 		};
 		// collect mount points from all possible sources
 		HashSet<String> mountPointsToAdd = new HashSet<String>();
