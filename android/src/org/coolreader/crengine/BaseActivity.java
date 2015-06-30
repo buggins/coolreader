@@ -217,9 +217,9 @@ public class BaseActivity extends Activity implements Settings {
 		setScreenBacklightDuration(props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, 3));
 
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
-		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4); //(DeviceInfo.EINK_SCREEN?0:4)
-		if ( orientation < 0 || orientation > 4 )
-			orientation = 0;
+		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 5); //(DeviceInfo.EINK_SCREEN?0:4)
+		if (orientation < 0 || orientation > 5)
+			orientation = 5;
 		setScreenOrientation(orientation);
 		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
 		if ( backlight<-1 || backlight>100 )
@@ -407,7 +407,7 @@ public class BaseActivity extends Activity implements Settings {
 		updateBackground();
 	}
 
-	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_USER;
 	public void applyScreenOrientation( Window wnd )
 	{
 		if ( wnd!=null ) {
@@ -433,6 +433,8 @@ public class BaseActivity extends Activity implements Settings {
 			return 2;
 		case ActivityInfo_SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
 			return 3;
+		case ActivityInfo.SCREEN_ORIENTATION_USER:
+			return 5;
 		default:
 			return orientationFromSensor;
 		}
@@ -478,6 +480,9 @@ public class BaseActivity extends Activity implements Settings {
 			break;
 		case 4:
 			newOrientation = level9 ? ActivityInfo_SCREEN_ORIENTATION_FULL_SENSOR : ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+			break;
+		case 5:
+			newOrientation = ActivityInfo.SCREEN_ORIENTATION_USER;
 			break;
 		}
 		if (newOrientation != screenOrientation) {

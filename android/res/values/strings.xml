@@ -83,6 +83,7 @@
     <string name="options_page_orientation_180">Portrait (180)</string>
     <string name="options_page_orientation_270">Landscape (270)</string>
     <string name="options_page_orientation_sensor">Sensor</string>
+    <string name="options_page_orientation_system">Use system setting</string>
     <string name="options_page_landscape_pages">Landscape pages</string>
     <string name="options_page_landscape_pages_one">One page</string>
     <string name="options_page_landscape_pages_two">Two pages</string>

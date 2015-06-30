@@ -78,6 +78,7 @@
     <string name="options_page_orientation_180">Книжная (180)</string>
     <string name="options_page_orientation_270">Альбомная (270)</string>
     <string name="options_page_orientation_sensor">Сенсор</string>
+    <string name="options_page_orientation_system">По системной настройке</string>
     <string name="options_page_landscape_pages">Страницы в альбомном режиме</string>
     <string name="options_page_landscape_pages_one">Одна страница</string>
     <string name="options_page_landscape_pages_two">Две страницы</string>

@@ -122,18 +122,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_font_hinting_auto
 		};
 	int[] mOrientations = new int[] {
-			0, 1, 4
+			0, 1, 4, 5
 		};
 	int[] mOrientationsTitles = new int[] {
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90, 
-			R.string.options_page_orientation_sensor
+			R.string.options_page_orientation_sensor, R.string.options_page_orientation_system
 		};
 	int[] mOrientations_API9 = new int[] {
-			0, 1, 2, 3, 4
+			0, 1, 2, 3, 4, 5
 		};
 	int[] mOrientationsTitles_API9 = new int[] {
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90, R.string.options_page_orientation_180, R.string.options_page_orientation_270
-			,R.string.options_page_orientation_sensor
+			,R.string.options_page_orientation_sensor,R.string.options_page_orientation_system
 		};
 
 	int[] mToolbarPositions = new int[] {
