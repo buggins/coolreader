@@ -817,12 +817,19 @@ LVContainerRef LVOpenDirectory( const lChar16 * path, const wchar_t * mask = L"*
 LVContainerRef LVOpenDirectory(const lString16& path, const wchar_t * mask = L"*.*" );
 LVContainerRef LVOpenDirectory(const lString8& path, const wchar_t * mask = L"*.*" );
 
+bool LVDirectoryIsEmpty(const lString8& path);
+bool LVDirectoryIsEmpty(const lString16& path);
+
 /// Create directory if not exist
 bool LVCreateDirectory( lString16 path );
 /// delete file, return true if file found and successfully deleted
 bool LVDeleteFile( lString16 filename );
 /// delete file, return true if file found and successfully deleted
 bool LVDeleteFile( lString8 filename );
+/// delete directory, return true if directory is found and successfully deleted
+bool LVDeleteDirectory( lString16 filename );
+/// delete directory, return true if directory is found and successfully deleted
+bool LVDeleteDirectory( lString8 filename );
 /// rename file
 bool LVRenameFile(lString16 oldname, lString16 newname);
 /// rename file

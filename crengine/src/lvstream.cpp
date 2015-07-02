@@ -3174,6 +3174,16 @@ lvsize_t LVPumpStream( LVStream * out, LVStream * in )
     return totalBytesRead;
 }
 
+bool LVDirectoryIsEmpty(const lString8& path) {
+    return LVDirectoryIsEmpty(Utf8ToUnicode(path));
+}
+
+bool LVDirectoryIsEmpty(const lString16& path) {
+    LVContainerRef dir = LVOpenDirectory(path);
+    if (dir.isNull())
+        return false;
+    return dir->GetObjectCount() == 0;
+}
 
 LVContainerRef LVOpenDirectory(const lString16& path, const wchar_t * mask) {
 	return LVOpenDirectory(path.c_str(), mask);
@@ -3980,6 +3990,22 @@ bool LVRenameFile(lString8 oldname, lString8 newname) {
 /// delete file, return true if file found and successfully deleted
 bool LVDeleteFile( lString8 filename ) {
     return LVDeleteFile(Utf8ToUnicode(filename));
+}
+
+/// delete directory, return true if directory is found and successfully deleted
+bool LVDeleteDirectory( lString16 filename ) {
+#ifdef _WIN32
+    return RemoveDirectoryW( filename.c_str() ) ? true : false;
+#else
+    if ( unlink( UnicodeToUtf8( filename ).c_str() ) )
+        return false;
+    return true;
+#endif
+}
+
+/// delete directory, return true if directory is found and successfully deleted
+bool LVDeleteDirectory( lString8 filename ) {
+    return LVDeleteDirectory(Utf8ToUnicode(filename));
 }
 
 #define TRACE_BLOCK_WRITE_STREAM 0
