@@ -641,6 +641,7 @@ public:
             }
             if ( addSpacePoints>0 ) {
                 int addSpaceDiv = extraSpace / addSpacePoints;
+                if (asd==0||asd>=addSpaceDiv) { if (_first==false) asd=addSpaceDiv;}
                 int addSpaceMod = extraSpace % addSpacePoints;
                 int delta = 0;
                 for ( i=0; i<(int)frmline->word_count; i++ ) {
@@ -657,7 +658,8 @@ public:
             }
         }
     }
-
+	int asd=0; //
+	bool _first=false;//
     /// split line into words, add space for width alignment
     void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace )
     {
@@ -674,7 +676,7 @@ public:
         if ( preFormattedOnly || !align )
             align = LTEXT_ALIGN_LEFT;
 
-        bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT );
+        bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0 && (align == LTEXT_ALIGN_WIDTH || align == LTEXT_ALIGN_RIGHT ||align==LTEXT_ALIGN_LEFT);
 
         bool splitBySpaces = (align == LTEXT_ALIGN_WIDTH) || needReduceSpace;
 
@@ -806,7 +808,8 @@ public:
                         int endp = i-1;
                         int lastc = m_text[endp];
                         int wAlign = font->getVisualAligmentWidth();
-                        word->width += wAlign/2;
+                        word->width += wAlign * 0.7;//
+                        frmline->x += wAlign * 0.2;//add space for some Chinese font floating punctuation at line end
                         while ( (lastc==' ') && endp>0 ) { // || lastc=='\r' || lastc=='\n'
                             word->width -= m_widths[endp] - m_widths[endp-1];
                             endp--;
@@ -818,12 +821,13 @@ public:
                             FONT_GUARD
                             int w = font->getCharWidth(lastc);
                             TR("floating: %c w=%d", lastc, w);
-                            word->width -= w;
+                            if (frmline->width + w + wAlign + x >= maxWidth) word->width -= w; //fix russian "?" at line end
                         } else if (lastc==L'。' || lastc==L'，' || lastc==L'！' || lastc==L'：' || lastc==L'；' ||
                     		    lastc==L'”'  || lastc==L'’' || lastc==L'」' || lastc==L'』' || lastc==L'、') {
                             FONT_GUARD
                         	int w = font->getCharWidth(lastc);
                         	if (frmline->width + w + wAlign + x >= maxWidth) word->width -= w;
+                            else if (w!=0){if (end - start == int((maxWidth - wAlign) / w)) word->width -= w;} //Chinese floating punctuation
                         }
                         word->min_width = word->width;
                     }
@@ -853,8 +857,17 @@ public:
             }
             lastIsSpace = isSpace;
         }
-
+        if (first or last) _first=true;
+	else _first=false; //save state of line processed
         alignLine( frmline, maxWidth, align );
+        if (last and !first){
+            int delta=0;
+            for (int i=0; i<(int)frmline->word_count; i++ ) {
+                frmline->words[i].x += delta;
+                    delta += asd;
+            }
+            frmline->width += delta;
+        }//(Chinese) align last line of a paragraph to the previous lines. function alignLine() does not process last line
 
         m_y += frmline->height;
         m_pbuffer->height = m_y;
