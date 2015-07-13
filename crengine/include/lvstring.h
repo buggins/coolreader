@@ -631,6 +631,8 @@ public:
     /// trims all unused space at end of string (sets size to length)
     lString16 & pack();
 
+    /// trims non alpha at beginning and end of string
+    lString16 & trimNonAlpha();
     /// trims spaces at beginning and end of string
     lString16 & trim();
     /// trims duplicate space characters inside string and (optionally) at end and beginning of string

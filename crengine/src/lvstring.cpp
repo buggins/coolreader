@@ -1052,6 +1052,49 @@ lString16 & lString16::pack()
     return *this;
 }
 
+bool isAlNum(lChar16 ch) {
+    lUInt16 props = lGetCharProps(ch);
+    return (props & (CH_PROP_ALPHA | CH_PROP_DIGIT)) != 0;
+}
+
+/// trims non alpha at beginning and end of string
+lString16 & lString16::trimNonAlpha()
+{
+    int firstns;
+    for (firstns = 0; firstns<pchunk->len &&
+        isAlNum(pchunk->buf16[firstns]); ++firstns)
+        ;
+    if (firstns >= pchunk->len)
+    {
+        clear();
+        return *this;
+    }
+    int lastns;
+    for (lastns = pchunk->len-1; lastns>0 &&
+        isAlNum(pchunk->buf16[lastns]); --lastns)
+        ;
+    int newlen = lastns-firstns+1;
+    if (newlen == pchunk->len)
+        return *this;
+    if (pchunk->nref == 1)
+    {
+        if (firstns>0)
+            lStr_memcpy( pchunk->buf16, pchunk->buf16+firstns, newlen );
+        pchunk->buf16[newlen] = 0;
+        pchunk->len = newlen;
+    }
+    else
+    {
+        lstring_chunk_t * poldchunk = pchunk;
+        release();
+        alloc( newlen );
+        _lStr_memcpy( pchunk->buf16, poldchunk->buf16+firstns, newlen );
+        pchunk->buf16[newlen] = 0;
+        pchunk->len = newlen;
+    }
+    return *this;
+}
+
 lString16 & lString16::trim()
 {
     //
