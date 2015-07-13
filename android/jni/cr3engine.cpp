@@ -300,6 +300,7 @@ void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteA
 	if (drawbuf != NULL) {
 		LVImageSourceRef image;
 		if (_data != NULL && _env->GetArrayLength(_data) > 0) {
+			CRLog::debug("drawBookCoverInternal : cover image from array");
 			stream = env.jbyteArrayToStream(_data);
 			if (!stream.isNull())
 				image = LVCreateStreamImageSource(stream);
@@ -327,6 +328,7 @@ void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteA
 
 		if (bpp >= 16) {
 			// native color resolution
+			CRLog::debug("drawBookCoverInternal : calling LVDrawBookCover");
 			LVDrawBookCover(*drawbuf2, image, fontFace, title, authors, seriesName, seriesNumber);
 			image.Clear();
 		} else {
@@ -337,6 +339,7 @@ void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteA
 		}
 
 		if (factor > 1) {
+			CRLog::debug("drawBookCoverInternal : rescaling");
 			drawbuf->DrawRescaled(drawbuf2, 0, 0, drawbuf->GetWidth(), drawbuf->GetHeight(), 0);
 			delete drawbuf2;
 		}
@@ -642,16 +645,19 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
   (JNIEnv * env, jclass obj, jstring pathname)
 {
-	if ( !pathname )
+	//CRLog::trace("isLink : enter");
+	if (!pathname)
 		return NULL;
+	//CRLog::trace("isLink : pathname is not null");
 	int res = JNI_FALSE;
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars(pathname, &iscopy);
+	//CRLog::trace("isLink : read utf from pathname");
 	struct stat st;
 	lString8 path;
 	if ( !lstat( s, &st) ) {
 		if ( S_ISLNK(st.st_mode) ) {
-			char buf[1024];
+			char buf[2048];
 			int len = readlink(s, buf, sizeof(buf) - 1);
 			if (len != -1) {
 				buf[len] = 0;
@@ -659,7 +665,9 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
 			}
 		}
 	}
+	//CRLog::trace("isLink : releasing utf pathname");
 	env->ReleaseStringUTFChars(pathname, s);
+	//CRLog::trace("isLink : returning");
 	return !path.empty() ? (jstring)env->NewGlobalRef(env->NewStringUTF(path.c_str())) : NULL;
 }
 

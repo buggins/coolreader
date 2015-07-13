@@ -3,7 +3,7 @@ package org.coolreader;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Logger;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
@@ -48,9 +48,10 @@ public class Dictionaries {
 		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
 		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
 		new DictInfo("Aard2", "Aard 2 Dictionary", "itkach.aard2", "aard2.lookup", Intent.ACTION_SEARCH, 3),
-		new DictInfo("Dictan", "Dictan Dictionary", "info.softex.dictan", "", Intent.ACTION_VIEW, 2),
+		new DictInfo("Dictan", "Dictan Dictionary", "info.softex.dictan", null, Intent.ACTION_VIEW, 2),
 		new DictInfo("FreeDictionary.org", "Free Dictionary . org", "org.freedictionary", "org.freedictionary.MainActivity", "android.intent.action.VIEW", 0),
-		new DictInfo("ABBYYLingvo", "ABBYY Lingvo", "com.abbyy.mobile.lingvo.market", "com.abbyy.mobile.lingvo.market.MainActivity", "com.abbyy.mobile.lingvo.intent.action.TRANSLATE", 0).setDataKey("com.abbyy.mobile.lingvo.intent.extra.TEXT"),
+		new DictInfo("ABBYYLingvo", "ABBYY Lingvo", "com.abbyy.mobile.lingvo.market", null /*com.abbyy.mobile.lingvo.market.MainActivity*/, "com.abbyy.mobile.lingvo.intent.action.TRANSLATE", 0).setDataKey("com.abbyy.mobile.lingvo.intent.extra.TEXT"),
+		//new DictInfo("ABBYYLingvoLive", "ABBYY Lingvo Live", "com.abbyy.mobile.lingvolive", null, "com.abbyy.mobile.lingvo.intent.action.TRANSLATE", 0).setDataKey("com.abbyy.mobile.lingvo.intent.extra.TEXT"),
 		new DictInfo("LingoQuizLite", "Lingo Quiz Lite", "mnm.lite.lingoquiz", "mnm.lite.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
 		new DictInfo("LingoQuiz", "Lingo Quiz", "mnm.lingoquiz", "mnm.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
 		new DictInfo("LEODictionary", "LEO Dictionary", "org.leo.android.dict", "org.leo.android.dict.LeoDict", "android.intent.action.SEARCH", 0).setDataKey("query"),
@@ -112,13 +113,19 @@ public class Dictionaries {
 		}
 	}
 	
+	@SuppressLint("NewApi")
 	public void findInDictionary(String s) throws DictionaryException {
 		log.d("lookup in dictionary: " + s);
 		switch (currentDictionary.internal) {
 		case 0:
-			Intent intent0 = new Intent(currentDictionary.action).setComponent(new ComponentName(
-					currentDictionary.packageName, currentDictionary.className
-				)).addFlags(DeviceInfo.getSDKLevel() >= 7 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
+			Intent intent0 = new Intent(currentDictionary.action);
+			if (currentDictionary.className != null || DeviceInfo.getSDKLevel() == 3) {
+				intent0.setComponent(new ComponentName(
+					currentDictionary.packageName, currentDictionary.className));
+			} else {
+				intent0.setPackage(currentDictionary.packageName);
+			}
+			intent0.addFlags(DeviceInfo.getSDKLevel() >= 7 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (s!=null)
 				intent0.putExtra(currentDictionary.dataKey, s);
 			try {
