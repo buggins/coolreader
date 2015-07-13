@@ -1062,7 +1062,7 @@ lString16 & lString16::trimNonAlpha()
 {
     int firstns;
     for (firstns = 0; firstns<pchunk->len &&
-        isAlNum(pchunk->buf16[firstns]); ++firstns)
+        !isAlNum(pchunk->buf16[firstns]); ++firstns)
         ;
     if (firstns >= pchunk->len)
     {
@@ -1071,7 +1071,7 @@ lString16 & lString16::trimNonAlpha()
     }
     int lastns;
     for (lastns = pchunk->len-1; lastns>0 &&
-        isAlNum(pchunk->buf16[lastns]); --lastns)
+        !isAlNum(pchunk->buf16[lastns]); --lastns)
         ;
     int newlen = lastns-firstns+1;
     if (newlen == pchunk->len)
