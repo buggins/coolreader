@@ -1449,7 +1449,6 @@ public class CoolReader extends BaseActivity
 				if (file == null)
 					file = item;
 				if (file.deleteFile()) {
-					getSyncService().removeFile(file.getPathName());
 					Services.getHistory().removeBookInfo(getDB(), file, true, true);
 				}
 				if (file.parent != null)
@@ -1464,7 +1463,6 @@ public class CoolReader extends BaseActivity
 			@Override
 			public void run() {
 				Services.getHistory().removeBookInfo(getDB(), item, true, false);
-				getSyncService().removeFileLastPosition(item.getPathName());
 				directoryUpdated(Services.getScanner().createRecentRoot());
 			}
 		});

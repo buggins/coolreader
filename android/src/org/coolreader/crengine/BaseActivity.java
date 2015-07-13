@@ -14,7 +14,6 @@ import org.coolreader.Dictionaries.DictInfo;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 import org.coolreader.db.CRDBServiceAccessor;
-import org.coolreader.sync.SyncServiceAccessor;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -59,7 +58,6 @@ public class BaseActivity extends Activity implements Settings {
 	private View mDecorView;
 
 	private CRDBServiceAccessor mCRDBService;
-	private SyncServiceAccessor mSyncService;
 	protected Dictionaries mDictionaries;
 	
 	protected void unbindCRDBService() {
@@ -69,34 +67,6 @@ public class BaseActivity extends Activity implements Settings {
 		}
 	}
 
-	protected void unbindSyncService() {
-		if (mSyncService != null) {
-			mSyncService.unbind();
-			mSyncService = null;
-		}
-	}
-
-	protected void bindSyncService() {
-		if (mSyncService == null) {
-	       	mSyncService = new SyncServiceAccessor(this);
-			mSyncService.bind(new Runnable() {
-				@Override
-				public void run() {
-					log.i("Initialization after SyncService is bound");
-					BackgroundThread.instance().postGUI(new Runnable() {
-						@Override
-						public void run() {
-							FileInfo downloadDirectory = Services.getScanner().getDownloadDirectory();
-							if (downloadDirectory != null && mSyncService != null)
-								mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
-						}
-					});
-				}
-			});
-		}
-	}
-
-	
 	protected void bindCRDBService() {
 		if (mCRDBService == null) {
 			mCRDBService = new CRDBServiceAccessor(this, Engine.getInstance(this).getPathCorrector());
@@ -117,7 +87,6 @@ public class BaseActivity extends Activity implements Settings {
 
 	public CRDBServiceAccessor getDBService() { return mCRDBService; }
 	public CRDBService.LocalBinder getDB() { return mCRDBService != null ? mCRDBService.get() : null; }
-	public SyncServiceAccessor getSyncService() { return mSyncService; }
 
 	public Properties settings() { return mSettingsManager.mSettings; }
 	
@@ -228,7 +197,6 @@ public class BaseActivity extends Activity implements Settings {
 
     
 		
-		bindSyncService();
 		bindCRDBService();
 	}
 	
@@ -237,7 +205,6 @@ public class BaseActivity extends Activity implements Settings {
 	protected void onDestroy() {
 		super.onDestroy();
 		unbindCRDBService();
-		unbindSyncService();
 	}
 
 	@Override
