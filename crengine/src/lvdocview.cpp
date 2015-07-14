@@ -519,11 +519,12 @@ lString8 substituteCssMacros(lString8 src, CRPropRef props) {
 void LVDocView::setStyleSheet(lString8 css_text) {
 	LVLock lock(getMutex());
     REQUEST_RENDER("setStyleSheet")
-
+    CRLog::trace("LVDocView::setStyleSheet()");
     m_stylesheet = css_text;
 }
 
 void LVDocView::updateDocStyleSheet() {
+    CRLog::trace("LVDocView::updateDocStyleSheet()");
     CRPropRef p = m_props->getSubProps("styles.");
     m_doc->setStyleSheet(substituteCssMacros(m_stylesheet, p).c_str(), true);
 }
@@ -2511,6 +2512,8 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
         CRLog::debug("Render(width=%d, height=%d, fontSize=%d, currentFontSize=%d, 0 char width=%d)", dx, dy,
                      m_font_size, m_font->getSize(), m_font->getCharWidth('0'));
 		//CRLog::trace("calling render() for document %08X font=%08X", (unsigned int)m_doc, (unsigned int)m_font.get() );
+        CRLog::trace("LVDocView::Render - calling updateDocStyleSheet()");
+        updateDocStyleSheet();
 		m_doc->render(pages, isDocumentOpened() ? m_callback : NULL, dx, dy,
                 m_showCover, m_showCover ? dy + m_pageMargins.bottom * 4 : 0,
                 m_font, m_def_interline_space, m_props);

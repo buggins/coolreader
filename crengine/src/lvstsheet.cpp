@@ -1408,6 +1408,7 @@ lUInt32 LVCssSelector::getHash()
     hash = hash * 31 + nextHash;
     if (!_decl.isNull())
         hash = hash * 31 + _decl->getHash();
+    //CRLog::trace("selector hash: %8x", hash);
     return hash;
 }
 
@@ -1419,6 +1420,7 @@ lUInt32 LVStyleSheet::getHash()
         if ( _selectors[i] )
             hash = hash * 31 + _selectors[i]->getHash() + i*15324;
     }
+    CRLog::trace("LVStyleSheet::getHash() selector count: %d  hash: %x", _selectors.length(), hash);
     return hash;
 }
 

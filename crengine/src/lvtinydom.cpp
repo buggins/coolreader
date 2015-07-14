@@ -3176,7 +3176,7 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
         changed = true;
     }
     if ( _page_height != dy ) {
-        CRLog::trace("ldomDocument::setRenderProps() - page height is changed");
+        CRLog::trace("ldomDocument::setRenderProps() - page height is changed: %d != %d", _page_height, dy);
         _page_height = dy;
         changed = true;
     }
@@ -8125,7 +8125,7 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
             return false;
         }
         _hdr = h;
-        CRLog::info("Loaded render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+        CRLog::info("Loaded render properties: styleHash=%x, stylesheetHash=%x, docflags=%04x, width=%d, height=%d",
                 _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
     }
 
@@ -8344,7 +8344,7 @@ ContinuousOperationResult ldomDocument::saveChanges( CRTimerUtil & maxTime )
                 return CR_ERROR;
             }
         }
-        CRLog::info("Saving render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+        CRLog::info("Saving render properties: styleHash=%x, stylesheetHash=%x, docflags=%04x, width=%d, height=%d",
                     _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
 
 
@@ -8456,7 +8456,7 @@ bool tinyNodeCollection::loadStylesData()
     stylebuf.checkMagic(styles_magic);
     stylebuf >> stHash;
     if ( stHash != myHash ) {
-        CRLog::info("tinyNodeCollection::loadStylesData() - stylesheet hash is changed: skip loading styles");
+        CRLog::info("tinyNodeCollection::loadStylesData() - stylesheet hash is changed: skip loading styles %08x != %08x", stHash, myHash);
         return false;
     }
     stylebuf >> len; // index
@@ -9126,7 +9126,7 @@ void ldomDocument::updateRenderContext()
     _hdr.render_dx = dx;
     _hdr.render_dy = dy;
     _hdr.render_docflags = _docFlags;
-    CRLog::info("Updating render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+    CRLog::info("Updating render properties: styleHash=%x, stylesheetHash=%x, docflags=%04x, width=%d, height=%d",
                 _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
 }
 
@@ -9174,7 +9174,7 @@ bool ldomDocument::checkRenderContext()
 //    _hdr.render_dx = dx;
 //    _hdr.render_dy = dy;
 //    _hdr.render_docflags = _docFlags;
-//    CRLog::info("New render properties: styleHash=%x, stylesheetHash=%x, docflags=%x, width=%x, height=%x",
+//    CRLog::info("New render properties: styleHash=%x, stylesheetHash=%x, docflags=%04x, width=%d, height=%d",
 //                _hdr.render_style_hash, _hdr.stylesheet_hash, _hdr.render_docflags, _hdr.render_dx, _hdr.render_dy);
     return false;
 }
@@ -9183,6 +9183,9 @@ bool ldomDocument::checkRenderContext()
 
 void lxmlDocBase::setStyleSheet( const char * css, bool replace )
 {
+    lString8 s(css);
+
+    CRLog::trace("lxmlDocBase::setStyleSheet(length:%d replace:%s css text hash: %x)", strlen(css), replace ? "yes" : "no", s.getHash());
     lUInt32 oldHash = _stylesheet.getHash();
     if ( replace ) {
         //CRLog::debug("cleaning stylesheet contents");
@@ -9195,6 +9198,16 @@ void lxmlDocBase::setStyleSheet( const char * css, bool replace )
     lUInt32 newHash = _stylesheet.getHash();
     if (oldHash != newHash) {
         CRLog::debug("New stylesheet hash: %08x", newHash);
+    }
+    {
+        CRLog::trace("Testing creation of stylesheet");
+        LVStyleSheet  stylesheet(this);
+        stylesheet.clear();
+        stylesheet.parse( css );
+        stylesheet.getHash();
+        stylesheet.clear();
+        stylesheet.parse( css );
+        stylesheet.getHash();
     }
 }
 
