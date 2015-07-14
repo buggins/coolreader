@@ -8062,15 +8062,6 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
             return false;
         }
 
-        if ( formatCallback ) {
-            int fmt = getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID,
-                    doc_format_fb2);
-            if (fmt < doc_format_fb2 || fmt > doc_format_max)
-                fmt = doc_format_fb2;
-            // notify about format detection, to allow setting format-specific CSS
-            formatCallback->OnCacheFileFormatDetected((doc_format_t)fmt);
-        }
-
         CRLog::trace("ldomDocument::loadCacheFileContent() - ID data");
         SerialBuf idbuf(0, true);
         if ( !_cacheFile->read( CBT_MAPS_DATA, idbuf ) ) {
@@ -8167,6 +8158,15 @@ bool ldomDocument::loadCacheFileContent(CacheLoadingCallback * formatCallback)
             CRLog::error("TOC data deserialization is failed");
             return false;
         }
+    }
+
+    if ( formatCallback ) {
+        int fmt = getProps()->getIntDef(DOC_PROP_FILE_FORMAT_ID,
+                doc_format_fb2);
+        if (fmt < doc_format_fb2 || fmt > doc_format_max)
+            fmt = doc_format_fb2;
+        // notify about format detection, to allow setting format-specific CSS
+        formatCallback->OnCacheFileFormatDetected((doc_format_t)fmt);
     }
 
     if ( loadStylesData() ) {
@@ -9185,7 +9185,7 @@ void lxmlDocBase::setStyleSheet( const char * css, bool replace )
 {
     lString8 s(css);
 
-    CRLog::trace("lxmlDocBase::setStyleSheet(length:%d replace:%s css text hash: %x)", strlen(css), replace ? "yes" : "no", s.getHash());
+    //CRLog::trace("lxmlDocBase::setStyleSheet(length:%d replace:%s css text hash: %x)", strlen(css), replace ? "yes" : "no", s.getHash());
     lUInt32 oldHash = _stylesheet.getHash();
     if ( replace ) {
         //CRLog::debug("cleaning stylesheet contents");
@@ -9198,16 +9198,6 @@ void lxmlDocBase::setStyleSheet( const char * css, bool replace )
     lUInt32 newHash = _stylesheet.getHash();
     if (oldHash != newHash) {
         CRLog::debug("New stylesheet hash: %08x", newHash);
-    }
-    {
-        CRLog::trace("Testing creation of stylesheet");
-        LVStyleSheet  stylesheet(this);
-        stylesheet.clear();
-        stylesheet.parse( css );
-        stylesheet.getHash();
-        stylesheet.clear();
-        stylesheet.parse( css );
-        stylesheet.getHash();
     }
 }
 

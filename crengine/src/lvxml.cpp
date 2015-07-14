@@ -100,7 +100,7 @@ void LVFileParserBase::updateProgress()
     m_progressUpdateCounter = (m_progressUpdateCounter + 1) & PROGRESS_UPDATE_RATE_MASK;
     if ( m_progressUpdateCounter!=0 )
         return; // to speed up checks
-    time_t t = (time_t)time((time_t)0);
+    time_t t = (time_t)time(NULL);
     if ( m_lastProgressTime==0 ) {
         m_lastProgressTime = t;
         return;
