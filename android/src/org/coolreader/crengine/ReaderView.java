@@ -5065,10 +5065,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
         if (!mOpened)
             return;
         lastPositionBookmarkToSave = doc.getCurrentPageBookmarkNoRender();
-    	lastPositionBookmarkToSave.setTimeStamp(System.currentTimeMillis());
-    	lastPositionBookmarkToSave.setType(Bookmark.TYPE_LAST_POSITION);
-        if (mBookInfo != null)
-            mBookInfo.setLastPosition(lastPositionBookmarkToSave);
+        if (lastPositionBookmarkToSave != null) {
+	    	lastPositionBookmarkToSave.setTimeStamp(System.currentTimeMillis());
+	    	lastPositionBookmarkToSave.setType(Bookmark.TYPE_LAST_POSITION);
+	        if (mBookInfo != null)
+	            mBookInfo.setLastPosition(lastPositionBookmarkToSave);
+        }
     }
     
     public void saveCurrentPositionBookmark() {

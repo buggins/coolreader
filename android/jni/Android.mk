@@ -249,8 +249,9 @@ LOCAL_SRC_FILES += \
     $(COFFEECATCH_SRC_FILES)
 endif
 
-LOCAL_LDLIBS    := -lm -llog -lz -ldl 
-# -Wl,-Map=cr3engine.map
+LOCAL_LDLIBS    := -lm -llog -lz -ldl
+# 
+#LOCAL_LDLIBS    += -Wl,-Map=cr3engine.map
 #-ljnigraphics
 
 include $(BUILD_SHARED_LIBRARY)
