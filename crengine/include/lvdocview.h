@@ -798,6 +798,8 @@ public:
     int scrollPosToDocPos( int scrollpos );
     /// returns position in 1/100 of percents (0..10000)
     int getPosPercent();
+    /// returns position in 1/100 of percents (0..10000)
+    int getPosEndPagePercent();
 
     /// execute command
     int doCommand( LVDocCmd cmd, int param=0 );
