@@ -1499,6 +1499,7 @@ int LVDocView::getPosEndPagePercent() {
                 res = 10000;
             if (res < 0)
                 res = 0;
+            return res;
         } else
             return 0;
     }
