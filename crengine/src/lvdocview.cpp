@@ -1483,23 +1483,20 @@ int LVDocView::getPosEndPagePercent() {
             return 0;
     } else {
         int fh = m_pages.length();
-        if ( (getVisiblePageCount()==2 && (fh&1)) )
-            fh++;
-        int p = getCurPage() + 1;// + 1;
-        if (getVisiblePageCount() > 1)
-            p++;
-        if (p > fh - 1)
-            p = fh - 1;
-        if (p < 0)
-            p = 0;
         if (fh > 0) {
-            int res = (int) (((lInt64) p * 10000) / fh);
-            res--;
-            if (res > 10000)
-                res = 10000;
-            if (res < 0)
-                res = 0;
-            return res;
+            int p = getCurPage() + 1;// + 1;
+            if (getVisiblePageCount() > 1)
+                p++;
+            if (p > fh - 1)
+                p = fh - 1;
+            if (p < 0)
+                p = 0;
+            p = m_pages[p]->start - 10;
+            int fh = GetFullHeight();
+            if (fh > 0)
+                return (int) (((lInt64) p * 10000) / fh);
+            else
+                return 0;
         } else
             return 0;
     }
