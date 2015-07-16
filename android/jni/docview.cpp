@@ -1,7 +1,13 @@
 #include "docview.h"
 #include "lvdocview.h"
 //#include "crgl.h"
+
 #if defined(__arm__)
+#define USE_COFFEECATCH 0
+#endif
+
+
+#if USE_COFFEECATCH == 1
 #include "coffeecatch/coffeecatch.h"
 #include "coffeecatch/coffeejni.h"
 #else

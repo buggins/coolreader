@@ -21,6 +21,8 @@ jstring CRJNIEnv::toJavaString( const lString16 & str )
 void CRJNIEnv::fromJavaStringArray( jobjectArray array, lString16Collection & dst )
 {
 	dst.clear();
+	if (!array)
+		return;
 	int len = env->GetArrayLength(array);
 	for ( int i=0; i<len; i++ ) {
 		jstring str = (jstring)env->GetObjectArrayElement(array, i);

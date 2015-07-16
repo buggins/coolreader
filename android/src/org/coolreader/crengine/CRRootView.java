@@ -172,7 +172,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		ArrayList<FileInfo> files = new ArrayList<FileInfo>();
 		for (int i = 1; i <= MAX_RECENT_BOOKS && i < books.size(); i++)
 			files.add(books.get(i).getFileInfo());
-		if (books.size() > MAX_RECENT_BOOKS)
+		if (books.size() > MAX_RECENT_BOOKS && Services.getScanner() != null)
 			files.add(Services.getScanner().createRecentRoot());
 		LayoutInflater inflater = LayoutInflater.from(mActivity);
 		mRecentBooksScroll.removeAllViews();

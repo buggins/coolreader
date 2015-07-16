@@ -1280,18 +1280,19 @@ public class BaseActivity extends Activity implements Settings {
 		public void setSettings(Properties settings, int delayMillis, boolean notify) {
 			Properties oldSettings = mSettings;
 			mSettings = new Properties(settings);
-			if (delayMillis >= 0) {
-				saveSettingsTask.postDelayed(new Runnable() {
-		    		public void run() {
-		    			BackgroundThread.instance().postGUI(new Runnable() {
-		    				@Override
-		    				public void run() {
-		   						saveSettings(mSettings);
-		    				}
-		    			});
-		    		}
-		    	}, delayMillis);
-			}
+			saveSettings(mSettings);
+//			if (delayMillis >= 0) {
+//				saveSettingsTask.postDelayed(new Runnable() {
+//		    		public void run() {
+//		    			BackgroundThread.instance().postGUI(new Runnable() {
+//		    				@Override
+//		    				public void run() {
+//		   						saveSettings(mSettings);
+//		    				}
+//		    			});
+//		    		}
+//		    	}, delayMillis);
+//			}
 			if (notify)
 				mActivity.onSettingsChanged(mSettings, oldSettings);
 		}

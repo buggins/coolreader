@@ -29,6 +29,11 @@
 #include <sys/stat.h>
 
 #if defined(__arm__)
+#define USE_COFFEECATCH 0
+#endif
+
+
+#if USE_COFFEECATCH == 1
 #include "coffeecatch/coffeecatch.h"
 #include "coffeecatch/coffeejni.h"
 #else
@@ -396,7 +401,7 @@ jbyteArray scanBookCoverInternal
 			}
 		}
 	} else {
-    	CRLog::debug("scanBookCoverInternal() : is archive, item=%s, arc=%d", LCSTR(item), LCSTR(arcname));
+    	CRLog::debug("scanBookCoverInternal() : is archive, item=%s, arc=%s", LCSTR(item), LCSTR(arcname));
 		LVStreamRef arcstream = LVOpenFileStream(arcname.c_str(), LVOM_READ);
 		if (!arcstream.isNull()) {
 			arc = LVOpenArchieve(arcstream);
