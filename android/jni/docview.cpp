@@ -173,7 +173,7 @@ static void replaceColor( char * str, lUInt32 color )
 	}
 }
 
-static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color, int size = 28)
+static void getBatteryIcons(LVRefVec<LVImageSource> & icons, lUInt32 color, int size = 28)
 {
 	CRLog::debug("Making list of Battery icon bitmats");
 
@@ -420,11 +420,8 @@ static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color, int size = 28)
 		replaceColor( color3, cl3 );
 		replaceColor( color4, cl4 );
 
-	    LVRefVec<LVImageSource> icons;
 	    for ( int i=0; icon_bpm[i]; i++ )
 	        icons.add( LVCreateXPMImageSource( icon_bpm[i] ) );
-
-	    return icons;
 
     } else {
 
@@ -771,21 +768,36 @@ static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color, int size = 28)
 		};
 		static const char * battery_frame[] = {
 			BATTERY_HEADER
-			"   .........................",
-			"   .00000000000000000000000.",
-			"   .0.....................0.",
-			"....0.....................0.",
-			".0000.....................0.",
-			".0..0.....................0.",
-			".0..0.....................0.",
-			".0..0.....................0.",
-			".0..0.....................0.",
-			".0..0.....................0.",
-			".0000.....................0.",
-			"....0.....................0.",
-			"   .0.....................0.",
-			"   .00000000000000000000000.",
-			"   .........................",
+			"      ..................................................",
+			"      ..................................................",
+			"      ..0000000000000000000000000000000000000000000000..",
+			"      ..0000000000000000000000000000000000000000000000..",
+			"      ..00..........................................00..",
+			"      ..00..........................................00..",
+			"........00..........................................00..",
+			"........00..........................................00..",
+			"..00000000..........................................00..",
+			"..00000000..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00....00..........................................00..",
+			"..00000000..........................................00..",
+			"..00000000..........................................00..",
+			"........00..........................................00..",
+			"........00..........................................00..",
+			"      ..00..........................................00..",
+			"      ..00..........................................00..",
+			"      ..0000000000000000000000000000000000000000000000..",
+			"      ..0000000000000000000000000000000000000000000000..",
+			"      ..................................................",
+			"      ..................................................",
 		};
 
 		const char * * icon_bpm[] = {
@@ -808,11 +820,8 @@ static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color, int size = 28)
 		replaceColor( color3, cl3 );
 		replaceColor( color4, cl4 );
 
-		LVRefVec<LVImageSource> icons;
 		for ( int i=0; icon_bpm[i]; i++ )
 			icons.add( LVCreateXPMImageSource( icon_bpm[i] ) );
-
-		return icons;
 
     }
 
@@ -825,8 +834,9 @@ DocViewNative::DocViewNative()
 
 	_batteryIconColor = 0x000000;
 	_batteryIconSize = 28;
-    LVRefVec<LVImageSource> icons = getBatteryIcons(_batteryIconColor, _batteryIconSize);
-    _docview->setBatteryIcons( icons );
+    LVRefVec<LVImageSource> icons;
+    getBatteryIcons(icons, _batteryIconColor, _batteryIconSize);
+    _docview->setBatteryIcons(icons);
 
     LVArray<int> sizes( cr_font_sizes, sizeof(cr_font_sizes)/sizeof(int) );
     _docview->setShowCover( true );
@@ -2111,7 +2121,8 @@ void DocViewNative::updateBatteryIcons() {
 		_batteryIconColor = batteryColor;
 		_batteryIconSize = newSize;
 		//CRLog::debug("%x->%x, %x->%x: Setting Battery icon color = #%06x", oldTextColor, newTextColor, oldStatusColor, newStatusColor, batteryColor);
-	    LVRefVec<LVImageSource> icons = getBatteryIcons(_batteryIconColor, _batteryIconSize);
+	    LVRefVec<LVImageSource> icons;
+	    getBatteryIcons(icons, _batteryIconColor, _batteryIconSize);
 		//CRLog::debug("Setting list of Battery icon bitmats");
 	   _docview->setBatteryIcons( icons );
 		//CRLog::debug("Setting list of Battery icon bitmats - done");
