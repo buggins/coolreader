@@ -1,5 +1,6 @@
 package org.coolreader.crengine;
 
+import android.annotation.SuppressLint;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,7 +21,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Stack;
 import java.util.concurrent.Callable;
-
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -29,15 +29,13 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
 import org.coolreader.CoolReader;
 import org.coolreader.crengine.Engine.DelayedProgress;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import android.util.Base64;
-
+@SuppressLint("SimpleDateFormat")
 public class OPDSUtil {
 
 	public static final boolean EXTENDED_LOG = false;
@@ -139,6 +137,8 @@ xml:base="http://lib.ololo.cc/opds/">
 			if (baseURL.getPort() != 80 && baseURL.getPort() > 0)
 				port = ":" + baseURL.getPort();
 			String hostPort = baseURL.getHost() + port;
+			if ( href.startsWith("//") )
+				return baseURL.getProtocol() + ":" + href;
 			if ( href.startsWith("/") )
 				return baseURL.getProtocol() + "://" + hostPort + href;
 			if ( !href.startsWith("http://") ) {
@@ -682,6 +682,11 @@ xml:base="http://lib.ololo.cc/opds/">
 			}
 			return -1; // not found
 		}
+		
+		public static String encodePassword(String username, String password) {
+			return Base64.encodeToString((username + ":" + password).getBytes(), Base64.NO_WRAP);
+		}
+		
 		public void runInternal() {
 			connection = null;
 			
@@ -763,7 +768,7 @@ xml:base="http://lib.ololo.cc/opds/">
 	                connection.setUseCaches(false);
 		            
 	                if (username != null && username.length() > 0 && password != null && password.length() > 0) {
-	                	connection.setRequestProperty("Authorization", "Basic " + Base64.encodeToString((username + ":" + password).getBytes(), Base64.NO_WRAP));
+	                	connection.setRequestProperty("Authorization", encodePassword(username, password));
 	                	Authenticator.setDefault(new Authenticator() {
 	                	    protected PasswordAuthentication getPasswordAuthentication() {
 	                	        return new PasswordAuthentication(username, password.toCharArray());
