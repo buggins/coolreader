@@ -642,7 +642,6 @@ public:
             }
             if ( addSpacePoints>0 ) {
                 int addSpaceDiv = extraSpace / addSpacePoints;
-                if (asd==0||asd>=addSpaceDiv) { if (_first==false) asd=addSpaceDiv;}
                 int addSpaceMod = extraSpace % addSpacePoints;
                 int delta = 0;
                 for ( i=0; i<(int)frmline->word_count; i++ ) {
@@ -659,11 +658,6 @@ public:
             }
         }
     }
-<<<<<<< HEAD
-	int asd=0; //
-	bool _first=false;//
-=======
->>>>>>> e3f46c9... align of CJK word in last line of a paragraph or single line
     /// split line into words, add space for width alignment
     void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace )
     {
@@ -914,22 +908,7 @@ public:
             }
             lastIsSpace = isSpace;
         }
-<<<<<<< HEAD
-        if (first or last) _first=true;
-	else _first=false; //save state of line processed
         alignLine( frmline, maxWidth, align );
-        if (last and !first){
-            int delta=0;
-            for (int i=0; i<(int)frmline->word_count; i++ ) {
-                frmline->words[i].x += delta;
-                    delta += asd;
-            }
-            frmline->width += delta;
-        }//(Chinese) align last line of a paragraph to the previous lines. function alignLine() does not process last line
-
-=======
-        alignLine( frmline, maxWidth, align );
->>>>>>> e3f46c9... align of CJK word in last line of a paragraph or single line
         m_y += frmline->height;
         m_pbuffer->height = m_y;
     }

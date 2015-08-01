@@ -2248,12 +2248,7 @@ public:
             -1,
             id
     );
-<<<<<<< HEAD
-        if (!item->getDef()->getName().empty()) {
-            _cache.removefont(&def1);
-=======
 
->>>>>>> f4d31f2... rewrite support for "local" scheme, 2 bugs fixed
                 int index = 0;
 
             FT_Face face = NULL;
@@ -2309,12 +2304,8 @@ public:
                 if ( index>=num_faces-1 )
                     break;
             }
-<<<<<<< HEAD
-
-=======
         item = _cache.find( &def1);
         if (item->getDef()->getTypeFace()==alias ){
->>>>>>> f4d31f2... rewrite support for "local" scheme, 2 bugs fixed
             return true;
         }
     else
