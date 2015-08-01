@@ -11027,35 +11027,51 @@ void ldomDocument::registerEmbeddedFonts()
     if (_fontList.empty())
         return;
     int list = _fontList.length();
-    lString8 lastface = lString8("");
-    for (int i = list; i > 0; i--) {
-        LVEmbeddedFontDef *item = _fontList.get(i - 1);
+    lString8 x=lString8("");
+    lString16Collection flist;
+    fontMan->getFaceList(flist);
+    int cnt = flist.length();
+    for (int i = 0; i < list; i++) {
+        LVEmbeddedFontDef *item = _fontList.get(i);
         lString16 url = item->getUrl();
         lString8 face = item->getFace();
-        if (face.empty()) face = lastface;
-        else lastface = face;
+        if (face.empty()) {
+            for (int a=i+1;a<list;a++){
+                lString8 tmp=_fontList.get(a)->getFace();
+                if (!tmp.empty()) {face=tmp;break;}
+            }
+        }
+        if ((!x.empty() and x.pos(face)!=-1) or url.empty())
+        {continue;}
         if (url.startsWithNoCase(lString16("res://")) || url.startsWithNoCase(lString16("file://"))) {
             if (!fontMan->RegisterExternalFont(item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
-                CRLog::error("Failed to register external font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
+                //CRLog::error("Failed to register external font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
             }
             continue;
         }
         else {
             if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
-                CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
-            lString16Collection flist;
-            fontMan->getFaceList(flist);
-            int cnt = flist.length();
+                //CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
             lString16 fontface = lString16("");
-            for (int j = 0; j < cnt; j = j + 1) {
+                for (int j = 0; j < cnt; j = j + 1) {
                 fontface = flist[j];
                 do { (fontface.replace(lString16(" "), lString16("\0"))); }
                 while (fontface.pos(lString16(" ")) != -1);
+<<<<<<< HEAD
                 if (fontface.lowercase().pos(url.lowercase()) != -1) {
                     fontMan->SetAlias(face, UnicodeToLocal(flist[j]), getDocIndex(),item->getBold(),item->getItalic()) ;
                     break;
+=======
+                do { (url.replace(lString16(" "), lString16("\0"))); }
+                while (url.pos(lString16(" ")) != -1);
+                 if (fontface.lowercase().pos(url.lowercase()) != -1) {
+                    if(fontMan->SetAlias(face, UnicodeToLocal(flist[j]), getDocIndex(),item->getBold(),item->getItalic())){
+                    x.append(face).append(lString8(","));
+                        CRLog::debug("font-face %s matches local font %s",face.c_str(),LCSTR(flist[j]));
+                    break;}
+                 }
+>>>>>>> f4d31f2... rewrite support for "local" scheme, 2 bugs fixed
                 }
-            }
             }
         }
     }
