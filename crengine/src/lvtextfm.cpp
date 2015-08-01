@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <lvtextfm.h>
 #include "../include/crsetup.h"
 #include "../include/lvfnt.h"
 #include "../include/lvtextfm.h"
@@ -658,8 +659,11 @@ public:
             }
         }
     }
+<<<<<<< HEAD
 	int asd=0; //
 	bool _first=false;//
+=======
+>>>>>>> e3f46c9... align of CJK word in last line of a paragraph or single line
     /// split line into words, add space for width alignment
     void addLine( int start, int end, int x, src_text_fragment_t * para, int interval, bool first, bool last, bool preFormattedOnly, bool needReduceSpace )
     {
@@ -717,6 +721,8 @@ public:
             if ( i>wstart && (newSrc!=lastSrc || space || lastWord || isCJKIdeograph(m_text[i])) ) {
                 // create and add new word
                 formatted_word_t * word = lvtextAddFormattedWord(frmline);
+                src_text_fragment_t * srcline = m_srcs[wstart];
+                int vertical_align = srcline->flags & LTEXT_VALIGN_MASK;
                 int b;
                 int h;
                 word->src_text_index = m_srcs[wstart]->index;
@@ -732,6 +738,24 @@ public:
 
                     int width = lastSrc->o.width;
                     int height = lastSrc->o.height;
+                    resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
+                    if ( vertical_align )  {                         //if (vertical_align && node->getAttributeValue("","class")=="duokan-footnote") // apply to duokan-footnote
+                        ldomNode *node=(ldomNode*)para->object;
+                        LVFont *font=(LVFont*)para->t.font;
+                        if (!node->getText().empty())
+                        {
+                        if ( vertical_align == LTEXT_VALIGN_SUB )
+                        {   int fh=font->getHeight();
+                            word->y +=  fh*0.3333;
+                            width=width/height*fh*0.6667;
+                            height=fh*0.6667;}
+                        else if ( vertical_align == LTEXT_VALIGN_SUPER )
+                        {   int fh=font->getHeight();
+                            word->y -=  fh*0.3333;
+                            width=width/height*fh*0.6667;
+                            height=fh*0.6667;}
+                        }
+                    }
                     resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
                     word->width = width;
                     word->o.height = height;
@@ -830,6 +854,39 @@ public:
                             else if (w!=0){if (end - start == int((maxWidth - wAlign) / w)) word->width -= w;} //Chinese floating punctuation
                         }
                         word->min_width = word->width;
+                        if (frmline->width!=0 and last and align!=LTEXT_ALIGN_CENTER){
+                            int properwordcount=maxWidth/font->getSize()-2;
+                            int extraSpace =maxWidth-properwordcount*font->getSize()-1.4*font->getSize();
+                            int excesswordcount=end-start-properwordcount-1;
+                            if (excesswordcount>0) extraSpace=extraSpace-excesswordcount*font->getSize();
+                            if ( extraSpace>0 )
+                            {
+                                int addSpacePoints = 0;
+                                int a;
+                                int points=0;
+                                for ( a=0; a<(int)frmline->word_count-1; a++ ) {
+                                    if ( frmline->words[a].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
+                                        points++;
+                                }
+                                addSpacePoints=properwordcount+(frmline->word_count-1-points);
+                                if (addSpacePoints > 0) {
+                                    int addSpaceDiv = extraSpace / addSpacePoints;
+                                    int addSpaceMod = extraSpace % addSpacePoints;
+                                    int delta = 0;
+                                    for (a = 0; a < (int) frmline->word_count; a++) {
+                                        frmline->words[a].x +=  delta;
+                                        {
+                                            delta += addSpaceDiv;
+                                            if (addSpaceMod > 0) {
+                                                addSpaceMod--;
+                                                delta++;
+                                            }
+                                        }
+                                    }
+                                    frmline->width += extraSpace;
+                                }
+                            }
+                        }//(Chinese) add spaces between words in last line or single line
                     }
 
                     word->y = wy;
@@ -857,6 +914,7 @@ public:
             }
             lastIsSpace = isSpace;
         }
+<<<<<<< HEAD
         if (first or last) _first=true;
 	else _first=false; //save state of line processed
         alignLine( frmline, maxWidth, align );
@@ -869,6 +927,9 @@ public:
             frmline->width += delta;
         }//(Chinese) align last line of a paragraph to the previous lines. function alignLine() does not process last line
 
+=======
+        alignLine( frmline, maxWidth, align );
+>>>>>>> e3f46c9... align of CJK word in last line of a paragraph or single line
         m_y += frmline->height;
         m_pbuffer->height = m_y;
     }
