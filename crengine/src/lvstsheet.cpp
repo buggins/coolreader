@@ -1122,8 +1122,8 @@ bool parse_attr_value( const char * &str, char * buf )
 
 LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
 {
-    char attrname[64];
-    char attrvalue[64];
+    char attrname[512];
+    char attrvalue[512];
     LVCssSelectorRuleType st = cssrt_universal;
     if (*str=='.') {
         // E.class
