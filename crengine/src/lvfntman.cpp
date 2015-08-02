@@ -401,7 +401,6 @@ public:
     void gc(); // garbage collector
     void update( const LVFontDef * def, LVFontRef ref );
     void removeDocumentFonts(int documentId);
-    void removefont(const LVFontDef * def);
     int  length() { return _registered_list.length(); }
     void addInstance( const LVFontDef * def, LVFontRef ref );
     LVPtrVector< LVFontCacheItem > * getInstances() { return &_instance_list; }
@@ -2249,8 +2248,7 @@ public:
             -1,
             id
     );
-        if (!item->getDef()->getName().empty()) {
-            _cache.removefont(&def1);
+
                 int index = 0;
 
             FT_Face face = NULL;
@@ -2306,7 +2304,8 @@ public:
                 if ( index>=num_faces-1 )
                     break;
             }
-
+        item = _cache.find( &def1);
+        if (item->getDef()->getTypeFace()==alias ){
             return true;
         }
     else
@@ -3479,26 +3478,7 @@ void LVFontCache::update( const LVFontDef * def, LVFontRef ref )
         _registered_list.add( item );
     }
 }
-void LVFontCache::removefont(const LVFontDef * def)
-{
-    int i;
-        for (i=0; i<_instance_list.length(); i++)
-        {
-            if ( _instance_list[i]->_def.getTypeFace() == def->getTypeFace() )
-            {
-                _instance_list.remove(i);
-            }
 
-        }
-        for (i=0; i<_registered_list.length(); i++)
-        {
-            if ( _registered_list[i]->_def.getTypeFace() == def->getTypeFace() )
-            {
-                _registered_list.remove(i);
-            }
-        }
-
-}
 void LVFontCache::removeDocumentFonts(int documentId)
 {
     int i;

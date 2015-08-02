@@ -527,7 +527,8 @@ public:
                 if (!_url.empty()) {
 //                    CRLog::trace("@font { face: %s; bold: %s; italic: %s; url: %s", _face.c_str(), _bold ? "yes" : "no",
 //                                 _italic ? "yes" : "no", LCSTR(_url));
-			  if (islocal.length()==5) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
+			  if (islocal.length()==5 and _basePath.length()!=0) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
+                    if (_fontList.findByUrl(_url)) _url=_url.append(lString16(" "));//avoid add() replaces existing local name
                     _fontList.add(_url, _face, _bold, _italic);
                 }
             }
@@ -537,7 +538,8 @@ public:
             if (_state == 2) {
                 if (!_url.empty())
            	    {
-                      if (islocal.length() == 5) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
+                      if (islocal.length() == 5 and _basePath.length()!=0) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
+                        if (_fontList.findByUrl(_url)) _url=_url.append(lString16(" "));
                     _fontList.add(_url, _face, _bold, _italic);
 			}
                 _state = 11;
@@ -620,14 +622,58 @@ public:
         }
         token.clear();
     }
-
+    lString8 deletecomment(lString8 css)
+     {
+             int state;
+             lString8 tmp=lString8("");
+             char c;
+             state = 0;
+         for (int i=0;i<css.length();i++){
+                     c=css[i];
+                     if (state == 0 && c == ('/'))         // ex. [/]
+                             state = 1;
+                     else if (state == 1 && c == ('*'))     // ex. [/*]
+                             state = 2;
+                     else if (state == 1) {                // ex. [<secure/_stdio.h> or 5/3]
+                             tmp<<('/');
+                             state = 0;
+                         }
+                     else if (state == 2 && c == ('*'))    // ex. [/*he*]
+                             state = 3;
+                     else if (state == 2)                // ex. [/*heh]
+                             state = 2;
+                     else if (state == 3 && c == ('/'))    // ex. [/*heh*/]
+                             state = 0;
+                     else if (state == 3)                // ex. [/*heh*e]
+                             state = 2;
+                     else if (state == 0 && c == ('\'') )    // ex. [']
+                             state = 5;
+                     else if (state == 5 && c == ('\\'))     // ex. ['\]
+                             state = 6;
+                     else if (state == 6)                // ex. ['\n or '\' or '\t etc.]
+                             state = 5;
+                     else if (state == 5 && c == ('\'') )   // ex. ['\n' or '\'' or '\t' ect.]
+                             state = 0;
+                     else if (state == 0 && c == ('\"'))    // ex. ["]
+                             state = 7;
+                     else if (state == 8)                // ex. ["\n or "\" or "\t ect.]
+                             state = 7;
+                     else if (state == 7 && c == ('\"'))    // ex. ["\n" or "\"" or "\t" ect.]
+                             state = 0;
+                     if ((state == 0 && c != ('/')) || state == 5 || state == 6 || state == 7 || state == 8)
+                             tmp<<c;
+                 }
+         return tmp;
+         }
     void parse(lString16 basePath, const lString8 & css) {
         _state = 0;
         _basePath = basePath;
         lString8 token;
         char insideQuotes = 0;
-        for (int i=0; i<css.length(); i++) {
-            char ch = css[i];
+        lString8 css_=css;
+        css_=deletecomment(css);
+        for (int i=0; i<css_.length(); i++) {
+            char ch = css_[i];
             if (insideQuotes || _state == 13) {
                 if (ch == insideQuotes || (_state == 13 && ch == ')')) {
                     onQuotedText(token);

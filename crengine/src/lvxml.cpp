@@ -2908,6 +2908,9 @@ bool LVXMLParser::Parse()
     lString16 attrname;
     lString16 attrns;
     lString16 attrvalue;
+    lString16Collection multi_tagnames;
+    lString8Collection multi_tagnumbers;
+    bool hasattr=false;//weather the tag has defined classes
     bool errorFlag = false;
     int flags = m_callback->getFlags();
     for (;!m_eof && !errorFlag;)
@@ -2974,7 +2977,7 @@ bool LVXMLParser::Parse()
                         ch = ReadCharFromBuffer();
                     }
                     break;
-                }
+                } else hasattr=false;//no "="
                 if ( m_citags ) {
                     tagns.lowercase();
                     tagname.lowercase();
@@ -2986,7 +2989,24 @@ bool LVXMLParser::Parse()
 //                    } else if ( tagname==L"section" ) {
 //                        dumpActive = false;
 //                    }
-                    m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
+
+                    if (multi_tagnumbers.length()>0&&multi_tagnames[multi_tagnames.length()-1].compare(tagname)==0)
+                    {
+                        int cnt=multi_tagnumbers[multi_tagnumbers.length()-1].atoi();
+                        for (int i=0;i<cnt-1;i++)
+                        {
+                            if (tagname.compare("div")==0)
+                                m_callback->OnTagClose(tagns.c_str(), L"div");
+                            else
+                                m_callback->OnTagClose(tagns.c_str(), L"span");
+                        }
+                        m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
+                        if (cnt==0)
+                            multi_tagnames.erase(multi_tagnames.length()-1,1);
+                        else multi_tagnames.erase(multi_tagnames.length()-1-cnt,cnt);
+                        multi_tagnumbers.erase(multi_tagnumbers.length()-1,1);
+                    } //emulate tag close when last tag defines multi-classes
+                    else m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
 //                    if ( dumpActive )
 //                        CRLog::trace("</%s>", LCSTR(tagname) );
                     if (SkipTillChar('>'))
@@ -3025,7 +3045,14 @@ bool LVXMLParser::Parse()
                     if ( ch!='>' )
                         m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
                     if ( ch=='>' )
+                    {
                         ch = PeekNextCharFromBuffer();
+                        if (tagname.compare("img")!=0&&attrname.compare("class")==0&&!hasattr)
+                        {
+                            multi_tagnames.add(tagname);
+                            multi_tagnumbers.add("0");//make it 0 for later check
+                        }
+                    }
                     else
                         ch = PeekNextCharFromBuffer(1);
                     m_state = ps_text;
@@ -3081,7 +3108,52 @@ bool LVXMLParser::Parse()
                 if ( (flags & TXTFLG_CONVERT_8BIT_ENTITY_ENCODING) && m_conv_table ) {
                     PreProcessXmlString( attrvalue, 0, m_conv_table );
                 }
-                m_callback->OnAttribute( attrns.c_str(), attrname.c_str(), attrvalue.c_str());
+                if (attrname.compare("class")==0 ) {
+                    hasattr=true;
+                    int cnt=0;
+                    attrvalue.trimDoubleSpaces(false,false,false);
+                    if (attrvalue.pos(" ")!=-1 &&(tagname.compare("table")==0
+                                                  ||tagname.compare("tr")==0||tagname.compare("img")==0))
+                    {
+                        lString16 tmp=(attrvalue.substr(0,attrvalue.pos(" ")));
+                        attrvalue=tmp;
+                    }
+                    if (attrvalue.pos(" ") == -1) {
+                        m_callback->OnAttribute(attrns.c_str(), attrname.c_str(), attrvalue.c_str());
+                        if (tagname.compare("img")!=0){
+                        multi_tagnames.add(tagname);
+                        multi_tagnumbers.add("1");
+                    }
+                    }
+                    else {
+                            for(;;){
+                            if (attrvalue.pos(" ") != -1) {
+                                m_callback->OnAttribute(attrns.c_str(), attrname.c_str(), attrvalue.substr(0,attrvalue.pos(" ")).c_str());
+                                attrvalue=attrvalue.substr(attrvalue.pos(" ")+1,attrvalue.length()-attrvalue.pos(" ")-1);
+                                m_callback->OnTagBody();
+                                if (attrvalue.pos(" ") != -1){
+                                    if (tagname.compare("div")!=0) m_callback->OnTagOpen(tagns.c_str(),L"span");
+                                    else m_callback->OnTagOpen(tagns.c_str(),L"div");
+                                }
+                                multi_tagnames.add(tagname);
+                                cnt++;
+                            }
+                            else
+                            {
+                                cnt++;
+                                multi_tagnames.add(tagname);
+                                lString8 tmp=lString8("");
+                                tmp.appendDecimal(cnt);
+                                multi_tagnumbers.add(tmp);
+                                if (tagname.compare("div")!=0) m_callback->OnTagOpen(tagns.c_str(),L"span");
+                                else m_callback->OnTagOpen(tagns.c_str(),L"div");
+                                m_callback->OnAttribute(attrns.c_str(), attrname.c_str(), attrvalue.c_str());
+                                break;
+                            }
+                            }
+                    }
+                    }//support elements which defined multi classes,like this <span class="bold color italic">
+                else m_callback->OnAttribute(attrns.c_str(), attrname.c_str(), attrvalue.c_str());
                 if (inXmlTag && attrname == "encoding")
                 {
                     SetCharset( attrvalue.c_str() );
