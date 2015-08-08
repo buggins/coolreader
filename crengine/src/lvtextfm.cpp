@@ -826,8 +826,7 @@ public:
                         int endp = i-1;
                         int lastc = m_text[endp];
                         int wAlign = font->getVisualAligmentWidth();
-                        word->width += wAlign * 0.7;//
-                        frmline->x += wAlign * 0.2;//add space for some Chinese font floating punctuation at line end
+                        word->width += wAlign/2;
                         while ( (lastc==' ') && endp>0 ) { // || lastc=='\r' || lastc=='\n'
                             word->width -= m_widths[endp] - m_widths[endp-1];
                             endp--;
@@ -845,14 +844,19 @@ public:
                             FONT_GUARD
                         	int w = font->getCharWidth(lastc);
                         	if (frmline->width + w + wAlign + x >= maxWidth) word->width -= w;
-                            else if (w!=0){if (end - start == int((maxWidth - wAlign) / w)) word->width -= w;} //Chinese floating punctuation
+                            else if (w!=0){
+                                if (end - start == int((maxWidth - wAlign) / w)) word->width -= w; //Chinese floating punctuation
+                                else if (x/w>=1&&(end-start==int(maxWidth-wAlign-x)/w)-1)  word->width-=w;//first line with text-indent
+                            }
                         }
-                        word->min_width = word->width;
                         if (frmline->width!=0 and last and align!=LTEXT_ALIGN_CENTER){
+                            FONT_GUARD
                             int properwordcount=maxWidth/font->getSize()-2;
-                            int extraSpace =maxWidth-properwordcount*font->getSize()-1.4*font->getSize();
-                            int excesswordcount=end-start-properwordcount-1;
-                            if (excesswordcount>0) extraSpace=extraSpace-excesswordcount*font->getSize();
+                            int extraSpace =maxWidth-properwordcount*font->getSize()-wAlign;
+                            int exccess=(frmline->width+x+word->width+extraSpace)-maxWidth;
+                            if (exccess>0&&exccess<maxWidth){
+                                extraSpace-=exccess;
+                            }//prevent the line exceeds screen boundary*/
                             if ( extraSpace>0 )
                             {
                                 int addSpacePoints = 0;
@@ -862,7 +866,7 @@ public:
                                     if ( frmline->words[a].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
                                         points++;
                                 }
-                                addSpacePoints=properwordcount+(frmline->word_count-1-points);
+                                addSpacePoints=properwordcount-(frmline->word_count-1-points);
                                 if (addSpacePoints > 0) {
                                     int addSpaceDiv = extraSpace / addSpacePoints;
                                     int addSpaceMod = extraSpace % addSpacePoints;
@@ -877,10 +881,18 @@ public:
                                             }
                                         }
                                     }
-                                    frmline->width += extraSpace;
                                 }
                             }
+                            word->width+=extraSpace;
                         }//(Chinese) add spaces between words in last line or single line
+                            if (first&&font->getSize()!=0&&(maxWidth/font->getSize()-2)!=0){
+                                FONT_GUARD
+                                int cnt=((x-wAlign/2)%font->getSize()==0)?(x-wAlign/2)/font->getSize():0;//ugly way to caculate text-indent value, I can not get text-indent from here
+                                int p=cnt*(cnt+1)/2;
+                                int asd=(2*font->getSize()-font->getCharWidth(lastc))/(maxWidth/font->getSize()-2);
+                                int width=p*asd+cnt;//same math as delta above
+                                if (width>0) frmline->x+=width;}///proportionally enlarge text-indent when visualAlignment or floating punctuation is enabled
+                        word->min_width = word->width;
                     }
 
                     word->y = wy;
