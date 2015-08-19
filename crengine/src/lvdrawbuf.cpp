@@ -1002,7 +1002,49 @@ LVGrayDrawBuf::~LVGrayDrawBuf()
     	free( _data );
     }
 }
+void LVGrayDrawBuf::DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction)
+{
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+    lUInt8 color = rgbToGrayMask( color0, _bpp );
+#if (GRAY_INVERSE==1)
+    color ^= 0xFF;
+#endif
 
+    for (int y=y0; y<y1; y++)
+    {
+        if (_bpp==1) {
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 * line = GetScanLine(y);
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color;
+            }
+        } else if (_bpp==2) {
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 * line = GetScanLine(y);
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color;
+            }
+        } else { // 3, 4, 8
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 * line = GetScanLine(y);
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color;
+            }
+        }
+    }
+}
 void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * )
 {
     //int buf_width = _dx; /* 2bpp */
@@ -1460,6 +1502,41 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
     }
 }
 
+void LVColorDrawBuf::DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int length1,int length2,int direction)
+{
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+    if ( _bpp==16 ) {
+        lUInt16 cl16_0 = rgb888to565(color0);
+        for (int y=y0; y<y1; y++)
+        {
+            lUInt16 * line = (lUInt16 *)GetScanLine(y);
+            for (int x=x0; x<x1; x++)
+            {
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color0;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color0;
+            }
+        }
+    } else {
+        for (int y=y0; y<y1; y++)
+        {
+            lUInt32 * line = (lUInt32 *)GetScanLine(y);
+            for (int x=x0; x<x1; x++)
+            {
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color0;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color0;
+            }
+        }
+    }
+}
 /// fills rectangle with specified color
 void LVColorDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern )
 {

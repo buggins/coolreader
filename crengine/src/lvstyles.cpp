@@ -70,7 +70,19 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.padding[2].pack()) * 31
          + (lUInt32)rec.padding[3].pack()) * 31
          + (lUInt32)rec.font_family) * 31
-         + (lUInt32)rec.font_name.getHash());
+         + (lUInt32)rec.font_name.getHash())
+         +(lUInt32)rec.border_style_top * 31
+         +(lUInt32)rec.border_style_right * 31
+         +(lUInt32)rec.border_style_bottom * 31
+         +(lUInt32)rec.border_style_left * 31
+         +(lUInt32)rec.border_width[0].pack() * 31
+         +(lUInt32)rec.border_width[1].pack() * 31
+         +(lUInt32)rec.border_width[2].pack() * 31
+         +(lUInt32)rec.border_width[3].pack() * 31
+         +(lUInt32)rec.border_color[0].pack() * 31
+         +(lUInt32)rec.border_color[1].pack() * 31
+         +(lUInt32)rec.border_color[2].pack() * 31
+         +(lUInt32)rec.border_color[3].pack() * 31;
     return rec.hash;
 }
 
@@ -105,7 +117,19 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.font_style == r2.font_style &&
            r1.font_weight == r2.font_weight &&
            r1.font_name == r2.font_name &&
-           r1.font_family == r2.font_family;
+           r1.font_family == r2.font_family&&
+           r1.border_style_top==r2.border_style_top&&
+           r1.border_style_right==r2.border_style_right&&
+           r1.border_style_bottom==r2.border_style_bottom&&
+           r1.border_style_left==r2.border_style_left&&
+           r1.border_width[0]==r2.border_width[0]&&
+           r1.border_width[1]==r2.border_width[1]&&
+           r1.border_width[2]==r2.border_width[2]&&
+           r1.border_width[3]==r2.border_width[3]&&
+           r1.border_color[0]==r2.border_color[0]&&
+           r1.border_color[1]==r2.border_color[1]&&
+           r1.border_color[2]==r2.border_color[2]&&
+           r1.border_color[3]==r2.border_color[3];
 }
 
 
@@ -268,6 +292,12 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_ENUM(hyphenate);         //    css_hyphenate_t      hyphenate;
     ST_PUT_ENUM(list_style_type);   //    css_list_style_type_t list_style_type;
     ST_PUT_ENUM(list_style_position);//    css_list_style_position_t list_style_position;
+    ST_PUT_ENUM(border_style_top);
+    ST_PUT_ENUM(border_style_right);
+    ST_PUT_ENUM(border_style_bottom);
+    ST_PUT_ENUM(border_style_left);
+    ST_PUT_LEN4(border_width);
+    ST_PUT_LEN4(border_color);
     lUInt32 hash = calcHash(*this);
     buf << hash;
     return !buf.error();
@@ -304,6 +334,12 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_ENUM(css_hyphenate_t, hyphenate);                //    css_hyphenate_t        hyphenate;
     ST_GET_ENUM(css_list_style_type_t, list_style_type);    //    css_list_style_type_t list_style_type;
     ST_GET_ENUM(css_list_style_position_t, list_style_position);//    css_list_style_position_t list_style_position;
+    ST_GET_ENUM(css_border_style_type_t ,border_style_top);
+    ST_GET_ENUM(css_border_style_type_t ,border_style_right);
+    ST_GET_ENUM(css_border_style_type_t ,border_style_bottom);
+    ST_GET_ENUM(css_border_style_type_t ,border_style_left);
+    ST_GET_LEN4(border_width);
+    ST_GET_LEN4(border_color);
     lUInt32 hash = 0;
     buf >> hash;
     lUInt32 newhash = calcHash(*this);

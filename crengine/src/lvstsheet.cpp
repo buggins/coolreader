@@ -33,6 +33,10 @@ enum css_decl_code {
     cssd_hyphenate3, // adobe-hyphenate
     cssd_hyphenate4, // adobe-text-layout
     cssd_color,
+    cssd_border_top_color,
+    cssd_border_right_color,
+    cssd_border_bottom_color,
+    cssd_border_left_color,
     cssd_background_color,
     cssd_vertical_align,
     cssd_font_family, // id families like serif, sans-serif
@@ -62,6 +66,22 @@ enum css_decl_code {
     cssd_list_style_type,
     cssd_list_style_position,
     cssd_list_style_image,
+    cssd_border_top_style,
+    cssd_border_top_width,
+    cssd_border_right_style,
+    cssd_border_right_width,
+    cssd_border_bottom_style,
+    cssd_border_bottom_width,
+    cssd_border_left_style,
+    cssd_border_left_width,
+    cssd_border_style,
+    cssd_border_width,
+    cssd_border_color,
+    cssd_border,
+    cssd_border_top,
+    cssd_border_right,
+    cssd_border_bottom,
+    cssd_border_left,
     cssd_stop
 };
 
@@ -77,6 +97,10 @@ static const char * css_decl_name[] = {
     "adobe-hyphenate",
     "adobe-text-layout",
     "color",
+    "border-top-color",
+    "border-right-color",
+    "border-bottom-color",
+    "border-left-color",
     "background-color",
     "vertical-align",
     "font-family",
@@ -106,6 +130,22 @@ static const char * css_decl_name[] = {
     "list-style-type",
     "list-style-position",
     "list-style-image",
+    "border-top-style",
+    "border-top-width",
+    "border-right-style",
+    "border-right-width",
+    "border-bottom-style",
+    "border-bottom-width",
+    "border-left-style",
+    "border-left-width",
+    "border-style",
+    "border-width",
+    "border-color",
+    "border",
+    "border-top",
+    "border-right",
+    "border-bottom",
+    "border-left",
     NULL
 };
 
@@ -547,6 +587,19 @@ static const char * css_lsp_names[] =
     "outside",
     NULL
 };
+///border style names
+static const char * css_bst_names[]={
+  "solid",
+  "dotted",
+  "dashed",
+  "double",
+  "groove",
+  "ridge",
+  "inset",
+  "outset",
+  "none",
+  NULL
+};
 
 
 bool LVCssDeclaration::parse( const char * &decl )
@@ -687,6 +740,10 @@ bool LVCssDeclaration::parse( const char * &decl )
             case cssd_padding_left:
             case cssd_padding_right:
             case cssd_padding_top:
+            case cssd_border_bottom_width:
+            case cssd_border_top_width:
+            case cssd_border_left_width:
+            case cssd_border_right_width:
             case cssd_padding_bottom:
                 {
                     css_length_t len;
@@ -699,6 +756,7 @@ bool LVCssDeclaration::parse( const char * &decl )
                 }
                 break;
             case cssd_margin:
+            case cssd_border_width:
             case cssd_padding:
 		{
 		    css_length_t len[4];
@@ -725,6 +783,10 @@ bool LVCssDeclaration::parse( const char * &decl )
 		break;
             case cssd_color:
             case cssd_background_color:
+            case cssd_border_top_color:
+            case cssd_border_right_color:
+            case cssd_border_bottom_color:
+            case cssd_border_left_color:
             {
                 css_length_t len;
                 if ( parse_color_value( decl, len ) )
@@ -734,7 +796,336 @@ bool LVCssDeclaration::parse( const char * &decl )
                     buf[ buf_pos++ ] = len.value;
                 }
             }
-            break;
+                break;
+            case cssd_border_color:
+            {
+                css_length_t len[4];
+                int i;
+                for (i = 0; i < 4; ++i)
+                    if (!parse_color_value( decl, len[i]))
+                        break;
+                if (i)
+                {
+                    switch (i)
+                    {
+                        case 1: len[1] = len[0]; /* fall through */
+                        case 2: len[2] = len[0]; /* fall through */
+                        case 3: len[3] = len[1];
+                    }
+                    buf[ buf_pos++ ] = prop_code;
+                    for (i = 0; i < 4; ++i)
+                    {
+                        buf[ buf_pos++ ] = len[i].type;
+                        buf[ buf_pos++ ] = len[i].value;
+                    }
+                }
+            }
+                break;
+            case cssd_border_top_style:
+            case cssd_border_right_style:
+            case cssd_border_bottom_style:
+            case cssd_border_left_style:
+            {
+                n = parse_name( decl, css_bst_names, -1 );
+                break;
+            }
+            case cssd_border_style: {
+                int n1=-1,n2=-1,n3=-1,n4=-1,sum=0;
+                n1 = parse_name(decl, css_bst_names, -1);
+                skip_spaces(decl);
+                if (n1!=-1) {
+                    sum=1;
+                    n2 = parse_name(decl, css_bst_names, -1);
+                    skip_spaces(decl);
+                    if (n2!=-1) {
+                        sum=2;
+                        n3 = parse_name(decl, css_bst_names, -1);
+                        skip_spaces(decl);
+                        if (n3!=-1) {
+                            sum=3;
+                            n4 = parse_name(decl, css_bst_names, -1);
+                            skip_spaces(decl);
+                            if (n4!=-1) sum=4;
+                        }
+                        }
+                    }
+                switch (sum) {
+                    case 1:
+                    {
+                        buf[buf_pos++] = prop_code;
+                        buf[buf_pos++] = n1;
+                        buf[buf_pos++] = n1;
+                        buf[buf_pos++] = n1;
+                        buf[buf_pos++] = n1;
+                    }
+                        break;
+                    case 2:
+                    {
+                        buf[buf_pos++] = prop_code;
+                        buf[buf_pos++] = n1;
+                        buf[buf_pos++] = n2;
+                        buf[buf_pos++] = n1;
+                        buf[buf_pos++] = n2;
+                    }
+                    break;
+                    case 3:
+                    {
+                        buf[buf_pos++] = prop_code;
+                        buf[buf_pos++] = n1;
+                        buf[buf_pos++] = n2;
+                        buf[buf_pos++] = n3;
+                        buf[buf_pos++] = n2;
+                    }
+                    break;
+                    case 4:
+                    {
+                        buf[buf_pos++] = prop_code;
+                        buf[buf_pos++] = n1;
+                        buf[buf_pos++] = n2;
+                        buf[buf_pos++] = n3;
+                        buf[buf_pos++] = n4;
+                    }
+                    break;
+                    default:break;
+                }
+            }
+                break;
+            case cssd_border:
+            {
+                css_length_t width,color;
+                int n1=-1,n2=-1,n3=-1;
+                lString8 tmp = lString8(decl);
+                lString16 tmp1=lString16(tmp.c_str());
+                tmp1.trimDoubleSpaces(false,false,true);//remove double spaces
+                tmp=UnicodeToLocal(tmp1.c_str());
+                const char *str1=tmp.c_str();
+                if(!parse_color_value(str1,color))
+                {   str1=tmp.c_str();
+                    if(!parse_number_value(str1,width)) {
+                        str1=tmp.c_str();
+                        n1 = parse_name(str1, css_bst_names, -1);
+                        skip_spaces(str1);
+                        if (n1!=-1){
+                            const char * str2=str1;
+                            const char * str3=str1;
+                            if(!parse_color_value(str2,color)){
+                                str2=str3;
+                                if(parse_number_value(str2,width)) n3=1;
+                                skip_spaces(str2);
+                                if(parse_color_value(str2,color)) n2=1;
+                            }
+                            else {
+                                n2=1;
+                                skip_spaces(str2);
+                                if(parse_number_value(str2,width)) n3=1;
+                            }
+                        }
+                    }
+                    else{
+                        n3=1;
+                        skip_spaces(str1);
+                        const char * str2=str1;
+                        if(!parse_color_value(str2,color)){
+                            str2=str1;
+                            skip_spaces(str2);
+                            n1 = parse_name(str1, css_bst_names, -1);
+                            if(parse_color_value(str2,color)) n2=1;
+                        }
+                        else{
+                            n2=1;
+                            skip_spaces(str2);
+                            n1 = parse_name(str2, css_bst_names, -1);
+                        }
+                    }
+                }
+                else
+                {
+                    n2=1;
+                    skip_spaces(str1);
+                    const char * str2=str1;
+                    if(!parse_number_value(str1,width)) {
+                        str1=str2;
+                        n1 = parse_name(str1, css_bst_names, -1);
+                        skip_spaces(str1);
+                        if(parse_number_value(str1,width)) n3=1;
+                    }
+                    else{
+                        n3=1;
+                        skip_spaces(str1);
+                        n1 = parse_name(str1, css_bst_names, -1);
+                    }
+                }
+
+                if (n1 != -1)
+                {
+                            buf[buf_pos++] = cssd_border_top_style;
+                            buf[buf_pos++] = n1;
+                            buf[buf_pos++] = cssd_border_right_style;
+                            buf[buf_pos++] = n1;
+                            buf[buf_pos++] = cssd_border_bottom_style;
+                            buf[buf_pos++] = n1;
+                            buf[buf_pos++] = cssd_border_left_style;
+                            buf[buf_pos++] = n1;
+                            if (n2 != -1) {
+                                buf[buf_pos++] = cssd_border_color;
+                                for (int i = 0; i < 4; i++) {
+                                    buf[buf_pos++] = color.type;
+                                    buf[buf_pos++] = color.value;
+                                }
+                            }
+                            if (n3 != -1) {
+                                buf[buf_pos++] = cssd_border_width;
+                                for (int i = 0; i < 4; i++) {
+                                    buf[buf_pos++] = width.type;
+                                    buf[buf_pos++] = width.value;
+                                }
+                            }
+                        }
+            }
+                break;
+                case cssd_border_top:
+                case cssd_border_right:
+                case cssd_border_bottom:
+                case cssd_border_left:
+                {
+                    css_length_t width,color;
+                    int n1=-1,n2=-1,n3=-1;
+                    lString8 tmp = lString8(decl);
+                    lString16 tmp1=lString16(tmp.c_str());
+                    tmp1.trimDoubleSpaces(false,false,true);//remove double spaces
+                    tmp=UnicodeToLocal(tmp1.c_str());
+                    const char *str1=tmp.c_str();
+                    if(!parse_color_value(str1,color))
+                    {   str1=tmp.c_str();
+                        if(!parse_number_value(str1,width)) {
+                            str1=tmp.c_str();
+                            n1 = parse_name(str1, css_bst_names, -1);
+                            skip_spaces(str1);
+                            if (n1!=-1){
+                                const char * str2=str1;
+                                const char * str3=str1;
+                                if(!parse_color_value(str2,color)){
+                                    str2=str3;
+                                    if(parse_number_value(str2,width)) n3=1;
+                                    skip_spaces(str2);
+                                    if(parse_color_value(str2,color)) n2=1;
+                                }
+                                else {
+                                    n2=1;
+                                    skip_spaces(str2);
+                                    if(parse_number_value(str2,width)) n3=1;
+                                }
+                            }
+                        }
+                        else{
+                            n3=1;
+                            skip_spaces(str1);
+                            const char * str2=str1;
+                            if(!parse_color_value(str2,color)){
+                                str2=str1;
+                                skip_spaces(str2);
+                                n1 = parse_name(str1, css_bst_names, -1);
+                                if(parse_color_value(str2,color)) n2=1;
+                            }
+                            else{
+                                n2=1;
+                                skip_spaces(str2);
+                                n1 = parse_name(str2, css_bst_names, -1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        n2=1;
+                        skip_spaces(str1);
+                        const char * str2=str1;
+                        if(!parse_number_value(str1,width)) {
+                            str1=str2;
+                            n1 = parse_name(str1, css_bst_names, -1);
+                            skip_spaces(str1);
+                            if(parse_number_value(str1,width)) n3=1;
+                        }
+                        else{
+                            n3=1;
+                            skip_spaces(str1);
+                            n1 = parse_name(str1, css_bst_names, -1);
+                        }
+                    }
+                    if (n1 != -1) {
+                        switch (prop_code){
+                            case cssd_border_top:
+                                buf[buf_pos++] = cssd_border_top_style;
+                                buf[buf_pos++] = n1;
+                                break;
+                            case cssd_border_right:
+                                buf[buf_pos++] = cssd_border_right_style;
+                                buf[buf_pos++] = n1;
+                                break;
+                            case cssd_border_bottom:
+                                buf[buf_pos++] = cssd_border_bottom_style;
+                                buf[buf_pos++] = n1;
+                                break;
+                            case cssd_border_left:
+                                buf[buf_pos++] = cssd_border_left_style;
+                                buf[buf_pos++] = n1;
+                                break;
+                            default:break;
+                        }
+                        if (n2 != -1) {
+                            switch (prop_code){
+                                case cssd_border_top:
+                                    buf[buf_pos++] = cssd_border_top_color;
+                                    buf[buf_pos++] = color.type;
+                                    buf[buf_pos++] = color.value;
+                                    break;
+                                case cssd_border_right:
+                                    buf[buf_pos++] = cssd_border_right_color;
+                                    buf[buf_pos++] = color.type;
+                                    buf[buf_pos++] = color.value;
+                                    break;
+                                case cssd_border_bottom:
+                                    buf[buf_pos++] = cssd_border_bottom_color;
+                                    buf[buf_pos++] = color.type;
+                                    buf[buf_pos++] = color.value;
+                                    break;
+                                case cssd_border_left:
+                                    buf[buf_pos++] = cssd_border_left_color;
+                                    buf[buf_pos++] = color.type;
+                                    buf[buf_pos++] = color.value;
+                                    break;
+                                default:break;
+                            }
+                            }
+                        }
+                        if (n3 != -1) {
+                            switch (prop_code){
+                                case cssd_border_top:
+                                    buf[buf_pos++] = cssd_border_top_width;
+                                    buf[buf_pos++] = width.type;
+                                    buf[buf_pos++] = width.value;
+                                    break;
+                                case cssd_border_right:
+                                    buf[buf_pos++] = cssd_border_right_width;
+                                    buf[buf_pos++] = width.type;
+                                    buf[buf_pos++] = width.value;
+                                    break;
+                                case cssd_border_bottom:
+                                    buf[buf_pos++] = cssd_border_bottom_width;
+                                    buf[buf_pos++] = width.type;
+                                    buf[buf_pos++] = width.value;
+                                    break;
+                                case cssd_border_left:
+                                    buf[buf_pos++] = cssd_border_left_width;
+                                    buf[buf_pos++] = width.type;
+                                    buf[buf_pos++] = width.value;
+                                    break;
+                                default:break;
+                            }
+                            }
+                        }
+
+
+                    break;
             case cssd_stop:
             case cssd_unknown:
             default:
@@ -917,6 +1308,60 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             style->padding[1] = read_length( p );
             style->padding[3] = read_length( p );
             style->padding[0] = read_length( p );
+            break;
+        case cssd_border_top_color:
+            style->border_color[0]=read_length(p);
+            break;
+        case cssd_border_right_color:
+            style->border_color[1]=read_length(p);
+            break;
+        case cssd_border_bottom_color:
+            style->border_color[2]=read_length(p);
+            break;
+        case cssd_border_left_color:
+            style->border_color[3]=read_length(p);
+            break;
+        case cssd_border_top_width:
+            style->border_width[0]=read_length(p);
+            break;
+        case cssd_border_right_width:
+            style->border_width[1]=read_length(p);
+            break;
+        case cssd_border_bottom_width:
+            style->border_width[2]=read_length(p);
+            break;
+        case cssd_border_left_width:
+            style->border_width[3]=read_length(p);
+            break;
+        case cssd_border_top_style:
+            style->border_style_top=(css_border_style_type_t) *p++;
+            break;
+        case cssd_border_right_style:
+            style->border_style_right=(css_border_style_type_t) *p++;
+            break;
+        case cssd_border_bottom_style:
+            style->border_style_bottom=(css_border_style_type_t) *p++;
+            break;
+        case cssd_border_left_style:
+            style->border_style_left=(css_border_style_type_t) *p++;
+            break;
+        case cssd_border_color:
+            style->border_color[0]=read_length(p);
+            style->border_color[1]=read_length(p);
+            style->border_color[2]=read_length(p);
+            style->border_color[3]=read_length(p);
+            break;
+        case cssd_border_width:
+            style->border_width[0]=read_length(p);
+            style->border_width[1]=read_length(p);
+            style->border_width[2]=read_length(p);
+            style->border_width[3]=read_length(p);
+            break;
+        case cssd_border_style:
+            style->border_style_top=(css_border_style_type_t) *p++;
+            style->border_style_right=(css_border_style_type_t) *p++;
+            style->border_style_bottom=(css_border_style_type_t) *p++;
+            style->border_style_left=(css_border_style_type_t) *p++;
             break;
         case cssd_stop:
             return;

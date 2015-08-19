@@ -184,6 +184,8 @@ public:
     virtual void DrawFragment(LVDrawBuf * src, int srcx, int srcy, int srcdx, int srcdy, int x, int y, int dx, int dy, int options) {
         CR_UNUSED10(src, srcx, srcy, srcdx, srcdy, x, y, dx, dy, options);
     }
+    /// draw lines
+    virtual void DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int length1,int length2,int direction)=0;
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette ) = 0;
@@ -248,6 +250,7 @@ public:
     virtual int  GetHeight();
     /// get row size (bytes)
     virtual int  GetRowSize() { return _rowsize; }
+    virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction)=0;
     /// draws text string
     /*
     virtual void DrawTextString( int x, int y, LVFont * pfont,
@@ -369,6 +372,7 @@ public:
     virtual ~LVGrayDrawBuf();
     /// convert to 1-bit bitmap
     void ConvertToBitmap(bool flgDither);
+    virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction=0);
 };
 
 inline lUInt32 RevRGB( lUInt32 cl )
@@ -440,6 +444,8 @@ public:
     virtual ~LVColorDrawBuf();
     /// convert to 1-bit bitmap
     void ConvertToBitmap(bool flgDither);
+    /// draw line
+    virtual void DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int length1=1,int length2=0,int direction=0);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     /// returns device context for bitmap buffer
     HDC GetDC() { return _drawdc; }

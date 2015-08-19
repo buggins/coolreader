@@ -173,6 +173,18 @@ enum css_value_type_t {
     css_val_color
 };
 
+/// css border style values
+enum css_border_style_type_t {
+    css_border_solid,
+    css_border_dotted,
+    css_border_dashed,
+    css_border_double,
+    css_border_groove,
+    css_border_ridge,
+    css_border_inset,
+    css_border_outset,
+    css_border_none
+};
 /// css length value
 typedef struct css_length_tag {
     css_value_type_t type;  ///< type of value
