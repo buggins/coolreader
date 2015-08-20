@@ -50,3 +50,4 @@ void LVRendSetFontEmbolden( int addWidth=STYLE_FONT_EMBOLD_MODE_EMBOLD );
 int LVRendGetFontEmbolden();
 
 #endif
+int measureBorder(ldomNode *enode,int border);

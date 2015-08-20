@@ -4878,8 +4878,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
     lvRect rc;
     finalNode->getAbsRect( rc );
     //CRLog::debug("ldomDocument::createXPointer point = (%d, %d), finalNode %08X rect = (%d,%d,%d,%d)", pt.x, pt.y, (lUInt32)finalNode, rc.left, rc.top, rc.right, rc.bottom );
-    pt.x -= rc.left;
-    pt.y -= rc.top;
+    pt.x -= rc.left+measureBorder(finalNode,3);//
+    pt.y -= rc.top+measureBorder(finalNode,0);//add offset for borders
     //if ( !r )
     //    return ptr;
     if ( finalNode->getRendMethod() != erm_final && finalNode->getRendMethod() !=  erm_list_item) {

@@ -54,6 +54,12 @@ typedef struct css_style_rec_tag {
     css_hyphenate_t        hyphenate;
     css_list_style_type_t list_style_type;
     css_list_style_position_t list_style_position;
+    css_border_style_type_t border_style_top;
+    css_border_style_type_t border_style_bottom;
+    css_border_style_type_t border_style_right;
+    css_border_style_type_t border_style_left;
+    css_length_t border_width[4];
+    css_length_t border_color[4];
     css_style_rec_tag()
     : refCount(0)
     , hash(0)
@@ -80,6 +86,10 @@ typedef struct css_style_rec_tag {
     , hyphenate(css_hyph_inherit)
     , list_style_type(css_lst_inherit)
     , list_style_position(css_lsp_inherit)
+    , border_style_top(css_border_none)
+    , border_style_bottom(css_border_none)
+    , border_style_right(css_border_none)
+    , border_style_left(css_border_none)
     {
     }
     void AddRef() { refCount++; }

@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <lvtextfm.h>
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
@@ -70,7 +71,7 @@ simpleLogFile logfile;
 
 #endif
 
-
+int measureBorder(ldomNode *enode,int border);
 // prototypes
 int lengthToPx( css_length_t val, int base_px, int base_em );
 
@@ -1418,6 +1419,41 @@ void getPageBreakStyle( ldomNode * el, css_page_break_t &before, css_page_break_
     }
 }
 
+//measure border width, 0 for top,1 for right,2 for bottom,3 for left
+int measureBorder(ldomNode *enode,int border) {
+        int em = enode->getFont()->getSize();
+        int width = 0;
+        if (border==0){
+                bool hastopBorder = (enode->getStyle()->border_style_top >= css_border_solid &&
+                                     enode->getStyle()->border_style_top <= css_border_outset);
+                int topBorderwidth = lengthToPx(enode->getStyle()->border_width[0], width, em);
+                topBorderwidth = topBorderwidth != 0 ? topBorderwidth : 2;
+                topBorderwidth = hastopBorder?topBorderwidth:0;
+                return topBorderwidth;}
+            else if (border==1){
+                bool hasrightBorder = (enode->getStyle()->border_style_right >= css_border_solid &&
+                                       enode->getStyle()->border_style_right <= css_border_outset);
+                int rightBorderwidth = lengthToPx(enode->getStyle()->border_width[1], width, em);
+                rightBorderwidth = hasrightBorder?rightBorderwidth:0;
+                rightBorderwidth = rightBorderwidth != 0 ? rightBorderwidth : 2;
+                return rightBorderwidth;}
+            else if (border ==2){
+                bool hasbottomBorder = (enode->getStyle()->border_style_bottom >= css_border_solid &&
+                                        enode->getStyle()->border_style_bottom <= css_border_outset);
+                int bottomBorderwidth = lengthToPx(enode->getStyle()->border_width[2], width, em);
+                bottomBorderwidth = bottomBorderwidth != 0 ? bottomBorderwidth : 2;
+                bottomBorderwidth = hasbottomBorder?bottomBorderwidth:0;
+                return bottomBorderwidth;}
+            else if (border==3){
+                bool hasleftBorder = (enode->getStyle()->border_style_left >= css_border_solid &&
+                                      enode->getStyle()->border_style_left <= css_border_outset);
+                int leftBorderwidth = lengthToPx(enode->getStyle()->border_width[3], width, em);
+                leftBorderwidth = leftBorderwidth != 0 ? leftBorderwidth : 2;
+                leftBorderwidth = hasleftBorder?leftBorderwidth:0;
+                return leftBorderwidth;}
+           else return 0;
+        }
+
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width )
 {
     if ( enode->isElement() )
@@ -1444,10 +1480,10 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         int margin_right = lengthToPx( enode->getStyle()->margin[1], width, em ) + DEBUG_TREE_DRAW;
         int margin_top = lengthToPx( enode->getStyle()->margin[2], width, em ) + DEBUG_TREE_DRAW;
         int margin_bottom = lengthToPx( enode->getStyle()->margin[3], width, em ) + DEBUG_TREE_DRAW;
-        int padding_left = lengthToPx( enode->getStyle()->padding[0], width, em ) + DEBUG_TREE_DRAW;
-        int padding_right = lengthToPx( enode->getStyle()->padding[1], width, em ) + DEBUG_TREE_DRAW;
-        int padding_top = lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW;
-        int padding_bottom = lengthToPx( enode->getStyle()->padding[3], width, em ) + DEBUG_TREE_DRAW;
+        int padding_left = lengthToPx( enode->getStyle()->padding[0], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,3);
+        int padding_right = lengthToPx( enode->getStyle()->padding[1], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,1);
+        int padding_top = lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,0);
+        int padding_bottom = lengthToPx( enode->getStyle()->padding[3], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,2);
 
         //margin_left += 50;
         //margin_right += 50;
@@ -1505,6 +1541,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     // recurse all sub-blocks for blocks
                     int y = padding_top;
                     int cnt = enode->getChildCount();
+                    context.AddLine(0,y,RN_SPLIT_BEFORE);//add line for top border
                     for (int i=0; i<cnt; i++)
                     {
                         ldomNode * child = enode->getChildNode( i );
@@ -1517,6 +1554,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     if ( y < st_y )
                         y = st_y;
                     fmt.setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
+                    context.AddLine(y,y+padding_bottom,RN_SPLIT_AFTER);//add line for bottom border
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
@@ -1592,9 +1630,11 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         line_flags |= break_after << RN_SPLIT_AFTER;
                     else
                         line_flags |= break_inside << RN_SPLIT_AFTER;
-
+                    if (measureBorder(enode,0)>0&&i==0) {line_flags=break_inside<<RN_SPLIT_BEFORE<<RN_SPLIT_AFTER;
+                    context.AddLine(rect.top,rect.top+padding_top,break_before<<RN_SPLIT_BEFORE);}
+                    if (measureBorder(enode,2)>0&&i==count-1) line_flags=break_inside<<RN_SPLIT_BEFORE<<RN_SPLIT_AFTER;
                     context.AddLine(rect.top+line->y+padding_top, rect.top+line->y+line->height+padding_top, line_flags);
-
+                    if (measureBorder(enode,2)>0&&i==count-1) context.AddLine(rect.bottom-padding_bottom,rect.bottom,break_after<<RN_SPLIT_AFTER);
                     // footnote links analysis
                     if ( !isFootNoteBody && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
                         for ( int w=0; w<line->word_count; w++ ) {
@@ -1631,6 +1671,445 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
     return 0;
 }
 
+//draw border lines,support color,width,all styles, not support border-collapse
+void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int doc_y,RenderRectAccessor fmt)
+{
+    bool hastopBorder = (enode->getStyle()->border_style_top >=css_border_solid&&enode->getStyle()->border_style_top<=css_border_outset);
+    bool hasrightBorder = (enode->getStyle()->border_style_right >=css_border_solid&&enode->getStyle()->border_style_right<=css_border_outset);
+    bool hasbottomBorder = (enode->getStyle()->border_style_bottom >=css_border_solid&&enode->getStyle()->border_style_bottom<=css_border_outset);
+    bool hasleftBorder = (enode->getStyle()->border_style_left >=css_border_solid&&enode->getStyle()->border_style_left<=css_border_outset);
+
+    if (hasbottomBorder or hasleftBorder or hasrightBorder or hastopBorder) {
+        lUInt32 shadecolor=0x555555;
+        lUInt32 lightcolor=0xAAAAAA;
+        int em = enode->getFont()->getSize();
+        int width = fmt.getWidth();
+        int topBorderwidth = lengthToPx(enode->getStyle()->border_width[0],width,em);
+        topBorderwidth=topBorderwidth!=0?topBorderwidth:2;
+        int rightBorderwidth = lengthToPx(enode->getStyle()->border_width[1],width,em);
+        rightBorderwidth=rightBorderwidth!=0?rightBorderwidth:2;
+        int bottomBorderwidth = lengthToPx(enode->getStyle()->border_width[2],width,em);
+        bottomBorderwidth=bottomBorderwidth!=0?bottomBorderwidth:2;
+        int leftBorderwidth = lengthToPx(enode->getStyle()->border_width[3],width,em);
+        leftBorderwidth=leftBorderwidth!=0?leftBorderwidth:2;
+        int tbw=topBorderwidth,rbw=rightBorderwidth,bbw=bottomBorderwidth,lbw=leftBorderwidth;
+        if (hastopBorder) {
+            int dot=1,interval=0;//default style
+            lUInt32 topBordercolor = enode->getStyle()->border_color[0].value;
+            topBorderwidth=tbw;
+            rightBorderwidth=rbw;
+            bottomBorderwidth=bbw;
+            leftBorderwidth=lbw;
+            if (enode->getStyle()->border_color[0].type==css_val_color)
+            {
+                lUInt32 r,g,b;
+                r=g=b=topBordercolor;
+                r=r>>16;
+                g=g>>8&0xff;
+                b=b&0xff;
+                shadecolor=(r*160/255)<<16|(b*160/255)<<8|b*160/255;
+                lightcolor=topBordercolor;
+            }
+            int left=1,right=1;
+            left=(hasleftBorder)?0:1;
+            right=(hasrightBorder)?0:1;
+            left=(enode->getStyle()->border_style_left==css_border_dotted||enode->getStyle()->border_style_left==css_border_dashed)?0:left;
+            right=(enode->getStyle()->border_style_right==css_border_dotted||enode->getStyle()->border_style_right==css_border_dashed)?0:right;
+            lvPoint leftpoint1=lvPoint(x0+doc_x,y0+doc_y),
+                    leftpoint2=lvPoint(x0+doc_x,y0+doc_y+0.5*topBorderwidth),
+                    leftpoint3=lvPoint(x0+doc_x,doc_y+y0-topBorderwidth),
+                    rightpoint1=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0),
+                    rightpoint2=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+0.5*topBorderwidth),
+                    rightpoint3=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+topBorderwidth);
+            double leftrate=1,rightrate=1;
+            if (left==0) {
+                leftpoint1.x=x0+doc_x;
+                leftpoint1.y=doc_y+y0;
+                leftpoint2.x=x0+doc_x+0.5*leftBorderwidth;
+                leftpoint2.y=doc_y+y0+0.5*topBorderwidth;
+                leftpoint3.x=x0+doc_x+leftBorderwidth;
+                leftpoint3.y=doc_y+y0+topBorderwidth;
+            }else leftBorderwidth=0;
+            leftrate=(double)leftBorderwidth/(double)topBorderwidth;
+            if (right==0) {
+                rightpoint1.x=x0+doc_x+fmt.getWidth();
+                rightpoint1.y=doc_y+y0;
+                rightpoint2.x=x0+doc_x+fmt.getWidth()-0.5*rightBorderwidth;
+                rightpoint2.y=doc_y+y0+0.5*topBorderwidth;
+                rightpoint3.x=x0+doc_x+fmt.getWidth()-rightBorderwidth;
+                rightpoint3.y=doc_y+y0+topBorderwidth;
+            } else rightBorderwidth=0;
+            rightrate=(double)rightBorderwidth/(double)topBorderwidth;
+            switch (enode->getStyle()->border_style_top){
+                case css_border_dotted:
+                    dot=interval=topBorderwidth;
+                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y+i+1, topBordercolor,dot,interval,0);}
+                    break;
+                case css_border_dashed:
+                    dot=3*topBorderwidth;
+                    interval=3*topBorderwidth;
+                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y+i+1, topBordercolor,dot,interval,0);}
+                    break;
+                case css_border_solid:
+                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y+i+1, topBordercolor,dot,interval,0);}
+                    break;
+                case css_border_double:
+                    for(int i=0;i<=(leftpoint2.y-leftpoint1.y)/(leftpoint2.y-leftpoint1.y>2?3:2);i++)
+                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y+i+1, topBordercolor);}
+                    for(int i=0;i<=(leftpoint3.y-leftpoint2.y)/(leftpoint3.y-leftpoint2.y>2?3:2);i++)
+                    {drawbuf.FillRect(leftpoint3.x-i*leftrate, leftpoint3.y-i, rightpoint3.x+i*rightrate,
+                                      rightpoint3.y-i+1, topBordercolor);}
+                    break;
+                case css_border_groove:
+                    for(int i=0;i<=leftpoint2.y-leftpoint1.y;i++)
+                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y+i+1, shadecolor);}
+                    for(int i=0;i<leftpoint3.y-leftpoint2.y;i++)
+                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y+i, rightpoint2.x-i*rightrate,
+                                      rightpoint2.y+i+1, lightcolor);}
+                    break;
+                case css_border_inset:
+                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y+i+1, shadecolor,dot,interval,0);}
+                    break;
+                case css_border_outset:
+                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y+i+1, lightcolor,dot,interval,0);}
+                    break;
+                case css_border_ridge:
+                    for(int i=0;i<=leftpoint2.y-leftpoint1.y;i++)
+                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate,
+                                     rightpoint1.y+i+1, lightcolor);}
+                    for(int i=0;i<leftpoint3.y-leftpoint2.y;i++)
+                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y+i, rightpoint2.x-i*rightrate,
+                                      rightpoint2.y+i+1, shadecolor);}
+                    break;
+                default:
+                    break;
+            }
+        }
+        //right
+        if (hasrightBorder) {
+            int dot=1,interval=0;//default style
+            lUInt32 rightBordercolor = enode->getStyle()->border_color[1].value;
+            topBorderwidth=tbw;
+            rightBorderwidth=rbw;
+            bottomBorderwidth=bbw;
+            leftBorderwidth=lbw;
+            if (enode->getStyle()->border_color[1].type==css_val_color)
+            {
+                lUInt32 r,g,b;
+                r=g=b=rightBordercolor;
+                r=r>>16;
+                g=g>>8&0xff;
+                b=b&0xff;
+                shadecolor=(r*160/255)<<16|(b*160/255)<<8|b*160/255;
+                lightcolor=rightBordercolor;
+            }
+            int up=1,down=1;
+            up=(hastopBorder)?0:1;
+            down=(hasbottomBorder)?0:1;
+            up=(enode->getStyle()->border_style_top==css_border_dotted||enode->getStyle()->border_style_top==css_border_dashed)?1:up;
+            down=(enode->getStyle()->border_style_bottom==css_border_dotted||enode->getStyle()->border_style_bottom==css_border_dashed)?1:down;
+            lvPoint toppoint1=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0),
+                    toppoint2=lvPoint(x0+doc_x+fmt.getWidth()-0.5*rightBorderwidth,doc_y+y0),
+                    toppoint3=lvPoint(x0+doc_x+fmt.getWidth()-rightBorderwidth,doc_y+y0),
+                    bottompoint1=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+fmt.getHeight()),
+                    bottompoint2=lvPoint(x0+doc_x+fmt.getWidth()-0.5*rightBorderwidth,doc_y+y0+fmt.getHeight()),
+                    bottompoint3=lvPoint(x0+doc_x+fmt.getWidth()-rightBorderwidth,doc_y+y0+fmt.getHeight());
+            double toprate=1,bottomrate=1;
+            if (up==0) {
+                toppoint3.y=doc_y+y0+topBorderwidth;
+                toppoint2.y=doc_y+y0+0.5*topBorderwidth;
+            } else topBorderwidth=0;
+            toprate=(double)topBorderwidth/(double)rightBorderwidth;
+            if (down==0) {
+                bottompoint3.y=y0+doc_y+fmt.getHeight()-bottomBorderwidth;
+                bottompoint2.y=y0+doc_y+fmt.getHeight()-0.5*bottomBorderwidth;
+            } else bottomBorderwidth=0;
+            bottomrate=(double)bottomBorderwidth/(double)rightBorderwidth;
+            switch (enode->getStyle()->border_style_right){
+                case css_border_dotted:
+                    dot=interval=rightBorderwidth;
+                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
+                        drawbuf.DrawLine(toppoint1.x-i-1,toppoint1.y+i*toprate,bottompoint1.x-i,
+                                         bottompoint1.y-i*bottomrate, rightBordercolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_dashed:
+                    dot=3*rightBorderwidth;
+                    interval=3*rightBorderwidth;
+                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
+                        drawbuf.DrawLine(toppoint1.x-i-1,toppoint1.y+i*toprate,bottompoint1.x-i,
+                                         bottompoint1.y-i*bottomrate, rightBordercolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_solid:
+                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
+                        drawbuf.DrawLine(toppoint1.x-i-1,toppoint1.y+i*toprate,bottompoint1.x-i,
+                                         bottompoint1.y-i*bottomrate+1, rightBordercolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_double:
+                    for (int i=0;i<=(toppoint1.x-toppoint2.x)/(toppoint1.x-toppoint2.x>2?3:2);i++){
+                        drawbuf.FillRect(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
+                                         bottompoint1.y-i*bottomrate+1, rightBordercolor);
+                    }
+                    for (int i=0;i<=(toppoint2.x-toppoint3.x)/(toppoint2.x-toppoint3.x>2?3:2);i++){
+                        drawbuf.FillRect(toppoint3.x+i,toppoint3.y-i*toprate,bottompoint3.x+i+1,
+                                         bottompoint3.y+i*bottomrate+1, rightBordercolor);
+                    }
+                    break;
+                case css_border_groove:
+                    for (int i=0;i<toppoint1.x-toppoint2.x;i++){
+                        drawbuf.FillRect(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
+                                         bottompoint1.y-i*bottomrate+1, lightcolor);
+                    }
+                    for (int i=0;i<=toppoint2.x-toppoint3.x;i++){
+                        drawbuf.FillRect(toppoint2.x-i,toppoint2.y+i*toprate,bottompoint2.x-i+1,
+                                         bottompoint2.y-i*bottomrate+1, shadecolor);
+                    }
+                    break;
+                case css_border_inset:
+                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
+                        drawbuf.DrawLine(toppoint1.x-i-1,toppoint1.y+i*toprate,bottompoint1.x-i,
+                                         bottompoint1.y-i*bottomrate+1, lightcolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_outset:
+                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
+                        drawbuf.DrawLine(toppoint1.x-i-1,toppoint1.y+i*toprate,bottompoint1.x-i,
+                                         bottompoint1.y-i*bottomrate+1, shadecolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_ridge:
+                    for (int i=0;i<toppoint1.x-toppoint2.x;i++){
+                        drawbuf.FillRect(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
+                                         bottompoint1.y-i*bottomrate+1, shadecolor);
+                    }
+                    for (int i=0;i<=toppoint2.x-toppoint3.x;i++){
+                        drawbuf.FillRect(toppoint2.x-i,toppoint2.y+i*toprate,bottompoint2.x-i+1,
+                                         bottompoint2.y-i*bottomrate+1,lightcolor);
+                    }
+                    break;
+                default:break;
+            }
+        }
+        //bottom
+        if (hasbottomBorder) {
+            int dot=1,interval=0;//default style
+            lUInt32 bottomBordercolor = enode->getStyle()->border_color[2].value;
+            topBorderwidth=tbw;
+            rightBorderwidth=rbw;
+            bottomBorderwidth=bbw;
+            leftBorderwidth=lbw;
+            if (enode->getStyle()->border_color[2].type==css_val_color)
+            {
+                lUInt32 r,g,b;
+                r=g=b=bottomBordercolor;
+                r=r>>16;
+                g=g>>8&0xff;
+                b=b&0xff;
+                shadecolor=(r*160/255)<<16|(g*160/255)<<8|b*160/255;
+                lightcolor=bottomBordercolor;
+            }
+            int left=1,right=1;
+            left=(hasleftBorder)?0:1;
+            right=(hasrightBorder)?0:1;
+            left=(enode->getStyle()->border_style_left==css_border_dotted||enode->getStyle()->border_style_left==css_border_dashed)?1:left;
+            right=(enode->getStyle()->border_style_right==css_border_dotted||enode->getStyle()->border_style_right==css_border_dashed)?1:right;
+            lvPoint leftpoint1=lvPoint(x0+doc_x,y0+doc_y+fmt.getHeight()),
+                    leftpoint2=lvPoint(x0+doc_x,y0+doc_y-0.5*bottomBorderwidth+fmt.getHeight()),
+                    leftpoint3=lvPoint(x0+doc_x,doc_y+y0+fmt.getHeight()-bottomBorderwidth),
+                    rightpoint1=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+fmt.getHeight()),
+                    rightpoint2=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+fmt.getHeight()-0.5*bottomBorderwidth),
+                    rightpoint3=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+fmt.getHeight()-bottomBorderwidth);
+            double leftrate=1,rightrate=1;
+            if (left==0) {
+                leftpoint3.x=x0+doc_x+leftBorderwidth;
+                leftpoint2.x=x0+doc_x+0.5*leftBorderwidth;
+            }else leftBorderwidth=0;
+            leftrate=(double)leftBorderwidth/(double)bottomBorderwidth;
+            if (right==0) {
+                rightpoint3.x=x0+doc_x+fmt.getWidth()-rightBorderwidth;
+                rightpoint2.x=x0+doc_x+fmt.getWidth()-0.5*rightBorderwidth;
+            } else rightBorderwidth=0;
+            rightrate=(double)rightBorderwidth/(double)bottomBorderwidth;
+            switch (enode->getStyle()->border_style_bottom){
+                case css_border_dotted:
+                    dot=interval=bottomBorderwidth;
+                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
+                    break;
+                case css_border_dashed:
+                    dot=3*bottomBorderwidth;
+                    interval=3*bottomBorderwidth;
+                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
+                    break;
+                case css_border_solid:
+                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
+                    break;
+                case css_border_double:
+                    for(int i=0;i<=(leftpoint1.y-leftpoint2.y)/(leftpoint1.y-leftpoint2.y>2?3:2);i++)
+                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
+                                      rightpoint1.y-i+1, bottomBordercolor);}
+                    for(int i=0;i<=(leftpoint2.y-leftpoint3.y)/(leftpoint2.y-leftpoint3.y>2?3:2);i++)
+                    {drawbuf.FillRect(leftpoint3.x-i*leftrate, leftpoint3.y+i, rightpoint3.x+i*rightrate+1,
+                                      rightpoint3.y+i+1, bottomBordercolor);}
+                    break;
+                case css_border_groove:
+                    for(int i=0;i<=leftpoint1.y-leftpoint2.y;i++)
+                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
+                                      rightpoint1.y-i+1, lightcolor);}
+                    for(int i=0;i<leftpoint2.y-leftpoint3.y;i++)
+                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y-i, rightpoint2.x-i*rightrate+1,
+                                      rightpoint2.y-i+1, shadecolor);}
+                    break;
+                case css_border_inset:
+                    for(int i=0;i<=leftpoint1.y-leftpoint3.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y-i+1, lightcolor,dot,interval,0);}
+                    break;
+                case css_border_outset:
+                    for(int i=0;i<=leftpoint1.y-leftpoint3.y;i++)
+                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y-i+1, shadecolor,dot,interval,0);}
+                    break;
+                case css_border_ridge:
+                    for(int i=0;i<=leftpoint1.y-leftpoint2.y;i++)
+                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
+                                      rightpoint1.y-i+1, shadecolor);}
+                    for(int i=0;i<leftpoint2.y-leftpoint3.y;i++)
+                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y-i, rightpoint2.x-i*rightrate,
+                                      rightpoint2.y-i+1, lightcolor);}
+                    break;
+                default:break;
+            }
+        }
+        //left
+        if (hasleftBorder) {
+            int dot=1,interval=0;//default style
+            lUInt32 leftBordercolor = enode->getStyle()->border_color[3].value;
+            topBorderwidth=tbw;
+            rightBorderwidth=rbw;
+            bottomBorderwidth=bbw;
+            leftBorderwidth=lbw;
+            if (enode->getStyle()->border_color[3].type==css_val_color)
+            {
+                lUInt32 r,g,b;
+                r=g=b=leftBordercolor;
+                r=r>>16;
+                g=g>>8&0xff;
+                b=b&0xff;
+                shadecolor=(r*160/255)<<16|(b*160/255)<<8|b*160/255;
+                lightcolor=leftBordercolor;
+            }
+            int up=1,down=1;
+            up=(hastopBorder)?0:1;
+            down=(hasbottomBorder)?0:1;
+            up=(enode->getStyle()->border_style_top==css_border_dotted||enode->getStyle()->border_style_top==css_border_dashed)?1:up;
+            down=(enode->getStyle()->border_style_bottom==css_border_dotted||enode->getStyle()->border_style_bottom==css_border_dashed)?1:down;
+            lvPoint toppoint1=lvPoint(x0+doc_x,doc_y+y0),
+                    toppoint2=lvPoint(x0+doc_x+0.5*leftBorderwidth,doc_y+y0),
+                    toppoint3=lvPoint(x0+doc_x+leftBorderwidth,doc_y+y0),
+                    bottompoint1=lvPoint(x0+doc_x,doc_y+y0+fmt.getHeight()),
+                    bottompoint2=lvPoint(x0+doc_x+0.5*leftBorderwidth,doc_y+y0+fmt.getHeight()),
+                    bottompoint3=lvPoint(x0+doc_x+leftBorderwidth,doc_y+y0+fmt.getHeight());
+            double toprate=1,bottomrate=1;
+            if (up==0) {
+                toppoint3.y=doc_y+y0+topBorderwidth;
+                toppoint2.y=doc_y+y0+0.5*topBorderwidth;
+            } else topBorderwidth=0;
+            toprate=(double)topBorderwidth/(double)leftBorderwidth;
+            if (down==0) {
+                bottompoint3.y=y0+doc_y+fmt.getHeight()-bottomBorderwidth;
+                bottompoint2.y=y0+doc_y+fmt.getHeight()-0.5*bottomBorderwidth;
+            } else bottomBorderwidth=0;
+            bottomrate=(double)bottomBorderwidth/(double)leftBorderwidth;
+            switch (enode->getStyle()->border_style_left){
+                case css_border_dotted:
+                    dot=interval=leftBorderwidth;
+                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
+                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,leftBordercolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_dashed:
+                    dot=3*leftBorderwidth;
+                    interval=3*leftBorderwidth;
+                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
+                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,leftBordercolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_solid:
+                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
+                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,leftBordercolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_double:
+                    for (int i=0;i<=(toppoint2.x-toppoint1.x)/(toppoint2.x-toppoint1.x>2?3:2);i++){
+                        drawbuf.FillRect(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,leftBordercolor);
+                    }
+                    for (int i=0;i<=(toppoint3.x-toppoint2.x)/(toppoint3.x-toppoint2.x>2?3:2);i++){
+                        drawbuf.FillRect(toppoint3.x-i,toppoint3.y-i*toprate,bottompoint3.x-i+1,
+                                         bottompoint3.y+i*bottomrate,leftBordercolor);
+                    }
+                    break;
+                case css_border_groove:
+                    for (int i=0;i<=toppoint2.x-toppoint1.x;i++){
+                        drawbuf.FillRect(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,shadecolor);
+                    }
+                    for (int i=0;i<toppoint3.x-toppoint2.x;i++){
+                        drawbuf.FillRect(toppoint2.x+i,toppoint2.y+i*toprate,bottompoint2.x+i+1,
+                                         bottompoint2.y-i*bottomrate,lightcolor);
+                    }
+                    break;
+                case css_border_inset:
+                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
+                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,shadecolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_outset:
+                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
+                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,lightcolor,dot,interval,1);
+                    }
+                    break;
+                case css_border_ridge:
+                    for (int i=0;i<=toppoint2.x-toppoint1.x;i++){
+                        drawbuf.FillRect(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
+                                         bottompoint1.y-i*bottomrate,lightcolor);
+                    }
+                    for (int i=0;i<toppoint3.x-toppoint2.x;i++){
+                        drawbuf.FillRect(toppoint2.x+i,toppoint2.y+i*toprate,bottompoint2.x+i+1,
+                                         bottompoint2.y-i*bottomrate,shadecolor);
+                    }
+                    break;
+                default:break;
+            }
+        }
+    }
+}
+
 void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks,
                    ldomMarkedRangeList *bookmarks)
 {
@@ -1643,9 +2122,9 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         int width = fmt.getWidth();
         int height = fmt.getHeight();
         bool draw_padding_bg = true; //( enode->getRendMethod()==erm_final );
-        int padding_left = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[0], width, em ) + DEBUG_TREE_DRAW;
-        int padding_right = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[1], width, em ) + DEBUG_TREE_DRAW;
-        int padding_top = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW;
+        int padding_left = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[0], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,3);
+        int padding_right = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[1], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,1);
+        int padding_top = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,0);
         //int padding_bottom = !draw_padding_bg ? 0 : lengthToPx( enode->getStyle()->padding[3], width, em ) + DEBUG_TREE_DRAW;
         if ( (doc_y + height <= 0 || doc_y > 0 + dy)
             && (
@@ -1693,11 +2172,11 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 drawbuf.FillRect( doc_x+x0+fmt.getWidth()-1, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
                 drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
 #endif
-                lUInt32 tableBorderColor = 0xAAAAAA;
+                /*lUInt32 tableBorderColor = 0xAAAAAA;
                 lUInt32 tableBorderColorDark = 0x555555;
                 bool needBorder = enode->getRendMethod()==erm_table || enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
-                    drawbuf.FillRect( doc_x+x0, doc_y+y0,
+                   drawbuf.FillRect( doc_x+x0, doc_y+y0,
                                       doc_x+x0+fmt.getWidth(), doc_y+y0+1, tableBorderColor );
                     drawbuf.FillRect( doc_x+x0, doc_y+y0,
                                       doc_x+x0+1, doc_y+y0+fmt.getHeight(), tableBorderColor );
@@ -1705,13 +2184,15 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                                       doc_x+x0+fmt.getWidth(),   doc_y+y0+fmt.getHeight(), tableBorderColorDark );
                     drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1,
                                       doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), tableBorderColorDark );
-                }
-            }
+                }*/
+                 DrawBorder(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
+            	}
             break;
         case erm_list_item:
         case erm_final:
         case erm_table_caption:
             {
+                DrawBorder(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
                 // draw whole node content as single formatted object
                 LFormattedTextRef txform;
                 enode->renderFinalBlock( txform, &fmt, fmt.getWidth() - padding_left - padding_right );
@@ -1742,7 +2223,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 drawbuf.FillRect( doc_x+x0+fmt.getWidth()-1, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
                 drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
 #endif
-                lUInt32 tableBorderColor = 0x555555;
+                /*lUInt32 tableBorderColor = 0x555555;
                 lUInt32 tableBorderColorDark = 0xAAAAAA;
                 bool needBorder = enode->getStyle()->display==css_d_table_cell;
                 if ( needBorder ) {
@@ -1758,7 +2239,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     //drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+1, doc_y+y0+fmt->getHeight(), tableBorderColorDark );
                     //drawbuf.FillRect( doc_x+x0+fmt->getWidth()-1, doc_y+y0, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
                     //drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt->getHeight()-1, doc_x+x0+fmt->getWidth(), doc_y+y0+fmt->getHeight(), tableBorderColor );
-                }
+                }*/
             }
             break;
         case erm_invisible:
