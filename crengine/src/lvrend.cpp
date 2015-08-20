@@ -1947,19 +1947,19 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
             switch (enode->getStyle()->border_style_bottom){
                 case css_border_dotted:
                     dot=interval=bottomBorderwidth;
-                    for(int i=0;i<=leftpoint1.y-leftpoint3.y;i++)
+                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
                     {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
                                       rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
                     break;
                 case css_border_dashed:
                     dot=3*bottomBorderwidth;
                     interval=3*bottomBorderwidth;
-                    for(int i=0;i<=leftpoint1.y-leftpoint3.y;i++)
+                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
                     {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
                                       rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
                     break;
                 case css_border_solid:
-                    for(int i=0;i<=leftpoint1.y-leftpoint3.y;i++)
+                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
                     {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate,
                                       rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
                     break;
