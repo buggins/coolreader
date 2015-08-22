@@ -1554,7 +1554,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     if ( y < st_y )
                         y = st_y;
                     fmt.setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
-                    context.AddLine(y,y+padding_bottom,RN_SPLIT_AFTER);//add line for bottom border
+                    context.AddLine(y,y+padding_bottom+1,RN_SPLIT_AFTER);//add line for bottom border
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
@@ -1707,7 +1707,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
                 r=r>>16;
                 g=g>>8&0xff;
                 b=b&0xff;
-                shadecolor=(r*160/255)<<16|(b*160/255)<<8|b*160/255;
+                shadecolor=(r*160/255)<<16|(g*160/255)<<8|b*160/255;
                 lightcolor=topBordercolor;
             }
             int left=1,right=1;
@@ -1717,7 +1717,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
             right=(enode->getStyle()->border_style_right==css_border_dotted||enode->getStyle()->border_style_right==css_border_dashed)?0:right;
             lvPoint leftpoint1=lvPoint(x0+doc_x,y0+doc_y),
                     leftpoint2=lvPoint(x0+doc_x,y0+doc_y+0.5*topBorderwidth),
-                    leftpoint3=lvPoint(x0+doc_x,doc_y+y0-topBorderwidth),
+                    leftpoint3=lvPoint(x0+doc_x,doc_y+y0+topBorderwidth),
                     rightpoint1=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0),
                     rightpoint2=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+0.5*topBorderwidth),
                     rightpoint3=lvPoint(x0+doc_x+fmt.getWidth(),doc_y+y0+topBorderwidth);
@@ -1812,7 +1812,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
                 r=r>>16;
                 g=g>>8&0xff;
                 b=b&0xff;
-                shadecolor=(r*160/255)<<16|(b*160/255)<<8|b*160/255;
+                shadecolor=(r*160/255)<<16|(g*160/255)<<8|b*160/255;
                 lightcolor=rightBordercolor;
             }
             int up=1,down=1;
@@ -2015,7 +2015,7 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
                 r=r>>16;
                 g=g>>8&0xff;
                 b=b&0xff;
-                shadecolor=(r*160/255)<<16|(b*160/255)<<8|b*160/255;
+                shadecolor=(r*160/255)<<16|(g*160/255)<<8|b*160/255;
                 lightcolor=leftBordercolor;
             }
             int up=1,down=1;

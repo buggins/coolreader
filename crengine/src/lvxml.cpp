@@ -2967,6 +2967,12 @@ bool LVXMLParser::Parse()
                         m_state = ps_text;
                         break;
                     }
+                    //bypass <![CDATA] in <style type="text/css">
+                    if (PeekCharFromBuffer(1)=='['&&tagname.compare("style")==0&&attrvalue.compare("text/css")==0){
+                        ch=PeekNextCharFromBuffer(7);
+                        m_state =ps_text;
+                        break;
+                    }
                 }
                 if ( !ReadIdent(tagns, tagname) || PeekCharFromBuffer()=='=')
                 {
