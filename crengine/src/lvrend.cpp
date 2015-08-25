@@ -1434,8 +1434,8 @@ int measureBorder(ldomNode *enode,int border) {
                 bool hasrightBorder = (enode->getStyle()->border_style_right >= css_border_solid &&
                                        enode->getStyle()->border_style_right <= css_border_outset);
                 int rightBorderwidth = lengthToPx(enode->getStyle()->border_width[1], width, em);
-                rightBorderwidth = hasrightBorder?rightBorderwidth:0;
                 rightBorderwidth = rightBorderwidth != 0 ? rightBorderwidth : 2;
+                rightBorderwidth = hasrightBorder?rightBorderwidth:0;
                 return rightBorderwidth;}
             else if (border ==2){
                 bool hasbottomBorder = (enode->getStyle()->border_style_bottom >= css_border_solid &&

@@ -4893,7 +4893,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
     LFormattedTextRef txtform;
     {
         RenderRectAccessor r( finalNode );
-        finalNode->renderFinalBlock( txtform, &r, r.getWidth() );
+        finalNode->renderFinalBlock( txtform, &r, r.getWidth() -measureBorder(finalNode,1)-measureBorder(finalNode,3));
     }
     int lcount = txtform->GetLineCount();
     for ( int l = 0; l<lcount; l++ ) {
@@ -4998,7 +4998,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
         //if ( !r )
         //    return false;
         LFormattedTextRef txtform;
-        finalNode->renderFinalBlock( txtform, &r, r.getWidth() );
+        finalNode->renderFinalBlock( txtform, &r, r.getWidth()-measureBorder(finalNode,1)-measureBorder(finalNode,3));
 
         ldomNode * node = getNode();
         int offset = getOffset();
@@ -11184,7 +11184,7 @@ bool ldomNode::refreshFinalBlock()
     fmt.getRect( oldRect );
     LFormattedTextRef txtform;
     int width = fmt.getWidth();
-    renderFinalBlock( txtform, &fmt, width );
+    renderFinalBlock( txtform, &fmt, width-measureBorder(this,1)-measureBorder(this,3));
     fmt.getRect( newRect );
     if ( oldRect == newRect )
         return false;
