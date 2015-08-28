@@ -4924,13 +4924,13 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
 #endif
                 }
                 LVFont * font = (LVFont *) src->t.font;
-                lUInt16 w[512];
+                lUInt16 width[512];
                 lUInt8 flg[512];
 
                 lString16 str = node->getText();
-                font->measureText( str.c_str()+word->t.start, word->t.len, w, flg, word->width+50, '?', src->letter_spacing);
+                font->measureText( str.c_str()+word->t.start, word->t.len, width, flg, word->width+50, '?', src->letter_spacing);
                 for ( int i=0; i<word->t.len; i++ ) {
-                    int xx = ( i>0 ) ? (w[i-1] + w[i])/2 : w[i]/2;
+                    int xx = ( i>0 ) ? (width[i-1] + width[i])/2 : width[i]/2;
                     if ( x < word->x + xx ) {
                         return ldomXPointer( node, src->t.offset + word->t.start + i );
                     }
@@ -6299,11 +6299,11 @@ inline bool IsUnicodeSpaceOrNull( lChar16 ch )
 }
 
 inline bool canWrapWordBefore( lChar16 ch ) {
-    return ch>=0x2e80 && ch<0xa640;
+    return ch>=0x2e80 && ch<0x2CEAF;
 }
 
 inline bool canWrapWordAfter( lChar16 ch ) {
-    return ch>=0x2e80 && ch<0xa640;
+    return ch>=0x2e80 && ch<0x2CEAF;
 }
 
 /// move to previous visible word beginning

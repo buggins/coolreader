@@ -557,7 +557,7 @@ void LVFontLocalGlyphCache::clear()
     }
 }
 
-LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt16 ch )
+LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt32 ch )
 {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     LVFontGlyphCacheItem * ptr = head;
@@ -956,7 +956,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 )
     {
         //FONT_GUARD
         int glyph_index = getCharIndex( code, 0 );
@@ -1166,7 +1166,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
         //FONT_GUARD
         FT_UInt ch_glyph_index = getCharIndex( ch, 0 );
         if ( ch_glyph_index==0 ) {
@@ -1462,7 +1462,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0  )
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0  )
     {
         bool res = _baseFont->getGlyphInfo( code, glyph, def_char );
         if ( !res )
@@ -1540,7 +1540,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
 
         LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
         if ( item )
