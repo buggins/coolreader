@@ -236,7 +236,7 @@ int LVFont::getVisualAligmentWidth()
     return _visual_alignment_width;
 }
 
-static lChar16 getReplacementChar( lUInt16 code ) {
+static lChar16 getReplacementChar( lUInt32 code ) {
     switch (code) {
     case UNICODE_SOFT_HYPHEN_CODE:
         return '-';
@@ -448,12 +448,12 @@ public:
 class LVFontGlyphWidthCache
 {
 private:
-    lUInt8 * ptrs[128];
+    lUInt8 * ptrs[360]; //support up to 0X2CFFF=360*512-1
 public:
     lUInt8 get( lChar16 ch )
     {
         FONT_GLYPH_CACHE_GUARD
-        int inx = (ch>>9) & 0x7f;
+        int inx = (ch>>9) & 0x1ff;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr )
             return 0xFF;
@@ -462,7 +462,7 @@ public:
     void put( lChar16 ch, lUInt8 w )
     {
         FONT_GLYPH_CACHE_GUARD
-        int inx = (ch>>9) & 0x7f;
+        int inx = (ch>>9) & 0x1ff;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr ) {
             ptr = new lUInt8[512];
@@ -474,7 +474,7 @@ public:
     void clear()
     {
         FONT_GLYPH_CACHE_GUARD
-        for ( int i=0; i<128; i++ ) {
+        for ( int i=0; i<360; i++ ) {
             if ( ptrs[i] )
                 delete [] ptrs[i];
             ptrs[i] = NULL;
@@ -482,7 +482,7 @@ public:
     }
     LVFontGlyphWidthCache()
     {
-        memset( ptrs, 0, 128*sizeof(lUInt8*) );
+        memset( ptrs, 0, 360*sizeof(lUInt8*) );
     }
     ~LVFontGlyphWidthCache()
     {
@@ -943,7 +943,7 @@ public:
             code = ' ';
         FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, code );
         if ( ch_glyph_index==0 ) {
-            lUInt16 replacement = getReplacementChar( code );
+            lUInt32 replacement = getReplacementChar( code );
             if ( replacement )
                 ch_glyph_index = FT_Get_Char_Index( _face, replacement );
             if ( ch_glyph_index==0 && def_char )
