@@ -944,7 +944,8 @@ public:
     }
 
     bool isCJKIdeograph(lChar16 c) {
-       return c >= UNICODE_CJK_IDEOGRAPHS_BEGIN && c <= UNICODE_CJK_IDEOGRAPHS_END;
+       return c >= UNICODE_CJK_IDEOGRAPHS_BEGIN && c <= UNICODE_CJK_IDEOGRAPHS_END&&(c<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN||
+                                                                                     c>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END);
     }
 
     bool isCJKPunctuation(lChar16 c) {

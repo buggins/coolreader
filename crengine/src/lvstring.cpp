@@ -4131,7 +4131,8 @@ inline lUInt16 getCharProp(lChar16 ch) {
         return char_props_1f00[ch & 255];
     else if (ch>=0x2012 && ch<=0x2015)
         return CH_PROP_DASH|CH_PROP_SIGN;
-    else if (ch>=UNICODE_CJK_IDEOGRAPHS_BEGIN && ch<=UNICODE_CJK_IDEOGRAPHS_END)
+    else if (ch>=UNICODE_CJK_IDEOGRAPHS_BEGIN && ch<=UNICODE_CJK_IDEOGRAPHS_END&&(ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN||
+                                                                                  ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END))
         return CH_PROP_CJK;
     else if ((ch>=UNICODE_CJK_PUNCTUATION_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_END) ||
              (ch>=UNICODE_GENERAL_PUNCTUATION_BEGIN && ch<=UNICODE_GENERAL_PUNCTUATION_END) ||

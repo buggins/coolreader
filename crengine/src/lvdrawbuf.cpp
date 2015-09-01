@@ -1515,7 +1515,6 @@ void LVColorDrawBuf::DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int le
     if (x0>=x1 || y0>=y1)
         return;
     if ( _bpp==16 ) {
-        lUInt16 cl16_0 = rgb888to565(color0);
         for (int y=y0; y<y1; y++)
         {
             lUInt16 * line = (lUInt16 *)GetScanLine(y);

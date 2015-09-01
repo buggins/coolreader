@@ -75,7 +75,7 @@ public:
         clear();
     }
     void clear();
-    LVFontGlyphCacheItem * get( lUInt16 ch );
+    LVFontGlyphCacheItem * get( lUInt32 ch );
     void put( LVFontGlyphCacheItem * item );
     void remove( LVFontGlyphCacheItem * item );
 };
@@ -165,7 +165,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 ) = 0;
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 ) = 0;
 
     /** \brief measure text
         \param text is text string pointer
@@ -203,7 +203,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) = 0;
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) = 0;
     /// returns font baseline offset
     virtual int getBaseline() = 0;
     /// returns font height including normal interline space
@@ -401,7 +401,7 @@ private:
     lvfont_handle m_font;
 public:
     LBitmapFont() : m_font(NULL) { }
-    virtual bool getGlyphInfo( lUInt16 code, LVFont::glyph_info_t * glyph, lChar16 def_char=0 );
+    virtual bool getGlyphInfo( lUInt32 code, LVFont::glyph_info_t * glyph, lChar16 def_char=0 );
     virtual lUInt16 measureText( 
                         const lChar16 * text, int len, 
                         lUInt16 * widths,
@@ -424,7 +424,7 @@ public:
     /// returns font height
     virtual int getHeight() const;
     
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0 );
+    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0 );
     
     /// returns char width
     virtual int getCharWidth( lChar16 ch, lChar16 def_char=0 )
@@ -523,7 +523,7 @@ public:
         return css_ff_inherit;
     }
 
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
         return NULL;
     }
 
@@ -546,7 +546,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 );
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 );
 
     /** \brief measure text
         \param glyph is pointer to glyph_info_t struct to place retrieved info
@@ -583,7 +583,7 @@ public:
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found 
     */
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0);
+    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0);
     
 };
 
@@ -721,7 +721,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 );
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 );
 
     /** \brief measure text
         \param glyph is pointer to glyph_info_t struct to place retrieved info
@@ -750,7 +750,7 @@ public:
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found 
     */
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0);
+    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0);
     
     virtual void Clear();
 

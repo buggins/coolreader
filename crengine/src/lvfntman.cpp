@@ -236,7 +236,7 @@ int LVFont::getVisualAligmentWidth()
     return _visual_alignment_width;
 }
 
-static lChar16 getReplacementChar( lUInt16 code ) {
+static lChar16 getReplacementChar( lUInt32 code ) {
     switch (code) {
     case UNICODE_SOFT_HYPHEN_CODE:
         return '-';
@@ -448,12 +448,12 @@ public:
 class LVFontGlyphWidthCache
 {
 private:
-    lUInt8 * ptrs[128];
+    lUInt8 * ptrs[360]; //support up to 0X2CFFF=360*512-1
 public:
     lUInt8 get( lChar16 ch )
     {
         FONT_GLYPH_CACHE_GUARD
-        int inx = (ch>>9) & 0x7f;
+        int inx = (ch>>9) & 0x1ff;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr )
             return 0xFF;
@@ -462,7 +462,7 @@ public:
     void put( lChar16 ch, lUInt8 w )
     {
         FONT_GLYPH_CACHE_GUARD
-        int inx = (ch>>9) & 0x7f;
+        int inx = (ch>>9) & 0x1ff;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr ) {
             ptr = new lUInt8[512];
@@ -474,7 +474,7 @@ public:
     void clear()
     {
         FONT_GLYPH_CACHE_GUARD
-        for ( int i=0; i<128; i++ ) {
+        for ( int i=0; i<360; i++ ) {
             if ( ptrs[i] )
                 delete [] ptrs[i];
             ptrs[i] = NULL;
@@ -482,7 +482,7 @@ public:
     }
     LVFontGlyphWidthCache()
     {
-        memset( ptrs, 0, 128*sizeof(lUInt8*) );
+        memset( ptrs, 0, 360*sizeof(lUInt8*) );
     }
     ~LVFontGlyphWidthCache()
     {
@@ -557,7 +557,7 @@ void LVFontLocalGlyphCache::clear()
     }
 }
 
-LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt16 ch )
+LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt32 ch )
 {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     LVFontGlyphCacheItem * ptr = head;
@@ -943,7 +943,7 @@ public:
             code = ' ';
         FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, code );
         if ( ch_glyph_index==0 ) {
-            lUInt16 replacement = getReplacementChar( code );
+            lUInt32 replacement = getReplacementChar( code );
             if ( replacement )
                 ch_glyph_index = FT_Get_Char_Index( _face, replacement );
             if ( ch_glyph_index==0 && def_char )
@@ -956,7 +956,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 )
     {
         //FONT_GUARD
         int glyph_index = getCharIndex( code, 0 );
@@ -1166,7 +1166,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
         //FONT_GUARD
         FT_UInt ch_glyph_index = getCharIndex( ch, 0 );
         if ( ch_glyph_index==0 ) {
@@ -1462,7 +1462,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0  )
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0  )
     {
         bool res = _baseFont->getGlyphInfo( code, glyph, def_char );
         if ( !res )
@@ -1540,7 +1540,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
 
         LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
         if ( item )
