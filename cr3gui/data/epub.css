@@ -41,9 +41,6 @@ img {
 	text-align: center; 
 	text-indent: 0px; 
 	display: block; 
-	margin: 0.5em; 
-   	border-style: solid; 
-   	border-width: medium; 
 }
 .section_image { text-align: center; }
 .coverpage { text-align: center; }
@@ -58,6 +55,10 @@ hr { height: 2px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0
 
 sub { vertical-align: sub; font-size: 70% }
 sup { vertical-align: super; font-size: 70% }
+sup img{display:inline}
+sub img{display:inline}
+a img{display:inline}
+p img{display:inline}
 
 li { display: list-item; text-indent: 0em;  }
 ul { display: block; list-style-type: disc; margin-left: 1em }

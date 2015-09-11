@@ -1541,7 +1541,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     // recurse all sub-blocks for blocks
                     int y = padding_top;
                     int cnt = enode->getChildCount();
-                    context.AddLine(0,y,RN_SPLIT_BEFORE);//add line for top border
+                    if(measureBorder(enode,0)>0) context.AddLine(0,y,RN_SPLIT_BEFORE);//add line for top border
                     for (int i=0; i<cnt; i++)
                     {
                         ldomNode * child = enode->getChildNode( i );
@@ -1554,7 +1554,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     if ( y < st_y )
                         y = st_y;
                     fmt.setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
-                    context.AddLine(y,y+padding_bottom+1,RN_SPLIT_AFTER);//add line for bottom border
+                    if(measureBorder(enode,2)>0) context.AddLine(y,y+padding_bottom+1,RN_SPLIT_AFTER);//add line for bottom border
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
