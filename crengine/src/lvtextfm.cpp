@@ -736,18 +736,18 @@ public:
                     if ( vertical_align )  {                         //if (vertical_align && node->getAttributeValue("","class")=="duokan-footnote") // apply to duokan-footnote
                         ldomNode *node=(ldomNode*)para->object;
                         LVFont *font=(LVFont*)para->t.font;
-                        if (!node->getText().empty())
-                        {
-                        if ( vertical_align == LTEXT_VALIGN_SUB )
-                        {   int fh=font->getHeight();
-                            word->y +=  fh*0.3333;
-                            width=width/height*fh*0.6667;
-                            height=fh*0.6667;}
-                        else if ( vertical_align == LTEXT_VALIGN_SUPER )
-                        {   int fh=font->getHeight();
-                            word->y -=  fh*0.3333;
-                            width=width/height*fh*0.6667;
-                            height=fh*0.6667;}
+                        if (!node->getText().empty()) {
+                            if ( vertical_align == LTEXT_VALIGN_SUB ) {
+                                int fh=font->getHeight();
+                                word->y +=  fh*0.3333;
+                                width=width/height*fh*0.6667;
+                                height=fh*0.6667;
+                            } else if ( vertical_align == LTEXT_VALIGN_SUPER ) {
+                                int fh=font->getHeight();
+                                word->y -=  fh*0.3333;
+                                width=width/height*fh*0.6667;
+                                height=fh*0.6667;
+                            }
                         }
                     }
                     resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
@@ -1000,7 +1000,6 @@ public:
 
         int interval = m_srcs[0]->interval;
         int maxWidth = m_pbuffer->width;
-
 #if 1
         // reservation of space for floating punctuation
         bool visualAlignmentEnabled = gFlgFloatingPunctuationEnabled!=0;
@@ -1020,11 +1019,15 @@ public:
             maxWidth -= visualAlignmentWidth;
         }
 #endif
-
         // split paragraph into lines, export lines
         int pos = 0;
         int upSkipPos = -1;
         int indent = m_srcs[0]->margin;
+
+        if (indent > maxWidth) {
+            return;
+        }
+
         for (;pos<m_length;) {
             int x = indent >=0 ? (pos==0 ? indent : 0) : (pos==0 ? 0 : -indent);
             int w0 = pos>0 ? m_widths[pos-1] : 0;
@@ -1035,6 +1038,7 @@ public:
             int lastMandatoryWrap = -1;
             int spaceReduceWidth = 0; // max total line width which can be reduced by narrowing of spaces
             int firstCharMargin = getAdditionalCharWidthOnLeft(pos); // for first italic char with elements below baseline
+
             spaceReduceWidth -= visualAlignmentWidth/2;
             firstCharMargin += visualAlignmentWidth/2;
             if (isCJKLeftPunctuation(m_text[pos])) {
