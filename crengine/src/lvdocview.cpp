@@ -1905,7 +1905,7 @@ void LVDocView::GetPos(lvRect & rc) {
 int LVDocView::getPageHeight(int pageIndex)
 {
     CR_UNUSED(pageIndex);
-	if (isPageMode() && _page >= 0 && _page < m_pages.length()) 
+	if (isPageMode() && _page >= 0 && _page < m_pages.length())
 		return m_pages[_page]->height;
 	return 0;
 }
