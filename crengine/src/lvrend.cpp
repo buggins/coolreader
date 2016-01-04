@@ -1520,6 +1520,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         context.enterFootNote( enode->getAttributeValue(attr_id) );
                     // recurse all sub-blocks for blocks
                     int y = 0;
+                    if(measureBorder(enode,0)>0) context.AddLine(0,padding_top,RN_SPLIT_BEFORE);//add line for top border
                     int h = renderTable( context, enode, 0, y, width );
                     y += h;
                     int st_y = lengthToPx( enode->getStyle()->height, em, em );
@@ -1554,7 +1555,10 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     if ( y < st_y )
                         y = st_y;
                     fmt.setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
-                    if(measureBorder(enode,2)>0) context.AddLine(y,y+padding_bottom+1,RN_SPLIT_AFTER);//add line for bottom border
+                    lvRect rect;
+                    enode->getAbsRect(rect);
+                    if(measureBorder(enode,2)>0)
+                        context.AddLine(y+rect.bottom,y+rect.bottom+padding_bottom,RN_SPLIT_AUTO);//add line for bottom border
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
