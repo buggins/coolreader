@@ -1,0 +1,149 @@
+[
+    {
+        "name": "Bulgarian",
+        "filename": "Bulgarian_hyphen_(Alan).pdb",
+        "language": "bg",
+        "aliases": ["bul"]
+    },
+    {
+        "name": "Czech",
+        "filename": "Czech_hyphen_(Alan).pdb",
+        "language": "cs",
+        "aliases": ["ces"]
+    },
+    {
+        "name": "Danish",
+        "filename": "Danish_hyphen_(Alan).pdb",
+        "language": "da",
+        "aliases": ["dan"]
+    },
+    {
+        "name": "Dutch",
+        "filename": "Dutch.pattern",
+        "language": "nl",
+        "aliases": ["nld"]
+    },
+    {
+        "name": "English (US)",
+        "filename": "English_US_hyphen_(Alan).pdb",
+        "language": "en-US",
+        "aliases": ["en", "eng"]
+    },
+    {
+        "name": "English (UK)",
+        "filename": "English_GB_hyphen_(Alan).pdb",
+        "language": "en-GB"
+    },
+    {
+        "name": "Finnish",
+        "filename": "Finnish_hyphen_(Alan).pdb",
+        "language": "fi",
+        "aliases": ["fin"]
+    },
+    {
+        "name": "French",
+        "filename": "French_hyphen_(Alan).pdb",
+        "language": "fr",
+        "aliases": ["fra"]
+    },
+    {
+        "name": "German",
+        "filename": "German_hyphen_(Alan).pdb",
+        "language": "de",
+        "aliases": ["deu"]
+    },
+    {
+        "name": "Greek",
+        "filename": "Greek.pattern",
+        "language": "el",
+        "aliases": ["ell"]
+    },
+    {
+        "name": "Hungarian",
+        "filename": "Hungarian_hyphen_(Alan).pdb",
+        "language": "hu",
+        "aliases": ["hun"]
+    },
+    {
+        "name": "Icelandic",
+        "filename": "Icelandic_hyphen_(Alan).pdb",
+        "language": "is",
+        "aliases": ["isl"]
+    },
+    {
+        "name": "Irish",
+        "filename": "Irish_hyphen_(Alan).pdb",
+        "language": "ga",
+        "aliases": ["gle"]
+    },
+    {
+        "name": "Italian",
+        "filename": "Italian_hyphen_(Alan).pdb",
+        "language": "it",
+        "aliases": ["ita"]
+    },
+    {
+        "name": "Polish",
+        "filename": "Polish_hyphen_(Alan).pdb",
+        "language": "pl",
+        "aliases": ["pol"]
+    },
+    {
+        "name": "Portuguese",
+        "filename": "Portuguese_hyphen_(Alan).pdb",
+        "language": "pt",
+        "aliases": ["por"]
+    },
+    {
+        "name": "Romanian",
+        "filename": "Roman_hyphen_(Alan).pdb",
+        "language": "ro",
+        "aliases": ["ron"]
+    },
+    {
+        "name": "Russian",
+        "filename": "Russian_hyphen_(Alan).pdb",
+        "language": "ru",
+        "aliases": ["rus"]
+    },
+    {
+        "name": "Russian + Englishs (US)",
+        "filename": "Russian_EnUS_hyphen_(Alan).pdb",
+        "language": "ru,en-US"
+    },
+    {
+        "name": "Russian + English (UK)",
+        "filename": "Russian_EnGB_hyphen_(Alan).pdb",
+        "language": "ru,en-GB"
+    },
+    {
+        "name": "Slovak",
+        "filename": "Slovak_hyphen_(Alan).pdb",
+        "language": "sk",
+        "aliases": ["slk"]
+    },
+    {
+        "name": "Slovenian",
+        "filename": "Slovenian_hyphen_(Alan).pdb",
+        "language": "sl",
+        "aliases": ["slv"]
+    },
+    {
+        "name": "Spanish",
+        "filename": "Spanish_hyphen_(Alan).pdb",
+        "language": "es",
+        "aliases": ["spa"]
+    },
+    {
+        "name": "Swedish",
+        "filename": "Swedish_hyphen_(Alan).pdb",
+        "language": "sv",
+        "aliases": ["swe"]
+    },
+    {
+        "name": "Ukrainian",
+        "filename": "Ukrain_hyphen_(Alan).pdb",
+        "language": "uk",
+        "aliases": ["ukr"]
+    }
+]
