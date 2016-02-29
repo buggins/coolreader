@@ -212,7 +212,7 @@ public:
     }
 
     /// remove all rules from stylesheet
-    void clear() { _selectors.clear(); }
+    void clear() { _selectors.clear(); _stack.clear();}
     /// set document to retrieve ID values from
     void setDocument( lxmlDocBase * doc ) { _doc = doc; }
     /// constructor
