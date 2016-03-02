@@ -585,7 +585,7 @@ public:
     }
 
 #define MIN_WORD_LEN_TO_HYPHENATE 4
-#define MAX_WORD_SIZE 64
+#define MAX_WORD_SIZE 128
 
     /// align line
     void alignLine( formatted_line_t * frmline, int width, int alignment ) {
