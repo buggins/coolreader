@@ -674,7 +674,7 @@ bool TexHyph::hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 
 {
     if ( len<=3 )
         return false;
-    if ( len>WORD_LENGTH )
+    if ( len>=WORD_LENGTH )
         len = WORD_LENGTH - 2;
     lChar16 word[WORD_LENGTH+3];
     char mask[WORD_LENGTH+3];
