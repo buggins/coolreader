@@ -2005,8 +2005,8 @@ bool LVDocView::goToPage(int page, bool updatePosBookmark) {
     }
 	_posIsSet = true;
 	updateScroll();
-    if (res)
-        updateBookMarksRanges();
+    //if (res)
+        //updateBookMarksRanges();
 	return res;
 }
 

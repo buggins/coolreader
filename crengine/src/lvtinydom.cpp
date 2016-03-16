@@ -144,6 +144,7 @@ enum CacheFileBlockType {
 #include <stddef.h>
 #include <math.h>
 #include <zlib.h>
+#include <xxhash.h>
 
 // define to store new text nodes as persistent text, instead of mutable
 #define USE_PERSISTENT_TEXT 1
@@ -257,8 +258,8 @@ bool ldomUnpack( const lUInt8 * compbuf, int compsize, lUInt8 * &dstbuf, lUInt32
 // FNV 64bit hash function
 // from http://isthe.com/chongo/tech/comp/fnv/#gcc-O3
 
-#define NO_FNV_GCC_OPTIMIZATION
-#define FNV_64_PRIME ((lUInt64)0x100000001b3ULL)
+//#define NO_FNV_GCC_OPTIMIZATION
+/*#define FNV_64_PRIME ((lUInt64)0x100000001b3ULL)
 static lUInt64 calcHash64( const lUInt8 * s, int len )
 {
     const lUInt8 * endp = s + len;
@@ -267,15 +268,18 @@ static lUInt64 calcHash64( const lUInt8 * s, int len )
     for ( ; s<endp; s++ ) {
 #if defined(NO_FNV_GCC_OPTIMIZATION)
         hval *= FNV_64_PRIME;
-#else /* NO_FNV_GCC_OPTIMIZATION */
+#else *//* NO_FNV_GCC_OPTIMIZATION *//*
         hval += (hval << 1) + (hval << 4) + (hval << 5) +
             (hval << 7) + (hval << 8) + (hval << 40);
-#endif /* NO_FNV_GCC_OPTIMIZATION */
+#endif *//* NO_FNV_GCC_OPTIMIZATION *//*
         hval ^= *s;
     }
     return hval;
+}*/
+static lUInt32 calcHash(const lUInt8 * s, int len)
+{
+return XXH32(s,len,0);
 }
-
 lUInt32 calcGlobalSettingsHash(int documentId)
 {
     lUInt32 hash = FORMATTING_VERSION_ID;
@@ -579,7 +583,7 @@ bool CacheFile::readIndex()
     if ( bytesRead!=sz )
         return false;
     // check CRC
-    lUInt64 hash = calcHash64( (lUInt8*)index, sz );
+    lUInt32 hash = calcHash( (lUInt8*)index, sz );
     if ( hdr._indexBlock._dataHash!=hash ) {
         CRLog::error("CacheFile::readIndex: CRC doesn't match found %08x expected %08x", hash, hdr._indexBlock._dataHash);
         delete[] index;
@@ -778,7 +782,7 @@ bool CacheFile::validate( CacheFileItem * block )
     }
 
     // check CRC for file block
-    lUInt64 packedhash = calcHash64( buf, size );
+    lUInt32 packedhash = calcHash( buf, size );
     if ( packedhash!=block->_packedHash ) {
         CRLog::error("CacheFile::validate: packed data CRC doesn't match for block %d:%d of size %d", block->_dataType, block->_dataIndex, (int)size);
         free(buf);
@@ -820,7 +824,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
         // block is compressed
 
         // check crc separately only for compressed data
-        lUInt64 packedhash = calcHash64( buf, size );
+        lUInt32 packedhash = calcHash( buf, size );
         if ( packedhash!=block->_packedHash ) {
             CRLog::error("CacheFile::read: packed data CRC doesn't match for block %d:%d of size %d", type, dataIndex, (int)size);
             free(buf);
@@ -846,7 +850,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     }
 
     // check CRC
-    lUInt64 hash = calcHash64( buf, size );
+    lUInt32 hash = calcHash( buf, size );
     if (hash != block->_dataHash) {
         CRLog::error("CacheFile::read: CRC doesn't match for block %d:%d of size %d", type, dataIndex, (int)size);
         free(buf);
@@ -862,7 +866,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
 bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int size, bool compress )
 {
     // check whether data is changed
-    lUInt64 newhash = calcHash64( buf, size );
+    lUInt32 newhash = calcHash( buf, size );
     CacheFileItem * existingblock = findBlock( type, dataIndex );
 
     if (existingblock) {
@@ -893,7 +897,7 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
             uncompressedSize = size;
             size = dstsize;
             buf = dstbuf;
-            newpackedhash = calcHash64( buf, size );
+            newpackedhash = calcHash( buf, size );
 #if DEBUG_DOM_STORAGE==1
             //CRLog::trace("packed block %d:%d : %d to %d bytes (%d%%)", type, dataIndex, srcsize, dstsize, srcsize>0?(100*dstsize/srcsize):0 );
 #endif
@@ -1758,9 +1762,9 @@ bool tinyNodeCollection::loadNodeData()
     if ( magic != NODE_INDEX_MAGIC ) {
         return false;
     }
-    if ( elemcount<=0 || elemcount>200000 )
+    if ( elemcount<=0 )
         return false;
-    if ( textcount<=0 || textcount>200000 )
+    if ( textcount<=0 )
         return false;
     ldomNode * elemList[TNC_PART_COUNT];
     memset( elemList, 0, sizeof(elemList) );
