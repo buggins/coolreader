@@ -1127,9 +1127,9 @@ public:
                 if ( wrapPos<0 )
                     wrapPos = i-1;
                 if ( wrapPos<=upSkipPos ) {
-                    CRLog::trace("guard old wrapPos at %d", wrapPos);
+                    //CRLog::trace("guard old wrapPos at %d", wrapPos);
                     wrapPos = upSkipPos+1;
-                    CRLog::trace("guard new wrapPos at %d", wrapPos);
+                    //CRLog::trace("guard new wrapPos at %d", wrapPos);
                     upSkipPos = -1;
                 }
             }
@@ -1138,29 +1138,29 @@ public:
             int downSkipCount = 0;
             int upSkipCount = 0;
             if (endp > 1 && isCJKLeftPunctuation(*(m_text + endp))) {
-                CRLog::trace("skip skip punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
+                //CRLog::trace("skip skip punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
             } else if (endp > 1 && endp < m_length - 1 && isCJKLeftPunctuation(*(m_text + endp - 1))) {
                 upSkipPos = endp;
                 endp--; wrapPos--;
-                CRLog::trace("up skip left punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
+                //CRLog::trace("up skip left punctuation %s, at index %d", LCSTR(lString16(m_text+endp, 1)), endp);
             } else if (endp > 1 && isCJKPunctuation(*(m_text + endp))) {
                 for (int epos = endp; epos<m_length; epos++, downSkipCount++) {
                    if ( !isCJKPunctuation(*(m_text + epos)) ) break;
-                   CRLog::trace("down skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
+                   //CRLog::trace("down skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
                 }
                 for (int epos = endp; epos>=start; epos--, upSkipCount++) {
                    if ( !isCJKPunctuation(*(m_text + epos)) ) break;
-                   CRLog::trace("up skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
+                   //CRLog::trace("up skip punctuation %s, at index %d", LCSTR(lString16(m_text + epos, 1)), epos);
 				}
                 if (downSkipCount <= upSkipCount && downSkipCount <= 2 && visualAlignmentEnabled) {
                    endp += downSkipCount;
                    wrapPos += downSkipCount;
-                   CRLog::trace("finally down skip punctuations %d", downSkipCount);
+                   //CRLog::trace("finally down skip punctuations %d", downSkipCount);
                 } else if (upSkipCount <= 2) {
                    upSkipPos = endp;
                    endp -= upSkipCount;
                    wrapPos -= upSkipCount;
-                   CRLog::trace("finally up skip punctuations %d", upSkipCount);
+                   //CRLog::trace("finally up skip punctuations %d", upSkipCount);
                 }
             }
             int lastnonspace = endp-1;

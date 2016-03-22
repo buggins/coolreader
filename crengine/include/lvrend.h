@@ -51,3 +51,4 @@ int LVRendGetFontEmbolden();
 
 #endif
 int measureBorder(ldomNode *enode,int border);
+int lengthToPx( css_length_t val, int base_px, int base_em );

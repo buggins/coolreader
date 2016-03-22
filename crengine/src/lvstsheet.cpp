@@ -82,6 +82,11 @@ enum css_decl_code {
     cssd_border_right,
     cssd_border_bottom,
     cssd_border_left,
+    cssd_background,
+    cssd_background_image,
+    cssd_background_repeat,
+    cssd_background_attachment,
+    cssd_background_position,
     cssd_stop
 };
 
@@ -146,6 +151,11 @@ static const char * css_decl_name[] = {
     "border-right",
     "border-bottom",
     "border-left",
+    "background",
+    "background-image",
+    "background-repeat",
+    "background-attachment",
+    "background-position",
     NULL
 };
 
@@ -735,6 +745,54 @@ static const char * css_bw_names[]={
         NULL
 };
 
+//background repeat names
+static const char * css_bg_repeat_names[]={
+        "repeat",
+        "repeat-x",
+        "repeat-y",
+        "no-repeat",
+        "initial",
+        "inherit",
+        NULL
+};
+//background attachment names
+static const char * css_bg_attachment_names[]={
+        "scroll",
+        "fixed",
+        "local",
+        "initial",
+        "inherit",
+        NULL
+};
+//background position names
+static const char * css_bg_position_names[]={
+        "left top",
+        "left center",
+        "left bottom",
+        "right top",
+        "right center",
+        "right bottom",
+        "center top",
+        "center center",
+        "center bottom",
+        "top left",
+        "center left",
+        "bottom left",
+        "top right",
+        "center right",
+        "bottom right",
+        "top center",
+        "center center",
+        "bottom center",
+        "center",
+        "left",
+        "right",
+        "top",
+        "bottom",
+        "initial",
+        "inherit",
+        NULL
+};
 bool LVCssDeclaration::parse( const char * &decl )
 {
     #define MAX_DECL_SIZE 512
@@ -1408,6 +1466,99 @@ bool LVCssDeclaration::parse( const char * &decl )
                         }
                     }
                     break;
+            case cssd_background_image:
+            {
+                buf[buf_pos++] = prop_code;
+                lString8 str;
+                const char *tmp=decl;
+                int len=0;
+                while (*tmp && *tmp !=';' && *tmp!='}')
+                {tmp++;len++;}
+                str.append(decl,len);
+                str.trim();
+                len=str.length();
+                buf[buf_pos++]=str.length();
+                for(int i=0;i<len;i++)
+                    buf[buf_pos++]=str[i];
+            }
+                break;
+            case cssd_background_repeat:
+               n= parse_name(decl,css_bg_repeat_names,-1);
+               break;
+            case cssd_background_position:
+               n= parse_name(decl,css_bg_position_names,-1);
+                    if (n>8&&n<18) n=n-9;
+                    if (n==18) n=7;
+                    if (n==19) n=1;
+                    if (n==20) n=4;
+                    if (n==21) n=6;
+                    if (n==22) n=8;
+                    if (n==23) n=9;
+                    if (n==24) n=10;
+                    if (n==25) n=11;
+               break;
+            case cssd_background_attachment:
+               n= parse_name(decl,css_bg_attachment_names,-1);
+               break;
+            case cssd_background:
+            {
+                css_length_t color;
+                if (parse_color_value(decl, color))
+                {
+                    buf[buf_pos++]=cssd_background_color;
+                    buf[buf_pos++]=color.type;
+                    buf[buf_pos++]=color.value;
+                }
+                lString8 str;
+                const char *tmp=decl;
+                int len=0;
+                while (*tmp && *tmp !=';' && *tmp!='}')
+                {tmp++;len++;}
+                str.append(decl,len);
+                tmp=str.c_str();
+                str.trim();
+                skip_spaces(tmp);
+                int offset=len-str.length();//offset for removed spaces
+                if (Utf8ToUnicode(str).lowercase().startsWith("url")) {
+                    buf[buf_pos++]=cssd_background_image;
+                    len=0;
+                    while (*tmp && *tmp !=';' && *tmp!='}'&&*tmp!=')')
+                    {tmp++;len++;}
+                    len=len+1+offset;
+                    str.clear();
+                    str.append(decl,len);
+                    str.trim();
+                    buf[buf_pos++] = str.length();
+                    for (int i = 0; i < str.length(); i++)
+                        buf[buf_pos++] = str[i];
+                    decl+=len;
+                    skip_spaces(decl);
+                    int repeat=parse_name(decl,css_bg_repeat_names,-1);
+                    if(repeat!=-1)
+                    {
+                        buf[buf_pos++]=cssd_background_repeat;
+                        buf[buf_pos++]=repeat;
+                        skip_spaces(decl);
+                    }
+                    int position=parse_name(decl,css_bg_position_names,-1);
+                    if (position!=-1)
+                    {
+                        if (position>8&&position<18) position=position-9;
+                        if (position==18) position=7;
+                        if (position==19) position=1;
+                        if (position==20) position=4;
+                        if (position==21) position=6;
+                        if (position==22) position=8;
+                        if (position==23) position=9;
+                        if (position==24) position=10;
+                        if (position==25) position=11;
+                        buf[buf_pos++]=cssd_background_position;
+                        buf[buf_pos++]=position;
+                    }
+                }
+
+            }
+               break;
             case cssd_stop:
             case cssd_unknown:
             default:
@@ -1644,6 +1795,26 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             style->border_style_right=(css_border_style_type_t) *p++;
             style->border_style_bottom=(css_border_style_type_t) *p++;
             style->border_style_left=(css_border_style_type_t) *p++;
+            break;
+        case cssd_background_image:
+        {
+            lString8 imagefile;
+                imagefile.reserve(64);
+                int l = *p++;
+                for (int i=0; i<l; i++)
+                    imagefile << (lChar8)(*p++);
+                imagefile.pack();
+                style->background_image = imagefile;
+        }
+            break;
+        case cssd_background_repeat:
+            style->background_repeat=(css_background_repeat_value_t) *p++;
+            break;
+        case cssd_background_attachment:
+            style->background_attachment=(css_background_attachment_value_t) *p++;
+            break;
+        case cssd_background_position:
+            style->background_position=(css_background_position_value_t) *p++;
             break;
         case cssd_stop:
             return;
