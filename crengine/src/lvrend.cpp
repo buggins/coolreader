@@ -1237,6 +1237,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             css_style_ref_t style = parent->getStyle();
             lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
             lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+            if(!enode->getParentNode()->getParentNode()->isNull())
+                if((enode->getParentNode()->getParentNode()->getStyle()->background_color.value)==
+                        lInt32(bgcl))
+                    bgcl=0xFFFFFFFF;//try to avoid paint paragraph background color twice,
+                                    //then it will cover background image.
             lInt8 letter_spacing;
             css_length_t len = style->letter_spacing;
             switch( len.type )
@@ -2113,6 +2118,128 @@ void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int 
         }
     }
 }
+void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int doc_y,RenderRectAccessor fmt)
+{
+    css_style_ref_t style=enode->getStyle();
+    if (!style->background_image.empty()) {
+        lString16 filename = lString16(style->background_image.c_str());
+        {//url("path") to path
+            if (filename.lowercase().startsWith("url")) filename = filename.substr(3);
+            filename.trim();
+            if (filename.lowercase().startsWith("(")) filename = filename.substr(1);
+            if (filename.lowercase().endsWith(")")) filename = filename.substr(0, filename.length() - 1);
+            filename.trim();
+            if (filename.lowercase().startsWith("\"")) filename = filename.substr(1);
+            if (filename.lowercase().endsWith("\"")) filename = filename.substr(0, filename.length() - 1);
+            filename.trim();
+            if (filename.lowercase().startsWith("../")) filename = filename.substr(3);
+        }
+        LVImageSourceRef img = enode->getParentNode()->getDocument()->getObjectImageSource(filename);
+        if (!img.isNull()) {
+            int repeat_times_x = 0, repeat_times_y = 0;
+            int position_x = 0, position_y = 0, direction_x = 1, direction_y = 1, center_x = 0, center_y = 0;
+            switch (style->background_repeat) {
+                case css_background_no_repeat:
+                    repeat_times_x = 0;
+                    repeat_times_y = 0;
+                    break;
+                case css_background_repeat_x:
+                    repeat_times_x = fmt.getWidth() / img->GetWidth() ? fmt.getWidth() / img->GetWidth() :
+                                     fmt.getWidth() / img->GetWidth() + 1;
+                    repeat_times_y = 0;
+                    break;
+                case css_background_repeat_y:
+                    repeat_times_x = 0;
+                    repeat_times_y = fmt.getHeight() / img->GetHeight() ? fmt.getHeight() / img->GetHeight() :
+                                     fmt.getHeight() / img->GetHeight() + 1;
+                    break;
+                case css_background_repeat:
+                    repeat_times_x = fmt.getWidth() / img->GetWidth() ? fmt.getWidth() / img->GetWidth() :
+                                     fmt.getWidth() / img->GetWidth() + 1;
+                    repeat_times_y = fmt.getHeight() / img->GetHeight() ? fmt.getHeight() / img->GetHeight() :
+                                     fmt.getHeight() / img->GetHeight() + 1;
+                    break;
+                default:
+                    repeat_times_x = fmt.getWidth() / img->GetWidth() ? fmt.getWidth() / img->GetWidth() :
+                                     fmt.getWidth() / img->GetWidth() + 1;
+                    repeat_times_y = fmt.getHeight() / img->GetHeight() ? fmt.getHeight() / img->GetHeight() :
+                                     fmt.getHeight() / img->GetHeight() + 1;
+                    break;
+            }
+            switch (style->background_position) {
+                case css_background_center_bottom:
+                    position_x = fmt.getWidth() / 2 - img->GetWidth() / 2;
+                    position_y = fmt.getHeight() - img->GetHeight();
+                    center_x = 1;
+                    direction_y = -1;
+                    break;
+                case css_background_center_center:
+                    position_x = fmt.getWidth() / 2 - img->GetWidth() / 2;;
+                    position_y = fmt.getHeight() / 2 - img->GetHeight() / 2;
+                    center_x = 1;
+                    center_y = 1;
+                    break;
+                case css_background_center_top:
+                    position_x = fmt.getWidth() / 2 - img->GetWidth() / 2;;
+                    position_y = 0;
+                    center_x = 1;
+                    break;
+                case css_background_left_bottom:
+                    position_x = x0;
+                    position_y = fmt.getHeight() - img->GetHeight();
+                    direction_y = -1;
+                    break;
+                case css_background_left_center:
+                    position_x = 0;
+                    position_y = fmt.getHeight() / 2 - img->GetHeight() / 2;
+                    center_y = 1;
+                    break;
+                case css_background_left_top:
+                    position_x = 0;
+                    position_y = 0;
+                    break;
+                case css_background_right_bottom:
+                    position_x = fmt.getWidth() - img->GetWidth();
+                    position_y = fmt.getHeight() - img->GetHeight();
+                    direction_x = -1;
+                    direction_y = -1;
+                    break;
+                case css_background_right_center:
+                    position_x = fmt.getWidth() - img->GetWidth();
+                    position_y = fmt.getHeight() / 2 - img->GetHeight() / 2;
+                    direction_x = -1;
+                    center_y = 1;
+                    break;
+                case css_background_right_top:
+                    position_x = fmt.getWidth() - img->GetWidth();
+                    position_y = 0;
+                    direction_x = -1;
+                    break;
+                default:
+                    position_x = 0;
+                    position_y = 0;
+            }
+            LVDrawBuf *tmp = NULL;
+            tmp = new LVColorDrawBuf(fmt.getWidth(), fmt.getHeight(), 32);
+            for (int i = 0; i < repeat_times_x + 1; i++) {
+                for (int j = 0; j < repeat_times_y + 1; j++) {
+                    tmp->Draw(img, position_x + i * img->GetWidth() * direction_x,
+                              position_y + j * img->GetHeight() * direction_y,
+                              img->GetWidth(), img->GetHeight());
+                    if (center_x == 1)
+                        tmp->Draw(img, position_x - i * img->GetWidth() * direction_x,
+                                  position_y + j * img->GetHeight() * direction_y,
+                                  img->GetWidth(), img->GetHeight());
+                    if (center_y == 1)
+                        tmp->Draw(img, position_x + i * img->GetWidth() * direction_x,
+                                  position_y - j * img->GetHeight() * direction_y,
+                                  img->GetWidth(), img->GetHeight());
+                }
+            }
+            tmp->DrawOnTop(&drawbuf, x0 + doc_x, y0 + doc_y);
+        }
+    }
+}
 
 void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx, int dy, int doc_x, int doc_y, int page_height, ldomMarkedRangeList * marks,
                    ldomMarkedRangeList *bookmarks)
@@ -2145,6 +2272,12 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             drawbuf.SetBackgroundColor( bg.value );
             drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt.getWidth(), y0+doc_y+fmt.getHeight(), bg.value );
         }
+        lString16 nodename=enode->getNodeName();    // CSS specific: <body> background does not obey margin rules
+        if (nodename.lowercase().compare("body")==0)
+        {
+            fmt.setWidth(drawbuf.GetWidth());
+        }
+        DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
 #if (DEBUG_TREE_DRAW!=0)
         lUInt32 color;
         static lUInt32 const colors2[] = { 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA };
@@ -2214,8 +2347,10 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                         //rc.top -= doc_y;
                         //rc.bottom -= doc_y;
                         ldomMarkedRangeList nmarks( marks, rc );
+                        DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
                         txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, &nmarks, nbookmarks );
                     } else {
+                        DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
                         txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, marks, nbookmarks );
                     }
                     if (nbookmarks)

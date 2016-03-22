@@ -4882,8 +4882,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
     lvRect rc;
     finalNode->getAbsRect( rc );
     //CRLog::debug("ldomDocument::createXPointer point = (%d, %d), finalNode %08X rect = (%d,%d,%d,%d)", pt.x, pt.y, (lUInt32)finalNode, rc.left, rc.top, rc.right, rc.bottom );
-    pt.x -= rc.left+measureBorder(finalNode,3);//
-    pt.y -= rc.top+measureBorder(finalNode,0);//add offset for borders
+    pt.x -= rc.left+measureBorder(finalNode,3)+lengthToPx(finalNode->getStyle()->padding[0],rc.width(),finalNode->getFont()->getSize());//
+    pt.y -= rc.top+measureBorder(finalNode,0)+lengthToPx(finalNode->getStyle()->padding[2],rc.height(),finalNode->getFont()->getSize());//add offset for borders,paddings
     //if ( !r )
     //    return ptr;
     if ( finalNode->getRendMethod() != erm_final && finalNode->getRendMethod() !=  erm_list_item) {
@@ -4897,7 +4897,9 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
     LFormattedTextRef txtform;
     {
         RenderRectAccessor r( finalNode );
-        finalNode->renderFinalBlock( txtform, &r, r.getWidth() -measureBorder(finalNode,1)-measureBorder(finalNode,3));
+        finalNode->renderFinalBlock( txtform, &r, r.getWidth() -measureBorder(finalNode,1)-measureBorder(finalNode,3)
+        -lengthToPx(finalNode->getStyle()->padding[0],rc.width(),finalNode->getFont()->getSize())
+        -lengthToPx(finalNode->getStyle()->padding[1],rc.width(),finalNode->getFont()->getSize()));
     }
     int lcount = txtform->GetLineCount();
     for ( int l = 0; l<lcount; l++ ) {
@@ -5002,7 +5004,9 @@ bool ldomXPointer::getRect(lvRect & rect) const
         //if ( !r )
         //    return false;
         LFormattedTextRef txtform;
-        finalNode->renderFinalBlock( txtform, &r, r.getWidth()-measureBorder(finalNode,1)-measureBorder(finalNode,3));
+        finalNode->renderFinalBlock( txtform, &r, r.getWidth()-measureBorder(finalNode,1) -measureBorder(finalNode,3)
+                                                  -lengthToPx(finalNode->getStyle()->padding[0],rc.width(),finalNode->getFont()->getSize())
+                                                  -lengthToPx(finalNode->getStyle()->padding[1],rc.width(),finalNode->getFont()->getSize()));
 
         ldomNode * node = getNode();
         int offset = getOffset();
@@ -11188,7 +11192,9 @@ bool ldomNode::refreshFinalBlock()
     fmt.getRect( oldRect );
     LFormattedTextRef txtform;
     int width = fmt.getWidth();
-    renderFinalBlock( txtform, &fmt, width-measureBorder(this,1)-measureBorder(this,3));
+    renderFinalBlock( txtform, &fmt, width-measureBorder(this,1)-measureBorder(this,3)
+                                                                 -lengthToPx(this->getStyle()->padding[0],fmt.getWidth(),this->getFont()->getSize())
+                                                                 -lengthToPx(this->getStyle()->padding[1],fmt.getWidth(),this->getFont()->getSize()));
     fmt.getRect( newRect );
     if ( oldRect == newRect )
         return false;

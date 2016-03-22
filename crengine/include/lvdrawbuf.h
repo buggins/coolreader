@@ -178,6 +178,8 @@ public:
     virtual void DrawRotated( LVImageSourceRef img, int x, int y, int width, int height, int rotationAngle) { Draw(img, x, y, width, height); CR_UNUSED(rotationAngle); }
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette ) = 0;
+    // draws buffer on top of another buffer to implement background
+    virtual void DrawOnTop( LVDrawBuf * buf, int x, int y) = 0;
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
     virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options) = 0;
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
@@ -338,6 +340,8 @@ public:
     virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
+    // draws buffer on top of another buffer to implement background
+    virtual void DrawOnTop( LVDrawBuf * buf, int x, int y);
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
     virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
@@ -407,6 +411,8 @@ public:
     virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
+    // draws buffer on top of another buffer to implement background
+    virtual void DrawOnTop( LVDrawBuf * buf, int x, int y);
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
     virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)

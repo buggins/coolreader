@@ -60,6 +60,10 @@ typedef struct css_style_rec_tag {
     css_border_style_type_t border_style_left;
     css_length_t border_width[4];
     css_length_t border_color[4];
+    lString8 background_image;
+    css_background_repeat_value_t background_repeat;
+    css_background_attachment_value_t background_attachment;
+    css_background_position_value_t background_position;
     css_style_rec_tag()
     : refCount(0)
     , hash(0)
@@ -90,6 +94,9 @@ typedef struct css_style_rec_tag {
     , border_style_bottom(css_border_none)
     , border_style_right(css_border_none)
     , border_style_left(css_border_none)
+    , background_repeat(css_background_r_none)
+    , background_attachment(css_background_a_none)
+    , background_position(css_background_p_none)
     {
     }
     void AddRef() { refCount++; }
