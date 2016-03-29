@@ -1240,8 +1240,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             if(!enode->getParentNode()->getParentNode()->isNull())
                 if((enode->getParentNode()->getParentNode()->getStyle()->background_color.value)==
                         lInt32(bgcl))
-                    bgcl=0xFFFFFFFF;//try to avoid paint paragraph background color twice,
-                                    //then it will cover background image.
+                    bgcl=0xFFFFFFFF;
+
             lInt8 letter_spacing;
             css_length_t len = style->letter_spacing;
             switch( len.type )
@@ -1342,7 +1342,11 @@ css_page_break_t getPageBreakBefore( ldomNode * el ) {
             return before;
         before = style->page_break_before;
         if ( before!=css_pb_auto )
+        {
+            style->page_break_before=css_pb_auto;
+            el->setStyle(style);//set to auto after use
             return before;
+        }
         ldomNode * parent = el->getParentNode();
         if ( !parent )
             return before;
@@ -1459,6 +1463,33 @@ int measureBorder(ldomNode *enode,int border) {
            else return 0;
         }
 
+//calculate total margin+padding before node,if >0 don't do campulsory page split
+int pagebreakhelper(ldomNode *enode,int width)
+{
+    int flag=css_pb_auto;
+    int em = enode->getFont()->getSize();
+    int margin_top = lengthToPx( enode->getStyle()->margin[2], width, em ) + DEBUG_TREE_DRAW;
+    int padding_top = lengthToPx( enode->getStyle()->padding[2], width, em ) + DEBUG_TREE_DRAW+measureBorder(enode,0);
+    flag=CssPageBreak2Flags(getPageBreakBefore(enode))<<RN_SPLIT_BEFORE;
+    if (flag==RN_SPLIT_BEFORE_ALWAYS){
+        ldomNode *node=enode;
+        int top=0;
+        while (!node->isNull()) {
+            top+=lengthToPx( node->getStyle()->margin[2], width, em ) +
+                 lengthToPx( node->getStyle()->padding[2], width, em ) +
+                 measureBorder(node,0);
+            ldomNode * parent = node->getParentNode();
+            if ( !parent ) break;
+            if ( !isFirstBlockChild(parent, node) ) break;
+            node = parent;
+        }
+        top-=margin_top+padding_top;
+        if (top>0) flag=RN_SPLIT_AUTO;
+        if ((getPageBreakBefore(enode)==css_pb_always)) flag=RN_SPLIT_ALWAYS;
+    }
+    return flag;
+}
+
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width )
 {
     if ( enode->isElement() )
@@ -1525,7 +1556,10 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         context.enterFootNote( enode->getAttributeValue(attr_id) );
                     // recurse all sub-blocks for blocks
                     int y = 0;
-                    if(measureBorder(enode,0)>0) context.AddLine(0,padding_top,RN_SPLIT_BEFORE);//add line for top border
+                    lvRect r;
+                    enode->getAbsRect(r);
+                    if (margin_top>0) context.AddLine(r.top - margin_top, r.top - 1, pagebreakhelper(enode,width));
+                    if (padding_top>0) context.AddLine(r.top,r.top+padding_top-1,pagebreakhelper(enode,width));
                     int h = renderTable( context, enode, 0, y, width );
                     y += h;
                     int st_y = lengthToPx( enode->getStyle()->height, em, em );
@@ -1533,6 +1567,12 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         y = st_y;
                     fmt.setHeight( y ); //+ margin_top + margin_bottom ); //???
                     // ??? not sure
+                    lvRect rect;
+                    enode->getAbsRect(rect);
+                    if(padding_bottom>0)
+                        context.AddLine(y+rect.top+1,y+rect.top+padding_bottom,RN_SPLIT_AFTER_AUTO);
+                    if(margin_bottom>0)
+                        context.AddLine(y+rect.top+padding_bottom+1,y+rect.top+padding_bottom+margin_bottom,RN_SPLIT_AFTER_AUTO);;
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom; // return block height
@@ -1547,7 +1587,15 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     // recurse all sub-blocks for blocks
                     int y = padding_top;
                     int cnt = enode->getChildCount();
-                    if(measureBorder(enode,0)>0) context.AddLine(0,y,RN_SPLIT_BEFORE);//add line for top border
+                    lString16 nodename=enode->getNodeName();
+                    css_page_break_t page_break_before;
+                    if (nodename.lowercase().compare("docfragment")==0) page_break_before=enode->getStyle()->page_break_before;//store pagebreak flag for docfragment before render
+                    lvRect r;
+                    enode->getAbsRect(r);
+                    if (margin_top>0)
+                        context.AddLine(r.top - margin_top, r.top - 1, pagebreakhelper(enode,width));
+                    if (padding_top>0)
+                        context.AddLine(r.top,r.top+padding_top-1,pagebreakhelper(enode,width));
                     for (int i=0; i<cnt; i++)
                     {
                         ldomNode * child = enode->getChildNode( i );
@@ -1562,8 +1610,16 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     fmt.setHeight( y + padding_bottom ); //+ margin_top + margin_bottom ); //???
                     lvRect rect;
                     enode->getAbsRect(rect);
-                    if(measureBorder(enode,2)>0)
-                        context.AddLine(y+rect.bottom,y+rect.bottom+padding_bottom,RN_SPLIT_AUTO);//add line for bottom border
+                    if(padding_bottom>0)
+                        context.AddLine(y+rect.top+1,y+rect.top+padding_bottom,RN_SPLIT_AFTER_AUTO);
+                    if(margin_bottom>0)
+                        context.AddLine(y+rect.top+padding_bottom+1,y+rect.top+padding_bottom+margin_bottom,RN_SPLIT_AFTER_AUTO);
+                    //restore pagebreak flag for DocFragment
+                    if (page_break_before==css_pb_always) {
+                        css_style_ref_t style=enode->getStyle();
+                        style->page_break_before=page_break_before;
+                        enode->setStyle(style);
+                    }
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
@@ -1611,7 +1667,10 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             enode->getAbsRect(rect);
             // split pages
             if ( context.getPageList() != NULL ) {
-
+                if (margin_top>0)
+                        context.AddLine(rect.top-margin_top,rect.top-1,pagebreakhelper(enode,width));
+                if (padding_top>0)
+                        context.AddLine(rect.top,rect.top+padding_top,pagebreakhelper(enode,width));
                 css_page_break_t before, inside, after;
                 //before = inside = after = css_pb_auto;
                 before = getPageBreakBefore( enode );
@@ -1639,11 +1698,11 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         line_flags |= break_after << RN_SPLIT_AFTER;
                     else
                         line_flags |= break_inside << RN_SPLIT_AFTER;
-                    if (measureBorder(enode,0)>0&&i==0) {line_flags=break_inside<<RN_SPLIT_BEFORE<<RN_SPLIT_AFTER;
-                    context.AddLine(rect.top,rect.top+padding_top,break_before<<RN_SPLIT_BEFORE);}
-                    if (measureBorder(enode,2)>0&&i==count-1) line_flags=break_inside<<RN_SPLIT_BEFORE<<RN_SPLIT_AFTER;
                     context.AddLine(rect.top+line->y+padding_top, rect.top+line->y+line->height+padding_top, line_flags);
-                    if (measureBorder(enode,2)>0&&i==count-1) context.AddLine(rect.bottom-padding_bottom,rect.bottom,break_after<<RN_SPLIT_AFTER);
+                    if(padding_bottom>0&&i==count-1)
+                        context.AddLine(rect.bottom-padding_top,rect.bottom+padding_bottom-padding_top,RN_SPLIT_AFTER_AUTO);
+                    if(margin_bottom>0&&i==count-1)
+                        context.AddLine(rect.bottom+padding_bottom-padding_top+1,rect.bottom+padding_bottom-padding_top+margin_bottom,RN_SPLIT_AFTER_AUTO);
                     // footnote links analysis
                     if ( !isFootNoteBody && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
                         for ( int w=0; w<line->word_count; w++ ) {
@@ -2273,11 +2332,14 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt.getWidth(), y0+doc_y+fmt.getHeight(), bg.value );
         }
         lString16 nodename=enode->getNodeName();    // CSS specific: <body> background does not obey margin rules
-        if (nodename.lowercase().compare("body")==0)
+        if (nodename.lowercase().compare("body")==0&&enode->getStyle()->background_image!=lString8(""))
         {
+            int width=fmt.getWidth();
             fmt.setWidth(drawbuf.GetWidth());
+            DrawBackgroundImage(enode,drawbuf,0,y0,0,doc_y,fmt);
+            fmt.setWidth(width);
         }
-        DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
+        else  DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
 #if (DEBUG_TREE_DRAW!=0)
         lUInt32 color;
         static lUInt32 const colors2[] = { 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA, 0x555555, 0xAAAAAA };
@@ -2329,7 +2391,6 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         case erm_final:
         case erm_table_caption:
             {
-                DrawBorder(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
                 // draw whole node content as single formatted object
                 LFormattedTextRef txform;
                 enode->renderFinalBlock( txform, &fmt, fmt.getWidth() - padding_left - padding_right );
@@ -2362,6 +2423,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 drawbuf.FillRect( doc_x+x0+fmt.getWidth()-1, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
                 drawbuf.FillRect( doc_x+x0, doc_y+y0+fmt.getHeight()-1, doc_x+x0+fmt.getWidth(), doc_y+y0+fmt.getHeight(), color );
 #endif
+                DrawBorder(enode, drawbuf, x0, y0, doc_x, doc_y, fmt);
                 /*lUInt32 tableBorderColor = 0x555555;
                 lUInt32 tableBorderColorDark = 0xAAAAAA;
                 bool needBorder = enode->getStyle()->display==css_d_table_cell;
