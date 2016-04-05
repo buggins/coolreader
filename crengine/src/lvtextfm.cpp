@@ -583,6 +583,8 @@ public:
                     // assume i==start+1
                     int width = m_srcs[start]->o.width;
                     int height = m_srcs[start]->o.height;
+                    width=width<0?-width*(m_pbuffer->width)/100:width;
+                    height=height<0?-height*(m_pbuffer->width)/100:height;
                     resizeImage(width, height, m_pbuffer->width, m_pbuffer->page_height, m_length>1);
                     lastWidth += width;
                     m_widths[start] = lastWidth;
