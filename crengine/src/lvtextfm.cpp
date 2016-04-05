@@ -23,6 +23,7 @@
 #ifdef __cplusplus
 #include "../include/lvimg.h"
 #include "../include/lvtinydom.h"
+#include "../include/lvrend.h"
 #endif
 
 #define MIN_SPACE_CONDENSING_PERCENT 50
@@ -206,8 +207,8 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
 
 void lvtextAddSourceObject(
    formatted_text_fragment_t * pbuffer,
-   lUInt16         width,
-   lUInt16         height,
+   lInt16         width,
+   lInt16         height,
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
@@ -257,6 +258,32 @@ void LFormattedText::AddSourceObject(
         img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
     lUInt16 width = (lUInt16)img->GetWidth();
     lUInt16 height = (lUInt16)img->GetHeight();
+    css_style_ref_t style=node->getStyle();
+    int w=0,h=0;
+    int em=node->getFont()->getSize();
+    lString16 nodename;
+    nodename=node->getNodeName();
+    if (nodename.lowercase().compare("sub")==0||nodename.lowercase().compare("sup")==0) {
+        if (style->font_size.type==css_val_percent) em=em*100/style->font_size.value;
+    }
+    w=lengthToPx(style->width,100,em);
+    h=lengthToPx(style->height,100,em);
+    if (style->width.type==css_val_percent)
+    {
+        w=-w;
+        if (style->height.type==css_val_percent) h=w*height/width;
+    }
+    if (style->height.type==css_val_percent&&style->width.type!=css_val_percent)
+    {
+        h=w*height/width;
+    }
+    if (w*h==0){
+        if (w==0&&h!=0) {w=width*h/height;}
+        if (h==0&&w!=0) {h=w*height/width;}
+        if (w==0&&h==0) {h=height;w=width;}
+    }
+    width=w;
+    height=h;
     lvtextAddSourceObject(m_pbuffer,
         width, height,
         flags, interval, margin, object, letter_spacing );
@@ -386,24 +413,24 @@ public:
                 if ( m_pbuffer->img_zoom_in_mode_inline==0 )
                     return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_inline == 2;
-                maxScale = m_pbuffer->img_zoom_in_scale_inline;
+                //maxScale = m_pbuffer->img_zoom_in_scale_inline;
             } else {
 //                if ( m_pbuffer->img_zoom_out_mode_inline==0 )
 //                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_inline == 2;
-                maxScale = m_pbuffer->img_zoom_out_scale_inline;
+                //maxScale = m_pbuffer->img_zoom_out_scale_inline;
             }
         } else {
             if ( zoomIn ) {
                 if ( m_pbuffer->img_zoom_in_mode_block==0 )
                     return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_in_mode_block == 2;
-                maxScale = m_pbuffer->img_zoom_in_scale_block;
+                //maxScale = m_pbuffer->img_zoom_in_scale_block;
             } else {
 //                if ( m_pbuffer->img_zoom_out_mode_block==0 )
 //                    return; // no zoom
                 arbitraryImageScaling = m_pbuffer->img_zoom_out_mode_block == 2;
-                maxScale = m_pbuffer->img_zoom_out_scale_block;
+                //maxScale = m_pbuffer->img_zoom_out_scale_block;
             }
         }
         resizeImage( width, height, maxw, maxh, arbitraryImageScaling, maxScale );
@@ -732,6 +759,8 @@ public:
 
                     int width = lastSrc->o.width;
                     int height = lastSrc->o.height;
+                    width=width<0?-width*(m_pbuffer->width-x)/100:width;
+                    height=height<0?-height*(m_pbuffer->width-x)/100:height;
                     resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
                     if ( vertical_align )  {                         //if (vertical_align && node->getAttributeValue("","class")=="duokan-footnote") // apply to duokan-footnote
                         ldomNode *node=(ldomNode*)para->object;
@@ -740,17 +769,17 @@ public:
                             if ( vertical_align == LTEXT_VALIGN_SUB ) {
                                 int fh=font->getHeight();
                                 word->y +=  fh*0.3333;
-                                width=width/height*fh*0.6667;
-                                height=fh*0.6667;
+                                //width=width/height*fh*0.6667;
+                                //height=fh*0.6667;
                             } else if ( vertical_align == LTEXT_VALIGN_SUPER ) {
                                 int fh=font->getHeight();
                                 word->y -=  fh*0.3333;
-                                width=width/height*fh*0.6667;
-                                height=fh*0.6667;
+                                //width=width/height*fh*0.6667;
+                                //height=fh*0.6667;
                             }
                         }
                     }
-                    resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
+                    //resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
                     word->width = width;
                     word->o.height = height;
 

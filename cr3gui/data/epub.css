@@ -79,7 +79,7 @@ span { display: inline }
 .epigraph { margin-left: 15%; margin-right: 1em; margin-top: 15px; margin-bottom: 25px; text-align: left; text-indent: 1em; font-style: italic }
 .citation { font-style: italic; margin-left: 5%; margin-right: 5%; margin-top: 20px; margin-bottom: 20px; text-align: justify; }
 
-table { font-size: 80% }
+table { font-size: 80% ; margin:3px;}
 td, th { text-indent: 0px; padding: 3px }
 th {  font-weight: bold; text-align: center; background-color: #DDD  }
 table caption { text-indent: 0px; padding: 4px; background-color: #EEE }

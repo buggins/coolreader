@@ -82,8 +82,8 @@ typedef struct
             lUInt16         offset;   /**< \brief offset from node start to beginning of line */
         } t;
         struct {
-            lUInt16         width;    /**< \brief handle of font to draw string */
-            lUInt16         height;   /**< \brief pointer to unicode text string */
+            lInt16         width;    /**< \brief handle of font to draw string */
+            lInt16         height;   /**< \brief pointer to unicode text string */
         } o;
     };
 } src_text_fragment_t;
@@ -228,8 +228,8 @@ void lvtextAddSourceLine(
 */
 void lvtextAddSourceObject( 
    formatted_text_fragment_t * pbuffer,
-   lUInt16         width,
-   lUInt16         height,
+   lInt16         width,
+   lInt16         height,
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
