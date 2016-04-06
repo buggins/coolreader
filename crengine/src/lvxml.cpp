@@ -3462,6 +3462,43 @@ static const ent_def_t def_entity_table[] = {
 {NULL, 0},
 };
 
+//convert printable windows-1252 code (128-159) to unicode counterpart. it will fix some "?" in ebooks
+int codeconvert(int code)
+{
+    switch (code)
+    {
+        case 128: return 8364;
+        case 130: return 8218;
+        case 131: return 402;
+        case 132: return 8222;
+        case 133: return 8230;
+        case 134: return 8224;
+        case 135: return 8225;
+        case 136: return 710;
+        case 137: return 8240;
+        case 138: return 352;
+        case 139: return 8249;
+        case 140: return 338;
+        case 142: return 381;
+        case 145: return 8216;
+        case 146: return 8217;
+        case 147: return 8220;
+        case 148: return 8221;
+        case 149: return 8226;
+        case 150: return 8211;
+        case 151: return 8212;
+        case 152: return 732;
+        case 153: return 8482;
+        case 154: return 353;
+        case 155: return 8250;
+        case 156: return 339;
+        case 158: return 382;
+        case 159: return 376;
+        default:
+            return code;
+    }
+}
+
 /// in-place XML string decoding, don't expand tabs, returns new length (may be less than initial len)
 int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * enc_table)
 {
@@ -3547,7 +3584,7 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
 
             } else if (ch == ';') {
                 if (nch)
-                    str[j++] = nch;
+                    str[j++] = codeconvert(nch);
                 state = 0;
                 nsp = 0;
             } else {
