@@ -40,7 +40,7 @@ lUInt32 calcHash(font_ref_t & f)
 lUInt32 calcHash(css_style_rec_t & rec)
 {
     if ( !rec.hash )
-        rec.hash = ((((((((((((((((((((((((((((((((((((((((((((((lUInt32)rec.display * 31
+        rec.hash = (((((((((((((((((((((((((((((((((((((((((((((((((lUInt32)rec.display * 31
          + (lUInt32)rec.white_space) * 31
          + (lUInt32)rec.text_align) * 31
          + (lUInt32)rec.text_align_last) * 31
@@ -85,6 +85,9 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.background_attachment)*31
          + (lUInt32)rec.background_position)*31
          + (lUInt32)rec.font_family) * 31
+         + (lUInt32)rec.border_collapse)*31
+         + (lUInt32)rec.border_spacing[0].pack())*31
+         + (lUInt32)rec.border_spacing[1].pack())*31
          + (lUInt32)rec.font_name.getHash()
          + (lUInt32)rec.background_image.getHash());
     return rec.hash;
@@ -138,6 +141,9 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.background_repeat==r2.background_repeat&&
            r1.background_attachment==r2.background_attachment&&
            r1.background_position==r2.background_position;
+           r1.border_collapse==r2.border_collapse;
+           r1.border_spacing[0]==r2.border_spacing[0];
+           r1.border_spacing[1]==r2.border_spacing[1];
 }
 
 
@@ -310,6 +316,9 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_ENUM(background_repeat);
     ST_PUT_ENUM(background_attachment);
     ST_PUT_ENUM(background_position);
+    ST_PUT_ENUM(border_collapse);
+    ST_PUT_LEN(border_spacing[0]);
+    ST_PUT_LEN(border_spacing[1]);
     lUInt32 hash = calcHash(*this);
     buf << hash;
     return !buf.error();
@@ -356,6 +365,9 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_ENUM(css_background_repeat_value_t ,background_repeat);
     ST_GET_ENUM(css_background_attachment_value_t ,background_attachment);
     ST_GET_ENUM(css_background_position_value_t ,background_position);
+    ST_GET_ENUM(css_border_collapse_value_t ,border_collapse);
+    ST_GET_LEN(border_spacing[0]);
+    ST_GET_LEN(border_spacing[1]);
     lUInt32 hash = 0;
     buf >> hash;
     lUInt32 newhash = calcHash(*this);

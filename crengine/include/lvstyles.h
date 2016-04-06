@@ -64,6 +64,8 @@ typedef struct css_style_rec_tag {
     css_background_repeat_value_t background_repeat;
     css_background_attachment_value_t background_attachment;
     css_background_position_value_t background_position;
+    css_border_collapse_value_t border_collapse;
+    css_length_t border_spacing[2];//first horizontal and the second vertical spacing
     css_style_rec_tag()
     : refCount(0)
     , hash(0)
@@ -97,6 +99,7 @@ typedef struct css_style_rec_tag {
     , background_repeat(css_background_r_none)
     , background_attachment(css_background_a_none)
     , background_position(css_background_p_none)
+    , border_collapse(css_border_seperate)
     {
     }
     void AddRef() { refCount++; }

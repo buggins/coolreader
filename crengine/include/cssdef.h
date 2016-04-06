@@ -217,6 +217,14 @@ enum css_background_position_value_t {
     css_background_p_inherit,
     css_background_p_none
 };
+
+enum css_border_collapse_value_t{
+    css_border_seperate,
+    css_border_collapse,
+    css_border_c_initial,
+    css_border_c_inherit,
+    css_border_c_none
+};
 /// css length value
 typedef struct css_length_tag {
     css_value_type_t type;  ///< type of value

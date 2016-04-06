@@ -87,6 +87,8 @@ enum css_decl_code {
     cssd_background_repeat,
     cssd_background_attachment,
     cssd_background_position,
+    cssd_border_collapse,
+    cssd_border_spacing,
     cssd_stop
 };
 
@@ -156,6 +158,8 @@ static const char * css_decl_name[] = {
     "background-repeat",
     "background-attachment",
     "background-position",
+    "border-collapse",
+    "border-spacing",
     NULL
 };
 
@@ -793,6 +797,16 @@ static const char * css_bg_position_names[]={
         "inherit",
         NULL
 };
+
+//border-collpase names
+static const char * css_bc_names[]={
+        "seperate",
+        "collapse",
+        "initial",
+        "inherit",
+        NULL
+};
+
 bool LVCssDeclaration::parse( const char * &decl )
 {
     #define MAX_DECL_SIZE 512
@@ -1559,6 +1573,29 @@ bool LVCssDeclaration::parse( const char * &decl )
 
             }
                break;
+            case cssd_border_spacing:
+            {
+                css_length_t len[2];
+                int i;
+                for (i = 0; i < 2; ++i)
+                    if (!parse_number_value( decl, len[i]))
+                        break;
+                if (i)
+                {
+                    if (i==1) len[1] = len[0];
+
+                    buf[ buf_pos++ ] = prop_code;
+                    for (i = 0; i < 2; ++i)
+                    {
+                        buf[ buf_pos++ ] = len[i].type;
+                        buf[ buf_pos++ ] = len[i].value;
+                    }
+                }
+            }
+                break;
+            case cssd_border_collapse:
+                n=parse_name(decl,css_bc_names,-1);
+                break;
             case cssd_stop:
             case cssd_unknown:
             default:
@@ -1815,6 +1852,13 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_background_position:
             style->background_position=(css_background_position_value_t) *p++;
+            break;
+        case cssd_border_spacing:
+            style->border_spacing[0]=read_length(p);
+            style->border_spacing[1]=read_length(p);
+            break;
+        case cssd_border_collapse:
+            style->border_collapse=(css_border_collapse_value_t) *p++;
             break;
         case cssd_stop:
             return;
