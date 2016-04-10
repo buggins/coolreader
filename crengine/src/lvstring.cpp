@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <time.h>
 #ifdef LINUX
 #include <sys/time.h>
