@@ -603,34 +603,23 @@ public:
                 RenderRectAccessor fmt( cell->elem );
                 int em = cell->elem->getFont()->getSize();
                 int width = fmt.getWidth();
-                if(cell->elem->getStyle()->border_collapse==css_border_collapse)
+                cell->padding_left = (short)lengthToPx( cell->elem->getStyle()->padding[0], width, em );
+                cell->padding_right = (short)lengthToPx( cell->elem->getStyle()->padding[1], width, em );
+                cell->padding_top = (short)lengthToPx( cell->elem->getStyle()->padding[2], width, em );
+                cell->padding_bottom = (short)lengthToPx( cell->elem->getStyle()->padding[3], width, em );
+                if(elem->getStyle()->border_collapse==css_border_collapse)
                 {//simple collapse by disable some borders and eliminate paddings
-                    cell->padding_top=0;
-                    cell->padding_bottom=0;
-                    cell->padding_right=0;
-                    cell->padding_left=0;
                     css_style_ref_t style = cell->elem->getStyle();
-                    style->padding[0] = 0;
-                    style->padding[1] = 0;
-                    style->padding[2] = 0;
-                    style->padding[3] = 0;
-                    if (i<rows.length()&&j<rows[i]->cells.length()) {
-                        style->border_style_top = css_border_none;
-                        style->border_style_left = css_border_none;
-                    }
+                    style->border_style_left = css_border_none;
+                    style->border_style_bottom = css_border_none;
+                    if (i==0) style->border_style_top=css_border_none;
                     cell->elem->setStyle(style);
                 }
                 else {
-                    if (j==0) cell->padding_left = (short)lengthToPx( cell->elem->getStyle()->padding[0], width, em )+
-                            (short)lengthToPx( cell->elem->getStyle()->border_spacing[0], width, em )+1;
-                    else cell->padding_left=(short)lengthToPx( cell->elem->getStyle()->border_spacing[0], width, em )+1;
-                    if(j==rows[i]->cells.length()-1) cell->padding_right = (short)lengthToPx( cell->elem->getStyle()->padding[1], width, em )+
-                            (short)lengthToPx( cell->elem->getStyle()->border_spacing[0], width, em )+1;
-                    else cell->padding_right=(short)lengthToPx( cell->elem->getStyle()->border_spacing[0], width, em )+1;
-                    cell->padding_top = (short)lengthToPx( cell->elem->getStyle()->padding[2], width, em )+
-                        (short)lengthToPx( cell->elem->getStyle()->border_spacing[1], width, em );
-                    cell->padding_bottom = (short)lengthToPx( cell->elem->getStyle()->padding[3], width, em )+
-                        (short)lengthToPx( cell->elem->getStyle()->border_spacing[1], width, em );
+                    int n=rows[i]->cells.length();
+                    int bsp_h=lengthToPx(elem->getStyle()->border_spacing[0],width,em);
+                    int delta=(lengthToPx(elem->getStyle()->padding[0],width,em)+lengthToPx(elem->getStyle()->padding[1],width,em)+bsp_h)/n;
+                    cell->width=cell->width-delta-bsp_h*(100+100/n)/100;
                 }
             }
         }
@@ -644,6 +633,23 @@ public:
     {
         int posx=measureBorder(elem,3);
         int posy=measureBorder(elem,0);
+        int em=elem->getFont()->getSize();
+        css_style_ref_t table_style=elem->getStyle();
+        int bsp_v=lengthToPx(table_style->border_spacing[1],width,em);
+        int table_padding_top=lengthToPx(table_style->padding[2],width,em);
+        int table_padding_bottom=lengthToPx(table_style->padding[3],width,em);
+        int table_padding_left=lengthToPx(table_style->padding[0],width,em);
+        int table_padding_right=lengthToPx(table_style->padding[1],width,em);
+        int bsp_h=lengthToPx(table_style->border_spacing[0],width,em);
+        bool border_collapse=(table_style->border_collapse==css_border_collapse);
+        if (border_collapse) {
+            table_padding_top=0;
+            table_padding_bottom=0;
+            table_padding_left=0;
+            table_padding_right=0;
+            bsp_v=0;
+            bsp_h=0;
+        }
         // render caption
         if ( caption ) {
             RenderRectAccessor fmt( caption );
@@ -655,8 +661,8 @@ public:
             int padding_bottom = lengthToPx( caption->getStyle()->padding[3], width, em );
             LFormattedTextRef txform;
             caption_h = caption->renderFinalBlock( txform, &fmt, w - padding_left - padding_right ) + padding_top + padding_bottom+measureBorder(caption,0)+measureBorder(caption,2);
-            fmt.setY( posx ); //cell->padding_top ); //cell->row->y - cell->row->y );
-            fmt.setX( posy ); // + cell->padding_left
+            fmt.setY( posy+table_padding_top ); //cell->padding_top ); //cell->row->y - cell->row->y );
+            fmt.setX( posx ); // + cell->padding_left
             fmt.setWidth( w ); //  - cell->padding_left - cell->padding_right
             fmt.setHeight( caption_h ); // - cell->padding_top - cell->padding_bottom
             fmt.push();
@@ -669,25 +675,28 @@ public:
                 CCRTableCell * cell = rows[i]->cells[j];
                 //int x = cell->col->index;
                 int y = cell->row->index;
+                int n=rows[i]->cells.length();
+                int delta=(table_padding_left+table_padding_right+bsp_h)/n;
                 if ( i==y ) {
                     //upper left corner of cell
 
                     RenderRectAccessor fmt( cell->elem );
                     if ( cell->elem->getRendMethod()==erm_final ) {
                         LFormattedTextRef txform;
-                        int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - cell->padding_left - cell->padding_right );
+                        if (border_collapse&&j==rows[i]->cells.length()-1) cell->width+=measureBorder(cell->elem,1);
+                        int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - cell->padding_left - cell->padding_right-delta-bsp_h*(100+100/n)/100);
                         cell->height = h + cell->padding_top + cell->padding_bottom+measureBorder(cell->elem,0)+measureBorder(cell->elem,2);
-                        fmt.setY( posy +cell->padding_top); //cell->padding_top ); //cell->row->y - cell->row->y );
-                        fmt.setX( cell->col->x + posx+cell->padding_left); // + cell->padding_left
-                        fmt.setWidth( cell->width-cell->padding_left-cell->padding_right); //  - cell->padding_left - cell->padding_right
-                        fmt.setHeight( cell->height-cell->padding_top-cell->padding_bottom ); // - cell->padding_top - cell->padding_bottom
+                        fmt.setY( posy +table_padding_top+bsp_v); //cell->padding_top ); //cell->row->y - cell->row->y );
+                        fmt.setX( cell->col->x+posx+table_padding_left-delta*j+bsp_h); // + cell->padding_left
+                        fmt.setWidth( cell->width); //  - cell->padding_left - cell->padding_right
+                        fmt.setHeight( cell->height); // - cell->padding_top - cell->padding_bottom
                     } else if ( cell->elem->getRendMethod()!=erm_invisible ) {
                         LVRendPageContext emptycontext( NULL, context.getPageHeight() );
                         int h = renderBlockElement( context, cell->elem, posx, posy, cell->width-cell->padding_left-cell->padding_right );
                         cell->height = h;
-                        fmt.setY( posy+cell->padding_top ); //cell->row->y - cell->row->y );
-                        fmt.setX( cell->col->x+posx+cell->padding_left );
-                        fmt.setWidth( cell->width-cell->padding_left-cell->padding_right );
+                        fmt.setY( posy ); //cell->row->y - cell->row->y );
+                        fmt.setX( cell->col->x+posx );
+                        fmt.setWidth( cell->width );
                         fmt.setHeight( cell->height );
                     }
                     if ( cell->rowspan==1 ) {
@@ -729,23 +738,12 @@ public:
         }
         // update rows y and total height
         int h = caption_h;
-        int gap=3;
         for (i=0; i<rows.length(); i++) {
             CCRTableRow * row = rows[i];
             row->y = h;
-            if (row->cells[0]->elem->getStyle()->border_spacing[1].value>0)
-                {
-                int em=row->cells[0]->elem->getFont()->getSize();
-                int border_spacing_v=lengthToPx(row->cells[0]->elem->getStyle()->border_spacing[1],width,em);
-                gap=border_spacing_v<3?3:border_spacing_v;
-                }
-            if (row->cells[0]->elem->getStyle()->border_collapse==css_border_collapse)
-                {
-                    gap=0;
-                }
-            h+=row->height+gap;
-            if (i==rows.length()-1&&row->cells[0]->elem->getStyle()->border_collapse!=css_border_collapse)
-                h+=row->cells[0]->padding_bottom+row->cells[0]->padding_top-gap;
+            h+=row->height+bsp_v;
+            if (i==rows.length()-1&&!border_collapse)
+                h+=bsp_v+table_padding_bottom+table_padding_top;
 			if ( row->elem ) {
                 RenderRectAccessor fmt( row->elem );
                 fmt.setX(measureBorder(row->elem,3));
@@ -781,8 +779,8 @@ public:
             //int break_inside = CssPageBreak2Flags( node->getStyle()->page_break_inside );
             if ( caption && caption_h ) {
                 int line_flags = 0;  //TODO
-                int y0 = rect.top; // start of row
-                int y1 = rect.top + caption_h + measureBorder(caption,1); // end of row
+                int y0 = rect.top+table_padding_top+(border_collapse?0:posy); // start of row
+                int y1 = rect.top + caption_h + posy+table_padding_top; // end of row
                 line_flags |= RN_SPLIT_AUTO << RN_SPLIT_BEFORE;
                 line_flags |= RN_SPLIT_AVOID << RN_SPLIT_AFTER;
                 context.AddLine(y0,
@@ -793,16 +791,18 @@ public:
             {
                 CCRTableRow * row = rows[ i ];
                 int line_flags = 0;  //TODO
-                int y0 = rect.top + row->y +measureBorder(row->cells.first()->elem,0)+row->cells[0]->padding_top; // start of row
-                int y1 = rect.top + row->y + row->height +measureBorder(row->cells.first()->elem,2)+row->cells[0]->padding_bottom; // end of row
+                int y0 = rect.top + row->y +table_padding_top+bsp_v+posy;// start of row
+                int y1 = rect.top + row->y + row->height +bsp_v+table_padding_top+posy; // end of row
                 if ( i==count-1) {
                     line_flags |= RN_SPLIT_AVOID << RN_SPLIT_BEFORE;
-                    //y1 += TABLE_BORDER_WIDTH;
+                   if (border_collapse)
+                       y1 += measureBorder(elem,2);
                 } else
                     line_flags |= RN_SPLIT_AUTO << RN_SPLIT_BEFORE;
                 if ( i==0 ) {
                     line_flags |= RN_SPLIT_AVOID << RN_SPLIT_AFTER;
-                    //y0 -= TABLE_BORDER_WIDTH;
+                    if(border_collapse&&!caption) y0 -= posy;
+
                 } else
                     line_flags |= RN_SPLIT_AUTO << RN_SPLIT_AFTER;
                 //if (i==0)
@@ -839,7 +839,7 @@ public:
         }
 
 
-        return h + measureBorder(elem,0) +measureBorder(elem,2)+2;
+        return h + measureBorder(elem,0) +measureBorder(elem,2);
     }
 
     CCRTable(ldomNode * tbl_elem, int tbl_width, int dwidth) : digitwidth(dwidth) {
@@ -1607,8 +1607,13 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     int y = 0;
                     lvRect r;
                     enode->getAbsRect(r);
+                    lString16 name=enode->getNodeName();
+                    bool TableCollapse=false;
+                    if(name.compare("table")==0&&enode->getStyle()->border_collapse==css_border_collapse){
+                        TableCollapse=true;
+                    }
                     if (margin_top>0) context.AddLine(r.top-margin_top, r.top-1, pagebreakhelper(enode,width));
-                    if (padding_top>0) context.AddLine(r.top,r.top+padding_top-1,pagebreakhelper(enode,width));
+                    if (padding_top>0&&!TableCollapse) context.AddLine(r.top,r.top+padding_top-1,pagebreakhelper(enode,width));
                     int h = renderTable( context, enode, 0, y, width );
                     y += h;
                     int st_y = lengthToPx( enode->getStyle()->height, em, em );
@@ -1618,7 +1623,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     // ??? not sure
                     lvRect rect;
                     enode->getAbsRect(rect);
-                    if(padding_bottom>0)
+                    if(padding_bottom>0&&!TableCollapse)
                         context.AddLine(y+rect.top-padding_bottom,y+rect.top,RN_SPLIT_AFTER_AUTO);
                     if(margin_bottom>0)
                         context.AddLine(y+rect.top+1,y+rect.top+margin_bottom,RN_SPLIT_AFTER_AUTO);;
@@ -2728,7 +2733,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int width )
 {
     CR_UNUSED2(x, y);
-    CCRTable table( node, width-2, 10 );
+    CCRTable table( node, width, 10 );
     int h = table.renderCells( context );
 
     return h;
