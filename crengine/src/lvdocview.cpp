@@ -4182,7 +4182,21 @@ bool LVDocView::ParseDocument() {
 		} else {
 		}
 
-		// unknown format
+		/// plain text format (robust, never fail)
+		if (parser == NULL) {
+
+			setDocFormat( doc_format_txt);
+			parser = new LVTextRobustParser(m_stream, &writer,
+							 getTextFormatOptions() == txt_format_pre);
+			if (!parser->CheckFormat()) {
+				// Never reach
+				delete parser;
+				parser = NULL;
+			}
+		} else {
+		}
+
+		// unknown format (never reach)
 		if (!parser) {
 			setDocFormat( doc_format_none);
             createDefaultDocument(cs16("ERROR: Unknown document format"),

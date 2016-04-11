@@ -2689,6 +2689,28 @@ bool LVTextParser::Parse()
     return true;
 }
 
+//==================================================
+// Text file robust parser
+
+/// constructor
+LVTextRobustParser::LVTextRobustParser( LVStreamRef stream, LVXMLParserCallback * callback, bool isPreFormatted )
+    : LVTextParser(stream, callback, isPreFormatted)
+{
+}
+
+/// descructor
+LVTextRobustParser::~LVTextRobustParser()
+{
+}
+
+
+/// returns true if format is recognized by parser
+bool LVTextRobustParser::CheckFormat()
+{
+    m_lang_name = lString16( "en" );
+    SetCharset( lString16( "utf-8" ).c_str() );
+    return true;
+}
 
 /*******************************************************************************/
 // LVXMLTextCache
