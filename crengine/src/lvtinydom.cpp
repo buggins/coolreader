@@ -11172,7 +11172,15 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     ::renderFinalBlock( this, f.get(), fmt, flags, 0, 16 );
     int page_h = getDocument()->getPageHeight();
     cache.set( this, f );
+    bool flg=gFlgFloatingPunctuationEnabled;
+    if (this->getNodeName()=="th"||this->getNodeName()=="td"||
+            (!this->getParentNode()->isNull()&&this->getParentNode()->getNodeName()=="td")||
+            (!this->getParentNode()->isNull()&&this->getParentNode()->getNodeName()=="th"))
+    {
+        gFlgFloatingPunctuationEnabled=false;
+    }
     int h = f->Format((lUInt16)width, (lUInt16)page_h);
+    gFlgFloatingPunctuationEnabled=flg;
     frmtext = f;
     //CRLog::trace("Created new formatted object for node #%08X", (lUInt32)this);
     return h;
