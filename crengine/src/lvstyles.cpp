@@ -49,7 +49,7 @@ lUInt32 calcHash(css_style_rec_t & rec)
          + (lUInt32)rec.list_style_type) * 31
          + (lUInt32)rec.letter_spacing.pack()) * 31
          + (lUInt32)rec.list_style_position) * 31
-         + (lUInt32)(rec.page_break_before | (rec.page_break_before<<4) | (rec.page_break_before<<8))) * 31
+         + (lUInt32)(rec.page_break_before | (rec.page_break_after<<4) | (rec.page_break_inside<<8))) * 31
          + (lUInt32)rec.vertical_align) * 31
          + (lUInt32)rec.font_size.type) * 31
          + (lUInt32)rec.font_size.value) * 31
@@ -140,9 +140,9 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.background_image==r2.background_image&&
            r1.background_repeat==r2.background_repeat&&
            r1.background_attachment==r2.background_attachment&&
-           r1.background_position==r2.background_position;
-           r1.border_collapse==r2.border_collapse;
-           r1.border_spacing[0]==r2.border_spacing[0];
+           r1.background_position==r2.background_position&&
+           r1.border_collapse==r2.border_collapse&&
+           r1.border_spacing[0]==r2.border_spacing[0]&&
            r1.border_spacing[1]==r2.border_spacing[1];
 }
 

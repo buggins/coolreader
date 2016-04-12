@@ -1392,8 +1392,59 @@ css_page_break_t getPageBreakBefore( ldomNode * el ) {
         before = style->page_break_before;
         if ( before!=css_pb_auto )
         {
-            style->page_break_before=css_pb_auto;
-            el->setStyle(style);//set to auto after use
+            css_style_ref_t newstyle( new css_style_rec_t );
+            el->setStyle(newstyle);//can't modify styles directly, as the change in style cache will affect other node with same style
+            if(!style.isNull())
+            {
+                el->getStyle()->display = style->display ;
+                el->getStyle()->white_space = style->white_space ;
+                el->getStyle()->text_align = style->text_align ;
+                el->getStyle()->text_align_last = style->text_align_last ;
+                el->getStyle()->text_decoration = style->text_decoration ;
+                el->getStyle()->list_style_type = style->list_style_type ;
+                el->getStyle()->list_style_position = style->list_style_position ;
+                el->getStyle()->hyphenate = style->hyphenate ;
+                el->getStyle()->vertical_align = style->vertical_align ;
+                el->getStyle()->line_height = style->line_height ;
+                el->getStyle()->width = style->width ;
+                el->getStyle()->height = style->height ;
+                el->getStyle()->color = style->color ;
+                el->getStyle()->background_color = style->background_color ;
+                el->getStyle()->text_indent = style->text_indent ;
+                el->getStyle()->margin[0] = style->margin[0] ;
+                el->getStyle()->margin[1] = style->margin[1] ;
+                el->getStyle()->margin[2] = style->margin[2] ;
+                el->getStyle()->margin[3] = style->margin[3] ;
+                el->getStyle()->padding[0] = style->padding[0] ;
+                el->getStyle()->padding[1] = style->padding[1] ;
+                el->getStyle()->padding[2] = style->padding[2] ;
+                el->getStyle()->padding[3] = style->padding[3] ;
+                el->getStyle()->font_size.type = style->font_size.type ;
+                el->getStyle()->font_size.value = style->font_size.value ;
+                el->getStyle()->font_style = style->font_style ;
+                el->getStyle()->font_weight = style->font_weight ;
+                el->getStyle()->font_name = style->font_name ;
+                el->getStyle()->font_family = style->font_family;
+                el->getStyle()->border_style_top=style->border_style_top;
+                el->getStyle()->border_style_right=style->border_style_right;
+                el->getStyle()->border_style_bottom=style->border_style_bottom;
+                el->getStyle()->border_style_left=style->border_style_left;
+                el->getStyle()->border_width[0]=style->border_width[0];
+                el->getStyle()->border_width[1]=style->border_width[1];
+                el->getStyle()->border_width[2]=style->border_width[2];
+                el->getStyle()->border_width[3]=style->border_width[3];
+                el->getStyle()->border_color[0]=style->border_color[0];
+                el->getStyle()->border_color[1]=style->border_color[1];
+                el->getStyle()->border_color[2]=style->border_color[2];
+                el->getStyle()->border_color[3]=style->border_color[3];
+                el->getStyle()->background_image=style->background_image;
+                el->getStyle()->background_repeat=style->background_repeat;
+                el->getStyle()->background_attachment=style->background_attachment;
+                el->getStyle()->background_position=style->background_position;
+                el->getStyle()->border_collapse=style->border_collapse;
+                el->getStyle()->border_spacing[0]=style->border_spacing[0];
+                el->getStyle()->border_spacing[1]=style->border_spacing[1];
+            }
             return before;
         }
         ldomNode * parent = el->getParentNode();
@@ -1641,9 +1692,6 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     // recurse all sub-blocks for blocks
                     int y = padding_top;
                     int cnt = enode->getChildCount();
-                    lString16 nodename=enode->getNodeName();
-                    css_page_break_t page_break_before;
-                    if (nodename.lowercase().compare("docfragment")==0) page_break_before=enode->getStyle()->page_break_before;//store pagebreak flag for docfragment before render
                     lvRect r;
                     enode->getAbsRect(r);
                     if (margin_top>0)
@@ -1668,12 +1716,6 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         context.AddLine(y+rect.top+1,y+rect.top+padding_bottom,RN_SPLIT_AFTER_AUTO);
                     if(margin_bottom>0)
                         context.AddLine(y+rect.top+padding_bottom+1,y+rect.top+padding_bottom+margin_bottom,RN_SPLIT_AFTER_AUTO);
-                    //restore pagebreak flag for DocFragment
-                    if (page_break_before==css_pb_always) {
-                        css_style_ref_t style=enode->getStyle();
-                        style->page_break_before=page_break_before;
-                        enode->setStyle(style);
-                    }
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
