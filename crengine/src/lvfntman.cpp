@@ -448,12 +448,14 @@ public:
 class LVFontGlyphWidthCache
 {
 private:
-    lUInt8 * ptrs[360]; //support up to 0X2CFFF=360*512-1
+    static const int COUNT = 360;
+    lUInt8 * ptrs[COUNT]; //support up to 0X2CFFF=360*512-1
 public:
     lUInt8 get( lChar16 ch )
     {
         FONT_GLYPH_CACHE_GUARD
         int inx = (ch>>9) & 0x1ff;
+        if (inx >= COUNT) return 0xFF;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr )
             return 0xFF;
@@ -463,6 +465,7 @@ public:
     {
         FONT_GLYPH_CACHE_GUARD
         int inx = (ch>>9) & 0x1ff;
+        if (inx >= COUNT) return;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr ) {
             ptr = new lUInt8[512];
