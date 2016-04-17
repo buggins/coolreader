@@ -5087,10 +5087,13 @@ bool ldomXPointer::getRect(lvRect & rect) const
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
-                bool lastWord = (l == txtform->GetLineCount() - 1 && w == frmline->word_count - 1);
+                bool lastWord = (l == txtform->GetLineCount() - 1
+                                 && w == frmline->word_count - 1);
                 if ( word->src_text_index>=srcIndex || lastWord ) {
                     // found word from same src line
-                    if ( word->src_text_index>srcIndex || offset<=word->t.start ) {
+                    if ( word->flags == LTEXT_WORD_IS_OBJECT
+                            || word->src_text_index > srcIndex
+                            || offset <= word->t.start ) {
                         // before this word
                         rect.left = word->x + rc.left + frmline->x;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
