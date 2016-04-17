@@ -258,32 +258,36 @@ void LFormattedText::AddSourceObject(
         img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
     lUInt16 width = (lUInt16)img->GetWidth();
     lUInt16 height = (lUInt16)img->GetHeight();
-    css_style_ref_t style=node->getStyle();
-    int w=0,h=0;
-    int em=node->getFont()->getSize();
-    lString16 nodename;
-    nodename=node->getNodeName();
-    if (nodename.lowercase().compare("sub")==0||nodename.lowercase().compare("sup")==0) {
-        if (style->font_size.type==css_val_percent) em=em*100/style->font_size.value;
+
+    css_style_ref_t style = node->getStyle();
+    int w = 0, h = 0;
+    int em = node->getFont()->getSize();
+    lString16 nodename = node->getNodeName();
+    if ((nodename.lowercase().compare("sub")==0
+                || nodename.lowercase().compare("sup")==0)
+            && (style->font_size.type==css_val_percent)) {
+        em = em*100/style->font_size.value;
     }
-    w=lengthToPx(style->width,100,em);
-    h=lengthToPx(style->height,100,em);
-    if (style->width.type==css_val_percent)
-    {
-        w=-w;
-        if (style->height.type==css_val_percent) h=w*height/width;
+    w = lengthToPx(style->width, 100, em);
+    h = lengthToPx(style->height, 100, em);
+    if (style->width.type==css_val_percent) w = -w;
+    if (style->height.type==css_val_percent) h = w*height/width;
+
+    if ( w*h==0 ) {
+        if ( w==0 ) {
+            if ( h==0 ) {
+                h = height;
+                w = width;
+            } else {
+                w = width*h/height;
+            }
+        } else if ( h==0 ) {
+            h = w*height/width;
+        }
     }
-    if (style->height.type==css_val_percent&&style->width.type!=css_val_percent)
-    {
-        h=w*height/width;
-    }
-    if (w*h==0){
-        if (w==0&&h!=0) {w=width*h/height;}
-        if (h==0&&w!=0) {h=w*height/width;}
-        if (w==0&&h==0) {h=height;w=width;}
-    }
-    width=w;
-    height=h;
+    width = w;
+    height = h;
+
     lvtextAddSourceObject(m_pbuffer,
         width, height,
         flags, interval, margin, object, letter_spacing );
