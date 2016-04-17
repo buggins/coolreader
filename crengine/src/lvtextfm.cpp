@@ -207,8 +207,8 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
 
 void lvtextAddSourceObject(
    formatted_text_fragment_t * pbuffer,
-   lUInt16         width,
-   lUInt16         height,
+   lInt16         width,
+   lInt16         height,
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
    lUInt16         margin,   /* first line margin */
@@ -256,8 +256,8 @@ void LFormattedText::AddSourceObject(
     LVImageSourceRef img = node->getObjectImageSource();
     if ( img.isNull() )
         img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
-    lUInt16 width = (lUInt16)img->GetWidth();
-    lUInt16 height = (lUInt16)img->GetHeight();
+    lInt16 width = (lUInt16)img->GetWidth();
+    lInt16 height = (lUInt16)img->GetHeight();
 
     css_style_ref_t style = node->getStyle();
     int w = 0, h = 0;
