@@ -2648,8 +2648,14 @@ void ldomTextStorageChunk::ensureUnpacked()
     if ( !_buf ) {
         if ( _saved ) {
             if ( !restoreFromCache() ) {
+                CRTimerUtil timer;
+                timer.infinite();
+                _manager->_cache->flush(false,timer);
+                CRLog::warn( "restoreFromCache() failed for chunk %c%d,will try after flush", _type, _index);
+            if ( !restoreFromCache() ) {
                 CRLog::error( "restoreFromCache() failed for chunk %c%d", _type, _index);
                 crFatalError( 111, "restoreFromCache() failed for chunk");
+                }
             }
             _manager->compact( 0 );
         }
