@@ -4995,7 +4995,6 @@ bool ldomXPointer::getRect(lvRect & rect) const
         lvRect rc;
         p0->getAbsRect( rc );
         CRLog::debug("node w/o final parent: %d..%d", rc.top, rc.bottom);
-
     }
 
     if ( finalNode!=NULL ) {
@@ -5010,11 +5009,20 @@ bool ldomXPointer::getRect(lvRect & rect) const
         //if ( !r )
         //    return false;
         LFormattedTextRef txtform;
-        finalNode->renderFinalBlock( txtform, &r, r.getWidth()-measureBorder(finalNode,1) -measureBorder(finalNode,3)
-                                                  -lengthToPx(finalNode->getStyle()->padding[0],rc.width(),finalNode->getFont()->getSize())
-                                                  -lengthToPx(finalNode->getStyle()->padding[1],rc.width(),finalNode->getFont()->getSize()));
+        finalNode->renderFinalBlock(
+             txtform,
+             &r,
+             r.getWidth()
+                -measureBorder(finalNode,1)
+                -measureBorder(finalNode,3)
+                -lengthToPx(finalNode->getStyle()->padding[0],
+                            rc.width(),
+                            finalNode->getFont()->getSize())
+                -lengthToPx(finalNode->getStyle()->padding[1],
+                            rc.width(),
+                            finalNode->getFont()->getSize()));
 
-        ldomNode * node = getNode();
+        ldomNode *node = getNode();
         int offset = getOffset();
 ////        ldomXPointerEx xp(node, offset);
 ////        if ( !node->isText() ) {
@@ -5087,10 +5095,13 @@ bool ldomXPointer::getRect(lvRect & rect) const
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
-                bool lastWord = (l == txtform->GetLineCount() - 1 && w == frmline->word_count - 1);
+                bool lastWord = (l == txtform->GetLineCount() - 1
+                                 && w == frmline->word_count - 1);
                 if ( word->src_text_index>=srcIndex || lastWord ) {
                     // found word from same src line
-                    if ( word->src_text_index>srcIndex || offset<=word->t.start ) {
+                    if ( word->flags == LTEXT_WORD_IS_OBJECT
+                            || word->src_text_index > srcIndex
+                            || offset <= word->t.start ) {
                         // before this word
                         rect.left = word->x + rc.left + frmline->x;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
@@ -5098,13 +5109,22 @@ bool ldomXPointer::getRect(lvRect & rect) const
                         rect.right = rect.left + 1;
                         rect.bottom = rect.top + frmline->height;
                         return true;
-                    } else if ( (offset<word->t.start+word->t.len) || (offset==srcLen && offset==word->t.start+word->t.len) ) {
+                    } else if ( (offset < word->t.start+word->t.len)
+                               || (offset==srcLen
+                                   && offset == word->t.start+word->t.len) ) {
                         // pointer inside this word
-                        LVFont * font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
+                        LVFont *font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
                         lUInt16 w[512];
                         lUInt8 flg[512];
                         lString16 str = node->getText();
-                        font->measureText( str.c_str()+word->t.start, offset - word->t.start, w, flg, word->width+50, '?', txtform->GetSrcInfo(srcIndex)->letter_spacing);
+                        font->measureText(
+                            str.c_str()+word->t.start,
+                            offset - word->t.start,
+                            w,
+                            flg,
+                            word->width+50,
+                            '?',
+                            txtform->GetSrcInfo(srcIndex)->letter_spacing);
                         int chx = w[ offset - word->t.start - 1 ];
                         rect.left = word->x + chx + rc.left + frmline->x;
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
@@ -5733,14 +5753,17 @@ bool ldomDocument::findText( lString16 pattern, bool caseInsensitive, bool rever
     if ( start.isNull() || end.isNull() )
         return false;
     ldomXRange range( start, end );
-    CRLog::debug("ldomDocument::findText() for Y %d..%d, range %d..%d", minY, maxY, start.toPoint().y, end.toPoint().y);
+    CRLog::debug("ldomDocument::findText() for Y %d..%d, range %d..%d",
+                 minY, maxY, start.toPoint().y, end.toPoint().y);
     if ( range.getStart().toPoint().y==-1 ) {
         range.getStart().nextVisibleText();
-        CRLog::debug("ldomDocument::findText() updated range %d..%d", range.getStart().toPoint().y, range.getEnd().toPoint().y);
+        CRLog::debug("ldomDocument::findText() updated range %d..%d",
+                     range.getStart().toPoint().y, range.getEnd().toPoint().y);
     }
     if ( range.getEnd().toPoint().y==-1 ) {
         range.getEnd().prevVisibleText();
-        CRLog::debug("ldomDocument::findText() updated range %d..%d", range.getStart().toPoint().y, range.getEnd().toPoint().y);
+        CRLog::debug("ldomDocument::findText() updated range %d..%d",
+                     range.getStart().toPoint().y, range.getEnd().toPoint().y);
     }
     if ( range.isNull() ) {
         CRLog::debug("No text found: Range is empty");
