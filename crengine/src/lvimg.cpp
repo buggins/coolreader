@@ -506,16 +506,16 @@ public:
 };
 
 
-static void lvpng_error_func (png_structp png, png_const_charp)
+static void lvpng_error_func (png_structp png, png_const_charp msg)
 {
-    //fprintf(stderr, "png error: %s\n", msg)
+    //fprintf(stderr, "png error: %s\n", msg);
     longjmp(png_jmpbuf(png), 1);
 }
 
-static void lvpng_warning_func (png_structp png, png_const_charp)
+static void lvpng_warning_func (png_structp png, png_const_charp msg)
 {
-    //fprintf(stderr, "png warning: %s\n", msg)
-    longjmp(png_jmpbuf(png), 1);
+    //fprintf(stderr, "png warning: %s\n", msg);
+    //longjmp(png_jmpbuf(png), 1);
 }
 
 static void lvpng_read_func(png_structp png, png_bytep buf, png_size_t len)
@@ -832,7 +832,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
 {
     png_structp png_ptr = NULL;
     png_infop info_ptr = NULL;
-    lUInt32 * row = NULL;
     _stream->SetPos( 0 );
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
         (png_voidp)this, lvpng_error_func, lvpng_warning_func);
@@ -846,8 +845,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         {
             png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         }
-        if ( row )
-            delete [] row;
         if (callback)
             callback->OnEndDecode(this, true); // error!
         return false;
@@ -870,7 +867,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
     _width = width;
     _height = height;
 
-    row = new lUInt32[ width ];
 
     if ( callback )
     {
@@ -914,7 +910,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
             color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
                 png_set_gray_to_rgb(png_ptr);
 
-        int number_passes = png_set_interlace_handling(png_ptr);
         //if (color_type == PNG_COLOR_TYPE_RGB_ALPHA ||
         //    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 
@@ -922,22 +917,26 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         //    color_type == PNG_COLOR_TYPE_RGB_ALPHA)
         png_set_bgr(png_ptr);
 
-            for (int pass = 0; pass < number_passes; pass++)
+        png_set_interlace_handling(png_ptr);
+        png_read_update_info(png_ptr,info_ptr);//update after set
+        png_bytep *image=NULL;
+        image =  new png_bytep[height];
+        for (lUInt32 i=0; i<height; i++)
+            image[i] =  new png_byte[png_get_rowbytes(png_ptr,info_ptr)];
+        png_read_image(png_ptr,image);
+        for (lUInt32 y = 0; y < height; y++)
         {
-                for (lUInt32 y = 0; y < height; y++)
-            {
-                png_read_rows(png_ptr, (unsigned char **)&row, NULL, 1);
-                callback->OnLineDecoded( this, y, row );
-            }
+            callback->OnLineDecoded( this, y,  (lUInt32*) image[y] );
         }
 
         png_read_end(png_ptr, info_ptr);
 
         callback->OnEndDecode(this, false);
+        for (lUInt32 i=0; i<height; i++) delete [] image[i];
+        delete [] image;
     }
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
-    delete [] row;
     return true;
 }
 
