@@ -2392,6 +2392,7 @@ void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int d
                 }
             }
             tmp->DrawOnTop(&drawbuf, x0 + doc_x, y0 + doc_y);
+            delete tmp;
         }
     }
 }
