@@ -74,7 +74,9 @@ simpleLogFile logfile;
 int measureBorder(ldomNode *enode,int border);
 // prototypes
 int lengthToPx( css_length_t val, int base_px, int base_em );
-
+void copystyle( css_style_ref_t sourcestyle, css_style_ref_t deststyle );
+css_page_break_t getPageBreakBefore( ldomNode * el );
+int CssPageBreak2Flags( css_page_break_t prop );
 ///////////////////////////////////////////////////////////////////////////////
 //
 // TABLE RENDERING CLASSES
@@ -612,8 +614,13 @@ public:
                     css_style_ref_t style = cell->elem->getStyle();
                     style->border_style_left = css_border_none;
                     style->border_style_bottom = css_border_none;
-                    if (i==0) style->border_style_top=css_border_none;
-                    cell->elem->setStyle(style);
+                    if (i==0) {
+                        css_style_ref_t firstrowstyle(new css_style_rec_t);
+                        copystyle(style,firstrowstyle);
+                        firstrowstyle->border_style_top=css_border_none;
+                        cell->elem->setStyle(firstrowstyle);
+                    }
+                    else cell->elem->setStyle(style);
                 }
                 else {
                     int n=rows[i]->cells.length();
@@ -801,6 +808,7 @@ public:
                     line_flags |= RN_SPLIT_AUTO << RN_SPLIT_BEFORE;
                 if ( i==0 ) {
                     line_flags |= RN_SPLIT_AVOID << RN_SPLIT_AFTER;
+                    line_flags |= CssPageBreak2Flags(getPageBreakBefore(elem))<<RN_SPLIT_BEFORE;
                     if(border_collapse&&!caption) y0 -= posy;
 
                 } else
@@ -1381,6 +1389,58 @@ bool isFirstBlockChild( ldomNode * parent, ldomNode * child ) {
     return true;
 }
 
+void copystyle( css_style_ref_t source, css_style_ref_t dest )
+{
+    dest->display = source->display ;
+    dest->white_space = source->white_space ;
+    dest->text_align = source->text_align ;
+    dest->text_align_last = source->text_align_last ;
+    dest->text_decoration = source->text_decoration ;
+    dest->list_style_type = source->list_style_type ;
+    dest->list_style_position = source->list_style_position ;
+    dest->hyphenate = source->hyphenate ;
+    dest->vertical_align = source->vertical_align ;
+    dest->line_height = source->line_height ;
+    dest->width = source->width ;
+    dest->height = source->height ;
+    dest->color = source->color ;
+    dest->background_color = source->background_color ;
+    dest->text_indent = source->text_indent ;
+    dest->margin[0] = source->margin[0] ;
+    dest->margin[1] = source->margin[1] ;
+    dest->margin[2] = source->margin[2] ;
+    dest->margin[3] = source->margin[3] ;
+    dest->padding[0] = source->padding[0] ;
+    dest->padding[1] = source->padding[1] ;
+    dest->padding[2] = source->padding[2] ;
+    dest->padding[3] = source->padding[3] ;
+    dest->font_size.type = source->font_size.type ;
+    dest->font_size.value = source->font_size.value ;
+    dest->font_style = source->font_style ;
+    dest->font_weight = source->font_weight ;
+    dest->font_name = source->font_name ;
+    dest->font_family = source->font_family;
+    dest->border_style_top=source->border_style_top;
+    dest->border_style_right=source->border_style_right;
+    dest->border_style_bottom=source->border_style_bottom;
+    dest->border_style_left=source->border_style_left;
+    dest->border_width[0]=source->border_width[0];
+    dest->border_width[1]=source->border_width[1];
+    dest->border_width[2]=source->border_width[2];
+    dest->border_width[3]=source->border_width[3];
+    dest->border_color[0]=source->border_color[0];
+    dest->border_color[1]=source->border_color[1];
+    dest->border_color[2]=source->border_color[2];
+    dest->border_color[3]=source->border_color[3];
+    dest->background_image=source->background_image;
+    dest->background_repeat=source->background_repeat;
+    dest->background_attachment=source->background_attachment;
+    dest->background_position=source->background_position;
+    dest->border_collapse=source->border_collapse;
+    dest->border_spacing[0]=source->border_spacing[0];
+    dest->border_spacing[1]=source->border_spacing[1];
+}
+
 css_page_break_t getPageBreakBefore( ldomNode * el ) {
     if ( el->isText() )
         el = el->getParentNode();
@@ -1396,54 +1456,7 @@ css_page_break_t getPageBreakBefore( ldomNode * el ) {
             el->setStyle(newstyle);//can't modify styles directly, as the change in style cache will affect other node with same style
             if(!style.isNull())
             {
-                el->getStyle()->display = style->display ;
-                el->getStyle()->white_space = style->white_space ;
-                el->getStyle()->text_align = style->text_align ;
-                el->getStyle()->text_align_last = style->text_align_last ;
-                el->getStyle()->text_decoration = style->text_decoration ;
-                el->getStyle()->list_style_type = style->list_style_type ;
-                el->getStyle()->list_style_position = style->list_style_position ;
-                el->getStyle()->hyphenate = style->hyphenate ;
-                el->getStyle()->vertical_align = style->vertical_align ;
-                el->getStyle()->line_height = style->line_height ;
-                el->getStyle()->width = style->width ;
-                el->getStyle()->height = style->height ;
-                el->getStyle()->color = style->color ;
-                el->getStyle()->background_color = style->background_color ;
-                el->getStyle()->text_indent = style->text_indent ;
-                el->getStyle()->margin[0] = style->margin[0] ;
-                el->getStyle()->margin[1] = style->margin[1] ;
-                el->getStyle()->margin[2] = style->margin[2] ;
-                el->getStyle()->margin[3] = style->margin[3] ;
-                el->getStyle()->padding[0] = style->padding[0] ;
-                el->getStyle()->padding[1] = style->padding[1] ;
-                el->getStyle()->padding[2] = style->padding[2] ;
-                el->getStyle()->padding[3] = style->padding[3] ;
-                el->getStyle()->font_size.type = style->font_size.type ;
-                el->getStyle()->font_size.value = style->font_size.value ;
-                el->getStyle()->font_style = style->font_style ;
-                el->getStyle()->font_weight = style->font_weight ;
-                el->getStyle()->font_name = style->font_name ;
-                el->getStyle()->font_family = style->font_family;
-                el->getStyle()->border_style_top=style->border_style_top;
-                el->getStyle()->border_style_right=style->border_style_right;
-                el->getStyle()->border_style_bottom=style->border_style_bottom;
-                el->getStyle()->border_style_left=style->border_style_left;
-                el->getStyle()->border_width[0]=style->border_width[0];
-                el->getStyle()->border_width[1]=style->border_width[1];
-                el->getStyle()->border_width[2]=style->border_width[2];
-                el->getStyle()->border_width[3]=style->border_width[3];
-                el->getStyle()->border_color[0]=style->border_color[0];
-                el->getStyle()->border_color[1]=style->border_color[1];
-                el->getStyle()->border_color[2]=style->border_color[2];
-                el->getStyle()->border_color[3]=style->border_color[3];
-                el->getStyle()->background_image=style->background_image;
-                el->getStyle()->background_repeat=style->background_repeat;
-                el->getStyle()->background_attachment=style->background_attachment;
-                el->getStyle()->background_position=style->background_position;
-                el->getStyle()->border_collapse=style->border_collapse;
-                el->getStyle()->border_spacing[0]=style->border_spacing[0];
-                el->getStyle()->border_spacing[1]=style->border_spacing[1];
+                copystyle(style,el->getStyle());
             }
             return before;
         }
@@ -1660,7 +1673,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     enode->getAbsRect(r);
                     lString16 name=enode->getNodeName();
                     bool TableCollapse=false;
-                    if(name.compare("table")==0&&enode->getStyle()->border_collapse==css_border_collapse){
+                    if(name.lowercase().compare("table")==0&&enode->getStyle()->border_collapse==css_border_collapse){
                         TableCollapse=true;
                     }
                     if (margin_top>0) context.AddLine(r.top-margin_top, r.top-1, pagebreakhelper(enode,width));
