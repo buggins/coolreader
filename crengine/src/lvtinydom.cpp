@@ -10310,15 +10310,17 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
         return NULL;
     ldomNode * enode = this;
     RenderRectAccessor fmt( this );
+    int top_margin=lengthToPx(enode->getStyle()->margin[2],fmt.getWidth(),enode->getFont()->getSize());
+    int bottom_margin=lengthToPx(enode->getStyle()->margin[3],fmt.getWidth(),enode->getFont()->getSize());
     if ( enode->getRendMethod() == erm_invisible ) {
         return NULL;
     }
-    if ( pt.y < fmt.getY() ) {
+    if ( pt.y < fmt.getY() - top_margin) {
         if ( direction>0 && enode->getRendMethod() == erm_final )
             return this;
         return NULL;
     }
-    if ( pt.y >= fmt.getY() + fmt.getHeight() ) {
+    if ( pt.y >= fmt.getY() + fmt.getHeight() + bottom_margin ) {
         if ( direction<0 && enode->getRendMethod() == erm_final )
             return this;
         return NULL;
