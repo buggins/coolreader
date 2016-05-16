@@ -1457,6 +1457,9 @@ css_page_break_t getPageBreakBefore( ldomNode * el ) {
             if(!style.isNull())
             {
                 copystyle(style,el->getStyle());
+                el->getStyle()->page_break_before=css_pb_auto;
+                el->getStyle()->page_break_inside=style->page_break_inside;
+                el->getStyle()->page_break_after=style->page_break_after;
             }
             return before;
         }
@@ -1708,9 +1711,9 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     lvRect r;
                     enode->getAbsRect(r);
                     if (margin_top>0)
-                        context.AddLine(r.top - margin_top, r.top - 1, pagebreakhelper(enode,width));
+                        context.AddLine(r.top - margin_top, r.top, pagebreakhelper(enode,width));
                     if (padding_top>0)
-                        context.AddLine(r.top,r.top+padding_top-1,pagebreakhelper(enode,width));
+                        context.AddLine(r.top,r.top+padding_top,pagebreakhelper(enode,width));
                     for (int i=0; i<cnt; i++)
                     {
                         ldomNode * child = enode->getChildNode( i );
@@ -1726,9 +1729,9 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                     lvRect rect;
                     enode->getAbsRect(rect);
                     if(padding_bottom>0)
-                        context.AddLine(y+rect.top+1,y+rect.top+padding_bottom,RN_SPLIT_AFTER_AUTO);
+                        context.AddLine(y+rect.top,y+rect.top+padding_bottom,margin_bottom>0?RN_SPLIT_AFTER_AUTO:CssPageBreak2Flags(getPageBreakAfter(enode))<<RN_SPLIT_AFTER);
                     if(margin_bottom>0)
-                        context.AddLine(y+rect.top+padding_bottom+1,y+rect.top+padding_bottom+margin_bottom,RN_SPLIT_AFTER_AUTO);
+                        context.AddLine(y+rect.top+padding_bottom,y+rect.top+padding_bottom+margin_bottom,CssPageBreak2Flags(getPageBreakAfter(enode))<<RN_SPLIT_AFTER);
                     if ( isFootNoteBody )
                         context.leaveFootNote();
                     return y + margin_top + margin_bottom + padding_bottom; // return block height
@@ -1777,7 +1780,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             // split pages
             if ( context.getPageList() != NULL ) {
                 if (margin_top>0)
-                        context.AddLine(rect.top-margin_top,rect.top-1,pagebreakhelper(enode,width));
+                        context.AddLine(rect.top-margin_top,rect.top,pagebreakhelper(enode,width));
                 if (padding_top>0)
                         context.AddLine(rect.top,rect.top+padding_top,pagebreakhelper(enode,width));
                 css_page_break_t before, inside, after;
@@ -1803,15 +1806,15 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                         line_flags |= break_before << RN_SPLIT_BEFORE;
                     else
                         line_flags |= break_inside << RN_SPLIT_BEFORE;
-                    if (i==count-1)
+                    if (i==count-1&&(padding_bottom+margin_bottom==0))
                         line_flags |= break_after << RN_SPLIT_AFTER;
                     else
                         line_flags |= break_inside << RN_SPLIT_AFTER;
                     context.AddLine(rect.top+line->y+padding_top, rect.top+line->y+line->height+padding_top, line_flags);
                     if(padding_bottom>0&&i==count-1)
-                        context.AddLine(rect.bottom-padding_top,rect.bottom+padding_bottom-padding_top,RN_SPLIT_AFTER_AUTO);
+                        context.AddLine(rect.bottom-padding_bottom,rect.bottom,margin_bottom>0?RN_SPLIT_AFTER_AUTO:CssPageBreak2Flags(getPageBreakAfter(enode))<<RN_SPLIT_AFTER);
                     if(margin_bottom>0&&i==count-1)
-                        context.AddLine(rect.bottom+padding_bottom-padding_top+1,rect.bottom+padding_bottom-padding_top+margin_bottom,RN_SPLIT_AFTER_AUTO);
+                        context.AddLine(rect.bottom,rect.bottom+margin_bottom,CssPageBreak2Flags(getPageBreakAfter(enode))<<RN_SPLIT_AFTER);
                     // footnote links analysis
                     if ( !isFootNoteBody && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
                         for ( int w=0; w<line->word_count; w++ ) {
@@ -2665,6 +2668,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         case css_val_pt: \
             /*treat as px*/\
             pstyle->fld.type = css_val_px; \
+            pstyle->fld.value = pstyle->fld.value/256; \
             break; \
         case css_val_em: \
             pstyle->fld.type = css_val_px; \
