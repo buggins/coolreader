@@ -1307,6 +1307,7 @@ public:
 #if BUILD_LITE!=1
     /// returns caret rectangle for pointer inside formatted document
     bool getRect(lvRect & rect) const;
+    bool getRectEx(lvRect & rect) const;
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint() const;
 #endif

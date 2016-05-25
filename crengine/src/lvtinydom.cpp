@@ -145,6 +145,7 @@ enum CacheFileBlockType {
 #include <math.h>
 #include <zlib.h>
 #include <xxhash.h>
+#include <lvtextfm.h>
 
 // define to store new text nodes as persistent text, instead of mutable
 #define USE_PERSISTENT_TEXT 1
@@ -5165,6 +5166,213 @@ bool ldomXPointer::getRect(lvRect & rect) const
         //return rc.bottomRight();
     }
 }
+
+/// returns caret rectangle for pointer inside formatted document considering paddings and borders
+bool ldomXPointer::getRectEx(lvRect & rect) const
+{
+    //CRLog::trace("ldomXPointer::getRect()");
+    if ( isNull() )
+        return false;
+    ldomNode * p = isElement() ? getNode() : getNode()->getParentNode();
+    ldomNode * p0 = p;
+    ldomNode * finalNode = NULL;
+    if ( !p ) {
+        //CRLog::trace("ldomXPointer::getRect() - p==NULL");
+    }
+    //printf("getRect( p=%08X type=%d )\n", (unsigned)p, (int)p->getNodeType() );
+    if ( !p->getDocument() ) {
+        //CRLog::trace("ldomXPointer::getRect() - p->getDocument()==NULL");
+    }
+    ldomNode * mainNode = p->getDocument()->getRootNode();
+    for ( ; p; p = p->getParentNode() ) {
+        int rm = p->getRendMethod();
+        if ( rm == erm_final || rm == erm_list_item ) {
+            finalNode = p; // found final block
+        } else if ( p->getRendMethod() == erm_invisible ) {
+            return false; // invisible !!!
+        }
+        if ( p==mainNode )
+            break;
+    }
+
+    if ( finalNode==NULL ) {
+        lvRect rc;
+        p0->getAbsRect( rc );
+        CRLog::debug("node w/o final parent: %d..%d", rc.top, rc.bottom);
+    }
+
+    if ( finalNode!=NULL ) {
+        lvRect rc;
+        finalNode->getAbsRect( rc );
+        if (rc.height() == 0 && rc.width() > 0) {
+            rect = rc;
+            rect.bottom++;
+            return true;
+        }
+        RenderRectAccessor r( finalNode );
+        //if ( !r )
+        //    return false;
+        LFormattedTextRef txtform;
+        finalNode->renderFinalBlock(
+                txtform,
+                &r,
+                r.getWidth()
+                -measureBorder(finalNode,1)
+                -measureBorder(finalNode,3)
+                -lengthToPx(finalNode->getStyle()->padding[0],
+                            rc.width(),
+                            finalNode->getFont()->getSize())
+                -lengthToPx(finalNode->getStyle()->padding[1],
+                            rc.width(),
+                            finalNode->getFont()->getSize()));
+
+        ldomNode *node = getNode();
+        rc.top+=measureBorder(finalNode,0)+lengthToPx(finalNode->getStyle()->padding[2],r.getWidth(),finalNode->getFont()->getSize());
+        rc.left+=measureBorder(finalNode,3)+lengthToPx(finalNode->getStyle()->padding[0],r.getWidth(),finalNode->getFont()->getSize());
+        rc.right+=measureBorder(finalNode,3)+lengthToPx(finalNode->getStyle()->padding[0],r.getWidth(),finalNode->getFont()->getSize());
+        rc.bottom+=measureBorder(finalNode,0)+lengthToPx(finalNode->getStyle()->padding[2],r.getWidth(),finalNode->getFont()->getSize());
+        int offset = getOffset();
+////        ldomXPointerEx xp(node, offset);
+////        if ( !node->isText() ) {
+////            //ldomXPointerEx xp(node, offset);
+////            xp.nextVisibleText();
+////            node = xp.getNode();
+////            offset = xp.getOffset();
+////        }
+//        if ( node->isElement() ) {
+//            if ( offset>=0 ) {
+//                //
+//                if ( offset>= (int)node->getChildCount() ) {
+//                    node = node->getLastTextChild();
+//                    if ( node )
+//                        offset = node->getText().length();
+//                    else
+//                        return false;
+//                } else {
+//                    for ( int ci=offset; ci<(int)node->getChildCount(); ci++ ) {
+//                        ldomNode * child = node->getChildNode( offset );
+//                        ldomNode * txt = txt = child->getFirstTextChild( true );
+//                        if ( txt ) {
+//                            node = txt;
+////                            lString16 s = txt->getText();
+////                            CRLog::debug("text: [%d] '%s'", s.length(), LCSTR(s));
+//                            break;
+//                        }
+//                    }
+//                    if ( !node->isText() )
+//                        return false;
+//                    offset = 0;
+//                }
+//            }
+//        }
+
+        // text node
+        int srcIndex = -1;
+        int srcLen = -1;
+        int lastIndex = -1;
+        int lastLen = -1;
+        int lastOffset = -1;
+        ldomXPointerEx xp(node, offset);
+        for ( int i=0; i<txtform->GetSrcCount(); i++ ) {
+            const src_text_fragment_t * src = txtform->GetSrcInfo(i);
+            bool isObject = (src->flags&LTEXT_SRC_IS_OBJECT)!=0;
+            if ( src->object == node ) {
+                srcIndex = i;
+                srcLen = isObject ? 0 : src->t.len;
+                break;
+            }
+            lastIndex = i;
+            lastLen =  isObject ? 0 : src->t.len;
+            lastOffset = isObject ? 0 : src->t.offset;
+            ldomXPointerEx xp2((ldomNode*)src->object, lastOffset);
+            if ( xp2.compare(xp)>0 ) {
+                srcIndex = i;
+                srcLen = lastLen;
+                offset = lastOffset;
+                break;
+            }
+        }
+        if ( srcIndex == -1 ) {
+            if ( lastIndex<0 )
+                return false;
+            srcIndex = lastIndex;
+            srcLen = lastLen;
+            offset = lastOffset;
+        }
+        for ( int l = 0; l<txtform->GetLineCount(); l++ ) {
+            const formatted_line_t * frmline = txtform->GetLineInfo(l);
+            for ( int w=0; w<(int)frmline->word_count; w++ ) {
+                const formatted_word_t * word = &frmline->words[w];
+                bool lastWord = (l == txtform->GetLineCount() - 1
+                                 && w == frmline->word_count - 1);
+                if ( word->src_text_index>=srcIndex || lastWord ) {
+                    // found word from same src line
+                    if ( word->flags == LTEXT_WORD_IS_OBJECT
+                         || word->src_text_index > srcIndex
+                         || offset <= word->t.start ) {
+                        // before this word
+                        rect.left = word->x + rc.left + frmline->x;
+                        //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
+                        rect.top = rc.top + frmline->y;
+                        rect.right = rect.left + word->width;
+                        rect.bottom = rect.top + frmline->height;
+                        return true;
+                    } else if ( (offset < word->t.start+word->t.len)
+                                || (offset==srcLen
+                                    && offset == word->t.start+word->t.len) ) {
+                        // pointer inside this word
+                        LVFont *font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
+                        lUInt16 w[512];
+                        lUInt8 flg[512];
+                        lString16 str = node->getText();
+                        font->measureText(
+                                str.c_str()+word->t.start,
+                                offset - word->t.start,
+                                w,
+                                flg,
+                                word->width+50,
+                                '?',
+                                txtform->GetSrcInfo(srcIndex)->letter_spacing);
+                        int chx = w[ offset - word->t.start - 1 ];
+                        rect.left = word->x + chx + rc.left + frmline->x;
+                        //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
+                        rect.top = rc.top + frmline->y;
+                        rect.right = rect.left + word->width;
+                        rect.bottom = rect.top + frmline->height;
+                        return true;
+                    } else if (lastWord) {
+                        // after last word
+                        rect.left = word->x + rc.left + frmline->x + word->width;
+                        //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
+                        rect.top = rc.top + frmline->y;
+                        rect.right = rect.left + word->width;
+                        rect.bottom = rect.top + frmline->height;
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    } else {
+        // no base final node, using blocks
+        //lvRect rc;
+        ldomNode * node = getNode();
+        int offset = getOffset();
+        if ( offset<0 || node->getChildCount()==0 ) {
+            node->getAbsRect( rect );
+            return true;
+            //return rc.topLeft();
+        }
+        if ( offset < (int)node->getChildCount() ) {
+            node->getChildNode(offset)->getAbsRect( rect );
+            return true;
+            //return rc.topLeft();
+        }
+        node->getChildNode(node->getChildCount()-1)->getAbsRect( rect );
+        return true;
+        //return rc.bottomRight();
+    }
+}
 #endif
 
 /// create xpointer from relative pointer string
@@ -5976,6 +6184,19 @@ bool ldomXRange::getRect( lvRect & rect )
     lvRect rc2;
     if ( !getStart().getRect(rc1) || !getEnd().getRect(rc2) )
         return false;
+    ldomNode *finalNode1,*finalNode2;
+    finalNode1=getStart().getFinalNode();
+    finalNode2=getEnd().getFinalNode();
+    RenderRectAccessor r1(finalNode1);
+    RenderRectAccessor r2(finalNode2);
+    rc1.top+=measureBorder(finalNode1,0)+lengthToPx(finalNode1->getStyle()->padding[2],r1.getWidth(),finalNode1->getFont()->getSize());
+    rc1.left+=measureBorder(finalNode1,3)+lengthToPx(finalNode1->getStyle()->padding[0],r1.getWidth(),finalNode1->getFont()->getSize());
+    rc1.right+=measureBorder(finalNode1,3)+lengthToPx(finalNode1->getStyle()->padding[0],r1.getWidth(),finalNode1->getFont()->getSize());
+    rc1.bottom+=measureBorder(finalNode1,0)+lengthToPx(finalNode1->getStyle()->padding[2],r1.getWidth(),finalNode1->getFont()->getSize());
+    rc2.top+=measureBorder(finalNode2,0)+lengthToPx(finalNode2->getStyle()->padding[2],r2.getWidth(),finalNode2->getFont()->getSize());
+    rc2.left+=measureBorder(finalNode2,3)+lengthToPx(finalNode2->getStyle()->padding[0],r2.getWidth(),finalNode2->getFont()->getSize());
+    rc2.right+=measureBorder(finalNode2,3)+lengthToPx(finalNode2->getStyle()->padding[0],r2.getWidth(),finalNode2->getFont()->getSize());
+    rc2.bottom+=measureBorder(finalNode2,0)+lengthToPx(finalNode2->getStyle()->padding[2],r2.getWidth(),finalNode2->getFont()->getSize());
     if ( rc1.top == rc2.top && rc1.bottom == rc2.bottom ) {
         // on same line
         rect.left = rc1.left;
@@ -6908,7 +7129,7 @@ public:
                 _list.add( ldomWord( node, beginOfWord, i ) );
                 beginOfWord = -1;
             }
-            if (lGetCharProps(text[i]) == CH_PROP_CJK) {
+            if (lGetCharProps(text[i]) == CH_PROP_CJK && i < len) {
                 _list.add( ldomWord( node, i, i+1 ) );
                 beginOfWord = -1;
             }
