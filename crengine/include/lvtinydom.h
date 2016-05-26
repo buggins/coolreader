@@ -1307,6 +1307,7 @@ public:
 #if BUILD_LITE!=1
     /// returns caret rectangle for pointer inside formatted document
     bool getRect(lvRect & rect) const;
+    bool getRectEx(lvRect & rect) const;
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint() const;
 #endif
@@ -1644,7 +1645,7 @@ public:
     void forEach( ldomNodeCallback * callback );
 #if BUILD_LITE!=1
     /// returns rectangle (in doc coordinates) for range. Returns true if found.
-    bool getRect( lvRect & rect );
+    bool getRectEx( lvRect & rect );
 #endif
     /// returns nearest common element for start and end points
     ldomNode * getNearestCommonParent();
