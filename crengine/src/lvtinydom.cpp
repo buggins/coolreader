@@ -6175,7 +6175,7 @@ void ldomXRangeList::splitText( ldomMarkedTextList &dst, ldomNode * textNodeToSp
 }
 
 /// returns rectangle (in doc coordinates) for range. Returns true if found.
-bool ldomXRange::getRect( lvRect & rect )
+bool ldomXRange::getRectEx( lvRect & rect )
 {
     if ( isNull() )
         return false;

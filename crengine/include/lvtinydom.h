@@ -1645,7 +1645,7 @@ public:
     void forEach( ldomNodeCallback * callback );
 #if BUILD_LITE!=1
     /// returns rectangle (in doc coordinates) for range. Returns true if found.
-    bool getRect( lvRect & rect );
+    bool getRectEx( lvRect & rect );
 #endif
     /// returns nearest common element for start and end points
     ldomNode * getNearestCommonParent();
