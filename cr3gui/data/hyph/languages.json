@@ -1,5 +1,15 @@
 [
     {
+        "name": "None",
+        "filename": "@none",
+        "language": "-"
+    },
+    {
+        "name": "Algorithm",
+        "filename": "@algorithm",
+        "language": "-"
+    },
+    {
         "name": "Bulgarian",
         "filename": "Bulgarian_hyphen_(Alan).pdb",
         "language": "bg",
