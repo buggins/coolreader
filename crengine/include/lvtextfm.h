@@ -134,8 +134,8 @@ typedef struct
 {
    formatted_word_t * words;       /**< array of words */
    lInt32             word_count;  /**< number of words */
-   lUInt32            y;           /**< start y position of line */
-   lUInt16            x;           /**< start x position */
+   lInt32             y;           /**< start y position of line */
+   lInt32             x;           /**< start x position */
    lUInt16            width;       /**< width */
    lUInt16            height;      /**< height */
    lUInt16            baseline;    /**< baseline y offset */
