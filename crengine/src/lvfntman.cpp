@@ -246,6 +246,11 @@ static lChar16 getReplacementChar( lUInt32 code ) {
         return 0x0435; // CYRILLIC SMALL LETTER IE
     case UNICODE_NO_BREAK_SPACE:
         return ' ';
+    case UNICODE_ZERO_WIDTH_SPACE:
+        // If the font lacks a zero-width breaking space glyph (like
+        // some Kindle built-ins) substitute a different zero-width
+        // character instead of one with width.
+        return UNICODE_ZERO_WIDTH_NO_BREAK_SPACE;
     case 0x2010:
     case 0x2011:
     case 0x2012:
