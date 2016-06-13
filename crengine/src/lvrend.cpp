@@ -1081,6 +1081,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         case css_va_super:
             flags |= LTEXT_VALIGN_SUPER;
             break;
+        case css_va_middle:
+            flags |= LTEXT_VALIGN_MIDDLE;
+            break;
         case css_va_baseline:
         default:
             break;
