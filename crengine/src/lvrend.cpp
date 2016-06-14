@@ -1269,6 +1269,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 //            txform->AddSourceLine( L"\n", 1, 0, 0, font, baseflags | LTEXT_FLAG_OWNTEXT,
 //                line_h, 0, enode, 0, 0 );
         } else {
+            if (!(enode->getStyle()->display == css_d_inline && enode->getText8(0, 0).trim().empty() &&
+                  enode->getParentNode()->getFirstChild() == enode))
             baseflags &= ~LTEXT_FLAG_NEWLINE; // clear newline flag
         }
         //baseflags &= ~LTEXT_RUNIN_FLAG;
