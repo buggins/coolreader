@@ -772,6 +772,7 @@ public:
                     height = height<0? -height*(m_pbuffer->width-x)/100 : height;
 
                     resizeImage(width, height, m_pbuffer->width - x, m_pbuffer->page_height, m_length>1);
+                    h = 0;
                     if ( vertical_align )  {                         //if (vertical_align && node->getAttributeValue("","class")=="duokan-footnote") // apply to duokan-footnote
                         ldomNode *node=(ldomNode*)para->object;
                         LVFont *font=(LVFont*)para->t.font;
@@ -786,6 +787,9 @@ public:
                                 word->y -=  fh*0.3333;
                                 // width=width/height*fh*0.6667;
                                 // height=fh*0.6667;
+                            } else if ( vertical_align == LTEXT_VALIGN_MIDDLE ) {
+                                h = height / 2;
+                                word->y += h;
                             }
                         }
                     }
@@ -794,7 +798,6 @@ public:
                     word->o.height = height;
 
                     b = word->o.height;
-                    h = 0;
                     //frmline->width += width;
                 } else {
                     // word
@@ -805,6 +808,8 @@ public:
                     int fhWithInterval = (fh * interval) >> 4; // font height + interline space
                     int fhInterval = fhWithInterval - fh;      // interline space only (negative for intervals < 100%)
                     int wy = 0; //fhInterval / 2;
+                    b = font->getBaseline() + fhInterval/2;
+                    h = fhWithInterval - b;
 //                    if ( interval>16 )
 //                        wy = -((font->getSize() * (interval-16)) >> 4) >> 1;
 //                    else if ( interval<16 )
@@ -814,6 +819,8 @@ public:
                             wy += fh / 3;
                         else if ( vertical_align == LTEXT_VALIGN_SUPER )
                             wy -= fh / 2;
+                        else if ( vertical_align == LTEXT_VALIGN_MIDDLE )
+                            wy += h / 2;
                     }
                     word->x = frmline->width;
                     word->flags = 0;
@@ -935,16 +942,6 @@ public:
                     }
 
                     word->y = wy;
-
-//                    if (word->y!=0) {
-//                        // subscript or superscript
-                        b = font->getBaseline() + fhInterval/2;
-                        h = fhWithInterval - b;
-//                    }  else  {
-//                        b = (( font->getBaseline() * interval) >> 4);
-//                        h = ( ( font->getHeight() * interval) >> 4) - b;
-//                    }
-
                 }
 
                 if ( frmline->baseline < b - word->y )

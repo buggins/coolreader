@@ -46,6 +46,7 @@ extern "C" {
 #define LTEXT_VALIGN_BASELINE  0x0000  /**< \brief baseline vertical align */
 #define LTEXT_VALIGN_SUB       0x0010  /**< \brief subscript */
 #define LTEXT_VALIGN_SUPER     0x0020  /**< \brief superscript */
+#define LTEXT_VALIGN_MIDDLE    0x0040  /**< \brief middle */
 
 #define LTEXT_TD_UNDERLINE     0x0100  /**< \brief underlined text */
 #define LTEXT_TD_OVERLINE      0x0200  /**< \brief overlined text */
