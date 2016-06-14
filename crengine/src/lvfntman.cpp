@@ -246,6 +246,11 @@ static lChar16 getReplacementChar( lUInt32 code ) {
         return 0x0435; // CYRILLIC SMALL LETTER IE
     case UNICODE_NO_BREAK_SPACE:
         return ' ';
+    case UNICODE_ZERO_WIDTH_SPACE:
+        // If the font lacks a zero-width breaking space glyph (like
+        // some Kindle built-ins) substitute a different zero-width
+        // character instead of one with width.
+        return UNICODE_ZERO_WIDTH_NO_BREAK_SPACE;
     case 0x2010:
     case 0x2011:
     case 0x2012:
@@ -699,7 +704,10 @@ static lUInt16 char_flags[] = {
      (ch<48?char_flags[ch]: \
         (ch==UNICODE_SOFT_HYPHEN_CODE?LCHAR_ALLOW_WRAP_AFTER: \
         (ch==UNICODE_NO_BREAK_SPACE?LCHAR_DEPRECATED_WRAP_AFTER|LCHAR_IS_SPACE: \
-        (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER:0))))
+        (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER: \
+        (ch==UNICODE_ZERO_WIDTH_SPACE?LCHAR_ALLOW_WRAP_AFTER: \
+        (ch==UNICODE_THIN_SPACE?LCHAR_ALLOW_WRAP_AFTER: \
+         0))))))
 
 class LVFreeTypeFace : public LVFont
 {
