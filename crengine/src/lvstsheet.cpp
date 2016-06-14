@@ -284,7 +284,7 @@ static bool next_property( const char * & str )
     return skip_spaces( str );
 }
 
-static bool parse_number_value( const char * & str, css_length_t & value )
+static bool parse_number_value( const char * & str, css_length_t & value, bool is_font_size=false )
 {
     value.type = css_val_unspecified;
     skip_spaces( str );
@@ -293,6 +293,21 @@ static bool parse_number_value( const char * & str, css_length_t & value )
         value.type = css_val_inherited;
         value.value = 0;
         return true;
+    }
+    if ( is_font_size ) {
+        // Approximate the (usually uneven) gaps between named sizes.
+        if ( substr_compare( "smaller", str ) ) {
+            value.type = css_val_percent;
+            value.value = 80;
+            str += 7;
+            return true;
+        }
+        else if ( substr_compare( "larger", str ) ) {
+            value.type = css_val_percent;
+            value.value = 125;
+            str += 6;
+            return true;
+        }
     }
     int n = 0;
     if (*str != '.') {
@@ -986,7 +1001,7 @@ bool LVCssDeclaration::parse( const char * &decl )
             case cssd_padding_bottom:
                 {
                     css_length_t len;
-                    if ( parse_number_value( decl, len ) )
+                    if ( parse_number_value( decl, len, prop_code==cssd_font_size ) )
                     {
                         buf[ buf_pos++ ] = prop_code;
                         buf[ buf_pos++ ] = len.type;
