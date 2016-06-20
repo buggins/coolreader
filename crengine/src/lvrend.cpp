@@ -1021,6 +1021,58 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
         lines.add( lString16( start, s-start ) );
 }
 
+// Return the marker for a list item node. If txform is supplied render the marker, too.
+//
+// li_padding will be set to the padding necessary to make room for the marker if it would be rendered outside the block.
+lString16 renderListItemMarker( ldomNode * enode, int & li_padding, LFormattedText * txform, int line_h, int flags, int & marker_width ) {
+    // put item number/marker to list
+    lString16 marker;
+    marker_width = 0;
+    li_padding = 0;
+
+    ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( enode->getParentNode()->getDataIndex() );
+    if ( listProps.isNull() ) {
+        int counterValue = 0;
+        ldomNode * parent = enode->getParentNode();
+        int maxWidth = 0;
+        for ( int i=0; i<parent->getChildCount(); i++ ) {
+            lString16 marker;
+            int markerWidth = 0;
+            ldomNode * child = parent->getChildElementNode(i);
+            if ( child && child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
+                if ( markerWidth>maxWidth )
+                    maxWidth = markerWidth;
+            }
+        }
+        listProps = ListNumberingPropsRef( new ListNumberingProps(counterValue, maxWidth) );
+        enode->getDocument()->setNodeNumberingProps( enode->getParentNode()->getDataIndex(), listProps );
+    }
+    int counterValue = 0;
+    if ( enode->getNodeListMarker( counterValue, marker, marker_width ) ) {
+        if ( !listProps.isNull() )
+            marker_width = listProps->maxWidth;
+        css_style_rec_t * style = enode->getStyle().get();
+        css_list_style_position_t sp = style->list_style_position;
+        LVFont * font = enode->getFont().get();
+        lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
+        lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
+        if ( sp==css_lsp_outside )
+            li_padding = marker_width;
+        marker += "\t";
+        if ( txform ) {
+            txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, -li_padding );
+        }
+    }
+
+    return marker;
+}
+
+lString16 renderListItemMarker( ldomNode * enode, int & li_padding, LFormattedText * txform, int line_h, int flags ) {
+    int marker_width;
+    return renderListItemMarker( enode, li_padding, txform, line_h, flags, marker_width );
+}
+
+
 //=======================================================================
 // Render final block
 //=======================================================================
@@ -1112,42 +1164,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
         }
 
-        if ( rm==erm_list_item ) {
-            // put item number/marker to list
-            lString16 marker;
-            int marker_width = 0;
-
-            ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( enode->getParentNode()->getDataIndex() );
-            if ( listProps.isNull() ) {
-                int counterValue = 0;
-                ldomNode * parent = enode->getParentNode();
-                int maxWidth = 0;
-                for ( int i=0; i<parent->getChildCount(); i++ ) {
-                    lString16 marker;
-                    int markerWidth = 0;
-                    ldomNode * child = parent->getChildElementNode(i);
-                    if ( child && child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
-                        if ( markerWidth>maxWidth )
-                            maxWidth = markerWidth;
-                    }
-                }
-                listProps = ListNumberingPropsRef( new ListNumberingProps(counterValue, maxWidth) );
-                enode->getDocument()->setNodeNumberingProps( enode->getParentNode()->getDataIndex(), listProps );
-            }
-            int counterValue = 0;
-            if ( enode->getNodeListMarker( counterValue, marker, marker_width ) ) {
-                if ( !listProps.isNull() )
-                    marker_width = listProps->maxWidth;
-                css_list_style_position_t sp = style->list_style_position;
-                LVFont * font = enode->getFont().get();
-                lUInt32 cl = style->color.type!=css_val_color ? 0xFFFFFFFF : style->color.value;
-                lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
-                int margin = 0;
-                if ( sp==css_lsp_outside )
-                    margin = -marker_width;
-                marker += "\t";
-                txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h,
-                                        margin, NULL );
+        if ( style->display==css_d_list_item ) {
+            // render the marker, if any. Begin the first child on the same line
+            int li_padding;
+            lString16 marker = renderListItemMarker( enode, li_padding, txform, line_h, flags );
+            if ( marker.length() ) {
                 flags &= ~LTEXT_FLAG_NEWLINE;
             }
         }
@@ -1746,6 +1767,14 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
             case erm_final:
             case erm_table_cell:
                 {
+                    if ( enode->getStyle()->display==css_d_list_item ) {
+                        // if the item's marker will be rendered outside the block then pad and leave room
+                        int li_padding;
+                        lString16 marker = renderListItemMarker( enode, li_padding, NULL, 0, 0 );
+                        fmt.setX( fmt.getX() + li_padding );
+                        width -= li_padding;
+                    }
+
                     if ( isFootNoteBody )
                         context.enterFootNote( enode->getAttributeValue(attr_id) );
                     // render whole node content as single formatted object
@@ -2478,10 +2507,51 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
             {
                 // recursive draw all sub-blocks for blocks
                 int cnt = enode->getChildCount();
+
+                int first_child_padding = 0;
+                ldomNode * child_with_list_marker = NULL;
+                if ( enode->getStyle()->display==css_d_list_item ) {
+                    // draw the list item's marker
+                    LFormattedTextRef txform( enode->getDocument()->createFormattedText() );
+                    int li_padding;
+                    lString16 marker = renderListItemMarker( enode, li_padding, txform.get(), 16, 0 , first_child_padding);
+                    txform->Format( (lUInt16)width, (lUInt16)page_height );
+                    if ( li_padding ) {
+                        // draw marker outside and pad all children to make room
+                        doc_x += li_padding;
+                        first_child_padding = 0;
+                    }
+                    else {
+                        if ( enode->hasChildren() ) {
+                            child_with_list_marker = enode->getChildNode( 0 );
+                        }
+                        if ( child_with_list_marker && child_with_list_marker->getRendMethod() == erm_final ) {
+                            // "draw" inside the text child
+                            child_with_list_marker->insertChildText(0, marker);
+                            first_child_padding = 0;
+                        }
+                        else {
+                            // inside with non-text first child to pad
+                            child_with_list_marker = NULL;
+                        }
+                    }
+                    if ( !child_with_list_marker ) {
+                        DrawBackgroundImage(enode,drawbuf,x0,y0,doc_x,doc_y,fmt);
+                        txform->Draw( &drawbuf, doc_x+x0 + padding_left, doc_y+y0 + padding_top, NULL, NULL );
+                    }
+                }
+
                 for (int i=0; i<cnt; i++)
                 {
                     ldomNode * child = enode->getChildNode( i );
-                    DrawDocument( drawbuf, child, x0, y0, dx, dy, doc_x, doc_y, page_height, marks, bookmarks ); //+fmt->getX() +fmt->getY()
+                    int child_doc_x = doc_x;
+                    if ( i == 0 ) {
+                        child_doc_x += first_child_padding;
+                    }
+                    DrawDocument( drawbuf, child, x0, y0, dx, dy, child_doc_x, doc_y, page_height, marks, bookmarks ); //+fmt->getX() +fmt->getY()
+                }
+                if ( child_with_list_marker ) {
+                    child_with_list_marker->removeChild( 0 );
                 }
 #if (DEBUG_TREE_DRAW!=0)
                 drawbuf.FillRect( doc_x+x0, doc_y+y0, doc_x+x0+fmt.getWidth(), doc_y+y0+1, color );
