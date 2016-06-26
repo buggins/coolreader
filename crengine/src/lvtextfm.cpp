@@ -1065,7 +1065,7 @@ public:
         }
 
         for (;pos<m_length;) {
-            int x = pos==0 ? indent : 0;
+            int x = indent >=0 ? (pos==0 ? indent : 0) : (pos==0 ? 0 : -indent);
             int w0 = pos>0 ? m_widths[pos-1] : 0;
             int i;
             int lastNormalWrap = -1;
