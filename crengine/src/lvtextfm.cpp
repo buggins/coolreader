@@ -160,7 +160,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lUInt32         bgcolor,  /* bgcolor */
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
-   lInt16          margin,   /* first line margin */
+   lUInt16         margin,   /* first line margin */
    void *          object,    /* pointer to custom object */
    lUInt16         offset,
    lInt8           letter_spacing
@@ -1065,7 +1065,7 @@ public:
         }
 
         for (;pos<m_length;) {
-            int x = pos==0 ? indent : 0;
+            int x = indent >=0 ? (pos==0 ? indent : 0) : (pos==0 ? 0 : -indent);
             int w0 = pos>0 ? m_widths[pos-1] : 0;
             int i;
             int lastNormalWrap = -1;

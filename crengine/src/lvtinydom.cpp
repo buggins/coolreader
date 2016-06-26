@@ -4006,6 +4006,9 @@ void ldomNode::initNodeRendMethod()
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
         recurseElements( resetRendMethodToInline );
         setRendMethod(erm_runin);
+    } else if ( d==css_d_list_item ) {
+        // list item
+        setRendMethod(erm_list_item);
     } else if (d == css_d_table) {
         // table
         initTableRendMethods( this, 0 );
@@ -4080,12 +4083,7 @@ void ldomNode::initNodeRendMethod()
                 detectChildTypes( this, hasBlockItems, hasInline );
                 if ( hasInline ) {
                     // Final
-                    if ( d==css_d_list_item ) {
-                        setRendMethod( erm_list_item );
-                    }
-                    else {
-                        setRendMethod( erm_final );
-                    }
+                    setRendMethod( erm_final );
                 } else {
                     // Block
                     setRendMethod( erm_block );
