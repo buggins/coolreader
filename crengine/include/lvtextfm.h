@@ -217,7 +217,7 @@ void lvtextAddSourceLine(
    lUInt32         bgcolor,  /* background color */
    lUInt32         flags,    /* flags */
    lUInt8          interval, /* interline space, *16 (16=single, 32=double) */
-   lInt16          margin,   /* first line margin */
+   lUInt16         margin,   /* first line margin */
    void *          object,   /* pointer to custom object */
    lUInt16         offset,    /* offset from node/object start to start of line */
    lInt8           letter_spacing
@@ -287,7 +287,7 @@ public:
            LVFont          * font,        /* font to draw string */
            lUInt32         flags=LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT,
            lUInt8          interval=16, /* interline space, *16 (16=single, 32=double) */
-           lInt16          margin=0,    /* first line margin */
+           lUInt16         margin=0,    /* first line margin */
            void *          object=NULL,
            lUInt32         offset=0,
            lInt8           letter_spacing=0
