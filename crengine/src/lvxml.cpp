@@ -2930,7 +2930,6 @@ bool LVXMLParser::Parse()
     lString16 attrname;
     lString16 attrns;
     lString16 attrvalue;
-    lString16Collection multi_tagnames;
     lString8Collection multi_tagnumbers;
     bool hasattr=false;//weather the tag has defined classes
     bool errorFlag = false;
@@ -3018,7 +3017,7 @@ bool LVXMLParser::Parse()
 //                        dumpActive = false;
 //                    }
 
-                    if (multi_tagnumbers.length()>0&&multi_tagnames[multi_tagnames.length()-1].compare(tagname)==0)
+                    if (multi_tagnumbers.length()>0)
                     {
                         int cnt=multi_tagnumbers[multi_tagnumbers.length()-1].atoi();
                         for (int i=0;i<cnt-1;i++)
@@ -3029,9 +3028,6 @@ bool LVXMLParser::Parse()
                                 m_callback->OnTagClose(tagns.c_str(), L"span");
                         }
                         m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
-                        if (cnt==0)
-                            multi_tagnames.erase(multi_tagnames.length()-1,1);
-                        else multi_tagnames.erase(multi_tagnames.length()-1-cnt,cnt);
                         multi_tagnumbers.erase(multi_tagnumbers.length()-1,1);
                     } //emulate tag close when last tag defines multi-classes
                     else m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
@@ -3077,7 +3073,6 @@ bool LVXMLParser::Parse()
                         ch = PeekNextCharFromBuffer();
                         if (tagname.compare("img")!=0&&attrname.compare("class")==0&&!hasattr)
                         {
-                            multi_tagnames.add(tagname);
                             multi_tagnumbers.add("0");//make it 0 for later check
                         }
                     }
@@ -3148,10 +3143,9 @@ bool LVXMLParser::Parse()
                     }
                     if (attrvalue.pos(" ") == -1) {
                         m_callback->OnAttribute(attrns.c_str(), attrname.c_str(), attrvalue.c_str());
-                        if (tagname.compare("img")!=0){
-                        multi_tagnames.add(tagname);
-                        multi_tagnumbers.add("1");
-                    }
+                        if (tagname.compare("img") != 0) {
+                            multi_tagnumbers.add("1");
+                        }
                     }
                     else {
                             for(;;){
@@ -3163,13 +3157,11 @@ bool LVXMLParser::Parse()
                                     if (tagname.compare("div")!=0) m_callback->OnTagOpen(tagns.c_str(),L"span");
                                     else m_callback->OnTagOpen(tagns.c_str(),L"div");
                                 }
-                                multi_tagnames.add(tagname);
                                 cnt++;
                             }
                             else
                             {
                                 cnt++;
-                                multi_tagnames.add(tagname);
                                 lString8 tmp=lString8("");
                                 tmp.appendDecimal(cnt);
                                 multi_tagnumbers.add(tmp);
