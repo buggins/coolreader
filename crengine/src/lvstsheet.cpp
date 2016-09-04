@@ -299,13 +299,11 @@ static bool parse_number_value( const char * & str, css_length_t & value, bool i
         if ( substr_compare( "smaller", str ) ) {
             value.type = css_val_percent;
             value.value = 80;
-            str += 7;
             return true;
         }
         else if ( substr_compare( "larger", str ) ) {
             value.type = css_val_percent;
             value.value = 125;
-            str += 6;
             return true;
         }
     }
