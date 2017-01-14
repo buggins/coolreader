@@ -4861,7 +4861,7 @@ ldomNode * ldomXPointer::getFinalNode() const
     for (;;) {
         if ( !node )
             return NULL;
-        if ( node->getRendMethod()==erm_final )
+        if ( node->getRendMethod()==erm_final || node->getRendMethod()==erm_list_item )
             return node;
         node = node->getParentNode();
     }
@@ -10537,16 +10537,16 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
         return NULL;
     }
     if ( pt.y < fmt.getY() - top_margin) {
-        if ( direction>0 && enode->getRendMethod() == erm_final )
+        if ( direction>0 && (enode->getRendMethod() == erm_final || enode->getRendMethod() == erm_list_item) )
             return this;
         return NULL;
     }
     if ( pt.y >= fmt.getY() + fmt.getHeight() + bottom_margin ) {
-        if ( direction<0 && enode->getRendMethod() == erm_final )
+        if ( direction<0 && (enode->getRendMethod() == erm_final || enode->getRendMethod() == erm_list_item) )
             return this;
         return NULL;
     }
-    if ( enode->getRendMethod() == erm_final ) {
+    if ( enode->getRendMethod() == erm_final || enode->getRendMethod() == erm_list_item ) {
         return this;
     }
     int count = getChildCount();
