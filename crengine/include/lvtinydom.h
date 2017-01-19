@@ -2107,7 +2107,7 @@ public:
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
 #if BUILD_LITE!=1
     /// create xpointer from doc point
-    ldomXPointer createXPointer( lvPoint pt, int direction=0 );
+    ldomXPointer createXPointer( lvPoint pt, int direction=0, bool strictBounds=false );
     /// get rendered block cache object
     CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
 

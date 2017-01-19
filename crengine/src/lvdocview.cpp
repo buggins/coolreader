@@ -2272,11 +2272,11 @@ bool LVDocView::docToWindowPoint(lvPoint & pt) {
 }
 
 /// returns xpointer for specified window point
-ldomXPointer LVDocView::getNodeByPoint(lvPoint pt) {
+ldomXPointer LVDocView::getNodeByPoint(lvPoint pt, bool strictBounds) {
 	LVLock lock(getMutex());
     CHECK_RENDER("getNodeByPoint()")
 	if (windowToDocPoint(pt) && m_doc) {
-		ldomXPointer ptr = m_doc->createXPointer(pt);
+		ldomXPointer ptr = m_doc->createXPointer(pt, 0, strictBounds);
 		//CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
 		return ptr;
 	}

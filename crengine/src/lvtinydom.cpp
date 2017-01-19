@@ -4868,7 +4868,7 @@ ldomNode * ldomXPointer::getFinalNode() const
 }
 
 /// create xpointer from doc point
-ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
+ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool strictBounds )
 {
     //
     ldomXPointer ptr;
@@ -4917,6 +4917,12 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction )
         // found line, searching for word
         int wc = (int)frmline->word_count;
         int x = pt.x - frmline->x;
+        // frmline->x is text indentation (+ possibly some margin)
+        if (strictBounds) {
+            if (x < 0 || x > frmline->width) { // pt is before or after formatted text: nothing there
+                return ptr;
+            }
+        }
         for ( int w=0; w<wc; w++ ) {
             const formatted_word_t * word = &frmline->words[w];
             if ( x < word->x + word->width || w==wc-1 ) {

@@ -706,7 +706,7 @@ public:
     void setPageSkin( CRPageSkinRef skin );
 
     /// returns xpointer for specified window point
-    ldomXPointer getNodeByPoint( lvPoint pt );
+    ldomXPointer getNodeByPoint( lvPoint pt, bool strictBounds=false );
     /// returns image source for specified window point, if point is inside image
     LVImageSourceRef getImageByPoint(lvPoint pt);
     /// draws scaled image into buffer, clear background according to current settings
