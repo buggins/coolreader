@@ -6562,6 +6562,53 @@ inline bool IsUnicodeSpaceOrNull( lChar16 ch )
     return ch==0 || ch==' ';
 }
 
+// Note:
+//  ALL calls to IsUnicodeSpace and IsUnicodeSpaceOrNull in
+//  the *VisibleWord* functions below have been replaced with
+//  calls to IsWordSeparator and IsWordSeparatorOrNull.
+//  The *Sentence* functions have not beed modified, and have not been
+//  tested against this change to the *VisibleWord* functions that
+//  they use (but KOReader does not use these *Sentence* functions).
+
+// For better accuracy than IsUnicodeSpace for detecting words
+inline bool IsWordSeparator( lChar16 ch )
+{
+    // ASCII letters and digits are NOT word separators
+    if (ch >= 0x61 && ch <= 0x7A) return false; // lowercase ascii letters
+    if (ch >= 0x41 && ch <= 0x5A) return false; // uppercase ascii letters
+    if (ch >= 0x30 && ch <= 0x39) return false; // digits
+    // All other below 0xC0 are word separators:
+    //   < 0x30 space, !"#$%&'()*+,-./
+    //   < 0x41 :;<=>?@
+    //   < 0x61 [\]^_`
+    //   < 0xC0 {|}~ and control characters and other signs
+    if (ch < 0xC0 ) return true;
+    // 0xC0 to 0xFF, except 0xD7 and 0xF7, are latin accentuated letters.
+    // Above 0xFF are other alphabets. Let's consider all above 0xC0 unicode
+    // characters as letters, except the adequately named PUNCTUATION ranges.
+    // There may be exceptions in some alphabets, that we can individually
+    // add here :
+    if (ch == 0xD7 ) return true;  // multiplication sign
+    if (ch == 0xF7 ) return true;  // division sign
+    // this one includes em-dash & friends, and other quotation marks
+    if (ch>=UNICODE_GENERAL_PUNCTUATION_BEGIN && ch<=UNICODE_GENERAL_PUNCTUATION_END) return true;
+    // CJK puncutation
+    if (ch>=UNICODE_CJK_PUNCTUATION_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_END) return true;
+    if (ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END) return true;
+    // Some others(from https://www.cs.tut.fi/~jkorpela/chars/spaces.html)
+    if (ch == 0x1680 ) return true;  // OGHAM SPACE MARK
+    if (ch == 0x180E ) return true;  // MONGOLIAN VOWEL SEPARATOR
+    if (ch == 0xFEFF ) return true;  // ZERO WIDTH NO-BREAK SPACE
+    // All others are considered part of a word, thus not word separators
+    return false;
+}
+
+inline bool IsWordSeparatorOrNull( lChar16 ch )
+{
+    if (ch==0) return true;
+    return IsWordSeparator(ch);
+}
+
 inline bool canWrapWordBefore( lChar16 ch ) {
     return ch>=0x2e80 && ch<0x2CEAF;
 }
@@ -6593,10 +6640,10 @@ bool ldomXPointerEx::prevVisibleWordStart( bool thisBlockOnly )
             textLen = text.length();
         }
         bool foundNonSpace = false;
-        while ( _data->getOffset() > 0 && IsUnicodeSpace(text[_data->getOffset()-1]) )
+        while ( _data->getOffset() > 0 && IsWordSeparator(text[_data->getOffset()-1]) )
             _data->addOffset(-1);
         while ( _data->getOffset()>0 ) {
-            if ( IsUnicodeSpace(text[ _data->getOffset()-1 ]) )
+            if ( IsWordSeparator(text[ _data->getOffset()-1 ]) )
                 break;
             foundNonSpace = true;
             _data->addOffset(-1);
@@ -6631,7 +6678,7 @@ bool ldomXPointerEx::prevVisibleWordEnd( bool thisBlockOnly )
             textLen = text.length();
         }
         // skip spaces
-        while ( _data->getOffset() > 0 && IsUnicodeSpace(text[_data->getOffset()-1]) ) {
+        while ( _data->getOffset() > 0 && IsWordSeparator(text[_data->getOffset()-1]) ) {
             _data->addOffset(-1);
             moved = true;
         }
@@ -6639,12 +6686,12 @@ bool ldomXPointerEx::prevVisibleWordEnd( bool thisBlockOnly )
             return true; // found!
         // skip non-spaces
         while ( _data->getOffset()>0 ) {
-            if ( IsUnicodeSpace(text[ _data->getOffset()-1 ]) )
+            if ( IsWordSeparator(text[ _data->getOffset()-1 ]) )
                 break;
             _data->addOffset(-1);
         }
         // skip spaces
-        while ( _data->getOffset() > 0 && IsUnicodeSpace(text[_data->getOffset()-1]) ) {
+        while ( _data->getOffset() > 0 && IsWordSeparator(text[_data->getOffset()-1]) ) {
             _data->addOffset(-1);
             moved = true;
         }
@@ -6685,7 +6732,7 @@ bool ldomXPointerEx::nextVisibleWordStart( bool thisBlockOnly )
             }
         }
         // skip spaces
-        while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+        while ( _data->getOffset()<textLen && IsWordSeparator(text[ _data->getOffset() ]) ) {
             _data->addOffset(1);
             moved = true;
         }
@@ -6693,13 +6740,13 @@ bool ldomXPointerEx::nextVisibleWordStart( bool thisBlockOnly )
             return true;
         // skip non-spaces
         while ( _data->getOffset()<textLen ) {
-            if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+            if ( IsWordSeparator(text[ _data->getOffset() ]) )
                 break;
             moved = true;
             _data->addOffset(1);
         }
         // skip spaces
-        while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+        while ( _data->getOffset()<textLen && IsWordSeparator(text[ _data->getOffset() ]) ) {
             _data->addOffset(1);
             moved = true;
         }
@@ -6742,7 +6789,7 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
         bool nonSpaceFound = false;
         // skip non-spaces
         while ( _data->getOffset()<textLen ) {
-            if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+            if ( IsWordSeparator(text[ _data->getOffset() ]) )
                 break;
             nonSpaceFound = true;
             _data->addOffset(1);
@@ -6750,13 +6797,13 @@ bool ldomXPointerEx::nextVisibleWordEnd( bool thisBlockOnly )
         if ( nonSpaceFound )
             return true;
         // skip spaces
-        while ( _data->getOffset()<textLen && IsUnicodeSpace(text[ _data->getOffset() ]) ) {
+        while ( _data->getOffset()<textLen && IsWordSeparator(text[ _data->getOffset() ]) ) {
             _data->addOffset(1);
             //moved = true;
         }
         // skip non-spaces
         while ( _data->getOffset()<textLen ) {
-            if ( IsUnicodeSpace(text[ _data->getOffset() ]) )
+            if ( IsWordSeparator(text[ _data->getOffset() ]) )
                 break;
             nonSpaceFound = true;
             _data->addOffset(1);
@@ -6779,7 +6826,7 @@ bool ldomXPointerEx::isVisibleWordStart()
     int i = _data->getOffset();
     lChar16 currCh = i<textLen ? text[i] : 0;
     lChar16 prevCh = i<textLen && i>0 ? text[i-1] : 0;
-    if (canWrapWordBefore(currCh) || (IsUnicodeSpaceOrNull(prevCh) && !IsUnicodeSpace(currCh)))
+    if (canWrapWordBefore(currCh) || (IsWordSeparatorOrNull(prevCh) && !IsWordSeparator(currCh)))
         return true;
     return false;
  }
@@ -6797,7 +6844,7 @@ bool ldomXPointerEx::isVisibleWordEnd()
     int i = _data->getOffset();
     lChar16 currCh = i>0 ? text[i-1] : 0;
     lChar16 nextCh = i<textLen ? text[i] : 0;
-    if (canWrapWordAfter(currCh) || (!IsUnicodeSpace(currCh) && IsUnicodeSpaceOrNull(nextCh)))
+    if (canWrapWordAfter(currCh) || (!IsWordSeparator(currCh) && IsWordSeparatorOrNull(nextCh)))
         return true;
     return false;
 }
@@ -7127,7 +7174,9 @@ public:
             len = end;
         int beginOfWord = -1;
         for ( int i=nodeRange->getStart().getOffset(); i <= len; i++ ) {
-            int alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
+            // int alpha = lGetCharProps(text[i]) & CH_PROP_ALPHA;
+            // Also allow digits (years, page numbers) to be considered words
+            int alpha = lGetCharProps(text[i]) & (CH_PROP_ALPHA|CH_PROP_DIGIT);
             if (alpha && beginOfWord<0 ) {
                 beginOfWord = i;
             }
