@@ -1992,6 +1992,13 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         // todo
         {
             lString16 val = node->getAttributeValue(attr_id);
+            /*lString16 ldomDocumentFragmentWriter::convertId( lString16 id ) adds codeBasePrefix to
+             *original id name, I can not get codeBasePrefix from here so I add a space to identify the
+             *real id name.*/
+            int pos = val.pos(" ");
+            if (pos != -1) {
+                val = val.substr(pos + 1, val.length() - pos - 1);
+            }
             if (_value.length()>val.length())
                 return false;
             return val == _value;
@@ -2005,6 +2012,17 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
 //            if ( val.length() != _value.length() )
 //                return false;
             //CRLog::trace("attr_class: %s %s", LCSTR(val), LCSTR(_value) );
+        /*As I have eliminated leading and ending spaces in the attribute value, any space in
+         *val means there are more than one classes */
+        int pos = val.pos(_value);
+        if (val.pos(" ") != -1 && pos != -1) {
+            int len = _value.length();
+            if (pos + len == val.length() || //in the end
+                val.at(pos + len) == L' ')      //in the beginning or in the middle
+                return true;
+            else
+                return false;
+        }
             return val == _value;
         }
         break;

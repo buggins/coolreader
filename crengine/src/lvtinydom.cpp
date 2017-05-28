@@ -7649,7 +7649,7 @@ static lString16 escapeDocPath( lString16 path )
 lString16 ldomDocumentFragmentWriter::convertId( lString16 id )
 {
     if ( !codeBasePrefix.empty() ) {
-        return codeBasePrefix + "_" + id;
+        return codeBasePrefix + "_" + " " + id;//add a space for later
     }
     return id;
 }
@@ -7665,7 +7665,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
         lString16 replacement = pathSubstitutions.get(filePathName);
         if (replacement.empty())
             return href;
-        lString16 p = cs16("#") + replacement + "_" + href.substr(1);
+        lString16 p = cs16("#") + replacement + "_" + " " + href.substr(1);
         //CRLog::trace("href %s -> %s", LCSTR(href), LCSTR(p));
         return p;
     }
@@ -7693,7 +7693,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
         //p = LVCombinePaths( codeBase, p ); // relative to absolute path
     }
     if ( !id.empty() )
-        p = p + "_" + id;
+        p = p + "_" + " " + id;
 
     p = cs16("#") + p;
 
