@@ -283,6 +283,7 @@ void LFormattedText::AddSourceObject(
             }
         } else if ( h==0 ) {
             h = w*height/width;
+            if (h == 0) h = height;
         }
     }
     width = w;
@@ -456,8 +457,8 @@ public:
         } else {
             int scale_div = 1;
             int scale_mul = 1;
-            int div_x = (width / maxw) + 1;
-            int div_y = (height / maxh) + 1;
+            int div_x = (width * 1000 / maxw);
+            int div_y = (height * 1000 / maxh);
             if ( maxScaleMult>=3 && height*3 < maxh - 20
                     && width*3 < maxw - 20 ) {
                 scale_mul = 3;
@@ -470,8 +471,8 @@ public:
                 else
                     scale_div = div_y;
             }
-            height = height * scale_mul / scale_div;
-            width = width * scale_mul / scale_div;
+            height = height * 1000 * scale_mul / scale_div;
+            width = width * 1000 * scale_mul / scale_div;
         }
     }
 
