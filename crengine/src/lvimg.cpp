@@ -973,8 +973,9 @@ protected:
     unsigned char m_bpp;     //
     unsigned char m_flg_gtc; // GTC (gobal table of colors) flag
     unsigned char m_transparent_color; // index
-
+    unsigned char m_background_color;
     lUInt32 * m_global_color_table;
+    bool defined_transparent_color;
 public:
     LVGifImageSource( ldomNode * node, LVStreamRef stream )
         : LVNodeImageSource(node, stream)
@@ -1049,7 +1050,9 @@ public:
             return; // wrong image width
         callback->OnStartDecode( m_pImage );
         lUInt32 * line = new lUInt32[w];
-        int transp_color = m_pImage->m_transparent_color;
+        int background_color = m_pImage->m_background_color;
+        int transparent_color = m_pImage->m_transparent_color;
+        bool defined_transparent = m_pImage->defined_transparent_color;
         lUInt32 * pColorTable = GetColorTable();
         int interlacePos = 0;
         int interlaceTable[] = {8, 0, 8, 4, 4, 2, 2, 1, 1, 1}; // pairs: step, offset
@@ -1057,14 +1060,19 @@ public:
         int y = 0;
         for ( int i=0; i<h; i++ ) {
             for ( int j=0; j<w; j++ ) {
-                line[j] = 0xFFFFFFFF; // transparent
+                line[j] = pColorTable[background_color];
             }
             if ( i >= m_top  && i < m_top+m_cy ) {
                 unsigned char * p_line = m_buffer + (i-m_top)*m_cx;
                 for ( int x=0; x<m_cx; x++ ) {
                     unsigned char b = p_line[x];
-                    if (b!=transp_color) {
-                        line[x + m_left] = pColorTable[b];
+                    if (b!=background_color) {
+                        if (defined_transparent && b==transparent_color)
+                            line[x + m_left] = 0xFF000000;
+                        else line[x + m_left] = pColorTable[b];
+                    }
+                    else if (defined_transparent && b==transparent_color)  {
+                        line[x + m_left] = 0xFF000000;
                     }
                 }
             }
@@ -1136,8 +1144,8 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
     _height = p[2] + (p[3]<<8);
     m_bpp = (p[4]&7)+1;
     m_flg_gtc = (p[4]&0x80)?1:0;
-    m_transparent_color = p[5];
-
+    m_background_color = p[5];
+    defined_transparent_color = false;
     if ( !(_width>=1 && _height>=1 && _width<4096 && _height<4096 ) )
         return false;
     if ( !callback )
@@ -1187,6 +1195,11 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
             break;
         case '!': // extension record
             {
+                if (p[1]==0xf9 && (p[3]&1!=0))
+                {
+                    m_transparent_color = p[6];
+                    defined_transparent_color = true;
+                }
                 res = skipGifExtension(p, buf_size - (p - buf));
             }
             break;
@@ -1449,7 +1462,7 @@ bool LVGifImageSource::Decode( LVImageDecoderCallback * callback )
     if ( _stream.isNull() )
         return false;
     lvsize_t sz = _stream->GetSize();
-    if ( sz<32 || sz>0x80000 )
+    if ( sz<32 )
         return false; // wrong size
     lUInt8 * buf = new lUInt8[ sz ];
     lvsize_t bytesRead = 0;
