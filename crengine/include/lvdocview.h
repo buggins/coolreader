@@ -726,6 +726,10 @@ public:
     lString16 getLanguage() { return m_doc_props->getStringDef(DOC_PROP_LANGUAGE); }
     /// returns book author(s)
     lString16 getAuthors() { return m_doc_props->getStringDef(DOC_PROP_AUTHORS); }
+    /// returns book description
+    lString16 getDescription() { return m_doc_props->getStringDef(DOC_PROP_DESCRIPTION); }
+    /// returns book keywords (separated by "; ")
+    lString16 getKeywords() { return m_doc_props->getStringDef(DOC_PROP_KEYWORDS); }
     /// returns book series name and number (series name #1)
     lString16 getSeries()
     {

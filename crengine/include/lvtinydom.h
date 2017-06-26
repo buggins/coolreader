@@ -78,6 +78,8 @@
 #define DOC_PROP_AUTHORS         "doc.authors"
 #define DOC_PROP_TITLE           "doc.title"
 #define DOC_PROP_LANGUAGE        "doc.language"
+#define DOC_PROP_DESCRIPTION     "doc.description"
+#define DOC_PROP_KEYWORDS        "doc.keywords"
 #define DOC_PROP_SERIES_NAME     "doc.series.name"
 #define DOC_PROP_SERIES_NUMBER   "doc.series.number"
 #define DOC_PROP_ARC_NAME        "doc.archive.name"

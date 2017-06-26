@@ -769,9 +769,29 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         lString16 author = doc->textFromXPath( cs16("package/metadata/creator"));
         lString16 title = doc->textFromXPath( cs16("package/metadata/title"));
         lString16 language = doc->textFromXPath( cs16("package/metadata/language"));
+        lString16 description = doc->textFromXPath( cs16("package/metadata/description"));
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_LANGUAGE, language);
         m_doc_props->setString(DOC_PROP_AUTHORS, author );
+        m_doc_props->setString(DOC_PROP_DESCRIPTION, description );
+
+        // There may be multiple <dc:subject> tags, which are usually used for keywords, categories
+        bool subjects_set = false;
+        lString16 subjects;
+        for ( int i=1; i<20; i++ ) {
+            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/subject[") << fmt::decimal(i) << "]");
+            if (!item)
+                break;
+            lString16 subject = item->getText();
+            if (subjects_set) {
+                subjects << "; " << subject;
+            }
+            else {
+                subjects << subject;
+                subjects_set = true;
+            }
+        }
+        m_doc_props->setString(DOC_PROP_KEYWORDS, subjects );
 
         for ( int i=1; i<50; i++ ) {
             ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/identifier[") << fmt::decimal(i) << "]");
