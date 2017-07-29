@@ -606,8 +606,8 @@ public:
                 break;
             }
         }
-        int pos = p-fn;
-        if (p>fn)
+        int pos = (int)(p - fn);
+        if (p > fn)
             m_path = m_fname.substr(0, pos);
         m_filename = m_fname.substr(pos, m_fname.length() - pos);
     }
@@ -814,6 +814,11 @@ LVStreamRef LVCreateStringStream( lString16 data );
 LVStreamRef LVCreateBlockWriteStream( LVStreamRef baseStream, int blockSize, int blockCount );
 
 LVContainerRef LVOpenDirectory( const lChar16 * path, const wchar_t * mask = L"*.*" );
+LVContainerRef LVOpenDirectory(const lString16& path, const wchar_t * mask = L"*.*" );
+LVContainerRef LVOpenDirectory(const lString8& path, const wchar_t * mask = L"*.*" );
+
+bool LVDirectoryIsEmpty(const lString8& path);
+bool LVDirectoryIsEmpty(const lString16& path);
 
 /// Create directory if not exist
 bool LVCreateDirectory( lString16 path );
@@ -821,6 +826,10 @@ bool LVCreateDirectory( lString16 path );
 bool LVDeleteFile( lString16 filename );
 /// delete file, return true if file found and successfully deleted
 bool LVDeleteFile( lString8 filename );
+/// delete directory, return true if directory is found and successfully deleted
+bool LVDeleteDirectory( lString16 filename );
+/// delete directory, return true if directory is found and successfully deleted
+bool LVDeleteDirectory( lString8 filename );
 /// rename file
 bool LVRenameFile(lString16 oldname, lString16 newname);
 /// rename file
@@ -886,6 +895,8 @@ bool LVFileExists( const lString16 & pathName );
 bool LVFileExists( const lString8 & pathName );
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString16 & pathName );
+/// returns true if specified directory exists
+bool LVDirectoryExists( const lString8 & pathName );
 /// returns true if directory exists and your app can write to directory
 bool LVDirectoryIsWritable(const lString16 & pathName);
 

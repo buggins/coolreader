@@ -438,7 +438,7 @@ class CHMUrlStr {
         const lUInt8 * data = ptr;
         const lUInt8 * maxdata = ptr + size;
         while ( data + 8 < maxdata ) {
-            lUInt32 offset = blockOffset + (data - ptr);
+            lUInt32 offset = (lUInt32)(blockOffset + (data - ptr));
             //lUInt32 urlOffset =
             readInt32(data);
             //lUInt32 frameOffset =
@@ -446,7 +446,7 @@ class CHMUrlStr {
             if ( data < maxdata ) { //urlOffset > offset ) {
                 CHMUrlStrEntry * item = new CHMUrlStrEntry();
                 item->offset = offset;
-                item->url = readString(data, maxdata - data);
+                item->url = readString(data, (int)(maxdata - data));
                 //CRLog::trace("urlstr[offs=%x, url=%s]", item->offset, item->url.c_str());
                 _table.add( item );
             }

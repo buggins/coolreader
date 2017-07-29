@@ -73,8 +73,8 @@
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #else
-#define strcasecmp stricmp
-#define strncasecmp strnicmp
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #endif
 #else
 /* basic Linux system includes */
@@ -169,7 +169,7 @@ typedef unsigned long long      UInt64;
 
 /* x86-64 */
 /* Note that these may be appropriate for other 64-bit machines. */
-#elif __x86_64__ || __ia64__
+#elif __x86_64__ || __ia64__ || __aarch64__
 typedef unsigned char           UChar;
 typedef short                   Int16;
 typedef unsigned short          UInt16;
@@ -191,8 +191,8 @@ typedef unsigned long           UInt64;
 #define strlen __builtin_strlen
 #endif
 
-#if defined(WIN32)
-static int ffs(unsigned int val)
+//#if defined(WIN32)
+static int myffs(unsigned int val)
 {
     int bit=1, idx=1;
     while (bit != 0  &&  (val & bit) == 0)
@@ -205,7 +205,7 @@ static int ffs(unsigned int val)
     else
         return idx;
 }
-#endif
+//#endif
 
 /* utilities for unmarshalling data */
 static int _unmarshal_char_array(unsigned char **pData,
@@ -1423,7 +1423,7 @@ static Int64 _chm_decompress_block(struct chmFile *h,
     /* let the caching system pull its weight! */
     if (block - blockAlign <= h->lzx_last_block  &&
         block              >= h->lzx_last_block)
-        blockAlign = (block - h->lzx_last_block);
+        blockAlign = (UInt32)(block - h->lzx_last_block);
 
     /* check if we need previous blocks */
     if (blockAlign != 0)
@@ -1431,7 +1431,7 @@ static Int64 _chm_decompress_block(struct chmFile *h,
         /* fetch all required previous blocks since last reset */
         for (i = blockAlign; i > 0; i--)
         {
-            UInt32 curBlockIdx = block - i;
+            UInt32 curBlockIdx = (UInt32)(block - i);
 
             /* check if we most recently decompressed the previous block */
             if (h->lzx_last_block != curBlockIdx)
@@ -1461,7 +1461,7 @@ static Int64 _chm_decompress_block(struct chmFile *h,
 #endif
                 if (!_chm_get_cmpblock_bounds(h, curBlockIdx, &cmpStart, &cmpLen) ||
                     cmpLen < 0                                                    ||
-                    cmpLen > h->reset_table.block_len + 6144                      ||
+                    cmpLen > (int)(h->reset_table.block_len + 6144)               ||
                     _chm_fetch_bytes(h, cbuffer, cmpStart, cmpLen) != cmpLen      ||
                     LZXdecompress(h->lzx_state, cbuffer, lbuffer, (int)cmpLen,
                                   (int)h->reset_table.block_len) != DECR_OK)
@@ -1566,7 +1566,7 @@ static Int64 _chm_decompress_region(struct chmFile *h,
     /* data request not satisfied, so... start up the decompressor machine */
     if (! h->lzx_state)
     {
-        int window_size = ffs(h->window_size) - 1;
+        int window_size = myffs(h->window_size) - 1;
         h->lzx_last_block = -1;
         h->lzx_state = LZXinit(window_size);
     }
@@ -1803,7 +1803,7 @@ int chm_enumerate_dir(struct chmFile *h,
     /* initialize pathname state */
     strncpy(prefixRectified, prefix, CHM_MAX_PATHLEN);
     prefixRectified[CHM_MAX_PATHLEN] = '\0';
-    prefixLen = strlen(prefixRectified);
+    prefixLen = (int)strlen(prefixRectified);
     if (prefixLen != 0)
     {
         if (prefixRectified[prefixLen-1] != '/')
@@ -1881,7 +1881,7 @@ int chm_enumerate_dir(struct chmFile *h,
             }
             strncpy(lastPath, ui.path, CHM_MAX_PATHLEN);
             lastPath[CHM_MAX_PATHLEN] = '\0';
-            lastPathLen = strlen(lastPath);
+            lastPathLen = (int)strlen(lastPath);
 
             /* get the length of the path */
             ui_path_len = strlen(ui.path)-1;

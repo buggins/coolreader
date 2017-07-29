@@ -23,7 +23,7 @@ public class OnlineStorePluginManager {
 			if (activity != null)
 				preferences = activity.getSharedPreferences(FileInfo.ONLINE_CATALOG_PLUGIN_PREFIX, Context.MODE_PRIVATE);
 			if (LitresPlugin.PACKAGE_NAME.equals(packageName))
-				wrapper = new OnlineStoreWrapper(new LitresPlugin(preferences));
+				wrapper = new OnlineStoreWrapper(new LitresPlugin(activity, preferences));
 			if (wrapper != null)
 				pluginMap.put(packageName, wrapper);
 		}

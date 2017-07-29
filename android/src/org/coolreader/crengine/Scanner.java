@@ -414,6 +414,7 @@ public class Scanner extends FileInfoChangeSource {
 		dir.isDirectory = true;
 		dir.pathname = pathname;
 		dir.filename = filename;
+		dir.title = filename;
 		if (findRoot(pathname) != null) {
 			log.w("skipping duplicate root " + pathname);
 			return false; // exclude duplicates
@@ -827,6 +828,8 @@ public class Scanner extends FileInfoChangeSource {
 	public FileInfo getDownloadDirectory() {
 		for ( int i=0; i<mRoot.dirCount(); i++ ) {
 			FileInfo item = mRoot.getDir(i);
+			if (!item.isWritableDirectory())
+				continue;
 			if ( !item.isSpecialDir() && !item.isArchive ) {
 				if (!item.isListed)
 					listDirectory(item);
@@ -850,6 +853,18 @@ public class Scanner extends FileInfoChangeSource {
 					}
 				}
 			}
+		}
+		File fd = mActivity.getFilesDir();
+		File downloadDir = new File(fd, "downloads");
+		if (downloadDir.mkdirs()) {
+			Log.d("cr3", "download dir: " + downloadDir);
+			FileInfo books = null;
+			books = new FileInfo(downloadDir);
+			//books.parent = item;
+			//item.addDir(books);
+			books.isScanned = true;
+			books.isListed = true;
+			return books;
 		}
 		try {
 			throw new Exception("download directory not found and cannot be created");

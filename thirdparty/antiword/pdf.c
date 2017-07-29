@@ -943,7 +943,7 @@ vAddFontsPDF(diagram_type *pDiag)
 
 	/* Twelve of the standard type 1 fonts */
 	for (tIndex = 0; tIndex < 12; tIndex++) {
-		vSetLocation(5 + tIndex);
+        vSetLocation((int)(5 + tIndex));
 		vFPprintf(pOutFile, "%u 0 obj\n", 5 + tIndex);
 		vFPprintf(pOutFile, "<<\n");
 		vFPprintf(pOutFile, "/Type /Font\n");

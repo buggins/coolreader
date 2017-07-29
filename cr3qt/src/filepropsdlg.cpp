@@ -4,6 +4,12 @@
 #include "../crengine/include/lvdocview.h"
 #include <cr3version.h>
 
+#if QT_VERSION >= 0x050000
+#define setResizeModeMethod setSectionResizeMode
+#else
+#define setResizeModeMethod setResizeMode
+#endif
+
 FilePropsDialog::FilePropsDialog(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
     m_ui(new Ui::FilePropsDialog)
@@ -16,8 +22,8 @@ FilePropsDialog::FilePropsDialog(QWidget *parent, CR3View * docView ) :
     m_ui->tableWidget->setColumnCount(2);
     m_ui->tableWidget->setHorizontalHeaderLabels ( QStringList() << tr("Property") << tr("Value") );
     m_ui->tableWidget->verticalHeader()->hide();
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( 0, QHeaderView::ResizeToContents );
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( 1, QHeaderView::Stretch ); //Stretch
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( 0, QHeaderView::ResizeToContents );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( 1, QHeaderView::Stretch ); //Stretch
     m_ui->tableWidget->horizontalHeader()->setStretchLastSection( true );
     m_ui->tableWidget->horizontalHeader()->setDefaultAlignment( Qt::AlignLeft );
     m_ui->tableWidget->setEditTriggers( QAbstractItemView::NoEditTriggers );
@@ -142,7 +148,7 @@ void FilePropsDialog::addInfoSection( QString name )
         m_ui->tableWidget->setRowCount(y+1);
         m_ui->tableWidget->setItem( y, 0, new QTableWidgetItem(prop[i]));
         m_ui->tableWidget->setItem( y, 1, new QTableWidgetItem(value[i]));
-        m_ui->tableWidget->verticalHeader()->setResizeMode( y, QHeaderView::ResizeToContents );
+        m_ui->tableWidget->verticalHeader()->setResizeModeMethod( y, QHeaderView::ResizeToContents );
     }
     prop.clear();
     value.clear();

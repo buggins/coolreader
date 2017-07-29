@@ -93,10 +93,10 @@ public class InterfaceTheme {
 		return displayNameResourceId;
 	}
 	
-//	public int getActionBarBackgroundColorReading() {
-//		return actionBarBackgroundColorReading;
-//	}
-//	
+	public int getActionBarBackgroundColorReading() {
+		return actionBarBackgroundColorReading;
+	}
+	
 //	public Drawable getActionBarBackgroundDrawableReading() {
 //		return Utils.solidColorDrawable(actionBarBackgroundColorReading);
 //	}

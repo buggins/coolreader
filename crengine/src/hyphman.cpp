@@ -85,6 +85,7 @@ class NoHyph : public HyphMethod
 public:
     virtual bool hyphenate( const lChar16 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth )
     {
+        CR_UNUSED6(str, len, widths, flags, hyphCharWidth, maxWidth);
         return false;
     }
     virtual ~NoHyph() { }
@@ -458,6 +459,7 @@ public:
     /// called on opening tag
     virtual ldomNode * OnTagOpen( const lChar16 * nsname, const lChar16 * tagname)
     {
+        CR_UNUSED(nsname);
         if (!lStr_cmp(tagname, "pattern")) {
             insidePatternTag = true;
         }
@@ -466,20 +468,26 @@ public:
     /// called on closing
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname )
     {
+        CR_UNUSED2(nsname, tagname);
         insidePatternTag = false;
     }
     /// called on element attribute
     virtual void OnAttribute( const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue )
     {
+        CR_UNUSED3(nsname, attrname, attrvalue);
     }
     /// called on text
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
     {
+        CR_UNUSED(flags);
         if ( insidePatternTag )
             data.add( lString16(text, len) );
     }
     /// add named BLOB data to document
-    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) { return false; }
+    virtual bool OnBlob(lString16 name, const lUInt8 * data, int size) {
+        CR_UNUSED3(name, data, size);
+        return false;
+    }
 
 };
 

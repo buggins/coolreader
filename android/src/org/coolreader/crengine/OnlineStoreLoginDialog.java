@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import org.coolreader.R;
 import org.coolreader.plugins.AuthenticationCallback;
 import org.coolreader.plugins.OnlineStoreWrapper;
+import org.coolreader.plugins.litres.LitresPlugin;
 
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -38,7 +39,10 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 
 	
     TextView lblTitle;
+    TextView lblDescription;
+    TextView lblURL;
     Button btnLogin;
+    Button btnRegister;
     EditText edLogin;
     EditText edPassword;
 	
@@ -63,10 +67,29 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 				onPositiveButtonClick();
 			}
 		});
+        
+        btnRegister = (Button)view.findViewById(R.id.btn_new_account);
+        if (mPlugin.getNewAccountParameters() == null) {
+        	btnRegister.setVisibility(View.GONE);
+        } else {
+            btnRegister.setOnClickListener(new View.OnClickListener() {
+    			@Override
+    			public void onClick(View v) {
+    				OnlineStoreLoginDialog.super.onPositiveButtonClick();
+					final OnlineStoreNewAccountDialog dlg = new OnlineStoreNewAccountDialog(mActivity, mPlugin, mOnLoginHandler);
+					dlg.show();
+    			}
+    		});
+        }
+        
         lblTitle = (TextView)view.findViewById(R.id.dlg_title);
+        lblDescription = (TextView)view.findViewById(R.id.lbl_description);
+        lblURL = (TextView)view.findViewById(R.id.lbl_url);
         
 
-		lblTitle.setText(mPlugin.getDescription());
+		lblTitle.setText(mPlugin.getName());
+		lblDescription.setText(mPlugin.getDescription());
+		lblURL.setText(mPlugin.getUrl());
 		
         edLogin = (EditText)view.findViewById(R.id.ed_login);
         edPassword = (EditText)view.findViewById(R.id.ed_password);
@@ -89,12 +112,12 @@ public class OnlineStoreLoginDialog extends BaseDialog {
 			@Override
 			public void onError(int errorCode, String errorMessage) {
 				progress.hide();
-				mActivity.showToast("Cannot login: " + errorMessage);
+				mActivity.showToast(mActivity.getString(R.string.online_store_error_cannot_login) + " " + errorMessage);
 			}
 			@Override
 			public void onSuccess() {
 				progress.hide();
-				mActivity.showToast("Successful login");
+				mActivity.showToast(R.string.online_store_error_successful_login);
 				mOnLoginHandler.run();
 			}
 		});

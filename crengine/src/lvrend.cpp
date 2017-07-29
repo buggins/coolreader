@@ -902,8 +902,8 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
         sz >>= 8;
     if ( sz < 8 )
         sz = 8;
-    if ( sz > 72 )
-        sz = 72;
+    if ( sz > 340 )
+        sz = 340;
     int fw;
     if (style->font_weight>=css_fw_100 && style->font_weight<=css_fw_900)
         fw = ((style->font_weight - css_fw_100)+1) * 100;
@@ -1018,7 +1018,7 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
     while ( *start=='\r' || *start=='\n' )
         start++;
     if ( s > start )
-        lines.add( lString16( start, s-start ) );
+        lines.add( lString16( start, (lvsize_t)(s-start) ) );
 }
 
 //=======================================================================
@@ -1036,7 +1036,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         int flags = styleToTextFmtFlags( enode->getStyle(), baseflags );
         int width = fmt->getWidth();
         css_style_rec_t * style = enode->getStyle().get();
-        if (flags & LTEXT_FLAG_NEWLINE && rm != erm_inline)
+        if ((flags & LTEXT_FLAG_NEWLINE) && rm != erm_inline)
         {
             css_length_t len = style->text_indent;
             switch( len.type )
@@ -2604,14 +2604,15 @@ void convertLengthToPx( css_length_t & val, int base_px, int base_em )
     }
 }
 
-inline void spreadParent( css_length_t & val, css_length_t & parent_val )
+inline void spreadParent( css_length_t & val, css_length_t & parent_val, bool inherited=true )
 {
-    if ( val.type == css_val_inherited )
+    if ( val.type == css_val_inherited || (val.type == css_val_unspecified && inherited))
         val = parent_val;
 }
 
 void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef parent_font )
 {
+    CR_UNUSED(parent_font);
     //lvdomElementFormatRec * fmt = node->getRenderData();
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
@@ -2780,7 +2781,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     spreadParent( pstyle->letter_spacing, parent_style->letter_spacing );
     spreadParent( pstyle->line_height, parent_style->line_height );
     spreadParent( pstyle->color, parent_style->color );
-    spreadParent( pstyle->background_color, parent_style->background_color );
+    spreadParent( pstyle->background_color, parent_style->background_color, false );
 
     // set calculated style
     //enode->getDocument()->cacheStyle( style );

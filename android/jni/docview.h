@@ -18,6 +18,8 @@ class DocViewNative {
 	lString16 historyFileName;
 	lString16 _lastPattern;
 	LVImageSourceRef _currentImage;
+	lUInt32 _batteryIconColor;
+	int _batteryIconSize;
 public:
 	LVDocView * _docview;
 	DocViewNative();
@@ -39,6 +41,7 @@ public:
     bool drawIcon(LVDrawBuf * buf, lvRect & rc, int type);
     // sets current image to null
     bool closeImage();
+    void updateBatteryIcons();
 };
 
 extern CRTimerUtil _timeoutControl;

@@ -805,7 +805,7 @@ vGet8LstInfo(FILE *pFile, const pps_info_type *pPPS,
 	}
 
 	/* LVLF (List leVeL on File) */
-	ulBeginLvlfInfo = ulBeginLstfInfo + tLstfInfoLen;
+    ulBeginLvlfInfo = (ULONG)(ulBeginLstfInfo + tLstfInfoLen);
 	DBG_HEX(ulBeginLvlfInfo);
 
 	aucXString = NULL;
@@ -865,8 +865,8 @@ vGet8LstInfo(FILE *pFile, const pps_info_type *pPPS,
 					sGetLeftIndent(aucPapx, tPapxLen);
 				aucPapx = xfree(aucPapx);
 			}
-			ulStart += tPapxLen;
-			ucChpxLen = ucGetByte(24, aucLvlfInfo);
+            ulStart += (ULONG)tPapxLen;
+            ucChpxLen = ucGetByte(24, aucLvlfInfo);
 			ulStart += (ULONG)ucChpxLen;
 			/* Read the length of the XString */
 			if (!bReadBuffer(pFile, pPPS->tTable.ulSB,
@@ -922,7 +922,7 @@ vGet8LstInfo(FILE *pFile, const pps_info_type *pPPS,
 					usIstd,
 					ucListLevel,
 					&tList);
-			ulStart += tXstLen;
+            ulStart += (ULONG)tXstLen;
 			aucXString = xfree(aucXString);
 		}
 	}

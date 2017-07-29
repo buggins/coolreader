@@ -140,6 +140,8 @@ class CR3View : public QWidget, public LVDocViewCallback
         void historyForward();
         void zoomIn();
         void zoomOut();
+        void nextSentence();
+        void prevSentence();
 
 
     signals:

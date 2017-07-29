@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
+import org.coolreader.Dictionaries;
+import org.coolreader.Dictionaries.DictInfo;
 import org.coolreader.R;
 import org.coolreader.crengine.ColorPickerDialog.OnColorChangedListener;
 import org.coolreader.plugins.OnlineStorePluginManager;
@@ -43,13 +45,27 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	BaseActivity mActivity;
 	String[] mFontFaces;
 	int[] mFontSizes = new int[] {
-		12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-		31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72
+		9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+		31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72, 78, 84, 90, 110, 130, 150, 170, 200, 230, 260, 300, 340
 	};
 	int[] mStatusFontSizes = new int[] {
-			10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 25, 26, 27, 28, 29, 30,
-			32
+			9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 25, 26, 27, 28, 29, 30,
+			31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 48, 52, 56, 60, 64, 68, 72, 78, 84, 90, 110, 130, 150, 170, 200, 230, 260, 300, 340
 		};
+		
+	int[] filterFontSizes(int[] fontSizes) {
+	    ArrayList<Integer> list = new ArrayList<Integer>();
+	    for (int i = 0; i < fontSizes.length; i++) {
+	        int sz = fontSizes[i];
+	        if (sz >= mActivity.getMinFontSize() && sz <= mActivity.getMaxFontSize())
+    	        list.add(sz);
+	    }
+	    int[] res = new int[list.size()];
+	    for (int i = 0; i < list.size(); i++)
+	        res[i] = list.get(i);
+	    return res;
+	}
+	
 	public static int findBacklightSettingIndex( int value ) {
 		int bestIndex = 0;
 		int bestDiff = -1;
@@ -75,10 +91,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200
 		};
 	int[] mMinSpaceWidths = new int[] {
-			50, 60, 70, 80, 90, 100
+			25, 30, 40, 50, 60, 70, 80, 90, 100
 		};
 	int[] mMargins = new int[] {
-			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100, 200, 300
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100, 130, 150, 200, 300
 		};
 	double[] mGammas = new double[] {
 			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
@@ -106,18 +122,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_font_hinting_auto
 		};
 	int[] mOrientations = new int[] {
-			0, 1, 4
+			0, 1, 4, 5
 		};
 	int[] mOrientationsTitles = new int[] {
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90, 
-			R.string.options_page_orientation_sensor
+			R.string.options_page_orientation_sensor, R.string.options_page_orientation_system
 		};
 	int[] mOrientations_API9 = new int[] {
-			0, 1, 2, 3, 4
+			0, 1, 2, 3, 4, 5
 		};
 	int[] mOrientationsTitles_API9 = new int[] {
 			R.string.options_page_orientation_0, R.string.options_page_orientation_90, R.string.options_page_orientation_180, R.string.options_page_orientation_270
-			,R.string.options_page_orientation_sensor
+			,R.string.options_page_orientation_sensor,R.string.options_page_orientation_system
 		};
 
 	int[] mToolbarPositions = new int[] {
@@ -671,7 +687,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LOCATION).add(mStatusPositions, mStatusPositionsTitles).setDefaultValue("1"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(mStatusFontSizes).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(filterFontSizes(mStatusFontSizes)).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
 			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), PROP_STATUS_FONT_COLOR, 0x000000));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), PROP_SHOW_TITLE).setDefaultValue("1"));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_page_number), PROP_SHOW_PAGE_NUMBER).setDefaultValue("1"));
@@ -1069,7 +1085,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public DictOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_DICTIONARY );
-			DictInfo[] dicts = BaseActivity.getDictList();
+			DictInfo[] dicts = Dictionaries.getDictList();
 			setDefaultValue(dicts[0].id);
 			for (DictInfo dict : dicts) {
 				boolean installed = mActivity.isPackageInstalled(dict.packageName);
@@ -1801,7 +1817,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		
 		mOptionsStyles = new OptionsListView(getContext());
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(mFontSizes).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(filterFontSizes(mFontSizes)).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).add(mAntialias, mAntialiasTitles).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_antialias));

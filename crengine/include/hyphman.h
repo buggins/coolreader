@@ -26,8 +26,8 @@ public:
 };
 
 
-#define WORD_LENGTH   64
-#define MAX_REAL_WORD 24
+#define WORD_LENGTH   2048
+//#define MAX_REAL_WORD 24
 
 
 enum HyphDictType

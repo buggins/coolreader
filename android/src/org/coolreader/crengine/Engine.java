@@ -11,11 +11,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 
 import org.coolreader.R;
-import org.coolreader.crengine.DeviceInfo;
 
 import android.app.AlertDialog;
 import android.graphics.Bitmap;
@@ -51,13 +51,13 @@ public class Engine {
 	public static File[] getStorageDirectories(boolean writableOnly) {
 		Collection<File> res = new HashSet<File>(2);
 		for (File dir : mountedRootsList) {
-			if (dir.isDirectory() && (!writableOnly || dir.canWrite()))
+			if (dir.isDirectory() && dir.canRead() && dir.list().length > 0 && (!writableOnly || dir.canWrite()))
 				res.add(dir);
 		}
 		return res.toArray(new File[res.size()]);
 	}
 	
-	public Map<String, String> getMountedRootsMap() {
+	public static Map<String, String> getMountedRootsMap() {
 		return mountedRootsMap;
 	}
 
@@ -579,6 +579,16 @@ public class Engine {
 	 */
 	public native static String isLink(String pathName);
 	
+	public static String folowLink(String pathName) {
+		String lnk = isLink(pathName);
+		if (lnk == null)
+			return pathName;
+		String lnk2 = isLink(lnk);
+		if (lnk2 == null)
+			return lnk;
+		return lnk2;
+	}
+	
 	private static final int HYPH_NONE = 0;
 	private static final int HYPH_ALGO = 1;
 	private static final int HYPH_DICT = 2;
@@ -620,6 +630,8 @@ public class Engine {
 		public final static HyphDict GREEK = new HyphDict("GREEK", HYPH_DICT, R.raw.greek_hyphen, "Greek", "el");
 		public final static HyphDict FINNISH = new HyphDict("FINNISH", HYPH_DICT, R.raw.finnish_hyphen, "Finnish", "fi");
 		public final static HyphDict TURKISH = new HyphDict("TURKISH", HYPH_DICT, R.raw.turkish_hyphen, "Turkish", "tr");
+		public final static HyphDict DUTCH = new HyphDict("DUTCH", HYPH_DICT, R.raw.dutch_hyphen, "Dutch", "nl");
+		public final static HyphDict CATALAN = new HyphDict("CATALAN", HYPH_DICT, R.raw.catalan_hyphen, "Catalan", "ca");
 
 		public final String code;
 		public final int type;
@@ -987,11 +999,37 @@ public class Engine {
 		return addMountRoot(list, pathname, pathname); //mActivity.getResources().getString(resourceId));
 	}
 	
+	public static boolean isStorageDir(String path) {
+		if (path == null)
+			return false;
+		String normalized = pathCorrector.normalizeIfPossible(path);
+		String sdpath = pathCorrector.normalizeIfPossible(Environment.getExternalStorageDirectory().getAbsolutePath());
+		if (sdpath != null && sdpath.equals(normalized))
+			return true;
+		return false;
+	}
+	
+	public static boolean isExternalStorageDir(String path) {
+		if (path == null)
+			return false;
+		if (path.contains("/ext"))
+			return true;
+		return false;
+	}
+	
 	private static boolean addMountRoot(Map<String, String> list, String path, String name) {
 		if (list.containsKey(path))
 			return false;
+		if (path.equals("/storage/emulated/legacy")) {
+			for (String key : list.keySet()) {
+				if (key.equals("/storage/emulated/0"))
+					return false; // don't add "/storage/emulated/legacy" after "/storage/emulated/0"
+			}
+		}
+		String plink = folowLink(path);
 		for (String key : list.keySet()) {
-			if (path.equals(key)) { // path.startsWith(key + "/")
+			//if (pathCorrector.normalizeIfPossible(path).equals(pathCorrector.normalizeIfPossible(key))) {
+			if (plink.equals(folowLink(key))) { // path.startsWith(key + "/")
 				log.w("Skipping duplicate path " + path + " == " + key);
 				return false; // duplicate subpath
 			}
@@ -1014,44 +1052,89 @@ public class Engine {
 		return false;
 	}
 	
-//	private static final String[] SYSTEM_ROOT_PATHS = {"/system", "/data", "/mnt"};
-//	private void autoAddRoots(Map<String, String> list, String rootPath, String[] pathsToExclude)
-//	{
-//		try {
-//			File root = new File(rootPath);
-//			File[] files = root.listFiles();
-//			if ( files!=null ) {
-//				for ( File f : files ) {
-//					if ( !f.isDirectory() )
-//						continue;
-//					String fullPath = f.getAbsolutePath();
-//					if (isLink(fullPath) != null) {
-//						L.d("skipping symlink " + fullPath);
-//						continue;
-//					}
-//					boolean skip = false;
-//					for ( String path : pathsToExclude ) {
-//						if ( fullPath.startsWith(path) ) {
-//							skip = true;
-//							break;
-//						}
-//					}
-//					if ( skip )
-//						continue;
-//					if ( !f.canWrite() ) {
-//						L.i("Path is readonly: " + f.getAbsolutePath());
-//						continue;
-//					}
-//					L.i("Found possible mount point " + f.getAbsolutePath());
-//					addMountRoot(list, f.getAbsolutePath(), f.getAbsolutePath());
-//				}
-//			}
-//		} catch ( Exception e ) {
-//			L.w("Exception while trying to auto add roots");
-//		}
-//	}
+	public static HashSet<String> getExternalMounts() {
+	    final HashSet<String> out = new HashSet<String>();
+	    try {
+		    String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
+		    String s = "";
+		    try {
+		        final Process process = new ProcessBuilder().command("mount")
+		                .redirectErrorStream(true).start();
+		        process.waitFor();
+		        final InputStream is = process.getInputStream();
+		        final byte[] buffer = new byte[1024];
+		        while (is.read(buffer) != -1) {
+		            s = s + new String(buffer);
+		        }
+		        is.close();
+		    } catch (final Exception e) {
+		        e.printStackTrace();
+		    }
+	
+		    // parse output
+		    final String[] lines = s.split("\n");
+		    for (String line : lines) {
+		        if (!line.toLowerCase(Locale.US).contains("asec")) {
+		        	log.d("mount entry: " + line);
+		            if (line.matches(reg)) {
+		                String[] parts = line.split(" ");
+		                for (String part : parts) {
+		                    if (part.startsWith("/"))
+		                        if (!part.toLowerCase(Locale.US).contains("vold"))
+		                            out.add(part);
+		                }
+		            }
+		        }
+		    }
+	    } catch (Exception e) {
+	    	// ignore
+	    }
+	    return out;
+	}	
+	
+    private static HashSet<String> readMountsFile() {
+	    final HashSet<String> out = new HashSet<String>();
+        /*
+         * Scan the /proc/mounts file and look for lines like this:
+         * /dev/block/vold/179:1 /mnt/sdcard vfat
+         * rw,dirsync,nosuid,nodev,noexec,
+         * relatime,uid=1000,gid=1015,fmask=0602,dmask
+         * =0602,allow_utime=0020,codepage
+         * =cp437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro 0 0
+         * 
+         * When one is found, split it into its elements and then pull out the
+         * path to the that mount point and add it to the arraylist
+         */
+
+        try {
+			String s = loadFileUtf8(new File("/proc/mounts"));
+			if (s != null) {
+				String[] rows = s.split("\n");
+				for(String line : rows) {
+	                if (line.startsWith("/dev/block/vold/")) {
+	                    String[] lineElements = line.split(" ");
+	                    String element = lineElements[1];
+	                    if (element.startsWith("/"))
+	                        out.add(element);
+	                }
+				}
+			}
+        } catch (Exception e) {
+        	// ignore
+        }
+        return out;
+    }
+
+	
 	
 	private static void initMountRoots() {
+		
+		log.i("initMountRoots()");
+		HashSet<String> mountedPathsFromMountCmd = getExternalMounts();
+		HashSet<String> mountedPathsFromMountFile = readMountsFile();
+		log.i("mountedPathsFromMountCmd: " + mountedPathsFromMountCmd);
+		log.i("mountedPathsFromMountFile: " + mountedPathsFromMountFile);
+		
 		Map<String, String> map = new LinkedHashMap<String, String>();
 
 		// standard external directory
@@ -1059,8 +1142,12 @@ public class Engine {
 		// dirty fix
 		if ("/nand".equals(sdpath) && new File("/sdcard").isDirectory())
 			sdpath = "/sdcard";
+		//String sdlink = isLink(sdpath);
+		//if (sdlink != null)
+		//	sdpath = sdlink;
+		
 		// main storage
-		addMountRoot(map, sdpath, R.string.dir_sd_card);
+		addMountRoot(map, sdpath, "SD");
 
 		// retrieve list of mount points from system
 		String[] fstabLocations = new String[] {
@@ -1137,6 +1224,11 @@ public class Engine {
 			"/mnt/ext.sd",
 			"/ext.sd",
 			"/extsd",
+			"/storage/sdcard",
+			"/storage/sdcard0",
+			"/storage/sdcard1",
+			"/storage/sdcard2",
+			"/mnt/extSdCard",
 			"/sdcard",
 			"/sdcard2",
 			"/mnt/udisk",
@@ -1147,24 +1239,49 @@ public class Engine {
 			"/mnt/sdcard1",
 			"/mnt/sdcard2",
 			"/mnt/usb_storage",
-			"/mnt/external_sd",
+			"/mnt/external_SD",
 			"/emmc",
 			"/external",
 			"/Removable/SD",
 			"/Removable/MicroSD",
 			"/Removable/USBDisk1",
 			"/storage/sdcard1",
-			Environment.getExternalStorageDirectory().getPath(),
 			"/mnt/sdcard/extStorages/SdCard",
 			"/storage/extSdCard",
+			"/storage/external_SD",
 		};
+		// collect mount points from all possible sources
+		HashSet<String> mountPointsToAdd = new HashSet<String>();
 		for (String point : knownMountPoints) {
-			String link = isLink(point);
-			if (link != null) {
-				log.d("standard mount point path is link: " + point + " > " + link);
-				addMountRoot(map, link, link);
-			} else {
-				addMountRoot(map, point, point);
+			mountPointsToAdd.add(point);
+		}
+		mountPointsToAdd.addAll(mountedPathsFromMountCmd);
+		mountPointsToAdd.addAll(mountedPathsFromMountFile);
+		mountPointsToAdd.add(Environment.getExternalStorageDirectory().getAbsolutePath());
+		String storageList = System.getenv("SECONDARY_STORAGE");
+		if (storageList != null) {
+			for (String point : storageList.split(":")) {
+				if (point.startsWith("/"))
+					mountPointsToAdd.add(point);
+			}
+		}
+		// add mount points
+		
+		for (String point : mountPointsToAdd) {
+			if (point == null)
+				continue;
+			point = point.trim();
+			if (point.length() == 0)
+				continue;
+			File dir = new File(point);
+			if (dir.isDirectory() && dir.canRead() && dir.list().length > 0) {
+				String link = isLink(point);
+				if (link != null) {
+					log.d("found mount point path is link: " + point + " > " + link);
+					addMountRoot(map, link, link);
+				} else {
+					addMountRoot(map, point, point);
+				}
 			}
 		}
 		
@@ -1174,23 +1291,41 @@ public class Engine {
 		
 		mountedRootsMap = map;
 		Collection<File> list = new ArrayList<File>();
-		log.i("Mount ROOTS:");
+		
 		for (String f : map.keySet()) {
 			File path = new File(f);
 			list.add(path);
-			String label = map.get(f);
-			log.i("*** " + f + " '" + label + "' isDirectory=" + path.isDirectory() + " canRead=" + path.canRead() + " canWrite=" + path.canRead() + " isLink=" + isLink(f));
 		}
+		
 		mountedRootsList = list.toArray(new File[] {});
 		pathCorrector = new MountPathCorrector(mountedRootsList);
 
-		for (String point : knownMountPoints) {
+		for (String point : mountPointsToAdd) {
 			String link = isLink(point);
-			if (link != null)
+			if (link != null) {
+				log.d("pathCorrector.addRootLink(" + point + ", " + link + ")");
 				pathCorrector.addRootLink(point, link);
+			}
 		}
 		
 		Log.i("cr3", "Root list: " + list + ", root links: " + pathCorrector);
+
+		
+		log.i("Mount ROOTS:");
+		for (String f : map.keySet()) {
+			File path = new File(f);
+			String label = map.get(f);
+			if (isStorageDir(f)) {
+				label = "SD";
+				map.put(f, label);
+			} else if (isExternalStorageDir(f)) {
+				label = "Ext SD";
+				map.put(f, label);
+			}
+			
+			log.i("*** " + f + " '" + label + "' isDirectory=" + path.isDirectory() + " canRead=" + path.canRead() + " canWrite=" + path.canRead() + " isLink=" + isLink(f));
+		}
+		
 //		testPathNormalization("/sdcard/books/test.fb2");
 //		testPathNormalization("/mnt/sdcard/downloads/test.fb2");
 //		testPathNormalization("/mnt/sd/dir/test.fb2");
@@ -1328,6 +1463,10 @@ public class Engine {
 					R.drawable.bg_paper1),
 			new BackgroundTextureInfo("bg_paper1_dark", "Paper 1 (dark)",
 					R.drawable.bg_paper1_dark),
+			new BackgroundTextureInfo("bg_paper2", "Paper 2",
+					R.drawable.bg_paper2),
+			new BackgroundTextureInfo("bg_paper2_dark", "Paper 2 (dark)",
+					R.drawable.bg_paper2_dark),
 			new BackgroundTextureInfo("tx_wood", "Wood", 
 					DeviceInfo.getSDKLevel() == 3 ? R.drawable.tx_wood_v3 : R.drawable.tx_wood),
 			new BackgroundTextureInfo("tx_wood_dark", "Wood (dark)",

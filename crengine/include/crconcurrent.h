@@ -7,6 +7,13 @@
 #include "lvref.h"
 #include "lvqueue.h"
 
+
+enum {
+    CR_THREAD_PRIORITY_LOW,
+    CR_THREAD_PRIORITY_NORMAL,
+    CR_THREAD_PRIORITY_HIGH,
+};
+
 class CRConcurrencyProvider {
 public:
     virtual ~CRConcurrencyProvider() {}
@@ -18,6 +25,9 @@ public:
     virtual void executeGui(CRRunnable * task, int delayMillis) = 0;
     /// sleep current thread
     virtual void sleepMs(int durationMs) = 0;
+    virtual void setThreadPriority(int p) {
+        CR_UNUSED(p);
+    }
 };
 
 extern CRConcurrencyProvider * concurrencyProvider;

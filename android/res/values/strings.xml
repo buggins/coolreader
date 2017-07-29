@@ -7,7 +7,7 @@
     <string name="mi_bookmarks">Bookmarks</string>
     <string name="mi_file_open">Open file</string>
     <string name="mi_options">Options</string>
-    <string name="mi_font_size_increase">Increase font size</string>
+    <string name="mi_font_size_increase">Increase font size </string>
     <string name="mi_font_size_decrease">Decrease font size</string>
     <string name="mi_font_previous">Previous font</string>
     <string name="mi_font_next">Next font</string>
@@ -83,6 +83,7 @@
     <string name="options_page_orientation_180">Portrait (180)</string>
     <string name="options_page_orientation_270">Landscape (270)</string>
     <string name="options_page_orientation_sensor">Sensor</string>
+    <string name="options_page_orientation_system">Use system setting</string>
     <string name="options_page_landscape_pages">Landscape pages</string>
     <string name="options_page_landscape_pages_one">One page</string>
     <string name="options_page_landscape_pages_two">Two pages</string>
@@ -100,7 +101,7 @@
     <string name="dlg_search_case_sensitive">Case sensitive</string>
     <string name="dlg_search_reverse">Reverse</string>
     <string name="dlg_search_hint">Type text here</string>
-    <string name="dlg_button_ok">Ok</string>
+    <string name="dlg_button_ok">OK</string>
     <string name="dlg_button_cancel">Cancel</string>
     <string name="dlg_button_find">Find</string>
     <string name="options_page_animation">Page animation</string>
@@ -282,6 +283,8 @@
     <string name="dlg_catalog_edit_name">Name</string>
     <string name="dlg_catalog_edit_url">URL</string>
     <string name="dlg_catalog_edit_title">OPDS Catalog</string>
+    <string name="dlg_catalog_edit_username">Login</string>
+    <string name="dlg_catalog_edit_password">Password</string>
     <string name="dlg_catalog_add_title">Add Catalog</string>
     <string formatted="false" name="options_format_min_space_width_percent">Min space width %</string>
     <string name="options_selection_keep_selection_after_dictionary">Keep selection after dictionary</string>
@@ -421,6 +424,7 @@
     <string name="options_app_locale_fr">Français</string>
     <string name="options_app_locale_hu">Magyar</string>
     <string name="options_app_locale_it">Italiano</string>
+    <string name="options_app_locale_ja">Japanese</string>
     <string name="options_app_locale_lt">Lietuvos</string>
     <string name="options_app_locale_nl">Nederlands</string>
     <string name="options_app_locale_pt">Português</string>
@@ -483,8 +487,28 @@
     <string name="dlg_button_book_delete">Delete book</string>
     <string name="btn_toolbar_more">More</string>
     <string name="online_store_login">Login</string>
+    <string name="online_store_plugin_name_litres">LitRes</string>
+    <string name="online_store_plugin_description_litres">online book store</string>
     <string name="online_store_username">User name:</string>
     <string name="online_store_password">Password:</string>
+    <string name="online_store_password_repeat">Repeat password:</string>
+    <string name="online_store_refill_account_balance_request_litres">Account balance is too low to purchase this book.\nDo you want to refill your account balance?\nLink with account refill page will be opened in external browser.</string>
+    <string name="online_store_error_successful_login">Logged in successfully.</string>
+    <string name="online_store_error_cannot_login">Error occurred while trying to login.</string>
+    <string name="online_store_error_succesful_registration">New account is registered.</string>
+    <string name="online_store_error_cannot_register">Error occurred while trying to register new account.</string>
+    <string name="online_store_new_account">Register</string>
+    <string name="online_store_new_account_param_email">Email:</string>
+    <string name="online_store_new_account_param_email_description_litres">If you don\'t use email as login, you can specify your email here.</string>
+    <string name="online_store_new_account_param_first_name">First name:</string>
+    <string name="online_store_new_account_param_last_name">Last name:</string>
+    <string name="online_store_new_account_param_middle_name">Middle name:</string>
+    <string name="online_store_new_account_param_city">City:</string>
+    <string name="online_store_new_account_param_phone">Phone number:</string>
+    <string name="online_store_new_account_param_birthday">Date of birth:</string>
+    <string name="online_store_new_account_param_gender">Gender:</string>
+    <string name="online_store_new_account_param_subscribe">Receive emails about updates</string>
+    <string name="online_store_new_account_param_subscribe_description_litres">If you are using email as login or specified email in separate field and subscribed on updates, you will get 10 books for free.</string>
     <string name="online_store_genres">Books by Genres</string>
     <string name="online_store_authors">Authors</string>
     <string name="online_store_my">My books</string>

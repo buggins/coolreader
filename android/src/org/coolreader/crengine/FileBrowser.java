@@ -730,7 +730,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				if ( fileOrDir.format!=null )
 					defFileName = defFileName + fileOrDir.format.getExtensions()[0];
 				final OPDSUtil.DownloadTask downloadTask = OPDSUtil.create(mActivity, uri, defFileName, fileOrDir.isDirectory?"application/atom+xml":fileMimeType, 
-						myCurrDirectory.getOPDSUrl(), callback);
+						myCurrDirectory.getOPDSUrl(), callback, fileOrDir.username, fileOrDir.password);
 				downloadTask.run();
 			} catch (MalformedURLException e) {
 				log.e("MalformedURLException: " + url);
@@ -1425,4 +1425,15 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			}
 		});
 	}
+
+	@Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+		mActivity.onUserActivity();
+       if( this.mListView != null ) {
+            if (this.mListView.onKeyDown(keyCode, event))
+            	return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
+

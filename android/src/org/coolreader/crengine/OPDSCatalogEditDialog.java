@@ -14,6 +14,8 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 	private final FileInfo mItem;
 	private final EditText nameEdit;
 	private final EditText urlEdit;
+	private final EditText usernameEdit;
+	private final EditText passwordEdit;
 	private final Runnable mOnUpdate;
 
 	public OPDSCatalogEditDialog(CoolReader activity, FileInfo item, Runnable onUpdate) {
@@ -27,8 +29,12 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 		View view = mInflater.inflate(R.layout.catalog_edit_dialog, null);
 		nameEdit = (EditText) view.findViewById(R.id.catalog_name);
 		urlEdit = (EditText) view.findViewById(R.id.catalog_url);
+		usernameEdit = (EditText) view.findViewById(R.id.catalog_username);
+		passwordEdit = (EditText) view.findViewById(R.id.catalog_password);
 		nameEdit.setText(mItem.filename);
 		urlEdit.setText(mItem.getOPDSUrl());
+		usernameEdit.setText(mItem.username);
+		passwordEdit.setText(mItem.password);
 		setThirdButtonImage(R.drawable.cr3_button_remove, R.string.mi_catalog_delete);
 		setView(view);
 	}
@@ -69,7 +75,8 @@ public class OPDSCatalogEditDialog extends BaseDialog {
 	
 	private void save() {
 		activity.getDB().saveOPDSCatalog(mItem.id,
-				urlEdit.getText().toString(), nameEdit.getText().toString());
+				urlEdit.getText().toString(), nameEdit.getText().toString(), 
+				usernameEdit.getText().toString(), passwordEdit.getText().toString());
 		mOnUpdate.run();
 		super.onPositiveButtonClick();
 	}

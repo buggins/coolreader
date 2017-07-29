@@ -254,8 +254,8 @@ bool CRIniFileTranslator::open(const char * fileName)
             elp++;
         }
         if ( eqpos!=NULL && eqpos>p && *elp!='#' ) {
-            lString8 name( p, eqpos-p );
-            lString8 value( eqpos+1, elp - eqpos - 1);
+            lString8 name( p, (lvsize_t)(eqpos-p) );
+            lString8 value( eqpos+1, (lvsize_t)(elp - eqpos - 1));
             _map.set(name, value);
         }
         for ( p=elp; *elp && *elp!='\r' && *elp!='\n'; elp++)

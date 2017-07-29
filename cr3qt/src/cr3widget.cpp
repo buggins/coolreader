@@ -6,12 +6,22 @@
 #include "qpainter.h"
 #include "settings.h"
 #include "addbookmarkdlg.h"
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QResizeEvent>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QStyleFactory>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QApplication>
+#else
 #include <QtGui/QResizeEvent>
 #include <QtGui/QScrollBar>
 #include <QtGui/QMenu>
 #include <QtGui/QStyleFactory>
 #include <QtGui/QStyle>
 #include <QtGui/QApplication>
+#endif
 #include <QUrl>
 #include <QDir>
 #include <QFileInfo>
@@ -674,6 +684,18 @@ void CR3View::scrollTo( int value )
     if ( currPos != value ) {
         doCommand( DCMD_GO_SCROLL_POS, value );
     }
+}
+
+void CR3View::nextSentence() {
+    // for debugging of ReadAloud feature position movement.
+    _docview->doCommand(DCMD_SELECT_NEXT_SENTENCE, 0 );
+    update();
+}
+
+void CR3View::prevSentence() {
+    // for debugging of ReadAloud feature position movement.
+    _docview->doCommand(DCMD_SELECT_PREV_SENTENCE, 0 );
+    update();
 }
 
 void CR3View::doCommand( int cmd, int param )

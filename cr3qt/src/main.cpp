@@ -1,18 +1,28 @@
 // CoolReader3 / Qt
 // main.cpp - entry point
 
-#if (USE_FONTCONFIG==1)
-    #include <fontconfig/fontconfig.h>
-#endif
-
-
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QApplication>
+#else
 #include <QtGui/QApplication>
+#endif
 #include "../crengine/include/crengine.h"
 #include "../crengine/include/cr3version.h"
 #include "mainwindow.h"
+#if QT_VERSION >= 0x050000
+#include <QtCore/QTranslator>
+#include <QtCore/QLibraryInfo>
+#include <QtCore/QDir>
+#else
 #include <QTranslator>
 #include <QLibraryInfo>
 #include <QDir>
+#endif
+
+#if (USE_FONTCONFIG==1)
+    #include <fontconfig/fontconfig.h>
+#endif
 
 // prototypes
 void InitCREngineLog( const char * cfgfile );

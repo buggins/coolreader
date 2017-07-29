@@ -14,6 +14,8 @@ public class ReaderAction {
 	private boolean canRepeat = false;
 	private boolean mayAssignOnKey = true;
 	private boolean mayAssignOnTap = true;
+	private boolean activateWithLongMenuKey = false;
+	private ReaderAction setActivateWithLongMenuKey() { this.activateWithLongMenuKey = true; return this; }
 	private ReaderAction setIconId(int iconId) { this.iconId = iconId; return this; }
 	private ReaderAction setCanRepeat() { canRepeat = true; return this; }
 	//private ReaderAction dontAssignOnKey() { mayAssignOnKey=false; return this; }
@@ -21,6 +23,7 @@ public class ReaderAction {
 	public boolean canRepeat() { return canRepeat; }
 	public boolean mayAssignOnKey() { return mayAssignOnKey; }
 	public boolean mayAssignOnTap() { return mayAssignOnTap; }
+	public boolean activateWithLongMenuKey() { return activateWithLongMenuKey; }
 
 	public ReaderAction(String id, int nameId, ReaderCommand cmd, int param) {
 		super();
@@ -86,7 +89,7 @@ public class ReaderAction {
 	public final static ReaderAction HOME_SCREEN = new ReaderAction("HOME_SCREEN", R.string.action_exit_home_screen, ReaderCommand.DCMD_SHOW_HOME_SCREEN, 0 );
 	public final static ReaderAction GO_BACK = new ReaderAction("GO_BACK", R.string.action_go_back, ReaderCommand.DCMD_LINK_BACK, 0, R.id.cr3_go_back ).setIconId(R.drawable.cr3_button_prev);
 	public final static ReaderAction GO_FORWARD = new ReaderAction("GO_FORWARD", R.string.action_go_forward, ReaderCommand.DCMD_LINK_FORWARD, 0, R.id.cr3_go_forward).setIconId(R.drawable.cr3_button_next);
-	public final static ReaderAction TTS_PLAY = new ReaderAction("TTS_PLAY", R.string.mi_tts_play, ReaderCommand.DCMD_TTS_PLAY, 0, R.id.cr3_mi_tts_play ).setIconId(R.drawable.cr3_button_tts);
+	public final static ReaderAction TTS_PLAY = new ReaderAction("TTS_PLAY", R.string.mi_tts_play, ReaderCommand.DCMD_TTS_PLAY, 0, R.id.cr3_mi_tts_play ).setIconId(R.drawable.cr3_button_tts); //.setActivateWithLongMenuKey()
 	public final static ReaderAction TOGGLE_TITLEBAR = new ReaderAction("TOGGLE_TITLEBAR", R.string.action_toggle_titlebar, ReaderCommand.DCMD_TOGGLE_TITLEBAR, 0 );
 	public final static ReaderAction SHOW_POSITION_INFO_POPUP = new ReaderAction("SHOW_POSITION_INFO_POPUP", R.string.action_show_position_info, ReaderCommand.DCMD_SHOW_POSITION_INFO_POPUP, 0 );
 	public final static ReaderAction SHOW_DICTIONARY = new ReaderAction("SHOW_DICTIONARY", R.string.action_show_dictionary, ReaderCommand.DCMD_SHOW_DICTIONARY, 0);

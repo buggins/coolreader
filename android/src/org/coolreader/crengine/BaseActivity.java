@@ -1,5 +1,20 @@
 package org.coolreader.crengine;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Locale;
+
+import org.coolreader.Dictionaries;
+import org.coolreader.Dictionaries.DictInfo;
+import org.coolreader.R;
+import org.coolreader.db.CRDBService;
+import org.coolreader.db.CRDBServiceAccessor;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -16,30 +31,26 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
-import android.view.*;
+import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
+import android.view.ViewConfiguration;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
-import org.coolreader.R;
-import org.coolreader.db.CRDBService;
-import org.coolreader.db.CRDBServiceAccessor;
-import org.coolreader.sync.SyncServiceAccessor;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Locale;
 
 public class BaseActivity extends Activity implements Settings {
 
@@ -47,7 +58,7 @@ public class BaseActivity extends Activity implements Settings {
 	private View mDecorView;
 
 	private CRDBServiceAccessor mCRDBService;
-	private SyncServiceAccessor mSyncService;
+	protected Dictionaries mDictionaries;
 	
 	protected void unbindCRDBService() {
 		if (mCRDBService != null) {
@@ -56,34 +67,6 @@ public class BaseActivity extends Activity implements Settings {
 		}
 	}
 
-	protected void unbindSyncService() {
-		if (mSyncService != null) {
-			mSyncService.unbind();
-			mSyncService = null;
-		}
-	}
-
-	protected void bindSyncService() {
-		if (mSyncService == null) {
-	       	mSyncService = new SyncServiceAccessor(this);
-			mSyncService.bind(new Runnable() {
-				@Override
-				public void run() {
-					log.i("Initialization after SyncService is bound");
-					BackgroundThread.instance().postGUI(new Runnable() {
-						@Override
-						public void run() {
-							FileInfo downloadDirectory = Services.getScanner().getDownloadDirectory();
-							if (downloadDirectory != null && mSyncService != null)
-								mSyncService.setSyncDirectory(new File(downloadDirectory.getPathName()));
-						}
-					});
-				}
-			});
-		}
-	}
-
-	
 	protected void bindCRDBService() {
 		if (mCRDBService == null) {
 			mCRDBService = new CRDBServiceAccessor(this, Engine.getInstance(this).getPathCorrector());
@@ -104,7 +87,6 @@ public class BaseActivity extends Activity implements Settings {
 
 	public CRDBServiceAccessor getDBService() { return mCRDBService; }
 	public CRDBService.LocalBinder getDB() { return mCRDBService != null ? mCRDBService.get() : null; }
-	public SyncServiceAccessor getSyncService() { return mSyncService; }
 
 	public Properties settings() { return mSettingsManager.mSettings; }
 	
@@ -116,8 +98,11 @@ public class BaseActivity extends Activity implements Settings {
     	// create rest of settings
 		Services.startServices(this);
 	}
+	
+	private final static int SYSTEM_UI_FLAG_IMMERSIVE_STICKY = 4096;
 
-    @Override
+    @SuppressLint("NewApi")
+	@Override
     public void onWindowFocusChanged(boolean hasFocus) {
 	super.onWindowFocusChanged(hasFocus);
 	if (hasFocus && (DeviceInfo.getSDKLevel() >= 19)) {
@@ -127,7 +112,7 @@ public class BaseActivity extends Activity implements Settings {
 					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-					| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+					| SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 					| View.SYSTEM_UI_FLAG_FULLSCREEN;
 
             mDecorView.setSystemUiVisibility(flag);
@@ -144,6 +129,7 @@ public class BaseActivity extends Activity implements Settings {
 
 		super.onCreate(savedInstanceState);
 
+		mDictionaries = new Dictionaries(this);
 
 		try {
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -200,9 +186,9 @@ public class BaseActivity extends Activity implements Settings {
 		setScreenBacklightDuration(props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, 3));
 
 		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
-		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 4); //(DeviceInfo.EINK_SCREEN?0:4)
-		if ( orientation < 0 || orientation > 4 )
-			orientation = 0;
+		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 5); //(DeviceInfo.EINK_SCREEN?0:4)
+		if (orientation < 0 || orientation > 5)
+			orientation = 5;
 		setScreenOrientation(orientation);
 		int backlight = props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT, -1);
 		if ( backlight<-1 || backlight>100 )
@@ -211,7 +197,6 @@ public class BaseActivity extends Activity implements Settings {
 
     
 		
-		bindSyncService();
 		bindCRDBService();
 	}
 	
@@ -220,7 +205,6 @@ public class BaseActivity extends Activity implements Settings {
 	protected void onDestroy() {
 		super.onDestroy();
 		unbindCRDBService();
-		unbindSyncService();
 	}
 
 	@Override
@@ -312,7 +296,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 	public boolean isSmartphone() {
-		return diagonalInches <= 5.8;
+		return diagonalInches <= 6.2; //5.8;
 	}
 	
 	private int densityDpi = 160;
@@ -338,13 +322,18 @@ public class BaseActivity extends Activity implements Settings {
 		return preferredItemHeight;
 	}
 	
+	private int minFontSize = 9;
+	public int getMinFontSize() { return minFontSize; }
+	private int maxFontSize = 90;
+	public int getMaxFontSize() { return maxFontSize; }
+	
 	public void updateBackground() {
 		TypedArray a = getTheme().obtainStyledAttributes(new int[] {android.R.attr.windowBackground, android.R.attr.background, android.R.attr.textColor, android.R.attr.colorBackground, android.R.attr.colorForeground, android.R.attr.listPreferredItemHeight});
 		int bgRes = a.getResourceId(0, 0);
 		//int clText = a.getColor(1, 0);
 		int clBackground = a.getColor(2, 0);
 		//int clForeground = a.getColor(3, 0);
-		preferredItemHeight = a.getDimensionPixelSize(5, 36);
+		preferredItemHeight = densityDpi / 3; //a.getDimensionPixelSize(5, 36);
 		//View contentView = getContentView();
 		if (contentView != null) {
 			if (bgRes != 0) {
@@ -365,7 +354,17 @@ public class BaseActivity extends Activity implements Settings {
 //				getWindow().setBackgroundDrawable(Utils.solidColorDrawable(clBackground));
 		}
 		a.recycle();
-	}
+		Display display = getWindowManager().getDefaultDisplay();
+        int sz = display.getWidth();
+        if (sz > display.getHeight())
+            sz = display.getHeight();
+        minFontSize = sz / 45;
+        maxFontSize = sz / 8;
+        if (maxFontSize > 340)
+            maxFontSize = 340;
+        if (minFontSize < 9)
+            minFontSize = 9;
+        }
 
 	public void setCurrentTheme(InterfaceTheme theme) {
 		log.i("setCurrentTheme(" + theme + ")");
@@ -375,7 +374,7 @@ public class BaseActivity extends Activity implements Settings {
 		updateBackground();
 	}
 
-	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_USER;
 	public void applyScreenOrientation( Window wnd )
 	{
 		if ( wnd!=null ) {
@@ -401,14 +400,25 @@ public class BaseActivity extends Activity implements Settings {
 			return 2;
 		case ActivityInfo_SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
 			return 3;
+		case ActivityInfo.SCREEN_ORIENTATION_USER:
+			return 5;
 		default:
 			return orientationFromSensor;
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	private boolean isReverseLandscape() {
+		return screenOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE; 
+	}
+	
 	public boolean isLandscape()
 	{
-		return screenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE || screenOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+		if (screenOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+			return true;
+		if (DeviceInfo.getSDKLevel() >= 9 && isReverseLandscape())
+			return true;
+		return false;
 	}
 
 	// support pre API LEVEL 9
@@ -437,6 +447,9 @@ public class BaseActivity extends Activity implements Settings {
 			break;
 		case 4:
 			newOrientation = level9 ? ActivityInfo_SCREEN_ORIENTATION_FULL_SENSOR : ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+			break;
+		case 5:
+			newOrientation = ActivityInfo.SCREEN_ORIENTATION_USER;
 			break;
 		}
 		if (newOrientation != screenOrientation) {
@@ -1465,7 +1478,7 @@ public class BaseActivity extends Activity implements Settings {
 	        }
 	        
 	        // default key actions
-          boolean menuKeyActionFound = false;
+            boolean menuKeyActionFound = false;
 	        for ( DefKeyAction ka : DEF_KEY_ACTIONS ) {
 	        		props.applyDefault(ka.getProp(), ka.action.id);
 	        		if (ReaderAction.READER_MENU.id.equals(ka.action.id))
@@ -1511,26 +1524,39 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
 	        props.applyDefault(ReaderView.PROP_LANDSCAPE_PAGES, DeviceInfo.ONE_COLUMN_IN_LANDSCAPE ? "0" : "1");
 	        // autodetect best initial font size based on display resolution
+	        int screenHeight = displayMetrics.heightPixels;
 	        int screenWidth = displayMetrics.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();
+	        if (screenWidth > screenHeight)
+    	        screenWidth = screenHeight;
 	        int fontSize = 20;
+	        int statusFontSize = 16;
 	        String hmargin = "4";
 	        String vmargin = "2";
 	        if ( screenWidth<=320 ) {
 	        	fontSize = 20;
+	        	statusFontSize = 16;
 	            hmargin = "4";
 	            vmargin = "2";
 	        } else if ( screenWidth<=400 ) {
 	        	fontSize = 24;
+	        	statusFontSize = 20;
 	            hmargin = "10";
 	            vmargin = "4";
 	        } else if ( screenWidth<=600 ) {
 	        	fontSize = 28;
+	        	statusFontSize = 24;
 	            hmargin = "20";
 	            vmargin = "8";
-	        } else {
+	        } else if ( screenWidth<=800 ) {
 	        	fontSize = 32;
+	        	statusFontSize = 28;
 	            hmargin = "25";
 	            vmargin = "15";
+	        } else {
+	        	fontSize = 48;
+	        	statusFontSize = 32;
+	            hmargin = "30";
+	            vmargin = "20";
 	        }
 	        if (DeviceInfo.DEF_FONT_SIZE != null)
 	        	fontSize = DeviceInfo.DEF_FONT_SIZE;
@@ -1544,10 +1570,10 @@ public class BaseActivity extends Activity implements Settings {
 	        fixFontSettings(props);
 	        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
-	        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : "16");
+	        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : String.valueOf(statusFontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_COLOR, "#000000");
 	        props.applyDefault(ReaderView.PROP_FONT_COLOR_DAY, "#000000");
-	        props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#808080");
+	        props.applyDefault(ReaderView.PROP_FONT_COLOR_NIGHT, "#D0B070");
 	        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR, "#FFFFFF");
 	        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_DAY, "#FFFFFF");
 	        props.applyDefault(ReaderView.PROP_BACKGROUND_COLOR_NIGHT, "#101010");
@@ -1571,7 +1597,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_CONTROLS_ENABLE_VOLUME_KEYS, "1");
 			props.applyDefault(ReaderView.PROP_APP_TAP_ZONE_HILIGHT, "0");
 			props.applyDefault(ReaderView.PROP_APP_BOOK_SORT_ORDER, FileInfo.DEF_SORT_ORDER.name());
-			props.applyDefault(ReaderView.PROP_APP_DICTIONARY, dicts[0].id);
+			props.applyDefault(ReaderView.PROP_APP_DICTIONARY, Dictionaries.DEFAULT_DICTIONARY_ID);
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS, "0");
 			props.applyDefault(ReaderView.PROP_APP_SELECTION_ACTION, "0");
 			props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
@@ -1613,7 +1639,8 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_FILE_BROWSER_SIMPLE_MODE, "0");
 			
 			props.applyDefault(ReaderView.PROP_STATUS_LOCATION, Settings.VIEWER_STATUS_PAGE);
-			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, DeviceInfo.getSDKLevel() < DeviceInfo.HONEYCOMB ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
+			//props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, DeviceInfo.getSDKLevel() < DeviceInfo.HONEYCOMB ? Settings.VIEWER_TOOLBAR_NONE : Settings.VIEWER_TOOLBAR_SHORT_SIDE);
+			props.applyDefault(ReaderView.PROP_TOOLBAR_LOCATION, Settings.VIEWER_TOOLBAR_NONE);
 			props.applyDefault(ReaderView.PROP_TOOLBAR_HIDE_IN_FULLSCREEN, "0");
 
 			
@@ -1767,21 +1794,10 @@ public class BaseActivity extends Activity implements Settings {
 		public Properties get() { return new Properties(mSettings); }
 
 	}
-	static final DictInfo dicts[] = {
-		new DictInfo("Fora", "Fora Dictionary", "com.ngc.fora", "com.ngc.fora.ForaDictionary", Intent.ACTION_SEARCH, 0),
-		new DictInfo("ColorDict", "ColorDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 0),
-		new DictInfo("ColorDictApi", "ColorDict new / GoldenDict", "com.socialnmobile.colordict", "com.socialnmobile.colordict.activity.Main", Intent.ACTION_SEARCH, 1),
-		new DictInfo("AardDict", "Aard Dictionary", "aarddict.android", "aarddict.android.Article", Intent.ACTION_SEARCH, 0),
-		new DictInfo("AardDictLookup", "Aard Dictionary Lookup", "aarddict.android", "aarddict.android.Lookup", Intent.ACTION_SEARCH, 0),
-		new DictInfo("Dictan", "Dictan Dictionary", "info.softex.dictan", "", Intent.ACTION_VIEW, 2),
-		new DictInfo("FreeDictionary.org", "Free Dictionary . org", "org.freedictionary.MainActivity", "org.freedictionary", Intent.ACTION_VIEW, 0),
-		new DictInfo("LingoQuizLite", "Lingo Quiz Lite", "mnm.lite.lingoquiz", "mnm.lite.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
-		new DictInfo("LingoQuiz", "Lingo Quiz", "mnm.lingoquiz", "mnm.lingoquiz.ExchangeActivity", "lingoquiz.intent.action.ADD_WORD", 0).setDataKey("EXTRA_WORD"),
-		new DictInfo("LEODictionary", "LEO Dictionary", "org.leo.android.dict", "org.leo.android.dict.LeoDict", "android.intent.action.SEARCH", 0),
-	};
 
+	
 	public static DictInfo[] getDictList() {
-		return dicts;
+		return Dictionaries.getDictList();
 	}
 
 	public boolean isPackageInstalled(String packageName) {

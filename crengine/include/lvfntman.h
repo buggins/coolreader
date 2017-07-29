@@ -357,6 +357,9 @@ public:
     /// returns available typefaces
     virtual void getFaceList( lString16Collection & ) { }
 
+    /// returns first found face from passed list, or return face for font found by family only
+    virtual lString8 findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily);
+
     /// fills array with list of available gamma levels
     virtual void GetGammaLevels(LVArray<double> dst);
     /// returns current gamma level index
@@ -372,9 +375,10 @@ public:
     virtual void SetHintingMode(hinting_mode_t /*mode*/) { }
     /// returns current hinting mode
     virtual hinting_mode_t  GetHintingMode() { return HINTING_MODE_AUTOHINT; }
-
-    virtual bool SetAlias(lString8 alias,lString8 facename,int id,bool bold,bool italic){ return false;}
-
+    virtual bool setalias(lString8 alias,lString8 facename,int id,bool italic,bool bold){
+        CR_UNUSED5(alias, facename, id, italic, bold);
+        return false;
+    }
 };
 
 class LVBaseFont : public LVFont

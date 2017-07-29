@@ -1,6 +1,8 @@
 package org.coolreader.plugins;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.Scanner;
@@ -11,7 +13,7 @@ public class OnlineStoreWrapper {
 		this.plugin = plugin;
 	}
 	public FileInfo createRootDirectory() {
-		final FileInfo root = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName(), plugin.getDescription());
+		final FileInfo root = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName(), plugin.getName());
 		root.addDir(Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":genres", "Books by genres"));
 		FileInfo authors = Scanner.createOnlineLibraryPluginItem(plugin.getPackageName() + ":authors", "Books by authors");
 		root.addDir(authors);
@@ -76,6 +78,11 @@ public class OnlineStoreWrapper {
 	public AsyncOperationControl authenticate(String login, String password, AuthenticationCallback callback) {
 		AsyncOperationControl control = new AsyncOperationControl();
 		plugin.authenticate(control, login, password, callback);
+		return control;
+	}
+	public AsyncOperationControl registerNewAccount(HashMap<String, String> params, AuthenticationCallback callback) {
+		AsyncOperationControl control = new AsyncOperationControl();
+		plugin.registerNewAccount(control, params, callback);
 		return control;
 	}
 	private void loadBookInfoContinue(final AsyncOperationControl control, final String bookId, final boolean isBought, final BookInfoCallback callback) {
@@ -150,5 +157,21 @@ public class OnlineStoreWrapper {
 
 	public String getDescription() {
 		return plugin.getDescription();
+	}
+
+	public String getName() {
+		return plugin.getName();
+	}
+	
+	public String getUrl() {
+		return plugin.getUrl();
+	}
+	
+	public String getAccountRefillUrl() {
+		return plugin.getAccountRefillUrl();
+	}
+	
+	public ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters() {
+		return plugin.getNewAccountParameters();
 	}
 }

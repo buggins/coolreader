@@ -6,6 +6,12 @@
 #include <QMenu>
 #include <QMessageBox>
 
+#if QT_VERSION >= 0x050000
+#define setResizeModeMethod setSectionResizeMode
+#else
+#define setResizeModeMethod setResizeMode
+#endif
+
 RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     QDialog(parent),
     m_ui(new Ui::RecentBooksDlg),
@@ -15,10 +21,10 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
     m_ui->tableWidget->setColumnCount(4);
     m_ui->tableWidget->setHorizontalHeaderLabels ( QStringList() << tr("#") << tr("Author") << tr("Title") << tr("Filename") );
     m_ui->tableWidget->verticalHeader()->hide();
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( 0, QHeaderView::ResizeToContents );
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( 1, QHeaderView::ResizeToContents ); //Stretch
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( 2, QHeaderView::ResizeToContents );
-    m_ui->tableWidget->horizontalHeader()->setResizeMode( 3, QHeaderView::ResizeToContents );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( 0, QHeaderView::ResizeToContents );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( 1, QHeaderView::ResizeToContents ); //Stretch
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( 2, QHeaderView::ResizeToContents );
+    m_ui->tableWidget->horizontalHeader()->setResizeModeMethod( 3, QHeaderView::ResizeToContents );
     m_ui->tableWidget->horizontalHeader()->setDefaultAlignment( Qt::AlignLeft );
     m_ui->tableWidget->setEditTriggers( QAbstractItemView::NoEditTriggers );
     //m_ui->tableWidget->setVerticalHeader( NULL );
@@ -49,7 +55,7 @@ RecentBooksDlg::RecentBooksDlg(QWidget *parent, CR3View * docView ) :
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(author)));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(title)));
         m_ui->tableWidget->setItem( i-firstItem, index++, new QTableWidgetItem(cr2qt(filename)));
-        m_ui->tableWidget->verticalHeader()->setResizeMode( i-firstItem, QHeaderView::ResizeToContents );
+        m_ui->tableWidget->verticalHeader()->setResizeModeMethod( i-firstItem, QHeaderView::ResizeToContents );
         //CRRecentBookMenuItem * item = new CRRecentBookMenuItem( this, i, file );
         //addItem( item );
     }

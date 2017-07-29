@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <time.h>
@@ -1048,6 +1049,49 @@ lString16 & lString16::pack()
             pchunk->buf16 = (lChar16 *) realloc( pchunk->buf16, sizeof(lChar16)*(pchunk->len+1) );
             pchunk->size = pchunk->len;
         }
+    }
+    return *this;
+}
+
+bool isAlNum(lChar16 ch) {
+    lUInt16 props = lGetCharProps(ch);
+    return (props & (CH_PROP_ALPHA | CH_PROP_DIGIT)) != 0;
+}
+
+/// trims non alpha at beginning and end of string
+lString16 & lString16::trimNonAlpha()
+{
+    int firstns;
+    for (firstns = 0; firstns<pchunk->len &&
+        !isAlNum(pchunk->buf16[firstns]); ++firstns)
+        ;
+    if (firstns >= pchunk->len)
+    {
+        clear();
+        return *this;
+    }
+    int lastns;
+    for (lastns = pchunk->len-1; lastns>0 &&
+        !isAlNum(pchunk->buf16[lastns]); --lastns)
+        ;
+    int newlen = lastns-firstns+1;
+    if (newlen == pchunk->len)
+        return *this;
+    if (pchunk->nref == 1)
+    {
+        if (firstns>0)
+            lStr_memcpy( pchunk->buf16, pchunk->buf16+firstns, newlen );
+        pchunk->buf16[newlen] = 0;
+        pchunk->len = newlen;
+    }
+    else
+    {
+        lstring_chunk_t * poldchunk = pchunk;
+        release();
+        alloc( newlen );
+        _lStr_memcpy( pchunk->buf16, poldchunk->buf16+firstns, newlen );
+        pchunk->buf16[newlen] = 0;
+        pchunk->len = newlen;
     }
     return *this;
 }
@@ -2358,7 +2402,7 @@ lString8 & lString8::trim()
             (pchunk->buf8[lastns]==' ' || pchunk->buf8[lastns]=='\t');
             --lastns)
         ;
-    int newlen = lastns-firstns+1;
+    int newlen = (int)(lastns - firstns + 1);
     if (newlen == pchunk->len)
         return *this;
     if (pchunk->nref == 1)
@@ -2678,7 +2722,7 @@ int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEn
             state = 2;
         }
     }
-    return pdst - buf;
+    return (int)(pdst - buf);
 }
 
 lString16 & lString16::trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens )
@@ -2967,8 +3011,8 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
             s++;
         }
     }
-    srclen = s - src;
-    dstlen = p - dst;
+    srclen = (int)(s - src);
+    dstlen = (int)(p - dst);
 }
 
 lString16 Utf8ToUnicode( const char * s ) {
@@ -4330,7 +4374,7 @@ void CRLog::info( const char * msg, ... )
         return;
     va_list args;
     va_start( args, msg );
-    CRLOG->log( "WARN", msg, args );
+    CRLOG->log( "INFO", msg, args );
     va_end(args);
 }
 
@@ -4468,7 +4512,7 @@ bool lString8::startsWith( const char * substring ) const
 {
     if (!substring || !substring[0])
         return true;
-    int len = strlen(substring);
+    int len = (int)strlen(substring);
     if (length() < len)
         return false;
     const lChar8 * s1 = c_str();
@@ -4500,7 +4544,7 @@ bool lString8::endsWith( const lChar8 * substring ) const
 {
 	if ( !substring || !*substring )
 		return true;
-    int len = strlen(substring);
+    int len = (int)strlen(substring);
     if ( length() < len )
         return false;
     const lChar8 * s1 = c_str() + (length()-len);

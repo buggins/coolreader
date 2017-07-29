@@ -104,7 +104,7 @@ public class CRToolBar extends ViewGroup {
 		this.actions = actions;
 		this.showLabels = multiline;
 		this.isMultiline = multiline;
-		this.preferredItemHeight = context.getPreferredItemHeight();
+		this.preferredItemHeight = activity.getPreferredItemHeight(); //context.getPreferredItemHeight();
 		this.inflater = LayoutInflater.from(activity);
 		this.windowDividerHeight = multiline ? 8 : 0;
 		context.getWindow().getAttributes();
@@ -116,10 +116,11 @@ public class CRToolBar extends ViewGroup {
 			BAR_SPACING = 0; //preferredItemHeight / 20;
 		}
 		calcLayout();
+		L.d("CRToolBar preferredItemHeight=" + preferredItemHeight + " buttonWidth=" + buttonWidth + " buttonHeight=" + buttonHeight + " buttonSpacing=" + BUTTON_SPACING);
 	}
 	
 	private void calcLayout() {
-		int sz = (activity.isSmartphone() ? preferredItemHeight * 6 / 10 - BUTTON_SPACING : preferredItemHeight);
+		int sz = preferredItemHeight; //(activity.isSmartphone() ? preferredItemHeight * 6 / 10 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz - BUTTON_SPACING;
 		if (isMultiline)
 			buttonHeight = sz / 2;
@@ -135,8 +136,8 @@ public class CRToolBar extends ViewGroup {
 			iconActions.add(item);
 			Drawable d = activity.getResources().getDrawable(iconId);
 			visibleButtonCount++;
-			int w = d.getIntrinsicWidth() * dpi / 160;
-			int h = d.getIntrinsicHeight() * dpi / 160;
+			int w = d.getIntrinsicWidth();// * dpi / 160;
+			int h = d.getIntrinsicHeight();// * dpi / 160;
 			if (buttonWidth < w) {
 				buttonWidth = w;
 			}
@@ -500,6 +501,13 @@ public class CRToolBar extends ViewGroup {
 		scroll.setFadingEdgeLength(h / 10);
 		final PopupWindow popup = new PopupWindow(context);
 		tb.setPopup(popup, popupLocation);
+		ReaderAction longMenuAction = null;
+		for (ReaderAction action : actions) {
+			if (action.activateWithLongMenuKey())
+				longMenuAction = action;
+		}
+		final ReaderAction foundLongMenuAction = longMenuAction;
+		
 		popup.setTouchInterceptor(new OnTouchListener() {
 			
 			@Override
@@ -532,9 +540,20 @@ public class CRToolBar extends ViewGroup {
 		tb.setOnKeyListener(new OnKeyListener() {
 			@Override
 			public boolean onKey(View view, int keyCode, KeyEvent event) {
-				if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
-					popup.dismiss();
-					return true;
+				if (event.getAction() == KeyEvent.ACTION_DOWN) {
+					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+						//popup.dismiss();
+						return true;
+					}
+				} else if (event.getAction() == KeyEvent.ACTION_UP) {
+					if (keyCode == KeyEvent.KEYCODE_MENU && foundLongMenuAction != null && event.getDownTime() >= 500) {
+						popup.dismiss();
+						return onActionHandler.onActionSelected(foundLongMenuAction);
+					}
+					if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_BACK) {
+						popup.dismiss();
+						return true;
+					}
 				}
 				return false;
 			}

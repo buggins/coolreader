@@ -2,11 +2,17 @@
 #include "ui_settings.h"
 #include "cr3widget.h"
 #include "crqtutil.h"
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QColorDialog>
+#include <QtWidgets/QStyleFactory>
+#else
 #include <QtGui/QColorDialog>
 #include <QtGui/QStyleFactory>
+#endif
 #include <QDir>
 
-static int def_margins[] = { 0, 5, 8, 10, 15, 20, 25, 30 };
+static int def_margins[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30, 40, 50, 60 };
 #define MAX_MARGIN_INDEX (sizeof(def_margins)/sizeof(int))
 
 DECL_DEF_CR_FONT_SIZES;

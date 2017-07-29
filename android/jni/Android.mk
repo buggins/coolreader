@@ -9,7 +9,7 @@ LOCAL_MODULE    := cr3engine-3-1-1
 # TODO: build libraries using separate makefiles
 
 CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH -DFT2_BUILD_LIBRARY=1 \
-     -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0xA00000 \
+     -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
      -DLDOM_USE_OWN_MEM_MAN=0 \
      -DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1 \
@@ -27,6 +27,8 @@ LOCAL_C_INCLUDES := \
 
 
 LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES) -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall
+
+LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 
 CRENGINE_SRC_FILES := \
@@ -224,6 +226,10 @@ JNI_SRC_FILES := \
     cr3java.cpp \
     docview.cpp
 
+COFFEECATCH_SRC_FILES := \
+    coffeecatch/coffeecatch.c \
+    coffeecatch/coffeejni.c
+
 LOCAL_SRC_FILES := \
     $(JNI_SRC_FILES) \
     $(CRENGINE_SRC_FILES) \
@@ -233,7 +239,19 @@ LOCAL_SRC_FILES := \
     $(CHM_SRC_FILES) \
     $(ANTIWORD_SRC_FILES)
 
-LOCAL_LDLIBS    := -lm -llog -lz -ldl -Wl,-Map=cr3engine.map
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+
+ifeq ($(TARGET_ARCH_ABI),armeabi)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+
+LOCAL_LDLIBS    := -lm -llog -lz -ldl
+# 
+#LOCAL_LDLIBS    += -Wl,-Map=cr3engine.map
 #-ljnigraphics
 
 include $(BUILD_SHARED_LIBRARY)

@@ -4,7 +4,6 @@ import org.coolreader.R;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.graphics.PixelFormat;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;

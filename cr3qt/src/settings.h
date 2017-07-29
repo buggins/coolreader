@@ -1,9 +1,16 @@
 #ifndef SETTINGSDLG_H
 #define SETTINGSDLG_H
 
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#else
 #include <QtGui/QDialog>
 #include <QtGui/QCheckBox>
 #include <QtGui/QComboBox>
+#endif
 
 #include "crqtutil.h"
 

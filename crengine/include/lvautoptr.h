@@ -5,8 +5,13 @@
 template <class T >
 class LVAutoPtr {
     T * p;
-    LVAutoPtr( const LVAutoPtr & v ) { } // no copy allowed
-    LVAutoPtr & operator = (const LVAutoPtr & v) { return *this; } // no copy
+    LVAutoPtr( const LVAutoPtr & v ) {
+        CR_UNUSED(v);
+    } // no copy allowed
+    LVAutoPtr & operator = (const LVAutoPtr & v) {
+        CR_UNUSED(v);
+        return *this;
+    } // no copy
 public:
     LVAutoPtr()
         : p(NULL)

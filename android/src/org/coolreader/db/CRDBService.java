@@ -43,7 +43,7 @@ public class CRDBService extends Service {
     	mThread.stop(5000);
     }
 
-    private static File getDatabaseDir() {
+    private File getDatabaseDir() {
     	//File storage = Environment.getExternalStorageDirectory();
     	File storage = DeviceInfo.EINK_NOOK ? new File("/media/") : Environment.getExternalStorageDirectory();
     	File cr3dir = new File(storage, ".cr3");
@@ -51,7 +51,8 @@ public class CRDBService extends Service {
     		cr3dir.mkdirs();
     	if (!cr3dir.isDirectory() || !cr3dir.canWrite()) {
 	    	log.w("Cannot use " + cr3dir + " for writing database, will use data directory instead");
-    		cr3dir = Environment.getDataDirectory();
+	    	log.w("getFilesDir=" + getFilesDir() + " getDataDirectory=" + Environment.getDataDirectory());
+    		cr3dir = getFilesDir(); //Environment.getDataDirectory();
     	}
     	log.i("DB directory: " + cr3dir);
     	return cr3dir;
@@ -158,11 +159,11 @@ public class CRDBService extends Service {
     	void onOPDSCatalogsLoaded(ArrayList<FileInfo> catalogs);
     }
     
-	public void saveOPDSCatalog(final Long id, final String url, final String name) {
+	public void saveOPDSCatalog(final Long id, final String url, final String name, final String username, final String password) {
 		execTask(new Task("saveOPDSCatalog") {
 			@Override
 			public void work() {
-				mainDB.saveOPDSCatalog(id, url, name);
+				mainDB.saveOPDSCatalog(id, url, name, username, password);
 			}
 		});
 	}
@@ -659,8 +660,8 @@ public class CRDBService extends Service {
     		getService().loadOPDSCatalogs(callback, new Handler());
     	}
 
-    	public void saveOPDSCatalog(final Long id, final String url, final String name) {
-    		getService().saveOPDSCatalog(id, url, name);
+    	public void saveOPDSCatalog(final Long id, final String url, final String name, final String username, final String password) {
+    		getService().saveOPDSCatalog(id, url, name, username, password);
     	}
 
     	public void updateOPDSCatalogLastUsage(final String url) {

@@ -1,6 +1,13 @@
 #include "cr3widget.h"
 #include <QEvent>
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QMessageBox>
+#else
+#include <QtGui/QDialog>
 #include <QtGui/QMessageBox>
+#endif
 #include "searchdlg.h"
 #include "ui_searchdlg.h"
 

@@ -3,39 +3,28 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.InputDialog.InputHandler;
-import org.coolreader.sync.ChangeInfo;
-import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.opengl.GLSurfaceView;
-import android.opengl.GLU;
+import android.net.Uri;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -333,7 +322,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	
 	public boolean isBookLoaded()
 	{
-		BackgroundThread.ensureGUI();
 		return mOpened;
 	}
 	
@@ -448,12 +436,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		stopTracking();
 		if (currentAutoScrollAnimation != null)
 			stopAutoScroll();
-		saveCurrentPositionBookmarkSync(true);
+		prepareCurrentPositionBookmark();
+		saveCurrentPositionBookmark();
 		log.i("calling bookView.onPause()");
 		bookView.onPause();
 	}
 
+    private long lastAppResumeTs = 0;
+    
 	public void onAppResume() {
+    	lastAppResumeTs = System.currentTimeMillis();
 		log.i("calling bookView.onResume()");
 		bookView.onResume();
 	}
@@ -1435,14 +1427,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		return false;
 	}
 	
-	public SyncServiceAccessor getSyncService() {
-		return mActivity.getSyncService();
-	}
-	
 	public Bookmark removeBookmark(final Bookmark bookmark) {
 		Bookmark removed = mBookInfo.removeBookmark(bookmark);
 		if (removed != null) {
-            getSyncService().removeBookmark(mBookInfo.getFileInfo().getPathName(), removed);
 			if ( removed.getId()!=null ) {
 				mActivity.getDB().deleteBookmark(removed);
 			}
@@ -1462,7 +1449,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	
 	public void addBookmark(final Bookmark bookmark) {
 		mBookInfo.addBookmark(bookmark);
-		getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bookmark, false);
         highlightBookmarks();
         scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
     }
@@ -1486,7 +1472,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						mBookInfo.addBookmark(bm);
 					else
 						mBookInfo.setShortcutBookmark(shortcut, bm);
-					getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm, false);
 					mActivity.getDB().saveBookInfo(mBookInfo);
 					String s;
 					if ( shortcut==0 )
@@ -2365,6 +2350,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		case DCMD_TOGGLE_DAY_NIGHT_MODE:
 			toggleDayNightMode();
 			break;
+		default:
+			// do nothing
+			break;
 		}
 	}
 	boolean firstShowBrowserCall = true;
@@ -2410,6 +2398,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					case DCMD_SCROLL_BY:
 			    		isMoveCommand = true;
 						break;
+					default:
+						// do nothing
+						break;
 				}
 				if (isMoveCommand)
 					updateCurrentPositionStatus();
@@ -2439,6 +2430,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			@Override
 			public void run() {
 				mActivity.updateCurrentPositionStatus(fileInfo, bmk, props);
+				
+				String fname = mBookInfo.getFileInfo().getBasePath();
+				if (fname != null && fname.length() > 0)
+					setBookPositionForExternalShell(fname, props.pageNumber, props.pageCount);
 			}
 		});
 	}
@@ -2471,150 +2466,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		// check whether current book properties updated on another devices
 		// TODO: fix and reenable
 		//syncUpdater.syncExternalChanges(mBookInfo);
-	}
-	
-	private class SyncExternalChangesUpdater {
-		
-		private long lastUpdateId = 0;
-		private void scheduleExternalChangesUpdate(long interval) {
-			final long mySyncId = ++lastUpdateId;
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					if (mySyncId == lastUpdateId)
-						processExternalChanges();
-				}}, 60000);
-		}
-
-		private long lastSyncId = 0;
-		private void scheduleExternalChangesSync(long interval) {
-			final long mySyncId = ++lastSyncId;
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					if (mySyncId == lastSyncId)
-						syncExternalChanges(mBookInfo);
-				}}, interval);
-		}
-	
-		private void syncExternalChanges(BookInfo book) {
-			if (book == null)
-				return;
-			String fn = book.getFileInfo().getPathName();
-			if (fn == null)
-				return;
-			int LIMIT = 5000;
-			List<ChangeInfo> changes = getSyncService().checkChangesSync(LIMIT);
-			if (changes == null)
-				return;
-			ArrayList<ChangeInfo> thisBookChanges = new ArrayList<ChangeInfo>();
-			ArrayList<ChangeInfo> anotherBookChanges = new ArrayList<ChangeInfo>();
-			for (ChangeInfo ci : changes) {
-				if (fn.equalsIgnoreCase(ci.getFileName()))
-					thisBookChanges.add(ci);
-				else
-					anotherBookChanges.add(ci);
-			}
-			// update current book's parameters
-			for (ChangeInfo ci : thisBookChanges) {
-				processCurrentBookChange(book, ci);
-			}
-			if (anotherBookChanges.size() > 0)
-				addExternalChangesToProcess(anotherBookChanges);
-			scheduleExternalChangesUpdate(120000);
-			if (changes.size() == LIMIT)
-				scheduleExternalChangesSync(120000);
-		}
-	
-		private void processCurrentBookChange(BookInfo book, ChangeInfo ci) {
-			if (ci.isDeleted() && ci.getBookmark() == null)
-				return; // ignore REMOVE BOOK events
-			if (ci.isDeleted()) {
-				book.removeBookmark(ci.getBookmark());
-			} else {
-				book.syncBookmark(ci.getBookmark());
-			}
-		}
-		
-		private void processExternalBookChange(final ChangeInfo ci) {
-			FileInfo file = new FileInfo(ci.getFileName());
-			if (!file.fileExists()) {
-				log.w("Ignoring sync change for not existing file " + ci.getFileName());
-				return;
-			}
-			if (ci.isDeleted() && ci.getBookmark() == null) {
-				Services.getHistory().removeBookInfo(mActivity.getDB(), file, true, true);
-				return; // ignore REMOVE BOOK events
-			}
-			Services.getHistory().getOrCreateBookInfo(mActivity.getDB(), file, new History.BookInfoLoadedCallack() {
-				@Override
-				public void onBookInfoLoaded(BookInfo bookInfo) {
-					// process
-					if (ci.isDeleted()) {
-						bookInfo.removeBookmark(ci.getBookmark());
-					} else {
-						bookInfo.syncBookmark(ci.getBookmark());
-					}
-				}
-			});
-		}
-		
-		private void addExternalChangesToProcess(ArrayList<ChangeInfo> changes) {
-			synchronized(externalChangesToProcess) {
-				externalChangesToProcess.addAll(changes);
-			}
-		}
-	
-		private void processExternalChanges() {
-			if (externalChangesToProcess.size() == 0)
-				return;
-			final ArrayList<ChangeInfo> changes = new ArrayList<ChangeInfo>();
-			synchronized(externalChangesToProcess) {
-				int count = 100;
-				if (count > externalChangesToProcess.size())
-					count = externalChangesToProcess.size();
-				changes.addAll(externalChangesToProcess.subList(0, count));
-				for (int i = count - 1; i >= 0; i--)
-					externalChangesToProcess.remove(i);
-			}
-			BackgroundThread.instance().postGUI(new Runnable() {
-				@Override
-				public void run() {
-					String currentBook = mBookInfo != null ? mBookInfo.getFileInfo().getPathName() : "";
-					boolean currentBookChanged = false;
-					boolean lastPosChanged = false;
-					for (ChangeInfo ci : changes) {
-						if (currentBook.equals(ci.getFileName())) {
-							processCurrentBookChange(mBookInfo, ci);
-							currentBookChanged = true;
-						} else {
-							processExternalBookChange(ci);
-						}
-						if (ci.getBookmark().getType() == Bookmark.TYPE_LAST_POSITION)
-							lastPosChanged = true;
-					}
-					if (currentBookChanged)
-						notifyCurrentBookBookmarksChanged();
-					if (lastPosChanged)
-						notifyRecentBooksDirectoryChanged();
-				}
-			});
-		}
-		
-		private void notifyCurrentBookBookmarksChanged() {
-			// TODO: update UI?
-		}
-	
-		private void notifyRecentBooksDirectoryChanged() {
-			// TODO: update UI?
-		}
-	
-		private final ArrayList<ChangeInfo> externalChangesToProcess = new ArrayList<ChangeInfo>();
-	}
-	private final SyncExternalChangesUpdater syncUpdater = new SyncExternalChangesUpdater();
-
-	public void syncExternalChanges() {
-		syncUpdater.scheduleExternalChangesSync(10000);
 	}
 	
 	private void applySettings(Properties props)
@@ -2709,7 +2560,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
 		}
 		log.e("cannot get manual file name!");
-		return "/sdcard/books/manual_ru.fb2";
+		return null;
 	}
 	
 	private File generateManual() {
@@ -3515,9 +3366,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	    		});
 	    	}
 	    };
+	    
+	    long timeSinceLastResume = System.currentTimeMillis() - lastAppResumeTs;
+	    int delay = 300;
+	    
+	    if (timeSinceLastResume < 1000)
+	        delay = 1000;
+
 	    if ( mOpened ) {
-	    	log.d("scheduling delayed resize task id=" + thisId);
-	    	BackgroundThread.instance().postGUI(task, 300);
+	    	log.d("scheduling delayed resize task id=" + thisId + " for " + delay + " ms");
+	    	BackgroundThread.instance().postGUI(task, delay);
 	    } else {
 	    	log.d("executing resize without delay");
 	    	task.run();
@@ -3792,7 +3650,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private class AnimationUpdate {
 		private int x;
 		private int y;
-		ViewAnimationControl myAnimation;
+		//ViewAnimationControl myAnimation;
 		public void set(int x, int y) {
 			this.x = x;
 			this.y = y;
@@ -3800,7 +3658,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public AnimationUpdate(int x, int y) {
 			this.x = x;
 			this.y = y;
-			this.myAnimation = currentAnimation;
+			//this.myAnimation = currentAnimation;
 			scheduleUpdate();
 		}
 		private void scheduleUpdate() {
@@ -3964,7 +3822,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			animationScheduler.cancel();
 			currentAnimation = null;
 			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
+			lastSavedBookmark = null;
+			lastPositionBookmarkToSave = null;
 			updateCurrentPositionStatus();
+			
 			scheduleGc();
 		}
 
@@ -4195,7 +4056,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			long start = android.os.SystemClock.uptimeMillis();
 			log.v("PageViewAnimation -- creating: drawing two pages to buffer");
 			
-			PositionProperties currPos = mCurrentPageInfo.position;
+			PositionProperties currPos = mCurrentPageInfo == null ? null : mCurrentPageInfo.position;
 			if ( currPos==null )
 				currPos = doc.getPositionProps(null);
 			page1 = currPos.pageNumber;
@@ -5084,27 +4945,24 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     
     private final static int DEF_SAVE_POSITION_INTERVAL = 180000; // 3 minutes
     private void scheduleSaveCurrentPositionBookmark(final int delayMillis) {
+
+
     	// GUI thread required
     	BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
 			public void run() {
 		    	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
 				if (isBookLoaded() && mBookInfo != null) {
-			    	Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
-			    	if (bmk != null) {
-			            bmk.setTimeStamp(System.currentTimeMillis());
-			            bmk.setType(Bookmark.TYPE_LAST_POSITION);
-		                mBookInfo.setLastPosition(bmk);
-		                if (delayMillis <= 1)
-		                	getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bmk, true);
-			    	}
+			    	prepareCurrentPositionBookmark();
+			    	Bookmark bmk = lastPositionBookmarkToSave;
+			    	if (bmk == null)
+			    		return;
 			    	final BookInfo bookInfo = mBookInfo;
 			    	if (delayMillis <= 1) {
 						if (bookInfo != null && mActivity.getDB() != null) {
-							log.v("saving last immediately");
+							log.v("saving last position immediately");
+							saveCurrentPositionBookmark();
 							Services.getHistory().updateBookAccess(bookInfo, getTimeElapsed());
-							mActivity.getDB().saveBookInfo(bookInfo);
-							mActivity.getDB().flush();
 						}
 			    	} else {
 				    	BackgroundThread.instance().postGUI(new Runnable() {
@@ -5114,11 +4972,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 									if (bookInfo != null) {
 										log.v("saving last position");
 										if (Services.getHistory() != null) {
+											saveCurrentPositionBookmark();
 											Services.getHistory().updateBookAccess(bookInfo, getTimeElapsed());
-											if (mActivity.getDB() != null)
-												mActivity.getDB().saveBookInfo(bookInfo);
 										}
-						                //mActivity.getDB().flush();
 									}
 								}
 							}}, delayMillis);
@@ -5126,7 +4982,54 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				}
 			}
     	});
+    	
+//    	if (DeviceInfo.EINK_SONY && isBookLoaded()) {
+//    		getCurrentPositionProperties(new PositionPropertiesCallback() {
+//				@Override
+//				public void onPositionProperties(PositionProperties props,
+//						String positionText) {
+//					// update position for Sony T2
+//					if (props != null && mBookInfo != null) {
+//						String fname = mBookInfo.getFileInfo().getBasePath();
+//						if (fname != null && fname.length() > 0)
+//							setBookPositionForExternalShell(fname, props.pageNumber, props.pageCount);
+//					}
+//				}
+//    		});
+//    	}
     }
+    
+    // Sony T2 update position method - by Jotas
+    public void setBookPositionForExternalShell(String filename, long current_page , long total_pages) {
+    	if (DeviceInfo.EINK_SONY) {
+    		log.d("Trying to update last book and position in Sony T2 shell: file=" + filename + " currentPage=" + current_page + " totalPages=" + total_pages);
+	        File f = new File(filename); 
+	        if( f.exists() ) { 
+	            String file_path = f.getAbsolutePath();
+	            try { 
+	                file_path = f.getCanonicalPath(); 
+	            } catch( Exception e ) { 
+	                Log.d("cr3Sony" , "setBookPosition getting filename/path", e); 
+	            }
+	
+	            try {          
+	                Uri uri = Uri.parse("content://com.sony.drbd.ebook.internal.provider/continuerea ding"); 
+	                ContentValues contentvalues = new ContentValues(); 
+	                contentvalues.put("file_path" , file_path); 
+	                contentvalues.put("current_page" , Long.valueOf(current_page)); 
+	                contentvalues.put("total_pages" , Long.valueOf(total_pages)); 
+	                if ( mActivity.getContentResolver().insert(uri, contentvalues) != null) 
+	                   Log.d("cr3Sony" , "setBookPosition: filename = " + filename + "start=" + current_page + "end=" + total_pages); 
+	                else 
+	                   Log.d("crsony" , "setBookPosition : error inserting in database!");
+	
+	            } catch( Exception e ) { 
+	                Log.d("cr3Sony" , "setBookPositon parse/values!", e); 
+	            }
+	        }
+    	}
+    }
+    
     
     public interface PositionPropertiesCallback {
     	void onPositionProperties(PositionProperties props, String positionText);
@@ -5154,6 +5057,35 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     	});
     }
     
+
+    Bookmark lastPositionBookmarkToSave = null;
+    Bookmark lastSavedBookmark = null;
+    
+    public void prepareCurrentPositionBookmark() {
+        if (!mOpened)
+            return;
+        lastPositionBookmarkToSave = doc.getCurrentPageBookmarkNoRender();
+        if (lastPositionBookmarkToSave != null) {
+	    	lastPositionBookmarkToSave.setTimeStamp(System.currentTimeMillis());
+	    	lastPositionBookmarkToSave.setType(Bookmark.TYPE_LAST_POSITION);
+	        if (mBookInfo != null)
+	            mBookInfo.setLastPosition(lastPositionBookmarkToSave);
+        }
+    }
+    
+    public void saveCurrentPositionBookmark() {
+        if (lastPositionBookmarkToSave != null && mBookInfo != null && isBookLoaded()) {
+        	//setBookPosition();
+        	if (lastSavedBookmark == null || !lastSavedBookmark.getStartPos().equals(lastPositionBookmarkToSave.getStartPos())) {
+	        	Services.getHistory().updateRecentDir();
+	        	mActivity.getDB().saveBookInfo(mBookInfo);
+	        	mActivity.getDB().flush();
+	        	lastSavedBookmark = lastPositionBookmarkToSave; 
+        	}
+        	lastPositionBookmarkToSave = null;
+        }
+    }
+
     public Bookmark saveCurrentPositionBookmarkSync( final boolean saveToDB ) {
     	++lastSavePositionTaskId;
         Bookmark bmk = BackgroundThread.instance().callBackground(new Callable<Bookmark>() {
@@ -5165,6 +5097,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
             }
         });
         if ( bmk!=null ) {
+        	//setBookPosition();
             bmk.setTimeStamp(System.currentTimeMillis());
             bmk.setType(Bookmark.TYPE_LAST_POSITION);
             if ( mBookInfo!=null )
@@ -6047,7 +5980,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		surface.setOnTouchListener(this);
 		surface.setOnKeyListener(this);
 		surface.setOnFocusChangeListener(this);
-        doc = new DocView(engine);
+        doc = new DocView(Engine.lock);
         doc.setReaderCallback(readerCallback);
         SurfaceHolder holder = surface.getHolder();
         holder.addCallback(this);

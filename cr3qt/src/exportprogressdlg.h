@@ -1,7 +1,12 @@
 #ifndef EXPORTPROGRESSDLG_H
 #define EXPORTPROGRESSDLG_H
 
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QDialog>
+#else
 #include <QtGui/QDialog>
+#endif
 
 namespace Ui {
     class ExportProgressDlg;

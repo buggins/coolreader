@@ -28,6 +28,12 @@
 #include <../../crengine/include/fb2def.h>
 #include <sys/stat.h>
 
+#if defined(__arm__)
+#include "coffeecatch/coffeecatch.h"
+#include "coffeecatch/coffeejni.h"
+#else
+#define COFFEE_TRY_JNI(ENV, CODE) CODE;
+#endif
 
 #ifdef _DEBUG
 // missing in system ZLIB with DEBUG option turned off
@@ -281,13 +287,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_scanBookPropertie
 }
 
 
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    drawBookCoverInternal
- * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
- */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
-  (JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
+void drawBookCoverInternal(JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
 {
 	CRJNIEnv env(_env);
 	CRLog::debug("drawBookCoverInternal called");
@@ -300,6 +300,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 	if (drawbuf != NULL) {
 		LVImageSourceRef image;
 		if (_data != NULL && _env->GetArrayLength(_data) > 0) {
+			CRLog::debug("drawBookCoverInternal : cover image from array");
 			stream = env.jbyteArrayToStream(_data);
 			if (!stream.isNull())
 				image = LVCreateStreamImageSource(stream);
@@ -327,6 +328,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 
 		if (bpp >= 16) {
 			// native color resolution
+			CRLog::debug("drawBookCoverInternal : calling LVDrawBookCover");
 			LVDrawBookCover(*drawbuf2, image, fontFace, title, authors, seriesName, seriesNumber);
 			image.Clear();
 		} else {
@@ -337,6 +339,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 		}
 
 		if (factor > 1) {
+			CRLog::debug("drawBookCoverInternal : rescaling");
 			drawbuf->DrawRescaled(drawbuf2, 0, 0, drawbuf->GetWidth(), drawbuf->GetHeight(), 0);
 			delete drawbuf2;
 		}
@@ -351,11 +354,18 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
 
 /*
  * Class:     org_coolreader_crengine_Engine
- * Method:    scanBookCoverInternal
- * Signature: (Ljava/lang/String;)[B
+ * Method:    drawBookCoverInternal
+ * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
  */
-JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverInternal
-  (JNIEnv * _env, jclass _class, jstring _path) {
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
+  (JNIEnv * _env, jclass _engine, jobject bitmap, jbyteArray _data, jstring _fontFace, jstring _title, jstring _authors, jstring _seriesName, jint seriesNumber, jint bpp)
+{
+	COFFEE_TRY_JNI(_env, drawBookCoverInternal(_env, _engine, bitmap, _data, _fontFace, _title, _authors, _seriesName, seriesNumber, bpp));
+}
+
+jbyteArray scanBookCoverInternal
+  (JNIEnv * _env, jclass _class, jstring _path)
+{
 	CRJNIEnv env(_env);
 	lString16 path = env.fromJavaString(_path);
 	CRLog::debug("scanBookCoverInternal(%s) called", LCSTR(path));
@@ -412,6 +422,19 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
     else
     	CRLog::debug("scanBookCoverInternal() : cover page data not found");
     return array;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    scanBookCoverInternal
+ * Signature: (Ljava/lang/String;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverInternal
+  (JNIEnv * _env, jclass _class, jstring _path)
+{
+	jbyteArray res = NULL;
+	COFFEE_TRY_JNI(_env, res = scanBookCoverInternal( _env, _class, _path));
+	return res;
 }
 
 /*
@@ -511,23 +534,19 @@ protected:
 
 void cr3androidFatalErrorHandler(int errorCode, const char * errorText )
 {
-	static char str[1001];
-	snprintf(str, 1000, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
 	LOGE("CoolReader Fatal Error #%d: %s", errorCode, errorText);
-	LOGASSERTFAILED(errorText, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	LOGASSERTFAILED("CoolReader Fatal Error", "CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	//static char str[1001];
+	//snprintf(str, 1000, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	//LOGE("CoolReader Fatal Error #%d: %s", errorCode, errorText);
+	//LOGASSERTFAILED(errorText, "CoolReader Fatal Error #%d: %s", errorCode, errorText);
 }
 
 /// set fatal error handler
 void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
 
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    initInternal
- * Signature: ([Ljava/lang/String;)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
-  (JNIEnv * penv, jclass obj, jobjectArray fontArray)
-{
+jboolean initInternal(JNIEnv * penv, jclass obj, jobjectArray fontArray) {
+
 	CRJNIEnv env(penv);
 
 	// to catch crashes and remove current cache file on crash (SIGSEGV etc.)
@@ -564,6 +583,19 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    initInternal
+ * Signature: ([Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
+  (JNIEnv * penv, jclass obj, jobjectArray fontArray)
+{
+	jboolean res = JNI_FALSE;
+	COFFEE_TRY_JNI(penv, res = initInternal(penv, obj, fontArray));
+	return res;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    uninitInternal
  * Signature: ()V
  */
@@ -587,7 +619,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 	LOGI("getFontFaceListInternal called");
 	CRJNIEnv env(penv);
 	lString16Collection list;
-	fontMan->getFaceList(list);
+	COFFEE_TRY_JNI(penv, fontMan->getFaceList(list));
 	return env.toJavaStringArray(list);
 }
 
@@ -600,7 +632,8 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
   (JNIEnv * penv, jclass obj, jstring dir, jint size)
 {
 	CRJNIEnv env(penv);
-	bool res = ldomDocCache::init(env.fromJavaString(dir), size ); 
+	bool res = false;
+	COFFEE_TRY_JNI(penv, res = ldomDocCache::init(env.fromJavaString(dir), size ));
 	return res ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -612,16 +645,19 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
   (JNIEnv * env, jclass obj, jstring pathname)
 {
-	if ( !pathname )
+	//CRLog::trace("isLink : enter");
+	if (!pathname)
 		return NULL;
+	//CRLog::trace("isLink : pathname is not null");
 	int res = JNI_FALSE;
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars(pathname, &iscopy);
+	//CRLog::trace("isLink : read utf from pathname");
 	struct stat st;
 	lString8 path;
 	if ( !lstat( s, &st) ) {
 		if ( S_ISLNK(st.st_mode) ) {
-			char buf[1024];
+			char buf[2048];
 			int len = readlink(s, buf, sizeof(buf) - 1);
 			if (len != -1) {
 				buf[len] = 0;
@@ -629,7 +665,9 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
 			}
 		}
 	}
+	//CRLog::trace("isLink : releasing utf pathname");
 	env->ReleaseStringUTFChars(pathname, s);
+	//CRLog::trace("isLink : returning");
 	return !path.empty() ? (jstring)env->NewGlobalRef(env->NewStringUTF(path.c_str())) : NULL;
 }
 

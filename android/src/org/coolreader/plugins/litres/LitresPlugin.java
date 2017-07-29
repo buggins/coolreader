@@ -1,6 +1,8 @@
 package org.coolreader.plugins.litres;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.coolreader.crengine.DocumentFormat;
 import org.coolreader.crengine.FileInfo;
@@ -19,19 +21,23 @@ import org.coolreader.plugins.OnlineStoreBook;
 import org.coolreader.plugins.OnlineStoreBookInfo;
 import org.coolreader.plugins.OnlineStoreBooks;
 import org.coolreader.plugins.OnlineStorePlugin;
+import org.coolreader.plugins.OnlineStoreRegistrationParam;
 import org.coolreader.plugins.PurchaseBookCallback;
 import org.coolreader.plugins.litres.LitresConnection.LitresAuthInfo;
 import org.coolreader.plugins.litres.LitresConnection.PurchaseStatus;
 import org.coolreader.plugins.litres.LitresConnection.ResultHandler;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 
 public class LitresPlugin implements OnlineStorePlugin {
 
 	public static final String PACKAGE_NAME = "org.coolreader.plugins.litres";
+	private Activity activity;
 	
 	private final LitresConnection connection;
-	public LitresPlugin(SharedPreferences preferences) {
+	public LitresPlugin(Activity activity, SharedPreferences preferences) {
+		this.activity = activity;
 		connection = LitresConnection.create(preferences);
 	}
 	
@@ -50,9 +56,81 @@ public class LitresPlugin implements OnlineStorePlugin {
 
 	@Override
 	public String getDescription() {
-		return "LitRes";
+		return activity.getString(org.coolreader.R.string.online_store_plugin_description_litres);
 	}
 
+	@Override
+	public String getName() {
+		return activity.getString(org.coolreader.R.string.online_store_plugin_name_litres);
+	}
+
+	@Override
+	public String getUrl() {
+		String sidParam = connection.getSID();
+		String res = "http://www.litres.ru/?lfrom=" + LitresConnection.P_ID;
+		if (sidParam != null && sidParam.length() > 0)
+			res = res + "&sid=" + sidParam;
+		return res;
+	}
+	
+	@Override
+	public String getAccountRefillUrl() {
+		String sid = connection.getSID();
+		if (sid != null && sid.length() > 0)
+			return "http://www.litres.ru/pages/put_money_on_account/?lfrom=" + LitresConnection.P_ID + "&sid=" + sid;
+		return null;
+	}
+
+	@Override
+	public ArrayList<OnlineStoreRegistrationParam> getNewAccountParameters() {
+		ArrayList<OnlineStoreRegistrationParam> res = new ArrayList<OnlineStoreRegistrationParam>();
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LOGIN,
+						activity.getString(org.coolreader.R.string.online_store_login),
+						null,
+						true
+				));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_PASSWORD,
+				activity.getString(org.coolreader.R.string.online_store_password),
+				null,
+				true
+		));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_EMAIL,
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_email),
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_email_description_litres),
+				false
+		));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_FIRST_NAME,
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_first_name),
+				null,
+				false
+		));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_MIDDLE_NAME,
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_middle_name),
+				null,
+				false
+		));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LAST_NAME,
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_last_name),
+				null,
+				false
+		));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_CITY,
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_city),
+				null,
+				false
+		));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_GENDER,
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_gender),
+				null,
+				false
+		));
+		res.add(new OnlineStoreRegistrationParam(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_SUBSCRIBE,
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_subscribe),
+				activity.getString(org.coolreader.R.string.online_store_new_account_param_subscribe_description_litres),
+				false
+		));
+		return res;
+	}
 	
 	@Override
 	public void authenticate(final AsyncOperationControl control, String login, String password, final AuthenticationCallback callback) {
@@ -70,6 +148,24 @@ public class LitresPlugin implements OnlineStorePlugin {
 			}
 		});
 	}
+	
+	@Override
+	public void registerNewAccount(final AsyncOperationControl control, HashMap<String, String> params, final AuthenticationCallback callback) {
+		connection.register(params, new ResultHandler() {
+			@Override
+			public void onResponse(AsyncResponse response) {
+				control.finished();
+				if (response instanceof ErrorResponse) {
+					ErrorResponse error = (ErrorResponse)response;
+					callback.onError(error.errorCode, error.errorMessage);
+				} else if (response instanceof LitresConnection.LitresAuthInfo) {
+					LitresConnection.LitresAuthInfo result = (LitresConnection.LitresAuthInfo)response;
+					callback.onSuccess();
+				}
+			}
+		});
+	}
+	
 
 	@Override
 	public String getLogin() {
@@ -340,6 +436,8 @@ public class LitresPlugin implements OnlineStorePlugin {
 		});
 	}
 
+	private final static int ERROR_NOT_ENOUGH_MONEY = 1;
+	
 	protected void purchaseBookNoAuth(final AsyncOperationControl control, final String bookId, final PurchaseBookCallback callback) {
 		connection.purchaseBook(bookId, new ResultHandler() {
 			@Override
@@ -347,7 +445,10 @@ public class LitresPlugin implements OnlineStorePlugin {
 				control.finished();
 				if (response instanceof ErrorResponse) {
 					ErrorResponse error = (ErrorResponse)response;
-					callback.onError(error.errorCode, error.errorMessage);
+					if (error.errorCode == ERROR_NOT_ENOUGH_MONEY)
+						callback.onLowBalance(bookId, 0, 0);
+					else
+						callback.onError(error.errorCode, error.errorMessage);
 				} else if (response instanceof PurchaseStatus) {
 					PurchaseStatus result = (PurchaseStatus)response;
 					callback.onBookPurchased(result.bookId, result.newBalance);

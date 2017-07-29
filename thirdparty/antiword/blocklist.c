@@ -533,16 +533,16 @@ usGetNextByte(FILE *pFile, readinfo_type *pInfoCurrent, list_mem_type *pAnchor,
 		pInfoCurrent->tByteNext = 0;
 	}
 	if (pulFileOffset != NULL) {
-		*pulFileOffset =
+        *pulFileOffset = (ULONG)(
 			pInfoCurrent->pBlockCurrent->tInfo.ulFileOffset +
 			pInfoCurrent->ulBlockOffset +
-			pInfoCurrent->tByteNext;
+            pInfoCurrent->tByteNext);
 	}
 	if (pulCharPos != NULL) {
-		*pulCharPos =
+        *pulCharPos = (ULONG)(
 			pInfoCurrent->pBlockCurrent->tInfo.ulCharPos +
 			pInfoCurrent->ulBlockOffset +
-			pInfoCurrent->tByteNext;
+            pInfoCurrent->tByteNext);
 	}
 	if (pusPropMod != NULL) {
 		*pusPropMod = pInfoCurrent->pBlockCurrent->tInfo.usPropMod;

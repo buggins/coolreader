@@ -193,6 +193,7 @@ public interface Settings {
         DE("de", R.string.options_app_locale_de, 0),
     	ES("es", R.string.options_app_locale_es, 0),
     	FR("fr", R.string.options_app_locale_fr, 0),
+    	JA("ja", R.string.options_app_locale_ja, 0),
     	RU("ru", R.string.options_app_locale_ru, R.raw.help_template_ru),
     	UK("uk", R.string.options_app_locale_uk, R.raw.help_template_ru),
     	BG("bg", R.string.options_app_locale_bg, 0),
@@ -294,26 +295,6 @@ public interface Settings {
 
 	    "app.ui.theme*",
 	};
-
-	public static class DictInfo {
-		public final String id; 
-		public final String name;
-		public final String packageName;
-		public final String className;
-		public final String action;
-		public final Integer internal;
-		public String dataKey = SearchManager.QUERY; 
-		public DictInfo ( String id, String name, String packageName, String className, String action, Integer internal ) {
-			this.id = id;
-			this.name = name;
-			this.packageName = packageName;
-			this.className = className;
-			this.action = action;
-			this.internal = internal;
-		}
-		public DictInfo setDataKey(String key) { this.dataKey = key; return this; }
-	}
-
 
 
 }

@@ -123,13 +123,13 @@ tag_lvfont_range
 typedef struct 
 tag_lvfont_glyph 
 {
-    lUInt8  blackBoxX;   ///< 0: width of glyph
-    lUInt8  blackBoxY;   ///< 1: height of glyph black box
-    lInt8   originX;     ///< 2: X origin for glyph
-    lInt8   originY;     ///< 3: Y origin for glyph
-    lUInt16 glyphSize;   ///< 4: bytes in glyph array
-    lUInt8  width;       ///< 6: full width of glyph
-    lUInt8  glyph[1];    ///< 7: glyph data, arbitrary size
+    lUInt32  glyphSize;   ///< 4: bytes in glyph array
+    lUInt16  blackBoxX;   ///< 0: width of glyph
+    lUInt16  blackBoxY;   ///< 1: height of glyph black box
+    lInt16   originX;     ///< 2: X origin for glyph
+    lInt16   originY;     ///< 3: Y origin for glyph
+    lUInt16  width;       ///< 6: full width of glyph
+    lUInt8   glyph[2];    ///< 7: glyph data, arbitrary size
 } lvfont_glyph_t;
 #pragma pack(pop)
 

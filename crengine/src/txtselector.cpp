@@ -25,18 +25,21 @@ ldomTextSelectionTool::ldomTextSelectionTool( ldomXRange & initialRange, ldomTex
 /// moves selection, returns true if selection is moved, and it's necessary to ensure positionToShow is visible on screen
 bool ldomTextSelectionTool::moveBy( ldomTextSelectionTool::interval_t interval, ldomTextSelectionTool::direction_t dir, ldomTextSelectionTool::origin_t origin, int count, ldomXPointer &positionToShow )
 {
+    CR_UNUSED5(interval, dir, origin, count, positionToShow);
     return false;
 }
 
 /// selects middle interval of specified type
 bool ldomTextSelectionTool::selectMiddleInterval( interval_t interval, ldomXPointer &positionToShow )
 {
+    CR_UNUSED2(interval, positionToShow);
     return false;
 }
 
 /// moves selection, returns true if selection is moved, and it's necessary to ensure positionToShow is visible on screen
 bool ldomTextSelectionTool::doCommand( int cmd, int param, ldomXPointer &positionToShow )
 {
+    CR_UNUSED(param);
     int count = 1;
     if ( cmd>1 && cmd<20 )
         count = cmd;

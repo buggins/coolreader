@@ -1,7 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <qglobal.h>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QMainWindow>
+#else
 #include <QtGui/QMainWindow>
+#endif
 #include "settings.h"
 #include "cr3widget.h"
 
@@ -65,6 +70,8 @@ void on_actionFindText_triggered();
     void on_actionOpen_triggered();
     void on_actionExport_triggered();
     void on_view_destroyed();
+    void on_actionNextSentence_triggered();
+    void on_actionPrevSentence_triggered();
 };
 
 #endif // MAINWINDOW_H
