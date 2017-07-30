@@ -41,9 +41,6 @@ img {
 	text-align: center; 
 	text-indent: 0px; 
 	display: block; 
-	margin: 0.5em; 
-   	border-style: solid; 
-   	border-width: medium; 
 }
 .section_image { text-align: center; }
 .coverpage { text-align: center; }
@@ -58,12 +55,16 @@ hr { height: 2px; background-color: #808080; margin-top: 0.5em; margin-bottom: 0
 
 sub { vertical-align: sub; font-size: 70% }
 sup { vertical-align: super; font-size: 70% }
+sup img{display:inline}
+sub img{display:inline}
+a img{display:inline}
+p img{display:inline}
 
 li { display: list-item; text-indent: 0em;  }
 ul { display: block; list-style-type: disc; margin-left: 1em }
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
-div { display: block }
+div { display: block;margin:1px; }
 span { display: inline }
 
 .citation p { text-align: left; text-indent: 0px }
@@ -78,7 +79,7 @@ span { display: inline }
 .epigraph { margin-left: 15%; margin-right: 1em; margin-top: 15px; margin-bottom: 25px; text-align: left; text-indent: 1em; font-style: italic }
 .citation { font-style: italic; margin-left: 5%; margin-right: 5%; margin-top: 20px; margin-bottom: 20px; text-align: justify; }
 
-table { font-size: 80% }
+table { font-size: 80% ; margin:3px;}
 td, th { text-indent: 0px; padding: 3px }
 th {  font-weight: bold; text-align: center; background-color: #DDD  }
 table caption { text-indent: 0px; padding: 4px; background-color: #EEE }

@@ -78,13 +78,18 @@ table caption { text-indent: 0px; padding: 4px; background-color: #EEE }
 
 tt, samp, kbd, code, pre { font-family: "Courier New", "Courier", monospace; } 
 code, pre { 
-	display: block; 
-   	margin-top: 0.5em; 
-   	margin-bottom: 0.5em; 
-	white-space: pre; 
-	text-align: left; 
-	text-align: left;
-  /* background-color: #BFBFBF; */ 
+   white-space: pre; 
+   text-align: left; 
+   font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", monospace; 
+   }
+code {
+   display: inline;
+}
+pre {
+   display: block; 
+   margin-top: 0.5em; 
+   margin-bottom: 0.5em; 
+   text-align: left 
 }
 
 body[name="notes"] { font-size: 70%; }

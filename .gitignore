@@ -7,3 +7,7 @@ qtbuild
 qt-build
 qtcreator-build
 *~
+*.a
+*.so
+cr3gui/data
+thirdparty

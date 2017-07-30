@@ -22,9 +22,19 @@
 /// soft hyphen code
 #define UNICODE_SOFT_HYPHEN_CODE 0x00ad
 #define UNICODE_ZERO_WIDTH_SPACE 0x200b
+#define UNICODE_THIN_SPACE 0x2009
 #define UNICODE_NO_BREAK_SPACE   0x00a0
 #define UNICODE_HYPHEN   0x2010
 #define UNICODE_NB_HYPHEN   0x2011
+#define UNICODE_CJK_IDEOGRAPHS_BEGIN 0x3041
+#define UNICODE_CJK_IDEOGRAPHS_END 0x02CEAF
+#define UNICODE_CJK_PUNCTUATION_BEGIN 0x3000
+#define UNICODE_CJK_PUNCTUATION_END 0x303F
+#define UNICODE_GENERAL_PUNCTUATION_BEGIN 0x2000
+#define UNICODE_GENERAL_PUNCTUATION_END 0x206F
+#define UNICODE_ZERO_WIDTH_NO_BREAK_SPACE 0xfeff
+#define UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN 0xFF01
+#define UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END 0xFFEE
 
 
 
@@ -91,6 +101,7 @@ int decodeDecimal( const lChar16 * str, int len );
 #define CH_PROP_SIGN        0x0100 ///< sign character flag
 #define CH_PROP_ALPHA_SIGN  0x0200 ///< alpha sign character flag
 #define CH_PROP_DASH        0x0400 ///< minus, emdash, endash, ... (- signs)
+#define CH_PROP_CJK         0x0800 ///< CJK ideographs
 
 /// retrieve character properties mask array for wide c-string
 void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props );

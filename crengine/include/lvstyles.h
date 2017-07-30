@@ -54,6 +54,18 @@ typedef struct css_style_rec_tag {
     css_hyphenate_t        hyphenate;
     css_list_style_type_t list_style_type;
     css_list_style_position_t list_style_position;
+    css_border_style_type_t border_style_top;
+    css_border_style_type_t border_style_bottom;
+    css_border_style_type_t border_style_right;
+    css_border_style_type_t border_style_left;
+    css_length_t border_width[4];
+    css_length_t border_color[4];
+    lString8 background_image;
+    css_background_repeat_value_t background_repeat;
+    css_background_attachment_value_t background_attachment;
+    css_background_position_value_t background_position;
+    css_border_collapse_value_t border_collapse;
+    css_length_t border_spacing[2];//first horizontal and the second vertical spacing
     css_style_rec_tag()
     : refCount(0)
     , hash(0)
@@ -80,6 +92,14 @@ typedef struct css_style_rec_tag {
     , hyphenate(css_hyph_inherit)
     , list_style_type(css_lst_inherit)
     , list_style_position(css_lsp_inherit)
+    , border_style_top(css_border_none)
+    , border_style_bottom(css_border_none)
+    , border_style_right(css_border_none)
+    , border_style_left(css_border_none)
+    , background_repeat(css_background_r_none)
+    , background_attachment(css_background_a_none)
+    , background_position(css_background_p_none)
+    , border_collapse(css_border_seperate)
     {
     }
     void AddRef() { refCount++; }

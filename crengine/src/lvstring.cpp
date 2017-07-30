@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <time.h>
 #ifdef LINUX
 #include <sys/time.h>
@@ -2929,6 +2930,8 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
     }
 }
 
+// Top two bits are 10, i.e. original & 11000000(2) == 10000000(2)
+#define IS_FOLLOWING(index) ((s[index] & 0xC0) == 0x80)
 void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
 {
     const lUInt8 * s = src;
@@ -2938,49 +2941,74 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
     lUInt32 ch;
     while (p < endp && s < ends) {
         ch = *s;
+        bool matched = false;
         if ( (ch & 0x80) == 0 ) {
+            matched = true;
             *p++ = (char)ch;
             s++;
         } else if ( (ch & 0xE0) == 0xC0 ) {
             if (s + 2 > ends)
                 break;
-            *p++ = ((ch & 0x1F) << 6)
-                    | CONT_BYTE(1,0);
-            s += 2;
+            if (IS_FOLLOWING(1)) {
+                matched = true;
+                *p++ = ((ch & 0x1F) << 6)
+                        | CONT_BYTE(1,0);
+                s += 2;
+            }
         } else if ( (ch & 0xF0) == 0xE0 ) {
             if (s + 3 > ends)
                 break;
-            *p++ = ((ch & 0x0F) << 12)
-                | CONT_BYTE(1,6)
-                | CONT_BYTE(2,0);
-            s += 3;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2)) {
+                matched = true;
+                *p++ = ((ch & 0x0F) << 12)
+                    | CONT_BYTE(1,6)
+                    | CONT_BYTE(2,0);
+                s += 3;
+            }
         } else if ( (ch & 0xF8) == 0xF0 ) {
             if (s + 4 > ends)
                 break;
-            *p++ = ((ch & 0x07) << 18)
-                | CONT_BYTE(1,12)
-                | CONT_BYTE(2,6)
-                | CONT_BYTE(3,0);
-            s += 4;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2) && IS_FOLLOWING(3)) {
+                matched = true;
+                *p++ = ((ch & 0x07) << 18)
+                    | CONT_BYTE(1,12)
+                    | CONT_BYTE(2,6)
+                    | CONT_BYTE(3,0);
+                s += 4;
+            }
         } else if ( (ch & 0xFC) == 0xF8 ) {
             if (s + 5 > ends)
                 break;
-            *p++ = ((ch & 0x03) << 24)
-                | CONT_BYTE(1,18)
-                | CONT_BYTE(2,12)
-                | CONT_BYTE(3,6)
-                | CONT_BYTE(4,0);
-            s += 5;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2) && IS_FOLLOWING(3) &&
+                IS_FOLLOWING(4)) {
+                matched = true;
+                *p++ = ((ch & 0x03) << 24)
+                    | CONT_BYTE(1,18)
+                    | CONT_BYTE(2,12)
+                    | CONT_BYTE(3,6)
+                    | CONT_BYTE(4,0);
+                s += 5;
+            }
         } else {
             if (s + 6 > ends)
                 break;
-            *p++ = ((ch & 0x01) << 30)
-                | CONT_BYTE(1,24)
-                | CONT_BYTE(2,18)
-                | CONT_BYTE(3,12)
-                | CONT_BYTE(4,6)
-                | CONT_BYTE(5,0);
-            s += 6;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2) && IS_FOLLOWING(3) &&
+                IS_FOLLOWING(4) && IS_FOLLOWING(5)) {
+                matched = true;
+                *p++ = ((ch & 0x01) << 30)
+                    | CONT_BYTE(1,24)
+                    | CONT_BYTE(2,18)
+                    | CONT_BYTE(3,12)
+                    | CONT_BYTE(4,6)
+                    | CONT_BYTE(5,0);
+                s += 6;
+            }
+        }
+
+        // unexpected character
+        if (!matched) {
+            *p++ = '?';
+            s++;
         }
     }
     srclen = (int)(s - src);
@@ -4175,6 +4203,13 @@ inline lUInt16 getCharProp(lChar16 ch) {
         return char_props_1f00[ch & 255];
     else if (ch>=0x2012 && ch<=0x2015)
         return CH_PROP_DASH|CH_PROP_SIGN;
+    else if (ch>=UNICODE_CJK_IDEOGRAPHS_BEGIN && ch<=UNICODE_CJK_IDEOGRAPHS_END&&(ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN||
+                                                                                  ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END))
+        return CH_PROP_CJK;
+    else if ((ch>=UNICODE_CJK_PUNCTUATION_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_END) ||
+             (ch>=UNICODE_GENERAL_PUNCTUATION_BEGIN && ch<=UNICODE_GENERAL_PUNCTUATION_END) ||
+             (ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END))
+        return CH_PROP_PUNCT;
     return 0;
 }
 

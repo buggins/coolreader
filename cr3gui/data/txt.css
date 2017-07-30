@@ -135,12 +135,19 @@ poem {
    }
 
 code, pre { 
-   display: block; 
    white-space: pre; 
    text-align: left; 
-   font-family: "Liberation Mono", "DeJaVu Sans Mono", monospace; 
-   text-align: left 
+   font-family: "Droid Sans Mono", "Liberation Mono", "DeJaVu Sans Mono", monospace; 
    }
+code {
+   display: inline;
+}
+pre {
+   display: block; 
+   margin-top: 0.5em; 
+   margin-bottom: 0.5em; 
+   text-align: left 
+}
 
 text-author { 
    font-weight: bold; 

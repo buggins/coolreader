@@ -78,6 +78,8 @@
 #define DOC_PROP_AUTHORS         "doc.authors"
 #define DOC_PROP_TITLE           "doc.title"
 #define DOC_PROP_LANGUAGE        "doc.language"
+#define DOC_PROP_DESCRIPTION     "doc.description"
+#define DOC_PROP_KEYWORDS        "doc.keywords"
 #define DOC_PROP_SERIES_NAME     "doc.series.name"
 #define DOC_PROP_SERIES_NUMBER   "doc.series.number"
 #define DOC_PROP_ARC_NAME        "doc.archive.name"
@@ -1307,6 +1309,7 @@ public:
 #if BUILD_LITE!=1
     /// returns caret rectangle for pointer inside formatted document
     bool getRect(lvRect & rect) const;
+    bool getRectEx(lvRect & rect) const;
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint() const;
 #endif
@@ -1646,7 +1649,7 @@ public:
     void forEach( ldomNodeCallback * callback );
 #if BUILD_LITE!=1
     /// returns rectangle (in doc coordinates) for range. Returns true if found.
-    bool getRect( lvRect & rect );
+    bool getRectEx( lvRect & rect );
 #endif
     /// returns nearest common element for start and end points
     ldomNode * getNearestCommonParent();
@@ -2108,7 +2111,7 @@ public:
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
 #if BUILD_LITE!=1
     /// create xpointer from doc point
-    ldomXPointer createXPointer( lvPoint pt, int direction=0 );
+    ldomXPointer createXPointer( lvPoint pt, int direction=0, bool strictBounds=false );
     /// get rendered block cache object
     CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
 
@@ -2327,7 +2330,7 @@ public:
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags )
     {
         if (headStyleState == 1) {
-            headStyleText << UnicodeToUtf8(lString16(text));
+            headStyleText << UnicodeToUtf8(lString16(text).substr(0,len-1));
             return;
         }
         if ( insideTag )

@@ -77,9 +77,10 @@ const char
 					"title { page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }\n"
 					"body { text-align: justify; text-indent: 2em }\n"
 					"cite { margin-left: 30%; margin-right: 4%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px; font-family: Times New Roman, serif }\n"
-					"td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 5px }\n"
+					"td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 2px }\n"
 					"th { font-weight: bold }\n"
-					"table > caption { padding: 5px; text-indent: 0px; font-size: 80%; font-weight: bold; text-align: left; background-color: #AAAAAA }\n"
+					"table > caption { padding: 2px; text-indent: 0px; font-size: 80%; font-weight: bold; text-align: left; background-color: #AAAAAA }\n"
+					"table { border-spacing:2px;}\n"
 					"body[name=\"notes\"] { font-size: 70%; }\n"
 					"body[name=\"notes\"]  section[id] { text-align: left; }\n"
 					"body[name=\"notes\"]  section[id] title { display: block; text-align: left; font-size: 110%; font-weight: bold; page-break-before: auto; page-break-inside: auto; page-break-after: auto; }\n"
@@ -1985,7 +1986,7 @@ void LVDocView::GetPos(lvRect & rc) {
 int LVDocView::getPageHeight(int pageIndex)
 {
     CR_UNUSED(pageIndex);
-	if (isPageMode() && _page >= 0 && _page < m_pages.length()) 
+	if (isPageMode() && _page >= 0 && _page < m_pages.length())
 		return m_pages[_page]->height;
 	return 0;
 }
@@ -2085,8 +2086,8 @@ bool LVDocView::goToPage(int page, bool updatePosBookmark) {
     }
 	_posIsSet = true;
 	updateScroll();
-    if (res)
-        updateBookMarksRanges();
+    //if (res)
+        //updateBookMarksRanges();
 	return res;
 }
 
@@ -2351,11 +2352,11 @@ bool LVDocView::docToWindowPoint(lvPoint & pt) {
 }
 
 /// returns xpointer for specified window point
-ldomXPointer LVDocView::getNodeByPoint(lvPoint pt) {
+ldomXPointer LVDocView::getNodeByPoint(lvPoint pt, bool strictBounds) {
 	LVLock lock(getMutex());
     CHECK_RENDER("getNodeByPoint()")
 	if (windowToDocPoint(pt) && m_doc) {
-		ldomXPointer ptr = m_doc->createXPointer(pt);
+		ldomXPointer ptr = m_doc->createXPointer(pt, 0, strictBounds);
 		//CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
 		return ptr;
 	}
@@ -4285,7 +4286,21 @@ bool LVDocView::ParseDocument() {
 		} else {
 		}
 
-		// unknown format
+		/// plain text format (robust, never fail)
+		if (parser == NULL) {
+
+			setDocFormat( doc_format_txt);
+			parser = new LVTextRobustParser(m_stream, &writer,
+							 getTextFormatOptions() == txt_format_pre);
+			if (!parser->CheckFormat()) {
+				// Never reach
+				delete parser;
+				parser = NULL;
+			}
+		} else {
+		}
+
+		// unknown format (never reach)
 		if (!parser) {
 			setDocFormat( doc_format_none);
             createDefaultDocument(cs16("ERROR: Unknown document format"),
@@ -4721,7 +4736,8 @@ void LVDocView::getCurrentPageLinks(ldomXRangeList & list) {
 						if (_list[i]->getStart().getNode() == elem)
 							return true; // don't add, duplicate found!
 					}
-                                        _list.add(new ldomXRange(elem->getChildNode(0)));
+					ldomNode * node = elem->getChildNode(0);
+					if ( node ) _list.add(new ldomXRange(node));
 				}
 				return true;
 			}

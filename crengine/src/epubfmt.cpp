@@ -481,6 +481,7 @@ class EmbeddedFontStyleParser {
     lString16 _basePath;
     int _state;
     lString8 _face;
+    lString8 islocal;
     bool _italic;
     bool _bold;
     lString16 _url;
@@ -620,14 +621,58 @@ public:
         }
         token.clear();
     }
-
+    lString8 deletecomment(lString8 css)
+     {
+             int state;
+             lString8 tmp=lString8("");
+             char c;
+             state = 0;
+         for (int i=0;i<css.length();i++){
+                     c=css[i];
+                     if (state == 0 && c == ('/'))         // ex. [/]
+                             state = 1;
+                     else if (state == 1 && c == ('*'))     // ex. [/*]
+                             state = 2;
+                     else if (state == 1) {                // ex. [<secure/_stdio.h> or 5/3]
+                             tmp<<('/');
+                             state = 0;
+                         }
+                     else if (state == 2 && c == ('*'))    // ex. [/*he*]
+                             state = 3;
+                     else if (state == 2)                // ex. [/*heh]
+                             state = 2;
+                     else if (state == 3 && c == ('/'))    // ex. [/*heh*/]
+                             state = 0;
+                     else if (state == 3)                // ex. [/*heh*e]
+                             state = 2;
+                     else if (state == 0 && c == ('\'') )    // ex. [']
+                             state = 5;
+                     else if (state == 5 && c == ('\\'))     // ex. ['\]
+                             state = 6;
+                     else if (state == 6)                // ex. ['\n or '\' or '\t etc.]
+                             state = 5;
+                     else if (state == 5 && c == ('\'') )   // ex. ['\n' or '\'' or '\t' ect.]
+                             state = 0;
+                     else if (state == 0 && c == ('\"'))    // ex. ["]
+                             state = 7;
+                     else if (state == 8)                // ex. ["\n or "\" or "\t ect.]
+                             state = 7;
+                     else if (state == 7 && c == ('\"'))    // ex. ["\n" or "\"" or "\t" ect.]
+                             state = 0;
+                     if ((state == 0 && c != ('/')) || state == 5 || state == 6 || state == 7 || state == 8)
+                             tmp<<c;
+                 }
+         return tmp;
+         }
     void parse(lString16 basePath, const lString8 & css) {
         _state = 0;
         _basePath = basePath;
         lString8 token;
         char insideQuotes = 0;
-        for (int i=0; i<css.length(); i++) {
-            char ch = css[i];
+        lString8 css_=css;
+        css_=deletecomment(css);
+        for (int i=0; i<css_.length(); i++) {
+            char ch = css_[i];
             if (insideQuotes || _state == 13) {
                 if (ch == insideQuotes || (_state == 13 && ch == ')')) {
                     onQuotedText(token);
@@ -723,9 +768,29 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         lString16 author = doc->textFromXPath( cs16("package/metadata/creator"));
         lString16 title = doc->textFromXPath( cs16("package/metadata/title"));
         lString16 language = doc->textFromXPath( cs16("package/metadata/language"));
+        lString16 description = doc->textFromXPath( cs16("package/metadata/description"));
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_LANGUAGE, language);
         m_doc_props->setString(DOC_PROP_AUTHORS, author );
+        m_doc_props->setString(DOC_PROP_DESCRIPTION, description );
+
+        // There may be multiple <dc:subject> tags, which are usually used for keywords, categories
+        bool subjects_set = false;
+        lString16 subjects;
+        for ( int i=1; i<20; i++ ) {
+            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/subject[") << fmt::decimal(i) << "]");
+            if (!item)
+                break;
+            lString16 subject = item->getText();
+            if (subjects_set) {
+                subjects << "; " << subject;
+            }
+            else {
+                subjects << subject;
+                subjects_set = true;
+            }
+        }
+        m_doc_props->setString(DOC_PROP_KEYWORDS, subjects );
 
         for ( int i=1; i<50; i++ ) {
             ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/identifier[") << fmt::decimal(i) << "]");

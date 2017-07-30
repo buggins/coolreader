@@ -358,6 +358,17 @@ public:
     virtual bool Parse();
 };
 
+class LVTextRobustParser : public LVTextParser
+{
+public:
+    /// constructor
+    LVTextRobustParser( LVStreamRef stream, LVXMLParserCallback * callback, bool isPreFormatted );
+    /// destructor
+    virtual ~LVTextRobustParser();
+    /// returns true if format is recognized by parser
+    virtual bool CheckFormat();
+};
+
 /// parser of CoolReader's text format bookmarks
 class LVTextBookmarkParser : public LVTextParser
 {

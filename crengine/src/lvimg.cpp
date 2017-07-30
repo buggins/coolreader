@@ -34,6 +34,16 @@ extern "C" {
 
 #include <jerror.h>
 
+// Support for SVG
+#include <math.h>
+#define NANOSVG_ALL_COLOR_KEYWORDS
+#define NANOSVG_IMPLEMENTATION
+#define NANOSVGRAST_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <nanosvg.h>
+#include <nanosvgrast.h>
+#include <stb_image_write.h> // for svg to png conversion
+
 #if !defined(HAVE_WXJPEG_BOOLEAN)
 typedef boolean wxjpeg_boolean;
 #endif
@@ -832,7 +842,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
 {
     png_structp png_ptr = NULL;
     png_infop info_ptr = NULL;
-    lUInt32 * row = NULL;
     _stream->SetPos( 0 );
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
         (png_voidp)this, lvpng_error_func, lvpng_warning_func);
@@ -846,8 +855,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         {
             png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         }
-        if ( row )
-            delete [] row;
         if (callback)
             callback->OnEndDecode(this, true); // error!
         return false;
@@ -870,7 +877,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
     _width = width;
     _height = height;
 
-    row = new lUInt32[ width ];
 
     if ( callback )
     {
@@ -914,7 +920,6 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
             color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
                 png_set_gray_to_rgb(png_ptr);
 
-        int number_passes = png_set_interlace_handling(png_ptr);
         //if (color_type == PNG_COLOR_TYPE_RGB_ALPHA ||
         //    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 
@@ -922,22 +927,26 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         //    color_type == PNG_COLOR_TYPE_RGB_ALPHA)
         png_set_bgr(png_ptr);
 
-            for (int pass = 0; pass < number_passes; pass++)
+        png_set_interlace_handling(png_ptr);
+        png_read_update_info(png_ptr,info_ptr);//update after set
+        png_bytep *image=NULL;
+        image =  new png_bytep[height];
+        for (lUInt32 i=0; i<height; i++)
+            image[i] =  new png_byte[png_get_rowbytes(png_ptr,info_ptr)];
+        png_read_image(png_ptr,image);
+        for (lUInt32 y = 0; y < height; y++)
         {
-                for (lUInt32 y = 0; y < height; y++)
-            {
-                png_read_rows(png_ptr, (unsigned char **)&row, NULL, 1);
-                callback->OnLineDecoded( this, y, row );
-            }
+            callback->OnLineDecoded( this, y,  (lUInt32*) image[y] );
         }
 
         png_read_end(png_ptr, info_ptr);
 
         callback->OnEndDecode(this, false);
+        for (lUInt32 i=0; i<height; i++) delete [] image[i];
+        delete [] image;
     }
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
-    delete [] row;
     return true;
 }
 
@@ -964,8 +973,9 @@ protected:
     unsigned char m_bpp;     //
     unsigned char m_flg_gtc; // GTC (gobal table of colors) flag
     unsigned char m_transparent_color; // index
-
+    unsigned char m_background_color;
     lUInt32 * m_global_color_table;
+    bool defined_transparent_color;
 public:
     LVGifImageSource( ldomNode * node, LVStreamRef stream )
         : LVNodeImageSource(node, stream)
@@ -1040,7 +1050,9 @@ public:
             return; // wrong image width
         callback->OnStartDecode( m_pImage );
         lUInt32 * line = new lUInt32[w];
-        int transp_color = m_pImage->m_transparent_color;
+        int background_color = m_pImage->m_background_color;
+        int transparent_color = m_pImage->m_transparent_color;
+        bool defined_transparent = m_pImage->defined_transparent_color;
         lUInt32 * pColorTable = GetColorTable();
         int interlacePos = 0;
         int interlaceTable[] = {8, 0, 8, 4, 4, 2, 2, 1, 1, 1}; // pairs: step, offset
@@ -1048,14 +1060,19 @@ public:
         int y = 0;
         for ( int i=0; i<h; i++ ) {
             for ( int j=0; j<w; j++ ) {
-                line[j] = 0xFFFFFFFF; // transparent
+                line[j] = pColorTable[background_color];
             }
             if ( i >= m_top  && i < m_top+m_cy ) {
                 unsigned char * p_line = m_buffer + (i-m_top)*m_cx;
                 for ( int x=0; x<m_cx; x++ ) {
                     unsigned char b = p_line[x];
-                    if (b!=transp_color) {
-                        line[x + m_left] = pColorTable[b];
+                    if (b!=background_color) {
+                        if (defined_transparent && b==transparent_color)
+                            line[x + m_left] = 0xFF000000;
+                        else line[x + m_left] = pColorTable[b];
+                    }
+                    else if (defined_transparent && b==transparent_color)  {
+                        line[x + m_left] = 0xFF000000;
                     }
                 }
             }
@@ -1127,8 +1144,8 @@ int LVGifImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImage
     _height = p[2] + (p[3]<<8);
     m_bpp = (p[4]&7)+1;
     m_flg_gtc = (p[4]&0x80)?1:0;
-    m_transparent_color = p[5];
-
+    m_background_color = p[5];
+    defined_transparent_color = false;
     if ( !(_width>=1 && _height>=1 && _width<4096 && _height<4096 ) )
         return false;
     if ( !callback )
@@ -1440,7 +1457,7 @@ bool LVGifImageSource::Decode( LVImageDecoderCallback * callback )
     if ( _stream.isNull() )
         return false;
     lvsize_t sz = _stream->GetSize();
-    if ( sz<32 || sz>0x80000 )
+    if ( sz<32 )
         return false; // wrong size
     lUInt8 * buf = new lUInt8[ sz ];
     lvsize_t bytesRead = 0;
@@ -1604,6 +1621,222 @@ void LVGifFrame::Clear()
 // ======= end of GIF support
 
 
+// SVG support
+
+class LVSvgImageSource : public LVNodeImageSource
+{
+protected:
+public:
+    LVSvgImageSource( ldomNode * node, LVStreamRef stream );
+    virtual ~LVSvgImageSource();
+    virtual void   Compact();
+    virtual bool   Decode( LVImageDecoderCallback * callback );
+    int DecodeFromBuffer(unsigned char *buf, int buf_size, LVImageDecoderCallback * callback);
+    static bool CheckPattern( const lUInt8 * buf, int len );
+};
+
+LVSvgImageSource::LVSvgImageSource( ldomNode * node, LVStreamRef stream )
+        : LVNodeImageSource(node, stream)
+{
+}
+LVSvgImageSource::~LVSvgImageSource() {}
+
+void LVSvgImageSource::Compact() { }
+
+bool LVSvgImageSource::CheckPattern( const lUInt8 * buf, int len)
+{
+    // check for <?xml or <svg
+    if (len > 5 && buf[0]=='<' && buf[1]=='?' && 
+            (buf[2]=='x' || buf[2] == 'X') &&
+            (buf[3]=='m' || buf[3] == 'M') &&
+            (buf[4]=='l' || buf[4] == 'L'))
+        return true;
+    if (len > 4 && buf[0]=='<' &&
+            (buf[1]=='s' || buf[1] == 'S') &&
+            (buf[2]=='v' || buf[2] == 'V') &&
+            (buf[3]=='g' || buf[3] == 'G'))
+        return true;
+    return false;
+}
+
+bool LVSvgImageSource::Decode( LVImageDecoderCallback * callback )
+{
+    if ( _stream.isNull() )
+        return false;
+    lvsize_t sz = _stream->GetSize();
+    // if ( sz<32 || sz>0x80000 ) return false; // do not impose (yet) a max size for svg
+    lUInt8 * buf = new lUInt8[ sz+1 ];
+    lvsize_t bytesRead = 0;
+    bool res = true;
+    _stream->SetPos(0);
+    if ( _stream->Read( buf, sz, &bytesRead )!=LVERR_OK || bytesRead!=sz ) {
+        res = false;
+    }
+    else {
+        buf[sz] = 0;
+        res = DecodeFromBuffer( buf, sz, callback );
+    }
+    delete[] buf;
+    return res;
+}
+
+int LVSvgImageSource::DecodeFromBuffer(unsigned char *buf, int buf_size, LVImageDecoderCallback * callback)
+{
+    NSVGimage *image = NULL;
+    NSVGrasterizer *rast = NULL;
+    unsigned char* img = NULL;
+    int w, h;
+    bool res = false;
+
+    // printf("SVG: parsing...\n");
+    image = nsvgParse((char*)buf, "px", 96.0f);
+    if (image == NULL) {
+        printf("SVG: could not parse SVG stream.\n");
+        nsvgDelete(image);
+        return res;
+    }
+
+    w = (int)image->width;
+    h = (int)image->height;
+    // The rasterizer (while antialiasing?) has a tendency to eat the last
+    // right and bottom pixel. We can avoid that by adding 1 pixel around
+    // each side, by increasing width and height with 2 here, and using
+    // offsets of 1 in nsvgRasterize
+    w += 2;
+    h += 2;
+    _width = w;
+    _height = h;
+
+    // int nbshapes = 0;
+    // for (NSVGshape *shape = image->shapes; shape != NULL; shape = shape->next) nbshapes++;
+    // printf("SVG: nb of shapes: %d\n", nbshapes);
+    if (! image->shapes) {
+        // If no supported shapes, it will be a blank empty image.
+        // Better to let user know that with an unsupported image display (empty
+        // square with borders).
+        printf("SVG: got image with zero supported shape.\n");
+        nsvgDelete(image);
+        return res;
+    }
+
+    if ( ! callback ) { // If no callback provided, only size is wanted.
+        res = true;
+    }
+    else {
+        rast = nsvgCreateRasterizer();
+        if (rast == NULL) {
+            printf("SVG: could not init rasterizer.\n");
+        }
+        else {
+            img = (unsigned char*) malloc(w*h*4);
+            if (img == NULL) {
+                printf("SVG: could not alloc image buffer.\n");
+            }
+            else {
+                // printf("SVG: rasterizing image %d x %d\n", w, h);
+                nsvgRasterize(rast, image, 1, 1, 1, img, w, h, w*4); // offsets of 1 pixel, scale = 1
+                // stbi_write_png("/tmp/svg.png", w, h, 4, img, w*4); // for debug
+                callback->OnStartDecode(this);
+                lUInt32 * row = new lUInt32 [ _width ];
+                lUInt8 * p = img;
+                lUInt8 r, g, b, a, ia, blend, iblend;
+                lUInt32 ro, go, bo;
+                for (int y=0; y<_height; y++) {
+                    for (int x=0; x<_width; x++) {
+                        // We mostly get full white or full black when using alpha channel like this:
+                        //   row[x] = (((lUInt32)p[3])<<24) | (((lUInt32)p[0])<<16) | (((lUInt32)p[1])<<8) | (((lUInt32)p[2])<<0);
+                        // We can ignore the alpha channel but we get a black background for transparent pixels with:
+                        //   row[x] = (((lUInt32)p[0])<<16) | (((lUInt32)p[1])<<8) | (((lUInt32)p[2])<<0);
+                        // It's better to use alpha channel here to blend pixels over a white background and set opacity to full
+                        // """ To perform a source-over blend between two colors that use straight alpha format:
+                        //           result = (source.RGB * source.A) + (dest.RGB * (1 - source.A))        """
+                        r = (lUInt8)p[0];
+                        g = (lUInt8)p[1];
+                        b = (lUInt8)p[2];
+                        a = (lUInt8)p[3];
+                        ia = 255 - a;
+                        ro = (lUInt32)( r*a + 0xff*ia );
+                        go = (lUInt32)( g*a + 0xff*ia );
+                        bo = (lUInt32)( b*a + 0xff*ia );
+                        // More accurate divide by 256 than just >> 8 (255 becomes 254 with just >> 8)
+                        ro = (ro+1 + (ro >> 8)) >> 8;
+                        go = (go+1 + (go >> 8)) >> 8;
+                        bo = (bo+1 + (bo >> 8)) >> 8;
+                        row[x] = ro<<16|go<<8|bo;
+                        // if (y == 80) // output bytes for a single row
+                        // printf("SVG: byte colors %d %d %d %d > %d %d %d\n", (int)a, (int)r, (int)g, (int)b, (int)ro, (int)go, (int)bo);
+                        p += 4;
+                    }
+                    callback->OnLineDecoded( this, y, row );
+                }
+                delete[] row;
+                callback->OnEndDecode(this, false);
+                res = true;
+                free(img);
+            }
+        }
+    }
+    nsvgDeleteRasterizer(rast);
+    nsvgDelete(image);
+    return res;
+}
+
+// Convenience function to convert SVG image data to PNG
+unsigned char * convertSVGtoPNG(unsigned char *svg_data, int svg_data_size, float zoom_factor, int *png_data_len)
+{
+    NSVGimage *image = NULL;
+    NSVGrasterizer *rast = NULL;
+    unsigned char* img = NULL;
+    int w, h, pw, ph;
+    unsigned char *png = NULL;
+
+    // printf("SVG: converting to PNG...\n");
+    image = nsvgParse((char*)svg_data, "px", 96.0f);
+    if (image == NULL) {
+        printf("SVG: could not parse SVG stream.\n");
+        nsvgDelete(image);
+        return png;
+    }
+
+    if (! image->shapes) {
+        printf("SVG: got image with zero supported shape.\n");
+        nsvgDelete(image);
+        return png;
+    }
+
+    w = (int)image->width;
+    h = (int)image->height;
+    // The rasterizer (while antialiasing?) has a tendency to eat some of the
+    // right and bottom pixels. We can avoid that by adding N pixels around
+    // each side, by increasing width and height with 2*N here, and using
+    // offsets of N in nsvgRasterize. Using zoom_factor as N gives nice results.
+    int offset = zoom_factor;
+    pw = w*zoom_factor + 2*offset;
+    ph = h*zoom_factor + 2*offset;
+    rast = nsvgCreateRasterizer();
+    if (rast == NULL) {
+        printf("SVG: could not init rasterizer.\n");
+    }
+    else {
+        img = (unsigned char*) malloc(pw*ph*4);
+        if (img == NULL) {
+            printf("SVG: could not alloc image buffer.\n");
+        }
+        else {
+            // printf("SVG: rasterizing to png image %d x %d\n", pw, ph);
+            nsvgRasterize(rast, image, offset, offset, zoom_factor, img, pw, ph, pw*4);
+            png = stbi_write_png_to_mem(img, pw*4, pw, ph, 4, png_data_len);
+            free(img);
+        }
+    }
+    nsvgDeleteRasterizer(rast);
+    nsvgDelete(image);
+    return png;
+}
+
+// ======= end of SVG support
+
+
 
 LVImageDecoderCallback::~LVImageDecoderCallback()
 {
@@ -1644,6 +1877,9 @@ LVImageSourceRef LVCreateStreamImageSource( ldomNode * node, LVStreamRef stream 
         img = new LVGifImageSource( node, stream );
     else
 #endif
+    if ( LVSvgImageSource::CheckPattern( hdr, (lUInt32)bytesRead ) )
+        img = new LVSvgImageSource( node, stream );
+    else
         img = new LVDummyImageSource( node, 50, 50 );
     if ( !img )
         return ref;

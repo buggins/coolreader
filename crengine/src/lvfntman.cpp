@@ -59,8 +59,6 @@
 #endif
 //#include <ft2build.h>
 #include FT_FREETYPE_H
-//#include <freetype/freetype.h>
-#endif
 
 #if (USE_FONTCONFIG==1)
     #include <fontconfig/fontconfig.h>
@@ -282,7 +280,7 @@ int LVFont::getVisualAligmentWidth()
     return _visual_alignment_width;
 }
 
-static lChar16 getReplacementChar( lUInt16 code ) {
+static lChar16 getReplacementChar( lUInt32 code ) {
     switch (code) {
     case UNICODE_SOFT_HYPHEN_CODE:
         return '-';
@@ -292,6 +290,11 @@ static lChar16 getReplacementChar( lUInt16 code ) {
         return 0x0435; // CYRILLIC SMALL LETTER IE
     case UNICODE_NO_BREAK_SPACE:
         return ' ';
+    case UNICODE_ZERO_WIDTH_SPACE:
+        // If the font lacks a zero-width breaking space glyph (like
+        // some Kindle built-ins) substitute a different zero-width
+        // character instead of one with width.
+        return UNICODE_ZERO_WIDTH_NO_BREAK_SPACE;
     case 0x2010:
     case 0x2011:
     case 0x2012:
@@ -376,7 +379,7 @@ public:
     }
 
     /// returns true if definitions are equal
-    bool operator == ( const LVFontDef & def ) const 
+    bool operator == ( const LVFontDef & def ) const
     {
         return ( _size == def._size || _size == -1 || def._size == -1 )
             && ( _weight == def._weight || _weight==-1 || def._weight==-1 )
@@ -433,7 +436,7 @@ public:
     LVFontRef & getFont() { return _fnt; }
     void setFont(LVFontRef & fnt) { _fnt = fnt; }
     LVFontCacheItem( const LVFontDef & def )
-    : _def( def ) 
+    : _def( def )
     { }
 };
 
@@ -495,12 +498,14 @@ public:
 class LVFontGlyphWidthCache
 {
 private:
-    lUInt8 * ptrs[128];
+    static const int COUNT = 360;
+    lUInt8 * ptrs[COUNT]; //support up to 0X2CFFF=360*512-1
 public:
     lUInt8 get( lChar16 ch )
     {
         FONT_GLYPH_CACHE_GUARD
-        int inx = (ch>>9) & 0x7f;
+        int inx = (ch>>9) & 0x1ff;
+        if (inx >= COUNT) return 0xFF;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr )
             return 0xFF;
@@ -509,7 +514,8 @@ public:
     void put( lChar16 ch, lUInt8 w )
     {
         FONT_GLYPH_CACHE_GUARD
-        int inx = (ch>>9) & 0x7f;
+        int inx = (ch>>9) & 0x1ff;
+        if (inx >= COUNT) return;
         lUInt8 * ptr = ptrs[inx];
         if ( !ptr ) {
             ptr = new lUInt8[512];
@@ -521,7 +527,7 @@ public:
     void clear()
     {
         FONT_GLYPH_CACHE_GUARD
-        for ( int i=0; i<128; i++ ) {
+        for ( int i=0; i<360; i++ ) {
             if ( ptrs[i] )
                 delete [] ptrs[i];
             ptrs[i] = NULL;
@@ -529,7 +535,7 @@ public:
     }
     LVFontGlyphWidthCache()
     {
-        memset( ptrs, 0, 128*sizeof(lUInt8*) );
+        memset( ptrs, 0, 360*sizeof(lUInt8*) );
     }
     ~LVFontGlyphWidthCache()
     {
@@ -604,7 +610,7 @@ void LVFontLocalGlyphCache::clear()
     }
 }
 
-LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt16 ch )
+LVFontGlyphCacheItem * LVFontLocalGlyphCache::get( lUInt32 ch )
 {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     LVFontGlyphCacheItem * ptr = head;
@@ -742,8 +748,11 @@ static lUInt16 char_flags[] = {
 #define GET_CHAR_FLAGS(ch) \
      (ch<48?char_flags[ch]: \
         (ch==UNICODE_SOFT_HYPHEN_CODE?LCHAR_ALLOW_WRAP_AFTER: \
-        (ch==UNICODE_NO_BREAK_SPACE?LCHAR_DEPRECATED_WRAP_AFTER|LCHAR_IS_SPACE: \
-        (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER:0))))
+        (ch==UNICODE_NO_BREAK_SPACE?LCHAR_IS_SPACE: \
+        (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER: \
+        (ch==UNICODE_ZERO_WIDTH_SPACE?LCHAR_ALLOW_WRAP_AFTER: \
+        (ch==UNICODE_THIN_SPACE?LCHAR_ALLOW_WRAP_AFTER: \
+         0))))))
 
 class LVFreeTypeFace : public LVFont
 {
@@ -990,7 +999,7 @@ public:
             code = ' ';
         FT_UInt ch_glyph_index = FT_Get_Char_Index( _face, code );
         if ( ch_glyph_index==0 ) {
-            lUInt16 replacement = getReplacementChar( code );
+            lUInt32 replacement = getReplacementChar( code );
             if ( replacement )
                 ch_glyph_index = FT_Get_Char_Index( _face, replacement );
             if ( ch_glyph_index==0 && def_char )
@@ -1001,9 +1010,9 @@ public:
 
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
-        \return true if glyh was found 
+        \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 )
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 )
     {
         //FONT_GUARD
         int glyph_index = getCharIndex( code, 0 );
@@ -1044,11 +1053,11 @@ public:
     inline int calcCharFlags( lChar16 ch )
     {
         switch ( ch ) {
-        case 0x0020: 
+        case 0x0020:
             return LCHAR_IS_SPACE | LCHAR_ALLOW_WRAP_AFTER;
-        case UNICODE_SOFT_HYPHEN_CODE: 
+        case UNICODE_SOFT_HYPHEN_CODE:
             return LCHAR_ALLOW_WRAP_AFTER;
-        case '-': 
+        case '-':
             return LCHAR_DEPRECATED_WRAP_AFTER;
         case '\r':
         case '\n':
@@ -1061,10 +1070,11 @@ public:
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
-        \return number of characters before max_width reached 
+        \return number of characters before max_width reached
     */
-    virtual lUInt16 measureText( 
-                        const lChar16 * text, int len, 
+    virtual lUInt16 measureText(
+                        const lChar16 * text,
+                        int len,
                         lUInt16 * widths,
                         lUInt8 * flags,
                         int max_width,
@@ -1176,7 +1186,7 @@ public:
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
-        \return width of specified string 
+        \return width of specified string
     */
     virtual lUInt32 getTextWidth(
                         const lChar16 * text, int len
@@ -1188,8 +1198,8 @@ public:
             len = MAX_LINE_CHARS;
         if ( len<=0 )
             return 0;
-        lUInt16 res = measureText( 
-                        text, len, 
+        lUInt16 res = measureText(
+                        text, len,
                         widths,
                         flags,
                         2048, // max_width,
@@ -1213,7 +1223,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
         //FONT_GUARD
         FT_UInt ch_glyph_index = getCharIndex( ch, 0 );
         if ( ch_glyph_index==0 ) {
@@ -1344,8 +1354,8 @@ public:
     }
 
     /// draws text string
-    virtual void DrawTextString( LVDrawBuf * buf, int x, int y, 
-                       const lChar16 * text, int len, 
+    virtual void DrawTextString( LVDrawBuf * buf, int x, int y,
+                       const lChar16 * text, int len,
                        lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
     {
         FONT_GUARD
@@ -1407,7 +1417,7 @@ public:
             if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
                 int w = item->advance + (kerning >> 6);
                 buf->Draw( x + (kerning>>6) + item->origin_x,
-                    y + _baseline - item->origin_y, 
+                    y + _baseline - item->origin_y,
                     item->bmp,
                     item->bmp_width,
                     item->bmp_height,
@@ -1509,7 +1519,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0  )
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0  )
     {
         bool res = _baseFont->getGlyphInfo( code, glyph, def_char );
         if ( !res )
@@ -1588,7 +1598,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
 
         LVFontGlyphCacheItem * item = _glyph_cache.get( ch );
         if ( item )
@@ -1936,9 +1946,9 @@ public:
 
     /// set antialiasing mode
     virtual void SetAntialiasMode( int mode )
-    { 
-        _antialiasMode = mode; 
-        gc(); 
+    {
+        _antialiasMode = mode;
+        gc();
         clearGlyphCache();
         FONT_MAN_GUARD
         LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
@@ -2007,13 +2017,13 @@ public:
         {
             CRLog::info("Reading list of system fonts using FONTCONFIG");
             lString16Collection fonts;
-            
+
             int facesFound = 0;
 
             FcFontSet *fontset;
 
-            FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY, 
-                                               FC_SLANT, FC_SPACING, FC_INDEX, 
+            FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY,
+                                               FC_SLANT, FC_SPACING, FC_INDEX,
                                                FC_STYLE, NULL);
             FcPattern *pat = FcPatternCreate();
             //FcBool b = 1;
@@ -2145,7 +2155,7 @@ public:
                     fontFamily = css_ff_sans_serif;
                 else if (face16.pos("serif") >= 0)
                     fontFamily = css_ff_serif;
-                
+
                 //css_ff_inherit,
                 //css_ff_serif,
                 //css_ff_sans_serif,
@@ -2153,7 +2163,7 @@ public:
                 //css_ff_fantasy,
                 //css_ff_monospace,
                 bool italic = (slant!=FC_SLANT_ROMAN);
-                
+
                 lString8 face((const char*)family);
                 lString16 style16((const char*)style);
                 style16.lowercase();
@@ -2161,7 +2171,7 @@ public:
                     face << " Condensed";
                 else if (style16.pos("extralight") >= 0)
                     face << " Extra Light";
-                
+
                 LVFontDef def(
                     lString8((const char*)s),
                     -1, // height==-1 for scalable fonts
@@ -2185,10 +2195,10 @@ public:
                     if ( !_cache.findDuplicate( &newDef ) )
                         _cache.update( &newDef, LVFontRef(NULL) );
                 }
-                
+
                 facesFound++;
-                
-                
+
+
             }
 
             FcFontSetDestroy(fontset);
@@ -2238,7 +2248,7 @@ public:
         #endif
     }
 
-    virtual ~LVFreeTypeFontManager() 
+    virtual ~LVFreeTypeFontManager()
     {
         FONT_MAN_GUARD
         _globalCache.clear();
@@ -2400,7 +2410,7 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
         }
     #endif
         lString8 fontname;
-        LVFontDef def( 
+        LVFontDef def(
             fontname,
             size,
             weight,
@@ -2878,7 +2888,7 @@ public:
     {
         return _cache.length();
     }
-    virtual ~LVBitmapFontManager() 
+    virtual ~LVBitmapFontManager()
     {
         //if (_log)
         //    fclose(_log);
@@ -2901,7 +2911,7 @@ public:
     }
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface, int documentId)
     {
-        LVFontDef * def = new LVFontDef( 
+        LVFontDef * def = new LVFontDef(
             lString8::empty_str,
             size,
             weight,
@@ -2955,7 +2965,7 @@ public:
         lvsize_t bytes_read = 0;
         if ( stream->Read( &hdr, sizeof(hdr), &bytes_read ) == LVERR_OK && bytes_read == sizeof(hdr) )
         {
-            LVFontDef def( 
+            LVFontDef def(
                 name,
                 hdr.fontHeight,
                 hdr.flgBold?700:400,
@@ -3005,7 +3015,7 @@ public:
     {
         return _cache.length();
     }
-    virtual ~LVWin32FontManager() 
+    virtual ~LVWin32FontManager()
     {
         //if (_log)
         //    fclose(_log);
@@ -3034,7 +3044,7 @@ public:
             family,
             typeface
         );
-        
+
         //fprintf( _log, "GetFont: %s %d %s %s\n",
         //    typeface.c_str(),
         //    size,
@@ -3046,17 +3056,17 @@ public:
             //fprintf(_log, "    : fount existing\n");
             return item->getFont();
         }
-        
+
 #if COLOR_BACKBUFFER==0
         LVWin32Font * font = new LVWin32Font;
 #else
         LVWin32DrawFont * font = new LVWin32DrawFont;
 #endif
-        
+
         LVFontDef * fdef = item->getDef();
         LVFontDef def2( fdef->getName(), size, weight, italic,
             fdef->getFamily(), fdef->getTypeFace() );
-   
+
         if ( font->Create(size, weight, italic?true:false, fdef->getFamily(), fdef->getTypeFace()) )
         {
             //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
@@ -3068,7 +3078,7 @@ public:
         delete font;
         return LVFontRef(NULL);
     }
-    
+
     virtual bool RegisterFont( const LOGFONTA * lf )
     {
         lString8 face(lf->lfFaceName);
@@ -3115,7 +3125,7 @@ public:
         LOGFONTA lf;
         memset(&lf, 0, sizeof(lf));
         lf.lfCharSet = ANSI_CHARSET;
-        int res = 
+        int res =
         EnumFontFamiliesExA(
           drawbuf.GetDC(),                  // handle to DC
           &lf,                              // font information
@@ -3123,7 +3133,7 @@ public:
           (LPARAM)this,                    // additional data
           0                     // not used; must be 0
         );
-        
+
         return res!=0;
     }
 
@@ -3219,7 +3229,7 @@ int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
         return false;
 	bool size_match = (_size==-1 || def._size==-1) ? true
         : (def._size == _size);
-    bool weight_match = (_weight==-1 || def._weight==-1) ? true 
+    bool weight_match = (_weight==-1 || def._weight==-1) ? true
         : (def._weight == _weight);
     bool italic_match = (_italic == def._italic || _italic==-1 || def._italic==-1);
     bool family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == _family);
@@ -3231,20 +3241,20 @@ int LVFontDef::CalcMatch( const LVFontDef & def ) const
 {
     if (_documentId != -1 && _documentId != def._documentId)
         return 0;
-    int size_match = (_size==-1 || def._size==-1) ? 256 
+    int size_match = (_size==-1 || def._size==-1) ? 256
         : (def._size>_size ? _size*256/def._size : def._size*256/_size );
     int weight_diff = def._weight - _weight;
     if ( weight_diff<0 )
         weight_diff = -weight_diff;
     if ( weight_diff > 800 )
         weight_diff = 800;
-    int weight_match = (_weight==-1 || def._weight==-1) ? 256 
+    int weight_match = (_weight==-1 || def._weight==-1) ? 256
         : ( 256 - weight_diff * 256 / 800 );
     int italic_match = (_italic == def._italic || _italic==-1 || def._italic==-1) ? 256 : 0;
     if ( (_italic==2 || def._italic==2) && _italic>0 && def._italic>0 )
         italic_match = 128;
-    int family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == _family) 
-        ? 256 
+    int family_match = (_family==css_ff_inherit || def._family==css_ff_inherit || def._family == _family)
+        ? 256
         : ( (_family==css_ff_monospace)==(def._family==css_ff_monospace) ? 64 : 0 );
     int typeface_match = (_typeface == def._typeface) ? 256 : 0;
     return
@@ -3277,8 +3287,8 @@ int LVFontDef::CalcFallbackMatch( lString8 face, int size ) const
 
 
 
-void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
-                   const lChar16 * text, int len, 
+void LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
+                   const lChar16 * text, int len,
                    lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 , int )
 {
     //static lUInt8 glyph_buf[16384];
@@ -3349,8 +3359,8 @@ bool LBitmapFont::getGlyphInfo( lUInt16 code, LVFont::glyph_info_t * glyph, lCha
     return true;
 }
 
-lUInt16 LBitmapFont::measureText( 
-                    const lChar16 * text, int len, 
+lUInt16 LBitmapFont::measureText(
+                    const lChar16 * text, int len,
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
@@ -3371,8 +3381,8 @@ lUInt32 LBitmapFont::getTextWidth( const lChar16 * text, int len )
         len = MAX_LINE_CHARS;
     if ( len<=0 )
         return 0;
-    lUInt16 res = measureText( 
-                    text, len, 
+    lUInt16 res = measureText(
+                    text, len,
                     widths,
                     flags,
                     2048, // max_width,
@@ -3614,7 +3624,7 @@ void LVFontCache::gc()
 }
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE!=1
-void LVBaseWin32Font::Clear() 
+void LVBaseWin32Font::Clear()
 {
     if (_hfont)
     {
@@ -3713,7 +3723,7 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
 
 /** \brief get glyph info
     \param glyph is pointer to glyph_info_t struct to place retrieved info
-    \return true if glyh was found 
+    \return true if glyh was found
 */
 bool LVWin32DrawFont::getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char )
 {
@@ -3737,7 +3747,7 @@ int LVWin32DrawFont::getCharWidth( lChar16 ch, lChar16 def_char )
     gcpres.nMaxFit = 1;
     gcpres.nGlyphs = 1;
 
-    lUInt32 res = GetCharacterPlacementW( 
+    lUInt32 res = GetCharacterPlacementW(
         _drawbuf.GetDC(),
         str,
         1,
@@ -3763,8 +3773,8 @@ lUInt32 LVWin32DrawFont::getTextWidth( const lChar16 * text, int len )
         len = MAX_LINE_CHARS;
     if ( len<=0 )
         return 0;
-    lUInt16 res = measureText( 
-                    text, len, 
+    lUInt16 res = measureText(
+                    text, len,
                     widths,
                     flags,
                     2048, // max_width,
@@ -3777,10 +3787,10 @@ lUInt32 LVWin32DrawFont::getTextWidth( const lChar16 * text, int len )
 
 /** \brief measure text
     \param glyph is pointer to glyph_info_t struct to place retrieved info
-    \return true if glyph was found 
+    \return true if glyph was found
 */
-lUInt16 LVWin32DrawFont::measureText( 
-                    const lChar16 * text, int len, 
+lUInt16 LVWin32DrawFont::measureText(
+                    const lChar16 * text, int len,
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
@@ -3813,7 +3823,7 @@ lUInt16 LVWin32DrawFont::measureText(
     gcpres.nMaxFit = len;
     gcpres.nGlyphs = len;
 
-    lUInt32 res = GetCharacterPlacementW( 
+    lUInt32 res = GetCharacterPlacementW(
         _drawbuf.GetDC(),
         pstr,
         len,
@@ -3841,7 +3851,7 @@ lUInt16 LVWin32DrawFont::measureText(
 
     assert(pstr[len]==0);
 
-    for ( ; wsum < max_width && nchars < len && nchars<gcpres.nMaxFit; nchars++ ) 
+    for ( ; wsum < max_width && nchars < len && nchars<gcpres.nMaxFit; nchars++ )
     {
         bflags = 0;
         ch = text[nchars];
@@ -3854,7 +3864,7 @@ lUInt16 LVWin32DrawFont::measureText(
             bflags |= LCHAR_IS_SPACE;
         gwidth = gcpres.lpDx[nchars];
         widths[nchars] = wsum + gwidth;
-        if ( ch != UNICODE_SOFT_HYPHEN_CODE ) 
+        if ( ch != UNICODE_SOFT_HYPHEN_CODE )
             wsum += gwidth; /* don't include hyphens to width */
         flags[nchars] = bflags;
     }
@@ -3878,7 +3888,7 @@ lUInt16 LVWin32DrawFont::measureText(
             break;
         if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?' || ch==':' || ch==';')
             break;
-        
+
     }
     HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
 
@@ -3886,8 +3896,8 @@ lUInt16 LVWin32DrawFont::measureText(
 }
 
 /// draws text string
-void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
-                   const lChar16 * text, int len, 
+void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
+                   const lChar16 * text, int len,
                    lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
 {
     if (_hfont==NULL)
@@ -3913,7 +3923,7 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
     {
         // draw using backbuffer
         SIZE sz;
-        if ( !GetTextExtentPoint32W(_drawbuf.GetDC(), 
+        if ( !GetTextExtentPoint32W(_drawbuf.GetDC(),
                 str.c_str(), str.length(), &sz) )
             return;
         LVColorDrawBuf colorbuf( sz.cx, sz.cy );
@@ -3923,7 +3933,7 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
         SetTextColor(dc, 0x000000);
         SetBkMode(dc, TRANSPARENT);
         //ETO_OPAQUE
-        if (ExtTextOutW( dc, 0, 0, 
+        if (ExtTextOutW( dc, 0, 0,
                 0, //ETO_OPAQUE
                 NULL,
                 str.c_str(), str.length(), NULL ))
@@ -3931,7 +3941,7 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
             // COPY colorbuf to buf with converting
             colorbuf.DrawTo( buf, x, y, 0, NULL );
         }
-    } 
+    }
     else
     {
         // draw directly on DC
@@ -3940,18 +3950,18 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
         HFONT oldfont = (HFONT)SelectObject( dc, _hfont );
         SetTextColor( dc, RevRGB(buf->GetTextColor()) );
         SetBkMode(dc, TRANSPARENT);
-        ExtTextOutW( dc, x, y, 
+        ExtTextOutW( dc, x, y,
             0, //ETO_OPAQUE
             NULL,
             str.c_str(), str.length(), NULL );
         SelectObject( dc, oldfont );
     }
 }
-    
+
 /** \brief get glyph image in 1 byte per pixel format
     \param code is unicode character
     \param buf is buffer [width*height] to place glyph data
-    \return true if glyph was found 
+    \return true if glyph was found
 */
 bool LVWin32DrawFont::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char)
 {
@@ -4007,7 +4017,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
     }
     GLYPHMETRICS metrics;
     p->glyph = NULL;
-    
+
     MAT2 identity = { {0,1}, {0,0}, {0,0}, {0,1} };
     lUInt32 res;
     res = GetGlyphOutlineW( _drawbuf.GetDC(), ch,
@@ -4030,13 +4040,13 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
         &identity );
     if (gs>0x10000 || gs<0)
         return false;
-        
+
     p->gi.blackBoxX = metrics.gmBlackBoxX;
     p->gi.blackBoxY = metrics.gmBlackBoxY;
     p->gi.originX = (lInt8)metrics.gmptGlyphOrigin.x;
     p->gi.originY = (lInt8)metrics.gmptGlyphOrigin.y;
     p->gi.width = (lUInt8)metrics.gmCellIncX;
-    
+
     if (p->gi.blackBoxX>0 && p->gi.blackBoxY>0)
     {
         p->glyph = new unsigned char[p->gi.blackBoxX * p->gi.blackBoxY];
@@ -4100,7 +4110,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
 
 /** \brief get glyph info
     \param glyph is pointer to glyph_info_t struct to place retrieved info
-    \return true if glyh was found 
+    \return true if glyh was found
 */
 bool LVWin32Font::getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char )
 {
@@ -4122,8 +4132,8 @@ lUInt32 LVWin32Font::getTextWidth( const lChar16 * text, int len )
         len = MAX_LINE_CHARS;
     if ( len<=0 )
         return 0;
-    lUInt16 res = measureText( 
-                    text, len, 
+    lUInt16 res = measureText(
+                    text, len,
                     widths,
                     flags,
                     2048, // max_width,
@@ -4136,10 +4146,10 @@ lUInt32 LVWin32Font::getTextWidth( const lChar16 * text, int len )
 
 /** \brief measure text
     \param glyph is pointer to glyph_info_t struct to place retrieved info
-    \return true if glyph was found 
+    \return true if glyph was found
 */
-lUInt16 LVWin32Font::measureText( 
-                    const lChar16 * text, int len, 
+lUInt16 LVWin32Font::measureText(
+                    const lChar16 * text, int len,
                     lUInt16 * widths,
                     lUInt8 * flags,
                     int max_width,
@@ -4150,7 +4160,7 @@ lUInt16 LVWin32Font::measureText(
 {
     if (_hfont==NULL)
         return 0;
-        
+
     lUInt16 wsum = 0;
     lUInt16 nchars = 0;
     glyph_t * glyph; //GetGlyphRec( lChar16 ch )
@@ -4164,7 +4174,7 @@ lUInt16 LVWin32Font::measureText(
     glyph = GetGlyphRec( UNICODE_SOFT_HYPHEN_CODE );
     hyphwidth = glyph ? glyph->gi.width : 0;
 
-    for ( ; wsum < max_width && nchars < len; nchars++ ) 
+    for ( ; wsum < max_width && nchars < len; nchars++ )
     {
         bflags = 0;
         ch = text[nchars];
@@ -4180,7 +4190,7 @@ lUInt16 LVWin32Font::measureText(
              glyph = GetGlyphRec( def_char );
         gwidth = glyph ? glyph->gi.width : 0;
         widths[nchars] = wsum + gwidth;
-        if ( ch != UNICODE_SOFT_HYPHEN_CODE ) 
+        if ( ch != UNICODE_SOFT_HYPHEN_CODE )
             wsum += gwidth; /* don't include hyphens to width */
         flags[nchars] = bflags;
     }
@@ -4203,7 +4213,7 @@ lUInt16 LVWin32Font::measureText(
             break;
         if (ch=='.' || ch==',' || ch=='!' || ch=='?' || ch=='?')
             break;
-        
+
     }
     HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphwidth, max_width);
 
@@ -4213,7 +4223,7 @@ lUInt16 LVWin32Font::measureText(
 /** \brief get glyph image in 1 byte per pixel format
     \param code is unicode character
     \param buf is buffer [width*height] to place glyph data
-    \return true if glyph was found 
+    \return true if glyph was found
 */
 bool LVWin32Font::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char)
 {
@@ -4228,7 +4238,7 @@ bool LVWin32Font::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char)
     return true;
 }
 
-void LVWin32Font::Clear() 
+void LVWin32Font::Clear()
 {
     LVBaseWin32Font::Clear();
     _cache.clear();

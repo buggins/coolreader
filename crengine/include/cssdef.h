@@ -173,6 +173,58 @@ enum css_value_type_t {
     css_val_color
 };
 
+/// css border style values
+enum css_border_style_type_t {
+    css_border_solid,
+    css_border_dotted,
+    css_border_dashed,
+    css_border_double,
+    css_border_groove,
+    css_border_ridge,
+    css_border_inset,
+    css_border_outset,
+    css_border_none
+};
+/// css background property values
+enum css_background_repeat_value_t {
+    css_background_repeat,
+    css_background_repeat_x,
+    css_background_repeat_y,
+    css_background_no_repeat,
+    css_background_r_initial,
+    css_background_r_inherit,
+    css_background_r_none
+};
+enum css_background_attachment_value_t {
+    css_background_scroll,
+    css_background_fixed,
+    css_background_local,
+    css_background_a_initial,
+    css_background_a_inherit,
+    css_background_a_none
+};
+enum css_background_position_value_t {
+    css_background_left_top,
+    css_background_left_center,
+    css_background_left_bottom,
+    css_background_right_top,
+    css_background_right_center,
+    css_background_right_bottom,
+    css_background_center_top,
+    css_background_center_center,
+    css_background_center_bottom,
+    css_background_p_initial,
+    css_background_p_inherit,
+    css_background_p_none
+};
+
+enum css_border_collapse_value_t{
+    css_border_seperate,
+    css_border_collapse,
+    css_border_c_initial,
+    css_border_c_inherit,
+    css_border_c_none
+};
 /// css length value
 typedef struct css_length_tag {
     css_value_type_t type;  ///< type of value
