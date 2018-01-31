@@ -761,9 +761,9 @@ public:
     lString8Collection()
         : chunks(NULL), count(0), size(0)
     { }
-    lString8Collection(lString8Collection & src)
+    lString8Collection(const lString8Collection & src)
         : chunks(NULL), count(0), size(0)
-    { addAll(src); }
+    { reserve(src.size); addAll(src); }
     lString8Collection(const lString8 & str, const lString8 & delimiter)
         : chunks(NULL), count(0), size(0)
     {
@@ -790,6 +790,13 @@ public:
     lString8 & operator [] (int index)
     {
         return ((lString8 *)chunks)[index];
+    }
+    lString8Collection& operator=(const lString8Collection& other)
+    {
+        clear();
+        reserve(other.size);
+        addAll(other);
+        return *this;
     }
     int length() const { return count; }
     void clear();
@@ -897,7 +904,7 @@ template <int BUFSIZE> class lStringBuf16 {
     lString16 & str;
     lChar16 buf[BUFSIZE];
     int pos;
-	lStringBuf16 & operator = (lStringBuf16 & v)
+	lStringBuf16 & operator = (const lStringBuf16 & v)
 	{
         CR_UNUSED(v);
 		// not available

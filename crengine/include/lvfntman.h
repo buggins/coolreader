@@ -65,7 +65,7 @@ private:
     LVFontGlyphCacheItem * head;
     LVFontGlyphCacheItem * tail;
     LVFontGlobalGlyphCache * global_cache;
-    int size;
+    //int size;
 public:
     LVFontLocalGlyphCache( LVFontGlobalGlyphCache * globalCache )
         : head(NULL), tail(NULL), global_cache( globalCache )

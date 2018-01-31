@@ -1264,8 +1264,15 @@ void lString16Collection::reserve(int space)
 {
     if ( count + space > size )
     {
-        size = count + space + 64;
-        chunks = (lstring16_chunk_t * *)realloc( chunks, sizeof(lstring16_chunk_t *) * size );
+        int tmpSize = count + space + 64;
+        void* tmp = realloc( chunks, sizeof(lstring16_chunk_t *) * tmpSize );
+        if (tmp) {
+            size = tmpSize;
+            chunks = (lstring16_chunk_t * *)tmp;
+        }
+        else {
+            // TODO: throw exception or change function prototype & return code
+        }
     }
 }
 
@@ -1304,13 +1311,14 @@ int lString16Collection::add( const lString16 & str )
 }
 void lString16Collection::clear()
 {
-    for (int i=0; i<count; i++)
-    {
-        ((lString16 *)chunks)[i].release();
-    }
-    if (chunks)
+    if (chunks) {
+        for (int i=0; i<count; i++)
+        {
+            ((lString16 *)chunks)[i].release();
+        }
         free(chunks);
-    chunks = NULL;
+        chunks = NULL;
+    }
     count = 0;
     size = 0;
 }
@@ -1385,8 +1393,15 @@ void lString8Collection::reserve(int space)
 {
     if ( count + space > size )
     {
-        size = count + space + 64;
-        chunks = (lstring8_chunk_t * *)realloc( chunks, sizeof(lstring8_chunk_t *) * size );
+        int tmpSize = count + space + 64;
+        void* tmp = realloc( chunks, sizeof(lstring8_chunk_t *) * tmpSize );
+        if (tmp) {
+            size = tmpSize;
+            chunks = (lstring8_chunk_t * *)tmp;
+        }
+        else {
+            // TODO: throw exception or change function prototype & return code
+        }
     }
 }
 

@@ -148,14 +148,25 @@ private:
         }
         if ( n>=indexsize ) {
             // resize
+        	int tmpSize;
+        	void* tmp;
             if ( indexsize==0 )
-                indexsize = size/2;
+                tmpSize = size/2;
             else
-                indexsize *= 2;
-            index = (LVRefCacheIndexRec*)realloc( index, sizeof(LVRefCacheIndexRec)*indexsize );
-            for ( int i=nextindex+1; i<indexsize; i++ ) {
-                index[i].item = NULL;
-                index[i].refcount = 0;
+                tmpSize = indexsize*2;
+            tmp = realloc( index, sizeof(LVRefCacheIndexRec)*tmpSize );
+            if (tmp) {
+            	index = (LVRefCacheIndexRec *)tmp;
+            	indexsize = tmpSize;
+                for ( int i=nextindex+1; i<indexsize; i++ ) {
+                    index[i].item = NULL;
+                    index[i].refcount = 0;
+               }
+            }
+            else {
+                // memory allocation failure
+                n = indexsize - 1;
+                // TODO: throw exception or change function prototype & return code
             }
         }
         rec->index = n;
@@ -329,30 +340,39 @@ public:
         table = new LVRefCacheRec * [ size ];
         for( int i=0; i<size; i++ )
             table[i] = NULL;
-        indexsize = list.length();
-        nextindex = indexsize > 0 ? indexsize-1 : 0;
-        if ( indexsize ) {
-            index = (LVRefCacheIndexRec*)realloc( index, sizeof(LVRefCacheIndexRec)*indexsize );
-            index[0].item = NULL;
-            index[0].refcount=0;
-            for ( int i=1; i<indexsize; i++ ) {
-                if ( list[i].isNull() ) {
-                    // add free node
-                    index[i].item = NULL;
-                    index[i].refcount = freeindex;
-                    freeindex = i;
-                } else {
-                    // add item
-                    lUInt32 hash = calcHash( list[i] );
-                    lUInt32 hindex = hash & (size - 1);
-                    LVRefCacheRec * rec = new LVRefCacheRec(list[i], hash);
-                    rec->index = i;
-                    rec->next = table[hindex];
-                    table[hindex] = rec;
-                    index[i].item = rec;
-                    index[i].refcount = 1;
-                    numitems++;
+        int tmpSize = list.length();
+        if (tmpSize == 0)
+            nextindex = 0;
+        if ( tmpSize > 0 ) {
+            void* tmp = realloc( index, sizeof(LVRefCacheIndexRec)*tmpSize );
+            if (tmp) {
+                indexsize = tmpSize;
+                nextindex = indexsize-1;
+                index = (LVRefCacheIndexRec*)tmp;
+                index[0].item = NULL;
+                index[0].refcount=0;
+                for ( int i=1; i<indexsize; i++ ) {
+                    if ( list[i].isNull() ) {
+                        // add free node
+                        index[i].item = NULL;
+                        index[i].refcount = freeindex;
+                        freeindex = i;
+                    } else {
+                        // add item
+                        lUInt32 hash = calcHash( list[i] );
+                        lUInt32 hindex = hash & (size - 1);
+                        LVRefCacheRec * rec = new LVRefCacheRec(list[i], hash);
+                        rec->index = i;
+                        rec->next = table[hindex];
+                        table[hindex] = rec;
+                        index[i].item = rec;
+                        index[i].refcount = 1;
+                        numitems++;
+                    }
                 }
+            }
+            else {
+                // TODO: throw exception or change function prototype & return code
             }
         }
     }

@@ -344,6 +344,11 @@ public:
         _interval = expirationIntervalMillis;
     }
 
+    CRTimerUtil(const CRTimerUtil & t) {
+    	_start = t._start;
+    	_interval = t._interval;
+    }
+
     void restart() {
         _start = getSystemTimeMillis();
     }

@@ -309,7 +309,7 @@ private:
         lUInt32      flags;
         lString16    text;
         cache_item( lString16 & txt )
-            : next(NULL), text(txt)
+            : next(NULL), pos(0), size(0), flags(0), text(txt)
         {
         }
     };
