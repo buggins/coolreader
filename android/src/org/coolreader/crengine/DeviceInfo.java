@@ -110,10 +110,10 @@ public class DeviceInfo {
 				DEVICE.toLowerCase().contentEquals("zoom2");
 		EINK_NOOK_120 = EINK_NOOK && (MODEL.contentEquals("BNRV350") || MODEL.contentEquals("BNRV300") || MODEL.contentEquals("BNRV500"));
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.startsWith("PRS-T");
-		//MANUFACTURER=Onyx, MODEL=C63ML, DEVICE=C63ML, PRODUCT=C63ML
-		EINK_ONYX = MANUFACTURER.toLowerCase().contentEquals("onyx") && 
-				(MODEL.startsWith("C") && MODEL.endsWith("ML"))
-				|| MODEL.startsWith("I63MLP");
+		//MANUFACTURER=Onyx, MODEL=*; All ONYX BOOX Readers have e-ink screen
+		EINK_ONYX = MANUFACTURER.toLowerCase().contentEquals("onyx") &&
+				(BRAND.toLowerCase().contentEquals("onyx") || BRAND.toLowerCase().contentEquals("maccentre")) &&
+				!MODEL.isEmpty();
 		//MANUFACTURER -DNS, DEVICE -BK6004C, MODEL - DNS Airbook EGH602, PRODUCT - BK6004C
 		EINK_DNS = MANUFACTURER.toLowerCase().contentEquals("dns") && MODEL.startsWith("DNS Airbook EGH");
 		EINK_TOLINO = BRAND.toLowerCase().contentEquals("tolino") && (
