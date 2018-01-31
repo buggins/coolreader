@@ -7,30 +7,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef org_coolreader_crengine_DocView_NOOK_KEY_PREV_LEFT
-#define org_coolreader_crengine_DocView_NOOK_KEY_PREV_LEFT 96L
-#undef org_coolreader_crengine_DocView_NOOK_KEY_PREV_RIGHT
-#define org_coolreader_crengine_DocView_NOOK_KEY_PREV_RIGHT 98L
-#undef org_coolreader_crengine_DocView_NOOK_KEY_NEXT_LEFT
-#define org_coolreader_crengine_DocView_NOOK_KEY_NEXT_LEFT 95L
-#undef org_coolreader_crengine_DocView_NOOK_KEY_NEXT_RIGHT
-#define org_coolreader_crengine_DocView_NOOK_KEY_NEXT_RIGHT 97L
-#undef org_coolreader_crengine_DocView_NOOK_KEY_SHIFT_UP
-#define org_coolreader_crengine_DocView_NOOK_KEY_SHIFT_UP 101L
-#undef org_coolreader_crengine_DocView_NOOK_KEY_SHIFT_DOWN
-#define org_coolreader_crengine_DocView_NOOK_KEY_SHIFT_DOWN 100L
-#undef org_coolreader_crengine_DocView_PAGE_ANIMATION_NONE
-#define org_coolreader_crengine_DocView_PAGE_ANIMATION_NONE 0L
-#undef org_coolreader_crengine_DocView_PAGE_ANIMATION_PAPER
-#define org_coolreader_crengine_DocView_PAGE_ANIMATION_PAPER 1L
-#undef org_coolreader_crengine_DocView_PAGE_ANIMATION_SLIDE
-#define org_coolreader_crengine_DocView_PAGE_ANIMATION_SLIDE 2L
-#undef org_coolreader_crengine_DocView_DEF_PAGE_FLIP_MS
-#define org_coolreader_crengine_DocView_DEF_PAGE_FLIP_MS 500L
-#undef org_coolreader_crengine_DocView_HILITE_RECT_ALPHA
-#define org_coolreader_crengine_DocView_HILITE_RECT_ALPHA 32L
-#undef org_coolreader_crengine_DocView_DEBUG_ANIMATION
-#define org_coolreader_crengine_DocView_DEBUG_ANIMATION 0L
+#undef org_coolreader_crengine_DocView_SWAP_DONE
+#define org_coolreader_crengine_DocView_SWAP_DONE 0L
+#undef org_coolreader_crengine_DocView_SWAP_TIMEOUT
+#define org_coolreader_crengine_DocView_SWAP_TIMEOUT 1L
+#undef org_coolreader_crengine_DocView_SWAP_ERROR
+#define org_coolreader_crengine_DocView_SWAP_ERROR 2L
 /*
  * Class:     org_coolreader_crengine_DocView
  * Method:    getPageImageInternal
@@ -193,6 +175,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_updateSelectionInter
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    moveSelectionInternal
+ * Signature: (Lorg/coolreader/crengine/Selection;II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInternal
+  (JNIEnv *, jobject, jobject, jint, jint);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    checkLinkInternal
  * Signature: (III)Ljava/lang/String;
  */
@@ -233,6 +223,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_closeImageIntern
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    isRenderedInternal
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isRenderedInternal
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    goLinkInternal
  * Signature: (Ljava/lang/String;)I
  */
@@ -241,11 +239,11 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_goLinkInternal
 
 /*
  * Class:     org_coolreader_crengine_DocView
- * Method:    moveSelectionInternal
- * Signature: (Lorg/coolreader/crengine/Selection;II)Z
+ * Method:    hilightBookmarksInternal
+ * Signature: ([Lorg/coolreader/crengine/Bookmark;)V
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInternal
-  (JNIEnv *, jobject, jobject, jint, jint);
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInternal
+  (JNIEnv *, jobject, jobjectArray);
 
 /*
  * Class:     org_coolreader_crengine_DocView
@@ -257,24 +255,11 @@ JNIEXPORT jint JNICALL Java_org_coolreader_crengine_DocView_swapToCacheInternal
 
 /*
  * Class:     org_coolreader_crengine_DocView
- * Method:    hilightBookmarksInternal
- * Signature: ([Lorg/coolreader/crengine/Bookmark;)V
+ * Method:    getPageImageTextureInternal
+ * Signature: ([IIII)V
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_hilightBookmarksInternal
-  (JNIEnv *, jobject, jobjectArray list);
-
-/*
- * Class:     org_coolreader_crengine_DocView
- * Method:    isRenderedInternal
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isRenderedInternal
-  (JNIEnv *, jobject);
-
-
-#define SEL_CMD_SELECT_FIRST_SENTENCE_ON_PAGE 1
-#define SEL_CMD_NEXT_SENTENCE 2
-#define SEL_CMD_PREV_SENTENCE 3
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_getPageImageTextureInternal
+  (JNIEnv *, jobject, jintArray, jint, jint, jint);
 
 #ifdef __cplusplus
 }

@@ -474,7 +474,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveIte
  * Signature: (I[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv * _env, jclass _engine, jint method, jbyteArray data)
+  (JNIEnv * _env, jobject _engine, jint method, jbyteArray data)
 {
 	CRJNIEnv env(_env);
 	if ( method==0 ) {
