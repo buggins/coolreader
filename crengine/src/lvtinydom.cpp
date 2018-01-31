@@ -912,16 +912,37 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         block = allocBlock( type, dataIndex, size );
     }
     if ( !block )
+    {
+#if DOC_DATA_COMPRESSION_LEVEL!=0
+        if ( compress ) {
+            free( (void*)buf );
+        }
+#endif
         return false;
+    }
     if ( (int)_stream->SetPos( block->_blockFilePos )!=block->_blockFilePos )
+    {
+#if DOC_DATA_COMPRESSION_LEVEL!=0
+        if ( compress ) {
+            free( (void*)buf );
+        }
+#endif
         return false;
+    }
     // assert: size == block->_dataSize
     // actual writing of data
     block->_dataSize = size;
     lvsize_t bytesWritten = 0;
     _stream->Write(buf, size, &bytesWritten );
     if ( (int)bytesWritten!=size )
+    {
+#if DOC_DATA_COMPRESSION_LEVEL!=0
+        if ( compress ) {
+            free( (void*)buf );
+        }
+#endif
         return false;
+    }
 #if CACHE_FILE_WRITE_BLOCK_PADDING==1
     int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
@@ -1523,6 +1544,7 @@ bool tinyNodeCollection::openCacheFile()
 
     if ( !ldomDocCache::enabled() ) {
         CRLog::error("Cannot open cached document: cache dir is not initialized");
+        delete f;
         return false;
     }
 

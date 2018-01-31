@@ -1124,7 +1124,7 @@ public:
                 res = _fileList.length()>0;
                 while ( _toc && _toc->getParent() )
                     _toc = _toc->getParent();
-                if ( res && _toc->getChildCount()>0 ) {
+                if ( res && _toc && _toc->getChildCount()>0 ) {
                     lString16 name = _toc->getChild(0)->getName();
                     CRPropRef m_doc_props = _doc->getProps();
                     m_doc_props->setString(DOC_PROP_TITLE, name);
