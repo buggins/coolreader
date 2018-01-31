@@ -30,6 +30,7 @@ LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES) -Wno-psabi -Wno-unused-variable 
 
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
+LOCAL_CFLAGS += -fexceptions
 
 CRENGINE_SRC_FILES := \
     ../../crengine/src/cp_stats.cpp \
