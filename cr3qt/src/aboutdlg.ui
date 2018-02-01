@@ -56,7 +56,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string notr="true">(c) 1998-2010 Vadim Lopatin</string>
+        <string notr="true">(c) 1998-2015 Vadim Lopatin</string>
        </property>
       </widget>
      </item>
