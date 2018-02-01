@@ -86,8 +86,8 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
     QString cacheDir = homeDir + "cache";
     QString bookmarksDir = homeDir + "bookmarks";
-    QString histFile = exeDir + "cr3hist.bmk";
-    QString histFile2 = homeDir + "cr3hist.bmk";
+    QString histFile2 = exeDir + "cr3hist.bmk";
+    QString histFile = homeDir + "cr3hist.bmk";
     QString iniFile2 = exeDir + "cr3.ini";
     QString iniFile = homeDir + "cr3.ini";
     QString cssFile = homeDir + "fb2.css";
@@ -101,9 +101,13 @@ MainWindow::MainWindow(QWidget *parent)
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
     if ( !ui->view->loadSettings( iniFile ) )
-        ui->view->loadSettings( iniFile2 );
+        if ( !ui->view->loadSettings( iniFile2 ) )
+          ui->view->saveSettings( iniFile );
+
     if ( !ui->view->loadHistory( histFile ) )
-        ui->view->loadHistory( histFile2 );
+        if ( !ui->view->loadHistory( histFile2 ) )
+          ui->view->saveHistory( histFile );
+
     if ( !ui->view->loadCSS( cssFile ) )
         ui->view->loadCSS( cssFile2 );
 #if ENABLE_BOOKMARKS_DIR==1
