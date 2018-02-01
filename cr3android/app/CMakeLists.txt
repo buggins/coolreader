@@ -87,52 +87,52 @@ set(PNG_SRC_FILES
 )
 
 set(JPEG_SRC_FILES
+    ${CR3_ROOT}/thirdparty/libjpeg/jaricom.c
     ${CR3_ROOT}/thirdparty/libjpeg/jcapimin.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jchuff.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jcomapi.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jctrans.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdcoefct.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdmainct.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdpostct.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jfdctfst.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jidctred.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jutils.c
     ${CR3_ROOT}/thirdparty/libjpeg/jcapistd.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jcinit.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jcparam.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdapimin.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdcolor.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdmarker.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdsample.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jfdctint.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jmemmgr.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jcarith.c
     ${CR3_ROOT}/thirdparty/libjpeg/jccoefct.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jcmainct.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jcphuff.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdapistd.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jddctmgr.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdmaster.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdtrans.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jidctflt.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jmemnobs.c
     ${CR3_ROOT}/thirdparty/libjpeg/jccolor.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jcmarker.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jcprepct.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdatadst.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdhuff.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdmerge.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jerror.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jidctfst.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jquant1.c
     ${CR3_ROOT}/thirdparty/libjpeg/jcdctmgr.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jchuff.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jcinit.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jcmainct.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jcmarker.c
     ${CR3_ROOT}/thirdparty/libjpeg/jcmaster.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jcomapi.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jcparam.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jcprepct.c
     ${CR3_ROOT}/thirdparty/libjpeg/jcsample.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jctrans.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdapimin.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdapistd.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdarith.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdatadst.c
     ${CR3_ROOT}/thirdparty/libjpeg/jdatasrc.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdcoefct.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdcolor.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jddctmgr.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdhuff.c
     ${CR3_ROOT}/thirdparty/libjpeg/jdinput.c
-    ${CR3_ROOT}/thirdparty/libjpeg/jdphuff.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdmainct.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdmarker.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdmaster.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdmerge.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdpostct.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdsample.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jdtrans.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jerror.c
     ${CR3_ROOT}/thirdparty/libjpeg/jfdctflt.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jfdctfst.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jfdctint.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jidctflt.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jidctfst.c
     ${CR3_ROOT}/thirdparty/libjpeg/jidctint.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jquant1.c
     ${CR3_ROOT}/thirdparty/libjpeg/jquant2.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jutils.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jmemmgr.c
+    ${CR3_ROOT}/thirdparty/libjpeg/jmemnobs.c
 )
 
 set(FREETYPE_SRC_FILES
