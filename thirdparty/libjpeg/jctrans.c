@@ -2,6 +2,7 @@
  * jctrans.c
  *
  * Copyright (C) 1995-1998, Thomas G. Lane.
+ * Modified 2000-2017 by Guido Vollbeding.
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -76,13 +77,23 @@ jpeg_copy_critical_parameters (j_decompress_ptr srcinfo,
   dstinfo->image_height = srcinfo->image_height;
   dstinfo->input_components = srcinfo->num_components;
   dstinfo->in_color_space = srcinfo->jpeg_color_space;
+  dstinfo->jpeg_width = srcinfo->output_width;
+  dstinfo->jpeg_height = srcinfo->output_height;
+  dstinfo->min_DCT_h_scaled_size = srcinfo->min_DCT_h_scaled_size;
+  dstinfo->min_DCT_v_scaled_size = srcinfo->min_DCT_v_scaled_size;
   /* Initialize all parameters to default values */
   jpeg_set_defaults(dstinfo);
   /* jpeg_set_defaults may choose wrong colorspace, eg YCbCr if input is RGB.
    * Fix it to get the right header markers for the image colorspace.
+   * Note: Entropy table assignment in jpeg_set_colorspace
+   * depends on color_transform.
+   * Adaption is also required for setting the appropriate
+   * entropy coding mode dependent on image data precision.
    */
+  dstinfo->color_transform = srcinfo->color_transform;
   jpeg_set_colorspace(dstinfo, srcinfo->jpeg_color_space);
   dstinfo->data_precision = srcinfo->data_precision;
+  dstinfo->arith_code = srcinfo->data_precision > 8 ? TRUE : FALSE;
   dstinfo->CCIR601_sampling = srcinfo->CCIR601_sampling;
   /* Copy the source's quantization tables. */
   for (tblno = 0; tblno < NUM_QUANT_TBLS; tblno++) {
@@ -125,7 +136,7 @@ jpeg_copy_critical_parameters (j_decompress_ptr srcinfo,
 	  ERREXIT1(dstinfo, JERR_MISMATCHED_QUANT_TABLE, tblno);
       }
     }
-    /* Note: we do not copy the source's Huffman table assignments;
+    /* Note: we do not copy the source's entropy table assignments;
      * instead we rely on jpeg_set_colorspace to have made a suitable choice.
      */
   }
@@ -135,10 +146,10 @@ jpeg_copy_critical_parameters (j_decompress_ptr srcinfo,
    * if the application chooses to copy JFIF 1.02 extension markers from
    * the source file, we need to copy the version to make sure we don't
    * emit a file that has 1.02 extensions but a claimed version of 1.01.
-   * We will *not*, however, copy version info from mislabeled "2.01" files.
    */
   if (srcinfo->saw_JFIF_marker) {
-    if (srcinfo->JFIF_major_version == 1) {
+    if (srcinfo->JFIF_major_version == 1 ||
+	srcinfo->JFIF_major_version == 2) {
       dstinfo->JFIF_major_version = srcinfo->JFIF_major_version;
       dstinfo->JFIF_minor_version = srcinfo->JFIF_minor_version;
     }
@@ -146,6 +157,18 @@ jpeg_copy_critical_parameters (j_decompress_ptr srcinfo,
     dstinfo->X_density = srcinfo->X_density;
     dstinfo->Y_density = srcinfo->Y_density;
   }
+}
+
+
+LOCAL(void)
+jpeg_calc_trans_dimensions (j_compress_ptr cinfo)
+/* Do computations that are needed before master selection phase */
+{
+  if (cinfo->min_DCT_h_scaled_size != cinfo->min_DCT_v_scaled_size)
+    ERREXIT2(cinfo, JERR_BAD_DCTSIZE,
+	     cinfo->min_DCT_h_scaled_size, cinfo->min_DCT_v_scaled_size);
+
+  cinfo->block_size = cinfo->min_DCT_h_scaled_size;
 }
 
 
@@ -158,25 +181,17 @@ LOCAL(void)
 transencode_master_selection (j_compress_ptr cinfo,
 			      jvirt_barray_ptr * coef_arrays)
 {
-  /* Although we don't actually use input_components for transcoding,
-   * jcmaster.c's initial_setup will complain if input_components is 0.
-   */
-  cinfo->input_components = 1;
+  /* Do computations that are needed before master selection phase */
+  jpeg_calc_trans_dimensions(cinfo);
+
   /* Initialize master control (includes parameter checking/processing) */
   jinit_c_master_control(cinfo, TRUE /* transcode only */);
 
   /* Entropy encoding: either Huffman or arithmetic coding. */
-  if (cinfo->arith_code) {
-    ERREXIT(cinfo, JERR_ARITH_NOTIMPL);
-  } else {
-    if (cinfo->progressive_mode) {
-#ifdef C_PROGRESSIVE_SUPPORTED
-      jinit_phuff_encoder(cinfo);
-#else
-      ERREXIT(cinfo, JERR_NOT_COMPILED);
-#endif
-    } else
-      jinit_huff_encoder(cinfo);
+  if (cinfo->arith_code)
+    jinit_arith_encoder(cinfo);
+  else {
+    jinit_huff_encoder(cinfo);
   }
 
   /* We need a special coefficient buffer controller. */
@@ -370,7 +385,7 @@ transencode_coef_controller (j_compress_ptr cinfo,
   coef = (my_coef_ptr)
     (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,
 				SIZEOF(my_coef_controller));
-  cinfo->coef = (struct jpeg_c_coef_controller *) coef;
+  cinfo->coef = &coef->pub;
   coef->pub.start_pass = start_pass_coef;
   coef->pub.compress_data = compress_output;
 
@@ -381,7 +396,7 @@ transencode_coef_controller (j_compress_ptr cinfo,
   buffer = (JBLOCKROW)
     (*cinfo->mem->alloc_large) ((j_common_ptr) cinfo, JPOOL_IMAGE,
 				C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK));
-  jzero_far((void FAR *) buffer, C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK));
+  FMEMZERO((void FAR *) buffer, C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK));
   for (i = 0; i < C_MAX_BLOCKS_IN_MCU; i++) {
     coef->dummy_buffer[i] = buffer + i;
   }

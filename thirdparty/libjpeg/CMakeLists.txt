@@ -1,8 +1,14 @@
-SET (JPEG_SOURCES 
-jcapimin.c  jchuff.c    jcomapi.c   jctrans.c   jdcoefct.c  jdmainct.c  jdpostct.c  jfdctfst.c  jidctred.c  jutils.c
-jcapistd.c  jcinit.c    jcparam.c   jdapimin.c  jdcolor.c   jdmarker.c  jdsample.c  jfdctint.c  jmemmgr.c
-jccoefct.c  jcmainct.c  jcphuff.c   jdapistd.c  jddctmgr.c  jdmaster.c  jdtrans.c   jidctflt.c  jmemnobs.c
-jccolor.c   jcmarker.c  jcprepct.c  jdatadst.c  jdhuff.c    jdmerge.c   jerror.c    jidctfst.c  jquant1.c
-jcdctmgr.c  jcmaster.c  jcsample.c  jdatasrc.c  jdinput.c   jdphuff.c   jfdctflt.c  jidctint.c  jquant2.c
+set(JPEG_SOURCES
+        jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c jccolor.c
+        jcdctmgr.c jchuff.c jcinit.c jcmainct.c jcmarker.c jcmaster.c
+        jcomapi.c jcparam.c jcprepct.c jcsample.c jctrans.c jdapimin.c
+        jdapistd.c jdarith.c jdatadst.c jdatasrc.c jdcoefct.c jdcolor.c
+        jddctmgr.c jdhuff.c jdinput.c jdmainct.c jdmarker.c jdmaster.c
+        jdmerge.c jdpostct.c jdsample.c jdtrans.c jerror.c jfdctflt.c
+        jfdctfst.c jfdctint.c jidctflt.c jidctfst.c jidctint.c jquant1.c
+        jquant2.c jutils.c jmemmgr.c
+
+        jmemnobs.c
 )
-ADD_LIBRARY(jpeg STATIC ${JPEG_SOURCES})
+
+add_library(jpeg STATIC ${JPEG_SOURCES})
