@@ -69,71 +69,89 @@ CRENGINE_SRC_FILES := \
 #    ../../crengine/src/crgui.cpp \
 
 PNG_SRC_FILES := \
-    ../../thirdparty/libpng/pngerror.c  \
-    ../../thirdparty/libpng/pngget.c  \
-    ../../thirdparty/libpng/pngpread.c \
-    ../../thirdparty/libpng/pngrio.c \
-    ../../thirdparty/libpng/pngrutil.c \
-    ../../thirdparty/libpng/pngvcrd.c \
     ../../thirdparty/libpng/png.c \
-    ../../thirdparty/libpng/pngwrite.c \
-    ../../thirdparty/libpng/pngwutil.c \
-    ../../thirdparty/libpng/pnggccrd.c \
+    ../../thirdparty/libpng/pngerror.c \
+    ../../thirdparty/libpng/pngget.c \
     ../../thirdparty/libpng/pngmem.c \
+    ../../thirdparty/libpng/pngpread.c \
     ../../thirdparty/libpng/pngread.c \
+    ../../thirdparty/libpng/pngrio.c \
     ../../thirdparty/libpng/pngrtran.c \
+    ../../thirdparty/libpng/pngrutil.c \
     ../../thirdparty/libpng/pngset.c \
     ../../thirdparty/libpng/pngtrans.c \
     ../../thirdparty/libpng/pngwio.c \
-    ../../thirdparty/libpng/pngwtran.c
+    ../../thirdparty/libpng/pngwrite.c \
+    ../../thirdparty/libpng/pngwtran.c \
+    ../../thirdparty/libpng/pngwutil.c
+
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+PNG_SRC_FILES += \
+    ../../thirdparty/libpng/arm/arm_init.c \
+    ../../thirdparty/libpng/arm/filter_neon.S \
+    ../../thirdparty/libpng/arm/filter_neon_intrinsics.c
+endif
+
+ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+PNG_SRC_FILES += \
+    ../../thirdparty/libpng/arm/arm_init.c \
+    ../../thirdparty/libpng/arm/filter_neon.S \
+    ../../thirdparty/libpng/arm/filter_neon_intrinsics.c
+endif
+
+ifeq ($(TARGET_ARCH_ABI),x86_64)
+PNG_SRC_FILES += \
+    ../../thirdparty/libpng/intel/intel_init.c \
+    ../../thirdparty/libpng/intel/filter_sse2_intrinsics.c
+endif
 
 JPEG_SRC_FILES := \
+    ../../thirdparty/libjpeg/jaricom.c \
     ../../thirdparty/libjpeg/jcapimin.c \
-    ../../thirdparty/libjpeg/jchuff.c \
-    ../../thirdparty/libjpeg/jcomapi.c \
-    ../../thirdparty/libjpeg/jctrans.c \
-    ../../thirdparty/libjpeg/jdcoefct.c \
-    ../../thirdparty/libjpeg/jdmainct.c \
-    ../../thirdparty/libjpeg/jdpostct.c \
-    ../../thirdparty/libjpeg/jfdctfst.c \
-    ../../thirdparty/libjpeg/jidctred.c \
-    ../../thirdparty/libjpeg/jutils.c \
     ../../thirdparty/libjpeg/jcapistd.c \
-    ../../thirdparty/libjpeg/jcinit.c \
-    ../../thirdparty/libjpeg/jcparam.c \
-    ../../thirdparty/libjpeg/jdapimin.c \
-    ../../thirdparty/libjpeg/jdcolor.c \
-    ../../thirdparty/libjpeg/jdmarker.c \
-    ../../thirdparty/libjpeg/jdsample.c \
-    ../../thirdparty/libjpeg/jfdctint.c \
-    ../../thirdparty/libjpeg/jmemmgr.c \
+    ../../thirdparty/libjpeg/jcarith.c \
     ../../thirdparty/libjpeg/jccoefct.c \
-    ../../thirdparty/libjpeg/jcmainct.c \
-    ../../thirdparty/libjpeg/jcphuff.c \
-    ../../thirdparty/libjpeg/jdapistd.c \
-    ../../thirdparty/libjpeg/jddctmgr.c \
-    ../../thirdparty/libjpeg/jdmaster.c \
-    ../../thirdparty/libjpeg/jdtrans.c \
-    ../../thirdparty/libjpeg/jidctflt.c \
-    ../../thirdparty/libjpeg/jmemnobs.c \
     ../../thirdparty/libjpeg/jccolor.c \
-    ../../thirdparty/libjpeg/jcmarker.c \
-    ../../thirdparty/libjpeg/jcprepct.c \
-    ../../thirdparty/libjpeg/jdatadst.c \
-    ../../thirdparty/libjpeg/jdhuff.c \
-    ../../thirdparty/libjpeg/jdmerge.c \
-    ../../thirdparty/libjpeg/jerror.c \
-    ../../thirdparty/libjpeg/jidctfst.c \
-    ../../thirdparty/libjpeg/jquant1.c \
     ../../thirdparty/libjpeg/jcdctmgr.c \
+    ../../thirdparty/libjpeg/jchuff.c \
+    ../../thirdparty/libjpeg/jcinit.c \
+    ../../thirdparty/libjpeg/jcmainct.c \
+    ../../thirdparty/libjpeg/jcmarker.c \
     ../../thirdparty/libjpeg/jcmaster.c \
+    ../../thirdparty/libjpeg/jcomapi.c \
+    ../../thirdparty/libjpeg/jcparam.c \
+    ../../thirdparty/libjpeg/jcprepct.c \
     ../../thirdparty/libjpeg/jcsample.c \
+    ../../thirdparty/libjpeg/jctrans.c \
+    ../../thirdparty/libjpeg/jdapimin.c \
+    ../../thirdparty/libjpeg/jdapistd.c \
+    ../../thirdparty/libjpeg/jdarith.c \
+    ../../thirdparty/libjpeg/jdatadst.c \
     ../../thirdparty/libjpeg/jdatasrc.c \
+    ../../thirdparty/libjpeg/jdcoefct.c \
+    ../../thirdparty/libjpeg/jdcolor.c \
+    ../../thirdparty/libjpeg/jddctmgr.c \
+    ../../thirdparty/libjpeg/jdhuff.c \
     ../../thirdparty/libjpeg/jdinput.c \
-    ../../thirdparty/libjpeg/jdphuff.c \
+    ../../thirdparty/libjpeg/jdmainct.c \
+    ../../thirdparty/libjpeg/jdmarker.c \
+    ../../thirdparty/libjpeg/jdmaster.c \
+    ../../thirdparty/libjpeg/jdmerge.c \
+    ../../thirdparty/libjpeg/jdpostct.c \
+    ../../thirdparty/libjpeg/jdsample.c \
+    ../../thirdparty/libjpeg/jdtrans.c \
+    ../../thirdparty/libjpeg/jerror.c \
     ../../thirdparty/libjpeg/jfdctflt.c \
+    ../../thirdparty/libjpeg/jfdctfst.c \
+    ../../thirdparty/libjpeg/jfdctint.c \
+    ../../thirdparty/libjpeg/jidctflt.c \
+    ../../thirdparty/libjpeg/jidctfst.c \
     ../../thirdparty/libjpeg/jidctint.c \
-    ../../thirdparty/libjpeg/jquant2.c
+    ../../thirdparty/libjpeg/jquant1.c \
+    ../../thirdparty/libjpeg/jquant2.c \
+    ../../thirdparty/libjpeg/jutils.c \
+    ../../thirdparty/libjpeg/jmemmgr.c \
+    ../../thirdparty/libjpeg/jmemnobs.c
 
 FREETYPE_SRC_FILES := \
     ../../thirdparty/freetype/src/autofit/autofit.c \
