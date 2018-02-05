@@ -1,62 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
->
-<LinearLayout
-  android:orientation="vertical"
-  android:layout_width="fill_parent"
-  android:layout_height="wrap_content">
-<TextView 
-    android:id="@+id/lbl_position"
-       style="@style/TextAppearance.Medium"
-       android:singleLine="false"
-       android:maxLines="3"
-	android:layout_margin="5dip"
-	android:text="Page 34/1024 (25%) Chapter 1" 
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"/>
-<RadioGroup 
-  android:layout_width="fill_parent"
-  android:layout_height="wrap_content"
-  android:orientation="vertical"
-  android:id="@+id/rg_type">
-  <RadioButton android:checked="true"
-     android:id="@+id/rb_comment" android:text="@string/dlg_bookmark_type_comment" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-  <RadioButton android:checked="false"
-    android:id="@+id/rb_correction" android:text="@string/dlg_bookmark_type_correction" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-</RadioGroup>
-<TextView 
-    android:id="@+id/lbl_selection_text"
-       style="@style/TextAppearance.Medium"
-       android:singleLine="false"
-       android:maxLines="3"
-	android:text="@string/dlg_bookmark_edit_range_text" 
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"/>
-<EditText 
-    android:id="@+id/position_text" 
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content"
-	android:text="position text" 
-    style="@style/TextAppearance.Widget.EditText"
-	android:editable="false" android:singleLine="false"
-/>
-<TextView 
-    android:id="@+id/lbl_comment_text"
-       style="@style/TextAppearance.Medium"
-       android:singleLine="false"
-       android:maxLines="3"
-	android:text="@string/dlg_bookmark_edit_comment" 
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"/>
-<EditText 
-    android:id="@+id/comment_edit" 
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content"
-	android:text="comment text" 
-    style="@style/TextAppearance.Widget.EditText"
-	android:editable="true" android:singleLine="false"
-/>
-</LinearLayout>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/lbl_position"
+			style="@style/TextAppearance.Medium"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_margin="5dip"
+			android:maxLines="3"
+			android:singleLine="false"
+			android:text="Page 34/1024 (25%) Chapter 1" />
+
+		<RadioGroup
+			android:id="@+id/rg_type"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
+
+			<RadioButton
+				android:id="@+id/rb_comment"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:checked="true"
+				android:text="@string/dlg_bookmark_type_comment" />
+
+			<RadioButton
+				android:id="@+id/rb_correction"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:checked="false"
+				android:text="@string/dlg_bookmark_type_correction" />
+		</RadioGroup>
+
+		<TextView
+			android:id="@+id/lbl_selection_text"
+			style="@style/TextAppearance.Medium"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:maxLines="3"
+			android:singleLine="false"
+			android:text="@string/dlg_bookmark_edit_range_text" />
+
+		<EditText
+			android:id="@+id/position_text"
+			style="@style/TextAppearance.Widget.EditText"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:editable="false"
+			android:inputType="none"
+			android:singleLine="false"
+			android:text="position text" />
+
+		<TextView
+			android:id="@+id/lbl_comment_text"
+			style="@style/TextAppearance.Medium"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:maxLines="3"
+			android:singleLine="false"
+			android:text="@string/dlg_bookmark_edit_comment" />
+
+		<EditText
+			android:id="@+id/comment_edit"
+			style="@style/TextAppearance.Widget.EditText"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:editable="true"
+			android:singleLine="false"
+			android:text="comment text" />
+	</LinearLayout>
 </ScrollView>

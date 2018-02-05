@@ -30,7 +30,6 @@
 	            android:focusableInTouchMode="false"
 	            android:background="@null"
 	            android:contentDescription="@string/dlg_button_back"/>
-	            />
             <TabWidget
                 android:id="@android:id/tabs"
                 android:minHeight="?android:attr/listPreferredItemHeight"

@@ -54,7 +54,7 @@
             android:id="@+id/dlg_title"
             style="@style/TextAppearance.Large"
             android:singleLine="true"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:text="Plugin name" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
@@ -62,7 +62,7 @@
             android:id="@+id/lbl_description"
             style="@style/TextAppearance.Small"
             android:singleLine="true"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:text="Plugin description" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
@@ -73,7 +73,7 @@
             android:singleLine="true"
             android:text="@string/online_store_username"
             android:textStyle="bold"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
@@ -82,7 +82,7 @@
             android:layout_height="wrap_content"
             android:text="login" 
             android:inputType="textEmailAddress"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             style="@style/TextAppearance.Widget.EditText"
             android:editable="true" 
             android:singleLine="true"
@@ -94,20 +94,21 @@
             android:singleLine="true"
             android:textStyle="bold"
             android:text="@string/online_store_password"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-        <EditText 
-            android:id="@+id/ed_password" 
-            android:layout_width="fill_parent" 
-            android:layout_margin="10px"
-            android:layout_height="wrap_content"
-            android:password="true" 
-            android:text="password" 
+
+        <EditText
+            android:id="@+id/ed_password"
             style="@style/TextAppearance.Widget.EditText"
-            android:editable="true" 
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:editable="true"
+            android:password="true"
+            android:inputType="textPassword"
             android:singleLine="true"
-        />
+            android:text="password" />
 
         <TextView 
             android:id="@+id/lbl_password_repeat" 
@@ -115,20 +116,21 @@
             android:singleLine="true"
             android:textStyle="bold"
             android:text="@string/online_store_password_repeat"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-        <EditText 
-            android:id="@+id/ed_password_repeat" 
-            android:layout_width="fill_parent" 
-            android:layout_margin="10px"
-            android:layout_height="wrap_content"
-            android:password="true" 
-            android:text="" 
+
+        <EditText
+            android:id="@+id/ed_password_repeat"
             style="@style/TextAppearance.Widget.EditText"
-            android:editable="true" 
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:editable="true"
+            android:inputType="textPassword"
+            android:password="true"
             android:singleLine="true"
-        />
+            android:text="" />
         
         <TextView 
             android:visibility="gone"
@@ -136,14 +138,14 @@
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
             android:text="@string/online_store_new_account_param_last_name"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
             android:visibility="gone"
             android:id="@+id/ed_last_name" 
             android:layout_width="fill_parent" 
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_height="wrap_content"
             android:text="" 
             style="@style/TextAppearance.Widget.EditText"
@@ -157,14 +159,14 @@
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
             android:text="@string/online_store_new_account_param_first_name"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
             android:visibility="gone"
             android:id="@+id/ed_first_name" 
             android:layout_width="fill_parent" 
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_height="wrap_content"
             android:text="" 
             style="@style/TextAppearance.Widget.EditText"
@@ -178,14 +180,14 @@
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
             android:text="@string/online_store_new_account_param_middle_name"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
             android:visibility="gone"
             android:id="@+id/ed_middle_name" 
             android:layout_width="fill_parent" 
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_height="wrap_content"
             android:text="" 
             style="@style/TextAppearance.Widget.EditText"
@@ -198,7 +200,7 @@
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
             android:text="@string/online_store_new_account_param_email"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <TextView 
@@ -207,13 +209,13 @@
             android:singleLine="false"
             android:maxLines="4"
             android:text="@string/online_store_new_account_param_email_description_litres"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
             android:id="@+id/ed_email" 
             android:layout_width="fill_parent" 
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress" 
             android:text="" 
@@ -229,14 +231,14 @@
             android:singleLine="true"
             android:text="@string/online_store_new_account_param_phone"
             android:inputType="phone" 
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
             android:visibility="gone"
             android:id="@+id/ed_phone" 
             android:layout_width="fill_parent" 
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_height="wrap_content"
             android:text="" 
             style="@style/TextAppearance.Widget.EditText"
@@ -250,14 +252,14 @@
             style="@style/TextAppearance.Medium"
             android:singleLine="true"
             android:text="@string/online_store_new_account_param_city"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <EditText 
             android:visibility="gone"
             android:id="@+id/ed_city" 
             android:layout_width="fill_parent" 
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_height="wrap_content"
             android:text="" 
             style="@style/TextAppearance.Widget.EditText"
@@ -274,17 +276,16 @@
 	            android:id="@+id/cb_subscribe" 
 	            android:layout_width="wrap_content" 
 	            android:layout_height="wrap_content"
-	            android:layout_margin="10px"
-	            android:text="" 
-	            android:editable="true" 
-	            android:singleLine="true"
+	            android:layout_margin="10dp"
+	            android:text=""
+                android:singleLine="true"
 	        />
             <TextView 
 	            android:id="@+id/lbl_subscribe" 
 	            style="@style/TextAppearance.Medium"
 	            android:singleLine="true"
 	            android:text="@string/online_store_new_account_param_subscribe"
-	            android:layout_margin="10px"
+	            android:layout_margin="10dp"
 	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"/>
 	        
@@ -295,7 +296,7 @@
             android:singleLine="false"
             android:maxLines="6"
             android:text="@string/online_store_new_account_param_subscribe_description_litres"
-            android:layout_margin="10px"
+            android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>

@@ -89,25 +89,25 @@ public class BrowserViewLayout extends ViewGroup {
 		if (w > h) {
 			// landscape
 			toolbarView.setVertical(true);
-			toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+			toolbarView.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.AT_MOST),
+					MeasureSpec.makeMeasureSpec(h, MeasureSpec.AT_MOST));
 			int tbWidth = toolbarView.getMeasuredWidth();
-			titleView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w - tbWidth), 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+			titleView.measure(MeasureSpec.makeMeasureSpec(w - tbWidth, MeasureSpec.AT_MOST),
+					MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
 			int titleHeight = titleView.getMeasuredHeight();
-			contentView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w - tbWidth), 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h - titleHeight));
+			contentView.measure(MeasureSpec.makeMeasureSpec(w - tbWidth, MeasureSpec.AT_MOST),
+					MeasureSpec.makeMeasureSpec(h - titleHeight, MeasureSpec.AT_MOST));
 		} else {
 			// portrait
 			toolbarView.setVertical(false);
-			toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+			toolbarView.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.AT_MOST),
+					MeasureSpec.makeMeasureSpec(h, MeasureSpec.AT_MOST));
 			int tbHeight = toolbarView.getMeasuredHeight();
 			titleView.measure(widthMeasureSpec, 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+					MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
 			int titleHeight = titleView.getMeasuredHeight();
 			contentView.measure(widthMeasureSpec, 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h - titleHeight - tbHeight));
+					MeasureSpec.makeMeasureSpec(h - titleHeight - tbHeight, MeasureSpec.AT_MOST));
 		}
         setMeasuredDimension(w, h);
 	}

@@ -77,7 +77,6 @@
                 <data android:mimeType="text/richtext"/>
                 <data android:mimeType="application/epub+zip"/>
                 <data android:mimeType="application/x-chm"/>
-                <data android:mimeType="application/msword"/>
                 <data android:mimeType="application/fb2"/>
                 <data android:mimeType="application/fb2.zip"/>
                 <data android:mimeType="application/epub"/>
