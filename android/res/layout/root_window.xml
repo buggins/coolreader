@@ -7,7 +7,6 @@
   android:layout_height="wrap_content"-->
 <ScrollView
   xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:cr3="http://schemas.android.com/apk/res/org.coolreader"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >

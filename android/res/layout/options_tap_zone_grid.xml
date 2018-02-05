@@ -26,11 +26,11 @@
 			    android:id="@+id/tap_zone_grid_cell1" 
                 style="@style/TapZoneGridCell"
 			    android:orientation="vertical">
-	             <TextView
-	                android:id="@+id/tap_zone_action_text_short"
-	                android:text="(No action)"
+
+                <TextView
+                    android:id="@+id/tap_zone_action_text_short"
                     style="@style/TapZoneGridCellText"
-	             />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -41,11 +41,11 @@
                 android:id="@+id/tap_zone_grid_cell2" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -56,11 +56,11 @@
                 android:id="@+id/tap_zone_grid_cell3" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -73,11 +73,11 @@
                 android:id="@+id/tap_zone_grid_cell4" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -88,11 +88,11 @@
                 android:id="@+id/tap_zone_grid_cell5" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -103,11 +103,11 @@
                 android:id="@+id/tap_zone_grid_cell6" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -120,11 +120,11 @@
                 android:id="@+id/tap_zone_grid_cell7" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -135,11 +135,11 @@
                 android:id="@+id/tap_zone_grid_cell8" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"
@@ -150,11 +150,11 @@
                 android:id="@+id/tap_zone_grid_cell9" 
                 style="@style/TapZoneGridCell"
                 android:orientation="vertical">
-                 <TextView
+
+                <TextView
                     android:id="@+id/tap_zone_action_text_short"
-                    android:text="(No action)"
                     style="@style/TapZoneGridCellText"
-                 />
+                    android:text="@string/action_none" />
                  <TextView
                     android:id="@+id/tap_zone_action_text_long"
                     android:text="2"

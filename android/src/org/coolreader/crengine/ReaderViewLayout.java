@@ -247,27 +247,27 @@ public class ReaderViewLayout extends ViewGroup implements Settings {
 				case VIEWER_TOOLBAR_LEFT:
 				case VIEWER_TOOLBAR_RIGHT:
 					toolbarView.setVertical(true);
-					toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
-							MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+					toolbarView.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.AT_MOST),
+							MeasureSpec.makeMeasureSpec(h, MeasureSpec.AT_MOST));
 					w -= toolbarView.getMeasuredWidth();
 					break;
 				case VIEWER_TOOLBAR_TOP:
 				case VIEWER_TOOLBAR_BOTTOM:
 					toolbarView.setVertical(false);
-					toolbarView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
-							MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+					toolbarView.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.AT_MOST),
+							MeasureSpec.makeMeasureSpec(h, MeasureSpec.AT_MOST));
 					h -= toolbarView.getMeasuredHeight();
 					break;
 				}
 			}
 			if (statusVisible) {
-				statusView.measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
-						MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, 0));
+				statusView.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.AT_MOST),
+						MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
 				h -= statusView.getMeasuredHeight();
 			}
 			
-			contentView.getSurface().measure(MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, w), 
-					MeasureSpec.makeMeasureSpec(MeasureSpec.AT_MOST, h));
+			contentView.getSurface().measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.AT_MOST),
+					MeasureSpec.makeMeasureSpec(h, MeasureSpec.AT_MOST));
 		}
 
 		@Override

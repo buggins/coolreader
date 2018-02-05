@@ -33,7 +33,6 @@
          android:focusableInTouchMode="false"
          android:background="@null"
          android:contentDescription="@string/dlg_button_back"/>
-         />
         <TextView android:id="@+id/base_dlg_title"
             style="@style/TextAppearance.Medium"
             android:layout_width="wrap_content"
