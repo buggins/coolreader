@@ -284,14 +284,14 @@ set(ANTIWORD_SRC_FILES
 )
 
 set(COFFEECATCH_SRC_FILES
-    src/main/cpp/coffeecatch/coffeecatch.c
-    src/main/cpp/coffeecatch/coffeejni.c
+    ${CR3_ROOT}/android/jni/coffeecatch/coffeecatch.c
+    ${CR3_ROOT}/android/jni/coffeecatch/coffeejni.c
 )
 
 set(JNI_SRC_FILES
-    src/main/cpp/cr3engine.cpp
-    src/main/cpp/cr3java.cpp
-    src/main/cpp/docview.cpp
+    ${CR3_ROOT}/android/jni/cr3engine.cpp
+    ${CR3_ROOT}/android/jni/cr3java.cpp
+    ${CR3_ROOT}/android/jni/docview.cpp
 )
 
 set(LOCAL_SRC_FILES

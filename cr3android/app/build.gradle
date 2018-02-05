@@ -16,6 +16,15 @@ android {
             }
         }
     }
+    sourceSets {
+        main {
+            setRoot('src/main')
+            aidl.srcDirs = ['src/main/aidl']
+            java.srcDirs = ['../../android/src']
+            res.srcDirs = ['../../android/res']
+            jni.srcDirs = ['../../android/jni']
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
