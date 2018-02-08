@@ -43,6 +43,12 @@ public class Services {
         mFSFolders = new FileSystemFolders(mScanner);
 	}
 
+	// called after user grant permissions for external storage
+	public static void refreshServices(BaseActivity activity) {
+		mEngine.initAgain();
+		mScanner.initRoots(mEngine.getMountedRootsMap());
+	}
+
 	public static void stopServices() {
 		log.i("Last activity is destroyed");
 		if (mCoverpageManager == null) {

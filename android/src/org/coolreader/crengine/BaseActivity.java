@@ -266,7 +266,14 @@ public class BaseActivity extends Activity implements Settings {
 	public String getVersion() {
 		return mVersion;
 	}
-	
+
+	public void rebaseSettings() {
+		// if rootFs changed (for example, when external storage permission firstly granted) open config from new root
+		Properties oldProps = mSettingsManager.mSettings;
+		mSettingsManager.rebaseSettings();
+		onSettingsChanged(settings(), oldProps);
+	}
+
 	public Properties loadSettings(int profile) {
 		return mSettingsManager.loadSettings(profile);
 	}
@@ -1275,7 +1282,11 @@ public class BaseActivity extends Activity implements Settings {
 		    isSmartphone = activity.isSmartphone();
 		    mSettings = loadSettings();
 		}
-		
+
+		public void rebaseSettings() {
+			mSettings = loadSettings();
+		}
+
 		//int lastSaveId = 0;
 		public void setSettings(Properties settings, int delayMillis, boolean notify) {
 			Properties oldSettings = mSettings;

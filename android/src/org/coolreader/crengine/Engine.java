@@ -545,6 +545,18 @@ public class Engine {
 		setParams(activity);
 	}
 
+	public void initAgain() {
+		initMountRoots();
+		mFonts = findFonts();
+		findExternalHyphDictionaries();
+		if (!initInternal(mFonts)) {
+			log.i("Engine.initInternal failed!");
+			throw new RuntimeException("Cannot initialize CREngine JNI");
+		}
+		initCacheDirectory();
+		log.i("Engine() : initialization done");
+	}
+
 	// Native functions
 	private native static boolean initInternal(String[] fontList);
 
@@ -1152,7 +1164,7 @@ public class Engine {
 	
 	
 	private static void initMountRoots() {
-		
+
 		log.i("initMountRoots()");
 		HashSet<String> mountedPathsFromMountCmd = getExternalMounts();
 		HashSet<String> mountedPathsFromMountFile = readMountsFile();

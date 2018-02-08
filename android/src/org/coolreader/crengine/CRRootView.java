@@ -636,7 +636,40 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 //		});
 	}
 
+	// called after user grant permissions for external storage
+	public void refreshView() {
+		updateDelimiterTheme(R.id.delimiter1);
+		updateDelimiterTheme(R.id.delimiter2);
+		updateDelimiterTheme(R.id.delimiter3);
+		updateDelimiterTheme(R.id.delimiter4);
+		updateDelimiterTheme(R.id.delimiter5);
 
+		updateCurrentBook(Services.getHistory().getLastBook());
+		refreshRecentBooks();
+
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				refreshFileSystemFolders();
+			}
+		});
+
+		mActivity.waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
+			}
+		});
+
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				refreshOnlineCatalogs();
+				if (Services.getScanner() != null)
+					updateLibraryItems(Services.getScanner().getLibraryItems());
+			}
+		});
+	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

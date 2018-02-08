@@ -30,6 +30,12 @@ public class CRDBServiceAccessor {
 		this.pathCorrector = pathCorrector;
 	}
 
+	public void setPathCorrector(MountPathCorrector pathCorrector) {
+		this.pathCorrector = pathCorrector;
+    	if (mService != null && pathCorrector != null)
+    		mService.setPathCorrector(pathCorrector);
+	}
+
 	private ArrayList<Runnable> onConnectCallbacks = new ArrayList<Runnable>();
 	
 	private boolean bindIsCalled;

@@ -2,6 +2,7 @@
 package org.coolreader;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.coolreader.Dictionaries.DictionaryException;
@@ -18,6 +19,7 @@ import org.coolreader.crengine.CRToolBar;
 import org.coolreader.crengine.CRToolBar.OnActionHandler;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.Engine;
+import org.coolreader.crengine.ErrorDialog;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History.BookInfoLoadedCallack;
@@ -35,16 +37,21 @@ import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
+import org.coolreader.db.CRDBService;
 import org.coolreader.donations.CRDonationService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.view.LayoutInflater;
@@ -76,7 +83,8 @@ public class CoolReader extends BaseActivity
 	BroadcastReceiver intentReceiver;
 
 	private boolean justCreated = false;
-	
+
+	private static final int PERM_REQUEST_CODE_STORAGE = 1;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -87,14 +95,13 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
-		
+		requestStoragePermissions();
 		
 		// apply settings
     	onSettingsChanged(settings(), null);
 
 		isFirstStart = true;
 		justCreated = true;
-    	
 
 		mEngine = Engine.getInstance(this);
 
@@ -313,8 +320,20 @@ public class CoolReader extends BaseActivity
 			loadDocument(fileToOpen, new Runnable() {
 				@Override
 				public void run() {
-					showToast("Cannot open book");
-					showRootWindow();
+					BackgroundThread.instance().postGUI(new Runnable() {
+						@Override
+						public void run() {
+							// if document not loaded show error & then root window
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, "Error", "Can't open book!");
+							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+								@Override
+								public void onDismiss(DialogInterface dialog) {
+									showRootWindow();
+								}
+							});
+							errDialog.show();
+						}
+					}, 1000);
 				}
 			});
 			return true;
@@ -478,6 +497,65 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onStop() exiting");
 	}
 
+	private void requestStoragePermissions() {
+		// check or request permission for storage
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			int readExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+			int writeExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+			ArrayList<String> needPerms = new ArrayList<String>();
+			if (PackageManager.PERMISSION_GRANTED != readExtStoragePermissionCheck) {
+				needPerms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+			}
+			else {
+				log.i("READ_EXTERNAL_STORAGE permission already granted.");
+			}
+			if (PackageManager.PERMISSION_GRANTED != writeExtStoragePermissionCheck) {
+				needPerms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+			}
+			else {
+				log.i("WRITE_EXTERNAL_STORAGE permission already granted.");
+			}
+			if (!needPerms.isEmpty())
+			{
+				String[] templ = new String[0];
+				log.i("Some permissions DENIED, requesting from user these permissions: " + needPerms.toString());
+				// request permission from user
+				requestPermissions(needPerms.toArray(templ), PERM_REQUEST_CODE_STORAGE);
+			}
+		}
+	}
+
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		log.i("CoolReader.onRequestPermissionsResult()");
+		if (PERM_REQUEST_CODE_STORAGE == requestCode) {		// external storage read & write permissions
+			boolean granted = true;
+			if (permissions.length > 0 && permissions.length == grantResults.length) {
+				for (int i = 0; i < permissions.length; i++) {
+					if (PackageManager.PERMISSION_GRANTED == grantResults[i]) {
+						log.i("Permission " + permissions[i] + " GRANTED");
+					}
+					else {
+						log.i("Permission " + permissions[i] + " DENIED");
+						granted = false;
+					}
+				}
+			}
+			if (granted) {
+				log.i("read&write to storage permissions GRANTED!");
+				Services.refreshServices(this);
+				rebaseSettings();
+				getDBService().setPathCorrector(Engine.getInstance(this).getPathCorrector());
+				getDBService().get().reopenDatabase();
+				waitForCRDBService(new Runnable() {
+					@Override
+					public void run() {
+						Services.getHistory().loadFromDB(getDB(), 200);
+					}
+				});
+				mHomeFrame.refreshView();
+			}
+		}
+	}
 
 	private static Debug.MemoryInfo info = new Debug.MemoryInfo();
 	private static Field[] infoFields = Debug.MemoryInfo.class.getFields();
@@ -526,7 +604,8 @@ public class CoolReader extends BaseActivity
 	public void directoryUpdated(FileInfo dir) {
 		directoryUpdated(dir, null);
 	}
-	
+
+	@Override
 	public void onSettingsChanged(Properties props, Properties oldProps) {
 		Properties changedProps = oldProps!=null ? props.diff(oldProps) : props;
 		if (mHomeFrame != null) {
@@ -759,7 +838,7 @@ public class CoolReader extends BaseActivity
 	public void loadDocument( FileInfo item, Runnable callback )
 	{
 		log.d("Activities.loadDocument(" + item.pathname + ")");
-		loadDocument(item.getPathName(), null);
+		loadDocument(item.getPathName(), callback);
 	}
 	
 	public void showOpenedBook()
@@ -1332,7 +1411,25 @@ public class CoolReader extends BaseActivity
 			location = FileInfo.ROOT_DIR_TAG;
 		if (location.startsWith(BOOK_LOCATION_PREFIX)) {
 			location = location.substring(BOOK_LOCATION_PREFIX.length());
-			loadDocument(location, null);
+			loadDocument(location, new Runnable() {
+				@Override
+				public void run() {
+					BackgroundThread.instance().postGUI(new Runnable() {
+						@Override
+						public void run() {
+							// if document not loaded show error & then root window
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, "Error", "Can't open file!");
+							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+								@Override
+								public void onDismiss(DialogInterface dialog) {
+									showRootWindow();
+								}
+							});
+							errDialog.show();
+						}
+					}, 1000);
+				}
+			});
 			return;
 		}
 		if (location.startsWith(DIRECTORY_LOCATION_PREFIX)) {

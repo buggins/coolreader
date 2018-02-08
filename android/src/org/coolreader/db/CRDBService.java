@@ -28,6 +28,10 @@ public class CRDBService extends Service {
     	execTask(new OpenDatabaseTask());
     }
 
+    public void reopenDatabase() {
+		execTask(new ReOpenDatabaseTask());
+	}
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         log.i("Received start id " + startId + ": " + intent);
@@ -99,8 +103,37 @@ public class CRDBService extends Service {
     		coverDB.close();
 	    }
     }
-    
-    private FlushDatabaseTask lastFlushTask;
+
+	private class ReOpenDatabaseTask extends Task {
+		public ReOpenDatabaseTask() {
+			super("ReOpenDatabaseTask");
+		}
+
+		@Override
+		public void work() {
+			close();
+			open();
+		}
+
+		private boolean open() {
+			File dir = getDatabaseDir();
+			boolean res = mainDB.open(dir);
+			res = coverDB.open(dir) && res;
+			if (!res) {
+				mainDB.close();
+				coverDB.close();
+			}
+			return res;
+		}
+
+		private void close() {
+			clearCaches();
+			mainDB.close();
+			coverDB.close();
+		}
+	}
+
+	private FlushDatabaseTask lastFlushTask;
     private class FlushDatabaseTask extends Task {
     	private boolean force;
     	public FlushDatabaseTask(boolean force) {
@@ -764,6 +797,10 @@ public class CRDBService extends Service {
     	public void flush() {
     		getService().forceFlush();
     	}
+
+    	public void reopenDatabase() {
+        	getService().reopenDatabase();
+		}
     }
 
     @Override
