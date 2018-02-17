@@ -1592,6 +1592,7 @@ bool tinyNodeCollection::createCacheFile()
 
     if ( !ldomDocCache::enabled() ) {
         CRLog::error("Cannot swap: cache dir is not initialized");
+        delete f;
         return false;
     }
 

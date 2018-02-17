@@ -282,6 +282,7 @@ void LDOMNameIdMap::AddItem( LDOMNameIdMapItem * item )
                 free(tmp);
             if (tmp2)
                 free(tmp2);
+            delete item;
             // TODO: throw exception or change function prototype & return code
             return;
         }
