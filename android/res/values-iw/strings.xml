@@ -431,4 +431,5 @@
   <string name="root_item_library">סייר בספרייה</string>
   <string name="root_item_filesystem">עיון במערכת קבצים</string>
   <string name="root_item_online_catalogs">קטלוגים מקוונים</string>
+  <string name="app_name">Cool Reader</string>
 </resources>
