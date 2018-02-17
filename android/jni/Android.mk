@@ -8,7 +8,8 @@ LOCAL_MODULE    := cr3engine-3-1-1
 # Generate CREngine blob with statically linked libjpeg, libpng, libfreetype, chmlib
 # TODO: build libraries using separate makefiles
 
-CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH -DFT2_BUILD_LIBRARY=1 \
+CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
+     -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<ftoption.h\> \
      -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
      -DLDOM_USE_OWN_MEM_MAN=0 \
@@ -21,6 +22,7 @@ LOCAL_C_INCLUDES := \
     -I $(CR3_ROOT)/crengine/include \
     -I $(CR3_ROOT)/thirdparty/libpng \
     -I $(CR3_ROOT)/thirdparty/freetype/include \
+    -I $(CR3_ROOT)/thirdparty/freetype \
     -I $(CR3_ROOT)/thirdparty/libjpeg \
     -I $(CR3_ROOT)/thirdparty/antiword \
     -I $(CR3_ROOT)/thirdparty/chmlib/src
@@ -155,42 +157,33 @@ JPEG_SRC_FILES := \
 
 FREETYPE_SRC_FILES := \
     ../../thirdparty/freetype/src/autofit/autofit.c \
-    ../../thirdparty/freetype/src/bdf/bdf.c \
-    ../../thirdparty/freetype/src/cff/cff.c \
     ../../thirdparty/freetype/src/base/ftbase.c \
-    ../../thirdparty/freetype/src/base/ftbbox.c \
-    ../../thirdparty/freetype/src/base/ftbdf.c \
-    ../../thirdparty/freetype/src/base/ftbitmap.c \
-    ../../thirdparty/freetype/src/base/ftgasp.c \
-    ../../thirdparty/freetype/src/cache/ftcache.c \
-    ../../thirdparty/freetype/src/base/ftglyph.c \
-    ../../thirdparty/freetype/src/base/ftgxval.c \
-    ../../thirdparty/freetype/src/gzip/ftgzip.c \
     ../../thirdparty/freetype/src/base/ftinit.c \
-    ../../thirdparty/freetype/src/lzw/ftlzw.c \
-    ../../thirdparty/freetype/src/base/ftmm.c \
-    ../../thirdparty/freetype/src/base/ftpatent.c \
-    ../../thirdparty/freetype/src/base/ftotval.c \
-    ../../thirdparty/freetype/src/base/ftpfr.c \
-    ../../thirdparty/freetype/src/base/ftstroke.c \
-    ../../thirdparty/freetype/src/base/ftsynth.c \
+    ../../thirdparty/freetype/src/base/ftfntfmt.c \
     ../../thirdparty/freetype/src/base/ftsystem.c \
-    ../../thirdparty/freetype/src/base/fttype1.c \
-    ../../thirdparty/freetype/src/base/ftwinfnt.c \
-    ../../thirdparty/freetype/src/base/ftxf86.c \
-    ../../thirdparty/freetype/src/winfonts/winfnt.c \
+    ../../thirdparty/freetype/src/base/ftglyph.c \
+    ../../thirdparty/freetype/src/base/ftbitmap.c \
+    ../../thirdparty/freetype/src/base/ftlcdfil.c \
+    ../../thirdparty/freetype/src/bdf/bdf.c \
+    ../../thirdparty/freetype/src/cache/ftcache.c \
+    ../../thirdparty/freetype/src/cff/cff.c \
+    ../../thirdparty/freetype/src/cid/type1cid.c \
+    ../../thirdparty/freetype/src/gzip/ftgzip.c \
+    ../../thirdparty/freetype/src/lzw/ftlzw.c \
     ../../thirdparty/freetype/src/pcf/pcf.c \
     ../../thirdparty/freetype/src/pfr/pfr.c \
     ../../thirdparty/freetype/src/psaux/psaux.c \
     ../../thirdparty/freetype/src/pshinter/pshinter.c \
-    ../../thirdparty/freetype/src/psnames/psmodule.c \
+    ../../thirdparty/freetype/src/psnames/psnames.c \
     ../../thirdparty/freetype/src/raster/raster.c \
     ../../thirdparty/freetype/src/sfnt/sfnt.c \
     ../../thirdparty/freetype/src/smooth/smooth.c \
     ../../thirdparty/freetype/src/truetype/truetype.c \
     ../../thirdparty/freetype/src/type1/type1.c \
-    ../../thirdparty/freetype/src/cid/type1cid.c \
-    ../../thirdparty/freetype/src/type42/type42.c
+    ../../thirdparty/freetype/src/type42/type42.c \
+    ../../thirdparty/freetype/src/winfonts/winfnt.c
+#   ../../thirdparty/freetype/src/gxvalid/gxvalid.c
+#   ../../thirdparty/freetype/src/otvalid/otvalid.c
 
 CHM_SRC_FILES := \
     ../../thirdparty/chmlib/src/chm_lib.c \

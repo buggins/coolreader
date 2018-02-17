@@ -12,11 +12,13 @@ set(CR3_ROOT ${PROJECT_SOURCE_DIR}/../..)
 include_directories(${CR3_ROOT}/crengine/include)
 include_directories(${CR3_ROOT}/thirdparty/libpng)
 include_directories(${CR3_ROOT}/thirdparty/freetype/include)
+include_directories(${CR3_ROOT}/thirdparty/freetype)
 include_directories(${CR3_ROOT}/thirdparty/libjpeg)
 include_directories(${CR3_ROOT}/thirdparty/antiword)
 include_directories(${CR3_ROOT}/thirdparty/chmlib/src)
 
-add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH -DFT2_BUILD_LIBRARY=1)
+add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
+add_definitions(-DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=<ftmodule.h> -DFT_CONFIG_OPTIONS_H=<ftoption.h>)
 add_definitions(-DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000)
 add_definitions(-DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1)
 add_definitions(-DLDOM_USE_OWN_MEM_MAN=0)
@@ -195,43 +197,34 @@ set(JPEG_SRC_FILES
 
 set(FREETYPE_SRC_FILES
     ${CR3_ROOT}/thirdparty/freetype/src/autofit/autofit.c
-    ${CR3_ROOT}/thirdparty/freetype/src/bdf/bdf.c
-    ${CR3_ROOT}/thirdparty/freetype/src/cff/cff.c
     ${CR3_ROOT}/thirdparty/freetype/src/base/ftbase.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftbbox.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftbdf.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftbitmap.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftgasp.c
-    ${CR3_ROOT}/thirdparty/freetype/src/cache/ftcache.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftglyph.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftgxval.c
-    ${CR3_ROOT}/thirdparty/freetype/src/gzip/ftgzip.c
     ${CR3_ROOT}/thirdparty/freetype/src/base/ftinit.c
-    ${CR3_ROOT}/thirdparty/freetype/src/lzw/ftlzw.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftmm.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftpatent.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftotval.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftpfr.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftstroke.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftsynth.c
+    ${CR3_ROOT}/thirdparty/freetype/src/base/ftfntfmt.c
     ${CR3_ROOT}/thirdparty/freetype/src/base/ftsystem.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/fttype1.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftwinfnt.c
-    ${CR3_ROOT}/thirdparty/freetype/src/base/ftxf86.c
-    ${CR3_ROOT}/thirdparty/freetype/src/winfonts/winfnt.c
+    ${CR3_ROOT}/thirdparty/freetype/src/base/ftglyph.c
+    ${CR3_ROOT}/thirdparty/freetype/src/base/ftbitmap.c
+    ${CR3_ROOT}/thirdparty/freetype/src/base/ftlcdfil.c
+    ${CR3_ROOT}/thirdparty/freetype/src/bdf/bdf.c
+    ${CR3_ROOT}/thirdparty/freetype/src/cache/ftcache.c
+    ${CR3_ROOT}/thirdparty/freetype/src/cff/cff.c
+    ${CR3_ROOT}/thirdparty/freetype/src/cid/type1cid.c
+    ${CR3_ROOT}/thirdparty/freetype/src/gzip/ftgzip.c
+    ${CR3_ROOT}/thirdparty/freetype/src/lzw/ftlzw.c
     ${CR3_ROOT}/thirdparty/freetype/src/pcf/pcf.c
     ${CR3_ROOT}/thirdparty/freetype/src/pfr/pfr.c
     ${CR3_ROOT}/thirdparty/freetype/src/psaux/psaux.c
     ${CR3_ROOT}/thirdparty/freetype/src/pshinter/pshinter.c
-    ${CR3_ROOT}/thirdparty/freetype/src/psnames/psmodule.c
+    ${CR3_ROOT}/thirdparty/freetype/src/psnames/psnames.c
     ${CR3_ROOT}/thirdparty/freetype/src/raster/raster.c
     ${CR3_ROOT}/thirdparty/freetype/src/sfnt/sfnt.c
     ${CR3_ROOT}/thirdparty/freetype/src/smooth/smooth.c
     ${CR3_ROOT}/thirdparty/freetype/src/truetype/truetype.c
     ${CR3_ROOT}/thirdparty/freetype/src/type1/type1.c
-    ${CR3_ROOT}/thirdparty/freetype/src/cid/type1cid.c
     ${CR3_ROOT}/thirdparty/freetype/src/type42/type42.c
+    ${CR3_ROOT}/thirdparty/freetype/src/winfonts/winfnt.c
 )
+#   ${CR3_ROOT}/thirdparty/freetype/src/gxvalid/gxvalid.c
+#   ${CR3_ROOT}/thirdparty/freetype/src/otvalid/otvalid.c
 
 set(CHM_SRC_FILES
     ${CR3_ROOT}/thirdparty/chmlib/src/chm_lib.c

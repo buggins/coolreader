@@ -182,7 +182,7 @@ typedef unsigned long  ulg;
 #endif
 
 /* Diagnostic functions */
-#ifdef DEBUG_DISABLED
+#ifdef DEBUG
 #  include <stdio.h>
    extern int z_verbose;
    extern void z_error    OF((char *m));
