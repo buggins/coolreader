@@ -29,6 +29,7 @@ public class DeviceInfo {
 	public final static boolean USE_CUSTOM_TOAST;
 	public final static boolean AMOLED_SCREEN;
 	public final static boolean POCKETBOOK;
+	public final static boolean ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE;
 	public final static boolean NOFLIBUSTA;
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
@@ -120,6 +121,10 @@ public class DeviceInfo {
 					MODEL.toLowerCase().contentEquals("imx50_rdp") // SHINE
 				);
 		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
+
+		// On Onyx Boox Monte Cristo 3 (and possible Monte Cristo, Monte Cristo 2) long press action on buttons are catch by system and not available for application
+		// TODO: check this on other ONYX BOOX Readers
+		ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE = EINK_ONYX && MODEL.toLowerCase().startsWith("mc_kepler");
 
 		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");
 		

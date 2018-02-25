@@ -323,7 +323,7 @@ public class CoolReader extends BaseActivity
 						@Override
 						public void run() {
 							// if document not loaded show error & then root window
-							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, "Error", "Can't open book!");
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file));
 							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
 								@Override
 								public void onDismiss(DialogInterface dialog) {
@@ -332,7 +332,7 @@ public class CoolReader extends BaseActivity
 							});
 							errDialog.show();
 						}
-					}, 1000);
+					}, 500);
 				}
 			});
 			return true;

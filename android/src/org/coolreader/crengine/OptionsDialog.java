@@ -3,6 +3,7 @@ package org.coolreader.crengine;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.EnumSet;
 
 import org.coolreader.CoolReader;
 import org.coolreader.Dictionaries;
@@ -19,6 +20,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -610,17 +612,31 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		}
 	}
 
+	public enum KeyActionFlag {
+		KEY_ACTION_FLAG_NORMAL,
+		KEY_ACTION_FLAG_LONG,
+		KEY_ACTION_FLAG_DOUBLE
+	}
 	class KeyMapOption extends SubmenuOption {
 		public KeyMapOption( OptionOwner owner, String label ) {
 			super(owner, label, PROP_APP_KEY_ACTIONS_PRESS);
 		}
-		private void addKey( OptionsListView list, int keyCode, String keyName ) {
-			final String propName = ReaderAction.getKeyProp(keyCode, ReaderAction.NORMAL);
-			final String longPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.LONG);
-			final String dblPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.DOUBLE);
-			list.add(new ActionOption(mOwner, keyName, propName, false, false));
-			list.add(new ActionOption(mOwner, keyName + " " + getContext().getString(R.string.options_app_key_long_press), longPropName, false, true));
-			list.add(new ActionOption(mOwner, keyName + " " + getContext().getString(R.string.options_app_key_double_press), dblPropName, false, false));
+		private void addKey( OptionsListView list, int keyCode, String keyName) {
+			addKey(list, keyCode, keyName, EnumSet.allOf(KeyActionFlag.class));
+		}
+		private void addKey( OptionsListView list, int keyCode, String keyName, EnumSet<KeyActionFlag> keyFlags ) {
+			if (keyFlags.contains(KeyActionFlag.KEY_ACTION_FLAG_NORMAL)) {
+				final String propName = ReaderAction.getKeyProp(keyCode, ReaderAction.NORMAL);
+				list.add(new ActionOption(mOwner, keyName, propName, false, false));
+			}
+			if (keyFlags.contains(KeyActionFlag.KEY_ACTION_FLAG_LONG)) {
+				final String longPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.LONG);
+				list.add(new ActionOption(mOwner, keyName + " " + getContext().getString(R.string.options_app_key_long_press), longPropName, false, true));
+			}
+			if (keyFlags.contains(KeyActionFlag.KEY_ACTION_FLAG_DOUBLE)) {
+				final String dblPropName = ReaderAction.getKeyProp(keyCode, ReaderAction.DOUBLE);
+				list.add(new ActionOption(mOwner, keyName + " " + getContext().getString(R.string.options_app_key_double_press), dblPropName, false, false));
+			}
 		}
 		public void onSelect() {
 			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
@@ -656,19 +672,49 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 				addKey(listView, KeyEvent.KEYCODE_HOME, "Home");
 			} else {
-				addKey(listView, KeyEvent.KEYCODE_MENU, "Menu");
-				addKey(listView, KeyEvent.KEYCODE_BACK, "Back");
-				addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left");
-				addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right");
-				addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Up");
-				addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Down");
-				addKey(listView, KeyEvent.KEYCODE_DPAD_CENTER, "Center");
-				addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search");
-				addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
-				addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
-				addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera");
+				EnumSet keyFlags = DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE ? EnumSet.of(KeyActionFlag.KEY_ACTION_FLAG_NORMAL, KeyActionFlag.KEY_ACTION_FLAG_DOUBLE) : EnumSet.allOf(KeyActionFlag.class);
+
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_MENU))
+					addKey(listView, KeyEvent.KEYCODE_MENU, "Menu", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK))
+					addKey(listView, KeyEvent.KEYCODE_BACK, "Back", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_DPAD_LEFT))
+					addKey(listView, KeyEvent.KEYCODE_DPAD_LEFT, "Left", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_DPAD_RIGHT))
+					addKey(listView, KeyEvent.KEYCODE_DPAD_RIGHT, "Right", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_DPAD_UP))
+					addKey(listView, KeyEvent.KEYCODE_DPAD_UP, "Up", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_DPAD_DOWN))
+					addKey(listView, KeyEvent.KEYCODE_DPAD_DOWN, "Down", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_DPAD_CENTER))
+					addKey(listView, KeyEvent.KEYCODE_DPAD_CENTER, "Center", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_SEARCH))
+					addKey(listView, KeyEvent.KEYCODE_SEARCH, "Search", keyFlags);
+				if (DeviceInfo.EINK_ONYX) {
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_VOLUME_UP))
+						addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Left Side Button (Volume Up)", keyFlags);
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_VOLUME_DOWN))
+						addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Right Side Button (Volume Down)", keyFlags);
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_PAGE_UP))
+						addKey(listView, KeyEvent.KEYCODE_PAGE_UP, "Left Side Button", keyFlags);
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_PAGE_DOWN))
+						addKey(listView, KeyEvent.KEYCODE_PAGE_DOWN, "Right Side Button", keyFlags);
+				}
+				else {
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_VOLUME_UP))
+						addKey(listView, KeyEvent.KEYCODE_VOLUME_UP, "Volume Up");
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_VOLUME_DOWN))
+						addKey(listView, KeyEvent.KEYCODE_VOLUME_DOWN, "Volume Down");
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_PAGE_UP))
+						addKey(listView, KeyEvent.KEYCODE_PAGE_UP, "Page Up");
+					if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_PAGE_DOWN))
+						addKey(listView, KeyEvent.KEYCODE_PAGE_DOWN, "Page Down");
+				}
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_CAMERA))
+					addKey(listView, KeyEvent.KEYCODE_CAMERA, "Camera", keyFlags);
+				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_ESCAPE))
+					addKey(listView, ReaderView.KEYCODE_ESCAPE, "Escape", keyFlags);
 				addKey(listView, KeyEvent.KEYCODE_HEADSETHOOK, "Headset Hook");
-				addKey(listView, ReaderView.KEYCODE_ESCAPE, "Escape");
 			}
 
 			dlg.setView(listView);
