@@ -28,7 +28,7 @@
          android:layout_marginRight="5dip"
          android:layout_centerVertical="true"
          android:layout_gravity="center_vertical|left"
-         android:src="@drawable/cr3_button_prev"
+         android:src="?attr/cr3_button_prev_drawable"
          android:focusable="false"
          android:focusableInTouchMode="false"
          android:background="@null"

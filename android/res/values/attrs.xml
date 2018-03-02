@@ -11,4 +11,9 @@
 	    <attr name="horizontalDelimiterRoot"/>
 	    <attr name="horizontalDelimiterSizeRoot"></attr>
 	</declare-styleable>
+    <attr name="cr3_button_prev_drawable" format="reference" />
+    <attr name="cr3_button_next_drawable" format="reference" />
+
+    <attr name="cr3_browser_folder_recent_drawable" format="reference" />
+    <attr name="cr3_viewer_settings_drawable" format="reference" />
 </resources>

@@ -373,12 +373,33 @@ public class BaseActivity extends Activity implements Settings {
             minFontSize = 9;
         }
 
+	public void updateActionsIcons() {
+		int [] attrs = { R.attr.cr3_button_prev_drawable, R.attr.cr3_button_next_drawable, R.attr.cr3_viewer_settings_drawable, R.attr.cr3_browser_folder_recent_drawable };
+		TypedArray a = getTheme().obtainStyledAttributes(attrs);
+		int btnPrevDrawableRes = a.getResourceId(0, 0);
+		int btnNextDrawableRes = a.getResourceId(1, 0);
+		int viewerSettingDrawableRes = a.getResourceId(2, 0);
+		int brFolderRecentDrawableRes = a.getResourceId(3, 0);
+		a.recycle();
+		if (btnPrevDrawableRes != 0) {
+			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
+			ReaderAction.FILE_BROWSER_UP.setIconId(btnPrevDrawableRes);
+		}
+		if (btnNextDrawableRes != 0)
+			ReaderAction.GO_FORWARD.setIconId(btnNextDrawableRes);
+		if (viewerSettingDrawableRes != 0)
+			ReaderAction.OPTIONS.setIconId(viewerSettingDrawableRes);
+		if (brFolderRecentDrawableRes != 0)
+			ReaderAction.RECENT_BOOKS.setIconId(brFolderRecentDrawableRes);
+	}
+
 	public void setCurrentTheme(InterfaceTheme theme) {
 		log.i("setCurrentTheme(" + theme + ")");
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
 		updateBackground();
+		updateActionsIcons();
 	}
 
 	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_USER;

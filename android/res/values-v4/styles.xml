@@ -61,6 +61,12 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.Light</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Light</item>
+
+        <!-- icons -->
+        <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
+        <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
+        <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
+        <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
         <item name="android:windowBackground">@drawable/background_tiled_dark</item>
@@ -68,6 +74,12 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Dark</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Dark</item>
+
+        <!-- icons -->
+        <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
+        <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
+        <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
+        <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -75,6 +87,12 @@
         <!-- item name="android:textColor">@android:color/black</item-->
         <item name="android:listViewStyle">@style/ListView.White</item>
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
+
+        <!-- icons -->
+        <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
+        <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
+        <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
+        <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
         <item name="android:windowBackground">@android:color/black</item>
@@ -82,8 +100,30 @@
         <!-- item name="android:textColor">@android:color/white</item-->
         <item name="android:listViewStyle">@style/ListView.Black</item>
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
+
+        <!-- icons -->
+        <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
+        <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
+        <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
+        <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
-    
+
+    <style name="Theme.HiContrast" parent="@android:style/Theme.Light">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:colorBackground">@android:color/white</item>
+        <!-- item name="android:textColor">@android:color/black</item-->
+        <item name="android:listViewStyle">@style/ListView.White</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.White</item>
+
+        <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
+
+        <!-- icons -->
+        <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
+        <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
+        <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings_hc</item>
+        <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent_hc</item>
+    </style>
+
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowAnimationStyle">@null</item>
@@ -127,6 +167,18 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
     <style name="Theme.White.Dialog.Fullscreen" parent="@style/Theme.White">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Theme.HiContrast.Dialog.Normal" parent="@style/Theme.HiContrast">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="Theme.HiContrast.Dialog.Fullscreen" parent="@style/Theme.HiContrast">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:layout_width">fill_parent</item>
