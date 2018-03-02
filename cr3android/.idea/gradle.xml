@@ -9,10 +9,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/commons-codec-1.10" />
-            <option value="$PROJECT_DIR$/commons-logging-1.2" />
-            <option value="$PROJECT_DIR$/httpclient-4.5.5" />
-            <option value="$PROJECT_DIR$/httpcore-4.4.9" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

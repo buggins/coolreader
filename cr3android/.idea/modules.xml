@@ -3,11 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/commons-codec-1.10/commons-codec-1.10.iml" filepath="$PROJECT_DIR$/commons-codec-1.10/commons-codec-1.10.iml" />
-      <module fileurl="file://$PROJECT_DIR$/commons-logging-1.2/commons-logging-1.2.iml" filepath="$PROJECT_DIR$/commons-logging-1.2/commons-logging-1.2.iml" />
       <module fileurl="file://$PROJECT_DIR$/cr3android.iml" filepath="$PROJECT_DIR$/cr3android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/httpclient-4.5.5/httpclient-4.5.5.iml" filepath="$PROJECT_DIR$/httpclient-4.5.5/httpclient-4.5.5.iml" />
-      <module fileurl="file://$PROJECT_DIR$/httpcore-4.4.9/httpcore-4.4.9.iml" filepath="$PROJECT_DIR$/httpcore-4.4.9/httpcore-4.4.9.iml" />
     </modules>
   </component>
 </project>
