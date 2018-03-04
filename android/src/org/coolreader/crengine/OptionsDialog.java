@@ -1157,7 +1157,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public ThemeOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_THEME );
-			setDefaultValue(DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+			setDefaultValue(DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
 			for (InterfaceTheme theme : InterfaceTheme.allThemes)
 				add(theme.getCode(), getString(theme.getDisplayNameResourceId()));
 		}
@@ -1839,7 +1839,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if ( !DeviceInfo.EINK_SCREEN ) {
 			mOptionsBrowser.add(new NightModeOption(this, getString(R.string.options_inverse_view), PROP_NIGHT_MODE).setIconId(R.drawable.cr3_option_night));
 		}
-		if ( !DeviceInfo.FORCE_LIGHT_THEME ) {
+		if ( !DeviceInfo.FORCE_HC_THEME) {
 			mOptionsBrowser.add(new ThemeOptions(this, getString(R.string.options_app_ui_theme)).noIcon());
 		}
 		mOptionsBrowser.refresh();
@@ -1935,7 +1935,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		
 		mOptionsApplication = new OptionsListView(getContext());
 		mOptionsApplication.add(new LangOption(this).noIcon());
-		if ( !DeviceInfo.FORCE_LIGHT_THEME ) {
+		if ( !DeviceInfo.FORCE_HC_THEME) {
 			mOptionsApplication.add(new ThemeOptions(this, getString(R.string.options_app_ui_theme)).noIcon());
 		}
 		if ( !DeviceInfo.EINK_SCREEN ) {

@@ -516,4 +516,5 @@
     <string name="black_list_warning">Внимание! этот адрес по запросу LitRes.ru был добавлен в черный список каталогов, нарушающих авторские права. Вы действительно хотите использовать этот каталог?</string>
     <string name="cant_open_file">Не возможно открыть файл!</string>
     <string name="error">Ошибка</string>
+    <string name="options_app_ui_theme_hicontrast">Контрастная</string>
 </resources>

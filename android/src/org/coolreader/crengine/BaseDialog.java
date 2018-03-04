@@ -46,7 +46,7 @@ public class BaseDialog extends Dialog {
 		thirdButtonContentDescriptionId = descriptionId;
 	}
 	
-	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
+	public static final boolean DARK_THEME = !DeviceInfo.FORCE_HC_THEME;
 	public BaseDialog( BaseActivity activity )
 	{
 		this( activity, "", false, false );

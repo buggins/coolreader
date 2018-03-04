@@ -10,7 +10,7 @@
     android:padding="0dip"
     android:layout_margin="0dip"
     android:baselineAligned="false"
-    android:background="@drawable/cr3_toolbar_button_background"
+    android:background="?attr/cr3_toolbar_button_background_drawable"
     android:minHeight="?android:attr/listPreferredItemHeight"
     >
 

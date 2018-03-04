@@ -1203,7 +1203,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				parentItem = currDirectory;
 			}
 			holder.setItem(item, parentItem);
-//			if ( DeviceInfo.FORCE_LIGHT_THEME ) {
+//			if ( DeviceInfo.FORCE_HC_THEME ) {
 //				view.setBackgroundColor(Color.WHITE);
 //			}
 			return view;

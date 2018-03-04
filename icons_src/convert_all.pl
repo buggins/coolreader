@@ -9,7 +9,11 @@ my %ic_launcher_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, x
 my %ic_actions_list=(
 	'cr3_button_prev_hc-256x256-src.svg' => 'cr3_button_prev_hc.png',
 	'cr3_button_next_hc-256x256-src.svg' => 'cr3_button_next_hc.png',
+	'cr3_viewer_toc_hc-256x256-src.svg' => 'cr3_viewer_toc_hc.png',
+	'cr3_viewer_find_hc-256x256-src.svg' => 'cr3_viewer_find_hc.png',
 	'cr3_viewer_settings_hc-256x256-src.svg' => 'cr3_viewer_settings_hc.png',
+	'cr3_button_bookmarks_hc-256x256-src.svg' => 'cr3_button_bookmarks_hc.png',
+	'cr3_browser_folder_root_hc-256x256-src.svg' => 'cr3_browser_folder_root_hc.png',
 	'cr3_browser_folder_recent_hc-256x256-src.svg' => 'cr3_browser_folder_recent_hc.png'
 );
 
