@@ -28,7 +28,7 @@
 #include <../../crengine/include/fb2def.h>
 #include <sys/stat.h>
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__aarch64__) || defined(__i386__) || defined(__mips__)
 #include "coffeecatch/coffeecatch.h"
 #include "coffeecatch/coffeejni.h"
 #else
