@@ -73,6 +73,8 @@
         <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
         <item name="cr3_button_bookmarks_drawable">@drawable/cr3_button_bookmarks</item>
         <item name="cr3_browser_folder_root_drawable">@drawable/cr3_browser_folder_root</item>
+        <item name="cr3_option_night_drawable">@drawable/cr3_option_night</item>
+        <item name="cr3_option_touch_drawable">@drawable/cr3_option_touch</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
@@ -93,6 +95,8 @@
         <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
         <item name="cr3_button_bookmarks_drawable">@drawable/cr3_button_bookmarks</item>
         <item name="cr3_browser_folder_root_drawable">@drawable/cr3_browser_folder_root</item>
+        <item name="cr3_option_night_drawable">@drawable/cr3_option_night</item>
+        <item name="cr3_option_touch_drawable">@drawable/cr3_option_touch</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
@@ -114,6 +118,8 @@
         <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
         <item name="cr3_button_bookmarks_drawable">@drawable/cr3_button_bookmarks</item>
         <item name="cr3_browser_folder_root_drawable">@drawable/cr3_browser_folder_root</item>
+        <item name="cr3_option_night_drawable">@drawable/cr3_option_night</item>
+        <item name="cr3_option_touch_drawable">@drawable/cr3_option_touch</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
@@ -135,6 +141,8 @@
         <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings</item>
         <item name="cr3_button_bookmarks_drawable">@drawable/cr3_button_bookmarks</item>
         <item name="cr3_browser_folder_root_drawable">@drawable/cr3_browser_folder_root</item>
+        <item name="cr3_option_night_drawable">@drawable/cr3_option_night</item>
+        <item name="cr3_option_touch_drawable">@drawable/cr3_option_touch</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
     </style>
 
@@ -157,6 +165,8 @@
         <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings_hc</item>
         <item name="cr3_button_bookmarks_drawable">@drawable/cr3_button_bookmarks_hc</item>
         <item name="cr3_browser_folder_root_drawable">@drawable/cr3_browser_folder_root_hc</item>
+        <item name="cr3_option_night_drawable">@drawable/cr3_option_night_hc</item>
+        <item name="cr3_option_touch_drawable">@drawable/cr3_option_touch_hc</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent_hc</item>
     </style>
 

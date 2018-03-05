@@ -14,6 +14,8 @@ my %ic_actions_list=(
 	'cr3_viewer_settings_hc-256x256-src.svg' => 'cr3_viewer_settings_hc.png',
 	'cr3_button_bookmarks_hc-256x256-src.svg' => 'cr3_button_bookmarks_hc.png',
 	'cr3_browser_folder_root_hc-256x256-src.svg' => 'cr3_browser_folder_root_hc.png',
+	'cr3_option_night_hc-256x256-src.svg' => 'cr3_option_night_hc.png',
+	'cr3_option_touch_hc-256x256-src.svg' => 'cr3_option_touch_hc.png',
 	'cr3_browser_folder_recent_hc-256x256-src.svg' => 'cr3_browser_folder_recent_hc.png'
 );
 

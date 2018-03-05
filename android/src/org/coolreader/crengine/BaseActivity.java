@@ -378,7 +378,8 @@ public class BaseActivity extends Activity implements Settings {
 	public void updateActionsIcons() {
 		int [] attrs = { R.attr.cr3_button_prev_drawable, R.attr.cr3_button_next_drawable, R.attr.cr3_viewer_toc_drawable,
 						 R.attr.cr3_viewer_find_drawable, R.attr.cr3_viewer_settings_drawable, R.attr.cr3_button_bookmarks_drawable,
-						 R.attr.cr3_browser_folder_root_drawable, R.attr.cr3_browser_folder_recent_drawable };
+						 R.attr.cr3_browser_folder_root_drawable, R.attr.cr3_option_night_drawable, R.attr.cr3_option_touch_drawable,
+						 R.attr.cr3_browser_folder_recent_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -387,7 +388,9 @@ public class BaseActivity extends Activity implements Settings {
 		int viewerSettingDrawableRes = a.getResourceId(4, 0);
 		int btnBookmarksDrawableRes = a.getResourceId(5, 0);
 		int brFolderRootDrawableRes = a.getResourceId(6, 0);
-		int brFolderRecentDrawableRes = a.getResourceId(7, 0);
+		int optionNightDrawableRes = a.getResourceId(7, 0);
+        int optionTouchDrawableRes = a.getResourceId(8, 0);
+		int brFolderRecentDrawableRes = a.getResourceId(9, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -405,6 +408,10 @@ public class BaseActivity extends Activity implements Settings {
 			ReaderAction.BOOKMARKS.setIconId(btnBookmarksDrawableRes);
 		if (brFolderRootDrawableRes != 0)
 			ReaderAction.FILE_BROWSER_ROOT.setIconId(brFolderRootDrawableRes);
+		if (optionNightDrawableRes != 0)
+			ReaderAction.TOGGLE_DAY_NIGHT.setIconId(optionNightDrawableRes);
+        if (optionTouchDrawableRes != 0)
+            ReaderAction.TOGGLE_SELECTION_MODE.setIconId(optionTouchDrawableRes);
 		if (brFolderRecentDrawableRes != 0)
 			ReaderAction.RECENT_BOOKS.setIconId(brFolderRecentDrawableRes);
 	}
