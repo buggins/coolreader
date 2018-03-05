@@ -26,7 +26,7 @@ add_definitions(-DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1)
 add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
-#set(LOCAL_CFLAGS "${LOCAL_CFLAGS} -funwind-tables")
+set(LOCAL_CFLAGS "${LOCAL_CFLAGS} -funwind-tables")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${LOCAL_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCAL_CFLAGS}")
@@ -297,9 +297,10 @@ set(LOCAL_SRC_FILES
     ${ANTIWORD_SRC_FILES}
 )
 
-if("${ANDROID_ABI}" STREQUAL "armeabi-v7a")
-set(LOCAL_SRC_FILES ${LOCAL_SRC_FILES} ${COFFEECATCH_SRC_FILES})
-endif("${ANDROID_ABI}" STREQUAL "armeabi-v7a")
+# Add coffeecatch only on supported architectures.
+if("${ANDROID_ABI}" STREQUAL "armeabi-v7a" OR "${ANDROID_ABI}" STREQUAL "arm64-v8a" OR "${ANDROID_ABI}" STREQUAL "mips" OR "${ANDROID_ABI}" STREQUAL "x86")
+    set(LOCAL_SRC_FILES ${LOCAL_SRC_FILES} ${COFFEECATCH_SRC_FILES})
+endif("${ANDROID_ABI}" STREQUAL "armeabi-v7a" OR "${ANDROID_ABI}" STREQUAL "arm64-v8a" OR "${ANDROID_ABI}" STREQUAL "mips" OR "${ANDROID_ABI}" STREQUAL "x86")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.

@@ -110,8 +110,11 @@ typedef struct ucontext {
 } ucontext_t;
 #endif
 
+#elif defined(__aarch64__)
+
 #elif defined(__i386__)
 
+#if !defined(__BIONIC_HAVE_UCONTEXT_T)
 /* Taken from Google Breakpad. */
 
 /* 80-bit floating-point register */
@@ -164,7 +167,6 @@ enum {
   REG_SS,
 };
 
-#if !defined(__BIONIC_HAVE_UCONTEXT_T)
 typedef struct ucontext {
   uint32_t uc_flags;
   struct ucontext* uc_link;
@@ -261,6 +263,7 @@ typedef struct native_code_handler_struct {
   /* Restore point context. */
   sigjmp_buf ctx;
   int ctx_is_set;
+  int reenter;
 
   /* Alternate stack. */
   char *stack_buffer;
@@ -1123,6 +1126,8 @@ uintptr_t coffeecatch_get_backtrace(ssize_t index) {
 static uintptr_t coffeecatch_get_pc_from_ucontext(const ucontext_t *uc) {
 #if (defined(__arm__))
   return uc->uc_mcontext.arm_pc;
+#elif defined(__aarch64__)
+  return uc->uc_mcontext.pc;
 #elif (defined(__x86_64__))
   return uc->uc_mcontext.gregs[REG_RIP];
 #elif (defined(__i386))
@@ -1354,6 +1359,18 @@ void coffeecatch_get_backtrace_info(void (*fun)(void *arg,
 }
 
 /**
+ * Returns 1 if we are already inside a coffeecatch block, 0 otherwise.
+ */
+int coffeecatch_inside() {
+  native_code_handler_struct *const t = coffeecatch_get();
+  if (t != NULL && t->reenter > 0) {
+    t->reenter++;
+    return 1;
+  }
+  return 0;
+}
+
+/**
  * Calls coffeecatch_handler_setup(1) to setup a crash handler, mark the
  * context as valid, and return 0 upon success.
  */
@@ -1361,6 +1378,8 @@ int coffeecatch_setup() {
   if (coffeecatch_handler_setup(1) == 0) {
     native_code_handler_struct *const t = coffeecatch_get();
     assert(t != NULL);
+    assert(t->reenter == 0);
+    t->reenter = 1;
     t->ctx_is_set = 1;
     return 0;
   } else {
@@ -1374,8 +1393,12 @@ int coffeecatch_setup() {
 void coffeecatch_cleanup() {
   native_code_handler_struct *const t = coffeecatch_get();
   assert(t != NULL);
-  t->ctx_is_set = 0;
-  coffeecatch_handler_cleanup();
+  assert(t->reenter > 0);
+  t->reenter--;
+  if (t->reenter == 0) {
+    t->ctx_is_set = 0;
+    coffeecatch_handler_cleanup();
+  }
 }
 
 sigjmp_buf* coffeecatch_get_ctx() {
