@@ -19,13 +19,6 @@
    sodipodi:docname="cr3_option_night_hc-256x256-src.svg">
   <defs
      id="defs2">
-    <inkscape:perspective
-       id="perspective71"
-       inkscape:persp3d-origin="24 : 16 : 1"
-       inkscape:vp_z="48 : 24 : 1"
-       inkscape:vp_y="0 : 1000 : 0"
-       inkscape:vp_x="0 : 24 : 1"
-       sodipodi:type="inkscape:persp3d" />
     <linearGradient
        id="linearGradient2329">
       <stop
@@ -84,17 +77,6 @@
          id="stop2687" />
     </linearGradient>
     <linearGradient
-       id="linearGradient2675">
-      <stop
-         style="stop-color:#5b5b97;stop-opacity:1.0000000;"
-         offset="0.0000000"
-         id="stop2677" />
-      <stop
-         style="stop-color:#1b1b43;stop-opacity:1.0000000;"
-         offset="1.0000000"
-         id="stop2679" />
-    </linearGradient>
-    <linearGradient
        id="linearGradient2667">
       <stop
          style="stop-color:#ffffff;stop-opacity:1.0000000;"
@@ -104,17 +86,6 @@
          style="stop-color:#fcfcff;stop-opacity:0.0000000;"
          offset="1.0000000"
          id="stop2671" />
-    </linearGradient>
-    <linearGradient
-       id="linearGradient2253">
-      <stop
-         id="stop2255"
-         offset="0.0000000"
-         style="stop-color:#8f8f8f;stop-opacity:1.0000000;" />
-      <stop
-         id="stop2257"
-         offset="1.0000000"
-         style="stop-color:#494949;stop-opacity:1.0000000;" />
     </linearGradient>
     <linearGradient
        id="linearGradient2245">
@@ -247,16 +218,6 @@
        x2="35.520542"
        y2="3.8451097"
        gradientTransform="matrix(1.8569632,0,0,0.91848073,-7.9159769,247.34594)" />
-    <linearGradient
-       gradientUnits="userSpaceOnUse"
-       y2="33.339787"
-       x2="34.784473"
-       y1="7.2293582"
-       x1="8.6116238"
-       gradientTransform="matrix(1.5760634,0,0,1.2345881,90.201895,235.13443)"
-       id="linearGradient2251-5"
-       xlink:href="#linearGradient2245"
-       inkscape:collect="always" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -266,7 +227,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.2016753"
-     inkscape:cx="150.083"
+     inkscape:cx="-14.686967"
      inkscape:cy="41.581971"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -286,7 +247,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

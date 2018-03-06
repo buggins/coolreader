@@ -379,7 +379,8 @@ public class BaseActivity extends Activity implements Settings {
 		int [] attrs = { R.attr.cr3_button_prev_drawable, R.attr.cr3_button_next_drawable, R.attr.cr3_viewer_toc_drawable,
 						 R.attr.cr3_viewer_find_drawable, R.attr.cr3_viewer_settings_drawable, R.attr.cr3_button_bookmarks_drawable,
 						 R.attr.cr3_browser_folder_root_drawable, R.attr.cr3_option_night_drawable, R.attr.cr3_option_touch_drawable,
-						 R.attr.cr3_browser_folder_recent_drawable };
+						 R.attr.cr3_button_go_page_drawable, R.attr.cr3_button_go_percent_drawable, R.attr.cr3_browser_folder_drawable,
+						 R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_logo_button_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -390,7 +391,12 @@ public class BaseActivity extends Activity implements Settings {
 		int brFolderRootDrawableRes = a.getResourceId(6, 0);
 		int optionNightDrawableRes = a.getResourceId(7, 0);
         int optionTouchDrawableRes = a.getResourceId(8, 0);
-		int brFolderRecentDrawableRes = a.getResourceId(9, 0);
+		int btnGoPageDrawableRes = a.getResourceId(9, 0);
+		int btnGoPercentDrawableRes = a.getResourceId(10, 0);
+		int brFolderDrawableRes = a.getResourceId(11, 0);
+		int btnTtsDrawableRes = a.getResourceId(12, 0);
+		int brFolderRecentDrawableRes = a.getResourceId(13, 0);
+		int logoBtnDrawableRes = a.getResourceId(14, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -410,8 +416,18 @@ public class BaseActivity extends Activity implements Settings {
 			ReaderAction.FILE_BROWSER_ROOT.setIconId(brFolderRootDrawableRes);
 		if (optionNightDrawableRes != 0)
 			ReaderAction.TOGGLE_DAY_NIGHT.setIconId(optionNightDrawableRes);
-        if (optionTouchDrawableRes != 0)
-            ReaderAction.TOGGLE_SELECTION_MODE.setIconId(optionTouchDrawableRes);
+		if (optionTouchDrawableRes != 0)
+			ReaderAction.TOGGLE_SELECTION_MODE.setIconId(optionTouchDrawableRes);
+		if (btnGoPageDrawableRes != 0)
+			ReaderAction.GO_PAGE.setIconId(btnGoPageDrawableRes);
+		if (btnGoPercentDrawableRes != 0)
+			ReaderAction.GO_PERCENT.setIconId(btnGoPercentDrawableRes);
+		if (brFolderDrawableRes != 0)
+			ReaderAction.FILE_BROWSER.setIconId(brFolderDrawableRes);
+		if (btnTtsDrawableRes != 0)
+			ReaderAction.TTS_PLAY.setIconId(btnTtsDrawableRes);
+		if (logoBtnDrawableRes != 0)
+			ReaderAction.ABOUT.setIconId(logoBtnDrawableRes);
 		if (brFolderRecentDrawableRes != 0)
 			ReaderAction.RECENT_BOOKS.setIconId(brFolderRecentDrawableRes);
 	}

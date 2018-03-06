@@ -16,7 +16,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
-   sodipodi:docname="cr3_button_go_page_hc-256x256-src.svg">
+   sodipodi:docname="cr3_button_go_percent_hc-256x256-src.svg">
   <defs
      id="defs2">
     <linearGradient
@@ -59,9 +59,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="12.736182"
-     inkscape:cy="56.626216"
+     inkscape:zoom="0.98994952"
+     inkscape:cx="150.07829"
+     inkscape:cy="131.39261"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -152,23 +152,25 @@
          sodipodi:nodetypes="cccccccc"
          inkscape:connector-curvature="0"
          id="path832"
-         d="m 32.399014,239.05625 0.170194,14.23302 h 29.607876 v 18.97736 H 32.582174 L 32.39991,287.21041 5.5562498,263.1851 Z"
+         d="m 32.399014,239.05625 0.170194,14.23302 17.956639,0 0.09103,18.97736 -18.034698,0 L 32.39991,287.21041 5.5562498,263.1851 Z"
          style="fill:#000000;stroke-width:0.33876684" />
     </g>
     <path
        style="fill:none;stroke:#000000;stroke-width:2.64583325;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 7.5013115,275.64281 H 26.477447"
+       d="M 7.0288412,274.88686 H 30.635185"
        id="path1166"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
-    <g
-       aria-label="#"
+    <text
+       xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       id="text4512">
-      <path
-         d="m 17.182169,251.24876 -1.322917,5.30545 h 3.638021 l 1.336697,-5.30545 h 3.045465 l -1.336697,5.30545 h 3.817165 v 2.93522 h -4.547526 l -0.950846,3.77582 h 3.913628 v 2.96278 h -4.630208 l -1.322916,5.27789 H 15.77657 l 1.322917,-5.27789 h -3.638021 l -1.322917,5.27789 H 9.0655244 l 1.3229166,-5.27789 H 6.5437146 v -2.96278 H 11.06368 l 0.964626,-3.77582 H 8.1284584 v -2.93522 h 4.6577686 l 1.322917,-5.30545 z m 1.557183,8.24067 h -3.63802 l -0.964627,3.77582 h 3.638021 z"
-         style="font-weight:bold;font-size:28.22222137px;line-height:13.22916698px;stroke-width:0.26458332"
-         id="path4514" />
-    </g>
+       x="4.4898591"
+       y="269.62778"
+       id="text4519"><tspan
+         sodipodi:role="line"
+         id="tspan4517"
+         x="4.4898591"
+         y="269.62778"
+         style="font-weight:bold;font-size:28.22222137px;stroke-width:0.26458332">%</tspan></text>
   </g>
 </svg>
