@@ -83,6 +83,7 @@
         <item name="cr3_button_tts_drawable">@drawable/cr3_button_tts</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
+        <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
@@ -113,6 +114,7 @@
         <item name="cr3_button_tts_drawable">@drawable/cr3_button_tts</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
+        <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
@@ -144,6 +146,7 @@
         <item name="cr3_button_tts_drawable">@drawable/cr3_button_tts</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
+        <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
@@ -175,6 +178,7 @@
         <item name="cr3_button_tts_drawable">@drawable/cr3_button_tts</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent</item>
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
+        <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
     </style>
 
@@ -207,6 +211,7 @@
         <item name="cr3_button_tts_drawable">@drawable/cr3_button_tts_hc</item>
         <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent_hc</item>
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go_hc</item>
+        <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap_hc</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button_hc</item>
     </style>
 

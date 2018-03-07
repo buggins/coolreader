@@ -381,7 +381,7 @@ public class BaseActivity extends Activity implements Settings {
 						 R.attr.cr3_browser_folder_root_drawable, R.attr.cr3_option_night_drawable, R.attr.cr3_option_touch_drawable,
 						 R.attr.cr3_button_go_page_drawable, R.attr.cr3_button_go_percent_drawable, R.attr.cr3_browser_folder_drawable,
 						 R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
-						 R.attr.cr3_logo_button_drawable };
+						 R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -398,7 +398,8 @@ public class BaseActivity extends Activity implements Settings {
 		int btnTtsDrawableRes = a.getResourceId(12, 0);
 		int brFolderRecentDrawableRes = a.getResourceId(13, 0);
 		int btnScrollGoDrawableRes = a.getResourceId(14, 0);
-		int logoBtnDrawableRes = a.getResourceId(15, 0);
+		int btnBooksSwapDrawableRes = a.getResourceId(15, 0);
+		int logoBtnDrawableRes = a.getResourceId(16, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -428,12 +429,14 @@ public class BaseActivity extends Activity implements Settings {
 			ReaderAction.FILE_BROWSER.setIconId(brFolderDrawableRes);
 		if (btnTtsDrawableRes != 0)
 			ReaderAction.TTS_PLAY.setIconId(btnTtsDrawableRes);
-		if (logoBtnDrawableRes != 0)
-			ReaderAction.ABOUT.setIconId(logoBtnDrawableRes);
-		if (btnScrollGoDrawableRes != 0)
-			ReaderAction.TOGGLE_AUTOSCROLL.setIconId(btnScrollGoDrawableRes);
 		if (brFolderRecentDrawableRes != 0)
 			ReaderAction.RECENT_BOOKS.setIconId(brFolderRecentDrawableRes);
+		if (btnScrollGoDrawableRes != 0)
+			ReaderAction.TOGGLE_AUTOSCROLL.setIconId(btnScrollGoDrawableRes);
+		if (btnBooksSwapDrawableRes != 0)
+			ReaderAction.OPEN_PREVIOUS_BOOK.setIconId(btnBooksSwapDrawableRes);
+		if (logoBtnDrawableRes != 0)
+			ReaderAction.ABOUT.setIconId(logoBtnDrawableRes);
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {
