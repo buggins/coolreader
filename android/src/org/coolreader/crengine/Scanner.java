@@ -856,7 +856,7 @@ public class Scanner extends FileInfoChangeSource {
 		}
 		File fd = mActivity.getFilesDir();
 		File downloadDir = new File(fd, "downloads");
-		if (downloadDir.mkdirs()) {
+		if (downloadDir.isDirectory() || downloadDir.mkdirs()) {
 			Log.d("cr3", "download dir: " + downloadDir);
 			FileInfo books = null;
 			books = new FileInfo(downloadDir);
