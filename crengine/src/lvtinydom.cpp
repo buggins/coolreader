@@ -6313,13 +6313,27 @@ bool ldomXPointerEx::prevVisibleText( bool thisBlockOnly )
 // TODO: implement better behavior
 inline bool IsUnicodeSpace( lChar16 ch )
 {
-    return ch==' ';
+    //return ch==' ';
+    switch ((uint16_t)ch) {
+        case 0x0020:        // SPACE
+        case 0x00A0:        // NO-BREAK SPACE
+        case 0x2000:        // EN QUAD
+        case 0x2001:        // EM QUAD
+        case 0x2002:        // EN SPACE
+        case 0x2003:        // EM SPACE
+        case 0x2004:        // THREE-PER-EM SPACE
+        case 0x2005:        // FOUR-PER-EM SPACE
+        case 0x202F:        // NARROW NO-BREAK SPACE
+        case 0x3000:        // IDEOGRAPHIC SPACE
+            return true;
+    }
+    return false;
 }
 
 // TODO: implement better behavior
 inline bool IsUnicodeSpaceOrNull( lChar16 ch )
 {
-    return ch==0 || ch==' ';
+    return ch==0 || IsUnicodeSpace(ch);
 }
 
 inline bool canWrapWordBefore( lChar16 ch ) {
@@ -6442,6 +6456,7 @@ bool ldomXPointerEx::nextVisibleWordStart( bool thisBlockOnly )
                 if ( !nextVisibleText(thisBlockOnly) )
                     return false;
                 _data->setOffset( 0 );
+                moved = true;
             }
         }
         // skip spaces
@@ -6665,6 +6680,8 @@ bool ldomXPointerEx::isSentenceStart()
             break;
         }
     }
+#if 0
+    // At this implementation it's a wrong to check previous node
     if ( !prevNonSpace ) {
         ldomXPointerEx pos(*this);
         while ( !prevNonSpace && pos.prevVisibleText(true) ) {
@@ -6676,6 +6693,18 @@ bool ldomXPointerEx::isSentenceStart()
                     break;
                 }
             }
+        }
+    }
+#endif
+
+    // skip separated separator.
+    if (1 == textLen) {
+        switch (currCh) {
+            case '.':
+            case '?':
+            case '!':
+            case L'\x2026': // horizontal ellypsis
+                return false;
         }
     }
 
