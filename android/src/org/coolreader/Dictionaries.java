@@ -125,13 +125,15 @@ public class Dictionaries {
 			} else {
 				intent0.setPackage(currentDictionary.packageName);
 			}
-			intent0.addFlags(DeviceInfo.getSDKLevel() >= 7 ? FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
+			intent0.addFlags(DeviceInfo.getSDKLevel() >= 7 ? Intent.FLAG_ACTIVITY_CLEAR_TASK : Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (s!=null)
 				intent0.putExtra(currentDictionary.dataKey, s);
 			try {
 				mActivity.startActivity( intent0 );
 			} catch ( ActivityNotFoundException e ) {
 				throw new DictionaryException("Dictionary \"" + currentDictionary.name + "\" is not installed");
+			} catch ( Exception e ) {
+				throw new DictionaryException("Can't open dictionary \"" + currentDictionary.name + "\"");
 			}
 			break;
 		case 1:
