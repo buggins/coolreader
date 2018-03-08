@@ -78,13 +78,14 @@ public class CoolReader extends BaseActivity
 	String fileToLoadOnStart = null;
 	
 	private boolean isFirstStart = true;
+	private boolean readPhoneStateIsPermitted = false;
 	int initialBatteryState = -1;
 	BroadcastReceiver intentReceiver;
 
 	private boolean justCreated = false;
 
-	private static final int PERM_REQUEST_CODE_STORAGE = 1;
-	
+	private static final int MY_PERM_REQUEST_CODE = 1;
+
 	/** Called when the activity is first created. */
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -94,8 +95,10 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
-		requestStoragePermissions();
-		
+		// Can request only one set of permissions at a time
+		// Then request all permission at a time.
+		requestPermissions();
+
 		// apply settings
     	onSettingsChanged(settings(), null);
 
@@ -413,18 +416,22 @@ public class CoolReader extends BaseActivity
 	protected void onStart() {
 		log.i("CoolReader.onStart() version=" + getVersion() + ", fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
-		
-		
-		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
-			@Override
-			public void run() {
-				if (mReaderView != null) {
-					mReaderView.stopTTS();
-					mReaderView.save();
+
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || readPhoneStateIsPermitted) {
+			// On Android API less than 23 phone read state permission is granted
+			// after application install (permission requested while application installing).
+			log.i("read phone state permission already GRANTED, registering phone activity handler...");
+			PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
+				@Override
+				public void run() {
+					if (mReaderView != null) {
+						mReaderView.stopTTS();
+						mReaderView.save();
+					}
 				}
-			}
-		});
-		
+			});
+		}
+
 //		BackgroundThread.instance().postGUI(new Runnable() {
 //			public void run() {
 //				// fixing font settings
@@ -496,51 +503,63 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onStop() exiting");
 	}
 
-	private void requestStoragePermissions() {
+	private void requestPermissions() {
 		// check or request permission for storage
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			int readExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
 			int writeExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+			int phoneStatePermissionCheck = checkSelfPermission(Manifest.permission.READ_PHONE_STATE);
 			ArrayList<String> needPerms = new ArrayList<String>();
 			if (PackageManager.PERMISSION_GRANTED != readExtStoragePermissionCheck) {
 				needPerms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-			}
-			else {
+			} else {
 				log.i("READ_EXTERNAL_STORAGE permission already granted.");
 			}
 			if (PackageManager.PERMISSION_GRANTED != writeExtStoragePermissionCheck) {
 				needPerms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-			}
-			else {
+			} else {
 				log.i("WRITE_EXTERNAL_STORAGE permission already granted.");
 			}
-			if (!needPerms.isEmpty())
-			{
+			if (PackageManager.PERMISSION_GRANTED != phoneStatePermissionCheck) {
+				needPerms.add(Manifest.permission.READ_PHONE_STATE);
+			} else {
+				log.i("READ_PHONE_STATE permission already granted.");
+				readPhoneStateIsPermitted = true;
+			}
+			if (!needPerms.isEmpty()) {
+				// TODO: Show an explanation to the user
+				// Show an explanation to the user *asynchronously* -- don't block
+				// this thread waiting for the user's response! After the user
+				// sees the explanation, try again to request the permission.
 				String[] templ = new String[0];
 				log.i("Some permissions DENIED, requesting from user these permissions: " + needPerms.toString());
 				// request permission from user
-				requestPermissions(needPerms.toArray(templ), PERM_REQUEST_CODE_STORAGE);
+				requestPermissions(needPerms.toArray(templ), MY_PERM_REQUEST_CODE);
 			}
+		} else {
+			readPhoneStateIsPermitted = true;
 		}
 	}
 
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 		log.i("CoolReader.onRequestPermissionsResult()");
-		if (PERM_REQUEST_CODE_STORAGE == requestCode) {		// external storage read & write permissions
-			boolean granted = true;
-			if (permissions.length > 0 && permissions.length == grantResults.length) {
-				for (int i = 0; i < permissions.length; i++) {
-					if (PackageManager.PERMISSION_GRANTED == grantResults[i]) {
-						log.i("Permission " + permissions[i] + " GRANTED");
-					}
-					else {
-						log.i("Permission " + permissions[i] + " DENIED");
-						granted = false;
-					}
-				}
+		if (MY_PERM_REQUEST_CODE == requestCode) {		// external storage read & write permissions
+			int ext_sd_perm_count = 0;
+			boolean read_phone_state_granted = false;
+			for (int i = 0; i < permissions.length; i++) {
+				if (grantResults[i] == PackageManager.PERMISSION_GRANTED)
+					log.i("Permission " + permissions[i] + " GRANTED");
+				else
+					log.i("Permission " + permissions[i] + " DENIED");
+				if (permissions[i].compareTo(Manifest.permission.READ_EXTERNAL_STORAGE) == 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+					ext_sd_perm_count++;
+				else if (permissions[i].compareTo(Manifest.permission.WRITE_EXTERNAL_STORAGE) == 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+					ext_sd_perm_count++;
+				else if (permissions[i].compareTo(Manifest.permission.READ_PHONE_STATE) == 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+					read_phone_state_granted = true;
 			}
-			if (granted) {
-				log.i("read&write to storage permissions GRANTED!");
+			if (2 == ext_sd_perm_count) {
+				log.i("read&write to storage permissions GRANTED, adding sd card mount point...");
 				Services.refreshServices(this);
 				rebaseSettings();
 				getDBService().setPathCorrector(Engine.getInstance(this).getPathCorrector());
@@ -552,6 +571,22 @@ public class CoolReader extends BaseActivity
 					}
 				});
 				mHomeFrame.refreshView();
+			}
+			if (read_phone_state_granted) {
+				log.i("read phone state permission is GRANTED, registering phone activity handler...");
+				readPhoneStateIsPermitted = true;
+				PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
+					@Override
+					public void run() {
+						if (mReaderView != null) {
+							mReaderView.stopTTS();
+							mReaderView.save();
+						}
+					}
+				});
+			} else {
+				log.i("Read phone state permission is DENIED!");
+				readPhoneStateIsPermitted = false;
 			}
 		}
 	}
