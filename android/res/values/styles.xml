@@ -85,6 +85,10 @@
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
         <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
+        <item name="cr3_viewer_exit_drawable">@drawable/cr3_viewer_exit</item>
+        <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
+        <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
+        <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -116,6 +120,10 @@
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
         <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
+        <item name="cr3_viewer_exit_drawable">@drawable/cr3_viewer_exit</item>
+        <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
+        <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
+        <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -148,6 +156,10 @@
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
         <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
+        <item name="cr3_viewer_exit_drawable">@drawable/cr3_viewer_exit</item>
+        <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
+        <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
+        <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
         <item name="android:windowBackground">@android:color/black</item>
@@ -180,6 +192,10 @@
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go</item>
         <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button</item>
+        <item name="cr3_viewer_exit_drawable">@drawable/cr3_viewer_exit</item>
+        <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
+        <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
+        <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
     </style>
 
     <style name="Theme.HiContrast" parent="@android:style/Theme.Light">
@@ -213,6 +229,10 @@
         <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go_hc</item>
         <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap_hc</item>
         <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button_hc</item>
+        <item name="cr3_viewer_exit_drawable">@drawable/cr3_viewer_exit_hc</item>
+        <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open_hc</item>
+        <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book_hc</item>
+        <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
     </style>
 
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">

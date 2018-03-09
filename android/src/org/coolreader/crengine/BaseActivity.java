@@ -381,7 +381,8 @@ public class BaseActivity extends Activity implements Settings {
 						 R.attr.cr3_browser_folder_root_drawable, R.attr.cr3_option_night_drawable, R.attr.cr3_option_touch_drawable,
 						 R.attr.cr3_button_go_page_drawable, R.attr.cr3_button_go_percent_drawable, R.attr.cr3_browser_folder_drawable,
 						 R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
-						 R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable };
+						 R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
+						 R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable };
 		TypedArray a = getTheme().obtainStyledAttributes(attrs);
 		int btnPrevDrawableRes = a.getResourceId(0, 0);
 		int btnNextDrawableRes = a.getResourceId(1, 0);
@@ -391,7 +392,7 @@ public class BaseActivity extends Activity implements Settings {
 		int btnBookmarksDrawableRes = a.getResourceId(5, 0);
 		int brFolderRootDrawableRes = a.getResourceId(6, 0);
 		int optionNightDrawableRes = a.getResourceId(7, 0);
-        int optionTouchDrawableRes = a.getResourceId(8, 0);
+		int optionTouchDrawableRes = a.getResourceId(8, 0);
 		int btnGoPageDrawableRes = a.getResourceId(9, 0);
 		int btnGoPercentDrawableRes = a.getResourceId(10, 0);
 		int brFolderDrawableRes = a.getResourceId(11, 0);
@@ -400,6 +401,10 @@ public class BaseActivity extends Activity implements Settings {
 		int btnScrollGoDrawableRes = a.getResourceId(14, 0);
 		int btnBooksSwapDrawableRes = a.getResourceId(15, 0);
 		int logoBtnDrawableRes = a.getResourceId(16, 0);
+		int viewerExitDrawableRes = a.getResourceId(17, 0);
+		int btnBookOpenDrawableRes = a.getResourceId(18, 0);
+		int brFolderCurrBookDrawableRes = a.getResourceId(19, 0);
+		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
 		a.recycle();
 		if (btnPrevDrawableRes != 0) {
 			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
@@ -437,6 +442,14 @@ public class BaseActivity extends Activity implements Settings {
 			ReaderAction.OPEN_PREVIOUS_BOOK.setIconId(btnBooksSwapDrawableRes);
 		if (logoBtnDrawableRes != 0)
 			ReaderAction.ABOUT.setIconId(logoBtnDrawableRes);
+		if (viewerExitDrawableRes != 0)
+			ReaderAction.EXIT.setIconId(viewerExitDrawableRes);
+		if (btnBookOpenDrawableRes != 0)
+			ReaderAction.CURRENT_BOOK.setIconId(btnBookOpenDrawableRes);
+		if (brFolderCurrBookDrawableRes != 0)
+			ReaderAction.CURRENT_BOOK_DIRECTORY.setIconId(brFolderCurrBookDrawableRes);
+		if (brFolderOpdsDrawableRes != 0)
+			ReaderAction.OPDS_CATALOGS.setIconId(brFolderOpdsDrawableRes);
 	}
 
 	public void setCurrentTheme(InterfaceTheme theme) {

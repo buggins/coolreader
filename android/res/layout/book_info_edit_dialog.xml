@@ -25,7 +25,7 @@
 	        android:layout_height="wrap_content"
 	        android:minHeight="?android:attr/listPreferredItemHeight"
 	        android:gravity="center_vertical"
-	        android:background="#60404040"
+	        android:background="?attr/tabbarBackground"
 	        >
 	        <ImageButton android:id="@+id/base_dlg_btn_back"
 	            android:layout_width="wrap_content"
@@ -43,7 +43,7 @@
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
                 android:minWidth="?android:attr/listPreferredItemHeight"
-                android:src="@drawable/cr3_button_book_open"
+                android:src="?attr/cr3_button_book_open_drawable"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:background="@null"
