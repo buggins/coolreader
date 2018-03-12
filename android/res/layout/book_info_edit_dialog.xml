@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:minWidth="?android:attr/listPreferredItemHeight"
-                android:src="@drawable/cr3_button_folder_go"
+                android:src="?attr/cr3_button_folder_go_drawable"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:background="@null"

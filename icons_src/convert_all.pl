@@ -28,7 +28,9 @@ my %ic_actions_list=(
 	'cr3_button_book_open_hc-48x48-src.svg' => 'cr3_button_book_open_hc.png',
 	'cr3_viewer_exit_hc-48x48-src.svg' => 'cr3_viewer_exit_hc.png',
 	'cr3_browser_folder_current_book_hc-48x48-src.svg' => 'cr3_browser_folder_current_book_hc.png',
-	'cr3_browser_folder_opds_hc-48x48-src.svg' => 'cr3_browser_folder_opds_hc.png'
+	'cr3_browser_folder_opds_hc-48x48-src.svg' => 'cr3_browser_folder_opds_hc.png',
+	'cr3_button_folder_go_hc-48x48-src.svg' => 'cr3_button_folder_go_hc.png',
+	'cr3_option_font_face_hc-48x48-src.svg' => 'cr3_option_font_face_hc.png'
 );
 
 my %ic_menu_list=(

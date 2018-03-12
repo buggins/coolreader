@@ -742,7 +742,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LOCATION).add(mStatusPositions, mStatusPositionsTitles).setDefaultValue("1"));
-			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).seticonIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(filterFontSizes(mStatusFontSizes)).setDefaultValue("18").setIconId(R.drawable.cr3_option_font_size));
 			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), PROP_STATUS_FONT_COLOR, 0x000000));
 			listView.add(new BoolOption(mOwner, getString(R.string.options_page_show_titlebar_title), PROP_SHOW_TITLE).setDefaultValue("1"));
@@ -1522,7 +1522,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			    faces.add(face);
 			    faceValues.add("font-family: " + face);
 		    }
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_face), prefix + ".font-face").add(faceValues.toArray(new String[]{}), faces.toArray(new String[]{})).setIconId(R.drawable.cr3_option_font_face));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_face), prefix + ".font-face").add(faceValues.toArray(new String[]{}), faces.toArray(new String[]{})).seticonIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 			
 		    String[] fontSizeStyles = {
 		        "", // inherited
@@ -1872,7 +1872,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		//new TabHost(getContext());
 		
 		mOptionsStyles = new OptionsListView(getContext());
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_face), PROP_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).seticonIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_size), PROP_FONT_SIZE).add(filterFontSizes(mFontSizes)).setDefaultValue("24").setIconId(R.drawable.cr3_option_font_size));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_embolden), PROP_FONT_WEIGHT_EMBOLDEN).setDefaultValue("0").setIconId(R.drawable.cr3_option_text_bold));
 		//mOptionsStyles.add(new BoolOption(getString(R.string.options_font_antialias), PROP_FONT_ANTIALIASING).setInverse().setDefaultValue("0"));
@@ -1886,7 +1886,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconId(R.drawable.cr3_option_font_gamma));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconId(R.drawable.cr3_option_text_width));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_hinting), PROP_FONT_HINTING).add(mHinting, mHintingTitles).setDefaultValue("2").noIcon());
-		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_fallback_face), PROP_FALLBACK_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconId(R.drawable.cr3_option_font_face));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_font_fallback_face), PROP_FALLBACK_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).seticonIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 		
 		//
 		mOptionsPage = new OptionsListView(getContext());
