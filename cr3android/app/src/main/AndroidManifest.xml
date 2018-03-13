@@ -49,7 +49,11 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:host="*" android:scheme="file" />
+                <data android:mimeType="application/octet-stream" />
                 <data android:pathPattern=".*\\.fb2\\.zip"/>
+                <data android:pathPattern=".*\\..*\\.fb2\\.zip"/>
+                <data android:pathPattern=".*\\..*\\..*\\.fb2\\.zip"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.fb2\\.zip"/>
                 <data android:pathPattern=".*\\.zip"/>
                 <data android:pathPattern=".*\\.fb2"/>
                 <data android:pathPattern=".*\\..*\\.fb2"/>
@@ -61,11 +65,25 @@
                 <data android:pathPattern=".*\\.htm"/>
                 <data android:pathPattern=".*\\.chm"/>
                 <data android:pathPattern=".*\\.epub"/>
+                <data android:pathPattern=".*\\..*\\.epub"/>
+                <data android:pathPattern=".*\\..*\\..*\\.epub"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.epub"/>
+                <data android:pathPattern=".*\\.fb2\\.epub"/>
+                <data android:pathPattern=".*\\..*\\.fb2\\.epub"/>
+                <data android:pathPattern=".*\\..*\\..*\\.fb2\\.epub"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.fb2\\.epub"/>
                 <data android:pathPattern=".*\\.pdb"/>
                 <data android:pathPattern=".*\\.doc"/>
                 <data android:pathPattern=".*\\.prc"/>
                 <data android:pathPattern=".*\\.pml"/>
                 <data android:pathPattern=".*\\.mobi"/>
+                <data android:pathPattern=".*\\..*\\.mobi"/>
+                <data android:pathPattern=".*\\..*\\..*\\.mobi"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.mobi"/>
+                <data android:pathPattern=".*\\.fb2\\.mobi"/>
+                <data android:pathPattern=".*\\..*\\.fb2\\.mobi"/>
+                <data android:pathPattern=".*\\..*\\..*\\.fb2\\.mobi"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.fb2\\.mobi"/>
                 <data android:pathPattern=".*\\.azw"/>
                 <data android:pathPattern=".*\\.tcr"/>
             </intent-filter>
