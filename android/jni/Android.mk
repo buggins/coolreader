@@ -100,6 +100,7 @@ LOCAL_STATIC_LIBRARIES := \
     local_png \
     local_jpeg \
     local_freetype \
+    local_harfbuzz \
     local_chmlib \
     local_antiword
 

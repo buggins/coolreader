@@ -137,6 +137,7 @@ target_link_libraries( # Specifies the target library.
                        png
                        jpeg
                        freetype
+                       harfbuzz
                        chmlib
                        antiword
 
