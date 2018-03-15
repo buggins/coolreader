@@ -436,8 +436,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		stopTracking();
 		if (currentAutoScrollAnimation != null)
 			stopAutoScroll();
-		prepareCurrentPositionBookmark();
-		saveCurrentPositionBookmark();
+		Bookmark bmk = getCurrentPositionBookmark();
+		if (bmk != null)
+			savePositionBookmark(bmk);
 		log.i("calling bookView.onPause()");
 		bookView.onPause();
 	}
@@ -3823,7 +3824,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			currentAnimation = null;
 			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			lastSavedBookmark = null;
-			lastPositionBookmarkToSave = null;
 			updateCurrentPositionStatus();
 			
 			scheduleGc();
@@ -4941,27 +4941,24 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     	}
     }
     
-    private int lastSavePositionTaskId = 0;
-    
-    private final static int DEF_SAVE_POSITION_INTERVAL = 180000; // 3 minutes
-    private void scheduleSaveCurrentPositionBookmark(final int delayMillis) {
+	private int lastSavePositionTaskId = 0;
 
-
-    	// GUI thread required
-    	BackgroundThread.instance().executeGUI(new Runnable() {
+	private final static int DEF_SAVE_POSITION_INTERVAL = 180000; // 3 minutes
+	private void scheduleSaveCurrentPositionBookmark(final int delayMillis) {
+		// GUI thread required
+		BackgroundThread.instance().executeGUI(new Runnable() {
 			@Override
 			public void run() {
 		    	final int mylastSavePositionTaskId = ++lastSavePositionTaskId;
 				if (isBookLoaded() && mBookInfo != null) {
-			    	prepareCurrentPositionBookmark();
-			    	Bookmark bmk = lastPositionBookmarkToSave;
+			    	final Bookmark bmk = getCurrentPositionBookmark();
 			    	if (bmk == null)
 			    		return;
 			    	final BookInfo bookInfo = mBookInfo;
 			    	if (delayMillis <= 1) {
 						if (bookInfo != null && mActivity.getDB() != null) {
 							log.v("saving last position immediately");
-							saveCurrentPositionBookmark();
+							savePositionBookmark(bmk);
 							Services.getHistory().updateBookAccess(bookInfo, getTimeElapsed());
 						}
 			    	} else {
@@ -4972,7 +4969,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 									if (bookInfo != null) {
 										log.v("saving last position");
 										if (Services.getHistory() != null) {
-											saveCurrentPositionBookmark();
+											savePositionBookmark(bmk);
 											Services.getHistory().updateBookAccess(bookInfo, getTimeElapsed());
 										}
 									}
@@ -5051,38 +5048,36 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						}
 						callback.onPositionProperties(props, posText);
 					}
-		    	});
-				
+				});
 			}
     	});
     }
-    
 
-    Bookmark lastPositionBookmarkToSave = null;
-    Bookmark lastSavedBookmark = null;
-    
-    public void prepareCurrentPositionBookmark() {
-        if (!mOpened)
-            return;
-        lastPositionBookmarkToSave = doc.getCurrentPageBookmarkNoRender();
-        if (lastPositionBookmarkToSave != null) {
-	    	lastPositionBookmarkToSave.setTimeStamp(System.currentTimeMillis());
-	    	lastPositionBookmarkToSave.setType(Bookmark.TYPE_LAST_POSITION);
-	        if (mBookInfo != null)
-	            mBookInfo.setLastPosition(lastPositionBookmarkToSave);
-        }
-    }
-    
-    public void saveCurrentPositionBookmark() {
-        if (lastPositionBookmarkToSave != null && mBookInfo != null && isBookLoaded()) {
+
+	public Bookmark getCurrentPositionBookmark() {
+		if (!mOpened)
+			return null;
+		Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
+		if (bmk != null) {
+			bmk.setTimeStamp(System.currentTimeMillis());
+			bmk.setType(Bookmark.TYPE_LAST_POSITION);
+			if (mBookInfo != null)
+				mBookInfo.setLastPosition(bmk);
+		}
+		return bmk;
+	}
+
+	Bookmark lastSavedBookmark = null;
+
+	public void savePositionBookmark(Bookmark bmk) {
+        if (bmk != null && mBookInfo != null && isBookLoaded()) {
         	//setBookPosition();
-        	if (lastSavedBookmark == null || !lastSavedBookmark.getStartPos().equals(lastPositionBookmarkToSave.getStartPos())) {
+        	if (lastSavedBookmark == null || !lastSavedBookmark.getStartPos().equals(bmk.getStartPos())) {
 	        	Services.getHistory().updateRecentDir();
 	        	mActivity.getDB().saveBookInfo(mBookInfo);
 	        	mActivity.getDB().flush();
-	        	lastSavedBookmark = lastPositionBookmarkToSave; 
+	        	lastSavedBookmark = bmk;
         	}
-        	lastPositionBookmarkToSave = null;
         }
     }
 

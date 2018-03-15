@@ -11,7 +11,7 @@ public class DocView {
 	public static final int SWAP_TIMEOUT = 1;
 	public static final int SWAP_ERROR = 2;
 
-	private Object mutex;
+	private final Object mutex;
 
 	public DocView(Object mutex) {
 		log.i("DocView()");

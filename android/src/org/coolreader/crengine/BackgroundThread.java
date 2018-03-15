@@ -5,6 +5,7 @@ import java.util.concurrent.Callable;
 
 import org.coolreader.crengine.ReaderView.Sync;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -71,9 +72,9 @@ public class BackgroundThread extends Thread {
 	
 	// 
 	private Handler handler;
-	private ArrayList<Runnable> posted = new ArrayList<Runnable>();
+	private final ArrayList<Runnable> posted = new ArrayList<Runnable>();
 	private Handler guiHandler;
-	private ArrayList<Runnable> postedGUI = new ArrayList<Runnable>();
+	private final ArrayList<Runnable> postedGUI = new ArrayList<Runnable>();
 
 	/**
 	 * Set view to post GUI tasks to.
@@ -343,7 +344,10 @@ public class BackgroundThread extends Thread {
 			public void run() {
 				if (handler != null) {
 					L.i("Calling quit() on background thread looper.");
-					handler.getLooper().quit();
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+						handler.getLooper().quitSafely();
+					else
+						handler.getLooper().quit();
 				}
 			}
 		});

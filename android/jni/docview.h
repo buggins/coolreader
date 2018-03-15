@@ -23,6 +23,7 @@ class DocViewNative {
 public:
 	LVDocView * _docview;
 	DocViewNative();
+	~DocViewNative();
 	bool openRecentBook();
 	bool closeBook();
 	bool loadHistory( lString16 filename );

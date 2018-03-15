@@ -846,6 +846,11 @@ DocViewNative::DocViewNative()
 	_docview->createDefaultDocument(lString16("Welcome to CoolReader"), lString16("Please select file to open"));
 }
 
+DocViewNative::~DocViewNative()
+{
+	delete _docview;
+}
+
 static DocViewNative * getNative(JNIEnv * env, jobject _this)
 {
 	if (!gNativeObjectID) {
