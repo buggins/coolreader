@@ -1154,25 +1154,34 @@ public:
         updateTransform();
         // measure character widths
 #if USE_HARFBUZZ==1
-        hb_buffer_clear_contents(_hb_buffer);
-        // fill HarfBuzz buffer with filtering
-        for (register int i = 0; i < len; i++) {
-            hb_buffer_add(_hb_buffer, (hb_codepoint_t)filterChar(text[i], def_char), i);
+        register bool hb_len_ok = false;
+        hb_glyph_info_t* glyph_info = 0;
+        hb_glyph_position_t* glyph_pos = 0;
+        bool allowKerning = _allowKerning;
+        if (allowKerning) {
+            // Use HarfBuzz only for kerning - it's a long variant
+            hb_buffer_clear_contents(_hb_buffer);
+            // fill HarfBuzz buffer with filtering
+            for (register int i = 0; i < len; i++) {
+                hb_buffer_add(_hb_buffer, (hb_codepoint_t) filterChar(text[i], 0), i);
+            }
+            hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+            hb_buffer_guess_segment_properties(_hb_buffer);
+            // shape
+            hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
+            unsigned int glyph_count = hb_buffer_get_length(_hb_buffer);
+            glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
+            glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+            if (glyph_count == len) {
+                hb_len_ok = true;
+            } else {
+                CRLog::warn(
+                        "measureText(): glyph_count not equal source text length, glyph_count=%d, len=%d",
+                        glyph_count, len);
+                hb_len_ok = false;
+            }
         }
-        hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
-        hb_buffer_guess_segment_properties(_hb_buffer);
-        // shape
-        hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
-        register unsigned int glyph_count = hb_buffer_get_length(_hb_buffer);
-        hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
-        hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
-        register bool hb_len_ok = true;
-        if (glyph_count != len)
-        {
-            CRLog::warn("measureText(): glyph_count not equal source text length, glyph_count=%d, len=%d", glyph_count, len);
-            hb_len_ok = false;
-        }
-        if (hb_len_ok) {
+        if (allowKerning && hb_len_ok) {
             for (nchars = 0; nchars < len; nchars++) {
                 register lChar16 ch = text[nchars];
                 register bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE);
@@ -1211,7 +1220,6 @@ public:
             for ( nchars=0; nchars<len; nchars++) {
                 lChar16 ch = text[nchars];
                 bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
-                FT_UInt ch_glyph_index = (FT_UInt)-1;
 
                 flags[nchars] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
 
@@ -1469,7 +1477,11 @@ public:
 
     virtual bool kerningEnabled() {
 		#if (ALLOW_KERNING==1)
+        #if USE_HARFBUZZ==1
+            return _allowKerning;
+        #else
         	return _allowKerning && FT_HAS_KERNING( _face );
+        #endif
 		#else
         	return false;
 		#endif
@@ -1502,34 +1514,41 @@ public:
         register bool isHyphen = false;
         int x0 = x;
 #if USE_HARFBUZZ==1
-        hb_buffer_clear_contents(_hb_buffer);
+        register bool hb_len_ok = false;
+        hb_glyph_info_t *glyph_info = 0;
+        hb_glyph_position_t *glyph_pos = 0;
         register int len_new = 0;
-        {
+        bool allowKerning = _allowKerning;
+        if (allowKerning) {
+            // Use HarfBuzz only for kerning - it's a long variant
+            hb_buffer_clear_contents(_hb_buffer);
             // fill HarfBuzz buffer with filtering
             for (i = 0; i < len; i++) {
                 ch = text[i];
-                bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE) && (i < len - 1);
+                bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < len - 1);
                 if (!isHyphen) {
-                    hb_buffer_add(_hb_buffer, (hb_codepoint_t) filterChar(ch, def_char), i);
+                    hb_buffer_add(_hb_buffer, (hb_codepoint_t) filterChar(ch, 0), i);
                     len_new++;
                 }
             }
             hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
-        }
-        hb_buffer_guess_segment_properties(_hb_buffer);
-        // shape
-        hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
-        unsigned int glyph_count = hb_buffer_get_length(_hb_buffer);
-        hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
-        hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
-        register bool hb_len_ok = true;
-        if (glyph_count != len_new)
-        {
-            CRLog::warn("DrawTextString(): glyph_count not equal source text length, glyph_count=%d, len=%d", glyph_count, len_new);
-            hb_len_ok = false;
+            hb_buffer_guess_segment_properties(_hb_buffer);
+            // shape
+            hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
+            unsigned int glyph_count = hb_buffer_get_length(_hb_buffer);
+            glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
+            glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+            if (glyph_count == len_new) {
+                hb_len_ok = true;
+            } else {
+                CRLog::warn(
+                        "DrawTextString(): glyph_count not equal source text length, glyph_count=%d, len=%d",
+                        glyph_count, len_new);
+                hb_len_ok = false;
+            }
         }
         register int w;
-        if (hb_len_ok) {
+        if (allowKerning && hb_len_ok) {
             register int j = 0;
             for (i = 0; i < len; i++) {
                 ch = text[i];
@@ -1547,8 +1566,9 @@ public:
                                   item->bmp_width,
                                   item->bmp_height,
                                   palette);
-                        x += w + letter_spacing;
                     } else {
+                        // If HarfBuzz can't find glyph in current font
+                        // using fallback font that used in getGlyph()
                         w = item->advance;
                         buf->Draw(x + item->origin_x,
                                   y + _baseline - item->origin_y,
@@ -1556,8 +1576,8 @@ public:
                                   item->bmp_width,
                                   item->bmp_height,
                                   palette);
-                        x += w + letter_spacing;
                     }
+                    x += w + letter_spacing;
                 }
                 j++;
             }
