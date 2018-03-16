@@ -6314,7 +6314,7 @@ bool ldomXPointerEx::prevVisibleText( bool thisBlockOnly )
 inline bool IsUnicodeSpace( lChar16 ch )
 {
     //return ch==' ';
-    switch ((uint16_t)ch) {
+    switch ((unsigned short)ch) {
         case 0x0020:        // SPACE
         case 0x00A0:        // NO-BREAK SPACE
         case 0x2000:        // EN QUAD

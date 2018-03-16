@@ -48,12 +48,11 @@ set(HARFBUZZ_SRC_FILES
     ${HARFBUZZ_SRC_DIR}/src/hb-unicode.cc
     ${HARFBUZZ_SRC_DIR}/src/hb-warning.cc
 
-    ${HARFBUZZ_SRC_DIR}/src/hb-subset-glyf.cc
-    ${HARFBUZZ_SRC_DIR}/src/hb-subset-input.cc
-    ${HARFBUZZ_SRC_DIR}/src/hb-subset.cc
-    ${HARFBUZZ_SRC_DIR}/src/hb-subset-plan.cc
-
     ${HARFBUZZ_SRC_DIR}/src/hb-ucdn/ucdn.c
 )
+#    ${HARFBUZZ_SRC_DIR}/src/hb-subset-glyf.cc
+#    ${HARFBUZZ_SRC_DIR}/src/hb-subset-input.cc
+#    ${HARFBUZZ_SRC_DIR}/src/hb-subset.cc
+#    ${HARFBUZZ_SRC_DIR}/src/hb-subset-plan.cc
 
 add_library(harfbuzz STATIC ${HARFBUZZ_SRC_FILES})
