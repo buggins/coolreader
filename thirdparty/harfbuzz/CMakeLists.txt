@@ -845,4 +845,4 @@ endif ()
 
 # Needs to come last so that variables defined above are passed to
 # subdirectories.
-add_subdirectory(test)
+#add_subdirectory(test)
