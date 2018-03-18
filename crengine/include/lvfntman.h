@@ -123,6 +123,40 @@ struct LVFontGlyphCacheItem
     }
 };
 
+struct LVFontGlyphIndexCacheItem
+{
+    lUInt32 gindex;
+    lUInt8 bmp_width;
+    lUInt8 bmp_height;
+    lInt8  origin_x;
+    lInt8  origin_y;
+    lUInt8 advance;
+    lUInt8 bmp[1];
+    //=======================================================================
+    int getSize()
+    {
+        return sizeof(LVFontGlyphIndexCacheItem) + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
+    }
+    static LVFontGlyphIndexCacheItem * newItem(lUInt32 glyph_index, int w, int h )
+    {
+        LVFontGlyphIndexCacheItem* item = (LVFontGlyphIndexCacheItem*)malloc( sizeof(LVFontGlyphIndexCacheItem) + (w*h - 1)*sizeof(lUInt8) );
+        if (item) {
+            item->gindex = glyph_index;
+            item->bmp_width = (lUInt8)w;
+            item->bmp_height = (lUInt8)h;
+            item->origin_x =   0;
+            item->origin_y =   0;
+            item->advance =    0;
+        }
+        return item;
+    }
+    static void freeItem(LVFontGlyphIndexCacheItem* item)
+    {
+        if (item)
+            free(item);
+    }
+};
+
 
 enum hinting_mode_t {
     HINTING_MODE_DISABLED,
