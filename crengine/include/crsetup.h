@@ -17,36 +17,47 @@
 
 // features set for LBOOK
 #if (LBOOK==1)
+
 #ifndef LDOM_USE_OWN_MEM_MAN
 #define LDOM_USE_OWN_MEM_MAN                 1
 #endif
+
 #define USE_DOM_UTF8_STORAGE                 1
 #define CR_USE_THREADS                       0
+
 #ifndef MAX_IMAGE_SCALE_MUL
 #define MAX_IMAGE_SCALE_MUL                  2
 #endif
+
 #define USE_ZLIB                             1
 #define COLOR_BACKBUFFER                     0
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
 #define ALLOW_KERNING                        1
+
 #if (BUILD_LITE==1)
+
 #define USE_LIBJPEG                          0
 #define USE_LIBPNG                           0
 #define USE_GIF                              0
 #define USE_FREETYPE                         0
+#define USE_HARFBUZZ                         0
 #define GLYPH_CACHE_SIZE                     0x1000
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
 #define FILE_STREAM_BUFFER_SIZE              0x1000
+
 #else
+
 #define USE_LIBJPEG                          1
 #define USE_LIBPNG                           1
 #define USE_GIF                              1
 #define USE_FREETYPE                         1
+#define USE_HARFBUZZ                         1
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
-#endif
+
+#endif  // (BUILD_LITE==1)
 
 #elif defined(_LINUX) || defined (LINUX)
 
@@ -64,20 +75,22 @@
 #define USE_ANSI_FILES                       1
 #define GRAY_INVERSE                         0
 #define USE_FREETYPE                         1
+#define USE_HARFBUZZ                         1
+
 #ifndef ANDROID
 #ifndef MAC
 #ifndef TIZEN
 #ifndef USE_FONTCONFIG
 #define USE_FONTCONFIG						 1
 #endif
-#endif
-#endif
-#endif
+#endif  // TIZEN
+#endif  // MAC
+#endif  // ANDROID
 #define ALLOW_KERNING                        1
 #define GLYPH_CACHE_SIZE                     0x40000
 #define ZIP_STREAM_BUFFER_SIZE               0x40000
 #define FILE_STREAM_BUFFER_SIZE              0x20000
-#endif
+#endif  // defined(_LINUX) || defined (LINUX)
 
 //==================================================
 // WIN32
@@ -94,15 +107,17 @@
 #endif
 #if defined(CYGWIN)
 #define USE_FREETYPE                         0
+#define USE_HARFBUZZ                         0
 #else
 #define USE_FREETYPE                         1
+#define USE_HARFBUZZ                         1
 #endif
 #define ALLOW_KERNING                        1
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
 //#define USE_LIBJPEG 0
-#endif
+#endif  // !defined(__SYMBIAN32__) && defined(_WIN32)
 
 #ifndef GLYPH_CACHE_SIZE
 /// freetype font glyph buffer size, in bytes
@@ -131,11 +146,6 @@
 #ifndef USE_LIBPNG
 ///allow PNG support via libpng
 #define USE_LIBPNG 1
-#endif
-
-#ifndef USE_GIF
-///allow GIF support (internal)
-#define USE_GIF 1
 #endif
 
 #ifndef USE_ZLIB
@@ -171,7 +181,7 @@
 #else
 #define COLOR_BACKBUFFER 1
 #endif
-#endif
+#endif  // COLOR_BACKBUFFER
 
 /// zlib stream decode cache size, used to avoid restart of decoding from beginning to move back
 #ifndef ZIP_STREAM_BUFFER_SIZE
@@ -201,8 +211,7 @@
 #define ALLOW_KERNING 0
 #endif
 
-
-#endif
+#endif  // !defined(USE_WIN32_FONTS) && (USE_FREETYPE!=1)
 
 
 #ifndef CHM_SUPPORT_ENABLED
@@ -239,7 +248,7 @@
 #define USE_BITMAP_FONTS 1
 #endif
 
-#endif
+#endif  // USE_BITMAP_FONTS
 
 /// maximum picture zoom (1, 2, 3)
 #ifndef MAX_IMAGE_SCALE_MUL

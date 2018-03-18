@@ -62,6 +62,12 @@
 //#include <freetype/freetype.h>
 #endif
 
+#if USE_HARFBUZZ==1
+#include <hb.h>
+#include <hb-ft.h>
+#include <map>
+#endif
+
 #if (USE_FONTCONFIG==1)
     #include <fontconfig/fontconfig.h>
 #endif
@@ -593,6 +599,48 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
     return item;
 }
 
+#if USE_HARFBUZZ==1
+static LVFontGlyphIndexCacheItem * newItem(lUInt32 index, FT_GlyphSlot slot )
+{
+	FONT_LOCAL_GLYPH_CACHE_GUARD
+	FT_Bitmap*  bitmap = &slot->bitmap;
+	lUInt8 w = (lUInt8)(bitmap->width);
+	lUInt8 h = (lUInt8)(bitmap->rows);
+	LVFontGlyphIndexCacheItem* item = LVFontGlyphIndexCacheItem::newItem(index, w, h );
+	if (!item)
+		return 0;
+	if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
+		lUInt8 mask = 0x80;
+		const lUInt8 * ptr = (const lUInt8 *)bitmap->buffer;
+		lUInt8 * dst = item->bmp;
+		//int rowsize = ((w + 15) / 16) * 2;
+		for ( int y=0; y<h; y++ ) {
+			const lUInt8 * row = ptr;
+			mask = 0x80;
+			for ( int x=0; x<w; x++ ) {
+				*dst++ = (*row & mask) ? 0xFF : 00;
+				mask >>= 1;
+				if ( !mask && x!=w-1) {
+					mask = 0x80;
+					row++;
+				}
+			}
+			ptr += bitmap->pitch;//rowsize;
+		}
+	} else {
+			memcpy( item->bmp, bitmap->buffer, w*h );
+			// correct gamma
+			if ( gammaIndex!=GAMMA_LEVELS/2 )
+				cr_correct_gamma_buf(item->bmp, w*h, gammaIndex);
+//            }
+	}
+	item->origin_x =   (lInt8)slot->bitmap_left;
+	item->origin_y =   (lInt8)slot->bitmap_top;
+	item->advance =    (lUInt8)(myabs(slot->metrics.horiAdvance) >> 6);
+	return item;
+}
+#endif
+
 void LVFontLocalGlyphCache::clear()
 {
     FONT_LOCAL_GLYPH_CACHE_GUARD
@@ -769,6 +817,12 @@ protected:
     hinting_mode_t _hintingMode;
     bool          _fallbackFontIsSet;
     LVFontRef     _fallbackFont;
+#if USE_HARFBUZZ==1
+    hb_buffer_t* _hb_buffer;
+    hb_font_t* _hb_font;
+    hb_feature_t _hb_kern_feature;
+    std::map<lUInt32, LVFontGlyphIndexCacheItem*> _glyph_cache2;
+#endif
 public:
 
     // fallback font support
@@ -808,11 +862,34 @@ public:
         _matrix.xy = 0;
         _matrix.yx = 0;
         _hintingMode = fontMan->GetHintingMode();
+#if USE_HARFBUZZ==1
+        _hb_font = 0;
+        _hb_buffer = hb_buffer_create();
+        hb_feature_from_string("-kern", -1, &_hb_kern_feature);
+#endif
     }
 
     virtual ~LVFreeTypeFace()
     {
+#if USE_HARFBUZZ==1
+        if (_hb_buffer)
+            hb_buffer_destroy(_hb_buffer);
+#endif
         Clear();
+    }
+
+    void clearCache() {
+        _glyph_cache.clear();
+        _wcache.clear();
+#if USE_HARFBUZZ==1
+        std::map<lUInt32, LVFontGlyphIndexCacheItem*>::iterator it;
+        for (it = _glyph_cache2.begin(); it != _glyph_cache2.end(); ++it) {
+            LVFontGlyphIndexCacheItem* item = it->second;
+            if (item)
+                LVFontGlyphIndexCacheItem::freeItem(item);
+        }
+        _glyph_cache2.clear();
+#endif
     }
 
     virtual int getHyphenWidth()
@@ -827,15 +904,22 @@ public:
     /// get kerning mode: true==ON, false=OFF
     virtual bool getKerning() const { return _allowKerning; }
     /// get kerning mode: true==ON, false=OFF
-    virtual void setKerning( bool kerningEnabled ) { _allowKerning = kerningEnabled; }
+    virtual void setKerning( bool kerningEnabled ) {
+        _allowKerning = kerningEnabled;
+#if USE_HARFBUZZ==1
+        if (_allowKerning)
+            hb_feature_from_string("+kern", -1, &_hb_kern_feature);
+        else
+            hb_feature_from_string("-kern", -1, &_hb_kern_feature);
+#endif
+    }
 
     /// sets current hinting mode
     virtual void setHintingMode(hinting_mode_t mode) {
         if (_hintingMode == mode)
             return;
         _hintingMode = mode;
-        _glyph_cache.clear();
-        _wcache.clear();
+        clearCache();
     }
     /// returns current hinting mode
     virtual hinting_mode_t  getHintingMode() const { return _hintingMode; }
@@ -848,8 +932,7 @@ public:
         if ( _drawMonochrome == drawBitmap )
             return;
         _drawMonochrome = drawBitmap;
-        _glyph_cache.clear();
-        _wcache.clear();
+        clearCache();
     }
 
     bool loadFromBuffer(LVByteArrayRef buf, int index, int size, css_font_family_t fontFamily, bool monochrome, bool italicize )
@@ -858,6 +941,8 @@ public:
         _hintingMode = fontMan->GetHintingMode();
         _drawMonochrome = monochrome;
         _fontFamily = fontFamily;
+        if (_face)
+            FT_Done_Face(_face);
         int error = FT_New_Memory_Face( _library, buf->get(), buf->length(), index, &_face ); /* create face object */
         if (error)
             return false;
@@ -885,6 +970,15 @@ public:
             _face,    /* handle to face object */
             0,        /* pixel_width           */
             size );  /* pixel_height          */
+#if USE_HARFBUZZ==1
+        if (FT_Err_Ok == error) {
+            if (_hb_font)
+                hb_font_destroy(_hb_font);
+            _hb_font = hb_ft_font_create(_face, 0);
+            if (!_hb_font)
+                error = FT_Err_Invalid_Argument;
+        }
+#endif
         if (error) {
             Clear();
             return false;
@@ -926,6 +1020,8 @@ public:
             _fileName = fname;
         if ( _fileName.empty() )
             return false;
+        if (_face)
+            FT_Done_Face(_face);
         int error = FT_New_Face( _library, _fileName.c_str(), index, &_face ); /* create face object */
         if (error)
             return false;
@@ -953,6 +1049,15 @@ public:
             _face,    /* handle to face object */
             0,        /* pixel_width           */
             size );  /* pixel_height          */
+#if USE_HARFBUZZ==1
+        if (FT_Err_Ok == error) {
+            if (_hb_font)
+                hb_font_destroy(_hb_font);
+            _hb_font = hb_ft_font_create(_face, 0);
+            if (!_hb_font)
+                error = FT_Err_Invalid_Argument;
+        }
+#endif
         if (error) {
             Clear();
             return false;
@@ -984,6 +1089,22 @@ public:
         return true;
     }
 
+#if USE_HARFBUZZ==1
+    lChar16 filterChar(register lChar16 code) {
+        register lChar16 res;
+        if (code == '\t')
+            code = ' ';
+        register FT_UInt ch_glyph_index = FT_Get_Char_Index(_face, code);
+        if (0 != ch_glyph_index)
+            res = code;
+        else {
+            res = getReplacementChar(code);
+            if (0 == res)
+                res = code;
+        }
+        return res;
+    }
+#endif
 
     FT_UInt getCharIndex( lChar16 code, lChar16 def_char ) {
         if ( code=='\t' )
@@ -1076,24 +1197,118 @@ public:
         FONT_GUARD
         if ( len <= 0 || _face==NULL )
             return 0;
-        int error;
 
-#if (ALLOW_KERNING==1)
-        int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
-#endif
         if ( letter_spacing<0 || letter_spacing>50 )
             letter_spacing = 0;
 
-        //int i;
+        register int i;
 
-        FT_UInt previous = 0;
-        lUInt16 prev_width = 0;
-        int nchars = 0;
-        int lastFitChar = 0;
+        register lUInt16 prev_width = 0;
+        register int lastFitChar = 0;
         updateTransform();
         // measure character widths
-        for ( nchars=0; nchars<len; nchars++) {
-            lChar16 ch = text[nchars];
+#if USE_HARFBUZZ==1
+        register unsigned int glyph_count;
+        hb_glyph_info_t* glyph_info = 0;
+        hb_glyph_position_t* glyph_pos = 0;
+        bool allowKerning = _allowKerning;
+        if (allowKerning) {
+            // Use HarfBuzz only for kerning - it's a long variant
+            hb_buffer_clear_contents(_hb_buffer);
+            hb_buffer_set_replacement_codepoint(_hb_buffer, def_char);
+            // fill HarfBuzz buffer with filtering
+            for (i = 0; i < len; i++)
+                hb_buffer_add(_hb_buffer, (hb_codepoint_t)filterChar(text[i]), i);
+            hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+            hb_buffer_guess_segment_properties(_hb_buffer);
+            // shape
+            hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
+            glyph_count = hb_buffer_get_length(_hb_buffer);
+            glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
+            glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+            if (glyph_count != len) {
+                CRLog::info(
+                        "measureText(): glyph_count not equal source text length (ligature detected?), glyph_count=%d, len=%d",
+                        glyph_count, len);
+            }
+            register int j;
+            register uint32_t cluster;
+            register uint32_t prev_cluster = 0;
+            for (i = 0; i < glyph_count; i++) {
+                cluster = glyph_info[i].cluster;
+                register lChar16 ch = text[cluster];
+                register bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE);
+                flags[i] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
+                register hb_codepoint_t ch_glyph_index = glyph_info[i].codepoint;
+                if (0 != ch_glyph_index)        // glyph found for this char in this font
+                    widths[cluster] = prev_width + (glyph_pos[i].x_advance >> 6) + letter_spacing;
+                else {
+                    // hb_shape() failed or glyph skipped in this font, use fallback font
+                    int w = _wcache.get(ch);
+                    if (0xFF == w) {
+                        glyph_info_t glyph;
+                        LVFont *fallback = getFallbackFont();
+                        if (fallback) {
+                            if (fallback->getGlyphInfo(ch, &glyph, def_char)) {
+                                w = glyph.width;
+                                _wcache.put(ch, w);
+                            } else        // ignore (skip) this char
+                                widths[cluster] = prev_width;
+                        } else            // ignore (skip) this char
+                            widths[cluster] = prev_width;
+                    }
+                    widths[cluster] = prev_width + w + letter_spacing;
+                }
+                for (j = prev_cluster + 1; j < cluster; j++)
+                    widths[j] = widths[j - 1];		// for chars replaced by ligature
+                if (!isHyphen) // avoid soft hyphens inside text string
+                    prev_width = widths[cluster];
+                if (prev_width > max_width) {
+                    if (lastFitChar < i + 7)
+                        break;
+                } else {
+                    lastFitChar = i + 1;
+                }
+                prev_cluster = cluster;
+            }
+        } else {
+            for ( i=0; i<len; i++) {
+                lChar16 ch = text[i];
+                bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
+
+                flags[i] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
+
+                /* load glyph image into the slot (erase previous one) */
+                int w = _wcache.get(ch);
+                if ( w==0xFF ) {
+                    glyph_info_t glyph;
+                    if ( getGlyphInfo( ch, &glyph, def_char ) ) {
+                        w = glyph.width;
+                        _wcache.put(ch, w);
+                    } else {
+                        widths[i] = prev_width;
+                        continue;  /* ignore errors */
+                    }
+                }
+                widths[i] = prev_width + w + letter_spacing;
+                if ( !isHyphen ) // avoid soft hyphens inside text string
+                    prev_width = widths[i];
+                if ( prev_width > max_width ) {
+                    if ( lastFitChar < i + 7)
+                        break;
+                } else {
+                    lastFitChar = i + 1;
+                }
+            }
+        }
+#else
+        register FT_UInt previous = 0;
+        register int error;
+#if (ALLOW_KERNING==1)
+        int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
+#endif
+        for ( i=0; i<len; i++) {
+            lChar16 ch = text[i];
             bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
             FT_UInt ch_glyph_index = (FT_UInt)-1;
             int kerning = 0;
@@ -1114,7 +1329,7 @@ public:
             }
 #endif
 
-            flags[nchars] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
+            flags[i] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
 
             /* load glyph image into the slot (erase previous one) */
             int w = _wcache.get(ch);
@@ -1124,7 +1339,7 @@ public:
                     w = glyph.width;
                     _wcache.put(ch, w);
                 } else {
-                    widths[nchars] = prev_width;
+                    widths[i] = prev_width;
                     continue;  /* ignore errors */
                 }
                 if ( ch_glyph_index==(FT_UInt)-1 )
@@ -1133,28 +1348,29 @@ public:
 //                        ch_glyph_index,                /* glyph index           */
 //                        FT_LOAD_DEFAULT );             /* load flags, see below */
 //                if ( error ) {
-//                    widths[nchars] = prev_width;
+//                    widths[i] = prev_width;
 //                    continue;  /* ignore errors */
 //                }
             }
-            widths[nchars] = prev_width + w + (kerning >> 6) + letter_spacing;
+            widths[i] = prev_width + w + (kerning >> 6) + letter_spacing;
             previous = ch_glyph_index;
             if ( !isHyphen ) // avoid soft hyphens inside text string
-                prev_width = widths[nchars];
+                prev_width = widths[i];
             if ( prev_width > max_width ) {
-                if ( lastFitChar < nchars + 7)
+                if ( lastFitChar < i + 7)
                     break;
             } else {
-                lastFitChar = nchars + 1;
+                lastFitChar = i + 1;
             }
         }
+#endif
 
         // fill props for rest of chars
-        for ( int ii=nchars; ii<len; ii++ ) {
-            flags[nchars] = GET_CHAR_FLAGS( text[ii] );
+        for ( int ii=i; ii<len; ii++ ) {
+            flags[i] = GET_CHAR_FLAGS( text[ii] );
         }
 
-        //maxFit = nchars;
+        //maxFit = i;
 
 
         // find last word
@@ -1170,7 +1386,7 @@ public:
                 }
             }
         }
-        return lastFitChar; //nchars;
+        return lastFitChar; //i;
     }
 
     /** \brief measure text
@@ -1251,6 +1467,38 @@ public:
         return item;
     }
 
+#if USE_HARFBUZZ==1
+    LVFontGlyphIndexCacheItem * getGlyphByIndex(lUInt32 index) {
+        //FONT_GUARD
+        LVFontGlyphIndexCacheItem * item = 0;
+        std::map<lUInt32, LVFontGlyphIndexCacheItem*>::const_iterator it;
+        it = _glyph_cache2.find(index);
+        if (it == _glyph_cache2.end()) {
+            // glyph not found in cache, rendering...
+            int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
+            if (_hintingMode == HINTING_MODE_AUTOHINT)
+                rend_flags |= FT_LOAD_FORCE_AUTOHINT;
+            else if (_hintingMode == HINTING_MODE_DISABLED)
+                rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+            /* load glyph image into the slot (erase previous one) */
+
+            updateTransform();
+            int error = FT_Load_Glyph( _face,          /* handle to face object */
+                    index,                /* glyph index           */
+                    rend_flags );             /* load flags, see below */
+            if ( error ) {
+                return NULL;  /* ignore errors */
+            }
+            item = newItem(index, _slot);
+            if (item)
+                _glyph_cache2.insert(std::pair<lUInt32, LVFontGlyphIndexCacheItem*>(index, item));
+        }
+        else
+            item = it->second;
+        return item;
+    }
+#endif
+
 //    /** \brief get glyph image in 1 byte per pixel format
 //        \param code is unicode character
 //        \param buf is buffer [width*height] to place glyph data
@@ -1317,30 +1565,15 @@ public:
     }
 
     virtual bool kerningEnabled() {
-		#if (ALLOW_KERNING==1)
-        	return _allowKerning && FT_HAS_KERNING( _face );
-		#else
-        	return false;
-		#endif
-    }
-
-    virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) {
-		#if (ALLOW_KERNING==1)
-    		FT_UInt ch_glyph_index1 = getCharIndex( ch1, def_char );
-			FT_UInt ch_glyph_index2 = getCharIndex( ch2, def_char );
-            if (ch_glyph_index1 > 0 && ch_glyph_index2 > 0) {
-                FT_Vector delta;
-                int error = FT_Get_Kerning(
-                		_face,          /* handle to face object */
-                		ch_glyph_index1,          /* left glyph index      */
-                		ch_glyph_index2,         /* right glyph index     */
-                        FT_KERNING_DEFAULT,  /* kerning mode          */
-                        &delta );    /* target vector         */
-                if ( !error )
-                    return delta.x;
-            }
-		#endif
-        return 0;
+#if (ALLOW_KERNING==1)
+    #if USE_HARFBUZZ==1
+        return _allowKerning;
+    #else
+        return _allowKerning && FT_HAS_KERNING( _face );
+    #endif
+#else
+        return false;
+#endif
     }
 
     /// draws text string
@@ -1359,19 +1592,115 @@ public:
         if ( y + _height < clip.top || y >= clip.bottom )
             return;
 
-        int error;
-
+        register int i;
+        //lUInt16 prev_width = 0;
+        register lChar16 ch;
+        // measure character widths
+        register bool isHyphen = false;
+        int x0 = x;
+#if USE_HARFBUZZ==1
+        hb_glyph_info_t *glyph_info = 0;
+        hb_glyph_position_t *glyph_pos = 0;
+        register unsigned int glyph_count;
+        register int w;
+        register int len_new = 0;
+        bool allowKerning = _allowKerning;
+        if (allowKerning) {
+            // Use HarfBuzz only for kerning - it's a slow variant
+            hb_buffer_clear_contents(_hb_buffer);
+            hb_buffer_set_replacement_codepoint(_hb_buffer, 0);
+            // fill HarfBuzz buffer with filtering
+            for (i = 0; i < len; i++) {
+                ch = text[i];
+                bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < len - 1);
+                if (!isHyphen) {		// avoid soft hyphens inside text string
+                    // Also replaced any chars to similar if not glyph not found
+                    hb_buffer_add(_hb_buffer, (hb_codepoint_t)filterChar(ch), i);
+                    len_new++;
+                }
+            }
+            hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+            hb_buffer_guess_segment_properties(_hb_buffer);
+            // shape
+            hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
+            glyph_count = hb_buffer_get_length(_hb_buffer);
+            glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
+            glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+            if (glyph_count != len_new) {
+                CRLog::info(
+                        "DrawTextString(): glyph_count not equal source text length, glyph_count=%d, len=%d",
+                        glyph_count, len_new);
+            }
+            for (i = 0; i < glyph_count; i++) {
+                if (0 == glyph_info[i].codepoint) {
+                    // If HarfBuzz can't find glyph in current font
+                    // using fallback font that used in getGlyph()
+                    ch = text[glyph_info[i].cluster];
+                    LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
+                    if (item) {
+                        w = item->advance;
+                        buf->Draw(x + item->origin_x,
+                              y + _baseline - item->origin_y,
+                              item->bmp,
+                              item->bmp_width,
+                              item->bmp_height,
+                              palette);
+                        x += w + letter_spacing;
+                    }
+                } else {
+                    LVFontGlyphIndexCacheItem *item = getGlyphByIndex(glyph_info[i].codepoint);
+                    if (item) {
+                        w = glyph_pos[i].x_advance >> 6;
+                        buf->Draw(x + item->origin_x + (glyph_pos[i].x_offset >> 6),
+                                  y + _baseline - item->origin_y + (glyph_pos[i].y_offset >> 6),
+                                  item->bmp,
+                                  item->bmp_width,
+                                  item->bmp_height,
+                                  palette);
+                        x += w + letter_spacing;
+                   }
+               }
+           }
+        } else {        // kerning disabled...
+            for (i = 0; i < len; i++) {
+                ch = text[i];
+                isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < len - 1);
+                // avoid soft hyphens inside text string
+                if (isHyphen)
+                    continue;
+                LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
+                if (item) {
+                    w = item->advance;
+                    buf->Draw(x + item->origin_x,
+                              y + _baseline - item->origin_y,
+                              item->bmp,
+                              item->bmp_width,
+                              item->bmp_height,
+                              palette);
+                    x += w + letter_spacing;
+                }
+            }
+        }
+        if (addHyphen) {
+            ch = UNICODE_SOFT_HYPHEN_CODE;
+            LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
+            if (item) {
+                w = item->advance;
+                buf->Draw( x + item->origin_x,
+                           y + _baseline - item->origin_y,
+                           item->bmp,
+                           item->bmp_width,
+                           item->bmp_height,
+                           palette);
+                x  += w + letter_spacing;
+            }
+        }
+#else
+        FT_UInt previous = 0;
+        register int error;
 #if (ALLOW_KERNING==1)
         int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
-        int i;
-
-        FT_UInt previous = 0;
-        //lUInt16 prev_width = 0;
-        lChar16 ch;
-        // measure character widths
-        bool isHyphen = false;
-        int x0 = x;
         for ( i=0; i<=len; i++) {
             if ( i==len && (!addHyphen || isHyphen) )
                 break;
@@ -1398,10 +1727,7 @@ public:
                     kerning = delta.x;
             }
 #endif
-
-
             LVFontGlyphCacheItem * item = getGlyph(ch, def_char);
-                    _glyph_cache.get( ch );
             if ( !item )
                 continue;
             if ( (item && !isHyphen) || i>=len-1 ) { // avoid soft hyphens inside text string
@@ -1417,6 +1743,7 @@ public:
                 previous = ch_glyph_index;
             }
         }
+#endif
         if ( flags & LTEXT_TD_MASK ) {
             // text decoration: underline, etc.
             int h = _size > 30 ? 2 : 1;
@@ -1451,9 +1778,17 @@ public:
     virtual void Clear()
     {
         LVLock lock(_mutex);
-        if ( _face )
-            FT_Done_Face( _face );
-        _face = NULL;
+        clearCache();
+#if USE_HARFBUZZ==1
+        if (_hb_font) {
+            hb_font_destroy(_hb_font);
+            _hb_font = 0;
+        }
+#endif
+        if ( _face ) {
+            FT_Done_Face(_face);
+            _face = NULL;
+        }
     }
 
 };
