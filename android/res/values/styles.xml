@@ -91,6 +91,10 @@
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
+        <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
+        <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
+        <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -128,6 +132,10 @@
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
+        <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
+        <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
+        <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -166,6 +174,10 @@
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
+        <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
+        <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
+        <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
         <item name="android:windowBackground">@android:color/black</item>
@@ -204,6 +216,10 @@
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
+        <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
+        <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
+        <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
     </style>
 
     <style name="Theme.HiContrast" parent="@android:style/Theme.Light">
@@ -243,6 +259,10 @@
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go_hc</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
+        <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
+        <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold_hc</item>
+        <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias_hc</item>
+        <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing_hc</item>
     </style>
 
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">

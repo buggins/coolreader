@@ -15,7 +15,7 @@
         android:minWidth="?android:attr/listPreferredItemHeight"
 	    android:gravity="center_vertical"
 	    android:paddingRight="?android:attr/scrollbarSize"
-        android:background="#40404040">
+        android:background="?attr/tabbarBackground">
 
         <ImageButton
             android:id="@+id/base_dlg_btn_back"
