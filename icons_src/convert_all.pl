@@ -34,7 +34,10 @@ my %ic_actions_list=(
 	'cr3_option_font_size_hc-48x48-src.svg' => 'cr3_option_font_size_hc.png',
 	'cr3_option_text_bold_hc-48x48-src.svg' => 'cr3_option_text_bold_hc.png',
 	'cr3_option_text_antialias_hc-48x48-src.svg' => 'cr3_option_text_antialias_hc.png',
-	'cr3_option_line_spacing_hc-48x48-src.svg' => 'cr3_option_line_spacing_hc.png'
+	'cr3_option_line_spacing_hc-48x48-src.svg' => 'cr3_option_line_spacing_hc.png',
+	'cr3_option_text_hyphenation_hc-48x48-src.svg' => 'cr3_option_text_hyphenation_hc.png',
+	'cr3_option_text_floating_punct_hc-48x48-src.svg' => 'cr3_option_text_floating_punct_hc.png',
+	'cr3_option_text_kerning_hc-48x48-src.svg' => 'cr3_option_text_kerning_hc.png'
 );
 
 my %ic_menu_list=(
