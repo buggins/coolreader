@@ -527,7 +527,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 		if (currDirectory != null && currDirectory.allowSorting()) {
 			currDirectory.sort(mSortOrder);
 			showDirectory(currDirectory, selectedItem);
-			mActivity.saveSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name());
+			mActivity.setSetting(ReaderView.PROP_APP_BOOK_SORT_ORDER, mSortOrder.name(), false);
 		}
 	}
 	public void setSortOrder(String orderName) {

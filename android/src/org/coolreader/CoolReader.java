@@ -219,24 +219,11 @@ public class CoolReader extends BaseActivity
 	{
 		super.applyAppSetting(key, value);
 		boolean flg = "1".equals(value);
-        if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
-			setKeyBacklightDisabled(flg);
-        } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
-        	int n = 0;
-        	try {
-        		n = Integer.parseInt(value);
-        	} catch (NumberFormatException e) {
-        		// ignore
-        	}
-			setScreenBacklightDuration(n);
-        } else if ( key.equals(PROP_APP_DICTIONARY) ) {
+        if ( key.equals(PROP_APP_DICTIONARY) ) {
         	setDict(value);
         } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
         	if (mBrowser != null)
         		mBrowser.setSortOrder(value);
-        } else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
-        	if (mBrowser != null)
-        		mBrowser.setSimpleViewMode(flg);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
         	if (mBrowser != null)
         		mBrowser.setCoverPagesEnabled(flg);
@@ -261,8 +248,6 @@ public class CoolReader extends BaseActivity
         } else if ( key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE) ) {
         	if (mBrowser != null)
         		mBrowser.setSimpleViewMode(flg);
-        } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
-        	Services.getScanner().setHideEmptyDirs(flg);
         }
         //
 	}
@@ -807,6 +792,7 @@ public class CoolReader extends BaseActivity
 			        		ReaderAction.OPDS_CATALOGS,
 			        		ReaderAction.SEARCH,
 			        		ReaderAction.SCAN_DIRECTORY_RECURSIVE,
+							ReaderAction.FILE_BROWSER_SORT_ORDER,
 							ReaderAction.EXIT
 			        		), false);
 			        mBrowserToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
@@ -841,6 +827,9 @@ public class CoolReader extends BaseActivity
 								break;
 							case DCMD_SCAN_DIRECTORY_RECURSIVE:
 								mBrowser.scanCurrentDirectoryRecursive();
+								break;
+							case DCMD_FILE_BROWSER_SORT_ORDER:
+								mBrowser.showSortOrderMenu();
 								break;
 							default:
 								// do nothing

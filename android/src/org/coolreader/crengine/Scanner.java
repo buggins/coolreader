@@ -181,7 +181,7 @@ public class Scanner extends FileInfoChangeSource {
 				}
 			}
 			baseDir.isListed = true;
-			return !baseDir.isEmpty();
+			return true;
 		} catch ( Exception e ) {
 			L.e("Exception while listing directory " + baseDir.pathname, e);
 			baseDir.isListed = true;
@@ -331,7 +331,7 @@ public class Scanner extends FileInfoChangeSource {
 		log.d("scanDirectory(" + baseDir.getPathName() + ") " + (recursiveScan ? "recursive" : ""));
 		
 		listDirectory(baseDir);
-		listSubtree( baseDir, 2, android.os.SystemClock.uptimeMillis() + 700 );
+		listSubtree( baseDir, 5, android.os.SystemClock.uptimeMillis() + 700 );
 		if ( (!getDirScanEnabled() || baseDir.isScanned) && !recursiveScan ) {
 			readyCallback.run();
 			return;
@@ -690,13 +690,16 @@ public class Scanner extends FileInfoChangeSource {
 		long ts = android.os.SystemClock.uptimeMillis();
 		if ( ts>limitTs || maxDepth<=0 )
 			return false;
+		boolean fullDepthScan = true;
 		listDirectory(root);
 		for ( int i=root.dirCount()-1; i>=-0; i-- ) {
 			boolean res = listSubtree(root.getDir(i), maxDepth-1, limitTs);
-			if ( !res )
-				return false;
+			if ( !res ) {
+				fullDepthScan = false;
+				break;
+			}
 		}
-		if ( mHideEmptyDirs )
+		if ( fullDepthScan && mHideEmptyDirs )
 			root.removeEmptyDirs();
 		return true;
 	}
