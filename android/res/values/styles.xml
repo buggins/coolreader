@@ -98,6 +98,19 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
+        <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
+        <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
+        <item name="cr3_option_fullscreen_drawable">@drawable/cr3_option_fullscreen</item>
+        <item name="cr3_option_view_mode_scroll_drawable">@drawable/cr3_option_view_mode_scroll</item>
+        <item name="cr3_option_page_orientation_landscape_drawable">@drawable/cr3_option_page_orientation_landscape</item>
+        <item name="cr3_option_pages_two_drawable">@drawable/cr3_option_pages_two</item>
+        <item name="cr3_option_text_margin_left_drawable">@drawable/cr3_option_text_margin_left</item>
+        <item name="cr3_option_text_margin_right_drawable">@drawable/cr3_option_text_margin_right</item>
+        <item name="cr3_option_text_margin_top_drawable">@drawable/cr3_option_text_margin_top</item>
+        <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
+        <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
+        <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -142,6 +155,19 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
+        <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
+        <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
+        <item name="cr3_option_fullscreen_drawable">@drawable/cr3_option_fullscreen</item>
+        <item name="cr3_option_view_mode_scroll_drawable">@drawable/cr3_option_view_mode_scroll</item>
+        <item name="cr3_option_page_orientation_landscape_drawable">@drawable/cr3_option_page_orientation_landscape</item>
+        <item name="cr3_option_pages_two_drawable">@drawable/cr3_option_pages_two</item>
+        <item name="cr3_option_text_margin_left_drawable">@drawable/cr3_option_text_margin_left</item>
+        <item name="cr3_option_text_margin_right_drawable">@drawable/cr3_option_text_margin_right</item>
+        <item name="cr3_option_text_margin_top_drawable">@drawable/cr3_option_text_margin_top</item>
+        <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
+        <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
+        <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -187,6 +213,19 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
+        <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
+        <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
+        <item name="cr3_option_fullscreen_drawable">@drawable/cr3_option_fullscreen</item>
+        <item name="cr3_option_view_mode_scroll_drawable">@drawable/cr3_option_view_mode_scroll</item>
+        <item name="cr3_option_page_orientation_landscape_drawable">@drawable/cr3_option_page_orientation_landscape</item>
+        <item name="cr3_option_pages_two_drawable">@drawable/cr3_option_pages_two</item>
+        <item name="cr3_option_text_margin_left_drawable">@drawable/cr3_option_text_margin_left</item>
+        <item name="cr3_option_text_margin_right_drawable">@drawable/cr3_option_text_margin_right</item>
+        <item name="cr3_option_text_margin_top_drawable">@drawable/cr3_option_text_margin_top</item>
+        <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
+        <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
+        <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
         <item name="android:windowBackground">@android:color/black</item>
@@ -232,6 +271,19 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
+        <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
+        <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
+        <item name="cr3_option_fullscreen_drawable">@drawable/cr3_option_fullscreen</item>
+        <item name="cr3_option_view_mode_scroll_drawable">@drawable/cr3_option_view_mode_scroll</item>
+        <item name="cr3_option_page_orientation_landscape_drawable">@drawable/cr3_option_page_orientation_landscape</item>
+        <item name="cr3_option_pages_two_drawable">@drawable/cr3_option_pages_two</item>
+        <item name="cr3_option_text_margin_left_drawable">@drawable/cr3_option_text_margin_left</item>
+        <item name="cr3_option_text_margin_right_drawable">@drawable/cr3_option_text_margin_right</item>
+        <item name="cr3_option_text_margin_top_drawable">@drawable/cr3_option_text_margin_top</item>
+        <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
+        <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
+        <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
     </style>
 
     <style name="Theme.HiContrast" parent="@android:style/Theme.Light">
@@ -278,6 +330,19 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation_hc</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_floating_punct_hc</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning_hc</item>
+        <item name="cr3_option_images_drawable">@drawable/cr3_option_images_hc</item>
+        <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma_hc</item>
+        <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width_hc</item>
+        <item name="cr3_option_fullscreen_drawable">@drawable/cr3_option_fullscreen_hc</item>
+        <item name="cr3_option_view_mode_scroll_drawable">@drawable/cr3_option_view_mode_scroll_hc</item>
+        <item name="cr3_option_page_orientation_landscape_drawable">@drawable/cr3_option_page_orientation_landscape_hc</item>
+        <item name="cr3_option_pages_two_drawable">@drawable/cr3_option_pages_two_hc</item>
+        <item name="cr3_option_text_margin_left_drawable">@drawable/cr3_option_text_margin_left_hc</item>
+        <item name="cr3_option_text_margin_right_drawable">@drawable/cr3_option_text_margin_right_hc</item>
+        <item name="cr3_option_text_margin_top_drawable">@drawable/cr3_option_text_margin_top_hc</item>
+        <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom_hc</item>
+        <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align_hc</item>
+        <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent_hc</item>
     </style>
 
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">

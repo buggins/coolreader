@@ -37,7 +37,20 @@ my %ic_actions_list=(
 	'cr3_option_line_spacing_hc-48x48-src.svg' => 'cr3_option_line_spacing_hc.png',
 	'cr3_option_text_hyphenation_hc-48x48-src.svg' => 'cr3_option_text_hyphenation_hc.png',
 	'cr3_option_text_floating_punct_hc-48x48-src.svg' => 'cr3_option_text_floating_punct_hc.png',
-	'cr3_option_text_kerning_hc-48x48-src.svg' => 'cr3_option_text_kerning_hc.png'
+	'cr3_option_text_kerning_hc-48x48-src.svg' => 'cr3_option_text_kerning_hc.png',
+	'cr3_option_images_hc-48x48-src.svg' => 'cr3_option_images_hc.png',
+	'cr3_option_font_gamma_hc-48x48-src.svg' => 'cr3_option_font_gamma_hc.png',
+	'cr3_option_text_width_hc-48x48-src.svg' => 'cr3_option_text_width_hc.png',
+	'cr3_option_fullscreen_hc-48x48-src.svg' => 'cr3_option_fullscreen_hc.png',
+	'cr3_option_view_mode_scroll_hc-48x48-src.svg' => 'cr3_option_view_mode_scroll_hc.png',
+	'cr3_option_page_orientation_landscape_hc-48x48-src.svg' => 'cr3_option_page_orientation_landscape_hc.png',
+	'cr3_option_pages_two_hc-48x48-src.svg' => 'cr3_option_pages_two_hc.png',
+	'cr3_option_text_margin_left_hc-48x48-src.svg' => 'cr3_option_text_margin_left_hc.png',
+	'cr3_option_text_margin_right_hc-48x48-src.svg' => 'cr3_option_text_margin_right_hc.png',
+	'cr3_option_text_margin_top_hc-48x48-src.svg' => 'cr3_option_text_margin_top_hc.png',
+	'cr3_option_text_margin_bottom_hc-48x48-src.svg' => 'cr3_option_text_margin_bottom_hc.png',
+	'cr3_option_text_align_hc-48x48-src.svg' => 'cr3_option_text_align_hc.png',
+	'cr3_option_text_indent_hc-48x48-src.svg' => 'cr3_option_text_indent_hc.png'
 );
 
 my %ic_menu_list=(
