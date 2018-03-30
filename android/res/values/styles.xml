@@ -93,6 +93,9 @@
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
         <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_italic_drawable">@drawable/cr3_option_text_italic</item>
+        <item name="cr3_option_text_underline_drawable">@drawable/cr3_option_text_underline</item>
+        <item name="cr3_option_text_superscript_drawable">@drawable/cr3_option_text_superscript</item>
         <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
         <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
@@ -150,6 +153,9 @@
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
         <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_italic_drawable">@drawable/cr3_option_text_italic</item>
+        <item name="cr3_option_text_underline_drawable">@drawable/cr3_option_text_underline</item>
+        <item name="cr3_option_text_superscript_drawable">@drawable/cr3_option_text_superscript</item>
         <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
         <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
@@ -208,6 +214,9 @@
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
         <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_italic_drawable">@drawable/cr3_option_text_italic</item>
+        <item name="cr3_option_text_underline_drawable">@drawable/cr3_option_text_underline</item>
+        <item name="cr3_option_text_superscript_drawable">@drawable/cr3_option_text_superscript</item>
         <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
         <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
@@ -266,6 +275,9 @@
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
         <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold</item>
+        <item name="cr3_option_text_italic_drawable">@drawable/cr3_option_text_italic</item>
+        <item name="cr3_option_text_underline_drawable">@drawable/cr3_option_text_underline</item>
+        <item name="cr3_option_text_superscript_drawable">@drawable/cr3_option_text_superscript</item>
         <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias</item>
         <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing</item>
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
@@ -325,6 +337,9 @@
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
         <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold_hc</item>
+        <item name="cr3_option_text_italic_drawable">@drawable/cr3_option_text_italic_hc</item>
+        <item name="cr3_option_text_underline_drawable">@drawable/cr3_option_text_underline_hc</item>
+        <item name="cr3_option_text_superscript_drawable">@drawable/cr3_option_text_superscript_hc</item>
         <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias_hc</item>
         <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing_hc</item>
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation_hc</item>

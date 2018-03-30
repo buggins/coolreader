@@ -1572,7 +1572,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		    	R.string.options_css_font_style_normal,
 		    	R.string.options_css_font_style_italic,
 		    };
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_style), prefix + ".font-style").add(fontStyleStyles, fontStyleStyleNames).setIconId(R.drawable.cr3_option_text_italic));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_style), prefix + ".font-style").add(fontStyleStyles, fontStyleStyleNames).setIconIdByAttr(R.attr.cr3_option_text_italic_drawable, R.drawable.cr3_option_text_italic));
 
 		    String[] lineHeightStyles = {
 			        "", // inherited
@@ -1618,7 +1618,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			    	R.string.options_css_text_decoration_line_through,
 			    	R.string.options_css_text_decoration_overlineline,
 			    };
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_decoration), prefix + ".text-decoration").add(textDecorationStyles, textDecorationStyleNames).setIconId(R.drawable.cr3_option_text_underline));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_font_decoration), prefix + ".text-decoration").add(textDecorationStyles, textDecorationStyleNames).setIconIdByAttr(R.attr.cr3_option_text_underline_drawable, R.drawable.cr3_option_text_underline));
 
 		    String[] verticalAlignStyles = {
 		    		"", // inherited
@@ -1632,7 +1632,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			    	R.string.options_css_text_valign_subscript,
 			    	R.string.options_css_text_valign_superscript,
 			    };
-			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_valign), prefix + ".vertical-align").add(verticalAlignStyles, verticalAlignStyleNames).setIconId(R.drawable.cr3_option_text_superscript));
+			listView.add(new ListOption(mOwner, getString(R.string.options_css_text_valign), prefix + ".vertical-align").add(verticalAlignStyles, verticalAlignStyleNames).setIconIdByAttr(R.attr.cr3_option_text_superscript_drawable, R.drawable.cr3_option_text_superscript));
 
 		    String[] fontColorStyles = {
 		        "", // inherited
