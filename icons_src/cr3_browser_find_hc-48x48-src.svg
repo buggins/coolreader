@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="256"
-   height="256"
-   viewBox="0 0 67.733332 67.733335"
+   width="48"
+   height="48"
+   viewBox="0 0 48 48"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
-   sodipodi:docname="cr3_viewer_find_hc-256x256-src.svg">
+   sodipodi:docname="cr3_browser_find_hc-48x48-src.svg">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -25,17 +25,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="153.61115"
-     inkscape:cy="124.33643"
+     inkscape:zoom="11.2"
+     inkscape:cx="33.113243"
+     inkscape:cy="20.849816"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
-     inkscape:window-width="1464"
-     inkscape:window-height="883"
-     inkscape:window-x="415"
-     inkscape:window-y="54"
+     inkscape:window-width="1556"
+     inkscape:window-height="968"
+     inkscape:window-x="360"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:pagecheckerboard="true" />
   <metadata
@@ -54,10 +54,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-229.26666)">
+     transform="translate(0,-284.2993)">
     <g
        id="g988"
-       transform="translate(-0.09747283,-0.64379184)">
+       transform="matrix(0.70867,0,0,0.70867,-0.06110502,121.37157)">
       <path
          d="m 26.41991,255.63843 5.424647,17.7887 18.987334,20.52552 c 1.308704,1.41489 7.410878,3.47015 12.205461,-1.36835 4.068469,-4.10513 2.802915,-10.95247 1.356154,-12.31532 l -20.3435,-19.15706 z"
          style="color:#000000;fill:#fffffd;fill-opacity:1;stroke:#ffffff;stroke-width:2.7244966;stroke-opacity:1"
@@ -74,7 +74,7 @@
     </g>
     <g
        id="g984"
-       transform="matrix(0.99309765,0,0,0.99650582,0.15164553,0.35583349)">
+       transform="matrix(0.70377851,0,0,0.70619378,0.11543769,122.07998)">
       <path
          d="m 40.354272,269.67902 2.942937,9.65059 10.300861,11.13535 c 0.709988,0.76758 4.020492,1.8826 6.621611,-0.74236 2.207194,-2.22708 1.520616,-5.94184 0.73573,-6.6812 L 49.918814,272.64846 Z"
          style="color:#000000;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.47807276;stroke-opacity:1"

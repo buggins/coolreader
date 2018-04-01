@@ -277,7 +277,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public String label;
 		public String property;
 		public String defaultValue;
-		public int iconId = R.drawable.cr3_option_other;
+		public int drawableAttrId = R.attr.cr3_option_other_drawable;
+		public int fallbackIconId = R.drawable.cr3_option_other;
 		public OptionsListView optionsListView;
 		protected Runnable onChangeHandler;
 		public OptionBase( OptionOwner owner, String label, String property ) {
@@ -289,20 +290,18 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			this.property = property;
 		}
 		public OptionBase setIconId(int id) {
-			this.iconId = id;
+			drawableAttrId = 0;
+			fallbackIconId = id;
 			return this;
 		}
-		public OptionBase setIconIdByAttr(int attrId, int defId) {
-			TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int [] { attrId } );
-			int resId = a.getResourceId(0, 0);
-			a.recycle();
-			if (0 == resId)
-				resId = defId;
-			this.iconId = resId;
+		public OptionBase setIconIdByAttr(int drawableAttrId, int fallbackIconId) {
+			this.drawableAttrId = drawableAttrId;
+			this.fallbackIconId = fallbackIconId;
 			return this;
 		}
 		public OptionBase noIcon() {
-			this.iconId = 0;
+			drawableAttrId = 0;
+			fallbackIconId = 0;
 			return this;
 		}
 		public OptionBase setDefaultValue(String value) {
@@ -358,9 +357,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
 			if (icon != null) {
-				if (iconId != 0 && showIcons) {
+				int resId = 0;
+				if (showIcons) {
+					if (drawableAttrId != 0) {
+						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
+						resId = a.getResourceId(0, 0);
+						a.recycle();
+						if (0 == resId)
+							resId = fallbackIconId;
+					} else if (fallbackIconId != 0) {
+						resId = fallbackIconId;
+					}
+				}
+				if (resId != 0) {
+					icon.setImageResource(resId);
 					icon.setVisibility(View.VISIBLE);
-					icon.setImageResource(iconId);
 				} else {
 					icon.setImageResource(0);
 					icon.setVisibility(View.INVISIBLE);
@@ -418,9 +429,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			valueView.setBackgroundColor(cl);
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
 			if (icon != null) {
-				if (iconId != 0 && showIcons) {
+				int resId = 0;
+				if (showIcons) {
+					if (drawableAttrId != 0) {
+						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
+						resId = a.getResourceId(0, 0);
+						a.recycle();
+						if (0 == resId)
+							resId = fallbackIconId;
+					} else if (fallbackIconId != 0) {
+						resId = fallbackIconId;
+					}
+				}
+				if (resId != 0) {
+					icon.setImageResource(resId);
 					icon.setVisibility(View.VISIBLE);
-					icon.setImageResource(iconId);
 				} else {
 					icon.setImageResource(0);
 					icon.setVisibility(View.INVISIBLE);
@@ -490,9 +513,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				});
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
 			if (icon != null) {
-				if (iconId != 0 && showIcons) {
+				int resId = 0;
+				if (showIcons) {
+					if (drawableAttrId != 0) {
+						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
+						resId = a.getResourceId(0, 0);
+						a.recycle();
+						if (0 == resId)
+							resId = fallbackIconId;
+					} else if (fallbackIconId != 0) {
+						resId = fallbackIconId;
+					}
+				}
+				if (resId != 0) {
+					icon.setImageResource(resId);
 					icon.setVisibility(View.VISIBLE);
-					icon.setImageResource(iconId);
 				} else {
 					icon.setImageResource(0);
 					icon.setVisibility(View.INVISIBLE);
@@ -900,9 +935,21 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			labelView.setText(label);
 			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
 			if (icon != null) {
-				if (iconId != 0 && showIcons) {
+				int resId = 0;
+				if (showIcons) {
+					if (drawableAttrId != 0) {
+						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
+						resId = a.getResourceId(0, 0);
+						a.recycle();
+						if (0 == resId)
+							resId = fallbackIconId;
+					} else if (fallbackIconId != 0) {
+						resId = fallbackIconId;
+					}
+				}
+				if (resId != 0) {
+					icon.setImageResource(resId);
 					icon.setVisibility(View.VISIBLE);
-					icon.setImageResource(iconId);
 				} else {
 					icon.setImageResource(0);
 					icon.setVisibility(View.INVISIBLE);
@@ -1927,8 +1974,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5").setIconIdByAttr(R.attr.cr3_option_text_margin_bottom_drawable, R.drawable.cr3_option_text_margin_bottom));
 		
 		mOptionsControls = new OptionsListView(getContext());
-		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconId(R.drawable.cr3_option_controls_keys));
-		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconId(R.drawable.cr3_option_controls_tapzones));
+		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconIdByAttr(R.attr.cr3_option_controls_keys_drawable, R.drawable.cr3_option_controls_keys));
+		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconIdByAttr(R.attr.cr3_option_controls_tapzones_drawable, R.drawable.cr3_option_controls_tapzones));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)));
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_touch_drawable, R.drawable.cr3_option_touch));
 		if ( !DeviceInfo.EINK_SCREEN )

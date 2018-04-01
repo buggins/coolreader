@@ -89,6 +89,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
@@ -114,6 +115,16 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
+        <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
+        <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
+        <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
+        <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+
+        <item name="folder_big_drawable">@drawable/folder_blue</item>
+        <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
+        <item name="media_flash_microsd_drawable">@drawable/media_flash_sd_mmc</item>
     </style>
     <style name="Theme.Dark" parent="@android:style/Theme">
         <item name="android:windowBackground">@drawable/background_tiled_dark_v3</item>
@@ -149,6 +160,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
@@ -174,6 +186,16 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
+        <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
+        <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
+        <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
+        <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+
+        <item name="folder_big_drawable">@drawable/folder_blue</item>
+        <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
+        <item name="media_flash_microsd_drawable">@drawable/media_flash_sd_mmc</item>
     </style>
     <style name="Theme.White" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
@@ -210,6 +232,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
@@ -235,6 +258,16 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
+        <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
+        <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
+        <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
+        <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+
+        <item name="folder_big_drawable">@drawable/folder_blue</item>
+        <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
+        <item name="media_flash_microsd_drawable">@drawable/media_flash_sd_mmc</item>
     </style>
     <style name="Theme.Black" parent="@android:style/Theme">
         <item name="android:windowBackground">@android:color/black</item>
@@ -271,6 +304,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size</item>
@@ -296,6 +330,16 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent</item>
+        <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys</item>
+        <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
+        <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
+        <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
+        <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+
+        <item name="folder_big_drawable">@drawable/folder_blue</item>
+        <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
+        <item name="media_flash_microsd_drawable">@drawable/media_flash_sd_mmc</item>
     </style>
 
     <style name="Theme.HiContrast" parent="@android:style/Theme.Light">
@@ -333,6 +377,7 @@
         <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open_hc</item>
         <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book_hc</item>
         <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
         <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go_hc</item>
         <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
         <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
@@ -358,6 +403,16 @@
         <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom_hc</item>
         <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align_hc</item>
         <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent_hc</item>
+        <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys_hc</item>
+        <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones_hc</item>
+        <item name="cr3_option_other_drawable">@drawable/cr3_option_other_hc</item>
+        <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors_hc</item>
+        <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find_hc</item>
+        <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back_hc</item>
+
+        <item name="folder_big_drawable">@drawable/folder_big_hc</item>
+        <item name="folder_big_bookmark_drawable">@drawable/folder_big_bookmark_hc</item>
+        <item name="media_flash_microsd_drawable">@drawable/media_flash_microsd</item>
     </style>
 
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">

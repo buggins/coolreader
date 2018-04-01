@@ -34,6 +34,7 @@
     <attr name="cr3_button_book_open_drawable" format="reference" />
     <attr name="cr3_browser_folder_current_book_drawable" format="reference" />
     <attr name="cr3_browser_folder_opds_drawable" format="reference" />
+    <attr name="cr3_browser_folder_opds_add_drawable" format="reference" />
     <attr name="cr3_button_folder_go_drawable" format="reference" />
     <attr name="cr3_option_font_face_drawable" format="reference" />
     <attr name="cr3_option_font_size_drawable" format="reference" />
@@ -59,4 +60,14 @@
     <attr name="cr3_option_text_margin_bottom_drawable" format="reference" />
     <attr name="cr3_option_text_align_drawable" format="reference" />
     <attr name="cr3_option_text_indent_drawable" format="reference" />
+    <attr name="cr3_option_controls_keys_drawable" format="reference" />
+    <attr name="cr3_option_controls_tapzones_drawable" format="reference" />
+    <attr name="cr3_option_other_drawable" format="reference" />
+    <attr name="cr3_browser_folder_authors_drawable" format="reference" />
+    <attr name="cr3_browser_find_drawable" format="reference" />
+    <attr name="cr3_browser_back_drawable" format="reference" />
+
+    <attr name="folder_big_drawable" format="reference" />
+    <attr name="folder_big_bookmark_drawable" format="reference" />
+    <attr name="media_flash_microsd_drawable" format="reference" />
 </resources>
