@@ -10,13 +10,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="256"
-   height="256"
-   viewBox="0 0 67.733332 67.733335"
+   width="48"
+   height="48"
+   viewBox="0 0 48 48"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
-   sodipodi:docname="cr3_button_book_open_hc-256x256-src.svg">
+   sodipodi:docname="cr3_button_book_open-48x48-src.svg">
   <defs
      id="defs2">
     <linearGradient
@@ -30,36 +30,6 @@
          style="stop-color:#ffffff;stop-opacity:1"
          offset="1"
          id="stop1330" />
-    </linearGradient>
-    <linearGradient
-       id="linearGradient15218">
-      <stop
-         style="stop-color:#f8f8f7;stop-opacity:1;"
-         offset="0"
-         id="stop15220" />
-      <stop
-         id="stop2269"
-         offset="0.59928656"
-         style="stop-color:#e8e8e8;stop-opacity:1;" />
-      <stop
-         style="stop-color:#e2e2de;stop-opacity:1;"
-         offset="1"
-         id="stop15222" />
-    </linearGradient>
-    <linearGradient
-       id="linearGradient5048">
-      <stop
-         style="stop-color:black;stop-opacity:0;"
-         offset="0"
-         id="stop5050" />
-      <stop
-         id="stop5056"
-         offset="0.5"
-         style="stop-color:black;stop-opacity:1;" />
-      <stop
-         style="stop-color:black;stop-opacity:0;"
-         offset="1"
-         id="stop5052" />
     </linearGradient>
     <linearGradient
        inkscape:collect="always"
@@ -89,18 +59,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="157.90068"
-     inkscape:cy="21.816194"
+     inkscape:zoom="8"
+     inkscape:cx="23.182652"
+     inkscape:cy="15.358382"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
-     inkscape:window-width="1920"
-     inkscape:window-height="1132"
-     inkscape:window-x="1280"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
+     inkscape:window-width="1294"
+     inkscape:window-height="999"
+     inkscape:window-x="1898"
+     inkscape:window-y="129"
+     inkscape:window-maximized="0"
      inkscape:pagecheckerboard="true" />
   <metadata
      id="metadata5">
@@ -118,10 +88,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-229.26666)">
+     transform="translate(0,-284.29999)">
     <g
        id="g1403"
-       transform="matrix(1.0489068,0,0,1.0489068,21.494966,-75.743839)">
+       transform="matrix(0.74100417,0,0,0.74100417,15.259965,70.020433)">
       <path
          inkscape:connector-curvature="0"
          id="path1336"

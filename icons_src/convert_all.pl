@@ -9,8 +9,8 @@ my %ic_launcher_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, x
 my %ic_bigicons_sizes = (ldpi=>36, mdpi=>48, hdpi=>72, xhdpi=>96, xxhdpi=>144, xxxhdpi=>192);
 
 my %ic_actions_list=(
-	'cr3_button_prev_hc-256x256-src.svg' => 'cr3_button_prev_hc.png',
-	'cr3_button_next_hc-256x256-src.svg' => 'cr3_button_next_hc.png',
+	'cr3_button_prev_hc-48x48-src.svg' => 'cr3_button_prev_hc.png',
+	'cr3_button_next_hc-48x48-src.svg' => 'cr3_button_next_hc.png',
 	'cr3_viewer_toc_hc-256x256-src.svg' => 'cr3_viewer_toc_hc.png',
 	'cr3_viewer_find_hc-48x48-src.svg' => 'cr3_viewer_find_hc.png',
 	'cr3_viewer_settings_hc-256x256-src.svg' => 'cr3_viewer_settings_hc.png',
@@ -60,8 +60,10 @@ my %ic_actions_list=(
 	'cr3_option_controls_tapzones_hc-48x48-src.svg' => 'cr3_option_controls_tapzones_hc.png',
 	'cr3_option_other_hc-48x48-src.svg' => 'cr3_option_other_hc.png',
 	'cr3_browser_folder_authors_hc-48x48-src.svg' => 'cr3_browser_folder_authors_hc.png',
+	'cr3_browser_folder_zip_hc-48x48-src.svg' => 'cr3_browser_folder_zip_hc.png',
 	'cr3_browser_find_hc-48x48-src.svg' => 'cr3_browser_find_hc.png',
-	'cr3_browser_back_hc-48x48-src.svg' => 'cr3_browser_back_hc.png'
+	'cr3_browser_back_hc-48x48-src.svg' => 'cr3_browser_back_hc.png',
+	'cr3_button_add_hc-48x48-src.svg' => 'cr3_button_add_hc.png'
 );
 
 my %ic_menu_list=(

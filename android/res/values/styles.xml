@@ -119,8 +119,10 @@
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
         <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_folder_zip_drawable">@drawable/cr3_browser_folder_zip</item>
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+        <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -190,8 +192,10 @@
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
         <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_folder_zip_drawable">@drawable/cr3_browser_folder_zip</item>
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+        <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -262,8 +266,10 @@
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
         <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_folder_zip_drawable">@drawable/cr3_browser_folder_zip</item>
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+        <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -334,8 +340,10 @@
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other</item>
         <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors</item>
+        <item name="cr3_browser_folder_zip_drawable">@drawable/cr3_browser_folder_zip</item>
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
+        <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -407,8 +415,10 @@
         <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones_hc</item>
         <item name="cr3_option_other_drawable">@drawable/cr3_option_other_hc</item>
         <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors_hc</item>
+        <item name="cr3_browser_folder_zip_drawable">@drawable/cr3_browser_folder_zip_hc</item>
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find_hc</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back_hc</item>
+        <item name="cr3_button_add_drawable">@drawable/cr3_button_add_hc</item>
 
         <item name="folder_big_drawable">@drawable/folder_big_hc</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_big_bookmark_hc</item>

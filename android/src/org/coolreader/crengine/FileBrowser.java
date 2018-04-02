@@ -1058,7 +1058,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 					else if ( item.isRecentDir() )
 						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_recent_drawable, R.drawable.cr3_browser_folder_recent));
 					else if ( item.isArchive )
-						image.setImageResource(R.drawable.cr3_browser_folder_zip);
+						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_zip_drawable, R.drawable.cr3_browser_folder_zip));
 					else
 						image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_drawable, R.drawable.cr3_browser_folder));
 
