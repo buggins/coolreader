@@ -123,6 +123,8 @@
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
+        <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
+        <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -196,6 +198,8 @@
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
+        <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
+        <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -270,6 +274,8 @@
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
+        <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
+        <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -344,6 +350,8 @@
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back</item>
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add</item>
+        <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
+        <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -419,6 +427,8 @@
         <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find_hc</item>
         <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back_hc</item>
         <item name="cr3_button_add_drawable">@drawable/cr3_button_add_hc</item>
+        <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok_hc</item>
+        <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel_hc</item>
 
         <item name="folder_big_drawable">@drawable/folder_big_hc</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_big_bookmark_hc</item>
