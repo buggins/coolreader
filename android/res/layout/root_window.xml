@@ -109,7 +109,7 @@
                 /-->
               <ImageButton
                     android:id="@+id/btn_menu"
-                    android:src="@drawable/cr3_button_more"
+                    android:src="?attr/cr3_button_more_drawable"
                     android:background="?attr/cr3_toolbar_button_background_drawable"
                     android:layout_weight="1"
                     android:gravity="right"

@@ -65,7 +65,8 @@ my %ic_actions_list=(
 	'cr3_browser_back_hc-48x48-src.svg' => 'cr3_browser_back_hc.png',
 	'cr3_button_add_hc-48x48-src.svg' => 'cr3_button_add_hc.png',
 	'cr3_button_ok_hc-48x48-src.svg' => 'cr3_button_ok_hc.png',
-	'cr3_button_cancel_hc-48x48-src.svg' => 'cr3_button_cancel_hc.png'
+	'cr3_button_cancel_hc-48x48-src.svg' => 'cr3_button_cancel_hc.png',
+	'cr3_button_more_hc-48x48-src.svg' => 'cr3_button_more_hc.png'
 );
 
 my %ic_menu_list=(
