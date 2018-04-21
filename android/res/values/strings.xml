@@ -34,6 +34,8 @@
     <string name="mi_book_sort_order_author_desc">By author (desc)</string>
     <string name="mi_book_sort_order_title">By title</string>
     <string name="mi_book_sort_order_title_desc">By title (desc)</string>
+    <string name="toggle_dict_once">Toggle dictionary (once)</string>
+    <string name="toggle_dict">Toggle dictionary</string>
     <string name="mi_bookmark_set">Set bookmark</string>
     <string name="mi_bookmark_goto">Go to bookmark</string>
     <string name="mi_goto_page">Go to page #</string>
@@ -49,6 +51,7 @@
     <string name="dir_internal_sd_card">Internal SD Card</string>
     <string name="dir_internal_memory">Internal memory</string>
     <string name="win_title_bookmarks">Bookmarks</string>
+    <string name="win_title_dicts">Dictionaries</string>
     <string name="win_title_toc">Table of Contents</string>
     <string name="win_title_options">Options</string>
     <string name="win_title_search">Search</string>
@@ -175,6 +178,7 @@
     <string name="options_page_show_titlebar_page_number">Page number</string>
     <string name="options_app_dictionary">Dictionary</string>
     <string name="options_app_dictionary_not_installed">(not installed)</string>
+    <string name="options_app_dictionary2">Dictionary 2</string>
     <string name="action_zoom_in">Increase font size</string>
     <string name="options_font_kerning">Font kerning</string>
     <string name="action_zoom_out">Decrease font size</string>

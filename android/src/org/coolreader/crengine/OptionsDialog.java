@@ -1135,10 +1135,30 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			setDefaultValue(dicts[0].id);
 			for (DictInfo dict : dicts) {
 				boolean installed = mActivity.isPackageInstalled(dict.packageName);
-				add( dict.id, dict.name + (installed ? "" : " " + mActivity.getString(R.string.options_app_dictionary_not_installed)));
+				String sAdd = mActivity.getString(R.string.options_app_dictionary_not_installed);
+				if ((dict.internal==1) && (dict.packageName.equals("com.socialnmobile.colordict")) && (!installed)) {
+					installed = mActivity.isPackageInstalled("mobi.goldendict.android");
+					add(dict.id, (installed ? "GoldenDict" : dict.name + " " + sAdd));
+				} else {
+					add(dict.id, dict.name + (installed ? "" : " " + sAdd));
+				}
 			}
 		}
-	} 
+	}
+
+    class DictOptions2 extends ListOption
+    {
+        public DictOptions2( OptionOwner owner, String label )
+        {
+            super( owner, label, PROP_APP_DICTIONARY_2 );
+            DictInfo[] dicts = Dictionaries.getDictList();
+            setDefaultValue(dicts[0].id);
+            for (DictInfo dict : dicts) {
+                boolean installed = mActivity.isPackageInstalled(dict.packageName);
+                add( dict.id, dict.name + (installed ? "" : " " + mActivity.getString(R.string.options_app_dictionary_not_installed)));
+            }
+        }
+    }
 	
 	class HyphenationOptions extends ListOption
 	{
@@ -1946,6 +1966,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_key_backlight_off), PROP_APP_KEY_BACKLIGHT_OFF).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new IconsBoolOption(this, getString(R.string.options_app_settings_icons), PROP_APP_SETTINGS_SHOW_ICONS).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)).noIcon());
+		mOptionsApplication.add(new DictOptions2(this, getString(R.string.options_app_dictionary2)).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_show_cover_pages), PROP_APP_SHOW_COVERPAGES).noIcon());
 		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_cover_page_size), PROP_APP_COVERPAGE_SIZE).add(mCoverPageSizes, mCoverPageSizeTitles).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_scan_book_props), PROP_APP_BOOK_PROPERTY_SCAN_ENABLED).setDefaultValue("1").noIcon());

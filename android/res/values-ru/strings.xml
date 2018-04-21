@@ -30,6 +30,8 @@
     <string name="mi_book_sort_order_author_desc">По автору (по убыв.)</string>
     <string name="mi_book_sort_order_title">По названию</string>
     <string name="mi_book_sort_order_title_desc">По названию (по убыв.)</string>
+    <string name="toggle_dict_once">Переключить словарь (однократно)</string>
+    <string name="toggle_dict">Переключить словарь</string>
     <string name="mi_bookmark_set">Установить закладку</string>
     <string name="mi_bookmark_goto">Перейти на закладку</string>
     <string name="mi_goto_page">На страницу №</string>
@@ -45,6 +47,7 @@
     <string name="dir_internal_sd_card">Внутр. SD карта</string>
     <string name="dir_internal_memory">Внутр. память</string>
     <string name="win_title_bookmarks">Закладки</string>
+    <string name="win_title_dicts">Словари</string>
     <string name="win_title_toc">Содержание</string>
     <string name="win_title_options">Настройки</string>
     <string name="win_title_search">Найти текст</string>
@@ -169,6 +172,7 @@
     <string name="options_controls_flick_brightness_none">Отключено</string>
     <string name="options_page_show_titlebar_page_number">Номер страницы</string>
     <string name="options_app_dictionary">Словарь</string>
+    <string name="options_app_dictionary2">Словарь 2</string>
     <string name="options_app_dictionary_not_installed">(не установлен)</string>
     <string name="action_zoom_in">Увеличить шрифт</string>
     <string name="options_font_kerning">Кернинг шрифта</string>

@@ -3,6 +3,8 @@ package org.coolreader.crengine;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.app.SearchManager;
+import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.view.Gravity;
@@ -156,12 +158,29 @@ public class SelectionToolbarDlg {
 				closeDialog(true);
 			}
 		});
+
+		mPanel.findViewById(R.id.selection_copy).setOnLongClickListener(new View.OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				return true;
+			}
+		});
+
 		mPanel.findViewById(R.id.selection_dict).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mCoolReader.findInDictionary( selection.text );
 				closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
 			}
 		});
+		mPanel.findViewById(R.id.selection_dict).setOnLongClickListener(new View.OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				//mCoolReader.showToast("long tap on dic");
+				DictsDlg dlg = new DictsDlg(mCoolReader, mReaderView, selection.text);
+				dlg.show();
+				closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
+				return true;
+			}
+		});
+
 		mPanel.findViewById(R.id.selection_bookmark).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mReaderView.showNewBookmarkDialog(selection);
@@ -178,6 +197,15 @@ public class SelectionToolbarDlg {
 			public void onClick(View v) {
 				mReaderView.showSearchDialog(selection.text.trim());
 				closeDialog(true);
+			}
+		});
+		mPanel.findViewById(R.id.selection_find).setOnLongClickListener(new View.OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				final Intent emailIntent = new Intent(Intent.ACTION_WEB_SEARCH);
+				emailIntent.putExtra(SearchManager.QUERY, selection.text.trim());
+				mCoolReader.startActivity(emailIntent);
+				closeDialog(true);
+				return true;
 			}
 		});
 		mPanel.findViewById(R.id.selection_cancel).setOnClickListener(new OnClickListener() {
