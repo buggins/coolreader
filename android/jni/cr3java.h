@@ -43,6 +43,7 @@ typedef struct {
     uint32_t    flags;      // 0 for now
 } AndroidBitmapInfo;
 
+
 class BitmapAccessorInterface {
 public:
     virtual LVDrawBuf * lock(JNIEnv* env, jobject jbitmap) = 0;

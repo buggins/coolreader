@@ -34,7 +34,7 @@ public class Engine {
 	public static final Object lock = new Object();
 
 	
-	static final private String LIBRARY_NAME = "cr3engine-3-1-1";
+	static final private String LIBRARY_NAME = "cr3engine-3-1-2";
 
 	private BaseActivity mActivity;
 	
@@ -1313,16 +1313,15 @@ public class Engine {
 			if (point.length() == 0)
 				continue;
 			File dir = new File(point);
-			if (dir.isDirectory()) {
-				if (dir.canRead()) { 
-					if (dir.list().length > 0) {
-						String link = isLink(point);
-						if (link != null) {
-							log.d("found mount point path is link: " + point + " > " + link);
-							addMountRoot(map, link, link);
-						} else {
-							addMountRoot(map, point, point);
-						}
+			if (dir.isDirectory() && dir.canRead()) {
+				String[] files = dir.list();
+				if (files != null && files.length > 0) {
+					String link = isLink(point);
+					if (link != null) {
+						log.d("found mount point path is link: " + point + " > " + link);
+						addMountRoot(map, link, link);
+					} else {
+						addMountRoot(map, point, point);
 					}
 				}
 			}

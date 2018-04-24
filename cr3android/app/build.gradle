@@ -6,8 +6,8 @@ android {
         applicationId "org.coolreader"
         minSdkVersion 9
         targetSdkVersion 26
-        versionCode 907
-        versionName "3.1.2-87"
+        versionCode 1016
+        versionName "3.1.2-116"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
