@@ -40,7 +40,7 @@ typedef struct {
     uint32_t    height;
     uint32_t    stride;
     int32_t     format;
-//    uint32_t    flags;      // 0 for now
+    uint32_t    flags;      // 0 for now
 } AndroidBitmapInfo;
 
 class BitmapAccessorInterface {
