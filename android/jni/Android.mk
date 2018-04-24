@@ -33,6 +33,8 @@ LOCAL_CFLAGS += -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-str
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_CFLAGS += -g -O1
+# Necessary for building cr3engine.cpp in Android Studio 3.1.1
+LOCAL_CFLAGS += -fexceptions
 
 CRENGINE_SRC_FILES := \
     ../../crengine/src/cp_stats.cpp \

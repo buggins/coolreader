@@ -662,6 +662,10 @@ void CR3View::updateScroll()
         // TODO: set scroll range
         const LVScrollInfo * si = _docview->getScrollInfo();
         //bool changed = false;
+
+        // change value before max scroll to avoid a ValueChange event
+        if ( _scroll->value() > si->maxpos )
+            _scroll->setValue( si->pos );
         if ( si->maxpos != _scroll->maximum() ) {
             _scroll->setMaximum( si->maxpos );
             _scroll->setMinimum(0);

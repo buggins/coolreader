@@ -3140,6 +3140,7 @@ void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
 		m_pagesVisible = visiblePageCount;
         m_props->setInt(PROP_LANDSCAPE_PAGES, m_pagesVisible);
     }
+    updateLayout();
     REQUEST_RENDER("setViewMode")
     _posIsSet = false;
 

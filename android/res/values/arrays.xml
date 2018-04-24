@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="motion_timeout_titles">
+        <item>@string/motion_timeout_off</item>
+        <item>@string/motion_timeout_1min</item>
+        <item>@string/motion_timeout_2min</item>
+        <item>@string/motion_timeout_3min</item>
+        <item>@string/motion_timeout_4min</item>
+        <item>@string/motion_timeout_5min</item>
+        <item>@string/motion_timeout_6min</item>
+        <item>@string/motion_timeout_7min</item>
+        <item>@string/motion_timeout_8min</item>
+        <item>@string/motion_timeout_9min</item>
+        <item>@string/motion_timeout_10min</item>
+        <item>@string/motion_timeout_12min</item>
+        <item>@string/motion_timeout_15min</item>
+        <item>@string/motion_timeout_20min</item>
+        <item>@string/motion_timeout_25min</item>
+        <item>@string/motion_timeout_30min</item>
+        <item>@string/motion_timeout_35min</item>
+        <item>@string/motion_timeout_40min</item>
+        <item>@string/motion_timeout_45min</item>
+        <item>@string/motion_timeout_50min</item>
+        <item>@string/motion_timeout_55min</item>
+        <item>@string/motion_timeout_60min</item>
+        <item>@string/motion_timeout_65min</item>
+        <item>@string/motion_timeout_70min</item>
+        <item>@string/motion_timeout_75min</item>
+        <item>@string/motion_timeout_80min</item>
+        <item>@string/motion_timeout_85min</item>
+        <item>@string/motion_timeout_90min</item>
+        <item>@string/motion_timeout_95min</item>
+        <item>@string/motion_timeout_100min</item>
+    </string-array>
+
+    <integer-array name="motion_timeout_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>12</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+        <item>35</item>
+        <item>40</item>
+        <item>45</item>
+        <item>50</item>
+        <item>55</item>
+        <item>60</item>
+        <item>65</item>
+        <item>70</item>
+        <item>75</item>
+        <item>80</item>
+        <item>85</item>
+        <item>90</item>
+        <item>95</item>
+        <item>100</item>
+    </integer-array>
+</resources>
