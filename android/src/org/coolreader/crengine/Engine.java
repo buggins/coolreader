@@ -1039,6 +1039,9 @@ public class Engine {
 			if (dir.isDirectory()) {
 //				String[] d = dir.list();
 //				if ((d!=null && d.length>0) || dir.canWrite()) {
+					// Android 6 ext storage
+					if (name.startsWith("/storage/") && name.length() == 18 && name.charAt(13) == '-')
+						name = "EXT SD";
 					log.i("Adding FS root: " + path + " " + name);
 					list.put(path, name);
 //					return true;
@@ -1052,10 +1055,29 @@ public class Engine {
 		return false;
 	}
 	
+	public static HashSet<String> listStorageDir() {
+	    final HashSet<String> out = new HashSet<String>();
+	    File dir = new File("/storage");
+	    try {
+		    if (dir.exists() && dir.isDirectory()) {
+		    	File[] files = dir.listFiles();
+		    	for(File file : files) {
+		    		if (file.isDirectory() && file.canRead() && !"/storage/emulated".equals(file.getName())) {
+		    			log.d("listStorageDir path found: " + file.getAbsolutePath());
+		    			out.add(file.getAbsolutePath());
+		    		}
+		    	}
+		    }
+	    } catch (Exception e) {
+	    	// ignore
+	    }
+	    return out;
+	}
 	public static HashSet<String> getExternalMounts() {
 	    final HashSet<String> out = new HashSet<String>();
 	    try {
 		    String reg = "(?i).*vold.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
+		    String reg2 = "(?i).*fuse.*(vfat|ntfs|exfat|fat32|ext3|ext4).*rw.*";
 		    String s = "";
 		    try {
 		        final Process process = new ProcessBuilder().command("mount")
@@ -1076,7 +1098,7 @@ public class Engine {
 		    for (String line : lines) {
 		        if (!line.toLowerCase(Locale.US).contains("asec")) {
 		        	log.d("mount entry: " + line);
-		            if (line.matches(reg)) {
+		            if (line.matches(reg) || line.matches(reg2)) {
 		                String[] parts = line.split(" ");
 		                for (String part : parts) {
 		                    if (part.startsWith("/"))
@@ -1088,7 +1110,9 @@ public class Engine {
 		    }
 	    } catch (Exception e) {
 	    	// ignore
+        	log.d("exception", e);
 	    }
+	    log.d("mount pathes: " + out);
 	    return out;
 	}	
 	
@@ -1111,11 +1135,11 @@ public class Engine {
 			if (s != null) {
 				String[] rows = s.split("\n");
 				for(String line : rows) {
-	                if (line.startsWith("/dev/block/vold/")) {
+	                if (line.startsWith("/dev/block/vold/") || line.startsWith("/dev/fuse ")) {
 	                    String[] lineElements = line.split(" ");
 	                    String element = lineElements[1];
 	                    if (element.startsWith("/"))
-	                        out.add(element);
+	                        out.add(element);	
 	                }
 				}
 			}
@@ -1132,8 +1156,10 @@ public class Engine {
 		log.i("initMountRoots()");
 		HashSet<String> mountedPathsFromMountCmd = getExternalMounts();
 		HashSet<String> mountedPathsFromMountFile = readMountsFile();
+		HashSet<String> mountedPathsStorageDir = listStorageDir();
 		log.i("mountedPathsFromMountCmd: " + mountedPathsFromMountCmd);
 		log.i("mountedPathsFromMountFile: " + mountedPathsFromMountFile);
+		log.i("mountedPathsStorageDir: " + mountedPathsStorageDir);
 		
 		Map<String, String> map = new LinkedHashMap<String, String>();
 
@@ -1257,6 +1283,7 @@ public class Engine {
 		}
 		mountPointsToAdd.addAll(mountedPathsFromMountCmd);
 		mountPointsToAdd.addAll(mountedPathsFromMountFile);
+		mountPointsToAdd.addAll(mountedPathsStorageDir);
 		mountPointsToAdd.add(Environment.getExternalStorageDirectory().getAbsolutePath());
 		String storageList = System.getenv("SECONDARY_STORAGE");
 		if (storageList != null) {
