@@ -12,7 +12,7 @@ public class ErrorDialog extends BaseDialog {
 		// TODO: improve this dialog
 		LayoutInflater mInflater = LayoutInflater.from(getContext());
 		ViewGroup layout = (ViewGroup)mInflater.inflate(R.layout.error_msg_dlg, null);
-		TextView msgTextView = layout.findViewById(R.id.msg_textview);
+		TextView msgTextView = (TextView) layout.findViewById(R.id.msg_textview);
 		if (msgTextView != null) {
 			msgTextView.setText(message);
 		}
