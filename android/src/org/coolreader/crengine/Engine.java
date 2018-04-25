@@ -1411,7 +1411,7 @@ public class Engine {
 		// }
 	}
 
-	private static String[] findFonts() {
+	public static String[] findFonts() {
 		ArrayList<File> dirs = new ArrayList<File>();
 		File[] dataDirs = getDataDirectories("fonts", false, false);
 		for (File dir : dataDirs)
@@ -1441,6 +1441,39 @@ public class Engine {
 							.getAbsolutePath();
 					fontPaths.add(pathName);
 					log.v("found font: " + pathName);
+				}
+			}
+		}
+		Collections.sort(fontPaths);
+		return fontPaths.toArray(new String[] {});
+	}
+
+	public static String[] findFontsDirs() {
+		ArrayList<File> dirs = new ArrayList<File>();
+		File[] dataDirs = getDataDirectories("fonts", false, false);
+		for (File dir : dataDirs)
+			dirs.add(dir);
+		File[] rootDirs = getStorageDirectories(false);
+		for (File dir : rootDirs)
+			dirs.add(new File(dir, "fonts"));
+		dirs.add(new File(Environment.getRootDirectory(), "fonts"));
+		ArrayList<String> fontPaths = new ArrayList<String>();
+		for (File fontDir : dirs) {
+			if (fontDir.isDirectory()) {
+				log.v("Scanning directory " + fontDir.getAbsolutePath()
+						+ " for font files");
+				// get font names
+				String[] fileList = fontDir.list(new FilenameFilter() {
+					public boolean accept(File dir, String filename) {
+						String lc = filename.toLowerCase();
+						return (lc.endsWith(".ttf") || lc.endsWith(".otf")
+								|| lc.endsWith(".pfb") || lc.endsWith(".pfa"))
+//								&& !filename.endsWith("Fallback.ttf")
+								;
+					}
+				});
+				if (!fontDir.getAbsolutePath().equals("")) {
+					fontPaths.add(fontDir.getAbsolutePath() + " (found: " + fileList.length + ")");
 				}
 			}
 		}
@@ -1626,6 +1659,26 @@ public class Engine {
 			if (subdirBackgrounds.isDirectory())
 				findTexturesFromDirectory(subdirBackgrounds, listToAppend);
 		}
+	}
+
+	public static String findDirs(int iDir) {
+		for (File d : getStorageDirectories(false)) {
+			File base = new File(d, ".cr3");
+			if (!base.isDirectory())
+				base = new File(d, "cr3");
+			if (!base.isDirectory())
+				continue;
+			File subdirTextures = new File(base, "textures");
+			File subdirBackgrounds = new File(base, "backgrounds");
+			File subdirHyph = new File(base, "hyph");
+			if (iDir==0)
+				return subdirTextures.getAbsolutePath()+(subdirTextures.isDirectory() ? "": " [not found]");
+			if (iDir==1)
+				return subdirBackgrounds.getAbsolutePath()+(subdirBackgrounds.isDirectory() ? "": " [not found]");
+			if (iDir==2)
+				return subdirHyph.getAbsolutePath()+(subdirHyph.isDirectory() ? "": " [not found]");
+		}
+		return "[not found]";
 	}
 
 	public byte[] getImageData(BackgroundTextureInfo texture) {

@@ -161,6 +161,19 @@ public class SelectionToolbarDlg {
 
 		mPanel.findViewById(R.id.selection_copy).setOnLongClickListener(new View.OnLongClickListener() {
 			public boolean onLongClick(View v) {
+				BackgroundThread.instance().postBackground(new Runnable() {
+					public void run() {
+						final String[] mFontFaces = Engine.getFontFaceList();
+						BackgroundThread.instance().executeGUI(new Runnable() {
+							public void run() {
+								OptionsDialog dlg = new OptionsDialog(mCoolReader, mReaderView, mFontFaces, OptionsDialog.Mode.READER);
+								dlg.setInflater(LayoutInflater.from(mCoolReader.getApplicationContext()));
+								dlg.getOptionsTapZones().onSelect();
+							}
+						});
+					}
+				});
+				closeDialog(true);
 				return true;
 			}
 		});
@@ -171,6 +184,7 @@ public class SelectionToolbarDlg {
 				closeDialog(!mReaderView.getSettings().getBool(ReaderView.PROP_APP_SELECTION_PERSIST, false));
 			}
 		});
+
 		mPanel.findViewById(R.id.selection_dict).setOnLongClickListener(new View.OnLongClickListener() {
 			public boolean onLongClick(View v) {
 				//mCoolReader.showToast("long tap on dic");
@@ -185,6 +199,15 @@ public class SelectionToolbarDlg {
 			public void onClick(View v) {
 				mReaderView.showNewBookmarkDialog(selection);
 				closeDialog(true);
+			}
+		});
+
+		mPanel.findViewById(R.id.selection_bookmark).setOnLongClickListener(new View.OnLongClickListener() {
+			public boolean onLongClick(View v) {
+				BookmarksDlg dlg = new BookmarksDlg(mCoolReader, mReaderView);
+				dlg.show();
+				closeDialog(true);
+				return true;
 			}
 		});
 		mPanel.findViewById(R.id.selection_email).setOnClickListener(new OnClickListener() {

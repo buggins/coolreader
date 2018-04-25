@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:id="@+id/LinearLayout01" android:layout_height="fill_parent" android:layout_width="fill_parent">
-	<LinearLayout android:layout_width="fill_parent" android:id="@+id/LinearLayout02" 
+	<LinearLayout android:layout_width="fill_parent" android:id="@+id/LinearLayout02"
 	    android:layout_margin="4dip"
 		android:layout_height="wrap_content">
 		<ImageView android:layout_width="wrap_content" android:layout_height="wrap_content" 
@@ -22,15 +22,52 @@
 					android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 		</LinearLayout>
 	</LinearLayout>
-	<TextView android:text="buggins@fromru.com" android:id="@+id/email" 
+	<ScrollView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+	<TextView android:text="buggins@fromru.com" android:id="@+id/email"
             style="@style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
 	<TextView android:text="http://www.coolreader.org/" android:id="@+id/www" 
             style="@style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
-	<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge" 
+	<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge"
             style="@style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+	<TextView android:text="Based on virxkane mod (2018)"
+		android:id="@+id/virxkane"
+		style="@style/TextAppearance.Small"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<TextView android:text="https://github.com/virxkane/coolreader/" android:id="@+id/www1"
+		style="@style/TextAppearance.Medium"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+	<TextView android:text="Minor modifications by plotn (2018)"
+		android:id="@+id/plotn"
+		style="@style/TextAppearance.Small"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<TextView android:text="plotnikovya@gmail.com" android:id="@+id/email_plotn"
+		style="@style/TextAppearance.Medium"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
+	<TextView android:text="https://github.com/plotn/coolreader/" android:id="@+id/www2"
+		style="@style/TextAppearance.Medium"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+	<TextView android:text="fonts_dir"
+		android:id="@+id/fonts_dir"
+		style="@style/TextAppearance.Small"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<TextView android:text="fonts_dir"
+		android:id="@+id/textures_dir"
+		style="@style/TextAppearance.Small"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<TextView android:text="backgrounds_dir"
+		android:id="@+id/backgrounds_dir"
+		style="@style/TextAppearance.Small"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+	<TextView android:text="hyph_dir"
+		android:id="@+id/hyph_dir"
+		style="@style/TextAppearance.Small"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 	<TextView android:text="Third party components used: zlib, libpng, libjpeg, freetype, harfbuzz, chmlib, antiword, Nook EPD utils by DairyKnight"
 			android:id="@+id/thirdparty" 
             style="@style/TextAppearance.Small"
@@ -43,5 +80,6 @@
             android:id="@+id/thirdparty3" 
             style="@style/TextAppearance.Small"
             android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-
+	</LinearLayout>
+	</ScrollView>
 </LinearLayout>

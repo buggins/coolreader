@@ -381,6 +381,8 @@
     <string name="options_app_ui_theme_white">Белая</string>
     <string name="options_app_ui_theme_dark">Темная</string>
     <string name="options_app_ui_theme_black">Черная</string>
+    <string name="options_app_ui_theme_gray1">Серая 1</string>
+    <string name="options_app_ui_theme_gray2">Серая 2</string>
     <string name="options_app_ui_theme_light">Светлая</string>
     <string name="options_css_text_align_center">По центру</string>
     <string name="options_css_text_align_justify">По ширине</string>

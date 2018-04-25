@@ -80,6 +80,16 @@
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
     </style>
+    <color name="gray2">#ffcccccc</color>
+    <style name="Theme.Gray2" parent="@android:style/Theme.Light">
+        <item name="android:windowBackground">@color/gray2</item>
+        <item name="android:colorBackground">@color/gray2</item>
+        <!-- item name="android:textColor">@android:color/black</item-->
+        <item name="android:listViewStyle">@style/ListView.White</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.White</item>
+
+        <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
+    </style>
     <style name="Theme.Black" parent="@android:style/Theme">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:colorBackground">@android:color/black</item>
@@ -89,7 +99,18 @@
         
         <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
     </style>
-    
+    <style name="Theme.Gray1" parent="@android:style/Theme">
+        <item name="android:windowBackground">@color/gray1</item>
+        <item name="android:colorBackground">@color/gray1</item>
+        <!-- item name="android:textColor">@android:color/white</item-->
+        <item name="android:listViewStyle">@style/ListView.Black</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
+
+        <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
+    </style>
+
+    <color name="gray1">#ff555555</color>
+
     <style name="Theme.Light.Dialog.Normal" parent="@style/Theme.Light">
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowAnimationStyle">@null</item>
@@ -120,7 +141,19 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
+    <style name="Theme.Gray1.Dialog.Normal" parent="@style/Theme.Gray1">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
     <style name="Theme.Black.Dialog.Fullscreen" parent="@style/Theme.Black">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Theme.Gray1.Dialog.Fullscreen" parent="@style/Theme.Gray1">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:layout_width">fill_parent</item>
@@ -132,7 +165,19 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
+    <style name="Theme.Gray2.Dialog.Normal" parent="@style/Theme.Gray2">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
     <style name="Theme.White.Dialog.Fullscreen" parent="@style/Theme.White">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Theme.Gray2.Dialog.Fullscreen" parent="@style/Theme.Gray2">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:layout_width">fill_parent</item>

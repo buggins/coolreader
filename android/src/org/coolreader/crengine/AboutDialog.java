@@ -4,6 +4,7 @@ import java.util.Random;
 
 import org.coolreader.CoolReader;
 import org.coolreader.CoolReader.DonationListener;
+import org.coolreader.Dictionaries;
 import org.coolreader.R;
 
 import android.content.ActivityNotFoundException;
@@ -24,7 +25,8 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	private View mAppTab;
 	private View mLicenseTab;
 	private View mDonationTab;
-	
+	private LayoutInflater mInflater;
+
 	private boolean isPackageInstalled( String packageName ) {
 		try {
 			mCoolReader.getPackageManager().getApplicationInfo(packageName, 0);
@@ -84,11 +86,34 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	{
 		super(activity);
 		mCoolReader = activity;
+		mInflater = LayoutInflater.from(getContext());
+
 		setTitle(R.string.dlg_about);
 		LayoutInflater inflater = LayoutInflater.from(getContext());
 		TabHost tabs = (TabHost)inflater.inflate(R.layout.about_dialog, null);
 		mAppTab = (View)inflater.inflate(R.layout.about_dialog_app, null);
 		((TextView)mAppTab.findViewById(R.id.version)).setText("Cool Reader " + mCoolReader.getVersion());
+
+		TextView fonts_dir = (TextView)mAppTab.findViewById(R.id.fonts_dir);
+
+		String[] sFontsDir = Engine.findFontsDirs();
+
+		String ss = "Fonts directories: ";
+		for (String s: sFontsDir) {
+			ss = ss +s+"; ";
+ 		}
+
+		fonts_dir.setText(ss);
+
+		TextView textures_dir = (TextView)mAppTab.findViewById(R.id.textures_dir);
+		textures_dir.setText("Textures directory: "+Engine.findDirs(0));
+
+		TextView backgrounds_dir = (TextView)mAppTab.findViewById(R.id.backgrounds_dir);
+		backgrounds_dir.setText("Backgrounds directory: "+Engine.findDirs(1));
+
+		TextView hyph_dir = (TextView)mAppTab.findViewById(R.id.hyph_dir);
+		hyph_dir.setText("HyphDictionaries directory: "+Engine.findDirs(2));
+
 		mLicenseTab = (View)inflater.inflate(R.layout.about_dialog_license, null);
 		String license = Engine.getInstance(mCoolReader).loadResourceUtf8(R.raw.license);
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
@@ -152,6 +177,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	
 	@Override
 	public View createTabContent(String tag) {
+
 		if ( "App".equals(tag) )
 			return mAppTab;
 		else if ( "License".equals(tag) )

@@ -12,6 +12,15 @@ public class InterfaceTheme {
 					R.drawable.ui_toolbar_background_browser_vertical_black,
 					0, 0xFF000000)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0x80);
+
+	public final static InterfaceTheme GRAY1 = new InterfaceTheme("GRAY1", R.style.Theme_Gray1, R.style.Theme_Gray1_Dialog_Normal, R.style.Theme_Gray1_Dialog_Fullscreen, R.string.options_app_ui_theme_gray1, 0xFF555555)
+			.setRootDelimiter(R.drawable.divider_black_tiled, 2)
+			.setBackgrounds(
+					R.drawable.ui_status_background_browser_black,
+					R.drawable.ui_toolbar_background_browser_black,
+					R.drawable.ui_toolbar_background_browser_vertical_black,
+					0, 0xFF555555)
+			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0x80);
 //			.setBackgrounds(
 //					R.drawable.ui_status_background_browser_black, 
 //					R.drawable.ui_toolbar_background_browser_black,
@@ -28,6 +37,15 @@ public class InterfaceTheme {
 					R.drawable.ui_toolbar_background_browser_white,
 					R.drawable.ui_toolbar_background_browser_vertical_white,
 					0, 0xFFFFFFFF)
+			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xE0);
+
+	public final static InterfaceTheme GRAY2 = new InterfaceTheme("GRAY2", R.style.Theme_Gray2, R.style.Theme_Gray2_Dialog_Normal, R.style.Theme_Gray2_Dialog_Fullscreen, R.string.options_app_ui_theme_gray2, 0xFFCCCCCC)
+			.setRootDelimiter(R.drawable.divider_white_tiled, 2)
+			.setBackgrounds(
+					R.drawable.ui_status_background_browser_white,
+					R.drawable.ui_toolbar_background_browser_white,
+					R.drawable.ui_toolbar_background_browser_vertical_white,
+					0, 0xFFCCCCCC)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xE0);
 //			.setBackgrounds(
 //					R.drawable.ui_status_background_browser_black, 
@@ -147,7 +165,7 @@ public class InterfaceTheme {
 
 	
 	public final static InterfaceTheme[] allThemes = {
-		BLACK, WHITE, DARK, LIGHT,
+		BLACK, WHITE, DARK, LIGHT, GRAY1, GRAY2,
 	};
 	
 	public static InterfaceTheme findByCode(String code) {
