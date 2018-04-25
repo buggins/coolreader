@@ -15,14 +15,15 @@ crengine   - CREngine (DOM/XML/CSS ebook rendering library) sources
 cr3gui     - CR3 with CR3GUI for e-ink devices sources
 cr3qt      - CR3 with Qt based GUI
 cr3wx      - CR3 with wxWidgets based GUI
-thirdparty - third party libraries, to use if not found in system (zlib, libpng, libjpeg, freetype)
+thirdparty - third party libraries, to use if not found in system (zlib, libpng, libjpeg, freetype, harfbuzz)
 tinydict   - small library for .dict file format support
 tools      - miscellaneous configuration files
 android    - Android port
+cr3android - Android Studio project files.
 
 External dependencies: 
 
-common: zlib, libpng, libjpeg, freetype
+common: zlib, libpng, libjpeg, freetype, harfbuzz
 cr3gui/xcb: libxcb, fontconfig
 cr3gui/nanoX: libnanoX
 cr3/Qt: qt4-core, qt4-gui

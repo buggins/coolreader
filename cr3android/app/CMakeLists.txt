@@ -98,7 +98,7 @@ add_subdirectory(thirdparty_cmake)
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             cr3engine-3-1-1
+             cr3engine-3-1-2
 
              # Sets the library as a shared library.
              SHARED
@@ -124,7 +124,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       cr3engine-3-1-1
+                       cr3engine-3-1-2
 
                        # thirdparty static libs
                        png

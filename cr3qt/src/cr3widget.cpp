@@ -48,7 +48,9 @@ static void replaceColor( char * str, lUInt32 color )
     }
 }
 
-static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color )
+static LVRefVec<LVImageSource> cr_battery_icons;
+
+static LVRefVec<LVImageSource>& getBatteryIcons( lUInt32 color )
 {
     CRLog::debug("Making list of Battery icon bitmats");
     lUInt32 cl1 = 0x00000000|(color&0xFFFFFF);
@@ -291,11 +293,11 @@ static LVRefVec<LVImageSource> getBatteryIcons( lUInt32 color )
     replaceColor( color3, cl3 );
     replaceColor( color4, cl4 );
 
-    LVRefVec<LVImageSource> icons;
+    cr_battery_icons.clear();
     for ( int i=0; icon_bpm[i]; i++ )
-        icons.add( LVCreateXPMImageSource( icon_bpm[i] ) );
+        cr_battery_icons.add( LVCreateXPMImageSource( icon_bpm[i] ) );
 
-    return icons;
+    return cr_battery_icons;
 }
 
 
@@ -662,6 +664,10 @@ void CR3View::updateScroll()
         // TODO: set scroll range
         const LVScrollInfo * si = _docview->getScrollInfo();
         //bool changed = false;
+
+        // change value before max scroll to avoid a ValueChange event
+        if ( _scroll->value() > si->maxpos )
+            _scroll->setValue( si->pos );
         if ( si->maxpos != _scroll->maximum() ) {
             _scroll->setMaximum( si->maxpos );
             _scroll->setMinimum(0);

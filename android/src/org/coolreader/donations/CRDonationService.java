@@ -7,6 +7,7 @@ import org.coolreader.crengine.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -119,20 +120,22 @@ public class CRDonationService {
 			if (response == 0) {
 				ArrayList<String> responseList = skuDetails.getStringArrayList("DETAILS_LIST");
 
-				for (String thisResponse : responseList) {
-					JSONObject object;
-					try {
-						object = new JSONObject(thisResponse);
-					    PurchaseInfo p = new PurchaseInfo();
-					    p.productId = object.getString("productId");
-					    p.price = object.getString("price");
-					    p.title = object.getString("title");
-					    p.description = object.getString("description");
-					    p.currency = object.getString("price_currency_code");
-					    p.priceAmountMicros = Long.valueOf(object.getString("price_amount_micros")).longValue();
-					    mPurchases.add(p);
-					} catch (JSONException e) {
-						log.e("Exception while reading product info");
+				if (responseList != null) {
+					for (String thisResponse : responseList) {
+						JSONObject object;
+						try {
+							object = new JSONObject(thisResponse);
+						    PurchaseInfo p = new PurchaseInfo();
+						    p.productId = object.getString("productId");
+						    p.price = object.getString("price");
+						    p.title = object.getString("title");
+						    p.description = object.getString("description");
+						    p.currency = object.getString("price_currency_code");
+						    p.priceAmountMicros = Long.valueOf(object.getString("price_amount_micros")).longValue();
+						    mPurchases.add(p);
+						} catch (JSONException e) {
+							log.e("Exception while reading product info");
+						}
 					}
 				}
 			}		
@@ -169,6 +172,7 @@ public class CRDonationService {
 	
 	private PurchaseListener mCurrentListener;
 	
+	@SuppressLint("NewApi")
 	public void purchase(String productId, PurchaseListener listener) {
 		if (!isBillingSupported()) {
 			if (mCurrentListener != null)
@@ -225,6 +229,7 @@ public class CRDonationService {
 		}
 	}	
 
+	@SuppressLint("NewApi")
 	public void bind() {
 		log.d("CRDonationService.bind()");
 		Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");

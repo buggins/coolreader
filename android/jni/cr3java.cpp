@@ -4,10 +4,10 @@
 
 lString16 CRJNIEnv::fromJavaString( jstring str )
 {
-	if ( !str )
+	if (!str)
         return lString16::empty_str;
 	jboolean iscopy;
-	const char * s = env->GetStringUTFChars( str, &iscopy );
+	const char * s = env->GetStringUTFChars(str, &iscopy);
 	lString16 res(s);
 	env->ReleaseStringUTFChars(str, s);
 	return res;
@@ -21,6 +21,8 @@ jstring CRJNIEnv::toJavaString( const lString16 & str )
 void CRJNIEnv::fromJavaStringArray( jobjectArray array, lString16Collection & dst )
 {
 	dst.clear();
+	if (!array)
+		return;
 	int len = env->GetArrayLength(array);
 	for ( int i=0; i<len; i++ ) {
 		jstring str = (jstring)env->GetObjectArrayElement(array, i);
@@ -251,9 +253,21 @@ public:
     bool load( const char * libName )
     {
         if ( !_lib ) {
-            _lib = dlopen( libName, RTLD_NOW | RTLD_LOCAL );
+//        	lString8 sofile(libName);
+//        	if (sizeof(void*) > 4) {
+//        		sofile = lString8("/system/lib64/") + libName;
+//        		if (!LVFileExists(sofile))
+//        			sofile = libName;
+//        		else
+//        			CRLog::debug("Will use %s", sofile.c_str());
+//        	}
+//
+//
+//            _lib = dlopen(sofile.c_str(), RTLD_NOW | RTLD_LOCAL);
+            _lib = dlopen(libName, RTLD_NOW | RTLD_LOCAL);
         }
         if ( _lib ) {
+        	CRLog::info("Will use libjnigraphics for bitmap access");
         	AndroidBitmap_getInfo = (int (*)(JNIEnv* env, jobject jbitmap, AndroidBitmapInfo* info))
                  getProc( "AndroidBitmap_getInfo" );
             AndroidBitmap_lockPixels = (int (*)(JNIEnv* env, jobject jbitmap, void** addrPtr))

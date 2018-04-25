@@ -100,9 +100,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
-    if ( !ui->view->loadSettings( iniFile ) )
-        if ( !ui->view->loadSettings( iniFile2 ) )
-          ui->view->saveSettings( iniFile );
+    if (!ui->view->loadSettings( iniFile )) {
+        // If config not found in homeDir, trying to load from exeDir...
+        ui->view->loadSettings( iniFile2 );
+        // ... and save to homeDir
+        ui->view->saveSettings( iniFile );
+    }
 
     if ( !ui->view->loadHistory( histFile ) )
         if ( !ui->view->loadHistory( histFile2 ) )
