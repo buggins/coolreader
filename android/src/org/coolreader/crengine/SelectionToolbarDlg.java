@@ -166,9 +166,13 @@ public class SelectionToolbarDlg {
 						final String[] mFontFaces = Engine.getFontFaceList();
 						BackgroundThread.instance().executeGUI(new Runnable() {
 							public void run() {
-								OptionsDialog dlg = new OptionsDialog(mCoolReader, mReaderView, mFontFaces, OptionsDialog.Mode.READER);
-								dlg.setInflater(LayoutInflater.from(mCoolReader.getApplicationContext()));
-								dlg.getOptionsTapZones().onSelect();
+								try {
+									OptionsDialog dlg = new OptionsDialog(mCoolReader, mReaderView, mFontFaces, OptionsDialog.Mode.READER);
+									dlg.setInflater(LayoutInflater.from(mCoolReader.getApplicationContext()));
+									dlg.getOptionsTapZones().onSelect();
+								} catch (Exception E) {
+									mCoolReader.showToast("Could not open tap zones options");
+								}
 							}
 						});
 					}
