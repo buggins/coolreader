@@ -140,7 +140,6 @@ public class MotionWatchdogHandler extends Handler implements SensorEventListene
             handleInterrupt();
             return;
         }
-        mAudioService.setStreamVolume(AudioManager.STREAM_MUSIC, mOriginalVolume, 0);
         handleInterrupt();
         mHandlerThread.interrupt();
     }
