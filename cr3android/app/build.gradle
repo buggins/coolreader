@@ -39,6 +39,8 @@ android {
     lintOptions {
         disable 'MissingTranslation'
     }
+
+    useLibrary 'org.apache.http.legacy'
 }
 
 dependencies {
