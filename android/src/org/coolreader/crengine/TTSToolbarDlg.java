@@ -6,6 +6,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -21,6 +22,9 @@ import android.widget.PopupWindow.OnDismissListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
+import com.s_trace.motion_watchdog.HandlerThread;
+import com.s_trace.motion_watchdog.MotionWatchdogHandler;
+
 public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	PopupWindow mWindow;
 	View mAnchor;
@@ -31,7 +35,8 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	ImageButton playPauseButton; 
 	SeekBar sbSpeed;
 	SeekBar sbVolume;
-	
+	private HandlerThread mMotionWatchdog;
+
 	static public TTSToolbarDlg showDialog( CoolReader coolReader, ReaderView readerView, TTS tts)
 	{
 		TTSToolbarDlg dlg = new TTSToolbarDlg(coolReader, readerView, tts);
@@ -120,8 +125,27 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 	private void start() {
 		if ( currentSelection==null )
 			return;
+		startMotionWatchdog();
 		isSpeaking = true;
 		say( currentSelection );
+	}
+
+	private void startMotionWatchdog(){
+		String TAG = "MotionWatchdog";
+		Log.d(TAG, "startMotionWatchdog() enter");
+
+		Properties settings = mReaderView.getSettings();
+		int timeout = settings.getInt(ReaderView.PROP_APP_MOTION_TIMEOUT, 0);
+		if (timeout == 0) {
+			Log.d(TAG, "startMotionWatchdog() early exit - timeout is 0");
+			return;
+		}
+		timeout = timeout * 60 * 1000; // Convert minutes to msecs
+
+		mMotionWatchdog = new HandlerThread("MotionWatchdog");
+		mMotionWatchdog.start();
+		new MotionWatchdogHandler(this, mCoolReader, mMotionWatchdog, timeout);
+		Log.d(TAG, "startMotionWatchdog() exit");
 	}
 	
 	private boolean isSpeaking; 
@@ -130,8 +154,11 @@ public class TTSToolbarDlg implements TTS.OnUtteranceCompletedListener {
 		if ( mTTS.isSpeaking() ) {
 			mTTS.stop();
 		}
+		if (mMotionWatchdog != null) {
+			mMotionWatchdog.interrupt();
+		}
 	}
-	
+
 	public void pause() {
 		if (isSpeaking)
 			toggleStartStop();

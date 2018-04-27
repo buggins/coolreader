@@ -89,6 +89,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			"Default", "1%", "2%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", 
 			"10%", "12%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%", "55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
 	};
+	public static int[] mMotionTimeouts;
+	public static String[] mMotionTimeoutsTitles;
 	int[] mInterlineSpaces = new int[] {
 			80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200
 		};
@@ -1943,6 +1945,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
 		}
+		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_key_backlight_off), PROP_APP_KEY_BACKLIGHT_OFF).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new IconsBoolOption(this, getString(R.string.options_app_settings_icons), PROP_APP_SETTINGS_SHOW_ICONS).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)).noIcon());
@@ -1998,8 +2001,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		L.v("creating options dialog");
         setCancelable(true);
         setCanceledOnTouchOutside(true);
-		
-        if (mode == Mode.READER)
+
+		mMotionTimeoutsTitles = activity.getResources().getStringArray(R.array.motion_timeout_titles);
+        mMotionTimeouts = activity.getResources().getIntArray(R.array.motion_timeout_values);
+
+		if (mode == Mode.READER)
         	setupReaderOptions();
         else if (mode == Mode.BROWSER)
         	setupBrowserOptions();
@@ -2024,7 +2030,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //				onNegativeButtonClick();
 //			}
 //		});
-		
+
 		super.onCreate(savedInstanceState);
 		L.v("OptionsDialog is created");
 	}
