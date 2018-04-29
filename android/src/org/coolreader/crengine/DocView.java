@@ -457,7 +457,7 @@ public class DocView {
 	
 	private long mNativeObject; // used from JNI
 
-	private ReaderCallback readerCallback;
+	private ReaderCallback readerCallback;  // used from JNI
 	
 
 }
