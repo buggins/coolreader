@@ -2041,11 +2041,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
         setCanceledOnTouchOutside(true);
 
 		mMotionTimeoutsTitles = activity.getResources().getStringArray(R.array.motion_timeout_titles);
-<<<<<<< HEAD
-		mMotionTimeouts = activity.getResources().getIntArray(R.array.motion_timeout_values);
-=======
         mMotionTimeouts = activity.getResources().getIntArray(R.array.motion_timeout_values);
->>>>>>> upstream/master
 
 		if (mode == Mode.READER)
         	setupReaderOptions();
