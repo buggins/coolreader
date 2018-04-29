@@ -522,7 +522,7 @@
     <string name="black_list_warning">Внимание! этот адрес по запросу LitRes.ru был добавлен в черный список каталогов, нарушающих авторские права. Вы действительно хотите использовать этот каталог?</string>
     <string name="cant_open_file">Не возможно открыть файл!</string>
     <string name="error">Ошибка</string>
-    <string name="options_app_motion_timeout">Таймаут датчика движения</string>
+    <string name="options_app_tts_stop_motion_timeout">Остановить чтение вслух при бездействии датчика движения</string>
     <string name="motion_timeout_off">"Выключено"</string>
     <string name="motion_timeout_1min">"1 минута"</string>
     <string name="motion_timeout_2min">"2 минуты"</string>

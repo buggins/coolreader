@@ -682,7 +682,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 				addKey(listView, KeyEvent.KEYCODE_HOME, "Home");
 			} else {
-				EnumSet keyFlags = DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE ? EnumSet.of(KeyActionFlag.KEY_ACTION_FLAG_NORMAL, KeyActionFlag.KEY_ACTION_FLAG_DOUBLE) : EnumSet.allOf(KeyActionFlag.class);
+				EnumSet<KeyActionFlag> keyFlags;
+				if (DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE) {
+				    keyFlags = EnumSet.of(
+				    		KeyActionFlag.KEY_ACTION_FLAG_NORMAL,
+							KeyActionFlag.KEY_ACTION_FLAG_DOUBLE
+					);
+				} else {
+					keyFlags = EnumSet.allOf(KeyActionFlag.class);
+				}
 
 				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_MENU))
 					addKey(listView, KeyEvent.KEYCODE_MENU, "Menu", keyFlags);
@@ -1974,7 +1982,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mBacklightLevelsTitles[0] = getString(R.string.options_app_backlight_screen_default);
 			mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_backlight_screen), PROP_APP_SCREEN_BACKLIGHT).add(mBacklightLevels, mBacklightLevelsTitles).setDefaultValue("-1").noIcon());
 		}
-		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
+		mOptionsApplication.add(new ListOption(this, getString(R.string.options_app_tts_stop_motion_timeout), PROP_APP_MOTION_TIMEOUT).add(mMotionTimeouts, mMotionTimeoutsTitles).setDefaultValue(Integer.toString(mMotionTimeouts[0])).noIcon());
 		mOptionsApplication.add(new BoolOption(this, getString(R.string.options_app_key_backlight_off), PROP_APP_KEY_BACKLIGHT_OFF).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new IconsBoolOption(this, getString(R.string.options_app_settings_icons), PROP_APP_SETTINGS_SHOW_ICONS).setDefaultValue("1").noIcon());
 		mOptionsApplication.add(new DictOptions(this, getString(R.string.options_app_dictionary)).noIcon());
@@ -2033,7 +2041,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
         setCanceledOnTouchOutside(true);
 
 		mMotionTimeoutsTitles = activity.getResources().getStringArray(R.array.motion_timeout_titles);
+<<<<<<< HEAD
 		mMotionTimeouts = activity.getResources().getIntArray(R.array.motion_timeout_values);
+=======
+        mMotionTimeouts = activity.getResources().getIntArray(R.array.motion_timeout_values);
+>>>>>>> upstream/master
 
 		if (mode == Mode.READER)
         	setupReaderOptions();
