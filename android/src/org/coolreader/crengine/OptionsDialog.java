@@ -674,7 +674,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 				addKey(listView, KeyEvent.KEYCODE_HOME, "Home");
 			} else {
-				EnumSet keyFlags = DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE ? EnumSet.of(KeyActionFlag.KEY_ACTION_FLAG_NORMAL, KeyActionFlag.KEY_ACTION_FLAG_DOUBLE) : EnumSet.allOf(KeyActionFlag.class);
+				EnumSet<KeyActionFlag> keyFlags;
+				if (DeviceInfo.EINK_ONYX && DeviceInfo.ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE) {
+				    keyFlags = EnumSet.of(
+				    		KeyActionFlag.KEY_ACTION_FLAG_NORMAL,
+							KeyActionFlag.KEY_ACTION_FLAG_DOUBLE
+					);
+				} else {
+					keyFlags = EnumSet.allOf(KeyActionFlag.class);
+				}
 
 				if (KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_MENU))
 					addKey(listView, KeyEvent.KEYCODE_MENU, "Menu", keyFlags);

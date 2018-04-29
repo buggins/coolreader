@@ -9,7 +9,6 @@ import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.coolreader.CoolReader;
 import org.coolreader.crengine.TTSToolbarDlg;
@@ -75,7 +74,6 @@ public class MotionWatchdogHandler extends Handler implements SensorEventListene
         }
         switch (msg.what) {
             case MSG_MOTION_DETECTED:
-                mCoolReader.showToast("Got motion", Toast.LENGTH_SHORT);
                 mIsStopping = false;
                 if (mAudioService != null) {
                     mAudioService.setStreamVolume(AudioManager.STREAM_MUSIC, mOriginalVolume, 0);
@@ -90,12 +88,10 @@ public class MotionWatchdogHandler extends Handler implements SensorEventListene
                 break;
             case MSG_MOTION_TIMEOUT:
                 mIsStopping = true;
-                mCoolReader.showToast("Timeout motion", Toast.LENGTH_SHORT);
                 handleStop();
                 break;
             case MSG_HANDLE_STOP_STEP:
                 if (mIsStopping) {
-                    mCoolReader.showToast("Stop step", Toast.LENGTH_SHORT);
                     handleStop();
                 }
                 break;
@@ -140,7 +136,6 @@ public class MotionWatchdogHandler extends Handler implements SensorEventListene
             handleInterrupt();
             return;
         }
-        mAudioService.setStreamVolume(AudioManager.STREAM_MUSIC, mOriginalVolume, 0);
         handleInterrupt();
         mHandlerThread.interrupt();
     }
