@@ -26,7 +26,7 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content">
 		<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-	<TextView android:text="buggins@fromru.com" android:id="@+id/email"
+	<TextView android:text="coolreader.org@gmail.com" android:id="@+id/email"
             style="@style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
 	<TextView android:text="http://www.coolreader.org/" android:id="@+id/www" 
@@ -35,23 +35,13 @@
 	<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge"
             style="@style/TextAppearance.Medium"
 			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
-	<TextView android:text="Based on virxkane mod (2018)"
+	<TextView android:text="https://github.com/buggins/coolreader/" android:id="@+id/www1"
+		style="@style/TextAppearance.Medium"
+		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+	<TextView android:text="Virxkane (and contributors) mod, 2018"
 		android:id="@+id/virxkane"
 		style="@style/TextAppearance.Small"
 		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="https://github.com/virxkane/coolreader/" android:id="@+id/www1"
-		style="@style/TextAppearance.Medium"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
-	<TextView android:text="Minor modifications by plotn (2018)"
-		android:id="@+id/plotn"
-		style="@style/TextAppearance.Small"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="plotnikovya@gmail.com" android:id="@+id/email_plotn"
-		style="@style/TextAppearance.Medium"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
-	<TextView android:text="https://github.com/plotn/coolreader/" android:id="@+id/www2"
-		style="@style/TextAppearance.Medium"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
 	<TextView android:text="fonts_dir"
 		android:id="@+id/fonts_dir"
 		style="@style/TextAppearance.Small"
