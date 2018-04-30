@@ -159,25 +159,6 @@ public class SelectionToolbarDlg {
 			}
 		});
 
-		mPanel.findViewById(R.id.selection_copy).setOnLongClickListener(new View.OnLongClickListener() {
-			public boolean onLongClick(View v) {
-				BackgroundThread.instance().postBackground(new Runnable() {
-					public void run() {
-						final String[] mFontFaces = Engine.getFontFaceList();
-						BackgroundThread.instance().executeGUI(new Runnable() {
-							public void run() {
-								OptionsDialog dlg = new OptionsDialog(mCoolReader, mReaderView, mFontFaces, OptionsDialog.Mode.READER);
-								dlg.setInflater(LayoutInflater.from(mCoolReader.getApplicationContext()));
-								dlg.getOptionsTapZones().onSelect();
-							}
-						});
-					}
-				});
-				closeDialog(true);
-				return true;
-			}
-		});
-
 		mPanel.findViewById(R.id.selection_dict).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				mCoolReader.findInDictionary( selection.text );

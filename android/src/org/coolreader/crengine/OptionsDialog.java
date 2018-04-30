@@ -258,7 +258,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	OptionsListView mOptionsApplication;
 	OptionsListView mOptionsControls;
 	OptionsListView mOptionsBrowser;
-	OptionBase mOptionsTapZones;
 
 	public final static int OPTION_VIEW_TYPE_NORMAL = 0;
 	public final static int OPTION_VIEW_TYPE_BOOLEAN = 1;
@@ -269,13 +268,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	public BaseActivity getActivity() { return mActivity; }
 	public Properties getProperties() { return mProperties; }
 	public LayoutInflater getInflater() { return mInflater; }
-    public void setInflater(LayoutInflater infl) { mInflater = infl; }
-    public OptionBase getOptionsTapZones() {
-		if (mOptionsTapZones==null)
-			mOptionsTapZones = new TapZoneOption(this, getString(R.string.options_app_tapzones_normal),
-					PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconId(R.drawable.cr3_option_controls_tapzones);
-		return mOptionsTapZones;
-	};
 
 	public abstract static class OptionBase {
 		protected View myView;
@@ -1956,8 +1948,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconId(R.drawable.cr3_option_controls_keys));
-		mOptionsTapZones = new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconId(R.drawable.cr3_option_controls_tapzones);
-		mOptionsControls.add(mOptionsTapZones);
+		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconId(R.drawable.cr3_option_controls_tapzones));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_tap_secondary_action_type), PROP_APP_SECONDARY_TAP_ACTION_TYPE).add(mTapSecondaryActionType, mTapSecondaryActionTypeTitles).setDefaultValue(String.valueOf(TAP_ACTION_TYPE_LONGPRESS)));
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_double_tap_selection), PROP_APP_DOUBLE_TAP_SELECTION).setDefaultValue("0").setIconId(R.drawable.cr3_option_touch));
 		if ( !DeviceInfo.EINK_SCREEN )
