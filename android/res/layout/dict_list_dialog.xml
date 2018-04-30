@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Comment bookmark item
+-->
+
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dict_list"
+    android:orientation="vertical"
+    android:layout_weight="8"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:baselineAligned="false"
+    android:layout_marginTop="0dip"
+    android:layout_marginBottom="0dip"
+    android:layout_marginLeft="0dip"
+    android:layout_marginRight="0dip"
+    >
+
+</LinearLayout>

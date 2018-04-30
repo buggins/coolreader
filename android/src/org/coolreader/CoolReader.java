@@ -221,7 +221,9 @@ public class CoolReader extends BaseActivity
 		boolean flg = "1".equals(value);
         if ( key.equals(PROP_APP_DICTIONARY) ) {
         	setDict(value);
-        } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
+        } else if ( key.equals(PROP_APP_DICTIONARY_2) ) {
+			setDict2(value);
+		} else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
         	if (mBrowser != null)
         		mBrowser.setSortOrder(value);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
@@ -985,6 +987,10 @@ public class CoolReader extends BaseActivity
 	
 	public void setDict( String id ) {
 		mDictionaries.setDict(id);
+	}
+
+	public void setDict2( String id ) {
+		mDictionaries.setDict2(id);
 	}
 
 	public void showAboutDialog() {

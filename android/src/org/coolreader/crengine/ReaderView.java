@@ -2351,7 +2351,22 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		case DCMD_TOGGLE_DAY_NIGHT_MODE:
 			toggleDayNightMode();
 			break;
-		default:
+		case DCMD_TOGGLE_DICT_ONCE:
+			log.i("Next dictionary will be the 2nd for one time");
+			mActivity.showToast("Next dictionary will be the 2nd for one time");
+			mActivity.mDictionaries.setiDic2IsActive(2);
+			break;
+		case DCMD_TOGGLE_DICT:
+			if (mActivity.mDictionaries.isiDic2IsActive() > 0) {
+				mActivity.mDictionaries.setiDic2IsActive(0);
+			}
+			else {
+				mActivity.mDictionaries.setiDic2IsActive(1);
+			}
+			log.i("Switched to dictionary: "+Integer.toString(mActivity.mDictionaries.isiDic2IsActive()+1));
+			mActivity.showToast("Switched to dictionary: "+Integer.toString(mActivity.mDictionaries.isiDic2IsActive()+1));
+			break;
+			default:
 			// do nothing
 			break;
 		}
@@ -2726,7 +2741,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	/**
      * Change settings.
 	 * @param newSettings are new settings
-	 * @param oldSettings are old settings, null to use mSettings
 	 */
 	public void updateSettings(Properties newSettings)
 	{
