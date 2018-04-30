@@ -46,6 +46,9 @@ android {
         disable 'MissingTranslation'
     }
     useLibrary 'org.apache.http.legacy'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+    }
 }
 
 dependencies {

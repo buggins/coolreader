@@ -1,10 +1,11 @@
 package org.coolreader.crengine;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
 import org.coolreader.CoolReader;
 import org.coolreader.CoolReader.DonationListener;
-import org.coolreader.Dictionaries;
 import org.coolreader.R;
 
 import android.content.ActivityNotFoundException;
@@ -23,9 +24,9 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	final CoolReader mCoolReader;
 	
 	private View mAppTab;
+	private View mDirsTab;
 	private View mLicenseTab;
 	private View mDonationTab;
-	private LayoutInflater mInflater;
 
 	private boolean isPackageInstalled( String packageName ) {
 		try {
@@ -86,7 +87,6 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	{
 		super(activity);
 		mCoolReader = activity;
-		mInflater = LayoutInflater.from(getContext());
 
 		setTitle(R.string.dlg_about);
 		LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -94,25 +94,59 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		mAppTab = (View)inflater.inflate(R.layout.about_dialog_app, null);
 		((TextView)mAppTab.findViewById(R.id.version)).setText("Cool Reader " + mCoolReader.getVersion());
 
-		TextView fonts_dir = (TextView)mAppTab.findViewById(R.id.fonts_dir);
+		mDirsTab = (View)inflater.inflate(R.layout.about_dialog_dirs, null);
+		TextView fonts_dir = (TextView)mDirsTab.findViewById(R.id.fonts_dirs);
 
-		String[] sFontsDir = Engine.findFontsDirs();
+		ArrayList<String> fontsDirs = Engine.getFontsDirs();
+		StringBuilder sbuf = new StringBuilder();
+		Iterator<String> it = fontsDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		fonts_dir.setText(sbuf.toString());
 
-		String ss = "Fonts directories: ";
-		for (String s: sFontsDir) {
-			ss = ss +s+"; ";
- 		}
+		ArrayList<String> testuresDirs = Engine.getDataDirs(Engine.DataDirType.TexturesDirs);
+		sbuf = new StringBuilder();
+		it = testuresDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		TextView textures_dir = (TextView)mDirsTab.findViewById(R.id.textures_dirs);
+		textures_dir.setText(sbuf.toString());
 
-		fonts_dir.setText(ss);
+		ArrayList<String> backgroundsDirs = Engine.getDataDirs(Engine.DataDirType.BackgroundsDirs);
+		sbuf = new StringBuilder();
+		it = backgroundsDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		TextView backgrounds_dir = (TextView)mDirsTab.findViewById(R.id.backgrounds_dirs);
+		backgrounds_dir.setText(sbuf.toString());
 
-		TextView textures_dir = (TextView)mAppTab.findViewById(R.id.textures_dir);
-		textures_dir.setText("Textures directory: "+Engine.findDirs(0));
-
-		TextView backgrounds_dir = (TextView)mAppTab.findViewById(R.id.backgrounds_dir);
-		backgrounds_dir.setText("Backgrounds directory: "+Engine.findDirs(1));
-
-		TextView hyph_dir = (TextView)mAppTab.findViewById(R.id.hyph_dir);
-		hyph_dir.setText("HyphDictionaries directory: "+Engine.findDirs(2));
+		ArrayList<String> hyphDirs = Engine.getDataDirs(Engine.DataDirType.HyphsDirs);
+		sbuf = new StringBuilder();
+		it = hyphDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		TextView hyph_dir = (TextView)mDirsTab.findViewById(R.id.hyph_dirs);
+		hyph_dir.setText(sbuf.toString());
 
 		mLicenseTab = (View)inflater.inflate(R.layout.about_dialog_license, null);
 		String license = Engine.getInstance(mCoolReader).loadResourceUtf8(R.raw.license);
@@ -153,6 +187,12 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		tsApp.setContent(this);
 		tabs.addTab(tsApp);
 
+		TabHost.TabSpec tsDirectories = tabs.newTabSpec("Directories");
+		tsDirectories.setIndicator("",
+				getContext().getResources().getDrawable(R.drawable.ic_menu_archive));
+		tsDirectories.setContent(this);
+		tabs.addTab(tsDirectories);
+
 		TabHost.TabSpec tsLicense = tabs.newTabSpec("License");
 		tsLicense.setIndicator("", 
 				getContext().getResources().getDrawable(R.drawable.ic_menu_star));
@@ -169,7 +209,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 
 		// 25% chance to show Donations tab
 		if ((rnd.nextInt() & 3) == 3)
-			tabs.setCurrentTab(2);
+			tabs.setCurrentTab(3);
 		
 	}
 	private static Random rnd = new Random(android.os.SystemClock.uptimeMillis()); 
@@ -180,6 +220,8 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 
 		if ( "App".equals(tag) )
 			return mAppTab;
+		else if ( "Directories".equals(tag) )
+			return mDirsTab;
 		else if ( "License".equals(tag) )
 			return mLicenseTab;
 		else if ( "Donation".equals(tag) )

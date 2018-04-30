@@ -160,9 +160,12 @@ public class Dictionaries {
 	public void findInDictionary(String s) throws DictionaryException {
 		log.d("lookup in dictionary: " + s);
 		DictInfo curDict = currentDictionary;
-		if (iDic2IsActive>0) curDict = currentDictionary2;
-		if (iDic2IsActive>1) iDic2IsActive = 0;
-		if (currentDictionary3!=null) curDict = currentDictionary3;
+		if (iDic2IsActive > 0)
+			curDict = currentDictionary2;
+		if (iDic2IsActive > 1)
+			iDic2IsActive = 0;
+		if (currentDictionary3 != null)
+			curDict = currentDictionary3;
 		currentDictionary3 = null;
 		switch (curDict.internal) {
 		case 0:

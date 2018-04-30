@@ -15,61 +15,46 @@
 		        android:layout_margin="4dip"
 				android:layout_height="wrap_content">
 			</TextView>
-			<TextView android:text="(c) Vadim Lopatin, 2013" android:id="@+id/copyright" 
+			<TextView android:text="@string/dlg_about_copyright" android:id="@+id/copyright"
 		            style="@style/TextAppearance.Medium"
                     android:gravity="left"
 					android:layout_margin="4dip" 
 					android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+			<TextView android:text="@string/dlg_about_contributors_" android:id="@+id/copyright2"
+					  style="@style/TextAppearance.Medium"
+					  android:gravity="left"
+					  android:layout_margin="4dip"
+					  android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
 		</LinearLayout>
 	</LinearLayout>
 	<ScrollView
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content">
 		<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-	<TextView android:text="coolreader.org@gmail.com" android:id="@+id/email"
-            style="@style/TextAppearance.Medium"
-			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
-	<TextView android:text="http://www.coolreader.org/" android:id="@+id/www" 
-            style="@style/TextAppearance.Medium"
-			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
-	<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge"
-            style="@style/TextAppearance.Medium"
-			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
-	<TextView android:text="https://github.com/buggins/coolreader/" android:id="@+id/www1"
-		style="@style/TextAppearance.Medium"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
-	<TextView android:text="Virxkane (and contributors) mod, 2018"
-		android:id="@+id/virxkane"
-		style="@style/TextAppearance.Small"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="fonts_dir"
-		android:id="@+id/fonts_dir"
-		style="@style/TextAppearance.Small"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="fonts_dir"
-		android:id="@+id/textures_dir"
-		style="@style/TextAppearance.Small"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="backgrounds_dir"
-		android:id="@+id/backgrounds_dir"
-		style="@style/TextAppearance.Small"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="hyph_dir"
-		android:id="@+id/hyph_dir"
-		style="@style/TextAppearance.Small"
-		android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	<TextView android:text="Third party components used: zlib, libpng, libjpeg, freetype, harfbuzz, chmlib, antiword, Nook EPD utils by DairyKnight"
-			android:id="@+id/thirdparty" 
-            style="@style/TextAppearance.Small"
-			android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-    <TextView android:text="Farm-Fresh icon set from http://www.fatcow.com/free-icons" 
-            android:id="@+id/thirdparty2" 
-            style="@style/TextAppearance.Small"
-            android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-    <TextView android:text="CoffeeCatch> library: https://github.com/xroche/coffeecatch" 
-            android:id="@+id/thirdparty3" 
-            style="@style/TextAppearance.Small"
-            android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
-	</LinearLayout>
+			<TextView android:text="coolreader.org@gmail.com" android:id="@+id/email"
+            	style="@style/TextAppearance.Medium"
+				android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="email"></TextView>
+			<TextView android:text="http://www.coolreader.org/" android:id="@+id/www"
+            	style="@style/TextAppearance.Medium"
+				android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+			<TextView android:text="http://sourceforge.net/projects/crengine" android:id="@+id/sourceforge"
+            	style="@style/TextAppearance.Medium"
+				android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+			<TextView android:text="https://github.com/buggins/coolreader/" android:id="@+id/www1"
+				style="@style/TextAppearance.Medium"
+				android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:autoLink="web"></TextView>
+			<TextView android:text="Third party components used: zlib, libpng, libjpeg, freetype, harfbuzz, chmlib, antiword, Nook EPD utils by DairyKnight"
+				android:id="@+id/thirdparty"
+            	style="@style/TextAppearance.Small"
+				android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+			<TextView android:text="Farm-Fresh icon set from http://www.fatcow.com/free-icons"
+            	android:id="@+id/thirdparty2"
+            	style="@style/TextAppearance.Small"
+            	android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+			<TextView android:text="CoffeeCatch> library: https://github.com/xroche/coffeecatch"
+            	android:id="@+id/thirdparty3"
+            	style="@style/TextAppearance.Small"
+            	android:layout_margin="4dip" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
+		</LinearLayout>
 	</ScrollView>
 </LinearLayout>

@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -564,6 +566,8 @@ public class Engine {
 
 	private native static String[] getFontFaceListInternal();
 
+	private native static String[] getFontFileNameListInternal();
+
 	private native static String[] getArchiveItemsInternal(String arcName); // pairs: pathname, size
 
 	private native static boolean setKeyBacklightInternal(int value);
@@ -845,6 +849,12 @@ public class Engine {
 	public static String[] getFontFaceList() {
 		synchronized(lock) {
 			return getFontFaceListInternal();
+		}
+	}
+
+	public static String[] getFontFileNameList() {
+		synchronized(lock) {
+			return getFontFileNameListInternal();
 		}
 	}
 
@@ -1410,7 +1420,7 @@ public class Engine {
 		// }
 	}
 
-	public static String[] findFonts() {
+	private static String[] findFonts() {
 		ArrayList<File> dirs = new ArrayList<File>();
 		File[] dataDirs = getDataDirectories("fonts", false, false);
 		for (File dir : dataDirs)
@@ -1447,7 +1457,8 @@ public class Engine {
 		return fontPaths.toArray(new String[] {});
 	}
 
-	public static String[] findFontsDirs() {
+	public static final ArrayList<String> getFontsDirs() {
+		HashMap<String, Integer> dirsCapacity = new HashMap<String, Integer>();
 		ArrayList<File> dirs = new ArrayList<File>();
 		File[] dataDirs = getDataDirectories("fonts", false, false);
 		for (File dir : dataDirs)
@@ -1456,28 +1467,30 @@ public class Engine {
 		for (File dir : rootDirs)
 			dirs.add(new File(dir, "fonts"));
 		dirs.add(new File(Environment.getRootDirectory(), "fonts"));
-		ArrayList<String> fontPaths = new ArrayList<String>();
 		for (File fontDir : dirs) {
-			if (fontDir.isDirectory()) {
-				log.v("Scanning directory " + fontDir.getAbsolutePath()
-						+ " for font files");
-				// get font names
-				String[] fileList = fontDir.list(new FilenameFilter() {
-					public boolean accept(File dir, String filename) {
-						String lc = filename.toLowerCase();
-						return (lc.endsWith(".ttf") || lc.endsWith(".otf")
-								|| lc.endsWith(".pfb") || lc.endsWith(".pfa"))
-//								&& !filename.endsWith("Fallback.ttf")
-								;
-					}
-				});
-				if (!fontDir.getAbsolutePath().equals("")) {
-					fontPaths.add(fontDir.getAbsolutePath() + " (found: " + fileList.length + ")");
+			if (fontDir.isDirectory())
+				dirsCapacity.put(fontDir.getAbsolutePath(), Integer.valueOf(0));
+		}
+		String[] fontFileNameList = getFontFileNameList();
+		for (String fontFileName: fontFileNameList) {
+			log.d("enum registered font: " + fontFileName);
+			for (File fontDir : dirs) {
+				if (fontFileName.startsWith(fontDir.getAbsolutePath())) {
+					Integer prevCount = dirsCapacity.get(fontDir.getAbsolutePath());
+					if (null == prevCount)
+						prevCount = Integer.valueOf(0);
+					dirsCapacity.put(fontDir.getAbsolutePath(), new Integer(prevCount.intValue() + 1));
 				}
 			}
 		}
-		Collections.sort(fontPaths);
-		return fontPaths.toArray(new String[] {});
+		ArrayList<String> resArray = new ArrayList<String>();
+		Map.Entry<String, Integer> entry;
+		Iterator<Map.Entry<String, Integer>> it = dirsCapacity.entrySet().iterator();
+		while (it.hasNext()) {
+			entry = it.next();
+			resArray.add(entry.getKey() + ": " + entry.getValue().toString() + " registered font(s)");
+		}
+		return resArray;
 	}
 
 	private String SO_NAME = "lib" + LIBRARY_NAME + ".so";
@@ -1611,7 +1624,7 @@ public class Engine {
 
 	public static void findHyphDictionariesFromDirectory(File dir) {
 		for (File f : dir.listFiles()) {
-			if (!f.isDirectory()) {
+			if (f.isFile()) {
 				if (HyphDict.fromFile(f))
 					log.i("Registered external hyphenation dict " + f.getAbsolutePath());
 			}
@@ -1634,7 +1647,7 @@ public class Engine {
 	public void findTexturesFromDirectory(File dir,
 			Collection<BackgroundTextureInfo> listToAppend) {
 		for (File f : dir.listFiles()) {
-			if (!f.isDirectory()) {
+			if (f.isFile()) {
 				BackgroundTextureInfo item = BackgroundTextureInfo.fromFile(f
 						.getAbsolutePath());
 				if (item != null)
@@ -1660,24 +1673,45 @@ public class Engine {
 		}
 	}
 
-	public static String findDirs(int iDir) {
+	enum DataDirType {
+		TexturesDirs,
+		BackgroundsDirs,
+		HyphsDirs
+	}
+
+	public static ArrayList<String> getDataDirs(DataDirType dirType) {
+		ArrayList<String> res = new ArrayList<String>();
 		for (File d : getStorageDirectories(false)) {
 			File base = new File(d, ".cr3");
 			if (!base.isDirectory())
 				base = new File(d, "cr3");
 			if (!base.isDirectory())
 				continue;
-			File subdirTextures = new File(base, "textures");
-			File subdirBackgrounds = new File(base, "backgrounds");
-			File subdirHyph = new File(base, "hyph");
-			if (iDir==0)
-				return subdirTextures.getAbsolutePath()+(subdirTextures.isDirectory() ? "": " [not found]");
-			if (iDir==1)
-				return subdirBackgrounds.getAbsolutePath()+(subdirBackgrounds.isDirectory() ? "": " [not found]");
-			if (iDir==2)
-				return subdirHyph.getAbsolutePath()+(subdirHyph.isDirectory() ? "": " [not found]");
+			switch (dirType) {
+				case TexturesDirs:
+					File subdirTextures = new File(base, "textures");
+					if (subdirTextures.isDirectory())
+						res.add(subdirTextures.getAbsolutePath());
+					else
+						res.add(subdirTextures.getAbsolutePath() + " [not found]");
+					break;
+				case BackgroundsDirs:
+					File subdirBackgrounds = new File(base, "backgrounds");
+					if (subdirBackgrounds.isDirectory())
+						res.add(subdirBackgrounds.getAbsolutePath());
+					else
+						res.add(subdirBackgrounds.getAbsolutePath() + " [not found]");
+					break;
+				case HyphsDirs:
+					File subdirHyph = new File(base, "hyph");
+					if (subdirHyph.isDirectory())
+						res.add(subdirHyph.getAbsolutePath());
+					else
+						res.add(subdirHyph.getAbsolutePath() + " [not found]");
+					break;
+			}
 		}
-		return "[not found]";
+		return res;
 	}
 
 	public byte[] getImageData(BackgroundTextureInfo texture) {

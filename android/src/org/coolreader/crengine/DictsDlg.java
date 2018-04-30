@@ -8,33 +8,24 @@ import org.coolreader.R;
 
 import android.content.Context;
 import android.database.DataSetObserver;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
 public class DictsDlg extends BaseDialog {
-	CoolReader mCoolReader;
-	ReaderView mReaderView;
+	private CoolReader mCoolReader;
+	private ReaderView mReaderView;
 	private LayoutInflater mInflater;
-    DictList mList;
-    String sSearchText;
+	private DictList mList;
+	private String mSearchText;
 
-	DictsDlg mThis;
+	//DictsDlg mThis;
 
 	public final static int ITEM_POSITION=0;
 
@@ -71,10 +62,8 @@ public class DictsDlg extends BaseDialog {
 			return 4;
 		}
 
-		
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View view;
-			int type = getItemViewType(position);
 			int res = R.layout.dict_item;
 			view = mInflater.inflate(res, null);
 			TextView labelView = (TextView)view.findViewById(R.id.dict_item_shortcut);
@@ -137,7 +126,7 @@ public class DictsDlg extends BaseDialog {
 			//	return true;
 			//selectedItem = position;
 			mCoolReader.mDictionaries.setAdHocDict(Dictionaries.getDictListExt(mCoolReader,true).get(position));
-			mCoolReader.findInDictionary( sSearchText);
+			mCoolReader.findInDictionary(mSearchText);
 			if (!mReaderView.getSettings().getBool(mReaderView.PROP_APP_SELECTION_PERSIST, false))
 				mReaderView.clearSelection();
 			dismiss();
@@ -146,15 +135,13 @@ public class DictsDlg extends BaseDialog {
 		
 		
 	}
-	
-	final static int SHORTCUT_COUNT = 10;
-	
+
 	public DictsDlg( CoolReader activity, ReaderView readerView, String search_text )
 	{
 		super(activity, activity.getResources().getString(R.string.win_title_dicts), false, true);
-		mThis = this; // for inner classes
-        mInflater = LayoutInflater.from(getContext());
-		sSearchText = search_text;
+		//mThis = this; // for inner classes
+		mInflater = LayoutInflater.from(getContext());
+		mSearchText = search_text;
 		mCoolReader = activity;
 		mReaderView = readerView;
 		//setPositiveButtonImage(R.drawable.cr3_button_add, R.string.mi_Dict_add);
@@ -181,7 +168,7 @@ public class DictsDlg extends BaseDialog {
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.v("cr3", "creating DictsDlg");
 		//setTitle(mCoolReader.getResources().getString(R.string.win_title_Dicts));
-        setCancelable(true);
+		setCancelable(true);
 		super.onCreate(savedInstanceState);
 		registerForContextMenu(mList);
 	}

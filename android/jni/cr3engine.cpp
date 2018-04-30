@@ -630,6 +630,21 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    getFontFileNameListInternal
+ * Signature: ()[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFileNameListInternal
+        (JNIEnv * penv, jclass cls)
+{
+    LOGI("getFontFileListInternal called");
+    CRJNIEnv env(penv);
+    lString16Collection list;
+    COFFEE_TRY_JNI(penv, fontMan->getFontFileNameList(list));
+    return env.toJavaStringArray(list);
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    setCacheDirectoryInternal
  * Signature: (Ljava/lang/String;I)Z
  */
