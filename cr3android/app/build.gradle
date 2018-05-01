@@ -12,6 +12,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_TOOLCHAIN=clang"
+                arguments "-DANDROID_STL=c++_static"
                 cppFlags ""
             }
         }
@@ -27,9 +28,36 @@ android {
     }
     buildTypes {
         release {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            externalNativeBuild {
+                cmake {
+                    arguments "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+                }
+            }
+        }
+        release_minsize {
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules-optimize.pro'
+            externalNativeBuild {
+                cmake {
+                    arguments "-DCMAKE_BUILD_TYPE=Release"
+                }
+            }
+        }
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            useProguard false
+            jniDebuggable true
+            debuggable true
+            externalNativeBuild {
+                cmake {
+                    arguments "-DCMAKE_BUILD_TYPE=Debug"
+                }
+            }
         }
     }
     gradle.projectsEvaluated {
@@ -45,10 +73,12 @@ android {
     lintOptions {
         disable 'MissingTranslation'
     }
-    useLibrary 'org.apache.http.legacy'
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
     }
+
+    // https://developer.android.com/about/versions/marshmallow/android-6.0-changes#behavior-apache-http-client
+    useLibrary 'org.apache.http.legacy'
 }
 
 dependencies {
