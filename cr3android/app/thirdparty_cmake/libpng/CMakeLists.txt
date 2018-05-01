@@ -2,8 +2,10 @@
 project(png)
 
 set(PNG_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/libpng)
+set(PNG_CONFIG_DIR ${PROJECT_SOURCE_DIR}/../../../../android/jni/thirdparty/libpng)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${PNG_CONFIG_DIR})
 
 option(PNG_HARDWARE_OPTIMIZATIONS "Enable Hardware Optimizations" ON)
 

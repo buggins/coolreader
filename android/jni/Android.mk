@@ -1,14 +1,13 @@
-#include ../../Android.mk
+
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := cr3engine-3-1-2
 
-# Generate CREngine blob with statically linked libjpeg, libpng, libfreetype, chmlib
-# TODO: build libraries using separate makefiles
+# Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, chmlib
 
-CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
+CRFLAGS := -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
      -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<builds/android/include/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<builds/android/include/config/ftoption.h\> \
      -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
@@ -16,19 +15,20 @@ CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
      -DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1 \
      -DMAX_IMAGE_SCALE_MUL=2
 
-CR3_ROOT = $(LOCAL_PATH)/../..
+CR3_ROOT := $(LOCAL_PATH)/../..
 
 LOCAL_C_INCLUDES := \
-    -I $(CR3_ROOT)/crengine/include \
-    -I $(CR3_ROOT)/thirdparty/libpng \
-    -I $(CR3_ROOT)/thirdparty/freetype/include \
-    -I $(CR3_ROOT)/thirdparty/freetype \
-    -I $(CR3_ROOT)/thirdparty/libjpeg \
-    -I $(CR3_ROOT)/thirdparty/antiword \
-    -I $(CR3_ROOT)/thirdparty/chmlib/src
+    $(CR3_ROOT)/crengine/include \
+    $(CR3_ROOT)/thirdparty/libpng \
+    $(CR3_ROOT)/thirdparty/freetype/include \
+    $(CR3_ROOT)/thirdparty/freetype \
+    $(CR3_ROOT)/thirdparty/harfbuzz/src \
+    $(CR3_ROOT)/thirdparty/libjpeg \
+    $(CR3_ROOT)/thirdparty/antiword \
+    $(CR3_ROOT)/thirdparty/chmlib/src
 
 
-LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES)
+LOCAL_CFLAGS += $(CRFLAGS)
 
 LOCAL_CFLAGS += -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall
 
@@ -72,169 +72,6 @@ CRENGINE_SRC_FILES := \
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \
 
-PNG_SRC_FILES := \
-    ../../thirdparty/libpng/png.c \
-    ../../thirdparty/libpng/pngerror.c \
-    ../../thirdparty/libpng/pngget.c \
-    ../../thirdparty/libpng/pngmem.c \
-    ../../thirdparty/libpng/pngpread.c \
-    ../../thirdparty/libpng/pngread.c \
-    ../../thirdparty/libpng/pngrio.c \
-    ../../thirdparty/libpng/pngrtran.c \
-    ../../thirdparty/libpng/pngrutil.c \
-    ../../thirdparty/libpng/pngset.c \
-    ../../thirdparty/libpng/pngtrans.c \
-    ../../thirdparty/libpng/pngwio.c \
-    ../../thirdparty/libpng/pngwrite.c \
-    ../../thirdparty/libpng/pngwtran.c \
-    ../../thirdparty/libpng/pngwutil.c
-
-ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
-PNG_SRC_FILES += \
-    ../../thirdparty/libpng/arm/arm_init.c \
-    ../../thirdparty/libpng/arm/filter_neon.S \
-    ../../thirdparty/libpng/arm/filter_neon_intrinsics.c
-endif
-
-ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
-PNG_SRC_FILES += \
-    ../../thirdparty/libpng/arm/arm_init.c \
-    ../../thirdparty/libpng/arm/filter_neon.S \
-    ../../thirdparty/libpng/arm/filter_neon_intrinsics.c
-endif
-
-ifeq ($(TARGET_ARCH_ABI),x86_64)
-PNG_SRC_FILES += \
-    ../../thirdparty/libpng/intel/intel_init.c \
-    ../../thirdparty/libpng/intel/filter_sse2_intrinsics.c
-endif
-
-JPEG_SRC_FILES := \
-    ../../thirdparty/libjpeg/jaricom.c \
-    ../../thirdparty/libjpeg/jcapimin.c \
-    ../../thirdparty/libjpeg/jcapistd.c \
-    ../../thirdparty/libjpeg/jcarith.c \
-    ../../thirdparty/libjpeg/jccoefct.c \
-    ../../thirdparty/libjpeg/jccolor.c \
-    ../../thirdparty/libjpeg/jcdctmgr.c \
-    ../../thirdparty/libjpeg/jchuff.c \
-    ../../thirdparty/libjpeg/jcinit.c \
-    ../../thirdparty/libjpeg/jcmainct.c \
-    ../../thirdparty/libjpeg/jcmarker.c \
-    ../../thirdparty/libjpeg/jcmaster.c \
-    ../../thirdparty/libjpeg/jcomapi.c \
-    ../../thirdparty/libjpeg/jcparam.c \
-    ../../thirdparty/libjpeg/jcprepct.c \
-    ../../thirdparty/libjpeg/jcsample.c \
-    ../../thirdparty/libjpeg/jctrans.c \
-    ../../thirdparty/libjpeg/jdapimin.c \
-    ../../thirdparty/libjpeg/jdapistd.c \
-    ../../thirdparty/libjpeg/jdarith.c \
-    ../../thirdparty/libjpeg/jdatadst.c \
-    ../../thirdparty/libjpeg/jdatasrc.c \
-    ../../thirdparty/libjpeg/jdcoefct.c \
-    ../../thirdparty/libjpeg/jdcolor.c \
-    ../../thirdparty/libjpeg/jddctmgr.c \
-    ../../thirdparty/libjpeg/jdhuff.c \
-    ../../thirdparty/libjpeg/jdinput.c \
-    ../../thirdparty/libjpeg/jdmainct.c \
-    ../../thirdparty/libjpeg/jdmarker.c \
-    ../../thirdparty/libjpeg/jdmaster.c \
-    ../../thirdparty/libjpeg/jdmerge.c \
-    ../../thirdparty/libjpeg/jdpostct.c \
-    ../../thirdparty/libjpeg/jdsample.c \
-    ../../thirdparty/libjpeg/jdtrans.c \
-    ../../thirdparty/libjpeg/jerror.c \
-    ../../thirdparty/libjpeg/jfdctflt.c \
-    ../../thirdparty/libjpeg/jfdctfst.c \
-    ../../thirdparty/libjpeg/jfdctint.c \
-    ../../thirdparty/libjpeg/jidctflt.c \
-    ../../thirdparty/libjpeg/jidctfst.c \
-    ../../thirdparty/libjpeg/jidctint.c \
-    ../../thirdparty/libjpeg/jquant1.c \
-    ../../thirdparty/libjpeg/jquant2.c \
-    ../../thirdparty/libjpeg/jutils.c \
-    ../../thirdparty/libjpeg/jmemmgr.c \
-    ../../thirdparty/libjpeg/jmemnobs.c
-
-FREETYPE_SRC_FILES := \
-    ../../thirdparty/freetype/src/autofit/autofit.c \
-    ../../thirdparty/freetype/src/base/ftbase.c \
-    ../../thirdparty/freetype/src/base/ftinit.c \
-    ../../thirdparty/freetype/src/base/ftfntfmt.c \
-    ../../thirdparty/freetype/src/base/ftsystem.c \
-    ../../thirdparty/freetype/src/base/ftglyph.c \
-    ../../thirdparty/freetype/src/base/ftbitmap.c \
-    ../../thirdparty/freetype/src/base/ftlcdfil.c \
-    ../../thirdparty/freetype/src/bdf/bdf.c \
-    ../../thirdparty/freetype/src/cache/ftcache.c \
-    ../../thirdparty/freetype/src/cff/cff.c \
-    ../../thirdparty/freetype/src/cid/type1cid.c \
-    ../../thirdparty/freetype/src/gzip/ftgzip.c \
-    ../../thirdparty/freetype/src/lzw/ftlzw.c \
-    ../../thirdparty/freetype/src/pcf/pcf.c \
-    ../../thirdparty/freetype/src/pfr/pfr.c \
-    ../../thirdparty/freetype/src/psaux/psaux.c \
-    ../../thirdparty/freetype/src/pshinter/pshinter.c \
-    ../../thirdparty/freetype/src/psnames/psnames.c \
-    ../../thirdparty/freetype/src/raster/raster.c \
-    ../../thirdparty/freetype/src/sfnt/sfnt.c \
-    ../../thirdparty/freetype/src/smooth/smooth.c \
-    ../../thirdparty/freetype/src/truetype/truetype.c \
-    ../../thirdparty/freetype/src/type1/type1.c \
-    ../../thirdparty/freetype/src/type42/type42.c \
-    ../../thirdparty/freetype/src/winfonts/winfnt.c
-#   ../../thirdparty/freetype/src/gxvalid/gxvalid.c
-#   ../../thirdparty/freetype/src/otvalid/otvalid.c
-
-CHM_SRC_FILES := \
-    ../../thirdparty/chmlib/src/chm_lib.c \
-    ../../thirdparty/chmlib/src/lzx.c 
-
-ANTIWORD_SRC_FILES := \
-    ../../thirdparty/antiword/asc85enc.c \
-    ../../thirdparty/antiword/blocklist.c \
-    ../../thirdparty/antiword/chartrans.c \
-    ../../thirdparty/antiword/datalist.c \
-    ../../thirdparty/antiword/depot.c \
-    ../../thirdparty/antiword/doclist.c \
-    ../../thirdparty/antiword/fail.c \
-    ../../thirdparty/antiword/finddata.c \
-    ../../thirdparty/antiword/findtext.c \
-    ../../thirdparty/antiword/fontlist.c \
-    ../../thirdparty/antiword/fonts.c \
-    ../../thirdparty/antiword/fonts_u.c \
-    ../../thirdparty/antiword/hdrftrlist.c \
-    ../../thirdparty/antiword/imgexam.c \
-    ../../thirdparty/antiword/listlist.c \
-    ../../thirdparty/antiword/misc.c \
-    ../../thirdparty/antiword/notes.c \
-    ../../thirdparty/antiword/options.c \
-    ../../thirdparty/antiword/out2window.c \
-    ../../thirdparty/antiword/pdf.c \
-    ../../thirdparty/antiword/pictlist.c \
-    ../../thirdparty/antiword/prop0.c \
-    ../../thirdparty/antiword/prop2.c \
-    ../../thirdparty/antiword/prop6.c \
-    ../../thirdparty/antiword/prop8.c \
-    ../../thirdparty/antiword/properties.c \
-    ../../thirdparty/antiword/propmod.c \
-    ../../thirdparty/antiword/rowlist.c \
-    ../../thirdparty/antiword/sectlist.c \
-    ../../thirdparty/antiword/stylelist.c \
-    ../../thirdparty/antiword/stylesheet.c \
-    ../../thirdparty/antiword/summary.c \
-    ../../thirdparty/antiword/tabstop.c \
-    ../../thirdparty/antiword/unix.c \
-    ../../thirdparty/antiword/utf8.c \
-    ../../thirdparty/antiword/word2text.c \
-    ../../thirdparty/antiword/worddos.c \
-    ../../thirdparty/antiword/wordlib.c \
-    ../../thirdparty/antiword/wordmac.c \
-    ../../thirdparty/antiword/wordole.c \
-    ../../thirdparty/antiword/wordwin.c \
-    ../../thirdparty/antiword/xmalloc.c
-
 JNI_SRC_FILES := \
     cr3engine.cpp \
     cr3java.cpp \
@@ -246,22 +83,36 @@ COFFEECATCH_SRC_FILES := \
 
 LOCAL_SRC_FILES := \
     $(JNI_SRC_FILES) \
-    $(CRENGINE_SRC_FILES) \
-    $(FREETYPE_SRC_FILES) \
-    $(PNG_SRC_FILES) \
-    $(JPEG_SRC_FILES) \
-    $(CHM_SRC_FILES) \
-    $(ANTIWORD_SRC_FILES)
-
-ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
-LOCAL_SRC_FILES += \
-    $(COFFEECATCH_SRC_FILES)
-endif
+    $(CRENGINE_SRC_FILES)
 
 ifeq ($(TARGET_ARCH_ABI),armeabi)
 LOCAL_SRC_FILES += \
     $(COFFEECATCH_SRC_FILES)
 endif
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+ifeq ($(TARGET_ARCH_ABI),mips)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+ifeq ($(TARGET_ARCH_ABI),x86)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+
+LOCAL_STATIC_LIBRARIES := \
+        local_png \
+        local_jpeg \
+        local_freetype \
+        local_harfbuzz \
+        local_chmlib \
+        local_antiword
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl
 # 
@@ -270,3 +121,6 @@ LOCAL_LDLIBS    := -lm -llog -lz -ldl
 
 include $(BUILD_SHARED_LIBRARY)
 
+MY_LOCAL_PATH := $(LOCAL_PATH)
+
+include $(MY_LOCAL_PATH)/thirdparty/Android.mk
