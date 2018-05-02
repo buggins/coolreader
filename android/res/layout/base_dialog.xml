@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/base_dialog" 
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/base_dialog"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:minWidth="1200dip"
@@ -14,20 +15,22 @@
         android:minWidth="?android:attr/listPreferredItemHeight"
 	    android:gravity="center_vertical"
 	    android:paddingRight="?android:attr/scrollbarSize"
-        android:background="#40404040">
-        <ImageButton android:id="@+id/base_dlg_btn_back"
+        android:background="?attr/tabbarBackground">
+
+        <ImageButton
+            android:id="@+id/base_dlg_btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dip"
+            android:layout_centerVertical="true"
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:layout_centerVertical="true"
-            android:src="@drawable/cr3_button_prev"
+            android:layout_marginTop="5dip"
+            android:background="@null"
+            android:contentDescription="@string/dlg_button_back"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:background="@null"
-            android:contentDescription="@string/dlg_button_back"/>
+            android:src="?attr/cr3_button_prev_drawable" />
         <TextView android:id="@+id/base_dlg_title"
             style="@style/TextAppearance.Medium"
             android:layout_width="wrap_content"
@@ -49,7 +52,7 @@
             android:layout_marginRight="5dip"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
-            android:src="@drawable/cr3_button_ok"
+            android:src="?attr/cr3_button_ok_drawable"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:background="@null"
@@ -62,7 +65,7 @@
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
             android:layout_centerVertical="true"
-            android:src="@drawable/cr3_button_cancel"
+            android:src="?attr/cr3_button_cancel_drawable"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:background="@null"

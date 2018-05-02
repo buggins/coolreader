@@ -291,7 +291,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			ImageView icon = (ImageView)view.findViewById(R.id.item_icon);
 			TextView label = (TextView)view.findViewById(R.id.item_name);
 			if (item.isOPDSRoot()) {
-				icon.setImageResource(R.drawable.cr3_browser_folder_opds_add);
+				icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_opds_add_drawable, R.drawable.cr3_browser_folder_opds_add));
 				label.setText("Add");
 				view.setOnClickListener(new OnClickListener() {
 					@Override
@@ -393,11 +393,11 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
             ImageView icon = (ImageView) view.findViewById(R.id.item_icon);
             TextView label = (TextView) view.findViewById(R.id.item_name);
             if (item.getType() == FileInfo.TYPE_DOWNLOAD_DIR)
-                icon.setImageResource(R.drawable.folder_bookmark);
+                icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.folder_big_bookmark_drawable, R.drawable.folder_bookmark));
             else if (item.getType() == FileInfo.TYPE_FS_ROOT)
-                icon.setImageResource(R.drawable.media_flash_sd_mmc);
+                icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.media_flash_microsd_drawable, R.drawable.media_flash_sd_mmc));
             else
-                icon.setImageResource(R.drawable.folder_blue);
+                icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.folder_big_drawable, R.drawable.folder_blue));
             if (item.title != null)
             	label.setText(item.title); //  filename
             else if (item.getType() == FileInfo.TYPE_FS_ROOT || item.getType() == FileInfo.TYPE_DOWNLOAD_DIR)
@@ -480,9 +480,9 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			ImageView image = (ImageView)view.findViewById(R.id.item_icon);
 			TextView label = (TextView)view.findViewById(R.id.item_name);
 			if (item.isSearchShortcut())
-				image.setImageResource(R.drawable.cr3_browser_find);
+				image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_find_drawable, R.drawable.cr3_browser_find));
 			else if (item.isBooksByAuthorRoot() || item.isBooksByTitleRoot() || item.isBooksBySeriesRoot())
-				image.setImageResource(R.drawable.cr3_browser_folder_authors);
+				image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
 			if (label != null) {
 				label.setText(item.filename);
 				label.setMinWidth(coverWidth);

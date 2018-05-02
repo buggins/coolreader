@@ -2,8 +2,10 @@ package org.coolreader.crengine;
 
 import java.util.ArrayList;
 
+import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -251,7 +253,12 @@ public class CRToolBar extends ViewGroup {
 			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));
 			Utils.setContentDescription(ib, getContext().getString(R.string.btn_toolbar_more));
 		}
-		ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
+		TypedArray a = activity.getTheme().obtainStyledAttributes( new int[] { R.attr.cr3_toolbar_button_background_drawable } );
+		int cr3_toolbar_button_background = a.getResourceId(0, 0);
+		a.recycle();
+		if (0 == cr3_toolbar_button_background)
+			cr3_toolbar_button_background = R.drawable.cr3_toolbar_button_background;
+		ib.setBackgroundResource(cr3_toolbar_button_background);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
 		if (item == null)
 			overflowButton = ib;

@@ -8,7 +8,71 @@
     <attr name="statusbarBackgroundBrowser" format="reference|color" />
     <attr name="statusbarBackgroundReader" format="reference|color" />
     <declare-styleable name="View">
-	    <attr name="horizontalDelimiterRoot"/>
-	    <attr name="horizontalDelimiterSizeRoot"></attr>
-	</declare-styleable>
+        <attr name="horizontalDelimiterRoot"/>
+        <attr name="horizontalDelimiterSizeRoot"></attr>
+    </declare-styleable>
+    <attr name="tabbarBackground" format="reference|color" />
+    <attr name="cr3_toolbar_button_background_drawable" format="reference" />
+    <attr name="cr3_button_prev_drawable" format="reference" />
+    <attr name="cr3_button_next_drawable" format="reference" />
+    <attr name="cr3_viewer_toc_drawable" format="reference" />
+    <attr name="cr3_viewer_find_drawable" format="reference" />
+    <attr name="cr3_viewer_settings_drawable" format="reference" />
+    <attr name="cr3_button_bookmarks_drawable" format="reference" />
+    <attr name="cr3_browser_folder_root_drawable" format="reference" />
+    <attr name="cr3_option_night_drawable" format="reference" />
+    <attr name="cr3_option_touch_drawable" format="reference" />
+    <attr name="cr3_button_go_page_drawable" format="reference" />
+    <attr name="cr3_button_go_percent_drawable" format="reference" />
+    <attr name="cr3_browser_folder_drawable" format="reference" />
+    <attr name="cr3_button_tts_drawable" format="reference" />
+    <attr name="cr3_browser_folder_recent_drawable" format="reference" />
+    <attr name="cr3_button_scroll_go_drawable" format="reference" />
+    <attr name="cr3_btn_books_swap_drawable" format="reference" />
+    <attr name="cr3_logo_button_drawable" format="reference" />
+    <attr name="cr3_viewer_exit_drawable" format="reference" />
+    <attr name="cr3_button_book_open_drawable" format="reference" />
+    <attr name="cr3_browser_folder_current_book_drawable" format="reference" />
+    <attr name="cr3_browser_folder_opds_drawable" format="reference" />
+    <attr name="cr3_browser_folder_opds_add_drawable" format="reference" />
+    <attr name="cr3_button_folder_go_drawable" format="reference" />
+    <attr name="cr3_option_font_face_drawable" format="reference" />
+    <attr name="cr3_option_font_size_drawable" format="reference" />
+    <attr name="cr3_option_text_bold_drawable" format="reference" />
+    <attr name="cr3_option_text_italic_drawable" format="reference" />
+    <attr name="cr3_option_text_underline_drawable" format="reference" />
+    <attr name="cr3_option_text_superscript_drawable" format="reference" />
+    <attr name="cr3_option_text_antialias_drawable" format="reference" />
+    <attr name="cr3_option_line_spacing_drawable" format="reference" />
+    <attr name="cr3_option_text_hyphenation_drawable" format="reference" />
+    <attr name="cr3_option_text_floating_punct_drawable" format="reference" />
+    <attr name="cr3_option_text_kerning_drawable" format="reference" />
+    <attr name="cr3_option_images_drawable" format="reference" />
+    <attr name="cr3_option_font_gamma_drawable" format="reference" />
+    <attr name="cr3_option_text_width_drawable" format="reference" />
+    <attr name="cr3_option_fullscreen_drawable" format="reference" />
+    <attr name="cr3_option_view_mode_scroll_drawable" format="reference" />
+    <attr name="cr3_option_page_orientation_landscape_drawable" format="reference" />
+    <attr name="cr3_option_pages_two_drawable" format="reference" />
+    <attr name="cr3_option_text_margin_left_drawable" format="reference" />
+    <attr name="cr3_option_text_margin_right_drawable" format="reference" />
+    <attr name="cr3_option_text_margin_top_drawable" format="reference" />
+    <attr name="cr3_option_text_margin_bottom_drawable" format="reference" />
+    <attr name="cr3_option_text_align_drawable" format="reference" />
+    <attr name="cr3_option_text_indent_drawable" format="reference" />
+    <attr name="cr3_option_controls_keys_drawable" format="reference" />
+    <attr name="cr3_option_controls_tapzones_drawable" format="reference" />
+    <attr name="cr3_option_other_drawable" format="reference" />
+    <attr name="cr3_browser_folder_authors_drawable" format="reference" />
+    <attr name="cr3_browser_folder_zip_drawable" format="reference" />
+    <attr name="cr3_browser_find_drawable" format="reference" />
+    <attr name="cr3_browser_back_drawable" format="reference" />
+    <attr name="cr3_button_add_drawable" format="reference" />
+    <attr name="cr3_button_ok_drawable" format="reference" />
+    <attr name="cr3_button_cancel_drawable" format="reference" />
+    <attr name="cr3_button_more_drawable" format="reference" />
+
+    <attr name="folder_big_drawable" format="reference" />
+    <attr name="folder_big_bookmark_drawable" format="reference" />
+    <attr name="media_flash_microsd_drawable" format="reference" />
 </resources>

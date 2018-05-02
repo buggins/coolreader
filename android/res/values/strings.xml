@@ -396,6 +396,7 @@
     <string name="options_app_ui_theme_gray1">Gray 1</string>
     <string name="options_app_ui_theme_gray2">Gray 2</string>
     <string name="options_app_ui_theme_light">Light</string>
+    <string name="options_app_ui_theme_hicontrast">High Contrast</string>
     <string name="options_css_text_align_center">Center</string>
     <string name="options_css_text_align_justify">Justify</string>
     <string name="options_css_text_align_left">Left</string>

@@ -23,7 +23,7 @@ public class DeviceInfo {
 	public final static boolean EINK_ONYX;
 	public final static boolean EINK_DNS;
 	public final static boolean EINK_TOLINO;
-	public final static boolean FORCE_LIGHT_THEME;
+	public final static boolean FORCE_HC_THEME;
 	public final static boolean EINK_SONY;
 	public final static boolean SONY_NAVIGATION_KEYS;
 	public final static boolean USE_CUSTOM_TOAST;
@@ -131,7 +131,7 @@ public class DeviceInfo {
 		NOOK_NAVIGATION_KEYS = EINK_NOOK; // TODO: add autodetect
 		SONY_NAVIGATION_KEYS = EINK_SONY;
 		EINK_SCREEN_UPDATE_MODES_SUPPORTED = EINK_SCREEN && ( EINK_NOOK || EINK_TOLINO ); // TODO: add autodetect
-		FORCE_LIGHT_THEME = EINK_SCREEN || MODEL.equalsIgnoreCase("pocketbook vision");
+		FORCE_HC_THEME = EINK_SCREEN || MODEL.equalsIgnoreCase("pocketbook vision");
 		USE_CUSTOM_TOAST = EINK_SCREEN;
 		NOFLIBUSTA = POCKETBOOK;
 		NAVIGATE_LEFTRIGHT = POCKETBOOK && DEVICE.startsWith("EP10");

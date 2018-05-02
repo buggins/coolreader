@@ -177,7 +177,7 @@ public class BaseActivity extends Activity implements Settings {
 
 		// load settings
 		Properties props = settings();
-		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 		setLanguage(lang);
 		setCurrentTheme(theme);
@@ -212,7 +212,7 @@ public class BaseActivity extends Activity implements Settings {
 		super.onStart();
 
 //		Properties props = settings().get();
-//		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+//		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "WHITE" : "LIGHT");
 //		setCurrentTheme(theme);
 		
 		mIsStarted = true;
@@ -311,7 +311,7 @@ public class BaseActivity extends Activity implements Settings {
 
 
 
-	private InterfaceTheme currentTheme = DeviceInfo.FORCE_LIGHT_THEME ? InterfaceTheme.WHITE : InterfaceTheme.LIGHT;
+	private InterfaceTheme currentTheme = null;
 	
 	public InterfaceTheme getCurrentTheme() {
 		return currentTheme;
@@ -319,7 +319,9 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void setCurrentTheme(String themeCode) {
 		InterfaceTheme theme = InterfaceTheme.findByCode(themeCode);
-		if (theme != null && currentTheme != theme) {
+		if (null == theme)
+			theme = DeviceInfo.FORCE_HC_THEME ? InterfaceTheme.HICONTRAST : InterfaceTheme.LIGHT;
+		if (currentTheme != theme) {
 			setCurrentTheme(theme);
 		}
 	}
@@ -373,12 +375,90 @@ public class BaseActivity extends Activity implements Settings {
             minFontSize = 9;
         }
 
+	public void updateActionsIcons() {
+		int [] attrs = { R.attr.cr3_button_prev_drawable, R.attr.cr3_button_next_drawable, R.attr.cr3_viewer_toc_drawable,
+						 R.attr.cr3_viewer_find_drawable, R.attr.cr3_viewer_settings_drawable, R.attr.cr3_button_bookmarks_drawable,
+						 R.attr.cr3_browser_folder_root_drawable, R.attr.cr3_option_night_drawable, R.attr.cr3_option_touch_drawable,
+						 R.attr.cr3_button_go_page_drawable, R.attr.cr3_button_go_percent_drawable, R.attr.cr3_browser_folder_drawable,
+						 R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
+						 R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
+						 R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable };
+		TypedArray a = getTheme().obtainStyledAttributes(attrs);
+		int btnPrevDrawableRes = a.getResourceId(0, 0);
+		int btnNextDrawableRes = a.getResourceId(1, 0);
+		int viewerTocDrawableRes = a.getResourceId(2, 0);
+		int viewerFindDrawableRes = a.getResourceId(3, 0);
+		int viewerSettingDrawableRes = a.getResourceId(4, 0);
+		int btnBookmarksDrawableRes = a.getResourceId(5, 0);
+		int brFolderRootDrawableRes = a.getResourceId(6, 0);
+		int optionNightDrawableRes = a.getResourceId(7, 0);
+		int optionTouchDrawableRes = a.getResourceId(8, 0);
+		int btnGoPageDrawableRes = a.getResourceId(9, 0);
+		int btnGoPercentDrawableRes = a.getResourceId(10, 0);
+		int brFolderDrawableRes = a.getResourceId(11, 0);
+		int btnTtsDrawableRes = a.getResourceId(12, 0);
+		int brFolderRecentDrawableRes = a.getResourceId(13, 0);
+		int btnScrollGoDrawableRes = a.getResourceId(14, 0);
+		int btnBooksSwapDrawableRes = a.getResourceId(15, 0);
+		int logoBtnDrawableRes = a.getResourceId(16, 0);
+		int viewerExitDrawableRes = a.getResourceId(17, 0);
+		int btnBookOpenDrawableRes = a.getResourceId(18, 0);
+		int brFolderCurrBookDrawableRes = a.getResourceId(19, 0);
+		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
+		a.recycle();
+		if (btnPrevDrawableRes != 0) {
+			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
+			ReaderAction.FILE_BROWSER_UP.setIconId(btnPrevDrawableRes);
+		}
+		if (btnNextDrawableRes != 0)
+			ReaderAction.GO_FORWARD.setIconId(btnNextDrawableRes);
+		if (viewerTocDrawableRes != 0)
+			ReaderAction.TOC.setIconId(viewerTocDrawableRes);
+		if (viewerFindDrawableRes != 0)
+			ReaderAction.SEARCH.setIconId(viewerFindDrawableRes);
+		if (viewerSettingDrawableRes != 0)
+			ReaderAction.OPTIONS.setIconId(viewerSettingDrawableRes);
+		if (btnBookmarksDrawableRes != 0)
+			ReaderAction.BOOKMARKS.setIconId(btnBookmarksDrawableRes);
+		if (brFolderRootDrawableRes != 0)
+			ReaderAction.FILE_BROWSER_ROOT.setIconId(brFolderRootDrawableRes);
+		if (optionNightDrawableRes != 0)
+			ReaderAction.TOGGLE_DAY_NIGHT.setIconId(optionNightDrawableRes);
+		if (optionTouchDrawableRes != 0)
+			ReaderAction.TOGGLE_SELECTION_MODE.setIconId(optionTouchDrawableRes);
+		if (btnGoPageDrawableRes != 0)
+			ReaderAction.GO_PAGE.setIconId(btnGoPageDrawableRes);
+		if (btnGoPercentDrawableRes != 0)
+			ReaderAction.GO_PERCENT.setIconId(btnGoPercentDrawableRes);
+		if (brFolderDrawableRes != 0)
+			ReaderAction.FILE_BROWSER.setIconId(brFolderDrawableRes);
+		if (btnTtsDrawableRes != 0)
+			ReaderAction.TTS_PLAY.setIconId(btnTtsDrawableRes);
+		if (brFolderRecentDrawableRes != 0)
+			ReaderAction.RECENT_BOOKS.setIconId(brFolderRecentDrawableRes);
+		if (btnScrollGoDrawableRes != 0)
+			ReaderAction.TOGGLE_AUTOSCROLL.setIconId(btnScrollGoDrawableRes);
+		if (btnBooksSwapDrawableRes != 0)
+			ReaderAction.OPEN_PREVIOUS_BOOK.setIconId(btnBooksSwapDrawableRes);
+		if (logoBtnDrawableRes != 0)
+			ReaderAction.ABOUT.setIconId(logoBtnDrawableRes);
+		if (viewerExitDrawableRes != 0)
+			ReaderAction.EXIT.setIconId(viewerExitDrawableRes);
+		if (btnBookOpenDrawableRes != 0)
+			ReaderAction.CURRENT_BOOK.setIconId(btnBookOpenDrawableRes);
+		if (brFolderCurrBookDrawableRes != 0)
+			ReaderAction.CURRENT_BOOK_DIRECTORY.setIconId(brFolderCurrBookDrawableRes);
+		if (brFolderOpdsDrawableRes != 0)
+			ReaderAction.OPDS_CATALOGS.setIconId(brFolderOpdsDrawableRes);
+	}
+
 	public void setCurrentTheme(InterfaceTheme theme) {
 		log.i("setCurrentTheme(" + theme + ")");
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
 		updateBackground();
+		updateActionsIcons();
 	}
 
 	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_USER;
@@ -1540,9 +1620,9 @@ public class BaseActivity extends Activity implements Settings {
 
 	        props.applyDefault(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 	        
-	        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
-	        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
-	        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_LIGHT_THEME ? "BLACK" : "DARK");
+	        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
+	        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
+	        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "DARK");
 	        props.applyDefault(ReaderView.PROP_APP_SELECTION_PERSIST, "0");
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
 	        if ("1".equals(props.getProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK)))
@@ -1648,7 +1728,7 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
 	        
 	        props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
-	        if (DeviceInfo.FORCE_LIGHT_THEME) {
+	        if (DeviceInfo.FORCE_HC_THEME) {
 	        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
 	        } else {
 	        	if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )
