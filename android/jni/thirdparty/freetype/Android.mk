@@ -15,6 +15,7 @@ LOCAL_C_INCLUDES := \
         $(PNG_SRC_DIR_P)
 
 LOCAL_CFLAGS += -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<builds/android/include/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<builds/android/include/config/ftoption.h\>
+LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_SRC_FILES := \
     $(FREETYPE_SRC_DIR)/src/autofit/autofit.c \

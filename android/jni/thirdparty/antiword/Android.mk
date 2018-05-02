@@ -9,6 +9,7 @@ ANTIWORD_SRC_DIR := ../../../../thirdparty/antiword
 ANTIWORD_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/antiword
 
 LOCAL_C_INCLUDES := $(ANTIWORD_SRC_DIR_P)
+LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 LOCAL_CFLAGS += -DCR3_ANTIWORD_PATCH=1
 
 LOCAL_SRC_FILES := \

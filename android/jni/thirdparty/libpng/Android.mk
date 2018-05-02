@@ -9,6 +9,7 @@ PNG_SRC_DIR := ../../../../thirdparty/libpng
 PNG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libpng
 
 LOCAL_C_INCLUDES := $(PNG_SRC_DIR_P)
+LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_SRC_FILES := \
     $(PNG_SRC_DIR)/png.c \

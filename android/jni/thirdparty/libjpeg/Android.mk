@@ -9,6 +9,7 @@ JPEG_SRC_DIR := ../../../../thirdparty/libjpeg
 JPEG_SRC_DIR_P := $(LOCAL_PATH)/../../../../thirdparty/libjpeg
 
 LOCAL_C_INCLUDES := $(JPEG_SRC_DIR_P)
+LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_SRC_FILES := \
     $(JPEG_SRC_DIR)/jaricom.c \

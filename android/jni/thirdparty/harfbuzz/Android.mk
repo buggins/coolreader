@@ -16,6 +16,7 @@ LOCAL_C_INCLUDES := \
 	$(FREETYPE_SRC_DIR_P)/include
 
 LOCAL_CFLAGS += -DHAVE_CONFIG_H=1
+LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-aat-layout.cc \
