@@ -334,6 +334,26 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 				optionsListView.refresh();
 		}
 
+		protected void setupIconView(ImageView icon) {
+			if (null == icon)
+				return;
+			int resId = 0;
+			if (showIcons) {
+				if (drawableAttrId != 0) {
+					resId = Utils.resolveResourceIdByAttr(mActivity, drawableAttrId, fallbackIconId);
+				} else if (fallbackIconId != 0) {
+					resId = fallbackIconId;
+				}
+			}
+			if (resId != 0) {
+				icon.setImageResource(resId);
+				icon.setVisibility(View.VISIBLE);
+			} else {
+				icon.setImageResource(0);
+				icon.setVisibility(View.INVISIBLE);
+			}
+		}
+
 		public View getView(View convertView, ViewGroup parent) {
 			View view;
 			convertView = myView;
@@ -357,28 +377,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					valueView.setVisibility(View.INVISIBLE);
 				}
 			}
-			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null) {
-				int resId = 0;
-				if (showIcons) {
-					if (drawableAttrId != 0) {
-						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
-						resId = a.getResourceId(0, 0);
-						a.recycle();
-						if (0 == resId)
-							resId = fallbackIconId;
-					} else if (fallbackIconId != 0) {
-						resId = fallbackIconId;
-					}
-				}
-				if (resId != 0) {
-					icon.setImageResource(resId);
-					icon.setVisibility(View.VISIBLE);
-				} else {
-					icon.setImageResource(0);
-					icon.setVisibility(View.INVISIBLE);
-				}
-			}
+			setupIconView((ImageView)view.findViewById(R.id.option_icon));
 			return view;
 		}
 
@@ -429,28 +428,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			labelView.setText(label);
 			int cl = mProperties.getColor(property, defColor);
 			valueView.setBackgroundColor(cl);
-			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null) {
-				int resId = 0;
-				if (showIcons) {
-					if (drawableAttrId != 0) {
-						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
-						resId = a.getResourceId(0, 0);
-						a.recycle();
-						if (0 == resId)
-							resId = fallbackIconId;
-					} else if (fallbackIconId != 0) {
-						resId = fallbackIconId;
-					}
-				}
-				if (resId != 0) {
-					icon.setImageResource(resId);
-					icon.setVisibility(View.VISIBLE);
-				} else {
-					icon.setImageResource(0);
-					icon.setVisibility(View.INVISIBLE);
-				}
-			}
+			setupIconView((ImageView)view.findViewById(R.id.option_icon));
 			return view;
 		}
 	}
@@ -513,28 +491,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 //						refreshList();
 					}
 				});
-			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null) {
-				int resId = 0;
-				if (showIcons) {
-					if (drawableAttrId != 0) {
-						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
-						resId = a.getResourceId(0, 0);
-						a.recycle();
-						if (0 == resId)
-							resId = fallbackIconId;
-					} else if (fallbackIconId != 0) {
-						resId = fallbackIconId;
-					}
-				}
-				if (resId != 0) {
-					icon.setImageResource(resId);
-					icon.setVisibility(View.VISIBLE);
-				} else {
-					icon.setImageResource(0);
-					icon.setVisibility(View.INVISIBLE);
-				}
-			}
+			setupIconView((ImageView)view.findViewById(R.id.option_icon));
 //			view.setClickable(true);
 //			view.setFocusable(true);
 			return view;
@@ -943,28 +900,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			myView = view;
 			TextView labelView = (TextView)view.findViewById(R.id.option_label);
 			labelView.setText(label);
-			ImageView icon = (ImageView)view.findViewById(R.id.option_icon);
-			if (icon != null) {
-				int resId = 0;
-				if (showIcons) {
-					if (drawableAttrId != 0) {
-						TypedArray a = mActivity.getTheme().obtainStyledAttributes(new int[]{drawableAttrId});
-						resId = a.getResourceId(0, 0);
-						a.recycle();
-						if (0 == resId)
-							resId = fallbackIconId;
-					} else if (fallbackIconId != 0) {
-						resId = fallbackIconId;
-					}
-				}
-				if (resId != 0) {
-					icon.setImageResource(resId);
-					icon.setVisibility(View.VISIBLE);
-				} else {
-					icon.setImageResource(0);
-					icon.setVisibility(View.INVISIBLE);
-				}
-			}
+			setupIconView((ImageView)view.findViewById(R.id.option_icon));
 			return view;
 		}
 	}
@@ -1244,7 +1180,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		public ThemeOptions( OptionOwner owner, String label )
 		{
 			super( owner, label, PROP_APP_THEME );
-			setDefaultValue(DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
+			setDefaultValue(DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
 			for (InterfaceTheme theme : InterfaceTheme.allThemes)
 				add(theme.getCode(), getString(theme.getDisplayNameResourceId()));
 		}

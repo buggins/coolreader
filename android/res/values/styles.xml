@@ -12,6 +12,9 @@
         <item name="android:tabStripEnabled">true</item>
         <item name="android:divider">@null</item-->
         <item name="android:gravity">fill_horizontal|center_vertical</item>
+        <item name="android:tabStripLeft">@null</item>
+        <item name="android:tabStripRight">@null</item>
+        <item name="android:tabStripEnabled">false</item>
         <!-- item name="android:divider">?android:attr/dividerVertical</item>
         <item name="android:showDividers">middle</item>
         <item name="android:dividerPadding">8dip</item>
@@ -123,6 +126,7 @@
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -199,6 +203,7 @@
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -276,6 +281,7 @@
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -353,6 +359,7 @@
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -426,6 +433,7 @@
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
@@ -499,12 +507,13 @@
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book</item>
 
         <item name="folder_big_drawable">@drawable/folder_blue</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_bookmark</item>
         <item name="media_flash_microsd_drawable">@drawable/media_flash_sd_mmc</item>
     </style>
-    <style name="Theme.HiContrast" parent="@android:style/Theme.Light">
+    <style name="Theme.HiContrast1" parent="@android:style/Theme.Light">
         <item name="android:windowBackground">@android:color/white</item>
         <item name="android:colorBackground">@android:color/white</item>
         <!-- item name="android:textColor">@android:color/black</item-->
@@ -576,6 +585,85 @@
         <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok_hc</item>
         <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel_hc</item>
         <item name="cr3_button_more_drawable">@drawable/cr3_button_more_hc</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book_hc</item>
+
+        <item name="folder_big_drawable">@drawable/folder_big_hc</item>
+        <item name="folder_big_bookmark_drawable">@drawable/folder_big_bookmark_hc</item>
+        <item name="media_flash_microsd_drawable">@drawable/media_flash_microsd</item>
+    </style>
+    <style name="Theme.HiContrast2" parent="@android:style/Theme">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <!-- item name="android:textColor">@android:color/white</item-->
+        <item name="android:listViewStyle">@style/ListView.Black</item>
+        <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
+
+        <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
+
+        <!-- toolbar button background -->
+        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
+        <!-- tabbar background color -->
+        <item name="tabbarBackground">#40404040</item>
+        <!-- icons -->
+        <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev_hc</item>
+        <item name="cr3_button_next_drawable">@drawable/cr3_button_next_hc</item>
+        <item name="cr3_viewer_toc_drawable">@drawable/cr3_viewer_toc_hc</item>
+        <item name="cr3_viewer_find_drawable">@drawable/cr3_viewer_find_hc</item>
+        <item name="cr3_viewer_settings_drawable">@drawable/cr3_viewer_settings_hc</item>
+        <item name="cr3_button_bookmarks_drawable">@drawable/cr3_button_bookmarks_hc</item>
+        <item name="cr3_browser_folder_root_drawable">@drawable/cr3_browser_folder_root_hc</item>
+        <item name="cr3_option_night_drawable">@drawable/cr3_option_night_hc</item>
+        <item name="cr3_option_touch_drawable">@drawable/cr3_option_touch_hc</item>
+        <item name="cr3_button_go_page_drawable">@drawable/cr3_button_go_page_hc</item>
+        <item name="cr3_button_go_percent_drawable">@drawable/cr3_button_go_percent_hc</item>
+        <item name="cr3_browser_folder_drawable">@drawable/cr3_browser_folder_hc</item>
+        <item name="cr3_button_tts_drawable">@drawable/cr3_button_tts_hc</item>
+        <item name="cr3_browser_folder_recent_drawable">@drawable/cr3_browser_folder_recent_hc</item>
+        <item name="cr3_button_scroll_go_drawable">@drawable/cr3_button_scroll_go_hc</item>
+        <item name="cr3_btn_books_swap_drawable">@drawable/cr3_btn_books_swap_hc</item>
+        <item name="cr3_logo_button_drawable">@drawable/cr3_logo_button_hc</item>
+        <item name="cr3_viewer_exit_drawable">@drawable/cr3_viewer_exit_hc</item>
+        <item name="cr3_button_book_open_drawable">@drawable/cr3_button_book_open_hc</item>
+        <item name="cr3_browser_folder_current_book_drawable">@drawable/cr3_browser_folder_current_book_hc</item>
+        <item name="cr3_browser_folder_opds_drawable">@drawable/cr3_browser_folder_opds_hc</item>
+        <item name="cr3_browser_folder_opds_add_drawable">@drawable/cr3_browser_folder_opds_add</item>
+        <item name="cr3_button_folder_go_drawable">@drawable/cr3_button_folder_go_hc</item>
+        <item name="cr3_option_font_face_drawable">@drawable/cr3_option_font_face_hc</item>
+        <item name="cr3_option_font_size_drawable">@drawable/cr3_option_font_size_hc</item>
+        <item name="cr3_option_text_bold_drawable">@drawable/cr3_option_text_bold_hc</item>
+        <item name="cr3_option_text_italic_drawable">@drawable/cr3_option_text_italic_hc</item>
+        <item name="cr3_option_text_underline_drawable">@drawable/cr3_option_text_underline_hc</item>
+        <item name="cr3_option_text_superscript_drawable">@drawable/cr3_option_text_superscript_hc</item>
+        <item name="cr3_option_text_antialias_drawable">@drawable/cr3_option_text_antialias_hc</item>
+        <item name="cr3_option_line_spacing_drawable">@drawable/cr3_option_line_spacing_hc</item>
+        <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation_hc</item>
+        <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_floating_punct_hc</item>
+        <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning_hc</item>
+        <item name="cr3_option_images_drawable">@drawable/cr3_option_images_hc</item>
+        <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma_hc</item>
+        <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width_hc</item>
+        <item name="cr3_option_fullscreen_drawable">@drawable/cr3_option_fullscreen_hc</item>
+        <item name="cr3_option_view_mode_scroll_drawable">@drawable/cr3_option_view_mode_scroll_hc</item>
+        <item name="cr3_option_page_orientation_landscape_drawable">@drawable/cr3_option_page_orientation_landscape_hc</item>
+        <item name="cr3_option_pages_two_drawable">@drawable/cr3_option_pages_two_hc</item>
+        <item name="cr3_option_text_margin_left_drawable">@drawable/cr3_option_text_margin_left_hc</item>
+        <item name="cr3_option_text_margin_right_drawable">@drawable/cr3_option_text_margin_right_hc</item>
+        <item name="cr3_option_text_margin_top_drawable">@drawable/cr3_option_text_margin_top_hc</item>
+        <item name="cr3_option_text_margin_bottom_drawable">@drawable/cr3_option_text_margin_bottom_hc</item>
+        <item name="cr3_option_text_align_drawable">@drawable/cr3_option_text_align_hc</item>
+        <item name="cr3_option_text_indent_drawable">@drawable/cr3_option_text_indent_hc</item>
+        <item name="cr3_option_controls_keys_drawable">@drawable/cr3_option_controls_keys_hc</item>
+        <item name="cr3_option_controls_tapzones_drawable">@drawable/cr3_option_controls_tapzones_hc</item>
+        <item name="cr3_option_other_drawable">@drawable/cr3_option_other_hc</item>
+        <item name="cr3_browser_folder_authors_drawable">@drawable/cr3_browser_folder_authors_hc</item>
+        <item name="cr3_browser_folder_zip_drawable">@drawable/cr3_browser_folder_zip_hc</item>
+        <item name="cr3_browser_find_drawable">@drawable/cr3_browser_find_hc</item>
+        <item name="cr3_browser_back_drawable">@drawable/cr3_browser_back_hc</item>
+        <item name="cr3_button_add_drawable">@drawable/cr3_button_add_hc</item>
+        <item name="cr3_button_ok_drawable">@drawable/cr3_button_ok_hc</item>
+        <item name="cr3_button_cancel_drawable">@drawable/cr3_button_cancel_hc</item>
+        <item name="cr3_button_more_drawable">@drawable/cr3_button_more_hc</item>
+        <item name="cr3_browser_book_drawable">@drawable/cr3_browser_book_hc</item>
 
         <item name="folder_big_drawable">@drawable/folder_big_hc</item>
         <item name="folder_big_bookmark_drawable">@drawable/folder_big_bookmark_hc</item>
@@ -654,13 +742,25 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
-    <style name="Theme.HiContrast.Dialog.Normal" parent="@style/Theme.HiContrast">
+    <style name="Theme.HiContrast1.Dialog.Normal" parent="@style/Theme.HiContrast1">
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
-    <style name="Theme.HiContrast.Dialog.Fullscreen" parent="@style/Theme.HiContrast">
+    <style name="Theme.HiContrast1.Dialog.Fullscreen" parent="@style/Theme.HiContrast1">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+    </style>
+    <style name="Theme.HiContrast2.Dialog.Normal" parent="@style/Theme.HiContrast2">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="Theme.HiContrast2.Dialog.Fullscreen" parent="@style/Theme.HiContrast2">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:layout_width">fill_parent</item>

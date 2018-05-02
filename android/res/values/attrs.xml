@@ -71,6 +71,7 @@
     <attr name="cr3_button_ok_drawable" format="reference" />
     <attr name="cr3_button_cancel_drawable" format="reference" />
     <attr name="cr3_button_more_drawable" format="reference" />
+    <attr name="cr3_browser_book_drawable" format="reference" />
 
     <attr name="folder_big_drawable" format="reference" />
     <attr name="folder_big_bookmark_drawable" format="reference" />

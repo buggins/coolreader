@@ -73,13 +73,21 @@ public class InterfaceTheme {
 					R.drawable.ui_toolbar_background_browser_vertical_white,
 					0, 0xFFCCCCCC)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xE0);
-	public final static InterfaceTheme HICONTRAST = new InterfaceTheme("HICONTRAST", R.style.Theme_HiContrast, R.style.Theme_HiContrast_Dialog_Normal, R.style.Theme_HiContrast_Dialog_Fullscreen, R.string.options_app_ui_theme_hicontrast, 0xFFFFFFFF)
+	public final static InterfaceTheme HICONTRAST1 = new InterfaceTheme("HICONTRAST1", R.style.Theme_HiContrast1, R.style.Theme_HiContrast1_Dialog_Normal, R.style.Theme_HiContrast1_Dialog_Fullscreen, R.string.options_app_ui_theme_hicontrast1, 0xFFFFFFFF)
 			.setRootDelimiter(R.drawable.divider_white_tiled, 2)
 			.setBackgrounds(
 					R.drawable.ui_status_background_browser_white,
 					R.drawable.ui_toolbar_background_browser_white,
 					R.drawable.ui_toolbar_background_browser_vertical_white,
 					0, 0xFFFFFFFF)
+			.setToolbarButtonAlpha(0xFF);
+	public final static InterfaceTheme HICONTRAST2 = new InterfaceTheme("HICONTRAST2", R.style.Theme_HiContrast2, R.style.Theme_HiContrast2_Dialog_Normal, R.style.Theme_HiContrast2_Dialog_Fullscreen, R.string.options_app_ui_theme_hicontrast2, 0xFFFFFFFF)
+			.setRootDelimiter(R.drawable.divider_black_tiled, 2)
+			.setBackgrounds(
+					R.drawable.ui_status_background_browser_black,
+					R.drawable.ui_toolbar_background_browser_black,
+					R.drawable.ui_toolbar_background_browser_vertical_black,
+					0, 0xFF000000)
 			.setToolbarButtonAlpha(0xFF);
 
 	public String getCode() {
@@ -156,7 +164,7 @@ public class InterfaceTheme {
 
 	
 	public final static InterfaceTheme[] allThemes = {
-		BLACK, WHITE, DARK, LIGHT, GRAY1, GRAY2, HICONTRAST
+		BLACK, WHITE, DARK, LIGHT, GRAY1, GRAY2, HICONTRAST1, HICONTRAST2
 	};
 	
 	public static InterfaceTheme findByCode(String code) {

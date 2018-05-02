@@ -91,7 +91,7 @@ public class CRToolBar extends ViewGroup {
 		final LinearLayout view = (LinearLayout)inflater.inflate(R.layout.popup_toolbar_item, null);
 		ImageView icon = (ImageView)view.findViewById(R.id.action_icon);
 		TextView label = (TextView)view.findViewById(R.id.action_label);
-		icon.setImageResource(action != null ? action.iconId : R.drawable.cr3_button_more);
+		icon.setImageResource(action != null ? action.iconId : Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_more_drawable, R.drawable.cr3_button_more));
 		//icon.setMinimumHeight(buttonHeight);
 		icon.setMinimumWidth(buttonWidth);
 		Utils.setContentDescription(icon, activity.getString(action != null ? action.nameId : R.string.btn_toolbar_more));
@@ -250,7 +250,7 @@ public class CRToolBar extends ViewGroup {
 			Utils.setContentDescription(ib, getContext().getString(item.nameId));
 			ib.setTag(item);
 		} else {
-			ib.setImageDrawable(getResources().getDrawable(R.drawable.cr3_button_more));
+			ib.setImageDrawable(getResources().getDrawable(Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_more_drawable, R.drawable.cr3_button_more)));
 			Utils.setContentDescription(ib, getContext().getString(R.string.btn_toolbar_more));
 		}
 		TypedArray a = activity.getTheme().obtainStyledAttributes( new int[] { R.attr.cr3_toolbar_button_background_drawable } );

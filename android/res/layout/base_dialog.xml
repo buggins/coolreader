@@ -15,13 +15,14 @@
         android:minWidth="?android:attr/listPreferredItemHeight"
 	    android:gravity="center_vertical"
 	    android:paddingRight="?android:attr/scrollbarSize"
+        android:paddingStart="?android:attr/scrollbarSize"
+        android:paddingEnd="?android:attr/scrollbarSize"
         android:background="?attr/tabbarBackground">
 
         <ImageButton
             android:id="@+id/base_dlg_btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
@@ -41,8 +42,7 @@
             android:layout_marginLeft="4dip"
             android:layout_weight="1"
             android:singleLine="false"
-            android:text="Test"
-            android:layout_centerVertical="true"/>
+            android:text="Test"/>
         <ImageButton android:id="@+id/base_dlg_btn_positive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -50,8 +50,6 @@
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:layout_centerVertical="true"
-            android:layout_alignParentRight="true"
             android:src="?attr/cr3_button_ok_drawable"
             android:focusable="false"
             android:focusableInTouchMode="false"
@@ -64,7 +62,6 @@
             android:layout_marginBottom="5dip"
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
-            android:layout_centerVertical="true"
             android:src="?attr/cr3_button_cancel_drawable"
             android:focusable="false"
             android:focusableInTouchMode="false"

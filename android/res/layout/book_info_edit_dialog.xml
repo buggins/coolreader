@@ -104,7 +104,7 @@
 	                android:minWidth="100dip"
 	                android:maxHeight="200dip"
 	                android:maxWidth="150dip"
-	                android:drawable="@drawable/cr3_browser_book"
+	                android:drawable="?attr/cr3_browser_book_drawable"
 		            />
                 <ImageView android:id="@+id/book_progress"
                     android:layout_width="wrap_content"

@@ -177,7 +177,7 @@ public class BaseActivity extends Activity implements Settings {
 
 		// load settings
 		Properties props = settings();
-		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
+		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 		setLanguage(lang);
 		setCurrentTheme(theme);
@@ -320,7 +320,7 @@ public class BaseActivity extends Activity implements Settings {
 	public void setCurrentTheme(String themeCode) {
 		InterfaceTheme theme = InterfaceTheme.findByCode(themeCode);
 		if (null == theme)
-			theme = DeviceInfo.FORCE_HC_THEME ? InterfaceTheme.HICONTRAST : InterfaceTheme.LIGHT;
+			theme = DeviceInfo.FORCE_HC_THEME ? InterfaceTheme.HICONTRAST1 : InterfaceTheme.LIGHT;
 		if (currentTheme != theme) {
 			setCurrentTheme(theme);
 		}
@@ -1620,9 +1620,9 @@ public class BaseActivity extends Activity implements Settings {
 
 	        props.applyDefault(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 	        
-	        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
-	        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "LIGHT");
-	        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST" : "DARK");
+	        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
+	        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
+	        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST2" : "DARK");
 	        props.applyDefault(ReaderView.PROP_APP_SELECTION_PERSIST, "0");
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
 	        if ("1".equals(props.getProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK)))

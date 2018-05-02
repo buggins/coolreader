@@ -17,7 +17,7 @@ my %ic_actions_list=(
 	'cr3_button_bookmarks_hc-48x48-src.svg' => 'cr3_button_bookmarks_hc.png',
 	'cr3_browser_folder_root_hc-48x48-src.svg' => 'cr3_browser_folder_root_hc.png',
 	'cr3_option_night_hc-48x48-src.svg' => 'cr3_option_night_hc.png',
-	'cr3_option_touch_hc-256x256-src.svg' => 'cr3_option_touch_hc.png',
+	'cr3_option_touch_hc-48x48-src.svg' => 'cr3_option_touch_hc.png',
 	'cr3_button_go_page_hc-256x256-src.svg' => 'cr3_button_go_page_hc.png',
 	'cr3_button_go_percent_hc-256x256-src.svg' => 'cr3_button_go_percent_hc.png',
 	'cr3_browser_folder_hc-48x48-src.svg' => 'cr3_browser_folder_hc.png',
@@ -66,14 +66,15 @@ my %ic_actions_list=(
 	'cr3_button_add_hc-48x48-src.svg' => 'cr3_button_add_hc.png',
 	'cr3_button_ok_hc-48x48-src.svg' => 'cr3_button_ok_hc.png',
 	'cr3_button_cancel_hc-48x48-src.svg' => 'cr3_button_cancel_hc.png',
-	'cr3_button_more_hc-48x48-src.svg' => 'cr3_button_more_hc.png'
+	'cr3_button_more_hc-48x48-src.svg' => 'cr3_button_more_hc.png',
+	'cr3_browser_book_hc-48x48-src.svg' => 'cr3_browser_book_hc.png'
 );
 
 my %ic_menu_list=(
 );
 
 my %ic_launcher_list=(
-#	'cr3_logo_hc-256x256-src.svg' => 'cr3_logo_hc.png'
+	'cr3_logo_hc-48x48-src.svg' => 'cr3_logo_hc.png'
 );
 
 my %ic_bigicons_list=(
