@@ -146,6 +146,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mToolbarPositionsTitles = new int[] {
 			R.string.options_view_toolbar_position_none, R.string.options_view_toolbar_position_top, R.string.options_view_toolbar_position_bottom, R.string.options_view_toolbar_position_left, R.string.options_view_toolbar_position_right, R.string.options_view_toolbar_position_short_side, R.string.options_view_toolbar_position_long_side
 		};
+	int[] mToolbarApperance = new int[] {
+			Settings.VIEWER_TOOLBAR_100, Settings.VIEWER_TOOLBAR_100_gray,
+			Settings.VIEWER_TOOLBAR_75, Settings.VIEWER_TOOLBAR_75_gray,
+			Settings.VIEWER_TOOLBAR_50, Settings.VIEWER_TOOLBAR_50_gray
+	};
+	int[] mToolbarApperanceTitles = new int[] {
+			R.string.options_view_toolbar_appear_100, R.string.options_view_toolbar_appear_100_gray,
+			R.string.options_view_toolbar_appear_75, R.string.options_view_toolbar_appear_75_gray,
+			R.string.options_view_toolbar_appear_50, R.string.options_view_toolbar_appear_50_gray
+	};
 	
 	int[] mStatusPositions = new int[] {
 			Settings.VIEWER_STATUS_NONE, 
@@ -1913,6 +1923,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_app_fullscreen), PROP_APP_FULLSCREEN).setIconId(R.drawable.cr3_option_fullscreen));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_toolbar_position), PROP_TOOLBAR_LOCATION).add(mToolbarPositions, mToolbarPositionsTitles).setDefaultValue("1"));
 		mOptionsPage.add(new BoolOption(this, getString(R.string.options_view_toolbar_hide_in_fullscreen), PROP_TOOLBAR_HIDE_IN_FULLSCREEN).setDefaultValue("0"));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_toolbar_appearance), PROP_TOOLBAR_APPEARANCE).
+				add(mToolbarApperance, mToolbarApperanceTitles).setDefaultValue("0"));
+
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_view_mode), PROP_PAGE_VIEW_MODE).add(mViewModes, mViewModeTitles).setDefaultValue("1").setIconId(R.drawable.cr3_option_view_mode_scroll));
 		//mOptionsPage.add(new ListOption(getString(R.string.options_page_orientation), PROP_ROTATE_ANGLE).add(mOrientations, mOrientationsTitles).setDefaultValue("0"));
 		if (DeviceInfo.getSDKLevel() >= 9)

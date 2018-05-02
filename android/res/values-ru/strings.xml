@@ -471,8 +471,15 @@
     <string name="options_view_toolbar_position_left">Слева</string>
     <string name="options_view_toolbar_position_long_side">По длинному краю</string>
     <string name="options_view_toolbar_position_none">Спрятать</string>
-    <string name="options_view_toolbar_hide_in_fullscreen">Прятать панель инструментов в полноэкранном режиме</string>
+    <string name="options_view_toolbar_hide_in_fullscreen">Fullscreen: прятать панель инструментов</string>
     <string name="options_view_toolbar_position_right">Справа</string>
+    <string name="options_view_toolbar_appearance">Внешний вид панели инструментов</string>
+    <string name="options_view_toolbar_appear_100">Размер 100%</string>
+    <string name="options_view_toolbar_appear_100_gray">Размер 100%, серые значки</string>
+    <string name="options_view_toolbar_appear_75">Размер 75%</string>
+    <string name="options_view_toolbar_appear_75_gray">Размер 75%, серые значки</string>
+    <string name="options_view_toolbar_appear_50">Размер 50%</string>
+    <string name="options_view_toolbar_appear_50_gray">Размер 50%, серые значки</string>
     <string name="online_store_login">Вход</string>
     <string name="online_store_username">Имя пользователя:</string>
     <string name="online_store_password">Пароль:</string>
@@ -524,7 +531,7 @@
     <string name="btn_toolbar_more">Еще...</string>
     <string name="black_list_enforced">Нельзя добавлять этот адрес, так как по запросу LitRes.ru он добавлен в черный список каталогов, нарушающих авторские права.</string>
     <string name="black_list_warning">Внимание! этот адрес по запросу LitRes.ru был добавлен в черный список каталогов, нарушающих авторские права. Вы действительно хотите использовать этот каталог?</string>
-    <string name="cant_open_file">Не возможно открыть файл!</string>
+    <string name="cant_open_file">Невозможно открыть файл!</string>
     <string name="error">Ошибка</string>
     <string name="options_app_tts_stop_motion_timeout">Остановить чтение вслух при бездействии датчика движения</string>
     <string name="motion_timeout_off">"Выключено"</string>
