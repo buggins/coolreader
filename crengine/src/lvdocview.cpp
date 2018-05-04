@@ -1569,7 +1569,7 @@ bool LVDocView::setBatteryState(int newState) {
 }
 
 /// set list of battery icons to display battery state
-void LVDocView::setBatteryIcons(LVRefVec<LVImageSource> & icons) {
+void LVDocView::setBatteryIcons(const LVRefVec<LVImageSource> & icons) {
 	m_batteryIcons = icons;
 }
 

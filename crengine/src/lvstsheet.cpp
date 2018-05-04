@@ -967,6 +967,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
             for (;;)
             {
                 node = node->getParentNode();
+                if (!node) return false;
                 if (node->isNull())
                     return false;
                 if (node->getNodeId() == _id)
