@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:minWidth="?android:attr/listPreferredItemHeight"
-                android:src="@drawable/cr3_button_prev"
+                android:src="?attr/cr3_button_prev_drawable"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:background="@null"
@@ -108,7 +108,7 @@
                     android:minWidth="100dip"
                     android:maxHeight="200dip"
                     android:maxWidth="150dip"
-                    android:drawable="@drawable/cr3_browser_book"
+                    android:drawable="?attr/cr3_browser_book_drawable"
                     />
             </LinearLayout>
             <LinearLayout 

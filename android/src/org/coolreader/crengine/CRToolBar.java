@@ -6,6 +6,7 @@ import org.coolreader.CoolReader;
 import org.coolreader.R;
 
 import android.graphics.Bitmap;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
@@ -97,7 +98,7 @@ public class CRToolBar extends ViewGroup {
 		final LinearLayout view = (LinearLayout)inflater.inflate(R.layout.popup_toolbar_item, null);
 		ImageView icon = (ImageView)view.findViewById(R.id.action_icon);
 		TextView label = (TextView)view.findViewById(R.id.action_label);
-		icon.setImageResource(action != null ? action.iconId : R.drawable.cr3_button_more);
+		icon.setImageResource(action != null ? action.iconId : Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_more_drawable, R.drawable.cr3_button_more));
 		//icon.setMinimumHeight(buttonHeight);
 		icon.setMinimumWidth(buttonWidth);
 		Utils.setContentDescription(icon, activity.getString(action != null ? action.nameId : R.string.btn_toolbar_more));
@@ -294,10 +295,15 @@ public class CRToolBar extends ViewGroup {
 			Utils.setContentDescription(ib, getContext().getString(item.nameId));
 			ib.setTag(item);
 		} else {
-			setButtonImageResource(ib,R.drawable.cr3_button_more);
+			setButtonImageResource(ib,Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_more_drawable, R.drawable.cr3_button_more));
 			Utils.setContentDescription(ib, getContext().getString(R.string.btn_toolbar_more));
 		}
-		ib.setBackgroundResource(R.drawable.cr3_toolbar_button_background);
+		TypedArray a = activity.getTheme().obtainStyledAttributes( new int[] { R.attr.cr3_toolbar_button_background_drawable } );
+		int cr3_toolbar_button_background = a.getResourceId(0, 0);
+		a.recycle();
+		if (0 == cr3_toolbar_button_background)
+			cr3_toolbar_button_background = R.drawable.cr3_toolbar_button_background;
+		ib.setBackgroundResource(cr3_toolbar_button_background);
 		ib.layout(rc.left, rc.top, rc.right, rc.bottom);
 		if (item == null)
 			overflowButton = ib;

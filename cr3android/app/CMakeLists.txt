@@ -27,10 +27,18 @@ add_definitions(-DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1)
 add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
+# Option '-Wl,--no-merge-exidx-entries' removed as incompatible with clang.
 set(LOCAL_CFLAGS "${LOCAL_CFLAGS} -funwind-tables")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${LOCAL_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCAL_CFLAGS}")
+
+set(CMAKE_C_FLAGS_DEBUG             "-O0 -g3")
+set(CMAKE_C_FLAGS_RELEASE           "-O2 -g0 -DNDEBUG")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO    "-O2 -g1 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG           ${CMAKE_C_FLAGS_DEBUG})
+set(CMAKE_CXX_FLAGS_RELEASE         ${CMAKE_C_FLAGS_RELEASE})
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO  ${CMAKE_C_FLAGS_RELWITHDEBINFO})
 
 set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/cp_stats.cpp

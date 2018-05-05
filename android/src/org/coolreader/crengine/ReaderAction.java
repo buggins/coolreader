@@ -16,7 +16,7 @@ public class ReaderAction {
 	private boolean mayAssignOnTap = true;
 	private boolean activateWithLongMenuKey = false;
 	private ReaderAction setActivateWithLongMenuKey() { this.activateWithLongMenuKey = true; return this; }
-	private ReaderAction setIconId(int iconId) { this.iconId = iconId; return this; }
+	public ReaderAction setIconId(int iconId) { this.iconId = iconId; return this; }
 	private ReaderAction setCanRepeat() { canRepeat = true; return this; }
 	//private ReaderAction dontAssignOnKey() { mayAssignOnKey=false; return this; }
 	private ReaderAction dontAssignOnTap() { mayAssignOnTap = false; return this; }

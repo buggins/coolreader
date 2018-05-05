@@ -17,7 +17,7 @@
             android:layout_marginBottom="2dip"
             android:layout_marginLeft="0dip"
             android:layout_marginRight="0dip"
-            android:background="#40404040"
+            android:background="?attr/tabbarBackground"
             >
 	        <ImageButton android:id="@+id/options_btn_back"
 	            android:layout_width="wrap_content"
@@ -25,7 +25,7 @@
                 android:layout_gravity="center_vertical|center_horizontal"
 		        android:minHeight="?android:attr/listPreferredItemHeight"
 		        android:minWidth="?android:attr/listPreferredItemHeight"
-	            android:src="@drawable/cr3_button_prev"
+	            android:src="?attr/cr3_button_prev_drawable"
 	            android:focusable="false"
 	            android:focusableInTouchMode="false"
 	            android:background="@null"

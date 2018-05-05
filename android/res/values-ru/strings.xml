@@ -564,4 +564,6 @@
     <string name="motion_timeout_90min">"90 минут"</string>
     <string name="motion_timeout_95min">"95 минут"</string>
     <string name="motion_timeout_100min">"100 минут"</string>
+    <string name="options_app_ui_theme_hicontrast1">Контрастная белая</string>
+    <string name="options_app_ui_theme_hicontrast2">Контрастная черная</string>
 </resources>

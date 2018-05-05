@@ -16,6 +16,8 @@ import org.coolreader.R;
 import org.coolreader.crengine.FileInfo.SortOrder;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -584,5 +586,15 @@ public class Utils {
 				// Ignore
 			}
 		}
+	}
+
+	public static int resolveResourceIdByAttr(Context ctx, int attrId, int fallbackResId) {
+		int resId;
+		TypedArray a = ctx.getTheme().obtainStyledAttributes(new int[] { attrId });
+		resId = a.getResourceId(0, 0);
+		a.recycle();
+		if (0 == resId)
+			resId = fallbackResId;
+		return resId;
 	}
 }
