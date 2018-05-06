@@ -368,6 +368,11 @@
         <item name="android:listViewWhiteStyle">@style/ListView.Black</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.Black</item>
+
+        <!-- toolbar button background -->
+        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
+        <!-- tabbar background color -->
+        <item name="tabbarBackground">#40404040</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
@@ -442,6 +447,11 @@
         <item name="android:listViewWhiteStyle">@style/ListView.White</item>
 
         <item name="rootDelimiterStyle">@style/RootDelimiter.White</item>
+
+        <!-- toolbar button background -->
+        <item name="cr3_toolbar_button_background_drawable">@drawable/cr3_toolbar_button_background</item>
+        <!-- tabbar background color -->
+        <item name="tabbarBackground">#40404040</item>
         <!-- icons -->
         <item name="cr3_button_prev_drawable">@drawable/cr3_button_prev</item>
         <item name="cr3_button_next_drawable">@drawable/cr3_button_next</item>
