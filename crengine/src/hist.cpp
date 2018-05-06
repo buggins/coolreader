@@ -449,7 +449,7 @@ lString16 CRBookmark::getChapterName( ldomXPointer ptr )
 	{
 		ldomXPointerEx p( ptr );
 		p.nextText();
-		while ( !p.isNull() ) {
+		while ( !p && !p.isNull() ) {
 			if ( !p.prevElement() )
 				break;
             bool foundSection = p.findElementInPath( section_id ) > 0;
