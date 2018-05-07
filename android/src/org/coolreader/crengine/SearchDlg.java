@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.Dictionaries;
 import org.coolreader.R;
 import org.coolreader.db.CRDBService;
 
@@ -66,7 +65,6 @@ public class SearchDlg extends BaseDialog {
 
 		public int getCount() {
 			return mSearches.size();
-			//return Dictionaries.getDictListExt(mCoolReader,true).size();
 		}
 
 		public Object getItem(int position) {
@@ -112,7 +110,7 @@ public class SearchDlg extends BaseDialog {
 		}
 
 		public boolean isEmpty() {
-			return Dictionaries.getDictList().length==0;
+			return mSearches.size()==0;
 		}
 
 		private ArrayList<DataSetObserver> observers = new ArrayList<DataSetObserver>();

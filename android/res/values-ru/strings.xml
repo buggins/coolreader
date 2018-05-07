@@ -473,7 +473,7 @@
     <string name="options_view_toolbar_position_none">Спрятать</string>
     <string name="options_view_toolbar_hide_in_fullscreen">Fullscreen: прятать панель инструментов</string>
     <string name="options_view_toolbar_position_right">Справа</string>
-    <string name="options_view_toolbar_appearance">Внешний вид панели инструментов</string>
+    <string name="options_view_toolbar_appearance">Внешний вид панели инструментов (перезапуск)</string>
     <string name="options_view_toolbar_appear_100">Размер 100%</string>
     <string name="options_view_toolbar_appear_100_gray">Размер 100%, серые значки</string>
     <string name="options_view_toolbar_appear_75">Размер 75%</string>

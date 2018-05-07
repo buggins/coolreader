@@ -1631,7 +1631,7 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
 	        props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
 	        props.applyDefault(ReaderView.PROP_LANDSCAPE_PAGES, DeviceInfo.ONE_COLUMN_IN_LANDSCAPE ? "0" : "1");
-			props.applyDefault(ReaderView.PROP_TOOLBAR_APPEARANCE, "0");
+			//props.applyDefault(ReaderView.PROP_TOOLBAR_APPEARANCE, "0");
 			// autodetect best initial font size based on display resolution
 	        int screenHeight = displayMetrics.heightPixels;
 	        int screenWidth = displayMetrics.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();

@@ -482,7 +482,7 @@
     <string name="options_view_toolbar_position_none">None</string>
     <string name="options_view_toolbar_hide_in_fullscreen">Hide toolbar in fullscreen</string>
     <string name="options_view_toolbar_position_right">Right</string>
-    <string name="options_view_toolbar_appearance">Toolbar appearance</string>
+    <string name="options_view_toolbar_appearance">Toolbar appearance (restart required)</string>
     <string name="options_view_toolbar_appear_100">100% size</string>
     <string name="options_view_toolbar_appear_100_gray">100% size, grayscale</string>
     <string name="options_view_toolbar_appear_75">75% size</string>

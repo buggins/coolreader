@@ -130,8 +130,9 @@ public class CRToolBar extends ViewGroup {
 	
 	private void calcLayout() {
 		if (activity instanceof CoolReader) {
-			Properties settings = ((CoolReader)activity).getReaderView().getSettings();
-			this.optionAppearance = settings.getInt(ReaderView.PROP_TOOLBAR_APPEARANCE, 0);
+			//Properties settings = ((CoolReader)activity).getReaderView().getSettings();
+			//this.optionAppearance = settings.getInt(ReaderView.PROP_TOOLBAR_APPEARANCE, 0);
+			this.optionAppearance = Integer.valueOf(((CoolReader)activity).getToolbarAppearance());
 			this.toolbarScale = 1.0f;
 			if ((this.optionAppearance == 2)||(this.optionAppearance == 3)) this.toolbarScale = 0.75f;
 			if ((this.optionAppearance == 4)||(this.optionAppearance == 5)) this.toolbarScale = 0.5f;
