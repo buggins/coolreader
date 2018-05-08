@@ -138,7 +138,15 @@ public class MainDB extends BaseDB {
 			if (currentVersion < DB_VERSION)
 				mDB.setVersion(DB_VERSION);
 		}
-		
+
+		execSQL("CREATE TABLE IF NOT EXISTS search_history (" +
+				"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+				"book_fk INTEGER NOT NULL REFERENCES book (id), " +
+				"search_text VARCHAR " +
+				")");
+		execSQL("CREATE INDEX IF NOT EXISTS " +
+				"search_history_index ON search_history (book_fk) ");
+
 		dumpStatistics();
 		
 		return true;
@@ -279,6 +287,50 @@ public class MainDB extends BaseDB {
 			return false;
 		}
 		return true;
+	}
+
+	public boolean saveSearchHistory(BookInfo book, String sHist) {
+		if (!isOpened())
+			return false;
+		if (sHist==null)
+			return false;
+		if (book.getFileInfo().id == null)
+			return false; // unknown book id
+		sHist = sHist.trim();
+		if (sHist.length()==0)
+			return false;
+		try {
+			execSQL("DELETE FROM search_history where book_fk = " + book.getFileInfo().id+
+				" and search_text = "+quoteSqlString(sHist));
+			execSQL("INSERT INTO search_history (book_fk, search_text) values (" + book.getFileInfo().id+
+					", "+quoteSqlString(sHist)+")");
+		} catch (Exception e) {
+			log.e("exception while saving search history item", e);
+			return false;
+		}
+		return true;
+	}
+
+	public ArrayList<String> loadSearchHistory(BookInfo book) {
+		log.i("loadSearchHistory()");
+		Cursor rs = null;
+		ArrayList<String> list = new ArrayList<String>();
+		try {
+			String sql = "SELECT search_text FROM search_history where book_fk=" + book.getFileInfo().id + " ORDER BY id desc";
+			rs = mDB.rawQuery(sql, null);
+			if ( rs.moveToFirst() ) {
+				do {
+					String sHist = rs.getString(0);
+					list.add(sHist);
+				} while (rs.moveToNext());
+			}
+		} catch (Exception e) {
+			Log.e("cr3", "exception while loading search history", e);
+		} finally {
+			if ( rs!=null )
+				rs.close();
+		}
+		return list;
 	}
 
 	public boolean loadOPDSCatalogs(ArrayList<FileInfo> list) {

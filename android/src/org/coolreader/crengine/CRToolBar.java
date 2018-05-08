@@ -5,8 +5,12 @@ import java.util.ArrayList;
 import org.coolreader.CoolReader;
 import org.coolreader.R;
 
+import android.graphics.Bitmap;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.ContextMenu;
@@ -51,7 +55,10 @@ public class CRToolBar extends ViewGroup {
 	private PopupWindow popup;
 	private int popupLocation = Settings.VIEWER_TOOLBAR_BOTTOM;
 	private int maxMultilineLines = 3;
-	
+	private int optionAppearance = 0;
+	private float toolbarScale = 1.0f;
+	private boolean grayIcons = false;
+
 	private void setPopup(PopupWindow popup, int popupLocation) {
 		this.popup = popup;
 		this.popupLocation = popupLocation;
@@ -122,7 +129,17 @@ public class CRToolBar extends ViewGroup {
 	}
 	
 	private void calcLayout() {
-		int sz = preferredItemHeight; //(activity.isSmartphone() ? preferredItemHeight * 6 / 10 - BUTTON_SPACING : preferredItemHeight);
+		if (activity instanceof CoolReader) {
+			//Properties settings = ((CoolReader)activity).getReaderView().getSettings();
+			//this.optionAppearance = settings.getInt(ReaderView.PROP_TOOLBAR_APPEARANCE, 0);
+			this.optionAppearance = Integer.valueOf(((CoolReader)activity).getToolbarAppearance());
+			this.toolbarScale = 1.0f;
+			if ((this.optionAppearance == 2)||(this.optionAppearance == 3)) this.toolbarScale = 0.75f;
+			if ((this.optionAppearance == 4)||(this.optionAppearance == 5)) this.toolbarScale = 0.5f;
+			this.grayIcons = false;
+			if ((this.optionAppearance == 1)||(this.optionAppearance == 3)||(this.optionAppearance == 5)) this.grayIcons = true;
+		}
+		int sz = (int)((float)preferredItemHeight * this.toolbarScale); //(activity.isSmartphone() ? preferredItemHeight * 6 / 10 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz - BUTTON_SPACING;
 		if (isMultiline)
 			buttonHeight = sz / 2;
@@ -222,6 +239,35 @@ public class CRToolBar extends ViewGroup {
 		if (onActionHandler != null)
 			onActionHandler.onActionSelected(item);
 	}
+
+	private void setButtonImageResource(ImageButton ib, int resId) {
+		if (this.optionAppearance==0) {
+			ib.setImageResource(resId);
+			return;
+		}
+		Drawable dr = getResources().getDrawable(resId);
+		int iWidth = dr.getIntrinsicWidth();
+		iWidth = (int) ((float) iWidth * this.toolbarScale);
+		int iHeight = dr.getIntrinsicHeight();
+		iHeight = (int) ((float) iHeight * this.toolbarScale);
+		Bitmap bitmap = Bitmap.createBitmap(iWidth, iHeight, Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(bitmap);
+		dr.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+		dr.draw(canvas);
+		if (this.grayIcons) {
+			Bitmap bmpGrayscale = Bitmap.createBitmap(iWidth, iHeight, Bitmap.Config.ARGB_8888);
+			Canvas c = new Canvas(bmpGrayscale);
+			Paint paint = new Paint();
+			ColorMatrix cm = new ColorMatrix();
+			cm.setSaturation(0);
+			ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+			paint.setColorFilter(f);
+			c.drawBitmap(bitmap, 0, 0, paint);
+			ib.setImageBitmap(bmpGrayscale);
+		} else {
+			ib.setImageBitmap(bitmap);
+		}
+	}
 	
 	private ImageButton addButton(Rect rect, final ReaderAction item, boolean left) {
 		Rect rc = new Rect(rect);
@@ -246,11 +292,11 @@ public class CRToolBar extends ViewGroup {
 			return null;
 		ImageButton ib = new ImageButton(getContext());
 		if (item != null) {
-			ib.setImageResource(item.iconId);
+			setButtonImageResource(ib,item.iconId);
 			Utils.setContentDescription(ib, getContext().getString(item.nameId));
 			ib.setTag(item);
 		} else {
-			ib.setImageDrawable(getResources().getDrawable(Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_more_drawable, R.drawable.cr3_button_more)));
+			setButtonImageResource(ib,Utils.resolveResourceIdByAttr(activity, R.attr.cr3_button_more_drawable, R.drawable.cr3_button_more));
 			Utils.setContentDescription(ib, getContext().getString(R.string.btn_toolbar_more));
 		}
 		TypedArray a = activity.getTheme().obtainStyledAttributes( new int[] { R.attr.cr3_toolbar_button_background_drawable } );

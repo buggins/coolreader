@@ -73,8 +73,9 @@ public class CoolReader extends BaseActivity
 	//CRDB mDB;
 	private ViewGroup mCurrentFrame;
 	private ViewGroup mPreviousFrame;
-	
-	
+
+	private String mOptionAppearance = "0";
+
 	String fileToLoadOnStart = null;
 	
 	private boolean isFirstStart = true;
@@ -223,7 +224,9 @@ public class CoolReader extends BaseActivity
         	setDict(value);
         } else if ( key.equals(PROP_APP_DICTIONARY_2) ) {
 			setDict2(value);
-		} else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
+		} else if ( key.equals(PROP_TOOLBAR_APPEARANCE) ) {
+			setToolbarAppearance(value);
+	    } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
         	if (mBrowser != null)
         		mBrowser.setSortOrder(value);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
@@ -991,6 +994,14 @@ public class CoolReader extends BaseActivity
 
 	public void setDict2( String id ) {
 		mDictionaries.setDict2(id);
+	}
+
+	public void setToolbarAppearance( String id ) {
+		mOptionAppearance = id;
+	}
+
+	public String getToolbarAppearance() {
+		return mOptionAppearance;
 	}
 
 	public void showAboutDialog() {
