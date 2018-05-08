@@ -59,18 +59,18 @@ public class InterfaceTheme {
 	public final static InterfaceTheme GRAY1 = new InterfaceTheme("GRAY1", R.style.Theme_Gray1, R.style.Theme_Gray1_Dialog_Normal, R.style.Theme_Gray1_Dialog_Fullscreen, R.string.options_app_ui_theme_gray1, 0xFF555555)
 			.setRootDelimiter(R.drawable.divider_black_tiled, 2)
 			.setBackgrounds(
-					R.drawable.ui_status_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_black,
-					R.drawable.ui_toolbar_background_browser_vertical_black,
+					R.drawable.ui_status_background_browser_gray1,
+					R.drawable.ui_toolbar_background_browser_gray1,
+					R.drawable.ui_toolbar_background_browser_vertical_gray1,
 					0, 0xFF555555)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0x80);
 
 	public final static InterfaceTheme GRAY2 = new InterfaceTheme("GRAY2", R.style.Theme_Gray2, R.style.Theme_Gray2_Dialog_Normal, R.style.Theme_Gray2_Dialog_Fullscreen, R.string.options_app_ui_theme_gray2, 0xFFCCCCCC)
 			.setRootDelimiter(R.drawable.divider_white_tiled, 2)
 			.setBackgrounds(
-					R.drawable.ui_status_background_browser_white,
-					R.drawable.ui_toolbar_background_browser_white,
-					R.drawable.ui_toolbar_background_browser_vertical_white,
+					R.drawable.ui_status_background_browser_gray2,
+					R.drawable.ui_toolbar_background_browser_gray2,
+					R.drawable.ui_toolbar_background_browser_vertical_gray2,
 					0, 0xFFCCCCCC)
 			.setToolbarButtonAlpha(DeviceInfo.EINK_SCREEN ? 0xFF : 0xE0);
 	public final static InterfaceTheme HICONTRAST1 = new InterfaceTheme("HICONTRAST1", R.style.Theme_HiContrast1, R.style.Theme_HiContrast1_Dialog_Normal, R.style.Theme_HiContrast1_Dialog_Fullscreen, R.string.options_app_ui_theme_hicontrast1, 0xFFFFFFFF)

@@ -482,6 +482,13 @@
     <string name="options_view_toolbar_position_none">None</string>
     <string name="options_view_toolbar_hide_in_fullscreen">Hide toolbar in fullscreen</string>
     <string name="options_view_toolbar_position_right">Right</string>
+    <string name="options_view_toolbar_appearance">Toolbar appearance (restart required)</string>
+    <string name="options_view_toolbar_appear_100">100% size</string>
+    <string name="options_view_toolbar_appear_100_gray">100% size, grayscale</string>
+    <string name="options_view_toolbar_appear_75">75% size</string>
+    <string name="options_view_toolbar_appear_75_gray">75% size, grayscale</string>
+    <string name="options_view_toolbar_appear_50">50% size</string>
+    <string name="options_view_toolbar_appear_50_gray">50% size, grayscale</string>
     <string name="dlg_button_back">Back</string>
     <string name="dlg_about_donation_iron">$0.3: buy Cool Reader Iron Donation</string>
     <string name="dlg_about_donation_vip">$100: buy Cool Reader VIP Donation</string>

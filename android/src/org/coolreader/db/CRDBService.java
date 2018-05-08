@@ -184,7 +184,10 @@ public class CRDBService extends Service {
     		list.clear();
     	}
     }
-    
+
+	public interface SearchHistoryLoadingCallback {
+		void onSearchHistoryLoaded(ArrayList<String> searches);
+	}
 	//=======================================================================================
     // OPDS catalogs access code
     //=======================================================================================
@@ -197,6 +200,15 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				mainDB.saveOPDSCatalog(id, url, name, username, password);
+			}
+		});
+	}
+
+	public void saveSearchHistory(final BookInfo book, final String sHist) {
+		execTask(new Task("saveSearchHistory") {
+			@Override
+			public void work() {
+				mainDB.saveSearchHistory(book, sHist);
 			}
 		});
 	}
@@ -225,6 +237,22 @@ public class CRDBService extends Service {
 			}
 		});
 	}
+
+	public void loadSearchHistory(final BookInfo book, final SearchHistoryLoadingCallback callback, final Handler handler) {
+		execTask(new Task("loadSearchHistory") {
+			@Override
+			public void work() {
+				final ArrayList<String> list = mainDB.loadSearchHistory(book);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onSearchHistoryLoaded(list);
+					}
+				});
+			}
+		});
+	}
+
 
 	public void removeOPDSCatalog(final Long id) {
 		execTask(new Task("removeOPDSCatalog") {
@@ -725,6 +753,10 @@ public class CRDBService extends Service {
     		getService().findSeriesBooks(seriesId, callback, new Handler());
     	}
 
+		public void loadSearchHistory(BookInfo book, SearchHistoryLoadingCallback callback) {
+			getService().loadSearchHistory(book, callback, new Handler());
+		}
+
     	public void loadBooksByRating(int minRating, int maxRating, FileInfoLoadingCallback callback) {
     		getService().findBooksByRating(minRating, maxRating, callback, new Handler());
     	}
@@ -760,6 +792,10 @@ public class CRDBService extends Service {
     	public void saveBookInfo(final BookInfo bookInfo) {
     		getService().saveBookInfo(new BookInfo(bookInfo));
     	}
+
+		public void saveSearchHistory(final BookInfo book, String sHist) {
+			getService().saveSearchHistory(new BookInfo(book), sHist);
+		}
 
     	public void deleteRecentPosition(final FileInfo fileInfo)	{
     		getService().deleteRecentPosition(new FileInfo(fileInfo));
