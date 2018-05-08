@@ -49,7 +49,6 @@ import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class BaseActivity extends Activity implements Settings {
@@ -1232,12 +1231,7 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void askConfirmation(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
-		
-		final TextView myView = new TextView(getApplicationContext());
-		myView.setText(questionResourceId);
-		//myView.setTextSize(12);
-		dlg.setView(myView);
-		//dlg.setTitle(questionResourceId);
+		dlg.setMessage(questionResourceId);
 		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
 			public void onClick(DialogInterface arg0, int arg1) {
 				action.run();
