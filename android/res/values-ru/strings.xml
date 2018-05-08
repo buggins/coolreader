@@ -471,7 +471,7 @@
     <string name="options_view_toolbar_position_left">Слева</string>
     <string name="options_view_toolbar_position_long_side">По длинному краю</string>
     <string name="options_view_toolbar_position_none">Спрятать</string>
-    <string name="options_view_toolbar_hide_in_fullscreen">Fullscreen: прятать панель инструментов</string>
+    <string name="options_view_toolbar_hide_in_fullscreen">Прятать панель инструментов в полноэкранном режиме</string>
     <string name="options_view_toolbar_position_right">Справа</string>
     <string name="options_view_toolbar_appearance">Внешний вид панели инструментов (перезапуск)</string>
     <string name="options_view_toolbar_appear_100">Размер 100%</string>

@@ -132,14 +132,37 @@ public class CRToolBar extends ViewGroup {
 		if (activity instanceof CoolReader) {
 			//Properties settings = ((CoolReader)activity).getReaderView().getSettings();
 			//this.optionAppearance = settings.getInt(ReaderView.PROP_TOOLBAR_APPEARANCE, 0);
-			this.optionAppearance = Integer.valueOf(((CoolReader)activity).getToolbarAppearance());
-			this.toolbarScale = 1.0f;
-			if ((this.optionAppearance == 2)||(this.optionAppearance == 3)) this.toolbarScale = 0.75f;
-			if ((this.optionAppearance == 4)||(this.optionAppearance == 5)) this.toolbarScale = 0.5f;
-			this.grayIcons = false;
-			if ((this.optionAppearance == 1)||(this.optionAppearance == 3)||(this.optionAppearance == 5)) this.grayIcons = true;
+			optionAppearance = Integer.valueOf(((CoolReader)activity).getToolbarAppearance());
+			toolbarScale = 1.0f;
+			grayIcons = false;
+			switch (optionAppearance) {
+				case Settings.VIEWER_TOOLBAR_100:           // 0
+					toolbarScale = 1.0f;
+					grayIcons = false;
+					break;
+				case Settings.VIEWER_TOOLBAR_100_gray:      // 1
+					toolbarScale = 1.0f;
+					grayIcons = false;
+					break;
+				case Settings.VIEWER_TOOLBAR_75:            // 2
+					toolbarScale = 0.75f;
+					grayIcons = false;
+					break;
+				case Settings.VIEWER_TOOLBAR_75_gray:       // 3
+					toolbarScale = 0.75f;
+					grayIcons = true;
+					break;
+				case Settings.VIEWER_TOOLBAR_50:            // 4
+					toolbarScale = 0.5f;
+					grayIcons = false;
+					break;
+				case Settings.VIEWER_TOOLBAR_50_gray:       // 5
+					toolbarScale = 0.5f;
+					grayIcons = true;
+					break;
+			}
 		}
-		int sz = (int)((float)preferredItemHeight * this.toolbarScale); //(activity.isSmartphone() ? preferredItemHeight * 6 / 10 - BUTTON_SPACING : preferredItemHeight);
+		int sz = (int)((float)preferredItemHeight * toolbarScale); //(activity.isSmartphone() ? preferredItemHeight * 6 / 10 - BUTTON_SPACING : preferredItemHeight);
 		buttonWidth = buttonHeight = sz - BUTTON_SPACING;
 		if (isMultiline)
 			buttonHeight = sz / 2;
@@ -241,7 +264,7 @@ public class CRToolBar extends ViewGroup {
 	}
 
 	private void setButtonImageResource(ImageButton ib, int resId) {
-		if (this.optionAppearance==0) {
+		if (optionAppearance == Settings.VIEWER_TOOLBAR_100) {
 			ib.setImageResource(resId);
 			return;
 		}
