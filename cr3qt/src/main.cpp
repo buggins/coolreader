@@ -24,6 +24,20 @@
     #include <fontconfig/fontconfig.h>
 #endif
 
+#if defined(QT_STATIC)
+#if QT_VERSION >= 0x050000
+#include <QtPlugin>
+#if defined(Q_OS_UNIX)
+Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
+#elif defined(Q_OS_WIN)
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
+Q_IMPORT_PLUGIN(QWindowsVistaStylePlugin);
+#elif defined(Q_OS_MACOS)
+Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
+#endif
+#endif
+#endif
+
 // prototypes
 void InitCREngineLog( const char * cfgfile );
 bool InitCREngine( const char * exename, lString16Collection & fontDirs );
