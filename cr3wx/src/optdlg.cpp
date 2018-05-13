@@ -41,7 +41,11 @@ public:
             if ( v==_choices[i] )
                 tb = i;
         if ( _storeStringValues ) {
-            props->setString( _option, lString16(_choices[tb]) );
+            #if wxCHECK_VERSION(3, 0, 0)
+                props->setString( _option, lString16(_choices[tb].wx_str()) );
+            #else
+                props->setString( _option, lString16(_choices[tb]) );
+            #endif
         } else {
             props->setInt( _option, tb );
         }
@@ -50,7 +54,11 @@ public:
     {
         unsigned tb = _defvalue;
         if ( _storeStringValues ) {
-            lString8 s8 = UnicodeToUtf8( lString16(_choices[_defvalue]) );
+            #if wxCHECK_VERSION(3, 0, 0)
+                lString8 s8 = UnicodeToUtf8( lString16(_choices[_defvalue].wx_str()) );
+            #else
+                lString8 s8 = UnicodeToUtf8( lString16(_choices[_defvalue]) );
+            #endif
             lString16 s16 = props->getStringDef( _option, s8.c_str() );
             wxString v = s16.c_str();
             for ( unsigned i=0; i<_choices.GetCount(); i++ )

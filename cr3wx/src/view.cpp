@@ -353,7 +353,11 @@ static lChar16 detectSlash( lString16 path )
 
 lString16 cr3view::GetHistoryFileName()
 {
-    lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
+    #if wxCHECK_VERSION(3, 0, 0)
+        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().wx_str() );
+    #else
+        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
+    #endif
     if ( !wxDirExists( cfgdir.c_str() ) )
         ::wxMkdir( wxString( cfgdir.c_str() ) );
     lChar16 slash = detectSlash( cfgdir );
@@ -667,13 +671,21 @@ bool cr3view::LoadDocument( const wxString & fname )
     //===========================================
     GetParent()->Update();
     //printf("   loading...  ");
-    bool res = getDocView()->LoadDocument( fname.c_str() );
+    #if wxCHECK_VERSION(3, 0, 0)
+        bool res = getDocView()->LoadDocument( fname.wx_str() );
+    #else
+        bool res = getDocView()->LoadDocument( fname.c_str() );
+    #endif
     //printf("   done. \n");
 	//DEBUG
 	//_docview->exportWolFile( "test.wol", true );
 	//_docview->SetPos(0);
     if ( !res )
-        getDocView()->createDefaultDocument(lString16("File open error"), lString16("Cannot open file ") + fname.c_str() );
+        #if wxCHECK_VERSION(3, 0, 0)
+            getDocView()->createDefaultDocument(lString16("File open error"), lString16("Cannot open file ") + fname.wx_str() );
+        #else
+            getDocView()->createDefaultDocument(lString16("File open error"), lString16("Cannot open file ") + fname.c_str() );
+        #endif
     lString16 title = getDocView()->getAuthors();
     if ( !title.empty() && !getDocView()->getTitle().empty() )
         title << L". ";
