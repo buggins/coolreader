@@ -524,6 +524,7 @@ int cr3app::OnExit()
 
 wxBitmap cr3Frame::getIcon16x16( const lChar16 * name )
 {
+    wxLogNull logNo; // Temporary disable warnings ( see: http://trac.wxwidgets.org/ticket/15331 )
     lString16 dir;
     if ( _toolbarSize==2 )
         dir = "icons/22x22/";
@@ -535,7 +536,7 @@ wxBitmap cr3Frame::getIcon16x16( const lChar16 * name )
     if ( icon.IsOk() )
         return icon;
     return wxNullBitmap;
-}
+} // ~wxLogNull called, old log sink restored
 
 #if (USE_FREETYPE==1)
 bool getDirectoryFonts( lString16Collection & pathList, lString16 ext, lString16Collection & fonts, bool absPath )
