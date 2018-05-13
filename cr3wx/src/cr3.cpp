@@ -1500,7 +1500,7 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
 void 
 cr3Frame::OnAbout( wxCommandEvent& WXUNUSED( event ) )
 {
-    wxMessageBox( wxT( "Cool Reader " wxT(CR3_VERSION) wxT("\n(c) 1998-2007 Vadim Lopatin\nwxWidgets version\n") )
+    wxMessageBox( wxT( "Cool Reader " wxT(CR3_VERSION) wxT("\n(c) 1998-2018 Vadim Lopatin\n" wxVERSION_STRING"\n") )
     wxT("\nBased on CREngine library " wxT(CR_ENGINE_VERSION) )
     wxT("\nThird party libraries used:")
     wxT("\nzlib, libpng, libjpeg, freetype2,")
