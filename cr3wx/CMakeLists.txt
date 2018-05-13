@@ -10,7 +10,7 @@ src/resources/cr3_def_cover.cpp
 )
 LINK_DIRECTORIES(${wxWidgets_LIBRARY_DIRS})
 ADD_EXECUTABLE(cr3 ${CR3_SOURCES})
-SET (EXTRA_LIBS  ${wxWidgets_LIBRARIES} ${STD_LIBS})
+SET (EXTRA_LIBS  ${wxWidgets_LIBRARIES} fontconfig ${STD_LIBS})
 TARGET_LINK_LIBRARIES(cr3 crengine tinydict ${EXTRA_LIBS})
 
 IF (UNIX)
