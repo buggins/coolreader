@@ -395,7 +395,11 @@ static lChar16 detectSlash( lString16 path )
 
 lString16 GetConfigFileName()
 {
-    lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
+    #if wxCHECK_VERSION(3, 0, 0)
+        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().wx_str() );
+    #else
+        lString16 cfgdir( wxStandardPaths::Get().GetUserDataDir().c_str() );
+    #endif
     if ( !wxDirExists( cfgdir.c_str() ) )
         ::wxMkdir( wxString( cfgdir.c_str() ) );
     lChar16 slash = detectSlash( cfgdir );
@@ -622,7 +626,11 @@ cr3app::OnInit()
     wxImage::AddHandler(new wxPNGHandler);
     resources = new ResourceContainer();
 
-    lString16 appname( argv[0] );
+    #if wxCHECK_VERSION(3, 0, 0)
+        lString16 appname( argv[0].wx_str() );
+    #else
+        lString16 appname( argv[0] );
+    #endif
     int lastSlash=-1;
     lChar16 slashChar = '/';
     for ( int p=0; p<(int)appname.length(); p++ ) {
@@ -777,7 +785,11 @@ cr3app::OnInit()
     int argc = wxGetApp().argc;
     lString16 fnameToOpen;
     for ( int i=1; i<argc; i++ ) {
-        lString16 param = lString16( wxGetApp().argv[1] );
+        #if wxCHECK_VERSION(3, 0, 0)
+            lString16 param = lString16( wxGetApp().argv[1].wx_str() );
+        #else
+            lString16 param = lString16( wxGetApp().argv[1] );
+        #endif
         if ( param[0]!='-' )
             fnameToOpen = param;
     }
@@ -1193,7 +1205,11 @@ void cr3Frame::OnInitDialog(wxInitDialogEvent& event)
     lString16 outFile;
     bool convert = false;
     for ( int i=1; i<argc; i++ ) {
-        lString16 param = lString16( wxGetApp().argv[i] );
+        #if wxCHECK_VERSION(3, 0, 0)
+            lString16 param = lString16( wxGetApp().argv[i].wx_str() );
+        #else
+            lString16 param = lString16( wxGetApp().argv[i] );
+        #endif
         if ( param[0]!='-' )
             fnameToOpen = param;
         else if (param.startsWith("--convert"))
@@ -1470,7 +1486,11 @@ cr3Frame::OnFileSave( wxCommandEvent& WXUNUSED( event ) )
         wxCursor hg( wxCURSOR_WAIT );
         this->SetCursor( hg );
         wxSetCursor( hg );
-        _view->getDocView()->exportWolFile( dlg.GetPath(), opts.getMode()==0, opts.getLevels() );
+        #if wxCHECK_VERSION(3, 0, 0)
+            _view->getDocView()->exportWolFile( dlg.GetPath().wx_str(), opts.getMode()==0, opts.getLevels() );
+        #else
+            _view->getDocView()->exportWolFile( dlg.GetPath(), opts.getMode()==0, opts.getLevels() );
+        #endif
         wxSetCursor( wxNullCursor );
         this->SetCursor( wxNullCursor );
     }
