@@ -151,7 +151,8 @@ ADD_EXECUTABLE(cr3 ${CR3_MAN_PAGES} ${CR3_CHANGELOG} ${CR3_SOURCES} ${CR3_RCS} $
 endif (WIN32)
 
 if( NOT ${GUI} STREQUAL QT )
-qt5_use_modules(cr3 Widgets)
+  qt5_use_modules(cr3 Widgets)
+  SET(QT_VERSION ${Qt5Widgets_VERSION})
 endif( NOT ${GUI} STREQUAL QT )
 
 if(WIN32)
@@ -178,6 +179,13 @@ IF(MAC)
 #${QT_LIBRARIES} 
 ELSEIF (UNIX)
     SET (EXTRA_LIBS ${QT_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES} fontconfig ${STD_LIBS} )
+    SET (ABOUTLST src/aboutdlg.ui src/i18n/cr3_cs.ts src/i18n/cr3_de.ts src/i18n/cr3_es.ts 
+                  src/i18n/cr3_hu.ts src/i18n/cr3_pl.ts src/i18n/cr3_uk.ts src/i18n/cr3_ru.ts)
+    FOREACH(item IN LISTS ABOUTLST)
+        FILE(READ "${item}" fcontent)
+        STRING(REPLACE "Qt4.5" "Qt${QT_VERSION}" fcontent "${fcontent}")
+        FILE(WRITE "${item}" "${fcontent}")
+    ENDFOREACH(item)
 ELSE()
     SET (EXTRA_LIBS ${STD_LIBS} ${QT_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES} )
 ENDIF(MAC)
