@@ -22,6 +22,9 @@ IF (UNIX)
   INSTALL( DIRECTORY ../cr3qt/data/hyph DESTINATION share/cr3 
   FILES_MATCHING PATTERN "*.pattern" )
   INSTALL( DIRECTORY ../cr3qt/data/skins DESTINATION share/cr3/skins )
+  INSTALL( FILES ../cr3qt/src/desktop/cr3.desktop DESTINATION share/applications )
+  INSTALL( FILES ../cr3qt/src/desktop/cr3.png DESTINATION share/pixmaps )
+  INSTALL( FILES ../cr3qt/src/desktop/cr3.xpm DESTINATION share/pixmaps )
 ELSE()
   INSTALL( TARGETS cr3 RUNTIME DESTINATION . )
   INSTALL( DIRECTORY ../cr3qt/data/ DESTINATION . 
