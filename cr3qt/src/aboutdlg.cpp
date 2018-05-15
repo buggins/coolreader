@@ -8,7 +8,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
     m_ui(new Ui::AboutDialog)
 {
     m_ui->setupUi(this);
-	m_ui->lblVersion->setText(QString("Cool Reader v") + QString(CR_ENGINE_VERSION));
+	m_ui->lblVersion->setText(QString("CoolReader v") + QString(CR_ENGINE_VERSION));
 	m_ui->lblDate->setText(QString(CR_ENGINE_BUILD_DATE));
 }
 
@@ -45,8 +45,14 @@ void AboutDialog::on_buttonBox_accepted()
     close();
 }
 
+/* Commented due to issue: 
+   https://github.com/buggins/coolreader/issues/3
+   Domain name is lost.
+*/
+/*
 void AboutDialog::on_btnSite_clicked()
 {
     QUrl qturl( "http://coolreader.org/" );
     QDesktopServices::openUrl( qturl );
 }
+*/
