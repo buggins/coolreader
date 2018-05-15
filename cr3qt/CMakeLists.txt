@@ -151,7 +151,7 @@ ADD_EXECUTABLE(cr3 ${CR3_MAN_PAGES} ${CR3_CHANGELOG} ${CR3_SOURCES} ${CR3_RCS} $
 endif (WIN32)
 
 if( NOT ${GUI} STREQUAL QT )
-  qt5_use_modules(cr3 Widgets)
+  target_link_libraries(cr3 Qt5::Widgets)
   SET(QTVER ${Qt5Widgets_VERSION})
 else()
   SET(QTVER "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}.${QT_VERSION_PATCH}")
