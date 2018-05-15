@@ -28,7 +28,7 @@ private:
     Ui::AboutDialog *m_ui;
 
 private slots:
-    void on_btnSite_clicked();
+//    void on_btnSite_clicked();
     void on_buttonBox_accepted();
 };
 

@@ -18,6 +18,7 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <!--
        <item>
         <widget class="QToolButton" name="btnSite">
          <property name="text">
@@ -29,6 +30,7 @@
          </property>
         </widget>
        </item>
+       -->
        <item>
         <widget class="QLabel" name="lblVersion">
          <property name="font">
