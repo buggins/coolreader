@@ -88,11 +88,11 @@ struct LVFontGlyphCacheItem
     LVFontGlyphCacheItem * next_local;
     LVFontLocalGlyphCache * local_cache;
     lChar16 ch;
-    lUInt8 bmp_width;
-    lUInt8 bmp_height;
-    lInt8  origin_x;
-    lInt8  origin_y;
-    lUInt8 advance;
+    lUInt16 bmp_width;
+    lUInt16 bmp_height;
+    lInt16  origin_x;
+    lInt16  origin_y;
+    lUInt16 advance;
     lUInt8 bmp[1];
     //=======================================================================
     int getSize()
@@ -105,8 +105,8 @@ struct LVFontGlyphCacheItem
         LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( sizeof(LVFontGlyphCacheItem)
             + (w*h - 1)*sizeof(lUInt8) );
         item->ch = ch;
-        item->bmp_width = (lUInt8)w;
-        item->bmp_height = (lUInt8)h;
+        item->bmp_width = (lUInt16)w;
+        item->bmp_height = (lUInt16)h;
         item->origin_x =   0;
         item->origin_y =   0;
         item->advance =    0;
@@ -126,11 +126,11 @@ struct LVFontGlyphCacheItem
 struct LVFontGlyphIndexCacheItem
 {
     lUInt32 gindex;
-    lUInt8 bmp_width;
-    lUInt8 bmp_height;
-    lInt8  origin_x;
-    lInt8  origin_y;
-    lUInt8 advance;
+    lUInt16 bmp_width;
+    lUInt16 bmp_height;
+    lInt16  origin_x;
+    lInt16  origin_y;
+    lUInt16 advance;
     lUInt8 bmp[1];
     //=======================================================================
     int getSize()
@@ -142,8 +142,8 @@ struct LVFontGlyphIndexCacheItem
         LVFontGlyphIndexCacheItem* item = (LVFontGlyphIndexCacheItem*)malloc( sizeof(LVFontGlyphIndexCacheItem) + (w*h - 1)*sizeof(lUInt8) );
         if (item) {
             item->gindex = glyph_index;
-            item->bmp_width = (lUInt8)w;
-            item->bmp_height = (lUInt8)h;
+            item->bmp_width = (lUInt16)w;
+            item->bmp_height = (lUInt16)h;
             item->origin_x =   0;
             item->origin_y =   0;
             item->advance =    0;
