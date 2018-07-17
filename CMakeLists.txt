@@ -1,5 +1,5 @@
 PROJECT(cr3)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
@@ -338,7 +338,7 @@ elseif ( ${GUI} STREQUAL WX )
   message("Will make CR3/WX")
   ADD_DEFINITIONS( ${DESKTOP_DEFS} -DCR_WX_SUPPORT=1 )
   SET(wxWidgets_USE_LIBS base core )
-  FIND_PACKAGE(wxWidgets)
+  FIND_PACKAGE(wxWidgets 2.8)
   IF (wxWidgets_FOUND)
     INCLUDE(${wxWidgets_USE_FILE})
     include_directories( ${wxWidgets_INCLUDE_DIRS} )

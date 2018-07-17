@@ -687,7 +687,7 @@ void CR3View::updateScroll()
 void CR3View::scrollTo( int value )
 {
     int currPos = _docview->getScrollInfo()->pos;
-    if ( currPos != value ) {
+    if ( currPos != value && value >= 0 ) {
         doCommand( DCMD_GO_SCROLL_POS, value );
     }
 }
