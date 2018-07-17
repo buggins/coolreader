@@ -2,6 +2,7 @@
 #include "ui_aboutdlg.h"
 #include <cr3version.h>
 #include <QDesktopServices>
+#include <QTextBrowser>
 
 AboutDialog::AboutDialog(QWidget *parent) :
     QDialog(parent),
@@ -10,6 +11,8 @@ AboutDialog::AboutDialog(QWidget *parent) :
     m_ui->setupUi(this);
 	m_ui->lblVersion->setText(QString("CoolReader v") + QString(CR_ENGINE_VERSION));
 	m_ui->lblDate->setText(QString(CR_ENGINE_BUILD_DATE));
+	QString aboutText = m_ui->textBrowser->toHtml().replace("%QT_VER%", QString("%1").arg(qVersion()));
+	m_ui->textBrowser->setHtml(aboutText);
 }
 
 AboutDialog::~AboutDialog()
