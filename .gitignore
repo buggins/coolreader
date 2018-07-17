@@ -6,4 +6,5 @@ wxbuild
 qtbuild
 qt-build
 qtcreator-build
+CMakeLists.txt.user
 *~

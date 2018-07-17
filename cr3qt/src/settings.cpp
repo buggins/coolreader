@@ -114,14 +114,14 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         lString16 fn = bgFiles[i];
         QString f = cr2qt(fn);
         if ( f==bgFile )
-            bgIndex = i;
+            bgIndex = i + 1;
         m_backgroundFiles.append(f);
         fn = LVExtractFilenameWithoutExtension(fn);
         bgFileLabels.append(cr2qt(fn));
     }
     m_ui->cbPageSkin->clear();
     m_ui->cbPageSkin->addItems( bgFileLabels );
-    m_ui->cbPageSkin->setCurrentIndex(bgIndex+1);
+    m_ui->cbPageSkin->setCurrentIndex( bgIndex );
 
     optionToUi( PROP_WINDOW_FULLSCREEN, m_ui->cbWindowFullscreen );
     optionToUi( PROP_WINDOW_SHOW_MENU, m_ui->cbWindowShowMenu );
