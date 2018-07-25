@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This file used only by 'Eclipse', if you use 'Android Studio'
-     file 'app/src/main/AndroidManifest.xml' used instead! -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
-      android:installLocation="auto"
-      android:versionName="3.2.2-1" android:versionCode="2001">
+      android:installLocation="auto" >
     <supports-screens
         android:xlargeScreens="true"
         android:largeScreens="true"
@@ -13,8 +10,6 @@
         android:smallScreens="true"
         android:anyDensity="true"
     />
-    
-    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="17" />
     
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -27,11 +22,12 @@
     <!--uses-permission android:name="archos.permission.FULLSCREEN.FULL"/-->
     <!-- Required permission to use in-app billing. -->
     <uses-permission android:name="com.android.vending.BILLING" />
-    <application android:label="@string/app_name"
+    <application
+        android:label="@string/app_name"
         android:icon="@drawable/cr3_logo"
+        android:allowBackup="true"
         android:allowClearUserData="true"
-        android:process="org.coolreader"
-        >
+        android:process="org.coolreader">
 <!--
             android:configChanges="orientation|keyboardHidden|locale|screenSize"
 -->
@@ -50,7 +46,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:host="" android:scheme="file" />
+                <data android:host="*" android:scheme="file" />
                 <data android:pathPattern=".*\\.fb2\\.zip"/>
                 <data android:pathPattern=".*\\.zip"/>
                 <data android:pathPattern=".*\\.fb2"/>
@@ -71,7 +67,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:host="" android:scheme="file" />
+                <data android:host="*" android:scheme="file" />
                 <data android:mimeType="text/plain"/>
                 <data android:mimeType="text/html"/>
                 <data android:mimeType="application/zip"/>
