@@ -107,12 +107,12 @@ LOCAL_SRC_FILES += \
 endif
 
 LOCAL_STATIC_LIBRARIES := \
-        local_png \
-        local_jpeg \
-        local_freetype \
-        local_harfbuzz \
-        local_chmlib \
-        local_antiword
+    local_png \
+    local_jpeg \
+    local_freetype \
+    local_harfbuzz \
+    local_chmlib \
+    local_antiword
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl
 # 
@@ -123,4 +123,4 @@ include $(BUILD_SHARED_LIBRARY)
 
 MY_LOCAL_PATH := $(LOCAL_PATH)
 
-include $(MY_LOCAL_PATH)/thirdparty/Android.mk
+include $(MY_LOCAL_PATH)/../app/thirdparty_libs/Android.mk
