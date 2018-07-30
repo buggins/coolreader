@@ -14,8 +14,7 @@
         android:minWidth="?android:attr/listPreferredItemHeight"
 	    android:gravity="center_vertical"
 	    android:paddingRight="?android:attr/scrollbarSize"
-        android:background="#40404040"
-	    >
+        android:background="#40404040">
         <ImageButton android:id="@+id/base_dlg_btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -29,7 +28,6 @@
             android:focusableInTouchMode="false"
             android:background="@null"
             android:contentDescription="@string/dlg_button_back"/>
-            />
         <TextView android:id="@+id/base_dlg_title"
             style="@style/TextAppearance.Medium"
             android:layout_width="wrap_content"
@@ -41,8 +39,7 @@
             android:layout_weight="1"
             android:singleLine="false"
             android:text="Test"
-            android:layout_centerVertical="true"
-            />
+            android:layout_centerVertical="true"/>
         <ImageButton android:id="@+id/base_dlg_btn_positive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,7 +54,6 @@
             android:focusableInTouchMode="false"
             android:background="@null"
             android:contentDescription="@string/dlg_button_ok"/>
-            />
         <ImageButton android:id="@+id/base_dlg_btn_negative"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -71,7 +67,6 @@
             android:focusableInTouchMode="false"
             android:background="@null"
             android:contentDescription="@string/dlg_button_cancel"/>
-            />
     </LinearLayout>
     <FrameLayout android:id="@+id/base_dialog_content_view"
         android:gravity="top"

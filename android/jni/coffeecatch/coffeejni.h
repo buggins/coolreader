@@ -124,7 +124,6 @@ extern void coffeecatch_throw_exception(JNIEnv* env);
   } while(0)
 /** End of internal functions & definitions. **/
 
-
 #ifdef __cplusplus
 }
 #endif

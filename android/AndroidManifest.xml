@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- This file used only by 'Eclipse', if you use 'Android Studio'
+     file 'app/src/main/AndroidManifest.xml' used instead! -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.coolreader"
       android:installLocation="auto"

@@ -12,11 +12,12 @@
 
         <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
         <LinearLayout
-        android:id="@+id/linearLayout_focus"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:layout_width="0px"
-        android:layout_height="0px"/>
+            android:id="@+id/linearLayout_focus"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="0px"
+            android:layout_height="0px"
+            android:orientation="horizontal" />
         <LinearLayout 
             android:id="@+id/base_dlg_button_panel"
             android:orientation="horizontal"
