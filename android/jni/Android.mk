@@ -7,7 +7,8 @@ LOCAL_MODULE    := cr3engine-3-1-2
 
 # Generate CREngine blob with statically linked libjpeg, libpng, libfreetype, chmlib
 
-CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH -DFT2_BUILD_LIBRARY=1 \
+CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
+     -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<builds/android/include/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<builds/android/include/config/ftoption.h\> \
      -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
      -DLDOM_USE_OWN_MEM_MAN=0 \
@@ -20,6 +21,7 @@ LOCAL_C_INCLUDES := \
     -I $(CR3_ROOT)/crengine/include \
     -I $(CR3_ROOT)/thirdparty/libpng \
     -I $(CR3_ROOT)/thirdparty/freetype/include \
+    -I $(CR3_ROOT)/thirdparty/freetype \
     -I $(CR3_ROOT)/thirdparty/libjpeg \
     -I $(CR3_ROOT)/thirdparty/antiword \
     -I $(CR3_ROOT)/thirdparty/chmlib/src

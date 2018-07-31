@@ -5,7 +5,7 @@
 #define HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the `feenableexcept' function. */
-#define HAVE_FEENABLEEXCEPT 1
+/* #undef HAVE_FEENABLEEXCEPT */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -46,8 +46,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Name of package */
@@ -60,7 +59,7 @@
 #define PACKAGE_NAME "libpng"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "libpng 1.6.6"
+#define PACKAGE_STRING "libpng 1.6.34"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "libpng"
@@ -69,7 +68,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.6.6"
+#define PACKAGE_VERSION "1.6.34"
 
 /* Turn on ARM Neon optimizations at run-time */
 /* #undef PNG_ARM_NEON_API_SUPPORTED */
@@ -80,6 +79,27 @@
 /* Enable ARM Neon optimizations */
 /* #undef PNG_ARM_NEON_OPT */
 
+/* Enable Intel SSE optimizations */
+/* #undef PNG_INTEL_SSE_OPT */
+
+/* Turn on MIPS MSA optimizations at run-time */
+/* #undef PNG_MIPS_MSA_API_SUPPORTED */
+
+/* Check for MIPS MSA support at run-time */
+/* #undef PNG_MIPS_MSA_CHECK_SUPPORTED */
+
+/* Enable MIPS MSA optimizations */
+/* #undef PNG_MIPS_MSA_OPT */
+
+/* Turn on POWERPC VSX optimizations at run-time */
+/* #undef PNG_POWERPC_VSX_API_SUPPORTED */
+
+/* Check for POWERPC VSX support at run-time */
+/* #undef PNG_POWERPC_VSX_CHECK_SUPPORTED */
+
+/* Enable POWERPC VSX optimizations */
+/* #undef PNG_POWERPC_VSX_OPT */
+
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
@@ -87,7 +107,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "1.6.6"
+#define VERSION "1.6.34"
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
