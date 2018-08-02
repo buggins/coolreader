@@ -221,7 +221,7 @@ endif (NOT FREETYPE_FOUND)
 
 if (NOT HarfBuzz_FOUND)
   message("System HarfBuzz not found, will build local one\n")
-  set(HB_HAVE_FREETYPE ON)
+  SET(HB_HAVE_FREETYPE ON CACHE BOOL "Enable freetype interop helpers" FORCE)
   ADD_SUBDIRECTORY(thirdparty/harfbuzz)
   SET(HARFBUZZ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/harfbuzz/src)
   SET(HARFBUZZ_LIBRARY harfbuzz)
