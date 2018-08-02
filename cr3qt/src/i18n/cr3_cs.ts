@@ -1878,6 +1878,14 @@ p, li { white-space: pre-wrap; }
         <source>60</source>
         <translation type="unfinished">60</translation>
     </message>
+    <message>
+        <source>Font kerning</source>
+        <translation>Kerning písma</translation>
+    </message>
+    <message>
+        <source>Enable font kerning</source>
+        <translation type="unfinished">Povolit kerning písma</translation>
+    </message>
 </context>
 <context>
     <name>TocDlg</name>

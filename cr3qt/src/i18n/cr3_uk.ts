@@ -2383,6 +2383,14 @@ p, li { white-space: pre-wrap; }
         <source>60</source>
         <translation type="unfinished">60</translation>
     </message>
+    <message>
+        <source>Font kerning</source>
+        <translation>шрифт кернінг</translation>
+    </message>
+    <message>
+        <source>Enable font kerning</source>
+        <translation type="unfinished">Увімкнено кернінг шрифту</translation>
+    </message>
 </context>
 <context>
     <name>TocDlg</name>

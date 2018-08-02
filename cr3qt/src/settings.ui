@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>433</width>
-    <height>651</height>
+    <height>725</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1244,42 +1244,42 @@
          <item row="13" column="1">
           <widget class="QComboBox" name="cbInterlineSpace"/>
          </item>
-         <item row="14" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="label_18">
            <property name="text">
             <string>Floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="15" column="1">
           <widget class="QCheckBox" name="cbFloatingPunctuation">
            <property name="text">
             <string>Enable floating punctuation</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="0">
+         <item row="18" column="0">
           <widget class="QLabel" name="label_17">
            <property name="text">
             <string>.TXT files</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="1">
+         <item row="18" column="1">
           <widget class="QCheckBox" name="cbTxtPreFormatted">
            <property name="text">
             <string>Disable automatic formatting</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="0">
+         <item row="20" column="0">
           <widget class="QLabel" name="label_15">
            <property name="text">
             <string>Sample</string>
            </property>
           </widget>
          </item>
-         <item row="19" column="1">
+         <item row="20" column="1">
           <widget class="CR3View" name="crSample" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1552,31 +1552,45 @@
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
+         <item row="16" column="1">
           <widget class="QCheckBox" name="cbEnableDocumentStyles">
            <property name="text">
             <string>Enable documetn internal styles</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
+         <item row="16" column="0">
           <widget class="QLabel" name="label_38">
            <property name="text">
             <string>Internal CSS</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="1">
+         <item row="17" column="1">
           <widget class="QCheckBox" name="cbEnableEmbeddedFonts">
            <property name="text">
             <string>Enable document embedded fonts</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="0">
+         <item row="17" column="0">
           <widget class="QLabel" name="label_37">
            <property name="text">
             <string>.EPUB</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="0">
+          <widget class="QLabel" name="label_43">
+           <property name="text">
+            <string>Font kerning</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QCheckBox" name="cbFontKerning">
+           <property name="text">
+            <string>Enable font kerning</string>
            </property>
           </widget>
          </item>
@@ -1610,8 +1624,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>401</width>
-              <height>540</height>
+              <width>389</width>
+              <height>597</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
