@@ -43,7 +43,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
-	
+
 	private final SurfaceView surface;
 	private final BookView bookView;
 	public SurfaceView getSurface() { return surface; }
@@ -4597,7 +4597,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int profileNumber;
 		boolean disableInternalStyles;
 		boolean disableTextAutoformat;
-		Properties props;
 		LoadDocumentTask(BookInfo bookInfo, Runnable errorHandler)
 		{
 			BackgroundThread.ensureGUI();
@@ -4644,17 +4643,16 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	        // close existing document
 			log.v("LoadDocumentTask : closing current book");
 	        close();
-	        if (props != null) {
-		        setAppSettings(props, oldSettings);
-	    		BackgroundThread.instance().postBackground(new Runnable() {
-	    			@Override
-	    			public void run() {
-	    				log.v("LoadDocumentTask : switching current profile");
-	    				applySettings(props);
-	    				log.i("Switching done");
-	    			}
-	    		});
-	        }
+			final Properties currSettings = new Properties(mSettings);
+			BackgroundThread.instance().postBackground(new Runnable() {
+				@Override
+				public void run() {
+					log.v("LoadDocumentTask : switching current profile");
+					applySettings(currSettings); //enforce reloading of the settings
+					log.i("Switching done");
+				}
+			});
+
 		}
 
 		@Override
