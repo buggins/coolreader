@@ -1357,7 +1357,9 @@ public class BaseActivity extends Activity implements Settings {
 			
 			new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 			new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
-			new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+
+			new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, (!DeviceInfo.EINK_TOLINO ? ReaderAction.PAGE_UP : ReaderAction.NONE)), // TOLINO backlight button  !
+
 			new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 			new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 
@@ -1385,7 +1387,7 @@ public class BaseActivity extends Activity implements Settings {
 			
 			new DefKeyAction(ReaderView.KEYCODE_ESCAPE, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 			new DefKeyAction(ReaderView.KEYCODE_ESCAPE, ReaderAction.LONG, ReaderAction.REPEAT),
-			
+
 //		    public static final int KEYCODE_PAGE_BOTTOMLEFT = 0x5d; // fwd
 //		    public static final int KEYCODE_PAGE_BOTTOMRIGHT = 0x5f; // fwd
 //		    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back

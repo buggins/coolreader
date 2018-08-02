@@ -116,9 +116,11 @@ public class DeviceInfo {
 				|| MODEL.startsWith("I63MLP");
 		//MANUFACTURER -DNS, DEVICE -BK6004C, MODEL - DNS Airbook EGH602, PRODUCT - BK6004C
 		EINK_DNS = MANUFACTURER.toLowerCase().contentEquals("dns") && MODEL.startsWith("DNS Airbook EGH");
-		EINK_TOLINO = BRAND.toLowerCase().contentEquals("tolino") && (
-					MODEL.toLowerCase().contentEquals("imx50_rdp") // SHINE
-				);
+
+		EINK_TOLINO = (BRAND.toLowerCase().contentEquals("tolino") && (MODEL.toLowerCase().contentEquals("imx50_rdp")) ) || 		// SHINE
+						DEVICE.toLowerCase().contentEquals("tolino_vision2"); //Tolino Vision HD4 doesn't show any Brand, and DEVICE=tolino_vision2)
+
+
 		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
 
 		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");
