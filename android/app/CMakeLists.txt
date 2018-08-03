@@ -13,6 +13,7 @@ include_directories(${CR3_ROOT}/crengine/include)
 include_directories(${CR3_ROOT}/thirdparty/libpng)
 include_directories(${CR3_ROOT}/thirdparty/freetype)
 include_directories(${CR3_ROOT}/thirdparty/freetype/include)
+include_directories(${CR3_ROOT}/thirdparty/harfbuzz/src)
 include_directories(${CR3_ROOT}/thirdparty/libjpeg)
 include_directories(${CR3_ROOT}/thirdparty/antiword)
 include_directories(${CR3_ROOT}/thirdparty/chmlib/src)
@@ -137,6 +138,7 @@ target_link_libraries( # Specifies the target library.
                        png
                        jpeg
                        freetype
+                       harfbuzz
                        chmlib
                        antiword
 

@@ -1,6 +1,8 @@
 PROJECT(cr3)
 cmake_minimum_required(VERSION 3.0)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
+
 #INCLUDE(CPack)
 
 if( ${CMAKE_SYSTEM} MATCHES "Darwin" )
@@ -207,13 +209,24 @@ endif (NOT JPEG_FOUND)
 
 if (NOT WIN32 AND NOT CR3_FREETYPE)
 FIND_PACKAGE(Freetype)
+FIND_PACKAGE(HarfBuzz)
 endif (NOT WIN32 AND NOT CR3_FREETYPE)
+
 if (NOT FREETYPE_FOUND)
   message("System FREETYPE not found, will build local one\n")
   ADD_SUBDIRECTORY(thirdparty/freetype)
   SET(FREETYPE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/freetype/include)
   SET(FREETYPE_LIBRARIES freetype)
 endif (NOT FREETYPE_FOUND)
+
+if (NOT HarfBuzz_FOUND)
+  message("System HarfBuzz not found, will build local one\n")
+  SET(HB_HAVE_FREETYPE ON CACHE BOOL "Enable freetype interop helpers" FORCE)
+  ADD_SUBDIRECTORY(thirdparty/harfbuzz)
+  SET(HARFBUZZ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/harfbuzz/src)
+  SET(HARFBUZZ_LIBRARY harfbuzz)
+endif (NOT HarfBuzz_FOUND)
+
 endif (NOT MAC)
 
 #if (ENABLE_CHM)
@@ -241,6 +254,7 @@ INCLUDE_DIRECTORIES(
   ${JPEG_INCLUDE_DIR} 
   ${ZLIB_INCLUDE_DIR} 
   ${FREETYPE_INCLUDE_DIRS}
+  ${HARFBUZZ_INCLUDE_DIR}
   ${ANTIWORD_INCLUDE_DIR}
   ${CHM_INCLUDE_DIR}
 )
@@ -253,7 +267,8 @@ else()
 SET(STD_LIBS 
   ${JPEG_LIBRARIES} 
   ${FREETYPE_LIBRARIES} 
-  ${PNG_LIBRARIES} 
+  ${HARFBUZZ_LIBRARY}
+  ${PNG_LIBRARIES}
   ${ZLIB_LIBRARIES} 
   ${CHM_LIBRARIES}
   ${ZLIB_LIBRARIES}
