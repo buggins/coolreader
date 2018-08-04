@@ -589,6 +589,14 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 		refreshRecentBooks();
 
+		// Must be initialized FileSystemFolders.favoriteFolders firstly to exclude NullPointerException.
+		mActivity.waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
+			}
+		});
+
         Services.getFileSystemFolders().addListener(new FileInfoChangeListener() {
             @Override
             public void onChange(FileInfo object, boolean onlyProperties) {
@@ -598,13 +606,6 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
               				refreshFileSystemFolders();
               			}
               		});
-            }
-        });
-
-        mActivity.waitForCRDBService(new Runnable() {
-            @Override
-            public void run() {
-                Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
             }
         });
 
@@ -644,6 +645,14 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		updateDelimiterTheme(R.id.delimiter4);
 		updateDelimiterTheme(R.id.delimiter5);
 
+		// Must be initialized FileSystemFolders.favoriteFolders firstly to exclude NullPointerException.
+		mActivity.waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
+			}
+		});
+
 		updateCurrentBook(Services.getHistory().getLastBook());
 		refreshRecentBooks();
 
@@ -651,13 +660,6 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			@Override
 			public void run() {
 				refreshFileSystemFolders();
-			}
-		});
-
-		mActivity.waitForCRDBService(new Runnable() {
-			@Override
-			public void run() {
-				Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
 			}
 		});
 
