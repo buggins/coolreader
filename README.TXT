@@ -19,7 +19,6 @@ thirdparty - third party libraries, to use if not found in system (zlib, libpng,
 tinydict   - small library for .dict file format support
 tools      - miscellaneous configuration files
 android    - Android port
-cr3android - Android Studio project files.
 
 External dependencies: 
 
