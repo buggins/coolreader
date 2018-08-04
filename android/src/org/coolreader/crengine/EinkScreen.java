@@ -1,6 +1,5 @@
 package org.coolreader.crengine;
 
-import org.coolreader.crengine.N2EpdController;
 import android.view.View;
 
 public class EinkScreen {
@@ -66,8 +65,6 @@ public class EinkScreen {
 					RefreshNumber++;
 				}
 			}
-			
-			return;
 			/*
 			if (UpdateMode == 1 && UpdateModeInterval != 0) {
 				if (RefreshNumber == 0) {
@@ -134,7 +131,6 @@ public class EinkScreen {
 		} else {
 			ResetController(UpdateMode, view);
 		}
-		return;
 	}
 	
 	private static void SetMode(View view, int mode) {

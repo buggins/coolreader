@@ -114,7 +114,7 @@ public class DeviceInfo {
 		//MANUFACTURER=Onyx, MODEL=*; All ONYX BOOX Readers have e-ink screen
 		EINK_ONYX = MANUFACTURER.toLowerCase().contentEquals("onyx") &&
 				(BRAND.toLowerCase().contentEquals("onyx") || BRAND.toLowerCase().contentEquals("maccentre")) &&
-				!MODEL.isEmpty();
+				MODEL.length() > 0;
 		//MANUFACTURER -DNS, DEVICE -BK6004C, MODEL - DNS Airbook EGH602, PRODUCT - BK6004C
 		EINK_DNS = MANUFACTURER.toLowerCase().contentEquals("dns") && MODEL.startsWith("DNS Airbook EGH");
 

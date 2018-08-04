@@ -224,7 +224,7 @@
             android:singleLine="true"
         />
         
-        <TextView 
+        <EditText
             android:visibility="gone"
             android:id="@+id/lbl_phone" 
             style="@style/TextAppearance.Medium"
