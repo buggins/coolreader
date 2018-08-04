@@ -65,7 +65,7 @@
 #if USE_HARFBUZZ==1
 #include <hb.h>
 #include <hb-ft.h>
-#include <map>
+#include "lvhashtable.h"
 #endif
 
 #if (USE_FONTCONFIG==1)
@@ -833,7 +833,7 @@ protected:
     hb_buffer_t* _hb_buffer;
     hb_font_t* _hb_font;
     hb_feature_t _hb_kern_feature;
-    std::map<lUInt32, LVFontGlyphIndexCacheItem*> _glyph_cache2;
+    LVHashTable<lUInt32, LVFontGlyphIndexCacheItem*> _glyph_cache2;
 #endif
 public:
 
@@ -867,6 +867,9 @@ public:
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _weight(400), _italic(0)
+#if USE_HARFBUZZ==1
+    , _glyph_cache2(256)
+#endif
     , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _hintingMode(HINTING_MODE_AUTOHINT), _fallbackFontIsSet(false)
     {
         _matrix.xx = 0x10000;
@@ -894,9 +897,10 @@ public:
         _glyph_cache.clear();
         _wcache.clear();
 #if USE_HARFBUZZ==1
-        std::map<lUInt32, LVFontGlyphIndexCacheItem*>::iterator it;
-        for (it = _glyph_cache2.begin(); it != _glyph_cache2.end(); ++it) {
-            LVFontGlyphIndexCacheItem* item = it->second;
+        LVHashTable<lUInt32, LVFontGlyphIndexCacheItem*>::pair* pair;
+        LVHashTable<lUInt32, LVFontGlyphIndexCacheItem*>::iterator it = _glyph_cache2.forwardIterator();
+        while (pair = it.next()) {
+            LVFontGlyphIndexCacheItem* item = pair->value;
             if (item)
                 LVFontGlyphIndexCacheItem::freeItem(item);
         }
@@ -923,6 +927,8 @@ public:
             hb_feature_from_string("+kern", -1, &_hb_kern_feature);
         else
             hb_feature_from_string("-kern", -1, &_hb_kern_feature);
+        // in cache may be found some ligatures, so clear it
+        clearCache();
 #endif
     }
 
@@ -1483,9 +1489,7 @@ public:
     LVFontGlyphIndexCacheItem * getGlyphByIndex(lUInt32 index) {
         //FONT_GUARD
         LVFontGlyphIndexCacheItem * item = 0;
-        std::map<lUInt32, LVFontGlyphIndexCacheItem*>::const_iterator it;
-        it = _glyph_cache2.find(index);
-        if (it == _glyph_cache2.end()) {
+        if (!_glyph_cache2.get(index, item)) {
             // glyph not found in cache, rendering...
             int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
             if (_hintingMode == HINTING_MODE_AUTOHINT)
@@ -1503,10 +1507,8 @@ public:
             }
             item = newItem(index, _slot);
             if (item)
-                _glyph_cache2.insert(std::pair<lUInt32, LVFontGlyphIndexCacheItem*>(index, item));
+                _glyph_cache2.set(index, item);
         }
-        else
-            item = it->second;
         return item;
     }
 #endif

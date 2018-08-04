@@ -2,11 +2,11 @@
 project(harfbuzz)
 
 set(HARFBUZZ_SRC_DIR ${PROJECT_SOURCE_DIR}/../../../../thirdparty/harfbuzz)
-set(HARFBUZZ_CONFIG_DIR ${PROJECT_SOURCE_DIR}/../../../../android/jni/thirdparty/harfbuzz)
+set(HARFBUZZ_CONFIG_DIR ${PROJECT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${HARFBUZZ_SRC_DIR}/src/hb-ucdn)
 include_directories(${HARFBUZZ_CONFIG_DIR})
+include_directories(${HARFBUZZ_SRC_DIR}/src/hb-ucdn)
 
 add_definitions(-DHAVE_CONFIG_H=1)
 

@@ -13,11 +13,13 @@ include_directories(${CR3_ROOT}/crengine/include)
 include_directories(${CR3_ROOT}/thirdparty/libpng)
 include_directories(${CR3_ROOT}/thirdparty/freetype)
 include_directories(${CR3_ROOT}/thirdparty/freetype/include)
+include_directories(${CR3_ROOT}/thirdparty/harfbuzz/src)
 include_directories(${CR3_ROOT}/thirdparty/libjpeg)
 include_directories(${CR3_ROOT}/thirdparty/antiword)
 include_directories(${CR3_ROOT}/thirdparty/chmlib/src)
 
 add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
+add_definitions(-DFT_CONFIG_MODULES_H=<builds/android/include/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<builds/android/include/config/ftoption.h>)
 add_definitions(-DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000)
 add_definitions(-DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1)
 add_definitions(-DLDOM_USE_OWN_MEM_MAN=0)
@@ -136,6 +138,7 @@ target_link_libraries( # Specifies the target library.
                        png
                        jpeg
                        freetype
+                       harfbuzz
                        chmlib
                        antiword
 
