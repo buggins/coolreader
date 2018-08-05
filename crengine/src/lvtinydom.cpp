@@ -1052,8 +1052,7 @@ bool CacheFile::create( LVStreamRef stream )
     }
 
     _size = _sectorSize;
-    LVAutoPtr<lUInt8> sector0( new lUInt8[_sectorSize] );
-    memset(sector0.get(), 0, _sectorSize);
+    LVArray<lUInt8> sector0(_sectorSize, 0);
     lvsize_t bytesWritten = 0;
     _stream->Write(sector0.get(), _sectorSize, &bytesWritten );
     if ( (int)bytesWritten!=_sectorSize ) {

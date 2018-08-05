@@ -368,11 +368,14 @@ private:
     //========================================
     void Release()
     { 
-        if (--_ptr->_refcount == 0) 
+        if (--_ptr->_refcount == 0)
         {
-            if ( _ptr->_obj )
-                delete (reinterpret_cast<T*>(_ptr->_obj));
-            delete _ptr;
+            if (_ptr != &ref_count_rec_t::null_ref)
+            {
+                if ( _ptr->_obj )
+                    delete (reinterpret_cast<T*>(_ptr->_obj));
+                delete _ptr;
+            }
         }
     }
     //========================================

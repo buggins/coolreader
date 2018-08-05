@@ -17,15 +17,17 @@ class TocItem : public QTreeWidgetItem
                                    )
                 , _item( item )
         {
-            int page = item->getPage();
-            if ( !nearestItem || (page <= currPage && page > nearestPage) ) {
-                nearestItem = this;
-                nearestPage = page;
-            }
+            if (item) {
+                int page = item->getPage();
+                if ( !nearestItem || (page <= currPage && page > nearestPage) ) {
+                    nearestItem = this;
+                    nearestPage = page;
+                }
 
-            setData( 0, Qt::UserRole, QVariant( cr2qt(item->getPath()) ) );
-            for ( int i=0; i<item->getChildCount(); i++ ) {
-                addChild( new TocItem( item->getChild(i), currPage, nearestPage, nearestItem ) );
+                setData( 0, Qt::UserRole, QVariant( cr2qt(item->getPath()) ) );
+                for ( int i=0; i<item->getChildCount(); i++ ) {
+                    addChild( new TocItem( item->getChild(i), currPage, nearestPage, nearestItem ) );
+                }
             }
         }
 };

@@ -3474,8 +3474,7 @@ public:
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
     {
         // TODO
-        if ( nBytesRead )
-            *nBytesRead = 0;
+        lvsize_t bytesRead = 0;
         lUInt8 * dst = (lUInt8*) buf;
         while (count) {
             int bytesLeft = _decodedLen - (int)(_pos - _decodedStart);
@@ -3483,10 +3482,15 @@ public:
                 SetPos(_pos);
                 bytesLeft = _decodedLen - (int)(_pos - _decodedStart);
                 if ( bytesLeft==0 && _pos==_decodedStart+_decodedLen) {
-                    return *nBytesRead ? LVERR_OK : LVERR_EOF;
+                    if (nBytesRead)
+                        *nBytesRead = bytesRead;
+                    return bytesRead ? LVERR_OK : LVERR_EOF;
                 }
-                if ( bytesLeft<=0 || bytesLeft>_decodedLen )
+                if ( bytesLeft<=0 || bytesLeft>_decodedLen ) {
+                    if (nBytesRead)
+                        *nBytesRead = bytesRead;
                     return LVERR_FAIL;
+                }
             }
             lUInt8 * src = _decoded + (_pos - _decodedStart);
             unsigned n = count;
@@ -3497,10 +3501,11 @@ public:
             }
             count -= n;
             bytesLeft -= n;
-            if ( nBytesRead )
-                *nBytesRead += n;
+            bytesRead += n;
             _pos += n;
         }
+        if (nBytesRead)
+            *nBytesRead = bytesRead;
         return LVERR_OK;
     }
 
