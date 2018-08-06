@@ -43,7 +43,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
-	
+
 	private final SurfaceView surface;
 	private final BookView bookView;
 	public SurfaceView getSurface() { return surface; }
@@ -4597,7 +4597,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int profileNumber;
 		boolean disableInternalStyles;
 		boolean disableTextAutoformat;
-		Properties props;
 		LoadDocumentTask(BookInfo bookInfo, Runnable errorHandler)
 		{
 			BackgroundThread.ensureGUI();
@@ -4622,7 +4621,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			disableInternalStyles = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_USE_DOCUMENT_STYLES_FLAG);
 			disableTextAutoformat = mBookInfo.getFileInfo().getFlag(FileInfo.DONT_REFLOW_TXT_FILES_FLAG);
 			profileNumber = mBookInfo.getFileInfo().getProfileId();
-			Properties oldSettings = new Properties(mSettings);
+			//Properties oldSettings = new Properties(mSettings);
 			// TODO: enable storing of profile per book
 			mActivity.setCurrentProfile(profileNumber);
 	    	if ( mBookInfo!=null && mBookInfo.getLastPosition()!=null )
@@ -4644,17 +4643,17 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	        // close existing document
 			log.v("LoadDocumentTask : closing current book");
 	        close();
-	        if (props != null) {
-		        setAppSettings(props, oldSettings);
-	    		BackgroundThread.instance().postBackground(new Runnable() {
-	    			@Override
-	    			public void run() {
-	    				log.v("LoadDocumentTask : switching current profile");
-	    				applySettings(props);
-	    				log.i("Switching done");
-	    			}
-	    		});
-	        }
+			final Properties currSettings = new Properties(mSettings);
+			//setAppSettings(props, oldSettings);
+			BackgroundThread.instance().postBackground(new Runnable() {
+				@Override
+				public void run() {
+					log.v("LoadDocumentTask : switching current profile");
+					applySettings(currSettings); //enforce settings reload
+					log.i("Switching done");
+				}
+			});
+
 		}
 
 		@Override
