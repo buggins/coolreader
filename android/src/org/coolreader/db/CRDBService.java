@@ -28,6 +28,10 @@ public class CRDBService extends Service {
     	execTask(new OpenDatabaseTask());
     }
 
+    public void reopenDatabase() {
+		execTask(new ReOpenDatabaseTask());
+	}
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         log.i("Received start id " + startId + ": " + intent);
@@ -99,8 +103,37 @@ public class CRDBService extends Service {
     		coverDB.close();
 	    }
     }
-    
-    private FlushDatabaseTask lastFlushTask;
+
+	private class ReOpenDatabaseTask extends Task {
+		public ReOpenDatabaseTask() {
+			super("ReOpenDatabaseTask");
+		}
+
+		@Override
+		public void work() {
+			close();
+			open();
+		}
+
+		private boolean open() {
+			File dir = getDatabaseDir();
+			boolean res = mainDB.open(dir);
+			res = coverDB.open(dir) && res;
+			if (!res) {
+				mainDB.close();
+				coverDB.close();
+			}
+			return res;
+		}
+
+		private void close() {
+			clearCaches();
+			mainDB.close();
+			coverDB.close();
+		}
+	}
+
+	private FlushDatabaseTask lastFlushTask;
     private class FlushDatabaseTask extends Task {
     	private boolean force;
     	public FlushDatabaseTask(boolean force) {
@@ -151,7 +184,10 @@ public class CRDBService extends Service {
     		list.clear();
     	}
     }
-    
+
+	public interface SearchHistoryLoadingCallback {
+		void onSearchHistoryLoaded(ArrayList<String> searches);
+	}
 	//=======================================================================================
     // OPDS catalogs access code
     //=======================================================================================
@@ -164,6 +200,15 @@ public class CRDBService extends Service {
 			@Override
 			public void work() {
 				mainDB.saveOPDSCatalog(id, url, name, username, password);
+			}
+		});
+	}
+
+	public void saveSearchHistory(final BookInfo book, final String sHist) {
+		execTask(new Task("saveSearchHistory") {
+			@Override
+			public void work() {
+				mainDB.saveSearchHistory(book, sHist);
 			}
 		});
 	}
@@ -192,6 +237,22 @@ public class CRDBService extends Service {
 			}
 		});
 	}
+
+	public void loadSearchHistory(final BookInfo book, final SearchHistoryLoadingCallback callback, final Handler handler) {
+		execTask(new Task("loadSearchHistory") {
+			@Override
+			public void work() {
+				final ArrayList<String> list = mainDB.loadSearchHistory(book);
+				sendTask(handler, new Runnable() {
+					@Override
+					public void run() {
+						callback.onSearchHistoryLoaded(list);
+					}
+				});
+			}
+		});
+	}
+
 
 	public void removeOPDSCatalog(final Long id) {
 		execTask(new Task("removeOPDSCatalog") {
@@ -692,6 +753,10 @@ public class CRDBService extends Service {
     		getService().findSeriesBooks(seriesId, callback, new Handler());
     	}
 
+		public void loadSearchHistory(BookInfo book, SearchHistoryLoadingCallback callback) {
+			getService().loadSearchHistory(book, callback, new Handler());
+		}
+
     	public void loadBooksByRating(int minRating, int maxRating, FileInfoLoadingCallback callback) {
     		getService().findBooksByRating(minRating, maxRating, callback, new Handler());
     	}
@@ -727,6 +792,10 @@ public class CRDBService extends Service {
     	public void saveBookInfo(final BookInfo bookInfo) {
     		getService().saveBookInfo(new BookInfo(bookInfo));
     	}
+
+		public void saveSearchHistory(final BookInfo book, String sHist) {
+			getService().saveSearchHistory(new BookInfo(book), sHist);
+		}
 
     	public void deleteRecentPosition(final FileInfo fileInfo)	{
     		getService().deleteRecentPosition(new FileInfo(fileInfo));
@@ -764,6 +833,10 @@ public class CRDBService extends Service {
     	public void flush() {
     		getService().forceFlush();
     	}
+
+    	public void reopenDatabase() {
+        	getService().reopenDatabase();
+		}
     }
 
     @Override

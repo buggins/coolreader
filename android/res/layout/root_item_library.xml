@@ -15,7 +15,7 @@
     >
 
     <ImageView android:id="@+id/item_icon"
-        android:src="@drawable/cr3_browser_folder_authors"
+        android:src="?attr/cr3_browser_folder_authors_drawable"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"

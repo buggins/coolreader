@@ -23,12 +23,13 @@ public class DeviceInfo {
 	public final static boolean EINK_ONYX;
 	public final static boolean EINK_DNS;
 	public final static boolean EINK_TOLINO;
-	public final static boolean FORCE_LIGHT_THEME;
+	public final static boolean FORCE_HC_THEME;
 	public final static boolean EINK_SONY;
 	public final static boolean SONY_NAVIGATION_KEYS;
 	public final static boolean USE_CUSTOM_TOAST;
 	public final static boolean AMOLED_SCREEN;
 	public final static boolean POCKETBOOK;
+	public final static boolean ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE;
 	public final static boolean NOFLIBUSTA;
 	public final static boolean NAVIGATE_LEFTRIGHT; // map left/right keys to single page flip
 	public final static boolean REVERT_LANDSCAPE_VOLUME_KEYS; // revert volume keys in landscape mode
@@ -110,10 +111,10 @@ public class DeviceInfo {
 				DEVICE.toLowerCase().contentEquals("zoom2");
 		EINK_NOOK_120 = EINK_NOOK && (MODEL.contentEquals("BNRV350") || MODEL.contentEquals("BNRV300") || MODEL.contentEquals("BNRV500"));
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.startsWith("PRS-T");
-		//MANUFACTURER=Onyx, MODEL=C63ML, DEVICE=C63ML, PRODUCT=C63ML
-		EINK_ONYX = MANUFACTURER.toLowerCase().contentEquals("onyx") && 
-				(MODEL.startsWith("C") && MODEL.endsWith("ML"))
-				|| MODEL.startsWith("I63MLP");
+		//MANUFACTURER=Onyx, MODEL=*; All ONYX BOOX Readers have e-ink screen
+		EINK_ONYX = MANUFACTURER.toLowerCase().contentEquals("onyx") &&
+				(BRAND.toLowerCase().contentEquals("onyx") || BRAND.toLowerCase().contentEquals("maccentre")) &&
+				MODEL.length() > 0;
 		//MANUFACTURER -DNS, DEVICE -BK6004C, MODEL - DNS Airbook EGH602, PRODUCT - BK6004C
 		EINK_DNS = MANUFACTURER.toLowerCase().contentEquals("dns") && MODEL.startsWith("DNS Airbook EGH");
 
@@ -123,12 +124,16 @@ public class DeviceInfo {
 
 		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
 
+		// On Onyx Boox Monte Cristo 3 (and possible Monte Cristo, Monte Cristo 2) long press action on buttons are catch by system and not available for application
+		// TODO: check this on other ONYX BOOX Readers
+		ONYX_BUTTONS_LONG_PRESS_NOT_AVAILABLE = EINK_ONYX && MODEL.toLowerCase().startsWith("mc_kepler");
+
 		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");
 		
 		NOOK_NAVIGATION_KEYS = EINK_NOOK; // TODO: add autodetect
 		SONY_NAVIGATION_KEYS = EINK_SONY;
 		EINK_SCREEN_UPDATE_MODES_SUPPORTED = EINK_SCREEN && ( EINK_NOOK || EINK_TOLINO ); // TODO: add autodetect
-		FORCE_LIGHT_THEME = EINK_SCREEN || MODEL.equalsIgnoreCase("pocketbook vision");
+		FORCE_HC_THEME = EINK_SCREEN || MODEL.equalsIgnoreCase("pocketbook vision");
 		USE_CUSTOM_TOAST = EINK_SCREEN;
 		NOFLIBUSTA = POCKETBOOK;
 		NAVIGATE_LEFTRIGHT = POCKETBOOK && DEVICE.startsWith("EP10");

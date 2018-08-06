@@ -15,6 +15,10 @@ extern "C" {
 #define org_coolreader_crengine_Engine_HYPH_ALGO 1L
 #undef org_coolreader_crengine_Engine_HYPH_DICT
 #define org_coolreader_crengine_Engine_HYPH_DICT 2L
+#undef org_coolreader_crengine_Engine_HYPH_BOOK
+#define org_coolreader_crengine_Engine_HYPH_BOOK 0L
+#undef org_coolreader_crengine_Engine_CACHE_DIR_SIZE
+#define org_coolreader_crengine_Engine_CACHE_DIR_SIZE 32000000L
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    initInternal
@@ -41,11 +45,27 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    getFontFileNameListInternal
+ * Signature: ()[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFileNameListInternal
+        (JNIEnv *, jclass);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    getArchiveItemsInternal
  * Signature: (Ljava/lang/String;)[Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveItemsInternal
   (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    setKeyBacklightInternal
+ * Signature: (I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightInternal
+  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -73,19 +93,11 @@ JNIEXPORT jbyteArray JNICALL Java_org_coolreader_crengine_Engine_scanBookCoverIn
 
 /*
  * Class:     org_coolreader_crengine_Engine
- * Method:    setHyphenationMethod
- * Signature: (I[B)Z
+ * Method:    drawBookCoverInternal
+ * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv *, jclass, jint, jbyteArray);
-
-/*
- * Class:     org_coolreader_crengine_Engine
- * Method:    isLink
- * Signature: (Ljava/lang/String;)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
-  (JNIEnv *, jclass, jstring);
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
+  (JNIEnv *, jclass, jobject, jbyteArray, jstring, jstring, jstring, jstring, jint, jint);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -97,20 +109,19 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationI
 
 /*
  * Class:     org_coolreader_crengine_Engine
- * Method:    setKeyBacklightInternal
- * Signature: (I)Z
+ * Method:    isLink
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightInternal
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine
- * Method:    drawBookCoverInternal
- * Signature: (Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+ * Method:    setHyphenationMethod
+ * Signature: (I[B)Z
  */
-JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
-  (JNIEnv *, jclass, jobject bmp, jbyteArray data, jstring fontFace, jstring title, jstring authors, jstring seriesName, jint seriesNumber, jint bpp);
-
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
+  (JNIEnv *, jobject, jint, jbyteArray);
 
 #ifdef __cplusplus
 }

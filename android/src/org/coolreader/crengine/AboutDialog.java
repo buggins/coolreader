@@ -1,5 +1,7 @@
 package org.coolreader.crengine;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
 import org.coolreader.CoolReader;
@@ -22,9 +24,10 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	final CoolReader mCoolReader;
 	
 	private View mAppTab;
+	private View mDirsTab;
 	private View mLicenseTab;
 	private View mDonationTab;
-	
+
 	private boolean isPackageInstalled( String packageName ) {
 		try {
 			mCoolReader.getPackageManager().getApplicationInfo(packageName, 0);
@@ -84,11 +87,67 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	{
 		super(activity);
 		mCoolReader = activity;
+
 		setTitle(R.string.dlg_about);
 		LayoutInflater inflater = LayoutInflater.from(getContext());
 		TabHost tabs = (TabHost)inflater.inflate(R.layout.about_dialog, null);
 		mAppTab = (View)inflater.inflate(R.layout.about_dialog_app, null);
 		((TextView)mAppTab.findViewById(R.id.version)).setText("Cool Reader " + mCoolReader.getVersion());
+
+		mDirsTab = (View)inflater.inflate(R.layout.about_dialog_dirs, null);
+		TextView fonts_dir = (TextView)mDirsTab.findViewById(R.id.fonts_dirs);
+
+		ArrayList<String> fontsDirs = Engine.getFontsDirs();
+		StringBuilder sbuf = new StringBuilder();
+		Iterator<String> it = fontsDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		fonts_dir.setText(sbuf.toString());
+
+		ArrayList<String> testuresDirs = Engine.getDataDirs(Engine.DataDirType.TexturesDirs);
+		sbuf = new StringBuilder();
+		it = testuresDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		TextView textures_dir = (TextView)mDirsTab.findViewById(R.id.textures_dirs);
+		textures_dir.setText(sbuf.toString());
+
+		ArrayList<String> backgroundsDirs = Engine.getDataDirs(Engine.DataDirType.BackgroundsDirs);
+		sbuf = new StringBuilder();
+		it = backgroundsDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		TextView backgrounds_dir = (TextView)mDirsTab.findViewById(R.id.backgrounds_dirs);
+		backgrounds_dir.setText(sbuf.toString());
+
+		ArrayList<String> hyphDirs = Engine.getDataDirs(Engine.DataDirType.HyphsDirs);
+		sbuf = new StringBuilder();
+		it = hyphDirs.iterator();
+		while (it.hasNext()) {
+			String s = it.next();
+			sbuf.append(s);
+			if (it.hasNext()) {
+				sbuf.append("\n");
+			}
+		}
+		TextView hyph_dir = (TextView)mDirsTab.findViewById(R.id.hyph_dirs);
+		hyph_dir.setText(sbuf.toString());
+
 		mLicenseTab = (View)inflater.inflate(R.layout.about_dialog_license, null);
 		String license = Engine.getInstance(mCoolReader).loadResourceUtf8(R.raw.license);
 		((TextView)mLicenseTab.findViewById(R.id.license)).setText(license);
@@ -128,6 +187,12 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		tsApp.setContent(this);
 		tabs.addTab(tsApp);
 
+		TabHost.TabSpec tsDirectories = tabs.newTabSpec("Directories");
+		tsDirectories.setIndicator("",
+				getContext().getResources().getDrawable(R.drawable.ic_menu_archive));
+		tsDirectories.setContent(this);
+		tabs.addTab(tsDirectories);
+
 		TabHost.TabSpec tsLicense = tabs.newTabSpec("License");
 		tsLicense.setIndicator("", 
 				getContext().getResources().getDrawable(R.drawable.ic_menu_star));
@@ -144,7 +209,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 
 		// 25% chance to show Donations tab
 		if ((rnd.nextInt() & 3) == 3)
-			tabs.setCurrentTab(2);
+			tabs.setCurrentTab(3);
 		
 	}
 	private static Random rnd = new Random(android.os.SystemClock.uptimeMillis()); 
@@ -152,8 +217,11 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 	
 	@Override
 	public View createTabContent(String tag) {
+
 		if ( "App".equals(tag) )
 			return mAppTab;
+		else if ( "Directories".equals(tag) )
+			return mDirsTab;
 		else if ( "License".equals(tag) )
 			return mLicenseTab;
 		else if ( "Donation".equals(tag) )

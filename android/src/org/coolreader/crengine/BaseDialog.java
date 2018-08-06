@@ -46,7 +46,7 @@ public class BaseDialog extends Dialog {
 		thirdButtonContentDescriptionId = descriptionId;
 	}
 	
-	public static final boolean DARK_THEME = !DeviceInfo.FORCE_LIGHT_THEME;
+	public static final boolean DARK_THEME = !DeviceInfo.FORCE_HC_THEME;
 	public BaseDialog( BaseActivity activity )
 	{
 		this( activity, "", false, false );
@@ -75,8 +75,7 @@ public class BaseDialog extends Dialog {
 			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
 			lp.alpha = 1.0f;
 			lp.dimAmount = 0.0f;
-			if (!DeviceInfo.EINK_SCREEN)
-				lp.format = DeviceInfo.PIXEL_FORMAT;
+			lp.format = DeviceInfo.PIXEL_FORMAT;
 			lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
 			lp.horizontalMargin = 0;
 			lp.verticalMargin = 0;

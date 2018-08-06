@@ -30,6 +30,8 @@
     <string name="mi_book_sort_order_author_desc">По автору (по убыв.)</string>
     <string name="mi_book_sort_order_title">По названию</string>
     <string name="mi_book_sort_order_title_desc">По названию (по убыв.)</string>
+    <string name="toggle_dict_once">Переключить словарь (однократно)</string>
+    <string name="toggle_dict">Переключить словарь</string>
     <string name="mi_bookmark_set">Установить закладку</string>
     <string name="mi_bookmark_goto">Перейти на закладку</string>
     <string name="mi_goto_page">На страницу №</string>
@@ -45,6 +47,7 @@
     <string name="dir_internal_sd_card">Внутр. SD карта</string>
     <string name="dir_internal_memory">Внутр. память</string>
     <string name="win_title_bookmarks">Закладки</string>
+    <string name="win_title_dicts">Словари</string>
     <string name="win_title_toc">Содержание</string>
     <string name="win_title_options">Настройки</string>
     <string name="win_title_search">Найти текст</string>
@@ -169,6 +172,7 @@
     <string name="options_controls_flick_brightness_none">Отключено</string>
     <string name="options_page_show_titlebar_page_number">Номер страницы</string>
     <string name="options_app_dictionary">Словарь</string>
+    <string name="options_app_dictionary2">Словарь 2</string>
     <string name="options_app_dictionary_not_installed">(не установлен)</string>
     <string name="action_zoom_in">Увеличить шрифт</string>
     <string name="options_font_kerning">Кернинг шрифта</string>
@@ -241,6 +245,10 @@
     <string name="dlg_about_donation">Cool Reader - бесплатная свободная программа, и всегда будет оставаться такой. Вы можете поддержать развитие проекта, купив пакет-монетку в Android Market.</string>
     <string name="dlg_about_donation_gold">$10: купить Золотую монетку Cool Reader</string>
     <string name="dlg_about_donation_installed">Установлено</string>
+    <string name="dlg_about_fonts_dirs">Каталоги шрифтов:</string>
+    <string name="dlg_about_textures_dirs">Каталоги текстур:</string>
+    <string name="dlg_about_backgrounds_dirs">Каталоги фоновых рисунков:</string>
+    <string name="dlg_about_hyphenations_dirs">Каталоги словарей переносов:</string>
     <string name="mi_book_browser_normal_mode">Нормальный режим</string>
     <string name="mi_book_browser_simple_mode">Простой список файлов</string>
     <string name="options_page_animation_slide_2_pages">Сдвиг (2 стр.)</string>
@@ -377,6 +385,8 @@
     <string name="options_app_ui_theme_white">Белая</string>
     <string name="options_app_ui_theme_dark">Темная</string>
     <string name="options_app_ui_theme_black">Черная</string>
+    <string name="options_app_ui_theme_gray1">Серая 1</string>
+    <string name="options_app_ui_theme_gray2">Серая 2</string>
     <string name="options_app_ui_theme_light">Светлая</string>
     <string name="options_css_text_align_center">По центру</string>
     <string name="options_css_text_align_justify">По ширине</string>
@@ -463,6 +473,13 @@
     <string name="options_view_toolbar_position_none">Спрятать</string>
     <string name="options_view_toolbar_hide_in_fullscreen">Прятать панель инструментов в полноэкранном режиме</string>
     <string name="options_view_toolbar_position_right">Справа</string>
+    <string name="options_view_toolbar_appearance">Внешний вид панели инструментов (перезапуск)</string>
+    <string name="options_view_toolbar_appear_100">Размер 100%</string>
+    <string name="options_view_toolbar_appear_100_gray">Размер 100%, серые значки</string>
+    <string name="options_view_toolbar_appear_75">Размер 75%</string>
+    <string name="options_view_toolbar_appear_75_gray">Размер 75%, серые значки</string>
+    <string name="options_view_toolbar_appear_50">Размер 50%</string>
+    <string name="options_view_toolbar_appear_50_gray">Размер 50%, серые значки</string>
     <string name="online_store_login">Вход</string>
     <string name="online_store_username">Имя пользователя:</string>
     <string name="online_store_password">Пароль:</string>
@@ -514,7 +531,9 @@
     <string name="btn_toolbar_more">Еще...</string>
     <string name="black_list_enforced">Нельзя добавлять этот адрес, так как по запросу LitRes.ru он добавлен в черный список каталогов, нарушающих авторские права.</string>
     <string name="black_list_warning">Внимание! этот адрес по запросу LitRes.ru был добавлен в черный список каталогов, нарушающих авторские права. Вы действительно хотите использовать этот каталог?</string>
-    <string name="options_app_motion_timeout">Таймаут датчика движения</string>
+    <string name="cant_open_file">Невозможно открыть файл!</string>
+    <string name="error">Ошибка</string>
+    <string name="options_app_tts_stop_motion_timeout">Остановить чтение вслух при бездействии датчика движения</string>
     <string name="motion_timeout_off">"Выключено"</string>
     <string name="motion_timeout_1min">"1 минута"</string>
     <string name="motion_timeout_2min">"2 минуты"</string>
@@ -545,4 +564,6 @@
     <string name="motion_timeout_90min">"90 минут"</string>
     <string name="motion_timeout_95min">"95 минут"</string>
     <string name="motion_timeout_100min">"100 минут"</string>
+    <string name="options_app_ui_theme_hicontrast1">Контрастная белая</string>
+    <string name="options_app_ui_theme_hicontrast2">Контрастная черная</string>
 </resources>

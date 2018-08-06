@@ -41,7 +41,7 @@
              android:minWidth="100dip"
              android:maxHeight="200dip"
              android:maxWidth="150dip"
-             android:drawable="@drawable/cr3_browser_book"
+             android:drawable="?attr/cr3_browser_book_drawable"
              />
 
          
@@ -109,8 +109,8 @@
                 /-->
               <ImageButton
                     android:id="@+id/btn_menu"
-                    android:src="@drawable/cr3_button_more"
-                    android:background="@drawable/cr3_toolbar_button_background"
+                    android:src="?attr/cr3_button_more_drawable"
+                    android:background="?attr/cr3_toolbar_button_background_drawable"
                     android:layout_weight="1"
                     android:gravity="right"
                     android:layout_gravity="right"

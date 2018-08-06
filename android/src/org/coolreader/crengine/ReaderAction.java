@@ -16,7 +16,7 @@ public class ReaderAction {
 	private boolean mayAssignOnTap = true;
 	private boolean activateWithLongMenuKey = false;
 	private ReaderAction setActivateWithLongMenuKey() { this.activateWithLongMenuKey = true; return this; }
-	private ReaderAction setIconId(int iconId) { this.iconId = iconId; return this; }
+	public ReaderAction setIconId(int iconId) { this.iconId = iconId; return this; }
 	private ReaderAction setCanRepeat() { canRepeat = true; return this; }
 	//private ReaderAction dontAssignOnKey() { mayAssignOnKey=false; return this; }
 	private ReaderAction dontAssignOnTap() { mayAssignOnTap = false; return this; }
@@ -79,7 +79,10 @@ public class ReaderAction {
 	public final static ReaderAction FILE_BROWSER_UP = new ReaderAction("FILE_BROWSER_UP", R.string.action_go_back, ReaderCommand.DCMD_FILE_BROWSER_UP, 0).setIconId(R.drawable.cr3_button_prev);
 	public final static ReaderAction CURRENT_BOOK_DIRECTORY = new ReaderAction("DCMD_CURRENT_BOOK_DIRECTORY", R.string.mi_book_recent_goto, ReaderCommand.DCMD_CURRENT_BOOK_DIRECTORY, 0).setIconId(R.drawable.cr3_browser_folder_current_book);
 	public final static ReaderAction CURRENT_BOOK = new ReaderAction("DCMD_CURRENT_BOOK", R.string.mi_book_back_to_reading, ReaderCommand.DCMD_CURRENT_BOOK, 0).setIconId(R.drawable.cr3_button_book_open);
-	
+	public final static ReaderAction FILE_BROWSER_SORT_ORDER = new ReaderAction("FILE_BROWSER_SORT_ORDER", R.string.mi_book_sort_order, ReaderCommand.DCMD_FILE_BROWSER_SORT_ORDER, 0);
+	public final static ReaderAction TOGGLE_DICT_ONCE = new ReaderAction("TOGGLE_DICT_ONCE", R.string.toggle_dict_once, ReaderCommand.DCMD_TOGGLE_DICT_ONCE, 0);
+	public final static ReaderAction TOGGLE_DICT = new ReaderAction("TOGGLE_DICT", R.string.toggle_dict, ReaderCommand.DCMD_TOGGLE_DICT, 0);
+
 	public final static ReaderAction FONT_PREVIOUS = new ReaderAction("FONT_PREVIOUS", R.string.mi_font_previous, ReaderCommand.DCMD_FONT_PREVIOUS, 0); //, R.id.cr3_mi_font_previous 
 	public final static ReaderAction FONT_NEXT = new ReaderAction("FONT_NEXT", R.string.mi_font_next, ReaderCommand.DCMD_FONT_NEXT, 0); //, R.id.cr3_mi_font_next 	
 	public final static ReaderAction TOGGLE_TOUCH_SCREEN_LOCK = new ReaderAction("TOGGLE_TOUCH_SCREEN_LOCK", R.string.action_touch_screen_toggle_lock, ReaderCommand.DCMD_TOGGLE_TOUCH_SCREEN_LOCK, 0 ).dontAssignOnTap();
@@ -153,6 +156,8 @@ public class ReaderAction {
 		USER_MANUAL,
 //		AUTOSCROLL_SPEED_INCREASE,
 //		AUTOSCROLL_SPEED_DECREASE,
+		TOGGLE_DICT_ONCE,
+		TOGGLE_DICT
 	};
 
 	public boolean isNone() {

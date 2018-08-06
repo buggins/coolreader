@@ -5,6 +5,7 @@
 /// LVDocView commands
 enum LVDocCmd
 {
+    // 100 -
     DCMD_BEGIN = LVDOCVIEW_COMMANDS_START,
     DCMD_LINEUP,
     DCMD_PAGEUP,
@@ -15,6 +16,7 @@ enum LVDocCmd
     DCMD_LINK_NEXT,
     DCMD_LINK_PREV,
     DCMD_LINK_GO,
+    // 110 -
     DCMD_END,
     DCMD_GO_POS,
     DCMD_GO_PAGE,
@@ -25,6 +27,7 @@ enum LVDocCmd
     DCMD_BOOKMARK_GO_N,  // go to bookmark with specified number
     DCMD_MOVE_BY_CHAPTER, // param=-1 - previous chapter, 1 = next chapter
     DCMD_GO_SCROLL_POS,  // param=position of scroll bar slider
+    // 120 -
     DCMD_TOGGLE_PAGE_SCROLL_VIEW,  // toggle paged/scroll view mode
     DCMD_LINK_FIRST, // select first link on page
     DCMD_ROTATE_BY, // rotate view, param =  +1 - clockwise, -1 - counter-clockwise
@@ -35,6 +38,7 @@ enum LVDocCmd
     DCMD_SCROLL_BY, // scroll by N pixels, for Scroll view mode only
     DCMD_REQUEST_RENDER, // invalidate rendered data
     DCMD_GO_PAGE_DONT_SAVE_HISTORY,
+    // 130 -
     DCMD_SET_INTERNAL_STYLES, // set internal styles option
 
     // selection by sentences

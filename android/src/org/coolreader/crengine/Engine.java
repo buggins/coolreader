@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -545,12 +547,26 @@ public class Engine {
 		setParams(activity);
 	}
 
+	public void initAgain() {
+		initMountRoots();
+		mFonts = findFonts();
+		findExternalHyphDictionaries();
+		if (!initInternal(mFonts)) {
+			log.i("Engine.initInternal failed!");
+			throw new RuntimeException("Cannot initialize CREngine JNI");
+		}
+		initCacheDirectory();
+		log.i("Engine() : initialization done");
+	}
+
 	// Native functions
 	private native static boolean initInternal(String[] fontList);
 
 	private native static void uninitInternal();
 
 	private native static String[] getFontFaceListInternal();
+
+	private native static String[] getFontFileNameListInternal();
 
 	private native static String[] getArchiveItemsInternal(String arcName); // pairs: pathname, size
 
@@ -833,6 +849,12 @@ public class Engine {
 	public static String[] getFontFaceList() {
 		synchronized(lock) {
 			return getFontFaceListInternal();
+		}
+	}
+
+	public static String[] getFontFileNameList() {
+		synchronized(lock) {
+			return getFontFileNameListInternal();
 		}
 	}
 
@@ -1152,7 +1174,7 @@ public class Engine {
 	
 	
 	private static void initMountRoots() {
-		
+
 		log.i("initMountRoots()");
 		HashSet<String> mountedPathsFromMountCmd = getExternalMounts();
 		HashSet<String> mountedPathsFromMountFile = readMountsFile();
@@ -1435,6 +1457,42 @@ public class Engine {
 		return fontPaths.toArray(new String[] {});
 	}
 
+	public static final ArrayList<String> getFontsDirs() {
+		HashMap<String, Integer> dirsCapacity = new HashMap<String, Integer>();
+		ArrayList<File> dirs = new ArrayList<File>();
+		File[] dataDirs = getDataDirectories("fonts", false, false);
+		for (File dir : dataDirs)
+			dirs.add(dir);
+		File[] rootDirs = getStorageDirectories(false);
+		for (File dir : rootDirs)
+			dirs.add(new File(dir, "fonts"));
+		dirs.add(new File(Environment.getRootDirectory(), "fonts"));
+		for (File fontDir : dirs) {
+			if (fontDir.isDirectory())
+				dirsCapacity.put(fontDir.getAbsolutePath(), Integer.valueOf(0));
+		}
+		String[] fontFileNameList = getFontFileNameList();
+		for (String fontFileName: fontFileNameList) {
+			log.d("enum registered font: " + fontFileName);
+			for (File fontDir : dirs) {
+				if (fontFileName.startsWith(fontDir.getAbsolutePath())) {
+					Integer prevCount = dirsCapacity.get(fontDir.getAbsolutePath());
+					if (null == prevCount)
+						prevCount = Integer.valueOf(0);
+					dirsCapacity.put(fontDir.getAbsolutePath(), new Integer(prevCount.intValue() + 1));
+				}
+			}
+		}
+		ArrayList<String> resArray = new ArrayList<String>();
+		Map.Entry<String, Integer> entry;
+		Iterator<Map.Entry<String, Integer>> it = dirsCapacity.entrySet().iterator();
+		while (it.hasNext()) {
+			entry = it.next();
+			resArray.add(entry.getKey() + ": " + entry.getValue().toString() + " registered font(s)");
+		}
+		return resArray;
+	}
+
 	private String SO_NAME = "lib" + LIBRARY_NAME + ".so";
 //	private static boolean force_install_library = false;
 
@@ -1566,7 +1624,7 @@ public class Engine {
 
 	public static void findHyphDictionariesFromDirectory(File dir) {
 		for (File f : dir.listFiles()) {
-			if (!f.isDirectory()) {
+			if (f.isFile()) {
 				if (HyphDict.fromFile(f))
 					log.i("Registered external hyphenation dict " + f.getAbsolutePath());
 			}
@@ -1589,7 +1647,7 @@ public class Engine {
 	public void findTexturesFromDirectory(File dir,
 			Collection<BackgroundTextureInfo> listToAppend) {
 		for (File f : dir.listFiles()) {
-			if (!f.isDirectory()) {
+			if (f.isFile()) {
 				BackgroundTextureInfo item = BackgroundTextureInfo.fromFile(f
 						.getAbsolutePath());
 				if (item != null)
@@ -1613,6 +1671,47 @@ public class Engine {
 			if (subdirBackgrounds.isDirectory())
 				findTexturesFromDirectory(subdirBackgrounds, listToAppend);
 		}
+	}
+
+	enum DataDirType {
+		TexturesDirs,
+		BackgroundsDirs,
+		HyphsDirs
+	}
+
+	public static ArrayList<String> getDataDirs(DataDirType dirType) {
+		ArrayList<String> res = new ArrayList<String>();
+		for (File d : getStorageDirectories(false)) {
+			File base = new File(d, ".cr3");
+			if (!base.isDirectory())
+				base = new File(d, "cr3");
+			if (!base.isDirectory())
+				continue;
+			switch (dirType) {
+				case TexturesDirs:
+					File subdirTextures = new File(base, "textures");
+					if (subdirTextures.isDirectory())
+						res.add(subdirTextures.getAbsolutePath());
+					else
+						res.add(subdirTextures.getAbsolutePath() + " [not found]");
+					break;
+				case BackgroundsDirs:
+					File subdirBackgrounds = new File(base, "backgrounds");
+					if (subdirBackgrounds.isDirectory())
+						res.add(subdirBackgrounds.getAbsolutePath());
+					else
+						res.add(subdirBackgrounds.getAbsolutePath() + " [not found]");
+					break;
+				case HyphsDirs:
+					File subdirHyph = new File(base, "hyph");
+					if (subdirHyph.isDirectory())
+						res.add(subdirHyph.getAbsolutePath());
+					else
+						res.add(subdirHyph.getAbsolutePath() + " [not found]");
+					break;
+			}
+		}
+		return res;
 	}
 
 	public byte[] getImageData(BackgroundTextureInfo texture) {

@@ -28,8 +28,8 @@
 #include <../../crengine/include/fb2def.h>
 #include <sys/stat.h>
 
-#if defined(__arm__)
-#define USE_COFFEECATCH 0
+#if defined(__arm__) || defined(__aarch64__) || defined(__i386__) || defined(__mips__)
+#define USE_COFFEECATCH 1
 #endif
 
 
@@ -479,7 +479,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getArchiveIte
  * Signature: (I[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
-  (JNIEnv * _env, jclass _engine, jint method, jbyteArray data)
+  (JNIEnv * _env, jobject _engine, jint method, jbyteArray data)
 {
 	CRJNIEnv env(_env);
 	if ( method==0 ) {
@@ -626,6 +626,21 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
 	lString16Collection list;
 	COFFEE_TRY_JNI(penv, fontMan->getFaceList(list));
 	return env.toJavaStringArray(list);
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getFontFileNameListInternal
+ * Signature: ()[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFileNameListInternal
+        (JNIEnv * penv, jclass cls)
+{
+    LOGI("getFontFileListInternal called");
+    CRJNIEnv env(penv);
+    lString16Collection list;
+    COFFEE_TRY_JNI(penv, fontMan->getFontFileNameList(list));
+    return env.toJavaStringArray(list);
 }
 
 /*

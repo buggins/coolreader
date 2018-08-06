@@ -34,6 +34,8 @@
     <string name="mi_book_sort_order_author_desc">By author (desc)</string>
     <string name="mi_book_sort_order_title">By title</string>
     <string name="mi_book_sort_order_title_desc">By title (desc)</string>
+    <string name="toggle_dict_once">Toggle dictionary (once)</string>
+    <string name="toggle_dict">Toggle dictionary</string>
     <string name="mi_bookmark_set">Set bookmark</string>
     <string name="mi_bookmark_goto">Go to bookmark</string>
     <string name="mi_goto_page">Go to page #</string>
@@ -49,6 +51,7 @@
     <string name="dir_internal_sd_card">Internal SD Card</string>
     <string name="dir_internal_memory">Internal memory</string>
     <string name="win_title_bookmarks">Bookmarks</string>
+    <string name="win_title_dicts">Dictionaries</string>
     <string name="win_title_toc">Table of Contents</string>
     <string name="win_title_options">Options</string>
     <string name="win_title_search">Search</string>
@@ -175,6 +178,7 @@
     <string name="options_page_show_titlebar_page_number">Page number</string>
     <string name="options_app_dictionary">Dictionary</string>
     <string name="options_app_dictionary_not_installed">(not installed)</string>
+    <string name="options_app_dictionary2">Dictionary 2</string>
     <string name="action_zoom_in">Increase font size</string>
     <string name="options_font_kerning">Font kerning</string>
     <string name="action_zoom_out">Decrease font size</string>
@@ -247,6 +251,12 @@
     <string name="dlg_about_donation_silver">$3: buy Cool Reader Silver Donation</string>
     <string name="dlg_about_donation_gold">$10: buy Cool Reader Gold Donation</string>
     <string name="dlg_about_donation_installed">Installed</string>
+    <string name="dlg_about_fonts_dirs">Fonts directories:</string>
+    <string name="dlg_about_textures_dirs">Textures directories:</string>
+    <string name="dlg_about_backgrounds_dirs">Backgrounds directories:</string>
+    <string name="dlg_about_hyphenations_dirs">Hyphenation dictionaries directories:</string>
+    <string name="dlg_about_copyright">© Vadim Lopatin, 1998–2018</string>
+    <string name="dlg_about_contributors_">and contributors…</string>
     <string name="mi_book_browser_normal_mode">Normal mode</string>
     <string name="mi_book_browser_simple_mode">Simple file list</string>
     <string name="options_page_animation_slide_2_pages">Slide (2 pages)</string>
@@ -383,7 +393,11 @@
     <string name="options_app_ui_theme_white">White</string>
     <string name="options_app_ui_theme_dark">Dark</string>
     <string name="options_app_ui_theme_black">Black</string>
+    <string name="options_app_ui_theme_gray1">Gray 1</string>
+    <string name="options_app_ui_theme_gray2">Gray 2</string>
     <string name="options_app_ui_theme_light">Light</string>
+    <string name="options_app_ui_theme_hicontrast1">High Contrast White</string>
+    <string name="options_app_ui_theme_hicontrast2">High Contrast Black</string>
     <string name="options_css_text_align_center">Center</string>
     <string name="options_css_text_align_justify">Justify</string>
     <string name="options_css_text_align_left">Left</string>
@@ -468,6 +482,13 @@
     <string name="options_view_toolbar_position_none">None</string>
     <string name="options_view_toolbar_hide_in_fullscreen">Hide toolbar in fullscreen</string>
     <string name="options_view_toolbar_position_right">Right</string>
+    <string name="options_view_toolbar_appearance">Toolbar appearance (restart required)</string>
+    <string name="options_view_toolbar_appear_100">100% size</string>
+    <string name="options_view_toolbar_appear_100_gray">100% size, grayscale</string>
+    <string name="options_view_toolbar_appear_75">75% size</string>
+    <string name="options_view_toolbar_appear_75_gray">75% size, grayscale</string>
+    <string name="options_view_toolbar_appear_50">50% size</string>
+    <string name="options_view_toolbar_appear_50_gray">50% size, grayscale</string>
     <string name="dlg_button_back">Back</string>
     <string name="dlg_about_donation_iron">$0.3: buy Cool Reader Iron Donation</string>
     <string name="dlg_about_donation_vip">$100: buy Cool Reader VIP Donation</string>
@@ -538,7 +559,9 @@
     <string name="root_item_online_catalogs">Online catalogs</string>
     <string name="black_list_enforced">Cannot add this URL since it is added to black list of catalogs which may violate DMCA by request of LitRes.ru</string>
     <string name="black_list_warning">WARNING: this URL is added to black list of catalogs which may violate DMCA by request of LitRes.ru Do you really want to add this catalog?</string>
-    <string name="options_app_motion_timeout">Motion sensor timeout</string>
+    <string name="error">Error</string>
+    <string name="cant_open_file">Can\'t open file!</string>
+    <string name="options_app_tts_stop_motion_timeout">Stop reading aloud on motion sensor timeout</string>
     <string name="motion_timeout_off">"Off"</string>
     <string name="motion_timeout_1min">"1 minute"</string>
     <string name="motion_timeout_2min">"2 minutes"</string>

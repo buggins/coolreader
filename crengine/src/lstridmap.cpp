@@ -265,14 +265,27 @@ void LDOMNameIdMap::AddItem( LDOMNameIdMapItem * item )
     {
         // reallocate storage
         lUInt16 newsize = item->id+16;
-        m_by_id = (LDOMNameIdMapItem **)realloc( m_by_id, sizeof(LDOMNameIdMapItem *)*newsize );
-        m_by_name = (LDOMNameIdMapItem **)realloc( m_by_name, sizeof(LDOMNameIdMapItem *)*newsize );
-        for (lUInt16 i = m_size; i<newsize; i++)
-        {
-            m_by_id[i] = NULL;
-            m_by_name[i] = NULL;
+        void* tmp = realloc( m_by_id, sizeof(LDOMNameIdMapItem *)*newsize );
+        void* tmp2 = realloc( m_by_name, sizeof(LDOMNameIdMapItem *)*newsize );
+        if (tmp && tmp2) {
+            m_by_id = (LDOMNameIdMapItem **)tmp;
+            m_by_name = (LDOMNameIdMapItem **)tmp2;
+            for (lUInt16 i = m_size; i<newsize; i++)
+            {
+                m_by_id[i] = NULL;
+                m_by_name[i] = NULL;
+            }
+            m_size = newsize;
         }
-        m_size = newsize;
+        else {
+            if (tmp)
+                free(tmp);
+            if (tmp2)
+                free(tmp2);
+            delete item;
+            // TODO: throw exception or change function prototype & return code
+            return;
+        }
     }
     if (m_by_id[item->id] != NULL)
     {

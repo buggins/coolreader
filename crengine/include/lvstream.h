@@ -435,7 +435,7 @@ protected:
     }
 
 public:
-    LVNamedStream() : _crc(0), _crcFailed(false), _autosyncLimit(0), _bytesWritten(0) { }
+    LVNamedStream() : m_mode(LVOM_ERROR), _crc(0), _crcFailed(false), _autosyncLimit(0), _bytesWritten(0) { }
     /// set write bytes limit to call flush(true) automatically after writing of each sz bytes
     virtual void setAutoSyncSize(lvsize_t sz) { _autosyncLimit = sz; }
     /// returns stream/container name, may be NULL if unknown

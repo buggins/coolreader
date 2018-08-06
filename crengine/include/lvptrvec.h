@@ -49,10 +49,16 @@ public:
     {
         if ( size > _size )
         {
-            _list = (T**)realloc( _list, size * sizeof( T* ));
-            for (int i=_size; i<size; i++)
-                _list[i] = NULL;
-            _size = size;
+            void* tmp = realloc( _list, size * sizeof( T* ));
+            if (tmp) {
+                _list = (T**)tmp;
+                for (int i=_size; i<size; i++)
+                    _list[i] = NULL;
+                _size = size;
+            }
+            else {
+                // TODO: throw exception or change function prototype & return code
+            }
         }
     }
     void sort(int (comparator)(const T ** item1, const T ** item2 ) ) {
@@ -85,7 +91,8 @@ public:
             _count = 0;
             if ( ownItems ) {
                 for (int i=cnt - 1; i>=0; --i)
-                    delete _list[i];
+                    if (_list[i])
+                        delete _list[i];
             }
             free( _list );
         }
@@ -284,13 +291,19 @@ public:
                 free( rows[i] );
             numrows = nrows;
         } else if (nrows>numrows) {
-            rows = (_Ty**) realloc( rows, sizeof(_Ty)*nrows );
-            for (int i=numrows; i<nrows; i++) {
-                rows[i] = (_Ty*)malloc( sizeof(_Ty*) * ncols );
-                for (int j=0; j<numcols; j++)
-                    rows[i][j]=fill_elem;
+            void* tmp = realloc(rows, sizeof(_Ty*)*nrows);
+            if (tmp) {
+                rows = (_Ty **)tmp;
+                for (int i=numrows; i<nrows; i++) {
+                    rows[i] = (_Ty*)malloc( sizeof(_Ty) * ncols );
+                    for (int j=0; j<numcols; j++)
+                        rows[i][j]=fill_elem;
+                }
+                numrows = nrows;
             }
-            numrows = nrows;
+            else {
+                // TODO: throw exception or change function prototype & return code
+            }
         }
         if (ncols>numcols) {
             for (int i=0; i<numrows; i++) {

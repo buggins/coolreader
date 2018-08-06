@@ -99,7 +99,6 @@
                     android:layout_marginRight="8dip"
                     android:contentDescription="@string/dlg_about_donation_gold"
                     android:text="@null" />
-                />
             </TableRow>
 
             <TableRow>

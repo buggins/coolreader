@@ -49,9 +49,9 @@ import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.widget.TextView;
 import android.widget.Toast;
 
+@SuppressLint("Registered")
 public class BaseActivity extends Activity implements Settings {
 
 	private static final Logger log = L.create("ba");
@@ -164,8 +164,7 @@ public class BaseActivity extends Activity implements Settings {
 			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
 			lp.alpha = 1.0f;
 			lp.dimAmount = 0.0f;
-			if (!DeviceInfo.EINK_SCREEN)
-				lp.format = DeviceInfo.PIXEL_FORMAT;
+			lp.format = DeviceInfo.PIXEL_FORMAT;
 			lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
 			lp.horizontalMargin = 0;
 			lp.verticalMargin = 0;
@@ -177,7 +176,7 @@ public class BaseActivity extends Activity implements Settings {
 
 		// load settings
 		Properties props = settings();
-		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
 		String lang = props.getProperty(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 		setLanguage(lang);
 		setCurrentTheme(theme);
@@ -185,7 +184,7 @@ public class BaseActivity extends Activity implements Settings {
 		
 		setScreenBacklightDuration(props.getInt(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, 3));
 
-		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, (DeviceInfo.EINK_SCREEN?true:false)));
+		setFullscreen( props.getBool(ReaderView.PROP_APP_FULLSCREEN, DeviceInfo.EINK_SCREEN));
 		int orientation = props.getInt(ReaderView.PROP_APP_SCREEN_ORIENTATION, 5); //(DeviceInfo.EINK_SCREEN?0:4)
 		if (orientation < 0 || orientation > 5)
 			orientation = 5;
@@ -212,7 +211,7 @@ public class BaseActivity extends Activity implements Settings {
 		super.onStart();
 
 //		Properties props = settings().get();
-//		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
+//		String theme = props.getProperty(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "WHITE" : "LIGHT");
 //		setCurrentTheme(theme);
 		
 		mIsStarted = true;
@@ -266,7 +265,14 @@ public class BaseActivity extends Activity implements Settings {
 	public String getVersion() {
 		return mVersion;
 	}
-	
+
+	public void rebaseSettings() {
+		// if rootFs changed (for example, when external storage permission firstly granted) open config from new root
+		Properties oldProps = mSettingsManager.mSettings;
+		mSettingsManager.rebaseSettings();
+		onSettingsChanged(settings(), oldProps);
+	}
+
 	public Properties loadSettings(int profile) {
 		return mSettingsManager.loadSettings(profile);
 	}
@@ -304,7 +310,7 @@ public class BaseActivity extends Activity implements Settings {
 
 
 
-	private InterfaceTheme currentTheme = DeviceInfo.FORCE_LIGHT_THEME ? InterfaceTheme.WHITE : InterfaceTheme.LIGHT;
+	private InterfaceTheme currentTheme = null;
 	
 	public InterfaceTheme getCurrentTheme() {
 		return currentTheme;
@@ -312,7 +318,9 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void setCurrentTheme(String themeCode) {
 		InterfaceTheme theme = InterfaceTheme.findByCode(themeCode);
-		if (theme != null && currentTheme != theme) {
+		if (null == theme)
+			theme = DeviceInfo.FORCE_HC_THEME ? InterfaceTheme.HICONTRAST1 : InterfaceTheme.LIGHT;
+		if (currentTheme != theme) {
 			setCurrentTheme(theme);
 		}
 	}
@@ -366,12 +374,90 @@ public class BaseActivity extends Activity implements Settings {
             minFontSize = 9;
         }
 
+	public void updateActionsIcons() {
+		int [] attrs = { R.attr.cr3_button_prev_drawable, R.attr.cr3_button_next_drawable, R.attr.cr3_viewer_toc_drawable,
+						 R.attr.cr3_viewer_find_drawable, R.attr.cr3_viewer_settings_drawable, R.attr.cr3_button_bookmarks_drawable,
+						 R.attr.cr3_browser_folder_root_drawable, R.attr.cr3_option_night_drawable, R.attr.cr3_option_touch_drawable,
+						 R.attr.cr3_button_go_page_drawable, R.attr.cr3_button_go_percent_drawable, R.attr.cr3_browser_folder_drawable,
+						 R.attr.cr3_button_tts_drawable, R.attr.cr3_browser_folder_recent_drawable, R.attr.cr3_button_scroll_go_drawable,
+						 R.attr.cr3_btn_books_swap_drawable, R.attr.cr3_logo_button_drawable, R.attr.cr3_viewer_exit_drawable,
+						 R.attr.cr3_button_book_open_drawable, R.attr.cr3_browser_folder_current_book_drawable, R.attr.cr3_browser_folder_opds_drawable };
+		TypedArray a = getTheme().obtainStyledAttributes(attrs);
+		int btnPrevDrawableRes = a.getResourceId(0, 0);
+		int btnNextDrawableRes = a.getResourceId(1, 0);
+		int viewerTocDrawableRes = a.getResourceId(2, 0);
+		int viewerFindDrawableRes = a.getResourceId(3, 0);
+		int viewerSettingDrawableRes = a.getResourceId(4, 0);
+		int btnBookmarksDrawableRes = a.getResourceId(5, 0);
+		int brFolderRootDrawableRes = a.getResourceId(6, 0);
+		int optionNightDrawableRes = a.getResourceId(7, 0);
+		int optionTouchDrawableRes = a.getResourceId(8, 0);
+		int btnGoPageDrawableRes = a.getResourceId(9, 0);
+		int btnGoPercentDrawableRes = a.getResourceId(10, 0);
+		int brFolderDrawableRes = a.getResourceId(11, 0);
+		int btnTtsDrawableRes = a.getResourceId(12, 0);
+		int brFolderRecentDrawableRes = a.getResourceId(13, 0);
+		int btnScrollGoDrawableRes = a.getResourceId(14, 0);
+		int btnBooksSwapDrawableRes = a.getResourceId(15, 0);
+		int logoBtnDrawableRes = a.getResourceId(16, 0);
+		int viewerExitDrawableRes = a.getResourceId(17, 0);
+		int btnBookOpenDrawableRes = a.getResourceId(18, 0);
+		int brFolderCurrBookDrawableRes = a.getResourceId(19, 0);
+		int brFolderOpdsDrawableRes = a.getResourceId(20, 0);
+		a.recycle();
+		if (btnPrevDrawableRes != 0) {
+			ReaderAction.GO_BACK.setIconId(btnPrevDrawableRes);
+			ReaderAction.FILE_BROWSER_UP.setIconId(btnPrevDrawableRes);
+		}
+		if (btnNextDrawableRes != 0)
+			ReaderAction.GO_FORWARD.setIconId(btnNextDrawableRes);
+		if (viewerTocDrawableRes != 0)
+			ReaderAction.TOC.setIconId(viewerTocDrawableRes);
+		if (viewerFindDrawableRes != 0)
+			ReaderAction.SEARCH.setIconId(viewerFindDrawableRes);
+		if (viewerSettingDrawableRes != 0)
+			ReaderAction.OPTIONS.setIconId(viewerSettingDrawableRes);
+		if (btnBookmarksDrawableRes != 0)
+			ReaderAction.BOOKMARKS.setIconId(btnBookmarksDrawableRes);
+		if (brFolderRootDrawableRes != 0)
+			ReaderAction.FILE_BROWSER_ROOT.setIconId(brFolderRootDrawableRes);
+		if (optionNightDrawableRes != 0)
+			ReaderAction.TOGGLE_DAY_NIGHT.setIconId(optionNightDrawableRes);
+		if (optionTouchDrawableRes != 0)
+			ReaderAction.TOGGLE_SELECTION_MODE.setIconId(optionTouchDrawableRes);
+		if (btnGoPageDrawableRes != 0)
+			ReaderAction.GO_PAGE.setIconId(btnGoPageDrawableRes);
+		if (btnGoPercentDrawableRes != 0)
+			ReaderAction.GO_PERCENT.setIconId(btnGoPercentDrawableRes);
+		if (brFolderDrawableRes != 0)
+			ReaderAction.FILE_BROWSER.setIconId(brFolderDrawableRes);
+		if (btnTtsDrawableRes != 0)
+			ReaderAction.TTS_PLAY.setIconId(btnTtsDrawableRes);
+		if (brFolderRecentDrawableRes != 0)
+			ReaderAction.RECENT_BOOKS.setIconId(brFolderRecentDrawableRes);
+		if (btnScrollGoDrawableRes != 0)
+			ReaderAction.TOGGLE_AUTOSCROLL.setIconId(btnScrollGoDrawableRes);
+		if (btnBooksSwapDrawableRes != 0)
+			ReaderAction.OPEN_PREVIOUS_BOOK.setIconId(btnBooksSwapDrawableRes);
+		if (logoBtnDrawableRes != 0)
+			ReaderAction.ABOUT.setIconId(logoBtnDrawableRes);
+		if (viewerExitDrawableRes != 0)
+			ReaderAction.EXIT.setIconId(viewerExitDrawableRes);
+		if (btnBookOpenDrawableRes != 0)
+			ReaderAction.CURRENT_BOOK.setIconId(btnBookOpenDrawableRes);
+		if (brFolderCurrBookDrawableRes != 0)
+			ReaderAction.CURRENT_BOOK_DIRECTORY.setIconId(brFolderCurrBookDrawableRes);
+		if (brFolderOpdsDrawableRes != 0)
+			ReaderAction.OPDS_CATALOGS.setIconId(brFolderOpdsDrawableRes);
+	}
+
 	public void setCurrentTheme(InterfaceTheme theme) {
 		log.i("setCurrentTheme(" + theme + ")");
 		currentTheme = theme;
 		getApplication().setTheme(theme.getThemeId());
 		setTheme(theme.getThemeId());
 		updateBackground();
+		updateActionsIcons();
 	}
 
 	int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_USER;
@@ -1145,12 +1231,7 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void askConfirmation(int questionResourceId, final Runnable action, final Runnable cancelAction) {
 		AlertDialog.Builder dlg = new AlertDialog.Builder(this);
-		
-		final TextView myView = new TextView(getApplicationContext());
-		myView.setText(questionResourceId);
-		//myView.setTextSize(12);
-		dlg.setView(myView);
-		//dlg.setTitle(questionResourceId);
+		dlg.setMessage(questionResourceId);
 		dlg.setPositiveButton(R.string.dlg_button_ok, new OnClickListener() {
 			public void onClick(DialogInterface arg0, int arg1) {
 				action.run();
@@ -1275,7 +1356,11 @@ public class BaseActivity extends Activity implements Settings {
 		    isSmartphone = activity.isSmartphone();
 		    mSettings = loadSettings();
 		}
-		
+
+		public void rebaseSettings() {
+			mSettings = loadSettings();
+		}
+
 		//int lastSaveId = 0;
 		public void setSettings(Properties settings, int delayMillis, boolean notify) {
 			Properties oldSettings = mSettings;
@@ -1354,27 +1439,14 @@ public class BaseActivity extends Activity implements Settings {
 			new DefKeyAction(KeyEvent.KEYCODE_CAMERA, ReaderAction.LONG, ReaderAction.NONE),
 			new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.NORMAL, ReaderAction.SEARCH),
 			new DefKeyAction(KeyEvent.KEYCODE_SEARCH, ReaderAction.LONG, ReaderAction.TOGGLE_SELECTION_MODE),
-			
-			new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
-			new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 
-			new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, (!DeviceInfo.EINK_TOLINO ? ReaderAction.PAGE_UP : ReaderAction.NONE)), // TOLINO backlight button  !
+			new DefKeyAction(KeyEvent.KEYCODE_PAGE_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+			new DefKeyAction(KeyEvent.KEYCODE_PAGE_UP, ReaderAction.LONG, ReaderAction.NONE),
+			new DefKeyAction(KeyEvent.KEYCODE_PAGE_UP, ReaderAction.DOUBLE, ReaderAction.NONE),
+			new DefKeyAction(KeyEvent.KEYCODE_PAGE_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+			new DefKeyAction(KeyEvent.KEYCODE_PAGE_DOWN, ReaderAction.LONG, ReaderAction.NONE),
+			new DefKeyAction(KeyEvent.KEYCODE_PAGE_DOWN, ReaderAction.DOUBLE, ReaderAction.NONE),
 
-			new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-			new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-
-			new DefKeyAction(ReaderView.NOOK_12_KEY_NEXT_LEFT, ReaderAction.NORMAL, (DeviceInfo.EINK_NOOK ? ReaderAction.PAGE_UP : ReaderAction.PAGE_DOWN)),
-			new DefKeyAction(ReaderView.NOOK_12_KEY_NEXT_LEFT, ReaderAction.LONG, (DeviceInfo.EINK_NOOK ? ReaderAction.PAGE_UP_10 : ReaderAction.PAGE_DOWN_10)),
-			
-			new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-//			new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
-			new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
-			new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
-			new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
-//			new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
-			new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
-			new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
-			
 			new DefKeyAction(ReaderView.SONY_DPAD_DOWN_SCANCODE, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
 			new DefKeyAction(ReaderView.SONY_DPAD_UP_SCANCODE, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
 			new DefKeyAction(ReaderView.SONY_DPAD_DOWN_SCANCODE, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
@@ -1393,6 +1465,26 @@ public class BaseActivity extends Activity implements Settings {
 //		    public static final int KEYCODE_PAGE_TOPLEFT = 0x5c; // back
 //		    public static final int KEYCODE_PAGE_TOPRIGHT = 0x5e; // back
 			
+		};
+		// Some key codes on Nook devices conflicted with standard keyboard, for example, KEYCODE_PAGE_BOTTOMLEFT with PAGE_DOWN
+		private static DefKeyAction[] DEF_NOOK_KEY_ACTIONS = {
+				new DefKeyAction(ReaderView.NOOK_KEY_NEXT_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+				new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_DOWN, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+				new DefKeyAction(ReaderView.NOOK_KEY_PREV_LEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+				new DefKeyAction(ReaderView.NOOK_KEY_PREV_RIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+				new DefKeyAction(ReaderView.NOOK_KEY_SHIFT_UP, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+
+				new DefKeyAction(ReaderView.NOOK_12_KEY_NEXT_LEFT, ReaderAction.NORMAL, (DeviceInfo.EINK_NOOK ? ReaderAction.PAGE_UP : ReaderAction.PAGE_DOWN)),
+				new DefKeyAction(ReaderView.NOOK_12_KEY_NEXT_LEFT, ReaderAction.LONG, (DeviceInfo.EINK_NOOK ? ReaderAction.PAGE_UP_10 : ReaderAction.PAGE_DOWN_10)),
+
+				new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+//			    new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_UP),
+				new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+				new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.NORMAL, ReaderAction.PAGE_DOWN),
+				new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMLEFT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+//			    new DefKeyAction(ReaderView.KEYCODE_PAGE_BOTTOMRIGHT, ReaderAction.LONG, ReaderAction.PAGE_UP_10),
+				new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPLEFT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
+				new DefKeyAction(ReaderView.KEYCODE_PAGE_TOPRIGHT, ReaderAction.LONG, ReaderAction.PAGE_DOWN_10),
 		};
 		private static DefTapAction[] DEF_TAP_ACTIONS = {
 			new DefTapAction(1, false, ReaderAction.PAGE_UP),
@@ -1487,6 +1579,12 @@ public class BaseActivity extends Activity implements Settings {
 	        		if (ReaderAction.READER_MENU.id.equals(ka.action.id))
 	        		  menuKeyActionFound = true;
 	        }
+	        if (DeviceInfo.NOOK_NAVIGATION_KEYS) {
+	        	// Add default key mappings for Nook devices & also override defaults for some keys (PAGE_UP, PAGE_DOWN)
+		        for ( DefKeyAction ka : DEF_NOOK_KEY_ACTIONS ) {
+			        props.applyDefault(ka.getProp(), ka.action.id);
+		        }
+	        }
 
 	        boolean menuTapActionFound = false;
 	        for ( DefTapAction ka : DEF_TAP_ACTIONS ) {
@@ -1516,9 +1614,9 @@ public class BaseActivity extends Activity implements Settings {
 
 	        props.applyDefault(ReaderView.PROP_APP_LOCALE, Lang.DEFAULT.code);
 	        
-	        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
-	        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_LIGHT_THEME ? "WHITE" : "LIGHT");
-	        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_LIGHT_THEME ? "BLACK" : "DARK");
+	        props.applyDefault(ReaderView.PROP_APP_THEME, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
+	        props.applyDefault(ReaderView.PROP_APP_THEME_DAY, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST1" : "LIGHT");
+	        props.applyDefault(ReaderView.PROP_APP_THEME_NIGHT, DeviceInfo.FORCE_HC_THEME ? "HICONTRAST2" : "DARK");
 	        props.applyDefault(ReaderView.PROP_APP_SELECTION_PERSIST, "0");
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK, "3");
 	        if ("1".equals(props.getProperty(ReaderView.PROP_APP_SCREEN_BACKLIGHT_LOCK)))
@@ -1527,7 +1625,8 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_APP_BOOK_PROPERTY_SCAN_ENABLED, "1");
 	        props.applyDefault(ReaderView.PROP_APP_KEY_BACKLIGHT_OFF, DeviceInfo.SAMSUNG_BUTTONS_HIGHLIGHT_PATCH ? "0" : "1");
 	        props.applyDefault(ReaderView.PROP_LANDSCAPE_PAGES, DeviceInfo.ONE_COLUMN_IN_LANDSCAPE ? "0" : "1");
-	        // autodetect best initial font size based on display resolution
+			//props.applyDefault(ReaderView.PROP_TOOLBAR_APPEARANCE, "0");
+			// autodetect best initial font size based on display resolution
 	        int screenHeight = displayMetrics.heightPixels;
 	        int screenWidth = displayMetrics.widthPixels;//getWindowManager().getDefaultDisplay().getWidth();
 	        if (screenWidth > screenHeight)
@@ -1624,7 +1723,7 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");
 	        
 	        props.applyDefault(ReaderView.PROP_NIGHT_MODE, "0");
-	        if (DeviceInfo.FORCE_LIGHT_THEME) {
+	        if (DeviceInfo.FORCE_HC_THEME) {
 	        	props.applyDefault(ReaderView.PROP_PAGE_BACKGROUND_IMAGE, Engine.NO_TEXTURE.id);
 	        } else {
 	        	if ( props.getBool(ReaderView.PROP_NIGHT_MODE, false) )

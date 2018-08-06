@@ -912,16 +912,37 @@ bool CacheFile::write( lUInt16 type, lUInt16 dataIndex, const lUInt8 * buf, int 
         block = allocBlock( type, dataIndex, size );
     }
     if ( !block )
+    {
+#if DOC_DATA_COMPRESSION_LEVEL!=0
+        if ( compress ) {
+            free( (void*)buf );
+        }
+#endif
         return false;
+    }
     if ( (int)_stream->SetPos( block->_blockFilePos )!=block->_blockFilePos )
+    {
+#if DOC_DATA_COMPRESSION_LEVEL!=0
+        if ( compress ) {
+            free( (void*)buf );
+        }
+#endif
         return false;
+    }
     // assert: size == block->_dataSize
     // actual writing of data
     block->_dataSize = size;
     lvsize_t bytesWritten = 0;
     _stream->Write(buf, size, &bytesWritten );
     if ( (int)bytesWritten!=size )
+    {
+#if DOC_DATA_COMPRESSION_LEVEL!=0
+        if ( compress ) {
+            free( (void*)buf );
+        }
+#endif
         return false;
+    }
 #if CACHE_FILE_WRITE_BLOCK_PADDING==1
     int paddingSize = block->_blockSize - size; //roundSector( size ) - size
     if ( paddingSize ) {
@@ -1031,8 +1052,7 @@ bool CacheFile::create( LVStreamRef stream )
     }
 
     _size = _sectorSize;
-    LVAutoPtr<lUInt8> sector0( new lUInt8[_sectorSize] );
-    memset(sector0.get(), 0, _sectorSize);
+    LVArray<lUInt8> sector0(_sectorSize, 0);
     lvsize_t bytesWritten = 0;
     _stream->Write(sector0.get(), _sectorSize, &bytesWritten );
     if ( (int)bytesWritten!=_sectorSize ) {
@@ -1523,6 +1543,7 @@ bool tinyNodeCollection::openCacheFile()
 
     if ( !ldomDocCache::enabled() ) {
         CRLog::error("Cannot open cached document: cache dir is not initialized");
+        delete f;
         return false;
     }
 
@@ -1570,6 +1591,7 @@ bool tinyNodeCollection::createCacheFile()
 
     if ( !ldomDocCache::enabled() ) {
         CRLog::error("Cannot swap: cache dir is not initialized");
+        delete f;
         return false;
     }
 
@@ -6310,7 +6332,7 @@ inline bool IsUnicodeSpace( lChar16 ch )
 // TODO: implement better behavior
 inline bool IsUnicodeSpaceOrNull( lChar16 ch )
 {
-    return ch==0 || ch==' ';
+    return ch==0 || IsUnicodeSpace(ch);
 }
 
 inline bool canWrapWordBefore( lChar16 ch ) {
@@ -6433,6 +6455,7 @@ bool ldomXPointerEx::nextVisibleWordStart( bool thisBlockOnly )
                 if ( !nextVisibleText(thisBlockOnly) )
                     return false;
                 _data->setOffset( 0 );
+                moved = true;
             }
         }
         // skip spaces
@@ -6656,6 +6679,8 @@ bool ldomXPointerEx::isSentenceStart()
             break;
         }
     }
+#if 0
+    // At this implementation it's a wrong to check previous node
     if ( !prevNonSpace ) {
         ldomXPointerEx pos(*this);
         while ( !prevNonSpace && pos.prevVisibleText(true) ) {
@@ -6667,6 +6692,18 @@ bool ldomXPointerEx::isSentenceStart()
                     break;
                 }
             }
+        }
+    }
+#endif
+
+    // skip separated separator.
+    if (1 == textLen) {
+        switch (currCh) {
+            case '.':
+            case '?':
+            case '!':
+            case L'\x2026': // horizontal ellypsis
+                return false;
         }
     }
 

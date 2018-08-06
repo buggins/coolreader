@@ -15,4 +15,19 @@
 <CheckBox android:text="@string/dlg_search_case_sensitive" android:id="@+id/search_case_sensitive" android:layout_width="fill_parent" android:layout_height="wrap_content"></CheckBox>
 <CheckBox android:text="@string/dlg_search_reverse" android:id="@+id/search_reverse" android:layout_width="fill_parent" android:layout_height="wrap_content"></CheckBox>
 
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:id="@+id/history_list"
+		android:orientation="vertical"
+		android:layout_weight="8"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:baselineAligned="false"
+		android:layout_marginTop="8dip"
+		android:layout_marginBottom="8dip"
+		android:layout_marginLeft="4dip"
+		android:layout_marginRight="4dip"
+		>
+
+	</LinearLayout>
+
 </LinearLayout>

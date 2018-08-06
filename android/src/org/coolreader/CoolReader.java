@@ -2,6 +2,7 @@
 package org.coolreader;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.coolreader.Dictionaries.DictionaryException;
@@ -18,6 +19,7 @@ import org.coolreader.crengine.CRToolBar;
 import org.coolreader.crengine.CRToolBar.OnActionHandler;
 import org.coolreader.crengine.DeviceInfo;
 import org.coolreader.crengine.Engine;
+import org.coolreader.crengine.ErrorDialog;
 import org.coolreader.crengine.FileBrowser;
 import org.coolreader.crengine.FileInfo;
 import org.coolreader.crengine.History.BookInfoLoadedCallack;
@@ -38,13 +40,17 @@ import org.coolreader.crengine.TTS.OnTTSCreatedListener;
 import org.coolreader.donations.CRDonationService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.view.LayoutInflater;
@@ -67,17 +73,21 @@ public class CoolReader extends BaseActivity
 	//CRDB mDB;
 	private ViewGroup mCurrentFrame;
 	private ViewGroup mPreviousFrame;
-	
-	
+
+	private String mOptionAppearance = "0";
+
 	String fileToLoadOnStart = null;
 	
 	private boolean isFirstStart = true;
+	private boolean phoneStateChangeHandlerInstalled = false;
 	int initialBatteryState = -1;
 	BroadcastReceiver intentReceiver;
 
 	private boolean justCreated = false;
-	
-	
+
+	private static final int PERM_REQUEST_STORAGE_CODE = 1;
+	private static final int PERM_REQUEST_READ_PHONE_STATE_CODE = 2;
+
 	/** Called when the activity is first created. */
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -87,14 +97,15 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
-		
-		
+		// Can request only one set of permissions at a time
+		// Then request all permission at a time.
+		requestStoragePermissions();
+
 		// apply settings
     	onSettingsChanged(settings(), null);
 
 		isFirstStart = true;
 		justCreated = true;
-    	
 
 		mEngine = Engine.getInstance(this);
 
@@ -209,24 +220,15 @@ public class CoolReader extends BaseActivity
 	{
 		super.applyAppSetting(key, value);
 		boolean flg = "1".equals(value);
-        if ( key.equals(PROP_APP_KEY_BACKLIGHT_OFF) ) {
-			setKeyBacklightDisabled(flg);
-        } else if ( key.equals(PROP_APP_SCREEN_BACKLIGHT_LOCK) ) {
-        	int n = 0;
-        	try {
-        		n = Integer.parseInt(value);
-        	} catch (NumberFormatException e) {
-        		// ignore
-        	}
-			setScreenBacklightDuration(n);
-        } else if ( key.equals(PROP_APP_DICTIONARY) ) {
+        if ( key.equals(PROP_APP_DICTIONARY) ) {
         	setDict(value);
-        } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
+        } else if ( key.equals(PROP_APP_DICTIONARY_2) ) {
+			setDict2(value);
+		} else if ( key.equals(PROP_TOOLBAR_APPEARANCE) ) {
+			setToolbarAppearance(value);
+	    } else if (key.equals(PROP_APP_BOOK_SORT_ORDER)) {
         	if (mBrowser != null)
         		mBrowser.setSortOrder(value);
-        } else if (key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE)) {
-        	if (mBrowser != null)
-        		mBrowser.setSimpleViewMode(flg);
         } else if ( key.equals(PROP_APP_SHOW_COVERPAGES) ) {
         	if (mBrowser != null)
         		mBrowser.setCoverPagesEnabled(flg);
@@ -251,8 +253,6 @@ public class CoolReader extends BaseActivity
         } else if ( key.equals(PROP_APP_FILE_BROWSER_SIMPLE_MODE) ) {
         	if (mBrowser != null)
         		mBrowser.setSimpleViewMode(flg);
-        } else if ( key.equals(PROP_APP_FILE_BROWSER_HIDE_EMPTY_FOLDERS) ) {
-        	Services.getScanner().setHideEmptyDirs(flg);
         }
         //
 	}
@@ -313,8 +313,20 @@ public class CoolReader extends BaseActivity
 			loadDocument(fileToOpen, new Runnable() {
 				@Override
 				public void run() {
-					showToast("Cannot open book");
-					showRootWindow();
+					BackgroundThread.instance().postGUI(new Runnable() {
+						@Override
+						public void run() {
+							// if document not loaded show error & then root window
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file));
+							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+								@Override
+								public void onDismiss(DialogInterface dialog) {
+									showRootWindow();
+								}
+							});
+							errDialog.show();
+						}
+					}, 500);
 				}
 			});
 			return true;
@@ -395,19 +407,8 @@ public class CoolReader extends BaseActivity
 	protected void onStart() {
 		log.i("CoolReader.onStart() version=" + getVersion() + ", fileToLoadOnStart=" + fileToLoadOnStart);
 		super.onStart();
-		
-		
-		PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
-			@Override
-			public void run() {
-				if (mReaderView != null) {
-					mReaderView.stopTTS();
-					mReaderView.save();
-				}
-			}
-		});
-		
-//		BackgroundThread.instance().postGUI(new Runnable() {
+
+		//		BackgroundThread.instance().postGUI(new Runnable() {
 //			public void run() {
 //				// fixing font settings
 //				Properties settings = mReaderView.getSettings();
@@ -478,6 +479,100 @@ public class CoolReader extends BaseActivity
 		log.i("CoolReader.onStop() exiting");
 	}
 
+	private void requestStoragePermissions() {
+		// check or request permission for storage
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			int readExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+			int writeExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+			ArrayList<String> needPerms = new ArrayList<String>();
+			if (PackageManager.PERMISSION_GRANTED != readExtStoragePermissionCheck) {
+				needPerms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+			} else {
+				log.i("READ_EXTERNAL_STORAGE permission already granted.");
+			}
+			if (PackageManager.PERMISSION_GRANTED != writeExtStoragePermissionCheck) {
+				needPerms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+			} else {
+				log.i("WRITE_EXTERNAL_STORAGE permission already granted.");
+			}
+			if (!needPerms.isEmpty()) {
+				// TODO: Show an explanation to the user
+				// Show an explanation to the user *asynchronously* -- don't block
+				// this thread waiting for the user's response! After the user
+				// sees the explanation, try again to request the permission.
+				String[] templ = new String[0];
+				log.i("Some permissions DENIED, requesting from user these permissions: " + needPerms.toString());
+				// request permission from user
+				requestPermissions(needPerms.toArray(templ), PERM_REQUEST_STORAGE_CODE);
+			}
+		}
+	}
+
+	private void requestReadPhoneStatePermissions() {
+		// check or request permission to read phone state
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			int phoneStatePermissionCheck = checkSelfPermission(Manifest.permission.READ_PHONE_STATE);
+			if (PackageManager.PERMISSION_GRANTED != phoneStatePermissionCheck) {
+				log.i("READ_PHONE_STATE permission DENIED, requesting from user");
+				// TODO: Show an explanation to the user
+				// Show an explanation to the user *asynchronously* -- don't block
+				// this thread waiting for the user's response! After the user
+				// sees the explanation, try again to request the permission.
+				// request permission from user
+				requestPermissions(new String[] { Manifest.permission.READ_PHONE_STATE } , PERM_REQUEST_READ_PHONE_STATE_CODE);
+			} else {
+				log.i("READ_PHONE_STATE permission already granted.");
+			}
+		}
+	}
+
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		log.i("CoolReader.onRequestPermissionsResult()");
+		if (PERM_REQUEST_STORAGE_CODE == requestCode) {		// external storage read & write permissions
+			int ext_sd_perm_count = 0;
+			//boolean read_phone_state_granted = false;
+			for (int i = 0; i < permissions.length; i++) {
+				if (grantResults[i] == PackageManager.PERMISSION_GRANTED)
+					log.i("Permission " + permissions[i] + " GRANTED");
+				else
+					log.i("Permission " + permissions[i] + " DENIED");
+				if (permissions[i].compareTo(Manifest.permission.READ_EXTERNAL_STORAGE) == 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+					ext_sd_perm_count++;
+				else if (permissions[i].compareTo(Manifest.permission.WRITE_EXTERNAL_STORAGE) == 0 && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+					ext_sd_perm_count++;
+			}
+			if (2 == ext_sd_perm_count) {
+				log.i("read&write to storage permissions GRANTED, adding sd card mount point...");
+				Services.refreshServices(this);
+				rebaseSettings();
+				getDBService().setPathCorrector(Engine.getInstance(this).getPathCorrector());
+				getDBService().get().reopenDatabase();
+				waitForCRDBService(new Runnable() {
+					@Override
+					public void run() {
+						Services.getHistory().loadFromDB(getDB(), 200);
+					}
+				});
+				mHomeFrame.refreshView();
+			}
+		} else if (PERM_REQUEST_READ_PHONE_STATE_CODE == requestCode) {
+			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				log.i("read phone state permission is GRANTED, registering phone activity handler...");
+				PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
+					@Override
+					public void run() {
+						if (mReaderView != null) {
+							mReaderView.stopTTS();
+							mReaderView.save();
+						}
+					}
+				});
+				phoneStateChangeHandlerInstalled = true;
+			} else {
+				log.i("Read phone state permission is DENIED!");
+			}
+		}
+	}
 
 	private static Debug.MemoryInfo info = new Debug.MemoryInfo();
 	private static Field[] infoFields = Debug.MemoryInfo.class.getFields();
@@ -526,7 +621,8 @@ public class CoolReader extends BaseActivity
 	public void directoryUpdated(FileInfo dir) {
 		directoryUpdated(dir, null);
 	}
-	
+
+	@Override
 	public void onSettingsChanged(Properties props, Properties oldProps) {
 		Properties changedProps = oldProps!=null ? props.diff(oldProps) : props;
 		if (mHomeFrame != null) {
@@ -672,6 +768,7 @@ public class CoolReader extends BaseActivity
 			        		ReaderAction.OPDS_CATALOGS,
 			        		ReaderAction.SEARCH,
 			        		ReaderAction.SCAN_DIRECTORY_RECURSIVE,
+							ReaderAction.FILE_BROWSER_SORT_ORDER,
 							ReaderAction.EXIT
 			        		), false);
 			        mBrowserToolBar.setBackgroundResource(R.drawable.ui_status_background_browser_dark);
@@ -706,6 +803,9 @@ public class CoolReader extends BaseActivity
 								break;
 							case DCMD_SCAN_DIRECTORY_RECURSIVE:
 								mBrowser.scanCurrentDirectoryRecursive();
+								break;
+							case DCMD_FILE_BROWSER_SORT_ORDER:
+								mBrowser.showSortOrderMenu();
 								break;
 							default:
 								// do nothing
@@ -759,7 +859,7 @@ public class CoolReader extends BaseActivity
 	public void loadDocument( FileInfo item, Runnable callback )
 	{
 		log.d("Activities.loadDocument(" + item.pathname + ")");
-		loadDocument(item.getPathName(), null);
+		loadDocument(item.getPathName(), callback);
 	}
 	
 	public void showOpenedBook()
@@ -892,6 +992,18 @@ public class CoolReader extends BaseActivity
 		mDictionaries.setDict(id);
 	}
 
+	public void setDict2( String id ) {
+		mDictionaries.setDict2(id);
+	}
+
+	public void setToolbarAppearance( String id ) {
+		mOptionAppearance = id;
+	}
+
+	public String getToolbarAppearance() {
+		return mOptionAppearance;
+	}
+
 	public void showAboutDialog() {
 		AboutDialog dlg = new AboutDialog(this);
 		dlg.show();
@@ -978,6 +1090,31 @@ public class CoolReader extends BaseActivity
 				showToast("TTS is not available");
 			}
 			return false;
+		}
+		if (!phoneStateChangeHandlerInstalled) {
+			boolean readPhoneStateIsAvailable;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+				readPhoneStateIsAvailable = checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
+			} else
+				readPhoneStateIsAvailable = true;
+			if (!readPhoneStateIsAvailable) {
+				// assumed Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+				requestReadPhoneStatePermissions();
+			} else {
+				// On Android API less than 23 phone read state permission is granted
+				// after application install (permission requested while application installing).
+				log.i("read phone state permission already GRANTED, registering phone activity handler...");
+				PhoneStateReceiver.setPhoneActivityHandler(new Runnable() {
+					@Override
+					public void run() {
+						if (mReaderView != null) {
+							mReaderView.stopTTS();
+							mReaderView.save();
+						}
+					}
+				});
+				phoneStateChangeHandlerInstalled = true;
+			}
 		}
 		if ( ttsInitialized && tts!=null ) {
 			BackgroundThread.instance().executeGUI(new Runnable() {
@@ -1332,7 +1469,25 @@ public class CoolReader extends BaseActivity
 			location = FileInfo.ROOT_DIR_TAG;
 		if (location.startsWith(BOOK_LOCATION_PREFIX)) {
 			location = location.substring(BOOK_LOCATION_PREFIX.length());
-			loadDocument(location, null);
+			loadDocument(location, new Runnable() {
+				@Override
+				public void run() {
+					BackgroundThread.instance().postGUI(new Runnable() {
+						@Override
+						public void run() {
+							// if document not loaded show error & then root window
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, "Error", "Can't open file!");
+							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+								@Override
+								public void onDismiss(DialogInterface dialog) {
+									showRootWindow();
+								}
+							});
+							errDialog.show();
+						}
+					}, 1000);
+				}
+			});
 			return;
 		}
 		if (location.startsWith(DIRECTORY_LOCATION_PREFIX)) {

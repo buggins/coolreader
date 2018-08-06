@@ -291,7 +291,7 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			ImageView icon = (ImageView)view.findViewById(R.id.item_icon);
 			TextView label = (TextView)view.findViewById(R.id.item_name);
 			if (item.isOPDSRoot()) {
-				icon.setImageResource(R.drawable.cr3_browser_folder_opds_add);
+				icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_opds_add_drawable, R.drawable.cr3_browser_folder_opds_add));
 				label.setText("Add");
 				view.setOnClickListener(new OnClickListener() {
 					@Override
@@ -393,11 +393,11 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
             ImageView icon = (ImageView) view.findViewById(R.id.item_icon);
             TextView label = (TextView) view.findViewById(R.id.item_name);
             if (item.getType() == FileInfo.TYPE_DOWNLOAD_DIR)
-                icon.setImageResource(R.drawable.folder_bookmark);
+                icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.folder_big_bookmark_drawable, R.drawable.folder_bookmark));
             else if (item.getType() == FileInfo.TYPE_FS_ROOT)
-                icon.setImageResource(R.drawable.media_flash_sd_mmc);
+                icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.media_flash_microsd_drawable, R.drawable.media_flash_sd_mmc));
             else
-                icon.setImageResource(R.drawable.folder_blue);
+                icon.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.folder_big_drawable, R.drawable.folder_blue));
             if (item.title != null)
             	label.setText(item.title); //  filename
             else if (item.getType() == FileInfo.TYPE_FS_ROOT || item.getType() == FileInfo.TYPE_DOWNLOAD_DIR)
@@ -480,9 +480,9 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 			ImageView image = (ImageView)view.findViewById(R.id.item_icon);
 			TextView label = (TextView)view.findViewById(R.id.item_name);
 			if (item.isSearchShortcut())
-				image.setImageResource(R.drawable.cr3_browser_find);
+				image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_find_drawable, R.drawable.cr3_browser_find));
 			else if (item.isBooksByAuthorRoot() || item.isBooksByTitleRoot() || item.isBooksBySeriesRoot())
-				image.setImageResource(R.drawable.cr3_browser_folder_authors);
+				image.setImageResource(Utils.resolveResourceIdByAttr(mActivity, R.attr.cr3_browser_folder_authors_drawable, R.drawable.cr3_browser_folder_authors));
 			if (label != null) {
 				label.setText(item.filename);
 				label.setMinWidth(coverWidth);
@@ -589,6 +589,14 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 
 		refreshRecentBooks();
 
+		// Must be initialized FileSystemFolders.favoriteFolders firstly to exclude NullPointerException.
+		mActivity.waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
+			}
+		});
+
         Services.getFileSystemFolders().addListener(new FileInfoChangeListener() {
             @Override
             public void onChange(FileInfo object, boolean onlyProperties) {
@@ -598,13 +606,6 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
               				refreshFileSystemFolders();
               			}
               		});
-            }
-        });
-
-        mActivity.waitForCRDBService(new Runnable() {
-            @Override
-            public void run() {
-                Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
             }
         });
 
@@ -636,7 +637,41 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 //		});
 	}
 
+	// called after user grant permissions for external storage
+	public void refreshView() {
+		updateDelimiterTheme(R.id.delimiter1);
+		updateDelimiterTheme(R.id.delimiter2);
+		updateDelimiterTheme(R.id.delimiter3);
+		updateDelimiterTheme(R.id.delimiter4);
+		updateDelimiterTheme(R.id.delimiter5);
 
+		// Must be initialized FileSystemFolders.favoriteFolders firstly to exclude NullPointerException.
+		mActivity.waitForCRDBService(new Runnable() {
+			@Override
+			public void run() {
+				Services.getFileSystemFolders().loadFavoriteFolders(mActivity.getDB());
+			}
+		});
+
+		updateCurrentBook(Services.getHistory().getLastBook());
+		refreshRecentBooks();
+
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				refreshFileSystemFolders();
+			}
+		});
+
+		BackgroundThread.instance().postGUI(new Runnable() {
+			@Override
+			public void run() {
+				refreshOnlineCatalogs();
+				if (Services.getScanner() != null)
+					updateLibraryItems(Services.getScanner().getLibraryItems());
+			}
+		});
+	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

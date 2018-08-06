@@ -2,8 +2,8 @@
 #include "lvdocview.h"
 //#include "crgl.h"
 
-#if defined(__arm__)
-#define USE_COFFEECATCH 0
+#if defined(__arm__) || defined(__aarch64__) || defined(__i386__) || defined(__mips__)
+#define USE_COFFEECATCH 1
 #endif
 
 
@@ -845,6 +845,11 @@ DocViewNative::DocViewNative()
 	_docview->setBatteryFont( fontMan->GetFont( 16, 600, false, css_ff_sans_serif, lString8("Droid Sans") ));
 	
 	_docview->createDefaultDocument(lString16("Welcome to CoolReader"), lString16("Please select file to open"));
+}
+
+DocViewNative::~DocViewNative()
+{
+	delete _docview;
 }
 
 static DocViewNative * getNative(JNIEnv * env, jobject _this)

@@ -483,6 +483,18 @@ public:
         }
         list.sort();
     }
+    virtual void getFontFileNameList(lString16Collection &list)
+    {
+        list.clear();
+        for ( int i=0; i<_registered_list.length(); i++ ) {
+            if (_registered_list[i]->getDef()->getDocumentId() == -1) {
+                lString16 name = Utf8ToUnicode(_registered_list[i]->getDef()->getName());
+                if (!list.contains(name))
+                    list.add(name);
+            }
+        }
+        list.sort();
+    }
     virtual void clearFallbackFonts()
     {
         for ( int i=0; i<_registered_list.length(); i++ ) {
@@ -548,8 +560,8 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
 {
     FONT_LOCAL_GLYPH_CACHE_GUARD
     FT_Bitmap*  bitmap = &slot->bitmap;
-    lUInt8 w = (lUInt8)(bitmap->width);
-    lUInt8 h = (lUInt8)(bitmap->rows);
+    int w = bitmap->width;
+    int h = bitmap->rows;
     LVFontGlyphCacheItem * item = LVFontGlyphCacheItem::newItem(local_cache, ch, w, h );
     if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
         lUInt8 mask = 0x80;
@@ -593,9 +605,9 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
                 cr_correct_gamma_buf(item->bmp, w*h, gammaIndex);
 //            }
     }
-    item->origin_x =   (lInt8)slot->bitmap_left;
-    item->origin_y =   (lInt8)slot->bitmap_top;
-    item->advance =    (lUInt8)(myabs(slot->metrics.horiAdvance) >> 6);
+    item->origin_x =   (lInt16)slot->bitmap_left;
+    item->origin_y =   (lInt16)slot->bitmap_top;
+    item->advance =    (lUInt16)(myabs(slot->metrics.horiAdvance) >> 6);
     return item;
 }
 
@@ -604,8 +616,8 @@ static LVFontGlyphIndexCacheItem * newItem(lUInt32 index, FT_GlyphSlot slot )
 {
 	FONT_LOCAL_GLYPH_CACHE_GUARD
 	FT_Bitmap*  bitmap = &slot->bitmap;
-	lUInt8 w = (lUInt8)(bitmap->width);
-	lUInt8 h = (lUInt8)(bitmap->rows);
+	int w = bitmap->width;
+	int h = bitmap->rows;
 	LVFontGlyphIndexCacheItem* item = LVFontGlyphIndexCacheItem::newItem(index, w, h );
 	if (!item)
 		return 0;
@@ -634,9 +646,9 @@ static LVFontGlyphIndexCacheItem * newItem(lUInt32 index, FT_GlyphSlot slot )
 				cr_correct_gamma_buf(item->bmp, w*h, gammaIndex);
 //            }
 	}
-	item->origin_x =   (lInt8)slot->bitmap_left;
-	item->origin_y =   (lInt8)slot->bitmap_top;
-	item->advance =    (lUInt8)(myabs(slot->metrics.horiAdvance) >> 6);
+	item->origin_x =   (lInt16)slot->bitmap_left;
+	item->origin_y =   (lInt16)slot->bitmap_top;
+	item->advance =    (lUInt16)(myabs(slot->metrics.horiAdvance) >> 6);
 	return item;
 }
 #endif
@@ -1477,9 +1489,6 @@ public:
     LVFontGlyphIndexCacheItem * getGlyphByIndex(lUInt32 index) {
         //FONT_GUARD
         LVFontGlyphIndexCacheItem * item = 0;
-        //std::map<lUInt32, LVFontGlyphIndexCacheItem*>::const_iterator it;
-        //it = _glyph_cache2.find(index);
-        //if (it == _glyph_cache2.end()) {
         if (!_glyph_cache2.get(index, item)) {
             // glyph not found in cache, rendering...
             int rend_flags = FT_LOAD_RENDER | ( !_drawMonochrome ? FT_LOAD_TARGET_NORMAL : (FT_LOAD_TARGET_MONO) ); //|FT_LOAD_MONOCHROME|FT_LOAD_FORCE_AUTOHINT
@@ -1498,11 +1507,8 @@ public:
             }
             item = newItem(index, _slot);
             if (item)
-                //_glyph_cache2.insert(std::pair<lUInt32, LVFontGlyphIndexCacheItem*>(index, item));
                 _glyph_cache2.set(index, item);
         }
-        //else
-        //    item = it->second;
         return item;
     }
 #endif
@@ -2634,6 +2640,12 @@ public:
         FONT_MAN_GUARD
         _cache.getFaceList( list );
     }
+    /// returns registered font files
+    virtual void getFontFileNameList( lString16Collection & list )
+    {
+        FONT_MAN_GUARD
+        _cache.getFontFileNameList(list);
+    }
 bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
 {
     FONT_MAN_GUARD
@@ -3316,6 +3328,12 @@ public:
         }
         return res;
     }
+    /// returns registered font files
+    virtual void getFontFileNameList( lString16Collection & list )
+    {
+        FONT_MAN_GUARD
+        _cache.getFontFileNameList(list);
+    }
     virtual bool Init( lString8 path )
     {
         _path = path;
@@ -3473,6 +3491,12 @@ public:
     virtual void getFaceList( lString16Collection & list )
     {
         _cache.getFaceList(list);
+    }
+    /// returns registered font files
+    virtual void getFontFileNameList( lString16Collection & list )
+    {
+        FONT_MAN_GUARD
+        _cache.getFontFileNameList(list);
     }
 };
 

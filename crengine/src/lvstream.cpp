@@ -3474,8 +3474,7 @@ public:
     virtual lverror_t Read( void * buf, lvsize_t count, lvsize_t * nBytesRead )
     {
         // TODO
-        if ( nBytesRead )
-            *nBytesRead = 0;
+        lvsize_t bytesRead = 0;
         lUInt8 * dst = (lUInt8*) buf;
         while (count) {
             int bytesLeft = _decodedLen - (int)(_pos - _decodedStart);
@@ -3483,10 +3482,15 @@ public:
                 SetPos(_pos);
                 bytesLeft = _decodedLen - (int)(_pos - _decodedStart);
                 if ( bytesLeft==0 && _pos==_decodedStart+_decodedLen) {
-                    return *nBytesRead ? LVERR_OK : LVERR_EOF;
+                    if (nBytesRead)
+                        *nBytesRead = bytesRead;
+                    return bytesRead ? LVERR_OK : LVERR_EOF;
                 }
-                if ( bytesLeft<=0 || bytesLeft>_decodedLen )
+                if ( bytesLeft<=0 || bytesLeft>_decodedLen ) {
+                    if (nBytesRead)
+                        *nBytesRead = bytesRead;
                     return LVERR_FAIL;
+                }
             }
             lUInt8 * src = _decoded + (_pos - _decodedStart);
             unsigned n = count;
@@ -3497,10 +3501,11 @@ public:
             }
             count -= n;
             bytesLeft -= n;
-            if ( nBytesRead )
-                *nBytesRead += n;
+            bytesRead += n;
             _pos += n;
         }
+        if (nBytesRead)
+            *nBytesRead = bytesRead;
         return LVERR_OK;
     }
 
@@ -4035,12 +4040,14 @@ class LVBlockWriteStream : public LVNamedStream
             , size( block_size ), next(NULL)
         {
             buf = (lUInt8*)malloc( size );
-            if ( !buf ) {
+            if ( buf ) {
+                memset(buf, 0, size);
+    //            modified_start = 0;
+    //            modified_end = size;
+            }
+            else {
                 CRLog::error("buffer allocation failed");
             }
-            memset(buf, 0, size);
-//            modified_start = 0;
-//            modified_end = size;
         }
         ~Block()
         {
@@ -4227,6 +4234,7 @@ class LVBlockWriteStream : public LVNamedStream
         CRLog::trace("creating block %x", (int)p->block_start);
 #endif
         if ( readBlock( p )!=LVERR_OK ) {
+            delete p;
             return LVERR_FAIL;
         }
 #if TRACE_BLOCK_WRITE_STREAM

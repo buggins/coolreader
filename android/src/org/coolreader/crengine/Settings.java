@@ -54,6 +54,7 @@ public interface Settings {
     public static final String PROP_STATUS_LOCATION         ="viewer.status.location";
     public static final String PROP_TOOLBAR_LOCATION        ="viewer.toolbar.location2";
     public static final String PROP_TOOLBAR_HIDE_IN_FULLSCREEN="viewer.toolbar.fullscreen.hide";
+    public static final String PROP_TOOLBAR_APPEARANCE="viewer.toolbar.appearance";
     
     public static final String PROP_STATUS_LINE             ="window.status.line";
     public static final String PROP_BOOKMARK_ICONS          ="crengine.bookmarks.icons";
@@ -113,6 +114,7 @@ public interface Settings {
     public static final String PROP_APP_FLICK_BACKLIGHT_CONTROL = "app.screen.backlight.control.flick";
     public static final String PROP_APP_BOOK_SORT_ORDER = "app.browser.sort.order";
     public static final String PROP_APP_DICTIONARY = "app.dictionary.current";
+    public static final String PROP_APP_DICTIONARY_2 = "app.dictionary2.current";
     public static final String PROP_APP_SELECTION_ACTION = "app.selection.action";
     public static final String PROP_APP_MULTI_SELECTION_ACTION = "app.multiselection.action";
     public static final String PROP_APP_SELECTION_PERSIST = "app.selection.persist";
@@ -186,6 +188,13 @@ public interface Settings {
     public static final int VIEWER_TOOLBAR_RIGHT = 4;
     public static final int VIEWER_TOOLBAR_SHORT_SIDE = 5;
     public static final int VIEWER_TOOLBAR_LONG_SIDE = 6;
+
+    public static final int VIEWER_TOOLBAR_100 = 0;
+    public static final int VIEWER_TOOLBAR_100_gray = 1;
+    public static final int VIEWER_TOOLBAR_75 = 2;
+    public static final int VIEWER_TOOLBAR_75_gray = 3;
+    public static final int VIEWER_TOOLBAR_50 = 4;
+    public static final int VIEWER_TOOLBAR_50_gray = 5;
     
     
     public enum Lang {

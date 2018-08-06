@@ -1,13 +1,13 @@
-#include ../../Android.mk
+
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := cr3engine-3-1-2
 
-# Generate CREngine blob with statically linked libjpeg, libpng, libfreetype, chmlib
+# Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, chmlib
 
-CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
+CRFLAGS := -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
      -DFT2_BUILD_LIBRARY=1 -DFT_CONFIG_MODULES_H=\<builds/android/include/config/ftmodule.h\> -DFT_CONFIG_OPTIONS_H=\<builds/android/include/config/ftoption.h\> \
      -DDOC_DATA_COMPRESSION_LEVEL=1 -DDOC_BUFFER_SIZE=0x1000000 \
      -DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1 \
@@ -15,28 +15,26 @@ CRFLAGS = -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
      -DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1 \
      -DMAX_IMAGE_SCALE_MUL=2
 
-CR3_ROOT = $(LOCAL_PATH)/../..
+CR3_ROOT := $(LOCAL_PATH)/../..
 
 LOCAL_C_INCLUDES := \
-    -I $(CR3_ROOT)/crengine/include \
-    -I $(CR3_ROOT)/thirdparty/libpng \
-    -I $(CR3_ROOT)/thirdparty/freetype/include \
-    -I $(CR3_ROOT)/thirdparty/freetype \
-    -I $(CR3_ROOT)/thirdparty/harfbuzz/src \
-    -I $(CR3_ROOT)/thirdparty/libjpeg \
-    -I $(CR3_ROOT)/thirdparty/antiword \
-    -I $(CR3_ROOT)/thirdparty/chmlib/src
+    $(CR3_ROOT)/crengine/include \
+    $(CR3_ROOT)/thirdparty/libpng \
+    $(CR3_ROOT)/thirdparty/freetype/include \
+    $(CR3_ROOT)/thirdparty/freetype \
+    $(CR3_ROOT)/thirdparty/harfbuzz/src \
+    $(CR3_ROOT)/thirdparty/libjpeg \
+    $(CR3_ROOT)/thirdparty/antiword \
+    $(CR3_ROOT)/thirdparty/chmlib/src
 
 
-LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES)
+LOCAL_CFLAGS += $(CRFLAGS)
 
 LOCAL_CFLAGS += -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall
 
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
-LOCAL_CFLAGS += -g -O1
-# Necessary for building cr3engine.cpp in Android Studio 3.1.1
-LOCAL_CFLAGS += -fexceptions
+LOCAL_CFLAGS += -g -O1 -fexceptions
 
 CRENGINE_SRC_FILES := \
     ../../crengine/src/cp_stats.cpp \
@@ -87,12 +85,23 @@ LOCAL_SRC_FILES := \
     $(JNI_SRC_FILES) \
     $(CRENGINE_SRC_FILES)
 
+ifeq ($(TARGET_ARCH_ABI),armeabi)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_SRC_FILES += \
     $(COFFEECATCH_SRC_FILES)
 endif
-
-ifeq ($(TARGET_ARCH_ABI),armeabi)
+ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+ifeq ($(TARGET_ARCH_ABI),mips)
+LOCAL_SRC_FILES += \
+    $(COFFEECATCH_SRC_FILES)
+endif
+ifeq ($(TARGET_ARCH_ABI),x86)
 LOCAL_SRC_FILES += \
     $(COFFEECATCH_SRC_FILES)
 endif

@@ -715,11 +715,13 @@ public class FileInfo {
 
 	public void removeEmptyDirs()
 	{
-		if ( parent==null || pathname.startsWith("@") )
+		if ( parent==null || pathname.startsWith("@") || !isListed || dirs==null )
 			return;
-		for ( int i=dirCount()-1; i>=0; i-- )
-			if ( getDir(i).dirCount()==0 && getDir(i).fileCount()==0 )
+		for ( int i=dirCount()-1; i>=0; i-- ) {
+			FileInfo dir = getDir(i);
+			if ( dir.isListed && dir.dirCount() == 0 && dir.fileCount() == 0)
 				dirs.remove(i);
+		}
 	}
 	
 	public void removeChild( FileInfo item )
@@ -903,7 +905,14 @@ public class FileInfo {
 				return Utils.cmp(f1.getFileNameToDisplay(), f2.getFileNameToDisplay());
 			}
 		}),
-		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, FILENAME),
+		FILENAME_DESC(R.string.mi_book_sort_order_filename_desc, new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return Utils.cmp(f2.getFileNameToDisplay(), f1.getFileNameToDisplay());
+			}
+		}),
 		TIMESTAMP(R.string.mi_book_sort_order_timestamp, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
 			{
@@ -912,7 +921,14 @@ public class FileInfo {
 				return firstNz( cmp(f1.createTime, f2.createTime), Utils.cmp(f1.filename, f2.filename) );
 			}
 		}),
-		TIMESTAMP_DESC(R.string.mi_book_sort_order_timestamp_desc, TIMESTAMP),
+		TIMESTAMP_DESC(R.string.mi_book_sort_order_timestamp_desc, new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return firstNz( cmp(f2.createTime, f1.createTime), Utils.cmp(f2.filename, f1.filename) );
+			}
+		}),
 		AUTHOR_TITLE(R.string.mi_book_sort_order_author, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
 			{
@@ -927,7 +943,20 @@ public class FileInfo {
 						);
 			}
 		}),
-		AUTHOR_TITLE_DESC(R.string.mi_book_sort_order_author_desc, AUTHOR_TITLE),
+		AUTHOR_TITLE_DESC(R.string.mi_book_sort_order_author_desc, new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return firstNz(
+						cmpNotNullFirst(Utils.formatAuthors(f2.authors), Utils.formatAuthors(f1.authors))
+						,cmpNotNullFirst(f2.series, f1.series)
+						,cmp(f2.getSeriesNumber(), f1.getSeriesNumber())
+						,cmpNotNullFirst(f2.title, f1.title)
+						,Utils.cmp(f2.filename, f1.filename)
+				);
+			}
+		}),
 		TITLE_AUTHOR(R.string.mi_book_sort_order_title, new Comparator<FileInfo>() {
 			public int compare( FileInfo f1, FileInfo f2 )
 			{
@@ -942,7 +971,20 @@ public class FileInfo {
 						);
 			}
 		}),
-		TITLE_AUTHOR_DESC(R.string.mi_book_sort_order_title_desc, TITLE_AUTHOR);
+		TITLE_AUTHOR_DESC(R.string.mi_book_sort_order_title_desc, new Comparator<FileInfo>() {
+			public int compare( FileInfo f1, FileInfo f2 )
+			{
+				if ( f1==null || f2==null )
+					return 0;
+				return firstNz(
+						cmpNotNullFirst(f2.series, f1.series)
+						,cmp(f2.getSeriesNumber(), f1.getSeriesNumber())
+						,cmpNotNullFirst(f2.title, f1.title)
+						,cmpNotNullFirst(Utils.formatAuthors(f2.authors), Utils.formatAuthors(f1.authors))
+						,Utils.cmp(f2.filename, f1.filename)
+				);
+			}
+		});
 		//================================================
 		private final Comparator<FileInfo> comparator;
 		public final int resourceId;
@@ -951,17 +993,7 @@ public class FileInfo {
 			this.resourceId = resourceId;
 			this.comparator = comparator;
 		}
-		private SortOrder( int resourceId, final SortOrder base )
-		{
-			this.resourceId = resourceId;
-			this.comparator = new Comparator<FileInfo>() {
-				public int compare( FileInfo f1, FileInfo f2 )
-				{
-					return -base.comparator.compare(f1, f2);
-				}
-			};
-		}
-		
+
 		public final Comparator<FileInfo> getComparator()
 		{
 			return comparator;

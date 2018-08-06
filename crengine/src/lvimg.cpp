@@ -182,29 +182,30 @@ CR9PatchInfo * LVImageSource::DetectNinePatch()
 	_ninePatch = new CR9PatchInfo();
 	CRNinePatchDecoder decoder(GetWidth(), GetHeight(), _ninePatch);
 	Decode(&decoder);
-	if (!(_ninePatch->frame.left > 0 && _ninePatch->frame.top > 0
+	if (_ninePatch->frame.left > 0 && _ninePatch->frame.top > 0
 			&& _ninePatch->frame.left < _ninePatch->frame.right
-			&& _ninePatch->frame.top < _ninePatch->frame.bottom)) {
+			&& _ninePatch->frame.top < _ninePatch->frame.bottom) {
+		// remove 1 pixel frame
+		_ninePatch->padding.left--;
+		_ninePatch->padding.top--;
+		_ninePatch->padding.right = GetWidth() - _ninePatch->padding.right - 1;
+		_ninePatch->padding.bottom = GetHeight() - _ninePatch->padding.bottom - 1;
+		fixNegative(_ninePatch->padding.left);
+		fixNegative(_ninePatch->padding.top);
+		fixNegative(_ninePatch->padding.right);
+		fixNegative(_ninePatch->padding.bottom);
+		_ninePatch->frame.left--;
+		_ninePatch->frame.top--;
+		_ninePatch->frame.right = GetWidth() - _ninePatch->frame.right - 1;
+		_ninePatch->frame.bottom = GetHeight() - _ninePatch->frame.bottom - 1;
+		fixNegative(_ninePatch->frame.left);
+		fixNegative(_ninePatch->frame.top);
+		fixNegative(_ninePatch->frame.right);
+		fixNegative(_ninePatch->frame.bottom);
+	} else {
 		delete _ninePatch;
 		_ninePatch = NULL;
 	}
-	// remove 1 pixel frame
-	_ninePatch->padding.left--;
-	_ninePatch->padding.top--;
-	_ninePatch->padding.right = GetWidth() - _ninePatch->padding.right - 1;
-	_ninePatch->padding.bottom = GetHeight() - _ninePatch->padding.bottom - 1;
-	fixNegative(_ninePatch->padding.left);
-	fixNegative(_ninePatch->padding.top);
-	fixNegative(_ninePatch->padding.right);
-	fixNegative(_ninePatch->padding.bottom);
-	_ninePatch->frame.left--;
-	_ninePatch->frame.top--;
-	_ninePatch->frame.right = GetWidth() - _ninePatch->frame.right - 1;
-	_ninePatch->frame.bottom = GetHeight() - _ninePatch->frame.bottom - 1;
-	fixNegative(_ninePatch->frame.left);
-	fixNegative(_ninePatch->frame.top);
-	fixNegative(_ninePatch->frame.right);
-	fixNegative(_ninePatch->frame.bottom);
 	return _ninePatch;
 }
 

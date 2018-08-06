@@ -12,8 +12,8 @@ endif( ${CMAKE_SYSTEM} MATCHES "Darwin" )
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release CACHE STRING
-      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
+	  "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+	  FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 IF(${CMAKE_BUILD_TYPE} STREQUAL Debug)
@@ -25,13 +25,13 @@ ENDIF(${CMAKE_BUILD_TYPE} STREQUAL Debug)
 if(MSVC)
   # Force to always compile with W4
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic -std=c++11 -fPIC")
 endif()
 
 if (NOT DEFINED GUI)
@@ -111,8 +111,8 @@ if (NOT DEFINED ENABLE_DBUS_VIEWER_EVENTS)
 endif (NOT DEFINED ENABLE_DBUS_VIEWER_EVENTS)
 
 
-SET (CRGUI_DEFS -DCOLOR_BACKBUFFER=0 -DLDOM_USE_OWN_MEM_MAN=0 -DGRAY_BACKBUFFER_BITS=${GRAY_BACKBUFFER_BITS} 
-      -DENABLE_DBUS_VIEWER_EVENTS=${ENABLE_DBUS_VIEWER_EVENTS})
+SET (CRGUI_DEFS -DCOLOR_BACKBUFFER=0 -DLDOM_USE_OWN_MEM_MAN=0 -DGRAY_BACKBUFFER_BITS=${GRAY_BACKBUFFER_BITS}
+	  -DENABLE_DBUS_VIEWER_EVENTS=${ENABLE_DBUS_VIEWER_EVENTS})
 SET (DESKTOP_DEFS -DCOLOR_BACKBUFFER=1 -DLDOM_USE_OWN_MEM_MAN=1 -DUSE_FREETYPE=1 )
 
 if( ${GUI} STREQUAL QT )
@@ -249,10 +249,10 @@ INCLUDE_DIRECTORIES( ${ANTIWORD_INCLUDE_DIR} )
 endif ( NOT ${GUI} STREQUAL FB2PROPS )
 
 
-INCLUDE_DIRECTORIES( 
-  ${PNG_INCLUDE_DIR} 
-  ${JPEG_INCLUDE_DIR} 
-  ${ZLIB_INCLUDE_DIR} 
+INCLUDE_DIRECTORIES(
+  ${PNG_INCLUDE_DIR}
+  ${JPEG_INCLUDE_DIR}
+  ${ZLIB_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
   ${HARFBUZZ_INCLUDE_DIR}
   ${ANTIWORD_INCLUDE_DIR}
@@ -260,16 +260,16 @@ INCLUDE_DIRECTORIES(
 )
 
 if ( ${GUI} STREQUAL FB2PROPS )
-SET(STD_LIBS 
-  ${ZLIB_LIBRARIES} 
+SET(STD_LIBS
+  ${ZLIB_LIBRARIES}
 )
 else()
-SET(STD_LIBS 
-  ${JPEG_LIBRARIES} 
-  ${FREETYPE_LIBRARIES} 
+SET(STD_LIBS
+  ${JPEG_LIBRARIES}
+  ${FREETYPE_LIBRARIES}
   ${HARFBUZZ_LIBRARY}
   ${PNG_LIBRARIES}
-  ${ZLIB_LIBRARIES} 
+  ${ZLIB_LIBRARIES}
   ${CHM_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${ANTIWORD_LIBRARIES}
@@ -298,20 +298,20 @@ if ( ${GUI} STREQUAL CRGUI_XCB )
 elseif ( ${GUI} STREQUAL CRGUI_NANOX )
   message("Will make CR3GUI for NanoX")
   if (ENABLE_DBUS_VIEWER_EVENTS)
-    message("Will handle DBUS messages")
-    pkg_check_modules( DBUS REQUIRED dbus-1 )
-    message("dbus include dir: ${DBUS_INCLUDE_DIRS} path ${DBUS_INCLUDE_PATH}")
-    include_directories(${DBUS_INCLUDE_DIRS})
+	message("Will handle DBUS messages")
+	pkg_check_modules( DBUS REQUIRED dbus-1 )
+	message("dbus include dir: ${DBUS_INCLUDE_DIRS} path ${DBUS_INCLUDE_PATH}")
+	include_directories(${DBUS_INCLUDE_DIRS})
   endif (ENABLE_DBUS_VIEWER_EVENTS)
   ADD_DEFINITIONS( -DLBOOK=1 -DWITH_JINKE=1 -DCR_USE_JINKE=1
-    -DJINKE_VIEWER ${CRGUI_DEFS} -DENABLE_UPDATE_MODE_SETTING=1 )
+	-DJINKE_VIEWER ${CRGUI_DEFS} -DENABLE_UPDATE_MODE_SETTING=1 )
   ADD_SUBDIRECTORY(crengine)
   ADD_SUBDIRECTORY(cr3gui)
 elseif ( ${GUI} STREQUAL CRGUI_JINKE_PLUGIN )
   message("Will make CR3GUI plugin for Jinke Viewer")
   ADD_DEFINITIONS( -DLBOOK=1 -DWITH_JINKE=1 -DWITH_JINKE_APP=1
-    -DCR_USE_JINKE=1 ${CRGUI_DEFS}
-    -DENABLE_UPDATE_MODE_SETTING=1 )
+	-DCR_USE_JINKE=1 ${CRGUI_DEFS}
+	-DENABLE_UPDATE_MODE_SETTING=1 )
   ADD_SUBDIRECTORY(crengine)
   ADD_SUBDIRECTORY(cr3gui)
 elseif ( ${GUI} STREQUAL FB2PROPS )
@@ -340,26 +340,26 @@ elseif ( ${GUI} STREQUAL WX )
   SET(wxWidgets_USE_LIBS base core )
   FIND_PACKAGE(wxWidgets 2.8)
   IF (wxWidgets_FOUND)
-    INCLUDE(${wxWidgets_USE_FILE})
-    include_directories( ${wxWidgets_INCLUDE_DIRS} )
-    message( "WX include: ${wxWidgets_INCLUDE_DIRS}" )
+	INCLUDE(${wxWidgets_USE_FILE})
+	include_directories( ${wxWidgets_INCLUDE_DIRS} )
+	message( "WX include: ${wxWidgets_INCLUDE_DIRS}" )
   ELSE (wxWidgets_FOUND)
-    message("wxWidgets library not found!")
+	message("wxWidgets library not found!")
   ENDIF (wxWidgets_FOUND)
   ADD_SUBDIRECTORY(crengine)
   ADD_SUBDIRECTORY(cr3wx)
 elseif ( ${GUI} STREQUAL CRGUI_PB )
   message("Will make CR3GUI for PocketBook")
-  ADD_DEFINITIONS( -DLBOOK=1 -DCR_POCKETBOOK=1 
+  ADD_DEFINITIONS( -DLBOOK=1 -DCR_POCKETBOOK=1
    ${CRGUI_DEFS} -DCR_USE_INVERT_FOR_SELECTION_MARKS=1 -DENABLE_UPDATE_MODE_SETTING=1)
   ADD_DEFINITIONS( -DCR_INTERNAL_PAGE_ORIENTATION=0 )
-  ADD_SUBDIRECTORY(crengine)  
+  ADD_SUBDIRECTORY(crengine)
   ADD_SUBDIRECTORY(cr3gui)
   FIND_PATH (INKVIEW_INCLUDE_DIR inkview.h)
   IF (INKVIEW_INCLUDE_DIR)
-    include_directories(${INKVIEW_INCLUDE_DIR})
+	include_directories(${INKVIEW_INCLUDE_DIR})
   ELSE (INKVIEW_INCLUDE_DIR)
-    message("inkview.h not found")
+	message("inkview.h not found")
   ENDIF (INKVIEW_INCLUDE_DIR)
 elseif ( ${GUI} STREQUAL CRGUI_QT )
   message("Will make CR3GUI with Qt backend")

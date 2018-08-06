@@ -66,13 +66,15 @@ static lUInt8 rgbToGrayMask( lUInt32 color, int bpp )
         color &= 3;
         color |= (color << 2) | (color << 4) | (color << 6);
         break;
-    default:
-    //case DRAW_BUF_3_BPP: // 8 colors
-    //case DRAW_BUF_4_BPP: // 16 colors
-    //case DRAW_BUF_8_BPP: // 256 colors
+    case DRAW_BUF_3_BPP: // 8 colors
+    case DRAW_BUF_4_BPP: // 16 colors
+    case DRAW_BUF_8_BPP: // 256 colors
         // return 8 bit as is
         color = rgbToGray(color);
         color &= ((1<<bpp)-1)<<(8-bpp);
+        return (lUInt8)color;
+    default:
+        color = rgbToGray(color);
         return (lUInt8)color;
     }
     return (lUInt8)color;
