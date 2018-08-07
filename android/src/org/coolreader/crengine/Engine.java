@@ -1104,7 +1104,16 @@ public class Engine {
 		    try {
 		        final Process process = new ProcessBuilder().command("mount")
 		                .redirectErrorStream(true).start();
-		        process.waitFor();
+		        ProcessWithTimeout processWithTimeout = new ProcessWithTimeout(process);
+		        int exitCode = processWithTimeout.waitForProcess(100);
+		        if (exitCode == Integer.MIN_VALUE)
+		        {
+		            // Timeout
+		            log.e("Timed out waiting for mount command output, " +
+		                  "please add CoolReader to MagiskHide list!");
+                            process.destroy();
+                            return out;
+		        }
 		        final InputStream is = process.getInputStream();
 		        final byte[] buffer = new byte[1024];
 		        while (is.read(buffer) != -1) {
