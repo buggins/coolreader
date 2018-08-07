@@ -1244,11 +1244,13 @@ public:
             glyph_count = hb_buffer_get_length(_hb_buffer);
             glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
             glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+#ifdef _DEBUG
             if (glyph_count != len) {
-                CRLog::info(
+                CRLog::debug(
                         "measureText(): glyph_count not equal source text length (ligature detected?), glyph_count=%d, len=%d",
                         glyph_count, len);
             }
+#endif
             register int j;
             register uint32_t cluster;
             register uint32_t prev_cluster = 0;
@@ -1256,7 +1258,7 @@ public:
                 cluster = glyph_info[i].cluster;
                 register lChar16 ch = text[cluster];
                 register bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE);
-                flags[i] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
+                flags[cluster] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
                 register hb_codepoint_t ch_glyph_index = glyph_info[i].codepoint;
                 if (0 != ch_glyph_index)        // glyph found for this char in this font
                     widths[cluster] = prev_width + (glyph_pos[i].x_advance >> 6) + letter_spacing;
@@ -1277,17 +1279,26 @@ public:
                     }
                     widths[cluster] = prev_width + w + letter_spacing;
                 }
-                for (j = prev_cluster + 1; j < cluster; j++)
-                    widths[j] = widths[j - 1];		// for chars replaced by ligature
+                for (j = prev_cluster + 1; j < cluster; j++) {
+                    flags[j] = GET_CHAR_FLAGS(text[j]);
+                    widths[j] = prev_width;		// for chars replaced by ligature
+                }
+                prev_cluster = cluster;
                 if (!isHyphen) // avoid soft hyphens inside text string
                     prev_width = widths[cluster];
                 if (prev_width > max_width) {
-                    if (lastFitChar < i + 7)
+                    if (lastFitChar < cluster + 7)
                         break;
                 } else {
-                    lastFitChar = i + 1;
+                    lastFitChar = cluster + 1;
                 }
-                prev_cluster = cluster;
+            }
+            // For case when ligature is the last glyph in measured text
+            if (prev_cluster < len - 1 && prev_width < max_width) {
+                for (j = prev_cluster + 1; j < len; j++) {
+                    flags[j] = GET_CHAR_FLAGS(text[j]);
+                    widths[j] = prev_width;
+                }
             }
         } else {
             for ( i=0; i<len; i++) {
@@ -1640,11 +1651,13 @@ public:
             glyph_count = hb_buffer_get_length(_hb_buffer);
             glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
             glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
+#ifdef _DEBUG
             if (glyph_count != len_new) {
-                CRLog::info(
+                CRLog::debug(
                         "DrawTextString(): glyph_count not equal source text length, glyph_count=%d, len=%d",
                         glyph_count, len_new);
             }
+#endif
             for (i = 0; i < glyph_count; i++) {
                 if (0 == glyph_info[i].codepoint) {
                     // If HarfBuzz can't find glyph in current font
