@@ -8,8 +8,8 @@ android {
         targetSdkVersion 26
         // When new version released, version code must be incremented at least by 8
         // for compatibility with ABI versioning of split apk (see below).
-        versionCode 2031
-        versionName "3.2.3-1"
+        versionCode 2041
+        versionName "3.2.4-1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
