@@ -160,13 +160,16 @@ public class Dictionaries {
 	public void findInDictionary(String s) throws DictionaryException {
 		log.d("lookup in dictionary: " + s);
 		DictInfo curDict = currentDictionary;
-		if (iDic2IsActive > 0)
+		if (iDic2IsActive > 0 && currentDictionary2 != null)
 			curDict = currentDictionary2;
 		if (iDic2IsActive > 1)
 			iDic2IsActive = 0;
 		if (currentDictionary3 != null)
 			curDict = currentDictionary3;
 		currentDictionary3 = null;
+		if (null == curDict) {
+			throw new DictionaryException("Current dictionary are invalid!");
+		}
 		switch (curDict.internal) {
 		case 0:
 			Intent intent0 = new Intent(curDict.action);
