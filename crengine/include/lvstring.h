@@ -26,6 +26,9 @@
 #define UNICODE_HYPHEN   0x2010
 #define UNICODE_NB_HYPHEN   0x2011
 
+#ifdef USE_ATOMIC_REFCOUNT
+#include <atomic>
+#endif
 
 
 /// strlen for lChar16
@@ -111,13 +114,20 @@ struct lstring8_chunk_t {
     friend class lString16;
     friend struct lstring_chunk_slice_t;
 public:
-    lstring8_chunk_t(lChar8 * _buf8) : buf8(_buf8), size(1), len(0), nref(1) {}
+    lstring8_chunk_t(lChar8 * _buf8) : buf8(_buf8), size(1), len(0)
+    {
+        refCount = 1;
+    }
     const lChar8 * data8() const { return buf8; }
 private:
     lChar8  * buf8; // z-string
     lInt32 size;   // 0 for free chunk
     lInt32 len;    // count of chars in string
-    int nref;      // reference counter
+#ifdef USE_ATOMIC_REFCOUNT
+    std::atomic_int refCount; // atomic reference counter
+#else
+    int refCount;      // reference counter
+#endif
 
     lstring8_chunk_t() {}
 
@@ -132,13 +142,20 @@ struct lstring16_chunk_t {
     friend class lString16;
     friend struct lstring_chunk_slice_t;
 public:
-    lstring16_chunk_t(lChar16 * _buf16) : buf16(_buf16), size(1), len(0), nref(1) {}
+    lstring16_chunk_t(lChar16 * _buf16) : buf16(_buf16), size(1), len(0)
+    {
+        refCount = 1;
+    }
     const lChar16 * data16() const { return buf16; }
 private:
     lChar16 * buf16; // z-string
     lInt32 size;   // 0 for free chunk
     lInt32 len;    // count of chars in string
-    int nref;      // reference counter
+#ifdef USE_ATOMIC_REFCOUNT
+    std::atomic_int refCount; // atomic reference counter
+#else
+    int refCount;      // reference counter
+#endif
 
     lstring16_chunk_t() {}
 
@@ -163,6 +180,7 @@ namespace fmt {
         lUInt64 get() const { return value; }
     };
 }
+
 
 /**
     \brief lChar8 string
@@ -206,8 +224,24 @@ private:
     static lstring_chunk_t * EMPTY_STR_8;
     void alloc(size_type sz);
     void free();
-    inline void addref() const { ++pchunk->nref; }
-    inline void release() { if (--pchunk->nref==0) free(); }
+    inline void addref() const {
+#ifdef USE_ATOMIC_REFCOUNT
+        pchunk->refCount.fetch_add(1);
+#else
+        ++pchunk->refCount;
+#endif
+    }
+    inline void release() { 
+#ifdef USE_ATOMIC_REFCOUNT
+        if (pchunk->refCount.fetch_sub(1) <= 1)
+            free();
+#else
+        if (--pchunk->refCount==0) free();
+#endif
+    }
+    inline int refCount() {
+        return pchunk->refCount;
+    }
     explicit lString8(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
 public:
     /// default constrictor
@@ -350,7 +384,7 @@ public:
     /// ensures that reference count is 1
     void  lock( size_type newsize );
     /// returns pointer to modifable string buffer
-    value_type * modify() { if (pchunk->nref>1) lock(pchunk->len); return pchunk->buf8; }
+    value_type * modify() { if (refCount()>1) lock(pchunk->len); return pchunk->buf8; }
     /// clear string
     void  clear() { release(); pchunk = EMPTY_STR_8; addref(); }
     /// clear string, set buffer size
@@ -441,8 +475,24 @@ private:
     static lstring_chunk_t * EMPTY_STR_16;
     void alloc(size_type sz);
     void free();
-    inline void addref() const { ++pchunk->nref; }
-    inline void release() { if (--pchunk->nref==0) free(); }
+    inline void addref() const {
+#ifdef USE_ATOMIC_REFCOUNT
+        pchunk->refCount.fetch_add(1);
+#else
+        ++pchunk->refCount;
+#endif
+    }
+    inline void release() { 
+#ifdef USE_ATOMIC_REFCOUNT
+        if (pchunk->refCount.fetch_sub(1) <= 1)
+            free();
+#else
+        if (--pchunk->refCount==0) free();
+#endif
+    }
+    inline int refCount() {
+        return pchunk->refCount;
+    }
 public:
     explicit lString16(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
     /// empty string constructor
@@ -606,7 +656,7 @@ public:
     /// resizes string, copies if several references exist
     void  lock( size_type newsize );
     /// returns writable pointer to string buffer
-    value_type * modify() { if (pchunk->nref>1) lock(pchunk->len); return pchunk->buf16; }
+    value_type * modify() { if (refCount()>1) lock(pchunk->len); return pchunk->buf16; }
     /// clears string contents
     void  clear() { release(); pchunk = EMPTY_STR_16; addref(); }
     /// resets string, allocates space for specified amount of characters
