@@ -2807,26 +2807,10 @@ int Utf8CharCount( const lChar8 * str )
                 break;
             if ( !(*str++) )
                 break;
-        } else if ( (ch & 0xFC) == 0xF8 ) {
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
         } else {
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
+            // In Unicode standard maximum length of UTF-8 sequence is 4 byte!
+            // invalid first byte in UTF-8 sequence, just leave as is
+            ;
         }
         count++;
     }
@@ -2848,10 +2832,9 @@ int Utf8CharCount( const lChar8 * str, int len )
             str+=2;
         } else if ( (ch & 0xF8) == 0xF0 ) {
             str+=3;
-        } else if ( (ch & 0xFC) == 0xF8 ) {
-            str+=4;
         } else {
-            str+=5;
+            // invalid first byte of UTF-8 sequence, just leave as is
+            ;
         }
         if (str > endp)
             break;
@@ -2869,9 +2852,9 @@ inline int charUtf8ByteCount(int ch) {
         return 3;
     if (!(ch & ~0x1FFFFF))
         return 4;
-    if (!(ch & ~0x3FFFFFF))
-        return 5;
-    return 6;
+    // In Unicode Standard codepoint must be in range U+0000..U+10FFFF
+    // return invalid codepoint as one byte
+    return 1;
 }
 
 int Utf8ByteCount(const lChar16 * str)
@@ -2925,21 +2908,10 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
                 | CONT_BYTE(1,6)
                 | CONT_BYTE(2,0);
             s += 3;
-        } else if ( (ch & 0xFC) == 0xF8 ) {
-            *p++ = ((ch & 0x03) << 24)
-                | CONT_BYTE(0,18)
-                | CONT_BYTE(1,12)
-                | CONT_BYTE(2,6)
-                | CONT_BYTE(3,0);
-            s += 4;
         } else {
-            *p++ = ((ch & 0x01) << 30)
-                | CONT_BYTE(0,24)
-                | CONT_BYTE(1,18)
-                | CONT_BYTE(2,12)
-                | CONT_BYTE(3,6)
-                | CONT_BYTE(4,0);
-            s += 5;
+            // Invalid first byte in UTF-8 sequence
+            // Pass with mask 0x7F, to resolve exception around env->NewStringUTF()
+            *p++ = (char) (ch & 0x7F);
         }
     }
 }
@@ -2977,25 +2949,11 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
                 | CONT_BYTE(2,6)
                 | CONT_BYTE(3,0);
             s += 4;
-        } else if ( (ch & 0xFC) == 0xF8 ) {
-            if (s + 5 > ends)
-                break;
-            *p++ = ((ch & 0x03) << 24)
-                | CONT_BYTE(1,18)
-                | CONT_BYTE(2,12)
-                | CONT_BYTE(3,6)
-                | CONT_BYTE(4,0);
-            s += 5;
         } else {
-            if (s + 6 > ends)
-                break;
-            *p++ = ((ch & 0x01) << 30)
-                | CONT_BYTE(1,24)
-                | CONT_BYTE(2,18)
-                | CONT_BYTE(3,12)
-                | CONT_BYTE(4,6)
-                | CONT_BYTE(5,0);
-            s += 6;
+            // Invalid first byte in UTF-8 sequence
+            // Pass with mask 0x7F, to resolve exception around env->NewStringUTF()
+            *p++ = (char) (ch & 0x7F);
+            s++;
         }
     }
     srclen = (int)(s - src);
@@ -3057,19 +3015,10 @@ lString8 UnicodeToUtf8(const lChar16 * s, int count)
                 *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
                 *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
                 *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
-            } else if (!(ch & ~0x3FFFFFF)) {
-                *buf++ = ( (lUInt8) ( ((ch >> 24) & 0x03) | 0xF8 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 18) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
             } else {
-                *buf++ = ( (lUInt8) ( ((ch >> 30) & 0x01) | 0xFC ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 24) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 18) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+                // invalid codepoint
+                // In Unicode Standard codepoint must be in range U+0000 .. U+10FFFF
+                *buf++ = '?';
             }
         }
     }

@@ -201,7 +201,7 @@ lChar16 LVTextFileBase::ReadRtfChar( int, const lChar16 * conv_table )
         m_buf_pos+=2;
         if ( digit1>=0 && digit2>=0 ) {
             ch = ( (lChar8)((digit1 << 4) | digit2) );
-            if ( ch&0x80 )
+            if ( ch&0x80 && conv_table )
                 return conv_table[ch&0x7F];
             else
                 return ch;
@@ -210,7 +210,7 @@ lChar16 LVTextFileBase::ReadRtfChar( int, const lChar16 * conv_table )
         }
     } else {
         if ( ch>=' ' ) {
-            if ( ch&0x80 )
+            if ( ch&0x80 && conv_table )
                 return conv_table[ch&0x7F];
             else
                 return ch;
@@ -873,7 +873,10 @@ int LVTextFileBase::ReadTextBytes( lvpos_t pos, int bytesToRead, lChar16 * buf, 
             int enc_id = (flags & TXTFLG_ENCODING_MASK) >> TXTFLG_ENCODING_SHIFT;
             if ( enc_id >= ce_8bit_cp ) {
                 conv_table = (lChar16 *)GetCharsetByte2UnicodeTableById( enc_id );
-                enc_type = ce_8bit_cp;
+                if (conv_table)
+                    enc_type = ce_8bit_cp;
+                else
+                    enc_type = (char_encoding_type)enc_id;
             } else {
                 conv_table = NULL;
                 enc_type = (char_encoding_type)enc_id;
@@ -3391,13 +3394,15 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
     lChar16 nch = 0;
     lChar16 lch = 0;
     lChar16 nsp = 0;
-    bool pre = (flags & TXTFLG_PRE);
+    bool pre = (flags & TXTFLG_PRE) != 0;
     bool pre_para_splitting = (flags & TXTFLG_PRE_PARA_SPLITTING)!=0;
     if ( pre_para_splitting )
         pre = false;
-    //CRLog::trace("before: '%s' %s", LCSTR(s), pre ? "pre ":" ");
+    //CRLog::trace("before: '%s' %s, len=%d", LCSTR(str), pre ? "pre ":" ", len);
     int j = 0;
     for (int i=0; i<len; ++i ) {
+        if (j >= len)
+            break;
         lChar16 ch = str[i];
         if (pre) {
             if (ch == '\r') {
@@ -3439,9 +3444,14 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
             else if (state==1 && ((ch>='a' && ch<='z') || (ch>='A' && ch<='Z')) ) {
                 int k;
                 lChar16 entname[16];
-                for ( k=i; str[k] && str[k]!=';'  && str[k]!=' ' && k-i<16; k++ )
-                    entname[k-i] = str[k];
-                entname[k-i] = 0;
+                for ( k = 0; k < 16; k++ ) {
+                    entname[k] = str[k + i];
+                    if (!entname[k] || entname[k]==';' || entname[k]==' ')
+                        break;
+                }
+                if (16 == k)
+                    k--;
+                entname[k] = 0;
                 int n;
                 lChar16 code = 0;
                 // TODO: optimize search
@@ -3462,8 +3472,10 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
                     nsp = 0;
                 } else {
                     // include & and rest of entity into output string
-                    str[j++] = '&';
-                    str[j++] = str[i];
+                    if (j < len - 1) {
+                        str[j++] = '&';
+                        str[j++] = str[i];
+                    }
                     state = 0;
                 }
 
