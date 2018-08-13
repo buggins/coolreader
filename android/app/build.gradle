@@ -8,8 +8,8 @@ android {
         targetSdkVersion 26
         // When new version released, version code must be incremented at least by 8
         // for compatibility with ABI versioning of split apk (see below).
-        versionCode 2061
-        versionName "3.2.6-1"
+        versionCode 2071
+        versionName "3.2.7-1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
@@ -66,6 +66,8 @@ android {
                 doNotStrip "*/arm64-v8a/*.so"
                 doNotStrip "*/x86/*.so"
                 doNotStrip "*/x86_64/*.so"
+                doNotStrip "*/mips/*.so"
+                doNotStrip "*/mips64/*.so"
             }
         }
     }
@@ -79,7 +81,7 @@ android {
         abi {
             enable true
             reset()
-            include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a' //select ABIs to build APKs for
+            include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips', 'mips64' //select ABIs to build APKs for
             universalApk true //generate an additional APK that contains all the ABIs
         }
     }
