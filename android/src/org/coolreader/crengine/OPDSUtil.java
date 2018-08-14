@@ -141,7 +141,7 @@ xml:base="http://lib.ololo.cc/opds/">
 				return baseURL.getProtocol() + ":" + href;
 			if ( href.startsWith("/") )
 				return baseURL.getProtocol() + "://" + hostPort + href;
-			if ( !href.startsWith("http://") ) {
+			if ( !href.startsWith("http://") && !href.startsWith("https://") ) {
 				return baseURL.getProtocol() + "://" + hostPort + dirPath(baseURL.getPath()) + "/" + href;
 			}
 			return href;
