@@ -221,7 +221,7 @@ You need also add following DLLs to this directory in order to get cr3.exe worki
 #make Core and GUI libraries
 make sub-src
 #make symlinks from `pad` to /Developer/Qt for bin, include, lib, src dirs
-#É
+#Ã‰
 
 #inside cr3 directory
 #configure using cmake
@@ -230,3 +230,5 @@ cd macbuild
 cmake -G "Unix Makefiles" -D GUI=QT -D CMAKE_OSX_ARCHITECTURES="i386 x86_64" -D QT_QMAKE_EXECUTABLE=/Developer/Qt/bin/qmake -D CMAKE_BUILD_TYPE=Release -D MAX_IMAGE_SCALE_MUL=2 -D DOC_DATA_COMPRESSION_LEVEL=3 -D DOC_BUFFER_SIZE=0x1400000 -D CMAKE_INSTALL_PREFIX=cr3.app ..
 make
 make install
+
+Join the chat at https://gitter.im/coolreader/Lobby
