@@ -196,6 +196,7 @@ Environment setup:
 - Copy make.exe from msys/bin to QT/mingw/bin
 
 Run Qt SDK / Qt Command Prompt. Execute:
+
         > sh
         > git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
         > mv crengine cr3
@@ -212,7 +213,9 @@ Run Qt SDK / Qt Command Prompt. Execute:
 to disable console, use /SUBSYSTEM:WINDOWS linker option instead of /SUBSYSTEM:CONSOLE
 
 For QT5, use GUI=QT5 instead of GUI=QT
+
 For building Qt5 app from QtCreator remove -G (generator) parameter: 
+
 	Release build:
 		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dist ..
 	Debug build:
