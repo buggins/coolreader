@@ -1,11 +1,22 @@
-CoolReader 3 - free e-book reader
-(c) Vadim Lopatin, 1998-2009
+CoolReader 3 - cross platform open source e-book reader
+=======================================================
+
+(c) Vadim Lopatin, 1998-2018
 
 LICENSE: All source codes (except thirdparty directory) 
 are provided under the terms of GNU GPL license, version 2
 
+[![Join the chat at https://webhooks.gitter.im/e/0c053eb87e717e97c95a](https://badges.gitter.im/Join%20Chat.svg)](https://webhooks.gitter.im/e/0c053eb87e717e97c95a)
+
+
+Development is moved to GitHub
+
+        https://github.com/buggins/coolreader
+
+
 Source codes are available at sourceforge:
-git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+        git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
 
 
 
