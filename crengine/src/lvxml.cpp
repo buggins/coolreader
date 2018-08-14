@@ -3455,7 +3455,7 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
                 int n;
                 lChar16 code = 0;
                 // TODO: optimize search
-                if ( str[k]==';' || str[k]==' ' ) {
+                if ( str[i+k]==';' || str[i+k]==' ' ) {
                     for ( n=0; def_entity_table[n].name; n++ ) {
                         if ( !lStr_cmp( def_entity_table[n].name, entname ) ) {
                             code = def_entity_table[n].code;
@@ -3464,7 +3464,7 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
                     }
                 }
                 if ( code ) {
-                    i=k;
+                    i+=k;
                     state = 0;
                     if ( enc_table && code<256 && code>=128 )
                         code = enc_table[code - 128];
