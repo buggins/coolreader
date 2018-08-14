@@ -6,7 +6,7 @@ CoolReader 3 - cross platform open source e-book reader
 LICENSE: All source codes (except thirdparty directory) 
 are provided under the terms of GNU GPL license, version 2
 
-[![Join the chat at https://webhooks.gitter.im/e/0c053eb87e717e97c95a](https://badges.gitter.im/Join%20Chat.svg)](https://webhooks.gitter.im/e/0c053eb87e717e97c95a)
+[![Join the chat at https://gitter.im/coolreader/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/coolreader/Lobby)
 
 
 Development is moved to GitHub
