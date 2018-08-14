@@ -3,10 +3,14 @@ CoolReader 3 - cross platform open source e-book reader
 
 (c) Vadim Lopatin, 1998-2018
 
+
+[![Join the chat at https://gitter.im/coolreader/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/coolreader/Lobby)
+
+
+
 LICENSE: All source codes (except thirdparty directory) 
 are provided under the terms of GNU GPL license, version 2
 
-[![Join the chat at https://gitter.im/coolreader/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/coolreader/Lobby)
 
 
 Development is moved to GitHub
@@ -14,13 +18,14 @@ Development is moved to GitHub
         https://github.com/buggins/coolreader
 
 
-Source codes are available at sourceforge:
+Sourceforge repository will be used as a mirror
 
         git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
 
 
 
-Directories:
+Directories
+-----------
 
         crengine   - CREngine (DOM/XML/CSS ebook rendering library) sources
         cr3gui     - CR3 with CR3GUI for e-ink devices sources
@@ -31,7 +36,8 @@ Directories:
         tools      - miscellaneous configuration files
         android    - Android port
 
-External dependencies: 
+External dependencies
+---------------------
 
         common: zlib, libpng, libjpeg, freetype, harfbuzz
         cr3gui/xcb: libxcb, fontconfig
@@ -40,9 +46,11 @@ External dependencies:
         cr3/wx: wxWidgets 2.8
 
 e.g., for Ubuntu you may use
+
         > sudo apt-get install git-core cmake libqt4-dev libpng12-dev libfreetype6-dev libjpeg62-dev libfontconfig1-dev zlib1g-dev
 
-Packaging:
+Packaging
+---------
 
 Debian based packages included to project:
 
@@ -54,8 +62,18 @@ To build debian package, copy one of package descriptions from packages director
         cp -r packages/ubuntu/debian debian
         Then, package can be built using `debuild` command.
 
-Build instructions
-------------------
+
+Android Build Instructions
+--------------------------
+
+Use Android Studio - open android/app as Android Studio project
+
+Ensure that you have Android SDK and NDK installed
+
+
+
+CMake Build Instructions
+------------------------
 
         # Building QT version
         # libqt4-dev should be installed
@@ -191,6 +209,7 @@ QT Build under Windows
     Using QT SDK  
 
 Environment setup: 
+
 - Download and install QT SDK, git, cmake, msys
 - Copy contents of git and cmake dirs to QT/mingw/
 - Copy make.exe from msys/bin to QT/mingw/bin
@@ -217,12 +236,17 @@ For QT5, use GUI=QT5 instead of GUI=QT
 For building Qt5 app from QtCreator remove -G (generator) parameter: 
 
 	Release build:
+
 		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=dist ..
+
 	Debug build:
+
 		-D GUI=QT5 -D CMAKE_BUILD_TYPE=Debug -D CMAKE_INSTALL_PREFIX=dist ..
 
 It will put built cr3.exe and all necessary distribution files to directory qtbuild/dist.
+
 You need also add following DLLs to this directory in order to get cr3.exe working:
+
         - mingwm10.dll
         - QtCore4.dll
         - QtGui4.dll
