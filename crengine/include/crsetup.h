@@ -153,6 +153,11 @@
 #define USE_LIBPNG 1
 #endif
 
+#ifndef USE_GIF
+///allow GIF support (internal)
+#define USE_GIF 1
+#endif
+
 #ifndef USE_ZLIB
 ///allow PNG support via libpng
 #define USE_ZLIB 1
