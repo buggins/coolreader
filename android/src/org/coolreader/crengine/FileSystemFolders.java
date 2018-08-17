@@ -53,9 +53,11 @@ public class FileSystemFolders extends FileInfoChangeSource {
 
     private ArrayList<FileInfo> filter(List<FileInfo> favoriteFolders) {
         ArrayList<FileInfo> filtered = new ArrayList<FileInfo>();
-        for(FileInfo fi: favoriteFolders){
-            if(mScanner.isValidFolder(fi))
-                filtered.add(fi);
+        if (favoriteFolders != null) {
+            for (FileInfo fi : favoriteFolders) {
+                if (mScanner.isValidFolder(fi))
+                    filtered.add(fi);
+            }
         }
         return filtered;
     }
