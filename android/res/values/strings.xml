@@ -592,4 +592,25 @@
     <string name="motion_timeout_90min">"90 minutes"</string>
     <string name="motion_timeout_95min">"95 minutes"</string>
     <string name="motion_timeout_100min">"100 minutes"</string>
+    <string name="pages_per_full_swipe_off">"Off"</string>
+    <string name="pages_per_full_swipe_1">"1 page (right to left)"</string>
+    <string name="pages_per_full_swipe_2">"2 pages (track)"</string>
+    <string name="pages_per_full_swipe_3">"3 pages (track)"</string>
+    <string name="pages_per_full_swipe_4">"4 pages (track)"</string>
+    <string name="pages_per_full_swipe_5">"5 pages (track)"</string>
+    <string name="pages_per_full_swipe_6">"6 pages (track)"</string>
+    <string name="pages_per_full_swipe_7">"7 pages (track)"</string>
+    <string name="pages_per_full_swipe_8">"8 pages (track)"</string>
+    <string name="pages_per_full_swipe_9">"9 pages (track)"</string>
+    <string name="pages_per_full_swipe_10">"10 pages (track)"</string>
+    <string name="pages_per_full_swipe_11">"11 pages (track)"</string>
+    <string name="pages_per_full_swipe_12">"12 pages (track)"</string>
+    <string name="pages_per_full_swipe_13">"13 pages (track)"</string>
+    <string name="pages_per_full_swipe_14">"14 pages (track)"</string>
+    <string name="pages_per_full_swipe_15">"15 pages (track)"</string>
+    <string name="pages_per_full_swipe_16">"16 pages (track)"</string>
+    <string name="pages_per_full_swipe_17">"17 pages (track)"</string>
+    <string name="pages_per_full_swipe_18">"18 pages (track)"</string>
+    <string name="pages_per_full_swipe_19">"19 pages (track)"</string>
+    <string name="pages_per_full_swipe_20">"20 pages (track)"</string>
 </resources>

@@ -92,6 +92,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	};
 	public static int[] mMotionTimeouts;
 	public static String[] mMotionTimeoutsTitles;
+	public static int[] mPagesPerFullSwipe;
+	public static String[] mPagesPerFullSwipeTitles;
 	int[] mInterlineSpaces = new int[] {
 			80, 85, 90, 95, 100, 105, 110, 115, 120, 130, 140, 150, 160, 180, 200
 		};
@@ -1963,7 +1965,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsControls.add(new BoolOption(this, getString(R.string.options_app_trackball_disable), PROP_APP_TRACKBALL_DISABLED).setDefaultValue("0"));
 		if ( !DeviceInfo.EINK_SCREEN )
 			mOptionsControls.add(new ListOption(this, getString(R.string.options_controls_flick_brightness), PROP_APP_FLICK_BACKLIGHT_CONTROL).add(mFlickBrightness, mFlickBrightnessTitles).setDefaultValue("1"));
-		mOptionsControls.add(new BoolOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).setDefaultValue("1"));
+		mOptionsControls.add(new ListOption(this, getString(R.string.option_controls_gesture_page_flipping_enabled), PROP_APP_GESTURE_PAGE_FLIPPING).add(mPagesPerFullSwipe, mPagesPerFullSwipeTitles).setDefaultValue("1"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_selection_action), PROP_APP_SELECTION_ACTION).add(mSelectionAction, mSelectionActionTitles).setDefaultValue("0"));
 		mOptionsControls.add(new ListOption(this, getString(R.string.options_multi_selection_action), PROP_APP_MULTI_SELECTION_ACTION).add(mMultiSelectionAction, mMultiSelectionActionTitles).setDefaultValue("0"));
 		mOptionsControls.add(new BoolOption(this, getString(R.string.options_selection_keep_selection_after_dictionary), PROP_APP_SELECTION_PERSIST).setDefaultValue("0"));
@@ -2038,6 +2040,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 		mMotionTimeoutsTitles = activity.getResources().getStringArray(R.array.motion_timeout_titles);
         mMotionTimeouts = activity.getResources().getIntArray(R.array.motion_timeout_values);
+
+		mPagesPerFullSwipeTitles = activity.getResources().getStringArray(R.array.pages_per_full_swipe_titles);
+		mPagesPerFullSwipe = activity.getResources().getIntArray(R.array.pages_per_full_swipe_values);
 
 		if (mode == Mode.READER)
         	setupReaderOptions();
