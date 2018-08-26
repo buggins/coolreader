@@ -648,6 +648,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //	private int selectionEndY = 0;
 	private boolean doubleTapSelectionEnabled = false;
 	private boolean gesturePageFlippingEnabled = true;
+	private boolean mIsPageMode;
 	private int secondaryTapActionType = TAP_ACTION_TYPE_LONGPRESS;
 	private boolean selectionModeActive = false;
 	
@@ -1241,8 +1242,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 							return true;
 						}
 					}
-					boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1) == 1;
-					int dir = isPageMode ? x - start_x : y - start_y;
+					int dir = mIsPageMode ? x - start_x : y - start_y;
 					if (gesturePageFlippingEnabled) {
 						if (pageFlipAnimationSpeedMs == 0 || DeviceInfo.EINK_SCREEN) {
 							// no animation
@@ -2626,6 +2626,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
         	doubleTapSelectionEnabled = flg;
         } else if ( key.equals(PROP_APP_GESTURE_PAGE_FLIPPING) ) {
         	gesturePageFlippingEnabled = flg;
+        } else if ( key.equals(PROP_PAGE_VIEW_MODE)) {
+        	mIsPageMode = flg;
         } else if ( key.equals(PROP_APP_SECONDARY_TAP_ACTION_TYPE) ) {
         	secondaryTapActionType = flg ? TAP_ACTION_TYPE_DOUBLE : TAP_ACTION_TYPE_LONGPRESS;
         } else if ( key.equals(PROP_APP_FLICK_BACKLIGHT_CONTROL) ) {
@@ -2697,6 +2699,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     			viewMode = flg ? ViewMode.PAGES : ViewMode.SCROLL;
     		} else if ( PROP_APP_SCREEN_ORIENTATION.equals(key) 
     				|| PROP_PAGE_ANIMATION.equals(key)
+    				|| PROP_PAGE_VIEW_MODE.equals(key)
     				|| PROP_CONTROLS_ENABLE_VOLUME_KEYS.equals(key) 
     				|| PROP_APP_SHOW_COVERPAGES.equals(key) 
     				|| PROP_APP_COVERPAGE_SIZE.equals(key) 
