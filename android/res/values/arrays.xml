@@ -65,4 +65,52 @@
         <item>95</item>
         <item>100</item>
     </integer-array>
+
+    <string-array name="pages_per_full_swipe_titles">
+        <item>@string/pages_per_full_swipe_off</item>
+        <item>@string/pages_per_full_swipe_1</item>
+        <item>@string/pages_per_full_swipe_2</item>
+        <item>@string/pages_per_full_swipe_3</item>
+        <item>@string/pages_per_full_swipe_4</item>
+        <item>@string/pages_per_full_swipe_5</item>
+        <item>@string/pages_per_full_swipe_6</item>
+        <item>@string/pages_per_full_swipe_7</item>
+        <item>@string/pages_per_full_swipe_8</item>
+        <item>@string/pages_per_full_swipe_9</item>
+        <item>@string/pages_per_full_swipe_10</item>
+        <item>@string/pages_per_full_swipe_11</item>
+        <item>@string/pages_per_full_swipe_12</item>
+        <item>@string/pages_per_full_swipe_13</item>
+        <item>@string/pages_per_full_swipe_14</item>
+        <item>@string/pages_per_full_swipe_15</item>
+        <item>@string/pages_per_full_swipe_16</item>
+        <item>@string/pages_per_full_swipe_17</item>
+        <item>@string/pages_per_full_swipe_18</item>
+        <item>@string/pages_per_full_swipe_19</item>
+        <item>@string/pages_per_full_swipe_20</item>
+    </string-array>
+
+    <integer-array name="pages_per_full_swipe_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+    </integer-array>
 </resources>
