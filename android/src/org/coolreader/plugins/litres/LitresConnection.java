@@ -75,7 +75,7 @@ public class LitresConnection {
 	
     private static final int CONNECT_TIMEOUT = 60000;
     private static final int READ_TIMEOUT = 60000;
-    private static final int MAX_CONTENT_LEN_TO_BUFFER = 1000000;
+    private static final int MAX_CONTENT_LEN_TO_BUFFER = 5242880;
 	public void sendXMLRequest(final String url, final Map<String, String> params, final ResponseHandler contentHandler, final ResultHandler resultHandler) {
 		Log.i(TAG, "sending request to " + url);
 		final Handler callbackHandler = new Handler();
