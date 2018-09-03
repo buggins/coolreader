@@ -1021,8 +1021,8 @@ public class BaseActivity extends Activity implements Settings {
 	public void setScreenUpdateMode( int screenUpdateMode, View view ) {
 		//if (mReaderView != null) {
 			mScreenUpdateMode = screenUpdateMode;
-			if (EinkScreen.UpdateMode != screenUpdateMode || EinkScreen.UpdateMode == 2) {
-				EinkScreen.ResetController(screenUpdateMode, view);
+			if (EinkScreen.getUpdateMode() != screenUpdateMode || EinkScreen.getUpdateMode() == EinkScreen.CMODE_ACTIVE) {
+				EinkScreen.ResetController(mScreenUpdateMode, view);
 			}
 		//}
 	}
@@ -1033,9 +1033,8 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	public void setScreenUpdateInterval( int screenUpdateInterval, View view ) {
 		mScreenUpdateInterval = screenUpdateInterval;
-		if (EinkScreen.UpdateModeInterval != screenUpdateInterval) {
-			EinkScreen.UpdateModeInterval = screenUpdateInterval;
-			EinkScreen.ResetController(mScreenUpdateMode, view);
+		if (EinkScreen.getUpdateInterval() != screenUpdateInterval) {
+			EinkScreen.ResetController(mScreenUpdateMode, screenUpdateInterval, view);
 		}
 	}
 
