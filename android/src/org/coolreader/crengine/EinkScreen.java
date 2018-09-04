@@ -2,8 +2,11 @@ package org.coolreader.crengine;
 
 import android.util.Log;
 import android.view.View;
+
 import com.onyx.android.sdk.api.device.epd.EpdController;
 import com.onyx.android.sdk.api.device.epd.UpdateMode;
+
+import org.coolreader.CoolReader;
 
 public class EinkScreen {
 	private static final String TAG = "EinkScreen";
@@ -16,6 +19,7 @@ public class EinkScreen {
 	private static int mRefreshNumber = -1;
 	private static boolean mIsSleep = false;
 	private static boolean mIsSupportRegal = false;
+	private static boolean mInFastMode = false;
 	// constants
 	public final static int CMODE_CLEAR = 0;
 	public final static int CMODE_ONESHOT = 1;
@@ -99,13 +103,15 @@ public class EinkScreen {
 
 	public static void UpdateController(View view, boolean isPartially) {
 		if (DeviceInfo.EINK_ONYX) {
-			switch (mUpdateMode) {
-				case CMODE_CLEAR:
-					EpdController.setViewDefaultUpdateMode(view, mIsSupportRegal ? UpdateMode.REGAL : UpdateMode.GU);
-					break;
-				default:
-					EpdController.setViewDefaultUpdateMode(view, UpdateMode.DU);
-					break;
+			if (mRefreshNumber > 0 || mUpdateInterval == 0) {
+				switch (mUpdateMode) {
+					case CMODE_CLEAR:
+						EpdController.setViewDefaultUpdateMode(view, mIsSupportRegal ? UpdateMode.REGAL : UpdateMode.GU);
+						break;
+					default:
+						EpdController.setViewDefaultUpdateMode(view, UpdateMode.DU);
+						break;
+				}
 			}
 		}
 	}
@@ -135,7 +141,17 @@ public class EinkScreen {
 		}
 		if (DeviceInfo.EINK_ONYX) {
 			mIsSupportRegal = EpdController.supportRegal();
-			mRefreshNumber = mUpdateInterval;
+			mRefreshNumber = 0;
+			if (mode == CMODE_ONESHOT || mode == CMODE_ACTIVE) {
+				// Enable fast mode (not implemented on RK3026, not tested)
+				EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true);
+				mInFastMode = true;
+			} else {
+				if (mInFastMode) {
+					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+					mInFastMode = false;
+				}
+			}
 			Log.d(TAG, "EinkScreen: Regal is " + (mIsSupportRegal ? "" : "NOT ") + "supported");
 		}
 		mUpdateMode = mode;
