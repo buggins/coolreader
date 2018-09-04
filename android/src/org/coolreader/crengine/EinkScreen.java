@@ -20,6 +20,7 @@ public class EinkScreen {
 	private static boolean mIsSleep = false;
 	private static boolean mIsSupportRegal = false;
 	private static boolean mInFastMode = false;
+	private static boolean mInA2Mode = false;
 	// constants
 	public final static int CMODE_CLEAR = 0;
 	public final static int CMODE_ONESHOT = 1;
@@ -108,9 +109,10 @@ public class EinkScreen {
 					case CMODE_CLEAR:
 						EpdController.setViewDefaultUpdateMode(view, mIsSupportRegal ? UpdateMode.REGAL : UpdateMode.GU);
 						break;
-					default:
+					case CMODE_ONESHOT:
 						EpdController.setViewDefaultUpdateMode(view, UpdateMode.DU);
 						break;
+					default:
 				}
 			}
 		}
@@ -142,15 +144,38 @@ public class EinkScreen {
 		if (DeviceInfo.EINK_ONYX) {
 			mIsSupportRegal = EpdController.supportRegal();
 			mRefreshNumber = 0;
-			if (mode == CMODE_ONESHOT || mode == CMODE_ACTIVE) {
-				// Enable fast mode (not implemented on RK3026, not tested)
-				EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true);
-				mInFastMode = true;
-			} else {
-				if (mInFastMode) {
-					EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
-					mInFastMode = false;
-				}
+			switch (mode) {
+				case CMODE_CLEAR:			// Quality
+					if (mInA2Mode) {
+						EpdController.disableA2ForSpecificView(view);
+						mInA2Mode = false;
+					}
+					if (mInFastMode) {
+						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+						mInFastMode = false;
+					}
+					break;
+				case CMODE_ONESHOT:			// Fast
+					if (mInA2Mode) {
+						EpdController.disableA2ForSpecificView(view);
+						mInA2Mode = false;
+					}
+					// Enable fast mode (not implemented on RK3026, not tested)
+					if (!mInFastMode) {
+						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), true, true);
+						mInFastMode = true;
+					}
+					break;
+				case CMODE_ACTIVE:			// Fast 2
+					if (mInFastMode) {
+						EpdController.applyApplicationFastMode(CoolReader.class.getSimpleName(), false, true);
+						mInFastMode = false;
+					}
+					if (!mInA2Mode) {
+						EpdController.enableA2ForSpecificView(view);
+						mInA2Mode = true;
+					}
+					break;
 			}
 			Log.d(TAG, "EinkScreen: Regal is " + (mIsSupportRegal ? "" : "NOT ") + "supported");
 		}
