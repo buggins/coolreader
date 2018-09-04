@@ -176,7 +176,7 @@ public class BaseDevice {
 	}
 
 	public List<Integer> getFrontLightValueList(Context context) {
-		return new ArrayList();
+		return new ArrayList<Integer>();
 	}
 
 	public boolean setFrontLightDeviceValue(Context context, int value) {

@@ -102,7 +102,7 @@ public class StringUtils {
 
 	public static List<String> split(String string, String delimiter) {
 		if (isNullOrEmpty(string)) {
-			return new ArrayList();
+			return new ArrayList<String>();
 		} else {
 			String[] list = string.split(delimiter);
 			return Arrays.asList(list);

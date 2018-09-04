@@ -187,7 +187,7 @@ public class ReflectUtil {
 	}
 
 	public static Method getDeclaredMethodSafely(Class<?> cls, String name, Class<?>... parameterTypes) {
-		RefValue result = new RefValue();
+		RefValue<Method> result = new RefValue<Method>();
 		if (getDeclaredMethod(result, cls, name, parameterTypes)) {
 			return (Method) result.getValue();
 		}

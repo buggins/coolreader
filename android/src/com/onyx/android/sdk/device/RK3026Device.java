@@ -1,5 +1,6 @@
 package com.onyx.android.sdk.device;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.PowerManager;
 import android.util.Log;
@@ -72,6 +73,8 @@ public class RK3026Device
 	private static final String UNKNOWN = "unknown";
 	private static final String RO_DEVICEID = "ro.deviceid";
 
+	@SuppressLint("PrivateApi")
+	@SuppressWarnings("unchecked")
 	public static RK3026Device createDevice()
 	{
 		if (sInstance == null)
@@ -305,9 +308,10 @@ public class RK3026Device
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<Integer> getFrontLightValueList(Context context)
 	{
-		List list = (List) invokeDeviceControllerMethod(context, sDevMethodGetFrontLightValues, context);
+		List<Integer> list = (List<Integer>) invokeDeviceControllerMethod(context, sDevMethodGetFrontLightValues, context);
 		return list;
 	}
 
@@ -365,6 +369,7 @@ public class RK3026Device
 		view.postInvalidate();
 	}
 
+	@SuppressWarnings("unchecked")
 	public String getEncryptedDeviceID()
 	{
 		Class cls = null;
@@ -520,6 +525,7 @@ public class RK3026Device
 		return ReflectUtil.invokeMethodSafely(method, null, args);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object getValueOfEinkModeEnum(String name)
 	{
 		return Enum.valueOf(sEinkModeEnumClass, name);

@@ -137,12 +137,12 @@ public class FileUtils {
 
 	public static void collectFileTree(File rootFile, List<File> flattenedFileList, AtomicBoolean abortHolder) {
 		if (rootFile.exists()) {
-			Comparator comparator = new Comparator<File>() {
+			Comparator<File> comparator = new Comparator<File>() {
 				public int compare(File var1, File var2) {
 					return -var1.getName().compareToIgnoreCase(var2.getName());
 				}
 			};
-			Stack stack = new Stack();
+			Stack<File> stack = new Stack<File>();
 			stack.push(rootFile);
 			while (true) {
 				File[] files;
@@ -774,12 +774,14 @@ public class FileUtils {
 	}
 
 	public static List<File> loadStorageFileList(File targetDir, final boolean skipHiddenFile) {
-		File[] var2 = targetDir.listFiles(new FilenameFilter() {
+		File[] files = targetDir.listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String filename) {
 				return !skipHiddenFile || !(new File(dir, filename)).isHidden();
 			}
 		});
-		return var2 != null && var2.length > 0 ? new ArrayList(Arrays.asList(var2)) : new ArrayList();
+		if (files != null && files.length > 0)
+			return new ArrayList<File>(Arrays.asList(files));
+		return new ArrayList<File>();
 	}
 
 	public static void sortFileList(List<File> fileList, SortBy sortBy, SortOrder sortOrder) {
@@ -810,7 +812,7 @@ public class FileUtils {
 		FileInputStream inputStream = null;
 		InputStreamReader streamReader = null;
 		BufferedReader bufferedReader = null;
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		try {
 			inputStream = new FileInputStream(fileForRead);
 			streamReader = new InputStreamReader(inputStream, "utf-8");
