@@ -144,6 +144,8 @@ public class EinkScreen {
 		if (DeviceInfo.EINK_ONYX) {
 			mIsSupportRegal = EpdController.supportRegal();
 			mRefreshNumber = 0;
+			if (mUpdateInterval == 0)
+				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
 			switch (mode) {
 				case CMODE_CLEAR:			// Quality
 					if (mInA2Mode) {
