@@ -1603,6 +1603,9 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	drawbuf->SetClipRect(&hrc);
 	bool drawGauge = true;
 	lvRect info = headerRc;
+	info.left = info.left + m_props->getIntDef(PROP_ROUNDED_CORNERS_MARGIN, 0);
+	info.right = info.right - m_props->getIntDef(PROP_ROUNDED_CORNERS_MARGIN, 0);;
+
 //    if ( m_statusColor!=0xFF000000 ) {
 //        CRLog::trace("Status color = %06x, textColor=%06x", m_statusColor, getTextColor());
 //    } else {
@@ -5698,7 +5701,10 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_LEFT, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_RIGHT, def_margin, sizeof(def_margin)/sizeof(int));
-	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
+    static int def_rounded_corners_margin[] = {0, 5, 10, 15, 20, 30, 40, 50, 60, 70,80, 90, 100, 120, 140, 160};
+    props->limitValueList(PROP_ROUNDED_CORNERS_MARGIN, def_rounded_corners_margin, sizeof(def_rounded_corners_margin)/sizeof(int));
+
+    static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
 	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 11);
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
     if (fs < MIN_STATUS_FONT_SIZE)
