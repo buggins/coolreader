@@ -103,6 +103,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mMargins = new int[] {
 			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100, 130, 150, 200, 300
 		};
+	int[] mRoundedCornersMargins = new int[] {
+			0, 5, 10, 15, 20, 30, 40, 50, 60, 70,80, 90, 100, 120, 140, 160
+	};
 	double[] mGammas = new double[] {
 			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
 		};
@@ -1952,7 +1955,8 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5").setIconIdByAttr(R.attr.cr3_option_text_margin_right_drawable, R.drawable.cr3_option_text_margin_right));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5").setIconIdByAttr(R.attr.cr3_option_text_margin_top_drawable, R.drawable.cr3_option_text_margin_top));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5").setIconIdByAttr(R.attr.cr3_option_text_margin_bottom_drawable, R.drawable.cr3_option_text_margin_bottom));
-		
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_rounded_corners_margin), PROP_ROUNDED_CORNERS_MARGIN).add(mRoundedCornersMargins).setDefaultValue("0"));
+
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconIdByAttr(R.attr.cr3_option_controls_keys_drawable, R.drawable.cr3_option_controls_keys));
 		mOptionsControls.add(new TapZoneOption(this, getString(R.string.options_app_tapzones_normal), PROP_APP_TAP_ZONE_ACTIONS_TAP).setIconIdByAttr(R.attr.cr3_option_controls_tapzones_drawable, R.drawable.cr3_option_controls_tapzones));
