@@ -1,7 +1,6 @@
 package org.coolreader.crengine;
 
 import android.graphics.Rect;
-import android.util.Log;
 import android.view.View;
 import de.telekom.epub.utils.ScreenHelper;
 
@@ -23,13 +22,13 @@ public class TolinoEpdController {
 
   public static void setMode(View view, int mode) {
     switch (mode) {
-      case EinkScreen.cmodeClear:
+      case EinkScreen.CMODE_CLEAR:
 	ScreenHelper.FullRefresh();
 	break;
-      case EinkScreen.cmodeOneshot:
+      case EinkScreen.CMODE_ONESHOT:
 	partialRefresh(view, ScreenHelper.NATIVE_UPDATE_MODE_FULL, ScreenHelper.NATIVE_WAVEFORM_MODE_GC16);
 	break;
-      case EinkScreen.cmodeActive:
+      case EinkScreen.CMODE_ACTIVE:
 	partialRefresh(view, ScreenHelper.NATIVE_UPDATE_MODE_FULL, ScreenHelper.NATIVE_WAVEFORM_MODE_A2);
 	break;
     }  
