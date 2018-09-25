@@ -13,7 +13,6 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_TOOLCHAIN=clang"
                 arguments "-DANDROID_STL=c++_static"
                 cppFlags ""
             }
@@ -61,13 +60,7 @@ android {
                 }
             }
             packagingOptions{
-                doNotStrip "*/armeabi/*.so"
-                doNotStrip "*/armeabi-v7a/*.so"
-                doNotStrip "*/arm64-v8a/*.so"
-                doNotStrip "*/x86/*.so"
-                doNotStrip "*/x86_64/*.so"
-                doNotStrip "*/mips/*.so"
-                doNotStrip "*/mips64/*.so"
+                doNotStrip "*/*/*.so"
             }
         }
     }
