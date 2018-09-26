@@ -21,6 +21,7 @@
 #include "../include/wordfmt.h"
 
 #ifdef _WIN32
+#if defined(_MSC_VER) || (defined(__MINGW64_VERSION_MAJOR) && defined(NO_OLDNAMES)) || (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR) && !defined(_EMULATE_GLIBC))
 extern "C" {
 	int strcasecmp(const char *s1, const char *s2) {
         return _stricmp(s1,s2);
@@ -29,6 +30,7 @@ extern "C" {
 //	int	optind = 0;
 }
 #endif
+#endif	// _WIN32
 
 #ifdef _DEBUG
 #define TRACE(x, ...) CRLog::trace(x)
