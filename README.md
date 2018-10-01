@@ -4,16 +4,11 @@ CoolReader 3 - cross platform open source e-book reader
 (c) Vadim Lopatin, 1998-2018
 
 
-[![Join the chat at https://gitter.im/coolreader/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/coolreader/Lobby)
-
-
-
-LICENSE: All source codes (except thirdparty directory) 
-are provided under the terms of GNU GPL license, version 2
-
 
 
 Development is moved to GitHub
+------------------------------
+
 
         https://github.com/buggins/coolreader
 
@@ -21,6 +16,14 @@ Development is moved to GitHub
 Sourceforge repository will be used as a mirror
 
         git clone git://crengine.git.sourceforge.net/gitroot/crengine/crengine
+
+
+[![Join the chat at https://gitter.im/coolreader/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/coolreader/Lobby)
+
+
+
+LICENSE: All source codes (except thirdparty directory) 
+are provided under the terms of GNU GPL license, version 2
 
 
 
