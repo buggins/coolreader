@@ -6,7 +6,7 @@
 		<ImageView android:layout_width="wrap_content" android:layout_height="wrap_content" 
 	        android:layout_margin="8dip"
 			android:id="@+id/logo" 
-			android:src="@drawable/cr3_logo" android:layout_gravity="center_vertical|left">
+			android:src="@mipmap/cr3_logo" android:layout_gravity="center_vertical|left">
 		</ImageView>
 		<LinearLayout android:orientation="vertical" android:id="@+id/LinearLayout03" android:layout_height="wrap_content" android:layout_width="fill_parent">
 			<TextView android:text="Cool Reader 3.1" android:id="@+id/version" android:layout_width="fill_parent" 
