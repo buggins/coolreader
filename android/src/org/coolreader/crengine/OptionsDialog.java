@@ -759,6 +759,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			BaseDialog dlg = new BaseDialog(mActivity, label, false, false);
 			OptionsListView listView = new OptionsListView(getContext());
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_show_titlebar), PROP_STATUS_LOCATION).add(mStatusPositions, mStatusPositionsTitles).setDefaultValue("1"));
+			listView.add(new ListOption(mOwner, getString(R.string.options_rounded_corners_margin), PROP_ROUNDED_CORNERS_MARGIN).add(mRoundedCornersMargins).setDefaultValue("0"));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_face), PROP_STATUS_FONT_FACE).add(mFontFaces).setDefaultValue(mFontFaces[0]).setIconIdByAttr(R.attr.cr3_option_font_face_drawable, R.drawable.cr3_option_font_face));
 			listView.add(new ListOption(mOwner, getString(R.string.options_page_titlebar_font_size), PROP_STATUS_FONT_SIZE).add(filterFontSizes(mStatusFontSizes)).setDefaultValue("18").setIconIdByAttr(R.attr.cr3_option_font_size_drawable, R.drawable.cr3_option_font_size));
 			listView.add(new ColorOption(mOwner, getString(R.string.options_page_titlebar_font_color), PROP_STATUS_FONT_COLOR, 0x000000));
@@ -1955,7 +1956,6 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5").setIconIdByAttr(R.attr.cr3_option_text_margin_right_drawable, R.drawable.cr3_option_text_margin_right));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5").setIconIdByAttr(R.attr.cr3_option_text_margin_top_drawable, R.drawable.cr3_option_text_margin_top));
 		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5").setIconIdByAttr(R.attr.cr3_option_text_margin_bottom_drawable, R.drawable.cr3_option_text_margin_bottom));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_rounded_corners_margin), PROP_ROUNDED_CORNERS_MARGIN).add(mRoundedCornersMargins).setDefaultValue("0"));
 
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconIdByAttr(R.attr.cr3_option_controls_keys_drawable, R.drawable.cr3_option_controls_keys));

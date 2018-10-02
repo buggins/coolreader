@@ -1245,10 +1245,11 @@ void LVDocView::getPageHeaderRectangle(int pageIndex, lvRect & headerRc) {
 		headerRc.bottom = 0;
 	} else {
 		int h = getPageHeaderHeight();
+		int propHeaderMargin = m_props->getIntDef(PROP_ROUNDED_CORNERS_MARGIN, 0);
 		headerRc.bottom = headerRc.top + h;
 		headerRc.top += HEADER_MARGIN;
-		headerRc.left += HEADER_MARGIN;
-		headerRc.right -= HEADER_MARGIN;
+		headerRc.left += HEADER_MARGIN + propHeaderMargin;
+		headerRc.right -= HEADER_MARGIN + propHeaderMargin;
 	}
 }
 
@@ -1603,9 +1604,6 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 	drawbuf->SetClipRect(&hrc);
 	bool drawGauge = true;
 	lvRect info = headerRc;
-	info.left = info.left + m_props->getIntDef(PROP_ROUNDED_CORNERS_MARGIN, 0);
-	info.right = info.right - m_props->getIntDef(PROP_ROUNDED_CORNERS_MARGIN, 0);;
-
 //    if ( m_statusColor!=0xFF000000 ) {
 //        CRLog::trace("Status color = %06x, textColor=%06x", m_statusColor, getTextColor());
 //    } else {
