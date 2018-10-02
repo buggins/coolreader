@@ -106,8 +106,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 		@Override
 		public void onWindowVisibilityChanged(int visibility) {
-			if (visibility == VISIBLE)
+			if (visibility == VISIBLE) {
+				mActivity.einkRefresh();
 				startStats();
+			}
 			else
 				stopStats();
 			super.onWindowVisibilityChanged(visibility);
@@ -115,8 +117,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		 	
 		@Override
 		public void onWindowFocusChanged(boolean hasWindowFocus) {
-			if (hasWindowFocus)
+			if (hasWindowFocus) {
+				mActivity.einkRefresh();
 				startStats();
+			}
 			else
 				stopStats();
 			super.onWindowFocusChanged(hasWindowFocus);
