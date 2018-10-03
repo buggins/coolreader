@@ -92,6 +92,11 @@ public class EinkScreen {
 			}
 			*/
 		} else if (DeviceInfo.EINK_ONYX) {
+			if (mRefreshNumber == -1) {
+				mRefreshNumber = 0;
+				EpdController.setViewDefaultUpdateMode(view, UpdateMode.GC);
+				return;
+			}
 			if (mUpdateInterval > 0) {
 				mRefreshNumber++;
 				if (mRefreshNumber >= mUpdateInterval) {
@@ -140,8 +145,7 @@ public class EinkScreen {
 				default:
 					mRefreshNumber = -1;
 			}
-		}
-		if (DeviceInfo.EINK_ONYX) {
+		} else if (DeviceInfo.EINK_ONYX) {
 			mIsSupportRegal = EpdController.supportRegal();
 			mRefreshNumber = 0;
 			if (mUpdateInterval == 0)
