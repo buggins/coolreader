@@ -41,6 +41,7 @@ public interface Settings {
     public static final String PROP_PAGE_MARGIN_BOTTOM      ="crengine.page.margin.bottom";
     public static final String PROP_PAGE_MARGIN_LEFT        ="crengine.page.margin.left";
     public static final String PROP_PAGE_MARGIN_RIGHT       ="crengine.page.margin.right";
+    public static final String PROP_ROUNDED_CORNERS_MARGIN  ="crengine.rounded.corners.margin";
     public static final String PROP_PAGE_VIEW_MODE          ="crengine.page.view.mode"; // pages/scroll
     public static final String PROP_PAGE_ANIMATION          ="crengine.page.animation";
     public static final String PROP_INTERLINE_SPACE         ="crengine.interline.space";

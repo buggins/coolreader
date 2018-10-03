@@ -1718,6 +1718,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, hmargin);
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, vmargin);
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, vmargin);
+			props.applyDefault(ReaderView.PROP_ROUNDED_CORNERS_MARGIN, "0");
 			
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");

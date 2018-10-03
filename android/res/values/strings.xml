@@ -94,6 +94,7 @@
     <string name="options_page_margin_right">Right margin</string>
     <string name="options_page_margin_top">Top margin</string>
     <string name="options_page_margin_bottom">Bottom margin</string>
+    <string name="options_rounded_corners_margin">Margin (for devices with rounded corners)</string>
     <string name="options_view_mode">View mode</string>
     <string name="options_view_mode_pages">Pages</string>
     <string name="options_view_mode_scroll">Scroll</string>

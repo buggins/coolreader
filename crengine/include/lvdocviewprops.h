@@ -24,6 +24,7 @@
 #define PROP_PAGE_MARGIN_BOTTOM      "crengine.page.margin.bottom"
 #define PROP_PAGE_MARGIN_LEFT        "crengine.page.margin.left"
 #define PROP_PAGE_MARGIN_RIGHT       "crengine.page.margin.right"
+#define PROP_ROUNDED_CORNERS_MARGIN  "crengine.rounded.corners.margin"
 #define PROP_PAGE_VIEW_MODE          "crengine.page.view.mode" // pages/scroll
 #define PROP_INTERLINE_SPACE         "crengine.interline.space"
 #if CR_INTERNAL_PAGE_ORIENTATION==1
