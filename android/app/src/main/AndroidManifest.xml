@@ -27,7 +27,7 @@
     <application
         android:allowBackup="true"
         android:allowClearUserData="true"
-        android:icon="@drawable/cr3_logo"
+        android:icon="@mipmap/cr3_logo"
         android:label="@string/app_name"
         android:process="org.coolreader"
         android:resizeableActivity="true">

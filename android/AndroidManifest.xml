@@ -28,7 +28,7 @@
     <!-- Required permission to use in-app billing. -->
     <uses-permission android:name="com.android.vending.BILLING" />
     <application android:label="@string/app_name"
-        android:icon="@drawable/cr3_logo"
+        android:icon="@mipmap/cr3_logo"
         android:allowClearUserData="true"
         android:process="org.coolreader"
         >
