@@ -366,7 +366,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     //InitFontManager( fontDir8 );
     InitFontManager(lString8::empty_str);
 
-#ifdef _WIN32
+#if defined(_WIN32) && USE_FONTCONFIG!=1
     lChar16 sysdir[MAX_PATH+1];
     GetWindowsDirectoryW(sysdir, MAX_PATH);
     lString16 fontdir( sysdir );
