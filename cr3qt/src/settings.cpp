@@ -136,7 +136,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUi( PROP_EMBEDDED_STYLES, m_ui->cbEnableDocumentStyles );
     optionToUi( PROP_EMBEDDED_FONTS, m_ui->cbEnableEmbeddedFonts );
-    m_ui->cbEnableEmbeddedFonts->setCheckState(m_props->getBoolDef(PROP_EMBEDDED_STYLES, true) ? Qt::Checked : Qt::Unchecked);
+    m_ui->cbEnableEmbeddedFonts->setEnabled(m_props->getBoolDef(PROP_EMBEDDED_STYLES, true));
     optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUi( PROP_FONT_KERNING_ENABLED, m_ui->cbFontKerning );
     optionToUi( PROP_FLOATING_PUNCTUATION, m_ui->cbFloatingPunctuation );
