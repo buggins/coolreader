@@ -69,7 +69,7 @@ To build debian package, copy one of package descriptions from packages director
 Android Build Instructions
 --------------------------
 
-Use Android Studio - open android/app as Android Studio project
+Use Android Studio - open subdirectory "android" as Android Studio project
 
 Ensure that you have Android SDK and NDK installed
 
