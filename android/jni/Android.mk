@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := cr3engine-3-1-2
+LOCAL_MODULE    := cr3engine-3-2-X
 
 # Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, chmlib
 
