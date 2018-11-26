@@ -140,6 +140,12 @@ else()
 ADD_EXECUTABLE(cr3 ${CR3_MAN_PAGES} ${CR3_CHANGELOG} ${CR3_SOURCES} ${CR3_RCS} ${CR3_UI_HDRS} ${CR3_MOC_SRCS} ${QM_FILES} ${RES_FILES})
 endif (WIN32)
 
+if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+  if (CMAKE_HOST_UNIX)
+    configure_file(valgrind_check.sh.cmake ${CMAKE_CURRENT_BINARY_DIR}/valgrind_check.sh)
+  endif(CMAKE_HOST_UNIX)
+endif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+
 if(WIN32)
 if(CMAKE_GENERATOR MATCHES "Visual Studio.*")
   message("Visual Studio generator detected")

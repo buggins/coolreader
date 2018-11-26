@@ -11,7 +11,7 @@
 
 #if !defined(NDEBUG)
 void
-__fail(char *szExpression, char *szFilename, int iLineNumber)
+__fail(const char *szExpression, const char *szFilename, int iLineNumber)
 {
 	if (szExpression == NULL || szFilename == NULL) {
 		werr(1, "Internal error: no expression");

@@ -30,7 +30,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_CFLAGS += $(CRFLAGS)
 
-LOCAL_CFLAGS += -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall
+LOCAL_CFLAGS += -Wall -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-function
 
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 

@@ -675,7 +675,7 @@ public:
     void destroy();
 
     /// returns true for invalid/deleted node ot NULL this pointer
-    inline bool isNull() const { return this == NULL || _handle._dataIndex==0; }
+    inline bool isNull() const { return _handle._dataIndex==0; }
     /// returns true if node is stored in persistent storage
     inline bool isPersistent() const { return (_handle._dataIndex&2)!=0; }
     /// returns data index of node's registration in document data storage
@@ -1165,6 +1165,7 @@ class ldomDocument;
 class ldomXPointer
 {
 protected:
+	friend class ldomXPointerEx;
 	struct XPointerData {
 	protected:
 		ldomDocument * _doc;
@@ -1173,7 +1174,7 @@ protected:
 		int _refCount;
 	public:
 		inline void addRef() { _refCount++; }
-		inline void release() { if ( (--_refCount)==0 ) delete this; }
+		inline int decRef() { return --_refCount; }
 		// create empty
 		XPointerData() : _doc(NULL), _dataIndex(0), _offset(0), _refCount(1) { }
 		// create instance
@@ -1211,6 +1212,7 @@ protected:
         inline void addOffset( int offset ) { _offset+=offset; }
         ~XPointerData() { }
 	};
+	XPointerData * _data;
 	/// node pointer
     //ldomNode * _node;
 	/// offset within node for pointer, -1 for xpath
@@ -1221,9 +1223,13 @@ protected:
 	{
 	}
 public:
-	XPointerData * _data;
     /// clear pointer (make null)
-    void clear() { *this = ldomXPointer(); }
+    void clear()
+    {
+        if (_data->decRef() == 0)
+            delete _data;
+        _data = new XPointerData();
+    }
     /// return document
 	inline ldomDocument * getDocument() { return _data->getDocument(); }
     /// returns node pointer
@@ -1244,7 +1250,11 @@ public:
 	{
 	}
 	/// remove reference
-	~ldomXPointer() { _data->release(); }
+	~ldomXPointer()
+	{
+		if (_data->decRef() == 0)
+			delete _data;
+	}
     /// copy constructor
 	ldomXPointer( const ldomXPointer& v )
 		: _data(v._data)
@@ -1256,10 +1266,11 @@ public:
 	{
 		if ( _data==v._data )
 			return *this;
-		_data->release();
+		if (_data->decRef() == 0)
+			delete _data;
 		_data = v._data;
 		_data->addRef();
-        return *this;
+		return *this;
 	}
     /// constructor
     ldomXPointer( ldomNode * node, int offset )
@@ -1277,7 +1288,7 @@ public:
     /// returns true for NULL pointer
 	bool isNull() const
 	{
-        return !this || !_data || _data->isNull();
+        return !_data || _data->isNull();
 	}
     /// returns true if object is pointer
 	bool isPointer() const
@@ -1377,7 +1388,8 @@ public:
     {
 		if ( _data==v._data )
 			return *this;
-		_data->release();
+		if (_data->decRef() == 0)
+			delete _data;
 		_data = new XPointerData( *v._data );
         initIndex();
         return *this;
@@ -1387,7 +1399,8 @@ public:
     {
 		if ( _data==v._data )
 			return *this;
-		_data->release();
+		if (_data->decRef() == 0)
+			delete _data;
 		_data = new XPointerData( *v._data );
         _level = v._level;
         for ( int i=0; i<_level; i++ )

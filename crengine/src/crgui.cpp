@@ -471,7 +471,7 @@ void CRGUIWindowManager::showWaitIcon( lString16 filename, int progressPercent )
 /// draws icon at center of screen, with optional progress gauge
 void CRGUIWindowManager::showProgress( lString16 filename, int progressPercent )
 {
-    time_t t = (time_t)time((time_t)0);
+    time_t t = (time_t)time((time_t*)0);
     if ( t<_lastProgressUpdate+PROGRESS_UPDATE_INTERVAL || progressPercent==_lastProgressPercent )
         return;
     showWaitIcon( filename, progressPercent );

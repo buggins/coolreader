@@ -17,6 +17,6 @@
 #define fail(e)	((e) ? __fail(#e, __FILE__, __LINE__) : (void)0)
 #endif /* NDEBUG */
 
-extern void	__fail(char *, char *, int);
+extern void	__fail(const char *, const char *, int);
 
 #endif /* __fail_h */

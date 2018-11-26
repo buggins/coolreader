@@ -733,6 +733,8 @@ lUInt32 LVGrayDrawBuf::GetPixel( int x, int y )
 
 void LVGrayDrawBuf::Clear( lUInt32 color )
 {
+    if (!_data)
+        return;
     color = rgbToGrayMask( color, _bpp );
 #if (GRAY_INVERSE==1)
     color ^= 0xFF;
