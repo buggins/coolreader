@@ -2936,7 +2936,7 @@ public:
 	}
 	virtual lverror_t Write( const void * buf, lvsize_t count, lvsize_t * nBytesWritten )
 	{
-		if (!m_pBuffer || m_mode==LVOM_READ )
+		if (!m_pBuffer || !buf || m_mode==LVOM_READ )
 			return LVERR_FAIL;
 		SetBufSize( m_pos+count ); // check buf size
 		int bytes_avail = (int)(m_bufsize-m_pos);

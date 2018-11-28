@@ -254,14 +254,18 @@ void LFormattedText::AddSourceObject(
      )
 {
     ldomNode * node = (ldomNode*)object;
-    LVImageSourceRef img = node->getObjectImageSource();
-    if ( img.isNull() )
-        img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
-    lUInt16 width = (lUInt16)img->GetWidth();
-    lUInt16 height = (lUInt16)img->GetHeight();
-    lvtextAddSourceObject(m_pbuffer,
-        width, height,
-        flags, interval, margin, object, letter_spacing );
+    if (node) {
+        LVImageSourceRef img = node->getObjectImageSource();
+        if ( img.isNull() )
+            img = LVCreateDummyImageSource( node, DUMMY_IMAGE_SIZE, DUMMY_IMAGE_SIZE );
+        lUInt16 width = (lUInt16)img->GetWidth();
+        lUInt16 height = (lUInt16)img->GetHeight();
+        lvtextAddSourceObject(m_pbuffer,
+            width, height,
+            flags, interval, margin, object, letter_spacing );
+    }
+    else
+        TR("LFormattedText::AddSourceObject(): node is NULL!");
 }
 
 class LVFormatter {
@@ -1370,13 +1374,15 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 {
                     srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
-                    LVImageSourceRef img = node->getObjectImageSource();
-                    if ( img.isNull() )
-                        img = LVCreateDummyImageSource( node, word->width, word->o.height );
-                    int xx = x + frmline->x + word->x;
-                    int yy = line_y + frmline->baseline - word->o.height + word->y;
-                    buf->Draw( img, xx, yy, word->width, word->o.height );
-                    //buf->FillRect( xx, yy, xx+word->width, yy+word->height, 1 );
+                    if (node) {
+                        LVImageSourceRef img = node->getObjectImageSource();
+                        if ( img.isNull() )
+                            img = LVCreateDummyImageSource( node, word->width, word->o.height );
+                        int xx = x + frmline->x + word->x;
+                        int yy = line_y + frmline->baseline - word->o.height + word->y;
+                        buf->Draw( img, xx, yy, word->width, word->o.height );
+                        //buf->FillRect( xx, yy, xx+word->width, yy+word->height, 1 );
+                    }
                 }
                 else
                 {

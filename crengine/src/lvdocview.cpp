@@ -932,7 +932,10 @@ LVStreamRef LVDocView::getCoverPageImageStream() {
 	lUInt16 path[] = { el_FictionBook, el_description, el_title_info,
 			el_coverpage, 0 };
 	//lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
-	ldomNode * cover_el = m_doc->getRootNode()->findChildElement(path);
+	ldomNode * rootNode = m_doc->getRootNode();
+	ldomNode * cover_el = 0;
+	if (rootNode)
+		cover_el = rootNode->findChildElement(path);
 	//ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
 
 	if (cover_el) {
@@ -956,7 +959,10 @@ LVImageSourceRef LVDocView::getCoverPageImage() {
 	lUInt16 path[] = { el_FictionBook, el_description, el_title_info,
 			el_coverpage, 0 };
 	//lUInt16 path[] = { el_FictionBook, el_description, el_title_info, el_coverpage, el_image, 0 };
-	ldomNode * cover_el = m_doc->getRootNode()->findChildElement(path);
+	ldomNode * cover_el = 0;
+	ldomNode * rootNode = m_doc->getRootNode();
+	if (rootNode)
+		cover_el = rootNode->findChildElement(path);
 	//ldomNode * cover_img_el = m_doc->getRootNode()->findChildElement( path );
 
 	if (cover_el) {
@@ -2370,7 +2376,9 @@ LVImageSourceRef LVDocView::getImageByPoint(lvPoint pt) {
     if (ptr.isNull())
         return res;
     //CRLog::debug("node: %s", LCSTR(ptr.toString()));
-    res = ptr.getNode()->getObjectImageSource();
+    ldomNode* node = ptr.getNode();
+    if (node)
+        res = node->getObjectImageSource();
     if (!res.isNull())
         CRLog::debug("getImageByPoint(%d, %d) : found image %d x %d", pt.x, pt.y, res->GetWidth(), res->GetHeight());
     return res;
@@ -4334,7 +4342,10 @@ bool LVDocView::ParseDocument() {
 
 		if (m_doc_format == doc_format_html) {
 			static lUInt16 path[] = { el_html, el_head, el_title, 0 };
-			ldomNode * el = m_doc->getRootNode()->findChildElement(path);
+			ldomNode * el = NULL;
+			ldomNode * rootNode = m_doc->getRootNode();
+			if (rootNode)
+				el = rootNode->findChildElement(path);
 			if (el != NULL) {
                 lString16 s = el->getText(L' ', 1024);
 				if (!s.empty()) {

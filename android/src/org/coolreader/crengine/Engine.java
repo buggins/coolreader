@@ -36,7 +36,7 @@ public class Engine {
 	public static final Object lock = new Object();
 
 	
-	static final private String LIBRARY_NAME = "cr3engine-3-1-2";
+	static final private String LIBRARY_NAME = "cr3engine-3-2-X";
 
 	private BaseActivity mActivity;
 	

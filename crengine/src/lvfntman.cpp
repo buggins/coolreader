@@ -867,10 +867,10 @@ public:
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _weight(400), _italic(0)
+    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _hintingMode(HINTING_MODE_AUTOHINT), _fallbackFontIsSet(false)
 #if USE_HARFBUZZ==1
     , _glyph_cache2(256)
 #endif
-    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _hintingMode(HINTING_MODE_AUTOHINT), _fallbackFontIsSet(false)
     {
         _matrix.xx = 0x10000;
         _matrix.yy = 0x10000;
@@ -899,7 +899,7 @@ public:
 #if USE_HARFBUZZ==1
         LVHashTable<lUInt32, LVFontGlyphIndexCacheItem*>::pair* pair;
         LVHashTable<lUInt32, LVFontGlyphIndexCacheItem*>::iterator it = _glyph_cache2.forwardIterator();
-        while (pair = it.next()) {
+        while ((pair = it.next())) {
             LVFontGlyphIndexCacheItem* item = pair->value;
             if (item)
                 LVFontGlyphIndexCacheItem::freeItem(item);
@@ -1108,11 +1108,11 @@ public:
     }
 
 #if USE_HARFBUZZ==1
-    lChar16 filterChar(register lChar16 code) {
-        register lChar16 res;
+    lChar16 filterChar(lChar16 code) {
+        lChar16 res;
         if (code == '\t')
             code = ' ';
-        register FT_UInt ch_glyph_index = FT_Get_Char_Index(_face, code);
+        FT_UInt ch_glyph_index = FT_Get_Char_Index(_face, code);
         if (0 != ch_glyph_index)
             res = code;
         else {
@@ -1219,14 +1219,14 @@ public:
         if ( letter_spacing<0 || letter_spacing>50 )
             letter_spacing = 0;
 
-        register int i;
+        int i;
 
-        register lUInt16 prev_width = 0;
-        register int lastFitChar = 0;
+        lUInt16 prev_width = 0;
+        uint32_t lastFitChar = 0;
         updateTransform();
         // measure character widths
 #if USE_HARFBUZZ==1
-        register unsigned int glyph_count;
+        unsigned int glyph_count;
         hb_glyph_info_t* glyph_info = 0;
         hb_glyph_position_t* glyph_pos = 0;
         bool allowKerning = _allowKerning;
@@ -1245,21 +1245,21 @@ public:
             glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
             glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
 #ifdef _DEBUG
-            if (glyph_count != len) {
+            if ((int)glyph_count != len) {
                 CRLog::debug(
                         "measureText(): glyph_count not equal source text length (ligature detected?), glyph_count=%d, len=%d",
                         glyph_count, len);
             }
 #endif
-            register int j;
-            register uint32_t cluster;
-            register uint32_t prev_cluster = 0;
-            for (i = 0; i < glyph_count; i++) {
+            uint32_t j;
+            uint32_t cluster;
+            uint32_t prev_cluster = 0;
+            for (i = 0; i < (int)glyph_count; i++) {
                 cluster = glyph_info[i].cluster;
-                register lChar16 ch = text[cluster];
-                register bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE);
+                lChar16 ch = text[cluster];
+                bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE);
                 flags[cluster] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
-                register hb_codepoint_t ch_glyph_index = glyph_info[i].codepoint;
+                hb_codepoint_t ch_glyph_index = glyph_info[i].codepoint;
                 if (0 != ch_glyph_index)        // glyph found for this char in this font
                     widths[cluster] = prev_width + (glyph_pos[i].x_advance >> 6) + letter_spacing;
                 else {
@@ -1294,8 +1294,8 @@ public:
                 }
             }
             // For case when ligature is the last glyph in measured text
-            if (prev_cluster < len - 1 && prev_width < max_width) {
-                for (j = prev_cluster + 1; j < len; j++) {
+            if (prev_cluster < (uint32_t)(len - 1) && prev_width < (lUInt16)max_width) {
+                for (j = prev_cluster + 1; j < (uint32_t)len; j++) {
                     flags[j] = GET_CHAR_FLAGS(text[j]);
                     widths[j] = prev_width;
                 }
@@ -1323,7 +1323,7 @@ public:
                 if ( !isHyphen ) // avoid soft hyphens inside text string
                     prev_width = widths[i];
                 if ( prev_width > max_width ) {
-                    if ( lastFitChar < i + 7)
+                    if ( lastFitChar < (uint32_t)(i + 7))
                         break;
                 } else {
                     lastFitChar = i + 1;
@@ -1331,8 +1331,8 @@ public:
             }
         }
 #else
-        register FT_UInt previous = 0;
-        register int error;
+        FT_UInt previous = 0;
+        int error;
 #if (ALLOW_KERNING==1)
         int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
@@ -1409,7 +1409,7 @@ public:
             if ( lastFitChar > 3 ) {
                 int hwStart, hwEnd;
                 lStr_findWordBounds( text, len, lastFitChar-1, hwStart, hwEnd );
-                if ( hwStart < lastFitChar-1 && hwEnd > hwStart+3 ) {
+                if ( hwStart < (int)(lastFitChar-1) && hwEnd > hwStart+3 ) {
                     //int maxw = max_width - (hwStart>0 ? widths[hwStart-1] : 0);
                     HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
                 }
@@ -1617,27 +1617,27 @@ public:
         if ( y + _height < clip.top || y >= clip.bottom )
             return;
 
-        register int i;
+        unsigned int i;
         //lUInt16 prev_width = 0;
-        register lChar16 ch;
+        lChar16 ch;
         // measure character widths
-        register bool isHyphen = false;
+        bool isHyphen = false;
         int x0 = x;
 #if USE_HARFBUZZ==1
         hb_glyph_info_t *glyph_info = 0;
         hb_glyph_position_t *glyph_pos = 0;
-        register unsigned int glyph_count;
-        register int w;
-        register int len_new = 0;
+        unsigned int glyph_count;
+        int w;
+        unsigned int len_new = 0;
         bool allowKerning = _allowKerning;
         if (allowKerning) {
             // Use HarfBuzz only for kerning - it's a slow variant
             hb_buffer_clear_contents(_hb_buffer);
             hb_buffer_set_replacement_codepoint(_hb_buffer, 0);
             // fill HarfBuzz buffer with filtering
-            for (i = 0; i < len; i++) {
+            for (i = 0; i < (unsigned int)len; i++) {
                 ch = text[i];
-                bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < len - 1);
+                bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < (unsigned int)(len - 1));
                 if (!isHyphen) {		// avoid soft hyphens inside text string
                     // Also replaced any chars to similar if not glyph not found
                     hb_buffer_add(_hb_buffer, (hb_codepoint_t)filterChar(ch), i);
@@ -1689,9 +1689,9 @@ public:
                }
            }
         } else {        // kerning disabled...
-            for (i = 0; i < len; i++) {
+            for (i = 0; i < (unsigned int)len; i++) {
                 ch = text[i];
-                isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < len - 1);
+                isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < (unsigned int)(len - 1));
                 // avoid soft hyphens inside text string
                 if (isHyphen)
                     continue;
@@ -1724,7 +1724,7 @@ public:
         }
 #else
         FT_UInt previous = 0;
-        register int error;
+        int error;
 #if (ALLOW_KERNING==1)
         int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
@@ -3597,7 +3597,7 @@ int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
 {
     if (def._documentId != -1 && _documentId != def._documentId)
         return false;
-	bool size_match = (_size==-1 || def._size==-1) ? true
+    bool size_match = (_size==-1 || def._size==-1) ? true
         : (def._size == _size);
     bool weight_match = (_weight==-1 || def._weight==-1) ? true 
         : (def._weight == _weight);

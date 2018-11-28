@@ -2560,7 +2560,7 @@ void ldomTextStorageChunk::modified()
 void ldomTextStorageChunk::freeNode( int offset )
 {
     offset <<= 4;
-    if ( offset>=0 && offset<(int)_bufpos ) {
+    if ( _buf && offset>=0 && offset<(int)_bufpos ) {
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         if ( (item->type==LXML_TEXT_NODE || item->type==LXML_ELEMENT_NODE) && item->dataIndex ) {
             item->type = LXML_NO_DATA;
@@ -2574,7 +2574,7 @@ void ldomTextStorageChunk::freeNode( int offset )
 lString8 ldomTextStorageChunk::getText( int offset )
 {
     offset <<= 4;
-    if ( offset>=0 && offset<(int)_bufpos ) {
+    if ( _buf && offset>=0 && offset<(int)_bufpos ) {
         TextDataStorageItem * item = (TextDataStorageItem *)(_buf+offset);
         return item->getText8();
     }
@@ -5160,7 +5160,7 @@ bool ldomXPointer::getRect(lvRect & rect) const
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
 {
     //CRLog::trace( "ldomDocument::createXPointer(%s)", UnicodeToUtf8(xPointerStr).c_str() );
-    if ( xPointerStr.empty() )
+    if ( xPointerStr.empty() || !baseNode )
         return ldomXPointer();
     const lChar16 * str = xPointerStr.c_str();
     int index = -1;
@@ -10828,7 +10828,7 @@ ldomNode * ldomNode::findChildElement( lUInt16 nsid, lUInt16 id, int index )
 ldomNode * ldomNode::findChildElement( lUInt16 idPath[] )
 {
     ASSERT_NODE_NOT_NULL;
-    if ( !this || !isElement() )
+    if ( !isElement() )
         return NULL;
     ldomNode * elem = this;
     for ( int i=0; idPath[i]; i++ ) {
@@ -11035,7 +11035,7 @@ public:
 /// returns object image ref name
 lString16 ldomNode::getObjectImageRefName()
 {
-    if ( !this || !isElement() )
+    if (!isElement())
         return lString16::empty_str;
     //printf("ldomElement::getObjectImageSource() ... ");
     const css_elem_def_props_t * et = getDocument()->getElementTypePtr(getNodeId());

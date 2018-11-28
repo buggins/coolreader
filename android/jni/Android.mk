@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := cr3engine-3-1-2
+LOCAL_MODULE    := cr3engine-3-2-X
 
 # Generate CREngine blob with statically linked libjpeg, libpng, freetype, harfbuzz, chmlib
 
@@ -30,7 +30,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_CFLAGS += $(CRFLAGS)
 
-LOCAL_CFLAGS += -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall
+LOCAL_CFLAGS += -Wall -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-function
 
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
