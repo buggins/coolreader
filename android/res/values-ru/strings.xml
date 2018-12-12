@@ -177,6 +177,7 @@
     <string name="options_app_dictionary_not_installed">(не установлен)</string>
     <string name="action_zoom_in">Увеличить шрифт</string>
     <string name="options_font_kerning">Кернинг шрифта</string>
+    <string name="options_font_ligatures">Использовать лигатуры (очень медленно!)</string>
     <string name="action_zoom_out">Уменьшить шрифт</string>
     <string name="options_style_floating_punctuation">Висячая пунктуация</string>
     <string name="options_style_document_embedded_styles">Внутренние стили документа</string>

@@ -5695,6 +5695,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
 	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
 	props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
+	props->limitValueList(PROP_FONT_LIGATURES_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
     static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
     props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
@@ -5855,6 +5856,10 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);
             fontMan->setKerning(kerning);
             REQUEST_RENDER("propsApply - kerning")
+        } else if (name == PROP_FONT_LIGATURES_ENABLED) {
+            bool ligatures = props->getBoolDef(PROP_FONT_LIGATURES_ENABLED, false);
+            fontMan->setLigatures(ligatures);
+            REQUEST_RENDER("propsApply - ligatures")
         } else if (name == PROP_FONT_WEIGHT_EMBOLDEN) {
             bool embolden = props->getBoolDef(PROP_FONT_WEIGHT_EMBOLDEN, false);
             int v = embolden ? STYLE_FONT_EMBOLD_MODE_EMBOLD

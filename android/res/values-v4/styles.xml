@@ -101,6 +101,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
@@ -177,6 +178,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
@@ -253,6 +255,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
@@ -329,6 +332,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_other</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width</item>
@@ -408,6 +412,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation_hc</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_floating_punct_hc</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning_hc</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures_hc</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images_hc</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma_hc</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width_hc</item>
@@ -487,6 +492,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation_hc</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_floating_punct_hc</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning_hc</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures_hc</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images_hc</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma_hc</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width_hc</item>
@@ -565,6 +571,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation_hc</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_floating_punct_hc</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning_hc</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures_hc</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images_hc</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma_hc</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width_hc</item>
@@ -643,6 +650,7 @@
         <item name="cr3_option_text_hyphenation_drawable">@drawable/cr3_option_text_hyphenation_hc</item>
         <item name="cr3_option_text_floating_punct_drawable">@drawable/cr3_option_text_floating_punct_hc</item>
         <item name="cr3_option_text_kerning_drawable">@drawable/cr3_option_text_kerning_hc</item>
+        <item name="cr3_option_text_ligatures_drawable">@drawable/cr3_option_text_ligatures_hc</item>
         <item name="cr3_option_images_drawable">@drawable/cr3_option_images_hc</item>
         <item name="cr3_option_font_gamma_drawable">@drawable/cr3_option_font_gamma_hc</item>
         <item name="cr3_option_text_width_drawable">@drawable/cr3_option_text_width_hc</item>
