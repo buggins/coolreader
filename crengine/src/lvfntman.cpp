@@ -1179,21 +1179,21 @@ public:
         return res;
     }
 
-    bool hbCalcCharWidth(struct LVCharPosInfo* posInfo, const struct LVCharTriplet& pair) {
+    bool hbCalcCharWidth(struct LVCharPosInfo* posInfo, const struct LVCharTriplet& triplet) {
         if (!posInfo)
             return false;
         unsigned int segLen = 0;
         int cluster;
         hb_buffer_clear_contents(_hb_opt_kern_buffer);
-        if (0 != pair.prevChar) {
-            hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)pair.prevChar, segLen);
+        if (0 != triplet.prevChar) {
+            hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)triplet.prevChar, segLen);
             segLen++;
         }
-        hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)pair.Char, segLen);
+        hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)triplet.Char, segLen);
         cluster = segLen;
         segLen++;
-        if (0 != pair.nextChar) {
-            hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)pair.nextChar, segLen);
+        if (0 != triplet.nextChar) {
+            hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)triplet.nextChar, segLen);
             segLen++;
         }
         hb_buffer_set_content_type(_hb_opt_kern_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
@@ -1201,14 +1201,13 @@ public:
         hb_shape(_hb_font, _hb_opt_kern_buffer, _hb_opt_kern_features, 2);
         unsigned int glyph_count = hb_buffer_get_length(_hb_opt_kern_buffer);
         if (segLen == glyph_count) {
-            //hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(_hb_opt_kern_buffer, &glyph_count);
             hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(_hb_opt_kern_buffer, &glyph_count);
             posInfo->offset = glyph_pos[cluster].x_offset >> 6;
             posInfo->width = glyph_pos[cluster].x_advance >> 6;
             return true;
         } else {
 #ifdef _DEBUG
-            CRLog::debug("hbCalcCharWidthWithKerning(): hb_buffer_get_length() return %d, must be 2, return value (-1)", glyph_count);
+            CRLog::debug("hbCalcCharWidthWithKerning(): hb_buffer_get_length() return %d, must be %d, return value (-1)", glyph_count, segLen);
 #endif
             return false;
         }
