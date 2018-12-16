@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([HarfBuzz],
-        [1.7.6],
+        [2.2.0],
         [https://github.com/harfbuzz/harfbuzz/issues/new],
         [harfbuzz],
         [http://harfbuzz.org/])
@@ -12,6 +12,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.13.0 gnits tar-ustar dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
 AM_SILENT_RULES([yes])
 AX_CODE_COVERAGE
+AC_USE_SYSTEM_EXTENSIONS
 
 # Initialize libtool
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -19,7 +20,6 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
 # Check for programs
-AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
@@ -77,9 +77,15 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
 ])
 
-# Functions, and headers
-AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l setlinebuf)
-AC_CHECK_HEADERS(unistd.h sys/mman.h xlocale.h)
+# Functions and headers
+AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty newlocale strtod_l posix_memalign)
+
+save_libs="$LIBS"
+LIBS="$LIBS -lm"
+AC_CHECK_FUNCS([round], ,[AC_CHECK_DECLS([round], , ,[#include <math.h>])])
+LIBS="$save_libs"
+
+AC_CHECK_HEADERS(unistd.h sys/mman.h xlocale.h stdbool.h)
 
 # Compiler flags
 AC_CANONICAL_HOST
@@ -87,7 +93,15 @@ AC_CHECK_ALIGNOF([struct{char;}])
 if test "x$GCC" = "xyes"; then
 
 	# Make symbols link locally
-	LDFLAGS="$LDFLAGS -Bsymbolic-functions"
+	AX_CHECK_LINK_FLAG([[-Bsymbolic-functions]], [LDFLAGS="$LDFLAGS -Bsymbolic-functions"])
+
+	# Make it possible to not link to libstdc++
+	# No threadsafe statics in C++ as we do it ourselves.
+	# We don't use these features, so it's safe to disable them
+	# even in the cases where we DO link to libstdc++.
+	# Put -fno-rtti before $CXXFLAGS such that users can re-enable it
+	# by overriding CXXFLAGS.
+	CXXFLAGS="-fno-rtti $CXXFLAGS -fno-exceptions -fno-threadsafe-statics"
 
 	# Assorted warnings
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
@@ -133,12 +147,6 @@ fi
 AM_CONDITIONAL(HAVE_PTHREAD, $have_pthread)
 
 dnl ==========================================================================
-
-have_ot=true
-if $have_ot; then
-	AC_DEFINE(HAVE_OT, 1, [Have native OpenType Layout backend])
-fi
-AM_CONDITIONAL(HAVE_OT, $have_ot)
 
 have_fallback=true
 if $have_fallback; then
@@ -316,7 +324,7 @@ AC_ARG_WITH(graphite2,
 			[Use the graphite2 library @<:@default=no@:>@])],,
 	[with_graphite2=no])
 have_graphite2=false
-GRAPHITE2_DEPS="graphite2"
+GRAPHITE2_DEPS="graphite2 >= 1.2.0"
 AC_SUBST(GRAPHITE2_DEPS)
 if test "x$with_graphite2" = "xyes" -o "x$with_graphite2" = "xauto"; then
 	PKG_CHECK_MODULES(GRAPHITE2, $GRAPHITE2_DEPS, have_graphite2=true, :)
@@ -492,7 +500,6 @@ dnl ===========================================================================
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
-src/hb-version.h
 src/harfbuzz-config.cmake
 src/hb-ucdn/Makefile
 util/Makefile
@@ -501,6 +508,7 @@ test/api/Makefile
 test/fuzzing/Makefile
 test/shaping/Makefile
 test/shaping/data/Makefile
+test/shaping/data/aots/Makefile
 test/shaping/data/in-house/Makefile
 test/shaping/data/text-rendering-tests/Makefile
 test/subset/Makefile
@@ -532,8 +540,8 @@ Additional shapers (the more the merrier):
 
 Platform shapers (not normally needed):
 	CoreText:		${have_coretext}
-	Uniscribe:		${have_uniscribe}
 	DirectWrite:		${have_directwrite}
+	Uniscribe:		${have_uniscribe}
 
 Other features:
 	Documentation:		${enable_gtk_doc}

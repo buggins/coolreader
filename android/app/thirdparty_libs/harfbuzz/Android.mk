@@ -22,6 +22,7 @@ LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
 LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-aat-layout.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-aat-map.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-blob.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-buffer.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-buffer-serialize.cc \
@@ -30,11 +31,15 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-fallback-shape.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-font.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ft.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-map.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-color.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-face.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-font.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-layout.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-map.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-math.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-name.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-name-language.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-arabic.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-default.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-hangul.cc \
@@ -44,9 +49,9 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-khmer.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-myanmar.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-thai.cc \
-    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-tibetan.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-use-table.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-complex-vowel-constraints.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-fallback.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape-normalize.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ot-shape.cc \
@@ -56,6 +61,7 @@ LOCAL_SRC_FILES := \
     $(HARFBUZZ_SRC_DIR)/src/hb-shape.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-shape-plan.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-shaper.cc \
+    $(HARFBUZZ_SRC_DIR)/src/hb-static.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-ucdn.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-unicode.cc \
     $(HARFBUZZ_SRC_DIR)/src/hb-warning.cc \

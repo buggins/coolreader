@@ -24,7 +24,19 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
+
+
+/**
+ * SECTION:hb-gobject
+ * @title: hb-gobject
+ * @short_description: GObject integration
+ * @include: hb-gobject.h
+ *
+ * Functions for using HarfBuzz with the GObject library to provide
+ * type data.
+ **/
+
 
 /* g++ didn't like older gtype.h gcc-only code path. */
 #include <glib.h>
@@ -71,6 +83,7 @@ HB_DEFINE_OBJECT_TYPE (face)
 HB_DEFINE_OBJECT_TYPE (font)
 HB_DEFINE_OBJECT_TYPE (font_funcs)
 HB_DEFINE_OBJECT_TYPE (set)
+HB_DEFINE_OBJECT_TYPE (map)
 HB_DEFINE_OBJECT_TYPE (shape_plan)
 HB_DEFINE_OBJECT_TYPE (unicode_funcs)
 HB_DEFINE_VALUE_TYPE (feature)

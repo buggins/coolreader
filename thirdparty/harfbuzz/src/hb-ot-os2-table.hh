@@ -27,21 +27,20 @@
 #ifndef HB_OT_OS2_TABLE_HH
 #define HB_OT_OS2_TABLE_HH
 
-#include "hb-open-type-private.hh"
+#include "hb-open-type.hh"
 #include "hb-ot-os2-unicode-ranges.hh"
 
 namespace OT {
 
 /*
  * OS/2 and Windows Metrics
- * http://www.microsoft.com/typography/otspec/os2.htm
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/os2
  */
+#define HB_OT_TAG_OS2 HB_TAG('O','S','/','2')
 
-#define HB_OT_TAG_os2 HB_TAG('O','S','/','2')
-
-struct os2
+struct OS2
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_os2;
+  static const hb_tag_t tableTag = HB_OT_TAG_OS2;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -51,78 +50,79 @@ struct os2
 
   inline bool subset (hb_subset_plan_t *plan) const
   {
-    hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>().sanitize (hb_face_reference_table (plan->source, HB_OT_TAG_os2));
+    hb_blob_t *os2_blob = hb_sanitize_context_t ().reference_table<OS2> (plan->source);
     hb_blob_t *os2_prime_blob = hb_blob_create_sub_blob (os2_blob, 0, -1);
     // TODO(grieger): move to hb_blob_copy_writable_or_fail
     hb_blob_destroy (os2_blob);
 
-    OT::os2 *os2_prime = (OT::os2 *) hb_blob_get_data_writable (os2_prime_blob, nullptr);
+    OS2 *os2_prime = (OS2 *) hb_blob_get_data_writable (os2_prime_blob, nullptr);
     if (unlikely (!os2_prime)) {
       hb_blob_destroy (os2_prime_blob);
       return false;
     }
 
     uint16_t min_cp, max_cp;
-    find_min_and_max_codepoint (plan->codepoints, &min_cp, &max_cp);
+    find_min_and_max_codepoint (plan->unicodes, &min_cp, &max_cp);
     os2_prime->usFirstCharIndex.set (min_cp);
     os2_prime->usLastCharIndex.set (max_cp);
 
-    _update_unicode_ranges (plan->codepoints, os2_prime->ulUnicodeRange);
-    bool result = hb_subset_plan_add_table(plan, HB_OT_TAG_os2, os2_prime_blob);
+    _update_unicode_ranges (plan->unicodes, os2_prime->ulUnicodeRange);
+    bool result = plan->add_table (HB_OT_TAG_OS2, os2_prime_blob);
 
     hb_blob_destroy (os2_prime_blob);
     return result;
   }
 
-  inline void _update_unicode_ranges (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
-                                      HBUINT32 ulUnicodeRange[4]) const
+  inline void _update_unicode_ranges (const hb_set_t *codepoints,
+				      HBUINT32 ulUnicodeRange[4]) const
   {
     for (unsigned int i = 0; i < 4; i++)
       ulUnicodeRange[i].set (0);
 
-    for (unsigned int i = 0; i < codepoints.len; i++)
-    {
-      hb_codepoint_t cp = codepoints[i];
-      unsigned int bit = hb_get_unicode_range_bit (cp);
+    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+    while (codepoints->next (&cp)) {
+      unsigned int bit = _hb_ot_os2_get_unicode_range_bit (cp);
       if (bit < 128)
       {
-        unsigned int block = bit / 32;
-        unsigned int bit_in_block = bit % 32;
-        unsigned int mask = 1 << bit_in_block;
-        ulUnicodeRange[block].set (ulUnicodeRange[block] | mask);
+	unsigned int block = bit / 32;
+	unsigned int bit_in_block = bit % 32;
+	unsigned int mask = 1 << bit_in_block;
+	ulUnicodeRange[block].set (ulUnicodeRange[block] | mask);
       }
       if (cp >= 0x10000 && cp <= 0x110000)
       {
-        /* the spec says that bit 57 ("Non Plane 0") implies that there's
-           at least one codepoint beyond the BMP; so I also include all
-           the non-BMP codepoints here */
-        ulUnicodeRange[1].set (ulUnicodeRange[1] | (1 << 25));
+	/* the spec says that bit 57 ("Non Plane 0") implies that there's
+	   at least one codepoint beyond the BMP; so I also include all
+	   the non-BMP codepoints here */
+	ulUnicodeRange[1].set (ulUnicodeRange[1] | (1 << 25));
       }
     }
   }
 
-  static inline void find_min_and_max_codepoint (const hb_prealloced_array_t<hb_codepoint_t> &codepoints,
-                                                 uint16_t *min_cp, /* OUT */
-                                                 uint16_t *max_cp  /* OUT */)
+  static inline void find_min_and_max_codepoint (const hb_set_t *codepoints,
+						 uint16_t *min_cp, /* OUT */
+						 uint16_t *max_cp  /* OUT */)
   {
-    hb_codepoint_t min = -1, max = 0;
+    *min_cp = codepoints->get_min ();
+    *max_cp = codepoints->get_max ();
+  }
 
-    for (unsigned int i = 0; i < codepoints.len; i++)
-    {
-      hb_codepoint_t cp = codepoints[i];
-      if (cp < min)
-        min = cp;
-      if (cp > max)
-        max = cp;
-    }
+  enum font_page_t {
+    HEBREW_FONT_PAGE		= 0xB100, // Hebrew Windows 3.1 font page
+    SIMP_ARABIC_FONT_PAGE	= 0xB200, // Simplified Arabic Windows 3.1 font page
+    TRAD_ARABIC_FONT_PAGE	= 0xB300, // Traditional Arabic Windows 3.1 font page
+    OEM_ARABIC_FONT_PAGE	= 0xB400, // OEM Arabic Windows 3.1 font page
+    SIMP_FARSI_FONT_PAGE	= 0xBA00, // Simplified Farsi Windows 3.1 font page
+    TRAD_FARSI_FONT_PAGE	= 0xBB00, // Traditional Farsi Windows 3.1 font page
+    THAI_FONT_PAGE		= 0xDE00  // Thai Windows 3.1 font page
+  };
 
-    if (min > 0xFFFF)
-      min = 0xFFFF;
-    if (max > 0xFFFF)
-      max = 0xFFFF;
-
-    *min_cp = min;
-    *max_cp = max;
+  // https://github.com/Microsoft/Font-Validator/blob/520aaae/OTFontFileVal/val_OS2.cs#L644-L681
+  inline font_page_t get_font_page () const
+  {
+    if (version != 0)
+      return (font_page_t) 0;
+    return (font_page_t) (fsSelection & 0xFF00);
   }
 
   public:

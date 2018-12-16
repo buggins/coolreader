@@ -26,34 +26,73 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
+#include "hb.hh"
 
-#include "hb-shaper-private.hh"
-#include "hb-shape-plan-private.hh"
-#include "hb-buffer-private.hh"
-#include "hb-font-private.hh"
+#include "hb-shaper.hh"
+#include "hb-shape-plan.hh"
+#include "hb-buffer.hh"
+#include "hb-font.hh"
+#include "hb-machinery.hh"
+
 
 /**
  * SECTION:hb-shape
- * @title: Shaping
+ * @title: hb-shape
  * @short_description: Conversion of text strings into positioned glyphs
  * @include: hb.h
  *
  * Shaping is the central operation of HarfBuzz. Shaping operates on buffers,
  * which are sequences of Unicode characters that use the same font and have
- * the same text direction, script and language. After shaping the buffer
+ * the same text direction, script, and language. After shaping the buffer
  * contains the output glyphs and their positions.
  **/
 
-static const char **static_shaper_list;
 
-#ifdef HB_USE_ATEXIT
+#if HB_USE_ATEXIT
+static void free_static_shaper_list (void);
+#endif
+
+static const char *nil_shaper_list[] = {nullptr};
+
+static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
+							      hb_shaper_list_lazy_loader_t>
+{
+  static inline const char ** create (void)
+  {
+    const char **shaper_list = (const char **) calloc (1 + HB_SHAPERS_COUNT, sizeof (const char *));
+    if (unlikely (!shaper_list))
+      return nullptr;
+
+    const hb_shaper_entry_t *shapers = _hb_shapers_get ();
+    unsigned int i;
+    for (i = 0; i < HB_SHAPERS_COUNT; i++)
+      shaper_list[i] = shapers[i].name;
+    shaper_list[i] = nullptr;
+
+#if HB_USE_ATEXIT
+    atexit (free_static_shaper_list);
+#endif
+
+    return shaper_list;
+  }
+  static inline void destroy (const char **l)
+  {
+    free (l);
+  }
+  static inline const char ** get_null (void)
+  {
+    return nil_shaper_list;
+  }
+} static_shaper_list;
+
+#if HB_USE_ATEXIT
 static
 void free_static_shaper_list (void)
 {
-  free (static_shaper_list);
+  static_shaper_list.free_instance ();
 }
 #endif
+
 
 /**
  * hb_shape_list_shapers:
@@ -68,35 +107,7 @@ void free_static_shaper_list (void)
 const char **
 hb_shape_list_shapers (void)
 {
-retry:
-  const char **shaper_list = (const char **) hb_atomic_ptr_get (&static_shaper_list);
-
-  if (unlikely (!shaper_list))
-  {
-    /* Not found; allocate one. */
-    shaper_list = (const char **) calloc (1 + HB_SHAPERS_COUNT, sizeof (const char *));
-    if (unlikely (!shaper_list)) {
-      static const char *nil_shaper_list[] = {nullptr};
-      return nil_shaper_list;
-    }
-
-    const hb_shaper_pair_t *shapers = _hb_shapers_get ();
-    unsigned int i;
-    for (i = 0; i < HB_SHAPERS_COUNT; i++)
-      shaper_list[i] = shapers[i].name;
-    shaper_list[i] = nullptr;
-
-    if (!hb_atomic_ptr_cmpexch (&static_shaper_list, nullptr, shaper_list)) {
-      free (shaper_list);
-      goto retry;
-    }
-
-#ifdef HB_USE_ATEXIT
-    atexit (free_static_shaper_list); /* First person registers atexit() callback. */
-#endif
-  }
-
-  return shaper_list;
+  return static_shaper_list.get_unconst ();
 }
 
 

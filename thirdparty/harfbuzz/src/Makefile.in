@@ -95,103 +95,99 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-TESTS = $(am__EXEEXT_3) test-ot-tag$(EXEEXT) \
+TESTS = $(am__EXEEXT_4) test-ot-tag$(EXEEXT) \
 	test-unicode-ranges$(EXEEXT)
 check_PROGRAMS = dump-indic-data$(EXEEXT) dump-khmer-data$(EXEEXT) \
 	dump-myanmar-data$(EXEEXT) dump-use-data$(EXEEXT) \
 	$(am__EXEEXT_1) test-ot-tag$(EXEEXT) \
 	test-unicode-ranges$(EXEEXT)
-# Make sure we don't link to libstdc++
-# No threadsafe statics in C++ as we do it ourselves
-@WITH_LIBSTDCXX_FALSE@am__append_1 = -fno-exceptions
-@HAVE_OT_TRUE@am__append_2 = $(HB_OT_sources) \
-@HAVE_OT_TRUE@	$(HB_OT_RAGEL_GENERATED_sources)
-@HAVE_OT_TRUE@am__append_3 = $(HB_OT_headers)
-@HAVE_FALLBACK_TRUE@am__append_4 = $(HB_FALLBACK_sources)
-@HAVE_PTHREAD_TRUE@am__append_5 = $(PTHREAD_CFLAGS)
-@HAVE_PTHREAD_TRUE@am__append_6 = $(PTHREAD_LIBS)
-@HAVE_GLIB_TRUE@am__append_7 = $(GLIB_CFLAGS)
-@HAVE_GLIB_TRUE@am__append_8 = $(GLIB_LIBS)
-@HAVE_GLIB_TRUE@am__append_9 = $(GLIB_DEPS)
-@HAVE_GLIB_TRUE@am__append_10 = $(HB_GLIB_sources)
-@HAVE_GLIB_TRUE@am__append_11 = $(HB_GLIB_headers)
-@HAVE_FREETYPE_TRUE@am__append_12 = $(FREETYPE_CFLAGS)
-@HAVE_FREETYPE_TRUE@am__append_13 = $(FREETYPE_LIBS)
+@HAVE_FALLBACK_TRUE@am__append_1 = $(HB_FALLBACK_sources)
+@HAVE_PTHREAD_TRUE@am__append_2 = $(PTHREAD_CFLAGS)
+@HAVE_PTHREAD_TRUE@am__append_3 = $(PTHREAD_LIBS)
+@HAVE_GLIB_TRUE@am__append_4 = $(GLIB_CFLAGS)
+@HAVE_GLIB_TRUE@am__append_5 = $(GLIB_LIBS)
+@HAVE_GLIB_TRUE@am__append_6 = $(GLIB_DEPS)
+@HAVE_GLIB_TRUE@am__append_7 = $(HB_GLIB_sources)
+@HAVE_GLIB_TRUE@am__append_8 = $(HB_GLIB_headers)
+@HAVE_FREETYPE_TRUE@am__append_9 = $(FREETYPE_CFLAGS)
+@HAVE_FREETYPE_TRUE@am__append_10 = $(FREETYPE_LIBS)
 # XXX
 # The following creates a recursive dependency on FreeType if FreeType is
 # built with HarfBuzz support enabled.  Newer pkg-config handles that just
 # fine but pkg-config 0.26 as shipped in Ubuntu 14.04 crashes.  Remove
 # in a year or two, or otherwise work around it...
 #HBDEPS   += $(FREETYPE_DEPS)
-@HAVE_FREETYPE_TRUE@am__append_14 = $(HB_FT_sources)
-@HAVE_FREETYPE_TRUE@am__append_15 = $(HB_FT_headers)
-@HAVE_GRAPHITE2_TRUE@am__append_16 = $(GRAPHITE2_CFLAGS)
-@HAVE_GRAPHITE2_TRUE@am__append_17 = $(GRAPHITE2_LIBS)
-@HAVE_GRAPHITE2_TRUE@am__append_18 = $(GRAPHITE2_DEPS)
-@HAVE_GRAPHITE2_TRUE@am__append_19 = $(HB_GRAPHITE2_sources)
-@HAVE_GRAPHITE2_TRUE@am__append_20 = $(HB_GRAPHITE2_headers)
-@HAVE_UNISCRIBE_TRUE@am__append_21 = $(UNISCRIBE_CFLAGS)
-@HAVE_UNISCRIBE_TRUE@am__append_22 = $(UNISCRIBE_LIBS)
-@HAVE_UNISCRIBE_TRUE@am__append_23 = $(HB_UNISCRIBE_sources)
-@HAVE_UNISCRIBE_TRUE@am__append_24 = $(HB_UNISCRIBE_headers)
-@HAVE_DIRECTWRITE_TRUE@am__append_25 = $(DIRECTWRITE_CXXFLAGS)
-@HAVE_DIRECTWRITE_TRUE@am__append_26 = $(DIRECTWRITE_LIBS)
-@HAVE_DIRECTWRITE_TRUE@am__append_27 = $(HB_DIRECTWRITE_sources)
-@HAVE_DIRECTWRITE_TRUE@am__append_28 = $(HB_DIRECTWRITE_headers)
-@HAVE_CORETEXT_TRUE@am__append_29 = $(CORETEXT_CFLAGS)
-@HAVE_CORETEXT_TRUE@am__append_30 = $(CORETEXT_LIBS)
-@HAVE_CORETEXT_TRUE@am__append_31 = $(HB_CORETEXT_sources)
-@HAVE_CORETEXT_TRUE@am__append_32 = $(HB_CORETEXT_headers)
-@HAVE_UCDN_TRUE@am__append_33 = hb-ucdn
-@HAVE_UCDN_TRUE@am__append_34 = -I$(srcdir)/hb-ucdn
-@HAVE_UCDN_TRUE@am__append_35 = hb-ucdn/libhb-ucdn.la
-@HAVE_UCDN_TRUE@am__append_36 = $(HB_UCDN_sources)
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_37 = $(ICU_CFLAGS)
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_38 = $(ICU_LIBS)
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_39 = $(HB_ICU_sources)
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_40 = $(HB_ICU_headers)
-@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am__append_41 = libharfbuzz-icu.la
-@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am__append_42 = $(HB_ICU_headers)
-@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am__append_43 = harfbuzz-icu.pc
-@HAVE_GOBJECT_TRUE@am__append_44 = libharfbuzz-gobject.la
-@HAVE_GOBJECT_TRUE@am__append_45 = $(HB_GOBJECT_DIST_headers)
-@HAVE_GOBJECT_TRUE@am__append_46 = $(HB_GOBJECT_NODIST_headers)
-@HAVE_GOBJECT_TRUE@am__append_47 = harfbuzz-gobject.pc
-@HAVE_GOBJECT_TRUE@am__append_48 = \
+@HAVE_FREETYPE_TRUE@am__append_11 = $(HB_FT_sources)
+@HAVE_FREETYPE_TRUE@am__append_12 = $(HB_FT_headers)
+@HAVE_GRAPHITE2_TRUE@am__append_13 = $(GRAPHITE2_CFLAGS)
+@HAVE_GRAPHITE2_TRUE@am__append_14 = $(GRAPHITE2_LIBS)
+@HAVE_GRAPHITE2_TRUE@am__append_15 = $(GRAPHITE2_DEPS)
+@HAVE_GRAPHITE2_TRUE@am__append_16 = $(HB_GRAPHITE2_sources)
+@HAVE_GRAPHITE2_TRUE@am__append_17 = $(HB_GRAPHITE2_headers)
+@HAVE_UNISCRIBE_TRUE@am__append_18 = $(UNISCRIBE_CFLAGS)
+@HAVE_UNISCRIBE_TRUE@am__append_19 = $(UNISCRIBE_LIBS)
+@HAVE_UNISCRIBE_TRUE@am__append_20 = $(HB_UNISCRIBE_sources)
+@HAVE_UNISCRIBE_TRUE@am__append_21 = $(HB_UNISCRIBE_headers)
+@HAVE_DIRECTWRITE_TRUE@am__append_22 = $(DIRECTWRITE_CXXFLAGS)
+@HAVE_DIRECTWRITE_TRUE@am__append_23 = $(DIRECTWRITE_LIBS)
+@HAVE_DIRECTWRITE_TRUE@am__append_24 = $(HB_DIRECTWRITE_sources)
+@HAVE_DIRECTWRITE_TRUE@am__append_25 = $(HB_DIRECTWRITE_headers)
+@HAVE_CORETEXT_TRUE@am__append_26 = $(CORETEXT_CFLAGS)
+@HAVE_CORETEXT_TRUE@am__append_27 = $(CORETEXT_LIBS)
+@HAVE_CORETEXT_TRUE@am__append_28 = $(HB_CORETEXT_sources)
+@HAVE_CORETEXT_TRUE@am__append_29 = $(HB_CORETEXT_headers)
+@HAVE_UCDN_TRUE@am__append_30 = hb-ucdn
+@HAVE_UCDN_TRUE@am__append_31 = -I$(srcdir)/hb-ucdn
+@HAVE_UCDN_TRUE@am__append_32 = hb-ucdn/libhb-ucdn.la
+@HAVE_UCDN_TRUE@am__append_33 = $(HB_UCDN_sources)
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_34 = $(ICU_CFLAGS)
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_35 = $(ICU_LIBS)
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_36 = $(HB_ICU_sources)
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__append_37 = $(HB_ICU_headers)
+@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am__append_38 = libharfbuzz-icu.la
+@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am__append_39 = $(HB_ICU_headers)
+@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am__append_40 = harfbuzz-icu.pc
+@HAVE_GOBJECT_TRUE@am__append_41 = libharfbuzz-gobject.la
+@HAVE_GOBJECT_TRUE@am__append_42 = $(HB_GOBJECT_DIST_headers)
+@HAVE_GOBJECT_TRUE@am__append_43 = $(HB_GOBJECT_NODIST_headers)
+@HAVE_GOBJECT_TRUE@am__append_44 = harfbuzz-gobject.pc
+@HAVE_GOBJECT_TRUE@am__append_45 = \
 @HAVE_GOBJECT_TRUE@	$(HB_GOBJECT_ENUM_sources) \
 @HAVE_GOBJECT_TRUE@	$(HB_GOBJECT_ENUM_headers) \
 @HAVE_GOBJECT_TRUE@	$(NULL)
 
-@HAVE_GOBJECT_TRUE@am__append_49 = \
+@HAVE_GOBJECT_TRUE@am__append_46 = \
 @HAVE_GOBJECT_TRUE@	$(HB_GOBJECT_ENUM_sources) \
 @HAVE_GOBJECT_TRUE@	$(HB_GOBJECT_ENUM_headers) \
 @HAVE_GOBJECT_TRUE@	$(NULL)
 
-@HAVE_GOBJECT_TRUE@am__append_50 = harfbuzz-gobject.def
+@HAVE_GOBJECT_TRUE@am__append_47 = harfbuzz-gobject.def
 noinst_PROGRAMS = main$(EXEEXT) test$(EXEEXT) \
-	test-buffer-serialize$(EXEEXT) test-size-params$(EXEEXT) \
-	test-would-substitute$(EXEEXT) $(am__EXEEXT_1)
+	test-buffer-serialize$(EXEEXT) test-name-table$(EXEEXT) \
+	test-size-params$(EXEEXT) test-would-substitute$(EXEEXT) \
+	$(am__EXEEXT_1) $(am__EXEEXT_2)
 bin_PROGRAMS =
-@WITH_LIBSTDCXX_FALSE@am__append_51 = \
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@am__append_48 = test-ot-color
+@WITH_LIBSTDCXX_FALSE@am__append_49 = \
 @WITH_LIBSTDCXX_FALSE@	check-libstdc++.sh \
 @WITH_LIBSTDCXX_FALSE@	$(NULL)
 
-@HAVE_INTROSPECTION_TRUE@am__append_52 = $(gir_DATA) $(typelib_DATA)
+@HAVE_INTROSPECTION_TRUE@am__append_50 = $(gir_DATA) $(typelib_DATA)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_code_coverage.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_link_flag.m4 \
+	$(top_srcdir)/m4/ax_code_coverage.m4 \
 	$(top_srcdir)/m4/ax_pthread.m4 $(top_srcdir)/m4/gtk-doc.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/m4/pkg.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__dist_check_SCRIPTS_DIST) \
 	$(am__pkginclude_HEADERS_DIST) $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = hb-version.h harfbuzz-config.cmake
+CONFIG_CLEAN_FILES = harfbuzz-config.cmake
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -226,172 +222,16 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(pkgincludedir)" "$(DESTDIR)$(pkgincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-@HAVE_GLIB_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-@HAVE_FREETYPE_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
-@HAVE_GRAPHITE2_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_1)
-@HAVE_PTHREAD_TRUE@am__DEPENDENCIES_5 = $(am__DEPENDENCIES_1)
-@HAVE_UNISCRIBE_TRUE@am__DEPENDENCIES_6 = $(am__DEPENDENCIES_1)
-@HAVE_DIRECTWRITE_TRUE@am__DEPENDENCIES_7 = $(am__DEPENDENCIES_1)
-@HAVE_CORETEXT_TRUE@am__DEPENDENCIES_8 = $(am__DEPENDENCIES_1)
-am__DEPENDENCIES_9 = $(am__DEPENDENCIES_5) $(am__DEPENDENCIES_6) \
-	$(am__DEPENDENCIES_7) $(am__DEPENDENCIES_8)
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__DEPENDENCIES_10 =  \
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@	$(am__DEPENDENCIES_1)
-am__DEPENDENCIES_11 = $(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3) \
-	$(am__DEPENDENCIES_4) $(am__append_35) $(am__DEPENDENCIES_9) \
-	$(am__DEPENDENCIES_10)
-am__DEPENDENCIES_12 = $(am__DEPENDENCIES_11)
-libharfbuzz_fuzzing_la_DEPENDENCIES = $(am__DEPENDENCIES_12)
-am__libharfbuzz_fuzzing_la_SOURCES_DIST = hb-atomic-private.hh \
-	hb-blob.cc hb-buffer-private.hh hb-buffer-serialize.cc \
-	hb-buffer.cc hb-common.cc hb-debug.hh hb-dsalgs.hh \
-	hb-face-private.hh hb-face.cc hb-font-private.hh hb-font.cc \
-	hb-mutex-private.hh hb-object-private.hh \
-	hb-open-file-private.hh hb-open-type-private.hh \
-	hb-ot-color-cbdt-table.hh hb-ot-cmap-table.hh \
-	hb-ot-glyf-table.hh hb-ot-hdmx-table.hh hb-ot-head-table.hh \
-	hb-ot-hhea-table.hh hb-ot-hmtx-table.hh hb-ot-kern-table.hh \
-	hb-ot-maxp-table.hh hb-ot-name-table.hh hb-ot-os2-table.hh \
-	hb-ot-os2-unicode-ranges.hh hb-ot-post-macroman.hh \
-	hb-ot-post-table.hh hb-ot-tag.cc hb-private.hh \
-	hb-set-digest-private.hh hb-set-private.hh hb-set.cc \
-	hb-shape.cc hb-shape-plan-private.hh hb-shape-plan.cc \
-	hb-shaper-list.hh hb-shaper-impl-private.hh \
-	hb-shaper-private.hh hb-shaper.cc hb-string-array.hh \
-	hb-unicode-private.hh hb-unicode.cc hb-utf-private.hh \
-	hb-warning.cc hb-buffer-deserialize-json.hh \
-	hb-buffer-deserialize-text.hh hb-aat-layout.cc \
-	hb-aat-layout-common-private.hh hb-aat-layout-ankr-table.hh \
-	hb-aat-layout-kerx-table.hh hb-aat-layout-morx-table.hh \
-	hb-aat-layout-trak-table.hh hb-aat-layout-private.hh \
-	hb-ot-font.cc hb-ot-layout.cc hb-ot-layout-base-table.hh \
-	hb-ot-layout-common-private.hh hb-ot-layout-gdef-table.hh \
-	hb-ot-layout-gpos-table.hh hb-ot-layout-gsubgpos-private.hh \
-	hb-ot-layout-gsub-table.hh hb-ot-layout-jstf-table.hh \
-	hb-ot-layout-private.hh hb-ot-color.cc \
-	hb-ot-color-colr-table.hh hb-ot-color-cpal-table.hh \
-	hb-ot-map.cc hb-ot-map-private.hh hb-ot-math.cc \
-	hb-ot-math-table.hh hb-ot-shape.cc \
-	hb-ot-shape-complex-arabic.cc \
-	hb-ot-shape-complex-arabic-fallback.hh \
-	hb-ot-shape-complex-arabic-private.hh \
-	hb-ot-shape-complex-arabic-table.hh \
-	hb-ot-shape-complex-arabic-win1256.hh \
-	hb-ot-shape-complex-default.cc hb-ot-shape-complex-hangul.cc \
-	hb-ot-shape-complex-hebrew.cc hb-ot-shape-complex-indic.cc \
-	hb-ot-shape-complex-indic-private.hh \
-	hb-ot-shape-complex-indic-table.cc \
-	hb-ot-shape-complex-khmer-private.hh \
-	hb-ot-shape-complex-khmer.cc \
-	hb-ot-shape-complex-myanmar-private.hh \
-	hb-ot-shape-complex-myanmar.cc hb-ot-shape-complex-thai.cc \
-	hb-ot-shape-complex-tibetan.cc hb-ot-shape-complex-use.cc \
-	hb-ot-shape-complex-use-private.hh \
-	hb-ot-shape-complex-use-table.cc \
-	hb-ot-shape-complex-private.hh \
-	hb-ot-shape-normalize-private.hh hb-ot-shape-normalize.cc \
-	hb-ot-shape-fallback-private.hh hb-ot-shape-fallback.cc \
-	hb-ot-shape-private.hh hb-ot-var.cc hb-ot-var-avar-table.hh \
-	hb-ot-var-fvar-table.hh hb-ot-var-hvar-table.hh \
-	hb-ot-var-mvar-table.hh hb-ot-shape-complex-indic-machine.hh \
-	hb-ot-shape-complex-khmer-machine.hh \
-	hb-ot-shape-complex-myanmar-machine.hh \
-	hb-ot-shape-complex-use-machine.hh hb-fallback-shape.cc \
-	hb-glib.cc hb-ft.cc hb-graphite2.cc hb-uniscribe.cc \
-	hb-directwrite.cc hb-coretext.cc hb-ucdn.cc hb-icu.cc hb.h \
-	hb-blob.h hb-buffer.h hb-common.h hb-deprecated.h hb-face.h \
-	hb-font.h hb-set.h hb-shape.h hb-shape-plan.h hb-unicode.h \
-	hb-version.h hb-ot.h hb-ot-font.h hb-ot-layout.h hb-ot-math.h \
-	hb-ot-shape.h hb-ot-tag.h hb-ot-var.h hb-glib.h hb-ft.h \
-	hb-graphite2.h hb-uniscribe.h hb-directwrite.h hb-coretext.h \
-	hb-icu.h
-am__objects_1 =
-am__objects_2 = libharfbuzz_fuzzing_la-hb-blob.lo \
-	libharfbuzz_fuzzing_la-hb-buffer-serialize.lo \
-	libharfbuzz_fuzzing_la-hb-buffer.lo \
-	libharfbuzz_fuzzing_la-hb-common.lo \
-	libharfbuzz_fuzzing_la-hb-face.lo \
-	libharfbuzz_fuzzing_la-hb-font.lo \
-	libharfbuzz_fuzzing_la-hb-ot-tag.lo \
-	libharfbuzz_fuzzing_la-hb-set.lo \
-	libharfbuzz_fuzzing_la-hb-shape.lo \
-	libharfbuzz_fuzzing_la-hb-shape-plan.lo \
-	libharfbuzz_fuzzing_la-hb-shaper.lo \
-	libharfbuzz_fuzzing_la-hb-unicode.lo \
-	libharfbuzz_fuzzing_la-hb-warning.lo $(am__objects_1)
-am__objects_3 = $(am__objects_1)
-am__objects_4 = libharfbuzz_fuzzing_la-hb-aat-layout.lo \
-	libharfbuzz_fuzzing_la-hb-ot-font.lo \
-	libharfbuzz_fuzzing_la-hb-ot-layout.lo \
-	libharfbuzz_fuzzing_la-hb-ot-color.lo \
-	libharfbuzz_fuzzing_la-hb-ot-map.lo \
-	libharfbuzz_fuzzing_la-hb-ot-math.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-normalize.lo \
-	libharfbuzz_fuzzing_la-hb-ot-shape-fallback.lo \
-	libharfbuzz_fuzzing_la-hb-ot-var.lo $(am__objects_1)
-@HAVE_OT_TRUE@am__objects_5 = $(am__objects_4) $(am__objects_3)
-am__objects_6 = libharfbuzz_fuzzing_la-hb-fallback-shape.lo \
-	$(am__objects_1)
-@HAVE_FALLBACK_TRUE@am__objects_7 = $(am__objects_6)
-am__objects_8 = libharfbuzz_fuzzing_la-hb-glib.lo
-@HAVE_GLIB_TRUE@am__objects_9 = $(am__objects_8)
-am__objects_10 = libharfbuzz_fuzzing_la-hb-ft.lo
-@HAVE_FREETYPE_TRUE@am__objects_11 = $(am__objects_10)
-am__objects_12 = libharfbuzz_fuzzing_la-hb-graphite2.lo
-@HAVE_GRAPHITE2_TRUE@am__objects_13 = $(am__objects_12)
-am__objects_14 = libharfbuzz_fuzzing_la-hb-uniscribe.lo
-@HAVE_UNISCRIBE_TRUE@am__objects_15 = $(am__objects_14)
-am__objects_16 = libharfbuzz_fuzzing_la-hb-directwrite.lo
-@HAVE_DIRECTWRITE_TRUE@am__objects_17 = $(am__objects_16)
-am__objects_18 = libharfbuzz_fuzzing_la-hb-coretext.lo
-@HAVE_CORETEXT_TRUE@am__objects_19 = $(am__objects_18)
-am__objects_20 = libharfbuzz_fuzzing_la-hb-ucdn.lo
-@HAVE_UCDN_TRUE@am__objects_21 = $(am__objects_20)
-am__objects_22 = libharfbuzz_fuzzing_la-hb-icu.lo
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__objects_23 =  \
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@	$(am__objects_22)
-am__objects_24 = $(am__objects_2) $(am__objects_3) $(am__objects_5) \
-	$(am__objects_7) $(am__objects_9) $(am__objects_11) \
-	$(am__objects_13) $(am__objects_15) $(am__objects_17) \
-	$(am__objects_19) $(am__objects_21) $(am__objects_23)
-@HAVE_OT_TRUE@am__objects_25 = $(am__objects_3)
-@HAVE_GLIB_TRUE@am__objects_26 = $(am__objects_1)
-@HAVE_FREETYPE_TRUE@am__objects_27 = $(am__objects_1)
-@HAVE_GRAPHITE2_TRUE@am__objects_28 = $(am__objects_1)
-@HAVE_UNISCRIBE_TRUE@am__objects_29 = $(am__objects_1)
-@HAVE_DIRECTWRITE_TRUE@am__objects_30 = $(am__objects_1)
-@HAVE_CORETEXT_TRUE@am__objects_31 = $(am__objects_1)
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__objects_32 =  \
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@	$(am__objects_1)
-am__objects_33 = $(am__objects_3) $(am__objects_25) $(am__objects_26) \
-	$(am__objects_27) $(am__objects_28) $(am__objects_29) \
-	$(am__objects_30) $(am__objects_31) $(am__objects_32)
-am__objects_34 = $(am__objects_24) $(am__objects_33)
-am_libharfbuzz_fuzzing_la_OBJECTS = $(am__objects_34)
-libharfbuzz_fuzzing_la_OBJECTS = $(am_libharfbuzz_fuzzing_la_OBJECTS)
 @HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_DEPENDENCIES =  \
 @HAVE_GOBJECT_TRUE@	$(am__DEPENDENCIES_1) libharfbuzz.la
 am__libharfbuzz_gobject_la_SOURCES_DIST = hb-gobject-structs.cc
-am__objects_35 = libharfbuzz_gobject_la-hb-gobject-structs.lo
+am__objects_1 = libharfbuzz_gobject_la-hb-gobject-structs.lo
 @HAVE_GOBJECT_TRUE@am_libharfbuzz_gobject_la_OBJECTS =  \
-@HAVE_GOBJECT_TRUE@	$(am__objects_35)
-am__objects_36 = libharfbuzz_gobject_la-hb-gobject-enums.lo
-am__objects_37 = $(am__objects_36)
+@HAVE_GOBJECT_TRUE@	$(am__objects_1)
+am__objects_2 = libharfbuzz_gobject_la-hb-gobject-enums.lo
+am__objects_3 = $(am__objects_2)
 @HAVE_GOBJECT_TRUE@nodist_libharfbuzz_gobject_la_OBJECTS =  \
-@HAVE_GOBJECT_TRUE@	$(am__objects_37)
+@HAVE_GOBJECT_TRUE@	$(am__objects_3)
 libharfbuzz_gobject_la_OBJECTS = $(am_libharfbuzz_gobject_la_OBJECTS) \
 	$(nodist_libharfbuzz_gobject_la_OBJECTS)
 @HAVE_GOBJECT_TRUE@am_libharfbuzz_gobject_la_rpath = -rpath $(libdir)
@@ -399,9 +239,9 @@ libharfbuzz_gobject_la_OBJECTS = $(am_libharfbuzz_gobject_la_OBJECTS) \
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@	$(am__DEPENDENCIES_1) \
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@	libharfbuzz.la
 am__libharfbuzz_icu_la_SOURCES_DIST = hb-icu.cc
-am__objects_38 = libharfbuzz_icu_la-hb-icu.lo
+am__objects_4 = libharfbuzz_icu_la-hb-icu.lo
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am_libharfbuzz_icu_la_OBJECTS =  \
-@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@	$(am__objects_38)
+@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@	$(am__objects_4)
 libharfbuzz_icu_la_OBJECTS = $(am_libharfbuzz_icu_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -414,88 +254,112 @@ libharfbuzz_icu_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@am_libharfbuzz_icu_la_rpath =  \
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@	-rpath $(libdir)
 libharfbuzz_subset_la_DEPENDENCIES = libharfbuzz.la
-am__objects_39 = libharfbuzz_subset_la-hb-subset.lo \
+am__objects_5 =
+am__objects_6 = libharfbuzz_subset_la-hb-static.lo \
+	libharfbuzz_subset_la-hb-subset.lo \
 	libharfbuzz_subset_la-hb-subset-glyf.lo \
 	libharfbuzz_subset_la-hb-subset-input.lo \
-	libharfbuzz_subset_la-hb-subset-plan.lo $(am__objects_1)
-am_libharfbuzz_subset_la_OBJECTS = $(am__objects_39)
+	libharfbuzz_subset_la-hb-subset-plan.lo $(am__objects_5)
+am_libharfbuzz_subset_la_OBJECTS = $(am__objects_6)
 libharfbuzz_subset_la_OBJECTS = $(am_libharfbuzz_subset_la_OBJECTS)
 libharfbuzz_subset_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(libharfbuzz_subset_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+@HAVE_GLIB_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
+@HAVE_FREETYPE_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
+@HAVE_GRAPHITE2_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_1)
+@HAVE_PTHREAD_TRUE@am__DEPENDENCIES_5 = $(am__DEPENDENCIES_1)
+@HAVE_UNISCRIBE_TRUE@am__DEPENDENCIES_6 = $(am__DEPENDENCIES_1)
+@HAVE_DIRECTWRITE_TRUE@am__DEPENDENCIES_7 = $(am__DEPENDENCIES_1)
+@HAVE_CORETEXT_TRUE@am__DEPENDENCIES_8 = $(am__DEPENDENCIES_1)
+am__DEPENDENCIES_9 = $(am__DEPENDENCIES_5) $(am__DEPENDENCIES_6) \
+	$(am__DEPENDENCIES_7) $(am__DEPENDENCIES_8)
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__DEPENDENCIES_10 =  \
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@	$(am__DEPENDENCIES_1)
+am__DEPENDENCIES_11 = $(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_4) $(am__append_32) $(am__DEPENDENCIES_9) \
+	$(am__DEPENDENCIES_10)
 libharfbuzz_la_DEPENDENCIES = $(am__DEPENDENCIES_11)
-am__libharfbuzz_la_SOURCES_DIST = hb-atomic-private.hh hb-blob.cc \
-	hb-buffer-private.hh hb-buffer-serialize.cc hb-buffer.cc \
-	hb-common.cc hb-debug.hh hb-dsalgs.hh hb-face-private.hh \
-	hb-face.cc hb-font-private.hh hb-font.cc hb-mutex-private.hh \
-	hb-object-private.hh hb-open-file-private.hh \
-	hb-open-type-private.hh hb-ot-color-cbdt-table.hh \
+am__libharfbuzz_la_SOURCES_DIST = hb-atomic.hh hb-blob.hh hb-blob.cc \
+	hb-buffer.hh hb-buffer-serialize.cc hb-buffer.cc hb-cache.hh \
+	hb-common.cc hb-debug.hh hb-dsalgs.hh hb-face.hh hb-face.cc \
+	hb-font.hh hb-font.cc hb-iter.hh hb-kern.hh hb-map.hh \
+	hb-map.cc hb-machinery.hh hb-mutex.hh hb-null.hh hb-object.hh \
+	hb-open-file.hh hb-open-type.hh hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh hb-ot-glyf-table.hh hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh hb-ot-hhea-table.hh hb-ot-hmtx-table.hh \
-	hb-ot-kern-table.hh hb-ot-maxp-table.hh hb-ot-name-table.hh \
+	hb-ot-kern-table.hh hb-ot-maxp-table.hh hb-ot-name-language.cc \
+	hb-ot-name-language.hh hb-ot-name-table.hh hb-ot-name.cc \
 	hb-ot-os2-table.hh hb-ot-os2-unicode-ranges.hh \
-	hb-ot-post-macroman.hh hb-ot-post-table.hh hb-ot-tag.cc \
-	hb-private.hh hb-set-digest-private.hh hb-set-private.hh \
-	hb-set.cc hb-shape.cc hb-shape-plan-private.hh \
-	hb-shape-plan.cc hb-shaper-list.hh hb-shaper-impl-private.hh \
-	hb-shaper-private.hh hb-shaper.cc hb-string-array.hh \
-	hb-unicode-private.hh hb-unicode.cc hb-utf-private.hh \
+	hb-ot-post-macroman.hh hb-ot-post-table.hh hb-ot-tag-table.hh \
+	hb-ot-tag.cc hb.hh hb-set-digest.hh hb-set.hh hb-set.cc \
+	hb-shape.cc hb-shape-plan.hh hb-shape-plan.cc \
+	hb-shaper-list.hh hb-shaper-impl.hh hb-shaper.hh hb-shaper.cc \
+	hb-static.cc hb-string-array.hh hb-unicode.hh \
+	hb-unicode-emoji-table.hh hb-unicode.cc hb-vector.hh hb-utf.hh \
 	hb-warning.cc hb-buffer-deserialize-json.hh \
 	hb-buffer-deserialize-text.hh hb-aat-layout.cc \
-	hb-aat-layout-common-private.hh hb-aat-layout-ankr-table.hh \
-	hb-aat-layout-kerx-table.hh hb-aat-layout-morx-table.hh \
-	hb-aat-layout-trak-table.hh hb-aat-layout-private.hh \
-	hb-ot-font.cc hb-ot-layout.cc hb-ot-layout-base-table.hh \
-	hb-ot-layout-common-private.hh hb-ot-layout-gdef-table.hh \
-	hb-ot-layout-gpos-table.hh hb-ot-layout-gsubgpos-private.hh \
-	hb-ot-layout-gsub-table.hh hb-ot-layout-jstf-table.hh \
-	hb-ot-layout-private.hh hb-ot-color.cc \
+	hb-aat-layout-common.hh hb-aat-layout-ankr-table.hh \
+	hb-aat-layout-bsln-table.hh hb-aat-layout-feat-table.hh \
+	hb-aat-layout-just-table.hh hb-aat-layout-kerx-table.hh \
+	hb-aat-layout-lcar-table.hh hb-aat-layout-morx-table.hh \
+	hb-aat-layout-trak-table.hh hb-aat-layout.hh \
+	hb-aat-ltag-table.hh hb-aat-map.cc hb-aat-map.hh hb-ot-face.hh \
+	hb-ot-face.cc hb-ot-font.cc hb-ot-layout.cc \
+	hb-ot-layout-base-table.hh hb-ot-layout-common.hh \
+	hb-ot-layout-gdef-table.hh hb-ot-layout-gpos-table.hh \
+	hb-ot-layout-gsubgpos.hh hb-ot-layout-gsub-table.hh \
+	hb-ot-layout-jstf-table.hh hb-ot-layout.hh hb-ot-color.cc \
 	hb-ot-color-colr-table.hh hb-ot-color-cpal-table.hh \
-	hb-ot-map.cc hb-ot-map-private.hh hb-ot-math.cc \
-	hb-ot-math-table.hh hb-ot-shape.cc \
-	hb-ot-shape-complex-arabic.cc \
+	hb-ot-color-sbix-table.hh hb-ot-color-svg-table.hh \
+	hb-ot-map.cc hb-ot-map.hh hb-ot-math.cc hb-ot-math-table.hh \
+	hb-ot-shape.cc hb-ot-shape-complex-arabic.cc \
 	hb-ot-shape-complex-arabic-fallback.hh \
-	hb-ot-shape-complex-arabic-private.hh \
+	hb-ot-shape-complex-arabic.hh \
 	hb-ot-shape-complex-arabic-table.hh \
 	hb-ot-shape-complex-arabic-win1256.hh \
 	hb-ot-shape-complex-default.cc hb-ot-shape-complex-hangul.cc \
 	hb-ot-shape-complex-hebrew.cc hb-ot-shape-complex-indic.cc \
-	hb-ot-shape-complex-indic-private.hh \
+	hb-ot-shape-complex-indic.hh \
 	hb-ot-shape-complex-indic-table.cc \
-	hb-ot-shape-complex-khmer-private.hh \
-	hb-ot-shape-complex-khmer.cc \
-	hb-ot-shape-complex-myanmar-private.hh \
-	hb-ot-shape-complex-myanmar.cc hb-ot-shape-complex-thai.cc \
-	hb-ot-shape-complex-tibetan.cc hb-ot-shape-complex-use.cc \
-	hb-ot-shape-complex-use-private.hh \
-	hb-ot-shape-complex-use-table.cc \
-	hb-ot-shape-complex-private.hh \
-	hb-ot-shape-normalize-private.hh hb-ot-shape-normalize.cc \
-	hb-ot-shape-fallback-private.hh hb-ot-shape-fallback.cc \
-	hb-ot-shape-private.hh hb-ot-var.cc hb-ot-var-avar-table.hh \
-	hb-ot-var-fvar-table.hh hb-ot-var-hvar-table.hh \
-	hb-ot-var-mvar-table.hh hb-ot-shape-complex-indic-machine.hh \
+	hb-ot-shape-complex-khmer.hh hb-ot-shape-complex-khmer.cc \
+	hb-ot-shape-complex-myanmar.hh hb-ot-shape-complex-myanmar.cc \
+	hb-ot-shape-complex-thai.cc hb-ot-shape-complex-use.cc \
+	hb-ot-shape-complex-use.hh hb-ot-shape-complex-use-table.cc \
+	hb-ot-shape-complex-vowel-constraints.cc \
+	hb-ot-shape-complex-vowel-constraints.hh \
+	hb-ot-shape-complex.hh hb-ot-shape-normalize.hh \
+	hb-ot-shape-normalize.cc hb-ot-shape-fallback.hh \
+	hb-ot-shape-fallback.cc hb-ot-shape.hh hb-ot-stat-table.hh \
+	hb-ot-var.cc hb-ot-var-avar-table.hh hb-ot-var-fvar-table.hh \
+	hb-ot-var-hvar-table.hh hb-ot-var-mvar-table.hh \
+	hb-ot-vorg-table.hh hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-khmer-machine.hh \
 	hb-ot-shape-complex-myanmar-machine.hh \
 	hb-ot-shape-complex-use-machine.hh hb-fallback-shape.cc \
 	hb-glib.cc hb-ft.cc hb-graphite2.cc hb-uniscribe.cc \
 	hb-directwrite.cc hb-coretext.cc hb-ucdn.cc hb-icu.cc hb.h \
 	hb-blob.h hb-buffer.h hb-common.h hb-deprecated.h hb-face.h \
-	hb-font.h hb-set.h hb-shape.h hb-shape-plan.h hb-unicode.h \
-	hb-version.h hb-ot.h hb-ot-font.h hb-ot-layout.h hb-ot-math.h \
-	hb-ot-shape.h hb-ot-tag.h hb-ot-var.h hb-glib.h hb-ft.h \
+	hb-font.h hb-map.h hb-set.h hb-shape.h hb-shape-plan.h \
+	hb-unicode.h hb-version.h hb-aat.h hb-aat-layout.h hb-ot.h \
+	hb-ot-color.h hb-ot-font.h hb-ot-layout.h hb-ot-math.h \
+	hb-ot-name.h hb-ot-shape.h hb-ot-var.h hb-glib.h hb-ft.h \
 	hb-graphite2.h hb-uniscribe.h hb-directwrite.h hb-coretext.h \
 	hb-icu.h
-am__objects_40 = libharfbuzz_la-hb-blob.lo \
+am__objects_7 = libharfbuzz_la-hb-blob.lo \
 	libharfbuzz_la-hb-buffer-serialize.lo \
 	libharfbuzz_la-hb-buffer.lo libharfbuzz_la-hb-common.lo \
 	libharfbuzz_la-hb-face.lo libharfbuzz_la-hb-font.lo \
-	libharfbuzz_la-hb-ot-tag.lo libharfbuzz_la-hb-set.lo \
-	libharfbuzz_la-hb-shape.lo libharfbuzz_la-hb-shape-plan.lo \
-	libharfbuzz_la-hb-shaper.lo libharfbuzz_la-hb-unicode.lo \
-	libharfbuzz_la-hb-warning.lo $(am__objects_1)
-am__objects_41 = libharfbuzz_la-hb-aat-layout.lo \
+	libharfbuzz_la-hb-map.lo libharfbuzz_la-hb-ot-name-language.lo \
+	libharfbuzz_la-hb-ot-name.lo libharfbuzz_la-hb-ot-tag.lo \
+	libharfbuzz_la-hb-set.lo libharfbuzz_la-hb-shape.lo \
+	libharfbuzz_la-hb-shape-plan.lo libharfbuzz_la-hb-shaper.lo \
+	libharfbuzz_la-hb-static.lo libharfbuzz_la-hb-unicode.lo \
+	libharfbuzz_la-hb-warning.lo $(am__objects_5)
+am__objects_8 = $(am__objects_5)
+am__objects_9 = libharfbuzz_la-hb-aat-layout.lo \
+	libharfbuzz_la-hb-aat-map.lo libharfbuzz_la-hb-ot-face.lo \
 	libharfbuzz_la-hb-ot-font.lo libharfbuzz_la-hb-ot-layout.lo \
 	libharfbuzz_la-hb-ot-color.lo libharfbuzz_la-hb-ot-map.lo \
 	libharfbuzz_la-hb-ot-math.lo libharfbuzz_la-hb-ot-shape.lo \
@@ -508,39 +372,51 @@ am__objects_41 = libharfbuzz_la-hb-aat-layout.lo \
 	libharfbuzz_la-hb-ot-shape-complex-khmer.lo \
 	libharfbuzz_la-hb-ot-shape-complex-myanmar.lo \
 	libharfbuzz_la-hb-ot-shape-complex-thai.lo \
-	libharfbuzz_la-hb-ot-shape-complex-tibetan.lo \
 	libharfbuzz_la-hb-ot-shape-complex-use.lo \
 	libharfbuzz_la-hb-ot-shape-complex-use-table.lo \
+	libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.lo \
 	libharfbuzz_la-hb-ot-shape-normalize.lo \
 	libharfbuzz_la-hb-ot-shape-fallback.lo \
-	libharfbuzz_la-hb-ot-var.lo $(am__objects_1)
-@HAVE_OT_TRUE@am__objects_42 = $(am__objects_41) $(am__objects_3)
-am__objects_43 = libharfbuzz_la-hb-fallback-shape.lo $(am__objects_1)
-@HAVE_FALLBACK_TRUE@am__objects_44 = $(am__objects_43)
-am__objects_45 = libharfbuzz_la-hb-glib.lo
-@HAVE_GLIB_TRUE@am__objects_46 = $(am__objects_45)
-am__objects_47 = libharfbuzz_la-hb-ft.lo
-@HAVE_FREETYPE_TRUE@am__objects_48 = $(am__objects_47)
-am__objects_49 = libharfbuzz_la-hb-graphite2.lo
-@HAVE_GRAPHITE2_TRUE@am__objects_50 = $(am__objects_49)
-am__objects_51 = libharfbuzz_la-hb-uniscribe.lo
-@HAVE_UNISCRIBE_TRUE@am__objects_52 = $(am__objects_51)
-am__objects_53 = libharfbuzz_la-hb-directwrite.lo
-@HAVE_DIRECTWRITE_TRUE@am__objects_54 = $(am__objects_53)
-am__objects_55 = libharfbuzz_la-hb-coretext.lo
-@HAVE_CORETEXT_TRUE@am__objects_56 = $(am__objects_55)
-am__objects_57 = libharfbuzz_la-hb-ucdn.lo
-@HAVE_UCDN_TRUE@am__objects_58 = $(am__objects_57)
-am__objects_59 = libharfbuzz_la-hb-icu.lo
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__objects_60 =  \
-@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@	$(am__objects_59)
-am__objects_61 = $(am__objects_40) $(am__objects_3) $(am__objects_42) \
-	$(am__objects_44) $(am__objects_46) $(am__objects_48) \
-	$(am__objects_50) $(am__objects_52) $(am__objects_54) \
-	$(am__objects_56) $(am__objects_58) $(am__objects_60)
-am_libharfbuzz_la_OBJECTS = $(am__objects_61) $(am__objects_33)
+	libharfbuzz_la-hb-ot-var.lo $(am__objects_5)
+am__objects_10 = libharfbuzz_la-hb-fallback-shape.lo $(am__objects_5)
+@HAVE_FALLBACK_TRUE@am__objects_11 = $(am__objects_10)
+am__objects_12 = libharfbuzz_la-hb-glib.lo
+@HAVE_GLIB_TRUE@am__objects_13 = $(am__objects_12)
+am__objects_14 = libharfbuzz_la-hb-ft.lo
+@HAVE_FREETYPE_TRUE@am__objects_15 = $(am__objects_14)
+am__objects_16 = libharfbuzz_la-hb-graphite2.lo
+@HAVE_GRAPHITE2_TRUE@am__objects_17 = $(am__objects_16)
+am__objects_18 = libharfbuzz_la-hb-uniscribe.lo
+@HAVE_UNISCRIBE_TRUE@am__objects_19 = $(am__objects_18)
+am__objects_20 = libharfbuzz_la-hb-directwrite.lo
+@HAVE_DIRECTWRITE_TRUE@am__objects_21 = $(am__objects_20)
+am__objects_22 = libharfbuzz_la-hb-coretext.lo
+@HAVE_CORETEXT_TRUE@am__objects_23 = $(am__objects_22)
+am__objects_24 = libharfbuzz_la-hb-ucdn.lo
+@HAVE_UCDN_TRUE@am__objects_25 = $(am__objects_24)
+am__objects_26 = libharfbuzz_la-hb-icu.lo
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__objects_27 =  \
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@	$(am__objects_26)
+am__objects_28 = $(am__objects_7) $(am__objects_8) $(am__objects_9) \
+	$(am__objects_8) $(am__objects_11) $(am__objects_13) \
+	$(am__objects_15) $(am__objects_17) $(am__objects_19) \
+	$(am__objects_21) $(am__objects_23) $(am__objects_25) \
+	$(am__objects_27)
+@HAVE_GLIB_TRUE@am__objects_29 = $(am__objects_5)
+@HAVE_FREETYPE_TRUE@am__objects_30 = $(am__objects_5)
+@HAVE_GRAPHITE2_TRUE@am__objects_31 = $(am__objects_5)
+@HAVE_UNISCRIBE_TRUE@am__objects_32 = $(am__objects_5)
+@HAVE_DIRECTWRITE_TRUE@am__objects_33 = $(am__objects_5)
+@HAVE_CORETEXT_TRUE@am__objects_34 = $(am__objects_5)
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@am__objects_35 =  \
+@HAVE_ICU_BUILTIN_TRUE@@HAVE_ICU_TRUE@	$(am__objects_5)
+am__objects_36 = $(am__objects_8) $(am__objects_8) $(am__objects_29) \
+	$(am__objects_30) $(am__objects_31) $(am__objects_32) \
+	$(am__objects_33) $(am__objects_34) $(am__objects_35)
+am_libharfbuzz_la_OBJECTS = $(am__objects_28) $(am__objects_36)
 libharfbuzz_la_OBJECTS = $(am_libharfbuzz_la_OBJECTS)
 am__EXEEXT_1 =
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@am__EXEEXT_2 = test-ot-color$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_dump_indic_data_OBJECTS =  \
 	dump_indic_data-dump-indic-data.$(OBJEXT) \
@@ -573,6 +449,19 @@ am_test_buffer_serialize_OBJECTS =  \
 test_buffer_serialize_OBJECTS = $(am_test_buffer_serialize_OBJECTS)
 test_buffer_serialize_DEPENDENCIES = libharfbuzz.la \
 	$(am__DEPENDENCIES_11)
+am_test_name_table_OBJECTS =  \
+	test_name_table-test-name-table.$(OBJEXT)
+test_name_table_OBJECTS = $(am_test_name_table_OBJECTS)
+test_name_table_DEPENDENCIES = libharfbuzz.la $(am__DEPENDENCIES_11)
+am__test_ot_color_SOURCES_DIST = test-ot-color.cc
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@am_test_ot_color_OBJECTS = test_ot_color-test-ot-color.$(OBJEXT)
+test_ot_color_OBJECTS = $(am_test_ot_color_OBJECTS)
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@test_ot_color_DEPENDENCIES =  \
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@	libharfbuzz.la \
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@	$(am__DEPENDENCIES_11) \
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@	$(am__DEPENDENCIES_1) \
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@	$(am__DEPENDENCIES_1) \
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@	$(am__DEPENDENCIES_1)
 am_test_ot_tag_OBJECTS = test_ot_tag-hb-ot-tag.$(OBJEXT)
 test_ot_tag_OBJECTS = $(am_test_ot_tag_OBJECTS)
 test_ot_tag_DEPENDENCIES = libharfbuzz.la $(am__DEPENDENCIES_11)
@@ -644,24 +533,24 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libharfbuzz_fuzzing_la_SOURCES) \
-	$(libharfbuzz_gobject_la_SOURCES) \
+SOURCES = $(libharfbuzz_gobject_la_SOURCES) \
 	$(nodist_libharfbuzz_gobject_la_SOURCES) \
 	$(libharfbuzz_icu_la_SOURCES) $(libharfbuzz_subset_la_SOURCES) \
 	$(libharfbuzz_la_SOURCES) $(dump_indic_data_SOURCES) \
 	$(dump_khmer_data_SOURCES) $(dump_myanmar_data_SOURCES) \
 	$(dump_use_data_SOURCES) $(main_SOURCES) $(test_SOURCES) \
-	$(test_buffer_serialize_SOURCES) $(test_ot_tag_SOURCES) \
+	$(test_buffer_serialize_SOURCES) $(test_name_table_SOURCES) \
+	$(test_ot_color_SOURCES) $(test_ot_tag_SOURCES) \
 	$(test_size_params_SOURCES) $(test_unicode_ranges_SOURCES) \
 	$(test_would_substitute_SOURCES)
-DIST_SOURCES = $(am__libharfbuzz_fuzzing_la_SOURCES_DIST) \
-	$(am__libharfbuzz_gobject_la_SOURCES_DIST) \
+DIST_SOURCES = $(am__libharfbuzz_gobject_la_SOURCES_DIST) \
 	$(am__libharfbuzz_icu_la_SOURCES_DIST) \
 	$(libharfbuzz_subset_la_SOURCES) \
 	$(am__libharfbuzz_la_SOURCES_DIST) $(dump_indic_data_SOURCES) \
 	$(dump_khmer_data_SOURCES) $(dump_myanmar_data_SOURCES) \
 	$(dump_use_data_SOURCES) $(main_SOURCES) $(test_SOURCES) \
-	$(test_buffer_serialize_SOURCES) $(test_ot_tag_SOURCES) \
+	$(test_buffer_serialize_SOURCES) $(test_name_table_SOURCES) \
+	$(am__test_ot_color_SOURCES_DIST) $(test_ot_tag_SOURCES) \
 	$(test_size_params_SOURCES) $(test_unicode_ranges_SOURCES) \
 	$(test_would_substitute_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
@@ -679,12 +568,12 @@ am__can_run_installinfo = \
   esac
 DATA = $(cmake_DATA) $(gir_DATA) $(pkgconfig_DATA) $(typelib_DATA)
 am__pkginclude_HEADERS_DIST = hb.h hb-blob.h hb-buffer.h hb-common.h \
-	hb-deprecated.h hb-face.h hb-font.h hb-set.h hb-shape.h \
-	hb-shape-plan.h hb-unicode.h hb-version.h hb-ot.h hb-ot-font.h \
-	hb-ot-layout.h hb-ot-math.h hb-ot-shape.h hb-ot-tag.h \
+	hb-deprecated.h hb-face.h hb-font.h hb-map.h hb-set.h \
+	hb-shape.h hb-shape-plan.h hb-unicode.h hb-version.h hb-aat.h \
+	hb-aat-layout.h hb-ot.h hb-ot-color.h hb-ot-font.h \
+	hb-ot-layout.h hb-ot-math.h hb-ot-name.h hb-ot-shape.h \
 	hb-ot-var.h hb-glib.h hb-ft.h hb-graphite2.h hb-uniscribe.h \
 	hb-directwrite.h hb-coretext.h hb-icu.h hb-subset.h \
-	hb-subset-glyf.hh hb-subset-plan.hh hb-subset-private.hh \
 	hb-gobject.h hb-gobject-structs.h
 HEADERS = $(nodist_pkginclude_HEADERS) $(pkginclude_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
@@ -870,11 +759,11 @@ am__set_TESTS_bases = \
   bases=`for i in $$bases; do echo $$i; done | sed 's/\.log$$//'`; \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
-@WITH_LIBSTDCXX_FALSE@am__EXEEXT_2 = check-libstdc++.sh \
+@WITH_LIBSTDCXX_FALSE@am__EXEEXT_3 = check-libstdc++.sh \
 @WITH_LIBSTDCXX_FALSE@	$(am__EXEEXT_1)
-am__EXEEXT_3 = check-c-linkage-decls.sh check-externs.sh \
+am__EXEEXT_4 = check-c-linkage-decls.sh check-externs.sh \
 	check-header-guards.sh check-includes.sh check-static-inits.sh \
-	check-symbols.sh $(am__EXEEXT_1) $(am__EXEEXT_2)
+	check-symbols.sh $(am__EXEEXT_1) $(am__EXEEXT_3)
 TEST_SUITE_LOG = test-suite.log
 TEST_EXTENSIONS = @EXEEXT@ .test
 LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
@@ -896,8 +785,8 @@ TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 	$(TEST_LOG_FLAGS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.sources \
-	$(srcdir)/harfbuzz-config.cmake.in $(srcdir)/hb-version.h.in \
-	$(top_srcdir)/depcomp $(top_srcdir)/test-driver
+	$(srcdir)/harfbuzz-config.cmake.in $(top_srcdir)/depcomp \
+	$(top_srcdir)/test-driver
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -1041,6 +930,8 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
@@ -1110,38 +1001,45 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 NULL = 
-SUBDIRS = $(am__append_33)
+SUBDIRS = $(am__append_30)
 DIST_SUBDIRS = hb-ucdn
-BUILT_SOURCES = $(am__append_48) $(RAGEL_GENERATED)
-EXTRA_DIST = harfbuzz.pc.in harfbuzz-config.cmake.in \
+BUILT_SOURCES = hb-version.h $(am__append_45) $(RAGEL_GENERATED)
+EXTRA_DIST = hb-version.h.in harfbuzz.pc.in harfbuzz-config.cmake.in \
 	harfbuzz-subset.pc.in harfbuzz-icu.pc.in \
 	harfbuzz-gobject.pc.in hb-gobject-enums.cc.tmpl \
 	hb-gobject-enums.h.tmpl $(NULL) $(GENERATORS) \
 	$(HB_BASE_RAGEL_sources) $(HB_OT_RAGEL_sources) $(NULL)
-CLEANFILES = libharfbuzz-fuzzing.la $(pkgconfig_DATA) $(DEF_FILES) \
-	$(am__append_52)
-DISTCLEANFILES = $(am__append_49)
+CLEANFILES = $(pkgconfig_DATA) $(DEF_FILES) $(am__append_50)
+DISTCLEANFILES = $(am__append_46)
 MAINTAINERCLEANFILES = 
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 lib_LTLIBRARIES = libharfbuzz.la libharfbuzz-subset.la \
-	$(am__append_41) $(am__append_44)
+	$(am__append_38) $(am__append_41)
 HB_BASE_sources = \
-	hb-atomic-private.hh \
+	hb-atomic.hh \
+	hb-blob.hh \
 	hb-blob.cc \
-	hb-buffer-private.hh \
+	hb-buffer.hh \
 	hb-buffer-serialize.cc \
 	hb-buffer.cc \
+	hb-cache.hh \
 	hb-common.cc \
 	hb-debug.hh \
 	hb-dsalgs.hh \
-	hb-face-private.hh \
+	hb-face.hh \
 	hb-face.cc \
-	hb-font-private.hh \
+	hb-font.hh \
 	hb-font.cc \
-	hb-mutex-private.hh \
-	hb-object-private.hh \
-	hb-open-file-private.hh \
-	hb-open-type-private.hh \
+	hb-iter.hh \
+	hb-kern.hh \
+	hb-map.hh \
+	hb-map.cc \
+	hb-machinery.hh \
+	hb-mutex.hh \
+	hb-null.hh \
+	hb-object.hh \
+	hb-open-file.hh \
+	hb-open-type.hh \
 	hb-ot-color-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
 	hb-ot-glyf-table.hh \
@@ -1151,27 +1049,34 @@ HB_BASE_sources = \
 	hb-ot-hmtx-table.hh \
 	hb-ot-kern-table.hh \
 	hb-ot-maxp-table.hh \
+	hb-ot-name-language.cc \
+	hb-ot-name-language.hh \
 	hb-ot-name-table.hh \
+	hb-ot-name.cc \
 	hb-ot-os2-table.hh \
 	hb-ot-os2-unicode-ranges.hh \
 	hb-ot-post-macroman.hh \
 	hb-ot-post-table.hh \
+	hb-ot-tag-table.hh \
 	hb-ot-tag.cc \
-	hb-private.hh \
-	hb-set-digest-private.hh \
-	hb-set-private.hh \
+	hb.hh \
+	hb-set-digest.hh \
+	hb-set.hh \
 	hb-set.cc \
 	hb-shape.cc \
-	hb-shape-plan-private.hh \
+	hb-shape-plan.hh \
 	hb-shape-plan.cc \
 	hb-shaper-list.hh \
-	hb-shaper-impl-private.hh \
-	hb-shaper-private.hh \
+	hb-shaper-impl.hh \
+	hb-shaper.hh \
 	hb-shaper.cc \
+	hb-static.cc \
 	hb-string-array.hh \
-	hb-unicode-private.hh \
+	hb-unicode.hh \
+	hb-unicode-emoji-table.hh \
 	hb-unicode.cc \
-	hb-utf-private.hh \
+	hb-vector.hh \
+	hb-utf.hh \
 	hb-warning.cc \
 	$(NULL)
 
@@ -1193,6 +1098,7 @@ HB_BASE_headers = \
 	hb-deprecated.h \
 	hb-face.h \
 	hb-font.h \
+	hb-map.h \
 	hb-set.h \
 	hb-shape.h \
 	hb-shape-plan.h \
@@ -1206,61 +1112,75 @@ HB_FALLBACK_sources = \
 
 HB_OT_sources = \
 	hb-aat-layout.cc \
-	hb-aat-layout-common-private.hh \
+	hb-aat-layout-common.hh \
 	hb-aat-layout-ankr-table.hh \
+	hb-aat-layout-bsln-table.hh \
+	hb-aat-layout-feat-table.hh \
+	hb-aat-layout-just-table.hh \
 	hb-aat-layout-kerx-table.hh \
+	hb-aat-layout-lcar-table.hh \
 	hb-aat-layout-morx-table.hh \
 	hb-aat-layout-trak-table.hh \
-	hb-aat-layout-private.hh \
+	hb-aat-layout.hh \
+	hb-aat-ltag-table.hh \
+	hb-aat-map.cc \
+	hb-aat-map.hh \
+	hb-ot-face.hh \
+	hb-ot-face.cc \
 	hb-ot-font.cc \
 	hb-ot-layout.cc \
 	hb-ot-layout-base-table.hh \
-	hb-ot-layout-common-private.hh \
+	hb-ot-layout-common.hh \
 	hb-ot-layout-gdef-table.hh \
 	hb-ot-layout-gpos-table.hh \
-	hb-ot-layout-gsubgpos-private.hh \
+	hb-ot-layout-gsubgpos.hh \
 	hb-ot-layout-gsub-table.hh \
 	hb-ot-layout-jstf-table.hh \
-	hb-ot-layout-private.hh \
+	hb-ot-layout.hh \
 	hb-ot-color.cc \
 	hb-ot-color-colr-table.hh \
 	hb-ot-color-cpal-table.hh \
+	hb-ot-color-sbix-table.hh \
+	hb-ot-color-svg-table.hh \
 	hb-ot-map.cc \
-	hb-ot-map-private.hh \
+	hb-ot-map.hh \
 	hb-ot-math.cc \
 	hb-ot-math-table.hh \
 	hb-ot-shape.cc \
 	hb-ot-shape-complex-arabic.cc \
 	hb-ot-shape-complex-arabic-fallback.hh \
-	hb-ot-shape-complex-arabic-private.hh \
+	hb-ot-shape-complex-arabic.hh \
 	hb-ot-shape-complex-arabic-table.hh \
 	hb-ot-shape-complex-arabic-win1256.hh \
 	hb-ot-shape-complex-default.cc \
 	hb-ot-shape-complex-hangul.cc \
 	hb-ot-shape-complex-hebrew.cc \
 	hb-ot-shape-complex-indic.cc \
-	hb-ot-shape-complex-indic-private.hh \
+	hb-ot-shape-complex-indic.hh \
 	hb-ot-shape-complex-indic-table.cc \
-	hb-ot-shape-complex-khmer-private.hh \
+	hb-ot-shape-complex-khmer.hh \
 	hb-ot-shape-complex-khmer.cc \
-	hb-ot-shape-complex-myanmar-private.hh \
+	hb-ot-shape-complex-myanmar.hh \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-thai.cc \
-	hb-ot-shape-complex-tibetan.cc \
 	hb-ot-shape-complex-use.cc \
-	hb-ot-shape-complex-use-private.hh \
+	hb-ot-shape-complex-use.hh \
 	hb-ot-shape-complex-use-table.cc \
-	hb-ot-shape-complex-private.hh \
-	hb-ot-shape-normalize-private.hh \
+	hb-ot-shape-complex-vowel-constraints.cc \
+	hb-ot-shape-complex-vowel-constraints.hh \
+	hb-ot-shape-complex.hh \
+	hb-ot-shape-normalize.hh \
 	hb-ot-shape-normalize.cc \
-	hb-ot-shape-fallback-private.hh \
+	hb-ot-shape-fallback.hh \
 	hb-ot-shape-fallback.cc \
-	hb-ot-shape-private.hh \
+	hb-ot-shape.hh \
+	hb-ot-stat-table.hh \
 	hb-ot-var.cc \
 	hb-ot-var-avar-table.hh \
 	hb-ot-var-fvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
+	hb-ot-vorg-table.hh \
 	$(NULL)
 
 HB_OT_RAGEL_GENERATED_sources = \
@@ -1278,12 +1198,15 @@ HB_OT_RAGEL_sources = \
 	$(NULL)
 
 HB_OT_headers = \
+	hb-aat.h \
+	hb-aat-layout.h \
 	hb-ot.h \
+	hb-ot-color.h \
 	hb-ot-font.h \
 	hb-ot-layout.h \
 	hb-ot-math.h \
+	hb-ot-name.h \
 	hb-ot-shape.h \
-	hb-ot-tag.h \
 	hb-ot-var.h \
 	$(NULL)
 
@@ -1313,17 +1236,19 @@ HB_ICU_headers = hb-icu.h
 
 # Sources for libharfbuzz-subset
 HB_SUBSET_sources = \
+	hb-static.cc \
 	hb-subset.cc \
+	hb-subset.hh \
 	hb-subset-glyf.cc \
+	hb-subset-glyf.hh \
 	hb-subset-input.cc \
+	hb-subset-input.hh \
 	hb-subset-plan.cc \
+	hb-subset-plan.hh \
 	$(NULL)
 
 HB_SUBSET_headers = \
 	hb-subset.h \
-	hb-subset-glyf.hh \
-	hb-subset-plan.hh \
-	hb-subset-private.hh \
 	$(NULL)
 
 HB_GOBJECT_DIST_sources = hb-gobject-structs.cc
@@ -1334,27 +1259,24 @@ HB_GOBJECT_NODIST_sources = $(HB_GOBJECT_ENUM_sources)
 HB_GOBJECT_NODIST_headers = $(HB_GOBJECT_ENUM_headers)
 HB_GOBJECT_sources = $(HB_GOBJECT_DIST_sources) $(HB_GOBJECT_NODIST_sources)
 HB_GOBJECT_headers = $(HB_GOBJECT_DIST_headers) $(HB_GOBJECT_NODIST_headers)
-HBCFLAGS = $(am__append_1) $(am__append_5) $(am__append_7) \
-	$(am__append_12) $(am__append_16) $(am__append_21) \
-	$(am__append_25) $(am__append_29) $(am__append_34) \
-	$(am__append_37)
+HBCFLAGS = $(am__append_2) $(am__append_4) $(am__append_9) \
+	$(am__append_13) $(am__append_18) $(am__append_22) \
+	$(am__append_26) $(am__append_31) $(am__append_34)
 
 # Put the library together
-HBLIBS = $(am__append_8) $(am__append_13) $(am__append_17) \
-	$(am__append_35) $(HBNONPCLIBS) $(am__append_38)
-HBNONPCLIBS = $(am__append_6) $(am__append_22) $(am__append_26) \
-	$(am__append_30)
-HBDEPS = $(am__append_9) $(am__append_18)
+HBLIBS = $(am__append_5) $(am__append_10) $(am__append_14) \
+	$(am__append_32) $(HBNONPCLIBS) $(am__append_35)
+HBNONPCLIBS = $(am__append_3) $(am__append_19) $(am__append_23) \
+	$(am__append_27)
+HBDEPS = $(am__append_6) $(am__append_15)
 HBSOURCES = $(HB_BASE_sources) $(HB_BASE_RAGEL_GENERATED_sources) \
-	$(am__append_2) $(am__append_4) $(am__append_10) \
-	$(am__append_14) $(am__append_19) $(am__append_23) \
-	$(am__append_27) $(am__append_31) $(am__append_36) \
-	$(am__append_39)
-HBHEADERS = $(HB_BASE_headers) $(am__append_3) $(am__append_11) \
-	$(am__append_15) $(am__append_20) $(am__append_24) \
-	$(am__append_28) $(am__append_32) $(am__append_40)
-@WITH_LIBSTDCXX_TRUE@HBNOLIBCXXCFLAGS = 
-@WITH_LIBSTDCXX_FALSE@HBNOLIBCXXFLAGS = -fno-threadsafe-statics -fno-rtti
+	$(HB_OT_sources) $(HB_OT_RAGEL_GENERATED_sources) \
+	$(am__append_1) $(am__append_7) $(am__append_11) \
+	$(am__append_16) $(am__append_20) $(am__append_24) \
+	$(am__append_28) $(am__append_33) $(am__append_36)
+HBHEADERS = $(HB_BASE_headers) $(HB_OT_headers) $(am__append_8) \
+	$(am__append_12) $(am__append_17) $(am__append_21) \
+	$(am__append_25) $(am__append_29) $(am__append_37)
 @OS_WIN32_TRUE@export_symbols = -export-symbols harfbuzz.def
 @OS_WIN32_TRUE@harfbuzz_def_dependency = harfbuzz.def
 @OS_WIN32_TRUE@export_symbols_subset = -export-symbols harfbuzz-subset.def
@@ -1369,65 +1291,48 @@ HBHEADERS = $(HB_BASE_headers) $(am__append_3) $(am__append_11) \
 @OS_WIN32_FALSE@@WITH_LIBSTDCXX_TRUE@chosen_linker = $(CXXLINK)
 @OS_WIN32_TRUE@chosen_linker = $(CXXLINK)
 base_link_flags = $(AM_LDFLAGS) -lm -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
-libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS) $(CODE_COVERAGE_LDFLAGS)
+libharfbuzz_la_LINK = $(chosen_linker) $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
-libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(CODE_COVERAGE_CFLAGS)
-libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols)
+libharfbuzz_la_CPPFLAGS = $(HBCFLAGS) $(CODE_COVERAGE_CFLAGS)
+libharfbuzz_la_LDFLAGS = $(base_link_flags) $(export_symbols) $(CODE_COVERAGE_LDFLAGS)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS) $(HB_SUBSET_headers) \
-	$(am__append_42) $(am__append_45)
-nodist_pkginclude_HEADERS = $(am__append_46)
+	$(am__append_39) $(am__append_42)
+nodist_pkginclude_HEADERS = $(am__append_43)
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = harfbuzz.pc harfbuzz-subset.pc $(am__append_43) \
-	$(am__append_47)
+pkgconfig_DATA = harfbuzz.pc harfbuzz-subset.pc $(am__append_40) \
+	$(am__append_44)
 cmakedir = $(libdir)/cmake/harfbuzz
 cmake_DATA = harfbuzz-config.cmake
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
-libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS)
-libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset)
+libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS) $(CODE_COVERAGE_CFLAGS)
+libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset) $(CODE_COVERAGE_LDFLAGS)
 libharfbuzz_subset_la_LIBADD = libharfbuzz.la
 EXTRA_libharfbuzz_subset_la_DEPENDENCIES = $(harfbuzz_subset_def_dependency)
-FUZZING_CPPFLAGS = \
-	-DHB_NDEBUG \
-	-DHB_MAX_NESTING_LEVEL=3 \
-	-DHB_SANITIZE_MAX_EDITS=3 \
-	-DHB_SANITIZE_MAX_OPS_FACTOR=3 \
-	-DHB_SANITIZE_MAX_OPS_MIN=128 \
-	-DHB_BUFFER_MAX_LEN_FACTOR=3 \
-	-DHB_BUFFER_MAX_LEN_MIN=8 \
-	-DHB_BUFFER_MAX_LEN_DEFAULT=128 \
-	-DHB_BUFFER_MAX_OPS_FACTOR=8 \
-	-DHB_BUFFER_MAX_OPS_MIN=64 \
-	-DHB_BUFFER_MAX_OPS_DEFAULT=1024 \
-	$(NULL)
-
-EXTRA_LTLIBRARIES = libharfbuzz-fuzzing.la
-libharfbuzz_fuzzing_la_LINK = $(chosen_linker) $(libharfbuzz_fuzzing_la_LDFLAGS)
-libharfbuzz_fuzzing_la_SOURCES = $(libharfbuzz_la_SOURCES)
-libharfbuzz_fuzzing_la_CPPFLAGS = $(HBCFLAGS) $(FUZZING_CPPFLAGS)
-libharfbuzz_fuzzing_la_LDFLAGS = $(AM_LDFLAGS)
-libharfbuzz_fuzzing_la_LIBADD = $(libharfbuzz_la_LIBADD)
-EXTRA_libharfbuzz_fuzzing_la_DEPENDENCIES = $(EXTRA_libharfbuzz_la_DEPENDENCIES)
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@libharfbuzz_icu_la_SOURCES = $(HB_ICU_sources)
-@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(ICU_CFLAGS)
-@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu)
+@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@libharfbuzz_icu_la_CPPFLAGS = $(HBCFLAGS) $(ICU_CFLAGS) $(CODE_COVERAGE_CFLAGS)
+@HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@libharfbuzz_icu_la_LDFLAGS = $(base_link_flags) $(export_symbols_icu) $(CODE_COVERAGE_LDFLAGS)
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 @HAVE_ICU_BUILTIN_FALSE@@HAVE_ICU_TRUE@EXTRA_libharfbuzz_icu_la_DEPENDENCIES = $(harfbuzz_icu_def_dependency)
 @HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_LINK = $(chosen_linker) $(libharfbuzz_gobject_la_LDFLAGS)
 @HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_DIST_sources)
 @HAVE_GOBJECT_TRUE@nodist_libharfbuzz_gobject_la_SOURCES = $(HB_GOBJECT_NODIST_sources)
-@HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(HBNOLIBCXXFLAGS) $(GOBJECT_CFLAGS)
-@HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags)
+@HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_CPPFLAGS = $(HBCFLAGS) $(GOBJECT_CFLAGS) $(CODE_COVERAGE_CFLAGS)
+@HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_LDFLAGS = $(base_link_flags) $(CODE_COVERAGE_LDFLAGS)
 @HAVE_GOBJECT_TRUE@libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 @HAVE_GOBJECT_TRUE@EXTRA_libharfbuzz_gobject_la_DEPENDENCIES = $(harfbuzz_gobject_def_dependency)
 DEF_FILES = harfbuzz.def harfbuzz-subset.def harfbuzz-icu.def \
-	$(am__append_50)
+	harfbuzz-deprecated-symbols.txt $(am__append_47)
 GENERATORS = \
 	gen-arabic-table.py \
-	gen-indic-table.py \
-	gen-use-table.py \
 	gen-def.py \
+	gen-emoji-table.py \
+	gen-indic-table.py \
+	gen-os2-unicode-ranges.py \
+	gen-tag-table.py \
+	gen-use-table.py \
+	gen-vowel-constraints.py \
 	$(NULL)
 
 RAGEL_GENERATED = \
@@ -1441,18 +1346,24 @@ main_LDADD = libharfbuzz.la $(HBLIBS)
 test_SOURCES = test.cc
 test_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
 test_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
-test_would_substitute_SOURCES = test-would-substitute.cc
-test_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
-test_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
-test_size_params_SOURCES = test-size-params.cc
-test_size_params_CPPFLAGS = $(HBCFLAGS)
-test_size_params_LDADD = libharfbuzz.la $(HBLIBS)
 test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
+test_name_table_SOURCES = test-name-table.cc
+test_name_table_CPPFLAGS = $(HBCFLAGS)
+test_name_table_LDADD = libharfbuzz.la $(HBLIBS)
+test_size_params_SOURCES = test-size-params.cc
+test_size_params_CPPFLAGS = $(HBCFLAGS)
+test_size_params_LDADD = libharfbuzz.la $(HBLIBS)
+test_would_substitute_SOURCES = test-would-substitute.cc
+test_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
+test_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@test_ot_color_SOURCES = test-ot-color.cc
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@test_ot_color_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS) $(CAIRO_FT_CFLAGS)
+@HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@test_ot_color_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS) $(CAIRO_LIBS) $(CAIRO_FT_LIBS)
 dist_check_SCRIPTS = check-c-linkage-decls.sh check-externs.sh \
 	check-header-guards.sh check-includes.sh check-static-inits.sh \
-	check-symbols.sh $(NULL) $(am__append_51)
+	check-symbols.sh $(NULL) $(am__append_49)
 dump_indic_data_SOURCES = dump-indic-data.cc hb-ot-shape-complex-indic-table.cc
 dump_indic_data_CPPFLAGS = $(HBCFLAGS)
 dump_indic_data_LDADD = libharfbuzz.la $(HBLIBS)
@@ -1489,6 +1400,8 @@ TESTS_ENVIRONMENT = \
 @HAVE_INTROSPECTION_TRUE@	-DHB_H_IN \
 @HAVE_INTROSPECTION_TRUE@	-DHB_OT_H \
 @HAVE_INTROSPECTION_TRUE@	-DHB_OT_H_IN \
+@HAVE_INTROSPECTION_TRUE@	-DHB_AAT_H \
+@HAVE_INTROSPECTION_TRUE@	-DHB_AAT_H_IN \
 @HAVE_INTROSPECTION_TRUE@	-DHB_GOBJECT_H \
 @HAVE_INTROSPECTION_TRUE@	-DHB_GOBJECT_H_IN \
 @HAVE_INTROSPECTION_TRUE@	-DHB_EXTERN= \
@@ -1545,8 +1458,6 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-hb-version.h: $(top_builddir)/config.status $(srcdir)/hb-version.h.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 harfbuzz-config.cmake: $(top_builddir)/config.status $(srcdir)/harfbuzz-config.cmake.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
@@ -1584,9 +1495,6 @@ clean-libLTLIBRARIES:
 	  echo rm -f $${locs}; \
 	  rm -f $${locs}; \
 	}
-
-libharfbuzz-fuzzing.la: $(libharfbuzz_fuzzing_la_OBJECTS) $(libharfbuzz_fuzzing_la_DEPENDENCIES) $(EXTRA_libharfbuzz_fuzzing_la_DEPENDENCIES) 
-	$(AM_V_GEN)$(libharfbuzz_fuzzing_la_LINK)  $(libharfbuzz_fuzzing_la_OBJECTS) $(libharfbuzz_fuzzing_la_LIBADD) $(LIBS)
 
 libharfbuzz-gobject.la: $(libharfbuzz_gobject_la_OBJECTS) $(libharfbuzz_gobject_la_DEPENDENCIES) $(EXTRA_libharfbuzz_gobject_la_DEPENDENCIES) 
 	$(AM_V_GEN)$(libharfbuzz_gobject_la_LINK) $(am_libharfbuzz_gobject_la_rpath) $(libharfbuzz_gobject_la_OBJECTS) $(libharfbuzz_gobject_la_LIBADD) $(LIBS)
@@ -1711,6 +1619,14 @@ test-buffer-serialize$(EXEEXT): $(test_buffer_serialize_OBJECTS) $(test_buffer_s
 	@rm -f test-buffer-serialize$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(test_buffer_serialize_OBJECTS) $(test_buffer_serialize_LDADD) $(LIBS)
 
+test-name-table$(EXEEXT): $(test_name_table_OBJECTS) $(test_name_table_DEPENDENCIES) $(EXTRA_test_name_table_DEPENDENCIES) 
+	@rm -f test-name-table$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(test_name_table_OBJECTS) $(test_name_table_LDADD) $(LIBS)
+
+test-ot-color$(EXEEXT): $(test_ot_color_OBJECTS) $(test_ot_color_DEPENDENCIES) $(EXTRA_test_ot_color_DEPENDENCIES) 
+	@rm -f test-ot-color$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(test_ot_color_OBJECTS) $(test_ot_color_LDADD) $(LIBS)
+
 test-ot-tag$(EXEEXT): $(test_ot_tag_OBJECTS) $(test_ot_tag_DEPENDENCIES) $(EXTRA_test_ot_tag_DEPENDENCIES) 
 	@rm -f test-ot-tag$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(test_ot_tag_OBJECTS) $(test_ot_tag_LDADD) $(LIBS)
@@ -1741,54 +1657,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_myanmar_data-hb-ot-shape-complex-indic-table.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_use_data-dump-use-data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_use_data-hb-ot-shape-complex-use-table.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-aat-layout.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-blob.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer-serialize.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-common.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-coretext.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-directwrite.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-face.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-fallback-shape.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-font.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ft.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-glib.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-graphite2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-icu.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-color.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-font.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-layout.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-map.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-math.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-fallback.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-normalize.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-tag.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-var.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-set.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape-plan.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-shaper.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-ucdn.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-unicode.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-uniscribe.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_fuzzing_la-hb-warning.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_gobject_la-hb-gobject-enums.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_gobject_la-hb-gobject-structs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_icu_la-hb-icu.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-aat-layout.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-aat-map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-blob.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-buffer-serialize.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-buffer.Plo@am__quote@
@@ -1802,11 +1675,15 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-glib.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-graphite2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-icu.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-color.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-face.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-font.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-layout.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-math.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-name-language.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-name.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-arabic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-default.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-hangul.Plo@am__quote@
@@ -1816,9 +1693,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-khmer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-myanmar.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-thai.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-tibetan.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-use-table.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-use.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-fallback.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape-normalize.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ot-shape.Plo@am__quote@
@@ -1828,10 +1705,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-shape-plan.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-shape.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-shaper.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-static.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-ucdn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-unicode.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-uniscribe.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_la-hb-warning.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_subset_la-hb-static.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_subset_la-hb-subset-glyf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_subset_la-hb-subset-input.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libharfbuzz_subset_la-hb-subset-plan.Plo@am__quote@
@@ -1840,6 +1719,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-unicode-ranges.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_buffer_serialize-test-buffer-serialize.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_name_table-test-name-table.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_ot_color-test-ot-color.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_ot_tag-hb-ot-tag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_size_params-test-size-params.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_would_substitute-test-would-substitute.Po@am__quote@
@@ -1865,314 +1746,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-libharfbuzz_fuzzing_la-hb-blob.lo: hb-blob.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-blob.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-blob.Tpo -c -o libharfbuzz_fuzzing_la-hb-blob.lo `test -f 'hb-blob.cc' || echo '$(srcdir)/'`hb-blob.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-blob.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-blob.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-blob.cc' object='libharfbuzz_fuzzing_la-hb-blob.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-blob.lo `test -f 'hb-blob.cc' || echo '$(srcdir)/'`hb-blob.cc
-
-libharfbuzz_fuzzing_la-hb-buffer-serialize.lo: hb-buffer-serialize.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-buffer-serialize.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer-serialize.Tpo -c -o libharfbuzz_fuzzing_la-hb-buffer-serialize.lo `test -f 'hb-buffer-serialize.cc' || echo '$(srcdir)/'`hb-buffer-serialize.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer-serialize.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer-serialize.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-buffer-serialize.cc' object='libharfbuzz_fuzzing_la-hb-buffer-serialize.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-buffer-serialize.lo `test -f 'hb-buffer-serialize.cc' || echo '$(srcdir)/'`hb-buffer-serialize.cc
-
-libharfbuzz_fuzzing_la-hb-buffer.lo: hb-buffer.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-buffer.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer.Tpo -c -o libharfbuzz_fuzzing_la-hb-buffer.lo `test -f 'hb-buffer.cc' || echo '$(srcdir)/'`hb-buffer.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-buffer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-buffer.cc' object='libharfbuzz_fuzzing_la-hb-buffer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-buffer.lo `test -f 'hb-buffer.cc' || echo '$(srcdir)/'`hb-buffer.cc
-
-libharfbuzz_fuzzing_la-hb-common.lo: hb-common.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-common.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-common.Tpo -c -o libharfbuzz_fuzzing_la-hb-common.lo `test -f 'hb-common.cc' || echo '$(srcdir)/'`hb-common.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-common.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-common.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-common.cc' object='libharfbuzz_fuzzing_la-hb-common.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-common.lo `test -f 'hb-common.cc' || echo '$(srcdir)/'`hb-common.cc
-
-libharfbuzz_fuzzing_la-hb-face.lo: hb-face.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-face.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-face.Tpo -c -o libharfbuzz_fuzzing_la-hb-face.lo `test -f 'hb-face.cc' || echo '$(srcdir)/'`hb-face.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-face.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-face.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-face.cc' object='libharfbuzz_fuzzing_la-hb-face.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-face.lo `test -f 'hb-face.cc' || echo '$(srcdir)/'`hb-face.cc
-
-libharfbuzz_fuzzing_la-hb-font.lo: hb-font.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-font.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-font.Tpo -c -o libharfbuzz_fuzzing_la-hb-font.lo `test -f 'hb-font.cc' || echo '$(srcdir)/'`hb-font.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-font.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-font.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-font.cc' object='libharfbuzz_fuzzing_la-hb-font.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-font.lo `test -f 'hb-font.cc' || echo '$(srcdir)/'`hb-font.cc
-
-libharfbuzz_fuzzing_la-hb-ot-tag.lo: hb-ot-tag.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-tag.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-tag.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-tag.lo `test -f 'hb-ot-tag.cc' || echo '$(srcdir)/'`hb-ot-tag.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-tag.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-tag.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-tag.cc' object='libharfbuzz_fuzzing_la-hb-ot-tag.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-tag.lo `test -f 'hb-ot-tag.cc' || echo '$(srcdir)/'`hb-ot-tag.cc
-
-libharfbuzz_fuzzing_la-hb-set.lo: hb-set.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-set.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-set.Tpo -c -o libharfbuzz_fuzzing_la-hb-set.lo `test -f 'hb-set.cc' || echo '$(srcdir)/'`hb-set.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-set.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-set.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-set.cc' object='libharfbuzz_fuzzing_la-hb-set.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-set.lo `test -f 'hb-set.cc' || echo '$(srcdir)/'`hb-set.cc
-
-libharfbuzz_fuzzing_la-hb-shape.lo: hb-shape.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-shape.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape.Tpo -c -o libharfbuzz_fuzzing_la-hb-shape.lo `test -f 'hb-shape.cc' || echo '$(srcdir)/'`hb-shape.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-shape.cc' object='libharfbuzz_fuzzing_la-hb-shape.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-shape.lo `test -f 'hb-shape.cc' || echo '$(srcdir)/'`hb-shape.cc
-
-libharfbuzz_fuzzing_la-hb-shape-plan.lo: hb-shape-plan.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-shape-plan.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape-plan.Tpo -c -o libharfbuzz_fuzzing_la-hb-shape-plan.lo `test -f 'hb-shape-plan.cc' || echo '$(srcdir)/'`hb-shape-plan.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape-plan.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shape-plan.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-shape-plan.cc' object='libharfbuzz_fuzzing_la-hb-shape-plan.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-shape-plan.lo `test -f 'hb-shape-plan.cc' || echo '$(srcdir)/'`hb-shape-plan.cc
-
-libharfbuzz_fuzzing_la-hb-shaper.lo: hb-shaper.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-shaper.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shaper.Tpo -c -o libharfbuzz_fuzzing_la-hb-shaper.lo `test -f 'hb-shaper.cc' || echo '$(srcdir)/'`hb-shaper.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shaper.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-shaper.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-shaper.cc' object='libharfbuzz_fuzzing_la-hb-shaper.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-shaper.lo `test -f 'hb-shaper.cc' || echo '$(srcdir)/'`hb-shaper.cc
-
-libharfbuzz_fuzzing_la-hb-unicode.lo: hb-unicode.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-unicode.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-unicode.Tpo -c -o libharfbuzz_fuzzing_la-hb-unicode.lo `test -f 'hb-unicode.cc' || echo '$(srcdir)/'`hb-unicode.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-unicode.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-unicode.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-unicode.cc' object='libharfbuzz_fuzzing_la-hb-unicode.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-unicode.lo `test -f 'hb-unicode.cc' || echo '$(srcdir)/'`hb-unicode.cc
-
-libharfbuzz_fuzzing_la-hb-warning.lo: hb-warning.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-warning.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-warning.Tpo -c -o libharfbuzz_fuzzing_la-hb-warning.lo `test -f 'hb-warning.cc' || echo '$(srcdir)/'`hb-warning.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-warning.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-warning.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-warning.cc' object='libharfbuzz_fuzzing_la-hb-warning.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-warning.lo `test -f 'hb-warning.cc' || echo '$(srcdir)/'`hb-warning.cc
-
-libharfbuzz_fuzzing_la-hb-aat-layout.lo: hb-aat-layout.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-aat-layout.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-aat-layout.Tpo -c -o libharfbuzz_fuzzing_la-hb-aat-layout.lo `test -f 'hb-aat-layout.cc' || echo '$(srcdir)/'`hb-aat-layout.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-aat-layout.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-aat-layout.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-aat-layout.cc' object='libharfbuzz_fuzzing_la-hb-aat-layout.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-aat-layout.lo `test -f 'hb-aat-layout.cc' || echo '$(srcdir)/'`hb-aat-layout.cc
-
-libharfbuzz_fuzzing_la-hb-ot-font.lo: hb-ot-font.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-font.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-font.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-font.lo `test -f 'hb-ot-font.cc' || echo '$(srcdir)/'`hb-ot-font.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-font.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-font.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-font.cc' object='libharfbuzz_fuzzing_la-hb-ot-font.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-font.lo `test -f 'hb-ot-font.cc' || echo '$(srcdir)/'`hb-ot-font.cc
-
-libharfbuzz_fuzzing_la-hb-ot-layout.lo: hb-ot-layout.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-layout.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-layout.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-layout.lo `test -f 'hb-ot-layout.cc' || echo '$(srcdir)/'`hb-ot-layout.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-layout.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-layout.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-layout.cc' object='libharfbuzz_fuzzing_la-hb-ot-layout.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-layout.lo `test -f 'hb-ot-layout.cc' || echo '$(srcdir)/'`hb-ot-layout.cc
-
-libharfbuzz_fuzzing_la-hb-ot-color.lo: hb-ot-color.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-color.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-color.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-color.lo `test -f 'hb-ot-color.cc' || echo '$(srcdir)/'`hb-ot-color.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-color.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-color.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-color.cc' object='libharfbuzz_fuzzing_la-hb-ot-color.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-color.lo `test -f 'hb-ot-color.cc' || echo '$(srcdir)/'`hb-ot-color.cc
-
-libharfbuzz_fuzzing_la-hb-ot-map.lo: hb-ot-map.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-map.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-map.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-map.lo `test -f 'hb-ot-map.cc' || echo '$(srcdir)/'`hb-ot-map.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-map.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-map.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-map.cc' object='libharfbuzz_fuzzing_la-hb-ot-map.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-map.lo `test -f 'hb-ot-map.cc' || echo '$(srcdir)/'`hb-ot-map.cc
-
-libharfbuzz_fuzzing_la-hb-ot-math.lo: hb-ot-math.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-math.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-math.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-math.lo `test -f 'hb-ot-math.cc' || echo '$(srcdir)/'`hb-ot-math.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-math.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-math.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-math.cc' object='libharfbuzz_fuzzing_la-hb-ot-math.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-math.lo `test -f 'hb-ot-math.cc' || echo '$(srcdir)/'`hb-ot-math.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape.lo: hb-ot-shape.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape.lo `test -f 'hb-ot-shape.cc' || echo '$(srcdir)/'`hb-ot-shape.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape.lo `test -f 'hb-ot-shape.cc' || echo '$(srcdir)/'`hb-ot-shape.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.lo: hb-ot-shape-complex-arabic.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.lo `test -f 'hb-ot-shape-complex-arabic.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-arabic.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-arabic.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-arabic.lo `test -f 'hb-ot-shape-complex-arabic.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-arabic.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.lo: hb-ot-shape-complex-default.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.lo `test -f 'hb-ot-shape-complex-default.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-default.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-default.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-default.lo `test -f 'hb-ot-shape-complex-default.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-default.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.lo: hb-ot-shape-complex-hangul.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.lo `test -f 'hb-ot-shape-complex-hangul.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-hangul.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-hangul.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-hangul.lo `test -f 'hb-ot-shape-complex-hangul.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-hangul.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.lo: hb-ot-shape-complex-hebrew.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.lo `test -f 'hb-ot-shape-complex-hebrew.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-hebrew.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-hebrew.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-hebrew.lo `test -f 'hb-ot-shape-complex-hebrew.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-hebrew.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.lo: hb-ot-shape-complex-indic.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.lo `test -f 'hb-ot-shape-complex-indic.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-indic.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-indic.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic.lo `test -f 'hb-ot-shape-complex-indic.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-indic.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.lo: hb-ot-shape-complex-indic-table.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.lo `test -f 'hb-ot-shape-complex-indic-table.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-indic-table.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-indic-table.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-indic-table.lo `test -f 'hb-ot-shape-complex-indic-table.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-indic-table.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.lo: hb-ot-shape-complex-khmer.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.lo `test -f 'hb-ot-shape-complex-khmer.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-khmer.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-khmer.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-khmer.lo `test -f 'hb-ot-shape-complex-khmer.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-khmer.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.lo: hb-ot-shape-complex-myanmar.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.lo `test -f 'hb-ot-shape-complex-myanmar.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-myanmar.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-myanmar.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-myanmar.lo `test -f 'hb-ot-shape-complex-myanmar.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-myanmar.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.lo: hb-ot-shape-complex-thai.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.lo `test -f 'hb-ot-shape-complex-thai.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-thai.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-thai.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-thai.lo `test -f 'hb-ot-shape-complex-thai.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-thai.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.lo: hb-ot-shape-complex-tibetan.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.lo `test -f 'hb-ot-shape-complex-tibetan.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-tibetan.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-tibetan.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-tibetan.lo `test -f 'hb-ot-shape-complex-tibetan.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-tibetan.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.lo: hb-ot-shape-complex-use.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.lo `test -f 'hb-ot-shape-complex-use.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-use.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-use.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-use.lo `test -f 'hb-ot-shape-complex-use.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-use.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.lo: hb-ot-shape-complex-use-table.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.lo `test -f 'hb-ot-shape-complex-use-table.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-use-table.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-use-table.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-complex-use-table.lo `test -f 'hb-ot-shape-complex-use-table.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-use-table.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-normalize.lo: hb-ot-shape-normalize.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-normalize.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-normalize.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-normalize.lo `test -f 'hb-ot-shape-normalize.cc' || echo '$(srcdir)/'`hb-ot-shape-normalize.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-normalize.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-normalize.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-normalize.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-normalize.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-normalize.lo `test -f 'hb-ot-shape-normalize.cc' || echo '$(srcdir)/'`hb-ot-shape-normalize.cc
-
-libharfbuzz_fuzzing_la-hb-ot-shape-fallback.lo: hb-ot-shape-fallback.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-shape-fallback.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-fallback.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-shape-fallback.lo `test -f 'hb-ot-shape-fallback.cc' || echo '$(srcdir)/'`hb-ot-shape-fallback.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-fallback.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-shape-fallback.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-fallback.cc' object='libharfbuzz_fuzzing_la-hb-ot-shape-fallback.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-shape-fallback.lo `test -f 'hb-ot-shape-fallback.cc' || echo '$(srcdir)/'`hb-ot-shape-fallback.cc
-
-libharfbuzz_fuzzing_la-hb-ot-var.lo: hb-ot-var.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ot-var.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-var.Tpo -c -o libharfbuzz_fuzzing_la-hb-ot-var.lo `test -f 'hb-ot-var.cc' || echo '$(srcdir)/'`hb-ot-var.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-var.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ot-var.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-var.cc' object='libharfbuzz_fuzzing_la-hb-ot-var.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ot-var.lo `test -f 'hb-ot-var.cc' || echo '$(srcdir)/'`hb-ot-var.cc
-
-libharfbuzz_fuzzing_la-hb-fallback-shape.lo: hb-fallback-shape.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-fallback-shape.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-fallback-shape.Tpo -c -o libharfbuzz_fuzzing_la-hb-fallback-shape.lo `test -f 'hb-fallback-shape.cc' || echo '$(srcdir)/'`hb-fallback-shape.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-fallback-shape.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-fallback-shape.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-fallback-shape.cc' object='libharfbuzz_fuzzing_la-hb-fallback-shape.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-fallback-shape.lo `test -f 'hb-fallback-shape.cc' || echo '$(srcdir)/'`hb-fallback-shape.cc
-
-libharfbuzz_fuzzing_la-hb-glib.lo: hb-glib.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-glib.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-glib.Tpo -c -o libharfbuzz_fuzzing_la-hb-glib.lo `test -f 'hb-glib.cc' || echo '$(srcdir)/'`hb-glib.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-glib.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-glib.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-glib.cc' object='libharfbuzz_fuzzing_la-hb-glib.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-glib.lo `test -f 'hb-glib.cc' || echo '$(srcdir)/'`hb-glib.cc
-
-libharfbuzz_fuzzing_la-hb-ft.lo: hb-ft.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ft.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ft.Tpo -c -o libharfbuzz_fuzzing_la-hb-ft.lo `test -f 'hb-ft.cc' || echo '$(srcdir)/'`hb-ft.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ft.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ft.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ft.cc' object='libharfbuzz_fuzzing_la-hb-ft.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ft.lo `test -f 'hb-ft.cc' || echo '$(srcdir)/'`hb-ft.cc
-
-libharfbuzz_fuzzing_la-hb-graphite2.lo: hb-graphite2.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-graphite2.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-graphite2.Tpo -c -o libharfbuzz_fuzzing_la-hb-graphite2.lo `test -f 'hb-graphite2.cc' || echo '$(srcdir)/'`hb-graphite2.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-graphite2.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-graphite2.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-graphite2.cc' object='libharfbuzz_fuzzing_la-hb-graphite2.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-graphite2.lo `test -f 'hb-graphite2.cc' || echo '$(srcdir)/'`hb-graphite2.cc
-
-libharfbuzz_fuzzing_la-hb-uniscribe.lo: hb-uniscribe.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-uniscribe.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-uniscribe.Tpo -c -o libharfbuzz_fuzzing_la-hb-uniscribe.lo `test -f 'hb-uniscribe.cc' || echo '$(srcdir)/'`hb-uniscribe.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-uniscribe.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-uniscribe.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-uniscribe.cc' object='libharfbuzz_fuzzing_la-hb-uniscribe.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-uniscribe.lo `test -f 'hb-uniscribe.cc' || echo '$(srcdir)/'`hb-uniscribe.cc
-
-libharfbuzz_fuzzing_la-hb-directwrite.lo: hb-directwrite.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-directwrite.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-directwrite.Tpo -c -o libharfbuzz_fuzzing_la-hb-directwrite.lo `test -f 'hb-directwrite.cc' || echo '$(srcdir)/'`hb-directwrite.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-directwrite.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-directwrite.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-directwrite.cc' object='libharfbuzz_fuzzing_la-hb-directwrite.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-directwrite.lo `test -f 'hb-directwrite.cc' || echo '$(srcdir)/'`hb-directwrite.cc
-
-libharfbuzz_fuzzing_la-hb-coretext.lo: hb-coretext.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-coretext.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-coretext.Tpo -c -o libharfbuzz_fuzzing_la-hb-coretext.lo `test -f 'hb-coretext.cc' || echo '$(srcdir)/'`hb-coretext.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-coretext.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-coretext.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-coretext.cc' object='libharfbuzz_fuzzing_la-hb-coretext.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-coretext.lo `test -f 'hb-coretext.cc' || echo '$(srcdir)/'`hb-coretext.cc
-
-libharfbuzz_fuzzing_la-hb-ucdn.lo: hb-ucdn.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-ucdn.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ucdn.Tpo -c -o libharfbuzz_fuzzing_la-hb-ucdn.lo `test -f 'hb-ucdn.cc' || echo '$(srcdir)/'`hb-ucdn.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ucdn.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-ucdn.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ucdn.cc' object='libharfbuzz_fuzzing_la-hb-ucdn.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-ucdn.lo `test -f 'hb-ucdn.cc' || echo '$(srcdir)/'`hb-ucdn.cc
-
-libharfbuzz_fuzzing_la-hb-icu.lo: hb-icu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_fuzzing_la-hb-icu.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_fuzzing_la-hb-icu.Tpo -c -o libharfbuzz_fuzzing_la-hb-icu.lo `test -f 'hb-icu.cc' || echo '$(srcdir)/'`hb-icu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_fuzzing_la-hb-icu.Tpo $(DEPDIR)/libharfbuzz_fuzzing_la-hb-icu.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-icu.cc' object='libharfbuzz_fuzzing_la-hb-icu.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_fuzzing_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_fuzzing_la-hb-icu.lo `test -f 'hb-icu.cc' || echo '$(srcdir)/'`hb-icu.cc
-
 libharfbuzz_gobject_la-hb-gobject-structs.lo: hb-gobject-structs.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_gobject_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_gobject_la-hb-gobject-structs.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_gobject_la-hb-gobject-structs.Tpo -c -o libharfbuzz_gobject_la-hb-gobject-structs.lo `test -f 'hb-gobject-structs.cc' || echo '$(srcdir)/'`hb-gobject-structs.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_gobject_la-hb-gobject-structs.Tpo $(DEPDIR)/libharfbuzz_gobject_la-hb-gobject-structs.Plo
@@ -2193,6 +1766,13 @@ libharfbuzz_icu_la-hb-icu.lo: hb-icu.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-icu.cc' object='libharfbuzz_icu_la-hb-icu.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_icu_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_icu_la-hb-icu.lo `test -f 'hb-icu.cc' || echo '$(srcdir)/'`hb-icu.cc
+
+libharfbuzz_subset_la-hb-static.lo: hb-static.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_subset_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_subset_la-hb-static.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_subset_la-hb-static.Tpo -c -o libharfbuzz_subset_la-hb-static.lo `test -f 'hb-static.cc' || echo '$(srcdir)/'`hb-static.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_subset_la-hb-static.Tpo $(DEPDIR)/libharfbuzz_subset_la-hb-static.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-static.cc' object='libharfbuzz_subset_la-hb-static.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_subset_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_subset_la-hb-static.lo `test -f 'hb-static.cc' || echo '$(srcdir)/'`hb-static.cc
 
 libharfbuzz_subset_la-hb-subset.lo: hb-subset.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_subset_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_subset_la-hb-subset.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_subset_la-hb-subset.Tpo -c -o libharfbuzz_subset_la-hb-subset.lo `test -f 'hb-subset.cc' || echo '$(srcdir)/'`hb-subset.cc
@@ -2264,6 +1844,27 @@ libharfbuzz_la-hb-font.lo: hb-font.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-font.lo `test -f 'hb-font.cc' || echo '$(srcdir)/'`hb-font.cc
 
+libharfbuzz_la-hb-map.lo: hb-map.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-map.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-map.Tpo -c -o libharfbuzz_la-hb-map.lo `test -f 'hb-map.cc' || echo '$(srcdir)/'`hb-map.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-map.Tpo $(DEPDIR)/libharfbuzz_la-hb-map.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-map.cc' object='libharfbuzz_la-hb-map.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-map.lo `test -f 'hb-map.cc' || echo '$(srcdir)/'`hb-map.cc
+
+libharfbuzz_la-hb-ot-name-language.lo: hb-ot-name-language.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-name-language.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-name-language.Tpo -c -o libharfbuzz_la-hb-ot-name-language.lo `test -f 'hb-ot-name-language.cc' || echo '$(srcdir)/'`hb-ot-name-language.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-ot-name-language.Tpo $(DEPDIR)/libharfbuzz_la-hb-ot-name-language.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-name-language.cc' object='libharfbuzz_la-hb-ot-name-language.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-ot-name-language.lo `test -f 'hb-ot-name-language.cc' || echo '$(srcdir)/'`hb-ot-name-language.cc
+
+libharfbuzz_la-hb-ot-name.lo: hb-ot-name.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-name.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-name.Tpo -c -o libharfbuzz_la-hb-ot-name.lo `test -f 'hb-ot-name.cc' || echo '$(srcdir)/'`hb-ot-name.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-ot-name.Tpo $(DEPDIR)/libharfbuzz_la-hb-ot-name.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-name.cc' object='libharfbuzz_la-hb-ot-name.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-ot-name.lo `test -f 'hb-ot-name.cc' || echo '$(srcdir)/'`hb-ot-name.cc
+
 libharfbuzz_la-hb-ot-tag.lo: hb-ot-tag.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-tag.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-tag.Tpo -c -o libharfbuzz_la-hb-ot-tag.lo `test -f 'hb-ot-tag.cc' || echo '$(srcdir)/'`hb-ot-tag.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-ot-tag.Tpo $(DEPDIR)/libharfbuzz_la-hb-ot-tag.Plo
@@ -2299,6 +1900,13 @@ libharfbuzz_la-hb-shaper.lo: hb-shaper.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-shaper.lo `test -f 'hb-shaper.cc' || echo '$(srcdir)/'`hb-shaper.cc
 
+libharfbuzz_la-hb-static.lo: hb-static.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-static.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-static.Tpo -c -o libharfbuzz_la-hb-static.lo `test -f 'hb-static.cc' || echo '$(srcdir)/'`hb-static.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-static.Tpo $(DEPDIR)/libharfbuzz_la-hb-static.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-static.cc' object='libharfbuzz_la-hb-static.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-static.lo `test -f 'hb-static.cc' || echo '$(srcdir)/'`hb-static.cc
+
 libharfbuzz_la-hb-unicode.lo: hb-unicode.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-unicode.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-unicode.Tpo -c -o libharfbuzz_la-hb-unicode.lo `test -f 'hb-unicode.cc' || echo '$(srcdir)/'`hb-unicode.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-unicode.Tpo $(DEPDIR)/libharfbuzz_la-hb-unicode.Plo
@@ -2319,6 +1927,20 @@ libharfbuzz_la-hb-aat-layout.lo: hb-aat-layout.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-aat-layout.cc' object='libharfbuzz_la-hb-aat-layout.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-aat-layout.lo `test -f 'hb-aat-layout.cc' || echo '$(srcdir)/'`hb-aat-layout.cc
+
+libharfbuzz_la-hb-aat-map.lo: hb-aat-map.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-aat-map.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-aat-map.Tpo -c -o libharfbuzz_la-hb-aat-map.lo `test -f 'hb-aat-map.cc' || echo '$(srcdir)/'`hb-aat-map.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-aat-map.Tpo $(DEPDIR)/libharfbuzz_la-hb-aat-map.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-aat-map.cc' object='libharfbuzz_la-hb-aat-map.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-aat-map.lo `test -f 'hb-aat-map.cc' || echo '$(srcdir)/'`hb-aat-map.cc
+
+libharfbuzz_la-hb-ot-face.lo: hb-ot-face.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-face.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-face.Tpo -c -o libharfbuzz_la-hb-ot-face.lo `test -f 'hb-ot-face.cc' || echo '$(srcdir)/'`hb-ot-face.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-ot-face.Tpo $(DEPDIR)/libharfbuzz_la-hb-ot-face.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-face.cc' object='libharfbuzz_la-hb-ot-face.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-ot-face.lo `test -f 'hb-ot-face.cc' || echo '$(srcdir)/'`hb-ot-face.cc
 
 libharfbuzz_la-hb-ot-font.lo: hb-ot-font.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-font.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-font.Tpo -c -o libharfbuzz_la-hb-ot-font.lo `test -f 'hb-ot-font.cc' || echo '$(srcdir)/'`hb-ot-font.cc
@@ -2425,13 +2047,6 @@ libharfbuzz_la-hb-ot-shape-complex-thai.lo: hb-ot-shape-complex-thai.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-ot-shape-complex-thai.lo `test -f 'hb-ot-shape-complex-thai.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-thai.cc
 
-libharfbuzz_la-hb-ot-shape-complex-tibetan.lo: hb-ot-shape-complex-tibetan.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-shape-complex-tibetan.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-tibetan.Tpo -c -o libharfbuzz_la-hb-ot-shape-complex-tibetan.lo `test -f 'hb-ot-shape-complex-tibetan.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-tibetan.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-tibetan.Tpo $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-tibetan.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-tibetan.cc' object='libharfbuzz_la-hb-ot-shape-complex-tibetan.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-ot-shape-complex-tibetan.lo `test -f 'hb-ot-shape-complex-tibetan.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-tibetan.cc
-
 libharfbuzz_la-hb-ot-shape-complex-use.lo: hb-ot-shape-complex-use.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-shape-complex-use.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-use.Tpo -c -o libharfbuzz_la-hb-ot-shape-complex-use.lo `test -f 'hb-ot-shape-complex-use.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-use.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-use.Tpo $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-use.Plo
@@ -2445,6 +2060,13 @@ libharfbuzz_la-hb-ot-shape-complex-use-table.lo: hb-ot-shape-complex-use-table.c
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-use-table.cc' object='libharfbuzz_la-hb-ot-shape-complex-use-table.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-ot-shape-complex-use-table.lo `test -f 'hb-ot-shape-complex-use-table.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-use-table.cc
+
+libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.lo: hb-ot-shape-complex-vowel-constraints.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.Tpo -c -o libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.lo `test -f 'hb-ot-shape-complex-vowel-constraints.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-vowel-constraints.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.Tpo $(DEPDIR)/libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hb-ot-shape-complex-vowel-constraints.cc' object='libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libharfbuzz_la-hb-ot-shape-complex-vowel-constraints.lo `test -f 'hb-ot-shape-complex-vowel-constraints.cc' || echo '$(srcdir)/'`hb-ot-shape-complex-vowel-constraints.cc
 
 libharfbuzz_la-hb-ot-shape-normalize.lo: hb-ot-shape-normalize.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libharfbuzz_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libharfbuzz_la-hb-ot-shape-normalize.lo -MD -MP -MF $(DEPDIR)/libharfbuzz_la-hb-ot-shape-normalize.Tpo -c -o libharfbuzz_la-hb-ot-shape-normalize.lo `test -f 'hb-ot-shape-normalize.cc' || echo '$(srcdir)/'`hb-ot-shape-normalize.cc
@@ -2683,6 +2305,34 @@ test_buffer_serialize-test-buffer-serialize.obj: test-buffer-serialize.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-buffer-serialize.cc' object='test_buffer_serialize-test-buffer-serialize.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_buffer_serialize_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_buffer_serialize-test-buffer-serialize.obj `if test -f 'test-buffer-serialize.cc'; then $(CYGPATH_W) 'test-buffer-serialize.cc'; else $(CYGPATH_W) '$(srcdir)/test-buffer-serialize.cc'; fi`
+
+test_name_table-test-name-table.o: test-name-table.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_name_table_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_name_table-test-name-table.o -MD -MP -MF $(DEPDIR)/test_name_table-test-name-table.Tpo -c -o test_name_table-test-name-table.o `test -f 'test-name-table.cc' || echo '$(srcdir)/'`test-name-table.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_name_table-test-name-table.Tpo $(DEPDIR)/test_name_table-test-name-table.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-name-table.cc' object='test_name_table-test-name-table.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_name_table_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_name_table-test-name-table.o `test -f 'test-name-table.cc' || echo '$(srcdir)/'`test-name-table.cc
+
+test_name_table-test-name-table.obj: test-name-table.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_name_table_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_name_table-test-name-table.obj -MD -MP -MF $(DEPDIR)/test_name_table-test-name-table.Tpo -c -o test_name_table-test-name-table.obj `if test -f 'test-name-table.cc'; then $(CYGPATH_W) 'test-name-table.cc'; else $(CYGPATH_W) '$(srcdir)/test-name-table.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_name_table-test-name-table.Tpo $(DEPDIR)/test_name_table-test-name-table.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-name-table.cc' object='test_name_table-test-name-table.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_name_table_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_name_table-test-name-table.obj `if test -f 'test-name-table.cc'; then $(CYGPATH_W) 'test-name-table.cc'; else $(CYGPATH_W) '$(srcdir)/test-name-table.cc'; fi`
+
+test_ot_color-test-ot-color.o: test-ot-color.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_ot_color_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_ot_color-test-ot-color.o -MD -MP -MF $(DEPDIR)/test_ot_color-test-ot-color.Tpo -c -o test_ot_color-test-ot-color.o `test -f 'test-ot-color.cc' || echo '$(srcdir)/'`test-ot-color.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_ot_color-test-ot-color.Tpo $(DEPDIR)/test_ot_color-test-ot-color.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-ot-color.cc' object='test_ot_color-test-ot-color.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_ot_color_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_ot_color-test-ot-color.o `test -f 'test-ot-color.cc' || echo '$(srcdir)/'`test-ot-color.cc
+
+test_ot_color-test-ot-color.obj: test-ot-color.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_ot_color_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_ot_color-test-ot-color.obj -MD -MP -MF $(DEPDIR)/test_ot_color-test-ot-color.Tpo -c -o test_ot_color-test-ot-color.obj `if test -f 'test-ot-color.cc'; then $(CYGPATH_W) 'test-ot-color.cc'; else $(CYGPATH_W) '$(srcdir)/test-ot-color.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_ot_color-test-ot-color.Tpo $(DEPDIR)/test_ot_color-test-ot-color.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-ot-color.cc' object='test_ot_color-test-ot-color.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_ot_color_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_ot_color-test-ot-color.obj `if test -f 'test-ot-color.cc'; then $(CYGPATH_W) 'test-ot-color.cc'; else $(CYGPATH_W) '$(srcdir)/test-ot-color.cc'; fi`
 
 test_ot_tag-hb-ot-tag.o: hb-ot-tag.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_ot_tag_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_ot_tag-hb-ot-tag.o -MD -MP -MF $(DEPDIR)/test_ot_tag-hb-ot-tag.Tpo -c -o test_ot_tag-hb-ot-tag.o `test -f 'hb-ot-tag.cc' || echo '$(srcdir)/'`hb-ot-tag.cc
@@ -3389,19 +3039,24 @@ uninstall-am: uninstall-binPROGRAMS uninstall-cmakeDATA \
 .PRECIOUS: Makefile
 
 
-# The following warning options are useful for debugging: -Wpadded
-#AM_CXXFLAGS =
-
 # Convenience targets:
-lib: $(BUILT_SOURCES) libharfbuzz.la libharfbuzz-subset.la
-fuzzing: $(BUILT_SOURCES) libharfbuzz-fuzzing.la
+lib: $(BUILT_SOURCES) libharfbuzz.la
+libs: $(BUILT_SOURCES) $(lib_LTLIBRARIES)
 @HAVE_UCDN_TRUE@hb-ucdn/libhb-ucdn.la: ucdn
 @HAVE_UCDN_TRUE@ucdn:
 @HAVE_UCDN_TRUE@	@$(MAKE) $(AM_MAKEFLAGS) -C hb-ucdn
 
+$(srcdir)/hb-version.h: hb-version.h.in $(top_srcdir)/configure.ac
+	$(AM_V_GEN) $(SED) \
+		-e 's/[@]HB_VERSION_MAJOR@/$(HB_VERSION_MAJOR)/' \
+		-e 's/[@]HB_VERSION_MINOR@/$(HB_VERSION_MINOR)/' \
+		-e 's/[@]HB_VERSION_MICRO@/$(HB_VERSION_MICRO)/' \
+		-e 's/[@]HB_VERSION@/$(HB_VERSION)/' \
+		"$<" > "$@" || ($(RM) "$@"; false)
+
 @CODE_COVERAGE_RULES@
 @HAVE_GOBJECT_TRUE@hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
-@HAVE_GOBJECT_TRUE@	$(AM_V_GEN) $(GLIB_MKENUMS) \
+@HAVE_GOBJECT_TRUE@	$(AM_V_GEN) PYTHONIOENCODING=UTF-8 $(GLIB_MKENUMS) \
 @HAVE_GOBJECT_TRUE@		--identifier-prefix hb_ --symbol-prefix hb_gobject \
 @HAVE_GOBJECT_TRUE@		--template $^ | \
 @HAVE_GOBJECT_TRUE@	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@" \
@@ -3420,31 +3075,45 @@ fuzzing: $(BUILT_SOURCES) libharfbuzz-fuzzing.la
 	|| ($(RM) "$@"; false)
 check: $(DEF_FILES) # For check-symbols.sh
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-subset.def: $(HB_SUBSET_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-icu.def: $(HB_ICU_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-gobject.def: $(HB_GOBJECT_headers)
-	$(AM_V_GEN) headers="$^" $(srcdir)/gen-def.py $@
+	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
+harfbuzz-deprecated-symbols.txt: $(srcdir)/hb-deprecated.h
+	$(AM_V_GEN) PLAIN_LIST=1 $(srcdir)/gen-def.py "$@" $^
 
-unicode-tables: arabic-table indic-table use-table
+unicode-tables: arabic-table indic-table tag-table use-table emoji-table
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh \
-	|| ($(RM) hb-ot-shape-complex-arabic-table.hh; false)
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-arabic-table.hh \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-arabic-table.hh; false)
 
-indic-table: gen-indic-table.py IndicSyllabicCategory-7.0.0.txt IndicMatraCategory-7.0.0.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc \
-	|| ($(RM) hb-ot-shape-complex-indic-table.cc; false)
+indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-indic-table.cc \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-indic-table.cc; false)
+
+tag-table: gen-tag-table.py languagetags language-subtag-registry
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-tag-table.hh \
+	|| ($(RM) $(srcdir)/hb-ot-tag-table.hh; false)
 
 use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-use-table.cc \
-	|| ($(RM) hb-ot-shape-complex-use-table.cc; false)
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-use-table.cc \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-use-table.cc; false)
+
+vowel-constraints: gen-vowel-constraints.py HBIndicVowelConstraints.txt Scripts.txt
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc \
+	|| ($(RM) $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc; false)
+
+emoji-table: gen-emoji-table.py emoji-data.txt
+	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-unicode-emoji-table.hh \
+	|| ($(RM) $(srcdir)/hb-unicode-emoji-table.hh; false)
 
 built-sources: $(BUILT_SOURCES)
 
-.PHONY: unicode-tables arabic-table indic-table use-table built-sources
+.PHONY: unicode-tables arabic-table indic-table tag-table use-table vowel-constraints emoji-table built-sources
 # We decided to add ragel-generated files to git...
 #MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
 $(srcdir)/%.hh: $(srcdir)/%.rl
