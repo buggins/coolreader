@@ -2207,12 +2207,6 @@ public:
                        lChar16 def_char, lUInt32 * palette, bool addHyphen,
                        lUInt32 flags, int letter_spacing )
     {
-#if 1
-	    lString8 str8(text);
-	    str8[len] = 0;
-	    CRLog::info("****** embolden draw text: text=%s\n", str8.c_str());
-#endif
-
         if ( len <= 0 )
             return;
         if ( letter_spacing<0 || letter_spacing>50 )
