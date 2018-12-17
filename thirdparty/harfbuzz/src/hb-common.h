@@ -33,6 +33,10 @@
 #ifndef HB_COMMON_H
 #define HB_COMMON_H
 
+#ifndef HB_EXTERN
+#define HB_EXTERN extern
+#endif
+
 #ifndef HB_BEGIN_DECLS
 # ifdef __cplusplus
 #  define HB_BEGIN_DECLS	extern "C" {
@@ -49,9 +53,36 @@
 #  include <inttypes.h>
 #elif defined (_AIX)
 #  include <sys/inttypes.h>
+#elif defined (_MSC_VER) && _MSC_VER < 1600
+/* VS 2010 (_MSC_VER 1600) has stdint.h */
+typedef __int8 int8_t;
+typedef unsigned __int8 uint8_t;
+typedef __int16 int16_t;
+typedef unsigned __int16 uint16_t;
+typedef __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
 #else
 #  include <stdint.h>
 #endif
+
+#if    __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+#define HB_DEPRECATED __attribute__((__deprecated__))
+#elif defined(_MSC_VER) && (_MSC_VER >= 1300)
+#define HB_DEPRECATED __declspec(deprecated)
+#else
+#define HB_DEPRECATED
+#endif
+
+#if    __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#define HB_DEPRECATED_FOR(f) __attribute__((__deprecated__("Use '" #f "' instead")))
+#elif defined(_MSC_FULL_VER) && (_MSC_FULL_VER > 140050320)
+#define HB_DEPRECATED_FOR(f) __declspec(deprecated("is deprecated. Use '" #f "' instead"))
+#else
+#define HB_DEPRECATED_FOR(f) HB_DEPRECATED
+#endif
+
 
 HB_BEGIN_DECLS
 
@@ -76,8 +107,8 @@ typedef union _hb_var_int_t {
 
 typedef uint32_t hb_tag_t;
 
-#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint8_t)(c1))<<24)|(((uint8_t)(c2))<<16)|(((uint8_t)(c3))<<8)|((uint8_t)(c4))))
-#define HB_UNTAG(tag)   ((uint8_t)((tag)>>24)), ((uint8_t)((tag)>>16)), ((uint8_t)((tag)>>8)), ((uint8_t)(tag))
+#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
+#define HB_UNTAG(tag)   (((tag)>>24)&0xFF), (((tag)>>16)&0xFF), (((tag)>>8)&0xFF), ((tag)&0xFF)
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 #define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
@@ -142,8 +173,8 @@ hb_language_get_default (void);
 
 /* hb_script_t */
 
-/* http://unicode.org/iso15924/ */
-/* http://goo.gl/x9ilM */
+/* https://unicode.org/iso15924/ */
+/* https://docs.google.com/spreadsheets/d/1Y90M0Ie3MUJ6UVCRDOypOtijlMDLNNyyLk36T6iMu0o */
 /* Unicode Character Database property: Script (sc) */
 typedef enum
 {
@@ -315,17 +346,30 @@ typedef enum
   /*10.0*/HB_SCRIPT_SOYOMBO			= HB_TAG ('S','o','y','o'),
   /*10.0*/HB_SCRIPT_ZANABAZAR_SQUARE		= HB_TAG ('Z','a','n','b'),
 
+  /*
+   * Since 1.8.0
+   */
+  /*11.0*/HB_SCRIPT_DOGRA			= HB_TAG ('D','o','g','r'),
+  /*11.0*/HB_SCRIPT_GUNJALA_GONDI		= HB_TAG ('G','o','n','g'),
+  /*11.0*/HB_SCRIPT_HANIFI_ROHINGYA		= HB_TAG ('R','o','h','g'),
+  /*11.0*/HB_SCRIPT_MAKASAR			= HB_TAG ('M','a','k','a'),
+  /*11.0*/HB_SCRIPT_MEDEFAIDRIN			= HB_TAG ('M','e','d','f'),
+  /*11.0*/HB_SCRIPT_OLD_SOGDIAN			= HB_TAG ('S','o','g','o'),
+  /*11.0*/HB_SCRIPT_SOGDIAN			= HB_TAG ('S','o','g','d'),
+
   /* No script set. */
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 
   /* Dummy values to ensure any hb_tag_t value can be passed/stored as hb_script_t
-   * without risking undefined behavior.  Include both a signed and unsigned max,
-   * since technically enums are int, and indeed, hb_script_t ends up being signed.
+   * without risking undefined behavior.  We have two, for historical reasons.
+   * HB_TAG_MAX used to be unsigned, but that was invalid Ansi C, so was changed
+   * to _HB_SCRIPT_MAX_VALUE to be equal to HB_TAG_MAX_SIGNED as well.
+   *
    * See this thread for technicalities:
    *
-   *   http://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
+   *   https://lists.freedesktop.org/archives/harfbuzz/2014-March/004150.html
    */
-  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX, /*< skip >*/
+  _HB_SCRIPT_MAX_VALUE				= HB_TAG_MAX_SIGNED, /*< skip >*/
   _HB_SCRIPT_MAX_VALUE_SIGNED			= HB_TAG_MAX_SIGNED /*< skip >*/
 
 } hb_script_t;
@@ -357,6 +401,19 @@ typedef void (*hb_destroy_func_t) (void *user_data);
 
 
 /* Font features and variations. */
+
+/**
+ * HB_FEATURE_GLOBAL_START
+ *
+ * Since: 2.0.0
+ */
+#define HB_FEATURE_GLOBAL_START	0
+/**
+ * HB_FEATURE_GLOBAL_END
+ *
+ * Since: 2.0.0
+ */
+#define HB_FEATURE_GLOBAL_END	((unsigned int) -1)
 
 typedef struct hb_feature_t {
   hb_tag_t      tag;
@@ -390,6 +447,50 @@ hb_variation_from_string (const char *str, int len,
 HB_EXTERN void
 hb_variation_to_string (hb_variation_t *variation,
 			char *buf, unsigned int size);
+
+/**
+ * hb_color_t:
+ *
+ * Data type for holding color values.
+ *
+ * Since: 2.1.0
+ */
+typedef uint32_t hb_color_t;
+
+#define HB_COLOR(b,g,r,a) ((hb_color_t) HB_TAG ((b),(g),(r),(a)))
+
+/**
+ * hb_color_get_alpha:
+ *
+ *
+ *
+ * Since: 2.1.0
+ */
+#define hb_color_get_alpha(color)	((color) & 0xFF)
+/**
+ * hb_color_get_red:
+ *
+ *
+ *
+ * Since: 2.1.0
+ */
+#define hb_color_get_red(color)		(((color) >> 8) & 0xFF)
+/**
+ * hb_color_get_green:
+ *
+ *
+ *
+ * Since: 2.1.0
+ */
+#define hb_color_get_green(color)	(((color) >> 16) & 0xFF)
+/**
+ * hb_color_get_blue:
+ *
+ *
+ *
+ * Since: 2.1.0
+ */
+#define hb_color_get_blue(color)	(((color) >> 24) & 0xFF)
 
 
 HB_END_DECLS

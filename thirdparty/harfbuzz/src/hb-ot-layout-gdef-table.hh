@@ -29,9 +29,9 @@
 #ifndef HB_OT_LAYOUT_GDEF_TABLE_HH
 #define HB_OT_LAYOUT_GDEF_TABLE_HH
 
-#include "hb-ot-layout-common-private.hh"
+#include "hb-ot-layout-common.hh"
 
-#include "hb-font-private.hh"
+#include "hb-font.hh"
 
 
 namespace OT {
@@ -61,9 +61,10 @@ struct AttachList
 
     const AttachPoint &points = this+attachPoint[index];
 
-    if (point_count) {
-      const HBUINT16 *array = points.sub_array (start_offset, point_count);
-      unsigned int count = *point_count;
+    if (point_count)
+    {
+      hb_array_t<const HBUINT16> array = points.sub_array (start_offset, point_count);
+      unsigned int count = array.len;
       for (unsigned int i = 0; i < count; i++)
 	point_array[i] = array[i];
     }
@@ -123,10 +124,8 @@ struct CaretValueFormat2
   inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
     hb_position_t x, y;
-    if (font->get_glyph_contour_point_for_origin (glyph_id, caretValuePoint, direction, &x, &y))
-      return HB_DIRECTION_IS_HORIZONTAL (direction) ? x : y;
-    else
-      return 0;
+    font->get_glyph_contour_point_for_origin (glyph_id, caretValuePoint, direction, &x, &y);
+    return HB_DIRECTION_IS_HORIZONTAL (direction) ? x : y;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -218,9 +217,10 @@ struct LigGlyph
 				      unsigned int *caret_count /* IN/OUT */,
 				      hb_position_t *caret_array /* OUT */) const
   {
-    if (caret_count) {
-      const OffsetTo<CaretValue> *array = carets.sub_array (start_offset, caret_count);
-      unsigned int count = *caret_count;
+    if (caret_count)
+    {
+      hb_array_t <const OffsetTo<CaretValue> > array = carets.sub_array (start_offset, caret_count);
+      unsigned int count = array.len;
       for (unsigned int i = 0; i < count; i++)
 	caret_array[i] = (this+array[i]).get_caret_value (font, direction, glyph_id, var_store);
     }
@@ -333,8 +333,10 @@ struct MarkGlyphSets
 
 
 /*
- * GDEF -- The Glyph Definition Table
+ * GDEF -- Glyph Definition
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/gdef
  */
+
 
 struct GDEF
 {
@@ -348,6 +350,7 @@ struct GDEF
     ComponentGlyph	= 4
   };
 
+  inline bool has_data (void) const { return version.to_int (); }
   inline bool has_glyph_classes (void) const { return glyphClassDef != 0; }
   inline unsigned int get_glyph_class (hb_codepoint_t glyph) const
   { return (this+glyphClassDef).get_class (glyph); }
@@ -384,21 +387,8 @@ struct GDEF
   inline const VariationStore &get_var_store (void) const
   { return version.to_int () >= 0x00010003u ? this+varStore : Null(VariationStore); }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (version.sanitize (c) &&
-		  likely (version.major == 1) &&
-		  glyphClassDef.sanitize (c, this) &&
-		  attachList.sanitize (c, this) &&
-		  ligCaretList.sanitize (c, this) &&
-		  markAttachClassDef.sanitize (c, this) &&
-		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
-		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
-  }
-
   /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
-   * glyph class and other bits, and high 8-bit gthe mark attachment type (if any).
+   * glyph class and other bits, and high 8-bit the mark attachment type (if any).
    * Not to be confused with lookup_props which is very similar. */
   inline unsigned int get_glyph_props (hb_codepoint_t glyph) const
   {
@@ -418,6 +408,48 @@ struct GDEF
     }
   }
 
+  HB_INTERNAL bool is_blacklisted (hb_blob_t *blob,
+				   hb_face_t *face) const;
+
+  struct accelerator_t
+  {
+    inline void init (hb_face_t *face)
+    {
+      this->table = hb_sanitize_context_t().reference_table<GDEF> (face);
+      if (unlikely (this->table->is_blacklisted (this->table.get_blob (), face)))
+      {
+	hb_blob_destroy (this->table.get_blob ());
+	this->table = hb_blob_get_empty ();
+      }
+    }
+
+    inline void fini (void)
+    {
+      this->table.destroy ();
+    }
+
+    hb_blob_ptr_t<GDEF> table;
+  };
+
+  inline unsigned int get_size (void) const
+  {
+    return min_size +
+	   (version.to_int () >= 0x00010002u ? markGlyphSetsDef.static_size : 0) +
+	   (version.to_int () >= 0x00010003u ? varStore.static_size : 0);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  glyphClassDef.sanitize (c, this) &&
+		  attachList.sanitize (c, this) &&
+		  ligCaretList.sanitize (c, this) &&
+		  markAttachClassDef.sanitize (c, this) &&
+		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
+		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
+  }
 
   protected:
   FixedVersion<>version;		/* Version of the GDEF table--currently
@@ -452,6 +484,7 @@ struct GDEF
   DEFINE_SIZE_MIN (12);
 };
 
+struct GDEF_accelerator_t : GDEF::accelerator_t {};
 
 } /* namespace OT */
 

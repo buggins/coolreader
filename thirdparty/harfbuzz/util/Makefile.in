@@ -90,18 +90,17 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3)
+bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@@HAVE_GLIB_TRUE@am__append_1 = hb-view
-@HAVE_GLIB_TRUE@am__append_2 = hb-shape hb-subset
-@HAVE_GLIB_TRUE@@HAVE_OT_TRUE@am__append_3 = hb-ot-shape-closure
+@HAVE_GLIB_TRUE@am__append_2 = hb-shape hb-subset hb-ot-shape-closure
 subdir = util
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_code_coverage.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_link_flag.m4 \
+	$(top_srcdir)/m4/ax_code_coverage.m4 \
 	$(top_srcdir)/m4/ax_pthread.m4 $(top_srcdir)/m4/gtk-doc.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/m4/pkg.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
@@ -110,9 +109,8 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @HAVE_CAIRO_FT_TRUE@@HAVE_FREETYPE_TRUE@@HAVE_GLIB_TRUE@am__EXEEXT_1 = hb-view$(EXEEXT)
-@HAVE_GLIB_TRUE@am__EXEEXT_2 = hb-shape$(EXEEXT) hb-subset$(EXEEXT)
-@HAVE_GLIB_TRUE@@HAVE_OT_TRUE@am__EXEEXT_3 =  \
-@HAVE_GLIB_TRUE@@HAVE_OT_TRUE@	hb-ot-shape-closure$(EXEEXT)
+@HAVE_GLIB_TRUE@am__EXEEXT_2 = hb-shape$(EXEEXT) hb-subset$(EXEEXT) \
+@HAVE_GLIB_TRUE@	hb-ot-shape-closure$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__hb_ot_shape_closure_SOURCES_DIST = hb-ot-shape-closure.cc \
@@ -120,8 +118,7 @@ am__hb_ot_shape_closure_SOURCES_DIST = hb-ot-shape-closure.cc \
 am__objects_1 =
 am__objects_2 = hb-ot-shape-closure.$(OBJEXT) options.$(OBJEXT) \
 	$(am__objects_1)
-@HAVE_GLIB_TRUE@@HAVE_OT_TRUE@am_hb_ot_shape_closure_OBJECTS =  \
-@HAVE_GLIB_TRUE@@HAVE_OT_TRUE@	$(am__objects_2)
+@HAVE_GLIB_TRUE@am_hb_ot_shape_closure_OBJECTS = $(am__objects_2)
 hb_ot_shape_closure_OBJECTS = $(am_hb_ot_shape_closure_OBJECTS)
 hb_ot_shape_closure_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
@@ -367,6 +364,8 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
@@ -503,8 +502,11 @@ LDADD = \
 
 @HAVE_GLIB_TRUE@hb_shape_SOURCES = $(HB_SHAPE_sources)
 @HAVE_GLIB_TRUE@hb_subset_SOURCES = $(HB_SUBSET_CLI_sources)
-@HAVE_GLIB_TRUE@hb_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
-@HAVE_GLIB_TRUE@@HAVE_OT_TRUE@hb_ot_shape_closure_SOURCES = $(HB_OT_SHAPE_CLOSURE_sources)
+@HAVE_GLIB_TRUE@hb_subset_LDADD = \
+@HAVE_GLIB_TRUE@	$(LDADD) \
+@HAVE_GLIB_TRUE@	$(top_builddir)/src/libharfbuzz-subset.la
+
+@HAVE_GLIB_TRUE@hb_ot_shape_closure_SOURCES = $(HB_OT_SHAPE_CLOSURE_sources)
 all: all-am
 
 .SUFFIXES:
@@ -880,7 +882,6 @@ uninstall-am: uninstall-binPROGRAMS
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
 
-#if HAVE_OT
 #if HAVE_FONTCONFIG
 #hb_fc_list_SOURCES = \
 #	hb-fc.cc \
@@ -893,7 +894,6 @@ lib:
 #	$(NULL)
 #bin_PROGRAMS += hb-fc-list
 #endif # HAVE_FONTCONFIG
-#endif # HAVE_OT
 
 -include $(top_srcdir)/git.mk
 

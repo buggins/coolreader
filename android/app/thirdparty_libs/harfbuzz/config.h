@@ -16,6 +16,10 @@
 /* Have Core Text backend */
 /* #undef HAVE_CORETEXT */
 
+/* Define to 1 if you have the declaration of `round', and to 0 if you don't.
+   */
+/* #undef HAVE_DECL_ROUND */
+
 /* Have DirectWrite library */
 /* #undef HAVE_DIRECTWRITE */
 
@@ -82,14 +86,17 @@
 /* Define to 1 if you have the `newlocale' function. */
 /* #undef HAVE_NEWLOCALE */
 
-/* Have native OpenType Layout backend */
-#define HAVE_OT 1
+/* Define to 1 if you have the `posix_memalign' function. */
+/* #undef HAVE_POSIX_MEMALIGN */
 
 /* Have POSIX threads */
 #define HAVE_PTHREAD 1
 
 /* Have PTHREAD_PRIO_INHERIT. */
-/* #undef HAVE_PTHREAD_PRIO_INHERIT */
+#define HAVE_PTHREAD_PRIO_INHERIT 1
+
+/* Define to 1 if you have the `round' function. */
+#define HAVE_ROUND 1
 
 /* Define to 1 if you have the <sched.h> header file. */
 /* #undef HAVE_SCHED_H */
@@ -97,11 +104,11 @@
 /* Have sched_yield */
 /* #undef HAVE_SCHED_YIELD */
 
-/* Define to 1 if you have the `setlinebuf' function. */
-#define HAVE_SETLINEBUF 1
-
 /* Have Solaris __machine_*_barrier and atomic_* operations */
 /* #undef HAVE_SOLARIS_ATOMIC_OPS */
+
+/* Define to 1 if you have the <stdbool.h> header file. */
+#define HAVE_STDBOOL_H 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -158,7 +165,7 @@
 #define PACKAGE_NAME "HarfBuzz"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "HarfBuzz 1.7.6"
+#define PACKAGE_STRING "HarfBuzz 2.2.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "harfbuzz"
@@ -167,7 +174,7 @@
 #define PACKAGE_URL "http://harfbuzz.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.7.6"
+#define PACKAGE_VERSION "2.2.0"
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */

@@ -27,7 +27,7 @@
 #ifndef VIEW_CAIRO_HH
 #define VIEW_CAIRO_HH
 
-#include "hb-private.hh"
+#include "hb.hh"
 #include "options.hh"
 #include "helper-cairo.hh"
 
@@ -40,14 +40,13 @@ struct view_cairo_t
 		 direction (HB_DIRECTION_INVALID),
 		 lines (0), scale_bits (0) {}
   ~view_cairo_t (void) {
-    if (debug)
-      cairo_debug_reset_static_data ();
+    cairo_debug_reset_static_data ();
   }
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
     lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
-    scale_bits = -font_opts->subpixel_bits;
+    scale_bits = - (int) font_opts->subpixel_bits;
   }
   void new_line (void)
   {
