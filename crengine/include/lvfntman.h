@@ -271,8 +271,13 @@ public:
 
     /// get kerning mode: true==ON, false=OFF
     virtual bool getKerning() const { return false; }
-    /// get kerning mode: true==ON, false=OFF
+    /// set kerning mode: true==ON, false=OFF
     virtual void setKerning( bool ) { }
+
+    /// get ligatures mode: true==allowed, false=not allowed
+    virtual bool getLigatures() const { return false; }
+    /// set ligatures mode: true==allowed, false=not allowed
+    virtual void setLigatures( bool ) { }
 
     /// sets current hinting mode
     virtual void setHintingMode(hinting_mode_t /*mode*/) { }
@@ -345,6 +350,7 @@ class LVFontManager
 protected:
     int _antialiasMode;
     bool _allowKerning;
+    bool _allowLigatures;
     hinting_mode_t _hintingMode;
 public:
     /// garbage collector frees unused fonts
@@ -384,8 +390,13 @@ public:
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning( bool kerningEnabled ) { _allowKerning = kerningEnabled; gc(); clearGlyphCache(); }
 
+    /// get ligatures mode: true==allowed, false=not allowed
+    virtual bool getLigatures() const { return _allowLigatures; }
+    /// set ligatures mode: true==allowed, false=not allowed
+    virtual void setLigatures( bool ligaturesEnabled ) { _allowLigatures = ligaturesEnabled; gc(); clearGlyphCache(); }
+
     /// constructor
-    LVFontManager() : _antialiasMode(font_aa_all), _allowKerning(false), _hintingMode(HINTING_MODE_AUTOHINT) { }
+    LVFontManager() : _antialiasMode(font_aa_all), _allowKerning(false), _allowLigatures(false), _hintingMode(HINTING_MODE_AUTOHINT) { }
     /// destructor
     virtual ~LVFontManager() { }
     /// returns available typefaces

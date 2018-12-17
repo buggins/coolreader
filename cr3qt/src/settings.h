@@ -194,6 +194,7 @@ private slots:
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
     void on_cbFontKerning_stateChanged(int );
+    void on_cbLigatures_stateChanged(int );
     void on_cbFloatingPunctuation_stateChanged(int );
     void on_cbFontGamma_currentIndexChanged(QString );
     void on_cbStyleName_currentIndexChanged(int index);

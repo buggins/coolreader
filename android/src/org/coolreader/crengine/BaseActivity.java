@@ -1691,6 +1691,7 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_SHOW_POS_PERCENT, "0"); 
 			props.applyDefault(ReaderView.PROP_SHOW_PAGE_COUNT, "1");
 			props.applyDefault(ReaderView.PROP_FONT_KERNING_ENABLED, "0");
+			props.applyDefault(ReaderView.PROP_FONT_LIGATURES_ENABLED, "0");
 			props.applyDefault(ReaderView.PROP_SHOW_TIME, "1");
 			props.applyDefault(ReaderView.PROP_FONT_ANTIALIASING, "2");
 			props.applyDefault(ReaderView.PROP_APP_GESTURE_PAGE_FLIPPING, "1");

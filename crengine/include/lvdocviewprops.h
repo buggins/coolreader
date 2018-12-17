@@ -47,6 +47,7 @@
 #define PROP_SHOW_PAGE_NUMBER        "window.status.pos.page.number"
 #define PROP_SHOW_BATTERY_PERCENT    "window.status.battery.percent"
 #define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
+#define PROP_FONT_LIGATURES_ENABLED  "font.ligatures.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
 #define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
 #define PROP_HYPHENATION_DICT_VALUE_NONE "@none"

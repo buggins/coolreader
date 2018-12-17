@@ -182,6 +182,7 @@
     <string name="options_app_dictionary2">Dictionary 2</string>
     <string name="action_zoom_in">Increase font size</string>
     <string name="options_font_kerning">Font kerning</string>
+    <string name="options_font_ligatures">Use ligatures (very slowly!)</string>
     <string name="action_zoom_out">Decrease font size</string>
     <string name="options_style_floating_punctuation">Floating punctuation</string>
     <string name="action_toggle_document_styles">Toggle document styles</string>

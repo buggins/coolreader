@@ -805,6 +805,28 @@ static lUInt16 char_flags[] = {
         (ch==UNICODE_NO_BREAK_SPACE?LCHAR_DEPRECATED_WRAP_AFTER|LCHAR_IS_SPACE: \
         (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER:0))))
 
+struct LVCharTriplet
+{
+    lChar16 prevChar;
+    lChar16 Char;
+    lChar16 nextChar;
+    bool operator==(const struct LVCharTriplet& other) {
+        return prevChar == other.prevChar && Char == other.Char && nextChar == other.nextChar;
+    }
+};
+
+struct LVCharPosInfo
+{
+    int offset;
+    int width;
+};
+
+inline lUInt32 getHash( const struct LVCharTriplet& triplet )
+{
+    //return (triplet.prevChar * 1975317 + 164521) ^ (triplet.Char * 1975317 + 164521) ^ (triplet.nextChar * 1975317 + 164521);
+    return getHash((lUInt32)triplet.Char) ^ getHash((lUInt32)triplet.prevChar) ^ getHash((lUInt32)triplet.nextChar);
+}
+
 class LVFreeTypeFace : public LVFont
 {
 protected:
@@ -826,14 +848,18 @@ protected:
     LVFontLocalGlyphCache _glyph_cache;
     bool          _drawMonochrome;
     bool          _allowKerning;
+    bool          _allowLigatures;
     hinting_mode_t _hintingMode;
     bool          _fallbackFontIsSet;
     LVFontRef     _fallbackFont;
 #if USE_HARFBUZZ==1
     hb_buffer_t* _hb_buffer;
     hb_font_t* _hb_font;
-    hb_feature_t _hb_kern_feature;
+    hb_feature_t _hb_features[2];
     LVHashTable<lUInt32, LVFontGlyphIndexCacheItem*> _glyph_cache2;
+    LVHashTable<struct LVCharTriplet, struct LVCharPosInfo> _width_cache2;
+    hb_buffer_t* _hb_opt_kern_buffer;
+    hb_feature_t _hb_opt_kern_features[2];
 #endif
 public:
 
@@ -842,6 +868,7 @@ public:
     void setFallbackFont( LVFontRef font ) {
         _fallbackFont = font;
         _fallbackFontIsSet = !font.isNull();
+        clearCache();
     }
 
     /// get fallback font for this font
@@ -867,9 +894,9 @@ public:
     LVFreeTypeFace( LVMutex &mutex, FT_Library  library, LVFontGlobalGlyphCache * globalCache )
     : _mutex(mutex), _fontFamily(css_ff_sans_serif), _library(library), _face(NULL), _size(0), _hyphen_width(0), _baseline(0)
     , _weight(400), _italic(0)
-    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _hintingMode(HINTING_MODE_AUTOHINT), _fallbackFontIsSet(false)
+    , _glyph_cache(globalCache), _drawMonochrome(false), _allowKerning(false), _allowLigatures(false), _hintingMode(HINTING_MODE_AUTOHINT), _fallbackFontIsSet(false)
 #if USE_HARFBUZZ==1
-    , _glyph_cache2(256)
+    , _glyph_cache2(256), _width_cache2(1024)
 #endif
     {
         _matrix.xx = 0x10000;
@@ -880,7 +907,13 @@ public:
 #if USE_HARFBUZZ==1
         _hb_font = 0;
         _hb_buffer = hb_buffer_create();
-        hb_feature_from_string("-kern", -1, &_hb_kern_feature);
+        _hb_opt_kern_buffer = hb_buffer_create();
+        // HarfBuzz features for full text shaping
+        hb_feature_from_string("-kern", -1, &_hb_features[0]);      // font kerning
+        hb_feature_from_string("-liga", -1, &_hb_features[1]);      // ligatures
+        // HarfBuzz features for lighweight characters width calculating with caching
+        hb_feature_from_string("-kern", -1, &_hb_opt_kern_features[0]);      // font kerning
+        hb_feature_from_string("-liga", -1, &_hb_opt_kern_features[1]);      // ligatures
 #endif
     }
 
@@ -889,6 +922,8 @@ public:
 #if USE_HARFBUZZ==1
         if (_hb_buffer)
             hb_buffer_destroy(_hb_buffer);
+        if (_hb_opt_kern_buffer)
+            hb_buffer_destroy(_hb_opt_kern_buffer);
 #endif
         Clear();
     }
@@ -905,6 +940,7 @@ public:
                 LVFontGlyphIndexCacheItem::freeItem(item);
         }
         _glyph_cache2.clear();
+        _width_cache2.clear();
 #endif
     }
 
@@ -919,14 +955,34 @@ public:
 
     /// get kerning mode: true==ON, false=OFF
     virtual bool getKerning() const { return _allowKerning; }
-    /// get kerning mode: true==ON, false=OFF
+    /// set kerning mode: true==ON, false=OFF
     virtual void setKerning( bool kerningEnabled ) {
         _allowKerning = kerningEnabled;
 #if USE_HARFBUZZ==1
-        if (_allowKerning)
-            hb_feature_from_string("+kern", -1, &_hb_kern_feature);
+        if (_allowKerning) {
+            hb_feature_from_string("+kern", -1, &_hb_features[0]);
+            hb_feature_from_string("+kern", -1, &_hb_opt_kern_features[0]);
+        }
+        else {
+            hb_feature_from_string("-kern", -1, &_hb_features[0]);
+            hb_feature_from_string("-kern", -1, &_hb_opt_kern_features[0]);
+        }
+        // in cache may be found some ligatures, so clear it
+        clearCache();
+#endif
+    }
+
+    /// get ligatures mode: true==allowed, false=not allowed
+    virtual bool getLigatures() const { return _allowLigatures; }
+    /// set ligatures mode: true==allowed, false=not allowed
+    virtual void setLigatures( bool ligaturesAllowed ) {
+        // don't touch _hb_opt_kern_features here - lightweight characters width calculation always performed without any ligatures!
+        _allowLigatures = ligaturesAllowed;
+#if USE_HARFBUZZ==1
+        if (_allowLigatures)
+            hb_feature_from_string("+liga", -1, &_hb_features[1]);
         else
-            hb_feature_from_string("-kern", -1, &_hb_kern_feature);
+            hb_feature_from_string("-liga", -1, &_hb_features[1]);
         // in cache may be found some ligatures, so clear it
         clearCache();
 #endif
@@ -1122,6 +1178,40 @@ public:
         }
         return res;
     }
+
+    bool hbCalcCharWidth(struct LVCharPosInfo* posInfo, const struct LVCharTriplet& triplet) {
+        if (!posInfo)
+            return false;
+        unsigned int segLen = 0;
+        int cluster;
+        hb_buffer_clear_contents(_hb_opt_kern_buffer);
+        if (0 != triplet.prevChar) {
+            hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)triplet.prevChar, segLen);
+            segLen++;
+        }
+        hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)triplet.Char, segLen);
+        cluster = segLen;
+        segLen++;
+        if (0 != triplet.nextChar) {
+            hb_buffer_add(_hb_opt_kern_buffer, (hb_codepoint_t)triplet.nextChar, segLen);
+            segLen++;
+        }
+        hb_buffer_set_content_type(_hb_opt_kern_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+        hb_buffer_guess_segment_properties(_hb_opt_kern_buffer);
+        hb_shape(_hb_font, _hb_opt_kern_buffer, _hb_opt_kern_features, 2);
+        unsigned int glyph_count = hb_buffer_get_length(_hb_opt_kern_buffer);
+        if (segLen == glyph_count) {
+            hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(_hb_opt_kern_buffer, &glyph_count);
+            posInfo->offset = glyph_pos[cluster].x_offset >> 6;
+            posInfo->width = glyph_pos[cluster].x_advance >> 6;
+            return true;
+        } else {
+#ifdef _DEBUG
+            CRLog::debug("hbCalcCharWidthWithKerning(): hb_buffer_get_length() return %d, must be %d, return value (-1)", glyph_count, segLen);
+#endif
+            return false;
+        }
+    }
 #endif
 
     FT_UInt getCharIndex( lChar16 code, lChar16 def_char ) {
@@ -1229,9 +1319,8 @@ public:
         unsigned int glyph_count;
         hb_glyph_info_t* glyph_info = 0;
         hb_glyph_position_t* glyph_pos = 0;
-        bool allowKerning = _allowKerning;
-        if (allowKerning) {
-            // Use HarfBuzz only for kerning - it's a long variant
+        if (/*_allowKerning &&*/ _allowLigatures) {
+            // Full shaping with HarfBuzz, very slow method but support ligatures.
             hb_buffer_clear_contents(_hb_buffer);
             hb_buffer_set_replacement_codepoint(_hb_buffer, def_char);
             // fill HarfBuzz buffer with filtering
@@ -1240,7 +1329,7 @@ public:
             hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
             hb_buffer_guess_segment_properties(_hb_buffer);
             // shape
-            hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
+            hb_shape(_hb_font, _hb_buffer, _hb_features, 2);
             glyph_count = hb_buffer_get_length(_hb_buffer);
             glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
             glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
@@ -1301,25 +1390,31 @@ public:
                 }
             }
         } else {
+            struct LVCharTriplet triplet;
+            struct LVCharPosInfo posInfo;
+            triplet.Char = 0;
             for ( i=0; i<len; i++) {
                 lChar16 ch = text[i];
                 bool isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
 
                 flags[i] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
 
-                /* load glyph image into the slot (erase previous one) */
-                int w = _wcache.get(ch);
-                if ( w==0xFF ) {
-                    glyph_info_t glyph;
-                    if ( getGlyphInfo( ch, &glyph, def_char ) ) {
-                        w = glyph.width;
-                        _wcache.put(ch, w);
-                    } else {
-                        widths[i] = prev_width;
+                triplet.prevChar = triplet.Char;
+                triplet.Char = ch;
+                if (i < len - 1)
+                    triplet.nextChar = text[i + 1];
+                else
+                    triplet.nextChar = 0;
+                if (!_width_cache2.get(triplet, posInfo)) {
+                    if (hbCalcCharWidth(&posInfo, triplet))
+                        _width_cache2.set(triplet, posInfo);
+                    else {
+                        posInfo.offset = 0;
+                        posInfo.width = prev_width;
                         continue;  /* ignore errors */
                     }
                 }
-                widths[i] = prev_width + w + letter_spacing;
+                widths[i] = prev_width + posInfo.width + letter_spacing;
                 if ( !isHyphen ) // avoid soft hyphens inside text string
                     prev_width = widths[i];
                 if ( prev_width > max_width ) {
@@ -1629,9 +1724,8 @@ public:
         unsigned int glyph_count;
         int w;
         unsigned int len_new = 0;
-        bool allowKerning = _allowKerning;
-        if (allowKerning) {
-            // Use HarfBuzz only for kerning - it's a slow variant
+        if (/*_allowKerning &&*/ _allowLigatures) {
+            // Full shaping with HarfBuzz, very slow method but support ligatures.
             hb_buffer_clear_contents(_hb_buffer);
             hb_buffer_set_replacement_codepoint(_hb_buffer, 0);
             // fill HarfBuzz buffer with filtering
@@ -1647,7 +1741,7 @@ public:
             hb_buffer_set_content_type(_hb_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
             hb_buffer_guess_segment_properties(_hb_buffer);
             // shape
-            hb_shape(_hb_font, _hb_buffer, &_hb_kern_feature, 1);
+            hb_shape(_hb_font, _hb_buffer, _hb_features, 2);
             glyph_count = hb_buffer_get_length(_hb_buffer);
             glyph_info = hb_buffer_get_glyph_infos(_hb_buffer, 0);
             glyph_pos = hb_buffer_get_glyph_positions(_hb_buffer, 0);
@@ -1685,10 +1779,13 @@ public:
                                   item->bmp_height,
                                   palette);
                         x += w + letter_spacing;
-                   }
-               }
-           }
-        } else {        // kerning disabled...
+                    }
+                }
+            }
+        } else {        // ligatures disabled, kerning any
+            struct LVCharTriplet triplet;
+            struct LVCharPosInfo posInfo;
+            triplet.Char = 0;
             for (i = 0; i < (unsigned int)len; i++) {
                 ch = text[i];
                 isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < (unsigned int)(len - 1));
@@ -1697,14 +1794,26 @@ public:
                     continue;
                 LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
                 if (item) {
-                    w = item->advance;
-                    buf->Draw(x + item->origin_x,
+                    triplet.prevChar = triplet.Char;
+                    triplet.Char = ch;
+                    if (i < (unsigned int)(len - 1))
+                        triplet.nextChar = text[i + 1];
+                    else
+                        triplet.nextChar = 0;
+                    if (!_width_cache2.get(triplet, posInfo)) {
+                        if (!hbCalcCharWidth(&posInfo, triplet)) {
+                            posInfo.offset = 0;
+                            posInfo.width = item->advance;
+                        }
+                        _width_cache2.set(triplet, posInfo);
+                    }
+                    buf->Draw(x + item->origin_x + posInfo.offset,
                               y + _baseline - item->origin_y,
                               item->bmp,
                               item->bmp_width,
                               item->bmp_height,
                               palette);
-                    x += w + letter_spacing;
+                    x += posInfo.width + letter_spacing;
                 }
             }
         }
@@ -2096,7 +2205,7 @@ public:
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y,
                        const lChar16 * text, int len,
                        lChar16 def_char, lUInt32 * palette, bool addHyphen,
-                       lUInt32 flags=0, int letter_spacing=0 )
+                       lUInt32 flags, int letter_spacing )
     {
         if ( len <= 0 )
             return;
@@ -2185,6 +2294,11 @@ public:
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning( bool b ) { _baseFont->setKerning( b ); }
 
+    /// get ligatures mode: true==allowed, false=not allowed
+    virtual bool getLigatures() const { return _baseFont->getLigatures(); }
+    /// set ligatures mode: true==allowed, false=not allowed
+    virtual void setLigatures( bool b ) { _baseFont->setLigatures( b ); }
+    
     /// returns true if font is empty
     virtual bool IsNull() const
     {
@@ -2329,7 +2443,7 @@ public:
         return _hintingMode;
     }
 
-    /// set antialiasing mode
+    /// set kerning mode
     virtual void setKerning( bool kerning )
     {
         FONT_MAN_GUARD
@@ -2339,6 +2453,18 @@ public:
         LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
         for ( int i=0; i<fonts->length(); i++ ) {
             fonts->get(i)->getFont()->setKerning( kerning );
+        }
+    }
+    /// set ligatures mode
+    virtual void setLigatures( bool ligatures )
+    {
+        FONT_MAN_GUARD
+        _allowLigatures = ligatures;
+        gc();
+        clearGlyphCache();
+        LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
+        for ( int i=0; i<fonts->length(); i++ ) {
+            fonts->get(i)->getFont()->setLigatures( ligatures );
         }
     }
     /// clear glyph cache
@@ -2848,6 +2974,7 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
             //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
             LVFontRef ref(font);
             font->setKerning( getKerning() );
+            font->setLigatures( getLigatures() );
             font->setFaceName( item->getDef()->getTypeFace() );
             newDef.setSize( size );
             //item->setFont( ref );
