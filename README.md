@@ -1,3 +1,11 @@
+VR Cool Reader
+==============
+
+A virtual reality interface for the CoolReader 3 e-book reader. The interface is provided as a Unity
+project, and currently targets the Oculus Go (other platform support subject to availability of test
+equipment).
+
+
 CoolReader 3 - cross platform open source e-book reader
 =======================================================
 
