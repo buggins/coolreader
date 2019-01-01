@@ -10,7 +10,9 @@ CMakeLists.txt.user
 *~
 
 *.blend1
+*.blend1.meta
 lib*.so
+lib*.so.meta
 
 [Ll]ibrary/
 [Tt]emp/
