@@ -1021,6 +1021,11 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 
 	//CRLog::trace("drawCoverTo() - getting cover image");
 	LVImageSourceRef imgsrc = getCoverPageImage();
+	if (imgsrc.isNull())
+        {
+          LVStreamRef stream = getCoverPageImageStream();
+          imgsrc = LVCreateStreamImageSource (stream);
+        }
 	LVImageSourceRef defcover = getDefaultCover();
 	if (!imgsrc.isNull() && imgrc.height() > 30) {
 #ifdef NO_TEXT_IN_COVERPAGE

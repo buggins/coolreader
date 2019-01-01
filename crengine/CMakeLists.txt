@@ -19,6 +19,7 @@ src/crtest.cpp
 
 if ( NOT ${GUI} STREQUAL FB2PROPS )
     SET (CRENGINE_SOURCES ${CRENGINE_SOURCES}
+    src/libraryloader.cpp
     src/lvbmpbuf.cpp   
     src/lvfnt.cpp      
     src/hyphman.cpp    

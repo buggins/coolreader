@@ -32,11 +32,11 @@ IF (DEFINED CR3_ANTIWORD_PATCH)
 ELSE ()
 SET (ANTIWORD_SOURCES ${ANTIWORD_SOURCES}
 #Output routines are implemented in CR
-    output.c 
-    xml.c
-    text.c 
-    fmt_text.c 
-    postscript.c 
+#    output.c 
+#    xml.c
+#    text.c 
+#    fmt_text.c 
+#    postscript.c 
 )
 ENDIF (DEFINED CR3_ANTIWORD_PATCH)
 

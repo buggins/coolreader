@@ -12,7 +12,7 @@ INSTALL_DATA	= $(INSTALL)
 # must be equal to DEBUG or NDEBUG
 DB	= NDEBUG
 # Optimization: -O<n> or debugging: -g
-OPT	= -O2
+OPT	= -O2 -fPIC
 
 LDLIBS	=
 

@@ -40,7 +40,7 @@ typedef enum {
 
 #ifndef CR_ENABLE_PAGE_IMAGE_CACHE
 #ifdef ANDROID
-#define CR_ENABLE_PAGE_IMAGE_CACHE 0
+#define CR_ENABLE_PAGE_IMAGE_CACHE 1
 #else
 #define CR_ENABLE_PAGE_IMAGE_CACHE 1
 #endif

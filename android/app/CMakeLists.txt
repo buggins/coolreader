@@ -41,6 +41,7 @@ set(CMAKE_CXX_FLAGS_RELEASE         ${CMAKE_C_FLAGS_RELEASE})
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO  ${CMAKE_C_FLAGS_RELWITHDEBINFO})
 
 set(CRENGINE_SRC_FILES
+    ${CR3_ROOT}/crengine/src/libraryloader.cpp
     ${CR3_ROOT}/crengine/src/cp_stats.cpp
     ${CR3_ROOT}/crengine/src/lvstring.cpp
     ${CR3_ROOT}/crengine/src/props.cpp
@@ -78,14 +79,14 @@ set(CRENGINE_SRC_FILES
 #    ${CR3_ROOT}/crengine/src/crgui.cpp
 
 set(COFFEECATCH_SRC_FILES
-    ${CR3_ROOT}/android/jni/coffeecatch/coffeecatch.c
-    ${CR3_ROOT}/android/jni/coffeecatch/coffeejni.c
+	#    ${CR3_ROOT}/android/jni/coffeecatch/coffeecatch.c
+	#    ${CR3_ROOT}/android/jni/coffeecatch/coffeejni.c
 )
 
 set(JNI_SRC_FILES
-    ${CR3_ROOT}/android/jni/cr3engine.cpp
-    ${CR3_ROOT}/android/jni/cr3java.cpp
-    ${CR3_ROOT}/android/jni/docview.cpp
+	#    ${CR3_ROOT}/android/jni/cr3engine.cpp
+	#    ${CR3_ROOT}/android/jni/cr3java.cpp
+	#    ${CR3_ROOT}/android/jni/docview.cpp
 )
 
 set(LOCAL_SRC_FILES
@@ -145,4 +146,4 @@ target_link_libraries( # Specifies the target library.
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib}
-                       -lm -lz -ldl)
+                       -lm -lz -ldl -lGLESv3)
