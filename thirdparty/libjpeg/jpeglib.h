@@ -14,6 +14,8 @@
 #ifndef JPEGLIB_H
 #define JPEGLIB_H
 
+#define NEED_SHORT_EXTERNAL_NAMES 1
+
 /*
  * First we include the configuration files that record how this
  * installation of the JPEG library is set up.  jconfig.h can be

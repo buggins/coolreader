@@ -1,0 +1,45 @@
+CoolReader, CoolReader 3 - cross platform open source e-book reader, (c) Vadim Lopatin, 1998-2018, https://github.com/buggins/coolreader, LICENSE: All source codes (except thirdparty directory) are provided under the terms of GNU GPL license, version 2.
+
+Couch1, Couch, Poly by Google, https://poly.google.com/view/4QKlmmd0v2b, #furniture, Oct 23, 2017, Uploaded 3D Model, Public / Remixable (CC-BY), This content is published under a CC-BY license. You're free to use this as long as you credit the author
+
+Couch2, Couch | Wde, Danny Bittman, https://poly.google.com/view/7Q_Ab2HLll1, Jun 14, 2017, Made with Blocks, Public / Remixable (CC-BY), This content is published under a CC-BY license. You're free to use this as long as you credit the author. 
+
+Armchair1, armchair, HEAD apelab, https://poly.google.com/view/8ZuAjF0awms, Jun 6, 2018, Made with Blocks, Public / Remixable (CC-BY), This content is published under a CC-BY license. You're free to use this as long as you credit the author. 
+
+WoodFloor, Wood Floor #08, StruffelProductions (Lennart Demes), https://cc0textures.com/view.php?tex=WoodFloor08, 2017-2018, Created using Substance Designer., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+CouchFabric, Fabric #07, StruffelProductions (Lennart Demes), https://cc0textures.com/view.php?tex=Fabric07, 2017-2018, Created using Substance Designer., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+Plaster, Concrete #12, StruffelProductions (Lennart Demes), https://cc0textures.com/view.php?tex=Concrete12, 2017-2018, Approximated from bitmap., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+Brick, Bricks #02, StruffelProductions (Lennart Demes), https://cc0textures.com/view.php?tex=Bricks02, 2017-2018, Created using Substance Designer., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+Font Horta, HORTA REGULAR, TL, https://fontlibrary.org/en/font/horta, OFL (SIL Open Font License)
+
+OpenBook, open book, Justin Randall, https://poly.google.com/view/4WPcl72i1_S, Jul 7, 2018, Made with Blocks, Public / Remixable (CC-BY), This content is published under a CC-BY license. You're free to use this as long as you credit the author. 
+
+SideTable, Side table, Darwin Yamamoto, https://poly.google.com/view/4WPcl72i1_S, Jul 12, 2017, Made with BlocksPublic / Remixable (CC-BY), This content is published under a CC-BY license. You're free to use this as long as you credit the author. 
+
+Brass, Metal #07, Made by StruffelProductions (Lennart Demes) 2017-2018, https://cc0textures.com/view.php?tex=Metal07, Created using Substance Designer., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+Mahogany, Wood #13, Made by StruffelProductions (Lennart Demes) 2017-2018, https://cc0textures.com/view.php?tex=Wood13, Created using Substance Designer., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+Leather, Leather #03, Made by StruffelProductions (Lennart Demes) 2017-2018, https://cc0textures.com/view.php?tex=Leather03, Created using Substance Designer., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+SnowForest, Snowy Forest, Pixabay, https://www.pexels.com/photo/black-and-white-cold-fog-forest-235621/, Photographed on: November 12, 2016, CC0 License Free for personal and commercial use No attribution required.
+
+RiverForest, Body of Water Between Green Leaf Trees, Ian Turnell, https://www.pexels.com/photo/body-of-water-between-green-leaf-trees-709552/, Photographed on: September 25, 2016, Pexels License Free for personal and commercial use No attribution required.
+
+SnowMountain, Snowy Mountain, Brett Sayles, https://www.pexels.com/photo/snowy-mountain-1714943/, Photographed on: November 03, 2018, Pexels License Free for personal and commercial use No attribution required.
+
+Village, Panoramic View of Sea Against Blue Sky, Pixabay, https://www.pexels.com/photo/panoramic-view-of-sea-against-blue-sky-248771/, CC0 License Free for personal and commercial use No attribution required.
+
+Landscape, Brown and Green Mountain View Photo, Christian Heitz, https://www.pexels.com/photo/brown-and-green-mountain-view-photo-842711/, Photographed on: October 17, 2017, Pexels License Free for personal and commercial use No attribution required.
+
+Concrete, Concrete #11, Made by StruffelProductions (Lennart Demes) 2017-2018, https://cc0textures.com/view.php?tex=Concrete11, Approximated from bitmap., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+CorrugatedSteel, Corrugated Steel #03, Made by StruffelProductions (Lennart Demes) 2017-2018, https://cc0textures.com/view.php?tex=CorrugatedSteel03, Created using Substance Designer., All textures on CC0Textures.com are licensed under the Creative Commons CC0 License. You can use them for any purpose, even Commercially. There is no need to give credit.
+
+Alice, Alice's Adventures in Wonderland, Lewis Carroll, https://www.gutenberg.org/ebooks/11, Project Gutenberg License.
+
+Dorian, The Picture of Dorian Gray, Oscar Wilde, https://www.gutenberg.org/ebooks/174, Project Gutenberg License.
