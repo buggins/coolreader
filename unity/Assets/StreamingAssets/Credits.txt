@@ -43,3 +43,11 @@ CorrugatedSteel, Corrugated Steel #03, Made by StruffelProductions (Lennart Deme
 Alice, Alice's Adventures in Wonderland, Lewis Carroll, https://www.gutenberg.org/ebooks/11, Project Gutenberg License.
 
 Dorian, The Picture of Dorian Gray, Oscar Wilde, https://www.gutenberg.org/ebooks/174, Project Gutenberg License.
+
+PageTurn, Page Turn - Please Turn Over (PTO) - paper_turn_over.wav, flag2, https://freesound.org/people/flag2/sounds/63318/, November 20th, 2008, This work is licensed under the Attribution License.
+
+BookClose, Book Closing, Anton Porsche - dersuperanton, https://freesound.org/people/dersuperanton/sounds/435558/, July 26th, 2018, This work is licensed under the Attribution License.
+
+DropBook, DropBook1.wav, jomse, https://freesound.org/people/jomse/sounds/428662/, May 16th, 2018, This work is licensed under the Attribution License.
+
+Tic, Human Beatbox tic.wav, Snapper4298, https://freesound.org/people/Snapper4298/sounds/183473/,  April 4th, 2013, This work is licensed under the Attribution License.
