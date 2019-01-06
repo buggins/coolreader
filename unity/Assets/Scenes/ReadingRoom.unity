@@ -183,6 +183,7 @@ MonoBehaviour:
     type: 2}
   menuButtonTemplate: {fileID: 1566625709159054, guid: 283b8dec161884926b54886a6cd17874,
     type: 2}
+  touchSound: {fileID: 0}
 --- !u!1001 &107336629
 Prefab:
   m_ObjectHideFlags: 0
@@ -2001,6 +2002,11 @@ Prefab:
       propertyPath: m_LocalScale.x
       value: 1.2692
       objectReference: {fileID: 0}
+    - target: {fileID: 114494203268738628, guid: bea542e1d786e44918cb18d6c3edcf33,
+        type: 2}
+      propertyPath: destinationRoom
+      value: Library
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bea542e1d786e44918cb18d6c3edcf33, type: 2}
   m_IsPrefabAsset: 0
@@ -2370,8 +2376,11 @@ MonoBehaviour:
   menuOptions: []
   menuBaseTemplate: {fileID: 0}
   menuButtonTemplate: {fileID: 0}
+  touchSound: {fileID: 0}
   destinationRoom: Library
   book: {fileID: 0}
+  doorOpenSound: {fileID: 0}
+  doorPart: {fileID: 0}
 --- !u!54 &1518120671
 Rigidbody:
   m_ObjectHideFlags: 0

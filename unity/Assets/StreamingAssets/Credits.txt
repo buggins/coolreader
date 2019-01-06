@@ -51,3 +51,8 @@ BookClose, Book Closing, Anton Porsche - dersuperanton, https://freesound.org/pe
 DropBook, DropBook1.wav, jomse, https://freesound.org/people/jomse/sounds/428662/, May 16th, 2018, This work is licensed under the Attribution License.
 
 Tic, Human Beatbox tic.wav, Snapper4298, https://freesound.org/people/Snapper4298/sounds/183473/,  April 4th, 2013, This work is licensed under the Attribution License.
+
+Teleport, Game Audio - UI SFX Teleport High, GameAudio, https://freesound.org/people/GameAudio/sounds/220162/, February 22nd, 2014, This work is licensed under the Creative Commons 0 License.
+
+DoorHandle, Intermediate Sound Library Opening Door Handle, amholma, https://freesound.org/people/amholma/sounds/344355/, April 26th, 2016, This work is licensed under the Creative Commons 0 License.
+
