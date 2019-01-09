@@ -281,6 +281,8 @@ lUInt32 calcGlobalSettingsHash(int documentId)
     lUInt32 hash = FORMATTING_VERSION_ID;
     if ( fontMan->getKerning() )
         hash += 127365;
+    if ( fontMan->getLigatures() )
+        hash += 254655;
     hash = hash * 31 + fontMan->GetFontListHash(documentId);
     hash = hash * 31 + (int)fontMan->GetHintingMode();
     if ( LVRendGetFontEmbolden() )

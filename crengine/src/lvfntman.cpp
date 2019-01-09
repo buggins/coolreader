@@ -1179,7 +1179,7 @@ public:
         return res;
     }
 
-    bool hbCalcCharWidth(struct LVCharPosInfo* posInfo, const struct LVCharTriplet& triplet) {
+    bool hbCalcCharWidth(struct LVCharPosInfo* posInfo, const struct LVCharTriplet& triplet, lChar16 def_char) {
         if (!posInfo)
             return false;
         unsigned int segLen = 0;
@@ -1201,18 +1201,31 @@ public:
         hb_shape(_hb_font, _hb_opt_kern_buffer, _hb_opt_kern_features, 2);
         unsigned int glyph_count = hb_buffer_get_length(_hb_opt_kern_buffer);
         if (segLen == glyph_count) {
+            hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(_hb_opt_kern_buffer, &glyph_count);
             hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(_hb_opt_kern_buffer, &glyph_count);
-            posInfo->offset = glyph_pos[cluster].x_offset >> 6;
-            posInfo->width = glyph_pos[cluster].x_advance >> 6;
-            return true;
+            if (0 != glyph_info[cluster].codepoint) {        // glyph found for this char in this font
+                posInfo->offset = glyph_pos[cluster].x_offset >> 6;
+                posInfo->width = glyph_pos[cluster].x_advance >> 6;
+            } else {
+                // hb_shape() failed or glyph omited in this font, use fallback font
+                glyph_info_t glyph;
+                LVFont *fallback = getFallbackFont();
+                if (fallback) {
+                    if (fallback->getGlyphInfo(triplet.Char, &glyph, def_char)) {
+                        posInfo->offset = glyph.originX;
+                        posInfo->width = glyph.width;
+                    }
+                }
+            }
         } else {
 #ifdef _DEBUG
             CRLog::debug("hbCalcCharWidthWithKerning(): hb_buffer_get_length() return %d, must be %d, return value (-1)", glyph_count, segLen);
 #endif
             return false;
         }
+        return true;
     }
-#endif
+#endif  // USE_HARFBUZZ==1
 
     FT_UInt getCharIndex( lChar16 code, lChar16 def_char ) {
         if ( code=='\t' )
@@ -1406,7 +1419,7 @@ public:
                 else
                     triplet.nextChar = 0;
                 if (!_width_cache2.get(triplet, posInfo)) {
-                    if (hbCalcCharWidth(&posInfo, triplet))
+                    if (hbCalcCharWidth(&posInfo, triplet, def_char))
                         _width_cache2.set(triplet, posInfo);
                     else {
                         posInfo.offset = 0;
@@ -1801,7 +1814,7 @@ public:
                     else
                         triplet.nextChar = 0;
                     if (!_width_cache2.get(triplet, posInfo)) {
-                        if (!hbCalcCharWidth(&posInfo, triplet)) {
+                        if (!hbCalcCharWidth(&posInfo, triplet, def_char)) {
                             posInfo.offset = 0;
                             posInfo.width = item->advance;
                         }
@@ -3284,7 +3297,7 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
                 }
                 break;
             }
-            bool scal = FT_IS_SCALABLE( face );
+            bool scal = FT_IS_SCALABLE( face ) != 0;
             bool charset = checkCharSet( face );
             //bool monospaced = isMonoSpaced( face );
             if ( !scal || !charset ) {
