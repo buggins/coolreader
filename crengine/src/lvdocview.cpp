@@ -568,9 +568,11 @@ void LVDocView::clearImageCache() {
 
 /// invalidate formatted data, request render
 void LVDocView::requestRender() {
+	LVLock lock(getMutex());
 	m_is_rendered = false;
 	clearImageCache();
-	m_doc->clearRendBlockCache();
+	if (m_doc)
+		m_doc->clearRendBlockCache();
 }
 
 /// render document, if not rendered

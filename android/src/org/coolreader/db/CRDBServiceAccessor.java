@@ -46,7 +46,7 @@ public class CRDBServiceAccessor {
         		boundCallback.run();
     		return;
     	}
-    	Log.v(TAG, "binding CRDBService");
+    	//Log.v(TAG, "binding CRDBService");
     	if (boundCallback != null)
     		onConnectCallbacks.add(boundCallback);
     	if (!bindIsCalled) {
@@ -54,6 +54,7 @@ public class CRDBServiceAccessor {
 	    	if (mActivity.bindService(new Intent(mActivity, 
 	                CRDBService.class), mServiceConnection, Context.BIND_AUTO_CREATE)) {
 	            mServiceBound = true;
+			    Log.v(TAG, "binding CRDBService in progress...");
 	    	} else {
 	    		Log.e(TAG, "cannot bind CRDBService");
 	    	}
@@ -66,6 +67,7 @@ public class CRDBServiceAccessor {
             // Detach our existing connection.
             mActivity.unbindService(mServiceConnection);
             mServiceBound = false;
+            bindIsCalled = false;
         }
     }
     

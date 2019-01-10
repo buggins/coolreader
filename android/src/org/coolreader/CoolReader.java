@@ -37,6 +37,7 @@ import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
+import org.coolreader.db.CRDBService;
 import org.coolreader.donations.CRDonationService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
@@ -545,11 +546,11 @@ public class CoolReader extends BaseActivity
 				log.i("read&write to storage permissions GRANTED, adding sd card mount point...");
 				Services.refreshServices(this);
 				rebaseSettings();
-				getDBService().setPathCorrector(Engine.getInstance(this).getPathCorrector());
-				getDBService().get().reopenDatabase();
 				waitForCRDBService(new Runnable() {
 					@Override
 					public void run() {
+						getDBService().setPathCorrector(Engine.getInstance(CoolReader.this).getPathCorrector());
+						getDB().reopenDatabase();
 						Services.getHistory().loadFromDB(getDB(), 200);
 					}
 				});
@@ -1275,7 +1276,13 @@ public class CoolReader extends BaseActivity
 				if (file == null)
 					file = item;
 				if (file.deleteFile()) {
-					Services.getHistory().removeBookInfo(getDB(), file, true, true);
+					final FileInfo finalFile = file;
+					waitForCRDBService(new Runnable() {
+						@Override
+						public void run() {
+							Services.getHistory().removeBookInfo(getDB(), finalFile, true, true);
+						}
+					});
 				}
 				if (file.parent != null)
 					directoryUpdated(file.parent);
@@ -1288,8 +1295,13 @@ public class CoolReader extends BaseActivity
 		askConfirmation(R.string.win_title_confirm_history_record_delete, new Runnable() {
 			@Override
 			public void run() {
-				Services.getHistory().removeBookInfo(getDB(), item, true, false);
-				directoryUpdated(Services.getScanner().createRecentRoot());
+				waitForCRDBService(new Runnable() {
+					@Override
+					public void run() {
+						Services.getHistory().removeBookInfo(getDB(), item, true, false);
+						directoryUpdated(Services.getScanner().createRecentRoot());
+					}
+				});
 			}
 		});
 	}
@@ -1300,8 +1312,13 @@ public class CoolReader extends BaseActivity
 			@Override
 			public void run() {
 				if (item != null && item.isOPDSDir()) {
-					getDB().removeOPDSCatalog(item.id);
-					directoryUpdated(Services.getScanner().createRecentRoot());
+					waitForCRDBService(new Runnable() {
+						@Override
+						public void run() {
+							getDB().removeOPDSCatalog(item.id);
+							directoryUpdated(Services.getScanner().createRecentRoot());
+						}
+					});
 				}
 			}
 		});
@@ -1313,14 +1330,19 @@ public class CoolReader extends BaseActivity
 	}
 	
 	public void editBookInfo(final FileInfo currDirectory, final FileInfo item) {
-		Services.getHistory().getOrCreateBookInfo(getDB(), item, new BookInfoLoadedCallack() {
+		waitForCRDBService(new Runnable() {
 			@Override
-			public void onBookInfoLoaded(BookInfo bookInfo) {
-				if (bookInfo == null)
-					bookInfo = new BookInfo(item);
-				BookInfoEditDialog dlg = new BookInfoEditDialog(CoolReader.this, currDirectory, bookInfo, 
-						currDirectory.isRecentDir());
-				dlg.show();
+			public void run() {
+				Services.getHistory().getOrCreateBookInfo(getDB(), item, new BookInfoLoadedCallack() {
+					@Override
+					public void onBookInfoLoaded(BookInfo bookInfo) {
+						if (bookInfo == null)
+							bookInfo = new BookInfo(item);
+						BookInfoEditDialog dlg = new BookInfoEditDialog(CoolReader.this, currDirectory, bookInfo,
+								currDirectory.isRecentDir());
+						dlg.show();
+					}
+				});
 			}
 		});
 	}
