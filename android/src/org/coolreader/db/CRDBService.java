@@ -62,8 +62,6 @@ public class CRDBService extends Service {
     	return cr3dir;
     }
     
-	final String SQLITE_DB_NAME = "cr3db.sqlite";
-	final String SQLITE_COVER_DB_NAME = "cr3db_cover.sqlite";
     private class OpenDatabaseTask extends Task {
     	public OpenDatabaseTask() {
     		super("OpenDatabaseTask");
@@ -841,7 +839,19 @@ public class CRDBService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+	    log.i("onBind(): " + intent);
         return mBinder;
+    }
+
+    @Override
+    public void onRebind (Intent intent) {
+        log.i("onRebind(): " + intent);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        log.i("onUnbind(): intent=" + intent);
+        return true;
     }
 
     private ServiceThread mThread;
