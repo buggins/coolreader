@@ -9,7 +9,7 @@ android {
         // When new version released, version code must be incremented at least by 8
         // for compatibility with ABI versioning of split apk (see below).
         versionCode 32250
-        versionName "3.2.25-1"
+        versionName "3.2.26-1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
@@ -34,7 +34,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             externalNativeBuild {
                 cmake {
-                    arguments "-DCMAKE_BUILD_TYPE=RelWithDebugInfo"
+                    arguments "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
                 }
             }
         }
