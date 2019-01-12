@@ -615,4 +615,5 @@
     <string name="pages_per_full_swipe_18">"18 pages (track)"</string>
     <string name="pages_per_full_swipe_19">"19 pages (track)"</string>
     <string name="pages_per_full_swipe_20">"20 pages (track)"</string>
+    <string name="datadir_is_removed">Data directory \"%s\" is removed by other application!\nSorry, but all settings is lost.</string>
 </resources>

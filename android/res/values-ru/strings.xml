@@ -589,4 +589,5 @@
     <string name="pages_per_full_swipe_20">"20 страниц (отслеживать)"</string>
     <string name="options_app_ui_theme_hicontrast1">Контрастная белая</string>
     <string name="options_app_ui_theme_hicontrast2">Контрастная черная</string>
+    <string name="datadir_is_removed">Каталог с данными приложения \"%s\" был удален другой программой!\nВозможно какой-то оптимизатор дискового пространства?\nК сожалению, все настройки утеряны.</string>
 </resources>
