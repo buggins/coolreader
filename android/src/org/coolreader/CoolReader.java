@@ -311,6 +311,7 @@ public class CoolReader extends BaseActivity
 				fileToOpen = fileToOpen.replace("%2F", "/");
 			}
 			log.d("FILE_TO_OPEN = " + fileToOpen);
+			final String finalFileToOpen = fileToOpen;
 			loadDocument(fileToOpen, new Runnable() {
 				@Override
 				public void run() {
@@ -318,7 +319,7 @@ public class CoolReader extends BaseActivity
 						@Override
 						public void run() {
 							// if document not loaded show error & then root window
-							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file));
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file, finalFileToOpen));
 							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
 								@Override
 								public void onDismiss(DialogInterface dialog) {

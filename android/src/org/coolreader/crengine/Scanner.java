@@ -629,7 +629,9 @@ public class Scanner extends FileInfoChangeSource {
 	private FileInfo findParentInternal(FileInfo file, FileInfo root)	{
 		if ( root==null || file==null || root.isRecentDir() )
 			return null;
-		if ( !root.isRootDir() && !file.getPathName().startsWith( root.getPathName() ) )
+		if (!root.isRootDir() &&
+				!(file.getPathName().startsWith(root.getPathName()) ||
+						root.isOnSDCard() && file.getPathName().toLowerCase().startsWith( root.getPathName().toLowerCase() ) ) )
 			return null;
 		// to list all directories starting root dir
 		if ( root.isDirectory && !root.isSpecialDir() )
@@ -640,9 +642,11 @@ public class Scanner extends FileInfoChangeSource {
 				return found;
 		}
 		for ( int i=0; i<root.fileCount(); i++ ) {
-			if ( root.getFile(i).getPathName().equals(file.getPathName()) )
+			if ( root.getFile(i).getPathName().equals(file.getPathName()) ||
+					root.isOnSDCard() && root.getFile(i).getPathName().compareToIgnoreCase(file.getPathName()) == 0 )
 				return root;
-			if ( root.getFile(i).getPathName().startsWith(file.getPathName() + "@/") )
+			if ( root.getFile(i).getPathName().startsWith(file.getPathName() + "@/") ||
+					root.isOnSDCard() && root.getFile(i).getPathName().toLowerCase().startsWith(file.getPathName().toLowerCase() + "@/") )
 				return root;
 		}
 		return null;

@@ -435,7 +435,18 @@ public class FileInfo {
 	{
 		return pathname!=null && pathname.startsWith(SERIES_PREFIX);
 	}
-	
+
+	public boolean isOnSDCard() {
+		if (null == parent)
+			return false;
+		if ( ( (filename.compareTo("SD") == 0 && title.compareTo("SD") == 0) ||
+				(filename.compareTo("EXT SD") == 0 && title.compareTo("EXT SD") == 0) ) &&
+				isDirectory && !isArchive && 0 == size && 0 == arcsize &&
+				parent.pathname.compareTo("@root") == 0)
+			return true;
+		return parent.isOnSDCard();
+	}
+
 	public long getAuthorId()
 	{
 		if (!isBooksByAuthorDir())
@@ -584,13 +595,13 @@ public class FileInfo {
 	{
 		if ( dirs!=null )
 			for ( FileInfo dir : dirs )
-				if ( pathName.equals(dir.getPathName() ))
+				if ( isOnSDCard() && pathName.compareToIgnoreCase(dir.getPathName()) == 0 || pathName.equals(dir.getPathName()) )
 					return dir;
 		if ( files!=null )
 			for ( FileInfo file : files ) {
-				if ( pathName.equals(file.getPathName() ))
+				if ( isOnSDCard() && pathName.compareToIgnoreCase(file.getPathName()) == 0 || pathName.equals(file.getPathName()) )
 					return file;
-				if ( file.getPathName().startsWith(pathName+"@/" ))
+				if ( isOnSDCard() && file.getPathName().toLowerCase().startsWith(pathName.toLowerCase()+"@/") || file.getPathName().startsWith(pathName+"@/" ))
 					return file;
 			}
 		return null;
