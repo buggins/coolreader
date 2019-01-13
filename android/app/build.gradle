@@ -37,6 +37,9 @@ android {
                     arguments "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
                 }
             }
+            packagingOptions{
+                doNotStrip "**/*.so"
+            }
         }
         release_minsize {
             minifyEnabled true
@@ -60,7 +63,7 @@ android {
                 }
             }
             packagingOptions{
-                doNotStrip "*/*/*.so"
+                doNotStrip "**/*.so"
             }
         }
     }
