@@ -2915,6 +2915,9 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
     }
 }
 
+// Top two bits are 10, i.e. original & 11000000(2) == 10000000(2)
+#define IS_FOLLOWING(index) ((s[index] & 0xC0) == 0x80)
+
 void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
 {
     const lUInt8 * s = src;
@@ -2922,36 +2925,83 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
     lChar16 * p = dst;
     lChar16 * endp = p + dstlen;
     lUInt32 ch;
+    bool matched;
     while (p < endp && s < ends) {
         ch = *s;
+        matched = false;
         if ( (ch & 0x80) == 0 ) {
+            matched = true;
             *p++ = (char)ch;
             s++;
         } else if ( (ch & 0xE0) == 0xC0 ) {
             if (s + 2 > ends)
                 break;
-            *p++ = ((ch & 0x1F) << 6)
-                    | CONT_BYTE(1,0);
-            s += 2;
+            if (IS_FOLLOWING(1)) {
+                matched = true;
+                *p++ = ((ch & 0x1F) << 6)
+                        | CONT_BYTE(1,0);
+                s += 2;
+            }
         } else if ( (ch & 0xF0) == 0xE0 ) {
             if (s + 3 > ends)
                 break;
-            *p++ = ((ch & 0x0F) << 12)
-                | CONT_BYTE(1,6)
-                | CONT_BYTE(2,0);
-            s += 3;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2)) {
+                matched = true;
+                *p++ = ((ch & 0x0F) << 12)
+                    | CONT_BYTE(1,6)
+                    | CONT_BYTE(2,0);
+                s += 3;
+                // Supports WTF-8 : https://en.wikipedia.org/wiki/UTF-8#WTF-8
+                // a superset of UTF-8, that includes UTF-16 surrogates
+                // in UTF-8 bytes (forbidden in well-formed UTF-8).
+                // We may get that from bad producers or converters.
+                // As these shouldn't be there in UTF-8, if we find
+                // these surrogates in the right sequence, we might as well
+                // convert the char they represent to the right Unicode
+                // codepoint and display it instead of a '?'.
+                //   Surrogates are code points from two special ranges of
+                //   Unicode values, reserved for use as the leading, and
+                //   trailing values of paired code units in UTF-16. Leading,
+                //   also called high, surrogates are from D800 to DBFF, and
+                //   trailing, or low, surrogates are from DC00 to DFFF. They
+                //   are called surrogates, since they do not represent
+                //   characters directly, but only as a pair.
+                // (Note that lChar16 (wchar_t) is 4-bytes, and can store
+                // unicode codepoint > 0xFFFF like 0x10123)
+                if (*(p-1) >= 0xD800 && *(p-1) <= 0xDBFF && s+2 < ends) { // what we wrote is a high surrogate,
+                    lUInt32 next = *s;                            // and there's room next for a low surrogate
+                    if ( (next & 0xF0) == 0xE0 && IS_FOLLOWING(1) && IS_FOLLOWING(2)) { // is a valid 3-bytes sequence
+                        next = ((next & 0x0F) << 12) | CONT_BYTE(1,6) | CONT_BYTE(2,0);
+                        if (next >= 0xDC00 && next <= 0xDFFF) { // is a low surrogate: valid surrogates sequence
+                            ch = 0x10000 + ((*(p-1) & 0x3FF)<<10) + (next & 0x3FF);
+                            p--; // rewind to override what we wrote
+                            *p++ = ch;
+                            s += 3;
+                        }
+                    }
+                }
+            }
         } else if ( (ch & 0xF8) == 0xF0 ) {
             if (s + 4 > ends)
                 break;
-            *p++ = ((ch & 0x07) << 18)
-                | CONT_BYTE(1,12)
-                | CONT_BYTE(2,6)
-                | CONT_BYTE(3,0);
-            s += 4;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2) && IS_FOLLOWING(3)) {
+                matched = true;
+                *p++ = ((ch & 0x07) << 18)
+                    | CONT_BYTE(1,12)
+                    | CONT_BYTE(2,6)
+                    | CONT_BYTE(3,0);
+                s += 4;
+            }
         } else {
             // Invalid first byte in UTF-8 sequence
             // Pass with mask 0x7F, to resolve exception around env->NewStringUTF()
             *p++ = (char) (ch & 0x7F);
+            s++;
+            matched = true; // just to avoid next if
+        }
+        // unexpected character
+        if (!matched) {
+            *p++ = '?';
             s++;
         }
     }
