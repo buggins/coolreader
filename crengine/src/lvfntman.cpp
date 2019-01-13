@@ -824,7 +824,9 @@ struct LVCharPosInfo
 inline lUInt32 getHash( const struct LVCharTriplet& triplet )
 {
     //return (triplet.prevChar * 1975317 + 164521) ^ (triplet.Char * 1975317 + 164521) ^ (triplet.nextChar * 1975317 + 164521);
-    return getHash((lUInt32)triplet.Char) ^ getHash((lUInt32)triplet.prevChar) ^ getHash((lUInt32)triplet.nextChar);
+    return getHash( (lUInt64)triplet.Char
+                    + (((lUInt64)triplet.prevChar) << 16)
+                    + (((lUInt64)triplet.nextChar) << 32) );
 }
 
 class LVFreeTypeFace : public LVFont
@@ -1356,6 +1358,7 @@ public:
             uint32_t j;
             uint32_t cluster;
             uint32_t prev_cluster = 0;
+            int skipped_chars = 0; // to add to 'i' at end of loop, as 'i' is used later and should be accurate
             for (i = 0; i < (int)glyph_count; i++) {
                 cluster = glyph_info[i].cluster;
                 lChar16 ch = text[cluster];
@@ -1383,7 +1386,8 @@ public:
                 }
                 for (j = prev_cluster + 1; j < cluster; j++) {
                     flags[j] = GET_CHAR_FLAGS(text[j]);
-                    widths[j] = prev_width;		// for chars replaced by ligature
+                    widths[j] = prev_width;		// for chars replaced by ligature, so next chars of a ligature has width=0
+                    skipped_chars++;
                 }
                 prev_cluster = cluster;
                 if (!isHyphen) // avoid soft hyphens inside text string
@@ -1400,8 +1404,11 @@ public:
                 for (j = prev_cluster + 1; j < (uint32_t)len; j++) {
                     flags[j] = GET_CHAR_FLAGS(text[j]);
                     widths[j] = prev_width;
+                    skipped_chars++;
                 }
             }
+            // i is used below to "fill props for rest of chars", so make it accurate
+            i += skipped_chars;
         } else {
             struct LVCharTriplet triplet;
             struct LVCharPosInfo posInfo;
@@ -1438,7 +1445,7 @@ public:
                 }
             }
         }
-#else
+#else   // USE_HARFBUZZ==1
         FT_UInt previous = 0;
         int error;
 #if (ALLOW_KERNING==1)
@@ -1500,11 +1507,11 @@ public:
                 lastFitChar = i + 1;
             }
         }
-#endif
+#endif  // USE_HARFBUZZ==1
 
         // fill props for rest of chars
         for ( int ii=i; ii<len; ii++ ) {
-            flags[i] = GET_CHAR_FLAGS( text[ii] );
+            flags[ii] = GET_CHAR_FLAGS( text[ii] );
         }
 
         //maxFit = i;
