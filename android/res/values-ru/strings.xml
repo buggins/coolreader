@@ -533,7 +533,7 @@
     <string name="btn_toolbar_more">Еще...</string>
     <string name="black_list_enforced">Нельзя добавлять этот адрес, так как по запросу LitRes.ru он добавлен в черный список каталогов, нарушающих авторские права.</string>
     <string name="black_list_warning">Внимание! этот адрес по запросу LitRes.ru был добавлен в черный список каталогов, нарушающих авторские права. Вы действительно хотите использовать этот каталог?</string>
-    <string name="cant_open_file">Невозможно открыть файл!</string>
+    <string name="cant_open_file">Невозможно открыть файл \"%s\"!</string>
     <string name="error">Ошибка</string>
     <string name="options_app_tts_stop_motion_timeout">Остановить чтение вслух при бездействии датчика движения</string>
     <string name="motion_timeout_off">"Выключено"</string>
