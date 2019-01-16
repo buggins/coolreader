@@ -1209,12 +1209,12 @@ public:
                 posInfo->offset = glyph_pos[cluster].x_offset >> 6;
                 posInfo->width = glyph_pos[cluster].x_advance >> 6;
             } else {
-                // hb_shape() failed or glyph omited in this font, use fallback font
+                // hb_shape() failed or glyph omitted in this font, use fallback font
                 glyph_info_t glyph;
                 LVFont *fallback = getFallbackFont();
                 if (fallback) {
                     if (fallback->getGlyphInfo(triplet.Char, &glyph, def_char)) {
-                        posInfo->offset = glyph.originX;
+                        posInfo->offset = 0;
                         posInfo->width = glyph.width;
                     }
                 }
