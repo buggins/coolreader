@@ -1047,6 +1047,13 @@ public class BaseActivity extends Activity implements Settings {
 		showToast(stringResourceId, Toast.LENGTH_LONG);
 	}
 
+	public void showToast(int stringResourceId, Object... formatArgs)
+	{
+		String s = getString(stringResourceId, formatArgs);
+		if (s != null)
+			showToast(s, Toast.LENGTH_LONG);
+	}
+
 	public void showToast(int stringResourceId, int duration) {
 		String s = getString(stringResourceId);
 		if (s != null)

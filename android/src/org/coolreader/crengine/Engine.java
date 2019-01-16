@@ -582,11 +582,17 @@ public class Engine {
 	
     private native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
 
+	private native static boolean checkFontLanguageCompatibilityInternal(String fontFace, String langCode);
     
     public static void suspendLongOperation() {
    		suspendLongOperationInternal();
     }
-	
+
+	public synchronized static boolean checkFontLanguageCompatibility(String fontFace, String langCode)
+	{
+		return checkFontLanguageCompatibilityInternal(fontFace, langCode);
+	}
+
 	/**
 	 * Checks whether specified directlry or file is symbolic link.
 	 * (thread-safe)

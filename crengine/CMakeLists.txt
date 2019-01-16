@@ -1,3 +1,6 @@
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fc-lang)
+
 SET (CRENGINE_SOURCES 
 src/cp_stats.cpp  
 src/lvstring.cpp  
@@ -15,6 +18,7 @@ src/lvstsheet.cpp
 src/txtselector.cpp
 #src/xutils.cpp
 src/crtest.cpp
+fc-lang/fc-lang-cat.c
 )
 
 if ( NOT ${GUI} STREQUAL FB2PROPS )
@@ -43,4 +47,3 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
 endif (NOT ${GUI} STREQUAL FB2PROPS)
 
 ADD_LIBRARY(crengine STATIC ${CRENGINE_SOURCES})
-

@@ -4238,6 +4238,7 @@ bool LVDocView::ParseDocument() {
 		ldomDocumentWriter writer(m_doc);
 		ldomDocumentWriterFilter writerFilter(m_doc, false,
 				HTML_AUTOCLOSE_TABLE);
+		lString16 txt_autodet_lang;
 
 		if (m_stream->GetSize() < 5) {
             createDefaultDocument(cs16("ERROR: Wrong document size"),
@@ -4294,7 +4295,9 @@ bool LVDocView::ParseDocument() {
 			setDocFormat( doc_format_txt);
 			parser = new LVTextParser(m_stream, &writer, getTextFormatOptions()
 					== txt_format_pre);
-			if (!parser->CheckFormat()) {
+			if (parser->CheckFormat()) {
+				txt_autodet_lang = ((LVTextParser*)parser)->GetLangName();
+			} else {
 				delete parser;
 				parser = NULL;
 			}
@@ -4378,7 +4381,10 @@ bool LVDocView::ParseDocument() {
 		if (m_doc_props->getStringDef(DOC_PROP_TITLE, "").empty()) {
 			m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors(m_doc));
 			m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle(m_doc));
-			m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc));
+			if (txt_autodet_lang.length() > 0)
+				m_doc_props->setString(DOC_PROP_LANGUAGE, txt_autodet_lang);
+			else
+				m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc));
             int seriesNumber = -1;
             lString16 seriesName = extractDocSeries(m_doc, &seriesNumber);
             m_doc_props->setString(DOC_PROP_SERIES_NAME, seriesName);

@@ -72,6 +72,9 @@
     #include <fontconfig/fontconfig.h>
 #endif
 
+// fc-lang database
+#include "fc-lang-cat.h"
+
 #if COLOR_BACKBUFFER==0
 //#define USE_BITMAP_FONT
 #endif
@@ -1302,6 +1305,100 @@ public:
         }
     }
   */
+  
+    /**
+     * @brief Check font with typeface for compatibility with language langCode
+     * @param langCode language code, for example, "en" - Enaglish, "ru" - Russian
+     * @return true if font contains all glyphs for given language, false otherwise.
+     */
+    virtual bool checkFontLangCompat(const lString8& langCode)
+    {
+        bool fullSupport = false;
+        bool partialSupport = false;
+        struct fc_lang_catalog* lang_ptr = fc_lang_cat;
+        unsigned int i;
+        bool found = false;
+        for (i = 0; i < fc_lang_cat_sz; i++)
+        {
+            if (langCode.compare(lang_ptr->lang_code) == 0)
+            {
+                found = true;
+                break;
+            }
+            lang_ptr++;
+        }
+        if (found)
+        {
+            unsigned int codePoint = 0;
+            unsigned int tmp;
+            unsigned int first, second = 0;
+            bool inRange = false;
+            FT_UInt glyphIndex;
+            fullSupport = true;
+            for (i = 0; ; )
+            {
+                // get next codePoint
+                if (inRange && codePoint < second)
+                {
+                    codePoint++;
+                }
+                else
+                {
+                    if (i >= lang_ptr->char_set_sz)
+                        break;
+                    tmp = lang_ptr->char_set[i];
+                    if (2 == tmp)           // code of start interval
+                    {
+                        if (i + 2 < lang_ptr->char_set_sz)
+                        {
+                            i++;
+                            first = lang_ptr->char_set[i];
+                            i++;
+                            second = lang_ptr->char_set[i];
+                            inRange = true;
+                            codePoint = first;
+                            i++;
+                        }
+                        else
+                        {
+                            // broken language char set
+                            //qDebug() << "broken language char set";
+                            fullSupport = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        codePoint = tmp;
+                        inRange = false;
+                        i++;
+                    }
+                }
+                // check codePoint in this font
+                glyphIndex = FT_Get_Char_Index(_face, codePoint);
+                if (0 == glyphIndex)
+                {
+                    fullSupport = false;
+                }
+                /*
+                else
+                {
+                    partialSupport = true;
+                }
+                */
+            }
+            if (fullSupport)
+                CRLog::debug("checkFontLangCompat(): Font have full support of language %s", langCode.c_str());
+            else if (partialSupport)
+                CRLog::debug("checkFontLangCompat(): Font have partial support of language %s", langCode.c_str());
+            else
+                CRLog::debug("checkFontLangCompat(): Font DON'T have support of language %s", langCode.c_str());
+        }
+        else
+            CRLog::debug("checkFontLangCompat(): Unsupported language code: %s", langCode.c_str());
+        return fullSupport;
+    }
+    
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
@@ -3039,6 +3136,27 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
         }
         return true;
     }
+
+	virtual bool checkFontLangCompat(const lString8& typeface, const lString8& langCode)
+	{
+        lString8 fontname;
+        LVFontDef def(
+            fontname,
+            10,
+            100,
+            false,
+            css_ff_inherit,
+            typeface
+        );
+        LVFontRef fntRef = GetFont(10, 400, false, css_ff_inherit, typeface, -1);
+        //LVFontCacheItem* item = _cache.find( &def );
+        //if (!item->getFont().isNull())
+        if (!fntRef.isNull())
+            return fntRef->checkFontLangCompat(langCode);
+        else
+            CRLog::debug("checkFontLangCompat(): typeface not found: %s", typeface.c_str());
+		return true;
+	}
 
     /*
     bool isMonoSpaced( FT_Face face )
