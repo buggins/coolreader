@@ -1307,8 +1307,8 @@ public:
   */
   
     /**
-     * @brief Check font with typeface for compatibility with language langCode
-     * @param langCode language code, for example, "en" - Enaglish, "ru" - Russian
+     * @brief Check font for compatibility with language with langCode
+     * @param langCode language code, for example, "en" - English, "ru" - Russian
      * @return true if font contains all glyphs for given language, false otherwise.
      */
     virtual bool checkFontLangCompat(const lString8& langCode)
@@ -1380,12 +1380,10 @@ public:
                 {
                     fullSupport = false;
                 }
-                /*
                 else
                 {
                     partialSupport = true;
                 }
-                */
             }
             if (fullSupport)
                 CRLog::debug("checkFontLangCompat(): Font have full support of language %s", langCode.c_str());
@@ -3137,26 +3135,15 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
         return true;
     }
 
-	virtual bool checkFontLangCompat(const lString8& typeface, const lString8& langCode)
-	{
-        lString8 fontname;
-        LVFontDef def(
-            fontname,
-            10,
-            100,
-            false,
-            css_ff_inherit,
-            typeface
-        );
+    virtual bool checkFontLangCompat(const lString8& typeface, const lString8& langCode)
+    {
         LVFontRef fntRef = GetFont(10, 400, false, css_ff_inherit, typeface, -1);
-        //LVFontCacheItem* item = _cache.find( &def );
-        //if (!item->getFont().isNull())
         if (!fntRef.isNull())
             return fntRef->checkFontLangCompat(langCode);
         else
             CRLog::debug("checkFontLangCompat(): typeface not found: %s", typeface.c_str());
-		return true;
-	}
+        return true;
+    }
 
     /*
     bool isMonoSpaced( FT_Face face )
