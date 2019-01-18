@@ -469,10 +469,8 @@ public class CoolReader extends BaseActivity
 		}
 		if (Engine.getExternalSettingsDirName() != null) {
 			setExtDataDirCreateTime(new Date());
-			log.e("DataDir exist or created!");
 		} else {
 			setExtDataDirCreateTime(null);
-			log.e("DataDir NOT exist and NOT created!");
 		}
 		if (dataDirIsRemoved) {
 			// show message
@@ -579,10 +577,8 @@ public class CoolReader extends BaseActivity
 			}
 			if (Engine.getExternalSettingsDirName() != null) {
 				setExtDataDirCreateTime(new Date());
-				log.e("DataDir exist or created!");
 			} else {
 				setExtDataDirCreateTime(null);
-				log.e("DataDir NOT exist and NOT created!");
 			}
 		} else if (PERM_REQUEST_READ_PHONE_STATE_CODE == requestCode) {
 			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
