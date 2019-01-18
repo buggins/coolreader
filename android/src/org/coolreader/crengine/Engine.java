@@ -53,8 +53,12 @@ public class Engine {
 	public static File[] getStorageDirectories(boolean writableOnly) {
 		Collection<File> res = new HashSet<File>(2);
 		for (File dir : mountedRootsList) {
-			if (dir.isDirectory() && dir.canRead() && dir.list().length > 0 && (!writableOnly || dir.canWrite()))
-				res.add(dir);
+			if (dir.isDirectory() && dir.canRead() && (!writableOnly || dir.canWrite())) {
+				String[] list = dir.list();
+				// dir.list() can return null when I/O error occurs.
+				if (list != null && list.length > 0)
+					res.add(dir);
+			}
 		}
 		return res.toArray(new File[res.size()]);
 	}
