@@ -2566,7 +2566,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				boolean res = Engine.checkFontLanguageCompatibility(fontFace, bookLanguage);
 				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\": res=" + res);
 				if (!res) {
-					mEngine.runInGUI(new Runnable() {
+					BackgroundThread.instance().executeGUI(new Runnable() {
 						@Override
 						public void run() {
 							mActivity.showToast(R.string.font_not_compat_with_language, fontFace, bookLanguage);
