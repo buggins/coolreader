@@ -97,6 +97,11 @@ public class MenuInteraction : MonoBehaviour {
   // Make the scene graph match the internal visible variable.
   private void updateVisibility ()
   {
+    if (menu == null)
+    { 
+      initializeMenu ();
+    }
+    
     menu.SetActive (visible);
   }
   

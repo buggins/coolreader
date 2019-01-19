@@ -109,6 +109,7 @@ ModelImporter:
     100206: JPage8
     100208: JPage9
     100210: Spine
+    100212: Root
     400000: APage1
     400002: APage10
     400004: APage2
@@ -215,6 +216,7 @@ ModelImporter:
     400206: JPage8
     400208: JPage9
     400210: Spine
+    400212: Root
     2100000: RightPage
     2100002: BookMaterial
     2100004: FrontCover
