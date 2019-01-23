@@ -89,7 +89,7 @@ public class BaseActivity extends Activity implements Settings {
 	public CRDBService.LocalBinder getDB() { return mCRDBService != null ? mCRDBService.get() : null; }
 
 	public Properties settings() { return mSettingsManager.mSettings; }
-	
+
 	private SettingsManager mSettingsManager;
 	
 	protected void startServices() {
@@ -245,7 +245,8 @@ public class BaseActivity extends Activity implements Settings {
 	protected static String PREF_LAST_BOOK = "LastBook";
 	protected static String PREF_LAST_LOCATION = "LastLocation";
 	protected static String PREF_LAST_NOTIFICATION = "LastNoticeNumber";
-	
+	protected static String PREF_EXT_DATADIR_CREATETIME = "ExtDataDirCreateTime";
+
 	@Override
 	protected void onResume() {
 		log.i("CoolReader.onResume()");
@@ -1044,6 +1045,13 @@ public class BaseActivity extends Activity implements Settings {
 	
 	public void showToast(int stringResourceId) {
 		showToast(stringResourceId, Toast.LENGTH_LONG);
+	}
+
+	public void showToast(int stringResourceId, Object... formatArgs)
+	{
+		String s = getString(stringResourceId, formatArgs);
+		if (s != null)
+			showToast(s, Toast.LENGTH_LONG);
 	}
 
 	public void showToast(int stringResourceId, int duration) {

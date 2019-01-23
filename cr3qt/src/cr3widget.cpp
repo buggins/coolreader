@@ -14,6 +14,7 @@
 #include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 #else
 #include <QtGui/QResizeEvent>
 #include <QtGui/QScrollBar>
@@ -21,6 +22,7 @@
 #include <QtGui/QStyleFactory>
 #include <QtGui/QStyle>
 #include <QtGui/QApplication>
+#include <QtGui/QMessageBox>
 #endif
 #include <QUrl>
 #include <QDir>
@@ -463,6 +465,7 @@ bool CR3View::loadDocument( QString fileName )
         QByteArray utf8 = fileName.toUtf8();
         CRLog::debug( "Trying to restore position for %s", utf8.constData() );
         _docview->restorePosition();
+        checkFontLanguageCompatibility();
     } else {
         _docview->createDefaultDocument(lString16::empty_str, qt2cr(tr("Error while opening document ") + fileName));
     }
@@ -842,6 +845,7 @@ PropsRef CR3View::setOptions( PropsRef props )
     if ( _propsCallback != NULL )
         _propsCallback->onPropsChange( unknownOptions );
     saveSettings( QString() );
+    checkFontLanguageCompatibility();
     update();
     return unknownOptions;
 }
@@ -1057,6 +1061,29 @@ bool CR3View::updateSelection( ldomXPointer p )
     _selRange = r;
     update();
     return true;
+}
+
+void CR3View::checkFontLanguageCompatibility()
+{
+    lString16 fontFace;
+    _data->_props->getString(PROP_FONT_FACE, fontFace);
+    lString8 fontFace_u8 = UnicodeToUtf8(fontFace);
+    lString16 langCode = _docview->getLanguage();
+    lString8 langCode_u8 = UnicodeToUtf8(langCode);
+    if (langCode_u8.length() == 0) {
+        CRLog::debug("Can't fetch book's language to check font compatibility!");
+        return;
+    }
+    if (fontFace_u8.length() > 0) {
+        bool res = fontMan->checkFontLangCompat(fontFace_u8, langCode_u8);
+        CRLog::debug("Checking font \"%s\" for compatibility with language \"%s\": %d", fontFace_u8.c_str(), langCode_u8.c_str(), res);
+        if (!res)
+        {
+            QMessageBox::warning(this, tr("Warning"), 
+                                        tr("Font \"%1\" isn't compatible with language \"%2\". Instead will be used fallback font.").arg(fontFace_u8.c_str()).arg(langCode_u8.c_str()), 
+                                        QMessageBox::Ok);
+        }
+    }
 }
 
 void CR3View::mousePressEvent ( QMouseEvent * event )

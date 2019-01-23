@@ -659,6 +659,27 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    checkFontLanguageCompatibilityInternal
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
+		(JNIEnv *env, jclass cls, jstring fontFace, jstring langCode)
+{
+	jboolean res = JNI_TRUE;
+	const char* fontFace_ptr = env->GetStringUTFChars(fontFace, 0);
+	const char* langCode_ptr = env->GetStringUTFChars(langCode, 0);
+	if (fontFace_ptr && langCode_ptr) {
+		res = fontMan->checkFontLangCompat(lString8(fontFace_ptr), lString8(langCode_ptr)) ? JNI_TRUE : JNI_FALSE;
+	}
+	if (langCode_ptr)
+		env->ReleaseStringUTFChars(langCode, langCode_ptr);
+	if (fontFace_ptr)
+		env->ReleaseStringUTFChars(fontFace, fontFace_ptr);
+	return res;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    isLink
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */

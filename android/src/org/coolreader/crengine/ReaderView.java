@@ -2574,7 +2574,26 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int updInterval  = props.getInt(PROP_APP_SCREEN_UPDATE_INTERVAL, 10);
 		mActivity.setScreenUpdateMode(updMode, surface);
 		mActivity.setScreenUpdateInterval(updInterval, surface);		
-		
+
+		if (null != mBookInfo) {
+			FileInfo fileInfo = mBookInfo.getFileInfo();
+			final String bookLanguage = fileInfo.getLanguage();
+			final String fontFace = props.getProperty(PROP_FONT_FACE);
+			if (null != bookLanguage && bookLanguage.length() > 0) {
+				boolean res = Engine.checkFontLanguageCompatibility(fontFace, bookLanguage);
+				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\": res=" + res);
+				if (!res) {
+					BackgroundThread.instance().executeGUI(new Runnable() {
+						@Override
+						public void run() {
+							mActivity.showToast(R.string.font_not_compat_with_language, fontFace, bookLanguage);
+						}
+					});
+				}
+			} else {
+				log.d("Can't get book's language to check font compatibility! bookInfo=" + fileInfo);
+			}
+		}
 		doc.applySettings(props);
         //syncViewSettings(props, save, saveDelayed);
         drawPage();

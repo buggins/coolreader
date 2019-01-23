@@ -72,6 +72,9 @@
     #include <fontconfig/fontconfig.h>
 #endif
 
+// fc-lang database
+#include "fc-lang-cat.h"
+
 #if COLOR_BACKBUFFER==0
 //#define USE_BITMAP_FONT
 #endif
@@ -824,7 +827,9 @@ struct LVCharPosInfo
 inline lUInt32 getHash( const struct LVCharTriplet& triplet )
 {
     //return (triplet.prevChar * 1975317 + 164521) ^ (triplet.Char * 1975317 + 164521) ^ (triplet.nextChar * 1975317 + 164521);
-    return getHash((lUInt32)triplet.Char) ^ getHash((lUInt32)triplet.prevChar) ^ getHash((lUInt32)triplet.nextChar);
+    return getHash( (lUInt64)triplet.Char
+                    + (((lUInt64)triplet.prevChar) << 16)
+                    + (((lUInt64)triplet.nextChar) << 32) );
 }
 
 class LVFreeTypeFace : public LVFont
@@ -1207,12 +1212,12 @@ public:
                 posInfo->offset = glyph_pos[cluster].x_offset >> 6;
                 posInfo->width = glyph_pos[cluster].x_advance >> 6;
             } else {
-                // hb_shape() failed or glyph omited in this font, use fallback font
+                // hb_shape() failed or glyph omitted in this font, use fallback font
                 glyph_info_t glyph;
                 LVFont *fallback = getFallbackFont();
                 if (fallback) {
                     if (fallback->getGlyphInfo(triplet.Char, &glyph, def_char)) {
-                        posInfo->offset = glyph.originX;
+                        posInfo->offset = 0;
                         posInfo->width = glyph.width;
                     }
                 }
@@ -1300,6 +1305,98 @@ public:
         }
     }
   */
+  
+    /**
+     * @brief Check font for compatibility with language with langCode
+     * @param langCode language code, for example, "en" - English, "ru" - Russian
+     * @return true if font contains all glyphs for given language, false otherwise.
+     */
+    virtual bool checkFontLangCompat(const lString8& langCode)
+    {
+        bool fullSupport = false;
+        bool partialSupport = false;
+        struct fc_lang_catalog* lang_ptr = fc_lang_cat;
+        unsigned int i;
+        bool found = false;
+        for (i = 0; i < fc_lang_cat_sz; i++)
+        {
+            if (langCode.compare(lang_ptr->lang_code) == 0)
+            {
+                found = true;
+                break;
+            }
+            lang_ptr++;
+        }
+        if (found)
+        {
+            unsigned int codePoint = 0;
+            unsigned int tmp;
+            unsigned int first, second = 0;
+            bool inRange = false;
+            FT_UInt glyphIndex;
+            fullSupport = true;
+            for (i = 0; ; )
+            {
+                // get next codePoint
+                if (inRange && codePoint < second)
+                {
+                    codePoint++;
+                }
+                else
+                {
+                    if (i >= lang_ptr->char_set_sz)
+                        break;
+                    tmp = lang_ptr->char_set[i];
+                    if (2 == tmp)           // code of start interval
+                    {
+                        if (i + 2 < lang_ptr->char_set_sz)
+                        {
+                            i++;
+                            first = lang_ptr->char_set[i];
+                            i++;
+                            second = lang_ptr->char_set[i];
+                            inRange = true;
+                            codePoint = first;
+                            i++;
+                        }
+                        else
+                        {
+                            // broken language char set
+                            //qDebug() << "broken language char set";
+                            fullSupport = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        codePoint = tmp;
+                        inRange = false;
+                        i++;
+                    }
+                }
+                // check codePoint in this font
+                glyphIndex = FT_Get_Char_Index(_face, codePoint);
+                if (0 == glyphIndex)
+                {
+                    fullSupport = false;
+                }
+                else
+                {
+                    partialSupport = true;
+                }
+            }
+            if (fullSupport)
+                CRLog::debug("checkFontLangCompat(): Font have full support of language %s", langCode.c_str());
+            else if (partialSupport)
+                CRLog::debug("checkFontLangCompat(): Font have partial support of language %s", langCode.c_str());
+            else
+                CRLog::debug("checkFontLangCompat(): Font DON'T have support of language %s", langCode.c_str());
+        }
+        else
+            CRLog::debug("checkFontLangCompat(): Unsupported language code: %s", langCode.c_str());
+        return fullSupport;
+    }
+    
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
@@ -1356,6 +1453,7 @@ public:
             uint32_t j;
             uint32_t cluster;
             uint32_t prev_cluster = 0;
+            int skipped_chars = 0; // to add to 'i' at end of loop, as 'i' is used later and should be accurate
             for (i = 0; i < (int)glyph_count; i++) {
                 cluster = glyph_info[i].cluster;
                 lChar16 ch = text[cluster];
@@ -1383,7 +1481,8 @@ public:
                 }
                 for (j = prev_cluster + 1; j < cluster; j++) {
                     flags[j] = GET_CHAR_FLAGS(text[j]);
-                    widths[j] = prev_width;		// for chars replaced by ligature
+                    widths[j] = prev_width;		// for chars replaced by ligature, so next chars of a ligature has width=0
+                    skipped_chars++;
                 }
                 prev_cluster = cluster;
                 if (!isHyphen) // avoid soft hyphens inside text string
@@ -1400,8 +1499,11 @@ public:
                 for (j = prev_cluster + 1; j < (uint32_t)len; j++) {
                     flags[j] = GET_CHAR_FLAGS(text[j]);
                     widths[j] = prev_width;
+                    skipped_chars++;
                 }
             }
+            // i is used below to "fill props for rest of chars", so make it accurate
+            i += skipped_chars;
         } else {
             struct LVCharTriplet triplet;
             struct LVCharPosInfo posInfo;
@@ -1438,7 +1540,7 @@ public:
                 }
             }
         }
-#else
+#else   // USE_HARFBUZZ==1
         FT_UInt previous = 0;
         int error;
 #if (ALLOW_KERNING==1)
@@ -1500,11 +1602,11 @@ public:
                 lastFitChar = i + 1;
             }
         }
-#endif
+#endif  // USE_HARFBUZZ==1
 
         // fill props for rest of chars
         for ( int ii=i; ii<len; ii++ ) {
-            flags[i] = GET_CHAR_FLAGS( text[ii] );
+            flags[ii] = GET_CHAR_FLAGS( text[ii] );
         }
 
         //maxFit = i;
@@ -3030,6 +3132,16 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
                 return false; // no required char!!!
             }
         }
+        return true;
+    }
+
+    virtual bool checkFontLangCompat(const lString8& typeface, const lString8& langCode)
+    {
+        LVFontRef fntRef = GetFont(10, 400, false, css_ff_inherit, typeface, -1);
+        if (!fntRef.isNull())
+            return fntRef->checkFontLangCompat(langCode);
+        else
+            CRLog::debug("checkFontLangCompat(): typeface not found: %s", typeface.c_str());
         return true;
     }
 

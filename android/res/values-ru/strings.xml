@@ -533,7 +533,7 @@
     <string name="btn_toolbar_more">Еще...</string>
     <string name="black_list_enforced">Нельзя добавлять этот адрес, так как по запросу LitRes.ru он добавлен в черный список каталогов, нарушающих авторские права.</string>
     <string name="black_list_warning">Внимание! этот адрес по запросу LitRes.ru был добавлен в черный список каталогов, нарушающих авторские права. Вы действительно хотите использовать этот каталог?</string>
-    <string name="cant_open_file">Невозможно открыть файл!</string>
+    <string name="cant_open_file">Невозможно открыть файл \"%s\"!</string>
     <string name="error">Ошибка</string>
     <string name="options_app_tts_stop_motion_timeout">Остановить чтение вслух при бездействии датчика движения</string>
     <string name="motion_timeout_off">"Выключено"</string>
@@ -590,4 +590,12 @@
     <string name="options_app_ui_theme_hicontrast1">Контрастная белая</string>
     <string name="options_app_ui_theme_hicontrast2">Контрастная черная</string>
     <string name="error_while_opening">Ошибка открытия документа \"%s\"</string>
+    <string name="datadir_is_removed">Каталог с данными приложения \"%s\" был удален другой программой!\nВозможно какой-то оптимизатор дискового пространства?\nК сожалению, все настройки утеряны.</string>
+    <string name="font_not_compat_with_language">"Шрифт \"%s\" не совместим с языком \"%s\". Вместо него будет задействован дополнительный шрифт."</string>
+    <string name="fontconfig_language_orthography_database">Набор символов различных писменностей от Fontconfig:
+        https://www.fontconfig.org/
+    </string>
+    <string name="third_party_components_used">Использованы следующие компоненты третьих сторон: zlib, libpng, libjpeg,
+        freetype, harfbuzz, chmlib, antiword, Nook EPD utils от DairyKnight
+    </string>
 </resources>

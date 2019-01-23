@@ -49,7 +49,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFaceLi
  * Signature: ()[Ljava/lang/String;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_getFontFileNameListInternal
-        (JNIEnv *, jclass);
+  (JNIEnv *, jclass);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -106,6 +106,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_drawBookCoverInternal
  */
 JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationInternal
   (JNIEnv *, jclass);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    checkFontLanguageCompatibilityInternal
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
+  (JNIEnv *, jclass, jstring, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine

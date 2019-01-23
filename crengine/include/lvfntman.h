@@ -293,6 +293,8 @@ public:
     virtual bool kerningEnabled() { return false; }
     virtual int getKerningOffset(lChar16 ch1, lChar16 ch2, lChar16 def_char) { CR_UNUSED3(ch1,ch2,def_char); return 0; }
 
+    virtual bool checkFontLangCompat(const lString8& langCode) { return true; }
+
     /// set fallback font for this font
     void setFallbackFont( LVProtectedFastRef<LVFont> font ) { CR_UNUSED(font); }
     /// get fallback font for this font
@@ -404,7 +406,10 @@ public:
     /// returns available font files
     virtual void getFontFileNameList( lString16Collection & ) { }
 
-    /// returns first found face from passed list, or return face for font found by family only
+	// check font language compatibility
+	virtual bool checkFontLangCompat(const lString8& typeface, const lString8& langCode) { return true; }
+
+	/// returns first found face from passed list, or return face for font found by family only
     virtual lString8 findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily);
 
     /// fills array with list of available gamma levels

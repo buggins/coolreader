@@ -3,6 +3,7 @@ package org.coolreader;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 import org.coolreader.Dictionaries.DictionaryException;
@@ -37,7 +38,6 @@ import org.coolreader.crengine.ReaderViewLayout;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
-import org.coolreader.db.CRDBService;
 import org.coolreader.donations.CRDonationService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
@@ -86,6 +86,8 @@ public class CoolReader extends BaseActivity
 
 	private boolean justCreated = false;
 
+	private boolean dataDirIsRemoved = false;
+
 	private static final int PERM_REQUEST_STORAGE_CODE = 1;
 	private static final int PERM_REQUEST_READ_PHONE_STATE_CODE = 2;
 
@@ -93,8 +95,8 @@ public class CoolReader extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-    	startServices();
-    	
+		startServices();
+
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
 
@@ -152,7 +154,15 @@ public class CoolReader extends BaseActivity
 		N2EpdController.n2MainActivity = this;
         
 		showRootWindow();
-		
+
+		if (null != Engine.getExternalSettingsDirName()) {
+			// if external data directory created or already exist.
+			if (!Engine.DATADIR_IS_EXIST_AT_START && getExtDataDirCreateTime() > 0) {
+				dataDirIsRemoved = true;
+				log.e("DataDir removed by other application!");
+			}
+		}
+
         log.i("CoolReader.onCreate() exiting");
     }
 
@@ -311,6 +321,7 @@ public class CoolReader extends BaseActivity
 				fileToOpen = fileToOpen.replace("%2F", "/");
 			}
 			log.d("FILE_TO_OPEN = " + fileToOpen);
+			final String finalFileToOpen = fileToOpen;
 			loadDocument(fileToOpen, new Runnable() {
 				@Override
 				public void run() {
@@ -318,7 +329,7 @@ public class CoolReader extends BaseActivity
 						@Override
 						public void run() {
 							// if document not loaded show error & then root window
-							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file));
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file, finalFileToOpen));
 							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
 								@Override
 								public void onDismiss(DialogInterface dialog) {
@@ -456,8 +467,16 @@ public class CoolReader extends BaseActivity
 			if (!processIntent(getIntent()))
 				showLastLocation();
 		}
-		
-		
+		if (Engine.getExternalSettingsDirName() != null) {
+			setExtDataDirCreateTime(new Date());
+		} else {
+			setExtDataDirCreateTime(null);
+		}
+		if (dataDirIsRemoved) {
+			// show message
+			ErrorDialog dlg = new ErrorDialog(this, getString(R.string.error), getString(R.string.datadir_is_removed, Engine.getExternalSettingsDirName()));
+			dlg.show();
+		}
 		stopped = false;
 
 		log.i("CoolReader.onStart() exiting");
@@ -555,6 +574,11 @@ public class CoolReader extends BaseActivity
 					}
 				});
 				mHomeFrame.refreshView();
+			}
+			if (Engine.getExternalSettingsDirName() != null) {
+				setExtDataDirCreateTime(new Date());
+			} else {
+				setExtDataDirCreateTime(null);
 			}
 		} else if (PERM_REQUEST_READ_PHONE_STATE_CODE == requestCode) {
 			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -1461,7 +1485,6 @@ public class CoolReader extends BaseActivity
 	
 	/**
 	 * Get last stored location.
-	 * @param location
 	 * @return
 	 */
 	private String getLastLocation() {
@@ -1523,6 +1546,22 @@ public class CoolReader extends BaseActivity
 		}
 		// TODO: support other locations as well
 		showRootWindow();
+	}
+
+	public void setExtDataDirCreateTime(Date d) {
+		try {
+			SharedPreferences.Editor editor = getPrefs().edit();
+			editor.putLong(PREF_EXT_DATADIR_CREATETIME, (null != d) ? d.getTime() : 0);
+			editor.commit();
+		} catch (Exception e) {
+			// ignore
+		}
+	}
+
+	public long getExtDataDirCreateTime() {
+		long res = getPrefs().getLong(PREF_EXT_DATADIR_CREATETIME, 0);
+		log.i("getExtDataDirCreateTime() = " + res);
+		return res;
 	}
 
 	public void showCurrentBook() {

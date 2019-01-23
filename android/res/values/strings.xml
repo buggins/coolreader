@@ -257,7 +257,7 @@
     <string name="dlg_about_textures_dirs">Textures directories:</string>
     <string name="dlg_about_backgrounds_dirs">Backgrounds directories:</string>
     <string name="dlg_about_hyphenations_dirs">Hyphenation dictionaries directories:</string>
-    <string name="dlg_about_copyright">© Vadim Lopatin, 1998–2018</string>
+    <string name="dlg_about_copyright">© Vadim Lopatin, 1998–2019</string>
     <string name="dlg_about_contributors_">and contributors…</string>
     <string name="mi_book_browser_normal_mode">Normal mode</string>
     <string name="mi_book_browser_simple_mode">Simple file list</string>
@@ -562,7 +562,7 @@
     <string name="black_list_enforced">Cannot add this URL since it is added to black list of catalogs which may violate DMCA by request of LitRes.ru</string>
     <string name="black_list_warning">WARNING: this URL is added to black list of catalogs which may violate DMCA by request of LitRes.ru Do you really want to add this catalog?</string>
     <string name="error">Error</string>
-    <string name="cant_open_file">Can\'t open file!</string>
+    <string name="cant_open_file">Can\'t open file \"%s\"!</string>
     <string name="options_app_tts_stop_motion_timeout">Stop reading aloud on motion sensor timeout</string>
     <string name="motion_timeout_off">"Off"</string>
     <string name="motion_timeout_1min">"1 minute"</string>
@@ -616,4 +616,13 @@
     <string name="pages_per_full_swipe_19">"19 pages (track)"</string>
     <string name="pages_per_full_swipe_20">"20 pages (track)"</string>
     <string name="error_while_opening">Error while opening document \"%s\"</string>
+    <string name="datadir_is_removed">Application data directory \"%s\" has been removed by other app.\nPossibly it was some kind of disc space optimizer.\nUnfortunately all the settings were lost.</string>
+    <string name="font_not_compat_with_language">"Font \"%s\" isn't compatible with language \"%s\". Instead will be used fallback font."</string>
+    <string name="fontconfig_language_orthography_database">"Languages character set database by Fontconfig:
+        https://www.fontconfig.org/ "
+    </string>
+    <string name="third_party_components_used">"Third party components used: zlib, libpng, libjpeg, freetype, harfbuzz,
+        chmlib, antiword, Nook EPD utils by DairyKnight "
+    </string>
+    <string name="third_party_farm_fresh_icon_set">Farm-Fresh icon set from http://www.fatcow.com/free-icons</string>
 </resources>

@@ -10,6 +10,7 @@ project(cr3engine)
 set(CR3_ROOT ${PROJECT_SOURCE_DIR}/../..)
 
 include_directories(${CR3_ROOT}/crengine/include)
+include_directories(${CR3_ROOT}/crengine/fc-lang)
 include_directories(${CR3_ROOT}/thirdparty/libpng)
 include_directories(${CR3_ROOT}/thirdparty/freetype)
 include_directories(${CR3_ROOT}/thirdparty/freetype/include)
@@ -73,6 +74,7 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
+    ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp
 #    ${CR3_ROOT}/crengine/src/crgui.cpp

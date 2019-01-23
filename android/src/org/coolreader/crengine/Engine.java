@@ -586,11 +586,17 @@ public class Engine {
 	
     private native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
 
+	private native static boolean checkFontLanguageCompatibilityInternal(String fontFace, String langCode);
     
     public static void suspendLongOperation() {
    		suspendLongOperationInternal();
     }
-	
+
+	public synchronized static boolean checkFontLanguageCompatibility(String fontFace, String langCode)
+	{
+		return checkFontLanguageCompatibilityInternal(fontFace, langCode);
+	}
+
 	/**
 	 * Checks whether specified directlry or file is symbolic link.
 	 * (thread-safe)
@@ -1802,12 +1808,20 @@ public class Engine {
 	private static Map<String, String> mountedRootsMap;
 	private static MountPathCorrector pathCorrector;
 	private static String[] mFonts;
+	public static boolean DATADIR_IS_EXIST_AT_START = false;
 
 	// static initialization
 	static {
 		log.i("Engine() : static initialization");
 		installLibrary();
 		initMountRoots();
+		File[] dataDirs = Engine.getDataDirectories(null, false, true);
+		if (dataDirs != null && dataDirs.length > 0) {
+			log.i("Engine() : DataDir exist at start.");
+			DATADIR_IS_EXIST_AT_START = true;
+		} else {
+			log.i("Engine() : DataDir NOT exist at start.");
+		}
 		mFonts = findFonts();
 		findExternalHyphDictionaries();
 		if (!initInternal(mFonts)) {
