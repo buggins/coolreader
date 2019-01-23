@@ -6,6 +6,7 @@ import org.coolreader.db.CRDBService;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,10 +39,13 @@ public class SearchDlg extends BaseDialog {
     	String pattern = mEditView.getText().toString();
     	if ( pattern==null || pattern.length()==0 ) 
     		mCoolReader.showToast("No pattern specified");
-    	else
-			activity.getDB().saveSearchHistory(mBookInfo,
-					mEditView.getText().toString());
-    		mReaderView.findText( mEditView.getText().toString(), mReverse.isChecked(), !mCaseSensitive.isChecked() );
+    	else if ( mBookInfo == null )
+    		Log.e("search", "No opened book!");
+    	else {
+		    activity.getDB().saveSearchHistory(mBookInfo,
+				    mEditView.getText().toString());
+		    mReaderView.findText(mEditView.getText().toString(), mReverse.isChecked(), !mCaseSensitive.isChecked());
+	    }
         cancel();
 	}
 	
