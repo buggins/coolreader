@@ -28,6 +28,7 @@ public:
 	bool closeBook();
 	bool loadHistory( lString16 filename );
 	bool saveHistory( lString16 filename );
+	void createDefaultDocument( lString16 title, lString16 message );
 	bool loadDocument( lString16 filename );
 	int doCommand( int cmd, int param );
     bool findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive );

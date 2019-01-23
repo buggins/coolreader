@@ -589,4 +589,5 @@
     <string name="pages_per_full_swipe_20">"20 страниц (отслеживать)"</string>
     <string name="options_app_ui_theme_hicontrast1">Контрастная белая</string>
     <string name="options_app_ui_theme_hicontrast2">Контрастная черная</string>
+    <string name="error_while_opening">Ошибка открытия документа \"%s\"</string>
 </resources>

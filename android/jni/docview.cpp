@@ -867,11 +867,27 @@ static DocViewNative * getNative(JNIEnv * env, jobject _this)
 	return res;
 }
 
+void DocViewNative::createDefaultDocument( lString16 title, lString16 message )
+{
+	_docview->createDefaultDocument(title, message);
+}
+
 bool DocViewNative::loadDocument( lString16 filename )
 {
 	CRLog::info("Loading document %s", LCSTR(filename));
 	bool res = _docview->LoadDocument(filename.c_str());
-	CRLog::info("Document %s is loaded %s", LCSTR(filename), (res?"successfully":"with error"));
+	if (res)
+		CRLog::info("Document %s is loaded successfully", LCSTR(filename));
+	else {
+		CRLog::info("Document %s not is loaded due to error", LCSTR(filename));
+		if (_docview->getDocument() == NULL) {
+			// _docview->LoadDocument() can return false with _docview->m_doc == NULL when:
+			// 1. I/O error - failed to open file
+			// 2. open archive without supported files
+			CRLog::error("Document is NULL, inserting stub.");
+			_docview->createDefaultDocument(lString16::empty_str, Utf8ToUnicode("Error while opening file!"));
+		}
+	}
     return res;
 }
 
@@ -882,8 +898,8 @@ bool DocViewNative::openRecentBook()
 	if ( _docview->isDocumentOpened() ) {
 		CRLog::debug("DocViewNative::openRecentBook() : saving previous document state");
 		_docview->swapToCache();
-        _docview->getDocument()->updateMap();
-	    _docview->savePosition();
+		_docview->getDocument()->updateMap();
+		_docview->savePosition();
 		closeBook();
 	    index = 1;
 	}
@@ -895,7 +911,12 @@ bool DocViewNative::openRecentBook()
         CRLog::info("DocViewNative::openRecentBook() : checking file %s", LCSTR(fn));
         // TODO: check error
         if ( LVFileExists(fn) ) {
-            return loadDocument( fn );
+            bool res = loadDocument( fn );
+            if (!res && _docview->getDocument() == NULL) {
+                CRLog::error("Document is NULL, inserting stub.");
+                _docview->createDefaultDocument(lString16::empty_str, Utf8ToUnicode("Error while opening file!"));
+            }
+            return res;
         } else {
         	CRLog::error("file %s doesn't exist", LCSTR(fn));
         	return false;
@@ -1147,7 +1168,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkImageIntern
     DocViewNative * p = getNative(_env, view);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
     int dx, dy;
     bool needRotate = false;
@@ -1177,7 +1198,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_checkBookmarkInt
     DocViewNative * p = getNative(_env, view);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
     CRObjectAccessor acc(_env, bmk);
     //CRLog::trace("checkBookmarkInternal(%d, %d)", x, y);
@@ -1205,7 +1226,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_drawImageInterna
     DocViewNative * p = getNative(_env, view);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
     CRObjectAccessor acc(_env, imageInfo);
     int dx = CRIntField(acc,"scaledWidth").get();
@@ -1266,9 +1287,28 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_closeImageIntern
     DocViewNative * p = getNative(env, view);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
 	return p->closeImage() ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    createDefaultDocumentInternal
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_createDefaultDocumentInternal
+		(JNIEnv * _env, jobject _this, jstring title, jstring message)
+{
+	CRJNIEnv env(_env);
+	DocViewNative * p = getNative(_env, _this);
+	if (!p) {
+		CRLog::error("Cannot get native view");
+		return;
+	}
+	lString16 title_str = env.fromJavaString(title);
+	lString16 message_str = env.fromJavaString(message);
+	p->createDefaultDocument(title_str, message_str);
 }
 
 /*
@@ -1283,7 +1323,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentInte
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
 	DocViewCallback callback( _env, p->_docview, _this );
 	lString16 str = env.fromJavaString(s);
@@ -1325,7 +1365,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_applySettingsInt
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
 	DocViewCallback callback( _env, p->_docview, _this );
 	CRPropRef props = env.fromJavaProperties(_props);
@@ -1423,12 +1463,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_doCommandInterna
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
 	DocViewCallback callback( _env, p->_docview, _this );	
     if ( cmd>=READERVIEW_DCMD_START && cmd<=READERVIEW_DCMD_END) {
     	return p->doCommand(cmd, param)?JNI_TRUE:JNI_FALSE;
     }
+    if (!p->_docview->isDocumentOpened())
+        return JNI_FALSE;
     //CRLog::trace("doCommandInternal(%d, %d) -- passing to LVDocView", cmd, param);
     return p->_docview->doCommand((LVDocCmd)cmd, param) ? JNI_TRUE : JNI_FALSE;
 }
@@ -1445,7 +1487,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_isRenderedIntern
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
 	if (!p->_docview->isDocumentOpened())
 		return JNI_FALSE;
@@ -1469,7 +1511,7 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getCurrentPageBoo
 	CRLog::trace("getCurrentPageBookmarkInternal: calling getBookmark()");
 	ldomXPointer ptr = p->_docview->getBookmark();
 	if ( ptr.isNull() )
-		return JNI_FALSE;
+		return NULL;
 	CRBookmark bm(ptr);
 	lString16 comment;
     lString16 titleText;
@@ -1553,7 +1595,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_goToPositionInte
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
 	if ( !p->_docview->isDocumentOpened() )
 		return JNI_FALSE;
@@ -1675,7 +1717,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_findTextInternal
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
     if ( !p->_docview->isDocumentOpened() )
         return JNI_FALSE;
@@ -1842,8 +1884,12 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_moveSelectionInt
     DocViewNative * p = getNative(_env, _this);
     if (!p) {
     	CRLog::error("Cannot get native view");
-    	return false;
+    	return JNI_FALSE;
     }
+	if (!p->_docview->isDocumentOpened()) {
+		CRLog::debug("moveSelectionInternal: document is not opened");
+		return JNI_FALSE;
+	}
     CRObjectAccessor sel(_env, _sel);
     CRStringField sel_startPos(sel, "startPos");
     CRStringField sel_endPos(sel, "endPos");
@@ -1939,7 +1985,7 @@ bool DocViewNative::checkImage(int x, int y, int bufWidth, int bufHeight, int &d
 	dy = _currentImage->GetHeight();
 	if (dx < 8 && dy < 8) {
 		_currentImage.Clear();
-		return JNI_FALSE;
+		return false;
 	}
 	needRotate = false;
 	if (bufWidth <= bufHeight) {

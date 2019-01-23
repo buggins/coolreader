@@ -615,4 +615,5 @@
     <string name="pages_per_full_swipe_18">"18 pages (track)"</string>
     <string name="pages_per_full_swipe_19">"19 pages (track)"</string>
     <string name="pages_per_full_swipe_20">"20 pages (track)"</string>
+    <string name="error_while_opening">Error while opening document \"%s\"</string>
 </resources>
