@@ -437,7 +437,9 @@ public class FileInfo {
 	}
 
 	public boolean isOnSDCard() {
-		if (null == parent)
+		if (null == parent || null == filename || null == title)
+			return false;
+		if (null == parent.pathname)
 			return false;
 		if ( ( (filename.compareTo("SD") == 0 && title.compareTo("SD") == 0) ||
 				(filename.compareTo("EXT SD") == 0 && title.compareTo("EXT SD") == 0) ) &&
