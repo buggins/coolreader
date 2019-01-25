@@ -437,12 +437,12 @@ public class FileInfo {
 	}
 
 	public boolean isOnSDCard() {
-		if (null == parent || null == filename || null == title)
+		if (null == parent || null == filename)
 			return false;
 		if (null == parent.pathname)
 			return false;
-		if ( ( (filename.compareTo("SD") == 0 && title.compareTo("SD") == 0) ||
-				(filename.compareTo("EXT SD") == 0 && title.compareTo("EXT SD") == 0) ) &&
+		if ( ( (filename.compareTo("SD") == 0 && null != title && title.compareTo("SD") == 0) ||
+				(filename.compareTo("EXT SD") == 0 && null != title && title.compareTo("EXT SD") == 0) ) &&
 				isDirectory && !isArchive && 0 == size && 0 == arcsize &&
 				parent.pathname.compareTo("@root") == 0)
 			return true;
