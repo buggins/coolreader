@@ -467,15 +467,15 @@ public class CoolReader extends BaseActivity
 			if (!processIntent(getIntent()))
 				showLastLocation();
 		}
-		if (Engine.getExternalSettingsDirName() != null) {
-			setExtDataDirCreateTime(new Date());
-		} else {
-			setExtDataDirCreateTime(null);
-		}
 		if (dataDirIsRemoved) {
 			// show message
 			ErrorDialog dlg = new ErrorDialog(this, getString(R.string.error), getString(R.string.datadir_is_removed, Engine.getExternalSettingsDirName()));
 			dlg.show();
+		}
+		if (Engine.getExternalSettingsDirName() != null) {
+			setExtDataDirCreateTime(new Date());
+		} else {
+			setExtDataDirCreateTime(null);
 		}
 		stopped = false;
 
