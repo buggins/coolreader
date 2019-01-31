@@ -553,6 +553,13 @@ public class Engine {
 
 	public void initAgain() {
 		initMountRoots();
+		File[] dataDirs = Engine.getDataDirectories(null, false, true);
+		if (dataDirs != null && dataDirs.length > 0) {
+			log.i("Engine.initAgain() : DataDir exist at start.");
+			DATADIR_IS_EXIST_AT_START = true;
+		} else {
+			log.i("Engine.initAgain() : DataDir NOT exist at start.");
+		}
 		mFonts = findFonts();
 		findExternalHyphDictionaries();
 		if (!initInternal(mFonts)) {
@@ -1429,6 +1436,11 @@ public class Engine {
 //			initialized = false;
 //		}
 		instance = null;
+		// to suppress further messages about data directory removed
+		// if activity destroyed but process is not unloaded from memory
+		// and if application data directory already exist at this point
+		if (null != CR3_SETTINGS_DIR_NAME)
+			DATADIR_IS_EXIST_AT_START = true;
 	}
 
 	protected void finalize() throws Throwable {
