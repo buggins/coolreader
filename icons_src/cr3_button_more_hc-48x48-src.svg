@@ -58,13 +58,13 @@
      id="layer1"
      transform="translate(0,-284.29999)">
     <path
-       style="opacity:1;fill:#ffffff;fill-opacity:0.99215686;fill-rule:evenodd;stroke:none;stroke-width:1.26348853;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:8;stroke-opacity:1;paint-order:markers fill stroke"
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.26348853;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:8;stroke-opacity:1;paint-order:markers fill stroke"
        d="m 24,286.29999 c -12.15015,2.8e-4 -21.999725,9.84985 -22,22 2.75e-4,12.15015 9.849849,21.99972 22,22 12.15015,-2.8e-4 21.999724,-9.84985 22,-22 -2.76e-4,-12.15015 -9.84985,-21.99972 -22,-22 z"
        id="path960-3"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
     <path
-       style="opacity:1;fill:#000000;fill-opacity:0.99215686;fill-rule:evenodd;stroke:none;stroke-width:1.14862597;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:8;stroke-opacity:1;paint-order:markers fill stroke"
+       style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.14862597;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:8;stroke-opacity:1;paint-order:markers fill stroke"
        d="m 24.005891,288.35414 c -11.045592,2.5e-4 -19.9997509,8.95441 -20.0000005,20 2.496e-4,11.04559 8.9544085,19.99975 20.0000005,20 11.045591,-2.5e-4 19.999749,-8.95441 19.999999,-20 -2.5e-4,-11.04559 -8.954408,-19.99975 -19.999999,-20 z m 0,8.17285 c 6.531918,2.3e-4 11.826878,5.29523 11.827109,11.82715 -2.37e-4,6.53191 -5.295195,11.82662 -11.827109,11.82685 -6.531914,-2.3e-4 -11.827019,-5.29494 -11.827256,-11.82685 2.31e-4,-6.53192 5.295338,-11.82692 11.827256,-11.82715 z"
        id="path960"
        inkscape:connector-curvature="0"
@@ -72,7 +72,7 @@
     <g
        id="g1068"
        transform="translate(57.847162,-23.208973)"
-       style="fill:#000000;fill-opacity:0.85490197">
+       style="fill:#000000;fill-opacity:1">
       <path
          style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
          d="m 17.215,20.988003 v 1.563 l 6.791,7.861 6.772,-7.875 0.001,-1.548746 z"
