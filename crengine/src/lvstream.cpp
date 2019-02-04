@@ -2563,6 +2563,7 @@ public:
             CurPos = 0;
         else
             CurPos -= sizeof(ReadBuf)-18;
+        // Find End of central directory record (EOCD)
         for ( Buf=0; Buf<64 && !found; Buf++ )
         {
             //SetFilePointer(ArcHandle,CurPos,NULL,FILE_BEGIN);
@@ -2686,13 +2687,29 @@ public:
             NextPosition += SeekLen;
             m_stream->Seek(NextPosition, LVSEEK_SET, NULL);
 
-	        // {"DOS","Amiga","VAX/VMS","Unix","VM/CMS","Atari ST",
-			//  "OS/2","Mac-OS","Z-System","CP/M","TOPS-20",
-			//  "Win32","SMS/QDOS","Acorn RISC OS","Win32 VFAT","MVS",
-			//  "BeOS","Tandem"};
-            const lChar16 * enc_name = (ZipHeader.PackOS==0) ? L"cp866" : L"cp1251";
-            const lChar16 * table = GetCharsetByte2UnicodeTable( enc_name );
-            lString16 fName = ByteToUnicode( lString8(fnbuf), table );
+            lString16 fName;
+            if (ZipHeader.PackVer >= 63 && (ZipHeader.Flags & 0x0800) == 0x0800) {
+                // Language encoding flag (EFS).  If this bit is set,
+                // the filename and comment fields for this file
+                // MUST be encoded using UTF-8. (InfoZip APPNOTE-6.3.0)
+                //CRLog::trace("ZIP 6.3: Language encoding flag (EFS) enabled, using UTF-8 encoding.");
+                fName = Utf8ToUnicode(fnbuf);
+            } else {
+                if (isValidUtf8Data((const unsigned char *)fnbuf, SizeToRead)) {
+                    //CRLog::trace("autodetected UTF-8 encoding.");
+                    fName = Utf8ToUnicode(fnbuf);
+                } else {
+                    // {"DOS","Amiga","VAX/VMS","Unix","VM/CMS","Atari ST",
+                    //  "OS/2","Mac-OS","Z-System","CP/M","TOPS-20",
+                    //  "Win32","SMS/QDOS","Acorn RISC OS","Win32 VFAT","MVS",
+                    //  "BeOS","Tandem"};
+                    // TODO: try to detect proper charset using 0x0008 Extra Field (InfoZip APPNOTE-6.3.5, Appendix D.4).
+                    const lChar16 * enc_name = (ZipHeader.PackOS==0) ? L"cp866" : L"cp1251";
+                    //CRLog::trace("detected encoding %s", LCSTR(enc_name));
+                    const lChar16 * table = GetCharsetByte2UnicodeTable( enc_name );
+                    fName = ByteToUnicode( lString8(fnbuf), table );
+                }
+            }
 
             item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
             item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
