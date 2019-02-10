@@ -19,9 +19,6 @@ using UnityEngine;
 
 public class MenuInteraction : MonoBehaviour {
 
-  [Tooltip ("Deprecated. Menus can be created from the editor, by providing labels here. Rather derive from this class, and provide specific handlers.")]
-  public string [] menuOptions;
-
   [Tooltip ("A backing object for the menu")]
   public GameObject menuBaseTemplate;
   [Tooltip ("The shape of a menu button, if only text labels are being provided. This prefab must have a TextMesh component")]
@@ -42,8 +39,9 @@ public class MenuInteraction : MonoBehaviour {
   private bool visible = true;
   
   // Button handlers are provided: the controller that selected the button, and the
-  // button that was selected.
-  public delegate void buttonHandlerType (ControlInput controller, GameObject controllerObject, GameObject button); 
+  // button that was selected. When initialize is set to true, the handler invokes no
+  // action but modifies the appearance of the button to set any initial visual.
+  public delegate void buttonHandlerType (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false); 
             
   [Tooltip ("The sound source for any sound played when the pointer hovers over the menu button")]
   public AudioSource touchSound = null;
@@ -83,11 +81,11 @@ public class MenuInteraction : MonoBehaviour {
     if (menuBaseTemplate != null)
     {
       menuBase = Instantiate (menuBaseTemplate);
-      menuBase.transform.SetParent (menu.transform);
+      menuBase.transform.SetParent (menu.transform, false);
     }
     
     // Attach menu to current game object, to avoid clutter.
-    menu.transform.SetParent (this.gameObject.transform);
+    menu.transform.SetParent (this.gameObject.transform, false);
     menu.transform.localPosition = new Vector3 (0, 0, 0);
     menu.transform.localRotation = Quaternion.identity;
     
@@ -119,8 +117,29 @@ public class MenuInteraction : MonoBehaviour {
     updateVisibility ();
   }
 
+  // Rewrite the label on a button. Requires that all buttons have
+  // a text field.
+  static public void setLabel (GameObject button, string label)
+  {
+    if (button.GetComponentInChildren <TextMesh> () != null)
+    {
+      button.GetComponentInChildren <TextMesh> ().text = label;
+    }
+  }
+
+  static public string getLabel (GameObject button)
+  {
+    if (button.GetComponentInChildren <TextMesh> () != null)
+    {
+      return button.GetComponentInChildren <TextMesh> ().text;
+    }
+    return null;
+  }
+  
   // Add a button to the menu, using a previously created game object. Specifies the
-  // handler invoked when the button is pressed.
+  // handler invoked when the button is pressed. The handler will be called with
+  // initialize set to true, so must respond by setting appearance and not calling its
+  // handler.
   public GameObject addItemAsMenuOption (GameObject menuOption, buttonHandlerType handler)
   {
     if (menu == null)
@@ -133,6 +152,8 @@ public class MenuInteraction : MonoBehaviour {
       mi.handler = handler;
       menuItems.Add (mi);
       
+      handler (null, null, mi.button, true);
+    
       return menuOption;
   }
   
@@ -150,26 +171,32 @@ public class MenuInteraction : MonoBehaviour {
       menuOption.transform.localPosition = position;
       menuOption.transform.SetParent (menu.transform, false);
       // Set the label, if possible.
-      if (menuOption.GetComponentInChildren <TextMesh> () != null)
-      {
-        menuOption.GetComponentInChildren <TextMesh> ().text = option;
-      }
+      setLabel (menuOption, option);
       
       // Add the object to the menu.
       return addItemAsMenuOption (menuOption, handler);
   }
   
-  // Deprecated. Create a menu from a list of options provided. Currently
-  // no way of specifying handlers, so just looks good.
-  virtual public void populateMenu () {
-    float row = -1.4f;
-    //float col = 0;
-    foreach (string option in menuOptions)
+  public void removeMenuOption (GameObject m)
+  {
+    List <MenuItem> remove = new List <MenuItem> ();
+    foreach (MenuItem mi in menuItems)
     {
-      addMenuOption (option, new Vector3 (0, row * 0.25f, 0), null);
-      
-      row++;
+      if (mi.button == m)
+      {
+        remove.Add (mi);
+        GameObject.Destroy (mi.button);
+      }
     }
+    
+    foreach (MenuItem mi in remove)
+    {
+      menuItems.Remove (mi);
+    }
+  }
+  
+  // To be overridden for setting up menu (by adding menu options).
+  virtual public void populateMenu () {
   }
   
   // reset position when nothing touching the button.

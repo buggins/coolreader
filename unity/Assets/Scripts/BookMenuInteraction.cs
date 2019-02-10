@@ -1,0 +1,378 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+[RequireComponent (typeof (BoxCollider))]
+
+public class BookMenuInteraction : MenuInteraction {
+  
+  // A link to the book manager that handles book content operations.
+  private BookManager bookManager;
+  
+  // A cached copy of the animator required for book movements.
+  private Animator bookAnimator;
+
+  // The trigger is usually pressed when most menu response handlers start.
+  // This helps by waiting till it is released, before the next press is accepted.
+  private bool triggerCleared = false;
+  // Various alignment operations keep some of the book's transformation intact.
+  // Distance is one of these constants.
+  private float bookDistance;
+  // Direction to the book is another constant preserved during some manipulations.
+  private Vector3 bookDirection;
+
+  // Keep track of the open/close book button, since this changes according to the state of the book.
+  private GameObject opencloseButton = null;
+  
+  // Flag when the book is dropped, and no longer of interest.
+  private bool dropped = false;
+  // State indicating when the book is open or closed.
+  private bool open = false;
+  
+  // Audio sound effects
+  public AudioSource pageTurnSound;
+  public AudioSource bookCloseSound;
+  public AudioSource bookDropSound;
+  
+  // Initialize the book, as an active book currently in use.
+  protected override void Start ()
+  {
+    base.Start ();
+    bookAnimator = GetComponentInChildren <Animator> ();
+    bookManager = GetComponent <BookManager> ();
+    setOpen ();
+    
+    // Active books are kept under one object, to allow transfer between scenes.
+    GameObject activeBooks = GameObject.Find ("ActiveBooks");
+    if (activeBooks != null)
+    {
+      transform.SetParent (activeBooks.transform);
+    }
+  }
+  
+  // Close the book.
+  private void setClosed ()
+  {
+    // Sound and animation.
+    if ((open) && (bookAnimator != null))
+    {
+      bookAnimator.SetBool ("CloseBook", true);
+      bookCloseSound.Play ();
+    }
+
+    open = false;
+    // Change the logo on the open/close button.
+    if (opencloseButton != null)
+    {
+      opencloseButton.GetComponentInChildren <TextMesh> ().text = "Open\nBook";
+    }
+    // Adapt collider to closed dimensions.
+    GetComponentInChildren <BoxCollider> ().center = new Vector3 (-0.85f, 0.0f, 0); 
+    GetComponentInChildren <BoxCollider> ().size = new Vector3 (1.6f, 0.2f, 2.0f); 
+  }
+  
+  // Open the book.
+  private void setOpen ()
+  {
+    // Sound and animation.
+    if ((!open) && (bookAnimator != null))
+    {
+      bookAnimator.SetBool ("CloseBook", false);
+    }
+
+    open = true;
+    // Button label.
+    if (opencloseButton != null)
+    {
+      opencloseButton.GetComponentInChildren <TextMesh> ().text = "Close\nBook";
+    }
+    // Collider dimensions.
+    GetComponentInChildren <BoxCollider> ().center = new Vector3 (-0.05f, 0, 0); 
+    GetComponentInChildren <BoxCollider> ().size = new Vector3 (3.2f, 0.2f, 2.0f); 
+  }
+  
+  // Add the menu buttons.
+  override public void populateMenu () {
+    
+    // Make clicking on the book the same as the next page button.
+    addItemAsMenuOption (this.gameObject.transform.Find ("ShapeBook").gameObject, getBook);
+    
+    addMenuOption ("Next\nPage", new Vector3 (0.9f, -0.4f, 0.0f), nextPage);
+    addMenuOption ("Prev\nPage", new Vector3 (-0.9f, 0.4f, 0.0f), prevPage);
+//          addMenuOption ("Position\nBook", new Vector3 (0.0f, 1.3f, 0.0f), positionBook);
+    addMenuOption ("Position\nBook", new Vector3 (-0.3f, 0.65f, 0.05f), moveBook);
+    addMenuOption ("Retrieve\nBook", new Vector3 (-0.1f, 0.65f, 0.05f), retrieveBook);
+    addMenuOption ("Rotate\nBook", new Vector3 (0.1f, 0.65f, 0.05f), rotateBook);
+    opencloseButton = addMenuOption ("Close\nBook", new Vector3 (0.3f, 0.65f, 0.05f), toggleCloseBook);
+    addMenuOption ("Drop\nBook", new Vector3 (0.0f, -0.6f, 0.05f), dropBook);
+  }
+
+  // Drop the book.
+  public void dropBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      // Close it first.
+      setClosed ();
+
+      // Switch off menu - a dropped book is no longer in use.
+      hideMenu ();
+      
+      // Let physics have it.
+      GetComponent <Rigidbody> ().useGravity = true;
+      GetComponent <Rigidbody> ().isKinematic = false;
+      GetComponent <Rigidbody> ().angularVelocity = new Vector3 (-1.1f, -1.2f, -1.3f);
+      
+      // Remove it from the managed set.
+      transform.SetParent (null);
+      dropped = true;
+      // Ensure it doesn't get transferred between scenes.
+      SceneManager.MoveGameObjectToScene (gameObject, SceneManager.GetActiveScene ());
+      
+      // Sound effect.
+      bookDropSound.Play ();
+    }
+  }
+
+  // Pick up a book, also used when a book is first created.
+  public void pickupBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    // Open the book.
+    setOpen ();
+
+    // Enable the menu.
+    showMenu ();
+    
+    // Disable physics.
+    GetComponent <Rigidbody> ().useGravity = false;
+    GetComponent <Rigidbody> ().isKinematic = true;
+    transform.SetParent (null);
+    dropped = false;
+    
+    // Add the book to the collection of active books. 
+    GameObject activeBooks = GameObject.Find ("ActiveBooks");
+    if (activeBooks != null)
+    {
+      transform.SetParent (activeBooks.transform);
+    }
+    
+    // Bring it near the user and let them position it somewhere.
+    this.transform.position = controllerObject.transform.position + 1.0f * controllerObject.transform.forward;
+    moveBook (controller, controllerObject, null);
+  }
+  
+  // Checks if the book is dropped (not under active usage).
+  public bool isDropped ()
+  {
+    return dropped;
+  }
+  
+  // Switch between open and closed.
+  public void toggleCloseBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (initialize)
+    {
+      // enforce current state.
+      if (open)
+      {
+        setOpen ();
+      }
+      else
+      {
+        setClosed ();
+      }
+    }
+    else
+    {
+      // switch state.
+      if (open)
+      {
+        setClosed ();
+      }
+      else
+      {
+        setOpen ();
+      }
+    }
+  }
+
+  // A response when clicking on the book itself. Currently: turn page if open, otherwise pick up.
+  public void getBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      if (open)
+      {
+        nextPage (controller, controllerObject, button);
+      }
+      else
+      {
+        pickupBook (controller, controllerObject, button);
+      }
+    }
+  }
+  
+  // Turn to the next page.
+  public void nextPage (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      if (!bookManager.changePage (2))
+      {
+        setClosed ();
+      }
+      else
+      {
+        if (bookAnimator != null)
+        {
+          bookAnimator.SetBool ("TurnPage", true);
+        }
+        pageTurnSound.Play ();
+      }
+    }
+  }
+
+  // Turn to the previous page.
+  public void prevPage (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      if (!bookManager.changePage (-2))
+      {
+        setClosed ();
+      }
+      else
+      {
+        if (bookAnimator != null)
+        {
+          bookAnimator.SetBool ("TurnPageReverse", true);
+        }
+        pageTurnSound.Play ();
+      }
+    }
+  }
+
+  // Activate the book positioning process.
+  public void moveBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      triggerCleared = false;
+      bookDistance = (transform.position - controllerObject.transform.position).magnitude;
+      
+      // Disable collider while moving so that it doesn't interfere with other objects.
+      GetComponentInChildren <BoxCollider> ().enabled = false;
+      
+      controller.addHandler (bookMove, true);
+    }    
+  }
+  
+  // Move the book at a constant distance from the controller, and still facing the controller.
+  public void bookMove (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  {
+    //  print ("Movingbook " + bookDistance + " " + direction);
+    if (!debounceTrigger)
+    {
+      triggerCleared = true;
+    }
+    if (debounceTrigger && triggerCleared)
+    {
+      controller.removeHandler (bookMove);
+      GetComponentInChildren <BoxCollider> ().enabled = true;
+    }
+    
+    transform.position = position + bookDistance * direction;
+    transform.up = Vector3.up;
+    transform.forward = direction;
+  }
+
+  // Move the book closer.
+  public void retrieveBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      triggerCleared = false;
+      bookDirection = transform.position - controller.avatar.transform.position;
+      bookDistance = bookDirection.magnitude;
+      bookDirection = Vector3.Normalize (bookDirection);
+      controller.addHandler (bookRetrieve, true);
+    }
+  }
+  
+  // Book moves backwards or forwards along the line between controller and its original position. Aiming the controller up or down controls distance.
+  public void bookRetrieve (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  {
+//           print ("Retrievingbook " + bookDistance + " " + direction);
+    if (!debounceTrigger)
+    {
+      triggerCleared = true;
+    }
+    if (debounceTrigger && triggerCleared)
+    {
+      controller.removeHandler (bookRetrieve);
+    }
+    
+    transform.position = avatar.transform.position + bookDirection * bookDistance * Mathf.Pow (2.0f, 5.0f * direction.y);
+  }
+
+  // Rotate the book to get the best reading angle.
+  public void rotateBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      triggerCleared = false;
+      GetComponentInChildren <BoxCollider> ().enabled = false;
+      controller.addHandler (bookRotate, true);
+    }
+  }
+  
+  // Set the rotation of the book to match the controller's orientation.
+  public void bookRotate (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  {
+//           print ("Rotatingbook " + bookDistance + " " + direction);
+    if (!debounceTrigger)
+    {
+      triggerCleared = true;
+    }
+    if (debounceTrigger && triggerCleared)
+    {
+      controller.removeHandler (bookRotate);
+      GetComponentInChildren <BoxCollider> ().enabled = true;
+    }
+    
+    transform.transform.rotation = controllerObject.transform.rotation;
+  }
+  
+  // deprecated - to be removed.
+  public void positionBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      triggerCleared = false;
+      controller.addHandler (bookManipulate);
+    }
+  }
+
+  // deprecated. Use the touchpad to control book size and position. Turned out to be 
+  // awkward to control.
+  public void bookManipulate (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  {
+//           print ("BM");
+    if (!debounceTrigger)
+    {
+      triggerCleared = true;
+    }
+    if (debounceTrigger && triggerCleared)
+    {
+      controller.removeHandler (bookManipulate);
+    }
+    
+    //transform.forward = -direction;
+    float scale = Mathf.Pow (6.0f, touchposition.x);
+    float offset = 3.0f * touchposition.y;
+    gameObject.transform.Find ("BookShape").localScale = new Vector3 (scale, scale, scale);
+    gameObject.transform.Find ("BookShape").localPosition = new Vector3 (0, 0, offset);
+  }
+
+}

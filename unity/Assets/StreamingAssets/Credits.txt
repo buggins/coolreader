@@ -56,3 +56,6 @@ Teleport, Game Audio - UI SFX Teleport High, GameAudio, https://freesound.org/pe
 
 DoorHandle, Intermediate Sound Library Opening Door Handle, amholma, https://freesound.org/people/amholma/sounds/344355/, April 26th, 2016, This work is licensed under the Creative Commons 0 License.
 
+PeterRabbit, The Tale of Peter Rabbit, Beatrix Potter, https://www.gutenberg.org/ebooks/14838, Project Gutenberg License.
+
+Font Kaushan, KAUSHAN SCRIPT, Pablo Impallari, https://fontlibrary.org/en/font/kaushan-script, OFL (SIL Open Font License).

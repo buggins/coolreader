@@ -32,6 +32,10 @@ extern "C" {
   void moveByPage (void * handle, int d);
   
   void goToPage (void * handle, int page);
+
+  int getPageCount (void * handle);
+  
+  int prepareCover (void * handle, int width, int height);
   
   int renderCover (void * handle, int texture, int width, int height);
   
@@ -372,10 +376,11 @@ int renderPage (void * handle, int page, int texture)
     unsigned char * src = buf->GetScanLine(i);
     
     for ( int x=0; x<width; x++ ) {
-      *dst++ = *src++;
-      *dst++ = *src++;
-      *dst++ = *src++;
-      *dst++ = *src++;
+      *dst++ = *(src+2);
+      *dst++ = *(src+1);
+      *dst++ = *(src+0);
+      *dst++ = *(src+3);
+      src += 4;
     }
   }
   
@@ -402,29 +407,63 @@ void goToPage (void * handle, int page)
   a->goToPage (page);
 }
 
-int renderCover (void * handle, int texture, int width, int height)
+int getPageCount (void * handle)
+{
+  LVDocView * a = (LVDocView *) handle;
+  return a->getPageCount ();
+}
+
+LVColorDrawBuf * buf = NULL;
+
+// Cover rendering is quite slow, and is not thread safe if updating texture content at the same time.
+// Render in the background to a static buffer, which can be retrieved later with renderCover.
+int prepareCover (void * handle, int width, int height)
 {
   LVDocView * a = (LVDocView *) handle;
   
-  LVColorDrawBuf buf (width, height);
+  if (buf != NULL)
+  {
+    delete buf;
+    buf = NULL;
+  }
+  if (buf == NULL)
+  {
+    buf = new LVColorDrawBuf (width, height);
+  }
+  
   lvRect rc (0, 0, width, height);
   
-  buf.Clear (0xFFFFFF);  
-  a->drawCoverTo (&buf, rc);
+  (*buf).Clear (0xFFFFFF);  
+  a->drawCoverTo (buf, rc);
+  
+  return 0;
+}
+
+// Requires a prepareCover first.
+int renderCover (void * handle, int texture, int width, int height)
+{
+//  LVDocView * a = (LVDocView *) handle;
+  
+//   LVColorDrawBuf buf (width, height);
+//   lvRect rc (0, 0, width, height);
+  
+//   buf.Clear (0xFFFFFF);  
+//   a->drawCoverTo (&buf, rc);
   
   unsigned char * data = new unsigned char [width * height * 4];
   CRLog::info("drawing cover: %d %d   %d", width, height, texture);
   for (int i = 0; i < height; i++) 
   {
     unsigned char * dst = data + 4 * i * width;
-    unsigned char * src = buf.GetScanLine(i);
+    unsigned char * src = (*buf).GetScanLine(i);
     
     for (int x = 0; x < width; x++ ) 
     {
-      *dst++ = *src++;
-      *dst++ = *src++;
-      *dst++ = *src++;
-      *dst++ = *src++;
+      *dst++ = *(src+2);
+      *dst++ = *(src+1);
+      *dst++ = *(src+0);
+      *dst++ = *(src+3);
+      src += 4;
     }
   }
   
