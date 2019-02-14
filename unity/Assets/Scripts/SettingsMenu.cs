@@ -28,7 +28,55 @@ public class SettingsMenu : MenuInteraction {
   
   // Used for scrolling.
   private float totalOffset = 0.0f;
-  
+    
+  // Time delay between a button being touched, and it returning to rest.
+  private float buttonColourRecoveryTime = 0.2f;
+
+  // reset position when nothing touching the button.
+  private IEnumerator returnToNormalColour (MenuItem option, Color originalColour)
+  {
+    while (Time.time < option.lastTouch)
+    {
+      // sleep until time to reset button. The time may have been extended during
+      // this process.
+      yield return new WaitForSeconds (option.lastTouch - Time.time);
+    }
+    foreach (MeshRenderer r in option.button.GetComponentsInChildren <MeshRenderer> ())
+    {
+      r.material.color = originalColour;
+    }
+    option.outOfPosition = false;
+  }
+    
+  private void colourResponse (MenuItem menuOption)
+  {
+    // Remember where the button was.
+    Color buttonOrigin = new Color (0, 0, 0);
+    
+    foreach (MeshRenderer r in menuOption.button.GetComponentsInChildren <MeshRenderer> ())
+    {
+      buttonOrigin = r.material.color;
+    }
+    // Set/reset the time when focus is lost.
+    menuOption.lastTouch = Time.time + buttonColourRecoveryTime;
+    if (!menuOption.outOfPosition)
+    {
+      // If not focus, then move.
+      foreach (MeshRenderer r in menuOption.button.GetComponentsInChildren <MeshRenderer> ())
+      {
+        r.material.color = new Color (0, 1, 0);
+      }
+      menuOption.outOfPosition = true;
+      // Play sound.
+      if (touchSound != null)
+      {
+        touchSound.Play ();
+      }
+      // Start timer to recover if moves out of focus.
+      StartCoroutine (returnToNormalColour (menuOption, buttonOrigin));
+    }
+  }
+
   // Create a boolean variable to represent the value in a checkbox.
   private class ToggleVariable
   {
@@ -231,8 +279,8 @@ public class SettingsMenu : MenuInteraction {
   }
   
   override public void populateMenu () {
-    addMenuOption ("Up", new Vector3 (boundsMin.x, boundsMax.y + lineSkip, boundsMin.z), scrollUp);
-    addMenuOption ("Down", new Vector3 (boundsMin.x, boundsMin.y, boundsMin.z), scrollDown);
+    addMenuOption ("Up", new Vector3 (boundsMin.x, boundsMax.y + lineSkip, boundsMin.z), scrollUp, scrollUpColour);
+    addMenuOption ("Down", new Vector3 (boundsMin.x, boundsMin.y, boundsMin.z), scrollDown, scrollDownColour);
     
     int linelength = (int) ((boundsMax.x - boundsMin.x) / charSkip);
     
@@ -247,12 +295,12 @@ public class SettingsMenu : MenuInteraction {
     foreach (string source in sources)
     {
       TreeNode n = new TreeNode ();
-      GameObject g = addMenuOption (brk (source, linelength), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (n, new ToggleVariable (), brk (source, linelength), brk (source, linelength), expandNode, collapseNode, contractIcon, expandIcon));
+      GameObject g = addMenuOption (brk (source, linelength), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (n, new ToggleVariable (), brk (source, linelength), brk (source, linelength), expandNode, collapseNode, contractIcon, expandIcon), colourResponse, scrollHandler);
       n.setNode (source, g);
       fileRoot.add (n);
     }
     
-//    fileRoot.add (new TreeNode (null, addMenuOption ("Enable Rabbit Hole", new Vector3 (0.0f, 0.0f, 0.0f), toggleHandler (new ToggleVariable (), "Enable Rabbit Hole", "Enable Rabbit Hole", rabbitHoleOn, rabbitHoleOff)), 0));
+//    fileRoot.add (new TreeNode (null, addMenuOption ("Enable Rabbit Hole", new Vector3 (0.0f, 0.0f, 0.0f), toggleHandler (new ToggleVariable (), "Enable Rabbit Hole", "Enable Rabbit Hole", rabbitHoleOn, rabbitHoleOff)), 0), colourResponse, scrollHandler);
     
     reflow ();
   }
@@ -266,15 +314,45 @@ public class SettingsMenu : MenuInteraction {
     rabbitHole.SetActive (false);
   }
 
+  private void scroll (float skip)
+  {
+    if ((skip < 0.0f) || (minoffset + totalOffset < boundsMin.y))
+    {
+      skip = Mathf.Min (skip, boundsMin.y - (minoffset + totalOffset));
+      totalOffset += skip;
+    }
+    if (totalOffset < 0)
+    {
+      totalOffset = 0;
+    }
+  }
+
+  public void scrollHandler (MenuItem menuOption, Vector2 scrollDir)
+  {
+    scroll (100.0f * scrollDir.y);
+    reflow ();
+  }
+  
+  public void scrollUpColour (MenuItem menuOption)
+  {
+    scroll (lineSkip / 20.0f);
+    colourResponse (menuOption);
+    reflow ();
+  }
+  public void scrollDownColour (MenuItem menuOption)
+  {
+    scroll (-lineSkip / 20.0f);
+    colourResponse (menuOption);
+    reflow ();
+  }
+  
+  
+  
   public void scrollUp (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
   {
     if (!initialize)
     {
-      totalOffset -= lineSkip;
-      if (totalOffset < 0)
-      {
-        totalOffset = 0;
-      }
+      scroll (lineSkip);
     }
     reflow ();
   }
@@ -282,10 +360,7 @@ public class SettingsMenu : MenuInteraction {
   {
     if (!initialize)
     {
-      if (minoffset + totalOffset < boundsMin.y)
-      {
-        totalOffset += lineSkip;
-      }
+      scroll (-lineSkip);
     }
     reflow ();
   }
@@ -312,7 +387,7 @@ public class SettingsMenu : MenuInteraction {
           {
             initOption = haveOption;
           }
-          g = addMenuOption (initOption, new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (b), haveOption, notHaveOption, addBook, removeBook, checkOn, checkOff));
+          g = addMenuOption (initOption, new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (b), haveOption, notHaveOption, addBook, removeBook, checkOn, checkOff), colourResponse, scrollHandler);
           nn.setNode (s, g);
           n.add (nn);
         }
@@ -334,7 +409,7 @@ public class SettingsMenu : MenuInteraction {
         if (source[0] != '.')
         {
           TreeNode nn = new TreeNode ();
-          GameObject g = addMenuOption (brk (source, linelength - n.depth), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), brk (source, linelength - n.depth), brk (source, linelength - n.depth), expandNode, collapseNode, contractIcon, expandIcon));
+          GameObject g = addMenuOption (brk (source, linelength - n.depth), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), brk (source, linelength - n.depth), brk (source, linelength - n.depth), expandNode, collapseNode, contractIcon, expandIcon), colourResponse, scrollHandler);
           nn.setNode (s, g);
           n.add (nn);
         }

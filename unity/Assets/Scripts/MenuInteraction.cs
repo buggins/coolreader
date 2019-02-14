@@ -43,16 +43,24 @@ public class MenuInteraction : MonoBehaviour {
   // action but modifies the appearance of the button to set any initial visual.
   public delegate void buttonHandlerType (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false); 
             
+  public delegate void buttonPointerOverHandler (MenuItem menuOption); 
+            
+  public delegate void buttonScrollHandler (MenuItem menuOption, Vector2 scrollMovement); 
+            
   [Tooltip ("The sound source for any sound played when the pointer hovers over the menu button")]
   public AudioSource touchSound = null;
 
   // Internal structure containing menu items for this menu.
-  class MenuItem
+  public class MenuItem
   {
     // Button object.
     public GameObject button;
-    // Handler when button is pressed.
+    // Handler when button is pressed and released.
     public buttonHandlerType handler;
+    // Handler for any action when pointer hovers over the menu item.
+    public buttonPointerOverHandler pointerOverHandler;
+    // Handler for any scrolling action required.
+    public buttonScrollHandler scrollHandler;
     // Internal value to reset button if not touched within a set period.
     public float lastTouch;
     // Keep track of whether button is in focus or not.
@@ -61,6 +69,9 @@ public class MenuInteraction : MonoBehaviour {
   
   // The internal menu data structure.
   private List<MenuItem> menuItems;
+
+  // The item currently clicked on.
+  private MenuItem activeButton;
   
   protected virtual void Start () {
     initializeMenu ();
@@ -140,7 +151,9 @@ public class MenuInteraction : MonoBehaviour {
   // handler invoked when the button is pressed. The handler will be called with
   // initialize set to true, so must respond by setting appearance and not calling its
   // handler.
-  public GameObject addItemAsMenuOption (GameObject menuOption, buttonHandlerType handler)
+  // The pointer response function provides some form of feedback when the pointer hovers
+  // over the button.
+  public GameObject addItemAsMenuOption (GameObject menuOption, buttonHandlerType handler, buttonPointerOverHandler pointerResponse = null, buttonScrollHandler scrollResponse = null)
   {
     if (menu == null)
       { 
@@ -150,6 +163,16 @@ public class MenuInteraction : MonoBehaviour {
       MenuItem mi = new MenuItem ();
       mi.button = menuOption;
       mi.handler = handler;
+      if (pointerResponse != null)
+      {
+        mi.pointerOverHandler = pointerResponse;
+      }
+      else
+      {
+        // provide a default handler if none is provided.
+        mi.pointerOverHandler = moveResponse;
+      }
+      mi.scrollHandler = scrollResponse;
       menuItems.Add (mi);
       
       handler (null, null, mi.button, true);
@@ -159,7 +182,7 @@ public class MenuInteraction : MonoBehaviour {
   
   // Add a button to the menu, by instantiating the button template, and setting the text
   // field to the string specified. The position of the menu button is also provided.
-  public GameObject addMenuOption (string option, Vector3 position, buttonHandlerType handler)
+  public GameObject addMenuOption (string option, Vector3 position, buttonHandlerType handler, buttonPointerOverHandler pointerResponse = null, buttonScrollHandler scrollResponse = null)
   {
       if (menu == null)
       { 
@@ -174,7 +197,7 @@ public class MenuInteraction : MonoBehaviour {
       setLabel (menuOption, option);
       
       // Add the object to the menu.
-      return addItemAsMenuOption (menuOption, handler);
+      return addItemAsMenuOption (menuOption, handler, pointerResponse, scrollResponse);
   }
   
   public void removeMenuOption (GameObject m)
@@ -217,6 +240,29 @@ public class MenuInteraction : MonoBehaviour {
   {
   }
   
+  // A default response to a menu item being selected (pointer over). Move a small amount, and
+  // then return to original position when pointer is no longer present.
+  private void moveResponse (MenuItem menuOption)
+  {
+    // Remember where the button was.
+    Vector3 buttonOrigin = menuOption.button.transform.localPosition;
+    // Set/reset the time when focus is lost.
+    menuOption.lastTouch = Time.time + buttonRecoveryTime;
+    if (!menuOption.outOfPosition)
+    {
+      // If not focus, then move.
+      menuOption.button.transform.localPosition = menuOption.button.transform.localPosition + buttonFocusMovement;
+      menuOption.outOfPosition = true;
+      // Play sound.
+      if (touchSound != null)
+      {
+        touchSound.Play ();
+      }
+      // Start timer to recover if moves out of focus.
+      StartCoroutine (returnToHome (menuOption, buttonOrigin));
+    }
+  }
+  
   // Check for interactions with the menu, and call any handlers as required.
   virtual public void handleControllerInput (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
   {
@@ -243,35 +289,49 @@ public class MenuInteraction : MonoBehaviour {
           // If a button is touched, then provide feedback to the user.
           whichButton = menuOption;
           
-          // Remember where the button was.
-          Vector3 buttonOrigin = menuOption.button.transform.localPosition;
-          // Set/reset the time when focus is lost.
-          menuOption.lastTouch = Time.time + buttonRecoveryTime;
-          if (!menuOption.outOfPosition)
-          {
-            // If not focus, then move.
-            menuOption.button.transform.localPosition = menuOption.button.transform.localPosition + buttonFocusMovement;
-            menuOption.outOfPosition = true;
-            // Play sound.
-            if (touchSound != null)
-            {
-              touchSound.Play ();
-            }
-            // Start timer to recover if moves out of focus.
-            StartCoroutine (returnToHome (menuOption, buttonOrigin));
-          }
+          menuOption.pointerOverHandler (menuOption);
           break;
         }
       }
     }
       
-    // If the trigger is pressed, then activate the button by calling its handler.
-    if (debounceTrigger)
+    // If the trigger is pressed and released, then activate the button by calling its handler.
+    if (trigger)
     {
-      if (whichButton != null)
+      if ((activeButton == null) && (whichButton != null))
       {
-        whichButton.handler (controller, controllerObject, whichButton.button);
+        activeButton = whichButton;
+        controller.addHandler (handleControllerInput);
       }
+    }
+    else
+    {
+      // trigger not pressed.
+      if (activeButton != null)
+      {
+      Debug.Log ("PressRelease " + (activeButton == whichButton));
+        if (whichButton == activeButton)
+        {
+          // release while still over the same button.
+          activeButton.handler (controller, controllerObject, activeButton.button);
+        }
+        else
+        { // a button was pressed, but we're not on it when releasing.
+          // otherwise, release somewhere else. Maybe this is a scroll?
+          if (activeButton.scrollHandler != null)
+          {
+            Vector3 toButton = activeButton.button.transform.position - position;
+            Debug.Log (toButton + " " + direction);
+            // scroll is component of direction perpendicular vector to button.
+            Vector3 perp = toButton.magnitude * (toButton.normalized - Vector3.Project (direction.normalized, toButton.normalized));
+            Vector2 scroll = new Vector2 (-Vector3.Dot (perp, controllerObject.transform.right), -Vector3.Dot (perp, controllerObject.transform.up));
+            Debug.Log ("Scroll " + 100.0f * scroll);
+            activeButton.scrollHandler (activeButton, scroll);
+          }
+        }
+      }
+      activeButton = null;      
+      controller.removeHandler (handleControllerInput);
     }
               
   }
