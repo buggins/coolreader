@@ -11,7 +11,7 @@ public class BackMenuInteraction : MenuInteraction {
     addMenuOption ("Resume", new Vector3 (-0.15f, 0.0f, 0.0f), resume);
   }
    
-  public void quitApp (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void quitApp (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -20,7 +20,7 @@ public class BackMenuInteraction : MenuInteraction {
     }
   }
 
-  public void resume (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void resume (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {

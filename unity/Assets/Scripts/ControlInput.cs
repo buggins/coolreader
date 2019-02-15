@@ -42,6 +42,12 @@ public class ControlInput : MonoBehaviour {
   [Tooltip ("The user avatar, for any manipulation of the user that is required")]
   public GameObject avatar;
   
+  [Tooltip ("The standard beam material")]
+  public Material standardBeamMaterial;
+  
+  [Tooltip ("A beam material that highlights the target and can be used to indicate teleporting")]
+  public Material teleportBeamMaterial;
+  
   private bool lastTrigger = false;
   private bool lastBackButton = false;
   private GameObject lastHit = null;
@@ -125,9 +131,21 @@ public class ControlInput : MonoBehaviour {
   {
     if ((lastHit != null) && (lastHit.GetComponent <MenuInteraction> () != null))
     {
-      lastHit.GetComponent <MenuInteraction> ().handleUnfocus ();
+      lastHit.GetComponent <MenuInteraction> ().handleUnfocus (this);
     }
     lastHit = null;
+  }
+  
+  public void setTeleportBeam ()
+  {
+    leftBeam.GetComponent <MeshRenderer> ().material = teleportBeamMaterial;
+    rightBeam.GetComponent <MeshRenderer> ().material = teleportBeamMaterial;
+  }
+  
+  public void setStandardBeam ()
+  {
+    leftBeam.GetComponent <MeshRenderer> ().material = standardBeamMaterial;
+    rightBeam.GetComponent <MeshRenderer> ().material = standardBeamMaterial;
   }
   
   // Update is called once per frame
@@ -199,10 +217,13 @@ public class ControlInput : MonoBehaviour {
 //         debugText.text += "\n" + hitObject.name;	
 //           print ("hhhh" + hitObject.name);
         
-        if (hit.distance < beam.transform.localScale.z)
-        {
-          beam.SetActive (false);
-        }
+        Vector3 beamScale = beam.transform.localScale;
+        beamScale.z = hit.distance;
+        beam.transform.localScale = beamScale;
+//         if (hit.distance < beam.transform.localScale.z)
+//         {
+//           beam.SetActive (false);
+//         }
         
         target.transform.position = hit.point;
         target.SetActive (true);

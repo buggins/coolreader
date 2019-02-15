@@ -48,7 +48,7 @@ public class SettingsMenu : MenuInteraction {
     option.outOfPosition = false;
   }
     
-  private void colourResponse (MenuItem menuOption)
+  private void colourResponse (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
   {
     // Remember where the button was.
     Color buttonOrigin = new Color (0, 0, 0);
@@ -90,7 +90,7 @@ public class SettingsMenu : MenuInteraction {
 
   // Create a handler for toggle/checkbox interactions. This accepts two handlers, one to respond
   // when the toggle is set, the other when it is reset.
-  private void toggleButton (ToggleVariable toggleVariable, string onString, string offString, buttonHandlerType handlerOn, buttonHandlerType handlerOff, ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  private void toggleButton (ToggleVariable toggleVariable, string onString, string offString, buttonHandlerType handlerOn, buttonHandlerType handlerOff, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -106,7 +106,7 @@ public class SettingsMenu : MenuInteraction {
       }
       if ((handlerOn != null) && (!initialize))
       {
-        handlerOn (controller, controllerObject, button);
+        handlerOn (controller, controllerObject, button, avatar);
       }
     }
     else
@@ -119,7 +119,7 @@ public class SettingsMenu : MenuInteraction {
       }
       if ((handlerOff != null) && (!initialize))
       {
-        handlerOff (controller, controllerObject, button);
+        handlerOff (controller, controllerObject, button, avatar);
       }
     }
   }
@@ -128,14 +128,14 @@ public class SettingsMenu : MenuInteraction {
   // provided when the button is set up.
   buttonHandlerType toggleHandler (ToggleVariable toggleVariable, string onString, string offString, buttonHandlerType handlerOn, buttonHandlerType handlerOff)
   {
-    return (controller, controllerObject, button, initialize) => toggleButton (toggleVariable, onString, offString, handlerOn, handlerOff, controller, controllerObject, button, initialize);
+    return (controller, controllerObject, button, avatar, initialize) => toggleButton (toggleVariable, onString, offString, handlerOn, handlerOff, controller, controllerObject, button, avatar, initialize);
   }
   
-  private delegate void fileButtonHandlerType (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button); 
+  private delegate void fileButtonHandlerType (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar); 
   
   // Provides standard menu functions, but call a more advanced handler since the button knows more
   // information about itself.
-  private void fileToggleButton (TreeNode n, ToggleVariable toggleVariable, string onString, string offString, fileButtonHandlerType handlerOn, fileButtonHandlerType handlerOff, Texture onIcon, Texture offIcon, ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  private void fileToggleButton (TreeNode n, ToggleVariable toggleVariable, string onString, string offString, fileButtonHandlerType handlerOn, fileButtonHandlerType handlerOff, Texture onIcon, Texture offIcon, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -151,7 +151,7 @@ public class SettingsMenu : MenuInteraction {
       }
       if ((handlerOn != null) && (!initialize))
       {
-        handlerOn (n, controller, controllerObject, button);
+        handlerOn (n, controller, controllerObject, button, avatar);
       }
     }
     else
@@ -164,7 +164,7 @@ public class SettingsMenu : MenuInteraction {
       }
       if ((handlerOff != null) &&  (!initialize))
       {
-        handlerOff (n, controller, controllerObject, button);
+        handlerOff (n, controller, controllerObject, button, avatar);
       }
     }
   }
@@ -172,7 +172,7 @@ public class SettingsMenu : MenuInteraction {
   // A variation on the toggle handler that allows some extra information to be passed.
   buttonHandlerType fileToggleHandler (TreeNode n, ToggleVariable toggleVariable, string onString, string offString, fileButtonHandlerType handlerOn, fileButtonHandlerType handlerOff, Texture onIcon, Texture offIcon)
   {
-    return (controller, controllerObject, button, initialize) => fileToggleButton (n, toggleVariable, onString, offString, handlerOn, handlerOff, onIcon, offIcon, controller, controllerObject, button, initialize);
+    return (controller, controllerObject, button, avatar, initialize) => fileToggleButton (n, toggleVariable, onString, offString, handlerOn, handlerOff, onIcon, offIcon, controller, controllerObject, button, avatar, initialize);
   }
 
   // Rewrite the string with newlines to ensure no line is longer than l.
@@ -333,22 +333,22 @@ public class SettingsMenu : MenuInteraction {
     reflow ();
   }
   
-  public void scrollUpColour (MenuItem menuOption)
+  public void scrollUpColour (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
   {
     scroll (lineSkip / 20.0f);
-    colourResponse (menuOption);
+    colourResponse (menuOption, controller, controllerObject, avatar);
     reflow ();
   }
-  public void scrollDownColour (MenuItem menuOption)
+  public void scrollDownColour (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
   {
     scroll (-lineSkip / 20.0f);
-    colourResponse (menuOption);
+    colourResponse (menuOption, controller, controllerObject, avatar);
     reflow ();
   }
   
   
   
-  public void scrollUp (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void scrollUp (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -356,7 +356,7 @@ public class SettingsMenu : MenuInteraction {
     }
     reflow ();
   }
-  public void scrollDown (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void scrollDown (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -365,7 +365,7 @@ public class SettingsMenu : MenuInteraction {
     reflow ();
   }
   
-  private void expandNode (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button)
+  private void expandNode (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
   {
     if (n.filepath != null)
     {
@@ -418,7 +418,7 @@ public class SettingsMenu : MenuInteraction {
       reflow ();
     }
   }
-  private void collapseNode (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button)
+  private void collapseNode (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
   {
     if (n.filepath != null)
     {
@@ -428,12 +428,12 @@ public class SettingsMenu : MenuInteraction {
     }
   }
   
-  private void addBook (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button)
+  private void addBook (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
   {
     Debug.Log ("Add " + n.filepath);
     StartCoroutine (bookFiles.registerBook (n.filepath));
   }
-  private void removeBook (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button)
+  private void removeBook (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
   {
       Debug.Log ("Remove"  + n.filepath);
   }

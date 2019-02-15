@@ -41,9 +41,9 @@ public class MenuInteraction : MonoBehaviour {
   // Button handlers are provided: the controller that selected the button, and the
   // button that was selected. When initialize is set to true, the handler invokes no
   // action but modifies the appearance of the button to set any initial visual.
-  public delegate void buttonHandlerType (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false); 
+  public delegate void buttonHandlerType (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false); 
             
-  public delegate void buttonPointerOverHandler (MenuItem menuOption); 
+  public delegate void buttonPointerOverHandler (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar); 
             
   public delegate void buttonScrollHandler (MenuItem menuOption, Vector2 scrollMovement); 
             
@@ -175,7 +175,7 @@ public class MenuInteraction : MonoBehaviour {
       mi.scrollHandler = scrollResponse;
       menuItems.Add (mi);
       
-      handler (null, null, mi.button, true);
+      handler (null, null, mi.button, null, true);
     
       return menuOption;
   }
@@ -236,13 +236,13 @@ public class MenuInteraction : MonoBehaviour {
   }
   
   // Take care of any actions associated with losing pointer after having it.
-  virtual public void handleUnfocus ()
+  virtual public void handleUnfocus (ControlInput controller)
   {
   }
   
   // A default response to a menu item being selected (pointer over). Move a small amount, and
   // then return to original position when pointer is no longer present.
-  private void moveResponse (MenuItem menuOption)
+  private void moveResponse (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
   {
     // Remember where the button was.
     Vector3 buttonOrigin = menuOption.button.transform.localPosition;
@@ -289,7 +289,7 @@ public class MenuInteraction : MonoBehaviour {
           // If a button is touched, then provide feedback to the user.
           whichButton = menuOption;
           
-          menuOption.pointerOverHandler (menuOption);
+          menuOption.pointerOverHandler (menuOption, controller, controllerObject, avatar);
           break;
         }
       }
@@ -309,11 +309,11 @@ public class MenuInteraction : MonoBehaviour {
       // trigger not pressed.
       if (activeButton != null)
       {
-      Debug.Log ("PressRelease " + (activeButton == whichButton));
+//       Debug.Log ("PressRelease " + (activeButton == whichButton));
         if (whichButton == activeButton)
         {
           // release while still over the same button.
-          activeButton.handler (controller, controllerObject, activeButton.button);
+          activeButton.handler (controller, controllerObject, activeButton.button, avatar);
         }
         else
         { // a button was pressed, but we're not on it when releasing.
@@ -325,7 +325,7 @@ public class MenuInteraction : MonoBehaviour {
             // scroll is component of direction perpendicular vector to button.
             Vector3 perp = toButton.magnitude * (toButton.normalized - Vector3.Project (direction.normalized, toButton.normalized));
             Vector2 scroll = new Vector2 (-Vector3.Dot (perp, controllerObject.transform.right), -Vector3.Dot (perp, controllerObject.transform.up));
-            Debug.Log ("Scroll " + 100.0f * scroll);
+//             Debug.Log ("Scroll " + 100.0f * scroll);
             activeButton.scrollHandler (activeButton, scroll);
           }
         }

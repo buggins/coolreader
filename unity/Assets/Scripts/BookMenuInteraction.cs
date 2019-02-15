@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿  using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -109,7 +109,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Drop the book.
-  public void dropBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void dropBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -136,7 +136,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Pick up a book, also used when a book is first created.
-  public void pickupBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void pickupBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     // Open the book.
     setOpen ();
@@ -159,7 +159,7 @@ public class BookMenuInteraction : MenuInteraction {
     
     // Bring it near the user and let them position it somewhere.
     this.transform.position = controllerObject.transform.position + 1.0f * controllerObject.transform.forward;
-    moveBook (controller, controllerObject, null);
+    moveBook (controller, controllerObject, null, avatar);
   }
   
   // Checks if the book is dropped (not under active usage).
@@ -169,7 +169,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
   
   // Switch between open and closed.
-  public void toggleCloseBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void toggleCloseBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (initialize)
     {
@@ -198,23 +198,23 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // A response when clicking on the book itself. Currently: turn page if open, otherwise pick up.
-  public void getBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void getBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
       if (open)
       {
-        nextPage (controller, controllerObject, button);
+        nextPage (controller, controllerObject, button, avatar);
       }
       else
       {
-        pickupBook (controller, controllerObject, button);
+        pickupBook (controller, controllerObject, button, avatar);
       }
     }
   }
   
   // Turn to the next page.
-  public void nextPage (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void nextPage (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -234,7 +234,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Turn to the previous page.
-  public void prevPage (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void prevPage (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -254,7 +254,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Activate the book positioning process.
-  public void moveBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void moveBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -288,7 +288,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Move the book closer.
-  public void retrieveBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void retrieveBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -317,7 +317,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Rotate the book to get the best reading angle.
-  public void rotateBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void rotateBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -345,7 +345,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
   
   // deprecated - to be removed.
-  public void positionBook (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void positionBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
