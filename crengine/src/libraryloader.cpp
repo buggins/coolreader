@@ -39,6 +39,8 @@ extern "C" {
   
   int renderCover (void * handle, int texture, int width, int height);
   
+  int setFontSize (void * handle, int fontsize);
+  
 }
 
 // Taken from the cool reader code, find and add fonts for each system.
@@ -474,5 +476,14 @@ int renderCover (void * handle, int texture, int width, int height)
   glDisable (GL_TEXTURE_2D);
   delete [] data;
   
+  return 0;
+}
+
+int setFontSize (void * handle, int fontsize)
+{
+  LVDocView * a = (LVDocView *) handle;
+//  CRLog::info("setting font: %p %d", a, fontsize);
+  a->setFontSize (fontsize);
+//  CRLog::info("done setting font: %p %d", a, fontsize);
   return 0;
 }

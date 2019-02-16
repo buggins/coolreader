@@ -30,6 +30,15 @@ public class BookMenuInteraction : MenuInteraction {
   // State indicating when the book is open or closed.
   private bool open = false;
   
+  // Keep track of whether the settings menu is visible.
+  private bool settingsOpen = false;
+  
+  // The actual settings menu object.
+  private GameObject settingsMenu = null;
+  
+  [Tooltip ("The template for the settings menu")]
+  public GameObject settingsMenuTemplate;
+  
   // Audio sound effects
   public AudioSource pageTurnSound;
   public AudioSource bookCloseSound;
@@ -106,8 +115,43 @@ public class BookMenuInteraction : MenuInteraction {
     addMenuOption ("Rotate\nBook", new Vector3 (0.1f, 0.65f, 0.05f), rotateBook);
     opencloseButton = addMenuOption ("Close\nBook", new Vector3 (0.3f, 0.65f, 0.05f), toggleCloseBook);
     addMenuOption ("Drop\nBook", new Vector3 (0.0f, -0.6f, 0.05f), dropBook);
+    addMenuOption ("Settings", new Vector3 (-0.3f, -0.6f, 0.05f), toggleSettings);
   }
 
+  private void updateSettings ()
+  {
+      if (settingsOpen)
+      {
+        if (settingsMenu == null)
+        {
+          settingsMenu = Instantiate (settingsMenuTemplate);
+          settingsMenu.transform.SetParent (this.gameObject.transform);
+          settingsMenu.transform.localPosition = new Vector3 (-1.6f, 0.0f, 0.0f);
+          settingsMenu.transform.localRotation = Quaternion.AngleAxis (-45.0f, Vector3.up);
+          settingsMenu.transform.localScale = new Vector3 (0.6f, 0.6f, 0.6f);
+        }
+        settingsMenu.SetActive (true);
+      }
+      else
+      {
+        if (settingsMenu != null)
+        {
+          settingsMenu.SetActive (false);
+        }
+      }
+  }
+  
+  // Toggle the settings menu. Create it, if it does not already exist and needs to open.
+  public void toggleSettings (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      settingsOpen = !settingsOpen;
+
+      updateSettings ();
+    }
+  }
+  
   // Drop the book.
   public void dropBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
@@ -118,6 +162,10 @@ public class BookMenuInteraction : MenuInteraction {
 
       // Switch off menu - a dropped book is no longer in use.
       hideMenu ();
+      
+      // Switch off settings.
+      settingsOpen = false;
+      updateSettings ();
       
       // Let physics have it.
       GetComponent <Rigidbody> ().useGravity = true;
@@ -218,17 +266,20 @@ public class BookMenuInteraction : MenuInteraction {
   {
     if (!initialize)
     {
-      if (!bookManager.changePage (2))
+      if (bookManager.hasLoaded ())
       {
-        setClosed ();
-      }
-      else
-      {
-        if (bookAnimator != null)
+        if (!bookManager.changePage (2))
         {
-          bookAnimator.SetBool ("TurnPage", true);
+          setClosed ();
         }
-        pageTurnSound.Play ();
+        else
+        {
+          if (bookAnimator != null)
+          {
+            bookAnimator.SetBool ("TurnPage", true);
+          }
+          pageTurnSound.Play ();
+        }
       }
     }
   }
@@ -238,17 +289,20 @@ public class BookMenuInteraction : MenuInteraction {
   {
     if (!initialize)
     {
-      if (!bookManager.changePage (-2))
+      if (bookManager.hasLoaded ())
       {
-        setClosed ();
-      }
-      else
-      {
-        if (bookAnimator != null)
+        if (!bookManager.changePage (-2))
         {
-          bookAnimator.SetBool ("TurnPageReverse", true);
+          setClosed ();
         }
-        pageTurnSound.Play ();
+        else
+        {
+          if (bookAnimator != null)
+          {
+            bookAnimator.SetBool ("TurnPageReverse", true);
+          }
+          pageTurnSound.Play ();
+        }
       }
     }
   }

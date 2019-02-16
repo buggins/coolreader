@@ -25,13 +25,26 @@ public class SettingsMenu : MenuInteraction {
   public Texture contractIcon;
   [Tooltip ("The image used to indicate a file is not relevant.")]
   public Texture badFileIcon;
+  [Tooltip ("The image used to indicate scroll up.")]
+  public Texture scrollUpIcon;
+  [Tooltip ("The image used to indicate scroll down.")]
+  public Texture scrollDownIcon;
+  [Tooltip ("The image used to indicate increase.")]
+  public Texture incrementIcon;
+  [Tooltip ("The image used to indicate decrease.")]
+  public Texture decrementIcon;
   
   // Used for scrolling.
   private float totalOffset = 0.0f;
     
   // Time delay between a button being touched, and it returning to rest.
   private float buttonColourRecoveryTime = 0.2f;
-
+ 
+  protected override void Start ()
+  {
+    base.Start ();
+  }
+  
   // reset position when nothing touching the button.
   private IEnumerator returnToNormalColour (MenuItem option, Color originalColour)
   {
@@ -278,6 +291,18 @@ public class SettingsMenu : MenuInteraction {
     minoffset = fileRoot.reflow (boundsMin.x, boundsMax.y, lineSkip, charSkip, totalOffset, boundsMin.y, boundsMax.y);
   }
   
+  public void addToScroll (GameObject menuElement)
+  {
+    if (menuElement.transform.parent == null)
+    {
+      menuElement.transform.SetParent (this.transform, false);
+    }
+    TreeNode n = new TreeNode ();
+    n.setNode (null, menuElement);
+    fileRoot.add (n);
+    reflow ();    
+  }
+  
   override public void populateMenu () {
     addMenuOption ("Up", new Vector3 (boundsMin.x, boundsMax.y + lineSkip, boundsMin.z), scrollUp, scrollUpColour);
     addMenuOption ("Down", new Vector3 (boundsMin.x, boundsMin.y, boundsMin.z), scrollDown, scrollDownColour);
@@ -354,6 +379,14 @@ public class SettingsMenu : MenuInteraction {
     {
       scroll (lineSkip);
     }
+    else
+    {
+      GameObject icon = button.transform.Find ("CheckOptionSymbol").gameObject;
+      if (scrollUpIcon != null)
+      {
+        icon.GetComponent <MeshRenderer> ().material.mainTexture = scrollUpIcon;
+      }
+    }
     reflow ();
   }
   public void scrollDown (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
@@ -361,6 +394,14 @@ public class SettingsMenu : MenuInteraction {
     if (!initialize)
     {
       scroll (-lineSkip);
+    }
+    else
+    {
+      GameObject icon = button.transform.Find ("CheckOptionSymbol").gameObject;
+      if (scrollDownIcon != null)
+      {
+        icon.GetComponent <MeshRenderer> ().material.mainTexture = scrollDownIcon;
+      }
     }
     reflow ();
   }

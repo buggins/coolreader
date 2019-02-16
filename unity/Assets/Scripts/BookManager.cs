@@ -21,6 +21,12 @@ public class BookManager : MonoBehaviour {
   private int currentPage;
   // Book state: number of pages in the book.
   private int maxPages;
+
+  // True when the book has finished loading from file.
+  private bool bookLoaded = false;
+  
+  // The current font size
+  private int fontSize = 32;
   
   // Materials used for the book.
   // Left page, currently in view.
@@ -61,7 +67,7 @@ public class BookManager : MonoBehaviour {
     cri = new CoolReaderInterface ();
     
     // Create a book with a default font size.
-    bookHandle = cri.CRDocViewCreate (32);
+    bookHandle = cri.CRDocViewCreate (fontSize);
   }
   
   // Set up the materials and textures required.
@@ -96,8 +102,8 @@ public class BookManager : MonoBehaviour {
     }
     
     // Create the textures used to hold book content.
-    int rwidth = 1024;
-    int rheight = 1536;
+    int rwidth = 2048;
+    int rheight = 2048;
 
     // Create a texture for rendering to.    
     directRenderTexture = new Texture2D (rwidth, rheight, TextureFormat.ARGB32,false);
@@ -150,6 +156,11 @@ public class BookManager : MonoBehaviour {
     loading = false;
   }
   
+  public bool hasLoaded ()
+  {
+    return bookLoaded;
+  }
+  
   // Create a book from the filename to the ebook.
   public IEnumerator loadBook (string bookFileName)
   {
@@ -181,6 +192,8 @@ public class BookManager : MonoBehaviour {
     changePage (currentPage);
     pageTurnComplete ();
     maxPages = cri.CRGetPageCount (bookHandle);
+    
+    bookLoaded = true;
   }
   
   // Cover rendering must run in main thread.
@@ -258,5 +271,32 @@ public class BookManager : MonoBehaviour {
     retrievePageToTexture (currentPage + 1, rightPageTurn);
     
     return result;
+  }
+  
+  public int getFontSize ()
+  {
+    return fontSize;
+  }
+  
+  public void changeFontSize (int d)
+  {
+    fontSize += d;
+    if (fontSize < 1)
+    {
+      fontSize = 1;
+    }
+
+    int oldMaxPages = cri.CRGetPageCount (bookHandle);
+    cri.CRSetFontSize (bookHandle, fontSize);
+    // render a page to force page count update.
+    retrievePageToTexture (currentPage, leftPageTurn);
+    int newMaxPages = cri.CRGetPageCount (bookHandle);
+//     Debug.Log ("setting fonh" + fontSize + " " + oldMaxPages + " " + newMaxPages);
+    
+    // Try to stay close to the same page.
+    currentPage = newMaxPages * currentPage / oldMaxPages;
+    // Redraw the current page.
+    changePage (0);    
+    pageTurnComplete ();
   }
 }

@@ -93,9 +93,7 @@ public class Caterpillar : MonoBehaviour {
           else if (go.GetComponent <BookMenuInteraction> ().isDropped ())
           {
             bodyDirection = Vector3.Normalize (go.transform.position - tailPosition);
-            print ("Settin dir " + bodyDirection);
             bodyDirection = new Vector3 (bodyDirection.x, 0, bodyDirection.z);
-            print ("Settin dir2 " + bodyDirection);
             wander = false;
             break;
           }

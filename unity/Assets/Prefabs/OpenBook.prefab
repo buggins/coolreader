@@ -6706,11 +6706,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd60ce64e1b414714bffd7681dbdff92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  menuOptions: []
   menuBaseTemplate: {fileID: 0}
   menuButtonTemplate: {fileID: 1566625709159054, guid: 283b8dec161884926b54886a6cd17874,
     type: 2}
   touchSound: {fileID: 82222280342561686}
+  settingsMenuTemplate: {fileID: 1545871507721630, guid: 063410cd90d2e462da26e93cf58891e1,
+    type: 2}
   pageTurnSound: {fileID: 82955657100426028}
   bookCloseSound: {fileID: 82977347979327840}
   bookDropSound: {fileID: 82999167067344530}

@@ -3269,7 +3269,8 @@ void LVDocView::setStatusFontSize(int newSize) {
 void LVDocView::setFontSize(int newSize) {
 	LVLock lock(getMutex());
 	int oldSize = m_font_size;
-	m_font_size = findBestFit(m_font_sizes, newSize);
+//	//m_font_size = findBestFit(m_font_sizes, newSize);
+	m_font_size = newSize;
 	if (oldSize != newSize) {
 		propsGetCurrent()->setInt(PROP_FONT_SIZE, m_font_size);
         CRLog::debug("New font size: %d requested: %d", m_font_size, newSize);
