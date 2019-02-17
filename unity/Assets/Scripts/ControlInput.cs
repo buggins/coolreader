@@ -61,7 +61,7 @@ public class ControlInput : MonoBehaviour {
   void Start () {
     exclusiveRegisteredHandlers = new List<HandleControllerInputType> ();
     registeredHandlers = new List<HandleControllerInputType> ();
-    if (!OVRNodeStateProperties.IsHmdPresent())
+    if (SelectController.getActivePlatform () == SelectController.DeviceOptions.NoDevice)
     {
       leftControllerObject.transform.localPosition = new Vector3 (-0.2f, 0.0f, 0.3f);	
       rightControllerObject.transform.localPosition = new Vector3 (0.2f, 0.0f, 0.3f);	
@@ -100,8 +100,9 @@ public class ControlInput : MonoBehaviour {
       registeredHandlers.Remove (h);
     }
   }
-  
-  private void GetControllerStatus (GameObject controllerObject, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
+
+  // Retrieve controller parameters from an Oculus Go controller.
+  private void GetOculusControllerStatus (GameObject controllerObject, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
   {
     trigger = OVRInput.Get (OVRInput.Button.PrimaryIndexTrigger);
     backButton = OVRInput.Get (OVRInput.Button.Back);
@@ -110,6 +111,31 @@ public class ControlInput : MonoBehaviour {
     touchposition = OVRInput.Get (OVRInput.Axis2D.PrimaryTouchpad);
   }
   
+  // Retrieve controller parameters from a Daydream controller.
+  private void GetDaydreamControllerStatus (GameObject controllerObject, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
+  {
+    trigger = false;
+    direction = new Vector3 (0, 0, 0);
+    touchpad = false;
+    touchposition = new Vector2 (0, 0);
+    backButton = false;
+    
+    GvrTrackedController track = controllerObject.GetComponent <GvrTrackedController> ();
+    if (track != null)
+    {
+      GvrControllerInputDevice inputDevice = track.ControllerInputDevice;
+      if (inputDevice != null)
+      {
+        trigger = inputDevice.GetButton (GvrControllerButton.TouchPadButton);
+        backButton = inputDevice.GetButton (GvrControllerButton.App);
+        direction = controllerObject.transform.forward;
+        touchpad = inputDevice.GetButton(GvrControllerButton.TouchPadTouch);
+        touchposition = inputDevice.TouchPos;
+      }
+    }
+  }
+  
+  // Retrieve controller parameters from a controller simulated with a mouse.
   private void GetMouseStatus (GameObject controllerObject, out bool trigger, out Vector3 direction, out bool backButton)
   {
     trigger = Input.GetAxis ("Fire1") > 0.0;
@@ -136,19 +162,20 @@ public class ControlInput : MonoBehaviour {
     lastHit = null;
   }
   
+  // Show the pointer beam using the teleport material.
   public void setTeleportBeam ()
   {
     leftBeam.GetComponent <MeshRenderer> ().material = teleportBeamMaterial;
     rightBeam.GetComponent <MeshRenderer> ().material = teleportBeamMaterial;
   }
   
+  // Show the pointer beam using the standard material.
   public void setStandardBeam ()
   {
     leftBeam.GetComponent <MeshRenderer> ().material = standardBeamMaterial;
     rightBeam.GetComponent <MeshRenderer> ().material = standardBeamMaterial;
   }
   
-  // Update is called once per frame
   void Update () {
     bool trigger;
     bool backButton;
@@ -156,34 +183,44 @@ public class ControlInput : MonoBehaviour {
     Vector3 position;
     bool touchpad = false;
     Vector2 touchposition = new Vector2 (0, 0);
-    
+
+    // Only use one controller - whichever is associated with the specified dominant hand.
     GameObject controllerObject = null;
     GameObject beam = null;
     GameObject target = null;
-    if (OVRInput.IsControllerConnected (OVRInput.Controller.RTrackedRemote))
-    {
-      controllerObject = rightControllerObject;
-      beam = rightBeam;
-      target = rightTarget;
-    }
-    else
+    if (SelectController.isLeftHanded ())
     {
       controllerObject = leftControllerObject;
       beam = leftBeam;
       target = leftTarget;
-    }
-    
-    position = controllerObject.transform.position;
-    if (!OVRNodeStateProperties.IsHmdPresent())
-    {
-      GetMouseStatus (controllerObject, out trigger, out direction, out backButton);
-      controllerObject.transform.forward = direction;
+      rightControllerObject.SetActive (false);
     }
     else
     {
-      GetControllerStatus (controllerObject, out trigger, out direction, out touchpad, out touchposition, out backButton);
+      controllerObject = rightControllerObject;
+      beam = rightBeam;
+      target = rightTarget;
+      leftControllerObject.SetActive (false);
     }
     
+    // Get controller properties, depending on the device connected.
+    position = controllerObject.transform.position;
+    switch (SelectController.getActivePlatform ())
+    {
+      case SelectController.DeviceOptions.OculusGo:
+        GetOculusControllerStatus (controllerObject, out trigger, out direction, out touchpad, out touchposition, out backButton);
+        break;
+      case SelectController.DeviceOptions.Daydream:
+        GetDaydreamControllerStatus (controllerObject, out trigger, out direction, out touchpad, out touchposition, out backButton);
+        break;
+      default:
+        GetMouseStatus (controllerObject, out trigger, out direction, out backButton);
+        controllerObject.transform.forward = direction;
+        break;
+    }
+    
+    // Manage the back button. In future this may need to be coordinated with active menus,
+    // once they start nesting.
     bool debounceBackButton = backButton;
     if (debounceBackButton && (backButton == lastBackButton))
     {
@@ -194,16 +231,17 @@ public class ControlInput : MonoBehaviour {
     {
       applicationMenu.SetActive (!applicationMenu.activeSelf);
     }
-//     debugText.text = trigger + "\n" + direction + "\n" + position + "\n" + touchpad + "\n" + touchposition;	
-//     debugText.text += OVRNodeStateProperties.IsHmdPresent();
     
+    // Extract edge transitions of the trigger.
     bool debounceTrigger = trigger;
     if (debounceTrigger && (trigger == lastTrigger))
     {
       debounceTrigger = false;
     }
     lastTrigger = trigger;
-    
+
+    // Do raycasting, and passing on events to any menu related objects 
+    // that are hit.    
     if (exclusiveRegisteredHandlers.Count == 0)
     {
       // Menu operations only allowed if no exclusive control handlers are available.
@@ -245,6 +283,7 @@ public class ControlInput : MonoBehaviour {
       }
     }
     
+    // Pass on raw control information to specific handlers.
     if (exclusiveRegisteredHandlers.Count > 0)
     {
       exclusiveRegisteredHandlers[0] (this, controllerObject, trigger, debounceTrigger, direction, position, avatar, touchpad, touchposition);

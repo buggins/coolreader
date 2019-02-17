@@ -311,10 +311,10 @@ public class SettingsMenu : MenuInteraction {
     
     List <string> sources = bookFiles.getSources ();
 
-    sources.Clear ();
-    sources.Add ("/storage/self/primary/");
-    sources.Add ("/storage/");
-    sources.Add ("/");
+//     sources.Clear ();
+//     sources.Add ("/storage/self/primary/");
+//     sources.Add ("/storage/");
+//     sources.Add ("/");
     
     
     foreach (string source in sources)

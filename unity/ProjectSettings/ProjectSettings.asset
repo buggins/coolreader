@@ -154,7 +154,7 @@ PlayerSettings:
     Android: vr.cool.reader
   buildNumber: {}
   AndroidBundleVersionCode: 11
-  AndroidMinSdkVersion: 21
+  AndroidMinSdkVersion: 24
   AndroidTargetSdkVersion: 24
   AndroidPreferredInstallLocation: 0
   aotOptions: 
@@ -389,6 +389,7 @@ PlayerSettings:
     m_Enabled: 1
     m_Devices:
     - Oculus
+    - daydream
   m_BuildTargetEnableVuforiaSettings: []
   openGLRequireES31: 0
   openGLRequireES31AEP: 0

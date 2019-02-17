@@ -58,3 +58,9 @@ sysinfo.txt
 
 # Crashlytics generated file
 Assets/StreamingAssets/crashlytics-build.properties
+
+# Third party files that need to be retrieved from original sources
+unity/Assets/GoogleVR/*
+unity/Assets/GoogleVR.meta
+unity/Assets/Oculus/*
+unity/Assets/Oculus.meta
