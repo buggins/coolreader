@@ -39,15 +39,17 @@ public class BookSettingsMenu : SettingsMenu {
     addItemAsMenuOption (g.gameObject.transform.Find ("RightSymbol").gameObject, increaseFont);
     
     }
-    
+   
+   // Increase the font. Also has a side effect exploited during initialization of displaying the current
+   // font size.
    public void increaseFont (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
+    BookManager bm = GetComponentInParent <BookManager> ();
     if (!initialize)
     {
-      BookManager bm = GetComponentInParent <BookManager> ();
       bm.changeFontSize (10);
-      button.transform.parent.Find ("ContentText").GetComponent <TextMesh> ().text = "" + bm.getFontSize ();
     }
+    button.transform.parent.Find ("ContentText").GetComponent <TextMesh> ().text = "" + bm.getFontSize ();    
   }
 
   public void decreaseFont (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)

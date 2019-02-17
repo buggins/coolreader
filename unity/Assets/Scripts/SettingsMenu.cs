@@ -209,7 +209,7 @@ public class SettingsMenu : MenuInteraction {
   
   private class TreeNode
   {
-    private GameObject node;
+    public GameObject node { get; private set; }
     public string filepath { get; private set; }
     public int depth { get; set; }
     private List<TreeNode> children;
@@ -341,14 +341,14 @@ public class SettingsMenu : MenuInteraction {
 
   private void scroll (float skip)
   {
-    if ((skip < 0.0f) || (minoffset + totalOffset < boundsMin.y))
+    if ((skip < 0.0f) || (minoffset + totalOffset < boundsMin.y + lineSkip))
     {
-      skip = Mathf.Min (skip, boundsMin.y - (minoffset + totalOffset));
+      skip = Mathf.Min (skip, boundsMin.y + lineSkip - (minoffset + totalOffset));
       totalOffset += skip;
     }
-    if (totalOffset < 0)
+    if (totalOffset < 0 - lineSkip)
     {
-      totalOffset = 0;
+      totalOffset = 0 - lineSkip;
     }
   }
 
@@ -370,8 +370,6 @@ public class SettingsMenu : MenuInteraction {
     colourResponse (menuOption, controller, controllerObject, avatar);
     reflow ();
   }
-  
-  
   
   public void scrollUp (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
@@ -444,15 +442,26 @@ public class SettingsMenu : MenuInteraction {
       }
 
       List <string> dirs = bookFiles.getDirectoriesIn (n.filepath);
-      foreach (string s in dirs)
+      if (dirs != null)
       {
-        string source = Path.GetFileName (s);
-        if (source[0] != '.')
+        foreach (string s in dirs)
         {
-          TreeNode nn = new TreeNode ();
-          GameObject g = addMenuOption (brk (source, linelength - n.depth), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), brk (source, linelength - n.depth), brk (source, linelength - n.depth), expandNode, collapseNode, contractIcon, expandIcon), colourResponse, scrollHandler);
-          nn.setNode (s, g);
-          n.add (nn);
+          string source = Path.GetFileName (s);
+          if (source[0] != '.')
+          {
+            TreeNode nn = new TreeNode ();
+            GameObject g = addMenuOption (brk (source, linelength - n.depth), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), brk (source, linelength - n.depth), brk (source, linelength - n.depth), expandNode, collapseNode, contractIcon, expandIcon), colourResponse, scrollHandler);
+            nn.setNode (s, g);
+            n.add (nn);
+          }
+        }
+      }
+      else
+      {
+        foreach (MeshRenderer r in n.node.GetComponentsInChildren <MeshRenderer> ())
+        {
+          // gets overwritten by the time out of the colour response co-routine.
+          r.material.color = new Color (1, 0, 0);
         }
       }
 

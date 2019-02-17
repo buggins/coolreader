@@ -157,7 +157,7 @@ public class BookShelfManager : MenuInteraction {
       string fname = button.GetComponent <BookProperties> ().props.filename;
       GameObject book = Instantiate (bookTemplate);
       BookManager bookManager = book.GetComponent <BookManager> ();
-      StartCoroutine (bookManager.loadBook (fname));
+      StartCoroutine (bookManager.loadBook (fname, button.GetComponent <BookProperties> ().props));
       book.GetComponent <BookMenuInteraction> ().pickupBook (controller, controllerObject, button, avatar);
     }
   }

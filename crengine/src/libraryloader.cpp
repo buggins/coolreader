@@ -41,6 +41,8 @@ extern "C" {
   
   int setFontSize (void * handle, int fontsize);
   
+  int getFontSize (void * handle);
+  
 }
 
 // Taken from the cool reader code, find and add fonts for each system.
@@ -486,4 +488,13 @@ int setFontSize (void * handle, int fontsize)
   a->setFontSize (fontsize);
 //  CRLog::info("done setting font: %p %d", a, fontsize);
   return 0;
+}
+
+int getFontSize (void * handle)
+{
+  LVDocView * a = (LVDocView *) handle;
+//  CRLog::info("setting font: %p %d", a, fontsize);
+  int fontsize = a->getFontSize ();
+//  CRLog::info("done setting font: %p %d", a, fontsize);
+  return fontsize;
 }

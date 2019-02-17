@@ -15,6 +15,7 @@
     <meta-data android:name="unity.splash-mode" android:value="0" />
     <meta-data android:name="unity.splash-enable" android:value="False" />
     <meta-data android:name="android.max_aspect" android:value="2.1" />
+    <meta-data android:name="unityplayer.SkipPermissionsDialog" android:value="false" />
   </application>
   <uses-feature android:glEsVersion="0x00020000" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

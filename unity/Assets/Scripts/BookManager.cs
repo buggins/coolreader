@@ -62,12 +62,34 @@ public class BookManager : MonoBehaviour {
   // A scratch texture used for rendering during calls to the cool reader engine.
   private Texture directRenderTexture;
   
+  // A link to the informational message.
+  private TextMesh informationMessage;
+  
+  // The properties of the book.
+  private BookPropertySet bookProperties;
+  
   // Use this for initialization
   void Awake () {
     cri = new CoolReaderInterface ();
     
     // Create a book with a default font size.
     bookHandle = cri.CRDocViewCreate (fontSize);
+  }
+  
+  private void setInformation (string message)
+  {
+    if (informationMessage == null)
+    {
+      Transform m = gameObject.transform.Find ("AdviceMessage");
+      if (m != null)
+      {
+        informationMessage = m.gameObject.GetComponent <TextMesh> ();
+      }
+    }
+    if (informationMessage != null)
+    {
+      informationMessage.text = message;
+    }
   }
   
   // Set up the materials and textures required.
@@ -162,9 +184,15 @@ public class BookManager : MonoBehaviour {
   }
   
   // Create a book from the filename to the ebook.
-  public IEnumerator loadBook (string bookFileName)
+  public IEnumerator loadBook (string bookFileName, BookPropertySet props)
   {
+    setInformation ("Loading");
+    yield return null;
+    
     initializeTextures ();
+
+    setInformation ("Loading.");
+    yield return null;
     
     // Try to load the book in a separate thread.
     loadingName = bookFileName;
@@ -179,6 +207,9 @@ public class BookManager : MonoBehaviour {
       print ("Waiting");
     }
     
+    setInformation ("Loading..");
+    yield return null;
+    
     // Retrieve the title and author settings.
     string title = Marshal.PtrToStringAnsi (cri.CRGetTitle (bookHandle));
     string author = Marshal.PtrToStringAnsi (cri.CRGetAuthors (bookHandle));
@@ -187,13 +218,25 @@ public class BookManager : MonoBehaviour {
     // cannot take place in its own thread.
     retrieveCoverMaterial (frontCover);
     
+    setInformation ("Loading...");
+    yield return null;
+    
+    bookProperties = props;
     // Change page to force initial page drawing.
     currentPage = 0;
-    changePage (currentPage);
-    pageTurnComplete ();
+//    changePage (currentPage);
+//    pageTurnComplete ();
+
+    fontSize = props.fontSize;
+    yield return updateFont ();
+
     maxPages = cri.CRGetPageCount (bookHandle);
+    fontSize = cri.CRGetFontSize (bookHandle);
+    
     
     bookLoaded = true;
+    
+    setInformation ("");
   }
   
   // Cover rendering must run in main thread.
@@ -277,6 +320,7 @@ public class BookManager : MonoBehaviour {
   {
     return fontSize;
   }
+
   
   public void changeFontSize (int d)
   {
@@ -286,17 +330,42 @@ public class BookManager : MonoBehaviour {
       fontSize = 1;
     }
 
+    bookProperties.fontSize = fontSize;
+    bookProperties.Save ();
+    
+    StartCoroutine (updateFont ());
+  }
+  
+  private IEnumerator updateFont ()
+  {
+    setInformation ("Updating");
+    yield return null;
+    
     int oldMaxPages = cri.CRGetPageCount (bookHandle);
     cri.CRSetFontSize (bookHandle, fontSize);
     // render a page to force page count update.
     retrievePageToTexture (currentPage, leftPageTurn);
+    
+    setInformation ("Updating.");
+    yield return null;
+    
     int newMaxPages = cri.CRGetPageCount (bookHandle);
 //     Debug.Log ("setting fonh" + fontSize + " " + oldMaxPages + " " + newMaxPages);
+
+    setInformation ("Updating..");
+    yield return null;
     
     // Try to stay close to the same page.
-    currentPage = newMaxPages * currentPage / oldMaxPages;
+    if (oldMaxPages > 0)
+    {
+      currentPage = newMaxPages * currentPage / oldMaxPages;
+    }
     // Redraw the current page.
     changePage (0);    
     pageTurnComplete ();
+
+    setInformation ("");    
+    
+    fontSize = cri.CRGetFontSize (bookHandle);    
   }
 }

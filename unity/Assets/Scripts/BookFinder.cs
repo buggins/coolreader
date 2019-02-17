@@ -146,6 +146,7 @@ public class BookFinder : MonoBehaviour {
     catch (Exception e)
     {
       Debug.Log ("Issues with directories in: " + path + " is " + e);
+      return null;
     }
     return d;
   }

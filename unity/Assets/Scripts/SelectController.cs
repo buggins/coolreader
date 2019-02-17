@@ -53,7 +53,7 @@ public class SelectController : MonoBehaviour {
   }
   
   void Start () {
-    Debug.Log ("Running on " + XRSettings.isDeviceActive + "-" + XRSettings.loadedDeviceName + " ");
+//     Debug.Log ("Running on " + XRSettings.isDeviceActive + "-" + XRSettings.loadedDeviceName + " ");
     
     gameObject.SetActive (device == getActivePlatform ());
   }
