@@ -154,8 +154,8 @@ PlayerSettings:
     Android: vr.cool.reader
   buildNumber: {}
   AndroidBundleVersionCode: 11
-  AndroidMinSdkVersion: 24
-  AndroidTargetSdkVersion: 24
+  AndroidMinSdkVersion: 26
+  AndroidTargetSdkVersion: 26
   AndroidPreferredInstallLocation: 0
   aotOptions: 
   stripEngineCode: 1
