@@ -66,6 +66,9 @@ public class ControlInput : MonoBehaviour {
       leftControllerObject.transform.localPosition = new Vector3 (-0.2f, 0.0f, 0.3f);	
       rightControllerObject.transform.localPosition = new Vector3 (0.2f, 0.0f, 0.3f);	
     }
+    
+    // Part of daydream shutdown requirements.
+    Input.backButtonLeavesApp = true;
   }
   
   // Register a callback for control events. If the handler is exclusive, then
@@ -241,6 +244,11 @@ public class ControlInput : MonoBehaviour {
     {
       applicationMenu.SetActive (!applicationMenu.activeSelf);
     }
+    // Part of daydream shutdown requirements.
+    if (Input.GetKeyDown(KeyCode.Escape))
+    {
+      Application.Quit();
+    }
     
     // Extract edge transitions of the trigger.
     bool debounceTrigger = trigger;
@@ -278,11 +286,17 @@ public class ControlInput : MonoBehaviour {
         
         if (hitObject != lastHit)
         {
-          clearLastHit ();
+          clearLastHit ();          
         }
         if (hitObject.GetComponent <MenuInteraction> () != null)
         {
+          if (hitObject != lastHit)
+          {
+            hitObject.GetComponent <MenuInteraction> ().handleFocus (this);
+          }
+          
           lastHit = hitObject;
+          
           target.GetComponent <MeshRenderer> ().material = menuTarget;
           hitObject.GetComponent <MenuInteraction> ().handleControllerInput (this, controllerObject, trigger, debounceTrigger, direction, position, avatar, touchpad, touchposition);
         }

@@ -488,4 +488,47 @@ public class SettingsMenu : MenuInteraction {
       Debug.Log ("Remove"  + n.filepath);
   }
   
+  private Vector2 scrollStart;
+  private bool haveOffset = false;
+  
+  void checkScroll (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatarout, bool touchpad, Vector2 touchposition)
+  {
+    if (touchpad)
+    {
+      if (!haveOffset)
+      {
+        scrollStart = touchposition;
+        haveOffset = true;
+      }
+
+      Vector2 scrollOffset = 0.5f * (touchposition - scrollStart);
+    Debug.Log ("Touchpad " + touchpad + " " + touchposition + " " + haveOffset + " " + scrollOffset);
+      scroll (scrollOffset.y);
+      reflow ();
+      scrollStart = touchposition;
+    }
+    else
+    {
+//       if (haveOffset)
+//       {
+//         Vector2 scrollOffset = 100.0f * (touchposition - scrollStart);
+//     Debug.Log ("Touchpad " + touchpad + " " + touchposition + " " + haveOffset + " " + scrollOffset);
+//         scroll (scrollOffset.y);
+//         reflow ();
+        haveOffset = false; 
+//       }
+    }
+  }
+  
+  override public void handleFocus (ControlInput controller)
+  {
+    Debug.Log ("Have touch");
+    controller.addHandler (checkScroll, false);
+  }  
+  override public void handleUnfocus (ControlInput controller)
+  {
+    Debug.Log ("No touch");
+    controller.removeHandler (checkScroll);
+  }  
+
 }

@@ -15,6 +15,7 @@ public class BackMenuInteraction : MenuInteraction {
   {
     if (!initialize)
     {
+      // FIXME: set appropriately for different platforms.
       GvrDaydreamApi.LaunchVrHomeAsync (null);
 //      Application.Quit ();
 //       UnityEditor.EditorApplication.isPlaying = false;
@@ -28,4 +29,5 @@ public class BackMenuInteraction : MenuInteraction {
       gameObject.SetActive (false);
     }
   }
+  
 }

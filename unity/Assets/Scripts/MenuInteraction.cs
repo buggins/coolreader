@@ -235,6 +235,11 @@ public class MenuInteraction : MonoBehaviour {
     option.outOfPosition = false;
   }
   
+  // Called when a menu object receives the pointer.
+  virtual public void handleFocus (ControlInput controller)
+  {
+  }
+  
   // Take care of any actions associated with losing pointer after having it.
   virtual public void handleUnfocus (ControlInput controller)
   {
@@ -304,7 +309,8 @@ public class MenuInteraction : MonoBehaviour {
         controller.addHandler (handleControllerInput);
       }
     }
-    else
+    
+    if (!trigger)
     {
       // trigger not pressed.
       if (activeButton != null)
