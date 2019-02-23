@@ -325,16 +325,16 @@ public class SettingsMenu : MenuInteraction {
       fileRoot.add (n);
     }
     
-//    fileRoot.add (new TreeNode (null, addMenuOption ("Enable Rabbit Hole", new Vector3 (0.0f, 0.0f, 0.0f), toggleHandler (new ToggleVariable (), "Enable Rabbit Hole", "Enable Rabbit Hole", rabbitHoleOn, rabbitHoleOff)), 0), colourResponse, scrollHandler);
+ //   fileRoot.add (new TreeNode (null, addMenuOption ("Enable Rabbit Hole", new Vector3 (0.0f, 0.0f, 0.0f), toggleHandler (new ToggleVariable (), "Enable Rabbit Hole", "Enable Rabbit Hole", rabbitHoleOn, rabbitHoleOff), colourResponse, scrollHandler), 0));
     
     reflow ();
   }
   
-  public void rabbitHoleOn (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void rabbitHoleOn (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     rabbitHole.SetActive (true);
   }
-  public void rabbitHoleOff (ControlInput controller, GameObject controllerObject, GameObject button, bool initialize = false)
+  public void rabbitHoleOff (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   { 
     rabbitHole.SetActive (false);
   }

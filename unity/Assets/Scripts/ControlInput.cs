@@ -193,6 +193,7 @@ public class ControlInput : MonoBehaviour {
       controllerObject = leftControllerObject;
       beam = leftBeam;
       target = leftTarget;
+      leftControllerObject.SetActive (true);
       rightControllerObject.SetActive (false);
     }
     else
@@ -201,7 +202,16 @@ public class ControlInput : MonoBehaviour {
       beam = rightBeam;
       target = rightTarget;
       leftControllerObject.SetActive (false);
+      rightControllerObject.SetActive (true);
     }
+//     foreach (SelectController c in leftControllerObject.GetComponentsInChildren <SelectController>(true))
+//     {
+//       c.checkStatus ();
+//     }
+//     foreach (SelectController c in rightControllerObject.GetComponentsInChildren <SelectController>(true))
+//     {
+//       c.checkStatus ();
+//     }
     
     // Get controller properties, depending on the device connected.
     position = controllerObject.transform.position;

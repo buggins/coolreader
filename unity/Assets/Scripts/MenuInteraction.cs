@@ -296,7 +296,7 @@ public class MenuInteraction : MonoBehaviour {
     }
       
     // If the trigger is pressed and released, then activate the button by calling its handler.
-    if (trigger)
+    if (debounceTrigger)
     {
       if ((activeButton == null) && (whichButton != null))
       {

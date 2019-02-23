@@ -15,7 +15,8 @@ public class BackMenuInteraction : MenuInteraction {
   {
     if (!initialize)
     {
-      Application.Quit ();
+      GvrDaydreamApi.LaunchVrHomeAsync (null);
+//      Application.Quit ();
 //       UnityEditor.EditorApplication.isPlaying = false;
     }
   }

@@ -8,6 +8,9 @@ using System;
 
 /*
  * A persistent cache of book properties.
+ * 
+ * Any new properties should be added in corresponding positions
+ * in Save, and in RawLoad.
  */
 [System.Serializable]
 public class BookPropertySet {
@@ -25,6 +28,8 @@ public class BookPropertySet {
   // User configurable options.
   // The current font size.
   public int fontSize = 100;
+  // The current page that the book is open at.
+  public int currentPage = 0;
   
   // Create a unique file name to store this book's properties, based on the filename used to store the book.
   private static string getFilePath (string filepath)
@@ -44,6 +49,8 @@ public class BookPropertySet {
     bf.Serialize (file, author);
     bf.Serialize (file, title);
     bf.Serialize (file, colour);
+    
+    bf.Serialize (file, currentPage);
     bf.Serialize (file, fontSize);
     file.Close ();
   }
@@ -72,6 +79,8 @@ public class BookPropertySet {
       author = (string) bf.Deserialize (file);
       title = (string) bf.Deserialize (file);
       colour = (float []) bf.Deserialize (file);
+      
+      currentPage = (int) bf.Deserialize (file);
       fontSize = (int) bf.Deserialize (file);
       file.Close();
     }

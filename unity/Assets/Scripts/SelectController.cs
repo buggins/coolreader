@@ -46,15 +46,20 @@ public class SelectController : MonoBehaviour {
         result = OVRInput.IsControllerConnected (OVRInput.Controller.LTrackedRemote);
         break;
       case DeviceOptions.Daydream:
-        result = GvrSettings.Handedness == GvrSettings.UserPrefsHandedness.Left;
+        result = (GvrSettings.Handedness == GvrSettings.UserPrefsHandedness.Left);
         break;
     }
     return result;
   }
   
+  public void checkStatus ()
+  {
+    gameObject.SetActive (device == getActivePlatform ());
+    Debug.Log ("Setting " + device + " " + getActivePlatform () + " " + (device == getActivePlatform ()));
+  }
+  
   void Start () {
 //     Debug.Log ("Running on " + XRSettings.isDeviceActive + "-" + XRSettings.loadedDeviceName + " ");
-    
-    gameObject.SetActive (device == getActivePlatform ());
+    checkStatus ();
   }
 }

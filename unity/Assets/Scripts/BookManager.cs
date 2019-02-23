@@ -19,8 +19,6 @@ public class BookManager : MonoBehaviour {
   private IntPtr bookHandle;
   // Book state: current page open.
   private int currentPage;
-  // Book state: number of pages in the book.
-  private int maxPages;
 
   // True when the book has finished loading from file.
   private bool bookLoaded = false;
@@ -68,12 +66,25 @@ public class BookManager : MonoBehaviour {
   // The properties of the book.
   private BookPropertySet bookProperties;
   
+  public delegate void StateChangeEvent ();
+  
+  // Any event to subscribe to for anyone wanting notifications of book state updates.
+  public event StateChangeEvent onStateChange;
+  
   // Use this for initialization
   void Awake () {
     cri = new CoolReaderInterface ();
     
     // Create a book with a default font size.
     bookHandle = cri.CRDocViewCreate (fontSize);
+  }
+  
+  // Used to signal to any interested parties that the book
+  // state has updated as a result of any long drawn out processes.
+  // (such as re-rendering the book).
+  private void stateChanged ()
+  {
+    onStateChange ();
   }
   
   private void setInformation (string message)
@@ -223,20 +234,21 @@ public class BookManager : MonoBehaviour {
     
     bookProperties = props;
     // Change page to force initial page drawing.
-    currentPage = 0;
+    currentPage = props.currentPage;
 //    changePage (currentPage);
 //    pageTurnComplete ();
 
     fontSize = props.fontSize;
     yield return updateFont ();
 
-    maxPages = cri.CRGetPageCount (bookHandle);
     fontSize = cri.CRGetFontSize (bookHandle);
     
     
     bookLoaded = true;
     
     setInformation ("");
+    
+    stateChanged ();
   }
   
   // Cover rendering must run in main thread.
@@ -296,22 +308,42 @@ public class BookManager : MonoBehaviour {
   // the page at the limit, and returns false.
   public bool changePage (int d)
   {
+    return setCurrentPage (currentPage + d);
+  }
+  
+  public int getCurrentPage ()
+  {
+    return currentPage;
+  }
+  
+  public int getMaxPages ()
+  {
+    return cri.CRGetPageCount (bookHandle);
+  }
+  
+  // Returns false if target page is out of range. Still restricts
+  // visible page to an acceptable value anyway.
+  public bool setCurrentPage (int page)
+  {
     bool result = true;
-    currentPage += d;
-    
+    currentPage = page;
     if (currentPage < 0)
     {
       currentPage = 0;
       result = false;
     }
+    int maxPages = cri.CRGetPageCount (bookHandle);
     if ((maxPages > 0) && (currentPage >= maxPages))
     {
-      currentPage = maxPages - d;
+      currentPage = maxPages - 2;
       result = false;
     }
 //     print (currentPage + " " + maxPages + " " + cri.CRGetPageCount (bookHandle));
     retrievePageToTexture (currentPage, leftPageTurn);
     retrievePageToTexture (currentPage + 1, rightPageTurn);
+    
+    bookProperties.currentPage = currentPage;
+    bookProperties.Save ();
     
     return result;
   }
@@ -322,9 +354,9 @@ public class BookManager : MonoBehaviour {
   }
 
   
-  public void changeFontSize (int d)
+  public void setFontSize (int d)
   {
-    fontSize += d;
+    fontSize = d;
     if (fontSize < 1)
     {
       fontSize = 1;
@@ -367,5 +399,7 @@ public class BookManager : MonoBehaviour {
     setInformation ("");    
     
     fontSize = cri.CRGetFontSize (bookHandle);    
+    
+    stateChanged ();
   }
 }

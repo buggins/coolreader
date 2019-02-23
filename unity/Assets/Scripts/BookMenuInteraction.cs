@@ -5,6 +5,18 @@ using UnityEngine.SceneManagement;
 
 [RequireComponent (typeof (BoxCollider))]
 
+
+/*
+ * The interface to the book.
+ * 
+ * There are several interacting components involved.
+ *   BookMenuInteraction presents the menu and controls the book through the BookManager.
+ *   BookManager contain VR engine state, and manipulates the book representations through
+ *     native interfaces such as CoolReaderInterface.
+ *   BookMenuInteraction has a secondary setting menu from which it receives settings and
+ *     sends updates to.
+ *   BookManager contains some persistent properties through BookPropertySet.
+ */
 public class BookMenuInteraction : MenuInteraction {
   
   // A link to the book manager that handles book content operations.
@@ -44,12 +56,22 @@ public class BookMenuInteraction : MenuInteraction {
   public AudioSource bookCloseSound;
   public AudioSource bookDropSound;
   
+  private void updateLocalState ()
+  {
+    if (settingsMenu != null)
+    {
+      settingsMenu.GetComponent <BookSettingsMenu> ().onStateChange ();
+    }
+  }
+  
   // Initialize the book, as an active book currently in use.
   protected override void Start ()
   {
     base.Start ();
     bookAnimator = GetComponentInChildren <Animator> ();
     bookManager = GetComponent <BookManager> ();
+    // Register for any delayed action events.
+    bookManager.onStateChange += updateLocalState;
     setOpen ();
     
     // Active books are kept under one object, to allow transfer between scenes.
@@ -130,6 +152,7 @@ public class BookMenuInteraction : MenuInteraction {
           settingsMenu.transform.localRotation = Quaternion.AngleAxis (-45.0f, Vector3.up);
           settingsMenu.transform.localScale = new Vector3 (0.6f, 0.6f, 0.6f);
         }
+        settingsMenu.GetComponent <BookSettingsMenu> ().onStateChange ();
         settingsMenu.SetActive (true);
       }
       else
@@ -280,6 +303,7 @@ public class BookMenuInteraction : MenuInteraction {
           }
           pageTurnSound.Play ();
         }
+        updateLocalState ();
       }
     }
   }
@@ -303,6 +327,7 @@ public class BookMenuInteraction : MenuInteraction {
           }
           pageTurnSound.Play ();
         }
+        updateLocalState ();
       }
     }
   }

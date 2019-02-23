@@ -81,6 +81,26 @@ public class BookFinder : MonoBehaviour {
 //         Permission.RequestUserPermission(Permission.ExternalStorageRead);
 //       }
 // #endif
+#if UNITY_ANDROID
+      string permission = "android.permission.READ_EXTERNAL_STORAGE";
+      GvrPermissionsRequester permissionRequester = GvrPermissionsRequester.Instance; 
+      if (permissionRequester != null)
+      {
+        if (!permissionRequester.IsPermissionGranted (permission))
+        {
+          permissionRequester.ShouldShowRational (permission);
+          permissionRequester.RequestPermissions (new string [] { permission }, (GvrPermissionsRequester.PermissionStatus [] permissionResults) => {
+            foreach (GvrPermissionsRequester.PermissionStatus p in permissionResults)
+            {
+                Debug.Log ("Req perm " + p.Name + ": " + (p.Granted ? "Granted" : "Denied") + "\n");
+            }
+
+          });
+          bool granted = permissionRequester.IsPermissionGranted (permission);
+      Debug.Log ("Req perm6 " + granted);
+        }
+      }
+#endif
       prepareSources ();
     }
     return knownSources;
