@@ -5211,6 +5211,10 @@ CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
 // execute command
 int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	CRLog::trace("doCommand(%d, %d)", (int)cmd, param);
+	if (NULL == m_doc) {
+		CRLog::warn("doCommand(): m_doc is NULL!");
+		return 0;
+	}
 	switch (cmd) {
     case DCMD_SET_DOC_FONTS:
         CRLog::trace("DCMD_SET_DOC_FONTS(%d)", param);
