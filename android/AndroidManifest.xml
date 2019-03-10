@@ -50,7 +50,9 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:host="*" android:scheme="file" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:host="*" />
+                <data android:scheme="content" />
                 <data android:mimeType="application/octet-stream" />
                 <data android:pathPattern=".*\\.fb2\\.zip"/>
                 <data android:pathPattern=".*\\..*\\.fb2\\.zip"/>
@@ -61,6 +63,14 @@
                 <data android:pathPattern=".*\\..*\\.fb2"/>
                 <data android:pathPattern=".*\\..*\\..*\\.fb2"/>
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.fb2"/>
+                <!-- for inner files in archive opened from system file manager -->
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.fb2"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.fb2"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.fb2"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.fb2"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.fb2"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.fb2"/>
+                <!-- end of inner files in archive -->
                 <data android:pathPattern=".*\\.txt"/>
                 <data android:pathPattern=".*\\.html"/>
                 <data android:pathPattern=".*\\.xhtml"/>
@@ -92,23 +102,30 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:host="" android:scheme="file" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" android:host="*" />
+                <data android:scheme="content" />
                 <data android:mimeType="text/plain"/>
                 <data android:mimeType="text/html"/>
+                <data android:mimeType="text/richtext"/>
+                <data android:mimeType="application/x-cbr"/>
+                <data android:mimeType="application/x-cbz"/>
+
                 <data android:mimeType="application/zip"/>
                 <data android:mimeType="application/rtf"/>
-                <data android:mimeType="application/msword"/>
                 <data android:mimeType="application/x-rtf"/>
-                <data android:mimeType="text/richtext"/>
-                <data android:mimeType="application/epub+zip"/>
                 <data android:mimeType="application/x-chm"/>
-                <data android:mimeType="application/msword"/>
                 <data android:mimeType="application/fb2"/>
                 <data android:mimeType="application/fb2.zip"/>
                 <data android:mimeType="application/epub"/>
+                <data android:mimeType="application/epub+zip"/>
                 <data android:mimeType="application/x-fictionbook"/>
+                <data android:mimeType="application/x-fictionbook+xml"/>
+                <data android:mimeType="application/x-pilot-prc"/>
+                <data android:mimeType="application/x-mobipocket-ebook"/>
+                <data android:mimeType="application/msword"/>
                 <data android:mimeType="application/doc"/>
-                <data android:mimeType="application/vnd.msword"/> 
+                <data android:mimeType="application/vnd.msword"/>
                 <data android:mimeType="application/vnd.ms-word"/>
                 <data android:mimeType="application/winword"/>
                 <data android:mimeType="application/word"/>
@@ -118,8 +135,6 @@
         </activity>
        
         
-        <!-- Sync support -->
-        <service android:name=".sync.SyncService" />
         <!-- Database service -->
         <service android:name=".db.CRDBService" />
         
