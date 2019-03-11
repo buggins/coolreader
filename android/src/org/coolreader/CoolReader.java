@@ -1,6 +1,7 @@
 // Main Class
 package org.coolreader;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -306,7 +307,10 @@ public class CoolReader extends BaseActivity
 			Uri uri = intent.getData();
 			intent.setData(null);
 			if (uri != null) {
-				fileToOpen = uri.getPath();
+				if (uri.getEncodedPath().contains("%00"))
+					fileToOpen = uri.getEncodedPath();
+				else
+					fileToOpen = uri.getPath();
 //				if (fileToOpen.startsWith("file://"))
 //					fileToOpen = fileToOpen.substring("file://".length());
 			}
@@ -314,6 +318,27 @@ public class CoolReader extends BaseActivity
 		if (fileToOpen == null && intent.getExtras() != null) {
 			log.d("extras=" + intent.getExtras());
 			fileToOpen = intent.getExtras().getString(OPEN_FILE_PARAM);
+		}
+		if (fileToOpen != null) {
+			// parse uri from system filemanager
+			if (fileToOpen.contains("%00")) {
+				// splitter between archive file name and inner file.
+				fileToOpen = fileToOpen.replace("%00", "@/");
+				fileToOpen = Uri.decode(fileToOpen);
+			}
+			if (fileToOpen.startsWith("/document/primary:")) {
+				// scheme="content", host="com.android.externalstorage.documents"
+				// decode special uri form: /document/primary:<somebody>
+				File[] dataDirs = Engine.getStorageDirectories(false);
+				if (dataDirs != null && dataDirs.length > 0) {
+					fileToOpen = fileToOpen.replace("/document/primary:", dataDirs[0].getAbsolutePath() + "/");
+				}
+			} else if (fileToOpen.startsWith("/1////")) {
+				// scheme="content", host="com.google.android.apps.nbu.files.provider"
+				// caused by "Google Files", package="com.google.android.apps.nbu.files"
+				// skip "/1///"
+				fileToOpen = fileToOpen.substring(5);
+			}
 		}
 		if (fileToOpen != null) {
 			// patch for opening of books from ReLaunch (under Nook Simple Touch) 
