@@ -1469,8 +1469,6 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_doCommandInterna
     if ( cmd>=READERVIEW_DCMD_START && cmd<=READERVIEW_DCMD_END) {
     	return p->doCommand(cmd, param)?JNI_TRUE:JNI_FALSE;
     }
-    if (!p->_docview->isDocumentOpened())
-        return JNI_FALSE;
     //CRLog::trace("doCommandInternal(%d, %d) -- passing to LVDocView", cmd, param);
     return p->_docview->doCommand((LVDocCmd)cmd, param) ? JNI_TRUE : JNI_FALSE;
 }
