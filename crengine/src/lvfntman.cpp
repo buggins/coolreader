@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 
 
@@ -824,6 +825,7 @@ struct LVCharPosInfo
     int width;
 };
 
+#if USE_HARFBUZZ==1
 inline lUInt32 getHash( const struct LVCharTriplet& triplet )
 {
     //return (triplet.prevChar * 1975317 + 164521) ^ (triplet.Char * 1975317 + 164521) ^ (triplet.nextChar * 1975317 + 164521);
@@ -831,6 +833,7 @@ inline lUInt32 getHash( const struct LVCharTriplet& triplet )
                     + (((lUInt64)triplet.prevChar) << 16)
                     + (((lUInt64)triplet.nextChar) << 32) );
 }
+#endif
 
 class LVFreeTypeFace : public LVFont
 {
@@ -1609,6 +1612,7 @@ public:
                     _wcache.put(ch, w);
                 } else {
                     widths[i] = prev_width;
+                    lastFitChar = i + 1;
                     continue;  /* ignore errors */
                 }
                 if ( ch_glyph_index==(FT_UInt)-1 )
@@ -1626,7 +1630,7 @@ public:
             if ( !isHyphen ) // avoid soft hyphens inside text string
                 prev_width = widths[i];
             if ( prev_width > max_width ) {
-                if ( lastFitChar < i + 7)
+                if ( lastFitChar < (uint32_t)(i + 7))
                     break;
             } else {
                 lastFitChar = i + 1;
@@ -1857,13 +1861,13 @@ public:
         if ( y + _height < clip.top || y >= clip.bottom )
             return;
 
-        unsigned int i;
         //lUInt16 prev_width = 0;
         lChar16 ch;
         // measure character widths
         bool isHyphen = false;
         int x0 = x;
 #if USE_HARFBUZZ==1
+        unsigned int i;
         hb_glyph_info_t *glyph_info = 0;
         hb_glyph_position_t *glyph_pos = 0;
         unsigned int glyph_count;
@@ -1978,6 +1982,7 @@ public:
         }
 #else
         FT_UInt previous = 0;
+        int i;
         int error;
 #if (ALLOW_KERNING==1)
         int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
