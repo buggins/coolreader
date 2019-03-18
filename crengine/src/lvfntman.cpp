@@ -809,6 +809,7 @@ static lUInt16 char_flags[] = {
         (ch==UNICODE_NO_BREAK_SPACE?LCHAR_DEPRECATED_WRAP_AFTER|LCHAR_IS_SPACE: \
         (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER:0))))
 
+#if USE_HARFBUZZ==1
 struct LVCharTriplet
 {
     lChar16 prevChar;
@@ -825,7 +826,6 @@ struct LVCharPosInfo
     int width;
 };
 
-#if USE_HARFBUZZ==1
 inline lUInt32 getHash( const struct LVCharTriplet& triplet )
 {
     //return (triplet.prevChar * 1975317 + 164521) ^ (triplet.Char * 1975317 + 164521) ^ (triplet.nextChar * 1975317 + 164521);
