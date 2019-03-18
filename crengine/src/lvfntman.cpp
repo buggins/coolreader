@@ -1555,6 +1555,7 @@ public:
                     else {
                         posInfo.offset = 0;
                         posInfo.width = prev_width;
+                        lastFitChar = i + 1;
                         continue;  /* ignore errors */
                     }
                 }
