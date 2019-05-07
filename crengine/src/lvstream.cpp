@@ -4377,7 +4377,8 @@ public:
         lString8 buf;
         for ( Block * p = _firstBlock; p; p = p->next ) {
             char s[1000];
-            sprintf(s, "%x ", (int)p->block_start);
+            snprintf(s, 999, "%x ", (int)p->block_start);
+            s[999] = 0;
             buf << s;
         }
         CRLog::trace("BLOCKS (%s): %s   count=%d", context, buf.c_str(), _count);
@@ -4410,6 +4411,16 @@ public:
                 blockBytesRead = blockSpaceLeft;
                 res = LVERR_OK;
             } else {
+                lvpos_t fsize = _baseStream->GetSize();
+                if ( _pos + blockSpaceLeft > fsize && fsize < _size) {
+#if TRACE_BLOCK_WRITE_STREAM
+                    CRLog::trace("stream::Read: inconsistent cache state detected: fsize=%d, _size=%d, force flush...", (int)fsize, (int)_size);
+#endif
+                    // Workaround to exclude fatal error in ldomTextStorageChunk::ensureUnpacked()
+                    // Write cached data to a file stream if the required read block is larger than the rest of the file.
+                    // This is a very rare case.
+                    Flush(true);
+                }
 #if TRACE_BLOCK_WRITE_STREAM
                 CRLog::trace("direct reading from stream (%x, %x)", (int)_pos, (int)blockSpaceLeft);
 #endif
@@ -4448,7 +4459,7 @@ public:
                 blockSpaceLeft = count;
             lvsize_t blockBytesWritten = 0;
 
-            // read from Write buffers if possible, otherwise - from base stream
+            // write to Write buffers
             res = writeToCache(buf, _pos, blockSpaceLeft);
             if ( res!=LVERR_OK )
                 break;
