@@ -1555,7 +1555,7 @@
          <item row="17" column="1">
           <widget class="QCheckBox" name="cbEnableDocumentStyles">
            <property name="text">
-            <string>Enable documetn internal styles</string>
+            <string>Enable document internal styles</string>
            </property>
           </widget>
          </item>

@@ -1475,7 +1475,7 @@ p, li { white-space: pre-wrap; }
         <translation>Záložní písmo</translation>
     </message>
     <message>
-        <source>Enable documetn internal styles</source>
+        <source>Enable document internal styles</source>
         <translation>Povolit v dokumentu vnitřní styly</translation>
     </message>
     <message>
