@@ -2260,7 +2260,7 @@ p, li { white-space: pre-wrap; }
         <translation>Верхній індекс</translation>
     </message>
     <message>
-        <source>Enable documetn internal styles</source>
+        <source>Enable document internal styles</source>
         <translation>Дозволити вбудовані стилі</translation>
     </message>
     <message>
