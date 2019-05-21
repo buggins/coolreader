@@ -1,0 +1,32 @@
+language: cpp
+compiler: gcc
+sudo: require
+dist: trusty
+
+before_install:
+  - sudo add-apt-repository ppa:beineri/opt-qt593-trusty -y
+  - sudo apt-get update -qq
+
+install:
+  - sudo apt-get -y install pkg-config qt59base qt59tools libpng12-dev libfreetype6-dev libjpeg62-dev libfontconfig1-dev zlib1g-dev
+  - source /opt/qt*/bin/qt*-env.sh
+
+script:
+  - sudo ln -s /usr/include/freetype2/ft2build.h /usr/include/ # https://github.com/matplotlib/matplotlib/issues/3029#issuecomment-43318941
+  - mkdir qtbuild
+  - cd qtbuild
+  - cmake -DGUI=QT5 -DCMAKE_CXX_FLAGS="-DUSE_FREETYPE2" -DCMAKE_BUILD_TYPE=Release -DMAX_IMAGE_SCALE_MUL=2 -DDOC_DATA_COMPRESSION_LEVEL=3 -DDOC_BUFFER_SIZE=0x1400000 -DCMAKE_INSTALL_PREFIX=/usr ..
+  - make -j$(nproc)
+  - make DESTDIR=appdir -j$(nproc) install ; find appdir/
+  - wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+  - chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+  - ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage
+
+after_success:
+  - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+  - bash upload.sh Cool*.AppImage*
+  
+branches:
+  except:
+    - # Do not build tags that we create when we upload to GitHub Releases
+    - /^(?i:continuous)/
