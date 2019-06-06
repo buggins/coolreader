@@ -688,7 +688,8 @@ public class CoolReader extends BaseActivity
     		String value = (String)entry.getValue();
     		applyAppSetting( key, value );
         }
-		
+		// Show/Hide soft navbar after OptionDialog is closed.
+		setSystemUiVisibility();
 	}
 
     protected boolean allowLowBrightness() {

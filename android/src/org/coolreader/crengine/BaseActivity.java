@@ -673,7 +673,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 
-	private int lastSystemUiVisibility = -1;
+	//private int lastSystemUiVisibility = -1;
 	//private boolean systemUiVisibilityListenerIsSet = false;
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@SuppressLint("NewApi")
@@ -690,9 +690,9 @@ public class BaseActivity extends Activity implements Settings {
 			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
 			if (!a4)
 				value &= View.SYSTEM_UI_FLAG_LOW_PROFILE;
-			if (value == lastSystemUiVisibility)// && a4)
-				return false;
-			lastSystemUiVisibility = value;
+			//if (value == lastSystemUiVisibility)// && a4)
+			//	return false;
+			//lastSystemUiVisibility = value;
 
 			View view;
 			//if (a4)
@@ -704,8 +704,12 @@ public class BaseActivity extends Activity implements Settings {
 				return false;
 			Method m;
 			try {
-				m = view.getClass().getMethod("setSystemUiVisibility", int.class);
-				m.invoke(view, value);
+				m = view.getClass().getMethod("getSystemUiVisibility");
+				int oldValue = (Integer)m.invoke(view);
+				if (oldValue != value) {
+					m = view.getClass().getMethod("setSystemUiVisibility", int.class);
+					m.invoke(view, value);
+				}
 				return true;
 			} catch (SecurityException e) {
 				// ignore
@@ -1280,7 +1284,6 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void onSettingsChanged(Properties props, Properties oldProps) {
 		// override for specific actions
-		
 	}
 	
 	public void showActionsPopupMenu(final ReaderAction[] actions, final CRToolBar.OnActionHandler onActionHandler) {
