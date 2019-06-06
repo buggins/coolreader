@@ -294,7 +294,11 @@ public class BaseActivity extends Activity implements Settings {
 	{
 		return densityDpi;
 	}
-	
+
+	public float getDensityFactor() {
+		return ((float)densityDpi)/160f;
+	}
+
 	public float getDiagonalInches()
 	{
 		return diagonalInches;
