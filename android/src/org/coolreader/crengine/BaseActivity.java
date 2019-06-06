@@ -98,8 +98,6 @@ public class BaseActivity extends Activity implements Settings {
     	// create rest of settings
 		Services.startServices(this);
 	}
-	
-	private final static int SYSTEM_UI_FLAG_IMMERSIVE_STICKY = 4096;
 
     @SuppressLint("NewApi")
 	@Override
@@ -112,7 +110,7 @@ public class BaseActivity extends Activity implements Settings {
 					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-					| SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+					| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
 					| View.SYSTEM_UI_FLAG_FULLSCREEN;
 
             mDecorView.setSystemUiVisibility(flag);
@@ -303,7 +301,7 @@ public class BaseActivity extends Activity implements Settings {
 	}
 	
 	public boolean isSmartphone() {
-		return diagonalInches <= 6.2; //5.8;
+		return diagonalInches <= 6.8; //5.8;
 	}
 	
 	private int densityDpi = 160;
@@ -589,12 +587,11 @@ public class BaseActivity extends Activity implements Settings {
 	public void applyFullscreen( Window wnd )
 	{
 		if ( mFullscreen ) {
-		//mActivity.getWindow().requestFeature(Window.)
-		wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-		        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+			//mActivity.getWindow().requestFeature(Window.)
+			wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		} else {
-			wnd.setFlags(0, 
-		        WindowManager.LayoutParams.FLAG_FULLSCREEN );
+			wnd.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN );
 		}
 		setSystemUiVisibility();
 	}
@@ -607,10 +604,6 @@ public class BaseActivity extends Activity implements Settings {
 		}
 	}
 	
-	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
-//	private final static int SYSTEM_UI_FLAG_HIDE_NAVIGATION = 2;
-//	
-//	private final static int SYSTEM_UI_FLAG_VISIBLE = 0;
 
 //	public void simulateTouch() {
 //		// Obtain MotionEvent object
@@ -649,14 +642,24 @@ public class BaseActivity extends Activity implements Settings {
 	protected boolean wantHideNavbarInFullscreen() {
 		return false;
 	}
-	
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	@SuppressLint("NewApi")
 	public boolean setSystemUiVisibility() {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
 			int flags = 0;
 			if (getKeyBacklight() == 0)
-				flags |= SYSTEM_UI_FLAG_LOW_PROFILE;
-//			if (isFullscreen() && wantHideNavbarInFullscreen() && isSmartphone())
-//				flags |= SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+				flags |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+			if (isFullscreen() /*&& wantHideNavbarInFullscreen() && isSmartphone()*/) {
+				if (DeviceInfo.getSDKLevel() >= 14)
+					flags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+				if (DeviceInfo.getSDKLevel() >= 16)
+					flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+							| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+							| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+				if (DeviceInfo.getSDKLevel() >= 19)
+					flags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+			}
 			setSystemUiVisibility(flags);
 //			if (isFullscreen() && DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH)
 //				simulateTouch();
@@ -668,11 +671,10 @@ public class BaseActivity extends Activity implements Settings {
 
 	private int lastSystemUiVisibility = -1;
 	//private boolean systemUiVisibilityListenerIsSet = false;
-	@TargetApi(11)
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@SuppressLint("NewApi")
 	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-			if (DeviceInfo.getSDKLevel() < 19) {
 //			if (!systemUiVisibilityListenerIsSet && contentView != null) {
 //				contentView.setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
 //					@Override
@@ -683,8 +685,8 @@ public class BaseActivity extends Activity implements Settings {
 //			}
 			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
 			if (!a4)
-				value &= SYSTEM_UI_FLAG_LOW_PROFILE;
-			if (value == lastSystemUiVisibility && value != SYSTEM_UI_FLAG_LOW_PROFILE)// && a4)
+				value &= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+			if (value == lastSystemUiVisibility)// && a4)
 				return false;
 			lastSystemUiVisibility = value;
 
@@ -711,7 +713,6 @@ public class BaseActivity extends Activity implements Settings {
 				// ignore
 			} catch (InvocationTargetException e) {
 				// ignore
-			}
 			}
 		}
 		return false;
