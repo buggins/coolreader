@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="org.coolreader"
           android:installLocation="auto">
 
@@ -11,6 +12,8 @@
         android:smallScreens="true"
         android:anyDensity="true"
         />
+
+    <uses-sdk tools:overrideLibrary="com.android.support.test,android.support.test.espresso" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
