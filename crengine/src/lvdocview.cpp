@@ -111,6 +111,15 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #define MAX_STATUS_FONT_SIZE 255
 #endif
 
+// Fallback defines, see crsetup.h
+#ifndef SCREEN_SIZE_MIN
+#define SCREEN_SIZE_MIN 80
+#endif
+
+#ifndef SCREEN_SIZE_MAX
+#define SCREEN_SIZE_MAX 3000
+#endif
+
 #if defined(__SYMBIAN32__)
 #include <e32std.h>
 #define DEFAULT_PAGE_MARGIN 2
@@ -3374,10 +3383,14 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 void LVDocView::Resize(int dx, int dy) {
 	//LVCHECKPOINT("Resize");
 	CRLog::trace("LVDocView:Resize(%dx%d)", dx, dy);
-	if (dx < 80 || dx > 3000)
-		dx = 80;
-	if (dy < 80 || dy > 3000)
-		dy = 80;
+	if (dx < SCREEN_SIZE_MIN)
+		dx = SCREEN_SIZE_MIN;
+	if (dx > SCREEN_SIZE_MAX)
+		dx = SCREEN_SIZE_MAX;
+	if (dy < SCREEN_SIZE_MIN)
+		dy = SCREEN_SIZE_MIN;
+	if (dy > SCREEN_SIZE_MAX)
+		dy = SCREEN_SIZE_MAX;
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	if ( m_rotateAngle==CR_ROTATE_ANGLE_90 || m_rotateAngle==CR_ROTATE_ANGLE_270 ) {
 		CRLog::trace("Screen is rotated, swapping dimensions");
