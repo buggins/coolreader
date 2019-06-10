@@ -5027,6 +5027,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int mins = (w < h ? w : h) * 7 / 10;
 		int ph = mins / 20;
 		int textColor = mSettings.getColor(PROP_FONT_COLOR, 0x000000);
+		float factor = mActivity.getDensityFactor();
 		Rect rc = new Rect(w / 2 - mins / 2, h / 2 - ph / 2, w / 2 + mins / 2, h / 2 + ph / 2);
 		
 		Utils.drawFrame(canvas, rc, Utils.createSolidPaint(0xC0000000 | textColor));
@@ -5041,9 +5042,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		canvas.drawRect(rc1, Utils.createSolidPaint(0x80000000 | textColor));
 		Paint textPaint = Utils.createSolidPaint(0xFF000000 | textColor);
 		textPaint.setTextAlign(Paint.Align.CENTER);
-		textPaint.setTextSize(22f);
+		textPaint.setTextSize(15f*factor);
 		textPaint.setSubpixelText(true);
-		canvas.drawText(String.valueOf(mActivity.getText(titleResource)), (rc.left + rc.right) / 2, rc1.top - 12, textPaint);
+		canvas.drawText(String.valueOf(mActivity.getText(titleResource)), (rc.left + rc.right) / 2, rc1.top - 12f*factor, textPaint);
 		//canvas.drawText(String.valueOf(position * 100 / 10000) + "%", rc.left + 4, rc1.bottom - 4, textPaint);
 //		Rect rc2 = new Rect(rc);
 //		rc.left = x;

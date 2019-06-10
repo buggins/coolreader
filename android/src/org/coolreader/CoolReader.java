@@ -43,7 +43,6 @@ import org.coolreader.donations.CRDonationService;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -289,8 +288,6 @@ public class CoolReader extends BaseActivity
 		return null;
 	}
 
-
-
 	@Override
 	protected void onNewIntent(Intent intent) {
 		log.i("onNewIntent : " + intent);
@@ -509,19 +506,7 @@ public class CoolReader extends BaseActivity
 
 		log.i("CoolReader.onStart() exiting");
 	}
-
-	@TargetApi(11)
-	@Override
-	public void onWindowFocusChanged(boolean hasFocus) {
-		super.onWindowFocusChanged(hasFocus);
-		if (hasFocus) {
-			getWindow().getDecorView().setSystemUiVisibility(
-					View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-							| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-							| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-							| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-		}
-	}
+	
  
 
 	private boolean stopped = false;
@@ -703,7 +688,8 @@ public class CoolReader extends BaseActivity
     		String value = (String)entry.getValue();
     		applyAppSetting( key, value );
         }
-		
+		// Show/Hide soft navbar after OptionDialog is closed.
+		setSystemUiVisibility();
 	}
 
     protected boolean allowLowBrightness() {
