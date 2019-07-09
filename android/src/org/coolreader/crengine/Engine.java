@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.zip.ZipEntry;
 
 import org.coolreader.R;
@@ -593,15 +594,161 @@ public class Engine {
 	
     private native static void suspendLongOperationInternal(); // cancel current long operation in engine thread (swapping to cache file) -- call it from GUI thread
 
+	/**
+	 * Test if in embedded FontConfig language orthography catalog have record with language code langCode.
+	 * @param langCode language code
+	 * @return true if record with langCode found, false - otherwise.
+	 *
+	 * Language code compared as is without any modifications.
+	 */
+	private native static boolean haveFcLangCodeInternal(String langCode);
+
+	/**
+	 * Check the font for compatibility with the specified language.
+	 * @param fontFace font face to check.
+	 * @param langCode language code in embedded FontConfig language orthography catalog.
+	 * @return true if font compatible with language, false - otherwise.
+	 */
 	private native static boolean checkFontLanguageCompatibilityInternal(String fontFace, String langCode);
-    
-    public static void suspendLongOperation() {
+
+	public static void suspendLongOperation() {
    		suspendLongOperationInternal();
     }
 
 	public synchronized static boolean checkFontLanguageCompatibility(String fontFace, String langCode)
 	{
 		return checkFontLanguageCompatibilityInternal(fontFace, langCode);
+	}
+
+	/**
+	 * Finds the corresponding language code in embedded FontConfig language orthography catalog.
+	 * @param language language code in free form: ISO 639-1, ISO 639-2 or full name of the language in English. Also allowed concatenation of country code in ISO 3166-1 alpha-2 or ISO 3166-1 alpha-3.
+	 * @return language code in the FontConfig language orthography catalog if it's found, null - otherwise.
+	 *
+	 * If a country code in any form is added to the language, but the record with the country code is not found - it is simply ignored and the search continues without a country code.
+	 */
+	public static String findCompatibleFcLangCode(String language)
+	{
+		String langCode = null;
+
+		String lang_part;
+		String country_part;
+		String testLang;
+
+		// Split language and country codes
+		int pos = language.indexOf('-');
+		if (-1 == pos)
+			pos = language.indexOf('_');
+		if (pos > 0) {
+			lang_part = language.substring(0, pos);
+			if (pos < language.length() - 1)
+				country_part = language.substring(pos + 1);
+			else
+				country_part = "";
+		} else {
+			lang_part = language;
+			country_part = "";
+		}
+		lang_part = lang_part.toLowerCase();
+		country_part = country_part.toLowerCase();
+
+		if (country_part.length() > 0)
+			testLang = lang_part + "_" + country_part;
+		else
+			testLang = lang_part;
+		// 1. Check if testLang is already language code accepted by FontConfig languages symbols database
+		if (haveFcLangCodeInternal(testLang))
+			langCode = testLang;
+		else {
+			// Check if lang_part is the three-letter abbreviation: ISO 639-2 or ISO 639-3
+			//   and if country_part code is the three-letter country code: ISO 3366-1 alpha 3
+			// Then convert them to two-letter code and test
+			String lang_2l = null;
+			String country_2l = null;
+			int found = 0;
+			for (Locale loc : Locale.getAvailableLocales()) {
+				try {
+					if (lang_part.equals(loc.getISO3Language())) {
+						lang_2l = loc.getLanguage();
+						found |= 1;
+					}
+				} catch (MissingResourceException e) {
+					// three-letter language abbreviation is not available for this locale
+					// just ignore this exception
+				}
+				if (country_part.length() > 0) {
+					try {
+						if (country_part.equals(loc.getISO3Country().toLowerCase())) {
+							country_2l = loc.getCountry().toLowerCase();
+							found |= 2;
+						}
+					} catch (MissingResourceException e) {
+						// the three-letter country abbreviation is not available for this locale
+						// just ignore this exception
+					}
+					if (3 == found)
+						break;
+				} else if (1 == found)
+					break;
+			}
+			if (country_part.length() > 0) {
+				// 2. test lang_2l + country_part
+				if (null != lang_2l) {
+					testLang = lang_2l + "_" + country_part;
+					if (haveFcLangCodeInternal(testLang))
+						langCode = testLang;
+				}
+				if (null == langCode && null != country_2l) {
+					// 3. test lang_part + country_2l
+					testLang = lang_part + "_" + country_2l;
+					if (haveFcLangCodeInternal(testLang))
+						langCode = testLang;
+				}
+				if (null == langCode && null != country_2l && null != lang_2l) {
+					// 4. test lang_2l + country_2l
+					testLang = lang_2l + "_" + country_2l;
+					if (haveFcLangCodeInternal(testLang))
+						langCode = testLang;
+				}
+			}
+			if (null == langCode)
+			{
+				if (null != lang_2l) {
+					// 5. test lang_2l
+					// if two-letter country code not found or county code omitted
+					// but found two-letter language code
+					testLang = lang_2l;
+					if (haveFcLangCodeInternal(testLang))
+						langCode = testLang;
+				} else {
+					// 6. test lang_part
+					testLang = lang_part;
+					if (haveFcLangCodeInternal(testLang))
+						langCode = testLang;
+				}
+			}
+		}
+		if (null == langCode) {
+			Locale locale = null;
+			// 7. Try to find by full language name
+			for (Locale loc : Locale.getAvailableLocales()) {
+				if (language.equalsIgnoreCase(loc.getDisplayLanguage(Locale.ENGLISH))) {
+					locale = loc;
+					break;
+				}
+			}
+			if (null != locale) {
+				testLang = locale.getISO3Language();
+				if (haveFcLangCodeInternal(testLang))
+					langCode = testLang;
+				else  {
+					testLang = locale.getLanguage();		// two-letter code
+					if (haveFcLangCodeInternal(testLang))
+						langCode = testLang;
+				}
+			}
+		}
+		return langCode;
 	}
 
 	/**

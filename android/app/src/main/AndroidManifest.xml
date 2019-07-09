@@ -13,8 +13,6 @@
         android:anyDensity="true"
         />
 
-    <uses-sdk tools:overrideLibrary="com.android.support.test,android.support.test.espresso" />
-
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
