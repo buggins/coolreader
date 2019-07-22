@@ -1246,11 +1246,13 @@ int LVDocView::GetFullHeight() {
 int LVDocView::getPageHeaderHeight() {
 	if (!getPageHeaderInfo())
 		return 0;
-        int h = getInfoFont()->getHeight();
-        int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() * 11/10 + HEADER_MARGIN / 2 : 0;
-        if ( bh>h )
-            h = bh;
-        return h + HEADER_MARGIN;
+	if (!getInfoFont())
+		return 0;
+	int h = getInfoFont()->getHeight();
+	int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() * 11/10 + HEADER_MARGIN / 2 : 0;
+	if ( bh>h )
+		h = bh;
+	return h + HEADER_MARGIN;
 }
 
 /// calculate page header rectangle
