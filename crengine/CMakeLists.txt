@@ -1,4 +1,6 @@
 
+option(BUILD_TOOLS "Build tools" OFF)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fc-lang)
 
 SET (CRENGINE_SOURCES 
@@ -47,3 +49,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
 endif (NOT ${GUI} STREQUAL FB2PROPS)
 
 ADD_LIBRARY(crengine STATIC ${CRENGINE_SOURCES})
+
+if(BUILD_TOOLS)
+    add_subdirectory(Tools)
+endif(BUILD_TOOLS)
