@@ -2579,9 +2579,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			FileInfo fileInfo = mBookInfo.getFileInfo();
 			final String bookLanguage = fileInfo.getLanguage();
 			final String fontFace = props.getProperty(PROP_FONT_FACE);
-			if (null != bookLanguage && bookLanguage.length() > 0) {
-				boolean res = Engine.checkFontLanguageCompatibility(fontFace, bookLanguage);
-				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\": res=" + res);
+			String fcLangCode = null;
+			if (null != bookLanguage && bookLanguage.length() > 0)
+				fcLangCode = Engine.findCompatibleFcLangCode(bookLanguage);
+			if (null != fcLangCode && fcLangCode.length() > 0) {
+				boolean res = Engine.checkFontLanguageCompatibility(fontFace, fcLangCode);
+				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\" fcLangCode=" + fcLangCode + ": res=" + res);
 				if (!res) {
 					BackgroundThread.instance().executeGUI(new Runnable() {
 						@Override
@@ -2591,7 +2594,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					});
 				}
 			} else {
-				log.d("Can't get book's language to check font compatibility! bookInfo=" + fileInfo);
+				if (null != bookLanguage)
+					log.d("Can't find compatible language code in embedded FontConfig catalog: language=\"" + bookLanguage + "\" bookInfo=" + fileInfo);
 			}
 		}
 		doc.applySettings(props);

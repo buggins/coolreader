@@ -115,9 +115,6 @@ android {
         // but continue the build even when errors are found:
         abortOnError false
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-    }
 
     // https://developer.android.com/about/versions/marshmallow/android-6.0-changes#behavior-apache-http-client
     useLibrary 'org.apache.http.legacy'
@@ -125,7 +122,8 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    //testImplementation 'junit:junit:4.12'
-    //androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    //androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support:support-annotations:28.0.0'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
