@@ -99,23 +99,27 @@ public class BaseActivity extends Activity implements Settings {
 		Services.startServices(this);
 	}
 
-    @SuppressLint("NewApi")
+	@SuppressLint("NewApi")
 	@Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-	super.onWindowFocusChanged(hasFocus);
-	if (hasFocus && (DeviceInfo.getSDKLevel() >= 19)) {
-		int flag = 0;
-		if (mFullscreen)
-			flag |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-					| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-					| View.SYSTEM_UI_FLAG_FULLSCREEN;
-
-            mDecorView.setSystemUiVisibility(flag);
-        }
-    }
+	public void onWindowFocusChanged(boolean hasFocus) {
+		super.onWindowFocusChanged(hasFocus);
+		if (hasFocus && (DeviceInfo.getSDKLevel() >= 19)) {
+			int flag = 0;
+			if (mFullscreen) {
+				// Flag View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY added in API 19
+				// without this flag  SYSTEM_UI_FLAG_HIDE_NAVIGATION will be force cleared by the system on any user interaction,
+				// and SYSTEM_UI_FLAG_FULLSCREEN will be force-cleared by the system if the user swipes from the top of the screen.
+				// So use this flags only on API >= 19
+				flag |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+						| View.SYSTEM_UI_FLAG_FULLSCREEN;
+			}
+			mDecorView.setSystemUiVisibility(flag);
+		}
+	}
 
     /** Called when the activity is first created. */
     @Override
@@ -653,16 +657,19 @@ public class BaseActivity extends Activity implements Settings {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
 			int flags = 0;
 			if (getKeyBacklight() == 0)
-				flags |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
-			if (isFullscreen() /*&& wantHideNavbarInFullscreen() && isSmartphone()*/) {
 				if (DeviceInfo.getSDKLevel() >= 14)
-					flags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-				if (DeviceInfo.getSDKLevel() >= 16)
-					flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-							| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-							| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+					flags |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+			if (isFullscreen() /*&& wantHideNavbarInFullscreen() && isSmartphone()*/) {
 				if (DeviceInfo.getSDKLevel() >= 19)
-					flags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+					// Flag View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY added in API 19
+					// without this flag  SYSTEM_UI_FLAG_HIDE_NAVIGATION will be force cleared by the system on any user interaction,
+					// and SYSTEM_UI_FLAG_FULLSCREEN will be force-cleared by the system if the user swipes from the top of the screen.
+					// So use this flags only on API >= 19
+					flags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+							 View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+							 View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+							 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+							 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 			}
 			setSystemUiVisibility(flags);
 //			if (isFullscreen() && DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH)
@@ -689,7 +696,7 @@ public class BaseActivity extends Activity implements Settings {
 //			}
 			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
 			if (!a4)
-				value &= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+				value &= ~View.SYSTEM_UI_FLAG_LOW_PROFILE;
 			//if (value == lastSystemUiVisibility)// && a4)
 			//	return false;
 			//lastSystemUiVisibility = value;
@@ -791,8 +798,32 @@ public class BaseActivity extends Activity implements Settings {
 		BackgroundThread.instance().postGUI(task, 1);
 		//BackgroundThread.instance().postGUI(task, 10);
     }
-    
-    private void updateBacklightBrightness(float b) {
+
+	private void turnOnKeyBacklight() {
+		if (!isStarted())
+			return;
+		setKeyBacklight(1);
+		// repeat again in short interval
+		if (!Engine.getInstance(this).setKeyBacklight(1)) {
+			//log.w("Cannot control key backlight directly");
+			return;
+		}
+		// repeat again in short interval
+		Runnable task = new Runnable() {
+			@Override
+			public void run() {
+				if (!isStarted())
+					return;
+				if (!Engine.getInstance(BaseActivity.this).setKeyBacklight(1)) {
+					//log.w("Cannot control key backlight directly (delayed)");
+				}
+			}
+		};
+		BackgroundThread.instance().postGUI(task, 1);
+		//BackgroundThread.instance().postGUI(task, 10);
+	}
+
+	private void updateBacklightBrightness(float b) {
         Window wnd = getWindow();
         if (wnd != null) {
 	    	LayoutParams attrs =  wnd.getAttributes();
@@ -818,7 +849,7 @@ public class BaseActivity extends Activity implements Settings {
     }
 
     private void updateButtonsBrightness(float buttonBrightness) {
-        Window wnd = getWindow();
+		Window wnd = getWindow();
         if (wnd != null) {
 	    	LayoutParams attrs =  wnd.getAttributes();
 	    	boolean changed = false;
@@ -845,6 +876,8 @@ public class BaseActivity extends Activity implements Settings {
 	    	}
 	    	if (keyBacklightOff)
 	    		turnOffKeyBacklight();
+	    	else
+				turnOnKeyBacklight();
         }
     }
 
