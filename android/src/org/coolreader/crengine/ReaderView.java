@@ -5387,17 +5387,18 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void OnFormatStart() {
 	    	log.d("readerCallback.OnFormatStart");
 		}
+
 		public void OnLoadFileEnd() {
-	    	log.d("readerCallback.OnLoadFileEnd");
+			log.d("readerCallback.OnLoadFileEnd");
 			if (internalDX == 0 && internalDY == 0) {
 				internalDX = requestedWidth;
 				internalDY = requestedHeight;
 				log.d("OnLoadFileEnd: resizeInternal(" + internalDX + "," + internalDY + ")");
 				doc.resize(internalDX, internalDY);
-				hideProgress();
 			}
-	    	
+			hideProgress();
 		}
+
 		public void OnLoadFileError(String message) {
 	    	log.d("readerCallback.OnLoadFileError(" + message + ")");
 		}
@@ -5446,10 +5447,14 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //			});
 			return true;
 		}
+
 		public void OnLoadFileStart(String filename) {
 			cancelSwapTask();
 			BackgroundThread.ensureBackground();
-	    	log.d("readerCallback.OnLoadFileStart " + filename);
+			log.d("readerCallback.OnLoadFileStart " + filename);
+			if (enable_progress_callback) {
+				showProgress(1000, R.string.progress_loading);
+			}
 		}
 	    /// Override to handle external links
 	    public void OnImageCacheClear() {
