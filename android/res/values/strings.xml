@@ -617,7 +617,7 @@
     <string name="pages_per_full_swipe_20">"20 pages (track)"</string>
     <string name="error_while_opening">Error while opening document \"%s\"</string>
     <string name="datadir_is_removed">Application data directory \"%s\" has been removed by other app.\nPossibly it was some kind of disc space optimizer.\nUnfortunately all the settings were lost.</string>
-    <string name="font_not_compat_with_language">"Notice: font \"%s\" isn't compatible with language \"%s\". Instead will be used fallback font."</string>
+    <string name="font_not_compat_with_language">Warning: font \"%s\" does not contain the full character set of the language \"%s\". Missing characters will be taken from the additional font.</string>
     <string name="fontconfig_language_orthography_database">"Languages character set database by Fontconfig:
         https://www.fontconfig.org/ "
     </string>
