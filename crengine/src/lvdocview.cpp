@@ -4397,9 +4397,9 @@ bool LVDocView::ParseDocument() {
 			m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors(m_doc));
 			m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle(m_doc));
 			if (txt_autodet_lang.length() > 0)
-				m_doc_props->setString(DOC_PROP_LANGUAGE, txt_autodet_lang);        // already in lowercase
+				m_doc_props->setString(DOC_PROP_LANGUAGE, txt_autodet_lang);
 			else
-				m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc).lowercase());
+				m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc));
             int seriesNumber = -1;
             lString16 seriesName = extractDocSeries(m_doc, &seriesNumber);
             m_doc_props->setString(DOC_PROP_SERIES_NAME, seriesName);

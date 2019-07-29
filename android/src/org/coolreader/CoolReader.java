@@ -674,7 +674,7 @@ public class CoolReader extends BaseActivity
 
 	@Override
 	public void onSettingsChanged(Properties props, Properties oldProps) {
-		Properties changedProps = oldProps!=null ? props.diff(oldProps) : props;
+		Properties changedProps = oldProps != null ? props.diff(oldProps) : props;
 		if (mHomeFrame != null) {
 			mHomeFrame.refreshOnlineCatalogs();
 		}
@@ -683,13 +683,13 @@ public class CoolReader extends BaseActivity
 			if (mReaderView != null)
 				mReaderView.updateSettings(props);
 		}
-        for ( Map.Entry<Object, Object> entry : changedProps.entrySet() ) {
-    		String key = (String)entry.getKey();
-    		String value = (String)entry.getValue();
-    		applyAppSetting( key, value );
-        }
+		for (Map.Entry<Object, Object> entry : changedProps.entrySet()) {
+			String key = (String) entry.getKey();
+			String value = (String) entry.getValue();
+			applyAppSetting(key, value);
+		}
 		// Show/Hide soft navbar after OptionDialog is closed.
-		setSystemUiVisibility();
+		applyFullscreen(getWindow());
 	}
 
     protected boolean allowLowBrightness() {
