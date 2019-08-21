@@ -43,6 +43,7 @@ if ( NOT ${GUI} STREQUAL FB2PROPS )
     src/epubfmt.cpp     
     src/pdbfmt.cpp     
     src/wordfmt.cpp     
+    src/fb3fmt.cpp
     src/crconcurrent.cpp
     #src/xutils.cpp
     )

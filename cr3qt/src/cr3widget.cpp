@@ -1226,6 +1226,9 @@ void CR3View::OnLoadFileFormatDetected( doc_format_t fileFormat )
         case doc_format_txt:
             filename = "txt.css";
             break;
+        case doc_format_fb3:
+            filename = "fb3.css";
+            break;
         case doc_format_rtf:
             filename = "rtf.css";
             break;

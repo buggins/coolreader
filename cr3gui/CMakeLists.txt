@@ -97,6 +97,7 @@ elseif ( ${GUI} STREQUAL CRGUI_QT )
     
     SET(CR3_SOURCES ${CR3_SOURCES} src/cr3qt.cpp)
     SET (EXTRA_LIBS ${QT_LIBRARIES} ${STD_LIBS} )
+    SET(CR3_STYLES ${CR3_STYLES} data/fb3.css)
 
     INSTALL( FILES ${CR3_STYLES} DESTINATION root/crengine)
     INSTALL( DIRECTORY data/hyph/ DESTINATION root/crengine/hyph

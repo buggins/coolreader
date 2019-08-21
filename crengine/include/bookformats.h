@@ -7,6 +7,7 @@
 typedef enum {
     doc_format_none,
     doc_format_fb2,
+    doc_format_fb3,
     doc_format_txt,
     doc_format_rtf,
     doc_format_epub,
