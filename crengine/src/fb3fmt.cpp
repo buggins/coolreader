@@ -150,12 +150,6 @@ bool ImportFb3Document( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
 
     if ( !ret ) {
         CRLog::error("Couldn't parse a book");
-    } else {
-#if 1
-    // save compound XML document, for testing:
-    doc->saveToStream(LVOpenFileStream("C:/Temp/fb3_dump.xml", LVOM_WRITE), NULL, true);
-#endif
-
     }
 
     if ( progressCallback ) {
