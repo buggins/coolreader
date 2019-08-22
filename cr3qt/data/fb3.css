@@ -101,16 +101,18 @@ coverpage { display: none }
 
 head, form, script { display: none; } 
 
-b,strong,i,em,dfn,var,q,u,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
+b,strong,i,em,dfn,var,q,u,underline,del,s,strike,small,big,sub,sup,acronym,tt,sa mp,kbd,code { 
    display: inline; 
 } 
+
+spacing { display: inline; letter-spacing: 5px }
 
 sub { vertical-align: sub; font-size: 70% }
 sup { vertical-align: super; font-size: 70% }
 
 strong, b { font-weight: bold }
 emphasis, i, em, dfn, var { font-style: italic }
-u { text-decoration: underline; } 
+u,underline { text-decoration: underline; } 
 del, s, strike, strikethrough { text-decoration: line-through; } 
 
 small { font-size: 80%; } 
