@@ -107,15 +107,6 @@ bool ImportFb3Document( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     }
     doc->setContainer(arc);
 
-#if BUILD_LITE!=1
-    if ( doc->openFromCache(formatCallback) ) {
-        if ( progressCallback ) {
-            progressCallback->OnLoadFileEnd( );
-        }
-        return true;
-    }
-#endif
-
     CRPropRef doc_props = doc->getProps();
     LVStreamRef propStream = arc->OpenStream(context.getContentPath(fb3_PropertiesContentType).c_str(), LVOM_READ );
     if ( propStream.isNull() ) {
@@ -150,6 +141,15 @@ bool ImportFb3Document( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     CRLog::info("Author: %s Title: %s", author.c_str(), title.c_str());
     delete propertiesDoc;
     delete descDoc;
+
+#if BUILD_LITE!=1
+    if ( doc->openFromCache(formatCallback) ) {
+        if ( progressCallback ) {
+            progressCallback->OnLoadFileEnd( );
+        }
+        return true;
+    }
+#endif
 
     LVStreamRef bookStream = arc->OpenStream(context.getContentPath(fb3_BodyContentType).c_str(), LVOM_READ );
     if ( bookStream.isNull() ) {
