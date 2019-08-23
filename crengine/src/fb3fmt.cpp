@@ -4,6 +4,7 @@
 
 const lChar16 * const fb3_BodyContentType = L"application/fb3-body+xml";
 const lChar16 * const fb3_PropertiesContentType = L"application/vnd.openxmlformats-package.core-properties+xml";
+const lChar16 * const fb3_DescriptionContentType = L"application/fb3-description+xml";
 const lChar16 * const fb3_CoverRelationship = L"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail";
 const lChar16 * const fb3_ImageRelationship = L"http://www.fictionbook.org/FictionBook3/relationships/image";
 
@@ -128,12 +129,27 @@ bool ImportFb3Document( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
         return false;
     }
 
+    LVStreamRef descStream = arc->OpenStream(context.getContentPath(fb3_DescriptionContentType).c_str(), LVOM_READ );
+    if ( descStream.isNull() ) {
+        CRLog::error("Couldn't read description");
+        return false;
+    }
+
+    ldomDocument * descDoc = LVParseXMLStream( descStream );
+    if ( !descDoc ) {
+        CRLog::error("Couldn't parse description doc");
+        return false;
+    }
+
     lString16 author = propertiesDoc->textFromXPath( cs16("coreProperties/creator") );
     lString16 title = doc->textFromXPath( cs16("coreProperties/title") );
+    lString16 language = descDoc->textFromXPath( cs16("fb3-description/lang") );
     doc_props->setString(DOC_PROP_TITLE, title);
     doc_props->setString(DOC_PROP_AUTHORS, author );
+    doc_props->setString(DOC_PROP_LANGUAGE, language);
     CRLog::info("Author: %s Title: %s", author.c_str(), title.c_str());
     delete propertiesDoc;
+    delete descDoc;
 
     LVStreamRef bookStream = arc->OpenStream(context.getContentPath(fb3_BodyContentType).c_str(), LVOM_READ );
     if ( bookStream.isNull() ) {
