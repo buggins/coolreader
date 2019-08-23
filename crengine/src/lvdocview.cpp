@@ -3901,6 +3901,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
             setDocFormat( doc_format_fb3 );
             if ( m_callback )
                 m_callback->OnLoadFileFormatDetected(doc_format_fb3);
+            updateDocStyleSheet();
             bool res = ImportFb3Document( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
