@@ -10612,7 +10612,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
             for (int i = 0; i < parent->getChildCount(); i++) {
                 ldomNode * child = parent->getChildNode(i);
                 css_style_ref_t cs = child->getStyle();
-                if ( cs.isNull() )
+                if ( cs.isNull() || cs->display != css_d_list_item )
                     continue;
                 switch ( cs->list_style_type ) {
                 case css_lst_decimal:
