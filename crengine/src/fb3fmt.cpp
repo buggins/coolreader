@@ -60,14 +60,13 @@ class fb3DomWriter : public LVXMLParserCallback
 private:
     fb3ImportContext *m_context;
     ldomDocumentWriter *m_parent;
-    ldomNode *m_footnotesBody;
     bool m_checkRole;
 protected:
     void writeDescription();
 public:
     /// constructor
     fb3DomWriter(ldomDocumentWriter * parent, fb3ImportContext *importContext ) :
-        m_parent(parent), m_context(importContext), m_footnotesBody(NULL), m_checkRole(false)
+        m_parent(parent), m_context(importContext), m_checkRole(false)
     {
     }
     // LVXMLParserCallback interface
@@ -321,13 +320,11 @@ ldomNode *fb3DomWriter::OnTagOpen(const lChar16 *nsname, const lChar16 *tagname)
         writeDescription();
         tagname = L"body";
     } else if ( !lStr_cmp(tagname, "notes" )) {
-        if ( m_footnotesBody == NULL ) {
-            m_parent->OnTagClose(NULL, L"body");
-            m_footnotesBody = m_parent->OnTagOpen(NULL,L"body");
-            m_parent->OnAttribute(NULL, L"name", L"notes");
-            m_parent->OnTagBody();
-            return m_footnotesBody;
-        }
+         m_parent->OnTagClose(NULL, L"body");
+         ldomNode *footnotesBody = m_parent->OnTagOpen(NULL,L"body");
+         m_parent->OnAttribute(NULL, L"name", L"notes");
+         m_parent->OnTagBody();
+         return footnotesBody;
     } else if( !lStr_cmp(tagname, "notebody") ) {
         tagname = L"section";
     } else if( !lStr_cmp(tagname, "note") ) {
