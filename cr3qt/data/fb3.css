@@ -52,6 +52,9 @@ title, h1, h2 {
 	page-break-inside: avoid; 
 	page-break-after: avoid; 
 }
+ol title, ul title {
+    page-break-before: auto; 
+}
 subtitle, h3, h4, h5, h6 { 
 	page-break-inside: avoid; 
 	page-break-after: avoid; 
