@@ -8,29 +8,92 @@ const lChar16 * const fb3_DescriptionContentType = L"application/fb3-description
 const lChar16 * const fb3_CoverRelationship = L"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail";
 const lChar16 * const fb3_ImageRelationship = L"http://www.fictionbook.org/FictionBook3/relationships/image";
 
+class OpcPackage;
+class OpcPart;
+typedef LVFastRef<OpcPart> OpcPartRef;
+
+class OpcPart : public LVRefCounter
+{
+public:
+    ~OpcPart();
+    LVStreamRef open();
+    lString16 getRelatedPartName(const lChar16 * const relationType, const lString16 id = lString16());
+    OpcPartRef getRelatedPart(const lChar16 * const relationType, const lString16 id = lString16());
+protected:
+    OpcPart(OpcPackage* package, lString16 name):
+       m_relations(16), m_package(package), m_name(name), m_relationsValid(false)
+    {
+    }
+    void readRelations();
+    lString16 getTargetPath(const lString16 srcPath, const lString16 targetMode, lString16 target);
+    OpcPart* createPart(OpcPackage* package, lString16 name) {
+        return new OpcPart(package, name);
+    }
+private:
+    LVHashTable<lString16, LVHashTable<lString16, lString16> *> m_relations;
+    OpcPackage* m_package;
+    lString16 m_name;
+    bool m_relationsValid;
+private:
+    // non copyable
+    OpcPart();
+    OpcPart( const OpcPart& );
+    OpcPart& operator=( const OpcPart& );
+};
+
+
+class OpcPackage : public OpcPart
+{
+private:
+    bool m_contentTypesValid;
+    LVContainerRef m_container;
+    LVHashTable<lString16, lString16> m_contentTypes;
+private:
+    // non copyable
+    OpcPackage();
+    OpcPackage( const OpcPackage& );
+    OpcPackage& operator=( const OpcPart& );
+public:
+    OpcPackage(LVContainerRef container) : OpcPart(this, L"/"),
+        m_contentTypesValid(false), m_container(container),
+        m_contentTypes(16)
+    {
+    }
+    LVStreamRef open(lString16 partName) {
+        return m_container->OpenStream(partName.c_str(), LVOM_READ);
+    }
+    lString16 getContentPartName(const lChar16* contentType);
+    OpcPartRef getContentPart(const lChar16* contentType) {
+        return getPart(getContentPartName(contentType));
+    }
+    LVStreamRef openContentPart(const lChar16* contentType) {
+        return open(getContentPartName(contentType));
+    }
+    OpcPartRef getPart(const lString16 partName);
+    bool partExist(const lString16 partName);
+private:
+    void readContentTypes();
+};
+
 class fb3ImportContext
 {
 private:
-    LVHashTable<lString16, lString16> m_relationships;
-    LVHashTable<lString16, lString16> m_contentTypes;
-    LVContainerRef m_arc;
-    lString16 getTargetPath(const lString16 src, const lString16 targetMode, lString16 target);
+    OpcPackage *m_package;
+    OpcPartRef m_bookPart;
+    ldomDocument *m_descDoc;
 public:
-    fb3ImportContext(LVContainerRef arc);
+    fb3ImportContext(OpcPackage *package);
     virtual ~fb3ImportContext();
 
-    bool readRelations(const lString16 path);
-    lString16 readRelationByType(const lString16 path, const lString16 type);
     lString16 geImageTarget(const lString16 relationId) {
-        return m_relationships.get( relationId );
+        return m_bookPart->getRelatedPartName(fb3_ImageRelationship, relationId);
     }
-    lString16 getContentPath(const lString16 typeId) {
-        return m_contentTypes.get( typeId );
+    LVStreamRef openBook() {
+        m_bookPart = m_package->getContentPart(fb3_BodyContentType);
+        m_coverImage = m_package->getRelatedPartName(fb3_CoverRelationship);
+        return m_bookPart->open();
     }
-    void clearRelations() {
-        m_relationships.clear();
-    }
-    bool readContentTypes();
+    ldomDocument *getDescription();
 public:
     lString16 m_coverImage;
 };
@@ -38,21 +101,12 @@ public:
 bool DetectFb3Format( LVStreamRef stream )
 {
     LVContainerRef m_arc = LVOpenArchieve( stream );
-    bool ret = false;
     if ( m_arc.isNull() )
         return false; // not a ZIP archive
 
-    LVStreamRef mtStream = m_arc->OpenStream(L"[Content_Types].xml", LVOM_READ );
-    if ( !mtStream.isNull() ) {
-        ldomDocument * doc = LVParseXMLStream( mtStream );
-        if( doc ) {
-            lUInt16 id = doc->findAttrValueIndex(fb3_BodyContentType);
-            if ( id != (lUInt16)-1 )
-                ret = true;
-            delete doc;
-        }
-    }
-    return ret;
+    OpcPackage package(m_arc);
+
+    return package.partExist(package.getContentPartName(fb3_BodyContentType));
 }
 
 class fb3DomWriter : public LVXMLParserCallback
@@ -66,7 +120,7 @@ protected:
 public:
     /// constructor
     fb3DomWriter(ldomDocumentWriter * parent, fb3ImportContext *importContext ) :
-        m_parent(parent), m_context(importContext), m_checkRole(false)
+        m_context(importContext), m_parent(parent), m_checkRole(false)
     {
     }
     // LVXMLParserCallback interface
@@ -93,53 +147,40 @@ bool ImportFb3Document( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     if ( arc.isNull() )
         return false; // not a ZIP archive
 
-    fb3ImportContext context(arc);
+    OpcPackage package(arc);
 
-    if( !context.readContentTypes( )) {
-        CRLog::error("Couldn't read content types");
-        return false;
-    }
+    fb3ImportContext context(&package);
 
-    if ( !context.readRelations(context.getContentPath(fb3_BodyContentType)) ) {
-        CRLog::error("Couldn't read relations");
-        return false;
-    }
     doc->setContainer(arc);
 
     CRPropRef doc_props = doc->getProps();
-    LVStreamRef propStream = arc->OpenStream(context.getContentPath(fb3_PropertiesContentType).c_str(), LVOM_READ );
-    if ( propStream.isNull() ) {
-        CRLog::error("Couldn't read properties");
-        return false;
+
+    LVStreamRef propStream = package.openContentPart(fb3_PropertiesContentType);
+
+    if ( !propStream.isNull() ) {
+        ldomDocument * propertiesDoc = LVParseXMLStream( propStream );
+        if ( propertiesDoc ) {
+            lString16 author = propertiesDoc->textFromXPath( cs16("coreProperties/creator") );
+            lString16 title = doc->textFromXPath( cs16("coreProperties/title") );
+            doc_props->setString(DOC_PROP_TITLE, title);
+            doc_props->setString(DOC_PROP_AUTHORS, author );
+            CRLog::info("Author: %s Title: %s", author.c_str(), title.c_str());
+            delete propertiesDoc;
+        } else {
+            CRLog::error("Couldn't parse core properties");
+        }
+    } else {
+        CRLog::error("Couldn't read core properties");
     }
 
-    ldomDocument * propertiesDoc = LVParseXMLStream( propStream );
-    if ( !propertiesDoc ) {
-        CRLog::error("Couldn't parse properties doc");
-        return false;
-    }
+    ldomDocument * descDoc = context.getDescription();
 
-    LVStreamRef descStream = arc->OpenStream(context.getContentPath(fb3_DescriptionContentType).c_str(), LVOM_READ );
-    if ( descStream.isNull() ) {
-        CRLog::error("Couldn't read description");
-        return false;
-    }
-
-    ldomDocument * descDoc = LVParseXMLStream( descStream );
-    if ( !descDoc ) {
+    if ( descDoc ) {
+        lString16 language = descDoc->textFromXPath( cs16("fb3-description/lang") );
+        doc_props->setString(DOC_PROP_LANGUAGE, language);
+    } else {
         CRLog::error("Couldn't parse description doc");
-        return false;
     }
-
-    lString16 author = propertiesDoc->textFromXPath( cs16("coreProperties/creator") );
-    lString16 title = doc->textFromXPath( cs16("coreProperties/title") );
-    lString16 language = descDoc->textFromXPath( cs16("fb3-description/lang") );
-    doc_props->setString(DOC_PROP_TITLE, title);
-    doc_props->setString(DOC_PROP_AUTHORS, author );
-    doc_props->setString(DOC_PROP_LANGUAGE, language);
-    CRLog::info("Author: %s Title: %s", author.c_str(), title.c_str());
-    delete propertiesDoc;
-    delete descDoc;
 
 #if BUILD_LITE!=1
     if ( doc->openFromCache(formatCallback) ) {
@@ -150,7 +191,7 @@ bool ImportFb3Document( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     }
 #endif
 
-    LVStreamRef bookStream = arc->OpenStream(context.getContentPath(fb3_BodyContentType).c_str(), LVOM_READ );
+    LVStreamRef bookStream = context.openBook();
     if ( bookStream.isNull() ) {
         CRLog::error("Couldn't read a book");
         return false;
@@ -176,123 +217,26 @@ bool ImportFb3Document( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     return ret;
 }
 
-lString16 fb3ImportContext::getTargetPath(const lString16 srcPath, const lString16 targetMode, lString16 target)
+fb3ImportContext::fb3ImportContext(OpcPackage *package) : m_package(package), m_descDoc(NULL)
 {
-    if( !target.empty() ) {
-        if ( targetMode == L"External" || target.pos(L":") != -1 )
-            return target;
-
-        if( !LVIsAbsolutePath(target) ) {
-            target = LVCombinePaths(srcPath, target);
-        }
-        if( LVIsAbsolutePath(target) ) {
-            return target.substr(1);
-        }
-    }
-    return target;
-}
-
-fb3ImportContext::fb3ImportContext(LVContainerRef arc) :
-    m_relationships(64), m_contentTypes(16), m_arc(arc)
-{
-    m_contentTypes.set(cs16(fb3_BodyContentType), lString16(L"/fb3/body.xml"));
-    m_contentTypes.set(cs16(fb3_PropertiesContentType), lString16(L"/meta/core.xml"));
 }
 
 fb3ImportContext::~fb3ImportContext()
 {
+    if(m_descDoc)
+        delete  m_descDoc;
 }
 
-bool fb3ImportContext::readRelations(const lString16 path)
+ldomDocument *fb3ImportContext::getDescription()
 {
-    lString16 srcPath = LVExtractPath(path);
-    lString16 relsPath = srcPath + "_rels/" + LVExtractFilename(path) + ".rels";
+    if( !m_descDoc ) {
+        LVStreamRef descStream = m_package->openContentPart(fb3_DescriptionContentType);
 
-    CRLog::info("rels path = %s", LCSTR(relsPath));
-
-    LVStreamRef container_stream = m_arc->OpenStream(relsPath.c_str(), LVOM_READ);
-
-    if ( !container_stream.isNull() ) {
-        ldomDocument * doc = LVParseXMLStream( container_stream );
-        if ( doc ) {
-            ldomNode *root = doc->nodeFromXPath(cs16("Relationships"));
-            if( root ) {
-                for(int i = 0; i < root->getChildCount(); i++) {
-                    ldomNode * relationshipNode = root->getChildNode(i);
-                    const lString16 relType = relationshipNode->getAttributeValue(L"Type");
-                    if( relType != fb3_ImageRelationship)
-                        continue;
-                    const lString16 id = relationshipNode->getAttributeValue(L"Id");
-                    if( !id.empty() ) {
-                        m_relationships.set( id,
-                                             getTargetPath(srcPath, relationshipNode->getAttributeValue(L"TargetMode"),
-                                                           relationshipNode->getAttributeValue(L"Target")) );
-                    }
-                }
-            }
-            delete doc;
-            m_coverImage = readRelationByType(L"/", fb3_CoverRelationship);
-            return true;
+        if ( !descStream.isNull() ) {
+            m_descDoc = LVParseXMLStream( descStream );
         }
     }
-    return false;
-}
-
-lString16 fb3ImportContext::readRelationByType(const lString16 path, const lString16 type)
-{
-    lString16 srcPath = LVExtractPath(path);
-    lString16 relsPath = srcPath + cs16("_rels/") + LVExtractFilename(path) + cs16(".rels");
-    lString16 targetPath;
-
-    LVStreamRef container_stream = m_arc->OpenStream(relsPath.c_str(), LVOM_READ);
-    if ( !container_stream.isNull() ) {
-        ldomDocument * doc = LVParseXMLStream( container_stream );
-        if ( doc ) {
-            ldomNode *root = doc->nodeFromXPath(cs16("Relationships"));
-            if( root ) {
-                for(int i = 0; i < root->getChildCount(); i++) {
-                    ldomNode * relationshipNode = root->getChildNode(i);
-                    const lString16 relType = relationshipNode->getAttributeValue(L"Type");
-                    if( relType == type ) {
-                        targetPath = getTargetPath(srcPath, relationshipNode->getAttributeValue(L"TargetMode"),
-                                                   relationshipNode->getAttributeValue(L"Target"));
-                        // return first found
-                        break;
-                    }
-                }
-            }
-            delete doc;
-        }
-    }
-    return targetPath;
-}
-
-bool fb3ImportContext::readContentTypes()
-{
-    bool ret = false;
-
-    LVStreamRef mtStream = m_arc->OpenStream(L"[Content_Types].xml", LVOM_READ );
-    if ( !mtStream.isNull() ) {
-        ldomDocument * doc = LVParseXMLStream( mtStream );
-        if( doc ) {
-            ldomNode *root = doc->nodeFromXPath(cs16("Types"));
-            if(root) {
-                for(int i = 0; i < root->getChildCount(); i++) {
-                    ldomNode * typeNode = root->getChildNode(i);
-                    if(typeNode->getNodeName() == cs16("Override")) {
-                        const lString16 contentType = typeNode->getAttributeValue(L"ContentType");
-                        const lString16 partName = typeNode->getAttributeValue(L"PartName");
-                        if( !contentType.empty() && !partName.empty() ) {
-                            m_contentTypes.set( contentType, partName );
-                        }
-                    }
-                }
-            }
-            delete doc;
-            ret = true;
-        }
-    }
-    return ret;
+    return m_descDoc;
 }
 
 void fb3DomWriter::writeDescription()
@@ -343,6 +287,8 @@ void fb3DomWriter::OnTagClose(const lChar16 *nsname, const lChar16 *tagname)
         tagname = L"section";
     } else if( !lStr_cmp(tagname, "note") ) {
         tagname = L"a";
+    } else if ( !lStr_cmp(tagname, "notes" )) {
+        tagname = L"body";
     }
     m_parent->OnTagClose(nsname, tagname);
 }
@@ -379,5 +325,128 @@ void fb3DomWriter::OnAttribute(const lChar16 *nsname, const lChar16 *attrname, c
     }
     if ( pass) {
         m_parent->OnAttribute(nsname, attrname, attrvalue);
+    }
+}
+
+OpcPart::~OpcPart()
+{
+    m_relations.clear();
+}
+
+LVStreamRef OpcPart::open()
+{
+    return m_package->open(m_name);
+}
+
+lString16 OpcPart::getRelatedPartName(const lChar16 * const relationType, const lString16 id)
+{
+    if( !m_relationsValid ) {
+        readRelations();
+        m_relationsValid = true;
+    }
+    LVHashTable<lString16, lString16> *relationsTable = m_relations.get(relationType);
+    if( relationsTable ) {
+        if( id.empty() ) {
+            LVHashTable<lString16, lString16>::iterator it = relationsTable->forwardIterator();
+            LVHashTable<lString16, lString16>::pair *p = it.next();
+            if( p ) {
+                return p->value; // return first value
+            }
+        } else {
+            return relationsTable->get(id);
+        }
+    }
+    return lString16();
+}
+
+OpcPartRef OpcPart::getRelatedPart(const lChar16 * const relationType, const lString16 id)
+{
+    return m_package->getPart( getRelatedPartName(relationType, id) );
+}
+
+void OpcPart::readRelations()
+{
+    lString16 relsPath = LVExtractPath(m_name) + cs16("_rels/") + LVExtractFilename(m_name) + cs16(".rels");
+    LVStreamRef container_stream = m_package->open(relsPath);
+
+    if ( !container_stream.isNull() ) {
+        ldomDocument * doc = LVParseXMLStream( container_stream );
+        lString16 srcPath = LVExtractPath(m_name);
+
+        if ( doc ) {
+            ldomNode *root = doc->nodeFromXPath(cs16("Relationships"));
+            if( root ) {
+                for(int i = 0; i < root->getChildCount(); i++) {
+                    ldomNode * relationshipNode = root->getChildNode((lUInt32)i);
+                    const lString16 relType = relationshipNode->getAttributeValue(L"Type");
+                    LVHashTable<lString16, lString16> *relationsTable = m_relations.get(relType);
+                    if( !relationsTable ) {
+                        relationsTable = new LVHashTable<lString16, lString16>(16);
+                        m_relations.set(relType, relationsTable);
+                    }
+                    const lString16 id = relationshipNode->getAttributeValue(L"Id");
+                    relationsTable->set( id, getTargetPath(srcPath, relationshipNode->getAttributeValue(L"TargetMode"),
+                                                           relationshipNode->getAttributeValue(L"Target")) );
+                }
+            }
+            delete doc;
+        }
+    }
+}
+
+lString16 OpcPart::getTargetPath(const lString16 srcPath, const lString16 targetMode, lString16 target)
+{
+    if( !target.empty() ) {
+        if ( targetMode == L"External" || target.pos(L":") != -1 )
+            return target;
+
+        if( !LVIsAbsolutePath(target) ) {
+            target = LVCombinePaths(srcPath, target);
+        }
+        if( LVIsAbsolutePath(target) ) {
+            return target.substr(1);
+        }
+    }
+    return target;
+}
+
+lString16 OpcPackage::getContentPartName(const lChar16 *contentType)
+{
+    if ( !m_contentTypesValid ) {
+        readContentTypes();
+        m_contentTypesValid = true;
+    }
+    return m_contentTypes.get(contentType);
+}
+
+OpcPartRef OpcPackage::getPart(const lString16 partName)
+{
+    return OpcPartRef(createPart(this, partName));
+}
+
+bool OpcPackage::partExist(const lString16 partName)
+{
+    LVStreamRef partStream = open(partName);
+    return !partStream.isNull();
+}
+
+void OpcPackage::readContentTypes()
+{
+    LVStreamRef mtStream = m_container->OpenStream(L"[Content_Types].xml", LVOM_READ );
+    if ( !mtStream.isNull() ) {
+        ldomDocument * doc = LVParseXMLStream( mtStream );
+        if( doc ) {
+            ldomNode *root = doc->nodeFromXPath(cs16("Types"));
+            if(root) {
+                for(int i = 0; i < root->getChildCount(); i++) {
+                    ldomNode * typeNode = root->getChildNode(i);
+
+                    if(typeNode->getNodeName() == cs16("Override")) //Don't care about Extensions
+                        m_contentTypes.set( typeNode->getAttributeValue(L"ContentType"),
+                                            typeNode->getAttributeValue(L"PartName") );
+                }
+            }
+            delete doc;
+        }
     }
 }
