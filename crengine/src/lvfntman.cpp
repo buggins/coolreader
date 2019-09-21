@@ -1252,6 +1252,14 @@ public:
                         posInfo->offset = 0;
                         posInfo->width = glyph.width;
                     }
+                } else {
+                    if (getGlyphInfo(def_char, &glyph, 0)) {
+                        posInfo->offset = 0;
+                        posInfo->width = glyph.width;
+                    } else {
+                        posInfo->offset = 0;
+                        posInfo->width = _size;
+                    }
                 }
             }
         } else {
@@ -1337,7 +1345,7 @@ public:
         }
     }
   */
-  
+
     /**
      * @brief Check font for compatibility with language with langCode
      * @param langCode language code, for example, "en" - English, "ru" - Russian
@@ -1345,6 +1353,7 @@ public:
      */
     virtual bool checkFontLangCompat(const lString8& langCode)
     {
+#define FC_LANG_START_INTERVAL_CODE     2
         bool fullSupport = false;
         bool partialSupport = false;
         struct fc_lang_catalog* lang_ptr = fc_lang_cat;
@@ -1379,7 +1388,7 @@ public:
                     if (i >= lang_ptr->char_set_sz)
                         break;
                     tmp = lang_ptr->char_set[i];
-                    if (2 == tmp)           // code of start interval
+                    if (FC_LANG_START_INTERVAL_CODE == tmp)        // code of start interval
                     {
                         if (i + 2 < lang_ptr->char_set_sz)
                         {
@@ -1504,10 +1513,20 @@ public:
                             if (fallback->getGlyphInfo(ch, &glyph, def_char)) {
                                 w = glyph.width;
                                 _wcache.put(ch, w);
-                            } else        // ignore (skip) this char
-                                widths[cluster] = prev_width;
-                        } else            // ignore (skip) this char
-                            widths[cluster] = prev_width;
+                            } else {
+                                w = _size;
+                                _wcache.put(ch, w);
+                            }
+                        } else {
+                            // use def_char if possible
+                            if (getGlyphInfo(def_char, &glyph, 0)) {
+                                w = glyph.width;
+                                _wcache.put(ch, w);
+                            } else {
+                                w = _size;
+                                _wcache.put(ch, w);
+                            }
+                        }
                     }
                     widths[cluster] = prev_width + w + letter_spacing;
                 }
@@ -1537,6 +1556,7 @@ public:
             // i is used below to "fill props for rest of chars", so make it accurate
             i += skipped_chars;
         } else {
+            // no ligatures, no HarfBuzz text shaping, only individual char shaping in hbCalcCharWidth()
             struct LVCharTriplet triplet;
             struct LVCharPosInfo posInfo;
             triplet.Char = 0;
@@ -1880,9 +1900,9 @@ public:
             // fill HarfBuzz buffer with filtering
             for (i = 0; i < (unsigned int)len; i++) {
                 ch = text[i];
-                bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < (unsigned int)(len - 1));
+                isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < (unsigned int)(len - 1));
                 if (!isHyphen) {		// avoid soft hyphens inside text string
-                    // Also replaced any chars to similar if not glyph not found
+                    // Also replaced any chars to similar if the glyph is not found
                     hb_buffer_add(_hb_buffer, (hb_codepoint_t)filterChar(ch), i);
                     len_new++;
                 }
@@ -2841,6 +2861,10 @@ public:
                 "Arial Unicode MS",
                 "AR PL ShanHeiSun Uni",
                 "Liberation Sans",
+                "Roboto",
+                "DejaVu Sans",
+                "Noto Sans",
+                "Droid Sans",
                 NULL
             };
 
@@ -2910,7 +2934,7 @@ public:
             fprintf(_log, "=========================== LOGGING STARTED ===================\n");
         }
     #endif
-        _requiredChars = L"azAZ09";//\x0410\x042F\x0430\x044F";
+        _requiredChars = L"azAZ09?";//\x0410\x042F\x0430\x044F";
     }
 
     virtual void gc() // garbage collector
