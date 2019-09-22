@@ -27,6 +27,9 @@
 #include "../include/chmfmt.h"
 #include "../include/wordfmt.h"
 #include "../include/pdbfmt.h"
+#include "../include/fb3fmt.h"
+#include "../include/docxfmt.h"
+
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
 
@@ -3890,6 +3893,71 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 				return true;
 			}
 		}
+
+        if( DetectFb3Format(m_stream) ) {
+            CRLog::info("FB3 format detected");
+            createEmptyDocument();
+            m_doc->setProps( m_doc_props );
+            setRenderProps( 0, 0 );
+            setDocFormat( doc_format_fb3 );
+            if ( m_callback )
+                m_callback->OnLoadFileFormatDetected(doc_format_fb3);
+            updateDocStyleSheet();
+            bool res = ImportFb3Document( m_stream, m_doc, m_callback, this );
+            if ( !res ) {
+                setDocFormat( doc_format_none );
+                createDefaultDocument( cs16("ERROR: Error reading FB3 format"), cs16("Cannot open document") );
+                if ( m_callback ) {
+                    m_callback->OnLoadFileError( cs16("Error reading FB3 document") );
+                }
+                return false;
+            } else {
+                m_container = m_doc->getContainer();
+                m_doc_props = m_doc->getProps();
+                setRenderProps( 0, 0 );
+                REQUEST_RENDER("loadDocument")
+                if ( m_callback ) {
+                    m_callback->OnLoadFileEnd( );
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                m_arc = m_doc->getContainer();
+                return true;
+            }
+        }
+
+        if( DetectDocXFormat(m_stream) ) {
+            CRLog::info("DOCX format detected");
+            createEmptyDocument();
+            m_doc->setProps( m_doc_props );
+            setRenderProps( 0, 0 );
+            setDocFormat( doc_format_docx );
+            if ( m_callback )
+                m_callback->OnLoadFileFormatDetected(doc_format_docx);
+            updateDocStyleSheet();
+            bool res = ImportDocXDocument( m_stream, m_doc, m_callback, this );
+            if ( !res ) {
+                setDocFormat( doc_format_none );
+                createDefaultDocument( cs16("ERROR: Error reading DOCX format"), cs16("Cannot open document") );
+                if ( m_callback ) {
+                    m_callback->OnLoadFileError( cs16("Error reading DOCX document") );
+                }
+                return false;
+            } else {
+                m_container = m_doc->getContainer();
+                m_doc_props = m_doc->getProps();
+                setRenderProps( 0, 0 );
+                REQUEST_RENDER("loadDocument")
+                if ( m_callback ) {
+                    m_callback->OnLoadFileEnd( );
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                m_arc = m_doc->getContainer();
+                return true;
+            }
+        }
+
 #if CHM_SUPPORT_ENABLED==1
         if ( DetectCHMFormat( m_stream ) ) {
 			// CHM
@@ -4111,6 +4179,8 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 	switch (fmt) {
 	case doc_format_fb2:
 		return L"FictionBook (FB2)";
+    case doc_format_fb3:
+        return L"FictionBook (FB3)";
 	case doc_format_txt:
 		return L"Plain text (TXT)";
 	case doc_format_rtf:
@@ -4125,6 +4195,8 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 		return L"CR3 TXT Bookmark";
 	case doc_format_doc:
 		return L"DOC";
+    case doc_format_docx:
+        return L"DOCX";
 	default:
 		return L"Unknown format";
 	}
