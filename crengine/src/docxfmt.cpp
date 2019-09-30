@@ -342,7 +342,7 @@ public:
         }
     }
 
-    template<class T>
+    template<class T, typename U = void>
     T getValue(int index, T defaultValue) const {
         css_length_t property = get(index);
         if(property.type != css_val_unspecified)
@@ -350,7 +350,7 @@ public:
         return defaultValue;
     }
 
-    template<>
+    template<typename U>
     bool getValue(int index, bool defaultValue) const {
         css_length_t property = get(index);
         if(property.type != css_val_unspecified)
