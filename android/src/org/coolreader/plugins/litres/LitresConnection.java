@@ -6,13 +6,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -21,9 +23,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.message.BasicNameValuePair;
 import org.coolreader.crengine.L;
 import org.coolreader.crengine.Utils;
 import org.coolreader.db.ServiceThread;
@@ -44,7 +43,7 @@ import android.util.Log;
 
 public class LitresConnection {
 	final static String TAG = "litres";
-	
+
 	public static final String AUTHORIZE_URL = "http://robot.litres.ru/pages/catalit_authorise/";
 	public static final String REGISTER_URL = "http://robot.litres.ru/pages/catalit_register_user/";
 	public static final String GENRES_URL = "http://robot.litres.ru/pages/catalit_genres/";
@@ -54,28 +53,57 @@ public class LitresConnection {
 	public static final String PURCHASE_URL = "http://robot.litres.ru/pages/purchase_book/";
 	public static final String DOWNLOAD_BOOK_URL = "http://robot.litres.ru/pages/catalit_download_book/";
 	public static final String P_ID = "8786915";
-	
+
 	ServiceThread workerThread;
-	
+
 	SharedPreferences preferences;
+
 	private LitresConnection(SharedPreferences preferences) {
 		workerThread = new ServiceThread("litres");
 		workerThread.start();
 		this.preferences = preferences;
 		restorLoginInfo();
 	}
-	
-	public static LitresConnection create (SharedPreferences preferences) {
+
+	public static LitresConnection create(SharedPreferences preferences) {
 		return new LitresConnection(preferences);
 	}
 
 	public interface ResultHandler {
 		void onResponse(AsyncResponse response);
 	}
-	
-    private static final int CONNECT_TIMEOUT = 60000;
-    private static final int READ_TIMEOUT = 60000;
-    private static final int MAX_CONTENT_LEN_TO_BUFFER = 5242880;
+
+	private static final int CONNECT_TIMEOUT = 60000;
+	private static final int READ_TIMEOUT = 60000;
+	private static final int MAX_CONTENT_LEN_TO_BUFFER = 5242880;
+
+	private String mapParamsToEncodedString(final Map<String, String> params) {
+		Iterator<Map.Entry<String, String>> iterator = params.entrySet().iterator();
+		String value;
+		String entry_str;
+		String postParams = "";
+		while (true) {
+			Map.Entry<String, String> entry = iterator.next();
+			if (null != entry.getValue()) {
+				try {
+					value = URLEncoder.encode(entry.getValue(), "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					value = "";
+				}
+			}
+			else {
+				value = "";
+			}
+			entry_str = entry.getKey() + "=" + value;
+			postParams += entry_str;
+			if (iterator.hasNext())
+				postParams += "&";
+			else
+				break;
+		}
+		return postParams;
+	}
+
 	public void sendXMLRequest(final String url, final Map<String, String> params, final ResponseHandler contentHandler, final ResultHandler resultHandler) {
 		Log.i(TAG, "sending request to " + url);
 		final Handler callbackHandler = new Handler();
@@ -89,7 +117,7 @@ public class LitresConnection {
 					}
 				});
 			}
-			
+
 			@Override
 			public void run() {
 				HttpURLConnection connection = null;
@@ -102,50 +130,46 @@ public class LitresConnection {
 						onError(0, "Cannot open connection");
 						return;
 					}
-					if ( conn instanceof HttpsURLConnection ) {
+					if (conn instanceof HttpsURLConnection) {
 						onError(0, "HTTPs is not supported yet");
 						return;
 					}
-					if ( !(conn instanceof HttpURLConnection) ) {
+					if (!(conn instanceof HttpURLConnection)) {
 						onError(0, "Only HTTP supported");
 						return;
 					}
-					connection = (HttpURLConnection)conn;
+					connection = (HttpURLConnection) conn;
 					Log.i(TAG, "opened connection");
-		            connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
-		            connection.setInstanceFollowRedirects(true);
-		            connection.setAllowUserInteraction(false);
-		            connection.setConnectTimeout(CONNECT_TIMEOUT);
-		            connection.setReadTimeout(READ_TIMEOUT);
-		            //connection.setDoInput(true);
-            		connection.setDoOutput(true);
-		            connection.setRequestMethod("POST");
-		            
-		            List<NameValuePair> list = new LinkedList<NameValuePair>();
-		            for (Map.Entry<String, String> entry : params.entrySet())
-		            	list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
-		            UrlEncodedFormEntity postParams = new UrlEncodedFormEntity(list, "utf-8");
-					//Log.d(TAG, "params: " + postParams.toString());
-					OutputStream wr = connection.getOutputStream();
-					//OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
-					postParams.writeTo(wr);
-                    //wr.write(postParams.toString());
-					wr.flush();
+					connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
+					connection.setInstanceFollowRedirects(true);
+					connection.setAllowUserInteraction(false);
+					connection.setConnectTimeout(CONNECT_TIMEOUT);
+					connection.setReadTimeout(READ_TIMEOUT);
+					//connection.setDoInput(true);
+					connection.setDoOutput(true);
+					connection.setRequestMethod("POST");
+
+					String postParams = mapParamsToEncodedString(params);
+					OutputStream outputStream = connection.getOutputStream();
+					OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+					wr.write(postParams);
 					wr.close();
-					
-		            String fileName = null;
-		            String disp = connection.getHeaderField("Content-Disposition");
-		            if ( disp!=null ) {
-		            	int p = disp.indexOf("filename=");
-		            	if ( p>0 ) {
-		            		fileName = disp.substring(p + 9);
-		            	}
-		            }
-		            //connection.setDoOutput(true);
-		            //connection.set
-		            
-		            int response = -1;
-					
+					outputStream.flush();
+					outputStream.close();
+
+					String fileName = null;
+					String disp = connection.getHeaderField("Content-Disposition");
+					if (disp != null) {
+						int p = disp.indexOf("filename=");
+						if (p > 0) {
+							fileName = disp.substring(p + 9);
+						}
+					}
+					//connection.setDoOutput(true);
+					//connection.set
+
+					int response = -1;
+
 					response = connection.getResponseCode();
 					L.d("Response: " + response);
 					if (response != 200) {
@@ -164,14 +188,14 @@ public class LitresConnection {
 						onError(0, "Wrong content length");
 						return;
 					}
-					
+
 					InputStream is = connection.getInputStream();
 
 					if ("gzip".equals(contentEncoding)) {
 						L.d("Stream is compressed with GZIP");
 						is = new GZIPInputStream(new BufferedInputStream(is, 8192));
 					}
-					
+
 					//					byte[] buf = new byte[contentLen];
 //					if (is.read(buf) != contentLen) {
 //						contentHandler.onError(0, "Wrong content length");
@@ -180,7 +204,7 @@ public class LitresConnection {
 //					is.close();
 //					is = null;
 //					is = new ByteArrayInputStream(buf);
-					
+
 					SAXParserFactory spf = SAXParserFactory.newInstance();
 					spf.setValidating(false);
 //					spf.setNamespaceAware(true);
@@ -189,18 +213,18 @@ public class LitresConnection {
 					//XMLReader xr = sp.getXMLReader();				
 					sp.parse(is, contentHandler);
 					is.close();
-					
+
 				} catch (ParserConfigurationException e) {
 					contentHandler.onError(0, "Error while parsing response");
 				} catch (SAXException e) {
 					contentHandler.onError(0, "Error while parsing response");
 				} catch (IOException e) {
-					contentHandler.onError(0, "Error while accessing litres server");
+					contentHandler.onError(0, "Error while accessing litres server, e=" + e);
 				} finally {
-					if ( connection!=null ) {
+					if (connection != null) {
 						try {
 							connection.disconnect();
-						} catch ( Exception e ) {
+						} catch (Exception e) {
 							// ignore
 						}
 					}
@@ -214,7 +238,7 @@ public class LitresConnection {
 			}
 		});
 	}
-	
+
 	public void sendFileRequest(final String url, final Map<String, String> params, final File fileToStore, final FileResponse contentHandler, final ResultHandler resultHandler) {
 		Log.i(TAG, "sending request to " + url);
 		final Handler callbackHandler = new Handler();
@@ -228,6 +252,7 @@ public class LitresConnection {
 					}
 				});
 			}
+
 			@Override
 			public void run() {
 				HttpURLConnection connection = null;
@@ -240,46 +265,55 @@ public class LitresConnection {
 						onError(0, "Cannot open connection");
 						return;
 					}
-					if ( conn instanceof HttpsURLConnection ) {
+					if (conn instanceof HttpsURLConnection) {
 						onError(0, "HTTPs is not supported yet");
 						return;
 					}
-					if ( !(conn instanceof HttpURLConnection) ) {
+					if (!(conn instanceof HttpURLConnection)) {
 						onError(0, "Only HTTP supported");
 						return;
 					}
-					connection = (HttpURLConnection)conn;
+					connection = (HttpURLConnection) conn;
 					Log.i(TAG, "opened connection");
-		            connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
-		            connection.setInstanceFollowRedirects(true);
-		            connection.setAllowUserInteraction(false);
-		            connection.setConnectTimeout(CONNECT_TIMEOUT);
-		            connection.setReadTimeout(READ_TIMEOUT);
-		            if (params != null) {
-	            		connection.setDoOutput(true);
-			            connection.setRequestMethod("POST");
-			            List<NameValuePair> list = new LinkedList<NameValuePair>();
-			            for (Map.Entry<String, String> entry : params.entrySet())
-			            	list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
-			            UrlEncodedFormEntity postParams = new UrlEncodedFormEntity(list, "utf-8");
+					connection.setRequestProperty("User-Agent", "CoolReader/3(Android)");
+					connection.setInstanceFollowRedirects(true);
+					connection.setAllowUserInteraction(false);
+					connection.setConnectTimeout(CONNECT_TIMEOUT);
+					connection.setReadTimeout(READ_TIMEOUT);
+					if (params != null) {
+						connection.setDoOutput(true);
+						connection.setRequestMethod("POST");
+			/*
+						List<NameValuePair> list = new LinkedList<NameValuePair>();
+						for (Map.Entry<String, String> entry : params.entrySet())
+							list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+						UrlEncodedFormEntity postParams = new UrlEncodedFormEntity(list, "utf-8");
 						//Log.d(TAG, "params: " + postParams.toString());
 						OutputStream wr = connection.getOutputStream();
 						//OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
 						postParams.writeTo(wr);
-	                    //wr.write(postParams.toString());
+						//wr.write(postParams.toString());
 						wr.flush();
 						wr.close();
-		            } else {
-		            	//Log.d(TAG, "setting up GET method");
-			            connection.setDoInput(true);
-			            connection.setRequestMethod("GET");
-	            		//connection.setDoOutput(true);
-			            //connection.setRequestMethod("POST");
-	            		connection.connect();
-		            }
-		            
-		            int response = -1;
-					
+			 */
+						String postParams = mapParamsToEncodedString(params);
+						OutputStream outputStream = connection.getOutputStream();
+						OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+						wr.write(postParams);
+						wr.close();
+						outputStream.flush();
+						outputStream.close();
+					} else {
+						//Log.d(TAG, "setting up GET method");
+						connection.setDoInput(true);
+						connection.setRequestMethod("GET");
+						//connection.setDoOutput(true);
+						//connection.setRequestMethod("POST");
+						connection.connect();
+					}
+
+					int response = -1;
+
 					response = connection.getResponseCode();
 					L.d("Response: " + response);
 					if (response != 200) {
@@ -298,7 +332,7 @@ public class LitresConnection {
 						onError(0, "Wrong content length");
 						return;
 					}
-					
+
 					InputStream is = null;
 					OutputStream os = null;
 					try {
@@ -308,7 +342,7 @@ public class LitresConnection {
 							L.d("Stream is compressed with GZIP");
 							is = new GZIPInputStream(new BufferedInputStream(is, 8192));
 						}
-						
+
 						Log.i(TAG, "downloading file to " + contentHandler.fileToSave + "  contentLen=" + contentLen);
 						os = new FileOutputStream(contentHandler.fileToSave);
 						int bytesRead = Utils.copyStreamContent(os, is);
@@ -331,10 +365,10 @@ public class LitresConnection {
 					contentHandler.fileToSave.delete();
 					contentHandler.onError(0, "Error while accessing litres server");
 				} finally {
-					if ( connection!=null ) {
+					if (connection != null) {
 						try {
 							connection.disconnect();
-						} catch ( Exception e ) {
+						} catch (Exception e) {
 							// ignore
 						}
 					}
@@ -348,7 +382,7 @@ public class LitresConnection {
 			}
 		});
 	}
-	
+
 	public static class LitresGenre implements AsyncResponse {
 		@SuppressWarnings("unused")
 		private static final long serialVersionUID = 1;
@@ -357,18 +391,22 @@ public class LitresConnection {
 		public String token;
 		private LitresGenre parent;
 		private ArrayList<LitresGenre> children;
+
 		public LitresGenre getParent() {
 			return parent;
 		}
+
 		public void addChild(LitresGenre child) {
 			if (children == null)
 				children = new ArrayList<LitresGenre>();
 			children.add(child);
 			child.parent = this;
 		}
+
 		public int getChildCount() {
 			return (children != null) ? children.size() : 0;
 		}
+
 		public LitresGenre get(int index) {
 			return children.get(index);
 		}
@@ -376,8 +414,9 @@ public class LitresConnection {
 
 	private LitresGenre genres;
 	private long genresLastUpdateTimestamp;
+
 	public void loadGenres(final ResultHandler resultHandler) {
-		if (genres != null && System.currentTimeMillis() < genresLastUpdateTimestamp + 24*60*60*1000) {
+		if (genres != null && System.currentTimeMillis() < genresLastUpdateTimestamp + 24 * 60 * 60 * 1000) {
 			resultHandler.onResponse(genres);
 			return;
 		}
@@ -386,9 +425,10 @@ public class LitresConnection {
 		sendXMLRequest(GENRES_URL, params, new ResponseHandler() {
 			LitresGenre result = new LitresGenre();
 			LitresGenre currentNode = result;
+
 			@Override
 			public AsyncResponse getResponse() {
-				AsyncResponse res =  super.getResponse();
+				AsyncResponse res = super.getResponse();
 				if (res != null)
 					return res;
 				genres = result;
@@ -409,7 +449,7 @@ public class LitresConnection {
 
 			@Override
 			public void startElement(String uri, String localName,
-					String qName, Attributes attributes) throws SAXException {
+			                         String qName, Attributes attributes) throws SAXException {
 				if ("catalit-genres".equals(localName))
 					currentNode = result;
 				else if ("genre".equals(localName)) {
@@ -424,7 +464,7 @@ public class LitresConnection {
 						currentNode = item;
 					}
 				}
-					
+
 			}
 		}, resultHandler);
 	}
@@ -442,9 +482,10 @@ public class LitresConnection {
 			OnlineStoreAuthor currentNode;
 			boolean insideCatalitPersons;
 			String currentElement;
+
 			@Override
 			public AsyncResponse getResponse() {
-				AsyncResponse res =  super.getResponse();
+				AsyncResponse res = super.getResponse();
 				if (res != null)
 					return res;
 				return result;
@@ -468,7 +509,7 @@ public class LitresConnection {
 
 			@Override
 			public void startElement(String uri, String localName,
-					String qName, Attributes attributes) throws SAXException {
+			                         String qName, Attributes attributes) throws SAXException {
 				//Log.d(TAG, "startElement " + localName);
 				if ("catalit-persons".equals(localName))
 					insideCatalitPersons = true;
@@ -480,7 +521,7 @@ public class LitresConnection {
 				} else {
 					currentElement = localName;
 				}
-					
+
 			}
 
 			@Override
@@ -500,11 +541,11 @@ public class LitresConnection {
 				else if ("main".equals(currentElement))
 					currentNode.title = text;
 			}
-			
-			
+
+
 		}, resultHandler);
 	}
-	
+
 	public static String generateFileName(OnlineStoreBook book) {
 		StringBuilder buf = new StringBuilder();
 		buf.append(book.id);
@@ -543,9 +584,10 @@ public class LitresConnection {
 			boolean insideTitleInfo;
 			boolean insideAuthor;
 			String currentElement;
+
 			@Override
 			public AsyncResponse getResponse() {
-				AsyncResponse res =  super.getResponse();
+				AsyncResponse res = super.getResponse();
 				if (res != null)
 					return res;
 				return result;
@@ -581,7 +623,7 @@ public class LitresConnection {
 
 			@Override
 			public void startElement(String uri, String localName,
-					String qName, Attributes attributes) throws SAXException {
+			                         String qName, Attributes attributes) throws SAXException {
 				//Log.d(TAG, "startElement " + localName);
 				if ("catalit-authorization-failed".equals(localName)) {
 					onError(25, "Authorization failed");
@@ -620,7 +662,7 @@ public class LitresConnection {
 				} else {
 					currentElement = localName;
 				}
-					
+
 			}
 
 			@Override
@@ -643,8 +685,8 @@ public class LitresConnection {
 				if ("book-title".equals(currentElement))
 					currentNode.bookTitle = text;
 			}
-			
-			
+
+
 		}, resultHandler);
 	}
 
@@ -703,16 +745,17 @@ public class LitresConnection {
 		public int userCount;
 		public boolean canRebill;
 		public String login;
+
 		@Override
 		public String toString() {
 			return "LitresAuthInfo [id=" + id + ", sid=" + sid + ", login="
 					+ login + ", lastName=" + lastName + ", firstName="
-					+ firstName + ", middleName=" + middleName + ", bookCount=" 
+					+ firstName + ", middleName=" + middleName + ", bookCount="
 					+ bookCount + ", authorCount="
 					+ authorCount + ", userCount=" + userCount + ", canRebill="
 					+ canRebill + "]";
 		}
-		
+
 	}
 
 	private long lastAuthorizationTimestamp;
@@ -720,8 +763,9 @@ public class LitresConnection {
 	private String lastLogin;
 	private String lastPwd;
 	private LitresAuthInfo authInfo;
-	
+
 	public final static long AUTHORIZATION_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+
 	public boolean authorizationValid() {
 		return lastSid != null && (System.currentTimeMillis() < lastAuthorizationTimestamp + AUTHORIZATION_TIMEOUT);
 	}
@@ -780,9 +824,10 @@ public class LitresConnection {
 			params.put("pwd", pwd);
 		sendXMLRequest(AUTHORIZE_URL, params, new ResponseHandler() {
 			LitresAuthInfo result;
+
 			@Override
 			public AsyncResponse getResponse() {
-				AsyncResponse res =  super.getResponse();
+				AsyncResponse res = super.getResponse();
 				if (res != null)
 					return res;
 				return result;
@@ -790,7 +835,7 @@ public class LitresConnection {
 
 			@Override
 			public void startElement(String uri, String localName,
-					String qName, Attributes attributes) throws SAXException {
+			                         String qName, Attributes attributes) throws SAXException {
 				if ("catalit-authorization-ok".equals(localName)) {
 					result = new LitresAuthInfo();
 					result.sid = attributes.getValue("sid");
@@ -827,7 +872,7 @@ public class LitresConnection {
 				dst.put(dstName, dstv);
 		}
 	}
-	
+
 	public void register(final HashMap<String, String> registerParams, final ResultHandler resultHandler) {
 		final HashMap<String, String> params = new HashMap<String, String>();
 		final String login = registerParams.get(OnlineStoreRegistrationParam.NEW_ACCOUNT_PARAM_LOGIN);
@@ -846,9 +891,10 @@ public class LitresConnection {
 			params.put("no_present_books", "1");
 		sendXMLRequest(REGISTER_URL, params, new ResponseHandler() {
 			LitresAuthInfo result;
+
 			@Override
 			public AsyncResponse getResponse() {
-				AsyncResponse res =  super.getResponse();
+				AsyncResponse res = super.getResponse();
 				if (res != null)
 					return res;
 				return result;
@@ -856,7 +902,7 @@ public class LitresConnection {
 
 			@Override
 			public void startElement(String uri, String localName,
-					String qName, Attributes attributes) throws SAXException {
+			                         String qName, Attributes attributes) throws SAXException {
 				if ("catalit-authorization-ok".equals(localName)) {
 					result = new LitresAuthInfo();
 					result.sid = attributes.getValue("sid");
@@ -900,9 +946,10 @@ public class LitresConnection {
 		params.put("lfrom", P_ID);
 		sendXMLRequest(PURCHASE_URL, params, new ResponseHandler() {
 			PurchaseStatus result = new PurchaseStatus();
+
 			@Override
 			public AsyncResponse getResponse() {
-				AsyncResponse res =  super.getResponse();
+				AsyncResponse res = super.getResponse();
 				if (res != null)
 					return res;
 				if (result.bookId != null)
@@ -912,7 +959,7 @@ public class LitresConnection {
 
 			@Override
 			public void startElement(String uri, String localName,
-					String qName, Attributes attributes) throws SAXException {
+			                         String qName, Attributes attributes) throws SAXException {
 				if ("catalit-purchase-ok".equals(localName)) {
 					result.bookId = attributes.getValue("art");
 					result.newBalance = stringToDouble(attributes.getValue("account"), 0.0);
@@ -923,7 +970,7 @@ public class LitresConnection {
 						comment = attributes.getValue("coment"); // spelling error in API description
 					onError(errorCode, comment);
 				}
-					
+
 			}
 		}, resultHandler);
 	}
@@ -944,7 +991,7 @@ public class LitresConnection {
 		sendFileRequest(url, params, fileToStore, myResponse, resultHandler);
 	}
 
-	
+
 	public static int stringToInt(String v, int defValue) {
 		if (v == null || v.length() == 0)
 			return defValue;
@@ -966,8 +1013,8 @@ public class LitresConnection {
 			return defValue;
 		}
 	}
-	
-	
+
+
 	public void close() {
 		workerThread.stop(5000);
 	}
