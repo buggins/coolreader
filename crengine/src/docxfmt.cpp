@@ -1451,6 +1451,10 @@ void docx_rPrHandler::handleAttribute(const lChar16 * attrname, const lChar16 * 
         if( !lStr_cmp(attrname, "val") )
             m_rPr->setItalic(parse_OnOff_attribute( attrvalue ));
         break;
+    case docx_el_u:
+        if( !lStr_cmp(attrname, "val") )
+            m_rPr->setUnderline( lStr_cmp(attrvalue, "none") != 0);
+        break;
     case docx_el_jc:
         if( !lStr_cmp(attrname, "val") ) {
             attr_value = parse_name(jc_attr_values, attrvalue);
