@@ -1871,7 +1871,7 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
             }
 
             int numId = m_pPr.getNumberingId();
-            if( numId != 0 ) {
+            if( numId != 0 && !m_inTitle ) {
                 int level = m_pPr.getNumberingLevel() + 1;
                 if( level > m_importContext->getListLevel() )
                     m_importContext->openList(level, numId, m_writer);
