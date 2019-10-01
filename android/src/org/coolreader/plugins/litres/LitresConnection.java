@@ -283,19 +283,6 @@ public class LitresConnection {
 					if (params != null) {
 						connection.setDoOutput(true);
 						connection.setRequestMethod("POST");
-			/*
-						List<NameValuePair> list = new LinkedList<NameValuePair>();
-						for (Map.Entry<String, String> entry : params.entrySet())
-							list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
-						UrlEncodedFormEntity postParams = new UrlEncodedFormEntity(list, "utf-8");
-						//Log.d(TAG, "params: " + postParams.toString());
-						OutputStream wr = connection.getOutputStream();
-						//OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
-						postParams.writeTo(wr);
-						//wr.write(postParams.toString());
-						wr.flush();
-						wr.close();
-			 */
 						String postParams = mapParamsToEncodedString(params);
 						OutputStream outputStream = connection.getOutputStream();
 						OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
