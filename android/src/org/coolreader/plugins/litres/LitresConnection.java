@@ -151,7 +151,7 @@ public class LitresConnection {
 
 					String postParams = mapParamsToEncodedString(params);
 					OutputStream outputStream = connection.getOutputStream();
-					OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+					OutputStreamWriter wr = new OutputStreamWriter(outputStream);
 					wr.write(postParams);
 					wr.close();
 					outputStream.flush();
@@ -285,7 +285,7 @@ public class LitresConnection {
 						connection.setRequestMethod("POST");
 						String postParams = mapParamsToEncodedString(params);
 						OutputStream outputStream = connection.getOutputStream();
-						OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
+						OutputStreamWriter wr = new OutputStreamWriter(outputStream);
 						wr.write(postParams);
 						wr.close();
 						outputStream.flush();
