@@ -63,6 +63,8 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/lvbmpbuf.cpp
     ${CR3_ROOT}/crengine/src/lvfnt.cpp
     ${CR3_ROOT}/crengine/src/hyphman.cpp
+    ${CR3_ROOT}/crengine/src/lvfont.cpp
+    ${CR3_ROOT}/crengine/src/lvembeddedfont.cpp
     ${CR3_ROOT}/crengine/src/lvfntman.cpp
     ${CR3_ROOT}/crengine/src/lvimg.cpp
     ${CR3_ROOT}/crengine/src/crskin.cpp
@@ -74,6 +76,12 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontglyphcache.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontboldtransform.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontcache.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontdef.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfreetypeface.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfreetypefontman.cpp
     ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp
