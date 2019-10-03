@@ -67,7 +67,10 @@ public:
 
     void clear();
 
-    LVFontGlyphCacheItem *get(lUInt16 ch);
+    LVFontGlyphCacheItem *getByChar(lChar16 ch);
+#if USE_HARFBUZZ==1
+    LVFontGlyphCacheItem *getByIndex(lUInt32 index);
+#endif
 
     void put(LVFontGlyphCacheItem *item);
 
@@ -80,7 +83,12 @@ struct LVFontGlyphCacheItem {
     LVFontGlyphCacheItem *prev_local;
     LVFontGlyphCacheItem *next_local;
     LVFontLocalGlyphCache *local_cache;
-    lChar16 ch;
+    union {
+        lChar16 ch;
+#if USE_HARFBUZZ==1
+        lUInt32 gindex;
+#endif
+    } data;
     lUInt16 bmp_width;
     lUInt16 bmp_height;
     lInt16 origin_x;
@@ -94,33 +102,12 @@ struct LVFontGlyphCacheItem {
                + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
     }
 
-    static LVFontGlyphCacheItem *
-    newItem(LVFontLocalGlyphCache *local_cache, lChar16 ch, int w, int h);
+    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar16 data, int w, int h);
+#if USE_HARFBUZZ==1
+    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32 glyph_index, int w, int h);
+#endif
 
     static void freeItem(LVFontGlyphCacheItem *item);
 };
-
-#if USE_HARFBUZZ == 1
-
-struct LVFontGlyphIndexCacheItem {
-    lUInt32 gindex;
-    lUInt16 bmp_width;
-    lUInt16 bmp_height;
-    lInt16 origin_x;
-    lInt16 origin_y;
-    lUInt16 advance;
-    lUInt8 bmp[1];
-
-    //=======================================================================
-    int getSize() {
-        return sizeof(LVFontGlyphIndexCacheItem) + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
-    }
-
-    static LVFontGlyphIndexCacheItem *newItem(lUInt32 glyph_index, int w, int h);
-
-    static void freeItem(LVFontGlyphIndexCacheItem *item);
-};
-
-#endif // USE_HARFBUZZ==1
 
 #endif //__LV_FONTGLYPHCACHE_H_INCLUDED__

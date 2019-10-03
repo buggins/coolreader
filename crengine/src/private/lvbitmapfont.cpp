@@ -101,7 +101,7 @@ int LBitmapFont::getSize() const
 int LBitmapFont::getWeight() const
 {
     const lvfont_header_t * hdr = lvfontGetHeader( m_font );
-    return hdr->flgBold ? 800 : 400;
+    return hdr->flgBold ? 700 : 400;
 }
 /// returns italic flag
 int LBitmapFont::getItalic() const

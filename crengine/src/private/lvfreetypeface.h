@@ -17,6 +17,7 @@
 
 
 #include "../../include/crsetup.h"
+#include "../../include/lvfont.h"
 #include "../../include/lvthread.h"
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
@@ -119,7 +120,7 @@ protected:
     hb_buffer_t *_hb_buffer;
     hb_font_t *_hb_font;
     hb_feature_t _hb_features[2];
-    LVHashTable<lUInt32, LVFontGlyphIndexCacheItem *> _glyph_cache2;
+    LVFontLocalGlyphCache _glyph_cache2;
     LVHashTable<struct LVCharTriplet, struct LVCharPosInfo> _width_cache2;
     hb_buffer_t *_hb_opt_kern_buffer;
     hb_feature_t _hb_opt_kern_features[22];
@@ -261,7 +262,7 @@ public:
 
 #if USE_HARFBUZZ == 1
 
-    LVFontGlyphIndexCacheItem *getGlyphByIndex(lUInt32 index);
+    LVFontGlyphCacheItem *getGlyphByIndex(lUInt32 index);
 
 #endif
 

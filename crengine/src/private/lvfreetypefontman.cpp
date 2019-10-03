@@ -446,8 +446,7 @@ void LVFreeTypeFontManager::getFontFileNameList(lString16Collection &list) {
     _cache.getFontFileNameList(list);
 }
 
-bool
-LVFreeTypeFontManager::setalias(lString8 alias, lString8 facename, int id, bool italic, bool bold) {
+bool LVFreeTypeFontManager::setalias(lString8 alias, lString8 facename, int id, bool italic, bool bold) {
     FONT_MAN_GUARD
     lString8 fontname = lString8("\0");
     LVFontDef def(
@@ -547,9 +546,8 @@ LVFreeTypeFontManager::setalias(lString8 alias, lString8 facename, int id, bool 
     }
 }
 
-LVFontRef
-LVFreeTypeFontManager::GetFont(int size, int weight, bool italic, css_font_family_t family,
-                               lString8 typeface, int documentId) {
+LVFontRef LVFreeTypeFontManager::GetFont(int size, int weight, bool italic, css_font_family_t family,
+                                         lString8 typeface, int documentId) {
     FONT_MAN_GUARD
 #if (DEBUG_FONT_MAN == 1)
     if ( _log ) {
@@ -684,8 +682,7 @@ bool LVFreeTypeFontManager::checkCharSet(FT_Face face) {
     return true;
 }
 
-bool
-LVFreeTypeFontManager::checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) {
+bool LVFreeTypeFontManager::checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) {
     LVFontRef fntRef = GetFont(10, 400, false, css_ff_inherit, typeface, -1);
     if (!fntRef.isNull())
         return fntRef->checkFontLangCompat(langCode);

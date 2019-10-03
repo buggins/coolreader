@@ -93,7 +93,7 @@ lUInt32 LVFontBoldTransform::getTextWidth(const lChar16 *text, int len) {
 
 LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt16 ch, lChar16 def_char) {
 
-    LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
+    LVFontGlyphCacheItem *item = _glyph_cache.getByChar(ch);
     if (item)
         return item;
 
@@ -106,32 +106,34 @@ LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt16 ch, lChar16 def_char
     int dx = oldx ? oldx + _hShift : 0;
     int dy = oldy ? oldy + _vShift : 0;
 
-    item = LVFontGlyphCacheItem::newItem(&_glyph_cache, ch, dx, dy); //, _drawMonochrome
-    item->advance = olditem->advance + _hShift;
-    item->origin_x = olditem->origin_x;
-    item->origin_y = olditem->origin_y;
-
-    if (dx && dy) {
-        for (int y = 0; y < dy; y++) {
-            lUInt8 *dst = item->bmp + y * dx;
-            for (int x = 0; x < dx; x++) {
-                int s = 0;
-                for (int yy = -_vShift; yy <= 0; yy++) {
-                    int srcy = y + yy;
-                    if (srcy < 0 || srcy >= oldy)
-                        continue;
-                    lUInt8 *src = olditem->bmp + srcy * oldx;
-                    for (int xx = -_hShift; xx <= 0; xx++) {
-                        int srcx = x + xx;
-                        if (srcx >= 0 && srcx < oldx && src[srcx] > s)
-                            s = src[srcx];
+    item = LVFontGlyphCacheItem::newItem(&_glyph_cache, (lChar16)ch, dx, dy); //, _drawMonochrome
+    if (item) {
+        item->advance = olditem->advance + _hShift;
+        item->origin_x = olditem->origin_x;
+        item->origin_y = olditem->origin_y;
+    
+        if (dx && dy) {
+            for (int y = 0; y < dy; y++) {
+                lUInt8 *dst = item->bmp + y * dx;
+                for (int x = 0; x < dx; x++) {
+                    int s = 0;
+                    for (int yy = -_vShift; yy <= 0; yy++) {
+                        int srcy = y + yy;
+                        if (srcy < 0 || srcy >= oldy)
+                            continue;
+                        lUInt8 *src = olditem->bmp + srcy * oldx;
+                        for (int xx = -_hShift; xx <= 0; xx++) {
+                            int srcx = x + xx;
+                            if (srcx >= 0 && srcx < oldx && src[srcx] > s)
+                                s = src[srcx];
+                        }
                     }
+                    dst[x] = s;
                 }
-                dst[x] = s;
             }
         }
+        _glyph_cache.put(item);
     }
-    _glyph_cache.put(item);
     return item;
 }
 

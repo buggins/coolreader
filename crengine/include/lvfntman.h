@@ -33,9 +33,8 @@ public:
     virtual void gc() = 0;
 
     /// returns most similar font
-    virtual LVFontRef
-    GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
-            int documentId = -1) = 0;
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, 
+                              lString8 typeface, int documentId = -1) = 0;
 
     /// set fallback font face (returns true if specified font is found)
     virtual bool SetFallbackFontFace(lString8 face) {
@@ -120,12 +119,10 @@ public:
     virtual void getFontFileNameList(lString16Collection &) {}
 
     // check font language compatibility
-    virtual bool
-    checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) { return true; }
+    virtual bool checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) { return true; }
 
     /// returns first found face from passed list, or return face for font found by family only
-    virtual lString8
-    findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily);
+    virtual lString8 findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily);
 
     /// fills array with list of available gamma levels
     virtual void GetGammaLevels(LVArray<double> dst);

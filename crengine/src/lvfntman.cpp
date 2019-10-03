@@ -30,8 +30,7 @@ static double gammaLevel = 1.0;
 int gammaIndex = GAMMA_LEVELS / 2;
 
 /// returns first found face from passed list, or return face for font found by family only
-lString8
-LVFontManager::findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily) {
+lString8 LVFontManager::findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily) {
     // faces we want
     lString8Collection list;
     splitPropertyValueList(commaSeparatedFaceList.c_str(), list);
