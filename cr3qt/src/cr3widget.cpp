@@ -800,7 +800,7 @@ bool CR3View::loadSettings( QString fn )
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
     bool res = false;
     if ( !stream.isNull() && _data->_props->loadFromStream( stream.get() ) ) {
-        CRLog::error("Loading settings from file %s", fn.toUtf8().data() );
+        CRLog::info("Loading settings from file %s", fn.toUtf8().data() );
         res = true;
     } else {
         CRLog::error("Cannot load settings from file %s", fn.toUtf8().data() );
