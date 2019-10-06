@@ -343,6 +343,7 @@ CR3View::CR3View( QWidget *parent)
     updateDefProps();
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
+    setMinimumSize(SCREEN_SIZE_MIN, SCREEN_SIZE_MIN);
 }
 
 void CR3View::updateDefProps()
@@ -747,6 +748,11 @@ void CR3View::historyForward() { doCommand( DCMD_LINK_FORWARD, 1 ); }
 void CR3View::refreshPropFromView( const char * propName )
 {
     _data->_props->setString( propName, _docview->propsGetCurrent()->getStringDef( propName, "" ) );
+}
+
+QSize CR3View::minimumSizeHint() const
+{
+    return QSize(SCREEN_SIZE_MIN, SCREEN_SIZE_MIN);
 }
 
 void CR3View::zoomIn()
