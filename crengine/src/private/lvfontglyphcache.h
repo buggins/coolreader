@@ -19,8 +19,19 @@
 #include "crsetup.h"
 #include "lvtypes.h"
 
+#if USE_GLYPHCACHE_HASHTABLE==1
+#include "lvhashtable.h"
+#define GLYPHCACHE_TABLE_SZ         256
+#endif
 
 struct LVFontGlyphCacheItem;
+
+union GlyphCacheItemData {
+	lChar16 ch;
+#if USE_HARFBUZZ==1
+	lUInt32 gindex;
+#endif
+};
 
 class LVFontGlobalGlyphCache {
 private:
@@ -46,20 +57,32 @@ public:
 
     void remove(LVFontGlyphCacheItem *item);
 
+#if USE_GLYPHCACHE_HASHTABLE != 1
     void refresh(LVFontGlyphCacheItem *item);
+#endif
 
     void clear();
 };
 
 class LVFontLocalGlyphCache {
 private:
+    LVFontGlobalGlyphCache *global_cache;
+#if USE_GLYPHCACHE_HASHTABLE == 1
+    LVHashTable<GlyphCacheItemData, struct LVFontGlyphCacheItem*> hashTable;
+#else
     LVFontGlyphCacheItem *head;
     LVFontGlyphCacheItem *tail;
-    LVFontGlobalGlyphCache *global_cache;
+#endif
     //int size;
 public:
     LVFontLocalGlyphCache(LVFontGlobalGlyphCache *globalCache)
-            : head(NULL), tail(NULL), global_cache(globalCache) {}
+            : global_cache(globalCache),
+#if USE_GLYPHCACHE_HASHTABLE == 1
+            hashTable(GLYPHCACHE_TABLE_SZ)
+#else
+            head(NULL), tail(NULL)
+#endif
+    {}
 
     ~LVFontLocalGlyphCache() {
         clear();
@@ -67,7 +90,7 @@ public:
 
     void clear();
 
-    LVFontGlyphCacheItem *getByChar(lChar16 ch);
+    LVFontGlyphCacheItem *get(lChar16 ch);
 #if USE_HARFBUZZ==1
     LVFontGlyphCacheItem *getByIndex(lUInt32 index);
 #endif
@@ -83,12 +106,7 @@ struct LVFontGlyphCacheItem {
     LVFontGlyphCacheItem *prev_local;
     LVFontGlyphCacheItem *next_local;
     LVFontLocalGlyphCache *local_cache;
-    union {
-        lChar16 ch;
-#if USE_HARFBUZZ==1
-        lUInt32 gindex;
-#endif
-    } data;
+    GlyphCacheItemData data;
     lUInt16 bmp_width;
     lUInt16 bmp_height;
     lInt16 origin_x;

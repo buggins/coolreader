@@ -98,7 +98,7 @@ LVFontCacheItem *LVFontCache::find(const LVFontDef *fntdef) {
 
 void LVFontCache::addInstance(const LVFontDef *def, LVFontRef ref) {
     if (ref.isNull())
-        printf("Adding null font instance!");
+        CRLog::error("Adding null font instance!");
     LVFontCacheItem *item = new LVFontCacheItem(*def);
     item->_fnt = ref;
     _instance_list.add(item);

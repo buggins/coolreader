@@ -93,7 +93,7 @@ lUInt32 LVFontBoldTransform::getTextWidth(const lChar16 *text, int len) {
 
 LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt16 ch, lChar16 def_char) {
 
-    LVFontGlyphCacheItem *item = _glyph_cache.getByChar(ch);
+    LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
     if (item)
         return item;
 

@@ -262,7 +262,7 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
           _drawMonochrome(false), _allowKerning(false), _allowLigatures(false),
           _hintingMode(HINTING_MODE_AUTOHINT), _fallbackFontIsSet(false)
 #if USE_HARFBUZZ == 1
-        , _glyph_cache2(globalCache), _width_cache2(1024)
+        , _glyph_cache2(globalCache), _width_cache2(256)
 #endif
 {
     _matrix.xx = 0x10000;
@@ -870,7 +870,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text, int len, lUInt16 *width
         struct LVCharPosInfo posInfo;
         triplet.Char = 0;
         for (i = 0; i < len; i++) {
-            lChar16 ch = text[i];
+            const lChar16& ch = text[i];
             bool isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE);
 
             flags[i] = GET_CHAR_FLAGS(ch); //calcCharFlags( ch );
@@ -886,7 +886,9 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text, int len, lUInt16 *width
                     _width_cache2.set(triplet, posInfo);
                 else {
                     posInfo.offset = 0;
-                    posInfo.width = prev_width;
+                    posInfo.width = 0;
+                    _width_cache2.set(triplet, posInfo);
+                    widths[i] = prev_width;
                     lastFitChar = i + 1;
                     continue;  /* ignore errors */
                 }
@@ -1035,7 +1037,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt16 ch, lChar16 def_char) {
             return fallback->getGlyph(ch, def_char);
         }
     }
-    LVFontGlyphCacheItem *item = _glyph_cache.getByChar(ch);
+    LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
     if (!item) {
 
         int rend_flags = FT_LOAD_RENDER | (!_drawMonochrome ? FT_LOAD_TARGET_NORMAL
@@ -1064,7 +1066,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt16 ch, lChar16 def_char) {
 
 LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
     //FONT_GUARD
-    LVFontGlyphCacheItem *item = _glyph_cache2.getByIndex(index);
+    LVFontGlyphCacheItem *item = _glyph_cache2.get(index);
     if (!item) {
         // glyph not found in cache, rendering...
         int rend_flags = FT_LOAD_RENDER | (!_drawMonochrome ? FT_LOAD_TARGET_NORMAL
