@@ -305,7 +305,7 @@
 #endif
 
 #ifndef USE_GLYPHCACHE_HASHTABLE
-#define USE_HASHTABLE_GLYPHCACHE 0
+#define USE_GLYPHCACHE_HASHTABLE 0
 #endif
 
 // Maximum & minimum screen resolution
