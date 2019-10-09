@@ -14,7 +14,7 @@ li image { display: inline }
 li { display: list-item; text-indent: 0em;  }
 ol { display: block; list-style-type: decimal; margin-left: 1em }
 
-title.h1 p, title.h2 h2 p { 
+title.h1 p, title.h2 p { 
     $title.all
 }
 
