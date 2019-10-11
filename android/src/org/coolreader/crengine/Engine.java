@@ -68,6 +68,36 @@ public class Engine {
 		return mountedRootsMap;
 	}
 
+	/**
+	 * @param shortcut File system shortcut that return application "Files" by Google (package="com.android.externalstorage.documents")
+	 *                 "primary" for internal storage,
+	 *                 "XXXX-XXXX" (file system serial number) for any external storage like sdcard, usb disk, etc.
+	 * @return path to mount root for given file system.
+	 */
+	public static String getMountRootByShortcut(String shortcut) {
+		String mountRoot = null;
+		if ("primary".equals(shortcut)) {
+			// "/document/primary:/.*"
+			for (Map.Entry<String, String> entry : mountedRootsMap.entrySet()) {
+				if ("SD".equals(entry.getValue())) {
+					mountRoot = entry.getKey();
+					break;
+				}
+			}
+		} else {
+			// "/document/XXXX-XXXX/.*"
+			String pattern = "/storage/" + shortcut;
+			for (Map.Entry<String, String> entry : mountedRootsMap.entrySet()) {
+				// Android 6 ext storage, @see addMountRoot()
+				if ("EXT SD".equals(entry.getValue()) && entry.getKey().startsWith(pattern)) {
+					mountRoot = entry.getKey();
+					break;
+				}
+			}
+		}
+		return mountRoot;
+	}
+
 	public boolean isRootsMountPoint(String path) {
 		if (mountedRootsMap == null)
 			return false;

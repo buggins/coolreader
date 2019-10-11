@@ -1,7 +1,6 @@
 // Main Class
 package org.coolreader;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,6 +43,7 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -301,10 +301,14 @@ public class CoolReader extends BaseActivity {
 		if (intent == null)
 			return false;
 		String fileToOpen = null;
+		String scheme = null;
+		String host = null;
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			Uri uri = intent.getData();
 			intent.setData(null);
 			if (uri != null) {
+				scheme = uri.getScheme();
+				host = uri.getHost();
 				if (uri.getEncodedPath().contains("%00"))
 					fileToOpen = uri.getEncodedPath();
 				else
@@ -324,18 +328,29 @@ public class CoolReader extends BaseActivity {
 				fileToOpen = fileToOpen.replace("%00", "@/");
 				fileToOpen = Uri.decode(fileToOpen);
 			}
-			if (fileToOpen.startsWith("/document/primary:")) {
-				// scheme="content", host="com.android.externalstorage.documents"
-				// decode special uri form: /document/primary:<somebody>
-				File[] dataDirs = Engine.getStorageDirectories(false);
-				if (dataDirs != null && dataDirs.length > 0) {
-					fileToOpen = fileToOpen.replace("/document/primary:", dataDirs[0].getAbsolutePath() + "/");
+			if ("content".equals(scheme)) {
+				if ("com.android.externalstorage.documents".equals(host)) {
+					// application "Files" by Google, package="com.android.externalstorage.documents"
+					if (fileToOpen.matches("^/document/.*:.*$")) {
+						// decode special uri form: /document/primary:<somebody>
+						//                          /document/XXXX-XXXX:<somebody>
+						String shortcut = fileToOpen.replaceFirst("^/document/(.*):.*$", "$1");
+						String mountRoot = Engine.getMountRootByShortcut(shortcut);
+						if (mountRoot != null)
+							fileToOpen = fileToOpen.replaceFirst("^/document/.*:(.*)$", mountRoot + "/$1");
+					}
+				} else if ("com.google.android.apps.nbu.files.provider".equals(host)) {
+					// application "Files" by Google, package="com.google.android.apps.nbu.files"
+					if (fileToOpen.startsWith("/1////")) {
+						// skip "/1///"
+						fileToOpen = fileToOpen.substring(5);
+						fileToOpen = Uri.decode(fileToOpen);
+					} else if (fileToOpen.startsWith("/1/file:///")) {
+						// skip "/1/file://"
+						fileToOpen = fileToOpen.substring(10);
+						fileToOpen = Uri.decode(fileToOpen);
+					}
 				}
-			} else if (fileToOpen.startsWith("/1////")) {
-				// scheme="content", host="com.google.android.apps.nbu.files.provider"
-				// caused by "Google Files", package="com.google.android.apps.nbu.files"
-				// skip "/1///"
-				fileToOpen = fileToOpen.substring(5);
 			}
 		}
 		if (fileToOpen != null) {
