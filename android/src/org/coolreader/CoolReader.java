@@ -43,7 +43,6 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
