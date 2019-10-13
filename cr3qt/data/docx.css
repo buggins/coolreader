@@ -80,7 +80,7 @@ publish-info { display: none; }
 custom-info { display: none; }
 coverpage { display: none }
 
-strong,emphasis,u,strike,sub,sup { 
+strong,em,u,s,sub,sup { 
    display: inline; 
 } 
 
@@ -88,10 +88,10 @@ sub { vertical-align: sub; font-size: 70% }
 sup { vertical-align: super; font-size: 70% }
 
 strong { font-weight: bold }
-emphasis { font-style: italic }
+em { font-style: italic }
 
 u { text-decoration: underline; } 
-strike { text-decoration: line-through; } 
+s { text-decoration: line-through; } 
 
 
 img { 

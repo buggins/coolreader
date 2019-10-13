@@ -8,6 +8,9 @@
 #define DOCX_TAG_CHILD(itm) { DOCX_TAG_ID(itm), DOCX_TAG_NAME(itm) }
 #define DOCX_LAST_ITEM { -1, NULL }
 
+// comment this out to disable in-page footnotes
+#define DOCX_CRENGINE_IN_PAGE_FOOTNOTES 1
+
 /// known docx items name and identifier
 struct item_def_t {
     int      id;
@@ -877,6 +880,42 @@ public:
     void reset();
 };
 
+class docx_titleHandler
+{
+public:
+    docx_titleHandler(ldomDocumentWriter *writer, docxImportContext *context, bool useClassName=false) :
+        m_writer(writer), m_importContext(context), m_titleLevel(), m_useClassName(useClassName) {}
+    virtual ~docx_titleHandler() {}
+    virtual void onBodyStart();
+    virtual void onTitleStart(int level, bool noSection = false);
+    virtual void onTitleEnd();
+    virtual void onBodyEnd() {}
+    bool useClassForTitle() { return m_useClassName; }
+protected:
+    ldomDocumentWriter *m_writer;
+    docxImportContext *m_importContext;
+    int m_titleLevel;
+    bool m_useClassName;
+};
+
+class docx_fb2TitleHandler : public docx_titleHandler
+{
+public:
+    docx_fb2TitleHandler(ldomDocumentWriter *writer, docxImportContext *context) :
+        docx_titleHandler(writer, context, true)
+    {}
+    void onBodyStart();
+    void onTitleStart(int level, bool noSection = false);
+    void onTitleEnd();
+private:
+    void makeSection(int startIndex);
+    void openSection(int level);
+    void closeSection(int level);
+private:
+    ldomNode *m_section;
+    bool m_hasTitle;
+};
+
 class docx_hyperlinkHandler  : public docx_ElementHandler
 {
     docx_rHandler m_rHandler;
@@ -901,7 +940,7 @@ private:
     docx_pPrHandler m_pPrHandler;
     docx_pPr m_pPr;
     docx_rHandler m_rHandler;
-    docx_documentHandler* m_documentHandler;
+    docx_titleHandler* m_titleHandler;
     docx_hyperlinkHandler m_hyperlinkHandler;
     int m_runCount;
     lString16 m_styleTags;
@@ -918,11 +957,11 @@ private:
     void closeStyleTag( lChar16 ch);
     void openStyleTag( lChar16 ch);
 public:
-    docx_pHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_documentHandler* p_documentHandler) :
+    docx_pHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_titleHandler* p_documentHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_p, p_elements),
         m_pPrHandler(reader, writer, context),
         m_rHandler(reader, writer, context, this),
-        m_documentHandler(p_documentHandler),
+        m_titleHandler(p_documentHandler),
         m_hyperlinkHandler(reader, writer, context, this), m_inTitle(false)
     {
     }
@@ -948,6 +987,7 @@ private:
     LVArray<int> m_levels;
     LVArray<docx_row_span_info> m_rowSpaninfo;
     int m_rowCount;
+    docx_titleHandler m_titleHandler;
     docx_pHandler m_pHandler;
     docx_SkipElementHandler m_skipHandler;
     docx_ElementHandler* m_pHandler_;
@@ -962,9 +1002,10 @@ private:
     int m_vMergeState;
     void endRowSpan(int column);
 public:
-    docx_tblHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
+    docx_tblHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_titleHandler* titleHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_tbl, tbl_elements),
-        m_rowCount(0), m_pHandler(reader, writer, context, NULL),
+        m_rowCount(0), m_titleHandler(writer, context, titleHandler->useClassForTitle()),
+        m_pHandler(reader, writer, context, &m_titleHandler),
         m_skipHandler(reader, writer, context, docx_el_p), m_colSpan(1),
         m_column(0), m_columnCount(0), m_vMergeState(VMERGE_NONE)
     {
@@ -999,23 +1040,15 @@ class docx_documentHandler : public docx_ElementHandler
 private:
     docx_pHandler paragraphHandler;
     docx_tblHandler m_tableHandler;
-    ldomNode *m_section;
-    int m_sectionLevel;
-    int m_pCount;
-    bool m_hasTitle;
-private:
-    void makeSection(int startIndex);
-    void openSection(int level);
-    void closeSection(int level);
+protected:
+    docx_titleHandler* m_titleHandler;
 public:
-    docx_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context) :
+    docx_documentHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_titleHandler* titleHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_document, document_elements),
-        paragraphHandler(reader, writer, context, this),
-        m_tableHandler(reader, writer, context), m_section(), m_sectionLevel(), m_pCount()
+        paragraphHandler(reader, writer, context, titleHandler),
+        m_tableHandler(reader, writer, context, titleHandler), m_titleHandler(titleHandler)
     {
     }
-    void onTitleStart(int level);
-    void onTitleEnd();
     ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * nsname, const lChar16 * attrname, const lChar16 * attrvalue);
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
@@ -1374,9 +1407,25 @@ void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *typ
     m_writer->OnAttribute(L"", L"href", target );
     if(type)
         m_writer->OnAttribute(L"", L"type", type);
+    // Add classic role=doc-noteref attribute to allow popup/in-page footnotes
+    m_writer->OnAttribute(L"", L"role", L"doc-noteref");
     m_writer->OnTagBody();
+#ifndef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+    if( !lStr_cmp(type, "note") ) {
+        // For footnotes (but not endnotes), wrap in <sup> (to get the
+        // same effect upstream gets with the following in docx.css:
+        //   a[type="note"] { vertical-align: super; font-size: 70%; }
+        m_writer->OnTagOpen(L"", L"sup");
+        m_writer->OnTagBody();
+    }
+#endif
     lString16 t(text);
     m_writer->OnText(t.c_str(), t.length(), 0);
+#ifndef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
+    if( !lStr_cmp(type, "note") ) {
+        m_writer->OnTagClose(L"", L"sup");
+    }
+#endif
     m_writer->OnTagClose(L"", L"a");
 }
 
@@ -1815,11 +1864,11 @@ const lChar16 *docx_pHandler::getStyleTagName(lChar16 ch)
     case 'b':
         return L"strong";
     case 'i':
-        return L"emphasis";
+        return L"em"; // upstream uses L"emphasis";
     case 'u':
         return L"u";
     case 's':
-        return L"strike";
+        return L"s"; // upstream uses L"strike";
     case 't':
         return L"sup";
     case 'd':
@@ -1860,20 +1909,12 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
     switch(tagId) {
     case docx_el_r:
         if ( 0 == m_runCount ) {
-            lString16 className;
-
             m_pPr.combineWith(m_importContext->get_pPrDefault());
             css_length_t outlineLevel = m_pPr.getOutlineLvl();
             m_importContext->m_pStyle = m_pPr.getStyle(m_importContext);
             if ( outlineLevel.type != css_val_unspecified ) {
-                if (m_documentHandler) {
-                    m_inTitle = true;
-                    m_documentHandler->onTitleStart(outlineLevel.value + 1);
-                } else {
-                    className = cs16("h") +  lString16::itoa(outlineLevel.value + 1);
-                }
+                m_inTitle = true;
             }
-
             int numId = m_pPr.getNumberingId();
             if( numId != 0 && !m_inTitle ) {
                 int level = m_pPr.getNumberingLevel() + 1;
@@ -1883,18 +1924,19 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
                     m_importContext->closeList(level, m_writer);
                 else
                     m_writer->OnTagClose(L"", L"li");
-                m_writer->OnTagOpenNoAttr(L"", L"li");
+                m_writer->OnTagOpen(L"", L"li");
             } else {
                 if( m_importContext->isInList() )
                     m_importContext->closeList(0, m_writer);
-                m_writer->OnTagOpen(L"", L"p");
-                if ( !className.empty() )
-                    m_writer->OnAttribute(L"", L"class", className.c_str());
-                lString16 style = m_pPr.getCss();
-                if(!style.empty())
-                    m_writer->OnAttribute(L"", L"style", style.c_str());
-                m_writer->OnTagBody();
+                if( m_inTitle )
+                    m_titleHandler->onTitleStart(outlineLevel.value + 1);
+                else
+                    m_writer->OnTagOpen(L"", L"p");
             }
+            lString16 style = m_pPr.getCss();
+            if( !style.empty() )
+                m_writer->OnAttribute(L"", L"style", style.c_str());
+            m_writer->OnTagBody();
         }
         m_rHandler.start();
         m_runCount++;
@@ -1932,12 +1974,15 @@ void docx_pHandler::handleTagClose( const lChar16 * nsname, const lChar16 * tagn
     switch(m_state) {
     case docx_el_p:
         closeStyleTags();
-        if( m_pPr.getNumberingId() == 0 )
-            m_writer->OnTagClose(L"", L"p");
+        if( m_pPr.getNumberingId() == 0 ) {
+            if( !m_inTitle ) {
+                m_writer->OnTagClose(L"", L"p");
+            }
+        }
         stop();
         if( m_inTitle ) {
             m_inTitle = false;
-            m_documentHandler->onTitleEnd();
+            m_titleHandler->onTitleEnd();
         }
         break;
     default:
@@ -1994,74 +2039,19 @@ void docx_pHandler::closeStyleTags()
     m_styleTags.clear();
 }
 
-void docx_documentHandler::makeSection(int startIndex)
-{
-    ldomNode *newSection = m_section->insertChildElement(startIndex, LXML_NS_NONE, el_section);
-    newSection->initNodeStyle();
-    m_section->moveItemsTo(newSection, startIndex + 1, m_section->getChildCount() - 1);
-    newSection->initNodeRendMethod( );
-    m_section = newSection;
-}
-
-void docx_documentHandler::openSection(int level)
-{
-    for(int i = m_sectionLevel; i < level; i++) {
-        m_section = m_writer->OnTagOpen(L"", L"section");
-        m_writer->OnTagBody();
-    }
-    m_sectionLevel = level;
-    m_pCount = 0;
-    m_hasTitle = false;
-}
-
-void docx_documentHandler::closeSection(int level)
-{
-    for(int i = 0; i < level; i++) {
-        m_writer->OnTagClose(L"", L"section");
-        m_sectionLevel--;
-    }
-    m_pCount = 0;
-    m_hasTitle = false;
-}
-
-void docx_documentHandler::onTitleStart(int level)
-{
-    if(m_sectionLevel < level) {
-        int startIndex = m_hasTitle ? 1 : 0;
-        int contentCount = m_section->getChildCount();
-        if(contentCount > startIndex) {
-            makeSection(startIndex);
-        }
-    } else {
-        closeSection(m_sectionLevel - level + 1);
-    }
-    openSection(level);
-    m_writer->OnTagOpen(L"", L"title");
-    lString16 className = cs16("h") +  lString16::itoa(level);
-    m_writer->OnAttribute(L"", L"class", className.c_str());
-    m_writer->OnTagBody();
-}
-
-void docx_documentHandler::onTitleEnd()
-{
-    m_writer->OnTagClose(L"", L"title");
-    m_hasTitle = true;
-}
-
 ldomNode * docx_documentHandler::handleTagOpen(int tagId)
 {
     if( tagId != docx_el_p && m_importContext->isInList() )
         m_importContext->closeList(0, m_writer);
     switch(tagId) {
     case docx_el_p:
-        m_pCount++;
         paragraphHandler.start();
         break;
     case docx_el_tbl:
         m_tableHandler.start();
         break;
     case docx_el_body:
-        m_section = m_writer->OnTagOpen(L"", docx_el_body_name);
+        m_titleHandler->onBodyStart();
         m_writer->OnTagBody();
         //fallthrough
     default:
@@ -2081,7 +2071,7 @@ void docx_documentHandler::handleTagClose( const lChar16 * nsname, const lChar16
 {
     switch(m_state) {
     case docx_el_body:
-        closeSection(m_sectionLevel);
+        m_titleHandler->onBodyEnd();
         m_writer->OnTagClose(nsname, tagname);
         break;
     default:
@@ -2262,7 +2252,13 @@ void parseFootnotes(ldomDocumentWriter& writer, docxImportContext& context, int 
         LVXMLParser parser(m_stream, &docReader);
 
         if(parser.Parse())
+#ifdef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
             writer.OnTagClose(L"", docx_el_body_name);
+#else
+            // We didn't add <body name=notes> to not trigger crengine auto-in-page-foonotes
+            // mechanism, so we can tweak them with style tweaks. We used a simple <div> instead.
+            writer.OnTagClose(L"", L"div");
+#endif
     }
     context.closeRelatedPart();
 }
@@ -2317,7 +2313,10 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     writer.OnTagClose(NULL, L"title-info");
     writer.OnTagClose(NULL, L"description");
 
-    docx_documentHandler documentHandler(&docReader, &writer, &importContext);
+    //Two options when dealing with titles: (FB2|HTML)
+    docx_fb2TitleHandler titleHandler(&writer, &importContext); //<section><title class=hx">..</title></section>
+    //docx_titleHandler titleHandler(&writer, &importContext);  //<hx>..</hx>
+    docx_documentHandler documentHandler(&docReader, &writer, &importContext, &titleHandler);
     docReader.setHandler(&documentHandler);
 
 
@@ -2340,9 +2339,7 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
         doc->compact();
         doc->dumpStatistics();
     }
-
     return true;
-
 }
 
 docxStyle::docxStyle() : m_type(docx_paragraph_style),
@@ -2615,6 +2612,7 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
                 lString16 id = isEndNote() ? L"c_" : L"n_";
                 id << m_importContext->m_footNoteId.c_str();
                 m_writer->OnAttribute(L"", L"id", id.c_str());
+                m_writer->OnAttribute(L"", L"role", isEndNote() ? L"doc-rearnote" : L"doc-footnote");
                 m_writer->OnTagBody();
             }
             paragraphHandler.start();
@@ -2632,6 +2630,7 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
         break;
     case docx_el_footnotes:
     case docx_el_endnotes:
+#ifdef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
         m_writer->OnTagOpen(L"", docx_el_body_name);
         if(isEndNote()) {
             m_writer->OnAttribute(L"", L"name", L"comments");
@@ -2644,6 +2643,13 @@ ldomNode *docx_footnotesHandler::handleTagOpen(int tagId)
             m_writer->OnAttribute(L"", L"name", L"notes");
             m_writer->OnTagBody();
         }
+#else
+        // We don't add <body name=notes> to not trigger crengine auto-in-page-foonotes
+        // mechanism, so we can tweak them with style tweaks. We use a simple <div> instead.
+        m_writer->OnTagOpen(L"", L"div");
+        m_writer->OnAttribute(L"", L"style", L"page-break-before: always");
+        m_writer->OnTagBody();
+#endif
         //fallthrough
     default:
         m_state = tagId;
@@ -3066,4 +3072,92 @@ docxNumLevel *docxAbstractNum::getLevel(int level)
 void docxAbstractNum::reset()
 {
     m_levels.clear();
+}
+
+void docx_titleHandler::onBodyStart()
+{
+    m_writer->OnTagOpen(L"", docx_el_body_name);
+}
+
+void docx_titleHandler::onTitleStart(int level, bool noSection)
+{
+    CR_UNUSED(noSection);
+
+    m_titleLevel = level;
+    lString16 name = cs16("h") +  lString16::itoa(m_titleLevel);
+    if( m_useClassName ) {
+        m_writer->OnTagOpen(L"", L"p");
+        m_writer->OnAttribute(L"", L"class", name.c_str());
+    } else
+        m_writer->OnTagOpen(L"", name.c_str());
+}
+
+void docx_titleHandler::onTitleEnd()
+{
+    if( !m_useClassName ) {
+        lString16 tagName = cs16("h") +  lString16::itoa(m_titleLevel);
+        m_writer->OnTagClose(L"", tagName.c_str());
+    } else
+        m_writer->OnTagClose(L"", L"p");
+}
+
+void docx_fb2TitleHandler::onBodyStart()
+{
+    m_section = m_writer->OnTagOpen(L"", docx_el_body_name);
+}
+
+void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
+{
+    if( noSection )
+        docx_titleHandler::onTitleStart(level, true);
+    else {
+        if( m_titleLevel < level ) {
+            int startIndex = m_hasTitle ? 1 : 0;
+            int contentCount = m_section->getChildCount();
+            if(contentCount > startIndex)
+                makeSection(startIndex);
+        } else
+            closeSection(m_titleLevel - level + 1);
+        openSection(level);
+        m_writer->OnTagOpen(L"", L"title");
+        lString16 className = cs16("h") +  lString16::itoa(level);
+        m_writer->OnAttribute(L"", L"class", className.c_str());
+        m_writer->OnTagBody();
+        m_writer->OnTagOpen(L"", L"p");
+    }
+}
+
+void docx_fb2TitleHandler::onTitleEnd()
+{
+    m_writer->OnTagClose(L"", L"title");
+    m_writer->OnTagClose(L"", L"p");
+    m_hasTitle = true;
+}
+
+void docx_fb2TitleHandler::makeSection(int startIndex)
+{
+    ldomNode *newSection = m_section->insertChildElement(startIndex, LXML_NS_NONE, el_section);
+    newSection->initNodeStyle();
+    m_section->moveItemsTo(newSection, startIndex + 1, m_section->getChildCount() - 1);
+    newSection->initNodeRendMethod( );
+    m_section = newSection;
+}
+
+void docx_fb2TitleHandler::openSection(int level)
+{
+    for(int i = m_titleLevel; i < level; i++) {
+        m_section = m_writer->OnTagOpen(L"", L"section");
+        m_writer->OnTagBody();
+    }
+    m_titleLevel = level;
+    m_hasTitle = false;
+}
+
+void docx_fb2TitleHandler::closeSection(int level)
+{
+    for(int i = 0; i < level; i++) {
+        m_writer->OnTagClose(L"", L"section");
+        m_titleLevel--;
+    }
+    m_hasTitle = false;
 }
