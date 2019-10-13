@@ -10,6 +10,8 @@
 
 // comment this out to disable in-page footnotes
 #define DOCX_CRENGINE_IN_PAGE_FOOTNOTES 1
+// build FB2 DOM, comment out to build HTML DOM
+#define DOCX_FB2_DOM_STRUCTURE 1
 
 /// known docx items name and identifier
 struct item_def_t {
@@ -1413,7 +1415,7 @@ void docx_ElementHandler::generateLink(const lChar16 *target, const lChar16 *typ
 #ifndef DOCX_CRENGINE_IN_PAGE_FOOTNOTES
     if( !lStr_cmp(type, "note") ) {
         // For footnotes (but not endnotes), wrap in <sup> (to get the
-        // same effect upstream gets with the following in docx.css:
+        // same effect as the following in docx.css:
         //   a[type="note"] { vertical-align: super; font-size: 70%; }
         m_writer->OnTagOpen(L"", L"sup");
         m_writer->OnTagBody();
@@ -1864,11 +1866,11 @@ const lChar16 *docx_pHandler::getStyleTagName(lChar16 ch)
     case 'b':
         return L"strong";
     case 'i':
-        return L"em"; // upstream uses L"emphasis";
+        return L"em";
     case 'u':
         return L"u";
     case 's':
-        return L"s"; // upstream uses L"strike";
+        return L"s";
     case 't':
         return L"sup";
     case 'd':
@@ -2313,12 +2315,14 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     writer.OnTagClose(NULL, L"title-info");
     writer.OnTagClose(NULL, L"description");
 
+#ifdef DOCX_FB2_DOM_STRUCTURE
     //Two options when dealing with titles: (FB2|HTML)
     docx_fb2TitleHandler titleHandler(&writer, &importContext); //<section><title class=hx">..</title></section>
-    //docx_titleHandler titleHandler(&writer, &importContext);  //<hx>..</hx>
+#else
+    docx_titleHandler titleHandler(&writer, &importContext);  //<hx>..</hx>
+#endif
     docx_documentHandler documentHandler(&docReader, &writer, &importContext, &titleHandler);
     docReader.setHandler(&documentHandler);
-
 
     LVXMLParser parser(m_stream, &docReader);
 
