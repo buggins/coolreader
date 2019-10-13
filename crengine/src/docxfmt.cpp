@@ -12,6 +12,8 @@
 #define DOCX_CRENGINE_IN_PAGE_FOOTNOTES 1
 // build FB2 DOM, comment out to build HTML DOM
 #define DOCX_FB2_DOM_STRUCTURE 1
+//If true <title class="hx"><p>...</p></title> else <title><hx>..</hx></title>
+#define DOCX_USE_CLASS_FOR_HEADING true
 
 /// known docx items name and identifier
 struct item_def_t {
@@ -903,8 +905,8 @@ protected:
 class docx_fb2TitleHandler : public docx_titleHandler
 {
 public:
-    docx_fb2TitleHandler(ldomDocumentWriter *writer, docxImportContext *context) :
-        docx_titleHandler(writer, context, true)
+    docx_fb2TitleHandler(ldomDocumentWriter *writer, docxImportContext *context, bool useClassName) :
+        docx_titleHandler(writer, context, useClassName)
     {}
     void onBodyStart();
     void onTitleStart(int level, bool noSection = false);
@@ -2317,7 +2319,7 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
 
 #ifdef DOCX_FB2_DOM_STRUCTURE
     //Two options when dealing with titles: (FB2|HTML)
-    docx_fb2TitleHandler titleHandler(&writer, &importContext); //<section><title class=hx">..</title></section>
+    docx_fb2TitleHandler titleHandler(&writer, &importContext, DOCX_USE_CLASS_FOR_HEADING); //<section><title>..</title></section>
 #else
     docx_titleHandler titleHandler(&writer, &importContext);  //<hx>..</hx>
 #endif
@@ -3124,17 +3126,27 @@ void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
             closeSection(m_titleLevel - level + 1);
         openSection(level);
         m_writer->OnTagOpen(L"", L"title");
-        lString16 className = cs16("h") +  lString16::itoa(level);
-        m_writer->OnAttribute(L"", L"class", className.c_str());
-        m_writer->OnTagBody();
-        m_writer->OnTagOpen(L"", L"p");
+        lString16 headingName = cs16("h") +  lString16::itoa(level);
+        if( m_useClassName ) {
+            m_writer->OnAttribute(L"", L"class", headingName.c_str());
+            m_writer->OnTagBody();
+            m_writer->OnTagOpen(L"", L"p");
+        } else {
+            m_writer->OnTagBody();
+            m_writer->OnTagOpen(L"", headingName.c_str());
+        }
     }
 }
 
 void docx_fb2TitleHandler::onTitleEnd()
 {
+    if( !m_useClassName ) {
+        lString16 headingName = cs16("h") +  lString16::itoa(m_titleLevel);
+        m_writer->OnTagClose(L"", headingName.c_str());
+    } else
+        m_writer->OnTagClose(L"", L"p");
+
     m_writer->OnTagClose(L"", L"title");
-    m_writer->OnTagClose(L"", L"p");
     m_hasTitle = true;
 }
 
