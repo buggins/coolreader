@@ -3143,9 +3143,9 @@ void docx_fb2TitleHandler::onTitleStart(int level, bool noSection)
         m_writer->OnTagOpen(L"", L"title");
         lString16 headingName = cs16("h") +  lString16::itoa(level);
         if( m_useClassName ) {
-            m_writer->OnAttribute(L"", L"class", headingName.c_str());
             m_writer->OnTagBody();
             m_writer->OnTagOpen(L"", L"p");
+            m_writer->OnAttribute(L"", L"class", headingName.c_str());
         } else {
             m_writer->OnTagBody();
             m_writer->OnTagOpen(L"", headingName.c_str());
