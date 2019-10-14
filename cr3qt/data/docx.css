@@ -18,7 +18,7 @@ ol { display: block; list-style-type: decimal; margin-left: 1em }
     $title.all
 }
 
-.h3, .h4, .h5, .h6 p {
+.h3, .h4, .h5, .h6 {
     $subtitle.all
 }
 
