@@ -2301,6 +2301,7 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     ldomDocumentWriter writer(doc);
     docXMLreader docReader(&writer);
 
+#ifdef DOCX_FB2_DOM_STRUCTURE
     writer.OnStart(NULL);
     writer.OnTagOpen(NULL, L"?xml");
     writer.OnAttribute(NULL, L"version", L"1.0");
@@ -2316,6 +2317,16 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     writer.OnTagClose(NULL, L"book-title");
     writer.OnTagClose(NULL, L"title-info");
     writer.OnTagClose(NULL, L"description");
+#else
+    writer.OnStart(NULL);
+    writer.OnTagOpen(NULL, L"?xml");
+    writer.OnAttribute(NULL, L"version", L"1.0");
+    writer.OnAttribute(NULL, L"encoding", L"utf-8");
+    writer.OnEncoding(L"utf-8", NULL);
+    writer.OnTagBody();
+    writer.OnTagClose(NULL, L"?xml");
+    writer.OnTagOpenNoAttr(NULL, L"html");
+#endif
 
 #ifdef DOCX_FB2_DOM_STRUCTURE
     //Two options when dealing with titles: (FB2|HTML)
@@ -2337,7 +2348,11 @@ bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallba
     if(importContext.m_endNoteCount > 0) {
         parseFootnotes(writer, importContext, docx_el_endnotes);
     }
+#ifdef DOCX_FB2_DOM_STRUCTURE
     writer.OnTagClose(NULL, L"FictionBook");
+#else
+    writer.OnTagClose(NULL, L"html");
+#endif
     writer.OnStop();
 
     if ( progressCallback ) {
