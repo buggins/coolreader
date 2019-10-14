@@ -111,22 +111,8 @@ public class BaseActivity extends Activity implements Settings {
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
-		if (hasFocus && (DeviceInfo.getSDKLevel() >= 19)) {
-			int flag = 0;
-			if (mFullscreen) {
-				// Flag View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY added in API 19
-				// without this flag  SYSTEM_UI_FLAG_HIDE_NAVIGATION will be force cleared by the system on any user interaction,
-				// and SYSTEM_UI_FLAG_FULLSCREEN will be force-cleared by the system if the user swipes from the top of the screen.
-				// So use this flags only on API >= 19
-				flag |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-						| View.SYSTEM_UI_FLAG_FULLSCREEN;
-			}
-			mDecorView.setSystemUiVisibility(flag);
-		}
+		if (hasFocus)
+			setSystemUiVisibility();
 	}
 
 	/**
@@ -608,6 +594,8 @@ public class BaseActivity extends Activity implements Settings {
 		} else {
 			wnd.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
+		// enforce new window ui visibility flags
+		lastSystemUiVisibility = -1;
 		setSystemUiVisibility();
 	}
 
@@ -662,9 +650,14 @@ public class BaseActivity extends Activity implements Settings {
 	public boolean setSystemUiVisibility() {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
 			int flags = 0;
-			if (getKeyBacklight() == 0)
-				if (DeviceInfo.getSDKLevel() >= 14)
+			if (getKeyBacklight() == 0) {
+				if (DeviceInfo.getSDKLevel() < 19)
+					// backlight of hardware buttons enabled/disabled
+					// in updateButtonsBrightness(), turnOffKeyBacklight(), turnOnKeyBacklight()
+					// entry point onUserActivity().
+					// This flag just shade software navigation bar and system UI
 					flags |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+			}
 			if (isFullscreen() /*&& wantHideNavbarInFullscreen() && isSmartphone()*/) {
 				if (DeviceInfo.getSDKLevel() >= 19)
 					// Flag View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY added in API 19
@@ -675,7 +668,10 @@ public class BaseActivity extends Activity implements Settings {
 							View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 							View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
 							View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+							View.SYSTEM_UI_FLAG_FULLSCREEN |
 							View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+				else
+					flags |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
 			}
 			setSystemUiVisibility(flags);
 //			if (isFullscreen() && DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH)
@@ -686,43 +682,34 @@ public class BaseActivity extends Activity implements Settings {
 	}
 
 
-	//private int lastSystemUiVisibility = -1;
-	//private boolean systemUiVisibilityListenerIsSet = false;
+	private int lastSystemUiVisibility = -1;
+	private boolean systemUiVisibilityListenerIsSet = false;
+
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@SuppressLint("NewApi")
 	private boolean setSystemUiVisibility(int value) {
 		if (DeviceInfo.getSDKLevel() >= DeviceInfo.HONEYCOMB) {
-//			if (!systemUiVisibilityListenerIsSet && contentView != null) {
-//				contentView.setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
-//					@Override
-//					public void onSystemUiVisibilityChange(int visibility) {
-//						lastSystemUiVisibility = visibility;
-//					}
-//				});
-//			}
+			if (!systemUiVisibilityListenerIsSet && null != mDecorView) {
+				mDecorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+					@Override
+					public void onSystemUiVisibilityChange(int visibility) {
+						lastSystemUiVisibility = visibility;
+					}
+				});
+				systemUiVisibilityListenerIsSet = true;
+			}
 			boolean a4 = DeviceInfo.getSDKLevel() >= DeviceInfo.ICE_CREAM_SANDWICH;
 			if (!a4)
-				value &= ~View.SYSTEM_UI_FLAG_LOW_PROFILE;
-			//if (value == lastSystemUiVisibility)// && a4)
-			//	return false;
+				value &= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+			if (value == lastSystemUiVisibility)// && a4)
+				return false;
 			//lastSystemUiVisibility = value;
 
-			View view;
-			//if (a4)
-			view = getWindow().getDecorView(); // getReaderView();
-			//else
-			//	view = mActivity.getContentView(); // getReaderView();
-
-			if (view == null)
+			if (null == mDecorView)
 				return false;
-			Method m;
 			try {
-				m = view.getClass().getMethod("getSystemUiVisibility");
-				int oldValue = (Integer) m.invoke(view);
-				if (oldValue != value) {
-					m = view.getClass().getMethod("setSystemUiVisibility", int.class);
-					m.invoke(view, value);
-				}
+				Method m = mDecorView.getClass().getMethod("setSystemUiVisibility", int.class);
+				m.invoke(mDecorView, value);
 				return true;
 			} catch (SecurityException e) {
 				// ignore
@@ -989,7 +976,7 @@ public class BaseActivity extends Activity implements Settings {
 			if (wl == null) {
 				PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 				wl = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-						/* | PowerManager.ON_AFTER_RELEASE */, "cr3");
+						/* | PowerManager.ON_AFTER_RELEASE */, "cr3:wakelock");
 				log.d("ScreenBacklightControl: WakeLock created");
 			}
 			if (!isStarted()) {
