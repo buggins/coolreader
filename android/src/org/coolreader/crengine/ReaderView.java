@@ -4854,7 +4854,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		        mOpened = true;
 		        
 		        highlightBookmarks();
-		        
+
+				hideProgress();
 		        drawPage();
 		        BackgroundThread.instance().postGUI(new Runnable() {
 		        	public void run() {
@@ -5081,7 +5082,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			BackgroundThread.ensureBackground();
 			doc.goToPosition(pos, false);
     		preparePageImage(0);
-    		hideProgress();
     		drawPage();
     		updateCurrentPositionStatus();
     	}
@@ -5396,7 +5396,6 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				log.d("OnLoadFileEnd: resizeInternal(" + internalDX + "," + internalDY + ")");
 				doc.resize(internalDX, internalDY);
 			}
-			hideProgress();
 		}
 
 		public void OnLoadFileError(String message) {
