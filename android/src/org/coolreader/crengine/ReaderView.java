@@ -6179,7 +6179,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		surface.setFocusableInTouchMode(true);
 		// set initial size to exclude java.lang.IllegalArgumentException in Bitmap.createBitmap(0, 0)
 		// surface.getWidth() at this point return 0
-		requestResize(600, 800);
+		requestedWidth = 100;
+		requestedHeight = 100;
 
 		BackgroundThread.instance().postBackground(new Runnable() {
 
