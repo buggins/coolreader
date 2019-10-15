@@ -852,7 +852,7 @@ public:
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
     /// returns object image ref name
-    lString16 getObjectImageRefName();
+    lString16 getObjectImageRefName(bool percentDecode = true);
     /// returns object image stream
     LVStreamRef getObjectImageStream();
     /// formats final block

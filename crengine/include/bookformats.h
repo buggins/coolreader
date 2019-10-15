@@ -7,6 +7,7 @@
 typedef enum {
     doc_format_none,
     doc_format_fb2,
+    doc_format_fb3,
     doc_format_txt,
     doc_format_rtf,
     doc_format_epub,
@@ -14,6 +15,7 @@ typedef enum {
     doc_format_txt_bookmark, // coolreader TXT format bookmark
     doc_format_chm,
     doc_format_doc,
+    doc_format_docx,
     doc_format_pdb,
     doc_format_max = doc_format_pdb
     // don't forget update getDocFormatName() when changing this enum

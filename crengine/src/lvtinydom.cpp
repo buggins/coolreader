@@ -10612,7 +10612,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
             for (int i = 0; i < parent->getChildCount(); i++) {
                 ldomNode * child = parent->getChildNode(i);
                 css_style_ref_t cs = child->getStyle();
-                if ( cs.isNull() )
+                if ( cs.isNull() || cs->display != css_d_list_item )
                     continue;
                 switch ( cs->list_style_type ) {
                 case css_lst_decimal:
@@ -11035,7 +11035,7 @@ public:
 };
 
 /// returns object image ref name
-lString16 ldomNode::getObjectImageRefName()
+lString16 ldomNode::getObjectImageRefName(bool percentDecode)
 {
     if (!isElement())
         return lString16::empty_str;
@@ -11072,7 +11072,8 @@ lString16 ldomNode::getObjectImageRefName()
     }
     if ( refName.length()<2 )
         return lString16::empty_str;
-    refName = DecodeHTMLUrlString(refName);
+    if (percentDecode)
+        refName = DecodeHTMLUrlString(refName);
     return refName;
 }
 
@@ -11090,11 +11091,18 @@ LVStreamRef ldomNode::getObjectImageStream()
 /// returns object image source
 LVImageSourceRef ldomNode::getObjectImageSource()
 {
-    lString16 refName = getObjectImageRefName();
+    lString16 refName = getObjectImageRefName(true);
     LVImageSourceRef ref;
     if ( refName.empty() )
         return ref;
     ref = getDocument()->getObjectImageSource( refName );
+    if (ref.isNull()) {
+        // try again without percent decoding (for fb3)
+        refName = getObjectImageRefName(false);
+        if ( refName.empty() )
+            return ref;
+        ref = getDocument()->getObjectImageSource( refName );
+    }
     if ( !ref.isNull() ) {
         int dx = ref->GetWidth();
         int dy = ref->GetHeight();

@@ -505,16 +505,21 @@ public:
             }
             bool isObject = false;
             bool prevCharIsObject = false;
+            bool isLetterSpacingChanged = false;
             if ( i<m_length ) {
                 newSrc = m_srcs[i];
                 isObject = m_charindex[i] == OBJECT_CHAR_INDEX;
                 newFont = isObject ? NULL : (LVFont *)newSrc->t.font;
+                if (i > 0 && m_srcs[i]->letter_spacing != m_srcs[i -1]->letter_spacing) {
+                    isLetterSpacingChanged = true;
+                }
             }
             if (i > 0)
                 prevCharIsObject = m_charindex[i - 1] == OBJECT_CHAR_INDEX;
             if ( !lastFont )
                 lastFont = newFont;
-            if ( i>start && (newFont!=lastFont || isObject || prevCharIsObject || i>=start+MAX_TEXT_CHUNK_SIZE || (m_flags[i]&LCHAR_MANDATORY_NEWLINE)) ) {
+            if ( i>start && (newFont!=lastFont || isObject || prevCharIsObject || isLetterSpacingChanged
+                             || i>=start+MAX_TEXT_CHUNK_SIZE || (m_flags[i]&LCHAR_MANDATORY_NEWLINE)) ) {
                 // measure start..i-1 chars
                 if ( m_charindex[i-1]!=OBJECT_CHAR_INDEX ) {
                     // measure text
