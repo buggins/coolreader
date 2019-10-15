@@ -57,6 +57,9 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/epubfmt.cpp
     ${CR3_ROOT}/crengine/src/pdbfmt.cpp
     ${CR3_ROOT}/crengine/src/wordfmt.cpp
+    ${CR3_ROOT}/crengine/src/lvopc.cpp
+    ${CR3_ROOT}/crengine/src/docxfmt.cpp
+    ${CR3_ROOT}/crengine/src/fb3fmt.cpp
     ${CR3_ROOT}/crengine/src/lvstsheet.cpp
     ${CR3_ROOT}/crengine/src/txtselector.cpp
     ${CR3_ROOT}/crengine/src/crtest.cpp

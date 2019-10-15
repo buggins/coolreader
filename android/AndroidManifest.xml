@@ -72,6 +72,10 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.fb2"/>
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.fb2"/>
                 <!-- end of inner files in archive -->
+                <data android:pathPattern=".*\\.fb3"/>
+                <data android:pathPattern=".*\\..*\\.fb3"/>
+                <data android:pathPattern=".*\\..*\\..*\\.fb3"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.fb3"/>
                 <data android:pathPattern=".*\\.txt"/>
                 <data android:pathPattern=".*\\.html"/>
                 <data android:pathPattern=".*\\.xhtml"/>
@@ -87,6 +91,7 @@
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.fb2\\.epub"/>
                 <data android:pathPattern=".*\\.pdb"/>
                 <data android:pathPattern=".*\\.doc"/>
+                <data android:pathPattern=".*\\.docx"/>
                 <data android:pathPattern=".*\\.prc"/>
                 <data android:pathPattern=".*\\.pml"/>
                 <data android:pathPattern=".*\\.mobi"/>
@@ -118,6 +123,7 @@
                 <data android:mimeType="application/x-chm"/>
                 <data android:mimeType="application/fb2"/>
                 <data android:mimeType="application/fb2.zip"/>
+                <data android:mimeType="application/fb3"/>
                 <data android:mimeType="application/epub"/>
                 <data android:mimeType="application/epub+zip"/>
                 <data android:mimeType="application/x-fictionbook"/>
@@ -132,6 +138,7 @@
                 <data android:mimeType="application/word"/>
                 <data android:mimeType="application/x-msw6"/>
                 <data android:mimeType="application/x-msword"/>
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
             </intent-filter>
         </activity>
        
