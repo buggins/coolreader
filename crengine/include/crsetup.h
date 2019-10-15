@@ -42,6 +42,7 @@
 #define USE_GIF                              0
 #define USE_FREETYPE                         0
 #define USE_HARFBUZZ                         0
+#define USE_GLYPHCACHE_HASHTABLE             0
 #define GLYPH_CACHE_SIZE                     0x1000
 #define ZIP_STREAM_BUFFER_SIZE               0x1000
 #define FILE_STREAM_BUFFER_SIZE              0x1000
@@ -53,6 +54,7 @@
 #define USE_GIF                              1
 #define USE_FREETYPE                         1
 #define USE_HARFBUZZ                         1
+#define USE_GLYPHCACHE_HASHTABLE             0
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
@@ -81,6 +83,7 @@
 #define GRAY_INVERSE                         0
 #define USE_FREETYPE                         1
 #define USE_HARFBUZZ                         1
+#define USE_GLYPHCACHE_HASHTABLE             1
 
 #ifndef ANDROID
 #ifndef MAC
@@ -118,6 +121,7 @@
 #define USE_HARFBUZZ                         1
 #endif
 #define ALLOW_KERNING                        1
+#define USE_GLYPHCACHE_HASHTABLE             1
 #define GLYPH_CACHE_SIZE                     0x20000
 #define ZIP_STREAM_BUFFER_SIZE               0x80000
 #define FILE_STREAM_BUFFER_SIZE              0x40000
@@ -300,12 +304,16 @@
 #define MAX_IMAGE_SCALE_MUL 2
 #endif
 
-// Maximum & minimum screen resolution
-// By default full frame 4K
-#ifndef SCREEN_SIZE_MIN
-#define SCREEN_SIZE_MIN 160
+#ifndef USE_GLYPHCACHE_HASHTABLE
+#define USE_GLYPHCACHE_HASHTABLE 0
 #endif
 
+// Maximum & minimum screen resolution
+#ifndef SCREEN_SIZE_MIN
+#define SCREEN_SIZE_MIN 80
+#endif
+
+// By default full frame 4K
 #ifndef SCREEN_SIZE_MAX
 #define SCREEN_SIZE_MAX 4096
 #endif

@@ -421,6 +421,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
     // fonts are in files font1.lbf, font2.lbf, ... font32.lbf
     // use fontconfig
 
+#if USE_FREETYPE==1
     lString16Collection fontExt;
     fontExt.add(cs16(".ttf"));
     fontExt.add(cs16(".otf"));
@@ -441,6 +442,7 @@ bool InitCREngine( const char * exename, lString16Collection & fontDirs )
 	    }
 	}
     //}
+#endif  // USE_FREETYPE==1
 
     // init hyphenation manager
     //char hyphfn[1024];

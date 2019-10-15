@@ -32,6 +32,7 @@
 #include "dtddef.h"
 #include "lvstyles.h"
 #include "lvdrawbuf.h"
+#include "lvembeddedfont.h"
 #include "lvstsheet.h"
 #include "lvpagesplitter.h"
 #include "lvptrvec.h"
