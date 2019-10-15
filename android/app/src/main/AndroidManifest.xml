@@ -31,7 +31,8 @@
         android:icon="@mipmap/cr3_logo"
         android:label="@string/app_name"
         android:process="org.coolreader"
-        android:resizeableActivity="true">
+        android:resizeableActivity="true"
+        android:usesCleartextTraffic="true" >
 <!--
            android:configChanges="orientation|keyboardHidden|locale|screenSize"
 -->
