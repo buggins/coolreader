@@ -14,120 +14,38 @@
 
 #include "lvfontglyphcache.h"
 #include "../../include/crlocks.h"
+#include "lvhashtable.h"
+#define GLYPHCACHE_TABLE_SZ         256
 
-#if USE_GLYPHCACHE_HASHTABLE == 1
-inline lUInt32 getHash(GlyphCacheItemData data)
+class LVLocalGlyphCacheHashTableStorage : public LVLocalGlyphCacheStorage
 {
-    return getHash(*((lUInt32*)&data));
-}
+    LVHashTable<lUInt32, struct LVFontGlyphCacheItem*> hashTable;
+public:
+    LVLocalGlyphCacheHashTableStorage(LVFontGlobalGlyphCache *global_cache, int size) :
+        LVLocalGlyphCacheStorage(global_cache), hashTable(size) {
+    }
+    LVFontGlyphCacheItem* get(lUInt32 ch);
+    void put(LVFontGlyphCacheItem *item);
+    void remove(LVFontGlyphCacheItem *item);
+    void clear();
+};
 
-inline bool operator==(GlyphCacheItemData data1, GlyphCacheItemData data2)
+class LVLocalGlyphCacheListStorage : public LVLocalGlyphCacheStorage
 {
-    return (*((lUInt32*)&data1)) == (*((lUInt32*)&data2));
-}
-#endif
-
-void LVFontLocalGlyphCache::clear() {
-    FONT_LOCAL_GLYPH_CACHE_GUARD
-#if USE_GLYPHCACHE_HASHTABLE == 1
-    LVHashTable<GlyphCacheItemData, struct LVFontGlyphCacheItem*>::iterator it = hashTable.forwardIterator();
-    LVHashTable<GlyphCacheItemData, struct LVFontGlyphCacheItem*>::pair* pair;
-    while ((pair = it.next()))
-    {
-        global_cache->remove(pair->value);
-        LVFontGlyphCacheItem::freeItem(pair->value);
+    LVFontGlyphCacheItem* head;
+    LVFontGlyphCacheItem* tail;
+public:
+    LVLocalGlyphCacheListStorage(LVFontGlobalGlyphCache *global_cache) :
+        LVLocalGlyphCacheStorage(global_cache), head(), tail() {}
+    ~LVLocalGlyphCacheListStorage() {
+        clear();
     }
-    hashTable.clear();
-#else
-    while (head) {
-        LVFontGlyphCacheItem *ptr = head;
-        remove(ptr);
-        global_cache->remove(ptr);
-        LVFontGlyphCacheItem::freeItem(ptr);
-    }
-#endif
-}
+    LVFontGlyphCacheItem* get(lUInt32 ch);
+    void put(LVFontGlyphCacheItem *item);
+    void remove(LVFontGlyphCacheItem *item);
+    void clear();
+};
 
-LVFontGlyphCacheItem *LVFontLocalGlyphCache::get(lChar16 ch) {
-    FONT_LOCAL_GLYPH_CACHE_GUARD
-#if USE_GLYPHCACHE_HASHTABLE == 1
-    LVFontGlyphCacheItem *ptr = 0;
-    GlyphCacheItemData data;
-    data.ch = ch;
-    if (hashTable.get(data, ptr))
-        return ptr;
-#else
-    LVFontGlyphCacheItem *ptr = head;
-    for (; ptr; ptr = ptr->next_local) {
-        if (ptr->data.ch == ch) {
-            global_cache->refresh(ptr);
-            return ptr;
-        }
-    }
-#endif
-    return NULL;
-}
-
-#if USE_HARFBUZZ==1
-LVFontGlyphCacheItem*LVFontLocalGlyphCache::getByIndex(lUInt32 index)
-{
-    FONT_LOCAL_GLYPH_CACHE_GUARD
-#if USE_GLYPHCACHE_HASHTABLE == 1
-    LVFontGlyphCacheItem *ptr = 0;
-    GlyphCacheItemData data;
-    data.gindex = index;
-    if (hashTable.get(data, ptr))
-        return ptr;
-#else
-    LVFontGlyphCacheItem *ptr = head;
-    for (; ptr; ptr = ptr->next_local) {
-        if (ptr->data.gindex == index) {
-            global_cache->refresh(ptr);
-            return ptr;
-        }
-    }
-#endif
-    return NULL;
-}
-#endif
-
-void LVFontLocalGlyphCache::put(LVFontGlyphCacheItem *item) {
-    FONT_LOCAL_GLYPH_CACHE_GUARD
-    global_cache->put(item);
-#if USE_GLYPHCACHE_HASHTABLE == 1
-    hashTable.set(item->data, item);
-#else
-    item->next_local = head;
-    if (head)
-        head->prev_local = item;
-    if (!tail)
-        tail = item;
-    head = item;
-#endif
-}
-
-/// remove from list, but don't delete
-void LVFontLocalGlyphCache::remove(LVFontGlyphCacheItem *item) {
-    FONT_LOCAL_GLYPH_CACHE_GUARD
-#if USE_GLYPHCACHE_HASHTABLE == 1
-    hashTable.remove(item->data);
-#else
-    if (item == head)
-        head = item->next_local;
-    if (item == tail)
-        tail = item->prev_local;
-    if (!head || !tail)
-        return;
-    if (item->prev_local)
-        item->prev_local->next_local = item->next_local;
-    if (item->next_local)
-        item->next_local->prev_local = item->prev_local;
-    item->next_local = NULL;
-    item->prev_local = NULL;
-#endif
-}
-
-#if USE_GLYPHCACHE_HASHTABLE != 1
 void LVFontGlobalGlyphCache::refresh(LVFontGlyphCacheItem *item) {
     FONT_GLYPH_CACHE_GUARD
     if (tail != item) {
@@ -136,7 +54,6 @@ void LVFontGlobalGlyphCache::refresh(LVFontGlyphCacheItem *item) {
         putNoLock(item);
     }
 }
-#endif
 
 void LVFontGlobalGlyphCache::put(LVFontGlyphCacheItem *item) {
     FONT_GLYPH_CACHE_GUARD
@@ -195,32 +112,12 @@ void LVFontGlobalGlyphCache::clear() {
     }
 }
 
-LVFontGlyphCacheItem *LVFontGlyphCacheItem::newItem(LVFontLocalGlyphCache *local_cache, lChar16 ch, int w, int h) {
-    LVFontGlyphCacheItem *item = (LVFontGlyphCacheItem *) malloc(sizeof(LVFontGlyphCacheItem)
-                                                                 + (w * h - 1) * sizeof(lUInt8));
-    if (item) {
-        item->data.ch = ch;
-        item->bmp_width = (lUInt16) w;
-        item->bmp_height = (lUInt16) h;
-        item->origin_x = 0;
-        item->origin_y = 0;
-        item->advance = 0;
-        item->prev_global = NULL;
-        item->next_global = NULL;
-        item->prev_local = NULL;
-        item->next_local = NULL;
-        item->local_cache = local_cache;
-    }
-    return item;
-}
-
-#if USE_HARFBUZZ==1
 LVFontGlyphCacheItem *LVFontGlyphCacheItem::newItem(LVFontLocalGlyphCache* local_cache, lUInt32 glyph_index, int w, int h)
 {
     LVFontGlyphCacheItem *item = (LVFontGlyphCacheItem *) malloc(sizeof(LVFontGlyphCacheItem)
                                                                  + (w * h - 1) * sizeof(lUInt8));
     if (item) {
-        item->data.gindex = glyph_index;
+        item->data = glyph_index;
         item->bmp_width = (lUInt16) w;
         item->bmp_height = (lUInt16) h;
         item->origin_x = 0;
@@ -234,9 +131,126 @@ LVFontGlyphCacheItem *LVFontGlyphCacheItem::newItem(LVFontLocalGlyphCache* local
     }
     return item;
 }
-#endif // USE_HARFBUZZ==1
 
 void LVFontGlyphCacheItem::freeItem(LVFontGlyphCacheItem *item) {
     if (item)
         ::free(item);
 }
+
+LVFontGlyphCacheItem *LVLocalGlyphCacheHashTableStorage::get(lUInt32 ch)
+{
+    LVFontGlyphCacheItem *ptr = 0;
+    if (hashTable.get(ch, ptr))
+        m_global_cache->refresh(ptr);
+    return ptr;
+}
+
+void LVLocalGlyphCacheHashTableStorage::put(LVFontGlyphCacheItem *item)
+{
+    m_global_cache->put(item);
+    hashTable.set(item->data, item);
+}
+
+void LVLocalGlyphCacheHashTableStorage::remove(LVFontGlyphCacheItem *item)
+{
+    hashTable.remove(item->data);
+}
+
+void LVLocalGlyphCacheHashTableStorage::clear()
+{
+    FONT_LOCAL_GLYPH_CACHE_GUARD
+
+    LVHashTable<lUInt32, struct LVFontGlyphCacheItem*>::iterator it = hashTable.forwardIterator();
+    LVHashTable<lUInt32, struct LVFontGlyphCacheItem*>::pair* pair;
+    while( (pair = it.next()) ) {
+        m_global_cache->remove(pair->value);
+        LVFontGlyphCacheItem::freeItem(pair->value);
+    }
+    hashTable.clear();
+}
+
+LVFontGlyphCacheItem *LVLocalGlyphCacheListStorage::get(lUInt32 ch)
+{
+    LVFontGlyphCacheItem *ptr = head;
+    for (; ptr; ptr = ptr->next_local) {
+        if (ptr->data == ch) {
+            m_global_cache->refresh(ptr);
+            return ptr;
+        }
+    }
+    return NULL;
+}
+
+void LVLocalGlyphCacheListStorage::put(LVFontGlyphCacheItem *item)
+{
+    m_global_cache->put(item);
+    item->next_local = head;
+    if (head)
+        head->prev_local = item;
+    if (!tail)
+        tail = item;
+    head = item;
+}
+
+void LVLocalGlyphCacheListStorage::remove(LVFontGlyphCacheItem *item)
+{
+    if (item == head)
+        head = item->next_local;
+    if (item == tail)
+        tail = item->prev_local;
+    if (!head || !tail)
+        return;
+    if (item->prev_local)
+        item->prev_local->next_local = item->next_local;
+    if (item->next_local)
+        item->next_local->prev_local = item->prev_local;
+    item->next_local = NULL;
+    item->prev_local = NULL;
+}
+
+void LVLocalGlyphCacheListStorage::clear()
+{
+    while (head) {
+        LVFontGlyphCacheItem *ptr = head;
+        remove(ptr);
+        m_global_cache->remove(ptr);
+        LVFontGlyphCacheItem::freeItem(ptr);
+    }
+}
+void LVFontLocalGlyphCache::clear()
+{
+    FONT_LOCAL_GLYPH_CACHE_GUARD
+
+    m_storage->clear();
+}
+
+LVFontGlyphCacheItem *LVFontLocalGlyphCache::get(lUInt32 index)
+{
+    FONT_LOCAL_GLYPH_CACHE_GUARD
+    return m_storage->get(index);
+}
+
+void LVFontLocalGlyphCache::put(LVFontGlyphCacheItem *item)
+{
+    FONT_LOCAL_GLYPH_CACHE_GUARD
+    m_storage->put(item);
+}
+
+void LVFontLocalGlyphCache::remove(LVFontGlyphCacheItem *item)
+{
+    FONT_LOCAL_GLYPH_CACHE_GUARD
+    m_storage->remove(item);
+}
+
+#if USE_GLYPHCACHE_HASHTABLE == 1
+LVFontLocalGlyphCache::LVFontLocalGlyphCache(LVFontGlobalGlyphCache *globalCache)
+{
+    m_storage = new LVLocalGlyphCacheHashTableStorage(globalCache, GLYPHCACHE_TABLE_SZ);
+}
+#else
+LVFontLocalGlyphCache::LVFontLocalGlyphCache(LVFontGlobalGlyphCache *globalCache)
+{
+    m_storage = new LVLocalGlyphCacheListStorage(globalCache);
+}
+#endif
+

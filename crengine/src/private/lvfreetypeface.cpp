@@ -1066,7 +1066,7 @@ LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt16 ch, lChar16 def_char) {
 
 LVFontGlyphCacheItem* LVFreeTypeFace::getGlyphByIndex(lUInt32 index) {
     //FONT_GUARD
-    LVFontGlyphCacheItem *item = _glyph_cache2.getByIndex(index);
+    LVFontGlyphCacheItem *item = _glyph_cache2.get(index);
     if (!item) {
         // glyph not found in cache, rendering...
         int rend_flags = FT_LOAD_RENDER | (!_drawMonochrome ? FT_LOAD_TARGET_NORMAL
