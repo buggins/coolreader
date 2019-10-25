@@ -18,6 +18,9 @@
 #include <stdlib.h>
 #include "crsetup.h"
 #include "lvtypes.h"
+#include "lvhashtable.h"
+#include "../../include/crlocks.h"
+#define GLYPHCACHE_TABLE_SZ         256
 
 struct LVFontGlyphCacheItem;
 
@@ -50,37 +53,84 @@ public:
     void clear();
 };
 
-class LVLocalGlyphCacheStorage
+class LVLocalGlyphCacheHashTableStorage
 {
+    LVHashTable<lUInt32, struct LVFontGlyphCacheItem*> hashTable;
+    LVFontGlobalGlyphCache* m_global_cache;
+    //non-cpyable
+    LVLocalGlyphCacheHashTableStorage();
+    LVLocalGlyphCacheHashTableStorage( const LVLocalGlyphCacheHashTableStorage& );
+    LVLocalGlyphCacheHashTableStorage& operator=( const LVLocalGlyphCacheHashTableStorage& );
 public:
-    LVLocalGlyphCacheStorage(LVFontGlobalGlyphCache *global_cache) :
-        m_global_cache(global_cache) {
-    }
-    virtual ~LVLocalGlyphCacheStorage() {
+    LVLocalGlyphCacheHashTableStorage(LVFontGlobalGlyphCache *global_cache) :
+        m_global_cache(global_cache), hashTable(GLYPHCACHE_TABLE_SZ) {}
+    ~LVLocalGlyphCacheHashTableStorage() {
         clear();
     }
-    virtual LVFontGlyphCacheItem* get(lUInt32 ch) = 0;
-    virtual void put(LVFontGlyphCacheItem *item) = 0;
-    virtual void remove(LVFontGlyphCacheItem *item) = 0;
-    virtual void clear() {}
-protected:
-    LVFontGlobalGlyphCache* m_global_cache;
-};
-
-class LVFontLocalGlyphCache {
-private:
-    LVLocalGlyphCacheStorage* m_storage;
-public:
-    LVFontLocalGlyphCache(LVFontGlobalGlyphCache *globalCache);
-    ~LVFontLocalGlyphCache() {
-        if( m_storage )
-            delete m_storage;
-    }
-    void clear();
-    LVFontGlyphCacheItem *get(lUInt32 index);
+    LVFontGlyphCacheItem* get(lUInt32 ch);
     void put(LVFontGlyphCacheItem *item);
     void remove(LVFontGlyphCacheItem *item);
+    void clear();
 };
+
+class LVLocalGlyphCacheListStorage
+{
+    LVFontGlobalGlyphCache* m_global_cache;
+    LVFontGlyphCacheItem* head;
+    LVFontGlyphCacheItem* tail;
+    //non-cpyable
+    LVLocalGlyphCacheListStorage();
+    LVLocalGlyphCacheListStorage( const LVLocalGlyphCacheListStorage& );
+    LVLocalGlyphCacheListStorage& operator=( const LVLocalGlyphCacheListStorage& );
+public:
+    LVLocalGlyphCacheListStorage(LVFontGlobalGlyphCache *global_cache) :
+         m_global_cache(global_cache), head(), tail() {}
+    ~LVLocalGlyphCacheListStorage() {
+        clear();
+    }
+    LVFontGlyphCacheItem* get(lUInt32 ch);
+    void put(LVFontGlyphCacheItem *item);
+    void remove(LVFontGlyphCacheItem *item);
+    void clear();
+};
+
+template<class S>
+class LVFontLocalGlyphCache_t {
+public:
+    LVFontLocalGlyphCache_t(LVFontGlobalGlyphCache *globalCache) : m_storage(globalCache) {
+
+    }
+    void clear() {
+        FONT_LOCAL_GLYPH_CACHE_GUARD
+        m_storage.clear();
+    }
+    LVFontGlyphCacheItem *get(lUInt32 index) {
+        FONT_LOCAL_GLYPH_CACHE_GUARD
+        return m_storage.get(index);
+    }
+    void put(LVFontGlyphCacheItem *item) {
+        FONT_LOCAL_GLYPH_CACHE_GUARD
+        m_storage.put(item);
+    }
+    void remove(LVFontGlyphCacheItem *item) {
+        FONT_LOCAL_GLYPH_CACHE_GUARD
+        m_storage.remove(item);
+    }
+private:
+    S m_storage;
+};
+
+#if USE_GLYPHCACHE_HASHTABLE == 1
+    typedef LVFontLocalGlyphCache_t<LVLocalGlyphCacheHashTableStorage> LVFontLocalGlyphCache;
+#else
+    typedef LVFontLocalGlyphCache_t<LVLocalGlyphCacheListStorage> LVFontLocalGlyphCache;
+#endif
+
+#if USE_HARFBUZZ == 1
+    typedef lUInt32 LVFontGlyphCacheKeyType;
+#else
+    typedef lChar16 LVFontGlyphCacheKeyType;
+#endif
 
 struct LVFontGlyphCacheItem {
     LVFontGlyphCacheItem *prev_global;
@@ -88,7 +138,7 @@ struct LVFontGlyphCacheItem {
     LVFontGlyphCacheItem *prev_local;
     LVFontGlyphCacheItem *next_local;
     LVFontLocalGlyphCache *local_cache;
-    lUInt32 data;
+    LVFontGlyphCacheKeyType data;
     lUInt16 bmp_width;
     lUInt16 bmp_height;
     lInt16 origin_x;
@@ -101,7 +151,7 @@ struct LVFontGlyphCacheItem {
         return sizeof(LVFontGlyphCacheItem)
                + (bmp_width * bmp_height - 1) * sizeof(lUInt8);
     }
-    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32 glyph_index, int w, int h);
+    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, LVFontGlyphCacheKeyType ch_or_index, int w, int h);
     static void freeItem(LVFontGlyphCacheItem *item);
 };
 #endif //__LV_FONTGLYPHCACHE_H_INCLUDED__
