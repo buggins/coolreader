@@ -35,7 +35,7 @@ enum font_antialiasing_t {
     font_aa_all
 };
 
-class LVFontGlyphCacheItem;
+struct LVFontGlyphCacheItem;
 
 /** \brief base class for fonts
 
