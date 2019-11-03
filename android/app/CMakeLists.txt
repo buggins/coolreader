@@ -34,9 +34,9 @@ set(LOCAL_CFLAGS "${LOCAL_CFLAGS} -funwind-tables")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${LOCAL_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCAL_CFLAGS}")
 
-set(CMAKE_C_FLAGS_DEBUG             "-O0 -g3")
-set(CMAKE_C_FLAGS_RELEASE           "-O2 -g0 -DNDEBUG")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO    "-O2 -g1 -DNDEBUG")
+set(CMAKE_C_FLAGS_DEBUG             "-O0 -g")
+set(CMAKE_C_FLAGS_RELEASE           "-O3 -g0 -flto -DNDEBUG")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO    "-O3 -g1 -flto -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG           ${CMAKE_C_FLAGS_DEBUG})
 set(CMAKE_CXX_FLAGS_RELEASE         ${CMAKE_C_FLAGS_RELEASE})
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO  ${CMAKE_C_FLAGS_RELWITHDEBINFO})
@@ -57,12 +57,17 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/epubfmt.cpp
     ${CR3_ROOT}/crengine/src/pdbfmt.cpp
     ${CR3_ROOT}/crengine/src/wordfmt.cpp
+    ${CR3_ROOT}/crengine/src/lvopc.cpp
+    ${CR3_ROOT}/crengine/src/docxfmt.cpp
+    ${CR3_ROOT}/crengine/src/fb3fmt.cpp
     ${CR3_ROOT}/crengine/src/lvstsheet.cpp
     ${CR3_ROOT}/crengine/src/txtselector.cpp
     ${CR3_ROOT}/crengine/src/crtest.cpp
     ${CR3_ROOT}/crengine/src/lvbmpbuf.cpp
     ${CR3_ROOT}/crengine/src/lvfnt.cpp
     ${CR3_ROOT}/crengine/src/hyphman.cpp
+    ${CR3_ROOT}/crengine/src/lvfont.cpp
+    ${CR3_ROOT}/crengine/src/lvembeddedfont.cpp
     ${CR3_ROOT}/crengine/src/lvfntman.cpp
     ${CR3_ROOT}/crengine/src/lvimg.cpp
     ${CR3_ROOT}/crengine/src/crskin.cpp
@@ -74,6 +79,12 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontglyphcache.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontboldtransform.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontcache.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfontdef.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfreetypeface.cpp
+    ${CR3_ROOT}/crengine/src/private/lvfreetypefontman.cpp
     ${CR3_ROOT}/crengine/fc-lang/fc-lang-cat.c
 )
 #    ${CR3_ROOT}/crengine/src/cri18n.cpp

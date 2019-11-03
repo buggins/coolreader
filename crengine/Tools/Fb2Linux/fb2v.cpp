@@ -159,8 +159,11 @@ public:
     {
         unsigned pal[4]={0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000};
         LVDocImageRef pageImage = textView->getPageImage(0);
-        LVDrawBuf * drawbuf = pageImage->getDrawBuf();
-        DrawBuf2Drawable(dpy, w, gc, 0, 0, drawbuf, pal, 1);
+        if (!pageImage.isNull())
+        {
+            LVDrawBuf * drawbuf = pageImage->getDrawBuf();
+            DrawBuf2Drawable(dpy, w, gc, 0, 0, drawbuf, pal, 1);
+        }
 
 /*      
       // Tell the GC we draw using the white color
@@ -248,13 +251,11 @@ void initHyph(const char * fname)
         printf("Cannot load hyphenation file %s\n", fname);
         return;
     }
-    HyphMan::Open( stream.get() );
+    HyphMan::activateDictionaryFromStream( stream );
 }
 
 int main( int argc, const char * argv[] )
 {
-    LVDocView text_view;
-
     CRLog::setStdoutLogger();
     CRLog::setLogLevel(CRLog::LL_DEBUG);
     char exedir[1024];
@@ -272,9 +273,11 @@ int main( int argc, const char * argv[] )
 
     printf("home dir: %s\n", exedir);
 
+#if (USE_FONTCONFIG==1)
+    InitFontManager( lString8() );
+#else
     lString8 fontDir(exedir);
     fontDir << "/fonts";
-
 
     // init bitmap font manager
     InitFontManager( fontDir );
@@ -305,15 +308,17 @@ int main( int argc, const char * argv[] )
         printf("try load font: %s\n", fn);
         fontMan->RegisterFont( lString8(fn) );
     }
-#endif    
+#endif
+#endif
 
     // init hyphenation manager
     char hyphfn[1024];
     sprintf(hyphfn, "%sRussian_EnUS_hyphen_(Alan).pdb", exedir );
     initHyph( hyphfn );
     
-
     //LVCHECKPOINT("WinMain start");
+
+    LVDocView text_view;
 
     // stylesheet can be placed to file fb2.css
     // if not found, default stylesheet will be used
@@ -347,7 +352,6 @@ int main( int argc, const char * argv[] )
     if ( !text_view.LoadDocument( cmdline.c_str() ))
     {
         //error
-        char str[100];
         printf( "Fatal Error: Cannot open document file %s\n", cmdline.c_str() );
         return 1;
     }

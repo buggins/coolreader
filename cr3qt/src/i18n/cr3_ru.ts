@@ -1634,7 +1634,7 @@ p, li { white-space: pre-wrap; }
         <translation>Дополнительный шрифт</translation>
     </message>
     <message>
-        <source>Enable documetn internal styles</source>
+        <source>Enable document internal styles</source>
         <translation>Разрешить встроенные стили</translation>
     </message>
     <message>

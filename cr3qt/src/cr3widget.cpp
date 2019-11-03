@@ -343,6 +343,7 @@ CR3View::CR3View( QWidget *parent)
     updateDefProps();
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
+    setMinimumSize(SCREEN_SIZE_MIN, SCREEN_SIZE_MIN);
 }
 
 void CR3View::updateDefProps()
@@ -749,6 +750,11 @@ void CR3View::refreshPropFromView( const char * propName )
     _data->_props->setString( propName, _docview->propsGetCurrent()->getStringDef( propName, "" ) );
 }
 
+QSize CR3View::minimumSizeHint() const
+{
+    return QSize(SCREEN_SIZE_MIN, SCREEN_SIZE_MIN);
+}
+
 void CR3View::zoomIn()
 { 
     doCommand( DCMD_ZOOM_IN, 1 );
@@ -800,7 +806,7 @@ bool CR3View::loadSettings( QString fn )
     LVStreamRef stream = LVOpenFileStream( filename.c_str(), LVOM_READ );
     bool res = false;
     if ( !stream.isNull() && _data->_props->loadFromStream( stream.get() ) ) {
-        CRLog::error("Loading settings from file %s", fn.toUtf8().data() );
+        CRLog::info("Loading settings from file %s", fn.toUtf8().data() );
         res = true;
     } else {
         CRLog::error("Cannot load settings from file %s", fn.toUtf8().data() );
@@ -1226,6 +1232,9 @@ void CR3View::OnLoadFileFormatDetected( doc_format_t fileFormat )
         case doc_format_txt:
             filename = "txt.css";
             break;
+        case doc_format_fb3:
+            filename = "fb3.css";
+            break;
         case doc_format_rtf:
             filename = "rtf.css";
             break;
@@ -1237,6 +1246,9 @@ void CR3View::OnLoadFileFormatDetected( doc_format_t fileFormat )
             break;
         case doc_format_doc:
             filename = "doc.css";
+            break;
+        case doc_format_docx:
+            filename = "docx.css";
             break;
         case doc_format_chm:
             filename = "chm.css";

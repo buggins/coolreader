@@ -27,6 +27,9 @@
 #include "../include/chmfmt.h"
 #include "../include/wordfmt.h"
 #include "../include/pdbfmt.h"
+#include "../include/fb3fmt.h"
+#include "../include/docxfmt.h"
+
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
 
@@ -109,6 +112,15 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 
 #ifndef MAX_STATUS_FONT_SIZE
 #define MAX_STATUS_FONT_SIZE 255
+#endif
+
+// Fallback defines, see crsetup.h
+#ifndef SCREEN_SIZE_MIN
+#define SCREEN_SIZE_MIN 80
+#endif
+
+#ifndef SCREEN_SIZE_MAX
+#define SCREEN_SIZE_MAX 3000
 #endif
 
 #if defined(__SYMBIAN32__)
@@ -1237,11 +1249,13 @@ int LVDocView::GetFullHeight() {
 int LVDocView::getPageHeaderHeight() {
 	if (!getPageHeaderInfo())
 		return 0;
-        int h = getInfoFont()->getHeight();
-        int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() * 11/10 + HEADER_MARGIN / 2 : 0;
-        if ( bh>h )
-            h = bh;
-        return h + HEADER_MARGIN;
+	if (!getInfoFont())
+		return 0;
+	int h = getInfoFont()->getHeight();
+	int bh = m_batteryIcons.length()>0 ? m_batteryIcons[0]->GetHeight() * 11/10 + HEADER_MARGIN / 2 : 0;
+	if ( bh>h )
+		h = bh;
+	return h + HEADER_MARGIN;
 }
 
 /// calculate page header rectangle
@@ -3374,10 +3388,14 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 void LVDocView::Resize(int dx, int dy) {
 	//LVCHECKPOINT("Resize");
 	CRLog::trace("LVDocView:Resize(%dx%d)", dx, dy);
-	if (dx < 80 || dx > 3000)
-		dx = 80;
-	if (dy < 80 || dy > 3000)
-		dy = 80;
+	if (dx < SCREEN_SIZE_MIN)
+		dx = SCREEN_SIZE_MIN;
+	if (dx > SCREEN_SIZE_MAX)
+		dx = SCREEN_SIZE_MAX;
+	if (dy < SCREEN_SIZE_MIN)
+		dy = SCREEN_SIZE_MIN;
+	if (dy > SCREEN_SIZE_MAX)
+		dy = SCREEN_SIZE_MAX;
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	if ( m_rotateAngle==CR_ROTATE_ANGLE_90 || m_rotateAngle==CR_ROTATE_ANGLE_270 ) {
 		CRLog::trace("Screen is rotated, swapping dimensions");
@@ -3875,6 +3893,71 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 				return true;
 			}
 		}
+
+        if( DetectFb3Format(m_stream) ) {
+            CRLog::info("FB3 format detected");
+            createEmptyDocument();
+            m_doc->setProps( m_doc_props );
+            setRenderProps( 0, 0 );
+            setDocFormat( doc_format_fb3 );
+            if ( m_callback )
+                m_callback->OnLoadFileFormatDetected(doc_format_fb3);
+            updateDocStyleSheet();
+            bool res = ImportFb3Document( m_stream, m_doc, m_callback, this );
+            if ( !res ) {
+                setDocFormat( doc_format_none );
+                createDefaultDocument( cs16("ERROR: Error reading FB3 format"), cs16("Cannot open document") );
+                if ( m_callback ) {
+                    m_callback->OnLoadFileError( cs16("Error reading FB3 document") );
+                }
+                return false;
+            } else {
+                m_container = m_doc->getContainer();
+                m_doc_props = m_doc->getProps();
+                setRenderProps( 0, 0 );
+                REQUEST_RENDER("loadDocument")
+                if ( m_callback ) {
+                    m_callback->OnLoadFileEnd( );
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                m_arc = m_doc->getContainer();
+                return true;
+            }
+        }
+
+        if( DetectDocXFormat(m_stream) ) {
+            CRLog::info("DOCX format detected");
+            createEmptyDocument();
+            m_doc->setProps( m_doc_props );
+            setRenderProps( 0, 0 );
+            setDocFormat( doc_format_docx );
+            if ( m_callback )
+                m_callback->OnLoadFileFormatDetected(doc_format_docx);
+            updateDocStyleSheet();
+            bool res = ImportDocXDocument( m_stream, m_doc, m_callback, this );
+            if ( !res ) {
+                setDocFormat( doc_format_none );
+                createDefaultDocument( cs16("ERROR: Error reading DOCX format"), cs16("Cannot open document") );
+                if ( m_callback ) {
+                    m_callback->OnLoadFileError( cs16("Error reading DOCX document") );
+                }
+                return false;
+            } else {
+                m_container = m_doc->getContainer();
+                m_doc_props = m_doc->getProps();
+                setRenderProps( 0, 0 );
+                REQUEST_RENDER("loadDocument")
+                if ( m_callback ) {
+                    m_callback->OnLoadFileEnd( );
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                m_arc = m_doc->getContainer();
+                return true;
+            }
+        }
+
 #if CHM_SUPPORT_ENABLED==1
         if ( DetectCHMFormat( m_stream ) ) {
 			// CHM
@@ -4096,6 +4179,8 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 	switch (fmt) {
 	case doc_format_fb2:
 		return L"FictionBook (FB2)";
+    case doc_format_fb3:
+        return L"FictionBook (FB3)";
 	case doc_format_txt:
 		return L"Plain text (TXT)";
 	case doc_format_rtf:
@@ -4110,6 +4195,8 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 		return L"CR3 TXT Bookmark";
 	case doc_format_doc:
 		return L"DOC";
+    case doc_format_docx:
+        return L"DOCX";
 	default:
 		return L"Unknown format";
 	}
@@ -5211,6 +5298,10 @@ CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
 // execute command
 int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	CRLog::trace("doCommand(%d, %d)", (int)cmd, param);
+	if (NULL == m_doc) {
+		CRLog::warn("doCommand(): m_doc is NULL!");
+		return 0;
+	}
 	switch (cmd) {
     case DCMD_SET_DOC_FONTS:
         CRLog::trace("DCMD_SET_DOC_FONTS(%d)", param);

@@ -439,10 +439,10 @@ public class FileInfo {
 	public boolean isOnSDCard() {
 		if (null == parent)
 			return false;
-		if ( ( (filename.compareTo("SD") == 0 && title.compareTo("SD") == 0) ||
-				(filename.compareTo("EXT SD") == 0 && title.compareTo("EXT SD") == 0) ) &&
+		if ( ( ( "SD".equals(filename) && "SD".equals(title)) ||
+				("EXT SD".equals(filename) && "EXT SD".equals(title)) ) &&
 				isDirectory && !isArchive && 0 == size && 0 == arcsize &&
-				parent.pathname.compareTo("@root") == 0)
+				ROOT_DIR_TAG.equals(parent.pathname) )
 			return true;
 		return parent.isOnSDCard();
 	}

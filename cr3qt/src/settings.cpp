@@ -139,7 +139,11 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->cbEnableEmbeddedFonts->setEnabled(m_props->getBoolDef(PROP_EMBEDDED_STYLES, true));
     optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUi( PROP_FONT_KERNING_ENABLED, m_ui->cbFontKerning );
+#if USE_HARFBUZZ==1
     optionToUi( PROP_FONT_LIGATURES_ENABLED, m_ui->cbLigatures );
+#else
+    m_ui->cbLigatures->setEnabled(false);
+#endif
     optionToUi( PROP_FLOATING_PUNCTUATION, m_ui->cbFloatingPunctuation );
     optionToUiIndex( PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, m_ui->cbImageInlineZoominMode );
     optionToUiIndex( PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, m_ui->cbImageInlineZoominScale );
@@ -325,11 +329,13 @@ void SettingsDlg::on_buttonBox_rejected()
 void SettingsDlg::on_cbFontKerning_stateChanged(int s)
 {
     setCheck( PROP_FONT_KERNING_ENABLED, s );
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbLigatures_stateChanged(int s)
 {
     setCheck( PROP_FONT_LIGATURES_ENABLED, s );
+    updateStyleSample();
 }
 
 void SettingsDlg::on_buttonBox_accepted()
@@ -940,11 +946,13 @@ void SettingsDlg::on_cbPageSkin_currentIndexChanged(int index)
 void SettingsDlg::on_cbFloatingPunctuation_stateChanged(int s)
 {
     setCheck( PROP_FLOATING_PUNCTUATION, s );
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbFontGamma_currentIndexChanged(QString s)
 {
     m_props->setString( PROP_FONT_GAMMA, s );
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbStyleName_currentIndexChanged(int index)
@@ -1011,6 +1019,7 @@ void SettingsDlg::on_cbDefFontColor_currentIndexChanged(int index)
 void SettingsDlg::on_cbFontHinting_currentIndexChanged(int index)
 {
     m_props->setInt(PROP_FONT_HINTING, index);
+    updateStyleSample();
 }
 
 void SettingsDlg::on_cbFallbackFontFace_currentIndexChanged(const QString &s)

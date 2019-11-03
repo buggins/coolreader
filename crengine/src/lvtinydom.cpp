@@ -809,7 +809,7 @@ bool CacheFile::read( lUInt16 type, lUInt16 dataIndex, lUInt8 * &buf, int &size 
     lvsize_t bytesRead = 0;
     _stream->Read(buf, size, &bytesRead );
     if ( (int)bytesRead!=size ) {
-        CRLog::error("CacheFile::read: Cannot read block %d:%d of size %d", type, dataIndex, (int)size);
+        CRLog::error("CacheFile::read: Cannot read block %d:%d of size %d, bytesRead=%d", type, dataIndex, (int)size, (int)bytesRead);
         free(buf);
         buf = NULL;
         size = 0;
@@ -1549,20 +1549,20 @@ bool tinyNodeCollection::openCacheFile()
         return false;
     }
 
-    CRLog::info("ldomDocument::openCacheFile() - looking for cache file", UnicodeToUtf8(fname).c_str() );
+    CRLog::info("ldomDocument::openCacheFile() - looking for cache file %s", UnicodeToUtf8(fname).c_str() );
 
     LVStreamRef map = ldomDocCache::openExisting( fname, crc, getPersistenceFlags() );
     if ( map.isNull() ) {
         delete f;
         return false;
     }
-    CRLog::info("ldomDocument::openCacheFile() - cache file found, trying to read index", UnicodeToUtf8(fname).c_str() );
+    CRLog::info("ldomDocument::openCacheFile() - cache file found, trying to read index %s", UnicodeToUtf8(fname).c_str() );
 
     if ( !f->open( map ) ) {
         delete f;
         return false;
     }
-    CRLog::info("ldomDocument::openCacheFile() - index read successfully", UnicodeToUtf8(fname).c_str() );
+    CRLog::info("ldomDocument::openCacheFile() - index read successfully %s", UnicodeToUtf8(fname).c_str() );
     _cacheFile = f;
     _textStorage.setCache( f );
     _elemStorage.setCache( f );
@@ -10612,7 +10612,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
             for (int i = 0; i < parent->getChildCount(); i++) {
                 ldomNode * child = parent->getChildNode(i);
                 css_style_ref_t cs = child->getStyle();
-                if ( cs.isNull() )
+                if ( cs.isNull() || cs->display != css_d_list_item )
                     continue;
                 switch ( cs->list_style_type ) {
                 case css_lst_decimal:
@@ -11035,7 +11035,7 @@ public:
 };
 
 /// returns object image ref name
-lString16 ldomNode::getObjectImageRefName()
+lString16 ldomNode::getObjectImageRefName(bool percentDecode)
 {
     if (!isElement())
         return lString16::empty_str;
@@ -11072,7 +11072,8 @@ lString16 ldomNode::getObjectImageRefName()
     }
     if ( refName.length()<2 )
         return lString16::empty_str;
-    refName = DecodeHTMLUrlString(refName);
+    if (percentDecode)
+        refName = DecodeHTMLUrlString(refName);
     return refName;
 }
 
@@ -11090,11 +11091,18 @@ LVStreamRef ldomNode::getObjectImageStream()
 /// returns object image source
 LVImageSourceRef ldomNode::getObjectImageSource()
 {
-    lString16 refName = getObjectImageRefName();
+    lString16 refName = getObjectImageRefName(true);
     LVImageSourceRef ref;
     if ( refName.empty() )
         return ref;
     ref = getDocument()->getObjectImageSource( refName );
+    if (ref.isNull()) {
+        // try again without percent decoding (for fb3)
+        refName = getObjectImageRefName(false);
+        if ( refName.empty() )
+            return ref;
+        ref = getDocument()->getObjectImageSource( refName );
+    }
     if ( !ref.isNull() ) {
         int dx = ref->GetWidth();
         int dy = ref->GetHeight();

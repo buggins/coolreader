@@ -102,6 +102,7 @@ int _extract_callback(struct chmFile *h,
               struct chmUnitInfo *ui,
               void *context)
 {
+    LONGUINT64 ui_path_len;
     char buffer[32768];
     struct extract_context *ctx = (struct extract_context *)context;
     char *i;
@@ -119,7 +120,11 @@ int _extract_callback(struct chmFile *h,
     if (snprintf(buffer, sizeof(buffer), "%s%s", ctx->base_path, ui->path) > 1024)
         return CHM_ENUMERATOR_FAILURE;
 
-    if (ui->length != 0)
+    /* Get the length of the path */
+    ui_path_len = strlen(ui->path)-1;
+
+    /* Distinguish between files and dirs */
+    if (ui->path[ui_path_len] != '/' )
     {
         FILE *fout;
         LONGINT64 len, remain=ui->length;

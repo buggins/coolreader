@@ -643,7 +643,7 @@ public class Scanner extends FileInfoChangeSource {
 		}
 		for ( int i=0; i<root.fileCount(); i++ ) {
 			if ( root.getFile(i).getPathName().equals(file.getPathName()) ||
-					root.isOnSDCard() && root.getFile(i).getPathName().compareToIgnoreCase(file.getPathName()) == 0 )
+					root.isOnSDCard() && root.getFile(i).getPathName().equalsIgnoreCase(file.getPathName()) )
 				return root;
 			if ( root.getFile(i).getPathName().startsWith(file.getPathName() + "@/") ||
 					root.isOnSDCard() && root.getFile(i).getPathName().toLowerCase().startsWith(file.getPathName().toLowerCase() + "@/") )

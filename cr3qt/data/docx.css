@@ -1,0 +1,103 @@
+body { text-align: left; margin: 0; text-indent: 0px }
+
+p { $def.all }
+
+empty-line { height: 1em }
+
+a { display: inline; $link.all }
+a[type="note"] { $footnote-link.all }
+
+image { text-align: center; text-indent: 0px; display: block }
+p image { display: inline }
+li image { display: inline }
+
+li { display: list-item; text-indent: 0em;  }
+ol { display: block; list-style-type: decimal; margin-left: 1em }
+
+.h1, .h2 {
+    $title.all
+}
+
+.h3, .h4, .h5, .h6 {
+    $subtitle.all
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6 {
+	hyphenate: none;
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6 {
+        display: block;
+        margin-top: 0.5em;
+        margin-bottom: 0.3em;
+        padding: 10px ;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+}
+.h1, .h2 {
+	page-break-inside: avoid;
+	page-break-after: avoid;
+}
+
+.h3, .h4, .h5, .h6 {
+	page-break-inside: avoid;
+	page-break-after: avoid;
+}
+
+.h1 { font-size: 150% }
+.h2 { font-size: 140% }
+.h3 { font-size: 130% }
+.h4 { font-size: 120% }
+.h5 { font-size: 110% }
+
+table { font-size: 80% }
+td, th { text-indent: 0px; padding: 3px }
+th {  font-weight: bold; text-align: center; background-color: #DDD  }
+/* #808080; */
+table caption { text-indent: 0px; padding: 4px; background-color: #EEE }
+
+body[name="notes"] { $footnote.all }
+body[name="notes"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
+body[name="notes"] section title p { display: inline }
+
+body[name="comments"] { $footnote.all }
+body[name="comments"] section title { display: run-in; text-align: left; $footnote-title.all page-break-before: auto; page-break-inside: auto; page-break-after: auto; }
+body[name="comments"] section title p { display: inline }
+
+description { display: block; }
+title-info { display: block; }
+annotation { $annotation.all }
+date { display: block; font-size: 80%; font-style: italic; text-align: center }
+genre { display: none; }
+author { display: none; }
+book-title { display: none; }
+keywords { display: none; }
+lang { display: none; }
+src-lang { display: none; }
+translator { display: none; }
+document-info { display: none; }
+publish-info { display: none; }
+custom-info { display: none; }
+coverpage { display: none }
+
+strong,em,u,s,sub,sup { 
+   display: inline; 
+} 
+
+sub { vertical-align: sub; font-size: 70% }
+sup { vertical-align: super; font-size: 70% }
+
+strong { font-weight: bold }
+em { font-style: italic }
+
+u { text-decoration: underline; } 
+s { text-decoration: line-through; } 
+
+
+img { 
+   margin: 0.5em; 
+   text-align: center; 
+   text-indent: 0em; 
+   border-style: solid; 
+   border-width: medium; 
+}

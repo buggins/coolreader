@@ -144,6 +144,8 @@ bool HyphMan::activateDictionaryFromStream( LVStreamRef stream )
         return false;
     }
     CRLog::debug("Dictionary is loaded successfully. Activating.");
+    if (!_dictList)
+        _dictList = new HyphDictionaryList();
     HyphMan::_method = method;
     if ( HyphMan::_dictList->find(lString16(HYPH_DICT_ID_DICTIONARY))==NULL ) {
         HyphDictionary * dict = new HyphDictionary( HDT_DICT_ALAN, cs16("Dictionary"), lString16(HYPH_DICT_ID_DICTIONARY), lString16::empty_str );

@@ -15,7 +15,7 @@
 #ifndef __LVTEXTFM_H_INCLUDED__
 #define __LVTEXTFM_H_INCLUDED__
 
-#include "lvfntman.h"
+#include "lvfont.h"
 #include "lvbmpbuf.h"
 
 // comment out following line to use old formatter

@@ -19,6 +19,7 @@ CR3_ROOT := $(LOCAL_PATH)/../..
 
 LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
+    $(CR3_ROOT)/crengine/fc-lang \
     $(CR3_ROOT)/thirdparty/libpng \
     $(CR3_ROOT)/thirdparty/freetype/include \
     $(CR3_ROOT)/thirdparty/freetype \
@@ -34,7 +35,7 @@ LOCAL_CFLAGS += -Wall -Wno-unused-variable -Wno-sign-compare -Wno-write-strings 
 
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
-LOCAL_CFLAGS += -g -O1 -fexceptions
+LOCAL_CFLAGS += -g -O1 -fexceptions -flto
 
 CRENGINE_SRC_FILES := \
     ../../crengine/src/cp_stats.cpp \
@@ -52,12 +53,17 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/epubfmt.cpp \
     ../../crengine/src/pdbfmt.cpp \
     ../../crengine/src/wordfmt.cpp \
+    ../../crengine/src/lvopc.cpp \
+    ../../crengine/src/docxfmt.cpp \
+    ../../crengine/src/fb3fmt.cpp \
     ../../crengine/src/lvstsheet.cpp \
     ../../crengine/src/txtselector.cpp \
     ../../crengine/src/crtest.cpp \
     ../../crengine/src/lvbmpbuf.cpp \
     ../../crengine/src/lvfnt.cpp \
     ../../crengine/src/hyphman.cpp \
+    ../../crengine/src/lvfont.cpp \
+    ../../crengine/src/lvembeddedfont.cpp \
     ../../crengine/src/lvfntman.cpp \
     ../../crengine/src/lvimg.cpp \
     ../../crengine/src/crskin.cpp \
@@ -68,7 +74,14 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvrend.cpp \
     ../../crengine/src/wolutil.cpp \
     ../../crengine/src/crconcurrent.cpp \
-    ../../crengine/src/hist.cpp
+    ../../crengine/src/hist.cpp \
+    ../../crengine/src/private/lvfontglyphcache.cpp \
+    ../../crengine/src/private/lvfontboldtransform.cpp \
+    ../../crengine/src/private/lvfontcache.cpp \
+    ../../crengine/src/private/lvfontdef.cpp \
+    ../../crengine/src/private/lvfreetypeface.cpp \
+    ../../crengine/src/private/lvfreetypefontman.cpp \
+    ../../crengine/fc-lang/fc-lang-cat.c
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \
 
@@ -114,7 +127,7 @@ LOCAL_STATIC_LIBRARIES := \
     local_chmlib \
     local_antiword
 
-LOCAL_LDLIBS    := -lm -llog -lz -ldl
+LOCAL_LDLIBS    := -lm -llog -lz -ldl -flto
 # 
 #LOCAL_LDLIBS    += -Wl,-Map=cr3engine.map
 #-ljnigraphics

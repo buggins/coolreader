@@ -32,6 +32,7 @@
 #include "dtddef.h"
 #include "lvstyles.h"
 #include "lvdrawbuf.h"
+#include "lvembeddedfont.h"
 #include "lvstsheet.h"
 #include "lvpagesplitter.h"
 #include "lvptrvec.h"
@@ -448,13 +449,6 @@ protected:
 
 public:
 
-    bool setMinSpaceCondensingPercent(int minSpaceCondensingPercent) {
-        if (minSpaceCondensingPercent == _minSpaceCondensingPercent)
-            return false;
-        _minSpaceCondensingPercent = minSpaceCondensingPercent;
-        return true;
-    }
-
     /// add named BLOB data to document
     bool addBlob(lString16 name, const lUInt8 * data, int size) { return _blobCache.addBlob(data, size, name); }
     /// get BLOB by name
@@ -464,6 +458,13 @@ public:
     bool validateDocument();
 
 #if BUILD_LITE!=1
+    bool setMinSpaceCondensingPercent(int minSpaceCondensingPercent) {
+        if (minSpaceCondensingPercent == _minSpaceCondensingPercent)
+            return false;
+        _minSpaceCondensingPercent = minSpaceCondensingPercent;
+        return true;
+    }
+
     /// swaps to cache file or saves changes, limited by time interval (can be called again to continue after TIMEOUT)
     virtual ContinuousOperationResult swapToCache(CRTimerUtil & maxTime) = 0;
     /// try opening from cache file, find by source file name (w/o path) and crc32
@@ -851,7 +852,7 @@ public:
     /// returns object image source
     LVImageSourceRef getObjectImageSource();
     /// returns object image ref name
-    lString16 getObjectImageRefName();
+    lString16 getObjectImageRefName(bool percentDecode = true);
     /// returns object image stream
     LVStreamRef getObjectImageStream();
     /// formats final block
@@ -1318,9 +1319,9 @@ public:
 #if BUILD_LITE!=1
     /// returns caret rectangle for pointer inside formatted document
     bool getRect(lvRect & rect) const;
+#endif
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint() const;
-#endif
     /// converts to string
 	lString16 toString();
     /// returns XPath node text
@@ -2005,13 +2006,13 @@ protected:
 
 public:
 
+#if BUILD_LITE!=1
     void forceReinitStyles() {
         dropStyles();
         _hdr.render_style_hash = 0;
         _rendered = false;
     }
 
-#if BUILD_LITE!=1
     ListNumberingPropsRef getNodeNumberingProps( lUInt32 nodeDataIndex );
     void setNodeNumberingProps( lUInt32 nodeDataIndex, ListNumberingPropsRef v );
     void resetNodeNumberingProps();

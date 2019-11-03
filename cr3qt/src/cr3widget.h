@@ -158,6 +158,7 @@ class CR3View : public QWidget, public LVDocViewCallback
         virtual void mousePressEvent ( QMouseEvent * event );
         virtual void mouseReleaseEvent ( QMouseEvent * event );
         virtual void refreshPropFromView( const char * propName );
+        virtual QSize minimumSizeHint() const;
 
     private slots:
 
