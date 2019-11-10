@@ -497,6 +497,12 @@ void lStr_memset(lChar8 * dst, lChar8 value, int count)
 
 int lStr_cmp(const lChar16 * dst, const lChar16 * src)
 {
+    if (dst == src)
+        return 0;
+    if (!dst)
+        return -1;
+    else if (!src)
+        return 1;
     while ( *dst == *src)
     {
         if (! *dst )
@@ -512,6 +518,12 @@ int lStr_cmp(const lChar16 * dst, const lChar16 * src)
 
 int lStr_cmp(const lChar8 * dst, const lChar8 * src)
 {
+    if (dst == src)
+        return 0;
+    if (!dst)
+        return -1;
+    else if (!src)
+        return 1;
     while ( *dst == *src)
     {
         if (! *dst )
@@ -527,6 +539,12 @@ int lStr_cmp(const lChar8 * dst, const lChar8 * src)
 
 int lStr_cmp(const lChar16 * dst, const lChar8 * src)
 {
+    if (!dst && !src)
+        return 0;
+    if (!dst)
+        return -1;
+    else if (!src)
+        return 1;
     while ( *dst == (lChar16)*src)
     {
         if (! *dst )
