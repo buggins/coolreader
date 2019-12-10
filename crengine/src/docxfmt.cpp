@@ -1912,6 +1912,7 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
 {
     switch(tagId) {
     case docx_el_r:
+    case docx_el_hyperlink:
         if ( 0 == m_runCount ) {
             m_pPr.combineWith(m_importContext->get_pPrDefault());
             css_length_t outlineLevel = m_pPr.getOutlineLvl();
@@ -1942,14 +1943,15 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
                 m_writer->OnAttribute(L"", L"style", style.c_str());
             m_writer->OnTagBody();
         }
-        m_rHandler.start();
+        if(docx_el_r == tagId)
+            m_rHandler.start();
+        else
+            m_hyperlinkHandler.start();
         m_runCount++;
         break;
     case docx_el_bookmarkStart:
         m_state = tagId;
         break;
-    case docx_el_hyperlink:
-        m_hyperlinkHandler.start();
         break;
     case docx_el_pPr:
         m_pPrHandler.start(&m_pPr);
