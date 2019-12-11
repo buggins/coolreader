@@ -929,16 +929,17 @@ class docx_hyperlinkHandler  : public docx_ElementHandler
 {
     docx_rHandler m_rHandler;
     lString16 m_target;
+    int m_runCount;
 public:
     docx_hyperlinkHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_pHandler* pHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_hyperlink, hyperlink_elements),
-        m_rHandler(reader, writer, context, pHandler)
+        m_rHandler(reader, writer, context, pHandler), m_runCount(0)
     {
     }
     ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
-    void reset() { m_target.clear(); m_rHandler.reset(); }
+    void reset() { m_target.clear(); m_rHandler.reset(); m_runCount = 0; }
 };
 
 class docx_documentHandler;
@@ -2721,6 +2722,12 @@ ldomNode *docx_hyperlinkHandler::handleTagOpen(int tagId)
 {
     switch(tagId) {
     case docx_el_r:
+        if ( !m_target.empty() && 0 == m_runCount ) {
+            m_writer->OnTagOpen(L"", L"a");
+            m_writer->OnAttribute(L"", L"href", m_target.c_str());
+            m_writer->OnTagBody();
+        }
+        m_runCount++;
         m_rHandler.start();
         break;
     default:
@@ -2732,12 +2739,11 @@ ldomNode *docx_hyperlinkHandler::handleTagOpen(int tagId)
 
 void docx_hyperlinkHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
 {
-    if( docx_el_hyperlink == m_state && !lStr_cmp(attrname, "id") ) {
-        m_target = m_importContext->getLinkTarget(lString16(attrvalue));
-        if( !m_target.empty() ) {
-            m_writer->OnTagOpen(L"", L"a");
-            m_writer->OnAttribute(L"", L"href", m_target.c_str());
-            m_writer->OnTagBody();
+    if( docx_el_hyperlink == m_state) {
+        if ( !lStr_cmp(attrname, "id") ) {
+            m_target = m_importContext->getLinkTarget(lString16(attrvalue));
+        } else if (!lStr_cmp(attrname, "anchor") && m_target.empty()) {
+            m_target = lString16(attrvalue);
         }
     }
 }
