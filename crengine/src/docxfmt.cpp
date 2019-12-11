@@ -318,15 +318,13 @@ public:
     static const int PROP_COUNT = N;
 
     virtual void reset() {
-        for(int i = 0; i < N; i++) {
-            m_properties[i].type = css_val_unspecified;
-            m_properties[i].value = 0;
-        }
+        init();
     }
+
     virtual ~docx_PropertiesContainer() {}
 
     docx_PropertiesContainer() {
-        reset();
+        init();
     }
 
     css_length_t get(int index) const {
@@ -377,6 +375,13 @@ public:
 
 protected:
     css_length_t m_properties[N];
+private:
+    void init() {
+        for(int i = 0; i < N; i++) {
+            m_properties[i].type = css_val_unspecified;
+            m_properties[i].value = 0;
+        }
+    }
 };
 
 enum docx_run_properties
