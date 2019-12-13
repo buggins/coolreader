@@ -2743,7 +2743,7 @@ void docx_hyperlinkHandler::handleAttribute(const lChar16 *attrname, const lChar
         if ( !lStr_cmp(attrname, "id") ) {
             m_target = m_importContext->getLinkTarget(lString16(attrvalue));
         } else if (!lStr_cmp(attrname, "anchor") && m_target.empty()) {
-            m_target = lString16(attrvalue);
+            m_target = cs16("#") + lString16(attrvalue);
         }
     }
 }
