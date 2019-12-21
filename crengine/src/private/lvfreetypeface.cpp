@@ -636,7 +636,7 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
 
 #endif  // USE_HARFBUZZ==1
 
-FT_UInt LVFreeTypeFace::getCharIndex(lChar16 code, lChar16 def_char) {
+FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar16 def_char) {
     if (code == '\t')
         code = ' ';
     FT_UInt ch_glyph_index = FT_Get_Char_Index(_face, code);
@@ -650,7 +650,7 @@ FT_UInt LVFreeTypeFace::getCharIndex(lChar16 code, lChar16 def_char) {
     return ch_glyph_index;
 }
 
-bool LVFreeTypeFace::getGlyphInfo(lUInt16 code, LVFont::glyph_info_t *glyph, lChar16 def_char) {
+bool LVFreeTypeFace::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char) {
     //FONT_GUARD
     int glyph_index = getCharIndex(code, 0);
     if (glyph_index == 0) {
@@ -1022,7 +1022,7 @@ void LVFreeTypeFace::updateTransform() {
     //        }
 }
 
-LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt16 ch, lChar16 def_char) {
+LVFontGlyphCacheItem *LVFreeTypeFace::getGlyph(lUInt32 ch, lChar16 def_char) {
     //FONT_GUARD
     FT_UInt ch_glyph_index = getCharIndex(ch, 0);
     if (ch_glyph_index == 0) {

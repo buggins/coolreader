@@ -118,7 +118,7 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32DrawFont::getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char )
+bool LVWin32DrawFont::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char )
 {
     return false;
 }
@@ -356,7 +356,7 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
     \param buf is buffer [width*height] to place glyph data
     \return true if glyph was found 
 */
-bool LVWin32DrawFont::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char)
+bool LVWin32DrawFont::getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char)
 {
     return false;
 }
@@ -505,7 +505,7 @@ glyph_t * LVWin32Font::GetGlyphRec( lChar16 ch )
     \param glyph is pointer to glyph_info_t struct to place retrieved info
     \return true if glyh was found 
 */
-bool LVWin32Font::getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char )
+bool LVWin32Font::getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char )
 {
     if (_hfont==NULL)
         return false;
@@ -618,7 +618,7 @@ lUInt16 LVWin32Font::measureText(
     \param buf is buffer [width*height] to place glyph data
     \return true if glyph was found 
 */
-bool LVWin32Font::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char)
+bool LVWin32Font::getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char)
 {
     if (_hfont==NULL)
         return false;
