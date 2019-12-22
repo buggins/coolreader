@@ -2842,7 +2842,78 @@ int Utf8CharCount( const lChar8 * str, int len )
     return count;
 }
 
-inline int charUtf8ByteCount(int ch) {
+int Wtf8CharCount( const lChar8 * str )
+{
+    int count = 0;
+    lUInt8 ch;
+    while ( (ch=*str++) ) {
+        if ( (ch & 0x80) == 0 ) {
+        } else if ( (ch & 0xE0) == 0xC0 ) {
+            if ( !(*str++) )
+                break;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+            if ( (ch & 0xF0) == 0xE0 ) {
+                if ( !(*str++) )
+                    break;
+                if ( !(*str++) )
+                    break;
+                if ( !(*str++) )
+                    break;
+            }
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            // Mostly unused
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+            if ( !(*str++) )
+                break;
+        } else {
+            // invalid first byte in UTF-8 sequence, just leave as is
+            ;
+        }
+        count++;
+    }
+    return count;
+}
+
+int Wtf8CharCount( const lChar8 * str, int len )
+{
+    if (len == 0)
+        return 0;
+    int count = 0;
+    lUInt8 ch;
+    const lChar8 * endp = str + len;
+    while ((ch=*str)) {
+        if ( (ch & 0x80) == 0 ) {
+            str++;
+        } else if ( (ch & 0xE0) == 0xC0 ) {
+            str+=2;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
+            str+=3;
+            ch=*str;
+            if ( (ch & 0xF0) == 0xE0 ) {
+                str+=3;
+            }
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            // Mostly unused
+            str+=4;
+        } else {
+            // invalid first byte of UTF-8 sequence, just leave as is
+            str++;
+        }
+        if (str > endp)
+            break;
+        count++;
+    }
+    return count;
+}
+
+inline int charUtf8ByteCount(lUInt32 ch) {
     if (!(ch & ~0x7F))
         return 1;
     if (!(ch & ~0x7FF))
@@ -2866,6 +2937,18 @@ int Utf8ByteCount(const lChar16 * str)
     return count;
 }
 
+inline int charWtf8ByteCount(lUInt32 ch) {
+    if (!(ch & ~0x7F))
+        return 1;
+    if (!(ch & ~0x7FF))
+        return 2;
+    if (!(ch & ~0xFFFF))
+        return 3;
+    if (!(ch & ~0x1FFFFF))
+        return 6;
+    return 1;
+}
+
 int Utf8ByteCount(const lChar16 * str, int len)
 {
     int count = 0;
@@ -2873,6 +2956,17 @@ int Utf8ByteCount(const lChar16 * str, int len)
     while ((len--) > 0) {
         ch = *str++;
         count += charUtf8ByteCount(ch);
+    }
+    return count;
+}
+
+int Wtf8ByteCount(const lChar16 * str, int len)
+{
+    int count = 0;
+    lUInt32 ch;
+    while ((len--) > 0) {
+        ch = *str++;
+        count += charWtf8ByteCount(ch);
     }
     return count;
 }
@@ -2911,6 +3005,52 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
             // Invalid first byte in UTF-8 sequence
             // Pass with mask 0x7F, to resolve exception around env->NewStringUTF()
             *p++ = (char) (ch & 0x7F);
+        }
+    }
+}
+
+static void DecodeWtf8(const char * s,  lChar16 * p, int len)
+{
+    lChar16 * endp = p + len;
+    lUInt32 ch;
+    while (p < endp) {
+        ch = *s;
+        if ( (ch & 0x80) == 0 ) {
+            *p++ = (char)ch;
+            s++;
+        } else if ( (ch & 0xE0) == 0xC0 ) {
+            *p++ = ((ch & 0x1F) << 6)
+                    | CONT_BYTE(1,0);
+            s += 2;
+        } else if ( (ch & 0xF0) == 0xE0 ) {
+            *p++ = ((ch & 0x0F) << 12)
+                | CONT_BYTE(1,6)
+                | CONT_BYTE(2,0);
+            s += 3;
+            if (*(p-1) >= 0xD800 && *(p-1) <= 0xDBFF) {     // what we wrote is a high surrogate,
+                lUInt32 next = *s;                          // and there's room next for a low surrogate
+                if ( (next & 0xF0) == 0xE0) {               // is a 3-bytes sequence
+                    next = ((next & 0x0F) << 12) | CONT_BYTE(1,6) | CONT_BYTE(2,0);
+                    if (next >= 0xDC00 && next <= 0xDFFF) { // is a low surrogate: valid surrogates sequence
+                        ch = 0x10000 + ((*(p-1) & 0x3FF)<<10) + (next & 0x3FF);
+                        p--; // rewind to override what we wrote
+                        *p++ = ch;
+                        s += 3;
+                    }
+                }
+            }
+        } else if ( (ch & 0xF8) == 0xF0 ) {
+            // Mostly unused
+            *p++ = ((ch & 0x07) << 18)
+                | CONT_BYTE(1,12)
+                | CONT_BYTE(2,6)
+                | CONT_BYTE(3,0);
+            s += 4;
+        } else {
+            // Invalid first byte in UTF-8 sequence
+            // Pass with mask 0x7F, to resolve exception around env->NewStringUTF()
+            *p++ = (char) (ch & 0x7F);
+            s++;
         }
     }
 }
@@ -3035,6 +3175,36 @@ lString16 Utf8ToUnicode( const char * s, int sz ) {
     return dst;
 }
 
+lString16 Wtf8ToUnicode( const lString8 & str )
+{
+    return Wtf8ToUnicode( str.c_str() );
+}
+
+lString16 Wtf8ToUnicode( const char * s ) {
+    if (!s || !s[0])
+      return lString16::empty_str;
+    int len = Wtf8CharCount( s );
+    if (!len)
+      return lString16::empty_str;
+    lString16 dst;
+    dst.append(len, (lChar16)0);
+    lChar16 * p = dst.modify();
+    DecodeWtf8(s, p, len);
+    return dst;
+}
+
+lString16 Wtf8ToUnicode( const char * s, int sz ) {
+    if (!s || !s[0] || sz <= 0)
+      return lString16::empty_str;
+    int len = Utf8CharCount( s, sz );
+    if (!len)
+      return lString16::empty_str;
+    lString16 dst;
+    dst.append(len, 0);
+    lChar16 * p = dst.modify();
+    DecodeWtf8(s, p, len);
+    return dst;
+}
 
 lString8 UnicodeToUtf8(const lChar16 * s, int count)
 {
@@ -3077,6 +3247,60 @@ lString8 UnicodeToUtf8(const lChar16 * s, int count)
 lString8 UnicodeToUtf8( const lString16 & str )
 {
     return UnicodeToUtf8(str.c_str(), str.length());
+}
+
+lString8 UnicodeToWtf8(const lChar16 * s, int count)
+{
+    if (count <= 0)
+      return lString8::empty_str;
+    lString8 dst;
+    int len = Wtf8ByteCount(s, count);
+    if (len <= 0)
+      return lString8::empty_str;
+    dst.append( len, ' ' );
+    lChar8 * buf = dst.modify();
+    {
+        lUInt32 ch;
+        while ((count--) > 0) {
+            ch = *s++;
+            if (!(ch & ~0x7F)) {
+                *buf++ = ( (lUInt8)ch );
+            } else if (!(ch & ~0x7FF)) {
+                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 ) );
+                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+            } else if (!(ch & ~0xFFFF)) {
+                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 ) );
+                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+            } else if (!(ch & ~0x1FFFFF)) {
+                //   UTF-16 Scalar Value
+                // 000uuuuu xxxxxxxxxxxxxxxx
+                //   UTF-16
+                // 110110wwwwxxxxxx 110111xxxxxxxxxx
+                // wwww = uuuuu - 1
+                lUInt16 wwww = (ch >> 16) - 1;
+                lUInt16 low = ch & 0xFFFF;
+                lUInt32 hiSurr = 0xD800 | (wwww << 6) | (low >> 10);    // high surrogate
+                lUInt32 lowSurr = 0xDC00 | (low & 0x3FF);               // low surrogate
+                *buf++ = ( (lUInt8) ( ((hiSurr >> 12) & 0x0F) | 0xE0 ) );
+                *buf++ = ( (lUInt8) ( ((hiSurr >> 6) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((hiSurr ) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((lowSurr >> 12) & 0x0F) | 0xE0 ) );
+                *buf++ = ( (lUInt8) ( ((lowSurr >> 6) & 0x3F) | 0x80 ) );
+                *buf++ = ( (lUInt8) ( ((lowSurr ) & 0x3F) | 0x80 ) );
+            } else {
+                // invalid codepoint
+                // In Unicode Standard codepoint must be in range U+0000 .. U+10FFFF
+                *buf++ = '?';
+            }
+        }
+    }
+    return dst;
+}
+
+lString8 UnicodeToWtf8( const lString16 & str )
+{
+    return UnicodeToWtf8(str.c_str(), str.length());
 }
 
 lString8 UnicodeTo8Bit( const lString16 & str, const lChar8 * * table )

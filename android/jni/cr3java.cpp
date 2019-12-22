@@ -2,20 +2,35 @@
 
 #include <dlfcn.h>
 
+// M is for Marshmallow!
+#define ANDROID_SDK_M	23
+
+uint8_t CRJNIEnv::sdk_int = 0;
+
 lString16 CRJNIEnv::fromJavaString( jstring str )
 {
 	if (!str)
         return lString16::empty_str;
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars(str, &iscopy);
-	lString16 res(s);
+    lString16 res;
+    if (CRJNIEnv::sdk_int >= ANDROID_SDK_M)
+        res = Utf8ToUnicode(s);
+    else
+        res = Wtf8ToUnicode(s);
 	env->ReleaseStringUTFChars(str, s);
 	return res;
 }
 
 jstring CRJNIEnv::toJavaString( const lString16 & str )
 {
-	return env->NewStringUTF(UnicodeToUtf8(str).c_str());
+    if (CRJNIEnv::sdk_int >= ANDROID_SDK_M)
+        return env->NewStringUTF(UnicodeToUtf8(str).c_str());
+    // To support 4-byte UTF-8 sequence on Android older that 6.0 (API 23),
+    // we encode characters with codes >= 0x10000 to WTF-8.
+    // Otherwise, we have crash with following message:
+    //   "input is not valid Modified UTF-8: illegal start byte 0xf0"
+    return env->NewStringUTF(UnicodeToWtf8(str).c_str());
 }
 
 void CRJNIEnv::fromJavaStringArray( jobjectArray array, lString16Collection & dst )

@@ -1030,6 +1030,10 @@ lString8  UnicodeToLocal( const lString16 & str );
 lString8  UnicodeToUtf8( const lString16 & str );
 /// converts wide unicode string to utf-8 string
 lString8 UnicodeToUtf8(const lChar16 * s, int count);
+/// converts wide unicode string to wtf-8 string
+lString8  UnicodeToWtf8( const lString16 & str );
+/// converts wide unicode string to wtf-8 string
+lString8 UnicodeToWtf8(const lChar16 * s, int count);
 /// converts unicode string to 8-bit string using specified conversion table
 lString8  UnicodeTo8Bit( const lString16 & str, const lChar8 * * table );
 /// converts 8-bit string to unicode string using specified conversion table for upper 128 characters
@@ -1044,6 +1048,12 @@ lString16 Utf8ToUnicode( const char * s );
 lString16 Utf8ToUnicode( const char * s, int sz );
 /// converts utf-8 string fragment to wide unicode string
 void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen);
+/// converts wtf-8 string to wide unicode string
+lString16 Wtf8ToUnicode( const lString8 & str );
+/// converts utf-8 c-string to wide unicode string
+lString16 Wtf8ToUnicode( const char * s );
+/// converts utf-8 string fragment to wide unicode string
+lString16 Wtf8ToUnicode( const char * s, int sz );
 /// decodes path like "file%20name" to "file name"
 lString16 DecodeHTMLUrlString( lString16 s );
 /// truncates string by specified size, appends ... if truncated, prefers to wrap whole words

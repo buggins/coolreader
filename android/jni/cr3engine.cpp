@@ -552,7 +552,9 @@ void cr3androidFatalErrorHandler(int errorCode, const char * errorText )
 /// set fatal error handler
 void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
 
-jboolean initInternal(JNIEnv * penv, jclass obj, jobjectArray fontArray) {
+jboolean initInternal(JNIEnv * penv, jclass obj, jobjectArray fontArray, jint sdk_int) {
+
+	CRJNIEnv::sdk_int = sdk_int;
 
 	CRJNIEnv env(penv);
 
@@ -591,13 +593,13 @@ jboolean initInternal(JNIEnv * penv, jclass obj, jobjectArray fontArray) {
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    initInternal
- * Signature: ([Ljava/lang/String;)Z
+ * Signature: ([Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
-  (JNIEnv * penv, jclass obj, jobjectArray fontArray)
+  (JNIEnv * penv, jclass obj, jobjectArray fontArray, jint sdk_int)
 {
 	jboolean res = JNI_FALSE;
-	COFFEE_TRY_JNI(penv, res = initInternal(penv, obj, fontArray));
+	COFFEE_TRY_JNI(penv, res = initInternal(penv, obj, fontArray, sdk_int));
 	return res;
 }
 
@@ -775,7 +777,7 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightIn
 
 static JNINativeMethod sEngineMethods[] = {
   /* name, signature, funcPtr */
-  {"initInternal", "([Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_initInternal},
+  {"initInternal", "([Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_initInternal},
   {"uninitInternal", "()V", (void*)Java_org_coolreader_crengine_Engine_uninitInternal},
   {"getFontFaceListInternal", "()[Ljava/lang/String;", (void*)Java_org_coolreader_crengine_Engine_getFontFaceListInternal},
   {"setCacheDirectoryInternal", "(Ljava/lang/String;I)Z", (void*)Java_org_coolreader_crengine_Engine_setCacheDirectoryInternal},

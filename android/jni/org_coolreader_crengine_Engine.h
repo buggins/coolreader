@@ -22,10 +22,10 @@ extern "C" {
 /*
  * Class:     org_coolreader_crengine_Engine
  * Method:    initInternal
- * Signature: ([Ljava/lang/String;)Z
+ * Signature: ([Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
-  (JNIEnv *, jclass, jobjectArray);
+  (JNIEnv *, jclass, jobjectArray, jint sdk_int);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -113,7 +113,7 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_Engine_suspendLongOperationI
  * Signature: (Ljava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_haveFcLangCodeInternal
-		(JNIEnv *, jclass, jstring);
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     org_coolreader_crengine_Engine
