@@ -3,9 +3,6 @@
 
 #include <dlfcn.h>
 
-// M is for Marshmallow!
-#define ANDROID_SDK_M	23
-
 uint8_t CRJNIEnv::sdk_int = 0;
 
 lString16 CRJNIEnv::fromJavaString( jstring str )

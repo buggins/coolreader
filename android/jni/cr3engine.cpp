@@ -711,6 +711,45 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguage
 
 /*
  * Class:     org_coolreader_crengine_Engine
+ * Method:    listFilesInternal
+ * Signature: (Ljava/io/File;)[Ljava/io/File;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInternal
+		(JNIEnv *env, jclass, jobject jdir)
+{
+	jclass fileClass = env->FindClass("java/io/File");
+	if (NULL == fileClass)
+		return NULL;
+	jmethodID mFileGetAbsolutePath = env->GetMethodID(fileClass, "getAbsolutePath", "()Ljava/lang/String;");
+	if (NULL == mFileGetAbsolutePath)
+		return NULL;
+	jmethodID fileCtor = env->GetMethodID(fileClass, "<init>", "(Ljava/lang/String;)V");
+	if (NULL == fileCtor)
+		return NULL;
+	jstring jpathname = (jstring)env->CallObjectMethod(jdir, mFileGetAbsolutePath);
+	jboolean iscopy;
+	const char * s = env->GetStringUTFChars(jpathname, &iscopy);
+	lString16 path = (CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? Utf8ToUnicode(s) : Wtf8ToUnicode(s);
+	LVContainerRef dir = LVOpenDirectory(path);
+	jobjectArray jarray = NULL;
+	if ( !dir.isNull() ) {
+		jstring emptyString = env->NewStringUTF("");
+		jobject emptyFile = env->NewObject(fileClass, fileCtor, emptyString);
+		jarray = env->NewObjectArray(dir->GetObjectCount(), fileClass, emptyFile);
+		for (int i = 0; i < dir->GetObjectCount(); i++) {
+			const LVContainerItemInfo *item = dir->GetObjectInfo(i);
+			lString16 fileName = path + "/" + item->GetName();
+			jstring jfilename = env->NewStringUTF((CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? UnicodeToUtf8(fileName).c_str() : UnicodeToWtf8(fileName).c_str());
+			jobject jfile = env->NewObject(fileClass, fileCtor, jfilename);
+			env->SetObjectArrayElement(jarray, i, jfile);
+		}
+	}
+	env->ReleaseStringUTFChars(jpathname, s);
+	return jarray;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
  * Method:    isLink
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
@@ -789,6 +828,9 @@ static JNINativeMethod sEngineMethods[] = {
   {"setKeyBacklightInternal", "(I)Z", (void*)Java_org_coolreader_crengine_Engine_setKeyBacklightInternal},
   {"scanBookCoverInternal", "(Ljava/lang/String;)[B", (void*)Java_org_coolreader_crengine_Engine_scanBookCoverInternal},
   {"drawBookCoverInternal", "(Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V", (void*)Java_org_coolreader_crengine_Engine_drawBookCoverInternal},
+  {"haveFcLangCodeInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_haveFcLangCodeInternal},
+  {"checkFontLanguageCompatibilityInternal", "(Ljava/lang/String;Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal},
+  {"listFilesInternal", "(Ljava/io/File;)[Ljava/io/File;", (void*)Java_org_coolreader_crengine_Engine_listFilesInternal}
 };
 
 

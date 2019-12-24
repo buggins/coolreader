@@ -640,12 +640,18 @@ public class Engine {
 	 */
 	private native static boolean checkFontLanguageCompatibilityInternal(String fontFace, String langCode);
 
+	private native static File[] listFilesInternal(File dir);
+
 	public static void suspendLongOperation() {
 		suspendLongOperationInternal();
 	}
 
 	public synchronized static boolean checkFontLanguageCompatibility(String fontFace, String langCode) {
 		return checkFontLanguageCompatibilityInternal(fontFace, langCode);
+	}
+
+	public static synchronized File[] listFiles(File dir) {
+		return listFilesInternal(dir);
 	}
 
 	/**

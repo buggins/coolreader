@@ -25,7 +25,7 @@ extern "C" {
  * Signature: ([Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_initInternal
-  (JNIEnv *, jclass, jobjectArray, jint sdk_int);
+  (JNIEnv *, jclass, jobjectArray, jint);
 
 /*
  * Class:     org_coolreader_crengine_Engine
@@ -122,6 +122,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_haveFcLangCodeInt
  */
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
   (JNIEnv *, jclass, jstring, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    listFilesInternal
+ * Signature: (Ljava/io/File;)[Ljava/io/File;
+ */
+JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInternal
+  (JNIEnv *, jclass, jobject);
 
 /*
  * Class:     org_coolreader_crengine_Engine

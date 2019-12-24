@@ -20,6 +20,9 @@
 #include "../../crengine/include/props.h"
 #include "../../crengine/include/lvtinydom.h"
 
+// M is for Marshmallow!
+#define ANDROID_SDK_M	23
+
 //====================================================================
 // libjnigraphics replacement for pre-2.2 SDKs 
 enum AndroidBitmapFormat {
