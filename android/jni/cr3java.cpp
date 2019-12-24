@@ -1,4 +1,5 @@
 #include "cr3java.h"
+#include "../../crengine/include/crlog.h"
 
 #include <dlfcn.h>
 

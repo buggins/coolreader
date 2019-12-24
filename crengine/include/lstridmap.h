@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 struct css_elem_def_props_t;
+class SerialBuf;
 
 //===========================================
 class LDOMNameIdMapItem 

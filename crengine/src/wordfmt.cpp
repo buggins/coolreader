@@ -2,6 +2,7 @@
 #include "../include/lvstring.h"
 #include "../include/lvstream.h"
 #include "../include/lvtinydom.h"
+#include "../include/crlog.h"
 
 //#ifndef ENABLE_ANTIWORD
 //#define ENABLE_ANTIWORD 1

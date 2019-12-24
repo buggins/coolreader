@@ -10,6 +10,7 @@
 */
 
 #include "../include/props.h"
+#include "../include/serialbuf.h"
 #include <stdio.h>
 
 

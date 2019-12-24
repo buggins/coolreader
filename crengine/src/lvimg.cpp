@@ -20,6 +20,7 @@
 
 #include "../include/lvimg.h"
 #include "../include/lvtinydom.h"
+#include "../include/crlog.h"
 
 #if (USE_LIBPNG==1)
 #include <png.h>

@@ -10,7 +10,7 @@
 
 #include <string.h>
 #include "../include/wolutil.h"
-
+#include "private/dumpfile.h"
 
 #define N 4096
 #define F 18

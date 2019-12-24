@@ -16,6 +16,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
+#include "../include/crlog.h"
 
 
 //#define DEBUG_TREE_DRAW 3

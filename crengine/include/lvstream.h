@@ -32,6 +32,7 @@
 #include "lvstring.h"
 #include "lvarray.h"
 #include "lvptrvec.h"
+#include "crtimerutil.h"
 
 #if LVLONG_FILE_SUPPORT == 1
 typedef   lUInt64   lvsize_t;    ///< file size type

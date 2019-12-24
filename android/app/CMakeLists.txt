@@ -44,6 +44,11 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO  ${CMAKE_C_FLAGS_RELWITHDEBINFO})
 set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/cp_stats.cpp
     ${CR3_ROOT}/crengine/src/lvstring.cpp
+    ${CR3_ROOT}/crengine/src/lvstring8collection.cpp
+    ${CR3_ROOT}/crengine/src/lvstring16collection.cpp
+    ${CR3_ROOT}/crengine/src/lvstring16hashedcollection.cpp
+    ${CR3_ROOT}/crengine/src/crlog.cpp
+    ${CR3_ROOT}/crengine/src/serialbuf.cpp
     ${CR3_ROOT}/crengine/src/props.cpp
     ${CR3_ROOT}/crengine/src/lstridmap.cpp
     ${CR3_ROOT}/crengine/src/rtfimp.cpp

@@ -9,6 +9,8 @@ set(crengine_part_SRC_LIST
     ../../src/lvmemman.cpp
     ../../src/lvstream.cpp
     ../../src/lvstring.cpp
+    ../../src/crlog.cpp
+    ../../src/serialbuf.cpp
 )
 
 #add_definitions(-DBUILD_LITE=1)

@@ -2,6 +2,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvopc.h"
+#include "../include/crlog.h"
 
 static const lChar16 * const fb3_BodyContentType = L"application/fb3-body+xml";
 static const lChar16 * const fb3_DescriptionContentType = L"application/fb3-description+xml";

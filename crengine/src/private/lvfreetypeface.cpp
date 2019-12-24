@@ -18,6 +18,7 @@
 #include "../../include/lvfntman.h"
 #include "../../include/lvfnt.h"
 #include "../../include/lvtextfm.h"
+#include "../../include/crlog.h"
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
 #include "lvfontcache.h"

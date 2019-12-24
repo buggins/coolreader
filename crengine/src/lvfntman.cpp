@@ -14,6 +14,7 @@
 
 #include "../include/lvfntman.h"
 #include "../include/lvstyles.h"
+#include "../include/crlog.h"
 #include "private/lvfreetypefontman.h"
 #include "private/lvwin32fontman.h"
 #include "private/lvbitmapfontman.h"

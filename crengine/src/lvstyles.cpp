@@ -12,6 +12,7 @@
 *******************************************************/
 
 #include "../include/lvstyles.h"
+#include "../include/serialbuf.h"
 
 
 //DEFINE_NULL_REF( css_style_rec_t )

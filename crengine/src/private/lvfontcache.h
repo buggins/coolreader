@@ -18,6 +18,7 @@
 #include "../../include/crsetup.h"
 #include "../../include/lvfont.h"
 #include "../../include/lvptrvec.h"
+#include "../../include/lvstring16collection.h"
 #include "lvfontdef.h"
 
 /// font cache item

@@ -9,6 +9,8 @@ set(crengine_part_SRC_LIST
     ../../src/lvmemman.cpp
     ../../src/cp_stats.cpp
     ../../src/lvstream.cpp
+    ../../src/crlog.cpp
+    ../../src/serialbuf.cpp
 )
 
 if(UNIX)

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 sdk="/opt/android-sdk-update-manager"
-binclass_path=../app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
+binclass_path=../app/build/intermediates/javac/debug/classes
 
 export CLASSPATH="${CLASSPATH}:${sdk}/platforms/android-17/*:${binclass_path}"
 

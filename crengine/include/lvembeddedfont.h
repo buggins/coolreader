@@ -19,6 +19,7 @@
 #include "lvstring.h"
 #include "lvptrvec.h"
 
+class SerialBuf;
 
 class LVEmbeddedFontDef {
     lString16 _url;

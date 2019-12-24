@@ -19,6 +19,7 @@
 
 class CRPropAccessor;
 typedef LVFastRef<CRPropAccessor> CRPropRef;
+class SerialBuf;
 
 /// interface to get/set properties
 class CRPropAccessor : public LVRefCounter {

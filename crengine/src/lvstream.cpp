@@ -27,6 +27,7 @@
 #include "../include/lvstream.h"
 #include "../include/lvptrvec.h"
 #include "../include/crtxtenc.h"
+#include "../include/crlog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
