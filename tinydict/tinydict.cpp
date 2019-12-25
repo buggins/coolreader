@@ -606,7 +606,7 @@ TinyDictZStream::~TinyDictZStream()
     if ( chunks )
         delete [] chunks;
     if ( offsets )
-        delete offsets;
+        delete [] offsets;
 }
 
 bool TinyDictZStream::open( FILE * file )
