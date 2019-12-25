@@ -717,34 +717,41 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguage
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInternal
 		(JNIEnv *env, jclass, jobject jdir)
 {
-	jclass fileClass = env->FindClass("java/io/File");
-	if (NULL == fileClass)
+	if (NULL == jdir)
 		return NULL;
-	jmethodID mFileGetAbsolutePath = env->GetMethodID(fileClass, "getAbsolutePath", "()Ljava/lang/String;");
-	if (NULL == mFileGetAbsolutePath)
+	jclass pjcFile = env->FindClass("java/io/File");
+	if (NULL == pjcFile)
 		return NULL;
-	jmethodID fileCtor = env->GetMethodID(fileClass, "<init>", "(Ljava/lang/String;)V");
-	if (NULL == fileCtor)
+	jmethodID pjmFile_GetAbsolutePath = env->GetMethodID(pjcFile, "getAbsolutePath", "()Ljava/lang/String;");
+	if (NULL == pjmFile_GetAbsolutePath)
 		return NULL;
-	jstring jpathname = (jstring)env->CallObjectMethod(jdir, mFileGetAbsolutePath);
+	jmethodID pjmFile_Ctor = env->GetMethodID(pjcFile, "<init>", "(Ljava/lang/String;)V");
+	if (NULL == pjmFile_Ctor)
+		return NULL;
+	jstring jpathname = (jstring)env->CallObjectMethod(jdir, pjmFile_GetAbsolutePath);
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars(jpathname, &iscopy);
 	lString16 path = (CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? Utf8ToUnicode(s) : Wtf8ToUnicode(s);
-	LVContainerRef dir = LVOpenDirectory(path);
+	env->ReleaseStringUTFChars(jpathname, s);
 	jobjectArray jarray = NULL;
+	LVContainerRef dir = LVOpenDirectory(path);
 	if ( !dir.isNull() ) {
 		jstring emptyString = env->NewStringUTF("");
-		jobject emptyFile = env->NewObject(fileClass, fileCtor, emptyString);
-		jarray = env->NewObjectArray(dir->GetObjectCount(), fileClass, emptyFile);
-		for (int i = 0; i < dir->GetObjectCount(); i++) {
-			const LVContainerItemInfo *item = dir->GetObjectInfo(i);
-			lString16 fileName = path + "/" + item->GetName();
-			jstring jfilename = env->NewStringUTF((CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? UnicodeToUtf8(fileName).c_str() : UnicodeToWtf8(fileName).c_str());
-			jobject jfile = env->NewObject(fileClass, fileCtor, jfilename);
-			env->SetObjectArrayElement(jarray, i, jfile);
+		jobject emptyFile = env->NewObject(pjcFile, pjmFile_Ctor, emptyString);
+		jarray = env->NewObjectArray(dir->GetObjectCount(), pjcFile, emptyFile);
+		if (NULL != jarray) {
+			for (int i = 0; i < dir->GetObjectCount(); i++) {
+				const LVContainerItemInfo *item = dir->GetObjectInfo(i);
+				lString16 fileName = path + "/" + item->GetName();
+				jstring jfilename = env->NewStringUTF(
+						(CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? UnicodeToUtf8(fileName).c_str()
+															: UnicodeToWtf8(fileName).c_str());
+				jobject jfile = env->NewObject(pjcFile, pjmFile_Ctor, jfilename);
+				if (NULL != jfile)
+					env->SetObjectArrayElement(jarray, i, jfile);
+			}
 		}
 	}
-	env->ReleaseStringUTFChars(jpathname, s);
 	return jarray;
 }
 
