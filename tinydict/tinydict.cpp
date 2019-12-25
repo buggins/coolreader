@@ -604,7 +604,7 @@ TinyDictZStream::~TinyDictZStream()
     if ( unp_buffer )
         free( unp_buffer );
     if ( chunks )
-        delete chunks;
+        delete [] chunks;
     if ( offsets )
         delete offsets;
 }
