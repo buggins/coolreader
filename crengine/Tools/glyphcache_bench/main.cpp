@@ -278,7 +278,7 @@ int main(int /*argc*/, char* /*argv*/[])
     LVFontLocalGlyphCache localCache(&globalCache);
     LVFontGlyphCacheItem* item;
 
-    uint64_t tmp;
+    volatile uint64_t tmp;
     struct timeval ts1;
     struct timeval ts2;
     int64_t elapsed;
@@ -334,7 +334,7 @@ int main(int /*argc*/, char* /*argv*/[])
     printf("t = %lld\n", tmp);
 
     // bench lookup based on hash table
-    printf("bench cache based on hash table (copy from cr3.2.32)...\n");
+    printf("bench cache based on hash table (candidate introduced in cr3.2.32)...\n");
     gettimeofday(&ts1, NULL);
     for (j = 0; j < bench_sz; j++)
     {
