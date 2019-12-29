@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="cover.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4"
+     inkscape:cx="-1203.5782"
+     inkscape:cy="1177.9411"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="971"
+     inkscape:window-x="0"
+     inkscape:window-y="31"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid834" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       sodipodi:absref="/home/shaun/vrcoolreader/VRCoolReader/unity/Assets/Resources/Art/screenshot3.png"
+       xlink:href="screenshot3.png"
+       y="61.142857"
+       x="-105.83334"
+       id="image945"
+       preserveAspectRatio="none"
+       height="139.79704"
+       width="303.89288" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect863"
+       width="134.9375"
+       height="134.9375"
+       x="31.75"
+       y="64.166664"
+       ry="0"
+       inkscape:export-xdpi="271.06"
+       inkscape:export-ydpi="271.06" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect861"
+       width="156.10417"
+       height="111.125"
+       x="21.166666"
+       y="74.75"
+       ry="0"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285"
+       inkscape:export-filename="/home/shaun/rect861.png" />
+    <path
+       style="fill:#ffffff;fill-rule:evenodd;stroke:#eb9200;stroke-width:5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.81198347;fill-opacity:1"
+       d="m 39.6875,93.270833 c 26.458333,10.583337 26.458333,-13.229166 58.208332,0 v 74.083337 c -29.912778,-10.95469 -31.814947,12.39696 -60.854166,0 V 93.270833 Z"
+       id="path836"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285" />
+    <path
+       style="fill:#ffffff;fill-rule:evenodd;stroke:#eb9200;stroke-width:5.00000048;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.81198347;fill-opacity:1"
+       d="m 157.42709,93.270833 c -26.45834,10.583337 -26.45834,-13.229166 -58.20834,0 v 74.083337 c 29.91278,-10.95469 31.81495,12.39696 60.85417,0 V 93.270833 Z"
+       id="path836-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:82.99999833%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="99.596718"
+       y="115.00446"
+       id="text855"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285"><tspan
+         sodipodi:role="line"
+         id="tspan853"
+         x="99.596718"
+         y="115.00446"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.22222137px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px">VR</tspan><tspan
+         sodipodi:role="line"
+         x="99.596718"
+         y="138.42889"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.22222137px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px"
+         id="tspan857">Cool</tspan><tspan
+         sodipodi:role="line"
+         x="99.596718"
+         y="161.85335"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.22222137px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px"
+         id="tspan859">Reader</tspan></text>
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect951"
+       width="235.19559"
+       height="132.29167"
+       x="-39.404018"
+       y="64.166664"
+       inkscape:export-xdpi="276.47998"
+       inkscape:export-ydpi="276.47998" />
+    <image
+       sodipodi:absref="/home/shaun/vrcoolreader/VRCoolReader/unity/Assets/Resources/Art/screenshot3.png"
+       xlink:href="screenshot3.png"
+       width="303.89288"
+       height="139.79704"
+       preserveAspectRatio="none"
+       id="image945-6"
+       x="-71.437508"
+       y="-126.71131" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect863-4"
+       width="282.24896"
+       height="84.666656"
+       x="-63.5"
+       y="-105.16666"
+       ry="0"
+       inkscape:export-xdpi="270"
+       inkscape:export-ydpi="270" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect861-0"
+       width="156.10417"
+       height="111.125"
+       x="55.562508"
+       y="-113.10416"
+       ry="0"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285"
+       inkscape:export-filename="/home/shaun/rect861.png" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#eb9200;stroke-width:2.58064461;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.81198348"
+       d="m 88.336692,-81.354167 c 13.655918,5.462368 13.655918,-6.82795 30.043008,0 v 38.236551 c -15.43885,-5.654028 -16.42062,6.398429 -31.408597,0 v -38.236551 z"
+       id="path836-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#eb9200;stroke-width:2.58064485;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.81198348"
+       d="m 149.10551,-81.354167 c -13.65592,5.462368 -13.65592,-6.82795 -30.04301,0 v 38.236551 c 15.43884,-5.654028 16.42061,6.398429 31.4086,0 v -38.236551 z"
+       id="path836-4-5"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.4623642px;line-height:82.99999833%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.13655911px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="119.25758"
+       y="-70.13681"
+       id="text855-4"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285"><tspan
+         sodipodi:role="line"
+         id="tspan853-0"
+         x="119.25758"
+         y="-70.13681"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.56630516px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.13655911px">VR</tspan><tspan
+         sodipodi:role="line"
+         x="119.25758"
+         y="-58.046783"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.56630516px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.13655911px"
+         id="tspan857-1">Cool</tspan><tspan
+         sodipodi:role="line"
+         x="119.25758"
+         y="-45.956749"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.56630516px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.13655911px"
+         id="tspan859-2">Reader</tspan></text>
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect951-8"
+       width="92.604164"
+       height="132.2917"
+       x="74.083336"
+       y="-123.68751"
+       inkscape:export-xdpi="276.47998"
+       inkscape:export-ydpi="276.47998" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect861-01"
+       width="293.78201"
+       height="97.990334"
+       x="-103.1875"
+       y="80.041664"
+       ry="0"
+       inkscape:export-xdpi="93.405388"
+       inkscape:export-ydpi="93.405388"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       rx="2.5431316e-06" />
+    <image
+       sodipodi:absref="/home/shaun/vrcoolreader/VRCoolReader/unity/Assets/Resources/Art/screenshot3.png"
+       xlink:href="screenshot3.png"
+       y="-87.023819"
+       x="-433.91669"
+       id="image945-6-2"
+       preserveAspectRatio="none"
+       height="139.79704"
+       width="303.89288" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198347;paint-order:stroke fill markers"
+       id="rect863-4-1"
+       width="282.24896"
+       height="84.666656"
+       x="-425.97919"
+       y="-65.479164"
+       ry="0"
+       inkscape:export-xdpi="270"
+       inkscape:export-ydpi="270" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect861-0-5"
+       width="156.10417"
+       height="111.125"
+       x="-306.91666"
+       y="-73.416664"
+       ry="0"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285"
+       inkscape:export-filename="/home/shaun/rect861.png" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#eb9200;stroke-width:2.58064461;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.81198348"
+       d="m -315.79301,-41.288691 c 13.65592,5.462368 13.65592,-6.827951 30.04301,0 v 38.2365521 c -15.43885,-5.65403 -16.42062,6.398429 -31.4086,0 V -41.288691 Z"
+       id="path836-7-9"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#eb9200;stroke-width:2.58064485;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.81198348"
+       d="m -255.02419,-41.288691 c -13.65592,5.462368 -13.65592,-6.827951 -30.04301,0 v 38.2365521 c 15.43884,-5.65403 16.42061,6.398429 31.4086,0 V -41.288691 Z"
+       id="path836-4-5-9"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.4623642px;line-height:82.99999833%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.13655911px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="-284.87213"
+       y="-30.071337"
+       id="text855-4-1"
+       inkscape:export-filename="/home/shaun/rect861.png"
+       inkscape:export-xdpi="329.14285"
+       inkscape:export-ydpi="329.14285"><tspan
+         sodipodi:role="line"
+         id="tspan853-0-4"
+         x="-284.87213"
+         y="-30.071337"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.56630516px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.13655911px">VR</tspan><tspan
+         sodipodi:role="line"
+         x="-284.87213"
+         y="-17.981304"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.56630516px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.13655911px"
+         id="tspan857-1-9">Cool</tspan><tspan
+         sodipodi:role="line"
+         x="-284.87213"
+         y="-5.8912716"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.56630516px;line-height:82.99999833%;font-family:'Airmole Stripe';-inkscape-font-specification:'Airmole Stripe, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.13655911px"
+         id="tspan859-2-1">Reader</tspan></text>
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.81198348;paint-order:stroke fill markers"
+       id="rect951-8-0"
+       width="92.604164"
+       height="132.2917"
+       x="-288.39584"
+       y="-84.000015"
+       inkscape:export-xdpi="276.47998"
+       inkscape:export-ydpi="276.47998" />
+  </g>
+</svg>
