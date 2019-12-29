@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ReadingRoom.unity
     guid: 3109f465c6d5e4ea891f2df0efd887ff
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/PerfScene.unity
     guid: 42b067cfbe63a4de9b6a62d84541f36b
   - enabled: 1

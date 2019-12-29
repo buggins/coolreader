@@ -5,7 +5,8 @@ Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: StereoMaterial
   m_Shader: {fileID: 4800000, guid: 59a9ed17277044ab5a821ba848a034b9, type: 3}
   m_ShaderKeywords: 
@@ -19,11 +20,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - LeftTex:
-        m_Texture: {fileID: 2800000, guid: be3498efaa44b442d9637e2ae4a67cfa, type: 3}
+        m_Texture: {fileID: 2800000, guid: dd486230921568f17bbb95891af26062, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - RightTex:
-        m_Texture: {fileID: 2800000, guid: 80a2b4a893eb345b993c8705934ea9f6, type: 3}
+        m_Texture: {fileID: 2800000, guid: dd486230921568f17bbb95891af26062, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:

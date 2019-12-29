@@ -4,6 +4,14 @@ using UnityEngine;
 
 /*
  * A facility for simulating head movement on a desktop platform.
+ * 
+ * Disable lines as follows in OVRCameraRig, to allow desktop use without oculus devices.
+ * 	protected virtual void UpdateAnchors(bool updateEyeAnchors, bool updateHandAnchors)
+	{
+		//if (!OVRManager.OVRManagerinitialized)
+		//	return;
+                ...
+
  */
 public class ViewKeyboardControl : MonoBehaviour {
   
@@ -33,9 +41,13 @@ public class ViewKeyboardControl : MonoBehaviour {
       Quaternion.AngleAxis (elevationAngle, Vector3.right)).eulerAngles;
     // Provide this via the Oculus manager, so components that employ
     // this information see no difference in the interface.
-    if (GetComponent <OVRManager> () != null)
+      
+    if (SelectController.getActivePlatform () == SelectController.DeviceOptions.NoDevice)
+    {
+      if (GetComponent <OVRManager> () != null)
       {
         GetComponent <OVRManager> ().headPoseRelativeOffsetRotation = relori;
       }
+    }
   }
 }

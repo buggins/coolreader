@@ -231,7 +231,7 @@ static bool GetBookProperties(const char *name,  BookProperties * pBookProps)
     #endif
     lString16 authors = extractDocAuthors( &doc, lString16("|"), false );
     lString16 title = extractDocTitle( &doc );
-    lString16 language = extractDocLanguage( &doc );
+    lString16 language = extractDocLanguage( &doc ).lowercase();
     lString16 series = extractDocSeries( &doc, &pBookProps->seriesNumber );
 #if SERIES_IN_AUTHORS==1
     if ( !series.empty() )
@@ -655,6 +655,27 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setCacheDirectory
 	bool res = false;
 	COFFEE_TRY_JNI(penv, res = ldomDocCache::init(env.fromJavaString(dir), size ));
 	return res ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    checkFontLanguageCompatibilityInternal
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal
+		(JNIEnv *env, jclass cls, jstring fontFace, jstring langCode)
+{
+	jboolean res = JNI_TRUE;
+	const char* fontFace_ptr = env->GetStringUTFChars(fontFace, 0);
+	const char* langCode_ptr = env->GetStringUTFChars(langCode, 0);
+	if (fontFace_ptr && langCode_ptr) {
+		res = fontMan->checkFontLangCompat(lString8(fontFace_ptr), lString8(langCode_ptr)) ? JNI_TRUE : JNI_FALSE;
+	}
+	if (langCode_ptr)
+		env->ReleaseStringUTFChars(langCode, langCode_ptr);
+	if (fontFace_ptr)
+		env->ReleaseStringUTFChars(fontFace, fontFace_ptr);
+	return res;
 }
 
 /*

@@ -8,5 +8,6 @@
         android:id="@+id/msg_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="message..."/>
+        android:text="message..."
+        style="@style/TextAppearance.Medium" />
 </LinearLayout>

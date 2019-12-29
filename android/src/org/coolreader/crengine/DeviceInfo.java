@@ -25,6 +25,7 @@ public class DeviceInfo {
 	public final static boolean EINK_TOLINO;
 	public final static boolean FORCE_HC_THEME;
 	public final static boolean EINK_SONY;
+	public final static boolean EINK_ENERGYSYSTEM;
 	public final static boolean SONY_NAVIGATION_KEYS;
 	public final static boolean USE_CUSTOM_TOAST;
 	public final static boolean AMOLED_SCREEN;
@@ -115,6 +116,8 @@ public class DeviceInfo {
 		EINK_ONYX = (MANUFACTURER.toLowerCase().contentEquals("onyx") || MANUFACTURER.toLowerCase().contentEquals("onyx-intl")) &&
 				(BRAND.toLowerCase().contentEquals("onyx") || BRAND.toLowerCase().contentEquals("maccentre") || BRAND.toLowerCase().contentEquals("maccenter")) &&
 				MODEL.length() > 0;
+		EINK_ENERGYSYSTEM = (
+			(BRAND.toLowerCase().contentEquals("energysistem")||BRAND.toLowerCase().contentEquals("energysystem")) &&  MODEL.toLowerCase().startsWith("ereader"));
 		//MANUFACTURER -DNS, DEVICE -BK6004C, MODEL - DNS Airbook EGH602, PRODUCT - BK6004C
 		EINK_DNS = MANUFACTURER.toLowerCase().contentEquals("dns") && MODEL.startsWith("DNS Airbook EGH");
 
@@ -122,7 +125,7 @@ public class DeviceInfo {
 				(MODEL.toLowerCase().contentEquals("tolino") && DEVICE.toLowerCase().contentEquals("tolino_vision2")); //Tolino Vision HD4 doesn't show any Brand, only Model=tolino and  DEVICE=tolino_vision2)
 
 
-		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
+		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_ONYX || EINK_ENERGYSYSTEM || EINK_DNS || EINK_TOLINO; // TODO: set to true for eink devices like Nook Touch
 
 		// On Onyx Boox Monte Cristo 3 (and possible Monte Cristo, Monte Cristo 2) long press action on buttons are catch by system and not available for application
 		// TODO: check this on other ONYX BOOX Readers

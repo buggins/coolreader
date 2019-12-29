@@ -234,14 +234,19 @@ public class CRRootView extends ViewGroup implements CoverpageReadyListener {
 		BackgroundThread.instance().postGUI(new Runnable() {
 			@Override
 			public void run() {
-				if (Services.getHistory() != null && mActivity.getDB() != null)
-					Services.getHistory().getOrLoadRecentBooks(mActivity.getDB(), new CRDBService.RecentBooksLoadingCallback() {
-						@Override
-						public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
-							updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
-							updateRecentBooks(bookList);
-						}
-					});
+				mActivity.waitForCRDBService(new Runnable() {
+					@Override
+					public void run() {
+						if (Services.getHistory() != null && mActivity.getDB() != null)
+							Services.getHistory().getOrLoadRecentBooks(mActivity.getDB(), new CRDBService.RecentBooksLoadingCallback() {
+								@Override
+								public void onRecentBooksListLoaded(ArrayList<BookInfo> bookList) {
+									updateCurrentBook(bookList != null && bookList.size() > 0 ? bookList.get(0) : null);
+									updateRecentBooks(bookList);
+								}
+							});
+					}
+				});
 			}
 		});
 	}

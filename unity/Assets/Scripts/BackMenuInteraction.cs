@@ -11,18 +11,26 @@ public class BackMenuInteraction : MenuInteraction {
     addMenuOption ("Resume", new Vector3 (-0.15f, 0.0f, 0.0f), resume);
   }
    
-  public void quitApp (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void quitApp (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
-      // FIXME: set appropriately for different platforms.
-      GvrDaydreamApi.LaunchVrHomeAsync (null);
-//      Application.Quit ();
-//       UnityEditor.EditorApplication.isPlaying = false;
+      switch (SelectController.getActivePlatform ())  
+      {
+        case SelectController.DeviceOptions.Daydream:
+          GvrDaydreamApi.LaunchVrHomeAsync (null);
+          break;
+        default:
+          Application.Quit ();
+#if UNITY_EDITOR
+          UnityEditor.EditorApplication.isPlaying = false;
+#endif          
+          break;
+      }
     }
   }
 
-  public void resume (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void resume (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {

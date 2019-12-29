@@ -90,7 +90,7 @@ public class BookSettingsMenu : SettingsMenu {
      }
    }
 
-   public void increasePage (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+   public void increasePage (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -104,7 +104,7 @@ public class BookSettingsMenu : SettingsMenu {
     updateView ();
   }
 
-  public void decreasePage (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void decreasePage (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -117,7 +117,7 @@ public class BookSettingsMenu : SettingsMenu {
     updateView ();
   }
 
-  public void applyPage (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void applyPage (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -130,7 +130,7 @@ public class BookSettingsMenu : SettingsMenu {
   }
    
    // Increase the local state represent font. 
-   public void increaseFont (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+   public void increaseFont (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -139,7 +139,7 @@ public class BookSettingsMenu : SettingsMenu {
     updateView ();
   }
 
-  public void decreaseFont (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void decreaseFont (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -153,7 +153,7 @@ public class BookSettingsMenu : SettingsMenu {
   }
 
   // Apply local font value to the book.
-  public void applyFont (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void applyFont (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {

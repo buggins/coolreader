@@ -1216,7 +1216,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     if ( !title.empty() )
         doc->getProps()->setString(DOC_PROP_TITLE, title);
     if ( !language.empty() )
-        doc->getProps()->setString(DOC_PROP_LANGUAGE, language);
+        doc->getProps()->setString(DOC_PROP_LANGUAGE, language.lowercase());
 
     fragmentCount = tocReader.appendFragments( progressCallback );
     writer.OnTagClose(L"", L"body");

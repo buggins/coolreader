@@ -18,6 +18,7 @@ public class SelectController : MonoBehaviour {
   {
     NoDevice,
     OculusGo, 
+    OculusQuest,
     Daydream, 
   };
   public DeviceOptions device;
@@ -27,7 +28,17 @@ public class SelectController : MonoBehaviour {
     DeviceOptions detectedDevice = DeviceOptions.NoDevice;
     if (XRSettings.loadedDeviceName.Equals ("Oculus"))
     {
-      detectedDevice = DeviceOptions.OculusGo;
+      // Based on OVRControllerHelper.cs. See this file for other classes of oculus device.
+      OVRPlugin.SystemHeadset headset = OVRPlugin.GetSystemHeadsetType();
+      switch (headset)
+      {
+        case OVRPlugin.SystemHeadset.Oculus_Go:
+          detectedDevice = DeviceOptions.OculusGo;
+        break;
+        case OVRPlugin.SystemHeadset.Oculus_Quest:
+          detectedDevice = DeviceOptions.OculusQuest;
+        break;
+      }
     }
     if (XRSettings.loadedDeviceName.Equals ("daydream"))
     {
@@ -37,13 +48,27 @@ public class SelectController : MonoBehaviour {
     return detectedDevice;
   }
   
+  // returns true if platform should only allow one controller to be active
+  // at a time.
+  public static bool singleController ()
+  {
+    bool result = true;
+    switch (getActivePlatform ())
+    {
+      case DeviceOptions.OculusQuest:
+        result = false;
+        break;
+    }
+    return result;
+  }
+  
   public static bool isLeftHanded ()
   {
     bool result = true;
     switch (getActivePlatform ())
     {
       case DeviceOptions.OculusGo:
-        result = OVRInput.IsControllerConnected (OVRInput.Controller.LTrackedRemote);
+        result = (OVRInput.GetDominantHand () == OVRInput.Handedness.LeftHanded);
         break;
       case DeviceOptions.Daydream:
         result = (GvrSettings.Handedness == GvrSettings.UserPrefsHandedness.Left);

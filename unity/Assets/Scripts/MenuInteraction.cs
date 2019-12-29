@@ -41,9 +41,9 @@ public class MenuInteraction : MonoBehaviour {
   // Button handlers are provided: the controller that selected the button, and the
   // button that was selected. When initialize is set to true, the handler invokes no
   // action but modifies the appearance of the button to set any initial visual.
-  public delegate void buttonHandlerType (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false); 
+  public delegate void buttonHandlerType (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false); 
             
-  public delegate void buttonPointerOverHandler (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar); 
+  public delegate void buttonPointerOverHandler (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar); 
             
   public delegate void buttonScrollHandler (MenuItem menuOption, Vector2 scrollMovement); 
             
@@ -70,10 +70,12 @@ public class MenuInteraction : MonoBehaviour {
   // The internal menu data structure.
   private List<MenuItem> menuItems;
 
-  // The item currently clicked on.
-  private MenuItem activeButton;
-  
+  // The item currently clicked on, in any menu interactions. There can
+  // be only one. Map each controller to its own interaction state.
+  public Dictionary <ControlInput.ControllerDescription, MenuInteraction.MenuItem> activeButtons;
+
   protected virtual void Start () {
+    activeButtons = new Dictionary <ControlInput.ControllerDescription, MenuInteraction.MenuItem> ();
     initializeMenu ();
     populateMenu ();
   }
@@ -236,18 +238,18 @@ public class MenuInteraction : MonoBehaviour {
   }
   
   // Called when a menu object receives the pointer.
-  virtual public void handleFocus (ControlInput controller)
+  virtual public void handleFocus (ControlInput controller, ControlInput.ControllerDescription controllerObject)
   {
   }
   
   // Take care of any actions associated with losing pointer after having it.
-  virtual public void handleUnfocus (ControlInput controller)
+  virtual public void handleUnfocus (ControlInput controller, ControlInput.ControllerDescription controllerObject)
   {
   }
   
   // A default response to a menu item being selected (pointer over). Move a small amount, and
   // then return to original position when pointer is no longer present.
-  private void moveResponse (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
+  private void moveResponse (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
   {
     // Remember where the button was.
     Vector3 buttonOrigin = menuOption.button.transform.localPosition;
@@ -269,11 +271,16 @@ public class MenuInteraction : MonoBehaviour {
   }
   
   // Check for interactions with the menu, and call any handlers as required.
-  virtual public void handleControllerInput (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  virtual public void handleControllerInput (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
   {
     if (menu == null)
     { 
       initializeMenu ();
+    }
+    
+    if (!activeButtons.ContainsKey (controllerObject))
+    {
+      activeButtons[controllerObject] = null;
     }
     
     // Ray cast in the direction of the controller, and trigger any button affected.
@@ -303,41 +310,41 @@ public class MenuInteraction : MonoBehaviour {
     // If the trigger is pressed and released, then activate the button by calling its handler.
     if (debounceTrigger)
     {
-      if ((activeButton == null) && (whichButton != null))
+      if ((activeButtons[controllerObject] == null) && (whichButton != null))
       {
-        activeButton = whichButton;
-        controller.addHandler (handleControllerInput);
+        activeButtons[controllerObject] = whichButton;
+        controller.addHandler (handleControllerInput, controllerObject);
       }
     }
     
     if (!trigger)
     {
       // trigger not pressed.
-      if (activeButton != null)
+      if (activeButtons[controllerObject] != null)
       {
 //       Debug.Log ("PressRelease " + (activeButton == whichButton));
-        if (whichButton == activeButton)
+        if (whichButton == activeButtons[controllerObject])
         {
           // release while still over the same button.
-          activeButton.handler (controller, controllerObject, activeButton.button, avatar);
+          activeButtons[controllerObject].handler (controller, controllerObject, activeButtons[controllerObject].button, avatar);
         }
         else
         { // a button was pressed, but we're not on it when releasing.
           // otherwise, release somewhere else. Maybe this is a scroll?
-          if (activeButton.scrollHandler != null)
+          if (activeButtons[controllerObject].scrollHandler != null)
           {
-            Vector3 toButton = activeButton.button.transform.position - position;
+            Vector3 toButton = activeButtons[controllerObject].button.transform.position - position;
             Debug.Log (toButton + " " + direction);
             // scroll is component of direction perpendicular vector to button.
             Vector3 perp = toButton.magnitude * (toButton.normalized - Vector3.Project (direction.normalized, toButton.normalized));
-            Vector2 scroll = new Vector2 (-Vector3.Dot (perp, controllerObject.transform.right), -Vector3.Dot (perp, controllerObject.transform.up));
+            Vector2 scroll = new Vector2 (-Vector3.Dot (perp, controllerObject.controllerObject.transform.right), -Vector3.Dot (perp, controllerObject.controllerObject.transform.up));
 //             Debug.Log ("Scroll " + 100.0f * scroll);
-            activeButton.scrollHandler (activeButton, scroll);
+            activeButtons[controllerObject].scrollHandler (activeButtons[controllerObject], scroll);
           }
         }
       }
-      activeButton = null;      
-      controller.removeHandler (handleControllerInput);
+      activeButtons[controllerObject] = null;      
+      controller.removeHandler (handleControllerInput, controllerObject);
     }
               
   }

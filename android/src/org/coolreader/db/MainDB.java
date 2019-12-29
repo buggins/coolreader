@@ -1400,7 +1400,7 @@ public class MainDB extends BaseDB {
 		fileInfo.createTime = rs.getInt(i++);
 		fileInfo.lastAccessTime = rs.getInt(i++);
 		fileInfo.flags = rs.getInt(i++);
-	    fileInfo.language = rs.getString(i++);
+	    fileInfo.language = rs.getString(i++).toLowerCase();
 		fileInfo.isArchive = fileInfo.arcname!=null; 
 	}
 

@@ -2563,6 +2563,7 @@ public:
             CurPos = 0;
         else
             CurPos -= sizeof(ReadBuf)-18;
+        // Find End of central directory record (EOCD)
         for ( Buf=0; Buf<64 && !found; Buf++ )
         {
             //SetFilePointer(ArcHandle,CurPos,NULL,FILE_BEGIN);
@@ -2686,13 +2687,29 @@ public:
             NextPosition += SeekLen;
             m_stream->Seek(NextPosition, LVSEEK_SET, NULL);
 
-	        // {"DOS","Amiga","VAX/VMS","Unix","VM/CMS","Atari ST",
-			//  "OS/2","Mac-OS","Z-System","CP/M","TOPS-20",
-			//  "Win32","SMS/QDOS","Acorn RISC OS","Win32 VFAT","MVS",
-			//  "BeOS","Tandem"};
-            const lChar16 * enc_name = (ZipHeader.PackOS==0) ? L"cp866" : L"cp1251";
-            const lChar16 * table = GetCharsetByte2UnicodeTable( enc_name );
-            lString16 fName = ByteToUnicode( lString8(fnbuf), table );
+            lString16 fName;
+            if (ZipHeader.PackVer >= 63 && (ZipHeader.Flags & 0x0800) == 0x0800) {
+                // Language encoding flag (EFS).  If this bit is set,
+                // the filename and comment fields for this file
+                // MUST be encoded using UTF-8. (InfoZip APPNOTE-6.3.0)
+                //CRLog::trace("ZIP 6.3: Language encoding flag (EFS) enabled, using UTF-8 encoding.");
+                fName = Utf8ToUnicode(fnbuf);
+            } else {
+                if (isValidUtf8Data((const unsigned char *)fnbuf, SizeToRead)) {
+                    //CRLog::trace("autodetected UTF-8 encoding.");
+                    fName = Utf8ToUnicode(fnbuf);
+                } else {
+                    // {"DOS","Amiga","VAX/VMS","Unix","VM/CMS","Atari ST",
+                    //  "OS/2","Mac-OS","Z-System","CP/M","TOPS-20",
+                    //  "Win32","SMS/QDOS","Acorn RISC OS","Win32 VFAT","MVS",
+                    //  "BeOS","Tandem"};
+                    // TODO: try to detect proper charset using 0x0008 Extra Field (InfoZip APPNOTE-6.3.5, Appendix D.4).
+                    const lChar16 * enc_name = (ZipHeader.PackOS==0) ? L"cp866" : L"cp1251";
+                    //CRLog::trace("detected encoding %s", LCSTR(enc_name));
+                    const lChar16 * table = GetCharsetByte2UnicodeTable( enc_name );
+                    fName = ByteToUnicode( lString8(fnbuf), table );
+                }
+            }
 
             item->SetItemInfo(fName.c_str(), ZipHeader.UnpSize, (ZipHeader.getAttr() & 0x3f));
             item->SetSrc( ZipHeader.getOffset(), ZipHeader.PackSize, ZipHeader.Method );
@@ -4360,7 +4377,8 @@ public:
         lString8 buf;
         for ( Block * p = _firstBlock; p; p = p->next ) {
             char s[1000];
-            sprintf(s, "%x ", (int)p->block_start);
+            snprintf(s, 999, "%x ", (int)p->block_start);
+            s[999] = 0;
             buf << s;
         }
         CRLog::trace("BLOCKS (%s): %s   count=%d", context, buf.c_str(), _count);
@@ -4393,6 +4411,16 @@ public:
                 blockBytesRead = blockSpaceLeft;
                 res = LVERR_OK;
             } else {
+                lvpos_t fsize = _baseStream->GetSize();
+                if ( _pos + blockSpaceLeft > fsize && fsize < _size) {
+#if TRACE_BLOCK_WRITE_STREAM
+                    CRLog::trace("stream::Read: inconsistent cache state detected: fsize=%d, _size=%d, force flush...", (int)fsize, (int)_size);
+#endif
+                    // Workaround to exclude fatal error in ldomTextStorageChunk::ensureUnpacked()
+                    // Write cached data to a file stream if the required read block is larger than the rest of the file.
+                    // This is a very rare case.
+                    Flush(true);
+                }
 #if TRACE_BLOCK_WRITE_STREAM
                 CRLog::trace("direct reading from stream (%x, %x)", (int)_pos, (int)blockSpaceLeft);
 #endif
@@ -4431,7 +4459,7 @@ public:
                 blockSpaceLeft = count;
             lvsize_t blockBytesWritten = 0;
 
-            // read from Write buffers if possible, otherwise - from base stream
+            // write to Write buffers
             res = writeToCache(buf, _pos, blockSpaceLeft);
             if ( res!=LVERR_OK )
                 break;

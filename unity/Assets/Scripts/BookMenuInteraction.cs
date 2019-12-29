@@ -165,7 +165,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
   
   // Toggle the settings menu. Create it, if it does not already exist and needs to open.
-  public void toggleSettings (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void toggleSettings (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -176,7 +176,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
   
   // Drop the book.
-  public void dropBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void dropBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -207,7 +207,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Pick up a book, also used when a book is first created.
-  public void pickupBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void pickupBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     // Open the book.
     setOpen ();
@@ -229,7 +229,7 @@ public class BookMenuInteraction : MenuInteraction {
     }
     
     // Bring it near the user and let them position it somewhere.
-    this.transform.position = controllerObject.transform.position + 1.0f * controllerObject.transform.forward;
+    this.transform.position = controllerObject.controllerObject.transform.position + 1.0f * controllerObject.controllerObject.transform.forward;
     moveBook (controller, controllerObject, null, avatar);
   }
   
@@ -240,7 +240,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
   
   // Switch between open and closed.
-  public void toggleCloseBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void toggleCloseBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (initialize)
     {
@@ -269,7 +269,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // A response when clicking on the book itself. Currently: turn page if open, otherwise pick up.
-  public void getBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void getBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -285,7 +285,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
   
   // Turn to the next page.
-  public void nextPage (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void nextPage (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -309,7 +309,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Turn to the previous page.
-  public void prevPage (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void prevPage (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -333,22 +333,22 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Activate the book positioning process.
-  public void moveBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void moveBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
       triggerCleared = false;
-      bookDistance = (transform.position - controllerObject.transform.position).magnitude;
+      bookDistance = (transform.position - controllerObject.controllerObject.transform.position).magnitude;
       
       // Disable collider while moving so that it doesn't interfere with other objects.
       GetComponentInChildren <BoxCollider> ().enabled = false;
       
-      controller.addHandler (bookMove, true);
+      controller.addHandler (bookMove, controllerObject, true);
     }    
   }
   
   // Move the book at a constant distance from the controller, and still facing the controller.
-  public void bookMove (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  public void bookMove (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
   {
     //  print ("Movingbook " + bookDistance + " " + direction);
     if (!debounceTrigger)
@@ -357,7 +357,7 @@ public class BookMenuInteraction : MenuInteraction {
     }
     if (debounceTrigger && triggerCleared)
     {
-      controller.removeHandler (bookMove);
+      controller.removeHandler (bookMove, controllerObject);
       GetComponentInChildren <BoxCollider> ().enabled = true;
     }
     
@@ -367,7 +367,7 @@ public class BookMenuInteraction : MenuInteraction {
   }
 
   // Move the book closer.
-  public void retrieveBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void retrieveBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -375,12 +375,12 @@ public class BookMenuInteraction : MenuInteraction {
       bookDirection = transform.position - controller.avatar.transform.position;
       bookDistance = bookDirection.magnitude;
       bookDirection = Vector3.Normalize (bookDirection);
-      controller.addHandler (bookRetrieve, true);
+      controller.addHandler (bookRetrieve, controllerObject, true);
     }
   }
   
   // Book moves backwards or forwards along the line between controller and its original position. Aiming the controller up or down controls distance.
-  public void bookRetrieve (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  public void bookRetrieve (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
   {
 //           print ("Retrievingbook " + bookDistance + " " + direction);
     if (!debounceTrigger)
@@ -389,25 +389,25 @@ public class BookMenuInteraction : MenuInteraction {
     }
     if (debounceTrigger && triggerCleared)
     {
-      controller.removeHandler (bookRetrieve);
+      controller.removeHandler (bookRetrieve, controllerObject);
     }
     
     transform.position = avatar.transform.position + bookDirection * bookDistance * Mathf.Pow (2.0f, 5.0f * direction.y);
   }
 
   // Rotate the book to get the best reading angle.
-  public void rotateBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void rotateBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
       triggerCleared = false;
       GetComponentInChildren <BoxCollider> ().enabled = false;
-      controller.addHandler (bookRotate, true);
+      controller.addHandler (bookRotate, controllerObject, true);
     }
   }
   
   // Set the rotation of the book to match the controller's orientation.
-  public void bookRotate (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  public void bookRotate (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
   {
 //           print ("Rotatingbook " + bookDistance + " " + direction);
     if (!debounceTrigger)
@@ -416,26 +416,26 @@ public class BookMenuInteraction : MenuInteraction {
     }
     if (debounceTrigger && triggerCleared)
     {
-      controller.removeHandler (bookRotate);
+      controller.removeHandler (bookRotate, controllerObject);
       GetComponentInChildren <BoxCollider> ().enabled = true;
     }
     
-    transform.transform.rotation = controllerObject.transform.rotation;
+    transform.transform.rotation = controllerObject.controllerObject.transform.rotation;
   }
   
   // deprecated - to be removed.
-  public void positionBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void positionBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
       triggerCleared = false;
-      controller.addHandler (bookManipulate);
+      controller.addHandler (bookManipulate, controllerObject);
     }
   }
 
   // deprecated. Use the touchpad to control book size and position. Turned out to be 
   // awkward to control.
-  public void bookManipulate (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  public void bookManipulate (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
   {
 //           print ("BM");
     if (!debounceTrigger)
@@ -444,7 +444,7 @@ public class BookMenuInteraction : MenuInteraction {
     }
     if (debounceTrigger && triggerCleared)
     {
-      controller.removeHandler (bookManipulate);
+      controller.removeHandler (bookManipulate, controllerObject);
     }
     
     //transform.forward = -direction;

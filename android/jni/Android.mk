@@ -19,6 +19,7 @@ CR3_ROOT := $(LOCAL_PATH)/../..
 
 LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/crengine/include \
+    $(CR3_ROOT)/crengine/fc-lang \
     $(CR3_ROOT)/thirdparty/libpng \
     $(CR3_ROOT)/thirdparty/freetype/include \
     $(CR3_ROOT)/thirdparty/freetype \
@@ -68,7 +69,8 @@ CRENGINE_SRC_FILES := \
     ../../crengine/src/lvrend.cpp \
     ../../crengine/src/wolutil.cpp \
     ../../crengine/src/crconcurrent.cpp \
-    ../../crengine/src/hist.cpp
+    ../../crengine/src/hist.cpp \
+    ../../crengine/fc-lang/fc-lang-cat.c
 #    ../../crengine/src/cri18n.cpp
 #    ../../crengine/src/crgui.cpp \
 

@@ -373,11 +373,19 @@ public class BookmarksDlg  extends BaseDialog {
 	    MenuInflater inflater = mCoolReader.getMenuInflater();
 	    menu.clear();
 	    inflater.inflate(mList.isShortcutMode() ? R.menu.cr3_bookmark_shortcut_context_menu : R.menu.cr3_bookmark_context_menu, menu);
-	    AdapterContextMenuInfo mi = (AdapterContextMenuInfo)menuInfo;
-	    if ( mi!=null )
-	    	selectedItem = mi.position;
+	    //AdapterContextMenuInfo mi = (AdapterContextMenuInfo)menuInfo;
+	    //if ( mi!=null )
+	    //	selectedItem = mi.position;
+        // in this function menuInfo is always first item,
+        // but selectedItem is already set in BookmarkList's OnItemLongClickListener
 		Bookmark bm = mList.getSelectedBookmark();
-	    menu.setHeaderTitle(getContext().getString(R.string.context_menu_title_bookmark));
+		String bookmarkText = bm.getPosText();
+		if (bookmarkText == null || bookmarkText.length() == 0)
+			bookmarkText = bm.getTitleText();
+		if (bookmarkText != null && bookmarkText.length() > 0)
+			menu.setHeaderTitle(getContext().getString(R.string.context_menu_title_bookmark) + ": " + bookmarkText);
+		else
+			menu.setHeaderTitle(getContext().getString(R.string.context_menu_title_bookmark));
 	    for ( int i=0; i<menu.size(); i++ ) {
 	    	MenuItem menuItem = menu.getItem(i);
 	    	if ( menuItem.getItemId()==R.id.bookmark_shortcut_goto || menuItem.getItemId()==R.id.bookmark_edit ||

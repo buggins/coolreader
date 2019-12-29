@@ -111,6 +111,15 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #define MAX_STATUS_FONT_SIZE 255
 #endif
 
+// Fallback defines, see crsetup.h
+#ifndef SCREEN_SIZE_MIN
+#define SCREEN_SIZE_MIN 80
+#endif
+
+#ifndef SCREEN_SIZE_MAX
+#define SCREEN_SIZE_MAX 3000
+#endif
+
 #if defined(__SYMBIAN32__)
 #include <e32std.h>
 #define DEFAULT_PAGE_MARGIN 2
@@ -568,9 +577,11 @@ void LVDocView::clearImageCache() {
 
 /// invalidate formatted data, request render
 void LVDocView::requestRender() {
+	LVLock lock(getMutex());
 	m_is_rendered = false;
 	clearImageCache();
-	m_doc->clearRendBlockCache();
+	if (m_doc)
+		m_doc->clearRendBlockCache();
 }
 
 /// render document, if not rendered
@@ -3378,10 +3389,14 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 void LVDocView::Resize(int dx, int dy) {
 	//LVCHECKPOINT("Resize");
 	CRLog::trace("LVDocView:Resize(%dx%d)", dx, dy);
-	if (dx < 80 || dx > 3000)
-		dx = 80;
-	if (dy < 80 || dy > 3000)
-		dy = 80;
+	if (dx < SCREEN_SIZE_MIN)
+		dx = SCREEN_SIZE_MIN;
+	if (dx > SCREEN_SIZE_MAX)
+		dx = SCREEN_SIZE_MAX;
+	if (dy < SCREEN_SIZE_MIN)
+		dy = SCREEN_SIZE_MIN;
+	if (dy > SCREEN_SIZE_MAX)
+		dy = SCREEN_SIZE_MAX;
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	if ( m_rotateAngle==CR_ROTATE_ANGLE_90 || m_rotateAngle==CR_ROTATE_ANGLE_270 ) {
 		CRLog::trace("Screen is rotated, swapping dimensions");
@@ -4242,6 +4257,7 @@ bool LVDocView::ParseDocument() {
 		ldomDocumentWriter writer(m_doc);
 		ldomDocumentWriterFilter writerFilter(m_doc, false,
 				HTML_AUTOCLOSE_TABLE);
+		lString16 txt_autodet_lang;
 
 		if (m_stream->GetSize() < 5) {
             createDefaultDocument(cs16("ERROR: Wrong document size"),
@@ -4298,7 +4314,9 @@ bool LVDocView::ParseDocument() {
 			setDocFormat( doc_format_txt);
 			parser = new LVTextParser(m_stream, &writer, getTextFormatOptions()
 					== txt_format_pre);
-			if (!parser->CheckFormat()) {
+			if (parser->CheckFormat()) {
+				txt_autodet_lang = ((LVTextParser*)parser)->GetLangName();
+			} else {
 				delete parser;
 				parser = NULL;
 			}
@@ -4382,7 +4400,10 @@ bool LVDocView::ParseDocument() {
 		if (m_doc_props->getStringDef(DOC_PROP_TITLE, "").empty()) {
 			m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors(m_doc));
 			m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle(m_doc));
-			m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc));
+			if (txt_autodet_lang.length() > 0)
+				m_doc_props->setString(DOC_PROP_LANGUAGE, txt_autodet_lang);        // already in lowercase
+			else
+				m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc).lowercase());
             int seriesNumber = -1;
             lString16 seriesName = extractDocSeries(m_doc, &seriesNumber);
             m_doc_props->setString(DOC_PROP_SERIES_NAME, seriesName);
@@ -5209,6 +5230,10 @@ CRBookmark * LVDocView::findBookmarkByPoint(lvPoint pt) {
 // execute command
 int LVDocView::doCommand(LVDocCmd cmd, int param) {
 	CRLog::trace("doCommand(%d, %d)", (int)cmd, param);
+	if (NULL == m_doc) {
+		CRLog::warn("doCommand(): m_doc is NULL!");
+		return 0;
+	}
 	switch (cmd) {
     case DCMD_SET_DOC_FONTS:
         CRLog::trace("DCMD_SET_DOC_FONTS(%d)", param);

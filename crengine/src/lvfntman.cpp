@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 
 
@@ -71,6 +72,9 @@
 #if (USE_FONTCONFIG==1)
     #include <fontconfig/fontconfig.h>
 #endif
+
+// fc-lang database
+#include "fc-lang-cat.h"
 
 #if COLOR_BACKBUFFER==0
 //#define USE_BITMAP_FONT
@@ -805,6 +809,7 @@ static lUInt16 char_flags[] = {
         (ch==UNICODE_NO_BREAK_SPACE?LCHAR_DEPRECATED_WRAP_AFTER|LCHAR_IS_SPACE: \
         (ch==UNICODE_HYPHEN?LCHAR_DEPRECATED_WRAP_AFTER:0))))
 
+#if USE_HARFBUZZ==1
 struct LVCharTriplet
 {
     lChar16 prevChar;
@@ -824,8 +829,11 @@ struct LVCharPosInfo
 inline lUInt32 getHash( const struct LVCharTriplet& triplet )
 {
     //return (triplet.prevChar * 1975317 + 164521) ^ (triplet.Char * 1975317 + 164521) ^ (triplet.nextChar * 1975317 + 164521);
-    return getHash((lUInt32)triplet.Char) ^ getHash((lUInt32)triplet.prevChar) ^ getHash((lUInt32)triplet.nextChar);
+    return getHash( (lUInt64)triplet.Char
+                    + (((lUInt64)triplet.prevChar) << 16)
+                    + (((lUInt64)triplet.nextChar) << 32) );
 }
+#endif
 
 class LVFreeTypeFace : public LVFont
 {
@@ -859,7 +867,7 @@ protected:
     LVHashTable<lUInt32, LVFontGlyphIndexCacheItem*> _glyph_cache2;
     LVHashTable<struct LVCharTriplet, struct LVCharPosInfo> _width_cache2;
     hb_buffer_t* _hb_opt_kern_buffer;
-    hb_feature_t _hb_opt_kern_features[2];
+    hb_feature_t _hb_opt_kern_features[22];
 #endif
 public:
 
@@ -911,9 +919,38 @@ public:
         // HarfBuzz features for full text shaping
         hb_feature_from_string("-kern", -1, &_hb_features[0]);      // font kerning
         hb_feature_from_string("-liga", -1, &_hb_features[1]);      // ligatures
+
         // HarfBuzz features for lighweight characters width calculating with caching
-        hb_feature_from_string("-kern", -1, &_hb_opt_kern_features[0]);      // font kerning
-        hb_feature_from_string("-liga", -1, &_hb_opt_kern_features[1]);      // ligatures
+        hb_feature_from_string("-kern", -1, &_hb_opt_kern_features[0]);  // Kerning: Fine horizontal positioning of one glyph to the next, based on the shapes of the glyphs
+        // We can enable these ones:
+        hb_feature_from_string("+mark", -1, &_hb_opt_kern_features[1]);  // Mark Positioning: Fine positioning of a mark glyph to a base character
+        hb_feature_from_string("+mkmk", -1, &_hb_opt_kern_features[2]);  // Mark-to-mark Positioning: Fine positioning of a mark glyph to another mark character
+        hb_feature_from_string("+curs", -1, &_hb_opt_kern_features[3]);  // Cursive Positioning: Precise positioning of a letter's connection to an adjacent one
+        hb_feature_from_string("+locl", -1, &_hb_opt_kern_features[4]);  // Substitutes character with the preferred form based on script language
+
+        // We should disable these ones:
+        hb_feature_from_string("-liga", -1, &_hb_opt_kern_features[5]);  // Standard Ligatures: replaces (by default) sequence of characters with a single ligature glyph
+        hb_feature_from_string("-rlig", -1, &_hb_opt_kern_features[6]);  // Ligatures required for correct text display (any script, but in cursive) - Arabic, semitic
+        hb_feature_from_string("-clig", -1, &_hb_opt_kern_features[7]);  // Applies a second ligature feature based on a match of a character pattern within a context of surrounding patterns
+        hb_feature_from_string("-ccmp", -1, &_hb_opt_kern_features[8]);  // Glyph composition/decomposition: either calls a ligature replacement on a sequence of characters or replaces a character with a sequence of glyphs
+                                                                      // Provides logic that can for example effectively alter the order of input characters
+        hb_feature_from_string("-calt", -1, &_hb_opt_kern_features[9]);  // Contextual Alternates: Applies a second substitution feature based on a match of a character pattern within a context of surrounding patterns
+        hb_feature_from_string("-rclt", -1, &_hb_opt_kern_features[10]); // Required Contextual Alternates: Contextual alternates required for correct text display which differs from the default join for other letters, required especially important by Arabic
+        hb_feature_from_string("-rvrn", -1, &_hb_opt_kern_features[11]); // Required Variation Alternates: Special variants of a single character, which need apply to specific font variation, required by variable fonts
+        hb_feature_from_string("-ltra", -1, &_hb_opt_kern_features[12]); // Left-to-right glyph alternates: Replaces characters with forms befitting left-to-right presentation
+        hb_feature_from_string("-ltrm", -1, &_hb_opt_kern_features[13]); // Left-to-right mirrored forms: Replaces characters with possibly mirrored forms befitting left-to-right presentation
+        hb_feature_from_string("-rtla", -1, &_hb_opt_kern_features[14]); // Right-to-left glyph alternates: Replaces characters with forms befitting right-to-left presentation
+        hb_feature_from_string("-rtlm", -1, &_hb_opt_kern_features[15]); // Right-to-left mirrored forms: Replaces characters with possibly mirrored forms befitting right-to-left presentation
+        hb_feature_from_string("-frac", -1, &_hb_opt_kern_features[16]); // Fractions: Converts figures separated by slash with diagonal fraction
+        hb_feature_from_string("-numr", -1, &_hb_opt_kern_features[17]); // Numerator: Converts to appropriate fraction numerator form, invoked by frac
+        hb_feature_from_string("-dnom", -1, &_hb_opt_kern_features[18]); // Denominator: Converts to appropriate fraction denominator form, invoked by frac
+        hb_feature_from_string("-rand", -1, &_hb_opt_kern_features[19]); // Replaces character with random forms (meant to simulate handwriting)
+        hb_feature_from_string("-trak", -1, &_hb_opt_kern_features[20]); // Tracking (?)
+        hb_feature_from_string("-vert", -1, &_hb_opt_kern_features[21]); // Vertical (?)
+        // Especially needed with FreeSerif and french texts: -ccmp
+        // Especially needed with Fedra Serif and "The", "Thuringe": -calt
+        // These tweaks seem fragile (adding here +smcp to experiment with small caps would break FreeSerif again).
+        // So, when tuning these, please check it still behave well with FreeSerif.
 #endif
     }
 
@@ -1179,7 +1216,7 @@ public:
         return res;
     }
 
-    bool hbCalcCharWidth(struct LVCharPosInfo* posInfo, const struct LVCharTriplet& triplet) {
+    bool hbCalcCharWidth(struct LVCharPosInfo* posInfo, const struct LVCharTriplet& triplet, lChar16 def_char) {
         if (!posInfo)
             return false;
         unsigned int segLen = 0;
@@ -1198,21 +1235,34 @@ public:
         }
         hb_buffer_set_content_type(_hb_opt_kern_buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
         hb_buffer_guess_segment_properties(_hb_opt_kern_buffer);
-        hb_shape(_hb_font, _hb_opt_kern_buffer, _hb_opt_kern_features, 2);
+        hb_shape(_hb_font, _hb_opt_kern_buffer, _hb_opt_kern_features, 22);
         unsigned int glyph_count = hb_buffer_get_length(_hb_opt_kern_buffer);
         if (segLen == glyph_count) {
+            hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(_hb_opt_kern_buffer, &glyph_count);
             hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(_hb_opt_kern_buffer, &glyph_count);
-            posInfo->offset = glyph_pos[cluster].x_offset >> 6;
-            posInfo->width = glyph_pos[cluster].x_advance >> 6;
-            return true;
+            if (0 != glyph_info[cluster].codepoint) {        // glyph found for this char in this font
+                posInfo->offset = glyph_pos[cluster].x_offset >> 6;
+                posInfo->width = glyph_pos[cluster].x_advance >> 6;
+            } else {
+                // hb_shape() failed or glyph omitted in this font, use fallback font
+                glyph_info_t glyph;
+                LVFont *fallback = getFallbackFont();
+                if (fallback) {
+                    if (fallback->getGlyphInfo(triplet.Char, &glyph, def_char)) {
+                        posInfo->offset = 0;
+                        posInfo->width = glyph.width;
+                    }
+                }
+            }
         } else {
 #ifdef _DEBUG
             CRLog::debug("hbCalcCharWidthWithKerning(): hb_buffer_get_length() return %d, must be %d, return value (-1)", glyph_count, segLen);
 #endif
             return false;
         }
+        return true;
     }
-#endif
+#endif  // USE_HARFBUZZ==1
 
     FT_UInt getCharIndex( lChar16 code, lChar16 def_char ) {
         if ( code=='\t' )
@@ -1287,6 +1337,98 @@ public:
         }
     }
   */
+  
+    /**
+     * @brief Check font for compatibility with language with langCode
+     * @param langCode language code, for example, "en" - English, "ru" - Russian
+     * @return true if font contains all glyphs for given language, false otherwise.
+     */
+    virtual bool checkFontLangCompat(const lString8& langCode)
+    {
+        bool fullSupport = false;
+        bool partialSupport = false;
+        struct fc_lang_catalog* lang_ptr = fc_lang_cat;
+        unsigned int i;
+        bool found = false;
+        for (i = 0; i < fc_lang_cat_sz; i++)
+        {
+            if (langCode.compare(lang_ptr->lang_code) == 0)
+            {
+                found = true;
+                break;
+            }
+            lang_ptr++;
+        }
+        if (found)
+        {
+            unsigned int codePoint = 0;
+            unsigned int tmp;
+            unsigned int first, second = 0;
+            bool inRange = false;
+            FT_UInt glyphIndex;
+            fullSupport = true;
+            for (i = 0; ; )
+            {
+                // get next codePoint
+                if (inRange && codePoint < second)
+                {
+                    codePoint++;
+                }
+                else
+                {
+                    if (i >= lang_ptr->char_set_sz)
+                        break;
+                    tmp = lang_ptr->char_set[i];
+                    if (2 == tmp)           // code of start interval
+                    {
+                        if (i + 2 < lang_ptr->char_set_sz)
+                        {
+                            i++;
+                            first = lang_ptr->char_set[i];
+                            i++;
+                            second = lang_ptr->char_set[i];
+                            inRange = true;
+                            codePoint = first;
+                            i++;
+                        }
+                        else
+                        {
+                            // broken language char set
+                            //qDebug() << "broken language char set";
+                            fullSupport = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        codePoint = tmp;
+                        inRange = false;
+                        i++;
+                    }
+                }
+                // check codePoint in this font
+                glyphIndex = FT_Get_Char_Index(_face, codePoint);
+                if (0 == glyphIndex)
+                {
+                    fullSupport = false;
+                }
+                else
+                {
+                    partialSupport = true;
+                }
+            }
+            if (fullSupport)
+                CRLog::debug("checkFontLangCompat(): Font have full support of language %s", langCode.c_str());
+            else if (partialSupport)
+                CRLog::debug("checkFontLangCompat(): Font have partial support of language %s", langCode.c_str());
+            else
+                CRLog::debug("checkFontLangCompat(): Font DON'T have support of language %s", langCode.c_str());
+        }
+        else
+            CRLog::debug("checkFontLangCompat(): Unsupported language code: %s", langCode.c_str());
+        return fullSupport;
+    }
+    
     /** \brief measure text
         \param text is text string pointer
         \param len is number of characters to measure
@@ -1343,6 +1485,7 @@ public:
             uint32_t j;
             uint32_t cluster;
             uint32_t prev_cluster = 0;
+            int skipped_chars = 0; // to add to 'i' at end of loop, as 'i' is used later and should be accurate
             for (i = 0; i < (int)glyph_count; i++) {
                 cluster = glyph_info[i].cluster;
                 lChar16 ch = text[cluster];
@@ -1370,7 +1513,8 @@ public:
                 }
                 for (j = prev_cluster + 1; j < cluster; j++) {
                     flags[j] = GET_CHAR_FLAGS(text[j]);
-                    widths[j] = prev_width;		// for chars replaced by ligature
+                    widths[j] = prev_width;		// for chars replaced by ligature, so next chars of a ligature has width=0
+                    skipped_chars++;
                 }
                 prev_cluster = cluster;
                 if (!isHyphen) // avoid soft hyphens inside text string
@@ -1387,8 +1531,11 @@ public:
                 for (j = prev_cluster + 1; j < (uint32_t)len; j++) {
                     flags[j] = GET_CHAR_FLAGS(text[j]);
                     widths[j] = prev_width;
+                    skipped_chars++;
                 }
             }
+            // i is used below to "fill props for rest of chars", so make it accurate
+            i += skipped_chars;
         } else {
             struct LVCharTriplet triplet;
             struct LVCharPosInfo posInfo;
@@ -1406,11 +1553,12 @@ public:
                 else
                     triplet.nextChar = 0;
                 if (!_width_cache2.get(triplet, posInfo)) {
-                    if (hbCalcCharWidth(&posInfo, triplet))
+                    if (hbCalcCharWidth(&posInfo, triplet, def_char))
                         _width_cache2.set(triplet, posInfo);
                     else {
                         posInfo.offset = 0;
                         posInfo.width = prev_width;
+                        lastFitChar = i + 1;
                         continue;  /* ignore errors */
                     }
                 }
@@ -1425,7 +1573,7 @@ public:
                 }
             }
         }
-#else
+#else   // USE_HARFBUZZ==1
         FT_UInt previous = 0;
         int error;
 #if (ALLOW_KERNING==1)
@@ -1464,6 +1612,7 @@ public:
                     _wcache.put(ch, w);
                 } else {
                     widths[i] = prev_width;
+                    lastFitChar = i + 1;
                     continue;  /* ignore errors */
                 }
                 if ( ch_glyph_index==(FT_UInt)-1 )
@@ -1481,17 +1630,17 @@ public:
             if ( !isHyphen ) // avoid soft hyphens inside text string
                 prev_width = widths[i];
             if ( prev_width > max_width ) {
-                if ( lastFitChar < i + 7)
+                if ( lastFitChar < (uint32_t)(i + 7))
                     break;
             } else {
                 lastFitChar = i + 1;
             }
         }
-#endif
+#endif  // USE_HARFBUZZ==1
 
         // fill props for rest of chars
         for ( int ii=i; ii<len; ii++ ) {
-            flags[i] = GET_CHAR_FLAGS( text[ii] );
+            flags[ii] = GET_CHAR_FLAGS( text[ii] );
         }
 
         //maxFit = i;
@@ -1712,13 +1861,13 @@ public:
         if ( y + _height < clip.top || y >= clip.bottom )
             return;
 
-        unsigned int i;
         //lUInt16 prev_width = 0;
         lChar16 ch;
         // measure character widths
         bool isHyphen = false;
         int x0 = x;
 #if USE_HARFBUZZ==1
+        unsigned int i;
         hb_glyph_info_t *glyph_info = 0;
         hb_glyph_position_t *glyph_pos = 0;
         unsigned int glyph_count;
@@ -1801,7 +1950,7 @@ public:
                     else
                         triplet.nextChar = 0;
                     if (!_width_cache2.get(triplet, posInfo)) {
-                        if (!hbCalcCharWidth(&posInfo, triplet)) {
+                        if (!hbCalcCharWidth(&posInfo, triplet, def_char)) {
                             posInfo.offset = 0;
                             posInfo.width = item->advance;
                         }
@@ -1833,6 +1982,7 @@ public:
         }
 #else
         FT_UInt previous = 0;
+        int i;
         int error;
 #if (ALLOW_KERNING==1)
         int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
@@ -2367,6 +2517,11 @@ public:
             if ( !item )
                 face.clear();
             _fallbackFontFace = face;
+            // Somehow, with Fedra Serif (only!), changing the fallback font does
+            // not prevent glyphs from previous fallback font to be re-used...
+            // So let's clear glyphs caches too.
+            gc();
+            clearGlyphCache();
         }
         return !_fallbackFontFace.empty();
     }
@@ -3020,6 +3175,16 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
         return true;
     }
 
+    virtual bool checkFontLangCompat(const lString8& typeface, const lString8& langCode)
+    {
+        LVFontRef fntRef = GetFont(10, 400, false, css_ff_inherit, typeface, -1);
+        if (!fntRef.isNull())
+            return fntRef->checkFontLangCompat(langCode);
+        else
+            CRLog::debug("checkFontLangCompat(): typeface not found: %s", typeface.c_str());
+        return true;
+    }
+
     /*
     bool isMonoSpaced( FT_Face face )
     {
@@ -3284,7 +3449,7 @@ bool setalias(lString8 alias,lString8 facename,int id,bool italic, bool bold)
                 }
                 break;
             }
-            bool scal = FT_IS_SCALABLE( face );
+            bool scal = FT_IS_SCALABLE( face ) != 0;
             bool charset = checkCharSet( face );
             //bool monospaced = isMonoSpaced( face );
             if ( !scal || !charset ) {

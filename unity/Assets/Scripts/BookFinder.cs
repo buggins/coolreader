@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-// #if PLATFORM_ANDROID
-// using UnityEngine.Android;
-// #endif
+#if PLATFORM_ANDROID
+using UnityEngine.Android;
+#endif
 using System.IO;
 using System;
 
@@ -73,6 +73,44 @@ public class BookFinder : MonoBehaviour {
   // Return a list of file sources that are used for finding books.
   public List<string> getSources ()
   {
+    // Request any permissions required to access the file system.
+    switch (SelectController.getActivePlatform ())  
+    {
+      case SelectController.DeviceOptions.Daydream:
+  
+#if UNITY_ANDROID
+        string permission = "android.permission.READ_EXTERNAL_STORAGE";
+        GvrPermissionsRequester permissionRequester = GvrPermissionsRequester.Instance; 
+        if (permissionRequester != null)
+        {
+          if (!permissionRequester.IsPermissionGranted (permission))
+          {
+            permissionRequester.ShouldShowRational (permission);
+            permissionRequester.RequestPermissions (new string [] { permission }, (GvrPermissionsRequester.PermissionStatus [] permissionResults) => {
+              foreach (GvrPermissionsRequester.PermissionStatus p in permissionResults)
+              {
+                  Debug.Log ("Req perm " + p.Name + ": " + (p.Granted ? "Granted" : "Denied") + "\n");
+              }
+
+            });
+            bool granted = permissionRequester.IsPermissionGranted (permission);
+          }
+        }
+#endif
+        break;
+      case SelectController.DeviceOptions.OculusGo:
+      case SelectController.DeviceOptions.OculusQuest:
+#if UNITY_ANDROID
+        if (!Permission.HasUserAuthorizedPermission(Permission.ExternalStorageRead))
+        {
+          Permission.RequestUserPermission(Permission.ExternalStorageRead);
+        }
+#endif
+        break;
+      default:
+        break;
+    }
+
     if (knownSources == null)
     {
 // #if PLATFORM_ANDROID
@@ -81,26 +119,6 @@ public class BookFinder : MonoBehaviour {
 //         Permission.RequestUserPermission(Permission.ExternalStorageRead);
 //       }
 // #endif
-#if UNITY_ANDROID
-      string permission = "android.permission.READ_EXTERNAL_STORAGE";
-      GvrPermissionsRequester permissionRequester = GvrPermissionsRequester.Instance; 
-      if (permissionRequester != null)
-      {
-        if (!permissionRequester.IsPermissionGranted (permission))
-        {
-          permissionRequester.ShouldShowRational (permission);
-          permissionRequester.RequestPermissions (new string [] { permission }, (GvrPermissionsRequester.PermissionStatus [] permissionResults) => {
-            foreach (GvrPermissionsRequester.PermissionStatus p in permissionResults)
-            {
-                Debug.Log ("Req perm " + p.Name + ": " + (p.Granted ? "Granted" : "Denied") + "\n");
-            }
-
-          });
-          bool granted = permissionRequester.IsPermissionGranted (permission);
-      Debug.Log ("Req perm6 " + granted);
-        }
-      }
-#endif
       prepareSources ();
     }
     return knownSources;

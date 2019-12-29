@@ -15,10 +15,11 @@ public class TeleportMenuInteraction : MenuInteraction {
   [Tooltip ("The position relative to the teleport button that the user will be placed.")]
   public Vector3 teleportOffset = new Vector3 (0.0f, 0.8f, 0.0f);
   
-  private bool touchingTeleport = false;
+  private Dictionary <ControlInput.ControllerDescription, bool> touchingTeleport;
    
   override protected void Start () {
     base.Start ();
+    touchingTeleport = new Dictionary <ControlInput.ControllerDescription, bool> ();
   }
 
   override public void populateMenu () {
@@ -27,7 +28,7 @@ public class TeleportMenuInteraction : MenuInteraction {
   }
 
   // Respond to the door being selected.
-  public void teleportActivate (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void teleportActivate (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -36,13 +37,18 @@ public class TeleportMenuInteraction : MenuInteraction {
   }
             
   // Show indicator of teleportation
-  public void teleportRespond (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
+  public void teleportRespond (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
   {   
-    if (!touchingTeleport)
+    if (!touchingTeleport.ContainsKey (controllerObject))
+    {
+      touchingTeleport[controllerObject] = false;
+    }
+    
+    if (!touchingTeleport[controllerObject])
     {
       touchSound.Play ();
-      controller.setTeleportBeam ();
-      touchingTeleport = true;
+      controller.setTeleportBeam (controllerObject);
+      touchingTeleport[controllerObject] = true;
     }
   }
   
@@ -58,10 +64,15 @@ public class TeleportMenuInteraction : MenuInteraction {
       avatar.transform.rotation = transform.rotation;
   }
     
-  override public void handleUnfocus (ControlInput controller)
+  override public void handleUnfocus (ControlInput controller, ControlInput.ControllerDescription controllerObject)
   {
-    controller.setStandardBeam ();
-    touchingTeleport = false;
+    if (!touchingTeleport.ContainsKey (controllerObject))
+    {
+      touchingTeleport[controllerObject] = false;
+    }
+    
+    controller.setStandardBeam (controllerObject);
+    touchingTeleport[controllerObject] = false;
   }
 
 //   override public void handleControllerInput (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)

@@ -150,7 +150,7 @@ public class BookShelfManager : MenuInteraction {
   
   // Respond to a book being selected from a shelf. Leave the book on the shelf, but create
   // a readable version and load the book into it.
-  public void selectBook (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void selectBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {

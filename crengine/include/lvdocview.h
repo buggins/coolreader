@@ -727,7 +727,11 @@ public:
     bool docToWindowPoint( lvPoint & pt );
 
     /// returns document
-    ldomDocument * getDocument() { return m_doc; }
+    ldomDocument * getDocument() {
+    	if (NULL == m_doc)
+    	    CRLog::error("attempt to return NULL pointer as document!");
+    	return m_doc;
+    }
     /// return document properties
     CRPropRef getDocProps() { return m_doc_props; }
     /// returns book title

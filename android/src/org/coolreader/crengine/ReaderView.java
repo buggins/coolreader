@@ -1012,6 +1012,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		}
 
 		private void updatePageFlipTracking(final int x, final int y) {
+			if (!mOpened)
+				return;
 			final int swipeDistance = mIsPageMode ? x - start_x : y - start_y;
 			final int distanceForFlip = surface.getWidth() / mGesturePageFlipsPerFullSwipe;
 			int pagesToFlip = swipeDistance / distanceForFlip;
@@ -2277,7 +2279,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			});
 			break;
 		case DCMD_BOOK_INFO:
-			showBookInfo();
+			if (isBookLoaded())
+				showBookInfo();
 			break;
 		case DCMD_USER_MANUAL:
 			showManual();
@@ -2303,7 +2306,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			}
 			break;
 		case DCMD_TOGGLE_DOCUMENT_STYLES:
-			toggleDocumentStyles();
+			if (isBookLoaded())
+				toggleDocumentStyles();
 			break;
 		case DCMD_SHOW_HOME_SCREEN:
 			mActivity.showHomeScreen();
@@ -2318,10 +2322,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			toggleTitlebar();
 			break;
 		case DCMD_SHOW_POSITION_INFO_POPUP:
-			showReadingPositionPopup();
+			if (isBookLoaded())
+				showReadingPositionPopup();
 			break;
 		case DCMD_TOGGLE_SELECTION_MODE:
-			toggleSelectionMode();
+			if (isBookLoaded())
+				toggleSelectionMode();
 			break;
 		case DCMD_TOGGLE_TOUCH_SCREEN_LOCK:
 			isTouchScreenEnabled = !isTouchScreenEnabled;
@@ -2349,45 +2355,56 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			switchFontFace(-1);
             break;
 		case DCMD_MOVE_BY_CHAPTER:
-			doEngineCommand(cmd, param, onFinishHandler);
+			if (isBookLoaded())
+				doEngineCommand(cmd, param, onFinishHandler);
             drawPage();
 			break;
 		case DCMD_PAGEDOWN:
-			if ( param==1 && !DeviceInfo.EINK_SCREEN)
-				animatePageFlip(1, onFinishHandler);
-			else
-				doEngineCommand(cmd, param, onFinishHandler);
+			if (isBookLoaded()) {
+				if (param == 1 && !DeviceInfo.EINK_SCREEN)
+					animatePageFlip(1, onFinishHandler);
+				else
+					doEngineCommand(cmd, param, onFinishHandler);
+			}
 			break;
 		case DCMD_PAGEUP:
-			if ( param==1 && !DeviceInfo.EINK_SCREEN)
-				animatePageFlip(-1, onFinishHandler);
-			else
-				doEngineCommand(cmd, param, onFinishHandler);
+			if (isBookLoaded()) {
+				if (param == 1 && !DeviceInfo.EINK_SCREEN)
+					animatePageFlip(-1, onFinishHandler);
+				else
+					doEngineCommand(cmd, param, onFinishHandler);
+			}
 			break;
 		case DCMD_BEGIN:
 		case DCMD_END:
-			doEngineCommand(cmd, param);
+			if (isBookLoaded())
+				doEngineCommand(cmd, param);
 			break;
 		case DCMD_RECENT_BOOKS_LIST:
 			mActivity.showRecentBooks();
 			break;
 		case DCMD_SEARCH:
-			showSearchDialog(null);
+			if (isBookLoaded())
+				showSearchDialog(null);
 			break;
 		case DCMD_EXIT:
 			mActivity.finish();
 			break;
 		case DCMD_BOOKMARKS:
-			mActivity.showBookmarksDialog();
+			if (isBookLoaded())
+				mActivity.showBookmarksDialog();
 			break;
 		case DCMD_GO_PERCENT_DIALOG:
-			showGoToPercentDialog();
+			if (isBookLoaded())
+				showGoToPercentDialog();
 			break;
 		case DCMD_GO_PAGE_DIALOG:
-			showGoToPageDialog();
+			if (isBookLoaded())
+				showGoToPageDialog();
 			break;
 		case DCMD_TOC_DIALOG:
-			showTOC();
+			if (isBookLoaded())
+				showTOC();
 			break;
 		case DCMD_FILE_BROWSER:
 			mActivity.showBrowser(!mActivity.isBrowserCreated() ? getOpenedFileInfo() : null);
@@ -2471,7 +2488,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						// do nothing
 						break;
 				}
-				if (isMoveCommand)
+				if (isMoveCommand && isBookLoaded())
 					updateCurrentPositionStatus();
 			}
 			public void done() {
@@ -2479,7 +2496,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					invalidImages = true;
 					drawPage( doneHandler, false );
 				}
-				if (isMoveCommand)
+				if (isMoveCommand && isBookLoaded())
 			    	scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			}
 		});
@@ -2557,7 +2574,26 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int updInterval  = props.getInt(PROP_APP_SCREEN_UPDATE_INTERVAL, 10);
 		mActivity.setScreenUpdateMode(updMode, surface);
 		mActivity.setScreenUpdateInterval(updInterval, surface);		
-		
+
+		if (null != mBookInfo) {
+			FileInfo fileInfo = mBookInfo.getFileInfo();
+			final String bookLanguage = fileInfo.getLanguage();
+			final String fontFace = props.getProperty(PROP_FONT_FACE);
+			if (null != bookLanguage && bookLanguage.length() > 0) {
+				boolean res = Engine.checkFontLanguageCompatibility(fontFace, bookLanguage);
+				log.d("Checking font \"" + fontFace + "\" for compatibility with language \"" + bookLanguage + "\": res=" + res);
+				if (!res) {
+					BackgroundThread.instance().executeGUI(new Runnable() {
+						@Override
+						public void run() {
+							mActivity.showToast(R.string.font_not_compat_with_language, fontFace, bookLanguage);
+						}
+					});
+				}
+			} else {
+				log.d("Can't get book's language to check font compatibility! bookInfo=" + fileInfo);
+			}
+		}
 		doc.applySettings(props);
         //syncViewSettings(props, save, saveDelayed);
         drawPage();
@@ -3380,6 +3416,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private void requestResize(int width, int height) {
 		requestedWidth = width;
 		requestedHeight = height;
+		if (requestedWidth <= 0)
+			requestedWidth = 80;
+		if (requestedHeight <= 0)
+			requestedHeight = 80;
 		checkSize();
 	}
 
@@ -3507,6 +3547,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 //	}
 	private void animatePageFlip( final int dir, final Runnable onFinishHandler )
 	{
+		if (!mOpened)
+			return;
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
 			public void run() {
@@ -3692,6 +3734,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 	private void startAnimation( final int startX, final int startY, final int maxX, final int maxY, final int newX, final int newY )
 	{
+		if (!mOpened)
+			return;
 		alog.d("startAnimation("+startX + ", " + startY+")");
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
@@ -3756,6 +3800,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	private AnimationUpdate currentAnimationUpdate;
 	private void updateAnimation( final int x, final int y )
 	{
+		if (!mOpened)
+			return;
 		alog.d("updateAnimation("+x + ", " + y+")");
 		synchronized(AnimationUpdate.class) {
 			if (currentAnimationUpdate != null)
@@ -3773,6 +3819,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	
 	private void stopAnimation( final int x, final int y )
 	{
+		if (!mOpened)
+			return;
 		alog.d("stopAnimation("+x+", "+y+")");
 		BackgroundThread.instance().executeBackground(new Runnable() {
 			@Override
@@ -3788,6 +3836,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	DelayedExecutor animationScheduler = DelayedExecutor.createBackground("animation");
 	private void scheduleAnimation()
 	{
+		if (!mOpened)
+			return;
 		animationScheduler.post(new Runnable() {
 			@Override
 			public void run() {
@@ -4615,10 +4665,11 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 	}
 	private void drawPage( Runnable doneHandler, boolean isPartially )
 	{
-		if ( !mInitialized || !mOpened )
+		if ( !mInitialized )
 			return;
 		log.v("drawPage() : submitting DrawPageTask");
-		scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
+		if ( mOpened )
+			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 		post( new DrawPageTask(doneHandler, isPartially) );
 	}
 	
@@ -4772,8 +4823,12 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			log.d("LoadDocumentTask, GUI thread is finished successfully");
 			if (Services.getHistory() != null) {
 				Services.getHistory().updateBookAccess(mBookInfo, getTimeElapsed());
-				if (mActivity.getDB() != null)
-					mActivity.getDB().saveBookInfo(mBookInfo);
+				mActivity.waitForCRDBService(new Runnable() {
+					@Override
+					public void run() {
+						mActivity.getDB().saveBookInfo(mBookInfo);
+					}
+				});
 		        if (coverPageBytes!=null && mBookInfo!=null && mBookInfo.getFileInfo()!=null) {
 		        	if (mBookInfo.getFileInfo().format.needCoverPageCaching()) {
 		        		// TODO: fix it
@@ -4808,12 +4863,26 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		public void fail( Exception e )
 		{
 			BackgroundThread.ensureGUI();
+			close();
 			log.v("LoadDocumentTask failed for " + mBookInfo, e);
-			Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false );
+			mActivity.waitForCRDBService(new Runnable() {
+				@Override
+				public void run() {
+					Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false );
+				}
+			});
 			mBookInfo = null;
 			log.d("LoadDocumentTask is finished with exception " + e.getMessage());
 	        mOpened = false;
-			drawPage();
+	        BackgroundThread.instance().executeBackground(new Runnable() {
+		        @Override
+		        public void run() {
+			        doc.createDefaultDocument(mActivity.getString(R.string.error), mActivity.getString(R.string.error_while_opening, filename));
+			        doc.requestRender();
+			        preparePageImage(0);
+			        drawPage();
+		        }
+	        });
 			hideProgress();
 			mActivity.showToast("Error while loading document");
 			if ( errorHandler!=null ) {
@@ -4958,6 +5027,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		int mins = (w < h ? w : h) * 7 / 10;
 		int ph = mins / 20;
 		int textColor = mSettings.getColor(PROP_FONT_COLOR, 0x000000);
+		float factor = mActivity.getDensityFactor();
 		Rect rc = new Rect(w / 2 - mins / 2, h / 2 - ph / 2, w / 2 + mins / 2, h / 2 + ph / 2);
 		
 		Utils.drawFrame(canvas, rc, Utils.createSolidPaint(0xC0000000 | textColor));
@@ -4972,9 +5042,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		canvas.drawRect(rc1, Utils.createSolidPaint(0x80000000 | textColor));
 		Paint textPaint = Utils.createSolidPaint(0xFF000000 | textColor);
 		textPaint.setTextAlign(Paint.Align.CENTER);
-		textPaint.setTextSize(22f);
+		textPaint.setTextSize(15f*factor);
 		textPaint.setSubpixelText(true);
-		canvas.drawText(String.valueOf(mActivity.getText(titleResource)), (rc.left + rc.right) / 2, rc1.top - 12, textPaint);
+		canvas.drawText(String.valueOf(mActivity.getText(titleResource)), (rc.left + rc.right) / 2, rc1.top - 12f*factor, textPaint);
 		//canvas.drawText(String.valueOf(position * 100 / 10000) + "%", rc.left + 4, rc1.bottom - 4, textPaint);
 //		Rect rc2 = new Rect(rc);
 //		rc.left = x;
@@ -6057,6 +6127,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
         this.mEngine = engine;
         surface.setFocusable(true);
         surface.setFocusableInTouchMode(true);
+        // set initial size to exclude java.lang.IllegalArgumentException in Bitmap.createBitmap(0, 0)
+        // surface.getWidth() at this point return 0
+        requestResize(600, 800);
         
         BackgroundThread.instance().postBackground(new Runnable() {
 

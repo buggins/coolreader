@@ -300,4 +300,14 @@
 #define MAX_IMAGE_SCALE_MUL 2
 #endif
 
+// Maximum & minimum screen resolution
+// By default full frame 4K
+#ifndef SCREEN_SIZE_MIN
+#define SCREEN_SIZE_MIN 160
+#endif
+
+#ifndef SCREEN_SIZE_MAX
+#define SCREEN_SIZE_MAX 4096
+#endif
+
 #endif//CRSETUP_H_INCLUDED

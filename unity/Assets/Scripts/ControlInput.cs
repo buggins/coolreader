@@ -48,19 +48,52 @@ public class ControlInput : MonoBehaviour {
   [Tooltip ("A beam material that highlights the target and can be used to indicate teleporting")]
   public Material teleportBeamMaterial;
   
-  private bool lastTrigger = false;
-  private bool lastBackButton = false;
-  private GameObject lastHit = null;
+  public delegate void HandleControllerInputType (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatarout, bool touchpad, Vector2 touchposition); 
   
-  public delegate void HandleControllerInputType (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatarout, bool touchpad, Vector2 touchposition); 
+  private class HandlerList : List<HandleControllerInputType> {}
   
-  private List<HandleControllerInputType> exclusiveRegisteredHandlers;
-  private List<HandleControllerInputType> registeredHandlers;
+  private Dictionary <ControlInput.ControllerDescription, HandlerList> exclusiveRegisteredHandlers;
+  private Dictionary <ControlInput.ControllerDescription, HandlerList> registeredHandlers;
+
+  // All the state associated with an individual controller.
+  public class ControllerDescription
+  {
+    // The system controller object.
+    public GameObject controllerObject;
+    // The beam object, connecting controller to target.
+    public GameObject beam;
+    // The marker, indicating what the controller is aimed at.
+    public GameObject target;
+    // Which hand it is.
+    public bool isLeft;
+
+    public bool trigger;
+    public bool backButton;
+    public Vector3 direction;
+    public Vector3 position;
+    public bool touchpad = false;
+    public Vector2 touchposition = new Vector2 (0, 0);
+
+    public bool lastTrigger = false;
+    public bool lastBackButton = false;
+    public GameObject lastHit = null;
+    
+    public ControllerDescription (GameObject controller, bool isLeft, GameObject beam, GameObject target)
+    {
+      this.controllerObject = controller;
+      this.beam = beam;
+      this.target = target;
+      this.isLeft = isLeft;
+    }
+  }
+  
+  private List <ControllerDescription> controllerObjects;
   
   // Use this for initialization
-  void Start () {
-    exclusiveRegisteredHandlers = new List<HandleControllerInputType> ();
-    registeredHandlers = new List<HandleControllerInputType> ();
+  void Awake () {
+    exclusiveRegisteredHandlers = new Dictionary <ControlInput.ControllerDescription, HandlerList> ();
+    registeredHandlers = new Dictionary <ControlInput.ControllerDescription, HandlerList> ();
+    
     if (SelectController.getActivePlatform () == SelectController.DeviceOptions.NoDevice)
     {
       leftControllerObject.transform.localPosition = new Vector3 (-0.2f, 0.0f, 0.3f);	
@@ -69,43 +102,67 @@ public class ControlInput : MonoBehaviour {
     
     // Part of daydream shutdown requirements.
     Input.backButtonLeavesApp = true;
+    
+    // Identify, enable and disable controllers.
+    leftControllerObject.SetActive (false);
+    rightControllerObject.SetActive (false);
+    controllerObjects = new List <ControllerDescription> ();
+    // Only use one controller - whichever is associated with the specified dominant hand.
+    if (!SelectController.singleController () || SelectController.isLeftHanded ())
+    {
+      controllerObjects.Add (new ControllerDescription (leftControllerObject, true, leftBeam, leftTarget));
+      leftControllerObject.SetActive (true);
+      Debug.Log ("Enabled left controller");
+    }
+    if (!SelectController.singleController () || !SelectController.isLeftHanded ())
+    {
+      controllerObjects.Add (new ControllerDescription (rightControllerObject, false, rightBeam, rightTarget));
+      rightControllerObject.SetActive (true);
+      Debug.Log ("Enabled right controller");
+    }    
+    
+    foreach (ControllerDescription co in controllerObjects)
+    {
+      exclusiveRegisteredHandlers[co] = new HandlerList ();
+      registeredHandlers[co] = new HandlerList ();
+    }
   }
   
   // Register a callback for control events. If the handler is exclusive, then
   // only the most recent handler will receive events until it deregisters (similar
   // to modal dialog).
-  public void addHandler (HandleControllerInputType h, bool exclusive = false)
+  public void addHandler (HandleControllerInputType h, ControlInput.ControllerDescription controllerObject, bool exclusive = false)
   {
     if (exclusive)
     {
-      if (!exclusiveRegisteredHandlers.Contains (h))
+      if (!exclusiveRegisteredHandlers[controllerObject].Contains (h))
       {
-        exclusiveRegisteredHandlers.Insert (0, h);
+        exclusiveRegisteredHandlers[controllerObject].Insert (0, h);
       }
     }
     else
     {
-      if (!registeredHandlers.Contains (h))
+      if (!registeredHandlers[controllerObject].Contains (h))
       {
-        registeredHandlers.Add (h);
+        registeredHandlers[controllerObject].Add (h);
       }
     }
   }
   
-  public void removeHandler (HandleControllerInputType h)
+  public void removeHandler (HandleControllerInputType h, ControlInput.ControllerDescription controllerObject)
   {
-    if (exclusiveRegisteredHandlers.Contains (h))
+    if (exclusiveRegisteredHandlers[controllerObject].Contains (h))
     {
-      exclusiveRegisteredHandlers.Remove (h);
+      exclusiveRegisteredHandlers[controllerObject].Remove (h);
     }
-    if (registeredHandlers.Contains (h))
+    if (registeredHandlers[controllerObject].Contains (h))
     {
-      registeredHandlers.Remove (h);
+      registeredHandlers[controllerObject].Remove (h);
     }
   }
 
   // Retrieve controller parameters from an Oculus Go controller.
-  private void GetOculusControllerStatus (GameObject controllerObject, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
+  private void GetOculusGoControllerStatus (GameObject controllerObject, bool isLeft, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
   {
     trigger = OVRInput.Get (OVRInput.Button.PrimaryIndexTrigger);
     backButton = OVRInput.Get (OVRInput.Button.Back);
@@ -114,8 +171,29 @@ public class ControlInput : MonoBehaviour {
     touchposition = OVRInput.Get (OVRInput.Axis2D.PrimaryTouchpad);
   }
   
+  // Retrieve controller parameters from an Oculus Quest controller.
+  private void GetOculusQuestControllerStatus (GameObject controllerObject, bool isLeft, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
+  {
+    if (isLeft)
+    {
+      trigger = OVRInput.Get (OVRInput.RawButton.LIndexTrigger);
+      backButton = OVRInput.Get (OVRInput.RawButton.Start);
+      direction = controllerObject.transform.forward;
+      touchpad = OVRInput.Get (OVRInput.RawButton.LThumbstick);
+      touchposition = OVRInput.Get (OVRInput.RawAxis2D.LThumbstick);
+    }
+    else
+    {
+      trigger = OVRInput.Get (OVRInput.RawButton.RIndexTrigger);
+      backButton = OVRInput.Get (OVRInput.RawButton.Start);
+      direction = controllerObject.transform.forward;
+      touchpad = OVRInput.Get (OVRInput.RawButton.RThumbstick);
+      touchposition = OVRInput.Get (OVRInput.RawAxis2D.RThumbstick);
+    }
+  }
+  
   // Retrieve controller parameters from a Daydream controller.
-  private void GetDaydreamControllerStatus (GameObject controllerObject, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
+  private void GetDaydreamControllerStatus (GameObject controllerObject, bool isLeft, out bool trigger, out Vector3 direction, out bool touchpad, out Vector2 touchposition, out bool backButton)
   {
     trigger = false;
     direction = new Vector3 (0, 0, 0);
@@ -139,7 +217,7 @@ public class ControlInput : MonoBehaviour {
   }
   
   // Retrieve controller parameters from a controller simulated with a mouse.
-  private void GetMouseStatus (GameObject controllerObject, out bool trigger, out Vector3 direction, out bool backButton)
+  private void GetMouseStatus (GameObject controllerObject, bool isLeft, out bool trigger, out Vector3 direction, out bool backButton)
   {
     trigger = Input.GetAxis ("Fire1") > 0.0;
     backButton = Input.GetAxis ("Fire2") > 0.0;
@@ -156,168 +234,138 @@ public class ControlInput : MonoBehaviour {
   }
   
   // Inform the last hit object that it is no longer targetted.
-  private void clearLastHit ()
+  private void clearLastHit (ControllerDescription co)
   {
-    if ((lastHit != null) && (lastHit.GetComponent <MenuInteraction> () != null))
+    if ((co.lastHit != null) && (co.lastHit.GetComponent <MenuInteraction> () != null))
     {
-      lastHit.GetComponent <MenuInteraction> ().handleUnfocus (this);
+      co.lastHit.GetComponent <MenuInteraction> ().handleUnfocus (this, co);
     }
-    lastHit = null;
+    co.lastHit = null;
   }
   
   // Show the pointer beam using the teleport material.
-  public void setTeleportBeam ()
+  public void setTeleportBeam (ControllerDescription co)
   {
-    leftBeam.GetComponent <MeshRenderer> ().material = teleportBeamMaterial;
-    rightBeam.GetComponent <MeshRenderer> ().material = teleportBeamMaterial;
+    co.beam.GetComponent <MeshRenderer> ().material = teleportBeamMaterial;
   }
   
   // Show the pointer beam using the standard material.
-  public void setStandardBeam ()
+  public void setStandardBeam (ControllerDescription co)
   {
-    leftBeam.GetComponent <MeshRenderer> ().material = standardBeamMaterial;
-    rightBeam.GetComponent <MeshRenderer> ().material = standardBeamMaterial;
+    co.beam.GetComponent <MeshRenderer> ().material = standardBeamMaterial;
   }
   
   void Update () {
-    bool trigger;
-    bool backButton;
-    Vector3 direction;
-    Vector3 position;
-    bool touchpad = false;
-    Vector2 touchposition = new Vector2 (0, 0);
-
-    // Only use one controller - whichever is associated with the specified dominant hand.
-    GameObject controllerObject = null;
-    GameObject beam = null;
-    GameObject target = null;
-    if (SelectController.isLeftHanded ())
-    {
-      controllerObject = leftControllerObject;
-      beam = leftBeam;
-      target = leftTarget;
-      leftControllerObject.SetActive (true);
-      rightControllerObject.SetActive (false);
-    }
-    else
-    {
-      controllerObject = rightControllerObject;
-      beam = rightBeam;
-      target = rightTarget;
-      leftControllerObject.SetActive (false);
-      rightControllerObject.SetActive (true);
-    }
-//     foreach (SelectController c in leftControllerObject.GetComponentsInChildren <SelectController>(true))
-//     {
-//       c.checkStatus ();
-//     }
-//     foreach (SelectController c in rightControllerObject.GetComponentsInChildren <SelectController>(true))
-//     {
-//       c.checkStatus ();
-//     }
     
-    // Get controller properties, depending on the device connected.
-    position = controllerObject.transform.position;
-    switch (SelectController.getActivePlatform ())
+    // Handle input from each controller.
+    foreach (ControllerDescription co in controllerObjects)
     {
-      case SelectController.DeviceOptions.OculusGo:
-        GetOculusControllerStatus (controllerObject, out trigger, out direction, out touchpad, out touchposition, out backButton);
-        break;
-      case SelectController.DeviceOptions.Daydream:
-        GetDaydreamControllerStatus (controllerObject, out trigger, out direction, out touchpad, out touchposition, out backButton);
-        break;
-      default:
-        GetMouseStatus (controllerObject, out trigger, out direction, out backButton);
-        controllerObject.transform.forward = direction;
-        break;
-    }
-    
-    // Manage the back button. In future this may need to be coordinated with active menus,
-    // once they start nesting.
-    bool debounceBackButton = backButton;
-    if (debounceBackButton && (backButton == lastBackButton))
-    {
-      debounceBackButton = false;
-    }
-    lastBackButton = backButton;
-    if (debounceBackButton)
-    {
-      applicationMenu.SetActive (!applicationMenu.activeSelf);
-    }
-    // Part of daydream shutdown requirements.
-    if (Input.GetKeyDown(KeyCode.Escape))
-    {
-      Application.Quit();
-    }
-    
-    // Extract edge transitions of the trigger.
-    bool debounceTrigger = trigger;
-    if (debounceTrigger && (trigger == lastTrigger))
-    {
-      debounceTrigger = false;
-    }
-    lastTrigger = trigger;
-
-    // Do raycasting, and passing on events to any menu related objects 
-    // that are hit.    
-    if (exclusiveRegisteredHandlers.Count == 0)
-    {
-      // Menu operations only allowed if no exclusive control handlers are available.
-      RaycastHit hit;
-      target.SetActive (false);
-      target.GetComponent <MeshRenderer> ().material = defaultTarget;
-      beam.SetActive (true);
-      if (Physics.Raycast (position, direction, out hit))
+      // Get controller properties, depending on the device connected.
+      co.position = co.controllerObject.transform.position;
+      switch (SelectController.getActivePlatform ())
       {
-        GameObject hitObject = hit.transform.gameObject;
-//         debugText.text += "\n" + hitObject.name;	
-//           print ("hhhh" + hitObject.name);
-        
-        Vector3 beamScale = beam.transform.localScale;
-        beamScale.z = hit.distance;
-        beam.transform.localScale = beamScale;
-//         if (hit.distance < beam.transform.localScale.z)
-//         {
-//           beam.SetActive (false);
-//         }
-        
-        target.transform.position = hit.point;
-        target.SetActive (true);
-        
-        if (hitObject != lastHit)
+        case SelectController.DeviceOptions.OculusGo:
+          GetOculusGoControllerStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.touchpad, out co.touchposition, out co.backButton);
+          break;
+        case SelectController.DeviceOptions.OculusQuest:
+          GetOculusQuestControllerStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.touchpad, out co.touchposition, out co.backButton);
+          break;
+        case SelectController.DeviceOptions.Daydream:
+          GetDaydreamControllerStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.touchpad, out co.touchposition, out co.backButton);
+          break;
+        default:
+          GetMouseStatus (co.controllerObject, co.isLeft, out co.trigger, out co.direction, out co.backButton);
+          co.controllerObject.transform.forward = co.direction;
+          break;
+      }
+      
+      // Manage the back button. In future this may need to be coordinated with active menus,
+      // once they start nesting.
+      bool debounceBackButton = co.backButton;
+      if (debounceBackButton && (co.backButton == co.lastBackButton))
+      {
+        debounceBackButton = false;
+      }
+      co.lastBackButton = co.backButton;
+      if (debounceBackButton)
+      {
+        applicationMenu.SetActive (!applicationMenu.activeSelf);
+      }
+      // Part of daydream shutdown requirements.
+      if (Input.GetKeyDown(KeyCode.Escape))
+      {
+        Application.Quit();
+      }
+      
+      // Extract edge transitions of the trigger.
+      bool debounceTrigger = co.trigger;
+      if (debounceTrigger && (co.trigger == co.lastTrigger))
+      {
+        debounceTrigger = false;
+      }
+      co.lastTrigger = co.trigger;
+
+      // Do raycasting, and passing on events to any menu related objects 
+      // that are hit.    
+      if (exclusiveRegisteredHandlers[co].Count == 0)
+      {
+        // Menu operations only allowed if no exclusive control handlers are available.
+        RaycastHit hit;
+        co.target.SetActive (false);
+        co.target.GetComponent <MeshRenderer> ().material = defaultTarget;
+        co.beam.SetActive (true);
+        if (Physics.Raycast (co.position, co.direction, out hit))
         {
-          clearLastHit ();          
-        }
-        if (hitObject.GetComponent <MenuInteraction> () != null)
-        {
-          if (hitObject != lastHit)
+          GameObject hitObject = hit.transform.gameObject;
+  //         debugText.text += "\n" + hitObject.name;	
+  //           print ("hhhh" + hitObject.name);
+          
+          Vector3 beamScale = co.beam.transform.localScale;
+          beamScale.z = hit.distance;
+          co.beam.transform.localScale = beamScale;
+  //         if (hit.distance < beam.transform.localScale.z)
+  //         {
+  //           beam.SetActive (false);
+  //         }
+          
+          co.target.transform.position = hit.point;
+          co.target.SetActive (true);
+          
+          if (hitObject != co.lastHit)
           {
-            hitObject.GetComponent <MenuInteraction> ().handleFocus (this);
+            clearLastHit (co);          
           }
-          
-          lastHit = hitObject;
-          
-          target.GetComponent <MeshRenderer> ().material = menuTarget;
-          hitObject.GetComponent <MenuInteraction> ().handleControllerInput (this, controllerObject, trigger, debounceTrigger, direction, position, avatar, touchpad, touchposition);
+          if (hitObject.GetComponent <MenuInteraction> () != null)
+          {
+            if (hitObject != co.lastHit)
+            {
+              hitObject.GetComponent <MenuInteraction> ().handleFocus (this, co);
+            }
+            
+            co.lastHit = hitObject;
+            
+            co.target.GetComponent <MeshRenderer> ().material = menuTarget;
+            hitObject.GetComponent <MenuInteraction> ().handleControllerInput (this, co, co.trigger, debounceTrigger, co.direction, co.position, avatar, co.touchpad, co.touchposition);
+          }
         }
+        else
+        {
+          clearLastHit (co);
+        }
+      }
+      
+      // Pass on raw control information to specific handlers.
+      if (exclusiveRegisteredHandlers[co].Count > 0)
+      {
+        exclusiveRegisteredHandlers[co][0] (this, co, co.trigger, debounceTrigger, co.direction, co.position, avatar, co.touchpad, co.touchposition);
       }
       else
       {
-        clearLastHit ();
-      }
-    }
-    
-    // Pass on raw control information to specific handlers.
-    if (exclusiveRegisteredHandlers.Count > 0)
-    {
-      exclusiveRegisteredHandlers[0] (this, controllerObject, trigger, debounceTrigger, direction, position, avatar, touchpad, touchposition);
-    }
-    else
-    {
-      List <HandleControllerInputType> regCopy = new List<HandleControllerInputType> (registeredHandlers);
-      foreach (HandleControllerInputType h in regCopy)
-      {
-        h (this, controllerObject, trigger, debounceTrigger, direction, position, avatar, touchpad, touchposition);
+        List <HandleControllerInputType> regCopy = new List<HandleControllerInputType> (registeredHandlers[co]);
+        foreach (HandleControllerInputType h in regCopy)
+        {
+          h (this, co, co.trigger, debounceTrigger, co.direction, co.position, avatar, co.touchpad, co.touchposition);
+        }
       }
     }
   }

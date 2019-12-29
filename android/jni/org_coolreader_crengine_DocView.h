@@ -39,6 +39,14 @@ JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_destroyInternal
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    createDefaultDocumentInternal
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_org_coolreader_crengine_DocView_createDefaultDocumentInternal
+  (JNIEnv *, jobject, jstring, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    loadDocumentInternal
  * Signature: (Ljava/lang/String;)Z
  */

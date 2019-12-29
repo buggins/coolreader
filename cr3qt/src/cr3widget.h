@@ -167,6 +167,7 @@ class CR3View : public QWidget, public LVDocViewCallback
         void startSelection( ldomXPointer p );
         bool endSelection( ldomXPointer p );
         bool updateSelection( ldomXPointer p );
+        void checkFontLanguageCompatibility();
 
         DocViewData * _data; // to hide non-qt implementation
         LVDocView * _docview;

@@ -32,7 +32,7 @@ public class RoomChangeMenuInteraction : MenuInteraction {
   }
 
   // Respond to the door being selected.
-  public void doorActivate (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void doorActivate (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -49,7 +49,7 @@ public class RoomChangeMenuInteraction : MenuInteraction {
   }
             
   // Get the door to respond to pointer goes over it.
-  public void doorRespond (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
+  public void doorRespond (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
   {
       if ((touchSound != null) && (!touchingDoor))
       {
@@ -86,7 +86,7 @@ public class RoomChangeMenuInteraction : MenuInteraction {
   }
   
   // Re-enable sound cues once the pointer leaves the door completely.
-  override public void handleUnfocus (ControlInput controller)
+  override public void handleUnfocus (ControlInput controller, ControlInput.ControllerDescription controllerObject)
   {
     touchingDoor = false;
   }  

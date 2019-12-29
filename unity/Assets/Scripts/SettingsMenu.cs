@@ -61,7 +61,7 @@ public class SettingsMenu : MenuInteraction {
     option.outOfPosition = false;
   }
     
-  private void colourResponse (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
+  private void colourResponse (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
   {
     // Remember where the button was.
     Color buttonOrigin = new Color (0, 0, 0);
@@ -103,7 +103,7 @@ public class SettingsMenu : MenuInteraction {
 
   // Create a handler for toggle/checkbox interactions. This accepts two handlers, one to respond
   // when the toggle is set, the other when it is reset.
-  private void toggleButton (ToggleVariable toggleVariable, string onString, string offString, buttonHandlerType handlerOn, buttonHandlerType handlerOff, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  private void toggleButton (ToggleVariable toggleVariable, string onString, string offString, buttonHandlerType handlerOn, buttonHandlerType handlerOff, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -117,9 +117,9 @@ public class SettingsMenu : MenuInteraction {
       {
         icon.GetComponent <MeshRenderer> ().material.mainTexture = checkOn;
       }
-      if ((handlerOn != null) && (!initialize))
+      if (handlerOn != null)
       {
-        handlerOn (controller, controllerObject, button, avatar);
+        handlerOn (controller, controllerObject, button, avatar, initialize);
       }
     }
     else
@@ -130,9 +130,9 @@ public class SettingsMenu : MenuInteraction {
       {
         icon.GetComponent <MeshRenderer> ().material.mainTexture = checkOff;
       }
-      if ((handlerOff != null) && (!initialize))
+      if (handlerOff != null)
       {
-        handlerOff (controller, controllerObject, button, avatar);
+        handlerOff (controller, controllerObject, button, avatar, initialize);
       }
     }
   }
@@ -144,11 +144,11 @@ public class SettingsMenu : MenuInteraction {
     return (controller, controllerObject, button, avatar, initialize) => toggleButton (toggleVariable, onString, offString, handlerOn, handlerOff, controller, controllerObject, button, avatar, initialize);
   }
   
-  private delegate void fileButtonHandlerType (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar); 
+  private delegate void fileButtonHandlerType (TreeNode n, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false); 
   
   // Provides standard menu functions, but call a more advanced handler since the button knows more
   // information about itself.
-  private void fileToggleButton (TreeNode n, ToggleVariable toggleVariable, string onString, string offString, fileButtonHandlerType handlerOn, fileButtonHandlerType handlerOff, Texture onIcon, Texture offIcon, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  private void fileToggleButton (TreeNode n, ToggleVariable toggleVariable, string onString, string offString, fileButtonHandlerType handlerOn, fileButtonHandlerType handlerOff, Texture onIcon, Texture offIcon, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -162,9 +162,9 @@ public class SettingsMenu : MenuInteraction {
       {
         icon.GetComponent <MeshRenderer> ().material.mainTexture = onIcon;
       }
-      if ((handlerOn != null) && (!initialize))
+      if (handlerOn != null)
       {
-        handlerOn (n, controller, controllerObject, button, avatar);
+        handlerOn (n, controller, controllerObject, button, avatar, initialize);
       }
     }
     else
@@ -175,9 +175,9 @@ public class SettingsMenu : MenuInteraction {
       {
         icon.GetComponent <MeshRenderer> ().material.mainTexture = offIcon;
       }
-      if ((handlerOff != null) &&  (!initialize))
+      if (handlerOff != null)
       {
-        handlerOff (n, controller, controllerObject, button, avatar);
+        handlerOff (n, controller, controllerObject, button, avatar, initialize);
       }
     }
   }
@@ -325,16 +325,16 @@ public class SettingsMenu : MenuInteraction {
       fileRoot.add (n);
     }
     
- //   fileRoot.add (new TreeNode (null, addMenuOption ("Enable Rabbit Hole", new Vector3 (0.0f, 0.0f, 0.0f), toggleHandler (new ToggleVariable (), "Enable Rabbit Hole", "Enable Rabbit Hole", rabbitHoleOn, rabbitHoleOff), colourResponse, scrollHandler), 0));
+    fileRoot.add (new TreeNode (null, addMenuOption ("Enable Rabbit Hole", new Vector3 (0.0f, 0.0f, 0.0f), toggleHandler (new ToggleVariable (), "Enable Rabbit Hole", "Enable Rabbit Hole", rabbitHoleOn, rabbitHoleOff), colourResponse, scrollHandler), 0));
     
     reflow ();
   }
   
-  public void rabbitHoleOn (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void rabbitHoleOn (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     rabbitHole.SetActive (true);
   }
-  public void rabbitHoleOff (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void rabbitHoleOff (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   { 
     rabbitHole.SetActive (false);
   }
@@ -358,20 +358,20 @@ public class SettingsMenu : MenuInteraction {
     reflow ();
   }
   
-  public void scrollUpColour (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
+  public void scrollUpColour (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
   {
     scroll (lineSkip / 20.0f);
     colourResponse (menuOption, controller, controllerObject, avatar);
     reflow ();
   }
-  public void scrollDownColour (MenuItem menuOption, ControlInput controller, GameObject controllerObject, GameObject avatar)
+  public void scrollDownColour (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
   {
     scroll (-lineSkip / 20.0f);
     colourResponse (menuOption, controller, controllerObject, avatar);
     reflow ();
   }
   
-  public void scrollUp (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void scrollUp (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -387,7 +387,7 @@ public class SettingsMenu : MenuInteraction {
     }
     reflow ();
   }
-  public void scrollDown (ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  public void scrollDown (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
     if (!initialize)
     {
@@ -404,94 +404,106 @@ public class SettingsMenu : MenuInteraction {
     reflow ();
   }
   
-  private void expandNode (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
+  private void expandNode (TreeNode n, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
-    if (n.filepath != null)
+    if (!initialize)
     {
-      int linelength = (int) ((boundsMax.x - boundsMin.x) / charSkip);
-      
-      List <string> files = bookFiles.getFilesIn (n.filepath);
-      foreach (string s in files)
+      if (n.filepath != null)
       {
-        string source = Path.GetFileName (s);
-        TreeNode nn = new TreeNode ();
-        GameObject g;
-        if (bookFiles.isBook (s) && (source[0] != '.'))
-        {
-          bool b = bookFiles.haveBook (s);
-          string notHaveOption = brk (source, linelength - n.depth);
-          string haveOption = brk (source, linelength - n.depth);
-          string initOption = notHaveOption;
-          if (b)
-          {
-            initOption = haveOption;
-          }
-          g = addMenuOption (initOption, new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (b), haveOption, notHaveOption, addBook, removeBook, checkOn, checkOff), colourResponse, scrollHandler);
-          nn.setNode (s, g);
-          n.add (nn);
-        }
-        else
-        {
-          // FIXME: if used, make use of the icon provided.
-//          string noOption = brk (new String (' ', 2 * (n.depth + 1)) + "✖ " + source, linelength);
-//          g = addMenuOption (noOption, new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), noOption, noOption, null, null));
-//          nn.setNode (s, g);
-//          n.add (nn);
-          
-        }
-      }
-
-      List <string> dirs = bookFiles.getDirectoriesIn (n.filepath);
-      if (dirs != null)
-      {
-        foreach (string s in dirs)
+        int linelength = (int) ((boundsMax.x - boundsMin.x) / charSkip);
+        
+        List <string> files = bookFiles.getFilesIn (n.filepath);
+        foreach (string s in files)
         {
           string source = Path.GetFileName (s);
-          if (source[0] != '.')
+          TreeNode nn = new TreeNode ();
+          GameObject g;
+          if (bookFiles.isBook (s) && (source[0] != '.'))
           {
-            TreeNode nn = new TreeNode ();
-            GameObject g = addMenuOption (brk (source, linelength - n.depth), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), brk (source, linelength - n.depth), brk (source, linelength - n.depth), expandNode, collapseNode, contractIcon, expandIcon), colourResponse, scrollHandler);
+            bool b = bookFiles.haveBook (s);
+            string notHaveOption = brk (source, linelength - n.depth);
+            string haveOption = brk (source, linelength - n.depth);
+            string initOption = notHaveOption;
+            if (b)
+            {
+              initOption = haveOption;
+            }
+            g = addMenuOption (initOption, new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (b), haveOption, notHaveOption, addBook, removeBook, checkOn, checkOff), colourResponse, scrollHandler);
             nn.setNode (s, g);
             n.add (nn);
           }
+          else
+          {
+            // FIXME: if used, make use of the icon provided.
+  //          string noOption = brk (new String (' ', 2 * (n.depth + 1)) + "✖ " + source, linelength);
+  //          g = addMenuOption (noOption, new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), noOption, noOption, null, null));
+  //          nn.setNode (s, g);
+  //          n.add (nn);
+            
+          }
         }
-      }
-      else
-      {
-        foreach (MeshRenderer r in n.node.GetComponentsInChildren <MeshRenderer> ())
-        {
-          // gets overwritten by the time out of the colour response co-routine.
-          r.material.color = new Color (1, 0, 0);
-        }
-      }
 
-      reflow ();
+        List <string> dirs = bookFiles.getDirectoriesIn (n.filepath);
+        if (dirs != null)
+        {
+          foreach (string s in dirs)
+          {
+            string source = Path.GetFileName (s);
+            if (source[0] != '.')
+            {
+              TreeNode nn = new TreeNode ();
+              GameObject g = addMenuOption (brk (source, linelength - n.depth), new Vector3 (0.0f, 0.0f, 0.0f), fileToggleHandler (nn, new ToggleVariable (), brk (source, linelength - n.depth), brk (source, linelength - n.depth), expandNode, collapseNode, contractIcon, expandIcon), colourResponse, scrollHandler);
+              nn.setNode (s, g);
+              n.add (nn);
+            }
+          }
+        }
+        else
+        {
+          foreach (MeshRenderer r in n.node.GetComponentsInChildren <MeshRenderer> ())
+          {
+            // gets overwritten by the time out of the colour response co-routine.
+            r.material.color = new Color (1, 0, 0);
+          }
+        }
+
+        reflow ();
+      }
     }
   }
-  private void collapseNode (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
+  private void collapseNode (TreeNode n, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
-    if (n.filepath != null)
+    if (!initialize)
     {
-      Debug.Log ("Collapsing");
-      n.removeChildren (this);
-      reflow ();
+      if (n.filepath != null)
+      {
+        Debug.Log ("Collapsing");
+        n.removeChildren (this);
+        reflow ();
+      }
     }
   }
   
-  private void addBook (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
+  private void addBook (TreeNode n, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
-    Debug.Log ("Add " + n.filepath);
-    StartCoroutine (bookFiles.registerBook (n.filepath));
+    if (!initialize)
+    {
+      Debug.Log ("Add " + n.filepath);
+      StartCoroutine (bookFiles.registerBook (n.filepath));
+    }
   }
-  private void removeBook (TreeNode n, ControlInput controller, GameObject controllerObject, GameObject button, GameObject avatar)
+  private void removeBook (TreeNode n, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
   {
+    if (!initialize)
+    {
       Debug.Log ("Remove"  + n.filepath);
+    }
   }
   
   private Vector2 scrollStart;
   private bool haveOffset = false;
   
-  void checkScroll (ControlInput controller, GameObject controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatarout, bool touchpad, Vector2 touchposition)
+  void checkScroll (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatarout, bool touchpad, Vector2 touchposition)
   {
     if (touchpad)
     {
@@ -520,15 +532,15 @@ public class SettingsMenu : MenuInteraction {
     }
   }
   
-  override public void handleFocus (ControlInput controller)
+  override public void handleFocus (ControlInput controller, ControlInput.ControllerDescription controllerObject)
   {
     Debug.Log ("Have touch");
-    controller.addHandler (checkScroll, false);
+    controller.addHandler (checkScroll, controllerObject, false);
   }  
-  override public void handleUnfocus (ControlInput controller)
+  override public void handleUnfocus (ControlInput controller, ControlInput.ControllerDescription controllerObject)
   {
     Debug.Log ("No touch");
-    controller.removeHandler (checkScroll);
+    controller.removeHandler (checkScroll, controllerObject);
   }  
 
 }
