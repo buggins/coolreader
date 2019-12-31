@@ -12,8 +12,19 @@ using System.Threading;
  */
 public class BookManager : MonoBehaviour {
   
+  public enum BookFormat
+  {
+    epub,
+    pdf,
+  };
+  
   // The handle to the coolreader engine interface.
   private CoolReaderInterface cri;
+  
+  // The handle to the poppler engine interface.
+  private PopplerInterface pop;
+  
+  private BookFormat format = BookFormat.epub;
   
   // The handle to the current book, as used by the engine.
   private IntPtr bookHandle;
@@ -74,9 +85,8 @@ public class BookManager : MonoBehaviour {
   // Use this for initialization
   void Awake () {
     cri = new CoolReaderInterface ();
+    pop = new PopplerInterface ();
     
-    // Create a book with a default font size.
-    bookHandle = cri.CRDocViewCreate (fontSize);
   }
   
   // Used to signal to any interested parties that the book
@@ -182,9 +192,23 @@ public class BookManager : MonoBehaviour {
   private bool loading;
   private void doLoading ()
   {
-    cri.CRLoadDocument (bookHandle, loadingName, rx, ry);
+    switch (format)
+    {
+      case BookFormat.epub:
+        // Create a book with a default font size.
+        bookHandle = cri.CRDocViewCreate (fontSize);
+        cri.CRLoadDocument (bookHandle, loadingName, rx, ry);
     
-    cri.CRPrepareCover (bookHandle, rx, ry);
+        cri.CRPrepareCover (bookHandle, rx, ry);
+        break;
+      case BookFormat.pdf:
+        // Create a book with a default font size.
+        bookHandle = pop.PopplerDocViewCreate (fontSize);
+        pop.PopplerLoadDocument (bookHandle, loadingName, rx, ry);
+    
+        pop.PopplerPrepareCover (bookHandle, rx, ry);
+        break;
+    }
     
     loading = false;
   }
@@ -222,8 +246,20 @@ public class BookManager : MonoBehaviour {
     yield return null;
     
     // Retrieve the title and author settings.
-    string title = Marshal.PtrToStringAnsi (cri.CRGetTitle (bookHandle));
-    string author = Marshal.PtrToStringAnsi (cri.CRGetAuthors (bookHandle));
+    string title = "No title found";
+    string author = "No author found";
+    switch (format)
+    {
+      case BookFormat.epub:
+        title = Marshal.PtrToStringAnsi (cri.CRGetTitle (bookHandle));
+        author = Marshal.PtrToStringAnsi (cri.CRGetAuthors (bookHandle));
+        break;
+      case BookFormat.pdf:
+        title = Marshal.PtrToStringAnsi (pop.PopplerGetTitle (bookHandle));
+        author = Marshal.PtrToStringAnsi (pop.PopplerGetAuthors (bookHandle));
+        break;
+    }
+    Debug.Log ("Author " + author + " title: " + title);
     
     // Retrieve the cover image. This involves render operations so
     // cannot take place in its own thread.
@@ -241,7 +277,17 @@ public class BookManager : MonoBehaviour {
     fontSize = props.fontSize;
     yield return updateFont ();
 
-    fontSize = cri.CRGetFontSize (bookHandle);
+    fontSize = 10;
+    
+    switch (format)
+    {
+      case BookFormat.epub:
+        fontSize = cri.CRGetFontSize (bookHandle);
+        break;
+      case BookFormat.pdf:
+        fontSize = 10; // not relevant.
+        break;
+    }
     
     
     bookLoaded = true;
@@ -254,7 +300,15 @@ public class BookManager : MonoBehaviour {
   // Cover rendering must run in main thread.
   public void retrieveCoverMaterial (Texture2D texture)
   {
-    cri.CRRenderCover (bookHandle, directRenderTexture.GetNativeTexturePtr (), directRenderTexture.width, directRenderTexture.height);
+    switch (format)
+    {
+      case BookFormat.epub:
+        cri.CRRenderCover (bookHandle, directRenderTexture.GetNativeTexturePtr (), directRenderTexture.width, directRenderTexture.height);
+        break;
+      case BookFormat.pdf:
+        pop.PopplerRenderCover (bookHandle, directRenderTexture.GetNativeTexturePtr (), directRenderTexture.width, directRenderTexture.height);
+        break;
+    }
     
     // Create a mip-mapped texture version. This is extra work but produces much more readable texture.
     RenderTexture texcopy = RenderTexture.GetTemporary (directRenderTexture.width, directRenderTexture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
@@ -271,8 +325,18 @@ public class BookManager : MonoBehaviour {
   // Render and copy a given page to the specified texture.
   public void retrievePageToTexture (int page, Texture2D texture)
   {
-    cri.CRGoToPage (bookHandle, page);
-    cri.CRRenderPage (bookHandle, page, directRenderTexture.GetNativeTexturePtr ());
+    switch (format)
+    {
+      case BookFormat.epub:
+        cri.CRGoToPage (bookHandle, page);
+        cri.CRRenderPage (bookHandle, page, directRenderTexture.GetNativeTexturePtr ());
+        break;
+      case BookFormat.pdf:
+        pop.PopplerGoToPage (bookHandle, page);
+        int r = pop.PopplerRenderPage (bookHandle, page, directRenderTexture.GetNativeTexturePtr ());
+        Debug.Log ("Loaded " + r);
+        break;
+    }
     
     // Create a mip-mapped texture version. This is extra work but produces much more readable texture.
     RenderTexture texcopy = RenderTexture.GetTemporary (directRenderTexture.width, directRenderTexture.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
@@ -318,7 +382,17 @@ public class BookManager : MonoBehaviour {
   
   public int getMaxPages ()
   {
-    return cri.CRGetPageCount (bookHandle);
+    int pagecount = 0;
+    switch (format)
+    {
+      case BookFormat.epub:
+        pagecount = cri.CRGetPageCount (bookHandle);
+        break;
+      case BookFormat.pdf:
+        pagecount = pop.PopplerGetPageCount (bookHandle);
+        break;
+    }
+    return pagecount;
   }
   
   // Returns false if target page is out of range. Still restricts
@@ -332,7 +406,19 @@ public class BookManager : MonoBehaviour {
       currentPage = 0;
       result = false;
     }
-    int maxPages = cri.CRGetPageCount (bookHandle);
+
+    int maxPages = 1;
+    switch (format)
+    {
+      case BookFormat.epub:
+        maxPages = cri.CRGetPageCount (bookHandle);
+        break;
+      case BookFormat.pdf:
+        maxPages = pop.PopplerGetPageCount (bookHandle);
+        Debug.Log ("Max page " + maxPages);
+        break;
+    }
+    
     if ((maxPages > 0) && (currentPage >= maxPages))
     {
       currentPage = maxPages - 2;
@@ -372,16 +458,36 @@ public class BookManager : MonoBehaviour {
   {
     setInformation ("Updating");
     yield return null;
+
+    int oldMaxPages = 1;
+    switch (format)
+    {
+      case BookFormat.epub:
+        oldMaxPages = cri.CRGetPageCount (bookHandle);
+        cri.CRSetFontSize (bookHandle, fontSize);
+        break;
+      case BookFormat.pdf:
+        oldMaxPages = pop.PopplerGetPageCount (bookHandle);
+        pop.PopplerSetFontSize (bookHandle, fontSize);
+        break;
+    }
     
-    int oldMaxPages = cri.CRGetPageCount (bookHandle);
-    cri.CRSetFontSize (bookHandle, fontSize);
     // render a page to force page count update.
     retrievePageToTexture (currentPage, leftPageTurn);
     
     setInformation ("Updating.");
     yield return null;
     
-    int newMaxPages = cri.CRGetPageCount (bookHandle);
+    int newMaxPages = 1;
+    switch (format)
+    {
+      case BookFormat.epub:
+        newMaxPages = cri.CRGetPageCount (bookHandle);
+        break;
+      case BookFormat.pdf:
+        newMaxPages = pop.PopplerGetPageCount (bookHandle);
+        break;
+    }
 //     Debug.Log ("setting fonh" + fontSize + " " + oldMaxPages + " " + newMaxPages);
 
     setInformation ("Updating..");
@@ -398,7 +504,16 @@ public class BookManager : MonoBehaviour {
 
     setInformation ("");    
     
-    fontSize = cri.CRGetFontSize (bookHandle);    
+    fontSize = 10;
+    switch (format)
+    {
+      case BookFormat.epub:
+        fontSize = cri.CRGetFontSize (bookHandle);    
+        break;
+      case BookFormat.pdf:
+        fontSize = pop.PopplerGetFontSize (bookHandle);    
+        break;
+    }
     
     stateChanged ();
   }

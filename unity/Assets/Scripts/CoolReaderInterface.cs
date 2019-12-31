@@ -12,9 +12,9 @@ public class CoolReaderInterface {
 
   private Mutex m;
   
-  [DllImport ("CREngine", EntryPoint="loadLibrary")]
-  private static extern bool loadLibraryCREngine ();
-  
+//   [DllImport ("CREngine", EntryPoint="loadLibrary")]
+//   private static extern bool loadLibraryCREngine ();
+//   
   [DllImport ("CREngine")]
   private static extern IntPtr LVDocViewCreate (int bitsPerPixel);
 
@@ -24,9 +24,9 @@ public class CoolReaderInterface {
   [DllImport ("CREngine")]
   private static extern IntPtr getTitle (IntPtr handle);
 
-  [DllImport ("CREngine")]
-  private static extern IntPtr getLanguage (IntPtr handle);
-
+//   [DllImport ("CREngine")]
+//   private static extern IntPtr getLanguage (IntPtr handle);
+// 
   [DllImport ("CREngine")]
   private static extern IntPtr getAuthors (IntPtr handle);
 
@@ -90,14 +90,14 @@ public class CoolReaderInterface {
     return result;
   }
 
-  public IntPtr CRGetLanguage(IntPtr handle)
-  {
-    instance.m.WaitOne ();
-    IntPtr result = getLanguage (handle);
-    instance.m.ReleaseMutex ();
-    return result;
-  }
-
+//   public IntPtr CRGetLanguage(IntPtr handle)
+//   {
+//     instance.m.WaitOne ();
+//     IntPtr result = getLanguage (handle);
+//     instance.m.ReleaseMutex ();
+//     return result;
+//   }
+// 
   public IntPtr CRGetAuthors(IntPtr handle)
   {
     instance.m.WaitOne ();
