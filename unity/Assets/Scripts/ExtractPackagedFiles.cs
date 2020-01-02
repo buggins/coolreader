@@ -15,6 +15,7 @@ public class ExtractPackagedFiles : MonoBehaviour {
     StartCoroutine (extractFile ("Books/Alice/", "pg11-images.epub"));
     StartCoroutine (extractFile ("Books/Dorian/", "pg174-images.epub"));
     StartCoroutine (extractFile ("Books/PeterRabbit/", "pg14838-images.epub"));
+    StartCoroutine (extractFile ("Books/CreativeTechnology/", "createtech.pdf"));
   }
   
   // Copy file from the android package to a readable/writeable region of the host file system.
@@ -32,6 +33,6 @@ public class ExtractPackagedFiles : MonoBehaviour {
     WWW w = new WWW (sourcePath);
     yield return w;
     File.WriteAllBytes (destinationPath, w.bytes);
-    //Debug.Log (sourcePath + " -> " + destinationPath + " " + w.bytes.Length);
+//     Debug.Log (sourcePath + " -> " + destinationPath + " " + w.bytes.Length);
   }
 }

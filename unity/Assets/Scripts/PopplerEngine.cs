@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 /* Mutex protected class for accessing cool reader native code. */
-public class PopplerInterface {
+public class PopplerEngine {
 
-  public static PopplerInterface instance = null;
+  public static PopplerEngine instance = null;
 
   private Mutex m;
   
@@ -51,7 +51,7 @@ public class PopplerInterface {
   [DllImport ("PopplerInterface")]
   private static extern int popGetFontSize (IntPtr handle);
   
-  public PopplerInterface ()
+  public PopplerEngine ()
   {
     // force a singleton.
     Debug.Log ("Creating pop");

@@ -257,14 +257,17 @@ int popRenderPage (void * handle, int page, int texture)
 {
   popDoc * phandle = (popDoc *) handle;
   poppler::document * doc = phandle->doc;
+  //return 99;
 
   int doc_page = page;
   if (doc_page < 0 || doc_page >= doc->pages()) {
       printf("specified page number out of page count");
+      return 1;
   }
   std::unique_ptr<poppler::page> p(doc->create_page(doc_page));
   if (!p.get()) {
       printf("NULL page");
+      return 2;
   }
 
   poppler::page_renderer pr;
@@ -277,8 +280,13 @@ int popRenderPage (void * handle, int page, int texture)
   poppler::image img = pr.render_page(p.get(), pg_w, pg_h);
   if (!img.is_valid()) {
       printf("rendering failed");
+      return 3;
   }
   img = pr.render_page(p.get(), (phandle->width / img.width ()) * pg_w, (phandle->height / img.height ()) * pg_h, -1, -1, phandle->width, phandle->height);
+  if (!img.is_valid()) {
+      printf("second rendering failed");
+      return 4;
+  }
 
 //   if (!img.save("data.png", "png")) {
 //       printf("saving to file failed");
@@ -318,10 +326,10 @@ int popRenderPage (void * handle, int page, int texture)
 //   data[1] = 12;
 //   data[2] = 250;
 //   data[3] = 255;
-  
   glEnable (GL_TEXTURE_2D);
   glBindTexture (GL_TEXTURE_2D, texture);
-  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, data);
+//  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, data);
+  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
   glBindTexture (GL_TEXTURE_2D, 0);
   glDisable (GL_TEXTURE_2D);
 //   delete [] data;
@@ -363,10 +371,12 @@ int popPrepareCover (void * handle, int width, int height)
   int doc_page = 0;
   if (doc_page < 0 || doc_page >= doc->pages()) {
       printf("specified page number out of page count");
+      return 1;
   }
   std::unique_ptr<poppler::page> p(doc->create_page(doc_page));
   if (!p.get()) {
       printf("NULL page");
+      return 2;
   }
 
   poppler::page_renderer pr;
@@ -379,6 +389,7 @@ int popPrepareCover (void * handle, int width, int height)
   poppler::image img = pr.render_page(p.get(), pg_w, pg_h);
   if (!img.is_valid()) {
       printf("rendering failed");
+      return 3;
   }
   img = pr.render_page(p.get(), (phandle->width / img.width ()) * pg_w, (phandle->height / img.height ()) * pg_h, -1, -1, phandle->width, phandle->height);
 
@@ -387,7 +398,10 @@ int popPrepareCover (void * handle, int width, int height)
     delete [] phandle->coverBuf;
   }
   phandle->coverBuf = new char [width * height * 4];
-  memcpy (phandle->coverBuf, img.const_data (), width * height * 4);
+  if (phandle->coverBuf != NULL)
+  {
+    memcpy (phandle->coverBuf, img.const_data (), width * height * 4);
+  }
 
   return 0;
   
@@ -419,9 +433,14 @@ int popRenderCover (void * handle, int texture, int width, int height)
 {
   popDoc * phandle = (popDoc *) handle;
   
+  if (phandle->coverBuf == NULL)
+  {
+    return 1;
+  }
   glEnable (GL_TEXTURE_2D);
   glBindTexture (GL_TEXTURE_2D, texture);
-  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, phandle->coverBuf);
+//  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, phandle->coverBuf);
+  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, phandle->coverBuf);
   glBindTexture (GL_TEXTURE_2D, 0);
   glDisable (GL_TEXTURE_2D);
 // //   delete [] data;

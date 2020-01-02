@@ -192,7 +192,7 @@ public class BookFinder : MonoBehaviour {
   // Check if file counts as a book.
   public bool isBook (string path)
   {
-    if ((path.EndsWith (".epub")) || (path.EndsWith (".EPUB")))
+    if (BookManager.getFormatFromName (path) != BookManager.BookFormat.unknown)
     {
       return true;
     }

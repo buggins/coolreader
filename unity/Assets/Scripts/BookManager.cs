@@ -14,6 +14,7 @@ public class BookManager : MonoBehaviour {
   
   public enum BookFormat
   {
+    unknown,
     epub,
     pdf,
   };
@@ -22,9 +23,9 @@ public class BookManager : MonoBehaviour {
   private CoolReaderInterface cri;
   
   // The handle to the poppler engine interface.
-  private PopplerInterface pop;
+  private PopplerEngine pop;
   
-  private BookFormat format = BookFormat.epub;
+  private BookFormat format = BookFormat.unknown;
   
   // The handle to the current book, as used by the engine.
   private IntPtr bookHandle;
@@ -82,10 +83,29 @@ public class BookManager : MonoBehaviour {
   // Any event to subscribe to for anyone wanting notifications of book state updates.
   public event StateChangeEvent onStateChange;
   
+  private static Dictionary <string, BookFormat> formatExtensions = new Dictionary <string, BookFormat> ()
+  {
+    { ".epub", BookFormat.epub },
+    { ".pdf", BookFormat.pdf },
+  };
+  
+  public static BookFormat getFormatFromName (string filename)
+  {
+    string path = filename.ToLower ();
+    foreach (KeyValuePair <string, BookFormat> entry in formatExtensions)
+    {
+      if (path.EndsWith (entry.Key))
+      {
+        return entry.Value;
+      }
+    }
+    return BookFormat.unknown;
+  }
+  
   // Use this for initialization
   void Awake () {
     cri = new CoolReaderInterface ();
-    pop = new PopplerInterface ();
+    pop = new PopplerEngine ();
     
   }
   
@@ -197,6 +217,7 @@ public class BookManager : MonoBehaviour {
       case BookFormat.epub:
         // Create a book with a default font size.
         bookHandle = cri.CRDocViewCreate (fontSize);
+        Debug.Log ("CRI Handle" + bookHandle);
         cri.CRLoadDocument (bookHandle, loadingName, rx, ry);
     
         cri.CRPrepareCover (bookHandle, rx, ry);
@@ -204,6 +225,7 @@ public class BookManager : MonoBehaviour {
       case BookFormat.pdf:
         // Create a book with a default font size.
         bookHandle = pop.PopplerDocViewCreate (fontSize);
+        Debug.Log ("Poppler Handle" + bookHandle);
         pop.PopplerLoadDocument (bookHandle, loadingName, rx, ry);
     
         pop.PopplerPrepareCover (bookHandle, rx, ry);
@@ -221,6 +243,8 @@ public class BookManager : MonoBehaviour {
   // Create a book from the filename to the ebook.
   public IEnumerator loadBook (string bookFileName, BookPropertySet props)
   {
+    format = getFormatFromName (bookFileName);
+    
     setInformation ("Loading");
     yield return null;
     
