@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 /* Mutex protected class for accessing cool reader native code. */
-public class PopplerEngine {
+public class PopplerEngine : BookEngineInterface {
 
   public static PopplerEngine instance = null;
 
@@ -63,17 +63,15 @@ public class PopplerEngine {
     }
   }
   
-  public IntPtr PopplerDocViewCreate (int bitsPerPixel)
+  IntPtr BookEngineInterface.BEIDocViewCreate (string fname)
   {
     instance.m.WaitOne ();
-    IntPtr result = popDocViewCreate (bitsPerPixel);
+    IntPtr result = popDocViewCreate (32);
     instance.m.ReleaseMutex ();
     return result;
   }
 
-
-
-  public bool PopplerLoadDocument(IntPtr handle, string fname, int width, int height)
+  bool BookEngineInterface.BEILoadDocument(IntPtr handle, string fname, int width, int height)
   {
     instance.m.WaitOne ();
     bool result = popLoadDocument (handle, fname, width, height);
@@ -81,7 +79,7 @@ public class PopplerEngine {
     return result;
   }
 
-  public IntPtr PopplerGetTitle(IntPtr handle)
+  IntPtr BookEngineInterface.BEIGetTitle(IntPtr handle)
   {
     instance.m.WaitOne ();
     IntPtr result = popGetTitle (handle);
@@ -89,15 +87,7 @@ public class PopplerEngine {
     return result;
   }
 
-//   public IntPtr PopplerGetLanguage(IntPtr handle)
-//   {
-//     instance.m.WaitOne ();
-//     IntPtr result = popGetLanguage (handle);
-//     instance.m.ReleaseMutex ();
-//     return result;
-//   }
-// 
-  public IntPtr PopplerGetAuthors(IntPtr handle)
+  IntPtr BookEngineInterface.BEIGetAuthors(IntPtr handle)
   {
     instance.m.WaitOne ();
     IntPtr result = popGetAuthors (handle);
@@ -105,7 +95,7 @@ public class PopplerEngine {
     return result;
   }
 
-  public int PopplerRenderPage(IntPtr handle, int page, IntPtr texture)
+  int BookEngineInterface.BEIRenderPage(IntPtr handle, int page, IntPtr texture)
   {
     instance.m.WaitOne ();
     int result = popRenderPage (handle, page, texture);
@@ -113,21 +103,21 @@ public class PopplerEngine {
     return result;
   }
 
-  public void PopplerMoveByPage(IntPtr handle, int d)
+  void BookEngineInterface.BEIMoveByPage(IntPtr handle, int d)
   {
     instance.m.WaitOne ();
     popMoveByPage (handle, d);
     instance.m.ReleaseMutex ();
   }
 
-  public void PopplerGoToPage(IntPtr handle, int page)
+  void BookEngineInterface.BEIGoToPage(IntPtr handle, int page)
   {
     instance.m.WaitOne ();
     popGoToPage (handle, page);
     instance.m.ReleaseMutex ();
   }
 
-  public int PopplerGetPageCount (IntPtr handle)
+  int BookEngineInterface.BEIGetPageCount (IntPtr handle)
   {
     int p = -1;
     instance.m.WaitOne ();
@@ -136,7 +126,7 @@ public class PopplerEngine {
     return p;
   }
 
-  public int PopplerPrepareCover (IntPtr handle, int width, int height)
+  int BookEngineInterface.BEIPrepareCover (IntPtr handle, int width, int height)
   {
     instance.m.WaitOne ();
     int result = popPrepareCover (handle, width, height);
@@ -144,7 +134,7 @@ public class PopplerEngine {
     return result;
   }
 
-  public int PopplerRenderCover (IntPtr handle, IntPtr texture, int width, int height)
+  int BookEngineInterface.BEIRenderCover (IntPtr handle, IntPtr texture, int width, int height)
   {
     instance.m.WaitOne ();
     int result = popRenderCover (handle, texture, width, height);
@@ -152,7 +142,7 @@ public class PopplerEngine {
     return result;
   }
 
-  public int PopplerSetFontSize (IntPtr handle, int fontsize)
+  int BookEngineInterface.BEISetFontSize (IntPtr handle, int fontsize)
   {
     instance.m.WaitOne ();
     int result = popSetFontSize (handle, fontsize);
@@ -160,7 +150,7 @@ public class PopplerEngine {
     return result;
   }
 
-  public int PopplerGetFontSize (IntPtr handle)
+  int BookEngineInterface.BEIGetFontSize (IntPtr handle)
   {
     instance.m.WaitOne ();
     int result = popGetFontSize (handle);

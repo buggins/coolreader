@@ -36,7 +36,7 @@ public class BookFinder : MonoBehaviour {
       AndroidJavaClass jc = new AndroidJavaClass("android.os.Environment") ;
       path = jc.CallStatic<AndroidJavaObject>("getExternalStorageDirectory").Call<string>("getAbsolutePath");
     }
-    catch (Exception e)
+    catch (Exception)
     {
     }
     return path;
@@ -192,7 +192,7 @@ public class BookFinder : MonoBehaviour {
   // Check if file counts as a book.
   public bool isBook (string path)
   {
-    if (BookManager.getFormatFromName (path) != BookManager.BookFormat.unknown)
+    if (BookEngine.getFormatFromName (path) != BookEngine.BookFormat.unknown)
     {
       return true;
     }
@@ -236,6 +236,8 @@ public class BookFinder : MonoBehaviour {
     {
       f.AddRange (Directory.GetFiles (root, "*.epub"));
       f.AddRange (Directory.GetFiles (root, "*.EPUB"));
+      f.AddRange (Directory.GetFiles (root, "*.pdf"));
+      f.AddRange (Directory.GetFiles (root, "*.PDF"));
     }
     catch (Exception)
     {

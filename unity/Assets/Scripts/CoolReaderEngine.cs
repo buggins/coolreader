@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 /* Mutex protected class for accessing cool reader native code. */
-public class CoolReaderInterface {
+public class CoolReaderEngine : BookEngineInterface {
 
-  public static CoolReaderInterface instance = null;
+  public static CoolReaderEngine instance = null;
 
   private Mutex m;
   
@@ -54,7 +54,7 @@ public class CoolReaderInterface {
   [DllImport ("CREngine")]
   private static extern int getFontSize (IntPtr handle);
   
-  public CoolReaderInterface ()
+  public CoolReaderEngine ()
   {
     // force a singleton.
     Debug.Log ("Creating cri");
@@ -66,15 +66,15 @@ public class CoolReaderInterface {
     }
   }
 
-  public IntPtr CRDocViewCreate (int bitsPerPixel)
+  IntPtr BookEngineInterface.BEIDocViewCreate (string fname)
   {
     instance.m.WaitOne ();
-    IntPtr result = LVDocViewCreate (bitsPerPixel);
+    IntPtr result = LVDocViewCreate (32);
     instance.m.ReleaseMutex ();
     return result;
   }
 
-  public bool CRLoadDocument(IntPtr handle, string fname, int width, int height)
+  bool BookEngineInterface.BEILoadDocument(IntPtr handle, string fname, int width, int height)
   {
     instance.m.WaitOne ();
     bool result = LoadDocument (handle, fname, width, height);
@@ -82,7 +82,7 @@ public class CoolReaderInterface {
     return result;
   }
 
-  public IntPtr CRGetTitle(IntPtr handle)
+  IntPtr BookEngineInterface.BEIGetTitle(IntPtr handle)
   {
     instance.m.WaitOne ();
     IntPtr result = getTitle (handle);
@@ -90,15 +90,7 @@ public class CoolReaderInterface {
     return result;
   }
 
-//   public IntPtr CRGetLanguage(IntPtr handle)
-//   {
-//     instance.m.WaitOne ();
-//     IntPtr result = getLanguage (handle);
-//     instance.m.ReleaseMutex ();
-//     return result;
-//   }
-// 
-  public IntPtr CRGetAuthors(IntPtr handle)
+  IntPtr BookEngineInterface.BEIGetAuthors(IntPtr handle)
   {
     instance.m.WaitOne ();
     IntPtr result = getAuthors (handle);
@@ -106,7 +98,7 @@ public class CoolReaderInterface {
     return result;
   }
 
-  public int CRRenderPage(IntPtr handle, int page, IntPtr texture)
+  int BookEngineInterface.BEIRenderPage(IntPtr handle, int page, IntPtr texture)
   {
     instance.m.WaitOne ();
     int result = renderPage (handle, page, texture);
@@ -114,21 +106,21 @@ public class CoolReaderInterface {
     return result;
   }
 
-  public void CRMoveByPage(IntPtr handle, int d)
+  void BookEngineInterface.BEIMoveByPage(IntPtr handle, int d)
   {
     instance.m.WaitOne ();
     moveByPage (handle, d);
     instance.m.ReleaseMutex ();
   }
 
-  public void CRGoToPage(IntPtr handle, int page)
+  void BookEngineInterface.BEIGoToPage(IntPtr handle, int page)
   {
     instance.m.WaitOne ();
     goToPage (handle, page);
     instance.m.ReleaseMutex ();
   }
 
-  public int CRGetPageCount (IntPtr handle)
+  int BookEngineInterface.BEIGetPageCount (IntPtr handle)
   {
     int p = -1;
     instance.m.WaitOne ();
@@ -137,7 +129,7 @@ public class CoolReaderInterface {
     return p;
   }
 
-  public int CRPrepareCover (IntPtr handle, int width, int height)
+  int BookEngineInterface.BEIPrepareCover (IntPtr handle, int width, int height)
   {
     instance.m.WaitOne ();
     int result = prepareCover (handle, width, height);
@@ -145,7 +137,7 @@ public class CoolReaderInterface {
     return result;
   }
 
-  public int CRRenderCover (IntPtr handle, IntPtr texture, int width, int height)
+  int BookEngineInterface.BEIRenderCover (IntPtr handle, IntPtr texture, int width, int height)
   {
     instance.m.WaitOne ();
     int result = renderCover (handle, texture, width, height);
@@ -153,7 +145,7 @@ public class CoolReaderInterface {
     return result;
   }
 
-  public int CRSetFontSize (IntPtr handle, int fontsize)
+  int BookEngineInterface.BEISetFontSize (IntPtr handle, int fontsize)
   {
     instance.m.WaitOne ();
     int result = setFontSize (handle, fontsize);
@@ -161,7 +153,7 @@ public class CoolReaderInterface {
     return result;
   }
 
-  public int CRGetFontSize (IntPtr handle)
+  int BookEngineInterface.BEIGetFontSize (IntPtr handle)
   {
     instance.m.WaitOne ();
     int result = getFontSize (handle);

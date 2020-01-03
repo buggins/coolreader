@@ -48,7 +48,7 @@ public class BookShelfManager : MenuInteraction {
   public GameObject teleport;
   
   // Access to the cool reader engine, to get meta data about books as they are added.
-  private CoolReaderInterface cri;
+  private BookEngineInterface bookEngine;
   
   // Internal handle to current book.
   private IntPtr bookHandle;
@@ -59,9 +59,8 @@ public class BookShelfManager : MenuInteraction {
   // Set up access to the book parser.
   void Awake ()
   {
-    cri = new CoolReaderInterface ();
+    bookEngine = new BookEngine ();
     
-    bookHandle = cri.CRDocViewCreate (32);
   }
   
   // A separate thread to handle loading of books.
@@ -73,13 +72,14 @@ public class BookShelfManager : MenuInteraction {
     int ry = 1;
     
     Debug.Log ("Try to open : " + bp.filename);
-    cri.CRLoadDocument (bookHandle, bp.filename, rx, ry);
-    bp.title = Marshal.PtrToStringAnsi (cri.CRGetTitle (bookHandle));
+    bookHandle = bookEngine.BEIDocViewCreate (bp.filename);
+    bookEngine.BEILoadDocument (bookHandle, bp.filename, rx, ry);
+    bp.title = Marshal.PtrToStringAnsi (bookEngine.BEIGetTitle (bookHandle));
     if (bp.title == null)
     {
       bp.title = "No title";
     }
-    bp.author = Marshal.PtrToStringAnsi (cri.CRGetAuthors (bookHandle));
+    bp.author = Marshal.PtrToStringAnsi (bookEngine.BEIGetAuthors (bookHandle));
     if (bp.author == null)
     {
       bp.author = "No author";
