@@ -20,8 +20,6 @@ extern "C" {
   
   char * popGetTitle(void * handle);
   
-//   const char * popGetLanguage(void * handle);
-//   
   const char * popGetAuthors(void * handle);
   
   int popRenderPage (void * handle, int page, int texture);
@@ -41,43 +39,6 @@ extern "C" {
   int popGetFontSize (void * handle);
   
 }
-
-// int main(int argc, char *argv[])
-// {
-//     const std::string file_name("algorithms-05-00588.pdf");
-// 
-//     std::unique_ptr<poppler::document> doc(poppler::document::load_from_file(file_name));
-//     if (!doc.get()) {
-//         printf("loading error");
-//     }
-//     if (doc->is_locked()) {
-//         printf("encrypted document");
-//     }
-// 
-//     int doc_page = 2;
-//     if (doc_page < 0 || doc_page >= doc->pages()) {
-//         printf("specified page number out of page count");
-//     }
-//     std::unique_ptr<poppler::page> p(doc->create_page(doc_page));
-//     if (!p.get()) {
-//         printf("NULL page");
-//     }
-// 
-//     poppler::page_renderer pr;
-//     pr.set_render_hint(poppler::page_renderer::antialiasing, true);
-//     pr.set_render_hint(poppler::page_renderer::text_antialiasing, true);
-// 
-//     poppler::image img = pr.render_page(p.get(), 200.0, 200.0);
-//     if (!img.is_valid()) {
-//         printf("rendering failed");
-//     }
-// 
-//     if (!img.save("data.png", "png")) {
-//         printf("saving to file failed");
-//     }
-// 
-//     return 0;
-// }
 
 class popDoc
 {
@@ -105,54 +66,6 @@ void * popDocViewCreate (int bitsPerPixel)
   return phandle;
 }
 
-/*
-#include <lvdocview.h>
-#include <stdio.h>
-
-#include <unistd.h>
-#include <limits.h>
-
-#ifdef ANDROID
-#include <android/log.h>
-#define  LOG_TAG    "cr3eng"
-#endif
-
-#ifdef ANDROID
-#include <GLES3/gl31.h>
-#else
-#include <GL/gl.h>
-#endif
-
-// The interface between unity and the cr3engine is provided through the functions listed.
-extern "C" {
-  void * LVDocViewCreate (int bitsPerPixel);
-  
-  bool LoadDocument(void * handle, const char * fname, int width, int height );
-  
-  char * getTitle(void * handle);
-  
-  const char * getLanguage(void * handle);
-  
-  const char * getAuthors(void * handle);
-  
-  int renderPage (void * handle, int page, int texture);
-  
-  void moveByPage (void * handle, int d);
-  
-  void goToPage (void * handle, int page);
-
-  int getPageCount (void * handle);
-  
-  int prepareCover (void * handle, int width, int height);
-  
-  int renderCover (void * handle, int texture, int width, int height);
-  
-  int setFontSize (void * handle, int fontsize);
-  
-  int getFontSize (void * handle);
-  
-}
-*/
 
 // unity and 64 bit C alignment for strings seems a bit dodgy. Manually convert.
 char * remap (std::string & a)
@@ -190,25 +103,6 @@ bool popLoadDocument(void * handle, const char * fname, int width, int height)
       return false;
   }
   return true;
-/*  
-  LVDocView * a = (LVDocView *) handle;
-  
-  bool result = false;
-  result =  a->LoadDocument (fname);
-  
-//  printf ("Au: %s Ti: %s  %ld\n", LCSTR (a->getAuthors ()), LCSTR (a->getTitle ()), a);
-  
-  // Some tweaks that may need to be exposed via parameters at some point in the future.
-  a->Resize (width, height);
-  a->setFontSize (120);
-  lvRect rc = a->getPageMargins();
-  rc.left = 40;
-  rc.top = 40;
-  rc.right = 40;
-  rc.bottom = 40;
-  a->setPageMargins(rc);
-  
-  return result;*/
 }
 
 char * popGetTitle(void * handle) 
@@ -218,27 +112,9 @@ char * popGetTitle(void * handle)
   poppler::document * doc = phandle->doc;
   std::string title = doc->get_title ().to_latin1 ();
   return (char *) remap (title);
-/*  
-  LVDocView * a = (LVDocView *) handle;
-  lString16 b = a->getTitle ();
-  char * c = remap (b);
-  return c; */
 }
 
 
-// const char * popGetLanguage(void * handle) 
-// { 
-//   popDoc * phandle = (popDoc *) handle;
-//   
-//   poppler::document * doc = phandle->doc;
-//   std::string title = doc->get_subject ().to_latin1 ();
-//   return (char *) title.c_str ();
-// //   LVDocView * a = (LVDocView *) handle;
-// //   lString16 b = a->getLanguage(); 
-// //   char * c = remap (b);
-// //   return c;
-// }
-// 
 const char * popGetAuthors(void * handle) 
 { 
   popDoc * phandle = (popDoc *) handle;
@@ -246,10 +122,6 @@ const char * popGetAuthors(void * handle)
   poppler::document * doc = phandle->doc;
   std::string author = doc->get_author ().to_latin1 ();
   return (char *) remap (author);
-//   LVDocView * a = (LVDocView *) handle;
-//   lString16 b = a->getAuthors(); 
-//   char * c = remap (b);
-//   return c; 
 }
 
 // Render a page to a texture image. The texture handle is provided (from Unity).
@@ -257,7 +129,6 @@ int popRenderPage (void * handle, int page, int texture)
 {
   popDoc * phandle = (popDoc *) handle;
   poppler::document * doc = phandle->doc;
-  //return 99;
 
   int doc_page = page;
   if (doc_page < 0 || doc_page >= doc->pages()) {
@@ -288,67 +159,50 @@ int popRenderPage (void * handle, int page, int texture)
       return 4;
   }
 
-//   if (!img.save("data.png", "png")) {
-//       printf("saving to file failed");
-//   }
-  
-//   a->goToPage (page);
-//   // Get the image.
-//   LVDocImageRef p = a->getPageImage (0);
-
-  // Copy it from the buffer to another contiguous buffer.
-//   LVDrawBuf * buf = p->getDrawBuf();
   int width = img.width ();
   int height = img.height();
-  //int bpp = buf->GetBitsPerPixel();
-  
-//  CRLog::info("AAA %d %d %d\n", width, height, img.format ());
   const char * data = img.const_data ();
-//  CRLog::info("drawing tex: %d %d %d   %d", width, height, bpp, texture);
-//   for ( int i=0; i<height; i++ ) {
-//     unsigned char * dst = data + 4 * i * width;
-//     unsigned char * src = buf->GetScanLine(i);
-//     
-//     for ( int x=0; x<width; x++ ) {
-//       *dst++ = *(src+2);
-//       *dst++ = *(src+1);
-//       *dst++ = *(src+0);
-//       *dst++ = *(src+3);
-//       src += 4;
-//     }
-//   }
   
-//   glGetError ();
-//   width = 256;
-//   height = 256;
-//   char * data = new char [4*width*height];
-//   data[0] = 128;
-//   data[1] = 12;
-//   data[2] = 250;
-//   data[3] = 255;
   glEnable (GL_TEXTURE_2D);
   glBindTexture (GL_TEXTURE_2D, texture);
-//  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, data);
-  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+#ifdef ANDROID
+  unsigned char * dd = new unsigned char [width * height * 4];
+  unsigned char * s = (unsigned char *) data;
+  unsigned char * d = dd;
+  
+  for (int i = 0; i < height * width; i++) 
+  {
+    *d++ = *(s+2);
+    *d++ = *(s+1);
+    *d++ = *(s+0);
+    *d++ = *(s+3);
+    s += 4;
+  }
+  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, dd);
+#else
+  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, data);
+#endif
+
   glBindTexture (GL_TEXTURE_2D, 0);
   glDisable (GL_TEXTURE_2D);
 //   delete [] data;
+#ifdef ANDROID
+  delete [] dd;
+#endif
   
-  int r = glGetError ();
-  r = height;
+  int r = 0;
+  r = glGetError ();
+//   r = height;
   return r;
 }
 
 void popMoveByPage (void * handle, int d)
 {
-//   LVDocView * a = (LVDocView *) handle;
-//   a->moveByPage (d);
 }
 
 void popGoToPage (void * handle, int page)
 {
-//   LVDocView * a = (LVDocView *) handle;
-//   a->goToPage (page);
 }
 
 int popGetPageCount (void * handle)
@@ -357,8 +211,6 @@ int popGetPageCount (void * handle)
 
   poppler::document * doc = phandle->doc;
   return doc->pages ();
-//   LVDocView * a = (LVDocView *) handle;
-//   return a->getPageCount ();
 }
 
 // Cover rendering is quite slow, and is not thread safe if updating texture content at the same time.
@@ -402,30 +254,25 @@ int popPrepareCover (void * handle, int width, int height)
   {
     memcpy (phandle->coverBuf, img.const_data (), width * height * 4);
   }
+  else
+  {
+    return 4;
+  }
 
+#ifdef ANDROID
+  unsigned char * s = (unsigned char *) phandle->coverBuf;
+
+  for ( int i = 0; i < height * width; i++) 
+  {
+    unsigned char t = *(s+2);
+    *(s+2) = *(s+0);
+    *(s+0) = t;
+    s += 4;
+  }
+#endif  
+  
   return 0;
   
-//   int r = glGetError ();
-//   r = height;
-//   return r;
-//   LVDocView * a = (LVDocView *) handle;
-//   
-//   if (buf != NULL)
-//   {
-//     delete buf;
-//     buf = NULL;
-//   }
-//   if (buf == NULL)
-//   {
-//     buf = new LVColorDrawBuf (width, height);
-//   }
-//   
-//   lvRect rc (0, 0, width, height);
-//   
-//   (*buf).Clear (0xFFFFFF);  
-//   a->drawCoverTo (buf, rc);
-//   
-//   return 0;
 }
 
 // Requires a prepareCover first.
@@ -439,62 +286,26 @@ int popRenderCover (void * handle, int texture, int width, int height)
   }
   glEnable (GL_TEXTURE_2D);
   glBindTexture (GL_TEXTURE_2D, texture);
-//  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, phandle->coverBuf);
+
+
+#ifdef ANDROID
   glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, phandle->coverBuf);
+#else
+  glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, phandle->coverBuf);
+#endif
   glBindTexture (GL_TEXTURE_2D, 0);
   glDisable (GL_TEXTURE_2D);
-// //   delete [] data;
-//   
-// //  LVDocView * a = (LVDocView *) handle;
-//   
-// //   LVColorDrawBuf buf (width, height);
-// //   lvRect rc (0, 0, width, height);
-//   
-// //   buf.Clear (0xFFFFFF);  
-// //   a->drawCoverTo (&buf, rc);
-//   
-//   unsigned char * data = new unsigned char [width * height * 4];
-//   CRLog::info("drawing cover: %d %d   %d", width, height, texture);
-//   for (int i = 0; i < height; i++) 
-//   {
-//     unsigned char * dst = data + 4 * i * width;
-//     unsigned char * src = (*buf).GetScanLine(i);
-//     
-//     for (int x = 0; x < width; x++ ) 
-//     {
-//       *dst++ = *(src+2);
-//       *dst++ = *(src+1);
-//       *dst++ = *(src+0);
-//       *dst++ = *(src+3);
-//       src += 4;
-//     }
-//   }
-//   
-//   glEnable (GL_TEXTURE_2D);
-//   glBindTexture (GL_TEXTURE_2D, texture);
-//   glTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-//   glBindTexture (GL_TEXTURE_2D, 0);
-//   glDisable (GL_TEXTURE_2D);
-//   delete [] data;
   
   return 0;
 }
 
 int popSetFontSize (void * handle, int fontsize)
 {
-//   LVDocView * a = (LVDocView *) handle;
-// //  CRLog::info("setting font: %p %d", a, fontsize);
-//   a->setFontSize (fontsize);
-// //  CRLog::info("done setting font: %p %d", a, fontsize);
   return 0;
 }
 
 int popGetFontSize (void * handle)
 {
-//   LVDocView * a = (LVDocView *) handle;
-// //  CRLog::info("setting font: %p %d", a, fontsize);
-//   int fontsize = a->getFontSize ();
-// //  CRLog::info("done setting font: %p %d", a, fontsize);
   int fontsize = 10;
   return fontsize;
 }

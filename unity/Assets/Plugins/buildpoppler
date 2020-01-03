@@ -1,57 +1,88 @@
+# When this doesn't work, check for unresolved symbols in the resulting libraries.
+# nm Android/libs/arm64-v8a/libCREngine.so | grep " U " | grep -v LIBC | c++filt 
+# Confirm name and library links: readelf -d Android/libs/arm64-v8a/libPopplerInterface.so
+
+# removed: ftbase.c.o from /home/shaun/vrcoolreader/VRCoolReader/android/app/.externalNativeBuild/cmake/debug/arm64-v8a/thirdparty_libs/freetype/CMakeFiles/freetype.dir/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/src/base
+
+#edit to: app/thirdparty_libs/freetype/CMakeLists.txt to avoid duplicate symbols in freetype
+#     ${FREETYPE_SRC_DIR}/src/base/ftinit.c
+#    #    ${FREETYPE_SRC_DIR}/src/base/ftfntfmt.c
+#    ${FREETYPE_SRC_DIR}/src/base/ftsystem.c
+#    ${FREETYPE_SRC_DIR}/src/base/ftglyph.c
+#    ${FREETYPE_SRC_DIR}/src/base/ftbitmap.c
+#    #    ${FREETYPE_SRC_DIR}/src/base/ftlcdfil.c
+#    ${FREETYPE_SRC_DIR}/src/bdf/bdf.c
+
 ANDROID_NDK=~/android-sdks/ndk/16.1.4479499/
 
 # 64 bit ARM
 
+ARCH_ABI=arm64-v8a
+ARCH_TYPE=aarch64-linux-android
+ARCH_NAME=arm64
+
 (
   cd /home/shaun/vrcoolreader/VRCoolReader/poppler/build
-  mkdir -p arm64-v8a
+  mkdir -p $ARCH_ABI
 
   rm -f CMakeCache.txt 
 
-  cmake -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/arm64-v8a/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/arm64-v8a/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
+  cmake -DCMAKE_ANDROID_ARCH_ABI=$ARCH_ABI -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
 
   make clean
   make poppler poppler-cpp
-  cp libpoppler.a arm64-v8a
-  cp cpp/libpoppler-cpp.a arm64-v8a
+  cp libpoppler.a $ARCH_ABI
+  cp cpp/libpoppler-cpp.a $ARCH_ABI
 )
 
-rm -f crtbegin_so.o
-rm -f crtend_so.o
-ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm64/usr/lib/crtbegin_so.o 
-ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm64/usr/lib/crtend_so.o 
+/home/shaun/android-sdks/ndk/16.1.4479499/toolchains/$ARCH_TYPE-4.9/prebuilt/linux-x86_64/bin/$ARCH_TYPE-g++ -D__ANDROID_API__=26 --sysroot=$ANDROID_NDK/sysroot -isystem $ANDROID_NDK/sysroot/usr/include/$ARCH_TYPE   -DANDROID -rdynamic -shared -fPIC popplerInterface.c -c -I../../../poppler/cpp -std=c++14 -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/$ARCH_ABI/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include/$ARCH_TYPE -I ../../../thirdparty/freetype/include/
 
-/home/shaun/android-sdks/ndk/16.1.4479499/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-g++ --sysroot=${CROSS_SYSROOT} -isystem $ANDROID_NDK/sysroot/usr/include/aarch64-linux-android -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/arm64-v8a/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include/aarch64-linux-android -std=c++14 -DANDROID -fPIC popplerInterface.c -I../../../poppler/cpp -oAndroid/libs/arm64-v8a/libPopplerInterface.so -shared -Wl,--whole-archive -I../../../poppler/cpp ../../../poppler/build/arm64-v8a/libpoppler-cpp.a ../../../poppler/build/arm64-v8a/libpoppler.a ../../../android/app/.externalNativeBuild/cmake/debug/arm64-v8a/thirdparty_libs/libjpeg/libjpeg.a -Wl,--no-whole-archive -L/home/shaun/android-sdks/ndk/16.1.4479499/platforms/android-26/arch-arm64/usr/lib/
-
-rm -f crtbegin_so.o
-rm -f crtend_so.o
-
+/home/shaun/android-sdks/ndk/16.1.4479499/toolchains/$ARCH_TYPE-4.9/prebuilt/linux-x86_64/bin/$ARCH_TYPE-g++ -D__ANDROID_API__=26 --sysroot=$ANDROID_NDK/platforms/android-26/arch-$ARCH_NAME/ -isystem $ANDROID_NDK/sysroot/usr/include/$ARCH_TYPE -std=c++14  -DANDROID -shared -fPIC -oAndroid/libs/$ARCH_ABI/libPopplerInterface.so -Wl,--whole-archive,-soname,libPopplerInterface.so.1 popplerInterface.o ../../../poppler/build/$ARCH_ABI/libpoppler.a ../../../poppler/build/$ARCH_ABI/libpoppler-cpp.a /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/$ARCH_ABI/libgnustl_static.a ../../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a /home/shaun/android-sdks/ndk/16.1.4479499/platforms/android-26/arch-$ARCH_NAME/usr/lib/libz.a ../../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a ../../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libpng/libpng.a -lGLESv3 -Wl,--no-whole-archive
 
 # 32 bit ARM
 
+ARCH_ABI=armeabi-v7a
+ARCH_TYPE=arm-linux-androideabi
+ARCH_NAME=arm
+
 (
   cd /home/shaun/vrcoolreader/VRCoolReader/poppler/build
-  mkdir -p armeabi-v7a
+  mkdir -p $ARCH_ABI
 
   rm -f CMakeCache.txt 
 
-  cmake -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
+  cmake -DCMAKE_ANDROID_ARCH_ABI=$ARCH_ABI -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
 
   make clean
   make poppler poppler-cpp
-  cp libpoppler.a armeabi-v7a
-  cp cpp/libpoppler-cpp.a armeabi-v7a
+  cp libpoppler.a $ARCH_ABI
+  cp cpp/libpoppler-cpp.a $ARCH_ABI
 )
 
-rm -f crtbegin_so.o
-rm -f crtend_so.o
-ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm/usr/lib/crtbegin_so.o 
-ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm/usr/lib/crtend_so.o 
+/home/shaun/android-sdks/ndk/16.1.4479499/toolchains/$ARCH_TYPE-4.9/prebuilt/linux-x86_64/bin/$ARCH_TYPE-g++ -D__ANDROID_API__=26 --sysroot=$ANDROID_NDK/sysroot -isystem $ANDROID_NDK/sysroot/usr/include/$ARCH_TYPE   -DANDROID -rdynamic -shared -fPIC popplerInterface.c -c -I../../../poppler/cpp -std=c++14 -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/$ARCH_ABI/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include/$ARCH_TYPE -I ../../../thirdparty/freetype/include/
 
-/home/shaun/android-sdks/ndk/16.1.4479499/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-g++ --sysroot=$ANDROID_NDK/sysroot -isystem $ANDROID_NDK/sysroot/usr/include/arm-linux-androideabi -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include/arm-linux-androideabi -std=c++14 -DANDROID -fPIC popplerInterface.c -I../../../poppler/cpp -oAndroid/libs/armeabi-v7a/libPopplerInterface.so -shared -Wl,--whole-archive -I../../../poppler/cpp ../../../poppler/build/armeabi-v7a/libpoppler-cpp.a ../../../poppler/build/armeabi-v7a/libpoppler.a ../../../android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/thirdparty_libs/libjpeg/libjpeg.a -Wl,--no-whole-archive -L/home/shaun/android-sdks/ndk/16.1.4479499/platforms/android-26/arch-arm/usr/lib/ 
+/home/shaun/android-sdks/ndk/16.1.4479499/toolchains/$ARCH_TYPE-4.9/prebuilt/linux-x86_64/bin/$ARCH_TYPE-g++ -D__ANDROID_API__=26 --sysroot=$ANDROID_NDK/platforms/android-26/arch-$ARCH_NAME/ -isystem $ANDROID_NDK/sysroot/usr/include/$ARCH_TYPE -std=c++14  -DANDROID -shared -fPIC -oAndroid/libs/$ARCH_ABI/libPopplerInterface.so -Wl,--whole-archive,-soname,libPopplerInterface.so.1 popplerInterface.o ../../../poppler/build/$ARCH_ABI/libpoppler.a ../../../poppler/build/$ARCH_ABI/libpoppler-cpp.a /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/$ARCH_ABI/libgnustl_static.a ../../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libjpeg/libjpeg.a /home/shaun/android-sdks/ndk/16.1.4479499/platforms/android-26/arch-$ARCH_NAME/usr/lib/libz.a ../../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/freetype/libfreetype.a ../../../android/app/.externalNativeBuild/cmake/debug/$ARCH_ABI/thirdparty_libs/libpng/libpng.a -lGLESv3 -Wl,--no-whole-archive
 
-rm -f crtbegin_so.o
-rm -f crtend_so.o
+
+# x86_64
+
+ARCH_ABI=x86_64
+
+(
+  cd /home/shaun/vrcoolreader/VRCoolReader/poppler/build
+  mkdir -p $ARCH_ABI
+
+  rm -f CMakeCache.txt 
+
+  cmake -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
+
+  make clean
+  make poppler poppler-cpp
+  cp libpoppler.a $ARCH_ABI
+  cp cpp/libpoppler-cpp.a $ARCH_ABI
+)
+
+g++ -fPIC popplerInterface.c -o x86_64/libPopplerInterface.so -shared -Wl,--whole-archive -I../../../poppler/cpp ../../../poppler/build/cpp/libpoppler-cpp.a ../../../poppler/build/libpoppler.a ../../../qtbuild/thirdparty/libjpeg/libjpeg.a -Wl,--no-whole-archive
 
 
 exit
@@ -139,7 +170,7 @@ ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm/usr/lib
 
 
 ## 64 bit android.
-
+`
 rm CMakeCache.txt
 
 cmake -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/arm64-v8a/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/arm64-v8a/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
@@ -154,3 +185,29 @@ ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm64/usr/l
 ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm64/usr/lib/crtend_so.o 
 
 /home/shaun/android-sdks/ndk/16.1.4479499/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-g++ --sysroot=${CROSS_SYSROOT} -isystem $ANDROID_NDK/sysroot/usr/include/aarch64-linux-android -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/arm64-v8a/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include/aarch64-linux-android -std=c++14 -DANDROID -fPIC popplerInterface.cpp -I../../../poppler/cpp -oAndroid/libs/arm64-v8a/libPopplerInterface.so -shared -Wl,--whole-archive -I../../../poppler/cpp ../../../poppler/build/cpp/libpoppler-cpp.a ../../../poppler/build/libpoppler.a ../../../android/app/.externalNativeBuild/cmake/debug/arm64-v8a/thirdparty_libs/libjpeg/libjpeg.a -Wl,--no-whole-archive -L/home/shaun/android-sdks/ndk/16.1.4479499/platforms/android-26/arch-arm64/usr/lib/
+
+
+
+(
+  cd /home/shaun/vrcoolreader/VRCoolReader/poppler/build
+  mkdir -p armeabi-v7a
+
+  rm -f CMakeCache.txt 
+
+  cmake -DCMAKE_SYSTEM_NAME=Android -DJPEG_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/thirdparty_libs/libjpeg/libjpeg.a -DFREETYPE_LIBRARY=../../android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/thirdparty_libs/freetype/libfreetype.a -DCMAKE_CXX_FLAGS=-isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype/include\ -isystem\ /home/shaun/vrcoolreader/VRCoolReader/thirdparty/libjpeg .. -DTESTDATADIR=test -DCMAKE_DISABLE_FIND_PACKAGE_NSS3=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_TIFF=TRUE -DENABLE_LIBOPENJPEG=none -DENABLE_CMS=none -DCMAKE_DISABLE_FIND_PACKAGE_Boost=TRUE -DCMAKE_PREFIX_PATH=/home/shaun/vrcoolreader/VRCoolReader/thirdparty/freetype -DENABLE_QT5=OFF -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE
+
+  make clean
+  make poppler poppler-cpp
+  cp libpoppler.a armeabi-v7a
+  cp cpp/libpoppler-cpp.a armeabi-v7a
+)
+
+rm -f crtbegin_so.o
+rm -f crtend_so.o
+ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm/usr/lib/crtbegin_so.o 
+ln -sf /home/shaun/android-sdks/ndk-bundle/platforms/android-26/arch-arm/usr/lib/crtend_so.o 
+
+/home/shaun/android-sdks/ndk/16.1.4479499/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-g++ --sysroot=$ANDROID_NDK/sysroot -isystem $ANDROID_NDK/sysroot/usr/include/arm-linux-androideabi -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sources/cxx-stl/gnu-libstdc++/4.9/include/backward -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include -isystem /home/shaun/android-sdks/ndk/16.1.4479499/sysroot/usr/include/arm-linux-androideabi -std=c++14 -DANDROID -fPIC popplerInterface.c -I../../../poppler/cpp -oAndroid/libs/armeabi-v7a/libPopplerInterface.so -shared -Wl,--whole-archive -I../../../poppler/cpp ../../../poppler/build/armeabi-v7a/libpoppler-cpp.a ../../../poppler/build/armeabi-v7a/libpoppler.a ../../../android/app/.externalNativeBuild/cmake/debug/armeabi-v7a/thirdparty_libs/libjpeg/libjpeg.a -Wl,--no-whole-archive -L/home/shaun/android-sdks/ndk/16.1.4479499/platforms/android-26/arch-arm/usr/lib/ 
+
+rm -f crtbegin_so.o
+rm -f crtend_so.o
