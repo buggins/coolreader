@@ -57,15 +57,31 @@ namespace CRe {
 #  else
 #    define Q_DECL_VECTORCALL
 #  endif
+#    define Q_DECL_ALWAYS_INLINE __attribute__((always_inline))
 #elif defined(_MSC_VER)
 #  define Q_DECL_VECTORCALL __vectorcall
+#  define Q_DECL_ALWAYS_INLINE
+#  define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ? 0 : errno)
 #else
 #  define Q_DECL_VECTORCALL
+#  define Q_DECL_ALWAYS_INLINE
 #endif
 
-#if __SIZEOF_POINTER__ == 8 // 64-bit versions
+#ifdef __SIZEOF_POINTER__
+# define PTR_SIZE __SIZEOF_POINTER__
+#elif defined(_WIN64)
+# define PTR_SIZE 8
+#elif defined(_WIN32)
+# define PTR_SIZE 4
+#elif defined(_MSC_VER)
+# error "could not determine PTR_SIZE as a constant int for MSVC"
+#else
+# define PTR_SIZE sizeof(void *)
+#endif
 
-static inline __attribute__((always_inline)) uint INTERPOLATE_PIXEL_256(uint x, uint a, uint y, uint b) {
+#if PTR_SIZE == 8 // 64-bit versions
+
+static inline Q_DECL_ALWAYS_INLINE uint INTERPOLATE_PIXEL_256(uint x, uint a, uint y, uint b) {
     quint64 t = (((quint64(x)) | ((quint64(x)) << 24)) & 0x00ff00ff00ff00ff) * a;
     t += (((quint64(y)) | ((quint64(y)) << 24)) & 0x00ff00ff00ff00ff) * b;
     t >>= 8;
@@ -75,7 +91,7 @@ static inline __attribute__((always_inline)) uint INTERPOLATE_PIXEL_256(uint x, 
 
 #else // 32-bit versions
 
-static inline __attribute__((always_inline)) uint INTERPOLATE_PIXEL_256(uint x, uint a, uint y, uint b) {
+static inline Q_DECL_ALWAYS_INLINE uint INTERPOLATE_PIXEL_256(uint x, uint a, uint y, uint b) {
     uint t = (x & 0xff00ff) * a + (y & 0xff00ff) * b;
     t >>= 8;
     t &= 0xff00ff;
@@ -90,7 +106,7 @@ static inline __attribute__((always_inline)) uint INTERPOLATE_PIXEL_256(uint x, 
 
 // NOTE: Unlike the SIMD qimagescale_* routines, these ones seem to offer a very small performance gain.
 #if defined(__SSE2__)
-static inline __attribute__((always_inline)) uint interpolate_4_pixels_sse2(__m128i vt, __m128i vb, uint distx, uint disty)
+static inline Q_DECL_ALWAYS_INLINE uint interpolate_4_pixels_sse2(__m128i vt, __m128i vb, uint distx, uint disty)
 {
     // First interpolate top and bottom pixels in parallel.
     vt = _mm_unpacklo_epi8(vt, _mm_setzero_si128());

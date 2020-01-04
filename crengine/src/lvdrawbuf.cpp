@@ -469,7 +469,6 @@ public:
     {
         src_dx = img->GetWidth();
         src_dy = img->GetHeight();
-        smoothscale = false;
         const CR9PatchInfo * np = img->GetNinePatchInfo();
         isNinePatch = false;
         lvRect ninePatch;
@@ -807,9 +806,7 @@ public:
         // Scale our decoded data...
         lUInt8 * sdata = nullptr;
         //fprintf( stderr, "Requesting smooth scaling (%dx%d -> %dx%d)\n", src_dx, src_dy, dst_dx, dst_dy );
-#if 0
         sdata = CRe::qSmoothScaleImage(decoded, src_dx, src_dy, false, dst_dx, dst_dy);
-#endif
         if (sdata == nullptr) {
                 // Hu oh... Scaling failed! Return *without* drawing anything!
                 // We skipped map generation, so we can't easily fallback to nearest-neighbor...

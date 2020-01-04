@@ -219,6 +219,8 @@ FIND_PACKAGE(Freetype)
 FIND_PACKAGE(HarfBuzz)
 endif (NOT MSVC AND NOT CR3_FREETYPE)
 
+ADD_SUBDIRECTORY(thirdparty/qimagescale)
+
 if (NOT FREETYPE_FOUND)
   message("System FREETYPE not found, will build local one\n")
   if (NOT HarfBuzz_FOUND)
@@ -297,6 +299,7 @@ SET(STD_LIBS
   ${CHM_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${ANTIWORD_LIBRARIES}
+  qimagescale
 )
 if (FONTCONFIG_FOUND)
 	set(STD_LIBS ${STD_LIBS} ${FONTCONFIG_LIBRARIES})
