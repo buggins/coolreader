@@ -15,7 +15,13 @@ public class ExtractPackagedFiles : MonoBehaviour {
     StartCoroutine (extractFile ("Books/Alice/", "pg11-images.epub"));
     StartCoroutine (extractFile ("Books/Dorian/", "pg174-images.epub"));
     StartCoroutine (extractFile ("Books/PeterRabbit/", "pg14838-images.epub"));
-    StartCoroutine (extractFile ("Books/CreativeTechnology/", "createtech.pdf"));
+    StartCoroutine (extractFile ("Books/FormatSamples/", "FB2 The Golden Spears - Edmund Leamy.fb2"));
+    StartCoroutine (extractFile ("Books/FormatSamples/", "MOBI The Golden Spears - Edmund Leamy.mobi"));
+    StartCoroutine (extractFile ("Books/FormatSamples/", "PDB The Golden Spears - Edmund Leamy.pdb"));
+    StartCoroutine (extractFile ("Books/FormatSamples/", "PDF The Golden Spears - Edmund Leamy.pdf"));
+    StartCoroutine (extractFile ("Books/FormatSamples/", "RTF The Golden Spears - Edmund Leamy.rtf"));
+    StartCoroutine (extractFile ("Books/FormatSamples/", "TCR The Golden Spears - Edmund Leamy.tcr"));
+    StartCoroutine (extractFile ("Books/FormatSamples/", "TXT The Golden Spears - Edmund Leamy.txt"));
   }
   
   // Copy file from the android package to a readable/writeable region of the host file system.

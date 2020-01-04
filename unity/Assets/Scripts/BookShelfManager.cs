@@ -84,6 +84,7 @@ public class BookShelfManager : MenuInteraction {
     {
       bp.author = "No author";
     }
+    Debug.Log ("Found book " + bp.title + " " + bp.author + " " + bp.filename);
     loading = false;
     
     // Each book is given a colour to distinguish it. Similar books (same author) get similar colours.

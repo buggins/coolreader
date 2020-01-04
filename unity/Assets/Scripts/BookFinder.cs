@@ -232,12 +232,13 @@ public class BookFinder : MonoBehaviour {
     
     // Look for any books in this directory.
     List<string> f = new List<string> ();
+    List<string> suffixes = BookEngine.getAcceptedFormats ();
     try
     {
-      f.AddRange (Directory.GetFiles (root, "*.epub"));
-      f.AddRange (Directory.GetFiles (root, "*.EPUB"));
-      f.AddRange (Directory.GetFiles (root, "*.pdf"));
-      f.AddRange (Directory.GetFiles (root, "*.PDF"));
+      foreach (string suffix in suffixes)
+      {
+        f.AddRange (Directory.GetFiles (root, "*" + suffix));
+      }
     }
     catch (Exception)
     {

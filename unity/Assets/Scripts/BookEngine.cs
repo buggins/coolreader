@@ -27,16 +27,27 @@ public class BookEngine : BookEngineInterface {
   public enum BookFormat
   {
     unknown,
-    epub,
-    pdf,
+    coolreader,
+    poppler,
   };
   
   private BookFormat format = BookFormat.unknown;
  
   private static Dictionary <string, BookFormat> formatExtensions = new Dictionary <string, BookFormat> ()
   {
-    { ".epub", BookFormat.epub },
-    { ".pdf", BookFormat.pdf },
+    { ".epub", BookFormat.coolreader },
+    { ".fb2", BookFormat.coolreader },
+    { ".doc", BookFormat.coolreader },
+//    { ".txt", BookFormat.coolreader },
+    { ".rtf", BookFormat.coolreader },
+    { ".html", BookFormat.coolreader },
+    { ".chm", BookFormat.coolreader },
+    { ".tcr", BookFormat.coolreader },
+    { ".pdb", BookFormat.coolreader },
+    { ".prc", BookFormat.coolreader },
+    { ".mobi", BookFormat.coolreader },
+    { ".pml", BookFormat.coolreader },
+    { ".pdf", BookFormat.poppler },
   };
   
   public static BookFormat getFormatFromName (string filename)
@@ -50,6 +61,17 @@ public class BookEngine : BookEngineInterface {
       }
     }
     return BookFormat.unknown;
+  }
+  
+  public static List <string> getAcceptedFormats ()
+  {
+    List <string> result = new List <string> ();
+    foreach (string key in formatExtensions.Keys)
+    {
+      result.Add (key.ToLower ());
+      result.Add (key.ToUpper ());
+    }
+    return result;
   }
   
   // The handle to the coolreader engine interface.
@@ -70,12 +92,12 @@ public class BookEngine : BookEngineInterface {
     format = getFormatFromName (fname);
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         // Create a book with a default font size.
         bookHandle = cri.BEIDocViewCreate (fname);
         Debug.Log ("CRI Handle" + bookHandle);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         // Create a book with a default font size.
         bookHandle = pop.BEIDocViewCreate (fname);
         Debug.Log ("Poppler Handle" + bookHandle);
@@ -90,10 +112,10 @@ public class BookEngine : BookEngineInterface {
     
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEILoadDocument (handle, fname, width, height);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEILoadDocument (handle, fname, width, height);
         Debug.Log ("Load pop " + result + "  " + handle + " " + fname);
         break;
@@ -107,10 +129,10 @@ public class BookEngine : BookEngineInterface {
     IntPtr result = IntPtr.Zero;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEIGetTitle (handle);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEIGetTitle (handle);
         break;
     }
@@ -122,10 +144,10 @@ public class BookEngine : BookEngineInterface {
     IntPtr result = IntPtr.Zero;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEIGetAuthors (handle);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEIGetAuthors (handle);
         break;
     }
@@ -137,10 +159,10 @@ public class BookEngine : BookEngineInterface {
     int result = 0;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEIRenderPage (handle, page, texture);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEIRenderPage (handle, page, texture);
         break;
     }
@@ -152,10 +174,10 @@ public class BookEngine : BookEngineInterface {
   {
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         cri.BEIMoveByPage (handle, d);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         pop.BEIMoveByPage (handle, d);
         break;
     }
@@ -165,10 +187,10 @@ public class BookEngine : BookEngineInterface {
   {
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         cri.BEIGoToPage (handle, page);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         pop.BEIGoToPage (handle, page);
         break;
     }
@@ -179,10 +201,10 @@ public class BookEngine : BookEngineInterface {
     int pagecount = 0;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         pagecount = cri.BEIGetPageCount (handle);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         pagecount = pop.BEIGetPageCount (handle);
         break;
     }
@@ -194,10 +216,10 @@ public class BookEngine : BookEngineInterface {
     int result = 0;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEIPrepareCover (handle, width, height);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEIPrepareCover (handle, width, height);
         break;
     }
@@ -209,10 +231,10 @@ public class BookEngine : BookEngineInterface {
     int result = 0;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEIRenderCover (handle, texture, width, height);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEIRenderCover (handle, texture, width, height);
         break;
     }
@@ -224,10 +246,10 @@ public class BookEngine : BookEngineInterface {
     int result = 0;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEISetFontSize (handle, fontsize);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEISetFontSize (handle, fontsize);
         break;
     }
@@ -239,10 +261,10 @@ public class BookEngine : BookEngineInterface {
     int result = 0;
     switch (format)
     {
-      case BookFormat.epub:
+      case BookFormat.coolreader:
         result = cri.BEIGetFontSize (handle);
         break;
-      case BookFormat.pdf:
+      case BookFormat.poppler:
         result = pop.BEIGetFontSize (handle);
         break;
     }

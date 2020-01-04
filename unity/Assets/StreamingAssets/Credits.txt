@@ -59,3 +59,5 @@ DoorHandle, Intermediate Sound Library Opening Door Handle, amholma, https://fre
 PeterRabbit, The Tale of Peter Rabbit, Beatrix Potter, https://www.gutenberg.org/ebooks/14838, Project Gutenberg License.
 
 Font Kaushan, KAUSHAN SCRIPT, Pablo Impallari, https://fontlibrary.org/en/font/kaushan-script, OFL (SIL Open Font License).
+
+FormatSamples, The Golden Spears, Edmund Leamy, https://www.gutenberg.org/ebooks/22168, Project Gutenberg License.
