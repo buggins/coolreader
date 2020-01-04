@@ -13794,7 +13794,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
                     child = child->getChildNode(0);
                 }
                 css_style_ref_t cs = child->getStyle();
-                if ( cs.isNull() || cs->display != css_d_list_item )
+                if ( cs.isNull())
                     continue;
                 if ( cs->display!=css_d_list_item_block && cs->display!=css_d_list_item) {
                     // Alien element among list item nodes, skip it to not mess numbering
