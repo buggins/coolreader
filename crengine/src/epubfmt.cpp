@@ -116,7 +116,7 @@ void ReadEpubToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc, l
         if ( href.empty() || title.empty() )
             continue;
         //CRLog::trace("TOC href before convert: %s", LCSTR(href));
-	href = DecodeHTMLUrlString(href);
+        href = DecodeHTMLUrlString(href);
         href = appender.convertHref(href);
         //CRLog::trace("TOC href after convert: %s", LCSTR(href));
         if ( href.empty() || href[0]!='#' )
@@ -213,7 +213,7 @@ public:
             insideCipherData = true;
         else if (!lStr_cmp(tagname, "CipherReference"))
             insideCipherReference = true;
-		return NULL;
+        return NULL;
     }
     /// called on tag close
     virtual void OnTagClose( const lChar16 * nsname, const lChar16 * tagname ) {
@@ -463,7 +463,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
             if ( !href.empty() && !id.empty() ) {
                 if (id == coverId) {
                     // coverpage file
-                    lString16 coverFileName = codeBase + href;
+                    lString16 coverFileName = LVCombinePaths(codeBase, href);
                     CRLog::info("EPUB coverpage file: %s", LCSTR(coverFileName));
                     coverPageImageStream = m_arc->OpenStream(coverFileName.c_str(), LVOM_READ);
                 }
@@ -481,10 +481,10 @@ class EmbeddedFontStyleParser {
     lString16 _basePath;
     int _state;
     lString8 _face;
+    lString8 islocal;
     bool _italic;
     bool _bold;
     lString16 _url;
-    lString8 islocal;
 public:
     EmbeddedFontStyleParser(LVEmbeddedFontList & fontList) : _fontList(fontList) { }
     void onToken(char token) {
@@ -527,19 +527,22 @@ public:
                 if (!_url.empty()) {
 //                    CRLog::trace("@font { face: %s; bold: %s; italic: %s; url: %s", _face.c_str(), _bold ? "yes" : "no",
 //                                 _italic ? "yes" : "no", LCSTR(_url));
-                        if (islocal.length()==5) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
-                        _fontList.add(_url, _face, _bold, _italic);
+                    if (islocal.length()==5 && _basePath.length()!=0)
+                        _url = _url.substr((_basePath.length()+1), (_url.length()-_basePath.length()));
+                    if (_fontList.findByUrl(_url))
+                        _url=_url.append(lString16(" ")); //avoid add() replaces existing local name
+                    _fontList.add(_url, _face, _bold, _italic);
+                }
             }
-	}
             _state = 0;
             break;
-		case ',':
+        case ',':
             if (_state == 2) {
-                if (!_url.empty())
-{
- if (islocal.length()==5) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
+                if (!_url.empty()) {
+                      if (islocal.length() == 5 && _basePath.length()!=0) _url=(_url.substr((_basePath.length()+1),(_url.length()-_basePath.length())));
+                        if (_fontList.findByUrl(_url)) _url=_url.append(lString16(" "));
                     _fontList.add(_url, _face, _bold, _italic);
-}
+                }
                 _state = 11;
             }
             break;
@@ -587,13 +590,11 @@ public:
                 _italic = true;
             _state = 2;
         } else if (_state == 11) {
-            if (t == "url")
-            {
+            if (t == "url") {
                 _state = 12;
                 islocal=t;
             }
-            else if (t=="local")
-            {
+            else if (t=="local") {
                 _state=12;
                 islocal=t;
             }
@@ -620,14 +621,67 @@ public:
         }
         token.clear();
     }
-
+    lString8 deletecomment(lString8 css) {
+        int state;
+        lString8 tmp=lString8("");
+        tmp.reserve( css.length() );
+        char c;
+        state = 0;
+        for (int i=0;i<css.length();i++) {
+            c=css[i];
+            if (state == 0 ) {
+                if (c == ('/'))           // ex. [/]
+                    state = 1;
+                else if (c == ('\'') )    // ex. [']
+                    state = 5;
+                else if (c == ('\"'))     // ex. ["]
+                    state = 7;
+            }
+            else if (state == 1 && c == ('*'))     // ex. [/*]
+                    state = 2;
+            else if (state == 1) {                // ex. [<secure/_stdio.h> or 5/3]
+                    tmp<<('/');
+                    state = 0;
+            }
+            else if (state == 2 && c == ('*'))    // ex. [/*he*]
+                    state = 3;
+            else if (state == 2)                // ex. [/*heh]
+                    state = 2;
+            else if (state == 3 && c == ('/'))    // ex. [/*heh*/]
+                    state = 0;
+            else if (state == 3)                // ex. [/*heh*e]
+                    state = 2;
+            /* Moved up for faster normal path:
+            else if (state == 0 && c == ('\'') )    // ex. [']
+                    state = 5;
+            */
+            else if (state == 5 && c == ('\\'))     // ex. ['\]
+                    state = 6;
+            else if (state == 6)                // ex. ['\n or '\' or '\t etc.]
+                    state = 5;
+            else if (state == 5 && c == ('\'') )   // ex. ['\n' or '\'' or '\t' ect.]
+                    state = 0;
+            /* Moved up for faster normal path:
+            else if (state == 0 && c == ('\"'))    // ex. ["]
+                    state = 7;
+            */
+            else if (state == 8)                // ex. ["\n or "\" or "\t ect.]
+                    state = 7;
+            else if (state == 7 && c == ('\"'))    // ex. ["\n" or "\"" or "\t" ect.]
+                    state = 0;
+            if ((state == 0 && c != ('/')) || state == 5 || state == 6 || state == 7 || state == 8)
+                    tmp<<c;
+        }
+        return tmp;
+    }
     void parse(lString16 basePath, const lString8 & css) {
         _state = 0;
         _basePath = basePath;
         lString8 token;
         char insideQuotes = 0;
-        for (int i=0; i<css.length(); i++) {
-            char ch = css[i];
+        lString8 css_ = deletecomment(css);
+        for (int i=0; i<css_.length(); i++) {
+            char ch = css_[i];
             if (insideQuotes || _state == 13) {
                 if (ch == insideQuotes || (_state == 13 && ch == ')')) {
                     onQuotedText(token);
@@ -657,7 +711,7 @@ public:
     }
 };
 
-bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback )
+bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback, bool metadataOnly )
 {
     LVContainerRef arc = LVOpenArchieve( stream );
     if ( arc.isNull() )
@@ -666,7 +720,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     // check root media type
     lString16 rootfilePath = EpubGetRootFilePath(arc);
     if ( rootfilePath.empty() )
-    	return false;
+        return false;
 
     EncryptedDataContainer * decryptor = new EncryptedDataContainer(arc);
     if (decryptor->open()) {
@@ -682,6 +736,9 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     }
 
     m_doc->setContainer(m_arc);
+
+    if ( progressCallback )
+        progressCallback->OnLoadFileProgress(1);
 
     // read content.opf
     EpubItems epubItems;
@@ -709,6 +766,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
     // reading content stream
     {
+        CRLog::debug("Parsing opf");
         ldomDocument * doc = LVParseXMLStream( content_stream );
         if ( !doc )
             return false;
@@ -720,12 +778,52 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 //        }
 
         CRPropRef m_doc_props = m_doc->getProps();
-        lString16 author = doc->textFromXPath( cs16("package/metadata/creator"));
+        // lString16 authors = doc->textFromXPath( cs16("package/metadata/creator"));
         lString16 title = doc->textFromXPath( cs16("package/metadata/title"));
         lString16 language = doc->textFromXPath( cs16("package/metadata/language"));
+        lString16 description = doc->textFromXPath( cs16("package/metadata/description"));
+        // m_doc_props->setString(DOC_PROP_AUTHORS, authors);
         m_doc_props->setString(DOC_PROP_TITLE, title);
         m_doc_props->setString(DOC_PROP_LANGUAGE, language);
-        m_doc_props->setString(DOC_PROP_AUTHORS, author );
+        m_doc_props->setString(DOC_PROP_DESCRIPTION, description);
+
+        // Return possibly multiple <dc:creator> (authors) and <dc:subject> (keywords)
+        // as a single doc_props string with values separated by \n.
+        // (these \n can be replaced on the lua side for the most appropriate display)
+        bool authors_set = false;
+        lString16 authors;
+        for ( int i=1; i<20; i++ ) {
+            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/creator[") << fmt::decimal(i) << "]");
+            if (!item)
+                break;
+            lString16 author = item->getText();
+            if (authors_set) {
+                authors << "\n" << author;
+            }
+            else {
+                authors << author;
+                authors_set = true;
+            }
+        }
+        m_doc_props->setString(DOC_PROP_AUTHORS, authors);
+
+        // There may be multiple <dc:subject> tags, which are usually used for keywords, categories
+        bool subjects_set = false;
+        lString16 subjects;
+        for ( int i=1; i<20; i++ ) {
+            ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/subject[") << fmt::decimal(i) << "]");
+            if (!item)
+                break;
+            lString16 subject = item->getText();
+            if (subjects_set) {
+                subjects << "\n" << subject;
+            }
+            else {
+                subjects << subject;
+                subjects_set = true;
+            }
+        }
+        m_doc_props->setString(DOC_PROP_KEYWORDS, subjects);
 
         for ( int i=1; i<50; i++ ) {
             ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/identifier[") << fmt::decimal(i) << "]");
@@ -738,7 +836,30 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             }
         }
 
-        CRLog::info("Author: %s Title: %s", LCSTR(author), LCSTR(title));
+#if BUILD_LITE!=1
+        // If there is a cache file, it contains the fully built DOM document
+        // made from the multiple html fragments in the epub, and also
+        // m_doc_props which has been serialized.
+        // No need to do all the below work, except if we are only
+        // requesting metadata (parsing some bits from the EPUB is still
+        // less expensive than loading the full cache file).
+        // We had to wait till here to do that, to not miss font mangling
+        // key if any.
+        if (!metadataOnly) {
+            CRLog::debug("Trying loading from cache");
+            if ( m_doc->openFromCache(formatCallback, progressCallback) ) {
+                CRLog::debug("Loaded from cache");
+                if ( progressCallback ) {
+                    progressCallback->OnLoadFileEnd( );
+                }
+                delete doc;
+                return true;
+            }
+            CRLog::debug("Not loaded from cache, parsing epub content");
+        }
+#endif
+
+        CRLog::info("Authors: %s Title: %s", LCSTR(authors), LCSTR(title));
         for ( int i=1; i<20; i++ ) {
             ldomNode * item = doc->nodeFromXPath(lString16("package/metadata/meta[") << fmt::decimal(i) << "]");
             if ( !item )
@@ -747,13 +868,26 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             lString16 content = item->getAttributeValue("content");
             if (name == "cover")
                 coverId = content;
-            else if (name == "calibre:series")
-                m_doc_props->setString(DOC_PROP_SERIES_NAME, content );
-            else if (name == "calibre:series_index")
-                m_doc_props->setInt(DOC_PROP_SERIES_NUMBER, content.atoi() );
+            else if (name == "calibre:series") {
+                PreProcessXmlString(content, 0);
+                m_doc_props->setString(DOC_PROP_SERIES_NAME, content);
+            }
+            else if (name == "calibre:series_index") {
+                PreProcessXmlString(content, 0);
+                m_doc_props->setString(DOC_PROP_SERIES_NUMBER, content);
+            }
+        }
+        if (metadataOnly && coverId.empty()) {
+            // no cover to look for, no need for more work
+            delete doc;
+            return true;
         }
 
+        if ( progressCallback )
+            progressCallback->OnLoadFileProgress(2);
+
         // items
+        CRLog::debug("opf: reading items");
         for ( int i=1; i<50000; i++ ) {
             ldomNode * item = doc->nodeFromXPath(lString16("package/manifest/item[") << fmt::decimal(i) << "]");
             if ( !item )
@@ -765,7 +899,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 href = DecodeHTMLUrlString(href);
                 if ( id==coverId ) {
                     // coverpage file
-                    lString16 coverFileName = codeBase + href;
+                    lString16 coverFileName = LVCombinePaths(codeBase, href);
                     CRLog::info("EPUB coverpage file: %s", LCSTR(coverFileName));
                     LVStreamRef stream = m_arc->OpenStream(coverFileName.c_str(), LVOM_READ);
                     if ( !stream.isNull() ) {
@@ -774,6 +908,11 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                             CRLog::info("EPUB coverpage image is correct: %d x %d", img->GetWidth(), img->GetHeight() );
                             m_doc_props->setString(DOC_PROP_COVER_FILE, coverFileName);
                         }
+                    }
+                    if (metadataOnly) {
+                        // coverId found, no need for more work
+                        delete doc;
+                        return true;
                     }
                 }
                 EpubItem * epubItem = new EpubItem;
@@ -800,18 +939,27 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     //CRLog::trace("style: %s", cssFile.c_str());
                     styleParser.parse(base, cssFile);
                 }
+                // Huge CSS files may take some time being parsed, so update progress
+                // after each one to get a chance of it being displayed at this point.
+                if ( progressCallback )
+                    progressCallback->OnLoadFileProgress(3);
             }
         }
+        CRLog::debug("opf: reading items done.");
+
+        if ( progressCallback )
+            progressCallback->OnLoadFileProgress(4);
 
         // spine == itemrefs
         if ( epubItems.length()>0 ) {
+            CRLog::debug("opf: reading spine");
             ldomNode * spine = doc->nodeFromXPath( cs16("package/spine") );
             if ( spine ) {
 
                 EpubItem * ncx = epubItems.findById( spine->getAttributeValue("toc") ); //TODO
                 //EpubItem * ncx = epubItems.findById(cs16("ncx"));
                 if ( ncx!=NULL )
-                    ncxHref = codeBase + ncx->href;
+                    ncxHref = LVCombinePaths(codeBase, ncx->href);
 
                 for ( int i=1; i<50000; i++ ) {
                     ldomNode * item = doc->nodeFromXPath(lString16("package/spine/itemref[") << fmt::decimal(i) << "]");
@@ -824,22 +972,20 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     }
                 }
             }
+            CRLog::debug("opf: reading spine done");
         }
         delete doc;
+        CRLog::debug("opf: closed");
     }
 
     if ( spineItems.length()==0 )
         return false;
 
+    if (metadataOnly)
+        return true; // no need for more work
 
-#if BUILD_LITE!=1
-    if ( m_doc->openFromCache(formatCallback) ) {
-        if ( progressCallback ) {
-            progressCallback->OnLoadFileEnd( );
-        }
-        return true;
-    }
-#endif
+    if ( progressCallback )
+        progressCallback->OnLoadFileProgress(5);
 
     lUInt32 saveFlags = m_doc->getDocFlags();
     m_doc->setDocFlags( saveFlags );
@@ -853,21 +999,37 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 #endif
     //m_doc->setCodeBase( codeBase );
 
+    int fontList_nb_before_head_parsing = fontList.length();
+    if (!fontList.empty()) {
+        // set document font list, and register fonts
+        m_doc->getEmbeddedFontList().set(fontList);
+        m_doc->registerEmbeddedFonts();
+    }
+
     ldomDocumentFragmentWriter appender(&writer, cs16("body"), cs16("DocFragment"), lString16::empty_str );
     writer.OnStart(NULL);
     writer.OnTagOpenNoAttr(L"", L"body");
     int fragmentCount = 0;
-    for ( int i=0; i<spineItems.length(); i++ ) {
+    int spineItemsNb = spineItems.length();
+    for ( int i=0; i<spineItemsNb; i++ ) {
         if (spineItems[i]->mediaType == "application/xhtml+xml") {
-            lString16 name = codeBase + spineItems[i]->href;
+            lString16 name = LVCombinePaths(codeBase, spineItems[i]->href);
             lString16 subst = cs16("_doc_fragment_") + fmt::decimal(i);
             appender.addPathSubstitution( name, subst );
             //CRLog::trace("subst: %s => %s", LCSTR(name), LCSTR(subst));
         }
     }
-    for ( int i=0; i<spineItems.length(); i++ ) {
+    int lastProgressPercent = 5;
+    for ( int i=0; i<spineItemsNb; i++ ) {
+        if ( progressCallback ) {
+            int percent = 5 + 95 * i / spineItemsNb;
+            if ( percent > lastProgressPercent ) {
+                progressCallback->OnLoadFileProgress(percent);
+                lastProgressPercent = percent;
+            }
+        }
         if (spineItems[i]->mediaType == "application/xhtml+xml") {
-            lString16 name = codeBase + spineItems[i]->href;
+            lString16 name = LVCombinePaths(codeBase, spineItems[i]->href);
             {
                 CRLog::debug("Checking fragment: %s", LCSTR(name));
                 LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
@@ -913,10 +1075,13 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
     writer.OnStop();
     CRLog::debug("EPUB: %d documents merged", fragmentCount);
 
-    if (!fontList.empty()) {
+    if ( fontList.length() != fontList_nb_before_head_parsing ) {
+        // New fonts met when parsing <head><style> of some DocFragments
+        m_doc->unregisterEmbeddedFonts();
         // set document font list, and register fonts
         m_doc->getEmbeddedFontList().set(fontList);
         m_doc->registerEmbeddedFonts();
+        printf("CRE: document loaded, but styles re-init needed (cause: embedded fonts)\n");
         m_doc->forceReinitStyles();
     }
 

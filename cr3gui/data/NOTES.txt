@@ -1,0 +1,21 @@
+Styles are applied to each node by src/lvrend.cpp setNodeStyle(),
+on each rendering and re-rendering, recursively, with the following flow:
+
+1) All nodes default style starts with the constructor values
+for css_style_rec_tag() in include/lvstyles.h.
+(Some other initial values for the root element style are set in
+src/lvtinydom.cpp ldomDocument::setRenderProps())
+
+2) Known elements default styles for display: and white-space: are
+then set according to the definitions in include/fb2def.h and the
+macros in include/dtddef.h.
+
+3) The "external" stylesheet from this directory and possible style
+tweaks declarations are applied to each node if the selector match.
+
+4) Embedded/internal stylesheet are applied in the same way
+
+5) Then, styles inheritance is applied and propagate some styles from
+the parent node (what is inherited and how inheritance takes place is
+at the end of src/lvrend.cpp setNodeStyle())
+

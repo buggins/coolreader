@@ -15,6 +15,7 @@
 #if !defined(__LV_REF_CACHE_H_INCLUDED__)
 #define __LV_REF_CACHE_H_INCLUDED__
 
+#include "lvmemman.h"
 #include "lvref.h"
 #include "lvarray.h"
 
@@ -148,25 +149,14 @@ private:
         }
         if ( n>=indexsize ) {
             // resize
-        	int tmpSize;
-        	void* tmp;
             if ( indexsize==0 )
-                tmpSize = size/2;
+                indexsize = size/2;
             else
-                tmpSize = indexsize*2;
-            tmp = realloc( index, sizeof(LVRefCacheIndexRec)*tmpSize );
-            if (tmp) {
-            	index = (LVRefCacheIndexRec *)tmp;
-            	indexsize = tmpSize;
-                for ( int i=nextindex+1; i<indexsize; i++ ) {
-                    index[i].item = NULL;
-                    index[i].refcount = 0;
-               }
-            }
-            else {
-                // memory allocation failure
-                n = indexsize - 1;
-                // TODO: throw exception or change function prototype & return code
+                indexsize *= 2;
+            index = cr_realloc( index, indexsize );
+            for ( int i=nextindex+1; i<indexsize; i++ ) {
+                index[i].item = NULL;
+                index[i].refcount = 0;
             }
         }
         rec->index = n;
@@ -246,13 +236,34 @@ public:
     bool cache( lUInt16 &indexholder, ref_t & style)
     {
         int newindex = cache( style );
+        // printf("newindex: %d  /  provided indexholder: %d\n", newindex, (int)indexholder);
         if ( indexholder != newindex ) {
             release( indexholder );
             indexholder = (lUInt16)newindex;
             return true;
-        } else {
-            release( indexholder );
+        } else { // indexholder == newindex
+            // Here, we want to decrement the refcount that has been incremented
+            // by the above call "newindex = cache( style )", as it returned the
+            // same index as the already referenced one.
+            // In normal cases, when the item is already present in the cache
+            // and referenced once, we are here with refcount=2, and we want to
+            // put it back to refcount=1, as it should be.
+            // In rare cases for some yet undertermined reason or bug, we may
+            // have been called with a non-0 indexholder, but not previously
+            // present in the cache, and we get the same value for newindex:
+            // the cache item refcount is then 1. And we want it to stay 1 (as
+            // it's really referenced once) so the value/pointer are not freed,
+            // and some segmentation fault is avoided later.
+            // So, we just don't release it if the refcount is 1 (we were
+            // asked to cache something: so don't drop it!)
+            // printf("released: refcount for %d = %d\n", indexholder, this->index[indexholder].refcount);
+            if (this->index[indexholder].refcount > 1)
+                release( indexholder );
             return false;
+            // This returned boolean seems not used anywhere, so it's not
+            // clear whether we should return true or false when the
+            // item was not in the cache, and thus created - but the
+            // indexholder (althought not existing) stayed unchanged.
         }
     }
 
@@ -340,39 +351,30 @@ public:
         table = new LVRefCacheRec * [ size ];
         for( int i=0; i<size; i++ )
             table[i] = NULL;
-        int tmpSize = list.length();
-        if (tmpSize == 0)
-            nextindex = 0;
-        if ( tmpSize > 0 ) {
-            void* tmp = realloc( index, sizeof(LVRefCacheIndexRec)*tmpSize );
-            if (tmp) {
-                indexsize = tmpSize;
-                nextindex = indexsize-1;
-                index = (LVRefCacheIndexRec*)tmp;
-                index[0].item = NULL;
-                index[0].refcount=0;
-                for ( int i=1; i<indexsize; i++ ) {
-                    if ( list[i].isNull() ) {
-                        // add free node
-                        index[i].item = NULL;
-                        index[i].refcount = freeindex;
-                        freeindex = i;
-                    } else {
-                        // add item
-                        lUInt32 hash = calcHash( list[i] );
-                        lUInt32 hindex = hash & (size - 1);
-                        LVRefCacheRec * rec = new LVRefCacheRec(list[i], hash);
-                        rec->index = i;
-                        rec->next = table[hindex];
-                        table[hindex] = rec;
-                        index[i].item = rec;
-                        index[i].refcount = 1;
-                        numitems++;
-                    }
+        indexsize = list.length();
+        nextindex = indexsize > 0 ? indexsize-1 : 0;
+        if ( indexsize ) {
+            index = cr_realloc( index, indexsize );
+            index[0].item = NULL;
+            index[0].refcount=0;
+            for ( int i=1; i<indexsize; i++ ) {
+                if ( list[i].isNull() ) {
+                    // add free node
+                    index[i].item = NULL;
+                    index[i].refcount = freeindex;
+                    freeindex = i;
+                } else {
+                    // add item
+                    lUInt32 hash = calcHash( list[i] );
+                    lUInt32 hindex = hash & (size - 1);
+                    LVRefCacheRec * rec = new LVRefCacheRec(list[i], hash);
+                    rec->index = i;
+                    rec->next = table[hindex];
+                    table[hindex] = rec;
+                    index[i].item = rec;
+                    index[i].refcount = 1;
+                    numitems++;
                 }
-            }
-            else {
-                // TODO: throw exception or change function prototype & return code
             }
         }
     }

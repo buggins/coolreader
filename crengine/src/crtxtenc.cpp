@@ -263,15 +263,15 @@ static const lChar16 __cp1251[128] = {
 
 static const lChar16 __cp1252[128] = {
     /* 0x80*/
-    0x0402, 0x0403, 0x201a, 0x0453, 
-    0x201e, 0x2026, 0x2020, 0x2021, 
-    0x20ac, 0x2030, 0x0409, 0x2039, 
-    0x040a, 0x040c, 0x040b, 0x040f, 
+    0x0402, 0x0403, 0x201a, 0x0453,
+    0x201e, 0x2026, 0x2020, 0x2021,
+    0x20ac, 0x2030, 0x0409, 0x2039,
+    0x040a, 0x040c, 0x040b, 0x040f,
     /* 0x90*/
-    0x0452, 0x2018, 0x2019, 0x201c, 
-    0x201d, 0x2022, 0x2013, 0x2014, 
-    0x0000, 0x2122, 0x0459, 0x203a, 
-    0x045a, 0x045c, 0x045b, 0x045f, 
+    0x0452, 0x2018, 0x2019, 0x201c,
+    0x201d, 0x2022, 0x2013, 0x2014,
+    0x0000, 0x2122, 0x0459, 0x203a,
+    0x045a, 0x045c, 0x045b, 0x045f,
     /* 0xa0*/
     0x00a0, 0x00a1, 0x00a2, 0x00a3,
     0x00a4, 0x00a5, 0x00a6, 0x00a7,
@@ -1431,8 +1431,8 @@ const lChar8 ** GetCharsetUnicode2ByteTable( const lChar16 * enc_name )
 #define DBL_CHAR_STAT_SIZE 256
 
 class CDoubleCharStat
-{ 
-   
+{
+
    struct CDblCharNode
    {
       unsigned char ch1;
@@ -1637,7 +1637,7 @@ int sort_dblstats_by_ch( const void * p1, const void * p2 )
 }
 
 class CDoubleCharStat2
-{ 
+{
 private:
     lUInt16 * * stats;
     int total;
@@ -1649,15 +1649,13 @@ public:
     void Add( unsigned char c1, unsigned char c2 )
     {
         if ( !stats ) {
-            stats = new lUInt16* [256];
-            memset( stats, 0, sizeof(lUInt16*)*256);
+            stats = new lUInt16* [256]();
         }
         if (c1==' ' && c2==' ')
             return;
         total++;
         if ( stats[c1]==NULL ) {
-            stats[c1] = new lUInt16[256];
-            memset( stats[c1], 0, sizeof(lUInt16)*256 );
+            stats[c1] = new lUInt16[256]();
         }
         if ( stats[c1][c2]++ == 0)
             items++;
@@ -1792,8 +1790,7 @@ void MakeDblCharStat(const unsigned char * buf, int buf_size, dbl_char_stat_t * 
 
 void MakeCharStat(const unsigned char * buf, int buf_size, short stat_table[256], bool skipHtml)
 {
-   int stat[256];
-   memset( stat, 0, sizeof(int)*256 );
+   int stat[256] = { 0 };
    int total=0;
    unsigned char ch;
    bool insideTag = false;
@@ -2085,8 +2082,7 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    fseek( in, 0, SEEK_SET );
    unsigned char * buf = new unsigned char[buf_size];
    fread(buf, 1, buf_size, in);
-   short char_stat[256];
-   memset(char_stat, 0, sizeof(short)*256);
+   short char_stat[256] = { 0 };
    dbl_char_stat_t dbl_char_stat[DBL_CHAR_STAT_SIZE];
    bool skipHtml = hasXmlTags(buf, buf_size);
    MakeCharStat(buf, buf_size, char_stat, skipHtml);
@@ -2095,7 +2091,7 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    int i;
    for (i=0; i<16; i++)
    {
-      for (int j=0; j<16; j++) 
+      for (int j=0; j<16; j++)
       {
          fprintf(f, "0x%04x,", (unsigned int)char_stat[i*16+j] );
       }
@@ -2105,7 +2101,7 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    fprintf(f, "static const dbl_char_stat_t dbl_ch_stat_%s_%s%d[%d] = {\n", cp_name, lang_name, index, DBL_CHAR_STAT_SIZE  );
    for (i=0; i<DBL_CHAR_STAT_SIZE/16; i++)
    {
-      for (int j=0; j<16; j++) 
+      for (int j=0; j<16; j++)
       {
          fprintf(f, "{0x%02x,0x%02x,0x%04x}, ", (unsigned int)dbl_char_stat[i*16+j].ch1, (unsigned int)dbl_char_stat[i*16+j].ch2, (unsigned int)((lUInt16)dbl_char_stat[i*16+j].count) );
       }

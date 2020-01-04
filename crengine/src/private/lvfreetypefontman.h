@@ -30,7 +30,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-
 class LVFreeTypeFontManager : public LVFontManager {
 private:
     lString8 _path;
@@ -56,6 +55,9 @@ public:
     /// returns fallback font for specified size
     virtual LVFontRef GetFallbackFont(int size);
 
+    /// returns fallback font for specified size, weight and italic
+    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false );
+
     bool isBitmapModeForSize(int size);
 
     /// set antialiasing mode
@@ -69,11 +71,11 @@ public:
         return _hintingMode;
     }
 
-    /// set kerning mode
-    virtual void setKerning(bool kerning);
+    /// sets kerning mode
+    virtual void SetKerningMode( kerning_mode_t mode );
 
-    /// set ligatures mode
-    virtual void setLigatures(bool ligatures);
+    /// get kerning mode
+    virtual kerning_mode_t GetKerningMode() { return _kerningMode; }
 
     /// clear glyph cache
     virtual void clearGlyphCache();
@@ -98,11 +100,11 @@ public:
     /// returns registered font files
     virtual void getFontFileNameList(lString16Collection &list);
 
-    bool setalias(lString8 alias, lString8 facename, int id, bool italic, bool bold);
+    bool SetAlias(lString8 alias, lString8 facename, int id, bool bold, bool italic);
 
     virtual LVFontRef
     GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
-            int documentId);
+            int documentId, bool useBias=false);
 
     bool checkCharSet(FT_Face face);
 
@@ -121,6 +123,8 @@ public:
     virtual bool RegisterFont(lString8 name);
 
     virtual bool Init(lString8 path);
+
+    virtual bool SetAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias );
 };
 
 #endif  // (USE_FREETYPE==1)

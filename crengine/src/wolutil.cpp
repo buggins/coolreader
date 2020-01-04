@@ -4,7 +4,7 @@
 
    wolutil.cpp:  WOL file format support
 
-   Based on code by SeNS   
+   Based on code by SeNS
 
 *******************************************************/
 
@@ -39,23 +39,23 @@ class LZSSUtil {
     lUInt16 lson[N + 1], rson[N + 257], dad[N + 1];  /* left & right children &
               parents -- These constitute binary search trees. */
 
-    // private methods              
+    // private methods
     void InsertNode(int r);
     void DeleteNode(int p);
-    
+
 public:
     /// init tables
     LZSSUtil();
     /// encode buffer
     bool Encode(
-      const lUInt8 * in_buf, 
+      const lUInt8 * in_buf,
       int in_length,
-      lUInt8 * out_buf, 
+      lUInt8 * out_buf,
       int & out_length
     );
     /// decode buffer
     bool Decode(
-      const lUInt8 * in_buf, 
+      const lUInt8 * in_buf,
       int in_length,
       lUInt8 * out_buf,
       int & out_length
@@ -101,7 +101,7 @@ public:
     int getPos() { return _pos; }
 };
 
-LZSSUtil::LZSSUtil()  
+LZSSUtil::LZSSUtil()
 {
     /* initialize trees */
     int  i;
@@ -112,9 +112,9 @@ LZSSUtil::LZSSUtil()
        For i = 0 to 255, rson[N + i + 1] is the root of the tree
        for strings that begin with character i.  These are initialized
        to NIL.  Note there are 256 trees. */
-    for (i = N + 1; i <= N + 256; i++) 
+    for (i = N + 1; i <= N + 256; i++)
         rson[i] = NIL;
-    for (i = 0; i < N; i++) 
+    for (i = 0; i < N; i++)
         dad[i] = NIL;
 }
 
@@ -138,9 +138,9 @@ void LZSSUtil::InsertNode(int r)
         } else {
             if (lson[p] != NIL)
                   p = lson[p];
-            else { 
-                lson[p] = r;  
-                dad[r] = p; 
+            else {
+                lson[p] = r;
+                dad[r] = p;
                 return;
             }
         }
@@ -164,7 +164,7 @@ void LZSSUtil::InsertNode(int r)
         lson[dad[p]] = r;
     dad[p] = NIL;  /* remove p */
 }
-    
+
 void LZSSUtil::DeleteNode(int p)  /* deletes node p from tree */
 {
     int  q;
@@ -187,9 +187,9 @@ void LZSSUtil::DeleteNode(int p)  /* deletes node p from tree */
 }
 
 bool LZSSUtil::Encode(
-  const lUInt8 * in_buf, 
+  const lUInt8 * in_buf,
   int in_length,
-  lUInt8 * out_buf, 
+  lUInt8 * out_buf,
   int & out_length
 )
 {
@@ -204,7 +204,7 @@ bool LZSSUtil::Encode(
          (2 bytes).  Thus, eight units require at most 16 bytes of code. */
     code_buf_ptr = mask = 1;
     s = 0;  r = N - F;
-    for (i = s; i < r; i++) 
+    for (i = s; i < r; i++)
         text_buf[i] = ' ';  /* Clear the buffer with
          any character that will appear often. */
     for (len = 0; len < F && in.get(c); len++)
@@ -212,7 +212,7 @@ bool LZSSUtil::Encode(
               the buffer */
     if ((textsize = len) == 0)
         return false;  /* text of size zero */
-    //for (i = 1; i <= F; i++) InsertNode(r - i);  
+    //for (i = 1; i <= F; i++) InsertNode(r - i);
     /* Insert the F strings,
          each of which begins with one or more 'space' characters.  Note
          the order in which these strings are inserted.  This way,
@@ -243,7 +243,7 @@ bool LZSSUtil::Encode(
          for (i = 0; i < last_match_length && in.get(c); i++) {
               DeleteNode(s);      /* Delete old strings and */
               text_buf[s] = (lUInt8)c;    /* read new bytes */
-              if (s < F - 1) 
+              if (s < F - 1)
                     text_buf[s + N] = (lUInt8)c;  /* If the position is
                    near the end of buffer, extend the buffer to make
                    string comparison easier. */
@@ -259,7 +259,7 @@ bool LZSSUtil::Encode(
          }
     } while (len > 0);  /* until length of string to be processed is zero */
     if (code_buf_ptr > 1) {       /* Send remaining code. */
-         for (i = 0; i < code_buf_ptr; i++) 
+         for (i = 0; i < code_buf_ptr; i++)
            out.put(code_buf[i]);
          codesize += code_buf_ptr;
     }
@@ -272,11 +272,11 @@ bool LZSSUtil::Encode(
 #if 0
 
 bool LZSSUtil::Decode(
-  const lUInt8 * in_buf, 
+  const lUInt8 * in_buf,
   int in_length,
-  lUInt8 * out_buf, 
+  lUInt8 * out_buf,
   int & out_length
-)  
+)
 {
     InBitStream in( in_buf, in_length );
     OutBuf out( out_buf, out_length );
@@ -321,11 +321,11 @@ bool LZSSUtil::Decode(
 #endif
 
 bool LZSSUtil::Decode(
-  const lUInt8 * in_buf, 
+  const lUInt8 * in_buf,
   int in_length,
-  lUInt8 * out_buf, 
+  lUInt8 * out_buf,
   int & out_length
-)  
+)
 {
     InBuf in( in_buf, in_length );
     OutBuf out( out_buf, out_length );
@@ -338,7 +338,7 @@ bool LZSSUtil::Decode(
     r = N - F;  flags = 0;
     for ( ; ; ) {
         if (((flags >>= 1) & 256) == 0) {
-            if (!in.get(c)) 
+            if (!in.get(c))
                 break;
             flags = c | 0xff00;      /* uses higher byte cleverly */
         }                                  /* to count eight */
@@ -407,9 +407,9 @@ static void readMem( const lUInt8 * buf, int offset, lUInt16 & dest )
 
 static void readMem( const lUInt8 * buf, int offset, lUInt32 & dest )
 {
-    dest = ((lUInt32)buf[offset+3]<<24) 
-        | ((lUInt32)buf[offset+2]<<16) 
-        | ((lUInt32)buf[offset+1]<<8) 
+    dest = ((lUInt32)buf[offset+3]<<24)
+        | ((lUInt32)buf[offset+2]<<16)
+        | ((lUInt32)buf[offset+1]<<8)
         | buf[offset];
 }
 
@@ -421,7 +421,7 @@ bool WOLReader::readHeader()
     if (memcmp(header, "WolfEbook1.11", 13))
         return false;
     readMem(header, 0x17, _book_title_size);
-    readMem(header, 0x19, _cover_image_size); // 0x19    
+    readMem(header, 0x19, _cover_image_size); // 0x19
     readMem(header, 0x5F, _subcatalog_level23_items);  // 0x5F
     readMem(header, 0x61, _subcatalog_offset);  // 0x61
     readMem(header, 0x22, _catalog_level1_items);  // 0x1E
@@ -446,8 +446,8 @@ bool WOLReader::readHeader()
         wolf_img_params params;
         //img bitcount=1 compact=1 width=794 height=1123 length=34020
         if (sscanf(str.c_str(), "img bitcount=%d compact=%d width=%d height=%d length=%d",
-            &params.bitcount, &params.compact, 
-            &params.width, &params.height, 
+            &params.bitcount, &params.compact,
+            &params.width, &params.height,
             &params.length)!=5)
             return false;
         params.offset = (lUInt32)_stream->GetPos();
@@ -492,7 +492,7 @@ LVGrayDrawBuf * WOLReader::getImage( int index )
                uncomp[i]= ~uncomp[i];
             }
         }
-        
+
         LVGrayDrawBuf * image = new LVGrayDrawBuf(img->width, img->height, img->bitcount);
         memcpy(image->GetScanLine(0), uncomp.ptr(), img_size);
         return image;
@@ -542,15 +542,14 @@ LVArray<lUInt8> * WOLReader::getBookCover()
     LVArray<lUInt8> * cover = new LVArray<lUInt8>(_cover_image_size, 0);
     _stream->SetPos( 0x80 + _book_title_size );
     _stream->Read( cover->ptr(), _cover_image_size, NULL);
-    return cover;    
+    return cover;
 }
 
 WOLWriter::WOLWriter( LVStream * stream )
 : WOLBase(stream)
 , _catalog_opened(false)
 {
-    lUInt8 header[0x80];
-    memset(header, 0, sizeof(header));
+    lUInt8 header[0x80] = { 0 };
     memcpy(header, "WolfEbook1.11", 13);
     header[0x11]=1;
     header[0x12]=2;
@@ -572,7 +571,7 @@ void WOLWriter::startCatalog()
 
 void WOLWriter::endCatalog()
 {
-    if (_catalog_opened) 
+    if (_catalog_opened)
     {
         *_stream << "</catalog>";
         _catalog_opened=false;
@@ -625,15 +624,14 @@ void WOLWriter::writeToc()
             }
         }
         *_stream << "</catalog>";
-    
+
         //============================================================
         // subcatalog
-    
+
         // allocate TOC
         _subcatalog_offset = (lUInt32) _stream->GetPos();
-        wol_toc_subcatalog_item * toc = new wol_toc_subcatalog_item[len];
+        wol_toc_subcatalog_item * toc = new wol_toc_subcatalog_item[len]();
         int catsize = sizeof(wol_toc_subcatalog_item) * len;
-        memset( toc, 0, catsize );
         lString8 names;
         for ( int lvl=1; lvl<=3; lvl++ ) {
             for ( int i=0; i<_tocItems.length(); i++ ) {
@@ -669,7 +667,7 @@ void WOLWriter::writeToc()
         for ( i=0; i<len; i++ ) {
             wol_toc_subcatalog_item * item = &toc[i];
             lUInt32 currOffset = i * 80 + _subcatalog_offset + 12;
-            fprintf( log, "%2d   %07d : (%d,%d,%d) \t parent=%07d  child=%07d  prev=%07d  next=%07d\t %s\n", 
+            fprintf( log, "%2d   %07d : (%d,%d,%d) \t parent=%07d  child=%07d  prev=%07d  next=%07d\t %s\n",
                 i, currOffset, item->Level1Idx, item->Level2Idx, item->Level3Idx, item->ParentOffs, item->ChildOffs, item->PrevPeerOffs, item->NextPeerOffs, item->ItemName );
         }
 #endif
@@ -756,8 +754,8 @@ void WOLWriter::addCoverImage( const lUInt8 * buf, int size )
 }
 
 void WOLWriter::addImage(
-  int width, 
-  int height, 
+  int width,
+  int height,
   const lUInt8 * bitmap, // [width*height/4]
   int num_bits
 )
@@ -785,12 +783,12 @@ void WOLWriter::addImage(
       compressed.push_back(bitmap[i++]);
     }
   }
-  compressed.push_back((unsigned char)0x0); // extra last dummy char 
+  compressed.push_back((unsigned char)0x0); // extra last dummy char
 #else
   compressed.resize(bitmap.size()*2);
   int compressed_len;
 #if 1
-  Encode((const unsigned char*)&(bitmap[0]), bitmap.size(), 
+  Encode((const unsigned char*)&(bitmap[0]), bitmap.size(),
     (unsigned char*)&(compressed[0]), &compressed_len);
 #else
   EncodeLZSS(&(bitmap[0]), bitmap.size(), &(compressed[0]),
@@ -802,12 +800,12 @@ void WOLWriter::addImage(
 
     int compressed_len = bmp_sz * 9/8 + 18;
     lUInt8 * compressed = new lUInt8 [compressed_len];
-    
+
     LZSSUtil packer;
     packer.Encode(bitmap, bmp_sz, compressed, compressed_len);
 
     compressed[ compressed_len++ ] = 0; // extra last dummy char
-    
+
 #if 0 //def _DEBUG_LOG
     LZSSUtil unpacker;
     lUInt8 * decomp = new lUInt8 [bmp_sz*2];
@@ -821,10 +819,10 @@ void WOLWriter::addImage(
 #endif
 
     _page_starts.add( (lUInt32)_stream->GetPos() );
-    
+
     lString8 buf;
     buf.reserve(128);
-    buf << "<img bitcount=" 
+    buf << "<img bitcount="
         << fmt::decimal(num_bits)
         << " compact=1 width="
         << fmt::decimal(width)
@@ -833,14 +831,14 @@ void WOLWriter::addImage(
         << " length="
         << fmt::decimal((int)compressed_len)
         << ">";
-    *_stream << buf; 
+    *_stream << buf;
 
     //_page_starts.add( (lUInt32)_stream->GetPos() );
 
     _stream->Write( compressed, compressed_len, NULL );
     endPage();
     *_stream << cs8("</img>");
-  
+
     // cleanup
     delete[] compressed;
     //if (inversed)
@@ -888,22 +886,22 @@ void WOLWriter::writePageIndex()
     //*_stream << "<catalog><item>" << _book_name
     //    << "</item>";
     //*_stream << (lUInt32)0x11 << "</catalog>";
-    
+
     int pos1 = (int)_stream->GetPos();
 
     //_page_index_size = pos1-pos0; //0x1E
-    
+
 #if (USE_001_FORMAT==1)
     *_stream << "<pagetable ver=\"001\">";
 #else
     *_stream << "<pagetable ver=\"021211 \">";
 #endif
-    
+
     int start_of_catalog_table = (int)_stream->GetPos();
-    
-    LVArray<lUInt32> pagegroup_1; 
-    LVArray<lUInt32> pagegroup_2; 
-    LVArray<lUInt32> pagegroup_delim; 
+
+    LVArray<lUInt32> pagegroup_1;
+    LVArray<lUInt32> pagegroup_2;
+    LVArray<lUInt32> pagegroup_delim;
 
     pagegroup_delim.add( 0xFFFFFFFF );
     pagegroup_1.add( cnv.lsf( _catalog_start ) );
@@ -921,7 +919,7 @@ void WOLWriter::writePageIndex()
     }
     int pagegroups_start = start_of_catalog_table + 13*4 + 12;
     lUInt32 p = pagegroups_start;
-    LVArray<lUInt32> catalog; 
+    LVArray<lUInt32> catalog;
     catalog.add( cnv.lsf( p ) ); p += pagegroup_1.length()*4;
     catalog.add( cnv.lsf( p ) ); p += pagegroup_1.length()*4;
     catalog.add( cnv.lsf( p ) ); p += pagegroup_delim.length()*4;
@@ -957,7 +955,7 @@ void WOLWriter::writePageIndex()
 
 void WOLWriter::addImage( LVGrayDrawBuf & image )
 {
-    addImage( image.GetWidth(), image.GetHeight(), 
+    addImage( image.GetWidth(), image.GetHeight(),
         image.GetScanLine(0), image.GetBitsPerPixel() );
 }
 
@@ -990,7 +988,7 @@ void WOLWriter::addCoverImage( LVGrayDrawBuf & image )
     _stream->Write(&hdr, sizeof(hdr), NULL);
 
     int bmp_sz = bpl * height;
-    
+
     lUInt8 * data = new lUInt8[ bmp_sz ];
     memcpy( data, image.GetScanLine(0), bmp_sz );
     if ( hdr.bpp == 2 )
@@ -1001,7 +999,7 @@ void WOLWriter::addCoverImage( LVGrayDrawBuf & image )
 
     int compressed_len = bmp_sz * 9/8 + 18;
     lUInt8 * compressed = new lUInt8 [compressed_len];
-    
+
     LZSSUtil packer;
     packer.Encode(data, bmp_sz, compressed, compressed_len);
 
@@ -1010,11 +1008,11 @@ void WOLWriter::addCoverImage( LVGrayDrawBuf & image )
     delete[] data;
 
     _stream->Write( compressed, compressed_len, NULL );
-    
+
     _wolf_start_pos = (lUInt32) _stream->GetPos();
     _cover_image_size = _wolf_start_pos - cover_start_pos;
     *_stream << "<wolf>\r\n";
-    
+
 #else
     image.ConvertToBitmap(true);
     int sz = (image.GetWidth()+7)/8 * image.GetHeight();

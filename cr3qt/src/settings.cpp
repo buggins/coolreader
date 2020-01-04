@@ -138,12 +138,7 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     optionToUi( PROP_EMBEDDED_FONTS, m_ui->cbEnableEmbeddedFonts );
     m_ui->cbEnableEmbeddedFonts->setEnabled(m_props->getBoolDef(PROP_EMBEDDED_STYLES, true));
     optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
-    optionToUi( PROP_FONT_KERNING_ENABLED, m_ui->cbFontKerning );
-#if USE_HARFBUZZ==1
-    optionToUi( PROP_FONT_LIGATURES_ENABLED, m_ui->cbLigatures );
-#else
-    m_ui->cbLigatures->setEnabled(false);
-#endif
+    optionToUi( PROP_FONT_KERNING, m_ui->cbFontKerning );
     optionToUi( PROP_FLOATING_PUNCTUATION, m_ui->cbFloatingPunctuation );
     optionToUiIndex( PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, m_ui->cbImageInlineZoominMode );
     optionToUiIndex( PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, m_ui->cbImageInlineZoominScale );
@@ -328,13 +323,7 @@ void SettingsDlg::on_buttonBox_rejected()
 
 void SettingsDlg::on_cbFontKerning_stateChanged(int s)
 {
-    setCheck( PROP_FONT_KERNING_ENABLED, s );
-    updateStyleSample();
-}
-
-void SettingsDlg::on_cbLigatures_stateChanged(int s)
-{
-    setCheck( PROP_FONT_LIGATURES_ENABLED, s );
+    setCheck( PROP_FONT_KERNING, s );
     updateStyleSample();
 }
 

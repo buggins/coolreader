@@ -901,6 +901,7 @@ bool CRPropAccessor::deserialize( SerialBuf & buf )
             return false;
         buf >> val;
         setString( nm.c_str(), val );
+        // CRLog::debug("  deserialized prop %s: %s", nm.c_str(), UnicodeToLocal(val).c_str());
     }
     buf.checkCRC( buf.pos() - pos );
     return !buf.error();

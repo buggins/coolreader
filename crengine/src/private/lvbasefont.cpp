@@ -16,12 +16,14 @@
 #include "lvfontglyphcache.h"
 
 
-void LVBaseFont::DrawTextString(LVDrawBuf *buf, int x, int y,
-                                const lChar16 *text, int len,
-                                lChar16 def_char, lUInt32 *palette, bool addHyphen, lUInt32, int) {
+int LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
+                   const lChar16 * text, int len,
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 , int , int, int )
+{
     //static lUInt8 glyph_buf[16384];
     //LVFont::glyph_info_t info;
     int baseline = getBaseline();
+    int x0 = x;
     while (len >= (addHyphen ? 0 : 1)) {
         if (len <= 1 || *text != UNICODE_SOFT_HYPHEN_CODE) {
             lChar16 ch = ((len == 0) ? UNICODE_SOFT_HYPHEN_CODE : *text);
@@ -67,4 +69,5 @@ void LVBaseFont::DrawTextString(LVDrawBuf *buf, int x, int y,
         len--;
         text++;
     }
+    return x - x0;
 }

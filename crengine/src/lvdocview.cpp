@@ -80,9 +80,10 @@ const char
 					"title { page-break-before: always; page-break-inside: avoid; page-break-after: avoid; }\n"
 					"body { text-align: justify; text-indent: 2em }\n"
 					"cite { margin-left: 30%; margin-right: 4%; text-align: justyfy; text-indent: 0px;  margin-top: 20px; margin-bottom: 20px; font-family: Times New Roman, serif }\n"
-					"td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 5px }\n"
+					"td, th { text-indent: 0px; font-size: 80%; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; text-align: left; padding: 2px }\n"
 					"th { font-weight: bold }\n"
-					"table > caption { padding: 5px; text-indent: 0px; font-size: 80%; font-weight: bold; text-align: left; background-color: #AAAAAA }\n"
+					"table > caption { padding: 2px; text-indent: 0px; font-size: 80%; font-weight: bold; text-align: left; background-color: #AAAAAA }\n"
+					"table { border-spacing:2px;}\n"
 					"body[name=\"notes\"] { font-size: 70%; }\n"
 					"body[name=\"notes\"]  section[id] { text-align: left; }\n"
 					"body[name=\"notes\"]  section[id] title { display: block; text-align: left; font-size: 110%; font-weight: bold; page-break-before: auto; page-break-inside: auto; page-break-after: auto; }\n"
@@ -114,15 +115,6 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 #define MAX_STATUS_FONT_SIZE 255
 #endif
 
-// Fallback defines, see crsetup.h
-#ifndef SCREEN_SIZE_MIN
-#define SCREEN_SIZE_MIN 80
-#endif
-
-#ifndef SCREEN_SIZE_MAX
-#define SCREEN_SIZE_MAX 3000
-#endif
-
 #if defined(__SYMBIAN32__)
 #include <e32std.h>
 #define DEFAULT_PAGE_MARGIN 2
@@ -139,15 +131,15 @@ static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
 
 static int def_font_sizes[] = { 18, 20, 22, 24, 29, 33, 39, 44 };
 
-LVDocView::LVDocView(int bitsPerPixel) :
+LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 	m_bitsPerPixel(bitsPerPixel), m_dx(400), m_dy(200), _pos(0), _page(0),
 			_posIsSet(false), m_battery_state(CR_BATTERY_STATE_NO_BATTERY)
 #if (LBOOK==1)
-			, m_font_size(32)
+			, m_requested_font_size(32)
 #elif defined(__SYMBIAN32__)
-			, m_font_size(30)
+			, m_requested_font_size(30)
 #else
-			, m_font_size(24)
+			, m_requested_font_size(24)
 #endif
 			, m_status_font_size(INFO_FONT_SIZE),
 			m_def_interline_space(100),
@@ -164,6 +156,7 @@ LVDocView::LVDocView(int bitsPerPixel) :
 			 */
 			, m_stream(NULL), m_doc(NULL), m_stylesheet(def_stylesheet),
             m_backgroundTiled(true),
+            m_stylesheetNeedsUpdate(true),
             m_highlightBookmarks(1),
 			m_pageMargins(DEFAULT_PAGE_MARGIN,
 					DEFAULT_PAGE_MARGIN / 2 /*+ INFO_FONT_SIZE + 4 */,
@@ -181,8 +174,8 @@ LVDocView::LVDocView(int bitsPerPixel) :
 			m_callback(NULL), m_swapDone(false), m_drawBufferBits(
 					GRAY_BACKBUFFER_BITS) {
 #if (COLOR_BACKBUFFER==1)
-	m_backgroundColor = 0xFFFFE0;
-	m_textColor = 0x000060;
+	m_backgroundColor = 0xFFFFFF;
+	m_textColor = 0x000000;
 #else
 #if (GRAY_INVERSE==1)
 	m_backgroundColor = 0;
@@ -200,9 +193,13 @@ LVDocView::LVDocView(int bitsPerPixel) :
 	propsUpdateDefaults( m_props);
 
 	//m_drawbuf.Clear(m_backgroundColor);
-    createDefaultDocument(cs16("No document"), lString16(
-			L"Welcome to CoolReader! Please select file to open"));
 
+    if (!noDefaultDocument)
+        createDefaultDocument(cs16("No document"), lString16(
+                    L"Welcome to CoolReader! Please select file to open"));
+
+    m_font_size = scaleFontSizeForDPI(m_requested_font_size);
+    gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
     m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
 			m_defaultFontFace);
 	m_infoFont = fontMan->GetFont(m_status_font_size, 700, false,
@@ -239,7 +236,8 @@ void LVDocView::setTextFormatOptions(txt_format_t fmt) {
 	if (m_text_format == fmt)
 		return; // no change
 	m_props->setBool(PROP_TXT_OPTION_PREFORMATTED, (fmt == txt_format_pre));
-	m_doc->setDocFlag(DOC_FLAG_PREFORMATTED_TEXT, (fmt == txt_format_pre));
+	if (m_doc) // not when noDefaultDocument=true
+		m_doc->setDocFlag(DOC_FLAG_PREFORMATTED_TEXT, (fmt == txt_format_pre));
 	if (getDocFormat() == doc_format_txt) {
 		requestReload();
 		CRLog::trace(
@@ -533,12 +531,16 @@ void LVDocView::setStyleSheet(lString8 css_text) {
     REQUEST_RENDER("setStyleSheet")
     //CRLog::trace("LVDocView::setStyleSheet()");
     m_stylesheet = css_text;
+    m_stylesheetNeedsUpdate = true;
 }
 
 void LVDocView::updateDocStyleSheet() {
-    //CRLog::trace("LVDocView::updateDocStyleSheet()");
+    // Don't skip this when document is not yet rendered (or is being re-rendered)
+    if (m_is_rendered && !m_stylesheetNeedsUpdate)
+        return;
     CRPropRef p = m_props->getSubProps("styles.");
     m_doc->setStyleSheet(substituteCssMacros(m_stylesheet, p).c_str(), true);
+    m_stylesheetNeedsUpdate = false;
 }
 
 void LVDocView::Clear() {
@@ -566,6 +568,10 @@ void LVDocView::Clear() {
 	}
 	clearImageCache();
 	_navigationHistory.clear();
+	// Also drop font instances from previous document (see
+	// lvtinydom.cpp ldomDocument::render() for the reason)
+	fontMan->gc();
+	fontMan->gc();
 }
 
 /// invalidate image cache, request redraw
@@ -581,6 +587,8 @@ void LVDocView::clearImageCache() {
 /// invalidate formatted data, request render
 void LVDocView::requestRender() {
 	LVLock lock(getMutex());
+	if (!m_doc) // nothing to render when noDefaultDocument=true
+		return;
 	m_is_rendered = false;
 	clearImageCache();
 	if (m_doc)
@@ -809,7 +817,14 @@ void dumpSection(ldomNode * elem) {
 LVTocItem * LVDocView::getToc() {
 	if (!m_doc)
 		return NULL;
-	updatePageNumbers(m_doc->getToc());
+        // When just loaded from cache, TocItems are missing their _position
+        // properties (a XPointer object), but all other properties (_path,
+        // _page, _percent) are valid and enough to display TOC.
+        // Avoid calling updatePageNumbers() in that case (as it is expensive
+        // and would delay book opening when loaded from cache - it will be
+        // called when it is really needed: after next full rendering)
+        if (!m_doc->isTocFromCacheValid() || !m_doc->getToc()->hasValidPageNumbers())
+            updatePageNumbers(m_doc->getToc());
 	return m_doc->getToc();
 }
 
@@ -906,12 +921,28 @@ void LVDocView::updatePageNumbers(LVTocItem * item) {
 	} else {
 		//CRLog::error("Page position is not found for path %s", LCSTR(item->getPath()) );
 		// unknown position
-		item->_page = -1;
+                // Don't update _page of root toc item, as it carries the alternative TOC flag
+                if (item->_level > 0)
+                    item->_page = -1;
 		item->_percent = -1;
 	}
 	for (int i = 0; i < item->getChildCount(); i++) {
 		updatePageNumbers(item->getChild(i));
 	}
+}
+
+/// get a stream for reading to document internal file (path inside the ZIP for EPUBs,
+/// path relative to document directory for non-container documents like HTML)
+LVStreamRef LVDocView::getDocumentFileStream( lString16 filePath ) {
+    if ( !filePath.empty() ) {
+        LVContainerRef cont = m_doc->getContainer();
+        if ( cont.isNull() ) // no real container
+            cont = m_container; // consider document directory as the container
+        LVStreamRef stream = cont->OpenStream(filePath.c_str(), LVOM_READ);
+        // if failure, a NULL stream is returned
+        return stream;
+    }
+    return LVStreamRef(); // not found: return NULL ref
 }
 
 /// returns cover page image stream, if any
@@ -1022,12 +1053,15 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 	LFormattedText txform;
 	if (!authors.empty())
 		txform.AddSourceLine(authors.c_str(), authors.length(), 0xFFFFFFFF,
-				0xFFFFFFFF, author_fnt.get(), LTEXT_ALIGN_CENTER, 18);
+				0xFFFFFFFF, author_fnt.get(), LTEXT_ALIGN_CENTER,
+				author_fnt->getHeight() * 18 / 16);
 	txform.AddSourceLine(title.c_str(), title.length(), 0xFFFFFFFF, 0xFFFFFFFF,
-			title_fnt.get(), LTEXT_ALIGN_CENTER, 18);
+			title_fnt.get(), LTEXT_ALIGN_CENTER,
+			title_fnt->getHeight() * 18 / 16);
 	if (!series.empty())
 		txform.AddSourceLine(series.c_str(), series.length(), 0xFFFFFFFF,
-				0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER, 18);
+				0xFFFFFFFF, series_fnt.get(), LTEXT_ALIGN_CENTER,
+				series_fnt->getHeight() * 18 / 16);
 	int title_w = rc.width() - rc.width() / 4;
 	int h = txform.Format((lUInt16)title_w, (lUInt16)rc.height());
 
@@ -1870,15 +1904,19 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	//    offset = 0;
 	int offset = 0;
 	lvRect clip;
-	clip.left = pageRect->left + m_pageMargins.left;
 	clip.top = pageRect->top + m_pageMargins.top + headerHeight + offset;
-	clip.bottom = pageRect->top + m_pageMargins.top + height + headerHeight
-			+ offset;
-	clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
-	if (page.type == PAGE_TYPE_COVER)
+	clip.bottom = pageRect->top + m_pageMargins.top + height + headerHeight + offset;
+	// clip.left = pageRect->left + m_pageMargins.left;
+	// clip.right = pageRect->left + pageRect->width() - m_pageMargins.right;
+	// We don't really need to enforce left and right clipping of page margins:
+	// this allows glyphs that need to (like 'J' at start of line or 'f' at
+	// end of line with some fonts) to not be cut by this clipping.
+	clip.left = pageRect->left;
+	clip.right = pageRect->left + pageRect->width();
+	if (page.flags & RN_PAGE_TYPE_COVER)
 		clip.top = pageRect->top + m_pageMargins.top;
-    if (((m_pageHeaderInfo || !m_pageHeaderOverride.empty()) && page.type
-            != PAGE_TYPE_COVER) && getViewMode() == DVM_PAGES) {
+	if ( ( (m_pageHeaderInfo || !m_pageHeaderOverride.empty()) && (page.flags & RN_PAGE_TYPE_NORMAL) )
+				&& getViewMode() == DVM_PAGES ) {
 		int phi = m_pageHeaderInfo;
 		if (getVisiblePageCount() == 2) {
 			if (page.index & 1) {
@@ -1902,7 +1940,7 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 	}
 	drawbuf->SetClipRect(&clip);
 	if (m_doc) {
-		if (page.type == PAGE_TYPE_COVER) {
+		if (page.flags & RN_PAGE_TYPE_COVER) {
 			lvRect rc = *pageRect;
 			drawbuf->SetClipRect(&rc);
 			//if ( m_pageMargins.bottom > m_pageMargins.top )
@@ -1927,18 +1965,33 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
                                                 -start + offset, m_dy, &m_markRanges, &m_bmkRanges);
 			//CRLog::trace("Done DrawDocument() for main text");
 			// draw footnotes
-#define FOOTNOTE_MARGIN 8
-			int fny = clip.top + (page.height ? page.height + FOOTNOTE_MARGIN
-					: FOOTNOTE_MARGIN);
+#define FOOTNOTE_MARGIN_REM 1 // as in lvpagesplitter.cpp
+			int footnote_margin = FOOTNOTE_MARGIN_REM * gRootFontSize;
+			int fny = clip.top + (page.height ? page.height + footnote_margin
+					: footnote_margin);
+			// Try to push footnotes to the bottom of page if possible
+			int footnotes_height = 0;
+			for (int fn = 0; fn < page.footnotes.length(); fn++) {
+				footnotes_height += page.footnotes[fn].height;
+			}
+			if (footnotes_height > 0) {
+				int h_avail = m_dy - getPageHeaderHeight()
+						   - m_pageMargins.top - m_pageMargins.bottom
+						   - height - footnote_margin;
+				fny += h_avail - footnotes_height; // put empty space before first footnote
+			}
 			int fy = fny;
 			bool footnoteDrawed = false;
 			for (int fn = 0; fn < page.footnotes.length(); fn++) {
 				int fstart = page.footnotes[fn].start;
 				int fheight = page.footnotes[fn].height;
 				clip.top = fy + offset;
-				clip.left = pageRect->left + m_pageMargins.left;
-				clip.right = pageRect->right - m_pageMargins.right;
 				clip.bottom = fy + offset + fheight;
+				// Also avoid left and right clipping of page margins with footnotes
+				// clip.left = pageRect->left + m_pageMargins.left;
+				// clip.right = pageRect->right - m_pageMargins.right;
+				clip.left = pageRect->left;
+				clip.right = pageRect->right;
 				drawbuf->SetClipRect(&clip);
 				DrawDocument(*drawbuf, m_doc->getRootNode(), pageRect->left
 						+ m_pageMargins.left, fy + offset, pageRect->width()
@@ -1948,13 +2001,26 @@ void LVDocView::drawPageTo(LVDrawBuf * drawbuf, LVRendPageInfo & page,
 				fy += fheight;
 			}
 			if (footnoteDrawed) { // && page.height
-				fny -= FOOTNOTE_MARGIN / 2;
+				// Draw a small horizontal line as a separator inside
+				// the margin between text and footnotes
+				fny -= footnote_margin * 1/3;
 				drawbuf->SetClipRect(NULL);
                 lUInt32 cl = drawbuf->GetTextColor();
                 cl = (cl & 0xFFFFFF) | (0x55000000);
-				drawbuf->FillRect(pageRect->left + m_pageMargins.left, fny,
-						pageRect->right - m_pageMargins.right, fny + 1,
-                        cl);
+				// The line separator was using the full page width:
+				//   int x1 = pageRect->right - m_pageMargins.right;
+				// but 1/7 of page width looks like what we can see in some books
+				int sep_width = (pageRect->right - pageRect->left) / 7;
+				int x0, x1;
+				if ( page.flags & RN_PAGE_FOOTNOTES_MOSTLY_RTL ) { // draw separator on the right
+					x1 = pageRect->right - m_pageMargins.right;
+					x0 = x1 - sep_width;
+				}
+				else {
+					x0 = pageRect->left + m_pageMargins.left;
+					x1 = x0 + sep_width;
+				}
+				drawbuf->FillRect(x0, fny, x1, fny+1, cl);
 			}
 		}
 	}
@@ -2007,10 +2073,16 @@ void LVDocView::GetPos(lvRect & rc) {
 
 int LVDocView::getPageHeight(int pageIndex)
 {
-    CR_UNUSED(pageIndex);
-	if (isPageMode() && _page >= 0 && _page < m_pages.length()) 
-		return m_pages[_page]->height;
+	if (isPageMode() && pageIndex >= 0 && pageIndex < m_pages.length())
+		return m_pages[pageIndex]->height;
 	return 0;
+}
+
+int LVDocView::getPageStartY(int pageIndex)
+{
+	if (isPageMode() && pageIndex >= 0 && pageIndex < m_pages.length())
+		return m_pages[pageIndex]->start;
+	return -1;
 }
 
 /// get vertical position of view inside document
@@ -2067,7 +2139,7 @@ int LVDocView::getCurPage() {
 	return m_pages.FindNearestPage(_pos, 0);
 }
 
-bool LVDocView::goToPage(int page, bool updatePosBookmark) {
+bool LVDocView::goToPage(int page, bool updatePosBookmark, bool regulateTwoPages) {
 	LVLock lock(getMutex());
     CHECK_RENDER("goToPage()")
 	if (!m_pages.length())
@@ -2092,8 +2164,8 @@ bool LVDocView::goToPage(int page, bool updatePosBookmark) {
 			page = 0;
 			res = false;
 		}
-		if (pc == 2)
-			page &= ~1;
+		if (pc == 2 && regulateTwoPages)
+			page &= ~1; // first page will always be odd (page are counted from 0)
 		if (page >= 0 && page < m_pages.length()) {
 			_pos = m_pages[page]->start;
 			_page = page;
@@ -2108,8 +2180,8 @@ bool LVDocView::goToPage(int page, bool updatePosBookmark) {
     }
 	_posIsSet = true;
 	updateScroll();
-    if (res)
-        updateBookMarksRanges();
+    //if (res)
+        //updateBookMarksRanges();
 	return res;
 }
 
@@ -2239,7 +2311,7 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate, b
 		drawbuf.SetClipRect(NULL);
         drawPageBackground(drawbuf, 0, position);
         int cover_height = 0;
-		if (m_pages.length() > 0 && m_pages[0]->type == PAGE_TYPE_COVER)
+		if (m_pages.length() > 0 && (m_pages[0]->flags & RN_PAGE_TYPE_COVER))
 			cover_height = m_pages[0]->height;
 		if (position < cover_height) {
 			lvRect rc;
@@ -2335,8 +2407,8 @@ bool LVDocView::windowToDocPoint(lvPoint & pt) {
 	return false;
 }
 
-/// converts point from documsnt to window coordinates, returns true if success
-bool LVDocView::docToWindowPoint(lvPoint & pt) {
+/// converts point from document to window coordinates, returns true if success
+bool LVDocView::docToWindowPoint(lvPoint & pt, bool isRectBottom, bool fitToPage) {
 	LVLock lock(getMutex());
     CHECK_RENDER("docToWindowPoint()")
 	// TODO: implement coordinate conversion here
@@ -2350,20 +2422,65 @@ bool LVDocView::docToWindowPoint(lvPoint & pt) {
             int page = getCurPage();
             if (page >= 0 && page < m_pages.length() && pt.y >= m_pages[page]->start) {
                 int index = -1;
-                if (pt.y <= (m_pages[page]->start + m_pages[page]->height)) {
+                // The y at start+height is normally part of the next
+                // page. But we are often called twice with a topLeft
+                // and a bottomRight of a rectangle bounding words or
+                // a line, with the bottomRight being a rect height,
+                // so pointing to the y just outside the box.
+                // So, when we're specified that this point is a rect bottom,
+                // we return this page even if it's actually on next page.
+                int page_bottom = m_pages[page]->start + m_pages[page]->height;
+                if ( pt.y < page_bottom || (isRectBottom && pt.y == page_bottom) ) {
                     index = 0;
-                } else if (getVisiblePageCount() == 2 && page + 1 < m_pages.length() &&
-                    pt.y <= (m_pages[page + 1]->start + m_pages[page + 1]->height)) {
-                    index = 1;
+                }
+                else if (getVisiblePageCount() == 2 && page + 1 < m_pages.length()) {
+                    int next_page_bottom = m_pages[page + 1]->start + m_pages[page + 1]->height;
+                    if ( pt.y < next_page_bottom || (isRectBottom && pt.y == next_page_bottom) ) {
+                        index = 1;
+                    }
                 }
                 if (index >= 0) {
+                    /*
                     int x = pt.x + m_pageRects[index].left + m_pageMargins.left;
+                    // We shouldn't get x ouside page width as we never crop on the
+                    // width: if we do (if bug somewhere else), force it to be at the
+                    // far right (this helps not discarding some highlights rects)
+                    if (x >= m_pageRects[index].right - m_pageMargins.right) {
+                        x = m_pageRects[index].right - m_pageMargins.right - 1;
+                    }
                     if (x < m_pageRects[index].right - m_pageMargins.right) {
                         pt.x = x;
                         pt.y = pt.y + getPageHeaderHeight() + m_pageMargins.top - m_pages[page + index]->start;
                         return true;
                     }
+                    */
+                    // We don't crop on the left, so it feels like we don't need to
+                    // ensure anything and crop on the right, and this allows text
+                    // selection to grab bits of overflowed glyph
+                    pt.x = pt.x + m_pageRects[index].left + m_pageMargins.left;
+                    pt.y = pt.y + getPageHeaderHeight() + m_pageMargins.top - m_pages[page + index]->start;
+                    return true;
                 }
+            }
+            if (fitToPage) {
+                // If we didn't find pt inside pages, adjust it to top or bottom page y
+                if (page >= 0 && page < m_pages.length() && pt.y < m_pages[page]->start) {
+                    // Before 1st page top: adjust to page top
+                    pt.x = pt.x + m_pageRects[0].left + m_pageMargins.left;
+                    pt.y = getPageHeaderHeight() + m_pageMargins.top;
+                }
+                else if (getVisiblePageCount() == 2 && page + 1 < m_pages.length()
+                        && pt.y >= m_pages[page + 1]->start + m_pages[page + 1]->height) {
+                    // After 2nd page bottom: adjust to 2nd page bottom
+                    pt.x = pt.x + m_pageRects[1].left + m_pageMargins.left;
+                    pt.y = getPageHeaderHeight() + m_pageMargins.top + m_pages[page+1]->height;
+                }
+                else {
+                    // After single page bottom: adjust to page bottom
+                    pt.x = pt.x + m_pageRects[0].left + m_pageMargins.left;
+                    pt.y = getPageHeaderHeight() + m_pageMargins.top + m_pages[page]->height;
+                }
+                return true;
             }
             return false;
 	}
@@ -2374,11 +2491,11 @@ bool LVDocView::docToWindowPoint(lvPoint & pt) {
 }
 
 /// returns xpointer for specified window point
-ldomXPointer LVDocView::getNodeByPoint(lvPoint pt) {
+ldomXPointer LVDocView::getNodeByPoint(lvPoint pt, bool strictBounds) {
 	LVLock lock(getMutex());
     CHECK_RENDER("getNodeByPoint()")
 	if (windowToDocPoint(pt) && m_doc) {
-		ldomXPointer ptr = m_doc->createXPointer(pt);
+		ldomXPointer ptr = m_doc->createXPointer(pt, 0, strictBounds);
 		//CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
 		return ptr;
 	}
@@ -2417,8 +2534,31 @@ void LVDocView::updateLayout() {
 	m_pageRects[1] = rc;
 	if (getVisiblePageCount() == 2) {
 		int middle = (rc.left + rc.right) >> 1;
-        m_pageRects[0].right = middle; // - m_pageMargins.right;
-        m_pageRects[1].left = middle; // + m_pageMargins.left;
+		// m_pageRects[0].right = middle - m_pageMargins.right / 2;
+		// m_pageRects[1].left = middle + m_pageMargins.left / 2;
+		// ^ seems wrong, as we later add the margins to these m_pageRects
+		// so this would add to much uneeded middle margin
+                // We will ensure a max middle margin the size of a single
+                // left or right margin, whichever is the greatest.
+		// We still want to ensure a minimal middle margin in case
+		// the requested pageMargins are really small. Say 1.2em.
+		int min_middle_margin = 1.2 * m_font_size;
+		int max_middle_margin = m_pageMargins.left > m_pageMargins.right ? m_pageMargins.left : m_pageMargins.right;
+		int additional_middle_margin = 0;
+		int middle_margin = m_pageMargins.right + m_pageMargins.left;
+		if (middle_margin < min_middle_margin) {
+			additional_middle_margin = min_middle_margin - middle_margin;
+		}
+		else if (middle_margin > max_middle_margin) {
+			if (max_middle_margin > min_middle_margin)
+				additional_middle_margin = max_middle_margin - middle_margin; // negative
+			else
+				additional_middle_margin = min_middle_margin - middle_margin; // negative
+		}
+		// Note: with negative values, we allow these 2 m_pageRects to
+		// overlap. But it seems there is no issue doing that.
+		m_pageRects[0].right = middle - additional_middle_margin / 2;
+		m_pageRects[1].left = middle + additional_middle_margin / 2;
 	}
 }
 
@@ -2429,39 +2569,82 @@ void LVDocView::setHeaderIcons(LVRefVec<LVImageSource> icons) {
 
 /// get page document range, -1 for current page
 LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
-	LVLock lock(getMutex());
+    LVLock lock(getMutex());
     CHECK_RENDER("getPageDocRange()")
-	LVRef < ldomXRange > res(NULL);
-	if (isScrollMode()) {
-		// SCROLL mode
-		int starty = _pos;
-		int endy = _pos + m_dy;
-		int fh = GetFullHeight();
-		if (endy >= fh)
-			endy = fh - 1;
-		ldomXPointer start = m_doc->createXPointer(lvPoint(0, starty));
-		ldomXPointer end = m_doc->createXPointer(lvPoint(0, endy));
-		if (start.isNull() || end.isNull())
-			return res;
-		res = LVRef<ldomXRange> (new ldomXRange(start, end));
-	} else {
-		// PAGES mode
-		if (pageIndex < 0 || pageIndex >= m_pages.length())
-			pageIndex = getCurPage();
-		if (pageIndex >= 0 && pageIndex < m_pages.length()) {
-			LVRendPageInfo *page = m_pages[pageIndex];
-			if (page->type != PAGE_TYPE_NORMAL)
-				return res;
-			ldomXPointer start = m_doc->createXPointer(lvPoint(0, page->start));
-			//ldomXPointer end = m_doc->createXPointer( lvPoint( m_dx+m_dy, page->start + page->height - 1 ) );
-			ldomXPointer end = m_doc->createXPointer(lvPoint(0, page->start
-															+ page->height), 1);
-			if (start.isNull() || end.isNull())
-				return res;
-			res = LVRef<ldomXRange>(new ldomXRange(start, end));
-		}
-	}
-	return res;
+    // On some pages (eg: that ends with some padding between an
+    // image on this page, and some text on next page), there may
+    // be some area which is rendered "final" without any content,
+    // thus holding no node. We could then get a null 'start' or
+    // 'end' below by looking only at start_y or end_y.
+    // So, in all cases, loop while increasing or decrasing y
+    // to get more chances of finding a valid XPointer.
+    LVRef < ldomXRange > res(NULL);
+    int start_y;
+    int end_y;
+    if (isScrollMode()) { // SCROLL mode
+        start_y = _pos;
+        end_y = _pos + m_dy;
+        int fh = GetFullHeight();
+        if (end_y >= fh)
+            end_y = fh - 1;
+    }
+    else { // PAGES mode
+        if (pageIndex < 0 || pageIndex >= m_pages.length())
+            pageIndex = getCurPage();
+        if (pageIndex >= 0 && pageIndex < m_pages.length()) {
+            LVRendPageInfo * page = m_pages[pageIndex];
+            if (page->flags & RN_PAGE_TYPE_COVER)
+                return res;
+            start_y = page->start;
+            end_y = page->start + page->height;
+        }
+        else {
+            return res;
+        }
+    }
+    int height = end_y - start_y;
+    if (height < 0)
+        return res;
+    // Note: this may return a range that may not include some parts
+    // of the document that are actually displayed on that page, like
+    // floats that were in some HTML fragment of the previous page,
+    // but whose positionning has been shifted/delayed and ended up
+    // on this page (so, getCurrentPageLinks() may miss links from
+    // such floats).
+    // With floats, a page may actually show more than one range,
+    // not sure how to deal with that (return a range including all
+    // subranges, so possibly including stuff not shown on the page?)
+    ldomXPointer start;
+    ldomXPointer end;
+    int start_h;
+    for (start_h=0; start_h < height; start_h++) {
+        start = m_doc->createXPointer(lvPoint(0, start_y + start_h), 1);
+        // printf("  start (%d=%d): %s\n", start_h, start_y + start_h, UnicodeToLocal(start.toString()).c_str());
+        if (!start.isNull()) {
+            // Check what we got is really in current page
+            lvPoint pt = start.toPoint();
+            // printf("start pt.y %d start_y %d end_y %d\n", pt.y, start_y, end_y);
+            if (pt.y >= start_y && pt.y <= end_y)
+                break; // we found our start of page xpointer
+        }
+    }
+    int end_h;
+    for (end_h=height; end_h >= start_h; end_h--) {
+        end = m_doc->createXPointer(lvPoint(GetWidth(), start_y + end_h), -1);
+                                // x=GetWidth() to get XPointer of end of line
+        // printf("  end (%d=%d): %s\n", end_h, start_y + end_h, UnicodeToLocal(end.toString()).c_str());
+        if (!end.isNull()) {
+            // Check what we got is really in current page
+            lvPoint pt = end.toPoint();
+            // printf("end pt.y %d start_y %d end_y %d\n", pt.y, start_y, end_y);
+            if (pt.y >= start_y && pt.y <= end_y)
+                break; // we found our end of page xpointer
+        }
+    }
+    if (start.isNull() || end.isNull())
+        return res;
+    res = LVRef<ldomXRange> (new ldomXRange(start, end));
+    return res;
 }
 
 /// returns number of non-space characters on current page
@@ -2521,13 +2704,9 @@ void LVDocView::setRenderProps(int dx, int dy) {
 	updateLayout();
 	m_showCover = !getCoverPageImage().isNull();
 
-	if (dx == 0)
-		dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
-	if (dy == 0)
-		dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom
-				- getPageHeaderHeight();
-
 	lString8 fontName = lString8(DEFAULT_FONT_NAME);
+	m_font_size = scaleFontSizeForDPI(m_requested_font_size);
+	gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
 	m_font = fontMan->GetFont(m_font_size, 400 + LVRendGetFontEmbolden(),
 			false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
 	//m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
@@ -2535,6 +2714,12 @@ void LVDocView::setRenderProps(int dx, int dy) {
 			DEFAULT_FONT_FAMILY, m_statusFontFace);
 	if (!m_font || !m_infoFont)
 		return;
+
+	if (dx == 0)
+		dx = m_pageRects[0].width() - m_pageMargins.left - m_pageMargins.right;
+	if (dy == 0)
+		dy = m_pageRects[0].height() - m_pageMargins.top - m_pageMargins.bottom
+				- getPageHeaderHeight();
 
     updateDocStyleSheet();
 
@@ -2577,6 +2762,14 @@ void LVDocView::Render(int dx, int dy, LVRendPageList * pages) {
                 m_font, m_def_interline_space, m_props);
 
 #if 0
+                // For debugging lvpagesplitter.cpp (small books)
+                for (int i=0; i<m_pages.length(); i++) {
+                    printf("%4d:   %7d .. %-7d [%d]\n", i, m_pages[i]->start, m_pages[i]->start+m_pages[i]->height, m_pages[i]->height);
+                }
+#endif
+
+#if 0
+                // For debugging lvpagesplitter.cpp (larger books)
 		FILE * f = fopen("pagelist.log", "wt");
 		if (f) {
 			for (int i=0; i<m_pages.length(); i++)
@@ -2899,7 +3092,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 		return false; // only internal links supported (started with #)
 	}
 	link = link.substr(1, link.length() - 1);
-	lUInt16 id = m_doc->getAttrValueIndex(link.c_str());
+	lUInt32 id = m_doc->getAttrValueIndex(link.c_str());
 	ldomNode * dest = m_doc->getNodeById(id);
 	if (!dest)
 		return false;
@@ -3257,9 +3450,13 @@ static int findBestFit(LVArray<int> & v, int n, bool rollCyclic = false) {
 }
 
 void LVDocView::setDefaultInterlineSpace(int percent) {
-	LVLock lock(getMutex());
+    LVLock lock(getMutex());
     REQUEST_RENDER("setDefaultInterlineSpace")
-	m_def_interline_space = percent;
+    m_def_interline_space = percent; // not used
+    if (percent == 100) // (avoid any rounding issue)
+        gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE;
+    else
+        gInterlineScaleFactor = INTERLINE_SCALE_FACTOR_NO_SCALE * percent / 100;
     _posIsSet = false;
 //	goToBookmark( _posBookmark);
 //        updateBookMarksRanges();
@@ -3277,16 +3474,29 @@ void LVDocView::setStatusFontSize(int newSize) {
 	//goToBookmark(_posBookmark);
 }
 
+int LVDocView::scaleFontSizeForDPI(int fontSize) {
+    if (gRenderScaleFontWithDPI) {
+        fontSize = scaleForRenderDPI(fontSize);
+        fontSize = findBestFit(m_font_sizes, fontSize);
+    }
+    return fontSize;
+}
+
 void LVDocView::setFontSize(int newSize) {
-	LVLock lock(getMutex());
-	int oldSize = m_font_size;
-	m_font_size = findBestFit(m_font_sizes, newSize);
-	if (oldSize != newSize) {
-		propsGetCurrent()->setInt(PROP_FONT_SIZE, m_font_size);
-        CRLog::debug("New font size: %d requested: %d", m_font_size, newSize);
+    LVLock lock(getMutex());
+
+    // We don't scale m_requested_font_size itself, so font size and gRenderDPI
+    // can be changed independantly.
+    int oldSize = m_requested_font_size;
+    if (oldSize != newSize) {
+        m_requested_font_size = findBestFit(m_font_sizes, newSize);
+        propsGetCurrent()->setInt(PROP_FONT_SIZE, m_requested_font_size);
+        m_font_size = scaleFontSizeForDPI(m_requested_font_size);
+        gRootFontSize = m_font_size; // stored as global (for 'rem' css unit)
+        CRLog::debug("New requested font size: %d (asked: %d)", m_requested_font_size, newSize);
         REQUEST_RENDER("setFontSize")
-	}
-	//goToBookmark(_posBookmark);
+    }
+    //goToBookmark(_posBookmark);
 }
 
 void LVDocView::setDefaultFontFace(const lString8 & newFace) {
@@ -3309,11 +3519,11 @@ void LVDocView::ZoomFont(int delta) {
 	if (m_font.isNull())
 		return;
 #if 1
-	int sz = m_font_size;
+	int sz = m_requested_font_size;
 	for (int i = 0; i < 15; i++) {
 		sz += delta;
 		int nsz = findBestFit(m_font_sizes, sz, m_font_sizes_cyclic);
-		if (nsz != m_font_size) {
+		if (nsz != m_requested_font_size) {
 			setFontSize(nsz);
 			return;
 		}
@@ -3331,7 +3541,7 @@ void LVDocView::ZoomFont(int delta) {
 		{
 			// found!
 			//ldomXPointer bm = getBookmark();
-			m_font_size = nfnt->getHeight();
+			m_requested_font_size = nfnt->getHeight();
 			Render();
 			goToBookmark(_posBookmark);
 			return;
@@ -3388,14 +3598,10 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 void LVDocView::Resize(int dx, int dy) {
 	//LVCHECKPOINT("Resize");
 	CRLog::trace("LVDocView:Resize(%dx%d)", dx, dy);
-	if (dx < SCREEN_SIZE_MIN)
-		dx = SCREEN_SIZE_MIN;
-	if (dx > SCREEN_SIZE_MAX)
-		dx = SCREEN_SIZE_MAX;
-	if (dy < SCREEN_SIZE_MIN)
-		dy = SCREEN_SIZE_MIN;
-	if (dy > SCREEN_SIZE_MAX)
-		dy = SCREEN_SIZE_MAX;
+	if (dx < 80 || dx > 32767)
+		dx = 80;
+	if (dy < 80 || dy > 32767)
+		dy = 80;
 #if CR_INTERNAL_PAGE_ORIENTATION==1
 	if ( m_rotateAngle==CR_ROTATE_ANGLE_90 || m_rotateAngle==CR_ROTATE_ANGLE_270 ) {
 		CRLog::trace("Screen is rotated, swapping dimensions");
@@ -3543,7 +3749,7 @@ static void FileToArcProps(CRPropRef props) {
 }
 
 /// load document from file
-bool LVDocView::LoadDocument(const lChar16 * fname) {
+bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 	if (!fname || !fname[0])
 		return false;
 
@@ -3593,7 +3799,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
         m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 		// loading document
-		if (LoadDocument(stream)) {
+		if (LoadDocument(stream, metadataOnly)) {
 			m_filename = lString16(fname);
 			m_stream.Clear();
 			return true;
@@ -3639,7 +3845,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 			(int) stream->GetSize()));
     m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 
-	if (LoadDocument(stream)) {
+	if (LoadDocument(stream, metadataOnly)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
 
@@ -3693,7 +3899,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname) {
 
 void LVDocView::close() {
     if ( m_doc )
-        m_doc->updateMap();
+        m_doc->updateMap(m_callback); // show save cache file progress
     createDefaultDocument(lString16::empty_str, lString16::empty_str);
 }
 
@@ -3791,7 +3997,7 @@ void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
 }
 
 /// load document from stream
-bool LVDocView::LoadDocument(LVStreamRef stream) {
+bool LVDocView::LoadDocument(LVStreamRef stream, bool metadataOnly) {
 
 
 	m_swapDone = false;
@@ -3865,7 +4071,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream) {
 			if ( m_callback )
                 m_callback->OnLoadFileFormatDetected(doc_format_epub);
             updateDocStyleSheet();
-            bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this );
+            bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this, metadataOnly );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
                 createDefaultDocument( cs16("ERROR: Error reading EPUB format"), cs16("Cannot open document") );
@@ -4179,8 +4385,8 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 	switch (fmt) {
 	case doc_format_fb2:
 		return L"FictionBook (FB2)";
-    case doc_format_fb3:
-        return L"FictionBook (FB3)";
+	case doc_format_fb3:
+		return L"FictionBook (FB3)";
 	case doc_format_txt:
 		return L"Plain text (TXT)";
 	case doc_format_rtf:
@@ -4195,8 +4401,8 @@ const lChar16 * getDocFormatName(doc_format_t fmt) {
 		return L"CR3 TXT Bookmark";
 	case doc_format_doc:
 		return L"DOC";
-    case doc_format_docx:
-        return L"DOCX";
+	case doc_format_docx:
+		return L"DOCX";
 	default:
 		return L"Unknown format";
 	}
@@ -4241,12 +4447,18 @@ void LVDocView::createEmptyDocument() {
 			PROP_EMBEDDED_STYLES, true));
     m_doc->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, m_props->getBoolDef(
             PROP_EMBEDDED_FONTS, true));
+    m_doc->setSpaceWidthScalePercent(m_props->getIntDef(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, 100));
     m_doc->setMinSpaceCondensingPercent(m_props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, 50));
 
     m_doc->setContainer(m_container);
-	m_doc->setNodeTypes(fb2_elem_table);
-	m_doc->setAttributeTypes(fb2_attr_table);
-	m_doc->setNameSpaceTypes(fb2_ns_table);
+    // This sets the element names default style (display, whitespace)
+    // as defined in fb2def.h (createEmptyDocument() is called for all
+    // document formats, so FB2 and HTML starts with the fb2def.h styles.
+    // They are then updated with the <format>.css files, but they get back
+    // these original styles when one selects "Clear all external styles".
+    m_doc->setNodeTypes(fb2_elem_table);
+    m_doc->setAttributeTypes(fb2_attr_table);
+    m_doc->setNameSpaceTypes(fb2_ns_table);
 }
 
 /// format of document from cache is known
@@ -4301,7 +4513,7 @@ bool LVDocView::ParseDocument() {
 		//m_doc->getStyleSheet()->parse(m_stylesheet.c_str());
 
 		setRenderProps(0, 0); // to allow apply styles and rend method while loading
-        if (m_doc->openFromCache(this)) {
+        if (m_doc->openFromCache(this, m_callback)) {
 			CRLog::info("Document is found in cache, will reuse");
 
 
@@ -4322,86 +4534,93 @@ bool LVDocView::ParseDocument() {
 	}
 
 	{
-		ldomDocumentWriter writer(m_doc);
-		ldomDocumentWriterFilter writerFilter(m_doc, false,
-				HTML_AUTOCLOSE_TABLE);
-		lString16 txt_autodet_lang;
+        ldomDocumentWriter writer(m_doc);
+        ldomDocumentWriterFilter writerFilter(m_doc, false, HTML_AUTOCLOSE_TABLE);
+        lString16 txt_autodet_lang;
 
-		if (m_stream->GetSize() < 5) {
-            createDefaultDocument(cs16("ERROR: Wrong document size"),
-                    cs16("Cannot open document"));
-			return false;
-		}
+        LVFileFormatParser * parser = NULL;
+        if (m_stream->GetSize() >= 5) {
+            // Only check the following formats when the document is
+            // at least 5 bytes: if not, go directly with plain text.
 
-		/// FB2 format
-		setDocFormat( doc_format_fb2);
-        LVFileFormatParser * parser = new LVXMLParser(m_stream, &writer, false, true);
-		if (!parser->CheckFormat()) {
-			delete parser;
-			parser = NULL;
-		} else {
-		}
+            /// FB2 format
+            setDocFormat( doc_format_fb2);
+            parser = new LVXMLParser(m_stream, &writer, false, true);
+            if (!parser->CheckFormat()) {
+                delete parser;
+                parser = NULL;
+            }
 
-		/// RTF format
-		if (parser == NULL) {
-			setDocFormat( doc_format_rtf);
-			parser = new LVRtfParser(m_stream, &writer);
-			if (!parser->CheckFormat()) {
-				delete parser;
-				parser = NULL;
-			}
-		}
+            /// RTF format
+            if (parser == NULL) {
+                setDocFormat( doc_format_rtf);
+                parser = new LVRtfParser(m_stream, &writer);
+                if (!parser->CheckFormat()) {
+                    delete parser;
+                    parser = NULL;
+                }
+            }
 
-		/// HTML format
-		if (parser == NULL) {
-			setDocFormat( doc_format_html);
-			parser = new LVHTMLParser(m_stream, &writerFilter);
-			if (!parser->CheckFormat()) {
-				delete parser;
-				parser = NULL;
-			} else {
-			}
-		}
-		///cool reader bookmark in txt format
-		if (parser == NULL) {
+            /// HTML format
+            if (parser == NULL) {
+                setDocFormat( doc_format_html);
+                parser = new LVHTMLParser(m_stream, &writerFilter);
+                if (!parser->CheckFormat()) {
+                    delete parser;
+                    parser = NULL;
+                }
+            }
 
-			//m_text_format = txt_format_pre; // DEBUG!!!
-			setDocFormat( doc_format_txt_bookmark);
-			parser = new LVTextBookmarkParser(m_stream, &writer);
-			if (!parser->CheckFormat()) {
-				delete parser;
-				parser = NULL;
-			}
-		} else {
-		}
+            ///cool reader bookmark in txt format
+            if (parser == NULL) {
+                //m_text_format = txt_format_pre; // DEBUG!!!
+                setDocFormat( doc_format_txt_bookmark);
+                parser = new LVTextBookmarkParser(m_stream, &writer);
+                if (!parser->CheckFormat()) {
+                    delete parser;
+                    parser = NULL;
+                }
+            }
+        }
 
-		/// plain text format
-		if (parser == NULL) {
+        /// plain text format
+        if (parser == NULL) {
+            //m_text_format = txt_format_pre; // DEBUG!!!
+            setDocFormat( doc_format_txt);
+            parser = new LVTextParser(m_stream, &writer,
+                            getTextFormatOptions() == txt_format_pre);
+            if (!parser->CheckFormat()) {
+                delete parser;
+                parser = NULL;
+            } else {
+                txt_autodet_lang = ((LVTextParser*)parser)->GetLangName();
+            }
 
-			//m_text_format = txt_format_pre; // DEBUG!!!
-			setDocFormat( doc_format_txt);
-			parser = new LVTextParser(m_stream, &writer, getTextFormatOptions()
-					== txt_format_pre);
-			if (parser->CheckFormat()) {
-				txt_autodet_lang = ((LVTextParser*)parser)->GetLangName();
-			} else {
-				delete parser;
-				parser = NULL;
-			}
-		} else {
-		}
+        }
 
-		// unknown format
-		if (!parser) {
-			setDocFormat( doc_format_none);
+        /// plain text format (robust, never fail)
+        if (parser == NULL) {
+            setDocFormat( doc_format_txt);
+            parser = new LVTextRobustParser(m_stream, &writer,
+                             getTextFormatOptions() == txt_format_pre);
+            if (!parser->CheckFormat()) {
+                // Never reached
+                delete parser;
+                parser = NULL;
+            }
+        }
+
+        // unknown format (never reached)
+        if (!parser) {
+            setDocFormat( doc_format_none);
             createDefaultDocument(cs16("ERROR: Unknown document format"),
                     cs16("Cannot open document"));
-			if (m_callback) {
-				m_callback->OnLoadFileError(
+            if (m_callback) {
+                m_callback->OnLoadFileError(
                         cs16("Unknown document format"));
-			}
-			return false;
-		}
+            }
+            return false;
+        }
 
 		if (m_callback) {
 			m_callback->OnLoadFileFormatDetected(getDocFormat());
@@ -4565,10 +4784,10 @@ void LVDocView::swapToCache() {
     m_swapDone = true;
 }
 
-bool LVDocView::LoadDocument(const char * fname) {
+bool LVDocView::LoadDocument(const char * fname, bool metadataOnly) {
 	if (!fname || !fname[0])
 		return false;
-	return LoadDocument(LocalToUnicode(lString8(fname)).c_str());
+	return LoadDocument(LocalToUnicode(lString8(fname)).c_str(), metadataOnly);
 }
 
 /// returns XPointer to middle paragraph of current page
@@ -4594,7 +4813,7 @@ ldomXPointer LVDocView::getCurrentPageMiddleParagraph() {
 			pageIndex = getCurPage();
 		if (pageIndex >= 0 && pageIndex < m_pages.length()) {
 			LVRendPageInfo *page = m_pages[pageIndex];
-			if (page->type == PAGE_TYPE_NORMAL)
+			if (page->flags & RN_PAGE_TYPE_NORMAL)
 				ptr = m_doc->createXPointer(lvPoint(0, page->start + page->height / 2));
 		}
 	}
@@ -4616,10 +4835,64 @@ ldomXPointer LVDocView::getBookmark() {
 	ldomXPointer ptr;
 	if (m_doc) {
 		if (isPageMode()) {
-			if (_page >= 0 && _page < m_pages.length())
-				ptr = m_doc->createXPointer(lvPoint(0, m_pages[_page]->start));
+			if (_page >= 0 && _page < m_pages.length()) {
+				// In some edge cases, getting the xpointer for y=m_pages[_page]->start
+				// could resolve back to the previous page. We need to check for that
+				// and increase y until we find a coherent one.
+				LVRendPageInfo * page = m_pages[_page];
+				bool found = false;
+				ldomXPointer fallback_ptr;
+				for (int y = page->start; y < page->start + page->height; y++) {
+					// Use direction=1 to avoid any x check (in case there
+					// is some left margin)
+					ptr = m_doc->createXPointer(lvPoint(0, y), 1);
+					lvPoint pt = ptr.toPoint();
+					if (pt.y >= page->start) {
+						if (!fallback_ptr)
+							fallback_ptr = ptr;
+						if ( pt.y < page->start + page->height ) {
+							// valid, resolves back to same page
+							found = true;
+							break;
+						}
+					}
+				}
+				if (!found) {
+					// None looking forward resolved to that same page, we
+					// might find a better one looking backward (eg: when
+					// an element contains some floats that overflow its
+					// height) with direction=-1:
+					ptr = m_doc->createXPointer(lvPoint(0, page->start), -1);
+					lvPoint pt = ptr.toPoint();
+					if (pt.y >= page->start && pt.y < page->start + page->height ) {
+						found = true;
+					}
+				}
+				if (!found) {
+					if (!fallback_ptr.isNull()) {
+						ptr = fallback_ptr;
+					}
+					else {
+						// fallback to the one for page->start, even if not good
+						ptr = m_doc->createXPointer(lvPoint(0, page->start));
+					}
+				}
+			}
 		} else {
-			ptr = m_doc->createXPointer(lvPoint(0, _pos));
+			// ptr = m_doc->createXPointer(lvPoint(0, _pos));
+			// In scroll mode, the y position may not resolve to any xpointer
+			// (because of margins, empty elements...)
+			// When inside an image (top of page being the middle of an image),
+			// we get the top of the image, and when restoring this position,
+			// we'll have the top of the image at the top of the page, so
+			// scrolling a bit up.
+			// Let's do the same in that case: get the previous text node
+			// position
+			for (int y = _pos; y >= 0; y--) {
+				ptr = m_doc->createXPointer(lvPoint(0, y), -1);
+				if (!ptr.isNull())
+					break;
+			}
 		}
 	}
 	return ptr;
@@ -4818,12 +5091,27 @@ void LVDocView::getCurrentPageLinks(ldomXRangeList & list) {
 		// search for links
 		class LinkKeeper: public ldomNodeCallback {
 			ldomXRangeList &_list;
+			bool check_first_text_node_parents_done;
 		public:
-			LinkKeeper(ldomXRangeList & list) :
-				_list(list) {
+			LinkKeeper(ldomXRangeList & list) : _list(list) {
+				check_first_text_node_parents_done = false;
 			}
 			/// called for each found text fragment in range
-			virtual void onText(ldomXRange *) {
+			virtual void onText(ldomXRange * r) {
+				if (check_first_text_node_parents_done)
+					return;
+				// For the first text node, look at its parents
+				// as one might be a <A>
+				ldomNode * node = r->getStart().getNode();
+				while ( node && !node->isElement() )
+					node = node->getParentNode();
+				while ( node && node->getNodeId() != el_a )
+					node = node->getParentNode();
+				if ( node ) { // <a> parent of first text node found
+					ldomXPointerEx xp = ldomXPointerEx(node, 0);
+					onElement( &xp );
+				}
+				check_first_text_node_parents_done = true;
 			}
 			/// called for each found node in range
 			virtual bool onElement(ldomXPointerEx * ptr) {
@@ -4834,7 +5122,12 @@ void LVDocView::getCurrentPageLinks(ldomXRangeList & list) {
 						if (_list[i]->getStart().getNode() == elem)
 							return true; // don't add, duplicate found!
 					}
-                                        _list.add(new ldomXRange(elem->getChildNode(0)));
+					// We ignore <a/> and <a></a> with no content, as we
+					// can't make a ldomXRange out of them
+					// We also want all the <a> content, so we use a ldomXRange()
+					// extended to include its deepest text child
+					if (elem->hasChildren())
+						_list.add(new ldomXRange(elem, true));
 				}
 				return true;
 			}
@@ -5786,6 +6079,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 #endif
 	static int int_option_hinting[] = { 0, 1, 2 };
 	props->limitValueList(PROP_FONT_HINTING, int_option_hinting, 3);
+	static int int_option_kerning[] = { 0, 1, 2, 3 };
+	props->limitValueList(PROP_FONT_KERNING, int_option_kerning, 4);
     static int int_options_1_2[] = { 2, 1 };
 	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
 	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
@@ -5793,8 +6088,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
 	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
 	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
-	props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
-	props->limitValueList(PROP_FONT_LIGATURES_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
     static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
     props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
@@ -5864,12 +6157,23 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, defImgScaling.mode);
     props->setIntDef(PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, defImgScaling.mode);
 
-    int p = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
+    int p = props->getIntDef(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, DEF_SPACE_WIDTH_SCALE_PERCENT);
+    if (p<10)
+        p = 10;
+    if (p>500)
+        p = 500;
+    props->setInt(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, p);
+
+    p = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
     if (p<25)
         p = 25;
     if (p>100)
         p = 100;
     props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
+
+    props->setIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI); // 96 dpi
+    props->setIntDef(PROP_RENDER_SCALE_FONT_WITH_DPI, DEF_RENDER_SCALE_FONT_WITH_DPI); // no scale
+    props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
 
     props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
 
@@ -5951,14 +6255,12 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_LANDSCAPE_PAGES) {
             int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
             setVisiblePageCount(pages);
-        } else if (name == PROP_FONT_KERNING_ENABLED) {
-            bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);
-            fontMan->setKerning(kerning);
-            REQUEST_RENDER("propsApply - kerning")
-        } else if (name == PROP_FONT_LIGATURES_ENABLED) {
-            bool ligatures = props->getBoolDef(PROP_FONT_LIGATURES_ENABLED, false);
-            fontMan->setLigatures(ligatures);
-            REQUEST_RENDER("propsApply - ligatures")
+        } else if (name == PROP_FONT_KERNING) {
+            int mode = props->getIntDef(PROP_FONT_KERNING, (int)KERNING_MODE_DISABLED);
+            if ((int)fontMan->GetKerningMode() != mode && mode>=0 && mode<=3) {
+                fontMan->SetKerningMode((kerning_mode_t)mode);
+                REQUEST_RENDER("Setting kerning mode");
+            }
         } else if (name == PROP_FONT_WEIGHT_EMBOLDEN) {
             bool embolden = props->getBoolDef(PROP_FONT_WEIGHT_EMBOLDEN, false);
             int v = embolden ? STYLE_FONT_EMBOLD_MODE_EMBOLD
@@ -6013,11 +6315,22 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_PAGE_MARGIN_TOP || name
                    == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
                    || name == PROP_PAGE_MARGIN_BOTTOM) {
-            m_props->setString(name.c_str(), value);
-            updatePageMargins();
+            int margin = props->getIntDef(name.c_str(), 8);
+            int maxmargin = (name == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT) ? m_dx / 3 : m_dy / 3;
+            if (margin > maxmargin)
+                margin = maxmargin;
+            lvRect rc = getPageMargins();
+            if (name == PROP_PAGE_MARGIN_TOP)
+                rc.top = margin;
+            else if (name == PROP_PAGE_MARGIN_BOTTOM)
+                rc.bottom = margin;
+            else if (name == PROP_PAGE_MARGIN_LEFT)
+                rc.left = margin;
+            else if (name == PROP_PAGE_MARGIN_RIGHT)
+                rc.right = margin;
+            setPageMargins(rc);
         } else if (name == PROP_FONT_FACE) {
             setDefaultFontFace(UnicodeToUtf8(value));
-            updatePageMargins();
         } else if (name == PROP_FALLBACK_FONT_FACE) {
             lString8 oldFace = fontMan->GetFallbackFontFace();
             if ( UnicodeToUtf8(value)!=oldFace )
@@ -6047,7 +6360,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_FONT_SIZE) {
             int fontSize = props->getIntDef(PROP_FONT_SIZE, m_font_sizes[0]);
             setFontSize(fontSize);//cr_font_sizes
-            value = lString16::itoa(m_font_size);
+            value = lString16::itoa(m_requested_font_size);
             updatePageMargins();
         } else if (name == PROP_STATUS_FONT_SIZE) {
             int fontSize = props->getIntDef(PROP_STATUS_FONT_SIZE,
@@ -6075,6 +6388,24 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                     REQUEST_RENDER("propsApply hyphenation dict")
                 }
             }
+        } else if (name == PROP_HYPHENATION_LEFT_HYPHEN_MIN) {
+            int leftHyphenMin = props->getIntDef(PROP_HYPHENATION_LEFT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
+            if (HyphMan::getLeftHyphenMin() != leftHyphenMin) {
+                HyphMan::setLeftHyphenMin(leftHyphenMin);
+                REQUEST_RENDER("propsApply hyphenation left_hyphen_min")
+            }
+        } else if (name == PROP_HYPHENATION_RIGHT_HYPHEN_MIN) {
+            int rightHyphenMin = props->getIntDef(PROP_HYPHENATION_RIGHT_HYPHEN_MIN, HYPH_DEFAULT_HYPHEN_MIN);
+            if (HyphMan::getRightHyphenMin() != rightHyphenMin) {
+                HyphMan::setRightHyphenMin(rightHyphenMin);
+                REQUEST_RENDER("propsApply hyphenation right_hyphen_min")
+            }
+        } else if (name == PROP_HYPHENATION_TRUST_SOFT_HYPHENS) {
+            int trustSoftHyphens = props->getIntDef(PROP_HYPHENATION_TRUST_SOFT_HYPHENS, HYPH_DEFAULT_TRUST_SOFT_HYPHENS);
+            if (HyphMan::getTrustSoftHyphens() != trustSoftHyphens) {
+                HyphMan::setTrustSoftHyphens(trustSoftHyphens);
+                REQUEST_RENDER("propsApply hyphenation trust_soft_hyphens")
+            }
 #endif
         } else if (name == PROP_INTERLINE_SPACE) {
             int interlineSpace = props->getIntDef(PROP_INTERLINE_SPACE,
@@ -6089,15 +6420,18 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
 #endif
         } else if (name == PROP_EMBEDDED_STYLES) {
             bool value = props->getBoolDef(PROP_EMBEDDED_STYLES, true);
-            getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, value);
+            if (m_doc) // not when noDefaultDocument=true
+                getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, value);
             REQUEST_RENDER("propsApply embedded styles")
         } else if (name == PROP_EMBEDDED_FONTS) {
             bool value = props->getBoolDef(PROP_EMBEDDED_FONTS, true);
-            getDocument()->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, value);
+            if (m_doc) // not when noDefaultDocument=true
+                getDocument()->setDocFlag(DOC_FLAG_ENABLE_DOC_FONTS, value);
             REQUEST_RENDER("propsApply doc fonts")
         } else if (name == PROP_FOOTNOTES) {
             bool value = props->getBoolDef(PROP_FOOTNOTES, true);
-            getDocument()->setDocFlag(DOC_FLAG_ENABLE_FOOTNOTES, value);
+            if (m_doc) // not when noDefaultDocument=true
+                getDocument()->setDocFlag(DOC_FLAG_ENABLE_FOOTNOTES, value);
             REQUEST_RENDER("propsApply footnotes")
         } else if (name == PROP_FLOATING_PUNCTUATION) {
             bool value = props->getBoolDef(PROP_FLOATING_PUNCTUATION, true);
@@ -6105,10 +6439,35 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 gFlgFloatingPunctuationEnabled = value;
                 REQUEST_RENDER("propsApply floating punct")
             }
+        } else if (name == PROP_RENDER_BLOCK_RENDERING_FLAGS) {
+            int value = props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+            value = validateBlockRenderingFlags(value);
+            if ( gRenderBlockRenderingFlags != value ) {
+                gRenderBlockRenderingFlags = value;
+                REQUEST_RENDER("propsApply render block rendering flags")
+            }
+        } else if (name == PROP_RENDER_DPI) {
+            int value = props->getIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI);
+            if ( gRenderDPI != value ) {
+                gRenderDPI = value;
+                REQUEST_RENDER("propsApply render dpi")
+            }
+        } else if (name == PROP_RENDER_SCALE_FONT_WITH_DPI) {
+            int value = props->getIntDef(PROP_RENDER_SCALE_FONT_WITH_DPI, DEF_RENDER_SCALE_FONT_WITH_DPI);
+            if ( gRenderScaleFontWithDPI != value ) {
+                gRenderScaleFontWithDPI = value;
+                REQUEST_RENDER("propsApply render scale font with dpi")
+            }
+        } else if (name == PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT) {
+            int value = props->getIntDef(PROP_FORMAT_SPACE_WIDTH_SCALE_PERCENT, DEF_SPACE_WIDTH_SCALE_PERCENT);
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setSpaceWidthScalePercent(value))
+                    REQUEST_RENDER("propsApply space width scale percent")
         } else if (name == PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT) {
             int value = props->getIntDef(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, DEF_MIN_SPACE_CONDENSING_PERCENT);
-            if (getDocument()->setMinSpaceCondensingPercent(value))
-                REQUEST_RENDER("propsApply condensing percent")
+            if (m_doc) // not when noDefaultDocument=true
+                if (getDocument()->setMinSpaceCondensingPercent(value))
+                    REQUEST_RENDER("propsApply condensing percent")
         } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS) {
             int value = props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
             if (m_highlightBookmarks != value) {

@@ -190,7 +190,7 @@ struct MobiPreamble : public PalmDocPreamble
             return false; // unsupported type
         if ( mobiEncryption!=0 )
             return false; // encryption is not supported
-        if (hederLength == 0xE4 || hederLength == 0xE8) {
+        if ( hederLength >= 0xE4 ) {
             stream->Seek(242-180, LVSEEK_CUR, NULL);
             stream->Read(&extraDataFlags);
             if ( cnv.lsf() )
@@ -672,7 +672,7 @@ public:
         _format = UNKNOWN;
         stream->SetPos(0);
         lUInt32 fsize = stream->GetSize();
-        PDBHdr hdr;
+        PDBHdr hdr = { 0 };
         PDBRecordEntry entry;
         if ( !hdr.read(stream) )
             return false;
@@ -714,7 +714,7 @@ public:
         if ( _format==EREADER ) {
             if ( _records[0].size<sizeof(EReaderHeader) )
                 return false;
-            EReaderHeader preamble;
+            EReaderHeader preamble = { 0 };
             stream->SetPos(_records[0].offset);
             if ( !preamble.read(stream) )
                 return false; // invalid preamble
@@ -733,8 +733,7 @@ public:
                         stream->SetPos(_records[index].offset);
                         if ( stream->ReadByte()=='P' && stream->ReadByte()=='N' && stream->ReadByte()=='G' && stream->ReadByte()==' ' ) {
                             // header ok, adding item
-                            char name[33];
-                            memset(name, 0, 33);
+                            char name[33] = { 0 };
                             lvsize_t bytesRead = 0;
                             stream->Read(name, 32, &bytesRead);
                             if ( name[0] ) {
@@ -751,7 +750,7 @@ public:
             if (!validateContent)
                 contentFormat = doc_format_pdb;
 
-            MobiPreamble preamble;
+            MobiPreamble preamble = {};
             stream->SetPos(_records[0].offset);
             if ( !preamble.read(stream, _mobiExtraDataFlags) )
                 return false; // invalid preamble
@@ -834,7 +833,7 @@ public:
                     if (buf[0]=='G' && buf[1]=='I' && buf[2]=='F')
                         fmt = "gif";
                     if (fmt) {
-                        lString16 name = lString16(MOBI_IMAGE_NAME_PREFIX) + fmt::decimal((int)(index-preamble.firstImageIndex));
+                        lString16 name = lString16(MOBI_IMAGE_NAME_PREFIX) + fmt::decimal((int) (index - preamble.firstImageIndex + 1));
                         //CRLog::debug("Adding image %s [%d] %s", LCSTR(name), _records[index].size, fmt);
                         container->addItem( new LVPDBRegionContainerItem( stream, this, name, _records[index].offset, _records[index].size ) );
                         if ((unsigned)index == preamble.firstImageIndex + coverOffset) {
@@ -847,7 +846,7 @@ public:
         } else if (_format==PALMDOC ) {
             if ( _records[0].size<sizeof(PalmDocPreamble) )
                 return false;
-            PalmDocPreamble preamble;
+            PalmDocPreamble preamble = { 0 };
             stream->SetPos(_records[0].offset);
             if ( !preamble.read(stream) )
                 return false; // invalid preamble

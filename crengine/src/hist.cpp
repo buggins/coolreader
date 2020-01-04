@@ -394,8 +394,7 @@ int CRFileHistRecord::getLastShortcutBookmark()
 int CRFileHistRecord::getFirstFreeShortcutBookmark()
 {
     //int last = -1;
-    char flags[MAX_SHORTCUT_BOOKMARKS+1];
-    memset( flags, 0, sizeof(flags) );
+    char flags[MAX_SHORTCUT_BOOKMARKS+1] = { 0 };
     for ( int i=0; i<_bookmarks.length(); i++ ) {
         if ( _bookmarks[i]->getShortcut()>0 && _bookmarks[i]->getShortcut() < MAX_SHORTCUT_BOOKMARKS && _bookmarks[i]->getType() == bmkt_pos )
             flags[ _bookmarks[i]->getShortcut() ] = 1;

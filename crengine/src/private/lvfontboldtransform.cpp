@@ -39,7 +39,7 @@ int LVFontBoldTransform::getHyphenWidth() {
 }
 
 bool
-LVFontBoldTransform::getGlyphInfo(lUInt16 code, LVFont::glyph_info_t *glyph, lChar16 def_char) {
+LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char) {
     bool res = _baseFont->getGlyphInfo(code, glyph, def_char);
     if (!res)
         return res;
@@ -53,7 +53,7 @@ LVFontBoldTransform::getGlyphInfo(lUInt16 code, LVFont::glyph_info_t *glyph, lCh
 lUInt16
 LVFontBoldTransform::measureText(const lChar16 *text, int len, lUInt16 *widths, lUInt8 *flags,
                                  int max_width, lChar16 def_char, int letter_spacing,
-                                 bool allow_hyphenation) {
+                                 bool allow_hyphenation, lUInt32 hints) {
     CR_UNUSED(allow_hyphenation);
     lUInt16 res = _baseFont->measureText(
             text, len,
@@ -61,7 +61,9 @@ LVFontBoldTransform::measureText(const lChar16 *text, int len, lUInt16 *widths, 
             flags,
             max_width,
             def_char,
-            letter_spacing
+            letter_spacing,
+            allow_hyphenation,
+            hints
     );
     int w = 0;
     for (int i = 0; i < res; i++) {
@@ -91,7 +93,7 @@ lUInt32 LVFontBoldTransform::getTextWidth(const lChar16 *text, int len) {
     return 0;
 }
 
-LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt16 ch, lChar16 def_char) {
+LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar16 def_char) {
 
     LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
     if (item)
@@ -137,17 +139,21 @@ LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt16 ch, lChar16 def_char
     return item;
 }
 
-void LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *text, int len,
+int LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *text, int len,
                                          lChar16 def_char, lUInt32 *palette, bool addHyphen,
-                                         lUInt32 flags, int letter_spacing) {
+                                         lUInt32 flags, int letter_spacing, int width, int text_decoration_back_gap) {
     if (len <= 0)
-        return;
-    if (letter_spacing < 0 || letter_spacing > 50)
+        return 0;
+    if ( letter_spacing < 0 ) {
         letter_spacing = 0;
+    }
+    else if ( letter_spacing > MAX_LETTER_SPACING ) {
+        letter_spacing = MAX_LETTER_SPACING;
+    }
     lvRect clip;
     buf->GetClipRect(&clip);
     if (y + _height < clip.top || y >= clip.bottom)
-        return;
+        return 0;
 
     //int error;
 
@@ -158,50 +164,61 @@ void LVFontBoldTransform::DrawTextString(LVDrawBuf *buf, int x, int y, const lCh
     // measure character widths
     bool isHyphen = false;
     int x0 = x;
-    for (i = 0; i <= len; i++) {
-        if (i == len && (!addHyphen || isHyphen))
+    bool is_rtl = (flags & LFNT_HINT_DIRECTION_KNOWN) && (flags & LFNT_HINT_DIRECTION_IS_RTL);
+    for ( i=0; i<=len; i++) {
+        if ( i==len && !addHyphen )
             break;
-        if (i < len) {
-            ch = text[i];
-            isHyphen = (ch == UNICODE_SOFT_HYPHEN_CODE) && (i < len - 1);
-        } else {
+        if ( i<len ) {
+            ch = is_rtl ? text[len-1-i] : text[i];
+            isHyphen = (ch==UNICODE_SOFT_HYPHEN_CODE);
+        }
+        else {
             ch = UNICODE_SOFT_HYPHEN_CODE;
             isHyphen = 0;
         }
 
-        LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
-        int w = 0;
-        if (item) {
+        LVFontGlyphCacheItem * item = getGlyph(ch, def_char);
+        int w  = 0;
+        if ( item ) {
             // avoid soft hyphens inside text string
             w = item->advance;
-            if (item->bmp_width && item->bmp_height && (!isHyphen || i >= len - 1)) {
-                buf->Draw(x + item->origin_x,
-                          y + _baseline - item->origin_y,
-                          item->bmp,
-                          item->bmp_width,
-                          item->bmp_height,
-                          palette);
+            if ( item->bmp_width && item->bmp_height && (!isHyphen || i==len) ) {
+                buf->Draw( x + item->origin_x,
+                    y + _baseline - item->origin_y,
+                    item->bmp,
+                    item->bmp_width,
+                    item->bmp_height,
+                    palette);
             }
         }
-        x += w + letter_spacing;
+        x  += w + letter_spacing;
     }
-    if (flags & LTEXT_TD_MASK) {
+    int advance = x - x0;
+    if ( flags & LFNT_DRAW_DECORATION_MASK ) {
         // text decoration: underline, etc.
+        // Don't overflow the provided width (which may be lower than our
+        // pen x if last glyph was a space not accounted in word width)
+        if ( width >= 0 && x > x0 + width)
+            x = x0 + width;
+        // And start the decoration before x0 if it is continued
+        // from previous word
+        x0 -= text_decoration_back_gap;
         int h = _size > 30 ? 2 : 1;
         lUInt32 cl = buf->GetTextColor();
-        if ((flags & LTEXT_TD_UNDERLINE) || (flags & LTEXT_TD_BLINK)) {
+        if ( (flags & LFNT_DRAW_UNDERLINE) || (flags & LFNT_DRAW_BLINK) ) {
             int liney = y + _baseline + h;
-            buf->FillRect(x0, liney, x, liney + h, cl);
+            buf->FillRect( x0, liney, x, liney+h, cl );
         }
-        if (flags & LTEXT_TD_OVERLINE) {
+        if ( flags & LFNT_DRAW_OVERLINE ) {
             int liney = y + h;
-            buf->FillRect(x0, liney, x, liney + h, cl);
+            buf->FillRect( x0, liney, x, liney+h, cl );
         }
-        if (flags & LTEXT_TD_LINE_THROUGH) {
-            int liney = y + _height / 2 - h / 2;
-            buf->FillRect(x0, liney, x, liney + h, cl);
+        if ( flags & LFNT_DRAW_LINE_THROUGH ) {
+            int liney = y + _height/2 - h/2;
+            buf->FillRect( x0, liney, x, liney+h, cl );
         }
     }
+    return advance;
 }
 
 /*

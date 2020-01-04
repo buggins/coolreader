@@ -1,0 +1,691 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by GribUser (Moscow) -->
+<!-- edited with XML Spy v4.4 U (http://www.xmlspy.com) by GribUser (Moscow) -->
+<xs:schema xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:genre="http://www.gribuser.ru/xml/fictionbook/2.0/genres" targetNamespace="http://www.gribuser.ru/xml/fictionbook/2.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<!--
+
+Copyright (c) 2004, Dmitry Gribov
+All rights reserved.
+
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, this list
+    of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this
+    list of conditions and the following disclaimer in the documentation and/or other
+    materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+-->
+	<xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="FictionBookLinks.xsd"/>
+	<xs:import namespace="http://www.gribuser.ru/xml/fictionbook/2.0/genres" schemaLocation="FictionBookGenres.xsd"/>
+	<xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="FictionBookLang.xsd"/>
+	<xs:element name="FictionBook">
+		<xs:annotation>
+			<xs:documentation>Root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="stylesheet" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>This element contains an arbitrary stylesheet that is intepreted by a some processing programs, e.g. text/css stylesheets can be used by XSLT stylesheets to generate better looking html</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:string">
+								<xs:attribute name="type" type="xs:string" use="required"/>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="description">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="title-info" type="title-infoType">
+								<xs:annotation>
+									<xs:documentation>Generic information about the book</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="src-title-info" type="title-infoType" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Generic information about the original book (for translations) </xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="document-info">
+								<xs:annotation>
+									<xs:documentation>Information about this particular (xml) document</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="author" type="authorType" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Author(s) of this particular document</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="program-used" type="textFieldType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Any software used in preparation of this document, in free format</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="date" type="dateType">
+											<xs:annotation>
+												<xs:documentation>Date this document was created, same guidelines as in the &lt;title-info&gt; section apply</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="src-url" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Source URL if this document is a conversion of some other (online) document</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="src-ocr" type="textFieldType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Author of the original (online) document, if this is a conversion</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="id" type="xs:token">
+											<xs:annotation>
+												<xs:documentation>this is a unique identifier for a document. this must not change</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="version" type="xs:float">
+											<xs:annotation>
+												<xs:documentation>Document version, in free format, should be incremented if the document is changed and re-released to the public</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="history" type="annotationType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Short description for all changes made to this document, like "Added missing chapter 6", in free form.</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="publisher" type="authorType" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Owner of the fb2 document copyrights</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="publish-info" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Information about some paper/outher published document, that was used as a source of this xml document</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="book-name" type="textFieldType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Original (paper) book name</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="publisher" type="textFieldType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Original (paper) book publisher</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="city" type="textFieldType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>City where the original (paper) book was published</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="year" type="xs:gYear" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Year of the original (paper) publication</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="isbn" type="textFieldType" minOccurs="0"/>
+										<xs:element name="sequence" type="sequenceType" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="custom-info" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Any other information about the book/document that didnt fit in the above groups</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="textFieldType">
+											<xs:attribute name="info-type" type="xs:string" use="required"/>
+										</xs:extension>
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="output" type="shareInstructionType" minOccurs="0" maxOccurs="2"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="body" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Main content of the book, multiple bodies are used for additional information, like footnotes, that do not appear in the main book flow. The first body is presented to the reader by default, and content in the other bodies should be accessible by hyperlinks. Name attribute should describe the meaning of this body, this is optional for the main body.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="image" type="imageType" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Image to be displayed at the top of this section</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="title" type="titleType" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>A fancy title for the entire book, should be used if the simple text version in &lt;description&gt; is not adequate, e.g. the book title has multiple paragraphs and/or character styles</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="epigraph" type="epigraphType" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Epigraph(s) for the entire book, if any</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="section" type="sectionType" maxOccurs="unbounded"/>
+						</xs:sequence>
+						<xs:attribute name="name" type="xs:string" use="optional"/>
+						<xs:attribute ref="xml:lang"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="binary" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Any binary data that is required for the presentation of this book in base64 format. Currently only images are used.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:base64Binary">
+								<xs:attribute name="content-type" type="xs:string" use="required"/>
+								<xs:attribute name="id" type="xs:ID" use="required"/>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="authorType">
+		<xs:annotation>
+			<xs:documentation>Information about a single author</xs:documentation>
+		</xs:annotation>
+		<xs:choice>
+			<xs:sequence>
+				<xs:element name="first-name" type="textFieldType"/>
+				<xs:element name="middle-name" type="textFieldType" minOccurs="0"/>
+				<xs:element name="last-name" type="textFieldType"/>
+				<xs:element name="nickname" type="textFieldType" minOccurs="0"/>
+				<xs:element name="home-page" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="email" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="id" type="xs:token" minOccurs="0"/>
+			</xs:sequence>
+			<xs:sequence>
+				<xs:element name="nickname" type="textFieldType"/>
+				<xs:element name="home-page" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="email" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="id" type="xs:token" minOccurs="0"/>
+			</xs:sequence>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="textFieldType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute ref="xml:lang"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="dateType">
+		<xs:annotation>
+			<xs:documentation>A human readable date, maybe not exact, with an optional computer readable variant</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="value" type="xs:date" use="optional"/>
+				<xs:attribute ref="xml:lang"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="titleType">
+		<xs:annotation>
+			<xs:documentation>A title, used in sections, poems and body elements</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="p" type="pType"/>
+			<xs:element name="empty-line"/>
+		</xs:choice>
+		<xs:attribute ref="xml:lang"/>
+	</xs:complexType>
+	<xs:complexType name="imageType">
+		<xs:annotation>
+			<xs:documentation>An empty element with an image name as an attribute</xs:documentation>
+		</xs:annotation>
+		<xs:attribute ref="xlink:type"/>
+		<xs:attribute ref="xlink:href"/>
+		<xs:attribute name="alt" type="xs:string" use="optional"/>
+		<xs:attribute name="title" type="xs:string" use="optional"/>
+		<xs:attribute name="id" type="xs:ID" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="pType" mixed="true">
+		<xs:annotation>
+			<xs:documentation>A basic paragraph, may include simple formatting inside</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="true">
+			<xs:extension base="styleType">
+				<xs:attribute name="id" type="xs:ID" use="optional"/>
+				<xs:attribute name="style" type="xs:string" use="optional"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="citeType">
+		<xs:annotation>
+			<xs:documentation>A citation with an optional citation author at the end</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="p" type="pType"/>
+				<xs:element name="poem" type="poemType"/>
+				<xs:element name="empty-line"/>
+				<xs:element name="subtitle" type="pType"/>
+				<xs:element name="table" type="tableType"/>
+			</xs:choice>
+			<xs:element name="text-author" type="pType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="optional"/>
+		<xs:attribute ref="xml:lang"/>
+	</xs:complexType>
+	<xs:complexType name="poemType">
+		<xs:annotation>
+			<xs:documentation>A poem</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="title" type="titleType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Poem title</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="epigraph" type="epigraphType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Poem epigraph(s), if any</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="stanza" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Each poem should have at least one stanza. Stanzas are usually separated with empty lines by user agents.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="title" type="titleType" minOccurs="0"/>
+						<xs:element name="subtitle" type="pType" minOccurs="0"/>
+						<xs:element name="v" type="pType" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>An individual line in a stanza</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute ref="xml:lang"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="text-author" type="pType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="date" type="dateType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Date this poem was written.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="optional"/>
+		<xs:attribute ref="xml:lang"/>
+	</xs:complexType>
+	<xs:complexType name="epigraphType">
+		<xs:annotation>
+			<xs:documentation>An epigraph</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="p" type="pType"/>
+				<xs:element name="poem" type="poemType"/>
+				<xs:element name="cite" type="citeType"/>
+				<xs:element name="empty-line"/>
+			</xs:choice>
+			<xs:element name="text-author" type="pType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="annotationType">
+		<xs:annotation>
+			<xs:documentation>A cut-down version of &lt;section&gt; used in annotations</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="p" type="pType"/>
+			<xs:element name="poem" type="poemType"/>
+			<xs:element name="cite" type="citeType"/>
+			<xs:element name="subtitle" type="pType"/>
+			<xs:element name="table" type="tableType"/>
+			<xs:element name="empty-line"/>
+		</xs:choice>
+		<xs:attribute name="id" type="xs:ID" use="optional"/>
+		<xs:attribute ref="xml:lang"/>
+	</xs:complexType>
+	<xs:complexType name="sectionType">
+		<xs:annotation>
+			<xs:documentation>A basic block of a book, can contain more child sections or textual content</xs:documentation>
+		</xs:annotation>
+		<xs:sequence minOccurs="0">
+			<xs:element name="title" type="titleType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Section's title</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="epigraph" type="epigraphType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Epigraph(s) for this section</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="image" type="imageType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Image to be displayed at the top of this section</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="annotation" type="annotationType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Annotation for this section, if any</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:choice>
+				<xs:sequence>
+					<xs:element name="section" type="sectionType" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Child sections</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name="p" type="pType"/>
+						<xs:element name="poem" type="poemType"/>
+						<xs:element name="subtitle" type="pType"/>
+						<xs:element name="cite" type="citeType"/>
+						<xs:element name="empty-line"/>
+						<xs:element name="table" type="tableType"/>
+					</xs:choice>
+					<xs:choice minOccurs="0" maxOccurs="unbounded">
+						<xs:element name="p" type="pType"/>
+						<xs:element name="image" type="imageType"/>
+						<xs:element name="poem" type="poemType"/>
+						<xs:element name="subtitle" type="pType"/>
+						<xs:element name="cite" type="citeType"/>
+						<xs:element name="empty-line"/>
+						<xs:element name="table" type="tableType"/>
+					</xs:choice>
+				</xs:sequence>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="optional"/>
+		<xs:attribute ref="xml:lang"/>
+	</xs:complexType>
+	<xs:complexType name="styleType" mixed="true">
+		<xs:annotation>
+			<xs:documentation>Markup</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="strong" type="styleType"/>
+			<xs:element name="emphasis" type="styleType"/>
+			<xs:element name="style" type="namedStyleType"/>
+			<xs:element name="a" type="linkType"/>
+			<xs:element name="strikethrough" type="styleType"/>
+			<xs:element name="sub" type="styleType"/>
+			<xs:element name="sup" type="styleType"/>
+			<xs:element name="code" type="styleType"/>
+			<xs:element name="image" type="inlineImageType"/>
+		</xs:choice>
+		<xs:attribute ref="xml:lang"/>
+	</xs:complexType>
+	<xs:complexType name="namedStyleType" mixed="true">
+		<xs:annotation>
+			<xs:documentation>Markup</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="strong" type="styleType"/>
+			<xs:element name="emphasis" type="styleType"/>
+			<xs:element name="style" type="namedStyleType"/>
+			<xs:element name="a" type="linkType"/>
+			<xs:element name="strikethrough" type="styleType"/>
+			<xs:element name="sub" type="styleType"/>
+			<xs:element name="sup" type="styleType"/>
+			<xs:element name="code" type="styleType"/>
+			<xs:element name="image" type="inlineImageType"/>
+		</xs:choice>
+		<xs:attribute ref="xml:lang" use="optional"/>
+		<xs:attribute name="name" type="xs:token" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="linkType" mixed="true">
+		<xs:annotation>
+			<xs:documentation>Generic hyperlinks. Cannot be nested. Footnotes should be implemented by links referring to additional bodies in the same document</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="strong" type="styleLinkType"/>
+			<xs:element name="emphasis" type="styleLinkType"/>
+			<xs:element name="style" type="styleLinkType"/>
+			<xs:element name="strikethrough" type="styleLinkType"/>
+			<xs:element name="sub" type="styleLinkType"/>
+			<xs:element name="sup" type="styleLinkType"/>
+			<xs:element name="code" type="styleLinkType"/>
+			<xs:element name="image" type="inlineImageType"/>
+		</xs:choice>
+		<xs:attribute ref="xlink:type" use="optional"/>
+		<xs:attribute ref="xlink:href" use="required"/>
+		<xs:attribute name="type" type="xs:token" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="styleLinkType" mixed="true">
+		<xs:annotation>
+			<xs:documentation>Markup</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="strong" type="styleLinkType"/>
+			<xs:element name="emphasis" type="styleLinkType"/>
+			<xs:element name="style" type="styleLinkType"/>
+			<xs:element name="strikethrough" type="styleLinkType"/>
+			<xs:element name="sub" type="styleLinkType"/>
+			<xs:element name="sup" type="styleLinkType"/>
+			<xs:element name="code" type="styleLinkType"/>
+			<xs:element name="image" type="inlineImageType"/>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="sequenceType">
+		<xs:annotation>
+			<xs:documentation>Book sequences</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="sequence" type="sequenceType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="number" type="xs:integer" use="optional"/>
+		<xs:attribute ref="xml:lang"/>
+	</xs:complexType>
+	<xs:complexType name="tableType">
+		<xs:annotation>
+			<xs:documentation>Basic html-like tables</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="tr" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:choice maxOccurs="unbounded">
+						<xs:element name="th" type="tdType"/>
+						<xs:element name="td" type="tdType"/>
+					</xs:choice>
+					<xs:attribute name="align" type="alignType" use="optional" default="left"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="style" type="xs:string" use="optional"/>
+		<xs:attribute name="id" type="xs:ID" use="optional"/>
+	</xs:complexType>
+	<xs:simpleType name="alignType">
+		<xs:annotation>
+			<xs:documentation>Align for table cells</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:token">
+			<xs:enumeration value="left"/>
+			<xs:enumeration value="right"/>
+			<xs:enumeration value="center"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="vAlignType">
+		<xs:annotation>
+			<xs:documentation>Align for table cells</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:token">
+			<xs:enumeration value="top"/>
+			<xs:enumeration value="middle"/>
+			<xs:enumeration value="bottom"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="title-infoType">
+		<xs:annotation>
+			<xs:documentation>Book (as a book opposite a document) description</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="genre" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Genre of this book, with the optional match percentage</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="genre:genreType">
+							<xs:attribute name="match" type="xs:integer" use="optional" default="100"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="author" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Author(s) of this book</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:extension base="authorType"/>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="book-title" type="textFieldType">
+				<xs:annotation>
+					<xs:documentation>Book title</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="annotation" type="annotationType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Annotation for this book</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="keywords" type="textFieldType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Any keywords for this book, intended for use in search engines</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="date" type="dateType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Date this book was written, can be not exact, e.g. 1863-1867. If an optional attribute is present, then it should contain some computer-readable date from the interval for use by search and indexingengines</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="coverpage" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Any coverpage items, currently only images</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="image" type="inlineImageType" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="lang" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Book's language</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="src-lang" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Book's source language if this is a translation</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="translator" type="authorType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Translators if this is a translation</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="sequence" type="sequenceType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Any sequences this book might be part of</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="shareInstructionType">
+		<xs:annotation>
+			<xs:documentation>In-document instruction for generating output free and payed documents</xs:documentation>
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="part" type="partShareInstructionType"/>
+			<xs:element name="output-document-class" type="outPutDocumentType"/>
+		</xs:choice>
+		<xs:attribute name="mode" type="shareModesType" use="required"/>
+		<xs:attribute name="include-all" type="docGenerationInstructionType" use="required"/>
+		<xs:attribute name="price" type="xs:float" use="optional"/>
+		<xs:attribute name="currency" type="xs:string"/>
+	</xs:complexType>
+	<xs:simpleType name="shareModesType">
+		<xs:annotation>
+			<xs:documentation>Modes for document sharing (free|paid for now)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:token">
+			<xs:enumeration value="free"/>
+			<xs:enumeration value="paid"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="docGenerationInstructionType">
+		<xs:annotation>
+			<xs:documentation>List of instructions to process sections (allow|deny|require)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:token">
+			<xs:enumeration value="require"/>
+			<xs:enumeration value="allow"/>
+			<xs:enumeration value="deny"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="partShareInstructionType">
+		<xs:annotation>
+			<xs:documentation>Pointer to cpecific document section, explaining how to deal with it</xs:documentation>
+		</xs:annotation>
+		<xs:attribute ref="xlink:type"/>
+		<xs:attribute ref="xlink:href" use="required"/>
+		<xs:attribute name="include" type="docGenerationInstructionType" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="outPutDocumentType">
+		<xs:annotation>
+			<xs:documentation>Selector for output documents. Defines, which rule to apply to any specific output documents</xs:documentation>
+		</xs:annotation>
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="part" type="partShareInstructionType"/>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"/>
+		<xs:attribute name="create" type="docGenerationInstructionType" use="optional"/>
+		<xs:attribute name="price" type="xs:float" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="tdType" mixed="true">
+		<xs:complexContent mixed="true">
+			<xs:extension base="styleType">
+				<xs:attribute name="id" type="xs:ID" use="optional"/>
+				<xs:attribute name="style" type="xs:string" use="optional"/>
+				<xs:attribute name="colspan" type="xs:integer" use="optional"/>
+				<xs:attribute name="rowspan" type="xs:integer" use="optional"/>
+				<xs:attribute name="align" type="alignType" use="optional" default="left"/>
+				<xs:attribute name="valign" type="vAlignType" use="optional" default="top"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="inlineImageType">
+		<xs:attribute ref="xlink:type"/>
+		<xs:attribute ref="xlink:href"/>
+		<xs:attribute name="alt" type="xs:string" use="optional"/>
+	</xs:complexType>
+</xs:schema>
+

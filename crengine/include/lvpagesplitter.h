@@ -23,7 +23,7 @@
 #include "lvhashtable.h"
 
 #ifndef RENDER_PROGRESS_INTERVAL_MILLIS
-#define RENDER_PROGRESS_INTERVAL_MILLIS 1200
+#define RENDER_PROGRESS_INTERVAL_MILLIS 300
 #endif
 #ifndef RENDER_PROGRESS_INTERVAL_PERCENT
 #define RENDER_PROGRESS_INTERVAL_PERCENT 2
@@ -44,13 +44,23 @@
 #define RN_SPLIT_AFTER_AVOID   (RN_SPLIT_AVOID<<RN_SPLIT_AFTER)
 #define RN_SPLIT_AFTER_ALWAYS  (RN_SPLIT_ALWAYS<<RN_SPLIT_AFTER)
 
+#define RN_SPLIT_BOTH_AUTO      RN_SPLIT_BEFORE_AUTO | RN_SPLIT_AFTER_AUTO
+#define RN_SPLIT_BOTH_AVOID    RN_SPLIT_BEFORE_AVOID | RN_SPLIT_AFTER_AVOID
+
 #define RN_SPLIT_FOOT_NOTE 0x100
 #define RN_SPLIT_FOOT_LINK 0x200
 
-enum page_type_t {
-    PAGE_TYPE_NORMAL = 0,
-    PAGE_TYPE_COVER = 1
-};
+#define RN_SPLIT_DISCARD_AT_START 0x400
+
+#define RN_LINE_IS_RTL 0x1000
+
+#define RN_GET_SPLIT_BEFORE(flags) (flags & 0x7)
+#define RN_GET_SPLIT_AFTER(flags) (flags >> 3)
+
+#define RN_PAGE_TYPE_NORMAL           0x01
+#define RN_PAGE_TYPE_COVER            0x02
+#define RN_PAGE_MOSTLY_RTL            0x10
+#define RN_PAGE_FOOTNOTES_MOSTLY_RTL  0x20
 
 /// footnote fragment inside page
 class LVPageFootNoteInfo {
@@ -207,14 +217,14 @@ public:
     int start; /// start of page
     int index;  /// index of page
     lInt16 height; /// height of page, does not include footnotes
-    lInt16 type;   /// type: PAGE_TYPE_NORMAL, PAGE_TYPE_COVER
+    lInt8 flags;   /// RN_PAGE_*
     CompactArray<LVPageFootNoteInfo, 1, 4> footnotes; /// footnote fragment list for page
     LVRendPageInfo(int pageStart, lUInt16 pageHeight, int pageIndex)
-    : start(pageStart), index(pageIndex), height(pageHeight), type(PAGE_TYPE_NORMAL) {}
+    : start(pageStart), index(pageIndex), height(pageHeight), flags(RN_PAGE_TYPE_NORMAL) {}
     LVRendPageInfo(lUInt16 coverHeight)
-    : start(0), index(0), height(coverHeight), type(PAGE_TYPE_COVER) {}
+    : start(0), index(0), height(coverHeight), flags(RN_PAGE_TYPE_COVER) {}
     LVRendPageInfo() 
-    : start(0), index(0), height(0), type(PAGE_TYPE_NORMAL) { }
+    : start(0), index(0), height(0), flags(RN_PAGE_TYPE_NORMAL) { }
     bool serialize( SerialBuf & buf );
     bool deserialize( SerialBuf & buf );
 };
@@ -241,9 +251,9 @@ class LVRendLineInfo {
     friend struct PageSplitState;
     LVFootNoteList * links; // 4 bytes
     int start;              // 4 bytes
-    lInt16 height;          // 2 bytes
+    int height;             // 4 bytes (we may get extra tall lines with tables TR)
 public:
-    lInt16 flags;           // 2 bytes
+    lUInt16 flags;          // 2 bytes
     int getSplitBefore() const { return (flags>>RN_SPLIT_BEFORE)&7; }
     int getSplitAfter() const { return (flags>>RN_SPLIT_AFTER)&7; }
 /*
@@ -273,7 +283,7 @@ public:
 
     LVRendLineInfo() : links(NULL), start(-1), height(0), flags(0) { }
     LVRendLineInfo( int line_start, int line_end, lUInt16 line_flags )
-    : links(NULL), start(line_start), height((lUInt16)(line_end-line_start)), flags(line_flags)
+    : links(NULL), start(line_start), height(line_end-line_start), flags(line_flags)
     {
     }
     LVFootNoteList * getLinks() { return links; }
@@ -281,11 +291,20 @@ public:
     {
         clear();
     }
-    void addLink( LVFootNote * note )
+    int getLinksCount()
+    {
+        if ( links==NULL )
+            return 0;
+        return links->length();
+    }
+    void addLink( LVFootNote * note, int pos=-1 )
     {
         if ( links==NULL )
             links = new LVFootNoteList();
-        links->add( note );
+        if ( pos >= 0 ) // insert at pos
+            links->insert( pos, note );
+        else // append
+            links->add( note );
         flags |= RN_SPLIT_FOOT_LINK;
     }
 };
@@ -336,6 +355,8 @@ class LVRendPageContext
     LVRendPageList * page_list;
     // page height
     int          page_h;
+    // Links gathered when no page_list
+    lString16Collection link_ids;
 
     LVHashTable<lString16, LVFootNoteRef> footNotes;
 
@@ -361,8 +382,17 @@ public:
     }
     bool updateRenderProgress( int numFinalBlocksRendered );
 
-    /// append footnote link to last added line
-    void addLink( lString16 id );
+    /// Get the number of links in the current line links list, or
+    // in link_ids when no page_list
+    int getCurrentLinksCount();
+
+    /// append or insert footnote link to last added line
+    void addLink( lString16 id, int pos=-1 );
+
+    /// get gathered links when no page_list
+    // (returns a reference to avoid lString16Collection destructor from
+    // being called twice and a double free crash)
+    lString16Collection * getLinkIds() { return &link_ids; }
 
     /// mark start of foot note
     void enterFootNote( lString16 id );

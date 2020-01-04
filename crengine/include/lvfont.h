@@ -22,12 +22,36 @@
 #include "cssdef.h"
 
 #define MAX_LINE_CHARS 2048
+#define MAX_LINE_WIDTH 2048
+#define MAX_LETTER_SPACING MAX_LINE_WIDTH/2
 
 enum hinting_mode_t {
     HINTING_MODE_DISABLED,
     HINTING_MODE_BYTECODE_INTERPRETOR,
     HINTING_MODE_AUTOHINT
 };
+
+enum kerning_mode_t {
+    KERNING_MODE_DISABLED,
+    KERNING_MODE_FREETYPE,
+    KERNING_MODE_HARFBUZZ_LIGHT,
+    KERNING_MODE_HARFBUZZ
+};
+
+// Hint flags for measuring and drawing (some used only with full Harfbuzz)
+// These 4 translate (after mask & shift) from LTEXT_WORD_* equivalents
+// (see lvtextfm.h). Keep them in sync.
+#define LFNT_HINT_DIRECTION_KNOWN        0x0001 /// segment direction is known
+#define LFNT_HINT_DIRECTION_IS_RTL       0x0002 /// segment direction is RTL
+#define LFNT_HINT_BEGINS_PARAGRAPH       0x0004 /// segment is at start of paragraph
+#define LFNT_HINT_ENDS_PARAGRAPH         0x0008 /// segment is at end of paragraph
+
+// These 4 translate from LTEXT_TD_* equivalents (see lvtextfm.h). Keep them in sync.
+#define LFNT_DRAW_UNDERLINE              0x0100 /// underlined text
+#define LFNT_DRAW_OVERLINE               0x0200 /// overlined text
+#define LFNT_DRAW_LINE_THROUGH           0x0400 /// striked through text
+#define LFNT_DRAW_BLINK                  0x0800 /// blinking text (implemented as underline)
+#define LFNT_DRAW_DECORATION_MASK        0x0F00
 
 enum font_antialiasing_t {
     font_aa_none,
@@ -48,11 +72,12 @@ public:
     lUInt32 _hash;
     /// glyph properties structure
     struct glyph_info_t {
-        lUInt8 blackBoxX;   ///< 0: width of glyph
-        lUInt8 blackBoxY;   ///< 1: height of glyph black box
-        lInt8 originX;     ///< 2: X origin for glyph
-        lInt8 originY;     ///< 3: Y origin for glyph
-        lUInt8 width;       ///< 4: full width of glyph
+        lUInt16 blackBoxX;  ///< 0: width of glyph
+        lUInt16 blackBoxY;  ///< 1: height of glyph black box
+        lInt16  originX;    ///< 2: X origin for glyph (left side bearing)
+        lInt16  originY;    ///< 3: Y origin for glyph
+        lUInt16 width;      ///< 4: full advance width of glyph
+        lInt16  rsb;        ///< 5: right side bearing
     };
 
     /// hyphenation character
@@ -70,7 +95,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo(lUInt16 code, glyph_info_t *glyph, lChar16 def_char = 0) = 0;
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0) = 0;
 
     /** \brief measure text
         \param text is text string pointer
@@ -78,6 +103,7 @@ public:
         \param max_width is maximum width to measure line 
         \param def_char is character to replace absent glyphs in font
         \param letter_spacing is number of pixels to add between letters
+        \param hints: hint flags (direction, begin/end of paragraph, for Harfbuzz - unrelated to font hinting)
         \return number of characters before max_width reached 
     */
     virtual lUInt16 measureText(
@@ -87,7 +113,8 @@ public:
             int max_width,
             lChar16 def_char,
             int letter_spacing = 0,
-            bool allow_hyphenation = true
+            bool allow_hyphenation = true,
+            lUInt32 hints = 0
     ) = 0;
 
     /** \brief measure text
@@ -109,7 +136,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt16 ch, lChar16 def_char = 0) = 0;
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0) = 0;
 
     /// returns font baseline offset
     virtual int getBaseline() = 0;
@@ -126,8 +153,14 @@ public:
     /// returns italic flag
     virtual int getItalic() const = 0;
 
-    /// returns char width
-    virtual int getCharWidth(lChar16 ch, lChar16 def_char = 0) = 0;
+    /// returns char glyph advance width
+    virtual int getCharWidth( lChar16 ch, lChar16 def_char=0 ) = 0;
+
+    /// returns char glyph left side bearing
+    virtual int getLeftSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) = 0;
+
+    /// returns char glyph right side bearing
+    virtual int getRightSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) = 0;
 
     /// retrieves font handle
     virtual void *GetHandle() = 0;
@@ -138,11 +171,12 @@ public:
     /// returns font family id
     virtual css_font_family_t getFontFamily() const = 0;
 
-    /// draws text string
-    virtual void DrawTextString(LVDrawBuf *buf, int x, int y,
-                                const lChar16 *text, int len,
-                                lChar16 def_char, lUInt32 *palette = NULL, bool addHyphen = false,
-                                lUInt32 flags = 0, int letter_spacing = 0) = 0;
+    /// draws text string (returns x advance)
+    virtual int DrawTextString( LVDrawBuf * buf, int x, int y,
+                       const lChar16 * text, int len,
+                       lChar16 def_char, lUInt32 * palette = NULL, bool addHyphen = false,
+                       lUInt32 flags=0, int letter_spacing=0, int width=-1,
+                       int text_decoration_back_gap=0 ) = 0;
 
     /// constructor
     LVFont() : _visual_alignment_width(-1), _hash(0) {}
@@ -153,23 +187,20 @@ public:
     /// set bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual void setBitmapMode(bool) {}
 
-    /// get kerning mode: true==ON, false=OFF
-    virtual bool getKerning() const { return false; }
+    /// sets current kerning mode
+    virtual void setKerningMode( kerning_mode_t /*mode*/ ) { }
 
-    /// set kerning mode: true==ON, false=OFF
-    virtual void setKerning(bool) {}
-
-    /// get ligatures mode: true==allowed, false=not allowed
-    virtual bool getLigatures() const { return false; }
-
-    /// set ligatures mode: true==allowed, false=not allowed
-    virtual void setLigatures(bool) {}
+    /// returns current kerning mode
+    virtual kerning_mode_t getKerningMode() const { return KERNING_MODE_DISABLED; }
 
     /// sets current hinting mode
     virtual void setHintingMode(hinting_mode_t /*mode*/) {}
 
     /// returns current hinting mode
     virtual hinting_mode_t getHintingMode() const { return HINTING_MODE_AUTOHINT; }
+
+    /// clear cache
+    virtual void clearCache() { }
 
     /// returns true if font is empty
     virtual bool IsNull() const = 0;

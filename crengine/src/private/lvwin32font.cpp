@@ -56,8 +56,8 @@ bool LVBaseWin32Font::Create(int size, int weight, bool italic, css_font_family_
     if (!IsNull())
         Clear();
     //
-    LOGFONTA lf;
-    memset(&lf, 0, sizeof(LOGFONTA));
+    LOGFONTA lf = { 0 };
+
     lf.lfHeight = size;
     lf.lfWeight = weight;
     lf.lfItalic = italic?1:0;
@@ -129,8 +129,8 @@ int LVWin32DrawFont::getCharWidth( lChar16 ch, lChar16 def_char )
     if (_hfont==NULL)
         return 0;
     // measure character widths
-    GCP_RESULTSW gcpres;
-    memset( &gcpres, 0, sizeof(gcpres) );
+    GCP_RESULTSW gcpres = { 0 };
+
     gcpres.lStructSize = sizeof(gcpres);
     lChar16 str[2];
     str[0] = ch;
@@ -170,7 +170,7 @@ lUInt32 LVWin32DrawFont::getTextWidth( const lChar16 * text, int len )
                     text, len, 
                     widths,
                     flags,
-                    2048, // max_width,
+                    MAX_LINE_WIDTH,
                     L' '  // def_char
                  );
     if ( res>0 && res<MAX_LINE_CHARS )
@@ -189,7 +189,8 @@ lUInt16 LVWin32DrawFont::measureText(
                     int max_width,
                     lChar16 def_char,
                     int letter_spacing,
-                    bool allow_hyphenation
+                    bool allow_hyphenation,
+                    lUInt32 hints
                  )
 {
     if (_hfont==NULL)
@@ -208,8 +209,8 @@ lUInt16 LVWin32DrawFont::measureText(
     }
     assert(pstr[len]==0);
     // measure character widths
-    GCP_RESULTSW gcpres;
-    memset( &gcpres, 0, sizeof(gcpres) );
+    GCP_RESULTSW gcpres = {0};
+
     gcpres.lStructSize = sizeof(gcpres);
     LVArray<int> dx( len+1, 0 );
     gcpres.lpDx = dx.ptr();
@@ -288,13 +289,15 @@ lUInt16 LVWin32DrawFont::measureText(
     return nchars;
 }
 
-/// draws text string
-void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
+/// draws text string (returns x advance)
+int LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y, 
                    const lChar16 * text, int len, 
-                   lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags, int letter_spacing )
+                   lChar16 def_char, lUInt32 * palette, bool addHyphen,
+                   lUInt32 flags, int letter_spacing, int width,
+                   int text_decoration_back_gap )
 {
     if (_hfont==NULL)
-        return;
+        return 0;
 
     lString16 str(text, len);
     // substitute soft hyphens with zero width spaces
@@ -311,14 +314,14 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
     lvRect clip;
     buf->GetClipRect(&clip);
     if (y > clip.bottom || y+_height < clip.top)
-        return;
+        return 0;
     if (buf->GetBitsPerPixel()<16)
     {
         // draw using backbuffer
         SIZE sz;
         if ( !GetTextExtentPoint32W(_drawbuf.GetDC(), 
                 str.c_str(), str.length(), &sz) )
-            return;
+            return 0;
         LVColorDrawBuf colorbuf( sz.cx, sz.cy );
         colorbuf.Clear(0xFFFFFF);
         HDC dc = colorbuf.GetDC();
@@ -349,6 +352,7 @@ void LVWin32DrawFont::DrawTextString( LVDrawBuf * buf, int x, int y,
             str.c_str(), str.length(), NULL );
         SelectObject( dc, oldfont );
     }
+    return 0; // advance not implemented
 }
     
 /** \brief get glyph image in 1 byte per pixel format
@@ -529,7 +533,7 @@ lUInt32 LVWin32Font::getTextWidth( const lChar16 * text, int len )
                     text, len, 
                     widths,
                     flags,
-                    2048, // max_width,
+                    MAX_LINE_WIDTH,
                     L' '  // def_char
                  );
     if ( res>0 && res<MAX_LINE_CHARS )
@@ -548,7 +552,8 @@ lUInt16 LVWin32Font::measureText(
                     int max_width,
                     lChar16 def_char,
                     int letter_spacing,
-                    bool allow_hyphenation
+                    bool allow_hyphenation,
+                    lUInt32 hints
                  )
 {
     if (_hfont==NULL)

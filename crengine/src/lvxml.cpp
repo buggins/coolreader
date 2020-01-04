@@ -2692,6 +2692,28 @@ bool LVTextParser::Parse()
     return true;
 }
 
+//==================================================
+// Text file robust parser
+
+/// constructor
+LVTextRobustParser::LVTextRobustParser( LVStreamRef stream, LVXMLParserCallback * callback, bool isPreFormatted )
+    : LVTextParser(stream, callback, isPreFormatted)
+{
+}
+
+/// descructor
+LVTextRobustParser::~LVTextRobustParser()
+{
+}
+
+
+/// returns true if format is recognized by parser
+bool LVTextRobustParser::CheckFormat()
+{
+    m_lang_name = lString16( "en" );
+    SetCharset( lString16( "utf-8" ).c_str() );
+    return true;
+}
 
 /*******************************************************************************/
 // LVXMLTextCache
@@ -2967,6 +2989,12 @@ bool LVXMLParser::Parse()
                         m_state = ps_text;
                         break;
                     }
+                    //bypass <![CDATA] in <style type="text/css">
+                    if (PeekCharFromBuffer(1)=='['&&tagname.compare("style")==0&&attrvalue.compare("text/css")==0){
+                        ch=PeekNextCharFromBuffer(7);
+                        m_state =ps_text;
+                        break;
+                    }
                 }
                 if ( !ReadIdent(tagns, tagname) || PeekCharFromBuffer()=='=')
                 {
@@ -2989,7 +3017,7 @@ bool LVXMLParser::Parse()
 //                    } else if ( tagname==L"section" ) {
 //                        dumpActive = false;
 //                    }
-                    m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
+                        m_callback->OnTagClose(tagns.c_str(), tagname.c_str());
 //                    if ( dumpActive )
 //                        CRLog::trace("</%s>", LCSTR(tagname) );
                     if (SkipTillChar('>'))
@@ -3082,9 +3110,17 @@ bool LVXMLParser::Parse()
                     attrname.lowercase();
                 }
                 if ( (flags & TXTFLG_CONVERT_8BIT_ENTITY_ENCODING) && m_conv_table ) {
+                    // (only used when parding html from CHM document, not updating it
+                    // to use TXTFLG_PROCESS_ATTRIBUTE)
                     PreProcessXmlString( attrvalue, 0, m_conv_table );
                 }
-                m_callback->OnAttribute( attrns.c_str(), attrname.c_str(), attrvalue.c_str());
+                else {
+                    // Process &#124; and HTML entities, but don't touch space
+                    PreProcessXmlString( attrvalue, TXTFLG_PROCESS_ATTRIBUTE );
+                }
+                attrvalue.trimDoubleSpaces(false,false,false);
+                m_callback->OnAttribute(attrns.c_str(), attrname.c_str(), attrvalue.c_str());
+
                 if (inXmlTag && attrname == "encoding")
                 {
                     SetCharset( attrvalue.c_str() );
@@ -3387,6 +3423,43 @@ static const ent_def_t def_entity_table[] = {
 {NULL, 0},
 };
 
+//convert printable windows-1252 code (128-159) to unicode counterpart. it will fix some "?" in ebooks
+int codeconvert(int code)
+{
+    switch (code)
+    {
+        case 128: return 8364;
+        case 130: return 8218;
+        case 131: return 402;
+        case 132: return 8222;
+        case 133: return 8230;
+        case 134: return 8224;
+        case 135: return 8225;
+        case 136: return 710;
+        case 137: return 8240;
+        case 138: return 352;
+        case 139: return 8249;
+        case 140: return 338;
+        case 142: return 381;
+        case 145: return 8216;
+        case 146: return 8217;
+        case 147: return 8220;
+        case 148: return 8221;
+        case 149: return 8226;
+        case 150: return 8211;
+        case 151: return 8212;
+        case 152: return 732;
+        case 153: return 8482;
+        case 154: return 353;
+        case 155: return 8250;
+        case 156: return 339;
+        case 158: return 382;
+        case 159: return 376;
+        default:
+            return code;
+    }
+}
+
 /// in-place XML string decoding, don't expand tabs, returns new length (may be less than initial len)
 int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * enc_table)
 {
@@ -3398,6 +3471,7 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
     bool pre_para_splitting = (flags & TXTFLG_PRE_PARA_SPLITTING)!=0;
     if ( pre_para_splitting )
         pre = false;
+    bool attribute = (flags & TXTFLG_PROCESS_ATTRIBUTE) != 0;
     //CRLog::trace("before: '%s' %s, len=%d", LCSTR(str), pre ? "pre ":" ", len);
     int j = 0;
     for (int i=0; i<len; ++i ) {
@@ -3416,7 +3490,7 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
                 lch = ch;
                 continue;
             }
-        } else {
+        } else if ( !attribute ) {
             if (ch=='\r' || ch=='\n' || ch=='\t')
                 ch = ' ';
         }
@@ -3425,7 +3499,7 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
             nch = 0;
         } else if (state == 0) {
             if (ch == ' ') {
-                if ( pre || !nsp )
+                if ( pre || attribute || !nsp )
                     str[j++] = ch;
                 nsp++;
             } else {
@@ -3481,7 +3555,7 @@ int PreProcessXmlString(lChar16 * str, int len, lUInt32 flags, const lChar16 * e
 
             } else if (ch == ';') {
                 if (nch)
-                    str[j++] = nch;
+                    str[j++] = codeconvert(nch);
                 state = 0;
                 nsp = 0;
             } else {
@@ -3893,11 +3967,12 @@ static const char * AC_DL[] = {"dl", "dt", "p", NULL};
 static const char * AC_DT[] = {"dt", "dt", "dd", "p", NULL};
 static const char * AC_BR[] = {"br", NULL};
 static const char * AC_HR[] = {"hr", NULL};
+static const char * AC_WBR[] = {"wbr", NULL};
 static const char * AC_PARAM[] = {"param", "param", NULL};
 static const char * AC_IMG[]= {"img", NULL};
 static const char * AC_TD[] = {"td", "td", "th", NULL};
 static const char * AC_TH[] = {"th", "th", "td", NULL};
-static const char * AC_TR[] = {"tr", "tr", "thead", "tfoot", "tbody", NULL};
+static const char * AC_TR[] = {"tr", "tr", "td", NULL};
 static const char * AC_DIV[] = {"div", "p", NULL};
 static const char * AC_TABLE[] = {"table", "p", NULL};
 static const char * AC_THEAD[] = {"thead", "tr", "thead", "tfoot", "tbody", NULL};
@@ -3906,6 +3981,13 @@ static const char * AC_TBODY[] = {"tbody", "tr", "thead", "tfoot", "tbody", NULL
 static const char * AC_OPTION[] = {"option", "option", NULL};
 static const char * AC_PRE[] = {"pre", "pre", NULL};
 static const char * AC_INPUT[] = {"input", NULL};
+static const char * AC_AREA[] = {"area", NULL};
+static const char * AC_BASE[] = {"base", NULL};
+static const char * AC_EMBED[] = {"embed", NULL};
+static const char * AC_LINK[] = {"link", NULL};
+static const char * AC_META[] = {"meta", NULL};
+static const char * AC_SOURCE[] = {"source", NULL};
+static const char * AC_TRACK[] = {"track", NULL};
 const char * *
 HTML_AUTOCLOSE_TABLE[] = {
     AC_INPUT,
@@ -3924,8 +4006,16 @@ HTML_AUTOCLOSE_TABLE[] = {
     AC_COL,
     AC_BR,
     AC_HR,
+    AC_WBR,
     AC_PARAM,
     AC_IMG,
+    AC_AREA,
+    AC_BASE,
+    AC_EMBED,
+    AC_LINK,
+    AC_META,
+    AC_SOURCE,
+    AC_TRACK,
     AC_DIV,
     AC_THEAD,
     AC_TFOOT,
@@ -3933,6 +4023,9 @@ HTML_AUTOCLOSE_TABLE[] = {
     AC_TABLE,
     NULL
 };
+// Note: AC_TD and AC_TR may kill a table nested inside an other table,
+// so such nested tables won't work in a .html file (but will in a .epub
+// that uses the NON-auto-closing ldomDocumentWriter).
 
 
 // base64 decode table

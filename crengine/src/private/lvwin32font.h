@@ -104,7 +104,7 @@ public:
         return css_ff_inherit;
     }
 
-    virtual LVFontGlyphCacheItem * getGlyph(lUInt16 ch, lChar16 def_char=0) {
+    virtual LVFontGlyphCacheItem * getGlyph(lUInt32 ch, lChar16 def_char=0) {
         return NULL;
     }
 
@@ -127,7 +127,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 );
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 );
 
     /** \brief measure text
         \param glyph is pointer to glyph_info_t struct to place retrieved info
@@ -140,7 +140,8 @@ public:
                         int max_width,
                         lChar16 def_char,
                         int letter_spacing=0,
-                        bool allow_hyphenation=true
+                        bool allow_hyphenation=true,
+                        lUInt32 hints=0
                      );
     /** \brief measure text
         \param text is text string pointer
@@ -157,14 +158,15 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y,
                        const lChar16 * text, int len,
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0 );
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0
+                       int width=-1, int text_decoration_back_gap=0 );
 
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found
     */
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0);
+    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0);
 
 };
 
@@ -302,7 +304,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo( lUInt16 code, glyph_info_t * glyph, lChar16 def_char=0 );
+    virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar16 def_char=0 );
 
     /** \brief measure text
         \param glyph is pointer to glyph_info_t struct to place retrieved info
@@ -315,7 +317,8 @@ public:
                         int max_width,
                         lChar16 def_char,
                         int letter_spacing=0,
-                        bool allow_hyphenation=true
+                        bool allow_hyphenation=true,
+                        lUInt32 hints=0
                      );
     /** \brief measure text
         \param text is text string pointer
@@ -331,7 +334,7 @@ public:
         \param buf is buffer [width*height] to place glyph data
         \return true if glyph was found
     */
-    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0);
+    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0);
 
     virtual void Clear();
 

@@ -6,7 +6,7 @@
 
 
 bool DetectEpubFormat( LVStreamRef stream );
-bool ImportEpubDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback );
+bool ImportEpubDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback, bool metadataOnly = false );
 lString16 EpubGetRootFilePath( LVContainerRef m_arc );
 LVStreamRef GetEpubCoverpage(LVContainerRef arc);
 

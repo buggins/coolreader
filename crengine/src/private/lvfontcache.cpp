@@ -60,7 +60,7 @@ LVFontCacheItem *LVFontCache::findFallback(lString8 face, int size) {
     return _registered_list[best_index];
 }
 
-LVFontCacheItem *LVFontCache::find(const LVFontDef *fntdef) {
+LVFontCacheItem *LVFontCache::find(const LVFontDef *fntdef, bool useBias) {
     int best_index = -1;
     int best_match = -1;
     int best_instance_index = -1;
@@ -75,14 +75,14 @@ LVFontCacheItem *LVFontCache::find(const LVFontDef *fntdef) {
         else
             def.setTypeFace(lString8::empty_str);
         for (i = 0; i < _instance_list.length(); i++) {
-            int match = _instance_list[i]->_def.CalcMatch(def);
+            int match = _instance_list[i]->_def.CalcMatch(def, useBias);
             if (match > best_instance_match) {
                 best_instance_match = match;
                 best_instance_index = i;
             }
         }
         for (i = 0; i < _registered_list.length(); i++) {
-            int match = _registered_list[i]->_def.CalcMatch(def);
+            int match = _registered_list[i]->_def.CalcMatch(def, useBias);
             if (match > best_match) {
                 best_match = match;
                 best_index = i;
@@ -94,6 +94,21 @@ LVFontCacheItem *LVFontCache::find(const LVFontDef *fntdef) {
     if (best_instance_match >= best_match)
         return _instance_list[best_instance_index];
     return _registered_list[best_index];
+}
+
+bool LVFontCache::setAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias )
+{
+    bool found = false;
+    int i;
+    for (i=0; i<_instance_list.length(); i++) {
+        if (_instance_list[i]->_def.setBiasIfNameMatch( face, bias, clearOthersBias ))
+            found = true;
+    }
+    for (i=0; i<_registered_list.length(); i++) {
+        if (_registered_list[i]->_def.setBiasIfNameMatch( face, bias, clearOthersBias ))
+            found = true;
+    }
+    return found;
 }
 
 void LVFontCache::addInstance(const LVFontDef *def, LVFontRef ref) {

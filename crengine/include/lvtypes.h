@@ -345,8 +345,8 @@ public:
     }
 
     CRTimerUtil(const CRTimerUtil & t) {
-    	_start = t._start;
-    	_interval = t._interval;
+        _start = t._start;
+        _interval = t._interval;
     }
 
     void restart() {

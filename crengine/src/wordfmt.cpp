@@ -20,8 +20,7 @@
 #endif
 #include "../include/wordfmt.h"
 
-#ifdef _WIN32
-#if defined(_MSC_VER) || (defined(__MINGW64_VERSION_MAJOR) && defined(NO_OLDNAMES)) || (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR) && !defined(_EMULATE_GLIBC))
+#if (defined(_WIN32) && !defined(MINGW))
 extern "C" {
 	int strcasecmp(const char *s1, const char *s2) {
         return _stricmp(s1,s2);
@@ -29,8 +28,7 @@ extern "C" {
 //char	*optarg = NULL;
 //	int	optind = 0;
 }
-#endif
-#endif	// _WIN32
+#endif // _WIN32
 
 #ifdef _DEBUG
 #define TRACE(x, ...) CRLog::trace(x)
@@ -699,8 +697,8 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
             for (pucTmp = pucJpeg, tLen = 0; tLen < len; pucTmp++, tLen++) {
                 iByte = iNextByte(pFile);
                 if (iByte == EOF) {
-                        free(pucJpeg);
-                        return FALSE;
+                    free(pucJpeg);
+                    return FALSE;
                 }
                 *pucTmp = (UCHAR)iByte;
             }

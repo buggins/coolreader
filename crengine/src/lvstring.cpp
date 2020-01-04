@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <time.h>
 #ifdef LINUX
 #include <sys/time.h>
@@ -28,6 +29,10 @@
 
 #if (USE_ZLIB==1)
 #include <zlib.h>
+#endif
+
+#if (USE_UTF8PROC==1)
+#include <utf8proc.h>
 #endif
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
@@ -414,8 +419,7 @@ inline void _lStr_memcpy(lChar16 * dst, const lChar16 * src, int count)
 
 inline void _lStr_memcpy(lChar8 * dst, const lChar8 * src, int count)
 {
-    while ( count-- > 0)
-        (*dst++ = *src++);
+    memcpy(dst, (const lChar8 *) src, count);
 }
 
 inline void _lStr_memset(lChar16 * dst, lChar16 value, int count)
@@ -426,8 +430,7 @@ inline void _lStr_memset(lChar16 * dst, lChar16 value, int count)
 
 inline void _lStr_memset(lChar8 * dst, lChar8 value, int count)
 {
-    while ( count-- > 0)
-        *dst++ = value;
+    memset(dst, (lChar8) value, count);
 }
 
 int lStr_len(const lChar16 * str)
@@ -1048,7 +1051,7 @@ lString16 & lString16::pack()
         }
         else
         {
-            pchunk->buf16 = (lChar16 *) realloc( pchunk->buf16, sizeof(lChar16)*(pchunk->len+1) );
+            pchunk->buf16 = cr_realloc( pchunk->buf16, pchunk->len+1 );
             pchunk->size = pchunk->len;
         }
     }
@@ -1267,15 +1270,8 @@ void lString16Collection::reserve(int space)
 {
     if ( count + space > size )
     {
-        int tmpSize = count + space + 64;
-        void* tmp = realloc( chunks, sizeof(lstring16_chunk_t *) * tmpSize );
-        if (tmp) {
-            size = tmpSize;
-            chunks = (lstring16_chunk_t * *)tmp;
-        }
-        else {
-            // TODO: throw exception or change function prototype & return code
-        }
+        size = count + space + 64;
+        chunks = cr_realloc( chunks, size );
     }
 }
 
@@ -1309,6 +1305,17 @@ int lString16Collection::add( const lString16 & str )
 {
     reserve( 1 );
     chunks[count] = str.pchunk;
+    str.addref();
+    return count++;
+}
+int lString16Collection::insert( int pos, const lString16 & str )
+{
+    if (pos<0 || pos>=count)
+        return add(str);
+    reserve( 1 );
+    for (int i=count; i>pos; --i)
+        chunks[i] = chunks[i-1];
+    chunks[pos] = str.pchunk;
     str.addref();
     return count++;
 }
@@ -1396,15 +1403,8 @@ void lString8Collection::reserve(int space)
 {
     if ( count + space > size )
     {
-        int tmpSize = count + space + 64;
-        void* tmp = realloc( chunks, sizeof(lstring8_chunk_t *) * tmpSize );
-        if (tmp) {
-            size = tmpSize;
-            chunks = (lstring8_chunk_t * *)tmp;
-        }
-        else {
-            // TODO: throw exception or change function prototype & return code
-        }
+        size = count + space + 64;
+        chunks = cr_realloc( chunks, size );
     }
 }
 
@@ -1996,7 +1996,7 @@ lString8 & lString8::appendHex(lUInt64 n)
             foundNz = true;
         if (foundNz)
             append(1, (lChar8)toHexDigit(digit));
-        n >>= 4;
+        n <<= 4;
     }
     return *this;
 }
@@ -2037,7 +2037,7 @@ lString16 & lString16::appendHex(lUInt64 n)
             foundNz = true;
         if (foundNz)
             append(1, toHexDigit(digit));
-        n >>= 4;
+        n <<= 4;
     }
     return *this;
 }
@@ -2387,7 +2387,7 @@ lString8 & lString8::pack()
         }
         else
         {
-            pchunk->buf8 = (lChar8 *) realloc( pchunk->buf8, sizeof(lChar8)*(pchunk->len+1) );
+            pchunk->buf8 = cr_realloc( pchunk->buf8, pchunk->len+1 );
             pchunk->size = pchunk->len;
         }
     }
@@ -2610,10 +2610,25 @@ lString16 & lString16::lowercase()
     return *this;
 }
 
+lString16 & lString16::capitalize()
+{
+    lStr_capitalize( modify(), length() );
+    return *this;
+}
+
+lString16 & lString16::fullWidthChars()
+{
+    lStr_fullWidthChars( modify(), length() );
+    return *this;
+}
+
 void lStr_uppercase( lChar16 * str, int len )
 {
     for ( int i=0; i<len; i++ ) {
         lChar16 ch = str[i];
+#if (USE_UTF8PROC==1)
+        str[i] = utf8proc_toupper(ch);
+#else
         if ( ch>='a' && ch<='z' ) {
             str[i] = ch - 0x20;
         } else if ( ch>=0xE0 && ch<=0xFF ) {
@@ -2632,6 +2647,7 @@ void lStr_uppercase( lChar16 * str, int len )
                 str[i] = ch | 8;
             }
         }
+#endif
     }
 }
 
@@ -2639,6 +2655,9 @@ void lStr_lowercase( lChar16 * str, int len )
 {
     for ( int i=0; i<len; i++ ) {
         lChar16 ch = str[i];
+#if (USE_UTF8PROC==1)
+        str[i] = utf8proc_tolower(ch);
+#else
         if ( ch>='A' && ch<='Z' ) {
             str[i] = ch + 0x20;
         } else if ( ch>=0xC0 && ch<=0xDF ) {
@@ -2657,6 +2676,55 @@ void lStr_lowercase( lChar16 * str, int len )
                 str[i] = ch & (~8);
             }
         }
+#endif
+    }
+}
+
+void lStr_fullWidthChars( lChar16 * str, int len )
+{
+    for ( int i=0; i<len; i++ ) {
+        lChar16 ch = str[i];
+        if ( ch>=0x21 && ch<=0x7E ) {
+            // full-width versions of ascii chars 0x21-0x7E are at 0xFF01-0Xff5E
+            str[i] = ch + UNICODE_ASCII_FULL_WIDTH_OFFSET;
+        } else if ( ch==0x20 ) {
+            str[i] = UNICODE_CJK_IDEOGRAPHIC_SPACE; // full-width space
+        }
+    }
+}
+
+void lStr_capitalize( lChar16 * str, int len )
+{
+    bool prev_is_word_sep = true; // first char of string will be capitalized
+    for ( int i=0; i<len; i++ ) {
+        lChar16 ch = str[i];
+        if (prev_is_word_sep) {
+            // as done as in lStr_uppercase()
+#if (USE_UTF8PROC==1)
+            str[i] = utf8proc_toupper(ch);
+#else
+            if ( ch>='a' && ch<='z' ) {
+                str[i] = ch - 0x20;
+            } else if ( ch>=0xE0 && ch<=0xFF ) {
+                str[i] = ch - 0x20;
+            } else if ( ch>=0x430 && ch<=0x44F ) {
+                str[i] = ch - 0x20;
+            } else if ( ch>=0x3b0 && ch<=0x3cF ) {
+                str[i] = ch - 0x20;
+            } else if ( (ch >> 8)==0x1F ) { // greek
+                lChar16 n = ch & 255;
+                if (n<0x70) {
+                    str[i] = ch | 8;
+                } else if (n<0x80) {
+
+                } else if (n<0xF0) {
+                    str[i] = ch | 8;
+                }
+            }
+#endif
+        }
+        // update prev_is_word_sep for next char
+        prev_is_word_sep = lStr_isWordSeparator(ch);
     }
 }
 
@@ -2915,6 +2983,8 @@ static void DecodeUtf8(const char * s,  lChar16 * p, int len)
     }
 }
 
+// Top two bits are 10, i.e. original & 11000000(2) == 10000000(2)
+#define IS_FOLLOWING(index) ((s[index] & 0xC0) == 0x80)
 void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
 {
     const lUInt8 * s = src;
@@ -2924,34 +2994,82 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen)
     lUInt32 ch;
     while (p < endp && s < ends) {
         ch = *s;
+        bool matched = false;
         if ( (ch & 0x80) == 0 ) {
+            matched = true;
             *p++ = (char)ch;
             s++;
         } else if ( (ch & 0xE0) == 0xC0 ) {
             if (s + 2 > ends)
                 break;
-            *p++ = ((ch & 0x1F) << 6)
-                    | CONT_BYTE(1,0);
-            s += 2;
+            if (IS_FOLLOWING(1)) {
+                matched = true;
+                *p++ = ((ch & 0x1F) << 6)
+                        | CONT_BYTE(1,0);
+                s += 2;
+            }
         } else if ( (ch & 0xF0) == 0xE0 ) {
             if (s + 3 > ends)
                 break;
-            *p++ = ((ch & 0x0F) << 12)
-                | CONT_BYTE(1,6)
-                | CONT_BYTE(2,0);
-            s += 3;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2)) {
+                matched = true;
+                *p++ = ((ch & 0x0F) << 12)
+                    | CONT_BYTE(1,6)
+                    | CONT_BYTE(2,0);
+                s += 3;
+                // Supports WTF-8 : https://en.wikipedia.org/wiki/UTF-8#WTF-8
+                // a superset of UTF-8, that includes UTF-16 surrogates
+                // in UTF-8 bytes (forbidden in well-formed UTF-8).
+                // We may get that from bad producers or converters.
+                // As these shouldn't be there in UTF-8, if we find
+                // these surrogates in the right sequence, we might as well
+                // convert the char they represent to the right Unicode
+                // codepoint and display it instead of a '?'.
+                //   Surrogates are code points from two special ranges of
+                //   Unicode values, reserved for use as the leading, and
+                //   trailing values of paired code units in UTF-16. Leading,
+                //   also called high, surrogates are from D800 to DBFF, and
+                //   trailing, or low, surrogates are from DC00 to DFFF. They
+                //   are called surrogates, since they do not represent
+                //   characters directly, but only as a pair.
+                // (Note that lChar16 (wchar_t) is 4-bytes, and can store
+                // unicode codepoint > 0xFFFF like 0x10123)
+                ch = *(p-1); // re-read what we wrote
+                if (*(p-1) >= 0xD800 && *(p-1) <= 0xDBFF && s+2 < ends) { // what we wrote is a high surrogate,
+                    lUInt32 next = *s;                            // and there's room next for a low surrogate
+                    if ( (next & 0xF0) == 0xE0 && IS_FOLLOWING(1) && IS_FOLLOWING(2)) { // is a valid 3-bytes sequence
+                        next = ((next & 0x0F) << 12) | CONT_BYTE(1,6) | CONT_BYTE(2,0);
+                        if (next >= 0xDC00 && next <= 0xDFFF) { // is a low surrogate: valid surrogates sequence
+                            ch = 0x10000 + ((*(p-1) & 0x3FF)<<10) + (next & 0x3FF);
+                            p--; // rewind to override what we wrote
+                            *p++ = ch;
+                            s += 3;
+                        }
+                    }
+                }
+            }
         } else if ( (ch & 0xF8) == 0xF0 ) {
             if (s + 4 > ends)
                 break;
-            *p++ = ((ch & 0x07) << 18)
-                | CONT_BYTE(1,12)
-                | CONT_BYTE(2,6)
-                | CONT_BYTE(3,0);
-            s += 4;
+            if (IS_FOLLOWING(1) && IS_FOLLOWING(2) && IS_FOLLOWING(3)) {
+                matched = true;
+                *p++ = ((ch & 0x07) << 18)
+                    | CONT_BYTE(1,12)
+                    | CONT_BYTE(2,6)
+                    | CONT_BYTE(3,0);
+                s += 4;
+            }
         } else {
             // Invalid first byte in UTF-8 sequence
             // Pass with mask 0x7F, to resolve exception around env->NewStringUTF()
             *p++ = (char) (ch & 0x7F);
+            s++;
+            matched = true; // just to avoid next if
+        }
+
+        // unexpected character
+        if (!matched) {
+            *p++ = '?';
             s++;
         }
     }
@@ -3254,28 +3372,33 @@ lString8  UnicodeToTranslit( const lString16 & str )
 }
 
 
-
+// Note:
+// CH_PROP_UPPER and CH_PROP_LOWER make out CH_PROP_ALPHA, which is,
+// with CH_PROP_CONSONANT, CH_PROP_VOWEL and CH_PROP_ALPHA_SIGN,
+// used only for detecting a word candidate to hyphenation.
+// CH_PROP_PUNCT and CH_PROP_DASH are used each once in some obscure places.
+// Others seem not used anywhere: CH_PROP_SIGN, CH_PROP_DIGIT, CH_PROP_SPACE
 static lUInt16 char_props[] = {
 // 0x0000:
 0,0,0,0, 0,0,0,0, CH_PROP_SPACE,CH_PROP_SPACE,CH_PROP_SPACE,0, CH_PROP_SPACE,CH_PROP_SPACE,0,0,
 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
 // 0x0020:
 CH_PROP_SPACE, // ' '
-CH_PROP_PUNCT, // '!'
+CH_PROP_PUNCT | CH_PROP_AVOID_WRAP_BEFORE, // '!'
 0, // '\"'
 CH_PROP_SIGN, // '#'
-CH_PROP_SIGN, // '$'
-CH_PROP_SIGN, // '%'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER, // '$'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE, // '%'
 CH_PROP_SIGN, // '&'
 CH_PROP_SIGN, // '\''
-0, // '('
-0, // ')'
-CH_PROP_SIGN, // '*'
-CH_PROP_SIGN, // '+'
-CH_PROP_PUNCT, // ','
-CH_PROP_SIGN|CH_PROP_DASH, // '-'
-CH_PROP_PUNCT, // '.'
-CH_PROP_SIGN, // '/'
+CH_PROP_AVOID_WRAP_AFTER, // '('
+CH_PROP_AVOID_WRAP_BEFORE, // ')'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER, // '*'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER, // '+'
+CH_PROP_PUNCT | CH_PROP_AVOID_WRAP_BEFORE, // ','
+CH_PROP_SIGN | CH_PROP_DASH | CH_PROP_AVOID_WRAP_BEFORE, // '-'
+CH_PROP_PUNCT | CH_PROP_AVOID_WRAP_BEFORE, // '.'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE, // '/'
 // 0x0030:
 CH_PROP_DIGIT, // '0'
 CH_PROP_DIGIT, // '1'
@@ -3287,12 +3410,12 @@ CH_PROP_DIGIT, // '6'
 CH_PROP_DIGIT, // '7'
 CH_PROP_DIGIT, // '8'
 CH_PROP_DIGIT, // '9'
-CH_PROP_DIGIT, // ':'
-CH_PROP_DIGIT, // ';'
-CH_PROP_DIGIT, // '<'
-CH_PROP_DIGIT, // '='
-CH_PROP_DIGIT, // '>'
-CH_PROP_DIGIT, // '?'
+CH_PROP_PUNCT | CH_PROP_AVOID_WRAP_BEFORE, // ':'
+CH_PROP_PUNCT | CH_PROP_AVOID_WRAP_BEFORE, // ';'
+CH_PROP_SIGN  | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER,  // '<'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER,  // '='
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER,  // '>'
+CH_PROP_PUNCT | CH_PROP_AVOID_WRAP_BEFORE, // '?'
 // 0x0040:
 CH_PROP_SIGN,  // '@'
 CH_PROP_UPPER | CH_PROP_VOWEL,     // 'A'
@@ -3321,42 +3444,42 @@ CH_PROP_UPPER | CH_PROP_CONSONANT, // 'W'
 CH_PROP_UPPER | CH_PROP_CONSONANT, // 'X'
 CH_PROP_UPPER | CH_PROP_VOWEL, // 'Y'
 CH_PROP_UPPER | CH_PROP_CONSONANT, // 'Z'
-CH_PROP_SIGN, // '['
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_AFTER, // '['
 CH_PROP_SIGN, // '\'
-CH_PROP_SIGN, // ']'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE, // ']'
 CH_PROP_SIGN, // '^'
 CH_PROP_SIGN, // '_'
 // 0x0060:
 CH_PROP_SIGN,  // '`'
-CH_PROP_UPPER | CH_PROP_VOWEL,     // 'a'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'b'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'c'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'd'
-CH_PROP_UPPER | CH_PROP_VOWEL, // 'e'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'f'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'g'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'h'
-CH_PROP_UPPER | CH_PROP_VOWEL, // 'i'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'j'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'k'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'l'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'm'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'n'
-CH_PROP_UPPER | CH_PROP_VOWEL, // 'o'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'p'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'q'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'r'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 's'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 't'
-CH_PROP_UPPER | CH_PROP_VOWEL, // 'u'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'v'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'w'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'x'
-CH_PROP_UPPER | CH_PROP_VOWEL, // 'y'
-CH_PROP_UPPER | CH_PROP_CONSONANT, // 'z'
-CH_PROP_SIGN, // '{'
-CH_PROP_SIGN, // '|'
-CH_PROP_SIGN, // '}'
+CH_PROP_LOWER | CH_PROP_VOWEL,     // 'a'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'b'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'c'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'd'
+CH_PROP_LOWER | CH_PROP_VOWEL, // 'e'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'f'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'g'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'h'
+CH_PROP_LOWER | CH_PROP_VOWEL, // 'i'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'j'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'k'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'l'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'm'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'n'
+CH_PROP_LOWER | CH_PROP_VOWEL, // 'o'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'p'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'q'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'r'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 's'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 't'
+CH_PROP_LOWER | CH_PROP_VOWEL, // 'u'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'v'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'w'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'x'
+CH_PROP_LOWER | CH_PROP_VOWEL, // 'y'
+CH_PROP_LOWER | CH_PROP_CONSONANT, // 'z'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_AFTER, // '{'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER, // '|'
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE, // '}'
 CH_PROP_SIGN, // '~'
 CH_PROP_SIGN, // ' '
 // 0x0080:
@@ -3375,9 +3498,9 @@ CH_PROP_SIGN,  // 00A7
 CH_PROP_SIGN,  // 00A8
 CH_PROP_SIGN,  // 00A9
 CH_PROP_SIGN,  // 00AA
-CH_PROP_SIGN,  // 00AB
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_AFTER,  // 00AB «
 CH_PROP_SIGN,  // 00AC
-CH_PROP_SIGN,  // 00AD
+CH_PROP_HYPHEN,// 00AD soft-hyphen (UNICODE_SOFT_HYPHEN_CODE)
 CH_PROP_SIGN,  // 00AE
 CH_PROP_SIGN,  // 00AF
 // 0x00A0:
@@ -3392,7 +3515,7 @@ CH_PROP_SIGN,  // 00B7
 CH_PROP_SIGN,  // 00B8
 CH_PROP_SIGN,  // 00B9
 CH_PROP_SIGN,  // 00BA
-CH_PROP_SIGN,  // 00BB
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE,  // 00BB »
 CH_PROP_SIGN,  // 00BC
 CH_PROP_SIGN,  // 00BD
 CH_PROP_SIGN,  // 00BE
@@ -3422,7 +3545,7 @@ CH_PROP_UPPER | CH_PROP_VOWEL,  // 00D3 O'
 CH_PROP_UPPER | CH_PROP_VOWEL,  // 00D4 O^
 CH_PROP_UPPER | CH_PROP_VOWEL,  // 00D5 O"
 CH_PROP_UPPER | CH_PROP_VOWEL,  // 00D6 O:
-CH_PROP_SIGN,  // 00D7 x
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER,  // 00D7 x (multiplication sign)
 CH_PROP_UPPER | CH_PROP_VOWEL,  // 00D8 O/
 CH_PROP_UPPER | CH_PROP_VOWEL,  // 00D9 U`
 CH_PROP_UPPER | CH_PROP_VOWEL,  // 00DA U'
@@ -3456,7 +3579,7 @@ CH_PROP_LOWER | CH_PROP_VOWEL,  // 00F3 o'
 CH_PROP_LOWER | CH_PROP_VOWEL,  // 00F4 o^
 CH_PROP_LOWER | CH_PROP_VOWEL,  // 00F5 o"
 CH_PROP_LOWER | CH_PROP_VOWEL,  // 00F6 o:
-CH_PROP_SIGN,  // 00F7 / (%)
+CH_PROP_SIGN | CH_PROP_AVOID_WRAP_BEFORE | CH_PROP_AVOID_WRAP_AFTER,  // 00F7 (division sign %)
 CH_PROP_LOWER | CH_PROP_VOWEL,  // 00F8 o/
 CH_PROP_LOWER | CH_PROP_VOWEL,  // 00F9 u`
 CH_PROP_LOWER | CH_PROP_VOWEL,  // 00FA u'
@@ -4138,6 +4261,17 @@ inline lUInt16 getCharProp(lChar16 ch) {
         return char_props_1f00[ch & 255];
     else if (ch>=0x2012 && ch<=0x2015)
         return CH_PROP_DASH|CH_PROP_SIGN;
+    else if (ch==0x201C) // left double quotation mark
+        return CH_PROP_AVOID_WRAP_AFTER;
+    else if (ch==0x201D) // right double quotation mark
+        return CH_PROP_AVOID_WRAP_BEFORE;
+    else if (ch>=UNICODE_CJK_IDEOGRAPHS_BEGIN && ch<=UNICODE_CJK_IDEOGRAPHS_END&&(ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN||
+                                                                                  ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END))
+        return CH_PROP_CJK;
+    else if ((ch>=UNICODE_CJK_PUNCTUATION_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_END) ||
+             (ch>=UNICODE_GENERAL_PUNCTUATION_BEGIN && ch<=UNICODE_GENERAL_PUNCTUATION_END) ||
+             (ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END))
+        return CH_PROP_PUNCT;
     return 0;
 }
 
@@ -4149,10 +4283,51 @@ void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props )
     }
 }
 
+bool lStr_isWordSeparator( lChar16 ch )
+{
+    // ASCII letters and digits are NOT word separators
+    if (ch >= 0x61 && ch <= 0x7A) return false; // lowercase ascii letters
+    if (ch >= 0x41 && ch <= 0x5A) return false; // uppercase ascii letters
+    if (ch >= 0x30 && ch <= 0x39) return false; // digits
+    if (ch == 0xAD ) return false; // soft-hyphen, considered now as part of word
+    // All other below 0xC0 are word separators:
+    //   < 0x30 space, !"#$%&'()*+,-./
+    //   < 0x41 :;<=>?@
+    //   < 0x61 [\]^_`
+    //   < 0xC0 {|}~ and control characters and other signs
+    if (ch < 0xC0 ) return true;
+    // 0xC0 to 0xFF, except 0xD7 and 0xF7, are latin accentuated letters.
+    // Above 0xFF are other alphabets. Let's consider all above 0xC0 unicode
+    // characters as letters, except the adequately named PUNCTUATION ranges.
+    // There may be exceptions in some alphabets, that we can individually
+    // add here :
+    if (ch == 0xD7 ) return true;  // multiplication sign
+    if (ch == 0xF7 ) return true;  // division sign
+    // this one includes em-dash & friends, and other quotation marks
+    if (ch>=UNICODE_GENERAL_PUNCTUATION_BEGIN && ch<=UNICODE_GENERAL_PUNCTUATION_END) return true;
+    // CJK puncutation
+    if (ch>=UNICODE_CJK_PUNCTUATION_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_END) return true;
+    if (ch>=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN && ch<=UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END) return true;
+    // Some others(from https://www.cs.tut.fi/~jkorpela/chars/spaces.html)
+    if (ch == 0x1680 ) return true;  // OGHAM SPACE MARK
+    if (ch == 0x180E ) return true;  // MONGOLIAN VOWEL SEPARATOR
+    if (ch == 0xFEFF ) return true;  // ZERO WIDTH NO-BREAK SPACE
+    // All others are considered part of a word, thus not word separators
+    return false;
+}
+
 /// find alpha sequence bounds
 void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int & end )
 {
     int hwStart, hwEnd;
+
+    // 20180615: don't split anymore on UNICODE_SOFT_HYPHEN_CODE, consider
+    // it like an alpha char of zero width not drawn.
+    // Only hyphenation code will care about it
+    // We don't use lStr_isWordSeparator() here, but we exclusively look
+    // for ALPHA chars or soft-hyphens, as this function is and should
+    // only be used before calling hyphenate() to find a real word to
+    // give to the hyphenation algorithms.
 
 //    // skip spaces
 //    for (hwStart=pos-1; hwStart>0; hwStart--)
@@ -4179,7 +4354,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     {
         lChar16 ch = str[hwStart];
         lUInt16 props = getCharProp(ch);
-        if ( props & CH_PROP_ALPHA )
+        if ( props & CH_PROP_ALPHA || props & CH_PROP_HYPHEN )
             break;
     }
     if ( hwStart<0 ) {
@@ -4193,7 +4368,7 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     {
         lChar16 ch = str[hwStart];
         //int lastAlpha = -1;
-        if (getCharProp(ch) & CH_PROP_ALPHA) {
+        if ( getCharProp(ch) & CH_PROP_ALPHA || getCharProp(ch) & CH_PROP_HYPHEN ) {
             //lastAlpha = hwStart;
         } else {
             hwStart++;
@@ -4208,10 +4383,10 @@ void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int
     for (hwEnd=hwStart+1; hwEnd<sz; hwEnd++) // 20080404
     {
         lChar16 ch = str[hwEnd];
-        if (!(getCharProp(ch) & CH_PROP_ALPHA))
+        if (!(getCharProp(ch) & CH_PROP_ALPHA) && !(getCharProp(ch) & CH_PROP_HYPHEN))
             break;
         ch = str[hwEnd-1];
-        if ( (ch==' ' || ch==UNICODE_SOFT_HYPHEN_CODE) )
+        if ( ch==' ' ) // || ch==UNICODE_SOFT_HYPHEN_CODE) )
             break;
     }
     start = hwStart;
@@ -4950,34 +5125,34 @@ static int decodeHex( lChar16 ch )
     return -1;
 }
 
-static lChar16 decodeHTMLChar( const lChar16 * s )
+static lChar8 decodeHTMLChar( const lChar16 * s )
 {
     if (s[0] == '%') {
         int d1 = decodeHex( s[1] );
         if (d1 >= 0) {
             int d2 = decodeHex( s[2] );
             if (d2 >= 0) {
-                return (lChar16)(d1*16 + d2);
+                return (lChar8)(d1*16 + d2);
             }
         }
     }
     return 0;
 }
 
-/// decodes path like "file%20name" to "file name"
+/// decodes path like "file%20name%C3%A7" to "file nameç"
 lString16 DecodeHTMLUrlString( lString16 s )
 {
     const lChar16 * str = s.c_str();
     for ( int i=0; str[i]; i++ ) {
         if ( str[i]=='%'  ) {
-            lChar16 ch = decodeHTMLChar( str + i );
+            lChar8 ch = decodeHTMLChar( str + i );
             if ( ch==0 ) {
                 continue;
             }
             // HTML encoded char found
-            lString16 res;
+            lString8 res;
             res.reserve(s.length());
-            res.append(str, i);
+            res.append(UnicodeToUtf8(str, i));
             res.append(1, ch);
             i+=3;
 
@@ -4986,16 +5161,16 @@ lString16 DecodeHTMLUrlString( lString16 s )
                 if ( str[i]=='%'  ) {
                     ch = decodeHTMLChar( str + i );
                     if ( ch==0 ) {
-                        res.append(1, str[i]);
+                        res.append(1, (lChar8)str[i]);
                         continue;
                     }
                     res.append(1, ch);
                     i+=2;
                 } else {
-                    res.append(1, str[i]);
+                    res.append(1, (lChar8)str[i]);
                 }
             }
-            return res;
+            return Utf8ToUnicode(res);
         }
     }
     return s;
@@ -5015,6 +5190,30 @@ void limitStringSize(lString16 & str, int maxSize) {
 	int split = lastSpace > 0 ? lastSpace : maxSize;
 	str = str.substr(0, split);
     str += "...";
+}
+
+/// remove soft-hyphens from string
+lString16 removeSoftHyphens( lString16 s )
+{
+    lChar16 hyphen = lChar16(UNICODE_SOFT_HYPHEN_CODE);
+    int start = 0;
+    while (true) {
+        int p = -1;
+        int len = s.length();
+        for (int i = start; i < len; i++) {
+            if (s[i] == hyphen) {
+                p = i;
+                break;
+            }
+        }
+        if (p == -1)
+            break;
+        start = p;
+        lString16 s1 = s.substr( 0, p );
+        lString16 s2 = p < len-1 ? s.substr( p+1, len-p-1 ) : lString16::empty_str;
+        s = s1 + s2;
+    }
+    return s;
 }
 
 

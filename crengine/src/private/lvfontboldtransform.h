@@ -50,7 +50,7 @@ public:
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo(lUInt16 code, glyph_info_t *glyph, lChar16 def_char = 0);
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0);
 
     /** \brief measure text
         \param text is text string pointer
@@ -67,7 +67,8 @@ public:
             int max_width,
             lChar16 def_char,
             int letter_spacing = 0,
-            bool allow_hyphenation = true
+            bool allow_hyphenation = true,
+            lUInt32 hints=0
     );
 
     /** \brief measure text
@@ -83,7 +84,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt16 ch, lChar16 def_char = 0);
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0);
 
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
@@ -113,6 +114,16 @@ public:
         return w;
     }
 
+    /// returns char glyph left side bearing
+    virtual int getLeftSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) {
+        return _baseFont->getLeftSideBearing( ch, negative_only, italic_only );
+    }
+
+    /// returns char glyph right side bearing
+    virtual int getRightSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) {
+        return _baseFont->getRightSideBearing( ch, negative_only, italic_only );
+    }
+
     /// retrieves font handle
     virtual void *GetHandle() {
         return NULL;
@@ -129,10 +140,11 @@ public:
     }
 
     /// draws text string
-    virtual void DrawTextString(LVDrawBuf *buf, int x, int y,
+    virtual int DrawTextString(LVDrawBuf *buf, int x, int y,
                                 const lChar16 *text, int len,
                                 lChar16 def_char, lUInt32 *palette, bool addHyphen,
-                                lUInt32 flags, int letter_spacing);
+                                lUInt32 flags, int letter_spacing,
+                                int width, int text_decoration_back_gap);
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() {
@@ -150,17 +162,14 @@ public:
     /// returns current hinting mode
     virtual hinting_mode_t getHintingMode() const { return _baseFont->getHintingMode(); }
 
-    /// get kerning mode: true==ON, false=OFF
-    virtual bool getKerning() const { return _baseFont->getKerning(); }
+    /// get kerning mode
+    virtual kerning_mode_t getKerningMode() const { return _baseFont->getKerningMode(); }
 
-    /// get kerning mode: true==ON, false=OFF
-    virtual void setKerning(bool b) { _baseFont->setKerning(b); }
+    /// get kerning mode
+    virtual void setKerningMode( kerning_mode_t mode ) { _baseFont->setKerningMode( mode ); }
 
-    /// get ligatures mode: true==allowed, false=not allowed
-    virtual bool getLigatures() const { return _baseFont->getLigatures(); }
-
-    /// set ligatures mode: true==allowed, false=not allowed
-    virtual void setLigatures(bool b) { _baseFont->setLigatures(b); }
+    /// clear cache
+    virtual void clearCache() { _baseFont->clearCache(); }
 
     /// returns true if font is empty
     virtual bool IsNull() const {

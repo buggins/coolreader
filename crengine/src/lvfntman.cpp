@@ -21,13 +21,10 @@
 #define GAMMA_TABLES_IMPL
 #include "../include/gammatbl.h"
 
-//DEFINE_NULL_REF( LVFont )
-
-
 LVFontManager *fontMan = NULL;
 
 static double gammaLevel = 1.0;
-int gammaIndex = GAMMA_LEVELS / 2;
+int gammaIndex = GAMMA_NO_CORRECTION_INDEX;
 
 /// returns first found face from passed list, or return face for font found by family only
 lString8 LVFontManager::findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily) {
@@ -76,6 +73,7 @@ void LVFontManager::SetGammaIndex(int index) {
         CRLog::trace("FontManager gamma index changed from %d to %d", gammaIndex, index);
         gammaIndex = index;
         gammaLevel = cr_gamma_levels[index];
+        gc();
         clearGlyphCache();
     }
 }
@@ -86,9 +84,9 @@ double LVFontManager::GetGamma() {
 }
 
 /// sets current gamma level
-void LVFontManager::SetGamma(double gamma) {
-//    gammaLevel = cr_ft_gamma_levels[GAMMA_LEVELS/2];
-//    gammaIndex = GAMMA_LEVELS/2;
+void LVFontManager::SetGamma( double gamma ) {
+    // gammaLevel = cr_ft_gamma_levels[GAMMA_LEVELS/2];
+    // gammaIndex = GAMMA_LEVELS/2;
     int oldGammaIndex = gammaIndex;
     for (int i = 0; i < GAMMA_LEVELS; i++) {
         double diff1 = cr_gamma_levels[i] - gamma;
@@ -102,27 +100,10 @@ void LVFontManager::SetGamma(double gamma) {
     }
     if (gammaIndex != oldGammaIndex) {
         CRLog::trace("FontManager gamma index changed from %d to %d", oldGammaIndex, gammaIndex);
+        gc();
         clearGlyphCache();
     }
 }
-
-
-#if (USE_FREETYPE == 1)
-
-
-/// create transform for font
-//LVFontRef LVCreateFontTransform( LVFontRef baseFont, int transformFlags )
-//{
-//    if ( transformFlags & LVFONT_TRANSFORM_EMBOLDEN ) {
-//        // BOLD transform
-//        return LVFontRef( new LVFontBoldTransform( baseFont ) );
-//    } else {
-//        return baseFont; // no transform
-//    }
-//}
-
-#endif  // (USE_FREETYPE==1)
-
 
 bool InitFontManager(lString8 path) {
     if (fontMan) {

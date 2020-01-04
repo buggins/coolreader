@@ -21,6 +21,7 @@ src/txtselector.cpp
 #src/xutils.cpp
 src/crtest.cpp
 fc-lang/fc-lang-cat.c
+src/xxhash.c
 )
 
 if ( NOT ${GUI} STREQUAL FB2PROPS )
