@@ -79,6 +79,8 @@ public class BookEngine : BookEngineInterface {
   
   // The handle to the poppler engine interface.
   private BookEngineInterface pop;
+  
+  private IntPtr handle = IntPtr.Zero;
     
   public BookEngine ()
   {
@@ -88,22 +90,40 @@ public class BookEngine : BookEngineInterface {
 
   IntPtr BookEngineInterface.BEIDocViewCreate (string fname)
   {
-    IntPtr bookHandle = IntPtr.Zero;
-    format = getFormatFromName (fname);
-    switch (format)
+    BookFormat newFormat = getFormatFromName (fname);
+    
+    if ((newFormat != format) || (handle == IntPtr.Zero))
     {
-      case BookFormat.coolreader:
-        // Create a book with a default font size.
-        bookHandle = cri.BEIDocViewCreate (fname);
-        Debug.Log ("CRI Handle" + bookHandle);
-        break;
-      case BookFormat.poppler:
-        // Create a book with a default font size.
-        bookHandle = pop.BEIDocViewCreate (fname);
-        Debug.Log ("Poppler Handle" + bookHandle);
-        break;
+      if (handle != IntPtr.Zero)
+      {
+        switch (format)
+        {
+// TODO          
+          case BookFormat.coolreader:
+//            cri.BEIReleaseHandle (handle);
+            break;
+          case BookFormat.poppler:
+//            pop.BEIReleaseHandle (handle);
+            break;
+        }
+      }
+      
+      switch (newFormat)
+      {
+        case BookFormat.coolreader:
+          // Create a book with a default font size.
+          handle = cri.BEIDocViewCreate (fname);
+          Debug.Log ("CRI Handle " + handle);
+          break;
+        case BookFormat.poppler:
+          // Create a book with a default font size.
+          handle = pop.BEIDocViewCreate (fname);
+          Debug.Log ("Poppler Handle " + handle);
+          break;
+      }
+      format = newFormat;
     }
-    return bookHandle;
+    return handle;
   }
 
   bool BookEngineInterface.BEILoadDocument(IntPtr handle, string fname, int width, int height)

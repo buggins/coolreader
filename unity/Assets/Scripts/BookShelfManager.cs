@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.IO;
 
 /*
  * Procedurally generate bookshelves to hold books as they are added. Generates the library
@@ -77,12 +78,16 @@ public class BookShelfManager : MenuInteraction {
     bp.title = Marshal.PtrToStringAnsi (bookEngine.BEIGetTitle (bookHandle));
     if (bp.title == null)
     {
-      bp.title = "No title";
+      bp.title = "";
     }
     bp.author = Marshal.PtrToStringAnsi (bookEngine.BEIGetAuthors (bookHandle));
     if (bp.author == null)
     {
       bp.author = "No author";
+    }
+    if (bp.title == "")
+    {
+      bp.title = Path.GetFileNameWithoutExtension (bp.filename);
     }
     Debug.Log ("Found book " + bp.title + " " + bp.author + " " + bp.filename);
     loading = false;
