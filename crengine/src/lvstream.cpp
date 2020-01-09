@@ -27,6 +27,7 @@
 #include "../include/lvstream.h"
 #include "../include/lvptrvec.h"
 #include "../include/crtxtenc.h"
+#include "../include/crlog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2097,6 +2098,10 @@ struct ZipHd2
     lUInt16     getZIPAttr() { return _Attr_and_Offset[0]; }
     lUInt32     getAttr() { return _Attr_and_Offset[1] | ((lUInt32)_Attr_and_Offset[2]<<16); }
     lUInt32     getOffset() { return _Attr_and_Offset[3] | ((lUInt32)_Attr_and_Offset[4]<<16); }
+    void        setOffset(lUInt32 offset) {
+        _Attr_and_Offset[3] = (lUInt16)(offset & 0xFFFF);
+        _Attr_and_Offset[4] = (lUInt16)(offset >> 16);
+    }
     void byteOrderConv()
     {
         //
@@ -2489,14 +2494,20 @@ public:
 
 class LVZipArc : public LVArcContainerBase
 {
+protected:
+    // whether the alternative "truncated" method was used, or is to be used
+    bool m_alt_reading_method = false;
 public:
+    bool isAltReadingMethod() { return m_alt_reading_method; }
+    void setAltReadingMethod() { m_alt_reading_method = true; }
+
     virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t /*mode*/ )
     {
         if ( fname[0]=='/' )
             fname++;
         int found_index = -1;
         for (int i=0; i<m_list.length(); i++) {
-            if ( !lStr_cmp( fname, m_list[i]->GetName() ) ) {
+            if ( m_list[i]->GetName() != NULL && !lStr_cmp( fname, m_list[i]->GetName() ) ) {
                 if ( m_list[i]->IsContainer() ) {
                     // found directory with same name!!!
                     return LVStreamRef();
@@ -2592,6 +2603,18 @@ public:
         }
 
         truncated = !found;
+
+        // If the main reading method (using zip header at the end of the
+        // archive) failed, we can try using the alternative method used
+        // when this zip header is missing ("truncated"), which uses
+        // local zip headers met along while scanning the zip.
+        if (m_alt_reading_method)
+            truncated = true; // do as if truncated
+        else if (truncated) // archive detected as truncated
+            // flag that, so there's no need to try that alt method,
+            // as it was used on first scan
+            m_alt_reading_method = true;
+
         if (truncated)
             NextPosition=0;
 
@@ -2612,6 +2635,11 @@ public:
 
             if (truncated)
             {
+                // The offset (that we don't find in a local header, but
+                // that we will store in the ZipHeader we're building)
+                // happens to be the current position here.
+                lUInt32 offset = (lUInt32)m_stream->GetPos();
+
                 m_stream->Read( &ZipHd1, ZipHd1_size, &ReadSize);
                 ZipHd1.byteOrderConv();
 
@@ -2636,6 +2664,10 @@ public:
                 ZipHeader.NameLen=ZipHd1.getNameLen();
                 ZipHeader.AddLen=ZipHd1.getAddLen();
                 ZipHeader.Method=ZipHd1.getMethod();
+                ZipHeader.setOffset(offset);
+                // We may get a last invalid record with NameLen=0, which shouldn't hurt.
+                // If it does, use:
+                // if (ZipHeader.NameLen == 0) break;
             } else {
 
                 m_stream->Read( &ZipHeader, ZipHeader_size, &ReadSize);
@@ -2742,8 +2774,17 @@ public:
                 return NULL;
         LVZipArc * arc = new LVZipArc( stream );
         int itemCount = arc->ReadContents();
+        if ( itemCount > 0 && arc->isAltReadingMethod() ) {
+            CRLog::warn("Zip file truncated: going on with possibly partial content.");
+        }
+        else if ( itemCount <= 0 && !arc->isAltReadingMethod() ) {
+            CRLog::warn("Zip file corrupted or invalid: trying alternative processing...");
+            arc->setAltReadingMethod();
+            itemCount = arc->ReadContents();
+        }
         if ( itemCount <= 0 )
         {
+            CRLog::error("Zip file corrupted or invalid: processing failure.");
             delete arc;
             return NULL;
         }

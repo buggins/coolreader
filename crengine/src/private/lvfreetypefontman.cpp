@@ -1,4 +1,4 @@
-/** \file lvfreetypefontman.c
+/** \file lvfreetypefontman.cpp
     \brief FreeType font manager implementation
 
     CoolReader Engine
@@ -15,6 +15,7 @@
 #include "lvfreetypefontman.h"
 #include "lvfreetypeface.h"
 #include "lvfontboldtransform.h"
+#include "../../include/crlog.h"
 
 #if (USE_FONTCONFIG == 1)
 #include <fontconfig/fontconfig.h>

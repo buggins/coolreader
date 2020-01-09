@@ -194,13 +194,11 @@ public:
 
 #endif  // USE_HARFBUZZ==1
 
-    FT_UInt getCharIndex(lChar16 code, lChar16 def_char);
-
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
     */
-    virtual bool getGlyphInfo(lUInt16 code, glyph_info_t *glyph, lChar16 def_char = 0);
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0);
 /*
   // USE GET_CHAR_FLAGS instead
     inline int calcCharFlags( lChar16 ch )
@@ -258,7 +256,7 @@ public:
         \param code is unicode character
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt16 ch, lChar16 def_char = 0);
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0);
 
 #if USE_HARFBUZZ == 1
 
@@ -340,6 +338,8 @@ public:
     }
 
     virtual void Clear();
+protected:
+    FT_UInt getCharIndex(lUInt32 code, lChar16 def_char);
 };
 
 #endif  // (USE_FREETYPE==1)

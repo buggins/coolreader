@@ -21,6 +21,7 @@
 #include "lvref.h"
 #include "lvstring.h"
 #include "lvhashtable.h"
+#include "crtimerutil.h"
 
 #ifndef RENDER_PROGRESS_INTERVAL_MILLIS
 #define RENDER_PROGRESS_INTERVAL_MILLIS 1200
@@ -51,6 +52,8 @@ enum page_type_t {
     PAGE_TYPE_NORMAL = 0,
     PAGE_TYPE_COVER = 1
 };
+
+class SerialBuf;
 
 /// footnote fragment inside page
 class LVPageFootNoteInfo {

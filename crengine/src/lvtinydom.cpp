@@ -141,6 +141,7 @@ enum CacheFileBlockType {
 #include "../include/chmfmt.h"
 #endif
 #include "../include/crtest.h"
+#include "../include/crlog.h"
 #include <stddef.h>
 #include <math.h>
 #include <zlib.h>

@@ -2,6 +2,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvopc.h"
+#include "../include/crlog.h"
 
 #define DOCX_TAG_NAME(itm) docx_el_##itm##_name
 #define DOCX_TAG_ID(itm) docx_el_##itm

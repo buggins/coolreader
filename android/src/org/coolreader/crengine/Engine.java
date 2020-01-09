@@ -590,7 +590,7 @@ public class Engine {
 		}
 		mFonts = findFonts();
 		findExternalHyphDictionaries();
-		if (!initInternal(mFonts)) {
+		if (!initInternal(mFonts, DeviceInfo.getSDKLevel())) {
 			log.i("Engine.initInternal failed!");
 			throw new RuntimeException("Cannot initialize CREngine JNI");
 		}
@@ -599,7 +599,7 @@ public class Engine {
 	}
 
 	// Native functions
-	private native static boolean initInternal(String[] fontList);
+	private native static boolean initInternal(String[] fontList, int sdk_int);
 
 	private native static void uninitInternal();
 
@@ -640,12 +640,18 @@ public class Engine {
 	 */
 	private native static boolean checkFontLanguageCompatibilityInternal(String fontFace, String langCode);
 
+	private native static File[] listFilesInternal(File dir);
+
 	public static void suspendLongOperation() {
 		suspendLongOperationInternal();
 	}
 
 	public synchronized static boolean checkFontLanguageCompatibility(String fontFace, String langCode) {
 		return checkFontLanguageCompatibilityInternal(fontFace, langCode);
+	}
+
+	public static synchronized File[] listFiles(File dir) {
+		return listFilesInternal(dir);
 	}
 
 	/**
@@ -2022,7 +2028,7 @@ public class Engine {
 		}
 		mFonts = findFonts();
 		findExternalHyphDictionaries();
-		if (!initInternal(mFonts)) {
+		if (!initInternal(mFonts, DeviceInfo.getSDKLevel())) {
 			log.i("Engine.initInternal failed!");
 			throw new RuntimeException("Cannot initialize CREngine JNI");
 		}

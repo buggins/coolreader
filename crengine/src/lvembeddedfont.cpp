@@ -13,6 +13,7 @@
 */
 
 #include "../include/lvembeddedfont.h"
+#include "../include/serialbuf.h"
 
 #include <stdlib.h>
 

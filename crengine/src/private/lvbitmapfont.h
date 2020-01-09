@@ -30,7 +30,7 @@ private:
 public:
     LBitmapFont() : m_font(NULL) {}
 
-    virtual bool getGlyphInfo(lUInt16 code, LVFont::glyph_info_t *glyph, lChar16 def_char = 0);
+    virtual bool getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char = 0);
 
     virtual lUInt16
     measureText(const lChar16 *text, int len, lUInt16 *widths, lUInt8 *flags, int max_width,
@@ -60,9 +60,9 @@ public:
     /// returns italic flag
     virtual int getItalic() const;
 
-    //virtual bool getGlyphImage(lUInt16 code, lUInt8 *buf, lChar16 def_char = 0);
+    //virtual bool getGlyphImage(lUInt32 code, lUInt8 *buf, lChar16 def_char = 0);
 
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt16 ch, lChar16 def_char = 0);
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0);
 
     /// returns char width
     virtual int getCharWidth(lChar16 ch, lChar16 def_char = 0) {

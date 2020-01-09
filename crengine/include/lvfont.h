@@ -67,10 +67,11 @@ public:
     virtual int getVisualAligmentWidth();
 
     /** \brief get glyph info
+        \param code is unicode character code
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found 
     */
-    virtual bool getGlyphInfo(lUInt16 code, glyph_info_t *glyph, lChar16 def_char = 0) = 0;
+    virtual bool getGlyphInfo(lUInt32 code, glyph_info_t *glyph, lChar16 def_char = 0) = 0;
 
     /** \brief measure text
         \param text is text string pointer
@@ -104,12 +105,12 @@ public:
 //        \param buf is buffer [width*height] to place glyph data
 //        \return true if glyph was found
 //    */
-//    virtual bool getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char=0) = 0;
+//    virtual bool getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char=0) = 0;
     /** \brief get glyph item
-        \param code is unicode character
+        \param code is unicode character code
         \return glyph pointer if glyph was found, NULL otherwise
     */
-    virtual LVFontGlyphCacheItem *getGlyph(lUInt16 ch, lChar16 def_char = 0) = 0;
+    virtual LVFontGlyphCacheItem *getGlyph(lUInt32 ch, lChar16 def_char = 0) = 0;
 
     /// returns font baseline offset
     virtual int getBaseline() = 0;

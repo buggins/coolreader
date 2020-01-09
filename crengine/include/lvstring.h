@@ -744,150 +744,8 @@ const lString16 & cs16(const char * str);
 /// get reference to atomic constant wide string for string literal e.g. cs16(L"abc") -- fast and memory effective replacement of lString16(L"abc")
 const lString16 & cs16(const lChar16 * str);
 
-/// collection of wide strings
-class lString16Collection
-{
-private:
-    lstring16_chunk_t * * chunks;
-    int count;
-    int size;
-public:
-    lString16Collection()
-        : chunks(NULL), count(0), size(0)
-    { }
-    /// parse delimiter-separated string
-    void parse( lString16 string, lChar16 delimiter, bool flgTrim );
-    /// parse delimiter-separated string
-    void parse( lString16 string, lString16 delimiter, bool flgTrim );
-    void reserve(int space);
-    int add( const lString16 & str );
-    int add(const lChar16 * str) { return add(lString16(str)); }
-    int add(const lChar8 * str) { return add(lString16(str)); }
-    void addAll( const lString16Collection & v )
-	{
-        for (int i=0; i<v.length(); i++)
-			add( v[i] );
-	}
-    void erase(int offset, int count);
-    /// split into several lines by delimiter
-    void split(const lString16 & str, const lString16 & delimiter);
-    const lString16 & at(int index)
-    {
-        return ((lString16 *)chunks)[index];
-    }
-    const lString16 & operator [] (int index) const
-    {
-        return ((lString16 *)chunks)[index];
-    }
-    lString16 & operator [] (int index)
-    {
-        return ((lString16 *)chunks)[index];
-    }
-    int length() const { return count; }
-    void clear();
-    bool contains( lString16 value )
-    {
-        for (int i = 0; i < count; i++)
-            if (value.compare(at(i)) == 0)
-                return true;
-        return false;
-    }
-    void sort();
-    void sort(int(comparator)(lString16 & s1, lString16 & s2));
-    ~lString16Collection()
-    {
-        clear();
-    }
-};
-
-/// collection of strings
-class lString8Collection
-{
-private:
-    lstring8_chunk_t * * chunks;
-    int count;
-    int size;
-public:
-    lString8Collection()
-        : chunks(NULL), count(0), size(0)
-    { }
-    lString8Collection(const lString8Collection & src)
-        : chunks(NULL), count(0), size(0)
-    { reserve(src.size); addAll(src); }
-    lString8Collection(const lString8 & str, const lString8 & delimiter)
-        : chunks(NULL), count(0), size(0)
-    {
-        split(str, delimiter);
-    }
-    void reserve(int space);
-    int add(const lString8 & str);
-    int add(const char * str) { return add(lString8(str)); }
-    void addAll(const lString8Collection & src) {
-    	for (int i = 0; i < src.length(); i++)
-    		add(src[i]);
-    }
-    /// split string by delimiters, and add all substrings to collection
-    void split(const lString8 & str, const lString8 & delimiter);
-    void erase(int offset, int count);
-    const lString8 & at(int index)
-    {
-        return ((lString8 *)chunks)[index];
-    }
-    const lString8 & operator [] (int index) const
-    {
-        return ((lString8 *)chunks)[index];
-    }
-    lString8 & operator [] (int index)
-    {
-        return ((lString8 *)chunks)[index];
-    }
-    lString8Collection& operator=(const lString8Collection& other)
-    {
-        clear();
-        reserve(other.size);
-        addAll(other);
-        return *this;
-    }
-    int length() const { return count; }
-    void clear();
-    ~lString8Collection()
-    {
-        clear();
-    }
-};
-
 /// calculates hash for wide c-string
 lUInt32 calcStringHash( const lChar16 * s );
-
-class SerialBuf;
-
-/// hashed wide string collection
-class lString16HashedCollection : public lString16Collection
-{
-private:
-    int hashSize;
-    struct HashPair {
-        int index;
-        HashPair * next;
-        void clear() { index=-1; next=NULL; }
-    };
-    HashPair * hash;
-    void addHashItem( int hashIndex, int storageIndex );
-    void clearHash();
-    void reHash( int newSize );
-public:
-
-	/// serialize to byte array (pointer will be incremented by number of bytes written)
-	void serialize( SerialBuf & buf );
-	/// deserialize from byte array (pointer will be incremented by number of bytes read)
-	bool deserialize( SerialBuf & buf );
-
-    lString16HashedCollection( lString16HashedCollection & v );
-    lString16HashedCollection( lUInt32 hashSize );
-    ~lString16HashedCollection();
-    int add( const lChar16 * s );
-    int find( const lChar16 * s );
-};
 
 /// returns true if two wide strings are equal
 inline bool operator == (const lString16& s1, const lString16& s2 )
@@ -949,80 +807,6 @@ inline lString8 operator + (const lString8 &s1, fmt::hex v)
     { lString8 s(s1); s.appendHex(v.get()); return s; }
 
 
-/// fast 16-bit string character appender
-template <int BUFSIZE> class lStringBuf16 {
-    lString16 & str;
-    lChar16 buf[BUFSIZE];
-    int pos;
-	lStringBuf16 & operator = (const lStringBuf16 & v)
-	{
-        CR_UNUSED(v);
-		// not available
-		return *this;
-	}
-public:
-    lStringBuf16( lString16 & s )
-    : str(s), pos(0)
-    {
-    }
-    inline void append( lChar16 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-    }
-    inline lStringBuf16& operator << ( lChar16 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-        return *this;
-    }
-    inline void flush()
-    {
-        str.append( buf, pos );
-        pos = 0;
-    }
-    ~lStringBuf16( )
-    {
-        flush();
-    }
-};
-
-/// fast 8-bit string character appender
-template <int BUFSIZE> class lStringBuf8 {
-    lString8 & str;
-    lChar8 buf[BUFSIZE];
-    int pos;
-public:
-    lStringBuf8( lString8 & s )
-    : str(s), pos(0)
-    {
-    }
-    inline void append( lChar8 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-    }
-    inline lStringBuf8& operator << ( lChar8 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-        return *this;
-    }
-    inline void flush()
-    {
-        str.append( buf, pos );
-        pos = 0;
-    }
-    ~lStringBuf8( )
-    {
-        flush();
-    }
-};
-
 lString8  UnicodeToTranslit( const lString16 & str );
 /// converts wide unicode string to local 8-bit encoding
 lString8  UnicodeToLocal( const lString16 & str );
@@ -1030,6 +814,10 @@ lString8  UnicodeToLocal( const lString16 & str );
 lString8  UnicodeToUtf8( const lString16 & str );
 /// converts wide unicode string to utf-8 string
 lString8 UnicodeToUtf8(const lChar16 * s, int count);
+/// converts wide unicode string to wtf-8 string
+lString8  UnicodeToWtf8( const lString16 & str );
+/// converts wide unicode string to wtf-8 string
+lString8 UnicodeToWtf8(const lChar16 * s, int count);
 /// converts unicode string to 8-bit string using specified conversion table
 lString8  UnicodeTo8Bit( const lString16 & str, const lChar8 * * table );
 /// converts 8-bit string to unicode string using specified conversion table for upper 128 characters
@@ -1044,6 +832,12 @@ lString16 Utf8ToUnicode( const char * s );
 lString16 Utf8ToUnicode( const char * s, int sz );
 /// converts utf-8 string fragment to wide unicode string
 void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar16 * dst, int &dstlen);
+/// converts wtf-8 string to wide unicode string
+lString16 Wtf8ToUnicode( const lString8 & str );
+/// converts utf-8 c-string to wide unicode string
+lString16 Wtf8ToUnicode( const char * s );
+/// converts utf-8 string fragment to wide unicode string
+lString16 Wtf8ToUnicode( const char * s, int sz );
 /// decodes path like "file%20name" to "file name"
 lString16 DecodeHTMLUrlString( lString16 s );
 /// truncates string by specified size, appends ... if truncated, prefers to wrap whole words
@@ -1055,191 +849,8 @@ int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEn
 #define LCSTR(x) (UnicodeToUtf8(x).c_str())
 bool splitIntegerList( lString16 s, lString16 delim, int & value1, int & value2 );
 
-/// serialization/deserialization buffer
-class SerialBuf
-{
-	lUInt8 * _buf;
-	bool _ownbuf;
-	bool _error;
-    bool _autoresize;
-	int _size;
-	int _pos;
-public:
-    /// swap content of buffer with another buffer
-    void swap( SerialBuf & v );
-    /// constructor of serialization buffer
-	SerialBuf( int sz, bool autoresize = true );
-	SerialBuf( const lUInt8 * p, int sz );
-	~SerialBuf();
-
-    void set( lUInt8 * buf, int size )
-    {
-        if ( _buf && _ownbuf )
-            free( _buf );
-        _buf = buf;
-        _ownbuf = true;
-        _error = false;
-        _autoresize = true;
-        _size = _pos = size;
-    }
-    bool copyTo( lUInt8 * buf, int maxSize );
-    inline lUInt8 * buf() { return _buf; }
-    inline void setPos( int pos ) { _pos = pos; }
-	inline int space() const { return _size-_pos; }
-	inline int pos() const { return _pos; }
-	inline int size() const { return _size; }
-
-    /// returns true if error occured during one of operations
-	inline bool error() const { return _error; }
-
-    inline void seterror() { _error = true; }
-    /// move pointer to beginning, clear error flag
-    inline void reset() { _error = false; _pos = 0; }
-
-    /// checks whether specified number of bytes is available, returns true in case of error
-	bool check( int reserved );
-
-	// write methods
-    /// put magic signature
-	void putMagic( const char * s );
-
-    /// add CRC32 for last N bytes
-    void putCRC( int N );
-
-    /// returns CRC32 for the whole buffer
-    lUInt32 getCRC();
-
-    /// add contents of another buffer
-    SerialBuf & operator << ( const SerialBuf & v );
-
-	SerialBuf & operator << ( lUInt8 n );
-
-    SerialBuf & operator << ( char n );
-
-    SerialBuf & operator << ( bool n );
-
-    SerialBuf & operator << ( lUInt16 n );
-
-    SerialBuf & operator << ( lInt16 n );
-
-    SerialBuf & operator << ( lUInt32 n );
-
-    SerialBuf & operator << ( lInt32 n );
-
-    SerialBuf & operator << ( const lString16 & s );
-
-    SerialBuf & operator << ( const lString8 & s8 );
-
-    // read methods
-    SerialBuf & operator >> ( lUInt8 & n );
-
-    SerialBuf & operator >> ( char & n );
-
-	SerialBuf & operator >> ( bool & n );
-
-	SerialBuf & operator >> ( lUInt16 & n );
-
-	SerialBuf & operator >> ( lInt16 & n );
-
-    SerialBuf & operator >> ( lUInt32 & n );
-
-    SerialBuf & operator >> ( lInt32 & n );
-
-	SerialBuf & operator >> ( lString8 & s8 );
-
-	SerialBuf & operator >> ( lString16 & s );
-
-	bool checkMagic( const char * s );
-    /// read crc32 code, comapare with CRC32 for last N bytes
-    bool checkCRC( int N );
-};
-
-
-/// Logger
-class CRLog
-{
-public:
-    /// log levels
-    enum log_level {
-        LL_FATAL,
-        LL_ERROR,
-        LL_WARN,
-        LL_INFO,
-        LL_DEBUG,
-        LL_TRACE
-    };
-    /// set current log level
-    static void setLogLevel( log_level level );
-    /// returns current log level
-    static log_level getLogLevel();
-    /// returns true if specified log level is enabled
-    static bool isLogLevelEnabled( log_level level );
-    /// returns true if log level is DEBUG or lower
-    static bool inline isDebugEnabled() { return isLogLevelEnabled( LL_DEBUG ); }
-    /// returns true if log level is TRACE
-    static bool inline isTraceEnabled() { return isLogLevelEnabled( LL_TRACE ); }
-    /// returns true if log level is INFO or lower
-    static bool inline isInfoEnabled() { return isLogLevelEnabled( LL_INFO ); }
-    /// returns true if log level is WARN or lower
-    static bool inline isWarnEnabled() { return isLogLevelEnabled( LL_WARN ); }
-    static void fatal( const char * msg, ... );
-    static void error( const char * msg, ... );
-    static void warn( const char * msg, ... );
-    static void info( const char * msg, ... );
-    static void debug( const char * msg, ... );
-    static void trace( const char * msg, ... );
-    /// sets logger instance
-    static void setLogger( CRLog * logger );
-    virtual ~CRLog();
-
-    /// write log to specified file, flush after every message if autoFlush parameter is true
-    static void setFileLogger( const char * fname, bool autoFlush=false );
-    /// use stdout for output
-    static void setStdoutLogger();
-    /// use stderr for output
-    static void setStderrLogger();
-protected:
-    CRLog();
-    virtual void log( const char * level, const char * msg, va_list args ) = 0;
-    log_level curr_level;
-    static CRLog * CRLOG;
-};
-
-
+#if LDOM_USE_OWN_MEM_MAN==1
 void free_ls_storage();
-
-lUInt64 GetCurrentTimeMillis();
-void CRReinitTimer();
-
-
-
-#ifdef _DEBUG
-#include <stdio.h>
-class DumpFile
-{
-public:
-    FILE * f;
-    DumpFile( const char * fname )
-    : f(NULL)
-    {
-        if ( fname )
-            f = fopen( fname, "at" );
-        if ( !f )
-            f = stdout;
-        fprintf(f, "DumpFile log started\n");
-    }
-    ~DumpFile()
-    {
-        if ( f!=stdout )
-            fclose(f);
-    }
-    operator FILE * () { if (f) fflush(f); return f?f:stdout; }
-};
 #endif
 
-#endif
-
-
-
-
-
+#endif  // __LV_STRING_H_INCLUDED__

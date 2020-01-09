@@ -40,6 +40,8 @@
 #include "lvimg.h"
 #include "props.h"
 #include "bookformats.h"
+#include "serialbuf.h"
+#include "lvstring16hashedcollection.h"
 
 #define LXML_NO_DATA       0 ///< to mark data storage record as empty
 #define LXML_ELEMENT_NODE  1 ///< element node

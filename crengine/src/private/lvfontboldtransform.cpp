@@ -39,7 +39,7 @@ int LVFontBoldTransform::getHyphenWidth() {
 }
 
 bool
-LVFontBoldTransform::getGlyphInfo(lUInt16 code, LVFont::glyph_info_t *glyph, lChar16 def_char) {
+LVFontBoldTransform::getGlyphInfo(lUInt32 code, LVFont::glyph_info_t *glyph, lChar16 def_char) {
     bool res = _baseFont->getGlyphInfo(code, glyph, def_char);
     if (!res)
         return res;
@@ -91,7 +91,7 @@ lUInt32 LVFontBoldTransform::getTextWidth(const lChar16 *text, int len) {
     return 0;
 }
 
-LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt16 ch, lChar16 def_char) {
+LVFontGlyphCacheItem *LVFontBoldTransform::getGlyph(lUInt32 ch, lChar16 def_char) {
 
     LVFontGlyphCacheItem *item = _glyph_cache.get(ch);
     if (item)

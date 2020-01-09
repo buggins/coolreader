@@ -19,6 +19,9 @@
 #include "lvrefcache.h"
 #include "lvtextfm.h"
 #include "lvfntman.h"
+#include "lvstring8collection.h"
+
+class SerialBuf;
 
 /**
     \brief Element style record.
