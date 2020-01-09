@@ -318,15 +318,13 @@ public:
     static const int PROP_COUNT = N;
 
     virtual void reset() {
-        for(int i = 0; i < N; i++) {
-            m_properties[i].type = css_val_unspecified;
-            m_properties[i].value = 0;
-        }
+        init();
     }
+
     virtual ~docx_PropertiesContainer() {}
 
     docx_PropertiesContainer() {
-        reset();
+        init();
     }
 
     css_length_t get(int index) const {
@@ -377,6 +375,13 @@ public:
 
 protected:
     css_length_t m_properties[N];
+private:
+    void init() {
+        for(int i = 0; i < N; i++) {
+            m_properties[i].type = css_val_unspecified;
+            m_properties[i].value = 0;
+        }
+    }
 };
 
 enum docx_run_properties
@@ -924,16 +929,17 @@ class docx_hyperlinkHandler  : public docx_ElementHandler
 {
     docx_rHandler m_rHandler;
     lString16 m_target;
+    int m_runCount;
 public:
     docx_hyperlinkHandler(docXMLreader * reader, ldomDocumentWriter *writer, docxImportContext *context, docx_pHandler* pHandler) :
         docx_ElementHandler(reader, writer, context, docx_el_hyperlink, hyperlink_elements),
-        m_rHandler(reader, writer, context, pHandler)
+        m_rHandler(reader, writer, context, pHandler), m_runCount(0)
     {
     }
     ldomNode * handleTagOpen(int tagId);
     void handleAttribute(const lChar16 * attrname, const lChar16 * attrvalue);
     void handleTagClose( const lChar16 * nsname, const lChar16 * tagname );
-    void reset() { m_target.clear(); m_rHandler.reset(); }
+    void reset() { m_target.clear(); m_rHandler.reset(); m_runCount = 0; }
 };
 
 class docx_documentHandler;
@@ -1912,6 +1918,7 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
 {
     switch(tagId) {
     case docx_el_r:
+    case docx_el_hyperlink:
         if ( 0 == m_runCount ) {
             m_pPr.combineWith(m_importContext->get_pPrDefault());
             css_length_t outlineLevel = m_pPr.getOutlineLvl();
@@ -1942,14 +1949,15 @@ ldomNode * docx_pHandler::handleTagOpen(int tagId)
                 m_writer->OnAttribute(L"", L"style", style.c_str());
             m_writer->OnTagBody();
         }
-        m_rHandler.start();
+        if(docx_el_r == tagId)
+            m_rHandler.start();
+        else
+            m_hyperlinkHandler.start();
         m_runCount++;
         break;
     case docx_el_bookmarkStart:
         m_state = tagId;
         break;
-    case docx_el_hyperlink:
-        m_hyperlinkHandler.start();
         break;
     case docx_el_pPr:
         m_pPrHandler.start(&m_pPr);
@@ -2714,6 +2722,12 @@ ldomNode *docx_hyperlinkHandler::handleTagOpen(int tagId)
 {
     switch(tagId) {
     case docx_el_r:
+        if ( !m_target.empty() && 0 == m_runCount ) {
+            m_writer->OnTagOpen(L"", L"a");
+            m_writer->OnAttribute(L"", L"href", m_target.c_str());
+            m_writer->OnTagBody();
+        }
+        m_runCount++;
         m_rHandler.start();
         break;
     default:
@@ -2725,12 +2739,11 @@ ldomNode *docx_hyperlinkHandler::handleTagOpen(int tagId)
 
 void docx_hyperlinkHandler::handleAttribute(const lChar16 *attrname, const lChar16 *attrvalue)
 {
-    if( docx_el_hyperlink == m_state && !lStr_cmp(attrname, "id") ) {
-        m_target = m_importContext->getLinkTarget(lString16(attrvalue));
-        if( !m_target.empty() ) {
-            m_writer->OnTagOpen(L"", L"a");
-            m_writer->OnAttribute(L"", L"href", m_target.c_str());
-            m_writer->OnTagBody();
+    if( docx_el_hyperlink == m_state) {
+        if ( !lStr_cmp(attrname, "id") ) {
+            m_target = m_importContext->getLinkTarget(lString16(attrvalue));
+        } else if (!lStr_cmp(attrname, "anchor") && m_target.empty()) {
+            m_target = cs16("#") + lString16(attrvalue);
         }
     }
 }
