@@ -1896,15 +1896,16 @@ public:
         }
         #endif
 
+        // Note: not certain why or how useful this lastnonspace (used below) is.
         int lastnonspace = 0;
-        if ( align==LTEXT_ALIGN_WIDTH || splitBySpaces ) {
-            for ( int i=start; i<end; i++ )
-                if ( !((m_flags[i] & LCHAR_IS_SPACE) && !(m_flags[i] & LCHAR_IS_OBJECT)) )
-                    lastnonspace = i;
-                // This "!( SPACE && !OBJECT)" looks wrong, as an OBJECT can't be also a SPACE,
-                // and it feels it's a parens error and should be "(!SPACE && !OBJECT)", but with
-                // that, we'll be ignoring multiple stuck OBJECTs at end of line.
-                // So, not touching it...
+        if ( splitBySpaces || align==LTEXT_ALIGN_WIDTH ) { // always true with current code
+            for ( int k=end-1; k>=start; k-- ) {
+                // Also not certain if we should skip floats or LCHAR_IS_OBJECT
+                if ( !(m_flags[k] & LCHAR_IS_SPACE) ) {
+                    lastnonspace = k;
+                    break;
+                }
+            }
         }
 
         formatted_line_t * frmline =  lvtextAddFormattedLine( m_pbuffer );
@@ -2988,28 +2989,33 @@ public:
                 }
             }
             // Best position to end this line found.
-            int lastnonspace = endp-1;
-            for ( int k=endp-1; k>=start; k-- ) {
-                if ( !((m_flags[k] & LCHAR_IS_SPACE) && !(m_flags[k] & LCHAR_IS_OBJECT)) ) {
-                    lastnonspace = k;
-                    break;
+            // We need to possibly extend the last char width to account for italic
+            // right side bearing overflow (but not if we ended the line with some
+            // hyphenation, as the last glyph will then be the hyphen).
+            if ( !(m_flags[endp-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER) ) {
+                // Find the real last displayed glyph, skipping spaces and floats
+                int lastnonspace = endp-1;
+                for ( int k=endp-1; k>=start; k-- ) {
+                    if ( !(m_flags[k] & LCHAR_IS_SPACE) && !(m_charindex[k] == FLOAT_CHAR_INDEX) ) {
+                        lastnonspace = k;
+                        break;
+                    }
                 }
-                // This "!( SPACE && !OBJECT)" looks wrong, as an OBJECT can't be also a SPACE,
-                // and it feels it's a parens error and should be "(!SPACE && !OBJECT)", but with
-                // that, we'll be ignoring multiple stuck OBJECTs at end of line.
-                // So, not touching it...
+                // If the last non-space/non-float is an image, we don't do it.
+                // Note: it feels we should do that for the char before ANY image on the line (so the italic
+                // glyph does not overlap with the image). It's unclear whether the former code did that
+                // (or not) for the char before an image at end of line only...
+                if ( !(m_flags[lastnonspace] & LCHAR_IS_OBJECT) ) {
+                    // todo: probably need be avoided if bidi/rtl:
+                    int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) : 0;
+                    if (dw) {
+                        TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + lastnonspace, 1)));
+                        m_widths[lastnonspace] += dw;
+                    }
+                }
             }
-            // todo: probably need be avoided if bidi/rtl:
-            int dw = lastnonspace>=start ? getAdditionalCharWidth(lastnonspace, lastnonspace+1) : 0;
-            // If we ended the line with some hyphenation, no need to account for italic
-            // right side bearing overflow, as the last glyph will be an hyphen.
-            if (m_flags[endp-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER)
-                dw = 0;
-            if (dw) {
-                TR("additional width = %d, after char %s", dw, LCSTR(lString16(m_text + lastnonspace, 1)));
-                m_widths[lastnonspace] += dw;
-            }
-            if (endp>m_length) endp=m_length;
+            if (endp > m_length)
+                endp = m_length;
             addLine(pos, endp, x + firstCharMargin, para, interval, pos==0, wrapPos>=m_length-1, preFormattedOnly, needReduceSpace, isLastPara);
             pos = wrapPos + 1;
         }
