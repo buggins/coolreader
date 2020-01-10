@@ -4153,7 +4153,7 @@ public:
             line_h = 1;
         bool is_first = true;
         bool is_last = false;
-        int flags;
+        int flags = 0;;
         int y0 = starty;
         while (y0 < endy) {
             int y1 = y0 + line_h;
@@ -4436,6 +4436,13 @@ public:
             return;
         int line_dir_flag = direction == REND_DIRECTION_RTL ? RN_LINE_IS_RTL : 0;
 
+        // If this is a node at level 0 (root node, floatBox, inlineBox) or
+        // level 1 (body, floatBox or inlineBox single child), drop any back
+        // margin as we should get its full bottom margin (we should be called
+        // twice: for the top margin, and there is not back margin yet - and
+        // for the bottom margin, where there may be).
+        if (level <= (is_main_flow ? 0 : 1))
+            vm_back_usable_as_margin = 0;
         // Compute the single margin to add along our flow y and to pages context.
         int margin = getCurrentVerticalMargin();
         vm_back_usable_as_margin = 0;
@@ -5093,8 +5100,13 @@ public:
         // than 5), so we can fetch their real positions and dimensions
         // each time a final block is to be (re-)formatted, to allow
         // for a nicer layout of text around these (at most 5) floats.
-        BlockFloatFootprint footprint = BlockFloatFootprint( this, d_left, d_top,
-                                            BLOCK_RENDERING(rend_flags, DO_NOT_CLEAR_OWN_FLOATS) );
+
+        // We need erm_final at level 1 (body, floatBox or inlineBox child)
+        // to clear their own floats, to get them accounted in the document,
+        // float, or inlineBox height, so they are fully contained in it and
+        // don't overflow. (Level 0 can't be erm_final).
+        bool no_clear_own_floats = (level > 1) && BLOCK_RENDERING(rend_flags, DO_NOT_CLEAR_OWN_FLOATS);
+        BlockFloatFootprint footprint = BlockFloatFootprint( this, d_left, d_top, no_clear_own_floats);
         if (_floats.length() == 0) // zero footprint if no float
             return footprint;
         int top_y = c_y + d_top;
