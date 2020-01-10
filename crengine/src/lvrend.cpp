@@ -1442,7 +1442,8 @@ public:
                             }
                         }
 
-                    } else if ( cell->elem->getRendMethod()!=erm_invisible ) {
+                    }
+                    else if ( cell->elem->getRendMethod()!=erm_invisible ) {
                         // We must use a different context (used by rendering
                         // functions to record, with context.AddLine(), each
                         // rendered block's height, to be used for splitting
@@ -2043,7 +2044,7 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
     // The UL > LI parent-child chain may have had a floatBox element
     // inserted if the LI has some float: style (also handled below
     // when walking this parent's children).
-    if ( parent->getNodeId() == el_floatBox ) {
+    if ( parent->getNodeId() == el_floatBox || parent->getNodeId() == el_inlineBox ) {
         parent = parent->getParentNode();
     }
     ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( parent->getDataIndex() );
@@ -2054,7 +2055,7 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
             lString16 marker;
             int markerWidth = 0;
             ldomNode * child = parent->getChildElementNode(i);
-            if ( child->getNodeId() == el_floatBox ) {
+            if ( child->getNodeId() == el_floatBox || child->getNodeId() == el_inlineBox ) {
                 child = child->getChildNode(0);
             }
             if ( child && child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
@@ -2180,8 +2181,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         const css_elem_def_props_t * ntype = enode->getElementTypePtr();
         if ( ntype && ntype->is_object )
             is_object = true;
-        //RenderRectAccessor fmt2( enode );
-        //fmt = &fmt2;
+        // inline-block boxes are handled below quite just like inline images/is_object
+        bool is_inline_box = enode->isBoxingInlineBox();
 
         int direction = RENDER_RECT_PTR_GET_DIRECTION(fmt);
         bool is_rtl = direction == REND_DIRECTION_RTL;
@@ -2202,6 +2203,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         int width = fmt->getWidth();
         int em = enode->getFont()->getSize();
         css_style_rec_t * style = enode->getStyle().get();
+        ldomNode * parent = enode->getParentNode(); // Needed for various checks below
+        if (parent && parent->isNull())
+            parent = NULL;
 
         // As seen with Firefox, an inline node line-height: do apply, so we need
         // to compute it for all inline nodes, and not only in the "the top and
@@ -2338,8 +2342,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             int pem = em;
             int pfh = fh;
             int pfb = fb;
-            ldomNode *parent = enode->getParentNode();
-            if (parent && !parent->isNull()) {
+            if (parent) {
                 pem = parent->getFont()->getSize();
                 pfh = parent->getFont()->getHeight();
                 pfb = parent->getFont()->getBaseline();
@@ -2370,7 +2373,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // For CSS lengths, we approximate 'ex' with 1/2 'em'. Let's do the same here.
                         // (Firefox falls back to 0.56 x ascender for x-height:
                         //   valign_dy -= 0.56 * pfb / 2;  but this looks a little too low)
-                        if (is_object)
+                        if (is_object || is_inline_box)
                             valign_dy -= pem/4; // y for middle of image (lvtextfm.cpp will know from flags)
                         else {
                             valign_dy += fb - fh/2; // move down current middle point to baseline
@@ -2385,7 +2388,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // "Align the bottom of the box with the bottom of the parent's content area"
                         // With valign_dy=0, they are centered on the baseline. We want
                         // them centered on their bottom line
-                        if (is_object)
+                        if (is_object || is_inline_box)
                             valign_dy += (pfh - pfb); // y for bottom of image (lvtextfm.cpp will know from flags)
                         else
                             valign_dy += (pfh - pfb) - (fh - fb) - f_half_leading;
@@ -2395,7 +2398,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // "Align the top of the box with the top of the parent's content area"
                         // With valign_dy=0, they are centered on the baseline. We want
                         // them centered on their top line
-                        if (is_object)
+                        if (is_object || is_inline_box)
                             valign_dy -= pfb; // y for top of image (lvtextfm.cpp will know from flags)
                         else
                             valign_dy -= pfb - fb - f_half_leading;
@@ -2461,7 +2464,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         // Firefox has some specific behaviour with floats, which
         // is not obvious from the specs. Let's do as it does.
-        if ( enode->getParentNode() && enode->getParentNode()->isFloatingBox() ) {
+        // It looks like we should do the same for inline-block boxes
+        if ( parent && (parent->isFloatingBox() || parent->isBoxingInlineBox()) ) {
             if ( rm == erm_final && is_object ) {
                 // When an image is the single top final node in a float (which is
                 // the case for individual floating images (<IMG style="float: left">),
@@ -2485,7 +2489,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     style = enode->getStyle().get(); // update to the new style
                 }
             }
-            // Also, the floating element vertical-align drift is dropped
+            // Also, the floating element or inline-block inner element vertical-align drift is dropped
             valign_dy = 0;
             flags &= ~LTEXT_VALIGN_MASK; // also remove any such flag we've set
             // (Looks like nothing special to do with indent or line_h)
@@ -2499,7 +2503,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( enode->getParentNode()->getDataIndex() );
             if ( listProps.isNull() ) {
                 int counterValue = 0;
-                ldomNode * parent = enode->getParentNode();
                 int maxWidth = 0;
                 for ( int i=0; i<parent->getChildCount(); i++ ) {
                     lString16 marker;
@@ -2565,9 +2568,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         }
 
         if ( is_object ) { // object element, like <IMG>
-#ifdef DEBUG_DUMP_ENABLED
-            logfile << "+OBJECT ";
-#endif
+            #ifdef DEBUG_DUMP_ENABLED
+                logfile << "+OBJECT ";
+            #endif
             bool isBlock = style->display == css_d_block;
             if ( isBlock ) {
                 // If block image, forget any current flags and start from baseflags (?)
@@ -2608,11 +2611,20 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
             }
         }
+        else if ( is_inline_box ) { // inline-block wrapper
+            #ifdef DEBUG_DUMP_ENABLED
+                logfile << "+INLINEBOX ";
+            #endif
+            // We use the flags computed previously (and not baseflags) as they
+            // carry vertical alignment
+            txform->AddSourceObject(flags|LTEXT_SRC_IS_INLINE_BOX, line_h, valign_dy, ident, enode );
+            flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
+        }
         else { // non-IMG element: render children (elements or text nodes)
             int cnt = enode->getChildCount();
-#ifdef DEBUG_DUMP_ENABLED
-            logfile << "+BLOCK [" << cnt << "]";
-#endif
+            #ifdef DEBUG_DUMP_ENABLED
+                logfile << "+BLOCK [" << cnt << "]";
+            #endif
             // Usual elements
             bool thisIsRunIn = style->display==css_d_run_in;
             if ( thisIsRunIn )
@@ -2779,18 +2791,15 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
         }
 
-
-#ifdef DEBUG_DUMP_ENABLED
-      for (int i=0; i<enode->getNodeLevel(); i++)
-        logfile << " . ";
-#endif
-#ifdef DEBUG_DUMP_ENABLED
-        lvRect rect;
-        enode->getAbsRect( rect );
-        logfile << "<" << enode->getNodeName() << ">     flags( "
-            << baseflags << "-> " << flags << ")  rect( "
-            << rect.left << rect.top << rect.right << rect.bottom << ")\n";
-#endif
+        #ifdef DEBUG_DUMP_ENABLED
+            for (int i=0; i<enode->getNodeLevel(); i++)
+                logfile << " . ";
+            lvRect rect;
+            enode->getAbsRect( rect );
+            logfile << "<" << enode->getNodeName() << ">     flags( "
+                << baseflags << "-> " << flags << ")  rect( "
+                << rect.left << rect.top << rect.right << rect.bottom << ")\n";
+        #endif
 
         // Children may have consumed the newline flag, or may have added one
         // (if the last one of them is a <BR>, it will not have been consumed
@@ -2880,17 +2889,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
     else if ( enode->isText() ) {
         // text nodes
         lString16 txt = enode->getText();
-        if ( !txt.empty() )
-        {
-
-#ifdef DEBUG_DUMP_ENABLED
-      for (int i=0; i<enode->getNodeLevel(); i++)
-        logfile << " . ";
-#endif
-#ifdef DEBUG_DUMP_ENABLED
-            logfile << "#text" << " flags( "
-                << baseflags << ")\n";
-#endif
+        if ( !txt.empty() ) {
+            #ifdef DEBUG_DUMP_ENABLED
+                for (int i=0; i<enode->getNodeLevel(); i++)
+                    logfile << " . ";
+                logfile << "#text" << " flags( "
+                    << baseflags << ")\n";
+            #endif
 
             ldomNode * parent = enode->getParentNode();
             int tflags = LTEXT_FLAG_OWNTEXT;
@@ -2980,7 +2985,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         }
     }
     else {
-        crFatalError();
+        crFatalError(142, "Unexpected node type");
     }
 }
 
@@ -3409,6 +3414,12 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                 style_width_pct_em_only = false; // width for <hr> is safe, whether px or %
             }
 
+            // Note: we should not handle css_d_inline_table like css_d_table,
+            // as it may be used with non-table elements.
+            // But we might want to handle (css_d_inline_table & el_table) like we
+            // handle css_d_table here and in the 3 other places below - but after
+            // some quick thinking (but no check in a browser) it feels we should not,
+            // and we'd better ensure and apply style width.
             if (apply_style_width && style->display >= css_d_table ) {
                 // table elements are managed elsewhere: we'd rather not mess with the table
                 // layout algorithm by applying styles width here (even if this algorithm
@@ -3735,7 +3746,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                 return 0;
             default:
                 CRLog::error("Unsupported render method %d", m);
-                crFatalError(); // error
+                crFatalError(141, "Unsupported render method"); // error
                 break;
             }
         }
@@ -5612,6 +5623,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     bool is_floating = BLOCK_RENDERING(flags, FLOAT_FLOATBOXES) && enode->isFloatingBox();
     bool is_floatbox_child = BLOCK_RENDERING(flags, FLOAT_FLOATBOXES)
             && enode->getParentNode() && enode->getParentNode()->isFloatingBox();
+    // is this a inline block container (inlineBox)?
+    bool is_inline_box = enode->isBoxingInlineBox();
+    bool is_inline_box_child = enode->getParentNode() && enode->getParentNode()->isBoxingInlineBox();
 
     int em = enode->getFont()->getSize();
 
@@ -5657,7 +5671,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     bool apply_style_height = false;
     css_length_t style_height;
     int style_height_base_em;
-    if ( is_floating ) {
+    if ( is_floating || is_inline_box ) {
         // Nothing special to do: the child style height will be
         // enforced by subcall to renderBlockElement(child)
     }
@@ -5692,8 +5706,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     bool auto_width = false;
     bool table_shrink_to_fit = false;
 
-    if ( is_floating ) {
-        // Floats width computation
+    if ( is_floating || is_inline_box ) {
+        // Floats width computation - which should also work as-is for inline block box
         // We need to have a width for floats, so we don't ignore anything no
         // matter the flags.
         // As the el_floatBox itself does not have any style->width or margins,
@@ -5792,7 +5806,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         auto_width = true; // no more width tweaks (nor any x adjustment if is_rtl)
         // printf("floatBox width: max_w=%d min_w=%d => %d", max_content_width, min_content_width, width);
     }
-    else if ( is_floatbox_child ) {
+    else if ( is_floatbox_child || is_inline_box_child ) {
         // The float style or rendered width has been applied to the wrapping
         // floatBox, so just remove node's margins of the container (the
         // floatBox) to get the child width.
@@ -6020,10 +6034,12 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // We'll push it immediately below
         no_margin_collapse = true;
     }
-    else if ( flow->getCurrentLevel() == 1 && enode->getParentNode()->isFloatingBox() ) {
+    else if ( flow->getCurrentLevel() == 1 && (enode->getParentNode()->isFloatingBox() ||
+                                               enode->getParentNode()->isBoxingInlineBox()) ) {
         // The inner margin of the real float element (the single child of a floatBox)
         // have to be pushed and not collapse with outer margins so they can
         // get accounted in the float height.
+        // (This must be true also with inline-block boxes, but not tested/verified.)
         no_margin_collapse = true;
     }
 
@@ -6178,7 +6194,17 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             }
             break;
         case erm_block:
+        case erm_inline: // For inlineBox elements only
             {
+                if (m == erm_inline && enode->getNodeId() != el_inlineBox) {
+                    printf("CRE WARNING: node discarded (unexpected erm_inline for elem %s)\n",
+                                UnicodeToLocal(ldomXPointer(enode, 0).toString()).c_str());
+                                // (add %s and enode->getText8().c_str() to see text content)
+                    // Might be too early after introducing inline-block support to crash:
+                    // let's just output this warning and ignore the node content.
+                    // crFatalError(143, "erm_inline for element not inlineBox");
+                    return;
+                }
                 // Deal with list item marker
                 // List item marker rendering when css_d_list_item_block
                 int list_marker_padding = 0; // set to non-zero when list-style-position = outside
@@ -7484,7 +7510,13 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 color = colors2[enode->getNodeLevel() & 7];
         #endif
 
-        switch( enode->getRendMethod() )
+        int m = enode->getRendMethod();
+        // We should not get erm_inline, except for inlineBox elements, that
+        // we must draw as erm_block
+        if ( m == erm_inline && enode->isBoxingInlineBox() ) {
+            m = erm_block;
+        }
+        switch( m )
         {
         case erm_table:
         case erm_table_row:
@@ -7927,6 +7959,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         }
     }
 
+    // display before stylesheet is applied (for fallback below if legacy mode)
+    css_display_t orig_elem_display = pstyle->display;
+
     // not used (could be used for 'rem', but we have it in gRootFontSize)
     // int baseFontSize = enode->getDocument()->getDefaultFont()->getSize();
 
@@ -8012,7 +8047,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                         pstyle->display = css_d_block;
                     }
                 }
-                // Else (child_style non-null), it's a re-rendering: nothing special
+                // Else (child_style is null), it's a re-rendering: nothing special
                 // to do, this will be dealt with later by initNodeRendMethod().
             }
         }
@@ -8023,6 +8058,56 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         // and a popup inviting the user to reload, to get rid of
         // floatBox elements.
         pstyle->float_ = css_f_none;
+    }
+
+    if ( BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
+        // See above, same reasoning
+        if ( enode->getNodeId() == el_inlineBox ) {
+            if (enode->getChildCount() == 1) {
+                ldomNode * child = enode->getChildNode(0);
+                css_style_ref_t child_style = child->getStyle();
+                if ( ! child_style.isNull() ) { // Initial XML loading phase
+                    // This child_style is only non-null on the initial XML loading.
+                    // We do as in ldomNode::initNodeRendMethod() when the inlineBox
+                    // is already there (on re-renderings):
+                    // (If this is an inlineBox in the initial XML loading phase,
+                    // child is necessarily css_d_inline_block or css_d_inline_table.
+                    // The following 'else's should never trigger.
+                    if (child_style->display == css_d_inline_block || child_style->display == css_d_inline_table) {
+                        pstyle->display = css_d_inline; // become an inline wrapper
+                        pstyle->vertical_align = child_style->vertical_align;
+                    }
+                    else if (child_style->display == css_d_inline) {
+                        pstyle->display = css_d_inline; // wrap inline in inline
+                    }
+                    else if (child_style->display == css_d_none) {
+                        pstyle->display = css_d_none; // stay invisible
+                    }
+                    else { // everything else must be wrapped by a block
+                        pstyle->display = css_d_block;
+                    }
+                }
+                // Else (child_style is null), it's a re-rendering: nothing special
+                // to do, this will be dealt with later by initNodeRendMethod().
+            }
+        }
+    }
+    else {
+        // Legacy rendering or enhanced with no inline-block support
+        // Fallback to the default style for the element
+        // (before enhanced rendering, css_d_inline_block did not exist, so the
+        // node probably stayed with the default display: of the element when
+        // no other lower specificity CSS set another).
+        if ( pstyle->display == css_d_inline_block || pstyle->display == css_d_inline_table ) {
+            if ( !BLOCK_RENDERING_G(ENHANCED) && pstyle->display == css_d_inline_table ) {
+                // In legacy mode, inline-table was handled like css_d_block (as all
+                // not specifically handled css_d_* are, so probably unwillingly).
+                pstyle->display = css_d_block;
+            }
+            else {
+                pstyle->display = orig_elem_display;
+            }
+        }
     }
 
     // update inherited style attributes
@@ -8275,13 +8360,14 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
     int lastSpaceWidth = 0; // trailing spaces width to remove
     // These do not need to be passed by reference, as they are only valid for inner nodes/calls
     int indent = 0;         // text-indent: used on first text, and set again on <BR/>
+    bool isStartNode = true; // we are starting measurement on that node
     // Start measurements and recursions:
     getRenderedWidths(node, maxWidth, minWidth, direction, ignoreMargin, rendFlags,
-        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent);
+        curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, isStartNode);
 }
 
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignoreMargin, int rendFlags,
-    int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth, int indent)
+    int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth, int indent, bool isStartNode)
 {
     // This does mostly what renderBlockElement, renderFinalBlock and lvtextfm.cpp
     // do, but only with widths and horizontal margin/border/padding and indent
@@ -8297,6 +8383,15 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         int m = node->getRendMethod();
         if (m == erm_invisible)
             return;
+
+        if ( isStartNode && node->isBoxingInlineBox() ) {
+            // The inlineBox is erm_inline, and we'll be measuring it below
+            // as part of measuring other erm_inline in some erm_final.
+            // If isStartNode, we want to measure its content, so switch
+            // to handle it like erm_block.
+            m = erm_block;
+        }
+
         css_style_rec_t * style = node->getStyle().get();
 
         // Get image size early
@@ -8390,6 +8485,22 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 curWordWidth = indent;
                 collapseNextSpace = true; // skip leading spaces
                 lastSpaceWidth = 0;
+                return;
+            }
+            if ( node->isBoxingInlineBox() ) {
+                // Get done with previous word
+                if (curWordWidth > minWidth)
+                    minWidth = curWordWidth;
+                curWordWidth = 0;
+                collapseNextSpace = false;
+                lastSpaceWidth = 0;
+                // Get the rendered width of the inlineBox
+                int _maxw = 0;
+                int _minw = 0;
+                getRenderedWidths(node, _maxw, _minw, direction, false, rendFlags);
+                maxWidth += _maxw;
+                if (_minw > minWidth)
+                    minWidth = _minw;
                 return;
             }
             // Contains only other inline or text nodes:

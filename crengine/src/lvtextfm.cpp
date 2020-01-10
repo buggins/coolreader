@@ -318,6 +318,15 @@ void LFormattedText::AddSourceObject(
             // as the code may grab them from the first source)
         return;
     }
+    if (flags & LTEXT_SRC_IS_INLINE_BOX) { // not an image but a inline-block wrapping node
+        // Nothing much to do with it at this point: we can't yet render it to
+        // get its width & neight, as they might be in % of our main width, that
+        // we don't know yet (but only when ->Format() is called).
+        lvtextAddSourceObject(m_pbuffer, 0, 0,
+            flags, interval, valign_dy, margin, object, letter_spacing );
+            // lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT
+        return;
+    }
 
     LVImageSourceRef img = node->getObjectImageSource();
     if ( img.isNull() )
@@ -397,8 +406,14 @@ public:
     bool m_has_bidi; // true when Bidi (or pure RTL) detected
     bool m_para_dir_is_rtl; // boolean shortcut of m_para_bidi_type
 
-#define OBJECT_CHAR_INDEX ((lUInt16)0xFFFF)
-#define FLOAT_CHAR_INDEX  ((lUInt16)0xFFFE)
+// These are not unicode codepoints: these values are put where we
+// store text indexes in the source text node.
+// So, when checking for these, also checks for m_flags[i] & LCHAR_IS_OBJECT.
+// Note that m_charindex, being lUInt16, assume text nodes are not longer
+// than 65535 chars. Things will get messy with longer text nodes...
+#define OBJECT_CHAR_INDEX     ((lUInt16)0xFFFF)
+#define FLOAT_CHAR_INDEX      ((lUInt16)0xFFFE)
+#define INLINEBOX_CHAR_INDEX  ((lUInt16)0xFFFD)
 
     LVFormatter(formatted_text_fragment_t * pbuffer)
     : m_pbuffer(pbuffer), m_length(0), m_size(0), m_staticBufs(true), m_y(0)
@@ -558,7 +573,7 @@ public:
         bool already_rendered = false;
         { // in its own scope, so this RenderRectAccessor is forgotten when left
             RenderRectAccessor fmt( node );
-            if ( RENDER_RECT_HAS_FLAG(fmt, FLOATBOX_IS_RENDERED) )
+            if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_RENDERED) )
                 already_rendered = true;
             // We could also directly use fmt.getX/Y() if it has already been
             // positionned, and avoid the positionning code below.
@@ -615,7 +630,7 @@ public:
                             RENDER_RECT_SET_FLAG(fmt, FLOATBOX_IS_RIGHT);
                         else
                             RENDER_RECT_UNSET_FLAG(fmt, FLOATBOX_IS_RIGHT);
-                        RENDER_RECT_SET_FLAG(fmt, FLOATBOX_IS_RENDERED);
+                        RENDER_RECT_SET_FLAG(fmt, BOX_IS_RENDERED);
                         // Small trick for elements with negative margins (invert dropcaps)
                         // that would overflow above flt->x, to avoid a page split by
                         // sticking the line to the hopefully present margin-top that
@@ -655,7 +670,7 @@ public:
                 RENDER_RECT_SET_FLAG(fmt, FLOATBOX_IS_RIGHT);
             else
                 RENDER_RECT_UNSET_FLAG(fmt, FLOATBOX_IS_RIGHT);
-            RENDER_RECT_SET_FLAG(fmt, FLOATBOX_IS_RENDERED);
+            RENDER_RECT_SET_FLAG(fmt, BOX_IS_RENDERED);
         }
         m_has_float_to_position = false;
     }
@@ -766,6 +781,9 @@ public:
             if ( src->flags & LTEXT_SRC_IS_FLOAT ) {
                 pos++;
             }
+            else if ( src->flags & LTEXT_SRC_IS_INLINE_BOX ) {
+                pos++;
+            }
             else if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                 pos++;
                 if (!m_has_images) {
@@ -785,7 +803,8 @@ public:
                         m_has_images = true;
                     }
                 }
-            } else {
+            }
+            else {
                 pos += src->t.len;
             }
         }
@@ -914,6 +933,15 @@ public:
                     // to change what we did for floats to use a new flag.
                 pos++;
                 // No need to update prev_was_space or last_non_space_pos
+            }
+            else if ( src->flags & LTEXT_SRC_IS_INLINE_BOX ) {
+                m_text[pos] = 0;
+                m_srcs[pos] = src;
+                m_flags[pos] = LCHAR_IS_OBJECT | LCHAR_ALLOW_WRAP_AFTER;
+                m_charindex[pos] = INLINEBOX_CHAR_INDEX; //0xFFFD;
+                last_non_space_pos = pos;
+                prev_was_space = false;
+                pos++;
             }
             else if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
                 m_text[pos] = 0;
@@ -1351,8 +1379,7 @@ public:
             bool prevCharIsObject = false;
             if ( i<m_length ) {
                 newSrc = m_srcs[i];
-                isObject = m_charindex[i] == OBJECT_CHAR_INDEX ||
-                           m_charindex[i] == FLOAT_CHAR_INDEX;
+                isObject = m_flags[i] & LCHAR_IS_OBJECT; // image, float or inline box
                 newFont = isObject ? NULL : (LVFont *)newSrc->t.font;
                 newLetterSpacing = newSrc->letter_spacing; // 0 for objects
                 #if (USE_HARFBUZZ==1)
@@ -1366,8 +1393,7 @@ public:
                 #endif
             }
             if (i > 0)
-                prevCharIsObject = m_charindex[i-1] == OBJECT_CHAR_INDEX ||
-                                   m_charindex[i-1] == FLOAT_CHAR_INDEX;
+                prevCharIsObject = m_flags[i-1] & LCHAR_IS_OBJECT; // image, float or inline box
             if ( !lastFont )
                 lastFont = newFont;
             if (i == 0) {
@@ -1435,7 +1461,7 @@ public:
                              || (m_flags[i] & LCHAR_IS_TO_IGNORE)
                              || (m_flags[i] & LCHAR_MANDATORY_NEWLINE) ) ) {
                 // measure start..i-1 chars
-                if ( m_charindex[i-1]!=OBJECT_CHAR_INDEX && m_charindex[i-1]!=FLOAT_CHAR_INDEX ) {
+                if ( !(m_flags[i-1] & LCHAR_IS_OBJECT) ) { // neither image, float, nor inline box
                     // measure text
                     // Note: we provide text in the logical order, and measureText()
                     // will apply kerning in that order, which might be wrong if some
@@ -1537,27 +1563,91 @@ public:
                     //m_flags[len] = 0;
                     // TODO: letter spacing letter_spacing
                 }
-                else if ( m_charindex[start] == FLOAT_CHAR_INDEX) {
-                    // Embedded floats can have a zero width in this process of
-                    // text measurement. They'll be measured when positionned.
-                    m_widths[start] = lastWidth;
-                }
-                else {
-                    // measure object
-                    // assume i==start+1
-                    int width = m_srcs[start]->o.width;
-                    int height = m_srcs[start]->o.height;
-                    width=width<0?-width*(m_pbuffer->width)/100:width;
-                    height=height<0?-height*(m_pbuffer->width)/100:height;
-                    /*
-                    printf("measureText img: o.w=%d o.h=%d > w=%d h=%d (max %d %d is_inline=%d) %s\n",
-                        m_srcs[start]->o.width, m_srcs[start]->o.height, width, height,
-                        m_pbuffer->width, m_max_img_height, m_length>1,
-                        UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
-                    */
-                    resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
-                    lastWidth += width;
-                    m_widths[start] = lastWidth;
+                else { // measure object
+                    // We have start=i-1 and m_flags[i-1] & LCHAR_IS_OBJECT
+                    if (start != i-1) {
+                        crFatalError(126, "LCHAR_IS_OBJECT with start!=i-1");
+                    }
+                    if ( m_charindex[start] == FLOAT_CHAR_INDEX ) {
+                        // Embedded floats can have a zero width in this process of
+                        // text measurement. They'll be measured when positionned.
+                        m_widths[start] = lastWidth;
+                    }
+                    else if ( m_charindex[start] == INLINEBOX_CHAR_INDEX ) {
+                        // Render this inlineBox to get its width, similarly to how we
+                        // render floats in addFloat(). See there for more comments.
+                        src_text_fragment_t * src = m_srcs[start];
+                        ldomNode * node = (ldomNode *) src->object;
+                        bool already_rendered = false;
+                        { // in its own scope, so this RenderRectAccessor is forgotten when left
+                            RenderRectAccessor fmt( node );
+                            if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_RENDERED) ) {
+                                already_rendered = true;
+                            }
+                        }
+                        if ( !already_rendered ) {
+                            LVRendPageContext emptycontext( NULL, m_pbuffer->page_height );
+                            // inline-block and inline-table have a baseline, that renderBlockElement()
+                            // will compute and give us back.
+                            int baseline = REQ_BASELINE_FOR_INLINE_BLOCK;
+                            if ( node->getChildNode(0)->getStyle()->display == css_d_inline_table )
+                                baseline = REQ_BASELINE_FOR_INLINE_TABLE;
+                            // We render the inlineBox with the specified direction (from upper dir=), even
+                            // if UNSET (and not with the direction determined by fribidi from the text).
+                            renderBlockElement( emptycontext, node, 0, 0, m_pbuffer->width, m_specified_para_dir, &baseline );
+                            // (renderBlockElement will ensure style->height if requested.)
+
+                            RenderRectAccessor fmt( node );
+                            fmt.setBaseline(baseline);
+                            RENDER_RECT_SET_FLAG(fmt, BOX_IS_RENDERED);
+                            // We'll have alignLine() do the fmt.setX/Y once it is fully positionned
+
+                            // We'd like to gather footnote links accumulated by emptycontext
+                            // (we do that for floats), but it's quite more complicated:
+                            // we have them here too early, and we would need to associate
+                            // the links to this "char" index, so needing in LVFormatter
+                            // something like:
+                            //   LVHashTable<lUInt32, lString16Collection> m_inlinebox_links
+                            // When adding this inlineBox to a frmline, we could then get back
+                            // the links, and associate them to the frmline (so, needing a
+                            // new field holding a lString16Collection, which would hold
+                            // all the links in all the inlineBoxs part of that line).
+                            // Finally, in renderBlockElementEnhanced, when adding
+                            // links for words, we'd also need to add the one found
+                            // in the frmline's lString16Collection.
+                            // A bit complicated, for a probably very rare case, so
+                            // let's just forget it and not have footnotes from inlineBox
+                            // among our in-page footnotes...
+                        }
+                        // (renderBlockElement() above may update our RenderRectAccessor(),
+                        // so (re)get it only now)
+                        RenderRectAccessor fmt( node );
+                        int width = fmt.getWidth();
+                        int height = fmt.getHeight();
+                        int baseline = fmt.getBaseline();
+                        m_srcs[start]->o.width = width;
+                        m_srcs[start]->o.height = height;
+                        m_srcs[start]->o.baseline = baseline;
+                        lastWidth += width;
+                        m_widths[start] = lastWidth;
+                    }
+                    else {
+                        // measure image
+                        // assume i==start+1
+                        int width = m_srcs[start]->o.width;
+                        int height = m_srcs[start]->o.height;
+                        width=width<0?-width*(m_pbuffer->width)/100:width;
+                        height=height<0?-height*(m_pbuffer->width)/100:height;
+                        /*
+                        printf("measureText img: o.w=%d o.h=%d > w=%d h=%d (max %d %d is_inline=%d) %s\n",
+                            m_srcs[start]->o.width, m_srcs[start]->o.height, width, height,
+                            m_pbuffer->width, m_max_img_height, m_length>1,
+                            UnicodeToLocal(ldomXPointer((ldomNode*)m_srcs[start]->object, 0).toString()).c_str());
+                        */
+                        resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
+                        lastWidth += width;
+                        m_widths[start] = lastWidth;
+                    }
                 }
                 start = i;
                 #if (USE_HARFBUZZ==1)
@@ -1604,7 +1694,7 @@ public:
 #define MAX_WORD_SIZE 64
 
     /// align line: add or reduce widths of spaces to achieve desired text alignment
-    void alignLine( formatted_line_t * frmline, int alignment, int rightIndent=0 ) {
+    void alignLine( formatted_line_t * frmline, int alignment, int rightIndent=0, bool hasInlineBoxes=false ) {
         // Fetch current line x offset and max width
         int x_offset;
         int width = getAvailableWidthAtY(m_y, m_pbuffer->strut_height, x_offset);
@@ -1642,38 +1732,58 @@ public:
                     }
                 }
             }
-        } else if ( alignment==LTEXT_ALIGN_LEFT )
-            return; // no additional alignment necessary
+        }
+        else if ( alignment==LTEXT_ALIGN_LEFT ) {
+            // no additional alignment necessary
+        }
         else if ( alignment==LTEXT_ALIGN_CENTER ) {
             frmline->x += available_width / 2;
-        } else if ( alignment==LTEXT_ALIGN_RIGHT ) {
+        }
+        else if ( alignment==LTEXT_ALIGN_RIGHT ) {
             frmline->x += available_width;
-        } else {
+        }
+        else {
             // LTEXT_ALIGN_WIDTH
-            if ( available_width <= 0 )
-                return; // no space to distribute
-            int extraSpace = available_width;
-            int addSpacePoints = 0;
-            int i;
-            for ( i=0; i<(int)frmline->word_count-1; i++ ) {
-                if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
-                    addSpacePoints++;
-            }
-            if ( addSpacePoints>0 ) {
-                int addSpaceDiv = extraSpace / addSpacePoints;
-                int addSpaceMod = extraSpace % addSpacePoints;
-                int delta = 0;
-                for ( i=0; i<(int)frmline->word_count; i++ ) {
-                    frmline->words[i].x += delta;
-                    if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
-                        delta += addSpaceDiv;
-                        if ( addSpaceMod>0 ) {
-                            addSpaceMod--;
-                            delta++;
+            if ( available_width > 0 ) {
+                // distribute additional space
+                int extraSpace = available_width;
+                int addSpacePoints = 0;
+                int i;
+                for ( i=0; i<(int)frmline->word_count-1; i++ ) {
+                    if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER )
+                        addSpacePoints++;
+                }
+                if ( addSpacePoints>0 ) {
+                    int addSpaceDiv = extraSpace / addSpacePoints;
+                    int addSpaceMod = extraSpace % addSpacePoints;
+                    int delta = 0;
+                    for ( i=0; i<(int)frmline->word_count; i++ ) {
+                        frmline->words[i].x += delta;
+                        if ( frmline->words[i].flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER ) {
+                            delta += addSpaceDiv;
+                            if ( addSpaceMod>0 ) {
+                                addSpaceMod--;
+                                delta++;
+                            }
                         }
                     }
+                    frmline->width += extraSpace;
                 }
-                frmline->width += extraSpace;
+            }
+        }
+        if ( hasInlineBoxes ) {
+            // Now that we have the final x of each word, we can update
+            // the RenderRectAccessor x/y of each word that is a inlineBox
+            // (needed to correctly draw highlighted text in them).
+            for ( int i=0; i<frmline->word_count; i++ ) {
+                if ( frmline->words[i].flags & LTEXT_WORD_IS_INLINE_BOX ) {
+                    formatted_word_t * word = &frmline->words[i];
+                    src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
+                    ldomNode * node = (ldomNode *) srcline->object;
+                    RenderRectAccessor fmt( node );
+                    fmt.setX( frmline->x + word->x );
+                    fmt.setY( frmline->y + frmline->baseline - word->o.baseline + word->y );
+                }
             }
         }
     }
@@ -1967,9 +2077,12 @@ public:
             // Not used yet, but might be useful (we may have a bidi line
             // in a LTR paragraph).
         }
+
         // Some words vertical-align positionning might need to be fixed
         // only once the whole line has been laid out
         bool delayed_valign_computation = false;
+        // alignLine() will have more work to do if we have inlineBox elements
+        bool has_inline_boxes = false;
 
         // Ignore space at start of line (this rarely happens, as line
         // splitting discards the space on which a split is made - but it
@@ -2169,36 +2282,45 @@ public:
                 bool adjust_line_box = true;
 
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
-                    // object
+                    // object: image or inline-block box (floats have been skipped above)
                     word->x = frmline->width;
-                    word->flags = LTEXT_WORD_IS_OBJECT;
                     word->width = lastSrc->o.width;
                     word->min_width = word->width;
                     word->o.height = lastSrc->o.height;
-                    //int maxw = m_pbuffer->width - x;
+                    if ( lastSrc->flags & LTEXT_SRC_IS_INLINE_BOX ) { // inline-block
+                        has_inline_boxes = true;
+                        word->flags = LTEXT_WORD_IS_INLINE_BOX;
+                        // For inline-block boxes, the baseline may not be the bottom; it has
+                        // been computed in measureText().
+                        word->o.baseline = lastSrc->o.baseline;
+                        top_to_baseline = word->o.baseline;
+                        baseline_to_bottom = word->o.height - word->o.baseline;
+                    }
+                    else { // image
+                        word->flags = LTEXT_WORD_IS_OBJECT;
+                        word->o.height = lastSrc->o.height;
+                        // Resize image so it fits in our available width
+                        int width = lastSrc->o.width;
+                        int height = lastSrc->o.height;
+                        // Negative width and height mean the value is a % (of our final block width)
+                        width = width<0 ? (-width * (m_pbuffer->width - x) / 100) : width;
+                        height = height<0 ? (-height * (m_pbuffer->width-x) / 100) : height;
+                        // todo: adjust m_max_img_height with this image valign_dy/vertical_align_flag
+                        resizeImage(width, height, m_pbuffer->width - x, m_max_img_height, m_length>1);
+                            // Note: it can happen with a standalone image in a small container
+                            // where text-indent is greater than width, that 'm_pbuffer->width - x'
+                            // can be negative. We could cap it to zero and resize the image to 0,
+                            // but let it be shown un-resized, possibly overflowing or overriding
+                            // other content.
+                        word->width = width;
+                        word->o.height = height;
+                        // Per specs, the baseline is the bottom of the image
+                        top_to_baseline = word->o.height;
+                        baseline_to_bottom = 0;
+                    }
 
-                    int width = lastSrc->o.width;
-                    int height = lastSrc->o.height;
-                    width = width<0? -width*(m_pbuffer->width-x)/100 : width;
-                    height = height<0? -height*(m_pbuffer->width-x)/100 : height;
-                    // todo: adjust m_max_img_height with this image valign_dy/vertical_align_flag
-                    resizeImage(width, height, m_pbuffer->width - x, m_max_img_height, m_length>1);
-                        // Note: it can happen with a standalone image in a small container
-                        // where text-indent is greater than width, that 'm_pbuffer->width - x'
-                        // can be negative. We could cap it to zero and resize the image to 0,
-                        // but let it be shown un-resized, possibly overflowing or overriding
-                        // other content.
-                    word->width = width;
-                    word->o.height = height;
-
-                    // For images, the baseline is the bottom of the image
                     // srcline->valign_dy sets the baseline, except in a few specific cases
                     // word->y has to be set to where the baseline should be
-                    top_to_baseline = word->o.height;
-                    baseline_to_bottom = 0;
-                    // Next code could be simplified, baseline_to_bottom being 0, but
-                    // let's use the logical code if this wasn't the case (it will be
-                    // when we implement display: inline-block).
                     // For vertical-align: top or bottom, delay computation as we need to
                     // know the final frmline height and baseline, which might change
                     // with upcoming words.
@@ -2223,15 +2345,15 @@ public:
                         word->y = - baseline_to_bottom;
                     }
                     else if ( vertical_align_flag == LTEXT_VALIGN_TEXT_TOP ) {
-                        // srcline->valign_dy has been set to where top of image should be
+                        // srcline->valign_dy has been set to where top of image or box should be
                         word->y = srcline->valign_dy + top_to_baseline;
                     }
                     else if ( vertical_align_flag == LTEXT_VALIGN_TEXT_BOTTOM ) {
-                        // srcline->valign_dy has been set to where bottom of image should be
+                        // srcline->valign_dy has been set to where bottom of image or box should be
                         word->y = srcline->valign_dy - baseline_to_bottom;
                     }
                     else if ( vertical_align_flag == LTEXT_VALIGN_MIDDLE ) {
-                        // srcline->valign_dy has been set to where the middle of image should be
+                        // srcline->valign_dy has been set to where the middle of image or box should be
                         word->y = srcline->valign_dy - (top_to_baseline + baseline_to_bottom)/2 + top_to_baseline;
                     }
                     else { // otherwise, align baseline according to valign_dy (computed in lvrend.cpp)
@@ -2545,7 +2667,7 @@ public:
         }
         if ( delayed_valign_computation ) {
             // Delayed computation and line box adjustment when we have some words
-            // or images with vertical-align: top or bottom.
+            // (or images, or inline-boxes) with vertical-align: top or bottom.
             // First, see if we need to adjust frmline->baseline and frmline->height,
             // similarly as done above if adjust_line_box:
             for ( int i=0; i<frmline->word_count; i++ ) {
@@ -2586,7 +2708,7 @@ public:
                 }
             }
         }
-        alignLine( frmline, align, rightIndent );
+        alignLine( frmline, align, rightIndent, has_inline_boxes );
         m_y += frmline->height;
         m_pbuffer->height = m_y;
         checkOngoingFloat();
@@ -2790,7 +2912,7 @@ public:
             // Find candidates where end of line is possible
             bool seen_non_collapsed_space = false;
             for ( i=pos; i<m_length; i++ ) {
-                if (m_charindex[i] == FLOAT_CHAR_INDEX) { // float
+                if ( (m_flags[i] & LCHAR_IS_OBJECT) && (m_charindex[i] == FLOAT_CHAR_INDEX) ) { // float
                     src_text_fragment_t * src = m_srcs[i];
                     // Not sure if we can be called again on the same LVFormatter
                     // object, but the whole code allows for re-formatting and
@@ -2854,7 +2976,7 @@ public:
                     bool avoidWrap = false;
                     // Look first at following char(s)
                     for (int j = i+1; j < m_length; j++) {
-                        if (m_charindex[j] == FLOAT_CHAR_INDEX) // skip floats
+                        if ( (m_flags[j] & LCHAR_IS_OBJECT) && (m_charindex[j] == FLOAT_CHAR_INDEX) ) // skip floats
                             continue;
                         if ( !(m_flags[j] & LCHAR_ALLOW_WRAP_AFTER) ) { // not another (collapsible) space
                             avoidWrap = lGetCharProps(m_text[j]) & CH_PROP_AVOID_WRAP_BEFORE;
@@ -2865,7 +2987,7 @@ public:
                         // (but not if it is the last char, where a wrap is fine
                         // even if it ends after a CH_PROP_AVOID_WRAP_AFTER char)
                         for (int j = i-1; j >= 0; j--) {
-                            if (m_charindex[j] == FLOAT_CHAR_INDEX) // skip floats
+                            if ( (m_flags[j] & LCHAR_IS_OBJECT) && (m_charindex[j] == FLOAT_CHAR_INDEX) ) // skip floats
                                 continue;
                             if ( !(m_flags[j] & LCHAR_ALLOW_WRAP_AFTER) ) { // not another (collapsible) space
                                 avoidWrap = lGetCharProps(m_text[j]) & CH_PROP_AVOID_WRAP_AFTER;
@@ -3092,12 +3214,13 @@ public:
                 // Find the real last displayed glyph, skipping spaces and floats
                 int lastnonspace = endp-1;
                 for ( int k=endp-1; k>=start; k-- ) {
-                    if ( !(m_flags[k] & LCHAR_IS_SPACE) && !(m_charindex[k] == FLOAT_CHAR_INDEX) ) {
+                    if ( !(m_flags[k] & LCHAR_IS_SPACE) &&
+                         !( (m_flags[k] & LCHAR_IS_OBJECT) && (m_charindex[k] == FLOAT_CHAR_INDEX) ) ) {
                         lastnonspace = k;
                         break;
                     }
                 }
-                // If the last non-space/non-float is an image, we don't do it.
+                // If the last non-space/non-float is an image or an inline-block box, we don't do it.
                 // Note: it feels we should do that for the char before ANY image on the line (so the italic
                 // glyph does not overlap with the image). It's unclear whether the former code did that
                 // (or not) for the char before an image at end of line only...
@@ -3374,6 +3497,53 @@ void DrawBookmarkTextUnderline(LVDrawBuf & drawbuf, int x0, int y0, int x1, int 
     }
 }
 
+static void getAbsMarksFromMarks(ldomMarkedRangeList * marks, ldomMarkedRangeList * absmarks, ldomNode * node) {
+    // Provided ldomMarkedRangeList * marks are ranges made from the words
+    // of a selection currently being made (native highlights by crengine).
+    // Their coordinates have been translated from absolute to relative
+    // to the final node, by the DrawDocument() that called
+    // LFormattedText::Draw() for this final node.
+    // In LFormattedText::Draw(), when we need to call DrawDocument() to
+    // draw floats or inlineBoxes, we need to translate them back to
+    // absolute coordinates (DrawDocument() will translate them again
+    // to relative coordinates in the drawn float or inlineBox).
+    // (They are matched in LFormattedText::Draw() against the lineRect,
+    // which have coordinates in the context of where we are drawing.)
+    // The 'node' provided to this function must be a floatBox or inlineBox:
+    // its parent is either the final node that contains them, or some
+    // inline node contained in it.
+
+    // We need to know the current final node that contains the provided
+    // node, and its absolute coordinates
+    ldomNode * final_node = node->getParentNode();
+    for ( ; final_node; final_node = final_node->getParentNode() ) {
+        int rm = final_node->getRendMethod();
+        if ( rm == erm_final || rm == erm_list_item || rm == erm_table_caption )
+            break;
+    }
+    lvRect final_node_rect;
+    final_node->getAbsRect( final_node_rect );
+        // Note: looks like we should not use getAbsRect(..., inner=true) here,
+        // probably because the marks are not shifted by the inner shift.
+
+    // Fill the second provided ldomMarkedRangeList with marks in absolute
+    // coordinates.
+    for ( int i=0; i<marks->length(); i++ ) {
+        ldomMarkedRange * mark = marks->get(i);
+        ldomMarkedRange * newmark = new ldomMarkedRange( *mark );
+        newmark->start.y += final_node_rect.top;
+        newmark->end.y += final_node_rect.top;
+        newmark->start.x += final_node_rect.left;
+        newmark->end.x += final_node_rect.left;
+            // (Note: early when developping this, NOT updating x gave the
+            // expected results, althought logically it should be updated...
+            // But now, it seems to work, and is needed to correctly shift
+            // highlight marks in inlineBox by the containing final block's
+            // left margin...)
+        absmarks->add(newmark);
+    }
+}
+
 void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks, ldomMarkedRangeList *bookmarks )
 {
     int i, j;
@@ -3385,6 +3555,12 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
     buf->GetClipRect( &clip );
     const lChar16 * str;
     int line_y = y;
+
+    // We might need to translate "marks" (native highlights) from relative
+    // coordinates to absolute coordinates if we have to draw floats or
+    // inlineBoxes: we'll do that when dealing with the first of these if any.
+    ldomMarkedRangeList * absmarks = new ldomMarkedRangeList();
+    bool absmarks_update_needed = marks!=NULL && marks->length()>0;
 
     // printf("x/y: %d/%d clip.top/bottom: %d %d\n", x, y, clip.top, clip.bottom);
     // When drawing a paragraph that spans 3 pages, we may get:
@@ -3421,6 +3597,10 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 if (word->flags & LTEXT_WORD_IS_OBJECT)
                 {
                     // no background, TODO
+                }
+                else if (word->flags & LTEXT_WORD_IS_INLINE_BOX)
+                {
+                    // background if any will be drawn when drawing the box below
                 }
                 else
                 {
@@ -3498,6 +3678,31 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         buf->Draw( img, xx, yy, word->width, word->o.height );
                         //buf->FillRect( xx, yy, xx+word->width, yy+word->height, 1 );
                     }
+                }
+                else if (word->flags & LTEXT_WORD_IS_INLINE_BOX)
+                {
+                    srcline = &m_pbuffer->srctext[word->src_text_index];
+                    ldomNode * node = (ldomNode *) srcline->object;
+                    // Logically, the coordinates of the top left of the box are:
+                    // int x0 = x + frmline->x + word->x;
+                    // int y0 = line_y + frmline->baseline - word->o.baseline + word->y;
+                    // But we have updated the node's RenderRectAccesor x/y in alignLine(),
+                    // ahd DrawDocument() will by default fetch them to shift the block
+                    // it has to draw. So, we can use the provided x/y as-is, with
+                    // the offsets from the RenderRectAccesor.
+                    RenderRectAccessor fmt( node );
+                    int x0 = x + fmt.getX();
+                    int y0 = y + fmt.getY();
+                    int doc_x = 0 - fmt.getX();
+                    int doc_y = 0 - fmt.getY();
+                    int dx = m_pbuffer->width;
+                    int dy = m_pbuffer->page_height;
+                    int page_height = m_pbuffer->page_height;
+                    if ( absmarks_update_needed ) {
+                        getAbsMarksFromMarks(marks, absmarks, node);
+                        absmarks_update_needed = false;
+                    }
+                    DrawDocument( *buf, node, x0, y0, dx, dy, doc_x, doc_y, page_height, absmarks, bookmarks );
                 }
                 else
                 {
@@ -3591,12 +3796,6 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
     }
 
     // Draw floats if any
-    // We'll need to know the current final node to correct and draw "marks"
-    // (native highlights): we'll get it when dealing with the first float if any.
-    ldomNode * this_final_node = NULL;
-    lvRect this_final_node_rect;
-    ldomMarkedRangeList * absmarks = new ldomMarkedRangeList();
-
     for (i=0; i<m_pbuffer->floatcount; i++) {
         embedded_float_t * flt = m_pbuffer->floats[i];
         if (flt->srctext == NULL) {
@@ -3626,38 +3825,10 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             int dx = m_pbuffer->width;
             int dy = m_pbuffer->page_height;
             int page_height = m_pbuffer->page_height;
-
-            if ( marks!=NULL && marks->length()>0 && this_final_node == NULL ) {
-                // Provided ldomMarkedRangeList * marks are ranges made from the words
-                // of a selection currently being made (native highlights by crengine).
-                // Their coordinates have been translated from absolute to relative
-                // to our final node by the DrawDocument() that called us.
-                // As we are going to call DrawDocument() to draw the floats, we need
-                // to translate them back to absolute coordinates (DrawDocument() will
-                // translate them again to relative coordinates in the drawn float).
-                // (They are matched above against the lineRect, which have coordinates
-                // in the context of where we are drawing.)
-
-                // We need to know the current final node and its absolute coordinates
-                this_final_node = node->getParentNode();
-                for ( ; this_final_node; this_final_node = this_final_node->getParentNode() ) {
-                    int rm = this_final_node->getRendMethod();
-                    if ( rm == erm_final || rm == erm_list_item || rm == erm_table_caption )
-                        break;
-                }
-                this_final_node->getAbsRect( this_final_node_rect );
-
-                // Create a new ldomMarkedRangeList with marks in absolute coordinates,
-                // that will be used by this float we just met, and the next ones.
-                for ( int i=0; i<marks->length(); i++ ) {
-                    ldomMarkedRange * mark = marks->get(i);
-                    ldomMarkedRange * newmark = new ldomMarkedRange( *mark );
-                    newmark->start.y += this_final_node_rect.top;
-                    newmark->end.y += this_final_node_rect.top;
-                    absmarks->add(newmark);
-                }
+            if ( absmarks_update_needed ) {
+                getAbsMarksFromMarks(marks, absmarks, node);
+                absmarks_update_needed = false;
             }
-
             DrawDocument( *buf, node, x0, y0, dx, dy, doc_x, doc_y, page_height, absmarks, bookmarks );
         }
     }

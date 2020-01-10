@@ -74,6 +74,7 @@ extern "C" {
 
 #define LTEXT_SRC_IS_FLOAT           0x01000000  /**< \brief float:'ing node */
 #define LTEXT_SRC_IS_FLOAT_DONE      0x02000000  /**< \brief float:'ing node (already dealt with) */
+#define LTEXT_SRC_IS_INLINE_BOX      0x04000000  /**< \brief inlineBox wrapping node */
 
 /** \brief Source text line
 */
@@ -97,8 +98,10 @@ typedef struct
             lUInt16         offset;   /**< \brief offset from node start to beginning of line */
         } t;
         struct {
-            lInt16         width;    /**< \brief handle of font to draw string */
-            lInt16         height;   /**< \brief pointer to unicode text string */
+            // (Note: width & height will be stored negative when they are in % unit)
+            lInt16         width;    /**< \brief width of image or inline-block-box */
+            lInt16         height;   /**< \brief height of image or inline-block box */
+            lUInt16        baseline; /**< \brief baseline of inline-block box */
         } o;
     };
 } src_text_fragment_t;
@@ -122,7 +125,8 @@ typedef struct
        } t;
        /// for object
        struct {
-           lUInt16  height;          /**< \brief height of image */
+           lUInt16  height;          /**< \brief height of image or inline-block box */
+           lUInt16  baseline;        /**< \brief baseline of inline-block box */
        } o;
    };
    lInt16   _top_to_baseline;        /* temporary storage slots when delaying y computation, */
@@ -137,7 +141,8 @@ typedef struct
 #define LTEXT_WORD_MUST_BREAK_LINE_AFTER     0x0008 /// must break line after this word (not used anywhere)
 
 #define LTEXT_WORD_IS_LINK_START             0x0010 /// first word of link flag
-#define LTEXT_WORD_IS_OBJECT                 0x0020 /// object flag
+#define LTEXT_WORD_IS_OBJECT                 0x0020 /// word is an image
+#define LTEXT_WORD_IS_INLINE_BOX             0x0040 /// word is a inline-block or inline-table wrapping box
 
 #define LTEXT_WORD_DIRECTION_KNOWN           0x0100 /// word has been thru bidi: if next flag is unset, it is LTR.
 #define LTEXT_WORD_DIRECTION_IS_RTL          0x0200 /// word is RTL

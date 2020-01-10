@@ -29,12 +29,12 @@
 // Flags for RenderRectAccessor
 #define RENDER_RECT_FLAG_DIRECTION_SET                      0x0001
 #define RENDER_RECT_FLAG_DIRECTION_INVERTED                 0x0002
-#define RENDER_RECT_FLAG_DIRECTION_VERTICAL                 0x0004 // only horizontal supported
+#define RENDER_RECT_FLAG_DIRECTION_VERTICAL                 0x0004 // not used (only horizontal currently supported)
 #define RENDER_RECT_FLAG_INNER_FIELDS_SET                   0x0008
-#define RENDER_RECT_FLAG_NO_CLEAR_OWN_FLOATS                0x0010
-#define RENDER_RECT_FLAG_FINAL_FOOTPRINT_AS_SAVED_FLOAT_IDS 0x0020
-#define RENDER_RECT_FLAG_FLOATBOX_IS_RIGHT                  0x0040
-#define RENDER_RECT_FLAG_FLOATBOX_IS_RENDERED               0x0080
+#define RENDER_RECT_FLAG_BOX_IS_RENDERED                    0x0010 // for floatBox and inlineBox
+#define RENDER_RECT_FLAG_NO_CLEAR_OWN_FLOATS                0x0020
+#define RENDER_RECT_FLAG_FINAL_FOOTPRINT_AS_SAVED_FLOAT_IDS 0x0040
+#define RENDER_RECT_FLAG_FLOATBOX_IS_RIGHT                  0x0080
 
 #define RENDER_RECT_SET_FLAG(r, f)   ( r.setFlags( r.getFlags() | RENDER_RECT_FLAG_##f ) )
 #define RENDER_RECT_UNSET_FLAG(r, f) ( r.setFlags( r.getFlags() & ~RENDER_RECT_FLAG_##f ) )
@@ -144,7 +144,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * node, int x0, int y0, int dx,
 //   minWidth: width with a wrap on all spaces (no hyphenation), so width taken by the longest word
 // full function for recursive use:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction, bool ignorePadding, int rendFlags,
-            int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth, int indent);
+            int &curMaxWidth, int &curWordWidth, bool &collapseNextSpace, int &lastSpaceWidth, int indent, bool isStartNode=false);
 // simpler function for first call:
 void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direction=REND_DIRECTION_UNSET, bool ignorePadding=false, int rendFlags=0);
 
@@ -205,6 +205,9 @@ extern int gRenderBlockRenderingFlags;
 #define BLOCK_RENDERING_ALLOW_EXACT_FLOATS_FOOTPRINTS      0x00200000 // When 5 or less outer floats have impact on a final
                                                                       // block, store their ids instead of the 2 top left/right
                                                                       // rectangle, allowing text layout staircase-like.
+// Inline block/table
+#define BLOCK_RENDERING_BOX_INLINE_BLOCKS                  0x01000000 // Wrap inline-block in an internal inlineBox element.
+
 // Enable everything
 #define BLOCK_RENDERING_FULL_FEATURED                      0x7FFFFFFF
 

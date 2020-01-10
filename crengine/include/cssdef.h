@@ -20,6 +20,7 @@
 #include "lvref.h"
 #include "lvstring.h"
 
+// The order of items in following enums should match the order in the tables in src/lvstsheet.cpp
 /// display property values
 enum css_display_t {
     css_d_inherit,
@@ -27,11 +28,12 @@ enum css_display_t {
     css_d_block,
     css_d_list_item,        // display: -cr-list-item-final (was used before 20180524 for display: list-item)
     css_d_list_item_block,  // display: list-item
+    css_d_inline_block,
+    css_d_inline_table, // (needs to be before css_d_table, as we use tests like if: (style->display > css_d_table))
     css_d_run_in, 
     css_d_compact, 
     css_d_marker, 
     css_d_table, 
-    css_d_inline_table, 
     css_d_table_row_group, 
     css_d_table_header_group, 
     css_d_table_footer_group, 

@@ -3784,7 +3784,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
             // rendering method, which gives us a visual hint of it.
             lvdom_element_render_method rm = node->getRendMethod();
             // Text and inline nodes stay stuck together, but not all others
-            if (rm != erm_inline) {
+            if (rm != erm_inline || node->isBoxingInlineBox()) {
                 doNewLineBeforeStartTag = true;
                 doNewLineAfterStartTag = true;
                 // doNewLineBeforeEndTag = false; // done by child elements
@@ -3803,6 +3803,10 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                         doNewlineBeforeIndentBeforeStartTag = true;
                         doIndentAfterNewLineAfterEndTag = true;
                     }
+                }
+                else if (node->isBoxingInlineBox()) {
+                    doNewlineBeforeIndentBeforeStartTag = true;
+                    doIndentAfterNewLineAfterEndTag = true;
                 }
             }
             // Do something specific when erm_invisible ?
@@ -4683,11 +4687,12 @@ static bool isBlockNode( ldomNode * node )
     switch ( node->getStyle()->display )
     {
     case css_d_block:
+    case css_d_inline_block:
+    case css_d_inline_table:
     case css_d_list_item:
     case css_d_list_item_block:
     case css_d_table:
     case css_d_table_row:
-    case css_d_inline_table:
     case css_d_table_row_group:
     case css_d_table_header_group:
     case css_d_table_footer_group:
@@ -4728,9 +4733,17 @@ static bool isFloatingNode( ldomNode * node )
     return node->getStyle()->float_ > css_f_none;
 }
 
-static bool isNotFloatingNode( ldomNode * node )
+static bool isNotBoxWrappingNode( ldomNode * node )
 {
-    return node->getStyle()->float_ <= css_f_none;
+    if ( BLOCK_RENDERING_G(PREPARE_FLOATBOXES) && node->getStyle()->float_ > css_f_none )
+        return false; // floatBox
+    // isBoxingInlineBox() already checks for BLOCK_RENDERING_G(BOX_INLINE_BLOCKS)
+    return !node->isBoxingInlineBox();
+}
+
+static bool isNotBoxingInlineBoxNode( ldomNode * node )
+{
+    return !node->isBoxingInlineBox();
 }
 
 static lString16 getSectionHeader( ldomNode * section )
@@ -5026,7 +5039,7 @@ static void resetRendMethodToInline( ldomNode * node )
     // hide other nodes)
     if (node->getStyle()->display != css_d_none)
         node->setRendMethod(erm_inline);
-    if (gDOMVersionRequested < 20180528) // do that in all cases
+    else if (gDOMVersionRequested < 20180528) // do that in all cases
         node->setRendMethod(erm_inline);
 }
 
@@ -5072,7 +5085,9 @@ static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & ha
 int initTableRendMethods( ldomNode * enode, int state )
 {
     //main node: table
-    if ( state==0 && enode->getStyle()->display==css_d_table )
+    if ( state==0 && (enode->getStyle()->display==css_d_table ||
+                      enode->getStyle()->display==css_d_inline_table ||
+                      (enode->getStyle()->display==css_d_inline_block && enode->getNodeId()==el_table)) )
         enode->setRendMethod( erm_table ); // for table
     int cellCount = 0;
     int cnt = enode->getChildCount();
@@ -5186,6 +5201,25 @@ bool ldomNode::isFloatingBox()
     return false;
 }
 
+/// is node an inlineBox that has not been re-inlined by having
+/// its child no more inline-block/inline-table
+bool ldomNode::isBoxingInlineBox()
+{
+    // BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) is what ensures inline-block
+    // are boxed and rendered as an inline block, but we may have them
+    // wrapping a node that is no more inline-block (when some style
+    // tweaks have changed the display: property).
+    if ( getNodeId() == el_inlineBox && BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
+        if (getChildCount() == 1) {
+            css_display_t d = getChildNode(0)->getStyle()->display;
+            if (d == css_d_inline_block || d == css_d_inline_table) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void ldomNode::initNodeRendMethod()
 {
     // This method is called when re-rendering, but also while
@@ -5229,15 +5263,13 @@ void ldomNode::initNodeRendMethod()
         //recurseElements( resetRendMethodToInvisible );
         setRendMethod(erm_invisible);
     } else if ( d==css_d_inline ) {
-        // inline: an inline parent reset all its children to inline
-        // (so, if some block content is erroneously wrapped in a SPAN,
-        // all the content become inline...)
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
-        if ( BLOCK_RENDERING_G(PREPARE_FLOATBOXES) )
-            // Don't reset nodes with float: which can stay block among inlines
-            recurseMatchingElements( resetRendMethodToInline, isNotFloatingNode );
-        else
-            recurseElements( resetRendMethodToInline );
+        // inline: an inline parent resets all its children to inline
+        // (so, if some block content is erroneously wrapped in a SPAN, all
+        // the content become inline...), except, depending on what's enabled:
+        // - nodes with float: which can stay block among inlines
+        // - the inner content of inlineBoxes (the inlineBox is already inline)
+        recurseMatchingElements( resetRendMethodToInline, isNotBoxWrappingNode );
     } else if ( d==css_d_run_in ) {
         // runin
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
@@ -5246,8 +5278,16 @@ void ldomNode::initNodeRendMethod()
     } else if ( d==css_d_list_item ) {
         // list item (no more used, obsolete rendering method)
         setRendMethod(erm_list_item);
-    } else if (d == css_d_table) {
+    } else if ( d==css_d_table ) {
         // table
+        initTableRendMethods( this, 0 );
+    } else if ( (d==css_d_inline_table || d==css_d_inline_block) && getNodeId()==el_table ) {
+        // table with inline-block or inline-table (other elements can have
+        // display: inline-table without being a table) should be rendered as table
+        // Note: inline-table support is not 100% per specs, we don't do as good as
+        // https://stackoverflow.com/questions/19352072/what-is-the-difference-between-inline-block-and-inline-table/19352149#19352149
+        // explains. An element with display: inline-table needs to be a <table>
+        // to be rendered as a table.
         initTableRendMethods( this, 0 );
     } else {
         // block or final
@@ -5305,7 +5345,7 @@ void ldomNode::initNodeRendMethod()
                     if ( !BLOCK_RENDERING_G(FLOAT_FLOATBOXES) ) {
                         // If we don't want floatBoxes floating, reset them to be
                         // rendered inline among inlines
-                        recurseElements( resetRendMethodToInline );
+                        recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
                     }
                     setRendMethod( erm_final );
                 }
@@ -5400,6 +5440,7 @@ void ldomNode::initNodeRendMethod()
         }
     }
 
+    bool handled_as_float = false;
     if (BLOCK_RENDERING_G(WRAP_FLOATS)) {
         // While loading the document, we want to put any element with float:left/right
         // inside an internal floatBox element with no margin in its style: this
@@ -5435,6 +5476,7 @@ void ldomNode::initNodeRendMethod()
         bool isFloating = getStyle()->float_ > css_f_none;
         bool isFloatBox = (getNodeId() == el_floatBox);
         if ( isFloating || isFloatBox ) {
+            handled_as_float = true;
             ldomNode * parent = getParentNode();
             bool isFloatBoxChild = (parent && (parent->getNodeId() == el_floatBox));
             if ( isFloatBox ) {
@@ -5471,6 +5513,8 @@ void ldomNode::initNodeRendMethod()
                 // when !PREPARE_FLOATBOXES
                 if (child->getRendMethod() == erm_inline)
                     setRendMethod( erm_inline );
+                else if (child->getRendMethod() == erm_invisible)
+                    setRendMethod( erm_invisible );
                 else
                     setRendMethod( erm_block );
             }
@@ -5537,6 +5581,111 @@ void ldomNode::initNodeRendMethod()
                     // So, we'll have a floatBox with float: that contains a span
                     // or div with float: - the rendering code may have to check
                     // for that: ->isFloatingBox() was added for that.
+                }
+            }
+        }
+    }
+
+    // (If a node is both inline-block and float: left/right, float wins.)
+    if (BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) && !handled_as_float) {
+        // (Similar to what we do above for floats, but simpler.)
+        // While loading the document, we want to put any element with
+        // display: inline-block or inline-table inside an internal inlineBox
+        // element with no margin in its style: this inlineBox's RenderRectAccessor
+        // will have the width/height of the outer element (with margins inside),
+        // while the RenderRectAccessor of the wrapped original element itself
+        // will have the w/h of the element, including borders but excluding
+        // margins (as it is done for all elements by crengine).
+        // That makes out the following rules:
+        // - a inlineBox has a single child: the original inline-block element.
+        // - an element with style->display: inline-block/inline-table must be
+        //   wrapped in a inlineBox, which will get the same style->vertical_align
+        //   (happens in the initial document loading)
+        // - if it already has a inlineBox parent, no need to do it again, just ensure
+        //   the style->vertical_align are the same (happens when re-rendering)
+        // - if the element has lost its style->display: inline-block (style tweak
+        //   applied), or BOX_INLINE_BLOCKS disabled, as we can't remove the
+        //   inlineBox (we can't modify the DOM once a cache has been made):
+        //   the inlineBox and its children will both be set to erm_inline
+        //   (but as ->display has changed, a full re-loading will be suggested
+        //   to the user, and should probably be accepted).
+        // - a inlineBox has ALWAYS ->display=css_d_inline and erm_method=erm_inline
+        // - a inlineBox child keeps its original ->display, and may have
+        //   erm_method = erm_final or erm_block (depending on its content)
+        bool isInlineBlock = (d == css_d_inline_block || d == css_d_inline_table);
+        bool isInlineBox = (getNodeId() == el_inlineBox);
+        if ( isInlineBlock || isInlineBox ) {
+            ldomNode * parent = getParentNode();
+            bool isInlineBoxChild = (parent && (parent->getNodeId() == el_inlineBox));
+            if ( isInlineBox ) {
+                // Wrapping inlineBox already made
+                if (getChildCount() != 1) {
+                    CRLog::error("inlineBox with zero or more than one child");
+                    crFatalError();
+                }
+                // Update inlineBox style according to child's one
+                ldomNode * child = getChildNode(0);
+                css_style_ref_t child_style = child->getStyle();
+                css_style_ref_t my_style = getStyle();
+                css_style_ref_t my_new_style( new css_style_rec_t );
+                copystyle(my_style, my_new_style);
+                if (child_style->display == css_d_inline_block || child_style->display == css_d_inline_table) {
+                    my_new_style->display = css_d_inline; // become an inline wrapper
+                    // We need it to have the vertical_align from the child
+                    // (it's the only style we need for proper inline layout).
+                    my_new_style->vertical_align = child_style->vertical_align;
+                    setRendMethod( erm_inline );
+                }
+                else if (child_style->display == css_d_inline) {
+                    my_new_style->display = css_d_inline; // wrap inline in inline
+                    setRendMethod( erm_inline );
+                }
+                else if (child_style->display == css_d_none) {
+                    my_new_style->display = css_d_none; // stay invisible
+                    setRendMethod( erm_invisible );
+                }
+                else { // everything else must be wrapped by a block
+                    my_new_style->display = css_d_block;
+                    setRendMethod( erm_block );
+                }
+                setStyle(my_new_style);
+                // When re-rendering, setNodeStyle() has already been called to set
+                // our style and font, so no need for calling initNodeFont() here,
+                // as we didn't change anything related to font in the style (and
+                // calling it can cause a style hash mismatch for some reason).
+            }
+            else if ( isInlineBoxChild ) {
+                // Already inlineBox'ed, nothing special to do
+            }
+            else { // !isInlineBox && !isInlineBoxChild
+                // Element with display: inline-block/inline-table, that has not yet
+                // been wrapped in a inlineBox.
+                // Like above, don't do any node moving when there is already a
+                // cache file, to avoid some unclear segfaults.
+                // (If new inline-block appear after loading, we won't render well,
+                // but a style hash mismatch will happen and the user will be
+                // suggested to reload the book with cache cleaned.)
+                if ( parent && this->getDocument()->_cacheFile == NULL ) {
+                    // Replace this element with a inlineBox in its parent children collection,
+                    // and move it inside, as the single child of this inlineBox.
+                    int pos = getNodeIndex();
+                    ldomNode * ibox = parent->insertChildElement( pos, LXML_NS_NONE, el_inlineBox );
+                    parent->moveItemsTo( ibox, pos+1, pos+1 ); // move this element from parent into ibox
+                    ibox->setRendMethod( erm_inline );
+
+                    // We want this inlineBox to have no real style (and it surely
+                    // should not have the margins of the child), but it should probably
+                    // have the inherited properties of the node parent, just like the child
+                    // had them. We can't just copy the parent style into this inlineBox, as
+                    // we don't want its non-inherited properties like background-color which
+                    // could be drawn over some other content if this float has some negative
+                    // margins.
+                    // Best to use lvrend.cpp setNodeStyle(), which will properly set
+                    // this new node style with inherited properties from its parent,
+                    // and we made it do this specific propagation of vertical_align
+                    // from its single child, only when it has styles defined (so,
+                    // only on initial loading and not on re-renderings).
+                    setNodeStyle( ibox, parent->getStyle(), parent->getFont() );
                 }
             }
         }
@@ -6459,15 +6608,44 @@ bool ldomXPointer::isFinalNode() const
 }
 
 /// create xpointer from doc point
-ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool strictBounds )
+ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool strictBounds, ldomNode * fromNode )
 {
     //
     lvPoint orig_pt = lvPoint(pt);
     ldomXPointer ptr;
     if ( !getRootNode() )
         return ptr;
-    ldomNode * finalNode = getRootNode()->elementFromPoint( pt, direction );
+    ldomNode * startNode;
+    if ( fromNode ) {
+        // Start looking from the fromNode provided - only used when we are
+        // looking inside a floatBox or an inlineBox below and we have this
+        // recursive call to createXPointer().
+        // Even with a provided fromNode, pt must be provided in full absolute
+        // coordinates. But we need to give to startNode->elementFromPoint()
+        // a pt with coordinates relative to fromNode.
+        // And because elementFromPoint() uses the fmt x/y offsets of the
+        // start node (relative to the containing final block), we would
+        // need to have pt relative to that containing final block - and so,
+        // we'd need to lookup the final node from here (or have it provided
+        // as an additional parameter if it's known by caller).
+        // But because we're called only for floatBox and inlineBox, which
+        // have only a single child, we can use the trick of calling
+        // ->elementFromPoint() on that first child, while still getting
+        // pt relative to fromNode itself:
+        startNode = fromNode->getChildNode(0);
+        lvRect rc;
+        fromNode->getAbsRect( rc, true );
+        pt.x -= rc.left;
+        pt.y -= rc.top;
+    }
+    else {
+        startNode = getRootNode();
+    }
+    ldomNode * finalNode = startNode->elementFromPoint( pt, direction );
+    if ( fromNode )
+        pt = orig_pt; // restore orig pt
     if ( !finalNode ) {
+        // printf("no finalNode found from %s\n", UnicodeToLocal(ldomXPointer(fromNode, 0).toString()).c_str());
         // No node found, return start or end of document if pt overflows it, otherwise NULL
         if ( pt.y >= getFullHeight()) {
             ldomNode * node = getRootNode()->getLastTextChild();
@@ -6537,34 +6715,16 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
             continue;
         if (pt.x >= flt->x && pt.x < flt->x + flt->width && pt.y >= flt->y && pt.y < flt->y + flt->height ) {
             // pt is inside this float.
-            // This node is not a final node, we need to find the right final node
-            ldomNode * floatNode = (ldomNode *) flt->srctext->object;
-            finalNode = floatNode->elementFromPoint( pt, direction );
-            // printf("float finaleNode %s\n", UnicodeToLocal(ldomXPointer(finalNode, 0).toString()).c_str());
-            if ( finalNode ) { // found it
-                lvdom_element_render_method rm = finalNode->getRendMethod();
-                if ( rm == erm_final || rm == erm_list_item || rm == erm_table_caption ) {
-                    // We just update the local variables created above and used below,
-                    // with similar code as above (but no need for the legacy way, as
-                    // we don't get float in legacy rendering).
-                    finalNode->getAbsRect( rc, true ); // inner = true
-                    pt = orig_pt; // re-set to the original one, as we're back in absolute coordinates
-                    pt.x -= rc.left;
-                    pt.y -= rc.top;
-                    fmt = RenderRectAccessor( finalNode );
-                    if ( RENDER_RECT_HAS_FLAG(fmt, INNER_FIELDS_SET) ) {
-                        inner_width = fmt.getInnerWidth();
-                    }
-                    else { // should not happen, but fallback to rc width
-                        inner_width = rc.width();
-                    }
-                    finalNode->renderFinalBlock( txtform, &fmt, inner_width );
-                    break; // go on looking at words in this new txtform
-                }
+            ldomNode * node = (ldomNode *) flt->srctext->object; // floatBox node
+            ldomXPointer inside_ptr = createXPointer( orig_pt, direction, strictBounds, node );
+            if ( !inside_ptr.isNull() ) {
+                return inside_ptr;
             }
+            // Otherwise, return xpointer to the floatNode itself
+            return ldomXPointer(node, 0);
+            // (Or should we let just go on looking only at the text in the original final node?)
         }
-        // If no containing float, or no inner final node found in it,
-        // go on looking at the text of the original final node
+        // If no containing float, go on looking at the text of the original final node
     }
 
     // Look at words in the rendered final node (whether it's the original
@@ -6601,7 +6761,16 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                 if ( !node ) // Ignore crengine added text (spacing, list item bullets...)
                     continue;
 
-                if ( src->flags & LTEXT_SRC_IS_OBJECT ) {
+                if ( word->flags & LTEXT_WORD_IS_INLINE_BOX ) {
+                    // pt is inside this inline-block inlineBox node
+                    ldomXPointer inside_ptr = createXPointer( orig_pt, direction, strictBounds, node );
+                    if ( !inside_ptr.isNull() ) {
+                        return inside_ptr;
+                    }
+                    // Otherwise, return xpointer to the inlineBox itself
+                    return ldomXPointer(node, 0);
+                }
+                if ( word->flags & LTEXT_WORD_IS_OBJECT ) {
                     // Object (image)
                     #if 1
                     // return image object itself
@@ -6746,8 +6915,6 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
         // When in enhanced rendering mode, we can get the FormattedText coordinates
         // and its width (inner_width) directly
         int inner_width;
-        int shift_x;
-        int shift_y;
         if ( RENDER_RECT_HAS_FLAG(fmt, INNER_FIELDS_SET) ) {
             inner_width = fmt.getInnerWidth();
             // if extended=true, we got directly the adjusted rc.top and rc.left
@@ -6886,7 +7053,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             else {
                                 bestBidiRect.left = word->x + rc.left + frmline->x;
                                 if (extended) {
-                                    if (word->flags & LTEXT_WORD_IS_OBJECT && word->width > 0)
+                                    if (word->flags & (LTEXT_WORD_IS_OBJECT|LTEXT_WORD_IS_INLINE_BOX) && word->width > 0)
                                         bestBidiRect.right = bestBidiRect.left + word->width; // width of image
                                     else
                                         bestBidiRect.right = bestBidiRect.left + 1;
@@ -6894,14 +7061,14 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             }
                             hasBestBidiRect = true;
                             nearestForwardSrcIndex = word->src_text_index;
-                            if (word->flags & LTEXT_WORD_IS_OBJECT)
+                            if (word->flags & (LTEXT_WORD_IS_OBJECT|LTEXT_WORD_IS_INLINE_BOX))
                                 nearestForwardSrcOffset = 0;
                             else
                                 nearestForwardSrcOffset = word->t.start;
                         }
                         else if (word->src_text_index == srcIndex) {
                             // Found word in that exact source text node
-                            if ( word->flags & LTEXT_WORD_IS_OBJECT ) {
+                            if ( word->flags & (LTEXT_WORD_IS_OBJECT|LTEXT_WORD_IS_INLINE_BOX) ) {
                                 // An image is the single thing in its srcIndex
                                 rect.top = rc.top + frmline->y;
                                 rect.bottom = rect.top + frmline->height;
@@ -7089,7 +7256,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                 // Generic code when visual order = logical order
                 if ( word->src_text_index>=srcIndex || lastWord ) {
                     // found word from same src line
-                    if ( word->flags & LTEXT_WORD_IS_OBJECT
+                    if ( word->flags & (LTEXT_WORD_IS_OBJECT|LTEXT_WORD_IS_INLINE_BOX)
                             || word->src_text_index > srcIndex
                             || (!extended && offset <= word->t.start)
                             || (extended && offset < word->t.start)
@@ -7101,7 +7268,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
                         rect.top = rc.top + frmline->y;
                         if (extended) {
-                            if (word->flags & LTEXT_WORD_IS_OBJECT && word->width > 0)
+                            if (word->flags & (LTEXT_WORD_IS_OBJECT|LTEXT_WORD_IS_INLINE_BOX) && word->width > 0)
                                 rect.right = rect.left + word->width; // width of image
                             else
                                 rect.right = rect.left + 1; // not the right word: no char width
@@ -13180,9 +13347,10 @@ void ldomNode::getAbsRect( lvRect & rect, bool inner )
         if ( RENDER_RECT_HAS_FLAG(fmt, INNER_FIELDS_SET) ) {
             // getAbsRect() is mostly used on erm_final nodes. So,
             // if we meet another erm_final node in our parent, we are
-            // probably an embedded floatBox. Embedded floatBoxes are
-            // positionned according to the inner LFormattedText, so
-            // we need to account for these padding shifts.
+            // probably an embedded floatBox or inlineBox. Embedded
+            // floatBoxes or inlineBoxes are positionned according
+            // to the inner LFormattedText, so we need to account
+            // for these padding shifts.
             rect.left += fmt.getInnerX();     // add padding left
             rect.top += fmt.getInnerY();      // add padding top
         }
@@ -13803,7 +13971,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
             // The UL > LI parent-child chain may have had a floatBox element
             // inserted if the LI has some float: style (also handled below
             // when walking this parent's children).
-            if ( parent->getNodeId() == el_floatBox ) {
+            if ( parent->getNodeId() == el_floatBox || parent->getNodeId() == el_inlineBox ) {
                 parent = parent->getParentNode();
             }
             counterValue = 0;
@@ -13818,7 +13986,7 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
             }
             for (int i = 0; i < parent->getChildCount(); i++) {
                 ldomNode * child = parent->getChildNode(i);
-                if ( child->getNodeId() == el_floatBox ) {
+                if ( child->getNodeId() == el_floatBox || child->getNodeId() == el_inlineBox ) {
                     child = child->getChildNode(0);
                 }
                 css_style_ref_t cs = child->getStyle();

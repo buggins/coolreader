@@ -1011,6 +1011,9 @@ public:
     bool getNodeListMarker( int & counterValue, lString16 & marker, int & markerWidth );
     /// is node a floating floatBox
     bool isFloatingBox();
+    /// is node an inlineBox that has not been re-inlined by having
+    /// its child no more inline-block/inline-table
+    bool isBoxingInlineBox();
 };
 
 
@@ -2327,7 +2330,7 @@ public:
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
 #if BUILD_LITE!=1
     /// create xpointer from doc point
-    ldomXPointer createXPointer( lvPoint pt, int direction=0, bool strictBounds=false );
+    ldomXPointer createXPointer( lvPoint pt, int direction=0, bool strictBounds=false, ldomNode * from_node=NULL );
     /// get rendered block cache object
     CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
 

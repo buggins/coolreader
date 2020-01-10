@@ -745,6 +745,7 @@ static void resolve_url_path( lString8 & str, lString16 codeBase ) {
     str = UnicodeToUtf8(path);
 }
 
+// The order of items in following tables should match the order in the enums in include/cssdef.h
 static const char * css_d_names[] = 
 {
     "inherit",
@@ -752,11 +753,12 @@ static const char * css_d_names[] =
     "block",
     "-cr-list-item-final", // non-standard, legacy crengine rendering of list items as final: css_d_list_item
     "list-item",           // correct rendering of list items as block: css_d_list_item_block
+    "inline-block",
+    "inline-table",
     "run-in", 
     "compact", 
     "marker", 
     "table", 
-    "inline-table", 
     "table-row-group", 
     "table-header-group", 
     "table-footer-group", 
@@ -1097,6 +1099,7 @@ static const char * css_cr_only_if_names[]={
         "legacy",
         "enhanced",
         "float-floatboxes",
+        "box-inlineboxes",
         "ensure-style-width",
         "ensure-style-height",
         "allow-style-w-h-absolute-units",
@@ -1111,6 +1114,7 @@ enum cr_only_if_t {
     cr_only_if_legacy,
     cr_only_if_enhanced,
     cr_only_if_float_floatboxes,
+    cr_only_if_box_inlineboxes,
     cr_only_if_ensure_style_width,
     cr_only_if_ensure_style_height,
     cr_only_if_allow_style_w_h_absolute_units,
@@ -1189,6 +1193,9 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                         else if ( name == cr_only_if_float_floatboxes ) {
                             match = ((bool)BLOCK_RENDERING_G(FLOAT_FLOATBOXES)) != invert;
                         }
+                        else if ( name == cr_only_if_box_inlineboxes ) {
+                            match = ((bool)BLOCK_RENDERING_G(BOX_INLINE_BLOCKS)) != invert;
+                        }
                         else if ( name == cr_only_if_ensure_style_width ) {
                             match = ((bool)BLOCK_RENDERING_G(ENSURE_STYLE_WIDTH)) != invert;
                         }
@@ -1228,8 +1235,8 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                 break;
             case cssd_display:
                 n = parse_name( decl, css_d_names, -1 );
-                if (gDOMVersionRequested < 20180524 && n == 4) { // css_d_list_item_block
-                    n = 3; // use css_d_list_item (legacy rendering of list-item)
+                if (gDOMVersionRequested < 20180524 && n == css_d_list_item_block) {
+                    n = css_d_list_item; // legacy rendering of list-item
                 }
                 break;
             case cssd_white_space:
@@ -2327,8 +2334,8 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     if (!node || node->isNull() || node->isRoot())
         return false;
     // For most checks, while navigating nodes, we must ignore sibling text nodes.
-    // We also ignore <autoBoxing> and <floatBox> (crengine internal block element,
-    // inserted for rendering purpose) when looking at parent(s).
+    // We also ignore <autoBoxing>, <floatBox> and <inlineBox> (crengine internal
+    // block elements, inserted for rendering purpose) when looking at parent(s).
     // TODO: for cssrt_predecessor and cssrt_pseudoclass, we should
     // also deal with <autoBoxing> nodes when navigating siblings,
     // by iterating up and down the autoBoxing nodes met on our path while
@@ -2338,7 +2345,9 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     case cssrt_parent:        // E > F (child combinator)
         {
             node = node->getParentNode();
-            while (node && !node->isNull() && (node->getNodeId() == el_autoBoxing || node->getNodeId() == el_floatBox))
+            while (node && !node->isNull() && (   node->getNodeId() == el_autoBoxing
+                                               || node->getNodeId() == el_floatBox
+                                               || node->getNodeId() == el_inlineBox ))
                 node = node->getParentNode();
             if (!node || node->isNull())
                 return false;
@@ -2355,7 +2364,8 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 node = node->getParentNode();
                 if (!node || node->isNull())
                     return false;
-                if (node->getNodeId() == el_autoBoxing || node->getNodeId() == el_floatBox)
+                if ( node->getNodeId() == el_autoBoxing || node->getNodeId() == el_floatBox
+                                            || node->getNodeId() == el_inlineBox )
                     continue;
                 // cssrt_ancessor is a non-deterministic rule: next rules
                 // could fail when checked against this parent that matches
@@ -3048,7 +3058,8 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
                 // is shorter than the shortest of them (floatBox)
                 element = element.lowercase();
             }
-            else if (element != "DocFragment" && element != "autoBoxing" & element != "floatBox" && element != "FictionBook" ) {
+            else if (element != "DocFragment" && element != "autoBoxing" && element != "floatBox"
+                                              && element != "inlineBox"  && element != "FictionBook" ) {
                 element = element.lowercase();
             }
             _id = doc->getElementNameIndex( element.c_str() );

@@ -33,6 +33,8 @@ XS_BEGIN_TAGS
 XS_TAG1T( autoBoxing )
 // Internal element for float rendering
 XS_TAG1T( floatBox )
+// Internal element for inline-block and inline-table rendering
+XS_TAG1I( inlineBox )
 // Internal element for EPUB, containing each individual HTML file
 XS_TAG1( DocFragment )
 
