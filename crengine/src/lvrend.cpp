@@ -3932,6 +3932,8 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
 //     kind of decicated crengine cache for storing a variable number
 //     of things related to a node.
 
+#define NO_BASELINE_UPDATE 0x7FFFFFFF
+
 class FlowState {
 private:
     // BlockShift: backup of some FlowState fields when entering
@@ -4001,6 +4003,9 @@ private:
     int  in_y_max;    //   that overflow this level height)
     int  x_min;       // current left min x
     int  x_max;       // current right max x
+    int  baseline_req; // baseline type requested (REQ_BASELINE_FOR_INLINE_BLOCK or REQ_BASELINE_FOR_INLINE_TABLE)
+    int  baseline_y;   // baseline y relative to formatting context top (computed when rendering inline-block/table)
+    bool baseline_set; // (set to true on first baseline met)
     bool is_main_flow;
     int  top_clear_level; // level to attach floats for final clearance when leaving the flow
     bool avoid_pb_inside; // To carry this fact from upper elements to inner children
@@ -4034,6 +4039,9 @@ public:
         in_y_max(0),
         x_min(0),
         x_max(width),
+        baseline_req(REQ_BASELINE_NOT_NEEDED),
+        baseline_y(0),
+        baseline_set(false),
         avoid_pb_inside(false),
         avoid_pb_inside_just_toggled_on(false),
         avoid_pb_inside_just_toggled_off(false),
@@ -4100,6 +4108,87 @@ public:
     }
     bool getAvoidPbInside() {
         return avoid_pb_inside;
+    }
+
+    void setRequestedBaselineType(int baseline_req_type) {
+        baseline_req = baseline_req_type;
+    }
+    int getBaselineAbsoluteY(ldomNode * node=NULL) {
+        // Quotes from https://www.w3.org/TR/CSS21/visudet.html#propdef-vertical-align
+        // Note that our table rendering code has not been updated to use FlowState,
+        // so, if top element is a table, we haven't got any baseline.
+        if ( baseline_req == REQ_BASELINE_FOR_INLINE_TABLE ) {
+            // "The baseline of an 'inline-table' is the baseline of the first
+            //  row of the table.
+            // Tests show that this is true even if the element with
+            // display: inline-table is not iself a table, but has a table
+            // as a child. But if there's any text non-table before the table,
+            // the baseline for that text is used.
+            // So, we should check for a table even when we have baseline_set
+            // and a baseline_y. The returned baseline will be the smallest
+            // of the two.
+            //
+            // Try to find the first table row, looking at descendants of the
+            // provided node (which must be the top node of this FlowState).
+            // Walk the tree up and down (avoid the need for recursion):
+            ldomNode * n = node;
+            ldomNode * rowNode = NULL;
+            if ( n && n->getChildCount() > 0 ) {
+                int nextChildIndex = 0;
+                n = n->getChildNode(nextChildIndex);
+                while ( true ) {
+                    // Check the node only the first time we meet it
+                    // (nextChildIndex == 0) and not when we get back
+                    // to it from a child to process next sibling
+                    if ( nextChildIndex == 0 ) {
+                        if ( n->getRendMethod() == erm_table_row ) {
+                            rowNode = n;
+                            break; // found the first row
+                        }
+                    }
+                    // Process next child
+                    if ( nextChildIndex < n->getChildCount() ) {
+                        n = n->getChildNode(nextChildIndex);
+                        nextChildIndex = 0;
+                        continue;
+                    }
+                    // No more child, get back to parent and have it process our sibling
+                    nextChildIndex = n->getNodeIndex() + 1;
+                    n = n->getParentNode();
+                    if ( n == node ) // all children done and back to top node
+                        break;
+                }
+            }
+            if ( rowNode ) {
+                // Get this row bottom y related to the top node y
+                RenderRectAccessor fmt( rowNode );
+                int row_bottom = fmt.getY() + fmt.getHeight();
+                ldomNode * n = rowNode->getParentNode();
+                for (; n && n!=node; n=n->getParentNode()) {
+                    RenderRectAccessor fmt(n);
+                    row_bottom += fmt.getY();
+                }
+                if ( !baseline_set || (row_bottom < baseline_y) ) {
+                    baseline_y = row_bottom;
+                }
+                // Not implemented: it seems that if any of this row cell has
+                // "vertical-align: baseline", it's no more the bottom of the
+                // row that should be the baseline, but this cell baseline...
+                // See (which has a hidden "#cell-of-first-row {vertical-align: baseline;}"
+                // which makes it behave as advertised:
+                // http://www.gtalbot.org/BrowserBugsSection/Safari3Bugs/baseline-inline-table-vertical-align.html
+                baseline_set = true;
+            }
+        }
+        if ( !baseline_set ) {
+            // "The baseline of an 'inline-block' is the baseline of its last line
+            //  box in the normal flow, unless it has either no in-flow line boxes
+            //  [or ...], in which case the baseline is the bottom margin edge."
+            // So, return what will be returned as height just after this
+            // function is called in renderBlockElement().
+            return getCurrentAbsoluteY();
+        }
+        return baseline_y;
     }
 
     bool hasActiveFloats() {
@@ -4178,7 +4267,7 @@ public:
         last_split_after_flag = RN_GET_SPLIT_AFTER(flags);
     }
 
-    int addContentLine( int height, int flags, bool is_padding=false ) {
+    int addContentLine( int height, int flags, int baseline=NO_BASELINE_UPDATE, bool is_padding=false ) {
         // As we may push vertical margins, we return the total height moved
         // (needed when adding bottom padding that may push inner vertical
         // margins, which should be accounted in the element height).
@@ -4227,6 +4316,39 @@ public:
         moveDown( height );
         if ( vm_disabled ) // Re-enable it now that some real content has been seen
             enableVerticalMargin();
+        if ( baseline_req != REQ_BASELINE_NOT_NEEDED ) {
+            // We don't update last baseline when adding padding or when none is provided
+            if ( !is_padding && baseline != NO_BASELINE_UPDATE ) {
+                // https://www.w3.org/TR/CSS21/visudet.html#propdef-vertical-align
+                //   "The baseline of an 'inline-table' is the baseline of the first row
+                //    of the table.
+                //    The baseline of an 'inline-block' is the baseline of its last line
+                //    box in the normal flow, unless it has either no in-flow line boxes
+                //    [or ...], in which case the baseline is the bottom margin edge."
+                // Also see for some interesting sample snippet:
+                // https://stackoverflow.com/questions/19352072/what-is-the-difference-between-inline-block-and-inline-table/56305302#56305302
+                // A tricky thing with inline-table is that the baseline is different if
+                // there is a table of if there's not
+                // - if the first content line is a table row, it should be the bottom
+                //   margin of the row (and not the baseline of the first or last line
+                //   of any table cell of that row).
+                // - if the first content line is not a table row (we can have inline-table
+                //   containing no table-like elements), it is the real baseline of the
+                //   first line.
+                // As the rendering table code does not use FlowState, we manage the
+                // first case in getBaselineAbsoluteY() when we're done.
+                if ( baseline_req == REQ_BASELINE_FOR_INLINE_TABLE && baseline_set ) {
+                    // inline-table: first baseline already met, it will stay the final baseline
+                }
+                else { // inline-block
+                    // We update it from c_y which accounts for any vertical margins
+                    // pushed // when adding this line:
+                    baseline_y = c_y - height + baseline;
+                    if ( !baseline_set)
+                        baseline_set = true;
+                }
+            }
+        }
         return c_y - start_c_y;
     }
 
@@ -5980,7 +6102,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // We shift it half to the left, so a bit of it can be
                 // seen if some element on the right covers it with some
                 // background color.
-            flow->addContentLine( fmt.getHeight(), RN_SPLIT_BOTH_AVOID );
+            flow->addContentLine( fmt.getHeight(), RN_SPLIT_BOTH_AVOID, fmt.getHeight() );
             return;
         }
     }
@@ -6120,7 +6242,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
                 if (padding_top>0) {
                     // This may push accumulated vertical margin
-                    flow->addContentLine(padding_top, RN_SPLIT_AFTER_AVOID, true);
+                    flow->addContentLine(padding_top, RN_SPLIT_AFTER_AVOID, 0, true);
                 }
 
                 // Enter footnote body only after padding, to get rid of it
@@ -6281,7 +6403,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // (Firefox, with a float taller than text, both in another
                 // float, applies bottom padding after the inner float)
                 if (padding_bottom>0) {
-                    int padding_bottom_with_inner_pushed_vm = flow->addContentLine(padding_bottom, RN_SPLIT_BEFORE_AVOID, true);
+                    int padding_bottom_with_inner_pushed_vm = flow->addContentLine(padding_bottom, RN_SPLIT_BEFORE_AVOID, 0, true);
                     h += padding_bottom_with_inner_pushed_vm;
                     bottom_overflow -= padding_bottom_with_inner_pushed_vm;
                 }
@@ -6471,7 +6593,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
                 if (padding_top>0) {
                     // This may add accumulated margin
-                    flow->addContentLine(padding_top, RN_SPLIT_AFTER_AVOID, true);
+                    flow->addContentLine(padding_top, RN_SPLIT_AFTER_AVOID, 0, true);
                 }
 
                 // Enter footnote body after padding, to get rid of it
@@ -6522,7 +6644,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                             line_flags |= RN_SPLIT_AFTER_AVOID;
                     }
 
-                    flow->addContentLine(line->height, line_flags);
+                    flow->addContentLine(line->height, line_flags, line->baseline);
 
                     // See if there are links to footnotes in that line, and add
                     // a reference to it so page splitting can bring the footnotes
@@ -6589,7 +6711,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 }
 
                 if (padding_bottom>0) {
-                    flow->addContentLine(padding_bottom, RN_SPLIT_BEFORE_AVOID, true);
+                    flow->addContentLine(padding_bottom, RN_SPLIT_BEFORE_AVOID, 0, true);
                 }
 
                 // We need to forward our overflow for it to be carried
@@ -6606,14 +6728,14 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
             break;
         default:
             CRLog::error("Unsupported render method %d", m);
-            crFatalError(); // error
+            crFatalError(141, "Unsupported render method"); // error
             break;
     }
     return;
 }
 
 // Entry points for rendering the root node, a table cell or a float
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int rend_flags )
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int * baseline, int rend_flags )
 {
     if ( BLOCK_RENDERING(rend_flags, ENHANCED) ) {
         // Create a flow state (aka "block formatting context") for the rendering
@@ -6622,7 +6744,15 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         // met along walking the root node hierarchy - and when meeting a new float
         // in a float, etc...)
         FlowState flow( context, width, rend_flags, direction );
+        if (baseline != NULL) {
+            flow.setRequestedBaselineType(*baseline);
+        }
         renderBlockElementEnhanced( &flow, enode, x, width, rend_flags );
+        if (baseline != NULL) {
+            // (We pass the top node, so it can find the first table row
+            // if needed with inline-table.)
+            *baseline = flow.getBaselineAbsoluteY(enode);
+        }
         // The block height is c_y when we are done
         return flow.getCurrentAbsoluteY();
     }
@@ -6631,11 +6761,11 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         return renderBlockElementLegacy( context, enode, x, y, width);
     }
 }
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction )
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int * baseline )
 {
     // Use global rendering flags
     // Note: we're not currently using it with other flags that the global ones.
-    return renderBlockElement( context, enode, x, y, width, direction, gRenderBlockRenderingFlags );
+    return renderBlockElement( context, enode, x, y, width, direction, baseline, gRenderBlockRenderingFlags );
 }
 
 //draw border lines,support color,width,all styles, not support border-collapse

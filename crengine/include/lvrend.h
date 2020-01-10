@@ -48,6 +48,12 @@
 #define RENDER_RECT_HAS_DIRECTION_RTL(r)  ( (bool)(r.getFlags() & RENDER_RECT_FLAG_DIRECTION_MASK == REND_DIRECTION_RTL) )
 #define RENDER_RECT_PTR_HAS_DIRECTION_RTL(r)  ( (bool)(r->getFlags() & RENDER_RECT_FLAG_DIRECTION_MASK == REND_DIRECTION_RTL) )
 
+// To be provided via the initial value to renderBlockElement(... int *baseline ...) to
+// have FlowState compute baseline (different rules whether inline-block or inline-table).
+#define REQ_BASELINE_NOT_NEEDED       0
+#define REQ_BASELINE_FOR_INLINE_BLOCK 1
+#define REQ_BASELINE_FOR_INLINE_TABLE 2
+
 class FlowState;
 
 // Footprint of block floats (from FlowState) on a final block,
@@ -116,9 +122,9 @@ int styleToTextFmtFlags( const css_style_ref_t & style, int oldflags, int direct
 void renderFinalBlock( ldomNode * node, LFormattedText * txform, RenderRectAccessor * fmt, int & flags,
                        int ident, int line_h, int valign_dy=0, bool * is_link_start=NULL );
 /// renders block which contains subblocks (with gRenderBlockRenderingFlags as flags)
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction=REND_DIRECTION_UNSET );
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction=REND_DIRECTION_UNSET, int * baseline=NULL );
 /// renders block which contains subblocks
-int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int rend_flags );
+int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width, int direction, int * baseline, int rend_flags );
 /// renders table element
 int renderTable( LVRendPageContext & context, ldomNode * element, int x, int y, int width,
                  bool shrink_to_fit, int & fitted_width, int direction=REND_DIRECTION_UNSET,

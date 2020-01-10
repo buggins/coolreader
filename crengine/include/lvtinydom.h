@@ -671,6 +671,8 @@ public:
     void setTopOverflow( int dy );
     void setBottomOverflow( int dy );
 
+    int  getBaseline();
+    void setBaseline( int baseline );
     int  getListPropNodeIndex();
     void setListPropNodeIndex( int idx );
 

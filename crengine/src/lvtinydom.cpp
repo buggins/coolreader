@@ -1622,6 +1622,31 @@ void RenderRectAccessor::setBottomOverflow( int dy )
         _modified = true;
     }
 }
+int RenderRectAccessor::getBaseline()
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    return _baseline;
+}
+void RenderRectAccessor::setBaseline( int baseline )
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    if ( _baseline != baseline ) {
+        _baseline = baseline;
+        _modified = true;
+    }
+}
 int RenderRectAccessor::getListPropNodeIndex()
 {
     if ( _dirty ) {
