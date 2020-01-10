@@ -3521,10 +3521,9 @@ static void getAbsMarksFromMarks(ldomMarkedRangeList * marks, ldomMarkedRangeLis
         if ( rm == erm_final || rm == erm_list_item || rm == erm_table_caption )
             break;
     }
-    lvRect final_node_rect;
-    final_node->getAbsRect( final_node_rect );
-        // Note: looks like we should not use getAbsRect(..., inner=true) here,
-        // probably because the marks are not shifted by the inner shift.
+    lvRect final_node_rect = lvRect();
+    if ( final_node )
+        final_node->getAbsRect( final_node_rect, true );
 
     // Fill the second provided ldomMarkedRangeList with marks in absolute
     // coordinates.
@@ -3627,6 +3626,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 for ( int i=0; i<marks->length(); i++ ) {
                     lvRect mark;
                     ldomMarkedRange * range = marks->get(i);
+                    // printf("marks #%d %d %d > %d %d\n", i, range->start.x, range->start.y, range->end.x, range->end.y);
                     if ( range->intersects( lineRect, mark ) ) {
                         //
                         buf->FillRect(mark.left + x, mark.top + y, mark.right + x, mark.bottom + y, m_pbuffer->highlight_options.selectionColor);

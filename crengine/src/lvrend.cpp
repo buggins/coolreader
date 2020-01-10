@@ -7775,7 +7775,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 fmt.push();
                 {
                     lvRect rc;
-                    enode->getAbsRect( rc );
+                    enode->getAbsRect( rc, true );
                     ldomMarkedRangeList *nbookmarks = NULL;
                     if ( bookmarks && bookmarks->length()) { // internal crengine bookmarked text highlights
                         nbookmarks = new ldomMarkedRangeList( bookmarks, rc );

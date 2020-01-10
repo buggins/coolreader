@@ -8289,6 +8289,9 @@ bool ldomXRange::findText( lString16 pattern, bool caseInsensitive, bool reverse
 }
 
 /// fill marked ranges list
+// Transform a list of ldomXRange (start and end xpointers) into a list
+// of ldomMarkedRange (start and end point coordinates) for native
+// drawing of highlights
 void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
 {
     dst.clear();
@@ -8296,25 +8299,46 @@ void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
         return;
     for ( int i=0; i<length(); i++ ) {
         ldomXRange * range = get(i);
-        // For native highlights to correctly grab glyphs left and right
-        // overflows, some tweaking might be needed here.
-        lvPoint ptStart = range->getStart().toPoint();
-        lvPoint ptEnd = range->getEnd().toPoint();
-//        // LVE:DEBUG
-//        CRLog::trace("selectRange( %d,%d : %d,%d : %s, %s )", ptStart.x, ptStart.y, ptEnd.x, ptEnd.y, LCSTR(range->getStart().toString()), LCSTR(range->getEnd().toString()) );
-        if ( ptStart.y > ptEnd.y || ( ptStart.y == ptEnd.y && ptStart.x >= ptEnd.x ) ) {
-            // Swap ptStart and ptEnd if coordinates seems inverted (or we would
-            // get item->empty()), which is needed for bidi/rtl.
-            // Hoping this has no side effect.
-            lvPoint ptTmp = ptStart;
-            ptStart = ptEnd;
-            ptEnd = ptTmp;
+        if (range->getFlags() < 2) {
+            // Legacy marks drawing: make a single ldomMarkedRange spanning
+            // multiple lines, assuming full width LTR paragraphs)
+            // (Updated to use toPoint(extended=true) to have them shifted
+            // by the margins and paddings of final blocks, to be compatible
+            // with getSegmentRects() below that does that internally.)
+            lvPoint ptStart = range->getStart().toPoint(true);
+            lvPoint ptEnd = range->getEnd().toPoint(true);
+            // LVE:DEBUG
+            // CRLog::trace("selectRange( %d,%d : %d,%d : %s, %s )", ptStart.x, ptStart.y, ptEnd.x, ptEnd.y,
+            //              LCSTR(range->getStart().toString()), LCSTR(range->getEnd().toString()) );
+            if ( ptStart.y > ptEnd.y || ( ptStart.y == ptEnd.y && ptStart.x >= ptEnd.x ) ) {
+                // Swap ptStart and ptEnd if coordinates seems inverted (or we would
+                // get item->empty()), which is needed for bidi/rtl.
+                // Hoping this has no side effect.
+                lvPoint ptTmp = ptStart;
+                ptStart = ptEnd;
+                ptEnd = ptTmp;
+            }
+            ldomMarkedRange * item = new ldomMarkedRange( ptStart, ptEnd, range->getFlags() );
+            if ( !item->empty() )
+                dst.add( item );
+            else
+                delete item;
         }
-        ldomMarkedRange * item = new ldomMarkedRange( ptStart, ptEnd, range->getFlags() );
-        if ( !item->empty() )
-            dst.add( item );
-        else
-            delete item;
+        else {
+            // Enhanced marks drawing: from a single ldomXRange, make multiple segmented
+            // ldomMarkedRange, each spanning a single line.
+            LVArray<lvRect> rects;
+            range->getSegmentRects(rects);
+            for (int i=0; i<rects.length(); i++) {
+                lvRect r = rects[i];
+                // printf("r %d %dx%d %dx%d\n", i, r.topLeft().x, r.topLeft().y, r.bottomRight().x, r.bottomRight().y);
+                ldomMarkedRange * item = new ldomMarkedRange( r.topLeft(), r.bottomRight(), range->getFlags() );
+                if ( !item->empty() )
+                    dst.add( item );
+                else
+                    delete item;
+            }
+        }
     }
 }
 
@@ -8673,22 +8697,38 @@ bool ldomXRange::getWordRange( ldomXRange & range, ldomXPointer & p )
 /// returns true if intersects specified line rectangle
 bool ldomMarkedRange::intersects( lvRect & rc, lvRect & intersection )
 {
-    if ( start.y>=rc.bottom )
-        return false;
-    if ( end.y<rc.top )
-        return false;
-    intersection = rc;
-    if ( start.y>=rc.top && start.y<rc.bottom ) {
-        if ( start.x > rc.right )
+    if ( flags < 2 ) {
+        // This assumes lines (rc) are from full-width LTR paragraphs, and
+        // takes some shortcuts when checking intersection (it can be wrong
+        // when floats, table cells, or RTL/BiDi text are involved).
+        if ( start.y>=rc.bottom )
             return false;
+        if ( end.y<rc.top )
+            return false;
+        intersection = rc;
+        if ( start.y>=rc.top && start.y<rc.bottom ) {
+            if ( start.x > rc.right )
+                return false;
+            intersection.left = rc.left > start.x ? rc.left : start.x;
+        }
+        if ( end.y>=rc.top && end.y<rc.bottom ) {
+            if ( end.x < rc.left )
+                return false;
+            intersection.right = rc.right < end.x ? rc.right : end.x;
+        }
+        return true;
+    }
+    else {
+        // Don't take any shortcut and check the full intersection
+        if ( rc.bottom <= start.y || rc.top >= end.y || rc.right <= start.x || rc.left >= end.x ) {
+            return false; // no intersection
+        }
+        intersection.top = rc.top > start.y ? rc.top : start.y;
+        intersection.bottom = rc.bottom < end.y ? rc.bottom : end.y;
         intersection.left = rc.left > start.x ? rc.left : start.x;
-    }
-    if ( end.y>=rc.top && end.y<rc.bottom ) {
-        if ( end.x < rc.left )
-            return false;
         intersection.right = rc.right < end.x ? rc.right : end.x;
+        return !intersection.isEmpty();
     }
-    return true;
 }
 
 /// create bounded by RC list, with (0,0) coordinates at left top corner
@@ -13451,7 +13491,10 @@ static void updateStyleDataRecursive( ldomNode * node, LVDocViewCallback * progr
         // this recursive phase. Do that anyway as we progress among
         // the collection of DocFragments.
         if ( progressCallback && node->getNodeId()==el_DocFragment ) {
-            int percent = 100 * node->getNodeIndex() / node->getParentNode()->getChildCount();
+            int nbDocFragments = node->getParentNode()->getChildCount();
+            if (nbDocFragments == 0) // should not happen (but avoid clang-tidy warning)
+                nbDocFragments = 1;
+            int percent = 100 * node->getNodeIndex() / nbDocFragments;
             if ( percent != lastProgressPercent ) {
                 progressCallback->OnNodeStylesUpdateProgress( percent );
                 lastProgressPercent = percent;
