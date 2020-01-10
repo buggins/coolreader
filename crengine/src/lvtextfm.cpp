@@ -1967,6 +1967,9 @@ public:
             // Not used yet, but might be useful (we may have a bidi line
             // in a LTR paragraph).
         }
+        // Some words vertical-align positionning might need to be fixed
+        // only once the whole line has been laid out
+        bool delayed_valign_computation = false;
 
         // Ignore space at start of line (this rarely happens, as line
         // splitting discards the space on which a split is made - but it
@@ -2159,6 +2162,12 @@ public:
                 int baseline_to_bottom; // descender below baseline for this word (formerly named 'h')
                 word->src_text_index = m_srcs[wstart]->index;
 
+                // For each word, we'll have to check and adjust line height and baseline,
+                // except when LTEXT_VALIGN_TOP and LTEXT_VALIGN_BOTTOM where it has to
+                // be delayed until the full line is laid out. Until that, we store some
+                // info into word->_top_to_baseline and word->_baseline_to_bottom.
+                bool adjust_line_box = true;
+
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object
                     word->x = frmline->width;
@@ -2187,47 +2196,91 @@ public:
                     // word->y has to be set to where the baseline should be
                     top_to_baseline = word->o.height;
                     baseline_to_bottom = 0;
-                    if ( vertical_align_flag == LTEXT_VALIGN_MIDDLE ) {
-                        // srcline->valign_dy has been set to where the middle of image should be
-                        word->y = srcline->valign_dy + top_to_baseline/2;
+                    // Next code could be simplified, baseline_to_bottom being 0, but
+                    // let's use the logical code if this wasn't the case (it will be
+                    // when we implement display: inline-block).
+                    // For vertical-align: top or bottom, delay computation as we need to
+                    // know the final frmline height and baseline, which might change
+                    // with upcoming words.
+                    if ( vertical_align_flag == LTEXT_VALIGN_TOP ) {
+                        // was (before we delayed computation):
+                        // word->y = top_to_baseline - frmline->baseline;
+                        adjust_line_box = false;
+                        delayed_valign_computation = true;
+                        word->flags |= LTEXT_WORD_VALIGN_TOP;
+                        word->_top_to_baseline = top_to_baseline;
+                        word->_baseline_to_bottom = baseline_to_bottom;
+                        word->y = top_to_baseline;
+                    }
+                    else if ( vertical_align_flag == LTEXT_VALIGN_BOTTOM ) {
+                        // was (before we delayed computation):
+                        // word->y = frmline->height - frmline->baseline;
+                        adjust_line_box = false;
+                        delayed_valign_computation = true;
+                        word->flags |= LTEXT_WORD_VALIGN_BOTTOM;
+                        word->_top_to_baseline = top_to_baseline;
+                        word->_baseline_to_bottom = baseline_to_bottom;
+                        word->y = - baseline_to_bottom;
                     }
                     else if ( vertical_align_flag == LTEXT_VALIGN_TEXT_TOP ) {
                         // srcline->valign_dy has been set to where top of image should be
                         word->y = srcline->valign_dy + top_to_baseline;
                     }
-                    else if ( vertical_align_flag == LTEXT_VALIGN_TOP ) {
-                        word->y = top_to_baseline - frmline->baseline;
+                    else if ( vertical_align_flag == LTEXT_VALIGN_TEXT_BOTTOM ) {
+                        // srcline->valign_dy has been set to where bottom of image should be
+                        word->y = srcline->valign_dy - baseline_to_bottom;
                     }
-                    else if ( vertical_align_flag == LTEXT_VALIGN_BOTTOM ) {
-                        word->y = frmline->height - frmline->baseline;
+                    else if ( vertical_align_flag == LTEXT_VALIGN_MIDDLE ) {
+                        // srcline->valign_dy has been set to where the middle of image should be
+                        word->y = srcline->valign_dy - (top_to_baseline + baseline_to_bottom)/2 + top_to_baseline;
                     }
-                    else { // in all other cases, bottom of image is its baseline
+                    else { // otherwise, align baseline according to valign_dy (computed in lvrend.cpp)
                         word->y = srcline->valign_dy;
                     }
-                } else {
+                }
+                else {
                     // word
                     // wstart points to the previous first non-space char
                     // i points to a non-space char that will be in next word
                     // i-1 may be a space, or not (when different html tag/text nodes stuck to each other)
                     src_text_fragment_t * srcline = m_srcs[wstart];
                     LVFont * font = (LVFont*)srcline->t.font;
+                    word->flags = 0;
 
                     int vertical_align_flag = srcline->flags & LTEXT_VALIGN_MASK;
                     int line_height = srcline->interval;
                     int fh = font->getHeight();
                     // As we do only +/- arithmetic, the following values being negative should be fine.
-                    // Accounts for line-height (adds what most documentation calls half-leading to top and to bottom):
+                    // Accounts for line-height (adds what most documentation calls half-leading to top
+                    // and to bottom  - note that "leading" is a typography term referring to "lead" the
+                    // metal, and not to lead/leader/head/header - so the half use for bottom should not
+                    // be called half-tailing :):
                     int half_leading = (line_height - fh) / 2;
+                    int half_leading_bottom = line_height - fh - half_leading;
                     top_to_baseline = font->getBaseline() + half_leading;
                     baseline_to_bottom = line_height - top_to_baseline;
-                    // For vertical-align: top or bottom, align to the current frmline as it is at
-                    // this point (at minima, the strut), even if frmline height and baseline might
-                    // be moved by some coming up words
+                    // For vertical-align: top or bottom, delay computation as we need to
+                    // know the final frmline height and baseline, which might change
+                    // with upcoming words.
                     if ( vertical_align_flag == LTEXT_VALIGN_TOP ) {
-                        word->y = font->getBaseline() - frmline->baseline + half_leading;
+                        // was (before we delayed computation):
+                        // word->y = font->getBaseline() - frmline->baseline + half_leading;
+                        adjust_line_box = false;
+                        delayed_valign_computation = true;
+                        word->flags |= LTEXT_WORD_VALIGN_TOP;
+                        word->_top_to_baseline = top_to_baseline;
+                        word->_baseline_to_bottom = baseline_to_bottom;
+                        word->y = font->getBaseline() + half_leading;
                     }
                     else if ( vertical_align_flag == LTEXT_VALIGN_BOTTOM ) {
-                        word->y = frmline->height - fh + font->getBaseline() - frmline->baseline - half_leading;
+                        // was (before we delayed computation):
+                        // word->y = frmline->height - fh + font->getBaseline() - frmline->baseline - half_leading;
+                        adjust_line_box = false;
+                        delayed_valign_computation = true;
+                        word->flags |= LTEXT_WORD_VALIGN_BOTTOM;
+                        word->_top_to_baseline = top_to_baseline;
+                        word->_baseline_to_bottom = baseline_to_bottom;
+                        word->y = - fh + font->getBaseline() - half_leading_bottom;
                     }
                     else {
                         // For others, vertical-align computation is done in lvrend.cpp renderFinalBlock()
@@ -2235,9 +2288,6 @@ public:
                     }
                     // printf("baseline_to_bottom=%d top_to_baseline=%d word->y=%d txt=|%s|\n", baseline_to_bottom,
                     //   top_to_baseline, word->y, UnicodeToLocal(lString16(srcline->t.text, srcline->t.len)).c_str());
-
-                    word->x = frmline->width;
-                    word->flags = 0;
 
                     // For Harfbuzz, which may shape differently words at start or end of paragraph
                     if (first && frmline->word_count == 1) // first line of paragraph + first word of line
@@ -2283,6 +2333,7 @@ public:
                         word->t.len = m_charindex[i-1] + 1 - m_charindex[wstart];
                     }
 
+                    word->x = frmline->width;
                     word->width = m_widths[i>0 ? i-1 : 0] - (wstart>0 ? m_widths[wstart-1] : 0);
                     word->min_width = word->width;
                     TR("addLine - word(%d, %d) x=%d (%d..%d)[%d] |%s|", wstart, i, frmline->width, wstart>0 ? m_widths[wstart-1] : 0, m_widths[i-1], word->width, LCSTR(lString16(m_text+wstart, i-wstart)));
@@ -2453,33 +2504,35 @@ public:
                     } // done if floating punctuation enabled
                 }
 
-                // Adjust full line box height and baseline if needed:
-                // frmline->height is the current line height
-                // frmline->baseline is the distance from line top to the main baseline of the line
-                // top_to_baseline (normally positive number) is the distance from this word top to its own baseline.
-                // baseline_to_bottom (normally positive number) is the descender below baseline for this word
-                // word->y is the distance from this word baseline to the line main baseline
-                //   it is positive when word is subscript, negative when word is superscript
-                //
-                // negative word->y means it's superscript, so the line's baseline might need to go
-                // down (increase) to make room for the superscript
-                int needed_baseline = top_to_baseline - word->y;
-                if ( needed_baseline > frmline->baseline ) {
-                    // shift the line baseline and height by the amount needed at top
-                    int shift_down = needed_baseline - frmline->baseline;
-                    // if (frmline->baseline) printf("pushed down +%d\n", shift_down);
-                    // if (frmline->baseline && lastSrc->object)
-                    //     printf("%s\n", UnicodeToLocal(ldomXPointer((ldomNode*)lastSrc->object, 0).toString()).c_str());
-                    frmline->baseline += shift_down;
-                    frmline->height += shift_down;
-                }
-                // positive word->y means it's subscript, so the line's baseline does not need to be
-                // changed, but more room below might be needed to display the subscript: increase
-                // line height so next line is pushed down and dont overwrite the subscript
-                int needed_height = frmline->baseline + baseline_to_bottom + word->y;
-                if ( needed_height > frmline->height ) {
-                    // printf("extended down +%d\n", needed_height-frmline->height);
-                    frmline->height = needed_height;
+                if ( adjust_line_box ) {
+                    // Adjust full line box height and baseline if needed:
+                    // frmline->height is the current line height
+                    // frmline->baseline is the distance from line top to the main baseline of the line
+                    // top_to_baseline (normally positive number) is the distance from this word top to its own baseline.
+                    // baseline_to_bottom (normally positive number) is the descender below baseline for this word
+                    // word->y is the distance from this word baseline to the line main baseline
+                    //   it is positive when word is subscript, negative when word is superscript
+                    //
+                    // negative word->y means it's superscript, so the line's baseline might need to go
+                    // down (increase) to make room for the superscript
+                    int needed_baseline = top_to_baseline - word->y;
+                    if ( needed_baseline > frmline->baseline ) {
+                        // shift the line baseline and height by the amount needed at top
+                        int shift_down = needed_baseline - frmline->baseline;
+                        // if (frmline->baseline) printf("pushed down +%d\n", shift_down);
+                        // if (frmline->baseline && lastSrc->object)
+                        //     printf("%s\n", UnicodeToLocal(ldomXPointer((ldomNode*)lastSrc->object, 0).toString()).c_str());
+                        frmline->baseline += shift_down;
+                        frmline->height += shift_down;
+                    }
+                    // positive word->y means it's subscript, so the line's baseline does not need to be
+                    // changed, but more room below might be needed to display the subscript: increase
+                    // line height so next line is pushed down and dont overwrite the subscript
+                    int needed_height = frmline->baseline + baseline_to_bottom + word->y;
+                    if ( needed_height > frmline->height ) {
+                        // printf("extended down +%d\n", needed_height-frmline->height);
+                        frmline->height = needed_height;
+                    }
                 }
 
                 frmline->width += word->width;
@@ -2489,6 +2542,49 @@ public:
             }
             lastIsSpace = isSpace;
             lastIsRTL = isRTL;
+        }
+        if ( delayed_valign_computation ) {
+            // Delayed computation and line box adjustment when we have some words
+            // or images with vertical-align: top or bottom.
+            // First, see if we need to adjust frmline->baseline and frmline->height,
+            // similarly as done above if adjust_line_box:
+            for ( int i=0; i<frmline->word_count; i++ ) {
+                if ( frmline->words[i].flags & (LTEXT_WORD_VALIGN_TOP|LTEXT_WORD_VALIGN_BOTTOM) ) {
+                    formatted_word_t * word = &frmline->words[i];
+                    // Update incomplete word->y with current frmline baseline & height,
+                    // just as it would have been done if not delayed
+                    int cur_word_y;
+                    if ( word->flags & LTEXT_WORD_VALIGN_TOP )
+                        cur_word_y = word->y - frmline->baseline;
+                    else if ( word->flags & LTEXT_WORD_VALIGN_BOTTOM )
+                        cur_word_y = word->y + frmline->height - frmline->baseline;
+                    else // should not happen
+                        cur_word_y = word->y;
+                    int needed_baseline = word->_top_to_baseline - cur_word_y;
+                    if ( needed_baseline > frmline->baseline ) {
+                        // shift the line baseline and height by the amount needed at top
+                        int shift_down = needed_baseline - frmline->baseline;
+                        frmline->baseline += shift_down;
+                        frmline->height += shift_down;
+                    }
+                    int needed_height = frmline->baseline + word->_baseline_to_bottom + cur_word_y;
+                    if ( needed_height > frmline->height ) {
+                        frmline->height = needed_height;
+                    }
+                }
+            }
+            // Then, get the final word->y (baseline) that aligns the word to top or bottom of frmline
+            for ( int i=0; i<frmline->word_count; i++ ) {
+                if ( frmline->words[i].flags & (LTEXT_WORD_VALIGN_TOP|LTEXT_WORD_VALIGN_BOTTOM) ) {
+                    formatted_word_t * word = &frmline->words[i];
+                    if ( word->flags & LTEXT_WORD_VALIGN_TOP ) {
+                        word->y = word->y - frmline->baseline;
+                    }
+                    else if ( word->flags & LTEXT_WORD_VALIGN_BOTTOM ) {
+                        word->y = word->y + frmline->height - frmline->baseline;
+                    }
+                }
+            }
         }
         alignLine( frmline, align, rightIndent );
         m_y += frmline->height;

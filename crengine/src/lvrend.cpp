@@ -2386,7 +2386,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         // With valign_dy=0, they are centered on the baseline. We want
                         // them centered on their bottom line
                         if (is_object)
-                            valign_dy += (pfh - pfb);
+                            valign_dy += (pfh - pfb); // y for bottom of image (lvtextfm.cpp will know from flags)
                         else
                             valign_dy += (pfh - pfb) - (fh - fb) - f_half_leading;
                         flags |= LTEXT_VALIGN_TEXT_BOTTOM;
@@ -2403,16 +2403,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         break;
                     case css_va_bottom:
                         // "Align the bottom of the aligned subtree with the bottom of the line box"
-                        // This should most probably be re-computed once a full line has been laid
-                        // out, which would need us to do this in lvtextfm.cpp, and we would need to
-                        // go back words when the last word has been laid out...
-                        // This will be computed in lvtextfm.cpp to at least align according to the strut
+                        // This will be computed in lvtextfm.cpp when the full line has been laid out.
                         valign_dy = 0; // dummy value
                         flags |= LTEXT_VALIGN_BOTTOM;
                         break;
                     case css_va_top:
                         // "Align the top of the aligned subtree with the top of the line box."
-                        // This will be computed in lvtextfm.cpp to at least align according to the strut
+                        // This will be computed in lvtextfm.cpp when the full line has been laid out.
                         valign_dy = 0; // dummy value
                         flags |= LTEXT_VALIGN_TOP;
                         break;
@@ -2490,6 +2487,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
             // Also, the floating element vertical-align drift is dropped
             valign_dy = 0;
+            flags &= ~LTEXT_VALIGN_MASK; // also remove any such flag we've set
             // (Looks like nothing special to do with indent or line_h)
         }
 

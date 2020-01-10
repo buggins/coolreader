@@ -125,6 +125,8 @@ typedef struct
            lUInt16  height;          /**< \brief height of image */
        } o;
    };
+   lInt16   _top_to_baseline;        /* temporary storage slots when delaying y computation, */
+   lInt16   _baseline_to_bottom;     /* when valign top or bottom */
    // lUInt16  padding;         /**< \brief not used */
 } formatted_word_t;
 
@@ -146,6 +148,10 @@ typedef struct
 #define LTEXT_WORD_DIRECTION_PARA_MASK       0x0F00
 #define LTEXT_WORD_DIRECTION_PARA_TO_LFNT_SHIFT   8
 #define WORD_FLAGS_TO_FNT_FLAGS(f) ( (f & LTEXT_WORD_DIRECTION_PARA_MASK)>>LTEXT_WORD_DIRECTION_PARA_TO_LFNT_SHIFT)
+
+
+#define LTEXT_WORD_VALIGN_TOP                0x1000 /// word is to be vertical-align: top
+#define LTEXT_WORD_VALIGN_BOTTOM             0x2000 /// word is to be vertical-align: bottom
 
 //#define LTEXT_BACKGROUND_MARK_FLAGS 0xFFFF0000l
 
