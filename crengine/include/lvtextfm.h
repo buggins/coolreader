@@ -16,6 +16,7 @@
 #define __LVTEXTFM_H_INCLUDED__
 
 #include "lvfont.h"
+#include "lvstring16collection.h"
 #include "lvbmpbuf.h"
 
 // comment out following line to use old formatter
