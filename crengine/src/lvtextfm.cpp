@@ -1357,7 +1357,7 @@ public:
                 #if (USE_HARFBUZZ==1)
                     // Check if we are using Harfbuzz kerning with the first font met
                     if ( checkIfHarfbuzz && newFont ) {
-                        if ( newFont->getKerningMode() == KERNING_MODE_HARFBUZZ ) {
+                        if ( newFont->getShapingMode() == SHAPING_MODE_HARFBUZZ ) {
                             usingHarfbuzz = true;
                         }
                         checkIfHarfbuzz = false;
@@ -2264,7 +2264,7 @@ public:
                         // If not using Harfbuzz, procede to mirror parens & al (don't
                         // do that if Harfbuzz is used, as it does that by itself, and
                         // would mirror back our mirrored chars!)
-                        if ( font->getKerningMode() != KERNING_MODE_HARFBUZZ) {
+                        if ( font->getShapingMode() != SHAPING_MODE_HARFBUZZ) {
                             lChar16 * str = (lChar16*)(srcline->t.text + word->t.start);
                             FriBidiChar mirror;
                             for (int i=0; i < word->t.len; i++) {

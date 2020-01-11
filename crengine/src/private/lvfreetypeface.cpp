@@ -326,7 +326,7 @@ LVFreeTypeFace::LVFreeTypeFace(LVMutex &mutex, FT_Library library,
           _glyph_cache(globalCache),
           _drawMonochrome(false),
           _hintingMode(HINTING_MODE_AUTOHINT),
-          _kerningMode(KERNING_MODE_DISABLED),
+          _shapingMode(SHAPING_MODE_FREETYPE),
           _fallbackFontIsSet(false)
 #if USE_HARFBUZZ == 1
         , _glyph_cache2(globalCache), _width_cache2(1024)
@@ -415,6 +415,21 @@ int LVFreeTypeFace::getHyphenWidth() {
     return _hyphen_width;
 }
 
+void LVFreeTypeFace::setKerning(bool kerningEnabled) {
+    _allowKerning = kerningEnabled;
+#if USE_HARFBUZZ == 1
+    if (_allowKerning) {
+        hb_feature_from_string("+kern", -1, &_hb_features[0]);
+        hb_feature_from_string("+kern", -1, &_hb_light_features[0]);
+    } else {
+        hb_feature_from_string("-kern", -1, &_hb_features[0]);
+        hb_feature_from_string("-kern", -1, &_hb_light_features[0]);
+    }
+    // in cache may be found some ligatures, so clear it
+    clearCache();
+#endif
+}
+
 void LVFreeTypeFace::setHintingMode(hinting_mode_t mode) {
     if (_hintingMode == mode)
         return;
@@ -446,9 +461,9 @@ void LVFreeTypeFace::setHintingMode(hinting_mode_t mode) {
     #endif
 }
 
-void LVFreeTypeFace::setKerningMode( kerning_mode_t kerningMode )
+void LVFreeTypeFace::setShapingMode( shaping_mode_t shapingMode )
 {
-    _kerningMode = kerningMode;
+    _shapingMode = shapingMode;
     _hash = 0; // Force lvstyles.cpp calcHash(font_ref_t) to recompute the hash
 #if USE_HARFBUZZ==1
     // in cache may be found some ligatures, so clear it
@@ -1010,7 +1025,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
     // measure character widths
 
 #if USE_HARFBUZZ == 1
-    if (_kerningMode == KERNING_MODE_HARFBUZZ) {
+    if (_shapingMode == SHAPING_MODE_HARFBUZZ) {
         /** from harfbuzz/src/hb-buffer.h
          * hb_glyph_info_t:
          * @codepoint: either a Unicode code point (before shaping) or a glyph index
@@ -1332,8 +1347,8 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
                 printf("%d:%d ", t, widths[t] - (t>0?widths[t-1]:0));
             printf("\n");
         #endif
-    } // _kerningMode == KERNING_MODE_HARFBUZZ
-    else if (_kerningMode == KERNING_MODE_HARFBUZZ_LIGHT) {
+    } // _shapingMode == SHAPING_MODE_HARFBUZZ
+    else if (_shapingMode == SHAPING_MODE_HARFBUZZ_LIGHT) {
         struct LVCharTriplet triplet;
         struct LVCharPosInfo posInfo;
         triplet.Char = 0;
@@ -1358,7 +1373,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
             if (!_width_cache2.get(triplet, posInfo)) {
                 if (hbCalcCharWidth(&posInfo, triplet, def_char))
                     _width_cache2.set(triplet, posInfo);
-                else { // (seems this never happens, unlike with KERNING_MODE_DISABLED)
+                else { // (seems this never happens, unlike with kerning disabled)
                     widths[i] = prev_width;
                     lastFitChar = i + 1;
                     continue;  /* ignore errors */
@@ -1380,7 +1395,7 @@ lUInt16 LVFreeTypeFace::measureText(const lChar16 *text,
     FT_UInt previous = 0;
     int error;
 #if (ALLOW_KERNING==1)
-    int use_kerning = _kerningMode != KERNING_MODE_DISABLED && FT_HAS_KERNING( _face );
+    int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
     for ( i=0; i<len; i++) {
         lChar16 ch = text[i];
@@ -1693,7 +1708,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
     bool isHyphen = false;
     int x0 = x;
 #if USE_HARFBUZZ == 1
-    if (_kerningMode == KERNING_MODE_HARFBUZZ) {
+    if (_shapingMode == SHAPING_MODE_HARFBUZZ) {
         // See measureText() for more comments on how to work with Harfbuzz,
         // as we do and must work the same way here.
         unsigned int glyph_count;
@@ -1963,13 +1978,8 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
                 x  += w; // + letter_spacing; (let's not add any letter-spacing after hyphen)
             }
         }
-    } // _kerningMode == KERNING_MODE_HARFBUZZ
-    else if (_kerningMode == KERNING_MODE_HARFBUZZ_LIGHT) {
-        hb_glyph_info_t *glyph_info = 0;
-        hb_glyph_position_t *glyph_pos = 0;
-        unsigned int glyph_count;
-        int w;
-        unsigned int len_new = 0;
+    } // _shapingMode == SHAPING_MODE_HARFBUZZ
+    else if (_shapingMode == SHAPING_MODE_HARFBUZZ_LIGHT) {
         struct LVCharTriplet triplet;
         struct LVCharPosInfo posInfo;
         triplet.Char = 0;
@@ -2021,7 +2031,7 @@ int LVFreeTypeFace::DrawTextString(LVDrawBuf *buf, int x, int y, const lChar16 *
     FT_UInt previous = 0;
     int error;
 #if (ALLOW_KERNING==1)
-    int use_kerning = _kerningMode != KERNING_MODE_DISABLED && FT_HAS_KERNING( _face );
+    int use_kerning = _allowKerning && FT_HAS_KERNING( _face );
 #endif
     for ( i=0; i<=len; i++) {
         if ( i==len && (!addHyphen || isHyphen) )

@@ -133,21 +133,22 @@ protected:
     LVFontLocalGlyphCache _glyph_cache;
     bool _drawMonochrome;
     hinting_mode_t _hintingMode;
-    kerning_mode_t _kerningMode;
+    shaping_mode_t _shapingMode;
     bool _fallbackFontIsSet;
     LVFontRef _fallbackFont;
     bool           _embolden; // fake/synthetized bold
+    bool           _allowKerning;
     FT_Pos         _embolden_half_strength; // for emboldening with Harfbuzz
 #if USE_HARFBUZZ == 1
     hb_font_t *_hb_font;
     hb_buffer_t *_hb_buffer;
     //
-    // For use with KERNING_MODE_HARFBUZZ:
+    // For use with SHAPING_MODE_HARFBUZZ:
     #define HARFBUZZ_FULL_FEATURES_NB 2
     hb_feature_t _hb_features[HARFBUZZ_FULL_FEATURES_NB];
     LVFontLocalGlyphCache _glyph_cache2;
     //
-    // For use with KERNING_MODE_HARFBUZZ_LIGHT:
+    // For use with SHAPING_MODE_HARFBUZZ_LIGHT:
     #define HARFBUZZ_LIGHT_FEATURES_NB 22
     hb_buffer_t *_hb_light_buffer;
     hb_feature_t _hb_light_features[HARFBUZZ_LIGHT_FEATURES_NB];
@@ -183,17 +184,23 @@ public:
 
     virtual int getHyphenWidth();
 
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() const { return _allowKerning; }
+
+    /// set kerning mode: true==ON, false=OFF
+    virtual void setKerning(bool kerningEnabled);
+
     /// sets current hinting mode
     virtual void setHintingMode(hinting_mode_t mode);
 
     /// returns current hinting mode
     virtual hinting_mode_t getHintingMode() const { return _hintingMode; }
 
-    /// sets current kerning mode
-    virtual void setKerningMode( kerning_mode_t kerningMode );
+    /// sets current shaping mode
+    virtual void setShapingMode( shaping_mode_t shapingMode );
 
     /// returns current kerning mode
-    virtual kerning_mode_t getKerningMode() const { return _kerningMode; }
+    virtual shaping_mode_t getShapingMode() const { return _shapingMode; }
 
     /// get bitmap mode (true=bitmap, false=antialiased)
     virtual bool getBitmapMode() { return _drawMonochrome; }
@@ -344,10 +351,9 @@ public:
     virtual bool kerningEnabled() {
 #if (ALLOW_KERNING==1)
     #if USE_HARFBUZZ==1
-        return _kerningMode == KERNING_MODE_HARFBUZZ
-            || (_kerningMode == KERNING_MODE_FREETYPE && FT_HAS_KERNING( _face ));
-    #else
-        return _kerningMode != KERNING_MODE_DISABLED && FT_HAS_KERNING( _face );
+        return _allowKerning;
+#else
+        return _allowKerning && FT_HAS_KERNING( _face );
     #endif
 #else
         return false;

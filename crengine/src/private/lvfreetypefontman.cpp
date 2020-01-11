@@ -138,15 +138,15 @@ void LVFreeTypeFontManager::SetHintingMode(hinting_mode_t mode) {
     }
 }
 
-void LVFreeTypeFontManager::SetKerningMode( kerning_mode_t mode )
+void LVFreeTypeFontManager::SetShapingMode( shaping_mode_t mode )
 {
     FONT_MAN_GUARD
-    _kerningMode = mode;
+    _shapingMode = mode;
     gc();
     clearGlyphCache();
     LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
     for ( int i=0; i<fonts->length(); i++ ) {
-        fonts->get(i)->getFont()->setKerningMode( mode );
+        fonts->get(i)->getFont()->setShapingMode( mode );
     }
 }
 
@@ -671,7 +671,8 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
         //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
         //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
         LVFontRef ref(font);
-        font->setKerningMode( GetKerningMode() );
+        font->setKerning( getKerning() );
+        font->setShapingMode( GetShapingMode() );
         font->setFaceName(item->getDef()->getTypeFace());
         newDef.setSize(size);
         //item->setFont( ref );

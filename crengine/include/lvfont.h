@@ -31,11 +31,10 @@ enum hinting_mode_t {
     HINTING_MODE_AUTOHINT
 };
 
-enum kerning_mode_t {
-    KERNING_MODE_DISABLED,
-    KERNING_MODE_FREETYPE,
-    KERNING_MODE_HARFBUZZ_LIGHT,
-    KERNING_MODE_HARFBUZZ
+enum shaping_mode_t {
+    SHAPING_MODE_FREETYPE,
+    SHAPING_MODE_HARFBUZZ_LIGHT,
+    SHAPING_MODE_HARFBUZZ
 };
 
 // Hint flags for measuring and drawing (some used only with full Harfbuzz)
@@ -188,11 +187,17 @@ public:
     /// set bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual void setBitmapMode(bool) {}
 
-    /// sets current kerning mode
-    virtual void setKerningMode( kerning_mode_t /*mode*/ ) { }
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() const { return false; }
 
-    /// returns current kerning mode
-    virtual kerning_mode_t getKerningMode() const { return KERNING_MODE_DISABLED; }
+    /// set kerning mode: true==ON, false=OFF
+    virtual void setKerning(bool) {}
+
+    /// sets current shaping mode
+    virtual void setShapingMode( shaping_mode_t /*mode*/ ) { }
+
+    /// returns current shaping mode
+    virtual shaping_mode_t getShapingMode() const { return SHAPING_MODE_FREETYPE; }
 
     /// sets current hinting mode
     virtual void setHintingMode(hinting_mode_t /*mode*/) {}

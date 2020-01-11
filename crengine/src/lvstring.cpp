@@ -4567,4 +4567,3 @@ lString16 removeSoftHyphens( lString16 s )
     }
     return s;
 }
-

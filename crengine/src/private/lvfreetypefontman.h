@@ -71,11 +71,11 @@ public:
         return _hintingMode;
     }
 
-    /// sets kerning mode
-    virtual void SetKerningMode( kerning_mode_t mode );
+    /// sets shaping mode
+    virtual void SetShapingMode( shaping_mode_t mode );
 
-    /// get kerning mode
-    virtual kerning_mode_t GetKerningMode() { return _kerningMode; }
+    /// get shaping mode
+    virtual shaping_mode_t GetShapingMode() { return _shapingMode; }
 
     /// clear glyph cache
     virtual void clearGlyphCache();

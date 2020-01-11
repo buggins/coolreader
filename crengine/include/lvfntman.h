@@ -24,8 +24,9 @@
 /// font manager interface class
 class LVFontManager {
 protected:
+    bool _allowKerning;
     int _antialiasMode;
-    kerning_mode_t _kerningMode;
+    shaping_mode_t _shapingMode;
     hinting_mode_t _hintingMode;
 public:
     /// garbage collector frees unused fonts
@@ -81,12 +82,23 @@ public:
         gc();
         clearGlyphCache();
     }
-    /// get kerning mode
-    virtual kerning_mode_t GetKerningMode() { return _kerningMode; }
-    /// set kerning mode
-    virtual void SetKerningMode( kerning_mode_t mode ) { _kerningMode = mode; gc(); clearGlyphCache(); }
+
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() { return _allowKerning; }
+
+    /// get kerning mode: true==ON, false=OFF
+    virtual void setKerning(bool kerningEnabled) {
+        _allowKerning = kerningEnabled;
+        gc();
+        clearGlyphCache();
+    }
+
+    /// get shaping mode
+    virtual shaping_mode_t GetShapingMode() { return _shapingMode; }
+    /// set shaping mode
+    virtual void SetShapingMode( shaping_mode_t mode ) { _shapingMode = mode; gc(); clearGlyphCache(); }
     /// constructor
-    LVFontManager() : _antialiasMode(font_aa_all), _kerningMode(KERNING_MODE_DISABLED), _hintingMode(HINTING_MODE_AUTOHINT) { }
+    LVFontManager() : _antialiasMode(font_aa_all), _shapingMode(SHAPING_MODE_FREETYPE), _hintingMode(HINTING_MODE_AUTOHINT) { }
     /// destructor
     virtual ~LVFontManager() { }
     /// returns available typefaces

@@ -1234,64 +1234,10 @@
          <item row="7" column="1">
           <widget class="QComboBox" name="cbHyphenation"/>
          </item>
-         <item row="13" column="0">
-          <widget class="QLabel" name="label_13">
+         <item row="8" column="0">
+          <widget class="QLabel" name="label_19">
            <property name="text">
-            <string>Interline spacing</string>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="1">
-          <widget class="QComboBox" name="cbInterlineSpace"/>
-         </item>
-         <item row="16" column="0">
-          <widget class="QLabel" name="label_18">
-           <property name="text">
-            <string>Floating punctuation</string>
-           </property>
-          </widget>
-         </item>
-         <item row="16" column="1">
-          <widget class="QCheckBox" name="cbFloatingPunctuation">
-           <property name="text">
-            <string>Enable floating punctuation</string>
-           </property>
-          </widget>
-         </item>
-         <item row="19" column="0">
-          <widget class="QLabel" name="label_17">
-           <property name="text">
-            <string>.TXT files</string>
-           </property>
-          </widget>
-         </item>
-         <item row="19" column="1">
-          <widget class="QCheckBox" name="cbTxtPreFormatted">
-           <property name="text">
-            <string>Disable automatic formatting</string>
-           </property>
-          </widget>
-         </item>
-         <item row="21" column="0">
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>Sample</string>
-           </property>
-          </widget>
-         </item>
-         <item row="21" column="1">
-          <widget class="CR3View" name="crSample" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>80</width>
-             <height>80</height>
-            </size>
+            <string>Font Gamma</string>
            </property>
           </widget>
          </item>
@@ -1478,10 +1424,20 @@
            </item>
           </widget>
          </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="label_19">
+         <item row="11" column="0">
+          <widget class="QLabel" name="label_36">
            <property name="text">
-            <string>Font Gamma</string>
+            <string>Fallback font</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <widget class="QComboBox" name="cbFallbackFontFace">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
           </widget>
          </item>
@@ -1535,27 +1491,41 @@
            </item>
           </widget>
          </item>
-         <item row="11" column="0">
-          <widget class="QLabel" name="label_36">
+         <item row="14" column="0">
+          <widget class="QLabel" name="label_13">
            <property name="text">
-            <string>Fallback font</string>
+            <string>Interline spacing</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="1">
-          <widget class="QComboBox" name="cbFallbackFontFace">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+         <item row="14" column="1">
+          <widget class="QComboBox" name="cbInterlineSpace"/>
+         </item>
+         <item row="15" column="0">
+          <widget class="QLabel" name="label_43">
+           <property name="text">
+            <string>Font kerning</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="1">
-          <widget class="QCheckBox" name="cbEnableDocumentStyles">
+         <item row="15" column="1">
+          <widget class="QCheckBox" name="cbFontKerning">
            <property name="text">
-            <string>Enable document internal styles</string>
+            <string>Enable font kerning</string>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="0">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>Floating punctuation</string>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="1">
+          <widget class="QCheckBox" name="cbFloatingPunctuation">
+           <property name="text">
+            <string>Enable floating punctuation</string>
            </property>
           </widget>
          </item>
@@ -1566,10 +1536,10 @@
            </property>
           </widget>
          </item>
-         <item row="18" column="1">
-          <widget class="QCheckBox" name="cbEnableEmbeddedFonts">
+         <item row="17" column="1">
+          <widget class="QCheckBox" name="cbEnableDocumentStyles">
            <property name="text">
-            <string>Enable document embedded fonts</string>
+            <string>Enable document internal styles</string>
            </property>
           </widget>
          </item>
@@ -1580,31 +1550,76 @@
            </property>
           </widget>
          </item>
-         <item row="14" column="0">
-          <widget class="QLabel" name="label_43">
+         <item row="18" column="1">
+          <widget class="QCheckBox" name="cbEnableEmbeddedFonts">
            <property name="text">
-            <string>Font kerning</string>
+            <string>Enable document embedded fonts</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
-          <widget class="QCheckBox" name="cbFontKerning">
+         <item row="19" column="0">
+          <widget class="QLabel" name="label_17">
            <property name="text">
-            <string>Enable font kerning</string>
+            <string>.TXT files</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
+         <item row="19" column="1">
+          <widget class="QCheckBox" name="cbTxtPreFormatted">
+           <property name="text">
+            <string>Disable automatic formatting</string>
+           </property>
+          </widget>
+         </item>
+         <item row="21" column="0">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Sample</string>
+           </property>
+          </widget>
+         </item>
+         <item row="21" column="1">
+          <widget class="CR3View" name="crSample" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1">
+          <widget class="QComboBox" name="cbFontShaping">
+           <property name="currentText">
+            <string>Simple (FreeType only, fastest)</string>
+           </property>
+           <item>
+            <property name="text">
+             <string>Simple (FreeType only, fastest)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Light (HarfBuzz without ligatures)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Full (HarfBuzz with ligatures)</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="13" column="0">
           <widget class="QLabel" name="label_44">
            <property name="text">
-            <string>Use ligatures</string>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="1">
-          <widget class="QCheckBox" name="cbLigatures">
-           <property name="text">
-            <string>Enable ligatutes (very slowly!)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Text Shaping&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -1638,8 +1653,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>389</width>
-              <height>597</height>
+              <width>387</width>
+              <height>604</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">

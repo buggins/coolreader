@@ -162,11 +162,17 @@ public:
     /// returns current hinting mode
     virtual hinting_mode_t getHintingMode() const { return _baseFont->getHintingMode(); }
 
-    /// get kerning mode
-    virtual kerning_mode_t getKerningMode() const { return _baseFont->getKerningMode(); }
+    /// get kerning mode: true==ON, false=OFF
+    virtual bool getKerning() const { return _baseFont->getKerning(); }
 
-    /// get kerning mode
-    virtual void setKerningMode( kerning_mode_t mode ) { _baseFont->setKerningMode( mode ); }
+    /// get kerning mode: true==ON, false=OFF
+    virtual void setKerning(bool b) { _baseFont->setKerning(b); }
+
+    /// get shaping mode
+    virtual shaping_mode_t getShapingMode() const { return _baseFont->getShapingMode(); }
+
+    /// get shaping mode
+    virtual void setShapingMode( shaping_mode_t mode ) { _baseFont->setShapingMode( mode ); }
 
     /// clear cache
     virtual void clearCache() { _baseFont->clearCache(); }

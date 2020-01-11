@@ -6079,8 +6079,8 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 #endif
 	static int int_option_hinting[] = { 0, 1, 2 };
 	props->limitValueList(PROP_FONT_HINTING, int_option_hinting, 3);
-	static int int_option_kerning[] = { 0, 1, 2, 3 };
-	props->limitValueList(PROP_FONT_KERNING, int_option_kerning, 4);
+    static int int_option_shaping[] = { 0, 1, 2 };
+    props->limitValueList(PROP_FONT_SHAPING, int_option_shaping, 3);
     static int int_options_1_2[] = { 2, 1 };
 	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
 	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
@@ -6088,6 +6088,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
 	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
 	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
+    props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
     static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
     props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
@@ -6255,11 +6256,15 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         } else if (name == PROP_LANDSCAPE_PAGES) {
             int pages = props->getIntDef(PROP_LANDSCAPE_PAGES, 2);
             setVisiblePageCount(pages);
-        } else if (name == PROP_FONT_KERNING) {
-            int mode = props->getIntDef(PROP_FONT_KERNING, (int)KERNING_MODE_DISABLED);
-            if ((int)fontMan->GetKerningMode() != mode && mode>=0 && mode<=3) {
-                fontMan->SetKerningMode((kerning_mode_t)mode);
-                REQUEST_RENDER("Setting kerning mode");
+        } else if (name == PROP_FONT_KERNING_ENABLED) {
+            bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);
+            fontMan->setKerning(kerning);
+            REQUEST_RENDER("propsApply - kerning")
+        } else if (name == PROP_FONT_SHAPING) {
+            int mode = props->getIntDef(PROP_FONT_SHAPING, (int)SHAPING_MODE_FREETYPE);
+            if ((int)fontMan->GetShapingMode() != mode && mode>=0 && mode<=2) {
+                fontMan->SetShapingMode((shaping_mode_t)mode);
+                REQUEST_RENDER("Setting shaping mode");
             }
         } else if (name == PROP_FONT_WEIGHT_EMBOLDEN) {
             bool embolden = props->getBoolDef(PROP_FONT_WEIGHT_EMBOLDEN, false);

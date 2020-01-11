@@ -357,7 +357,7 @@ return XXH32(s,len,0);
 lUInt32 calcGlobalSettingsHash(int documentId)
 {
     lUInt32 hash = FORMATTING_VERSION_ID;
-    hash = hash * 31 + (int)fontMan->GetKerningMode();
+    hash = hash * 31 + (int)fontMan->GetShapingMode();
     hash = hash * 31 + fontMan->GetFontListHash(documentId);
     hash = hash * 31 + (int)fontMan->GetHintingMode();
     if ( LVRendGetFontEmbolden() )
