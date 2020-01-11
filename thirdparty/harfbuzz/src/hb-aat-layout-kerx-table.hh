@@ -66,25 +66,24 @@ struct hb_glyph_pair_t
 
 struct KernPair
 {
-  inline int get_kerning (void) const
-  { return value; }
+  int get_kerning () const { return value; }
 
-  inline int cmp (const hb_glyph_pair_t &o) const
+  int cmp (const hb_glyph_pair_t &o) const
   {
     int ret = left.cmp (o.left);
     if (ret) return ret;
     return right.cmp (o.right);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
   protected:
-  GlyphID	left;
-  GlyphID	right;
+  HBGlyphID	left;
+  HBGlyphID	right;
   FWORD		value;
   public:
   DEFINE_SIZE_STATIC (6);
@@ -93,15 +92,15 @@ struct KernPair
 template <typename KernSubTableHeader>
 struct KerxSubTableFormat0
 {
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  hb_aat_apply_context_t *c = nullptr) const
+  int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+		   hb_aat_apply_context_t *c = nullptr) const
   {
     hb_glyph_pair_t pair = {left, right};
     int v = pairs.bsearch (pair).get_kerning ();
     return kerxTupleKern (v, header.tuple_count (), this, c);
   }
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -123,16 +122,16 @@ struct KerxSubTableFormat0
     const KerxSubTableFormat0 &table;
     hb_aat_apply_context_t *c;
 
-    inline accelerator_t (const KerxSubTableFormat0 &table_,
-			  hb_aat_apply_context_t *c_) :
-			    table (table_), c (c_) {}
+    accelerator_t (const KerxSubTableFormat0 &table_,
+		   hb_aat_apply_context_t *c_) :
+		     table (table_), c (c_) {}
 
-    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     { return table.get_kerning (left, right, c); }
   };
 
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (pairs.sanitize (c)));
@@ -171,11 +170,11 @@ struct Format1Entry<true>
     DEFINE_SIZE_STATIC (2);
   };
 
-  static inline bool performAction (const Entry<EntryData> *entry)
-  { return entry->data.kernActionIndex != 0xFFFF; }
+  static bool performAction (const Entry<EntryData> &entry)
+  { return entry.data.kernActionIndex != 0xFFFF; }
 
-  static inline unsigned int kernActionIndex (const Entry<EntryData> *entry)
-  { return entry->data.kernActionIndex; }
+  static unsigned int kernActionIndex (const Entry<EntryData> &entry)
+  { return entry.data.kernActionIndex; }
 };
 template <>
 struct Format1Entry<false>
@@ -193,11 +192,11 @@ struct Format1Entry<false>
 
   typedef void EntryData;
 
-  static inline bool performAction (const Entry<EntryData> *entry)
-  { return entry->flags & Offset; }
+  static bool performAction (const Entry<EntryData> &entry)
+  { return entry.flags & Offset; }
 
-  static inline unsigned int kernActionIndex (const Entry<EntryData> *entry)
-  { return entry->flags & Offset; }
+  static unsigned int kernActionIndex (const Entry<EntryData> &entry)
+  { return entry.flags & Offset; }
 };
 
 template <typename KernSubTableHeader>
@@ -211,14 +210,14 @@ struct KerxSubTableFormat1
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    static constexpr bool in_place = true;
     enum
     {
       DontAdvance	= Format1EntryT::DontAdvance,
     };
 
-    inline driver_context_t (const KerxSubTableFormat1 *table_,
-			     hb_aat_apply_context_t *c_) :
+    driver_context_t (const KerxSubTableFormat1 *table_,
+		      hb_aat_apply_context_t *c_) :
 	c (c_),
 	table (table_),
 	/* Apparently the offset kernAction is from the beginning of the state-machine,
@@ -228,16 +227,16 @@ struct KerxSubTableFormat1
 	depth (0),
 	crossStream (table->header.coverage & table->header.CrossStream) {}
 
-    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			       const Entry<EntryData> *entry)
+    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+			const Entry<EntryData> &entry)
     {
       return Format1EntryT::performAction (entry);
     }
-    inline bool transition (StateTableDriver<Types, EntryData> *driver,
-			    const Entry<EntryData> *entry)
+    void transition (StateTableDriver<Types, EntryData> *driver,
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
-      unsigned int flags = entry->flags;
+      unsigned int flags = entry.flags;
 
       if (flags & Format1EntryT::Reset)
 	depth = 0;
@@ -252,7 +251,7 @@ struct KerxSubTableFormat1
 
       if (Format1EntryT::performAction (entry) && depth)
       {
-	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
+	unsigned int tuple_count = hb_max (1u, table->header.tuple_count ());
 
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
 	kern_idx = Types::byteOffsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
@@ -260,7 +259,7 @@ struct KerxSubTableFormat1
 	if (!c->sanitizer.check_array (actions, depth, tuple_count))
 	{
 	  depth = 0;
-	  return false;
+	  return;
 	}
 
 	hb_mask_t kern_mask = c->plan->kern_mask;
@@ -335,8 +334,6 @@ struct KerxSubTableFormat1
 	  }
 	}
       }
-
-      return true;
     }
 
     private:
@@ -348,7 +345,7 @@ struct KerxSubTableFormat1
     bool crossStream;
   };
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -364,7 +361,7 @@ struct KerxSubTableFormat1
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     /* The rest of array sanitizations are done at run-time. */
@@ -375,7 +372,7 @@ struct KerxSubTableFormat1
   protected:
   KernSubTableHeader				header;
   StateTable<Types, EntryData>			machine;
-  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>kernAction;
+  NNOffsetTo<UnsizedArrayOf<FWORD>, HBUINT>	kernAction;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 5 * sizeof (HBUINT));
 };
@@ -386,8 +383,8 @@ struct KerxSubTableFormat2
   typedef typename KernSubTableHeader::Types Types;
   typedef typename Types::HBUINT HBUINT;
 
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
-			  hb_aat_apply_context_t *c) const
+  int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+		   hb_aat_apply_context_t *c) const
   {
     unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
     unsigned int l = (this+leftClassTable).get_class (left, num_glyphs, 0);
@@ -395,14 +392,14 @@ struct KerxSubTableFormat2
 
     const UnsizedArrayOf<FWORD> &arrayZ = this+array;
     unsigned int kern_idx = l + r;
-    kern_idx = Types::offsetToIndex (kern_idx, this, &arrayZ);
+    kern_idx = Types::offsetToIndex (kern_idx, this, arrayZ.arrayZ);
     const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
 
     return kerxTupleKern (*v, header.tuple_count (), this, c);
   }
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -424,15 +421,15 @@ struct KerxSubTableFormat2
     const KerxSubTableFormat2 &table;
     hb_aat_apply_context_t *c;
 
-    inline accelerator_t (const KerxSubTableFormat2 &table_,
-			  hb_aat_apply_context_t *c_) :
-			    table (table_), c (c_) {}
+    accelerator_t (const KerxSubTableFormat2 &table_,
+		   hb_aat_apply_context_t *c_) :
+		     table (table_), c (c_) {}
 
-    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     { return table.get_kerning (left, right, c); }
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -444,13 +441,13 @@ struct KerxSubTableFormat2
   protected:
   KernSubTableHeader	header;
   HBUINT		rowWidth;	/* The width, in bytes, of a row in the table. */
-  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
+  NNOffsetTo<typename Types::ClassTypeWide, HBUINT>
 			leftClassTable;	/* Offset from beginning of this subtable to
 					 * left-hand class table. */
-  OffsetTo<typename Types::ClassTypeWide, HBUINT, false>
+  NNOffsetTo<typename Types::ClassTypeWide, HBUINT>
 			rightClassTable;/* Offset from beginning of this subtable to
 					 * right-hand class table. */
-  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT, false>
+  NNOffsetTo<UnsizedArrayOf<FWORD>, HBUINT>
 			 array;		/* Offset from beginning of this subtable to
 					 * the start of the kerning array. */
   public:
@@ -472,7 +469,7 @@ struct KerxSubTableFormat4
 
   struct driver_context_t
   {
-    static const bool in_place = true;
+    static constexpr bool in_place = true;
     enum Flags
     {
       Mark		= 0x8000,	/* If set, remember this glyph as the marked glyph. */
@@ -490,7 +487,7 @@ struct KerxSubTableFormat4
 					 * point table. */
     };
 
-    inline driver_context_t (const KerxSubTableFormat4 *table,
+    driver_context_t (const KerxSubTableFormat4 *table,
 			     hb_aat_apply_context_t *c_) :
 	c (c_),
 	action_type ((table->flags & ActionType) >> 30),
@@ -498,17 +495,17 @@ struct KerxSubTableFormat4
 	mark_set (false),
 	mark (0) {}
 
-    inline bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
-			       const Entry<EntryData> *entry)
+    bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
+			const Entry<EntryData> &entry)
     {
-      return entry->data.ankrActionIndex != 0xFFFF;
+      return entry.data.ankrActionIndex != 0xFFFF;
     }
-    inline bool transition (StateTableDriver<Types, EntryData> *driver,
-			    const Entry<EntryData> *entry)
+    void transition (StateTableDriver<Types, EntryData> *driver,
+		     const Entry<EntryData> &entry)
     {
       hb_buffer_t *buffer = driver->buffer;
 
-      if (mark_set && entry->data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
+      if (mark_set && entry.data.ankrActionIndex != 0xFFFF && buffer->idx < buffer->len)
       {
 	hb_glyph_position_t &o = buffer->cur_pos();
 	switch (action_type)
@@ -516,9 +513,8 @@ struct KerxSubTableFormat4
 	  case 0: /* Control Point Actions.*/
 	  {
 	    /* indexed into glyph outline. */
-	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
-	    if (!c->sanitizer.check_array (data, 2))
-	      return false;
+	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 2)) return;
 	    HB_UNUSED unsigned int markControlPoint = *data++;
 	    HB_UNUSED unsigned int currControlPoint = *data++;
 	    hb_position_t markX = 0;
@@ -533,7 +529,7 @@ struct KerxSubTableFormat4
 							      currControlPoint,
 							      HB_DIRECTION_LTR /*XXX*/,
 							      &currX, &currY))
-	      return true; /* True, such that the machine continues. */
+	      return;
 
 	    o.x_offset = markX - currX;
 	    o.y_offset = markY - currY;
@@ -543,19 +539,16 @@ struct KerxSubTableFormat4
 	  case 1: /* Anchor Point Actions. */
 	  {
 	   /* Indexed into 'ankr' table. */
-	    const HBUINT16 *data = &ankrData[entry->data.ankrActionIndex];
-	    if (!c->sanitizer.check_array (data, 2))
-	      return false;
+	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 2)) return;
 	    unsigned int markAnchorPoint = *data++;
 	    unsigned int currAnchorPoint = *data++;
-	    const Anchor markAnchor = c->ankr_table->get_anchor (c->buffer->info[mark].codepoint,
-								 markAnchorPoint,
-								 c->sanitizer.get_num_glyphs (),
-								 c->ankr_end);
-	    const Anchor currAnchor = c->ankr_table->get_anchor (c->buffer->cur ().codepoint,
-								 currAnchorPoint,
-								 c->sanitizer.get_num_glyphs (),
-								 c->ankr_end);
+	    const Anchor &markAnchor = c->ankr_table->get_anchor (c->buffer->info[mark].codepoint,
+								  markAnchorPoint,
+								  c->sanitizer.get_num_glyphs ());
+	    const Anchor &currAnchor = c->ankr_table->get_anchor (c->buffer->cur ().codepoint,
+								  currAnchorPoint,
+								  c->sanitizer.get_num_glyphs ());
 
 	    o.x_offset = c->font->em_scale_x (markAnchor.xCoordinate) - c->font->em_scale_x (currAnchor.xCoordinate);
 	    o.y_offset = c->font->em_scale_y (markAnchor.yCoordinate) - c->font->em_scale_y (currAnchor.yCoordinate);
@@ -564,9 +557,8 @@ struct KerxSubTableFormat4
 
 	  case 2: /* Control Point Coordinate Actions. */
 	  {
-	    const FWORD *data = (const FWORD *) &ankrData[entry->data.ankrActionIndex];
-	    if (!c->sanitizer.check_array (data, 4))
-	      return false;
+	    const FWORD *data = (const FWORD *) &ankrData[entry.data.ankrActionIndex];
+	    if (!c->sanitizer.check_array (data, 4)) return;
 	    int markX = *data++;
 	    int markY = *data++;
 	    int currX = *data++;
@@ -582,13 +574,11 @@ struct KerxSubTableFormat4
 	buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
       }
 
-      if (entry->flags & Mark)
+      if (entry.flags & Mark)
       {
 	mark_set = true;
 	mark = buffer->idx;
       }
-
-      return true;
     }
 
     private:
@@ -599,7 +589,7 @@ struct KerxSubTableFormat4
     unsigned int mark;
   };
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -611,7 +601,7 @@ struct KerxSubTableFormat4
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     /* The rest of array sanitizations are done at run-time. */
@@ -635,9 +625,9 @@ struct KerxSubTableFormat6
     ValuesAreLong	= 0x00000001,
   };
 
-  inline bool is_long (void) const { return flags & ValuesAreLong; }
+  bool is_long () const { return flags & ValuesAreLong; }
 
-  inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
+  int get_kerning (hb_codepoint_t left, hb_codepoint_t right,
 			  hb_aat_apply_context_t *c) const
   {
     unsigned int num_glyphs = c->sanitizer.get_num_glyphs ();
@@ -665,7 +655,7 @@ struct KerxSubTableFormat6
     }
   }
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -682,7 +672,7 @@ struct KerxSubTableFormat6
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -705,11 +695,11 @@ struct KerxSubTableFormat6
     const KerxSubTableFormat6 &table;
     hb_aat_apply_context_t *c;
 
-    inline accelerator_t (const KerxSubTableFormat6 &table_,
-			  hb_aat_apply_context_t *c_) :
-			    table (table_), c (c_) {}
+    accelerator_t (const KerxSubTableFormat6 &table_,
+		   hb_aat_apply_context_t *c_) :
+		     table (table_), c (c_) {}
 
-    inline int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+    int get_kerning (hb_codepoint_t left, hb_codepoint_t right) const
     { return table.get_kerning (left, right, c); }
   };
 
@@ -722,18 +712,18 @@ struct KerxSubTableFormat6
   {
     struct Long
     {
-      LOffsetTo<Lookup<HBUINT32>, false>	rowIndexTable;
-      LOffsetTo<Lookup<HBUINT32>, false>	columnIndexTable;
-      LOffsetTo<UnsizedArrayOf<FWORD32>, false>	array;
+      LNNOffsetTo<Lookup<HBUINT32>>		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT32>>		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD32>>	array;
     } l;
     struct Short
     {
-      LOffsetTo<Lookup<HBUINT16>, false>	rowIndexTable;
-      LOffsetTo<Lookup<HBUINT16>, false>	columnIndexTable;
-      LOffsetTo<UnsizedArrayOf<FWORD>, false>	array;
+      LNNOffsetTo<Lookup<HBUINT16>>		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT16>>		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD>>	array;
     } s;
   } u;
-  LOffsetTo<UnsizedArrayOf<FWORD>, false>	vector;
+  LNNOffsetTo<UnsizedArrayOf<FWORD>>	vector;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 24);
 };
@@ -743,8 +733,8 @@ struct KerxSubTableHeader
 {
   typedef ExtendedTypes Types;
 
-  inline unsigned int tuple_count (void) const { return tupleCount; }
-  inline bool is_horizontal (void) const { return !(coverage & Vertical); }
+  unsigned   tuple_count () const { return tupleCount; }
+  bool     is_horizontal () const { return !(coverage & Vertical); }
 
   enum Coverage
   {
@@ -760,7 +750,7 @@ struct KerxSubTableHeader
     SubtableType= 0x000000FFu,	/* Subtable type. */
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -778,25 +768,25 @@ struct KerxSubTable
 {
   friend struct kerx;
 
-  inline unsigned int get_size (void) const { return u.header.length; }
-  inline unsigned int get_type (void) const { return u.header.coverage & u.header.SubtableType; }
+  unsigned int get_size () const { return u.header.length; }
+  unsigned int get_type () const { return u.header.coverage & u.header.SubtableType; }
 
-  template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
-    case 0:	return_trace (c->dispatch (u.format0));
-    case 1:	return_trace (c->dispatch (u.format1));
-    case 2:	return_trace (c->dispatch (u.format2));
-    case 4:	return_trace (c->dispatch (u.format4));
-    case 6:	return_trace (c->dispatch (u.format6));
+    case 0:	return_trace (c->dispatch (u.format0, hb_forward<Ts> (ds)...));
+    case 1:	return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2:	return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 4:	return_trace (c->dispatch (u.format4, hb_forward<Ts> (ds)...));
+    case 6:	return_trace (c->dispatch (u.format6, hb_forward<Ts> (ds)...));
     default:	return_trace (c->default_return_value ());
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (!u.header.sanitize (c) ||
@@ -829,9 +819,9 @@ template <typename T>
 struct KerxTable
 {
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
-  inline const T* thiz (void) const { return static_cast<const T *> (this); }
+  const T* thiz () const { return static_cast<const T *> (this); }
 
-  inline bool has_state_machine (void) const
+  bool has_state_machine () const
   {
     typedef typename T::SubTable SubTable;
 
@@ -840,13 +830,13 @@ struct KerxTable
     for (unsigned int i = 0; i < count; i++)
     {
       if (st->get_type () == 1)
-        return true;
+	return true;
       st = &StructAfter<SubTable> (*st);
     }
     return false;
   }
 
-  inline bool has_cross_stream (void) const
+  bool has_cross_stream () const
   {
     typedef typename T::SubTable SubTable;
 
@@ -855,13 +845,13 @@ struct KerxTable
     for (unsigned int i = 0; i < count; i++)
     {
       if (st->u.header.coverage & st->u.header.CrossStream)
-        return true;
+	return true;
       st = &StructAfter<SubTable> (*st);
     }
     return false;
   }
 
-  inline int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
+  int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     typedef typename T::SubTable SubTable;
 
@@ -872,14 +862,14 @@ struct KerxTable
     {
       if ((st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) ||
 	  !st->u.header.is_horizontal ())
-        continue;
+	continue;
       v += st->get_kerning (left, right);
       st = &StructAfter<SubTable> (*st);
     }
     return v;
   }
 
-  inline bool apply (AAT::hb_aat_apply_context_t *c) const
+  bool apply (AAT::hb_aat_apply_context_t *c) const
   {
     typedef typename T::SubTable SubTable;
 
@@ -893,7 +883,7 @@ struct KerxTable
       bool reverse;
 
       if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
-        goto skip;
+	goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
@@ -907,8 +897,8 @@ struct KerxTable
       if (!seenCrossStream &&
 	  (st->u.header.coverage & st->u.header.CrossStream))
       {
-        /* Attach all glyphs into a chain. */
-        seenCrossStream = true;
+	/* Attach all glyphs into a chain. */
+	seenCrossStream = true;
 	hb_glyph_position_t *pos = c->buffer->pos;
 	unsigned int count = c->buffer->len;
 	for (unsigned int i = 0; i < count; i++)
@@ -943,11 +933,11 @@ struct KerxTable
     return ret;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!thiz()->version.sanitize (c) ||
-		  thiz()->version < T::minVersion ||
+		  (unsigned) thiz()->version < (unsigned) T::minVersion ||
 		  !thiz()->tableCount.sanitize (c)))
       return_trace (false);
 
@@ -982,14 +972,14 @@ struct kerx : KerxTable<kerx>
 {
   friend struct KerxTable<kerx>;
 
-  static const hb_tag_t tableTag = HB_AAT_TAG_kerx;
-  static const uint16_t minVersion = 2;
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_kerx;
+  static constexpr unsigned minVersion = 2u;
 
   typedef KerxSubTableHeader SubTableHeader;
   typedef SubTableHeader::Types Types;
   typedef KerxSubTable SubTable;
 
-  inline bool has_data (void) const { return version; }
+  bool has_data () const { return version; }
 
   protected:
   HBUINT16	version;	/* The version number of the extended kerning table

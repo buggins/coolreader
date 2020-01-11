@@ -24,6 +24,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_OT_SHAPE
+
 #include "hb-ot-shape-complex.hh"
 
 
@@ -200,7 +204,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
       if (start < end && end == buffer->out_len)
       {
 	/* Tone mark follows a valid syllable; move it in front, unless it's zero width. */
-        buffer->unsafe_to_break_from_outbuffer (start, buffer->idx);
+	buffer->unsafe_to_break_from_outbuffer (start, buffer->idx);
 	buffer->next_glyph ();
 	if (!is_zero_width_char (font, u))
 	{
@@ -214,7 +218,8 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
       else
       {
 	/* No valid syllable as base for tone mark; try to insert dotted circle. */
-	if (font->has_glyph (0x25CCu))
+      if (!(buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE) &&
+	  font->has_glyph (0x25CCu))
 	{
 	  hb_codepoint_t chars[2];
 	  if (!is_zero_width_char (font, u)) {
@@ -349,9 +354,9 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	   */
 	  if (has_glyph && !tindex)
 	  {
-            buffer->next_glyph ();
-            s_len++;
-          }
+	    buffer->next_glyph ();
+	    s_len++;
+	  }
 
 	  if (unlikely (!buffer->successful))
 	    return;
@@ -360,7 +365,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	   * that are now in buffer->out_info.
 	   */
 	  hb_glyph_info_t *info = buffer->out_info;
-          end = start + s_len;
+	  end = start + s_len;
 
 	  unsigned int i = start;
 	  info[i++].hangul_shaping_feature() = LJMO;
@@ -378,7 +383,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
       if (has_glyph)
       {
-        /* We didn't decompose the S, so just advance past it. */
+	/* We didn't decompose the S, so just advance past it. */
 	end = start + 1;
 	buffer->next_glyph ();
 	continue;
@@ -429,3 +434,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_hangul =
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */
 };
+
+
+#endif

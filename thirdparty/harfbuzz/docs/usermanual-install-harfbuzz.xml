@@ -57,8 +57,7 @@
     <para>
       For example, on an Ubuntu or Debian system, you would run:
       <programlisting>
-	<command>sudo apt install</command> <package>gcc g++
-	libfreetype6-dev libglib2.0-dev libcairo2-dev</package>
+	<command>sudo apt install</command> <package>gcc g++ libfreetype6-dev libglib2.0-dev libcairo2-dev</package>
       </programlisting>
       On Fedora, RHEL, CentOS, or other Red-Hat&ndash;based systems, you would run:
       <programlisting>
@@ -126,7 +125,7 @@
       </para>
       <para>
 	If you need to build HarfBuzz from source, first put the
-	<program>ragel</program> binary on your
+	<package>ragel</package> binary on your
 	<literal>PATH</literal>, then follow the appveyor CI cmake
 	<ulink
 	    url="https://github.com/harfbuzz/harfbuzz/blob/master/appveyor.yml">build
@@ -184,8 +183,7 @@
       <para>If you are
 	using MacPorts, you should run:
       <programlisting>
-	<command>sudo port install</command> <package>autoconf
-	automake libtool pkgconfig ragel gtk-doc</package> 
+	<command>sudo port install</command> <package>autoconf automake libtool pkgconfig ragel gtk-doc</package> 
       </programlisting>
       to install the build dependencies.
       </para>
@@ -229,8 +227,9 @@
       </para>
 
       <variablelist>
+	<?dbfo list-presentation="blocks"?> 
 	<varlistentry>
-	  <term>--with-libstdc++</term>
+	  <term><command>--with-libstdc++</command></term>
 	  <listitem>
 	    <para>
 	      Allow linking with libstdc++. <emphasis>(Default = no)</emphasis>
@@ -243,11 +242,11 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-glib</term>
+	  <term><command>--with-glib</command></term>
 	  <listitem>
 	    <para>
 	     Use <ulink url="https://developer.gnome.org/glib/">GLib</ulink>. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the GLib
 	      library.  The default setting is to check for the
@@ -259,7 +258,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-gobject</term>
+	  <term><command>--with-gobject</command></term>
 	  <listitem>
 	    <para>
 	      Use <ulink url="https://developer.gnome.org/gobject/stable/">GObject</ulink>. <emphasis>(Default = no)</emphasis>
@@ -275,7 +274,7 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-cairo</term>
+	  <term><command>--with-cairo</command></term>
 	  <listitem>
 	    <para>
 	      Use <ulink url="https://cairographics.org/">Cairo</ulink>. <emphasis>(Default = auto)</emphasis>
@@ -294,11 +293,11 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-fontconfig</term>
+	  <term><command>--with-fontconfig</command></term>
 	  <listitem>
 	    <para>
 	      Use <ulink url="https://www.freedesktop.org/wiki/Software/fontconfig/">Fontconfig</ulink>. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the Fontconfig
 	      library, which provides font-matching functions and
@@ -314,11 +313,11 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-icu</term>
+	  <term><command>--with-icu</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="http://site.icu-project.org/home">ICU</ulink> library. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the
 	      <emphasis>International Components for
@@ -332,29 +331,11 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-ucdn</term>
-	  <listitem>
-	    <para>
-	      Use HarfBuzz's <ulink url="https://github.com/harfbuzz/harfbuzz/tree/master/src/hb-ucdn">built-in UCDN library</ulink>. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
-	    <para>
-	      The HarfBuzz source tree includes a <emphasis>Unicode
-	      Database and Normalization</emphasis> (UCDN) library
-	      that provides access to basic character properties in
-	      the Unicode Character Database (UCD) as well as low-level
-	      normalization functions. HarfBuzz can be built without
-	      this UCDN support if the usage of a different UCDN
-	      library is desired.
-	    </para>
-	  </listitem>
-	</varlistentry>
-	
-	<varlistentry>
-	  <term>--with-graphite2</term>
+	  <term><command>--with-graphite2</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="http://graphite.sil.org/">Graphite2</ulink> library. <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the Graphite2
 	      library, which provides support for the Graphite shaping
@@ -364,11 +345,11 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-freetype</term>
+	  <term><command>--with-freetype</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://www.freetype.org/">FreeType</ulink> library. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the FreeType
 	      font-rendering library. The default setting is to check for the
@@ -379,13 +360,13 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-uniscribe</term>
+	  <term><command>--with-uniscribe</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink
 	      url="https://docs.microsoft.com/en-us/windows/desktop/intl/uniscribe">Uniscribe</ulink>
 	      library (experimental). <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the Uniscribe
 	      font-rendering library. Uniscribe is available on
@@ -397,11 +378,11 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-directwrite</term>
+	  <term><command>--with-directwrite</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://docs.microsoft.com/en-us/windows/desktop/directwrite/direct-write-portal">DirectWrite</ulink> library (experimental). <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the DirectWrite
 	      font-rendering library. DirectWrite is available on
@@ -413,17 +394,29 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term>--with-coretext</term>
+	  <term><command>--with-coretext</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://developer.apple.com/documentation/coretext">CoreText</ulink> library. <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the CoreText
 	      library. CoreText is available on macOS and iOS systems.
 	    </para>
 	  </listitem>
 	</varlistentry>	
+
+	<varlistentry>
+	  <term><command>--enable-gtk-doc</command></term>
+	  <listitem>
+	    <para>
+	      Use <ulink url="https://www.gtk.org/gtk-doc/">GTK-Doc</ulink>. <emphasis>(Default = no)</emphasis>
+	    </para>
+	    <para>
+	      This option enables the building of the documentation.
+	    </para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </section>
     

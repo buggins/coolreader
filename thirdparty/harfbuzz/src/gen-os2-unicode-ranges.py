@@ -1,8 +1,10 @@
+#!/usr/bin/python
+
 # -*- coding: utf-8 -*-
 
 # Generates the code for a sorted unicode range array as used in hb-ot-os2-unicode-ranges.hh
 # Input is a tab seperated list of unicode ranges from the otspec
-# (https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ulunicoderange1).
+# (https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ur).
 
 from __future__ import print_function, division, absolute_import
 
@@ -10,8 +12,11 @@ import io
 import re
 import sys
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
+try:
+  reload(sys)
+  sys.setdefaultencoding('utf-8')
+except NameError:
+  pass  # Python 3
 
 print ("""static OS2Range _hb_os2_unicode_ranges[] =
 {""")
@@ -32,12 +37,12 @@ with io.open(input_file, mode="r", encoding="utf-8") as f:
       current_bit = fields[0]
       fields = fields[1:]
     elif len(fields) > 3:
-      raise Error("bad input :(.")
+      raise Exception("bad input :(.")
 
     name = fields[0]
     ranges = re.split("-", fields[1])
     if len(ranges) != 2:
-      raise Error("bad input :(.")
+      raise Exception("bad input :(.")
 
     v = tuple((int(ranges[0], 16), int(ranges[1], 16), int(current_bit), name))
     all_ranges.append(v)

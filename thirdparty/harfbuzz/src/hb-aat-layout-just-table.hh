@@ -45,7 +45,7 @@ using namespace OT;
 
 struct ActionSubrecordHeader
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -62,7 +62,7 @@ struct ActionSubrecordHeader
 
 struct DecompositionAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -70,9 +70,9 @@ struct DecompositionAction
 
   ActionSubrecordHeader
 		header;
-  Fixed		lowerLimit; 	/* If the distance factor is less than this value,
+  HBFixed		lowerLimit; 	/* If the distance factor is less than this value,
 				 * then the ligature is decomposed. */
-  Fixed		upperLimit; 	/* If the distance factor is greater than this value,
+  HBFixed		upperLimit; 	/* If the distance factor is greater than this value,
 				 * then the ligature is decomposed. */
   HBUINT16 	order;		/* Numerical order in which this ligature will
 				 * be decomposed; you may want infrequent ligatures
@@ -91,7 +91,7 @@ struct DecompositionAction
 
 struct UnconditionalAddGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
@@ -100,7 +100,7 @@ struct UnconditionalAddGlyphAction
   protected:
   ActionSubrecordHeader
 		header;
-  GlyphID	addGlyph;	/* Glyph that should be added if the distance factor
+  HBGlyphID	addGlyph;	/* Glyph that should be added if the distance factor
 				 * is growing. */
 
   public:
@@ -109,7 +109,7 @@ struct UnconditionalAddGlyphAction
 
 struct ConditionalAddGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -118,14 +118,14 @@ struct ConditionalAddGlyphAction
   protected:
   ActionSubrecordHeader
 		header;
-  Fixed 	substThreshold; /* Distance growth factor (in ems) at which
+  HBFixed 	substThreshold; /* Distance growth factor (in ems) at which
 				 * this glyph is replaced and the growth factor
 				 * recalculated. */
-  GlyphID 	addGlyph; 	/* Glyph to be added as kashida. If this value is
+  HBGlyphID 	addGlyph; 	/* Glyph to be added as kashida. If this value is
 				 * 0xFFFF, no extra glyph will be added. Note that
 				 * generally when a glyph is added, justification
 				 * will need to be redone. */
-  GlyphID 	substGlyph; 	/* Glyph to be substituted for this glyph if the
+  HBGlyphID 	substGlyph; 	/* Glyph to be substituted for this glyph if the
 				 * growth factor equals or exceeds the value of
 				 * substThreshold. */
   public:
@@ -134,7 +134,7 @@ struct ConditionalAddGlyphAction
 
 struct DuctileGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -146,13 +146,13 @@ struct DuctileGlyphAction
   HBUINT32 	variationAxis;	/* The 4-byte tag identifying the ductile axis.
 				 * This would normally be 0x64756374 ('duct'),
 				 * but you may use any axis the font contains. */
-  Fixed 	minimumLimit; 	/* The lowest value for the ductility axis tha
+  HBFixed 	minimumLimit; 	/* The lowest value for the ductility axis tha
 				 * still yields an acceptable appearance. Normally
 				 * this will be 1.0. */
-  Fixed 	noStretchValue; /* This is the default value that corresponds to
+  HBFixed 	noStretchValue; /* This is the default value that corresponds to
 				 * no change in appearance. Normally, this will
 				 * be 1.0. */
-  Fixed 	maximumLimit; 	/* The highest value for the ductility axis that
+  HBFixed 	maximumLimit; 	/* The highest value for the ductility axis that
 				 * still yields an acceptable appearance. */
   public:
   DEFINE_SIZE_STATIC (22);
@@ -160,7 +160,7 @@ struct DuctileGlyphAction
 
 struct RepeatedAddGlyphAction
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -170,7 +170,7 @@ struct RepeatedAddGlyphAction
   ActionSubrecordHeader
 		header;
   HBUINT16 	flags;		/* Currently unused; set to 0. */
-  GlyphID 	glyph;		/* Glyph that should be added if the distance factor
+  HBGlyphID 	glyph;		/* Glyph that should be added if the distance factor
 				 * is growing. */
   public:
   DEFINE_SIZE_STATIC (10);
@@ -178,9 +178,9 @@ struct RepeatedAddGlyphAction
 
 struct ActionSubrecord
 {
-  inline unsigned int get_length (void) const { return u.header.actionLength; }
+  unsigned int get_length () const { return u.header.actionLength; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
@@ -215,7 +215,7 @@ struct ActionSubrecord
 
 struct PostcompensationActionChain
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this)))
@@ -271,14 +271,14 @@ struct JustWidthDeltaEntry
   };
 
   protected:
-  Fixed		beforeGrowLimit;/* The ratio by which the advance width of the
+  HBFixed		beforeGrowLimit;/* The ratio by which the advance width of the
 				 * glyph is permitted to grow on the left or top side. */
-  Fixed		beforeShrinkLimit;
+  HBFixed		beforeShrinkLimit;
 				/* The ratio by which the advance width of the
 				 * glyph is permitted to shrink on the left or top side. */
-  Fixed		afterGrowLimit;	/* The ratio by which the advance width of the glyph
+  HBFixed		afterGrowLimit;	/* The ratio by which the advance width of the glyph
 				 * is permitted to shrink on the left or top side. */
-  Fixed		afterShrinkLimit;
+  HBFixed		afterShrinkLimit;
 				/* The ratio by which the advance width of the glyph
 				 * is at most permitted to shrink on the right or
 				 * bottom side. */
@@ -291,7 +291,7 @@ struct JustWidthDeltaEntry
 
 struct WidthDeltaPair
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this)));
@@ -309,7 +309,7 @@ struct WidthDeltaPair
   public:
   DEFINE_SIZE_STATIC (24);
 };
-  
+
 typedef OT::LArrayOf<WidthDeltaPair> WidthDeltaCluster;
 
 struct JustificationCategory
@@ -328,7 +328,7 @@ struct JustificationCategory
 				 * glyph if nonzero. */
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -347,7 +347,7 @@ struct JustificationCategory
 
 struct JustificationHeader
 {
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -371,7 +371,7 @@ struct JustificationHeader
 				 * of postcompensation subtable (set to zero if none).
 				 *
 				 * The postcompensation subtable, if present in the font. */
-  Lookup<OffsetTo<WidthDeltaCluster> >
+  Lookup<OffsetTo<WidthDeltaCluster>>
   		lookupTable;	/* Lookup table associating glyphs with width delta
 				 * clusters. See the description of Width Delta Clusters
 				 * table for details on how to interpret the lookup values. */
@@ -382,9 +382,9 @@ struct JustificationHeader
 
 struct just
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_just;
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_just;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
 
