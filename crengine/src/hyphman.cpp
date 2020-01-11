@@ -212,6 +212,10 @@ bool HyphMan::setTrustSoftHyphens( int trust_soft_hyphens ) {
     return true;
 }
 
+bool HyphMan::isEnabled() {
+    return _selectedDictionary != NULL && _selectedDictionary->getId() != HYPH_DICT_ID_NONE;
+}
+
 bool HyphDictionary::activate()
 {
     if (HyphMan::_selectedDictionary == this)

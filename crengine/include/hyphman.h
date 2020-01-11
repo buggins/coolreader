@@ -119,6 +119,7 @@ public:
     static bool setRightHyphenMin( int right_hyphen_min );
     static int getTrustSoftHyphens() { return _TrustSoftHyphens; }
     static bool setTrustSoftHyphens( int trust_soft_hyphen );
+    static bool isEnabled();
 
     HyphMan();
     ~HyphMan();

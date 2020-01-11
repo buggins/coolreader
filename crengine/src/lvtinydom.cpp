@@ -3551,7 +3551,7 @@ static void writeNode( LVStream * stream, ldomNode * node, bool treeLayout )
 }
 
 // Extended version of previous function for displaying selection HTML, with tunable output
-#define WRITENODEEX_ADD_UPPER_DIR_LANG_ATTR      0x0001 ///< add dir= and lang= grabbed from upper nodes
+#define WRITENODEEX_TEXT_HYPHENATE               0x0001 ///< add soft-hyphens where hyphenation is allowed
 #define WRITENODEEX_TEXT_MARK_NODE_BOUNDARIES    0x0002 ///< mark start and end of text nodes (useful when indented)
 #define WRITENODEEX_TEXT_SHOW_UNICODE_CODEPOINT  0x0004 ///< show unicode codepoint after char
 #define WRITENODEEX_TEXT_UNESCAPED               0x0008 ///< let &, < and > unescaped in text nodes (makes HTML invalid)
@@ -3559,16 +3559,18 @@ static void writeNode( LVStream * stream, ldomNode * node, bool treeLayout )
 #define WRITENODEEX_NEWLINE_BLOCK_NODES          0x0020 ///< start only nodes rendered as block/final on a new line,
                                                         ///  so inline elements and text nodes are stuck together
 #define WRITENODEEX_NEWLINE_ALL_NODES            0x0040 ///< start all nodes on a new line
-#define WRITENODEEX_UNUSED_3                     0x0080 ///<
+#define WRITENODEEX_UNUSED_1                     0x0080 ///<
 #define WRITENODEEX_NB_SKIPPED_CHARS             0x0100 ///< show number of skipped chars in text nodes: (...43...)
 #define WRITENODEEX_NB_SKIPPED_NODES             0x0200 ///< show number of skipped sibling nodes: [...17...]
 #define WRITENODEEX_SHOW_REND_METHOD             0x0400 ///< show rendering method at end of tag (<div ~F> =Final, <b ~i>=Inline...)
-#define WRITENODEEX_UNUSED_5                     0x0800 ///<
-#define WRITENODEEX_GET_CSS_FILES                0x1000 ///< ensure css files that apply to initial node are returned
+#define WRITENODEEX_UNUSED_2                     0x0800 ///<
+#define WRITENODEEX_ADD_UPPER_DIR_LANG_ATTR      0x1000 ///< add dir= and lang= grabbed from upper nodes
+#define WRITENODEEX_GET_CSS_FILES                0x2000 ///< ensure css files that apply to initial node are returned
                                                         ///  in &cssFiles (needed when not starting from root node)
-#define WRITENODEEX_INCLUDE_STYLESHEET_ELEMENT   0x2000 ///< includes crengine <stylesheet> element in HTML
+#define WRITENODEEX_INCLUDE_STYLESHEET_ELEMENT   0x4000 ///< includes crengine <stylesheet> element in HTML
                                                         ///  (not done if outside of sub-tree)
-#define WRITENODEEX_COMPUTED_STYLES_AS_ATTR      0x4000 ///< set style='' from computed styles (not implemented)
+#define WRITENODEEX_COMPUTED_STYLES_AS_ATTR      0x8000 ///< set style='' from computed styles (not implemented)
+
 
 #define WNEFLAG(x) ( wflags & WRITENODEEX_##x )
 
@@ -3722,11 +3724,65 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
             while ( txt.replace( cs16("<"), cs16("&lt;") ) ) ;
             while ( txt.replace( cs16(">"), cs16("&gt;") ) ) ;
         }
+        #define HYPH_MIN_WORD_LEN_TO_HYPHENATE 4
+        #define HYPH_MAX_WORD_SIZE 64
+        // (No hyphenation if we are showing unicode codepoint)
         if ( WNEFLAG(TEXT_SHOW_UNICODE_CODEPOINT) ) {
             *stream << prefix;
             for ( int i=0; i<txt.length(); i++ )
                 *stream << UnicodeToUtf8(txt.substr(i, 1)) << "⟨U+" << lString8().appendHex(txt[i]) << "⟩";
             *stream << suffix;
+        }
+        else if ( WNEFLAG(TEXT_HYPHENATE) && HyphMan::isEnabled() && txt.length() >= HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
+            // Add soft-hyphens where HyphMan (with the user or language current hyphenation
+            // settings) says hyphenation is allowed.
+            // We do that here while we output the text to avoid the need
+            // for temporary storage of a string with soft-hyphens added.
+            const lChar16 * text16 = txt.c_str();
+            int txtlen = txt.length();
+            lUInt8 * flags = (lUInt8*)calloc(txtlen, sizeof(*flags));
+            lUInt16 widths[HYPH_MAX_WORD_SIZE] = { 0 }; // array needed by hyphenate()
+            // Lookup words starting from the end, just because lStr_findWordBounds()
+            // will ensure the iteration that way.
+            int wordpos = txtlen;
+            while ( wordpos > 0 ) {
+                // lStr_findWordBounds() will find the word contained at wordpos
+                // (or the previous word if wordpos happens to be a space or some
+                // punctuation) by looking only for alpha chars in m_text.
+                int start, end;
+                lStr_findWordBounds( text16, txtlen, wordpos, start, end );
+                if ( end <= HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
+                    // Too short word at start, we're done
+                    break;
+                }
+                int len = end - start;
+                if ( len < HYPH_MIN_WORD_LEN_TO_HYPHENATE ) {
+                    // Too short word found, skip it
+                    wordpos = start - 1;
+                    continue;
+                }
+                if ( start >= wordpos ) {
+                    // Shouldn't happen, but let's be sure we don't get stuck
+                    wordpos = wordpos - HYPH_MIN_WORD_LEN_TO_HYPHENATE;
+                    continue;
+                }
+                // We have a valid word to look for hyphenation
+                if ( len > HYPH_MAX_WORD_SIZE ) // hyphenate() stops/truncates at 64 chars
+                    len = HYPH_MAX_WORD_SIZE;
+                // Have HyphMan set flags inside 'flags'
+                HyphMan::hyphenate(text16+start, len, widths, flags+start, 0, 0xFFFF, 1);
+                // Continue with previous word
+                wordpos = start - 1;
+            }
+            // Output text, and add a soft-hyphen where there are flags
+            *stream << prefix;
+            for ( int i=0; i<txt.length(); i++ ) {
+                *stream << UnicodeToUtf8(txt.substr(i, 1));
+                if ( flags[i] & LCHAR_ALLOW_HYPH_WRAP_AFTER )
+                    *stream << "­";
+            }
+            *stream << suffix;
+            free(flags);
         }
         else {
             *stream << prefix << UnicodeToUtf8(txt) << suffix;
