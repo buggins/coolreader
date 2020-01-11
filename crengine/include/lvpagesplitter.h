@@ -22,6 +22,7 @@
 #include "lvstring.h"
 #include "lvhashtable.h"
 #include "crtimerutil.h"
+#include "lvstring16collection.h"
 
 #ifndef RENDER_PROGRESS_INTERVAL_MILLIS
 #define RENDER_PROGRESS_INTERVAL_MILLIS 300

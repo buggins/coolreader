@@ -14,9 +14,17 @@
 #include "../include/crlog.h"
 #include "lvtypes.h"
 
+#ifdef LINUX
 #include <sys/time.h>
+#endif
 #include <time.h>
 #include <stdio.h>
+
+#if !defined(__SYMBIAN32__) && defined(_WIN32)
+extern "C" {
+#include <windows.h>
+}
+#endif
 
 class CRFileLogger;
 

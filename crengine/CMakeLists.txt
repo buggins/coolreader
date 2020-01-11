@@ -25,6 +25,7 @@ SET (CRENGINE_SOURCES
     src/txtselector.cpp
     #src/xutils.cpp
     src/crtest.cpp
+    src/xxhash.c
     fc-lang/fc-lang-cat.c
 )
 

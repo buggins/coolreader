@@ -21,11 +21,11 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <time.h>
-#ifdef LINUX
-#include <sys/time.h>
-#if !defined(__APPLE__)
-#include <malloc.h>
-#endif
+
+#if !defined(__SYMBIAN32__) && defined(_WIN32)
+extern "C" {
+#include <windows.h>
+}
 #endif
 
 #if (USE_ZLIB==1)
@@ -642,7 +642,7 @@ lString16::lString16(const lChar8 * str)
     }
     pchunk = EMPTY_STR_16;
     addref();
-	*this = Utf8ToUnicode( str );
+    *this = Utf8ToUnicode( str );
 }
 
 /// constructor from utf8 character array fragment
@@ -656,7 +656,7 @@ lString16::lString16(const lChar8 * str, size_type count)
     }
     pchunk = EMPTY_STR_16;
     addref();
-	*this = Utf8ToUnicode( str, count );
+    *this = Utf8ToUnicode( str, count );
 }
 
 
@@ -1202,7 +1202,7 @@ int decodeDecimal( const lChar16 * str, int len ) {
 
 bool lString16::atoi( int &n ) const
 {
-	n = 0;
+    n = 0;
     int sgn = 1;
     const lChar16 * s = c_str();
     while (*s == ' ' || *s == '\t')
@@ -2632,7 +2632,7 @@ int Wtf8ByteCount(const lChar16 * str, int len)
 
 lString16 Utf8ToUnicode( const lString8 & str )
 {
-	return Utf8ToUnicode( str.c_str() );
+    return Utf8ToUnicode( str.c_str() );
 }
 
 #define CONT_BYTE(index,shift) (((lChar16)(s[index]) & 0x3F) << shift)
@@ -3179,18 +3179,18 @@ static const char * getCharTranscript( lChar16 ch )
 lString8  UnicodeToTranslit( const lString16 & str )
 {
     lString8 buf;
-	if ( str.empty() )
-		return buf;
+    if ( str.empty() )
+        return buf;
     buf.reserve( str.length()*5/4 );
     for ( int i=0; i<str.length(); i++ ) {
-		lChar16 ch = str[i];
+        lChar16 ch = str[i];
         if ( ch>=32 && ch<=127 ) {
             buf.append( 1, (lChar8)ch );
         } else {
             const char * trans = getCharTranscript(ch);
             buf.append( trans );
         }
-	}
+    }
     buf.pack();
     return buf;
 }
@@ -4278,27 +4278,27 @@ bool lString8::startsWith( const lString8 & substring ) const
 /// returns true if string ends with specified substring
 bool lString8::endsWith( const lChar8 * substring ) const
 {
-	if ( !substring || !*substring )
-		return true;
+    if ( !substring || !*substring )
+        return true;
     int len = (int)strlen(substring);
     if ( length() < len )
         return false;
     const lChar8 * s1 = c_str() + (length()-len);
     const lChar8 * s2 = substring;
-	return lStr_cmp( s1, s2 )==0;
+    return lStr_cmp( s1, s2 )==0;
 }
 
 /// returns true if string ends with specified substring
 bool lString16::endsWith( const lChar16 * substring ) const
 {
-	if ( !substring || !*substring )
-		return true;
+    if ( !substring || !*substring )
+        return true;
     int len = lStr_len(substring);
     if ( length() < len )
         return false;
     const lChar16 * s1 = c_str() + (length()-len);
     const lChar16 * s2 = substring;
-	return lStr_cmp( s1, s2 )==0;
+    return lStr_cmp( s1, s2 )==0;
 }
 
 /// returns true if string ends with specified substring
@@ -4324,7 +4324,7 @@ bool lString16::endsWith ( const lString16 & substring ) const
         return false;
     const lChar16 * s1 = c_str() + (length()-len);
     const lChar16 * s2 = substring.c_str();
-	return lStr_cmp( s1, s2 )==0;
+    return lStr_cmp( s1, s2 )==0;
 }
 
 /// returns true if string starts with specified substring
@@ -4530,17 +4530,17 @@ lString16 DecodeHTMLUrlString( lString16 s )
 
 void limitStringSize(lString16 & str, int maxSize) {
     if (str.length() < maxSize)
-		return;
-	int lastSpace = -1;
-	for (int i = str.length() - 1; i > 0; i--)
-		if (str[i] == ' ') {
-			while (i > 0 && str[i - 1] == ' ')
-				i--;
-			lastSpace = i;
-			break;
-		}
-	int split = lastSpace > 0 ? lastSpace : maxSize;
-	str = str.substr(0, split);
+        return;
+    int lastSpace = -1;
+    for (int i = str.length() - 1; i > 0; i--)
+        if (str[i] == ' ') {
+            while (i > 0 && str[i - 1] == ' ')
+                i--;
+            lastSpace = i;
+            break;
+        }
+    int split = lastSpace > 0 ? lastSpace : maxSize;
+    str = str.substr(0, split);
     str += "...";
 }
 

@@ -62,6 +62,17 @@ int lString16Collection::add( const lString16 & str )
     str.addref();
     return count++;
 }
+int lString16Collection::insert( int pos, const lString16 & str )
+{
+    if (pos<0 || pos>=count)
+        return add(str);
+    reserve( 1 );
+    for (int i=count; i>pos; --i)
+        chunks[i] = chunks[i-1];
+    chunks[pos] = str.pchunk;
+    str.addref();
+    return count++;
+}
 void lString16Collection::clear()
 {
     if (chunks) {
