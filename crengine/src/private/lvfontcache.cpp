@@ -14,6 +14,7 @@
 
 #include "lvfontcache.h"
 #include "../../include/lvstyles.h"
+#include "../../include/crlog.h"
 
 
 LVFontCacheItem *LVFontCache::findDuplicate(const LVFontDef *def) {

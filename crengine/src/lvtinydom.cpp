@@ -200,6 +200,7 @@ enum CacheFileBlockType {
 #include "../include/chmfmt.h"
 #endif
 #include "../include/crtest.h"
+#include "../include/crlog.h"
 #include <stddef.h>
 #include <math.h>
 #include <zlib.h>
@@ -14583,8 +14584,8 @@ ldomNode * ldomNode::persist()
         } else {
             // TEXT->PTEXT
             lString8 utf8 = _data._text_ptr->getText();
-            delete _data._text_ptr;
             lUInt32 parentIndex = _data._text_ptr->getParentIndex();
+            delete _data._text_ptr;
             _handle._dataIndex = (_handle._dataIndex & ~0xF) | NT_PTEXT;
             _data._ptext_addr = getDocument()->_textStorage.allocText(_handle._dataIndex, parentIndex, utf8 );
             // change type

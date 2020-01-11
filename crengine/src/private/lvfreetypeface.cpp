@@ -17,6 +17,7 @@
 #include "../../include/lvfntman.h"
 #include "../../include/lvfnt.h"
 #include "../../include/lvtextfm.h"
+#include "../../include/crlog.h"
 #include "lvfontglyphcache.h"
 #include "lvfontdef.h"
 #include "lvfontcache.h"
@@ -812,7 +813,7 @@ bool LVFreeTypeFace::hbCalcCharWidth(LVCharPosInfo *posInfo, const LVCharTriplet
 
 #endif  // USE_HARFBUZZ==1
 
-FT_UInt LVFreeTypeFace::getCharIndex( lChar16 code, lChar16 def_char ) {
+FT_UInt LVFreeTypeFace::getCharIndex(lUInt32 code, lChar16 def_char) {
     if (code == '\t')
         code = ' ';
     FT_UInt ch_glyph_index = FT_Get_Char_Index(_face, code);

@@ -12,6 +12,8 @@
 
 #include "../include/lvpagesplitter.h"
 #include "../include/lvtinydom.h"
+#include "../include/crlog.h"
+#include "../include/serialbuf.h"
 #include <time.h>
 
 // Uncomment for debugging page splitting algorithm:

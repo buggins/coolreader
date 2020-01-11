@@ -19,6 +19,9 @@
 #include "lvrefcache.h"
 #include "lvtextfm.h"
 #include "lvfntman.h"
+#include "lvstring8collection.h"
+
+class SerialBuf;
 
 /* bit position (in 'lUInt64 important' and 'lUInt64 importance' bitmaps) of
  * each css_style_rec_tag properties to flag its '!important' status */

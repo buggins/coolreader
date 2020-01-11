@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include "crsetup.h"
 #include "lvstring.h"
+#include "lvstring16collection.h"
 #include "lvfont.h"
 
 /// font manager interface class

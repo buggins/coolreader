@@ -27,6 +27,7 @@
 #include "../include/lvstream.h"
 #include "../include/lvptrvec.h"
 #include "../include/crtxtenc.h"
+#include "../include/crlog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2495,8 +2496,8 @@ protected:
     // whether the alternative "truncated" method was used, or is to be used
     bool m_alt_reading_method = false;
 public:
-    bool usedAltReadingMethod() { return m_alt_reading_method; }
-    void useAltReadingMethod() { m_alt_reading_method = true; }
+    bool isAltReadingMethod() { return m_alt_reading_method; }
+    void setAltReadingMethod() { m_alt_reading_method = true; }
 
     virtual LVStreamRef OpenStream( const wchar_t * fname, lvopen_mode_t /*mode*/ )
     {
@@ -2769,17 +2770,17 @@ public:
                 return NULL;
         LVZipArc * arc = new LVZipArc( stream );
         int itemCount = arc->ReadContents();
-        if ( itemCount > 0 && arc->usedAltReadingMethod() ) {
-            printf("CRE WARNING: zip file truncated: going on with possibly partial content.\n");
+        if ( itemCount > 0 && arc->isAltReadingMethod() ) {
+            CRLog::warn("Zip file truncated: going on with possibly partial content.");
         }
-        else if ( itemCount <= 0 && !arc->usedAltReadingMethod() ) {
-            printf("CRE WARNING: zip file corrupted or invalid: trying alternative processing...\n");
-            arc->useAltReadingMethod();
+        else if ( itemCount <= 0 && !arc->isAltReadingMethod() ) {
+            CRLog::warn("Zip file corrupted or invalid: trying alternative processing...");
+            arc->setAltReadingMethod();
             itemCount = arc->ReadContents();
         }
         if ( itemCount <= 0 )
         {
-            printf("CRE WARNING: zip file corrupted or invalid: processing failure.\n");
+            CRLog::error("Zip file corrupted or invalid: processing failure.");
             delete arc;
             return NULL;
         }

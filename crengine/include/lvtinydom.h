@@ -40,6 +40,8 @@
 #include "lvimg.h"
 #include "props.h"
 #include "bookformats.h"
+#include "serialbuf.h"
+#include "lvstring16hashedcollection.h"
 
 // Allows for requesting older DOM building code (including bugs NOT fixed)
 extern const int gDOMVersionCurrent;

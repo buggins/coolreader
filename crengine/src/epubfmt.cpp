@@ -1,4 +1,5 @@
 #include "../include/epubfmt.h"
+#include "../include/crlog.h"
 
 
 class EpubItem {

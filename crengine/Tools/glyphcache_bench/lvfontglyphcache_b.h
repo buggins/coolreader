@@ -53,6 +53,8 @@ public:
 
 	void remove(LVFontGlyphCacheItemB *item);
 
+	void refresh(LVFontGlyphCacheItemB *item);
+
 	void clear();
 
 	int getSize() { return size; }

@@ -2,6 +2,7 @@
 #include "crconcurrent.h"
 #include "lvptrvec.h"
 #include "lvstring.h"
+#include "crlog.h"
 
 CRMutex * _refMutex = NULL;
 CRMutex * _fontMutex = NULL;

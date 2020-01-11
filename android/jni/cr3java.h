@@ -20,6 +20,9 @@
 #include "../../crengine/include/props.h"
 #include "../../crengine/include/lvtinydom.h"
 
+// M is for Marshmallow!
+#define ANDROID_SDK_M	23
+
 //====================================================================
 // libjnigraphics replacement for pre-2.2 SDKs 
 enum AndroidBitmapFormat {
@@ -58,6 +61,7 @@ public:
 class CRJNIEnv {
 public:
 	JNIEnv * env;
+	static uint8_t sdk_int;
     CRJNIEnv(JNIEnv * pEnv) : env(pEnv) { }
     JNIEnv * operator -> () { return env; }
 	lString16 fromJavaString( jstring str );

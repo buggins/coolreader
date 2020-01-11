@@ -15,6 +15,7 @@
 #include "../include/lvmemman.h"
 #include "../include/lvref.h"
 #include "../include/lvtinydom.h"
+#include "../include/crlog.h"
 #ifdef _LINUX
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE

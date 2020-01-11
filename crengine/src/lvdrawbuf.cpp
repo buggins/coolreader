@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../include/lvdrawbuf.h"
+#include "../include/crlog.h"
 
 #define GUARD_BYTE 0xa5
 #define CHECK_GUARD_BYTE \

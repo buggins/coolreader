@@ -21,6 +21,7 @@
 #include "lvref.h"
 #include "lvstring.h"
 #include "lvhashtable.h"
+#include "crtimerutil.h"
 
 #ifndef RENDER_PROGRESS_INTERVAL_MILLIS
 #define RENDER_PROGRESS_INTERVAL_MILLIS 300
@@ -61,6 +62,8 @@
 #define RN_PAGE_TYPE_COVER            0x02
 #define RN_PAGE_MOSTLY_RTL            0x10
 #define RN_PAGE_FOOTNOTES_MOSTLY_RTL  0x20
+
+class SerialBuf;
 
 /// footnote fragment inside page
 class LVPageFootNoteInfo {

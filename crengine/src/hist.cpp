@@ -11,6 +11,7 @@
 
 #include "../include/lvtinydom.h"
 #include "../include/hist.h"
+#include "../include/crlog.h"
 
 void CRFileHist::clear()
 {

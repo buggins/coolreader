@@ -32,7 +32,7 @@ LVFontRef LoadFontFromFile( const char * fname )
     return ref;
 }
 
-bool LBitmapFont::getGlyphInfo( lUInt16 code, LVFont::glyph_info_t * glyph, lChar16 def_char )
+bool LBitmapFont::getGlyphInfo( lUInt32 code, LVFont::glyph_info_t * glyph, lChar16 def_char )
 {
     const lvfont_glyph_t * ptr = lvfontGetGlyph( m_font, code );
     if (!ptr)
@@ -110,7 +110,7 @@ int LBitmapFont::getItalic() const
     return hdr->flgItalic;
 }
 /*
-bool LBitmapFont::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char)
+bool LBitmapFont::getGlyphImage(lUInt32 code, lUInt8 * buf, lChar16 def_char)
 {
     const lvfont_glyph_t * ptr = lvfontGetGlyph( m_font, code );
     if (!ptr)
@@ -122,7 +122,7 @@ bool LBitmapFont::getGlyphImage(lUInt16 code, lUInt8 * buf, lChar16 def_char)
     return true;
 }
 */
-LVFontGlyphCacheItem *LBitmapFont::getGlyph(lUInt16 ch, lChar16 def_char) {
+LVFontGlyphCacheItem *LBitmapFont::getGlyph(lUInt32 ch, lChar16 def_char) {
     // TODO:
     return NULL;
 }

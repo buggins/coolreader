@@ -218,8 +218,6 @@ public:
 
 #endif  // USE_HARFBUZZ==1
 
-    FT_UInt getCharIndex(lChar16 code, lChar16 def_char);
-
     /** \brief get glyph info
         \param glyph is pointer to glyph_info_t struct to place retrieved info
         \return true if glyh was found
@@ -372,6 +370,8 @@ public:
     }
 
     virtual void Clear();
+protected:
+    FT_UInt getCharIndex(lUInt32 code, lChar16 def_char);
 };
 
 #endif  // (USE_FREETYPE==1)

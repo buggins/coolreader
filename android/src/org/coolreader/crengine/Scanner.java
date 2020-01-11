@@ -111,7 +111,15 @@ public class Scanner extends FileInfoChangeSource {
 		}
 		try {
 			File dir = new File(baseDir.pathname);
-			File[] items = dir.listFiles();
+			//File[] items = dir.listFiles();
+			// To resolve unhandled exception
+			// 'JNI DETECTED ERROR IN APPLICATION: input is not valid Modified UTF-8: illegal continuation byte 0'
+			// that can be produced by invalid filename (broken sdcard, etc)
+			// or 'JNI WARNING: input is not valid Modified UTF-8: illegal start byte 0xf0'
+			// that can be generated if 4-byte UTF-8 sequence found in the filename,
+			// we implement own directory listing method instead of File.listFiles().
+			// TODO: replace other occurrences of the method File.listFiles().
+			File[] items = Engine.listFiles(dir);
 			// process normal files
 			if ( items!=null ) {
 				for ( File f : items ) {

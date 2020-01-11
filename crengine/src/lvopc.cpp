@@ -1,5 +1,6 @@
 #include "../include/lvopc.h"
 #include "../include/lvtinydom.h"
+#include "../include/crlog.h"
 
 static const lChar16 * const OPC_PropertiesContentType = L"application/vnd.openxmlformats-package.core-properties+xml";
 
