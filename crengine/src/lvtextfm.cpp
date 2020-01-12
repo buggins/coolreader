@@ -14,7 +14,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <lvtextfm.h>
+
+
 #include "../include/crsetup.h"
 #include "../include/lvfnt.h"
 #include "../include/lvtextfm.h"
