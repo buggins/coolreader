@@ -84,10 +84,10 @@ public:
     }
 
     /// get kerning mode: true==ON, false=OFF
-    virtual bool getKerning() { return _allowKerning; }
+    virtual bool GetKerning() { return _allowKerning; }
 
     /// get kerning mode: true==ON, false=OFF
-    virtual void setKerning(bool kerningEnabled) {
+    virtual void SetKerning(bool kerningEnabled) {
         _allowKerning = kerningEnabled;
         gc();
         clearGlyphCache();
@@ -98,7 +98,7 @@ public:
     /// set shaping mode
     virtual void SetShapingMode( shaping_mode_t mode ) { _shapingMode = mode; gc(); clearGlyphCache(); }
     /// constructor
-    LVFontManager() : _antialiasMode(font_aa_all), _shapingMode(SHAPING_MODE_FREETYPE), _hintingMode(HINTING_MODE_AUTOHINT) { }
+    LVFontManager() : _allowKerning(false), _antialiasMode(font_aa_all), _shapingMode(SHAPING_MODE_FREETYPE), _hintingMode(HINTING_MODE_AUTOHINT) { }
     /// destructor
     virtual ~LVFontManager() { }
     /// returns available typefaces

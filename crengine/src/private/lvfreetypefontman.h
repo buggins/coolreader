@@ -71,6 +71,12 @@ public:
         return _hintingMode;
     }
 
+    /// get kerning mode
+    virtual bool GetKerning() { return _allowKerning; }
+
+    /// set kerning mode
+    virtual void SetKerning(bool kerningEnabled);
+
     /// sets shaping mode
     virtual void SetShapingMode( shaping_mode_t mode );
 

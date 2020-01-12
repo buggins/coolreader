@@ -6246,7 +6246,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             }
         } else if (name == PROP_FONT_HINTING) {
             int mode = props->getIntDef(PROP_FONT_HINTING, (int)HINTING_MODE_AUTOHINT);
-            if ((int)fontMan->GetHintingMode() != mode && mode>=0 && mode<=2) {
+            if (mode >= HINTING_MODE_DISABLED && mode <= HINTING_MODE_AUTOHINT) {
                 //CRLog::debug("Setting hinting mode to %d", mode);
                 fontMan->SetHintingMode((hinting_mode_t)mode);
                 requestRender();
@@ -6258,11 +6258,11 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             setVisiblePageCount(pages);
         } else if (name == PROP_FONT_KERNING_ENABLED) {
             bool kerning = props->getBoolDef(PROP_FONT_KERNING_ENABLED, false);
-            fontMan->setKerning(kerning);
+            fontMan->SetKerning(kerning);
             REQUEST_RENDER("propsApply - kerning")
         } else if (name == PROP_FONT_SHAPING) {
             int mode = props->getIntDef(PROP_FONT_SHAPING, (int)SHAPING_MODE_FREETYPE);
-            if ((int)fontMan->GetShapingMode() != mode && mode>=0 && mode<=2) {
+            if (mode >= SHAPING_MODE_FREETYPE && mode <= SHAPING_MODE_HARFBUZZ) {
                 fontMan->SetShapingMode((shaping_mode_t)mode);
                 REQUEST_RENDER("Setting shaping mode");
             }

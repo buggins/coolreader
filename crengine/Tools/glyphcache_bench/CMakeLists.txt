@@ -10,6 +10,7 @@ set(crengine_part_SRC_LIST
     ../../src/lvstring.cpp
     ../../src/lvmemman.cpp
     ../../src/lvstream.cpp
+    ../../src/crlog.cpp
     ../../src/crtxtenc.cpp
     ../../src/cp_stats.cpp
     ../../src/private/lvfontglyphcache.cpp

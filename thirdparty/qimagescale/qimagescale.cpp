@@ -771,6 +771,13 @@ unsigned char* qSmoothScaleImage(const unsigned char* src, int sw, int sh, bool 
         qimageFreeScaleInfo(scaleinfo);
         return nullptr;
     }
+#elif defined(__MINGW32__)
+    buffer = (unsigned char*) _aligned_malloc(dw * dh * 4, 16);
+    if (buffer == nullptr) {
+        std::cerr << "qSmoothScaleImage: out of memory, returning null!" << std::endl;
+        qimageFreeScaleInfo(scaleinfo);
+        return nullptr;
+    }
 #else
     void *ptr;
     // NOTE: Output format is always RGBA! So make enough room for 4 bytes per pixel ;).

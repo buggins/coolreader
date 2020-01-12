@@ -125,8 +125,6 @@ void LVFreeTypeFontManager::SetAntialiasMode(int mode) {
 }
 
 void LVFreeTypeFontManager::SetHintingMode(hinting_mode_t mode) {
-    if (_hintingMode == mode)
-        return;
     FONT_MAN_GUARD
     CRLog::debug("Hinting mode is changed: %d", (int) mode);
     _hintingMode = mode;
@@ -138,9 +136,23 @@ void LVFreeTypeFontManager::SetHintingMode(hinting_mode_t mode) {
     }
 }
 
+void LVFreeTypeFontManager::SetKerning(bool kerningEnabled)
+{
+    FONT_MAN_GUARD
+    CRLog::debug("Kerning mode is changed: %d", (int) kerningEnabled);
+    _allowKerning = kerningEnabled;
+    gc();
+    clearGlyphCache();
+    LVPtrVector<LVFontCacheItem> *fonts = _cache.getInstances();
+    for (int i = 0; i < fonts->length(); i++) {
+        fonts->get(i)->getFont()->setKerning(kerningEnabled);
+    }
+}
+
 void LVFreeTypeFontManager::SetShapingMode( shaping_mode_t mode )
 {
     FONT_MAN_GUARD
+    CRLog::debug("Shaping mode is changed: %d", (int) mode);
     _shapingMode = mode;
     gc();
     clearGlyphCache();
@@ -671,7 +683,7 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
         //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
         //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
         LVFontRef ref(font);
-        font->setKerning( getKerning() );
+        font->setKerning( GetKerning() );
         font->setShapingMode( GetShapingMode() );
         font->setFaceName(item->getDef()->getTypeFace());
         newDef.setSize(size);

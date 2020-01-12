@@ -417,6 +417,7 @@ int LVFreeTypeFace::getHyphenWidth() {
 
 void LVFreeTypeFace::setKerning(bool kerningEnabled) {
     _allowKerning = kerningEnabled;
+    _hash = 0; // Force lvstyles.cpp calcHash(font_ref_t) to recompute the hash
 #if USE_HARFBUZZ == 1
     if (_allowKerning) {
         hb_feature_from_string("+kern", -1, &_hb_features[0]);
