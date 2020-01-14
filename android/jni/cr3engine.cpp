@@ -4,6 +4,7 @@
 #include <jni.h>
 #include <time.h>
 #include <android/log.h>
+#include <android/api-level.h>
 
 
 #include <stdio.h>
@@ -729,9 +730,13 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 	if (NULL == pjmFile_Ctor)
 		return NULL;
 	jstring jpathname = (jstring)env->CallObjectMethod(jdir, pjmFile_GetAbsolutePath);
+	if (NULL == jpathname)
+		return NULL;
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars(jpathname, &iscopy);
-	lString16 path = (CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? Utf8ToUnicode(s) : Wtf8ToUnicode(s);
+	if (NULL == s)
+		return NULL;
+	lString16 path = (CRJNIEnv::sdk_int >= __ANDROID_API_M__) ? Utf8ToUnicode(s) : Wtf8ToUnicode(s);
 	env->ReleaseStringUTFChars(jpathname, s);
 	jobjectArray jarray = NULL;
 	LVContainerRef dir = LVOpenDirectory(path);
@@ -742,13 +747,21 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 		if (NULL != jarray) {
 			for (int i = 0; i < dir->GetObjectCount(); i++) {
 				const LVContainerItemInfo *item = dir->GetObjectInfo(i);
-				lString16 fileName = path + "/" + item->GetName();
-				jstring jfilename = env->NewStringUTF(
-						(CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? UnicodeToUtf8(fileName).c_str()
-															: UnicodeToWtf8(fileName).c_str());
-				jobject jfile = env->NewObject(pjcFile, pjmFile_Ctor, jfilename);
-				if (NULL != jfile)
-					env->SetObjectArrayElement(jarray, i, jfile);
+				if (item && item->GetName()) {
+					lString16 fileName = path + "/" + item->GetName();
+					lString8 fileName8 = (CRJNIEnv::sdk_int >= __ANDROID_API_M__) ? UnicodeToUtf8(fileName) : UnicodeToWtf8(fileName);
+					jstring jfilename = env->NewStringUTF(fileName8.c_str());
+					if (NULL != jfilename) {
+						env->ExceptionClear();
+						jobject jfile = env->NewObject(pjcFile, pjmFile_Ctor, jfilename);
+						if (env->ExceptionCheck() == JNI_TRUE)
+							env->ExceptionClear();
+						else {
+							if (NULL != jfile)
+								env->SetObjectArrayElement(jarray, i, jfile);
+						}
+					}
+				}
 			}
 		}
 	}
