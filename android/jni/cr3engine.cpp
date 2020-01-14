@@ -716,8 +716,9 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguage
  * Signature: (Ljava/io/File;)[Ljava/io/File;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInternal
-		(JNIEnv *env, jclass, jobject jdir)
+		(JNIEnv *penv, jclass, jobject jdir)
 {
+	CRJNIEnv env(penv);
 	if (NULL == jdir)
 		return NULL;
 	jclass pjcFile = env->FindClass("java/io/File");
@@ -732,12 +733,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 	jstring jpathname = (jstring)env->CallObjectMethod(jdir, pjmFile_GetAbsolutePath);
 	if (NULL == jpathname)
 		return NULL;
-	jboolean iscopy;
-	const char * s = env->GetStringUTFChars(jpathname, &iscopy);
-	if (NULL == s)
-		return NULL;
-	lString16 path = (CRJNIEnv::sdk_int >= __ANDROID_API_M__) ? Utf8ToUnicode(s) : Wtf8ToUnicode(s);
-	env->ReleaseStringUTFChars(jpathname, s);
+	lString16 path = env.fromJavaString(jpathname);
 	jobjectArray jarray = NULL;
 	LVContainerRef dir = LVOpenDirectory(path);
 	if ( !dir.isNull() ) {
@@ -749,8 +745,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 				const LVContainerItemInfo *item = dir->GetObjectInfo(i);
 				if (item && item->GetName()) {
 					lString16 fileName = path + "/" + item->GetName();
-					lString8 fileName8 = (CRJNIEnv::sdk_int >= __ANDROID_API_M__) ? UnicodeToUtf8(fileName) : UnicodeToWtf8(fileName);
-					jstring jfilename = env->NewStringUTF(fileName8.c_str());
+					jstring jfilename = env.toJavaString(fileName);
 					if (NULL != jfilename) {
 						env->ExceptionClear();
 						jobject jfile = env->NewObject(pjcFile, pjmFile_Ctor, jfilename);
@@ -760,6 +755,8 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 							if (NULL != jfile)
 								env->SetObjectArrayElement(jarray, i, jfile);
 						}
+						env->DeleteLocalRef(jfile);
+						env->DeleteLocalRef(jfilename);
 					}
 				}
 			}
