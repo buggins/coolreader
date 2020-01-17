@@ -38,7 +38,7 @@ import org.xml.sax.helpers.DefaultHandler;
 @SuppressLint("SimpleDateFormat")
 public class OPDSUtil {
 
-	public static final boolean EXTENDED_LOG = true; // set to false for production
+	public static final boolean EXTENDED_LOG = false; // set to false for production
     public static final int CONNECT_TIMEOUT = 60000;
     public static final int READ_TIMEOUT = 60000;
 	/*
