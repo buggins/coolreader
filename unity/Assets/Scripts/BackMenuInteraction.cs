@@ -7,8 +7,8 @@ public class BackMenuInteraction : MenuInteraction {
 
   override public void populateMenu () {
     menuBase.transform.localScale = new Vector3 (1.0f, 0.3f, 1.0f);
-    addMenuOption ("Exit", new Vector3 (0.15f, 0.0f, 0.0f), quitApp);
-    addMenuOption ("Resume", new Vector3 (-0.15f, 0.0f, 0.0f), resume);
+    addMenuOption ("Exit", new Vector3 (0.15f, 0.0f, 0.0f), quitApp, moveResponse);
+    addMenuOption ("Resume", new Vector3 (-0.15f, 0.0f, 0.0f), resume, moveResponse);
   }
    
   public void quitApp (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)

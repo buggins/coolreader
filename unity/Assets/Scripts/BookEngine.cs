@@ -40,7 +40,7 @@ public class BookEngine : BookEngineInterface {
     { ".doc", BookFormat.coolreader },
 //    { ".txt", BookFormat.coolreader },
     { ".rtf", BookFormat.coolreader },
-    { ".html", BookFormat.coolreader },
+//    { ".html", BookFormat.coolreader },
     { ".chm", BookFormat.coolreader },
     { ".tcr", BookFormat.coolreader },
     { ".pdb", BookFormat.coolreader },

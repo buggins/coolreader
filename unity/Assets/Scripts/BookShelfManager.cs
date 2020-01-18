@@ -162,9 +162,11 @@ public class BookShelfManager : MenuInteraction {
     {
       string fname = button.GetComponent <BookProperties> ().props.filename;
       GameObject book = Instantiate (bookTemplate);
+      book.GetComponent <BookProperties> ().props = button.GetComponent <BookProperties> ().props;
       BookManager bookManager = book.GetComponent <BookManager> ();
-      StartCoroutine (bookManager.loadBook (fname, button.GetComponent <BookProperties> ().props));
-      book.GetComponent <BookMenuInteraction> ().pickupBook (controller, controllerObject, button, avatar);
+//      StartCoroutine (bookManager.loadBook (fname, button.GetComponent <BookProperties> ().props));
+//      book.GetComponent <BookMenuInteraction> ().pickupBook (controller, controllerObject, button, avatar);
+      book.GetComponent <BookPlaceholdMenu> ().pickupBook (controller, controllerObject, button, avatar);
     }
   }
   
@@ -248,7 +250,7 @@ public class BookShelfManager : MenuInteraction {
       string bookSpine = bp.author + "\n" + bp.title;
       
       // Create the book.
-      GameObject bookObject = addMenuOption (bookSpine, new Vector3 (x + plankThickness + bookOffset, y + plankThickness, z), selectBook);
+      GameObject bookObject = addMenuOption (bookSpine, new Vector3 (x + plankThickness + bookOffset, y + plankThickness, z), selectBook, moveResponse);
       bookObject.GetComponent <BookProperties> ().props = bp;
       bookObject.transform.localScale = new Vector3 (0.98f * bookWidth, 0.8f * shelfSeparation, 0.95f * bookcaseDepth);
       bookObject.transform.Find ("CheapBook").GetComponent <MeshRenderer> ().material.color = new Color (bp.colour[0], bp.colour[1], bp.colour[2]);

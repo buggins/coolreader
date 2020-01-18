@@ -127,17 +127,18 @@ public class BookMenuInteraction : MenuInteraction {
   override public void populateMenu () {
     
     // Make clicking on the book the same as the next page button.
-    addItemAsMenuOption (this.gameObject.transform.Find ("ShapeBook").gameObject, getBook);
+    addItemAsMenuOption (this.gameObject.transform.Find ("ShapeBook").gameObject, getBook, moveResponse);
     
-    addMenuOption ("Next\nPage", new Vector3 (0.9f, -0.4f, 0.0f), nextPage);
-    addMenuOption ("Prev\nPage", new Vector3 (-0.9f, 0.4f, 0.0f), prevPage);
-//          addMenuOption ("Position\nBook", new Vector3 (0.0f, 1.3f, 0.0f), positionBook);
-    addMenuOption ("Position\nBook", new Vector3 (-0.3f, 0.65f, 0.05f), moveBook);
-    addMenuOption ("Retrieve\nBook", new Vector3 (-0.1f, 0.65f, 0.05f), retrieveBook);
-    addMenuOption ("Rotate\nBook", new Vector3 (0.1f, 0.65f, 0.05f), rotateBook);
-    opencloseButton = addMenuOption ("Close\nBook", new Vector3 (0.3f, 0.65f, 0.05f), toggleCloseBook);
-    addMenuOption ("Drop\nBook", new Vector3 (0.0f, -0.6f, 0.05f), dropBook);
-    addMenuOption ("Settings", new Vector3 (-0.3f, -0.6f, 0.05f), toggleSettings);
+    addMenuOption ("Next\nPage", new Vector3 (0.9f, -0.4f, 0.0f), nextPage, moveResponse);
+    addMenuOption ("Prev\nPage", new Vector3 (-0.9f, 0.4f, 0.0f), prevPage, moveResponse);
+//          addMenuOption ("Position\nBook", new Vector3 (0.0f, 1.3f, 0.0f), positionBook, moveResponse);
+    addMenuOption ("Position\nBook", new Vector3 (-0.3f, 0.65f, 0.05f), moveBook, moveResponse);
+    addMenuOption ("Retrieve\nBook", new Vector3 (-0.1f, 0.65f, 0.05f), retrieveBook, moveResponse);
+    addMenuOption ("Rotate\nBook", new Vector3 (0.1f, 0.65f, 0.05f), rotateBook, moveResponse);
+    opencloseButton = addMenuOption ("Close\nBook", new Vector3 (0.3f, 0.65f, 0.05f), toggleCloseBook, moveResponse);
+    addMenuOption ("Drop\nBook", new Vector3 (0.0f, -0.6f, 0.05f), dropBook, moveResponse);
+    addMenuOption ("Settings", new Vector3 (-0.3f, -0.6f, 0.05f), toggleSettings, moveResponse);
+    addMenuOption ("Scale\nBook", new Vector3 (0.3f, -0.6f, 0.05f), scaleBook, moveResponse);
   }
 
   private void updateSettings ()
@@ -393,6 +394,30 @@ public class BookMenuInteraction : MenuInteraction {
     }
     
     transform.position = avatar.transform.position + bookDirection * bookDistance * Mathf.Pow (2.0f, 5.0f * direction.y);
+  }
+
+  public void scaleBook (ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject button, GameObject avatar, bool initialize = false)
+  {
+    if (!initialize)
+    {
+      triggerCleared = false;
+      controller.addHandler (bookScale, controllerObject, true);
+    }
+  }
+  
+  public void bookScale (ControlInput controller, ControlInput.ControllerDescription controllerObject, bool trigger, bool debounceTrigger, Vector3 direction, Vector3 position, GameObject avatar, bool touchpad, Vector2 touchposition)
+  {
+    if (!debounceTrigger)
+    {
+      triggerCleared = true;
+    }
+    if (debounceTrigger && triggerCleared)
+    {
+      controller.removeHandler (bookScale, controllerObject);
+    }
+    
+    float s = Mathf.Abs (5.0f * direction.y);
+    transform.localScale = new Vector3 (s, s, s);
   }
 
   // Rotate the book to get the best reading angle.

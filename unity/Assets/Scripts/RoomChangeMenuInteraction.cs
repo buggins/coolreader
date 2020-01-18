@@ -62,6 +62,8 @@ public class RoomChangeMenuInteraction : MenuInteraction {
   // Run the sequence of steps associated with changing rooms.
   private IEnumerator changeRooms ()
   {
+    RoomProperties.persistRoom (SceneManager.GetActiveScene().name);
+    
     // Start the door opening sound playing.
     if (doorOpenSound != null)
     {
@@ -77,12 +79,25 @@ public class RoomChangeMenuInteraction : MenuInteraction {
     animator.SetBool ("OpenDoor", false);
     
     // Transfer any objects that need to go to the next scene.
-    if (book != null)
-    {
-      DontDestroyOnLoad (book);
-    }
+//     if (book != null)
+//     {
+//       DontDestroyOnLoad (book);
+//     }
+    
+    SceneManager.sceneLoaded += OnSceneLoaded;
     // Change scenes.
-    SceneManager.LoadScene(destinationRoom, LoadSceneMode.Single);
+    AsyncOperation asyncLoad = SceneManager.LoadSceneAsync (destinationRoom, LoadSceneMode.Single);
+    
+    while (!asyncLoad.isDone)
+    {
+      yield return null;
+    }
+  }
+  
+  void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+  {
+    RoomProperties.restoreRoom (SceneManager.GetActiveScene().name);
+    SceneManager.sceneLoaded -= OnSceneLoaded;
   }
   
   // Re-enable sound cues once the pointer leaves the door completely.

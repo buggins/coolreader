@@ -165,15 +165,7 @@ public class MenuInteraction : MonoBehaviour {
       MenuItem mi = new MenuItem ();
       mi.button = menuOption;
       mi.handler = handler;
-      if (pointerResponse != null)
-      {
-        mi.pointerOverHandler = pointerResponse;
-      }
-      else
-      {
-        // provide a default handler if none is provided.
-        mi.pointerOverHandler = moveResponse;
-      }
+      mi.pointerOverHandler = pointerResponse;
       mi.scrollHandler = scrollResponse;
       menuItems.Add (mi);
       
@@ -249,7 +241,7 @@ public class MenuInteraction : MonoBehaviour {
   
   // A default response to a menu item being selected (pointer over). Move a small amount, and
   // then return to original position when pointer is no longer present.
-  private void moveResponse (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
+  public void moveResponse (MenuItem menuOption, ControlInput controller, ControlInput.ControllerDescription controllerObject, GameObject avatar)
   {
     // Remember where the button was.
     Vector3 buttonOrigin = menuOption.button.transform.localPosition;
@@ -301,7 +293,10 @@ public class MenuInteraction : MonoBehaviour {
           // If a button is touched, then provide feedback to the user.
           whichButton = menuOption;
           
-          menuOption.pointerOverHandler (menuOption, controller, controllerObject, avatar);
+          if (menuOption.pointerOverHandler != null)
+          {
+            menuOption.pointerOverHandler (menuOption, controller, controllerObject, avatar);
+          }
           break;
         }
       }

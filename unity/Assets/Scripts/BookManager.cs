@@ -192,8 +192,13 @@ public class BookManager : MonoBehaviour {
     return bookLoaded;
   }
   
+  public void loadBook (string bookFileName, BookPropertySet props)
+  {
+     StartCoroutine (loadBookInternal (bookFileName, props));
+  }
+  
   // Create a book from the filename to the ebook.
-  public IEnumerator loadBook (string bookFileName, BookPropertySet props)
+  private IEnumerator loadBookInternal (string bookFileName, BookPropertySet props)
   {
     setInformation ("Loading");
     yield return null;
@@ -404,5 +409,10 @@ public class BookManager : MonoBehaviour {
     fontSize = bookEngine.BEIGetFontSize (bookHandle);    
     
     stateChanged ();
+  }
+  
+  public string getBookID ()
+  {
+    return bookProperties.filename;
   }
 }
