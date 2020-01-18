@@ -84,6 +84,7 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
+    ${CR3_ROOT}/crengine/src/xxhash.c
     ${CR3_ROOT}/crengine/src/private/lvfontglyphcache.cpp
     ${CR3_ROOT}/crengine/src/private/lvfontboldtransform.cpp
     ${CR3_ROOT}/crengine/src/private/lvfontcache.cpp

@@ -800,7 +800,9 @@ public:
     virtual void OnEndDecode( LVImageSource * obj, bool )
     {
         // If we're not smooth scaling, we're done!
-        if (!smoothscale) {
+#ifndef ANDROID
+        if (!smoothscale)
+        {
             return;
         }
 
@@ -829,9 +831,9 @@ public:
             this->OnLineDecoded( obj, y, (lUInt32 *) row );
         }
         */
-
         // And now that it's been rendered we can free the scaled buffer (it was allocated by CRe::qSmoothScaleImage).
         free(sdata);
+#endif
     }
 };
 
