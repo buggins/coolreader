@@ -2,6 +2,7 @@
 #include "../../crengine/include/crlog.h"
 
 #include <dlfcn.h>
+#include <android/api-level.h>
 
 uint8_t CRJNIEnv::sdk_int = 0;
 
@@ -12,7 +13,7 @@ lString16 CRJNIEnv::fromJavaString( jstring str )
 	jboolean iscopy;
 	const char * s = env->GetStringUTFChars(str, &iscopy);
     lString16 res;
-    if (CRJNIEnv::sdk_int >= ANDROID_SDK_M)
+    if (CRJNIEnv::sdk_int >= __ANDROID_API_M__)
         res = Utf8ToUnicode(s);
     else
         res = Wtf8ToUnicode(s);
@@ -22,7 +23,7 @@ lString16 CRJNIEnv::fromJavaString( jstring str )
 
 jstring CRJNIEnv::toJavaString( const lString16 & str )
 {
-    if (CRJNIEnv::sdk_int >= ANDROID_SDK_M)
+    if (CRJNIEnv::sdk_int >= __ANDROID_API_M__)
         return env->NewStringUTF(UnicodeToUtf8(str).c_str());
     // To support 4-byte UTF-8 sequence on Android older that 6.0 (API 23),
     // we encode characters with codes >= 0x10000 to WTF-8.

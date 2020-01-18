@@ -14,7 +14,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 23;
+	public final int DB_VERSION = 27;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -106,8 +106,6 @@ public class MainDB extends BaseDB {
 			if (currentVersion < 7) {
 				addOPDSCatalogs(DEF_OPDS_URLS1);
 			}
-			if (currentVersion < 8)
-				addOPDSCatalogs(DEF_OPDS_URLS2);
 			if (currentVersion < 13)
 			    execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN language VARCHAR DEFAULT NULL");
 			if (currentVersion < 14)
@@ -129,6 +127,10 @@ public class MainDB extends BaseDB {
 			if (currentVersion < 23) {
 			    execSQLIgnoreErrors("ALTER TABLE opds_catalog ADD COLUMN username VARCHAR DEFAULT NULL");
 			    execSQLIgnoreErrors("ALTER TABLE opds_catalog ADD COLUMN password VARCHAR DEFAULT NULL");
+			}
+			if (currentVersion < 27) {
+				removeOPDSCatalogsByURLs(OBSOLETE_OPDS_URLS);
+				addOPDSCatalogs(DEF_OPDS_URLS3);
 			}
 
 			//==============================================================
@@ -205,17 +207,40 @@ public class MainDB extends BaseDB {
     // OPDS access code
     //=======================================================================================
 	private final static String[] DEF_OPDS_URLS1 = {
-		"http://www.feedbooks.com/catalog.atom", "Feedbooks",
-		"http://bookserver.archive.org/catalog/", "Internet Archive",
-		"http://m.gutenberg.org/", "Project Gutenberg", 
-//		"http://ebooksearch.webfactional.com/catalog.atom", "eBookSearch", 
-		"http://bookserver.revues.org/", "Revues.org", 
-		"http://www.legimi.com/opds/root.atom", "Legimi",
-		"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits",
+			// feedbooks.com tested 2020.01
+			// offers preview or requires registration
+			//"http://www.feedbooks.com/catalog.atom", "Feedbooks",
+			// tested 2020.01 - error 500
+			"http://bookserver.archive.org/catalog/", "Internet Archive",
+			// obsolete link
+			//		"http://m.gutenberg.org/", "Project Gutenberg",
+			//		"http://ebooksearch.webfactional.com/catalog.atom", "eBookSearch",
+			//"http://bookserver.revues.org/", "Revues.org",
+			//"http://www.legimi.com/opds/root.atom", "Legimi",
+			//https://www.ebooksgratuits.com/opds/index.php
+			// tested 2020.01
+			"http://www.ebooksgratuits.com/opds/", "Ebooks libres et gratuits (fr)",
 	};
 
-	private final static String[] DEF_OPDS_URLS2 = {
-		"http://www.shucang.org/s/index.php", "ShuCang.org",
+	private final static String[] OBSOLETE_OPDS_URLS = {
+			"http://m.gutenberg.org/", // "Project Gutenberg" old URL
+			"http://www.shucang.org/s/index.php", //"ShuCang.org"
+			"http://www.legimi.com/opds/root.atom", //"Legimi",
+			"http://bookserver.revues.org/", //"Revues.org",
+			"http://ebooksearch.webfactional.com/catalog.atom", //
+	};
+
+	private final static String[] DEF_OPDS_URLS3 = {
+			// o'reilly
+			//"http://opds.oreilly.com/opds/", "O'Reilly",
+			"http://m.gutenberg.org/ebooks.opds/", "Project Gutenberg",
+			//"https://api.gitbook.com/opds/catalog.atom", "GitBook",
+			"http://srv.manybooks.net/opds/index.php", "ManyBooks",
+			//"http://opds.openedition.org/", "OpenEdition (fr)",
+			"https://gallica.bnf.fr/opds", "Gallica (fr)",
+			"https://www.textos.info/catalogo.atom", "textos.info (es)",
+			"https://wolnelektury.pl/opds/", "Wolne Lektury (pl)",
+			"http://www.bokselskap.no/wp-content/themes/bokselskap/tekster/opds/root.xml", "Bokselskap (no)",
 	};
 
 	private void addOPDSCatalogs(String[] catalogs) {
@@ -226,13 +251,17 @@ public class MainDB extends BaseDB {
 		}
 	}
 
+	public void removeOPDSCatalogsByURLs(String ... urls) {
+		for (String url : urls) {
+			execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE url=" + quoteSqlString(url));
+		}
+	}
+
 	public void removeOPDSCatalogsFromBlackList() {
 		if (OPDSConst.BLACK_LIST_MODE != OPDSConst.BLACK_LIST_MODE_FORCE) {
-		    execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE url='http://flibusta.net/opds/'");
+			removeOPDSCatalogsByURLs("http://flibusta.net/opds/");
 		} else {
-			for (String url : OPDSConst.BLACK_LIST) {
-			    execSQLIgnoreErrors("DELETE FROM opds_catalog WHERE url=" + quoteSqlString(url));
-			}
+			removeOPDSCatalogsByURLs(OPDSConst.BLACK_LIST);
 		}
 	}
 	

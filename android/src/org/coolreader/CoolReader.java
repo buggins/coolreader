@@ -1367,7 +1367,7 @@ public class CoolReader extends BaseActivity {
 						@Override
 						public void run() {
 							getDB().removeOPDSCatalog(item.id);
-							directoryUpdated(Services.getScanner().createRecentRoot());
+							directoryUpdated(Services.getScanner().createOPDSRoot());
 						}
 					});
 				}

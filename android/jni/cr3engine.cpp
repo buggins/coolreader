@@ -4,6 +4,7 @@
 #include <jni.h>
 #include <time.h>
 #include <android/log.h>
+#include <android/api-level.h>
 
 
 #include <stdio.h>
@@ -715,8 +716,9 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_checkFontLanguage
  * Signature: (Ljava/io/File;)[Ljava/io/File;
  */
 JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInternal
-		(JNIEnv *env, jclass, jobject jdir)
+		(JNIEnv *penv, jclass, jobject jdir)
 {
+	CRJNIEnv env(penv);
 	if (NULL == jdir)
 		return NULL;
 	jclass pjcFile = env->FindClass("java/io/File");
@@ -729,10 +731,9 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 	if (NULL == pjmFile_Ctor)
 		return NULL;
 	jstring jpathname = (jstring)env->CallObjectMethod(jdir, pjmFile_GetAbsolutePath);
-	jboolean iscopy;
-	const char * s = env->GetStringUTFChars(jpathname, &iscopy);
-	lString16 path = (CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? Utf8ToUnicode(s) : Wtf8ToUnicode(s);
-	env->ReleaseStringUTFChars(jpathname, s);
+	if (NULL == jpathname)
+		return NULL;
+	lString16 path = env.fromJavaString(jpathname);
 	jobjectArray jarray = NULL;
 	LVContainerRef dir = LVOpenDirectory(path);
 	if ( !dir.isNull() ) {
@@ -742,13 +743,22 @@ JNIEXPORT jobjectArray JNICALL Java_org_coolreader_crengine_Engine_listFilesInte
 		if (NULL != jarray) {
 			for (int i = 0; i < dir->GetObjectCount(); i++) {
 				const LVContainerItemInfo *item = dir->GetObjectInfo(i);
-				lString16 fileName = path + "/" + item->GetName();
-				jstring jfilename = env->NewStringUTF(
-						(CRJNIEnv::sdk_int >= ANDROID_SDK_M) ? UnicodeToUtf8(fileName).c_str()
-															: UnicodeToWtf8(fileName).c_str());
-				jobject jfile = env->NewObject(pjcFile, pjmFile_Ctor, jfilename);
-				if (NULL != jfile)
-					env->SetObjectArrayElement(jarray, i, jfile);
+				if (item && item->GetName()) {
+					lString16 fileName = path + "/" + item->GetName();
+					jstring jfilename = env.toJavaString(fileName);
+					if (NULL != jfilename) {
+						env->ExceptionClear();
+						jobject jfile = env->NewObject(pjcFile, pjmFile_Ctor, jfilename);
+						if (env->ExceptionCheck() == JNI_TRUE)
+							env->ExceptionClear();
+						else {
+							if (NULL != jfile)
+								env->SetObjectArrayElement(jarray, i, jfile);
+						}
+						env->DeleteLocalRef(jfile);
+						env->DeleteLocalRef(jfilename);
+					}
+				}
 			}
 		}
 	}

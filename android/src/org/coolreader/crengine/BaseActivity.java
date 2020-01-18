@@ -193,6 +193,21 @@ public class BaseActivity extends Activity implements Settings {
 		bindCRDBService();
 	}
 
+	protected BaseDialog currentDialog;
+	public void onDialogCreated(BaseDialog dlg) {
+		currentDialog = dlg;
+	}
+	public void onDialogClosed(BaseDialog dlg) {
+    	if (currentDialog == dlg) {
+    		currentDialog = null;
+		}
+	}
+	public BaseDialog getCurrentDialog() {
+    	return currentDialog;
+	}
+	public boolean isDialogActive() {
+    	return currentDialog != null;
+	}
 
 	@Override
 	protected void onDestroy() {

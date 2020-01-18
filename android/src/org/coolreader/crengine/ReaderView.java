@@ -109,7 +109,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 
 		@Override
 		protected void onSizeChanged(final int w, final int h, int oldw, int oldh) {
-			log.i("onSizeChanged(" + w + ", " + h + ")");
+			log.i("onSizeChanged(" + w + ", " + h + ")" + " activity.isDialogActive=" + getActivity().isDialogActive());
 			super.onSizeChanged(w, h, oldw, oldh);
 			requestResize(w, h);
 		}
@@ -119,6 +119,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (visibility == VISIBLE) {
 				mActivity.einkRefresh();
 				startStats();
+				checkSize();
 			} else
 				stopStats();
 			super.onWindowVisibilityChanged(visibility);
@@ -129,6 +130,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			if (hasWindowFocus) {
 				mActivity.einkRefresh();
 				startStats();
+				checkSize();
 			} else
 				stopStats();
 			super.onWindowFocusChanged(hasWindowFocus);
@@ -3448,6 +3450,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		boolean changed = (requestedWidth != internalDX) || (requestedHeight != internalDY);
 		if (!changed)
 			return;
+		if (getActivity().isDialogActive()) {
+			log.d("checkSize() : dialog is active, skipping resize");
+			return;
+		}
 //		if (mIsOnFront || !mOpened) {
 		log.d("checkSize() : calling resize");
 		resize();
