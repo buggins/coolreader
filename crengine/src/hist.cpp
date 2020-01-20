@@ -43,7 +43,8 @@ protected:
         in_series,
         in_filename,
         in_filepath,
-        in_filesize
+        in_filesize,
+        in_dom_version
     };
     state_t state;
 public:
@@ -98,6 +99,8 @@ public:
             state = in_filepath;
         } else if ( lStr_cmp(tagname, "doc-filesize")==0 && state==in_file_info ) {
             state = in_filesize;
+        } else if ( lStr_cmp(tagname, "doc-dom-version")==0 && state==in_file_info ) {
+            state = in_dom_version;
         } else if ( lStr_cmp(tagname, "bookmark")==0 && state==in_bm_list ) {
             state = in_bm;
             _curr_bookmark = new CRBookmark();
@@ -139,6 +142,8 @@ public:
         } else if ( lStr_cmp(tagname, "doc-filepath")==0 && state==in_filepath ) {
             state = in_file_info;
         } else if ( lStr_cmp(tagname, "doc-filesize")==0 && state==in_filesize ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, "doc-dom-version")==0 && state==in_dom_version ) {
             state = in_file_info;
         } else if ( lStr_cmp(tagname, "bookmark")==0 && state==in_bm ) {
             state = in_bm_list;
@@ -240,6 +245,9 @@ public:
         case in_filesize:
             _curr_file->setFileSize( txt.atoi() );
             break;
+        case in_dom_version:
+            _curr_file->setDOMversion( txt.atoi() );
+            break;
         default:
             break;
         }
@@ -317,6 +325,7 @@ bool CRFileHist::saveToStream( LVStream * targetStream )
         putTagValue( stream, 3, "doc-filename", rec->getFileName() );
         putTagValue( stream, 3, "doc-filepath", rec->getFilePath() );
         putTagValue( stream, 3, "doc-filesize", lString16::itoa( (unsigned int)rec->getFileSize() ) );
+        putTagValue( stream, 3, "doc-dom-version", lString16::itoa( (unsigned int)rec->getDOMversion() ) );
         putTag( stream, 2, "/file-info" );
         putTag( stream, 2, "bookmark-list" );
         putBookmark( stream, rec->getLastPos() );
@@ -502,6 +511,7 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
     rec->setFileSize( (lvsize_t)sz );
     rec->setLastPos( &bmk );
     rec->setLastTime( (time_t)time(0) );
+    rec->setDOMversion( gDOMVersionCurrent );
 
     _records.insert( 0, rec );
     //CRLog::trace("CRFileHist::savePosition - exit");
@@ -516,6 +526,7 @@ ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathnam
     int index = findEntry( name, path, (lvsize_t)sz );
     if ( index>=0 ) {
         makeTop( index );
+        gDOMVersionRequested = _records[0]->getDOMversion();
         return doc->createXPointer( _records[0]->getLastPos()->getStartPos() );
     }
     return ldomXPointer();

@@ -158,6 +158,7 @@ private:
     lString16 _author;
     lString16 _series;
     lvpos_t   _size;
+    int       _domVersion;
     LVPtrVector<CRBookmark> _bookmarks;
     CRBookmark _lastpos;
 public:
@@ -180,14 +181,16 @@ public:
     lString16 getFilePath() { return _fpath; }
     lString16 getFilePathName() { return _fpath + _fname; }
     lvpos_t   getFileSize() { return _size; }
+    int getDOMversion() { return _domVersion; }
     void setTitle( const lString16 & s ) { _title = s; }
     void setAuthor( const lString16 & s ) { _author = s; }
     void setSeries( const lString16 & s ) { _series = s; }
     void setFileName( const lString16 & s ) { _fname = s; }
     void setFilePath( const lString16 & s ) { _fpath = s; }
     void setFileSize( lvsize_t sz ) { _size = sz; }
+    void setDOMversion( int v ) { _domVersion = v; }
     CRFileHistRecord()
-        : _size(0)
+        : _size(0), _domVersion(0)
     {
     }
     CRFileHistRecord( const CRFileHistRecord & v)
@@ -199,6 +202,7 @@ public:
         , _size(v._size)
         , _bookmarks(v._bookmarks)
         , _lastpos(v._lastpos)
+        , _domVersion(v._domVersion)
     {
     }
     ~CRFileHistRecord()
