@@ -3798,6 +3798,9 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 				(int) stream->GetSize()));
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
         m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
+        const CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+        gDOMVersionRequested = record ? record->getDOMversion() : gDOMVersionCurrent;
+
 		// loading document
 		if (LoadDocument(stream, metadataOnly)) {
 			m_filename = lString16(fname);
@@ -3844,6 +3847,9 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 	m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa(
 			(int) stream->GetSize()));
     m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
+
+    const CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+    gDOMVersionRequested = record ? record->getDOMversion() : gDOMVersionCurrent;
 
 	if (LoadDocument(stream, metadataOnly)) {
 		m_filename = lString16(fname);

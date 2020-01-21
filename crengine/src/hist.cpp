@@ -416,7 +416,7 @@ int CRFileHistRecord::getFirstFreeShortcutBookmark()
     return -1;
 }
 
-int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz )
+int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz ) const
 {
     CR_UNUSED(fpath);
     for ( int i=0; i<_records.length(); i++ ) {
@@ -440,6 +440,18 @@ void CRFileHist::makeTop( int index )
     for ( int i=index; i>0; i-- )
         _records[i] = _records[i-1];
     _records[0] = rec;
+}
+
+const CRFileHistRecord* CRFileHist::getRecord(const lString16 &fileName, size_t fileSize) const
+{
+    lString16 name;
+    lString16 path;
+    splitFName( fileName, path, name );
+    int index = findEntry( name, path, (lvsize_t)fileSize );
+    if ( index>=0 ) {
+        return _records[index];
+    }
+    return NULL;
 }
 
 void CRFileHistRecord::setLastPos( CRBookmark * bmk )
@@ -526,7 +538,6 @@ ldomXPointer CRFileHist::restorePosition( ldomDocument * doc, lString16 fpathnam
     int index = findEntry( name, path, (lvsize_t)sz );
     if ( index>=0 ) {
         makeTop( index );
-        gDOMVersionRequested = _records[0]->getDOMversion();
         return doc->createXPointer( _records[0]->getLastPos()->getStartPos() );
     }
     return ldomXPointer();

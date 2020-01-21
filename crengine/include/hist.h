@@ -180,8 +180,8 @@ public:
     lString16 getFileName() { return _fname; }
     lString16 getFilePath() { return _fpath; }
     lString16 getFilePathName() { return _fpath + _fname; }
-    lvpos_t   getFileSize() { return _size; }
-    int getDOMversion() { return _domVersion; }
+    lvpos_t   getFileSize() const { return _size; }
+    int getDOMversion() const { return _domVersion; }
     void setTitle( const lString16 & s ) { _title = s; }
     void setAuthor( const lString16 & s ) { _author = s; }
     void setSeries( const lString16 & s ) { _series = s; }
@@ -190,7 +190,7 @@ public:
     void setFileSize( lvsize_t sz ) { _size = sz; }
     void setDOMversion( int v ) { _domVersion = v; }
     CRFileHistRecord()
-        : _size(0), _domVersion(0)
+        : _size(0), _domVersion(20171225)
     {
     }
     CRFileHistRecord( const CRFileHistRecord & v)
@@ -214,7 +214,7 @@ public:
 class CRFileHist {
 private:
     LVPtrVector<CRFileHistRecord> _records;
-    int findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz );
+    int findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz ) const;
     void makeTop( int index );
 public:
     void limit( int maxItems )
@@ -224,6 +224,7 @@ public:
         }
     }
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
+    const CRFileHistRecord* getRecord(const lString16 & fileName, size_t fileSize ) const;
     bool loadFromStream( LVStreamRef stream );
     bool saveToStream( LVStream * stream );
     CRFileHistRecord * savePosition( lString16 fpathname, size_t sz, 
