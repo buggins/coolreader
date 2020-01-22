@@ -205,6 +205,7 @@ private:
 public:
     LVCssSelector( LVCssSelector & v );
     LVCssSelector() : _id(0), _specificity(0), _next(NULL), _rules(NULL) { }
+    LVCssSelector(int specificity) : _id(0), _specificity(specificity), _next(NULL), _rules(NULL) { }
     ~LVCssSelector() { if (_next) delete _next; if (_rules) delete _rules; }
     bool parse( const char * &str, lxmlDocBase * doc );
     lUInt16 getElementNameId() { return _id; }
@@ -233,12 +234,16 @@ public:
 */
 class LVStyleSheet {
     lxmlDocBase * _doc;
-    LVPtrVector <LVCssSelector> _selectors;
 
+    int _selector_count;
+    LVArray <int> _selector_count_stack;
+
+    LVPtrVector <LVCssSelector> _selectors;
     LVPtrVector <LVPtrVector <LVCssSelector> > _stack;
     LVPtrVector <LVCssSelector> * dup()
     {
         LVPtrVector <LVCssSelector> * res = new LVPtrVector <LVCssSelector>();
+        res->reserve( _selectors.length() );
         for ( int i=0; i<_selectors.length(); i++ ) {
             LVCssSelector * selector = _selectors[i];
             if ( selector )
@@ -256,11 +261,18 @@ public:
     // save current state of stylesheet
     void push()
     {
+        _selector_count_stack.add( _selector_count );
         _stack.add( dup() );
     }
     // restore previously saved state
     bool pop()
     {
+        // Restore original counter (so we don't overflow the 19 bits
+        // of _specificity reserved for storing selector order, so up
+        // to 524288, when we meet a book with 600 DocFragments each
+        // including a 1000 selectors stylesheet).
+        if ( !_selector_count_stack.empty() )
+            _selector_count = _selector_count_stack.remove( _selector_count_stack.length()-1 );
         LVPtrVector <LVCssSelector> * v = _stack.pop();
         if ( !v )
             return false;
@@ -270,11 +282,16 @@ public:
     }
 
     /// remove all rules from stylesheet
-    void clear() { _selectors.clear(); _stack.clear();}
+    void clear() {
+        _selector_count = 0;
+        _selector_count_stack.clear();
+        _selectors.clear();
+        _stack.clear();
+    }
     /// set document to retrieve ID values from
     void setDocument( lxmlDocBase * doc ) { _doc = doc; }
     /// constructor
-    LVStyleSheet( lxmlDocBase * doc = NULL ) : _doc(doc) { }
+    LVStyleSheet( lxmlDocBase * doc = NULL ) : _doc(doc), _selector_count(0) { }
     /// copy constructor
     LVStyleSheet( LVStyleSheet & sheet );
     /// parse stylesheet, compile and add found rules to sheet

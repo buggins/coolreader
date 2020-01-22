@@ -2266,6 +2266,20 @@ static bool parse_ident( const char * &str, char * ident )
     return true;
 }
 
+// We are storing specificity/weight in a lUInt32.
+// We also want to include in it the order in which we have
+// seen/parsed the selectors, so we store in the lower bits
+// of this lUInt32 some sequence number to ensure selectors
+// with the same specificity are applied in the order we've
+// seen them when parsing.
+// So, apply the real CSS specificity in higher bits, allowing
+// for the following number of such rules in a single selector
+// (we're not checking for overflow thus...)
+#define WEIGHT_SPECIFICITY_ID       1<<29 // allow for 8 #id (b in comment below)
+#define WEIGHT_SPECIFICITY_ATTRCLS  1<<24 // allow for 32 .class and [attr...] (c)
+#define WEIGHT_SPECIFICITY_ELEMENT  1<<19 // allow for 32 element names div > p span (d)
+#define WEIGHT_SELECTOR_ORDER       1     // allow for counting 524288 selectors
+
 lUInt32 LVCssSelectorRule::getWeight() {
     /* Each LVCssSelectorRule will add its own weight to
        its LVCssSelector container specifity.
@@ -2297,7 +2311,7 @@ lUInt32 LVCssSelectorRule::getWeight() {
     //
     switch (_type) {
         case cssrt_id:            // E#id
-            return 1 << 16;
+            return WEIGHT_SPECIFICITY_ID;
             break;
         case cssrt_attrset:           // E[foo]
         case cssrt_attreq:            // E[foo="value"]
@@ -2314,14 +2328,16 @@ lUInt32 LVCssSelectorRule::getWeight() {
         case cssrt_attrcontains_i:    // E[foo*="value" i]
         case cssrt_class:             // E.class
         case cssrt_pseudoclass:       // E:pseudo-class
-            return 1 << 8;
+            return WEIGHT_SPECIFICITY_ATTRCLS;
             break;
         case cssrt_parent:        // E > F
         case cssrt_ancessor:      // E F
         case cssrt_predecessor:   // E + F
         case cssrt_predsibling:   // E ~ F
-            // But not when they don't have an element (_id=0)
-            return _id != 0 ? 1 : 0;
+            // These don't contribute to specificity. If they
+            // come with an element name, WEIGHT_SPECIFICITY_ELEMENT
+            // has already been added in LVCssSelector::parse().
+            return 0;
             break;
         case cssrt_universal:     // *
             return 0;
@@ -3067,7 +3083,7 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
                 // selectors (eg: blah {font-style: italic}) may have different values
                 // returned by getElementNameIndex() across book loadings, and cause:
                 // "cached rendering is invalid (style hash mismatch): doing full rendering"
-            _specificity += 1; // we have an element: this adds 1 to specificity
+            _specificity += WEIGHT_SPECIFICITY_ELEMENT; // we have an element: update specificity
             if (*str==' ' || *str=='\t' || *str=='\n' || *str == '\r')
                 check_attribute_rules = false;
             skip_spaces( str );
@@ -3202,6 +3218,7 @@ LVStyleSheet::LVStyleSheet( LVStyleSheet & sheet )
 :   _doc( sheet._doc )
 {
     set( sheet._selectors );
+    _selector_count = sheet._selector_count;
 }
 
 void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )
@@ -3211,6 +3228,15 @@ void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style )
         
     lUInt16 id = node->getNodeId();
     
+    // _selectors[0] holds the ordered chain of selectors starting (from
+    // the right of the selector) with a rule with no element name attached
+    // (eg. "div p .quote1", class name .quote1 should be checked against
+    // all elements' classnames before continuing checking for ancestors).
+    // _selectors[element_name_id] holds the ordered chain of selector starting
+    // with that element name (eg. ".body div.chapter > p" should be
+    // first checked agains all <p>).
+    // To see which selectors apply to a <p>, we must iterate thru both chains,
+    // checking and applying them in the order of specificity/parsed position.
     LVCssSelector * selector_0 = _selectors[0];
     LVCssSelector * selector_id = id>0 && id<_selectors.length() ? _selectors[id] : NULL;
 
@@ -3299,7 +3325,11 @@ bool LVStyleSheet::parse( const char * str, bool higher_importance, lString16 co
         for (;*str;)
         {
             // parse selector(s)
-            selector = new LVCssSelector;
+            // Have selector count number make the initial value
+            // of _specificity, so order of selectors is preserved
+            // when applying selectors with the same CSS specificity.
+            selector = new LVCssSelector(_selector_count);
+            _selector_count += 1; // = +WEIGHT_SELECTOR_ORDER
             selector->setNext( prev_selector );
             if ( !selector->parse(str, _doc) )
             {
