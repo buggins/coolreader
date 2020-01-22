@@ -1392,19 +1392,30 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                     // read length
                     css_length_t len;
                     const char * orig_pos = decl;
-                    bool negative = false;
-                    if ( *decl == '-' ) {
-                        decl++;
-                        negative = true;
-                    }
-                    if ( parse_number_value( decl, len ) ) {
-                        // read optional "hanging" flag
+                    if ( parse_number_value( decl, len, true, true ) ) { // accepts % and negative values
+                        // Read optional "hanging" flag
+                        // Note: "1em hanging" is not the same as "-1em"; the former shifts
+                        // all other but first line by 1em to the right, while the latter
+                        // shifts the first  by 1em to the left. Visually, lines would
+                        // look the same relative to each other, but the whole block would
+                        // appear shifted to the left with the latter.
+                        // Little hack here: to be able to store the presence of "hanging" as
+                        // a flag in the css_length_t, we reset the lowest bit to 0, which
+                        // shouldn't really have a visual impact on the computed value (as
+                        // the parsed number is stored *256 to allow fractional value, so
+                        // we're losing 0.004em, 0.004px, 0.004%...)
+                        len.value &= 0xFFFFFFFE; // set lowest bit to 0
+                            // printf("3: %x -3: %x => %x %x %d\n", (lInt16)(3), (lInt16)(-3),
+                            //    (lInt16)(3&0xFFFFFFFE), (lInt16)((-3)&0xFFFFFFFE), (lInt16)((-3)&0xFFFFFFFE));
+                            // outputs: 3: 3 -3: fffffffd => 2 fffffffc -4
                         skip_spaces( decl );
                         int attr = parse_name( decl, css_ti_attribute_names, -1 );
-                        if ( attr==0 || negative ) {
-                            len.value = -len.value;
+                        if ( attr == 0 ) { // "hanging" found
+                            len.value |= 0x00000001; // set lowest bit to 1
                         }
-                        // save result
+                        // Note: if needed, we could parse the "each-line" keyword to be able
+                        // to bring back the legacy behaviour (where indent was applied after
+                        // a <br>) with CSS, and put this fact in the 2nd lowest bit.
                         buf<<(lUInt32) (prop_code | importance | parse_important(decl));
                         buf<<(lUInt32) len.type;
                         buf<<(lUInt32) len.value;

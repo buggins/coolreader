@@ -2276,7 +2276,32 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         if ((flags & LTEXT_FLAG_NEWLINE) && rm != erm_inline) {
             // Non-inline node in a final block: this is the top and single 'final' node:
             // get text-indent and line-height that will apply to the full final block
+
+            // text-indent should really not have to be handled here: it would be
+            // better handled in ldomNode::renderFinalBlock(), grabbing it from the
+            // final node, and only passed as an arg to LFormattedText->Format(),
+            // like we pass to it the text block width.
+            // Current code passes indent to all txform->AddSource*(.., indent,..), so
+            // it is stored in each src_text_fragment_t->indent, while it's really
+            // a property of the whole paragraph, as it is fetched from the top node,
+            // like we do here. (It is never updated, and as it is not passed by reference,
+            // updates/reset would not apply to sibling or parent nodes.)
+            // There is just one case that sets it to a different value: in the
+            // legacy/obsolete erm_list_item rendering method with lsp_outside, where
+            // it is set to a negative value (the width of the marker), so to handle text
+            // indentation from the outside marker just like regular negative text-indent.
+            // So, sadly, let's keep it that way to not break legacy rendering.
             indent = lengthToPx(style->text_indent, width, em);
+            // lvstsheet sets the lowest bit to 1 when text-indent has the "hanging" keyword:
+            if ( style->text_indent.value & 0x00000001 ) {
+                // lvtextfm handles negative indent as "indent by the negated (so, then
+                // positive) value all lines but the first"
+                indent = -indent;
+                // We keep real negative values as negative here. They are also handled
+                // in renderBlockElementEnhanced() to possibly have the text block shifted
+                // to the left to properly apply the negative effect ("hanging" text-indent
+                // does not need that).
+            }
 
             // We set the LFormattedText strut_height and strut_baseline
             // with the values from this "final" node. All lines made out from
@@ -2856,7 +2881,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
             case css_ta_justify:
                 baseflags |= LTEXT_ALIGN_WIDTH;
-                indent = 0;
                 break;
             case css_ta_start:
                 baseflags |= (is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT);
@@ -6517,6 +6541,52 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         fmt.push();
                     }
                 }
+                // Deal with negative text-indent
+                if ( style->text_indent.value < 0 ) {
+                    int indent = - lengthToPx(style->text_indent, container_width, em);
+                    // We'll need to have text written this positive distance outside
+                    // the nominal text inner_width.
+                    // We can remove it from left padding if indent is smaller than padding.
+                    // If it is larger, we can't remove the excess from left margin, as
+                    // these margin should stay fixed for proper background drawing in their
+                    // limits (the text with negative text-indent should overflow the
+                    // margin and background color).
+                    // But, even if CSS forbids negative padding, the followup code might
+                    // be just fine with negative values for padding_left/_right !
+                    // (Not super sure of that, but it looks like it works, so let's
+                    // go with it - if issues, one can switch to a rendering mode
+                    // without the ALLOW_HORIZONTAL_BLOCK_OVERFLOW flag).
+                    // (Text selection on the overflowing text may not work, but it's
+                    // the same for negative margins.)
+                    if ( !is_rtl ) {
+                        padding_left -= indent;
+                        if ( padding_left < 0 ) {
+                            if ( !BLOCK_RENDERING(flags, ALLOW_HORIZONTAL_BLOCK_OVERFLOW) ) {
+                                padding_left = 0; // be safe, drop excessive part of indent
+                            }
+                            else if ( !BLOCK_RENDERING(flags, ALLOW_HORIZONTAL_PAGE_OVERFLOW) ) {
+                                // Limit to top node (page, float) left margin
+                                int abs_x = flow->getCurrentAbsoluteX();
+                                if ( abs_x + padding_left < 0 )
+                                    padding_left = -abs_x;
+                            }
+                        }
+                    }
+                    else {
+                        padding_right -= indent;
+                        if ( padding_right < 0 ) {
+                            if ( !BLOCK_RENDERING(flags, ALLOW_HORIZONTAL_BLOCK_OVERFLOW) ) {
+                                padding_right = 0;
+                            }
+                            else if ( !BLOCK_RENDERING(flags, ALLOW_HORIZONTAL_PAGE_OVERFLOW) ) {
+                                int o_width = flow->getOriginalContainerWidth();
+                                int abs_x = flow->getCurrentAbsoluteX();
+                                if ( abs_x + width + padding_right < o_width )
+                                    padding_right = o_width - width - abs_x;
+                            }
+                        }
+                    }
+                }
 
                 // To get an accurate BlockFloatFootprint, we need to push vertical
                 // margin now (and not delay it to the first addContentLine()).
@@ -8500,7 +8570,11 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                     maxWidth = curMaxWidth;
                 if (curWordWidth > minWidth)
                     minWidth = curWordWidth;
-                // Next word on new line has text-indent in its width
+                // First word after a <BR> should not have positive text-indent in its width,
+                // but we did reset 'indent' to 0 after the first word of the final block.
+                // If we get some non-zero indent here, it is actually negated negative indent
+                // that should be applied to all words, including the one after a <BR/>, and
+                // so it should contribute to the new line full width (curMaxWidth).
                 curMaxWidth = indent;
                 curWordWidth = indent;
                 collapseNextSpace = true; // skip leading spaces
@@ -8612,8 +8686,29 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 // curMaxWidth and curWordWidth are not used in our parents (which
                 // are block-like elements), we can just reset them.
                 // First word will have text-indent has its width
-                curMaxWidth = indent;
-                curWordWidth = indent;
+                if ( style->text_indent.value & 0x00000001 ) {
+                    // lvstsheet sets the lowest bit to 1 when text-indent has the "hanging" keyword,
+                    // which will be handled like negative margins
+                    indent = -indent;
+                }
+                if ( indent >= 0 ) {
+                    // Positive indent applies only on the first line, so account
+                    // for it only on the first word.
+                    curMaxWidth = indent;
+                    curWordWidth = indent;
+                    indent = 0; // but no more on following words in this final node, even after <BR>
+                }
+                else {
+                    // Negative indent does not apply on the first word, but may apply on each
+                    // followup word if a wrap happens before thema so don't reset it.
+                    // To keep things simple and readable here, we only apply it to the first
+                    // word after a <BR> - but it should really apply on each word, everytime
+                    // we reset curWordWidth, which would make the below code quite ugly and
+                    // hard to understand. Hopefully, negative or hanging indents should be
+                    // rare in floats, inline boxes and table cells.
+                    // (We don't handle the shift/overlap with padding that a real negative
+                    // indent can cause - so, we may return excessive widths.)
+                }
                 if (list_marker_width > 0 && !list_marker_width_as_padding) {
                     // with additional list marker if list-style-position: inside
                     curMaxWidth += list_marker_width;

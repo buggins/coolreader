@@ -389,16 +389,19 @@ public:
     lUInt16 * m_flags;
     src_text_fragment_t * * m_srcs;
     lUInt16 * m_charindex;
-    int *     m_widths;
-    int m_y;
-    int m_max_img_height;
+    int  *     m_widths;
+    int  m_y;
+    int  m_max_img_height;
     bool m_has_images;
     bool m_has_float_to_position;
     bool m_has_ongoing_float;
     bool m_no_clear_own_floats;
     bool m_allow_strut_confinning;
     bool m_has_multiple_scripts;
-    int m_specified_para_dir;
+    bool m_indent_first_line_done;
+    int  m_indent_after_first_line;
+    int  m_indent_current;
+    int  m_specified_para_dir;
     #if (USE_FRIBIDI==1)
         // Bidi/RTL support
         FriBidiCharType *    m_bidi_ctypes;
@@ -2906,14 +2909,6 @@ public:
         // split paragraph into lines, export lines
         int pos = 0;
         int upSkipPos = -1;
-        int indent = m_srcs[0]->indent;
-
-        /* We'd rather not have this final node text just dropped if there
-         * is not enough width for the indent !
-        if (indent > maxWidth) {
-            return;
-        }
-        */
 
         // int minWidth = 0;
         // Not per-specs, but when floats reduce the available width, skip y until
@@ -2922,11 +2917,13 @@ public:
         int minWidth = 3 * m_pbuffer->strut_height;
 
         for (;pos<m_length;) { // each loop makes a line
-            // x is the initial line indent: it's set to text-indent value for the
-            // first line (when pos=0), or to the others when it is negative.
-            // (We use it like a x coordinates below, but we'll use it on the
-            // right in addLine() if para is RTL.)
-            int x = indent >=0 ? (pos==0 ? indent : 0) : (pos==0 ? 0 : -indent);
+            // x is this line indent. We use it like a x coordinates below, but
+            // we'll use it on the right in addLine() if para is RTL.
+            int x = m_indent_current;
+            if ( !m_indent_first_line_done ) {
+                m_indent_first_line_done = true;
+                m_indent_current = m_indent_after_first_line;
+            }
             int w0 = pos>0 ? m_widths[pos-1] : 0;
             int i;
             int lastNormalWrap = -1;
@@ -3477,6 +3474,22 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height, int para_dire
     m_pbuffer->page_height = page_height;
     // format text
     LVFormatter formatter( m_pbuffer );
+
+    // Set (as properties of the whole final block) the text-indent computed
+    // values for the first line and for the next lines, by taking it
+    // from the first src_text_fragment_t added (see comment in lvrend.cpp
+    // renderFinalBlock() why we do it that way - while it might be better
+    // if it were provided as a parameter to LFormattedText::Format()).
+    int indent = m_pbuffer->srctextlen > 0 ? m_pbuffer->srctext[0].indent : 0;
+    formatter.m_indent_first_line_done = false;
+    if ( indent >= 0 ) { // positive indent affects only first line
+        formatter.m_indent_current = indent;
+        formatter.m_indent_after_first_line = 0;
+    }
+    else { // negative indent affects all but first lines
+        formatter.m_indent_current = 0;
+        formatter.m_indent_after_first_line = -indent;
+    }
 
     // Set specified para direction (can be REND_DIRECTION_UNSET, in which case
     // it will be detected by fribidi)
