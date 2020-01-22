@@ -13920,6 +13920,31 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
     if ( rm == erm_invisible ) {
         return NULL;
     }
+
+    if ( rm == erm_inline ) {
+        // We shouldn't meet erm_inline here, as our purpose is to return
+        // a final node (so, the container of inlines), and not look further
+        // (it's ldomDocument::createXPointer(pt) job to look at this final
+        // node rendered content to find the exact text node and char at pt).
+        // Except in the "pt.y is inside the box bottom overflow" case below,
+        // and that box is erm_final (see there for more comments).
+        // We should navigate all the erm_inline nodes, looking for
+        // non-erm_inline ones that may be in that overflow and containt pt.
+        // erm_inline nodes don't have a RenderRectAccessor(), so their x/y
+        // shifts are 0, and any inner block node had its RenderRectAccessor
+        // x/y offsets positionned related to the final block. So, no need
+        // to shift pt: just recursively call elementFromPoint() as-is,
+        // and we'll be recursively navigating inline nodes here.
+        int count = getChildCount();
+        for ( int i=0; i<count; i++ ) {
+            ldomNode * p = getChildNode( i );
+            ldomNode * e = p->elementFromPoint( pt, direction );
+            if ( e ) // found it!
+                return e;
+        }
+        return NULL; // nothing found
+    }
+
     RenderRectAccessor fmt( this );
 
     if ( BLOCK_RENDERING_G(ENHANCED) ) {
@@ -13952,6 +13977,15 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
                 // Check each of this element's children if pt is inside it (so, we'll
                 // go by here for each of them that has some overflow too, and that
                 // contributed to making this element's overflow.)
+                // Note that if this node is erm_final, its bottom overflow must have
+                // been set by some inner embedded float. But this final block's children
+                // are erm_inline, and the float might be deep among inlines' children.
+                // erm_inline nodes don't have their RenderRectAccessor set, so the
+                // bottom overflow is not propagated thru them, and we would be in
+                // the above case ("Box (with overflow) fully before pt.y"), not
+                // looking at inlines' children. We handle this case above (at the
+                // start of this function) by looking at erm_inline's children for
+                // non-erm_inline nodes before checking any x/y or bottom overflow.
                 int count = getChildCount();
                 for ( int i=0; i<count; i++ ) {
                     ldomNode * p = getChildNode( i );
