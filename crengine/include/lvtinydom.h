@@ -1767,8 +1767,11 @@ class ldomXRange {
     /// _flags, only used by ldomXRangeList.getRanges() when making a ldomMarkedRangeList (for native
     //  highlighting of a text selection being made, and for crengine internal bookmarks):
     //  0: not shown (filtered out in LVDocView::updateSelections() by ldomXRangeList ranges(..., true))
-    //  1: legacy drawing (will make a single ldomMarkedRange spanning multiple lines, assuming full width LTR paragraphs)
-    //  2: enhanced drawing (will make multiple segmented ldomMarkedRange, each spanning a single line)
+    //  1,2,3: legacy drawing (will make a single ldomMarkedRange spanning multiple lines, assuming
+    //         full width LTR paragraphs) (2 & 3 might be used for crengine internal bookmarks,
+    //         see hist.h for enum bmk_type)
+    //  0x11, 0x12, 0x13:  enhanced drawing (will make multiple segmented ldomMarkedRange,
+    //                     each spanning a single line)
     lUInt32 _flags;
 public:
     ldomXRange()
@@ -1915,8 +1918,10 @@ public:
     lvPoint   end;
     /// flags:
     //  0: not shown
-    //  1: legacy drawing (a single mark may spans multiple lines, assuming full width LTR paragraphs)
-    //  2: enhanced drawing (segmented mark, spanning a single line)
+    //  1,2,3: legacy drawing (a single mark may spans multiple lines, assuming full width
+    //         LTR paragraphs) (2 & 3 might be used for crengine internal bookmarks,
+    //         see hist.h for enum bmk_type)
+    //  0x11, 0x12, 0x13:  enhanced drawing (segmented mark, spanning a single line)
     lUInt32   flags;
     bool empty()
     {

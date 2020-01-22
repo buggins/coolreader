@@ -8421,7 +8421,7 @@ void ldomXRangeList::getRanges( ldomMarkedRangeList &dst )
         return;
     for ( int i=0; i<length(); i++ ) {
         ldomXRange * range = get(i);
-        if (range->getFlags() < 2) {
+        if (range->getFlags() < 0x10) {
             // Legacy marks drawing: make a single ldomMarkedRange spanning
             // multiple lines, assuming full width LTR paragraphs)
             // (Updated to use toPoint(extended=true) to have them shifted
@@ -8819,7 +8819,7 @@ bool ldomXRange::getWordRange( ldomXRange & range, ldomXPointer & p )
 /// returns true if intersects specified line rectangle
 bool ldomMarkedRange::intersects( lvRect & rc, lvRect & intersection )
 {
-    if ( flags < 2 ) {
+    if ( flags < 0x10 ) {
         // This assumes lines (rc) are from full-width LTR paragraphs, and
         // takes some shortcuts when checking intersection (it can be wrong
         // when floats, table cells, or RTL/BiDi text are involved).
