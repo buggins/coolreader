@@ -46,6 +46,7 @@ XS_TAG1( html )
 XS_TAG1( head )
 XS_TAG1D( title, true, css_d_block, css_ws_normal )
 XS_TAG1D( style, true, css_d_none, css_ws_normal )
+XS_TAG1D( script, true, css_d_none, css_ws_normal )
 XS_TAG1T( body )
 XS_TAG1( param ) /* quite obsolete, child of <object>... was there, let's keep it */
 
