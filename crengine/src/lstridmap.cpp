@@ -271,6 +271,7 @@ void LDOMNameIdMap::AddItem( LDOMNameIdMapItem * item )
             m_by_id[i] = NULL;
             m_by_name[i] = NULL;
         }
+        m_size = newsize;
     }
     if (m_by_id[item->id] != NULL)
     {
