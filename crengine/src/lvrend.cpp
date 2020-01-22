@@ -2091,6 +2091,8 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
             // Scale it according to gInterlineScaleFactor
             if (style->line_height.type != css_val_screen_px && gInterlineScaleFactor != INTERLINE_SCALE_FACTOR_NO_SCALE)
                 line_h = (line_h * gInterlineScaleFactor) >> INTERLINE_SCALE_FACTOR_SHIFT;
+            if ( style->cr_hint == css_cr_hint_strut_confined )
+                flags |= LTEXT_STRUT_CONFINED;
         }
         marker += "\t";
         // Not sure what that "\t" was used for, but coincidentally, it acts for fribidi
@@ -2286,6 +2288,12 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             int fb = enode->getFont()->getBaseline();
             int f_half_leading = (line_h - fh) / 2;
             txform->setStrut(line_h, fb + f_half_leading);
+        }
+        else if ( style->cr_hint == css_cr_hint_strut_confined ) {
+            // Previous branch for the top final node has set the strut.
+            // Inline nodes having "-cr-hint: strut-confined" will be confined
+            // inside that strut.
+            flags |= LTEXT_STRUT_CONFINED;
         }
 
         // Now, process styles that may differ between inline nodes, and
@@ -2492,6 +2500,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Also, the floating element or inline-block inner element vertical-align drift is dropped
             valign_dy = 0;
             flags &= ~LTEXT_VALIGN_MASK; // also remove any such flag we've set
+            flags &= ~LTEXT_STRUT_CONFINED; // remove this if it's been set above
             // (Looks like nothing special to do with indent or line_h)
         }
 

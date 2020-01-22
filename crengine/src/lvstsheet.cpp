@@ -1089,6 +1089,14 @@ static const char * css_cr_hint_names[]={
         "toc-level5",
         "toc-level6",
         "toc-ignore",       // ignore these H1...H6 when building alternate TOC
+
+        // Next one is not really a hint, but might have some active effect on rendering/layout.
+        // It has effect on inline nodes only, while the ones above mostly apply to block
+        // nodes. So, provide it with a lower specificity if those above also need to be used.
+        "strut-confined",   // text and images should not overflow/modify their paragraph strut
+                            // baseline and height (it could have been a non-standard named
+                            // value for line-height:, but we want to be able to not override
+                            // existing line-height: values)
         NULL
 };
 

@@ -76,6 +76,8 @@ extern "C" {
 #define LTEXT_SRC_IS_FLOAT_DONE      0x02000000  /**< \brief float:'ing node (already dealt with) */
 #define LTEXT_SRC_IS_INLINE_BOX      0x04000000  /**< \brief inlineBox wrapping node */
 
+#define LTEXT_STRUT_CONFINED         0x08000000  /**< \brief text should not overflow/modify its paragraph strut baseline and height */
+
 /** \brief Source text line
 */
 typedef struct
@@ -157,6 +159,8 @@ typedef struct
 
 #define LTEXT_WORD_VALIGN_TOP                0x1000 /// word is to be vertical-align: top
 #define LTEXT_WORD_VALIGN_BOTTOM             0x2000 /// word is to be vertical-align: bottom
+#define LTEXT_WORD_STRUT_CONFINED            0x4000 /// word is to be fully contained into strut bounds
+                                                    /// (used only when one of the 2 previous is set)
 
 //#define LTEXT_BACKGROUND_MARK_FLAGS 0xFFFF0000l
 

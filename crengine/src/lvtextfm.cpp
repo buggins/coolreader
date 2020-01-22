@@ -396,6 +396,7 @@ public:
     bool m_has_float_to_position;
     bool m_has_ongoing_float;
     bool m_no_clear_own_floats;
+    bool m_allow_strut_confinning;
     bool m_has_multiple_scripts;
     int m_specified_para_dir;
     #if (USE_FRIBIDI==1)
@@ -917,6 +918,10 @@ public:
         if ( m_specified_para_dir == REND_DIRECTION_RTL ) {
             has_rtl = true;
         }
+        // Whether any "-cr-hint: strut-confined" should be applied: only when
+        // we have non-space-only text in the paragraph - standalone images
+        // possibly separated by spaces don't need to be reduced in size.
+        m_allow_strut_confinning = false;
 
         int pos = 0;
         int i;
@@ -1034,6 +1039,8 @@ public:
                     }
                     if ( !is_space || preformatted ) // don't strip traling spaces if pre
                         last_non_space_pos = pos;
+                    if ( !is_space )
+                        m_allow_strut_confinning = true;
                     prev_was_space = is_space;
 
                     /* non-optimized implementation of "(a) A sequence of segment breaks
@@ -2284,6 +2291,9 @@ public:
                 // be delayed until the full line is laid out. Until that, we store some
                 // info into word->_top_to_baseline and word->_baseline_to_bottom.
                 bool adjust_line_box = true;
+                // We will make sure elements with "-cr-hint: strut-confined"
+                // do not change the strut baseline and height
+                bool strut_confined = (lastSrc->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confinning;
 
                 if ( lastSrc->flags & LTEXT_SRC_IS_OBJECT ) {
                     // object: image or inline-block box (floats have been skipped above)
@@ -2299,6 +2309,8 @@ public:
                         word->o.baseline = lastSrc->o.baseline;
                         top_to_baseline = word->o.baseline;
                         baseline_to_bottom = word->o.height - word->o.baseline;
+                        // We can't really ensure strut_confined with inline-block boxes,
+                        // or we could miss content (it would be overwritten by next lines)
                     }
                     else { // image
                         word->flags = LTEXT_WORD_IS_OBJECT;
@@ -2309,6 +2321,16 @@ public:
                         // Negative width and height mean the value is a % (of our final block width)
                         width = width<0 ? (-width * (m_pbuffer->width - x) / 100) : width;
                         height = height<0 ? (-height * (m_pbuffer->width-x) / 100) : height;
+                        if ( strut_confined && height > m_pbuffer->strut_height ) {
+                            // Don't make image taller than initial strut height.
+                            // (We could have checked height against frmline->height (which may
+                            // be larger than m_pbuffer->strut_height if not all elements have
+                            // "-cr-hint: strut-confined"), but in processParagraph() we checked
+                            // against m_pbuffer->strut_height, so keep doing that to not
+                            // have this line width different.
+                            width = width * m_pbuffer->strut_height / height; // keep aspect ratio
+                            height = frmline->height;
+                        }
                         // todo: adjust m_max_img_height with this image valign_dy/vertical_align_flag
                         resizeImage(width, height, m_pbuffer->width - x, m_max_img_height, m_length>1);
                             // Note: it can happen with a standalone image in a small container
@@ -2334,6 +2356,8 @@ public:
                         adjust_line_box = false;
                         delayed_valign_computation = true;
                         word->flags |= LTEXT_WORD_VALIGN_TOP;
+                        if ( strut_confined )
+                            word->flags |= LTEXT_WORD_STRUT_CONFINED;
                         word->_top_to_baseline = top_to_baseline;
                         word->_baseline_to_bottom = baseline_to_bottom;
                         word->y = top_to_baseline;
@@ -2344,6 +2368,8 @@ public:
                         adjust_line_box = false;
                         delayed_valign_computation = true;
                         word->flags |= LTEXT_WORD_VALIGN_BOTTOM;
+                        if ( strut_confined )
+                            word->flags |= LTEXT_WORD_STRUT_CONFINED;
                         word->_top_to_baseline = top_to_baseline;
                         word->_baseline_to_bottom = baseline_to_bottom;
                         word->y = - baseline_to_bottom;
@@ -2376,6 +2402,13 @@ public:
                     int vertical_align_flag = srcline->flags & LTEXT_VALIGN_MASK;
                     int line_height = srcline->interval;
                     int fh = font->getHeight();
+                    if ( strut_confined && line_height > m_pbuffer->strut_height ) {
+                        // If we'll be confining text inside the strut, get rid of any
+                        // excessive line-height for the following computations).
+                        // But we should keep it at least fh so drawn text doesn't
+                        // overflow the box we'll try to confine into the strut.
+                        line_height = fh > m_pbuffer->strut_height ? fh : m_pbuffer->strut_height;
+                    }
                     // As we do only +/- arithmetic, the following values being negative should be fine.
                     // Accounts for line-height (adds what most documentation calls half-leading to top
                     // and to bottom  - note that "leading" is a typography term referring to "lead" the
@@ -2394,6 +2427,8 @@ public:
                         adjust_line_box = false;
                         delayed_valign_computation = true;
                         word->flags |= LTEXT_WORD_VALIGN_TOP;
+                        if ( strut_confined )
+                            word->flags |= LTEXT_WORD_STRUT_CONFINED;
                         word->_top_to_baseline = top_to_baseline;
                         word->_baseline_to_bottom = baseline_to_bottom;
                         word->y = font->getBaseline() + half_leading;
@@ -2404,6 +2439,8 @@ public:
                         adjust_line_box = false;
                         delayed_valign_computation = true;
                         word->flags |= LTEXT_WORD_VALIGN_BOTTOM;
+                        if ( strut_confined )
+                            word->flags |= LTEXT_WORD_STRUT_CONFINED;
                         word->_top_to_baseline = top_to_baseline;
                         word->_baseline_to_bottom = baseline_to_bottom;
                         word->y = - fh + font->getBaseline() - half_leading_bottom;
@@ -2648,8 +2685,15 @@ public:
                         // if (frmline->baseline) printf("pushed down +%d\n", shift_down);
                         // if (frmline->baseline && lastSrc->object)
                         //     printf("%s\n", UnicodeToLocal(ldomXPointer((ldomNode*)lastSrc->object, 0).toString()).c_str());
-                        frmline->baseline += shift_down;
-                        frmline->height += shift_down;
+                        if ( !strut_confined ) {
+                            // move line away from the strut baseline
+                            frmline->baseline += shift_down;
+                            frmline->height += shift_down;
+                        }
+                        else { // except if "-cr-hint: strut-confined":
+                            // Keep the strut, move the word down
+                            word->y += shift_down;
+                        }
                     }
                     // positive word->y means it's subscript, so the line's baseline does not need to be
                     // changed, but more room below might be needed to display the subscript: increase
@@ -2657,7 +2701,21 @@ public:
                     int needed_height = frmline->baseline + baseline_to_bottom + word->y;
                     if ( needed_height > frmline->height ) {
                         // printf("extended down +%d\n", needed_height-frmline->height);
-                        frmline->height = needed_height;
+                        if ( !strut_confined ) {
+                            frmline->height = needed_height;
+                        }
+                        else { // except if "-cr-hint: strut-confined":
+                            // We'd rather move the word up, but it shouldn't go
+                            // above the top of the line, so it's not drawn over
+                            // previous line text. If it's taller than line height,
+                            // it's ok to have it overflow bottom: some part of
+                            // it might be overwritten by next line, which we'd
+                            // rather have fully readable.
+                            word->y -= needed_height - frmline->height;
+                            int top_dy = top_to_baseline - word->y - frmline->baseline;
+                            if ( top_dy > 0 )
+                                word->y += top_dy;
+                        }
                     }
                 }
 
@@ -2677,6 +2735,8 @@ public:
             for ( int i=0; i<frmline->word_count; i++ ) {
                 if ( frmline->words[i].flags & (LTEXT_WORD_VALIGN_TOP|LTEXT_WORD_VALIGN_BOTTOM) ) {
                     formatted_word_t * word = &frmline->words[i];
+                    if ( word->flags & LTEXT_WORD_STRUT_CONFINED )
+                        continue; // don't have such words affect current line height & baseline
                     // Update incomplete word->y with current frmline baseline & height,
                     // just as it would have been done if not delayed
                     int cur_word_y;
@@ -2708,6 +2768,13 @@ public:
                     }
                     else if ( word->flags & LTEXT_WORD_VALIGN_BOTTOM ) {
                         word->y = word->y + frmline->height - frmline->baseline;
+                    }
+                    if ( word->flags & LTEXT_WORD_STRUT_CONFINED ) {
+                        // If this word is taller than final line height,
+                        // we'd rather have it overflows bottom.
+                        int top_dy = word->_top_to_baseline - word->y - frmline->baseline;
+                        if ( top_dy > 0 )
+                            word->y += top_dy; // move it down
                     }
                 }
             }
@@ -2943,6 +3010,29 @@ public:
                 if ( m_text[i]=='\n' ) {
                     lastMandatoryWrap = i;
                     break;
+                }
+                // Text with "-cr-hint: strut-confined" might just be vertically shifted,
+                // but won't change widths. But images who will change height must also
+                // have their width reduced to keep their aspect ratio.
+                if ( (m_srcs[i]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confinning &&
+                        (m_flags[i] & LCHAR_IS_OBJECT) && (m_charindex[i] == OBJECT_CHAR_INDEX) ) {
+                    int width = m_srcs[i]->o.width;
+                    int height = m_srcs[i]->o.height;
+                    // Negative width and height mean the value is a % (of our final block width)
+                    width = width<0 ? (-width * (m_pbuffer->width - x) / 100) : width;
+                    height = height<0 ? (-height * (m_pbuffer->width - x) / 100) : height;
+                    resizeImage(width, height, m_pbuffer->width - x, m_max_img_height, m_length>1);
+                    if ( height > m_pbuffer->strut_height ) {
+                        // Don't make image taller than initial strut height, so adjust width
+                        // to keep aspect ratio.
+                        width = width * m_pbuffer->strut_height / height;
+                        int orig_width = i > 0 ? m_widths[i] - m_widths[i-1] : m_widths[i];
+                        // Coding shortcut: instead of messing with m_widths, or having a
+                        // strutConfinedReclaimedWidth variable to be used everywhere, add the
+                        // reclaimed width to w0 (which holds the cumulative width at start of
+                        // line) as it is already used everywhere to get the width of the line.
+                        w0 += orig_width - width;
+                    }
                 }
                 bool grabbedExceedingSpace = false;
                 if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin) {

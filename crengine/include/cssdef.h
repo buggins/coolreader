@@ -308,7 +308,8 @@ enum css_cr_hint_t {
     css_cr_hint_toc_level4,
     css_cr_hint_toc_level5,
     css_cr_hint_toc_level6,
-    css_cr_hint_toc_ignore
+    css_cr_hint_toc_ignore,
+    css_cr_hint_strut_confined
 };
 
 /// css length value
