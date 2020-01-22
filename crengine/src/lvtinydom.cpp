@@ -6796,9 +6796,74 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
             continue;
         // CRLog::debug("  point (%d, %d) line found [%d]: (%d..%d)",
         //      pt.x, pt.y, l, frmline->y, frmline->y+frmline->height);
-
-        // Found line, searching for word
+        bool line_is_bidi = frmline->flags & LTEXT_LINE_IS_BIDI;
         int wc = (int)frmline->word_count;
+
+        if ( direction >= PT_DIR_SCAN_FORWARD_LOGICAL_FIRST || direction <= PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST ) {
+            // Only used by LVDocView::getBookmark(), LVDocView::getPageDocumentRange()
+            // and ldomDocument::findText(), to not miss any content or text from
+            // the page.
+            // The SCAN_ part has been done done: a line has been found, and we want
+            // to find node/chars from it in the logical (HTML) order, and not in the
+            // visual order (that PT_DIR_SCAN_FORWARD/PT_DIR_SCAN_BACKWARD do), which
+            // might not be the same in bidi lines:
+            bool find_first = direction == PT_DIR_SCAN_FORWARD_LOGICAL_FIRST ||
+                              direction == PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST;
+                         // so, false when PT_DIR_SCAN_FORWARD_LOGICAL_LAST
+                         //             or PT_DIR_SCAN_BACKWARD_LOGICAL_LAST
+
+            const formatted_word_t * word = NULL;
+            for ( int w=0; w<wc; w++ ) {
+                const formatted_word_t * tmpword = &frmline->words[w];
+                const src_text_fragment_t * src = txtform->GetSrcInfo(tmpword->src_text_index);
+                ldomNode * node = (ldomNode *)src->object;
+                if ( !node ) // ignore crengine added text (spacing, list item bullets...)
+                    continue;
+                if ( !line_is_bidi ) {
+                    word = tmpword;
+                    if ( find_first )
+                        break; // found logical first real word
+                    // otherwise, go to the end, word will be logical last real word
+                }
+                else {
+                    if (!word) { // first word seen: first candidate
+                        word = tmpword;
+                    }
+                    else { // compare current word to the current candidate
+                        if ( find_first && tmpword->src_text_index < word->src_text_index ) {
+                            word = tmpword;
+                        }
+                        else if ( !find_first && tmpword->src_text_index > word->src_text_index ) {
+                            word = tmpword;
+                        }
+                        else if (tmpword->src_text_index == word->src_text_index ) {
+                            // (Same src_text_fragment_t, same src->t.offset, skip in when comparing)
+                            if ( find_first && tmpword->t.start < word->t.start ) {
+                                word = tmpword;
+                            }
+                            else if ( !find_first && tmpword->t.start > word->t.start ) {
+                                word = tmpword;
+                            }
+                        }
+                    }
+                }
+            }
+            if ( !word ) // no word: no xpointer (should not happen?)
+                return ptr;
+            // Found right word/image
+            const src_text_fragment_t * src = txtform->GetSrcInfo(word->src_text_index);
+            ldomNode * node = (ldomNode *)src->object;
+            if ( word->flags & LTEXT_WORD_IS_INLINE_BOX || word->flags & LTEXT_WORD_IS_OBJECT ) {
+                return ldomXPointer(node, 0);
+            }
+            // It is a word
+            if ( find_first ) // return xpointer to logical start of word
+                return ldomXPointer( node, src->t.offset + word->t.start );
+            else // return xpointer to logical end of word
+                return ldomXPointer( node, src->t.offset + word->t.start + word->t.len );
+        }
+
+        // Found line, searching for word (words are in visual order)
         int x = pt.x - frmline->x;
         // frmline->x is text indentation (+ possibly leading space if text
         // centered or right aligned)
@@ -6807,7 +6872,7 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                 return ptr;
             }
         }
-        bool line_is_bidi = frmline->flags & LTEXT_LINE_IS_BIDI;
+
         for ( int w=0; w<wc; w++ ) {
             const formatted_word_t * word = &frmline->words[w];
             if ( ( !line_is_bidi && x < word->x + word->width ) ||
@@ -8374,15 +8439,19 @@ bool ldomDocument::findText( lString16 pattern, bool caseInsensitive, bool rever
     // If we're provided with minY or maxY in some empty space (margins, empty
     // elements...), they may not resolve to a XPointer.
     // Find a valid y near each of them that does resolve to a XPointer:
+    // We also want to get start/end point to logical-order HTML nodes,
+    // which might be different from visual-order in bidi text.
     ldomXPointer start;
     ldomXPointer end;
     for (int y = minY; y >= 0; y--) {
-        start = createXPointer( lvPoint(0, y), reverse?-1:1 );
+        start = createXPointer( lvPoint(0, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST
+                                                       : PT_DIR_SCAN_FORWARD_LOGICAL_FIRST );
         if (!start.isNull())
             break;
     }
     for (int y = maxY; y <= fh; y++) {
-        end = createXPointer( lvPoint(10000, y), reverse?-1:1 );
+        end = createXPointer( lvPoint(10000, y), reverse ? PT_DIR_SCAN_BACKWARD_LOGICAL_LAST
+                                                         : PT_DIR_SCAN_FORWARD_LOGICAL_LAST );
         if (!end.isNull())
             break;
     }
@@ -13955,10 +14024,10 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
         // So, if we ignore the margins, there can be holes along the vertical
         // axis (these holes are the collapsed margins). But the content boxes
         // (without margins) don't overlap.
-        if ( direction>=0 ) {
+        if ( direction >= PT_DIR_EXACT ) { // PT_DIR_EXACT or PT_DIR_SCAN_FORWARD*
             // We get the parent node's children in ascending order
             // It could just be:
-            //   if ( pt.y >= fmt.getY() + fmt.getHeight() ) {
+            //   if ( pt.y >= fmt.getY() + fmt.getHeight() )
             //       // Box fully before pt.y: not a candidate, next one may be
             //       return NULL;
             // but, because of possible floats overflowing their container element,
@@ -13990,8 +14059,8 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
                 for ( int i=0; i<count; i++ ) {
                     ldomNode * p = getChildNode( i );
                     // Find an inner erm_final element that has pt in it: for now, it can
-                    // only be a float. Use direction=0 to really check for x boundaries.
-                    ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), 0 );
+                    // only be a float. Use PT_DIR_EXACT to really check for x boundaries.
+                    ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), PT_DIR_EXACT );
                     if ( e ) {
                         // Just to be sure, as elementFromPoint() may be a bit fuzzy in its
                         // checks, double check that pt is really inside that e rect.
@@ -14010,7 +14079,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
             // more twisted here, and it's less common that floats overflow
             // their container's top (they need to have negative margins).
         }
-        else {
+        else { // PT_DIR_SCAN_BACKWARD*
             // We get the parent node's children in descending order
             if ( pt.y < fmt.getY() ) {
                 // Box fully before pt.y: not a candidate, next one may be
@@ -14030,27 +14099,22 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
 
         int top_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[2], fmt.getWidth(), enode->getFont()->getSize());
         if ( pt.y < fmt.getY() - top_margin) {
-            if ( direction>0 && (rm == erm_final || rm == erm_list_item || rm == erm_table_caption) )
+            if ( direction >= PT_DIR_SCAN_FORWARD && (rm == erm_final || rm == erm_list_item || rm == erm_table_caption) )
                 return this;
             return NULL;
         }
         int bottom_margin = ignore_margins ? 0 : lengthToPx(enode->getStyle()->margin[3], fmt.getWidth(), enode->getFont()->getSize());
         if ( pt.y >= fmt.getY() + fmt.getHeight() + bottom_margin ) {
-            if ( direction<0 && (rm == erm_final || rm == erm_list_item || rm == erm_table_caption) )
+            if ( direction <= PT_DIR_SCAN_BACKWARD && (rm == erm_final || rm == erm_list_item || rm == erm_table_caption) )
                 return this;
             return NULL;
         }
     }
 
-    if ( !direction ) {
-        // We shouldn't do the following if we are given a direction
-        // (full text search) as we may get locked on some page.
-        // When interested only in finding the slice of a page
-        // at y (to get the current page top or range xpointers),
-        // use direction=1 or -1.
-        // Use direction=0 to exactly find the final node at y AND x,
-        // which is necessary when selecting text or finding links
-        // in table cells or floats.
+    if ( direction == PT_DIR_EXACT ) {
+        // (We shouldn't check for pt.x when we are given PT_DIR_SCAN_*.
+        // In full text search, we might not find any and get locked
+        // on some page.)
         if ( pt.x >= fmt.getX() + fmt.getWidth() ) {
             return NULL;
         }
@@ -14088,19 +14152,17 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
     // Not a final node, but a block container node that must contain
     // the final node we look for: check its children.
     int count = getChildCount();
-    if ( direction>=0 ) {
+    if ( direction >= PT_DIR_EXACT ) { // PT_DIR_EXACT or PT_DIR_SCAN_FORWARD*
         for ( int i=0; i<count; i++ ) {
             ldomNode * p = getChildNode( i );
-            ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt.getX(),
-                    pt.y - fmt.getY() ), direction );
+            ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), direction );
             if ( e )
                 return e;
         }
     } else {
         for ( int i=count-1; i>=0; i-- ) {
             ldomNode * p = getChildNode( i );
-            ldomNode * e = p->elementFromPoint( lvPoint( pt.x - fmt.getX(),
-                    pt.y - fmt.getY() ), direction );
+            ldomNode * e = p->elementFromPoint( lvPoint(pt.x-fmt.getX(), pt.y-fmt.getY()), direction );
             if ( e )
                 return e;
         }
@@ -14112,7 +14174,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
 ldomNode * ldomNode::finalBlockFromPoint( lvPoint pt )
 {
     ASSERT_NODE_NOT_NULL;
-    ldomNode * elem = elementFromPoint( pt, 0 );
+    ldomNode * elem = elementFromPoint( pt, PT_DIR_EXACT );
     if ( elem && elem->getRendMethod() == erm_final )
         return elem;
     return NULL;

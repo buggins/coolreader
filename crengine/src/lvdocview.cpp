@@ -2494,7 +2494,7 @@ ldomXPointer LVDocView::getNodeByPoint(lvPoint pt, bool strictBounds) {
 	LVLock lock(getMutex());
     CHECK_RENDER("getNodeByPoint()")
 	if (windowToDocPoint(pt) && m_doc) {
-		ldomXPointer ptr = m_doc->createXPointer(pt, 0, strictBounds);
+		ldomXPointer ptr = m_doc->createXPointer(pt, PT_DIR_EXACT, strictBounds);
 		//CRLog::debug("  ptr (%d, %d) node=%08X offset=%d", pt.x, pt.y, (lUInt32)ptr.getNode(), ptr.getOffset() );
 		return ptr;
 	}
@@ -2613,11 +2613,15 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
     // With floats, a page may actually show more than one range,
     // not sure how to deal with that (return a range including all
     // subranges, so possibly including stuff not shown on the page?)
+    // We also want to get the xpointer to the first or last node
+    // on a line in "logical order" instead of "visual order", which
+    // is needed with bidi text to not miss some text on the first
+    // or last line of the page.
     ldomXPointer start;
     ldomXPointer end;
     int start_h;
     for (start_h=0; start_h < height; start_h++) {
-        start = m_doc->createXPointer(lvPoint(0, start_y + start_h), 1);
+        start = m_doc->createXPointer(lvPoint(0, start_y + start_h), PT_DIR_SCAN_FORWARD_LOGICAL_FIRST);
         // printf("  start (%d=%d): %s\n", start_h, start_y + start_h, UnicodeToLocal(start.toString()).c_str());
         if (!start.isNull()) {
             // Check what we got is really in current page
@@ -2629,8 +2633,8 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
     }
     int end_h;
     for (end_h=height; end_h >= start_h; end_h--) {
-        end = m_doc->createXPointer(lvPoint(GetWidth(), start_y + end_h), -1);
-                                // x=GetWidth() to get XPointer of end of line
+        end = m_doc->createXPointer(lvPoint(GetWidth(), start_y + end_h), PT_DIR_SCAN_BACKWARD_LOGICAL_LAST);
+            // (x=GetWidth() might be redundant with PT_DIR_SCAN_BACKWARD_LOGICAL_LAST, but it might help skiping floats)
         // printf("  end (%d=%d): %s\n", end_h, start_y + end_h, UnicodeToLocal(end.toString()).c_str());
         if (!end.isNull()) {
             // Check what we got is really in current page
@@ -4410,7 +4414,7 @@ bool LVDocView::loadDocumentInt(LVStreamRef stream, bool metadataOnly) {
 			{
 				Clear();
 				if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs16("File with supported extension not fouind in archive.") );
+                    m_callback->OnLoadFileError( cs16("File with supported extension not found in archive.") );
 				}
 				return false;
 			}
@@ -4935,13 +4939,12 @@ ldomXPointer LVDocView::getBookmark() {
 				// In some edge cases, getting the xpointer for y=m_pages[_page]->start
 				// could resolve back to the previous page. We need to check for that
 				// and increase y until we find a coherent one.
+				// (In the following, we always want to find the first logical word/char.)
 				LVRendPageInfo * page = m_pages[_page];
 				bool found = false;
 				ldomXPointer fallback_ptr;
 				for (int y = page->start; y < page->start + page->height; y++) {
-					// Use direction=1 to avoid any x check (in case there
-					// is some left margin)
-					ptr = m_doc->createXPointer(lvPoint(0, y), 1);
+					ptr = m_doc->createXPointer(lvPoint(0, y), PT_DIR_SCAN_FORWARD_LOGICAL_FIRST);
 					lvPoint pt = ptr.toPoint();
 					if (pt.y >= page->start) {
 						if (!fallback_ptr)
@@ -4955,10 +4958,9 @@ ldomXPointer LVDocView::getBookmark() {
 				}
 				if (!found) {
 					// None looking forward resolved to that same page, we
-					// might find a better one looking backward (eg: when
-					// an element contains some floats that overflow its
-					// height) with direction=-1:
-					ptr = m_doc->createXPointer(lvPoint(0, page->start), -1);
+					// might find a better one looking backward (eg: when an
+					// element contains some floats that overflows its height).
+					ptr = m_doc->createXPointer(lvPoint(0, page->start), PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST);
 					lvPoint pt = ptr.toPoint();
 					if (pt.y >= page->start && pt.y < page->start + page->height ) {
 						found = true;
@@ -4970,7 +4972,7 @@ ldomXPointer LVDocView::getBookmark() {
 					}
 					else {
 						// fallback to the one for page->start, even if not good
-						ptr = m_doc->createXPointer(lvPoint(0, page->start));
+						ptr = m_doc->createXPointer(lvPoint(0, page->start), PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST);
 					}
 				}
 			}
@@ -4985,7 +4987,7 @@ ldomXPointer LVDocView::getBookmark() {
 			// Let's do the same in that case: get the previous text node
 			// position
 			for (int y = _pos; y >= 0; y--) {
-				ptr = m_doc->createXPointer(lvPoint(0, y), -1);
+				ptr = m_doc->createXPointer(lvPoint(0, y), PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST);
 				if (!ptr.isNull())
 					break;
 			}

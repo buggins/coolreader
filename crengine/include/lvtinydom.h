@@ -109,6 +109,27 @@ extern int gDOMVersionRequested;
 
 #define NODE_DISPLAY_STYLE_HASH_UNITIALIZED 0xFFFFFFFF
 
+// To be used for 'direction' in ldomNode->elementFromPoint(lvPoint pt, int direction)
+// and ldomDocument->createXPointer(lvPoint pt, int direction...) as a way to
+// self-document what's expected (but the code does > and < comparisons, so
+// don't change these values - some clients may also already use 0/1/-1).
+// Use PT_DIR_EXACT to find the exact node at pt (with y AND x check),
+// which is needed when selecting text or checking if tap is on a link,
+// (necessary in table cells or floats, and in RTL text).
+// Use PT_DIR_SCAN_* when interested only in finding the slice of a page
+// at y (eg. to get the current page top), finding the nearest node in
+// direction if pt.y happens to be in some node margin area.
+// Use PT_DIR_SCAN_BACKWARD_LOGICAL_* when looking a whole page range
+// xpointers, to not miss words on first or last line in bidi/RTL text.
+#define PT_DIR_SCAN_BACKWARD_LOGICAL_LAST   -3
+#define PT_DIR_SCAN_BACKWARD_LOGICAL_FIRST  -2
+#define PT_DIR_SCAN_BACKWARD                -1
+#define PT_DIR_EXACT                         0
+#define PT_DIR_SCAN_FORWARD                  1
+#define PT_DIR_SCAN_FORWARD_LOGICAL_FIRST    2
+#define PT_DIR_SCAN_FORWARD_LOGICAL_LAST     3
+
+
 //#if BUILD_LITE!=1
 /// final block cache
 typedef LVRef<LFormattedText> LFormattedTextRef;
@@ -2369,7 +2390,7 @@ public:
 
 #if BUILD_LITE!=1
     /// create xpointer from doc point
-    ldomXPointer createXPointer( lvPoint pt, int direction=0, bool strictBounds=false, ldomNode * from_node=NULL );
+    ldomXPointer createXPointer( lvPoint pt, int direction=PT_DIR_EXACT, bool strictBounds=false, ldomNode * from_node=NULL );
     /// get rendered block cache object
     CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
 
