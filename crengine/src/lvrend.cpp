@@ -2095,9 +2095,14 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
                 flags |= LTEXT_STRUT_CONFINED;
         }
         marker += "\t";
-        // Not sure what that "\t" was used for, but coincidentally, it acts for fribidi
-        // as a text segment separator (SS) which will bidi-isolate the marker from the
-        // followup text, and will ensure, for example, that:
+        // That "\t" had some purpose in legacy rendering (erm_list_item) to mark the end
+        // of the marker, and by providing the marker_width as negative indent, so that
+        // the following text can have some constant indent by rendering it just like
+        // negative/hanging text-indent. It has no real use if we provide a 0-indent
+        // like we do below.
+        // But coincidentally, this "\t" acts for fribidi as a text segment separator (SS)
+        // which will bidi-isolate the marker from the followup text, and will ensure,
+        // for example, that:
         //   <li style="list-style-type: lower-roman; list-style-type: inside">Some text</li>
         // in a RTL direction context, will be rightly rendered as:
         //   "Some text   xviii"
@@ -2155,9 +2160,9 @@ bool renderAsListStylePositionInside( const css_style_rec_t * style, bool is_rtl
 // to do the actual width-constrained rendering of the AddSource*'ed objects.
 // Note: fmt is the RenderRectAccessor of the final block itself, and is passed
 // as is to the inline children elements: it is only used to get the width of
-// the container, which is only needed to compute ident (text-indent) values in %,
+// the container, which is only needed to compute indent (text-indent) values in %,
 // and to get paragraph direction (LTR/RTL/UNSET).
-void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, int & baseflags, int ident, int line_h, int valign_dy, bool * is_link_start )
+void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, int & baseflags, int indent, int line_h, int valign_dy, bool * is_link_start )
 {
     if ( enode->isElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
@@ -2174,7 +2179,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // be guessed and renderBlockElement() called to render it
             // and get is height, so LFormattedText knows how to render
             // this erm_final text around it.
-            txform->AddSourceObject(baseflags|LTEXT_SRC_IS_FLOAT, line_h, valign_dy, ident, enode );
+            txform->AddSourceObject(baseflags|LTEXT_SRC_IS_FLOAT, line_h, valign_dy, indent, enode );
             baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
             return;
         }
@@ -2270,9 +2275,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         if ((flags & LTEXT_FLAG_NEWLINE) && rm != erm_inline) {
             // Non-inline node in a final block: this is the top and single 'final' node:
-            // get text-indent (mispelled 'ident' here and elsewhere) and line-height
-            // that will apply to the full final block
-            ident = lengthToPx(style->text_indent, width, em);
+            // get text-indent and line-height that will apply to the full final block
+            indent = lengthToPx(style->text_indent, width, em);
 
             // We set the LFormattedText strut_height and strut_baseline
             // with the values from this "final" node. All lines made out from
@@ -2481,7 +2485,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // text-indent (but it does when in <SPAN style="float: left"><IMG/></SPAN>).
                 txform->setStrut(0, 0);
                 line_h = 0;
-                ident = 0;
+                indent = 0;
                 valign_dy = 0;
                 // Also, when such a floating image has a width in %, this width
                 // has been used to set the width of the floating box. We need to
@@ -2535,7 +2539,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 lUInt32 bgcl = style->background_color.type!=css_val_color ? 0xFFFFFFFF : style->background_color.value;
                 int margin = 0;
                 if ( sp==css_lsp_outside )
-                    margin = -marker_width;
+                    margin = -marker_width; // will ensure negative/hanging indent-like rendering
                 marker += "\t";
                 txform->AddSourceLine( marker.c_str(), marker.length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy,
                                         margin, NULL );
@@ -2598,7 +2602,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     for ( int i=0; i<lines.length(); i++ )
                         txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, NULL );
                 }
-                txform->AddSourceObject(flags, line_h, valign_dy, ident, enode );
+                txform->AddSourceObject(flags, line_h, valign_dy, indent, enode );
                 title = enode->getAttributeValue(attr_subtitle);
                 if ( !title.empty() ) {
                     lString16Collection lines;
@@ -2616,7 +2620,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             } else { // inline image
                 // We use the flags computed previously (and not baseflags) as they
                 // carry vertical alignment
-                txform->AddSourceObject(flags, line_h, valign_dy, ident, enode );
+                txform->AddSourceObject(flags, line_h, valign_dy, indent, enode );
                 flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
             }
         }
@@ -2626,7 +2630,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             #endif
             // We use the flags computed previously (and not baseflags) as they
             // carry vertical alignment
-            txform->AddSourceObject(flags|LTEXT_SRC_IS_INLINE_BOX, line_h, valign_dy, ident, enode );
+            txform->AddSourceObject(flags|LTEXT_SRC_IS_INLINE_BOX, line_h, valign_dy, indent, enode );
             flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
         }
         else { // non-IMG element: render children (elements or text nodes)
@@ -2758,7 +2762,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             for (int i=0; i<cnt; i++)
             {
                 ldomNode * child = enode->getChildNode( i );
-                renderFinalBlock( child, txform, fmt, flags, ident, line_h, valign_dy, is_link_start_p );
+                renderFinalBlock( child, txform, fmt, flags, indent, line_h, valign_dy, is_link_start_p );
             }
 
             if ( addGeneratedContent ) {
@@ -2852,7 +2856,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 break;
             case css_ta_justify:
                 baseflags |= LTEXT_ALIGN_WIDTH;
-                ident = 0;
+                indent = 0;
                 break;
             case css_ta_start:
                 baseflags |= (is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT);
@@ -2988,7 +2992,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             */
             if ( txt.length()>0 ) {
                 txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font, baseflags | tflags,
-                    line_h, valign_dy, ident, enode, 0, letter_spacing );
+                    line_h, valign_dy, indent, enode, 0, letter_spacing );
                 baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
             }
         }

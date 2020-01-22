@@ -83,7 +83,7 @@ extern "C" {
 typedef struct
 {
     void *          object;   /**< \brief pointer to object which represents source */
-    lInt16          margin;   /**< \brief first line margin */
+    lInt16          indent;   /**< \brief first line indent (or all but first, when negative) */
     lInt16          valign_dy; /* drift y from baseline */
     lInt16          interval; /**< \brief line height in screen pixels */
     lInt16          letter_spacing; /**< \brief additional letter spacing, pixels */
@@ -288,7 +288,7 @@ void lvtextAddSourceLine(
    lUInt32         flags,    /* flags */
    lInt16          interval, /* line height in screen pixels */
    lInt16          valign_dy,/* drift y from baseline */
-   lUInt16         margin,   /* first line margin */
+   lInt16          indent,   /* first line indent (or all but first, when negative) */
    void *          object,   /* pointer to custom object */
    lUInt16         offset,    /* offset from node/object start to start of line */
    lInt16          letter_spacing
@@ -305,7 +305,7 @@ void lvtextAddSourceObject(
    lUInt32         flags,     /* flags */
    lInt16          interval,  /* line height in screen pixels */
    lInt16          valign_dy, /* drift y from baseline */
-   lUInt16         margin,    /* first line margin */
+   lInt16          indent,    /* first line indent (or all but first, when negative) */
    void *          object,    /* pointer to custom object */
    lInt16          letter_spacing
                          );
@@ -359,7 +359,7 @@ public:
                 lUInt32         flags,     /* flags */
                 lInt16          interval,  /* line height in screen pixels */
                 lInt16          valign_dy, /* drift y from baseline */
-                lUInt16         margin,    /* first line margin */
+                lInt16          indent,    /* first line indent (or all but first, when negative) */
                 void *          object,    /* pointer to custom object */
                 lInt16          letter_spacing=0
          );
@@ -373,7 +373,7 @@ public:
            lUInt32         flags,       /* (had default =LTEXT_ALIGN_LEFT|LTEXT_FLAG_OWNTEXT) */
            lInt16          interval,    /* line height in screen pixels */
            lInt16          valign_dy=0, /* drift y from baseline */
-           lUInt16         margin=0,    /* first line margin */
+           lInt16          indent=0,    /* first line indent (or all but first, when negative) */
            void *          object=NULL,
            lUInt32         offset=0,
            lInt16          letter_spacing=0
@@ -382,7 +382,7 @@ public:
         lvtextAddSourceLine(m_pbuffer, 
             font,  //font->GetHandle()
             text, len, color, bgcolor, 
-            flags, interval, valign_dy, margin, object, (lUInt16)offset, letter_spacing );
+            flags, interval, valign_dy, indent, object, (lUInt16)offset, letter_spacing );
     }
 
     lUInt32 Format(lUInt16 width, lUInt16 page_height,

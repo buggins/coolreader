@@ -210,7 +210,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lUInt32         flags,    /* flags */
    lInt16          interval, /* line height in screen pixels */
    lInt16          valign_dy, /* drift y from baseline */
-   lUInt16         margin,   /* first line margin */
+   lInt16          indent,    /* first line indent (or all but first, when negative) */
    void *          object,    /* pointer to custom object */
    lUInt16         offset,
    lInt16          letter_spacing
@@ -246,7 +246,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     pline->index = (lUInt16)(pbuffer->srctextlen-1);
     pline->object = object;
     pline->t.len = (lUInt16)len;
-    pline->margin = margin;
+    pline->indent = indent;
     pline->flags = flags;
     pline->interval = interval;
     pline->valign_dy = valign_dy;
@@ -263,7 +263,7 @@ void lvtextAddSourceObject(
    lUInt32         flags,     /* flags */
    lInt16          interval,  /* line height in screen pixels */
    lInt16          valign_dy, /* drift y from baseline */
-   lUInt16         margin,    /* first line margin */
+   lInt16          indent,    /* first line indent (or all but first, when negative) */
    void *          object,    /* pointer to custom object */
    lInt16          letter_spacing
                          )
@@ -279,7 +279,7 @@ void lvtextAddSourceObject(
     pline->o.width = width;
     pline->o.height = height;
     pline->object = object;
-    pline->margin = margin;
+    pline->indent = indent;
     pline->flags = flags | LTEXT_SRC_IS_OBJECT;
     pline->interval = interval;
     pline->valign_dy = valign_dy;
@@ -301,7 +301,7 @@ void LFormattedText::AddSourceObject(
             lUInt32         flags,     /* flags */
             lInt16          interval,  /* line height in screen pixels */
             lInt16          valign_dy, /* drift y from baseline */
-            lUInt16         margin,    /* first line margin */
+            lInt16          indent,    /* first line indent (or all but first, when negative) */
             void *          object,    /* pointer to custom object */
             lInt16          letter_spacing
      )
@@ -315,7 +315,7 @@ void LFormattedText::AddSourceObject(
     if (flags & LTEXT_SRC_IS_FLOAT) { // not an image but a float:'ing node
         // Nothing much to do with it at this point
         lvtextAddSourceObject(m_pbuffer, 0, 0,
-            flags, interval, valign_dy, margin, object, letter_spacing );
+            flags, interval, valign_dy, indent, object, letter_spacing );
             // lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT
             // (only flags & object parameter will be used, the others are not,
             // but they matter if this float is the first node in a paragraph,
@@ -327,7 +327,7 @@ void LFormattedText::AddSourceObject(
         // get its width & neight, as they might be in % of our main width, that
         // we don't know yet (but only when ->Format() is called).
         lvtextAddSourceObject(m_pbuffer, 0, 0,
-            flags, interval, valign_dy, margin, object, letter_spacing );
+            flags, interval, valign_dy, indent, object, letter_spacing );
             // lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT
         return;
     }
@@ -373,7 +373,7 @@ void LFormattedText::AddSourceObject(
     height = h;
 
     lvtextAddSourceObject(m_pbuffer, width, height,
-        flags, interval, valign_dy, margin, object, letter_spacing );
+        flags, interval, valign_dy, indent, object, letter_spacing );
 }
 
 class LVFormatter {
@@ -1685,8 +1685,10 @@ public:
                     lastBidiLevel = newBidiLevel;
             #endif
         }
-        if ( tabIndex>=0 ) {
-            int tabPosition = -m_srcs[0]->margin;
+        if ( tabIndex >= 0 && m_srcs[0]->indent < 0) {
+            // Used by obsolete rendering method erm_list_item when css_lsp_outside,
+            // where the marker width is provided as negative/hanging indent.
+            int tabPosition = -m_srcs[0]->indent; // has been set to marker_width
             if ( tabPosition>0 && tabPosition > m_widths[tabIndex] ) {
                 int dx = tabPosition - m_widths[tabIndex];
                 for ( i=tabIndex; i<m_length; i++ )
@@ -2904,7 +2906,7 @@ public:
         // split paragraph into lines, export lines
         int pos = 0;
         int upSkipPos = -1;
-        int indent = m_srcs[0]->margin;
+        int indent = m_srcs[0]->indent;
 
         /* We'd rather not have this final node text just dropped if there
          * is not enough width for the indent !
