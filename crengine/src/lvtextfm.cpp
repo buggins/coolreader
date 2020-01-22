@@ -2980,8 +2980,12 @@ public:
                     bool avoidWrap = false;
                     // Look first at following char(s)
                     for (int j = i+1; j < m_length; j++) {
-                        if ( (m_flags[j] & LCHAR_IS_OBJECT) && (m_charindex[j] == FLOAT_CHAR_INDEX) ) // skip floats
-                            continue;
+                        if ( m_flags[j] & LCHAR_IS_OBJECT ) {
+                            if (m_charindex[j] == FLOAT_CHAR_INDEX) // skip floats
+                                continue;
+                            else // allow wrap between space/CJK and image or inline-box
+                                break;
+                        }
                         if ( !(m_flags[j] & LCHAR_ALLOW_WRAP_AFTER) ) { // not another (collapsible) space
                             avoidWrap = lGetCharProps(m_text[j]) & CH_PROP_AVOID_WRAP_BEFORE;
                             break;
@@ -2991,8 +2995,12 @@ public:
                         // (but not if it is the last char, where a wrap is fine
                         // even if it ends after a CH_PROP_AVOID_WRAP_AFTER char)
                         for (int j = i-1; j >= 0; j--) {
-                            if ( (m_flags[j] & LCHAR_IS_OBJECT) && (m_charindex[j] == FLOAT_CHAR_INDEX) ) // skip floats
-                                continue;
+                            if ( m_flags[j] & LCHAR_IS_OBJECT ) {
+                                if (m_charindex[j] == FLOAT_CHAR_INDEX) // skip floats
+                                    continue;
+                                else // allow wrap after a space following an image or inline-box
+                                    break;
+                            }
                             if ( !(m_flags[j] & LCHAR_ALLOW_WRAP_AFTER) ) { // not another (collapsible) space
                                 avoidWrap = lGetCharProps(m_text[j]) & CH_PROP_AVOID_WRAP_AFTER;
                                 break;
