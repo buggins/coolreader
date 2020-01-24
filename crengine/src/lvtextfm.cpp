@@ -3174,30 +3174,30 @@ public:
                     // if we shoud correct it, here or there - or if this is fine - but
                     // let's go with it as-is as it might be a safety and might help
                     // us not be stuck in some infinite loop here.
-                    int start, end;
-                    lStr_findWordBounds( m_text, m_length, wordpos, start, end );
-                    if ( end <= lastNormalWrap ) {
+                    int wstart, wend;
+                    lStr_findWordBounds( m_text, m_length, wordpos, wstart, wend );
+                    if ( wend <= lastNormalWrap ) {
                         // We passed back lastNormalWrap: no need to look for more
                         break;
                     }
-                    int len = end - start;
+                    int len = wend - wstart;
                     if ( len < MIN_WORD_LEN_TO_HYPHENATE ) {
                         // Too short word found, skip it
-                        wordpos = start - 1;
+                        wordpos = wstart - 1;
                         continue;
                     }
-                    if ( start >= wordpos ) {
+                    if ( wstart >= wordpos ) {
                         // Shouldn't happen, but let's be sure we don't get stuck
                         wordpos = wordpos - MIN_WORD_LEN_TO_HYPHENATE;
                         continue;
                     }
                     #ifdef DEBUG_HYPH_EXTRA_LOOPS
                         if (debug_loop_num > 1)
-                            printf("  hyphenating: %s\n", LCSTR(lString16(m_text+start, len)));
+                            printf("  hyphenating: %s\n", LCSTR(lString16(m_text+wstart, len)));
                     #endif
                     #if TRACE_LINE_SPLITTING==1
                         TR("wordBounds(%s) unusedSpace=%d wordWidth=%d",
-                                LCSTR(lString16(m_text+start, len)), unusedSpace, m_widths[end]-m_widths[start]);
+                                LCSTR(lString16(m_text+wstart, len)), unusedSpace, m_widths[wend]-m_widths[wstart]);
                     #endif
                     // We have a valid word to look for hyphenation
                     if ( len > MAX_WORD_SIZE ) // hyphenate() stops/truncates at 64 chars
@@ -3205,27 +3205,35 @@ public:
                     // HyphMan::hyphenate(), which is used by some other parts of the code,
                     // expects a lUInt8 array. We added flagSize=1|2 so it can set the correct
                     // flags on our upgraded (from lUInt8 to lUInt16) m_flags.
-                    lUInt8 * flags = (lUInt8*) (m_flags + start);
+                    lUInt8 * flags = (lUInt8*) (m_flags + wstart);
                     // Fill static array with cumulative widths relative to word start
                     static lUInt16 widths[MAX_WORD_SIZE];
-                    int wordStart_w = start>0 ? m_widths[start-1] : 0;
+                    int wordStart_w = wstart>0 ? m_widths[wstart-1] : 0;
                     for ( int i=0; i<len; i++ ) {
-                        widths[i] = m_widths[start+i] - wordStart_w;
+                        widths[i] = m_widths[wstart+i] - wordStart_w;
                     }
                     int max_width = maxWidth + spaceReduceWidth - x - (wordStart_w - w0) - firstCharMargin;
                     // In some rare cases, a word here can be made with parts from multiple text nodes.
-                    // Use the font of the text node at start to compute the hyphen width, which
-                    // might then be wrong - but that will be smoothed by alignLine()
-                    int _hyphen_width = ((LVFont*)m_srcs[start]->t.font)->getHyphenWidth();
-                    if ( HyphMan::hyphenate(m_text+start, len, widths, flags, _hyphen_width, max_width, 2) ) {
+                    // Use the font of the first text node to compute the hyphen width, which
+                    // might then be wrong - but that will be smoothed by alignLine().
+                    // (lStr_findWordBounds() might grab objects or inlineboxes as part of
+                    // the word, so skip them when looking for a font)
+                    int _hyphen_width = 0;
+                    for ( int i=wstart; i<wend; i++ ) {
+                        if ( !(m_srcs[i]->flags & LTEXT_SRC_IS_OBJECT) ) {
+                            _hyphen_width = ((LVFont*)m_srcs[i]->t.font)->getHyphenWidth();
+                            break;
+                        }
+                    }
+                    if ( HyphMan::hyphenate(m_text+wstart, len, widths, flags, _hyphen_width, max_width, 2) ) {
                         for ( int i=0; i<len; i++ ) {
-                            if ( m_flags[start+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
+                            if ( m_flags[wstart+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                                 if ( widths[i] + _hyphen_width > max_width ) {
                                     TR("hyphen found, but max width reached at char %d", i);
                                     break; // hyph is too late
                                 }
-                                if ( start + i > pos+1 ) {
-                                    lastHyphWrap = start + i;
+                                if ( wstart + i > pos+1 ) {
+                                    lastHyphWrap = wstart + i;
                                     // Keep looking for some other candidates in that word
                                 }
                             }
@@ -3237,7 +3245,7 @@ public:
                     }
                     TR("no hyphen found - max_width=%d", max_width);
                     // Look at previous words if any
-                    wordpos = start - 1;
+                    wordpos = wstart - 1;
                 }
             }
 
