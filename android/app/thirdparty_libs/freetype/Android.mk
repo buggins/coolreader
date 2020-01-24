@@ -26,6 +26,7 @@ LOCAL_SRC_FILES := \
     $(FREETYPE_SRC_DIR)/src/base/ftglyph.c \
     $(FREETYPE_SRC_DIR)/src/base/ftbitmap.c \
     $(FREETYPE_SRC_DIR)/src/base/ftlcdfil.c \
+    $(FREETYPE_SRC_DIR)/src/base/ftsynth.c \
     $(FREETYPE_SRC_DIR)/src/bdf/bdf.c \
     $(FREETYPE_SRC_DIR)/src/cache/ftcache.c \
     $(FREETYPE_SRC_DIR)/src/cff/cff.c \
