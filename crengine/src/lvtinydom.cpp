@@ -6521,7 +6521,7 @@ xpath_step_t ParseXPathStep( const lChar16 * &path, lString16 & name, int & inde
             pos++;
             while (s[pos]>='0' && s[pos]<='9')
                 pos++;
-            if (s[pos] && s[pos!='/'] && s[pos]!='.')
+            if (s[pos] && s[pos]!='/' && s[pos]!='.')
                 return xpath_step_error;
             lString16 sindex( path+nstart, pos-nstart );
             index = sindex.atoi();
@@ -7428,6 +7428,16 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
 }
 #endif
 
+static bool isBoxingNode(ldomNode * pNode)
+{
+    if( pNode->isElement() ) {
+        lUInt16 id = pNode->getNodeId();
+        if( id == el_floatBox || id == el_inlineBox || id == el_autoBoxing )
+            return true;
+    }
+    return false;
+}
+
 /// create xpointer from relative pointer string
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
 {
@@ -7506,9 +7516,33 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
             break;
         case xpath_step_nodeindex:
             // node index                                 /N/
-            if ( index<=0 || index>(int)currNode->getChildCount() )
-                return ldomXPointer(); // node not found: invalid index
-            currNode = currNode->getChildNode( index-1 );
+            {
+                ldomNode * foundItem = NULL;
+                int count = 0;
+                for( int i=0; i < (int)currNode->getChildCount(); i++) {
+                    ldomNode * p = currNode->getChildNode(i);
+                    if( isBoxingNode(p) ) {
+                        for( int j=0; j<p->getChildCount(); j++ ) {
+                            ldomNode * boxedNode = p->getChildNode(j);
+                            count++;
+                            if(count == index) {
+                                foundItem = boxedNode;
+                                break;
+                            }
+                        }
+                    } else {
+                        count++;
+                    }
+                    if(count == index) {
+                        if( !foundItem )
+                            foundItem = p;
+                        break;
+                    }
+                }
+                if ( foundItem == NULL )
+                    return ldomXPointer(); // node not found: invalid index
+                currNode = foundItem;
+            }
             break;
         case xpath_step_point:
             // point index                                .N
@@ -7531,8 +7565,44 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
     return ldomXPointer( currNode, -1 ); // XPath: index==-1
 }
 
+
+lString16 ldomNode::getXPathSegmentUsingIndexes()
+{
+    if ( isNull() || isRoot() )
+        return lString16::empty_str;
+    ldomNode * parent = getParentNode();
+    if( isBoxingNode(parent) )
+        parent = parent->getParentNode();
+    int cnt = parent->getChildCount();
+    int index = 0;
+    ldomNode * node = NULL;
+    for( int i=0; i<cnt; i++ ) {
+        node = parent->getChildNode(i);
+        if( node==this ) {
+            break;
+        }
+        if( isBoxingNode(node) ) {
+            for( int j=0; j< node->getChildCount(); j++) {
+                ldomNode *boxedNode = node->getChildNode(j);
+                if(this == boxedNode) {
+                    node=this;
+                    break;
+                }
+                index++;
+            }
+        } else {
+            index++;
+        }
+    }
+    if( node != this )
+        return lString16::empty_str;
+    if( isBoxingNode(node) )
+        node = node->getChildNode(0);
+    return lString16::itoa(index+1);
+}
+
 /// returns XPath segment for this element relative to parent element (e.g. "p[10]")
-lString16 ldomNode::getXPathSegment()
+lString16 ldomNode::getXPathSegmentUsingNames()
 {
     if ( isNull() || isRoot() )
         return lString16::empty_str;
@@ -7562,7 +7632,7 @@ lString16 ldomNode::getXPathSegment()
     return lString16::empty_str;
 }
 
-lString16 ldomXPointer::toString()
+lString16 ldomXPointer::toStringUsingNames()
 {
     lString16 path;
     if ( isNull() )
@@ -7614,6 +7684,58 @@ lString16 ldomXPointer::toString()
                 path = cs16("/text()") + "[" + fmt::decimal(index) + "]" + path;
             else
                 path = "/text()" + path;
+        }
+        p = parent;
+    }
+    return path;
+}
+
+lString16 ldomXPointer::toStringUsingIndexes()
+{
+    lString16 path;
+    if ( isNull() )
+        return path;
+    int offset = getOffset();
+    if ( offset >= 0 ) {
+        path << "." << fmt::decimal(offset);
+    }
+    ldomNode * p = getNode();
+    ldomNode * rootNode = p->getDocument()->getRootNode();
+    while( p && p!=rootNode ) {
+        ldomNode * parent = p->getParentNode();
+        if ( !parent )
+            return "/" + p->isElement() ? p->getNodeName() : cs16("/text()") + path;
+
+        if( isBoxingNode(parent) )
+            parent = parent->getParentNode();
+
+        int index = -1;
+        int count = 0;
+        for ( int i=0; i<parent->getChildCount(); i++ ) {
+            ldomNode * node = parent->getChildNode( i );
+            if( isBoxingNode(node) && p != node ) {
+                for( int j=0; j<node->getChildCount(); j++ ) {
+                    count++;
+                    ldomNode * boxedNode = node->getChildNode(j);
+                    if ( p==boxedNode ) {
+                        node = p;
+                        break;
+                    }
+                }
+            } else {
+               count++;
+            }
+            if ( node==p ) {
+                index = count;
+                break;
+            }
+        }
+        if( index>0 ) {
+            if ( isBoxingNode(p) )
+                p = p->getChildNode(0);
+            path = cs16("/") + fmt::decimal(index) + path;
+        } else {
+            CRLog::error("!!! child node not found in a parent");
         }
         p = parent;
     }

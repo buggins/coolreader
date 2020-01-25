@@ -140,6 +140,11 @@ typedef enum {
     IMG_FREE_SCALING     /// free scaling, non-integer factor
 } img_scaling_mode_t;
 
+enum XPointerMode {
+    XPATH_USE_NAMES = 0,
+    XPATH_USE_INDEXES
+};
+
 /// image scaling option
 struct img_scaling_option_t {
     img_scaling_mode_t mode;
@@ -788,6 +793,8 @@ private:
     /// returns true if element has inline content (non empty text, images, <BR>)
     bool hasNonEmptyInlineContent( bool ignoreFloats=false );
 
+    lString16 getXPathSegmentUsingNames();
+    lString16 getXPathSegmentUsingIndexes();
 public:
 #if BUILD_LITE!=1
     /// if stylesheet file name is set, and file is found, set stylesheet to its value
@@ -876,7 +883,7 @@ public:
 
     /// returns attribute value by attribute name id, looking at children if needed
     const lString16 & getFirstInnerAttributeValue( lUInt16 nsid, lUInt16 id ) const;
-    const lString16 & getFirstInnerAttributeValue( lUInt16 id ) const { return getFirstInnerAttributeValue( LXML_NS_ANY, id ); };
+    const lString16 & getFirstInnerAttributeValue( lUInt16 id ) const { return getFirstInnerAttributeValue( LXML_NS_ANY, id ); }
 
     /// returns element type structure pointer if it was set in document for this element name
     const css_elem_def_props_t * getElementTypePtr();
@@ -983,7 +990,11 @@ public:
     ldomNode * removeChild( lUInt32 index );
 
     /// returns XPath segment for this element relative to parent element (e.g. "p[10]")
-    lString16 getXPathSegment();
+    lString16 getXPathSegment( XPointerMode mode=XPATH_USE_INDEXES ) {
+        if( mode==XPATH_USE_NAMES )
+            return getXPathSegmentUsingNames();
+        return getXPathSegmentUsingIndexes();
+    }
 
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();
@@ -1307,7 +1318,6 @@ class ldomDocument;
 
 class ldomDocument;
 
-
 /**
  * @brief XPointer/XPath object with reference counting.
  * 
@@ -1472,12 +1482,17 @@ public:
     bool getRect(lvRect & rect, bool extended=false, bool adjusted=false) const;
     /// returns glyph rectangle for pointer inside formatted document considering paddings and borders
     /// (with adjusted=true, adjust for left and right side bearing of the glyph, for cleaner highlighting)
-    bool getRectEx(lvRect & rect, bool adjusted=false) const { return getRect(rect, true, adjusted); };
+    bool getRectEx(lvRect & rect, bool adjusted=false) const { return getRect(rect, true, adjusted); }
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint( bool extended=false ) const;
 //#endif
     /// converts to string
-	lString16 toString();
+    lString16 toString( XPointerMode mode = XPATH_USE_INDEXES) {
+        if( XPATH_USE_NAMES==mode )
+            return toStringUsingNames();
+        return toStringUsingIndexes();
+    }
+
     /// returns XPath node text
     lString16 getText(  lChar16 blockDelimiter=0 )
     {
@@ -1503,7 +1518,9 @@ public:
     lString8 getHtml( lString16Collection & cssFiles, int wflags=0 );
     lString8 getHtml( int wflags=0 ) {
         lString16Collection cssFiles; return getHtml(cssFiles, wflags);
-    };
+    }
+    lString16 toStringUsingNames();
+    lString16 toStringUsingIndexes();
 };
 
 #define MAX_DOM_LEVEL 64

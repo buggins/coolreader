@@ -85,7 +85,7 @@ public:
     lString16 getPosText() { return _postext; }
     lString16 getTitleText() { return _titletext; }
     lString16 getCommentText() { return _commenttext; }
-	int getShortcut() { return _shortcut; }
+    int getShortcut() { return _shortcut; }
     int getType() { return _type; }
     int getPercent() { return _percent; }
     time_t getTimestamp() { return _timestamp; }
@@ -95,7 +95,7 @@ public:
     void setTitleText(const lString16 & s ) { _titletext = s; }
     void setCommentText(const lString16 & s ) { _commenttext = s; }
     void setType( int n ) { _type = n; }
-	void setShortcut( int n ) { _shortcut = n; }
+    void setShortcut( int n ) { _shortcut = n; }
     void setPercent( int n ) { _percent = n; }
     void setTimestamp( time_t t ) { _timestamp = t; }
     void setBookmarkPage( int page ) { _page = page; }
@@ -189,6 +189,7 @@ public:
     void setFilePath( const lString16 & s ) { _fpath = s; }
     void setFileSize( lvsize_t sz ) { _size = sz; }
     void setDOMversion( int v ) { _domVersion = v; }
+    void convertBookmarks(ldomDocument * doc);
     CRFileHistRecord()
         : _size(0), _domVersion(20171225)
     {
@@ -224,7 +225,7 @@ public:
         }
     }
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
-    const CRFileHistRecord* getRecord(const lString16 & fileName, size_t fileSize ) const;
+    CRFileHistRecord* getRecord(const lString16 & fileName, size_t fileSize );
     bool loadFromStream( LVStreamRef stream );
     bool saveToStream( LVStream * stream );
     CRFileHistRecord * savePosition( lString16 fpathname, size_t sz, 

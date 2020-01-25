@@ -442,7 +442,7 @@ void CRFileHist::makeTop( int index )
     _records[0] = rec;
 }
 
-const CRFileHistRecord* CRFileHist::getRecord(const lString16 &fileName, size_t fileSize) const
+CRFileHistRecord* CRFileHist::getRecord(const lString16 &fileName, size_t fileSize)
 {
     lString16 name;
     lString16 path;
@@ -457,6 +457,29 @@ const CRFileHistRecord* CRFileHist::getRecord(const lString16 &fileName, size_t 
 void CRFileHistRecord::setLastPos( CRBookmark * bmk )
 {
     _lastpos = *bmk;
+}
+
+void CRFileHistRecord::convertBookmarks(ldomDocument *doc)
+{
+    for ( int i=0; i< getBookmarks().length(); i++) {
+        CRBookmark * bmk = getBookmarks()[i];
+
+        if( bmk->isValid() ) {
+            if (bmk->getType() != bmkt_lastpos) {
+                ldomXPointer p = doc->createXPointer(bmk->getStartPos());
+                if ( !p.isNull() ) {
+                    bmk->setStartPos(p.toString());
+                }
+                lString16 endPos = bmk->getEndPos();
+                if( !endPos.empty() ) {
+                    p = doc->createXPointer(endPos);
+                    if( !p.isNull() ) {
+                        bmk->setEndPos(p.toString());
+                    }
+                }
+            }
+        }
+    }
 }
 
 lString16 CRBookmark::getChapterName( ldomXPointer ptr )
@@ -577,6 +600,7 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
     //CRLog::trace("CRBookmark::CRBookmark() calling getChaptername");
 	setTitleText( CRBookmark::getChapterName( ptr ) );
     _startpos = ptr.toString();
+    CRLog::debug("new Xpath: %s, old Xpath: %s", LCSTR(_startpos), LCSTR(ptr.toString(XPATH_USE_NAMES)));
     _timestamp = (time_t)time(0);
     lvPoint endpt = pt;
     endpt.y += 100;

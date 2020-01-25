@@ -3723,7 +3723,7 @@ void LVDocView::restorePosition() {
 		//goToBookmark( pos );
 		CRLog::info("LVDocView::restorePosition() - last position is found");
 		_posBookmark = pos; //getBookmark();
-                updateBookMarksRanges();
+        updateBookMarksRanges();
 		_posIsSet = false;
 	} else {
 		CRLog::info(
@@ -3764,6 +3764,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 	lString16 arcItemPathName;
 	bool isArchiveFile = LVSplitArcName(filename16, arcPathName,
 			arcItemPathName);
+    bool convertBookmarks = false;
 	if (isArchiveFile) {
 		// load from archive, using @/ separated arhive/file pathname
 		CRLog::info("Loading document %s from archive %s", LCSTR(
@@ -3798,13 +3799,25 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 				(int) stream->GetSize()));
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
         m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
-        const CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-        gDOMVersionRequested = record ? record->getDOMversion() : gDOMVersionCurrent;
+        CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+
+        if(record) {
+            gDOMVersionRequested = record->getDOMversion();
+            m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+            convertBookmarks = !metadataOnly && record->getBookmarks().length() > 1;
+        } else {
+            gDOMVersionRequested = gDOMVersionCurrent;
+        }
 
 		// loading document
 		if (LoadDocument(stream, metadataOnly)) {
 			m_filename = lString16(fname);
 			m_stream.Clear();
+            if(convertBookmarks) {
+                record->convertBookmarks(m_doc);
+                record->setDOMversion(gDOMVersionCurrent);
+                m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+            }
 			return true;
 		}
 		m_stream.Clear();
@@ -3848,13 +3861,23 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 			(int) stream->GetSize()));
     m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 
-    const CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-    gDOMVersionRequested = record ? record->getDOMversion() : gDOMVersionCurrent;
+    CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+    if( record ) {
+        gDOMVersionRequested = record->getDOMversion();
+        m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+        convertBookmarks = !metadataOnly;
+    }
+    else
+        gDOMVersionRequested = gDOMVersionCurrent;
 
 	if (LoadDocument(stream, metadataOnly)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
-
+        if(convertBookmarks) {
+            record->convertBookmarks(m_doc);
+            record->setDOMversion(gDOMVersionCurrent);
+            m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+        }
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
 #if DUMP_OPENED_DOCUMENT_SENTENCES==1
         LVStreamRef out = LVOpenFileStream("/tmp/sentences.txt", LVOM_WRITE);
