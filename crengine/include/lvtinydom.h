@@ -990,11 +990,7 @@ public:
     ldomNode * removeChild( lUInt32 index );
 
     /// returns XPath segment for this element relative to parent element (e.g. "p[10]")
-    lString16 getXPathSegment( XPointerMode mode=XPATH_USE_INDEXES ) {
-        if( mode==XPATH_USE_NAMES )
-            return getXPathSegmentUsingNames();
-        return getXPathSegmentUsingIndexes();
-    }
+    lString16 getXPathSegment();
 
     /// creates stream to read base64 encoded data from element
     LVStreamRef createBase64Stream();

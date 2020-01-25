@@ -7565,44 +7565,8 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
     return ldomXPointer( currNode, -1 ); // XPath: index==-1
 }
 
-
-lString16 ldomNode::getXPathSegmentUsingIndexes()
-{
-    if ( isNull() || isRoot() )
-        return lString16::empty_str;
-    ldomNode * parent = getParentNode();
-    if( isBoxingNode(parent) )
-        parent = parent->getParentNode();
-    int cnt = parent->getChildCount();
-    int index = 0;
-    ldomNode * node = NULL;
-    for( int i=0; i<cnt; i++ ) {
-        node = parent->getChildNode(i);
-        if( node==this ) {
-            break;
-        }
-        if( isBoxingNode(node) ) {
-            for( int j=0; j< node->getChildCount(); j++) {
-                ldomNode *boxedNode = node->getChildNode(j);
-                if(this == boxedNode) {
-                    node=this;
-                    break;
-                }
-                index++;
-            }
-        } else {
-            index++;
-        }
-    }
-    if( node != this )
-        return lString16::empty_str;
-    if( isBoxingNode(node) )
-        node = node->getChildNode(0);
-    return lString16::itoa(index+1);
-}
-
 /// returns XPath segment for this element relative to parent element (e.g. "p[10]")
-lString16 ldomNode::getXPathSegmentUsingNames()
+lString16 ldomNode::getXPathSegment()
 {
     if ( isNull() || isRoot() )
         return lString16::empty_str;
