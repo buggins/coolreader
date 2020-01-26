@@ -7438,6 +7438,25 @@ static bool isBoxingNode(ldomNode * pNode)
     return false;
 }
 
+static ldomNode * getNodebyIndex(ldomNode *parent, int index, int& count)
+{
+    ldomNode *foundNode = NULL;
+
+    for( int i=0; i < (int)parent->getChildCount(); i++) {
+        ldomNode * p = parent->getChildNode(i);
+        if( isBoxingNode(p) )
+            foundNode = getNodebyIndex(p, index, count);
+        else
+            count++;
+        if(count == index) {
+            if( !foundNode )
+                foundNode = p;
+            break;
+        }
+    }
+    return foundNode;
+}
+
 /// create xpointer from relative pointer string
 ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
 {
@@ -7517,28 +7536,8 @@ ldomXPointer ldomDocument::createXPointer( ldomNode * baseNode, const lString16 
         case xpath_step_nodeindex:
             // node index                                 /N/
             {
-                ldomNode * foundItem = NULL;
                 int count = 0;
-                for( int i=0; i < (int)currNode->getChildCount(); i++) {
-                    ldomNode * p = currNode->getChildNode(i);
-                    if( isBoxingNode(p) ) {
-                        for( int j=0; j<p->getChildCount(); j++ ) {
-                            ldomNode * boxedNode = p->getChildNode(j);
-                            count++;
-                            if(count == index) {
-                                foundItem = boxedNode;
-                                break;
-                            }
-                        }
-                    } else {
-                        count++;
-                    }
-                    if(count == index) {
-                        if( !foundItem )
-                            foundItem = p;
-                        break;
-                    }
-                }
+                ldomNode * foundItem = getNodebyIndex(currNode, index, count);
                 if ( foundItem == NULL )
                     return ldomXPointer(); // node not found: invalid index
                 currNode = foundItem;
@@ -7654,6 +7653,22 @@ lString16 ldomXPointer::toStringUsingNames()
     return path;
 }
 
+static int getNodeIndex(ldomNode* parent, ldomNode *targetNode, int& count)
+{
+    for ( int i=0; i<parent->getChildCount(); i++ ) {
+        ldomNode * node = parent->getChildNode( i );
+        if( isBoxingNode(node) && targetNode != node ) {
+            int index = getNodeIndex(node, targetNode, count);
+            if(index > 0)
+                return index;
+        } else
+           count++;
+        if ( node==targetNode )
+            return count;
+    }
+    return -1;
+}
+
 lString16 ldomXPointer::toStringUsingIndexes()
 {
     lString16 path;
@@ -7670,33 +7685,13 @@ lString16 ldomXPointer::toStringUsingIndexes()
         if ( !parent )
             return "/" + p->isElement() ? p->getNodeName() : cs16("/text()") + path;
 
-        if( isBoxingNode(parent) )
+        while( isBoxingNode(parent) )
             parent = parent->getParentNode();
 
-        int index = -1;
         int count = 0;
-        for ( int i=0; i<parent->getChildCount(); i++ ) {
-            ldomNode * node = parent->getChildNode( i );
-            if( isBoxingNode(node) && p != node ) {
-                for( int j=0; j<node->getChildCount(); j++ ) {
-                    count++;
-                    ldomNode * boxedNode = node->getChildNode(j);
-                    if ( p==boxedNode ) {
-                        node = p;
-                        break;
-                    }
-                }
-            } else {
-               count++;
-            }
-            if ( node==p ) {
-                index = count;
-                break;
-            }
-        }
+        int index = getNodeIndex(parent, p, count);
+
         if( index>0 ) {
-            if ( isBoxingNode(p) )
-                p = p->getChildNode(0);
             path = cs16("/") + fmt::decimal(index) + path;
         } else {
             CRLog::error("!!! child node not found in a parent");

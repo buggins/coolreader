@@ -3748,6 +3748,20 @@ static void FileToArcProps(CRPropRef props) {
 	props->setHex(DOC_PROP_FILE_CRC32, 0);
 }
 
+static bool needToConvertBookmarks(CRFileHistRecord* historyRecord)
+{
+    bool convertBookmarks = false;
+    if(historyRecord) {
+        gDOMVersionRequested = historyRecord->getDOMversion();
+        if(gDOMVersionRequested < 20180528) {
+            convertBookmarks = gDOMVersionRequested < 20180528 &&
+                    historyRecord->getBookmarks().length() > 1;
+        }
+    } else
+        gDOMVersionRequested = gDOMVersionCurrent;
+    return convertBookmarks;
+}
+
 /// load document from file
 bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 	if (!fname || !fname[0])
@@ -3764,7 +3778,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 	lString16 arcItemPathName;
 	bool isArchiveFile = LVSplitArcName(filename16, arcPathName,
 			arcItemPathName);
-    bool convertBookmarks = false;
+
 	if (isArchiveFile) {
 		// load from archive, using @/ separated arhive/file pathname
 		CRLog::info("Loading document %s from archive %s", LCSTR(
@@ -3800,14 +3814,9 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
         m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
         CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-
-        if(record) {
-            gDOMVersionRequested = record->getDOMversion();
+        bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+        if(convertBookmarks)
             m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
-            convertBookmarks = !metadataOnly && record->getBookmarks().length() > 1;
-        } else {
-            gDOMVersionRequested = gDOMVersionCurrent;
-        }
 
 		// loading document
 		if (LoadDocument(stream, metadataOnly)) {
@@ -3817,6 +3826,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
                 record->convertBookmarks(m_doc);
                 record->setDOMversion(gDOMVersionCurrent);
                 m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+                //FIXME: need to reload file after this
             }
 			return true;
 		}
@@ -3862,13 +3872,9 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
     m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 
     CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-    if( record ) {
-        gDOMVersionRequested = record->getDOMversion();
-        m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
-        convertBookmarks = !metadataOnly;
-    }
-    else
-        gDOMVersionRequested = gDOMVersionCurrent;
+    bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+    if(convertBookmarks)
+        m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
 
 	if (LoadDocument(stream, metadataOnly)) {
 		m_filename = lString16(fname);
@@ -3877,6 +3883,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
             record->convertBookmarks(m_doc);
             record->setDOMversion(gDOMVersionCurrent);
             m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+            //FIXME: need to reload file after this
         }
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
 #if DUMP_OPENED_DOCUMENT_SENTENCES==1
