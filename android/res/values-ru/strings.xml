@@ -176,8 +176,11 @@
     <string name="options_app_dictionary2">Словарь 2</string>
     <string name="options_app_dictionary_not_installed">(не установлен)</string>
     <string name="action_zoom_in">Увеличить шрифт</string>
+    <string name="options_text_shaping">Формировщик текста</string>
+    <string name="options_text_shaping_simple">Простой (быстрый, без лигатур, кернинг может не работать)</string>
+    <string name="options_text_shaping_light">Легкий (без лигатур)</string>
+    <string name="options_text_shaping_full">Полный (с лигатурами)</string>
     <string name="options_font_kerning">Кернинг шрифта</string>
-    <string name="options_font_ligatures">Использовать лигатуры (очень медленно!)</string>
     <string name="action_zoom_out">Уменьшить шрифт</string>
     <string name="options_style_floating_punctuation">Висячая пунктуация</string>
     <string name="options_style_document_embedded_styles">Внутренние стили документа</string>

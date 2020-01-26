@@ -131,6 +131,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_font_hinting_disabled, R.string.options_font_hinting_bytecode, 
 			R.string.options_font_hinting_auto
 		};
+	int[] mShaping = new int[] {
+			0, 1, 2
+	};
+	int[] mShapingTitles = new int[] {
+			R.string.options_text_shaping_simple, R.string.options_text_shaping_light,
+			R.string.options_text_shaping_full
+	};
 	int[] mOrientations = new int[] {
 			0, 1, 4, 5
 		};
@@ -1908,8 +1915,9 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		//
 		mOptionsStyles.add(new HyphenationOptions(this, getString(R.string.options_hyphenation_dictionary)).setIconIdByAttr(R.attr.cr3_option_text_hyphenation_drawable, R.drawable.cr3_option_text_hyphenation));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_style_floating_punctuation), PROP_FLOATING_PUNCTUATION).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_floating_punct_drawable, R.drawable.cr3_option_text_other));
+		mOptionsStyles.add(new ListOption(this, getString(R.string.options_text_shaping), PROP_FONT_SHAPING).add(mShaping, mShapingTitles).setDefaultValue("1").setIconIdByAttr(R.attr.cr3_option_text_ligatures_drawable, R.drawable.cr3_option_text_ligatures));
 		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_kerning), PROP_FONT_KERNING_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_kerning_drawable, R.drawable.cr3_option_text_kerning));
-		mOptionsStyles.add(new BoolOption(this, getString(R.string.options_font_ligatures), PROP_FONT_LIGATURES_ENABLED).setDefaultValue("0").setIconIdByAttr(R.attr.cr3_option_text_ligatures_drawable, R.drawable.cr3_option_text_ligatures));
+
 		mOptionsStyles.add(new ImageScalingOption(this, getString(R.string.options_format_image_scaling)).setIconIdByAttr(R.attr.cr3_option_images_drawable, R.drawable.cr3_option_images));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_render_font_gamma), PROP_FONT_GAMMA).add(mGammas).setDefaultValue("1.0").setIconIdByAttr(R.attr.cr3_option_font_gamma_drawable, R.drawable.cr3_option_font_gamma));
 		mOptionsStyles.add(new ListOption(this, getString(R.string.options_format_min_space_width_percent), PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT).addPercents(mMinSpaceWidths).setDefaultValue("50").setIconIdByAttr(R.attr.cr3_option_text_width_drawable, R.drawable.cr3_option_text_width));
