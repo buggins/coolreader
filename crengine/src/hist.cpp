@@ -461,19 +461,24 @@ void CRFileHistRecord::setLastPos( CRBookmark * bmk )
 
 void CRFileHistRecord::convertBookmarks(ldomDocument *doc)
 {
+    int saveVersion = gDOMVersionRequested;
     for ( int i=0; i< getBookmarks().length(); i++) {
         CRBookmark * bmk = getBookmarks()[i];
 
         if( bmk->isValid() ) {
             if (bmk->getType() != bmkt_lastpos) {
+                gDOMVersionRequested = saveVersion;
                 ldomXPointer p = doc->createXPointer(bmk->getStartPos());
                 if ( !p.isNull() ) {
+                    gDOMVersionRequested = gDOMVersionCurrent;
                     bmk->setStartPos(p.toString());
                 }
                 lString16 endPos = bmk->getEndPos();
                 if( !endPos.empty() ) {
+                    gDOMVersionRequested = saveVersion;
                     p = doc->createXPointer(endPos);
                     if( !p.isNull() ) {
+                        gDOMVersionRequested = gDOMVersionCurrent;
                         bmk->setEndPos(p.toString());
                     }
                 }

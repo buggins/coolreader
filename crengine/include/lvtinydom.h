@@ -1483,9 +1483,12 @@ public:
     lvPoint toPoint( bool extended=false ) const;
 //#endif
     /// converts to string
-    lString16 toString( XPointerMode mode = XPATH_USE_INDEXES) {
-        if( XPATH_USE_NAMES==mode )
-            return toStringUsingNames();
+    lString16 toString( XPointerMode mode = XPATH_USE_NAMES) {
+        if( XPATH_USE_NAMES==mode ) {
+            if( gDOMVersionRequested >= 20180528)
+                return toStringUsingNames();
+            return toStringUsingNamesOld();
+        }
         return toStringUsingIndexes();
     }
 
@@ -1501,11 +1504,11 @@ public:
     lString16 getHRef();
     /// returns href attribute of <A> element, plus xpointer of <A> element itself
     lString16 getHRef(ldomXPointer & a_xpointer);
-	/// create a copy of pointer data
-	ldomXPointer * clone()
-	{
-		return new ldomXPointer( _data );
-	}
+    /// create a copy of pointer data
+    ldomXPointer * clone()
+    {
+            return new ldomXPointer( _data );
+    }
     /// returns true if current node is element
     inline bool isElement() const { return !isNull() && getNode()->isElement(); }
     /// returns true if current node is element
@@ -1516,6 +1519,7 @@ public:
         lString16Collection cssFiles; return getHtml(cssFiles, wflags);
     }
     lString16 toStringUsingNames();
+    lString16 toStringUsingNamesOld();
     lString16 toStringUsingIndexes();
 };
 
@@ -2223,6 +2227,8 @@ private:
     virtual ContinuousOperationResult saveChanges( CRTimerUtil & maxTime, LVDocViewCallback * progressCallback=NULL );
 #endif
 
+    ldomXPointer createXPointerV1( ldomNode * baseNode, const lString16 & xPointerStr );
+    ldomXPointer createXPointerV2( ldomNode * baseNode, const lString16 & xPointerStr );
 protected:
 
 #if BUILD_LITE!=1
@@ -2353,7 +2359,13 @@ public:
     }
 
     /// create xpointer from relative pointer string
-    ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr );
+    ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
+    {
+        if( gDOMVersionRequested >= 20180528)
+            return createXPointerV2(baseNode, xPointerStr);
+        return createXPointerV1(baseNode, xPointerStr);
+    }
+
 #if BUILD_LITE!=1
     /// create xpointer from doc point
     ldomXPointer createXPointer( lvPoint pt, int direction=0, bool strictBounds=false, ldomNode * from_node=NULL );
