@@ -10628,6 +10628,7 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
     //CRLog::trace("convertHref(%s, codeBase=%s, filePathName=%s)", LCSTR(href), LCSTR(codeBase), LCSTR(filePathName));
 
     if (href[0] == '#') {
+        // Link to anchor in the same docFragment
         lString16 replacement = pathSubstitutions.get(filePathName);
         if (replacement.empty())
             return href;
@@ -10636,24 +10637,38 @@ lString16 ldomDocumentFragmentWriter::convertHref( lString16 href )
         return p;
     }
 
-    href = LVCombinePaths(codeBase, href);
+    // href = LVCombinePaths(codeBase, href);
+
+    // Depending on what's calling us, href may or may not have
+    // gone thru DecodeHTMLUrlString() to decode %-encoded bits.
+    // We'll need to try again with DecodeHTMLUrlString() if not
+    // initially found in "pathSubstitutions" (whose filenames went
+    // thru DecodeHTMLUrlString(), and so did 'codeBase').
 
     // resolve relative links
-    lString16 p, id;
+    lString16 p, id; // path, id
     if ( !href.split2(cs16("#"), p, id) )
         p = href;
     if ( p.empty() ) {
         //CRLog::trace("codebase = %s -> href = %s", LCSTR(codeBase), LCSTR(href));
         if ( codeBasePrefix.empty() )
-            return href;
+            return LVCombinePaths(codeBase, href);
         p = codeBasePrefix;
-    } else {
-        lString16 replacement = pathSubstitutions.get(p);
+    }
+    else {
+        lString16 replacement = pathSubstitutions.get(LVCombinePaths(codeBase, p));
         //CRLog::trace("href %s -> %s", LCSTR(p), LCSTR(replacement));
         if ( !replacement.empty() )
             p = replacement;
-        else
-            return href;
+        else {
+            // Try again after DecodeHTMLUrlString()
+            p = DecodeHTMLUrlString(p);
+            replacement = pathSubstitutions.get(LVCombinePaths(codeBase, p));
+            if ( !replacement.empty() )
+                p = replacement;
+            else
+                return LVCombinePaths(codeBase, href);
+        }
         //else
         //    p = codeBasePrefix;
         //p = LVCombinePaths( codeBase, p ); // relative to absolute path

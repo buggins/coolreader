@@ -462,6 +462,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
             lString16 href = item->getAttributeValue("href");
             lString16 id = item->getAttributeValue("id");
             if ( !href.empty() && !id.empty() ) {
+                href = DecodeHTMLUrlString(href);
                 if (id == coverId) {
                     // coverpage file
                     lString16 coverFileName = LVCombinePaths(codeBase, href);
