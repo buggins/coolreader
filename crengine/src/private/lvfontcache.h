@@ -59,9 +59,11 @@ public:
 
     void addInstance(const LVFontDef *def, LVFontRef ref);
 
+    bool setAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias );
+
     LVPtrVector<LVFontCacheItem> *getInstances() { return &_instance_list; }
 
-    LVFontCacheItem *find(const LVFontDef *def);
+    LVFontCacheItem *find(const LVFontDef *def, bool useBias=false);
 
     LVFontCacheItem *findFallback(lString8 face, int size);
 

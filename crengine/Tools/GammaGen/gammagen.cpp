@@ -6,9 +6,10 @@
 #include <stdio.h>
 #include <math.h>
 
-#define GAMMA_LEVELS 31
+static const double gamma_levels[] = { 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.98, 1, 1.02, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-static const double gamma_levels[GAMMA_LEVELS] = { 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.98, 1, 1.02, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 1.9 };
+#define GAMMA_NORMAL 15
+#define GAMMA_LEVELS ((int)(sizeof(gamma_levels)/sizeof(gamma_levels[0])))
 
 void genTable( FILE * out, double gamma, int index ) {
     fprintf(out, "static const unsigned char gamma_table_%d[256] = { // gamma=%f\n    ", index, gamma);
@@ -19,7 +20,7 @@ void genTable( FILE * out, double gamma, int index ) {
         n = 255 - n;
 	fprintf(out, "%3d, ", n);
 	if ( i%22==21 )
-	    fprintf(out, "\n    ", n);
+	    fprintf(out, "\n    ");
     }
     fprintf(out, "};\n");
 }
@@ -48,9 +49,9 @@ int main(int argc, const char ** argv)
     fprintf(out, "extern const unsigned char * cr_gamma_tables[GAMMA_LEVELS];\n");
     fprintf(out, "// gamma correction levels table 0..%d\n", GAMMA_LEVELS-1);
     fprintf(out, "extern const double cr_gamma_levels[GAMMA_LEVELS];\n");
-    fprintf(out, "// corrects gamma for value 0..255, gamma_index must be 0..%d (%d means no correction)\n", GAMMA_LEVELS-1, GAMMA_LEVELS/2);
+    fprintf(out, "// corrects gamma for value 0..255, gamma_index must be 0..%d (%d means no correction)\n", GAMMA_LEVELS-1, GAMMA_NORMAL);
     fprintf(out, "inline unsigned char cr_correct_gamma( unsigned char value, int gamma_index ) { return cr_gamma_tables[gamma_index][value]; } \n");
-    fprintf(out, "// corrects gamma for byte buffer; gamma_index must be 0..%d (%d means no correction)\n", GAMMA_LEVELS-1, GAMMA_LEVELS/2);
+    fprintf(out, "// corrects gamma for byte buffer; gamma_index must be 0..%d (%d means no correction)\n", GAMMA_LEVELS-1, GAMMA_NORMAL);
     fprintf(out, "void cr_correct_gamma_buf( unsigned char * buf, int size, int gamma_index );\n");
     fprintf(out, "\n\n");
          
@@ -73,7 +74,7 @@ int main(int argc, const char ** argv)
     }
     fprintf(out, "};\n\n");
 
-    fprintf(out, "// corrects gamma for byte buffer; gamma_index must be 0..%d (%d means no correction)\n", GAMMA_LEVELS-1, GAMMA_LEVELS/2);
+    fprintf(out, "// corrects gamma for byte buffer; gamma_index must be 0..%d (%d means no correction)\n", GAMMA_LEVELS-1, GAMMA_NORMAL);
     fprintf(out, "void cr_correct_gamma_buf( unsigned char * buf, int size, int gamma_index ) {\n"
                  "    const unsigned char * table = cr_gamma_tables[gamma_index];\n"
                  "    for ( int i=0; i<size; i++ )\n"

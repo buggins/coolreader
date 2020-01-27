@@ -21,24 +21,23 @@
 #include "lvstring16collection.h"
 #include "lvfont.h"
 
-
 /// font manager interface class
 class LVFontManager {
 protected:
-    int _antialiasMode;
     bool _allowKerning;
-    bool _allowLigatures;
+    int _antialiasMode;
+    shaping_mode_t _shapingMode;
     hinting_mode_t _hintingMode;
 public:
     /// garbage collector frees unused fonts
     virtual void gc() = 0;
 
     /// returns most similar font
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, 
-                              lString8 typeface, int documentId = -1) = 0;
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family,
+                              lString8 typeface, int documentId = -1, bool useBias=false) = 0;
 
     /// set fallback font face (returns true if specified font is found)
-    virtual bool SetFallbackFontFace(lString8 face) {
+    virtual bool SetFallbackFontFace( lString8 face ) {
         CR_UNUSED(face);
         return false;
     }
@@ -48,14 +47,12 @@ public:
 
     /// returns fallback font for specified size
     virtual LVFontRef GetFallbackFont(int /*size*/) { return LVFontRef(); }
-
+    /// returns fallback font for specified size, weight and italic
+    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false ) { return LVFontRef(); }
     /// registers font by name
-    virtual bool RegisterFont(lString8 name) = 0;
-
+    virtual bool RegisterFont( lString8 name ) = 0;
     /// registers font by name and face
-    virtual bool RegisterExternalFont(lString16 /*name*/, lString8 /*face*/, bool /*bold*/,
-                                      bool /*italic*/) { return false; }
-
+    virtual bool RegisterExternalFont(lString16 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
     /// registers document font
     virtual bool
     RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString16 /*name*/,
@@ -87,67 +84,53 @@ public:
     }
 
     /// get kerning mode: true==ON, false=OFF
-    virtual bool getKerning() { return _allowKerning; }
+    virtual bool GetKerning() { return _allowKerning; }
 
     /// get kerning mode: true==ON, false=OFF
-    virtual void setKerning(bool kerningEnabled) {
+    virtual void SetKerning(bool kerningEnabled) {
         _allowKerning = kerningEnabled;
         gc();
         clearGlyphCache();
     }
 
-    /// get ligatures mode: true==allowed, false=not allowed
-    virtual bool getLigatures() const { return _allowLigatures; }
-
-    /// set ligatures mode: true==allowed, false=not allowed
-    virtual void setLigatures(bool ligaturesEnabled) {
-        _allowLigatures = ligaturesEnabled;
-        gc();
-        clearGlyphCache();
-    }
-
+    /// get shaping mode
+    virtual shaping_mode_t GetShapingMode() { return _shapingMode; }
+    /// set shaping mode
+    virtual void SetShapingMode( shaping_mode_t mode ) { _shapingMode = mode; gc(); clearGlyphCache(); }
     /// constructor
-    LVFontManager() : _antialiasMode(font_aa_all), _allowKerning(false), _allowLigatures(false),
-                      _hintingMode(HINTING_MODE_AUTOHINT) {}
-
+    LVFontManager() : _allowKerning(false), _antialiasMode(font_aa_all), _shapingMode(SHAPING_MODE_FREETYPE), _hintingMode(HINTING_MODE_AUTOHINT) { }
     /// destructor
-    virtual ~LVFontManager() {}
-
+    virtual ~LVFontManager() { }
     /// returns available typefaces
-    virtual void getFaceList(lString16Collection &) {}
-
+    virtual void getFaceList( lString16Collection & ) { }
     /// returns available font files
-    virtual void getFontFileNameList(lString16Collection &) {}
-
-    // check font language compatibility
+    virtual void getFontFileNameList( lString16Collection & ) { }
+    /// check font language compatibility
     virtual bool checkFontLangCompat(const lString8 &typeface, const lString8 &langCode) { return true; }
-
     /// returns first found face from passed list, or return face for font found by family only
     virtual lString8 findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily);
-
     /// fills array with list of available gamma levels
     virtual void GetGammaLevels(LVArray<double> dst);
-
     /// returns current gamma level index
-    virtual int GetGammaIndex();
-
+    virtual int  GetGammaIndex();
     /// sets current gamma level index
-    virtual void SetGammaIndex(int gammaIndex);
-
+    virtual void SetGammaIndex( int gammaIndex );
     /// returns current gamma level
     virtual double GetGamma();
-
     /// sets current gamma level
-    virtual void SetGamma(double gamma);
-
+    virtual void SetGamma( double gamma );
     /// sets current hinting mode
-    virtual void SetHintingMode(hinting_mode_t /*mode*/) {}
-
+    virtual void SetHintingMode(hinting_mode_t /*mode*/) { }
     /// returns current hinting mode
-    virtual hinting_mode_t GetHintingMode() { return HINTING_MODE_AUTOHINT; }
-
-    virtual bool setalias(lString8 alias, lString8 facename, int id, bool italic, bool bold) {
+    virtual hinting_mode_t  GetHintingMode() { return HINTING_MODE_AUTOHINT; }
+    ///
+    virtual bool SetAlias(lString8 alias, lString8 facename, int id, bool italic, bool bold) {
         CR_UNUSED5(alias, facename, id, italic, bold);
+        return false;
+    }
+    /// set as preferred font with the given bias to add in CalcMatch algorithm
+    virtual bool SetAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias=true ) {
+        CR_UNUSED(face);
         return false;
     }
 };

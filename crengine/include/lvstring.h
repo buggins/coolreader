@@ -19,16 +19,45 @@
 #include "lvtypes.h"
 #include "lvmemman.h"
 
-/// soft hyphen code
-#define UNICODE_SOFT_HYPHEN_CODE 0x00ad
+// (Note: some of these 0x have lowercase hex digit, to avoid
+// 'redefined' warnings as they are already defined in lowercase
+// in antiword/wordconst.h.)
+
+/// Unicode spaces
+#define UNICODE_NO_BREAK_SPACE            0x00A0
+#define UNICODE_ZERO_WIDTH_NO_BREAK_SPACE 0xfeff
+// All chars from U+2000 to U+200B allow wrap after, except U+2007
+#define UNICODE_EN_QUAD          0x2000
+#define UNICODE_FIGURE_SPACE     0x2007
 #define UNICODE_ZERO_WIDTH_SPACE 0x200b
-#define UNICODE_NO_BREAK_SPACE   0x00a0
-#define UNICODE_HYPHEN   0x2010
-#define UNICODE_NB_HYPHEN   0x2011
 
 #ifdef USE_ATOMIC_REFCOUNT
 #include <atomic>
 #endif
+/// Unicode hyphens
+#define UNICODE_SOFT_HYPHEN_CODE 0x00AD
+#define UNICODE_ARMENIAN_HYPHEN  0x058A
+// All chars from U+2010 to U+2014 allow deprecated wrap after, except U+2011
+#define UNICODE_HYPHEN           0x2010
+#define UNICODE_NO_BREAK_HYPHEN  0x2011
+#define UNICODE_EM_DASH          0x2014
+
+// Punctuation and CJK ranges
+#define UNICODE_GENERAL_PUNCTUATION_BEGIN 0x2000
+#define UNICODE_GENERAL_PUNCTUATION_END 0x206F
+#define UNICODE_CJK_IDEOGRAPHS_BEGIN 0x3041
+#define UNICODE_CJK_IDEOGRAPHS_END 0x02CEAF
+#define UNICODE_CJK_IDEOGRAPHIC_SPACE 0x3000
+#define UNICODE_CJK_PUNCTUATION_BEGIN 0x3000
+#define UNICODE_CJK_PUNCTUATION_END 0x303F
+// These may be wrong as this block contain katakana and hangul
+// letters, as well as ascii full-width chars:
+#define UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_BEGIN 0xFF01
+#define UNICODE_CJK_PUNCTUATION_HALF_AND_FULL_WIDTH_END 0xFFEE
+
+#define UNICODE_ASCII_FULL_WIDTH_BEGIN 0xFF01
+#define UNICODE_ASCII_FULL_WIDTH_END 0xFF5E
+#define UNICODE_ASCII_FULL_WIDTH_OFFSET 0xFEE0 // substract or add to convert to/from ASCII
 
 
 /// strlen for lChar16
@@ -69,6 +98,10 @@ int    lStr_cmp(const lChar8 * str1, const lChar8 * str2);
 void lStr_uppercase( lChar16 * str, int len );
 /// convert string to lowercase
 void lStr_lowercase( lChar16 * str, int len );
+/// convert string to be capitalized
+void lStr_capitalize( lChar16 * str, int len );
+/// convert string to use full width chars
+void lStr_fullWidthChars( lChar16 * str, int len );
 /// calculates CRC32 for buffer contents
 lUInt32 lStr_crc32( lUInt32 prevValue, const void * buf, int size );
 
@@ -94,6 +127,9 @@ int decodeDecimal( const lChar16 * str, int len );
 #define CH_PROP_SIGN        0x0100 ///< sign character flag
 #define CH_PROP_ALPHA_SIGN  0x0200 ///< alpha sign character flag
 #define CH_PROP_DASH        0x0400 ///< minus, emdash, endash, ... (- signs)
+#define CH_PROP_CJK         0x0800 ///< CJK ideographs
+#define CH_PROP_AVOID_WRAP_AFTER   0x1000 ///< avoid wrap on following space
+#define CH_PROP_AVOID_WRAP_BEFORE  0x2000 ///< avoid wrap on preceding space
 
 /// retrieve character properties mask array for wide c-string
 void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props );
@@ -101,6 +137,8 @@ void lStr_getCharProps( const lChar16 * str, int sz, lUInt16 * props );
 lUInt16 lGetCharProps( lChar16 ch );
 /// find alpha sequence bounds
 void lStr_findWordBounds( const lChar16 * str, int sz, int pos, int & start, int & end );
+// is char a word separator
+bool lStr_isWordSeparator( lChar16 ch );
 
 
 // must be power of 2
@@ -567,6 +605,10 @@ public:
     lString16 & uppercase();
     /// make string lowercase
     lString16 & lowercase();
+    /// make string capitalized
+    lString16 & capitalize();
+    /// make string use full width chars
+    lString16 & fullWidthChars();
     /// compare with another string
     int compare(const lString16& str) const { return lStr_cmp(pchunk->buf16, str.pchunk->buf16); }
     /// compare subrange with another string
@@ -844,6 +886,9 @@ lString16 DecodeHTMLUrlString( lString16 s );
 void limitStringSize(lString16 & str, int maxSize);
 
 int TrimDoubleSpaces(lChar16 * buf, int len,  bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens);
+
+/// remove soft-hyphens from string
+lString16 removeSoftHyphens( lString16 s );
 
 
 #define LCSTR(x) (UnicodeToUtf8(x).c_str())

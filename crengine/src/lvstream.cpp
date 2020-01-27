@@ -699,7 +699,7 @@ public:
 		}
         return LVERR_OK;
     }
-	
+
     lverror_t OpenFile( lString16 fname, lvopen_mode_t mode, lvsize_t minSize = (lvsize_t)-1 )
     {
         m_mode = mode;
@@ -813,7 +813,7 @@ public:
         return LVERR_OK;
 #endif
     }
-    LVFileMappedStream() 
+    LVFileMappedStream()
 #if defined(_WIN32)
 		: m_hFile(NULL), m_hMap(NULL),
 #else
@@ -1559,10 +1559,8 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
         // WIN32 API
         fn << mask;
-        WIN32_FIND_DATAW data;
-        WIN32_FIND_DATAA dataa;
-        memset(&data, 0, sizeof(data));
-        memset(&dataa, 0, sizeof(dataa));
+        WIN32_FIND_DATAW data = { 0 };
+        WIN32_FIND_DATAA dataa = { 0 };
         //lString8 bs = DOMString(path).ToAnsiString();
         HANDLE hFind = FindFirstFileW(fn.c_str(), &data);
         bool unicode=true;
@@ -1871,8 +1869,7 @@ public:
         m_bufSize = (bufSize + CACHE_BUF_BLOCK_SIZE - 1) >> CACHE_BUF_BLOCK_SHIFT;
         if (m_bufSize<3)
             m_bufSize = 3;
-        m_buf = new BufItem* [m_bufItems];
-        memset( m_buf, 0, sizeof( BufItem*) * m_bufItems );
+        m_buf = new BufItem* [m_bufItems]();
         SetName( stream->GetName() );
     }
     virtual ~LVCachedStream()
@@ -1946,8 +1943,7 @@ public:
         int extraItems = (m_bufSize - count); // max move backward
         if (extraItems<0)
             extraItems = 0;
-        char * flags = new char[ count ];
-        memset( flags, 0, count );
+        char * flags = new char[ count ]();
 
         //if ( m_stream
         int start = (int)m_pos;
@@ -2464,6 +2460,8 @@ public:
         lUInt32 packSize = hdr.getPackSize();
         lUInt32 unpSize = hdr.getUnpSize();
         if ( packSize==0 && unpSize==0 ) {
+            // Can happen when local header does not carry these sizes
+            // Use the ones provided that come from zip central directory
             packSize = srcPackSize;
             unpSize = srcUnpSize;
         }
@@ -2472,16 +2470,16 @@ public:
         if (hdr.getMethod() == 0)
         {
             // store method, copy as is
-            if ( hdr.getPackSize() != hdr.getUnpSize() )
+            if ( packSize != unpSize )
                 return NULL;
-            LVStreamFragment * fragment = new LVStreamFragment( stream, pos, hdr.getPackSize());
+            LVStreamFragment * fragment = new LVStreamFragment( stream, pos, packSize);
             fragment->SetName( name.c_str() );
             return fragment;
         }
         else if (hdr.getMethod() == 8)
         {
             // deflate
-            LVStreamRef srcStream( new LVStreamFragment( stream, pos, hdr.getPackSize()) );
+            LVStreamRef srcStream( new LVStreamFragment( stream, pos, packSize) );
             LVZipDecodeStream * res = new LVZipDecodeStream( srcStream, pos,
                 packSize, unpSize, hdr.getCRC() );
             res->SetName( name.c_str() );
@@ -2623,7 +2621,7 @@ public:
 
 
         ZipLocalFileHdr ZipHd1;
-        ZipHd2 ZipHeader;
+        ZipHd2 ZipHeader = { 0 };
         unsigned ZipHeader_size = 0x2E; //sizeof(ZipHd2); //0x34; //
         unsigned ZipHd1_size = 0x1E; //sizeof(ZipHd1); //sizeof(ZipHd1)
           //lUInt32 ReadSize;
@@ -2652,8 +2650,6 @@ public:
                         return m_list.length();
                     return 0;
                 }
-
-                memset(&ZipHeader,0,ZipHeader_size);
 
                 ZipHeader.UnpVer=ZipHd1.UnpVer;
                 ZipHeader.UnpOS=ZipHd1.UnpOS;
@@ -3051,7 +3047,7 @@ public:
 		m_bufsize = 4096;
 		m_size = 0;
 		m_pos = 0;
-        m_pBuffer = (lUInt8*)malloc((int)m_bufsize);
+		m_pBuffer = (lUInt8*)malloc((int)m_bufsize);
 		m_own_buffer = true;
 		m_mode = LVOM_READWRITE;
 		return LVERR_OK;
@@ -3782,7 +3778,13 @@ lString16 LVCombinePaths( lString16 basePath, lString16 newPath )
             }
         }
     } while ( changed && s.length()>=pattern.length() );
-    // "./"
+    // Replace "/./" inside with "/"
+    pattern.clear();
+    pattern << separator << "." << separator;
+    lString16 replacement;
+    replacement << separator;
+    while ( s.replace( pattern, replacement ) ) ;
+    // Remove "./" at start
     if ( s.length()>2 && s[0]=='.' && s[1]==separator )
         s.erase(0, 2);
     return s;
@@ -4097,9 +4099,8 @@ class LVBlockWriteStream : public LVNamedStream
             , modified_start((lvpos_t)-1), modified_end((lvpos_t)-1)
             , size( block_size ), next(NULL)
         {
-            buf = (lUInt8*)malloc( size );
+            buf = (lUInt8*)calloc(size, sizeof(*buf));
             if ( buf ) {
-                memset(buf, 0, size);
     //            modified_start = 0;
     //            modified_end = size;
             }

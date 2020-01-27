@@ -1,6 +1,6 @@
 /*******************************************************
 
-   CoolReader Engine DOM Tree 
+   CoolReader Engine DOM Tree
 
    LDOMNodeIdMap.cpp:  Name to Id map
 
@@ -11,6 +11,7 @@
 
 *******************************************************/
 
+#include "../include/lvmemman.h"
 #include "../include/lstridmap.h"
 #include "../include/dtddef.h"
 #include "../include/lvtinydom.h"
@@ -152,10 +153,8 @@ LDOMNameIdMap::LDOMNameIdMap(lUInt16 maxId)
 {
     m_size = maxId+1;
     m_count = 0;
-    m_by_id   = new LDOMNameIdMapItem * [m_size];
-    memset( m_by_id, 0, sizeof(LDOMNameIdMapItem *)*m_size );  
-    m_by_name = new LDOMNameIdMapItem * [m_size];
-    memset( m_by_name, 0, sizeof(LDOMNameIdMapItem *)*m_size );  
+    m_by_id   = new LDOMNameIdMapItem * [m_size]();
+    m_by_name = new LDOMNameIdMapItem * [m_size]();
     m_sorted = true;
     m_changed = false;
 }
@@ -265,27 +264,14 @@ void LDOMNameIdMap::AddItem( LDOMNameIdMapItem * item )
     {
         // reallocate storage
         lUInt16 newsize = item->id+16;
-        void* tmp = realloc( m_by_id, sizeof(LDOMNameIdMapItem *)*newsize );
-        void* tmp2 = realloc( m_by_name, sizeof(LDOMNameIdMapItem *)*newsize );
-        if (tmp && tmp2) {
-            m_by_id = (LDOMNameIdMapItem **)tmp;
-            m_by_name = (LDOMNameIdMapItem **)tmp2;
-            for (lUInt16 i = m_size; i<newsize; i++)
-            {
-                m_by_id[i] = NULL;
-                m_by_name[i] = NULL;
-            }
-            m_size = newsize;
+        m_by_id = cr_realloc( m_by_id, newsize );
+        m_by_name = cr_realloc( m_by_name, newsize );
+        for (lUInt16 i = m_size; i<newsize; i++)
+        {
+            m_by_id[i] = NULL;
+            m_by_name[i] = NULL;
         }
-        else {
-            if (tmp)
-                free(tmp);
-            if (tmp2)
-                free(tmp2);
-            delete item;
-            // TODO: throw exception or change function prototype & return code
-            return;
-        }
+        m_size = newsize;
     }
     if (m_by_id[item->id] != NULL)
     {

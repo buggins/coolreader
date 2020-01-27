@@ -29,7 +29,7 @@ int LVFontDef::CalcDuplicateMatch(const LVFontDef &def) const {
     return size_match && weight_match && italic_match && family_match && typeface_match;
 }
 
-int LVFontDef::CalcMatch(const LVFontDef &def) const {
+int LVFontDef::CalcMatch(const LVFontDef &def, bool useBias) const {
     if (_documentId != -1 && _documentId != def._documentId)
         return 0;
     int size_match = (_size == -1 || def._size == -1) ? 256
@@ -52,12 +52,57 @@ int LVFontDef::CalcMatch(const LVFontDef &def) const {
                        : ((_family == css_ff_monospace) == (def._family == css_ff_monospace) ? 64
                                                                                              : 0);
     int typeface_match = (_typeface == def._typeface) ? 256 : 0;
-    return
-            +(size_match * 100)
-            + (weight_match * 5)
-            + (italic_match * 5)
-            + (family_match * 100)
-            + (typeface_match * 1000);
+
+    // bias
+    int bias = useBias ? _bias : 0;
+
+    // Special handling for synthetized fonts:
+    // The way this function is called:
+    // 'this' (or '', properties not prefixed) is either an instance of a
+    //     registered font, or a registered font definition,
+    // 'def' is the requested definition.
+    // 'def' can never be italic=2 (fake italic) or weight=601 (fake bold), but
+    //    either 0 or 1, or a 400,700,... any multiple of 100
+    // 'this' registered can be only 400 when the font has no bold sibling,
+    //           or 700 when 'this' is the bold sibling
+    // 'this' instantiated can be 400 (for the regular original)
+    //           or 700 when 'this' is the bold sibling instantiated
+    //           or 601 when it has been synthetised from the regular.
+    // We want to avoid an instantiated fake bold (resp. fake bold italic) to
+    // have a higher score than the registered original when a fake bold italic
+    // (resp. fake bold) is requested, so the italic/non italic requested can
+    // be re-synthetized. Otherwise, we'll get some italic when not wanting
+    // italic (or vice versa), depending on which has been instantiated first...
+    //
+    if ( _weight & 1) {           // 'this' is an instantiated fake bold font
+        if ( def._italic > 0 ) {  // italic requested
+            if ( _italic == 0 ) { // 'this' is fake bold but non-italic
+                weight_match = 0; // => drop score
+                italic_match = 0;
+                // The regular (italic or fake italic) is available
+                // and will get a better score than 'this'
+            }
+            // otherwise, 'this' is a fake bold italic, and it can match
+        }
+        else {                    // non-italic requested
+            if ( _italic > 0 ) {  // 'this' is fake bold of (real or fake) italic
+                weight_match = 0; // => drop score
+                italic_match = 0;
+                // The regular is available and will get a better score
+                // than 'this'
+            }
+        }
+    }
+
+    // final score
+    int score = bias
+        + (size_match     * 100)
+        + (weight_match   * 5)
+        + (italic_match   * 5)
+        + (family_match   * 100)
+        + (typeface_match * 1000);
+
+    return score;
 }
 
 int LVFontDef::CalcFallbackMatch(lString8 face, int size) const {

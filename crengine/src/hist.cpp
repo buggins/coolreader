@@ -43,7 +43,8 @@ protected:
         in_series,
         in_filename,
         in_filepath,
-        in_filesize
+        in_filesize,
+        in_dom_version
     };
     state_t state;
 public:
@@ -98,6 +99,8 @@ public:
             state = in_filepath;
         } else if ( lStr_cmp(tagname, "doc-filesize")==0 && state==in_file_info ) {
             state = in_filesize;
+        } else if ( lStr_cmp(tagname, "doc-dom-version")==0 && state==in_file_info ) {
+            state = in_dom_version;
         } else if ( lStr_cmp(tagname, "bookmark")==0 && state==in_bm_list ) {
             state = in_bm;
             _curr_bookmark = new CRBookmark();
@@ -139,6 +142,8 @@ public:
         } else if ( lStr_cmp(tagname, "doc-filepath")==0 && state==in_filepath ) {
             state = in_file_info;
         } else if ( lStr_cmp(tagname, "doc-filesize")==0 && state==in_filesize ) {
+            state = in_file_info;
+        } else if ( lStr_cmp(tagname, "doc-dom-version")==0 && state==in_dom_version ) {
             state = in_file_info;
         } else if ( lStr_cmp(tagname, "bookmark")==0 && state==in_bm ) {
             state = in_bm_list;
@@ -240,6 +245,9 @@ public:
         case in_filesize:
             _curr_file->setFileSize( txt.atoi() );
             break;
+        case in_dom_version:
+            _curr_file->setDOMversion( txt.atoi() );
+            break;
         default:
             break;
         }
@@ -317,6 +325,7 @@ bool CRFileHist::saveToStream( LVStream * targetStream )
         putTagValue( stream, 3, "doc-filename", rec->getFileName() );
         putTagValue( stream, 3, "doc-filepath", rec->getFilePath() );
         putTagValue( stream, 3, "doc-filesize", lString16::itoa( (unsigned int)rec->getFileSize() ) );
+        putTagValue( stream, 3, "doc-dom-version", lString16::itoa( (unsigned int)rec->getDOMversion() ) );
         putTag( stream, 2, "/file-info" );
         putTag( stream, 2, "bookmark-list" );
         putBookmark( stream, rec->getLastPos() );
@@ -395,8 +404,7 @@ int CRFileHistRecord::getLastShortcutBookmark()
 int CRFileHistRecord::getFirstFreeShortcutBookmark()
 {
     //int last = -1;
-    char flags[MAX_SHORTCUT_BOOKMARKS+1];
-    memset( flags, 0, sizeof(flags) );
+    char flags[MAX_SHORTCUT_BOOKMARKS+1] = { 0 };
     for ( int i=0; i<_bookmarks.length(); i++ ) {
         if ( _bookmarks[i]->getShortcut()>0 && _bookmarks[i]->getShortcut() < MAX_SHORTCUT_BOOKMARKS && _bookmarks[i]->getType() == bmkt_pos )
             flags[ _bookmarks[i]->getShortcut() ] = 1;
@@ -408,7 +416,7 @@ int CRFileHistRecord::getFirstFreeShortcutBookmark()
     return -1;
 }
 
-int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz )
+int CRFileHist::findEntry( const lString16 & fname, const lString16 & fpath, lvsize_t sz ) const
 {
     CR_UNUSED(fpath);
     for ( int i=0; i<_records.length(); i++ ) {
@@ -434,9 +442,49 @@ void CRFileHist::makeTop( int index )
     _records[0] = rec;
 }
 
+CRFileHistRecord* CRFileHist::getRecord(const lString16 &fileName, size_t fileSize)
+{
+    lString16 name;
+    lString16 path;
+    splitFName( fileName, path, name );
+    int index = findEntry( name, path, (lvsize_t)fileSize );
+    if ( index>=0 ) {
+        return _records[index];
+    }
+    return NULL;
+}
+
 void CRFileHistRecord::setLastPos( CRBookmark * bmk )
 {
     _lastpos = *bmk;
+}
+
+void CRFileHistRecord::convertBookmarks(ldomDocument *doc)
+{
+    int saveVersion = gDOMVersionRequested;
+    for ( int i=0; i< getBookmarks().length(); i++) {
+        CRBookmark * bmk = getBookmarks()[i];
+
+        if( bmk->isValid() ) {
+            if (bmk->getType() != bmkt_lastpos) {
+                gDOMVersionRequested = saveVersion;
+                ldomXPointer p = doc->createXPointer(bmk->getStartPos());
+                if ( !p.isNull() ) {
+                    gDOMVersionRequested = gDOMVersionCurrent;
+                    bmk->setStartPos(p.toString());
+                }
+                lString16 endPos = bmk->getEndPos();
+                if( !endPos.empty() ) {
+                    gDOMVersionRequested = saveVersion;
+                    p = doc->createXPointer(endPos);
+                    if( !p.isNull() ) {
+                        gDOMVersionRequested = gDOMVersionCurrent;
+                        bmk->setEndPos(p.toString());
+                    }
+                }
+            }
+        }
+    }
 }
 
 lString16 CRBookmark::getChapterName( ldomXPointer ptr )
@@ -503,6 +551,7 @@ CRFileHistRecord * CRFileHist::savePosition( lString16 fpathname, size_t sz,
     rec->setFileSize( (lvsize_t)sz );
     rec->setLastPos( &bmk );
     rec->setLastTime( (time_t)time(0) );
+    rec->setDOMversion( gDOMVersionCurrent );
 
     _records.insert( 0, rec );
     //CRLog::trace("CRFileHist::savePosition - exit");
@@ -556,6 +605,7 @@ CRBookmark::CRBookmark (ldomXPointer ptr )
     //CRLog::trace("CRBookmark::CRBookmark() calling getChaptername");
 	setTitleText( CRBookmark::getChapterName( ptr ) );
     _startpos = ptr.toString();
+    CRLog::debug("new Xpath: %s, old Xpath: %s", LCSTR(_startpos), LCSTR(ptr.toString(XPATH_USE_NAMES)));
     _timestamp = (time_t)time(0);
     lvPoint endpt = pt;
     endpt.y += 100;

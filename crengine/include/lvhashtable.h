@@ -104,8 +104,7 @@ public:
     {
         if (size < 16 )
             size = 16;
-        _table = new pair* [ size ];
-        memset( _table, 0, sizeof(pair*) * size );
+        _table = new pair* [ size ]();
         _size = size;
         _count = 0;
     }
@@ -133,8 +132,7 @@ public:
     int size() { return _size; }
     void resize( int nsize )
     {
-        pair ** new_table = new pair * [ nsize ];
-        memset( new_table, 0, sizeof(pair*) * nsize );
+        pair ** new_table = new pair * [ nsize ]();
 		if (_table) {
 			for ( int i=0; i<_size; i++ ) {
 				pair * p = _table[i];

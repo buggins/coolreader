@@ -116,11 +116,7 @@ void crSetSignalHandler()
 	if (signals_are_set)
 		return;
 	signals_are_set = true;
-	struct sigaction handler; // = {0};
-	//size_t s = sizeof(handler);
-	//void * p = &handler;
-	//memset(p, 0, s);
-	memset(&handler, 0, sizeof(handler));
+	struct sigaction handler = { 0 };
 	handler.sa_sigaction = cr_sigaction;
 	handler.sa_flags = SA_RESETHAND;
 #define CATCHSIG(X) sigaction(X, &handler, &old_sa[X])

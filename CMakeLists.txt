@@ -148,6 +148,14 @@ else()
   SET(USE_UNRAR 0)
 endif(DEFINED USE_UNRAR)
 
+find_path(NANOSVG_INCLUDE_DIR nanosvg.h)
+if (NOT NANOSVG_FOUND)
+SET(NANOSVG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/nanosvg/src)
+endif(NOT NANOSVG_FOUND)
+
+ADD_DEFINITIONS(-DUSE_NANOSVG=1)
+INCLUDE_DIRECTORIES(${NANOSVG_INCLUDE_DIR})
+
 if (MAC)
   message("will use zlib, libpng, libjpeg, freetype from Qt static library")
   SET(ZLIB_INCLUDE_DIR ${QT_3RDPARTY_DIR}/zlib)
@@ -213,6 +221,8 @@ FIND_PACKAGE(Freetype)
 FIND_PACKAGE(HarfBuzz)
 endif (NOT MSVC AND NOT CR3_FREETYPE)
 
+ADD_SUBDIRECTORY(thirdparty/qimagescale)
+
 if (NOT FREETYPE_FOUND)
   message("System FREETYPE not found, will build local one\n")
   if (NOT HarfBuzz_FOUND)
@@ -229,7 +239,7 @@ if (NOT HarfBuzz_FOUND)
   SET(HB_HAVE_FREETYPE ON CACHE BOOL "Enable freetype interop helpers" FORCE)
   SET(HB_BUILD_TESTS OFF CACHE BOOL "Build harfbuzz tests" FORCE)
   ADD_SUBDIRECTORY(thirdparty/harfbuzz)
-  SET(HARFBUZZ_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/harfbuzz/src)
+  SET(HARFBUZZ_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/harfbuzz/src)
   SET(HARFBUZZ_LIBRARY harfbuzz)
 endif (NOT HarfBuzz_FOUND)
 
@@ -272,7 +282,7 @@ INCLUDE_DIRECTORIES(
   ${JPEG_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
-  ${HARFBUZZ_INCLUDE_DIR}
+  ${HARFBUZZ_INCLUDE_DIRS}
   ${ANTIWORD_INCLUDE_DIR}
   ${CHM_INCLUDE_DIR}
 )
@@ -291,6 +301,7 @@ SET(STD_LIBS
   ${CHM_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${ANTIWORD_LIBRARIES}
+  qimagescale
 )
 if (FONTCONFIG_FOUND)
 	set(STD_LIBS ${STD_LIBS} ${FONTCONFIG_LIBRARIES})

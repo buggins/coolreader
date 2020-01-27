@@ -700,8 +700,8 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
             for (pucTmp = pucJpeg, tLen = 0; tLen < len; pucTmp++, tLen++) {
                 iByte = iNextByte(pFile);
                 if (iByte == EOF) {
-                        free(pucJpeg);
-                        return FALSE;
+                    free(pucJpeg);
+                    return FALSE;
                 }
                 *pucTmp = (UCHAR)iByte;
             }

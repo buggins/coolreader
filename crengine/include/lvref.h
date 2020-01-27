@@ -385,7 +385,7 @@ public:
 	LVRef & clone()
 	{
 		if ( isNull() )
-			return LVRef();
+			return LVRef(NULL);
 		return LVRef( new T( *_ptr ) );
 	}
 

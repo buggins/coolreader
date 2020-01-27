@@ -39,6 +39,7 @@ public:
         for (int i=0; i<v.length(); i++)
             add( v[i] );
     }
+    int insert( int pos, const lString16 & str );
     void erase(int offset, int count);
     /// split into several lines by delimiter
     void split(const lString16 & str, const lString16 & delimiter);

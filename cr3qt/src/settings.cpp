@@ -139,11 +139,6 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
     m_ui->cbEnableEmbeddedFonts->setEnabled(m_props->getBoolDef(PROP_EMBEDDED_STYLES, true));
     optionToUi( PROP_TXT_OPTION_PREFORMATTED, m_ui->cbTxtPreFormatted );
     optionToUi( PROP_FONT_KERNING_ENABLED, m_ui->cbFontKerning );
-#if USE_HARFBUZZ==1
-    optionToUi( PROP_FONT_LIGATURES_ENABLED, m_ui->cbLigatures );
-#else
-    m_ui->cbLigatures->setEnabled(false);
-#endif
     optionToUi( PROP_FLOATING_PUNCTUATION, m_ui->cbFloatingPunctuation );
     optionToUiIndex( PROP_IMG_SCALING_ZOOMIN_INLINE_MODE, m_ui->cbImageInlineZoominMode );
     optionToUiIndex( PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, m_ui->cbImageInlineZoominScale );
@@ -178,6 +173,8 @@ SettingsDlg::SettingsDlg(QWidget *parent, CR3View * docView ) :
         m_ui->cbViewMode->setCurrentIndex( lp==1 ? 0 : 1 );
     int hinting = m_props->getIntDef(PROP_FONT_HINTING, 2);
     m_ui->cbFontHinting->setCurrentIndex(hinting);
+    int shaping = m_props->getIntDef(PROP_FONT_SHAPING, 0);
+    m_ui->cbFontShaping->setCurrentIndex(shaping);
     int highlight = m_props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, 1);
     m_ui->cbBookmarkHighlightMode->setCurrentIndex(highlight);
 
@@ -329,12 +326,6 @@ void SettingsDlg::on_buttonBox_rejected()
 void SettingsDlg::on_cbFontKerning_stateChanged(int s)
 {
     setCheck( PROP_FONT_KERNING_ENABLED, s );
-    updateStyleSample();
-}
-
-void SettingsDlg::on_cbLigatures_stateChanged(int s)
-{
-    setCheck( PROP_FONT_LIGATURES_ENABLED, s );
     updateStyleSample();
 }
 
@@ -1101,4 +1092,10 @@ void SettingsDlg::on_cbImageBlockZoomoutMode_currentIndexChanged(int index)
 void SettingsDlg::on_cbImageBlockZoomoutScale_currentIndexChanged(int index)
 {
     m_props->setInt(PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE, index);
+}
+
+void SettingsDlg::on_cbFontShaping_currentIndexChanged(int index)
+{
+    m_props->setInt(PROP_FONT_SHAPING, index);
+    updateStyleSample();
 }

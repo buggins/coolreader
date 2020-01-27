@@ -18,6 +18,7 @@ include_directories(${CR3_ROOT}/thirdparty/harfbuzz/src)
 include_directories(${CR3_ROOT}/thirdparty/libjpeg)
 include_directories(${CR3_ROOT}/thirdparty/antiword)
 include_directories(${CR3_ROOT}/thirdparty/chmlib/src)
+include_directories(${CR3_ROOT}/thirdparty/nanosvg/src)
 
 add_definitions(-DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH)
 add_definitions(-DFT_CONFIG_MODULES_H=<builds/android/include/config/ftmodule.h> -DFT_CONFIG_OPTIONS_H=<builds/android/include/config/ftoption.h>)
@@ -26,6 +27,7 @@ add_definitions(-DENABLE_CACHE_FILE_CONTENTS_VALIDATION=1)
 add_definitions(-DLDOM_USE_OWN_MEM_MAN=0)
 add_definitions(-DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1)
 add_definitions(-DMAX_IMAGE_SCALE_MUL=2)
+add_definitions(-DUSE_NANOSVG=1)
 
 #set(LOCAL_CFLAGS "-Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall")
 # Option '-Wl,--no-merge-exidx-entries' removed as incompatible with clang.
@@ -84,6 +86,7 @@ set(CRENGINE_SRC_FILES
     ${CR3_ROOT}/crengine/src/wolutil.cpp
     ${CR3_ROOT}/crengine/src/crconcurrent.cpp
     ${CR3_ROOT}/crengine/src/hist.cpp
+    ${CR3_ROOT}/crengine/src/xxhash.c
     ${CR3_ROOT}/crengine/src/private/lvfontglyphcache.cpp
     ${CR3_ROOT}/crengine/src/private/lvfontboldtransform.cpp
     ${CR3_ROOT}/crengine/src/private/lvfontcache.cpp

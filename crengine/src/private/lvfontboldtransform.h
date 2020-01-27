@@ -67,7 +67,8 @@ public:
             int max_width,
             lChar16 def_char,
             int letter_spacing = 0,
-            bool allow_hyphenation = true
+            bool allow_hyphenation = true,
+            lUInt32 hints=0
     );
 
     /** \brief measure text
@@ -113,6 +114,16 @@ public:
         return w;
     }
 
+    /// returns char glyph left side bearing
+    virtual int getLeftSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) {
+        return _baseFont->getLeftSideBearing( ch, negative_only, italic_only );
+    }
+
+    /// returns char glyph right side bearing
+    virtual int getRightSideBearing( lChar16 ch, bool negative_only=false, bool italic_only=false ) {
+        return _baseFont->getRightSideBearing( ch, negative_only, italic_only );
+    }
+
     /// retrieves font handle
     virtual void *GetHandle() {
         return NULL;
@@ -129,10 +140,11 @@ public:
     }
 
     /// draws text string
-    virtual void DrawTextString(LVDrawBuf *buf, int x, int y,
+    virtual int DrawTextString(LVDrawBuf *buf, int x, int y,
                                 const lChar16 *text, int len,
                                 lChar16 def_char, lUInt32 *palette, bool addHyphen,
-                                lUInt32 flags, int letter_spacing);
+                                lUInt32 flags, int letter_spacing,
+                                int width, int text_decoration_back_gap);
 
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode() {
@@ -156,11 +168,14 @@ public:
     /// get kerning mode: true==ON, false=OFF
     virtual void setKerning(bool b) { _baseFont->setKerning(b); }
 
-    /// get ligatures mode: true==allowed, false=not allowed
-    virtual bool getLigatures() const { return _baseFont->getLigatures(); }
+    /// get shaping mode
+    virtual shaping_mode_t getShapingMode() const { return _baseFont->getShapingMode(); }
 
-    /// set ligatures mode: true==allowed, false=not allowed
-    virtual void setLigatures(bool b) { _baseFont->setLigatures(b); }
+    /// get shaping mode
+    virtual void setShapingMode( shaping_mode_t mode ) { _baseFont->setShapingMode( mode ); }
+
+    /// clear cache
+    virtual void clearCache() { _baseFont->clearCache(); }
 
     /// returns true if font is empty
     virtual bool IsNull() const {

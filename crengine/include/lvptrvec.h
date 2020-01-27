@@ -29,17 +29,17 @@ class LVPtrVector
     T * * _list;
     int _size;
     int _count;
-	LVPtrVector & operator = (LVPtrVector&) {
-		// no assignment
-		return *this;
-	}
+    LVPtrVector & operator = (LVPtrVector&) {
+        // no assignment
+        return *this;
+    }
 public:
     /// default constructor
     LVPtrVector() : _list(NULL), _size(0), _count(0) {}
     /// retrieves item from specified position
     T * operator [] ( int pos ) const { return _list[pos]; }
-	/// returns pointer array
-	T ** get() { return _list; }
+    /// returns pointer array
+    T ** get() { return _list; }
     /// retrieves item from specified position
     T * get( int pos ) const { return _list[pos]; }
     /// retrieves item reference from specified position
@@ -49,16 +49,10 @@ public:
     {
         if ( size > _size )
         {
-            void* tmp = realloc( _list, size * sizeof( T* ));
-            if (tmp) {
-                _list = (T**)tmp;
-                for (int i=_size; i<size; i++)
-                    _list[i] = NULL;
-                _size = size;
-            }
-            else {
-                // TODO: throw exception or change function prototype & return code
-            }
+            _list = cr_realloc( _list, size );
+            for (int i=_size; i<size; i++)
+                _list[i] = NULL;
+            _size = size;
         }
     }
     void sort(int (comparator)(const T ** item1, const T ** item2 ) ) {
@@ -204,6 +198,17 @@ public:
         }
         _list[ indexTo ] = p;
     }
+    /// reverse items
+    void reverse()
+    {
+        if ( empty() )
+            return;
+        for ( int i=0; i < _count/2; i++ ) {
+            T * tmp = _list[i];
+            _list[i] = _list[_count-1 - i];
+            _list[_count-1 - i] = tmp;
+        }
+    }
     /// copy constructor
     LVPtrVector( const LVPtrVector & v )
         : _list(NULL), _size(0), _count(0)
@@ -226,7 +231,7 @@ public:
     {
         if ( empty() )
             return NULL;
-        return remove( 0 );
+        return remove( (int)0 );
     }
     /// stack-like interface: push item to stack
     void push( T * item )
@@ -291,23 +296,16 @@ public:
                 free( rows[i] );
             numrows = nrows;
         } else if (nrows>numrows) {
-            void* tmp = realloc(rows, sizeof(_Ty*)*nrows);
-            if (tmp) {
-                rows = (_Ty **)tmp;
-                for (int i=numrows; i<nrows; i++) {
-                    rows[i] = (_Ty*)malloc( sizeof(_Ty) * ncols );
-                    for (int j=0; j<numcols; j++)
-                        rows[i][j]=fill_elem;
-                }
-                numrows = nrows;
-            }
-            else {
-                // TODO: throw exception or change function prototype & return code
+            rows = cr_realloc( rows, nrows );
+            for (int i=numrows; i<nrows; i++) {
+                rows[i] = (_Ty*)malloc( sizeof(_Ty*) * ncols );
+                for (int j=0; j<numcols; j++)
+                    rows[i][j]=fill_elem;
             }
         }
         if (ncols>numcols) {
             for (int i=0; i<numrows; i++) {
-                rows[i] = (_Ty*)realloc( rows[i], sizeof(_Ty) * ncols );
+                rows[i] = cr_realloc( rows[i], ncols );
                 for (int j=numcols; j<ncols; j++)
                     rows[i][j]=fill_elem;
             }

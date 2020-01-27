@@ -66,7 +66,7 @@ static FT_Library ft_library;
 
 #ifdef HAVE_ATEXIT
 static inline
-void free_ft_library (void)
+void free_ft_library ()
 {
   FT_Done_FreeType (ft_library);
 }
@@ -97,7 +97,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 
     if (FT_New_Memory_Face (ft_library,
 			    (const FT_Byte *) blob_data,
-                            blob_length,
+			    blob_length,
 			    font_opts->face_index,
 			    &ft_face))
       fail (false, "FT_New_Memory_Face fail");

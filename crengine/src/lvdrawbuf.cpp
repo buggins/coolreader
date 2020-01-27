@@ -1,6 +1,6 @@
 /*******************************************************
 
-   CoolReader Engine 
+   CoolReader Engine
 
    lvdrawbuf.cpp:  Gray bitmap buffer class
 
@@ -34,6 +34,9 @@ void LVDrawBuf::RoundRect( int x0, int y0, int x1, int y1, int borderWidth, int 
     // TODO: draw rounded corners
 }
 
+// NOTE: For more accurate (but slightly more costly) conversions, see:
+//       stb does (lUInt8) (((r*77) + (g*150) + (b*29)) >> 8) (That's roughly the Rec601Luma algo)
+//       Qt5 does (lUInt8) (((r*11) + (g*16) + (b*5)) >> 5) (That's closer to Rec601Luminance or Rec709Luminance IIRC)
 static lUInt32 rgbToGray( lUInt32 color )
 {
     lUInt32 r = (0xFF0000 & color) >> 16;
@@ -83,11 +86,11 @@ static lUInt8 rgbToGrayMask( lUInt32 color, int bpp )
 
 static void ApplyAlphaRGB( lUInt32 &dst, lUInt32 src, lUInt32 alpha )
 {
-    if ( alpha==0 )
+    if ( alpha == 0 ) {
         dst = src;
-    else if ( alpha<255 ) {
+    } else if ( alpha < 255 ) {
         src &= 0xFFFFFF;
-        lUInt32 opaque = 256 - alpha;
+        lUInt32 opaque = alpha ^ 0xFF;
         lUInt32 n1 = (((dst & 0xFF00FF) * alpha + (src & 0xFF00FF) * opaque) >> 8) & 0xFF00FF;
         lUInt32 n2 = (((dst & 0x00FF00) * alpha + (src & 0x00FF00) * opaque) >> 8) & 0x00FF00;
         dst = n1 | n2;
@@ -96,10 +99,10 @@ static void ApplyAlphaRGB( lUInt32 &dst, lUInt32 src, lUInt32 alpha )
 
 static void ApplyAlphaRGB565( lUInt16 &dst, lUInt16 src, lUInt32 alpha )
 {
-    if ( alpha==0 )
+    if ( alpha==0 ) {
         dst = src;
-    else if ( alpha<255 ) {
-        lUInt32 opaque = 256 - alpha;
+    } else if ( alpha < 255 ) {
+        lUInt32 opaque = alpha ^ 0xFF;
         lUInt32 r = (((dst & 0xF800) * alpha + (src & 0xF800) * opaque) >> 8) & 0xF800;
         lUInt32 g = (((dst & 0x07E0) * alpha + (src & 0x07E0) * opaque) >> 8) & 0x07E0;
         lUInt32 b = (((dst & 0x001F) * alpha + (src & 0x001F) * opaque) >> 8) & 0x001F;
@@ -109,16 +112,29 @@ static void ApplyAlphaRGB565( lUInt16 &dst, lUInt16 src, lUInt32 alpha )
 
 static void ApplyAlphaGray( lUInt8 &dst, lUInt8 src, lUInt32 alpha, int bpp )
 {
-    if ( alpha==0 )
+    if ( alpha==0 ) {
         dst = src;
-    else if ( alpha<255 ) {
-        int mask = ((1<<bpp)-1) << (8-bpp);
+    } else if ( alpha < 255 ) {
+        int mask = ((1 << bpp) - 1) << (8 - bpp);
         src &= mask;
-        lUInt32 opaque = 256 - alpha;
-        lUInt32 n1 = ((dst * alpha + src * opaque)>>8 ) & mask;
+        lUInt32 opaque = alpha ^ 0xFF;
+        lUInt32 n1 = ((dst * alpha + src * opaque) >> 8) & mask;
         dst = (lUInt8)n1;
     }
 }
+
+/*
+static void ApplyAlphaGray8( lUInt8 &dst, lUInt8 src, lUInt8 alpha )
+{
+    if ( alpha==0 ) {
+        dst = src;
+    } else if ( alpha < 255 ) {
+        lUInt8 opaque = alpha ^ 0xFF;
+        lUInt8 v = ((dst * alpha + src * opaque) >> 8);
+        dst = (lUInt8) v;
+    }
+}
+*/
 
 //static const short dither_2bpp_4x4[] = {
 //    5, 13,  8,  16,
@@ -128,14 +144,14 @@ static void ApplyAlphaGray( lUInt8 &dst, lUInt8 src, lUInt32 alpha, int bpp )
 //};
 
 static const short dither_2bpp_8x8[] = {
-0, 32, 12, 44, 2, 34, 14, 46, 
-48, 16, 60, 28, 50, 18, 62, 30, 
-8, 40, 4, 36, 10, 42, 6, 38, 
-56, 24, 52, 20, 58, 26, 54, 22, 
-3, 35, 15, 47, 1, 33, 13, 45, 
-51, 19, 63, 31, 49, 17, 61, 29, 
-11, 43, 7, 39, 9, 41, 5, 37, 
-59, 27, 55, 23, 57, 25, 53, 21, 
+0, 32, 12, 44, 2, 34, 14, 46,
+48, 16, 60, 28, 50, 18, 62, 30,
+8, 40, 4, 36, 10, 42, 6, 38,
+56, 24, 52, 20, 58, 26, 54, 22,
+3, 35, 15, 47, 1, 33, 13, 45,
+51, 19, 63, 31, 49, 17, 61, 29,
+11, 43, 7, 39, 9, 41, 5, 37,
+59, 27, 55, 23, 57, 25, 53, 21,
 };
 
 // returns byte with higher significant bits, lower bits are 0
@@ -250,8 +266,7 @@ void LVGrayDrawBuf::Rotate( cr_rotate_angle_t angle )
     }
     int newrowsize = _bpp<=2 ? (_dy * _bpp + 7) / 8 : _dy;
     sz = (newrowsize * _dx);
-    lUInt8 * dst = (lUInt8 *)malloc(sz);
-    memset( dst, 0, sz );
+    lUInt8 * dst = (lUInt8 *)calloc(sz, sizeof(*dst));
     for ( int y=0; y<_dy; y++ ) {
         lUInt8 * src = _data + _rowsize*y;
         int dstx, dsty;
@@ -401,6 +416,9 @@ private:
     int * xmap;
     int * ymap;
     bool dither;
+    bool invert;
+    bool smoothscale;
+    lUInt8 * decoded;
     bool isNinePatch;
 public:
     static int * GenMap( int src_len, int dst_len )
@@ -447,8 +465,8 @@ public:
         }
         return map;
     }
-    LVImageScaledDrawCallback(LVBaseDrawBuf * dstbuf, LVImageSourceRef img, int x, int y, int width, int height, bool dith )
-    : src(img), dst(dstbuf), dst_x(x), dst_y(y), dst_dx(width), dst_dy(height), xmap(0), ymap(0), dither(dith)
+    LVImageScaledDrawCallback(LVBaseDrawBuf * dstbuf, LVImageSourceRef img, int x, int y, int width, int height, bool dith, bool inv, bool smooth )
+    : src(img), dst(dstbuf), dst_x(x), dst_y(y), dst_dx(width), dst_dy(height), xmap(0), ymap(0), dither(dith), invert(inv), smoothscale(smooth), decoded(0)
     {
         src_dx = img->GetWidth();
         src_dy = img->GetHeight();
@@ -459,17 +477,27 @@ public:
             isNinePatch = true;
             ninePatch = np->frame;
         }
+        // If smoothscaling was requested, but no scaling was needed, disable the post-processing pass
+        if (smoothscale && src_dx == dst_dx && src_dy == dst_dy) {
+            smoothscale = false;
+            //fprintf( stderr, "Disabling smoothscale because no scaling was needed (%dx%d -> %dx%d)\n", src_dx, src_dy, dst_dx, dst_dy );
+        }
         if ( src_dx != dst_dx || isNinePatch) {
             if (isNinePatch)
                 xmap = GenNinePatchMap(src_dx, dst_dx, ninePatch.left, ninePatch.right);
-            else
+            else if (!smoothscale)
                 xmap = GenMap( src_dx, dst_dx );
         }
         if ( src_dy != dst_dy || isNinePatch) {
             if (isNinePatch)
                 ymap = GenNinePatchMap(src_dy, dst_dy, ninePatch.top, ninePatch.bottom);
-            else
+            else if (!smoothscale)
                 ymap = GenMap( src_dy, dst_dy );
+        }
+        // If we have a smoothscale post-processing pass, we'll need to build a buffer of the *full* decoded image.
+        if (smoothscale) {
+            // Byte-sized buffer, we're 32bpp, so, 4 bytes per pixel.
+            decoded = new lUInt8[src_dy * (src_dx * 4)];
         }
     }
     virtual ~LVImageScaledDrawCallback()
@@ -478,6 +506,8 @@ public:
             delete[] xmap;
         if (ymap)
             delete[] ymap;
+        if (decoded)
+            delete[] decoded;
     }
     virtual void OnStartDecode( LVImageSource * )
     {
@@ -489,8 +519,16 @@ public:
             if (y == 0 || y == src_dy-1) // ignore first and last lines
                 return true;
         }
+        // Defer everything to the post-process pass for smooth scaling, we just have to store the line in our decoded buffer
+        if (smoothscale) {
+            //fprintf( stderr, "Smoothscale l_%d pass\n", y );
+            memcpy(decoded + (y * (src_dx * 4)), data, (src_dx * 4));
+            return true;
+        }
         int yy = -1;
         int yy2 = -1;
+        const lUInt32 rgba_invert = invert ? 0x00FFFFFF : 0;
+        const lUInt8 gray_invert = invert ? 0xFF : 0;
         if (ymap) {
             for (int i = 0; i < dst_dy; i++) {
                 if (ymap[i] == y) {
@@ -534,15 +572,37 @@ public:
                     lUInt32 cl = data[xmap ? xmap[x] : x];
                     int xx = x + dst_x;
                     lUInt32 alpha = (cl >> 24)&0xFF;
-                    if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
+
+                    if ( xx<clip.left || xx>=clip.right ) {
+                        // OOB, don't plot it!
                         continue;
-                    if ( !alpha )
-                        row[ x ] = cl;
-                    else {
-                    	if ((row[x] & 0xFF000000) == 0xFF000000)
-                            row[ x ] = cl; // copy as is if buffer pixel is transparent
-                    	else
-                    		ApplyAlphaRGB( row[x], cl, alpha );
+                    }
+
+                    // NOTE: Remember that for some mysterious reason, lvimg feeds us inverted alpha
+                    //       (i.e., 0 is opaque, 0xFF is transparent)...
+                    if ( alpha == 0xFF ) {
+                        // Transparent, don't plot it...
+                        if ( invert ) {
+                            // ...unless we're doing night-mode shenanigans, in which case, we need to fake an inverted background
+                            // (i.e., a *black* background, so it gets inverted back to white with NightMode, since white is our expected "standard" background color)
+                            // c.f., https://github.com/koreader/koreader/issues/4986
+                            row[ x ] = 0x00000000;
+                        } else {
+                            continue;
+                        }
+                    } else if ( alpha == 0 ) {
+                        // Fully opaque, plot it as-is
+                        row[ x ] = RevRGB(cl) ^ rgba_invert;
+                    } else {
+                        if ((row[x] & 0xFF000000) == 0xFF000000) {
+                            // Plot it as-is if *buffer* pixel is transparent
+                            row[ x ] = RevRGBA(cl) ^ rgba_invert;
+                        } else {
+                            // NOTE: This *also* has a "fully opaque" shortcut... :/
+                            ApplyAlphaRGB( row[x], RevRGB(cl), alpha );
+                            // Invert post-blending to avoid potential stupidity...
+                            row[ x ] ^= rgba_invert;
+                        }
                     }
                 }
             }
@@ -555,14 +615,29 @@ public:
                     lUInt32 cl = data[xmap ? xmap[x] : x];
                     int xx = x + dst_x;
                     lUInt32 alpha = (cl >> 24)&0xFF;
-                    if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
+
+                    if ( xx<clip.left || xx>=clip.right ) {
+                        // OOB, don't plot it!
                         continue;
-                    if ( alpha<16 ) {
-                        row[ x ] = rgb888to565( cl );
-                    } else if (alpha<0xF0) {
+                    }
+
+                    // NOTE: See final branch of the ladder. Not quite sure why some alpha ranges are treated differently...
+                    if ( alpha >= 0xF0 ) {
+                        // Transparent, don't plot it...
+                        if ( invert ) {
+                            // ...unless we're doing night-mode shenanigans, in which case, we need to fake an inverted background
+                            // (i.e., a *black* background, so it gets inverted back to white with NightMode, since white is our expected "standard" background color)
+                            // c.f., https://github.com/koreader/koreader/issues/4986
+                            row[ x ] = 0x0000;
+                        } else {
+                            continue;
+                        }
+                    } else if ( alpha < 16 ) {
+                        row[ x ] = rgb888to565( cl ^ rgba_invert );
+                    } else if ( alpha < 0xF0 ) {
                         lUInt32 v = rgb565to888(row[x]);
                         ApplyAlphaRGB( v, cl, alpha );
-                        row[x] = rgb888to565(v);
+                        row[ x ] = rgb888to565(v ^ rgba_invert);
                     }
                 }
             }
@@ -576,11 +651,23 @@ public:
                     lUInt32 cl = data[srcx];
                     int xx = x + dst_x;
                     lUInt32 alpha = (cl >> 24)&0xFF;
-                    if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
+
+                    if ( xx<clip.left || xx>=clip.right ) {
+                        // OOB, don't plot it!
                         continue;
-                    if ( alpha ) {
+                    }
+
+                    if ( alpha == 0xFF ) {
+                        // Transparent, don't plot it...
+                        if ( invert ) {
+                            // ...unless we're doing night-mode shenanigans, in which case, we need to fake a white background.
+                            cl = 0x00FFFFFF;
+                        } else {
+                            continue;
+                        }
+                    } else if ( alpha != 0 ) {
                         lUInt32 origColor = row[x];
-                        if ( bpp==3 ) {
+                        if ( bpp == 3 ) {
                             origColor = origColor & 0xE0;
                             origColor = origColor | (origColor>>3) | (origColor>>6);
                         } else {
@@ -593,16 +680,19 @@ public:
                     }
 
                     lUInt8 dcl;
-                    if ( dither && bpp < 8) {
+                    if ( dither && bpp < 8 ) {
 #if (GRAY_INVERSE==1)
                         dcl = (lUInt8)DitherNBitColor( cl^0xFFFFFF, x, yy, bpp );
 #else
                         dcl = (lUInt8)DitherNBitColor( cl, x, yy, bpp );
 #endif
+                    } else if ( dither && bpp == 8 ) {
+                        dcl = rgbToGray( cl );
+                        dcl = dither_o8x8( x, yy, dcl );
                     } else {
                         dcl = rgbToGray( cl, bpp );
                     }
-                    row[ x ] = dcl;
+                    row[ x ] = dcl ^ gray_invert;
                     // ApplyAlphaGray( row[x], dcl, alpha, bpp );
                 }
             }
@@ -616,14 +706,25 @@ public:
                     lUInt32 cl = data[xmap ? xmap[x] : x];
                     int xx = x + dst_x;
                     lUInt32 alpha = (cl >> 24)&0xFF;
-                    if ( xx<clip.left || xx>=clip.right || alpha==0xFF )
+
+                    if ( xx<clip.left || xx>=clip.right ) {
+                        // OOB, don't plot it!
                         continue;
+                    }
 
                     int byteindex = (xx >> 2);
                     int bitindex = (3-(xx & 3))<<1;
                     lUInt8 mask = 0xC0 >> (6 - bitindex);
 
-                    if ( alpha ) {
+                    if ( alpha == 0xFF ) {
+                        // Transparent, don't plot it...
+                        if ( invert ) {
+                            // ...unless we're doing night-mode shenanigans, in which case, we need to fake a white background.
+                            cl = 0x00FFFFFF;
+                        } else {
+                            continue;
+                        }
+                    } else if ( alpha != 0 ) {
                         lUInt32 origColor = (row[ byteindex ] & mask)>>bitindex;
                         origColor = origColor | (origColor<<2);
                         origColor = origColor | (origColor<<4);
@@ -635,12 +736,12 @@ public:
                     lUInt32 dcl = 0;
                     if ( dither ) {
 #if (GRAY_INVERSE==1)
-                        dcl = Dither2BitColor( cl, x, yy ) ^ 3;
+                        dcl = Dither2BitColor( cl ^ rgba_invert, x, yy ) ^ 3;
 #else
-                        dcl = Dither2BitColor( cl, x, yy );
+                        dcl = Dither2BitColor( cl ^ rgba_invert, x, yy );
 #endif
                     } else {
-                        dcl = rgbToGrayMask( cl, 2 ) & 3;
+                        dcl = rgbToGrayMask( cl ^ rgba_invert, 2 ) & 3;
                     }
                     dcl = dcl << bitindex;
                     row[ byteindex ] = (lUInt8)((row[ byteindex ] & (~mask)) | dcl);
@@ -656,17 +757,31 @@ public:
                     lUInt32 cl = data[xmap ? xmap[x] : x];
                     int xx = x + dst_x;
                     lUInt32 alpha = (cl >> 24)&0xFF;
-                    if ( xx<clip.left || xx>=clip.right || (alpha&0x80) )
+
+                    if ( xx<clip.left || xx>=clip.right ) {
+                        // OOB, don't plot it!
                         continue;
+                    }
+
+                    if ( alpha & 0x80 ) {
+                        // Transparent, don't plot it...
+                        if ( invert ) {
+                            // ...unless we're doing night-mode shenanigans, in which case, we need to fake a white background.
+                            cl = 0x00FFFFFF;
+                        } else {
+                            continue;
+                        }
+                    }
+
                     lUInt32 dcl = 0;
                     if ( dither ) {
 #if (GRAY_INVERSE==1)
-                        dcl = Dither1BitColor( cl, x, yy ) ^ 1;
+                        dcl = Dither1BitColor( cl ^ rgba_invert, x, yy ) ^ 1;
 #else
-                        dcl = Dither1BitColor( cl, x, yy ) ^ 0;
+                        dcl = Dither1BitColor( cl ^ rgba_invert, x, yy ) ^ 0;
 #endif
                     } else {
-                        dcl = rgbToGrayMask( cl, 1 ) & 1;
+                        dcl = rgbToGrayMask( cl ^ rgba_invert, 1 ) & 1;
                     }
                     int byteindex = (xx >> 3);
                     int bitindex = ((xx & 7));
@@ -682,24 +797,59 @@ public:
         }
         return true;
     }
-    virtual void OnEndDecode( LVImageSource *, bool )
+    virtual void OnEndDecode( LVImageSource * obj, bool )
     {
+        // If we're not smooth scaling, we're done!
+#ifndef ANDROID
+        if (!smoothscale)
+        {
+            return;
+        }
+
+        // Scale our decoded data...
+        lUInt8 * sdata = nullptr;
+        //fprintf( stderr, "Requesting smooth scaling (%dx%d -> %dx%d)\n", src_dx, src_dy, dst_dx, dst_dy );
+        sdata = CRe::qSmoothScaleImage(decoded, src_dx, src_dy, false, dst_dx, dst_dy);
+        if (sdata == nullptr) {
+                // Hu oh... Scaling failed! Return *without* drawing anything!
+                // We skipped map generation, so we can't easily fallback to nearest-neighbor...
+                //fprintf( stderr, "Smooth scaling failed :(\n" );
+                return;
+        }
+
+        // Process as usual, with a bit of a hack to avoid code duplication...
+        smoothscale = false;
+        for (int y=0; y < dst_dy; y++) {
+            lUInt8 * row = sdata + (y * (dst_dx * 4));
+            this->OnLineDecoded( obj, y, (lUInt32 *) row );
+        }
+
+        // This prints the unscaled decoded buffer, for debugging purposes ;).
+        /*
+        for (int y=0; y < src_dy; y++) {
+            lUInt8 * row = decoded + (y * (src_dx * 4));
+            this->OnLineDecoded( obj, y, (lUInt32 *) row );
+        }
+        */
+        // And now that it's been rendered we can free the scaled buffer (it was allocated by CRe::qSmoothScaleImage).
+        free(sdata);
+#endif
     }
 };
 
 
 int  LVBaseDrawBuf::GetWidth()
-{ 
+{
     return _dx;
 }
 
 int  LVBaseDrawBuf::GetHeight()
-{ 
-    return _dy; 
+{
+    return _dy;
 }
 
 int  LVGrayDrawBuf::GetBitsPerPixel()
-{ 
+{
     return _bpp;
 }
 
@@ -708,8 +858,11 @@ void LVGrayDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int hei
     //fprintf( stderr, "LVGrayDrawBuf::Draw( img(%d, %d), %d, %d, %d, %d\n", img->GetWidth(), img->GetHeight(), x, y, width, height );
     if ( width<=0 || height<=0 )
         return;
-    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height, dither );
+    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height, _ditherImages, _invertImages, _smoothImages );
     img->Decode( &drawcb );
+
+    _drawnImagesCount++;
+    _drawnImagesSurface += width*height;
 }
 
 
@@ -925,7 +1078,7 @@ void LVGrayDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
             lUInt8 * line = GetScanLine(y0);
             for (int y=y0; y<y1; y++) {
                 for (int x=x0; x<x1; x++)
-                    line[x] = ~line[x];
+                    line[x] ^= 0xFF;
                 line += _rowsize;
             }
         }
@@ -945,10 +1098,11 @@ void LVGrayDrawBuf::Resize( int dx, int dy )
     _dy = dy;
     _rowsize = _bpp<=2 ? (_dx * _bpp + 7) / 8 : _dx;
     if (dx > 0 && dy > 0) {
-        _data = (unsigned char *)malloc(_rowsize * _dy + 1);
+        _data = (unsigned char *)calloc(_rowsize * _dy + 1, sizeof(*_data));
         _data[_rowsize * _dy] = GUARD_BYTE;
+    } else {
+        Clear(0);
     }
-    Clear(0);
     SetClipRect( NULL );
 }
 
@@ -992,9 +1146,8 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp, void * auxdata )
         _data = (lUInt8 *) auxdata;
         _ownData = false;
     } else if (_dx && _dy) {
-        _data = (lUInt8 *) malloc(_rowsize * _dy + 1);
+        _data = (lUInt8 *) calloc(_rowsize * _dy + 1, sizeof(*_data));
         _data[_rowsize * _dy] = GUARD_BYTE;
-        Clear(0);
     }
     SetClipRect( NULL );
     CHECK_GUARD_BYTE;
@@ -1007,7 +1160,49 @@ LVGrayDrawBuf::~LVGrayDrawBuf()
     	free( _data );
     }
 }
+void LVGrayDrawBuf::DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction)
+{
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+    lUInt8 color = rgbToGrayMask( color0, _bpp );
+#if (GRAY_INVERSE==1)
+    color ^= 0xFF;
+#endif
 
+    for (int y=y0; y<y1; y++)
+    {
+        if (_bpp==1) {
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 * line = GetScanLine(y);
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color;
+            }
+        } else if (_bpp==2) {
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 * line = GetScanLine(y);
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color;
+            }
+        } else { // 3, 4, 8
+            for (int x=x0; x<x1; x++)
+            {
+                lUInt8 * line = GetScanLine(y);
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = color;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = color;
+            }
+        }
+    }
+}
 void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int height, lUInt32 * )
 {
     //int buf_width = _dx; /* 2bpp */
@@ -1139,7 +1334,7 @@ void LVGrayDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int he
                     if ( b>=mask )
                         *dst = color;
                     else {
-                        int alpha = 256 - b;
+                        int alpha = b ^ 0xFF;
                         ApplyAlphaGray( *dst, color, alpha, _bpp );
                     }
                 }
@@ -1196,8 +1391,7 @@ void LVGrayDrawBuf::ConvertToBitmap(bool flgDither)
         return;
     // TODO: implement for byte per pixel mode
     int sz = GetRowSize();
-    lUInt8 * bitmap = (lUInt8*) malloc( sizeof(lUInt8) * sz );
-    memset( bitmap, 0, sz );
+    lUInt8 * bitmap = (lUInt8*) calloc(sz, sizeof(*bitmap));
     if (flgDither)
     {
         static const lUInt8 cmap[4][4] = {
@@ -1256,8 +1450,10 @@ int  LVColorDrawBuf::GetBitsPerPixel()
 void LVColorDrawBuf::Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither )
 {
     //fprintf( stderr, "LVColorDrawBuf::Draw( img(%d, %d), %d, %d, %d, %d\n", img->GetWidth(), img->GetHeight(), x, y, width, height );
-    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height, dither );
+    LVImageScaledDrawCallback drawcb( this, img, x, y, width, height, dither, _invertImages, _smoothImages );
     img->Decode( &drawcb );
+    _drawnImagesCount++;
+    _drawnImagesSurface += width*height;
 }
 
 /// fills buffer with specified color
@@ -1279,7 +1475,7 @@ void LVColorDrawBuf::Clear( lUInt32 color )
             lUInt32 * line = (lUInt32 *)GetScanLine(y);
             for (int x=0; x<_dx; x++)
             {
-                line[x] = color;
+                line[x] = RevRGBA(color);
             }
         }
     }
@@ -1457,14 +1653,49 @@ void LVColorDrawBuf::FillRect( int x0, int y0, int x1, int y1, lUInt32 color )
             for (int x=x0; x<x1; x++)
             {
                 if (alpha)
-                    ApplyAlphaRGB(line[x], color, alpha);
+                    ApplyAlphaRGB(line[x], RevRGB(color), alpha);
                 else
-                    line[x] = color;
+                    line[x] = RevRGBA(color);
             }
         }
     }
 }
 
+void LVColorDrawBuf::DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int length1,int length2,int direction)
+{
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+    if ( _bpp==16 ) {
+        lUInt16 cl16 = rgb888to565(color0);
+        for (int y=y0; y<y1; y++)
+        {
+            lUInt16 * line = (lUInt16 *)GetScanLine(y);
+            for (int x=x0; x<x1; x++)
+            {
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = cl16;
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = cl16;
+            }
+        }
+    } else {
+        for (int y=y0; y<y1; y++)
+        {
+            lUInt32 * line = (lUInt32 *)GetScanLine(y);
+            for (int x=x0; x<x1; x++)
+            {
+                if (direction==0 &&x%(length1+length2)<length1)line[x] = RevRGBA(color0);
+                if (direction==1 &&y%(length1+length2)<length1)line[x] = RevRGBA(color0);
+            }
+        }
+    }
+}
 /// fills rectangle with specified color
 void LVColorDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, lUInt8 * pattern )
 {
@@ -1499,7 +1730,7 @@ void LVColorDrawBuf::FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 co
             for (int x=x0; x<x1; x++)
             {
                 lUInt8 patternBit = (patternMask << (x&7)) & 0x80;
-                line[x] = patternBit ? color1 : color0;
+                line[x] = patternBit ? RevRGBA(color1) : RevRGBA(color0);
             }
         }
     }
@@ -1535,16 +1766,15 @@ void LVColorDrawBuf::Resize( int dx, int dy )
         _dx = 0;
         _dy = 0;
     }
-    
-    if (dx>0 && dy>0) 
+
+    if (dx>0 && dy>0)
     {
         // create new bitmap
         _dx = dx;
         _dy = dy;
         _rowsize = dx*(_bpp>>3);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
-        BITMAPINFO bmi;
-        memset( &bmi, 0, sizeof(bmi) );
+        BITMAPINFO bmi = { 0 };
         bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
         bmi.bmiHeader.biWidth = _dx;
         bmi.bmiHeader.biHeight = _dy;
@@ -1556,20 +1786,47 @@ void LVColorDrawBuf::Resize( int dx, int dy )
         bmi.bmiHeader.biYPelsPerMeter = 1024;
         bmi.bmiHeader.biClrUsed = 0;
         bmi.bmiHeader.biClrImportant = 0;
-    
+
         _drawbmp = CreateDIBSection( NULL, &bmi, DIB_RGB_COLORS, (void**)(&_data), NULL, 0 );
         _drawdc = CreateCompatibleDC(NULL);
         SelectObject(_drawdc, _drawbmp);
-#else
-        _data = (lUInt8 *)malloc( (_bpp>>3) * _dx * _dy);
-#endif
         memset( _data, 0, _rowsize * _dy );
+#else
+        _data = (lUInt8 *)calloc((_bpp>>3) * _dx * _dy, sizeof(*_data));
+#endif
     }
     SetClipRect( NULL );
 }
+
 void LVColorDrawBuf::InvertRect(int x0, int y0, int x1, int y1)
 {
-    CR_UNUSED4(x0, y0, x1, y1);
+    if (x0<_clip.left)
+        x0 = _clip.left;
+    if (y0<_clip.top)
+        y0 = _clip.top;
+    if (x1>_clip.right)
+        x1 = _clip.right;
+    if (y1>_clip.bottom)
+        y1 = _clip.bottom;
+    if (x0>=x1 || y0>=y1)
+        return;
+
+    if (_bpp==16) {
+        for (int y=y0; y<y1; y++) {
+            lUInt16 * line = (lUInt16 *)GetScanLine(y);
+            for (int x=x0; x<x1; x++) {
+                line[x] ^= 0xFFFF;
+            }
+        }
+    }
+    else {
+        for (int y=y0; y<y1; y++) {
+            lUInt32 * line = (lUInt32 *)GetScanLine(y);
+            for (int x=x0; x<x1; x++) {
+                line[x] ^= 0x00FFFFFF;
+            }
+        }
+    }
 }
 
 /// draws bitmap (1 byte per pixel) using specified palette
@@ -1660,6 +1917,8 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
     } else {
 
 
+        lUInt32 bmpcl32 = RevRGBA(bmpcl);
+
         lUInt32 * dst;
         lUInt32 * dstline;
 
@@ -1674,11 +1933,11 @@ void LVColorDrawBuf::Draw( int x, int y, const lUInt8 * bitmap, int width, int h
             {
                 lUInt32 opaque = ((*(src++))>>1)&0x7F;
                 if ( opaque>=0x78 )
-                    *dst = bmpcl;
+                    *dst = bmpcl32;
                 else if ( opaque>0 ) {
                     lUInt32 alpha = 0x7F-opaque;
-                    lUInt32 cl1 = ((alpha*((*dst)&0xFF00FF) + opaque*(bmpcl&0xFF00FF))>>7) & 0xFF00FF;
-                    lUInt32 cl2 = ((alpha*((*dst)&0x00FF00) + opaque*(bmpcl&0x00FF00))>>7) & 0x00FF00;
+                    lUInt32 cl1 = ((alpha*((*dst)&0xFF00FF) + opaque*(bmpcl32&0xFF00FF))>>7) & 0xFF00FF;
+                    lUInt32 cl2 = ((alpha*((*dst)&0x00FF00) + opaque*(bmpcl32&0x00FF00))>>7) & 0x00FF00;
                     *dst = cl1 | cl2;
                 }
                 /* next pixel */
@@ -1933,7 +2192,7 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
                             c |= (cl&0xFF);
                             *(dst+1) = c;
                         }
-                    }    
+                    }
                     dst++;
                     src++;
                 }
@@ -1959,7 +2218,7 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
                             c |= (cl&0xFF);
                             *(dst+1) = c;
                         }
-                    }    
+                    }
                     dst++;
                     src++;
                 }
@@ -1980,6 +2239,236 @@ void LVGrayDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 
         }
     }
 	CHECK_GUARD_BYTE;
+}
+
+/// draws buffer content to another buffer doing color conversion if necessary
+void LVGrayDrawBuf::DrawOnTop( LVDrawBuf * buf, int x, int y )
+{
+
+    lvRect clip;
+    buf->GetClipRect(&clip);
+
+    if ( !(!clip.isEmpty() || buf->GetBitsPerPixel()!=GetBitsPerPixel() || GetWidth()!=buf->GetWidth() || GetHeight()!=buf->GetHeight()) ) {
+        // simple copy
+        memcpy( buf->GetScanLine(0), GetScanLine(0), GetHeight() * GetRowSize() );
+        return;
+    }
+    int bpp = GetBitsPerPixel();
+    if (buf->GetBitsPerPixel() == 32) {
+        // support for 32bpp to Gray drawing
+        for (int yy=0; yy<_dy; yy++)
+        {
+            if (y+yy >= clip.top && y+yy < clip.bottom)
+            {
+                lUInt8 * src = (lUInt8 *)GetScanLine(yy);
+                lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y+yy)) + x;
+                if (bpp==1)
+                {
+                    int shift = x & 7;
+                    for (int xx=0; xx<_dx; xx++)
+                    {
+                        if ( x+xx >= clip.left && x+xx < clip.right )
+                        {
+                            lUInt8 cl = (*src << shift) & 0x80;
+                            if(src!=0) *dst = cl ? 0xFFFFFF : 0x000000;
+                        }
+                        dst++;
+                        if (++shift >= 8) {
+                            shift = 0;
+                            src++;
+                        }
+
+                    }
+                }
+                else if (bpp==2)
+                {
+                    int shift = x & 3;
+                    for (int xx=0; xx<_dx; xx++)
+                    {
+                        if ( x+xx >= clip.left && x+xx < clip.right )
+                        {
+                            lUInt32 cl = (*src << (shift<<1)) & 0xC0;
+                            cl = cl | (cl >> 2) | (cl>>4) | (cl>>6);
+                            if(src!=0) *dst = cl | (cl << 8) | (cl << 16);
+                        }
+                        dst++;
+                        if (++shift >= 4) {
+                            shift = 0;
+                            src++;
+                        }
+
+                    }
+                }
+                else
+                {
+                    // byte per pixel
+                    for (int xx=0; xx<_dx; xx++)
+                    {
+                        if ( x+xx >= clip.left && x+xx < clip.right )
+                        {
+                            lUInt32 cl = *src;
+                            if (bpp == 3) {
+                                cl &= 0xE0;
+                                cl = cl | (cl>>3) | (cl>>6);
+                            } else if (bpp == 4) {
+                                cl &= 0xF0;
+                                cl = cl | (cl>>4);
+                            }
+                            if(src!=0) *dst = cl | (cl << 8) | (cl << 16);
+                        }
+                        dst++;
+                        src++;
+                    }
+                }
+            }
+        }
+        return;
+    }
+    if (buf->GetBitsPerPixel() == 16) {
+        // support for 32bpp to Gray drawing
+        for (int yy=0; yy<_dy; yy++)
+        {
+            if (y+yy >= clip.top && y+yy < clip.bottom)
+            {
+                lUInt8 * src = (lUInt8 *)GetScanLine(yy);
+                lUInt16 * dst = ((lUInt16 *)buf->GetScanLine(y+yy)) + x;
+                if (bpp==1)
+                {
+                    int shift = x & 7;
+                    for (int xx=0; xx<_dx; xx++)
+                    {
+                        if ( x+xx >= clip.left && x+xx < clip.right )
+                        {
+                            lUInt8 cl = (*src << shift) & 0x80;
+                            if(*src!=0) *dst = cl ? 0xFFFF : 0x0000;
+                        }
+                        dst++;
+                        if (++shift >= 8) {
+                            shift = 0;
+                            src++;
+                        }
+
+                    }
+                }
+                else if (bpp==2)
+                {
+                    int shift = x & 3;
+                    for (int xx=0; xx<_dx; xx++)
+                    {
+                        if ( x+xx >= clip.left && x+xx < clip.right )
+                        {
+                            lUInt16 cl = (*src << (shift<<1)) & 0xC0;
+                            cl = cl | (cl >> 2) | (cl>>4) | (cl>>6);
+                            if(*src!=0) *dst = rgb565(cl, cl, cl);
+                        }
+                        dst++;
+                        if (++shift >= 4) {
+                            shift = 0;
+                            src++;
+                        }
+
+                    }
+                }
+                else
+                {
+                    // byte per pixel
+                    for (int xx=0; xx<_dx; xx++)
+                    {
+                        if ( x+xx >= clip.left && x+xx < clip.right )
+                        {
+                            lUInt16 cl = *src;
+                            if (bpp == 3) {
+                                cl &= 0xE0;
+                                cl = cl | (cl>>3) | (cl>>6);
+                            } else if (bpp == 4) {
+                                cl &= 0xF0;
+                                cl = cl | (cl>>4);
+                            }
+                            if(*src!=0) *dst = rgb565(cl, cl, cl);
+                        }
+                        dst++;
+                        src++;
+                    }
+                }
+            }
+        }
+        return;
+    }
+    if (buf->GetBitsPerPixel() != bpp)
+        return; // not supported yet
+    for (int yy=0; yy<_dy; yy++)
+    {
+        if (y+yy >= clip.top && y+yy < clip.bottom)
+        {
+            lUInt8 * src = (lUInt8 *)GetScanLine(yy);
+            if (bpp==1)
+            {
+                int shift = x & 7;
+                lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>3);
+                for (int xx=0; xx<_dx; xx+=8)
+                {
+                    if ( x+xx >= clip.left && x+xx < clip.right )
+                    {
+                        //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+                        lUInt16 cl = (*src << 8)>>shift;
+                        lUInt16 mask = (0xFF00)>>shift;
+                        lUInt8 c = *dst;
+                        c &= ~(mask>>8);
+                        c |= (cl>>8);
+                        if(*src!=0) *dst = c;
+                        if (mask & 0xFF) {
+                            c = *(dst+1);
+                            c &= ~(mask&0xFF);
+                            c |= (cl&0xFF);
+                            if(*src!=0) *(dst+1) = c;
+                        }
+                    }
+                    dst++;
+                    src++;
+                }
+            }
+            else if (bpp==2)
+            {
+                int shift = (x & 3) * 2;
+                lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>2);
+                for (int xx=0; xx<_dx; xx+=4)
+                {
+                    if ( x+xx >= clip.left && x+xx < clip.right )
+                    {
+                        //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+                        lUInt16 cl = (*src << 8)>>shift;
+                        lUInt16 mask = (0xFF00)>>shift;
+                        lUInt8 c = *dst;
+                        c &= ~(mask>>8);
+                        c |= (cl>>8);
+                        if(*src!=0) *dst = c;
+                        if (mask & 0xFF) {
+                            c = *(dst+1);
+                            c &= ~(mask&0xFF);
+                            c |= (cl&0xFF);
+                            if(*src!=0) *(dst+1) = c;
+                        }
+                    }
+                    dst++;
+                    src++;
+                }
+            }
+            else
+            {
+                lUInt8 * dst = buf->GetScanLine(y+yy) + x;
+                for (int xx=0; xx<_dx; xx++)
+                {
+                    if ( x+xx >= clip.left && x+xx < clip.right )
+                    {
+                        if(*src!=0) *dst = *src;
+                    }
+                    dst++;
+                    src++;
+                }
+            }
+        }
+    }
+    CHECK_GUARD_BYTE;
 }
 
 /// draws buffer content to another buffer doing color conversion if necessary
@@ -2108,7 +2597,7 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
                     lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y + yy)) + x;
                     for (int xx = 0; xx < _dx; xx++) {
                         if (x+xx >= clip.left && x + xx < clip.right) {
-                            *dst = *src;
+                            *dst = RevRGBA(*src);
                         }
                         dst++;
                         src++;
@@ -2118,7 +2607,149 @@ void LVColorDrawBuf::DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32
         }
     }
 }
-
+/// draws buffer content on top of another buffer doing color conversion if necessary
+void LVColorDrawBuf::DrawOnTop( LVDrawBuf * buf, int x, int y)
+{
+    //
+    lvRect clip;
+    buf->GetClipRect(&clip);
+    int bpp = buf->GetBitsPerPixel();
+    for (int yy=0; yy<_dy; yy++) {
+        if (y+yy >= clip.top && y+yy < clip.bottom) {
+            if ( _bpp==16 ) {
+                lUInt16 * src = (lUInt16 *)GetScanLine(yy);
+                if (bpp == 1) {
+                    int shift = x & 7;
+                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>3);
+                    for (int xx=0; xx<_dx; xx++) {
+                        if (x + xx >= clip.left && x + xx < clip.right) {
+                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+#if (GRAY_INVERSE==1)
+                            lUInt8 cl = (((lUInt8)(*src)&0x8000)^0x8000) >> (shift+8);
+    #else
+                            lUInt8 cl = (((lUInt8)(*src)&0x8000)) >> (shift+8);
+#endif
+                            if(cl!=0) *dst |= cl;
+                        }
+                        if (!((shift = (shift + 1) & 7)))
+                            dst++;
+                        src++;
+                    }
+                } else if (bpp == 2) {
+                    int shift = x & 3;
+                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>2);
+                    for (int xx=0; xx < _dx; xx++) {
+                        if ( x+xx >= clip.left && x+xx < clip.right ) {
+                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+#if (GRAY_INVERSE==1)
+                            lUInt8 cl = (((lUInt8)(*src)&0xC000)^0xC000) >> ((shift<<1) + 8);
+    #else
+                            lUInt8 cl = (((lUInt8)(*src)&0xC000)) >> ((shift<<1) + 8);
+#endif
+                            if(cl!=0) *dst |= cl;
+                        }
+                        if (!((shift = ((shift + 1) & 3))))
+                            dst++;
+                        src++;
+                    }
+                } else if (bpp<=8) {
+                    lUInt8 * dst = buf->GetScanLine(y+yy) + x;
+                    for (int xx=0; xx<_dx; xx++) {
+                        if ( x+xx >= clip.left && x+xx < clip.right ) {
+                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+                            if(src!=0) *dst = (lUInt8)(*src >> 8);
+                        }
+                        dst++;
+                        src++;
+                    }
+                } else if (bpp == 16) {
+                    lUInt16 * dst = ((lUInt16 *)buf->GetScanLine(y + yy)) + x;
+                    for (int xx=0; xx < _dx; xx++) {
+                        if (x + xx >= clip.left && x + xx < clip.right) {
+                            if(src!=0) *dst = *src;
+                        }
+                        dst++;
+                        src++;
+                    }
+                } else if (bpp == 32) {
+                    lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y + yy)) + x;
+                    for (int xx=0; xx<_dx; xx++) {
+                        if ( x+xx >= clip.left && x+xx < clip.right ) {
+                            if(src!=0) *dst = rgb565to888( *src );
+                        }
+                        dst++;
+                        src++;
+                    }
+                }
+            } else {
+                lUInt32 * src = (lUInt32 *)GetScanLine(yy);
+                if (bpp==1) {
+                    int shift = x & 7;
+                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>3);
+                    for (int xx=0; xx<_dx; xx++) {
+                        if ( x+xx >= clip.left && x+xx < clip.right ) {
+                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+#if (GRAY_INVERSE==1)
+                            lUInt8 cl = (((lUInt8)(*src)&0x80)^0x80) >> (shift);
+    #else
+                            lUInt8 cl = (((lUInt8)(*src)&0x80)) >> (shift);
+#endif
+                            if(*src!=0) *dst |= cl;
+                        }
+                        if (!((shift = (shift + 1) & 7)))
+                            dst++;
+                        src++;
+                    }
+                } else if (bpp==2) {
+                    int shift = x & 3;
+                    lUInt8 * dst = buf->GetScanLine(y+yy) + (x>>2);
+                    for (int xx=0; xx<_dx; xx++) {
+                        if ( x+xx >= clip.left && x+xx < clip.right ) {
+                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+#if (GRAY_INVERSE==1)
+                            lUInt8 cl = (((lUInt8)(*src)&0xC0)^0xC0) >> (shift<<1);
+    #else
+                            lUInt8 cl = (((lUInt8)(*src)&0xC0)) >> (shift<<1);
+#endif
+                            if(*src!=0) *dst |= cl;
+                        }
+                        if (!((shift = (shift + 1) & 3)))
+                            dst++;
+                        src++;
+                    }
+                } else if (bpp<=8) {
+                    lUInt8 * dst = buf->GetScanLine(y + yy) + x;
+                    for (int xx=0; xx<_dx; xx++) {
+                        if (x + xx >= clip.left && x + xx < clip.right) {
+                            //lUInt8 mask = ~((lUInt8)0xC0>>shift);
+                            if(*src!=0) *dst = (lUInt8)*src;
+                        }
+                        dst++;
+                        src++;
+                    }
+                } else if (bpp == 16) {
+                    lUInt16 * dst = ((lUInt16 *)buf->GetScanLine(y + yy)) + x;
+                    for (int xx=0; xx < _dx; xx++) {
+                        if (x + xx >= clip.left && x + xx < clip.right) {
+                            if(src!=0) *dst = rgb888to565(*src);
+                        }
+                        dst++;
+                        src++;
+                    }
+                } else if (bpp == 32) {
+                    lUInt32 * dst = ((lUInt32 *)buf->GetScanLine(y + yy)) + x;
+                    for (int xx = 0; xx < _dx; xx++) {
+                        if (x+xx >= clip.left && x + xx < clip.right) {
+                            if(*src!=0) *dst = RevRGBA(*src);
+                        }
+                        dst++;
+                        src++;
+                    }
+                }
+            }
+        }
+    }
+}
 /// draws rescaled buffer content to another buffer doing color conversion if necessary
 void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options)
 {
@@ -2144,7 +2775,7 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                     if ( x+xx >= clip.left && x+xx < clip.right ) {
                         int srcx16 = srcdx * xx * 16 / dx;
                         lUInt32 cl = src->GetInterpolatedColor(srcx16, srcy16);
-                        lUInt32 alpha = (cl >> 24) & 255;
+                        lUInt32 alpha = (cl >> 24) & 0xFF;
                         if (_bpp==1)
                         {
                             if (alpha >= 128)
@@ -2170,11 +2801,15 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                         else
                         {
                             lUInt8 * dst = dst0 + x + xx;
-                            lUInt32 dithered = DitherNBitColor(cl, xx, yy, _bpp); // << (8 - _bpp);
+                            lUInt32 dithered;
+                            if (_bpp<8)
+                                dithered = DitherNBitColor(cl, xx, yy, _bpp); // << (8 - _bpp);
+                            else
+                                dithered = cl;
                             if (alpha < 16)
                                 *dst = (lUInt8)dithered;
                             else if (alpha < 240) {
-                                lUInt32 nalpha = 255 - alpha;
+                                lUInt32 nalpha = alpha ^ 0xFF;
                                 lUInt32 pixel = *dst;
                                 if (_bpp == 4)
                                     pixel = ((pixel * alpha + dithered * nalpha) >> 8) & 0xF0;
@@ -2226,7 +2861,11 @@ void LVGrayDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, 
                         else
                         {
                             lUInt8 * dst = dst0 + x + xx;
-                            lUInt32 dithered = DitherNBitColor(cl, xx, yy, _bpp) << (8 - _bpp);
+                            lUInt32 dithered;
+                            if (_bpp < 8)
+                                dithered = DitherNBitColor(cl, xx, yy, _bpp) << (8 - _bpp);
+                            else
+                                dithered = cl;
                             *dst = (lUInt8)dithered;
                         }
                     }
@@ -2272,7 +2911,7 @@ void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy,
 							dst[x + xx] = rgb888to565(cl);
 						} else {
 							lUInt32 * dst = (lUInt32 *)GetScanLine(y + yy);
-							dst[x + xx] = cl;
+							dst[x + xx] = RevRGBA(cl);
 						}
 					}
 				}
@@ -2291,7 +2930,7 @@ void LVColorDrawBuf::DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy,
 							dst[x + xx] = rgb888to565(cl);
 						} else {
 							lUInt32 * dst = (lUInt32 *)GetScanLine(y + yy);
-							dst[x + xx] = cl;
+							dst[x + xx] = RevRGBA(cl);
 						}
 					}
 				}

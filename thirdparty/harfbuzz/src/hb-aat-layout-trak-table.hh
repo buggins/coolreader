@@ -46,33 +46,27 @@ struct TrackTableEntry
 {
   friend struct TrackData;
 
-  inline float get_track_value () const
-  {
-    return track.to_float ();
-  }
+  float get_track_value () const { return track.to_float (); }
 
-  inline int get_value (const void *base,
-			unsigned int index,
-			unsigned int nSizes) const
-  {
-    return (base+valuesZ).as_array (nSizes)[index];
-  }
+  int get_value (const void *base, unsigned int index,
+		 unsigned int table_size) const
+  { return (base+valuesZ).as_array (table_size)[index]; }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base,
-			unsigned int nSizes) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base,
+		 unsigned int table_size) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
-			  (valuesZ.sanitize (c, base, nSizes))));
+			  (valuesZ.sanitize (c, base, table_size))));
   }
 
   protected:
-  Fixed		track;		/* Track value for this record. */
+  HBFixed		track;		/* Track value for this record. */
   NameID	trackNameID;	/* The 'name' table index for this track.
 				 * (a short word or phrase like "loose"
 				 * or "very tight") */
-  OffsetTo<UnsizedArrayOf<FWORD>, HBUINT16, false>
+  NNOffsetTo<UnsizedArrayOf<FWORD>>
 		valuesZ;	/* Offset from start of tracking table to
 				 * per-size tracking values for this track. */
 
@@ -82,13 +76,13 @@ struct TrackTableEntry
 
 struct TrackData
 {
-  inline float interpolate_at (unsigned int idx,
-			       float target_size,
-			       const TrackTableEntry &trackTableEntry,
-			       const void *base) const
+  float interpolate_at (unsigned int idx,
+			float target_size,
+			const TrackTableEntry &trackTableEntry,
+			const void *base) const
   {
     unsigned int sizes = nSizes;
-    hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+    hb_array_t<const HBFixed> size_table ((base+sizeTable).arrayZ, sizes);
 
     float s0 = size_table[idx].to_float ();
     float s1 = size_table[idx + 1].to_float ();
@@ -97,15 +91,8 @@ struct TrackData
 	   (1.f - t) * trackTableEntry.get_value (base, idx, sizes);
   }
 
-  inline int get_tracking (const void *base, float ptem) const
+  int get_tracking (const void *base, float ptem) const
   {
-    /* CoreText points are CSS pixels (96 per inch),
-     * NOT typographic points (72 per inch).
-     *
-     * https://developer.apple.com/library/content/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Explained/Explained.html
-     */
-    float csspx = ptem * 96.f / 72.f;
-
     /*
      * Choose track.
      */
@@ -133,17 +120,17 @@ struct TrackData
     if (!sizes) return 0.;
     if (sizes == 1) return trackTableEntry->get_value (base, 0, sizes);
 
-    hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
+    hb_array_t<const HBFixed> size_table ((base+sizeTable).arrayZ, sizes);
     unsigned int size_index;
     for (size_index = 0; size_index < sizes - 1; size_index++)
-      if (size_table[size_index].to_float () >= csspx)
-        break;
+      if (size_table[size_index].to_float () >= ptem)
+	break;
 
-    return round (interpolate_at (size_index ? size_index - 1 : 0, csspx,
-				  *trackTableEntry, base));
+    return roundf (interpolate_at (size_index ? size_index - 1 : 0, ptem,
+				   *trackTableEntry, base));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
@@ -154,7 +141,7 @@ struct TrackData
   protected:
   HBUINT16	nTracks;	/* Number of separate tracks included in this table. */
   HBUINT16	nSizes;		/* Number of point sizes included in this table. */
-  LOffsetTo<UnsizedArrayOf<Fixed>, false>
+  LOffsetTo<UnsizedArrayOf<HBFixed>, false>
 		sizeTable;	/* Offset from start of the tracking table to
 				 * Array[nSizes] of size values.. */
   UnsizedArrayOf<TrackTableEntry>
@@ -166,11 +153,11 @@ struct TrackData
 
 struct trak
 {
-  static const hb_tag_t tableTag = HB_AAT_TAG_trak;
+  static constexpr hb_tag_t tableTag = HB_AAT_TAG_trak;
 
-  inline bool has_data (void) const { return version.to_int (); }
+  bool has_data () const { return version.to_int (); }
 
-  inline bool apply (hb_aat_apply_context_t *c) const
+  bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
@@ -189,7 +176,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
       foreach_grapheme (buffer, start, end)
       {
-        if (!(buffer->info[start].mask & trak_mask)) continue;
+	if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].x_advance += advance_to_add;
 	buffer->pos[start].x_offset += offset_to_add;
       }
@@ -202,7 +189,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
       foreach_grapheme (buffer, start, end)
       {
-        if (!(buffer->info[start].mask & trak_mask)) continue;
+	if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].y_advance += advance_to_add;
 	buffer->pos[start].y_offset += offset_to_add;
       }
@@ -211,7 +198,7 @@ struct trak
     return_trace (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
 

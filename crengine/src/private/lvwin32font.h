@@ -140,7 +140,8 @@ public:
                         int max_width,
                         lChar16 def_char,
                         int letter_spacing=0,
-                        bool allow_hyphenation=true
+                        bool allow_hyphenation=true,
+                        lUInt32 hints=0
                      );
     /** \brief measure text
         \param text is text string pointer
@@ -157,7 +158,8 @@ public:
     /// draws text string
     virtual void DrawTextString( LVDrawBuf * buf, int x, int y,
                        const lChar16 * text, int len,
-                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0 );
+                       lChar16 def_char, lUInt32 * palette, bool addHyphen, lUInt32 flags=0, int letter_spacing=0
+                       int width=-1, int text_decoration_back_gap=0 );
 
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
@@ -315,7 +317,8 @@ public:
                         int max_width,
                         lChar16 def_char,
                         int letter_spacing=0,
-                        bool allow_hyphenation=true
+                        bool allow_hyphenation=true,
+                        lUInt32 hints=0
                      );
     /** \brief measure text
         \param text is text string pointer

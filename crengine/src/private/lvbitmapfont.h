@@ -34,7 +34,7 @@ public:
 
     virtual lUInt16
     measureText(const lChar16 *text, int len, lUInt16 *widths, lUInt8 *flags, int max_width,
-                lChar16 def_char, int letter_spacing = 0, bool allow_hyphenation = true);
+                lChar16 def_char, int letter_spacing = 0, bool allow_hyphenation = true, lUInt32 hints=0);
 
     /** \brief measure text
         \param text is text string pointer

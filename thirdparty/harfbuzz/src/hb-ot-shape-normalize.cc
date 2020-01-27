@@ -24,6 +24,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_OT_SHAPE
+
 #include "hb-ot-shape-normalize.hh"
 #include "hb-ot-shape-complex.hh"
 #include "hb-ot-shape.hh"
@@ -229,7 +233,7 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
       }
       else
       {
-        /* Just pass on the two characters separately, let GSUB do its magic. */
+	/* Just pass on the two characters separately, let GSUB do its magic. */
 	set_glyph (buffer->cur(), font);
 	buffer->next_glyph ();
 	set_glyph (buffer->cur(), font);
@@ -339,7 +343,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       /* From idx to end are simple clusters. */
       if (might_short_circuit)
       {
-        unsigned int done = font->get_nominal_glyphs (end - buffer->idx,
+	unsigned int done = font->get_nominal_glyphs (end - buffer->idx,
 						      &buffer->cur().codepoint,
 						      sizeof (buffer->info[0]),
 						      &buffer->cur().glyph_index(),
@@ -469,3 +473,6 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
     buffer->swap_buffers ();
   }
 }
+
+
+#endif

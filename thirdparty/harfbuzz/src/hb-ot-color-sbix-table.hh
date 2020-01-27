@@ -62,20 +62,20 @@ struct SBIXGlyph
 
 struct SBIXStrike
 {
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  imageOffsetsZ.sanitize_shallow (c, c->get_num_glyphs () + 1));
   }
 
-  inline hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
-				    hb_blob_t    *sbix_blob,
-				    hb_tag_t      file_type,
-				    int          *x_offset,
-				    int          *y_offset,
-				    unsigned int  num_glyphs,
-				    unsigned int *strike_ppem) const
+  hb_blob_t *get_glyph_blob (unsigned int  glyph_id,
+			     hb_blob_t    *sbix_blob,
+			     hb_tag_t      file_type,
+			     int          *x_offset,
+			     int          *y_offset,
+			     unsigned int  num_glyphs,
+			     unsigned int *strike_ppem) const
   {
     if (unlikely (!ppem)) return hb_blob_get_empty (); /* To get Null() object out of the way. */
 
@@ -121,52 +121,45 @@ struct SBIXStrike
   HBUINT16	resolution;	/* The device pixel density (in PPI) for which this
 				 * strike was designed. (E.g., 96 PPI, 192 PPI.) */
   protected:
-  UnsizedArrayOf<LOffsetTo<SBIXGlyph> >
+  UnsizedArrayOf<LOffsetTo<SBIXGlyph>>
 		imageOffsetsZ;	/* Offset from the beginning of the strike data header
 				 * to bitmap data for an individual glyph ID. */
   public:
-  DEFINE_SIZE_STATIC (8);
+  DEFINE_SIZE_ARRAY (4, imageOffsetsZ);
 };
 
 struct sbix
 {
-  static const hb_tag_t tableTag = HB_OT_TAG_sbix;
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_sbix;
 
-  inline bool has_data (void) const { return version; }
+  bool has_data () const { return version; }
 
-  inline const SBIXStrike &get_strike (unsigned int i) const { return this+strikes[i]; }
+  const SBIXStrike &get_strike (unsigned int i) const { return this+strikes[i]; }
 
   struct accelerator_t
   {
-    inline void init (hb_face_t *face)
+    void init (hb_face_t *face)
     {
       table = hb_sanitize_context_t().reference_table<sbix> (face);
       num_glyphs = face->get_num_glyphs ();
     }
+    void fini () { table.destroy (); }
 
-    inline void fini (void)
-    {
-      table.destroy ();
-    }
+    bool has_data () const { return table->has_data (); }
 
-    inline bool has_data () const
-    {
-      return table->has_data ();
-    }
-
-    inline bool get_extents (hb_font_t          *font,
-			     hb_codepoint_t      glyph,
-			     hb_glyph_extents_t *extents) const
+    bool get_extents (hb_font_t          *font,
+		      hb_codepoint_t      glyph,
+		      hb_glyph_extents_t *extents) const
     {
       /* We only support PNG right now, and following function checks type. */
       return get_png_extents (font, glyph, extents);
     }
 
-    inline hb_blob_t *reference_png (hb_font_t      *font,
-				     hb_codepoint_t  glyph_id,
-				     int            *x_offset,
-				     int            *y_offset,
-				     unsigned int   *available_ppem) const
+    hb_blob_t *reference_png (hb_font_t      *font,
+			      hb_codepoint_t  glyph_id,
+			      int            *x_offset,
+			      int            *y_offset,
+			      unsigned int   *available_ppem) const
     {
       return choose_strike (font).get_glyph_blob (glyph_id, table.get_blob (),
 						  HB_TAG ('p','n','g',' '),
@@ -176,15 +169,15 @@ struct sbix
 
     private:
 
-    inline const SBIXStrike &choose_strike (hb_font_t *font) const
+    const SBIXStrike &choose_strike (hb_font_t *font) const
     {
       unsigned count = table->strikes.len;
       if (unlikely (!count))
-        return Null(SBIXStrike);
+	return Null(SBIXStrike);
 
-      unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
+      unsigned int requested_ppem = hb_max (font->x_ppem, font->y_ppem);
       if (!requested_ppem)
-        requested_ppem = 1<<30; /* Choose largest strike. */
+	requested_ppem = 1<<30; /* Choose largest strike. */
       /* TODO Add DPI sensitivity as well? */
       unsigned int best_i = 0;
       unsigned int best_ppem = table->get_strike (0).ppem;
@@ -208,7 +201,7 @@ struct sbix
       HBUINT8	signature[8];
       struct
       {
-        struct
+	struct
 	{
 	  HBUINT32	length;
 	  Tag		type;
@@ -226,14 +219,14 @@ struct sbix
       DEFINE_SIZE_STATIC (29);
     };
 
-    inline bool get_png_extents (hb_font_t          *font,
-				 hb_codepoint_t      glyph,
-				 hb_glyph_extents_t *extents) const
+    bool get_png_extents (hb_font_t          *font,
+			  hb_codepoint_t      glyph,
+			  hb_glyph_extents_t *extents) const
     {
       /* Following code is safe to call even without data.
        * But faster to short-circuit. */
       if (!has_data ())
-        return false;
+	return false;
 
       int x_offset = 0, y_offset = 0;
       unsigned int strike_ppem = 0;
@@ -242,18 +235,25 @@ struct sbix
       const PNGHeader &png = *blob->as<PNGHeader>();
 
       extents->x_bearing = x_offset;
-      extents->y_bearing = y_offset;
+      extents->y_bearing = png.IHDR.height + y_offset;
       extents->width     = png.IHDR.width;
-      extents->height    = png.IHDR.height;
+      extents->height    = -png.IHDR.height;
 
       /* Convert to font units. */
       if (strike_ppem)
       {
-	double scale = font->face->get_upem () / (double) strike_ppem;
-	extents->x_bearing = round (extents->x_bearing * scale);
-	extents->y_bearing = round (extents->y_bearing * scale);
-	extents->width = round (extents->width * scale);
-	extents->height = round (extents->height * scale);
+	float scale = font->face->get_upem () / (float) strike_ppem;
+	extents->x_bearing = font->em_scalef_x (extents->x_bearing * scale);
+	extents->y_bearing = font->em_scalef_y (extents->y_bearing * scale);
+	extents->width = font->em_scalef_x (extents->width * scale);
+	extents->height = font->em_scalef_y (extents->height * scale);
+      }
+      else
+      {
+	extents->x_bearing = font->em_scale_x (extents->x_bearing);
+	extents->y_bearing = font->em_scale_y (extents->y_bearing);
+	extents->width = font->em_scale_x (extents->width);
+	extents->height = font->em_scale_y (extents->height);
       }
 
       hb_blob_destroy (blob);
@@ -267,7 +267,7 @@ struct sbix
     unsigned int num_glyphs;
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&

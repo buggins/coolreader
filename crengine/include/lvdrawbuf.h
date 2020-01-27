@@ -97,6 +97,12 @@ public:
     virtual void SetClipRect( const lvRect * clipRect ) = 0;
     /// set to true for drawing in Paged mode, false for Scroll mode
     virtual void setHidePartialGlyphs( bool hide ) = 0;
+    /// set to true to invert images only (so they get inverted back to normal by nightmode)
+    virtual void setInvertImages( bool invert ) = 0;
+    /// set to true to enforce dithering (only relevant for 8bpp Gray drawBuf)
+    virtual void setDitherImages( bool dither ) = 0;
+    /// set to true to switch to a more costly smooth scaler instead of nearest neighbor
+    virtual void setSmoothScalingImages( bool smooth ) = 0;
     /// invert image
     virtual void  Invert() = 0;
     /// get buffer width, pixels
@@ -178,12 +184,16 @@ public:
     virtual void DrawRotated( LVImageSourceRef img, int x, int y, int width, int height, int rotationAngle) { Draw(img, x, y, width, height); CR_UNUSED(rotationAngle); }
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette ) = 0;
+    // draws buffer on top of another buffer to implement background
+    virtual void DrawOnTop( LVDrawBuf * buf, int x, int y) = 0;
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
     virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options) = 0;
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
     virtual void DrawFragment(LVDrawBuf * src, int srcx, int srcy, int srcdx, int srcdy, int x, int y, int dx, int dy, int options) {
         CR_UNUSED10(src, srcx, srcy, srcdx, srcdy, x, y, dx, dy, options);
     }
+    /// draw lines
+    virtual void DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int length1,int length2,int direction)=0;
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, lUInt32 * palette ) = 0;
@@ -191,10 +201,10 @@ public:
     /// draws text string
     /*
     virtual void DrawTextString( int x, int y, LVFont * pfont,
-                       const lChar16 * text, int len, 
+                       const lChar16 * text, int len,
                        lChar16 def_char, lUInt32 * palette, bool addHyphen=false ) = 0;
-    */                       
-                      
+    */
+
 /*
     /// draws formatted text
     virtual void DrawFormattedText( formatted_text_fragment_t * text, int x, int y ) = 0;
@@ -224,8 +234,20 @@ protected:
     lUInt32 _backgroundColor;
     lUInt32 _textColor;
     bool _hidePartialGlyphs;
+    bool _invertImages;
+    bool _ditherImages;
+    bool _smoothImages;
+    int _drawnImagesCount;
+    int _drawnImagesSurface;
 public:
+    /// set to true for drawing in Paged mode, false for Scroll mode
     virtual void setHidePartialGlyphs( bool hide ) { _hidePartialGlyphs = hide; }
+    /// set to true to invert images only (so they get inverted back to normal by nightmode)
+    virtual void setInvertImages( bool invert ) { _invertImages = invert; }
+    /// set to true to enforce dithering (only relevant for 8bpp Gray drawBuf)
+    virtual void setDitherImages( bool dither ) { _ditherImages = dither; }
+    /// set to true to switch to a more costly smooth scaler instead of nearest neighbor
+    virtual void setSmoothScalingImages( bool smooth ) { _smoothImages = smooth; }
     /// returns current background color
     virtual lUInt32 GetBackgroundColor() { return _backgroundColor; }
     /// sets current background color
@@ -248,17 +270,25 @@ public:
     virtual int  GetHeight();
     /// get row size (bytes)
     virtual int  GetRowSize() { return _rowsize; }
+    virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction)=0;
     /// draws text string
     /*
     virtual void DrawTextString( int x, int y, LVFont * pfont,
-                       const lChar16 * text, int len, 
-                       lChar16 def_char, 
+                       const lChar16 * text, int len,
+                       lChar16 def_char,
                        lUInt32 * palette, bool addHyphen=false );
     */
     /// draws formatted text
     //virtual void DrawFormattedText( formatted_text_fragment_t * text, int x, int y );
-    
-    LVBaseDrawBuf() : _dx(0), _dy(0), _rowsize(0), _data(NULL), _hidePartialGlyphs(true) { }
+
+    /// Get nb of images drawn on buffer
+    int getDrawnImagesCount() { return _drawnImagesCount; }
+    /// Get surface of images drawn on buffer
+    int getDrawnImagesSurface() { return _drawnImagesSurface; }
+
+    LVBaseDrawBuf() : _dx(0), _dy(0), _rowsize(0), _data(NULL), _hidePartialGlyphs(true),
+                        _invertImages(false), _ditherImages(false), _smoothImages(false),
+                        _drawnImagesCount(0), _drawnImagesSurface(0) { }
     virtual ~LVBaseDrawBuf() { }
 };
 
@@ -335,6 +365,8 @@ public:
     virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
+    // draws buffer on top of another buffer to implement background
+    virtual void DrawOnTop( LVDrawBuf * buf, int x, int y);
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
     virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
@@ -369,19 +401,96 @@ public:
     virtual ~LVGrayDrawBuf();
     /// convert to 1-bit bitmap
     void ConvertToBitmap(bool flgDither);
+    virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0,int length1,int length2,int direction=0);
 };
 
-inline lUInt32 RevRGB( lUInt32 cl )
-{
-    return ((cl>>16)&255) | ((cl<<16)&0xFF0000) | (cl&0x00FF00);
+// NOTE: By default, CRe assumes RGB (array order) actually means BGR
+//       We don't, so, instead of fixing this at the root (i.e., in a *lot* of places),
+//       we simply swap R<->B when rendering to 32bpp, limiting the tweaks to lvdrawbuf
+//       c.f., https://github.com/koreader/koreader-base/pull/878#issuecomment-476723747
+#ifdef CR_RENDER_32BPP_RGB_PXFMT
+inline lUInt32 RevRGB( lUInt32 cl ) {
+    return ((cl<<16)&0xFF0000) | ((cl>>16)&0x0000FF) | (cl&0x00FF00);
 }
 
-inline lUInt32 rgb565to888(lUInt32 cl ) {
+inline lUInt32 RevRGBA( lUInt32 cl ) {
+    // Swap B <-> R, keep G & A
+    return ((cl<<16)&0x00FF0000) | ((cl>>16)&0x000000FF) | (cl&0xFF00FF00);
+}
+#else
+inline lUInt32 RevRGB( lUInt32 cl ) {
+    return cl;
+}
+
+inline lUInt32 RevRGBA( lUInt32 cl ) {
+    return cl;
+}
+#endif
+
+inline lUInt32 rgb565to888( lUInt32 cl ) {
     return ((cl & 0xF800)<<8) | ((cl & 0x07E0)<<5) | ((cl & 0x001F)<<3);
 }
 
-inline lUInt16 rgb888to565(lUInt32 cl ) {
+inline lUInt16 rgb888to565( lUInt32 cl ) {
     return (lUInt16)(((cl>>8)& 0xF800) | ((cl>>5 )& 0x07E0) | ((cl>>3 )& 0x001F));
+}
+
+#define DIV255(V, t)                                                                                    \
+{                                                                                                       \
+        auto _v = (V) + 128;                                                                            \
+        (t) = (((_v >> 8U) + _v) >> 8U);                                                                \
+}
+
+// Because of course we're not using <stdint.h> -_-".
+#ifndef UINT8_MAX
+	#define UINT8_MAX (255)
+#endif
+
+// Quantize an 8-bit color value down to a palette of 16 evenly spaced colors, using an ordered 8x8 dithering pattern.
+// With a grayscale input, this happens to match the eInk palette perfectly ;).
+// If the input is not grayscale, and the output fb is not grayscale either,
+// this usually still happens to match the eInk palette after the EPDC's own quantization pass.
+// c.f., https://en.wikipedia.org/wiki/Ordered_dithering
+// & https://github.com/ImageMagick/ImageMagick/blob/ecfeac404e75f304004f0566557848c53030bad6/MagickCore/threshold.c#L1627
+// NOTE: As the references imply, this is straight from ImageMagick,
+//       with only minor simplifications to enforce Q8 & avoid fp maths.
+static inline lUInt8 dither_o8x8(int x, int y, lUInt8 v)
+{
+	// c.f., https://github.com/ImageMagick/ImageMagick/blob/ecfeac404e75f304004f0566557848c53030bad6/config/thresholds.xml#L107
+	static const lUInt8 threshold_map_o8x8[] = { 1,  49, 13, 61, 4,  52, 16, 64, 33, 17, 45, 29, 36, 20, 48, 32,
+						      9,  57, 5,  53, 12, 60, 8,  56, 41, 25, 37, 21, 44, 28, 40, 24,
+						      3,  51, 15, 63, 2,  50, 14, 62, 35, 19, 47, 31, 34, 18, 46, 30,
+						      11, 59, 7,  55, 10, 58, 6,  54, 43, 27, 39, 23, 42, 26, 38, 22 };
+
+	// Constants:
+	// Quantum = 8; Levels = 16; map Divisor = 65
+	// QuantumRange = 0xFF
+	// QuantumScale = 1.0 / QuantumRange
+	//
+	// threshold = QuantumScale * v * ((L-1) * (D-1) + 1)
+	// NOTE: The initial computation of t (specifically, what we pass to DIV255) would overflow an uint8_t.
+	//       With a Q8 input value, we're at no risk of ever underflowing, so, keep to unsigned maths.
+	//       Technically, an uint16_t would be wide enough, but it gains us nothing,
+	//       and requires a few explicit casts to make GCC happy ;).
+        lUInt32 t;
+        DIV255(v * ((15U << 6) + 1U), t);
+	// level = t / (D-1);
+	lUInt32 l = (t >> 6);
+	// t -= l * (D-1);
+	t = (t - (l << 6));
+
+	// map width & height = 8
+	// c = ClampToQuantum((l+(t >= map[(x % mw) + mw * (y % mh)])) * QuantumRange / (L-1));
+	lUInt32 q = ((l + (t >= threshold_map_o8x8[(x & 7U) + 8U * (y & 7U)])) * 17);
+	// NOTE: We're doing unsigned maths, so, clamping is basically MIN(q, UINT8_MAX) ;).
+	//       The only overflow we should ever catch should be for a few white (v = 0xFF) input pixels
+	//       that get shifted to the next step (i.e., q = 272 (0xFF + 17)).
+	return (q > UINT8_MAX ? UINT8_MAX : static_cast<lUInt8>(q));
+}
+
+// Declare our bit of scaler ripped from Qt5...
+namespace CRe {
+lUInt8* qSmoothScaleImage(const lUInt8* src, int sw, int sh, bool ignore_alpha, int dw, int dh);
 }
 
 /// 32-bit RGB buffer
@@ -403,6 +512,8 @@ public:
     virtual lUInt32 GetBlackColor();
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * buf, int x, int y, int options, lUInt32 * palette );
+    // draws buffer on top of another buffer to implement background
+    virtual void DrawOnTop( LVDrawBuf * buf, int x, int y);
     /// draws rescaled buffer content to another buffer doing color conversion if necessary
     virtual void DrawRescaled(LVDrawBuf * src, int x, int y, int dx, int dy, int options);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
@@ -440,6 +551,8 @@ public:
     virtual ~LVColorDrawBuf();
     /// convert to 1-bit bitmap
     void ConvertToBitmap(bool flgDither);
+    /// draw line
+    virtual void DrawLine(int x0,int y0,int x1,int y1,lUInt32 color0 ,int length1=1,int length2=0,int direction=0);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     /// returns device context for bitmap buffer
     HDC GetDC() { return _drawdc; }
