@@ -7823,7 +7823,7 @@ lString16 ldomXPointer::toStringUsingIndexes()
     while( p && p!=rootNode ) {
         ldomNode * parent = p->getParentNode();
         if ( !parent )
-            return "/" + p->isElement() ? p->getNodeName() : cs16("/text()") + path;
+            return "/" + (p->isElement() ? p->getNodeName() : cs16("/text()")) + path;
 
         while( isBoxingNode(parent) )
             parent = parent->getParentNode();
