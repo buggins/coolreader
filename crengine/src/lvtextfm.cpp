@@ -2521,7 +2521,7 @@ public:
                             word->min_width = word->width;
                         }
                     }
-                    if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
+                    if ( lastWord && m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                         if ( m_flags[i] & LCHAR_IS_CLUSTER_TAIL ) {
                             // The end of this word is part of a ligature that, because
                             // of hyphenation, has been splitted onto next word.
