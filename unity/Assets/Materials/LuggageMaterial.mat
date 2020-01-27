@@ -7,20 +7,32 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ElevatedMaterial
-  m_Shader: {fileID: 4800000, guid: 8090f511be1bb26f9b4bd750494c0543, type: 3}
-  m_ShaderKeywords: _GLOSSYREFLECTIONS_OFF _SPECULARHIGHLIGHTS_OFF
+  m_Name: LuggageMaterial
+  m_Shader: {fileID: 4800000, guid: abebf6fd717f63db180763b43d0a673a, type: 3}
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
+  m_DoubleSidedGI: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - NoiseTex:
-        m_Texture: {fileID: 2800000, guid: a5bf492b60449b57aa0ddc20064444c6, type: 3}
+    - FootNorm:
+        m_Texture: {fileID: 2800000, guid: eeaaef448a5bc69758683756f5eec0e0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - FootTex:
+        m_Texture: {fileID: 2800000, guid: c74c0eba160bc285fb7ce3ae4805099e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - PlankNorm:
+        m_Texture: {fileID: 2800000, guid: 05a0310860f52d7bea4c1273f75a1cb3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - PlankTex:
+        m_Texture: {fileID: 2800000, guid: 4324385f5c0c1e6f2bc573543f9ebcc6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -44,7 +56,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 4324385f5c0c1e6f2bc573543f9ebcc6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -60,27 +72,24 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - PathTime: 5.9999967
-    - UXStart: 0.8125
-    - UXWidth: 0.0078125
-    - UYHeight: 0.0625
-    - UYStart: 0.9375
+    - LidLevel: 0.5
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.5
-    - _GlossyReflections: 0
+    - _Glossiness: 0.2
+    - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
-    - _SpecularHighlights: 0
+    - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - Hinge: {r: -2.6, g: 3, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
