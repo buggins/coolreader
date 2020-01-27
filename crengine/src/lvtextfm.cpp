@@ -2394,6 +2394,28 @@ public:
                     else { // otherwise, align baseline according to valign_dy (computed in lvrend.cpp)
                         word->y = srcline->valign_dy;
                     }
+
+                    // Inline image or inline-block: ensure any "page-break-before/after: avoid"
+                    // specified on them (the specs say those apply to "block-level elements
+                    // in the normal flow of the root element. User agents may also apply it
+                    // to other elements like table-row elements", so it's mostly assumed that
+                    // they won't apply on inline elements and we'll never meet them - but as
+                    // it doesn't say we should not, let's ensure them if provided - and
+                    // only "avoid" as it may have some purpose to stick a full-width image
+                    // or inline-block to the previous or next line).
+                    ldomNode * node = (ldomNode *) lastSrc->object;
+                    if ( node && lastSrc->flags & LTEXT_SRC_IS_INLINE_BOX ) {
+                        // We have not propagated page_break styles from the original
+                        // inline-block to its inlineBox wrapper
+                        node = node->getChildNode(0);
+                    }
+                    if ( node ) {
+                        css_style_ref_t style = node->getStyle();
+                        if ( style->page_break_before == css_pb_avoid )
+                            frmline->flags |= LTEXT_LINE_SPLIT_AVOID_BEFORE;
+                        if ( style->page_break_after == css_pb_avoid )
+                            frmline->flags |= LTEXT_LINE_SPLIT_AVOID_AFTER;
+                    }
                 }
                 else {
                     // word
