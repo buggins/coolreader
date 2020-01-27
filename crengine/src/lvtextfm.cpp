@@ -2539,18 +2539,36 @@ public:
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
                     if ( m_flags[i-1] & LCHAR_IS_SPACE) { // Current word ends with a space
-                        // condition for "- " at beginning of paragraph
-                        if ( wstart!=0 || word->t.len!=2 || !(lGetCharProps(m_text[wstart]) & CH_PROP_DASH) ) {
+                        // Each word ending with a space (except in some conditions) can
+                        // have its width reduced by a fraction of this space width or
+                        // increased if needed (for text justification), so actually
+                        // making that space larger or smaller.
+                        bool can_adjust_width = true;
+                        if ( wstart == 0 && word->t.len == 2 && isLeftPunctuation(m_text[0]) ) {
+                            // Single char (with space) at start of line is one of the
+                            // common opening quotation marks or dashes used to introduce
+                            // a quotation or a part of a dialog:
+                            //   https://en.wikipedia.org/wiki/Quotation_mark
+                            // Don't allow the following space to change width, so other
+                            // similar lines get their real first word similarly aligned.
+                            can_adjust_width = false;
+                        }
+                        else if ( word->t.len>=2 && i>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE
+                                                         && m_text[i-2]==UNICODE_NO_BREAK_SPACE ) {
                             // condition for double nbsp after run-in footnote title
-                            if ( !(word->t.len>=2 && m_text[i-1]==UNICODE_NO_BREAK_SPACE && m_text[i-2]==UNICODE_NO_BREAK_SPACE)
-                                    && !( m_text[i]==UNICODE_NO_BREAK_SPACE && m_text[i+1]==UNICODE_NO_BREAK_SPACE) ) {
-                                // Each word ending with a space (except for the 2 conditions above)
-                                // can have its width reduced by a fraction of this space width.
-                                word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
-                                int dw = getMaxCondensedSpaceTruncation(i-1);
-                                if (dw>0) {
-                                    word->min_width = word->width - dw;
-                                }
+                            can_adjust_width = false;
+                            // (not sure what this one and the next are about)
+                        }
+                        else if ( i < m_length-1 && m_text[i]==UNICODE_NO_BREAK_SPACE
+                                                 && m_text[i+1]==UNICODE_NO_BREAK_SPACE ) {
+                            // condition for double nbsp after run-in footnote title
+                            can_adjust_width = false;
+                        }
+                        if ( can_adjust_width ) {
+                            word->flags |= LTEXT_WORD_CAN_ADD_SPACE_AFTER;
+                            int dw = getMaxCondensedSpaceTruncation(i-1);
+                            if (dw>0) {
+                                word->min_width = word->width - dw;
                             }
                         }
                         if ( !visualAlignmentEnabled && lastWord ) {
@@ -2838,6 +2856,17 @@ public:
         return c==0x2018 || c==0x201c || // ‘ “ left single and double quotation marks
                c==0x3008 || c==0x300a || c==0x300c || c==0x300e || c==0x3010 || // 〈 《 「 『 【 CJK left brackets
                c==0xff08; // （ fullwidth left parenthesis
+    }
+
+    bool isLeftPunctuation(lChar16 c) {
+        // Opening quotation marks and dashes that we don't want a followup space to
+        // have its width changed
+        return ( c >= 0x2010 && c <= 0x2027 ) || // Hyphens, dashes, quotation marks, bullets...
+               ( c >= 0x2032 && c <= 0x205E ) || // Primes, bullets...
+               ( c >= 0x002A && c <= 0x002F ) || // Ascii * + , - . /
+                 c == 0x00AB || c == 0x00BB   || // Quotation marks (including right pointing, for german text)
+                 c == 0x0022 || c == 0x0027 || c == 0x0023; // Ascii " ' #
+
     }
 
     /// Split paragraph into lines
