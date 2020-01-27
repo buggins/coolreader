@@ -4901,7 +4901,8 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			mActivity.waitForCRDBService(new Runnable() {
 				@Override
 				public void run() {
-					Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false);
+					if (Services.getHistory() != null)
+						Services.getHistory().removeBookInfo(mActivity.getDB(), mBookInfo.getFileInfo(), true, false);
 				}
 			});
 			mBookInfo = null;

@@ -15,8 +15,8 @@ import android.util.Log;
 public class CRDBServiceAccessor {
 	private final static String TAG = "cr3db";
 	private Activity mActivity;
-    private CRDBService.LocalBinder mService;
-    private boolean mServiceBound;
+    private volatile CRDBService.LocalBinder mService;
+    private volatile boolean mServiceBound;
     private MountPathCorrector pathCorrector;
 
     public CRDBService.LocalBinder get() {
@@ -30,7 +30,7 @@ public class CRDBServiceAccessor {
 		this.pathCorrector = pathCorrector;
 	}
 
-	public void setPathCorrector(MountPathCorrector pathCorrector) {
+	public synchronized void setPathCorrector(MountPathCorrector pathCorrector) {
 		this.pathCorrector = pathCorrector;
     	if (mService != null && pathCorrector != null)
     		mService.setPathCorrector(pathCorrector);
@@ -40,15 +40,20 @@ public class CRDBServiceAccessor {
 	
 	private boolean bindIsCalled;
     public void bind(final Runnable boundCallback) {
-    	if (mService != null) {
-        	Log.v(TAG, "CRDBService is already bound");
-        	if (boundCallback != null)
-        		boundCallback.run();
-    		return;
-    	}
+    	synchronized(this) {
+			if (mService != null) {
+				Log.v(TAG, "CRDBService is already bound");
+				if (boundCallback != null)
+					boundCallback.run();
+				return;
+			}
+		}
     	//Log.v(TAG, "binding CRDBService");
-    	if (boundCallback != null)
-    		onConnectCallbacks.add(boundCallback);
+    	if (boundCallback != null) {
+			synchronized(onConnectCallbacks) {
+				onConnectCallbacks.add(boundCallback);
+			}
+		}
     	if (!bindIsCalled) {
     		bindIsCalled = true;
 	    	if (mActivity.bindService(new Intent(mActivity, 
@@ -73,21 +78,27 @@ public class CRDBServiceAccessor {
     
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-        	mService = ((CRDBService.LocalBinder)service);
-        	Log.i(TAG, "connected to CRDBService");
-        	if (pathCorrector != null)
-        		mService.setPathCorrector(pathCorrector);
-        	if (onConnectCallbacks.size() != 0) {
-        		// run once
-        		for (Runnable callback : onConnectCallbacks)
-        			callback.run();
-        		onConnectCallbacks.clear();
-        	}
+			synchronized(CRDBServiceAccessor.this) {
+				mService = ((CRDBService.LocalBinder) service);
+				Log.i(TAG, "connected to CRDBService");
+				if (pathCorrector != null)
+					mService.setPathCorrector(pathCorrector);
+			}
+        	synchronized(onConnectCallbacks) {
+				if (onConnectCallbacks.size() != 0) {
+					// run once
+					for (Runnable callback : onConnectCallbacks)
+						callback.run();
+					onConnectCallbacks.clear();
+				}
+			}
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            mService = null;
-        	Log.i(TAG, "disconnected from CRDBService");
+        	synchronized(CRDBServiceAccessor.this) {
+				mService = null;
+			}
+			Log.i(TAG, "disconnected from CRDBService");
         }
     };
 

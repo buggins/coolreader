@@ -180,23 +180,31 @@ public class BackgroundThread extends Thread {
 	 */
 	public void postGUI(final Runnable task, final long delay)
 	{
-		if ( guiHandler==null ) {
-			synchronized( postedGUI ) {
-				postedGUI.add(task);
+		try {
+			if (guiHandler == null) {
+				synchronized (postedGUI) {
+					postedGUI.add(task);
+				}
+			} else {
+				if (delay > 0) {
+					final int id = ++delayedTaskId;
+					//L.v("posting delayed (" + delay + ") task " + id + " " + task);
+					guiHandler.postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								task.run();
+								//L.v("finished delayed (" + delay + ") task " + id + " " + task);
+							} catch (Throwable e) {
+								Log.e("cr3", "Exception while processing task in GUI thread: " + task, e);
+							}
+						}
+					}, delay);
+				} else
+					guiHandler.post(task);
 			}
-		} else {
-			if ( delay>0 ) {
-				final int id = ++delayedTaskId;
-				//L.v("posting delayed (" + delay + ") task " + id + " " + task);
-				guiHandler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						task.run();
-						//L.v("finished delayed (" + delay + ") task " + id + " " + task);
-					}
-				}, delay);
-			} else
-				guiHandler.post(task);
+		} catch (Throwable e) {
+			Log.e("cr3", "Exception while posting task to GUI thread: " + task, e);
 		}
 	}
 
@@ -225,14 +233,30 @@ public class BackgroundThread extends Thread {
 		return (Thread.currentThread() == instance);
 	}
 
-	public void executeGUI( Runnable task )
+	public void executeGUI( final Runnable task )
 	{
 		//Handler guiHandler = guiTarget.getHandler();
 		//if ( guiHandler!=null && guiHandler.getLooper().getThread()==Thread.currentThread() )
-		if (isGUIThread())
-			task.run(); // run in this thread
-		else
-			postGUI(task);
+		try {
+			if (isGUIThread())
+				task.run(); // run in this thread
+			else {
+				postGUI(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							task.run();
+						} catch (Throwable e) {
+							Log.e("cr3",
+									"Exception while executing task in GUI thread: " + task, e);
+						}
+
+					}
+				});
+			}
+		} catch (Throwable e) {
+			Log.e("cr3", "Exception in executeGUI: " + task, e);
+		}
 	}
 
     public <T> Callable<T> guard( final Callable<T> task )
