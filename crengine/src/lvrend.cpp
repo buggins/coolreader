@@ -65,7 +65,7 @@ int scaleForRenderDPI( int value ) {
     return value;
 }
 
-int gRenderBlockRenderingFlags = DEF_RENDER_BLOCK_RENDERING_FLAGS;
+int gRenderBlockRenderingFlags = BLOCK_RENDERING_FLAGS_DEFAULT;
 
 int validateBlockRenderingFlags(int f) {
     // Check coherency and ensure dependancies of flags

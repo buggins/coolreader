@@ -225,6 +225,7 @@ private slots:
     void on_cbImageBlockZoomoutMode_currentIndexChanged(int index);
     void on_cbImageBlockZoomoutScale_currentIndexChanged(int index);
     void on_cbFontShaping_currentIndexChanged(int index);
+    void on_cbRendFlags_currentIndexChanged(int index);
 };
 
 #endif // SETTINGSDLG_H

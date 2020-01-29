@@ -270,6 +270,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mViewModeTitles = new int[] {
 			R.string.options_view_mode_pages, R.string.options_view_mode_scroll
 		};
+	int[] mRenderingPresets = new int[] {
+			Engine.BLOCK_RENDERING_FLAGS_LEGACY, Engine.BLOCK_RENDERING_FLAGS_FLOAT,
+			Engine.BLOCK_RENDERING_FLAGS_BOOK, Engine.BLOCK_RENDERING_FLAGS_WEB
+	};
+	int[] mRenderingPresetsTitles = new int[] {
+			R.string.options_rendering_preset_legacy, R.string.options_rendering_preset_float, R.string.options_rendering_preset_book, R.string.options_rendering_preset_web
+	};
 	ViewGroup mContentView;
 	TabHost mTabs;
 	LayoutInflater mInflater;
@@ -1837,6 +1844,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
 		}
+		mOptionsCSS.add(new ListOption(this, getString(R.string.options_rendering_preset), PROP_RENDER_BLOCK_RENDERING_FLAGS).add(mRenderingPresets, mRenderingPresetsTitles).setDefaultValue(Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString()).noIcon());
 		for (int i=0; i<styleCodes.length; i++)
 			mOptionsCSS.add(createStyleEditor(styleCodes[i], styleTitles[i]));
 	}

@@ -3814,8 +3814,9 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
         m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
         CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
         bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+        int savedRenderFlags = m_doc_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
         if(convertBookmarks)
-            m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+            m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 
 		// loading document
 		if (LoadDocument(stream, metadataOnly)) {
@@ -3825,7 +3826,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
                 record->convertBookmarks(m_doc);
                 record->setDOMversion(gDOMVersionCurrent);
                 gDOMVersionRequested = gDOMVersionCurrent;
-                m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+                m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
                 //FIXME: need to reload file after this
             }
 			return true;
@@ -3884,7 +3885,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
             record->convertBookmarks(m_doc);
             record->setDOMversion(gDOMVersionCurrent);
             gDOMVersionRequested = gDOMVersionCurrent;
-            m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+            m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
             //FIXME: need to reload file after this
         }
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
@@ -6117,7 +6118,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 #endif
 	static int int_option_hinting[] = { 0, 1, 2 };
 	props->limitValueList(PROP_FONT_HINTING, int_option_hinting, 3);
-    static int int_option_shaping[] = { 0, 1, 2 };
+    static int int_option_shaping[] = { 1, 0, 2 };
     props->limitValueList(PROP_FONT_SHAPING, int_option_shaping, 3);
     static int int_options_1_2[] = { 2, 1 };
 	props->limitValueList(PROP_LANDSCAPE_PAGES, int_options_1_2, 2);
@@ -6212,7 +6213,7 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 
     props->setIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI); // 96 dpi
     props->setIntDef(PROP_RENDER_SCALE_FONT_WITH_DPI, DEF_RENDER_SCALE_FONT_WITH_DPI); // no scale
-    props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+    props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
 
     props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
 
@@ -6299,7 +6300,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             fontMan->SetKerning(kerning);
             REQUEST_RENDER("propsApply - kerning")
         } else if (name == PROP_FONT_SHAPING) {
-            int mode = props->getIntDef(PROP_FONT_SHAPING, (int)SHAPING_MODE_FREETYPE);
+            int mode = props->getIntDef(PROP_FONT_SHAPING, (int)SHAPING_MODE_HARFBUZZ_LIGHT);
             if (mode >= SHAPING_MODE_FREETYPE && mode <= SHAPING_MODE_HARFBUZZ) {
                 fontMan->SetShapingMode((shaping_mode_t)mode);
                 REQUEST_RENDER("Setting shaping mode");
@@ -6483,7 +6484,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 REQUEST_RENDER("propsApply floating punct")
             }
         } else if (name == PROP_RENDER_BLOCK_RENDERING_FLAGS) {
-            int value = props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+            int value = props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
             value = validateBlockRenderingFlags(value);
             if ( gRenderBlockRenderingFlags != value ) {
                 gRenderBlockRenderingFlags = value;

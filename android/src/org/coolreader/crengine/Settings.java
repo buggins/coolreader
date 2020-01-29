@@ -91,8 +91,14 @@ public interface Settings {
     public static final String PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE = "crengine.image.scaling.zoomout.block.scale";
     
     public static final String PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT = "crengine.style.space.condensing.percent";
-    
-    public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
+
+	// default is 96 (1 css px = 1 screen px)
+	// use 0 for old crengine behaviour (no support for absolute units and 1css px = 1 screen px)
+	public static final String PROP_RENDER_DPI              = "crengine.render.dpi";
+	//public static final String PROP_RENDER_SCALE_FONT_WITH_DPI = "crengine.render.scale.font.with.dpi";
+	public static final String PROP_RENDER_BLOCK_RENDERING_FLAGS = "crengine.render.block.rendering.flags";
+
+	public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
     public static final String PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.forced.filesize.min";
     public static final String PROP_PROGRESS_SHOW_FIRST_PAGE="crengine.progress.show.first.page";
 

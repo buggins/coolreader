@@ -214,7 +214,29 @@ extern int gRenderBlockRenderingFlags;
 #define BLOCK_RENDERING_G(f) ( gRenderBlockRenderingFlags & BLOCK_RENDERING_##f )
 #define BLOCK_RENDERING(v, f) ( v & BLOCK_RENDERING_##f )
 
-#define DEF_RENDER_BLOCK_RENDERING_FLAGS BLOCK_RENDERING_FULL_FEATURED
+// rendering flags presets
+#define BLOCK_RENDERING_FLAGS_LEGACY     0
+#define BLOCK_RENDERING_FLAGS_FLOAT      ( BLOCK_RENDERING_ENHANCED | \
+                                           BLOCK_RENDERING_COLLAPSE_VERTICAL_MARGINS | \
+                                           BLOCK_RENDERING_ALLOW_VERTICAL_NEGATIVE_MARGINS | \
+                                           BLOCK_RENDERING_USE_W3C_BOX_MODEL | \
+                                           BLOCK_RENDERING_WRAP_FLOATS | \
+                                           BLOCK_RENDERING_PREPARE_FLOATBOXES | \
+                                           BLOCK_RENDERING_BOX_INLINE_BLOCKS )
+#define BLOCK_RENDERING_FLAGS_BOOK       ( BLOCK_RENDERING_ENHANCED | \
+                                           BLOCK_RENDERING_COLLAPSE_VERTICAL_MARGINS | \
+                                           BLOCK_RENDERING_ALLOW_VERTICAL_NEGATIVE_MARGINS | \
+                                           BLOCK_RENDERING_ENSURE_MARGIN_AUTO_ALIGNMENT | \
+                                           BLOCK_RENDERING_USE_W3C_BOX_MODEL | \
+                                           BLOCK_RENDERING_ENSURE_STYLE_WIDTH | \
+                                           BLOCK_RENDERING_WRAP_FLOATS | \
+                                           BLOCK_RENDERING_PREPARE_FLOATBOXES | \
+                                           BLOCK_RENDERING_FLOAT_FLOATBOXES | \
+                                           BLOCK_RENDERING_DO_NOT_CLEAR_OWN_FLOATS | \
+                                           BLOCK_RENDERING_ALLOW_EXACT_FLOATS_FOOTPRINTS | \
+                                           BLOCK_RENDERING_BOX_INLINE_BLOCKS )
+#define BLOCK_RENDERING_FLAGS_WEB        BLOCK_RENDERING_FULL_FEATURED
+#define BLOCK_RENDERING_FLAGS_DEFAULT    BLOCK_RENDERING_FLAGS_WEB
 
 int validateBlockRenderingFlags( int f );
 

@@ -629,4 +629,9 @@
     </string>
     <string name="third_party_farm_fresh_icon_set">Farm-Fresh icon set from http://www.fatcow.com/free-icons</string>
     <string name="third_party_tango_mod_icon_set">High-contrast icons based on Tango Icon Library: http://tango.freedesktop.org/Tango_Icon_Library.</string>
+    <string name="options_rendering_preset">Rendering preset</string>
+    <string name="options_rendering_preset_legacy">Legacy</string>
+    <string name="options_rendering_preset_float">Float</string>
+    <string name="options_rendering_preset_book">Book</string>
+    <string name="options_rendering_preset_web">Web (full)</string>
 </resources>
