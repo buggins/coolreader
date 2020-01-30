@@ -2055,7 +2055,7 @@ lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormatted
             lString16 marker;
             int markerWidth = 0;
             ldomNode * child = parent->getChildElementNode(i);
-            if ( child->getNodeId() == el_floatBox || child->getNodeId() == el_inlineBox ) {
+            if ( child && ( child->getNodeId() == el_floatBox || child->getNodeId() == el_inlineBox ) ) {
                 child = child->getChildNode(0);
             }
             if ( child && child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
