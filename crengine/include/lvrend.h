@@ -216,7 +216,7 @@ extern int gRenderBlockRenderingFlags;
 
 // rendering flags presets
 #define BLOCK_RENDERING_FLAGS_LEGACY     0
-#define BLOCK_RENDERING_FLAGS_FLOAT      ( BLOCK_RENDERING_ENHANCED | \
+#define BLOCK_RENDERING_FLAGS_FLAT       ( BLOCK_RENDERING_ENHANCED | \
                                            BLOCK_RENDERING_COLLAPSE_VERTICAL_MARGINS | \
                                            BLOCK_RENDERING_ALLOW_VERTICAL_NEGATIVE_MARGINS | \
                                            BLOCK_RENDERING_USE_W3C_BOX_MODEL | \

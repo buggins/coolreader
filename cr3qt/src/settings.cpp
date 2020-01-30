@@ -19,7 +19,7 @@ static int def_margins[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 20, 2
 
 DECL_DEF_CR_FONT_SIZES;
 
-static int rend_flags[] = { BLOCK_RENDERING_FLAGS_LEGACY, BLOCK_RENDERING_FLAGS_FLOAT, BLOCK_RENDERING_FLAGS_BOOK, BLOCK_RENDERING_FLAGS_WEB };
+static int rend_flags[] = { BLOCK_RENDERING_FLAGS_LEGACY, BLOCK_RENDERING_FLAGS_FLAT, BLOCK_RENDERING_FLAGS_BOOK, BLOCK_RENDERING_FLAGS_WEB };
 #define MAX_REND_FLAGS_INDEX (sizeof(rend_flags)/sizeof(int))
 
 static bool initDone = false;

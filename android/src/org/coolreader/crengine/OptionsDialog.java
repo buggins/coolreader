@@ -14,7 +14,6 @@ import org.coolreader.plugins.OnlineStorePluginManager;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -271,11 +270,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			R.string.options_view_mode_pages, R.string.options_view_mode_scroll
 		};
 	int[] mRenderingPresets = new int[] {
-			Engine.BLOCK_RENDERING_FLAGS_LEGACY, Engine.BLOCK_RENDERING_FLAGS_FLOAT,
+			Engine.BLOCK_RENDERING_FLAGS_LEGACY, Engine.BLOCK_RENDERING_FLAGS_FLAT,
 			Engine.BLOCK_RENDERING_FLAGS_BOOK, Engine.BLOCK_RENDERING_FLAGS_WEB
 	};
 	int[] mRenderingPresetsTitles = new int[] {
-			R.string.options_rendering_preset_legacy, R.string.options_rendering_preset_float, R.string.options_rendering_preset_book, R.string.options_rendering_preset_web
+			R.string.options_rendering_preset_legacy, R.string.options_rendering_preset_flat, R.string.options_rendering_preset_book, R.string.options_rendering_preset_web
 	};
 	ViewGroup mContentView;
 	TabHost mTabs;

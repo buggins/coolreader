@@ -1762,7 +1762,7 @@ public class Engine {
 
 	// See ${topsrc}/crengine/include/lvrend.h
 	public static final int BLOCK_RENDERING_FLAGS_LEGACY = 0;
-	public static final int BLOCK_RENDERING_FLAGS_FLOAT = 0x01031031;
+	public static final int BLOCK_RENDERING_FLAGS_FLAT = 0x01031031;
 	public static final int BLOCK_RENDERING_FLAGS_BOOK = 0x1375131;
 	public static final int BLOCK_RENDERING_FLAGS_WEB = 0x7FFFFFFF;
 
