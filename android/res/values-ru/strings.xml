@@ -179,7 +179,7 @@
     <string name="options_text_shaping">Формировщик текста</string>
     <string name="options_text_shaping_simple">Простой (быстрый, без лигатур, кернинг может не работать)</string>
     <string name="options_text_shaping_light">Легкий (без лигатур)</string>
-    <string name="options_text_shaping_full">Полный (с лигатурами)</string>
+    <string name="options_text_shaping_full">Полный (с лигатурами, RTL)</string>
     <string name="options_font_kerning">Кернинг шрифта</string>
     <string name="action_zoom_out">Уменьшить шрифт</string>
     <string name="options_style_floating_punctuation">Висячая пунктуация</string>
