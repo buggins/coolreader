@@ -3319,6 +3319,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 // Legacy/original CRE block rendering
 int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int x, int y, int width )
 {
+    if (!enode)
+        return 0;
     if ( enode->isElement() )
     {
         css_style_rec_t * style = enode->getStyle().get();
@@ -3652,11 +3654,13 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     for (int i=0; i<cnt; i++)
                     {
                         ldomNode * child = enode->getChildNode( i );
-                        //fmt.push();
-                        int h = renderBlockElementLegacy( context, child, padding_left + list_marker_padding, y,
-                            width - padding_left - padding_right - list_marker_padding );
-                        y += h;
-                        block_height += h;
+                        if (child) {
+                            //fmt.push();
+                            int h = renderBlockElementLegacy( context, child, padding_left + list_marker_padding, y,
+                                width - padding_left - padding_right - list_marker_padding );
+                            y += h;
+                            block_height += h;
+                        }
                     }
                     // ensure there's enough height to fully display the list marker
                     if (list_marker_height && list_marker_height > block_height) {
@@ -5511,7 +5515,7 @@ void BlockFloatFootprint::store(ldomNode * node)
         RENDER_RECT_UNSET_FLAG(fmt, NO_CLEAR_OWN_FLOATS);
     }
     fmt.push();
-};
+}
 
 void BlockFloatFootprint::restore(ldomNode * node, int final_width)
 {
@@ -5527,11 +5531,13 @@ void BlockFloatFootprint::restore(ldomNode * node, int final_width)
         generateEmbeddedFloatsFromFootprints( final_width );
     }
     no_clear_own_floats = RENDER_RECT_HAS_FLAG(fmt, NO_CLEAR_OWN_FLOATS);
-};
+}
 
 // Enhanced block rendering
 void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int container_width, int flags )
 {
+    if (!enode)
+        return;
     if ( ! enode->isElement() ) {
         crFatalError(111, "Attempting to render Text node");
     }
@@ -6280,6 +6286,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 int cnt = enode->getChildCount();
                 for (int i=0; i<cnt; i++) {
                     ldomNode * child = enode->getChildNode( i );
+                    if (!child)
+                        continue;
                     css_style_ref_t child_style = child->getStyle();
 
                     // We must deal differently with children that are floating nodes.
@@ -6781,8 +6789,7 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
         }
         // The block height is c_y when we are done
         return flow.getCurrentAbsoluteY();
-    }
-    else {
+    } else {
         // (Legacy rendering does not support direction)
         return renderBlockElementLegacy( context, enode, x, y, width);
     }
