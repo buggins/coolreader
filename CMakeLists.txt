@@ -255,6 +255,19 @@ else()
 	set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FONTCONFIG=0)
 endif (FONTCONFIG_FOUND)
 
+if (NOT MSVC)
+	find_package(FriBidi)
+endif(NOT MSVC)
+
+if (NOT FRIBIDI_FOUND)
+  message("System FriBidi not found, will build local one\n")
+  ADD_SUBDIRECTORY(thirdparty/fribidi)
+  SET(FRIBIDI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/fribidi/lib)
+  SET(FRIBIDI_LIBRARY fribidi)
+endif (NOT FRIBIDI_FOUND)
+
+set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FRIBIDI=1)
+
 endif (NOT MAC)
 
 #if (ENABLE_CHM)
@@ -285,6 +298,7 @@ INCLUDE_DIRECTORIES(
   ${HARFBUZZ_INCLUDE_DIRS}
   ${ANTIWORD_INCLUDE_DIR}
   ${CHM_INCLUDE_DIR}
+  ${FRIBIDI_INCLUDE_DIR}
 )
 
 if ( ${GUI} STREQUAL FB2PROPS )
@@ -301,6 +315,7 @@ SET(STD_LIBS
   ${CHM_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${ANTIWORD_LIBRARIES}
+  ${FRIBIDI_LIBRARIES}
   qimagescale
 )
 if (FONTCONFIG_FOUND)

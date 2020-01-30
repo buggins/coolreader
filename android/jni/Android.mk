@@ -14,7 +14,8 @@ CRFLAGS := -DLINUX=1 -D_LINUX=1 -DFOR_ANDROID=1 -DCR3_PATCH \
      -DLDOM_USE_OWN_MEM_MAN=0 \
      -DCR3_ANTIWORD_PATCH=1 -DENABLE_ANTIWORD=1 \
      -DMAX_IMAGE_SCALE_MUL=2 \
-     -DUSE_NANOSVG=1
+     -DUSE_NANOSVG=1 \
+     -DUSE_FRIBIDI=1 -DBUNDLED_FRIBIDI=1
 
 CR3_ROOT := $(LOCAL_PATH)/../..
 
@@ -28,7 +29,9 @@ LOCAL_C_INCLUDES := \
     $(CR3_ROOT)/thirdparty/libjpeg \
     $(CR3_ROOT)/thirdparty/antiword \
     $(CR3_ROOT)/thirdparty/chmlib/src \
-    $(CR3_ROOT)/thirdparty/nanosvg/src
+    $(CR3_ROOT)/thirdparty/nanosvg/src \
+    $(CR3_ROOT)/thirdparty/fribidi/lib \
+    $(CR3_ROOT)/android/app/thirdparty_libs/fribidi/lib
 
 
 LOCAL_CFLAGS += $(CRFLAGS)
@@ -133,7 +136,8 @@ LOCAL_STATIC_LIBRARIES := \
     local_freetype \
     local_harfbuzz \
     local_chmlib \
-    local_antiword
+    local_antiword \
+    local_fribidi
 
 LOCAL_LDLIBS    := -lm -llog -lz -ldl -flto
 # 
