@@ -262,11 +262,13 @@ endif(NOT MSVC)
 if (NOT FRIBIDI_FOUND)
   message("System FriBidi not found, will build local one\n")
   ADD_SUBDIRECTORY(thirdparty/fribidi)
-  SET(FRIBIDI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/fribidi/lib)
+  SET(FRIBIDI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/fribidi/lib)
   SET(FRIBIDI_LIBRARY fribidi)
+  set(DESKTOP_DEFS ${DESKTOP_DEFS} -DBUNDLED_FRIBIDI=1 -I${CMAKE_BINARY_DIR}/thirdparty/fribidi)
 endif (NOT FRIBIDI_FOUND)
 
 set(DESKTOP_DEFS ${DESKTOP_DEFS} -DUSE_FRIBIDI=1)
+
 
 endif (NOT MAC)
 
