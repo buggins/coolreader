@@ -61,6 +61,8 @@ public class BookPlaceholdMenu : MenuInteraction
         Debug.Log ("Handing to trolley");
 
 // TODO : replace with remove all handlers.        
+      if (collision.gameObject.GetComponent <TrolleyManager> ().addBook (this.gameObject.GetComponent <BookProperties> ().props))
+      {
         if (currentMoveController != null)
         {
                currentMoveController.removeHandler (bookMove, currentMoveControllerObj);
@@ -73,9 +75,9 @@ public class BookPlaceholdMenu : MenuInteraction
         {
                currentRotateController.removeHandler (bookRotate, currentRotateControllerObj);
         }
-      hideMenu ();
-      collision.gameObject.GetComponent <TrolleyManager> ().addBook (this.gameObject.GetComponent <BookProperties> ().props);
-      Destroy (this.gameObject);
+        hideMenu ();
+        Destroy (this.gameObject);
+      }
       }
       
     }

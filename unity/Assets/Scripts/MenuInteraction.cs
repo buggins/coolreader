@@ -225,7 +225,10 @@ public class MenuInteraction : MonoBehaviour {
       // this process.
       yield return new WaitForSeconds (option.lastTouch - Time.time);
     }
-    option.button.transform.localPosition = originalPosition;
+    if (option.button != null)
+    {
+      option.button.transform.localPosition = originalPosition;
+    }
     option.outOfPosition = false;
   }
   
