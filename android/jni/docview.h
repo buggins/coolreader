@@ -30,6 +30,7 @@ public:
 	bool saveHistory( lString16 filename );
 	void createDefaultDocument( lString16 title, lString16 message );
 	bool loadDocument( lString16 filename );
+	bool loadDocument( LVStreamRef stream, lString16 contentPath );
 	int doCommand( int cmd, int param );
     bool findText( lString16 pattern, int origin, bool reverse, bool caseInsensitive );
     void clearSelection();

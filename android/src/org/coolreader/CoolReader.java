@@ -1,6 +1,8 @@
 // Main Class
 package org.coolreader;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,6 +45,7 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -302,8 +305,9 @@ public class CoolReader extends BaseActivity {
 		String fileToOpen = null;
 		String scheme = null;
 		String host = null;
+		Uri uri = null;
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
-			Uri uri = intent.getData();
+			uri = intent.getData();
 			intent.setData(null);
 			if (uri != null) {
 				scheme = uri.getScheme();
@@ -335,8 +339,10 @@ public class CoolReader extends BaseActivity {
 						//                          /document/XXXX-XXXX:<somebody>
 						String shortcut = fileToOpen.replaceFirst("^/document/(.*):.*$", "$1");
 						String mountRoot = Engine.getMountRootByShortcut(shortcut);
-						if (mountRoot != null)
+						if (mountRoot != null) {
 							fileToOpen = fileToOpen.replaceFirst("^/document/.*:(.*)$", mountRoot + "/$1");
+							scheme = "file";
+						}
 					}
 				} else if ("com.google.android.apps.nbu.files.provider".equals(host)) {
 					// application "Files" by Google, package="com.google.android.apps.nbu.files"
@@ -344,15 +350,39 @@ public class CoolReader extends BaseActivity {
 						// skip "/1///"
 						fileToOpen = fileToOpen.substring(5);
 						fileToOpen = Uri.decode(fileToOpen);
+						scheme = "file";
 					} else if (fileToOpen.startsWith("/1/file:///")) {
 						// skip "/1/file://"
 						fileToOpen = fileToOpen.substring(10);
 						fileToOpen = Uri.decode(fileToOpen);
+						scheme = "file";
 					}
 				}
 			}
 		}
-		if (fileToOpen != null) {
+		if ("content".equals(scheme) && null != uri) {
+			final String finalUriString = uri.toString();
+			loadDocumentFromUri(uri, new Runnable() {
+				@Override
+				public void run() {
+					BackgroundThread.instance().postGUI(new Runnable() {
+						@Override
+						public void run() {
+							// if document not loaded show error & then root window
+							ErrorDialog errDialog = new ErrorDialog(CoolReader.this, CoolReader.this.getString(R.string.error), CoolReader.this.getString(R.string.cant_open_file, finalUriString));
+							errDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+								@Override
+								public void onDismiss(DialogInterface dialog) {
+									showRootWindow();
+								}
+							});
+							errDialog.show();
+						}
+					}, 500);
+				}
+			});
+			return true;
+		} else if (fileToOpen != null) {
 			// patch for opening of books from ReLaunch (under Nook Simple Touch) 
 			while (fileToOpen.indexOf("%2F") >= 0) {
 				fileToOpen = fileToOpen.replace("%2F", "/");
@@ -911,6 +941,22 @@ public class CoolReader extends BaseActivity {
 			@Override
 			public void run() {
 				mReaderView.loadDocument(item, callback);
+			}
+		});
+	}
+
+	public void loadDocumentFromUri(final Uri uri, final Runnable callback) {
+		runInReader(new Runnable() {
+			@Override
+			public void run() {
+				ContentResolver contentResolver = getContentResolver();
+				InputStream inputStream = null;
+				try {
+					inputStream = contentResolver.openInputStream(uri);
+					mReaderView.loadDocumentFromStream(inputStream, uri.getPath(), callback);
+				} catch (FileNotFoundException e) {
+					callback.run();
+				}
 			}
 		});
 	}

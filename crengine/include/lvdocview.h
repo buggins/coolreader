@@ -398,6 +398,8 @@ protected:
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible
     bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
+    /// load document from stream (internal)
+    bool loadDocumentInt( LVStreamRef stream, bool metadataOnly = false );
 public:
     /// get outer (before margins are applied) page rectangle
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect );
@@ -884,7 +886,7 @@ public:
     /// load document from file
     bool LoadDocument( const lChar16 * fname, bool metadataOnly = false );
     /// load document from stream
-    bool LoadDocument( LVStreamRef stream, bool metadataOnly = false );
+    bool LoadDocument( LVStreamRef stream, const lChar16 * contentPath, bool metadataOnly = false );
 
     /// save last file position
     void savePosition();
