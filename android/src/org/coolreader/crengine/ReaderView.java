@@ -3112,7 +3112,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		save();
 		log.i("loadDocument(" + contentPath + ")");
 		if (contentPath == null || inputStream == null) {
-			log.v("loadDocument() : no filename specified");
+			log.v("loadDocument() : no filename or stream specified");
 			if (errorHandler != null)
 				errorHandler.run();
 			return false;
@@ -4816,7 +4816,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			mBookInfo = bookInfo;
 			FileInfo fileInfo = bookInfo.getFileInfo();
 			log.v("LoadDocumentTask for " + fileInfo);
-			if (fileInfo.getTitle() == null) {
+			if (fileInfo.getTitle() == null && inputStream == null) {
 				// As a book 'should' have a title, no title means we should
 				// retrieve the book metadata from the engine to get the
 				// book language.
@@ -4951,7 +4951,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 						mActivity.showReader();
 					}
 				});
-				mActivity.setLastBook(filename);
+				// Save last opened book ONLY if book opened from real file not stream.
+				if (null == inputStream)
+					mActivity.setLastBook(filename);
 			}
 		}
 

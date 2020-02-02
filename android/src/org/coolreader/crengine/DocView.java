@@ -166,6 +166,7 @@ public class DocView {
 	/**
 	 * Load document from input stream.
 	 * @param inputStream
+	 * @param contentPath
 	 * @return
 	 */
 	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath) {
