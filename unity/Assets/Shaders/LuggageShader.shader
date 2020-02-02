@@ -7,6 +7,7 @@
     PlankNorm ("Plank Normal Map", 2D) = "white" {}
     FootTex ("Foot Texture", 2D) = "white" {}
     FootNorm ("Foot Normal Map", 2D) = "white" {}
+    LidOpen ("Lid Open", Range(0,1)) = 0.0
     _Glossiness ("Smoothness", Range(0,1)) = 0.5
     _Metallic ("Metallic", Range(0,1)) = 0.0
     
@@ -36,6 +37,7 @@
       float foot;
     };
     
+    float LidOpen;
     half _Glossiness;
     half _Metallic;
     fixed4 _Color;
@@ -52,7 +54,8 @@
     void vert (inout appdata_full v, out Input o) {
       float lidAngle = _Time.y;
       
-      lidAngle = clamp (fmod (lidAngle, 2 * UNITY_PI), 0.0, 0.5 * UNITY_PI);
+//      lidAngle = clamp (fmod (lidAngle, 2 * UNITY_PI), 0.0, 0.5 * UNITY_PI);
+      lidAngle = LidOpen * 0.5 * UNITY_PI;
       
       o.texcoord = 0.2 * float2 (v.vertex.y, v.vertex.x + v.vertex.z);
       o.metal = 0;
