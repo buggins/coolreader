@@ -3,6 +3,10 @@ package org.coolreader.crengine;
 
 import android.graphics.Bitmap;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public class DocView {
 
 	public static final Logger log = L.create("dv");
@@ -156,6 +160,32 @@ public class DocView {
 	public boolean loadDocument(String fileName) {
 		synchronized(mutex) {
 			return loadDocumentInternal(fileName);
+		}
+	}
+
+	/**
+	 * Load document from input stream.
+	 * @param inputStream
+	 * @param contentPath
+	 * @return
+	 */
+	public boolean loadDocumentFromStream(InputStream inputStream, String contentPath) {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		byte [] buf = new byte [1024];
+		int readBytes;
+		while (true) {
+			try {
+				readBytes = inputStream.read(buf);
+				if (readBytes > 0)
+					outputStream.write(buf, 0, readBytes);
+				else
+					break;
+			} catch (IOException e) {
+				break;
+			}
+		}
+		synchronized(mutex) {
+			return loadDocumentFromMemoryInternal(outputStream.toByteArray(), contentPath);
 		}
 	}
 
@@ -410,6 +440,8 @@ public class DocView {
 	private native void createDefaultDocumentInternal(String title, String message);
 
 	private native boolean loadDocumentInternal(String fileName);
+
+	private native boolean loadDocumentFromMemoryInternal(byte [] buf, String contentPath);
 
 	private native java.util.Properties getSettingsInternal();
 

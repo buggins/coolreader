@@ -3069,7 +3069,7 @@ bool LVDocView::goLink(lString16 link, bool savePos) {
 					(int) stream->GetSize()));
             m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 			// TODO: load document from stream properly
-			if (!LoadDocument(stream)) {
+			if (!loadDocumentInt(stream)) {
                 createDefaultDocument(cs16("Load error"), lString16(
                         "Cannot open file ") + filename);
 				return false;
@@ -3818,7 +3818,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
             m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 
 		// loading document
-		if (LoadDocument(stream, metadataOnly)) {
+		if (loadDocumentInt(stream, metadataOnly)) {
 			m_filename = lString16(fname);
 			m_stream.Clear();
             if(convertBookmarks) {
@@ -3876,7 +3876,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
     if(convertBookmarks)
         m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
 
-	if (LoadDocument(stream, metadataOnly)) {
+	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
 
@@ -3890,6 +3890,112 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
 #if DUMP_OPENED_DOCUMENT_SENTENCES==1
         LVStreamRef out = LVOpenFileStream("/tmp/sentences.txt", LVOM_WRITE);
+        if ( !out.isNull() ) {
+            checkRender();
+            {
+                ldomXPointerEx ptr( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
+                *out << "FORWARD ORDER:\n\n";
+                //ptr.nextVisibleText();
+                ptr.prevVisibleWordEnd();
+                if ( ptr.thisSentenceStart() ) {
+                    while ( 1 ) {
+                        ldomXPointerEx ptr2(ptr);
+                        ptr2.thisSentenceEnd();
+                        ldomXRange range(ptr, ptr2);
+                        lString16 str = range.getRangeText();
+                        *out << ">sentence: " << UnicodeToUtf8(str) << "\n";
+                        if ( !ptr.nextSentenceStart() )
+                            break;
+                    }
+                }
+            }
+            {
+                ldomXPointerEx ptr( m_doc->getRootNode(), 1);
+                *out << "\n\nBACKWARD ORDER:\n\n";
+                while ( ptr.lastChild() )
+                    ;// do nothing
+                if ( ptr.thisSentenceStart() ) {
+                    while ( 1 ) {
+                        ldomXPointerEx ptr2(ptr);
+                        ptr2.thisSentenceEnd();
+                        ldomXRange range(ptr, ptr2);
+                        lString16 str = range.getRangeText();
+                        *out << "<sentence: " << UnicodeToUtf8(str) << "\n";
+                        if ( !ptr.prevSentenceStart() )
+                            break;
+                    }
+                }
+            }
+        }
+#endif
+
+		return true;
+	}
+	m_stream.Clear();
+	return false;
+}
+
+bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, bool metadataOnly )
+{
+	if (stream.isNull() || !contentPath || !contentPath[0])
+		return false;
+
+	Clear();
+
+	CRLog::debug("LoadDocument(%s) textMode=%s", LCSTR(lString16(contentPath)), getTextFormatOptions()==txt_format_pre ? "pre" : "autoformat");
+
+	// split file path and name
+	lString16 contentPath16(contentPath);
+
+	lString16 fn = LVExtractFilename(contentPath16);
+	lString16 dir = LVExtractPath(contentPath16);
+
+	CRLog::info("Loading document %s : fn=%s, dir=%s", LCSTR(contentPath16),
+				LCSTR(fn), LCSTR(dir));
+#if 0
+	int i;
+	int last_slash = -1;
+	lChar16 slash_char = 0;
+	for ( i=0; fname[i]; i++ ) {
+		if ( fname[i]=='\\' || fname[i]=='/' ) {
+			last_slash = i;
+			slash_char = fname[i];
+		}
+	}
+	lString16 dir;
+	if ( last_slash==-1 )
+        dir = ".";
+	else if ( last_slash == 0 )
+        dir << slash_char;
+	else
+        dir = lString16( fname, last_slash );
+	lString16 fn( fname + last_slash + 1 );
+#endif
+
+	m_doc_props->setString(DOC_PROP_FILE_PATH, dir);
+	m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
+	m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa(
+			(int) stream->GetSize()));
+	m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
+
+	CRFileHistRecord* record = m_hist.getRecord( contentPath16, stream->GetSize() );
+	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+	if(convertBookmarks)
+		m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+
+	if (loadDocumentInt(stream, metadataOnly)) {
+		m_filename = lString16(contentPath);
+
+		if(convertBookmarks) {
+			record->convertBookmarks(m_doc);
+			record->setDOMversion(gDOMVersionCurrent);
+			gDOMVersionRequested = gDOMVersionCurrent;
+			m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+			//FIXME: need to reload file after this
+		}
+#define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
+#if DUMP_OPENED_DOCUMENT_SENTENCES==1
+		LVStreamRef out = LVOpenFileStream("/tmp/sentences.txt", LVOM_WRITE);
         if ( !out.isNull() ) {
             checkRender();
             {
@@ -4035,7 +4141,7 @@ void LVDocView::createDefaultDocument(lString16 title, lString16 message) {
 }
 
 /// load document from stream
-bool LVDocView::LoadDocument(LVStreamRef stream, bool metadataOnly) {
+bool LVDocView::loadDocumentInt(LVStreamRef stream, bool metadataOnly) {
 
 
 	m_swapDone = false;

@@ -55,6 +55,14 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentInte
 
 /*
  * Class:     org_coolreader_crengine_DocView
+ * Method:    loadDocumentFromMemoryInternal
+ * Signature: ([BLjava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_DocView_loadDocumentFromMemoryInternal
+        (JNIEnv *, jobject, jbyteArray, jstring);
+
+/*
+ * Class:     org_coolreader_crengine_DocView
  * Method:    getSettingsInternal
  * Signature: ()Ljava/util/Properties;
  */
