@@ -3952,25 +3952,6 @@ bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, b
 
 	CRLog::info("Loading document %s : fn=%s, dir=%s", LCSTR(contentPath16),
 				LCSTR(fn), LCSTR(dir));
-#if 0
-	int i;
-	int last_slash = -1;
-	lChar16 slash_char = 0;
-	for ( i=0; fname[i]; i++ ) {
-		if ( fname[i]=='\\' || fname[i]=='/' ) {
-			last_slash = i;
-			slash_char = fname[i];
-		}
-	}
-	lString16 dir;
-	if ( last_slash==-1 )
-        dir = ".";
-	else if ( last_slash == 0 )
-        dir << slash_char;
-	else
-        dir = lString16( fname, last_slash );
-	lString16 fn( fname + last_slash + 1 );
-#endif
 
 	m_doc_props->setString(DOC_PROP_FILE_PATH, dir);
 	m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
@@ -3990,51 +3971,9 @@ bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, b
 			record->convertBookmarks(m_doc);
 			record->setDOMversion(gDOMVersionCurrent);
 			gDOMVersionRequested = gDOMVersionCurrent;
-			m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
+			m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
 			//FIXME: need to reload file after this
 		}
-#define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
-#if DUMP_OPENED_DOCUMENT_SENTENCES==1
-		LVStreamRef out = LVOpenFileStream("/tmp/sentences.txt", LVOM_WRITE);
-        if ( !out.isNull() ) {
-            checkRender();
-            {
-                ldomXPointerEx ptr( m_doc->getRootNode(), m_doc->getRootNode()->getChildCount());
-                *out << "FORWARD ORDER:\n\n";
-                //ptr.nextVisibleText();
-                ptr.prevVisibleWordEnd();
-                if ( ptr.thisSentenceStart() ) {
-                    while ( 1 ) {
-                        ldomXPointerEx ptr2(ptr);
-                        ptr2.thisSentenceEnd();
-                        ldomXRange range(ptr, ptr2);
-                        lString16 str = range.getRangeText();
-                        *out << ">sentence: " << UnicodeToUtf8(str) << "\n";
-                        if ( !ptr.nextSentenceStart() )
-                            break;
-                    }
-                }
-            }
-            {
-                ldomXPointerEx ptr( m_doc->getRootNode(), 1);
-                *out << "\n\nBACKWARD ORDER:\n\n";
-                while ( ptr.lastChild() )
-                    ;// do nothing
-                if ( ptr.thisSentenceStart() ) {
-                    while ( 1 ) {
-                        ldomXPointerEx ptr2(ptr);
-                        ptr2.thisSentenceEnd();
-                        ldomXRange range(ptr, ptr2);
-                        lString16 str = range.getRangeText();
-                        *out << "<sentence: " << UnicodeToUtf8(str) << "\n";
-                        if ( !ptr.prevSentenceStart() )
-                            break;
-                    }
-                }
-            }
-        }
-#endif
-
 		return true;
 	}
 	m_stream.Clear();
