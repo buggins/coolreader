@@ -13795,7 +13795,7 @@ void ldomNode::getAbsRect( lvRect & rect, bool inner )
             // getAbsRect() is mostly used on erm_final nodes. So,
             // if we meet another erm_final node in our parent, we are
             // probably an embedded floatBox or inlineBox. Embedded
-            // floatBoxes or inlineBoxes are positionned according
+            // floatBoxes or inlineBoxes are positioned according
             // to the inner LFormattedText, so we need to account
             // for these padding shifts.
             rect.left += fmt.getInnerX();     // add padding left
@@ -14058,7 +14058,7 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
         // non-erm_inline ones that may be in that overflow and containt pt.
         // erm_inline nodes don't have a RenderRectAccessor(), so their x/y
         // shifts are 0, and any inner block node had its RenderRectAccessor
-        // x/y offsets positionned related to the final block. So, no need
+        // x/y offsets positioned related to the final block. So, no need
         // to shift pt: just recursively call elementFromPoint() as-is,
         // and we'll be recursively navigating inline nodes here.
         int count = getChildCount();
@@ -14129,6 +14129,14 @@ ldomNode * ldomNode::elementFromPoint( lvPoint pt, int direction )
                     }
                 }
                 return NULL; // Nothing found in the overflow
+            }
+            // There is one special case to skip: floats that may have been
+            // positioned after their normal y (because of clear:, or because
+            // of not enough width). Their following non-float siblings (after
+            // in the HTML/DOM tree) may have a lower fmt.getY().
+            if ( isFloatingBox() && pt.y < fmt.getY() ) {
+                // Float starts after pt.y: next non-float siblings may contain pt.y
+                return NULL;
             }
             // pt.y is inside the box (without overflows), go on with it.
             // Note: we don't check for next elements which may have a top
