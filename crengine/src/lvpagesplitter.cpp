@@ -422,6 +422,16 @@ public:
                     AddToList(); //create a page with only the footnotes
                 }
             }
+            if ( line->flags & RN_SPLIT_DISCARD_AT_START ) {
+                // Don't put this line at start of new page (this flag
+                // is set on a margin line when page split auto, as it should
+                // be seen when inside page, but should not be seen on top of
+                // page - and can be kept if it fits at the end of previous page)
+                #ifdef DEBUG_PAGESPLIT
+                    printf("PS:   discarded discardable line at start of page %d\n", page_list->length());
+                #endif
+                return;
+            }
             #ifdef DEBUG_PAGESPLIT
                 printf("   starting page with it\n");
             #endif
@@ -521,7 +531,7 @@ public:
                 pageend = last;
                 AddToList();
                 if ( flgSplit==RN_SPLIT_AUTO && (line->flags & RN_SPLIT_DISCARD_AT_START) ) {
-                    // Don't put this line at start of first page (this flag
+                    // Don't put this line at start of new page (this flag
                     // is set on a margin line when page split auto, as it should
                     // be seen when inside page, but should not be seen on top of
                     // page - and can be kept if it fits at the end of previous page)
