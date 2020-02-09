@@ -634,4 +634,7 @@
     <string name="options_rendering_preset_flat">Flat</string>
     <string name="options_rendering_preset_book">Book</string>
     <string name="options_rendering_preset_web">Web (full)</string>
+    <string name="options_requested_dom_level">DOM version compatibility level</string>
+    <string name="options_requested_dom_level_legacy">Legacy</string>
+    <string name="options_requested_dom_level_newest">Newest</string>
 </resources>

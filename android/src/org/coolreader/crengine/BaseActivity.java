@@ -1767,7 +1767,6 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_APP_MULTI_SELECTION_ACTION, "0");
 
 			props.setProperty(ReaderView.PROP_RENDER_DPI, Integer.valueOf((int)(96*mActivity.getDensityFactor())).toString());
-			props.applyDefault(ReaderView.PROP_RENDER_BLOCK_RENDERING_FLAGS, Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString());
 
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE, "1");
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_MODE, "1");

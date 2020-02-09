@@ -3750,13 +3750,12 @@ static void FileToArcProps(CRPropRef props) {
 static bool needToConvertBookmarks(CRFileHistRecord* historyRecord)
 {
     bool convertBookmarks = false;
-    if(historyRecord) {
+    if (historyRecord && historyRecord->getBookmarks().length() > 1) {
         gDOMVersionRequested = historyRecord->getDOMversion();
         if(gDOMVersionRequested < 20180528) {
-            convertBookmarks = historyRecord->getBookmarks().length() > 1;
+            convertBookmarks = true;
         }
-    } else
-        gDOMVersionRequested = gDOMVersionCurrent;
+    }
     return convertBookmarks;
 }
 
@@ -3815,7 +3814,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
         bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
         int savedRenderFlags = m_doc_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
         if(convertBookmarks)
-            m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
+            m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 
 		// loading document
 		if (loadDocumentInt(stream, metadataOnly)) {
@@ -3825,7 +3824,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
                 record->convertBookmarks(m_doc);
                 record->setDOMversion(gDOMVersionCurrent);
                 gDOMVersionRequested = gDOMVersionCurrent;
-                m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
+                m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
                 //FIXME: need to reload file after this
             }
 			return true;
@@ -3874,7 +3873,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
     CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
     bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
     if(convertBookmarks)
-        m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+        m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(fname);
@@ -3884,7 +3883,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
             record->convertBookmarks(m_doc);
             record->setDOMversion(gDOMVersionCurrent);
             gDOMVersionRequested = gDOMVersionCurrent;
-            m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
+            m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
             //FIXME: need to reload file after this
         }
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
@@ -3962,7 +3961,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, b
 	CRFileHistRecord* record = m_hist.getRecord( contentPath16, stream->GetSize() );
 	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
 	if(convertBookmarks)
-		m_doc_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(contentPath);
@@ -3971,7 +3970,7 @@ bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, b
 			record->convertBookmarks(m_doc);
 			record->setDOMversion(gDOMVersionCurrent);
 			gDOMVersionRequested = gDOMVersionCurrent;
-			m_doc_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
+			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
 			//FIXME: need to reload file after this
 		}
 		return true;
@@ -5691,6 +5690,18 @@ int LVDocView::doCommand(LVDocCmd cmd, int param) {
         getDocument()->setDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES, param!=0);
         REQUEST_RENDER("doCommand-set internal styles")
         break;
+    case DCMD_SET_REQUESTED_DOM_VERSION:
+        CRLog::trace("DCMD_SET_REQUESTED_DOM_VERSION(%d)", param);
+        m_props->setInt(PROP_REQUESTED_DOM_VERSION, param);
+        gDOMVersionRequested = param;
+        REQUEST_RENDER("doCommand-set requested dom version")
+        break;
+    case DCMD_RENDER_BLOCK_RENDERING_FLAGS:
+        CRLog::trace("DCMD_RENDER_BLOCK_RENDERING_FLAGS(%d)", param);
+        m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, param);
+        gRenderBlockRenderingFlags = param;
+        REQUEST_RENDER("doCommand-set block rendering flags")
+        break;
     case DCMD_REQUEST_RENDER:
         REQUEST_RENDER("doCommand-request render")
 		break;
@@ -6255,9 +6266,11 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
         p = 100;
     props->setInt(PROP_FORMAT_MIN_SPACE_CONDENSING_PERCENT, p);
 
+#ifndef ANDROID
     props->setIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI); // 96 dpi
     props->setIntDef(PROP_RENDER_SCALE_FONT_WITH_DPI, DEF_RENDER_SCALE_FONT_WITH_DPI); // no scale
     props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
+#endif
 
     props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
 
@@ -6534,6 +6547,12 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 REQUEST_RENDER("propsApply floating punct")
             }
             needUpdateMargins = true;
+        } else if (name == PROP_REQUESTED_DOM_VERSION) {
+            int value = props->getIntDef(PROP_REQUESTED_DOM_VERSION, gDOMVersionCurrent);
+            if (gDOMVersionRequested != value) {
+                gDOMVersionRequested = value;
+                REQUEST_RENDER("propsApply requested dom version")
+            }
         } else if (name == PROP_RENDER_BLOCK_RENDERING_FLAGS) {
             int value = props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
             value = validateBlockRenderingFlags(value);
@@ -6921,3 +6940,4 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
         CRLog::error("Cannot get font for coverpage");
     }
 }
+                                     

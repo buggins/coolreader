@@ -147,6 +147,14 @@ JNIEXPORT jstring JNICALL Java_org_coolreader_crengine_Engine_isLink
 JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setHyphenationMethod
   (JNIEnv *, jobject, jint, jbyteArray);
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getDomVersionCurrent
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_Engine_getDomVersionCurrent
+        (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

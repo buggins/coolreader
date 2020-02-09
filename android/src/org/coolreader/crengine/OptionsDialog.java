@@ -276,6 +276,12 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mRenderingPresetsTitles = new int[] {
 			R.string.options_rendering_preset_legacy, R.string.options_rendering_preset_flat, R.string.options_rendering_preset_book, R.string.options_rendering_preset_web
 	};
+	int[] mDOMVersionPresets = new int[] {
+			0, Engine.DOM_VERSION_CURRENT
+	};
+	int[] mDOMVersionPresetTitles = new int[] {
+			R.string.options_requested_dom_level_legacy, R.string.options_requested_dom_level_newest
+	};
 	ViewGroup mContentView;
 	TabHost mTabs;
 	LayoutInflater mInflater;
@@ -464,6 +470,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	private static boolean showIcons = true;
 	private static boolean isTextFormat = false;
 	private static boolean isEpubFormat = false;
+	private static boolean isHtmlFormat = false;
 	private Mode mode;
 	
 	class IconsBoolOption extends BoolOption {
@@ -1396,8 +1403,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mProperties.setBool(PROP_TXT_OPTION_PREFORMATTED, mReaderView.isTextAutoformatEnabled());
 			mProperties.setBool(PROP_EMBEDDED_STYLES, mReaderView.getDocumentStylesEnabled());
 			mProperties.setBool(PROP_EMBEDDED_FONTS, mReaderView.getDocumentFontsEnabled());
+			mProperties.setInt(PROP_REQUESTED_DOM_VERSION, mReaderView.getDOMVersion());
+			mProperties.setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, mReaderView.getBlockRenderingFlags());
 			isTextFormat = readerView.isTextFormat();
 			isEpubFormat = readerView.isFormatWithEmbeddedFonts();
+			isHtmlFormat = readerView.isHtmlFormat();
 		}
 		showIcons = mProperties.getBool(PROP_APP_SETTINGS_SHOW_ICONS, true);
 		this.mode = mode;
@@ -1843,7 +1853,10 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		if (isTextFormat) {
 			mOptionsCSS.add(new BoolOption(this, getString(R.string.mi_text_autoformat_enable), PROP_TXT_OPTION_PREFORMATTED).setDefaultValue("1").noIcon());
 		}
-		mOptionsCSS.add(new ListOption(this, getString(R.string.options_rendering_preset), PROP_RENDER_BLOCK_RENDERING_FLAGS).add(mRenderingPresets, mRenderingPresetsTitles).setDefaultValue(Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString()).noIcon());
+		if (isHtmlFormat) {
+			mOptionsCSS.add(new ListOption(this, getString(R.string.options_rendering_preset), PROP_RENDER_BLOCK_RENDERING_FLAGS).add(mRenderingPresets, mRenderingPresetsTitles).setDefaultValue(Integer.valueOf(Engine.BLOCK_RENDERING_FLAGS_WEB).toString()).noIcon());
+			mOptionsCSS.add(new ListOption(this, getString(R.string.options_requested_dom_level), PROP_REQUESTED_DOM_VERSION).add(mDOMVersionPresets, mDOMVersionPresetTitles).setDefaultValue(Integer.valueOf(Engine.DOM_VERSION_CURRENT).toString()).noIcon());
+		}
 		for (int i=0; i<styleCodes.length; i++)
 			mOptionsCSS.add(createStyleEditor(styleCodes[i], styleTitles[i]));
 	}
@@ -2123,6 +2136,14 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 			if (mProperties.getBool(PROP_EMBEDDED_FONTS, true) != mReaderView.getDocumentFontsEnabled()) {
 				mReaderView.toggleEmbeddedFonts();
+			}
+			int domVersion = mProperties.getInt(PROP_REQUESTED_DOM_VERSION, Engine.DOM_VERSION_CURRENT);
+			if (domVersion != mReaderView.getDOMVersion()) {
+				mReaderView.setDOMVersion(domVersion);
+			}
+			int rendFlags = mProperties.getInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, Engine.BLOCK_RENDERING_FLAGS_WEB);
+			if (rendFlags != mReaderView.getBlockRenderingFlags()) {
+				mReaderView.setBlockRenderingFlags(rendFlags);
 			}
 		}
 		mActivity.setSettings(mProperties, 0, true);

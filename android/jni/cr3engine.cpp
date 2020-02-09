@@ -829,6 +829,17 @@ JNIEXPORT jboolean JNICALL Java_org_coolreader_crengine_Engine_setKeyBacklightIn
 	return JNI_TRUE;
 }
 
+/*
+ * Class:     org_coolreader_crengine_Engine
+ * Method:    getDomVersionCurrent
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_org_coolreader_crengine_Engine_getDomVersionCurrent
+  (JNIEnv *, jclass)
+{
+	return gDOMVersionCurrent;
+}
+
 //=====================================================================
 
 static JNINativeMethod sEngineMethods[] = {
@@ -847,7 +858,8 @@ static JNINativeMethod sEngineMethods[] = {
   {"drawBookCoverInternal", "(Landroid/graphics/Bitmap;[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V", (void*)Java_org_coolreader_crengine_Engine_drawBookCoverInternal},
   {"haveFcLangCodeInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_haveFcLangCodeInternal},
   {"checkFontLanguageCompatibilityInternal", "(Ljava/lang/String;Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_Engine_checkFontLanguageCompatibilityInternal},
-  {"listFilesInternal", "(Ljava/io/File;)[Ljava/io/File;", (void*)Java_org_coolreader_crengine_Engine_listFilesInternal}
+  {"listFilesInternal", "(Ljava/io/File;)[Ljava/io/File;", (void*)Java_org_coolreader_crengine_Engine_listFilesInternal},
+  {"getDomVersionCurrent", "()I", (void*)Java_org_coolreader_crengine_Engine_getDomVersionCurrent}
 };
 
 
@@ -859,6 +871,7 @@ static JNINativeMethod sDocViewMethods[] = {
   {"loadDocumentInternal", "(Ljava/lang/String;)Z", (void*)Java_org_coolreader_crengine_DocView_loadDocumentInternal},
   {"loadDocumentFromMemoryInternal", "([BLjava/lang/String;)Z", (void*)Java_org_coolreader_crengine_DocView_loadDocumentFromMemoryInternal},
   {"getSettingsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_DocView_getSettingsInternal},
+  {"getDocPropsInternal", "()Ljava/util/Properties;", (void*)Java_org_coolreader_crengine_DocView_getDocPropsInternal},
   {"applySettingsInternal", "(Ljava/util/Properties;)Z", (void*)Java_org_coolreader_crengine_DocView_applySettingsInternal},
   {"setStylesheetInternal", "(Ljava/lang/String;)V", (void*)Java_org_coolreader_crengine_DocView_setStylesheetInternal},
   {"resizeInternal", "(II)V", (void*)Java_org_coolreader_crengine_DocView_resizeInternal},

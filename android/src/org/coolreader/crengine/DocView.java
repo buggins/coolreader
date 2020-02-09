@@ -210,6 +210,12 @@ public class DocView {
 		}
 	}
 
+	public java.util.Properties getDocProps() {
+		synchronized (mutex) {
+			return getDocPropsInternal();
+		}
+	}
+
 	/**
 	 * Set stylesheet for document.
 	 * @param stylesheet
@@ -447,6 +453,8 @@ public class DocView {
 
 	private native boolean applySettingsInternal(
 			java.util.Properties settings);
+
+	private native java.util.Properties getDocPropsInternal();
 
 	private native void setStylesheetInternal(String stylesheet);
 

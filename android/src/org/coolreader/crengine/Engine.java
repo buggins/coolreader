@@ -654,6 +654,8 @@ public class Engine {
 		return listFilesInternal(dir);
 	}
 
+	private native static int getDomVersionCurrent();
+
 	/**
 	 * Finds the corresponding language code in embedded FontConfig language orthography catalog.
 	 *
@@ -1765,6 +1767,8 @@ public class Engine {
 	public static final int BLOCK_RENDERING_FLAGS_FLAT = 0x01031031;
 	public static final int BLOCK_RENDERING_FLAGS_BOOK = 0x1375131;
 	public static final int BLOCK_RENDERING_FLAGS_WEB = 0x7FFFFFFF;
+	/// Current version of DOM parsing engine (See lvtinydom.cpp)
+	public static int DOM_VERSION_CURRENT;
 
 	public static final BackgroundTextureInfo NO_TEXTURE = new BackgroundTextureInfo(
 			BackgroundTextureInfo.NO_TEXTURE_ID, "(SOLID COLOR)", 0);
@@ -2039,6 +2043,7 @@ public class Engine {
 			throw new RuntimeException("Cannot initialize CREngine JNI");
 		}
 		initCacheDirectory();
+		DOM_VERSION_CURRENT = getDomVersionCurrent();
 		log.i("Engine() : initialization done");
 	}
 }

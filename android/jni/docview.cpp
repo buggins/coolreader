@@ -1390,6 +1390,26 @@ JNIEXPORT jobject JNICALL Java_org_coolreader_crengine_DocView_getSettingsIntern
     return env.toJavaProperties(props);
 }
 
+/*
+ * Class:     org_coolreader_crengine_DocView
+ * Method:    getDocPropsInternal
+ * Signature: ()Ljava/util/Properties;
+ */
+JNIEXPORT jobject JNICALL
+Java_org_coolreader_crengine_DocView_getDocPropsInternal
+  (JNIEnv * _env, jobject _this)
+{
+    CRLog::trace("DocView_getDocPropsInternal");
+    CRJNIEnv env(_env);
+    DocViewNative * p = getNative(_env, _this);
+    if (!p) {
+        CRLog::error("Cannot get native view");
+        return NULL;
+    }
+    CRPropRef props = p->_docview->getDocProps();
+    return env.toJavaProperties(props);
+}
+
 #define PROP_NIGHT_MODE "crengine.night.mode"
 
 /*

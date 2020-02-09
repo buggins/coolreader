@@ -97,6 +97,7 @@ public interface Settings {
 	public static final String PROP_RENDER_DPI              = "crengine.render.dpi";
 	//public static final String PROP_RENDER_SCALE_FONT_WITH_DPI = "crengine.render.scale.font.with.dpi";
 	public static final String PROP_RENDER_BLOCK_RENDERING_FLAGS = "crengine.render.block.rendering.flags";
+	public static final String PROP_REQUESTED_DOM_VERSION   = "crengine.render.requested_dom_version";
 
 	public static final String PROP_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.filesize.min";
     public static final String PROP_FORCED_MIN_FILE_SIZE_TO_CACHE  ="crengine.cache.forced.filesize.min";

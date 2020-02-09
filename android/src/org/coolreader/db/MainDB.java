@@ -14,7 +14,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 27;
+	public final int DB_VERSION = 28;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -128,9 +128,23 @@ public class MainDB extends BaseDB {
 			    execSQLIgnoreErrors("ALTER TABLE opds_catalog ADD COLUMN username VARCHAR DEFAULT NULL");
 			    execSQLIgnoreErrors("ALTER TABLE opds_catalog ADD COLUMN password VARCHAR DEFAULT NULL");
 			}
+			if (currentVersion < 26) {
+				execSQLIgnoreErrors("CREATE TABLE IF NOT EXISTS search_history (" +
+						"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+						"book_fk INTEGER NOT NULL REFERENCES book (id), " +
+						"search_text VARCHAR " +
+						")");
+				execSQLIgnoreErrors("CREATE INDEX IF NOT EXISTS " +
+						"search_history_index ON search_history (book_fk) ");
+			}
 			if (currentVersion < 27) {
 				removeOPDSCatalogsByURLs(OBSOLETE_OPDS_URLS);
 				addOPDSCatalogs(DEF_OPDS_URLS3);
+			}
+			if (currentVersion < 28) {
+				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN crc32 INTEGER DEFAULT NULL");
+				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN domVersion INTEGER DEFAULT 0");
+				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN rendFlags INTEGER DEFAULT 0");
 			}
 
 			//==============================================================
@@ -140,14 +154,6 @@ public class MainDB extends BaseDB {
 			if (currentVersion < DB_VERSION)
 				mDB.setVersion(DB_VERSION);
 		}
-
-		execSQL("CREATE TABLE IF NOT EXISTS search_history (" +
-				"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-				"book_fk INTEGER NOT NULL REFERENCES book (id), " +
-				"search_text VARCHAR " +
-				")");
-		execSQL("CREATE INDEX IF NOT EXISTS " +
-				"search_history_index ON search_history (book_fk) ");
 
 		dumpStatistics();
 		
@@ -1373,6 +1379,9 @@ public class MainDB extends BaseDB {
 			add("create_time", (long)newValue.createTime, (long)oldValue.createTime);
 			add("flags", (long)newValue.flags, (long)oldValue.flags);
 			add("language", newValue.language, oldValue.language);
+			add("crc32", newValue.crc32, oldValue.crc32);
+			add("domVersion", newValue.domVersion, oldValue.domVersion);
+			add("rendFlags", newValue.blockRenderingFlags, oldValue.blockRenderingFlags);
 			if (fields.size() == 0)
 				vlog.v("QueryHelper: no fields to update");
 		}
@@ -1401,7 +1410,7 @@ public class MainDB extends BaseDB {
 		"s.name as series_name, " +
 		"series_number, " +
 		"format, filesize, arcsize, " +
-		"create_time, last_access_time, flags, language ";
+		"create_time, last_access_time, flags, language, crc32, domVersion, rendFlags ";
 	
 	private static final String READ_FILEINFO_SQL = 
 		"SELECT " +
@@ -1409,9 +1418,9 @@ public class MainDB extends BaseDB {
 		"FROM book b " +
 		"LEFT JOIN series s ON s.id=b.series_fk " +
 		"LEFT JOIN folder f ON f.id=b.folder_fk ";
-	private void readFileInfoFromCursor( FileInfo fileInfo, Cursor rs )
-	{
-		int i=0;
+
+	private void readFileInfoFromCursor(FileInfo fileInfo, Cursor rs) {
+		int i = 0;
 		fileInfo.id = rs.getLong(i++);
 		String pathName = rs.getString(i++);
 		String[] parts = FileInfo.splitArcName(pathName);
@@ -1429,8 +1438,11 @@ public class MainDB extends BaseDB {
 		fileInfo.createTime = rs.getInt(i++);
 		fileInfo.lastAccessTime = rs.getInt(i++);
 		fileInfo.flags = rs.getInt(i++);
-	    fileInfo.language = rs.getString(i++);
-		fileInfo.isArchive = fileInfo.arcname!=null; 
+		fileInfo.language = rs.getString(i++);
+		fileInfo.crc32 = rs.getInt(i++);
+		fileInfo.domVersion = rs.getInt(i++);
+		fileInfo.blockRenderingFlags = rs.getInt(i++);
+		fileInfo.isArchive = fileInfo.arcname != null;
 	}
 
 	private boolean findBooks(String sql, ArrayList<FileInfo> list) {
