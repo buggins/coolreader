@@ -5421,6 +5421,8 @@ void ldomNode::initNodeRendMethod()
             case css_d_block:
             case css_d_list_item_block:
             case css_d_inline:
+            case css_d_inline_block:
+            case css_d_inline_table:
             case css_d_run_in:
                 setRendMethod( erm_final );
                 break;
