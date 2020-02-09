@@ -3829,8 +3829,11 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
         bool doNewLineAfterEndTag = false;
         bool doIndentBeforeStartTag = false;
         bool doIndentBeforeEndTag = false;
-        bool doNewlineBeforeIndentBeforeStartTag = false; // specific for floats among inlines inside final
-        bool doIndentAfterNewLineAfterEndTag = false;     // specific for floats among inlines inside final
+        // Specific for floats and inline-blocks among inlines inside final, that
+        // we want to show on their own lines:
+        bool doNewlineBeforeIndentBeforeStartTag = false;
+        bool doIndentAfterNewLineAfterEndTag = false;
+        bool doIndentOneLevelLessAfterNewLineAfterEndTag = false;
         if ( WNEFLAG(NEWLINE_ALL_NODES) ) {
             doNewLineBeforeStartTag = true;
             doNewLineAfterStartTag = true;
@@ -3861,12 +3864,47 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
                     lvdom_element_render_method prm = node->getParentNode()->getRendMethod();
                     if (prm == erm_final || prm == erm_inline) {
                         doNewlineBeforeIndentBeforeStartTag = true;
-                        doIndentAfterNewLineAfterEndTag = true;
+                        doIndentAfterNewLineAfterEndTag = WNEFLAG(INDENT_NEWLINE);
+                        // If we're the last node in parent collection, indent one level less,
+                        // so that next node (the parent) is not at this node level
+                        ldomNode * parent = node->getParentNode();
+                        if ( parent && (node->getNodeIndex() == parent->getChildCount()-1) )
+                            doIndentOneLevelLessAfterNewLineAfterEndTag = true;
+                        else if ( parent && (node->getNodeIndex() == parent->getChildCount()-2)
+                                         && parent->getChildNode(parent->getChildCount()-1)->isText() )
+                            doIndentOneLevelLessAfterNewLineAfterEndTag = true;
+                        else if ( containsEnd ) // same if next siblings won't be shown
+                            doIndentOneLevelLessAfterNewLineAfterEndTag = true;
+                        // But if previous sibling node is a floating or boxing inline node
+                        // that have done what we just did, cancel some of what we did
+                        if ( node->getNodeIndex() > 0 ) {
+                            ldomNode * prevsibling = parent->getChildNode(node->getNodeIndex()-1);
+                            if ( prevsibling->isFloatingBox() || prevsibling->isBoxingInlineBox() ) {
+                                doNewlineBeforeIndentBeforeStartTag = false;
+                                doIndentBeforeStartTag = false;
+                            }
+                        }
                     }
                 }
                 else if (node->isBoxingInlineBox()) {
                     doNewlineBeforeIndentBeforeStartTag = true;
-                    doIndentAfterNewLineAfterEndTag = true;
+                    doIndentAfterNewLineAfterEndTag = WNEFLAG(INDENT_NEWLINE);
+                    // Same as above
+                    ldomNode * parent = node->getParentNode();
+                    if ( parent && (node->getNodeIndex() == parent->getChildCount()-1) )
+                        doIndentOneLevelLessAfterNewLineAfterEndTag = true;
+                    else if ( parent && (node->getNodeIndex() == parent->getChildCount()-2)
+                                     && parent->getChildNode(parent->getChildCount()-1)->isText() )
+                        doIndentOneLevelLessAfterNewLineAfterEndTag = true;
+                    else if ( containsEnd )
+                        doIndentOneLevelLessAfterNewLineAfterEndTag = true;
+                    if ( node->getNodeIndex() > 0 ) {
+                        ldomNode * prevsibling = parent->getChildNode(node->getNodeIndex()-1);
+                        if ( prevsibling->isFloatingBox() || prevsibling->isBoxingInlineBox() ) {
+                            doNewlineBeforeIndentBeforeStartTag = false;
+                            doIndentBeforeStartTag = false;
+                        }
+                    }
                 }
             }
             // Do something specific when erm_invisible ?
@@ -3996,9 +4034,11 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
         }
         if (doNewLineAfterEndTag)
             *stream << "\n";
-        if (doIndentAfterNewLineAfterEndTag)
-            for ( int i=indentBaseLevel; i<level; i++ )
+        if (doIndentAfterNewLineAfterEndTag) {
+            int ilevel = doIndentOneLevelLessAfterNewLineAfterEndTag ? level-1 : level;
+            for ( int i=indentBaseLevel; i<ilevel; i++ )
                 *stream << "  ";
+        }
         if ( containsEnd && WNEFLAG(NB_SKIPPED_NODES) ) {
             // Next siblings will not contain endXP and won't be written: show how many they are
             ldomNode * parent = node->getParentNode();
