@@ -8739,6 +8739,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // So, we treat all other erm_* as erm_block (which will obviously be
         // wrong for erm_table* with more than 1 column, but it should give a
         // positive enough width to draw something).
+        //   Update: we use a trick when erm_table_row below.
         else {
             // Process children, which are all block-like nodes:
             // our *Width are the max of our children *Width
@@ -8749,10 +8750,19 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 ldomNode * child = node->getChildNode(i);
                 getRenderedWidths(child, _maxw, _minw, direction, false, rendFlags,
                     curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent);
-                if (_maxw > _maxWidth)
-                    _maxWidth = _maxw;
-                if (_minw > _minWidth)
-                    _minWidth = _minw;
+                if (m == erm_table_row) {
+                    // For table rows, adding the min/max widths of each children
+                    // (the table cells), instead of taking the largest, gives
+                    // a better estimate of what the table width should be.
+                    _maxWidth += _maxw;
+                    _minWidth += _minw;
+                }
+                else {
+                    if (_maxw > _maxWidth)
+                        _maxWidth = _maxw;
+                    if (_minw > _minWidth)
+                        _minWidth = _minw;
+                }
             }
         }
 
