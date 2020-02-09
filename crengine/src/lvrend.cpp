@@ -160,6 +160,7 @@ public:
     int direction;
     int width;
     int height;
+    int baseline;
     int percent;
     int max_content_width;
     int min_content_width;
@@ -172,13 +173,14 @@ public:
     , direction(REND_DIRECTION_UNSET)
     , width(0)
     , height(0)
+    , baseline(0)
     , percent(0)
     , max_content_width(0)
     , min_content_width(0)
     , colspan(1)
     , rowspan(1)
-    , halign(0)
-    , valign(0)
+    , halign(0) // default to text-align: left
+    , valign(0) // default to vertical-align: baseline
     , elem(NULL)
     { }
 };
@@ -189,6 +191,7 @@ class CCRTableRow {
 public:
     int index;
     int height;
+    int baseline;
     int bottom_overflow; // extra height from row with rowspan>1
     int y;
     int numcols; // sum of colspan
@@ -199,6 +202,7 @@ public:
     CCRTableRowGroup * rowgroup;
     CCRTableRow() : index(0)
     , height(0)
+    , baseline(0)
     , bottom_overflow(0)
     , y(0)
     , numcols(0) // sum of colspan
@@ -504,9 +508,9 @@ public:
                         // "valign"
                         lString16 valign = item->getAttributeValue(attr_valign);
                         if (valign == "center")
-                            cell->valign = 1; // center
+                            cell->valign = 2; // middle
                         else if (valign == "bottom")
-                            cell->valign = 2; // bottom
+                            cell->valign = 3; // bottom
                         */
                         // These commented above attributes have been translated to
                         // CSS properties by ldomDocumentWriterFilter::OnAttribute():
@@ -537,12 +541,18 @@ public:
                         else if ( ta == css_ta_right )
                             cell->halign = 2; // right
 
+                        // https://developer.mozilla.org/en-US/docs/Web/CSS/vertical-align
+                        // The default for vertical_align is baseline (cell->valign=0,
+                        // set at CCRTableCell init time), and all other named values
+                        // than top/middle/bottom act as baseline.
                         css_length_t va = style->vertical_align;
                         if ( va.type == css_val_unspecified ) {
-                            if ( va.value == css_va_middle )
-                                cell->valign = 1; // middle
+                            if ( va.value == css_va_top )
+                                cell->valign = 1; // top
+                            else if ( va.value == css_va_middle )
+                                cell->valign = 2; // middle
                             else if ( va.value == css_va_bottom )
-                                cell->valign = 2; // bottom
+                                cell->valign = 3; // bottom
                         }
 
                         cell->direction = item_direction;
@@ -1387,6 +1397,7 @@ public:
         // Calc individual cells dimensions
         for (i=0; i<rows.length(); i++) {
             CCRTableRow * row = rows[i];
+            bool row_has_baseline_aligned_cells = false;
             for (j=0; j<rows[i]->cells.length(); j++) {
                 CCRTableCell * cell = rows[i]->cells[j];
                 //int x = cell->col->index;
@@ -1414,7 +1425,23 @@ public:
                         }
                         fmt.push();
                         int h = cell->elem->renderFinalBlock( txform, &fmt, cell->width - padding_left - padding_right);
-                        cell->height = h + padding_top + padding_bottom;
+                        cell->height = padding_top + h + padding_bottom;
+
+                        // A cell baseline is the baseline of its first line of text (or
+                        // the bottom of content edge of the cell if no line)
+                        if ( cell->valign == 0 ) { // vertical-align: baseline
+                            if ( txform->GetLineCount() > 0 ) // we have a line
+                                cell->baseline = padding_top + txform->GetLineInfo(0)->baseline;
+                            else // no line, no image: bottom of content edge is at padding_top
+                                cell->baseline = padding_top;
+                        }
+                        else { // all other vertical-align: values
+                            // "If a row has no cell box aligned to its baseline,
+                            // the baseline of that row is the bottom content edge
+                            // of the lowest cell in the row."
+                            // So, store that bottom content edge in cell->baseline
+                            cell->baseline += h;
+                        }
 
                         // Gather footnotes links, as done in renderBlockElement() when erm_final/flgSplit:
                         if ( elem->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) {
@@ -1452,8 +1479,26 @@ public:
                         // main context. Their heights will already be accounted
                         // in their row's height (added to main context below).
                         LVRendPageContext emptycontext( NULL, context.getPageHeight() );
-                        int h = renderBlockElement( emptycontext, cell->elem, 0, 0, cell->width, cell->direction);
+                        // See above about what we'll store in cell->baseline
+                        int baseline = REQ_BASELINE_NOT_NEEDED;
+                        if ( cell->valign == 0 ) { // vertical-align: baseline
+                            baseline = REQ_BASELINE_FOR_TABLE;
+                        }
+                        int h = renderBlockElement( emptycontext, cell->elem, 0, 0, cell->width,
+                                                    cell->direction, &baseline );
                         cell->height = h;
+                        if ( cell->valign == 0 ) { // vertical-align: baseline
+                            cell->baseline = baseline;
+                        }
+                        else {
+                            // We'd need the bottom content edge of what's been rendered.
+                            // We just need to remove this cell bottom padding (we should
+                            // not remove the inner content bottom margins or paddings).
+                            int em = cell->elem->getFont()->getSize();
+                            css_style_ref_t elem_style = cell->elem->getStyle();
+                            int padding_bottom = lengthToPx( elem_style->padding[3], cell->width, em ) + measureBorder(cell->elem,2);
+                            cell->baseline = h - padding_bottom;
+                        }
                         // Gather footnotes links accumulated by emptycontext
                         lString16Collection * link_ids = emptycontext.getLinkIds();
                         if (link_ids->length() > 0) {
@@ -1484,6 +1529,45 @@ public:
                         if ( row->height < cell->height )
                             row->height = cell->height;
                     }
+                    // Set the row baseline from baseline-aligned cells' baselines.
+                    // https://www.w3.org/TR/CSS22/tables.html#height-layout
+                    //   "First the cells that are aligned on their baseline are positioned.
+                    //   This will establish the baseline of the row"
+                    if ( cell->valign == 0 ) { // only cells with vertical-align: baseline
+                        row_has_baseline_aligned_cells = true;
+                        if ( row->baseline < cell->baseline )
+                            row->baseline = cell->baseline;
+                    }
+                }
+            }
+            // Fixup row height and baseline
+            for (j=0; j<rows[i]->cells.length(); j++) {
+                CCRTableCell * cell = rows[i]->cells[j];
+                int y = cell->row->index;
+                if ( i==y ) { // upper left corner of cell
+                    if ( !row_has_baseline_aligned_cells ) {
+                        // "If a row has no cell box aligned to its baseline,
+                        // the baseline of that row is the bottom content edge
+                        // of the lowest cell in the row."
+                        // We have computed cell->baseline that way
+                        // when cell->valign != 0, so just use it:
+                        if ( row->baseline < cell->baseline )
+                            row->baseline = cell->baseline;
+                        // cell->baseline = 0; // (not needed, as not used)
+                    }
+                    else if ( cell->valign == 0 ) {
+                        // Cells with vertical-align: baseline must align with
+                        // the row baseline: this can increase the height of
+                        // a cell, and so the height of the row.
+                        // As we don't need the real cell->baseline after this,
+                        // we store in it the shift-down frop top for this cell,
+                        // that we'll use below when handling cell->valign==0.
+                        int shift_down = row->baseline - cell->baseline;
+                        if ( row->height < cell->height + shift_down )
+                            row->height = cell->height + shift_down;
+                        cell->baseline = shift_down;
+                    }
+                    // else cell->baseline = 0; // (not needed, as not used)
                 }
             }
         }
@@ -1587,6 +1671,9 @@ public:
                 fmt.setY(row->y);
                 fmt.setWidth( table_width - table_border_left - table_padding_left - table_padding_right - table_border_right );
                 fmt.setHeight( row->height );
+                // This baseline will only be useful if we're part of
+                // some flow rendered with REQ_BASELINE_FOR_TABLE
+                fmt.setBaseline( row->baseline );
                 if ( enhanced_rendering ) {
                     fmt.setBottomOverflow( row->bottom_overflow );
                 }
@@ -1679,12 +1766,16 @@ public:
                     // We have to shift down the cell content itself
                     int cell_h = fmt.getHeight(); // original height that fit cell content
                     fmt.setHeight( row_h );
-                    if ( cell->valign && cell_h < row_h ) {
-                        int pad = 0;
-                        if (cell->valign == 1) // center
+                    if ( cell_h < row_h ) {
+                        int pad = 0; // default when cell->valign=1 / top
+                        if (cell->valign == 0) // baseline
+                            pad = cell->baseline; // contains the shift-down to align cell and row baselines
+                        else if (cell->valign == 2) // center
                             pad = (row_h - cell_h)/2;
-                        else if (cell->valign == 2) // bottom
+                        else if (cell->valign == 3) // bottom
                             pad = (row_h - cell_h);
+                        if ( pad == 0 ) // No need to update this cell
+                            continue;
                         if ( cell->elem->getRendMethod() == erm_final ) {
                             if ( enhanced_rendering ) {
                                 // Just shift down the content box
@@ -4055,7 +4146,7 @@ private:
     int  in_y_max;    //   that overflow this level height)
     int  x_min;       // current left min x
     int  x_max;       // current right max x
-    int  baseline_req; // baseline type requested (REQ_BASELINE_FOR_INLINE_BLOCK or REQ_BASELINE_FOR_INLINE_TABLE)
+    int  baseline_req; // baseline type requested (REQ_BASELINE_FOR_INLINE_BLOCK or REQ_BASELINE_FOR_TABLE)
     int  baseline_y;   // baseline y relative to formatting context top (computed when rendering inline-block/table)
     bool baseline_set; // (set to true on first baseline met)
     bool is_main_flow;
@@ -4169,7 +4260,7 @@ public:
         // Quotes from https://www.w3.org/TR/CSS21/visudet.html#propdef-vertical-align
         // Note that our table rendering code has not been updated to use FlowState,
         // so, if top element is a table, we haven't got any baseline.
-        if ( baseline_req == REQ_BASELINE_FOR_INLINE_TABLE ) {
+        if ( baseline_req == REQ_BASELINE_FOR_TABLE ) {
             // "The baseline of an 'inline-table' is the baseline of the first
             //  row of the table.
             // Tests show that this is true even if the element with
@@ -4212,23 +4303,17 @@ public:
                 }
             }
             if ( rowNode ) {
-                // Get this row bottom y related to the top node y
+                // Get this row baseline y related to the top node y
                 RenderRectAccessor fmt( rowNode );
-                int row_bottom = fmt.getY() + fmt.getHeight();
+                int row_baseline = fmt.getY() + fmt.getBaseline();
                 ldomNode * n = rowNode->getParentNode();
                 for (; n && n!=node; n=n->getParentNode()) {
                     RenderRectAccessor fmt(n);
-                    row_bottom += fmt.getY();
+                    row_baseline += fmt.getY();
                 }
-                if ( !baseline_set || (row_bottom < baseline_y) ) {
-                    baseline_y = row_bottom;
+                if ( !baseline_set || (row_baseline < baseline_y) ) {
+                    baseline_y = row_baseline;
                 }
-                // Not implemented: it seems that if any of this row cell has
-                // "vertical-align: baseline", it's no more the bottom of the
-                // row that should be the baseline, but this cell baseline...
-                // See (which has a hidden "#cell-of-first-row {vertical-align: baseline;}"
-                // which makes it behave as advertised:
-                // http://www.gtalbot.org/BrowserBugsSection/Safari3Bugs/baseline-inline-table-vertical-align.html
                 baseline_set = true;
             }
         }
@@ -4381,15 +4466,15 @@ public:
                 // https://stackoverflow.com/questions/19352072/what-is-the-difference-between-inline-block-and-inline-table/56305302#56305302
                 // A tricky thing with inline-table is that the baseline is different if
                 // there is a table of if there's not
-                // - if the first content line is a table row, it should be the bottom
-                //   margin of the row (and not the baseline of the first or last line
+                // - if the first content is a table row, it should be the baseline of
+                //   the row (which might not be the baseline of the first or last line
                 //   of any table cell of that row).
-                // - if the first content line is not a table row (we can have inline-table
+                // - if the first content is not a table row (we can have inline-table
                 //   containing no table-like elements), it is the real baseline of the
-                //   first line.
+                //   first line in that content.
                 // As the rendering table code does not use FlowState, we manage the
                 // first case in getBaselineAbsoluteY() when we're done.
-                if ( baseline_req == REQ_BASELINE_FOR_INLINE_TABLE && baseline_set ) {
+                if ( baseline_req == REQ_BASELINE_FOR_TABLE && baseline_set ) {
                     // inline-table: first baseline already met, it will stay the final baseline
                 }
                 else { // inline-block
@@ -8265,9 +8350,17 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( page_break_after, css_pb_inherit );
     UPDATE_STYLE_FIELD( page_break_inside, css_pb_inherit );
 
-    // vertical_align is not inherited per CSS specs: we fixed its propagation
-    // to children with the use of 'valign_dy'
-    // UPDATE_STYLE_FIELD( vertical_align, css_va_inherit );
+    // vertical_align
+    // Should not be inherited per CSS specs: we fixed its propagation
+    // to children with the use of 'valign_dy'.
+    // But our default value for each node is not "inherit" but "baseline",
+    // so we should be fine allowing an explicite "inherit" to get its parent
+    // value. This is actually required with html5.css where TR,TD,TH are
+    // explicitely set to "vertical-align: inherit", so they can inherit
+    // from "thead, tbody, tfoot, table > tr { vertical-align: middle}"
+    if ( pstyle->vertical_align.type == css_val_unspecified && pstyle->vertical_align.value == css_va_inherit)
+        pstyle->vertical_align = parent_style->vertical_align;
+
     UPDATE_STYLE_FIELD( font_style, css_fs_inherit );
     UPDATE_STYLE_FIELD( font_weight, css_fw_inherit );
     if ( pstyle->font_family == css_ff_inherit ) {

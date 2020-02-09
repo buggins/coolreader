@@ -1605,7 +1605,7 @@ public:
                             // will compute and give us back.
                             int baseline = REQ_BASELINE_FOR_INLINE_BLOCK;
                             if ( node->getChildNode(0)->getStyle()->display == css_d_inline_table )
-                                baseline = REQ_BASELINE_FOR_INLINE_TABLE;
+                                baseline = REQ_BASELINE_FOR_TABLE;
                             // We render the inlineBox with the specified direction (from upper dir=), even
                             // if UNSET (and not with the direction determined by fribidi from the text).
                             renderBlockElement( emptycontext, node, 0, 0, m_pbuffer->width, m_specified_para_dir, &baseline );

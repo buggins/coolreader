@@ -51,8 +51,8 @@
 // To be provided via the initial value to renderBlockElement(... int *baseline ...) to
 // have FlowState compute baseline (different rules whether inline-block or inline-table).
 #define REQ_BASELINE_NOT_NEEDED       0
-#define REQ_BASELINE_FOR_INLINE_BLOCK 1
-#define REQ_BASELINE_FOR_INLINE_TABLE 2
+#define REQ_BASELINE_FOR_INLINE_BLOCK 1    // use last baseline fed
+#define REQ_BASELINE_FOR_TABLE        2    // keep first baseline fed
 
 class FlowState;
 
