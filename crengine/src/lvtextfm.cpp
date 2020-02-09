@@ -2543,7 +2543,7 @@ public:
                             word->min_width = word->width;
                         }
                     }
-                    if ( lastWord && m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
+                    if ( m_flags[i-1] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                         if ( m_flags[i] & LCHAR_IS_CLUSTER_TAIL ) {
                             // The end of this word is part of a ligature that, because
                             // of hyphenation, has been splitted onto next word.
@@ -3277,16 +3277,27 @@ public:
                         }
                     }
                     if ( HyphMan::hyphenate(m_text+wstart, len, widths, flags, _hyphen_width, max_width, 2) ) {
+                        // We need to reset the flag for the multiple hyphenation
+                        // opportunities we will not be using (or they could cause
+                        // spurious spaces, as a word here may be multiple words
+                        // in AddLine() if parts from different text nodes).
                         for ( int i=0; i<len; i++ ) {
                             if ( m_flags[wstart+i] & LCHAR_ALLOW_HYPH_WRAP_AFTER ) {
                                 if ( widths[i] + _hyphen_width > max_width ) {
                                     TR("hyphen found, but max width reached at char %d", i);
-                                    break; // hyph is too late
+                                    m_flags[wstart+i] &= ~LCHAR_ALLOW_HYPH_WRAP_AFTER; // reset flag
                                 }
-                                if ( wstart + i > pos+1 ) {
+                                else if ( wstart + i > pos+1 ) {
+                                    if ( lastHyphWrap >= 0 ) { // reset flag on previous candidate
+                                        m_flags[lastHyphWrap] &= ~LCHAR_ALLOW_HYPH_WRAP_AFTER;
+                                    }
                                     lastHyphWrap = wstart + i;
                                     // Keep looking for some other candidates in that word
                                 }
+                                else if ( wstart + i >= pos ) {
+                                    m_flags[wstart+i] &= ~LCHAR_ALLOW_HYPH_WRAP_AFTER; // reset flag
+                                }
+                                // Don't reset those < pos as they are part of previous line
                             }
                         }
                         if ( lastHyphWrap >= 0 ) {
