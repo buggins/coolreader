@@ -8790,6 +8790,16 @@ bool ldomXRange::getRectEx( lvRect & rect, bool & isSingleLine )
         return false;
     ldomNode * finalNode1 = getStart().getFinalNode();
     ldomNode * finalNode2 = getEnd().getFinalNode();
+    if ( !finalNode1 || !finalNode2 ) {
+        // Shouldn't happen, but prevent a segfault in case some other bug
+        // in initNodeRendMethod made some text not having a erm_final-like
+        // ancestor.
+        if ( !finalNode1 )
+            printf("CRE WARNING: no final parent for range start %s\n", UnicodeToLocal(getStart().toString()).c_str());
+        if ( !finalNode2 )
+            printf("CRE WARNING: no final parent for range end %s\n", UnicodeToLocal(getEnd().toString()).c_str());
+        return false;
+    }
     RenderRectAccessor fmt1(finalNode1);
     RenderRectAccessor fmt2(finalNode2);
     // In legacy mode, we just got the erm_final coordinates, and we must
