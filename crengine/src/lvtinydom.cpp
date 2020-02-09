@@ -4906,6 +4906,24 @@ void ldomElementWriter::onBodyEnter()
 #endif
 }
 
+#if BUILD_LITE!=1
+static void resetRendMethodToInline( ldomNode * node )
+{
+    // we shouldn't reset to inline (visible) if display: none
+    // (using node->getRendMethod() != erm_invisible seems too greedy and may
+    // hide other nodes)
+    if (node->getStyle()->display != css_d_none)
+        node->setRendMethod(erm_inline);
+    else if (gDOMVersionRequested < 20180528) // do that in all cases
+        node->setRendMethod(erm_inline);
+}
+
+static void resetRendMethodToInvisible( ldomNode * node )
+{
+    node->setRendMethod(erm_invisible);
+}
+#endif
+
 void ldomNode::removeChildren( int startIndex, int endIndex )
 {
     for ( int i=endIndex; i>=startIndex; i-- ) {
@@ -5038,11 +5056,16 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
 
         // inner inline
         ldomNode * abox = insertChildElement( firstNonEmpty, LXML_NS_NONE, el_autoBoxing );
-        abox->initNodeStyle();
-        abox->setRendMethod( erm_final );
         moveItemsTo( abox, firstNonEmpty+1, lastNonEmpty+1 );
         // remove starting empty
         removeChildren(startIndex, firstNonEmpty-1);
+        abox->initNodeStyle();
+        if ( !BLOCK_RENDERING_G(FLOAT_FLOATBOXES) ) {
+            // If we don't want floatBoxes floating, reset them to be
+            // rendered inline among inlines
+            abox->recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
+        }
+        abox->setRendMethod( erm_final );
     }
     else if ( hasFloating) {
         // only floats, don't autobox them (otherwise the autobox wouldn't be floating)
@@ -5132,22 +5155,6 @@ bool ldomNode::hasNonEmptyInlineContent( bool ignoreFloats )
 }
 
 #if BUILD_LITE!=1
-static void resetRendMethodToInline( ldomNode * node )
-{
-    // we shouldn't reset to inline (visible) if display: none
-    // (using node->getRendMethod() != erm_invisible seems too greedy and may
-    // hide other nodes)
-    if (node->getStyle()->display != css_d_none)
-        node->setRendMethod(erm_inline);
-    else if (gDOMVersionRequested < 20180528) // do that in all cases
-        node->setRendMethod(erm_inline);
-}
-
-static void resetRendMethodToInvisible( ldomNode * node )
-{
-    node->setRendMethod(erm_invisible);
-}
-
 static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & hasInline, bool & hasFloating, bool detectFloating=false )
 {
     hasBlockItems = false;
