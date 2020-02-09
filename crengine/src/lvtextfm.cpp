@@ -1611,6 +1611,17 @@ public:
                             renderBlockElement( emptycontext, node, 0, 0, m_pbuffer->width, m_specified_para_dir, &baseline );
                             // (renderBlockElement will ensure style->height if requested.)
 
+                            // Note: this inline box we just rendered can have some overflow
+                            // (i.e. if it has some negative margins). As these overflows are
+                            // usually small, we'll handle that in LFormattedText::Draw() by
+                            // just dropping the page rect clip when drawing it, so that the
+                            // overflowing content might be drawn in the page margins.
+                            // (Otherwise, we'd need to upgrade our frmline to store a line
+                            // top and bottom overflows, use LTEXT_LINE_SPLIT_AVOID_BEFORE/AFTER
+                            // to stick that line to previous or next, with the risk of bringing
+                            // a large top margin to top of page just to display that small
+                            // overflow in it...)
+
                             RenderRectAccessor fmt( node );
                             fmt.setBaseline(baseline);
                             RENDER_RECT_SET_FLAG(fmt, BOX_IS_RENDERED);
@@ -3889,7 +3900,19 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         getAbsMarksFromMarks(marks, absmarks, node);
                         absmarks_update_needed = false;
                     }
+                    // inline-block boxes with negative margins can overflow the
+                    // line height, and so possibly the page when that line is
+                    // at top or bottom of page.
+                    // When witnessed, that overflow was very small, and probably
+                    // aimed at vertically aligning the box vs the text, but enough
+                    // to have their glyphs truncated when clipped to the page rect.
+                    // So, to avoid that, we just drop that clip when drawing the
+                    // box, and restore it when done.
+                    lvRect curclip;
+                    buf->GetClipRect( &curclip ); // backup clip
+                    buf->SetClipRect(NULL); // no clipping
                     DrawDocument( *buf, node, x0, y0, dx, dy, doc_x, doc_y, page_height, absmarks, bookmarks );
+                    buf->SetClipRect(&curclip); // restore original page clip
                 }
                 else
                 {
