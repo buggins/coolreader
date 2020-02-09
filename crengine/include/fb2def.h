@@ -80,6 +80,7 @@ XS_TAG1T( figure )
 XS_TAG1T( footer )
 XS_TAG1T( header )
 XS_TAG1T( hgroup )
+XS_TAG1T( legend ) // child of fieldset, rendered as block by most browsers
 XS_TAG1T( main )
 XS_TAG1T( nav )
 XS_TAG1T( noscript )

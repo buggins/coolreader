@@ -225,7 +225,7 @@ br[clear=all i], br[clear=both i] {
 }
 
 /* Bidirectional text */
-/* crengine-: not supported
+/* crengine-: handled internally (unicode-bidi not supported, but bdo handled)
 [dir]:dir(ltr), bdi:dir(ltr), input[type=tel]:dir(ltr) {
   direction: ltr;
 }
