@@ -200,6 +200,7 @@ public:
     ldomNode * elem;
     LVPtrVector<CCRTableCell> cells;
     CCRTableRowGroup * rowgroup;
+    LVRendPageContext * single_col_context; // we can add cells' lines instead of full rows
     CCRTableRow() : index(0)
     , height(0)
     , baseline(0)
@@ -209,6 +210,7 @@ public:
     , linkindex(-1)
     , elem(NULL)
     , rowgroup(NULL)
+    , single_col_context(NULL)
     { }
 };
 
@@ -1317,7 +1319,6 @@ public:
         const int table_y0 = rect.top; // absolute y in document for top of table
         int last_y = table_y0; // used as y0 to AddLine(y0, table_y0+table_h)
         int line_flags = 0;
-        bool splitPages = context.getPageList() != NULL;
 
         // Final table height will be added to as we meet table content
         int table_h = 0;
@@ -1373,7 +1374,7 @@ public:
             // Includes half of it here, and the other half when adding the row
             table_h += borderspacing_v_bottom;
         }
-        if (splitPages) {
+        if ( context.wantsLines() ) {
             // Includes table border top + full caption if any + table padding
             // top + half of borderspacing_v.
             // We ask for a split between these and the first row to be avoided,
@@ -1391,6 +1392,51 @@ public:
                 line_flags |= RN_LINE_IS_RTL;
             context.AddLine(last_y, table_y0 + table_h, line_flags);
             last_y = table_y0 + table_h;
+        }
+
+        // If table is a single column, we can add to main context
+        // the lines of each cell, instead of full table rows, which
+        // will avoid cell lines to possibly be cut in the middle.
+        // (When multi-columns, because same-row cells' lines may
+        // not align, and because it's easier for the reader to
+        // not have to go back one page to read next cell (from
+        // same row) content, each row is considered a single
+        // line in the matter of page splitting.)
+        bool is_single_column = false;
+        int min_row_height_for_split_by_line;
+        if ( context.wantsLines() && cols.length() == 1 && enhanced_rendering ) {
+            is_single_column = true;
+            // We actually don't know if splitting by line is better
+            // than splitting by row. By-row might be better if it's
+            // a real table where rows really list items, while by-lines
+            // is preferable where the table is just used as a content
+            // wrapper. So, let's follow this simple rule from:
+            // https://www.w3.org/TR/css-tables-3/#fragmentation
+            //   "must attempt to preserve the table rows unfragmented if
+            //   the cells spanning the row do not span any subsequent row,
+            //   and their height is at least twice smaller than both the
+            //   fragmentainer height and width. Other rows are said
+            //   freely fragmentable."
+            // which looks like it applies to multi-columns tables too
+            // (but our lvpagesplitter will manage this as fine) - but
+            // let's just use that rule for single-columns tables.
+            int page_height = elem->getDocument()->getPageHeight();
+            int page_width = elem->getDocument()->getPageWidth();
+            if ( page_width < page_height )
+                min_row_height_for_split_by_line = page_width / 2;
+            else
+                min_row_height_for_split_by_line = page_height / 2;
+            // Looks like cells having rowspan > 1 (which makes no sense
+            // if only own column) shouldn't need any specific tweaks.
+            // Also, as we don't apply cells and row style height, and
+            // vertical-align shouldn't change anything if there are no
+            // other cell that would increase the row height, this too
+            // shouldn't need any check.
+            // (Note that a TD style height will still be applied if rendered
+            // as erm_block (but not if erm_final), but vertical-align won't
+            // be ensured. todo: make that consistent.)
+            // todo: we could also try to do that even if multi columns,
+            // by merging multiple cells' LVRendPageContext.
         }
 
         int i, j;
@@ -1443,11 +1489,47 @@ public:
                             cell->baseline += h;
                         }
 
-                        // Gather footnotes links, as done in renderBlockElement() when erm_final/flgSplit:
-                        if ( elem->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) {
+                        // Gather footnotes links, as done in renderBlockElement() when erm_final/flgSplit
+                        // and cell lines when is_single_column:
+                        if ( elem->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) || is_single_column ) {
+                            int orphans;
+                            int widows;
+                            if ( is_single_column ) {
+                                orphans = (int)(elem_style->orphans) - (int)(css_orphans_widows_1) + 1;
+                                widows = (int)(elem_style->widows) - (int)(css_orphans_widows_1) + 1;
+                                // We use a LVRendPageContext that gathers links by line,
+                                // so we can transfer them line by line to the upper/main context
+                                row->single_col_context = new LVRendPageContext(NULL, context.getPageHeight());
+                                row->single_col_context->AddLine(0, padding_top, RN_SPLIT_AFTER_AVOID);
+                            }
                             int count = txform->GetLineCount();
                             for (int i=0; i<count; i++) {
                                 const formatted_line_t * line = txform->GetLineInfo(i);
+                                int link_insert_pos; // used if is_single_column
+                                if ( is_single_column ) {
+                                    int line_flags = 0;
+                                    // Honor widows and orphans
+                                    if (orphans > 1 && i > 0 && i < orphans)
+                                        line_flags |= RN_SPLIT_BEFORE_AVOID;
+                                    if (widows > 1 && i < count-1 && count-1 - i < widows)
+                                        line_flags |= RN_SPLIT_AFTER_AVOID;
+                                    // Honor line's own flags
+                                    if (line->flags & LTEXT_LINE_SPLIT_AVOID_BEFORE)
+                                        line_flags |= RN_SPLIT_BEFORE_AVOID;
+                                    if (line->flags & LTEXT_LINE_SPLIT_AVOID_AFTER)
+                                        line_flags |= RN_SPLIT_AFTER_AVOID;
+                                    row->single_col_context->AddLine(padding_top + line->y,
+                                                        padding_top + line->y + line->height, line_flags);
+                                    if (i == count-1) // add bottom padding
+                                        row->single_col_context->AddLine(padding_top + line->y + line->height,
+                                            padding_top + line->y + line->height + padding_bottom, RN_SPLIT_BEFORE_AVOID);
+                                    if ( !elem->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) )
+                                        continue;
+                                    if ( line->flags & LTEXT_LINE_PARA_IS_RTL )
+                                        link_insert_pos = row->single_col_context->getCurrentLinksCount();
+                                    else
+                                        link_insert_pos = -1; // append
+                                }
                                 for ( int w=0; w<line->word_count; w++ ) { // check link start flag for every word
                                     if ( line->words[w].flags & LTEXT_WORD_IS_LINK_START ) {
                                         const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
@@ -1460,7 +1542,10 @@ public:
                                                 lString16 href = parent->getAttributeValue(LXML_NS_ANY, attr_href );
                                                 if ( href.length()>0 && href.at(0)=='#' ) {
                                                     href.erase(0,1);
-                                                    row->links.add( href );
+                                                    if ( is_single_column )
+                                                        row->single_col_context->addLink( href, link_insert_pos );
+                                                    else
+                                                        row->links.add( href );
                                                 }
                                             }
                                         }
@@ -1478,14 +1563,28 @@ public:
                         // sub-renderings (of cells' content) do not add to our
                         // main context. Their heights will already be accounted
                         // in their row's height (added to main context below).
-                        LVRendPageContext emptycontext( NULL, context.getPageHeight() );
+                        // Except when table is a single column, and we can just
+                        // transfer lines to the upper context.
+                        LVRendPageContext * cell_context;
+                        int rend_flags = gRenderBlockRenderingFlags; // global flags
+                        if ( is_single_column ) {
+                            row->single_col_context = new LVRendPageContext(NULL, context.getPageHeight());
+                            cell_context = row->single_col_context;
+                            // We want to avoid negative margins (if allowed in global flags) and
+                            // going back the flow y, as the transfered lines would not reflect
+                            // that, and we could get some small mismatches and glitches.
+                            rend_flags &= ~BLOCK_RENDERING_ALLOW_NEGATIVE_COLLAPSED_MARGINS;
+                        }
+                        else {
+                            cell_context = new LVRendPageContext( NULL, context.getPageHeight(), false );
+                        }
                         // See above about what we'll store in cell->baseline
                         int baseline = REQ_BASELINE_NOT_NEEDED;
                         if ( cell->valign == 0 ) { // vertical-align: baseline
                             baseline = REQ_BASELINE_FOR_TABLE;
                         }
-                        int h = renderBlockElement( emptycontext, cell->elem, 0, 0, cell->width,
-                                                    cell->direction, &baseline );
+                        int h = renderBlockElement( *cell_context, cell->elem, 0, 0, cell->width,
+                                                    cell->direction, &baseline, rend_flags);
                         cell->height = h;
                         if ( cell->valign == 0 ) { // vertical-align: baseline
                             cell->baseline = baseline;
@@ -1499,12 +1598,15 @@ public:
                             int padding_bottom = lengthToPx( elem_style->padding[3], cell->width, em ) + measureBorder(cell->elem,2);
                             cell->baseline = h - padding_bottom;
                         }
-                        // Gather footnotes links accumulated by emptycontext
-                        lString16Collection * link_ids = emptycontext.getLinkIds();
-                        if (link_ids->length() > 0) {
-                            for ( int n=0; n<link_ids->length(); n++ ) {
-                                row->links.add( link_ids->at(n) );
+                        if ( !is_single_column ) {
+                            // Gather footnotes links accumulated by cell_context
+                            lString16Collection * link_ids = cell_context->getLinkIds();
+                            if (link_ids->length() > 0) {
+                                for ( int n=0; n<link_ids->length(); n++ ) {
+                                    row->links.add( link_ids->at(n) );
+                                }
                             }
+                            delete cell_context;
                         }
                     }
                     // RenderRectAccessor needs to be updated after the call
@@ -1678,9 +1780,58 @@ public:
                     fmt.setBottomOverflow( row->bottom_overflow );
                 }
             }
+            if ( context.wantsLines() && is_single_column ) {
+                // Transfer lines from each row->single_col_context to main context
+                // (This has to be done before we update table_h)
+                int cur_y = table_y0 + table_h;
+                int line_flags = 0;
+                if (avoid_pb_inside) {
+                    line_flags = RN_SPLIT_BEFORE_AVOID | RN_SPLIT_AFTER_AVOID;
+                }
+                if (is_rtl)
+                    line_flags |= RN_LINE_IS_RTL;
+                int content_line_flags = line_flags;
+                if ( row->height < min_row_height_for_split_by_line ) {
+                    // Too small row height: stick all line together to prevent split
+                    // inside this row
+                    content_line_flags = RN_SPLIT_BEFORE_AVOID | RN_SPLIT_AFTER_AVOID;
+                }
+                // Add border spacing top
+                int top_line_flags = line_flags | RN_SPLIT_AFTER_AVOID;
+                if (i == 0) // first row (or single row): stick to table top padding/border
+                    top_line_flags |= RN_SPLIT_BEFORE_AVOID;
+                context.AddLine(last_y, cur_y, top_line_flags);
+                // Add cell lines
+                if ( row->single_col_context && row->single_col_context->getLines() ) {
+                    // (It could happen no context was created or no line were added, if
+                    // cell was erm_invisible)
+                    LVPtrVector<LVRendLineInfo> * lines = row->single_col_context->getLines();
+                    for ( int i=0; i < lines->length(); i++ ) {
+                        LVRendLineInfo * line = lines->get(i);
+                        context.AddLine(cur_y, cur_y+line->getHeight(), line->getFlags()|content_line_flags);
+                        LVFootNoteList * links = line->getLinks();
+                        if ( links ) {
+                            for ( int j=0; j < links->length(); j++ ) {
+                                context.addLink( links->get(j)->getId() );
+                            }
+                        }
+                        cur_y += line->getHeight();
+                    }
+                }
+                // Add border spacing bottom
+                int bottom_line_flags = line_flags | RN_SPLIT_BEFORE_AVOID;
+                if (i == nb_rows-1) // last row (or single row): stick to table bottom padding/border
+                    bottom_line_flags |= RN_SPLIT_AFTER_AVOID;
+                context.AddLine(cur_y, cur_y+borderspacing_v_bottom, bottom_line_flags|RN_SPLIT_BEFORE_AVOID);
+                last_y = cur_y + borderspacing_v_bottom;
+                if (last_y != table_y0 + table_h + row->height + borderspacing_v_bottom) {
+                    printf("CRE WARNING: single column table row height error %d =! %d\n",
+                                last_y, table_y0 + table_h + row->height + borderspacing_v_bottom);
+                }
+            }
             table_h += row->height;
             table_h += borderspacing_v_bottom;
-            if (splitPages) {
+            if ( context.wantsLines() && !is_single_column ) {
                 // Includes the row and half of its border_spacing above and half below.
                 if (avoid_pb_inside) {
                     // Avoid any split between rows
@@ -1717,7 +1868,7 @@ public:
                 context.AddLine(last_y, table_y0 + table_h, line_flags);
                 last_y = table_y0 + table_h;
             }
-            // Add links gathered from this row's cells (even if !splitPages
+            // Add links gathered from this row's cells (even if ! context.wantsLines())
             // in case of imbricated tables)
             if (row->links.length() > 0) {
                 for ( int n=0; n<row->links.length(); n++ ) {
@@ -1732,7 +1883,7 @@ public:
             table_h += borderspacing_v_top;
         }
         table_h += table_padding_bottom + table_border_bottom;
-        if (splitPages) {
+        if ( context.wantsLines() ) {
             // Any table->style->page-break-after AVOID or ALWAYS will be taken
             // care of by renderBlockElement(), so we can use AVOID here.
             if ( !enhanced_rendering )
@@ -1847,6 +1998,15 @@ public:
                     if ( max_row_bottom_overflow_y > fmt.getHeight() ) {
                         fmt.setBottomOverflow( max_row_bottom_overflow_y - fmt.getHeight() );
                     }
+                }
+            }
+        }
+
+        if ( is_single_column ) {
+            // Cleanup rows' LVRendPageContext
+            for ( i=0; i<rows.length(); i++ ) {
+                if ( rows[i]->single_col_context ) {
+                    delete rows[i]->single_col_context;
                 }
             }
         }
@@ -3886,7 +4046,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
             lvRect rect;
             enode->getAbsRect(rect);
             // split pages
-            if ( context.getPageList() != NULL ) { // not to be done if erm_table_cell
+            if ( context.wantsLines() ) {
                 if (margin_top>0) {
                     pb_flag = pagebreakhelper(enode,width);
                     context.AddLine(rect.top - margin_top, rect.top, pb_flag);
@@ -3979,9 +4139,9 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                         }
                     }
                 }
-            } // has page list
+            } // wantsLines()
             else {
-                // we still need to gather links when an emptycontext is used
+                // we still need to gather links when an alternative context is used
                 // (duplicated part of the code above, as we don't want to consume any page-break)
                 int count = txform->GetLineCount();
                 for (int i=0; i<count; i++) {
@@ -4201,6 +4361,13 @@ public:
         vm_active_pb_flag(RN_SPLIT_AUTO)
         {
             is_main_flow = context.getPageList() != NULL;
+            if ( context.wantsLines() ) {
+                // Also behave as is_main_flow when context wants lines (which,
+                // if it is not the main flow, it should want lines only for
+                // transfering them to the real main flow; the only use case
+                // for now is when rendering cells in single-column tables).
+                is_main_flow = true;
+            }
             top_clear_level = is_main_flow ? 1 : 2; // see resetFloatsLevelToTopLevel()
             page_height = context.getPageHeight();
         }
@@ -6435,17 +6602,17 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                         // to the page splitting context. The non-floating nodes will,
                         // and if !DO_NOT_CLEAR_OWN_FLOATS, we'll fill the remaining
                         // height taken by floats if any.
-                        LVRendPageContext emptycontext( NULL, flow->getPageHeight() );
+                        LVRendPageContext alt_context( NULL, flow->getPageHeight(), false );
                         // For floats too, the provided x/y must be the padding-left/top of the
                         // parent container of the float (and width must exclude the parent's
                         // padding-left/right) for the flow to correctly position inner floats:
                         // flow->addFloat() will additionally shift its positionning by the
                         // child x/y set by this renderBlockElement().
-                        renderBlockElement( emptycontext, child, (is_rtl ? 0 : list_marker_padding) + padding_left,
+                        renderBlockElement( alt_context, child, (is_rtl ? 0 : list_marker_padding) + padding_left,
                                     padding_top, width - list_marker_padding - padding_left - padding_right, direction );
                         flow->addFloat(child, child_clear, is_right, flt_vertical_margin);
-                        // Gather footnotes links accumulated by emptycontext
-                        lString16Collection * link_ids = emptycontext.getLinkIds();
+                        // Gather footnotes links accumulated by alt_context
+                        lString16Collection * link_ids = alt_context.getLinkIds();
                         if (link_ids->length() > 0) {
                             for ( int n=0; n<link_ids->length(); n++ ) {
                                 flow->getPageContext()->addLink( link_ids->at(n) );

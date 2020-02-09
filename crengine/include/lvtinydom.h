@@ -2344,6 +2344,8 @@ public:
     int getFullHeight();
     /// returns page height setting
     int getPageHeight() { return _page_height; }
+    /// returns page width setting
+    int getPageWidth() { return _page_width; }
 #endif
     /// saves document contents as XML to stream with specified encoding
     bool saveToStream( LVStreamRef stream, const char * codepage, bool treeLayout=false );

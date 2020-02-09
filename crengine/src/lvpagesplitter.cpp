@@ -45,9 +45,10 @@ int LVRendPageList::FindNearestPage( int y, int direction )
     return length()-1;
 }
 
-LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight)
+LVRendPageContext::LVRendPageContext(LVRendPageList * pageList, int pageHeight, bool gatherLines)
     : callback(NULL), totalFinalBlocks(0)
-    , renderedFinalBlocks(0), lastPercent(-1), page_list(pageList), page_h(pageHeight), footNotes(64), curr_note(NULL)
+    , renderedFinalBlocks(0), lastPercent(-1), page_list(pageList), page_h(pageHeight)
+    , gather_lines(gatherLines), footNotes(64), curr_note(NULL)
 {
     if ( callback ) {
         callback->OnFormatStart();
@@ -74,10 +75,10 @@ bool LVRendPageContext::updateRenderProgress( int numFinalBlocksRendered )
 }
 
 /// Get the number of links in the current line links list, or
-// in link_ids when no page_list
+// in link_ids when !gather_lines
 int LVRendPageContext::getCurrentLinksCount()
 {
-    if ( !page_list ) {
+    if ( !gather_lines ) {
         return link_ids.length();
     }
     if ( lines.empty() )
@@ -88,8 +89,7 @@ int LVRendPageContext::getCurrentLinksCount()
 /// append or insert footnote link to last added line
 void LVRendPageContext::addLink( lString16 id, int pos )
 {
-    if ( !page_list ) {
-        // gather links even if no page_list
+    if ( !gather_lines ) {
         if ( pos >= 0 ) // insert at pos
             link_ids.insert( pos, id );
         else // append

@@ -588,15 +588,15 @@ public:
             // But let's be fully deterministic with that, and redo it.
         }
         if ( !already_rendered ) {
-            LVRendPageContext emptycontext( NULL, m_pbuffer->page_height );
+            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, false );
             // We render the float with the specified direction (from upper dir=), even
             // if UNSET (and not with the direction determined by fribidi from the text).
-            renderBlockElement( emptycontext, node, 0, 0, m_pbuffer->width, m_specified_para_dir );
+            renderBlockElement( alt_context, node, 0, 0, m_pbuffer->width, m_specified_para_dir );
             // (renderBlockElement will ensure style->height if requested.)
-            // Gather footnotes links accumulated by emptycontext
+            // Gather footnotes links accumulated by alt_context
             // (We only need to gather links in the rendering phase, for
             // page splitting, so no worry if we don't when already_rendered)
-            lString16Collection * link_ids = emptycontext.getLinkIds();
+            lString16Collection * link_ids = alt_context.getLinkIds();
             if (link_ids->length() > 0) {
                 flt->links = new lString16Collection();
                 for ( int n=0; n<link_ids->length(); n++ ) {
@@ -1600,7 +1600,7 @@ public:
                             }
                         }
                         if ( !already_rendered ) {
-                            LVRendPageContext emptycontext( NULL, m_pbuffer->page_height );
+                            LVRendPageContext alt_context( NULL, m_pbuffer->page_height, false );
                             // inline-block and inline-table have a baseline, that renderBlockElement()
                             // will compute and give us back.
                             int baseline = REQ_BASELINE_FOR_INLINE_BLOCK;
@@ -1608,7 +1608,7 @@ public:
                                 baseline = REQ_BASELINE_FOR_TABLE;
                             // We render the inlineBox with the specified direction (from upper dir=), even
                             // if UNSET (and not with the direction determined by fribidi from the text).
-                            renderBlockElement( emptycontext, node, 0, 0, m_pbuffer->width, m_specified_para_dir, &baseline );
+                            renderBlockElement( alt_context, node, 0, 0, m_pbuffer->width, m_specified_para_dir, &baseline );
                             // (renderBlockElement will ensure style->height if requested.)
 
                             // Note: this inline box we just rendered can have some overflow
@@ -1627,7 +1627,7 @@ public:
                             RENDER_RECT_SET_FLAG(fmt, BOX_IS_RENDERED);
                             // We'll have alignLine() do the fmt.setX/Y once it is fully positionned
 
-                            // We'd like to gather footnote links accumulated by emptycontext
+                            // We'd like to gather footnote links accumulated by alt_context
                             // (we do that for floats), but it's quite more complicated:
                             // we have them here too early, and we would need to associate
                             // the links to this "char" index, so needing in LVFormatter
