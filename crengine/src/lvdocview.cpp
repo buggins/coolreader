@@ -2308,6 +2308,7 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, int position, int page, bool rotate, b
 		return;
 	if (isScrollMode()) {
 		drawbuf.SetClipRect(NULL);
+        drawbuf.setHidePartialGlyphs(false);
         drawPageBackground(drawbuf, 0, position);
         int cover_height = 0;
 		if (m_pages.length() > 0 && (m_pages[0]->flags & RN_PAGE_TYPE_COVER))
