@@ -7764,7 +7764,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         int height = fmt.getHeight();
         int top_overflow = fmt.getTopOverflow();
         int bottom_overflow = fmt.getBottomOverflow();
-        if ( (doc_y + height + bottom_overflow <= 0 || doc_y - top_overflow > 0 + dy) ) {
+        if ( (doc_y + height + bottom_overflow <= 0 || doc_y - top_overflow >= 0 + dy) ) {
             // We don't have to draw this node.
             // Except TR which may have cells with rowspan>1, and even though
             // this TR is out of range, it must draw a rowspan>1 cell, so it

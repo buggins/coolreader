@@ -3767,10 +3767,10 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
 
     for (i=0; i<m_pbuffer->frmlinecount; i++)
     {
-        if (line_y>=clip.bottom)
+        if (line_y >= clip.bottom)
             break;
         frmline = m_pbuffer->frmlines[i];
-        if (line_y + frmline->height>=clip.top)
+        if (line_y + frmline->height > clip.top)
         {
             // process background
 
@@ -4025,7 +4025,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
         // because of the checks with _hidePartialGlyphs in lvdrawbuf.cpp
         // (todo: get rid of these _hidePartialGlyphs checks ?)
 
-        if (y + flt->y - top_overflow < clip.bottom && y + flt->y + flt->height + bottom_overflow >= clip.top) {
+        if (y + flt->y - top_overflow < clip.bottom && y + flt->y + flt->height + bottom_overflow > clip.top) {
             // DrawDocument() parameters (y0 + doc_y must be equal to our y,
             // doc_y just shift the viewport, so anything outside is not drawn).
             int x0 = x + flt->x;
