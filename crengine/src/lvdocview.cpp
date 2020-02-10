@@ -3750,11 +3750,10 @@ static void FileToArcProps(CRPropRef props) {
 static bool needToConvertBookmarks(CRFileHistRecord* historyRecord)
 {
     bool convertBookmarks = false;
-    if (historyRecord && historyRecord->getBookmarks().length() > 1) {
-        gDOMVersionRequested = historyRecord->getDOMversion();
-        if(gDOMVersionRequested < 20180528) {
+    if (historyRecord && historyRecord->getBookmarks().length() > 1
+        && gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS
+        && historyRecord->getDOMversion() < DOM_VERSION_WITH_NORMALIZED_XPOINTERS) {
             convertBookmarks = true;
-        }
     }
     return convertBookmarks;
 }
@@ -3776,6 +3775,7 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 	bool isArchiveFile = LVSplitArcName(filename16, arcPathName,
 			arcItemPathName);
 
+	int savedRenderFlags = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 	if (isArchiveFile) {
 		// load from archive, using @/ separated arhive/file pathname
 		CRLog::info("Loading document %s from archive %s", LCSTR(
@@ -3809,24 +3809,26 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 		m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa(
 				(int) stream->GetSize()));
 		m_doc_props->setString(DOC_PROP_FILE_NAME, arcItemPathName);
-        m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
-        CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-        bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
-        int savedRenderFlags = m_doc_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
-        if(convertBookmarks)
-            m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
+		m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
+		CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+		int newDOMVersion;
+		bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+		if(convertBookmarks) {
+			newDOMVersion = gDOMVersionRequested;
+			gDOMVersionRequested = record->getDOMversion();
+			m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
+		}
 
 		// loading document
 		if (loadDocumentInt(stream, metadataOnly)) {
 			m_filename = lString16(fname);
 			m_stream.Clear();
-            if(convertBookmarks) {
-                record->convertBookmarks(m_doc);
-                record->setDOMversion(gDOMVersionCurrent);
-                gDOMVersionRequested = gDOMVersionCurrent;
-                m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
-                //FIXME: need to reload file after this
-            }
+			if(convertBookmarks) {
+				record->convertBookmarks(m_doc, newDOMVersion);
+				gDOMVersionRequested = newDOMVersion;
+				m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
+				//FIXME: need to reload file after this
+			}
 			return true;
 		}
 		m_stream.Clear();
@@ -3865,27 +3867,30 @@ bool LVDocView::LoadDocument(const lChar16 * fname, bool metadataOnly) {
 	LVStreamRef stream = m_container->OpenStream(fn.c_str(), LVOM_READ);
 	if (!stream)
 		return false;
-    m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
+	m_doc_props->setString(DOC_PROP_FILE_NAME, fn);
 	m_doc_props->setString(DOC_PROP_FILE_SIZE, lString16::itoa(
 			(int) stream->GetSize()));
-    m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
+	m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 
-    CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
-    bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
-    if(convertBookmarks)
-        m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+	CRFileHistRecord* record = m_hist.getRecord( filename16, stream->GetSize() );
+	int newDOMVersion;
+	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
+	if(convertBookmarks) {
+		newDOMVersion = gDOMVersionRequested;
+		gDOMVersionRequested = record->getDOMversion();
+		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
+	}
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(fname);
 		m_stream.Clear();
 
-        if(convertBookmarks) {
-            record->convertBookmarks(m_doc);
-            record->setDOMversion(gDOMVersionCurrent);
-            gDOMVersionRequested = gDOMVersionCurrent;
-            m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
-            //FIXME: need to reload file after this
-        }
+		if(convertBookmarks) {
+			record->convertBookmarks(m_doc, newDOMVersion);
+			gDOMVersionRequested = newDOMVersion;
+			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
+			//FIXME: need to reload file after this
+		}
 #define DUMP_OPENED_DOCUMENT_SENTENCES 0 // debug XPointer navigation
 #if DUMP_OPENED_DOCUMENT_SENTENCES==1
         LVStreamRef out = LVOpenFileStream("/tmp/sentences.txt", LVOM_WRITE);
@@ -3959,18 +3964,22 @@ bool LVDocView::LoadDocument( LVStreamRef stream, const lChar16 * contentPath, b
 	m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 
 	CRFileHistRecord* record = m_hist.getRecord( contentPath16, stream->GetSize() );
+	int newDOMVersion;
+	int savedRenderFlags = m_props->getIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
 	bool convertBookmarks = needToConvertBookmarks(record) && !metadataOnly;
-	if(convertBookmarks)
-		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, 0);
+	if(convertBookmarks) {
+		newDOMVersion = gDOMVersionRequested;
+		gDOMVersionRequested = record->getDOMversion();
+		m_props->setInt(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_LEGACY);
+	}
 
 	if (loadDocumentInt(stream, metadataOnly)) {
 		m_filename = lString16(contentPath);
 
 		if(convertBookmarks) {
-			record->convertBookmarks(m_doc);
-			record->setDOMversion(gDOMVersionCurrent);
-			gDOMVersionRequested = gDOMVersionCurrent;
-			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, BLOCK_RENDERING_FLAGS_DEFAULT);
+			record->convertBookmarks(m_doc, newDOMVersion);
+			gDOMVersionRequested = newDOMVersion;
+			m_props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, savedRenderFlags);
 			//FIXME: need to reload file after this
 		}
 		return true;

@@ -47,6 +47,7 @@
 extern const int gDOMVersionCurrent;
 extern int gDOMVersionRequested;
 
+#define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20180528
 
 #define LXML_NO_DATA       0 ///< to mark data storage record as empty
 #define LXML_ELEMENT_NODE  1 ///< element node
@@ -1485,7 +1486,7 @@ public:
     /// converts to string
     lString16 toString( XPointerMode mode = XPATH_USE_NAMES) {
         if( XPATH_USE_NAMES==mode ) {
-            if( gDOMVersionRequested >= 20180528)
+            if( gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
                 return toStringUsingNames();
             return toStringUsingNamesOld();
         }
@@ -2361,7 +2362,7 @@ public:
     /// create xpointer from relative pointer string
     ldomXPointer createXPointer( ldomNode * baseNode, const lString16 & xPointerStr )
     {
-        if( gDOMVersionRequested >= 20180528)
+        if( gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
             return createXPointerV2(baseNode, xPointerStr);
         return createXPointerV1(baseNode, xPointerStr);
     }

@@ -459,32 +459,32 @@ void CRFileHistRecord::setLastPos( CRBookmark * bmk )
     _lastpos = *bmk;
 }
 
-void CRFileHistRecord::convertBookmarks(ldomDocument *doc)
+void CRFileHistRecord::convertBookmarks(ldomDocument *doc, int newDOMversion)
 {
-    int saveVersion = gDOMVersionRequested;
     for ( int i=0; i< getBookmarks().length(); i++) {
         CRBookmark * bmk = getBookmarks()[i];
 
         if( bmk->isValid() ) {
             if (bmk->getType() != bmkt_lastpos) {
-                gDOMVersionRequested = saveVersion;
+                gDOMVersionRequested = getDOMversion();
                 ldomXPointer p = doc->createXPointer(bmk->getStartPos());
                 if ( !p.isNull() ) {
-                    gDOMVersionRequested = gDOMVersionCurrent;
+                    gDOMVersionRequested = newDOMversion;
                     bmk->setStartPos(p.toString());
                 }
                 lString16 endPos = bmk->getEndPos();
                 if( !endPos.empty() ) {
-                    gDOMVersionRequested = saveVersion;
+                    gDOMVersionRequested = getDOMversion();
                     p = doc->createXPointer(endPos);
                     if( !p.isNull() ) {
-                        gDOMVersionRequested = gDOMVersionCurrent;
+                        gDOMVersionRequested = newDOMversion;
                         bmk->setEndPos(p.toString());
                     }
                 }
             }
         }
     }
+    setDOMversion(newDOMversion);
 }
 
 lString16 CRBookmark::getChapterName( ldomXPointer ptr )
