@@ -47,7 +47,8 @@
 extern const int gDOMVersionCurrent;
 extern int gDOMVersionRequested;
 
-#define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20180528
+// Also defined in src/lvtinydom.cpp
+#define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20200223
 
 #define LXML_NO_DATA       0 ///< to mark data storage record as empty
 #define LXML_ELEMENT_NODE  1 ///< element node

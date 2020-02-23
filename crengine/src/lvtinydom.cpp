@@ -19,7 +19,10 @@
 // Users of this library can request the old behaviour by setting
 // gDOMVersionRequested to an older version to request the old (possibly
 // buggy) behaviour.
-#define DOM_VERSION_CURRENT 20180528
+#define DOM_VERSION_CURRENT 20200223
+
+// Also defined in include/lvtinydom.h
+#define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20200223
 
 // Changes:
 // 20100101 to 20180502: historical version
@@ -60,6 +63,18 @@
 // insert <floatBox> elements in the DOM tree. Bus as this is
 // toggable, and legacy rendering is available, no need to limit
 // their support to some DOM_VERSION. So no bump needed.)
+//
+// (20200110: added support for CSS display: inline-block and inline-table,
+// which may insert <inlineBox> elements in the DOM tree. Bus as this is
+// toggable, and legacy rendering is available, no need to limit
+// their support to some DOM_VERSION. So no bump needed.)
+//
+// 20200223: normalized XPointers/XPATHs, by using createXPointerV2()
+// and toStringV2(), that should ensure XPointers survive changes
+// in style->display and the insertion or removal of autoBoxing,
+// floatBox and inlineBox.
+// (Older gDOMVersionRequested will keep using createXPointerV1()
+// and toStringV1() to have non-normalized XPointers still working.)
 
 extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 int gDOMVersionRequested     = DOM_VERSION_CURRENT;
