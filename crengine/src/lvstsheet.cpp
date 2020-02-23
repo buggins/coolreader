@@ -1267,7 +1267,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
             case cssd_hyphenate3:
             case cssd_hyphenate4:
             case cssd_hyphenate5:
-            	prop_code = cssd_hyphenate;
+                prop_code = cssd_hyphenate;
                 n = parse_name( decl, css_hyph_names, -1 );
                 if ( n==-1 )
                     n = parse_name( decl, css_hyph_names2, -1 );
@@ -2369,21 +2369,18 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
     if (!node || node->isNull() || node->isRoot())
         return false;
     // For most checks, while navigating nodes, we must ignore sibling text nodes.
-    // We also ignore <autoBoxing>, <floatBox> and <inlineBox> (crengine internal
-    // block elements, inserted for rendering purpose) when looking at parent(s).
-    // TODO: for cssrt_predecessor and cssrt_pseudoclass, we should
-    // also deal with <autoBoxing> nodes when navigating siblings,
-    // by iterating up and down the autoBoxing nodes met on our path while
-    // under real parent. These could take wrong decisions in the meantime...
+    // We also ignore crengine internal boxing elements (inserted for rendering
+    // purpose) by using the getUnboxedParent/Sibling(true) methods (providing
+    // 'true' make them skip text nodes).
+    // Note that if we are returnging 'true', the provided 'node' must stay
+    // or be updated to the node on which next selectors (on the left in the
+    // chain) must be checked against. When returning 'false', we can let
+    // node be in any state, even messy.
     switch (_type)
     {
     case cssrt_parent:        // E > F (child combinator)
         {
-            node = node->getParentNode();
-            while (node && !node->isNull() && (   node->getNodeId() == el_autoBoxing
-                                               || node->getNodeId() == el_floatBox
-                                               || node->getNodeId() == el_inlineBox ))
-                node = node->getParentNode();
+            node = node->getUnboxedParent();
             if (!node || node->isNull())
                 return false;
             // If _id=0, we are the parent and we match
@@ -2394,14 +2391,10 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_ancessor:      // E F (descendant combinator)
         {
-            for (;;)
-            {
-                node = node->getParentNode();
+            for (;;) {
+                node = node->getUnboxedParent();
                 if (!node || node->isNull())
                     return false;
-                if ( node->getNodeId() == el_autoBoxing || node->getNodeId() == el_floatBox
-                                            || node->getNodeId() == el_inlineBox )
-                    continue;
                 // cssrt_ancessor is a non-deterministic rule: next rules
                 // could fail when checked against this parent that matches
                 // current rule, but could succeed when checked against
@@ -2427,49 +2420,35 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         break;
     case cssrt_predecessor:   // E + F (adjacent sibling combinator)
         {
-            int index = node->getNodeIndex();
-            if (index>0) {
-                ldomNode * parent = node->getParentNode();
-                for (int i=index-1; i>=0; i--) {
-                    ldomNode * elem = parent->getChildElementNode(i);
-                    // we get NULL when a child is a text node, that we should ignore
-                    if ( elem ) { // this is the preceeding element node
-                        if (!_id || elem->getNodeId() == _id) {
-                            // No element name to match against, or this element name matches
-                            node = elem;
-                            return true;
-                        }
-                        return false;
-                    }
-                }
+            node = node->getUnboxedPrevSibling(true); // skip text nodes
+            if (!node || node->isNull())
+                return false;
+            if (!_id || node->getNodeId() == _id) {
+                // No element name to match against, or this element name matches
+                return true;
             }
             return false;
         }
         break;
     case cssrt_predsibling:   // E ~ F (preceding sibling / general sibling combinator)
         {
-            int index = node->getNodeIndex();
-            if (index>0) {
-                ldomNode * parent = node->getParentNode();
-                for (int i=index-1; i>=0; i--) {
-                    const ldomNode * elem = parent->getChildElementNode(i);
-                    // we get NULL when a child is a text node, that we should ignore
-                    if ( elem ) { // this is an element node
-                        if ( !_id || elem->getNodeId() == _id ) {
-                            // No element name to match against, or this element name
-                            // matches: check next rules starting from there.
-                            // Same as what is done in cssrt_ancessor above: we may
-                            // have to check next rules on all preceeding siblings.
-                            if (checkNextRules(elem))
-                                // We match all next rules (possibly including other
-                                // cssrt_ancessor or cssrt_predsibling)
-                                return true;
-                            // Next rules didn't match: continue with next parent
-                        }
-                    }
+            for (;;) {
+                node = node->getUnboxedPrevSibling(true); // skip text nodes
+                if (!node || node->isNull())
+                    return false;
+                if ( !_id || node->getNodeId() == _id ) {
+                    // No element name to match against, or this element name
+                    // matches: check next rules starting from there.
+                    // Same as what is done in cssrt_ancessor above: we may have
+                    // to check next rules on all preceeding matching siblings.
+                    const ldomNode * n = node;
+                    if (checkNextRules(n))
+                        // We match all next rules (possibly including other
+                        // cssrt_ancessor or cssrt_predsibling)
+                        return true;
+                    // Next rules didn't match: continue with next prev sibling
                 }
             }
-            return false;
         }
         break;
     case cssrt_attrset:       // E[foo]
@@ -2624,9 +2603,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
         return true;
     case cssrt_pseudoclass:   // E:pseudo-class
         {
-            int nodeId = node->getNodeId();
-            int index = node->getNodeIndex();
-            ldomNode * parent = node->getParentNode();
+            int nodeId;
             switch (_attrid) {
                 case csspc_root:
                 {
@@ -2645,6 +2622,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                     // the first <body> or the <html> node, but to avoid applyng the
                     // style twice (to the 2 <body>s), we want to NOT match the first
                     // node.
+                    ldomNode * parent = node->getUnboxedParent();
                     if ( !parent || parent->isRoot() )
                         return false; // we do not want to return true;
                     lUInt16 parentNodeId = parent->getNodeId();
@@ -2660,31 +2638,37 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 break;
                 case csspc_dir:
                 {
-		    while (node) {
-			if ( !node->hasAttribute( attr_dir ) ) {
-			    node = node->getParentNode();
-			    continue;
-			}
-			lString16 dir = node->getAttributeValue( attr_dir );
-			dir = dir.lowercase(); // (no need for trim(), it's done by the XMLParser)
-			if ( dir.compare(_value) == 0 )
+                    // We're looking at parents, but we don't want to update 'node'
+                    const ldomNode * elem = node;
+                    while (elem) {
+                        if ( !elem->hasAttribute( attr_dir ) ) {
+                            // No need to use getUnboxedParent(), boxes don't have this attribute
+                            elem = elem->getParentNode();
+                            continue;
+                        }
+                        lString16 dir = elem->getAttributeValue( attr_dir );
+                        dir = dir.lowercase(); // (no need for trim(), it's done by the XMLParser)
+                        if ( dir.compare(_value) == 0 )
                             return true;
                         // We could ignore invalide values, but for now, just stop looking.
-			return false;
-		    }
+                        return false;
+                    }
                     return false;
                 }
                 break;
                 case csspc_first_child:
                 case csspc_first_of_type:
                 {
-                    if (index>0) {
-                        for (int i=index-1; i>=0; i--) {
-                            ldomNode * elem = parent->getChildElementNode(i);
-                            if ( elem ) // child before us
-                                if (_attrid == csspc_first_child || elem->getNodeId() == nodeId)
-                                    return false;
-                        }
+                    if ( _attrid == csspc_first_of_type )
+                        nodeId = node->getNodeId();
+                    const ldomNode * elem = node;
+                    for (;;) {
+                        elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                        if (!elem)
+                            break;
+                        // We have a previous sibling
+                        if (_attrid == csspc_first_child || elem->getNodeId() == nodeId)
+                            return false;
                     }
                     return true;
                 }
@@ -2692,11 +2676,16 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 case csspc_last_child:
                 case csspc_last_of_type:
                 {
-                    for (int i=index+1; i<parent->getChildCount(); i++) {
-                        ldomNode * elem = parent->getChildElementNode(i);
-                        if ( elem ) // child after us
-                            if (_attrid == csspc_last_child || elem->getNodeId() == nodeId)
-                                return false;
+                    if ( _attrid == csspc_last_of_type )
+                        nodeId = node->getNodeId();
+                    const ldomNode * elem = node;
+                    for (;;) {
+                        elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                        if (!elem)
+                            break;
+                        // We have a next sibling
+                        if (_attrid == csspc_last_child || elem->getNodeId() == nodeId)
+                            return false;
                     }
                     return true;
                 }
@@ -2704,14 +2693,17 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 case csspc_nth_child:
                 case csspc_nth_of_type:
                 {
-                    int n = 0;
-                    for (int i=0; i<index; i++) {
-                        ldomNode * elem = parent->getChildElementNode(i);
-                        if ( elem )
-                            if (_attrid == csspc_nth_child || elem->getNodeId() == nodeId)
-                                n++;
+                    if ( _attrid == csspc_nth_of_type )
+                        nodeId = node->getNodeId();
+                    const ldomNode * elem = node;
+                    int n = 1;
+                    for (;;) {
+                        elem = elem->getUnboxedPrevSibling(true); // skip text nodes
+                        if (!elem)
+                            break;
+                        if (_attrid == csspc_nth_child || elem->getNodeId() == nodeId)
+                            n++;
                     }
-                    n++; // this is our position
                     if (_value == "even" && (n & 1)==0)
                         return true;
                     if (_value == "odd" && (n & 1)==1)
@@ -2723,14 +2715,17 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 case csspc_nth_last_child:
                 case csspc_nth_last_of_type:
                 {
-                    int n = 0;
-                    for (int i=parent->getChildCount()-1; i>index; i--) {
-                        ldomNode * elem = parent->getChildElementNode(i);
-                        if ( elem )
-                            if (_attrid == csspc_nth_last_child || elem->getNodeId() == nodeId)
-                                n++;
+                    if ( _attrid == csspc_nth_last_of_type )
+                        nodeId = node->getNodeId();
+                    const ldomNode * elem = node;
+                    int n = 1;
+                    for (;;) {
+                        elem = elem->getUnboxedNextSibling(true); // skip text nodes
+                        if (!elem)
+                            break;
+                        if (_attrid == csspc_nth_last_child || elem->getNodeId() == nodeId)
+                            n++;
                     }
-                    n++; // this is our position
                     if (_value == "even" && (n & 1)==0)
                         return true;
                     if (_value == "odd" && (n & 1)==1)
@@ -2742,18 +2737,16 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                 case csspc_only_child:
                 case csspc_only_of_type:
                 {
-                    int n = 0;
-                    for (int i=0; i<parent->getChildCount(); i++) {
-                        ldomNode * elem = parent->getChildElementNode(i);
-                        if ( elem )
-                            if (_attrid == csspc_only_child || elem->getNodeId() == nodeId) {
-                                n++;
-                                if (n > 1)
-                                    break;
-                            }
+                    if ( _attrid == csspc_only_of_type )
+                        nodeId = node->getNodeId();
+                    const ldomNode * elem = node->getUnboxedParent()->getUnboxedFirstChild(true);
+                    while (elem) {
+                        if (elem != node) {
+                            if (_attrid == csspc_only_child || elem->getNodeId() == nodeId)
+                                return false; // we're not alone
+                        }
+                        elem = elem->getUnboxedNextSibling(true);
                     }
-                    if (n > 1)
-                        return false;
                     return true;
                 }
                 break;

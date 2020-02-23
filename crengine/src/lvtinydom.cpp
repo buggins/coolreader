@@ -7617,14 +7617,9 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
 }
 #endif
 
-static bool isBoxingNode(ldomNode * pNode)
+static bool isBoxingNode(ldomNode * node)
 {
-    if( pNode->isElement() ) {
-        lUInt16 id = pNode->getNodeId();
-        if( id == el_floatBox || id == el_inlineBox || id == el_autoBoxing )
-            return true;
-    }
-    return false;
+    return node->isBoxingNode();
 }
 
 static bool isTextNode(ldomNode * node)
@@ -14453,6 +14448,165 @@ void ldomNode::initNodeStyle()
 }
 #endif
 
+bool ldomNode::isBoxingNode()
+{
+    if( isElement() ) {
+        lUInt16 id = getNodeId();
+        if( id >= el_autoBoxing && id <= el_inlineBox ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+ldomNode * ldomNode::getUnboxedParent() const
+{
+    ldomNode * parent = getParentNode();
+    while ( parent && parent->isBoxingNode() )
+        parent = parent->getParentNode();
+    return parent;
+}
+
+ldomNode * ldomNode::getUnboxedFirstChild( bool skip_text_nodes ) const
+{
+    for ( int i=0; i<getChildCount(); i++ ) {
+        ldomNode * child = getChildNode(i);
+        if ( child && child->isBoxingNode() ) {
+            child = child->getUnboxedFirstChild( skip_text_nodes );
+        }
+        if ( child && (!skip_text_nodes || !child->isText()) )
+            return child;
+    }
+    return NULL;
+}
+
+ldomNode * ldomNode::getUnboxedLastChild( bool skip_text_nodes ) const
+{
+    for ( int i=getChildCount()-1; i>=0; i-- ) {
+        ldomNode * child = getChildNode(i);
+        if ( child && child->isBoxingNode() ) {
+            child = child->getUnboxedLastChild( skip_text_nodes );
+        }
+        if ( child && (!skip_text_nodes || !child->isText()) )
+            return child;
+    }
+    return NULL;
+}
+
+/* For reference, a non-recursive node subtree walker:
+    ldomNode * n = topNode;
+    if ( n && n->getChildCount() > 0 ) {
+        int index = 0;
+        n = n->getChildNode(index);
+        while ( true ) {
+            // Check the node only the first time we meet it (index == 0) and
+            // not when we get back to it from a child to process next sibling
+            if ( index == 0 ) {
+                // Check n, process it, return it...
+            }
+            // Process next child
+            if ( index < n->getChildCount() ) {
+                n = n->getChildNode(index);
+                index = 0;
+                continue;
+            }
+            // No more child, get back to parent and have it process our sibling
+            index = n->getNodeIndex() + 1;
+            n = n->getParentNode();
+            if ( n == topNode ) // all children done and back to top node
+                break;
+        }
+    }
+*/
+
+ldomNode * ldomNode::getUnboxedNextSibling( bool skip_text_nodes ) const
+{
+    // We use a variation of the above non-recursive node subtree walker,
+    // but with an arbitrary starting node (this) inside the unboxed_parent
+    // tree, and checks to not walk down non-boxing nodes - but still
+    // walking up any node (which ought to be a boxing node).
+    ldomNode * unboxed_parent = getUnboxedParent(); // don't walk outside of it
+    ldomNode * n = (ldomNode *) this;
+    int index = 0;
+    bool node_entered = true; // bootstrap loop
+    // We may meet a same node as 'n' multiple times:
+    // - once with node_entered=false and index being its real position inside
+    //   its parent children collection, and we'll be "entering" it
+    // - once with node_entered=true and index=0, meaning we have "entered" it to
+    //   check if it's a candidate, and to possibly go on checking its own children.
+    // - once when back from its children, with node_entered=false and index
+    //   being that previous child index + 1, to go process its next sibling
+    //   (or parent if no more sibling)
+    while ( true ) {
+        // printf("      %s\n", LCSTR(ldomXPointer(n,0).toStringV1()));
+        if ( node_entered && n != this ) { // Don't check the starting node
+            // Check if this node is a candidate
+            if ( n->isText() ) { // Text nodes are not boxing nodes
+                if ( !skip_text_nodes )
+                    return n;
+            }
+            else if ( !n->isBoxingNode() ) // Not a boxing node
+                return n;
+            // Otherwise, this node is a boxing node (or a text node with
+            // no child, and we'll get back to its parent)
+        }
+        // Enter next node, and re-loop to have it checked
+        // - if !node_entered : n is the parent and index points to the next child
+        //   we want to check
+        // - if n->isBoxingNode() (and node_entered=true, and index=0): enter
+        //   the first child of this boxingNode
+        if ( (!node_entered || n->isBoxingNode()) && index < n->getChildCount() ) {
+            n = n->getChildNode(index);
+            index = 0;
+            node_entered = true;
+            continue;
+        }
+        // No more sibling/child to check, get back to parent and have it
+        // process n's next sibling
+        index = n->getNodeIndex() + 1;
+        n = n->getParentNode();
+        node_entered = false;
+        if ( n == unboxed_parent && index >= n->getChildCount() ) {
+            // back to real parent node and no more child to check
+            break;
+        }
+    }
+    return NULL;
+}
+
+ldomNode * ldomNode::getUnboxedPrevSibling( bool skip_text_nodes ) const
+{
+    // Similar to getUnboxedNextSibling(), but walking backward
+    ldomNode * unboxed_parent = getUnboxedParent();
+    ldomNode * n = (ldomNode *) this;
+    int index = 0;
+    bool node_entered = true; // bootstrap loop
+    while ( true ) {
+        // printf("      %s\n", LCSTR(ldomXPointer(n,0).toStringV1()));
+        if ( node_entered && n != this ) {
+            if ( n->isText() ) {
+                if ( !skip_text_nodes )
+                    return n;
+            }
+            else if ( !n->isBoxingNode() )
+                return n;
+        }
+        if ( (!node_entered || n->isBoxingNode()) && index >= 0 && index < n->getChildCount() ) {
+            n = n->getChildNode(index);
+            index = n->getChildCount() - 1;
+            node_entered = true;
+            continue;
+        }
+        index = n->getNodeIndex() - 1;
+        n = n->getParentNode();
+        node_entered = false;
+        if ( n == unboxed_parent && index < 0 ) {
+            break;
+        }
+    }
+    return NULL;
+}
+
 /// for display:list-item node, get marker
 bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & markerWidth )
 {
@@ -14488,13 +14642,8 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
     case css_lst_upper_alpha:
         if ( counterValue<=0 ) {
             // calculate counter
-            ldomNode * parent = getParentNode();
-            // The UL > LI parent-child chain may have had a floatBox element
-            // inserted if the LI has some float: style (also handled below
-            // when walking this parent's children).
-            if ( parent->getNodeId() == el_floatBox || parent->getNodeId() == el_inlineBox ) {
-                parent = parent->getParentNode();
-            }
+            // The UL > LI parent-child chain may have had some of our Boxing elements inserted
+            ldomNode * parent = getUnboxedParent();
             counterValue = 0;
             // See if parent has a 'start' attribute that overrides this 0
             // https://www.w3.org/TR/html5/grouping-content.html#the-ol-element
@@ -14505,43 +14654,50 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString16 & marker, int & 
                 if (value.atoi(ivalue))
                     counterValue = ivalue - 1;
             }
-            for (int i = 0; i < parent->getChildCount(); i++) {
-                ldomNode * child = parent->getChildNode(i);
-                if ( child->getNodeId() == el_floatBox || child->getNodeId() == el_inlineBox ) {
-                    child = child->getChildNode(0);
-                }
-                css_style_ref_t cs = child->getStyle();
-                if ( cs.isNull())
+            // iterate parent's real children from start up to this node
+            ldomNode * sibling = parent->getUnboxedFirstChild(true);
+            while ( sibling ) {
+                css_style_ref_t cs = sibling->getStyle();
+                if ( cs.isNull() ) { // Should not happen, but let's be sure
+                    if ( sibling == this )
+                        break;
+                    sibling = sibling->getUnboxedNextSibling(true);
                     continue;
-                if ( cs->display!=css_d_list_item_block && cs->display!=css_d_list_item) {
+                }
+                if ( cs->display != css_d_list_item_block && cs->display != css_d_list_item) {
                     // Alien element among list item nodes, skip it to not mess numbering
+                    if ( sibling == this ) // Should not happen, but let's be sure
+                        break;
+                    sibling = sibling->getUnboxedNextSibling(true);
                     continue;
                 }
                 switch ( cs->list_style_type ) {
-                case css_lst_decimal:
-                case css_lst_lower_roman:
-                case css_lst_upper_roman:
-                case css_lst_lower_alpha:
-                case css_lst_upper_alpha:
-                    counterValue++;
-                    break;
-                default:
-                    // do nothing
-                    ;
+                    case css_lst_decimal:
+                    case css_lst_lower_roman:
+                    case css_lst_upper_roman:
+                    case css_lst_lower_alpha:
+                    case css_lst_upper_alpha:
+                        counterValue++;
+                        break;
+                    default:
+                        // do nothing
+                        ;
                 }
                 // See if it has a 'value' attribute that overrides the incremented value
                 // https://www.w3.org/TR/html5/grouping-content.html#the-li-element
                 // "The value attribute, if present, must be a valid integer giving the ordinal value of the list item."
-                lString16 value = child->getAttributeValue(attr_value);
+                lString16 value = sibling->getAttributeValue(attr_value);
                 if ( !value.empty() ) {
-                        int ivalue;
-                        if (value.atoi(ivalue))
+                    int ivalue;
+                    if ( value.atoi(ivalue) )
                         counterValue = ivalue;
                 }
-                if ( child==this )
+                if ( sibling == this )
                     break;
+                sibling = sibling->getUnboxedNextSibling(true); // skip text nodes
             }
-        } else {
+        }
+        else {
             counterValue++;
         }
         static const char * lower_roman[] = {"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix",

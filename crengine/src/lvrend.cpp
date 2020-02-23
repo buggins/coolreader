@@ -2291,28 +2291,22 @@ void SplitLines( const lString16 & str, lString16Collection & lines )
 lString16 renderListItemMarker( ldomNode * enode, int & marker_width, LFormattedText * txform, int line_h, int flags ) {
     lString16 marker;
     marker_width = 0;
-    ldomNode * parent = enode->getParentNode();
-    // The UL > LI parent-child chain may have had a floatBox element
-    // inserted if the LI has some float: style (also handled below
-    // when walking this parent's children).
-    if ( parent->getNodeId() == el_floatBox || parent->getNodeId() == el_inlineBox ) {
-        parent = parent->getParentNode();
-    }
+    // The UL > LI parent-child chain may have had some of our boxing elements inserted
+    ldomNode * parent = enode->getUnboxedParent();
     ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( parent->getDataIndex() );
     if ( listProps.isNull() ) { // no previously cached info: compute and cache it
+        // Scan all our siblings to know the widest marker width
         int counterValue = 0;
         int maxWidth = 0;
-        for ( int i=0; i<parent->getChildCount(); i++ ) {
+        ldomNode * sibling = parent->getUnboxedFirstChild(true);
+        while ( sibling ) {
             lString16 marker;
             int markerWidth = 0;
-            ldomNode * child = parent->getChildElementNode(i);
-            if ( child && ( child->getNodeId() == el_floatBox || child->getNodeId() == el_inlineBox ) ) {
-                child = child->getChildNode(0);
-            }
-            if ( child && child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
-                if ( markerWidth>maxWidth )
+            if ( sibling->getNodeListMarker( counterValue, marker, markerWidth ) ) {
+                if ( markerWidth > maxWidth )
                     maxWidth = markerWidth;
             }
+            sibling = sibling->getUnboxedNextSibling(true); // skip text nodes
         }
         listProps = ListNumberingPropsRef( new ListNumberingProps(counterValue, maxWidth) );
         enode->getDocument()->setNodeNumberingProps( parent->getDataIndex(), listProps );
@@ -2790,17 +2784,19 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             int marker_width = 0;
 
             ListNumberingPropsRef listProps =  enode->getDocument()->getNodeNumberingProps( enode->getParentNode()->getDataIndex() );
-            if ( listProps.isNull() ) {
+            if ( listProps.isNull() ) { // no previously cached info: compute and cache it
+                // Scan all our siblings to know the widest marker width
                 int counterValue = 0;
                 int maxWidth = 0;
-                for ( int i=0; i<parent->getChildCount(); i++ ) {
+                ldomNode * sibling = enode->getUnboxedParent()->getUnboxedFirstChild(true);
+                while ( sibling ) {
                     lString16 marker;
                     int markerWidth = 0;
-                    ldomNode * child = parent->getChildElementNode(i);
-                    if ( child && child->getNodeListMarker( counterValue, marker, markerWidth ) ) {
-                        if ( markerWidth>maxWidth )
+                    if ( sibling->getNodeListMarker( counterValue, marker, markerWidth ) ) {
+                        if ( markerWidth > maxWidth )
                             maxWidth = markerWidth;
                     }
+                    sibling = sibling->getUnboxedNextSibling(true); // skip text nodes
                 }
                 listProps = ListNumberingPropsRef( new ListNumberingProps(counterValue, maxWidth) );
                 enode->getDocument()->setNodeNumberingProps( enode->getParentNode()->getDataIndex(), listProps );

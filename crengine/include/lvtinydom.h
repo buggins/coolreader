@@ -1042,6 +1042,17 @@ public:
     /// is node an inlineBox that has not been re-inlined by having
     /// its child no more inline-block/inline-table
     bool isBoxingInlineBox();
+
+    /// is node any of our internal boxing element
+    bool isBoxingNode();
+
+    /// return real (as in the original HTML) parent/siblings by skipping any internal
+    /// boxing element up or down (returns NULL when no more sibling)
+    ldomNode * getUnboxedParent() const;
+    ldomNode * getUnboxedFirstChild( bool skip_text_nodes=false ) const;
+    ldomNode * getUnboxedLastChild( bool skip_text_nodes=false ) const;
+    ldomNode * getUnboxedPrevSibling( bool skip_text_nodes=false ) const;
+    ldomNode * getUnboxedNextSibling( bool skip_text_nodes=false ) const;
 };
 
 
