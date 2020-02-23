@@ -815,8 +815,6 @@ private:
     /// returns true if element has inline content (non empty text, images, <BR>)
     bool hasNonEmptyInlineContent( bool ignoreFloats=false );
 
-    lString16 getXPathSegmentUsingNames();
-    lString16 getXPathSegmentUsingIndexes();
 public:
 #if BUILD_LITE!=1
     /// if stylesheet file name is set, and file is found, set stylesheet to its value
@@ -1508,11 +1506,14 @@ public:
     lString16 toString( XPointerMode mode = XPATH_USE_NAMES) {
         if( XPATH_USE_NAMES==mode ) {
             if( gDOMVersionRequested >= DOM_VERSION_WITH_NORMALIZED_XPOINTERS)
-                return toStringUsingNames();
-            return toStringUsingNamesOld();
+                return toStringV2();
+            return toStringV1();
         }
-        return toStringUsingIndexes();
+        return toStringV2AsIndexes();
     }
+    lString16 toStringV1(); // Using names, old, with boxing elements (non-normalized)
+    lString16 toStringV2(); // Using names, new, without boxing elements, so: normalized
+    lString16 toStringV2AsIndexes(); // Without element names, normalized (not used)
 
     /// returns XPath node text
     lString16 getText(  lChar16 blockDelimiter=0 )
@@ -1540,9 +1541,6 @@ public:
     lString8 getHtml( int wflags=0 ) {
         lString16Collection cssFiles; return getHtml(cssFiles, wflags);
     }
-    lString16 toStringUsingNames();
-    lString16 toStringUsingNamesOld();
-    lString16 toStringUsingIndexes();
 };
 
 #define MAX_DOM_LEVEL 64
@@ -2249,7 +2247,9 @@ private:
     virtual ContinuousOperationResult saveChanges( CRTimerUtil & maxTime, LVDocViewCallback * progressCallback=NULL );
 #endif
 
+    /// create XPointer from a non-normalized string made by toStringV1()
     ldomXPointer createXPointerV1( ldomNode * baseNode, const lString16 & xPointerStr );
+    /// create XPointer from a normalized string made by toStringV2()
     ldomXPointer createXPointerV2( ldomNode * baseNode, const lString16 & xPointerStr );
 protected:
 
