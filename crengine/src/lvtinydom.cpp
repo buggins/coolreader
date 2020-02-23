@@ -7976,6 +7976,18 @@ lString16 ldomXPointer::toStringV2()
             int count = 0;
             ldomNodeIdPredicate predicat(p->getNodeId());
             int index = getElementIndex(parent, p, predicat, count);
+            if ( count == 1 ) {
+                // We're first, but see if we have following siblings with the
+                // same element name, so we can have "div[1]" instead of "div"
+                // when parent has more than one of it (as toStringV1 does).
+                ldomNode * n = p;
+                while ( n = n->getUnboxedNextSibling(true) ) {
+                    if ( predicat(n) ) { // We have such a followup sibling
+                        count = 2; // there's at least 2 of them
+                        break;
+                    }
+                }
+            }
             if ( count>1 )
                 path = cs16("/") + name + "[" + fmt::decimal(index) + "]" + path;
             else
@@ -7986,6 +7998,18 @@ lString16 ldomXPointer::toStringV2()
                 return cs16("/text()") + path;
             int count = 0;
             int index = getElementIndex(parent, p, isTextNode, count);
+            if ( count == 1 ) {
+                // We're first, but see if we have following text siblings,
+                // so we can have "text()[1]" instead of "text()" when
+                // parent has more than one text node (as toStringV1 does).
+                ldomNode * n = p;
+                while ( n = n->getUnboxedNextSibling(false) ) {
+                    if ( isTextNode(n) ) { // We have such a followup sibling
+                        count = 2; // there's at least 2 of them
+                        break;
+                    }
+                }
+            }
             if ( count>1 )
                 path = cs16("/text()") + "[" + fmt::decimal(index) + "]" + path;
             else
