@@ -495,6 +495,113 @@ static bool parse_number_value( const char * & str, css_length_t & value,
     return true;
 }
 
+static lString16 parse_nth_value( const lString16 value )
+{
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child
+    // Parse "even", "odd", "5", "5n", "5n+2", "-n"...
+    // Pack 3 numbers, enough to check if match, into another lString16
+    // for quicker checking:
+    // - a tuple of 3 lChar16: (negative, n-step, offset)
+    // - or the empty string when invalid or if it would never match
+    // (Note that we get the input already trimmed and lowercased.)
+    lString16 ret = lString16(); // empty string = never match
+    if ( value == "even" ) { //  = "2n"
+        ret << lChar16(0) <<lChar16(2) << lChar16(0);
+        return ret;
+    }
+    if ( value == "odd" ) {  // = "2n+1"
+        ret << lChar16(0) <<lChar16(2) << lChar16(1);
+        return ret;
+    }
+    int len = value.length();
+    if (len == 0) // empty value
+        return ret; // invalid
+    bool negative = false;
+    int first = 0;
+    int second = 0;
+    int i = 0;
+    lChar16 c;
+    c = value[i];
+    if ( c == '-' ) {
+        negative = true;
+        i++;
+    }
+    if ( i==len ) // no follow up content
+        return ret; // invalid
+    c = value[i];
+    if ( c == 'n' ) { // 'n' or '-n' without a leading number
+        first = 1;
+    }
+    else {
+        // Parse first number
+        if ( c < '0' || c > '9') // not a digit
+            return ret; // invalid
+        while (true) { // grab digit(s)
+            first = first * 10 + ( c - '0' );
+            i++; // pass by this digit
+            if ( i==len ) { // single number seen: this parsed number is actually the offset
+                if ( negative ) // "-4"
+                    return ret; // never match
+                ret << lChar16(0) << lChar16(0) << lChar16(first);
+                return ret;
+            }
+            c = value[i];
+            if ( c < '0' || c > '9') // done grabbing first digits
+                break;
+        }
+        if ( c != 'n' ) // invalid char after first number
+            return ret; // invalid
+    }
+    i++; // pass by that 'n'
+    if ( i==len ) { // ends with that 'n'
+        if ( negative || first == 0) // valid, but would never match anything
+            return ret; // never match
+        ret << lChar16(0) << lChar16(first) << lChar16(0);
+        return ret;
+    }
+    c = value[i];
+    if ( c != '+' ) // follow up content must start with a '+'
+        return ret; // invalid
+    i++; // pass b y that '+'
+    if ( i==len ) // ends with that '+'
+        return ret; // invalid
+    // Parse second number
+    c = value[i];
+    if ( c < '0' || c > '9') // not a digit
+        return ret; // invalid
+    while (true) { // grab digit(s)
+        second = second * 10 + ( c - '0' );
+        i++; // pass by this digit
+        if ( i==len ) // end of string, fully valid
+            break;
+        c = value[i];
+        if ( c < '0' || c > '9') // expected a digit (invalid stuff at end of value)
+            return ret; // invalid
+    }
+    // Valid, and we parsed everything
+    ret << lChar16(negative) << lChar16(first) << lChar16(second);
+    return ret;
+}
+
+static bool match_nth_value( const lString16 value, int n)
+{
+    // Apply packed parsed value (parsed by above function) to n
+    if ( value.empty() ) // invalid, or never match
+        return false;
+    bool negative = value[0];
+    int step = value[1];
+    int offset = value[2];
+    if ( step == 0 )
+        return n == offset;
+    if ( negative )
+        n = offset - n;
+    else
+        n = n - offset;
+    if ( n < 0 )
+        return false;
+    return n % step == 0;
+}
+
 struct standard_color_t
 {
     const char * name;
@@ -2704,12 +2811,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         if (_attrid == csspc_nth_child || elem->getNodeId() == nodeId)
                             n++;
                     }
-                    if (_value == "even" && (n & 1)==0)
-                        return true;
-                    if (_value == "odd" && (n & 1)==1)
-                        return true;
-                    // other values ( 5, 5n3...) not supported (yet)
-                    return false;
+                    return match_nth_value(_value, n);
                 }
                 break;
                 case csspc_nth_last_child:
@@ -2726,12 +2828,7 @@ bool LVCssSelectorRule::check( const ldomNode * & node )
                         if (_attrid == csspc_nth_last_child || elem->getNodeId() == nodeId)
                             n++;
                     }
-                    if (_value == "even" && (n & 1)==0)
-                        return true;
-                    if (_value == "odd" && (n & 1)==1)
-                        return true;
-                    // other values ( 5, 5n3...) not supported (yet)
-                    return false;
+                    return match_nth_value(_value, n);
                 }
                 break;
                 case csspc_only_child:
@@ -2914,6 +3011,11 @@ LVCssSelectorRule * parse_attr( const char * &str, lxmlDocBase * doc )
         LVCssSelectorRule * rule = new LVCssSelectorRule(cssrt_pseudoclass);
         lString16 s( attrvalue );
         s.trim().lowercase();
+        if ( n == csspc_nth_child || n == csspc_nth_of_type || n == csspc_nth_last_child || n == csspc_nth_last_of_type ) {
+            // Parse "even", "odd", "5", "5n", "5n+2", "-n" into a few
+            // numbers packed into a lString16, for quicker checking.
+            s = parse_nth_value(s);
+        }
         rule->setAttr(n, s);
         // printf("made pseudo class rule %d with %s\n", n, UnicodeToLocal(s).c_str());
         if ( n >= csspc_last_child ) {
