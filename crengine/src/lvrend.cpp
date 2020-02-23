@@ -8118,6 +8118,20 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 {
                     lvRect rc;
                     enode->getAbsRect( rc, true );
+                    if ( !RENDER_RECT_HAS_FLAG(fmt, INNER_FIELDS_SET) ) {
+                        // In legacy mode, getAbsRect( ..., inner=true) did not have
+                        // the inner geometry stored in fmt and computed. We need
+                        // to correct it with paddings:
+                        int em = enode->getFont()->getSize();
+                        int padding_left = measureBorder(enode,3)+lengthToPx(enode->getStyle()->padding[0],rc.width(),em);
+                        int padding_right = measureBorder(enode,1)+lengthToPx(enode->getStyle()->padding[1],rc.width(),em);
+                        int padding_top = measureBorder(enode,0)+lengthToPx(enode->getStyle()->padding[2],rc.height(),em);
+                        int padding_bottom = measureBorder(enode,2)+lengthToPx(enode->getStyle()->padding[3],rc.height(),em);
+                        rc.top += padding_top;
+                        rc.left += padding_left;
+                        rc.right -= padding_right;
+                        rc.bottom -= padding_bottom;
+                    }
                     ldomMarkedRangeList *nbookmarks = NULL;
                     if ( bookmarks && bookmarks->length()) { // internal crengine bookmarked text highlights
                         nbookmarks = new ldomMarkedRangeList( bookmarks, rc );
