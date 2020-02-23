@@ -207,6 +207,8 @@ extern int gRenderBlockRenderingFlags;
                                                                       // rectangle, allowing text layout staircase-like.
 // Inline block/table
 #define BLOCK_RENDERING_BOX_INLINE_BLOCKS                  0x01000000 // Wrap inline-block in an internal inlineBox element.
+#define BLOCK_RENDERING_COMPLETE_INCOMPLETE_TABLES         0x02000000 // Add anonymous missing elements to a table without proper
+                                                                      // children and table-cells without proper parents
 
 // Enable everything
 #define BLOCK_RENDERING_FULL_FEATURED                      0x7FFFFFFF

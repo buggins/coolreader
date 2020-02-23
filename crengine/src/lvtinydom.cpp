@@ -75,6 +75,8 @@
 // floatBox and inlineBox.
 // (Older gDOMVersionRequested will keep using createXPointerV1()
 // and toStringV1() to have non-normalized XPointers still working.)
+// (20200223: added toggable auto completion of incomplete tables by
+// wrapping some elements in a new <tabularBox>.)
 
 extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 int gDOMVersionRequested     = DOM_VERSION_CURRENT;
@@ -82,7 +84,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.12.57"
+#define CACHE_FILE_FORMAT_VERSION "3.12.58"
 
 /// increment following value to force re-formatting of old book after load
 #define FORMATTING_VERSION_ID 0x001F
@@ -5099,7 +5101,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
 bool ldomNode::cleanIfOnlyEmptyTextInline( bool handleFloating )
 {
 #if BUILD_LITE!=1
-    if ( this->getDocument()->_cacheFile != NULL )
+    if ( this->getDocument()->hasCacheFile() )
         // We can't remove anything if there is a cache file
         return false;
     if ( !isElement() )
@@ -5170,7 +5172,8 @@ bool ldomNode::hasNonEmptyInlineContent( bool ignoreFloats )
 }
 
 #if BUILD_LITE!=1
-static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & hasInline, bool & hasFloating, bool detectFloating=false )
+static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & hasInline,
+                    bool & hasInternalTableItems, bool & hasFloating, bool detectFloating=false )
 {
     hasBlockItems = false;
     hasInline = false;
@@ -5195,112 +5198,307 @@ static void detectChildTypes( ldomNode * parent, bool & hasBlockItems, bool & ha
                 hasInline = true;
             } else {
                 hasBlockItems = true;
+                // (Table internal elements are all block items in the context
+                // where hasBlockItems is used, so account for them in both)
+                if ( ( d > css_d_table && d <= css_d_table_caption ) ||
+                     ( m > erm_table   && m <= erm_table_caption ) ) {
+                    hasInternalTableItems = true;
+                }
             }
         }
     }
 }
 
+// Generic version of autoboxChildren() without any specific inline/block checking,
+// accepting any element id (from the enum el_*, like el_div, el_tabularBox) as
+// the wrapping element.
+ldomNode * ldomNode::boxWrapChildren( int startIndex, int endIndex, lUInt16 elementId )
+{
+    if ( !isElement() )
+        return NULL;
+    int firstNonEmpty = startIndex;
+    int lastNonEmpty = endIndex;
+
+    while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
+        lString16 s = getChildNode(firstNonEmpty)->getText();
+        if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            break;
+        firstNonEmpty++;
+    }
+    while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
+        lString16 s = getChildNode(lastNonEmpty)->getText();
+        if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            break;
+        lastNonEmpty--;
+    }
+
+    // printf("boxWrapChildren %d>%d | %d<%d\n", startIndex, firstNonEmpty, lastNonEmpty, endIndex);
+    if ( firstNonEmpty<=lastNonEmpty ) {
+        // remove trailing empty
+        removeChildren(lastNonEmpty+1, endIndex);
+        // create wrapping container
+        ldomNode * box = insertChildElement( firstNonEmpty, LXML_NS_NONE, elementId );
+        moveItemsTo( box, firstNonEmpty+1, lastNonEmpty+1 );
+        // remove starting empty
+        removeChildren(startIndex, firstNonEmpty-1);
+        return box;
+    }
+    else {
+        // Only empty items: remove them instead of box wrapping them
+        removeChildren(startIndex, endIndex);
+        return NULL;
+    }
+}
+
+// Uncomment to debug COMPLETE_INCOMPLETE_TABLES tabularBox wrapping
+// #define DEBUG_INCOMPLETE_TABLE_COMPLETION
 
 // init table element render methods
 // states: 0=table, 1=colgroup, 2=rowgroup, 3=row, 4=cell
 // returns table cell count
+// When BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES), we follow rules
+// from the "Generate missing child wrappers" section in:
+//   https://www.w3.org/TR/CSS22/tables.html#anonymous-boxes
+//   https://www.w3.org/TR/css-tables-3/#fixup (clearer than previous one)
+// and we wrap unproper children in a tabularBox element.
 int initTableRendMethods( ldomNode * enode, int state )
 {
     //main node: table
-    if ( state==0 && (enode->getStyle()->display==css_d_table ||
-                      enode->getStyle()->display==css_d_inline_table ||
-                      (enode->getStyle()->display==css_d_inline_block && enode->getNodeId()==el_table)) )
-        enode->setRendMethod( erm_table ); // for table
-    int cellCount = 0;
+    if ( state==0 && ( enode->getStyle()->display==css_d_table ||
+                       enode->getStyle()->display==css_d_inline_table ||
+                      (enode->getStyle()->display==css_d_inline_block && enode->getNodeId()==el_table) ) ) {
+        enode->setRendMethod( erm_table );
+    }
+    int cellCount = 0; // (returned, but not used anywhere)
     int cnt = enode->getChildCount();
     int i;
-    for (i=0; i<cnt; i++)
-    {
+    int first_unproper = -1; // keep track of consecutive unproper children that
+    int last_unproper = -1;  // must all be wrapped in a single wrapper
+    for (i=0; i<cnt; i++) {
         ldomNode * child = enode->getChildNode( i );
-        if ( child->isElement() )
-        {
-            switch( child->getStyle()->display )
-            {
-            case css_d_table_caption:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_caption );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_inline:
-                {
-                }
-                break;
-            case css_d_table_row_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_row_group );
-                    cellCount += initTableRendMethods( child, 2 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_header_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_header_group );
-                    cellCount += initTableRendMethods( child, 2);
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_footer_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_footer_group );
-                    cellCount += initTableRendMethods( child, 2 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_row:
-                if ( state==0 || state==2 ) {
-                    child->setRendMethod( erm_table_row );
-                    cellCount += initTableRendMethods( child, 3 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_column_group:
-                if ( state==0 ) {
-                    child->setRendMethod( erm_table_column_group );
-                    cellCount += initTableRendMethods( child, 1 );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_column:
-                if ( state==0 || state==1 ) {
-                    child->setRendMethod( erm_table_column );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            case css_d_table_cell:
-                if ( state==3 ) {
-                    child->setRendMethod( erm_table_cell );
-                    cellCount++;
-                    // will be translated to block or final below
-                    //child->initNodeRendMethod();
-                    child->initNodeRendMethodRecursive();
-                    //child->setRendMethod( erm_table_cell );
-                    //initRendMethod( child, true, true );
-                } else {
-                    child->setRendMethod( erm_invisible );
-                }
-                break;
-            default:
-                // ignore
-                break;
+        css_display_t d;
+        if ( child->isElement() ) {
+            d = child->getStyle()->display;
+        }
+        else { // text node
+            d = css_d_inline;
+            // Not sure about what to do with whitespace only text nodes:
+            // we shouldn't meet any alongside real elements (as whitespace
+            // around and at start/end of block nodes are discarded), but
+            // we may in case of style changes (inline > table) after
+            // a book has been loaded.
+            // Not sure if we should handle them differently when no unproper
+            // elements yet (they will be discarded by the table render algo),
+            // and when among unpropers (they could find their place in the
+            // wrapped table cell).
+            // Note that boxWrapChildren() called below will remove
+            // them at start or end of an unproper elements sequence.
+        }
+        bool is_last = (i == cnt-1);
+        bool is_proper = false;
+        if ( state==0 ) { // in table
+            if ( d==css_d_table_row ) {
+                child->setRendMethod( erm_table_row );
+                cellCount += initTableRendMethods( child, 3 ); // > row
+                is_proper = true;
+            }
+            else if ( d==css_d_table_row_group ) {
+                child->setRendMethod( erm_table_row_group );
+                cellCount += initTableRendMethods( child, 2 ); // > rowgroup
+                is_proper = true;
+            }
+            else if ( d==css_d_table_header_group ) {
+                child->setRendMethod( erm_table_header_group );
+                cellCount += initTableRendMethods( child, 2 ); // > rowgroup
+                is_proper = true;
+            }
+            else if ( d==css_d_table_footer_group ) {
+                child->setRendMethod( erm_table_footer_group );
+                cellCount += initTableRendMethods( child, 2 ); // > rowgroup
+                is_proper = true;
+            }
+            else if ( d==css_d_table_column_group ) {
+                child->setRendMethod( erm_table_column_group );
+                cellCount += initTableRendMethods( child, 1 ); // > colgroup
+                is_proper = true;
+            }
+            else if ( d==css_d_table_column ) {
+                child->setRendMethod( erm_table_column );
+                is_proper = true;
+            }
+            else if ( d==css_d_table_caption ) {
+                child->setRendMethod( erm_table_caption );
+                is_proper = true;
+            }
+            else if ( d==css_d_none ) {
+                child->setRendMethod( erm_invisible );
+                is_proper = true;
+            }
+            else if ( child->getNodeId()==el_tabularBox ) {
+                // Most probably added by us in a previous rendering
+                #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                    printf("initTableRendMethods(0): (reused)wrapping unproper > row\n");
+                #endif
+                child->setRendMethod( erm_table_row );
+                cellCount += initTableRendMethods( child, 3 ); // > row
+                is_proper = true;
             }
         }
+        else if ( state==2 ) { // in rowgroup
+            if ( d==css_d_table_row ) {
+                child->setRendMethod( erm_table_row );
+                cellCount += initTableRendMethods( child, 3 ); // > row
+                is_proper = true;
+            }
+            else if ( d==css_d_none ) {
+                child->setRendMethod( erm_invisible );
+                is_proper = true;
+            }
+            else if ( child->getNodeId()==el_tabularBox ) {
+                // Most probably added by us in a previous rendering
+                #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                    printf("initTableRendMethods(2): (reused)wrapping unproper > row\n");
+                #endif
+                child->setRendMethod( erm_table_row );
+                cellCount += initTableRendMethods( child, 3 ); // > row
+                is_proper = true;
+            }
+        }
+        else if ( state==3 ) { // in row
+            if ( d==css_d_table_cell ) {
+                child->setRendMethod( erm_table_cell );
+                cellCount++;
+                is_proper = true;
+                // This will reset the rend method we just set (erm_table_cell)
+                // to the most appropriate one (erm_final or erm_block) for
+                // rendering, depending on the cell content:
+                child->initNodeRendMethodRecursive();
+            }
+            else if ( d==css_d_none ) {
+                child->setRendMethod( erm_invisible );
+                is_proper = true;
+            }
+            else if ( child->getNodeId()==el_tabularBox ) {
+                // Most probably added by us in a previous rendering
+                #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                    printf("initTableRendMethods(3): (reused)wrapping unproper > cell\n");
+                #endif
+                child->setRendMethod( erm_table_cell );
+                cellCount++;
+                child->initNodeRendMethodRecursive();
+                is_proper = true;
+            }
+        }
+        else if ( state==1 ) { // in colgroup
+            if ( d==css_d_table_column ) {
+                child->setRendMethod( erm_table_column );
+                is_proper = true;
+            }
+            else {
+                // No need to tabularBox invalid colgroup children:
+                // they are not rendered, and should be considered
+                // as if display: none.
+                child->setRendMethod( erm_invisible );
+                is_proper = true;
+            }
+        }
+        else { // shouldn't be reached
+            crFatalError(151, "initTableRendMethods state unexpected");
+            // child->setRendMethod( erm_final );
+        }
+
+        // Check and deal with unproper children
+        if ( !is_proper ) { // Unproper child met
+            // printf("initTableRendMethods(%d): child %d is unproper\n", state, i);
+            if ( BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) && !enode->getDocument()->hasCacheFile() ) {
+                // We can insert a tabularBox element to wrap unproper elements
+                last_unproper = i;
+                if (first_unproper < 0)
+                    first_unproper = i;
+            }
+            else {
+                // Asked to not complete incomplete tables, or we can't insert
+                // tabularBox elements anymore
+                if ( !BLOCK_RENDERING_G(ENHANCED) ) {
+                    // Legacy behaviour was to just make invisible internal-table
+                    // elements that were not found in their proper internal-table
+                    // container, but let other non-internal-table elements be
+                    // (which might be rendered and drawn quite correctly when
+                    // they are erm_final/erm_block, but won't be if erm_inline).
+                    if ( d > css_d_table ) {
+                        child->setRendMethod( erm_invisible );
+                    }
+                }
+                else {
+                    // When in enhanced mode, we let the ones that could
+                    // be rendered and drawn quite correctly be. But we'll
+                    // have the others drawn as erm_killed, showing a small
+                    // symbol so users know some content is missing.
+                    if ( d > css_d_table || d == css_d_inline ) {
+                        child->setRendMethod( erm_killed );
+                    }
+                    // Note that there are other situations where some content
+                    // would not be shown when !COMPLETE_INCOMPLETE_TABLES, and
+                    // for which we are not really able to set some node as
+                    // erm_killed (for example, with TABLE > TABLE, the inner
+                    // one will be rendered, but the outer one would have
+                    // a height=0, and so the inner content will overflow
+                    // its container and will not be drawn...)
+                }
+                // (If it's because hasCacheFile(), we'd like to set a bogus
+                // display to provoke a displayHash change, but it would then
+                // stick if the user does not reload... Hopefully, if we're
+                // re-rendering with a cache file and are here and we do not
+                // find an existing tabularBox, styles have probably changed
+                // elsewhere...)
+            }
+        }
+        if ( first_unproper >= 0 && (is_proper || is_last) ) {
+            // We met unproper children, but we now have a proper child, or we're done:
+            // wrap all these consecutive unproper nodes inside a single tabularBox
+            // element with the proper rendering method.
+            #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                printf("initTableRendMethods(%d): wrapping unproper %d>%d\n",
+                            state, first_unproper, last_unproper);
+            #endif
+            int elems_removed = last_unproper - first_unproper + 1;
+            ldomNode * tbox = enode->boxWrapChildren(first_unproper, last_unproper, el_tabularBox);
+            if ( tbox && !tbox->isNull() ) {
+                elems_removed -= 1; // tabularBox added
+                if ( state==0 || state==2 ) { // in table or rowgroup
+                    // No real need to store the style as an attribute: it would
+                    // be remembered and re-used when styles change, and just
+                    // setting the appropriate rendering method is all that is
+                    // needed for rendering after this.
+                    // tbox->setAttributeValue(LXML_NS_NONE, enode->getDocument()->getAttrNameIndex(L"style"), L"display: table-row");
+                    tbox->initNodeStyle();
+                    tbox->setRendMethod( erm_table_row );
+                    cellCount += initTableRendMethods( tbox, 3 ); // > row
+                }
+                else if ( state==3 ) {
+                    tbox->initNodeStyle();
+                    tbox->setRendMethod( erm_table_cell );
+                    cellCount++;
+                    tbox->initNodeRendMethodRecursive(); // will reset rend method
+                }
+                else if ( state==1 ) { // should not happen, see above
+                    tbox->initNodeStyle();
+                    tbox->setRendMethod( erm_table_column );
+                }
+            }
+            // If tbox is NULL, all unproper have been removed, and no element added
+            if (is_last)
+                break;
+            // Account for what's been removed in our loop index and end
+            i -= elems_removed;
+            cnt -= elems_removed;
+            first_unproper = -1;
+            last_unproper = -1;
+        }
     }
-//    if ( state==0 ) {
-//        dumpRendMethods( enode, cs16("   ") );
-//    }
+    // if ( state==0 ) {
+    //     dumpRendMethods( enode, cs16("   ") );
+    // }
     return cellCount;
 }
 
@@ -5371,17 +5569,26 @@ void ldomNode::initNodeRendMethod()
     }
 
     // DEBUG TEST
-//    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
-//        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
-//    }
-//    if ( getNodeName() == "image" ) {
-//        CRLog::trace("Init log for image");
-//    }
+    // if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+    //     CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
+    // }
+    // if ( getNodeName() == "image" ) {
+    //     CRLog::trace("Init log for image");
+    // }
+
+    // Needed if COMPLETE_INCOMPLETE_TABLES, so have it updated along
+    // the way to avoid an extra loop for checking if we have some.
+    bool hasInternalTableItems = false;
 
     int d = getStyle()->display;
 
-    if ( hasInvisibleParent(this) ) {
-        // invisible
+    if ( hasInvisibleParent(this) ) { // (should be named isInvisibleOrHasInvisibleParent())
+        // Note: we could avoid that up-to-root-node walk for each node
+        // by inheriting css_d_none in setNodeStyle(), and just using
+        // "if ( d==css_d_none )" instead of hasInvisibleParent(this).
+        // But not certain this would have no side effect, and some
+        // quick tests show no noticeable change in rendering timing.
+        //
         //recurseElements( resetRendMethodToInvisible );
         setRendMethod(erm_invisible);
     } else if ( d==css_d_inline ) {
@@ -5392,6 +5599,13 @@ void ldomNode::initNodeRendMethod()
         // - nodes with float: which can stay block among inlines
         // - the inner content of inlineBoxes (the inlineBox is already inline)
         recurseMatchingElements( resetRendMethodToInline, isNotBoxWrappingNode );
+        // Note: this might need some re-thinking:
+        // - should we detectChildTypes(), and what to do with non-inline children?
+        //   - switch this node to block, and autoBox inline children ?
+        //   - switch the block children to inline-block (with width: 100%?)
+        // Some discussions about that "block inside inline" at:
+        //   https://github.com/w3c/csswg-drafts/issues/1477
+        //   https://stackoverflow.com/questions/1371307/displayblock-inside-displayinline
     } else if ( d==css_d_run_in ) {
         // runin
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
@@ -5401,16 +5615,32 @@ void ldomNode::initNodeRendMethod()
         // list item (no more used, obsolete rendering method)
         setRendMethod(erm_list_item);
     } else if ( d==css_d_table ) {
-        // table
+        // table: this will "Generate missing child wrappers" if needed
         initTableRendMethods( this, 0 );
-    } else if ( (d==css_d_inline_table || d==css_d_inline_block) && getNodeId()==el_table ) {
-        // table with inline-block or inline-table (other elements can have
-        // display: inline-table without being a table) should be rendered as table
-        // Note: inline-table support is not 100% per specs, we don't do as good as
+        // Not sure if we should do the same for the other css_d_table_* and
+        // call initTableRendMethods(this, 1/2/3) so that the "Generate missing
+        // child wrappers" step is done before the "Generate missing parents" step
+        // we might be doing below - to conform to the order of steps in the specs.
+    } else if ( d==css_d_inline_table && ( BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) || getNodeId()==el_table ) ) {
+        // Only if we're able to complete incomplete tables, or if this
+        // node is itself a <TABLE>. Otherwise, fallback to the following
+        // catch-all 'else' and render its content as block.
+        //   (Note that we should skip that if the node is an image, as
+        //   initTableRendMethods() would not be able to do anything with
+        //   it as it can't add children to an IMG. Hopefully, the specs
+        //   say replaced elements like IMG should not have table-like
+        //   display: values - which setNodeStyle() ensures.)
+        // Any element can have "display: inline-table", and if it's not
+        // a TABLE, initTableRendMethods() will complete/wrap it to make
+        // it possibly the single cell of a TABLE. This should naturally
+        // ensure all the differences between inline-block and inline-table.
         // https://stackoverflow.com/questions/19352072/what-is-the-difference-between-inline-block-and-inline-table/19352149#19352149
-        // explains. An element with display: inline-table needs to be a <table>
-        // to be rendered as a table.
         initTableRendMethods( this, 0 );
+        // Note: if (d==css_d_inline_block && getNodeId()==el_table), we
+        // should NOT call initTableRendMethods()! It should be rendered
+        // as a block, and if its children are actually TRs, they will be
+        // wrapped in a "missing parent" tabularBox wrapper that will
+        // have initTableRendMethods() called on it.
     } else {
         // block or final
         // remove last empty space text nodes
@@ -5435,9 +5665,16 @@ void ldomNode::initNodeRendMethod()
         // Note that FLOAT_FLOATBOXES requires having PREPARE_FLOATBOXES.
         bool handleFloating = BLOCK_RENDERING_G(PREPARE_FLOATBOXES);
 
-        detectChildTypes( this, hasBlockItems, hasInline, hasFloating, handleFloating );
+        detectChildTypes( this, hasBlockItems, hasInline, hasInternalTableItems, hasFloating, handleFloating );
         const css_elem_def_props_t * ntype = getElementTypePtr();
         if (ntype && ntype->is_object) { // image
+            // No reason to erm_invisible an image !
+            // And it has to be erm_final to be drawn (or set to erm_inline
+            // by some upper node).
+            // (Note that setNodeStyle() made sure an image can't be
+            // css_d_inline_table/css_d_table*, as per specs.)
+            setRendMethod( erm_final );
+            /* used to be:
             switch ( d )
             {
             case css_d_block:
@@ -5453,6 +5690,7 @@ void ldomNode::initNodeRendMethod()
                 recurseElements( resetRendMethodToInvisible );
                 break;
             }
+            */
         } else if ( hasBlockItems && !hasInline ) {
             // only blocks (or floating blocks) inside
             setRendMethod( erm_block );
@@ -5511,6 +5749,15 @@ void ldomNode::initNodeRendMethod()
             if ( getParentNode()->getNodeId()==el_autoBoxing ) {
                 // already autoboxed
                 setRendMethod( erm_final );
+                // This looks wrong: no reason to force child of autoBoxing to be
+                // erm_final: most often, the autoBoxing has been created to contain
+                // only inlines and set itself to be erm_final. So, it would have been
+                // caught by the 'else if ( !hasBlockItems && hasInline )' above and
+                // set to erm_final. If not, styles have changed, and it may contain
+                // a mess of styles: it might be better to proceed with the following
+                // cleanup (and have autoBoxing re-autoboxed... or not at all when
+                // a cache file is used, and we'll end up being erm_final anyway).
+                // But let's keep it, in case it handles some edge cases.
             } else {
                 // cleanup or autobox
                 int i=getChildCount()-1;
@@ -5518,9 +5765,10 @@ void ldomNode::initNodeRendMethod()
                     ldomNode * node = getChildNode(i);
 
                     // DEBUG TEST
-//                    if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
-//                        CRLog::error("Invalid parent->child relation for nodes %d->%d", getParentNode()->getDataIndex(), getDataIndex() );
-//                    }
+                    // if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
+                    //    CRLog::error("Invalid parent->child relation for nodes %d->%d",
+                    //              getParentNode()->getDataIndex(), getDataIndex() );
+                    // }
 
                     // We want to keep float:'ing nodes with inline nodes, so they stick with their
                     // siblings inline nodes in an autoBox: the erm_final autoBox will deal
@@ -5535,7 +5783,8 @@ void ldomNode::initNodeRendMethod()
                         j++;
                         // j..i are inline
                         if ( j>0 || i<(int)getChildCount()-1 )
-                            if  ( this->getDocument()->_cacheFile == NULL)
+                            // Avoid crash: we can't add/move nodes when a cache file exists
+                            if ( !this->getDocument()->hasCacheFile() )
                                 autoboxChildren( j, i, handleFloating );
                         i = j;
                     } else if ( i>0 ) {
@@ -5544,7 +5793,7 @@ void ldomNode::initNodeRendMethod()
                             // autobox run-in
                             if ( getChildCount()!=2 ) {
                                 CRLog::debug("Autoboxing run-in items");
-                                if  ( this->getDocument()->_cacheFile == NULL)
+                                if ( !this->getDocument()->hasCacheFile() )
                                     autoboxChildren( i-1, i, handleFloating );
                             }
                             i--;
@@ -5552,14 +5801,263 @@ void ldomNode::initNodeRendMethod()
                     }
                 }
                 // check types after autobox
-                detectChildTypes( this, hasBlockItems, hasInline, hasFloating, handleFloating );
+                detectChildTypes( this, hasBlockItems, hasInline, hasInternalTableItems, hasFloating, handleFloating );
                 if ( hasInline ) {
-                    // Final
+                    // Should not happen when autoboxing has been done above - but
+                    // if we couldn't, fallback to erm_final that will render all
+                    // children as inline
                     setRendMethod( erm_final );
                 } else {
-                    // Block
+                    // All inlines have been wrapped into block autoBoxing elements
+                    // (themselves erm_final): we can be erm_block
                     setRendMethod( erm_block );
                 }
+            }
+        }
+    }
+
+    if ( hasInternalTableItems && BLOCK_RENDERING_G(COMPLETE_INCOMPLETE_TABLES) && getRendMethod() == erm_block ) {
+        // We have only block items, whether the original ones or the
+        // autoBoxing nodes we created to wrap inlines, and all empty
+        // inlines have been removed.
+        // Some of these block items are css_d_table_cell, css_d_table_row...:
+        // if this node (their parent) has not the expected css_d_table_row
+        // or css_d_table display style, we are an unproper parent: we want
+        // to add the missing parent(s) as wrapper(s) between this node and
+        // these children.
+        // (If we ended up not being erm_block, and we contain css_d_table_*
+        // elements, everything is already messed up.)
+        // Note: we first used the same <autoBoxing> element used to box
+        // inlines as the table wrapper, which was fine, except in some edge
+        // cases where some real autoBoxing were wrongly re-used as the tabular
+        // wrapper (and we ended up having erm_final containing other erm_final
+        // which were handled just like erm_inline with ugly side effects...)
+        // So, best to introduce a decicated element: <tabularBox>.
+        //
+        // We follow rules from section "Generate missing parents" in:
+        //   https://www.w3.org/TR/CSS22/tables.html#anonymous-boxes
+        //   https://www.w3.org/TR/css-tables-3/#fixup (clearer than previous one)
+        // Note: we do that not in the order given by the specs... As we walk
+        // nodes deep first, we are here first "generating missing parents".
+        // When walking up, and meeting a real css_d_table element, or
+        // below when adding a generated erm_table tabularBox, we call
+        // initTableRendMethods(0), which will "generate missing child wrappers".
+        // Not really sure both orderings are equivalent, but let's hope it's ok...
+
+        // So, let's generate missing parents:
+
+        // "An anonymous table-row box must be generated around each sequence
+        // of consecutive table-cell boxes whose parent is not a table-row."
+        if ( d != css_d_table_row ) { // We're not a table row
+            // Look if we have css_d_table_cell that we must wrap in a proper erm_table_row
+            int last_table_cell = -1;
+            int first_table_cell = -1;
+            int last_visible_child = -1;
+            bool did_wrap = false;
+            int len = getChildCount();
+            for ( int i=len-1; i>=0; i-- ) {
+                ldomNode * child = getChildNode(i);
+                int cd = child->getStyle()->display;
+                int cm = child->getRendMethod();
+                if ( cd == css_d_table_cell ) {
+                    if ( last_table_cell < 0 ) {
+                        last_table_cell = i;
+                        // We've met a css_d_table_cell, see if it is followed by
+                        // tabularBox siblings we might have passed by: they might
+                        // have been added by initTableRendMethods as a missing
+                        // children of a css_d_table_row: make them part of the row.
+                        for (int j=i+1; j<getChildCount(); j++) {
+                            if ( getChildNode(j)->getNodeId()==el_tabularBox )
+                                last_table_cell = j;
+                            else
+                                break;
+                        }
+                    }
+                    if ( i == 0 )
+                        first_table_cell = 0;
+                    if ( last_visible_child < 0 )
+                        last_visible_child = i;
+                }
+                else if ( last_table_cell >= 0 && child->getNodeId()==el_tabularBox ) {
+                    // We've seen a css_d_table_cell and we're seeing a tabularBox:
+                    // it might have been added by initTableRendMethods as a missing
+                    // children of a css_d_table_row: make it part of the row
+                    if ( i == 0 )
+                        first_table_cell = 0;
+                    if ( last_visible_child < 0 )
+                        last_visible_child = i;
+                }
+                else if ( cd == css_d_none || cm == erm_invisible ) {
+                    // Can be left inside or outside the wrap
+                    if ( i == 0 && last_table_cell >= 0 ) {
+                        // Include it if first and we're wrapping
+                        first_table_cell = 0;
+                    }
+                }
+                else {
+                    if ( last_table_cell >= 0)
+                        first_table_cell = i+1;
+                    if ( last_visible_child < 0 )
+                        last_visible_child = i;
+                }
+                if ( first_table_cell >= 0 ) {
+                    if ( first_table_cell == 0 && last_table_cell == last_visible_child
+                                && getNodeId()==el_tabularBox && !did_wrap ) {
+                        // All children are table cells, and we're not css_d_table_row,
+                        // but we are a tabularBox!
+                        // We were most probably created here in a previous rendering,
+                        // so just set us to be the anonymous table row.
+                        #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                            printf("initNodeRendMethod: (reused)wrapping unproper table cells %d>%d\n",
+                                        first_table_cell, last_table_cell);
+                        #endif
+                        setRendMethod( erm_table_row );
+                    }
+                    else if ( !this->getDocument()->hasCacheFile() ) {
+                        // (We can only move/add nodes while we don't yet have a cache file)
+                        #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                            printf("initNodeRendMethod: wrapping unproper table cells %d>%d\n",
+                                        first_table_cell, last_table_cell);
+                        #endif
+                        ldomNode * tbox = boxWrapChildren(first_table_cell, last_table_cell, el_tabularBox);
+                        if ( tbox && !tbox->isNull() ) {
+                            tbox->initNodeStyle();
+                            tbox->setRendMethod( erm_table_row );
+                        }
+                        did_wrap = true;
+                    }
+                    last_table_cell = -1;
+                    first_table_cell = -1;
+                }
+            }
+        }
+
+        // "An anonymous table or inline-table box must be generated around each
+        // sequence of consecutive proper table child boxes which are misparented."
+        // Not sure if we should skip that for some values of this node's
+        // style->display among css_d_table*. Let's do as litterally as the specs.
+        int last_misparented = -1;
+        int first_misparented = -1;
+        int last_visible_child = -1;
+        bool did_wrap = false;
+        int len = getChildCount();
+        for ( int i=len-1; i>=0; i-- ) {
+            ldomNode * child = getChildNode(i);
+            int cd = child->getStyle()->display;
+            int cm = child->getRendMethod();
+            bool is_misparented = false;
+            if ( (cd == css_d_table_row || cm == erm_table_row)
+                            && d != css_d_table && d != css_d_table_row_group
+                            && d != css_d_table_header_group && d != css_d_table_footer_group ) {
+                // A table-row is misparented if its parent is neither a table-row-group
+                // nor a table-root box (we include by checking cm==erm_table_row any
+                // anonymous table row created just above).
+                is_misparented = true;
+            }
+            else if ( cd == css_d_table_column && d != css_d_table && d != css_d_table_column_group ) {
+                // A table-column box is misparented if its parent is neither
+                // a table-column-group box nor a table-root box.
+                is_misparented = true;
+            }
+            else if ( d != css_d_table && (cd == css_d_table_row_group || cd == css_d_table_header_group
+                                            || cd == css_d_table_footer_group || cd == css_d_table_column_group
+                                            || cd == css_d_table_caption ) ) {
+                // A table-row-group, table-column-group, or table-caption box is misparented
+                // if its parent is not a table-root box.
+                is_misparented = true;
+            }
+            if ( is_misparented ) {
+                if ( last_misparented < 0 ) {
+                    last_misparented = i;
+                    // As above for table cells: grab passed-by tabularBox siblings
+                    // to include them in the wrap
+                    for (int j=i+1; j<getChildCount(); j++) {
+                        if ( getChildNode(j)->getNodeId()==el_tabularBox )
+                            last_misparented = j;
+                        else
+                            break;
+                    }
+                }
+                if (i == 0)
+                    first_misparented = 0;
+                if ( last_visible_child < 0 )
+                    last_visible_child = i;
+            }
+            else if ( last_misparented >= 0 && child->getNodeId()==el_tabularBox ) {
+                // As above for table cells: include tabularBox siblings in the wrap
+                if (i == 0)
+                    first_misparented = 0;
+                if ( last_visible_child < 0 )
+                    last_visible_child = i;
+            }
+            else if ( cd == css_d_none || cm == erm_invisible ) {
+                // Can be left inside or outside the wrap
+                if ( i == 0 && last_misparented >= 0 ) {
+                    // Include it if first and we're wrapping
+                    first_misparented = 0;
+                }
+            }
+            else {
+                if ( last_misparented >= 0 )
+                    first_misparented = i+1;
+                if ( last_visible_child < 0 )
+                    last_visible_child = i;
+            }
+            if ( first_misparented >= 0 ) {
+                if ( first_misparented == 0 && last_misparented == last_visible_child
+                            && getNodeId()==el_tabularBox && !did_wrap ) {
+                    // All children are misparented, and we're not css_d_table,
+                    // but we are a tabularBox!
+                    // We were most probably created here in a previous rendering,
+                    // so just set us to be the anonymous table.
+                    #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                        printf("initNodeRendMethod: (reused)wrapping unproper table children %d>%d\n",
+                                    first_misparented, last_misparented);
+                    #endif
+                    setRendMethod( erm_table );
+                    initTableRendMethods( this, 0 );
+                }
+                else if ( !this->getDocument()->hasCacheFile() ) {
+                    // (We can only move/add nodes while we don't yet have a cache file)
+                    #ifdef DEBUG_INCOMPLETE_TABLE_COMPLETION
+                        printf("initNodeRendMethod: wrapping unproper table children %d>%d\n",
+                                    first_misparented, last_misparented);
+                    #endif
+                    ldomNode * tbox = boxWrapChildren(first_misparented, last_misparented, el_tabularBox);
+                    if ( tbox && !tbox->isNull() ) {
+                        tbox->initNodeStyle();
+                        tbox->setRendMethod( erm_table );
+                        initTableRendMethods( tbox, 0 );
+                    }
+                    did_wrap = true;
+                }
+                last_misparented = -1;
+                first_misparented = -1;
+                // Note:
+                //   https://www.w3.org/TR/css-tables-3/#fixup
+                //   "An anonymous table or inline-table box must be generated
+                //    around [...] If the box's parent is an inline, run-in, or
+                //    ruby box (or any box that would perform inlinification of
+                //    its children), then an inline-table box must be generated;
+                //    otherwise it must be a table box."
+                // We don't handle the "inline parent > inline-table" rule,
+                // because of one of the first checks at top of this function:
+                // if this node (the parent) is css_d_inline, we didn't have
+                // any detectChildTypes() and autoBoxing happening, stayed erm_inline
+                // and didn't enter this section to do the tabularBox wrapping.
+                // Changing this (incorrect) rule for css_d_inline opens many
+                // bigger issues, so let's not support this (rare) case here.
+                // So:
+                //   <div>Some text <span style="display: table-cell">table-cell</span> and more text.</div>
+                // will properly have the cell tabularBoxes'ed, which will be
+                // inserted between 2 autoBoxing (the text nodes), because their
+                // container is css_d_block DIV.
+                // While:
+                //   <div><span>Some text <span style="display: table-cell">table-cell</span> and more text.</span></div>
+                // as the container is a css_d_inline SPAN, nothing will happen
+                // and everything will be reset to erm_inline. The parent DIV
+                // will just see that it contains a single erm_inline SPAN,
+                // and won't do any boxing.
             }
         }
     }
@@ -5652,7 +6150,7 @@ void ldomNode::initNodeRendMethod()
                 // (If new floats appear after loading, we won't render well, but
                 // a style hash mismatch will happen and the user will be
                 // suggested to reload the book with cache cleaned.)
-                if ( parent && this->getDocument()->_cacheFile == NULL ) {
+                if ( parent && !this->getDocument()->hasCacheFile() ) {
                     // Replace this element with a floatBox in its parent children collection,
                     // and move it inside, as the single child of this floatBox.
                     int pos = getNodeIndex();
@@ -5789,7 +6287,7 @@ void ldomNode::initNodeRendMethod()
                 // (If new inline-block appear after loading, we won't render well,
                 // but a style hash mismatch will happen and the user will be
                 // suggested to reload the book with cache cleaned.)
-                if ( parent && this->getDocument()->_cacheFile == NULL ) {
+                if ( parent && !this->getDocument()->hasCacheFile() ) {
                     // Replace this element with a inlineBox in its parent children collection,
                     // and move it inside, as the single child of this inlineBox.
                     int pos = getNodeIndex();

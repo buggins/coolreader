@@ -29,8 +29,11 @@
 //=====================================================
 XS_BEGIN_TAGS
 
-// Internal element for block rendering
+// Internal element for block wrapping inline elements (without a proper parent
+// block container) among proper block siblings (would be better named "blockBox")
 XS_TAG1T( autoBoxing )
+// Internal element for tabular elements added to complete incomplete tables
+XS_TAG1T( tabularBox )
 // Internal element for float rendering
 XS_TAG1T( floatBox )
 // Internal element for inline-block and inline-table rendering

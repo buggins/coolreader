@@ -818,6 +818,11 @@ private:
 
 public:
 #if BUILD_LITE!=1
+    // Generic version of autoboxChildren() without any specific inline/block checking,
+    // accepting any element id (from the enum el_*, like el_div, el_tabularBox) as
+    // the wrapping element.
+    ldomNode * boxWrapChildren( int startIndex, int endIndex, lUInt16 elementId );
+
     /// if stylesheet file name is set, and file is found, set stylesheet to its value
     bool applyNodeStylesheet();
 

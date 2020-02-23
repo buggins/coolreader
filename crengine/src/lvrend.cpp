@@ -381,8 +381,20 @@ public:
                 //CRLog::trace("LookupElem[%d] (%s, %d) %d", i, LCSTR(item->getNodeName()), state, (int)item->getRendMethod() );
                 switch ( rendMethod ) {
                 case erm_invisible:  // invisible: don't render
-                case erm_killed:     // no room to render element
                     // do nothing: invisible
+                    break;
+                case erm_killed:     // no room to render element, or unproper table element
+                    {
+                        // We won't visit this element in PlaceCells() and renderCells(),
+                        // but we'll visit it in DrawDocument() as we walk the DOM tree.
+                        // Give it some width and height so we can draw a symbol so users
+                        // know there is some content missing.
+                        RenderRectAccessor fmt = RenderRectAccessor( item );
+                        fmt.setHeight( 15 ); // not squared, so it does not look
+                        fmt.setWidth( 10 );  // like a list square bullet
+                        fmt.setX( 0 );       // positionned at top left of its container
+                        fmt.setY( 0 );       // (which ought to be a proper table element)
+                    }
                     break;
                 case erm_table:      // table element: render as table
                     // do nothing: impossible
@@ -3779,6 +3791,14 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
             int m = enode->getRendMethod();
             switch( m )
             {
+            case erm_killed:
+                {
+                    // DrawDocument will render a small figure in this rect area
+                    fmt.setHeight( 15 ); // not squared, so it does not look
+                    fmt.setWidth( 10 );  // like a list square bullet
+                    return fmt.getHeight();
+                }
+                break;
             case erm_mixed:
                 {
                     // TODO: autoboxing not supported yet
@@ -6127,8 +6147,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     apply_style_width = true;
                 }
             }
-            else if ( style->display == css_d_table ) {
-                // Table with no style width can shrink.
+            else if ( style->display == css_d_table || m == erm_table ) {
+                // Table with no style width can shrink (and so can inline-table
+                // and anonymous incomplete-but-completed tables).
                 // If we are not ensuring style widths above, tables with
                 // a width will not shrink and will fit container width.
                 // (This should allow our table style tweaks to work
@@ -6400,7 +6421,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // any table, and we want the user to notice something is missing,
         // we set this element rendering method to erm_killed, and
         // DrawDocument will then render a small figure...
-        if (enode->getRendMethod() >= erm_table) {
+        if ( m >= erm_table && !(is_floatbox_child || is_inline_box_child) ) {
+            // (Avoid this with float or inline tables, that have been measured
+            // and can have a 0-width when they have no content.)
             printf("CRE WARNING: no width to draw %s\n", UnicodeToLocal(ldomXPointer(enode, 0).toString()).c_str());
             enode->setRendMethod( erm_killed );
             fmt.setHeight( 15 ); // not squared, so it does not look
@@ -7088,6 +7111,16 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     // Push our margin so it does not get collapsed with some later one
                     flow->pushVerticalMargin();
                 }
+                return;
+            }
+            break;
+        case erm_killed:
+            {
+                // DrawDocument will render a small figure in this rect area
+                fmt.setHeight( 15 ); // not squared, so it does not look
+                fmt.setWidth( 10 );  // like a list square bullet
+                // Let it be at the x/y decided above
+                flow->addContentLine( fmt.getHeight(), 0, fmt.getHeight() );
                 return;
             }
             break;
@@ -8244,8 +8277,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
 
     // init default style attribute values
     const css_elem_def_props_t * type_ptr = enode->getElementTypePtr();
-    if (type_ptr)
-    {
+    bool is_object = false;
+    if (type_ptr) {
+        is_object = type_ptr->is_object;
         pstyle->display = type_ptr->display;
         pstyle->white_space = type_ptr->white_space;
 
@@ -8322,13 +8356,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     //////////////////////////////////////////////////////
     enode->getDocument()->applyStyle( enode, pstyle );
 
-    // Ensure any <stylesheet> element (that crengine "added BODY>stylesheet child
-    // element with HEAD>STYLE&LINKS content") stays invisible (it could end up being
-    // made visible when some book stylesheet contains "body > * {display: block;}")
-    if (enode->getNodeId() == el_stylesheet) {
-        pstyle->display = css_d_none;
-    }
-
+    //////////////////////////////////////////////////////
+    // apply node style= attribute
+    //////////////////////////////////////////////////////
     if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
         lString16 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
         if ( !nodeStyle.empty() ) {
@@ -8343,6 +8373,60 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                 decl.apply( pstyle );
             }
         }
+    }
+
+    // As per-specs (and to avoid checking edge cases in initNodeRendMethod()):
+    // https://www.w3.org/TR/css-tables-3/#table-structure
+    //  "Authors should not assign a display type from the previous
+    //  list [inline-table & table*] to replaced elements (eg: input
+    //  fields or images). When the display property of a replaced
+    //  element computes to one of these values, it is handled
+    //  instead as though the author had declared either block
+    //  (for table display) or inline (for all other values).
+    // Also:
+    //  "This is a breaking change from css 2.1 but matches implementations."
+    // The fallback values was different per-browser, as seen in:
+    //  https://github.com/w3c/csswg-drafts/issues/508
+    // but the discussion resolved it to:
+    // - All internal 'table-*' displays on replaced elements behave as 'inline'.
+    // - 'table' falls back to 'block', 'inline-table' falls back to 'inline'
+    //
+    // Note that with this bogus HTML snippet:
+    //   <table style="border: solid 1px black">
+    //     <img src="some.png" style="display: table-cell"/>
+    //     <tr><img src="some.png" style="display: table-cell"/><td>text</td></tr>
+    //     <tr><td>text in table cell</td><td>text</td></tr>
+    //   </table
+    // Firefox would draw both images before/outside of the table border
+    // (so, making them inline and moving them outside the table),
+    // while we will keep them inline inside the table, and wrapped
+    // into tabularBoxes acting as the missing table elements.
+    if ( is_object ) {
+        switch ( pstyle->display ) {
+            case css_d_table:
+                pstyle->display = css_d_block;
+                break;
+            case css_d_table_row_group:
+            case css_d_table_header_group:
+            case css_d_table_footer_group:
+            case css_d_table_row:
+            case css_d_table_column_group:
+            case css_d_table_column:
+            case css_d_table_cell:
+            case css_d_table_caption:
+            case css_d_inline_table:
+                pstyle->display = css_d_inline;
+                break;
+            default:
+                break;
+        }
+    }
+
+    // Ensure any <stylesheet> element (that crengine "added BODY>stylesheet child
+    // element with HEAD>STYLE&LINKS content") stays invisible (it could end up being
+    // made visible when some book stylesheet contains "body > * {display: block;}")
+    if (enode->getNodeId() == el_stylesheet) {
+        pstyle->display = css_d_none;
     }
 
     if ( BLOCK_RENDERING_G(PREPARE_FLOATBOXES) ) {

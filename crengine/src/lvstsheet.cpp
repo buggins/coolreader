@@ -3188,8 +3188,8 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc )
                 // is shorter than the shortest of them (floatBox)
                 element = element.lowercase();
             }
-            else if (element != "DocFragment" && element != "autoBoxing" && element != "floatBox"
-                                              && element != "inlineBox"  && element != "FictionBook" ) {
+            else if ( element != "DocFragment" && element != "autoBoxing" && element != "tabularBox" &&
+                      element != "floatBox"    && element != "inlineBox"  && element != "FictionBook" ) {
                 element = element.lowercase();
             }
             _id = doc->getElementNameIndex( element.c_str() );
