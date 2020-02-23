@@ -3894,7 +3894,9 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     int doc_x = 0 - fmt.getX();
                     int doc_y = 0 - fmt.getY();
                     int dx = m_pbuffer->width;
-                    int dy = m_pbuffer->page_height;
+                    int dy = frmline->height; // can be > m_pbuffer->page_height
+                            // A frmline can be bigger than page_height, if
+                            // this inlineBox contains many long paragraphs
                     int page_height = m_pbuffer->page_height;
                     if ( absmarks_update_needed ) {
                         getAbsMarksFromMarks(marks, absmarks, node);
