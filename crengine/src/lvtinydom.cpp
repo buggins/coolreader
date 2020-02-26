@@ -8464,10 +8464,18 @@ lString16 ldomXPointer::toStringV2()
         return path;
     ldomNode * node = getNode();
     int offset = getOffset();
-    if ( offset >= 0 ) {
-        path << "." << fmt::decimal(offset);
-    }
     ldomNode * p = node;
+    if ( !node->isBoxingNode() ) {
+        if ( offset >= 0 ) {
+            path << "." << fmt::decimal(offset);
+        }
+    }
+    else {
+        if ( offset < p->getChildCount() )
+            p = p->getChildNode(offset);
+        else
+            p = p->getParentNode();
+    }
     ldomNode * mainNode = node->getDocument()->getRootNode();
     while (p && p!=mainNode) {
         ldomNode * parent = p->getParentNode();
