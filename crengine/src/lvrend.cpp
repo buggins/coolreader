@@ -2530,7 +2530,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         if (style->line_height.type != css_val_screen_px && gInterlineScaleFactor != INTERLINE_SCALE_FACTOR_NO_SCALE)
             line_h = (line_h * gInterlineScaleFactor) >> INTERLINE_SCALE_FACTOR_SHIFT;
 
-        if ((flags & LTEXT_FLAG_NEWLINE) && rm != erm_inline) {
+        if ((flags & LTEXT_FLAG_NEWLINE) && rm != erm_inline && rm != erm_runin) {
             // Non-inline node in a final block: this is the top and single 'final' node:
             // get text-indent and line-height that will apply to the full final block
 

@@ -3871,7 +3871,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString16Collection
             // rendering method, which gives us a visual hint of it.
             lvdom_element_render_method rm = node->getRendMethod();
             // Text and inline nodes stay stuck together, but not all others
-            if (rm != erm_inline || node->isBoxingInlineBox()) {
+            if ( (rm != erm_inline && rm != erm_runin) || node->isBoxingInlineBox()) {
                 doNewLineBeforeStartTag = true;
                 doNewLineAfterStartTag = true;
                 // doNewLineBeforeEndTag = false; // done by child elements
@@ -5794,16 +5794,60 @@ void ldomNode::initNodeRendMethod()
                             if ( !this->getDocument()->hasCacheFile() )
                                 autoboxChildren( j, i, handleFloating );
                         i = j;
-                    } else if ( i>0 ) {
+                    }
+                    else if ( i>0 ) {
+                        // This node is not inline, but might be preceeded by a css_d_run_in node:
+                        // https://css-tricks.com/run-in/
+                        // https://developer.mozilla.org/en-US/docs/Web/CSS/display
+                        //   "If the adjacent sibling of the element defined as "display: run-in" box
+                        //   is a block box, the run-in box becomes the first inline box of the block
+                        //   box that follows it. "
+                        // Hopefully only used for footnotes in fb2 where the footnote number
+                        // is in a block element, and the footnote text in another.
+                        // fb2.css sets the first block to be "display: run-in" as an
+                        // attempt to render both on the same line:
+                        //   <section id="n1">
+                        //     <title style="display: run-in; font-weight: bold;">
+                        //       <p>1</p>
+                        //     </title>
+                        //     <p>Text footnote</p>
+                        //   </section>
+                        //
+                        // This node might be that second block: look if preceeding node
+                        // is "run-in", and if it is, bring them both in an autoBoxing.
                         ldomNode * prev = getChildNode(i-1);
-                        if ( prev->isElement() && prev->getRendMethod()==erm_runin ) {
-                            // autobox run-in
-                            if ( getChildCount()!=2 ) {
-                                CRLog::debug("Autoboxing run-in items");
-                                if ( !this->getDocument()->hasCacheFile() )
-                                    autoboxChildren( i-1, i, handleFloating );
+                        ldomNode * inBetweenTextNode = NULL;
+                        if ( prev->isText() && i-1>0 ) { // some possible empty text in between
+                            inBetweenTextNode = prev;
+                            prev = getChildNode(i-2);
+                        }
+                        if ( prev->isElement() && prev->getRendMethod()==erm_runin && !this->getDocument()->hasCacheFile() ) {
+                            bool do_autoboxing = true;
+                            int run_in_idx = inBetweenTextNode ? i-2 : i-1;
+                            int block_idx = i;
+                            if ( inBetweenTextNode ) {
+                                lString16 text = inBetweenTextNode->getText();
+                                if ( IsEmptySpace(text.c_str(), text.length() ) ) {
+                                    removeChildren(i-1, i-1);
+                                    block_idx = i-1;
+                                }
+                                else {
+                                    do_autoboxing = false;
+                                }
                             }
-                            i--;
+                            if ( do_autoboxing ) {
+                                CRLog::debug("Autoboxing run-in items");
+                                // Sadly, to avoid having an erm_final inside another erm_final,
+                                // we need to reset the block node to be inline (but that second
+                                // erm_final would have been handled as inline anyway, except
+                                // for possibly updating the strut height/baseline).
+                                node->recurseMatchingElements( resetRendMethodToInline, isNotBoxingInlineBoxNode );
+                                // No need to autobox if there are only 2 children (the run-in and this box)
+                                if ( getChildCount()!=2 ) { // autobox run-in
+                                    autoboxChildren( run_in_idx, block_idx, handleFloating );
+                                }
+                            }
+                            i = run_in_idx;
                         }
                     }
                 }
