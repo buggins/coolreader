@@ -1483,9 +1483,11 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                         }
                         strValue = joinPropertyValueList( list );
                     }
-                    // default to serif generic font-family
+                    // default to sans-serif generic font-family (the default
+                    // in lvfntman.cpp, as FreeType can't know the family of
+                    // a font)
                     if (n == -1)
-                        n = 1;
+                        n = css_ff_sans_serif;
                 }
                 break;
             case cssd_font_style:
