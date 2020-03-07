@@ -62,6 +62,7 @@ enum propIndex {
     pi_align,
     pi_intbl,
     pi_imgfmt,
+    pi_bin,
     pi_max
 };
 
@@ -168,6 +169,7 @@ public:
     virtual void OnAction( int action ) = 0;
     virtual void OnControlWord( const char * control, int param ) = 0;
     virtual void OnText( const lChar16 * text, int len, lUInt32 flags ) = 0;
+    virtual void OnBlob(const lUInt8 * data, int size) = 0;
     virtual void SetCharsetTable(const lChar16 * table);
     virtual ~LVRtfDestination() { }
 };
