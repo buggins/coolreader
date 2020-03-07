@@ -14,7 +14,7 @@ public class MainDB extends BaseDB {
 	public static final Logger vlog = L.create("mdb", Log.VERBOSE);
 	
 	private boolean pathCorrectionRequired = false;
-	public final int DB_VERSION = 28;
+	public final int DB_VERSION = 29;
 	@Override
 	protected boolean upgradeSchema() {
 		if (mDB.needUpgrade(DB_VERSION)) {
@@ -145,6 +145,58 @@ public class MainDB extends BaseDB {
 				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN crc32 INTEGER DEFAULT NULL");
 				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN domVersion INTEGER DEFAULT 0");
 				execSQLIgnoreErrors("ALTER TABLE book ADD COLUMN rendFlags INTEGER DEFAULT 0");
+			}
+			if (currentVersion < 29) {
+				// After adding support for the 'fb3' and 'docx' formats in version 3.2.33,
+				// the 'format' field in the 'book' table becomes invalid because the enum DocumentFormat has been changed.
+				// So, after reading this field from the database, we must recheck the format by pathname.
+				// TODO: check format by mime-type or file contents...
+				log.i("Update 'format' field in table 'book'...");
+				Cursor rs = null;
+				HashMap<Long, Long> formatsMap = new HashMap<Long, Long>();
+				try {
+					String sql = "SELECT id, pathname, format FROM book";
+					rs = mDB.rawQuery(sql, null);
+					if ( rs.moveToFirst() ) {
+						do {
+							Long id = rs.getLong(0);
+							String pathname = rs.getString(1);
+							Long old_format = rs.getLong(2);
+							DocumentFormat new_format = DocumentFormat.byExtension(pathname);
+							if (null != new_format && old_format != new_format.ordinal())
+								formatsMap.put(id, (long) new_format.ordinal());
+						} while (rs.moveToNext());
+					}
+				} catch (Exception e) {
+					Log.e("cr3", "exception while reading format", e);
+				} finally {
+					if ( rs!=null )
+						rs.close();
+				}
+				// Save new format in table 'book'...
+				if (!formatsMap.isEmpty()) {
+					SQLiteStatement stmt = null;
+					int updatedCount = 0;
+					try {
+						mDB.beginTransaction();
+						stmt = mDB.compileStatement("UPDATE book SET format = ? WHERE id = ?");
+						for (Map.Entry<Long, Long> record : formatsMap.entrySet() ) {
+							stmt.clearBindings();
+							stmt.bindLong(1, record.getValue());
+							stmt.bindLong(2, record.getKey());
+							stmt.execute();
+							updatedCount++;
+						}
+						mDB.setTransactionSuccessful();
+						vlog.i("Updated " + updatedCount + " records with invalid format.");
+					} catch (Exception e) {
+						Log.e("cr3", "exception while reading format", e);
+					} finally {
+						if (null != stmt)
+							stmt.close();
+						mDB.endTransaction();
+					}
+				}
 			}
 
 			//==============================================================
