@@ -162,9 +162,11 @@ public class MainDB extends BaseDB {
 							Long id = rs.getLong(0);
 							String pathname = rs.getString(1);
 							Long old_format = rs.getLong(2);
-							DocumentFormat new_format = DocumentFormat.byExtension(pathname);
-							if (null != new_format && old_format != new_format.ordinal())
-								formatsMap.put(id, (long) new_format.ordinal());
+							if (old_format > 1) {		// skip 'none', 'fb2' - ordinal is not changed
+								DocumentFormat new_format = DocumentFormat.byExtension(pathname);
+								if (null != new_format && old_format != new_format.ordinal())
+									formatsMap.put(id, (long) new_format.ordinal());
+							}
 						} while (rs.moveToNext());
 					}
 				} catch (Exception e) {

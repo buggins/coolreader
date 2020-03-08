@@ -19,6 +19,7 @@ typedef enum {
     doc_format_pdb,
     doc_format_max = doc_format_pdb
     // don't forget update getDocFormatName() when changing this enum
+    // Add new types of formats only at the end of this enum to save the correct format number in the history file/database!
 } doc_format_t;
 
 lString16 LVDocFormatName(int fmt);

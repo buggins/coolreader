@@ -4,6 +4,7 @@ import org.coolreader.R;
 
 public enum DocumentFormat {
 	/// lvtinydom.h: source document formats
+	// Add new types of formats only at the end of this enum to save the correct format number in the history file/database!
 	//typedef enum {
 	NONE("fb2.css", R.raw.fb2, R.drawable.cr3_browser_book, false, false, 0, 
 			new String[] {},
