@@ -273,9 +273,9 @@ protected:
     ldomTextStorageChunk * _activeChunk;
     ldomTextStorageChunk * _recentChunk;
     CacheFile * _cache;
-    int _uncompressedSize;
-    int _maxUncompressedSize;
-    int _chunkSize;
+    lUInt32 _uncompressedSize;
+    lUInt32 _maxUncompressedSize;
+    lUInt32 _chunkSize;
     char _type;       /// type, to show in log
     bool _maxSizeReachedWarned;
     ldomTextStorageChunk * getChunk( lUInt32 address );
@@ -290,7 +290,7 @@ public:
     void setCache( CacheFile * cache );
     /// checks buffer sizes, compacts most unused chunks
     void compact( int reservedSpace );
-    int getUncompressedSize() { return _uncompressedSize; }
+    lUInt32 getUncompressedSize() { return _uncompressedSize; }
 #if BUILD_LITE!=1
     /// allocates new text node, return its address inside storage
     lUInt32 allocText( lUInt32 dataIndex, lUInt32 parentIndex, const lString8 & text );
@@ -322,7 +322,7 @@ public:
     /// set element style data item
     void setStyleData( lUInt32 elemDataIndex, const ldomNodeStyleInfo * src );
 
-    ldomDataStorageManager( tinyNodeCollection * owner, char type, int maxUnpackedSize, int chunkSize );
+    ldomDataStorageManager( tinyNodeCollection * owner, char type, lUInt32 maxUnpackedSize, lUInt32 chunkSize );
     ~ldomDataStorageManager();
 };
 
@@ -383,9 +383,9 @@ public:
     /// create empty buffer
     ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index);
     /// create chunk to be read from cache file
-    ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index, int compsize, int uncompsize);
+    ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index, lUInt32 compsize, lUInt32 uncompsize);
     /// create with preallocated buffer, for raw access
-    ldomTextStorageChunk(int preAllocSize, ldomDataStorageManager * manager, lUInt16 index);
+    ldomTextStorageChunk(lUInt32 preAllocSize, ldomDataStorageManager * manager, lUInt16 index);
     ~ldomTextStorageChunk();
 };
 

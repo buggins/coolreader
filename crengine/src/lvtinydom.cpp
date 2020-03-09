@@ -88,7 +88,11 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 //=====================================================
 
 #ifndef DOC_BUFFER_SIZE
-#define DOC_BUFFER_SIZE 0xA00000 // default buffer size
+#define DOC_BUFFER_SIZE 0x00A00000UL // default buffer size
+#endif
+
+#if DOC_BUFFER_SIZE >= 0x7FFFFFFFUL
+#error DOC_BUFFER_SIZE value is too large. This results in integer overflow.
 #endif
 
 //--------------------------------------------------------
@@ -1885,10 +1889,10 @@ tinyNodeCollection::tinyNodeCollection()
 , _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeStylesInvalidIfLoading(false)
 #endif
-, _textStorage(this, 't', (int)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
-, _elemStorage(this, 'e', (int)(ELEM_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
-, _rectStorage(this, 'r', (int)(RECT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), RECT_CACHE_CHUNK_SIZE ) // element render rect storage
-, _styleStorage(this, 's', (int)(STYLE_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), STYLE_CACHE_CHUNK_SIZE ) // element style info storage
+, _textStorage(this, 't', (lUInt32)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
+, _elemStorage(this, 'e', (lUInt32)(ELEM_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
+, _rectStorage(this, 'r', (lUInt32)(RECT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), RECT_CACHE_CHUNK_SIZE ) // element render rect storage
+, _styleStorage(this, 's', (lUInt32)(STYLE_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), STYLE_CACHE_CHUNK_SIZE ) // element style info storage
 ,_docProps(LVCreatePropsContainer())
 ,_docFlags(DOC_FLAG_DEFAULTS)
 ,_fontMap(113)
@@ -1922,10 +1926,10 @@ tinyNodeCollection::tinyNodeCollection( tinyNodeCollection & v )
 , _nodeDisplayStyleHashInitial(NODE_DISPLAY_STYLE_HASH_UNITIALIZED)
 , _nodeStylesInvalidIfLoading(false)
 #endif
-, _textStorage(this, 't', (int)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
-, _elemStorage(this, 'e', (int)(ELEM_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
-, _rectStorage(this, 'r', (int)(RECT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), RECT_CACHE_CHUNK_SIZE ) // element render rect storage
-, _styleStorage(this, 's', (int)(STYLE_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), STYLE_CACHE_CHUNK_SIZE ) // element style info storage
+, _textStorage(this, 't', (lUInt32)(TEXT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), TEXT_CACHE_CHUNK_SIZE ) // persistent text node data storage
+, _elemStorage(this, 'e', (lUInt32)(ELEM_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), ELEM_CACHE_CHUNK_SIZE ) // persistent element data storage
+, _rectStorage(this, 'r', (lUInt32)(RECT_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), RECT_CACHE_CHUNK_SIZE ) // element render rect storage
+, _styleStorage(this, 's', (lUInt32)(STYLE_CACHE_UNPACKED_SPACE*_storageMaxUncompressedSizeFactor), STYLE_CACHE_CHUNK_SIZE ) // element style info storage
 ,_docProps(LVCreatePropsContainer())
 ,_docFlags(v._docFlags)
 ,_stylesheet(v._stylesheet)
@@ -2740,7 +2744,7 @@ void ldomDataStorageManager::compact( int reservedSpace )
 
 // max 512K of uncompressed data (~8 chunks)
 #define DEF_MAX_UNCOMPRESSED_SIZE 0x80000
-ldomDataStorageManager::ldomDataStorageManager( tinyNodeCollection * owner, char type, int maxUnpackedSize, int chunkSize )
+ldomDataStorageManager::ldomDataStorageManager( tinyNodeCollection * owner, char type, lUInt32 maxUnpackedSize, lUInt32 chunkSize )
 : _owner( owner )
 , _activeChunk(NULL)
 , _recentChunk(NULL)
@@ -2758,7 +2762,7 @@ ldomDataStorageManager::~ldomDataStorageManager()
 }
 
 /// create chunk to be read from cache file
-ldomTextStorageChunk::ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index, int compsize, int uncompsize)
+ldomTextStorageChunk::ldomTextStorageChunk(ldomDataStorageManager * manager, lUInt16 index, lUInt32 compsize, lUInt32 uncompsize)
 	: _manager(manager)
 	, _nextRecent(NULL)
 	, _prevRecent(NULL)
@@ -2772,7 +2776,7 @@ ldomTextStorageChunk::ldomTextStorageChunk(ldomDataStorageManager * manager, lUI
     CR_UNUSED(compsize);
 }
 
-ldomTextStorageChunk::ldomTextStorageChunk(int preAllocSize, ldomDataStorageManager * manager, lUInt16 index)
+ldomTextStorageChunk::ldomTextStorageChunk(lUInt32 preAllocSize, ldomDataStorageManager * manager, lUInt16 index)
 	: _manager(manager)
 	, _nextRecent(NULL)
 	, _prevRecent(NULL)
