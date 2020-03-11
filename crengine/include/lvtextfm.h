@@ -258,6 +258,13 @@ typedef struct
 
    // Highlighting
    text_highlight_options_t highlight_options; /**< options for selection/bookmark highlighting */
+
+   // Reusable after it is cached by ldomNode::renderFinalBlock()
+   // (Usually true, except in a single case: first rendering of final block
+   // containing embedded blocks, where we want the first rendering to forward
+   // these embedded blocks individual lines, for page splitting - a second
+   // rendering, with proper inlineBox lines will be needed for drawing.)
+   bool                  is_reusable;
 } formatted_text_fragment_t;
 
 /**  Alloc & init formatted text buffer
@@ -425,6 +432,8 @@ public:
     }
 
     void Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * marks = NULL,  ldomMarkedRangeList *bookmarks = NULL );
+
+    bool isReusable() { return m_pbuffer->is_reusable; }
 
     LFormattedText() { m_pbuffer = lvtextAllocFormatter( 0 ); }
 

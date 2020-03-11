@@ -15961,12 +15961,16 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     lvdom_element_render_method rm = getRendMethod();
 
     if ( cache.get( this, f ) ) {
-        frmtext = f;
-        if ( rm != erm_final && rm != erm_list_item && rm != erm_table_caption )
-            return 0;
-        //RenderRectAccessor fmt( this );
-        //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
-        return fmt->getHeight();
+        if ( f->isReusable() ) {
+            frmtext = f;
+            if ( rm != erm_final && rm != erm_list_item && rm != erm_table_caption )
+                return 0;
+            //RenderRectAccessor fmt( this );
+            //CRLog::trace("Found existing formatted object for node #%08X", (lUInt32)this);
+            return fmt->getHeight();
+        }
+        // Not resuable: remove it, just to be sure it's properly freed
+        cache.remove( this );
     }
     f = getDocument()->createFormattedText();
     if ( (rm != erm_final && rm != erm_list_item && rm != erm_table_caption) )
