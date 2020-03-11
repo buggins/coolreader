@@ -3043,6 +3043,7 @@ public:
 
             // Find candidates where end of line is possible
             bool seen_non_collapsed_space = false;
+            bool seen_first_rendered_char = false;
             for ( i=pos; i<m_length; i++ ) {
                 if ( (m_flags[i] & LCHAR_IS_OBJECT) && (m_charindex[i] == FLOAT_CHAR_INDEX) ) { // float
                     src_text_fragment_t * src = m_srcs[i];
@@ -3068,6 +3069,18 @@ public:
                     continue;
                 }
                 lUInt16 flags = m_flags[i];
+                // We would not need to bother with LCHAR_IS_COLLAPSED_SPACE, as they have zero
+                // width and so can be grabbed here. They carry LCHAR_ALLOW_WRAP_AFTER just like
+                // a space, so they will set lastNormalWrap.
+                // But we don't want any collapsed space at start to make a new line if the
+                // following text is a long word that doesn't fit in the available width (which
+                // can happen in a small table cell). So, ignore them at start of line:
+                if (!seen_non_collapsed_space) {
+                    if (flags & LCHAR_IS_COLLAPSED_SPACE)
+                        continue;
+                    else
+                        seen_non_collapsed_space = true;
+                }
                 if ( m_text[i]=='\n' ) {
                     lastMandatoryWrap = i;
                     break;
@@ -3095,6 +3108,23 @@ public:
                         w0 += orig_width - width;
                     }
                 }
+                if ( !seen_first_rendered_char ) {
+                    seen_first_rendered_char = true;
+                    // First real non ignoreable char (collapsed spaces skipped):
+                    // it might be a wide image or inlineBox. Check that we have
+                    // enough current width to have it on this line, otherwise,
+                    // move down until we find a y where it would fit (but only
+                    // if we're sure we'll find some)
+                    int needed_width = x + m_widths[i]-w0;
+                    if ( needed_width > maxWidth && needed_width <= m_pbuffer->width ) {
+                        // Find y with available needed_width
+                        int unused_x;
+                        // todo: provide the height of the image or inline-box
+                        int new_y = getYWithAvailableWidth(m_y, needed_width, m_pbuffer->strut_height, unused_x);
+                        fillAndMoveToY( new_y );
+                        maxWidth = getCurrentLineWidth();
+                    }
+                }
                 bool grabbedExceedingSpace = false;
                 if ( x + m_widths[i]-w0 > maxWidth + spaceReduceWidth - firstCharMargin) {
                     // It's possible the char at i is a space whose width exceeds maxWidth,
@@ -3112,18 +3142,6 @@ public:
                 //  || lGetCharProps(m_text[i]) == 0
                 // but this does not look right, as any other unicode char would allow wrap.
                 //
-                // We would not need to bother with LCHAR_IS_COLLAPSED_SPACE, as they have zero
-                // width and so can be grabbed here. They carry LCHAR_ALLOW_WRAP_AFTER just like
-                // a space, so they will set lastNormalWrap.
-                // But we don't want any collapsed space at start to make a new line if the
-                // following text is a long word that doesn't fit in the available width (which
-                // can happen in a small table cell). So, ignore them at start of line:
-                if (!seen_non_collapsed_space) {
-                    if (flags & LCHAR_IS_COLLAPSED_SPACE)
-                        continue;
-                    else
-                        seen_non_collapsed_space = true;
-                }
                 // A space or a CJK ideograph make a normal allowed wrap
                 if ((flags & LCHAR_ALLOW_WRAP_AFTER) || isCJKIdeograph(m_text[i])) {
                     // Need to check if previous and next non-space char request a wrap on
