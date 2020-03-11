@@ -3643,6 +3643,12 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
         //   content in the other bodies should be accessible by hyperlinks. Name
         //   attribute should describe the meaning of this body, this is optional
         //   for the main body.
+        /* Don't do that anymore in this hardcoded / not disable'able way: one can
+         * enable in-page footnotes in fb2.css or a style tweak by just using:
+         *     body[name="notes"] section    { -cr-hint: footnote-inpage; }
+         *     body[name="comments"] section { -cr-hint: footnote-inpage; }
+         * which will be hanbled by previous check.
+         *
         if ( enode->getNodeId()==el_section && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) {
             ldomNode * body = enode->getParentNode();
             while ( body != NULL && body->getNodeId()!=el_body )
@@ -3654,6 +3660,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                         isFootNoteBody = true;
             }
         }
+        */
 //        if ( isFootNoteBody )
 //            CRLog::trace("renderBlockElement() : Footnote body detected! %s", LCSTR(ldomXPointer(enode,0).toString()) );
         //if (!fmt)
@@ -5918,10 +5925,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     //   content in the other bodies should be accessible by hyperlinks. Name
     //   attribute should describe the meaning of this body, this is optional
     //   for the main body.
-    /* Don't do that anymore in this hardcoded / not disable'able way (but
-     * let's have it still be done that way in legacy mode, as FB2 readers
-     * may expect it): one can enable in-page footnotes in fb2.css or
-     * a style tweak by just using:
+    /* Don't do that anymore in this hardcoded / not disable'able way: one can
+     * enable in-page footnotes in fb2.css or a style tweak by just using:
      *     body[name="notes"] section    { -cr-hint: footnote-inpage; }
      *     body[name="comments"] section { -cr-hint: footnote-inpage; }
      * which will be hanbled by previous check.
