@@ -87,7 +87,7 @@ int gDOMVersionRequested     = DOM_VERSION_CURRENT;
 #define CACHE_FILE_FORMAT_VERSION "3.12.59"
 
 /// increment following value to force re-formatting of old book after load
-#define FORMATTING_VERSION_ID 0x001F
+#define FORMATTING_VERSION_ID 0x0020
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -5545,7 +5545,33 @@ bool ldomNode::isBoxingInlineBox()
             if (d == css_d_inline_block || d == css_d_inline_table) {
                 return true;
             }
+            return isEmbeddedBlockBoxingInlineBox(true); // avoid rechecking what we just checked
         }
+    }
+    return false;
+}
+
+/// is node an inlineBox that wraps a bogus embedded block (not inline-block/inline-table)
+/// can be called with inline_box_checks_done=true when isBoxingInlineBox() has already
+/// been called to avoid rechecking what is known
+bool ldomNode::isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done)
+{
+    if ( !inline_box_checks_done ) {
+        if ( getNodeId() != el_inlineBox || !BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) )
+            return false;
+        if (getChildCount() != 1)
+            return false;
+        css_display_t d = getChildNode(0)->getStyle()->display;
+        if (d == css_d_inline_block || d == css_d_inline_table) {
+            return false; // regular boxing inlineBox
+        }
+    }
+    if ( hasAttribute( attr_type ) ) { // type="EmbeddedBlock"
+            // (no other possible value yet, no need to compare strings)
+        int cm = getChildNode(0)->getRendMethod();
+        if ( cm == erm_inline || cm == erm_runin || cm == erm_invisible || cm == erm_killed )
+            return false; // child has been reset to inline
+        return true;
     }
     return false;
 }
@@ -5602,20 +5628,137 @@ void ldomNode::initNodeRendMethod()
         //recurseElements( resetRendMethodToInvisible );
         setRendMethod(erm_invisible);
     } else if ( d==css_d_inline ) {
-        //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
-        // inline: an inline parent resets all its children to inline
-        // (so, if some block content is erroneously wrapped in a SPAN, all
-        // the content become inline...), except, depending on what's enabled:
-        // - nodes with float: which can stay block among inlines
-        // - the inner content of inlineBoxes (the inlineBox is already inline)
-        recurseMatchingElements( resetRendMethodToInline, isNotBoxWrappingNode );
-        // Note: this might need some re-thinking:
-        // - should we detectChildTypes(), and what to do with non-inline children?
-        //   - switch this node to block, and autoBox inline children ?
-        //   - switch the block children to inline-block (with width: 100%?)
+        // Used to be: an inline parent resets all its children to inline
+        //   (so, if some block content is erroneously wrapped in a SPAN, all
+        //   the content became inline...), except, depending on what's enabled:
+        //   - nodes with float: which can stay block among inlines
+        //   - the inner content of inlineBoxes (the inlineBox is already inline)
+        //   recurseMatchingElements( resetRendMethodToInline, isNotBoxWrappingNode );
+        //
+        // But we don't want to "reset all its children to inline" when a bogus
+        // spurious block element happens to be inside some inline one, as this
+        // can be seen happening (<small> multiple <p>...</small>).
+        // So, when BOX_INLINE_BLOCKS is enabled, we wrap such block elements inside
+        // a <inlineBox> element, nearly just like if it were "display: inline-block",
+        // with a few tweaks in its rendering (see below).
+        // Or, if it contains only block elements, and empty text nodes, we can just
+        // set this inline element to be erm_block.
+        //
         // Some discussions about that "block inside inline" at:
         //   https://github.com/w3c/csswg-drafts/issues/1477
         //   https://stackoverflow.com/questions/1371307/displayblock-inside-displayinline
+        //
+        if ( !BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
+            // No support for anything but inline elements, and possibly embedded floats
+            recurseMatchingElements( resetRendMethodToInline, isNotBoxWrappingNode );
+        }
+        else if ( !isNotBoxWrappingNode(this) ) {
+            // If this node is already a box wrapping node (active floatBox or inlineBox,
+            // possibly a <inlineBox type="EmbeddedBlock"> created here in a previous
+            // rendering), just set it to erm_inline.
+            setRendMethod(erm_inline);
+        }
+        else {
+            // Set this inline element to be erm_inline, and look at its children
+            setRendMethod(erm_inline);
+            // Quick scan first, before going into more checks if needed
+            bool has_block_nodes = false;
+            bool has_inline_nodes = false;
+            for ( int i=0; i < getChildCount(); i++ ) {
+                ldomNode * child = getChildNode( i );
+                if ( !child->isElement() ) // text node
+                    continue;
+                int cm = child->getRendMethod();
+                if ( cm == erm_inline || cm == erm_runin ) {
+                    has_inline_nodes = true; // We won't be able to make it erm_block
+                    continue;
+                }
+                if ( cm == erm_invisible || cm == erm_killed )
+                    continue;
+                if ( !isNotBoxWrappingNode( child ) ) {
+                    // This child is already wrapped by a floatBox or inlineBox
+                    continue;
+                }
+                has_block_nodes = true;
+                if ( has_inline_nodes )
+                    break; // we know enough
+            }
+            if ( has_block_nodes ) {
+                bool has_non_empty_text_nodes = false;
+                bool do_wrap_blocks = true;
+                if ( !has_inline_nodes ) {
+                    // No real inline nodes. Inspect each text node to see if they
+                    // are all empty text.
+                    for ( int i=0; i < getChildCount(); i++ ) {
+                        if ( getChildNode(i)->isText() ) {
+                            lString16 s = getChildNode(i)->getText();
+                            if ( !IsEmptySpace(s.c_str(), s.length() ) ) {
+                                has_non_empty_text_nodes = true;
+                                break;
+                            }
+                        }
+                    }
+                    if ( !has_non_empty_text_nodes ) {
+                        // We can be a block wrapper (renderBlockElementEnhanced/Legacy will
+                        // skip empty text nodes, no need to remove them)
+                        setRendMethod(erm_block);
+                        do_wrap_blocks = false;
+                    }
+                }
+                if ( do_wrap_blocks ) {
+                    // We have a mix of inline nodes or non-empty text, and block elements:
+                    // wrap each block element in a <inlineBox type="EmbeddedBlock">.
+                    for ( int i=getChildCount()-1; i >=0; i-- ) {
+                        ldomNode * child = getChildNode( i );
+                        if ( !child->isElement() ) // text node
+                            continue;
+                        int cm = child->getRendMethod();
+                        if ( cm == erm_inline || cm == erm_runin || cm == erm_invisible || cm == erm_killed )
+                            continue;
+                        if ( !isNotBoxWrappingNode( child ) )
+                            continue;
+                        // This child is erm_block or erm_final (or some other erm_table like rend method).
+                        // It will be inside a upper erm_final
+                        // Wrap this element into an inlineBox, just as if it was display:inline-block,
+                        // with a few differences that will be handled by lvrend.cpp/lvtextfm.cpp:
+                        // - it should behave like if it has width: 100%, so preceeding
+                        //   and following text/inlines element will be on their own line
+                        // - the previous line should not be justified
+                        // - in the matter of page splitting, lines (as they are 100%-width) should
+                        //   be forwarded to the parent flow/context
+                        if ( getDocument()->hasCacheFile() ) {
+                            getDocument()->setBoxingWishedButPreventedByCache();
+                            // If we can't insert new elements, fallback to behaviour of resetting
+                            // it to inline
+                            child->setRendMethod( erm_inline );
+                        }
+                        else {
+                            // Remove any preceeding or following empty text nodes (there can't
+                            // be consecutive text nodes) so we don't get spurious empty lines.
+                            if ( i < getChildCount()-1 && getChildNode(i+1)->isText() ) {
+                                lString16 s = getChildNode(i+1)->getText();
+                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                    removeChildren(i+1, i+1);
+                                }
+                            }
+                            if ( i > 0 && getChildNode(i-1)->isText() ) {
+                                lString16 s = getChildNode(i-1)->getText();
+                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                    removeChildren(i-1, i-1);
+                                    i--; // update our position
+                                }
+                            }
+                            ldomNode * ibox = insertChildElement( i, LXML_NS_NONE, el_inlineBox );
+                            moveItemsTo( ibox, i+1, i+1 ); // move this child from 'this' into ibox
+                            // Mark this inlineBox so we can handle its pecularities
+                            ibox->setAttributeValue(LXML_NS_NONE, getDocument()->getAttrNameIndex(L"type"), L"EmbeddedBlock");
+                            setNodeStyle( ibox, getStyle(), getFont() );
+                            ibox->setRendMethod( erm_inline );
+                        }
+                    }
+                }
+            }
+        }
     } else if ( d==css_d_run_in ) {
         // runin
         //CRLog::trace("switch all children elements of <%s> to inline", LCSTR(getNodeName()));
@@ -6326,6 +6469,10 @@ void ldomNode::initNodeRendMethod()
                     // We need it to have the vertical_align from the child
                     // (it's the only style we need for proper inline layout).
                     my_new_style->vertical_align = child_style->vertical_align;
+                    setRendMethod( erm_inline );
+                }
+                else if ( isEmbeddedBlockBoxingInlineBox(true) ) {
+                    my_new_style->display = css_d_inline; // wrap bogus "block among inlines" in inline
                     setRendMethod( erm_inline );
                 }
                 else if (child_style->display == css_d_inline) {

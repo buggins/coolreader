@@ -948,6 +948,9 @@ public:
                 // No need to update prev_was_space or last_non_space_pos
             }
             else if ( src->flags & LTEXT_SRC_IS_INLINE_BOX ) {
+                // Note: we shouldn't meet any EmbeddedBlock inlineBox here (and in
+                // processParagraph(), addLine() and alignLine()) as they are dealt
+                // with specifically in splitParagraphs() by processEmbeddedBlock().
                 m_text[pos] = 0;
                 m_srcs[pos] = src;
                 m_flags[pos] = LCHAR_IS_OBJECT | LCHAR_ALLOW_WRAP_AFTER;
@@ -3441,6 +3444,99 @@ public:
         }
     }
 
+    void processEmbeddedBlock( int idx )
+    {
+        ldomNode * node = (ldomNode *) m_pbuffer->srctext[idx].object;
+        // Use current width available at current y position for the whole block
+        // (Firefox would lay out this block content around the floats met along
+        // the way, but it would be quite tedious to do the same... so, we don't).
+        int width = getCurrentLineWidth();
+        int block_x = getCurrentLineX();
+        int cur_y = m_y;
+
+        bool already_rendered = false;
+        { // in its own scope, so this RenderRectAccessor is forgotten when left
+            RenderRectAccessor fmt( node );
+            if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_RENDERED) ) {
+                already_rendered = true;
+            }
+        }
+        // On the first rendering (after type settings changes), we want to forward
+        // this block individual lines to the main page splitting context.
+        // But on later calls (once already_rendered), used for drawing or text
+        // selection, we want to have a single line with the inlineBox.
+        // We'll mark the first rendering with is_reusable=false, so that we go
+        // reformatting this final node when we need to draw it.
+        // (We could mix the individual lines with the main inlineBox line, but
+        // that would need added code at various places to ignore one or the
+        // others depending on what's needed there.)
+        if ( !already_rendered ) {
+            LVRendPageContext context( NULL, m_pbuffer->page_height );
+            // We don't know if the upper LVRendPageContext wants lines or not,
+            // so assume it does (the main flow does).
+            int rend_flags = gRenderBlockRenderingFlags; // global flags
+            // We want to avoid negative margins (if allowed in global flags) and
+            // going back the flow y, as the transfered lines would not reflect
+            // that, and we could get some small mismatches and glitches.
+            rend_flags &= ~BLOCK_RENDERING_ALLOW_NEGATIVE_COLLAPSED_MARGINS;
+            int baseline = REQ_BASELINE_FOR_TABLE; // baseline of block is baseline of its first line
+            renderBlockElement( context, node, 0, 0, width, m_specified_para_dir, &baseline, rend_flags);
+            RenderRectAccessor fmt( node );
+            fmt.setX(block_x);
+            fmt.setY(m_y);
+            fmt.setBaseline(baseline);
+            RENDER_RECT_SET_FLAG(fmt, BOX_IS_RENDERED);
+            // Transfer individual lines from this sub-context into real frmlines (they
+            // will be transferred to the upper context by renderBlockElementEnhanced())
+            if ( context.getLines() ) {
+                LVPtrVector<LVRendLineInfo> * lines = context.getLines();
+                for ( int i=0; i < lines->length(); i++ ) {
+                    LVRendLineInfo * line = lines->get(i);
+                    formatted_line_t * frmline = lvtextAddFormattedLine( m_pbuffer );
+                    frmline->x = block_x;
+                    frmline->y = cur_y + line->getStart();
+                    frmline->height = line->getHeight();
+                    frmline->flags = line->getFlags();
+                    if (m_has_ongoing_float)
+                        frmline->flags |= LTEXT_LINE_SPLIT_AVOID_BEFORE;
+                    // Unfortunaltely, we can't easily forward footnotes links
+                    // gathered by this sub-context via frmlines.
+                    // printf("emb line %d>%d\n", frmline->y, frmline->height);
+                    m_y += frmline->height;
+                    // We only check for already positionned floats to ensure
+                    // no page break along them. We'll positionned yet-to-be
+                    // positionned floats only when done with this embedded block.
+                    checkOngoingFloat();
+                }
+            }
+            // Next time we have to use this LFormattedText for drawing, have it
+            // trashed: we'll re-format it by going into the following 'else'.
+            m_pbuffer->is_reusable = false;
+        }
+        else {
+            RenderRectAccessor fmt( node );
+            int height = fmt.getHeight();
+            int baseline = fmt.getBaseline();
+            formatted_line_t * frmline = lvtextAddFormattedLine( m_pbuffer );
+            frmline->x = block_x;
+            frmline->y = cur_y;
+            frmline->height = height;
+            frmline->flags = 0; // no flags needed once page split has been done
+            // printf("final line %d>%d\n", frmline->y, frmline->height);
+            // This line has a single word: the inlineBox.
+            formatted_word_t * word = lvtextAddFormattedWord(frmline);
+            word->src_text_index = idx;
+            word->flags = LTEXT_WORD_IS_INLINE_BOX;
+            word->x = 0;
+            word->width = width;
+            m_y = cur_y + height;
+            m_pbuffer->height = m_y;
+        }
+        // Not tested how this would work with floats...
+        checkOngoingFloat();
+        positionDelayedFloats();
+    }
+
     /// split source data into paragraphs
     void splitParagraphs()
     {
@@ -3475,7 +3571,28 @@ public:
                     // (LTEXT_SRC_IS_CLEAR_BOTH is a mask, will match _LEFT and _RIGHT too)
                     floatClearText( m_pbuffer->srctext[start].flags & LTEXT_SRC_IS_CLEAR_BOTH );
                 }
-                processParagraph( start, i, isLastPara );
+                // We do not need to go thru processParagraph() to handle an embedded block
+                // (bogus block element children of an inline element): we have a dedicated
+                // handler for it.
+                bool isEmbeddedBlock = false;
+                if ( i == start + 1 ) {
+                    // Embedded block among inlines had been surrounded by LTEXT_FLAG_NEWLINE,
+                    // so we'll get one standalone here.
+                    if ( m_pbuffer->srctext[start].flags & LTEXT_SRC_IS_INLINE_BOX ) {
+                        // We used LTEXT_SRC_IS_INLINE_BOX for embedded blocks too (to not
+                        // waste a bit in the lUInt32 for LTEXT_SRC_IS_EMBEDDED_BLOCK that
+                        // we would only be using here), so do this check to see if it
+                        // really is an embedded block.
+                        ldomNode * node = (ldomNode *) m_pbuffer->srctext[start].object;
+                        if ( node->isEmbeddedBlockBoxingInlineBox() ) {
+                            isEmbeddedBlock = true;
+                        }
+                    }
+                }
+                if ( isEmbeddedBlock )
+                    processEmbeddedBlock( start );
+                else
+                    processParagraph( start, i, isLastPara );
                 start = i;
             }
             prevRunIn = (i<srctextlen) && (m_pbuffer->srctext[i].flags & LTEXT_RUNIN_FLAG);
@@ -3922,19 +4039,26 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         getAbsMarksFromMarks(marks, absmarks, node);
                         absmarks_update_needed = false;
                     }
-                    // inline-block boxes with negative margins can overflow the
-                    // line height, and so possibly the page when that line is
-                    // at top or bottom of page.
-                    // When witnessed, that overflow was very small, and probably
-                    // aimed at vertically aligning the box vs the text, but enough
-                    // to have their glyphs truncated when clipped to the page rect.
-                    // So, to avoid that, we just drop that clip when drawing the
-                    // box, and restore it when done.
-                    lvRect curclip;
-                    buf->GetClipRect( &curclip ); // backup clip
-                    buf->SetClipRect(NULL); // no clipping
-                    DrawDocument( *buf, node, x0, y0, dx, dy, doc_x, doc_y, page_height, absmarks, bookmarks );
-                    buf->SetClipRect(&curclip); // restore original page clip
+                    if ( node->isEmbeddedBlockBoxingInlineBox() ) {
+                        // With embedded blocks, we shouldn't drop the clip (as we do next
+                        // for regular inline-block boxes)
+                        DrawDocument( *buf, node, x0, y0, dx, dy, doc_x, doc_y, page_height, absmarks, bookmarks );
+                    }
+                    else {
+                        // inline-block boxes with negative margins can overflow the
+                        // line height, and so possibly the page when that line is
+                        // at top or bottom of page.
+                        // When witnessed, that overflow was very small, and probably
+                        // aimed at vertically aligning the box vs the text, but enough
+                        // to have their glyphs truncated when clipped to the page rect.
+                        // So, to avoid that, we just drop that clip when drawing the
+                        // box, and restore it when done.
+                        lvRect curclip;
+                        buf->GetClipRect( &curclip ); // backup clip
+                        buf->SetClipRect(NULL); // no clipping
+                        DrawDocument( *buf, node, x0, y0, dx, dy, doc_x, doc_y, page_height, absmarks, bookmarks );
+                        buf->SetClipRect(&curclip); // restore original page clip
+                    }
                 }
                 else
                 {

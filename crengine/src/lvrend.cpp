@@ -2912,10 +2912,61 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             #ifdef DEBUG_DUMP_ENABLED
                 logfile << "+INLINEBOX ";
             #endif
+            bool is_embedded_block = enode->isEmbeddedBlockBoxingInlineBox();
+            if ( is_embedded_block ) {
+                // If embedded-block wrapper: it should not be part of the lines
+                // made by the surrounding text/elements: we should ensure a new
+                // line before and after it.
+                if ( !(flags & LTEXT_FLAG_NEWLINE) ) { // (Keep existing one if not yet consumed)
+                    // The text-align of the paragraph has been inherited by
+                    // all its children, including this inlineBox wrapper.
+                    switch (style->text_align) {
+                    case css_ta_left:
+                        flags |= LTEXT_ALIGN_LEFT;
+                        break;
+                    case css_ta_right:
+                        flags |= LTEXT_ALIGN_RIGHT;
+                        break;
+                    case css_ta_center:
+                        flags |= LTEXT_ALIGN_CENTER;
+                        break;
+                    case css_ta_justify:
+                        flags |= LTEXT_ALIGN_WIDTH;
+                        break;
+                    case css_ta_start:
+                        flags |= (is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT);
+                        break;
+                    case css_ta_end:
+                        flags |= (is_rtl ? LTEXT_ALIGN_LEFT : LTEXT_ALIGN_RIGHT);
+                        break;
+                    case css_ta_inherit:
+                        break;
+                    }
+                }
+                // These might have no effect, but let's explicitely dropped them.
+                valign_dy = 0;
+                indent = 0;
+                // Note: a space just before or just after (because of a newline in
+                // the HTML source) should have been removed or included in the
+                // boxing element - so we shouldn't have any spurious empty line
+                // in this final block (except it that space is included in some
+                // other inline element (<span> </span>) in which case, it is
+                // explicitely expected to generate an empty line.
+                // We also use LTEXT_SRC_IS_INLINE_BOX (no need to waste a bit in
+                // the lUInt32 for LTEXT_SRC_IS_EMBEDDED_BLOCK).
+            }
             // We use the flags computed previously (and not baseflags) as they
             // carry vertical alignment
             txform->AddSourceObject(flags|LTEXT_SRC_IS_INLINE_BOX, line_h, valign_dy, indent, enode );
-            flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
+            if ( is_embedded_block ) {
+                // Let flags unchanged, with their newline/alignment flag as if it
+                // hadn't been consumed, so it is reported back into baseflags below
+                // so that the next sibling (or upper followup inline node) starts
+                // on a new line.
+            }
+            else {
+                flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
+            }
         }
         else { // non-IMG element: render children (elements or text nodes)
             int cnt = enode->getChildCount();
@@ -3966,9 +4017,19 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                     {
                         ldomNode * child = enode->getChildNode( i );
                         if (child) {
+                            if (child->isText()) {
+                                // We may occasionally let empty text nodes among block elements,
+                                // just skip them
+                                lString16 s = child->getText();
+                                if (IsEmptySpace(s.c_str(), s.length()))
+                                    continue;
+                                crFatalError(144, "Attempting to render non-empty Text node");
+                            }
                             //fmt.push();
-                            int h = renderBlockElementLegacy( context, child, padding_left + list_marker_padding, y,
-                                width - padding_left - padding_right - list_marker_padding );
+                            int h = renderBlockElementLegacy(context, child,
+                                                             padding_left + list_marker_padding, y,
+                                                             width - padding_left - padding_right -
+                                                             list_marker_padding);
                             y += h;
                             block_height += h;
                         }
@@ -5952,6 +6013,17 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     bool is_inline_box = enode->isBoxingInlineBox();
     bool is_inline_box_child = enode->getParentNode() && enode->getParentNode()->isBoxingInlineBox();
 
+    // In the business of computing width and height, we should handle a bogus
+    // embedded block (<inlineBox type="EmbeddedBlock">) (and its child) just
+    // like any normal block element (taking the full width of its container
+    // if no specified width, without the need to get its rendered width).
+    if ( is_inline_box && enode->isEmbeddedBlockBoxingInlineBox(true) ) {
+        is_inline_box = false;
+    }
+    if ( is_inline_box_child && enode->getParentNode()->isEmbeddedBlockBoxingInlineBox(true) ) {
+        is_inline_box_child = false;
+    }
+
     int em = enode->getFont()->getSize();
 
     int padding_left   = lengthToPx( style->padding[0], container_width, em )
@@ -6610,6 +6682,14 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     ldomNode * child = enode->getChildNode( i );
                     if (!child)
                         continue;
+                    if ( child->isText() ) {
+                        // We may occasionally let empty text nodes among block elements,
+                        // just skip them
+                        lString16 s = child->getText();
+                        if ( IsEmptySpace(s.c_str(), s.length() ) )
+                            continue;
+                        crFatalError(144, "Attempting to render non-empty Text node");
+                    }
                     css_style_ref_t child_style = child->getStyle();
 
                     // We must deal differently with children that are floating nodes.
@@ -8513,6 +8593,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     if ( BLOCK_RENDERING_G(BOX_INLINE_BLOCKS) ) {
         // See above, same reasoning
         if ( enode->getNodeId() == el_inlineBox ) {
+            // el_inlineBox are "display: inline" by default (defined in fb2def.h)
             if (enode->getChildCount() == 1) {
                 ldomNode * child = enode->getChildNode(0);
                 css_style_ref_t child_style = child->getStyle();
@@ -8521,11 +8602,16 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                     // We do as in ldomNode::initNodeRendMethod() when the inlineBox
                     // is already there (on re-renderings):
                     // (If this is an inlineBox in the initial XML loading phase,
-                    // child is necessarily css_d_inline_block or css_d_inline_table.
+                    // child is necessarily css_d_inline_block or css_d_inline_table,
+                    // or this node is <inlineBox type=EmbeddedBlock>.
                     // The following 'else's should never trigger.
                     if (child_style->display == css_d_inline_block || child_style->display == css_d_inline_table) {
                         pstyle->display = css_d_inline; // become an inline wrapper
                         pstyle->vertical_align = child_style->vertical_align;
+                    }
+                    else if ( enode->hasAttribute( attr_type ) ) { // type="EmbeddedBlock"
+                                            // (no other possible value yet, no need to compare strings)
+                        pstyle->display = css_d_inline; // wrap bogus "block among inlines" in inline
                     }
                     else if (child_style->display == css_d_inline) {
                         pstyle->display = css_d_inline; // wrap inline in inline

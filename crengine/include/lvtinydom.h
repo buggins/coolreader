@@ -1051,6 +1051,10 @@ public:
     /// is node an inlineBox that has not been re-inlined by having
     /// its child no more inline-block/inline-table
     bool isBoxingInlineBox();
+    /// is node an inlineBox that wraps a bogus embedded block (not inline-block/inline-table)
+    /// can be called with inline_box_checks_done=true when isBoxingInlineBox() has already
+    /// been called to avoid rechecking what is known
+    bool isEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done=false);
 
     /// is node any of our internal boxing element
     bool isBoxingNode();
