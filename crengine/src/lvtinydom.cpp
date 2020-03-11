@@ -7635,7 +7635,16 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
             // Found right word/image
             const src_text_fragment_t * src = txtform->GetSrcInfo(word->src_text_index);
             ldomNode * node = (ldomNode *)src->object;
-            if ( word->flags & LTEXT_WORD_IS_INLINE_BOX || word->flags & LTEXT_WORD_IS_OBJECT ) {
+            if ( word->flags & LTEXT_WORD_IS_INLINE_BOX ) {
+                // pt is inside this inline-block inlineBox node
+                ldomXPointer inside_ptr = createXPointer( orig_pt, direction, strictBounds, node );
+                if ( !inside_ptr.isNull() ) {
+                    return inside_ptr;
+                }
+                // Otherwise, return xpointer to the inlineBox itself
+                return ldomXPointer(node, 0);
+            }
+            if ( word->flags & LTEXT_WORD_IS_OBJECT ) {
                 return ldomXPointer(node, 0);
             }
             // It is a word
