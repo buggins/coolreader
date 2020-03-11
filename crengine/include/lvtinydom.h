@@ -487,6 +487,7 @@ protected:
     lUInt32 _nodeDisplayStyleHash;
     lUInt32 _nodeDisplayStyleHashInitial;
     bool _nodeStylesInvalidIfLoading;
+    bool _boxingWishedButPreventedByCache;
 
     int calcFinalBlocks();
     void dropStyles();
@@ -625,6 +626,9 @@ public:
     }
     void setNodeStylesInvalidIfLoading() {
         _nodeStylesInvalidIfLoading = true;
+    }
+    void setBoxingWishedButPreventedByCache() {
+        _boxingWishedButPreventedByCache = true;
     }
 
     /// if a cache file is in use
