@@ -7970,7 +7970,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
-                    if (doc_y + h <= clip.bottom) { // draw only if marker fully fits on page
+                    if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
                         // In both LTR and RTL, for erm_block, we draw the marker inside 'width',
                         // (only the child elements got their width shrinked by list_marker_width).
                         if ( is_rtl ) {
@@ -8136,7 +8136,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                     lUInt32 h = txform->Format( (lUInt16)list_marker_width, (lUInt16)page_height, direction );
                     lvRect clip;
                     drawbuf.GetClipRect( &clip );
-                    if (doc_y + h <= clip.bottom) { // draw only if marker fully fits on page
+                    if (doc_y + y0 + h <= clip.bottom) { // draw only if marker fully fits on page
                         // In both LTR and RTL, for erm_final, we draw the marker outside 'width',
                         // as 'width' has already been shrinked by list_marker_width.
                         if ( is_rtl ) {
