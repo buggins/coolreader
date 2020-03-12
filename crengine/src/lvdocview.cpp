@@ -2664,6 +2664,11 @@ int LVDocView::getCurrentPageImageCount()
 {
     CHECK_RENDER("getCurPageImgCount()")
     LVRef<ldomXRange> range = getPageDocumentRange(-1);
+    return getPageImageCount(range);
+}
+
+int LVDocView::getPageImageCount(LVRef<ldomXRange>& range)
+{
     class ImageCounter : public ldomNodeCallback {
         int count;
     public:
@@ -2676,7 +2681,7 @@ int LVDocView::getCurrentPageImageCount()
             lString16 nodeName = ptr->getNode()->getNodeName();
             if (nodeName == "img" || nodeName == "image")
                 count++;
-			return true;
+            return true;
         }
 
     };
@@ -6949,4 +6954,4 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
         CRLog::error("Cannot get font for coverpage");
     }
 }
-                                     
+

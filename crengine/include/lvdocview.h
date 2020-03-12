@@ -603,6 +603,8 @@ public:
     int getCurrentPageCharCount();
     /// returns number of images on current page
     int getCurrentPageImageCount();
+    /// returns number of images on given page
+    int getPageImageCount(LVRef<ldomXRange>& range);
     /// calculate page header rectangle
     virtual void getPageHeaderRectangle( int pageIndex, lvRect & headerRc );
     /// calculate page header height
