@@ -2680,10 +2680,12 @@ static void DecodeWtf8(const char * s,  lChar16 * p, int len)
             *p++ = (char)ch;
             s++;
         } else if ( (ch & 0xE0) == 0xC0 ) {
+            matched = true;
             *p++ = ((ch & 0x1F) << 6)
                     | CONT_BYTE(1,0);
             s += 2;
         } else if ( (ch & 0xF0) == 0xE0 ) {
+            matched = true;
             *p++ = ((ch & 0x0F) << 12)
                 | CONT_BYTE(1,6)
                 | CONT_BYTE(2,0);
@@ -2702,6 +2704,7 @@ static void DecodeWtf8(const char * s,  lChar16 * p, int len)
             }
         } else if ( (ch & 0xF8) == 0xF0 ) {
             // Mostly unused
+            matched = true;
             *p++ = ((ch & 0x07) << 18)
                 | CONT_BYTE(1,12)
                 | CONT_BYTE(2,6)
