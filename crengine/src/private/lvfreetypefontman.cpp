@@ -73,7 +73,7 @@ LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size) {
     LVFontCacheItem *item = _cache.findFallback(_fallbackFontFace, size);
     if (!item->getFont().isNull())
         return item->getFont();
-    return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFace, -1);
+    return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFace, 0, -1);
 }
 
 LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size, int weight, bool italic )
@@ -92,7 +92,7 @@ LVFontRef LVFreeTypeFontManager::GetFallbackFont(int size, int weight, bool ital
     // assuming the fallback font is a standalone regular font
     // without any bold/italic sibling.
     // GetFont() works just as fine when we need specified weigh and italic.
-    return GetFont(size, weight, italic, css_ff_sans_serif, _fallbackFontFace, -1);
+    return GetFont(size, weight, italic, css_ff_sans_serif, _fallbackFontFace, 0, -1);
 }
 
 bool LVFreeTypeFontManager::isBitmapModeForSize(int size) {
@@ -350,6 +350,7 @@ bool LVFreeTypeFontManager::initSystemFonts() {
                         -1, // height==-1 for scalable fonts
                         weight,
                         italic,
+                        -1, // OpenType features = -1 for not yet instantiated fonts
                         fontFamily,
                         face,
                         index
@@ -491,6 +492,7 @@ bool LVFreeTypeFontManager::SetAlias(lString8 alias, lString8 facename, int id, 
         -1,
         bold?700:400,
         italic,
+        -1, // OpenType features = -1 for not yet instantiated fonts
         css_ff_inherit,
         facename,
         -1,
@@ -502,6 +504,7 @@ bool LVFreeTypeFontManager::SetAlias(lString8 alias, lString8 facename, int id, 
         -1,
         bold?700:400,
         italic,
+        -1, // OpenType features = -1 for not yet instantiated fonts
         css_ff_inherit,
         alias,
         -1,
@@ -546,6 +549,7 @@ bool LVFreeTypeFontManager::SetAlias(lString8 alias, lString8 facename, int id, 
                 -1, // height==-1 for scalable fonts
                 boldFlag ? 700 : 400,
                 italicFlag,
+                -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
                 alias,
                 index,
@@ -580,14 +584,14 @@ bool LVFreeTypeFontManager::SetAlias(lString8 alias, lString8 facename, int id, 
     }
 }
 
-LVFontRef LVFreeTypeFontManager::GetFont(int size, int weight, bool italic, css_font_family_t family,
-                                         lString8 typeface, int documentId, bool useBias) {
+LVFontRef LVFreeTypeFontManager::GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
+                                         int features, int documentId, bool useBias) {
     FONT_MAN_GUARD
 #if (DEBUG_FONT_MAN == 1)
     if ( _log ) {
 fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\n",
         size, weight, italic?1:0, (int)family, typeface.c_str() );
-}
+    }
 #endif
     lString8 fontname;
     LVFontDef def(
@@ -595,6 +599,7 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
             size,
             weight,
             italic,
+            features,
             family,
             typeface,
             -1,
@@ -630,23 +635,29 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
     LVFontDef newDef(*item->getDef());
 
     if (!item->getFont().isNull()) {
-        int deltaWeight = weight - item->getDef()->getWeight();
-        if (deltaWeight >= 200) {
-            // This instantiated cached font has a too low weight
+        if ( item->getDef()->getFeatures() != features ) {
+            // Be sure we ignore any instantiated font found in cache that
+            // has features different than the ones requested.
+        }
+        else {
+            int deltaWeight = weight - item->getDef()->getWeight();
+            if (deltaWeight >= 200) {
+                // This instantiated cached font has a too low weight
 #ifndef USE_FT_EMBOLDEN
-            // embolden using LVFontBoldTransform
-            CRLog::debug("font: apply Embolding to increase weight from %d to %d",
-                                newDef.getWeight(), newDef.getWeight() + 200 );
-            newDef.setWeight( newDef.getWeight() + 200 );
-            LVFontRef ref = LVFontRef( new LVFontBoldTransform( item->getFont(), &_globalCache ) );
-            _cache.update( &newDef, ref );
-            return ref;
+                // embolden using LVFontBoldTransform
+                CRLog::debug("font: apply Embolding to increase weight from %d to %d",
+                                    newDef.getWeight(), newDef.getWeight() + 200 );
+                newDef.setWeight( newDef.getWeight() + 200 );
+                LVFontRef ref = LVFontRef( new LVFontBoldTransform( item->getFont(), &_globalCache ) );
+                _cache.update( &newDef, ref );
+                return ref;
 #endif
-            // when USE_FT_EMBOLDEN, ignore this low-weight cached font instance
-            // and go loading from the font file again to apply embolden.
-        } else {
-            //fprintf(_log, "    : fount existing\n");
-            return item->getFont();
+                // when USE_FT_EMBOLDEN, ignore this low-weight cached font instance
+                // and go loading from the font file again to apply embolden.
+            } else {
+                //fprintf(_log, "    : fount existing\n");
+                return item->getFont();
+            }
         }
     }
     lString8 fname = item->getDef()->getName();
@@ -690,6 +701,9 @@ fprintf(_log, "GetFont(size=%d, weight=%d, italic=%d, family=%d, typeface='%s')\
         //fprintf(_log, "    : loading from file %s : %s %d\n", item->getDef()->getName().c_str(),
         //    item->getDef()->getTypeFace().c_str(), item->getDef()->getSize() );
         LVFontRef ref(font);
+        // Instantiate this font with the requested OpenType features
+        newDef.setFeatures( features );
+        font->setFeatures( features ); // followup setKerningMode() will create/update hb_features if needed
         font->setKerning( GetKerning() );
         font->setShapingMode( GetShapingMode() );
         font->setFaceName(item->getDef()->getTypeFace());
@@ -784,6 +798,9 @@ bool LVFreeTypeFontManager::isMonoSpaced( FT_Face face )
 }
 */
 
+// Note: publishers can specify font-variant/font-feature-settings/font-variation-settings
+// in the @font-face declaration.
+// TODO: parse it and pass it here, and set it on the non-instantiated font (instead of -1)
 bool LVFreeTypeFontManager::RegisterDocumentFont(int documentId, LVContainerRef container,
                                                  lString16 name, lString8 faceName, bool bold,
                                                  bool italic) {
@@ -854,6 +871,7 @@ bool LVFreeTypeFontManager::RegisterDocumentFont(int documentId, LVContainerRef 
                 -1, // height==-1 for scalable fonts
                 boldFlag ? 700 : 400,
                 italicFlag,
+                -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
                 familyName,
                 index,
@@ -956,6 +974,7 @@ bool LVFreeTypeFontManager::RegisterExternalFont(lString16 name, lString8 family
                 -1, // height==-1 for scalable fonts
                 bold ? 700 : 400,
                 italic ? true : false,
+                -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
                 family_name,
                 index
@@ -1060,6 +1079,7 @@ bool LVFreeTypeFontManager::RegisterFont(lString8 name) {
                 -1, // height==-1 for scalable fonts
                 (face->style_flags & FT_STYLE_FLAG_BOLD) ? 700 : 400,
                 (face->style_flags & FT_STYLE_FLAG_ITALIC) ? true : false,
+                -1, // OpenType features = -1 for not yet instantiated fonts
                 fontFamily,
                 familyName,
                 index

@@ -139,19 +139,15 @@ protected:
     bool           _embolden; // fake/synthetized bold
     bool           _allowKerning;
     FT_Pos         _embolden_half_strength; // for emboldening with Harfbuzz
+    int _features; // requested OpenType features bitmap
 #if USE_HARFBUZZ == 1
     hb_font_t *_hb_font;
     hb_buffer_t *_hb_buffer;
-    //
+    hb_feature_t* _hb_features;
+    int _hb_features_len;
     // For use with SHAPING_MODE_HARFBUZZ:
-    #define HARFBUZZ_FULL_FEATURES_NB 2
-    hb_feature_t _hb_features[HARFBUZZ_FULL_FEATURES_NB];
     LVFontLocalGlyphCache _glyph_cache2;
-    //
     // For use with SHAPING_MODE_HARFBUZZ_LIGHT:
-    #define HARFBUZZ_LIGHT_FEATURES_NB 22
-    hb_buffer_t *_hb_light_buffer;
-    hb_feature_t _hb_light_features[HARFBUZZ_LIGHT_FEATURES_NB];
     LVHashTable<struct LVCharTriplet, struct LVCharPosInfo> _width_cache2;
 #endif
 public:
@@ -207,6 +203,12 @@ public:
 
     /// set bitmap mode (true=bitmap, false=antialiased)
     virtual void setBitmapMode(bool drawBitmap);
+
+    /// get OpenType features (bitmap)
+    virtual int getFeatures() const { return _features; }
+
+    /// set OpenType features (bitmap)
+    virtual void setFeatures( int features );
 
     void setEmbolden();
 
@@ -378,6 +380,11 @@ public:
     virtual void Clear();
 protected:
     FT_UInt getCharIndex(lUInt32 code, lChar16 def_char);
+#if USE_HARFBUZZ==1
+    bool _delHBFeature(const char * tag);
+    bool _addHBFeature(const char * tag);
+    void setupHBFeatures();
+#endif
 };
 
 #endif  // (USE_FREETYPE==1)

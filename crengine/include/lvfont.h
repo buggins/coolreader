@@ -52,6 +52,76 @@ enum shaping_mode_t {
 #define LFNT_DRAW_BLINK                  0x0800 /// blinking text (implemented as underline)
 #define LFNT_DRAW_DECORATION_MASK        0x0F00
 
+// CSS font-variant and font-feature-settings properties:
+//   https://drafts.csswg.org/css-fonts-3/#propdef-font-variant
+//   https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant
+// OpenType feature tags (to be provided to HarfBuzz)
+//   https://en.wikipedia.org/wiki/List_of_typographic_features
+//   https://docs.microsoft.com/en-us/typography/opentype/spec/featurelist
+// See https://github.com/koreader/koreader/issues/5821#issuecomment-596243758
+// Random notes:
+// - common-ligatures : 'liga' + 'clig'  (the keyword 'normal' activates these ligatures)
+//   and 'rlig' ("required ligatures, e.g. for arabic) are enabled by default by Harfbuzz
+// - discretionary-ligatures : 'dlig'   (type designer choices) is not enabled by default
+// - diagonal-fractions : 'frac' (enabling also 'numr' + 'dnom' seems not needed,
+//   numr or dnom standalone just make the / more oblique)
+// - stacked-fractions: "/" becomes horizontal
+// - jis90 'jp90' is said to be the default in fonts. Other jp* replace this one.
+// - Not supported (because no room and because they require some args, which
+//   would complicate parsing and storing):
+//   CSS font-variant-alternates:
+//       stylistic()
+//       styleset()
+//       character-variant()
+//       swash()
+//       ornaments()
+//       annotation()
+
+// OpenType features to request
+// Max 31 bits. We need "signed int features" to have -1 for non-instantiated fonts)
+#define LFNT_OT_FEATURES_NORMAL 0x00000000
+
+// #define LFNT_OT_FEATURES_P_LIGA 0x000000XX // +liga +clig enabled by default  (font-variant-ligatures: common-ligatures)
+// #define LFNT_OT_FEATURES_P_CALT 0x000000XX // +calt       enabled by default  (font-variant-ligatures: contextual)
+#define LFNT_OT_FEATURES_M_LIGA 0x00000001 // -liga -clig   (font-variant-ligatures: no-common-ligatures)
+#define LFNT_OT_FEATURES_M_CALT 0x00000002 // -calt         (font-variant-ligatures: no-contextual)
+#define LFNT_OT_FEATURES_P_DLIG 0x00000004 // +dlig         (font-variant-ligatures: discretionary-ligatures)
+#define LFNT_OT_FEATURES_M_DLIG 0x00000008 // -dlig         (font-variant-ligatures: no-discretionary-ligatures)
+#define LFNT_OT_FEATURES_P_HLIG 0x00000010 // +hlig         (font-variant-ligatures: historical-ligatures)
+#define LFNT_OT_FEATURES_M_HLIG 0x00000020 // -hlig         (font-variant-ligatures: no-historical-ligatures)
+
+#define LFNT_OT_FEATURES_P_HIST 0x00000040 // +hist         (font-variant-alternates: historical-forms)
+#define LFNT_OT_FEATURES_P_RUBY 0x00000080 // +ruby         (font-variant-east-asian: ruby)
+
+#define LFNT_OT_FEATURES_P_SMCP 0x00000100 // +smcp         (font-variant-caps: small-caps)
+#define LFNT_OT_FEATURES_P_C2SC 0x00000200 // +c2sc +smcp   (font-variant-caps: all-small-caps)
+#define LFNT_OT_FEATURES_P_PCAP 0x00000400 // +pcap         (font-variant-caps: petite-caps)
+#define LFNT_OT_FEATURES_P_C2PC 0x00000800 // +c2pc +pcap   (font-variant-caps: all-petite-caps)
+#define LFNT_OT_FEATURES_P_UNIC 0x00001000 // +unic         (font-variant-caps: unicase)
+#define LFNT_OT_FEATURES_P_TITL 0x00002000 // +titl         (font-variant-caps: titling-caps)
+#define LFNT_OT_FEATURES_P_SUPS 0x00004000 // +sups         (font-variant-position: super)
+#define LFNT_OT_FEATURES_P_SUBS 0x00008000 // +subs         (font-variant-position: sub)
+
+#define LFNT_OT_FEATURES_P_LNUM 0x00010000 // +lnum         (font-variant-numeric: lining-nums)
+#define LFNT_OT_FEATURES_P_ONUM 0x00020000 // +onum         (font-variant-numeric: oldstyle-nums)
+#define LFNT_OT_FEATURES_P_PNUM 0x00040000 // +pnum         (font-variant-numeric: proportional-nums)
+#define LFNT_OT_FEATURES_P_TNUM 0x00080000 // +tnum         (font-variant-numeric: tabular-nums)
+#define LFNT_OT_FEATURES_P_ZERO 0x00100000 // +zero         (font-variant-numeric: slashed-zero)
+#define LFNT_OT_FEATURES_P_ORDN 0x00200000 // +ordn         (font-variant-numeric: ordinal)
+#define LFNT_OT_FEATURES_P_FRAC 0x00400000 // +frac         (font-variant-numeric: diagonal-fractions)
+#define LFNT_OT_FEATURES_P_AFRC 0x00800000 // +afrc         (font-variant-numeric: stacked-fractions)
+
+#define LFNT_OT_FEATURES_P_SMPL 0x01000000 // +smpl         (font-variant-east-asian: simplified)
+#define LFNT_OT_FEATURES_P_TRAD 0x02000000 // +trad         (font-variant-east-asian: traditional)
+#define LFNT_OT_FEATURES_P_FWID 0x04000000 // +fwid         (font-variant-east-asian: full-width)
+#define LFNT_OT_FEATURES_P_PWID 0x08000000 // +pwid         (font-variant-east-asian: proportional-width)
+#define LFNT_OT_FEATURES_P_JP78 0x10000000 // +jp78         (font-variant-east-asian: jis78)
+#define LFNT_OT_FEATURES_P_JP83 0x20000000 // +jp83         (font-variant-east-asian: jis83)
+#define LFNT_OT_FEATURES_P_JP04 0x40000000 // +jp04         (font-variant-east-asian: jis04)
+// No more room for: (let's hope it's really the default in fonts)
+// #define LFNT_OT_FEATURES_P_JP90 0x80000000 // +jp90      (font-variant-east-asian: jis90)
+
+
 enum font_antialiasing_t {
     font_aa_none,
     font_aa_big,
@@ -186,6 +256,12 @@ public:
 
     /// set bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual void setBitmapMode(bool) {}
+
+    /// get OpenType features (bitmap)
+    virtual int getFeatures() const { return 0; }
+
+    /// set OpenType features (bitmap)
+    virtual void setFeatures( int features ) { }
 
     /// get kerning mode: true==ON, false=OFF
     virtual bool getKerning() const { return false; }

@@ -33,9 +33,8 @@ public:
     virtual void gc() = 0;
 
     /// returns most similar font
-    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family,
-                              lString8 typeface, int documentId = -1, bool useBias=false) = 0;
-
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
+                                int features=0, int documentId = -1, bool useBias=false) = 0;
     /// set fallback font face (returns true if specified font is found)
     virtual bool SetFallbackFontFace( lString8 face ) {
         CR_UNUSED(face);

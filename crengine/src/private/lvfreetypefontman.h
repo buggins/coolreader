@@ -108,9 +108,8 @@ public:
 
     bool SetAlias(lString8 alias, lString8 facename, int id, bool bold, bool italic);
 
-    virtual LVFontRef
-    GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
-            int documentId, bool useBias=false);
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
+            int features = 0, int documentId = -1, bool useBias = false);
 
     bool checkCharSet(FT_Face face);
 

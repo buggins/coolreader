@@ -52,6 +52,14 @@ enum css_decl_code {
     cssd_font_size,
     cssd_font_style,
     cssd_font_weight,
+    cssd_font_features,           // font-feature-settings (not yet parsed)
+    cssd_font_variant,            // all these are parsed specifically and mapped into
+    cssd_font_variant_ligatures,  // the same style->font_features 31 bits bitmap
+    cssd_font_variant_caps,
+    cssd_font_variant_position,
+    cssd_font_variant_numeric,
+    cssd_font_variant_east_asian,
+    cssd_font_variant_alternates,
     cssd_text_indent,
     cssd_line_height,
     cssd_letter_spacing,
@@ -136,6 +144,14 @@ static const char * css_decl_name[] = {
     "font-size",
     "font-style",
     "font-weight",
+    "font-feature-settings",
+    "font-variant",
+    "font-variant-ligatures",
+    "font-variant-caps",
+    "font-variant-position",
+    "font-variant-numeric",
+    "font-variant-east-asian",
+    "font-variant-alternates",
     "text-indent",
     "line-height",
     "letter-spacing",
@@ -1503,6 +1519,110 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
             case cssd_font_weight:
                 n = parse_name( decl, css_fw_names, -1 );
                 break;
+            case cssd_font_features: // font-feature-settings
+                // Not (yet) implemented.
+                // We map font-variant(|-*) values into the style->font_features bitmap,
+                // that is associated to cssd_font_features, as "font-feature-settings" looks
+                // nearer (than font-variant) to how we handle internally OpenType feature tags.
+                // But font-variant and font-feature-settings, even if they enable the same
+                // OpenType feature tags, should have each a life (inheritance) of their own,
+                // which we won't really ensure by mapping all of them into style->font_features.
+                // Also, font-feature-settings is quite more complicated to parse (optionnal
+                // arguments, 0|1|2|3|on|off...), and we would only support up to the 31 tags
+                // that can be stored in the bitmap, so ignoring all possible others.
+                // As font-feature-settings is quite new, let's not support it (quite
+                // often, publishers will include both font-variant and font-feature-settings
+                // in a same declaration, so we should be fine).
+                break;
+            case cssd_font_variant:
+            case cssd_font_variant_ligatures:
+            case cssd_font_variant_caps:
+            case cssd_font_variant_position:
+            case cssd_font_variant_numeric:
+            case cssd_font_variant_east_asian:
+            case cssd_font_variant_alternates:
+                {
+                    // https://drafts.csswg.org/css-fonts-3/#propdef-font-variant
+                    // https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant
+                    bool parse_ligatures =  prop_code == cssd_font_variant || prop_code == cssd_font_variant_ligatures;
+                    bool parse_caps =       prop_code == cssd_font_variant || prop_code == cssd_font_variant_caps;
+                    bool parse_position =   prop_code == cssd_font_variant || prop_code == cssd_font_variant_position;
+                    bool parse_numeric =    prop_code == cssd_font_variant || prop_code == cssd_font_variant_numeric;
+                    bool parse_eastasian =  prop_code == cssd_font_variant || prop_code == cssd_font_variant_east_asian;
+                    bool parse_alternates = prop_code == cssd_font_variant || prop_code == cssd_font_variant_alternates;
+                    // All values are mapped into a single style->font_features 31 bits bitmap
+                    prop_code = cssd_font_features;
+                    int features = 0; // "normal" = no extra feature
+                    int nb_parsed = 0;
+                    int nb_invalid = 0;
+                    while ( *decl && *decl !=';' && *decl!='}') {
+                        if ( substr_icompare("normal", decl) ) {
+                            features = 0;
+                        }
+                        else if ( substr_icompare("none", decl) ) {
+                            features = 0;
+                        }
+                        // Details in crengine/include/lvfntman.h
+                        else if ( parse_ligatures  && substr_icompare("no-common-ligatures", decl) )        features |= LFNT_OT_FEATURES_M_LIGA;
+                        else if ( parse_ligatures  && substr_icompare("no-contextual", decl) )              features |= LFNT_OT_FEATURES_M_CALT;
+                        else if ( parse_ligatures  && substr_icompare("discretionary-ligatures", decl) )    features |= LFNT_OT_FEATURES_P_DLIG;
+                        else if ( parse_ligatures  && substr_icompare("no-discretionary-ligatures", decl) ) features |= LFNT_OT_FEATURES_M_DLIG;
+                        else if ( parse_ligatures  && substr_icompare("historical-ligatures", decl) )       features |= LFNT_OT_FEATURES_P_HLIG;
+                        else if ( parse_ligatures  && substr_icompare("no-historical-ligatures", decl) )    features |= LFNT_OT_FEATURES_M_HLIG;
+                        else if ( parse_alternates && substr_icompare("historical-forms", decl) )           features |= LFNT_OT_FEATURES_P_HIST;
+                        else if ( parse_eastasian  && substr_icompare("ruby", decl) )                       features |= LFNT_OT_FEATURES_P_RUBY;
+                        else if ( parse_caps       && substr_icompare("small-caps", decl) )                 features |= LFNT_OT_FEATURES_P_SMCP;
+                        else if ( parse_caps       && substr_icompare("all-small-caps", decl) )             features |= LFNT_OT_FEATURES_P_C2SC;
+                        else if ( parse_caps       && substr_icompare("petite-caps", decl) )                features |= LFNT_OT_FEATURES_P_PCAP;
+                        else if ( parse_caps       && substr_icompare("all-petite-caps", decl) )            features |= LFNT_OT_FEATURES_P_C2PC;
+                        else if ( parse_caps       && substr_icompare("unicase", decl) )                    features |= LFNT_OT_FEATURES_P_UNIC;
+                        else if ( parse_caps       && substr_icompare("titling-caps", decl) )               features |= LFNT_OT_FEATURES_P_TITL;
+                        else if ( parse_position   && substr_icompare("super", decl) )                      features |= LFNT_OT_FEATURES_P_SUPS;
+                        else if ( parse_position   && substr_icompare("sub", decl) )                        features |= LFNT_OT_FEATURES_P_SUBS;
+                        else if ( parse_numeric    && substr_icompare("lining-nums", decl) )                features |= LFNT_OT_FEATURES_P_LNUM;
+                        else if ( parse_numeric    && substr_icompare("oldstyle-nums", decl) )              features |= LFNT_OT_FEATURES_P_ONUM;
+                        else if ( parse_numeric    && substr_icompare("proportional-nums", decl) )          features |= LFNT_OT_FEATURES_P_PNUM;
+                        else if ( parse_numeric    && substr_icompare("tabular-nums", decl) )               features |= LFNT_OT_FEATURES_P_TNUM;
+                        else if ( parse_numeric    && substr_icompare("slashed-zero", decl) )               features |= LFNT_OT_FEATURES_P_ZERO;
+                        else if ( parse_numeric    && substr_icompare("ordinal", decl) )                    features |= LFNT_OT_FEATURES_P_ORDN;
+                        else if ( parse_numeric    && substr_icompare("diagonal-fractions", decl) )         features |= LFNT_OT_FEATURES_P_FRAC;
+                        else if ( parse_numeric    && substr_icompare("stacked-fractions", decl) )          features |= LFNT_OT_FEATURES_P_AFRC;
+                        else if ( parse_eastasian  && substr_icompare("simplified", decl) )                 features |= LFNT_OT_FEATURES_P_SMPL;
+                        else if ( parse_eastasian  && substr_icompare("traditional", decl) )                features |= LFNT_OT_FEATURES_P_TRAD;
+                        else if ( parse_eastasian  && substr_icompare("full-width", decl) )                 features |= LFNT_OT_FEATURES_P_FWID;
+                        else if ( parse_eastasian  && substr_icompare("proportional-width", decl) )         features |= LFNT_OT_FEATURES_P_PWID;
+                        else if ( parse_eastasian  && substr_icompare("jis78", decl) )                      features |= LFNT_OT_FEATURES_P_JP78;
+                        else if ( parse_eastasian  && substr_icompare("jis83", decl) )                      features |= LFNT_OT_FEATURES_P_JP83;
+                        else if ( parse_eastasian  && substr_icompare("jis04", decl) )                      features |= LFNT_OT_FEATURES_P_JP04;
+
+                        else if ( parse_important(decl) ) {
+                            parsed_important = IMPORTANT_DECL_SET;
+                            break; // stop looking for more
+                        }
+                        else { // unsupported or invalid named value
+                            nb_invalid++;
+                            // Firefox would ignore the whole declaration if it contains a non-standard named value.
+                            // As we don't parse all valid values (eg. styleset(user-defined-ident)), we just skip
+                            // them without failing the whole.
+                            // Walk over unparsed value
+                            while (*decl && *decl !=' ' && *decl !=';' && *decl!='}')
+                                decl++;
+                        }
+                        nb_parsed++;
+                        skip_spaces( decl );
+                    }
+                    if ( nb_parsed - nb_invalid > 0 ) { // at least one valid named value seen
+                        buf<<(lUInt32) (prop_code | importance | parsed_important);
+                        buf<<(lUInt32) css_val_unspecified; // len.type
+                        buf<<(lUInt32) features; // len.value
+                        // css_val_unspecified just says this value has no unit
+                        // For cssd_font_features, it actually means there is a value specified.
+                        // The default of (css_val_inherited, 0) is what means there was no
+                        // value specified, and that it should be inherited, from possibly
+                        // the root note that has (css_val_unspecified, 0).
+                    }
+                }
+                break;
             case cssd_text_indent:
                 {
                     // read length
@@ -2214,6 +2334,11 @@ void LVCssDeclaration::apply( css_style_rec_t * style )
             break;
         case cssd_font_size:
             style->Apply( read_length(p), &style->font_size, imp_bit_font_size, is_important );
+            break;
+        case cssd_font_features:
+            // We want to 'OR' the bitmap from any declaration that is to be applied to this node
+            // (while still ensuring !important).
+            style->ApplyAsBitmapOr( read_length(p), &style->font_features, imp_bit_font_features, is_important );
             break;
         case cssd_text_indent:
             style->Apply( read_length(p), &style->text_indent, imp_bit_text_indent, is_important );

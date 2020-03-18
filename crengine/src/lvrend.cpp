@@ -2125,6 +2125,7 @@ LVFontRef getFont(css_style_rec_t * style, int documentId)
         style->font_style==css_fs_italic,
         style->font_family,
         lString8(style->font_name.c_str()),
+        style->font_features.value, // (.type is always css_val_unspecified after setNodeStyle())
         documentId, true); // useBias=true, so that our preferred font gets used
     //fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
     return fnt;
@@ -3390,6 +3391,8 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->font_size.value = source->font_size.value ;
     dest->font_style = source->font_style ;
     dest->font_weight = source->font_weight ;
+    dest->font_features.type = source->font_features.type ;
+    dest->font_features.value = source->font_features.value ;
     dest->text_indent = source->text_indent ;
     dest->line_height = source->line_height ;
     dest->width = source->width ;
@@ -8730,6 +8733,25 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
     UPDATE_STYLE_FIELD( font_family, css_ff_inherit );
     //UPDATE_LEN_FIELD( font_size ); // this is done below
+
+    // font_features (font-variant/font-feature-settings)
+    // The specs say a font-variant resets the ones that would be
+    // inherited (as inheritance always does).
+    // But, as we store in a single bitmap the values from multiple
+    // properties (font-variant, font-variant-caps...), we drift from
+    // the specs by OR'ing the ones sets by style on this node with
+    // the ones inherited from parents (so we can use style-tweaks
+    // like body { font-variant: oldstyle-nums; } without that being
+    // reset by a lower H1 { font-variant: small-caps; }.
+    // Note that we don't handle the !important bit whether it's set
+    // for this node or the parent (if it's set on the parent, we
+    // could decide to = instead of |=), as it's not clear whether
+    // it's better or not: we'll see.
+    // (Note that we can use * { font-variant: normal !important; } to
+    // stop any font-variant without !important from being applied.)
+    pstyle->font_features.value |= parent_style->font_features.value;
+    pstyle->font_features.type = css_val_unspecified;
+
     //UPDATE_LEN_FIELD( text_indent );
     spreadParent( pstyle->text_indent, parent_style->text_indent );
     switch( pstyle->font_weight )

@@ -38,7 +38,8 @@ LVWin32FontManager::LVWin32FontManager()
     //_log = fopen( "fonts.log", "wt" );
 }
 
-LVFontRef LVWin32FontManager::GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface, int documentId)
+LVFontRef LVWin32FontManager::GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface,
+                                      int features, int documentId, bool useBias)
 {
     int italic = bitalic?1:0;
     if (size < 8)
@@ -51,6 +52,7 @@ LVFontRef LVWin32FontManager::GetFont(int size, int weight, bool bitalic, css_fo
                 size,
                 weight,
                 italic,
+                0,
                 family,
                 typeface
                 );
@@ -119,6 +121,7 @@ bool LVWin32FontManager::RegisterFont(const LOGFONTA *lf)
                 -1, //lf->lfHeight>0 ? lf->lfHeight : -lf->lfHeight,
                 -1, //lf->lfWeight,
                 -1, //lf->lfItalic!=0,
+                -1,
                 ff,
                 face
                 );

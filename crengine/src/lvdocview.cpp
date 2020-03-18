@@ -6758,7 +6758,7 @@ bool SimpleTitleFormatter::splitLines(const char * delimiter) {
     return measure();
 }
 bool SimpleTitleFormatter::format(int fontSize) {
-    _font = fontMan->GetFont(fontSize, _bold ? 800 : 400, _italic, css_ff_sans_serif, _fontFace, -1);
+    _font = fontMan->GetFont(fontSize, _bold ? 800 : 400, _italic, css_ff_sans_serif, _fontFace, 0, -1);
     _lineHeight = _font->getHeight() * 120 / 100;
     _lines.clear();
     int singleLineWidth = _font->getTextWidth(_text.c_str(), _text.length());
@@ -6911,7 +6911,7 @@ void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, lString8 fontFace,
     buf.FillRect(rc3, palette->vline);
 
 
-	LVFontRef fnt = fontMan->GetFont(16, 400, false, css_ff_sans_serif, fontFace, -1); // = fontMan
+	LVFontRef fnt = fontMan->GetFont(16, 400, false, css_ff_sans_serif, fontFace, 0, -1); // = fontMan
 	if (!fnt.isNull()) {
 
 		rc.left += rc.width() / 10;
