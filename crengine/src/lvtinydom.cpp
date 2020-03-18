@@ -8825,6 +8825,204 @@ lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber )
     return res;
 }
 
+lString16 extractDocKeywords( ldomDocument * doc )
+{
+    lString16 res;
+    // Year
+    res << doc->createXPointer(L"/FictionBook/description/title-info/date").getText().trim();
+    // Genres
+    for ( int i=0; i<16; i++) {
+        lString16 path = cs16("/FictionBook/description/title-info/genre[") + fmt::decimal(i+1) + "]";
+        ldomXPointer genre = doc->createXPointer(path);
+        if ( !genre ) {
+            break;
+        }
+        if ( !res.empty() )
+            res << "\n";
+        res << genre.getText().trim();
+    }
+    return res;
+}
+
+lString16 extractDocDescription( ldomDocument * doc )
+{
+    // We put all other FB2 meta info in this description
+    lString16 res;
+
+    // Annotation (description)
+    res << doc->createXPointer(L"/FictionBook/description/title-info/annotation").getText().trim();
+
+    // Translators
+    lString16 translators;
+    int nbTranslators = 0;
+    for ( int i=0; i<16; i++) {
+        lString16 path = cs16("/FictionBook/description/title-info/translator[") + fmt::decimal(i+1) + "]";
+        ldomXPointer ptranslator = doc->createXPointer(path);
+        if ( !ptranslator ) {
+            break;
+        }
+        lString16 firstName = ptranslator.relative( L"/first-name" ).getText().trim();
+        lString16 lastName = ptranslator.relative( L"/last-name" ).getText().trim();
+        lString16 middleName = ptranslator.relative( L"/middle-name" ).getText().trim();
+        lString16 translator = firstName;
+        if ( !translator.empty() )
+            translator += " ";
+        if ( !middleName.empty() )
+            translator += middleName;
+        if ( !lastName.empty() && !translator.empty() )
+            translator += " ";
+        translator += lastName;
+        if ( !translators.empty() )
+            translators << "\n";
+        translators << translator;
+        nbTranslators++;
+    }
+    if ( !translators.empty() ) {
+        if ( !res.empty() )
+            res << "\n\n";
+        if ( nbTranslators > 1 )
+            res << "Translators:\n" << translators;
+        else
+            res << "Translator: " << translators;
+    }
+
+    // Publication info & publisher
+    ldomXPointer publishInfo = doc->createXPointer(L"/FictionBook/description/publish-info");
+    if ( !publishInfo.isNull() ) {
+        lString16 publisher = publishInfo.relative( L"/publisher" ).getText().trim();
+        lString16 pubcity = publishInfo.relative( L"/city" ).getText().trim();
+        lString16 pubyear = publishInfo.relative( L"/year" ).getText().trim();
+        lString16 isbn = publishInfo.relative( L"/isbn" ).getText().trim();
+        lString16 bookName = publishInfo.relative( L"/book-name" ).getText().trim();
+        lString16 publication;
+        if ( !publisher.empty() || !pubcity.empty() ) {
+            if ( !publisher.empty() ) {
+                publication << publisher;
+            }
+            if ( !pubcity.empty() ) {
+                if ( !!publisher.empty() ) {
+                    publication << ", ";
+                }
+                publication << pubcity;
+            }
+        }
+        if ( !pubyear.empty() || !isbn.empty() ) {
+            if ( !publication.empty() )
+                publication << "\n";
+            if ( !pubyear.empty() ) {
+                publication << pubyear;
+            }
+            if ( !isbn.empty() ) {
+                if ( !pubyear.empty() ) {
+                    publication << ", ";
+                }
+                publication << isbn;
+            }
+        }
+        if ( !bookName.empty() ) {
+            if ( !publication.empty() )
+                publication << "\n";
+            publication << bookName;
+        }
+        if ( !publication.empty() ) {
+            if ( !res.empty() )
+                res << "\n\n";
+            res << "Publication:\n" << publication;
+        }
+    }
+
+    // Document info
+    ldomXPointer pDocInfo = doc->createXPointer(L"/FictionBook/description/document-info");
+    if ( !pDocInfo.isNull() ) {
+        lString16 docInfo;
+        lString16 docAuthors;
+        int nbAuthors = 0;
+        for ( int i=0; i<16; i++) {
+            lString16 path = cs16("/FictionBook/description/document-info/author[") + fmt::decimal(i+1) + "]";
+            ldomXPointer pdocAuthor = doc->createXPointer(path);
+            if ( !pdocAuthor ) {
+                break;
+            }
+            lString16 firstName = pdocAuthor.relative( L"/first-name" ).getText().trim();
+            lString16 lastName = pdocAuthor.relative( L"/last-name" ).getText().trim();
+            lString16 middleName = pdocAuthor.relative( L"/middle-name" ).getText().trim();
+            lString16 docAuthor = firstName;
+            if ( !docAuthor.empty() )
+                docAuthor += " ";
+            if ( !middleName.empty() )
+                docAuthor += middleName;
+            if ( !lastName.empty() && !docAuthor.empty() )
+                docAuthor += " ";
+            docAuthor += lastName;
+            if ( !docAuthors.empty() )
+                docAuthors << "\n";
+            docAuthors << docAuthor;
+            nbAuthors++;
+        }
+        if ( !docAuthors.empty() ) {
+            if ( nbAuthors > 1 )
+                docInfo << "Authors:\n" << docAuthors;
+            else
+                docInfo << "Author: " << docAuthors;
+        }
+        lString16 docPublisher = pDocInfo.relative( L"/publisher" ).getText().trim();
+        lString16 docId = pDocInfo.relative( L"/id" ).getText().trim();
+        lString16 docVersion = pDocInfo.relative( L"/version" ).getText().trim();
+        lString16 docDate = pDocInfo.relative( L"/date" ).getText().trim();
+        lString16 docHistory = pDocInfo.relative( L"/history" ).getText().trim();
+        lString16 docSrcUrl = pDocInfo.relative( L"/src-url" ).getText().trim();
+        lString16 docSrcOcr = pDocInfo.relative( L"/src-ocr" ).getText().trim();
+        lString16 docProgramUsed = pDocInfo.relative( L"/program-used" ).getText().trim();
+        if ( !docPublisher.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "Publisher: " << docPublisher;
+        }
+        if ( !docId.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "Id: " << docId;
+        }
+        if ( !docVersion.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "Version: " << docVersion;
+        }
+        if ( !docDate.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "Date: " << docDate;
+        }
+        if ( !docHistory.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "History: " << docHistory;
+        }
+        if ( !docSrcUrl.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "URL: " << docSrcUrl;
+        }
+        if ( !docSrcOcr.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "OCR: " << docSrcOcr;
+        }
+        if ( !docProgramUsed.empty() ) {
+            if ( !docInfo.empty() )
+                docInfo << "\n";
+            docInfo << "Application: " << docProgramUsed;
+        }
+        if ( !docInfo.empty() ) {
+            if ( !res.empty() )
+                res << "\n\n";
+            res << "Document:\n" << docInfo;
+        }
+    }
+
+    return res;
+}
+
 void ldomXPointerEx::initIndex()
 {
     int m[MAX_DOM_LEVEL];

@@ -2679,6 +2679,8 @@ lString16 extractDocTitle( ldomDocument * doc );
 lString16 extractDocLanguage( ldomDocument * doc );
 /// returns "(Series Name #number)" if pSeriesNumber is NULL, separate name and number otherwise
 lString16 extractDocSeries( ldomDocument * doc, int * pSeriesNumber=NULL );
+lString16 extractDocKeywords( ldomDocument * doc );
+lString16 extractDocDescription( ldomDocument * doc );
 
 bool IsEmptySpace( const lChar16 * text, int len );
 

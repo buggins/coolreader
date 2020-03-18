@@ -4791,10 +4791,12 @@ bool LVDocView::ParseDocument() {
 		if (m_doc_props->getStringDef(DOC_PROP_TITLE, "").empty()) {
 			m_doc_props->setString(DOC_PROP_AUTHORS, extractDocAuthors(m_doc));
 			m_doc_props->setString(DOC_PROP_TITLE, extractDocTitle(m_doc));
-			if (txt_autodet_lang.length() > 0)
+			if (txt_autodet_lang.length() > 0)      // true only for doc_format_txt
 				m_doc_props->setString(DOC_PROP_LANGUAGE, txt_autodet_lang);
 			else
 				m_doc_props->setString(DOC_PROP_LANGUAGE, extractDocLanguage(m_doc));
+			m_doc_props->setString(DOC_PROP_KEYWORDS, extractDocKeywords(m_doc));
+			m_doc_props->setString(DOC_PROP_DESCRIPTION, extractDocDescription(m_doc));
             int seriesNumber = -1;
             lString16 seriesName = extractDocSeries(m_doc, &seriesNumber);
             m_doc_props->setString(DOC_PROP_SERIES_NAME, seriesName);
