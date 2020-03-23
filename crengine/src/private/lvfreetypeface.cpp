@@ -148,7 +148,7 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar16
     int h = bitmap->rows;
     LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, ch, w, h);
     if (!item)
-        return 0;
+        return nullptr;
     if (bitmap->pixel_mode == FT_PIXEL_MODE_MONO) { //drawMonochrome
         lUInt8 mask = 0x80;
         const lUInt8 *ptr = (const lUInt8 *) bitmap->buffer;
@@ -185,7 +185,8 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lChar16
             }
         } else {
 #endif
-        memcpy(item->bmp, bitmap->buffer, w * h);
+        if (bitmap->buffer) 
+            memcpy(item->bmp, bitmap->buffer, w * h); // buffer can be NULL!!!
         // correct gamma
         if ( gammaIndex!=GAMMA_NO_CORRECTION_INDEX )
             cr_correct_gamma_buf(item->bmp, w * h, gammaIndex);
@@ -205,7 +206,7 @@ static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache *local_cache, lUInt32
     int h = bitmap->rows;
     LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, index, w, h);
     if (!item)
-        return 0;
+        return nullptr;
     if (bitmap->pixel_mode == FT_PIXEL_MODE_MONO) { //drawMonochrome
         lUInt8 mask = 0x80;
         const lUInt8 *ptr = (const lUInt8 *) bitmap->buffer;
