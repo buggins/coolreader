@@ -66,7 +66,7 @@ static int size_8 = 0;
 
 /// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective
 const lString8 & cs8(const char * str) {
-    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    size_t index = ((static_cast<size_t>((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
     for (;;) {
         const void * p = const_ptrs_8[index];
         if (p == str) {
@@ -95,12 +95,12 @@ static int size_16 = 0;
 
 /// get reference to atomic constant wide string for string literal e.g. cs16("abc") -- fast and memory effective
 const lString16 & cs16(const char * str) {
-    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    size_t index = ((static_cast<size_t>(((ptrdiff_t)str))) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
     for (;;) {
         const void * p = const_ptrs_16[index];
         if (p == str) {
             return values_16[index];
-        } else if (p == NULL) {
+        } else if (p == nullptr) {
 #if DEBUG_STATIC_STRING_ALLOC == 1
             CRLog::trace("allocating static string16 %s", str);
 #endif
@@ -120,7 +120,7 @@ const lString16 & cs16(const char * str) {
 
 /// get reference to atomic constant wide string for string literal e.g. cs16(L"abc") -- fast and memory effective
 const lString16 & cs16(const lChar16 * str) {
-    int index = (((int)((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
+    size_t index = ((static_cast<size_t>((ptrdiff_t)str)) * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
     for (;;) {
         const void * p = const_ptrs_16[index];
         if (p == str) {
